@@ -52,7 +52,11 @@ beide lassen sich abwechselnd verwenden.
   Auswahl setzen/entfernen, ID3-Version wählen, weitere Felder (einzelne Datei) bearbeiten/entfernen, XML-Editor.
   Werkzeuge mit Vorschau: **Tags aus Dateiname** (Muster z. B. `%track% - %artist% - %title%`, `%dummy%` überspringt),
   **Dateien umbenennen** (aus Tags, ungültige Zeichen → `_`, Kollisionen werden erkannt; sofort, nicht über
-  „Speichern“), **Spurnummern** (in Listenreihenfolge, optional mit Gesamtzahl). Vergleich und Tagger arbeiten mit
+  „Speichern“), **Spurnummern** (in Listenreihenfolge, optional mit Gesamtzahl), **Groß-/Kleinschreibung**
+  (Titel-Schreibweise, Satzanfang, GROSS, klein; Abkürzungen wie DJ/AC/DC bleiben, kleine Wörter wahlweise klein),
+  **Suchen & Ersetzen** (über alle markierten Dateien, wählbare Felder, ganze Wörter, reguläre Ausdrücke),
+  **Cover aus Ordner** (cover/folder/front/album.jpg|png im Ordner der Datei, sonst das größte Bild; wahlweise nur
+  für Dateien ohne Cover) und **Liste exportieren** (Excel .xlsx oder CSV mit Semikolon). Vergleich und Tagger arbeiten mit
   denselben Dateien – Änderungen sind in beiden sichtbar und werden zusammen gespeichert.
 - **Tag-Fixer** (Seitenleiste): Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare,
   alle Dateien, Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte),
@@ -222,7 +226,8 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `session.py` – Zustand und Befehle einer Sitzung für die neue Oberfläche
 - `undo.py` – Rückgängig/Wiederholen
 - `xmltools.py` – XML in Feldern erkennen, prüfen, formatieren/kompakt schreiben
-- `tagger.py` – Tagger-Logik: gemeinsame Felder, Tags aus Dateiname, Umbenennen, Spurnummern, Cover
+- `tagger.py` – Tagger-Logik: gemeinsame Felder, Tags aus Dateiname, Umbenennen, Spurnummern, Cover,
+  Groß-/Kleinschreibung, Suchen & Ersetzen, Cover aus Ordner, Export (CSV/Excel ohne Zusatzpakete)
 - `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)

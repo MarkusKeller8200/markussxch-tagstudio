@@ -857,3 +857,77 @@ class Session:
                 return {"ok": False, "error": "Dieses Feld enthält kein XML."}
             return {"ok": True, "text": x[0], "editable": x[1], "label": key_label(key),
                     "file": os.path.basename(f.path), "key": key}
+
+    # ================================================================== Tagger: weitere Werkzeuge
+    def _plan_rows(self, plan, limit=2000):
+        return [{"name": os.path.basename(f.path), "label": key_label(k), "old": o.replace(MV, MV_SHOW),
+                 "new": n.replace(MV, MV_SHOW)} for f, k, o, n in plan[:limit]]
+
+    def _apply_plan(self, idx, plan, label, msg):
+        self.undo.checkpoint(label, list({id(f): f for f, *_ in plan}.values()))
+        for f, k, _o, n in plan:
+            f.set_text(k, n)
+        self.undo.commit()
+        d = self.tag_detail(idx)
+        d["message"] = msg
+        return d
+
+    def tag_case_modes(self):
+        return [[k, v] for k, v in tagger.CASE_MODES.items()]
+
+    def tag_case(self, idx, keys, mode, keep_upper=True, small_words=False, apply=False):
+        with self.lock:
+            files = self._tsel(idx)
+            plan = tagger.plan_case(files, keys or None, mode, bool(keep_upper), bool(small_words))
+            if not apply:
+                return {"rows": self._plan_rows(plan), "count": len(plan), "files": len({id(f) for f, *_ in plan})}
+            return self._apply_plan(idx, plan, "Schreibweise geändert",
+                                    f"Schreibweise in {len(plan)} Feld(ern) geändert – noch nicht gespeichert.")
+
+    def tag_replace(self, idx, keys, find, repl, case=False, regex=False, word=False, apply=False):
+        with self.lock:
+            files = self._tsel(idx)
+            try:
+                plan = tagger.plan_replace(files, keys or None, find, repl, bool(case), bool(regex), bool(word))
+            except ValueError as ex:
+                return {"error": str(ex), "rows": [], "count": 0, "files": 0}
+            if not apply:
+                return {"rows": self._plan_rows(plan), "count": len(plan), "files": len({id(f) for f, *_ in plan})}
+            return self._apply_plan(idx, plan, "Suchen & Ersetzen",
+                                    f"{len(plan)} Feld(er) ersetzt – noch nicht gespeichert.")
+
+    def tag_folder_cover(self, idx, only_missing=True, apply=False):
+        with self.lock:
+            files = self._tsel(idx)
+            plan = tagger.plan_folder_cover(files, bool(only_missing))
+            if not apply:
+                return {"rows": [{"name": os.path.basename(p["file"].path),
+                                  "image": os.path.basename(p["image"]) if p["image"] else "",
+                                  "action": p["action"], "reason": p["reason"]} for p in plan],
+                        "count": sum(1 for p in plan if p["action"] == "set")}
+            todo = [p for p in plan if p["action"] == "set"]
+            self.undo.checkpoint("Cover aus Ordner", [p["file"] for p in todo])
+            cache, errors = {}, []
+            for p in todo:
+                try:
+                    data = cache.get(p["image"]) or self._read_image(p["image"])
+                    cache[p["image"]] = data
+                    tagger.set_cover([p["file"]], data)
+                except (OSError, ValueError) as ex:
+                    errors.append(f"{os.path.basename(p['image'])}: {ex}")
+            self.undo.commit()
+            d = self.tag_detail(idx)
+            d["message"] = f"Cover in {len(todo) - len(errors)} Datei(en) aus dem Ordner übernommen – noch nicht gespeichert."
+            d["errors"] = errors
+            return d
+
+    def tag_export_name(self, fmt):
+        base = os.path.basename(os.path.normpath(self.tag_root)) or "TagStudio"
+        return f"{base}.{'xlsx' if fmt == 'xlsx' else 'csv'}"
+
+    def tag_export_file(self, idx, fmt, dest):
+        with self.lock:
+            files = self._tsel(idx) if idx else list(self.tag_files)
+            head, rows = tagger.export_table(files, self.tag_root)
+            (tagger.write_xlsx if fmt == "xlsx" else tagger.write_csv)(dest, head, rows)
+            return {"ok": True, "path": dest, "count": len(rows)}

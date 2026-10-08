@@ -40,6 +40,7 @@ _PASS = {
     "backups", "set_backup", "start_backup_check", "start_restore", "delete_backup",
     "start_tag_load", "tagger_settings", "tag_rows", "tag_detail", "tag_set", "tag_remove", "tag_add_field",
     "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml",
+    "tag_case_modes", "tag_case", "tag_replace", "tag_folder_cover",
 }
 
 
@@ -147,6 +148,13 @@ class Api:
     def tag_cover_file(self, idx, start=""):
         p = self.pick_file("image", start)
         return self._s.tag_cover(list(idx), p) if p else None
+
+    def tag_export(self, idx, fmt="xlsx"):
+        """Liste der Tagger-Dateien (Auswahl oder alle) als Excel/CSV speichern."""
+        dest = self.save_dialog(self._s.tag_export_name(fmt))
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        return self._s.tag_export_file(list(idx or []), fmt, dest)
 
     def backup_pick_folder(self):
         p = self.pick_path("", True, self._s._backup_folder())

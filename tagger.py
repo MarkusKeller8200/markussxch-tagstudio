@@ -205,3 +205,210 @@ def plan_numbering(files, with_total: bool = True, start: int = 1) -> list[tuple
         if old != new:
             out.append((f, old, new))
     return out
+
+
+# =========================================================================== Groß-/Kleinschreibung
+CASE_MODES = {
+    "title": "Jedes Wort groß („Golden Hour“)",
+    "sentence": "Nur erster Buchstabe groß („Golden hour“)",
+    "upper": "ALLES GROSS",
+    "lower": "alles klein",
+}
+SMALL_WORDS = {"a", "an", "and", "as", "at", "but", "by", "for", "from", "in", "into", "of", "on", "or", "the", "to",
+               "vs", "feat", "ft", "with", "und", "oder", "von", "vom", "zu", "zum", "zur", "im", "am", "mit", "für",
+               "de", "la", "le", "les", "du", "des", "del", "y", "e"}
+_WORD = re.compile(r"[^\W\d_]+(?:['’][^\W\d_]+)*")
+
+
+def change_case(text: str, mode: str, keep_upper: bool = True, small_words: bool = False) -> str:
+    """Schreibweise ändern; Mehrfachwerte werden einzeln behandelt.
+    keep_upper: Abkürzungen in Großbuchstaben (DJ, AC/DC, II) bleiben. small_words: and/of/the/feat. … klein (Titel)."""
+    if mode not in CASE_MODES:
+        raise ValueError(f"Unbekannte Schreibweise: {mode}")
+    out = []
+    for part in text.split(MV):
+        if mode == "upper":
+            out.append(part.upper())
+        elif mode == "lower":
+            out.append(part.lower())
+        elif mode == "sentence":
+            low = _WORD.sub(lambda m: m.group(0) if keep_upper and len(m.group(0)) > 1 and m.group(0).isupper()
+                            else m.group(0).lower(), part)
+            m = _WORD.search(low)
+            out.append(low[:m.start()] + low[m.start()].upper() + low[m.start() + 1:] if m else low)
+        else:
+            first = [True]
+
+            def cap(m):
+                w = m.group(0)
+                is_first = first[0]
+                first[0] = False
+                if keep_upper and len(w) > 1 and w.isupper():
+                    return w
+                if small_words and not is_first and w.lower() in SMALL_WORDS:
+                    return w.lower()
+                return w[0].upper() + w[1:].lower()
+            out.append(_WORD.sub(cap, part))
+    return MV.join(out)
+
+
+def _text_items(f, keys):
+    """(key, Item) der Textfelder; keys None = alle bearbeitbaren Textfelder."""
+    for k, it in list(f.items.items()):
+        if it.kind not in ("text", "txxx", "comment", "lyrics", "url", "wxxx") or not it.editable:
+            continue
+        if keys is not None and k not in keys:
+            continue
+        yield k, it
+
+
+def plan_case(files, keys, mode, keep_upper=True, small_words=False) -> list[tuple]:
+    plan = []
+    for f in files:
+        for k, it in _text_items(f, keys):
+            new = change_case(it.text, mode, keep_upper, small_words)
+            if new != it.text:
+                plan.append((f, k, it.text, new))
+    return plan
+
+
+# =========================================================================== Suchen & Ersetzen
+def plan_replace(files, keys, find, repl, case=False, regex=False, word=False) -> list[tuple]:
+    """Suchen & Ersetzen in Textfeldern. keys None = alle Textfelder. Wirft ValueError bei ungültigem Muster.
+    Bei regex sind Rückverweise \\1 … bzw. \\g<name> im Ersatz erlaubt."""
+    if not find:
+        return []
+    pat = find if regex else re.escape(find)
+    if word:
+        pat = rf"\b(?:{pat})\b"
+    try:
+        rx = re.compile(pat, 0 if case else re.I)
+    except re.error as ex:
+        raise ValueError(f"Ungültiger regulärer Ausdruck: {ex}") from ex
+    plan = []
+    for f in files:
+        for k, it in _text_items(f, keys):
+            try:
+                new = rx.sub(repl if regex else repl.replace("\\", "\\\\"), it.text)
+            except (re.error, IndexError) as ex:
+                raise ValueError(f"Ungültiger Ersatz: {ex}") from ex
+            if new != it.text:
+                plan.append((f, k, it.text, new))
+    return plan
+
+
+# =========================================================================== Cover aus dem Ordner
+COVER_NAMES = ["cover", "folder", "front", "album", "albumart", "albumartlarge", "artwork"]
+IMAGE_EXT = (".jpg", ".jpeg", ".png", ".gif")
+
+
+def find_folder_image(folder: str, cache: dict | None = None):
+    """Bestes Bild im Ordner: bekannte Namen (cover/folder/front …), sonst das größte Bild. None, wenn keins."""
+    if cache is not None and folder in cache:
+        return cache[folder]
+    best = None
+    try:
+        imgs = [e for e in os.scandir(folder) if e.is_file() and e.name.lower().endswith(IMAGE_EXT)]
+    except OSError:
+        imgs = []
+    by_name = {os.path.splitext(e.name)[0].lower(): e.path for e in imgs}
+    for n in COVER_NAMES:
+        if n in by_name:
+            best = by_name[n]
+            break
+    if best is None and imgs:
+        best = max(imgs, key=lambda e: e.stat().st_size).path
+    if cache is not None:
+        cache[folder] = best
+    return best
+
+
+def plan_folder_cover(files, only_missing=True) -> list[dict]:
+    """[{"file", "image": Pfad|None, "action": "set"|"skip", "reason"}]"""
+    cache, out = {}, []
+    for f in files:
+        img = find_folder_image(os.path.dirname(f.path), cache)
+        has = f.get("APIC:3") is not None
+        if img is None:
+            out.append({"file": f, "image": None, "action": "skip", "reason": "kein Bild im Ordner"})
+        elif has and only_missing:
+            out.append({"file": f, "image": img, "action": "skip", "reason": "hat schon ein Cover"})
+        else:
+            out.append({"file": f, "image": img, "action": "set", "reason": "ersetzen" if has else "neu"})
+    return out
+
+
+# =========================================================================== Export
+def export_table(files, root: str = "") -> tuple[list[str], list[list]]:
+    head = ["Datei", "Ordner"] + [label for _k, label, _p in FIELDS] + ["Dauer", "Bitrate (kbps)", "ID3", "Cover",
+                                                                       "Größe (Bytes)"]
+    rows = []
+    for f in files:
+        dur = getattr(f, "duration", 0) or 0
+        m, s = divmod(int(round(dur)), 60)
+        rows.append([os.path.basename(f.path), os.path.dirname(f.path)]
+                    + [text_of(f, k) for k, _l, _p in FIELDS]
+                    + [f"{m}:{s:02d}" if dur else "", getattr(f, "bitrate", "") or "", f.tag_desc,
+                       "ja" if f.get("APIC:3") is not None else "nein", f.size])
+    return head, rows
+
+
+def write_csv(path, head, rows):
+    """CSV für Excel (UTF-8 mit BOM, Semikolon)."""
+    import csv
+    with open(path, "w", encoding="utf-8-sig", newline="") as fh:
+        w = csv.writer(fh, delimiter=";")
+        w.writerow(head)
+        w.writerows(rows)
+
+
+_XML_BAD = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+
+def _xl(s) -> str:
+    s = _XML_BAD.sub("", str(s))
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+def _col(n: int) -> str:
+    s = ""
+    n += 1
+    while n:
+        n, r = divmod(n - 1, 26)
+        s = chr(65 + r) + s
+    return s
+
+
+def write_xlsx(path, head, rows, sheet="TagStudio"):
+    """Minimales Excel-Dokument (ohne Zusatzpakete): eine Tabelle, fette Kopfzeile, Filter, fixierte Kopfzeile."""
+    import zipfile
+
+    def cell(r, c, v, style=0):
+        ref = f"{_col(c)}{r}"
+        st = f' s="{style}"' if style else ""
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            return f'<c r="{ref}"{st}><v>{v}</v></c>'
+        return f'<c r="{ref}" t="inlineStr"{st}><is><t xml:space="preserve">{_xl(v)}</t></is></c>'
+    lines = [f'<row r="1">{"".join(cell(1, c, v, 1) for c, v in enumerate(head))}</row>']
+    for r, row in enumerate(rows, 2):
+        lines.append(f'<row r="{r}">{"".join(cell(r, c, v) for c, v in enumerate(row))}</row>')
+    last = f"{_col(len(head) - 1)}{len(rows) + 1}"
+    widths = [max([len(str(head[c]))] + [len(str(row[c])) for row in rows[:500] if c < len(row)]) for c in range(len(head))]
+    cols = "".join(f'<col min="{c + 1}" max="{c + 1}" width="{min(60, max(8, w + 2))}" customWidth="1"/>'
+                   for c, w in enumerate(widths))
+    ws = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+          '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+          '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" '
+          'state="frozen"/></sheetView></sheetViews>'
+          f'<cols>{cols}</cols><sheetData>{"".join(lines)}</sheetData><autoFilter ref="A1:{last}"/></worksheet>')
+    files = {
+        "[Content_Types].xml": '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
+        "_rels/.rels": '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+        "xl/workbook.xml": f'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="{_xl(sheet)}" sheetId="1" r:id="rId1"/></sheets><definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">\'{_xl(sheet)}\'!$A$1:${_col(len(head) - 1)}${len(rows) + 1}</definedName></definedNames></workbook>',
+        "xl/_rels/workbook.xml.rels": '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+        "xl/styles.xml": '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="2"><xf/><xf fontId="1" applyFont="1"/></cellXfs></styleSheet>',
+        "xl/worksheets/sheet1.xml": ws,
+    }
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
+        for name, data in files.items():
+            z.writestr(name, data)

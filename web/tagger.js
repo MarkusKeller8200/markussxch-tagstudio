@@ -166,6 +166,10 @@ function renderTgEditor() {
       <button class="ghost" id="tgNumber" ${d.count > 1 ? "" : "disabled"}>Spurnummern …</button>
       <button class="ghost" id="tgAddField">Feld hinzufügen …</button>
       <button class="ghost" id="tgFixer">Tag-Fixer …</button>
+      <button class="ghost" id="tgCase">Groß-/Kleinschreibung …</button>
+      <button class="ghost" id="tgReplace">Suchen &amp; Ersetzen …</button>
+      <button class="ghost" id="tgFolderCover">Cover aus Ordner …</button>
+      <button class="ghost" id="tgExport">Liste exportieren …</button>
       ${one ? '<button class="ghost" id="tgReveal">' + (IS_MAC ? "Im Finder zeigen" : "Im Explorer zeigen") + "</button>" : ""}
     </div>${more}`;
   if (d.version) $("#tgVer").value = String(d.version);
@@ -279,6 +283,124 @@ function tgEditMore(row) {
   inp.addEventListener("blur", () => finish(true));
 }
 
+// ---------------------------------------------------------------------- Werkzeuge mit Vorschau
+/** Felder-Auswahl: „Alle Textfelder“ oder einzelne Standardfelder */
+function fieldsPicker(defaults, allDefault = false) {
+  return `<label class="check"><input type="checkbox" class="fp-all" ${allDefault ? "checked" : ""}> Alle Textfelder (auch Benutzertexte, Kommentare …)</label>
+    <div class="checklist fp-list">${TG.settings.fields.map(([k, l]) => `<label><input type="checkbox" data-fk="${k}" ${defaults.includes(k) ? "checked" : ""}> ${esc(l)}</label>`).join("")}</div>`;
+}
+function pickedFields(b) {
+  if ($(".fp-all", b).checked) return null;
+  return $$("input[data-fk]:checked", b).map((c) => c.dataset.fk);
+}
+function bindFieldsPicker(b) {
+  const sync = () => { const all = $(".fp-all", b).checked; $$("input[data-fk]", b).forEach((c) => (c.disabled = all)); $(".fp-list", b).style.opacity = all ? 0.45 : 1; };
+  $(".fp-all", b).addEventListener("change", sync);
+  sync();
+}
+
+/** Vorschau-Dialog: preview(body) liefert {rows, count, error}; Spalten [Titel, Feld]; apply(body) führt aus. */
+async function toolDialog({ title, form, columns, preview, apply, applyLabel = "Übernehmen", onMount }) {
+  let timer = null, last = null, open = true, body = null;
+  const again = () => { clearTimeout(timer); timer = setTimeout(() => run(body), 220); };
+  const run = async (b) => {
+    if (!open || !$("#tdPrev", b)) return;
+    const r = await preview(b);
+    if (!open || !$("#tdPrev", b)) return;
+    last = r;
+    const err = r.error ? `<div class="empty st-missing">${esc(r.error)}</div>` : "";
+    $("#tdPrev", b).innerHTML = err || (r.rows.length
+      ? `<table><thead><tr>${columns.map(([t]) => `<th>${esc(t)}</th>`).join("")}</tr></thead><tbody>${r.rows.map((x) => `<tr>${columns.map(([, f, cls]) => `<td class="${typeof cls === "function" ? cls(x) : cls || ""}">${esc(x[f])}</td>`).join("")}</tr>`).join("")}</tbody></table>`
+      : '<div class="empty">Keine Änderungen.</div>');
+    $("#tdSum", b).textContent = r.error ? "" : r.summary || `${fmtN(r.count)} Änderung(en)${r.files !== undefined ? ` in ${fmtN(r.files)} Datei(en)` : ""}.`;
+    const btn = $("#mBtns .primary");
+    if (btn) { btn.disabled = !!r.error || !r.count; btn.textContent = r.count ? `${applyLabel} (${fmtN(r.count)})` : applyLabel; }
+  };
+  const res = await modal({
+    title, wide: true,
+    html: `${form}<div class="fx-table" id="tdPrev" style="max-height:42vh"></div><div class="muted sm" id="tdSum"></div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: applyLabel, value: true, primary: true }],
+    onMount: (b) => {
+      body = b;
+      if (onMount) onMount(b);
+      b.addEventListener("input", again);
+      b.addEventListener("change", again);
+      run(b);
+    },
+    collect: (b) => (last && last.count && !last.error ? b : false),
+  });
+  open = false; clearTimeout(timer);
+  body.removeEventListener("input", again);
+  body.removeEventListener("change", again);
+  if (res) taggerApplyDetail(await apply(res));
+}
+
+const CHG_COLS = [["Datei", "name"], ["Feld", "label"], ["Vorher", "old", "old"], ["Nachher", "new", "new"]];
+
+async function tgCaseDialog() {
+  const idx = tgSelected();
+  TG.caseModes = TG.caseModes || (await call("tag_case_modes"));
+  await toolDialog({
+    title: `Groß-/Kleinschreibung (${idx.length} Datei(en))`,
+    form: `<div class="radios" style="flex-wrap:wrap">${TG.caseModes.map(([k, l], n) => `<label><input type="radio" name="cm" value="${k}" ${n === 0 ? "checked" : ""}> ${esc(l)}</label>`).join("")}</div>
+      <div class="quick"><label class="check"><input type="checkbox" id="cmKeep" checked> Abkürzungen in GROSSBUCHSTABEN behalten (DJ, AC/DC, II)</label>
+      <label class="check"><input type="checkbox" id="cmSmall"> Kleine Wörter klein (and, of, the, feat., und, von …)</label></div>
+      ${fieldsPicker(["TIT2", "TPE1", "TALB", "TPE2"])}`,
+    columns: CHG_COLS,
+    onMount: bindFieldsPicker,
+    preview: (b) => call("tag_case", idx, pickedFields(b), b.querySelector('input[name="cm"]:checked').value, $("#cmKeep", b).checked, $("#cmSmall", b).checked, false),
+    apply: (b) => call("tag_case", idx, pickedFields(b), b.querySelector('input[name="cm"]:checked').value, $("#cmKeep", b).checked, $("#cmSmall", b).checked, true),
+  });
+}
+
+async function tgReplaceDialog() {
+  const idx = tgSelected();
+  const args = (b, apply) => [idx, pickedFields(b), $("#rpFind", b).value, $("#rpRepl", b).value, $("#rpCase", b).checked, $("#rpRegex", b).checked, $("#rpWord", b).checked, apply];
+  await toolDialog({
+    title: `Suchen & Ersetzen (${idx.length} Datei(en))`,
+    form: `<div class="frm"><label for="rpFind">Suchen</label><input id="rpFind" autofocus spellcheck="false">
+      <label for="rpRepl">Ersetzen durch</label><input id="rpRepl" spellcheck="false" placeholder="leer = entfernen"></div>
+      <div class="quick"><label class="check"><input type="checkbox" id="rpCase"> Groß-/Kleinschreibung beachten</label>
+      <label class="check"><input type="checkbox" id="rpWord"> Nur ganze Wörter</label>
+      <label class="check"><input type="checkbox" id="rpRegex"> Regulärer Ausdruck (\\1 im Ersatz)</label></div>
+      ${fieldsPicker(["TIT2", "TPE1", "TALB", "TPE2", "TCON", "TCOM"], true)}`,
+    columns: CHG_COLS,
+    applyLabel: "Ersetzen",
+    onMount: bindFieldsPicker,
+    preview: (b) => (b.querySelector("#rpFind").value ? call("tag_replace", ...args(b, false)) : Promise.resolve({ rows: [], count: 0, summary: "Suchbegriff eingeben." })),
+    apply: (b) => call("tag_replace", ...args(b, true)),
+  });
+}
+
+async function tgFolderCoverDialog() {
+  const idx = tgSelected();
+  await toolDialog({
+    title: `Cover aus Bild im Ordner (${idx.length} Datei(en))`,
+    form: `<div class="hint">Gesucht wird pro Ordner nach cover / folder / front / album (.jpg, .png, .gif), sonst wird das größte Bild genommen.</div>
+      <label class="check"><input type="checkbox" id="fcMissing" checked> Nur Dateien ohne Cover</label>`,
+    columns: [["Datei", "name"], ["Bild", "image"], ["Aktion", "reason", (x) => (x.action === "set" ? "new" : "old")]],
+    preview: async (b) => { const r = await call("tag_folder_cover", idx, $("#fcMissing", b).checked, false); r.summary = `${fmtN(r.count)} von ${fmtN(r.rows.length)} Datei(en) bekommen ein Cover.`; return r; },
+    apply: (b) => call("tag_folder_cover", idx, $("#fcMissing", b).checked, true),
+  });
+}
+
+async function tgExportDialog() {
+  const idx = tgSelected();
+  const res = await modal({
+    title: "Liste exportieren",
+    html: `<div class="frm"><label>Dateien</label><div class="radios"><label><input type="radio" name="ex-s" value="sel" ${idx.length > 1 ? "checked" : ""}> Markierte (${idx.length})</label><label><input type="radio" name="ex-s" value="all" ${idx.length > 1 ? "" : "checked"}> Alle (${fmtN(TG.rows.length)})</label></div>
+      <label>Format</label><div class="radios"><label><input type="radio" name="ex-f" value="xlsx" checked> Excel (.xlsx)</label><label><input type="radio" name="ex-f" value="csv"> CSV (Semikolon, für Excel)</label></div></div>
+      <div class="hint">Spalten: Datei, Ordner, alle Standardfelder, Dauer, Bitrate, ID3-Version, Cover ja/nein, Größe.</div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Speichern unter …", value: true, primary: true }],
+    collect: (b) => ({ sel: b.querySelector('input[name="ex-s"]:checked').value === "sel", fmt: b.querySelector('input[name="ex-f"]:checked').value }),
+  });
+  if (!res) return;
+  const r = await call("tag_export", res.sel ? idx : [], res.fmt);
+  if (r.ok) status(`${fmtN(r.count)} Datei(en) exportiert: ${r.path}`, "ok");
+  else if (!r.cancelled) toast(r.error || "Export fehlgeschlagen.");
+  else if (!S.settings.native) toast("Im Browser-Modus ist kein Speichern-Dialog verfügbar – bitte das App-Fenster verwenden.");
+}
+
 // ---------------------------------------------------------------------- Ereignisse
 (function bindTagger() {
   $("#tgLoad").addEventListener("click", taggerLoad);
@@ -333,6 +455,10 @@ function tgEditMore(row) {
     else if (id === "tgAddField") tgAddField();
     else if (id === "tgFixer") setModule("fixer", { scope: "tag_sel" });
     else if (id === "tgReveal") call("reveal", TG.detail.file.path);
+    else if (id === "tgCase") tgCaseDialog();
+    else if (id === "tgReplace") tgReplaceDialog();
+    else if (id === "tgFolderCover") tgFolderCoverDialog();
+    else if (id === "tgExport") tgExportDialog();
     const row = e.target.closest(".tg-f");
     if (row && e.target.closest("[data-tdel]")) taggerApplyDetail(await call("tag_remove", [idx[0]], [row.dataset.key]));
     else if (row && e.target.closest("[data-txml]")) openXml(null, row.dataset.key, { tag: idx[0] });
