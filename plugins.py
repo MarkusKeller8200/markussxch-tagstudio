@@ -65,10 +65,27 @@ def _env_python(env_dir: str) -> str:
     return os.path.join(env_dir, "Scripts", "python.exe") if os.name == "nt" else os.path.join(env_dir, "bin", "python")
 
 
+# Von PyInstaller gesetzte Variablen, die ein fremdes Python (Plugin-Umgebung) stören würden
+_FROZEN_VARS = {"TCL_LIBRARY", "TK_LIBRARY", "PYTHONHOME", "PYTHONPATH", "SSL_CERT_FILE"}
+
+
+def _unfreeze_child_env():
+    """In der installierten Windows-App erben Kindprozesse sonst deren DLL-Suchpfad (PyInstaller-Eigenheit)."""
+    if getattr(sys, "frozen", False) and os.name == "nt":
+        try:
+            import ctypes
+            ctypes.windll.kernel32.SetDllDirectoryW(None)
+        except Exception:  # noqa: BLE001
+            pass
+
+
 def run_lines(cmd, on_line=None, cancel=None, env=None, cwd=None):
     """Startet einen Prozess, liefert jede Ausgabezeile an on_line. Rückgabe: (Exitcode, letzte Zeilen)."""
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-    e = dict(os.environ, PYTHONUNBUFFERED="1", PYTHONIOENCODING="utf-8")
+    _unfreeze_child_env()
+    e = {k: v for k, v in os.environ.items() if not k.startswith("_PYI") and k not in _FROZEN_VARS} \
+        if getattr(sys, "frozen", False) else dict(os.environ)
+    e.update(PYTHONUNBUFFERED="1", PYTHONIOENCODING="utf-8")
     if env:
         e.update(env)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8",
@@ -524,6 +541,30 @@ def pip_install(packages, cancel=None, progress=None) -> dict:
             "error": "" if rc == 0 else "pip meldet einen Fehler – Details im Protokoll."}
 
 
+def uv_command(install=False, progress=None, cancel=None):
+    """Aufruf für uv: in der installierten App die mitgelieferte uv-Datei, sonst uv aus dem Python-Paket
+    bzw. aus dem Suchpfad. Mit install=True wird uv bei Bedarf per pip nachinstalliert (nur Quellcode-Version)."""
+    exe = "uv.exe" if os.name == "nt" else "uv"
+    if getattr(sys, "frozen", False):
+        for base in (getattr(sys, "_MEIPASS", ""), os.path.dirname(sys.executable)):
+            cand = os.path.join(base, exe)
+            if base and os.path.isfile(cand):
+                return [cand]
+    if importlib.util.find_spec("uv") is not None and not getattr(sys, "frozen", False):
+        return [sys.executable, "-m", "uv"]
+    found = shutil.which("uv")
+    if found:
+        return [found]
+    if install and not getattr(sys, "frozen", False):
+        rc, tail = run_lines([sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "uv"],
+                             (lambda ln: progress(("text", ln[:160]))) if progress else None, cancel)
+        importlib.invalidate_caches()
+        if rc == 0:
+            return [sys.executable, "-m", "uv"]
+        raise RuntimeError("uv konnte nicht installiert werden:\n" + "\n".join(tail[-10:]))
+    raise RuntimeError("uv wurde nicht gefunden – in der installierten App sollte es mitgeliefert sein.")
+
+
 # Modulname → pip-Paket, wo sie sich unterscheiden (für das Nachinstallieren fehlender Module)
 MODULE_PACKAGES = {"yaml": "pyyaml", "sklearn": "scikit-learn", "cv2": "opencv-python", "PIL": "pillow",
                    "soundfile": "soundfile", "samplerate": "samplerate", "ml_collections": "ml-collections"}
@@ -547,15 +588,13 @@ def env_install(plugin, variant: dict, cancel=None, progress=None) -> dict:
 
     base = os.path.join(data_root(), plugin.id)
     os.makedirs(base, exist_ok=True)
-    if importlib.util.find_spec("uv") is None:
-        if getattr(sys, "frozen", False):
-            return {"ok": False, "error": "uv fehlt – in der gepackten App noch nicht unterstützt."}
-        r = step("Installiere uv (Umgebungs-Verwaltung) …",
-                 [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "uv"])
-        if r:
-            return r
-        importlib.invalidate_caches()
-    uv = [sys.executable, "-m", "uv"]
+    try:
+        say("Suche uv (Umgebungs-Verwaltung) …")
+        uv = uv_command(install=True, progress=progress, cancel=cancel)
+    except RuntimeError as ex:
+        path = write_log(f"{plugin.id}-installation.log", "\n".join(log + [str(ex)]))
+        return {"ok": False, "error": str(ex), "log": log[-40:], "logfile": path}
+    log.append("uv: " + " ".join(uv))
     marker = os.path.join(base, "env.json")
     attempt = os.path.join(base, "env-versuch.json")   # Variante des letzten (auch gescheiterten) Versuchs
     try:

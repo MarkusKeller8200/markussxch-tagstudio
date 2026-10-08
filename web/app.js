@@ -252,6 +252,12 @@ async function runUpdate() {
   let st;
   try { st = await call("update_status", true); } catch (e) { st = { ok: false, error: String(e.message || e) }; }
   showUpdateBadge(st);
+  if (!st.ok && st.frozen) {
+    const go = await dialog({ title: "Update", text: st.error,
+      buttons: [{ label: "Schliessen", value: null }, { label: "Releases auf GitHub öffnen", value: true, primary: true }] });
+    if (go) call("open_url", st.releases_url);
+    return;
+  }
   if (!st.ok) { await info("Update nicht möglich", st.error); return; }
   if (!st.behind) { toast(`Du hast die neueste Version (${st.branch}, ${st.current}).`); return; }
   const list = st.commits.map((c) => "• " + c).join("\n");

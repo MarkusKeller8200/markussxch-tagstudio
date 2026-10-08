@@ -304,7 +304,7 @@ class TestStems(PluginBase):
         self.assertIsNone(st["error"], st)
         self.assertTrue(st["result"]["ok"], st["result"])
         flat = [" ".join(c) for c in calls]
-        self.assertTrue(any(" -m uv venv --python 3.12 " in c for c in flat), flat)
+        self.assertTrue(any("venv --python 3.12 " in c for c in flat), flat)
         inst = next(c for c in flat if " pip install --python " in c)
         self.assertIn("audio-separator[gpu]", inst)
         self.assertIn("--extra-index-url https://download.pytorch.org/whl/cu128", inst)
@@ -351,6 +351,30 @@ class TestStems(PluginBase):
             self.assertTrue(any(" venv " in c for c in calls))
         finally:
             plugins.run_lines = orig
+
+    def test_uv_command(self):
+        import shutil as sh
+        import sys as _sys
+        orig_which, orig_find = sh.which, plugins.importlib.util.find_spec
+        try:
+            plugins.importlib.util.find_spec = lambda name: None if name == "uv" else orig_find(name)
+            sh.which = lambda name: None
+            with self.assertRaises(RuntimeError):
+                plugins.uv_command()
+            sh.which = lambda name: "/opt/uv"
+            self.assertEqual(plugins.uv_command(), ["/opt/uv"])
+            # installierte App: mitgelieferte uv-Datei hat Vorrang
+            bundle = os.path.join(self.dir, "bundle")
+            os.makedirs(bundle)
+            exe = os.path.join(bundle, "uv.exe" if os.name == "nt" else "uv")
+            open(exe, "w").close()
+            _sys.frozen, _sys._MEIPASS = True, bundle
+            self.assertEqual(plugins.uv_command(), [exe])
+        finally:
+            sh.which, plugins.importlib.util.find_spec = orig_which, orig_find
+            for a in ("frozen", "_MEIPASS"):
+                if hasattr(_sys, a):
+                    delattr(_sys, a)
 
     def test_env_install_failure(self):
         def fake_run(cmd, on_line=None, cancel=None, env=None, cwd=None):

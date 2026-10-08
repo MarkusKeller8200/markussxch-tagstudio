@@ -1,0 +1,143 @@
+name: Installer
+
+# Baut die Installer für Windows (Setup.exe) und macOS (DMG).
+# - Bei einem Versions-Tag (v3.0 …) zusätzlich als GitHub-Release mit beiden Dateien veröffentlichen.
+# - Von Hand: Actions → Installer → „Run workflow“ (Dateien dann unter „Artifacts“ des Laufs).
+on:
+  push:
+    tags: ["v*"]
+    branches: [main]
+    paths: ["packaging/**", ".github/workflows/installer.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: "utf-8"
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Werkzeuge installieren
+        run: python -m pip install --upgrade pip pyinstaller pywebview pillow uv
+      - name: Tests
+        run: python -m unittest discover -s tests
+      - name: App bauen (PyInstaller)
+        shell: pwsh
+        run: |
+          python packaging/build.py *> build.log
+          $rc = $LASTEXITCODE
+          Get-Content build.log -Tail 30
+          exit $rc
+      - name: Build-Fehler melden
+        if: failure()
+        run: python packaging/ci_note.py error "Windows-Build" build.log 60
+      - name: Selbsttest der gebauten App
+        shell: pwsh
+        run: |
+          $out = Join-Path $PWD "selftest.txt"
+          $p = Start-Process -FilePath "dist\TagStudio\TagStudio.exe" -ArgumentList "--selftest", "`"$out`"" -Wait -PassThru
+          if (Test-Path $out) { Get-Content $out } else { "keine Ausgabe (Code $($p.ExitCode))" | Out-File $out }
+          python packaging/ci_note.py notice "Windows-Selbsttest" selftest.txt
+          if ($p.ExitCode -ne 0) { exit 1 }
+      - name: Installer bauen (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
+          if (-not $iscc) { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+            $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          }
+          & $iscc "/DAppVersion=$env:TS_VERSION" "packaging\windows.iss" *> iscc.log
+          $rc = $LASTEXITCODE
+          if ($rc -ne 0) { python packaging/ci_note.py error "Inno Setup" iscc.log 40; exit $rc }
+      - name: Installer testweise still installieren und starten
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem dist\TagStudio-*-Windows-Setup.exe | Select-Object -First 1
+          $p = Start-Process -FilePath $setup.FullName -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { Write-Host "Setup-Code $($p.ExitCode)"; exit 1 }
+          $exe = Join-Path $env:LOCALAPPDATA "Programs\TagStudio\TagStudio.exe"
+          if (-not (Test-Path $exe)) { Write-Host "nicht gefunden: $exe"; exit 1 }
+          $out = Join-Path $PWD "selftest-installed.txt"
+          $q = Start-Process -FilePath $exe -ArgumentList "--selftest", "`"$out`"" -Wait -PassThru
+          if (-not (Test-Path $out)) { "keine Ausgabe (Code $($q.ExitCode))" | Out-File $out }
+          python packaging/ci_note.py notice "Windows-installiert" $out
+          if ($q.ExitCode -ne 0) { exit 1 }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TagStudio-Windows
+          path: dist/TagStudio-*-Windows-Setup.exe
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Werkzeuge installieren
+        run: python -m pip install --upgrade pip pyinstaller pywebview pillow uv
+      - name: Tests
+        run: python -m unittest discover -s tests
+      - name: App bauen (PyInstaller)
+        run: |
+          set -o pipefail
+          python packaging/build.py 2>&1 | tee build.log | tail -30
+      - name: Build-Fehler melden
+        if: failure()
+        run: python packaging/ci_note.py error "macOS-Build" build.log 60
+      - name: Selbsttest der gebauten App
+        run: |
+          set +e
+          dist/TagStudio.app/Contents/MacOS/TagStudio --selftest "$PWD/selftest.txt"; rc=$?
+          [ -f selftest.txt ] || echo "keine Ausgabe (Code $rc)" > selftest.txt
+          python packaging/ci_note.py notice "macOS-Selbsttest" selftest.txt
+          exit $rc
+      - name: Disk-Image bauen
+        run: bash packaging/make_dmg.sh "$TS_VERSION"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TagStudio-macOS
+          path: dist/TagStudio-*.dmg
+
+  release:
+    needs: [windows, macos]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+      - name: Release-Text aus dem CHANGELOG
+        run: |
+          ver="${GITHUB_REF_NAME#v}"
+          python3 - "$ver" > notes.md <<'EOF'
+          import re, sys
+          ver = sys.argv[1]
+          text = open("CHANGELOG.md", encoding="utf-8").read()
+          m = re.search(r"^## \[" + re.escape(ver) + r"\][^\n]*\n(.*?)(?=^## \[|\Z)", text, re.S | re.M)
+          body = m.group(1).strip() if m else ""
+          print("**Download:** Windows → `TagStudio-…-Windows-Setup.exe` · macOS (Apple-Chip) → `TagStudio-…-macOS-Apple-Chip.dmg`\n")
+          print("Die Installer sind nicht signiert: Windows zeigt evtl. „Der Computer wurde durch Windows geschützt“ → „Weitere Informationen“ → „Trotzdem ausführen“. macOS: siehe „Zuerst lesen.txt“ im Disk-Image.\n")
+          print(body)
+          EOF
+      - name: GitHub-Release erstellen oder aktualisieren
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" assets/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" assets/* --title "MarKusSXCH TagStudio ${GITHUB_REF_NAME#v}" --notes-file notes.md
+          fi

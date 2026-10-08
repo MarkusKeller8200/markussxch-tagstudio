@@ -16,6 +16,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # Abgeschlossene Entwicklungszweige → Zweig, auf dem es weitergeht. Ein Update wechselt dorthin,
 # sobald der neue Zweig den alten vollständig enthält (also nur Vorspulen, nichts geht verloren).
 MOVED = {"web-ui": "main"}
+RELEASES_URL = "https://github.com/MarkusKeller8200/markussxch-tagstudio/releases"
+
+
+def frozen() -> bool:
+    """Läuft TagStudio als installierte App (PyInstaller) statt aus dem Quellcode?"""
+    return bool(getattr(sys, "frozen", False))
 
 
 def _git(args, cwd=HERE, timeout=60):
@@ -29,6 +35,9 @@ def _git(args, cwd=HERE, timeout=60):
 
 def available(cwd=HERE) -> str | None:
     """None, wenn Updates möglich sind – sonst der Grund, warum nicht."""
+    if frozen():
+        return ("Die installierte App wird mit dem neuen Installer aktualisiert: neue Version unter "
+                "„Releases“ auf GitHub herunterladen und installieren (Einstellungen bleiben erhalten).")
     if shutil.which("git") is None:
         return "Git ist auf diesem Rechner nicht installiert."
     code, out, _ = _git(["rev-parse", "--is-inside-work-tree"], cwd)
@@ -42,7 +51,7 @@ def status(fetch: bool = True, cwd=HERE) -> dict:
     → {"ok", "error", "branch", "behind", "ahead", "commits": [Betreff…], "dirty": [Dateien…], "current"}"""
     err = available(cwd)
     if err:
-        return {"ok": False, "error": err}
+        return {"ok": False, "error": err, "frozen": frozen(), "releases_url": RELEASES_URL}
     code, branch, _ = _git(["rev-parse", "--abbrev-ref", "HEAD"], cwd)
     if code != 0 or branch == "HEAD":
         return {"ok": False, "error": "Kein Zweig ausgecheckt."}

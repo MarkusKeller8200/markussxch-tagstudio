@@ -228,7 +228,8 @@ class Api:
         """Programm mit dem neuen Stand neu starten (gleiche Pfade, im Browser-Modus gleiche Adresse)."""
         l, r = self._s.left_root, self._s.right_root
         args = [a for a in self._argv if a.startswith("--") and a not in ("--port", "--no-open")]
-        cmd = [sys.executable, os.path.join(HERE, "tagstudio_web.py"), *args]
+        cmd = [sys.executable, *args] if getattr(sys, "frozen", False) \
+            else [sys.executable, os.path.join(HERE, "tagstudio_web.py"), *args]
         if l or r:
             cmd += [l, r] if r else [l]
         env = dict(os.environ)
@@ -433,8 +434,64 @@ def run_window(api: Api):
     return 0
 
 
+def selftest(out=None) -> int:
+    """Prüft eine (gepackte) Installation: Oberfläche, Plugins, Fenster-Bibliothek, uv. Für die Installer-CI."""
+    lines, ok = [], True
+
+    def check(name, fn):
+        nonlocal ok
+        try:
+            res = fn()
+            lines.append(f"OK   {name}: {res}")
+        except Exception as ex:  # noqa: BLE001
+            ok = False
+            lines.append(f"FAIL {name}: {type(ex).__name__}: {ex}")
+
+    def web():
+        assert os.path.isfile(os.path.join(WEB, "index.html")), WEB
+        return WEB
+
+    def plugin_list():
+        import plugins as pl
+        m = pl.Manager({})
+        info = {p["id"]: p for p in m.list()}
+        assert {"stems", "beatport"} <= set(info), sorted(info)
+        assert info["beatport"]["state"] == "ready", info["beatport"]["error"]
+        assert info["stems"]["state"] in ("ready", "missing"), info["stems"]["error"]
+        return ", ".join(f"{k}={v['state']}" for k, v in sorted(info.items()))
+
+    def uv():
+        import plugins as pl
+        return " ".join(pl.uv_command())
+
+    def window():
+        import webview  # noqa: F401
+        return getattr(webview, "__version__", "ok")
+
+    def session():
+        from session import Session
+        return Session().settings()["version"]
+
+    check("Oberfläche", web)
+    check("Sitzung", session)
+    check("Plugins", plugin_list)
+    check("uv", uv)
+    check("pywebview", window)
+    check("tkinter", lambda: __import__("tkinter").TkVersion)
+    text = "\n".join(lines) + ("\nSELFTEST OK\n" if ok else "\nSELFTEST FEHLER\n")
+    if out:
+        with open(out, "w", encoding="utf-8") as fh:
+            fh.write(text)
+    else:
+        print(text)
+    return 0 if ok else 1
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
+    if "--selftest" in argv:
+        i = argv.index("--selftest")
+        return selftest(argv[i + 1] if i + 1 < len(argv) and not argv[i + 1].startswith("--") else None)
     browser = "--browser" in argv
     no_open = "--no-open" in argv
     port = 0
