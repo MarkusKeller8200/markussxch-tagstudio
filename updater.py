@@ -13,6 +13,10 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+# Abgeschlossene Entwicklungszweige → Zweig, auf dem es weitergeht. Ein Update wechselt dorthin,
+# sobald der neue Zweig den alten vollständig enthält (also nur Vorspulen, nichts geht verloren).
+MOVED = {"web-ui": "main"}
+
 
 def _git(args, cwd=HERE, timeout=60):
     kw = {}
@@ -45,11 +49,18 @@ def status(fetch: bool = True, cwd=HERE) -> dict:
     code, upstream, _ = _git(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"], cwd)
     if code != 0:
         return {"ok": False, "error": f"Der Zweig „{branch}“ ist nicht mit GitHub verbunden.", "branch": branch}
+    remote = upstream.split("/", 1)[0]
     if fetch:
-        remote = upstream.split("/", 1)[0]
         code, _, err = _git(["fetch", "--quiet", remote], cwd, timeout=90)
         if code != 0:
             return {"ok": False, "error": f"GitHub ist nicht erreichbar:\n{err}", "branch": branch}
+    switch = None
+    target = MOVED.get(branch)
+    if target:
+        ref = f"{remote}/{target}"
+        if _git(["rev-parse", "--verify", "--quiet", ref], cwd)[0] == 0 \
+                and _git(["merge-base", "--is-ancestor", "HEAD", ref], cwd)[0] == 0:
+            upstream, switch = ref, target
     _, counts, _ = _git(["rev-list", "--left-right", "--count", f"HEAD...{upstream}"], cwd)
     ahead, behind = (int(x) for x in (counts.split() + ["0", "0"])[:2])
     _, log, _ = _git(["log", "--format=%s", f"HEAD..{upstream}"], cwd)
@@ -57,7 +68,7 @@ def status(fetch: bool = True, cwd=HERE) -> dict:
     _, cur, _ = _git(["log", "-1", "--format=%h · %cd", "--date=format:%d.%m.%Y %H:%M"], cwd)
     return {"ok": True, "error": None, "branch": branch, "upstream": upstream, "behind": behind, "ahead": ahead,
             "commits": [c for c in log.splitlines() if c][:30], "dirty": [d.split(maxsplit=1)[-1] for d in dirty.splitlines() if d.strip()],
-            "current": cur}
+            "current": cur, "switch": switch}
 
 
 def pull(cwd=HERE) -> dict:
@@ -65,12 +76,22 @@ def pull(cwd=HERE) -> dict:
     st = status(fetch=True, cwd=cwd)
     if not st.get("ok"):
         return {"ok": False, "message": st.get("error")}
-    if not st["behind"]:
+    if not st["behind"] and not st.get("switch"):
         return {"ok": True, "message": "Bereits auf dem neuesten Stand.", "updated": False}
     if st["dirty"]:
         return {"ok": False, "message": "Im Programmordner gibt es lokale Änderungen – Update abgebrochen:\n"
                 + "\n".join(st["dirty"][:10])}
+    note = ""
+    if st.get("switch"):
+        target = st["switch"]
+        if _git(["rev-parse", "--verify", "--quiet", f"refs/heads/{target}"], cwd)[0] == 0:
+            code, out, err = _git(["switch", target], cwd)
+        else:
+            code, out, err = _git(["switch", "-c", target, "--track", st["upstream"]], cwd)
+        if code != 0:
+            return {"ok": False, "message": f"Wechsel auf „{target}“ nicht möglich:\n{err or out}"}
+        note = f" Weiter geht es jetzt auf dem Hauptzweig „{target}“."
     code, out, err = _git(["merge", "--ff-only", st["upstream"]], cwd, timeout=120)
     if code != 0:
         return {"ok": False, "message": f"Update nicht möglich:\n{err or out}"}
-    return {"ok": True, "message": f"{st['behind']} Änderung(en) geladen.", "updated": True}
+    return {"ok": True, "message": f"{st['behind']} Änderung(en) geladen.{note}", "updated": True}

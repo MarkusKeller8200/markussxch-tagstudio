@@ -37,7 +37,7 @@ from compare import (diff, copy_tags, all_keys, PAIR_MODES, Rules, DEFAULT_TRIVI
                      Cancelled, MULTI_FIELDS, INPUT_SEPARATORS, plan_multi_fix)  # noqa: E402
 
 APP = "MarKusSXCH TagStudio"
-VERSION = "2.9"
+VERSION = "3.0"
 IS_MAC = sys.platform == "darwin"
 IS_WIN = sys.platform.startswith("win")
 MOD = "Command" if IS_MAC else "Control"

@@ -2,7 +2,9 @@
 
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/). Versionen bis 2.8 hießen „MP3 Tag Compare“.
 
-## [3.0] – in Arbeit (Zweig `web-ui`)
+## [3.0] – 2026-10-08
+Grosses Update: neue Oberfläche mit Tagger und Plugins (entwickelt im Zweig `web-ui`, jetzt in `main`).
+
 ### Neu
 - **Neue Oberfläche** (`tagstudio_web.py`, Ordner `web/`): modernes Design mit Seitenleiste, Hell/Dunkel,
   Paarliste mit Status-Filtern und Suche, Vergleich mit zeichengenauen Markierungen, Pfeil-Knöpfen,
@@ -46,6 +48,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/). Versione
 - Gemeinsamer Kern `core.py` (Anzeige-Logik, Filter, Laden, Speichern) und `session.py`; beide Oberflächen
   nutzen dieselbe Logik und dieselben Einstellungen.
 ### Geändert
+- Update-Knopf: wer noch auf dem Zweig `web-ui` steht, wird automatisch auf `main` umgestellt.
 - Die klassische Oberfläche (`tagstudio.py`) nutzt den gemeinsamen Kern – Aussehen und Bedienung unverändert.
 - Rückgängig/Wiederholen in `undo.py` ausgelagert.
 

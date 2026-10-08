@@ -1,7 +1,7 @@
 [project]
 name = "markussxch-tagstudio"
-version = "2.9.0"
-description = "MarKusSXCH TagStudio – MP3-Tagger, Vergleich (Beyond-Compare-Stil), Tag-Fixer und Sicherungen"
+version = "3.0.0"
+description = "MarKusSXCH TagStudio – MP3-Tagger, Vergleich (Beyond-Compare-Stil), Tag-Fixer, Sicherungen und Plugins für DJs"
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [{ name = "Markus Keller" }]

@@ -1,31 +1,40 @@
 # MarKusSXCH TagStudio
 
-Werkzeugkasten für MP3-Bibliotheken – **Tagger, Vergleich (im Stil von Beyond Compare), Tag-Fixer, Sicherungen**,
-weitere Module (z. B. Datenbank) folgen. Für **Windows und macOS**.
-Keine Zusatzpakete nötig, nur Python 3.9 oder neuer.
+Werkzeugkasten für MP3-Bibliotheken von DJs – **Tagger, Vergleich (im Stil von Beyond Compare), Tag-Fixer,
+Sicherungen, Camelot-Rad, Audio-Merkmale und Plugins** (z. B. Stems, Beatport). Für **Windows und macOS**.
+Der Kern braucht keine Zusatzpakete, nur Python 3.9 oder neuer.
 
 > Bis Version 2.8 hieß das Programm „MP3 Tag Compare“. Einstellungen und Sicherungen von damals werden automatisch übernommen.
 
-**Aktuelle Version:** 2.9 · Änderungen siehe [CHANGELOG.md](CHANGELOG.md)
+**Aktuelle Version:** 3.0 · Änderungen siehe [CHANGELOG.md](CHANGELOG.md) · Plugins: [PLUGINS.md](PLUGINS.md)
 
-## Installation & Start
+## Zwei Oberflächen, ein Kern
 
-- **Windows:** Python von https://www.python.org/downloads/ installieren („Add python.exe to PATH“ anhaken),
-  dann Doppelklick auf `start_windows.bat`.
-- **macOS:** Python von https://www.python.org/downloads/ installieren (enthält tkinter),
-  dann Doppelklick auf `start_mac.command` (beim ersten Mal: Rechtsklick → Öffnen).
-  Homebrew-Python braucht zusätzlich `brew install python-tk`.
-- Terminal: `python3 tagstudio.py [links] [rechts]` – Ordner oder Dateien.
+| | Neue Oberfläche (empfohlen) | Klassische Oberfläche |
+|---|---|---|
+| Start Windows | `start_web_windows.bat` | `start_windows.bat` |
+| Start macOS | `start_web_mac.command` | `start_mac.command` |
+| Terminal | `python tagstudio_web.py [links] [rechts]` | `python3 tagstudio.py [links] [rechts]` |
+| Technik | HTML/CSS/JS im eigenen App-Fenster (pywebview), sonst im Browser | tkinter |
+| Umfang | Vergleich, **Tagger**, Tag-Fixer, Sicherungen, **Plugins**, Update-Knopf | Vergleich, Tag-Fixer, Sicherungen |
 
-## Neue Oberfläche (Version 3, in Arbeit)
+Beide nutzen denselben Kern und dieselben Einstellungen (`~/.tagstudio.json`) und lassen sich abwechselnd verwenden.
 
-Zusätzlich zur klassischen Oberfläche gibt es eine moderne Oberfläche – gleicher Kern, gleiche Einstellungen,
-beide lassen sich abwechselnd verwenden.
+## Installation
 
-- **Start:** Doppelklick auf `start_web_windows.bat` bzw. `start_web_mac.command`. Beim ersten Mal wird
-  `pywebview` installiert (klein, Internet nötig). Danach öffnet sich ein eigenes App-Fenster.
-  Ohne pywebview öffnet sich dieselbe Oberfläche im Browser (`python tagstudio_web.py --browser`).
-- **Schon dabei:** Pfade mit Verlauf und Ordner-/Dateiauswahl, Zuordnung, Unterordner; Paarliste mit
+1. **Python** von https://www.python.org/downloads/ installieren – Windows: „Add python.exe to PATH“ anhaken;
+   macOS: das Installationspaket enthält tkinter (Homebrew-Python braucht zusätzlich `brew install python-tk`).
+2. **Programm holen** – am besten als Git-Klon, dann funktioniert der Update-Knopf:
+   `git clone https://github.com/MarkusKeller8200/markussxch-tagstudio.git`
+   (alternativ ZIP von GitHub herunterladen und entpacken).
+3. **Starten** per Doppelklick (siehe Tabelle; macOS beim ersten Mal: Rechtsklick → Öffnen).
+   Die neue Oberfläche installiert beim ersten Start `pywebview` (klein, Internet nötig) und öffnet ein eigenes
+   App-Fenster. Ohne pywebview öffnet sie sich im Browser (`python tagstudio_web.py --browser`).
+
+## Neue Oberfläche
+
+
+- **Vergleich:** Pfade mit Verlauf und Ordner-/Dateiauswahl, Zuordnung, Unterordner; Paarliste mit
   Status-Filtern (≠ ≈ = ◧), Suche in Dateinamen und Werten, erweiterter Filter nach Feld/Bedingung/Seite;
   Vergleich mit zeichengenauen Markierungen, Pfeil-Knöpfen pro Feld, Alles/Fehlende nach links/rechts,
   Mehrfachauswahl (Klick, Shift, Strg/Cmd), Bearbeiten per Doppelklick (Tab = nächstes Feld, Mehrfachwerte mit ¦),
@@ -41,7 +50,8 @@ beide lassen sich abwechselnd verwenden.
   eine neue Version gibt (Punkt am Knopf). Ein Klick lädt sie (`git pull`, nur wenn der Programmordner keine
   eigenen Änderungen hat) und startet TagStudio neu – die gewählten Ordner werden wieder eingelesen.
   Voraussetzung: Der Programmordner ist ein Git-Klon und git ist installiert. Ungespeicherte Änderungen werden
-  vorher abgefragt.
+  vorher abgefragt. Wer noch auf dem früheren Entwicklungszweig `web-ui` steht, wird beim nächsten Update
+  automatisch auf den Hauptzweig `main` umgestellt.
 - **Splitter:** Seitenleiste, Paarliste und Tabellenspalten lassen sich mit der Maus ziehen (oder per Tastatur
   mit ←/→ auf dem Griff). Die Seitenleiste lässt sich einklappen (Knopf unten, Doppelklick auf den Splitter oder
   ganz schmal ziehen). In der Tabelle verschiebt der Griff zwischen den Wertespalten die Aufteilung links/rechts,
@@ -88,7 +98,12 @@ beide lassen sich abwechselnd verwenden.
 - **Tastatur:** Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte
   kopieren · Strg/Cmd+A alle Felder markieren · F5 neu einlesen · ↑/↓ in Paarliste und Tabelle.
 
-## Oberfläche
+## Klassische Oberfläche
+
+Die folgenden Abschnitte beschreiben die klassische Oberfläche (`tagstudio.py`). Vergleich, Filter, Tag-Fixer,
+Sicherungen und Tastenkürzel funktionieren in der neuen Oberfläche sinngemäss gleich.
+
+### Aufbau
 
 - **Oben:** Werkzeugleiste. Darunter links und rechts der Pfad (Ordner oder Datei, mit Verlauf)
   sowie Datei-Infos: Datum, Größe, ID3-Version, Dauer, Bitrate, Abtastrate.
@@ -111,7 +126,7 @@ beide lassen sich abwechselnd verwenden.
 
 Die Zeilen sind durch feine Linien getrennt. Mehrfachwerte (ID3v2.4) werden als `A ¦ B ¦ C` angezeigt.
 
-## Cover-Vorschau
+### Cover-Vorschau
 
 Über der Tabelle zeigt jede Seite alle eingebetteten Bilder als Vorschau mit Größe (z. B. 1400×1400 · 245 KB).
 Unterschiedliche Cover sind **rot umrandet**, in der Mitte steht = oder ≠. Klick auf ein Bild öffnet eine große
@@ -120,7 +135,7 @@ Technik: Tk kann kein JPEG – die Vorschau wird ohne Zusatzpakete erzeugt (Wind
 macOS: `sips`, Linux: ImageMagick; falls Pillow installiert ist, wird es bevorzugt) und in
 `~/TagStudio/cache` zwischengespeichert. Die erste Vorschau eines Covers dauert unter Windows evtl. ~1 s.
 
-## Suchen & Filtern
+### Suchen & Filtern
 
 **Dateipaare** – Zeile unter der Überschrift:
 - **Suchen:** sucht in Dateinamen und allen Tag-Werten beider Seiten.
@@ -135,20 +150,20 @@ macOS: `sips`, Linux: ImageMagick; falls Pillow installiert ist, wird es bevorzu
 **Felder suchen** (oben rechts) blendet in der Vergleichstabelle nur Felder ein, deren Name, Frame-ID oder Wert
 den Suchtext enthält – z. B. „bpm“, „serato“, „TXXX“, „mixedinkey“.
 
-## Einlesen großer Ordner
+### Einlesen großer Ordner
 
 Beim Vergleichen werden zuerst alle MP3-Dateien gezählt, danach erscheint ein Fortschrittsbalken
 mit Anzahl, Prozent, geschätzter Restzeit und aktuellem Dateinamen. **Abbrechen** (oder Esc) stoppt
 sofort – die bisherige Ansicht bleibt dann unverändert. Bei schnellen Vorgängen erscheint der Dialog gar nicht erst.
 Hinweis: Bei OneDrive-Ordnern mit „nur online“-Dateien lädt Windows diese beim Einlesen herunter.
 
-## Leere Felder einblenden
+### Leere Felder einblenden
 
 Toolbar **☐ Leere Felder** → wählen: ID3v1, ID3v2.3, ID3v2.4 oder alle. Dann erscheinen alle Felder, die der
 jeweilige Standard vorsieht (Text-, URL-, Kommentar-, Liedtext- und Cover-Felder), auch wenn sie unbeschrieben sind.
 Doppelklick auf ein leeres Feld füllt es.
 
-## Tag-Fixer: Mehrfachwerte
+### Tag-Fixer: Mehrfachwerte
 
 Toolbar **¦ Mehrfachwerte** vereinheitlicht Felder mit mehreren Werten (z. B. „Adriatique; Vincent Vossen / Yubik“):
 
@@ -161,7 +176,7 @@ Toolbar **¦ Mehrfachwerte** vereinheitlicht Felder mit mehreren Werten (z. B. �
 - Beim Bearbeiten trennt `¦` einzelne Werte (wird als v2.4-Mehrfachwert gespeichert; in v2.3 als ` / `).
 - Hinweis: Nicht alle Programme zeigen v2.4-Mehrfachwerte vollständig an (manche nur den ersten Wert).
 
-## Bedienung
+### Bedienung
 
 | Aktion | So geht’s |
 |---|---|
@@ -183,7 +198,7 @@ Toolbar **¦ Mehrfachwerte** vereinheitlicht Felder mit mehreren Werten (z. B. �
 | Sicherungen | **⟲ Sicherungen** – Tags früherer Stände wiederherstellen |
 | Design | **◐ Design** schaltet zwischen Dunkel und Hell |
 
-## Rückgängig / Wiederholen
+### Rückgängig / Wiederholen
 
 Jede Änderung – Feld bearbeiten, ◀/▶, Auswahl/Alles/Fehlende kopieren, Sammelkopie, Tag-Fixer, Feld entfernen,
 Bild ersetzen, Paar verwerfen – lässt sich mit **↶ Rückgängig** (Strg/Cmd+Z) zurücknehmen und mit
@@ -191,7 +206,7 @@ Bild ersetzen, Paar verwerfen – lässt sich mit **↶ Rückgängig** (Strg/Cmd
 Auch nach dem Speichern kann man zurückgehen – die Datei gilt dann wieder als „geändert“ und kann erneut gespeichert werden.
 Beim Laden neuer Ordner wird der Verlauf geleert. Während man in einem Feld tippt, gilt Strg+Z für das Eingabefeld.
 
-## Automatische Sicherung & Wiederherstellen
+### Automatische Sicherung & Wiederherstellen
 
 - Vor jedem Speichern werden die **bisherigen Tags** aller betroffenen Dateien gesichert – nur die Tag-Bytes
   (inkl. Cover, DJ-Daten, ID3v1), nicht die Musik. Pro Speichervorgang entsteht ein ZIP in
@@ -205,7 +220,7 @@ Beim Laden neuer Ordner wird der Verlauf geleert. Während man in einem Feld tip
 - Größe: Bibliotheken mit umfangreichen Analysedaten (z. B. beaTunes) haben große Tags – im Test etwa 0,8 MB
   pro Datei als ZIP. Eine Änderung an der ganzen Bibliothek (1'500 Dateien) erzeugt also eine Sicherung von gut 1 GB.
 
-## Fenster & Dialoge
+### Fenster & Dialoge
 
 Alle Dialoge (Sicherungen, Tag-Fixer, Sammelkopie, Feld hinzufügen, Cover-Ansicht, Bearbeiten) sowie Meldungen
 und Datei-Dialoge öffnen sich **zentriert über dem Programmfenster** – also auf dem Bildschirm, auf dem das
@@ -213,7 +228,9 @@ Programm gerade liegt. Meldungen aus einem Dialog heraus erscheinen über diesem
 
 ## Einstellungen
 
-Werden in `~/.tagstudio.json` gespeichert (Design, Fenstergröße, Pfad-Verlauf, Filter).
+Werden in `~/.tagstudio.json` gespeichert (Design, Fenstergröße, Layout, Pfad-Verlauf, Filter, Tonart-Schreibweise,
+Plugin-Einstellungen). Weitere Ordner unter `~/TagStudio`: `Sicherungen`, `cache`, `Plugins` (eigene Plugins),
+`Plugin-Daten` (z. B. Stems-Umgebung und Modelle, Beatport-Token verschlüsselt), `Logs` (Protokolle).
 Unter `"trivial"` steht die Liste der unwichtigen Felder (Platzhalter `*` erlaubt), z. B.
 `"TLEN"`, `"TXXX:Acoustid*"`, `"COMM:iTunNORM"` – frei anpassbar.
 
@@ -246,7 +263,9 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `features.py` – Audio-Merkmale (TXXX, 0–100)
 - `keys.py` – Tonarten: erkennen, umschreiben (Camelot, musikalisch, Open Key), passende Tonarten
 - `plugins.py` + `plugins/` – Plugin-System (siehe [PLUGINS.md](PLUGINS.md)); eingebaut: `plugins/stems`
-- `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen)
+  (Einzelspuren, eigene Python-Umgebung), `plugins/beatport` (Metadaten von Beatport, inoffiziell)
+- `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen; wechselt von abgeschlossenen
+  Entwicklungszweigen auf `main`)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)
 - `backup.py` – Sicherung und Wiederherstellung der Tags
@@ -256,15 +275,22 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 ## Entwicklung
 
 - **Tests:** `python -m unittest discover -s tests -v` – prüfen ID3-Lesen/-Schreiben (v2.3/v2.4, Mehrfachwerte,
-  BOM, GEOB, Datumsumwandlung), Vergleich, Tag-Fixer und Sicherung/Wiederherstellung mit synthetischen MP3-Dateien.
-  Keine Zusatzpakete nötig.
+  BOM, GEOB, Datumsumwandlung), Vergleich, Tag-Fixer, Sicherung/Wiederherstellung, Sitzung der neuen Oberfläche,
+  Tagger-Werkzeuge, Tonarten, Audio-Merkmale, XML, Updater und Plugins (Stems und Beatport mit nachgebauter
+  Gegenseite) – mit synthetischen MP3-Dateien, ohne Zusatzpakete und ohne Netz. Die klassische Oberfläche wird in
+  der CI zusätzlich per Smoke-Test geprüft.
 - **Automatische Prüfung (GitHub Actions):** Bei jedem Push laufen die Tests auf Windows, macOS und Linux
   (`.github/workflows/tests.yml`).
 - **Versionen:** Jede Version bekommt einen Git-Tag (`v2.9` …) und einen Eintrag in `CHANGELOG.md`.
-- **Arbeitsweise:** Neue Funktionen in einem eigenen Branch entwickeln, per Pull Request nach `main` übernehmen.
+- **Arbeitsweise:** Neue Funktionen in einem eigenen Branch entwickeln, dann nach `main` übernehmen.
+  Version 3.0 entstand im Zweig `web-ui` und wurde am 08.10.2026 nach `main` übernommen.
 
 ## Ausblick
 
-- Umstieg der Oberfläche auf Qt (PySide6)
-- Paketierung als eigenständige Anwendung (`.exe` / `.app`)
+- Plugin „Online-Metadaten“ mit offiziellen Quellen: MusicBrainz/AcoustID, Discogs, Deezer, iTunes, Last.fm
+- Analyse-Plugin mit librosa (BPM, Tonart-Vorschlag, Brightness), später Essentia-Modelle (Danceability, Mood)
+- Filter und Spalten nach Audio-Merkmalen; Mood-Feld; Umrechnen fremder Skalen (z. B. Lexicon 0–10)
+- Paketierung als eigenständige Anwendung (`.exe` / `.app`) mit Update ohne Git
 - Datenbank-Modul für die Musikbibliothek
+
+Verworfen: Umstieg auf Qt (PySide6) – bringt gegenüber der neuen Oberfläche keinen Vorteil.
