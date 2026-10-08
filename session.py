@@ -120,7 +120,7 @@ class Session:
             except (Cancelled, plugins.Cancelled):
                 self.task.update(result={"cancelled": True})
             except Exception as ex:  # noqa: BLE001
-                self.task.update(error=str(ex))
+                self.task.update(error=str(ex) or type(ex).__name__)
             finally:
                 self.task.update(running=False, done=True)
         threading.Thread(target=worker, daemon=True).start()
@@ -941,7 +941,8 @@ class Session:
 
     def plugins_list(self, rescan=False):
         lst = self.plugins.scan() if rescan else self.plugins.list()
-        return {"plugins": lst, "user_dir": plugins.user_dir(), "frozen": bool(getattr(sys, "frozen", False))}
+        return {"plugins": lst, "user_dir": plugins.user_dir(), "log_dir": plugins.log_dir(),
+                "frozen": bool(getattr(sys, "frozen", False))}
 
     def plugin_enable(self, pid, on):
         core.save_config(self.plugins.set_enabled(pid, on))
@@ -965,7 +966,15 @@ class Session:
         core.save_config(self.plugins.remember(pid, aid, opts))
 
         def job(cancel, progress):
-            res = self.plugins.run(pid, aid, files, opts, self, cancel, progress)
+            try:
+                res = self.plugins.run(pid, aid, files, opts, self, cancel, progress)
+            except Exception as ex:
+                import traceback
+                path = plugins.write_log(f"{pid}.log", traceback.format_exc())
+                msg = str(ex) or type(ex).__name__
+                raise RuntimeError(f"{msg}\n\nDetails im Protokoll: {path}") from ex
+            if res.get("log"):
+                res["logfile"] = plugins.write_log(f"{pid}.log", "\n".join(res["log"]))
             res["unsaved"] = self.unsaved()
             return res
         return self._run("plugin", a["label"], job)
@@ -981,8 +990,13 @@ class Session:
             return {"ok": False, "error": "Für dieses Plugin ist keine Installation hinterlegt."}
 
         def job(cancel, progress):
-            progress(("text", "pip install " + " ".join(v["packages"])))
-            res = plugins.pip_install(v["packages"], cancel, progress)
+            if p.env_spec:
+                res = plugins.env_install(p, v, cancel, progress)
+            else:
+                progress(("text", "pip install " + " ".join(v["packages"])))
+                res = plugins.pip_install(v["packages"], cancel, progress)
+                if not res.get("ok"):
+                    res["logfile"] = plugins.write_log(f"{pid}-installation.log", "\n".join(res.get("log", [])))
             self.plugins.scan()
             res["state"] = self.plugins.get(pid).state()
             return res

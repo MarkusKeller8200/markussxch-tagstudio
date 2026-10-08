@@ -1,9 +1,9 @@
 """Stems – Titel in Einzelspuren trennen (audio-separator).
 
-Benutzt die Python-Schnittstelle von audio-separator:
-    Separator(output_dir, output_format, model_file_dir, output_single_stem).load_model(name).separate(path)
+Die Trennung läuft in worker.py im Python der eigenen Plugin-Umgebung (siehe plugin.json "env"),
+damit TagStudio selbst keine schweren Pakete (PyTorch …) braucht und jede Python-Version nutzen kann.
 """
-import logging
+import json
 import os
 import re
 import shutil
@@ -66,13 +66,28 @@ def _tag_mp3(src, path, stem):
     dst.save()
 
 
+def _place(f, src, opts, ctx):
+    """Eine erzeugte Spur an ihren Platz verschieben (und bei MP3 taggen). Liefert Zielordner."""
+    dest, base = _target_dir(f, opts)
+    os.makedirs(dest, exist_ok=True)
+    stem = _stem_name(src)
+    target = os.path.join(dest, f"{base} ({stem}){os.path.splitext(src)[1].lower()}")
+    if os.path.exists(target):
+        os.remove(target)
+    shutil.move(src, target)
+    if target.lower().endswith(".mp3"):
+        try:
+            _tag_mp3(f, target, stem)
+        except Exception as ex:  # noqa: BLE001
+            ctx.log(f"Tags für {os.path.basename(target)} nicht übernommen: {ex}")
+    return dest
+
+
 def run(action, ctx, files, opts):
     if action != "separate":
         raise ValueError(f"Unbekannte Aktion: {action}")
     if opts.get("dest") == "folder" and not opts.get("folder"):
         raise ValueError("Bitte einen festen Ordner angeben oder „Neben dem Titel“ wählen.")
-    if not shutil.which("ffmpeg"):
-        raise RuntimeError("FFmpeg wurde nicht gefunden. Windows: „winget install ffmpeg“, Mac: „brew install ffmpeg“ – danach TagStudio neu starten.")
 
     todo, skipped = [], 0
     for f in files:
@@ -85,50 +100,61 @@ def run(action, ctx, files, opts):
     if not todo:
         return {"message": f"Nichts zu tun – für alle {skipped} Titel gibt es schon Stems."}
 
-    ctx.status("Lade audio-separator …")
-    from audio_separator.separator import Separator   # schwerer Import erst hier
-
     work = os.path.join(ctx.data_dir, "arbeit")
     shutil.rmtree(work, ignore_errors=True)
     os.makedirs(work, exist_ok=True)
-    sep = Separator(output_dir=work, output_format=opts.get("format", "FLAC"),
-                    model_file_dir=os.path.join(ctx.data_dir, "modelle"),
-                    output_single_stem=opts.get("stem") or None, log_level=logging.WARNING)
-    ctx.status(f"Lade Modell {opts['model']} (beim ersten Mal mit Download) …")
-    sep.load_model(model_filename=opts["model"])
+    job = {"files": [f.path for f in todo], "work": work, "format": opts.get("format", "FLAC"),
+           "model": opts.get("model", "htdemucs_ft.yaml"), "stem": opts.get("stem") or "",
+           "model_dir": os.path.join(ctx.data_dir, "modelle"), "data_dir": ctx.data_dir,
+           "directml": ctx.env_info.get("variant") == "dml"}
+    job_path = os.path.join(work, "auftrag.json")
+    with open(job_path, "w", encoding="utf-8") as fh:
+        json.dump(job, fh, ensure_ascii=False)
 
-    done, made = 0, 0
-    for i, f in enumerate(todo):
-        name = os.path.basename(f.path)
-        ctx.progress(i, len(todo), f"Trenne {name}")
+    state = {"done": 0, "made": 0, "fatal": "", "failed": 0}
+
+    def on_line(line):
+        if not line.startswith("@@"):
+            return
         try:
-            outs = sep.separate(f.path) or []
-        except Exception as ex:  # noqa: BLE001 – einzelne Datei darf den Lauf nicht abbrechen
-            ctx.log(f"Fehler bei {name}: {ex}")
-            continue
-        dest, base = _target_dir(f, opts)
-        os.makedirs(dest, exist_ok=True)
-        for o in outs:
-            src = o if os.path.isabs(o) else os.path.join(work, o)
-            if not os.path.exists(src):
-                continue
-            stem = _stem_name(src)
-            target = os.path.join(dest, f"{base} ({stem}){os.path.splitext(src)[1].lower()}")
-            if os.path.exists(target):
-                os.remove(target)
-            shutil.move(src, target)
-            made += 1
-            if target.lower().endswith(".mp3"):
-                try:
-                    _tag_mp3(f, target, stem)
-                except Exception as ex:  # noqa: BLE001
-                    ctx.log(f"Tags für {os.path.basename(target)} nicht übernommen: {ex}")
-        ctx.output(dest)
-        ctx.log(f"{name}: {len(outs)} Spur(en) → {dest}")
-        done += 1
-    ctx.progress(len(todo), len(todo), "fertig")
+            ev = json.loads(line[2:])
+        except ValueError:
+            return
+        kind = ev.get("event")
+        if kind == "status":
+            ctx.status(ev.get("msg", ""))
+        elif kind == "warn":
+            ctx.log("Hinweis: " + ev.get("msg", ""))
+        elif kind == "start":
+            ctx.progress(ev["i"], len(todo), "Trenne " + os.path.basename(ev["path"]))
+        elif kind == "done":
+            f = todo[ev["i"]]
+            dest = None
+            for src in ev.get("outputs", []):
+                if os.path.exists(src):
+                    dest = _place(f, src, opts, ctx)
+                    state["made"] += 1
+            if dest:
+                ctx.output(dest)
+                state["done"] += 1
+            ctx.log(f"{os.path.basename(f.path)}: {len(ev.get('outputs', []))} Spur(en)" + (f" → {dest}" if dest else ""))
+        elif kind == "fail":
+            state["failed"] += 1
+            ctx.log(f"Fehler bei {os.path.basename(ev.get('path', ''))}: {ev.get('msg', '')}")
+        elif kind == "fatal":
+            state["fatal"] = ev.get("msg", "")
+
+    ctx.status("Starte Stems-Umgebung …")
+    rc, tail = ctx.run_env([os.path.join(os.path.dirname(__file__), "worker.py"), job_path], on_line)
     shutil.rmtree(work, ignore_errors=True)
-    msg = f"Stems für {done} von {len(todo)} Titel(n) erzeugt ({made} Dateien)."
+    if rc != 0 or state["fatal"]:
+        details = "\n".join(l for l in tail if not l.startswith("@@"))[-3000:]
+        ctx.log(details)
+        raise RuntimeError(f"Stems fehlgeschlagen: {state['fatal'] or f'Code {rc}'}\n\n{details[-800:]}")
+    ctx.progress(len(todo), len(todo), "fertig")
+    msg = f"Stems für {state['done']} von {len(todo)} Titel(n) erzeugt ({state['made']} Dateien)."
+    if state["failed"]:
+        msg += f" {state['failed']} mit Fehler – siehe Protokoll."
     if skipped:
         msg += f" {skipped} übersprungen (schon vorhanden)."
     return {"message": msg}

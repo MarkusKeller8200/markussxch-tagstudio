@@ -2,7 +2,7 @@
    Formulare werden aus den Optionen des Plugins erzeugt – Plugins brauchen kein eigenes JavaScript. */
 "use strict";
 
-const PL = { list: [], userDir: "", frozen: false };
+const PL = { list: [], userDir: "", logDir: "", frozen: false };
 
 const PL_STATE = {
   ready: ["Bereit", "st-ok"],
@@ -12,7 +12,7 @@ const PL_STATE = {
 
 async function pluginsShow(rescan = false) {
   const r = await call("plugins_list", rescan);
-  PL.list = r.plugins; PL.userDir = r.user_dir; PL.frozen = r.frozen;
+  PL.list = r.plugins; PL.userDir = r.user_dir; PL.logDir = r.log_dir; PL.frozen = r.frozen;
   $("#plDir").textContent = "Eigene Plugins: " + r.user_dir;
   renderPlugins();
 }
@@ -23,13 +23,15 @@ function renderPlugins() {
   box.innerHTML = PL.list.map((p) => {
     const [stTxt, stCls] = p.enabled ? PL_STATE[p.state] : ["Ausgeschaltet", "st-same"];
     const missing = p.state === "missing" ? `<div class="pl-box warn">
-        <div><b>Fehlende Python-Pakete:</b> ${p.missing.map((m) => esc(m.label)).join(", ")}</div>
-        ${PL.frozen ? '<div class="hint">In der gepackten App können keine Pakete nachinstalliert werden.</div>'
+        <div><b>${p.env ? "Noch nicht installiert:" : "Fehlende Python-Pakete:"}</b> ${p.missing.map((m) => esc(m.label)).join(", ")}</div>
+        ${PL.frozen && !p.env ? '<div class="hint">In der gepackten App können keine Pakete nachinstalliert werden.</div>'
           : `<div class="pl-inst">${p.install.map((v) => `<button class="ghost sm" data-install="${esc(v.id)}" title="pip install ${esc(v.packages.join(" "))}">${esc(v.label)}</button>`).join("")}</div>
              ${p.install.map((v) => v.hint ? `<div class="hint">${esc(v.label.replace(/^Installieren\s*\(?|\)$/g, ""))}: ${esc(v.hint)}</div>` : "").join("")}`}
         ${p.notes ? `<div class="hint">${esc(p.notes)}</div>` : ""}</div>` : "";
     const ext = p.external.length ? `<div class="pl-box warn"><b>Zusätzlich nötig:</b> ${p.external.map((e) => `${esc(e.label)}${e.hint ? ` <span class="hint">– ${esc(e.hint)}</span>` : ""}`).join("<br>")}</div>` : "";
     const err = p.state === "error" ? `<div class="pl-box err">${esc(p.error)}</div>` : "";
+    const envOk = p.env && p.state === "ready" && p.install.length ? `<div class="pl-env"><span class="muted sm">Umgebung: ${esc((p.env_variant || "installiert").replace(/^Installieren\s*\(?|\)$/g, ""))}</span>
+        <details><summary class="sm">Neu installieren / andere Variante …</summary><div class="pl-inst">${p.install.map((v) => `<button class="ghost sm" data-install="${esc(v.id)}">${esc(v.label)}</button>`).join("")}</div></details></div>` : "";
     const acts = p.actions.length ? `<div class="pl-acts"><span class="muted sm">Aktionen:</span> ${p.actions.map((a) => `<span class="pl-act" title="${esc(a.description)}">${esc(a.label.replace(/\s*…$/, ""))}${a.where === "tagger" ? ' <span class="faint">· Tagger</span>' : ""}</span>`).join("")}</div>` : "";
     return `<section class="card pl-card${p.enabled ? "" : " off"}" data-pid="${esc(p.id)}">
       <div class="pl-head">
@@ -39,7 +41,7 @@ function renderPlugins() {
         <label class="switch" title="${p.enabled ? "Ausschalten" : "Einschalten"}"><input type="checkbox" data-enable ${p.enabled ? "checked" : ""} aria-label="${esc(p.name)} ein/aus"><span></span></label>
       </div>
       <p class="pl-desc">${esc(p.description)}</p>
-      ${p.enabled ? err + missing + ext + acts : ""}
+      ${p.enabled ? err + missing + ext + acts + envOk : ""}
       <div class="hint pl-path" title="${esc(p.path)}">${esc(p.path)}</div>
     </section>`;
   }).join("");
@@ -48,7 +50,10 @@ function renderPlugins() {
 async function pluginInstall(pid, variant) {
   const p = PL.list.find((x) => x.id === pid), v = p.install.find((x) => x.id === variant);
   const ok = await dialog({ title: "Pakete installieren?",
-    text: `Es wird ausgeführt:\npip install ${v.packages.join(" ")}\n\n${p.notes ? p.notes + "\n\n" : ""}Das kann je nach Verbindung einige Minuten dauern. Abbrechen ist jederzeit möglich.`,
+    text: (p.env
+      ? `Für „${p.name}“ wird eine eigene Python-Umgebung angelegt und darin installiert:\n${v.packages.join(" ")}`
+      : `Es wird ausgeführt:\npip install ${v.packages.join(" ")}`)
+      + `\n\n${p.notes ? p.notes + "\n\n" : ""}Das kann je nach Verbindung einige Minuten dauern. Abbrechen ist jederzeit möglich.`,
     buttons: [{ label: "Abbrechen", value: false }, { label: "Installieren", value: true, primary: true }] });
   if (!ok) return;
   const res = await runTask(call("start_plugin_install", pid, variant), `${p.name}: Pakete installieren`);
@@ -59,7 +64,7 @@ async function pluginInstall(pid, variant) {
       ? `${p.name} ist jetzt bereit.`
       : `pip war erfolgreich, das Paket wird aber noch nicht gefunden. Bitte TagStudio neu starten.`);
   } else {
-    await info("Installation fehlgeschlagen", `${res.error}\n\n${(res.log || []).slice(-15).join("\n")}`);
+    await info("Installation fehlgeschlagen", `${res.error}\n\n${(res.log || []).slice(-15).join("\n")}${res.logfile ? `\n\nVollständiges Protokoll: ${res.logfile}` : ""}`);
   }
   await pluginsShow(true);
   if (typeof renderTgEditor === "function") { PL.actionsCache = null; renderTgEditor(); }
@@ -120,6 +125,7 @@ async function pluginRun(pid, aid) {
 // ---------------------------------------------------------------------- Ereignisse
 (function bindPlugins() {
   $("#plRescan").addEventListener("click", async () => { PL.actionsCache = null; await pluginsShow(true); toast("Plugins neu eingelesen."); if (typeof renderTgEditor === "function") renderTgEditor(); });
+  $("#plLogs").addEventListener("click", async () => { if (!(await call("open_folder", PL.logDir))) toast("Ordner konnte nicht geöffnet werden."); });
   $("#plOpen").addEventListener("click", async () => { if (!(await call("open_folder", PL.userDir))) toast("Ordner konnte nicht geöffnet werden."); });
   $("#plList").addEventListener("change", async (e) => {
     const cb = e.target.closest("[data-enable]"); if (!cb) return;

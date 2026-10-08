@@ -42,6 +42,63 @@ def data_root() -> str:
     return os.path.join(os.path.expanduser("~"), "TagStudio", "Plugin-Daten")
 
 
+def log_dir() -> str:
+    d = os.path.join(os.path.expanduser("~"), "TagStudio", "Logs")
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+def write_log(name: str, text: str, append=True) -> str:
+    """Protokoll nach ~/TagStudio/Logs/<name> schreiben. Liefert den Pfad (Fehler beim Schreiben werden ignoriert)."""
+    import datetime
+    path = os.path.join(log_dir(), name)
+    try:
+        with open(path, "a" if append else "w", encoding="utf-8") as fh:
+            fh.write(f"===== {datetime.datetime.now():%Y-%m-%d %H:%M:%S} =====\n{text.rstrip()}\n\n")
+    except OSError:
+        pass
+    return path
+
+
+def _env_python(env_dir: str) -> str:
+    return os.path.join(env_dir, "Scripts", "python.exe") if os.name == "nt" else os.path.join(env_dir, "bin", "python")
+
+
+def run_lines(cmd, on_line=None, cancel=None, env=None, cwd=None):
+    """Startet einen Prozess, liefert jede Ausgabezeile an on_line. Rückgabe: (Exitcode, letzte Zeilen)."""
+    flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    e = dict(os.environ, PYTHONUNBUFFERED="1", PYTHONIOENCODING="utf-8")
+    if env:
+        e.update(env)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8",
+                            errors="replace", creationflags=flags, env=e, cwd=cwd)
+    tail = []
+    stop = threading.Event()
+
+    def watch():   # Abbruch auch während der Prozess nichts ausgibt
+        while not stop.wait(0.3):
+            if cancel is not None and cancel.is_set():
+                proc.terminate()
+                return
+    threading.Thread(target=watch, daemon=True).start()
+    try:
+        for line in proc.stdout:
+            line = line.rstrip("\r\n")
+            if not line:
+                continue
+            tail.append(line)
+            del tail[:-400]
+            if on_line:
+                on_line(line)
+    finally:
+        rc = proc.wait()
+        stop.set()
+        proc.stdout.close()
+    if cancel is not None and cancel.is_set():
+        raise Cancelled()
+    return rc, tail
+
+
 # =========================================================================== Kontext für Plugins
 class Context:
     """Was ein Plugin während eines Laufs benutzen darf."""
@@ -66,6 +123,23 @@ class Context:
 
     def setting(self, key, default=None):
         return self.plugin.settings.get(key, default)
+
+    # ---- eigene Python-Umgebung (plugin.json "env")
+    @property
+    def env_python(self) -> str:
+        return self.plugin.env_python()
+
+    @property
+    def env_info(self) -> dict:
+        return self.plugin.env_info()
+
+    def run_env(self, args, on_line=None, env=None):
+        """Python der Plugin-Umgebung mit args starten (z. B. [worker.py, job.json]).
+        Ausgabezeilen gehen an on_line; Abbruch beendet den Prozess. Rückgabe: (Exitcode, letzte Zeilen)."""
+        py = self.env_python
+        if not py or not os.path.exists(py):
+            raise RuntimeError("Die Umgebung des Plugins ist nicht installiert – bitte auf der Plugin-Seite installieren.")
+        return run_lines([py, *args], on_line, self._cancel, env=env, cwd=self.data_dir)
 
     # ---- Fortschritt / Abbruch / Protokoll
     def progress(self, i: int, total: int, text: str = ""):
@@ -136,8 +210,36 @@ class Plugin:
     def name(self) -> str:
         return str(self.manifest.get("name") or self.id)
 
+    # ---- eigene Umgebung
+    @property
+    def env_spec(self):
+        e = self.manifest.get("env")
+        return e if isinstance(e, dict) else None
+
+    @property
+    def env_dir(self) -> str:
+        return os.path.join(data_root(), self.id, "env")
+
+    def env_info(self) -> dict:
+        """Inhalt der Markierungsdatei nach erfolgreicher Installation (oder {})."""
+        try:
+            with open(os.path.join(data_root(), self.id, "env.json"), encoding="utf-8") as fh:
+                d = json.load(fh)
+            return d if isinstance(d, dict) else {}
+        except (OSError, ValueError):
+            return {}
+
+    def env_python(self) -> str:
+        info = self.env_info()
+        return info.get("python") or _env_python(self.env_dir)
+
     def missing(self) -> list[dict]:
         """Fehlende Python-Pakete (geprüft ohne Import)."""
+        if self.env_spec:
+            info = self.env_info()
+            if not info or not os.path.exists(self.env_python()):
+                return [{"module": "env", "label": f"Eigene Umgebung (Python {self.env_spec.get('python', '3')} + Pakete)"}]
+            return []
         out = []
         for r in self.manifest.get("requires", []):
             mod = r.get("module") if isinstance(r, dict) else str(r)
@@ -215,7 +317,8 @@ class Plugin:
              "error": self.error, "missing": self.missing(), "external": self.missing_external(),
              "install": [{"id": v.get("id"), "label": v.get("label", v.get("id")), "packages": v.get("packages", []),
                           "hint": v.get("hint", "")} for v in m.get("install", []) if v.get("packages")],
-             "notes": m.get("notes", "")}
+             "notes": m.get("notes", ""), "env": bool(self.env_spec),
+             "env_variant": self.env_info().get("label", "") if self.env_spec else ""}
         if st == "ready" and self.enabled:
             d["actions"] = [{"id": a["id"], "label": a["label"], "where": a["where"],
                              "description": a.get("description", "")} for a in self.actions()]
@@ -384,3 +487,63 @@ def pip_install(packages, cancel=None, progress=None) -> dict:
     importlib.invalidate_caches()
     return {"ok": rc == 0, "code": rc, "log": lines[-60:], "command": " ".join(cmd[2:]),
             "error": "" if rc == 0 else "pip meldet einen Fehler – Details im Protokoll."}
+
+
+def env_install(plugin, variant: dict, cancel=None, progress=None) -> dict:
+    """Eigene Umgebung für ein Plugin anlegen: uv (bei Bedarf per pip) → uv venv mit passender Python-Version
+    (lädt sie selbst herunter) → uv pip install Pakete → Import prüfen → Markierung env.json schreiben."""
+    say = (lambda t: progress(("text", t[:160]))) if progress else (lambda t: None)
+    log = [f"Plugin: {plugin.id}  Variante: {variant.get('id')}  Pakete: {' '.join(variant.get('packages', []))}"]
+
+    def step(title, cmd, cwd=None):
+        say(title)
+        log.append(f"$ {' '.join(cmd)}")
+        rc, tail = run_lines(cmd, lambda ln: say(ln), cancel, cwd=cwd)
+        log.extend(tail)
+        if rc != 0:
+            path = write_log(f"{plugin.id}-installation.log", "\n".join(log))
+            return {"ok": False, "error": f"{title} fehlgeschlagen (Code {rc}).", "log": log[-40:], "logfile": path}
+        return None
+
+    base = os.path.join(data_root(), plugin.id)
+    os.makedirs(base, exist_ok=True)
+    if importlib.util.find_spec("uv") is None:
+        if getattr(sys, "frozen", False):
+            return {"ok": False, "error": "uv fehlt – in der gepackten App noch nicht unterstützt."}
+        r = step("Installiere uv (Umgebungs-Verwaltung) …",
+                 [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "uv"])
+        if r:
+            return r
+        importlib.invalidate_caches()
+    uv = [sys.executable, "-m", "uv"]
+    marker = os.path.join(base, "env.json")
+    if os.path.exists(marker):
+        os.remove(marker)
+    env_dir = plugin.env_dir
+    if os.path.isdir(env_dir):
+        say("Entferne alte Umgebung …")
+        shutil.rmtree(env_dir, ignore_errors=True)
+    pyver = str(plugin.env_spec.get("python", "3.12"))
+    r = step(f"Lege Umgebung mit Python {pyver} an (lädt Python bei Bedarf) …",
+             uv + ["venv", "--python", pyver, env_dir], cwd=base)
+    if r:
+        return r
+    py = _env_python(env_dir)
+    cmd = uv + ["pip", "install", "--python", py]
+    for idx in variant.get("extra_index", []):
+        cmd += ["--extra-index-url", idx]
+    if variant.get("extra_index"):
+        cmd += ["--index-strategy", "unsafe-best-match"]
+    r = step("Installiere Pakete (das dauert) …", cmd + list(variant.get("packages", [])), cwd=base)
+    if r:
+        return r
+    for mod in plugin.env_spec.get("check", []):
+        r = step(f"Prüfe {mod} …", [py, "-c", f"import {mod}"], cwd=base)
+        if r:
+            return r
+    info = {"python": py, "variant": variant.get("id"), "label": variant.get("label", ""),
+            "packages": variant.get("packages", []), "python_version": pyver}
+    with open(marker, "w", encoding="utf-8") as fh:
+        json.dump(info, fh, indent=2)
+    path = write_log(f"{plugin.id}-installation.log", "\n".join(log + ["OK"]))
+    return {"ok": True, "log": log[-40:], "logfile": path}

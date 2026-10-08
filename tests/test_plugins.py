@@ -1,11 +1,8 @@
 """Tests für das Plugin-System (plugins.py + Sitzung) und das Stems-Plugin (mit nachgebautem audio-separator)."""
-import importlib.machinery
 import json
 import os
-import stat
 import sys
 import time
-import types
 import unittest
 
 from test_tagger_tools import Base
@@ -172,18 +169,22 @@ class TestSessionPlugins(PluginBase):
 
 
 # --------------------------------------------------------------------------- Stems mit Attrappe
-class FakeSeparator:
-    instances = []
-
-    def __init__(self, output_dir, output_format="WAV", model_file_dir=None, output_single_stem=None, log_level=None):
+FAKE_SEPARATOR = """
+import os
+class Separator:
+    def __init__(self, output_dir, output_format="WAV", model_file_dir=None, output_single_stem=None,
+                 log_level=None, use_directml=False):
         self.output_dir, self.fmt, self.single = output_dir, output_format.lower(), output_single_stem
-        self.model_dir = model_file_dir
-        FakeSeparator.instances.append(self)
-
+        self.model_dir, self.dml = model_file_dir, use_directml
     def load_model(self, model_filename):
         self.model = model_filename
-
+        if os.environ.get("FAIL_LOAD"):
+            raise ValueError("Modell kaputt")
+        with open(os.path.join(self.output_dir, "info.txt"), "w") as fh:
+            fh.write(f"{self.model_dir}|{self.model}|{self.dml}")
     def separate(self, path):
+        if "02" in os.path.basename(path) and os.environ.get("FAIL_02"):
+            raise RuntimeError("Datei defekt")
         base = os.path.splitext(os.path.basename(path))[0]
         stems = [self.single] if self.single else ["Vocals", "Drums", "Bass", "Other"]
         out = []
@@ -193,41 +194,48 @@ class FakeSeparator:
                 fh.write(b"RIFF")
             out.append(name)
         return out
+"""
 
 
 class TestStems(PluginBase):
     def setUp(self):
         super().setUp()
-        pkg = types.ModuleType("audio_separator")
-        pkg.__spec__ = importlib.machinery.ModuleSpec("audio_separator", None)
-        sub = types.ModuleType("audio_separator.separator")
-        sub.__spec__ = importlib.machinery.ModuleSpec("audio_separator.separator", None)
-        sub.Separator = FakeSeparator
-        pkg.separator = sub
-        sys.modules["audio_separator"], sys.modules["audio_separator.separator"] = pkg, sub
-        bindir = os.path.join(self.dir, "bin")
-        os.makedirs(bindir)
-        exe = os.path.join(bindir, "ffmpeg.bat" if os.name == "nt" else "ffmpeg")
-        with open(exe, "w") as fh:
-            fh.write("@echo off\n" if os.name == "nt" else "#!/bin/sh\n")
-        os.chmod(exe, os.stat(exe).st_mode | stat.S_IEXEC)
-        self._path = os.environ.get("PATH", "")
-        os.environ["PATH"] = bindir + os.pathsep + self._path
-        if os.name == "nt":
-            os.environ["PATHEXT"] = os.environ.get("PATHEXT", ".EXE") + ";.BAT"
-        FakeSeparator.instances.clear()
+        fake = os.path.join(self.dir, "fakepkgs", "audio_separator")
+        os.makedirs(fake)
+        open(os.path.join(fake, "__init__.py"), "w").close()
+        with open(os.path.join(fake, "separator.py"), "w") as fh:
+            fh.write(FAKE_SEPARATOR)
+        self._pp = os.environ.get("PYTHONPATH")
+        os.environ["PYTHONPATH"] = os.path.join(self.dir, "fakepkgs")
+        os.environ.pop("FAIL_02", None)
+        self.base = os.path.join(plugins.data_root(), "stems")
 
     def tearDown(self):
-        sys.modules.pop("audio_separator", None)
-        sys.modules.pop("audio_separator.separator", None)
-        os.environ["PATH"] = self._path
+        if self._pp is None:
+            os.environ.pop("PYTHONPATH", None)
+        else:
+            os.environ["PYTHONPATH"] = self._pp
+        os.environ.pop("FAIL_02", None)
         super().tearDown()
 
+    def fake_env(self, variant="cpu"):
+        os.makedirs(self.base, exist_ok=True)
+        with open(os.path.join(self.base, "env.json"), "w") as fh:
+            json.dump({"python": sys.executable, "variant": variant, "label": "Test"}, fh)
+
+    def test_not_installed(self):
+        s = self.session()
+        info = {p["id"]: p for p in s.plugins_list(True)["plugins"]}
+        self.assertEqual(info["stems"]["state"], "missing")
+        self.assertTrue(info["stems"]["env"])
+        self.assertEqual([v["id"] for v in info["stems"]["install"]], ["cpu", "dml", "gpu"])
+
     def test_stems(self):
+        self.fake_env("dml")
         s = self.session()
         info = {p["id"]: p for p in s.plugins_list(True)["plugins"]}
         self.assertEqual(info["stems"]["state"], "ready", info["stems"])
-        self.assertEqual(info["stems"]["external"], [])
+        self.assertEqual(info["stems"]["env_variant"], "Test")
         r = s.start_plugin_action("stems", "separate", [0], {"model": "htdemucs_ft.yaml", "format": "MP3"})
         self.assertTrue(r["ok"], r)
         st = self.wait(s)
@@ -239,36 +247,87 @@ class TestStems(PluginBase):
         self.assertEqual(res["outputs"], [dest])
         self.assertEqual(sorted(os.listdir(dest)), sorted(f"{base} ({x}).mp3" for x in ("Vocals", "Drums", "Bass", "Other")))
         self.assertIn("1 von 1", res["message"])
-        sep = FakeSeparator.instances[0]
-        self.assertTrue(sep.model_dir.endswith(os.path.join("stems", "modelle")))
-        self.assertEqual(sep.model, "htdemucs_ft.yaml")
-        # Tags in MP3-Stems: Attrappe schreibt kein echtes MP3 → nur protokolliert, kein Abbruch
+        self.assertTrue(os.path.exists(res["logfile"]))
         # zweiter Lauf: übersprungen
         s.start_plugin_action("stems", "separate", [0], {"model": "htdemucs_ft.yaml"})
-        res2 = self.wait(s)["result"]
-        self.assertIn("schon Stems", res2["message"])
-        # fester Ordner, nur Gesang, überschreiben
+        self.assertIn("schon Stems", self.wait(s)["result"]["message"])
+        # fester Ordner, nur Gesang, überschreiben, eine Datei mit Fehler
+        os.environ["FAIL_02"] = "1"
         out = os.path.join(self.dir, "Stems")
-        s.start_plugin_action("stems", "separate", [0, 1], {"model": "model_bs_roformer_ep_317_sdr_12.9755.ckpt",
-                                                             "stem": "Vocals", "format": "FLAC", "dest": "folder",
-                                                             "folder": out, "overwrite": True})
+        s.start_plugin_action("stems", "separate", [0, 1, 2], {"model": "model_bs_roformer_ep_317_sdr_12.9755.ckpt",
+                                                                "stem": "Vocals", "format": "FLAC", "dest": "folder",
+                                                                "folder": out, "overwrite": True})
         res3 = self.wait(s)["result"]
-        self.assertEqual(len(res3["outputs"]), 2)
+        names = [os.path.basename(p.path) for p in s.tag_files[:3]]
+        expect_fail = sum(1 for n in names if "02" in n)
+        self.assertEqual(len(res3["outputs"]), 3 - expect_fail)
         for d in res3["outputs"]:
             self.assertTrue(d.startswith(out))
             self.assertEqual(len(os.listdir(d)), 1)
             self.assertTrue(os.listdir(d)[0].endswith("(Vocals).flac"))
+        if expect_fail:
+            self.assertIn("mit Fehler", res3["message"])
+            self.assertTrue(any("Datei defekt" in l for l in res3["log"]))
         # fester Ordner ohne Pfad → Fehlermeldung
         s.start_plugin_action("stems", "separate", [0], {"dest": "folder", "folder": ""})
         self.assertIn("Ordner", self.wait(s)["error"])
 
-    def test_stems_without_ffmpeg(self):
-        os.environ["PATH"] = self._path
-        if __import__("shutil").which("ffmpeg"):
-            self.skipTest("FFmpeg ist auf diesem Rechner installiert")
+    def test_worker_fatal(self):
+        self.fake_env()
         s = self.session()
-        s.start_plugin_action("stems", "separate", [0], {})
-        self.assertIn("FFmpeg", self.wait(s)["error"])
+        os.environ["FAIL_LOAD"] = "1"
+        try:
+            s.start_plugin_action("stems", "separate", [0], {"overwrite": True})
+            err = self.wait(s)["error"]
+        finally:
+            os.environ.pop("FAIL_LOAD", None)
+        self.assertIn("Modell kaputt", err)
+        self.assertIn("Protokoll", err)
+        self.assertTrue(os.path.exists(os.path.join(plugins.log_dir(), "stems.log")))
+
+    def test_env_install_commands(self):
+        calls = []
+
+        def fake_run(cmd, on_line=None, cancel=None, env=None, cwd=None):
+            calls.append(cmd)
+            if on_line:
+                on_line("Resolved 42 packages")
+            return 0, ["ok"]
+        orig = plugins.run_lines
+        plugins.run_lines = fake_run
+        try:
+            s = self.session()
+            self.assertTrue(s.start_plugin_install("stems", "gpu")["ok"])
+            st = self.wait(s)
+        finally:
+            plugins.run_lines = orig
+        self.assertIsNone(st["error"], st)
+        self.assertTrue(st["result"]["ok"], st["result"])
+        flat = [" ".join(c) for c in calls]
+        self.assertTrue(any(" -m uv venv --python 3.12 " in c for c in flat), flat)
+        inst = next(c for c in flat if " pip install --python " in c)
+        self.assertIn("audio-separator[gpu]", inst)
+        self.assertIn("--extra-index-url https://download.pytorch.org/whl/cu128", inst)
+        self.assertTrue(any(c.endswith("-c import audio_separator.separator") for c in flat))
+        with open(os.path.join(self.base, "env.json")) as fh:
+            info = json.load(fh)
+        self.assertEqual(info["variant"], "gpu")
+
+    def test_env_install_failure(self):
+        def fake_run(cmd, on_line=None, cancel=None, env=None, cwd=None):
+            return (1, ["error: no matching distribution"]) if "install" in cmd and "--python" in cmd else (0, [])
+        orig = plugins.run_lines
+        plugins.run_lines = fake_run
+        try:
+            s = self.session()
+            s.start_plugin_install("stems", "cpu")
+            res = self.wait(s)["result"]
+        finally:
+            plugins.run_lines = orig
+        self.assertFalse(res["ok"])
+        self.assertIn("Pakete", res["error"])
+        self.assertTrue(os.path.exists(res["logfile"]))
+        self.assertFalse(os.path.exists(os.path.join(self.base, "env.json")))
 
 
 if __name__ == "__main__":

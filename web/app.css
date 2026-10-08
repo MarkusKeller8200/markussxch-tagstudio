@@ -470,3 +470,6 @@ span.xml-treeonly{display:contents}
 @media (max-width: 700px){ .pl-grid{grid-template-columns:1fr} }
 .frm .check input{width:16px;height:16px;flex:none}
 .frm .check{color:var(--fg)}
+.pl-env{display:flex;flex-direction:column;gap:6px}
+.pl-env summary{cursor:pointer;color:var(--dim)}
+.pl-env details .pl-inst{margin-top:8px}
