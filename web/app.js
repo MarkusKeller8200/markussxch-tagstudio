@@ -120,11 +120,123 @@ async function runTask(startPromise, title) {
   }
 }
 
+
+// ====================================================================== Splitter & Layout
+const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5 };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+let uiSaveTimers = {};
+function saveUi(key) {
+  clearTimeout(uiSaveTimers[key]);
+  uiSaveTimers[key] = setTimeout(() => call("set_ui", key, LAYOUT[key]).catch(() => {}), 300);
+}
+
+function applyLayout() {
+  const root = document.documentElement.style, side = $(".side"), table = $("#table");
+  root.setProperty("--side-w", LAYOUT.side_w + "px");
+  root.setProperty("--pairs-w", LAYOUT.pairs_w + "px");
+  side.classList.toggle("collapsed", !!LAYOUT.side_collapsed);
+  const cb = $("#collapseBtn");
+  const lbl = LAYOUT.side_collapsed ? "Seitenleiste ausklappen" : "Seitenleiste einklappen";
+  cb.title = lbl; cb.setAttribute("aria-label", lbl); cb.setAttribute("aria-expanded", String(!LAYOUT.side_collapsed));
+  cb.querySelector(".nt").textContent = "Einklappen";
+  table.style.setProperty("--col-name", LAYOUT.col_name + "px");
+  table.style.setProperty("--col-l", LAYOUT.col_ratio.toFixed(4) + "fr");
+  table.style.setProperty("--col-r", (1 - LAYOUT.col_ratio).toFixed(4) + "fr");
+}
+
+/** Ziehen mit Maus/Stift/Finger: onMove(dx) mit Abstand zum Startpunkt, onEnd() danach. */
+function draggable(handle, { onStart, onMove, onEnd, onDouble, onKey }) {
+  handle.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const x0 = e.clientX, state = onStart ? onStart() : null;
+    handle.setPointerCapture(e.pointerId);
+    handle.classList.add("drag");
+    document.body.classList.add("resizing");
+    const move = (ev) => onMove(ev.clientX - x0, state);
+    const up = () => {
+      handle.removeEventListener("pointermove", move);
+      handle.removeEventListener("pointerup", up);
+      handle.removeEventListener("pointercancel", up);
+      handle.classList.remove("drag");
+      document.body.classList.remove("resizing");
+      if (onEnd) onEnd(state);
+    };
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("pointerup", up);
+    handle.addEventListener("pointercancel", up);
+  });
+  if (onDouble) handle.addEventListener("dblclick", (e) => { e.preventDefault(); onDouble(); });
+  if (onKey) handle.addEventListener("keydown", (e) => {
+    const step = e.shiftKey ? 40 : 10;
+    if (e.key === "ArrowLeft") { e.preventDefault(); onKey(-step); }
+    if (e.key === "ArrowRight") { e.preventDefault(); onKey(step); }
+    if (e.key === "Enter" && onDouble) { e.preventDefault(); onDouble(); }
+  });
+}
+
+function toggleSide(force) {
+  LAYOUT.side_collapsed = force === undefined ? !LAYOUT.side_collapsed : force;
+  applyLayout();
+  saveUi("side_collapsed");
+}
+
+function bindLayout() {
+  // Seitenleiste: ziehen; sehr schmal gezogen = einklappen; Doppelklick = ein-/ausklappen
+  draggable($("#sideSplit"), {
+    onStart: () => ({ w: LAYOUT.side_collapsed ? 68 : LAYOUT.side_w }),
+    onMove: (dx, st) => {
+      const w = st.w + dx;
+      if (w < 130) { if (!LAYOUT.side_collapsed) { LAYOUT.side_collapsed = true; applyLayout(); } return; }
+      LAYOUT.side_collapsed = false;
+      LAYOUT.side_w = clamp(w, 180, 340);
+      applyLayout();
+    },
+    onEnd: () => { saveUi("side_w"); saveUi("side_collapsed"); },
+    onDouble: () => toggleSide(),
+    onKey: (d) => { if (LAYOUT.side_collapsed) { if (d > 0) toggleSide(false); return; }
+      LAYOUT.side_w = clamp(LAYOUT.side_w + d, 180, 340); applyLayout(); saveUi("side_w"); },
+  });
+  $("#collapseBtn").addEventListener("click", () => toggleSide());
+
+  // Paarliste
+  draggable($("#pairSplit"), {
+    onStart: () => ({ w: $("#pairsPane").getBoundingClientRect().width }),
+    onMove: (dx, st) => { LAYOUT.pairs_w = clamp(Math.round(st.w + dx), 220, Math.max(240, innerWidth * 0.55)); applyLayout(); drawPairWindow(); },
+    onEnd: () => saveUi("pairs_w"),
+    onDouble: () => { LAYOUT.pairs_w = 330; applyLayout(); drawPairWindow(); saveUi("pairs_w"); },
+    onKey: (d) => { LAYOUT.pairs_w = clamp(LAYOUT.pairs_w + d, 220, innerWidth * 0.55); applyLayout(); saveUi("pairs_w"); },
+  });
+
+  // Tabelle: Breite der Feldspalte
+  draggable($("#gripName"), {
+    onStart: () => ({ w: LAYOUT.col_name }),
+    onMove: (dx, st) => { LAYOUT.col_name = clamp(Math.round(st.w + dx), 110, 420); applyLayout(); },
+    onEnd: () => saveUi("col_name"),
+    onDouble: () => { LAYOUT.col_name = 190; applyLayout(); saveUi("col_name"); },
+    onKey: (d) => { LAYOUT.col_name = clamp(LAYOUT.col_name + d, 110, 420); applyLayout(); saveUi("col_name"); },
+  });
+  // Tabelle: Aufteilung links/rechts (mittlere Spalte verschieben)
+  const valuesWidth = () => {
+    const t = $("#table").getBoundingClientRect().width;
+    return Math.max(200, t - LAYOUT.col_name - 92 - 32);
+  };
+  draggable($("#gripMid"), {
+    onStart: () => ({ r: LAYOUT.col_ratio, w: valuesWidth() }),
+    onMove: (dx, st) => { LAYOUT.col_ratio = clamp(st.r + dx / st.w, 0.2, 0.8); applyLayout(); },
+    onEnd: () => saveUi("col_ratio"),
+    onDouble: () => { LAYOUT.col_ratio = 0.5; applyLayout(); saveUi("col_ratio"); },
+    onKey: (d) => { LAYOUT.col_ratio = clamp(LAYOUT.col_ratio + d / valuesWidth(), 0.2, 0.8); applyLayout(); saveUi("col_ratio"); },
+  });
+}
+
 // ====================================================================== Start
 async function init() {
   const st = await call("settings");
   S.settings = st;
   S.opts = st.options;
+  for (const k of Object.keys(LAYOUT)) if (st.ui && st.ui[k] !== undefined) LAYOUT[k] = st.ui[k];
+  applyLayout();
   applyTheme();
   $("#ver").textContent = "Version " + st.version + (st.native ? "" : " · Browser");
   $("#mode").innerHTML = st.modes.map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("");
@@ -137,6 +249,7 @@ async function init() {
   $("#fOp").innerHTML = st.filter_ops.map((o) => `<option>${esc(o)}</option>`).join("");
   $("#fSide").innerHTML = st.filter_sides.map((o) => `<option>${esc(o)}</option>`).join("");
   bind();
+  bindLayout();
   syncOptions();
   renderPairs();
   showView(null);
@@ -234,6 +347,7 @@ function renderPairs() {
   const n = S.visible.length, total = S.pairs.length;
   $("#pairCount").textContent = total ? (n === total ? `${fmtN(total)} Paare` : `${fmtN(n)} von ${fmtN(total)}`) : "–";
   $("#pairsPane").hidden = total <= 1;
+  $("#pairSplit").hidden = total <= 1;
   const inner = $("#pairsInner");
   inner.style.height = n * ROW_H + "px";
   drawPairWindow();

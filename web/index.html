@@ -13,23 +13,26 @@
   <nav class="side" aria-label="Module">
     <div class="brand">
       <div class="logo"><svg class="i" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
-      <div class="brand-t"><span class="brand-k">MarKusSXCH</span><span class="brand-n">TagStudio</span></div>
+      <div class="brand-t nt"><span class="brand-k">MarKusSXCH</span><span class="brand-n">TagStudio</span></div>
     </div>
-    <button class="nav active" data-module="compare" aria-current="page">
-      <svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/></svg>Vergleich</button>
-    <button class="nav" data-module="tagger">
-      <svg class="i" viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Tagger</button>
-    <button class="nav" data-module="fixer">
-      <svg class="i" viewBox="0 0 24 24"><path d="m15 4 5 5"/><path d="M4 20 15.5 8.5"/><path d="M18 2v3M21.5 5.5 19 6M5 3v2M3 4h4M20 13v2M19 14h2"/></svg>Tag-Fixer</button>
-    <button class="nav" data-module="backups">
-      <svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Sicherungen</button>
-    <button class="nav dim" data-module="db">
-      <svg class="i" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Datenbank<span class="soon">bald</span></button>
+    <button class="nav active" data-module="compare" aria-current="page" title="Vergleich">
+      <svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/></svg><span class="nt">Vergleich</span></button>
+    <button class="nav" data-module="tagger" title="Tagger">
+      <svg class="i" viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><span class="nt">Tagger</span></button>
+    <button class="nav" data-module="fixer" title="Tag-Fixer">
+      <svg class="i" viewBox="0 0 24 24"><path d="m15 4 5 5"/><path d="M4 20 15.5 8.5"/><path d="M18 2v3M21.5 5.5 19 6M5 3v2M3 4h4M20 13v2M19 14h2"/></svg><span class="nt">Tag-Fixer</span></button>
+    <button class="nav" data-module="backups" title="Sicherungen">
+      <svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg><span class="nt">Sicherungen</span></button>
+    <button class="nav dim" data-module="db" title="Datenbank (bald)">
+      <svg class="i" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span class="nt">Datenbank</span><span class="soon nt">bald</span></button>
     <div class="grow"></div>
-    <button class="nav outline" id="themeBtn">
-      <svg class="i" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><span id="themeLbl">Helles Design</span></button>
-    <div class="ver" id="ver"></div>
+    <button class="nav" id="collapseBtn" title="Seitenleiste einklappen" aria-label="Seitenleiste einklappen" aria-expanded="true">
+      <svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/><path d="m15 10-2 2 2 2"/></svg><span class="nt">Einklappen</span></button>
+    <button class="nav outline" id="themeBtn" title="Design umschalten">
+      <svg class="i" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><span class="nt" id="themeLbl">Helles Design</span></button>
+    <div class="ver nt" id="ver"></div>
   </nav>
+  <div class="splitter" id="sideSplit" role="separator" aria-orientation="vertical" aria-label="Breite der Seitenleiste" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: ein-/ausklappen"></div>
 
   <main class="main">
     <!-- Quellen -->
@@ -73,6 +76,7 @@
         </div>
         <div class="pairs-scroll" id="pairsScroll" tabindex="0" aria-label="Liste der Dateipaare"><div id="pairsInner"></div></div>
       </section>
+      <div class="splitter" id="pairSplit" role="separator" aria-orientation="vertical" aria-label="Breite der Paarliste" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: Standardbreite"></div>
 
       <!-- Vergleich -->
       <section class="compare" aria-label="Vergleich">
@@ -105,7 +109,7 @@
             </div>
           </div>
           <div class="table" id="table" tabindex="0" aria-label="Felder im Vergleich">
-            <div class="thead"><span>Feld</span><span>Links</span><span class="c" aria-label="Übernehmen"></span><span>Rechts</span></div>
+            <div class="thead"><span class="th">Feld<span class="col-grip" id="gripName" role="separator" aria-label="Breite der Feldspalte" tabindex="0" title="Ziehen: Breite der Feldspalte · Doppelklick: Standard"></span></span><span class="th">Links</span><span class="th c mid-grip" id="gripMid" role="separator" aria-label="Aufteilung links/rechts" tabindex="0" title="Ziehen: Aufteilung links/rechts · Doppelklick: halb/halb"><svg class="i" viewBox="0 0 24 24"><path d="M9 5v14"/><path d="M15 5v14"/></svg></span><span class="th">Rechts</span></div>
             <div id="tbody"></div>
           </div>
         </div>

@@ -50,6 +50,9 @@ class Api:
     def set_option(self, name, value):
         return self._s.set_option(name, value)
 
+    def set_ui(self, name, value):
+        return self._s.set_ui(name, value)
+
     def unsaved(self):
         return self._s.unsaved()
 

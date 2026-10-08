@@ -16,6 +16,9 @@ from id3tags import key_label
 from undo import UndoStack
 
 VERSION = "3.0"
+# Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
+UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
+           "col_name": (int, float), "col_ratio": (int, float)}
 
 
 class Session:
@@ -40,6 +43,8 @@ class Session:
         }
         self.task = {"running": False}
         self._cancel = None
+        ui = self.cfg.get("web_ui")
+        self.ui = {k: v for k, v in (ui.items() if isinstance(ui, dict) else []) if k in UI_KEYS}
 
     # ================================================================== Einstellungen
     def settings(self) -> dict:
@@ -51,7 +56,17 @@ class Session:
             "recursive": c.get("recursive", False), "options": dict(self.opts),
             "empty_sets": [[k, v] for k, v in core.EMPTY_SETS.items()],
             "filter_ops": core.FILTER_OPS, "filter_sides": core.FILTER_SIDES,
+            "ui": dict(self.ui),
         }
+
+    def set_ui(self, name: str, value):
+        """Layout merken (Breiten der Splitter, eingeklappte Seitenleiste)."""
+        if name not in UI_KEYS or not isinstance(value, UI_KEYS[name]) or isinstance(value, bool) != (UI_KEYS[name] is bool):
+            raise ValueError(f"Ungültige Layout-Einstellung: {name}")
+        self.ui[name] = value
+        self.cfg["web_ui"] = dict(self.ui)
+        core.save_config({"web_ui": dict(self.ui)})
+        return True
 
     def set_option(self, name: str, value):
         if name not in self.opts:

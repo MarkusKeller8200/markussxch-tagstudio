@@ -32,6 +32,10 @@ beide lassen sich abwechselnd verwenden.
   Kontextmenü (kopieren, bearbeiten, entfernen, Link öffnen, im Explorer/Finder zeigen), klickbare Links,
   Cover-Vorschau mit Großansicht, Filter Alle/Unterschiede/Gleiche, Unwichtige, leere Felder, Feldsuche,
   Rückgängig/Wiederholen, Speichern mit automatischer Sicherung, Hell/Dunkel.
+- **Splitter:** Seitenleiste, Paarliste und Tabellenspalten lassen sich mit der Maus ziehen (oder per Tastatur
+  mit ←/→ auf dem Griff). Die Seitenleiste lässt sich einklappen (Knopf unten, Doppelklick auf den Splitter oder
+  ganz schmal ziehen). In der Tabelle verschiebt der Griff zwischen den Wertespalten die Aufteilung links/rechts,
+  der Griff rechts neben „Feld“ die Breite der Feldspalte. Doppelklick setzt jeweils zurück. Alles wird gemerkt.
 - **Folgt:** Tagger, Tag-Fixer, Sicherungen wiederherstellen, Sammelkopie, Felder hinzufügen, Cover ersetzen –
   bis dahin in der klassischen Oberfläche.
 - **Tastatur:** Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte

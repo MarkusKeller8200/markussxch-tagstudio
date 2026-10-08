@@ -160,6 +160,14 @@ class TestSession(TempHome):
         self.assertEqual(s.unsaved(), 0)
         self.assertEqual(MP3File(os.path.join(self.L, "1.mp3")).text("TCON"), "Pop\x00Rock")
         self.assertEqual(core.load_config()["filter"], "diff")
+        # Layout der Web-Oberfläche
+        self.assertTrue(s.set_ui("pairs_w", 420))
+        self.assertTrue(s.set_ui("side_collapsed", True))
+        with self.assertRaises(ValueError):
+            s.set_ui("pairs_w", True)
+        with self.assertRaises(ValueError):
+            s.set_ui("unbekannt", 1)
+        self.assertEqual(Session().settings()["ui"], {"pairs_w": 420, "side_collapsed": True})
 
 
 class TestWebServer(TempHome):
