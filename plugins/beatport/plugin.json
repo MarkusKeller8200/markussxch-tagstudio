@@ -1,0 +1,9 @@
+{
+  "id": "beatport",
+  "name": "Beatport (inoffiziell)",
+  "version": "1.0",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Holt BPM, Tonart, Genre/Subgenre, Label, Katalognummer, Datum, ISRC, Remixer und Cover von Beatport – mit Vorschau, nichts wird ohne Bestätigung geändert. Nutzt die Beatport-API v4 mit deinem eigenen Beatport-Login (wie das beets-Plugin „beatport4“). Inoffiziell: Beatport kann den Zugang jederzeit ändern. Nur für Metadaten deiner eigenen Titel verwenden.",
+  "notes": "Keine Zusatzpakete nötig."
+}

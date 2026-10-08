@@ -1,0 +1,54 @@
+{
+  "id": "stems",
+  "name": "Stems",
+  "version": "1.2",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Trennt Titel in Einzelspuren (Vocals, Drums, Bass, Instrumental …) mit KI-Modellen von audio-separator (Demucs, BS-RoFormer, Mel-Band-RoFormer). Läuft in einer eigenen Python-Umgebung – unabhängig von der Python-Version von TagStudio. FFmpeg ist enthalten.",
+  "env": {
+    "python": "3.12",
+    "check": [
+      "audio_separator.separator",
+      "imageio_ffmpeg"
+    ]
+  },
+  "install": [
+    {
+      "id": "cpu",
+      "label": "Installieren (Prozessor)",
+      "packages": [
+        "audio-separator[cpu]",
+        "imageio-ffmpeg",
+        "audioread",
+        "librosa<1.0"
+      ],
+      "hint": "Läuft auf jedem PC. Auf Macs mit Apple-Chip wird die Grafikeinheit automatisch genutzt."
+    },
+    {
+      "id": "dml",
+      "label": "Installieren (AMD/Intel-Grafik, DirectML)",
+      "packages": [
+        "audio-separator[dml]",
+        "imageio-ffmpeg",
+        "audioread",
+        "librosa<1.0"
+      ],
+      "hint": "Nur Windows, experimentell: nutzt AMD- oder Intel-Grafikkarten. Falls es Probleme gibt, die Prozessor-Variante nehmen."
+    },
+    {
+      "id": "gpu",
+      "label": "Installieren (NVIDIA-Grafikkarte)",
+      "packages": [
+        "audio-separator[gpu]",
+        "imageio-ffmpeg",
+        "audioread",
+        "librosa<1.0"
+      ],
+      "extra_index": [
+        "https://download.pytorch.org/whl/cu128"
+      ],
+      "hint": "Deutlich schneller, braucht eine NVIDIA-Karte mit aktuellem Treiber."
+    }
+  ],
+  "notes": "Die Installation legt eine eigene Umgebung an (Python 3.12 wird bei Bedarf automatisch geladen) und lädt PyTorch – zusammen 1–4 GB. Nur mit dem Prozessor dauert ein Titel etwa 1–5 Minuten, mit Grafikkarte deutlich weniger."
+}

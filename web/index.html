@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MarKusSXCH TagStudio</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- Seitenleiste -->
+  <nav class="side" aria-label="Module">
+    <div class="brand">
+      <div class="logo"><svg class="i" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+      <div class="brand-t nt"><span class="brand-k">MarKusSXCH</span><span class="brand-n">TagStudio</span></div>
+    </div>
+    <button class="nav active" data-module="compare" aria-current="page" title="Vergleich">
+      <svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/></svg><span class="nt">Vergleich</span></button>
+    <button class="nav" data-module="tagger" title="Tagger">
+      <svg class="i" viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><span class="nt">Tagger</span></button>
+    <button class="nav" data-module="fixer" title="Tag-Fixer">
+      <svg class="i" viewBox="0 0 24 24"><path d="m15 4 5 5"/><path d="M4 20 15.5 8.5"/><path d="M18 2v3M21.5 5.5 19 6M5 3v2M3 4h4M20 13v2M19 14h2"/></svg><span class="nt">Tag-Fixer</span></button>
+    <button class="nav" data-module="backups" title="Sicherungen">
+      <svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg><span class="nt">Sicherungen</span></button>
+    <button class="nav" data-module="plugins" title="Plugins">
+      <svg class="i" viewBox="0 0 24 24"><path d="M9 3h6v3a2 2 0 1 0 4 0V3h2v6h-3a2 2 0 1 0 0 4h3v8h-6v-3a2 2 0 1 0-4 0v3H3v-8h3a2 2 0 1 0 0-4H3V3h6Z"/></svg><span class="nt">Plugins</span></button>
+    <button class="nav dim" data-module="db" title="Datenbank (bald)">
+      <svg class="i" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span class="nt">Datenbank</span><span class="soon nt">bald</span></button>
+    <div class="grow"></div>
+    <button class="nav" id="updateBtn" title="Nach neuer Version suchen">
+      <svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span class="nt" id="updateLbl">Nach Update suchen</span><span class="upd-dot" id="updateDot" hidden></span></button>
+    <button class="nav" id="collapseBtn" title="Seitenleiste einklappen" aria-label="Seitenleiste einklappen" aria-expanded="true">
+      <svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/><path d="m15 10-2 2 2 2"/></svg><span class="nt">Einklappen</span></button>
+    <button class="nav outline" id="themeBtn" title="Design umschalten">
+      <svg class="i" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><span class="nt" id="themeLbl">Helles Design</span></button>
+    <div class="ver nt" id="ver"></div>
+  </nav>
+  <div class="splitter" id="sideSplit" role="separator" aria-orientation="vertical" aria-label="Breite der Seitenleiste" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: ein-/ausklappen"></div>
+
+  <main class="main">
+    <!-- Quellen -->
+    <header class="sources" id="srcCompare">
+      <div class="src">
+        <span class="src-k">LINKS</span>
+        <input id="pathL" list="histL" placeholder="Ordner oder MP3-Datei" aria-label="Pfad links" spellcheck="false">
+        <datalist id="histL"></datalist>
+        <button class="icon-btn" data-pick="L" data-folder="1" title="Ordner wählen" aria-label="Ordner links wählen"><svg class="i" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></button>
+        <button class="icon-btn" data-pick="L" data-folder="0" title="Datei wählen" aria-label="Datei links wählen"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg></button>
+      </div>
+      <button class="icon-btn lg" id="swapBtn" title="Seiten tauschen" aria-label="Seiten tauschen"><svg class="i" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/></svg></button>
+      <div class="src">
+        <span class="src-k">RECHTS</span>
+        <input id="pathR" list="histR" placeholder="Ordner oder MP3-Datei" aria-label="Pfad rechts" spellcheck="false">
+        <datalist id="histR"></datalist>
+        <button class="icon-btn" data-pick="R" data-folder="1" title="Ordner wählen" aria-label="Ordner rechts wählen"><svg class="i" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></button>
+        <button class="icon-btn" data-pick="R" data-folder="0" title="Datei wählen" aria-label="Datei rechts wählen"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg></button>
+      </div>
+      <div class="src-opts">
+        <label class="lbl">Zuordnen nach <select id="mode"></select></label>
+        <label class="check"><input type="checkbox" id="recursive"> Unterordner</label>
+        <button class="primary" id="compareBtn"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>Vergleichen</button>
+      </div>
+    </header>
+
+    <div class="work" id="moduleCompare">
+      <!-- Paarliste -->
+      <section class="pairs" id="pairsPane" aria-label="Dateipaare">
+        <div class="pairs-head">
+          <div class="row-between"><h2>Dateipaare</h2><span class="muted sm" id="pairCount">–</span></div>
+          <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="pairQuery" placeholder="Dateien und Werte durchsuchen" aria-label="Dateipaare durchsuchen"></label>
+          <div class="chips" id="pairChips"></div>
+          <div class="bulkbar" id="bulkBar" hidden>
+            <span id="bulkInfo"></span><div class="grow"></div>
+            <button class="ghost sm" data-bulk="rl" title="Ausgewählte Felder von rechts nach links in alle markierten Paare">◀ Sammelkopie</button>
+            <button class="ghost sm" data-bulk="lr" title="Ausgewählte Felder von links nach rechts in alle markierten Paare">Sammelkopie ▶</button>
+            <button class="icon-btn" id="bulkClear" title="Markierung aufheben" aria-label="Markierung aufheben"><svg class="i" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+          </div>
+          <button class="link-btn" id="advToggle" aria-expanded="false">Erweiterter Filter</button>
+          <div class="adv" id="adv" hidden>
+            <select id="fField" aria-label="Feld"></select>
+            <div class="adv-row"><select id="fOp" aria-label="Bedingung"></select><input id="fVal" placeholder="Wert" aria-label="Wert"></div>
+            <div class="adv-row"><select id="fSide" aria-label="Seite"></select><button class="ghost sm" id="fReset">Zurücksetzen</button></div>
+          </div>
+        </div>
+        <div class="pairs-scroll" id="pairsScroll" tabindex="0" aria-label="Liste der Dateipaare"><div id="pairsInner"></div></div>
+      </section>
+      <div class="splitter" id="pairSplit" role="separator" aria-orientation="vertical" aria-label="Breite der Paarliste" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: Standardbreite"></div>
+
+      <!-- Vergleich -->
+      <section class="compare" aria-label="Vergleich">
+        <div class="empty-state" id="emptyState">
+          <svg class="i xl" viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/></svg>
+          <h3>Zwei Ordner oder Dateien vergleichen</h3>
+          <p>Oben links und rechts einen Ordner oder eine MP3-Datei wählen und auf <b>Vergleichen</b> klicken.</p>
+        </div>
+        <div class="cmp" id="cmp" hidden>
+          <div class="heads">
+            <div class="head" id="headL"></div>
+            <div class="head-mid"><svg class="i" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/></svg></div>
+            <div class="head" id="headR"></div>
+          </div>
+          <div class="toolbar">
+            <div class="seg" role="group" aria-label="Anzeige">
+              <button data-filter="all">Alle</button><button data-filter="diff">Unterschiede</button><button data-filter="same">Gleiche</button>
+            </div>
+            <button class="toggle" id="trivBtn"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>Unwichtige</button>
+            <select id="emptySet" aria-label="Leere Felder einblenden"></select>
+            <button class="toggle" id="coverBtn"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Cover</button>
+            <label class="search sm"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="fieldQuery" placeholder="Felder suchen" aria-label="Felder suchen"></label>
+            <span class="muted sm" id="summary"></span>
+            <div class="grow"></div>
+            <div class="btn-group">
+              <button class="ghost" id="addFieldBtn" title="Feld hinzufügen"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Feld</button>
+              <button class="ghost" data-copyall="rl" title="Alle Unterschiede nach links"><svg class="i" viewBox="0 0 24 24"><path d="M11 17 6 12l5-5"/><path d="M18 17l-5-5 5-5"/></svg>Alles</button>
+              <button class="ghost" data-missing="rl" title="Nur fehlende Felder nach links"><svg class="i" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>Fehlende</button>
+              <button class="ghost" data-missing="lr" title="Nur fehlende Felder nach rechts">Fehlende<svg class="i" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+              <button class="ghost" data-copyall="lr" title="Alle Unterschiede nach rechts">Alles<svg class="i" viewBox="0 0 24 24"><path d="m13 17 5-5-5-5"/><path d="m6 17 5-5-5-5"/></svg></button>
+            </div>
+          </div>
+          <div class="table" id="table" tabindex="0" aria-label="Felder im Vergleich">
+            <div class="thead"><span class="th">Feld<span class="col-grip" id="gripName" role="separator" aria-label="Breite der Feldspalte" tabindex="0" title="Ziehen: Breite der Feldspalte · Doppelklick: Standard"></span></span><span class="th">Links</span><span class="th c mid-grip" id="gripMid" role="separator" aria-label="Aufteilung links/rechts" tabindex="0" title="Ziehen: Aufteilung links/rechts · Doppelklick: halb/halb"><svg class="i" viewBox="0 0 24 24"><path d="M9 5v14"/><path d="M15 5v14"/></svg></span><span class="th">Rechts</span></div>
+            <div id="tbody"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tagger -->
+    <div class="work module" id="moduleTagger" hidden>
+      <div class="tg-wrap">
+        <header class="sources">
+          <div class="src">
+            <span class="src-k">ORDNER</span>
+            <input id="tgPath" list="histTg" placeholder="Ordner oder MP3-Datei" aria-label="Ordner für den Tagger" spellcheck="false">
+            <datalist id="histTg"></datalist>
+            <button class="icon-btn" data-tgpick="1" title="Ordner wählen" aria-label="Ordner wählen"><svg class="i" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></button>
+            <button class="icon-btn" data-tgpick="0" title="Datei wählen" aria-label="Datei wählen"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg></button>
+          </div>
+          <div class="src-opts">
+            <label class="check"><input type="checkbox" id="tgRec"> Unterordner</label>
+            <button class="primary" id="tgLoad"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>Einlesen</button>
+          </div>
+        </header>
+        <div class="tg-body">
+          <section class="tg-list" aria-label="Dateien">
+            <div class="tg-listhead">
+              <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="tgQuery" placeholder="Dateien filtern (Name, Titel, Künstler …)" aria-label="Dateien filtern"></label>
+              <span class="muted sm" id="tgCount"></span>
+            </div>
+            <div class="tg-table" id="tgTable" tabindex="0" aria-label="Dateiliste">
+              <div class="tg-thead" id="tgHead"></div>
+              <div class="tg-scroll" id="tgScroll"><div id="tgInner"></div></div>
+            </div>
+          </section>
+          <div class="splitter" id="tgSplit" role="separator" aria-orientation="vertical" aria-label="Breite des Bearbeitungsbereichs" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: Standardbreite"></div>
+          <aside class="tg-edit" id="tgEdit" aria-label="Tags bearbeiten"></aside>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tag-Fixer -->
+    <div class="work module" id="moduleFixer" hidden>
+      <div class="mod-page">
+        <header class="mod-head">
+          <div><h2>Tag-Fixer – Mehrfachwerte</h2>
+          <p class="muted">Künstler, Genres &amp; Co. mit gemischten Trennzeichen („A; B“, „A / B“, „A feat. B“) einheitlich schreiben – als Trennzeichen oder als echte ID3v2.4-Mehrfachwerte.</p></div>
+        </header>
+        <div class="fx-grid">
+          <section class="card fx-opts" id="fxOpts" aria-label="Einstellungen"></section>
+          <section class="card fx-prev" aria-label="Vorschau">
+            <div class="row-between"><h3>Vorschau</h3><span class="muted sm" id="fxCount"></span></div>
+            <div class="fx-table" id="fxTable"></div>
+            <div class="fx-foot">
+              <p class="muted sm">Änderungen werden erst mit „Speichern“ geschrieben (mit Sicherung). Mehrfachwerte erscheinen als ¦. Manche Programme zeigen bei v2.4-Mehrfachwerten nur den ersten Wert.</p>
+              <button class="primary" id="fxApply" disabled>Anwenden</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sicherungen -->
+    <div class="work module" id="moduleBackups" hidden>
+      <div class="mod-page">
+        <header class="mod-head">
+          <div><h2>Sicherungen</h2>
+          <p class="muted">Vor jedem Speichern werden die bisherigen Tags gesichert (nur die Tags, nicht die Musik). Hier lassen sie sich byte-genau wiederherstellen. Es wird nie automatisch etwas gelöscht.</p></div>
+          <div class="mod-actions">
+            <label class="check"><input type="checkbox" id="bkEnabled"> Vor dem Speichern sichern</label>
+            <button class="ghost" id="bkFolder">Ordner ändern …</button>
+            <button class="ghost" id="bkOpen">Ordner öffnen</button>
+          </div>
+        </header>
+        <div class="muted sm bk-path" id="bkPath"></div>
+        <div class="bk-grid">
+          <section class="card bk-list" aria-label="Sicherungen"><div class="bk-scroll" id="bkList"></div></section>
+          <section class="card bk-files" aria-label="Dateien der Sicherung">
+            <div class="row-between"><h3 id="bkTitle">Dateien</h3><span class="muted sm" id="bkInfo"></span></div>
+            <div class="bk-scroll" id="bkFiles"></div>
+            <div class="fx-foot">
+              <button class="ghost" id="bkDelete" disabled>Sicherung löschen …</button>
+              <div class="grow"></div>
+              <button class="ghost" id="bkRestoreSel" disabled>Markierte wiederherstellen</button>
+              <button class="primary" id="bkRestoreAll" disabled>Alle wiederherstellen</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="work module" id="modulePlugins" hidden>
+      <div class="mod-page">
+        <header class="mod-head">
+          <div><h2>Plugins</h2>
+          <p class="muted">Erweiterungen mit eigenen Funktionen, z. B. Stems erzeugen. Aktionen eingeschalteter, bereiter Plugins erscheinen im Tagger unter „Plugins“. Plugins sind Python-Code – nur aus vertrauenswürdigen Quellen in den Plugin-Ordner legen.</p></div>
+          <div class="mod-actions">
+            <button class="ghost" id="plLogs">Protokolle</button>
+            <button class="ghost" id="plOpen">Plugin-Ordner öffnen</button>
+            <button class="ghost" id="plRescan">Neu einlesen</button>
+          </div>
+        </header>
+        <div class="muted sm" id="plDir"></div>
+        <div class="pl-grid" id="plList"></div>
+      </div>
+    </div>
+
+    <div class="work placeholder" id="modulePlaceholder" hidden>
+      <div class="empty-state">
+        <svg class="i xl" viewBox="0 0 24 24"><path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        <h3 id="phTitle"></h3>
+        <p id="phText"></p>
+      </div>
+    </div>
+
+    <!-- Aktionsleiste -->
+    <footer class="actions">
+      <span class="dot" id="pendingDot"></span>
+      <span class="muted" id="statusText">Bereit.</span>
+      <div class="grow"></div>
+      <button class="icon-btn lg" id="undoBtn" title="Rückgängig (Strg/Cmd+Z)" aria-label="Rückgängig"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+      <button class="icon-btn lg" id="redoBtn" title="Wiederholen (Strg+Y / Cmd+Shift+Z)" aria-label="Wiederholen"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+      <button class="primary save" id="saveBtn"><svg class="i" viewBox="0 0 24 24"><path d="M5 3h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M7 3v6h8"/><path d="M7 21v-7h10v7"/></svg><span id="saveLbl">Speichern</span></button>
+    </footer>
+  </main>
+</div>
+
+<!-- Überlagerungen -->
+<div class="overlay" id="progress" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="progTitle">
+    <h3 id="progTitle">Bitte warten …</h3>
+    <div class="bar"><div class="bar-fill" id="progBar"></div></div>
+    <div class="muted sm ellipsis" id="progText"></div>
+    <div class="dialog-btns"><button class="ghost" id="progCancel">Abbrechen</button></div>
+  </div>
+</div>
+<div class="overlay" id="dialog" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <h3 id="dlgTitle"></h3>
+    <div class="dlg-text" id="dlgText"></div>
+    <textarea id="dlgArea" hidden spellcheck="false"></textarea>
+    <div class="dialog-btns" id="dlgBtns"></div>
+  </div>
+</div>
+<div class="overlay" id="coverView" hidden>
+  <figure class="cover-big"><img id="coverImg" alt=""><figcaption id="coverCap"></figcaption></figure>
+</div>
+<div class="overlay" id="xmlEd" hidden>
+  <div class="xml-dlg" role="dialog" aria-modal="true" aria-labelledby="xmlTitle">
+    <header class="xml-head">
+      <div class="xml-titles"><h3 id="xmlTitle">XML-Editor</h3><div class="muted sm ellipsis" id="xmlSub"></div></div>
+      <div class="seg" role="tablist" aria-label="Ansicht">
+        <button role="tab" data-xtab="tree" class="on">Baum</button><button role="tab" data-xtab="src">Quelltext</button>
+      </div>
+    </header>
+    <div class="xml-tools">
+      <button class="ghost sm" id="xmlFormat" title="Einrücken und auf mehrere Zeilen verteilen">Formatieren</button>
+      <button class="ghost sm" id="xmlCompact" title="Alles in eine Zeile, Leerraum zwischen Tags entfernen">Kompakt</button>
+      <span class="xml-treeonly"><button class="ghost sm" id="xmlExpand">Alle aufklappen</button><button class="ghost sm" id="xmlCollapse">Alle zuklappen</button></span>
+      <label class="search sm xml-treeonly"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="xmlFind" placeholder="Im Baum suchen" aria-label="Im Baum suchen"></label>
+      <div class="grow"></div>
+      <button class="xml-status" id="xmlStatus" title="Zur Fehlerstelle springen"></button>
+    </div>
+    <div class="xml-body">
+      <div class="xml-tree" id="xmlTree"></div>
+      <div class="xml-src" id="xmlSrc" hidden>
+        <div class="xml-gutter" id="xmlGutter" aria-hidden="true"></div>
+        <div class="xml-code"><pre id="xmlHl" aria-hidden="true"></pre><textarea id="xmlText" spellcheck="false" wrap="off" aria-label="XML-Quelltext"></textarea></div>
+      </div>
+    </div>
+    <footer class="xml-foot">
+      <span class="muted sm" id="xmlInfo"></span><div class="grow"></div>
+      <button class="ghost" id="xmlCancel">Abbrechen</button><button class="primary" id="xmlOk">Übernehmen</button>
+    </footer>
+  </div>
+</div>
+<div class="overlay" id="modal" hidden>
+  <div class="dialog modal-dlg" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <h3 id="mTitle"></h3>
+    <div class="modal-body" id="mBody"></div>
+    <div class="dialog-btns" id="mBtns"></div>
+  </div>
+</div>
+<div class="menu" id="menu" hidden role="menu"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+<script src="xmleditor.js"></script>
+<script src="modules.js"></script>
+<script src="tagger.js"></script>
+<script src="keywheel.js"></script>
+<script src="features.js"></script>
+<script src="plugins.js"></script>
+</body>
+</html>

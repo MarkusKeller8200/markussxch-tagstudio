@@ -1,7 +1,7 @@
 [project]
 name = "markussxch-tagstudio"
-version = "2.9.0"
-description = "MarKusSXCH TagStudio – MP3-Tagger, Vergleich (Beyond-Compare-Stil), Tag-Fixer und Sicherungen"
+version = "3.0.0"
+description = "MarKusSXCH TagStudio – MP3-Tagger, Vergleich (Beyond-Compare-Stil), Tag-Fixer, Sicherungen und Plugins für DJs"
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [{ name = "Markus Keller" }]
@@ -10,3 +10,7 @@ dependencies = []  # bewusst keine Zusatzpakete – nur Python-Standardbibliothe
 [project.optional-dependencies]
 # Optional: schnellere/zuverlässigere Cover-Vorschau
 covers = ["Pillow"]
+# Neue Oberfläche im eigenen Fenster (tagstudio_web.py); ohne pywebview öffnet sie sich im Browser
+web = ["pywebview>=5"]
+# Plugin „Stems“ (Einzelspuren); alternativ über die Plugin-Seite installieren. NVIDIA: audio-separator[gpu]
+stems = ["audio-separator[cpu]"]
