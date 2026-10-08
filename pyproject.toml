@@ -1,0 +1,12 @@
+[project]
+name = "markussxch-tagstudio"
+version = "2.9.0"
+description = "MarKusSXCH TagStudio – MP3-Tagger, Vergleich (Beyond-Compare-Stil), Tag-Fixer und Sicherungen"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Markus Keller" }]
+dependencies = []  # bewusst keine Zusatzpakete – nur Python-Standardbibliothek
+
+[project.optional-dependencies]
+# Optional: schnellere/zuverlässigere Cover-Vorschau
+covers = ["Pillow"]

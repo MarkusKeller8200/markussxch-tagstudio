@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Paketierung (später)
+build/
+dist/
+
+# Temporäre Dateien des Programms
+.mp3tag_*.tmp
+.mp3restore_*.tmp
+*.part
+
+# Musikdateien und Sicherungen gehören nicht ins Repository
+*.mp3
+*.zip
+
+# Systemdateien / Editoren
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
