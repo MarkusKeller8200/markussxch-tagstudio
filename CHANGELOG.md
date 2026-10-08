@@ -1,8 +1,12 @@
 # Changelog – MarKusSXCH TagStudio
 
-Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/). Versionen bis 2.8 hießen „MP3 Tag Compare“.
+Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versionen nach
+[Semantic Versioning](https://semver.org/lang/de/) (MAJOR.MINOR.PATCH). Versionen bis 2.8 hießen „MP3 Tag Compare“.
+Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/release.py X.Y.Z` macht daraus eine Version.
 
-## [3.0] – 2026-10-08
+## [Unveröffentlicht]
+
+## [3.0.0] – 2026-10-09
 Grosses Update: neue Oberfläche mit Tagger und Plugins (entwickelt im Zweig `web-ui`, jetzt in `main`).
 
 ### Neu
@@ -56,6 +60,8 @@ Grosses Update: neue Oberfläche mit Tagger und Plugins (entwickelt im Zweig `we
   kein Python nötig. Gebaut von GitHub Actions bei jedem Versions-Tag, mit Selbsttest; erscheinen als GitHub-Release.
 
 ### Geändert
+- Versionierung nach MAJOR.MINOR.PATCH mit einer einzigen Quelle (`version.py`), Abschnitt „Unveröffentlicht“ im
+  CHANGELOG, `packaging/release.py`; Release-Workflow prüft Tag ↔ Version und veröffentlicht Beta-Tags als Vorabversion.
 - Update-Knopf: wer noch auf dem Zweig `web-ui` steht, wird automatisch auf `main` umgestellt.
 - Die klassische Oberfläche (`tagstudio.py`) nutzt den gemeinsamen Kern – Aussehen und Bedienung unverändert.
 - Rückgängig/Wiederholen in `undo.py` ausgelagert.

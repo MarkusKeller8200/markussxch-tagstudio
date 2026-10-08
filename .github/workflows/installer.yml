@@ -25,6 +25,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Versionierung prüfen
+        shell: bash
+        run: |
+          python packaging/release.py --check
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            want="${GITHUB_REF_NAME#v}"; have="$(python -c 'import version; print(version.VERSION)')"
+            if [ "$want" != "$have" ]; then
+              echo "::error title=Version passt nicht::Tag $GITHUB_REF_NAME, aber version.py sagt $have – zuerst python packaging/release.py $want"
+              exit 1
+            fi
+          fi
       - name: Werkzeuge installieren
         run: python -m pip install --upgrade pip pyinstaller pywebview pillow uv
       - name: Tests
@@ -84,6 +95,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Versionierung prüfen
+        shell: bash
+        run: |
+          python packaging/release.py --check
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            want="${GITHUB_REF_NAME#v}"; have="$(python -c 'import version; print(version.VERSION)')"
+            if [ "$want" != "$have" ]; then
+              echo "::error title=Version passt nicht::Tag $GITHUB_REF_NAME, aber version.py sagt $have – zuerst python packaging/release.py $want"
+              exit 1
+            fi
+          fi
       - name: Werkzeuge installieren
         run: python -m pip install --upgrade pip pyinstaller pywebview pillow uv
       - name: Tests
@@ -123,21 +145,26 @@ jobs:
         run: |
           ver="${GITHUB_REF_NAME#v}"
           python3 - "$ver" > notes.md <<'EOF'
-          import re, sys
+          import sys
+          sys.path.insert(0, "packaging")
+          import release
           ver = sys.argv[1]
-          text = open("CHANGELOG.md", encoding="utf-8").read()
-          m = re.search(r"^## \[" + re.escape(ver) + r"\][^\n]*\n(.*?)(?=^## \[|\Z)", text, re.S | re.M)
-          body = m.group(1).strip() if m else ""
+          body = release.section_text(open("CHANGELOG.md", encoding="utf-8").read(), ver)
           print("**Download:** Windows → `TagStudio-…-Windows-Setup.exe` · macOS (Apple-Chip) → `TagStudio-…-macOS-Apple-Chip.dmg`\n")
           print("Die Installer sind nicht signiert: Windows zeigt evtl. „Der Computer wurde durch Windows geschützt“ → „Weitere Informationen“ → „Trotzdem ausführen“. macOS: siehe „Zuerst lesen.txt“ im Disk-Image.\n")
-          print(body)
+          if "-" in ver:
+              print("> **Vorabversion** zum Testen – noch nicht für den Alltag gedacht.\n")
+          print(body or "(keine Einträge im CHANGELOG)")
           EOF
       - name: GitHub-Release erstellen oder aktualisieren
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          pre=""
+          case "$GITHUB_REF_NAME" in *-*) pre="--prerelease";; esac
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" assets/* --clobber
+            gh release edit "$GITHUB_REF_NAME" --notes-file notes.md $pre
           else
-            gh release create "$GITHUB_REF_NAME" assets/* --title "MarKusSXCH TagStudio ${GITHUB_REF_NAME#v}" --notes-file notes.md
+            gh release create "$GITHUB_REF_NAME" assets/* --title "MarKusSXCH TagStudio ${GITHUB_REF_NAME#v}" --notes-file notes.md $pre
           fi

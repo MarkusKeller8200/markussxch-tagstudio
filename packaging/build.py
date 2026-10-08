@@ -25,7 +25,7 @@ BUNDLE_ID = "ch.markussxch.tagstudio"
 HIDDEN = [
     # eigene Module (werden teils erst bei Bedarf importiert)
     "session", "core", "keys", "features", "plugins", "updater", "xmltools", "tagger", "backup", "compare",
-    "id3tags", "thumbs", "undo",
+    "id3tags", "thumbs", "undo", "version",
     # Standardbibliothek für Plugins
     "http.cookiejar", "urllib.request", "urllib.parse", "urllib.error", "difflib", "unicodedata", "ctypes",
     "ctypes.wintypes", "uuid", "csv", "zipfile", "logging", "base64", "hashlib", "html", "html.parser",
@@ -36,7 +36,7 @@ HIDDEN = [
 
 
 def version() -> str:
-    with open(os.path.join(ROOT, "session.py"), encoding="utf-8") as fh:
+    with open(os.path.join(ROOT, "version.py"), encoding="utf-8") as fh:
         return re.search(r'^VERSION = "([^"]+)"', fh.read(), re.M).group(1)
 
 

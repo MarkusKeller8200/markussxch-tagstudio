@@ -6,7 +6,7 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.9 oder neuer.
 
 > Bis Version 2.8 hieß das Programm „MP3 Tag Compare“. Einstellungen und Sicherungen von damals werden automatisch übernommen.
 
-**Aktuelle Version:** 3.0 · Änderungen siehe [CHANGELOG.md](CHANGELOG.md) · Plugins: [PLUGINS.md](PLUGINS.md)
+**Aktuelle Version:** 3.0.0 · Änderungen siehe [CHANGELOG.md](CHANGELOG.md) · Plugins: [PLUGINS.md](PLUGINS.md)
 
 ## Zwei Oberflächen, ein Kern
 
@@ -286,7 +286,9 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `keys.py` – Tonarten: erkennen, umschreiben (Camelot, musikalisch, Open Key), passende Tonarten
 - `plugins.py` + `plugins/` – Plugin-System (siehe [PLUGINS.md](PLUGINS.md)); eingebaut: `plugins/stems`
   (Einzelspuren, eigene Python-Umgebung), `plugins/beatport` (Metadaten von Beatport, inoffiziell)
-- `packaging/` – Installer: `build.py` (PyInstaller), `windows.iss` (Inno Setup), `make_dmg.sh` (macOS), Icon
+- `version.py` – Versionsnummer (einzige Stelle)
+- `packaging/` – Installer: `build.py` (PyInstaller), `windows.iss` (Inno Setup), `make_dmg.sh` (macOS), Icon;
+  `release.py` (neue Version vorbereiten)
 - `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen; wechselt von abgeschlossenen
   Entwicklungszweigen auf `main`)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
@@ -303,13 +305,42 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   Gegenseite) – mit synthetischen MP3-Dateien, ohne Zusatzpakete und ohne Netz. Die klassische Oberfläche wird in
   der CI zusätzlich per Smoke-Test geprüft.
 - **Automatische Prüfung (GitHub Actions):** Bei jedem Push laufen die Tests auf Windows, macOS und Linux
-  (`.github/workflows/tests.yml`).
-- **Versionen:** Jede Version bekommt einen Eintrag in `CHANGELOG.md` und einen Git-Tag (`v3.0` …).
-- **Installer:** GitHub Actions (`.github/workflows/installer.yml`) baut bei jedem Versions-Tag `v*` die Installer
-  für Windows und macOS, prüft die App per `--selftest` (auch nach echter Installation unter Windows) und
-  veröffentlicht sie als GitHub-Release mit dem Text aus dem CHANGELOG. Von Hand: Actions → Installer → Run workflow.
-- **Arbeitsweise:** Neue Funktionen in einem eigenen Branch entwickeln, dann nach `main` übernehmen.
-  Version 3.0 entstand im Zweig `web-ui` und wurde am 08.10.2026 nach `main` übernommen.
+  (`.github/workflows/tests.yml`); die Installer baut `.github/workflows/installer.yml` (siehe unten).
+
+## Versionen & Releases
+
+**Schema MAJOR.MINOR.PATCH** ([Semantic Versioning](https://semver.org/lang/de/)), einzige Quelle: `version.py`.
+
+| Teil | Wann erhöhen | Beispiel |
+|---|---|---|
+| PATCH | nur Fehlerbehebungen | 3.0.0 → 3.0.1 |
+| MINOR | neue Funktionen (der Normalfall) | 3.0.1 → 3.1.0 |
+| MAJOR | grosse Umbrüche, z. B. inkompatible Einstellungen/Datenbank | 3.4.2 → 4.0.0 |
+| Vorabversion | zum Testen vor einer Version | 3.1.0-beta.1 |
+
+**Ablauf**
+
+1. **Laufend:** Jede Änderung kommt sofort in `CHANGELOG.md` unter **„Unveröffentlicht“**.
+2. **Version festlegen**, wenn ein zusammenhängendes Paket fertig und getestet ist:
+   `python packaging/release.py 3.1.0` – setzt `version.py` und `pyproject.toml` und macht aus „Unveröffentlicht“
+   den Abschnitt „[3.1.0] – Datum“. Danach committen und pushen (mit `--commit` erledigt das Skript Commit + Tag).
+3. **Tag `v3.1.0` setzen** – auf GitHub unter *Releases → Draft a new release* (Tag neu auf `main`) oder per
+   `git push --follow-tags`. GitHub Actions prüft, dass Tag und `version.py` übereinstimmen, baut die Installer für
+   Windows und macOS, testet sie und veröffentlicht sie als **Release** mit dem Text aus dem CHANGELOG.
+   Tags mit Zusatz (`v3.1.0-beta.1`) werden als **Vorabversion** veröffentlicht (Text aus „Unveröffentlicht“).
+4. **Dringender Fehler:** sofort eine PATCH-Version (3.1.1) auf demselben Weg.
+
+`python packaging/release.py --check` prüft, ob Versionsnummer, `pyproject.toml` und CHANGELOG zusammenpassen
+(läuft auch in den Tests).
+
+**Zwei Kanäle**
+
+- **Installer (Releases):** stabile Versionen für den Alltag.
+- **Git-Klon mit Update-Knopf:** folgt `main` und bekommt jede Änderung sofort – der Testkanal.
+
+**Zweige:** `main` ist immer lauffähig (die CI prüft jeden Commit auf Windows, macOS und Linux). Grössere Vorhaben
+entstehen in kurzlebigen Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind.
+Version 3.0 entstand im Zweig `web-ui`.
 
 ## Ausblick
 

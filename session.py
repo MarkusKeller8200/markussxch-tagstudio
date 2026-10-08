@@ -24,8 +24,8 @@ from compare import (PAIR_MODES, Rules, DEFAULT_TRIVIAL, Cancelled, diff, copy_t
                      INPUT_SEPARATORS, plan_multi_fix)
 from id3tags import key_label, sort_key, TEXT_LABELS, STANDARD_KEYS, MV, MV_SHOW, Cover, Item
 from undo import UndoStack
+from version import VERSION  # einzige Versionsquelle
 
-VERSION = "3.0"
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
            "col_name": (int, float), "col_ratio": (int, float), "tg_edit_w": (int, float)}
