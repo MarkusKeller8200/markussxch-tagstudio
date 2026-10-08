@@ -11,6 +11,7 @@ import os
 import threading
 
 import core
+import xmltools
 from compare import PAIR_MODES, Rules, DEFAULT_TRIVIAL, Cancelled, diff, copy_tags, all_keys
 from id3tags import key_label
 from undo import UndoStack
@@ -223,13 +224,15 @@ class Session:
                     spans = []
                     if it is not None and st in ("diff", "triv") and other is not None and other.get(k) is not None:
                         spans = core.diff_spans(text, core.disp(other.get(k)))
+                    xml = xmltools.xml_of_item(it)
                     row[side] = {
                         "present": it is not None, "text": text, "spans": spans,
+                        "xml": None if xml is None else ("edit" if xml[1] else "view"),
                         "links": [[a, b, u] for a, b, u in core.link_spans(text)],
                         "mod": bool(f is not None and f.field_modified(k)),
                         "editable": core.can_edit_text(f, k),
                         "multiline": bool(it is not None and ("\n" in it.text or k.startswith("USLT"))),
-                        "edit": core.edit_text(it) if it is not None and it.kind != "picture" else "",
+                        "edit": core.edit_text(it) if it is not None and it.kind != "picture" and xml is None else "",
                     } if f is not None else None
                 row["fid"] = " · ".join(fids) or k.split(":")[0].split("#")[0]
                 rows.append(row)
@@ -254,6 +257,25 @@ class Session:
         with self.lock:
             return {"view": self.view(), "pair": self.pair_row(self.cur), "meta": self.meta(),
                     "options": dict(self.opts), "message": message, "tone": tone}
+
+    # ================================================================== XML
+    def get_xml(self, side, key):
+        """XML-Inhalt eines Feldes für den XML-Editor."""
+        with self.lock:
+            f = self._file(side)
+            it = f.get(key) if f else None
+            x = xmltools.xml_of_item(it)
+            if x is None:
+                return {"ok": False, "error": "Dieses Feld enthält kein XML."}
+            return {"ok": True, "text": x[0], "editable": x[1], "label": key_label(key),
+                    "file": os.path.basename(f.path), "side": side, "key": key}
+
+    @staticmethod
+    def xml_tool(action, text):
+        """check | format | compact"""
+        if action == "check":
+            return xmltools.check(text)
+        return xmltools.format_xml(text, compact=(action == "compact"))
 
     # ================================================================== Ändern
     @staticmethod

@@ -77,6 +77,31 @@ class TestGuiSmoke(unittest.TestCase):
         finally:
             app.destroy()
 
+    def test_xml_editor(self):
+        from helpers import txxx
+        from id3tags import MP3File
+        path = os.path.join(self.dir, "xml.mp3")
+        write_mp3(path, [text("TIT2", "XML"), txxx("Analyse", '<a x="1"><b>Text</b></a>')])
+        app = self.ts.App()
+        try:
+            f = MP3File(path)
+            d = app._xml_dialog(f, "TXXX:Analyse", f.text("TXXX:Analyse"), True)
+            app.update()
+            self.assertIn("Gültiges", d.xml_status.cget("text"))
+            d.xml_tool("format")
+            self.assertIn("\n  <b>Text</b>", d.xml_text.get("1.0", "end-1c"))
+            d.xml_text.insert("end", "<kaputt>")
+            app.update()
+            time.sleep(0.4)
+            app.update()
+            self.assertIn("Zeile", d.xml_status.cget("text"))
+            d.xml_text.delete("end-9c", "end-1c")
+            d.xml_close(True)
+            self.assertTrue(f.text("TXXX:Analyse").startswith("<a x=\"1\">\n"))
+            self.assertTrue(f.is_modified())
+        finally:
+            app.destroy()
+
 
 if __name__ == "__main__":
     unittest.main()

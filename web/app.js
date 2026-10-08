@@ -520,6 +520,7 @@ function valueHtml(cell, state) {
   for (const [a, b] of cell.spans) for (let i = a; i < Math.min(b, n); i++) chg[i] = 1;
   for (const [a, b, u] of cell.links) for (let i = a; i < Math.min(b, n); i++) url[i] = u;
   let out = cell.mod ? '<span class="mod" title="geändert, noch nicht gespeichert"></span>' : "";
+  if (cell.xml) out += `<button class="xml-badge${cell.xml === "view" ? " view" : ""}" data-xml="1" title="${cell.xml === "view" ? "XML ansehen (Binärfeld)" : "Im XML-Editor bearbeiten"}">XML</button>`;
   let start = 0;
   const cls = state === "triv" ? "tv" : "hl";
   for (let i = 1; i <= n; i++) {
@@ -564,6 +565,7 @@ function selectedKeys() { return rowKeys().filter((k) => S.sel.has(k)); }
 function startEdit(tr, side) {
   const r = S.view.rows[+tr.dataset.n];
   const cell = r[side];
+  if (cell && cell.xml) return openXml(side, r.key);
   if (!cell || !cell.editable) {
     if (r.key.startsWith("APIC") && cell && cell.present) return openCover(side, r.key);
     if (cell && cell.present) toast(`„${r.label}“ ist ein Binärfeld und kann nur kopiert oder entfernt werden.`);
@@ -693,7 +695,8 @@ function rowMenu(e, tr) {
   for (const sd of side ? [side] : ["L", "R"]) {
     const cell = r[sd];
     const name = sd === "L" ? "links" : "rechts";
-    if (cell && cell.editable) items.push({ label: `Bearbeiten (${name})`, icon: ICON.edit, run: () => startEdit(tr, sd) });
+    if (cell && cell.xml) items.push({ label: `XML-Editor (${name})`, icon: ICON.edit, run: () => openXml(sd, r.key) });
+    else if (cell && cell.editable) items.push({ label: `Bearbeiten (${name})`, icon: ICON.edit, run: () => startEdit(tr, sd) });
     if (cell && keys.some((k) => { const rr = S.view.rows.find((x) => x.key === k); return rr && rr[sd] && rr[sd].present; }))
       items.push({ label: `Markierte ${name} entfernen`, icon: ICON.trash, run: async () => applyState(await call("remove", sd, keys)) });
   }
@@ -782,6 +785,8 @@ function bind() {
     if (a && !e.shiftKey && !e.ctrlKey && !e.metaKey) { e.preventDefault(); call("open_url", a.dataset.url); return; }
     const tr = e.target.closest(".tr");
     if (!tr) return;
+    const xb = e.target.closest("[data-xml]");
+    if (xb) { openXml(xb.closest(".v").dataset.side, tr.dataset.key); return; }
     const arrow = e.target.closest(".arrow");
     if (arrow) { copyKeys([tr.dataset.key], arrow.dataset.dir); return; }
     if (e.target.closest(".edit")) return;

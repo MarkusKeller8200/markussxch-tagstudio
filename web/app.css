@@ -225,3 +225,57 @@ select{height:40px;padding:0 10px;border:1px solid var(--line);border-radius:var
   .heads{padding:14px 24px 10px}
 }
 @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+
+/* XML */
+.xml-badge{display:inline-flex;align-items:center;height:20px;padding:0 7px;margin-right:8px;border-radius:6px;border:1px solid var(--acc);background:var(--acc-soft);color:var(--acc);font-size:11px;font-weight:700;letter-spacing:.04em;font-family:var(--mono);vertical-align:middle}
+.xml-badge:hover{background:var(--acc);color:var(--acc-fg)}
+.xml-badge.view{border-color:var(--line2);background:var(--raise);color:var(--dim)}
+.xml-dlg{width:min(1180px,calc(100vw - 48px));height:min(860px,calc(100vh - 48px));background:var(--surf);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+.xml-head{display:flex;align-items:center;gap:16px;padding:18px 22px 12px}
+.xml-titles{flex:1;min-width:0}
+.xml-head h3{margin:0;font-size:17px}
+.xml-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 22px 12px;border-bottom:1px solid var(--line)}
+.xml-tools .search.sm{height:34px;width:210px}
+span.xml-treeonly{display:contents}
+.xml-dlg.mode-src .xml-treeonly{display:none}
+.xml-status{height:34px;padding:0 12px;border-radius:var(--r);border:1px solid var(--line);background:transparent;font-size:13px;font-weight:600;max-width:520px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xml-status.ok{color:var(--ok);border-color:transparent;cursor:default}
+.xml-status.bad{color:var(--warn);border-color:var(--warn)}
+.xml-body{flex:1;min-height:0;display:flex;background:var(--bg)}
+.xml-tree{flex:1;overflow:auto;padding:14px 18px;font-family:var(--mono);font-size:13px;line-height:1.5}
+.xml-msg{font-family:var(--font);color:var(--dim);padding:20px}
+.xn{margin-left:18px}
+.xn.root{margin-left:0}
+.xr{display:flex;align-items:center;flex-wrap:wrap;gap:2px 4px;min-height:30px;padding:1px 4px;border-radius:6px}
+.xr:hover{background:var(--raise)}
+.xr.hit{background:var(--hl-bg)}
+.tw{width:20px;height:20px;border:0;background:transparent;color:var(--faint);padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0;transition:transform .1s}
+.tw:hover{background:var(--line);color:var(--fg)}
+.tw.leaf{visibility:hidden}
+.xn.closed>.xr .tw{transform:rotate(-90deg)}
+.xn.closed>.xk{display:none}
+.xn.closed>.xr .xc{display:inline}
+.xc{display:none;color:var(--faint);font-style:italic;font-family:var(--font);font-size:12px;margin-left:4px}
+.tg{color:var(--acc)}
+.an{color:var(--only);margin-left:6px}
+.eq{color:var(--faint)}
+.xin{font:inherit;color:var(--fg);background:var(--surf);border:1px solid var(--line);border-radius:5px;padding:1px 6px;min-width:3ch;max-width:min(60ch,100%)}
+.xin:focus{outline:0;border-color:var(--acc)}
+.xin.av{color:var(--diff)}
+.xin[readonly]{background:transparent;border-color:transparent}
+.xtext{display:flex;align-items:center;gap:6px;margin-left:24px;min-height:28px}
+.xtext .lbl{font-family:var(--font);font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+.cm{color:var(--faint);margin-left:24px;white-space:pre-wrap}
+.xml-src{flex:1;display:flex;min-height:0;font-family:var(--mono);font-size:13px;line-height:20px}
+.xml-gutter{width:52px;flex-shrink:0;overflow:hidden;text-align:right;padding:12px 10px 12px 0;color:var(--faint);background:var(--surf);border-right:1px solid var(--line);user-select:none}
+.xml-gutter div{height:20px}
+.xml-gutter .err{color:var(--warn);font-weight:700}
+.xml-code{position:relative;flex:1;min-width:0;overflow:hidden}
+.xml-code pre,.xml-code textarea{position:absolute;inset:0;margin:0;padding:12px 14px;font:inherit;line-height:inherit;white-space:pre;tab-size:2;border:0;overflow:auto}
+.xml-code pre{pointer-events:none;color:var(--fg);overflow:hidden}
+.xml-code textarea{background:transparent;color:transparent;caret-color:var(--fg);resize:none;outline:0}
+.xml-code textarea::selection{background:var(--sel);color:transparent}
+.h-tag{color:var(--acc)} .h-attr{color:var(--only)} .h-str{color:var(--diff)} .h-com{color:var(--faint);font-style:italic}
+.h-ent{color:var(--ok)} .h-pi{color:var(--triv)} .h-cdata{color:var(--ok)}
+.xml-foot{display:flex;align-items:center;gap:8px;padding:14px 22px;border-top:1px solid var(--line)}
+.xml-foot .ghost,.xml-foot .primary{height:40px}

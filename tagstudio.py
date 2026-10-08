@@ -31,6 +31,7 @@ import backup  # noqa: E402
 import thumbs  # noqa: E402
 from undo import UndoStack  # noqa: E402,F401
 import core  # noqa: E402
+import xmltools  # noqa: E402
 from core import URL_RE, FILTER_OPS  # noqa: E402,F401
 from compare import (diff, copy_tags, all_keys, PAIR_MODES, Rules, DEFAULT_TRIVIAL,  # noqa: E402
                      Cancelled, MULTI_FIELDS, INPUT_SEPARATORS, plan_multi_fix)  # noqa: E402
@@ -1765,6 +1766,10 @@ class App(tk.Tk):
         if key.startswith("APIC"):
             self.load_cover(side, key)
             return
+        xml = xmltools.xml_of_item(it)
+        if xml is not None:
+            self._xml_dialog(f, key, xml[0], xml[1])
+            return
         if it is None and key.split(":")[0] not in TEXT_LABELS and not key.startswith(("TXXX", "COMM", "WXXX", "USLT")) \
                 and not key.startswith(("T", "W")):
             messagebox.showinfo(APP, f"„{key_label(key)}“ kann nur kopiert werden.")
@@ -1840,6 +1845,192 @@ class App(tk.Tk):
         self.undo.checkpoint(f"„{key_label(key)}“ bearbeitet", [f])
         core.apply_value(f, key, val)
         self._changed()
+
+    # ------------------------------------------------------------------ XML-Editor
+    _XML_RE = re.compile(r"(<!--[\s\S]*?(?:-->|$))|(<!\[CDATA\[[\s\S]*?(?:\]\]>|$))|(<\?[\s\S]*?(?:\?>|$))"
+                         r"|(</?[A-Za-z_][\w:.\-]*)((?:\s+[^\s=>/]+(?:\s*=\s*(?:\"[^\"]*\"|'[^']*'|[^\s>]+))?)*)\s*(/?>)?"
+                         r"|(&[#\w]+;)")
+    _ATTR_RE = re.compile(r"([^\s=]+)(\s*=\s*)?(\"[^\"]*\"|'[^']*'|[^\s\"']+)?")
+
+    def _xml_dialog(self, f, key, text, editable=True):
+        """Einfacher XML-Editor: Quelltext mit Hervorhebung, Prüfen, Formatieren, Kompakt."""
+        th = self.th
+        d = tk.Toplevel(self)
+        d.withdraw()
+        d.title(f"XML-Editor – {key_label(key)}" + ("" if editable else " (nur ansehen)"))
+        d.configure(bg=th["bg"])
+        d.transient(self)
+        d.geometry("960x680")
+        d.minsize(560, 360)
+        mono = tkfont.Font(family=self.f_mono.actual("family"), size=self.f_ui.actual("size"))
+        state = {"orig": text, "valid": True, "err": None, "job": None}
+
+        bar = ttk.Frame(d, padding=(10, 10, 10, 6))
+        bar.pack(fill="x")
+        ttk.Label(bar, text=f"{os.path.basename(f.path)}  ·  {key_label(key)}", style="Dim.TLabel").pack(side="left")
+        status = tk.Label(bar, text="", bg=th["bg"], font=self.f_bold, anchor="e", cursor="hand2")
+        status.pack(side="right")
+        tools = ttk.Frame(d, padding=(10, 0, 10, 8))
+        tools.pack(fill="x")
+
+        body = tk.Frame(d, bg=th["border"], bd=0)
+        body.pack(fill="both", expand=True, padx=10)
+        lines = tk.Text(body, width=5, padx=6, pady=8, bd=0, font=mono, bg=th["panel"], fg=th["dim"],
+                        state="disabled", takefocus=0, cursor="arrow", highlightthickness=0)
+        lines.pack(side="left", fill="y")
+        ys = ttk.Scrollbar(body, orient="vertical")
+        xs = ttk.Scrollbar(d, orient="horizontal")
+        tx = tk.Text(body, wrap="none", undo=True, font=mono, bg=th["entry"], fg=th["fg"], insertbackground=th["fg"],
+                     selectbackground=th["sel"], selectforeground=th["fg"], relief="flat", bd=0, padx=10, pady=8,
+                     highlightthickness=0, tabs=(mono.measure("  "),))
+        tx.pack(side="left", fill="both", expand=True)
+        ys.pack(side="right", fill="y")
+        xs.pack(fill="x", padx=10)
+
+        def yscroll(*a):
+            tx.yview(*a)
+            lines.yview(*a)
+
+        def on_y(first, last):
+            ys.set(first, last)
+            lines.yview_moveto(first)
+        ys.configure(command=yscroll)
+        tx.configure(yscrollcommand=on_y, xscrollcommand=xs.set)
+        xs.configure(command=tx.xview)
+        for tag, tok in (("h_tag", "g_cmp"), ("h_attr", "mod"), ("h_str", "g_copy"), ("h_ent", "ok"),
+                         ("h_com", "dim"), ("h_pi", "dim"), ("h_cdata", "ok")):
+            tx.tag_configure(tag, foreground=th[tok])
+        tx.tag_configure("h_err", background=th["diff_bg"])
+        lines.tag_configure("err", foreground=th["chg"])
+        lines.tag_configure("right", justify="right")
+        tx.insert("1.0", text)
+        tx.edit_reset()
+
+        def content():
+            return tx.get("1.0", "end-1c")
+
+        def highlight():
+            s = content()
+            for t in ("h_tag", "h_attr", "h_str", "h_ent", "h_com", "h_pi", "h_cdata"):
+                tx.tag_remove(t, "1.0", "end")
+            if len(s) > 300_000:
+                return
+
+            def mark(tag, a, b):
+                if b > a:
+                    tx.tag_add(tag, f"1.0+{a}c", f"1.0+{b}c")
+            for m in self._XML_RE.finditer(s):
+                if m.group(1):
+                    mark("h_com", *m.span(1))
+                elif m.group(2):
+                    mark("h_cdata", *m.span(2))
+                elif m.group(3):
+                    mark("h_pi", *m.span(3))
+                elif m.group(4):
+                    mark("h_tag", *m.span(4))
+                    if m.group(5):
+                        base = m.start(5)
+                        for am in self._ATTR_RE.finditer(m.group(5)):
+                            mark("h_attr", base + am.start(1), base + am.end(1))
+                            if am.group(3):
+                                mark("h_str", base + am.start(3), base + am.end(3))
+                    if m.group(6):
+                        mark("h_tag", *m.span(6))
+                elif m.group(7):
+                    mark("h_ent", *m.span(7))
+
+        def numbers():
+            n = int(tx.index("end-1c").split(".")[0])
+            err = state["err"]["line"] if state["err"] else -1
+            lines.configure(state="normal")
+            lines.delete("1.0", "end")
+            lines.insert("1.0", "\n".join(str(i) for i in range(1, n + 1)), ("right",))
+            if 1 <= err <= n:
+                lines.tag_add("err", f"{err}.0", f"{err}.end")
+            lines.configure(state="disabled")
+            lines.yview_moveto(tx.yview()[0])
+
+        def validate():
+            r = xmltools.check(content())
+            state["valid"], state["err"] = r["ok"], (None if r["ok"] else r)
+            tx.tag_remove("h_err", "1.0", "end")
+            if r["ok"]:
+                status.configure(text="✓ Gültiges XML", fg=th["ok"])
+            else:
+                status.configure(text=f"✗ Zeile {r['line']}, Spalte {r['col']}: {r['error']}", fg=th["chg"])
+                tx.tag_add("h_err", f"{r['line']}.0", f"{r['line']}.end")
+            numbers()
+
+        def refresh(_e=None):
+            if state["job"]:
+                d.after_cancel(state["job"])
+
+            def run():
+                state["job"] = None
+                highlight()
+                validate()
+            state["job"] = d.after(250, run)
+
+        def jump(_e=None):
+            e = state["err"]
+            if e:
+                tx.mark_set("insert", f"{e['line']}.{max(0, e['col'] - 1)}")
+                tx.see("insert")
+                tx.focus_set()
+        status.bind("<Button-1>", jump)
+
+        def tool(action):
+            r = xmltools.format_xml(content(), compact=(action == "compact"))
+            if not r["ok"]:
+                state["err"] = r
+                validate()
+                jump()
+                return
+            tx.edit_separator()
+            tx.delete("1.0", "end")
+            tx.insert("1.0", r["text"])
+            tx.edit_separator()
+            highlight()
+            validate()
+        b1 = ttk.Button(tools, text="Formatieren", command=lambda: tool("format"))
+        b2 = ttk.Button(tools, text="Kompakt", command=lambda: tool("compact"))
+        b1.pack(side="left")
+        b2.pack(side="left", padx=6)
+        ttk.Label(tools, text="Strg/Cmd+Enter übernimmt · Esc schließt", style="Dim.TLabel").pack(side="right")
+
+        def close(commit):
+            new = content()
+            if commit and editable and new != state["orig"]:
+                if not state["valid"] and not messagebox.askyesno(
+                        APP, f"Das XML ist nicht gültig:\n{status.cget('text')}\n\nTrotzdem übernehmen?", parent=d):
+                    return
+                self._set_value(f, key, new)
+            elif not commit and editable and new != state["orig"]:
+                if not messagebox.askyesno(APP, "Änderungen im XML-Editor verwerfen?", parent=d):
+                    return
+            d.destroy()
+
+        bf = ttk.Frame(d, padding=10)
+        bf.pack(fill="x")
+        ttk.Button(bf, text="Übernehmen" if editable else "Schließen", command=lambda: close(True)).pack(side="right")
+        if editable:
+            ttk.Button(bf, text="Abbrechen", command=lambda: close(False)).pack(side="right", padx=6)
+        else:
+            b1.state(["disabled"])
+            b2.state(["disabled"])
+        tx.bind("<<Modified>>", lambda e: (tx.edit_modified(False), refresh()))
+        tx.bind("<Tab>", lambda e: (tx.insert("insert", "  "), "break")[1])
+        d.bind("<Escape>", lambda e: close(False))
+        d.bind(f"<{MOD}-Return>", lambda e: close(True))
+        d.protocol("WM_DELETE_WINDOW", lambda: close(False))
+        highlight()
+        validate()
+        if not editable:
+            tx.configure(state="disabled")
+        self._center(d)
+        tx.focus_set()
+        d.xml_text, d.xml_tool, d.xml_close, d.xml_status = tx, tool, close, status  # für Tests
+        return d
 
     def _edit_dialog(self, f, key, text):
         th = self.th

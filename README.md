@@ -32,6 +32,11 @@ beide lassen sich abwechselnd verwenden.
   Kontextmenü (kopieren, bearbeiten, entfernen, Link öffnen, im Explorer/Finder zeigen), klickbare Links,
   Cover-Vorschau mit Großansicht, Filter Alle/Unterschiede/Gleiche, Unwichtige, leere Felder, Feldsuche,
   Rückgängig/Wiederholen, Speichern mit automatischer Sicherung, Hell/Dunkel.
+- **XML-Editor:** Felder mit XML-Inhalt (z. B. Analysedaten in Benutzertexten) tragen das Kennzeichen **XML**.
+  Klick darauf oder Doppelklick öffnet den Editor: **Baum** (Attribute und Texte direkt bearbeiten, auf-/zuklappen,
+  suchen) und **Quelltext** (farbig, Zeilennummern). Laufende Prüfung mit Zeile/Spalte der Fehlerstelle (Klick springt
+  hin), **Formatieren** (eingerückt) und **Kompakt** (eine Zeile). Binärfelder mit XML (GEOB/PRIV) nur ansehen.
+  Strg/Cmd+Enter übernimmt, Esc schließt. Die klassische Oberfläche hat denselben Editor (Quelltext-Ansicht).
 - **Update:** Unten in der Seitenleiste „Nach Update suchen“. TagStudio prüft beim Start selbst, ob es auf GitHub
   eine neue Version gibt (Punkt am Knopf). Ein Klick lädt sie (`git pull`, nur wenn der Programmordner keine
   eigenen Änderungen hat) und startet TagStudio neu – die gewählten Ordner werden wieder eingelesen.
@@ -198,6 +203,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `core.py` – gemeinsame Logik beider Oberflächen: Anzeige, Zeichen-Diff, Filter, Laden, Speichern, Einstellungen
 - `session.py` – Zustand und Befehle einer Sitzung für die neue Oberfläche
 - `undo.py` – Rückgängig/Wiederholen
+- `xmltools.py` – XML in Feldern erkennen, prüfen, formatieren/kompakt schreiben
 - `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)

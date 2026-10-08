@@ -158,9 +158,39 @@
 <div class="overlay" id="coverView" hidden>
   <figure class="cover-big"><img id="coverImg" alt=""><figcaption id="coverCap"></figcaption></figure>
 </div>
+<div class="overlay" id="xmlEd" hidden>
+  <div class="xml-dlg" role="dialog" aria-modal="true" aria-labelledby="xmlTitle">
+    <header class="xml-head">
+      <div class="xml-titles"><h3 id="xmlTitle">XML-Editor</h3><div class="muted sm ellipsis" id="xmlSub"></div></div>
+      <div class="seg" role="tablist" aria-label="Ansicht">
+        <button role="tab" data-xtab="tree" class="on">Baum</button><button role="tab" data-xtab="src">Quelltext</button>
+      </div>
+    </header>
+    <div class="xml-tools">
+      <button class="ghost sm" id="xmlFormat" title="Einrücken und auf mehrere Zeilen verteilen">Formatieren</button>
+      <button class="ghost sm" id="xmlCompact" title="Alles in eine Zeile, Leerraum zwischen Tags entfernen">Kompakt</button>
+      <span class="xml-treeonly"><button class="ghost sm" id="xmlExpand">Alle aufklappen</button><button class="ghost sm" id="xmlCollapse">Alle zuklappen</button></span>
+      <label class="search sm xml-treeonly"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="xmlFind" placeholder="Im Baum suchen" aria-label="Im Baum suchen"></label>
+      <div class="grow"></div>
+      <button class="xml-status" id="xmlStatus" title="Zur Fehlerstelle springen"></button>
+    </div>
+    <div class="xml-body">
+      <div class="xml-tree" id="xmlTree"></div>
+      <div class="xml-src" id="xmlSrc" hidden>
+        <div class="xml-gutter" id="xmlGutter" aria-hidden="true"></div>
+        <div class="xml-code"><pre id="xmlHl" aria-hidden="true"></pre><textarea id="xmlText" spellcheck="false" wrap="off" aria-label="XML-Quelltext"></textarea></div>
+      </div>
+    </div>
+    <footer class="xml-foot">
+      <span class="muted sm" id="xmlInfo"></span><div class="grow"></div>
+      <button class="ghost" id="xmlCancel">Abbrechen</button><button class="primary" id="xmlOk">Übernehmen</button>
+    </footer>
+  </div>
+</div>
 <div class="menu" id="menu" hidden role="menu"></div>
 <div class="toast" id="toast" hidden></div>
 
 <script src="app.js"></script>
+<script src="xmleditor.js"></script>
 </body>
 </html>

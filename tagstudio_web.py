@@ -105,6 +105,12 @@ class Api:
     def revert_pair(self):
         return self._s.revert_pair()
 
+    def get_xml(self, side, key):
+        return self._s.get_xml(side, key)
+
+    def xml_tool(self, action, text):
+        return self._s.xml_tool(action, text)
+
     def discard_all(self):
         return self._s.discard_all()
 
