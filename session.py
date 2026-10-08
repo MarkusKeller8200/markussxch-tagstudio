@@ -624,13 +624,39 @@ class Session:
                 if cancel.is_set():
                     raise Cancelled()
                 code, txt = backup.check_entry(e)
-                out.append({"id": e["id"], "name": e.get("name") or os.path.basename(e["path"]),
+                changes, fields = None, []
+                if code in ("ok", "audio"):
+                    try:
+                        rows = backup.diff_entry(b["path"], e)["rows"]
+                        changes, fields = len(rows), [r["label"] for r in rows]
+                    except Exception:  # noqa: BLE001 – Übersicht darf nicht an einer Datei scheitern
+                        changes = None
+                elif code == "same":
+                    changes = 0
+                out.append({"changes": changes, "fields": fields[:8], "more": max(0, len(fields) - 8),
+                            "id": e["id"], "name": e.get("name") or os.path.basename(e["path"]),
                             "dir": os.path.dirname(e["path"]), "code": code, "text": txt,
                             "loaded_modified": bool(self.reg.get(os.path.normcase(os.path.abspath(e["path"])))
                                                     and self.reg[os.path.normcase(os.path.abspath(e["path"]))].is_modified())})
                 progress(("progress", i, len(b["files"]), e["path"]))
             return {"files": out, "name": b["name"]}
         return self._run("check", "Sicherung prüfen", job)
+
+    def backup_diff(self, path, entry_id):
+        """Feld-Vergleich Sicherung ↔ heutige Datei für den Änderungs-Viewer."""
+        b = self._backup_entry(path)
+        e = next((x for x in b["files"] if x.get("id") == entry_id), None)
+        if e is None:
+            raise ValueError("Datei nicht in dieser Sicherung.")
+        d = backup.diff_entry(b["path"], e)
+        for r in d["rows"]:
+            r["spans_old"] = core.diff_spans(r["old"], r["new"]) if r["state"] == "changed" else []
+            r["spans_new"] = core.diff_spans(r["new"], r["old"]) if r["state"] == "changed" else []
+        reg = self.reg.get(os.path.normcase(os.path.abspath(e["path"])))
+        d.update(name=e.get("name") or os.path.basename(e["path"]), path=e["path"], id=entry_id,
+                 created=time.strftime("%d.%m.%Y %H:%M:%S", time.localtime(b["created"])),
+                 label=b.get("label", ""), unsaved=bool(reg and reg.is_modified()))
+        return d
 
     def start_restore(self, path, ids=None, force_audio=False):
         try:

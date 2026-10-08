@@ -394,9 +394,11 @@ span.xml-treeonly{display:contents}
 .tg-f input{height:30px;border:1px solid var(--acc);border-radius:6px;background:var(--bg);padding:0 8px;width:100%}
 .bk-files table{table-layout:fixed}
 .bk-files th:nth-child(1){width:38px}
-.bk-files th:nth-child(2){width:36%}
-.bk-files th:nth-child(3){width:190px}
-.bk-files td:nth-child(4){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk-files th:nth-child(2){width:30%}
+.bk-files th:nth-child(3){width:30%}
+.bk-files th:nth-child(4){width:160px}
+.bk-files td:nth-child(4),.bk-files td:nth-child(5){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk-files td:nth-child(2){overflow:hidden;text-overflow:ellipsis}
 
 /* ---------------------------------------------------------------- Tonart / Camelot-Rad */
 .kb{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:22px;padding:0 6px;border-radius:6px;
@@ -510,3 +512,23 @@ span.xml-treeonly{display:contents}
 .pl-prev .pv-unsure td{opacity:.75}
 .pl-prev-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .pl-prev-tools .muted{margin-left:auto}
+
+/* ---------------------------------------------------------------- Sicherungen: Änderungs-Viewer */
+.bk-chg{min-width:0}
+.bk-chg .bk-diff{width:100%}
+.bk-diff{display:flex;align-items:baseline;gap:6px;max-width:100%;border:1px solid var(--line);border-radius:7px;background:var(--surf);color:var(--fg);padding:3px 8px;font-size:12.5px;cursor:pointer;text-align:left}
+.bk-diff:hover{border-color:var(--acc);color:var(--acc)}
+.bk-diff b{color:var(--acc)}
+.bk-diff span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dim)}
+.bk-dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.bk-dhead .muted{overflow:hidden;text-overflow:ellipsis;max-width:62vw}
+.bk-dtable{max-height:56vh}
+.bk-dtable td{vertical-align:top}
+.bk-dtable td.v{word-break:break-word;font-size:13px}
+.bk-dtable td:first-child{white-space:nowrap}
+.bk-st{display:inline-block;font-size:11px;font-weight:600;padding:1px 6px;border-radius:99px;margin-right:4px;background:var(--raise);color:var(--dim)}
+.bk-changed .bk-st{background:color-mix(in srgb,var(--diff) 18%,transparent);color:var(--diff)}
+.bk-added .bk-st{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.bk-removed .bk-st{background:color-mix(in srgb,var(--warn) 20%,transparent);color:var(--warn)}
+#mBtns .bk-nav{min-width:40px;font-size:18px;padding:0 10px}
+#mBtns .bk-nav:nth-child(2){margin-right:auto}

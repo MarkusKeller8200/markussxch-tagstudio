@@ -105,7 +105,10 @@ in der Quellcode-Variante.
 - **Tag-Fixer** (Seitenleiste): Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare,
   alle Dateien, Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte),
   laufende Vorschau.
-- **Sicherungen** (Seitenleiste): alle Sicherungen, Dateien mit Status (wiederherstellbar/gleich/fehlt/Audio geändert),
+- **Sicherungen** (Seitenleiste): alle Sicherungen, Dateien mit Status (wiederherstellbar/gleich/fehlt/Audio geändert)
+  und **geänderten Feldern** (Anzahl + Namen). Klick darauf öffnet den **Änderungs-Viewer**: jedes Feld mit
+  „Vorher (Sicherung)“ und „Jetzt“, geändert/neu/entfernt markiert, abweichende Zeichen hervorgehoben; mit ‹ › durch
+  alle geänderten Dateien blättern und einzelne Dateien direkt wiederherstellen. Außerdem
   markierte oder alle wiederherstellen (vorher wird der aktuelle Stand selbst gesichert), Sicherung löschen,
   automatische Sicherung ein/aus, Ordner ändern/öffnen.
 - **Sammelkopie:** In der Paarliste mehrere Paare mit Strg/Cmd- oder Shift-Klick markieren → „◀ Sammelkopie“ /
@@ -288,7 +291,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   Entwicklungszweigen auf `main`)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)
-- `backup.py` – Sicherung und Wiederherstellung der Tags
+- `backup.py` – Sicherung und Wiederherstellung der Tags, Vergleich Sicherung ↔ Datei (Änderungs-Viewer)
 - `thumbs.py` – Cover-Vorschaubilder ohne Zusatzpakete
 
 

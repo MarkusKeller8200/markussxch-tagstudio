@@ -147,6 +147,53 @@ def check_entry(entry: dict) -> tuple[str, str]:
     return "ok", "wiederherstellbar"
 
 
+# --------------------------------------------------------------------------- Änderungen ansehen
+def read_backup_tags(zip_path: str, entry: dict):
+    """Die gesicherten Tags einer Datei als MP3File (über eine kleine Hilfsdatei: Tag + Stille + ID3v1)."""
+    import tempfile
+    from id3tags import MP3File
+    with zipfile.ZipFile(zip_path) as z:
+        tag = z.read(f"{entry['id']:05d}.tag")
+        names = set(z.namelist())
+        v1 = z.read(f"{entry['id']:05d}.v1") if f"{entry['id']:05d}.v1" in names else b""
+    fd, tmp = tempfile.mkstemp(suffix=".mp3", prefix="tagstudio_bk_")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(tag + b"\x00" * 1024 + v1)
+        return MP3File(tmp)
+    finally:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+
+
+def diff_entry(zip_path: str, entry: dict) -> dict:
+    """Welche Felder unterscheiden sich zwischen Sicherung und heutiger Datei?
+    → {"rows": [{"key", "label", "state": changed|added|removed, "old", "new"}], "version": (alt, neu), "missing"}"""
+    from id3tags import MP3File, key_label, sort_key
+    old = read_backup_tags(zip_path, entry)
+    if not os.path.exists(entry["path"]):
+        return {"rows": [], "missing": True, "version": [old.tag_desc, ""]}
+    cur = MP3File(entry["path"])
+    rows = []
+    for k in sorted(set(old.items) | set(cur.items), key=sort_key):
+        a, b = old.items.get(k), cur.items.get(k)
+        if a == b:
+            continue
+        rows.append({"key": k, "label": key_label(k),
+                     "state": "changed" if a is not None and b is not None else "removed" if b is None else "added",
+                     "old": _disp(a), "new": _disp(b)})
+    return {"rows": rows, "missing": False, "version": [old.tag_desc, cur.tag_desc]}
+
+
+def _disp(it) -> str:
+    if it is None:
+        return ""
+    s = it.display().replace("\r", "").replace("\n", " ⏎ ")
+    return s if len(s) <= 2000 else s[:2000] + " …"
+
+
 # --------------------------------------------------------------------------- Wiederherstellen
 def restore(zip_path: str, ids: list[int] | None = None, safety_folder: str | None = None,
             force_audio: bool = False, on_progress=None, cancel=None) -> list[tuple[str, str, str]]:

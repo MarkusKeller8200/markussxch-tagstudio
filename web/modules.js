@@ -266,8 +266,48 @@ function renderBackupFiles() {
   const f = BK.files;
   const counts = f.reduce((a, x) => ((a[x.code] = (a[x.code] || 0) + 1), a), {});
   $("#bkInfo").textContent = `${f.length} Datei(en) · ${counts.ok || 0} wiederherstellbar · ${counts.same || 0} gleich` + (counts.missing ? ` · ${counts.missing} fehlen` : "") + (counts.audio ? ` · ${counts.audio} Audio geändert` : "");
-  $("#bkFiles").innerHTML = `<div class="fx-table"><table><thead><tr><th></th><th>Datei</th><th>Status</th><th>Ordner</th></tr></thead><tbody>${f.map((x) => `<tr class="click${BK.sel.has(x.id) ? " sel" : ""}" data-id="${x.id}"><td><input type="checkbox" ${BK.sel.has(x.id) ? "checked" : ""} ${x.code === "ok" || x.code === "audio" ? "" : "disabled"} aria-label="${esc(x.name)} markieren"></td><td>${esc(x.name)}${x.loaded_modified ? ' <span class="muted sm">(ungespeicherte Änderungen im Programm)</span>' : ""}</td><td class="st-${x.code}">${esc(x.text)}</td><td class="old" title="${esc(x.dir)}">…/${esc(x.dir.split(/[\\/]/).slice(-2).join("/"))}</td></tr>`).join("")}</tbody></table></div>`;
+  const chg = (x) => x.changes === null || x.changes === undefined ? '<span class="muted">–</span>'
+    : !x.changes ? '<span class="muted">keine</span>'
+    : `<button class="bk-diff" data-diff="${x.id}" title="Änderungen ansehen"><b>${x.changes}</b> <span>${esc(x.fields.join(", "))}${x.more ? ` +${x.more}` : ""}</span></button>`;
+  $("#bkFiles").innerHTML = `<div class="fx-table"><table><thead><tr><th></th><th>Datei</th><th>Geänderte Felder</th><th>Status</th><th>Ordner</th></tr></thead><tbody>${f.map((x) => `<tr class="click${BK.sel.has(x.id) ? " sel" : ""}" data-id="${x.id}"><td><input type="checkbox" ${BK.sel.has(x.id) ? "checked" : ""} ${x.code === "ok" || x.code === "audio" ? "" : "disabled"} aria-label="${esc(x.name)} markieren"></td><td>${esc(x.name)}${x.loaded_modified ? ' <span class="muted sm">(ungespeicherte Änderungen im Programm)</span>' : ""}</td><td class="bk-chg">${chg(x)}</td><td class="st-${x.code}">${esc(x.text)}</td><td class="old" title="${esc(x.dir)}">…/${esc(x.dir.split(/[\\/]/).slice(-2).join("/"))}</td></tr>`).join("")}</tbody></table></div>`;
   backupButtons();
+}
+
+// Änderungs-Viewer: gesicherte Tags (vorher) ↔ heutige Datei (jetzt)
+async function backupDiff(id) {
+  const withChanges = BK.files.filter((x) => x.changes);
+  for (;;) {
+    const d = await call("backup_diff", BK.cur.path, id);
+    const pos = withChanges.findIndex((x) => x.id === id);
+    const stLabel = { changed: "geändert", added: "neu", removed: "entfernt" };
+    const cell = (text, spans) => valueHtml({ present: true, text, spans, links: [] }, "diff");
+    const verChanged = d.version[0] !== d.version[1] && d.version[1];
+    const html = `<div class="bk-dhead"><div><b>${esc(d.name)}</b><div class="muted sm" title="${esc(d.path)}">${esc(d.path)}</div></div>
+        <div class="muted sm">Sicherung ${esc(d.created)}${d.label ? ` · ${esc(d.label)}` : ""}</div></div>
+      ${d.unsaved ? '<div class="hint st-missing">Diese Datei hat zusätzlich ungespeicherte Änderungen im Programm – verglichen wird mit dem gespeicherten Stand.</div>' : ""}
+      ${verChanged ? `<div class="hint">ID3-Version: ${esc(d.version[0])} → ${esc(d.version[1])}</div>` : ""}
+      ${d.missing ? '<div class="empty">Die Datei gibt es nicht mehr.</div>' : !d.rows.length ? '<div class="empty">Keine Unterschiede – die Tags entsprechen der Sicherung.</div>' : `
+      <div class="fx-table bk-dtable"><table><thead><tr><th>Feld</th><th>Vorher (Sicherung)</th><th>Jetzt</th></tr></thead><tbody>
+      ${d.rows.map((r) => `<tr class="bk-${r.state}"><td><span class="bk-st">${stLabel[r.state]}</span> ${esc(r.label)}<div class="faint sm">${esc(r.key)}</div></td>
+        <td class="v">${r.state === "added" ? '<span class="muted">— fehlte —</span>' : cell(r.old, r.spans_old)}</td>
+        <td class="v">${r.state === "removed" ? '<span class="muted">— entfernt —</span>' : cell(r.new, r.spans_new)}</td></tr>`).join("")}
+      </tbody></table></div>`}
+      <div class="muted sm">${d.rows.length} Feld(er) unterschiedlich${pos >= 0 ? ` · Datei ${pos + 1} von ${withChanges.length} mit Änderungen` : ""}</div>`;
+    const canRestore = !d.missing && d.rows.length;
+    const btns = [{ label: "‹", value: "prev" }, { label: "›", value: "next" }, { label: "Schliessen", value: null }];
+    if (canRestore) btns.push({ label: "Diese Datei wiederherstellen", value: "restore", primary: true });
+    const v = await modal({ title: "Änderungen seit der Sicherung", wide: true, html, buttons: btns,
+      onMount: () => {
+        const bs = $$("#mBtns button");
+        bs[0].disabled = pos <= 0; bs[1].disabled = pos < 0 || pos >= withChanges.length - 1;
+        bs[0].title = "Vorherige Datei mit Änderungen"; bs[1].title = "Nächste Datei mit Änderungen";
+        bs[0].classList.add("bk-nav"); bs[1].classList.add("bk-nav");
+      } });
+    if (v === "prev" && pos > 0) { id = withChanges[pos - 1].id; continue; }
+    if (v === "next" && pos >= 0 && pos < withChanges.length - 1) { id = withChanges[pos + 1].id; continue; }
+    if (v === "restore") await backupRestore([id]);
+    return;
+  }
 }
 
 async function backupRestore(ids) {
@@ -331,6 +371,8 @@ async function backupDelete() {
   $("#bkOpen").addEventListener("click", () => call("open_folder", BK.data && BK.data.folder));
   $("#bkList").addEventListener("click", (e) => { const b = e.target.closest(".bk-item"); if (b) backupSelect(+b.dataset.n); });
   $("#bkFiles").addEventListener("click", (e) => {
+    const dv = e.target.closest("[data-diff]");
+    if (dv) { backupDiff(+dv.dataset.diff); return; }
     const tr = e.target.closest("tr[data-id]"); if (!tr) return;
     const id = +tr.dataset.id, f = BK.files.find((x) => x.id === id);
     if (!f || !(f.code === "ok" || f.code === "audio")) return;
