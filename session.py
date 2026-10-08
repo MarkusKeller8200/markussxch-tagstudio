@@ -989,7 +989,7 @@ class Session:
                 res["proposals_token"] = token
                 res["proposals"] = [{"id": n, "name": os.path.basename(p["file"].path), "group": p["group"] or os.path.basename(p["file"].path),
                                      "label": p["label"], "old": p["old"].replace(MV, MV_SHOW), "new": p["new"].replace(MV, MV_SHOW),
-                                     "note": p["note"], "checked": p["checked"], "kind": p["kind"]}
+                                     "note": p["note"], "checked": p["checked"], "kind": p["kind"], "hint": p.get("hint", "")}
                                     for n, p in enumerate(props)]
             res["unsaved"] = self.unsaved()
             return res

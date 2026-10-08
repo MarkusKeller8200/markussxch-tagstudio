@@ -166,9 +166,10 @@ class Context:
         self.outputs.append(path)
 
     # ---- Vorschläge (werden nach dem Lauf als Vorschau mit Häkchen gezeigt)
-    def propose(self, f, key, new, label=None, note="", checked=True, kind="text", data=None, group=None):
+    def propose(self, f, key, new, label=None, note="", checked=True, kind="text", data=None, group=None, hint=""):
         """Änderung vorschlagen statt sie direkt auszuführen. kind="text" (key/new) oder "cover" (data=Bytes).
-        note: Hinweis (z. B. Treffer und Sicherheit), group: Überschrift je Datei."""
+        note: Hinweis zur Datei (z. B. Treffer und Sicherheit), group: Überschrift je Datei,
+        hint: Hinweis zu genau diesem Feld (z. B. „schon gefüllt“)."""
         if kind == "text":
             it = f.get(key)
             old = it.text if it is not None and it.kind not in ("picture", "raw") else ""
@@ -178,7 +179,7 @@ class Context:
             old = "vorhanden" if f.get(key) is not None else ""
         self.proposals.append({"file": f, "key": key, "new": "" if new is None else str(new), "old": old,
                                "label": label or key, "note": note, "checked": bool(checked), "kind": kind,
-                               "data": data, "group": group})
+                               "data": data, "group": group, "hint": hint})
         return True
 
     # ---- Tags ändern (mit Rückgängig, noch nicht gespeichert)

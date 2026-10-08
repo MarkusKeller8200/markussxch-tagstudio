@@ -418,14 +418,42 @@ def cover_url(t, size=1400):
     return img.get("uri")
 
 
-def proposals_for(ctx, f, t, opts, note, checked, notation, group):
+def same_value(key, old, new):
+    """Gleicher Inhalt trotz anderer Schreibweise? (Tonart 8A = Am, BPM 124 = 124.0, Jahr 2021 = 2021-05-14 …)"""
+    o, n = (old or "").strip(), (new or "").strip()
+    if o.lower() == n.lower():
+        return True
+    if key == "TKEY":
+        import keys
+        return bool(keys.parse_key(o)) and keys.parse_key(o) == keys.parse_key(n)
+    if key == "TBPM":
+        try:
+            return round(float(o.replace(",", "."))) == round(float(n))
+        except ValueError:
+            return False
+    if key == "TDRC":
+        return len(n) == 4 and o[:4] == n
+    if key in ("TPE1", "TPE4"):
+        return norm(o) == norm(n)
+    return False
+
+
+def proposals_for(ctx, f, t, opts, note, checked, notation, group, stats):
     empty_only = opts.get("mode", "empty") == "empty"
 
     def prop(key, val, label):
         val = "" if val is None else str(val).strip()
         if not val:
+            stats["missing"].add(label)
             return
-        if empty_only and f.text(key).strip():
+        cur = f.text(key).strip()
+        if cur and same_value(key, cur, val):
+            stats["same"] += 1
+            return
+        if cur and empty_only:      # gefüllt: zeigen, aber nicht vorauswählen
+            stats["filled"] += 1
+            ctx.propose(f, key, val, label, note=note, checked=False, group=group,
+                        hint="schon gefüllt – nur bei Bedarf anhaken")
             return
         ctx.propose(f, key, val, label, note=note, checked=checked, group=group)
 
@@ -463,8 +491,9 @@ def proposals_for(ctx, f, t, opts, note, checked, notation, group):
             try:
                 st, _h, data = request("GET", url)
                 if st == 200 and data[:3] in (b"\xff\xd8\xff", b"\x89PN"):
-                    ctx.propose(f, "APIC:3", "Cover von Beatport (1400 px)", "Cover", note=note, checked=checked,
-                                kind="cover", data=data, group=group)
+                    ctx.propose(f, "APIC:3", "Cover von Beatport (1400 px)", "Cover", note=note,
+                                checked=checked and not has, kind="cover", data=data, group=group,
+                                hint="ersetzt vorhandenes Cover" if has else "")
             except HttpError as ex:
                 ctx.log(f"Cover für {os.path.basename(f.path)} nicht geladen: {ex}")
 
@@ -517,6 +546,7 @@ def run(action, ctx, files, opts):
     client = Client(ctx)
     notation = _notation()
     found = unsure = missing = 0
+    tot_same = tot_filled = 0
     for i, f in enumerate(files):
         name = os.path.basename(f.path)
         ctx.progress(i, len(files), f"Suche {name}")
@@ -543,9 +573,13 @@ def run(action, ctx, files, opts):
         hit = f"{', '.join(artists_of(t))} – {t.get('name', '')}" + (f" ({t['mix_name']})" if t.get("mix_name") else "")
         note = f"{hit} · {round(s * 100)} %" + (f" · {how}" if how else "") + ("" if sure else " · unsicher")
         before = len(ctx.proposals)
-        proposals_for(ctx, f, t, opts, note, sure, notation, group=name)
-        if len(ctx.proposals) == before:
-            ctx.log(f"{name}: gefunden ({hit}), nichts zu ändern")
+        stats = {"same": 0, "filled": 0, "missing": set()}
+        proposals_for(ctx, f, t, opts, note, sure, notation, name, stats)
+        tot_same += stats["same"]
+        tot_filled += stats["filled"]
+        ctx.log(f"{name}: {hit} ({round(s * 100)} %) – Beatport liefert "
+                + ", ".join(_present(t)) + (f"; ohne Wert: {', '.join(sorted(stats['missing']))}" if stats["missing"] else "")
+                + f"; {stats['same']} gleich, {len(ctx.proposals) - before} Vorschlag/Vorschläge")
     ctx.progress(len(files), len(files), "fertig")
     msg = f"{found} sicher gefunden"
     if unsure:
@@ -553,4 +587,23 @@ def run(action, ctx, files, opts):
     if missing:
         msg += f", {missing} nicht gefunden"
     n = len(ctx.proposals)
-    return {"message": f"{msg}. {n} Änderung(en) vorgeschlagen." if n else f"{msg}. Keine Änderungen nötig."}
+    extra = ""
+    if tot_same:
+        extra += f" {tot_same} Feld(er) stimmen bereits überein."
+    if tot_filled:
+        extra += f" {tot_filled} schon gefüllte Feld(er) mit anderem Wert sind gelistet, aber nicht angehakt."
+    return {"message": (f"{msg}. {n} Änderung(en) vorgeschlagen." if n else f"{msg}. Keine Änderungen nötig.") + extra}
+
+
+def _present(t):
+    """Welche Felder hat Beatport für diesen Titel geliefert? (fürs Protokoll)"""
+    rel = t.get("release") or {}
+    out = []
+    for lab, ok in (("BPM", t.get("bpm")), ("Tonart", (t.get("key") or {}).get("name")), ("Genre", t.get("genre")),
+                    ("Subgenre", t.get("sub_genre")), ("Label", (rel.get("label") or {}).get("name")),
+                    ("Katalognr.", t.get("catalog_number") or rel.get("catalog_number")),
+                    ("Datum", t.get("publish_date") or t.get("new_release_date")), ("ISRC", t.get("isrc")),
+                    ("Remixer", t.get("remixers")), ("Cover", (rel.get("image") or {}).get("uri"))):
+        if ok:
+            out.append(lab)
+    return out or ["nichts"]

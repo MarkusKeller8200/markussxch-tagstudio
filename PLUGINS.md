@@ -159,7 +159,10 @@ und optional Titel/Künstler/Album von Beatport. Nutzt die Beatport-API v4 mit *
 2. Im Tagger Titel markieren → **Plugins → Beatport-Daten holen …** → Felder wählen, „Nur leere Felder füllen“
    oder „Überschreiben“.
 3. **Vorschau:** je Datei der gefundene Beatport-Titel mit Sicherheit in %, darunter jedes Feld alt → neu.
-   Unsichere Treffer sind nicht vorausgewählt. „Übernehmen“ ändert die Tags (rückgängig machbar), geschrieben
+   Unsichere Treffer sind nicht vorausgewählt. Bei „Nur leere Felder füllen“ erscheinen schon gefüllte Felder
+   mit anderem Wert trotzdem – aber **nicht angehakt** („schon gefüllt“); gleiche Werte (auch in anderer
+   Schreibweise, z. B. Tonart Am = 8A, BPM 124.0 = 124) werden nur gezählt. Im Protokoll steht je Titel, welche
+   Felder Beatport geliefert hat. „Übernehmen“ ändert die Tags (rückgängig machbar), geschrieben
    wird wie immer erst mit „Speichern“.
 
 Treffer: zuerst über eine gespeicherte Beatport-ID (`TXXX:BEATPORT_TRACK_ID`), dann ISRC, sonst Suche nach

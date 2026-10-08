@@ -155,12 +155,12 @@ async function pluginPreview(f, res) {
   const groups = [];
   for (const r of rows) { let g = groups.find((x) => x.name === r.group); if (!g) groups.push(g = { name: r.group, note: r.note, rows: [] }); g.rows.push(r); }
   const html = `<p style="margin:0">${esc(res.message || "")}</p>
-    <div class="pl-prev-tools"><button class="ghost sm" data-pv="all">Alle wählen</button><button class="ghost sm" data-pv="none">Keine</button><button class="ghost sm" data-pv="sure">Nur sichere</button>
+    <div class="pl-prev-tools"><button class="ghost sm" data-pv="all">Alle wählen</button><button class="ghost sm" data-pv="none">Keine</button><button class="ghost sm" data-pv="default">Vorschlag</button>
       <span class="muted sm" id="pvCount"></span></div>
     <div class="fx-table pl-prev"><table><thead><tr><th style="width:28px"></th><th>Feld</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody>
     ${groups.map((g) => `<tr class="pv-file"><td><input type="checkbox" data-pvg="${esc(g.name)}" aria-label="${esc(g.name)} alle"></td><td colspan="3"><b>${esc(g.name)}</b> <span class="muted sm">${esc(g.note || "")}</span></td></tr>
-      ${g.rows.map((r) => `<tr class="${r.note.includes("unsicher") ? "pv-unsure" : ""}"><td><input type="checkbox" data-pvi="${r.id}" data-pvgroup="${esc(g.name)}" ${r.checked ? "checked" : ""}></td>
-        <td>${esc(r.label)}</td><td class="old">${esc(r.old) || "–"}</td><td class="new">${esc(r.new)}</td></tr>`).join("")}`).join("")}
+      ${g.rows.map((r) => `<tr class="${r.note.includes("unsicher") ? "pv-unsure" : ""}"><td><input type="checkbox" data-pvi="${r.id}" data-pvgroup="${esc(g.name)}" data-default="${r.checked ? 1 : 0}" ${r.checked ? "checked" : ""}></td>
+        <td>${esc(r.label)}</td><td class="old">${esc(r.old) || "–"}</td><td class="new">${esc(r.new)}${r.hint ? `<div class="hint">${esc(r.hint)}</div>` : ""}</td></tr>`).join("")}`).join("")}
     </tbody></table></div>
     ${(res.log || []).length ? `<details class="sm"><summary class="muted">Protokoll (${res.log.length})</summary><pre class="pl-log">${esc(res.log.slice(-60).join("\n"))}</pre></details>` : ""}`;
   const ids = await modal({
@@ -185,7 +185,7 @@ async function pluginPreview(f, res) {
       });
       b.addEventListener("click", (e) => {
         const t = e.target.closest("[data-pv]"); if (!t) return;
-        boxes().forEach((c) => { c.checked = t.dataset.pv === "all" ? true : t.dataset.pv === "none" ? false : !c.closest("tr").classList.contains("pv-unsure"); });
+        boxes().forEach((c) => { c.checked = t.dataset.pv === "all" ? true : t.dataset.pv === "none" ? false : c.dataset.default === "1"; });
         upd();
       });
       upd();

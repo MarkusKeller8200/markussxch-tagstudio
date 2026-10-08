@@ -182,7 +182,11 @@ class TestBeatport(Base):
         by = {(r["name"], r["label"]): r for r in rows}
         self.assertEqual(by[("n.mp3", "BPM")]["new"], "124")          # Extended Mix gewählt, nicht 1002
         self.assertEqual(by[("n.mp3", "Tonart")]["new"], "8A")
-        self.assertNotIn(("n.mp3", "Genre"), by)                       # vorhanden + nur leere
+        g = by[("n.mp3", "Genre")]                                       # gefüllt → gelistet, nicht angehakt
+        self.assertFalse(g["checked"])
+        self.assertEqual(g["old"], "Synthpop")
+        self.assertIn("schon gefüllt", g["hint"])
+        self.assertIn("schon gefüllte", res["message"])
         self.assertEqual(by[("k.mp3", "Genre")]["new"], "Deep House")
         self.assertEqual(by[("k.mp3", "Tonart")]["new"], "11A")
         self.assertEqual(by[("n.mp3", "Label")]["new"], "Polar Records")
@@ -192,7 +196,8 @@ class TestBeatport(Base):
         self.assertEqual(by[("k.mp3", "Remixer")]["new"], "Oskar Vey")
         self.assertEqual(by[("n.mp3", "Beatport-ID")]["new"], "1001")
         self.assertEqual(by[("n.mp3", "Cover")]["kind"], "cover")      # Testdateien haben kein Cover
-        self.assertTrue(all(r["checked"] for r in rows))
+        self.assertTrue(all(r["checked"] for r in rows if not r["hint"]))
+        self.assertTrue(any("Beatport liefert BPM, Tonart, Genre" in l for l in res["log"]))
         self.assertIn("Mara Lind – Nordlicht (Extended Mix)", by[("n.mp3", "BPM")]["note"])
         # nur einen Teil übernehmen
         pick = [r["id"] for r in rows if r["label"] in ("BPM", "Tonart", "Cover")]
@@ -228,6 +233,21 @@ class TestBeatport(Base):
                       isrc=False, remixer=False, names=False, cover="no", ids=True)
         self.assertFalse(any(p == "/v4/catalog/search/" for _m, p, _q in self.fake.calls))
         self.assertIn("Keine Änderungen", st["result"]["message"])
+
+    def test_same_value_and_existing(self):
+        m = self.mod
+        self.assertTrue(m.same_value("TKEY", "Am", "8A"))
+        self.assertTrue(m.same_value("TBPM", "124.00", "124"))
+        self.assertTrue(m.same_value("TDRC", "2021-05-14", "2021"))
+        self.assertFalse(m.same_value("TBPM", "122", "124"))
+        self.login()
+        f = self.s.tag_files[self.idx["n.mp3"]]
+        f.set_text("TBPM", "124.0")
+        f.set_text("TKEY", "Am")
+        st = self.act("fetch", [self.idx["n.mp3"]], mode="empty", bpm=True, key=True, genre=False, label=False,
+                      date="no", isrc=False, remixer=False, names=False, cover="no", ids=False)
+        self.assertEqual(st["result"].get("proposals", []), [])
+        self.assertIn("2 Feld(er) stimmen bereits überein", st["result"]["message"])
 
     def test_matching_helpers(self):
         m = self.mod
