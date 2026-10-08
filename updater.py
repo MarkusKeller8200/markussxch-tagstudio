@@ -48,7 +48,9 @@ def status(fetch: bool = True, cwd=HERE) -> dict:
         return {"ok": False, "error": "Kein Zweig ausgecheckt."}
     code, upstream, _ = _git(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"], cwd)
     if code != 0:
-        return {"ok": False, "error": f"Der Zweig „{branch}“ ist nicht mit GitHub verbunden.", "branch": branch}
+        if branch not in MOVED:
+            return {"ok": False, "error": f"Der Zweig „{branch}“ ist nicht mit GitHub verbunden.", "branch": branch}
+        upstream = f"origin/{MOVED[branch]}"      # alter Zweig auf GitHub gelöscht → trotzdem umstellen
     remote = upstream.split("/", 1)[0]
     if fetch:
         code, _, err = _git(["fetch", "--quiet", remote], cwd, timeout=90)

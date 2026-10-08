@@ -82,6 +82,19 @@ class TestUpdater(unittest.TestCase):
         self.assertEqual((st["branch"], st["behind"], st["switch"]), ("main", 0, None))
         self.assertTrue(os.path.exists(os.path.join(self.app, "b.txt")))
 
+    def test_moved_branch_deleted_on_github(self):
+        git(self.dev, "push", "-q", "origin", "HEAD:web-ui")
+        git(self.app, "fetch", "-q", "origin")
+        git(self.app, "switch", "-q", "-c", "web-ui", "--track", "origin/web-ui")
+        self._new_commit("Weiter auf main", "4\n")
+        git(self.dev, "push", "-q", "origin", "--delete", "web-ui")
+        git(self.app, "fetch", "-q", "--prune", "origin")          # origin/web-ui verschwindet
+        st = updater.status(True, self.app)
+        self.assertTrue(st["ok"], st)
+        self.assertEqual((st["switch"], st["behind"]), ("main", 1))
+        self.assertTrue(updater.pull(self.app)["ok"])
+        self.assertEqual(updater.status(False, self.app)["branch"], "main")
+
     def test_local_changes_block_update(self):
         self._new_commit("Noch was", "3\n")
         with open(os.path.join(self.app, "a.txt"), "w") as fh:
