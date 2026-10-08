@@ -49,6 +49,10 @@ button{cursor:pointer}
 .nav.dim{color:var(--faint)}
 .nav.outline{border:1px solid var(--line)}
 .soon{margin-left:auto;font-size:11px;padding:2px 7px;border-radius:99px;border:1px solid var(--line2);color:var(--faint)}
+.upd-dot{width:8px;height:8px;border-radius:99px;background:var(--diff);margin-left:auto;flex-shrink:0;box-shadow:0 0 0 3px var(--side)}
+#updateBtn{position:relative}
+#updateBtn.has-update{color:var(--fg)}
+.side.collapsed .upd-dot{position:absolute;top:9px;right:12px;margin:0}
 .ver{font-size:11px;color:var(--faint);padding:8px 12px 0;white-space:nowrap}
 .nav,.brand{white-space:nowrap}
 /* eingeklappte Seitenleiste: nur Symbole */

@@ -32,6 +32,11 @@ beide lassen sich abwechselnd verwenden.
   Kontextmenü (kopieren, bearbeiten, entfernen, Link öffnen, im Explorer/Finder zeigen), klickbare Links,
   Cover-Vorschau mit Großansicht, Filter Alle/Unterschiede/Gleiche, Unwichtige, leere Felder, Feldsuche,
   Rückgängig/Wiederholen, Speichern mit automatischer Sicherung, Hell/Dunkel.
+- **Update:** Unten in der Seitenleiste „Nach Update suchen“. TagStudio prüft beim Start selbst, ob es auf GitHub
+  eine neue Version gibt (Punkt am Knopf). Ein Klick lädt sie (`git pull`, nur wenn der Programmordner keine
+  eigenen Änderungen hat) und startet TagStudio neu – die gewählten Ordner werden wieder eingelesen.
+  Voraussetzung: Der Programmordner ist ein Git-Klon und git ist installiert. Ungespeicherte Änderungen werden
+  vorher abgefragt.
 - **Splitter:** Seitenleiste, Paarliste und Tabellenspalten lassen sich mit der Maus ziehen (oder per Tastatur
   mit ←/→ auf dem Griff). Die Seitenleiste lässt sich einklappen (Knopf unten, Doppelklick auf den Splitter oder
   ganz schmal ziehen). In der Tabelle verschiebt der Griff zwischen den Wertespalten die Aufteilung links/rechts,
@@ -193,6 +198,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `core.py` – gemeinsame Logik beider Oberflächen: Anzeige, Zeichen-Diff, Filter, Laden, Speichern, Einstellungen
 - `session.py` – Zustand und Befehle einer Sitzung für die neue Oberfläche
 - `undo.py` – Rückgängig/Wiederholen
+- `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)
 - `backup.py` – Sicherung und Wiederherstellung der Tags

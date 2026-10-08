@@ -9,6 +9,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/). Versione
   Bearbeiten per Doppelklick, Kontextmenü, Cover-Vorschau, Rückgängig/Wiederholen, Speichern mit Sicherung.
   Läuft im eigenen App-Fenster (pywebview) oder – ohne pywebview – im Browser.
   Start: `start_web_windows.bat` / `start_web_mac.command`.
+- Splitter für Seitenleiste (einklappbar), Paarliste und Tabellenspalten; Layout wird gemerkt.
+- Knopf „Nach Update suchen“: prüft beim Start auf neue Versionen, lädt sie per Klick und startet neu.
 - Gemeinsamer Kern `core.py` (Anzeige-Logik, Filter, Laden, Speichern) und `session.py`; beide Oberflächen
   nutzen dieselbe Logik und dieselben Einstellungen.
 ### Geändert

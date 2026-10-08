@@ -230,6 +230,57 @@ function bindLayout() {
   });
 }
 
+// ====================================================================== Update von GitHub
+let updateInfo = null;
+function showUpdateBadge(st) {
+  updateInfo = st;
+  const has = !!(st && st.ok && st.behind);
+  $("#updateDot").hidden = !has;
+  $("#updateBtn").classList.toggle("has-update", has);
+  $("#updateLbl").textContent = has ? `Update verfügbar (${st.behind})` : "Nach Update suchen";
+  $("#updateBtn").title = has ? `Neue Version auf GitHub (${st.branch}): ${st.behind} Änderung(en)` : "Nach neuer Version suchen";
+}
+
+async function checkUpdateQuietly() {
+  try { showUpdateBadge(await call("update_status", true)); } catch (e) { /* offline – egal */ }
+}
+
+async function runUpdate() {
+  $("#updateLbl").textContent = "Suche …";
+  let st;
+  try { st = await call("update_status", true); } catch (e) { st = { ok: false, error: String(e.message || e) }; }
+  showUpdateBadge(st);
+  if (!st.ok) { await info("Update nicht möglich", st.error); return; }
+  if (!st.behind) { toast(`Du hast die neueste Version (${st.branch}, ${st.current}).`); return; }
+  const list = st.commits.map((c) => "• " + c).join("\n");
+  const go = await dialog({
+    title: "Neue Version verfügbar",
+    text: `Zweig „${st.branch}“: ${st.behind} Änderung(en)\n\n${list}\n\nJetzt laden? TagStudio startet danach neu – die gewählten Ordner werden wieder eingelesen.`,
+    buttons: [{ label: "Später", value: null }, { label: "Laden und neu starten", value: true, primary: true }],
+  });
+  if (!go) return;
+  if ((S.meta.unsaved || st.unsaved) && !(await confirmDiscard())) return;
+  if (await call("unsaved")) applyState(await call("discard_all"));  // „Verwerfen“ gewählt
+  const res = await call("apply_update");
+  if (!res.ok) { await info("Update nicht möglich", res.message); return; }
+  const ov = $("#progress");
+  $("#progTitle").textContent = "Neue Version geladen – TagStudio startet neu …";
+  $("#progText").textContent = res.message;
+  $("#progBar").classList.add("indet");
+  $("#progCancel").hidden = true;
+  ov.hidden = false;
+  S.meta.unsaved = 0;
+  await call("restart");
+  if (!S.settings.native) {
+    // Browser-Modus: der neue Server übernimmt Adresse und Schlüssel → Seite neu laden, sobald er antwortet
+    for (let k = 0; k < 60; k++) {
+      await new Promise((r) => setTimeout(r, 500));
+      try { const r = await fetch("index.html", { cache: "no-store" }); if (r.ok && k > 1) { location.reload(); return; } } catch (e) { /* noch nicht da */ }
+    }
+    $("#progTitle").textContent = "Bitte TagStudio neu starten.";
+  }
+}
+
 // ====================================================================== Start
 async function init() {
   const st = await call("settings");
@@ -250,6 +301,8 @@ async function init() {
   $("#fSide").innerHTML = st.filter_sides.map((o) => `<option>${esc(o)}</option>`).join("");
   bind();
   bindLayout();
+  $("#updateBtn").addEventListener("click", runUpdate);
+  setTimeout(checkUpdateQuietly, 1500);
   syncOptions();
   renderPairs();
   showView(null);

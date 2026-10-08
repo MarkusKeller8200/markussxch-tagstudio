@@ -346,6 +346,14 @@ class Session:
                 f.revert()
             return self._done("Änderungen an diesem Paar verworfen.")
 
+    def discard_all(self):
+        """Alle ungespeicherten Änderungen verwerfen (z. B. vor einem Update)."""
+        with self.lock:
+            for f in core.modified_files(self.pairs):
+                f.revert()
+            self.undo.clear()
+            return self.state("Alle ungespeicherten Änderungen verworfen.")
+
     def do_undo(self):
         with self.lock:
             e = self.undo.do_undo()

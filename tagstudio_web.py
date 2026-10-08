@@ -27,6 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from session import Session  # noqa: E402
+import updater  # noqa: E402
 
 APP = "MarKusSXCH TagStudio"
 WEB = os.path.join(HERE, "web")
@@ -35,10 +36,12 @@ WEB = os.path.join(HERE, "web")
 class Api:
     """Alle Funktionen, die die Oberfläche aufrufen darf (öffentliche Methoden)."""
 
-    def __init__(self, start_paths=None):
+    def __init__(self, start_paths=None, argv=None):
         self._s = Session()
         self._window = None
         self._start = start_paths or []
+        self._argv = list(argv or [])   # für den Neustart nach einem Update
+        self._server = None             # (srv, token) im Browser-Modus
 
     # ---------- Sitzung
     def settings(self):
@@ -102,6 +105,9 @@ class Api:
     def revert_pair(self):
         return self._s.revert_pair()
 
+    def discard_all(self):
+        return self._s.discard_all()
+
     def undo(self):
         return self._s.do_undo()
 
@@ -121,6 +127,51 @@ class Api:
                 return ""
             return os.path.normpath(res[0] if isinstance(res, (list, tuple)) else res)
         return _tk_pick(folder, start)
+
+    # ---------- Update
+    def update_status(self, fetch=True):
+        """Gibt es auf GitHub eine neue Version?"""
+        st = updater.status(bool(fetch))
+        st["unsaved"] = self._s.unsaved()
+        return st
+
+    def apply_update(self):
+        """Neue Version holen (git pull, nur Vorspulen). Danach restart() aufrufen."""
+        if self._s.unsaved():
+            return {"ok": False, "message": "Bitte zuerst speichern oder die Änderungen verwerfen."}
+        if self._s.task.get("running"):
+            return {"ok": False, "message": "Es läuft noch ein Vorgang."}
+        return updater.pull()
+
+    def restart(self):
+        """Programm mit dem neuen Stand neu starten (gleiche Pfade, im Browser-Modus gleiche Adresse)."""
+        l, r = self._s.left_root, self._s.right_root
+        args = [a for a in self._argv if a.startswith("--") and a not in ("--port", "--no-open")]
+        cmd = [sys.executable, os.path.join(HERE, "tagstudio_web.py"), *args]
+        if l or r:
+            cmd += [l, r] if r else [l]
+        env = dict(os.environ)
+        if self._server is not None:
+            srv, token = self._server
+            cmd += ["--browser", "--no-open", "--port", str(srv.server_address[1])]
+            env["TAGSTUDIO_TOKEN"] = token
+
+        def go():
+            if self._server is not None:
+                self._server[0].shutdown()
+                self._server[0].server_close()
+            kw = {"creationflags": 0x00000008 | 0x00000200} if sys.platform.startswith("win") else {"start_new_session": True}
+            subprocess.Popen(cmd, cwd=HERE, env=env, close_fds=True, **kw)
+            if self._window is not None:
+                try:
+                    self._window.destroy()
+                except Exception:  # noqa: BLE001
+                    pass
+            os._exit(0)
+        t = threading.Timer(0.4, go)
+        t.daemon = False  # sonst endet das Programm nach shutdown(), bevor der Neustart läuft
+        t.start()
+        return True
 
     def open_url(self, url):
         if url.lower().startswith("www."):
@@ -173,7 +224,7 @@ def _tk_pick(folder, start):
 # =========================================================================== Browser-Modus (lokaler Server)
 def make_server(api: Api, port: int = 0):
     """Lokaler HTTP-Server: liefert web/ aus und nimmt API-Aufrufe unter POST /api/<name> entgegen."""
-    token = secrets.token_urlsafe(24)
+    token = os.environ.pop("TAGSTUDIO_TOKEN", "") or secrets.token_urlsafe(24)  # Neustart: gleicher Schlüssel
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *a):  # ruhig bleiben
@@ -225,6 +276,7 @@ def make_server(api: Api, port: int = 0):
 
 def run_browser(api: Api, port=0, open_browser=True):
     srv, token = make_server(api, port)
+    api._server = (srv, token)
     url = f"http://127.0.0.1:{srv.server_address[1]}/index.html#token={quote(token)}"
     print(f"{APP} läuft im Browser: {url}\n(Fenster offen lassen; Beenden mit Strg+C)")
     if open_browser:
@@ -267,7 +319,7 @@ def main(argv=None):
         port = int(argv[i + 1])
         del argv[i:i + 2]
     paths = [a for a in argv if not a.startswith("--")][:2]
-    api = Api(paths)
+    api = Api(paths, argv)
     if not browser:
         try:
             import webview  # noqa: F401
