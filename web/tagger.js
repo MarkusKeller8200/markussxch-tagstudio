@@ -5,7 +5,7 @@
 const TG = { settings: null, loaded: false, rows: [], order: [], sel: new Set(), anchor: null,
   sort: { col: "name", dir: 1 }, detail: null, editing: false };
 const TG_COLS = [["m", ""], ["name", "Datei"], ["TIT2", "Titel"], ["TPE1", "Künstler"], ["TALB", "Album"],
-  ["TRCK", "Spur"], ["TDRC", "Jahr"], ["TCON", "Genre"]];
+  ["TRCK", "Spur"], ["TDRC", "Jahr"], ["TCON", "Genre"], ["camelot", "Tonart"]];
 const TG_ROW = 40;
 
 // ---------------------------------------------------------------------- Anzeigen / Laden
@@ -67,7 +67,7 @@ function taggerApplyDetail(d) {
   drawTgList();
   if (!TG.editing) renderTgEditor();
   if (d.message) status(d.message, "info");
-  if (d.errors && d.errors.length) info("Fehler beim Umbenennen", d.errors.join("\n"));
+  if (d.errors && d.errors.length) info("Fehler", d.errors.join("\n"));
   return d;
 }
 
@@ -79,7 +79,7 @@ function tgApplyOrder() {
   const { col, dir } = TG.sort;
   let idx = TG.rows.map((r) => r.i);
   if (q) idx = idx.filter((i) => { const r = TG.rows[i]; return [r.rel, r.TIT2, r.TPE1, r.TALB, r.TCON, r.TPE2].some((v) => (v || "").toLowerCase().includes(q)); });
-  const key = (r) => (col === "name" ? r.rel : col === "TRCK" ? trackNum(r.TPOS) * 10000 + trackNum(r.TRCK) : (r[col] || ""));
+  const key = (r) => (col === "name" ? r.rel : col === "camelot" ? keySortValue(r.camelot) : col === "TRCK" ? trackNum(r.TPOS) * 10000 + trackNum(r.TRCK) : (r[col] || ""));
   idx.sort((a, b) => {
     const x = key(TG.rows[a]), y = key(TG.rows[b]);
     const c = typeof x === "number" ? x - y : String(x).localeCompare(String(y), "de", { numeric: true, sensitivity: "base" });
@@ -103,12 +103,15 @@ function drawTgList() {
   const first = Math.max(0, Math.floor(sc.scrollTop / TG_ROW) - 6);
   const last = Math.min(TG.order.length, Math.ceil((sc.scrollTop + sc.clientHeight) / TG_ROW) + 6);
   let h = "";
+  const sel1 = TG.sel.size === 1 ? TG.rows[[...TG.sel][0]] : null;
+  const fit = new Set(sel1 && sel1.camelot ? keyCompat(sel1.camelot) : []);
   for (let k = first; k < last; k++) {
     const r = TG.rows[TG.order[k]];
     h += `<div class="tg-row${TG.sel.has(r.i) ? " sel" : ""}" style="top:${k * TG_ROW}px" data-i="${r.i}" title="${esc(r.rel)}">
       <span>${r.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</span>
       <span class="fn">${esc(r.rel)}</span><span>${esc(r.TIT2)}</span><span>${esc(r.TPE1)}</span><span>${esc(r.TALB)}</span>
-      <span>${esc(r.TRCK)}</span><span>${esc(r.TDRC)}</span><span>${esc(r.TCON)}</span></div>`;
+      <span>${esc(r.TRCK)}</span><span>${esc(r.TDRC)}</span><span>${esc(r.TCON)}</span>
+      <span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx">${esc(r.TKEY)}</span>`}</span></div>`;
   }
   inner.innerHTML = h;
 }
@@ -146,7 +149,9 @@ function renderTgEditor() {
   const coverImg = c.state === "same" && c.src ? `<img src="${c.src}" alt="">` : c.state === "mixed" ? '<span class="hint">verschieden</span>' : ICON.note;
   const form = TG.settings.fields.map(([k, label]) => {
     const v = d.common[k];
-    return `<label for="tgf-${k}">${esc(label)}</label><input id="tgf-${k}" data-key="${k}" value="${esc(v.value)}" ${v.mixed ? 'placeholder="‹verschieden›"' : ""} spellcheck="false">`;
+    const inp = `<input id="tgf-${k}" data-key="${k}" value="${esc(v.value)}" ${v.mixed ? 'placeholder="‹verschieden›"' : ""} spellcheck="false">`;
+    if (k === "TKEY") return `<label for="tgf-${k}">${esc(label)}</label><div class="key-inp">${inp}<button class="key-btn${KW.open ? " on" : ""}" id="tgKeyBtn" title="Camelot-Rad öffnen" aria-label="Camelot-Rad öffnen">${v.camelot ? keyBadge(v.camelot) : '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v4.5M12 16.5V21M3 12h4.5M16.5 12H21"/></svg>'}</button></div>`;
+    return `<label for="tgf-${k}">${esc(label)}</label>${inp}`;
   }).join("");
   const more = one && d.fields.length ? `<h4 style="margin:4px 0 0">Weitere Felder</h4><div class="tg-more">${d.fields.map((f) => `
       <div class="tg-f" data-key="${esc(f.key)}"><span class="k" title="${esc(f.key)}">${f.mod ? '<span class="m" style="display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:6px"></span>' : ""}${esc(f.label)}</span>
@@ -174,6 +179,7 @@ function renderTgEditor() {
     </div>${more}`;
   if (d.version) $("#tgVer").value = String(d.version);
   if (act && $("#" + act)) { const el = $("#" + act); el.focus(); if (el.setSelectionRange && el.value) el.setSelectionRange(el.value.length, el.value.length); }
+  keyWheelSync();
 }
 
 async function tgCommit(input) {
@@ -459,6 +465,7 @@ async function tgExportDialog() {
     else if (id === "tgReplace") tgReplaceDialog();
     else if (id === "tgFolderCover") tgFolderCoverDialog();
     else if (id === "tgExport") tgExportDialog();
+    else if (id === "tgKeyBtn") keyWheelOpen();
     const row = e.target.closest(".tg-f");
     if (row && e.target.closest("[data-tdel]")) taggerApplyDetail(await call("tag_remove", [idx[0]], [row.dataset.key]));
     else if (row && e.target.closest("[data-txml]")) openXml(null, row.dataset.key, { tag: idx[0] });

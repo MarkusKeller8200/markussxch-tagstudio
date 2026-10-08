@@ -357,7 +357,7 @@ span.xml-treeonly{display:contents}
 .tg-listhead{display:flex;align-items:center;gap:12px;padding-right:8px}
 .tg-listhead .search{flex:1;max-width:520px}
 .tg-table{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;background:var(--surf);overflow:hidden;outline:0}
-.tg-thead,.tg-row{display:grid;grid-template-columns:22px minmax(160px,1.5fr) minmax(110px,1fr) minmax(110px,1fr) minmax(100px,1fr) 64px 58px minmax(80px,.8fr);gap:0 10px;align-items:center;padding:0 12px}
+.tg-thead,.tg-row{display:grid;grid-template-columns:22px minmax(130px,1.5fr) minmax(80px,1fr) minmax(80px,1fr) minmax(80px,1fr) 52px 48px minmax(64px,.8fr) 64px;gap:0 10px;align-items:center;padding:0 12px}
 .tg-thead{height:38px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
 .tg-thead button{border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;padding:0;display:flex;align-items:center;gap:4px;min-width:0}
 .tg-thead button:hover{color:var(--fg)}
@@ -397,3 +397,42 @@ span.xml-treeonly{display:contents}
 .bk-files th:nth-child(2){width:36%}
 .bk-files th:nth-child(3){width:190px}
 .bk-files td:nth-child(4){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------------------------------------------------------------- Tonart / Camelot-Rad */
+.kb{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:22px;padding:0 6px;border-radius:6px;
+  font-size:12px;font-weight:700;letter-spacing:.2px;color:var(--kt,#fff);background:var(--kc);font-variant-numeric:tabular-nums}
+.kb.fit{box-shadow:0 0 0 2px var(--surf),0 0 0 4px var(--kc)}
+.key-inp{display:flex;gap:6px;min-width:0}
+.key-inp input{flex:1}
+.key-btn{flex:none;height:36px;min-width:46px;padding:0 6px;border:1px solid var(--line);border-radius:8px;background:var(--surf);color:var(--dim);display:inline-flex;align-items:center;justify-content:center}
+.key-btn:hover,.key-btn.on{border-color:var(--acc);color:var(--acc)}
+.key-btn .i{width:19px;height:19px}
+.keypop{position:fixed;z-index:60;width:356px;padding:12px 14px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surf);
+  box-shadow:0 18px 50px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:10px}
+.keypop[hidden]{display:none}
+.kp-head{display:flex;align-items:center;gap:8px}
+.kp-head b{font-size:14px}
+.kp-x{margin-left:auto;width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--dim);display:inline-flex;align-items:center;justify-content:center}
+.kp-x:hover{background:var(--raise);color:var(--fg)}
+.kp-x .i{width:16px;height:16px}
+.kwheel{width:100%;height:auto;display:block;user-select:none}
+.kseg{cursor:pointer;outline:none}
+.kseg path{fill:var(--kc);stroke:var(--surf);stroke-width:1.5;transition:opacity .12s,filter .12s}
+.kseg text{text-anchor:middle;fill:var(--kt,#fff);pointer-events:none}
+.kseg .t1{font-size:12.5px;font-weight:700}
+.kseg .t2{font-size:9.5px;opacity:.9}
+.kseg:hover path,.kseg:focus-visible path{filter:brightness(1.15)}
+.kseg.dim path{opacity:.36}
+.kseg.dim text{opacity:.7}
+.kseg.cur path{stroke:var(--fg);stroke-width:3}
+.kcen{fill:var(--bg);stroke:var(--line)}
+.kwheel .cc{text-anchor:middle;font-size:30px;font-weight:750;fill:var(--fg)}
+.kwheel .cm{text-anchor:middle;font-size:12.5px;fill:var(--dim)}
+.kp-near{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:24px}
+.kp-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kp-row .ghost.sm{flex:1}
+.kn-seg{display:flex;padding:2px;border:1px solid var(--line);border-radius:9px;background:var(--bg)}
+.kn-seg button{height:28px;padding:0 10px;border:0;border-radius:7px;background:transparent;color:var(--dim);font-weight:600;font-size:12.5px}
+.kn-seg button.on{background:var(--acc-soft);color:var(--acc)}
+.tg-thead button{white-space:nowrap}
+.tg-row>span:last-child{overflow:visible;padding-left:3px}

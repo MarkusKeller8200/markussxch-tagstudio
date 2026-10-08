@@ -56,7 +56,13 @@ beide lassen sich abwechselnd verwenden.
   (Titel-Schreibweise, Satzanfang, GROSS, klein; Abkürzungen wie DJ/AC/DC bleiben, kleine Wörter wahlweise klein),
   **Suchen & Ersetzen** (über alle markierten Dateien, wählbare Felder, ganze Wörter, reguläre Ausdrücke),
   **Cover aus Ordner** (cover/folder/front/album.jpg|png im Ordner der Datei, sonst das größte Bild; wahlweise nur
-  für Dateien ohne Cover) und **Liste exportieren** (Excel .xlsx oder CSV mit Semikolon). Vergleich und Tagger arbeiten mit
+  für Dateien ohne Cover) und **Liste exportieren** (Excel .xlsx oder CSV mit Semikolon, inkl. Camelot-Spalte).
+  **Tonart mit Camelot-Rad:** Knopf neben dem Feld „Tonart“ öffnet das Rad (aussen Dur, innen Moll); Klick setzt die
+  Tonart der markierten Dateien, die aktuelle und die harmonisch passenden Tonarten (±1, Paralleltonart) sind
+  hervorgehoben. Geschrieben wird wahlweise als Camelot (8A), musikalisch (Am) oder Open Key (1m); erkannt werden
+  auch Schreibweisen wie A minor, F♯m, a-Moll oder Es-Dur. „Schreibweise vereinheitlichen“ schreibt alle markierten
+  Dateien um. In der Liste zeigt die Spalte „Tonart“ farbige Camelot-Codes (sortierbar); bei einer markierten Datei
+  sind die passenden Titel umrandet. Vergleich und Tagger arbeiten mit
   denselben Dateien – Änderungen sind in beiden sichtbar und werden zusammen gespeichert.
 - **Tag-Fixer** (Seitenleiste): Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare,
   alle Dateien, Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte),
@@ -228,6 +234,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `xmltools.py` – XML in Feldern erkennen, prüfen, formatieren/kompakt schreiben
 - `tagger.py` – Tagger-Logik: gemeinsame Felder, Tags aus Dateiname, Umbenennen, Spurnummern, Cover,
   Groß-/Kleinschreibung, Suchen & Ersetzen, Cover aus Ordner, Export (CSV/Excel ohne Zusatzpakete)
+- `keys.py` – Tonarten: erkennen, umschreiben (Camelot, musikalisch, Open Key), passende Tonarten
 - `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)

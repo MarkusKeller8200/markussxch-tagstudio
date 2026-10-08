@@ -340,7 +340,8 @@ def plan_folder_cover(files, only_missing=True) -> list[dict]:
 
 # =========================================================================== Export
 def export_table(files, root: str = "") -> tuple[list[str], list[list]]:
-    head = ["Datei", "Ordner"] + [label for _k, label, _p in FIELDS] + ["Dauer", "Bitrate (kbps)", "ID3", "Cover",
+    import keys
+    head = ["Datei", "Ordner"] + [label for _k, label, _p in FIELDS] + ["Camelot", "Dauer", "Bitrate (kbps)", "ID3", "Cover",
                                                                        "Größe (Bytes)"]
     rows = []
     for f in files:
@@ -348,6 +349,7 @@ def export_table(files, root: str = "") -> tuple[list[str], list[list]]:
         m, s = divmod(int(round(dur)), 60)
         rows.append([os.path.basename(f.path), os.path.dirname(f.path)]
                     + [text_of(f, k) for k, _l, _p in FIELDS]
+                    + [keys.parse_key(text_of(f, "TKEY")) or ""]
                     + [f"{m}:{s:02d}" if dur else "", getattr(f, "bitrate", "") or "", f.tag_desc,
                        "ja" if f.get("APIC:3") is not None else "nein", f.size])
     return head, rows

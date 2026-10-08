@@ -14,6 +14,7 @@ import time
 
 import backup
 import core
+import keys
 import tagger
 import xmltools
 from compare import (PAIR_MODES, Rules, DEFAULT_TRIVIAL, Cancelled, diff, copy_tags, all_keys, MULTI_FIELDS,
@@ -671,13 +672,16 @@ class Session:
     def tagger_settings(self):
         return {"hist": self.cfg.get("hist_tagger", []), "recursive": self.cfg.get("tagger_recursive", False),
                 "fields": [[k, label, ph] for k, label, ph in tagger.FIELDS],
+                "keys": {"wheel": keys.wheel(), "notations": [[k, v] for k, v in keys.NOTATIONS.items()],
+                         "notation": self.cfg.get("key_notation", "camelot")},
                 "patterns": self.cfg.get("tagger_patterns", {"from": "%track% - %artist% - %title%",
                                                              "rename": "%track% - %artist% - %title%"})}
 
     def _tag_row(self, i, f):
         return {"i": i, "name": os.path.basename(f.path), "rel": core.rel_name(f, self.tag_root),
                 "modified": f.is_modified(), "cover": f.get("APIC:3") is not None, "version": f.version,
-                **{key: tagger.text_of(f, key) for key, _l, _p in tagger.FIELDS}}
+                **{key: tagger.text_of(f, key) for key, _l, _p in tagger.FIELDS},
+                "camelot": keys.parse_key(tagger.text_of(f, "TKEY"))}
 
     def tag_rows(self) -> dict:
         with self.lock:
@@ -694,6 +698,8 @@ class Session:
             if not files:
                 return out
             out["common"] = tagger.common_values(files)
+            kv = out["common"].get("TKEY", {})
+            kv["camelot"] = keys.parse_key(kv.get("value")) if not kv.get("mixed") else None
             cs = tagger.cover_summary(files)
             if cs.get("data") is not None:
                 cs["src"] = f"data:{cs['mime']};base64,{base64.b64encode(cs.pop('data')).decode('ascii')}" \
@@ -920,6 +926,32 @@ class Session:
             d["message"] = f"Cover in {len(todo) - len(errors)} Datei(en) aus dem Ordner übernommen – noch nicht gespeichert."
             d["errors"] = errors
             return d
+
+    # ------------------------------------------------------------------ Tonart / Camelot
+    def tag_key_notation(self, notation):
+        if notation not in keys.NOTATIONS:
+            raise ValueError(f"Unbekannte Schreibweise: {notation}")
+        self.cfg["key_notation"] = notation
+        core.save_config({"key_notation": notation})
+        return notation
+
+    def tag_key_set(self, idx, code):
+        """Tonart per Camelot-Code setzen (in der gewählten Schreibweise); leer = entfernen."""
+        if code and not keys.parse_key(code):
+            raise ValueError(f"Unbekannte Tonart: {code}")
+        val = keys.format_key(keys.parse_key(code), self.cfg.get("key_notation", "camelot")) if code else ""
+        return self.tag_set(idx, "TKEY", val)
+
+    def tag_key_convert(self, idx, notation, apply=False):
+        with self.lock:
+            files = self._tsel(idx)
+            plan, unknown = keys.plan_notation(files, notation, tagger.text_of)
+            if not apply:
+                return {"rows": self._plan_rows(plan), "count": len(plan), "files": len(plan),
+                        "unknown": [{"name": os.path.basename(f.path), "value": v} for f, v in unknown[:200]],
+                        "unknown_count": len(unknown)}
+            return self._apply_plan(idx, plan, "Tonart umschreiben",
+                                    f"Tonart in {len(plan)} Datei(en) umgeschrieben – noch nicht gespeichert.")
 
     def tag_export_name(self, fmt):
         base = os.path.basename(os.path.normpath(self.tag_root)) or "TagStudio"
