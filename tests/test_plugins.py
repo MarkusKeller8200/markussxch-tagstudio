@@ -313,6 +313,45 @@ class TestStems(PluginBase):
             info = json.load(fh)
         self.assertEqual(info["variant"], "gpu")
 
+    def test_env_install_self_heal_and_reuse(self):
+        state = {"checks": 0}
+        calls = []
+
+        def fake_run(cmd, on_line=None, cancel=None, env=None, cwd=None):
+            calls.append(" ".join(cmd))
+            if cmd[-2:] == ["-c", "import audio_separator.separator"]:
+                state["checks"] += 1
+                if state["checks"] == 1:
+                    return 1, ["ModuleNotFoundError: No module named 'audioread'"]
+            if "venv" in cmd:      # Umgebung „anlegen“
+                py = plugins._env_python(cmd[-1])
+                os.makedirs(os.path.dirname(py), exist_ok=True)
+                open(py, "w").close()
+            return 0, []
+        orig = plugins.run_lines
+        plugins.run_lines = fake_run
+        try:
+            s = self.session()
+            s.start_plugin_install("stems", "cpu")
+            res = self.wait(s)["result"]
+            self.assertTrue(res["ok"], res)
+            self.assertTrue(any(c.endswith("pip install --python " + plugins._env_python(
+                os.path.join(self.base, "env")) + " audioread") for c in calls), calls)
+            pk = next(c for c in calls if " pip install " in c and "audio-separator" in c)
+            self.assertIn("librosa<1.0", pk)
+            # zweiter Versuch, gleiche Variante: kein neues venv
+            calls.clear()
+            s.start_plugin_install("stems", "cpu")
+            self.assertTrue(self.wait(s)["result"]["ok"])
+            self.assertFalse(any(" venv " in c for c in calls))
+            # andere Variante: neu anlegen
+            calls.clear()
+            s.start_plugin_install("stems", "dml")
+            self.assertTrue(self.wait(s)["result"]["ok"])
+            self.assertTrue(any(" venv " in c for c in calls))
+        finally:
+            plugins.run_lines = orig
+
     def test_env_install_failure(self):
         def fake_run(cmd, on_line=None, cancel=None, env=None, cwd=None):
             return (1, ["error: no matching distribution"]) if "install" in cmd and "--python" in cmd else (0, [])

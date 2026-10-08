@@ -33,6 +33,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/). Versione
   ungehakt angezeigt statt still übersprungen, gleiche Werte gezählt, Protokoll je Titel.
 - Plugin-System: Vorschläge mit Vorschau (`ctx.propose`), Aktionen auf der Plugin-Karte, Passwort-/Textfelder,
   bedingte Felder (`show_if`), Statustext je Plugin.
+- Stems-Installation: `audioread` ergänzt und librosa auf 0.x festgelegt (audio-separator lud sonst nicht).
+  Die Installation ergänzt fehlende, nicht deklarierte Module selbst und verwendet eine vorhandene Umgebung
+  bei gleicher Variante weiter (kein erneuter PyTorch-Download).
 - Protokolle in `~/TagStudio/Logs` (Installation, Plugin-Fehler mit Details); Knopf „Protokolle“.
 - Neue Oberfläche jetzt mit **Tag-Fixer**, **Sicherungen** (prüfen, wiederherstellen, löschen, Einstellungen),
   **Sammelkopie** (Mehrfachauswahl in der Paarliste), **Feld hinzufügen** und **Bildern** (ersetzen, exportieren,

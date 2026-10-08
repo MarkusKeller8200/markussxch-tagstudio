@@ -524,6 +524,11 @@ def pip_install(packages, cancel=None, progress=None) -> dict:
             "error": "" if rc == 0 else "pip meldet einen Fehler – Details im Protokoll."}
 
 
+# Modulname → pip-Paket, wo sie sich unterscheiden (für das Nachinstallieren fehlender Module)
+MODULE_PACKAGES = {"yaml": "pyyaml", "sklearn": "scikit-learn", "cv2": "opencv-python", "PIL": "pillow",
+                   "soundfile": "soundfile", "samplerate": "samplerate", "ml_collections": "ml-collections"}
+
+
 def env_install(plugin, variant: dict, cancel=None, progress=None) -> dict:
     """Eigene Umgebung für ein Plugin anlegen: uv (bei Bedarf per pip) → uv venv mit passender Python-Version
     (lädt sie selbst herunter) → uv pip install Pakete → Import prüfen → Markierung env.json schreiben."""
@@ -552,18 +557,31 @@ def env_install(plugin, variant: dict, cancel=None, progress=None) -> dict:
         importlib.invalidate_caches()
     uv = [sys.executable, "-m", "uv"]
     marker = os.path.join(base, "env.json")
+    attempt = os.path.join(base, "env-versuch.json")   # Variante des letzten (auch gescheiterten) Versuchs
+    try:
+        with open(attempt, encoding="utf-8") as fh:
+            last_variant = json.load(fh).get("variant")
+    except (OSError, ValueError):
+        last_variant = None
     if os.path.exists(marker):
         os.remove(marker)
     env_dir = plugin.env_dir
-    if os.path.isdir(env_dir):
-        say("Entferne alte Umgebung …")
-        shutil.rmtree(env_dir, ignore_errors=True)
-    pyver = str(plugin.env_spec.get("python", "3.12"))
-    r = step(f"Lege Umgebung mit Python {pyver} an (lädt Python bei Bedarf) …",
-             uv + ["venv", "--python", pyver, env_dir], cwd=base)
-    if r:
-        return r
     py = _env_python(env_dir)
+    pyver = str(plugin.env_spec.get("python", "3.12"))
+    reuse = os.path.exists(py) and last_variant == variant.get("id")
+    if reuse:
+        say("Vorhandene Umgebung wird weiterverwendet …")
+        log.append("Vorhandene Umgebung wird weiterverwendet (gleiche Variante).")
+    else:
+        if os.path.isdir(env_dir):
+            say("Entferne alte Umgebung …")
+            shutil.rmtree(env_dir, ignore_errors=True)
+        r = step(f"Lege Umgebung mit Python {pyver} an (lädt Python bei Bedarf) …",
+                 uv + ["venv", "--python", pyver, env_dir], cwd=base)
+        if r:
+            return r
+    with open(attempt, "w", encoding="utf-8") as fh:
+        json.dump({"variant": variant.get("id")}, fh)
     cmd = uv + ["pip", "install", "--python", py]
     for idx in variant.get("extra_index", []):
         cmd += ["--extra-index-url", idx]
@@ -573,9 +591,26 @@ def env_install(plugin, variant: dict, cancel=None, progress=None) -> dict:
     if r:
         return r
     for mod in plugin.env_spec.get("check", []):
-        r = step(f"Prüfe {mod} …", [py, "-c", f"import {mod}"], cwd=base)
-        if r:
-            return r
+        for _attempt in range(4):         # fehlende, nicht deklarierte Abhängigkeiten selbst nachinstallieren
+            say(f"Prüfe {mod} …")
+            log.append(f"$ {py} -c import {mod}")
+            rc, tail = run_lines([py, "-c", f"import {mod}"], lambda ln: say(ln), cancel, cwd=base)
+            log.extend(tail)
+            if rc == 0:
+                break
+            m = re.search(r"No module named '([A-Za-z0-9_]+)", "\n".join(tail))
+            if not m:
+                path = write_log(f"{plugin.id}-installation.log", "\n".join(log))
+                return {"ok": False, "error": f"Prüfe {mod} fehlgeschlagen (Code {rc}).", "log": log[-40:], "logfile": path}
+            missing = m.group(1)
+            pkg = MODULE_PACKAGES.get(missing, missing.replace("_", "-"))
+            r = step(f"Ergänze fehlendes Paket {pkg} …", uv + ["pip", "install", "--python", py, pkg], cwd=base)
+            if r:
+                return r
+        else:
+            path = write_log(f"{plugin.id}-installation.log", "\n".join(log))
+            return {"ok": False, "error": f"{mod} lässt sich auch nach Nachinstallieren nicht laden.",
+                    "log": log[-40:], "logfile": path}
     info = {"python": py, "variant": variant.get("id"), "label": variant.get("label", ""),
             "packages": variant.get("packages", []), "python_version": pyver}
     with open(marker, "w", encoding="utf-8") as fh:
