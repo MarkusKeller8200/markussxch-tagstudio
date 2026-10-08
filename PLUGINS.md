@@ -96,6 +96,13 @@ def run(action, ctx, files, options):
     return {"message": f"{len(files)} Datei(en) bearbeitet."}
 ```
 
+Weitere Angaben je Aktion:
+
+- `"where": "page"` – Knopf auf der Plugin-Karte statt im Tagger (z. B. Anmelden); dann meist `"needs_selection": false`.
+- Optionstypen zusätzlich `password` (wird nie gespeichert), `textarea`; `"secret": true` verhindert das Merken
+  bei jedem Typ. `"show_if": {"method": "login"}` zeigt ein Feld nur, wenn ein anderes Feld diesen Wert hat.
+- Eine Funktion `status(ctx)` im Plugin liefert einen Statustext für die Karte (z. B. „Angemeldet als …“).
+
 Statt `ACTIONS` geht auch eine Funktion `actions(ctx)`, die die Liste liefert (z. B. für dynamische Auswahl).
 Die zuletzt benutzten Werte merkt sich TagStudio pro Aktion.
 
@@ -109,6 +116,7 @@ Die zuletzt benutzten Werte merkt sich TagStudio pro Aktion.
 | `ctx.log(text)` | Zeile ins Protokoll (wird nach dem Lauf angezeigt) |
 | `ctx.output(pfad)` | erzeugte Datei/Ordner melden („Im Explorer zeigen“) |
 | `ctx.edit_tags(files, fn, label)` | Tags ändern – mit Rückgängig, gespeichert wird wie gewohnt mit „Speichern“ |
+| `ctx.propose(f, key, neu, label, note=, checked=)` | Änderung **vorschlagen**: nach dem Lauf erscheint eine Vorschau mit Häkchen, übernommen wird erst nach Bestätigung (mit Rückgängig). `kind="cover", data=Bytes` für Cover |
 | `ctx.data_dir` | eigener Datenordner des Plugins |
 | `ctx.run_env(args, on_line)` | Python der eigenen Umgebung starten (nur mit `env`) |
 
@@ -135,3 +143,24 @@ mit welcher Python-Version TagStudio läuft. FFmpeg wird mitinstalliert.
 Ergebnis: Ordner `<Titel> – Stems` neben dem Titel (oder im gewählten Ordner) mit `<Titel> (Vocals).flac` usw.
 Bei MP3 werden Tags und Cover übernommen, der Titel bekommt den Zusatz „(Vocals)“. Die Modelle landen in
 `~/TagStudio/Plugin-Daten/stems/modelle` und werden nur einmal geladen.
+
+## Eingebaut: Beatport (inoffiziell)
+
+Holt BPM, Tonart (in deiner Schreibweise), Genre/Subgenre, Label, Katalognummer, Datum, ISRC, Remixer, Cover
+und optional Titel/Künstler/Album von Beatport. Nutzt die Beatport-API v4 mit **deinem eigenen Beatport-Konto**
+– derselbe Weg wie das beets-Plugin „beatport4“. Inoffiziell: Beatport kann den Zugang jederzeit ändern.
+
+1. Seite **Plugins** → Beatport → **Anmelden …**
+   - *Benutzername und Passwort*: Das Passwort wird nur für die Anmeldung benutzt und **nie gespeichert**.
+   - *Token aus dem Browser*: auf api.beatport.com/v4/docs anmelden, Entwicklertools (F12) → Netzwerk →
+     Anfrage „token“ → Antwort (JSON) kopieren und einfügen.
+   Gespeichert wird nur der Token, unter Windows mit DPAPI verschlüsselt (nur dein Benutzerkonto kann ihn lesen).
+   Abgelaufene Tokens werden automatisch erneuert.
+2. Im Tagger Titel markieren → **Plugins → Beatport-Daten holen …** → Felder wählen, „Nur leere Felder füllen“
+   oder „Überschreiben“.
+3. **Vorschau:** je Datei der gefundene Beatport-Titel mit Sicherheit in %, darunter jedes Feld alt → neu.
+   Unsichere Treffer sind nicht vorausgewählt. „Übernehmen“ ändert die Tags (rückgängig machbar), geschrieben
+   wird wie immer erst mit „Speichern“.
+
+Treffer: zuerst über eine gespeicherte Beatport-ID (`TXXX:BEATPORT_TRACK_ID`), dann ISRC, sonst Suche nach
+Künstler + Titel + Mix-Name; bewertet werden Titel, Künstler, Länge und Mix-Name. Höchstens ~3 Anfragen pro Sekunde.

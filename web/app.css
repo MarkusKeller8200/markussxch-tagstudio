@@ -499,3 +499,14 @@ span.xml-treeonly{display:contents}
 .ft-x:hover:not(:disabled){background:var(--raise);color:var(--fg)}
 .ft-x:disabled{opacity:.3}
 .ft-x .i{width:14px;height:14px}
+.pl-opt{display:contents}
+.pl-opt[hidden]{display:none}
+.pl-ta{height:auto;min-height:84px;padding:8px 10px;font:12px/1.4 ui-monospace,Consolas,monospace;resize:vertical}
+.pl-page{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pl-stat{flex:1 1 100%;color:var(--fg)}
+.pl-prev{max-height:52vh}
+.pl-prev td{vertical-align:top}
+.pl-prev .pv-file td{background:var(--raise);border-top:1px solid var(--line)}
+.pl-prev .pv-unsure td{opacity:.75}
+.pl-prev-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pl-prev-tools .muted{margin-left:auto}

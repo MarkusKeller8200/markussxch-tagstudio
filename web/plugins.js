@@ -32,7 +32,10 @@ function renderPlugins() {
     const err = p.state === "error" ? `<div class="pl-box err">${esc(p.error)}</div>` : "";
     const envOk = p.env && p.state === "ready" && p.install.length ? `<div class="pl-env"><span class="muted sm">Umgebung: ${esc((p.env_variant || "installiert").replace(/^Installieren\s*\(?|\)$/g, ""))}</span>
         <details><summary class="sm">Neu installieren / andere Variante …</summary><div class="pl-inst">${p.install.map((v) => `<button class="ghost sm" data-install="${esc(v.id)}">${esc(v.label)}</button>`).join("")}</div></details></div>` : "";
-    const acts = p.actions.length ? `<div class="pl-acts"><span class="muted sm">Aktionen:</span> ${p.actions.map((a) => `<span class="pl-act" title="${esc(a.description)}">${esc(a.label.replace(/\s*…$/, ""))}${a.where === "tagger" ? ' <span class="faint">· Tagger</span>' : ""}</span>`).join("")}</div>` : "";
+    const pageActs = p.actions.filter((a) => a.where === "page");
+    const page = p.enabled && p.state === "ready" && (pageActs.length || p.status_text) ? `<div class="pl-page">${p.status_text ? `<span class="sm pl-stat">${esc(p.status_text)}</span>` : ""}
+      ${pageActs.map((a) => `<button class="ghost sm" data-paction="${esc(a.id)}" title="${esc(a.description)}">${esc(a.label)}</button>`).join("")}</div>` : "";
+    const acts = p.actions.filter((a) => a.where !== "page").length ? `<div class="pl-acts"><span class="muted sm">Aktionen:</span> ${p.actions.filter((a) => a.where !== "page").map((a) => `<span class="pl-act" title="${esc(a.description)}">${esc(a.label.replace(/\s*…$/, ""))}${a.where === "tagger" ? ' <span class="faint">· Tagger</span>' : ""}</span>`).join("")}</div>` : "";
     return `<section class="card pl-card${p.enabled ? "" : " off"}" data-pid="${esc(p.id)}">
       <div class="pl-head">
         <div class="pl-ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 3h6v3a2 2 0 1 0 4 0V3h2v6h-3a2 2 0 1 0 0 4h3v8h-6v-3a2 2 0 1 0-4 0v3H3v-8h3a2 2 0 1 0 0-4H3V3h6Z"/></svg></div>
@@ -41,7 +44,7 @@ function renderPlugins() {
         <label class="switch" title="${p.enabled ? "Ausschalten" : "Einschalten"}"><input type="checkbox" data-enable ${p.enabled ? "checked" : ""} aria-label="${esc(p.name)} ein/aus"><span></span></label>
       </div>
       <p class="pl-desc">${esc(p.description)}</p>
-      ${p.enabled ? err + missing + ext + acts + envOk : ""}
+      ${p.enabled ? err + missing + ext + page + acts + envOk : ""}
       <div class="hint pl-path" title="${esc(p.path)}">${esc(p.path)}</div>
     </section>`;
   }).join("");
@@ -78,8 +81,16 @@ async function pluginActions(where = "tagger") {
 
 function pluginOptionHtml(o, n) {
   const id = `plo-${n}`;
+  const cond = o.show_if ? ` data-showif='${esc(JSON.stringify(o.show_if))}'` : "";
+  const wrap = (h) => `<div class="pl-opt"${cond}>${h}</div>`;
+  return wrap(pluginOptionInner(o, id));
+}
+
+function pluginOptionInner(o, id) {
   const lab = `<label for="${id}">${esc(o.label || o.key)}</label>`;
   if (o.type === "info") return `<span></span><div class="hint">${esc(o.label)}</div>`;
+  if (o.type === "password") return lab + `<input id="${id}" type="password" data-ok="${esc(o.key)}" autocomplete="off" spellcheck="false">`;
+  if (o.type === "textarea") return lab + `<textarea id="${id}" class="inp pl-ta" data-ok="${esc(o.key)}" spellcheck="false" rows="4">${esc(o.value)}</textarea>`;
   if (o.type === "check") return `<span></span><label class="check"><input type="checkbox" id="${id}" data-ok="${esc(o.key)}" ${o.value ? "checked" : ""}> ${esc(o.label || o.key)}</label>`;
   if (o.type === "select") return lab + `<select id="${id}" class="inp" data-ok="${esc(o.key)}">${(o.choices || []).map((c) => { const [v, l] = Array.isArray(c) ? c : [c, c]; return `<option value="${esc(v)}" ${String(v) === String(o.value) ? "selected" : ""}>${esc(l)}</option>`; }).join("")}</select>`;
   if (o.type === "folder") return lab + `<div class="pl-folder"><input id="${id}" data-ok="${esc(o.key)}" value="${esc(o.value)}" spellcheck="false" placeholder="Ordner …"><button class="ghost sm" data-plpick="${id}">Wählen …</button></div>`;
@@ -97,16 +108,32 @@ async function pluginRun(pid, aid) {
       <div class="frm">${f.options.map(pluginOptionHtml).join("")}</div>
       <div class="hint">Plugin: ${esc(f.plugin_name)}</div>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: f.run_label, value: true, primary: true }],
-    onMount: (b) => b.querySelectorAll("[data-plpick]").forEach((btn) => btn.addEventListener("click", async () => {
-      const inp = $("#" + btn.dataset.plpick, b);
-      const p = await call("pick_path", "", true, inp.value.trim());
-      if (p) inp.value = p; else if (!S.settings.native) toast("Pfad bitte direkt ins Feld eintippen.");
-    })),
+    onMount: (b) => {
+      b.querySelectorAll("[data-plpick]").forEach((btn) => btn.addEventListener("click", async () => {
+        const inp = $("#" + btn.dataset.plpick, b);
+        const p = await call("pick_path", "", true, inp.value.trim());
+        if (p) inp.value = p; else if (!S.settings.native) toast("Pfad bitte direkt ins Feld eintippen.");
+      }));
+      const sync = () => b.querySelectorAll("[data-showif]").forEach((el) => {
+        const cond = JSON.parse(el.dataset.showif);
+        el.hidden = !Object.entries(cond).every(([k, want]) => {
+          const ctl = b.querySelector(`[data-ok="${k}"]`);
+          if (!ctl) return true;
+          return ctl.type === "checkbox" ? ctl.checked === !!want : ctl.value === String(want);
+        });
+      });
+      b.addEventListener("change", sync);
+      sync();
+      const first = b.querySelector(".pl-opt:not([hidden]) input:not([type=checkbox]), .pl-opt:not([hidden]) textarea");
+      if (first && !first.value) first.focus();
+    },
     collect: (b) => Object.fromEntries([...b.querySelectorAll("[data-ok]")].map((el) => [el.dataset.ok, el.type === "checkbox" ? el.checked : el.value])),
   });
   if (!values) return;
-  const res = await runTask(call("start_plugin_action", pid, aid, idx, values), f.label.replace(/\s*…$/, ""));
+  const res = await runTask(call("start_plugin_action", pid, aid, f.needs_selection ? idx : [], values), f.label.replace(/\s*…$/, ""));
+  if (S.module === "plugins") pluginsShow();
   if (!res) return;
+  if (res.proposals && res.proposals.length) { await pluginPreview(f, res); return; }
   if (res.changed && typeof taggerRefresh === "function") await taggerRefresh();
   if (res.cancelled) { status("Abgebrochen.", "warn"); if (!res.log.length) return; }
   const log = (res.log || []).slice(-40).join("\n");
@@ -122,6 +149,56 @@ async function pluginRun(pid, aid) {
   if (res.message) status(res.message, "info");
 }
 
+// ---------------------------------------------------------------------- Vorschläge bestätigen
+async function pluginPreview(f, res) {
+  const rows = res.proposals;
+  const groups = [];
+  for (const r of rows) { let g = groups.find((x) => x.name === r.group); if (!g) groups.push(g = { name: r.group, note: r.note, rows: [] }); g.rows.push(r); }
+  const html = `<p style="margin:0">${esc(res.message || "")}</p>
+    <div class="pl-prev-tools"><button class="ghost sm" data-pv="all">Alle wählen</button><button class="ghost sm" data-pv="none">Keine</button><button class="ghost sm" data-pv="sure">Nur sichere</button>
+      <span class="muted sm" id="pvCount"></span></div>
+    <div class="fx-table pl-prev"><table><thead><tr><th style="width:28px"></th><th>Feld</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody>
+    ${groups.map((g) => `<tr class="pv-file"><td><input type="checkbox" data-pvg="${esc(g.name)}" aria-label="${esc(g.name)} alle"></td><td colspan="3"><b>${esc(g.name)}</b> <span class="muted sm">${esc(g.note || "")}</span></td></tr>
+      ${g.rows.map((r) => `<tr class="${r.note.includes("unsicher") ? "pv-unsure" : ""}"><td><input type="checkbox" data-pvi="${r.id}" data-pvgroup="${esc(g.name)}" ${r.checked ? "checked" : ""}></td>
+        <td>${esc(r.label)}</td><td class="old">${esc(r.old) || "–"}</td><td class="new">${esc(r.new)}</td></tr>`).join("")}`).join("")}
+    </tbody></table></div>
+    ${(res.log || []).length ? `<details class="sm"><summary class="muted">Protokoll (${res.log.length})</summary><pre class="pl-log">${esc(res.log.slice(-60).join("\n"))}</pre></details>` : ""}`;
+  const ids = await modal({
+    title: `${f.label.replace(/\s*…$/, "")} – Vorschau`, wide: true, html,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
+    onMount: (b) => {
+      const boxes = () => [...b.querySelectorAll("[data-pvi]")];
+      const upd = () => {
+        const n = boxes().filter((c) => c.checked).length;
+        $("#pvCount", b).textContent = `${n} von ${boxes().length} gewählt`;
+        b.querySelectorAll("[data-pvg]").forEach((g) => {
+          const mine = boxes().filter((c) => c.dataset.pvgroup === g.dataset.pvg);
+          const on = mine.filter((c) => c.checked).length;
+          g.checked = on === mine.length; g.indeterminate = on > 0 && on < mine.length;
+        });
+        const btn = $("#mBtns .primary"); if (btn) { btn.disabled = !n; btn.textContent = n ? `Übernehmen (${n})` : "Übernehmen"; }
+      };
+      b.addEventListener("change", (e) => {
+        const g = e.target.closest("[data-pvg]");
+        if (g) boxes().filter((c) => c.dataset.pvgroup === g.dataset.pvg).forEach((c) => (c.checked = g.checked));
+        upd();
+      });
+      b.addEventListener("click", (e) => {
+        const t = e.target.closest("[data-pv]"); if (!t) return;
+        boxes().forEach((c) => { c.checked = t.dataset.pv === "all" ? true : t.dataset.pv === "none" ? false : !c.closest("tr").classList.contains("pv-unsure"); });
+        upd();
+      });
+      upd();
+    },
+    collect: (b) => [...b.querySelectorAll("[data-pvi]:checked")].map((c) => +c.dataset.pvi),
+  });
+  if (!ids) { status("Keine Änderungen übernommen.", "info"); return; }
+  const r = await call("plugin_apply", res.proposals_token, ids);
+  if (!r.ok) { info("Hinweis", r.error); return; }
+  if (typeof taggerRefresh === "function") await taggerRefresh();
+  status(r.message, "info");
+}
+
 // ---------------------------------------------------------------------- Ereignisse
 (function bindPlugins() {
   $("#plRescan").addEventListener("click", async () => { PL.actionsCache = null; await pluginsShow(true); toast("Plugins neu eingelesen."); if (typeof renderTgEditor === "function") renderTgEditor(); });
@@ -135,6 +212,8 @@ async function pluginRun(pid, aid) {
     if (typeof renderTgEditor === "function") renderTgEditor();
   });
   $("#plList").addEventListener("click", (e) => {
+    const pa = e.target.closest("[data-paction]");
+    if (pa) { pluginRun(pa.closest("[data-pid]").dataset.pid, pa.dataset.paction); return; }
     const b = e.target.closest("[data-install]"); if (!b) return;
     pluginInstall(b.closest("[data-pid]").dataset.pid, b.dataset.install);
   });

@@ -27,7 +27,8 @@ API_VERSION = 1
 HERE = os.path.dirname(os.path.abspath(__file__))
 BUILTIN_DIR = os.path.join(HERE, "plugins")
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,40}$")
-OPTION_TYPES = {"select", "check", "text", "number", "folder", "info"}
+OPTION_TYPES = {"select", "check", "text", "number", "folder", "info", "password", "textarea"}
+SECRET_TYPES = {"password"}   # werden nie gespeichert
 
 
 class Cancelled(Exception):
@@ -111,6 +112,7 @@ class Context:
         self._progress = progress or (lambda m: None)
         self.log_lines: list[str] = []
         self.outputs: list[str] = []
+        self.proposals: list[dict] = []
         self.changed = False
 
     # ---- Ordner / Einstellungen
@@ -162,6 +164,22 @@ class Context:
     def output(self, path: str):
         """Erzeugte Datei/Ordner melden (wird im Ergebnis angezeigt)."""
         self.outputs.append(path)
+
+    # ---- Vorschläge (werden nach dem Lauf als Vorschau mit Häkchen gezeigt)
+    def propose(self, f, key, new, label=None, note="", checked=True, kind="text", data=None, group=None):
+        """Änderung vorschlagen statt sie direkt auszuführen. kind="text" (key/new) oder "cover" (data=Bytes).
+        note: Hinweis (z. B. Treffer und Sicherheit), group: Überschrift je Datei."""
+        if kind == "text":
+            it = f.get(key)
+            old = it.text if it is not None and it.kind not in ("picture", "raw") else ""
+            if (new or "") == old:
+                return False
+        else:
+            old = "vorhanden" if f.get(key) is not None else ""
+        self.proposals.append({"file": f, "key": key, "new": "" if new is None else str(new), "old": old,
+                               "label": label or key, "note": note, "checked": bool(checked), "kind": kind,
+                               "data": data, "group": group})
+        return True
 
     # ---- Tags ändern (mit Rückgängig, noch nicht gespeichert)
     def edit_tags(self, files, fn, label=None):
@@ -322,6 +340,12 @@ class Plugin:
         if st == "ready" and self.enabled:
             d["actions"] = [{"id": a["id"], "label": a["label"], "where": a["where"],
                              "description": a.get("description", "")} for a in self.actions()]
+            st_fn = getattr(self.module, "status", None)
+            if callable(st_fn):
+                try:
+                    d["status_text"] = str(st_fn(Context(self)) or "")
+                except Exception as ex:  # noqa: BLE001
+                    d["status_text"] = f"Status nicht lesbar: {ex}"
             if self.error:  # actions() kann einen Fehler setzen
                 d["state"], d["error"], d["actions"] = "error", self.error, []
         else:
@@ -403,7 +427,9 @@ class Manager:
         opts = []
         for o in a["options"]:
             o = dict(o)
-            if o.get("key") in last:
+            if o["type"] in SECRET_TYPES or o.get("secret"):
+                o["value"] = ""
+            elif o.get("key") in last:
                 o["value"] = last[o["key"]]
             else:
                 o["value"] = o.get("default", False if o["type"] == "check" else "")
@@ -438,6 +464,12 @@ class Manager:
         return out
 
     def remember(self, pid, aid, opts):
+        try:
+            _p, a = self.action(pid, aid)
+            secret = {o.get("key") for o in a["options"] if o["type"] in SECRET_TYPES or o.get("secret")}
+        except (KeyError, ValueError):
+            secret = set()
+        opts = {k: v for k, v in opts.items() if k not in secret}
         self.cfg.setdefault("plugin_options", {}).setdefault(pid, {})[aid] = opts
         return {"plugin_options": self.cfg["plugin_options"]}
 
@@ -448,13 +480,15 @@ class Manager:
         try:
             res = p.module.run(aid, ctx, list(files), opts) or {}
         except Cancelled:
-            return {"cancelled": True, "log": ctx.log_lines, "outputs": ctx.outputs, "changed": ctx.changed}
+            return {"cancelled": True, "log": ctx.log_lines, "outputs": ctx.outputs, "changed": ctx.changed,
+                    "proposals": []}
         if not isinstance(res, dict):
             res = {"message": str(res)}
         res.setdefault("message", f"{a['label']}: fertig.")
         res["log"] = ctx.log_lines + list(res.get("log", []))
         res["outputs"] = ctx.outputs + [o for o in res.get("outputs", []) if o not in ctx.outputs]
         res["changed"] = bool(res.get("changed") or ctx.changed)
+        res["proposals"] = ctx.proposals
         return res
 
 

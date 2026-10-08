@@ -59,6 +59,7 @@ class Session:
         ui = self.cfg.get("web_ui")
         self.ui = {k: v for k, v in (ui.items() if isinstance(ui, dict) else []) if k in UI_KEYS}
         self._plugins = None   # wird beim ersten Zugriff gesucht
+        self._pending = None   # Vorschläge eines Plugins, warten auf Bestätigung
 
     # ================================================================== Einstellungen
     def settings(self) -> dict:
@@ -980,9 +981,44 @@ class Session:
                 raise RuntimeError(f"{msg}\n\nDetails im Protokoll: {path}") from ex
             if res.get("log"):
                 res["logfile"] = plugins.write_log(f"{pid}.log", "\n".join(res["log"]))
+            props = res.pop("proposals", [])
+            if props:
+                import uuid
+                token = uuid.uuid4().hex
+                self._pending = {"token": token, "plugin": pid, "items": props}
+                res["proposals_token"] = token
+                res["proposals"] = [{"id": n, "name": os.path.basename(p["file"].path), "group": p["group"] or os.path.basename(p["file"].path),
+                                     "label": p["label"], "old": p["old"].replace(MV, MV_SHOW), "new": p["new"].replace(MV, MV_SHOW),
+                                     "note": p["note"], "checked": p["checked"], "kind": p["kind"]}
+                                    for n, p in enumerate(props)]
             res["unsaved"] = self.unsaved()
             return res
         return self._run("plugin", a["label"], job)
+
+    def plugin_apply(self, token, ids):
+        """Ausgewählte Vorschläge eines Plugin-Laufs übernehmen (mit Rückgängig, noch nicht gespeichert)."""
+        pend = self._pending
+        if not pend or pend["token"] != token:
+            return {"ok": False, "error": "Die Vorschläge sind nicht mehr aktuell – bitte das Plugin erneut ausführen."}
+        chosen = [pend["items"][i] for i in ids if isinstance(i, int) and 0 <= i < len(pend["items"])]
+        self._pending = None
+        if not chosen:
+            return {"ok": True, "count": 0, "message": "Nichts übernommen."}
+        with self.lock:
+            files = list({id(p["file"]): p["file"] for p in chosen}.values())
+            name = self.plugins.get(pend["plugin"]).name if pend["plugin"] in self.plugins.plugins else pend["plugin"]
+            self.undo.checkpoint(f"{name}: {len(chosen)} Änderung(en)", files)
+            n = 0
+            for p in chosen:
+                if p["kind"] == "cover":
+                    if p["data"]:
+                        tagger.set_cover([p["file"]], p["data"])
+                        n += 1
+                elif core.apply_value(p["file"], p["key"], p["new"]):
+                    n += 1
+            self.undo.commit()
+        return {"ok": True, "count": n, "files": len(files), "unsaved": self.unsaved(),
+                "message": f"{n} Änderung(en) in {len(files)} Datei(en) übernommen – noch nicht gespeichert."}
 
     def start_plugin_install(self, pid, variant=None):
         try:

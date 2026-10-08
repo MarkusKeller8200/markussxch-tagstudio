@@ -70,7 +70,8 @@ beide lassen sich abwechselnd verwenden.
   (z. B. `TXXX:Energy`) werden erkannt und beim Ändern vereinheitlicht. Im Export als eigene Spalten.
 - **Plugins** (Seitenleiste): Erweiterungen ein-/ausschalten, fehlende Python-Pakete per Knopf installieren;
   Aktionen erscheinen im Tagger unter „Plugins“. Eingebaut ist **Stems** (Titel in Gesang, Schlagzeug, Bass,
-  Instrumental … trennen, mit audio-separator). Eigene Plugins in `~/TagStudio/Plugins` – Anleitung in
+  Instrumental … trennen, mit audio-separator) und **Beatport (inoffiziell)** (BPM, Tonart, Genre, Label,
+  Katalognummer, ISRC, Cover mit eigenem Beatport-Login, Vorschau mit Häkchen). Eigene Plugins in `~/TagStudio/Plugins` – Anleitung in
   [PLUGINS.md](PLUGINS.md).
 - **Tag-Fixer** (Seitenleiste): Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare,
   alle Dateien, Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte),
