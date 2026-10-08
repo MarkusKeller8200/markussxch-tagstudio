@@ -319,10 +319,43 @@ def check_paths(lp: str, rp: str) -> str | None:
     return None
 
 
-def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None):
+def _open(path, registry):
+    """MP3File öffnen – mit Register werden bereits geladene Objekte wiederverwendet (und frisch gelesen),
+    damit Vergleich und Tagger dieselben Objekte nutzen."""
+    if registry is None:
+        return MP3File(path)
+    k = os.path.normcase(os.path.abspath(path))
+    f = registry.get(k)
+    if f is not None:
+        f.load()
+        return f
+    f = MP3File(path)
+    registry[k] = f
+    return f
+
+
+def load_files(path, recursive, cancel=None, progress=None, registry=None):
+    """Ordner/Datei für den Tagger einlesen → (files, errors). progress wie bei load_pairs."""
+    progress = progress or (lambda m: None)
+    paths = scan(path, recursive, cancel, lambda n: progress(("count", n)))
+    progress(("total", len(paths)))
+    files, errors = [], []
+    for i, p in enumerate(paths, 1):
+        if cancel is not None and cancel.is_set():
+            raise Cancelled()
+        try:
+            files.append(_open(p, registry))
+        except Exception as ex:  # noqa: BLE001
+            errors.append(f"{os.path.basename(p)}: {ex}")
+        progress(("progress", i, len(paths), p))
+    return files, errors
+
+
+def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=None):
     """Ordner/Dateien einlesen und zuordnen → (pairs, errors).
     progress(msg): ("count", n) beim Zählen, ("total", n), ("progress", i, total, pfad).
-    Wirft Cancelled, wenn cancel (threading.Event) gesetzt wird."""
+    Wirft Cancelled, wenn cancel (threading.Event) gesetzt wird.
+    registry (dict, optional): gemeinsames Dateiregister, siehe _open()."""
     progress = progress or (lambda m: None)
     found = [0, 0]
 
@@ -340,7 +373,7 @@ def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None):
         if cancel is not None and cancel.is_set():
             raise Cancelled()
         try:
-            loaded[side].append(MP3File(p))
+            loaded[side].append(_open(p, registry))
         except Exception as ex:  # noqa: BLE001
             errors.append(f"{os.path.basename(p)}: {ex}")
         progress(("progress", i, total, p))

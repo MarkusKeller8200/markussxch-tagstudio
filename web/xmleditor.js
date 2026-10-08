@@ -7,13 +7,15 @@ const XE = { side: null, key: null, editable: false, original: "", text: "", dec
 const xmlDeclOf = (s) => (s.match(/^\s*(<\?xml\b[^>]*\?>)/) || [, ""])[1];
 
 // ---------------------------------------------------------------------- öffnen / schließen
-async function openXml(side, key) {
-  const r = await call("get_xml", side, key);
+/** opts.tag: Index einer Tagger-Datei (sonst Seite L/R im Vergleich) */
+async function openXml(side, key, opts = {}) {
+  const tag = opts.tag ?? null;
+  const r = tag !== null ? await call("tag_xml", tag, key) : await call("get_xml", side, key);
   if (!r.ok) { toast(r.error); return; }
-  Object.assign(XE, { side, key, editable: r.editable, original: r.text, text: r.text, decl: xmlDeclOf(r.text),
+  Object.assign(XE, { side, key, tag, editable: r.editable, original: r.text, text: r.text, decl: xmlDeclOf(r.text),
     dirty: false, err: null, valid: true });
   $("#xmlTitle").textContent = `XML-Editor – ${r.label}`;
-  $("#xmlSub").textContent = `${r.file} · ${side === "L" ? "links" : "rechts"}${r.editable ? "" : " · nur ansehen (Binärfeld)"}`;
+  $("#xmlSub").textContent = `${r.file}${tag !== null ? "" : side === "L" ? " · links" : " · rechts"}${r.editable ? "" : " · nur ansehen (Binärfeld)"}`;
   $("#xmlOk").textContent = r.editable ? "Übernehmen" : "Schließen";
   $("#xmlCancel").hidden = !r.editable;
   $("#xmlFormat").disabled = $("#xmlCompact").disabled = !r.editable;
@@ -32,14 +34,15 @@ async function closeXml(commit) {
         buttons: [{ label: "Zurück", value: null, primary: true }, { label: "Trotzdem übernehmen", value: true }] });
       if (!go) return;
     }
-    applyState(await call("set_value", XE.side, XE.key, XE.text));
+    if (XE.tag !== null) taggerApplyDetail(await call("tag_set", [XE.tag], XE.key, XE.text));
+    else applyState(await call("set_value", XE.side, XE.key, XE.text));
   } else if (!commit && XE.text !== XE.original) {
     const go = await dialog({ title: "Änderungen verwerfen?", text: "Die Änderungen im XML-Editor gehen verloren.",
       buttons: [{ label: "Weiter bearbeiten", value: null }, { label: "Verwerfen", value: true, primary: true }] });
     if (!go) return;
   }
   $("#xmlEd").hidden = true;
-  $("#table").focus();
+  (XE.tag !== null ? $("#tgTable") : $("#table")).focus();
 }
 
 function setXmlTab(tab) {

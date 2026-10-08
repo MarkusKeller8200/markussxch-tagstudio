@@ -46,8 +46,26 @@ beide lassen sich abwechselnd verwenden.
   mit ←/→ auf dem Griff). Die Seitenleiste lässt sich einklappen (Knopf unten, Doppelklick auf den Splitter oder
   ganz schmal ziehen). In der Tabelle verschiebt der Griff zwischen den Wertespalten die Aufteilung links/rechts,
   der Griff rechts neben „Feld“ die Breite der Feldspalte. Doppelklick setzt jeweils zurück. Alles wird gemerkt.
-- **Folgt:** Tagger, Tag-Fixer, Sicherungen wiederherstellen, Sammelkopie, Felder hinzufügen, Cover ersetzen –
-  bis dahin in der klassischen Oberfläche.
+- **Tagger** (Seitenleiste): Ordner oder Datei einlesen, Liste mit Titel/Künstler/Album/Spur/Jahr/Genre (sortierbar
+  per Klick auf die Spalte, filterbar). Eine oder mehrere Dateien markieren (Klick, Shift, Strg/Cmd, Strg/Cmd+A) und
+  rechts gemeinsam bearbeiten – Felder mit „‹verschieden›“ bleiben unverändert, bis du etwas einträgst. Cover für die
+  Auswahl setzen/entfernen, ID3-Version wählen, weitere Felder (einzelne Datei) bearbeiten/entfernen, XML-Editor.
+  Werkzeuge mit Vorschau: **Tags aus Dateiname** (Muster z. B. `%track% - %artist% - %title%`, `%dummy%` überspringt),
+  **Dateien umbenennen** (aus Tags, ungültige Zeichen → `_`, Kollisionen werden erkannt; sofort, nicht über
+  „Speichern“), **Spurnummern** (in Listenreihenfolge, optional mit Gesamtzahl). Vergleich und Tagger arbeiten mit
+  denselben Dateien – Änderungen sind in beiden sichtbar und werden zusammen gespeichert.
+- **Tag-Fixer** (Seitenleiste): Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare,
+  alle Dateien, Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte),
+  laufende Vorschau.
+- **Sicherungen** (Seitenleiste): alle Sicherungen, Dateien mit Status (wiederherstellbar/gleich/fehlt/Audio geändert),
+  markierte oder alle wiederherstellen (vorher wird der aktuelle Stand selbst gesichert), Sicherung löschen,
+  automatische Sicherung ein/aus, Ordner ändern/öffnen.
+- **Sammelkopie:** In der Paarliste mehrere Paare mit Strg/Cmd- oder Shift-Klick markieren → „◀ Sammelkopie“ /
+  „Sammelkopie ▶“ → Felder wählen.
+- **Feld hinzufügen:** Knopf „+ Feld“ über der Tabelle oder Kontextmenü.
+- **Bilder:** Rechtsklick auf ein Cover (oder die Bild-Zeile): anzeigen, ersetzen, exportieren, entfernen;
+  Klick auf den leeren Cover-Platz fügt ein Cover hinzu. (Dateidialoge gibt es im App-Fenster; im Browser-Modus nur
+  unter Windows/Linux.)
 - **Tastatur:** Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte
   kopieren · Strg/Cmd+A alle Felder markieren · F5 neu einlesen · ↑/↓ in Paarliste und Tabelle.
 
@@ -204,6 +222,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `session.py` – Zustand und Befehle einer Sitzung für die neue Oberfläche
 - `undo.py` – Rückgängig/Wiederholen
 - `xmltools.py` – XML in Feldern erkennen, prüfen, formatieren/kompakt schreiben
+- `tagger.py` – Tagger-Logik: gemeinsame Felder, Tags aus Dateiname, Umbenennen, Spurnummern, Cover
 - `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)

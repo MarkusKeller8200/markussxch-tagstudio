@@ -41,6 +41,7 @@ const ICON = {
 const S = {
   settings: null, opts: {}, pairs: [], counts: {}, visible: [], cur: null,
   chip: "all", advKeys: null, view: null, meta: {}, sel: new Set(), anchor: null, module: "compare",
+  pairSel: new Set(), pairAnchor: null,
 };
 
 // ====================================================================== Meldungen & Dialoge
@@ -122,7 +123,7 @@ async function runTask(startPromise, title) {
 
 
 // ====================================================================== Splitter & Layout
-const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5 };
+const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5, tg_edit_w: 430 };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 let uiSaveTimers = {};
 function saveUi(key) {
@@ -134,6 +135,7 @@ function applyLayout() {
   const root = document.documentElement.style, side = $(".side"), table = $("#table");
   root.setProperty("--side-w", LAYOUT.side_w + "px");
   root.setProperty("--pairs-w", LAYOUT.pairs_w + "px");
+  root.setProperty("--tg-edit-w", LAYOUT.tg_edit_w + "px");
   side.classList.toggle("collapsed", !!LAYOUT.side_collapsed);
   const cb = $("#collapseBtn");
   const lbl = LAYOUT.side_collapsed ? "Seitenleiste ausklappen" : "Seitenleiste einklappen";
@@ -418,7 +420,7 @@ function drawPairWindow() {
     const p = S.pairs[S.visible[k]];
     const name = p.left || p.right;
     const other = p.left && p.right && p.left !== p.right ? ` · ↔ ${p.right}` : "";
-    html += `<button class="pair${p.i === S.cur ? " cur" : ""}" style="top:${k * ROW_H}px" data-i="${p.i}" title="${esc(p.left)}${p.right && p.right !== p.left ? "\n↔ " + esc(p.right) : ""}">
+    html += `<button class="pair${p.i === S.cur ? " cur" : ""}${S.pairSel.has(p.i) ? " msel" : ""}" style="top:${k * ROW_H}px" data-i="${p.i}" title="${esc(p.left)}${p.right && p.right !== p.left ? "\n↔ " + esc(p.right) : ""}">
       <span class="d d-${p.tag}"></span><span class="t"><span class="n">${esc(name)}</span><span class="s">${esc(p.info + other)}</span></span>${p.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</button>`;
   }
   inner.innerHTML = html;
@@ -504,7 +506,7 @@ function renderHead(el, h, side) {
   if (!h) { el.innerHTML = '<div class="head-missing">— keine Datei —</div>'; return; }
   const covers = h.covers.length
     ? `<div class="covers">${h.covers.slice(0, 2).map((c) => `<button class="cover${c.differs ? " diff" : ""}" data-cover="${side}|${esc(c.key)}" title="${esc(c.label + " · " + c.desc + (c.differs ? " · unterscheidet sich" : ""))}" aria-label="${esc(c.label)} anzeigen">${c.src ? `<img src="${c.src}" alt="">` : ICON.image}</button>`).join("")}</div>`
-    : S.opts.show_covers ? `<div class="covers"><div class="cover" title="kein Cover">${ICON.note}</div></div>` : "";
+    : S.opts.show_covers ? `<div class="covers"><button class="cover add" data-addcover="${side}" title="Kein Cover – klicken zum Hinzufügen" aria-label="Cover hinzufügen">${ICON.note}</button></div>` : "";
   // Datum/Größe nur im Tooltip; als Etiketten: ID3-Version, Dauer, Bitrate, Abtastrate, Kanäle
   const parts = h.info.split(/\s{2,}/).filter(Boolean).slice(2);
   el.innerHTML = `${covers}<div class="head-t"><div class="head-n" title="${esc(h.path + "\n" + h.info.split(/\s{2,}/).join(" · "))}">${esc(h.name)}${h.modified ? '<span class="m" title="ungespeicherte Änderungen"></span>' : ""}</div>
@@ -639,6 +641,7 @@ async function save(fromConfirm = false) {
   if (!res) return false;
   await loadPairs();
   applyState(await call("state"));
+  if (typeof taggerRefresh === "function") await taggerRefresh();
   const b = res.backup ? ` · Sicherung: ${res.backup.split(/[\\/]/).pop()}` : "";
   if (res.errors.length) {
     status(`${res.saved} gespeichert, ${res.errors.length} Fehler.${b}`, "warn");
@@ -705,12 +708,17 @@ function rowMenu(e, tr) {
     items.push("-");
     items.push({ label: "Wert kopieren", icon: ICON.copy, run: () => navigator.clipboard?.writeText(cell.text).then(() => toast("Wert kopiert.")) });
     cell.links.forEach(([, , u]) => items.push({ label: `Link öffnen: ${u.length > 40 ? u.slice(0, 40) + "…" : u}`, icon: ICON.link, run: () => call("open_url", u) }));
-    if (r.key.startsWith("APIC")) items.push({ label: "Bild anzeigen", icon: ICON.image, run: () => openCover(side, r.key) });
+    if (r.key.startsWith("APIC")) {
+      items.push({ label: "Bild anzeigen", icon: ICON.image, run: () => openCover(side, r.key) });
+      items.push({ label: "Bild ersetzen …", icon: ICON.edit, run: () => coverReplace(side, r.key) });
+      items.push({ label: "Bild exportieren …", icon: ICON.copy, run: () => coverExport(side, r.key) });
+    }
     const h = side === "L" ? S.view.left : S.view.right;
     if (h) items.push({ label: IS_MAC ? "Im Finder zeigen" : "Im Explorer zeigen", icon: ICON.folder, run: () => call("reveal", h.path) });
   }
+  items.push("-");
+  items.push({ label: "Feld hinzufügen …", icon: ICON.edit, run: () => addFieldCompare(side) });
   if (S.meta.unsaved && (S.view.left?.modified || S.view.right?.modified)) {
-    items.push("-");
     items.push({ label: "Änderungen an diesem Paar verwerfen", icon: ICON.trash, run: async () => applyState(await call("revert_pair")) });
   }
   showMenu(e.clientX, e.clientY, items);
@@ -746,7 +754,25 @@ function bind() {
 
   // Paarliste
   $("#pairsScroll").addEventListener("scroll", () => requestAnimationFrame(drawPairWindow));
-  $("#pairsInner").addEventListener("click", (e) => { const b = e.target.closest(".pair"); if (b) selectPair(+b.dataset.i); });
+  $("#pairsInner").addEventListener("click", (e) => {
+    const b = e.target.closest(".pair");
+    if (!b) return;
+    const i = +b.dataset.i;
+    if (e.ctrlKey || e.metaKey) {           // Mehrfachauswahl für Sammelkopie / Tag-Fixer
+      if (!S.pairSel.size && S.cur !== null) S.pairSel.add(S.cur);
+      S.pairSel.has(i) ? S.pairSel.delete(i) : S.pairSel.add(i);
+      S.pairAnchor = i;
+    } else if (e.shiftKey && (S.pairAnchor ?? S.cur) !== null) {
+      const a = S.visible.indexOf(S.pairAnchor ?? S.cur), z = S.visible.indexOf(i);
+      S.pairSel = new Set(S.visible.slice(Math.min(a, z), Math.max(a, z) + 1));
+    } else {
+      S.pairSel.clear();
+      S.pairAnchor = i;
+      selectPair(i);
+    }
+    renderBulkBar();
+    drawPairWindow();
+  });
   $("#pairsScroll").addEventListener("keydown", (e) => {
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
     e.preventDefault();
@@ -814,8 +840,8 @@ function bind() {
   document.addEventListener("click", (e) => { if (!e.target.closest("#menu")) hideMenu(); });
 
   // Aktionsleiste
-  $("#undoBtn").addEventListener("click", async () => applyState(await call("undo")));
-  $("#redoBtn").addEventListener("click", async () => applyState(await call("redo")));
+  $("#undoBtn").addEventListener("click", () => undoRedo(false));
+  $("#redoBtn").addEventListener("click", () => undoRedo(true));
   $("#saveBtn").addEventListener("click", () => save());
 
   // Tastatur
@@ -825,8 +851,9 @@ function bind() {
     if (e.key === "Escape") { hideMenu(); $("#coverView").hidden = true; }
     if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); save(); return; }
     if (inField) return;
-    if (mod && e.key.toLowerCase() === "z" && !e.shiftKey) { e.preventDefault(); applyState(await call("undo")); }
-    else if (mod && (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey))) { e.preventDefault(); applyState(await call("redo")); }
+    if (mod && e.key.toLowerCase() === "z" && !e.shiftKey) { e.preventDefault(); undoRedo(false); }
+    else if (mod && (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey))) { e.preventDefault(); undoRedo(true); }
+    else if (S.module !== "compare") { if (e.key === "F5") { e.preventDefault(); if (S.module === "tagger") taggerLoad(); } }
     else if (mod && e.key.toLowerCase() === "a" && S.view) { e.preventDefault(); S.sel = new Set(rowKeys()); paintSelection(); }
     else if (e.altKey && e.key === "ArrowRight") { e.preventDefault(); copyKeys(selectedKeys(), "lr"); }
     else if (e.altKey && e.key === "ArrowLeft") { e.preventDefault(); copyKeys(selectedKeys(), "rl"); }
@@ -847,17 +874,27 @@ function bind() {
 }
 
 const MODULES = {
-  tagger: ["Tagger", "Der Tagger kommt als Nächstes in die neue Oberfläche. Bis dahin: Einzelne Dateien lassen sich im Vergleich bearbeiten, wenn nur eine Seite gewählt ist."],
-  fixer: ["Tag-Fixer", "Der Tag-Fixer für Mehrfachwerte folgt in der neuen Oberfläche. Bis dahin ist er in der klassischen Oberfläche (start_windows.bat / start_mac.command) verfügbar."],
-  backups: ["Sicherungen", "Vor jedem Speichern werden die bisherigen Tags automatisch gesichert. Wiederherstellen geht vorerst in der klassischen Oberfläche über „⟲ Sicherungen“."],
-  db: ["Datenbank", "Das Datenbank-Modul ist geplant."],
+  db: ["Datenbank", "Das Datenbank-Modul ist geplant: die ganze Bibliothek durchsuchen, Statistiken, Duplikate finden."],
 };
-function setModule(m) {
+async function undoRedo(redo) {
+  const st = await call(redo ? "redo" : "undo");
+  if (S.pairs.length) await loadPairs();
+  applyState(st);
+  if (typeof taggerRefresh === "function") await taggerRefresh();
+  if (S.module === "fixer") fixerPreview();
+}
+
+const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups" };
+function setModule(m, opts = {}) {
   S.module = m;
   $$(".nav[data-module]").forEach((b) => { b.classList.toggle("active", b.dataset.module === m); b.toggleAttribute("aria-current", b.dataset.module === m); });
-  $("#moduleCompare").hidden = m !== "compare";
-  $("#modulePlaceholder").hidden = m === "compare";
-  if (m !== "compare") { $("#phTitle").textContent = MODULES[m][0]; $("#phText").textContent = MODULES[m][1]; }
+  for (const [k, id] of Object.entries(MODULE_IDS)) $("#" + id).hidden = k !== m;
+  $("#srcCompare").hidden = m !== "compare";
+  $("#modulePlaceholder").hidden = m in MODULE_IDS;
+  if (!(m in MODULE_IDS)) { $("#phTitle").textContent = MODULES[m][0]; $("#phText").textContent = MODULES[m][1]; }
+  if (m === "fixer") fixerShow(opts.scope);
+  if (m === "backups") backupsShow();
+  if (m === "tagger" && typeof taggerShow === "function") taggerShow();
 }
 
 init().catch((e) => { console.error(e); info("Start fehlgeschlagen", String(e && e.message ? e.message : e)); });

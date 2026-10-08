@@ -52,6 +52,9 @@ def build(root):
         left = [text("TIT2", t), text("TPE1", "Mara Lind"), text("TRCK", str(i)), text("TCON", "Synthpop"),
                 txxx("Acoustid Id", f"a41f-{i:04d}"), apic(violet),
                 comm("", "Mehr unter https://example.org/nachtfahrt")] + base
+        if i == 5:  # gemischte Trenner für den Tag-Fixer
+            left[3] = text("TCON", "Synthpop; Electro / Pop")
+            left[1] = text("TPE1", "Mara Lind feat. Oskar Vey")
         left.append(txxx("Analyse", xml_meta(118, "8A", 4)))
         left.append(geob_xml("Cue-Punkte", '<cues><cue pos="12.5" name="Drop"/><cue pos="64.0" name="Break"/></cues>'))
         right = list(left)

@@ -10,16 +10,21 @@ import base64
 import os
 import threading
 
+import time
+
+import backup
 import core
+import tagger
 import xmltools
-from compare import PAIR_MODES, Rules, DEFAULT_TRIVIAL, Cancelled, diff, copy_tags, all_keys
-from id3tags import key_label
+from compare import (PAIR_MODES, Rules, DEFAULT_TRIVIAL, Cancelled, diff, copy_tags, all_keys, MULTI_FIELDS,
+                     INPUT_SEPARATORS, plan_multi_fix)
+from id3tags import key_label, sort_key, TEXT_LABELS, STANDARD_KEYS, MV, MV_SHOW, Cover, Item
 from undo import UndoStack
 
 VERSION = "3.0"
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
-           "col_name": (int, float), "col_ratio": (int, float)}
+           "col_name": (int, float), "col_ratio": (int, float), "tg_edit_w": (int, float)}
 
 
 class Session:
@@ -31,6 +36,9 @@ class Session:
         triv += [p for p in DEFAULT_TRIVIAL if p not in known and p not in triv]
         self.rules = Rules(triv)
         self.pairs: list = []
+        self.reg: dict = {}          # gemeinsames Dateiregister (Vergleich + Tagger): Pfad → MP3File
+        self.tag_files: list = []    # Tagger
+        self.tag_root = ""
         self.cur: int | None = None
         self.left_root = self.right_root = ""
         self.undo = UndoStack()
@@ -121,8 +129,12 @@ class Session:
         return {"ok": True}
 
     # ================================================================== Laden
+    def modified(self) -> list:
+        """Alle geänderten Dateien – aus Vergleich und Tagger."""
+        return [f for f in self.reg.values() if f.is_modified()]
+
     def unsaved(self) -> int:
-        return len(core.modified_files(self.pairs))
+        return len(self.modified())
 
     def start_load(self, lp: str, rp: str, recursive: bool, mode: str, keep_current: bool = False):
         lp, rp = (lp or "").strip(), (rp or "").strip()
@@ -134,7 +146,7 @@ class Session:
         keep = self.cur if keep_current else None
 
         def job(cancel, progress):
-            pairs, errors = core.load_pairs(lp, rp, recursive, mode, cancel, progress)
+            pairs, errors = core.load_pairs(lp, rp, recursive, mode, cancel, progress, self.reg)
             with self.lock:
                 self.undo.clear()
                 self.pairs = pairs
@@ -371,7 +383,7 @@ class Session:
     def discard_all(self):
         """Alle ungespeicherten Änderungen verwerfen (z. B. vor einem Update)."""
         with self.lock:
-            for f in core.modified_files(self.pairs):
+            for f in self.modified():
                 f.revert()
             self.undo.clear()
             return self.state("Alle ungespeicherten Änderungen verworfen.")
@@ -388,7 +400,7 @@ class Session:
 
     # ================================================================== Speichern
     def start_save(self):
-        files = core.modified_files(self.pairs)
+        files = self.modified()
         if not files:
             return {"ok": False, "error": "Keine ungespeicherten Änderungen."}
         backup_on = self.cfg.get("backup_enabled", True)
@@ -398,3 +410,450 @@ class Session:
             with self.lock:
                 return core.save_files(files, backup_on, folder, cancel, progress)
         return self._run("save", f"{len(files)} Datei(en) speichern", job)
+
+    # ================================================================== Feld hinzufügen
+    @staticmethod
+    def add_field_choices() -> list:
+        """[[Anzeigename, Frame-ID, braucht Beschreibung]]"""
+        out = [[v, k, False] for k, v in sorted(TEXT_LABELS.items(), key=lambda x: x[1])
+               if k not in ("TYER", "TIME", "TRDA", "TSIZ")]
+        return [["Benutzertext (TXXX)", "TXXX", True], ["Kommentar (COMM)", "COMM", True],
+                ["Benutzer-URL (WXXX)", "WXXX", True], ["Liedtext (USLT)", "USLT", True]] + out
+
+    def _add_to(self, files, fid, desc, value, replace):
+        key = f"{fid}:{(desc or '').strip()}" if fid in ("TXXX", "COMM", "WXXX", "USLT") else fid
+        if not core.normalize_value(value or "").strip():
+            return None, {"ok": False, "error": "Bitte einen Wert eingeben."}
+        exists = [f for f in files if f.get(key) is not None]
+        if exists and not replace:
+            return None, {"ask": {"label": key_label(key), "count": len(exists)}}
+        self.undo.checkpoint(f"„{key_label(key)}“ hinzugefügt", files)
+        for f in files:
+            core.apply_value(f, key, value)
+        return key, None
+
+    def add_field(self, side, fid, desc, value, replace=False):
+        with self.lock:
+            f = self._file(side)
+            if f is None:
+                return {"ok": False, "error": "Auf dieser Seite ist keine Datei."}
+            key, err = self._add_to([f], fid, desc, value, replace)
+            if err:
+                return err
+            st = self._done(f"„{key_label(key)}“ hinzugefügt – noch nicht gespeichert.")
+            st["added"] = key
+            return st
+
+    # ================================================================== Sammelkopie
+    def bulk_keys(self, idx, direction) -> dict:
+        with self.lock:
+            idx = [i for i in idx if 0 <= i < len(self.pairs) and all(self.pairs[i])]
+            keys = set()
+            for i in idx:
+                keys |= set(self.pairs[i][0 if direction == "lr" else 1].items)
+            return {"pairs": len(idx), "keys": [{"key": k, "label": key_label(k), "trivial": self.rules.is_trivial(k),
+                                                 "standard": k in STANDARD_KEYS} for k in sorted(keys, key=sort_key)]}
+
+    def bulk_apply(self, idx, direction, keys, delete_missing=False):
+        with self.lock:
+            idx = [i for i in idx if 0 <= i < len(self.pairs) and all(self.pairs[i])]
+            if not idx or not keys:
+                return self.state("Nichts zu übernehmen.", "warn")
+            self.undo.checkpoint(f"Sammelkopie {len(idx)} Paar(e)", [self.pairs[i][1 if direction == "lr" else 0] for i in idx])
+            n = 0
+            for i in idx:
+                l, r = self.pairs[i]
+                src, dst = (l, r) if direction == "lr" else (r, l)
+                n += copy_tags(src, dst, keys, delete_missing=bool(delete_missing))
+            st = self._done(f"{n} Feld(er) in {len(idx)} Paar(en) übernommen – noch nicht gespeichert.")
+            st["pairs_changed"] = True
+            return st
+
+    # ================================================================== Bilder (Vergleich)
+    @staticmethod
+    def _read_image(path):
+        with open(path, "rb") as fh:
+            data = fh.read()
+        if not (data[:3] == b"\xff\xd8\xff" or data[:8] == b"\x89PNG\r\n\x1a\n" or data[:6] in (b"GIF87a", b"GIF89a")):
+            raise ValueError("Kein JPEG-, PNG- oder GIF-Bild.")
+        return data
+
+    def cover_set_file(self, side, key, path):
+        with self.lock:
+            f = self._file(side)
+            if f is None or not path:
+                return self.state()
+            try:
+                data = self._read_image(path)
+            except (OSError, ValueError) as ex:
+                return self.state(f"Bild nicht geladen: {ex}", "warn")
+            try:
+                ptype = int(key.split(":")[1].split("#")[0])
+            except (IndexError, ValueError):
+                ptype, key = 3, "APIC:3"
+            self.undo.checkpoint("Bild ersetzt" if f.get(key) else "Bild hinzugefügt", [f])
+            f.set(key, Item.new_cover(Cover(data, ptype=ptype)))
+            return self._done("Bild übernommen – noch nicht gespeichert.")
+
+    def cover_remove(self, side, key):
+        return self.remove(side, [key])
+
+    def cover_export(self, side, key, dest):
+        with self.lock:
+            f = self._file(side)
+            it = f.get(key) if f else None
+            if not it or not it.cover or not dest:
+                return {"ok": False, "error": "Kein Bild."}
+            with open(dest, "wb") as fh:
+                fh.write(it.cover.data)
+            return {"ok": True, "path": dest}
+
+    def cover_default_name(self, side, key):
+        f = self._file(side)
+        it = f.get(key) if f else None
+        if not it or not it.cover:
+            return ""
+        return os.path.splitext(os.path.basename(f.path))[0] + it.cover.ext
+
+    # ================================================================== Tag-Fixer
+    def fixer_settings(self) -> dict:
+        fc = self.cfg.get("fixer", {})
+        return {"fields": [[k, key_label(k)] for k in MULTI_FIELDS],
+                "separators": [[label, sep, active] for label, sep, active in INPUT_SEPARATORS],
+                "saved": {"fields": fc.get("fields", MULTI_FIELDS), "all_text": fc.get("all_text", False),
+                          "seps": fc.get("seps", [s for _, s, a in INPUT_SEPARATORS if a]),
+                          "mode": fc.get("mode", "sep"), "sep": fc.get("sep", ", "),
+                          "upgrade": fc.get("upgrade", True), "dedupe": fc.get("dedupe", True)},
+                "counts": {"pair": sum(1 for f in self.files() if f), "all": sum(1 for p in self.pairs for f in p if f),
+                           "tag_all": len(self.tag_files)}}
+
+    def _fixer_files(self, o):
+        sc = o.get("scope", "pair")
+        if sc in ("pair", "L", "R"):
+            l, r = self.files()
+            return [f for f, s in ((l, "L"), (r, "R")) if f and (sc == "pair" or sc == s)]
+        if sc in ("sel", "all"):
+            idx = (o.get("pairs") or []) if sc == "sel" else range(len(self.pairs))
+            return [f for i in idx if 0 <= i < len(self.pairs) for f in self.pairs[i] if f]
+        if sc in ("tag_sel", "tag_all"):
+            idx = (o.get("tag_idx") or []) if sc == "tag_sel" else range(len(self.tag_files))
+            return [self.tag_files[i] for i in idx if 0 <= i < len(self.tag_files)]
+        return []
+
+    def _fixer_plan(self, o):
+        out = MV if o.get("mode") == "v24" else (o.get("sep") or ", ")
+        return plan_multi_fix(self._fixer_files(o), o.get("fields", []), o.get("seps", []), out,
+                              bool(o.get("dedupe", True)), bool(o.get("all_text")), bool(o.get("upgrade", True)))
+
+    def fixer_preview(self, o) -> dict:
+        with self.lock:
+            plan = self._fixer_plan(o)
+            rows = [{"file": os.path.basename(f.path), "key": k, "label": key_label(k),
+                     "old": old.replace(MV, MV_SHOW), "new": new.replace(MV, MV_SHOW)} for f, k, old, new in plan[:3000]]
+            return {"rows": rows, "count": len(plan), "files": len({id(f) for f, *_ in plan}),
+                    "scope_files": len(self._fixer_files(o))}
+
+    def fixer_apply(self, o):
+        with self.lock:
+            plan = self._fixer_plan(o)
+            if not plan:
+                return self.state("Tag-Fixer: nichts zu ändern.", "ok")
+            to_v24 = o.get("mode") == "v24" and o.get("upgrade", True)
+            self.undo.checkpoint(f"Tag-Fixer ({len(plan)} Felder)", [f for f, *_ in plan])
+            for f, k, _old, new in plan:
+                if to_v24 and f.version != 4:
+                    f.set_version(4)
+                f.set_text(k, new)
+            keep = {k: o.get(k) for k in ("fields", "all_text", "seps", "mode", "sep", "upgrade", "dedupe")}
+            self.cfg["fixer"] = keep
+            core.save_config({"fixer": keep})
+            st = self._done(f"Tag-Fixer: {len(plan)} Feld(er) angepasst – noch nicht gespeichert.")
+            st["pairs_changed"] = True
+            return st
+
+    # ================================================================== Sicherungen
+    def _backup_folder(self):
+        return self.cfg.get("backup_dir") or backup.default_dir()
+
+    def backups(self) -> dict:
+        folder = self._backup_folder()
+        items = backup.list_backups(folder)
+        return {"enabled": self.cfg.get("backup_enabled", True), "folder": folder,
+                "total": sum(b["bytes"] for b in items),
+                "list": [{"path": b["path"], "name": b["name"], "label": b["label"], "count": b["count"],
+                          "bytes": b["bytes"], "broken": bool(b.get("broken")),
+                          "created": time.strftime("%d.%m.%Y %H:%M:%S", time.localtime(b["created"]))} for b in items]}
+
+    def set_backup(self, enabled=None, folder=None):
+        if enabled is not None:
+            self.cfg["backup_enabled"] = bool(enabled)
+            core.save_config({"backup_enabled": bool(enabled)})
+        if folder:
+            self.cfg["backup_dir"] = os.path.normpath(folder)
+            core.save_config({"backup_dir": self.cfg["backup_dir"]})
+        return self.backups()
+
+    def _backup_entry(self, path):
+        folder = os.path.normcase(os.path.abspath(self._backup_folder()))
+        p = os.path.normcase(os.path.abspath(path))
+        if os.path.dirname(p) != folder or not p.endswith(".zip"):
+            raise ValueError("Diese Sicherung liegt nicht im Sicherungsordner.")
+        for b in backup.list_backups(self._backup_folder()):
+            if os.path.normcase(os.path.abspath(b["path"])) == p:
+                return b
+        raise ValueError("Sicherung nicht gefunden.")
+
+    def start_backup_check(self, path):
+        try:
+            b = self._backup_entry(path)
+        except ValueError as ex:
+            return {"ok": False, "error": str(ex)}
+
+        def job(cancel, progress):
+            progress(("total", len(b["files"])))
+            out = []
+            for i, e in enumerate(b["files"], 1):
+                if cancel.is_set():
+                    raise Cancelled()
+                code, txt = backup.check_entry(e)
+                out.append({"id": e["id"], "name": e.get("name") or os.path.basename(e["path"]),
+                            "dir": os.path.dirname(e["path"]), "code": code, "text": txt,
+                            "loaded_modified": bool(self.reg.get(os.path.normcase(os.path.abspath(e["path"])))
+                                                    and self.reg[os.path.normcase(os.path.abspath(e["path"]))].is_modified())})
+                progress(("progress", i, len(b["files"]), e["path"]))
+            return {"files": out, "name": b["name"]}
+        return self._run("check", "Sicherung prüfen", job)
+
+    def start_restore(self, path, ids=None, force_audio=False):
+        try:
+            b = self._backup_entry(path)
+        except ValueError as ex:
+            return {"ok": False, "error": str(ex)}
+
+        def job(cancel, progress):
+            res = backup.restore(b["path"], ids, self._backup_folder(), bool(force_audio),
+                                 on_progress=lambda i, n, p: progress(("progress", i, n, p)), cancel=cancel)
+            ok = {os.path.normcase(os.path.abspath(p)) for p, code, _ in res if code == "restored"}
+            with self.lock:
+                for k in ok:
+                    if k in self.reg:
+                        self.reg[k].load()
+                if ok:
+                    self.undo.clear()
+            return {"restored": len(ok), "skipped": [{"name": os.path.basename(p), "text": t}
+                                                     for p, code, t in res if code != "restored"]}
+        return self._run("restore", "Wiederherstellen", job)
+
+    def delete_backup(self, path):
+        try:
+            b = self._backup_entry(path)
+            os.remove(b["path"])
+        except (ValueError, OSError) as ex:
+            return {"ok": False, "error": str(ex)}
+        return {"ok": True, "backups": self.backups()}
+
+    # ================================================================== Tagger
+    def start_tag_load(self, path, recursive=False):
+        path = (path or "").strip()
+        if not path or not os.path.exists(path):
+            return {"ok": False, "error": "Bitte einen vorhandenen Ordner oder eine MP3-Datei wählen."}
+
+        def job(cancel, progress):
+            files, errors = core.load_files(path, bool(recursive), cancel, progress, self.reg)
+            with self.lock:
+                self.tag_files = files
+                self.tag_root = path if os.path.isdir(path) else os.path.dirname(path)
+            self.cfg["hist_tagger"] = core.history(self.cfg, "hist_tagger", path)
+            core.save_config({"hist_tagger": self.cfg["hist_tagger"], "tagger_recursive": bool(recursive)})
+            return {"files": len(files), "errors": errors}
+        return self._run("tagload", "Dateien einlesen", job)
+
+    def tagger_settings(self):
+        return {"hist": self.cfg.get("hist_tagger", []), "recursive": self.cfg.get("tagger_recursive", False),
+                "fields": [[k, label, ph] for k, label, ph in tagger.FIELDS],
+                "patterns": self.cfg.get("tagger_patterns", {"from": "%track% - %artist% - %title%",
+                                                             "rename": "%track% - %artist% - %title%"})}
+
+    def _tag_row(self, i, f):
+        return {"i": i, "name": os.path.basename(f.path), "rel": core.rel_name(f, self.tag_root),
+                "modified": f.is_modified(), "cover": f.get("APIC:3") is not None, "version": f.version,
+                **{key: tagger.text_of(f, key) for key, _l, _p in tagger.FIELDS}}
+
+    def tag_rows(self) -> dict:
+        with self.lock:
+            return {"root": self.tag_root, "rows": [self._tag_row(i, f) for i, f in enumerate(self.tag_files)]}
+
+    def _tsel(self, idx):
+        return [self.tag_files[i] for i in idx if isinstance(i, int) and 0 <= i < len(self.tag_files)]
+
+    def tag_detail(self, idx) -> dict:
+        with self.lock:
+            files = self._tsel(idx)
+            out = {"count": len(files), "meta": self.meta(), "rows": [self._tag_row(i, self.tag_files[i])
+                                                                   for i in idx if 0 <= i < len(self.tag_files)]}
+            if not files:
+                return out
+            out["common"] = tagger.common_values(files)
+            cs = tagger.cover_summary(files)
+            if cs.get("data") is not None:
+                cs["src"] = f"data:{cs['mime']};base64,{base64.b64encode(cs.pop('data')).decode('ascii')}" \
+                    if len(cs["data"]) <= 4_000_000 else ""
+            out["cover"] = cs
+            vers = {f.version for f in files}
+            out["version"] = vers.pop() if len(vers) == 1 else None
+            if len(files) == 1:
+                f = files[0]
+                out["file"] = {"name": os.path.basename(f.path), "path": f.path, "info": f.info()}
+                std = {k for k, _l, _p in tagger.FIELDS}
+                fields = []
+                for k in sorted(f.items, key=sort_key):
+                    if k in std:
+                        continue
+                    it = f.get(k)
+                    xml = xmltools.xml_of_item(it)
+                    fields.append({"key": k, "label": key_label(k), "text": core.disp(it),
+                                   "editable": core.can_edit_text(f, k) and xml is None and "\n" not in it.text,
+                                   "xml": None if xml is None else ("edit" if xml[1] else "view"),
+                                   "mod": f.field_modified(k), "edit": core.edit_text(it) if it.kind != "picture" and xml is None else ""})
+                out["fields"] = fields
+            return out
+
+    def tag_set(self, idx, key, value):
+        with self.lock:
+            files = self._tsel(idx)
+            if not files:
+                return self.tag_detail(idx)
+            self.undo.checkpoint(f"„{key_label(key)}“ in {len(files)} Datei(en)", files)
+            n = tagger.set_field(files, key, value)
+            self.undo.commit()
+            d = self.tag_detail(idx)
+            d["message"] = f"„{key_label(key)}“ in {n} Datei(en) geändert – noch nicht gespeichert." if n else None
+            return d
+
+    def tag_remove(self, idx, keys):
+        with self.lock:
+            files = self._tsel(idx)
+            self.undo.checkpoint(f"{len(keys)} Feld(er) entfernt", files)
+            for f in files:
+                for k in keys:
+                    f.set(k, None)
+            self.undo.commit()
+            return self.tag_detail(idx)
+
+    def tag_add_field(self, idx, fid, desc, value, replace=False):
+        with self.lock:
+            files = self._tsel(idx)
+            if not files:
+                return {"ok": False, "error": "Keine Datei gewählt."}
+            key, err = self._add_to(files, fid, desc, value, replace)
+            if err:
+                return err
+            self.undo.commit()
+            d = self.tag_detail(idx)
+            d["message"] = f"„{key_label(key)}“ hinzugefügt – noch nicht gespeichert."
+            return d
+
+    def tag_cover(self, idx, path=None, remove=False):
+        with self.lock:
+            files = self._tsel(idx)
+            data = None
+            if not remove:
+                try:
+                    data = self._read_image(path)
+                except (OSError, ValueError, TypeError) as ex:
+                    d = self.tag_detail(idx)
+                    d["message"] = f"Bild nicht geladen: {ex}"
+                    return d
+            self.undo.checkpoint("Cover entfernt" if remove else "Cover gesetzt", files)
+            n = tagger.set_cover(files, data)
+            self.undo.commit()
+            d = self.tag_detail(idx)
+            d["message"] = f"Cover in {n} Datei(en) {'entfernt' if remove else 'gesetzt'} – noch nicht gespeichert."
+            return d
+
+    def tag_version(self, idx, ver):
+        with self.lock:
+            files = self._tsel(idx)
+            self.undo.checkpoint(f"ID3v2.{ver}", files)
+            for f in files:
+                f.set_version(int(ver))
+            self.undo.commit()
+            return self.tag_detail(idx)
+
+    def _save_pattern(self, which, pattern):
+        pats = dict(self.cfg.get("tagger_patterns", {}))
+        pats[which] = pattern
+        self.cfg["tagger_patterns"] = pats
+        core.save_config({"tagger_patterns": pats})
+
+    def tag_from_filename(self, idx, pattern, apply=False):
+        with self.lock:
+            files = self._tsel(idx)
+            plan = tagger.plan_from_filename(files, pattern)
+            rows = [{"name": os.path.basename(p["file"].path), "match": p["match"],
+                     "changes": [[key_label(k), o, n] for k, o, n in p["changes"]]} for p in plan]
+            if not apply:
+                return {"rows": rows, "matched": sum(1 for p in plan if p["match"]),
+                        "changes": sum(len(p["changes"]) for p in plan)}
+            self._save_pattern("from", pattern)
+            todo = [p for p in plan if p["changes"]]
+            self.undo.checkpoint("Tags aus Dateinamen", [p["file"] for p in todo])
+            for p in todo:
+                for k, _o, n in p["changes"]:
+                    core.apply_value(p["file"], k, n)
+            self.undo.commit()
+            d = self.tag_detail(idx)
+            d["message"] = f"Tags aus {len(todo)} Dateinamen übernommen – noch nicht gespeichert."
+            return d
+
+    def tag_rename(self, idx, pattern, apply=False):
+        with self.lock:
+            files = self._tsel(idx)
+            plan = tagger.plan_rename(files, pattern)
+            rows = [{"old": p["old"], "new": p["new"], "problem": p["problem"]} for p in plan]
+            if not apply:
+                return {"rows": rows, "ok": sum(1 for p in plan if not p["problem"] and p["new"] != p["old"]),
+                        "problems": sum(1 for p in plan if p["problem"])}
+            self._save_pattern("rename", pattern)
+            old_keys = {id(p["file"]): os.path.normcase(os.path.abspath(p["file"].path)) for p in plan}
+            res = tagger.do_rename(plan)
+            for p in plan:  # Register auf neue Pfade umstellen
+                f = p["file"]
+                old = old_keys[id(f)]
+                new = os.path.normcase(os.path.abspath(f.path))
+                if old != new and self.reg.get(old) is f:
+                    del self.reg[old]
+                    self.reg[new] = f
+            d = self.tag_detail(idx)
+            ok = [r for r in res if r["ok"]]
+            bad = [r for r in res if not r["ok"]]
+            d["message"] = f"{len(ok)} Datei(en) umbenannt." + (f" {len(bad)} Fehler." if bad else "")
+            d["errors"] = [f"{r['old']}: {r['error']}" for r in bad]
+            d["renamed"] = True
+            return d
+
+    def tag_number(self, idx, with_total=True, apply=False):
+        with self.lock:
+            files = self._tsel(idx)
+            plan = tagger.plan_numbering(files, bool(with_total))
+            if not apply:
+                return {"rows": [{"name": os.path.basename(f.path), "old": o, "new": n} for f, o, n in plan]}
+            self.undo.checkpoint("Spurnummern vergeben", [f for f, *_ in plan])
+            for f, _o, n in plan:
+                f.set_text("TRCK", n)
+            self.undo.commit()
+            d = self.tag_detail(idx)
+            d["message"] = f"Spurnummern in {len(plan)} Datei(en) gesetzt – noch nicht gespeichert."
+            return d
+
+    def tag_xml(self, i, key):
+        """XML-Inhalt eines Feldes einer Tagger-Datei (für den XML-Editor)."""
+        with self.lock:
+            if not (0 <= i < len(self.tag_files)):
+                return {"ok": False, "error": "Keine Datei."}
+            f = self.tag_files[i]
+            x = xmltools.xml_of_item(f.get(key))
+            if x is None:
+                return {"ok": False, "error": "Dieses Feld enthält kein XML."}
+            return {"ok": True, "text": x[0], "editable": x[1], "label": key_label(key),
+                    "file": os.path.basename(f.path), "key": key}

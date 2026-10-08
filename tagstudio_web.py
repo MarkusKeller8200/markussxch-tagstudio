@@ -33,6 +33,16 @@ APP = "MarKusSXCH TagStudio"
 WEB = os.path.join(HERE, "web")
 
 
+# Sitzungs-Methoden, die die Oberfläche direkt aufrufen darf
+_PASS = {
+    "add_field_choices", "add_field", "bulk_keys", "bulk_apply", "cover_remove",
+    "fixer_settings", "fixer_preview", "fixer_apply",
+    "backups", "set_backup", "start_backup_check", "start_restore", "delete_backup",
+    "start_tag_load", "tagger_settings", "tag_rows", "tag_detail", "tag_set", "tag_remove", "tag_add_field",
+    "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml",
+}
+
+
 class Api:
     """Alle Funktionen, die die Oberfläche aufrufen darf (öffentliche Methoden)."""
 
@@ -120,7 +130,63 @@ class Api:
     def redo(self):
         return self._s.do_redo()
 
+    # ---------- Weitere Funktionen der Sitzung (Tag-Fixer, Sicherungen, Tagger, Felder, Sammelkopie, Bilder)
+    def cover_replace(self, side, key, start=""):
+        p = self.pick_file("image", start)
+        return self._s.cover_set_file(side, key, p) if p else None
+
+    def cover_export(self, side, key):
+        name = self._s.cover_default_name(side, key)
+        if not name:
+            return {"ok": False, "error": "Kein Bild."}
+        dest = self.save_dialog(name)
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        return self._s.cover_export(side, key, dest)
+
+    def tag_cover_file(self, idx, start=""):
+        p = self.pick_file("image", start)
+        return self._s.tag_cover(list(idx), p) if p else None
+
+    def backup_pick_folder(self):
+        p = self.pick_path("", True, self._s._backup_folder())
+        return self._s.set_backup(folder=p) if p else None
+
+    def open_folder(self, path):
+        if not path:
+            return False
+        os.makedirs(path, exist_ok=True)
+        if sys.platform.startswith("win"):
+            os.startfile(path)  # type: ignore[attr-defined]
+        else:
+            subprocess.Popen(["open" if sys.platform == "darwin" else "xdg-open", path])
+        return True
+
     # ---------- System
+    def pick_file(self, kind="image", start=""):
+        """Datei wählen: kind = image | mp3."""
+        start = start if start and os.path.isdir(start) else (os.path.dirname(start) if start else os.path.expanduser("~"))
+        types = {"image": ("Bilder (*.jpg;*.jpeg;*.png;*.gif)", "Alle Dateien (*.*)"),
+                 "mp3": ("MP3-Dateien (*.mp3;*.MP3)", "Alle Dateien (*.*)")}[kind]
+        if self._window is not None:
+            import webview
+            res = self._window.create_file_dialog(webview.OPEN_DIALOG, directory=start, file_types=types)
+            return os.path.normpath(res[0] if isinstance(res, (list, tuple)) else res) if res else ""
+        return _tk_dialog("open", start, kind)
+
+    def save_dialog(self, name):
+        start = os.path.expanduser("~")
+        if self._window is not None:
+            import webview
+            res = self._window.create_file_dialog(webview.SAVE_DIALOG, directory=start, save_filename=name)
+            return os.path.normpath(res[0] if isinstance(res, (list, tuple)) else res) if res else ""
+        p = _tk_dialog("save", start, name)
+        if p:
+            return p
+        if sys.platform == "darwin":  # Browser-Modus auf dem Mac: kein Dialog möglich → Downloads
+            return os.path.join(os.path.expanduser("~/Downloads"), name)
+        return ""
+
     def pick_path(self, side, folder=True, start=""):
         """Ordner- bzw. Dateiauswahl des Betriebssystems. Liefert den Pfad oder ''."""
         start = start if start and os.path.isdir(start) else (os.path.dirname(start) if start else os.path.expanduser("~"))
@@ -197,6 +263,49 @@ class Api:
         else:
             subprocess.Popen(["xdg-open", os.path.dirname(path)])
         return True
+
+
+def _passthrough(name):
+    def method(self, *args):
+        return getattr(self._s, name)(*args)
+    method.__name__ = name
+    method.__doc__ = f"Weitergereicht an Session.{name}"
+    return method
+
+
+# echte Methoden (pywebview erkennt nur vorhandene Methoden, keine __getattr__-Tricks)
+for _n in sorted(_PASS):
+    setattr(Api, _n, _passthrough(_n))
+
+
+def _tk_dialog(kind, start, extra=""):
+    """Rückfall im Browser-Modus: open/save-Dialog über tkinter (nicht auf macOS)."""
+    result = {"p": ""}
+
+    def run():
+        try:
+            import tkinter as tk
+            from tkinter import filedialog
+            root = tk.Tk()
+            root.withdraw()
+            root.attributes("-topmost", True)
+            if kind == "save":
+                ext = os.path.splitext(extra)[1]
+                p = filedialog.asksaveasfilename(initialdir=start, initialfile=extra, defaultextension=ext, parent=root)
+            else:
+                ft = [("Bilder", "*.jpg *.jpeg *.png *.gif *.JPG *.JPEG *.PNG")] if extra == "image" else \
+                    [("MP3-Dateien", "*.mp3 *.MP3")]
+                p = filedialog.askopenfilename(initialdir=start, parent=root, filetypes=ft + [("Alle Dateien", "*")])
+            root.destroy()
+            result["p"] = os.path.normpath(p) if p else ""
+        except Exception:  # noqa: BLE001
+            result["p"] = ""
+    if sys.platform == "darwin":
+        return ""
+    t = threading.Thread(target=run)
+    t.start()
+    t.join()
+    return result["p"]
 
 
 def _tk_pick(folder, start):

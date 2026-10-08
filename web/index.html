@@ -38,7 +38,7 @@
 
   <main class="main">
     <!-- Quellen -->
-    <header class="sources">
+    <header class="sources" id="srcCompare">
       <div class="src">
         <span class="src-k">LINKS</span>
         <input id="pathL" list="histL" placeholder="Ordner oder MP3-Datei" aria-label="Pfad links" spellcheck="false">
@@ -69,6 +69,12 @@
           <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
             <input id="pairQuery" placeholder="Dateien und Werte durchsuchen" aria-label="Dateipaare durchsuchen"></label>
           <div class="chips" id="pairChips"></div>
+          <div class="bulkbar" id="bulkBar" hidden>
+            <span id="bulkInfo"></span><div class="grow"></div>
+            <button class="ghost sm" data-bulk="rl" title="Ausgewählte Felder von rechts nach links in alle markierten Paare">◀ Sammelkopie</button>
+            <button class="ghost sm" data-bulk="lr" title="Ausgewählte Felder von links nach rechts in alle markierten Paare">Sammelkopie ▶</button>
+            <button class="icon-btn" id="bulkClear" title="Markierung aufheben" aria-label="Markierung aufheben"><svg class="i" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+          </div>
           <button class="link-btn" id="advToggle" aria-expanded="false">Erweiterter Filter</button>
           <div class="adv" id="adv" hidden>
             <select id="fField" aria-label="Feld"></select>
@@ -104,6 +110,7 @@
             <span class="muted sm" id="summary"></span>
             <div class="grow"></div>
             <div class="btn-group">
+              <button class="ghost" id="addFieldBtn" title="Feld hinzufügen"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Feld</button>
               <button class="ghost" data-copyall="rl" title="Alle Unterschiede nach links"><svg class="i" viewBox="0 0 24 24"><path d="M11 17 6 12l5-5"/><path d="M18 17l-5-5 5-5"/></svg>Alles</button>
               <button class="ghost" data-missing="rl" title="Nur fehlende Felder nach links"><svg class="i" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>Fehlende</button>
               <button class="ghost" data-missing="lr" title="Nur fehlende Felder nach rechts">Fehlende<svg class="i" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
@@ -116,6 +123,89 @@
           </div>
         </div>
       </section>
+    </div>
+
+    <!-- Tagger -->
+    <div class="work module" id="moduleTagger" hidden>
+      <div class="tg-wrap">
+        <header class="sources">
+          <div class="src">
+            <span class="src-k">ORDNER</span>
+            <input id="tgPath" list="histTg" placeholder="Ordner oder MP3-Datei" aria-label="Ordner für den Tagger" spellcheck="false">
+            <datalist id="histTg"></datalist>
+            <button class="icon-btn" data-tgpick="1" title="Ordner wählen" aria-label="Ordner wählen"><svg class="i" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></button>
+            <button class="icon-btn" data-tgpick="0" title="Datei wählen" aria-label="Datei wählen"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg></button>
+          </div>
+          <div class="src-opts">
+            <label class="check"><input type="checkbox" id="tgRec"> Unterordner</label>
+            <button class="primary" id="tgLoad"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>Einlesen</button>
+          </div>
+        </header>
+        <div class="tg-body">
+          <section class="tg-list" aria-label="Dateien">
+            <div class="tg-listhead">
+              <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="tgQuery" placeholder="Dateien filtern (Name, Titel, Künstler …)" aria-label="Dateien filtern"></label>
+              <span class="muted sm" id="tgCount"></span>
+            </div>
+            <div class="tg-table" id="tgTable" tabindex="0" aria-label="Dateiliste">
+              <div class="tg-thead" id="tgHead"></div>
+              <div class="tg-scroll" id="tgScroll"><div id="tgInner"></div></div>
+            </div>
+          </section>
+          <div class="splitter" id="tgSplit" role="separator" aria-orientation="vertical" aria-label="Breite des Bearbeitungsbereichs" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: Standardbreite"></div>
+          <aside class="tg-edit" id="tgEdit" aria-label="Tags bearbeiten"></aside>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tag-Fixer -->
+    <div class="work module" id="moduleFixer" hidden>
+      <div class="mod-page">
+        <header class="mod-head">
+          <div><h2>Tag-Fixer – Mehrfachwerte</h2>
+          <p class="muted">Künstler, Genres &amp; Co. mit gemischten Trennzeichen („A; B“, „A / B“, „A feat. B“) einheitlich schreiben – als Trennzeichen oder als echte ID3v2.4-Mehrfachwerte.</p></div>
+        </header>
+        <div class="fx-grid">
+          <section class="card fx-opts" id="fxOpts" aria-label="Einstellungen"></section>
+          <section class="card fx-prev" aria-label="Vorschau">
+            <div class="row-between"><h3>Vorschau</h3><span class="muted sm" id="fxCount"></span></div>
+            <div class="fx-table" id="fxTable"></div>
+            <div class="fx-foot">
+              <p class="muted sm">Änderungen werden erst mit „Speichern“ geschrieben (mit Sicherung). Mehrfachwerte erscheinen als ¦. Manche Programme zeigen bei v2.4-Mehrfachwerten nur den ersten Wert.</p>
+              <button class="primary" id="fxApply" disabled>Anwenden</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sicherungen -->
+    <div class="work module" id="moduleBackups" hidden>
+      <div class="mod-page">
+        <header class="mod-head">
+          <div><h2>Sicherungen</h2>
+          <p class="muted">Vor jedem Speichern werden die bisherigen Tags gesichert (nur die Tags, nicht die Musik). Hier lassen sie sich byte-genau wiederherstellen. Es wird nie automatisch etwas gelöscht.</p></div>
+          <div class="mod-actions">
+            <label class="check"><input type="checkbox" id="bkEnabled"> Vor dem Speichern sichern</label>
+            <button class="ghost" id="bkFolder">Ordner ändern …</button>
+            <button class="ghost" id="bkOpen">Ordner öffnen</button>
+          </div>
+        </header>
+        <div class="muted sm bk-path" id="bkPath"></div>
+        <div class="bk-grid">
+          <section class="card bk-list" aria-label="Sicherungen"><div class="bk-scroll" id="bkList"></div></section>
+          <section class="card bk-files" aria-label="Dateien der Sicherung">
+            <div class="row-between"><h3 id="bkTitle">Dateien</h3><span class="muted sm" id="bkInfo"></span></div>
+            <div class="bk-scroll" id="bkFiles"></div>
+            <div class="fx-foot">
+              <button class="ghost" id="bkDelete" disabled>Sicherung löschen …</button>
+              <div class="grow"></div>
+              <button class="ghost" id="bkRestoreSel" disabled>Markierte wiederherstellen</button>
+              <button class="primary" id="bkRestoreAll" disabled>Alle wiederherstellen</button>
+            </div>
+          </section>
+        </div>
+      </div>
     </div>
 
     <div class="work placeholder" id="modulePlaceholder" hidden>
@@ -187,10 +277,19 @@
     </footer>
   </div>
 </div>
+<div class="overlay" id="modal" hidden>
+  <div class="dialog modal-dlg" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <h3 id="mTitle"></h3>
+    <div class="modal-body" id="mBody"></div>
+    <div class="dialog-btns" id="mBtns"></div>
+  </div>
+</div>
 <div class="menu" id="menu" hidden role="menu"></div>
 <div class="toast" id="toast" hidden></div>
 
 <script src="app.js"></script>
 <script src="xmleditor.js"></script>
+<script src="modules.js"></script>
+<script src="tagger.js"></script>
 </body>
 </html>
