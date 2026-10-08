@@ -12,3 +12,5 @@ dependencies = []  # bewusst keine Zusatzpakete – nur Python-Standardbibliothe
 covers = ["Pillow"]
 # Neue Oberfläche im eigenen Fenster (tagstudio_web.py); ohne pywebview öffnet sie sich im Browser
 web = ["pywebview>=5"]
+# Plugin „Stems“ (Einzelspuren); alternativ über die Plugin-Seite installieren. NVIDIA: audio-separator[gpu]
+stems = ["audio-separator[cpu]"]

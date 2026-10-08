@@ -176,10 +176,22 @@ function renderTgEditor() {
       <button class="ghost" id="tgFolderCover">Cover aus Ordner …</button>
       <button class="ghost" id="tgExport">Liste exportieren …</button>
       ${one ? '<button class="ghost" id="tgReveal">' + (IS_MAC ? "Im Finder zeigen" : "Im Explorer zeigen") + "</button>" : ""}
-    </div>${more}`;
+    </div>
+    <div class="tg-plugins" id="tgPlugins"></div>${more}`;
   if (d.version) $("#tgVer").value = String(d.version);
   if (act && $("#" + act)) { const el = $("#" + act); el.focus(); if (el.setSelectionRange && el.value) el.setSelectionRange(el.value.length, el.value.length); }
   keyWheelSync();
+  tgRenderPlugins();
+}
+
+async function tgRenderPlugins() {
+  if (!$("#tgPlugins") || typeof pluginActions !== "function") return;
+  const acts = await pluginActions("tagger");
+  const box = $("#tgPlugins");
+  if (!box) return;
+  box.innerHTML = acts.length
+    ? `<h4>Plugins</h4><div class="tg-tools">${acts.map((a) => `<button class="ghost" data-plugin="${esc(a.plugin)}" data-action="${esc(a.id)}" title="${esc(a.description || a.plugin_name)}">${esc(a.label)}</button>`).join("")}</div>`
+    : "";
 }
 
 async function tgCommit(input) {
@@ -466,6 +478,8 @@ async function tgExportDialog() {
     else if (id === "tgFolderCover") tgFolderCoverDialog();
     else if (id === "tgExport") tgExportDialog();
     else if (id === "tgKeyBtn") keyWheelOpen();
+    const pb = e.target.closest("[data-plugin]");
+    if (pb) pluginRun(pb.dataset.plugin, pb.dataset.action);
     const row = e.target.closest(".tg-f");
     if (row && e.target.closest("[data-tdel]")) taggerApplyDetail(await call("tag_remove", [idx[0]], [row.dataset.key]));
     else if (row && e.target.closest("[data-txml]")) openXml(null, row.dataset.key, { tag: idx[0] });

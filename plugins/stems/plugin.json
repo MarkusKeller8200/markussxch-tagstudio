@@ -1,0 +1,18 @@
+{
+  "id": "stems",
+  "name": "Stems",
+  "version": "1.0",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Trennt Titel in Einzelspuren (Gesang, Schlagzeug, Bass, Instrumental …) mit KI-Modellen von audio-separator (Demucs, BS-RoFormer, Mel-Band-RoFormer). Die Modelle werden beim ersten Gebrauch heruntergeladen.",
+  "requires": [{"module": "audio_separator", "label": "audio-separator"}],
+  "install": [
+    {"id": "cpu", "label": "Installieren (Prozessor / Apple-Chip)", "packages": ["audio-separator[cpu]"],
+     "hint": "Läuft überall. Auf Macs mit Apple-Chip wird die Grafikeinheit automatisch genutzt."},
+    {"id": "gpu", "label": "Installieren (NVIDIA-Grafikkarte)", "packages": ["audio-separator[gpu]"],
+     "hint": "Deutlich schneller, braucht eine NVIDIA-Karte mit aktuellem Treiber."}
+  ],
+  "external": [{"cmd": "ffmpeg", "label": "FFmpeg",
+                "hint": "Windows: „winget install ffmpeg“ in der Eingabeaufforderung · Mac: „brew install ffmpeg“"}],
+  "notes": "Der Download umfasst PyTorch und ist mehrere GB gross. Nur mit dem Prozessor dauert ein Titel etwa 1–5 Minuten, mit Grafikkarte Sekunden."
+}

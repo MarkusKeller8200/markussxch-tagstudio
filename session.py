@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import base64
 import os
+import sys
 import threading
 
 import time
@@ -15,6 +16,7 @@ import time
 import backup
 import core
 import keys
+import plugins
 import tagger
 import xmltools
 from compare import (PAIR_MODES, Rules, DEFAULT_TRIVIAL, Cancelled, diff, copy_tags, all_keys, MULTI_FIELDS,
@@ -55,6 +57,7 @@ class Session:
         self._cancel = None
         ui = self.cfg.get("web_ui")
         self.ui = {k: v for k, v in (ui.items() if isinstance(ui, dict) else []) if k in UI_KEYS}
+        self._plugins = None   # wird beim ersten Zugriff gesucht
 
     # ================================================================== Einstellungen
     def settings(self) -> dict:
@@ -107,12 +110,14 @@ class Session:
                 t["text"] = os.path.basename(m[3])
             elif m[0] == "pairing":
                 t["text"] = "Ordne Dateien zu …"
+            elif m[0] == "text":
+                t["text"] = m[1]
 
         def worker():
             try:
                 res = fn(self._cancel, progress)
                 self.task.update(result=res)
-            except Cancelled:
+            except (Cancelled, plugins.Cancelled):
                 self.task.update(result={"cancelled": True})
             except Exception as ex:  # noqa: BLE001
                 self.task.update(error=str(ex))
@@ -926,6 +931,62 @@ class Session:
             d["message"] = f"Cover in {len(todo) - len(errors)} Datei(en) aus dem Ordner übernommen – noch nicht gespeichert."
             d["errors"] = errors
             return d
+
+    # ------------------------------------------------------------------ Plugins
+    @property
+    def plugins(self) -> plugins.Manager:
+        if self._plugins is None:
+            self._plugins = plugins.Manager(self.cfg)
+        return self._plugins
+
+    def plugins_list(self, rescan=False):
+        lst = self.plugins.scan() if rescan else self.plugins.list()
+        return {"plugins": lst, "user_dir": plugins.user_dir(), "frozen": bool(getattr(sys, "frozen", False))}
+
+    def plugin_enable(self, pid, on):
+        core.save_config(self.plugins.set_enabled(pid, on))
+        return self.plugins_list()
+
+    def plugin_actions(self, where="tagger"):
+        return self.plugins.actions(where)
+
+    def plugin_form(self, pid, aid):
+        return self.plugins.form(pid, aid)
+
+    def start_plugin_action(self, pid, aid, idx, values):
+        try:
+            p, a = self.plugins.action(pid, aid)
+        except (KeyError, ValueError) as ex:
+            return {"ok": False, "error": str(ex)}
+        files = self._tsel(idx or [])
+        if a.get("needs_selection", True) and not files:
+            return {"ok": False, "error": "Bitte zuerst im Tagger Dateien markieren."}
+        opts = self.plugins.clean_options(a, values)
+        core.save_config(self.plugins.remember(pid, aid, opts))
+
+        def job(cancel, progress):
+            res = self.plugins.run(pid, aid, files, opts, self, cancel, progress)
+            res["unsaved"] = self.unsaved()
+            return res
+        return self._run("plugin", a["label"], job)
+
+    def start_plugin_install(self, pid, variant=None):
+        try:
+            p = self.plugins.get(pid)
+        except KeyError as ex:
+            return {"ok": False, "error": str(ex)}
+        vs = [v for v in p.manifest.get("install", []) if v.get("packages")]
+        v = next((x for x in vs if x.get("id") == variant), vs[0] if vs else None)
+        if v is None:
+            return {"ok": False, "error": "Für dieses Plugin ist keine Installation hinterlegt."}
+
+        def job(cancel, progress):
+            progress(("text", "pip install " + " ".join(v["packages"])))
+            res = plugins.pip_install(v["packages"], cancel, progress)
+            self.plugins.scan()
+            res["state"] = self.plugins.get(pid).state()
+            return res
+        return self._run("install", f"{p.name}: Pakete installieren", job)
 
     # ------------------------------------------------------------------ Tonart / Camelot
     def tag_key_notation(self, notation):

@@ -884,7 +884,7 @@ async function undoRedo(redo) {
   if (S.module === "fixer") fixerPreview();
 }
 
-const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups" };
+const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups", plugins: "modulePlugins" };
 function setModule(m, opts = {}) {
   S.module = m;
   $$(".nav[data-module]").forEach((b) => { b.classList.toggle("active", b.dataset.module === m); b.toggleAttribute("aria-current", b.dataset.module === m); });
@@ -894,6 +894,7 @@ function setModule(m, opts = {}) {
   if (!(m in MODULE_IDS)) { $("#phTitle").textContent = MODULES[m][0]; $("#phText").textContent = MODULES[m][1]; }
   if (m === "fixer") fixerShow(opts.scope);
   if (m === "backups") backupsShow();
+  if (m === "plugins" && typeof pluginsShow === "function") pluginsShow();
   if (m === "tagger" && typeof taggerShow === "function") taggerShow();
 }
 

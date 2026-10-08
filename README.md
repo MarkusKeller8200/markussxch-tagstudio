@@ -64,6 +64,10 @@ beide lassen sich abwechselnd verwenden.
   Dateien um. In der Liste zeigt die Spalte „Tonart“ farbige Camelot-Codes (sortierbar); bei einer markierten Datei
   sind die passenden Titel umrandet. Vergleich und Tagger arbeiten mit
   denselben Dateien – Änderungen sind in beiden sichtbar und werden zusammen gespeichert.
+- **Plugins** (Seitenleiste): Erweiterungen ein-/ausschalten, fehlende Python-Pakete per Knopf installieren;
+  Aktionen erscheinen im Tagger unter „Plugins“. Eingebaut ist **Stems** (Titel in Gesang, Schlagzeug, Bass,
+  Instrumental … trennen, mit audio-separator). Eigene Plugins in `~/TagStudio/Plugins` – Anleitung in
+  [PLUGINS.md](PLUGINS.md).
 - **Tag-Fixer** (Seitenleiste): Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare,
   alle Dateien, Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte),
   laufende Vorschau.
@@ -235,6 +239,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `tagger.py` – Tagger-Logik: gemeinsame Felder, Tags aus Dateiname, Umbenennen, Spurnummern, Cover,
   Groß-/Kleinschreibung, Suchen & Ersetzen, Cover aus Ordner, Export (CSV/Excel ohne Zusatzpakete)
 - `keys.py` – Tonarten: erkennen, umschreiben (Camelot, musikalisch, Open Key), passende Tonarten
+- `plugins.py` + `plugins/` – Plugin-System (siehe [PLUGINS.md](PLUGINS.md)); eingebaut: `plugins/stems`
 - `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)

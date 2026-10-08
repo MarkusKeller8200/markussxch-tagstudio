@@ -23,6 +23,8 @@
       <svg class="i" viewBox="0 0 24 24"><path d="m15 4 5 5"/><path d="M4 20 15.5 8.5"/><path d="M18 2v3M21.5 5.5 19 6M5 3v2M3 4h4M20 13v2M19 14h2"/></svg><span class="nt">Tag-Fixer</span></button>
     <button class="nav" data-module="backups" title="Sicherungen">
       <svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg><span class="nt">Sicherungen</span></button>
+    <button class="nav" data-module="plugins" title="Plugins">
+      <svg class="i" viewBox="0 0 24 24"><path d="M9 3h6v3a2 2 0 1 0 4 0V3h2v6h-3a2 2 0 1 0 0 4h3v8h-6v-3a2 2 0 1 0-4 0v3H3v-8h3a2 2 0 1 0 0-4H3V3h6Z"/></svg><span class="nt">Plugins</span></button>
     <button class="nav dim" data-module="db" title="Datenbank (bald)">
       <svg class="i" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span class="nt">Datenbank</span><span class="soon nt">bald</span></button>
     <div class="grow"></div>
@@ -208,6 +210,21 @@
       </div>
     </div>
 
+    <div class="work module" id="modulePlugins" hidden>
+      <div class="mod-page">
+        <header class="mod-head">
+          <div><h2>Plugins</h2>
+          <p class="muted">Erweiterungen mit eigenen Funktionen, z. B. Stems erzeugen. Aktionen eingeschalteter, bereiter Plugins erscheinen im Tagger unter „Plugins“. Plugins sind Python-Code – nur aus vertrauenswürdigen Quellen in den Plugin-Ordner legen.</p></div>
+          <div class="mod-actions">
+            <button class="ghost" id="plOpen">Plugin-Ordner öffnen</button>
+            <button class="ghost" id="plRescan">Neu einlesen</button>
+          </div>
+        </header>
+        <div class="muted sm" id="plDir"></div>
+        <div class="pl-grid" id="plList"></div>
+      </div>
+    </div>
+
     <div class="work placeholder" id="modulePlaceholder" hidden>
       <div class="empty-state">
         <svg class="i xl" viewBox="0 0 24 24"><path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg>
@@ -292,5 +309,6 @@
 <script src="modules.js"></script>
 <script src="tagger.js"></script>
 <script src="keywheel.js"></script>
+<script src="plugins.js"></script>
 </body>
 </html>
