@@ -165,6 +165,7 @@ function renderTgEditor() {
     <div class="tg-form">${form}
       <label for="tgVer">ID3-Version</label><select id="tgVer" class="inp" style="height:36px"><option value="3">ID3v2.3 (verbreitet)</option><option value="4">ID3v2.4 (Mehrfachwerte)</option>${d.version ? "" : '<option value="" selected>verschieden</option>'}</select>
     </div>
+    ${typeof featSection === "function" ? featSection(d) : ""}
     <div class="tg-tools">
       <button class="ghost" id="tgFromName">Tags aus Dateiname …</button>
       <button class="ghost" id="tgRename">Dateien umbenennen …</button>
@@ -179,7 +180,7 @@ function renderTgEditor() {
     </div>
     <div class="tg-plugins" id="tgPlugins"></div>${more}`;
   if (d.version) $("#tgVer").value = String(d.version);
-  if (act && $("#" + act)) { const el = $("#" + act); el.focus(); if (el.setSelectionRange && el.value) el.setSelectionRange(el.value.length, el.value.length); }
+  if (act && $("#" + act)) { const el = $("#" + act); el.focus(); if (el.setSelectionRange && el.value && /^(text|search)$/.test(el.type)) el.setSelectionRange(el.value.length, el.value.length); }
   keyWheelSync();
   tgRenderPlugins();
 }

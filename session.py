@@ -15,6 +15,7 @@ import time
 
 import backup
 import core
+import features
 import keys
 import plugins
 import tagger
@@ -677,6 +678,8 @@ class Session:
     def tagger_settings(self):
         return {"hist": self.cfg.get("hist_tagger", []), "recursive": self.cfg.get("tagger_recursive", False),
                 "fields": [[k, label, ph] for k, label, ph in tagger.FIELDS],
+                "features": [[n, label, desc] for n, label, desc in features.FEATURES],
+                "features_open": self.cfg.get("features_open", True),
                 "keys": {"wheel": keys.wheel(), "notations": [[k, v] for k, v in keys.NOTATIONS.items()],
                          "notation": self.cfg.get("key_notation", "camelot")},
                 "patterns": self.cfg.get("tagger_patterns", {"from": "%track% - %artist% - %title%",
@@ -686,7 +689,7 @@ class Session:
         return {"i": i, "name": os.path.basename(f.path), "rel": core.rel_name(f, self.tag_root),
                 "modified": f.is_modified(), "cover": f.get("APIC:3") is not None, "version": f.version,
                 **{key: tagger.text_of(f, key) for key, _l, _p in tagger.FIELDS},
-                "camelot": keys.parse_key(tagger.text_of(f, "TKEY"))}
+                "camelot": keys.parse_key(tagger.text_of(f, "TKEY")), "feat": features.values(f)}
 
     def tag_rows(self) -> dict:
         with self.lock:
@@ -710,15 +713,17 @@ class Session:
                 cs["src"] = f"data:{cs['mime']};base64,{base64.b64encode(cs.pop('data')).decode('ascii')}" \
                     if len(cs["data"]) <= 4_000_000 else ""
             out["cover"] = cs
+            out["features"] = features.common(files)
             vers = {f.version for f in files}
             out["version"] = vers.pop() if len(vers) == 1 else None
             if len(files) == 1:
                 f = files[0]
                 out["file"] = {"name": os.path.basename(f.path), "path": f.path, "info": f.info()}
                 std = {k for k, _l, _p in tagger.FIELDS}
+                feat = {f"TXXX:{n}".upper() for n in features.NAMES}
                 fields = []
                 for k in sorted(f.items, key=sort_key):
-                    if k in std:
+                    if k in std or k.upper() in feat:
                         continue
                     it = f.get(k)
                     xml = xmltools.xml_of_item(it)
@@ -1001,6 +1006,33 @@ class Session:
             res["state"] = self.plugins.get(pid).state()
             return res
         return self._run("install", f"{p.name}: Pakete installieren", job)
+
+    # ------------------------------------------------------------------ Audio-Merkmale
+    def tag_feature_set(self, idx, name, value):
+        if name not in features.KEYS:
+            raise ValueError(f"Unbekanntes Merkmal: {name}")
+        try:
+            features.normalize(value)
+        except ValueError as ex:
+            d = self.tag_detail(idx)
+            d["error"] = str(ex)
+            return d
+        with self.lock:
+            files = self._tsel(idx)
+            if not files:
+                return self.tag_detail(idx)
+            label = dict((n, l) for n, l, _d in features.FEATURES)[name]
+            self.undo.checkpoint(f"„{label}“ in {len(files)} Datei(en)", files)
+            n = sum(1 for f in files if features.set_value(f, name, value))
+            self.undo.commit()
+            d = self.tag_detail(idx)
+            d["message"] = f"„{label}“ in {n} Datei(en) geändert – noch nicht gespeichert." if n else None
+            return d
+
+    def tag_features_open(self, on):
+        self.cfg["features_open"] = bool(on)
+        core.save_config({"features_open": bool(on)})
+        return bool(on)
 
     # ------------------------------------------------------------------ Tonart / Camelot
     def tag_key_notation(self, notation):

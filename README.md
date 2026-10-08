@@ -64,6 +64,10 @@ beide lassen sich abwechselnd verwenden.
   Dateien um. In der Liste zeigt die Spalte „Tonart“ farbige Camelot-Codes (sortierbar); bei einer markierten Datei
   sind die passenden Titel umrandet. Vergleich und Tagger arbeiten mit
   denselben Dateien – Änderungen sind in beiden sichtbar und werden zusammen gespeichert.
+- **Audio-Merkmale** im Tagger (aufklappbarer Bereich): Energy, Danceability, Happiness, Valence, Acousticness,
+  Instrumentalness, Liveness, Speechiness, Brightness, Aggressiveness als `TXXX:ENERGY` … mit Werten 0–100.
+  Schieberegler oder Zahl (auch 0.78 → 78), für eine oder mehrere Dateien; Felder in anderer Schreibweise
+  (z. B. `TXXX:Energy`) werden erkannt und beim Ändern vereinheitlicht. Im Export als eigene Spalten.
 - **Plugins** (Seitenleiste): Erweiterungen ein-/ausschalten, fehlende Python-Pakete per Knopf installieren;
   Aktionen erscheinen im Tagger unter „Plugins“. Eingebaut ist **Stems** (Titel in Gesang, Schlagzeug, Bass,
   Instrumental … trennen, mit audio-separator). Eigene Plugins in `~/TagStudio/Plugins` – Anleitung in
@@ -238,6 +242,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `xmltools.py` – XML in Feldern erkennen, prüfen, formatieren/kompakt schreiben
 - `tagger.py` – Tagger-Logik: gemeinsame Felder, Tags aus Dateiname, Umbenennen, Spurnummern, Cover,
   Groß-/Kleinschreibung, Suchen & Ersetzen, Cover aus Ordner, Export (CSV/Excel ohne Zusatzpakete)
+- `features.py` – Audio-Merkmale (TXXX, 0–100)
 - `keys.py` – Tonarten: erkennen, umschreiben (Camelot, musikalisch, Open Key), passende Tonarten
 - `plugins.py` + `plugins/` – Plugin-System (siehe [PLUGINS.md](PLUGINS.md)); eingebaut: `plugins/stems`
 - `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen)
