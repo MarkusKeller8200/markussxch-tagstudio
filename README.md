@@ -22,6 +22,25 @@ Beide nutzen denselben Kern und dieselben Einstellungen (`~/.tagstudio.json`) un
 
 ## Installation
 
+### Mit Installer (empfohlen, kein Python nötig)
+
+Auf GitHub unter **Releases** die neueste Version herunterladen:
+
+- **Windows:** `TagStudio-<Version>-Windows-Setup.exe` ausführen. Installiert ohne Administratorrechte nach
+  `%LOCALAPPDATA%\Programs\TagStudio`, mit Startmenü-Eintrag, optionalem Desktop-Symbol und Deinstallation über
+  „Apps & Features“. Der Installer ist nicht signiert – erscheint „Der Computer wurde durch Windows geschützt“:
+  **Weitere Informationen → Trotzdem ausführen**.
+- **macOS (Apple-Chip):** `TagStudio-<Version>-macOS-Apple-Chip.dmg` öffnen, **TagStudio** auf **Programme** ziehen.
+  Die App ist nicht von Apple beglaubigt: beim ersten Start Meldung schliessen, dann **Systemeinstellungen →
+  Datenschutz & Sicherheit → „Trotzdem öffnen“** (Details in „Zuerst lesen.txt“ im Disk-Image).
+
+Die installierte App enthält die neue Oberfläche samt Plugins (Stems richtet seine eigene Umgebung beim ersten
+Installieren selbst ein). **Updates:** neue Version unter Releases laden und darüber installieren – Einstellungen,
+Sicherungen und Plugin-Daten liegen im Benutzerordner und bleiben erhalten. Die klassische Oberfläche gibt es nur
+in der Quellcode-Variante.
+
+### Aus dem Quellcode (für Entwicklung und Update-Knopf)
+
 1. **Python** von https://www.python.org/downloads/ installieren – Windows: „Add python.exe to PATH“ anhaken;
    macOS: das Installationspaket enthält tkinter (Homebrew-Python braucht zusätzlich `brew install python-tk`).
 2. **Programm holen** – am besten als Git-Klon, dann funktioniert der Update-Knopf:
@@ -264,6 +283,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `keys.py` – Tonarten: erkennen, umschreiben (Camelot, musikalisch, Open Key), passende Tonarten
 - `plugins.py` + `plugins/` – Plugin-System (siehe [PLUGINS.md](PLUGINS.md)); eingebaut: `plugins/stems`
   (Einzelspuren, eigene Python-Umgebung), `plugins/beatport` (Metadaten von Beatport, inoffiziell)
+- `packaging/` – Installer: `build.py` (PyInstaller), `windows.iss` (Inno Setup), `make_dmg.sh` (macOS), Icon
 - `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen; wechselt von abgeschlossenen
   Entwicklungszweigen auf `main`)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
@@ -281,7 +301,10 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   der CI zusätzlich per Smoke-Test geprüft.
 - **Automatische Prüfung (GitHub Actions):** Bei jedem Push laufen die Tests auf Windows, macOS und Linux
   (`.github/workflows/tests.yml`).
-- **Versionen:** Jede Version bekommt einen Git-Tag (`v2.9` …) und einen Eintrag in `CHANGELOG.md`.
+- **Versionen:** Jede Version bekommt einen Eintrag in `CHANGELOG.md` und einen Git-Tag (`v3.0` …).
+- **Installer:** GitHub Actions (`.github/workflows/installer.yml`) baut bei jedem Versions-Tag `v*` die Installer
+  für Windows und macOS, prüft die App per `--selftest` (auch nach echter Installation unter Windows) und
+  veröffentlicht sie als GitHub-Release mit dem Text aus dem CHANGELOG. Von Hand: Actions → Installer → Run workflow.
 - **Arbeitsweise:** Neue Funktionen in einem eigenen Branch entwickeln, dann nach `main` übernehmen.
   Version 3.0 entstand im Zweig `web-ui` und wurde am 08.10.2026 nach `main` übernommen.
 
@@ -290,7 +313,8 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - Plugin „Online-Metadaten“ mit offiziellen Quellen: MusicBrainz/AcoustID, Discogs, Deezer, iTunes, Last.fm
 - Analyse-Plugin mit librosa (BPM, Tonart-Vorschlag, Brightness), später Essentia-Modelle (Danceability, Mood)
 - Filter und Spalten nach Audio-Merkmalen; Mood-Feld; Umrechnen fremder Skalen (z. B. Lexicon 0–10)
-- Paketierung als eigenständige Anwendung (`.exe` / `.app`) mit Update ohne Git
+- Installer signieren (Windows-Codesignatur, Apple-Beglaubigung); macOS-Variante für Intel; Update-Hinweis in der
+  installierten App
 - Datenbank-Modul für die Musikbibliothek
 
 Verworfen: Umstieg auf Qt (PySide6) – bringt gegenüber der neuen Oberfläche keinen Vorteil.
