@@ -29,6 +29,8 @@ class TestGuiSmoke(unittest.TestCase):
         self.ts = tagstudio
         tagstudio.CONFIG = os.path.join(self.dir, ".tagstudio.json")
         tagstudio.CONFIG_OLD = os.path.join(self.dir, ".mp3tagcompare.json")
+        import core
+        core.CONFIG, core.CONFIG_OLD = tagstudio.CONFIG, tagstudio.CONFIG_OLD
         thumbs.CACHE_DIR = os.path.join(self.dir, "cache")
         for m in ("showinfo", "showwarning", "showerror"):
             setattr(tagstudio._messagebox, m, lambda *a, **k: None)

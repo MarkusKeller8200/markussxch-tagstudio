@@ -9,10 +9,8 @@ und speichern. Läuft auf Windows und macOS mit Python 3.9+ (ohne Zusatzpakete).
 """
 from __future__ import annotations
 
-import difflib
 import hashlib
 import re
-import json
 import os
 import queue
 import subprocess
@@ -28,10 +26,13 @@ import webbrowser
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from id3tags import (MP3File, Item, Cover, key_label, sort_key, TEXT_LABELS,  # noqa: E402
-                     PIC_TYPES, STANDARD_KEYS, MV, MV_SHOW, FIELDSETS, V23_JOIN)
+                     PIC_TYPES, STANDARD_KEYS, MV, MV_SHOW, V23_JOIN)
 import backup  # noqa: E402
 import thumbs  # noqa: E402
-from compare import (scan, pair_files, diff, copy_tags, all_keys, PAIR_MODES, Rules, DEFAULT_TRIVIAL,  # noqa: E402
+from undo import UndoStack  # noqa: E402,F401
+import core  # noqa: E402
+from core import URL_RE, FILTER_OPS  # noqa: E402,F401
+from compare import (diff, copy_tags, all_keys, PAIR_MODES, Rules, DEFAULT_TRIVIAL,  # noqa: E402
                      Cancelled, MULTI_FIELDS, INPUT_SEPARATORS, plan_multi_fix)  # noqa: E402
 
 APP = "MarKusSXCH TagStudio"
@@ -40,8 +41,8 @@ IS_MAC = sys.platform == "darwin"
 IS_WIN = sys.platform.startswith("win")
 MOD = "Command" if IS_MAC else "Control"
 MOD_TXT = "Cmd" if IS_MAC else "Strg"
-CONFIG = os.path.join(os.path.expanduser("~"), ".tagstudio.json")
-CONFIG_OLD = os.path.join(os.path.expanduser("~"), ".mp3tagcompare.json")  # Version ≤ 2.8 (MP3 Tag Compare)
+CONFIG = core.CONFIG          # Einstellungen (gemeinsam mit der Web-Oberfläche)
+CONFIG_OLD = core.CONFIG_OLD
 
 THEMES = {
     "dark": dict(
@@ -62,8 +63,7 @@ THEMES = {
     ),
 }
 NAME_W = 250  # Breite der Namensspalte in Pixel
-FILTER_OPS = ["enthält", "enthält nicht", "ist", "ist nicht", "beginnt mit", "fehlt / leer", "vorhanden",
-              "größer als", "kleiner als", "Regex"]
+
 
 
 _APP = None  # Hauptfenster, wird beim Start gesetzt
@@ -108,7 +108,6 @@ class _Parented:
 messagebox = _Parented(_messagebox)
 filedialog = _Parented(_filedialog)
 
-URL_RE = re.compile(r"(?:https?://|www\.)[^\s|¦<>\"]+", re.I)
 
 
 def _dpi_aware():
@@ -296,80 +295,6 @@ def fmt_n(n):
     return f"{n:,}".replace(",", "'")
 
 
-# =========================================================================== Rückgängig / Wiederholen
-class UndoStack:
-    """Schnappschuss-basiertes Undo/Redo über beliebig viele Dateien (Tags + ID3-Version)."""
-
-    def __init__(self, limit=200):
-        self.limit = limit
-        self.undo: list = []
-        self.redo: list = []
-        self.pending = None
-
-    @staticmethod
-    def _snap(f):
-        return {k: v.clone() for k, v in f.items.items()}, f.version
-
-    @staticmethod
-    def _same(a, b):
-        (ia, va), (ib, vb) = a, b
-        return va == vb and ia.keys() == ib.keys() and all(ia[k] == ib[k] for k in ia)
-
-    def checkpoint(self, label, files):
-        """Vor einer Änderung aufrufen: merkt sich den Zustand der betroffenen Dateien."""
-        if self.pending is None:
-            self.pending = {"label": label, "before": {}, "files": {}}
-        for f in files:
-            if f is not None and id(f) not in self.pending["before"]:
-                self.pending["before"][id(f)] = self._snap(f)
-                self.pending["files"][id(f)] = f
-
-    def commit(self):
-        p, self.pending = self.pending, None
-        if not p:
-            return False
-        after = {i: self._snap(f) for i, f in p["files"].items()}
-        changed = [i for i in after if not self._same(p["before"][i], after[i])]
-        if not changed:
-            return False
-        p["before"] = {i: p["before"][i] for i in changed}
-        p["after"] = {i: after[i] for i in changed}
-        p["files"] = {i: p["files"][i] for i in changed}
-        self.undo.append(p)
-        del self.undo[:-self.limit]
-        self.redo.clear()
-        return True
-
-    @staticmethod
-    def _apply(entry, which):
-        for i, f in entry["files"].items():
-            items, ver = entry[which][i]
-            f.items = {k: v.clone() for k, v in items.items()}
-            f.version = ver
-
-    def do_undo(self):
-        self.commit()
-        if not self.undo:
-            return None
-        e = self.undo.pop()
-        self._apply(e, "before")
-        self.redo.append(e)
-        return e
-
-    def do_redo(self):
-        if not self.redo:
-            return None
-        e = self.redo.pop()
-        self._apply(e, "after")
-        self.undo.append(e)
-        return e
-
-    def clear(self):
-        self.undo.clear()
-        self.redo.clear()
-        self.pending = None
-
-
 # =========================================================================== Hauptfenster
 class App(tk.Tk):
     def __init__(self):
@@ -446,13 +371,7 @@ class App(tk.Tk):
 
     # ------------------------------------------------------------------ Config / Fonts
     def _load_cfg(self):
-        try:
-            # Einstellungen der Vorgängerversion „MP3 Tag Compare“ einmalig übernehmen
-            path = CONFIG if os.path.exists(CONFIG) or not os.path.exists(CONFIG_OLD) else CONFIG_OLD
-            with open(path, encoding="utf-8") as fh:
-                return json.load(fh)
-        except Exception:  # noqa: BLE001
-            return {}
+        return core.load_config()
 
     def _save_cfg(self):
         def hist(var, name):
@@ -465,11 +384,7 @@ class App(tk.Tk):
             recursive=self.recursive.get(), filter=self.filter, show_trivial=self.show_trivial,
             empty_set=self.empty_set, show_covers=self.show_covers,
             trivial=self.rules.trivial)
-        try:
-            with open(CONFIG, "w", encoding="utf-8") as fh:
-                json.dump(self.cfg, fh, indent=2, ensure_ascii=False)
-        except OSError:
-            pass
+        core.save_config(self.cfg)
 
     def _fonts(self):
         base = tkfont.nametofont("TkDefaultFont")
@@ -1058,15 +973,9 @@ class App(tk.Tk):
         if ask and not self._confirm_discard():
             return
         lp, rp = self.left_path.get().strip(), self.right_path.get().strip()
-        if not lp and not rp:
-            messagebox.showinfo(APP, "Bitte links und/oder rechts einen Ordner oder eine Datei wählen.")
-            return
-        for p, n in ((lp, "Links"), (rp, "Rechts")):
-            if p and not os.path.exists(p):
-                messagebox.showwarning(APP, f"{n}: Der Pfad existiert nicht.\n\n{p}")
-                return
-        if lp and rp and os.path.abspath(lp) == os.path.abspath(rp):
-            messagebox.showwarning(APP, "Links und rechts ist derselbe Pfad.")
+        err = core.check_paths(lp, rp)
+        if err:
+            (messagebox.showinfo if not lp and not rp else messagebox.showwarning)(APP, err)
             return
         self._start_loading(lp, rp, keep)
 
@@ -1080,30 +989,7 @@ class App(tk.Tk):
 
         def worker():
             try:
-                found = [0, 0]
-
-                def counter(side):
-                    def cb(n):
-                        found[side] = n
-                        q.put(("count", found[0] + found[1]))
-                    return cb
-                lpaths = scan(lp, recursive, cancel, counter(0)) if lp else []
-                rpaths = scan(rp, recursive, cancel, counter(1)) if rp else []
-                total = len(lpaths) + len(rpaths)
-                q.put(("total", total))
-                errors, loaded = [], ([], [])
-                for i, (side, p) in enumerate([(0, p) for p in lpaths] + [(1, p) for p in rpaths], start=1):
-                    if cancel.is_set():
-                        raise Cancelled()
-                    try:
-                        loaded[side].append(MP3File(p))
-                    except Exception as ex:  # noqa: BLE001
-                        errors.append(f"{os.path.basename(p)}: {ex}")
-                    q.put(("progress", i, total, p))
-                if cancel.is_set():
-                    raise Cancelled()
-                q.put(("pairing",))
-                pairs = pair_files(loaded[0], loaded[1], mode, lp, rp)
+                pairs, errors = core.load_pairs(lp, rp, recursive, mode, cancel, q.put)
                 q.put(("done", pairs, errors))
             except Cancelled:
                 q.put(("cancelled",))
@@ -1177,25 +1063,14 @@ class App(tk.Tk):
 
     # ================================================================== Paarliste
     def _rel(self, f, root):
-        if f is None:
-            return ""
-        return os.path.relpath(f.path, root) if os.path.isdir(root) else os.path.basename(f.path)
+        return core.rel_name(f, root)
 
     def _pair_row(self, i):
         l, r = self.pairs[i]
-        mod = "●" if (l and l.is_modified()) or (r and r.is_modified()) else ""
-        if l is None or r is None:
-            return (f"{mod}{'◨' if l is None else '◧'}", self._rel(l, self.left_root) or "—",
-                    self._rel(r, self.right_root) or "—", "nur rechts" if l is None else "nur links"), "single"
-        imp, triv = diff(l, r, self.rules)
-        if imp:
-            info = f"{len(imp)} Unterschied{'e' if len(imp) > 1 else ''}" + (f"  (+{len(triv)} unwichtig)" if triv else "")
-            st, tag = "≠", "diff"
-        elif triv:
-            info, st, tag = f"{len(triv)} unwichtig", "≈", "triv"
-        else:
-            info, st, tag = "gleich", "=", "same"
-        return (mod + st, self._rel(l, self.left_root), self._rel(r, self.right_root), info), tag
+        st = core.pair_status(l, r, self.rules)
+        mod = "●" if st["modified"] else ""
+        return (mod + st["symbol"], self._rel(l, self.left_root) or "—", self._rel(r, self.right_root) or "—",
+                st["info"]), st["tag"]
 
     def _fill_tree(self):
         sel = self.tree.selection()
@@ -1244,40 +1119,14 @@ class App(tk.Tk):
         return self.pairs[self.cur] if self.cur is not None and self.cur < len(self.pairs) else (None, None)
 
     def _row_state(self, k, l, r):
-        li, ri = l.get(k) if l else None, r.get(k) if r else None
-        if li is None and ri is None:
-            return "empty"
-        if l is None or r is None:
-            return "same"
-        if li is None or ri is None:
-            return "only"
-        if li == ri:
-            return "same"
-        return "triv" if self.rules.is_trivial(k) else "diff"
+        return core.row_state(k, l, r, self.rules)
 
     def render(self):
         self._name_tip_hide()
         l, r = self._files()
         th = self.th
-        keys = all_keys(l, r)
-        if self.empty_set != "off" and (l or r):
-            keys = sorted(set(keys) | set(FIELDSETS[self.empty_set]), key=sort_key)
-        rows, states = [], {}
-        fq = self.q_fields.get().strip().lower()
-        for k in keys:
-            st = self._row_state(k, l, r)
-            states[k] = st
-            if self.filter == "diff" and (st == "same" or (st == "triv" and not self.show_trivial)):
-                continue
-            if self.filter in ("diff", "same") and st == "empty":
-                continue
-            if self.filter == "same" and st != "same":
-                continue
-            if self.filter == "all" and st == "triv" and not self.show_trivial:
-                continue
-            if fq and not self._field_match(k, fq, l, r):
-                continue
-            rows.append(k)
+        rows, states = core.visible_keys(l, r, self.rules, self.filter, self.show_trivial, self.empty_set,
+                                         self.q_fields.get())
         self.rows = rows
         self.states = states
         self.sel &= set(rows)
@@ -1315,12 +1164,11 @@ class App(tk.Tk):
                     val = self._disp(it)
                     t.insert("end", marker, ("mod", tag), name + "\t", ("name", tag), val, (tag,), "\n", (tag,))
                     off = len(marker) + len(name) + 1
-                    for mt in URL_RE.finditer(val):
-                        url = mt.group(0).rstrip(".,;)")
+                    for a, b, url in core.link_spans(val):
                         tg = f"u_{len(self._links)}"
                         self._links[tg] = url
-                        t.tag_add("link", f"{n}.{off + mt.start()}", f"{n}.{off + mt.start() + len(url)}")
-                        t.tag_add(tg, f"{n}.{off + mt.start()}", f"{n}.{off + mt.start() + len(url)}")
+                        t.tag_add("link", f"{n}.{off + a}", f"{n}.{off + b}")
+                        t.tag_add(tg, f"{n}.{off + a}", f"{n}.{off + b}")
                     if st in ("diff", "triv") and other is not None and other.get(k) is not None:
                         self._mark_chars(t, n, len(marker) + len(name) + 1, val, self._disp(other.get(k)),
                                          "chg" if st == "diff" else "tchg")
@@ -1351,8 +1199,7 @@ class App(tk.Tk):
 
     @staticmethod
     def _disp(it):
-        s = it.display().replace("\r", "").replace("\n", " ⏎ ")
-        return s if len(s) <= 800 else s[:800] + " …"
+        return core.disp(it)
 
     def _fit(self, s, width):
         f = self.f_ui
@@ -1363,16 +1210,8 @@ class App(tk.Tk):
         return s + "…"
 
     def _mark_chars(self, t, line, off, a, b, tag):
-        if len(a) + len(b) > 1600:
-            t.tag_add(tag, f"{line}.{off}", f"{line}.{off + len(a)}")
-            return
-        sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
-        mine_is_a = True
-        for op, i1, i2, _j1, _j2 in sm.get_opcodes():
-            if op != "equal" and mine_is_a and i2 > i1:
-                t.tag_add(tag, f"{line}.{off + i1}", f"{line}.{off + i2}")
-        if sm.ratio() < 0.3:  # komplett anders → ganze Zeile markieren
-            t.tag_add(tag, f"{line}.{off}", f"{line}.{off + len(a)}")
+        for i1, i2 in core.diff_spans(a, b):
+            t.tag_add(tag, f"{line}.{off + i1}", f"{line}.{off + i2}")
 
     def _paint_sel(self):
         for t in self._texts():
@@ -1544,109 +1383,19 @@ class App(tk.Tk):
         self.f_side.set("links oder rechts")
 
     def _update_field_choices(self, pairs):
-        keys = set(FIELDSETS["all"])
-        for p in pairs:
-            for f in p:
-                if f:
-                    keys |= set(f.items)
-        keys = sorted(keys, key=sort_key)
-        ch = {"— kein Filter —": None, "Dateiname": "__file__", "Beliebiges Feld": "__any__"}
-        for k in keys:
-            lbl = key_label(k)
-            if lbl in ch:
-                lbl = f"{lbl}  [{k}]"
-            ch[lbl] = k
+        ch = core.field_choices(pairs)
         self._field_choices = ch
         self.f_field_cb.configure(values=list(ch))
         if self.f_field.get() not in ch:
             self.f_field.set("— kein Filter —")
 
-    @staticmethod
-    def _file_values(f):
-        return [os.path.basename(f.path)] + [it.display() for it in f.items.values()]
-
     def _make_pair_filter(self):
-        """Erzeugt eine Prüffunktion für ein Paar (oder None, wenn kein Filter aktiv ist)."""
-        q = self.q_text.get().strip().lower()
-        key = self._field_choices.get(self.f_field.get())
-        op, val, side = self.f_op.get(), self.f_val.get().strip(), self.f_side.get()
-        needs_val = op not in ("fehlt / leer", "vorhanden")
-        cond = None
-        if key and (val or not needs_val):
-            vl = val.lower()
-            rx = None
-            if op == "Regex":
-                try:
-                    rx = re.compile(val, re.I)
-                except re.error:
-                    rx = None
-
-            def num(x):
-                m_ = re.search(r"-?\d+(?:[.,]\d+)?", x or "")
-                return float(m_.group(0).replace(",", ".")) if m_ else None
-
-            def test(f):
-                if f is None:
-                    return False
-                if key == "__file__":
-                    vals = [os.path.basename(f.path)]
-                elif key == "__any__":
-                    vals = self._file_values(f)
-                else:
-                    it = f.get(key)
-                    vals = [it.display()] if it is not None and it.display().strip() else []
-                low = [v.lower() for v in vals]
-                if op == "fehlt / leer":
-                    return not low
-                if op == "vorhanden":
-                    return bool(low)
-                if op == "enthält":
-                    return any(vl in v for v in low)
-                if op == "enthält nicht":
-                    return not any(vl in v for v in low)
-                if op == "ist":
-                    return any(v.strip() == vl for v in low)
-                if op == "ist nicht":
-                    return not any(v.strip() == vl for v in low)
-                if op == "beginnt mit":
-                    return any(v.startswith(vl) for v in low)
-                if op in ("größer als", "kleiner als"):
-                    ref = num(val)
-                    nums = [num(v) for v in vals]
-                    nums = [n for n in nums if n is not None]
-                    if ref is None or not nums:
-                        return False
-                    return any(n > ref for n in nums) if op == "größer als" else any(n < ref for n in nums)
-                if op == "Regex":
-                    return rx is not None and any(rx.search(v) for v in vals)
-                return True
-            cond = test
-        if not q and cond is None:
-            return None
-
-        def pair_ok(pair):
-            l, r = pair
-            if q and not any(q in v.lower() for f in (l, r) if f for v in self._file_values(f)):
-                return False
-            if cond is None:
-                return True
-            if side == "links":
-                return cond(l)
-            if side == "rechts":
-                return cond(r)
-            if side == "beide Seiten":
-                return cond(l) and cond(r)
-            return cond(l) or cond(r)
-        return pair_ok
+        """Prüffunktion für ein Paar (oder None, wenn kein Filter aktiv ist)."""
+        return core.make_pair_filter(self.q_text.get(), self._field_choices.get(self.f_field.get()),
+                                     self.f_op.get(), self.f_val.get(), self.f_side.get())
 
     def _field_match(self, k, q, l, r):
-        if q in key_label(k).lower() or q in k.lower():
-            return True
-        for f in (l, r):
-            it = f.get(k) if f else None
-            if it is not None and q in it.display().lower():
-                return True
-        return False
+        return core.field_match(k, q, l, r)
 
     # ------------------------------------------------------------------ Cover-Vorschau
     def toggle_covers(self):
@@ -2085,16 +1834,11 @@ class App(tk.Tk):
             self._set_value(f, key, val)
 
     def _set_value(self, f, key, val):
-        val = re.sub(r"\s*¦\s*", MV, val).strip(MV)  # sichtbarer Trenner → v2.4-Mehrfachwert
         it = f.get(key)
-        old = it.text if it else ""
-        if val == old:
+        if core.normalize_value(val) == (it.text if it else ""):
             return
         self.undo.checkpoint(f"„{key_label(key)}“ bearbeitet", [f])
-        if val.strip() == "":
-            f.set(key, None)
-        else:
-            f.set_text(key, val)
+        core.apply_value(f, key, val)
         self._changed()
 
     def _edit_dialog(self, f, key, text):
@@ -2880,13 +2624,7 @@ class App(tk.Tk):
 
     # ================================================================== Speichern
     def _modified_files(self):
-        seen, out = set(), []
-        for pair in self.pairs:
-            for f in pair:
-                if f and f.is_modified() and id(f) not in seen:
-                    seen.add(id(f))
-                    out.append(f)
-        return out
+        return core.modified_files(self.pairs)
 
     def save_all(self):
         self._close_editor(commit=True)
@@ -2911,43 +2649,12 @@ class App(tk.Tk):
 
         def worker():
             try:
-                _worker()
+                res = core.save_files(files, backup_on, folder, cancel, q.put)
+                q.put(("done", res["saved"], res["errors"], res["backup"], res["cancelled"]))
+            except core.BackupUnavailable as ex:
+                q.put(("fatal", str(ex)))
             except Exception as ex:  # noqa: BLE001
                 q.put(("fatal", f"Unerwarteter Fehler beim Speichern:\n{ex}"))
-
-        def _worker():
-            errors, saved, bpath, bw = [], 0, None, None
-            if backup_on:
-                try:
-                    bw = backup.BackupWriter(folder, label=f"Vor dem Speichern ({len(files)} Datei(en))")
-                except OSError as ex:
-                    q.put(("fatal", f"Der Sicherungsordner ist nicht verfügbar:\n{folder}\n\n{ex}\n\n"
-                                    "Es wurde nichts gespeichert."))
-                    return
-            q.put(("total", len(files)))
-            for i, f in enumerate(files, 1):
-                if cancel.is_set():
-                    break
-                name = os.path.basename(f.path)
-                try:
-                    if bw:
-                        bw.add(f.path)
-                except Exception as ex:  # noqa: BLE001
-                    errors.append(f"{name}: Sicherung fehlgeschlagen – NICHT gespeichert ({ex})")
-                    q.put(("progress", i, len(files), f.path))
-                    continue
-                try:
-                    f.save()
-                    saved += 1
-                except Exception as ex:  # noqa: BLE001
-                    errors.append(f"{name}: {ex}")
-                q.put(("progress", i, len(files), f.path))
-            if bw:
-                try:
-                    bpath = bw.close()
-                except Exception as ex:  # noqa: BLE001
-                    errors.append(f"Sicherung konnte nicht abgeschlossen werden: {ex}")
-            q.put(("done", saved, errors, bpath, cancel.is_set()))
 
         self.loading = True
         dlg = ProgressDialog(self, cancel, delay_ms=250, title="Speichern", first="Sichere und speichere …",

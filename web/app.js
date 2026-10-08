@@ -1,0 +1,691 @@
+/* MarKusSXCH TagStudio – Web-Oberfläche. Ohne Bibliotheken; alle Arbeit erledigt der Python-Kern. */
+"use strict";
+
+// ====================================================================== Verbindung zum Python-Kern
+const TOKEN = new URLSearchParams(location.hash.slice(1)).get("token") || "";
+// Mit Zugangsschlüssel in der Adresse: Browser-Modus (lokaler Server); sonst App-Fenster (pywebview).
+const pywebviewReady = new Promise((resolve) => {
+  if (TOKEN) return resolve(false);
+  if (window.pywebview && window.pywebview.api) return resolve(true);
+  window.addEventListener("pywebviewready", () => resolve(true));
+});
+
+async function call(name, ...args) {
+  if (await pywebviewReady) return window.pywebview.api[name](...args);
+  const res = await fetch("/api/" + name, {
+    method: "POST", headers: { "Content-Type": "application/json", "X-Token": TOKEN }, body: JSON.stringify(args),
+  });
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.error || "Fehler");
+  return j.result;
+}
+
+// ====================================================================== Hilfsfunktionen
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtN = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+const IS_MAC = /Mac/.test(navigator.platform);
+const ICON = {
+  left: '<svg class="i" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>',
+  right: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>',
+  note: '<svg class="i" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  edit: '<svg class="i" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  trash: '<svg class="i" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/></svg>',
+  copy: '<svg class="i" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+  link: '<svg class="i" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
+  folder: '<svg class="i" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>',
+  image: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>',
+};
+
+const S = {
+  settings: null, opts: {}, pairs: [], counts: {}, visible: [], cur: null,
+  chip: "all", advKeys: null, view: null, meta: {}, sel: new Set(), anchor: null, module: "compare",
+};
+
+// ====================================================================== Meldungen & Dialoge
+let toastTimer = null;
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (t.hidden = true), 3200);
+}
+
+function status(msg, tone = "info") {
+  if (!msg) return;
+  $("#statusText").textContent = msg;
+  $("#pendingDot").className = "dot " + ({ ok: "ok", warn: "warn" }[tone] || (S.meta.unsaved ? "pending" : ""));
+}
+
+function dialog({ title, text = "", buttons, area = null }) {
+  return new Promise((resolve) => {
+    const ov = $("#dialog");
+    $("#dlgTitle").textContent = title;
+    $("#dlgText").textContent = text;
+    const ta = $("#dlgArea");
+    ta.hidden = area === null;
+    if (area !== null) ta.value = area;
+    const box = $("#dlgBtns");
+    box.innerHTML = "";
+    const finish = (v) => { ov.hidden = true; document.removeEventListener("keydown", onKey, true); resolve(v); };
+    buttons.forEach((b) => {
+      const el = document.createElement("button");
+      el.className = b.primary ? "primary" : "ghost";
+      el.textContent = b.label;
+      el.addEventListener("click", () => finish(area !== null && b.value === true ? ta.value : b.value));
+      box.appendChild(el);
+    });
+    const onKey = (e) => {
+      if (e.key === "Escape") { e.preventDefault(); finish(null); }
+      if (e.key === "Enter" && area === null) { e.preventDefault(); const p = buttons.find((b) => b.primary); finish(p ? p.value : null); }
+    };
+    document.addEventListener("keydown", onKey, true);
+    ov.hidden = false;
+    (area !== null ? ta : box.querySelector(".primary") || box.lastChild).focus();
+  });
+}
+
+const info = (title, text) => dialog({ title, text, buttons: [{ label: "OK", value: true, primary: true }] });
+
+// ====================================================================== Hintergrund-Aufgaben
+async function runTask(startPromise, title) {
+  const r = await startPromise;
+  if (!r.ok) { await info("Hinweis", r.error); return null; }
+  const ov = $("#progress");
+  $("#progTitle").textContent = title;
+  $("#progText").textContent = "";
+  const bar = $("#progBar");
+  bar.classList.add("indet");
+  bar.style.width = "";
+  const showTimer = setTimeout(() => (ov.hidden = false), 250);
+  $("#progCancel").onclick = () => call("cancel_task");
+  for (;;) {
+    const t = await call("task_status");
+    if (t.total) {
+      bar.classList.remove("indet");
+      bar.style.width = Math.round((100 * t.i) / t.total) + "%";
+      $("#progText").textContent = `${fmtN(t.i)} von ${fmtN(t.total)} · ${t.text || ""}`;
+    } else {
+      $("#progText").textContent = t.text || "";
+    }
+    if (t.done) {
+      clearTimeout(showTimer);
+      ov.hidden = true;
+      if (t.error) { await info("Fehler", t.error); return null; }
+      return t.result;
+    }
+    await new Promise((res) => setTimeout(res, 120));
+  }
+}
+
+// ====================================================================== Start
+async function init() {
+  const st = await call("settings");
+  S.settings = st;
+  S.opts = st.options;
+  applyTheme();
+  $("#ver").textContent = "Version " + st.version + (st.native ? "" : " · Browser");
+  $("#mode").innerHTML = st.modes.map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("");
+  $("#mode").value = st.mode;
+  $("#recursive").checked = !!st.recursive;
+  fillHistory();
+  $("#pathL").value = st.start_paths[0] ?? st.hist_left[0] ?? "";
+  $("#pathR").value = st.start_paths[1] ?? (st.start_paths.length ? "" : st.hist_right[0] ?? "");
+  $("#emptySet").innerHTML = st.empty_sets.map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("");
+  $("#fOp").innerHTML = st.filter_ops.map((o) => `<option>${esc(o)}</option>`).join("");
+  $("#fSide").innerHTML = st.filter_sides.map((o) => `<option>${esc(o)}</option>`).join("");
+  bind();
+  syncOptions();
+  renderPairs();
+  showView(null);
+  if (st.start_paths.length) compare(true);
+}
+
+function fillHistory() {
+  const st = S.settings;
+  $("#histL").innerHTML = st.hist_left.map((h) => `<option value="${esc(h)}"></option>`).join("");
+  $("#histR").innerHTML = st.hist_right.map((h) => `<option value="${esc(h)}"></option>`).join("");
+}
+
+function applyTheme() {
+  const dark = S.opts.theme !== "light";
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  $("#themeLbl").textContent = dark ? "Helles Design" : "Dunkles Design";
+}
+
+function syncOptions() {
+  $$(".seg button").forEach((b) => b.classList.toggle("on", b.dataset.filter === S.opts.filter));
+  $("#trivBtn").classList.toggle("on", !!S.opts.show_trivial);
+  $("#coverBtn").classList.toggle("on", !!S.opts.show_covers);
+  $("#emptySet").value = S.opts.empty_set;
+}
+
+// ====================================================================== Laden
+async function confirmDiscard() {
+  const n = S.meta.unsaved || (await call("unsaved"));
+  if (!n) return true;
+  const v = await dialog({
+    title: "Ungespeicherte Änderungen",
+    text: `${n} Datei(en) haben ungespeicherte Änderungen.`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Verwerfen", value: "discard" }, { label: "Speichern", value: "save", primary: true }],
+  });
+  if (v === null) return false;
+  if (v === "save") return await save(true);
+  return true;
+}
+
+async function compare(skipConfirm = false, keep = false) {
+  if (!skipConfirm && !(await confirmDiscard())) return;
+  const lp = $("#pathL").value.trim(), rp = $("#pathR").value.trim();
+  const res = await runTask(call("start_load", lp, rp, $("#recursive").checked, $("#mode").value, keep), "Dateien einlesen");
+  if (!res) return;
+  if (res.cancelled) { status("Einlesen abgebrochen – bisherige Ansicht bleibt erhalten.", "warn"); return; }
+  S.settings = await call("settings");
+  fillHistory();
+  await loadPairs();
+  applyState(await call("state"));
+  status(res.pairs ? `${fmtN(res.pairs)} Paar${res.pairs === 1 ? "" : "e"} eingelesen.` : "Keine MP3-Dateien gefunden.", res.pairs ? "ok" : "warn");
+  if (res.errors && res.errors.length) {
+    await info(`${res.errors.length} Datei(en) nicht lesbar`, res.errors.slice(0, 30).join("\n") + (res.errors.length > 30 ? "\n…" : ""));
+  }
+  if ($("#adv").hidden === false) refreshFieldChoices();
+}
+
+async function loadPairs() {
+  const pr = await call("pair_rows");
+  S.pairs = pr.rows;
+  S.counts = pr.counts;
+  S.advKeys = null;
+  await applyPairFilter(false);
+}
+
+// ====================================================================== Paarliste
+const CHIPS = [["all", "Alle", null], ["diff", "≠", "diff"], ["triv", "≈", "triv"], ["same", "=", "same"], ["single", "◧", "single"]];
+const CHIP_TITLE = { all: "Alle Paare", diff: "Mit Unterschieden", triv: "Nur unwichtige Unterschiede", same: "Gleich", single: "Nur eine Seite vorhanden" };
+
+async function applyPairFilter(serverSide = true) {
+  const q = $("#pairQuery").value.trim();
+  const advOn = !$("#adv").hidden && $("#fField").value;
+  if (serverSide && (q || advOn)) {
+    const key = advOn ? $("#fField").value : null;
+    const idx = await call("filter_pairs", q, key, $("#fOp").value, $("#fVal").value, $("#fSide").value);
+    S.advKeys = new Set(idx);
+  } else if (!q && !advOn) {
+    S.advKeys = null;
+  }
+  S.visible = S.pairs.filter((p) => (S.chip === "all" || p.tag === S.chip) && (!S.advKeys || S.advKeys.has(p.i))).map((p) => p.i);
+  renderPairs();
+}
+
+function renderChips() {
+  const c = S.counts || {};
+  $("#pairChips").innerHTML = CHIPS.map(([k, sym, dot]) => {
+    const n = k === "all" ? S.pairs.length : c[k] || 0;
+    if (k !== "all" && !n) return "";
+    return `<button class="chip${S.chip === k ? " on" : ""}" data-chip="${k}" title="${esc(CHIP_TITLE[k])}">${dot ? `<span class="d d-${dot}"></span>` : ""}${k === "all" ? "Alle" : sym} ${fmtN(n)}</button>`;
+  }).join("");
+}
+
+const ROW_H = 52;
+function renderPairs() {
+  renderChips();
+  const n = S.visible.length, total = S.pairs.length;
+  $("#pairCount").textContent = total ? (n === total ? `${fmtN(total)} Paare` : `${fmtN(n)} von ${fmtN(total)}`) : "–";
+  $("#pairsPane").hidden = total <= 1;
+  const inner = $("#pairsInner");
+  inner.style.height = n * ROW_H + "px";
+  drawPairWindow();
+}
+
+function drawPairWindow() {
+  const sc = $("#pairsScroll"), inner = $("#pairsInner");
+  const n = S.visible.length;
+  if (!S.pairs.length) { inner.innerHTML = ""; return; }
+  if (!n) { inner.innerHTML = '<div class="pairs-empty">Keine Paare passen zum Filter.</div>'; return; }
+  const first = Math.max(0, Math.floor(sc.scrollTop / ROW_H) - 5);
+  const last = Math.min(n, Math.ceil((sc.scrollTop + sc.clientHeight) / ROW_H) + 5);
+  let html = "";
+  for (let k = first; k < last; k++) {
+    const p = S.pairs[S.visible[k]];
+    const name = p.left || p.right;
+    const other = p.left && p.right && p.left !== p.right ? ` · ↔ ${p.right}` : "";
+    html += `<button class="pair${p.i === S.cur ? " cur" : ""}" style="top:${k * ROW_H}px" data-i="${p.i}" title="${esc(p.left)}${p.right && p.right !== p.left ? "\n↔ " + esc(p.right) : ""}">
+      <span class="d d-${p.tag}"></span><span class="t"><span class="n">${esc(name)}</span><span class="s">${esc(p.info + other)}</span></span>${p.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</button>`;
+  }
+  inner.innerHTML = html;
+}
+
+function scrollPairIntoView(i) {
+  const k = S.visible.indexOf(i);
+  if (k < 0) return;
+  const sc = $("#pairsScroll");
+  const top = k * ROW_H;
+  if (top < sc.scrollTop) sc.scrollTop = top;
+  else if (top + ROW_H > sc.scrollTop + sc.clientHeight) sc.scrollTop = top + ROW_H - sc.clientHeight;
+  drawPairWindow();
+}
+
+async function selectPair(i) {
+  if (i === S.cur) return;
+  S.sel.clear();
+  S.anchor = null;
+  applyState(await call("select", i));
+  scrollPairIntoView(i);
+}
+
+async function refreshFieldChoices() {
+  const ch = await call("field_choices");
+  const cur = $("#fField").value;
+  $("#fField").innerHTML = ch.map(([lbl, key]) => `<option value="${esc(key ?? "")}">${esc(lbl)}</option>`).join("");
+  $("#fField").value = cur;
+}
+
+// ====================================================================== Zustand anwenden
+function applyState(st) {
+  if (!st) return;
+  if (st.ask) return st; // Rückfrage nötig
+  S.meta = st.meta || S.meta;
+  S.opts = st.options || S.opts;
+  if (st.pair) {
+    const k = S.pairs.findIndex((p) => p.i === st.pair.i);
+    if (k >= 0) {
+      const old = S.pairs[k];
+      if (old.tag !== st.pair.tag) { S.counts[old.tag]--; S.counts[st.pair.tag] = (S.counts[st.pair.tag] || 0) + 1; }
+      S.pairs[k] = st.pair;
+    }
+  }
+  showView(st.view);
+  syncOptions();
+  renderMeta();
+  renderChips();
+  drawPairWindow();
+  if (st.message) status(st.message, st.tone);
+  return st;
+}
+
+function renderMeta() {
+  const m = S.meta;
+  $("#undoBtn").disabled = !m.can_undo;
+  $("#redoBtn").disabled = !m.can_redo;
+  $("#undoBtn").title = m.can_undo ? `Rückgängig: ${m.undo_label}` : "Rückgängig";
+  $("#redoBtn").title = m.can_redo ? `Wiederholen: ${m.redo_label}` : "Wiederholen";
+  $("#saveLbl").textContent = m.unsaved ? `Speichern (${m.unsaved})` : "Speichern";
+  $("#saveBtn").disabled = !m.unsaved;
+  $("#pendingDot").className = "dot" + (m.unsaved ? " pending" : "");
+  if (!m.unsaved && /ungespeichert|noch nicht gespeichert/.test($("#statusText").textContent)) status("Keine ungespeicherten Änderungen.");
+}
+
+// ====================================================================== Vergleichsansicht
+function showView(v) {
+  S.view = v;
+  S.cur = v ? v.index : null;
+  const has = v && (v.left || v.right);
+  $("#emptyState").hidden = !!has;
+  $("#cmp").hidden = !has;
+  if (!has) return;
+  renderHead($("#headL"), v.left, "L");
+  renderHead($("#headR"), v.right, "R");
+  const c = v.counts;
+  $("#summary").textContent = v.both ? `${c.diff} wichtig · ${c.only} nur eine Seite · ${c.triv} unwichtig` : "Nur eine Seite – Tags können bearbeitet werden";
+  $$("[data-copyall],[data-missing]").forEach((b) => (b.disabled = !v.both));
+  renderRows();
+}
+
+function renderHead(el, h, side) {
+  if (!h) { el.innerHTML = '<div class="head-missing">— keine Datei —</div>'; return; }
+  const covers = h.covers.length
+    ? `<div class="covers">${h.covers.slice(0, 2).map((c) => `<button class="cover${c.differs ? " diff" : ""}" data-cover="${side}|${esc(c.key)}" title="${esc(c.label + " · " + c.desc + (c.differs ? " · unterscheidet sich" : ""))}" aria-label="${esc(c.label)} anzeigen">${c.src ? `<img src="${c.src}" alt="">` : ICON.image}</button>`).join("")}</div>`
+    : S.opts.show_covers ? `<div class="covers"><div class="cover" title="kein Cover">${ICON.note}</div></div>` : "";
+  // Datum/Größe nur im Tooltip; als Etiketten: ID3-Version, Dauer, Bitrate, Abtastrate, Kanäle
+  const parts = h.info.split(/\s{2,}/).filter(Boolean).slice(2);
+  el.innerHTML = `${covers}<div class="head-t"><div class="head-n" title="${esc(h.path + "\n" + h.info.split(/\s{2,}/).join(" · "))}">${esc(h.name)}${h.modified ? '<span class="m" title="ungespeicherte Änderungen"></span>' : ""}</div>
+    <div class="tags">${parts.map((p) => `<span>${esc(p)}</span>`).join("")}</div></div>`;
+}
+
+function valueHtml(cell, state) {
+  if (!cell) return '<span class="empty"></span>';
+  if (!cell.present) return state === "only" ? '<span class="miss">— fehlt —</span>' : '<span class="empty"></span>';
+  const s = cell.text;
+  if (!s) return (cell.mod ? '<span class="mod"></span>' : "") + '<span class="empty">(leer)</span>';
+  const n = s.length, chg = new Uint8Array(n), url = new Array(n).fill(null);
+  for (const [a, b] of cell.spans) for (let i = a; i < Math.min(b, n); i++) chg[i] = 1;
+  for (const [a, b, u] of cell.links) for (let i = a; i < Math.min(b, n); i++) url[i] = u;
+  let out = cell.mod ? '<span class="mod" title="geändert, noch nicht gespeichert"></span>' : "";
+  let start = 0;
+  const cls = state === "triv" ? "tv" : "hl";
+  for (let i = 1; i <= n; i++) {
+    if (i === n || chg[i] !== chg[start] || url[i] !== url[start]) {
+      let piece = esc(s.slice(start, i));
+      if (chg[start]) piece = `<span class="${cls}">${piece}</span>`;
+      if (url[start]) piece = `<a data-url="${esc(url[start])}" title="${esc(url[start])} öffnen">${piece}</a>`;
+      out += piece;
+      start = i;
+    }
+  }
+  return out;
+}
+
+function renderRows() {
+  const v = S.view;
+  const body = $("#tbody");
+  if (!v.rows.length) {
+    body.innerHTML = `<div class="table-empty">${S.opts.filter === "diff" ? "Keine Unterschiede." : "Keine Felder."}</div>`;
+    return;
+  }
+  body.innerHTML = v.rows.map((r, n) => {
+    const canCopy = v.both && r.state !== "same" && r.state !== "empty";
+    const ed = (c) => (c && c.editable ? "" : " noedit");
+    return `<div class="tr ${r.state}${S.sel.has(r.key) ? " sel" : ""}" data-n="${n}" data-key="${esc(r.key)}">
+      <div class="f"><span class="f-n"><span title="${esc(r.label)}">${esc(r.label)}</span></span><span class="f-id" title="${esc(r.key)}">${esc(r.fid)}</span></div>
+      <div class="v${ed(r.L)}" data-side="L">${valueHtml(r.L, r.state)}</div>
+      <div class="acts">${canCopy ? `<button class="arrow" data-dir="rl" title="Rechten Wert nach links übernehmen" aria-label="${esc(r.label)} nach links übernehmen">${ICON.left}</button><button class="arrow" data-dir="lr" title="Linken Wert nach rechts übernehmen" aria-label="${esc(r.label)} nach rechts übernehmen">${ICON.right}</button>` : ""}</div>
+      <div class="v r${ed(r.R)}" data-side="R">${valueHtml(r.R, r.state)}</div>
+    </div>`;
+  }).join("");
+}
+
+function paintSelection() {
+  $$("#tbody .tr").forEach((tr) => tr.classList.toggle("sel", S.sel.has(tr.dataset.key)));
+}
+
+function rowKeys() { return S.view ? S.view.rows.map((r) => r.key) : []; }
+function selectedKeys() { return rowKeys().filter((k) => S.sel.has(k)); }
+
+// ====================================================================== Bearbeiten
+function startEdit(tr, side) {
+  const r = S.view.rows[+tr.dataset.n];
+  const cell = r[side];
+  if (!cell || !cell.editable) {
+    if (r.key.startsWith("APIC") && cell && cell.present) return openCover(side, r.key);
+    if (cell && cell.present) toast(`„${r.label}“ ist ein Binärfeld und kann nur kopiert oder entfernt werden.`);
+    return;
+  }
+  if (cell.multiline) return editDialog(r, side, cell.edit);
+  const box = tr.querySelector(`.v[data-side="${side}"]`);
+  const input = document.createElement("input");
+  input.className = "edit";
+  input.value = cell.edit;
+  input.setAttribute("aria-label", `${r.label} ${side === "L" ? "links" : "rechts"} bearbeiten`);
+  box.innerHTML = "";
+  box.appendChild(input);
+  input.focus();
+  input.select();
+  let done = false;
+  const finish = async (commit, next) => {
+    if (done) return;
+    done = true;
+    if (commit && input.value !== cell.edit) applyState(await call("set_value", side, r.key, input.value));
+    else box.innerHTML = valueHtml(cell, r.state);
+    if (next) {
+      const rows = $$("#tbody .tr");
+      for (let k = +tr.dataset.n + next; k >= 0 && k < rows.length; k += next) {
+        const c = S.view.rows[k][side];
+        if (c && c.editable && !c.multiline) { startEdit(rows[k], side); break; }
+      }
+    } else $("#table").focus();
+  };
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); finish(true); }
+    else if (e.key === "Escape") { e.preventDefault(); finish(false); }
+    else if (e.key === "Tab") { e.preventDefault(); finish(true, e.shiftKey ? -1 : 1); }
+    e.stopPropagation();
+  });
+  input.addEventListener("blur", () => finish(true));
+}
+
+async function editDialog(r, side, text) {
+  const v = await dialog({
+    title: `${r.label} – ${side === "L" ? "links" : "rechts"}`, area: text,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
+  });
+  if (v !== null && v !== text) applyState(await call("set_value", side, r.key, v));
+}
+
+// ====================================================================== Kopieren & Co.
+async function copyKeys(keys, dir) {
+  if (!keys.length) { toast("Bitte zuerst Felder markieren (Klick, Shift/Strg-Klick)."); return; }
+  applyState(await call("copy_keys", keys, dir));
+}
+
+async function copyAll(dir) {
+  let st = await call("copy_all", dir, null);
+  if (st && st.ask) {
+    const a = st.ask;
+    const v = await dialog({
+      title: "Felder nur im Ziel",
+      text: `${a.count} Feld(er) gibt es nur im Ziel:\n\n${a.labels.map((l) => "• " + l).join("\n")}${a.more ? `\n… und ${a.more} weitere` : ""}\n\nSollen diese im Ziel entfernt werden, damit beide Seiten gleich sind?`,
+      buttons: [{ label: "Abbrechen", value: null }, { label: "Behalten", value: false }, { label: "Entfernen", value: true, primary: true }],
+    });
+    if (v === null) return;
+    st = await call("copy_all", dir, v);
+  }
+  applyState(st);
+}
+
+async function save(fromConfirm = false) {
+  if (!S.meta.unsaved && !fromConfirm) { status("Keine ungespeicherten Änderungen.", "ok"); return true; }
+  const res = await runTask(call("start_save"), "Speichern");
+  if (!res) return false;
+  await loadPairs();
+  applyState(await call("state"));
+  const b = res.backup ? ` · Sicherung: ${res.backup.split(/[\\/]/).pop()}` : "";
+  if (res.errors.length) {
+    status(`${res.saved} gespeichert, ${res.errors.length} Fehler.${b}`, "warn");
+    await info("Fehler beim Speichern", res.errors.slice(0, 30).join("\n"));
+  } else if (res.cancelled) {
+    status(`Abgebrochen – ${res.saved} Datei(en) gespeichert.${b}`, "warn");
+  } else {
+    status(`${res.saved} Datei(en) gespeichert.${b}`, "ok");
+  }
+  return !res.errors.length && !res.cancelled;
+}
+
+function openCover(side, key) {
+  const h = side === "L" ? S.view.left : S.view.right;
+  const c = h && h.covers.find((x) => x.key === key);
+  if (!c || !c.src) { toast("Für dieses Bild gibt es keine Vorschau."); return; }
+  $("#coverImg").src = c.src;
+  $("#coverCap").textContent = `${c.label} · ${c.desc} · ${h.name}`;
+  $("#coverView").hidden = false;
+}
+
+// ====================================================================== Kontextmenü
+function showMenu(x, y, items) {
+  const m = $("#menu");
+  m.innerHTML = "";
+  items.forEach((it) => {
+    if (it === "-") { m.appendChild(document.createElement("hr")); return; }
+    const b = document.createElement("button");
+    b.setAttribute("role", "menuitem");
+    b.innerHTML = (it.icon || "") + esc(it.label);
+    b.addEventListener("click", () => { hideMenu(); it.run(); });
+    m.appendChild(b);
+  });
+  m.hidden = false;
+  const r = m.getBoundingClientRect();
+  m.style.left = Math.min(x, innerWidth - r.width - 8) + "px";
+  m.style.top = Math.min(y, innerHeight - r.height - 8) + "px";
+  m.querySelector("button")?.focus();
+}
+function hideMenu() { $("#menu").hidden = true; }
+
+function rowMenu(e, tr) {
+  const r = S.view.rows[+tr.dataset.n];
+  if (!S.sel.has(r.key)) { S.sel = new Set([r.key]); S.anchor = r.key; paintSelection(); }
+  const keys = selectedKeys();
+  const sideEl = e.target.closest(".v");
+  const side = sideEl ? sideEl.dataset.side : null;
+  const items = [];
+  if (S.view.both) {
+    items.push({ label: `Markierte nach rechts (${keys.length})`, icon: ICON.right, run: () => copyKeys(keys, "lr") });
+    items.push({ label: `Markierte nach links (${keys.length})`, icon: ICON.left, run: () => copyKeys(keys, "rl") });
+    items.push("-");
+  }
+  for (const sd of side ? [side] : ["L", "R"]) {
+    const cell = r[sd];
+    const name = sd === "L" ? "links" : "rechts";
+    if (cell && cell.editable) items.push({ label: `Bearbeiten (${name})`, icon: ICON.edit, run: () => startEdit(tr, sd) });
+    if (cell && keys.some((k) => { const rr = S.view.rows.find((x) => x.key === k); return rr && rr[sd] && rr[sd].present; }))
+      items.push({ label: `Markierte ${name} entfernen`, icon: ICON.trash, run: async () => applyState(await call("remove", sd, keys)) });
+  }
+  const cell = side ? r[side] : null;
+  if (cell && cell.present) {
+    items.push("-");
+    items.push({ label: "Wert kopieren", icon: ICON.copy, run: () => navigator.clipboard?.writeText(cell.text).then(() => toast("Wert kopiert.")) });
+    cell.links.forEach(([, , u]) => items.push({ label: `Link öffnen: ${u.length > 40 ? u.slice(0, 40) + "…" : u}`, icon: ICON.link, run: () => call("open_url", u) }));
+    if (r.key.startsWith("APIC")) items.push({ label: "Bild anzeigen", icon: ICON.image, run: () => openCover(side, r.key) });
+    const h = side === "L" ? S.view.left : S.view.right;
+    if (h) items.push({ label: IS_MAC ? "Im Finder zeigen" : "Im Explorer zeigen", icon: ICON.folder, run: () => call("reveal", h.path) });
+  }
+  if (S.meta.unsaved && (S.view.left?.modified || S.view.right?.modified)) {
+    items.push("-");
+    items.push({ label: "Änderungen an diesem Paar verwerfen", icon: ICON.trash, run: async () => applyState(await call("revert_pair")) });
+  }
+  showMenu(e.clientX, e.clientY, items);
+}
+
+// ====================================================================== Ereignisse
+let pairQueryTimer = null;
+function bind() {
+  $("#compareBtn").addEventListener("click", () => compare());
+  ["#pathL", "#pathR"].forEach((s) => $(s).addEventListener("keydown", (e) => { if (e.key === "Enter") compare(); }));
+  $$("[data-pick]").forEach((b) => b.addEventListener("click", async () => {
+    const side = b.dataset.pick, inp = side === "L" ? $("#pathL") : $("#pathR");
+    const p = await call("pick_path", side, b.dataset.folder === "1", inp.value.trim());
+    if (p) {
+      inp.value = p;
+      const other = side === "L" ? $("#pathR") : $("#pathL");
+      if (other.value.trim()) compare();
+    } else if (!S.settings.native) {
+      toast("Pfad bitte direkt ins Feld eintippen oder einfügen.");
+    }
+  }));
+  $("#swapBtn").addEventListener("click", async () => {
+    if (!(await confirmDiscard())) return;
+    const l = $("#pathL").value; $("#pathL").value = $("#pathR").value; $("#pathR").value = l;
+    if (S.pairs.length) compare(true, true);
+  });
+  $("#themeBtn").addEventListener("click", async () => {
+    S.opts.theme = S.opts.theme === "light" ? "dark" : "light";
+    applyTheme();
+    await call("set_option", "theme", S.opts.theme);
+  });
+  $$(".nav[data-module]").forEach((b) => b.addEventListener("click", () => setModule(b.dataset.module)));
+
+  // Paarliste
+  $("#pairsScroll").addEventListener("scroll", () => requestAnimationFrame(drawPairWindow));
+  $("#pairsInner").addEventListener("click", (e) => { const b = e.target.closest(".pair"); if (b) selectPair(+b.dataset.i); });
+  $("#pairsScroll").addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    e.preventDefault();
+    const k = S.visible.indexOf(S.cur);
+    const nk = Math.max(0, Math.min(S.visible.length - 1, k + (e.key === "ArrowDown" ? 1 : -1)));
+    if (S.visible[nk] !== undefined) selectPair(S.visible[nk]);
+  });
+  $("#pairChips").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (c) { S.chip = c.dataset.chip; applyPairFilter(false); } });
+  $("#pairQuery").addEventListener("input", () => { clearTimeout(pairQueryTimer); pairQueryTimer = setTimeout(() => applyPairFilter(true), 250); });
+  $("#advToggle").addEventListener("click", async () => {
+    const adv = $("#adv");
+    adv.hidden = !adv.hidden;
+    $("#advToggle").setAttribute("aria-expanded", String(!adv.hidden));
+    $("#advToggle").textContent = adv.hidden ? "Erweiterter Filter" : "Erweiterten Filter ausblenden";
+    if (!adv.hidden) await refreshFieldChoices();
+    applyPairFilter(true);
+  });
+  ["#fField", "#fOp", "#fSide"].forEach((s) => $(s).addEventListener("change", () => applyPairFilter(true)));
+  $("#fVal").addEventListener("input", () => { clearTimeout(pairQueryTimer); pairQueryTimer = setTimeout(() => applyPairFilter(true), 300); });
+  $("#fReset").addEventListener("click", () => { $("#fField").value = ""; $("#fVal").value = ""; $("#fOp").selectedIndex = 0; $("#fSide").selectedIndex = 0; applyPairFilter(true); });
+
+  // Optionen
+  $$(".seg button").forEach((b) => b.addEventListener("click", async () => applyState(await call("set_option", "filter", b.dataset.filter))));
+  $("#trivBtn").addEventListener("click", async () => applyState(await call("set_option", "show_trivial", !S.opts.show_trivial)));
+  $("#coverBtn").addEventListener("click", async () => applyState(await call("set_option", "show_covers", !S.opts.show_covers)));
+  $("#emptySet").addEventListener("change", async (e) => applyState(await call("set_option", "empty_set", e.target.value)));
+  let fq = null;
+  $("#fieldQuery").addEventListener("input", (e) => { clearTimeout(fq); fq = setTimeout(async () => applyState(await call("set_option", "query", e.target.value)), 200); });
+  $$("[data-copyall]").forEach((b) => b.addEventListener("click", () => copyAll(b.dataset.copyall)));
+  $$("[data-missing]").forEach((b) => b.addEventListener("click", async () => applyState(await call("copy_missing", b.dataset.missing))));
+
+  // Tabelle
+  const tb = $("#tbody");
+  tb.addEventListener("click", async (e) => {
+    const a = e.target.closest("a[data-url]");
+    if (a && !e.shiftKey && !e.ctrlKey && !e.metaKey) { e.preventDefault(); call("open_url", a.dataset.url); return; }
+    const tr = e.target.closest(".tr");
+    if (!tr) return;
+    const arrow = e.target.closest(".arrow");
+    if (arrow) { copyKeys([tr.dataset.key], arrow.dataset.dir); return; }
+    if (e.target.closest(".edit")) return;
+    const key = tr.dataset.key, keys = rowKeys();
+    if (e.shiftKey && S.anchor) {
+      const a1 = keys.indexOf(S.anchor), b1 = keys.indexOf(key);
+      S.sel = new Set(keys.slice(Math.min(a1, b1), Math.max(a1, b1) + 1));
+    } else if (e.ctrlKey || e.metaKey) {
+      S.sel.has(key) ? S.sel.delete(key) : S.sel.add(key);
+      S.anchor = key;
+    } else {
+      S.sel = new Set([key]);
+      S.anchor = key;
+    }
+    paintSelection();
+  });
+  tb.addEventListener("dblclick", (e) => {
+    const v = e.target.closest(".v"), tr = e.target.closest(".tr");
+    if (v && tr && !e.target.closest(".edit")) startEdit(tr, v.dataset.side);
+  });
+  tb.addEventListener("contextmenu", (e) => { const tr = e.target.closest(".tr"); if (tr) { e.preventDefault(); rowMenu(e, tr); } });
+  $("#headL").addEventListener("click", (e) => { const c = e.target.closest("[data-cover]"); if (c) openCover(...c.dataset.cover.split("|")); });
+  $("#headR").addEventListener("click", (e) => { const c = e.target.closest("[data-cover]"); if (c) openCover(...c.dataset.cover.split("|")); });
+  $("#coverView").addEventListener("click", () => ($("#coverView").hidden = true));
+  document.addEventListener("click", (e) => { if (!e.target.closest("#menu")) hideMenu(); });
+
+  // Aktionsleiste
+  $("#undoBtn").addEventListener("click", async () => applyState(await call("undo")));
+  $("#redoBtn").addEventListener("click", async () => applyState(await call("redo")));
+  $("#saveBtn").addEventListener("click", () => save());
+
+  // Tastatur
+  document.addEventListener("keydown", async (e) => {
+    const mod = e.ctrlKey || e.metaKey;
+    const inField = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "");
+    if (e.key === "Escape") { hideMenu(); $("#coverView").hidden = true; }
+    if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); save(); return; }
+    if (inField) return;
+    if (mod && e.key.toLowerCase() === "z" && !e.shiftKey) { e.preventDefault(); applyState(await call("undo")); }
+    else if (mod && (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey))) { e.preventDefault(); applyState(await call("redo")); }
+    else if (mod && e.key.toLowerCase() === "a" && S.view) { e.preventDefault(); S.sel = new Set(rowKeys()); paintSelection(); }
+    else if (e.altKey && e.key === "ArrowRight") { e.preventDefault(); copyKeys(selectedKeys(), "lr"); }
+    else if (e.altKey && e.key === "ArrowLeft") { e.preventDefault(); copyKeys(selectedKeys(), "rl"); }
+    else if (e.key === "F5") { e.preventDefault(); compare(false, true); }
+    else if ((e.key === "ArrowDown" || e.key === "ArrowUp") && S.view && document.activeElement === $("#table")) {
+      e.preventDefault();
+      const keys = rowKeys();
+      let k = keys.indexOf(S.anchor) + (e.key === "ArrowDown" ? 1 : -1);
+      k = Math.max(0, Math.min(keys.length - 1, k));
+      S.sel = new Set([keys[k]]); S.anchor = keys[k]; paintSelection();
+      $(`#tbody .tr[data-n="${k}"]`)?.scrollIntoView({ block: "nearest" });
+    } else if ((e.key === "Enter" || e.key === "F2") && S.anchor && document.activeElement === $("#table")) {
+      const tr = $(`#tbody .tr[data-key="${CSS.escape(S.anchor)}"]`);
+      if (tr) { e.preventDefault(); startEdit(tr, "L"); }
+    }
+  });
+  window.addEventListener("beforeunload", (e) => { if (S.meta.unsaved && !S.settings.native) { e.preventDefault(); e.returnValue = ""; } });
+}
+
+const MODULES = {
+  tagger: ["Tagger", "Der Tagger kommt als Nächstes in die neue Oberfläche. Bis dahin: Einzelne Dateien lassen sich im Vergleich bearbeiten, wenn nur eine Seite gewählt ist."],
+  fixer: ["Tag-Fixer", "Der Tag-Fixer für Mehrfachwerte folgt in der neuen Oberfläche. Bis dahin ist er in der klassischen Oberfläche (start_windows.bat / start_mac.command) verfügbar."],
+  backups: ["Sicherungen", "Vor jedem Speichern werden die bisherigen Tags automatisch gesichert. Wiederherstellen geht vorerst in der klassischen Oberfläche über „⟲ Sicherungen“."],
+  db: ["Datenbank", "Das Datenbank-Modul ist geplant."],
+};
+function setModule(m) {
+  S.module = m;
+  $$(".nav[data-module]").forEach((b) => { b.classList.toggle("active", b.dataset.module === m); b.toggleAttribute("aria-current", b.dataset.module === m); });
+  $("#moduleCompare").hidden = m !== "compare";
+  $("#modulePlaceholder").hidden = m === "compare";
+  if (m !== "compare") { $("#phTitle").textContent = MODULES[m][0]; $("#phText").textContent = MODULES[m][1]; }
+}
+
+init().catch((e) => { console.error(e); info("Start fehlgeschlagen", String(e && e.message ? e.message : e)); });

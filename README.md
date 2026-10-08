@@ -17,6 +17,26 @@ Keine Zusatzpakete nötig, nur Python 3.9 oder neuer.
   Homebrew-Python braucht zusätzlich `brew install python-tk`.
 - Terminal: `python3 tagstudio.py [links] [rechts]` – Ordner oder Dateien.
 
+## Neue Oberfläche (Version 3, in Arbeit)
+
+Zusätzlich zur klassischen Oberfläche gibt es eine moderne Oberfläche – gleicher Kern, gleiche Einstellungen,
+beide lassen sich abwechselnd verwenden.
+
+- **Start:** Doppelklick auf `start_web_windows.bat` bzw. `start_web_mac.command`. Beim ersten Mal wird
+  `pywebview` installiert (klein, Internet nötig). Danach öffnet sich ein eigenes App-Fenster.
+  Ohne pywebview öffnet sich dieselbe Oberfläche im Browser (`python tagstudio_web.py --browser`).
+- **Schon dabei:** Pfade mit Verlauf und Ordner-/Dateiauswahl, Zuordnung, Unterordner; Paarliste mit
+  Status-Filtern (≠ ≈ = ◧), Suche in Dateinamen und Werten, erweiterter Filter nach Feld/Bedingung/Seite;
+  Vergleich mit zeichengenauen Markierungen, Pfeil-Knöpfen pro Feld, Alles/Fehlende nach links/rechts,
+  Mehrfachauswahl (Klick, Shift, Strg/Cmd), Bearbeiten per Doppelklick (Tab = nächstes Feld, Mehrfachwerte mit ¦),
+  Kontextmenü (kopieren, bearbeiten, entfernen, Link öffnen, im Explorer/Finder zeigen), klickbare Links,
+  Cover-Vorschau mit Großansicht, Filter Alle/Unterschiede/Gleiche, Unwichtige, leere Felder, Feldsuche,
+  Rückgängig/Wiederholen, Speichern mit automatischer Sicherung, Hell/Dunkel.
+- **Folgt:** Tagger, Tag-Fixer, Sicherungen wiederherstellen, Sammelkopie, Felder hinzufügen, Cover ersetzen –
+  bis dahin in der klassischen Oberfläche.
+- **Tastatur:** Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte
+  kopieren · Strg/Cmd+A alle Felder markieren · F5 neu einlesen · ↑/↓ in Paarliste und Tabelle.
+
 ## Oberfläche
 
 - **Oben:** Werkzeugleiste. Darunter links und rechts der Pfad (Ordner oder Datei, mit Verlauf)
@@ -164,7 +184,11 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 
 ## Dateien
 
-- `tagstudio.py` – Oberfläche (tkinter), Programmstart
+- `tagstudio.py` – klassische Oberfläche (tkinter), Programmstart
+- `tagstudio_web.py` + `web/` – neue Oberfläche (HTML/CSS/JS im App-Fenster über pywebview, sonst im Browser)
+- `core.py` – gemeinsame Logik beider Oberflächen: Anzeige, Zeichen-Diff, Filter, Laden, Speichern, Einstellungen
+- `session.py` – Zustand und Befehle einer Sitzung für die neue Oberfläche
+- `undo.py` – Rückgängig/Wiederholen
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)
 - `backup.py` – Sicherung und Wiederherstellung der Tags

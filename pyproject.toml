@@ -10,3 +10,5 @@ dependencies = []  # bewusst keine Zusatzpakete – nur Python-Standardbibliothe
 [project.optional-dependencies]
 # Optional: schnellere/zuverlässigere Cover-Vorschau
 covers = ["Pillow"]
+# Neue Oberfläche im eigenen Fenster (tagstudio_web.py); ohne pywebview öffnet sie sich im Browser
+web = ["pywebview>=5"]
