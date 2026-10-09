@@ -39,6 +39,9 @@ ACTIONS = [{
     ],
 }]
 
+# Wie viele Fortschrittsbalken ein Titel durchläuft (Demucs: Modelle × 2 Verschiebungen) – nur für die Anzeige
+PASSES = {"htdemucs_ft.yaml": 8, "htdemucs.yaml": 2, "htdemucs_6s.yaml": 2}
+
 _STEM_RE = re.compile(r"_\(([^)]+)\)")
 
 
@@ -111,7 +114,26 @@ def run(action, ctx, files, opts):
     with open(job_path, "w", encoding="utf-8") as fh:
         json.dump(job, fh, ensure_ascii=False)
 
-    state = {"done": 0, "made": 0, "fatal": "", "failed": 0}
+    state = {"done": 0, "made": 0, "fatal": "", "failed": 0, "i": None, "seg": 0, "last": 0.0, "frac": 0.0}
+    passes = PASSES.get(job["model"], 1)
+
+    def on_tick(ev):
+        """Fortschritt innerhalb eines Titels (Demucs rechnet mehrere Durchgänge, jeder mit eigenem Balken)."""
+        f = ev["n"] / ev["total"] if ev.get("total") else 0.0
+        unit = ev.get("unit", "")
+        if state["i"] is None:            # vor dem ersten Titel: Modell-Download
+            if unit.lower().endswith("b"):
+                mb = ev["total"] / 1e6
+                ctx.status(f"Lade Modell herunter … {round(100 * f)} % von {mb:.0f} MB")
+            return
+        if f + 0.3 < state["last"]:       # neuer Balken → nächster Durchgang
+            state["seg"] += 1
+        state["last"] = f
+        expect = max(passes, state["seg"] + 1)
+        frac = min(0.99, max(state["frac"], (state["seg"] + f) / expect))
+        state["frac"] = frac
+        name = os.path.basename(todo[state["i"]].path)
+        ctx.progress(state["i"], len(todo), f"Trenne {name} · {round(100 * frac)} %", frac)
 
     def on_line(line):
         if not line.startswith("@@"):
@@ -125,9 +147,15 @@ def run(action, ctx, files, opts):
             ctx.status(ev.get("msg", ""))
         elif kind == "warn":
             ctx.log("Hinweis: " + ev.get("msg", ""))
+        elif kind == "tick":
+            on_tick(ev)
+        elif kind == "loaded":
+            ctx.status("Modell geladen – starte Trennung …")
         elif kind == "start":
-            ctx.progress(ev["i"], len(todo), "Trenne " + os.path.basename(ev["path"]))
+            state.update(i=ev["i"], seg=0, last=0.0, frac=0.0)
+            ctx.progress(ev["i"], len(todo), "Trenne " + os.path.basename(ev["path"]), 0.0)
         elif kind == "done":
+            ctx.progress(ev["i"] + 1, len(todo), "Fertig: " + os.path.basename(ev["path"]))
             f = todo[ev["i"]]
             dest = None
             for src in ev.get("outputs", []):

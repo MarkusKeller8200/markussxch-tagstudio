@@ -110,7 +110,7 @@ Die zuletzt benutzten Werte merkt sich TagStudio pro Aktion.
 
 | | |
 |---|---|
-| `ctx.progress(i, total, text)` | Fortschrittsbalken; prüft dabei auf Abbruch |
+| `ctx.progress(i, total, text, frac=None)` | Fortschrittsbalken; prüft dabei auf Abbruch. `frac` (0–1) = Anteil des gerade laufenden Elements, damit der Balken auch bei langen Einzelschritten weiterläuft |
 | `ctx.status(text)` | Statuszeile im Fortschrittsfenster |
 | `ctx.cancelled()` / `ctx.check_cancel()` | Abbruch abfragen / bei Abbruch beenden |
 | `ctx.log(text)` | Zeile ins Protokoll (wird nach dem Lauf angezeigt) |

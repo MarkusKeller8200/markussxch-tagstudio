@@ -6,6 +6,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Behoben
+- **Stems:** Der Fortschrittsbalken blieb während der Trennung eines Titels auf 0 stehen (er sprang erst nach dem
+  ganzen Titel weiter – bei einem einzelnen Titel also nie). Jetzt zeigt er den Fortschritt innerhalb des Titels in
+  Prozent (alle Demucs-Durchgänge), beim ersten Gebrauch auch den Modell-Download in Prozent und MB.
+- Plugin-API: `ctx.progress(i, total, text, frac)` – `frac` (0–1) = Anteil des gerade laufenden Elements.
+
 ### Geändert
 - **Beatport:** Die Vorschau zeigt jetzt **alle Felder, die Beatport liefert** – auch solche, die schon gleich sind
   (grau mit „=“, nicht wählbar), in den Optionen abgewählte (ungehakt, bei Bedarf anhakbar) und ein verfügbares Cover

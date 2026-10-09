@@ -106,8 +106,11 @@ async function runTask(startPromise, title) {
     const t = await call("task_status");
     if (t.total) {
       bar.classList.remove("indet");
-      bar.style.width = Math.round((100 * t.i) / t.total) + "%";
-      $("#progText").textContent = `${fmtN(t.i)} von ${fmtN(t.total)} · ${t.text || ""}`;
+      const frac = t.frac || 0;   // Anteil des laufenden Elements (z. B. Stems eines Titels)
+      bar.style.width = Math.min(100, Math.round((100 * (t.i + frac)) / t.total)) + "%";
+      $("#progText").textContent = frac
+        ? `${fmtN(Math.min(t.i + 1, t.total))} von ${fmtN(t.total)} · ${t.text || ""}`
+        : `${fmtN(t.i)} von ${fmtN(t.total)} · ${t.text || ""}`;
     } else {
       $("#progText").textContent = t.text || "";
     }

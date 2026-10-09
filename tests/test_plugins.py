@@ -309,6 +309,36 @@ class TestStems(PluginBase):
         s.start_plugin_action("stems", "separate", [0], {"dest": "folder", "folder": ""})
         self.assertIn("Ordner", self.wait(s)["error"])
 
+    def test_progress_within_title(self):
+        """3.0.2: Fortschritt bewegt sich während eines Titels (tqdm-Balken → Ereignis „tick“), statt bei 0 zu stehen."""
+        self.fake_env()
+        s = self.session()
+        p = s.plugins.get("stems")
+        p.load()
+        seen = []
+        ctx = plugins.Context(p, progress=seen.append)
+        f = s.tag_files[0]
+
+        def fake_run(args, on_line, env=None):
+            ev = lambda **kw: on_line("@@" + json.dumps(kw))
+            ev(event="tick", n=50e6, total=100e6, unit="iB")          # Modell-Download
+            ev(event="loaded")
+            ev(event="start", i=0, path=f.path)
+            for k in range(8):                                        # 8 Demucs-Durchgänge à 0 → 100 %
+                for n in (0, 30, 60, 100):
+                    ev(event="tick", n=n, total=100, unit="seconds")
+            on_line("kein Ereignis")
+            ev(event="end")
+            return 0, []
+        ctx.run_env = fake_run
+        p.module.run("separate", ctx, [f], {"model": "htdemucs_ft.yaml", "overwrite": True})
+        texts = [m[1] for m in seen if m[0] == "text"]
+        self.assertTrue(any("Lade Modell herunter … 50 %" in t for t in texts), texts)
+        fr = [m[4] for m in seen if m[0] == "progress" and m[1] == 0 and m[4] is not None]
+        self.assertEqual(fr, sorted(fr))                  # nie rückwärts
+        self.assertGreater(max(fr), 0.9)                  # kommt bis fast 100 %
+        self.assertTrue(0.05 < fr[len(fr) // 4] < 0.5)    # und nicht in einem Sprung
+
     def test_worker_fatal(self):
         self.fake_env()
         s = self.session()

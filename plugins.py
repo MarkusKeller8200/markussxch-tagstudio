@@ -161,9 +161,10 @@ class Context:
         return run_lines([py, *args], on_line, self._cancel, env=env, cwd=self.data_dir)
 
     # ---- Fortschritt / Abbruch / Protokoll
-    def progress(self, i: int, total: int, text: str = ""):
+    def progress(self, i: int, total: int, text: str = "", frac: float = None):
+        """i von total erledigt; frac (0–1) = Anteil des gerade laufenden Elements (für lange Einzelschritte)."""
         self.check_cancel()
-        self._progress(("progress", i, total, text))
+        self._progress(("progress", i, total, text, frac))
 
     def status(self, text: str):
         self._progress(("text", text))

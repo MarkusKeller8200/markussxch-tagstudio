@@ -110,6 +110,7 @@ class Session:
             elif m[0] == "progress":
                 t["i"], t["total"] = m[1], m[2]
                 t["text"] = os.path.basename(m[3])
+                t["frac"] = max(0.0, min(1.0, float(m[4]))) if len(m) > 4 and m[4] is not None else 0.0
             elif m[0] == "pairing":
                 t["text"] = "Ordne Dateien zu …"
             elif m[0] == "text":

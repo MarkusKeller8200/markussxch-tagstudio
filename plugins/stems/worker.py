@@ -15,6 +15,47 @@ def emit(**kw):
     print("@@" + json.dumps(kw, ensure_ascii=False), flush=True)
 
 
+def hook_tqdm():
+    """Fortschrittsbalken (tqdm) von audio-separator/Demucs als Ereignisse „tick“ melden.
+    tqdm schreibt sonst nur „\r45%|███“ ohne Zeilenende – das kommt bei TagStudio nicht als Fortschritt an."""
+    try:
+        import time
+        import tqdm.std as tq
+    except Exception:  # noqa: BLE001
+        return
+    orig_update, orig_close = tq.tqdm.update, tq.tqdm.close
+    last = {"t": 0.0}
+
+    def tick(bar, force=False):
+        total = getattr(bar, "total", None)
+        if not total:
+            return
+        now = time.monotonic()
+        if not force and now - last["t"] < 0.4:
+            return
+        last["t"] = now
+        emit(event="tick", n=float(bar.n), total=float(total), unit=str(getattr(bar, "unit", "") or ""),
+             desc=str(getattr(bar, "desc", "") or ""))
+
+    def update(self, n=1):
+        r = orig_update(self, n)
+        try:
+            tick(self)
+        except Exception:  # noqa: BLE001
+            pass
+        return r
+
+    def close(self):
+        try:
+            if not getattr(self, "disable", False):
+                tick(self, force=True)
+        except Exception:  # noqa: BLE001
+            pass
+        return orig_close(self)
+
+    tq.tqdm.update, tq.tqdm.close = update, close
+
+
 def ensure_ffmpeg(data_dir):
     """FFmpeg aus imageio-ffmpeg bereitstellen, falls keins im Suchpfad liegt."""
     if shutil.which("ffmpeg"):
@@ -36,6 +77,7 @@ def main(job_path):
     with open(job_path, encoding="utf-8") as fh:
         job = json.load(fh)
     ensure_ffmpeg(job["data_dir"])
+    hook_tqdm()
     emit(event="status", msg="Lade audio-separator …")
     from audio_separator.separator import Separator
 
@@ -46,6 +88,7 @@ def main(job_path):
     sep = Separator(**kw)
     emit(event="status", msg=f"Lade Modell {job['model']} (beim ersten Mal mit Download) …")
     sep.load_model(model_filename=job["model"])
+    emit(event="loaded")
     for i, path in enumerate(job["files"]):
         emit(event="start", i=i, path=path)
         try:
