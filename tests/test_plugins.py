@@ -45,6 +45,17 @@ def make_plugin(base, pid, manifest=None, code=DEMO_PY):
 
 
 class PluginBase(Base):
+    def wait_job(self, s):
+        """Hintergrund-Auftrag (z. B. Stems) abwarten → wie task_status: {"error", "result"}."""
+        for _ in range(1000):
+            st = s.jobs_status()
+            if not st["active"] and st["jobs"]:
+                j = st["jobs"][-1]
+                return {"error": j["error"] or None, "status": j["status"],
+                        "result": {k: j[k] for k in ("message", "outputs", "logfile", "log")}}
+            time.sleep(0.02)
+        self.fail("Auftrag hängt")
+
     def setUp(self):
         super().setUp()
         self.udir = plugins.user_dir()
@@ -275,7 +286,7 @@ class TestStems(PluginBase):
         self.assertEqual(info["stems"]["env_variant"], "Test")
         r = s.start_plugin_action("stems", "separate", [0], {"model": "htdemucs_ft.yaml", "format": "MP3"})
         self.assertTrue(r["ok"], r)
-        st = self.wait(s)
+        st = self.wait_job(s)
         self.assertIsNone(st["error"], st)
         res = st["result"]
         f0 = s.tag_files[0]
@@ -287,14 +298,14 @@ class TestStems(PluginBase):
         self.assertTrue(os.path.exists(res["logfile"]))
         # zweiter Lauf: übersprungen
         s.start_plugin_action("stems", "separate", [0], {"model": "htdemucs_ft.yaml"})
-        self.assertIn("schon Stems", self.wait(s)["result"]["message"])
+        self.assertIn("schon Stems", self.wait_job(s)["result"]["message"])
         # fester Ordner, nur Gesang, überschreiben, eine Datei mit Fehler
         os.environ["FAIL_02"] = "1"
         out = os.path.join(self.dir, "Stems")
         s.start_plugin_action("stems", "separate", [0, 1, 2], {"model": "model_bs_roformer_ep_317_sdr_12.9755.ckpt",
                                                                 "stem": "Vocals", "format": "FLAC", "dest": "folder",
                                                                 "folder": out, "overwrite": True})
-        res3 = self.wait(s)["result"]
+        res3 = self.wait_job(s)["result"]
         names = [os.path.basename(p.path) for p in s.tag_files[:3]]
         expect_fail = sum(1 for n in names if "02" in n)
         self.assertEqual(len(res3["outputs"]), 3 - expect_fail)
@@ -307,7 +318,7 @@ class TestStems(PluginBase):
             self.assertTrue(any("Datei defekt" in l for l in res3["log"]))
         # fester Ordner ohne Pfad → Fehlermeldung
         s.start_plugin_action("stems", "separate", [0], {"dest": "folder", "folder": ""})
-        self.assertIn("Ordner", self.wait(s)["error"])
+        self.assertIn("Ordner", self.wait_job(s)["error"])
 
     def test_progress_within_title(self):
         """3.0.2: Fortschritt bewegt sich während eines Titels (tqdm-Balken → Ereignis „tick“), statt bei 0 zu stehen."""
@@ -350,7 +361,7 @@ class TestStems(PluginBase):
         os.environ["FAIL_LOAD"] = "1"
         try:
             s.start_plugin_action("stems", "separate", [0], {"overwrite": True})
-            err = self.wait(s)["error"]
+            err = self.wait_job(s)["error"]
         finally:
             os.environ.pop("FAIL_LOAD", None)
         self.assertIn("Modell kaputt", err)

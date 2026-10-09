@@ -48,6 +48,11 @@ Plugins/
 - `requires`: Python-Module, die vorhanden sein müssen. Fehlen sie, steht das Plugin auf „Pakete fehlen“
   und bietet die `install`-Varianten als Knöpfe an (`pip install …` mit dem Python von TagStudio).
 - `external`: Programme, die im Suchpfad liegen sollten (nur Hinweis, blockiert nicht).
+- `background`: `true` → Aktionen laufen als **Hintergrund-Auftrag** in einer Warteschlange (wie Stems): Der Dialog
+  schliesst sofort, man kann weiterarbeiten. Das Plugin bekommt eigene, frisch von der Platte gelesene Dateien
+  (`ctx.background` ist `True`), Prozesse über `ctx.run_env` laufen mit niedriger Priorität. Für lange Aktionen,
+  die neue Dateien erzeugen – Tag-Änderungen und Vorschläge gehören in Vordergrund-Aktionen. Auch je Aktion
+  möglich (`"background": true` im ACTIONS-Eintrag).
 - `fields`: Felder, die das Plugin schreibt (Muster mit `*`). TagStudio zeigt bei diesen Feldern die Herkunft
   „TagStudio · Plugin-Name“ an (Tagger, Vergleich), damit eigene Felder erkennbar bleiben.
 

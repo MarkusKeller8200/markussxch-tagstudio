@@ -5,7 +5,8 @@
 1. Erzeugt einen synthetischen Test-Titel (Bass, Kick, Hi-Hat, „Gesang“-Melodie) als MP3 – keine echte Musik,
    damit keine urheberrechtlich geschützten Dateien nötig sind.
 2. Installiert die Stems-Umgebung genau wie die App (Session.start_plugin_install → uv, Python 3.12, PyTorch …).
-3. Trennt den Titel über den Tagger (Session.start_plugin_action) und zeichnet dabei den Fortschritt auf.
+3. Trennt den Titel über den Tagger (Session.start_plugin_action → Hintergrund-Auftrag) und zeichnet dabei den
+   Fortschritt des Auftrags auf; währenddessen muss die Sitzung frei bleiben (Weiterarbeiten möglich).
 4. Prüft: Installation ok, Fortschritt bewegt sich innerhalb des Titels (frac > 0 vor dem Ende), Spuren vorhanden,
    MP3-Spuren mit übernommenen Tags.
 Ergebnis in stems-test.txt (wird als Anmerkung im Workflow angezeigt). Exitcode 0 = bestanden.
@@ -136,18 +137,29 @@ def main():
     wait(s, "Einlesen", 120)
     samples = []
 
-    def tick(x):
-        samples.append((round(time.time() - t1, 1), x.get("i"), x.get("total"), round(x.get("frac") or 0, 3), x.get("text", "")))
-
     t1 = time.time()
     r = s.start_plugin_action("stems", "separate", [0], {"model": model, "format": "MP3", "overwrite": True})
-    if not r.get("ok"):
-        raise SystemExit(f"Trennung nicht gestartet: {r}")
-    st = wait(s, "Trennung", 3600, tick)
-    log(f"Trennung fertig nach {time.time() - t1:.0f} s · Fehler: {st.get('error')}")
-    if st.get("error"):
-        log(st["error"][-1500:])
+    if not r.get("ok") or not r.get("background"):
+        raise SystemExit(f"Trennung nicht als Hintergrund-Auftrag gestartet: {r}")
+    free = []
+    while True:
+        js = s.jobs_status()
+        job = js["jobs"][-1]
+        samples.append((round(time.time() - t1, 1), job.get("i"), job.get("total"), round(job.get("frac") or 0, 3),
+                        job.get("text", "")))
+        free.append(not s.task_status().get("running"))
+        if not js["active"]:
+            break
+        if time.time() - t1 > 3600:
+            raise SystemExit("Zeitüberschreitung bei Trennung")
+        time.sleep(0.5)
+    log(f"Trennung fertig nach {time.time() - t1:.0f} s · Status: {job['status']} · Fehler: {job.get('error') or None}")
+    if job["status"] != "done":
+        log((job.get("error") or "")[-1500:])
+        for line in job.get("log", [])[-25:]:
+            log(f"  {str(line)[:200]}")
         raise SystemExit("Trennung fehlgeschlagen")
+    st = {"result": {"message": job["message"], "outputs": job["outputs"]}}
 
     # Fortschritt auswerten
     fr = [x[3] for x in samples if x[1] == 0 and x[2] == 1]
@@ -170,7 +182,8 @@ def main():
 
     ok = True
     for cond, label in ((len(files) >= 4, "mindestens 4 Spuren"), (len(tagged) == len(files), "Tags übernommen"),
-                        (len(moving) >= 3, "Fortschritt bewegt sich innerhalb des Titels")):
+                        (len(moving) >= 3, "Fortschritt bewegt sich innerhalb des Titels"),
+                        (all(free), "Sitzung bleibt während der Trennung frei (Hintergrund)")):
         log(("OK     " if cond else "FEHLER ") + label)
         ok &= cond
     log("STEMS-TEST " + ("BESTANDEN" if ok else "NICHT BESTANDEN"))

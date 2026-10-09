@@ -24,6 +24,7 @@ ACTIONS = [{
     "label": "Stems erzeugen …",
     "where": "tagger",
     "run_label": "Stems erzeugen",
+    "background": True,      # Warteschlange: Dialog schliesst sofort, Weiterarbeiten möglich
     "description": "Trennt die markierten Titel in Einzelspuren. Die Originale bleiben unverändert.",
     "options": [
         {"key": "model", "type": "select", "label": "Modell", "choices": MODELS, "default": "htdemucs_ft.yaml"},

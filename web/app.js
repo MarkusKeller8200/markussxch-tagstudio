@@ -329,6 +329,7 @@ async function init() {
   bind();
   bindLayout();
   if (typeof initPlayer === "function") initPlayer();
+  if (typeof initJobs === "function") initJobs();
   $("#updateBtn").addEventListener("click", runUpdate);
   setTimeout(checkUpdateQuietly, 1500);
   syncOptions();

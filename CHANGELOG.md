@@ -7,6 +7,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Stems im Hintergrund:** „Stems erzeugen …“ legt einen Auftrag an und schliesst sofort – Tagger, Vergleich und
+  Speichern bleiben benutzbar. Warteschlange (immer ein Auftrag gleichzeitig, Worker mit niedriger Priorität),
+  Anzeige unten in der Fußleiste („Stems: 2 von 7 · 45 %“), Liste mit Abbrechen, Ordner öffnen und Protokoll,
+  Meldung bei Fertigstellung. Beim Beenden wird nachgefragt; offene Aufträge werden beim nächsten Start zum
+  Fortsetzen angeboten. Allgemein für Plugins: `"background": true` in der Aktion oder in `plugin.json`.
 - **Herkunft der Tags:** kleines Kennzeichen bei „Weitere Felder“ und im Vergleich, welche Anwendung ein Feld
   geschrieben hat (MusicBrainz, Serato, Mixed In Key, Beatport, Traktor, Rekordbox, beaTunes, Lexicon, Platinum
   Notes, iTunes, Windows Media Player, Amazon, ReplayGain, Kodierer, TagStudio-Plugins), Tooltip mit Erklärung.

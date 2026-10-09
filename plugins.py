@@ -79,9 +79,16 @@ def _unfreeze_child_env():
             pass
 
 
-def run_lines(cmd, on_line=None, cancel=None, env=None, cwd=None):
-    """Startet einen Prozess, liefert jede Ausgabezeile an on_line. Rückgabe: (Exitcode, letzte Zeilen)."""
+def run_lines(cmd, on_line=None, cancel=None, env=None, cwd=None, low_priority=False):
+    """Startet einen Prozess, liefert jede Ausgabezeile an on_line. Rückgabe: (Exitcode, letzte Zeilen).
+    low_priority: niedrige Priorität (Hintergrund-Aufträge), damit der Rechner bedienbar bleibt."""
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    extra = {}
+    if low_priority:
+        if os.name == "nt":
+            flags |= getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0x4000)
+        elif hasattr(os, "nice"):
+            extra["preexec_fn"] = lambda: os.nice(10)
     _unfreeze_child_env()
     e = {k: v for k, v in os.environ.items() if not k.startswith("_PYI") and k not in _FROZEN_VARS} \
         if getattr(sys, "frozen", False) else dict(os.environ)
@@ -89,7 +96,7 @@ def run_lines(cmd, on_line=None, cancel=None, env=None, cwd=None):
     if env:
         e.update(env)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8",
-                            errors="replace", creationflags=flags, env=e, cwd=cwd)
+                            errors="replace", creationflags=flags, env=e, cwd=cwd, **extra)
     tail = []
     stop = threading.Event()
 
@@ -121,8 +128,9 @@ def run_lines(cmd, on_line=None, cancel=None, env=None, cwd=None):
 class Context:
     """Was ein Plugin während eines Laufs benutzen darf."""
 
-    def __init__(self, plugin, session=None, cancel=None, progress=None):
+    def __init__(self, plugin, session=None, cancel=None, progress=None, background=False):
         self.plugin = plugin
+        self.background = bool(background)   # läuft als Hintergrund-Auftrag (eigene Dateikopien, kein Undo)
         self.id = plugin.id
         self._session = session
         self._cancel = cancel or threading.Event()
@@ -158,7 +166,7 @@ class Context:
         py = self.env_python
         if not py or not os.path.exists(py):
             raise RuntimeError("Die Umgebung des Plugins ist nicht installiert – bitte auf der Plugin-Seite installieren.")
-        return run_lines([py, *args], on_line, self._cancel, env=env, cwd=self.data_dir)
+        return run_lines([py, *args], on_line, self._cancel, env=env, cwd=self.data_dir, low_priority=self.background)
 
     # ---- Fortschritt / Abbruch / Protokoll
     def progress(self, i: int, total: int, text: str = "", frac: float = None):
@@ -502,7 +510,8 @@ class Manager:
             opts.append(o)
         return {"plugin": pid, "plugin_name": p.name, "id": aid, "label": a["label"],
                 "description": a.get("description", ""), "options": opts, "run_label": a.get("run_label", "Ausführen"),
-                "needs_selection": a.get("needs_selection", True)}
+                "needs_selection": a.get("needs_selection", True),
+                "background": bool(a.get("background", (p.manifest or {}).get("background", False)))}
 
     def clean_options(self, action: dict, values: dict) -> dict:
         out = {}
@@ -539,10 +548,15 @@ class Manager:
         self.cfg.setdefault("plugin_options", {}).setdefault(pid, {})[aid] = opts
         return {"plugin_options": self.cfg["plugin_options"]}
 
-    def run(self, pid, aid, files, values, session=None, cancel=None, progress=None) -> dict:
+    def is_background(self, pid, aid) -> bool:
+        """Aktion als Hintergrund-Auftrag? („background“: true in der Aktion oder in plugin.json)"""
+        p, a = self.action(pid, aid)
+        return bool(a.get("background", (p.manifest or {}).get("background", False)))
+
+    def run(self, pid, aid, files, values, session=None, cancel=None, progress=None, background=False) -> dict:
         p, a = self.action(pid, aid)
         opts = self.clean_options(a, values)
-        ctx = Context(p, session, cancel, progress)
+        ctx = Context(p, session, cancel, progress, background)
         try:
             res = p.module.run(aid, ctx, list(files), opts) or {}
         except Cancelled:

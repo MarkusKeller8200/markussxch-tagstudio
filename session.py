@@ -48,6 +48,7 @@ class Session:
         self._cancel = None
         self._plugins = None   # wird beim ersten Zugriff gesucht
         self._origins = None
+        self._jobs = None      # Hintergrund-Aufträge (jobs.py), beim ersten Zugriff
         self._pending = None   # Vorschläge eines Plugins, warten auf Bestätigung
 
     def _load_cfg(self):
@@ -1270,6 +1271,10 @@ class Session:
             return {"ok": False, "error": "Bitte zuerst im Tagger Dateien markieren."}
         opts = self.plugins.clean_options(a, values)
         core.save_config(self.plugins.remember(pid, aid, opts))
+        if self.plugins.is_background(pid, aid) and files:
+            job = self.jobs.add(pid, aid, f"{p.name}: {a.get('run_label') or a['label']}", [f.path for f in files], opts)
+            waiting = sum(1 for j in self.jobs.status()["jobs"] if j["status"] == "waiting")
+            return {"ok": True, "background": True, "job": job["id"], "waiting": waiting}
 
         def job(cancel, progress):
             try:
@@ -1297,6 +1302,60 @@ class Session:
             res["unsaved"] = self.unsaved()
             return res
         return self._run("plugin", a["label"], job)
+
+    # ================================================================== Hintergrund-Aufträge (#29)
+    @property
+    def jobs(self):
+        import jobs
+        if self._jobs is None:
+            self._jobs = jobs.JobManager(self._job_runner)
+        return self._jobs
+
+    def _job_runner(self, job, cancel, progress):
+        """Führt einen Auftrag aus – mit eigenen, frisch von der Platte gelesenen Dateien (die Oberfläche
+        bearbeitet derweil ihre eigenen Objekte weiter; ungespeicherte Änderungen fliessen nicht ein)."""
+        from id3tags import MP3File
+        files = []
+        for p in job["paths"]:
+            if os.path.isfile(p):
+                try:
+                    files.append(MP3File(p))
+                except Exception as ex:  # noqa: BLE001
+                    progress(("text", f"{os.path.basename(p)}: {ex}"))
+        if not files:
+            raise RuntimeError("Keine der Dateien ist mehr vorhanden.")
+        try:
+            res = self.plugins.run(job["plugin"], job["action"], files, job["opts"], None, cancel, progress, background=True)
+        except Exception as ex:
+            import traceback
+            path = plugins.write_log(f"{job['plugin']}.log", traceback.format_exc())
+            raise RuntimeError(f"{str(ex) or type(ex).__name__}\n\nDetails im Protokoll: {path}") from ex
+        if res.get("proposals"):
+            res["log"] = list(res.get("log") or []) + ["Hinweis: Vorschläge sind nur im Vordergrund möglich und wurden verworfen."]
+        if res.get("log"):
+            res["logfile"] = plugins.write_log(f"{job['plugin']}.log", "\n".join(res["log"]))
+        return res
+
+    def jobs_status(self) -> dict:
+        return self.jobs.status()
+
+    def job_cancel(self, jid) -> dict:
+        self.jobs.cancel(str(jid))
+        return self.jobs.status()
+
+    def jobs_cancel_all(self) -> dict:
+        self.jobs.cancel_all()
+        return self.jobs.status()
+
+    def jobs_clear(self) -> dict:
+        self.jobs.clear_finished()
+        return self.jobs.status()
+
+    def jobs_resume(self, accept) -> dict:
+        n = self.jobs.resume(bool(accept))
+        st = self.jobs.status()
+        st["resumed"] = n
+        return st
 
     def plugin_apply(self, token, ids):
         """Ausgewählte Vorschläge eines Plugin-Laufs übernehmen (mit Rückgängig, noch nicht gespeichert)."""

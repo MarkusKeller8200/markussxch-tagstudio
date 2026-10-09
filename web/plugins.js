@@ -106,7 +106,7 @@ async function pluginRun(pid, aid) {
     wide: true,
     html: `${f.description ? `<p class="muted" style="margin:0">${esc(f.description)}</p>` : ""}
       <div class="frm">${f.options.map(pluginOptionHtml).join("")}</div>
-      <div class="hint">Plugin: ${esc(f.plugin_name)}</div>`,
+      <div class="hint">Plugin: ${esc(f.plugin_name)}${f.background ? " · läuft im Hintergrund – du kannst währenddessen weiterarbeiten (Fortschritt unten in der Fußleiste)" : ""}</div>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: f.run_label, value: true, primary: true }],
     onMount: (b) => {
       b.querySelectorAll("[data-plpick]").forEach((btn) => btn.addEventListener("click", async () => {
@@ -130,7 +130,9 @@ async function pluginRun(pid, aid) {
     collect: (b) => Object.fromEntries([...b.querySelectorAll("[data-ok]")].map((el) => [el.dataset.ok, el.type === "checkbox" ? el.checked : el.value])),
   });
   if (!values) return;
-  const res = await runTask(call("start_plugin_action", pid, aid, f.needs_selection ? idx : [], values), f.label.replace(/\s*…$/, ""));
+  const started = await call("start_plugin_action", pid, aid, f.needs_selection ? idx : [], values);
+  if (started.ok && started.background) { jobsQueued(started); return; }
+  const res = await runTask(Promise.resolve(started), f.label.replace(/\s*…$/, ""));
   if (S.module === "plugins") pluginsShow();
   if (!res) return;
   if (res.proposals && res.proposals.length) { await pluginPreview(f, res); return; }
