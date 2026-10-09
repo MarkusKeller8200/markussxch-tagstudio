@@ -88,7 +88,7 @@ in der Quellcode-Variante.
   für Dateien ohne Cover) und **Liste exportieren** (Excel .xlsx oder CSV mit Semikolon, inkl. Camelot-Spalte).
   **Tonart mit Camelot-Rad:** Knopf neben dem Feld „Tonart“ öffnet das Rad (aussen Dur, innen Moll); Klick setzt die
   Tonart der markierten Dateien, die aktuelle und die harmonisch passenden Tonarten (±1, Paralleltonart) sind
-  hervorgehoben. Geschrieben wird wahlweise als Camelot (8A), musikalisch (Am) oder Open Key (1m); erkannt werden
+  hervorgehoben. Geschrieben wird wahlweise als Camelot (immer zweistellig: 08A, 01B), musikalisch (Am) oder Open Key (1m); erkannt werden
   auch Schreibweisen wie A minor, F♯m, a-Moll oder Es-Dur. „Schreibweise vereinheitlichen“ schreibt alle markierten
   Dateien um. In der Liste zeigt die Spalte „Tonart“ farbige Camelot-Codes (sortierbar); bei einer markierten Datei
   sind die passenden Titel umrandet. Vergleich und Tagger arbeiten mit

@@ -50,6 +50,10 @@ class TestParse(unittest.TestCase):
         self.assertEqual(keys.format_key("8A", "musical"), "Am")
         self.assertEqual(keys.format_key("8A", "openkey"), "1m")
         self.assertEqual(keys.format_key("1B", "openkey"), "6d")
+        self.assertEqual(keys.format_key("1A", "camelot"), "01A")    # führende Null
+        self.assertEqual(keys.format_key("12B", "camelot"), "12B")
+        self.assertEqual(keys.plan_notation([1], "camelot", lambda f, k: "1A")[0][0][3], "01A")   # 1A → 01A umschreiben
+        self.assertEqual(keys.plan_notation([1], "camelot", lambda f, k: "01A")[0], [])
         self.assertEqual(keys.format_key("2B", "musical"), "F#")
         self.assertEqual(keys.format_key("", "musical"), "")
         self.assertEqual(keys.compatible("8A"), ["8A", "9A", "7A", "8B"])
@@ -82,7 +86,7 @@ class TestSession(Base):
         pv = s.tag_key_convert([i4, i5], "camelot", False)
         self.assertEqual((pv["count"], pv["unknown_count"]), (1, 1))
         d = s.tag_key_convert([i4, i5], "camelot", True)
-        self.assertEqual(d["rows"][0]["TKEY"], "8A")
+        self.assertEqual(d["rows"][0]["TKEY"], "08A")     # Camelot immer zweistellig
         s.do_undo()
         self.assertEqual(s.tag_rows()["rows"][i4]["TKEY"], "Am")
 

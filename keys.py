@@ -10,7 +10,7 @@ import re
 MAJOR = {1: "B", 2: "F#", 3: "Db", 4: "Ab", 5: "Eb", 6: "Bb", 7: "F", 8: "C", 9: "G", 10: "D", 11: "A", 12: "E"}
 MINOR = {1: "Abm", 2: "Ebm", 3: "Bbm", 4: "Fm", 5: "Cm", 6: "Gm", 7: "Dm", 8: "Am", 9: "Em", 10: "Bm",
          11: "F#m", 12: "Dbm"}
-NOTATIONS = {"camelot": "Camelot (8A)", "musical": "Musikalisch (Am)", "openkey": "Open Key (1m)"}
+NOTATIONS = {"camelot": "Camelot (08A)", "musical": "Musikalisch (Am)", "openkey": "Open Key (1m)"}
 
 _PC = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
 # Deutsche Namen (nur bei „Dur“/„Moll“): H = B, B = Bb, Endungen -is (♯) / -es, -s (♭)
@@ -77,7 +77,7 @@ def format_key(code, notation="camelot"):
         return (MINOR if minor else MAJOR)[n]
     if notation == "openkey":
         return f"{(n + 4) % 12 + 1}{'m' if minor else 'd'}"
-    return code
+    return f"{n:02d}{'A' if minor else 'B'}"    # Camelot immer zweistellig: 01A … 12B (sortiert in jeder Liste richtig)
 
 
 def compatible(code):

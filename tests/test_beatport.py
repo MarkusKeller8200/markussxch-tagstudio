@@ -181,7 +181,7 @@ class TestBeatport(Base):
         rows = res["proposals"]
         by = {(r["name"], r["label"]): r for r in rows}
         self.assertEqual(by[("n.mp3", "BPM")]["new"], "124")          # Extended Mix gewählt, nicht 1002
-        self.assertEqual(by[("n.mp3", "Tonart")]["new"], "8A")
+        self.assertEqual(by[("n.mp3", "Tonart")]["new"], "08A")
         g = by[("n.mp3", "Genre")]                                       # gefüllt → gelistet, nicht angehakt
         self.assertFalse(g["checked"])
         self.assertEqual(g["old"], "Synthpop")
@@ -205,7 +205,7 @@ class TestBeatport(Base):
         self.assertTrue(r["ok"])
         f = self.s.tag_files[self.idx["n.mp3"]]
         self.assertEqual(f.text("TBPM"), "124")
-        self.assertEqual(f.text("TKEY"), "8A")
+        self.assertEqual(f.text("TKEY"), "08A")
         self.assertIsNotNone(f.get("APIC:3"))
         self.assertEqual(f.text("TPUB"), "")
         self.assertFalse(self.s.plugin_apply(res["proposals_token"], pick)["ok"])   # verbraucht
@@ -272,7 +272,7 @@ class TestBeatport(Base):
         self.assertGreaterEqual(m.score(info, TRACKS[1001]), m.SURE)
         self.assertLess(m.score(info, TRACKS[1002]), m.MAYBE)
         self.assertEqual(m.score(dict(info, isrc="CHA012100001"), TRACKS[1001]), 1.0)
-        self.assertEqual(m.key_text({"key": {"name": "Eb Minor"}}, "camelot"), "2A")
+        self.assertEqual(m.key_text({"key": {"name": "Eb Minor"}}, "camelot"), "02A")
         # 3.0.1: nicht-lateinische Titel sind nicht automatisch „gleich“
         jp = {"title": "東京", "mix": "", "artist": "ヨアソビ", "isrc": "", "duration": 0, "bpid": ""}
         ru = {"name": "Москва", "mix_name": "", "artists": [{"name": "Иван"}]}

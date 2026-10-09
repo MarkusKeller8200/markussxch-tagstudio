@@ -10,6 +10,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Beatport:** Die Vorschau zeigt jetzt **alle Felder, die Beatport liefert** – auch solche, die schon gleich sind
   (grau mit „=“, nicht wählbar), in den Optionen abgewählte (ungehakt, bei Bedarf anhakbar) und ein verfügbares Cover
   (als Info). Angehakt wird weiterhin nur, was nach den Optionen übernommen werden soll.
+- **Tonart in Camelot** wird immer zweistellig mit führender Null geschrieben (`01A` statt `1A`, `08B` …) – gilt für
+  Tagger, Camelot-Rad, Beatport und „Schreibweise umstellen“ (wandelt vorhandene `1A` in `01A` um). Erkannt wird
+  beides wie bisher.
 - Plugin-API: `ctx.propose(…, show_same=True)` für unveränderte Werte; Cover-Vorschläge ohne Daten sind Info-Zeilen.
 
 ## [3.0.1] – 2026-10-09
