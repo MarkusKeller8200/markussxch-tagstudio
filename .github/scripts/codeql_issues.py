@@ -46,7 +46,11 @@ def results(sarif_dir):
         with open(path, encoding="utf-8") as fh:
             sarif = json.load(fh)
         for run in sarif.get("runs", []):
-            rules = {r.get("id"): r for r in run.get("tool", {}).get("driver", {}).get("rules", [])}
+            tool = run.get("tool", {})
+            rules = {}
+            for comp in [tool.get("driver", {})] + tool.get("extensions", []):   # Regeln stehen meist in den Query-Paketen
+                for r in comp.get("rules", []):
+                    rules.setdefault(r.get("id"), r)
             for res in run.get("results", []):
                 if res.get("suppressions"):
                     continue
@@ -60,7 +64,7 @@ def results(sarif_dir):
                 props = rule.get("properties", {})
                 out[fp] = {
                     "rule": rid, "file": file, "line": line,
-                    "name": (rule.get("shortDescription") or {}).get("text") or rid,
+                    "name": (rule.get("shortDescription") or {}).get("text") or rule.get("name") or rid,
                     "help": (rule.get("fullDescription") or {}).get("text", ""),
                     "msg": (res.get("message") or {}).get("text", ""),
                     "severity": props.get("security-severity") or res.get("level") or props.get("problem.severity", ""),

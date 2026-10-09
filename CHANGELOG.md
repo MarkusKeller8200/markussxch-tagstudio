@@ -6,6 +6,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Behoben
+- **Sicherheit (CodeQL):** Der eingebaute Webserver (Browser-Modus) setzt den Content-Type nur noch aus einer festen
+  Liste statt aus dem angefragten Pfad (HTTP-Header-Injection ausgeschlossen). Test-Workflow mit minimalen Rechten
+  (`contents: read`).
+
 ### Geändert
 - Release-Workflow: Titel neuer Releases lautet „TagStudio X.Y.Z“ (wie die bisherigen Releases).
 - GitHub: Code-Scanning mit CodeQL (Python, JavaScript, Workflows; bei jedem Push, Pull Request und wöchentlich);

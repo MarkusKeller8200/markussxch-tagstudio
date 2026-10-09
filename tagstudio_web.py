@@ -13,7 +13,6 @@ Standard-Browser über einen lokalen Server (nur 127.0.0.1, mit Zugangsschlüsse
 from __future__ import annotations
 
 import json
-import mimetypes
 import os
 import secrets
 import subprocess
@@ -347,6 +346,13 @@ def _tk_pick(folder, start):
 
 
 # =========================================================================== Browser-Modus (lokaler Server)
+STATIC_TYPES = {
+    ".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml",
+    ".png": "image/png", ".jpg": "image/jpeg", ".ico": "image/x-icon", ".woff2": "font/woff2",
+}
+
+
 def make_server(api: Api, port: int = 0):
     """Lokaler HTTP-Server: liefert web/ aus und nimmt API-Aufrufe unter POST /api/<name> entgegen."""
     token = os.environ.pop("TAGSTUDIO_TOKEN", "") or secrets.token_urlsafe(24)  # Neustart: gleicher Schlüssel
@@ -371,9 +377,8 @@ def make_server(api: Api, port: int = 0):
             full = os.path.normpath(os.path.join(WEB, path.lstrip("/")))
             if not full.startswith(WEB + os.sep) or not os.path.isfile(full):
                 return self._send(404, b"not found", "text/plain")
-            ctype = mimetypes.guess_type(full)[0] or "application/octet-stream"
-            if ctype.startswith("text/") or ctype in ("application/javascript",):
-                ctype += "; charset=utf-8"
+            # Content-Type nur aus fester Liste (nie aus dem angefragten Pfad zusammengesetzt)
+            ctype = STATIC_TYPES.get(os.path.splitext(full)[1].lower(), "application/octet-stream")
             with open(full, "rb") as fh:
                 self._send(200, fh.read(), ctype)
 
