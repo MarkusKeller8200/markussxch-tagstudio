@@ -126,8 +126,9 @@ passenden Editor, ✕ entfernt das Feld.
 - **Herkunft:** vor dem Feldnamen ein kleines Kennzeichen, welche Anwendung das Feld geschrieben hat (z. B.
   **Serato**, **MIK**, **MB** für MusicBrainz, **Beatport**, **Spotify**, **Discogs**, **Traktor**, **iTunes**), Tooltip mit
   Erklärung; Benutzerfelder ohne bekannte Anwendung tragen **v2.3/v2.4**. Auch im Vergleich – dort entfernt der Knopf
-  **„Herkunft“** die Felder einer Anwendung links, rechts oder auf beiden Seiten. Über „Alle Herkünfte“ filtern; „Alle entfernen …“ bzw. **„Felder nach Herkunft …“** entfernt alle
-  Felder einer Anwendung aus den markierten Dateien (Vorschau, Rückgängig).
+  **„Herkunft“** die Felder einer Anwendung links, rechts oder auf beiden Seiten. Im Tagger über „Alle Herkünfte“
+  filtern; „Alle entfernen …“ bzw. **„Felder nach Herkunft …“** entfernt alle Felder einer Anwendung aus den
+  markierten Dateien (Vorschau, Rückgängig).
 
 > Programme wie Serato oder Mixed In Key erwarten in ihren Feldern ihr eigenes Format. Änderungen an DJ-Daten
 > (z. B. neue Cue-Punkte) zuerst an einer Testdatei ausprobieren.
