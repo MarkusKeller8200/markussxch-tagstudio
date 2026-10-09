@@ -1,0 +1,164 @@
+/* MarKusSXCH TagStudio – Seite „Einstellungen“ (#21): alle Optionen an einem Ort, Export/Import, Zurücksetzen.
+   Gespeichert wird sofort über die jeweiligen Sitzungs-Aufrufe; Export/Import/Zurücksetzen über appsettings.py. */
+"use strict";
+
+const ST = { data: null };
+
+const stSel = (id, opts, cur) => `<select class="inp" id="${id}">${opts.map(([v, l]) => `<option value="${esc(String(v))}"${String(v) === String(cur) ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+const stCheck = (id, on, label) => `<label class="check"><input type="checkbox" id="${id}"${on ? " checked" : ""}> ${esc(label)}</label>`;
+
+async function settingsShow() {
+  const d = ST.data = await call("settings_page");
+  const f = d.file;
+  $("#stFile").textContent = `Datei: ${f.path}${f.exists ? "" : " (noch nicht angelegt)"} · Sicherungen vor Import/Zurücksetzen: ${f.backup_dir}`;
+  const p = d.player;
+  $("#stGrid").innerHTML = `
+    <section class="card"><h3>Darstellung</h3>
+      <div class="st-row"><span>Design</span>
+        <div class="seg" id="stTheme"><button data-v="dark"${d.theme !== "light" ? ' class="on"' : ""}>Dunkel</button><button data-v="light"${d.theme === "light" ? ' class="on"' : ""}>Hell</button></div>
+        <label for="stNotation">Tonart-Schreibweise</label>${stSel("stNotation", d.notations, d.key_notation)}
+      </div></section>
+    <section class="card"><h3>Speichern und Sicherungen</h3>
+      <div class="st-row">
+        <label for="stSaveVer">ID3-Version beim Speichern</label>${stSel("stSaveVer", [[0, "beibehalten (wie die Datei)"], [3, "immer ID3v2.3 (am verträglichsten)"], [4, "immer ID3v2.4"]], d.save_version)}
+        <span>Sicherung</span>${stCheck("stBackup", d.backup_enabled, "Vor dem Speichern die bisherigen Tags sichern")}
+        <span>Sicherungsordner</span><div class="st-path"><code title="${esc(d.backup_dir)}">${esc(d.backup_dir)}</code><button class="ghost sm" id="stBkFolder">Ändern …</button><button class="ghost sm" id="stBkOpen">Öffnen</button></div>
+      </div></section>
+    <section class="card"><h3>Player</h3>
+      <div class="st-row">
+        <label for="stPlStart">Startpunkt</label>${stSel("stPlStart", [["0", "ab Anfang"], ["30", "ab 30 %"], ["60", "ab 1:00"], ["cue", "ab 1. Cue"]], p.start)}
+        <span>Anzeige</span>${stCheck("stPlWave", p.wave, "Wellenform anzeigen (einmal berechnet, im Cache)")}
+        <span>Durchhören</span>${stCheck("stPlFollow", p.follow, "Beim Wechsel der Markierung weiterspielen, am Titelende nächster Titel")}
+        <span>Externe Player</span><div class="st-path"><span>${d.players ? `${d.players} eingerichtet` : "keiner – Standardprogramm des Systems"}</span><button class="ghost sm" id="stPlayers">Einrichten …</button></div>
+      </div></section>
+    <section class="card" id="stOriginCard" hidden></section>
+    <section class="card"><h3>Unwichtige Felder</h3>
+      <p class="muted sm" style="margin:0">Felder, die sich zwischen Dateien fast immer unterscheiden (Analyse-Daten, Kodierer …). Im Vergleich lassen sie sich ausblenden und zählen nicht als Unterschied. Muster mit <code>*</code>, z. B. <code>TXXX:MusicBrainz*</code> oder <code>GEOB:*</code>.</p>
+      <div class="st-chips" id="stTriv"></div>
+      <div class="st-add"><input class="inp" id="stTrivIn" placeholder="Muster hinzufügen, z. B. TXXX:Serato*" spellcheck="false"><button class="ghost sm" id="stTrivAdd">Hinzufügen</button><button class="ghost sm" id="stTrivDef" title="Standardliste wiederherstellen">Standard</button></div>
+    </section>
+    <section class="card"><h3>Plugins</h3>
+      <p class="muted sm" style="margin:0">Plugins ein-/ausschalten, Pakete installieren und Optionen festlegen – auf der Seite „Plugins“.</p>
+      <div><button class="ghost sm" id="stPlugins" style="width:auto">Zur Plugin-Seite</button></div>
+    </section>`;
+  stTrivRender();
+  if (typeof originSettingsRender === "function") originSettingsRender($("#stOriginCard"));
+}
+
+function stTrivRender() {
+  const d = ST.data, def = new Set(d.trivial_default);
+  $("#stTriv").innerHTML = d.trivial.length
+    ? d.trivial.map((t, k) => `<span class="st-chip${def.has(t) ? " def" : ""}" title="${def.has(t) ? "Standard" : "eigenes Muster"}">${esc(t)}<button data-k="${k}" aria-label="${esc(t)} entfernen">✕</button></span>`).join("")
+    : '<span class="muted sm">Keine – alle Felder zählen.</span>';
+}
+
+async function stTrivSet(list) {
+  ST.data.trivial = await call("set_trivial", list);
+  stTrivRender();
+  if (S.pairs && S.pairs.length) refreshAll(await call("state"));
+}
+
+async function stTransfer(kind) {
+  if (kind === "export") {
+    if (S.settings.native) {
+      const r = await call("settings_export");
+      if (r.ok) toast("Einstellungen exportiert: " + r.path); else if (!r.cancelled) info("Export fehlgeschlagen", r.error);
+    } else {
+      const text = await call("settings_export_text");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+      a.download = `TagStudio-Einstellungen-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      toast("Einstellungen als Download gespeichert.");
+    }
+    return;
+  }
+  if (S.settings.native) {
+    const r = await call("settings_import_pick");
+    if (r && r.error) return info("Import nicht möglich", r.error);
+    if (r) stImportText(r.text, r.name);
+  } else {
+    const inp = $("#stFileIn");
+    inp.value = "";
+    inp.onchange = async () => { const f = inp.files[0]; if (f) stImportText(await f.text(), f.name); };
+    inp.click();
+  }
+}
+
+async function stImportText(text, name) {
+  const pv = await call("settings_import_preview", text);
+  if (!pv.ok) return info("Import nicht möglich", pv.error);
+  if (!pv.groups.length) return info("Nichts zu importieren", "Die Datei enthält keine bekannten Einstellungen.");
+  const from = [pv.app_version && `TagStudio ${pv.app_version}`, pv.platform && { win32: "Windows", darwin: "macOS", linux: "Linux" }[pv.platform] || pv.platform, pv.exported && pv.exported.replace("T", " ")].filter(Boolean).join(" · ");
+  const groups = await modal({
+    title: "Einstellungen importieren",
+    html: `<div class="hint">${esc(name || "Datei")}${from ? " – " + esc(from) : ""}</div>
+      ${pv.foreign ? '<div class="hint" style="margin-top:6px">Von einem anderen System: Pfade (Verlauf, Sicherungsordner, Player) sind nicht vorgewählt.</div>' : ""}
+      <div class="st-groups">${pv.groups.map((g) => `<label class="check"><input type="checkbox" value="${esc(g.id)}"${g.default ? " checked" : ""}> ${esc(g.label)}<span class="n">${g.changed ? `${g.changed} geändert` : "gleich"}</span></label>`).join("")}</div>
+      <div class="muted sm" style="margin-top:10px">Die bisherige Einstellungsdatei wird vorher gesichert. Danach lädt die Oberfläche neu.</div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Importieren", value: true, primary: true }],
+    collect: (b) => $$(".st-groups input:checked", b).map((x) => x.value),
+  });
+  if (!groups) return;
+  if (!groups.length) return toast("Nichts gewählt.");
+  if (!(await confirmDiscard())) return;
+  const r = await call("settings_import", text, groups);
+  if (!r.ok) return info("Import fehlgeschlagen", r.error);
+  toast(`${r.keys} Einstellung(en) übernommen.`);
+  setTimeout(() => location.reload(), 600);
+}
+
+async function stReset() {
+  const groups = await modal({
+    title: "Einstellungen zurücksetzen",
+    html: `<div class="hint">Gewählte Bereiche gehen auf den Auslieferungszustand zurück. Die bisherige Datei wird vorher gesichert.</div>
+      <div class="st-groups">${ST.data.groups.map(([id, label]) => `<label class="check"><input type="checkbox" value="${esc(id)}"${id === "layout" ? " checked" : ""}> ${esc(label)}</label>`).join("")}
+      <label class="check" style="margin-top:6px"><input type="checkbox" value="all" id="stAll"> <b>Alles zurücksetzen</b></label></div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Zurücksetzen", value: true, primary: true }],
+    onMount: (b) => $("#stAll", b).addEventListener("change", (e) => $$(".st-groups input:not(#stAll)", b).forEach((x) => { x.disabled = e.target.checked; })),
+    collect: (b) => ($("#stAll", b).checked ? "all" : $$(".st-groups input:checked", b).map((x) => x.value)),
+  });
+  if (!groups || (Array.isArray(groups) && !groups.length)) return;
+  if (!(await confirmDiscard())) return;
+  const r = await call("settings_reset", groups);
+  if (!r.ok) return info("Zurücksetzen fehlgeschlagen", r.error);
+  if (groups === "all" || groups.includes("player") || groups.includes("layout")) { try { Object.keys(localStorage).filter((k) => k.startsWith("ts_")).forEach((k) => localStorage.removeItem(k)); } catch (e) { /* egal */ } }
+  toast("Zurückgesetzt – die bisherige Datei liegt im Sicherungsordner.");
+  setTimeout(() => location.reload(), 600);
+}
+
+function initSettings() {
+  $("#stExport").addEventListener("click", () => stTransfer("export"));
+  $("#stImport").addEventListener("click", () => stTransfer("import"));
+  $("#stReset").addEventListener("click", () => stReset());
+  const grid = $("#stGrid");
+  grid.addEventListener("click", async (e) => {
+    const t = e.target.closest("button"); if (!t) return;
+    if (t.closest("#stTheme")) {
+      S.opts.theme = t.dataset.v; applyTheme(); await call("set_option", "theme", S.opts.theme);
+      $$("#stTheme button").forEach((b) => b.classList.toggle("on", b === t));
+    } else if (t.id === "stBkFolder") { const d = await call("backup_pick_folder"); if (d) settingsShow(); else if (!S.settings.native) toast("Im Browser-Modus ist kein Ordnerdialog verfügbar."); }
+    else if (t.id === "stBkOpen") call("open_folder", ST.data.backup_dir);
+    else if (t.id === "stPlayers") { await plSetup(); settingsShow(); }
+    else if (t.id === "stPlugins") setModule("plugins");
+    else if (t.id === "stTrivAdd") { const v = $("#stTrivIn").value.trim(); if (v) { await stTrivSet([...ST.data.trivial, v]); $("#stTrivIn").value = ""; } }
+    else if (t.id === "stTrivDef") { if (await dialog({ title: "Standardliste wiederherstellen?", text: "Eigene Muster gehen verloren.", buttons: [{ label: "Abbrechen", value: null }, { label: "Wiederherstellen", value: true, primary: true }] })) stTrivSet(ST.data.trivial_default); }
+    else if (t.dataset.k !== undefined && t.closest("#stTriv")) { const l = [...ST.data.trivial]; l.splice(+t.dataset.k, 1); stTrivSet(l); }
+  });
+  grid.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.id === "stTrivIn") { e.preventDefault(); $("#stTrivAdd").click(); } });
+  grid.addEventListener("change", async (e) => {
+    const t = e.target;
+    if (t.id === "stNotation") {
+      await call("tag_key_notation", t.value);
+      if (typeof TG !== "undefined" && TG.settings && TG.settings.keys) { TG.settings.keys.notation = t.value; }
+      toast("Tonart-Schreibweise gespeichert.");
+    } else if (t.id === "stSaveVer") { await call("set_save_version", +t.value); toast(+t.value ? `Beim Speichern immer ID3v2.${t.value}.` : "ID3-Version bleibt wie in der Datei."); }
+    else if (t.id === "stBackup") { await call("set_backup", t.checked, null); if (!t.checked) toast("Achtung: Vor dem Speichern wird nicht mehr gesichert."); }
+    else if (t.id === "stPlStart") plSetPref("start", t.value);
+    else if (t.id === "stPlWave") plSetPref("wave", t.checked);
+    else if (t.id === "stPlFollow") plSetPref("follow", t.checked);
+  });
+}
+
+initSettings();

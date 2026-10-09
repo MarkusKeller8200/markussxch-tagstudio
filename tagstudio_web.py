@@ -38,7 +38,7 @@ _PASS = {
     "fixer_settings", "fixer_preview", "fixer_apply",
     "backups", "set_backup", "start_backup_check", "start_restore", "backup_diff", "delete_backup",
     "start_tag_load", "tagger_settings", "tag_rows", "tag_detail", "tag_set", "tag_remove", "tag_add_field",
-    "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml", "tag_blob", "tag_blob_set", "blob_pretty", "players", "set_players", "play_external", "wave_save",
+    "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml", "tag_blob", "tag_blob_set", "blob_pretty", "players", "set_players", "play_external", "wave_save", "settings_page", "set_trivial", "set_save_version", "set_player_pref", "settings_export_text", "settings_import_preview", "settings_import", "settings_reset",
     "tag_case_modes", "tag_case", "tag_replace", "tag_folder_cover", "tag_key_notation", "tag_key_set", "tag_key_convert", "tag_feature_set", "tag_features_open",
     "plugins_list", "plugin_enable", "plugin_actions", "plugin_form", "start_plugin_action", "start_plugin_install", "plugin_apply",
 }
@@ -179,13 +179,38 @@ class Api:
         info.update(self._s.media_extra(kind, ref))
         return info
 
+    # ---------- Einstellungen exportieren/importieren (Dateidialoge)
+    def settings_export(self):
+        """Einstellungen in eine Datei schreiben (Speichern-Dialog)."""
+        import time as _t
+        dest = self.save_dialog(f"TagStudio-Einstellungen-{_t.strftime('%Y-%m-%d')}.json")
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        try:
+            with open(dest, "w", encoding="utf-8") as fh:
+                fh.write(self._s.settings_export_text())
+        except OSError as ex:
+            return {"ok": False, "error": str(ex)}
+        return {"ok": True, "path": dest}
+
+    def settings_import_pick(self):
+        """Einstellungsdatei wählen → Inhalt (für Vorschau und Import)."""
+        p = self.pick_file("json", "")
+        if not p:
+            return None
+        if os.path.getsize(p) > 4_000_000:
+            return {"error": "Datei ist zu groß für eine Einstellungsdatei."}
+        with open(p, encoding="utf-8", errors="replace") as fh:
+            return {"name": os.path.basename(p), "text": fh.read()}
+
     # ---------- System
     def pick_file(self, kind="image", start=""):
         """Datei wählen: kind = image | mp3."""
         start = start if start and os.path.isdir(start) else (os.path.dirname(start) if start else os.path.expanduser("~"))
         types = {"image": ("Bilder (*.jpg;*.jpeg;*.png;*.gif)", "Alle Dateien (*.*)"),
                  "mp3": ("MP3-Dateien (*.mp3;*.MP3)", "Alle Dateien (*.*)"),
-                 "program": ("Programme (*.exe;*.app;*.bat;*.cmd)", "Alle Dateien (*.*)")}[kind]
+                 "program": ("Programme (*.exe;*.app;*.bat;*.cmd)", "Alle Dateien (*.*)"),
+                 "json": ("Einstellungen (*.json)", "Alle Dateien (*.*)")}[kind]
         if self._window is not None:
             import webview
             res = self._window.create_file_dialog(webview.OPEN_DIALOG, directory=start, file_types=types)
@@ -313,7 +338,8 @@ def _tk_dialog(kind, start, extra=""):
                 p = filedialog.asksaveasfilename(initialdir=start, initialfile=extra, defaultextension=ext, parent=root)
             else:
                 ft = {"image": [("Bilder", "*.jpg *.jpeg *.png *.gif *.JPG *.JPEG *.PNG")],
-                      "program": [("Programme", "*.exe *.bat *.cmd")]}.get(extra, [("MP3-Dateien", "*.mp3 *.MP3")])
+                      "program": [("Programme", "*.exe *.bat *.cmd")],
+                      "json": [("Einstellungen", "*.json")]}.get(extra, [("MP3-Dateien", "*.mp3 *.MP3")])
                 p = filedialog.askopenfilename(initialdir=start, parent=root, filetypes=ft + [("Alle Dateien", "*")])
             root.destroy()
             result["p"] = os.path.normpath(p) if p else ""

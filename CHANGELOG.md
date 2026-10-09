@@ -7,6 +7,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Einstellungen** als eigene Seite: Design, Tonart-Schreibweise, ID3-Version beim Speichern (beibehalten/immer
+  v2.3/immer v2.4), Sicherung und Ordner, Player (Startpunkt, Wellenform, Durchhören, externe Player), Liste der
+  unwichtigen Felder zum Bearbeiten (mit „Standard“), Plugins. **Exportieren/Importieren** als Datei ohne
+  Zugangsdaten (Import mit Auswahl der Bereiche; Pfade eines anderen Systems nicht vorgewählt) und **Zurücksetzen**
+  einzelner Bereiche oder aller Einstellungen – die alte Datei wird vorher nach `~/TagStudio/Einstellungen` gesichert.
+  Player-Einstellungen liegen jetzt in `~/.tagstudio.json` statt im Browser-Speicher (werden übernommen).
 - **Wellenform** im Vorschau-Player: einmal beim ersten Abspielen berechnet und im Cache abgelegt
   (`~/TagStudio/cache/wave`, bleibt beim Bearbeiten der Tags und Umbenennen gültig); im Menü ⋯ abschaltbar.
 - **Cue-Marken** aus Serato (Markers2: Cues, Loops, Farben, Namen) und Mixed In Key (CuePoints) über der Leiste;

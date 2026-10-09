@@ -903,7 +903,7 @@ async function undoRedo(redo) {
   if (S.module === "fixer") fixerPreview();
 }
 
-const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups", plugins: "modulePlugins" };
+const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups", plugins: "modulePlugins", settings: "moduleSettings" };
 function setModule(m, opts = {}) {
   S.module = m;
   $$(".nav[data-module]").forEach((b) => { b.classList.toggle("active", b.dataset.module === m); b.toggleAttribute("aria-current", b.dataset.module === m); });
@@ -915,6 +915,7 @@ function setModule(m, opts = {}) {
   if (m === "backups") backupsShow();
   if (m === "plugins" && typeof pluginsShow === "function") pluginsShow();
   if (m === "tagger" && typeof taggerShow === "function") taggerShow();
+  if (m === "settings" && typeof settingsShow === "function") settingsShow();
   if (typeof plRender === "function") plRender();
 }
 

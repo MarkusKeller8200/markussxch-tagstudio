@@ -646,3 +646,24 @@ span.xml-treeonly{display:contents}
 .pl-cmd{display:flex;gap:4px;min-width:0}
 .pl-row .x{width:28px;height:28px;border:0;background:transparent;color:var(--faint);border-radius:6px;cursor:pointer}
 .pl-row .x:hover{color:var(--warn);background:var(--raise)}
+
+/* Einstellungen */
+.st-grid{columns:420px 3;column-gap:14px}
+.st-grid>.card{break-inside:avoid;margin-bottom:14px}
+.st-row{display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:8px 14px;align-items:center;font-size:13.5px}
+.st-row>label:first-child,.st-row>span:first-child{color:var(--dim)}
+.st-row .inp{height:34px}
+.st-row .seg{width:max-content}
+.st-path{display:flex;gap:6px;min-width:0;align-items:center}
+.st-path code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.st-chips{display:flex;flex-wrap:wrap;gap:5px;max-height:220px;overflow:auto;padding:2px}
+.st-chip{display:inline-flex;align-items:center;gap:2px;padding:2px 3px 2px 9px;border-radius:99px;background:var(--raise);font:12px var(--mono)}
+.st-chip.def{background:color-mix(in srgb,var(--acc) 8%,var(--raise))}
+.st-chip button{width:20px;height:20px;border:0;border-radius:99px;background:transparent;color:var(--faint);cursor:pointer;line-height:1}
+.st-chip button:hover{background:var(--line);color:var(--fg)}
+.st-add{display:flex;gap:6px}
+.st-add .inp{height:34px;font-family:var(--mono);font-size:12.5px}
+.st-groups{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.st-groups .check{color:var(--fg)}
+.st-groups .n{color:var(--faint);font-size:12px;margin-left:4px}
+@media (max-width:700px){.st-row{grid-template-columns:1fr}}

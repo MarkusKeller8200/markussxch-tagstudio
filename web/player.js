@@ -14,6 +14,16 @@ const WAVE_MAX_BYTES = 80e6;      // sehr lange Mixe nicht dekodieren (Speicher)
 const ICON_PLAY = '<svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8Z"/></svg>';
 const ICON_PAUSE = '<svg class="i" viewBox="0 0 24 24"><path d="M7 4h3v16H7zM14 4h3v16h-3z"/></svg>';
 
+/** Player-Einstellung ändern und in den Einstellungen (~/.tagstudio.json, Gruppe „Player“) merken. */
+let plVolTimer = null;
+function plSetPref(k, v) {
+  if (k === "start") { PLAYER.startAt = v; $("#plStart").value = v; }
+  else if (k === "wave") { PLAYER.wave = !!v; if (PLAYER.wave && PLAYER.info && !PLAYER.info.wave) plWaveCompute(PLAYER.info); plRender(); }
+  else if (k === "follow") PLAYER.follow = !!v;
+  else if (k === "vol") { clearTimeout(plVolTimer); plVolTimer = setTimeout(() => call("set_player_pref", "vol", v).catch(() => {}), 400); return; }
+  call("set_player_pref", k, v).catch(() => {});
+}
+
 function plStore(k, v) {
   try { if (v === undefined) return localStorage.getItem("ts_pl_" + k); localStorage.setItem("ts_pl_" + k, String(v)); } catch (e) { /* egal */ }
   return null;
@@ -225,7 +235,7 @@ async function plMenu(btn) {
     { label: "Öffnen mit Standardprogramm" + (list.length ? "" : "  (Strg/Cmd+P)"), run: () => plExternal(null) },
     "-",
     { label: "Player einrichten …", run: () => plSetup() },
-    { label: (PLAYER.wave ? "✓ " : "    ") + "Wellenform anzeigen", run: () => { PLAYER.wave = !PLAYER.wave; plStore("wave", PLAYER.wave ? "1" : "0"); if (PLAYER.wave && PLAYER.info && !PLAYER.info.wave) plWaveCompute(PLAYER.info); plRender(); } },
+    { label: (PLAYER.wave ? "✓ " : "    ") + "Wellenform anzeigen", run: () => plSetPref("wave", !PLAYER.wave) },
   ]);
 }
 
@@ -276,11 +286,18 @@ function initPlayer() {
   const a = new Audio();
   a.preload = "metadata";
   PLAYER.audio = a;
-  const vol = parseFloat(plStore("vol") ?? "0.8");
-  a.volume = isFinite(vol) ? Math.max(0, Math.min(1, vol)) : 0.8;
-  PLAYER.startAt = plStore("start") || "0";
-  PLAYER.follow = plStore("follow") !== "0";
-  PLAYER.wave = plStore("wave") !== "0";
+  const pp = (S.settings && S.settings.player) || { vol: 0.8, start: "0", follow: true, wave: true, saved: true };
+  if (!pp.saved) {          // bis 3.2.0-beta.1 im Browser-Speicher → einmalig in die Einstellungen übernehmen
+    const v = parseFloat(plStore("vol")), st = plStore("start");
+    if (isFinite(v)) { pp.vol = Math.max(0, Math.min(1, v)); call("set_player_pref", "vol", pp.vol).catch(() => {}); }
+    if (st && ["0", "30", "60", "cue"].includes(st)) { pp.start = st; call("set_player_pref", "start", st).catch(() => {}); }
+    if (plStore("wave") === "0") { pp.wave = false; call("set_player_pref", "wave", false).catch(() => {}); }
+    if (plStore("follow") === "0") { pp.follow = false; call("set_player_pref", "follow", false).catch(() => {}); }
+  }
+  a.volume = pp.vol;
+  PLAYER.startAt = pp.start;
+  PLAYER.follow = pp.follow;
+  PLAYER.wave = pp.wave;
   ["play", "pause", "ended", "loadedmetadata", "emptied"].forEach((ev) => a.addEventListener(ev, plRender));
   a.addEventListener("loadedmetadata", plCues);
   window.addEventListener("resize", () => { plCues(); plDrawWave(); });
@@ -299,9 +316,9 @@ function initPlayer() {
   $("#plNext").addEventListener("click", () => plStep(1));
   $("#plSeek").addEventListener("input", (e) => { a.currentTime = (+e.target.value) / 10; $("#plTime").textContent = `${fmtTime(a.currentTime)} / ${fmtTime(a.duration)}`; });
   $("#plVol").value = String(Math.round(a.volume * 100));
-  $("#plVol").addEventListener("input", (e) => { a.volume = (+e.target.value) / 100; plStore("vol", a.volume); });
+  $("#plVol").addEventListener("input", (e) => { a.volume = (+e.target.value) / 100; plSetPref("vol", a.volume); });
   $("#plStart").value = PLAYER.startAt;
-  $("#plStart").addEventListener("change", (e) => { PLAYER.startAt = e.target.value; plStore("start", PLAYER.startAt); });
+  $("#plStart").addEventListener("change", (e) => plSetPref("start", e.target.value));
   $("#plAB").addEventListener("click", (e) => { const b = e.target.closest("[data-side]"); if (b) plSide(b.dataset.side); });
   $("#plMore").addEventListener("click", (e) => plMenu(e.currentTarget));
 

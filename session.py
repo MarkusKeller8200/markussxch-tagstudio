@@ -36,11 +36,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
 class Session:
     def __init__(self):
         self.lock = threading.RLock()
-        self.cfg = core.load_config()
-        triv = list(self.cfg.get("trivial", DEFAULT_TRIVIAL))
-        known = set(self.cfg.get("trivial_known", triv))
-        triv += [p for p in DEFAULT_TRIVIAL if p not in known and p not in triv]
-        self.rules = Rules(triv)
+        self._load_cfg()
         self.pairs: list = []
         self.reg: dict = {}          # gemeinsames Dateiregister (Vergleich + Tagger): Pfad → MP3File
         self.tag_files: list = []    # Tagger
@@ -48,20 +44,30 @@ class Session:
         self.cur: int | None = None
         self.left_root = self.right_root = ""
         self.undo = UndoStack()
+        self.task = {"running": False}
+        self._cancel = None
+        self._plugins = None   # wird beim ersten Zugriff gesucht
+        self._pending = None   # Vorschläge eines Plugins, warten auf Bestätigung
+
+    def _load_cfg(self):
+        """Einstellungen (neu) einlesen – beim Start und nach Import/Zurücksetzen."""
+        self.cfg = core.load_config()
+        triv = list(self.cfg.get("trivial", DEFAULT_TRIVIAL))
+        known = set(self.cfg.get("trivial_known", triv))
+        triv += [p for p in DEFAULT_TRIVIAL if p not in known and p not in triv]
+        self.rules = Rules(triv)
         self.opts = {
             "filter": self.cfg.get("filter", "all"),
             "show_trivial": self.cfg.get("show_trivial", True),
             "empty_set": self.cfg.get("empty_set", "off"),
             "show_covers": self.cfg.get("show_covers", True),
-            "query": "",
+            "query": getattr(self, "opts", {}).get("query", ""),
             "theme": self.cfg.get("web_theme", self.cfg.get("theme", "dark")),
         }
-        self.task = {"running": False}
-        self._cancel = None
         ui = self.cfg.get("web_ui")
         self.ui = {k: v for k, v in (ui.items() if isinstance(ui, dict) else []) if k in UI_KEYS}
-        self._plugins = None   # wird beim ersten Zugriff gesucht
-        self._pending = None   # Vorschläge eines Plugins, warten auf Bestätigung
+        if getattr(self, "_plugins", None) is not None:
+            self._plugins = None
 
     # ================================================================== Einstellungen
     def settings(self) -> dict:
@@ -73,7 +79,7 @@ class Session:
             "recursive": c.get("recursive", False), "options": dict(self.opts),
             "empty_sets": [[k, v] for k, v in core.EMPTY_SETS.items()],
             "filter_ops": core.FILTER_OPS, "filter_sides": core.FILTER_SIDES,
-            "ui": dict(self.ui),
+            "ui": dict(self.ui), "player": self.player_prefs(),
         }
 
     def set_ui(self, name: str, value):
@@ -94,6 +100,101 @@ class Session:
             self.cfg[key] = value
             core.save_config({key: value})
         return self.state()
+
+    # ================================================================== Einstellungsseite (#21)
+    PLAYER_PREFS = {"wave": (bool, True), "follow": (bool, True), "start": (str, "0"), "vol": ((int, float), 0.8)}
+
+    def player_prefs(self) -> dict:
+        p = self.cfg.get("player") if isinstance(self.cfg.get("player"), dict) else {}
+        out = {}
+        for k, (typ, default) in self.PLAYER_PREFS.items():
+            v = p.get(k, default)
+            out[k] = v if isinstance(v, typ) and (typ is bool) == isinstance(v, bool) else default
+        if out["start"] not in ("0", "30", "60", "cue"):
+            out["start"] = "0"
+        out["vol"] = max(0.0, min(1.0, float(out["vol"])))
+        out["saved"] = isinstance(self.cfg.get("player"), dict)
+        return out
+
+    def set_player_pref(self, name, value):
+        if name not in self.PLAYER_PREFS:
+            raise ValueError(f"Unbekannte Player-Einstellung: {name}")
+        typ = self.PLAYER_PREFS[name][0]
+        if not isinstance(value, typ) or (typ is bool) != isinstance(value, bool):
+            raise ValueError(f"Ungültiger Wert für {name}")
+        if name == "start" and value not in ("0", "30", "60", "cue"):
+            raise ValueError("Startpunkt: 0, 30, 60 oder cue")
+        p = dict(self.cfg.get("player") or {})
+        p[name] = max(0.0, min(1.0, float(value))) if name == "vol" else value
+        self.cfg["player"] = p
+        core.save_config({"player": p})
+        return self.player_prefs()
+
+    def settings_page(self) -> dict:
+        import appsettings
+        c = self.cfg
+        return {"file": appsettings.overview(), "trivial": list(self.rules.trivial), "trivial_default": list(DEFAULT_TRIVIAL),
+                "save_version": c.get("save_version", 0), "key_notation": c.get("key_notation", "camelot"),
+                "notations": [[k, v] for k, v in keys.NOTATIONS.items()], "theme": self.opts["theme"],
+                "backup_enabled": c.get("backup_enabled", True), "backup_dir": self._backup_folder(),
+                "player": self.player_prefs(), "players": len(c.get("players") or []),
+                "groups": [[g, label] for g, label, _k in appsettings.GROUPS]}
+
+    def set_trivial(self, patterns) -> list:
+        """Liste der unwichtigen Felder (Muster wie „TXXX:MusicBrainz*“) setzen."""
+        if not isinstance(patterns, list):
+            raise ValueError("Liste erwartet")
+        out = []
+        for p in patterns:
+            p = str(p).strip()
+            if p and len(p) <= 200 and p not in out:
+                out.append(p)
+        with self.lock:
+            self.rules = Rules(out[:500])
+            self.cfg["trivial"], self.cfg["trivial_known"] = list(self.rules.trivial), list(DEFAULT_TRIVIAL)
+            core.save_config({"trivial": self.cfg["trivial"], "trivial_known": self.cfg["trivial_known"]})
+        return list(self.rules.trivial)
+
+    def set_save_version(self, ver):
+        """ID3-Version beim Speichern: 0 = beibehalten, 3 = v2.3, 4 = v2.4."""
+        if ver not in (0, 3, 4):
+            raise ValueError("0, 3 oder 4 erwartet")
+        self.cfg["save_version"] = ver
+        core.save_config({"save_version": ver})
+        return ver
+
+    def settings_export_text(self) -> str:
+        import appsettings
+        return appsettings.export_text(VERSION)
+
+    def settings_import_preview(self, text) -> dict:
+        import appsettings
+        try:
+            return {"ok": True, **appsettings.import_preview(str(text))}
+        except ValueError as ex:
+            return {"ok": False, "error": str(ex)}
+
+    def settings_import(self, text, groups) -> dict:
+        import appsettings
+        try:
+            res = appsettings.import_apply(str(text), list(groups or []))
+        except (OSError, ValueError) as ex:
+            return {"ok": False, "error": str(ex)}
+        with self.lock:
+            self._load_cfg()
+        return res
+
+    def settings_reset(self, groups) -> dict:
+        import appsettings
+        if groups != "all" and not isinstance(groups, list):
+            raise ValueError("Liste oder „all“ erwartet")
+        try:
+            res = appsettings.reset(groups)
+        except OSError as ex:
+            return {"ok": False, "error": str(ex)}
+        with self.lock:
+            self._load_cfg()
+        return res
 
     # ================================================================== Hintergrund-Aufgaben
     def _run(self, kind, label, fn):
@@ -416,6 +517,10 @@ class Session:
             return {"ok": False, "error": "Keine ungespeicherten Änderungen."}
         backup_on = self.cfg.get("backup_enabled", True)
         folder = self.cfg.get("backup_dir") or None
+        ver = self.cfg.get("save_version", 0)
+        if ver in (3, 4):                 # Einstellung „ID3-Version beim Speichern“
+            for f in files:
+                f.set_version(ver)
 
         def job(cancel, progress):
             with self.lock:
