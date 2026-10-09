@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Sicherheitslücke melden (privat)
+    url: https://github.com/MarkusKeller8200/markussxch-tagstudio/security/advisories/new
+    about: Sicherheitsprobleme bitte nicht öffentlich, sondern privat melden – siehe SECURITY.md.
+  - name: Anleitung und Funktionsübersicht
+    url: https://github.com/MarkusKeller8200/markussxch-tagstudio#readme
+    about: README mit Installation, Bedienung und Tastenkürzeln.

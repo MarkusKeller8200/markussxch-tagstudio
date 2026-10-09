@@ -1,0 +1,27 @@
+name: Plugin-Idee
+description: Erweiterung, die als Plugin umgesetzt werden könnte (siehe PLUGINS.md).
+title: "Plugin-Idee: "
+labels: ["enhancement", "plugin"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Was soll das Plugin tun?
+    validations:
+      required: true
+  - type: textarea
+    id: fields
+    attributes:
+      label: Welche Felder liest oder schreibt es?
+      description: z. B. TBPM, TKEY, TXXX:… – wichtig für die Herkunft der Tags
+  - type: textarea
+    id: deps
+    attributes:
+      label: Benötigte Pakete, Programme oder Dienste
+      description: z. B. librosa, FFmpeg, eine Web-API (mit oder ohne Schlüssel); läuft es lange (Hintergrund-Auftrag)?
+  - type: checkboxes
+    id: own
+    attributes:
+      label: Mithilfe
+      options:
+        - label: Ich würde das Plugin selbst entwickeln bzw. testen.

@@ -1,0 +1,86 @@
+name: Fehler melden
+description: Etwas funktioniert nicht wie erwartet.
+title: "Fehler: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke für die Meldung! **Sicherheitslücken bitte nicht hier**, sondern privat melden (siehe SECURITY.md).
+        Bitte keine urheberrechtlich geschützten MP3s anhängen – Bildschirmfoto oder Feldnamen genügen meist.
+  - type: input
+    id: version
+    attributes:
+      label: TagStudio-Version
+      description: Steht unten in der Seitenleiste, z. B. 3.2.0
+      placeholder: "3.2.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Betriebssystem
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Linux
+        - anderes
+    validations:
+      required: true
+  - type: dropdown
+    id: variant
+    attributes:
+      label: Variante
+      options:
+        - Installer (Setup / DMG)
+        - Quellcode – neue Oberfläche (App-Fenster)
+        - Quellcode – neue Oberfläche (Browser)
+        - Quellcode – klassische Oberfläche
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Bereich
+      options:
+        - Tagger
+        - Vergleich
+        - Vorschau-Player / externe Player
+        - Tag-Fixer
+        - Sicherungen
+        - Einstellungen
+        - Plugin Stems
+        - Plugin Beatport
+        - anderes Plugin
+        - Installation / Update
+        - anderes
+  - type: textarea
+    id: what
+    attributes:
+      label: Was ist passiert?
+      description: Was hast du erwartet, was ist stattdessen passiert? Fehlermeldung wörtlich einfügen.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Schritte zum Nachstellen
+      placeholder: |
+        1. Ordner … im Tagger einlesen
+        2. Titel markieren, Feld … ändern
+        3. Speichern → Fehler …
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Protokoll
+      description: Falls vorhanden, Inhalt aus ~/TagStudio/Logs (z. B. stems.log). Wird als Code dargestellt.
+      render: text
+  - type: textarea
+    id: extra
+    attributes:
+      label: Weitere Hinweise
+      description: Bildschirmfotos, betroffene Feldnamen (z. B. TXXX:…, GEOB:…), Herkunft der Dateien (Beatport, Serato …)

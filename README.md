@@ -7,7 +7,8 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.9 oder neuer – oder gar nich
 **Download:** [Releases](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases) ·
 **Änderungen:** [CHANGELOG.md](CHANGELOG.md) · **Plugins:** [PLUGINS.md](PLUGINS.md) ·
 **Fehler & Ideen:** [Issues](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues) ·
-**Sicherheit:** [SECURITY.md](SECURITY.md)
+**Mitmachen:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Sicherheit:** [SECURITY.md](SECURITY.md) ·
+**Lizenz:** [GNU GPL v3](LICENSE)
 
 > Bis Version 2.8 hieß das Programm „MP3 Tag Compare“. Einstellungen und Sicherungen von damals werden automatisch übernommen.
 
@@ -479,8 +480,11 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 ## Fehler melden, Ideen, Sicherheit
 
-- **Fehler und Wünsche:** als [Issue](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/new) – mit
-  Version, Betriebssystem, Schritten zum Nachstellen und, falls vorhanden, dem Protokoll aus `~/TagStudio/Logs`.
+- **Fehler und Wünsche:** als [Issue](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/new/choose) –
+  die Vorlagen „Fehler melden“, „Funktion vorschlagen“ und „Plugin-Idee“ fragen Version, Betriebssystem, Schritte
+  und Protokoll (`~/TagStudio/Logs`) gleich mit ab.
+- **Mitmachen:** Entwicklungsumgebung, Richtlinien und Ablauf für Pull Requests in [CONTRIBUTING.md](CONTRIBUTING.md);
+  es gilt der [Verhaltenskodex](CODE_OF_CONDUCT.md).
 - **Sicherheitslücken** bitte nicht öffentlich, sondern privat melden – siehe [SECURITY.md](SECURITY.md).
 
 ## Ausblick
@@ -499,3 +503,11 @@ Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markuss
   Binärfeld-/JSON-Editor auch im Vergleich, signierte Installer, Intel-Mac, Datenbank-Modul für die Bibliothek.
 
 Verworfen: Umstieg auf Qt (PySide6) – bringt gegenüber der neuen Oberfläche keinen Vorteil.
+
+## Lizenz
+
+© 2026 Markus Keller. MarKusSXCH TagStudio ist freie Software: Du kannst sie unter den Bedingungen der
+[GNU General Public License, Version 3](LICENSE) oder (nach deiner Wahl) jeder späteren Version weitergeben und/oder
+verändern. Das Programm wird in der Hoffnung verbreitet, dass es nützlich ist, aber **ohne jede Gewährleistung** –
+Details in der Lizenz. Mitgelieferte bzw. nachinstallierte Fremdkomponenten (z. B. pywebview, FFmpeg,
+audio-separator) stehen unter ihren eigenen Lizenzen.

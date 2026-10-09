@@ -14,7 +14,7 @@ rm -rf "$STAGE" "$OUT"
 mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Programme"
-cp "$ROOT/README.md" "$ROOT/CHANGELOG.md" "$ROOT/PLUGINS.md" "$STAGE/" 2>/dev/null || true
+cp "$ROOT/README.md" "$ROOT/CHANGELOG.md" "$ROOT/PLUGINS.md" "$ROOT/LICENSE" "$STAGE/" 2>/dev/null || true
 cat > "$STAGE/Zuerst lesen.txt" <<EOF
 MarKusSXCH TagStudio $VER
 

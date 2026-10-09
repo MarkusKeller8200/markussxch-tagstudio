@@ -46,6 +46,7 @@ Source: "..\dist\TagStudio\*"; DestDir: "{app}"; Flags: ignoreversion recursesub
 Source: "..\README.md"; DestDir: "{app}\Dokumentation"; Flags: ignoreversion
 Source: "..\CHANGELOG.md"; DestDir: "{app}\Dokumentation"; Flags: ignoreversion
 Source: "..\PLUGINS.md"; DestDir: "{app}\Dokumentation"; Flags: ignoreversion
+Source: "..\LICENSE"; DestDir: "{app}\Dokumentation"; DestName: "LICENSE.txt"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\MarKusSXCH TagStudio"; Filename: "{app}\TagStudio.exe"
