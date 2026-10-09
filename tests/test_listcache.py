@@ -136,6 +136,19 @@ class TestListCache(unittest.TestCase):
         e = listcache.ListCache(lib2).entries["01.mp3"]
         self.assertEqual(e["sig"], r.disk_sig)                    # Cache erneuert
 
+    def test_cache_build(self):
+        """#80: Listen-Cache für die geladenen Titel neu erstellen; fehlende Wellenformen auflisten."""
+        from session import Session
+        s = Session()
+        self.assertFalse(s.start_cache_build("lists")["ok"])      # nichts geladen
+        s.start_tag_load(self.lib, False)
+        self.wait(s)
+        shutil.rmtree(listcache.DIR)
+        s.start_cache_build("lists")
+        self.assertIn("3 Titel", self.wait(s)["message"])
+        self.assertEqual(len(listcache.ListCache(self.lib).entries), 3)
+        self.assertEqual(len(s.wave_missing()), 3)
+
     def wait(self, s):
         while not s.task_status()["done"]:
             time.sleep(0.01)

@@ -63,11 +63,43 @@ async function stSnapRender() {
     <span>Belegt</span><div class="st-path"><span>${snMB(o.total)} · ${o.libs.length} überwachte(r) Ordner</span><button class="ghost sm" id="stSnapGo">Zur Seite „Snapshots“</button></div>`;
 }
 
+/** #80: Cache für alle geladenen Titel (neu) erstellen */
+async function stCacheBuild(k) {
+  if (k === "wave") return waveBuildAll();
+  const r = await runTask(call("start_cache_build", k), k === "lists" ? "Listen-Cache erstellen" : "Cover-Vorschauen erstellen");
+  if (r && !r.cancelled) status(r.message, r.tone || "ok");
+}
+
+/** Wellenformen im Browser berechnen (Web Audio) – mit Fortschritt und Abbrechen */
+async function waveBuildAll() {
+  const list = await call("wave_missing");
+  if (!list.length) { toast("Alle geladenen Titel haben schon eine Wellenform (oder es ist nichts geladen)."); return; }
+  const ov = $("#progress"), bar = $("#progBar"), cancelBtn = $("#progCancel");
+  let stop = false;
+  const onCancel = () => { stop = true; };
+  $("#progTitle").textContent = "Wellenformen erstellen";
+  bar.classList.remove("indet");
+  cancelBtn.hidden = false;
+  cancelBtn.onclick = onCancel;
+  ov.hidden = false;
+  let done = 0;
+  for (const x of list) {
+    if (stop) break;
+    $("#progText").textContent = `${done + 1} / ${list.length} · ${x.name}`;
+    bar.style.width = (done / list.length * 100) + "%";
+    await plWaveCompute({ wave_key: x.key, url: x.url });
+    done++;
+  }
+  ov.hidden = true;
+  cancelBtn.onclick = null;
+  status(stop ? `Wellenformen: ${done} von ${list.length} erstellt (abgebrochen).` : `Wellenformen erstellt: ${done} Titel.`, stop ? "warn" : "ok");
+}
+
 async function stCacheRender(info) {
   const c = info || await call("cache_info");
   const mb = (b) => (b < 1048576 ? `${Math.round(b / 1024)} KB` : `${(b / 1048576).toFixed(1).replace(".", ",")} MB`);
   const row = (k, label) => `<span>${label}</span><div class="st-path"><span>${fmtN(c[k].count)} Datei(en) · ${mb(c[k].bytes)}</span>
-    <button class="ghost sm" data-cclear="${k}" ${c[k].count ? "" : "disabled"}>Leeren</button><button class="ghost sm" data-copen="${esc(c[k].dir)}">Ordner</button></div>`;
+    <button class="ghost sm" data-cbuild="${k}" title="Für alle geladenen Titel (Tagger und Vergleich) neu erstellen">Erstellen</button><button class="ghost sm" data-cclear="${k}" ${c[k].count ? "" : "disabled"}>Leeren</button><button class="ghost sm" data-copen="${esc(c[k].dir)}">Ordner</button></div>`;
   $("#stCacheRows").innerHTML = `<span>Listen-Cache</span>${stCheck("stListCache", c.lists.on, "Tagger und Vergleich sofort aus dem Cache anzeigen, danach im Hintergrund über einen Hash je Titel auf Änderungen prüfen")}`
     + row("lists", "Listen") + row("wave", "Wellenformen") + row("covers", "Cover-Vorschauen");
 }
@@ -242,6 +274,7 @@ function initSettings() {
         if (t.dataset.cclear === "wave" && PLAYER.info) PLAYER.info.wave = null;
       }
     }
+    else if (t.dataset.cbuild) { await stCacheBuild(t.dataset.cbuild); stCacheRender(); }
     else if (t.dataset.copen) call("open_folder", t.dataset.copen);
     else if (t.id === "stTrivAdd") { const v = $("#stTrivIn").value.trim(); if (v) { await stTrivSet([...ST.data.trivial, v]); $("#stTrivIn").value = ""; } }
     else if (t.id === "stTrivDef") { if (await dialog({ title: "Standardliste wiederherstellen?", text: "Eigene Muster gehen verloren.", buttons: [{ label: "Abbrechen", value: null }, { label: "Wiederherstellen", value: true, primary: true }] })) stTrivSet(ST.data.trivial_default); }

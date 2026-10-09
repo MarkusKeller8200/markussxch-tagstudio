@@ -727,6 +727,99 @@ class Session:
         info["removed"] = gone
         return info
 
+    # ------------------------------------------------------------------ Cache (neu) erstellen (#80)
+    def _loaded_files(self) -> list:
+        """Alle geladenen echten Dateien (Tagger + Vergleich), ohne Snapshot-Seiten, ohne Doppelte."""
+        seen, out = set(), []
+        with self.lock:
+            for f in list(self.tag_files) + [g for p in self.pairs for g in p]:
+                if f is None or self._ro(f):
+                    continue
+                k = os.path.normcase(os.path.abspath(f.path))
+                if k not in seen:
+                    seen.add(k)
+                    out.append(f)
+        return out
+
+    def start_cache_build(self, name):
+        """Listen-Cache bzw. Cover-Vorschauen für alle geladenen Titel neu aufbauen (Fortschritt, abbrechbar)."""
+        if name not in ("lists", "covers"):
+            raise ValueError("Unbekannter Cache")
+        files = self._loaded_files()
+        if not files:
+            return {"ok": False, "error": "Erst einen Ordner im Tagger oder Vergleich einlesen – erstellt wird für die geladenen Titel."}
+
+        def lists(cancel, progress):
+            import listcache
+            from id3tags import MP3File
+            roots = [r for r in {self.tag_root, self.left_root, self.right_root} if r and os.path.isdir(r)]
+            done = 0
+            progress(("total", len(files)))
+            for root in roots:
+                base = os.path.normcase(os.path.abspath(root)) + os.sep
+                mine = [f for f in files if os.path.normcase(os.path.abspath(f.path)).startswith(base)]
+                if not mine:
+                    continue
+                c = listcache.ListCache(root)
+                c.entries = {}                               # neu: alles von der Platte
+                for f in mine:
+                    if cancel.is_set():
+                        raise Cancelled()
+                    try:
+                        st = os.stat(f.path)
+                        g = MP3File.__new__(MP3File)
+                        g.path = f.path
+                        g.load(keep_raw=True)
+                        c.store(f.path, st, g)
+                    except OSError:
+                        pass
+                    done += 1
+                    if done % 10 == 0:
+                        progress(("progress", done, len(files), f.path))
+                c.dirty = True
+                c.save(prune=False)
+            n, size = listcache.cache_size()
+            return {"message": f"Listen-Cache neu erstellt: {done} Titel in {len(roots)} Ordner(n) · {fmt_bytes(size)}."}
+
+        def covers(cancel, progress):
+            import thumbs
+            uniq = {}
+            for f in files:
+                c = self._front_cover(f)
+                if c is not None:
+                    uniq.setdefault(self._cover_hash(f), c.data)
+            progress(("total", len(uniq)))
+            ok = 0
+            for i, (h, data) in enumerate(uniq.items(), 1):
+                if cancel.is_set():
+                    raise Cancelled()
+                if thumbs.make_png(data, self.THUMB):
+                    ok += 1
+                progress(("progress", i, len(uniq), f"Cover {i}"))
+            if uniq and not ok and not thumbs.backend():
+                return {"message": "Keine Vorschaubilder erzeugt – auf diesem System fehlt ein Bildwerkzeug (Pillow, ImageMagick …).",
+                        "tone": "warn"}
+            bad = len(uniq) - ok
+            return {"message": f"Cover-Vorschauen erstellt: {ok} von {len(uniq)} verschiedenen Cover(n)"
+                               + (f" – {bad} liessen sich nicht umwandeln." if bad else "."), "tone": "warn" if bad else "ok"}
+        return self._run("cache_build", "Cache erstellen", lists if name == "lists" else covers)
+
+    THUMB = 96
+
+    def wave_missing(self) -> list:
+        """Titel ohne Wellenform im Cache → [{path, key}] (berechnet wird in der Oberfläche, #80)."""
+        import waveform
+        out, seen = [], set()
+        for f in self._loaded_files():
+            try:
+                k = waveform.key_for(f)
+            except (OSError, ValueError):
+                continue
+            if k not in seen and not os.path.exists(waveform._file(k)):     # gleiches Audio nur einmal
+                seen.add(k)
+                out.append({"path": f.path, "key": k, "name": os.path.basename(f.path)})
+        return out
+
     # ================================================================== Einstellungsseite (#21)
     PLAYER_PREFS = {"wave": (bool, True), "follow": (bool, True), "start": (str, "0"), "vol": ((int, float), 0.8),
                     "repeat": (bool, False)}
@@ -1795,7 +1888,14 @@ class Session:
         with self.lock:
             for f in self.tag_files:
                 if self._cover_hash(f) == h:
+                    import thumbs
                     c = self._front_cover(f)
+                    try:                                    # kleines Vorschaubild aus dem Cache (#80), sonst das Cover
+                        with open(thumbs.cache_path(c.data, self.THUMB), "rb") as fh:
+                            return {"ok": True, "src": "data:image/png;base64," + base64.b64encode(fh.read()).decode("ascii"),
+                                    "desc": c.describe()}
+                    except OSError:
+                        pass
                     return {"ok": True, "src": f"data:{c.mime or 'image/jpeg'};base64,{base64.b64encode(c.data).decode('ascii')}",
                             "desc": c.describe()}
         return {"ok": False}
