@@ -1,6 +1,6 @@
 [project]
 name = "markussxch-tagstudio"
-version = "3.0.1"  # wird von packaging/release.py aus version.py übernommen
+version = "3.1.0"  # wird von packaging/release.py aus version.py übernommen
 description = "MarKusSXCH TagStudio – MP3-Tagger, Vergleich (Beyond-Compare-Stil), Tag-Fixer, Sicherungen und Plugins für DJs"
 readme = "README.md"
 requires-python = ">=3.9"

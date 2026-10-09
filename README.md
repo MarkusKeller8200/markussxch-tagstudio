@@ -63,7 +63,8 @@ in der Quellcode-Variante.
 - **XML-Editor:** Felder mit XML-Inhalt (z. B. Analysedaten in Benutzertexten) tragen das Kennzeichen **XML**.
   Klick darauf oder Doppelklick öffnet den Editor: **Baum** (Attribute und Texte direkt bearbeiten, auf-/zuklappen,
   suchen) und **Quelltext** (farbig, Zeilennummern). Laufende Prüfung mit Zeile/Spalte der Fehlerstelle (Klick springt
-  hin), **Formatieren** (eingerückt) und **Kompakt** (eine Zeile). Binärfelder mit XML (GEOB/PRIV) nur ansehen.
+  hin), **Formatieren** (eingerückt) und **Kompakt** (eine Zeile). Auch XML in Binärfeldern (GEOB/PRIV) ist
+  bearbeitbar – ersetzt wird nur der XML-Abschnitt, alle übrigen Bytes bleiben erhalten.
   Strg/Cmd+Enter übernimmt, Esc schließt. Die klassische Oberfläche hat denselben Editor (Quelltext-Ansicht).
 - **Update:** Unten in der Seitenleiste „Nach Update suchen“. TagStudio prüft beim Start selbst, ob es auf GitHub
   eine neue Version gibt (Punkt am Knopf). Ein Klick lädt sie (`git pull`, nur wenn der Programmordner keine
@@ -79,6 +80,10 @@ in der Quellcode-Variante.
   per Klick auf die Spalte, filterbar). Eine oder mehrere Dateien markieren (Klick, Shift, Strg/Cmd, Strg/Cmd+A) und
   rechts gemeinsam bearbeiten – Felder mit „‹verschieden›“ bleiben unverändert, bis du etwas einträgst. Cover für die
   Auswahl setzen/entfernen, ID3-Version wählen, weitere Felder (einzelne Datei) bearbeiten/entfernen, XML-Editor.
+  **Weitere Felder:** Spaltenteiler Feld/Wert, Links anklickbar, Farbfeld bei Hex-Farben (COLOR), Stift-Knopf öffnet
+  den **Feld-Editor** (mehrzeilig, Blättern mit ‹ ›, Mehrfachwerte als **Einzelwerte**, JSON als **Baum** mit
+  Expertenmodus zum Hinzufügen/Entfernen von Einträgen, Farbwähler) bzw. bei GEOB/PRIV den **Binärfeld-Editor**
+  (MIME/Dateiname, Text oder Base64-Text/JSON bearbeiten, XML, sonst Hex-Ansicht).
   Werkzeuge mit Vorschau: **Tags aus Dateiname** (Muster z. B. `%track% - %artist% - %title%`, `%dummy%` überspringt),
   **Dateien umbenennen** (aus Tags, ungültige Zeichen → `_`, Kollisionen werden erkannt; sofort, nicht über
   „Speichern“), **Spurnummern** (in Listenreihenfolge, optional mit Gesamtzahl), **Groß-/Kleinschreibung**
@@ -284,6 +289,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   Groß-/Kleinschreibung, Suchen & Ersetzen, Cover aus Ordner, Export (CSV/Excel ohne Zusatzpakete)
 - `features.py` – Audio-Merkmale (TXXX, 0–100)
 - `keys.py` – Tonarten: erkennen, umschreiben (Camelot, musikalisch, Open Key), passende Tonarten
+- `blobs.py` – Binärfelder (GEOB/PRIV): Inhalt erkennen (XML, Text, Base64, binär) und byte-genau ändern
 - `plugins.py` + `plugins/` – Plugin-System (siehe [PLUGINS.md](PLUGINS.md)); eingebaut: `plugins/stems`
   (Einzelspuren, eigene Python-Umgebung), `plugins/beatport` (Metadaten von Beatport, inoffiziell)
 - `version.py` – Versionsnummer (einzige Stelle)
