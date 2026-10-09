@@ -174,3 +174,78 @@ class TestSnapshots(Base):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSessionSnapshots(Base):
+    def setUp(self):
+        super().setUp()
+        import core
+        import jobs
+        self._old = (core.CONFIG, core.CONFIG_OLD, jobs.STATE_FILE)
+        core.CONFIG = core.CONFIG_OLD = os.path.join(self.dir, "cfg.json")
+        jobs.STATE_FILE = os.path.join(self.dir, "Auftraege.json")
+        core.save_config({"snap_dir": self.store.root, "backup_dir": os.path.join(self.dir, "Sicherungen")})
+        from session import Session
+        self.s = Session()
+
+    def tearDown(self):
+        import core
+        import jobs
+        core.CONFIG, core.CONFIG_OLD, jobs.STATE_FILE = self._old
+        super().tearDown()
+
+    def wait_jobs(self):
+        t0 = time.time()
+        while self.s.jobs_status()["active"]:
+            self.assertLess(time.time() - t0, 20)
+            time.sleep(0.02)
+
+    def wait_task(self):
+        while not self.s.task_status().get("done"):
+            time.sleep(0.02)
+        st = self.s.task_status()
+        self.assertIsNone(st["error"], st)
+        return st["result"]
+
+    def test_flow(self):
+        s, lid = self.s, self.libd["id"]
+        ov = s.snap_overview()
+        self.assertEqual([l["name"] for l in ov["libs"]], ["Bibliothek"])
+        st = s.snap_startup()
+        self.assertTrue(st["libs"][0]["due"])
+        self.assertTrue(s.snap_create(lid, "Vor MIK", pinned=True)["ok"])
+        self.wait_jobs()
+        snaps = s.snap_list(lid)["snapshots"]
+        self.assertEqual((len(snaps), snaps[0]["label"], snaps[0]["pinned"]), (1, "Vor MIK", True))
+        self.assertGreater(snaps[0]["bytes"], 0)
+        self.assertTrue(s.snap_startup()["libs"][0]["due"])      # kein automatischer heute
+        s.snap_create(lid, auto=True)
+        self.wait_jobs()
+        self.assertFalse(s.snap_startup()["libs"][0]["due"])
+        # Fremdprogramm ändert
+        f = MP3File(self.path(1))
+        f.set_text("TKEY", "9A")
+        f.set("TXXX:Comment", None)
+        f.save()
+        touch_later(self.path(1))
+        self.assertEqual(s.snap_startup()["libs"][0]["changed"], 1)
+        s.start_snap_journal(lid, snaps[0]["id"], "live")
+        j = self.wait_task()
+        self.assertEqual(len(j["rows"]), 1)
+        r = j["rows"][0]
+        self.assertEqual(sorted(x["key"] for x in r["fields"]), ["TKEY", "TXXX:Comment"])
+        # nur die Tonart zurück (Undo-Weg), dann speichern
+        res = s.snap_revert([{"p": r["p"], "keys": ["TKEY"]}])
+        self.assertEqual((res["done"], res["fields"], res["unsaved"]), (1, 1, 1))
+        s.start_save()
+        self.wait_task()
+        f = MP3File(self.path(1))
+        self.assertEqual((f.text("TKEY"), f.get("TXXX:Comment")), ("8A", None))
+        # ganze Datei byte-genau
+        res = s.snap_revert([{"p": r["p"]}], mode="bytes")
+        self.assertEqual(res["done"], 1, res)
+        self.assertEqual(sn.read_tags(self.path(1))["tag"], self.store.tag_bytes(self.store.manifest(lid, snaps[0]["id"])["files"][0])[0])
+        self.assertEqual(MP3File(self.path(1)).text("TXXX:Comment"), "gute Bridge")
+        # Aufräumen lässt den angehefteten stehen
+        self.assertEqual(s.snap_prune()["removed"], 0)
+        self.assertEqual(s.snap_set("snap_keep", 5)["snap_keep"], 5)

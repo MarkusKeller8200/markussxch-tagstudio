@@ -91,6 +91,7 @@ function jobsNotify(j) {
     if (document.hidden && window.Notification && Notification.permission === "granted") new Notification("TagStudio", { body: msg });
   } catch (e) { /* Systemmeldung ist optional */ }
   if (ok && typeof jobFinishedHook === "function") jobFinishedHook(j);
+  if (typeof jobFinishedSnapshot === "function") jobFinishedSnapshot(j);
 }
 
 async function jobsPoll() {
@@ -101,7 +102,7 @@ async function jobsPoll() {
       const st = await call("jobs_status");
       for (const j of st.jobs) {
         const before = JOBS.seen[j.id];
-        if (before && before !== j.status && ["done", "error"].includes(j.status)) jobsNotify(j);
+        if (before !== j.status && ["done", "error"].includes(j.status)) jobsNotify(j);   // auch sehr schnelle Aufträge
         JOBS.seen[j.id] = j.status;
       }
       JOBS.st = st;

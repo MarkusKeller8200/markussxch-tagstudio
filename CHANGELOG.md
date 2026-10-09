@@ -6,6 +6,26 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+- **Snapshots & Änderungsjournal** (Seite „Snapshots“): Ordner überwachen und ihren Tag-Zustand festhalten – byte-genau,
+  ohne Audio, platzsparend (jeder ID3-Frame wird nur einmal gespeichert; unveränderte Titel kosten fast nichts).
+  Das **Journal** zeigt zwischen einem Snapshot und jetzt (oder zwei Snapshots), welche Titel andere Programme
+  geändert haben – geändert, neu, entfernt, **umbenannt** (erkannt am Audio-Inhalt), **Audio geändert** (nur Hinweis)
+  oder nur anders gespeichert – mit allen Feldern alt/neu und Herkunfts-Kennzeichen; Filter und Suche.
+  **Zurücksetzen** einzelner Felder oder ganzer Titel (Rückgängig möglich, geschrieben wird mit „Speichern“) oder
+  **byte-genau** inklusive Binärfeldern (vorher Sicherung). Snapshots benennen, anheften, löschen; Aufräumen nach
+  Regel (20 automatische + je einer pro Woche der letzten 12 Wochen, einstellbar); **Speicherplatz** je Snapshot,
+  je Ordner und gesamt (auch in der Seitenleiste). Speicher mit Format-Version (für spätere Änderungen) (#52, #53, #61).
+- **Täglicher Snapshot** beim ersten Start des Tages und **Frage beim Start** („n Titel seit … geändert – Journal
+  ansehen / Snapshot erstellen / Später“), beides abschaltbar; Einstellungen „Snapshots“ (#54).
+- **Schutz beim Speichern:** Hat ein anderes Programm (Mp3tag, Mixed In Key, beaTunes …) eine Datei geändert,
+  seit TagStudio sie eingelesen hat, wird nicht mehr stillschweigend überschrieben. TagStudio zeigt die fremden
+  Änderungen und bietet „Übernehmen und speichern“ (eigene Änderungen bleiben), „Trotzdem überschreiben“ oder
+  „Abbrechen“ – erkennt auch Programme, die die Änderungszeit erhalten (#55).
+
+### Behoben
+- Hintergrund-Aufträge, die sehr schnell fertig waren, meldeten ihr Ende nicht.
+
 ### Geändert
 - Lizenz: **GNU GPL v3** (`LICENSE`, auch im Installer bzw. DMG). Neu: Verhaltenskodex (`CODE_OF_CONDUCT.md`),
   Anleitung zum Mitmachen (`CONTRIBUTING.md`), Issue-Vorlagen (Fehler melden, Funktion vorschlagen, Plugin-Idee)

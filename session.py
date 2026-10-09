@@ -179,6 +179,235 @@ class Session:
             d["message"] = f"{len(plan)} Feld(er) von {name} entfernt – noch nicht gespeichert."
             return d
 
+    # ================================================================== Snapshots (#52–#54, #61)
+    SNAP_DEFAULTS = {"snap_daily": True, "snap_ask": True, "snap_keep": 20, "snap_weeks": 12, "snap_thorough": False}
+
+    def _snap_cfg(self, k):
+        v = self.cfg.get(k, self.SNAP_DEFAULTS.get(k))
+        return v
+
+    @property
+    def snap_store(self):
+        import snapshots
+        d = self.cfg.get("snap_dir") or snapshots.default_dir()
+        if getattr(self, "_snap_store", None) is None or self._snap_store.root != os.path.abspath(d):
+            self._snap_store = snapshots.Store(d)
+        return self._snap_store
+
+    def snap_overview(self) -> dict:
+        import snapshots
+        st = self.snap_store
+        sizes = st.sizes() if os.path.isdir(st.root) else {"total": 0, "libs": {}, "snaps": {}}
+        libs = []
+        for lib in st.libraries():
+            snaps = st.snapshots(lib["id"])
+            libs.append({"id": lib["id"], "name": lib["name"], "root": lib["root"], "exists": os.path.isdir(lib["root"]),
+                         "count": len(snaps), "bytes": sizes["libs"].get(lib["id"], 0),
+                         "last": ({"created": snaps[0]["created"], "label": snaps[0]["label"],
+                                   "age": snapshots.fmt_age(snaps[0]["created"])} if snaps else None)})
+        return {"dir": st.root, "readonly": st.readonly, "total": sizes["total"], "libs": libs,
+                "settings": {k: self._snap_cfg(k) for k in self.SNAP_DEFAULTS}}
+
+    def snap_list(self, lid) -> dict:
+        st = self.snap_store
+        sizes = st.sizes()
+        out = []
+        for s in st.snapshots(lid):
+            s["bytes"] = sizes["snaps"].get(f"{lid}/{s['id']}", 0)
+            out.append(s)
+        return {"library": st.library(lid), "snapshots": out, "bytes": sizes["libs"].get(lid, 0), "total": sizes["total"]}
+
+    def snap_add_library(self, path, name=None) -> dict:
+        import snapshots
+        try:
+            lib = self.snap_store.add_library(str(path), name)
+        except snapshots.StoreError as ex:
+            return {"ok": False, "error": str(ex)}
+        return {"ok": True, "library": lib}
+
+    def snap_remove_library(self, lid) -> dict:
+        self.snap_store.remove_library(str(lid))
+        return self.snap_overview()
+
+    def snap_update(self, lid, sid, label=None, pinned=None) -> dict:
+        return self.snap_store.update_snapshot(str(lid), str(sid), label, pinned)
+
+    def snap_delete(self, lid, sid) -> dict:
+        freed = self.snap_store.delete_snapshot(str(lid), str(sid))
+        return {"freed": freed, **self.snap_list(lid)}
+
+    def snap_prune(self, lid=None) -> dict:
+        st = self.snap_store
+        before = st.sizes()["total"] if os.path.isdir(st.root) else 0
+        gone = []
+        for lib in st.libraries():
+            if lid in (None, "", lib["id"]):
+                gone += st.prune(lib["id"], int(self._snap_cfg("snap_keep")), int(self._snap_cfg("snap_weeks")))
+        after = st.sizes()["total"] if os.path.isdir(st.root) else 0
+        return {"removed": len(gone), "freed": max(0, before - after)}
+
+    def snap_create(self, lid, label="", auto=False, pinned=False) -> dict:
+        """Snapshot als Hintergrund-Auftrag (Fortschritt in der Fussleiste)."""
+        lib = self.snap_store.library(str(lid))
+        if self.snap_store.readonly:
+            return {"ok": False, "error": "Der Snapshot-Speicher stammt aus einer neueren TagStudio-Version (nur lesen)."}
+        opts = {"lid": lib["id"], "label": str(label or ""), "auto": bool(auto), "pinned": bool(pinned),
+                "thorough": bool(self._snap_cfg("snap_thorough"))}
+        job = self.jobs.add("tagstudio:snapshot", "create", f"Snapshot: {lib['name']}", [lib["root"]], opts,
+                            names=[lib["name"]])
+        return {"ok": True, "background": True, "job": job["id"], "waiting": 1}
+
+    def _snap_job(self, job, cancel, progress):
+        import snapshots
+        o = job["opts"]
+        res = snapshots.create(self.snap_store, o["lid"], o["label"], o["auto"], o["pinned"], o["thorough"], cancel,
+                               progress)
+        pruned = 0
+        if o["auto"]:
+            pruned = len(self.snap_store.prune(o["lid"], int(self._snap_cfg("snap_keep")), int(self._snap_cfg("snap_weeks"))))
+        msg = f"Snapshot „{res['label']}“: {res['count']} Titel"
+        if res["errors"]:
+            msg += f", {len(res['errors'])} nicht lesbar"
+        if pruned:
+            msg += f" · {pruned} alte(r) Snapshot(s) aufgeräumt"
+        return {"message": msg, "outputs": [], "log": res["errors"][:60]}
+
+    def snap_startup(self) -> dict:
+        """Beim Start (#54): je überwachtem Ordner schnelle Prüfung seit dem letzten Snapshot + fällig für heute?"""
+        import datetime
+        import snapshots
+        st = self.snap_store
+        today = datetime.date.today().isoformat()
+        out = []
+        for lib in st.libraries() if os.path.isdir(st.root) else []:
+            if not os.path.isdir(lib["root"]):
+                out.append({"id": lib["id"], "name": lib["name"], "missing": True})
+                continue
+            last = st.latest(lib["id"])
+            q = snapshots.quick_changes(lib["root"], last)
+            out.append({"id": lib["id"], "name": lib["name"], "missing": False, **q,
+                        "last": last and {"id": last["id"], "created": last["created"], "label": last["label"],
+                                          "age": snapshots.fmt_age(last["created"])},
+                        "due": not last or not any(s["created"][:10] == today and s.get("auto")
+                                                    for s in st.snapshots(lib["id"]))})
+        return {"libs": out, "ask": bool(self._snap_cfg("snap_ask")), "daily": bool(self._snap_cfg("snap_daily"))}
+
+    def snap_set(self, name, value) -> dict:
+        if name not in self.SNAP_DEFAULTS:
+            raise ValueError("Unbekannte Snapshot-Einstellung")
+        d = self.SNAP_DEFAULTS[name]
+        if isinstance(d, bool):
+            value = bool(value)
+        else:
+            value = max(0, min(500, int(value)))
+        self.cfg[name] = value
+        core.save_config({name: value})
+        return self.snap_overview()["settings"]
+
+    # ------------------------------------------------------------------ Journal
+    def start_snap_journal(self, lid, a_sid, b_sid="live"):
+        """Journal A → B (B = „live“ oder ein Snapshot) berechnen – mit Fortschritt."""
+        import snapshots
+        st = self.snap_store
+
+        def job(cancel, progress):
+            lib = st.library(str(lid))
+            a = st.manifest(lib["id"], str(a_sid))
+            if b_sid == "live":
+                if not os.path.isdir(lib["root"]):
+                    raise RuntimeError(f"Ordner nicht erreichbar: {lib['root']}")
+                src_b = snapshots.MemStore(st)
+                b_files, errors = snapshots.scan(lib["root"], src_b, a, False, cancel, progress)
+                b_meta = {"id": "live", "label": "Jetzt", "created": ""}
+            else:
+                bm = st.manifest(lib["id"], str(b_sid))
+                src_b, b_files, errors = st, bm["files"], []
+                b_meta = {k: bm.get(k) for k in ("id", "label", "created")}
+            progress(("text", "Vergleiche …"))
+            j = snapshots.journal(a, b_files, st, src_b)
+            for r in j["rows"]:
+                for fld in r["fields"]:
+                    fld["src"] = self._src(fld["key"], None)
+            self._jctx = {"lid": lib["id"], "root": lib["root"], "a": a, "A": {e["p"]: e for e in a["files"]},
+                          "B": {e["p"]: e for e in b_files}}
+            return {"rows": j["rows"], "counts": j["counts"], "errors": errors[:50], "root": lib["root"],
+                    "a": {k: a.get(k) for k in ("id", "label", "created")}, "b": b_meta}
+        return self._run("journal", "Änderungsjournal berechnen", job)
+
+    def snap_revert(self, items, mode="undo", force_audio=False) -> dict:
+        """Snapshot-Stand (A) auf die Live-Dateien zurück: items = [{"p", "p_old", "keys": [..]|None}].
+        mode „undo“: Werte in die Dateien übernehmen (Rückgängig, Speichern nötig); „bytes“: Tag-Bytes exakt
+        zurückschreiben (vorher Sicherung)."""
+        import backup
+        import snapshots
+        ctx = getattr(self, "_jctx", None)
+        if not ctx:
+            return {"ok": False, "error": "Bitte zuerst das Journal berechnen."}
+        st, done, errors = self.snap_store, 0, []
+        plan = []
+        for it in items or []:
+            p, q = str(it.get("p") or ""), str(it.get("p_old") or it.get("p") or "")
+            ea = ctx["A"].get(q)
+            live = os.path.normpath(os.path.join(ctx["root"], p))
+            if ea is None or not os.path.isfile(live) or not os.path.abspath(live).startswith(os.path.abspath(ctx["root"])):
+                errors.append(f"{p}: nicht im Snapshot oder nicht mehr vorhanden")
+                continue
+            plan.append((p, live, ea, it.get("keys")))
+        if mode == "bytes":
+            bw = backup.BackupWriter(self._backup_folder(), label=f"Vor Snapshot-Wiederherstellung ({len(plan)} Datei(en))") \
+                if plan else None
+            for p, live, ea, _keys in plan:
+                info = snapshots.read_tags(live)
+                if snapshots.audio_key(live, info) != ea["audio"] and not force_audio:
+                    errors.append(f"{p}: Audio hat sich geändert – übersprungen")
+                    continue
+                k = os.path.normcase(os.path.abspath(live))
+                f = self.reg.get(k)
+                if f is not None and f.is_modified():
+                    errors.append(f"{p}: hat ungespeicherte Änderungen in TagStudio – übersprungen")
+                    continue
+                try:
+                    bw.add(live)
+                    tag, v1 = st.tag_bytes(ea)
+                    backup._write_tags(live, tag, v1)
+                    if f is not None:
+                        f.load()
+                    done += 1
+                except Exception as ex:  # noqa: BLE001
+                    errors.append(f"{p}: {ex}")
+            if bw:
+                try:
+                    bw.close()
+                except Exception:  # noqa: BLE001
+                    pass
+            return {"ok": True, "done": done, "errors": errors, "saved": True,
+                    "message": f"{done} Datei(en) byte-genau auf den Snapshot-Stand zurückgeschrieben."}
+        with self.lock:
+            files = []
+            for p, live, ea, keys in plan:
+                k = os.path.normcase(os.path.abspath(live))
+                f = self.reg.get(k) or core._open(live, self.reg)
+                old = snapshots._mp3(*st.tag_bytes(ea))
+                ks = list(keys) if keys else sorted(set(old.items) | set(f.items))
+                files.append((f, old, ks, not keys))
+            if not files:
+                return {"ok": False, "error": "; ".join(errors) or "Nichts zurückzusetzen."}
+            self.undo.checkpoint(f"Snapshot-Stand für {len(files)} Datei(en)", [f for f, *_ in files])
+            n = 0
+            for f, old, ks, whole in files:
+                for k in ks:
+                    if k.startswith("APIC") and k not in old.items and k not in f.items:
+                        continue
+                    if f.items.get(k) != old.items.get(k):
+                        f.set(k, old.items.get(k).clone() if old.items.get(k) is not None else None)
+                        n += 1
+                if whole and old.version in (3, 4) and f.version != old.version:
+                    f.set_version(old.version)
+                done += 1
+            self.undo.commit()
+        return {"ok": True, "done": done, "fields": n, "errors": errors, "saved": False, "unsaved": self.unsaved(),
+                "message": f"{n} Feld(er) in {done} Datei(en) auf den Snapshot-Stand gesetzt – noch nicht gespeichert."}
+
     # ================================================================== Cache (#42)
     @staticmethod
     def _cache_dirs():
@@ -1586,6 +1815,8 @@ class Session:
     def _job_runner(self, job, cancel, progress):
         """Führt einen Auftrag aus – mit eigenen, frisch von der Platte gelesenen Dateien (die Oberfläche
         bearbeitet derweil ihre eigenen Objekte weiter; ungespeicherte Änderungen fliessen nicht ein)."""
+        if job["plugin"] == "tagstudio:snapshot":         # eingebauter Auftrag: Snapshot erstellen
+            return self._snap_job(job, cancel, progress)
         from id3tags import MP3File
         files = []
         for p in job["paths"]:

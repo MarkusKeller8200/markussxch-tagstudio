@@ -25,12 +25,14 @@ GROUPS = [
     ("trivial", "Unwichtige Felder", ("trivial", "trivial_known")),
     ("saving", "Speichern und Sicherungen", ("backup_enabled", "backup_dir", "save_version")),
     ("player", "Player (Vorschau und externe)", ("player", "players")),
+    ("snapshots", "Snapshots (Automatik, Aufbewahrung, Speicherort)", ("snap_daily", "snap_ask", "snap_keep",
+                                                                       "snap_weeks", "snap_thorough", "snap_dir")),
     ("origin", "Herkunft der Tags (eigene Zuordnungen)", ("tag_origins", "origin_std_badge")),
     ("plugins", "Plugins (an/aus, Optionen)", ("plugins_enabled", "plugin_options", "plugin_settings")),
 ]
 GROUP_IDS = [g[0] for g in GROUPS]
 # Pfade passen meist nicht auf einen anderen Rechner → beim Import von einem anderen System nicht vorgewählt
-MACHINE_GROUPS = ("history", "saving", "player")
+MACHINE_GROUPS = ("history", "saving", "player", "snapshots")
 HIDDEN_KEYS = re.compile(r"token|passw|secret|cookie|session|credential|api[_-]?key|auth", re.I)
 FORMAT = "tagstudio-settings"
 BACKUP_DIR = os.path.join(os.path.expanduser("~"), "TagStudio", "Einstellungen")

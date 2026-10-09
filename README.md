@@ -195,6 +195,26 @@ abweichende Zeichen hervorgehoben; mit ‹ › blättern und einzelne Dateien di
 markierte oder alle wiederherstellen (vorher wird der aktuelle Stand selbst gesichert), Sicherung löschen,
 automatische Sicherung ein/aus, Ordner ändern/öffnen.
 
+### Snapshots & Änderungsjournal
+
+Für Bibliotheken, die auch andere Programme bearbeiten (Mp3tag, beaTunes, Mixed In Key, Platinum Notes, Rekordbox …):
+- **Ordner überwachen** und **Snapshots** erstellen – der Tag-Zustand aller Titel wird byte-genau festgehalten,
+  ohne Audio. Jeder Frame wird nur einmal gespeichert; weitere Snapshots kosten nur, was sich geändert hat.
+  Snapshots lassen sich benennen („Vor Mixed In Key“), anheften (werden nie aufgeräumt) und löschen.
+- **Journal:** Snapshot ↔ jetzt (oder zwei Snapshots) – geänderte, neue, entfernte, umbenannte Titel und Titel mit
+  geändertem Audio; je Titel alle Felder alt/neu mit Herkunfts-Kennzeichen. Filter nach Status, Suche nach Titel,
+  Feld oder Wert.
+- **Zurücksetzen:** einzelne Felder oder ganze Titel ankreuzen → „Auswahl zurücksetzen“ (Rückgängig möglich, wird
+  mit „Speichern“ geschrieben) oder „Byte-genau zurückschreiben“ (exakt der Snapshot-Stand inkl. Serato-/Cue-Daten,
+  vorher Sicherung; Titel mit geändertem Audio werden übersprungen).
+- **Automatik:** einmal täglich ein Snapshot je Ordner, beim Start die Frage mit der Zahl geänderter Titel (beides
+  abschaltbar). Aufräumen: 20 automatische + je einer pro Woche der letzten 12 Wochen (einstellbar).
+- **Speicherplatz** je Snapshot, je Ordner und gesamt; die Summe steht auch in der Seitenleiste.
+- Unabhängig davon schützt TagStudio beim **Speichern** vor dem Überschreiben fremder Änderungen: es zeigt, was ein
+  anderes Programm seit dem Einlesen geändert hat, und übernimmt es auf Wunsch zusammen mit den eigenen Änderungen.
+
+Konzept und weitere Schritte (Snapshots im Vergleich, Speicher verschieben): [docs/KONZEPT-SNAPSHOTS.md](docs/KONZEPT-SNAPSHOTS.md).
+
 ### Plugins
 
 Seite „Plugins“: Erweiterungen ein-/ausschalten, fehlende Pakete per Knopf installieren; Aktionen erscheinen im
@@ -373,6 +393,7 @@ Gespeichert wird in `~/.tagstudio.json` (beide Oberflächen). Weitere Ordner unt
 | `Plugin-Daten` | z. B. Stems-Umgebung und Modelle, Beatport-Token (unter Windows verschlüsselt) |
 | `Logs` | Protokolle von Plugins und Installationen |
 | `Auftraege.json` | offene Hintergrund-Aufträge (zum Fortsetzen nach einem Neustart) |
+| `Snapshots` | Snapshots überwachter Ordner (Speicherort einstellbar) |
 
 Die unwichtigen Felder (`"trivial"`, Platzhalter `*`) und eigene Herkunfts-Zuordnungen (`"tag_origins"`) lassen sich
 in den Einstellungen bearbeiten.
@@ -417,6 +438,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `cues.py` – Cue-Punkte aus Serato/Mixed In Key lesen; `waveform.py` – Wellenform-Cache
 - `origins.py` – Herkunft der Tags (Kennungsliste); `appsettings.py` – Einstellungen exportieren/importieren/zurücksetzen
 - `jobs.py` – Warteschlange für Hintergrund-Aufträge; `stemsview.py` – Stems einem Original zuordnen
+- `snapshots.py` – Snapshots (Frame-Speicher, Scan, Journal, Aufräumen); `web/snapshots.js` – Seite „Snapshots“
 - `thumbs.py` – Cover-Vorschaubilder ohne Zusatzpakete
 - `plugins.py` + `plugins/` – Plugin-System (siehe [PLUGINS.md](PLUGINS.md)); eingebaut: `plugins/stems`,
   `plugins/beatport`

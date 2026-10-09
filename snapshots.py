@@ -445,7 +445,8 @@ def scan(root: str, sink, prev: dict | None = None, thorough=False, cancel=None,
 
 
 def quick_changes(root: str, m: dict | None) -> dict:
-    """Nur Grösse/Änderungszeit prüfen (schnell, ohne Lesen) → {"changed", "new", "removed", "total"}."""
+    """Schnelle Prüfung: Grösse/Änderungszeit; nur bei Abweichung den Tag-Bereich lesen (kein Audio)
+    → {"changed", "new", "removed", "total"}."""
     known = {e["p"]: e for e in (m or {}).get("files", [])}
     paths = list_mp3(root)
     seen, changed, new = set(), 0, 0
@@ -460,7 +461,12 @@ def quick_changes(root: str, m: dict | None) -> dict:
         if e is None:
             new += 1
         elif e["size"] != st.st_size or e["mt"] != st.st_mtime_ns:
-            changed += 1
+            try:                                  # nur Tag-Bereich lesen: wirklich andere Tags?
+                info = read_tags(p)
+                if hashlib.sha256(info["tag"] + b"|" + info["v1"]).hexdigest() != e["th"] or e["size"] != st.st_size:
+                    changed += 1
+            except OSError:
+                changed += 1
     return {"changed": changed, "new": new, "removed": len(set(known) - seen), "total": len(paths)}
 
 

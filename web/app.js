@@ -331,6 +331,7 @@ async function init() {
   bindLayout();
   if (typeof initPlayer === "function") initPlayer();
   if (typeof initJobs === "function") initJobs();
+  if (typeof initSnapshots === "function") setTimeout(initSnapshots, 1200);
   $("#updateBtn").addEventListener("click", runUpdate);
   setTimeout(checkUpdateQuietly, 1500);
   syncOptions();
@@ -949,7 +950,7 @@ async function undoRedo(redo) {
   if (S.module === "fixer") fixerPreview();
 }
 
-const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups", plugins: "modulePlugins", settings: "moduleSettings" };
+const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups", plugins: "modulePlugins", settings: "moduleSettings", snapshots: "moduleSnapshots" };
 function setModule(m, opts = {}) {
   S.module = m;
   $$(".nav[data-module]").forEach((b) => { b.classList.toggle("active", b.dataset.module === m); b.toggleAttribute("aria-current", b.dataset.module === m); });
@@ -962,6 +963,7 @@ function setModule(m, opts = {}) {
   if (m === "plugins" && typeof pluginsShow === "function") pluginsShow();
   if (m === "tagger" && typeof taggerShow === "function") taggerShow();
   if (m === "settings" && typeof settingsShow === "function") settingsShow();
+  if (m === "snapshots" && typeof snapShow === "function") snapShow();
   if (typeof plRender === "function") plRender();
 }
 

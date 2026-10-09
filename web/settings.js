@@ -32,6 +32,7 @@ async function settingsShow() {
         <span>Durchhören</span>${stCheck("stPlFollow", p.follow, "Beim Wechsel der Markierung weiterspielen, am Titelende nächster Titel")}
         <span>Externe Player</span><div class="st-path"><span>${d.players ? `${d.players} eingerichtet` : "keiner – Standardprogramm des Systems"}</span><button class="ghost sm" id="stPlayers">Einrichten …</button></div>
       </div></section>
+    <section class="card" id="stSnapCard"><h3>Snapshots</h3><div class="st-row" id="stSnapRows"><span class="muted sm">…</span></div></section>
     <section class="card" id="stOriginCard" hidden></section>
     <section class="card"><h3>Unwichtige Felder</h3>
       <p class="muted sm" style="margin:0">Felder, die sich zwischen Dateien fast immer unterscheiden (Analyse-Daten, Kodierer …). Im Vergleich lassen sie sich ausblenden und zählen nicht als Unterschied. Muster mit <code>*</code>, z. B. <code>TXXX:MusicBrainz*</code> oder <code>GEOB:*</code>.</p>
@@ -45,7 +46,18 @@ async function settingsShow() {
     </section>`;
   stTrivRender();
   stCacheRender();
+  stSnapRender();
   if (typeof originSettingsRender === "function") originSettingsRender($("#stOriginCard"));
+}
+
+async function stSnapRender() {
+  const o = await call("snap_overview"), s = o.settings;
+  $("#stSnapRows").innerHTML = `<span>Automatik</span>${stCheck("snDaily", s.snap_daily, "Täglich einen Snapshot je überwachtem Ordner (beim ersten Start des Tages)")}
+    <span>Beim Start</span>${stCheck("snAsk", s.snap_ask, "Fragen, ob ein weiterer Snapshot erstellt bzw. das Journal angezeigt werden soll")}
+    <label for="snKeep">Aufbewahrung</label><div class="st-path"><input class="inp" type="number" min="1" max="500" id="snKeep" value="${s.snap_keep}" style="width:80px"><span>automatische behalten, danach je einer pro Woche für</span><input class="inp" type="number" min="0" max="520" id="snWeeks" value="${s.snap_weeks}" style="width:80px"><span>Wochen</span></div>
+    <span>Gründlich</span>${stCheck("snThorough", s.snap_thorough, "Alle Dateien lesen (auch wenn Grösse und Änderungszeit gleich sind) – langsamer")}
+    <span>Speicherort</span><div class="st-path"><code title="${esc(o.dir)}">${esc(o.dir)}</code><button class="ghost sm" data-copen="${esc(o.dir)}">Öffnen</button></div>
+    <span>Belegt</span><div class="st-path"><span>${snMB(o.total)} · ${o.libs.length} überwachte(r) Ordner</span><button class="ghost sm" id="stSnapGo">Zur Seite „Snapshots“</button></div>`;
 }
 
 async function stCacheRender(info) {
@@ -188,6 +200,7 @@ function initSettings() {
     else if (t.id === "stBkOpen") call("open_folder", ST.data.backup_dir);
     else if (t.id === "stPlayers") { await plSetup(); settingsShow(); }
     else if (t.id === "stPlugins") setModule("plugins");
+    else if (t.id === "stSnapGo") setModule("snapshots");
     else if (t.dataset.cclear) {
       const what = t.dataset.cclear === "wave" ? "Wellenformen" : "Cover-Vorschauen";
       if (await dialog({ title: `${what} leeren?`, text: "Sie werden bei Bedarf neu berechnet.", buttons: [{ label: "Abbrechen", value: null }, { label: "Leeren", value: true, primary: true }] })) {
@@ -234,6 +247,11 @@ function initSettings() {
       if (S.pairs && S.pairs.length) refreshAll(await call("state"));
       toast(t.checked ? "Auch Standardfelder zeigen ihre ID3-Version." : "Standardfelder ohne Kennzeichen.");
     }
+    else if (t.id === "snDaily") await call("snap_set", "snap_daily", t.checked);
+    else if (t.id === "snAsk") await call("snap_set", "snap_ask", t.checked);
+    else if (t.id === "snThorough") await call("snap_set", "snap_thorough", t.checked);
+    else if (t.id === "snKeep") { await call("snap_set", "snap_keep", Math.max(1, +t.value || 20)); toast("Aufbewahrung gespeichert."); }
+    else if (t.id === "snWeeks") { await call("snap_set", "snap_weeks", Math.max(0, +t.value || 0)); toast("Aufbewahrung gespeichert."); }
     else if (t.id === "stPlStart") plSetPref("start", t.value);
     else if (t.id === "stPlWave") plSetPref("wave", t.checked);
     else if (t.id === "stPlFollow") plSetPref("follow", t.checked);

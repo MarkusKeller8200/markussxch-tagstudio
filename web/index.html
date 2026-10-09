@@ -25,6 +25,8 @@
       <svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg><span class="nt">Sicherungen</span></button>
     <button class="nav" data-module="plugins" title="Plugins">
       <svg class="i" viewBox="0 0 24 24"><path d="M9 3h6v3a2 2 0 1 0 4 0V3h2v6h-3a2 2 0 1 0 0 4h3v8h-6v-3a2 2 0 1 0-4 0v3H3v-8h3a2 2 0 1 0 0-4H3V3h6Z"/></svg><span class="nt">Plugins</span></button>
+    <button class="nav" data-module="snapshots" title="Snapshots und Änderungsjournal">
+      <svg class="i" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><circle cx="12" cy="13" r="3.5"/></svg><span class="nt">Snapshots</span><span class="nav-sub nt" id="snapSize"></span></button>
     <button class="nav" data-module="settings" title="Einstellungen">
       <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><span class="nt">Einstellungen</span></button>
     <button class="nav dim" data-module="db" title="Datenbank (bald)">
@@ -230,6 +232,44 @@
       </div>
     </div>
 
+    <div class="work module" id="moduleSnapshots" hidden>
+      <div class="mod-page">
+        <header class="mod-head">
+          <div><h2>Snapshots &amp; Änderungsjournal</h2>
+          <p class="muted">Hält den Tag-Zustand überwachter Ordner fest – ohne Audio, platzsparend. Das Journal zeigt, was andere Programme (Mp3tag, beaTunes, Mixed In Key, Platinum Notes …) seitdem geändert haben; einzelne Felder oder ganze Titel lassen sich zurücksetzen.</p></div>
+          <div class="mod-actions">
+            <button class="ghost" id="snAddLib">+ Ordner überwachen …</button>
+            <button class="ghost" id="snPrune" title="Automatische Snapshots nach der Aufbewahrungsregel ausdünnen">Aufräumen</button>
+            <button class="primary" id="snCreate">Snapshot erstellen</button>
+          </div>
+        </header>
+        <div class="muted sm" id="snInfo"></div>
+        <div class="sn-grid">
+          <section class="card sn-left" aria-label="Überwachte Ordner und Snapshots">
+            <div id="snLibs" class="sn-libs"></div>
+            <h4 style="margin:6px 0 0">Snapshots</h4>
+            <div id="snSnaps" class="bk-scroll"></div>
+          </section>
+          <section class="card sn-right" aria-label="Änderungsjournal">
+            <div class="sn-jhead">
+              <label class="muted sm" for="snA">Snapshot</label><select id="snA" class="inp"></select>
+              <span class="muted">↔</span>
+              <select id="snB" class="inp"></select>
+              <button class="ghost" id="snRun">Journal berechnen</button>
+            </div>
+            <div class="sn-filter" id="snFilter"></div>
+            <div id="snJournal" class="bk-scroll sn-journal"><div class="tg-empty">Snapshot wählen und „Journal berechnen“.</div></div>
+            <div class="fx-foot">
+              <span class="muted sm" id="snSelInfo"></span>
+              <div class="grow"></div>
+              <button class="ghost" id="snBytes" disabled title="Ganze Titel byte-genau auf den Snapshot-Stand (vorher Sicherung) – inklusive Binärfeldern">Byte-genau zurückschreiben …</button>
+              <button class="primary" id="snRevert" disabled>Auswahl zurücksetzen</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
     <div class="work module" id="moduleSettings" hidden>
       <div class="mod-page">
         <header class="mod-head">
@@ -353,5 +393,6 @@
 <script src="player.js"></script>
 <script src="settings.js"></script>
 <script src="jobs.js"></script>
+<script src="snapshots.js"></script>
 </body>
 </html>
