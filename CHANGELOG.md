@@ -7,6 +7,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Behoben
+- **Stems:** Beim Modell-Download stand teils „799 % von 0 MB“ (Server meldet falsche Grösse) – jetzt Prozent nur bei
+  plausibler Grösse, sonst die geladene Menge in MB. Gefunden mit dem neuen Stems-Test.
 - **Sicherheit (CodeQL):** Der eingebaute Webserver (Browser-Modus) setzt den Content-Type nur noch aus einer festen
   Liste statt aus dem angefragten Pfad (HTTP-Header-Injection ausgeschlossen). Test-Workflow mit minimalen Rechten
   (`contents: read`).

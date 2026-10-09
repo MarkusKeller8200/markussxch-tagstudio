@@ -321,6 +321,7 @@ class TestStems(PluginBase):
 
         def fake_run(args, on_line, env=None):
             ev = lambda **kw: on_line("@@" + json.dumps(kw))
+            ev(event="tick", n=8e3, total=1e3, unit="iB")             # Grösse falsch gemeldet → nur Menge
             ev(event="tick", n=50e6, total=100e6, unit="iB")          # Modell-Download
             ev(event="loaded")
             ev(event="start", i=0, path=f.path)
@@ -334,6 +335,8 @@ class TestStems(PluginBase):
         p.module.run("separate", ctx, [f], {"model": "htdemucs_ft.yaml", "overwrite": True})
         texts = [m[1] for m in seen if m[0] == "text"]
         self.assertTrue(any("Lade Modell herunter … 50 %" in t for t in texts), texts)
+        self.assertFalse(any("800 %" in t for t in texts), texts)
+        self.assertTrue(any(t.endswith("0.0 MB") for t in texts), texts)
         fr = [m[4] for m in seen if m[0] == "progress" and m[1] == 0 and m[4] is not None]
         self.assertEqual(fr, sorted(fr))                  # nie rückwärts
         self.assertGreater(max(fr), 0.9)                  # kommt bis fast 100 %

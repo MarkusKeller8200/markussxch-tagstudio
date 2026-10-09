@@ -34,7 +34,7 @@ def log(msg):
         fh.write("\n".join(LINES) + "\n")
 
 
-def make_track(path_mp3, seconds=20, sr=44100):
+def make_track(path_mp3, seconds=90, sr=44100):
     """Synthetischer Titel mit klar getrennten Klangquellen (124 BPM)."""
     rnd = random.Random(1)
     beat = 60 / 124
@@ -141,7 +141,7 @@ def main():
         if x[4] and (not texts or texts[-1] != x[4]):
             texts.append(x[4])
     log(f"Fortschritt: {len(samples)} Messpunkte, {len(moving)} verschiedene Zwischenstände, max {max(fr or [0]):.2f}")
-    for t in texts[:6] + (["…"] if len(texts) > 12 else []) + texts[-6:]:
+    for t in (texts if len(texts) <= 14 else texts[:7] + ["…"] + texts[-7:]):
         log(f"  Anzeige: {t[:120]}")
 
     res = st.get("result") or {}

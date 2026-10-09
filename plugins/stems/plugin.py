@@ -123,8 +123,11 @@ def run(action, ctx, files, opts):
         unit = ev.get("unit", "")
         if state["i"] is None:            # vor dem ersten Titel: Modell-Download
             if unit.lower().endswith("b"):
-                mb = ev["total"] / 1e6
-                ctx.status(f"Lade Modell herunter … {round(100 * f)} % von {mb:.0f} MB")
+                n, total = ev.get("n", 0), ev.get("total", 0)
+                if total >= 1e5 and n <= total:          # Grösse bekannt → Prozent
+                    ctx.status(f"Lade Modell herunter … {round(100 * n / total)} % von {total / 1e6:.0f} MB")
+                else:                                     # Grösse unbekannt/falsch (z. B. Weiterleitung) → nur Menge
+                    ctx.status(f"Lade Modell herunter … {n / 1e6:.1f} MB")
             return
         if f + 0.3 < state["last"]:       # neuer Balken → nächster Durchgang
             state["seg"] += 1
