@@ -71,6 +71,12 @@ class UndoStack:
         self.undo.append(e)
         return e
 
+    def forget(self, files):
+        """Schritte entfernen, die diese Dateien betreffen (z. B. nach dem Neu-Einlesen eines Paars, #82)."""
+        ids = {id(f) for f in files}
+        self.undo = [e for e in self.undo if not ids & set(e["files"])]
+        self.redo = [e for e in self.redo if not ids & set(e["files"])]
+
     def clear(self):
         self.undo.clear()
         self.redo.clear()

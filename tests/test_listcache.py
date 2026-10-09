@@ -110,6 +110,32 @@ class TestListCache(unittest.TestCase):
         self.assertEqual(self.wait(s)["cached"], 0)
         self.assertEqual(s.pairs[0][0].text("TKEY"), "11B")
 
+    def test_reload_pair(self):
+        """#82: nur das aktuelle Paar neu einlesen – mit Rückfrage bei ungespeicherten Änderungen."""
+        from session import Session
+        lib2 = os.path.join(self.dir, "lib2")
+        shutil.copytree(self.lib, lib2)
+        s = Session()
+        s.start_load(self.lib, lib2, False, "filename")
+        self.wait(s)
+        s.select(0)
+        other = s.pairs[1][0]
+        other.set_text("TIT2", "bleibt ungespeichert")
+        f = MP3File(os.path.join(lib2, "01.mp3"))
+        f.set_text("TKEY", "4A")
+        f.save()
+        s.copy_keys(["TIT2"], "rl")                              # ungespeichert links (gleich, also nichts)
+        s.set_value("L", "TIT2", "Geändert")
+        self.assertIn("ask", s.reload_pair())
+        st = s.reload_pair(force=True)
+        self.assertIn("1 Datei(en) hatten sich geändert", st["message"])
+        l, r = s.files()
+        self.assertEqual((l.text("TIT2"), r.text("TKEY")), ("Titel 1", "4A"))
+        self.assertEqual(other.text("TIT2"), "bleibt ungespeichert")   # übrige Liste unberührt
+        self.assertEqual(st["pair"]["i"], 0)
+        e = listcache.ListCache(lib2).entries["01.mp3"]
+        self.assertEqual(e["sig"], r.disk_sig)                    # Cache erneuert
+
     def wait(self, s):
         while not s.task_status()["done"]:
             time.sleep(0.01)

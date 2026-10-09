@@ -585,6 +585,19 @@ async function refreshFieldChoices() {
 }
 
 // ====================================================================== Zustand anwenden
+/** #82: nur das aktuelle Paar neu von der Platte lesen */
+async function reloadPair() {
+  if (S.cur === null || S.cur === undefined) return toast("Erst ein Dateipaar wählen.");
+  let st = await call("reload_pair", false);
+  if (st && st.ask) {
+    const ok = await dialog({ title: "Ungespeicherte Änderungen verwerfen?", text: `${st.ask.files.join(", ")} hat ungespeicherte Änderungen. Beim Neu-Einlesen gehen sie verloren.`,
+      buttons: [{ label: "Abbrechen", value: null }, { label: "Neu einlesen", value: true, primary: true }] });
+    if (!ok) return;
+    st = await call("reload_pair", true);
+  }
+  applyState(st);
+}
+
 function applyState(st) {
   if (!st) return;
   if (st.ask) return st; // Rückfrage nötig
@@ -967,6 +980,7 @@ function bind() {
   let fq = null;
   $("#fieldQuery").addEventListener("input", (e) => { clearTimeout(fq); fq = setTimeout(async () => applyState(await call("set_option", "query", e.target.value)), 200); });
   $$("[data-copyall]").forEach((b) => b.addEventListener("click", () => copyAll(b.dataset.copyall)));
+  $("#pairReloadBtn").addEventListener("click", reloadPair);
   $$("[data-missing]").forEach((b) => b.addEventListener("click", async () => applyState(await call("copy_missing", b.dataset.missing))));
 
   // Tabelle
@@ -1022,6 +1036,7 @@ function bind() {
     else if (mod && e.key.toLowerCase() === "a" && S.view) { e.preventDefault(); S.sel = new Set(rowKeys()); paintSelection(); }
     else if (e.altKey && e.key === "ArrowRight") { e.preventDefault(); copyKeys(selectedKeys(), "lr"); }
     else if (e.altKey && e.key === "ArrowLeft") { e.preventDefault(); copyKeys(selectedKeys(), "rl"); }
+    else if (e.key === "F5" && e.shiftKey) { e.preventDefault(); reloadPair(); }      // #82
     else if (e.key === "F5") { e.preventDefault(); compare(false, true); }
     else if ((e.key === "ArrowDown" || e.key === "ArrowUp") && S.view && document.activeElement === $("#table")) {
       e.preventDefault();

@@ -913,6 +913,37 @@ class Session:
             return {"pairs": len(pairs), "errors": errors, **self._verify_start(stats, "compare")}
         return self._run("load", "Dateien einlesen", job)
 
+    def reload_pair(self, force=False) -> dict:
+        """#82: nur die beiden Dateien des aktuellen Paars neu von der Platte lesen (nicht die ganze Liste).
+        Ungespeicherte Änderungen: ohne force kommt {"ask": {...}} zurück."""
+        import listcache
+        with self.lock:
+            files = [(f, root) for f, root in zip(self.files(), (self.left_root, self.right_root))
+                     if f is not None and not self._ro(f)]
+            if not files:
+                return self.state("Kein Paar gewählt.", "warn")
+            mod = [os.path.basename(f.path) for f, _r in files if f.is_modified()]
+            if mod and not force:
+                return {"ask": {"files": mod}}
+            changed, errors = 0, []
+            for f, root in files:
+                before = f.disk_sig
+                try:
+                    st = os.stat(f.path)
+                    f.load(keep_raw=True)
+                    changed += f.disk_sig != before
+                    if self._list_cache_on() and root and os.path.isdir(root):
+                        c = listcache.ListCache(root)
+                        c.store(f.path, st, f)
+                        c.save(prune=False)
+                    f.__dict__.pop("_raw", None)
+                except OSError as ex:
+                    errors.append(f"{os.path.basename(f.path)}: {ex}")
+            self.undo.forget([f for f, _r in files])
+            msg = (f"Paar neu eingelesen – {changed} Datei(en) hatten sich geändert." if changed
+                   else "Paar neu eingelesen – unverändert.") if not errors else "Neu einlesen fehlgeschlagen: " + "; ".join(errors)
+            return self.state(msg, "warn" if errors or changed else "ok")
+
     # ================================================================== Paarliste
     def pair_rows(self) -> dict:
         """Alle Paare mit Status (für die Liste) plus Zähler."""
