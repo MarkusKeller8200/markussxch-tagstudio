@@ -7,7 +7,7 @@
 "use strict";
 
 const PLAYER = { audio: null, info: null, kind: null, ref: null, side: "L", loading: false, follow: true, startAt: "0",
-  wave: true, waveBusy: null };
+  wave: true, waveBusy: null, loop: null, raf: 0 };
 const WAVE_N = 800;               // Balken der Wellenform (im Cache gespeichert)
 const WAVE_MAX_BYTES = 80e6;      // sehr lange Mixe nicht dekodieren (Speicher)
 
@@ -57,6 +57,7 @@ async function plLoad(target, autoplay = true, keepTime = null) {
   try { info = await call("media_url", target.kind, target.ref); } catch (e) { PLAYER.loading = false; toast(String(e.message || e)); return; }
   PLAYER.info = info; PLAYER.kind = target.kind; PLAYER.ref = target.ref;
   const a = PLAYER.audio;
+  plLoopSet(null);
   a.src = info.url;
   const dur = info.duration || 0;
   const firstCue = (info.cues || []).find((c) => c.pos > 0.05);
@@ -124,6 +125,12 @@ function plRender() {
   const i = PLAYER.info;
   $("#plTitle").textContent = i ? (i.title ? `${i.artist ? i.artist + " – " : ""}${i.title}` : i.name) : "Vorhören: Titel markieren, Leertaste";
   $("#plTitle").title = i ? i.path : "";
+  // #46: Tonart und Tempo des laufenden Titels
+  const bpm = i && i.bpm ? String(Math.round(parseFloat(String(i.bpm).replace(",", ".")) || 0) || i.bpm) : "";
+  const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${bpm ? `<span class="pl-bpm">${esc(bpm)} BPM</span>` : ""}` : "";
+  if ($("#plMeta").dataset.v !== meta) { $("#plMeta").innerHTML = meta; $("#plMeta").dataset.v = meta; }
+  $("#plVol").classList.toggle("muted", a.muted);
+  $("#plVol").title = a.muted ? "Stumm (M)" : "Lautstärke (M: stumm)";
   const dur = a.duration || (i && i.duration) || 0;
   $("#plTime").textContent = i ? `${fmtTime(a.currentTime)} / ${fmtTime(dur)}` : "";
   const seek = $("#plSeek");
@@ -204,9 +211,36 @@ function plCues() {
   box.innerHTML = dur ? cues.map((c, k) => {
     const left = Math.max(0, Math.min(100, (c.pos / dur) * 100));
     const w = c.kind === "loop" && c.end ? `--w:${Math.max(2, ((c.end - c.pos) / dur) * box.clientWidth)}px;` : "";
-    const label = `${c.kind === "loop" ? "Loop" : "Cue"} ${c.index + 1}${c.name ? " · " + c.name : ""} · ${fmtTime(c.pos)} (${c.source})`;
-    return `<button class="pl-cue${c.kind === "loop" ? " loop" : ""}" data-k="${k}" style="left:${left}%;${c.color ? `--cue:${esc(c.color)};` : ""}${w}" title="${esc(label)}" aria-label="${esc(label)}"></button>`;
+    const label = `${c.kind === "loop" ? "Loop" : "Cue"} ${c.index + 1}${c.name ? " · " + c.name : ""} · ${fmtTime(c.pos)}${c.kind === "loop" && c.end ? `–${fmtTime(c.end)} · Klick: Schleife an/aus` : ""} (${c.source})`;
+    return `<button class="pl-cue${c.kind === "loop" ? " loop" : ""}${PLAYER.loop && PLAYER.loop.k === k ? " on" : ""}" data-k="${k}" style="left:${left}%;${c.color ? `--cue:${esc(c.color)};` : ""}${w}" title="${esc(label)}" aria-label="${esc(label)}"></button>`;
   }).join("") : "";
+}
+
+/** #47: Serato-Loop als Schleife abspielen (null = aus) */
+function plLoopSet(c) {
+  PLAYER.loop = c && c.end > c.pos ? { pos: c.pos, end: c.end, k: c.k } : null;
+  cancelAnimationFrame(PLAYER.raf);
+  $$("#plCues .pl-cue.loop").forEach((b) => b.classList.toggle("on", !!PLAYER.loop && +b.dataset.k === PLAYER.loop.k));
+  if (!PLAYER.loop) return;
+  const tick = () => {
+    const L = PLAYER.loop, a = PLAYER.audio;
+    if (!L) return;
+    if (a.currentTime >= L.end || a.currentTime < L.pos - 0.5) a.currentTime = L.pos;
+    PLAYER.raf = requestAnimationFrame(tick);
+  };
+  PLAYER.raf = requestAnimationFrame(tick);
+}
+
+/** #48: Zeit (und nahen Cue) beim Überfahren der Leiste zeigen */
+function plHover(e) {
+  const box = $("#plWave"), tip = $("#plHover"), i = PLAYER.info;
+  const dur = (PLAYER.audio && PLAYER.audio.duration) || (i && i.duration) || 0;
+  if (!i || !dur || e.type === "mouseleave") { tip.hidden = true; return; }
+  const r = box.getBoundingClientRect(), f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), t = f * dur;
+  const near = (i.cues || []).find((c) => Math.abs(c.pos - t) / dur < 0.012);
+  tip.textContent = fmtTime(t) + (near ? ` · ${near.kind === "loop" ? "Loop" : "Cue"} ${near.index + 1}${near.name ? " " + near.name : ""}` : "");
+  tip.hidden = false;
+  tip.style.left = Math.max(0, Math.min(r.width - tip.offsetWidth, f * r.width - tip.offsetWidth / 2)) + "px";
 }
 
 /** Zum nächsten/vorigen Cue springen (Shift+↑/↓ bzw. Alt+←/→ im Player). */
@@ -307,10 +341,19 @@ function initPlayer() {
   PLAYER.wave = pp.wave;
   ["play", "pause", "ended", "loadedmetadata", "emptied"].forEach((ev) => a.addEventListener(ev, plRender));
   a.addEventListener("loadedmetadata", plCues);
+  $("#plWave").insertAdjacentHTML("beforeend", '<div class="pl-hover" id="plHover" hidden></div>');
+  $("#plWave").addEventListener("mousemove", plHover);
+  $("#plWave").addEventListener("mouseleave", plHover);
   window.addEventListener("resize", () => { plCues(); plDrawWave(); });
   $("#plCues").addEventListener("click", (e) => {
     const b = e.target.closest(".pl-cue"); if (!b || !PLAYER.info) return;
-    a.currentTime = PLAYER.info.cues[+b.dataset.k].pos;
+    const c = PLAYER.info.cues[+b.dataset.k];
+    if (c.kind === "loop" && c.end) {            // #47: Loop an/aus
+      if (PLAYER.loop && PLAYER.loop.k === +b.dataset.k) { plLoopSet(null); toast("Schleife aus."); return; }
+      plLoopSet({ pos: c.pos, end: c.end, k: +b.dataset.k });
+      toast(`Schleife ${fmtTime(c.pos)}–${fmtTime(c.end)} – erneut klicken zum Beenden.`);
+    }
+    a.currentTime = c.pos;
     if (a.paused) a.play().catch(() => {});
     plRender();
   });
@@ -337,6 +380,7 @@ function initPlayer() {
     if (S.module !== "tagger" && S.module !== "compare") return;
     if (e.key === " " && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plToggle(); }
     else if (e.shiftKey && (e.key === "ArrowRight" || e.key === "ArrowLeft") && PLAYER.audio.src) { e.preventDefault(); plSeekBy(e.key === "ArrowRight" ? 10 : -10); }
+    else if ((e.key === "m" || e.key === "M") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); PLAYER.audio.muted = !PLAYER.audio.muted; plRender(); toast(PLAYER.audio.muted ? "Stumm (M)" : "Ton an"); }   // #49
     else if (e.altKey && (e.key === "PageDown" || e.key === "PageUp") && PLAYER.audio.src) { e.preventDefault(); plCueJump(e.key === "PageDown" ? 1 : -1); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); call("players").then((l) => plExternal(l.length ? 0 : null)); }
   });

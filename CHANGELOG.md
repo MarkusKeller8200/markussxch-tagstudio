@@ -7,6 +7,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- Player: **Tonart und BPM** des laufenden Titels neben dem Titel (#46); **Serato-Loops** per Klick auf die Marke als
+  Schleife abspielen, erneuter Klick beendet sie (#47); **Zeit und Cue** beim Überfahren der Leiste (#48); Taste
+  **M** schaltet stumm (#49).
+- Herkunft: **Klick auf ein Kennzeichen** bei „Weitere Felder“ zeigt nur Felder dieser Herkunft, erneuter Klick alle (#50).
 - **Vergleich: Felder nach Herkunft entfernen** – Knopf „Herkunft“: z. B. Serato-Daten nur rechts, im aktuellen,
   in markierten oder allen Paaren; Vorschau und Rückgängig (#45).
 - Tagger: **Breite der Spalte „Datei“** per Griff im Spaltenkopf einstellbar (Doppelklick = automatisch), wird gemerkt (#41).

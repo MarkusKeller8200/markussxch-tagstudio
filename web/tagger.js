@@ -231,7 +231,7 @@ function renderTgEditor() {
       ${shownFields.map((f) => {
         const full = f.edit || f.text, ml = f.multiline;
         const shown = ml ? full : (f.text.length > 160 ? f.text.slice(0, 160) + " …" : f.text);
-        return `<div class="tg-f" data-key="${esc(f.key)}"><span class="k" title="${esc(f.label + "\n" + f.key)}">${srcBadge(f.src)}${f.mod ? '<span class="m" style="display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:6px"></span>' : ""}${esc(f.label)}</span>
+        return `<div class="tg-f" data-key="${esc(f.key)}"><span class="k" title="${esc(f.label + "\n" + f.key)}">${f.src ? `<span class="src-click" data-srcf="${esc(f.src)}" title="Klick: nur Felder dieser Herkunft zeigen (erneut: alle)">${srcBadge(f.src)}</span>` : ""}${f.mod ? '<span class="m" style="display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:6px"></span>' : ""}${esc(f.label)}</span>
       <span class="v${f.editable ? "" : " noedit"}${ml ? " ml" : ""}" title="${f.editable ? "Doppelklick: bearbeiten" : ""}">${f.xml ? `<button class="xml-badge${f.xml === "view" ? " view" : ""}" data-txml="1">XML</button>` : ""}${COLOR_KEY_RE.test(f.key) ? colorSwatch(full) : ""}${linkify(shown)}</span>
       <span class="b">${f.editable || f.xml || f.blob ? `<button class="x" data-tedit="1" title="${f.blob ? "Binärfeld ansehen/bearbeiten" : "Im Editor bearbeiten"}" aria-label="${esc(f.label)} bearbeiten">${PEN}</button>` : ""}<button class="x del" data-tdel="1" title="Feld entfernen" aria-label="${esc(f.label)} entfernen">${DEL}</button></span></div>`;
       }).join("")}</div>` : "";
@@ -929,6 +929,8 @@ async function tgOriginDialog(preset = "") {
     else if (id === "tgKeyBtn") keyWheelOpen();
     const pb = e.target.closest("[data-plugin]");
     if (pb) pluginRun(pb.dataset.plugin, pb.dataset.action);
+    const sf = e.target.closest("[data-srcf]");                 // #50: Klick auf Kennzeichen filtert
+    if (sf) { TG.srcFilter = TG.srcFilter === sf.dataset.srcf ? "" : sf.dataset.srcf; renderTgEditor(); return; }
     const row = e.target.closest(".tg-f");
     if (row && e.target.closest("[data-tdel]")) taggerApplyDetail(await call("tag_remove", [idx[0]], [row.dataset.key]));
     else if (row && e.target.closest("[data-txml]")) openXml(null, row.dataset.key, { tag: idx[0] });

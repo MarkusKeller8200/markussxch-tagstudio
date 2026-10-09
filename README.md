@@ -172,7 +172,9 @@ Unten in der Fußleiste – in Tagger und Vergleich:
 - **Wellenform:** wird beim ersten Abspielen einmal berechnet und im Cache abgelegt (`~/TagStudio/cache/wave`,
   bleibt beim Bearbeiten der Tags und Umbenennen gültig); im Menü ⋯ bzw. in den Einstellungen abschaltbar.
 - **Cue-Marken** aus Serato (Cues und Loops mit Farbe und Name) und Mixed In Key über der Leiste: Klick springt
-  hin, **Alt+Bild↑/↓** zum vorigen/nächsten Cue.
+  hin, **Alt+Bild↑/↓** zum vorigen/nächsten Cue. Ein Klick auf eine **Loop-Marke** spielt den Loop als Schleife
+  (erneuter Klick beendet sie); beim Überfahren der Leiste stehen Zeit und Cue-Name.
+- Neben dem Titel: **Tonart** (Camelot) und **BPM** des laufenden Titels. Taste **M** schaltet stumm.
 - **A/B im Vergleich:** L/R wechselt zwischen linker und rechter Datei **an derselben Stelle**.
 - **Externe Player** (⋯ bzw. **Strg/Cmd+P**): markierte Titel in foobar2000, VLC, Rekordbox, Music … öffnen; ohne
   Einrichtung im Standardprogramm des Systems. Unter „Externe Player…“ beliebig viele Programme mit Argumenten

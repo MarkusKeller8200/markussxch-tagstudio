@@ -743,3 +743,14 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .src-b.id3{color:var(--faint);background:transparent;border-color:var(--line)}
 .tg-thead .th-name{position:relative;display:flex;align-items:center;min-width:0;height:100%}
 .tg-thead .th-name .col-grip{top:6px;bottom:6px;right:-9px}
+
+/* 3.2.0-beta.5: Player-Kleinigkeiten */
+.player .pl-meta{display:inline-flex;align-items:center;gap:6px;flex:none}
+.player .pl-meta .kb{font-size:10.5px;padding:0 5px;line-height:16px}
+.player .pl-bpm{font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pl-cue.loop.on::before{opacity:.45}
+.pl-cue.loop.on::after{border-top-color:var(--warn)}
+.pl-hover{position:absolute;bottom:calc(100% + 4px);padding:2px 7px;border-radius:6px;background:var(--fg);color:var(--bg);font-size:11.5px;white-space:nowrap;pointer-events:none;z-index:5}
+.player #plVol.muted{opacity:.35}
+.src-click{cursor:pointer;display:inline-flex}
+.src-click:hover .src-b{filter:brightness(1.15);outline:1px solid currentColor}
