@@ -1,6 +1,6 @@
 # Konzept: Snapshots und Änderungsjournal
 
-Stand: 2026-10-09 · Status: **Konzept**, noch nicht umgesetzt
+Stand: 2026-10-09 · Status: **Konzept, Entscheidungen getroffen** (Abschnitt 8) · geplant für **Version 3.3.0**
 
 ## 1. Ziel
 
@@ -51,13 +51,14 @@ Pro Datei:
 | ID3v2-Tag **byte-genau** (Kopf, Frames in Reihenfolge, Padding) und ID3v1 | exakte Wiederherstellung |
 | Dauer, ID3-Version | Anzeige, Plausibilität |
 
-Audiodaten werden **nicht** gespeichert – Snapshots bleiben klein. Audio-Änderungen werden erkannt und gemeldet,
-lassen sich aber nicht rückgängig machen (dafür wäre eine Audio-Sicherung nötig, siehe offene Fragen).
+Audiodaten werden **nicht** gespeichert – Snapshots bleiben klein. Audio-Änderungen werden erkannt und **nur
+gemeldet** (entschieden, keine Audio-Sicherung).
 
 ### Speicherformat (inhaltsadressiert, wie Git)
 
 ```
-~/TagStudio/Snapshots/                     (Ordner änderbar, wie bei Sicherungen)
+~/TagStudio/Snapshots/                     Standard; vom Benutzer wählbar und später verschiebbar
+  store.json                               Format-Version des Speichers, erstellt mit TagStudio x.y
   objects/ab/abcdef….z                     einzelne Frames (zlib), Name = SHA-256 des Inhalts
   libs/<id>/library.json                   überwachter Ordner: Pfad, Name, Einstellungen
   libs/<id>/snaps/2026-10-09_1830_<id>.json.gz   Manifest eines Snapshots
@@ -69,9 +70,33 @@ lassen sich aber nicht rückgängig machen (dafür wäre eine Audio-Sicherung n�
   "tag": {"hdr": "<10 Byte>", "frames": ["<sha>", …], "pad": 1024, "ver": 3}, "v1": "<sha>|null"}`.
 - Schätzung für 1'500 Titel: erster Snapshot ≈ Textfelder 3 MB + einmalige Cover; jeder weitere Snapshot
   ≈ 0,3–1 MB plus nur die tatsächlich geänderten Frames.
-- **Aufräumen:** automatische Snapshots werden nach Regel ausgedünnt (z. B. die letzten 20 behalten, dazu je einen
-  pro Woche/Monat); **angeheftete** Snapshots (eigene Bezeichnung, z. B. „Vor Platinum Notes“) bleiben immer.
-  Danach werden nicht mehr benutzte Objekte entfernt.
+- **Aufräumen:** automatische Snapshots werden nach Regel ausgedünnt – Standard: die **letzten 20** behalten, dazu
+  **je einen pro Woche der letzten 3 Monate**; beide Zahlen sind in den Einstellungen änderbar. **Angeheftete**
+  Snapshots (eigene Bezeichnung, z. B. „Vor Platinum Notes“) bleiben immer. Danach werden nicht mehr benutzte
+  Objekte entfernt.
+
+### Speicherort, Weitergabe und Versionierung
+
+- **Standard:** `~/TagStudio/Snapshots` (Benutzerverzeichnis von TagStudio). In den Einstellungen wählbar – global
+  oder je überwachtem Ordner.
+- **Später verschieben:** „Speicherort ändern …“ kopiert den ganzen Speicher (Objekte + Manifeste) an den neuen
+  Ort, prüft ihn und entfernt erst danach den alten. Typischer Fall: Speicher **in den Bibliotheksordner** legen
+  (z. B. `S:\_MP3\.tagstudio-snapshots`), um den MP3-Ordner samt Snapshot-Historie weiterzugeben oder auf mehreren
+  Rechnern zu nutzen. Weil Pfade relativ zum überwachten Ordner gespeichert sind, funktioniert das auch mit anderem
+  Laufwerksbuchstaben oder auf dem Mac.
+- **Snapshots im fremden Ordner erkennen:** Wird ein Ordner eingelesen, der einen Snapshot-Speicher enthält, bietet
+  TagStudio an, ihn zu übernehmen.
+- **Versionierung:** `store.json` enthält `format` (Format-Version des Speichers) und jedes Manifest seine eigene
+  Version. Neuere TagStudio-Versionen lesen ältere Formate weiter und **migrieren** beim ersten Schreiben (vorher
+  Kopie von `store.json` und Manifesten); ein Speicher aus einer **neueren** Version wird nur gelesen, nicht
+  verändert, mit Hinweis „bitte TagStudio aktualisieren“. Objekte (Frames) sind formatunabhängig.
+
+### Speicherplatz im Blick
+
+- Je Snapshot: **eigener Platz** (nur in diesem Snapshot vorkommende Frames + Manifest) und **gesamt referenziert**.
+- Je überwachtem Ordner und für **alle Snapshots zusammen**: belegter Platz auf der Platte.
+- Anzeige auf der Seite „Snapshots“ (Liste und Kopf), in den Einstellungen beim Speicherort und kompakt im
+  Hauptprogramm (Seitenleiste unter „Snapshots“, z. B. „Snapshots · 84 MB“). Beim Aufräumen: „gibt x MB frei“.
 
 ### Schnell erstellen
 
@@ -145,15 +170,18 @@ Vergleich auf **Werte**, nicht auf Bytes – sonst würde jede v2.3/v2.4-Umschre
 
 ### 5.4 Beim Start
 
-- Ist mindestens ein Ordner überwacht und die Option an, prüft TagStudio im Hintergrund schnell (nur Grösse und
-  Änderungszeit), was sich seit dem letzten Snapshot getan hat, und fragt dann:
+- **Täglicher Snapshot (Standard: an, abschaltbar):** Beim ersten Start eines Tages erstellt TagStudio automatisch
+  einen Snapshot je überwachtem Ordner (Hintergrund-Auftrag).
+- **Frage beim Start (Standard: an, abschaltbar):** Zusätzlich prüft TagStudio im Hintergrund schnell (nur Grösse
+  und Änderungszeit), was sich seit dem letzten Snapshot getan hat, und fragt dann – auch wenn heute schon ein
+  automatischer Snapshot existiert, damit man untertags gezielt einen weiteren erstellen kann:
 
   > **01_Library:** 37 Titel wurden seit dem letzten Snapshot (Mo 18:30) ausserhalb von TagStudio geändert.
   > [Journal ansehen] [Neuen Snapshot erstellen] [Später]   ☐ Nicht mehr fragen
 
   Ohne Änderungen nur ein dezenter Hinweis bzw. still ein neuer Snapshot (einstellbar).
-- **Einstellungen** (Bereich „Snapshots“): überwachte Ordner, Frage beim Start ein/aus, automatischer Snapshot
-  („bei jedem Start“, „höchstens einmal täglich“, „nie“), Aufbewahrung, Speicherort, „Gründlich“.
+- **Einstellungen** (Bereich „Snapshots“): überwachte Ordner, täglicher Snapshot ein/aus, Frage beim Start ein/aus,
+  Aufbewahrung (Anzahl automatische, Wochen), Speicherort (ändern/verschieben), „Gründlich“, Speicherplatz.
 
 ### 5.5 Während TagStudio läuft (Ordnerüberwachung)
 
@@ -185,30 +213,32 @@ v2.3 → v2.4 umschreiben), Journal-Status prüfen, Feld- und Byte-Rückgängig,
 
 ## 7. Umsetzung in Schritten
 
-**Phase 1 – Grundfunktion**
+**Phase 1 – Grundfunktion (3.3.0)**
 1. `snapshots.py`: Objekt-Speicher, Manifest, inkrementeller Scan, Journal, Aufräumen (mit Tests).
 2. Seite „Snapshots“: Ordner überwachen, Snapshot von Hand (mit Bezeichnung/Anheften), Journal Snapshot ↔ Jetzt,
    Filter, Feld- und Titel-Rückgängig (über Undo), byte-genaues Zurückschreiben.
-3. Start-Frage mit Option „nicht mehr fragen“; Einstellungen „Snapshots“.
-4. **Konfliktschutz beim Speichern** (externe Änderung seit dem Einlesen).
+3. Täglicher Snapshot und Start-Frage (beides abschaltbar); Einstellungen „Snapshots“.
+4. Speicherort wählen/verschieben, Format-Versionierung mit Migration, Speicherplatz-Anzeige.
+5. **Konfliktschutz beim Speichern** (externe Änderung seit dem Einlesen).
 
-**Phase 2 – Vergleich und Komfort**
-5. Snapshot als Quelle auf der Vergleichsseite, schreibgeschützt; Zuordnung nach Audio-Inhalt; Snapshot ↔ Snapshot.
-6. „Vermutlich geändert von …“ (Herkunft) mit Filter und Sammel-Rückgängig je Programm.
-7. Überwachung während der Laufzeit (Abfrage) mit Hinweis in der Fussleiste.
+**Phase 2 – Vergleich und Komfort (3.3.0)**
+6. Snapshot als Quelle auf der Vergleichsseite, schreibgeschützt; Zuordnung nach Audio-Inhalt; Snapshot ↔ Snapshot.
+7. „Vermutlich geändert von …“ (Herkunft) mit Filter und Sammel-Rückgängig je Programm.
+8. Überwachung während der Laufzeit (Abfrage) mit Hinweis in der Fussleiste.
 
 **Phase 3 – Ausbau**
-8. Journal exportieren (CSV/Excel).
-9. Sicherungen im selben Objekt-Speicher (spart Platz, einheitlicher Änderungs-Viewer).
-10. Optional: Audio-Sicherung einzelner Titel vor Programmen wie Platinum Notes.
+9. Journal exportieren (CSV/Excel).
+10. Sicherungen im selben Objekt-Speicher (spart Platz, einheitlicher Änderungs-Viewer).
+~~11. Audio-Sicherung~~ – entfallen (Audio-Änderungen werden nur gemeldet).
 
-## 8. Offene Fragen
+## 8. Entscheidungen (2026-10-09)
 
-1. **Speicherort:** lokal (`~/TagStudio/Snapshots`) oder neben der Bibliothek (z. B. `S:\_MP3\.tagstudio`), damit
-   mehrere Rechner dieselben Snapshots sehen?
-2. **Automatik:** bei jedem Start fragen, höchstens einmal täglich, oder still automatisch?
-3. **Aufbewahrung:** wie viele automatische Snapshots behalten (Vorschlag: 20 + je einer pro Woche der letzten 3
-   Monate)?
-4. **Audio-Änderungen** (Platinum Notes): nur melden, oder Audio-Sicherung einzelner Titel anbieten (braucht viel
-   Platz)?
-5. **Reihenfolge in der Planung:** vor oder nach „3.3.0 – DJ-Set“?
+1. **Speicherort:** Standard `~/TagStudio/Snapshots`, vom Benutzer wählbar und später verschiebbar (z. B. in den
+   MP3-Ordner, um ihn samt Snapshots weiterzugeben) – dafür Format-Versionierung mit Migration (Abschnitt 3).
+2. **Automatik:** einmal täglich automatisch ein Snapshot, abschaltbar. Die Frage beim Start kommt trotzdem
+   (abschaltbar), um untertags weitere Snapshots zu erstellen.
+3. **Aufbewahrung:** wie vorgeschlagen (20 automatische + je einer pro Woche der letzten 3 Monate), Zahlen
+   einstellbar; angeheftete Snapshots bleiben immer.
+4. **Audio-Änderungen:** nur melden.
+5. **Planung:** nächste Version **3.3.0**; DJ-Set wird 3.4.0, Online-Metadaten 3.5.0.
+6. **Speicherplatz:** je Snapshot und gesamt anzeigen, auch kompakt im Hauptprogramm.

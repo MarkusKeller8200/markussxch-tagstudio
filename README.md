@@ -494,12 +494,13 @@ externe Player, Herkunft der Tags, Einstellungsseite, Stems im Hintergrund und a
 
 Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
-- **3.3.0 – DJ-Set:** Reihenfolge eines Sets nach Tonart (Camelot), BPM und Energie optimieren, Bewertung jedes
-  Übergangs, Exporte als M3U8, Rekordbox-XML und CSV.
-- **3.4.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
-- **Snapshots & Änderungsjournal:** Tag-Zustand überwachter Ordner festhalten, Änderungen durch andere Programme
-  (Mp3tag, beaTunes, Mixed In Key, Platinum Notes …) erkennen und einzeln zurücknehmen – Konzept in
+- **3.3.0 – Snapshots & Änderungsjournal:** Tag-Zustand überwachter Ordner täglich festhalten, Änderungen durch andere
+  Programme (Mp3tag, beaTunes, Mixed In Key, Platinum Notes …) erkennen und einzeln zurücknehmen, Snapshots im
+  Vergleich, Schutz vor dem Überschreiben externer Änderungen – Konzept in
   [docs/KONZEPT-SNAPSHOTS.md](docs/KONZEPT-SNAPSHOTS.md).
+- **3.4.0 – DJ-Set:** Reihenfolge eines Sets nach Tonart (Camelot), BPM und Energie optimieren, Bewertung jedes
+  Übergangs, Exporte als M3U8, Rekordbox-XML und CSV.
+- **3.5.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
 - **Plugin-Ideen:** Liedtexte (LRCLIB), Lautheit/ReplayGain, Duplikate finden, Qualitätsprüfung (falsche
   320 kbit/s), Import aus Rekordbox/Traktor/Serato, Bibliothek nach Tags ordnen.
 - **Später:** Analyse mit librosa bzw. Essentia-Modellen, Filter und Spalten nach Audio-Merkmalen, Mood-Feld,
