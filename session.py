@@ -652,7 +652,9 @@ class Session:
                 "wave": (waveform.DIR, re.compile(r"^[0-9a-f]{32}\.json$"), True)}
 
     def cache_info(self) -> dict:
-        out = {}
+        import listcache
+        n, size = listcache.cache_size()
+        out = {"lists": {"dir": listcache.DIR, "count": n, "bytes": size, "on": self._list_cache_on()}}
         for name, (d, rx, deep) in self._cache_dirs().items():
             n = size = 0
             for root, _dirs, files in (os.walk(d) if deep else [(d, [], os.listdir(d) if os.path.isdir(d) else [])]):
@@ -668,6 +670,14 @@ class Session:
 
     def cache_clear(self, name) -> dict:
         """Nur Dateien, die zum jeweiligen Cache gehören (Namensmuster), werden gelöscht."""
+        if name == "lists":
+            import listcache
+            import shutil
+            n, _size = listcache.cache_size()
+            shutil.rmtree(listcache.DIR, ignore_errors=True)
+            info = self.cache_info()
+            info["removed"] = n
+            return info
         if name not in self._cache_dirs():
             raise ValueError("Unbekannter Cache")
         d, rx, deep = self._cache_dirs()[name]
@@ -854,7 +864,9 @@ class Session:
             return os.path.join(root, *ids[2].split("/")) if ids[2] else root      # ein Titel: Datei als Wurzel
 
         def job(cancel, progress):
-            pairs, errors = core.load_pairs(lp, rp, recursive, mode, cancel, progress, self.reg, snap_loader)
+            stats = {}
+            pairs, errors = core.load_pairs(lp, rp, recursive, mode, cancel, progress, self.reg, snap_loader,
+                                            self._list_cache_on(), stats)
             with self.lock:
                 self.undo.clear()
                 self.pairs = pairs
@@ -864,7 +876,7 @@ class Session:
             self.cfg.update(hist_left=core.history(self.cfg, "hist_left", lp),
                             hist_right=core.history(self.cfg, "hist_right", rp), mode=mode, recursive=recursive)
             core.save_config({k: self.cfg[k] for k in ("hist_left", "hist_right", "mode", "recursive")})
-            return {"pairs": len(pairs), "errors": errors}
+            return {"pairs": len(pairs), "errors": errors, **self._verify_start(stats, "compare")}
         return self._run("load", "Dateien einlesen", job)
 
     # ================================================================== Paarliste
@@ -1512,7 +1524,8 @@ class Session:
             return {"ok": False, "error": "Bitte einen vorhandenen Ordner oder eine MP3-Datei wählen."}
 
         def job(cancel, progress):
-            files, errors = core.load_files(path, bool(recursive), cancel, progress, self.reg)
+            stats = {}
+            files, errors = core.load_files(path, bool(recursive), cancel, progress, self.reg, self._list_cache_on(), stats)
             with self.lock:
                 self.tag_files = files
                 self.tag_root = path if os.path.isdir(path) else os.path.dirname(path)
@@ -1520,8 +1533,69 @@ class Session:
                 n_orig = len(self.tag_files) - len(self.tag_parent)
             self.cfg["hist_tagger"] = core.history(self.cfg, "hist_tagger", path)
             core.save_config({"hist_tagger": self.cfg["hist_tagger"], "tagger_recursive": bool(recursive)})
-            return {"files": n_orig, "stems": len(with_stems), "errors": errors}
+            return {"files": n_orig, "stems": len(with_stems), "errors": errors, **self._verify_start(stats, "tagger")}
         return self._run("tagload", "Dateien einlesen", job)
+
+    # ------------------------------------------------------------------ Listen-Cache und Prüfung (#70)
+    def _list_cache_on(self) -> bool:
+        return bool(getattr(self, "cfg", {}).get("list_cache", True))
+
+    def set_list_cache(self, on) -> bool:
+        self.cfg["list_cache"] = bool(on)
+        core.save_config({"list_cache": bool(on)})
+        return bool(on)
+
+    def _verify_start(self, stats, kind) -> dict:
+        """Aus dem Cache geladene Dateien im Hintergrund über den Hash ihrer Tag-Bytes prüfen."""
+        import listcache
+        files = list(stats.get("cached") or [])
+        caches = stats.get("caches") or []
+        self._verify_gen = getattr(self, "_verify_gen", 0) + 1
+        gen = self._verify_gen
+        self.verify = {"running": bool(files), "kind": kind, "i": 0, "total": len(files), "changed": [],
+                       "removed": [], "seq": gen, "cached": len(files)}
+        if not files:
+            return {"cached": 0}
+
+        def by_root(path):
+            k = os.path.normcase(os.path.abspath(path))
+            return next((c for c in caches if k.startswith(os.path.normcase(c.base) + os.sep) or k == os.path.normcase(c.root)), None)
+
+        def worker():
+            v = self.verify
+            touched = set()
+            for f in files:
+                if getattr(self, "_verify_gen", 0) != gen:
+                    return                                  # neu eingelesen – alte Prüfung verwerfen
+                try:
+                    sig, _size, _mt = listcache.tag_sig(f.path)
+                    if sig != f.disk_sig:
+                        with self.lock:
+                            if not f.is_modified():         # eigene ungespeicherte Änderungen nie überschreiben
+                                st = os.stat(f.path)
+                                f.load(keep_raw=True)
+                                c = by_root(f.path)
+                                if c is not None:
+                                    c.store(f.path, st, f)
+                                    touched.add(id(c))
+                        v["changed"].append(f.path)
+                except OSError:
+                    v["removed"].append(f.path)
+                v["i"] += 1
+            for c in caches:
+                if id(c) in touched:
+                    c.save(prune=False)
+            v["running"] = False
+
+        threading.Thread(target=worker, daemon=True).start()
+        return {"cached": len(files)}
+
+    def verify_status(self) -> dict:
+        v = dict(getattr(self, "verify", None) or {"running": False, "total": 0, "i": 0, "changed": [], "removed": [], "seq": 0})
+        v["changed"] = [os.path.basename(p) for p in v.get("changed", [])][:50]
+        v["n_changed"] = len(getattr(self, "verify", {}).get("changed", [])) if getattr(self, "verify", None) else 0
+        v["removed"] = [os.path.basename(p) for p in v.get("removed", [])][:50]
+        return v
 
     def tagger_settings(self):
         return {"hist": self.cfg.get("hist_tagger", []), "recursive": self.cfg.get("tagger_recursive", False),

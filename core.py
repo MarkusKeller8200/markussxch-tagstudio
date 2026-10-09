@@ -350,24 +350,48 @@ def _open(path, registry):
     return f
 
 
-def load_files(path, recursive, cancel=None, progress=None, registry=None):
-    """Ordner/Datei für den Tagger einlesen → (files, errors). progress wie bei load_pairs."""
-    progress = progress or (lambda m: None)
-    paths = scan(path, recursive, cancel, lambda n: progress(("count", n)))
-    progress(("total", len(paths)))
+def _load_list(paths, cache, registry, cancel, progress, offset=0, total=None, cached=None):
+    """Dateien laden – mit Listen-Cache (#70) ohne die Dateien zu öffnen, wo Grösse/Änderungszeit stimmen."""
+    import listcache
     files, errors = [], []
+    total = total or len(paths)
     for i, p in enumerate(paths, 1):
         if cancel is not None and cancel.is_set():
             raise Cancelled()
         try:
-            files.append(_open(p, registry))
+            if cache is None:
+                files.append(_open(p, registry))
+            else:
+                f, hit = listcache.open_file(p, cache, registry)
+                files.append(f)
+                if hit and cached is not None:
+                    cached.append(f)
         except Exception as ex:  # noqa: BLE001
             errors.append(f"{os.path.basename(p)}: {ex}")
-        progress(("progress", i, len(paths), p))
+        if i % 10 == 0 or i == len(paths):
+            progress(("progress", offset + i, total, p))
+    if cache is not None:
+        cache.save()
     return files, errors
 
 
-def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=None, snap_loader=None):
+def load_files(path, recursive, cancel=None, progress=None, registry=None, use_cache=False, stats=None):
+    """Ordner/Datei für den Tagger einlesen → (files, errors). progress wie bei load_pairs.
+    use_cache: Listen-Cache (#70); stats (dict) erhält "cached" (aus dem Cache geladene Dateien) und "caches"."""
+    import listcache
+    progress = progress or (lambda m: None)
+    paths = scan(path, recursive, cancel, lambda n: progress(("count", n)))
+    progress(("total", len(paths)))
+    cache = listcache.ListCache(path) if use_cache and paths else None
+    cached = []
+    files, errors = _load_list(paths, cache, registry, cancel, progress, cached=cached)
+    if stats is not None:
+        stats.update(cached=cached, caches=[cache] if cache else [])
+    return files, errors
+
+
+def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=None, snap_loader=None, use_cache=False,
+               stats=None):
     """Ordner/Dateien einlesen und zuordnen → (pairs, errors).
     progress(msg): ("count", n) beim Zählen, ("total", n), ("progress", i, total, pfad).
     Wirft Cancelled, wenn cancel (threading.Event) gesetzt wird.
@@ -391,15 +415,18 @@ def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=Non
     rpaths = scan(rp, recursive, cancel, counter(1)) if rp and snap[1] is None else []
     total = len(lpaths) + len(rpaths)
     progress(("total", total))
-    errors, loaded = [], ([], [])
-    for i, (side, p) in enumerate([(0, p) for p in lpaths] + [(1, p) for p in rpaths], start=1):
-        if cancel is not None and cancel.is_set():
-            raise Cancelled()
-        try:
-            loaded[side].append(_open(p, registry))
-        except Exception as ex:  # noqa: BLE001
-            errors.append(f"{os.path.basename(p)}: {ex}")
-        progress(("progress", i, total, p))
+    import listcache
+    errors, loaded, cached, caches = [], ([], []), [], []
+    for side, paths, root in ((0, lpaths, lp), (1, rpaths, rp)):
+        cache = listcache.ListCache(root) if use_cache and paths else None
+        if cache is not None:
+            caches.append(cache)
+        fs, errs = _load_list(paths, cache, registry, cancel, progress, offset=len(lpaths) if side else 0,
+                              total=total, cached=cached)
+        loaded[side].extend(fs)
+        errors += errs
+    if stats is not None:
+        stats.update(cached=cached, caches=caches)
     if cancel is not None and cancel.is_set():
         raise Cancelled()
     for side in (0, 1):

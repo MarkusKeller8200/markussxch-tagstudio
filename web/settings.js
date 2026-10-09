@@ -67,7 +67,8 @@ async function stCacheRender(info) {
   const mb = (b) => (b < 1048576 ? `${Math.round(b / 1024)} KB` : `${(b / 1048576).toFixed(1).replace(".", ",")} MB`);
   const row = (k, label) => `<span>${label}</span><div class="st-path"><span>${fmtN(c[k].count)} Datei(en) · ${mb(c[k].bytes)}</span>
     <button class="ghost sm" data-cclear="${k}" ${c[k].count ? "" : "disabled"}>Leeren</button><button class="ghost sm" data-copen="${esc(c[k].dir)}">Ordner</button></div>`;
-  $("#stCacheRows").innerHTML = row("wave", "Wellenformen") + row("covers", "Cover-Vorschauen");
+  $("#stCacheRows").innerHTML = `<span>Listen-Cache</span>${stCheck("stListCache", c.lists.on, "Tagger und Vergleich sofort aus dem Cache anzeigen, danach im Hintergrund über einen Hash je Titel auf Änderungen prüfen")}`
+    + row("lists", "Listen") + row("wave", "Wellenformen") + row("covers", "Cover-Vorschauen");
 }
 
 function stTrivRender() {
@@ -234,7 +235,7 @@ function initSettings() {
     else if (t.id === "stPlugins") setModule("plugins");
     else if (t.id === "stSnapGo") setModule("snapshots");
     else if (t.dataset.cclear) {
-      const what = t.dataset.cclear === "wave" ? "Wellenformen" : "Cover-Vorschauen";
+      const what = t.dataset.cclear === "wave" ? "Wellenformen" : t.dataset.cclear === "lists" ? "Listen-Cache" : "Cover-Vorschauen";
       if (await dialog({ title: `${what} leeren?`, text: "Sie werden bei Bedarf neu berechnet.", buttons: [{ label: "Abbrechen", value: null }, { label: "Leeren", value: true, primary: true }] })) {
         const r = await call("cache_clear", t.dataset.cclear); stCacheRender(r); toast(`${r.removed} Datei(en) entfernt.`);
         if (t.dataset.cclear === "wave" && PLAYER.info) PLAYER.info.wave = null;
@@ -278,6 +279,7 @@ function initSettings() {
     } else if (t.id === "stSaveVer") { await call("set_save_version", +t.value); toast(+t.value ? `Beim Speichern immer ID3v2.${t.value}.` : "ID3-Version bleibt wie in der Datei."); }
     else if (t.id === "stBackup") { await call("set_backup", t.checked, null); if (!t.checked) toast("Achtung: Vor dem Speichern wird nicht mehr gesichert."); }
     else if (t.id === "stStemsFlat") { await call("set_stems_flat", t.checked); if (TG.loaded) { TG.open = new Set(); await taggerRefresh(); } toast(t.checked ? "Stems erscheinen als eigene Titel." : "Stems erscheinen aufklappbar unter dem Original."); }
+    else if (t.id === "stListCache") { await call("set_list_cache", t.checked); toast(t.checked ? "Listen-Cache an." : "Listen-Cache aus – es wird immer von der Platte gelesen."); }
     else if (t.id === "orVer") {
       await call("set_origin_ver_badge", t.checked);
       if (S.pairs && S.pairs.length) refreshAll(await call("state"));

@@ -51,7 +51,7 @@ def find(path: str, roots=(), lister=None) -> list[dict]:
     """Spuren zu einer Originaldatei → [{"name", "path", "ext", "size"}] (Vocals, Drums, Bass, Other …).
     lister: aus make_lister() – vermeidet einen Zugriff pro Titel auf nicht vorhandene Stems-Ordner."""
     base = os.path.splitext(os.path.basename(path))[0]
-    rx = re.compile(r"^" + re.escape(base) + r" \(([^()]+)\)(\.[A-Za-z0-9]+)$")
+    rx = None                         # erst bauen, wenn es überhaupt einen Stems-Ordner gibt (schneller Start)
     out, seen = [], set()
     for d in folders_for(path, roots):
         if lister is not None and os.path.basename(d) not in lister(os.path.dirname(d)):
@@ -60,6 +60,8 @@ def find(path: str, roots=(), lister=None) -> list[dict]:
             names = sorted(os.listdir(d))
         except OSError:
             continue
+        if rx is None:
+            rx = re.compile(r"^" + re.escape(base) + r" \(([^()]+)\)(\.[A-Za-z0-9]+)$")
         for n in names:
             m = rx.match(n)
             if not m or m.group(2).lower() not in EXTS:

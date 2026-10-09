@@ -630,7 +630,12 @@ class MP3File:
         self.load()
 
     # ------------------------------------------------------------------ Laden
-    def load(self):
+    MPEG_ATTRS = ("bitrate", "samplerate", "duration", "channels", "vbr")
+
+    def load(self, cached: dict | None = None, keep_raw: bool = False):
+        """Datei einlesen. `cached` (#70, Listen-Cache): {"head", "body", "v1", "mpeg", "size", "mtime"} – dann wird
+        die Datei selbst nicht geöffnet (Tag-Bytes und MPEG-Angaben stammen aus dem Cache)."""
+        import hashlib
         self.items: dict[str, Item] = {}
         self.version = 3
         self.tag_desc = "kein Tag"
@@ -639,35 +644,61 @@ class MP3File:
         self.tag_space = 0
         self.has_footer = False
         self.v1_genre = 255
-        st = os.stat(self.path)
-        self.size, self.mtime = st.st_size, st.st_mtime
-
-        with open(self.path, "rb") as f:
-            head = f.read(10)
-            if len(head) == 10 and head[:3] == b"ID3" and head[3] in (2, 3, 4):
-                ver, flags = head[3], head[5]
-                size = _syncsafe(head[6:10])
-                body = f.read(size)
-                self.had_v2 = True
-                self.has_footer = ver == 4 and bool(flags & 0x10)
-                self.audio_start = 10 + size + (10 if self.has_footer else 0)
-                self.tag_space = 0 if self.has_footer else size
-                self.tag_desc = f"ID3v2.{ver}"
-                self._parse_v2(ver, flags, body)
-            f.seek(self.audio_start)
-            mpeg_head = f.read(65536)
-            if self.size >= 128:
-                f.seek(-128, os.SEEK_END)
-                v1 = f.read(128)
-                if v1[:3] == b"TAG":
-                    self.had_v1 = True
-                    self.v1_genre = v1[127]
-                    if not self.had_v2:
-                        self.tag_desc = "ID3v1"
-                        self._parse_v1(v1)
-        self._parse_mpeg(mpeg_head)
-        self.disk_sig = disk_sig(self.path)
+        if cached is not None:
+            head, body, v1, mpeg_head = cached["head"], cached["body"], cached["v1"], None
+            self.size, self.mtime = cached["size"], cached["mtime"]
+        else:
+            st = os.stat(self.path)
+            self.size, self.mtime = st.st_size, st.st_mtime
+            body, v1 = b"", b""
+            with open(self.path, "rb") as f:
+                head = f.read(10)
+                if len(head) == 10 and head[:3] == b"ID3" and head[3] in (2, 3, 4):
+                    body = f.read(_syncsafe(head[6:10]))
+                    audio_start = 10 + len(body) + (10 if head[3] == 4 and head[5] & 0x10 else 0)
+                else:
+                    audio_start = 0
+                f.seek(audio_start)
+                mpeg_head = f.read(65536)
+                if self.size >= 128:
+                    f.seek(-128, os.SEEK_END)
+                    v1 = f.read(128)
+        sig = hashlib.sha1()
+        tag_len = 0
+        if len(head) == 10 and head[:3] == b"ID3" and head[3] in (2, 3, 4):
+            ver, flags = head[3], head[5]
+            size = _syncsafe(head[6:10])
+            self.had_v2 = True
+            self.has_footer = ver == 4 and bool(flags & 0x10)
+            self.audio_start = 10 + size + (10 if self.has_footer else 0)
+            self.tag_space = 0 if self.has_footer else size
+            self.tag_desc = f"ID3v2.{ver}"
+            tag_len = 10 + size
+            sig.update(head + body)
+            self._parse_v2(ver, flags, body)
+        if v1[:3] == b"TAG" and len(v1) == 128:
+            if self.size - tag_len >= 128:
+                sig.update(v1)
+            self.had_v1 = True
+            self.v1_genre = v1[127]
+            if not self.had_v2:
+                self.tag_desc = "ID3v1"
+                self._parse_v1(v1)
+        else:
+            v1 = b""
+        if cached is not None:
+            for k in self.MPEG_ATTRS:
+                setattr(self, k, cached["mpeg"].get(k, 0 if k != "channels" else ""))
+        else:
+            self._parse_mpeg(mpeg_head)
+        sig.update(str(self.size).encode())
+        self.disk_sig = sig.hexdigest()          # wie disk_sig(path), ohne die Datei ein zweites Mal zu lesen
+        if keep_raw:
+            self._raw = (head, body, v1)         # für den Listen-Cache (#70) – der Aufrufer nimmt es gleich wieder weg
         self._snapshot()
+
+    def mpeg_state(self) -> dict:
+        return {k: getattr(self, k, 0) for k in self.MPEG_ATTRS}
 
     def external_change(self) -> bool:
         """Hat ein anderes Programm die Tags geändert, seit diese Datei eingelesen wurde? (#55)

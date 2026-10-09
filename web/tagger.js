@@ -42,6 +42,7 @@ async function taggerLoad() {
   await tgLoadDetail();
   if (S.pairs.length) await refreshAll();  // gemeinsames Register: Vergleich frisch halten
   status(`${fmtN(res.files)} Datei(en) im Tagger${res.stems ? ` · ${fmtN(res.stems)} mit Stems (▸ aufklappen)` : ""}.`, res.files ? "ok" : "warn");
+  if (typeof verifyWatch === "function") verifyWatch(res, `${fmtN(res.files)} Datei(en) im Tagger`);
   if (res.errors.length) await info(`${res.errors.length} Datei(en) nicht lesbar`, res.errors.slice(0, 30).join("\n"));
   if (typeof snDetect === "function") snDetect(path);       // #60: mitgegebenen Snapshot-Speicher anbieten
 }

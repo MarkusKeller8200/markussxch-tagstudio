@@ -314,6 +314,30 @@ function srcBadge(sid) {
 /** #74: ID3-Version (offizielle Felder) + Herkunft */
 function srcBadges(ver, src) { return srcBadge(ver) + srcBadge(src); }
 
+// ====================================================================== Listen-Cache: Prüfung im Hintergrund (#70)
+let verifyTimer = 0;
+function verifyWatch(res, baseMsg) {
+  clearTimeout(verifyTimer);
+  if (!res || !res.cached) return;
+  const tick = async () => {
+    let v;
+    try { v = await call("verify_status"); } catch (e) { return; }
+    if (v.running) {
+      status(`${baseMsg} · aus dem Cache – prüfe ${fmtN(v.i)} / ${fmtN(v.total)} …`);
+      verifyTimer = setTimeout(tick, 600);
+      return;
+    }
+    const n = v.n_changed || 0, gone = (v.removed || []).length;
+    if (n || gone) {
+      if (v.kind === "tagger" && typeof taggerRefresh === "function") await taggerRefresh();
+      else if (S.pairs && S.pairs.length) await refreshAll(await call("state"));
+      status(`${baseMsg} · ${n ? `${fmtN(n)} Titel ausserhalb geändert – neu gelesen` : ""}${n && gone ? ", " : ""}${gone ? `${gone} nicht mehr vorhanden` : ""}`, "warn");
+      $("#statusText").title = [...(v.changed || []), ...(v.removed || []).map((x) => x + " (fehlt)")].join("\n");
+    } else status(`${baseMsg} · geprüft, alles aktuell (aus dem Cache)`, "ok");
+  };
+  verifyTimer = setTimeout(tick, 300);
+}
+
 // Unbehandelte Fehler aus Aufrufen (z. B. Schreibschutz einer Snapshot-Seite) verständlich anzeigen
 window.addEventListener("unhandledrejection", (e) => {
   const m = e.reason && (e.reason.message || String(e.reason));
@@ -395,6 +419,7 @@ async function compare(skipConfirm = false, keep = false) {
   await loadPairs();
   applyState(await call("state"));
   status(res.pairs ? `${fmtN(res.pairs)} Paar${res.pairs === 1 ? "" : "e"} eingelesen.` : "Keine MP3-Dateien gefunden.", res.pairs ? "ok" : "warn");
+  verifyWatch(res, `${fmtN(res.pairs)} Paar${res.pairs === 1 ? "" : "e"} eingelesen`);
   if (typeof snDetect === "function") snDetect(lp).then(() => rp && snDetect(rp));    // #60
   if (res.errors && res.errors.length) {
     await info(`${res.errors.length} Datei(en) nicht lesbar`, res.errors.slice(0, 30).join("\n") + (res.errors.length > 30 ? "\n…" : ""));
