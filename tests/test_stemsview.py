@@ -104,6 +104,14 @@ class TestSessionStems(Lib):
         # Wiedergabe einer FLAC-Spur über ihren Pfad
         info = s.media_info("stem", orig["stems"][0]["path"])
         self.assertEqual(info["stem"], "Vocals")
+        # #66: Original und alle Spuren als Umschalt-Ziele – gleich, ob vom Original oder einer Spur aus
+        grp = info["stems"]
+        self.assertEqual([g["label"] for g in grp], ["Original", "Vocals", "Vocals", "Drums", "Bass", "Other"])
+        self.assertEqual((grp[0]["kind"], grp[0]["ref"], grp[1]["kind"]), ("tag", orig["i"], "stem"))
+        self.assertEqual(s.media_info("tag", orig["i"])["stems"], grp)
+        kid = s.media_info("tag", kids[0]["i"])
+        self.assertEqual((kid["stems"], kid["stem"]), (grp, kids[0]["stem"]))
+        self.assertEqual(s.media_info("tag", top[1]["i"])["stems"], [])
         with self.assertRaises(ValueError):
             s.media_info("stem", "/etc/passwd")
         self.assertEqual(s.media_extra("stem", orig["stems"][0]["path"])["cues"], [])

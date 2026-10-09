@@ -118,6 +118,7 @@ class TestSessionMedia(unittest.TestCase):
                 time.sleep(0.02)
             i = s.media_info("tag", 0)
             self.assertEqual((i["title"], i["artist"], i["key"]), ("Nordlicht", "Mara Lind", "8A"))
+            self.assertEqual((i["key_alt"], i["stems"]), ({"musical": "Am", "openkey": "1m"}, []))   # #63
             with self.assertRaises(ValueError):
                 s.media_info("tag", 5)
             with self.assertRaises(ValueError):

@@ -611,15 +611,33 @@ span.xml-treeonly{display:contents}
 .fe-color{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 
 /* Vorschau-Player (Aktionsleiste) */
-.player{display:flex;align-items:center;gap:6px;min-width:0;flex:0 1 640px;padding:4px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.player{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 820px;max-width:1120px;padding:4px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 .player .icon-btn{width:30px;height:30px}
 .player .pl-play{width:34px;height:34px;border-radius:99px;background:var(--acc-soft);color:var(--acc)}
 .player.on .pl-play{background:var(--acc);color:var(--acc-fg)}
-.player .pl-mid{flex:1;min-width:120px;display:flex;flex-direction:column;gap:2px}
+.player .pl-mid{flex:1;min-width:160px;display:flex;flex-direction:column;gap:2px}
 .player .pl-line{display:flex;gap:8px;align-items:baseline;font-size:12.5px;min-width:0}
 .player .pl-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dim)}
 .player.on .pl-title{color:var(--fg)}
-.player .pl-time{color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.player .pl-line{align-items:center}
+.player .pl-stems{flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--line);border-radius:6px;background:var(--acc-soft);color:var(--acc);font:600 11px var(--font);padding:0 6px;line-height:16px;cursor:pointer}
+.player .pl-stems::after{content:" ▾";opacity:.7}
+.player .pl-stems[hidden]{display:none}
+/* #63: Tonart, Tempo und Zeiten zwischen Wellenform und Startpunkt – die Wellenform bekommt die ganze Breite */
+.player .pl-info{flex:none;display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:118px;font-size:12px;line-height:16px}
+.player .pl-info .pl-meta{display:flex;align-items:center;gap:6px;min-height:16px;white-space:nowrap}
+.player .pl-key-alt{color:var(--dim);font-size:11.5px}
+.player .pl-bpm{margin-left:auto}
+.player .pl-time{display:flex;gap:8px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.player .pl-time #plElapsed{color:var(--fg)}
+.player:not(.on) .pl-time #plElapsed{color:var(--faint)}
+.player .pl-time .pl-len{margin-left:auto}
+.player .pl-time .pl-len::before{content:"⏱ ";opacity:.7}
+/* #65: letzte 30 Sekunden */
+.player .pl-remain.end{color:#E5484D;font-weight:600}
+.player.playing .pl-remain.end{animation:plBlink 1s steps(2,jump-none) infinite}
+@keyframes plBlink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.player.playing .pl-remain.end{animation:none}}
 .player input[type=range]{accent-color:var(--acc);height:14px;margin:0}
 .player #plSeek{width:100%}
 .pl-wave{position:relative;height:16px}
@@ -634,13 +652,15 @@ span.xml-treeonly{display:contents}
 .pl-cue::after{content:"";position:absolute;left:1px;top:0;border:3.5px solid transparent;border-top:5px solid var(--cue,var(--acc))}
 .pl-cue.loop::before{opacity:.18;width:var(--w,2px)}
 .pl-cue:hover::before{opacity:1;width:2.5px}
-.player #plVol{width:70px}
+.player #plVol{width:58px}
 .player select.sm{height:28px;font-size:12px;width:auto}
 .player .seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
 .player .seg button{border:0;background:transparent;color:var(--dim);padding:3px 8px;font:600 12px var(--font);cursor:pointer}
 .player .seg button.on{background:var(--acc-soft);color:var(--acc)}
 @media (max-width:1250px){.player #plVol,.player #plStart{display:none}}
-.player .pl-start button{padding:3px 7px;font-size:11.5px}
+@media (max-width:980px){.player .pl-info{display:none}}
+.player .pl-start button{padding:3px 5px;font-size:11.5px;white-space:nowrap}
+.actions #statusText{flex:0 3 auto;min-width:40px;max-width:max(140px,12vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .player .pl-cue-btn{width:26px!important;color:var(--acc)}
 .player .pl-cue-btn[hidden]{display:none}
 .pl-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
@@ -745,7 +765,6 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .tg-thead .th-name .col-grip{top:6px;bottom:6px;right:-9px}
 
 /* 3.2.0-beta.5: Player-Kleinigkeiten */
-.player .pl-meta{display:inline-flex;align-items:center;gap:6px;flex:none}
 .player .pl-meta .kb{font-size:10.5px;padding:0 5px;line-height:16px}
 .player .pl-bpm{font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums;white-space:nowrap}
 .pl-cue.loop.on::before{opacity:.45}

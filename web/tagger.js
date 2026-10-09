@@ -33,6 +33,7 @@ async function taggerLoad() {
   TG.settings = await call("tagger_settings");
   $("#histTg").innerHTML = TG.settings.hist.map((h) => `<option value="${esc(h)}"></option>`).join("");
   TG.loaded = true;
+  if (typeof plForget === "function") plForget("tag");     // Indizes gelten nur für die vorige Liste
   const tr = await call("tag_rows");
   TG.rows = tr.rows; TG.flat = !!tr.stems_flat; TG.open = new Set();
   TG.sel = new Set(TG.rows.length ? [0] : []);

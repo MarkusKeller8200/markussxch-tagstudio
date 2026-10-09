@@ -57,6 +57,7 @@ function toast(msg) {
 function status(msg, tone = "info") {
   if (!msg) return;
   $("#statusText").textContent = msg;
+  $("#statusText").title = msg;            // in der Fußleiste ggf. gekürzt (Platz für den Player)
   $("#pendingDot").className = "dot " + ({ ok: "ok", warn: "warn" }[tone] || (S.meta.unsaved ? "pending" : ""));
 }
 

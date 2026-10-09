@@ -1654,26 +1654,63 @@ class Session:
 
     # ================================================================== Wiedergabe
     def media_info(self, kind, ref) -> dict:
-        """Datei für den Player: kind „tag“ (ref = Index im Tagger) oder „side“ (ref = „L“/„R“ im Vergleich)."""
+        """Datei für den Player: kind „tag“ (ref = Index im Tagger), „side“ (ref = „L“/„R“ im Vergleich) oder
+        „stem“ (ref = Pfad einer nicht als MP3 geladenen Spur). Mit `stems` (#66): Original und Spuren derselben
+        Gruppe, damit der Player an derselben Stelle umschalten kann."""
         with self.lock:
             if kind == "tag" and isinstance(ref, int) and 0 <= ref < len(self.tag_files):
                 f = self.tag_files[ref]
             elif kind == "side" and ref in ("L", "R"):
                 f = self._file(ref)
             elif kind == "stem":
-                st = next((s for lst in self.tag_stems.values() for s in lst if s["path"] == ref), None)
+                parent, st = next(((p, s) for p, lst in self.tag_stems.items() for s in lst if s["path"] == ref),
+                                  (None, None))
                 if st is None:
                     raise ValueError("Diese Spur ist nicht (mehr) geladen.")
-                return {"path": st["path"], "name": os.path.basename(st["path"]), "title": "", "artist": "",
-                        "duration": 0.0, "kind": kind, "ref": ref, "key": "", "bpm": "", "stem": st["name"]}
+                out = {"path": st["path"], "name": os.path.basename(st["path"]), "title": "", "artist": "",
+                       "duration": 0.0, "kind": kind, "ref": ref, "key": "", "bpm": "", "stem": st["name"]}
+                pf = self.tag_files[parent] if parent is not None and parent < len(self.tag_files) else None
+                if pf is not None:          # Spur ohne eigene Tags: Titel, Tonart, Tempo vom Original
+                    out.update(title=pf.text("TIT2"), artist=pf.text("TPE1").replace(MV, ", "),
+                               duration=float(getattr(pf, "duration", 0) or 0), **self._key_info(pf), bpm=pf.text("TBPM"))
+                out["stems"] = self._stem_group(parent)
+                return out
             else:
                 f = None
             if f is None:
                 raise ValueError("Keine Datei zum Abspielen gewählt.")
             title, artist = f.text("TIT2"), f.text("TPE1").replace(MV, ", ")
-            return {"path": f.path, "name": os.path.basename(f.path), "title": title, "artist": artist,
-                    "duration": float(getattr(f, "duration", 0) or 0), "kind": kind, "ref": ref,
-                    "key": keys.parse_key(f.text("TKEY")), "bpm": f.text("TBPM")}
+            out = {"path": f.path, "name": os.path.basename(f.path), "title": title, "artist": artist,
+                   "duration": float(getattr(f, "duration", 0) or 0), "kind": kind, "ref": ref,
+                   **self._key_info(f), "bpm": f.text("TBPM"), "stems": []}
+            if kind == "tag":
+                parent = self.tag_parent.get(ref, ref if ref in self.tag_stems else None)
+                out["stems"] = self._stem_group(parent)
+                if parent is not None and parent != ref:
+                    out["stem"] = next((s["name"] for s in self.tag_stems.get(parent, []) if s["i"] == ref), "")
+                    pf = self.tag_files[parent]
+                    for k, fid in (("title", "TIT2"), ("bpm", "TBPM")):
+                        out[k] = out[k] or pf.text(fid)
+                    if not out["key"]:
+                        out.update(self._key_info(pf))
+            return out
+
+    @staticmethod
+    def _key_info(f) -> dict:
+        """Tonart als Camelot-Code plus die anderen Schreibweisen (#63)."""
+        code = keys.parse_key(f.text("TKEY"))
+        return {"key": code, "key_alt": {"musical": keys.format_key(code, "musical"),
+                                         "openkey": keys.format_key(code, "openkey")} if code else {}}
+
+    def _stem_group(self, parent) -> list:
+        """Original + Spuren als Player-Ziele [{label, kind, ref}] – leer ohne Stems."""
+        if parent is None or not self.tag_stems.get(parent):
+            return []
+        out = [{"label": "Original", "kind": "tag", "ref": parent}]
+        for s in self.tag_stems[parent]:
+            out.append({"label": s["name"], "kind": "tag" if s["i"] is not None else "stem",
+                        "ref": s["i"] if s["i"] is not None else s["path"]})
+        return out
 
     def media_extra(self, kind, ref) -> dict:
         """Cue-Punkte (Serato, Mixed In Key) und Wellenform aus dem Cache für den Player."""

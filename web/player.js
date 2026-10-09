@@ -1,9 +1,11 @@
 /* MarKusSXCH TagStudio – Vorschau-Player (unten in der Aktionsleiste) und externe Player.
    Leertaste: markierten Titel abspielen/pausieren · Shift+←/→: ±10 s · Alt+Bild↑/↓: voriger/nächster Cue ·
-   Strg/Cmd+P: im externen Player öffnen. Wellenform: einmal per Web Audio berechnet, im Cache (waveform.py);
+   S/Shift+S: nächste/vorige Stem-Spur · Strg/Cmd+P: im externen Player öffnen. Wellenform: einmal per Web Audio berechnet, im Cache (waveform.py);
    Cue-Marken aus Serato/Mixed In Key (cues.py).
    Im Tagger spielt der Player beim Wechsel der Markierung (↑/↓, Klick) automatisch weiter („Durchhören“).
-   Im Vergleich schaltet A/B zwischen linker und rechter Datei um und behält die Position. */
+   Im Vergleich schaltet A/B zwischen linker und rechter Datei um und behält die Position.
+   ↑/↓ wechseln den Titel, egal wo der Fokus ist (#64); bei Stems schaltet der Player zwischen Original und Spuren
+   an derselben Stelle um (#66). */
 "use strict";
 
 const PLAYER = { audio: null, info: null, kind: null, ref: null, side: "L", loading: false, follow: true, startAt: "0",
@@ -52,9 +54,13 @@ function plTarget() {
 
 async function plLoad(target, autoplay = true, keepTime = null) {
   if (!target) { toast(S.module === "tagger" ? "Erst einen Titel markieren." : "Erst ein Dateipaar wählen."); return; }
+  const seq = PLAYER.loadSeq = (PLAYER.loadSeq || 0) + 1;
   PLAYER.loading = true;
+  // schnelle Folge (S S, ↓↓): vom gewünschten statt vom noch ladenden Titel aus weiter
+  PLAYER.want = target; PLAYER.wantTime = keepTime; PLAYER.wantPlay = autoplay;
   let info;
-  try { info = await call("media_url", target.kind, target.ref); } catch (e) { PLAYER.loading = false; toast(String(e.message || e)); return; }
+  try { info = await call("media_url", target.kind, target.ref); } catch (e) { if (seq === PLAYER.loadSeq) PLAYER.loading = false; toast(String(e.message || e)); return; }
+  if (seq !== PLAYER.loadSeq) return;       // inzwischen ein anderer Titel gewünscht
   PLAYER.info = info; PLAYER.kind = target.kind; PLAYER.ref = target.ref;
   const a = PLAYER.audio;
   plLoopSet(null);
@@ -63,6 +69,7 @@ async function plLoad(target, autoplay = true, keepTime = null) {
   const firstCue = (info.cues || []).find((c) => c.pos > 0.05);
   const start = keepTime !== null ? keepTime : PLAYER.startAt === "30" ? dur * 0.3 : PLAYER.startAt === "60" ? Math.min(60, dur * 0.5)
     : PLAYER.startAt === "cue" ? (firstCue ? firstCue.pos : 0) : 0;
+  PLAYER.wantTime = start;
   const seek = () => { try { if (start > 0) a.currentTime = Math.min(start, (a.duration || dur) - 1); } catch (e) { /* egal */ } };
   a.addEventListener("loadedmetadata", seek, { once: true });
   plCues();
@@ -74,14 +81,26 @@ async function plLoad(target, autoplay = true, keepTime = null) {
       if (e.name !== "AbortError") toast("Wiedergabe nicht möglich: " + (e.message || e));
     }
   }
-  PLAYER.loading = false;
+  if (seq === PLAYER.loadSeq) PLAYER.loading = false;
+}
+
+/** Liste neu eingelesen: der Player darf nicht mehr auf alte Indizes zeigen. */
+function plForget(kind) {
+  if (!PLAYER.audio || PLAYER.kind !== kind) return;
+  PLAYER.audio.pause();
+  PLAYER.audio.removeAttribute("src"); PLAYER.audio.load();
+  plLoopSet(null);
+  PLAYER.info = null; PLAYER.kind = null; PLAYER.ref = null;
+  plCues(); plRender();
 }
 
 function plSame(t) { return t && PLAYER.info && t.kind === PLAYER.kind && t.ref === PLAYER.ref; }
+/** Gehört das Ziel zur selben Stems-Gruppe wie der laufende Titel (Original oder eine Spur)? (#66) */
+function plInGroup(t) { return !!(t && PLAYER.info && (PLAYER.info.stems || []).some((g) => g.kind === t.kind && g.ref === t.ref)); }
 
 async function plToggle() {
   const t = plTarget();
-  if (!PLAYER.audio.src || (t && !plSame(t) && !(t.kind === "side" && PLAYER.kind === "side"))) return plLoad(t);
+  if (!PLAYER.audio.src || (t && !plSame(t) && !plInGroup(t) && !(t.kind === "side" && PLAYER.kind === "side"))) return plLoad(t);
   if (t && t.kind === "side" && PLAYER.kind === "side" && PLAYER.info && PLAYER.info.ref !== PLAYER.side) return plLoad(t, true);
   if (PLAYER.audio.paused) { try { await PLAYER.audio.play(); } catch (e) { toast(String(e.message || e)); } } else PLAYER.audio.pause();
 }
@@ -90,23 +109,50 @@ async function plToggle() {
 function playerFollow() {
   if (!PLAYER.audio || PLAYER.audio.paused || !PLAYER.follow || PLAYER.loading) { plRender(); return; }
   const t = plTarget();
-  if (t && !plSame(t)) plLoad(t, true);
+  if (t && !plSame(t)) plLoad(t, true, plInGroup(t) ? PLAYER.audio.currentTime : null);   // Spur derselben Gruppe: Stelle halten
 }
 
-async function plStep(dir) {
+/** #66: zwischen Original und Stem-Spuren umschalten – gleiche Stelle, Wiedergabe läuft weiter. */
+function plStemSwitch(k) {
+  const g = PLAYER.info && (PLAYER.info.stems || [])[k];
+  if (!g || (plSame(g) && !PLAYER.loading)) return;
+  const t = PLAYER.loading && PLAYER.wantTime != null ? PLAYER.wantTime : PLAYER.audio.currentTime;   // Titel lädt noch: dessen Ziel
+  plLoad({ kind: g.kind, ref: g.ref }, PLAYER.loading ? PLAYER.wantPlay : !PLAYER.audio.paused, t);
+}
+
+/** Voriger/nächster Titel. play=false: nur die Markierung bewegen (läuft der Player, folgt er ohnehin). */
+async function plStep(dir, play = true) {
   if (S.module === "tagger" && TG.order.length) {
     const k = Math.max(0, Math.min(TG.order.length - 1, TG.order.indexOf(TG.anchor) + dir));
     const i = TG.order[k];
     const wasPlaying = !PLAYER.audio.paused;
     await tgSelect(i, {});          // beim Abspielen übernimmt playerFollow() den neuen Titel
+    TG.anchor = i;
     tgScrollTo(i);
-    if (!wasPlaying) plLoad(plTarget(), true);
+    if (!wasPlaying && play) plLoad(plTarget(), true);
   } else if (S.module === "compare" && S.visible && S.visible.length) {
     const k = Math.max(0, Math.min(S.visible.length - 1, S.visible.indexOf(S.cur) + dir));
     const wasPlaying = !PLAYER.audio.paused;
     await selectPair(S.visible[k]);
-    if (!wasPlaying) plLoad(plTarget(), true);
+    if (!wasPlaying && play) plLoad(plTarget(), true);
   }
+}
+
+/** #64: ↑/↓ wechseln den Titel, egal wo der Fokus ist. Ausgenommen: mehrzeilige Felder, Auswahllisten, Zahlenfelder,
+    Felder mit Vorschlagsliste, offene Dialoge/Menüs und die Feldtabelle im Vergleich (dort wandern ↑/↓ durch die Felder).
+    Die Listen im Tagger und Vergleich behandeln ↑/↓ (auch mit Shift) selbst. */
+function plArrowKey(e) {
+  if ((e.key !== "ArrowUp" && e.key !== "ArrowDown") || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.defaultPrevented) return;
+  if (S.module !== "tagger" && S.module !== "compare") return;
+  if (!$("#modal").hidden || !$("#dialog").hidden || !$("#xmlEd").hidden || !$("#menu").hidden || (typeof KW !== "undefined" && KW.open)) return;
+  const el = document.activeElement || document.body;
+  if (el.closest("#tgTable, #pairsScroll, #table")) return;
+  if (/TEXTAREA|SELECT/.test(el.tagName) || el.isContentEditable) return;
+  if (el.tagName === "INPUT" && (el.type === "number" || el.hasAttribute("list") || el.dataset.fnum !== undefined)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  if (el.tagName === "INPUT" && el.type !== "range") el.blur();   // Eingabe übernehmen (focusout), dann wechseln
+  plStep(e.key === "ArrowDown" ? 1 : -1, false);
 }
 
 function plSide(side) {
@@ -125,14 +171,17 @@ function plRender() {
   const i = PLAYER.info;
   $("#plTitle").textContent = i ? (i.title ? `${i.artist ? i.artist + " – " : ""}${i.title}` : i.name) : "Vorhören: Titel markieren, Leertaste";
   $("#plTitle").title = i ? i.path : "";
-  // #46: Tonart und Tempo des laufenden Titels
+  bar.classList.toggle("playing", !a.paused);
+  // #46/#63: Tonart (mit den anderen Schreibweisen) und Tempo des laufenden Titels
   const bpm = i && i.bpm ? String(Math.round(parseFloat(String(i.bpm).replace(",", ".")) || 0) || i.bpm) : "";
-  const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${bpm ? `<span class="pl-bpm">${esc(bpm)} BPM</span>` : ""}` : "";
+  const alt = i && i.key_alt ? [i.key_alt.musical, i.key_alt.openkey].filter(Boolean) : [];
+  const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${alt.length ? `<span class="pl-key-alt" title="Musikalisch · Open Key">${esc(alt.join(" · "))}</span>` : ""}${bpm ? `<span class="pl-bpm">${esc(bpm)} BPM</span>` : ""}` : "";
   if ($("#plMeta").dataset.v !== meta) { $("#plMeta").innerHTML = meta; $("#plMeta").dataset.v = meta; }
+  plStemsRender();
   $("#plVol").classList.toggle("muted", a.muted);
   $("#plVol").title = a.muted ? "Stumm (M)" : "Lautstärke (M: stumm)";
   const dur = a.duration || (i && i.duration) || 0;
-  $("#plTime").textContent = i ? `${fmtTime(a.currentTime)} / ${fmtTime(dur)}` : "";
+  plTimes(i ? a.currentTime : 0, i ? dur : 0);
   const seek = $("#plSeek");
   if (!seek.matches(":active")) { seek.max = String(Math.max(1, Math.round(dur * 10))); seek.value = String(Math.round(a.currentTime * 10)); }
   seek.disabled = !i;
@@ -141,6 +190,41 @@ function plRender() {
   const hasCues = !!(i && i.cues && i.cues.length);
   $("#plCuePrev").hidden = $("#plCueNext").hidden = !hasCues;      // Cue-Sprünge (#37)
   $$("#plAB button").forEach((b) => b.classList.toggle("on", b.dataset.side === PLAYER.side));
+}
+
+/** Laufzeit, Restlaufzeit (#63) und Länge; in den letzten 30 Sekunden rot (#65, blinkt beim Abspielen). */
+function plTimes(t, dur) {
+  const rest = Math.max(0, dur - t);
+  $("#plElapsed").textContent = fmtTime(t);
+  $("#plRemain").textContent = "−" + fmtTime(Math.ceil(rest - 0.001));
+  $("#plLen").textContent = fmtTime(dur);
+  $("#plRemain").classList.toggle("end", !!PLAYER.info && dur > 0 && rest <= 30);
+}
+
+/** #66: Umschalter Original/Spuren, nur bei Titeln mit Stems (Knopf mit Menü; S/Shift+S: nächste/vorige Spur) */
+function plStemsRender() {
+  const box = $("#plStems"), g = (PLAYER.info && PLAYER.info.stems) || [];
+  const cur = g.find((x) => plSame(x));
+  box.hidden = !g.length;
+  const label = cur ? cur.label : "Stems";
+  if (box.textContent !== label) box.textContent = label;
+}
+
+function plStemsMenu(btn) {
+  const g = (PLAYER.info && PLAYER.info.stems) || [];
+  const r = btn.getBoundingClientRect();
+  showMenu(r.left, r.top - 8 - (g.length + 1) * 34, g.map((x, k) => ({
+    label: (plSame(x) ? "✓ " : "    ") + x.label, run: () => plStemSwitch(k) })));
+}
+
+function plStemCycle(dir) {
+  const g = (PLAYER.info && PLAYER.info.stems) || [];
+  if (!g.length) return false;
+  const w = PLAYER.loading && PLAYER.want;
+  const k = g.findIndex((x) => (w ? x.kind === w.kind && x.ref === w.ref : plSame(x)));
+  plStemSwitch((k + dir + g.length) % g.length);
+  toast(g[(k + dir + g.length) % g.length].label);
+  return true;
 }
 
 function plSeekBy(sec) {
@@ -364,7 +448,9 @@ function initPlayer() {
   $("#plPlay").addEventListener("click", () => plToggle());
   $("#plPrev").addEventListener("click", () => plStep(-1));
   $("#plNext").addEventListener("click", () => plStep(1));
-  $("#plSeek").addEventListener("input", (e) => { a.currentTime = (+e.target.value) / 10; $("#plTime").textContent = `${fmtTime(a.currentTime)} / ${fmtTime(a.duration)}`; });
+  $("#plSeek").addEventListener("input", (e) => { a.currentTime = (+e.target.value) / 10; plTimes(a.currentTime, a.duration || 0); });
+  $("#plStems").addEventListener("click", (e) => { e.stopPropagation(); plStemsMenu(e.currentTarget); });
+  document.addEventListener("keydown", plArrowKey, true);     // #64: vor den Handlern der Eingabefelder
   $("#plVol").value = String(Math.round(a.volume * 100));
   $("#plVol").addEventListener("input", (e) => { a.volume = (+e.target.value) / 100; plSetPref("vol", a.volume); });
   plStartSync();
@@ -380,6 +466,7 @@ function initPlayer() {
     if (S.module !== "tagger" && S.module !== "compare") return;
     if (e.key === " " && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plToggle(); }
     else if (e.shiftKey && (e.key === "ArrowRight" || e.key === "ArrowLeft") && PLAYER.audio.src) { e.preventDefault(); plSeekBy(e.key === "ArrowRight" ? 10 : -10); }
+    else if ((e.key === "s" || e.key === "S") && !e.ctrlKey && !e.metaKey && !e.altKey && PLAYER.audio.src && plStemCycle(e.shiftKey ? -1 : 1)) e.preventDefault();   // #66
     else if ((e.key === "m" || e.key === "M") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); PLAYER.audio.muted = !PLAYER.audio.muted; plRender(); toast(PLAYER.audio.muted ? "Stumm (M)" : "Ton an"); }   // #49
     else if (e.altKey && (e.key === "PageDown" || e.key === "PageUp") && PLAYER.audio.src) { e.preventDefault(); plCueJump(e.key === "PageDown" ? 1 : -1); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); call("players").then((l) => plExternal(l.length ? 0 : null)); }

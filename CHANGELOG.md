@@ -22,11 +22,25 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   seit TagStudio sie eingelesen hat, wird nicht mehr stillschweigend überschrieben. TagStudio zeigt die fremden
   Änderungen und bietet „Übernehmen und speichern“ (eigene Änderungen bleiben), „Trotzdem überschreiben“ oder
   „Abbrechen“ – erkennt auch Programme, die die Änderungszeit erhalten (#55).
+- Snapshot-Aufträge schreiben ein **Protokoll** (`Logs/snapshots.log`, Knopf „Protokoll“ bei den Aufträgen): Start,
+  Ende, Dauer, Anzahl Titel (neu eingelesen / unverändert übernommen), nicht lesbare Dateien, Aufräumen und am Ende
+  den **Speicherplatz** – dieser Snapshot, der Ordner und alle Snapshots zusammen (#62).
+- Player: **Stems an derselben Stelle umschalten** – bei Titeln mit Stems wählt der Knopf neben dem Titel (oder
+  **S** / Shift+S) zwischen Original und den Spuren; die Wiedergabe läuft an der gleichen Position weiter. Spuren
+  ohne eigene Tags zeigen Titel, Tonart und Tempo des Originals (#66).
+- Player: **Restlaufzeit**, in den letzten 30 Sekunden **rot blinkend** (ohne Blinken bei „Bewegung reduzieren“) (#65).
 
 ### Behoben
 - Hintergrund-Aufträge, die sehr schnell fertig waren, meldeten ihr Ende nicht.
+- Player: Nach dem Einlesen eines anderen Ordners im Tagger konnte die Leertaste noch den alten Titel abspielen.
 
 ### Geändert
+- Player neu geordnet: Tonart (Camelot-Kennzeichen plus musikalische und Open-Key-Schreibweise), BPM, Laufzeit,
+  Restlaufzeit und Länge stehen jetzt in einem eigenen Block zwischen Wellenform und Startpunkt – die Wellenform hat
+  die ganze Breite (#63). Der Statustext in der Fußleiste wird bei Platzmangel gekürzt (voller Text als Tooltip).
+- **↑/↓ wechseln den Titel, egal wo der Fokus ist** – auch aus Suchfeldern, Tag-Feldern (Eingabe wird übernommen)
+  oder der Wellenform; ausgenommen mehrzeilige Felder, Auswahl- und Zahlenfelder, Pfadfelder mit Verlauf, offene
+  Dialoge und die Feldtabelle im Vergleich. Ohne laufende Wiedergabe wird nur die Markierung bewegt (#64).
 - Lizenz: **GNU GPL v3** (`LICENSE`, auch im Installer bzw. DMG). Neu: Verhaltenskodex (`CODE_OF_CONDUCT.md`),
   Anleitung zum Mitmachen (`CONTRIBUTING.md`), Issue-Vorlagen (Fehler melden, Funktion vorschlagen, Plugin-Idee)
   und Vorlage für Pull Requests.

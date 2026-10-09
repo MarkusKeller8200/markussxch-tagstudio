@@ -167,7 +167,8 @@ oder Reihenfolge, Unterordner.
 
 Unten in der Fußleiste – in Tagger und Vergleich:
 - **Abspielen** des markierten Titels (Leertaste oder ▶), ⏮/⏭ springt zum vorherigen/nächsten Titel, der Player
-  folgt der Auswahl und spielt am Titelende den nächsten. **Shift+←/→** spult 10 s, Klick in die Leiste springt.
+  folgt der Auswahl und spielt am Titelende den nächsten. **↑/↓** wechseln den Titel, egal wo der Fokus gerade ist
+  (außer in mehrzeiligen, Auswahl- und Zahlenfeldern). **Shift+←/→** spult 10 s, Klick in die Leiste springt.
 - **Startpunkt** per Umschalter: Start, 30 %, 1:00 oder erster Cue – praktisch zum schnellen Durchhören. Lautstärke
   wird gemerkt. Bei Titeln mit Cue-Punkten springen zwei Knöpfe zum vorigen/nächsten Cue.
 - **Wellenform:** wird beim ersten Abspielen einmal berechnet und im Cache abgelegt (`~/TagStudio/cache/wave`,
@@ -175,7 +176,10 @@ Unten in der Fußleiste – in Tagger und Vergleich:
 - **Cue-Marken** aus Serato (Cues und Loops mit Farbe und Name) und Mixed In Key über der Leiste: Klick springt
   hin, **Alt+Bild↑/↓** zum vorigen/nächsten Cue. Ein Klick auf eine **Loop-Marke** spielt den Loop als Schleife
   (erneuter Klick beendet sie); beim Überfahren der Leiste stehen Zeit und Cue-Name.
-- Neben dem Titel: **Tonart** (Camelot) und **BPM** des laufenden Titels. Taste **M** schaltet stumm.
+- Zwischen Wellenform und Startpunkt: **Tonart** (Camelot-Kennzeichen plus musikalisch und Open Key), **BPM**,
+  Laufzeit, **Restlaufzeit** (blinkt in den letzten 30 Sekunden rot) und Länge. Taste **M** schaltet stumm.
+- **Stems:** Bei Titeln mit Stems wählt der Knopf neben dem Titel (oder **S** / Shift+S) zwischen Original und den
+  Spuren – die Wiedergabe läuft **an derselben Stelle** weiter.
 - **A/B im Vergleich:** L/R wechselt zwischen linker und rechter Datei **an derselben Stelle**.
 - **Externe Player** (⋯ bzw. **Strg/Cmd+P**): markierte Titel in foobar2000, VLC, Rekordbox, Music … öffnen; ohne
   Einrichtung im Standardprogramm des Systems. Unter „Externe Player…“ beliebig viele Programme mit Argumenten
@@ -210,6 +214,7 @@ Für Bibliotheken, die auch andere Programme bearbeiten (Mp3tag, beaTunes, Mixed
 - **Automatik:** einmal täglich ein Snapshot je Ordner, beim Start die Frage mit der Zahl geänderter Titel (beides
   abschaltbar). Aufräumen: 20 automatische + je einer pro Woche der letzten 12 Wochen (einstellbar).
 - **Speicherplatz** je Snapshot, je Ordner und gesamt; die Summe steht auch in der Seitenleiste.
+- **Protokoll** je Snapshot-Auftrag in `Logs/snapshots.log`: Start, Ende, Dauer, Titel, Fehler und Speicherplatz.
 - Unabhängig davon schützt TagStudio beim **Speichern** vor dem Überschreiben fremder Änderungen: es zeigt, was ein
   anderes Programm seit dem Einlesen geändert hat, und übernimmt es auf Wunsch zusammen mit den eigenen Änderungen.
 
@@ -242,7 +247,7 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   ziehen (oder mit ←/→ auf dem Griff); Doppelklick setzt zurück, alles wird gemerkt. Die Seitenleiste lässt sich
   einklappen.
 - **Tastatur:** Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte
-  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · Shift+←/→ ±10 s · Alt+Bild↑/↓ Cue · Strg/Cmd+P externer Player · →/← Stems auf-/zuklappen · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
+  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · ↑/↓ Titel wechseln (überall) · S Stem-Spur · Shift+←/→ ±10 s · Alt+Bild↑/↓ Cue · Strg/Cmd+P externer Player · →/← Stems auf-/zuklappen · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
 
 ## Klassische Oberfläche
 
