@@ -9,6 +9,7 @@ const SN_STATUS = { changed: "geändert", rewrite: "umgeschrieben", renamed: "um
 const snMB = (b) => (b < 1048576 ? `${Math.max(0, Math.round(b / 1024))} KB` : b < 1073741824 ? `${(b / 1048576).toFixed(1).replace(".", ",")} MB` : `${(b / 1073741824).toFixed(2).replace(".", ",")} GB`);
 const snTime = (c) => (c ? c.slice(8, 10) + "." + c.slice(5, 7) + "." + c.slice(0, 4) + " " + c.slice(11, 16) : "");
 
+async function snSizeRefresh() { try { snSideSize((await call("snap_overview")).total); } catch (e) { /* egal */ } }
 function snSideSize(total) { const el = $("#snapSize"); if (el) el.textContent = total ? snMB(total) : ""; }
 
 async function snapShow() {
@@ -135,6 +136,50 @@ async function snRevert(mode) {
 }
 
 // ---------------------------------------------------------------------- Aktionen
+/** #60: Speicherort ändern – ganzer Speicher wird kopiert, geprüft und erst dann am alten Ort entfernt. */
+async function snMoveStore(toDefault = false) {
+  let dest = "";
+  if (!toDefault) {
+    dest = await call("pick_path", "", true, "");
+    if (!dest) {
+      if (S.settings.native) return false;
+      dest = await modal({ title: "Speicherort ändern", html: '<div class="frm"><label for="snDest">Neuer Ort</label><input id="snDest" placeholder="z. B. S:\\_MP3" autofocus></div>',
+        buttons: [{ label: "Abbrechen", value: null }, { label: "Weiter", value: true, primary: true }], collect: (b) => $("#snDest", b).value.trim() });
+      if (!dest) return false;
+    }
+  }
+  const ok = await dialog({ title: "Snapshot-Speicher verschieben?", text: toDefault
+      ? "Der Speicher wird zurück in den TagStudio-Ordner verschoben."
+      : `Ziel: ${dest}\n\nIst der Ordner nicht leer (z. B. dein MP3-Ordner), legt TagStudio darin den Unterordner „.tagstudio-snapshots“ an. Der Speicher wird kopiert, geprüft und erst danach am alten Ort entfernt.`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Verschieben", value: true, primary: true }] });
+  if (!ok) return false;
+  const r = await runTask(call("start_snap_move", dest), "Snapshot-Speicher verschieben");
+  if (!r || r.cancelled) return false;
+  toast(r.message);
+  if (typeof snapShow === "function" && S.module === "snapshots") snapShow();
+  snSizeRefresh();
+  return true;
+}
+
+/** #60: Nach dem Einlesen: liegt im Ordner ein anderer Snapshot-Speicher? Anbieten, ihn zu verwenden. */
+async function snDetect(path) {
+  if (!path) return;
+  let d = null;
+  try { d = await call("snap_detect", path); } catch (e) { return; }
+  if (!d) return;
+  const libs = (d.libs || []).map((l) => `• ${l.name} – ${l.count} Snapshot(s)${l.exists ? "" : " (Ordner nicht gefunden)"}`).join("\n");
+  const v = await dialog({ title: "Snapshot-Speicher gefunden",
+    text: `In diesem Ordner liegt ein Snapshot-Speicher:\n${d.root}\n\n${libs || "(noch ohne überwachte Ordner)"}${d.error ? "\n\n" + d.error : ""}\n\nStatt des bisherigen verwenden? Der bisherige Speicher bleibt unverändert erhalten.`,
+    buttons: [{ label: "Nicht mehr fragen", value: "ignore" }, { label: "Später", value: null }, { label: "Verwenden", value: "use", primary: true }] });
+  if (v === "ignore") { await call("snap_ignore", d.root); return; }
+  if (v !== "use") return;
+  const r = await call("snap_use", d.root);
+  if (!r.ok) return info("Nicht möglich", r.error);
+  toast("Snapshot-Speicher gewechselt.");
+  snSizeRefresh();
+  if (S.module === "snapshots") snapShow();
+}
+
 async function snAddLibrary() {
   let p = await call("pick_path", "", true, "");
   if (!p) {

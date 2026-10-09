@@ -56,7 +56,8 @@ async function stSnapRender() {
     <span>Beim Start</span>${stCheck("snAsk", s.snap_ask, "Fragen, ob ein weiterer Snapshot erstellt bzw. das Journal angezeigt werden soll")}
     <label for="snKeep">Aufbewahrung</label><div class="st-path"><input class="inp" type="number" min="1" max="500" id="snKeep" value="${s.snap_keep}" style="width:80px"><span>automatische behalten, danach je einer pro Woche für</span><input class="inp" type="number" min="0" max="520" id="snWeeks" value="${s.snap_weeks}" style="width:80px"><span>Wochen</span></div>
     <span>Gründlich</span>${stCheck("snThorough", s.snap_thorough, "Alle Dateien lesen (auch wenn Grösse und Änderungszeit gleich sind) – langsamer")}
-    <span>Speicherort</span><div class="st-path"><code title="${esc(o.dir)}">${esc(o.dir)}</code><button class="ghost sm" data-copen="${esc(o.dir)}">Öffnen</button></div>
+    <span>Speicherort</span><div class="st-path"><code title="${esc(o.dir)}">${esc(o.dir)}</code><button class="ghost sm" data-copen="${esc(o.dir)}">Öffnen</button><button class="ghost sm" id="snMove" title="Ganzen Speicher an einen anderen Ort verschieben (z. B. in den MP3-Ordner, um ihn weiterzugeben)">Ändern …</button>${o.default ? "" : '<button class="ghost sm" id="snMoveDefault" title="Zurück in den TagStudio-Ordner verschieben">Standard</button>'}</div>
+    ${o.readonly ? '<span></span><div class="hint warn">Dieser Speicher stammt aus einer neueren TagStudio-Version und wird nur gelesen – bitte TagStudio aktualisieren.</div>' : ""}
     <span>Belegt</span><div class="st-path"><span>${snMB(o.total)} · ${o.libs.length} überwachte(r) Ordner</span><button class="ghost sm" id="stSnapGo">Zur Seite „Snapshots“</button></div>`;
 }
 
@@ -247,6 +248,7 @@ function initSettings() {
       if (S.pairs && S.pairs.length) refreshAll(await call("state"));
       toast(t.checked ? "Auch Standardfelder zeigen ihre ID3-Version." : "Standardfelder ohne Kennzeichen.");
     }
+    else if (t.id === "snMove" || t.id === "snMoveDefault") { if (await snMoveStore(t.id === "snMoveDefault")) stSnapRender(); }
     else if (t.id === "snDaily") await call("snap_set", "snap_daily", t.checked);
     else if (t.id === "snAsk") await call("snap_set", "snap_ask", t.checked);
     else if (t.id === "snThorough") await call("snap_set", "snap_thorough", t.checked);

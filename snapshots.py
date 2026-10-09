@@ -36,6 +36,9 @@ DEFAULT_KEEP = 20              # automatische Snapshots, die immer bleiben
 DEFAULT_WEEKS = 12             # danach je einer pro Woche für so viele Wochen
 
 
+STORE_DIRNAME = ".tagstudio-snapshots"   # Name, wenn der Speicher in einem Bibliotheksordner liegt (#60)
+
+
 def default_dir() -> str:
     return os.path.join(os.path.expanduser("~"), "TagStudio", "Snapshots")
 
@@ -175,7 +178,7 @@ class Store:
                 with open(os.path.join(base, lid, "library.json"), encoding="utf-8") as fh:
                     d = json.load(fh)
                 d["id"] = lid
-                out.append(d)
+                out.append(self._resolve(d))
             except (OSError, ValueError):
                 continue
         return sorted(out, key=lambda d: d.get("name", "").lower())
@@ -184,7 +187,28 @@ class Store:
         with open(os.path.join(self._lib_dir(lid), "library.json"), encoding="utf-8") as fh:
             d = json.load(fh)
         d["id"] = lid
+        return self._resolve(d)
+
+    def _rel(self, root: str) -> str | None:
+        try:
+            return os.path.relpath(root, self.root).replace(os.sep, "/")
+        except ValueError:                 # anderes Laufwerk (Windows)
+            return None
+
+    def _resolve(self, d: dict) -> dict:
+        """Ist der Ordner unter dem gespeicherten Pfad nicht da, über den Pfad relativ zum Speicher suchen –
+        so funktioniert ein mit dem MP3-Ordner weitergegebener Speicher auch auf einem anderen Rechner (#60)."""
+        root = d.get("root", "")
+        if not os.path.isdir(root) and d.get("rel"):
+            cand = os.path.normpath(os.path.join(self.root, d["rel"]))
+            if os.path.isdir(cand):
+                d["root_saved"], d["root"] = root, cand
         return d
+
+    def refresh_rel(self):
+        """Relative Pfade aller Bibliotheken neu setzen (nach dem Verschieben des Speichers)."""
+        for d in self.libraries():
+            self.update_library(d["id"])
 
     def add_library(self, root: str, name: str | None = None) -> dict:
         root = os.path.abspath(root)
@@ -195,7 +219,8 @@ class Store:
                 return d
         self._init()
         lid = uuid.uuid4().hex[:12]
-        d = {"root": root, "name": name or os.path.basename(root.rstrip("\\/")) or root, "created": _now()}
+        d = {"root": root, "name": name or os.path.basename(root.rstrip("\\/")) or root, "created": _now(),
+             "rel": self._rel(root)}
         os.makedirs(os.path.join(self._lib_dir(lid), "snaps"), exist_ok=True)
         _write_json(os.path.join(self._lib_dir(lid), "library.json"), d)
         d["id"] = lid
@@ -204,7 +229,9 @@ class Store:
     def update_library(self, lid: str, **kw) -> dict:
         d = self.library(lid)
         d.update({k: v for k, v in kw.items() if k in ("root", "name")})
-        _write_json(os.path.join(self._lib_dir(lid), "library.json"), {k: v for k, v in d.items() if k != "id"})
+        d["rel"] = self._rel(d["root"])
+        _write_json(os.path.join(self._lib_dir(lid), "library.json"),
+                    {k: v for k, v in d.items() if k not in ("id", "root_saved")})
         return d
 
     def remove_library(self, lid: str):
@@ -395,6 +422,108 @@ class MemStore:
     def tag_bytes(self, entry):
         tag = b"".join(self.get(h) for h in (entry.get("tag") or []))
         return tag, (self.get(entry["v1"]) if entry.get("v1") else b"")
+
+
+# =========================================================================== Speicher verschieben / finden (#60)
+def is_store(root: str) -> bool:
+    return os.path.isfile(os.path.join(root, "store.json"))
+
+
+def find_store(path: str) -> str | None:
+    """Snapshot-Speicher in `path` oder einem übergeordneten Ordner (…/.tagstudio-snapshots) suchen."""
+    d = os.path.abspath(path)
+    if os.path.isfile(d):
+        d = os.path.dirname(d)
+    for _ in range(40):
+        cand = os.path.join(d, STORE_DIRNAME)
+        if is_store(cand):
+            return cand
+        up = os.path.dirname(d)
+        if up == d:
+            break
+        d = up
+    return None
+
+
+def summary(root: str) -> dict:
+    """Kurzbeschreibung eines (fremden) Speichers: Ordner und Snapshots."""
+    st = Store(root)
+    libs = st.libraries()
+    return {"root": st.root, "readonly": st.readonly, "libs": [{"name": l["name"], "root": l["root"],
+            "exists": os.path.isdir(l["root"]), "count": len(st.snapshots(l["id"]))} for l in libs]}
+
+
+def target_dir(dest: str) -> str:
+    """Zielordner für „Speicherort ändern“: ein leerer (oder neuer) Ordner direkt, sonst
+    <Ordner>/.tagstudio-snapshots – z. B. im MP3-Ordner."""
+    dest = os.path.abspath(dest)
+    if os.path.basename(dest) == STORE_DIRNAME or not os.path.exists(dest) or (os.path.isdir(dest) and not os.listdir(dest)):
+        return dest
+    return os.path.join(dest, STORE_DIRNAME)
+
+
+def move_store(src: str, dest: str, cancel=None, progress=None) -> dict:
+    """Ganzen Speicher kopieren, Kopie prüfen, erst dann den alten entfernen. → {"root", "files", "bytes"}."""
+    progress = progress or (lambda m: None)
+    src, dst = os.path.abspath(src), target_dir(dest)
+    n = lambda p: os.path.normcase(os.path.normpath(p)) + os.sep
+    if n(dst) == n(src):
+        raise StoreError("Das ist bereits der Speicherort.")
+    if n(dst).startswith(n(src)):
+        raise StoreError("Der neue Ort darf nicht im bisherigen Speicher liegen.")
+    if os.path.exists(dst) and os.listdir(dst):
+        if is_store(dst):
+            raise StoreError(f"Am Ziel liegt bereits ein Snapshot-Speicher: {dst}")
+        raise StoreError(f"Der Zielordner ist nicht leer: {dst}")
+    files = []
+    if os.path.isdir(src):
+        for d, _dirs, names in os.walk(src):
+            for name in names:
+                if not name.endswith(".tmp"):
+                    files.append(os.path.relpath(os.path.join(d, name), src))
+    total = len(files)
+    progress(("total", total))
+    copied = 0
+    created = not os.path.exists(dst)
+    try:
+        os.makedirs(dst, exist_ok=True)
+        for i, r in enumerate(files, 1):
+            if cancel is not None and cancel.is_set():
+                from compare import Cancelled
+                raise Cancelled()
+            a, b = os.path.join(src, r), os.path.join(dst, r)
+            os.makedirs(os.path.dirname(b), exist_ok=True)
+            shutil.copy2(a, b)
+            if os.path.getsize(a) != os.path.getsize(b):
+                raise StoreError(f"Kopie unvollständig: {r}")
+            copied += os.path.getsize(b)
+            if i % 50 == 0 or i == total:
+                progress(("progress", i, total, r))
+        progress(("text", "Prüfe die Kopie …"))
+        new = Store(dst)
+        if total and not is_store(dst):
+            raise StoreError("Die Kopie enthält keine store.json.")
+        for lib in new.libraries():
+            for s in new.snapshots(lib["id"]):
+                m = new.manifest(lib["id"], s["id"])
+                for e in m["files"][:1]:               # Stichprobe: Objekte lesbar
+                    new.tag_bytes(e)
+        if is_store(dst):
+            new.refresh_rel()
+    except BaseException:
+        if created:
+            shutil.rmtree(dst, ignore_errors=True)
+        else:
+            for r in files:
+                try:
+                    os.remove(os.path.join(dst, r))
+                except OSError:
+                    pass
+        raise
+    progress(("text", "Entferne den alten Speicher …"))
+    if os.path.isdir(src):
+        shutil.rmtree(src, ignore_errors=True)
+    return {"root": dst, "files": total, "bytes": copied}
 
 
 # =========================================================================== Scan

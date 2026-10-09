@@ -224,6 +224,7 @@ class Session:
                          "last": ({"created": snaps[0]["created"], "label": snaps[0]["label"],
                                    "age": snapshots.fmt_age(snaps[0]["created"])} if snaps else None)})
         return {"dir": st.root, "readonly": st.readonly, "total": sizes["total"], "libs": libs,
+                "default": os.path.normcase(st.root) == os.path.normcase(os.path.abspath(snapshots.default_dir())),
                 "settings": {k: self._snap_cfg(k) for k in self.SNAP_DEFAULTS}}
 
     def snap_list(self, lid) -> dict:
@@ -363,6 +364,62 @@ class Session:
         self.cfg[name] = value
         core.save_config({name: value})
         return self.snap_overview()["settings"]
+
+    # ------------------------------------------------------------------ Speicherort (#60)
+    def _snap_dir_set(self, root):
+        import snapshots
+        root = os.path.abspath(root)
+        val = "" if os.path.normcase(root) == os.path.normcase(os.path.abspath(snapshots.default_dir())) else root
+        self.cfg["snap_dir"] = val
+        core.save_config({"snap_dir": val})
+        self._snap_store = None
+
+    def start_snap_move(self, dest):
+        """Ganzen Snapshot-Speicher verschieben (kopieren, prüfen, alten entfernen) – mit Fortschritt."""
+        import snapshots
+        if self._jobs is not None and any(j["plugin"] == "tagstudio:snapshot" and j["status"] in ("queued", "running")
+                                          for j in self.jobs.status()["jobs"]):
+            return {"ok": False, "error": "Es läuft noch ein Snapshot-Auftrag – bitte warten."}
+        dest = str(dest or snapshots.default_dir())
+        src = self.snap_store.root
+
+        def job(cancel, progress):
+            res = snapshots.move_store(src, dest, cancel, progress)
+            self._snap_dir_set(res["root"])
+            return {**res, "message": f"Snapshot-Speicher verschoben nach {res['root']} "
+                                      f"({res['files']} Dateien, {fmt_bytes(res['bytes'])})."}
+        return self._run("snap_move", "Snapshot-Speicher verschieben", job)
+
+    def snap_detect(self, path) -> dict | None:
+        """Liegt in/über `path` ein anderer Snapshot-Speicher (z. B. mit dem MP3-Ordner weitergegeben)?"""
+        import snapshots
+        try:
+            found = snapshots.find_store(str(path))
+        except OSError:
+            return None
+        if not found:
+            return None
+        n = lambda p: os.path.normcase(os.path.abspath(p))
+        if n(found) == n(self.snap_store.root) or n(found) in {n(p) for p in self.cfg.get("snap_ignored", [])}:
+            return None
+        try:
+            return snapshots.summary(found)
+        except snapshots.StoreError as ex:
+            return {"root": found, "error": str(ex), "libs": []}
+
+    def snap_use(self, root) -> dict:
+        """Vorhandenen Speicher übernehmen (ohne Kopieren)."""
+        import snapshots
+        if not snapshots.is_store(str(root)):
+            return {"ok": False, "error": "Dort liegt kein Snapshot-Speicher."}
+        self._snap_dir_set(str(root))
+        return {"ok": True, **self.snap_overview()}
+
+    def snap_ignore(self, root) -> dict:
+        lst = [p for p in self.cfg.get("snap_ignored", []) if p != root] + [str(root)]
+        self.cfg["snap_ignored"] = lst[-50:]
+        core.save_config({"snap_ignored": self.cfg["snap_ignored"]})
+        return {"ok": True}
 
     # ------------------------------------------------------------------ Journal
     def start_snap_journal(self, lid, a_sid, b_sid="live"):

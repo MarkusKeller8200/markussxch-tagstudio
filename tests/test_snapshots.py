@@ -172,6 +172,41 @@ class TestSnapshots(Base):
         self.assertEqual(q["new"] + q["removed"], 0)
 
 
+class TestMoveStore(Base):
+    """#60: Speicher verschieben, im Ordner erkennen, mit dem Ordner weitergeben."""
+
+    def test_move_into_library_and_hand_over(self):
+        lid = self.libd["id"]
+        s1 = sn.create(self.store, lid, "Vor MIK", pinned=True)
+        old = self.store.root
+        with self.assertRaises(sn.StoreError):
+            sn.move_store(old, os.path.join(old, "innen"))
+        res = sn.move_store(old, self.lib)                      # nicht leer → Unterordner
+        self.assertEqual(res["root"], os.path.join(self.lib, sn.STORE_DIRNAME))
+        self.assertFalse(os.path.exists(old))
+        st = sn.Store(res["root"])
+        self.assertEqual(st.snapshots(lid)[0]["label"], "Vor MIK")
+        self.assertEqual(st.library(lid)["rel"], "..")
+        # Ordner samt Speicher weitergegeben (anderer Pfad): Bibliothek wird über den relativen Pfad gefunden
+        moved = os.path.join(self.dir, "Weitergegeben")
+        shutil.move(self.lib, moved)
+        st2 = sn.Store(os.path.join(moved, sn.STORE_DIRNAME))
+        self.assertEqual(st2.library(lid)["root"], os.path.normpath(moved))
+        self.assertEqual(sn.find_store(os.path.join(moved, "Album", "01 Titel.mp3")), st2.root)
+        j = sn.journal(st2.manifest(lid, s1["id"]), sn.scan(moved, sn.MemStore(st2))[0], st2, st2)
+        self.assertEqual(j["rows"], [])
+        self.assertEqual(sn.summary(st2.root)["libs"][0]["count"], 1)
+        # zurück an einen leeren Ort; belegtes Ziel wird abgelehnt
+        busy = os.path.join(self.dir, "Belegt", sn.STORE_DIRNAME)
+        os.makedirs(busy)
+        open(os.path.join(busy, "x.txt"), "w").close()
+        with self.assertRaises(sn.StoreError):
+            sn.move_store(st2.root, busy)
+        back = sn.move_store(st2.root, os.path.join(self.dir, "Neu"))
+        self.assertEqual(len(sn.Store(back["root"]).snapshots(lid)), 1)
+        self.assertIsNone(sn.find_store(moved))
+
+
 if __name__ == "__main__":
     unittest.main()
 
@@ -200,6 +235,30 @@ class TestSessionSnapshots(Base):
         core.CONFIG, core.CONFIG_OLD, jobs.STATE_FILE = self._old
         plugins.log_dir = self._logdir
         super().tearDown()
+
+    def test_move_detect_use(self):
+        """#60 über die Session: verschieben, erkennen, verwenden, ignorieren."""
+        s, lid = self.s, self.libd["id"]
+        s.snap_create(lid, "Erster")
+        self.wait_jobs()
+        self.assertTrue(s.snap_overview()["default"] is False)
+        self.assertIsNone(s.snap_detect(self.lib))
+        s.start_snap_move(self.lib)
+        res = self.wait_task()
+        self.assertIn("verschoben", res["message"])
+        self.assertEqual(s.snap_store.root, os.path.join(self.lib, sn.STORE_DIRNAME))
+        self.assertEqual(len(s.snap_list(lid)["snapshots"]), 1)
+        self.assertIsNone(s.snap_detect(self.lib))              # ist ja der aktuelle
+        # ein anderer Speicher ist aktiv → der im Ordner wird angeboten
+        other = os.path.join(self.dir, "Anderer")
+        sn.Store(other)._init()
+        self.assertTrue(s.snap_use(other)["ok"])
+        d = s.snap_detect(os.path.join(self.lib, "Album"))
+        self.assertEqual((d["root"], d["libs"][0]["count"]), (os.path.join(self.lib, sn.STORE_DIRNAME), 1))
+        s.snap_ignore(d["root"])
+        self.assertIsNone(s.snap_detect(self.lib))
+        self.assertTrue(s.snap_use(d["root"])["ok"])
+        self.assertEqual(len(s.snap_overview()["libs"]), 1)
 
     def test_job_log(self):
         """#62: Protokoll mit Start, Ende, Dauer und Speicherplatz."""

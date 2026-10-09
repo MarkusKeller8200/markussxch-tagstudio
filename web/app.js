@@ -385,6 +385,7 @@ async function compare(skipConfirm = false, keep = false) {
   await loadPairs();
   applyState(await call("state"));
   status(res.pairs ? `${fmtN(res.pairs)} Paar${res.pairs === 1 ? "" : "e"} eingelesen.` : "Keine MP3-Dateien gefunden.", res.pairs ? "ok" : "warn");
+  if (typeof snDetect === "function") snDetect(lp).then(() => rp && snDetect(rp));    // #60
   if (res.errors && res.errors.length) {
     await info(`${res.errors.length} Datei(en) nicht lesbar`, res.errors.slice(0, 30).join("\n") + (res.errors.length > 30 ? "\n…" : ""));
   }
