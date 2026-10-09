@@ -329,6 +329,26 @@ class TestSessionSnapshots(Base):
         r2 = next(r for r in rows if r["left"].endswith("02 Titel.mp3"))
         self.assertTrue(r2["right"].endswith("02 Umbenannt.mp3"))
 
+    def test_several_libraries(self):
+        """#77: gleichnamige Ordner unterscheidbar, umbenennen, Ordner ändern, täglich je Ordner; #78 Hinweis."""
+        s, lid = self.s, self.libd["id"]
+        other = os.path.join(self.dir, "Zweit", "Bibliothek")
+        shutil.copytree(self.lib, other)
+        lid2 = s.snap_add_library(other)["library"]["id"]
+        labels = {l["id"]: l["label"] for l in s.snap_overview()["libs"]}
+        self.assertEqual(labels[lid2], "Bibliothek (Zweit)")
+        self.assertNotEqual(labels[lid], labels[lid2])
+        r = s.snap_update_library(lid2, name="Laptop", auto=False)
+        self.assertEqual({l["id"]: (l["label"], l["auto"]) for l in r["libs"]}[lid2], ("Laptop", False))
+        st = s.snap_startup()
+        due = {l["id"]: l["due"] for l in st["libs"]}
+        self.assertEqual((due[lid], due[lid2], st["hint"]), (True, False, True))
+        moved = os.path.join(self.dir, "Neu")
+        shutil.move(other, moved)
+        self.assertFalse(s.snap_update_library(lid2, root=os.path.join(self.dir, "fehlt"))["ok"])
+        r = s.snap_update_library(lid2, root=moved)
+        self.assertEqual({l["id"]: l["root"] for l in r["libs"]}[lid2], moved)
+
     def test_move_detect_use(self):
         """#60 über die Session: verschieben, erkennen, verwenden, ignorieren."""
         s, lid = self.s, self.libd["id"]

@@ -245,7 +245,7 @@ class Session:
 
     # ================================================================== Snapshots (#52–#54, #61)
     SNAP_DEFAULTS = {"snap_daily": True, "snap_ask": True, "snap_keep": 20, "snap_weeks": 12, "snap_thorough": False,
-                     "snap_watch": 5}
+                     "snap_watch": 5, "snap_hint": True}
 
     def _snap_cfg(self, k):
         v = self.cfg.get(k, self.SNAP_DEFAULTS.get(k))
@@ -264,9 +264,13 @@ class Session:
         st = self.snap_store
         sizes = st.sizes() if os.path.isdir(st.root) else {"total": 0, "libs": {}, "snaps": {}}
         libs = []
-        for lib in st.libraries():
+        all_libs = st.libraries()
+        labels = self._lib_labels(all_libs)
+        for lib in all_libs:
             snaps = st.snapshots(lib["id"])
-            libs.append({"id": lib["id"], "name": lib["name"], "root": lib["root"], "exists": os.path.isdir(lib["root"]),
+            libs.append({"id": lib["id"], "name": lib["name"], "label": labels[lib["id"]],
+                         "hue": int(lib["id"][:6], 16) % 360, "auto": lib.get("auto", True),
+                         "root": lib["root"], "exists": os.path.isdir(lib["root"]),
                          "count": len(snaps), "bytes": sizes["libs"].get(lib["id"], 0),
                          "last": ({"created": snaps[0]["created"], "label": snaps[0]["label"],
                                    "age": snapshots.fmt_age(snaps[0]["created"])} if snaps else None)})
@@ -290,6 +294,31 @@ class Session:
         except snapshots.StoreError as ex:
             return {"ok": False, "error": str(ex)}
         return {"ok": True, "library": lib}
+
+    @staticmethod
+    def _lib_labels(libs) -> dict:
+        """#77: Anzeigenamen – gleichnamige Ordner bekommen den übergeordneten Ordner dazu."""
+        names = [l["name"].lower() for l in libs]
+        out = {}
+        for l in libs:
+            parent = os.path.basename(os.path.dirname(l["root"].rstrip("\\/"))) or l["root"][:3]
+            out[l["id"]] = f"{l['name']} ({parent})" if names.count(l["name"].lower()) > 1 else l["name"]
+        return out
+
+    def snap_update_library(self, lid, name=None, root=None, auto=None) -> dict:
+        """#77: Anzeigename, Ordner und „täglicher Snapshot“ je überwachtem Ordner."""
+        import snapshots
+        if root is not None:
+            root = os.path.abspath(str(root))
+            if not os.path.isdir(root):
+                return {"ok": False, "error": f"Ordner nicht gefunden: {root}"}
+        if name is not None:
+            name = str(name).strip()[:80] or None
+        try:
+            self.snap_store.update_library(str(lid), name=name, root=root, auto=None if auto is None else bool(auto))
+        except (OSError, snapshots.StoreError) as ex:
+            return {"ok": False, "error": str(ex)}
+        return {"ok": True, **self.snap_overview()}
 
     def snap_remove_library(self, lid) -> dict:
         self.snap_store.remove_library(str(lid))
@@ -387,7 +416,10 @@ class Session:
         st = self.snap_store
         today = datetime.date.today().isoformat()
         out = []
-        for lib in st.libraries() if os.path.isdir(st.root) else []:
+        libs = st.libraries() if os.path.isdir(st.root) else []
+        labels = self._lib_labels(libs)
+        for lib in libs:
+            lib = {**lib, "name": labels[lib["id"]]}
             if not os.path.isdir(lib["root"]):
                 out.append({"id": lib["id"], "name": lib["name"], "missing": True})
                 continue
@@ -396,9 +428,10 @@ class Session:
             out.append({"id": lib["id"], "name": lib["name"], "missing": False, **q,
                         "last": last and {"id": last["id"], "created": last["created"], "label": last["label"],
                                           "age": snapshots.fmt_age(last["created"])},
-                        "due": not last or not any(s["created"][:10] == today and s.get("auto")
-                                                    for s in st.snapshots(lib["id"]))})
-        return {"libs": out, "ask": bool(self._snap_cfg("snap_ask")), "daily": bool(self._snap_cfg("snap_daily"))}
+                        "due": lib.get("auto", True) and (not last or not any(s["created"][:10] == today and s.get("auto")
+                                                                           for s in st.snapshots(lib["id"])))})
+        return {"libs": out, "ask": bool(self._snap_cfg("snap_ask")), "daily": bool(self._snap_cfg("snap_daily")),
+                "hint": bool(self._snap_cfg("snap_hint"))}
 
     def snap_set(self, name, value) -> dict:
         if name not in self.SNAP_DEFAULTS:

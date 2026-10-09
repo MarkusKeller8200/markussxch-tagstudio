@@ -228,7 +228,7 @@ class Store:
 
     def update_library(self, lid: str, **kw) -> dict:
         d = self.library(lid)
-        d.update({k: v for k, v in kw.items() if k in ("root", "name")})
+        d.update({k: v for k, v in kw.items() if k in ("root", "name", "auto") and v is not None})
         d["rel"] = self._rel(d["root"])
         _write_json(os.path.join(self._lib_dir(lid), "library.json"),
                     {k: v for k, v in d.items() if k not in ("id", "root_saved")})

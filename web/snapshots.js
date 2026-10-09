@@ -17,10 +17,13 @@ async function snapShow() {
   snSideSize(SN.ov.total);
   if (!SN.ov.libs.some((l) => l.id === SN.lid)) SN.lid = SN.ov.libs.length ? SN.ov.libs[0].id : null;
   $("#snInfo").textContent = `Speicher: ${SN.ov.dir} · gesamt ${snMB(SN.ov.total)}${SN.ov.readonly ? " · NUR LESEN (aus neuerer TagStudio-Version)" : ""}`;
-  $("#snLibs").innerHTML = SN.ov.libs.length ? SN.ov.libs.map((l) => `<div class="sn-lib${l.id === SN.lid ? " cur" : ""}${l.exists ? "" : " missing"}" data-lib="${esc(l.id)}" role="button" tabindex="0">
-      <span class="n">${esc(l.name)}</span><span class="z">${snMB(l.bytes)}</span>
-      <span class="r" title="${esc(l.root)}">${l.exists ? esc(l.root) : "nicht erreichbar: " + esc(l.root)}</span><span class="z"><button class="x" data-unwatch="${esc(l.id)}" title="Nicht mehr überwachen (Snapshots löschen)">✕</button></span>
-      <span class="s">${l.count} Snapshot(s)${l.last ? " · zuletzt " + esc(l.last.age) : ""}</span></div>`).join("")
+  // #77: mehrere Ordner eindeutig – Farbe, Name (bei gleichen Namen mit übergeordnetem Ordner), Pfad, Zustand
+  $("#snLibs").innerHTML = SN.ov.libs.length ? `<div class="muted sm">${SN.ov.libs.length} überwachte(r) Ordner</div>` + SN.ov.libs.map((l) => `<div class="sn-lib${l.id === SN.lid ? " cur" : ""}${l.exists ? "" : " missing"}" data-lib="${esc(l.id)}" role="button" tabindex="0" style="--lh:${l.hue}">
+      <span class="n"><i class="sn-dot"></i>${esc(l.label || l.name)}</span><span class="z">${snMB(l.bytes)}</span>
+      <span class="r" title="${esc(l.root)}">${l.exists ? esc(l.root) : "nicht erreichbar: " + esc(l.root)}</span>
+      <span class="z acts"><button class="x" data-lren="${esc(l.id)}" title="Anzeigename ändern">✎</button><button class="x" data-lmove="${esc(l.id)}" title="Ordner ändern (z. B. nach Umzug auf ein anderes Laufwerk)">📁</button><button class="x" data-unwatch="${esc(l.id)}" title="Nicht mehr überwachen (Snapshots löschen)">✕</button></span>
+      <span class="s">${l.count} Snapshot(s)${l.last ? " · zuletzt " + esc(l.last.age) : ""}</span>
+      <label class="s auto" title="Täglicher automatischer Snapshot für diesen Ordner"><input type="checkbox" data-lauto="${esc(l.id)}" ${l.auto ? "checked" : ""}> täglich</label></div>`).join("")
     : '<div class="tg-empty">Noch kein Ordner überwacht. Oben „+ Ordner überwachen …“ wählen – z. B. deine MP3-Bibliothek.</div>';
   $("#snCreate").disabled = !SN.lid || SN.ov.readonly;
   await snLoadList();
@@ -223,7 +226,7 @@ async function snPickSpec(side) {
   const ov = await call("snap_overview");
   if (!ov.libs.length) return info("Keine Snapshots", "Noch kein Ordner überwacht – auf der Seite „Snapshots“ einen Ordner hinzufügen und einen Snapshot erstellen.");
   const lists = await Promise.all(ov.libs.map((l) => call("snap_list", l.id)));
-  const html = '<div class="sn-pick">' + ov.libs.map((l, k) => `<div class="lib">${esc(l.name)} <span class="muted sm">${esc(l.root)}</span></div>`
+  const html = '<div class="sn-pick">' + ov.libs.map((l, k) => `<div class="lib">${esc(l.label || l.name)} <span class="muted sm">${esc(l.root)}</span></div>`
     + (lists[k].snapshots.map((s) => `<button data-spec="snapshot:${esc(l.id)}/${esc(s.id)}"><span>${esc(s.label)}${s.pinned ? " 📌" : ""}</span><span class="muted">${snTime(s.created)} · ${s.count} Titel</span></button>`).join("") || '<div class="muted sm">noch kein Snapshot</div>')).join("") + "</div>";
   let picked = null;
   await modal({ title: `Snapshot ${side === "L" ? "links" : "rechts"}`, wide: true,
@@ -328,6 +331,16 @@ async function initSnapshots() {
   try { st = await call("snap_startup"); } catch (e) { return; }
   try { snSideSize((await call("snap_overview")).total); } catch (e) { /* egal */ }
   const libs = st.libs.filter((l) => !l.missing);
+  if (!st.libs.length && st.hint) {                // #78: noch kein Ordner überwacht
+    const v = await modal({ title: "Snapshots einrichten?",
+      html: `<p style="margin:0 0 8px">Es wird noch kein Ordner überwacht. Mit einem überwachten Ordner hält TagStudio den Tag-Zustand deiner Bibliothek fest und zeigt später, was andere Programme (Mixed In Key, beaTunes, Mp3tag …) geändert haben – einzeln rückgängig machbar.</p>
+        <label class="check"><input type="checkbox" id="snNoHint"> Nicht mehr fragen (in den Einstellungen wieder einschaltbar)</label>`,
+      buttons: [{ label: "Später", value: "later" }, { label: "Ordner wählen …", value: "pick", primary: true }],
+      collect: (b, v) => ({ v, no: $("#snNoHint", b).checked }) });
+    if (v && v.no) await call("snap_set", "snap_hint", false);
+    if (v && v.v === "pick") { setModule("snapshots"); setTimeout(snAddLibrary, 300); }
+    return;
+  }
   if (!libs.length) return;
   let created = false;
   if (st.ask) {
@@ -377,7 +390,34 @@ async function initSnapshots() {
   });
   $("#snA").addEventListener("change", (e) => { SN.a = e.target.value; snLoadList(); });
   $("#snB").addEventListener("change", (e) => { SN.b = e.target.value; });
+  $("#snLibs").addEventListener("change", async (e) => {
+    const a = e.target.closest("[data-lauto]"); if (!a) return;
+    const r = await call("snap_update_library", a.dataset.lauto, null, null, a.checked);
+    if (!r.ok) return info("Nicht möglich", r.error);
+    toast(a.checked ? "Täglicher Snapshot an." : "Für diesen Ordner kein täglicher Snapshot.");
+  });
   $("#snLibs").addEventListener("click", async (e) => {
+    if (e.target.closest("label.auto")) { e.stopPropagation(); return; }
+    const ren = e.target.closest("[data-lren]"), mv = e.target.closest("[data-lmove]");
+    if (ren || mv) {
+      e.stopPropagation();
+      const l = SN.ov.libs.find((x) => x.id === (ren || mv).dataset[ren ? "lren" : "lmove"]);
+      let v = null;
+      if (ren) {
+        v = await modal({ title: "Anzeigename", html: `<div class="frm"><label for="snLname">Name</label><input id="snLname" value="${esc(l.name)}" autofocus></div>`,
+          buttons: [{ label: "Abbrechen", value: null }, { label: "Speichern", value: true, primary: true }], collect: (b) => $("#snLname", b).value.trim() });
+        if (!v) return;
+      } else {
+        v = await call("pick_path", l.root, true, "");
+        if (!v && !S.settings.native) v = await modal({ title: "Ordner ändern", html: `<div class="frm"><label for="snLroot">Neuer Ordner</label><input id="snLroot" value="${esc(l.root)}" autofocus></div><p class="muted sm">Die Snapshots bleiben erhalten; Pfade sind relativ zum Ordner gespeichert.</p>`,
+          buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }], collect: (b) => $("#snLroot", b).value.trim() });
+        if (!v) return;
+      }
+      const r = await call("snap_update_library", l.id, ren ? v : null, mv ? v : null, null);
+      if (!r.ok) return info("Nicht möglich", r.error);
+      snapShow();
+      return;
+    }
     const un = e.target.closest("[data-unwatch]");
     if (un) {
       e.stopPropagation();

@@ -54,6 +54,7 @@ async function stSnapRender() {
   const o = await call("snap_overview"), s = o.settings;
   $("#stSnapRows").innerHTML = `<span>Automatik</span>${stCheck("snDaily", s.snap_daily, "Täglich einen Snapshot je überwachtem Ordner (beim ersten Start des Tages)")}
     <span>Beim Start</span>${stCheck("snAsk", s.snap_ask, "Fragen, ob ein weiterer Snapshot erstellt bzw. das Journal angezeigt werden soll")}
+    <span></span>${stCheck("snHint", s.snap_hint, "Hinweis, solange noch kein Ordner überwacht wird")}
     <label for="snKeep">Aufbewahrung</label><div class="st-path"><input class="inp" type="number" min="1" max="500" id="snKeep" value="${s.snap_keep}" style="width:80px"><span>automatische behalten, danach je einer pro Woche für</span><input class="inp" type="number" min="0" max="520" id="snWeeks" value="${s.snap_weeks}" style="width:80px"><span>Wochen</span></div>
     <label for="snWatch">Überwachung</label><div class="st-path"><span>Während TagStudio läuft alle</span><input class="inp" type="number" min="0" max="240" id="snWatch" value="${s.snap_watch}" style="width:70px"><span>Minuten auf fremde Änderungen prüfen (0 = aus)</span></div>
     <span>Gründlich</span>${stCheck("snThorough", s.snap_thorough, "Alle Dateien lesen (auch wenn Grösse und Änderungszeit gleich sind) – langsamer")}
@@ -296,6 +297,7 @@ function initSettings() {
     else if (t.id === "snMove" || t.id === "snMoveDefault") { if (await snMoveStore(t.id === "snMoveDefault")) stSnapRender(); }
     else if (t.id === "snDaily") await call("snap_set", "snap_daily", t.checked);
     else if (t.id === "snAsk") await call("snap_set", "snap_ask", t.checked);
+    else if (t.id === "snHint") await call("snap_set", "snap_hint", t.checked);
     else if (t.id === "snThorough") await call("snap_set", "snap_thorough", t.checked);
     else if (t.id === "snKeep") { await call("snap_set", "snap_keep", Math.max(1, +t.value || 20)); toast("Aufbewahrung gespeichert."); }
     else if (t.id === "snWatch") { await call("snap_set", "snap_watch", Math.max(0, +t.value || 0)); if (typeof SN !== "undefined" && SN.ov) SN.ov.settings.snap_watch = Math.max(0, +t.value || 0); toast("Überwachung gespeichert."); }

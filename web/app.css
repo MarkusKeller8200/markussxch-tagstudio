@@ -847,6 +847,12 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 @media (max-width:1000px){.sn-grid{grid-template-columns:1fr}}
 .sn-start{padding:4px 0;font-size:13.5px}
 .sn-start .warn{color:var(--warn);font-weight:600}
+.sn-lib .n{display:flex;align-items:center;gap:7px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.sn-dot{width:9px;height:9px;border-radius:99px;flex:none;background:hsl(var(--lh) 65% 52%)}
+.sn-lib{border-left:3px solid hsl(var(--lh) 65% 52%)}
+.sn-lib .acts{display:flex;gap:2px;justify-content:flex-end}
+.sn-lib .auto{display:flex;align-items:center;gap:5px;justify-self:end;cursor:pointer}
+.sn-lib .auto input{margin:0}
 .sn-lib .x{width:22px;height:22px;border:0;border-radius:6px;background:transparent;color:var(--faint);cursor:pointer}
 .sn-lib .x:hover{background:var(--line);color:var(--fg)}
 .sn-jhead select{max-width:240px}
