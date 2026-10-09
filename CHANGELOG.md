@@ -57,12 +57,19 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Camelot-Farbe, BPM und Abweichungen hervorgehoben, Herkunfts-Kennzeichen mit Erklärung (#72).
 - Player: **Titel wiederholen** (🔁, Taste R) und **A–B-Schleife** (Knopf bzw. Taste L: A setzen, B setzen,
   aufheben; Esc hebt auf) mit Markierung auf der Wellenform; bleibt beim Umschalten Original/Stems und L/R (#79).
+- Einstellungen › Cache: **„Erstellen“** je Cache – Listen-Cache neu von der Platte aufbauen, fehlende
+  **Wellenformen** berechnen, **Cover-Vorschauen** erzeugen; jeweils für alle geladenen Titel (Tagger und Vergleich),
+  mit Fortschritt und Abbrechen (#80).
+- Vergleich: **„Paar neu“** (Shift+F5) liest nur die beiden Dateien des aktuellen Paars neu – die übrige Liste
+  bleibt, bei ungespeicherten Änderungen wird gefragt (#82).
 
 ### Behoben
 - Hintergrund-Aufträge, die sehr schnell fertig waren, meldeten ihr Ende nicht.
 - Player: Nach dem Einlesen eines anderen Ordners im Tagger konnte die Leertaste noch den alten Titel abspielen.
 - Fehlermeldungen aus Aktionen, die nicht abgefangen wurden, erscheinen jetzt als Hinweis statt still zu verschwinden.
 - Journal: ⇄ öffnet im Vergleich nur noch den einen Titel statt den ganzen Ordner neu einzulesen (#56).
+- Journal → Vergleich: rechts erscheint immer der aktuelle Stand (einzelne Dateien kommen nie aus dem
+  Listen-Cache), der Filter steht direkt auf „Unterschiede“ (#81).
 
 ### Geändert
 - **Schneller einlesen:** jede Datei wird nur noch einmal gelesen (der Fingerabdruck für den Konfliktschutz entsteht
