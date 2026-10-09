@@ -7,6 +7,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Stems als Spuren im Tagger:** erzeugte Stems (Ordner „<Titel> – Stems“ bzw. fester Stems-Ordner) erscheinen
+  nicht mehr als eigene Titel, sondern **aufklappbar unter dem Original** (▸ / Kennzeichen „4 Stems“, →/← auf-
+  und zuklappen, „Stems ▾/▸“ für alle). MP3-Spuren sind normal bearbeitbar, FLAC/WAV-Spuren lassen sich anhören
+  und im Explorer/Finder zeigen. Sortieren und Filtern beziehen sich auf die Originale. **„Stems: Tags vom
+  Original …“** überträgt die Tags auf die MP3-Spuren (ohne DJ-Analysedaten, Titel mit „(Vocals)“ usw.). Nach
+  „Stems erzeugen“ erscheinen neue Spuren direkt aufgeklappt, ohne neu einzulesen. Einstellung „Stems als eigene
+  Titel anzeigen“ für das bisherige Verhalten.
 - **Stems im Hintergrund:** „Stems erzeugen …“ legt einen Auftrag an und schliesst sofort – Tagger, Vergleich und
   Speichern bleiben benutzbar. Warteschlange (immer ein Auftrag gleichzeitig, Worker mit niedriger Priorität),
   Anzeige unten in der Fußleiste („Stems: 2 von 7 · 45 %“), Liste mit Abbrechen, Ordner öffnen und Protokoll,

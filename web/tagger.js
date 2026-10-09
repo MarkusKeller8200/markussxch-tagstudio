@@ -3,7 +3,8 @@
 "use strict";
 
 const TG = { settings: null, loaded: false, rows: [], order: [], sel: new Set(), anchor: null,
-  sort: { col: "name", dir: 1 }, detail: null, editing: false };
+  sort: { col: "name", dir: 1 }, detail: null, editing: false,
+  view: [], open: new Set(), flat: false };     // view: angezeigte Zeilen inkl. aufgeklappter Stems (#31)
 const TG_COLS = [["m", ""], ["name", "Datei"], ["TIT2", "Titel"], ["TPE1", "Künstler"], ["TALB", "Album"],
   ["TRCK", "Spur"], ["TDRC", "Jahr"], ["TCON", "Genre"], ["camelot", "Tonart"]];
 const TG_ROW = 40;
@@ -32,20 +33,22 @@ async function taggerLoad() {
   TG.settings = await call("tagger_settings");
   $("#histTg").innerHTML = TG.settings.hist.map((h) => `<option value="${esc(h)}"></option>`).join("");
   TG.loaded = true;
-  TG.rows = (await call("tag_rows")).rows;
+  const tr = await call("tag_rows");
+  TG.rows = tr.rows; TG.flat = !!tr.stems_flat; TG.open = new Set();
   TG.sel = new Set(TG.rows.length ? [0] : []);
   TG.anchor = TG.rows.length ? 0 : null;
   tgApplyOrder();
   await tgLoadDetail();
   if (S.pairs.length) await refreshAll();  // gemeinsames Register: Vergleich frisch halten
-  status(`${fmtN(res.files)} Datei(en) im Tagger.`, res.files ? "ok" : "warn");
+  status(`${fmtN(res.files)} Datei(en) im Tagger${res.stems ? ` · ${fmtN(res.stems)} mit Stems (▸ aufklappen)` : ""}.`, res.files ? "ok" : "warn");
   if (res.errors.length) await info(`${res.errors.length} Datei(en) nicht lesbar`, res.errors.slice(0, 30).join("\n"));
 }
 
 /** Nach Änderungen anderswo (Vergleich, Undo, Speichern …) */
 async function taggerRefresh() {
   if (!TG.loaded) return;
-  TG.rows = (await call("tag_rows")).rows;
+  const tr = await call("tag_rows");
+  TG.rows = tr.rows; TG.flat = !!tr.stems_flat;
   TG.sel = new Set([...TG.sel].filter((i) => i < TG.rows.length));
   tgApplyOrder();
   await tgLoadDetail();
@@ -77,7 +80,7 @@ function trackNum(v) { const m = String(v || "").match(/^\s*(\d+)/); return m ? 
 function tgApplyOrder() {
   const q = ($("#tgQuery").value || "").trim().toLowerCase();
   const { col, dir } = TG.sort;
-  let idx = TG.rows.map((r) => r.i);
+  let idx = TG.rows.filter((r) => r.parent === undefined).map((r) => r.i);   // Stems hängen unter dem Original
   if (q) idx = idx.filter((i) => { const r = TG.rows[i]; return [r.rel, r.TIT2, r.TPE1, r.TALB, r.TCON, r.TPE2].some((v) => (v || "").toLowerCase().includes(q)); });
   const key = (r) => (col === "name" ? r.rel : col === "camelot" ? keySortValue(r.camelot) : col === "TRCK" ? trackNum(r.TPOS) * 10000 + trackNum(r.TRCK) : (r[col] || ""));
   idx.sort((a, b) => {
@@ -85,9 +88,18 @@ function tgApplyOrder() {
     const c = typeof x === "number" ? x - y : String(x).localeCompare(String(y), "de", { numeric: true, sensitivity: "base" });
     return c * dir || a - b;
   });
-  TG.order = idx;
-  $("#tgCount").textContent = TG.rows.length ? (idx.length === TG.rows.length ? `${fmtN(idx.length)} Dateien` : `${fmtN(idx.length)} von ${fmtN(TG.rows.length)}`) + (TG.sel.size > 1 ? ` · ${TG.sel.size} markiert` : "") : "";
-  $("#tgInner").style.height = idx.length * TG_ROW + "px";
+  const view = [];
+  for (const i of idx) {
+    view.push({ i });
+    const st = TG.rows[i].stems;
+    if (st && TG.open.has(i)) st.forEach((x) => view.push(x.i !== null && x.i !== undefined ? { i: x.i, child: i } : { stem: x, child: i }));
+  }
+  TG.view = view;
+  TG.order = view.filter((v) => v.i !== undefined).map((v) => v.i);
+  const total = TG.rows.filter((r) => r.parent === undefined).length, nStem = TG.rows.filter((r) => r.stems).length;
+  $("#tgCount").textContent = TG.rows.length ? (idx.length === total ? `${fmtN(idx.length)} Dateien` : `${fmtN(idx.length)} von ${fmtN(total)}`) + (TG.sel.size > 1 ? ` · ${TG.sel.size} markiert` : "") : "";
+  $("#tgStemBtns").hidden = !nStem;
+  $("#tgInner").style.height = view.length * TG_ROW + "px";
   drawTgList();
 }
 
@@ -99,25 +111,48 @@ function renderTgHead() {
 function drawTgList() {
   const sc = $("#tgScroll"), inner = $("#tgInner");
   if (!TG.loaded) { inner.innerHTML = '<div class="tg-empty">Oben einen Ordner oder eine MP3-Datei wählen und auf <b>Einlesen</b> klicken.</div>'; inner.style.height = ""; return; }
-  if (!TG.order.length) { inner.innerHTML = `<div class="tg-empty">${TG.rows.length ? "Keine Datei passt zum Filter." : "Keine MP3-Dateien gefunden."}</div>`; return; }
+  if (!TG.view.length) { inner.innerHTML = `<div class="tg-empty">${TG.rows.length ? "Keine Datei passt zum Filter." : "Keine MP3-Dateien gefunden."}</div>`; return; }
   const first = Math.max(0, Math.floor(sc.scrollTop / TG_ROW) - 6);
-  const last = Math.min(TG.order.length, Math.ceil((sc.scrollTop + sc.clientHeight) / TG_ROW) + 6);
+  const last = Math.min(TG.view.length, Math.ceil((sc.scrollTop + sc.clientHeight) / TG_ROW) + 6);
   let h = "";
   const sel1 = TG.sel.size === 1 ? TG.rows[[...TG.sel][0]] : null;
   const fit = new Set(sel1 && sel1.camelot ? keyCompat(sel1.camelot) : []);
+  const mb = (b) => (b < 1048576 ? `${Math.round(b / 1024)} KB` : `${(b / 1048576).toFixed(1).replace(".", ",")} MB`);
   for (let k = first; k < last; k++) {
-    const r = TG.rows[TG.order[k]];
-    h += `<div class="tg-row${TG.sel.has(r.i) ? " sel" : ""}" style="top:${k * TG_ROW}px" data-i="${r.i}" title="${esc(r.rel)}">
+    const v = TG.view[k];
+    if (v.stem) {         // FLAC/WAV-Spur: nur anhören / zeigen
+      const x = v.stem;
+      h += `<div class="tg-row stem-x child" style="top:${k * TG_ROW}px" data-stem="${esc(x.path)}" title="${esc(x.path)}">
+        <span></span><span class="fn"><span class="tw-ind">└</span><span class="nm"><b>${esc(x.name)}</b></span><span class="sx">${esc(x.ext)} · ${mb(x.size)}</span></span>
+        <span class="stem-acts"><button class="ghost sm" data-splay="1" title="Spur anhören">▶ Anhören</button><button class="ghost sm" data-sreveal="1">${IS_MAC ? "Im Finder" : "Im Explorer"}</button></span></div>`;
+      continue;
+    }
+    const r = TG.rows[v.i];
+    const tw = r.stems ? `<button class="tw" data-tw="${r.i}" aria-expanded="${TG.open.has(r.i)}" title="Stems ${TG.open.has(r.i) ? "zuklappen" : "aufklappen"}">${TG.open.has(r.i) ? "▾" : "▸"}</button>` : "";
+    const name = v.child !== undefined ? `<span class="tw-ind">└</span><span class="nm"><b>${esc(r.stem || r.name)}</b></span><span class="sx">MP3</span>`
+      : `${tw}<span class="nm">${esc(r.rel)}</span>${r.stems ? `<span class="stem-b" title="${esc(r.stems.map((x) => x.name + " (" + x.ext + ")").join(", "))}">${r.stems.length} Stems</span>` : ""}`;
+    h += `<div class="tg-row${TG.sel.has(r.i) ? " sel" : ""}${v.child !== undefined ? " child" : ""}" style="top:${k * TG_ROW}px" data-i="${r.i}" title="${esc(r.rel)}">
       <span>${r.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</span>
-      <span class="fn">${esc(r.rel)}</span><span>${esc(r.TIT2)}</span><span>${esc(r.TPE1)}</span><span>${esc(r.TALB)}</span>
+      <span class="fn">${name}</span><span>${esc(r.TIT2)}</span><span>${esc(r.TPE1)}</span><span>${esc(r.TALB)}</span>
       <span>${esc(r.TRCK)}</span><span>${esc(r.TDRC)}</span><span>${esc(r.TCON)}</span>
       <span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx">${esc(r.TKEY)}</span>`}</span></div>`;
   }
   inner.innerHTML = h;
 }
 
+/** Stems eines Originals auf-/zuklappen (open: true/false/undefined = umschalten) */
+function tgToggleStems(i, open) {
+  const want = open === undefined ? !TG.open.has(i) : open;
+  if (want) TG.open.add(i); else {
+    TG.open.delete(i);
+    (TG.rows[i].stems || []).forEach((x) => { if (x.i !== null && x.i !== undefined) TG.sel.delete(x.i); });
+    if (!TG.sel.size) TG.sel.add(i);
+  }
+  tgApplyOrder();
+}
+
 function tgScrollTo(i) {
-  const k = TG.order.indexOf(i), sc = $("#tgScroll");
+  const k = TG.view.findIndex((v) => v.i === i), sc = $("#tgScroll");
   if (k < 0) return;
   const top = k * TG_ROW;
   if (top < sc.scrollTop) sc.scrollTop = top;
@@ -197,6 +232,7 @@ function renderTgEditor() {
       <button class="ghost" id="tgFolderCover">Cover aus Ordner …</button>
       <button class="ghost" id="tgExport">Liste exportieren …</button>
       <button class="ghost" id="tgOrigin">Felder nach Herkunft …</button>
+      ${tgSelected().some((i) => TG.rows[i] && (TG.rows[i].stems || TG.rows[i].parent !== undefined)) ? '<button class="ghost" id="tgStemTags" title="Tags der Originale auf ihre MP3-Stems übertragen">Stems: Tags vom Original …</button>' : ""}
       ${one ? '<button class="ghost" id="tgReveal">' + (IS_MAC ? "Im Finder zeigen" : "Im Explorer zeigen") + "</button>" : ""}
     </div>
     <div class="tg-plugins" id="tgPlugins"></div>${more}`;
@@ -726,6 +762,30 @@ async function tgExportDialog() {
   else if (!S.settings.native) toast("Im Browser-Modus ist kein Speichern-Dialog verfügbar – bitte das App-Fenster verwenden.");
 }
 
+async function tgStemTagsDialog() {
+  const idx = tgSelected();
+  const pv = await call("tag_stem_tags", idx, false);
+  if (!pv.stems) return toast("Keine MP3-Stems zu den markierten Titeln (FLAC/WAV haben keine ID3-Tags).");
+  const ok = await dialog({
+    title: "Tags vom Original übernehmen",
+    text: `Alle Felder (ausser DJ-Analysen wie Serato-/Traktor-Daten) von ${pv.originals} Original(en) auf ${pv.stems} MP3-Stem(s) übertragen; der Titel bekommt die Spur in Klammern, z. B. „Titel (Vocals)“. Rückgängig ist möglich.`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Übertragen", value: true, primary: true }],
+  });
+  if (!ok) return;
+  const d = await call("tag_stem_tags", idx, true);
+  taggerApplyDetail(d);
+}
+
+/** Nach einem fertigen Stems-Auftrag: neue Spuren ohne neues Einlesen anhängen und aufklappen. */
+async function jobFinishedHook(j) {
+  if (j.plugin !== "stems" || !TG.loaded) return;
+  const r = await call("tag_attach_stems");
+  TG.rows = r.rows;
+  r.new.forEach((i) => TG.open.add(i));
+  tgApplyOrder();
+  if (r.new.length) status(`${r.new.length} Titel mit neuen Stems – unter dem Original aufgeklappt.`, "ok");
+}
+
 /** Alle Felder einer Herkunft (z. B. Serato, iTunes) aus den markierten Dateien entfernen – mit Vorschau. */
 async function tgOriginDialog(preset = "") {
   const idx = tgSelected();
@@ -774,10 +834,31 @@ async function tgOriginDialog(preset = "") {
     renderTgHead(); tgApplyOrder();
   });
   $("#tgScroll").addEventListener("scroll", () => requestAnimationFrame(drawTgList));
-  $("#tgInner").addEventListener("click", (e) => { const r = e.target.closest(".tg-row"); if (r) tgSelect(+r.dataset.i, e); });
+  $("#tgInner").addEventListener("click", (e) => {
+    const tw = e.target.closest("[data-tw]");
+    if (tw) { e.stopPropagation(); tgToggleStems(+tw.dataset.tw); return; }
+    const sx = e.target.closest(".stem-x");
+    if (sx) {
+      if (e.target.closest("[data-splay]")) plLoad({ kind: "stem", ref: sx.dataset.stem });
+      else if (e.target.closest("[data-sreveal]")) call("reveal", sx.dataset.stem);
+      return;
+    }
+    const r = e.target.closest(".tg-row"); if (r) tgSelect(+r.dataset.i, e);
+  });
+  $("#tgStemOpen").addEventListener("click", () => { TG.rows.forEach((r) => { if (r.stems) TG.open.add(r.i); }); tgApplyOrder(); });
+  $("#tgStemClose").addEventListener("click", () => { [...TG.open].forEach((i) => tgToggleStems(i, false)); });
   $("#tgTable").addEventListener("keydown", (e) => {
     if (!TG.order.length) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") { e.preventDefault(); e.stopPropagation(); TG.sel = new Set(TG.order); tgApplyOrder(); tgLoadDetail(); return; }
+    if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && !e.shiftKey && TG.anchor !== null) {   // Stems auf-/zuklappen
+      const r = TG.rows[TG.anchor], p = r && (r.stems ? r.i : r.parent);
+      if (p !== undefined && TG.rows[p].stems) {
+        e.preventDefault();
+        if (e.key === "ArrowLeft" && r.parent !== undefined) { tgSelect(p, {}); tgToggleStems(p, false); tgScrollTo(p); }
+        else tgToggleStems(p, e.key === "ArrowRight");
+      }
+      return;
+    }
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
     e.preventDefault();
     const k = Math.max(0, Math.min(TG.order.length - 1, TG.order.indexOf(TG.anchor) + (e.key === "ArrowDown" ? 1 : -1)));
@@ -820,6 +901,7 @@ async function tgOriginDialog(preset = "") {
     else if (id === "tgFolderCover") tgFolderCoverDialog();
     else if (id === "tgExport") tgExportDialog();
     else if (id === "tgOrigin") tgOriginDialog();
+    else if (id === "tgStemTags") tgStemTagsDialog();
     else if (id === "tgSrcDel") tgOriginDialog(e.target.closest("button").dataset.src);
     else if (id === "tgKeyBtn") keyWheelOpen();
     const pb = e.target.closest("[data-plugin]");

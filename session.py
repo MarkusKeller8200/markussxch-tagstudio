@@ -40,6 +40,8 @@ class Session:
         self.pairs: list = []
         self.reg: dict = {}          # gemeinsames Dateiregister (Vergleich + Tagger): Pfad → MP3File
         self.tag_files: list = []    # Tagger
+        self.tag_stems: dict = {}    # Index Original → [Spuren] (#31)
+        self.tag_parent: dict = {}   # Index Spur (MP3) → Index Original
         self.tag_root = ""
         self.cur: int | None = None
         self.left_root = self.right_root = ""
@@ -194,6 +196,7 @@ class Session:
                 "notations": [[k, v] for k, v in keys.NOTATIONS.items()], "theme": self.opts["theme"],
                 "backup_enabled": c.get("backup_enabled", True), "backup_dir": self._backup_folder(),
                 "player": self.player_prefs(), "players": len(c.get("players") or []),
+                "stems_flat": bool(c.get("tagger_stems_flat")),
                 "groups": [[g, label] for g, label, _k in appsettings.GROUPS]}
 
     def set_trivial(self, patterns) -> list:
@@ -861,9 +864,11 @@ class Session:
             with self.lock:
                 self.tag_files = files
                 self.tag_root = path if os.path.isdir(path) else os.path.dirname(path)
+                with_stems = self._attach_stems()
+                n_orig = len(self.tag_files) - len(self.tag_parent)
             self.cfg["hist_tagger"] = core.history(self.cfg, "hist_tagger", path)
             core.save_config({"hist_tagger": self.cfg["hist_tagger"], "tagger_recursive": bool(recursive)})
-            return {"files": len(files), "errors": errors}
+            return {"files": n_orig, "stems": len(with_stems), "errors": errors}
         return self._run("tagload", "Dateien einlesen", job)
 
     def tagger_settings(self):
@@ -876,7 +881,100 @@ class Session:
                 "patterns": self.cfg.get("tagger_patterns", {"from": "%track% - %artist% - %title%",
                                                              "rename": "%track% - %artist% - %title%"})}
 
+    # ------------------------------------------------------------------ Stems als Spuren (#31)
+    def _stem_roots(self):
+        o = ((self.cfg.get("plugin_options") or {}).get("stems") or {}).get("separate") or {}
+        return [o["folder"]] if isinstance(o.get("folder"), str) and o.get("folder") else []
+
+    def _attach_stems(self) -> list:
+        """Spuren zu den geladenen Titeln suchen; MP3-Spuren werden mitgeladen (bearbeitbar).
+        → Indizes der Originale, die (neue) Spuren haben."""
+        import stemsview
+        self.tag_stems, self.tag_parent = {}, {}
+        if self.cfg.get("tagger_stems_flat"):
+            return []
+        roots = self._stem_roots()
+        where = {os.path.normcase(os.path.abspath(f.path)): i for i, f in enumerate(self.tag_files)}
+        changed = []
+        for i in range(len(self.tag_files)):
+            f = self.tag_files[i]
+            if stemsview.is_stem(f.path):
+                continue
+            found = stemsview.find(f.path, roots)
+            if not found:
+                continue
+            for st in found:
+                st["i"] = None
+                if st["ext"] == "MP3":
+                    k = os.path.normcase(os.path.abspath(st["path"]))
+                    j = where.get(k)
+                    if j is None:
+                        try:
+                            g = self.reg.get(k) or core._open(st["path"], self.reg)
+                        except Exception:  # noqa: BLE001 – defekte Spur nur nicht bearbeitbar
+                            continue
+                        self.tag_files.append(g)
+                        j = where[k] = len(self.tag_files) - 1
+                    st["i"] = j
+                    self.tag_parent[j] = i
+            self.tag_stems[i] = found
+            changed.append(i)
+        return changed
+
+    def tag_attach_stems(self) -> dict:
+        """Nach „Stems erzeugen“: neue Spuren ohne neues Einlesen anhängen."""
+        with self.lock:
+            before = {i: len(v) for i, v in self.tag_stems.items()}
+            changed = self._attach_stems()
+            new = [i for i in changed if len(self.tag_stems.get(i, [])) != before.get(i, 0)]
+            return {"rows": [self._tag_row(i, f) for i, f in enumerate(self.tag_files)], "new": new}
+
+    def set_stems_flat(self, flat) -> dict:
+        self.cfg["tagger_stems_flat"] = bool(flat)
+        core.save_config({"tagger_stems_flat": bool(flat)})
+        with self.lock:
+            self._attach_stems()
+        return {"flat": bool(flat)}
+
+    def tag_stem_tags(self, idx, apply=False):
+        """Tags der Originale auf ihre MP3-Spuren übertragen (Titel mit „(Spur)“) – Vorschau bzw. mit Rückgängig."""
+        from compare import copy_tags
+        with self.lock:
+            parents = []
+            for i in idx or []:
+                p = self.tag_parent.get(i, i)
+                if p in self.tag_stems and p not in parents:
+                    parents.append(p)
+            pairs = [(self.tag_files[p], self.tag_files[st["i"]], st["name"]) for p in parents
+                     for st in self.tag_stems[p] if st["i"] is not None]
+            if not apply:
+                return {"originals": len(parents), "stems": len(pairs)}
+            self.undo.checkpoint("Tags vom Original auf Stems übertragen", [d for _s, d, _n in pairs])
+            n = 0
+            for src, dst, name in pairs:
+                keys = [k for k in src.items if not k.startswith(("GEOB", "PRIV"))]   # DJ-Analysen gehören zum Original
+                n += copy_tags(src, dst, keys)
+                title = (src.text("TIT2") or os.path.splitext(os.path.basename(src.path))[0]) + f" ({name})"
+                if dst.text("TIT2") != title:
+                    dst.set_text("TIT2", title)
+                    n += 1
+            self.undo.commit()
+            d = self.tag_detail(idx)
+            d["rows"] = [self._tag_row(i, f) for i, f in enumerate(self.tag_files)]
+            d["message"] = f"Tags auf {len(pairs)} Spur(en) übertragen ({n} Feld(er)) – noch nicht gespeichert."
+            return d
+
     def _tag_row(self, i, f):
+        row = self._tag_row_base(i, f)
+        if i in self.tag_parent:
+            p = self.tag_parent[i]
+            row["parent"] = p
+            row["stem"] = next((s["name"] for s in self.tag_stems.get(p, []) if s["i"] == i), "")
+        if i in self.tag_stems:
+            row["stems"] = [{k: s[k] for k in ("name", "ext", "size", "i", "path")} for s in self.tag_stems[i]]
+        return row
+
+    def _tag_row_base(self, i, f):
         return {"i": i, "name": os.path.basename(f.path), "rel": core.rel_name(f, self.tag_root),
                 "modified": f.is_modified(), "cover": f.get("APIC:3") is not None, "version": f.version,
                 **{key: tagger.text_of(f, key) for key, _l, _p in tagger.FIELDS},
@@ -884,7 +982,8 @@ class Session:
 
     def tag_rows(self) -> dict:
         with self.lock:
-            return {"root": self.tag_root, "rows": [self._tag_row(i, f) for i, f in enumerate(self.tag_files)]}
+            return {"root": self.tag_root, "rows": [self._tag_row(i, f) for i, f in enumerate(self.tag_files)],
+                    "stems_flat": bool(self.cfg.get("tagger_stems_flat"))}
 
     def _tsel(self, idx):
         return [self.tag_files[i] for i in idx if isinstance(i, int) and 0 <= i < len(self.tag_files)]
@@ -1114,6 +1213,12 @@ class Session:
                 f = self.tag_files[ref]
             elif kind == "side" and ref in ("L", "R"):
                 f = self._file(ref)
+            elif kind == "stem":
+                st = next((s for lst in self.tag_stems.values() for s in lst if s["path"] == ref), None)
+                if st is None:
+                    raise ValueError("Diese Spur ist nicht (mehr) geladen.")
+                return {"path": st["path"], "name": os.path.basename(st["path"]), "title": "", "artist": "",
+                        "duration": 0.0, "kind": kind, "ref": ref, "key": "", "bpm": "", "stem": st["name"]}
             else:
                 f = None
             if f is None:
@@ -1127,6 +1232,15 @@ class Session:
         """Cue-Punkte (Serato, Mixed In Key) und Wellenform aus dem Cache für den Player."""
         import cues
         import waveform
+        if kind == "stem":                       # FLAC/WAV-Spur: keine Tags, Wellenform über den Dateiinhalt
+            path = self.media_info(kind, ref)["path"]
+            out = {"cues": [], "wave": None, "wave_key": ""}
+            try:
+                out["wave_key"] = waveform.audio_key(path)
+                out["wave"] = waveform.load(out["wave_key"])
+            except (OSError, ValueError):
+                pass
+            return out
         with self.lock:
             f = self.tag_files[ref] if kind == "tag" and isinstance(ref, int) and 0 <= ref < len(self.tag_files) \
                 else self._file(ref) if kind == "side" and ref in ("L", "R") else None

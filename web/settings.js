@@ -17,6 +17,7 @@ async function settingsShow() {
       <div class="st-row"><span>Design</span>
         <div class="seg" id="stTheme"><button data-v="dark"${d.theme !== "light" ? ' class="on"' : ""}>Dunkel</button><button data-v="light"${d.theme === "light" ? ' class="on"' : ""}>Hell</button></div>
         <label for="stNotation">Tonart-Schreibweise</label>${stSel("stNotation", d.notations, d.key_notation)}
+        <span>Tagger</span>${stCheck("stStemsFlat", d.stems_flat, "Stems als eigene Titel anzeigen (statt aufklappbar unter dem Original)")}
       </div></section>
     <section class="card"><h3>Speichern und Sicherungen</h3>
       <div class="st-row">
@@ -208,6 +209,7 @@ function initSettings() {
       toast("Tonart-Schreibweise gespeichert.");
     } else if (t.id === "stSaveVer") { await call("set_save_version", +t.value); toast(+t.value ? `Beim Speichern immer ID3v2.${t.value}.` : "ID3-Version bleibt wie in der Datei."); }
     else if (t.id === "stBackup") { await call("set_backup", t.checked, null); if (!t.checked) toast("Achtung: Vor dem Speichern wird nicht mehr gesichert."); }
+    else if (t.id === "stStemsFlat") { await call("set_stems_flat", t.checked); if (TG.loaded) { TG.open = new Set(); await taggerRefresh(); } toast(t.checked ? "Stems erscheinen als eigene Titel." : "Stems erscheinen aufklappbar unter dem Original."); }
     else if (t.id === "stPlStart") plSetPref("start", t.value);
     else if (t.id === "stPlWave") plSetPref("wave", t.checked);
     else if (t.id === "stPlFollow") plSetPref("follow", t.checked);

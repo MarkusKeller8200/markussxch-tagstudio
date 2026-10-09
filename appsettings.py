@@ -19,7 +19,7 @@ GROUPS = [
     ("design", "Design und Tonart-Schreibweise", ("web_theme", "theme", "key_notation")),
     ("layout", "Layout (Splitter, Seitenleiste, Fenster)", ("web_ui", "geometry", "features_open")),
     ("view", "Ansicht und Filter", ("filter", "show_trivial", "empty_set", "show_covers", "mode", "recursive",
-                                    "tagger_recursive")),
+                                    "tagger_recursive", "tagger_stems_flat")),
     ("history", "Pfad-Verlauf, Muster und Tag-Fixer", ("hist_left", "hist_right", "hist_tagger", "tagger_patterns",
                                                         "fixer")),
     ("trivial", "Unwichtige Felder", ("trivial", "trivial_known")),
