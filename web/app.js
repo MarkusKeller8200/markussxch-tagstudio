@@ -126,7 +126,7 @@ async function runTask(startPromise, title) {
 
 
 // ====================================================================== Splitter & Layout
-const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5, tg_edit_w: 430, tg_more_k: 130 };
+const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5, tg_edit_w: 430, tg_more_k: 130, tg_col_name: 0 };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 let uiSaveTimers = {};
 function saveUi(key) {
@@ -140,6 +140,7 @@ function applyLayout() {
   root.setProperty("--pairs-w", LAYOUT.pairs_w + "px");
   root.setProperty("--tg-edit-w", LAYOUT.tg_edit_w + "px");
   root.setProperty("--tg-more-k", LAYOUT.tg_more_k + "px");
+  root.setProperty("--tg-name", LAYOUT.tg_col_name > 0 ? LAYOUT.tg_col_name + "px" : "minmax(130px,1.5fr)");   // #41
   side.classList.toggle("collapsed", !!LAYOUT.side_collapsed);
   const cb = $("#collapseBtn");
   const lbl = LAYOUT.side_collapsed ? "Seitenleiste ausklappen" : "Seitenleiste einklappen";

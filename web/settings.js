@@ -38,12 +38,22 @@ async function settingsShow() {
       <div class="st-chips" id="stTriv"></div>
       <div class="st-add"><input class="inp" id="stTrivIn" placeholder="Muster hinzufügen, z. B. TXXX:Serato*" spellcheck="false"><button class="ghost sm" id="stTrivAdd">Hinzufügen</button><button class="ghost sm" id="stTrivDef" title="Standardliste wiederherstellen">Standard</button></div>
     </section>
+    <section class="card" id="stCache"><h3>Cache</h3><div class="st-row" id="stCacheRows"><span class="muted sm">…</span></div></section>
     <section class="card"><h3>Plugins</h3>
       <p class="muted sm" style="margin:0">Plugins ein-/ausschalten, Pakete installieren und Optionen festlegen – auf der Seite „Plugins“.</p>
       <div><button class="ghost sm" id="stPlugins" style="width:auto">Zur Plugin-Seite</button></div>
     </section>`;
   stTrivRender();
+  stCacheRender();
   if (typeof originSettingsRender === "function") originSettingsRender($("#stOriginCard"));
+}
+
+async function stCacheRender(info) {
+  const c = info || await call("cache_info");
+  const mb = (b) => (b < 1048576 ? `${Math.round(b / 1024)} KB` : `${(b / 1048576).toFixed(1).replace(".", ",")} MB`);
+  const row = (k, label) => `<span>${label}</span><div class="st-path"><span>${fmtN(c[k].count)} Datei(en) · ${mb(c[k].bytes)}</span>
+    <button class="ghost sm" data-cclear="${k}" ${c[k].count ? "" : "disabled"}>Leeren</button><button class="ghost sm" data-copen="${esc(c[k].dir)}">Ordner</button></div>`;
+  $("#stCacheRows").innerHTML = row("wave", "Wellenformen") + row("covers", "Cover-Vorschauen");
 }
 
 function stTrivRender() {
@@ -139,6 +149,7 @@ async function originSettingsRender(card) {
   card.hidden = false;
   card.innerHTML = `<h3>Herkunft der Tags</h3>
     <p class="muted sm" style="margin:0">TagStudio zeigt bei „Weitere Felder“ und im Vergleich, welche Anwendung ein Feld geschrieben hat. Eigene Zuordnungen gehen vor der eingebauten Liste.</p>
+    ${stCheck("orStd", o.std_badge, "v2.3/v2.4-Kennzeichen auch bei Standardfeldern (Titel, Künstler, BPM …)")}
     <div class="or-list" id="orList"></div>
     <div><button class="ghost sm" id="orAdd" style="width:auto">+ Zuordnung</button> <button class="primary sm" id="orSave" style="width:auto" hidden>Zuordnungen speichern</button></div>
     <details class="or-all"><summary>Bekannte Herkünfte (${ids.length})</summary>
@@ -177,6 +188,14 @@ function initSettings() {
     else if (t.id === "stBkOpen") call("open_folder", ST.data.backup_dir);
     else if (t.id === "stPlayers") { await plSetup(); settingsShow(); }
     else if (t.id === "stPlugins") setModule("plugins");
+    else if (t.dataset.cclear) {
+      const what = t.dataset.cclear === "wave" ? "Wellenformen" : "Cover-Vorschauen";
+      if (await dialog({ title: `${what} leeren?`, text: "Sie werden bei Bedarf neu berechnet.", buttons: [{ label: "Abbrechen", value: null }, { label: "Leeren", value: true, primary: true }] })) {
+        const r = await call("cache_clear", t.dataset.cclear); stCacheRender(r); toast(`${r.removed} Datei(en) entfernt.`);
+        if (t.dataset.cclear === "wave" && PLAYER.info) PLAYER.info.wave = null;
+      }
+    }
+    else if (t.dataset.copen) call("open_folder", t.dataset.copen);
     else if (t.id === "stTrivAdd") { const v = $("#stTrivIn").value.trim(); if (v) { await stTrivSet([...ST.data.trivial, v]); $("#stTrivIn").value = ""; } }
     else if (t.id === "stTrivDef") { if (await dialog({ title: "Standardliste wiederherstellen?", text: "Eigene Muster gehen verloren.", buttons: [{ label: "Abbrechen", value: null }, { label: "Wiederherstellen", value: true, primary: true }] })) stTrivSet(ST.data.trivial_default); }
     else if (t.dataset.k !== undefined && t.closest("#stTriv")) { const l = [...ST.data.trivial]; l.splice(+t.dataset.k, 1); stTrivSet(l); }
@@ -210,6 +229,11 @@ function initSettings() {
     } else if (t.id === "stSaveVer") { await call("set_save_version", +t.value); toast(+t.value ? `Beim Speichern immer ID3v2.${t.value}.` : "ID3-Version bleibt wie in der Datei."); }
     else if (t.id === "stBackup") { await call("set_backup", t.checked, null); if (!t.checked) toast("Achtung: Vor dem Speichern wird nicht mehr gesichert."); }
     else if (t.id === "stStemsFlat") { await call("set_stems_flat", t.checked); if (TG.loaded) { TG.open = new Set(); await taggerRefresh(); } toast(t.checked ? "Stems erscheinen als eigene Titel." : "Stems erscheinen aufklappbar unter dem Original."); }
+    else if (t.id === "orStd") {
+      await call("set_origin_std_badge", t.checked);
+      if (S.pairs && S.pairs.length) refreshAll(await call("state"));
+      toast(t.checked ? "Auch Standardfelder zeigen ihre ID3-Version." : "Standardfelder ohne Kennzeichen.");
+    }
     else if (t.id === "stPlStart") plSetPref("start", t.value);
     else if (t.id === "stPlWave") plSetPref("wave", t.checked);
     else if (t.id === "stPlFollow") plSetPref("follow", t.checked);

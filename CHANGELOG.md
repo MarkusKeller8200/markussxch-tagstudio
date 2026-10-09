@@ -7,6 +7,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Vergleich: Felder nach Herkunft entfernen** – Knopf „Herkunft“: z. B. Serato-Daten nur rechts, im aktuellen,
+  in markierten oder allen Paaren; Vorschau und Rückgängig (#45).
+- Tagger: **Breite der Spalte „Datei“** per Griff im Spaltenkopf einstellbar (Doppelklick = automatisch), wird gemerkt (#41).
+- Einstellungen: **Cache verwalten** – Anzahl und Grösse der Wellenformen und Cover-Vorschauen, je „Leeren“ und
+  „Ordner“ (#42).
 - **Länge** des Titels gross neben dem Cover im Tagger, bei mehreren markierten Titeln die Gesamtlänge (#34).
 - **Tempo (BPM)** als sortierbare Spalte im Tagger; im Vergleich als Spalte in der Paarliste (abweichende Werte
   „124≠126“ hervorgehoben) und als Kennzeichen im Dateikopf (#35).
@@ -52,6 +57,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   `{files}`, `{file}`, `{folder}`, `{m3u}`; unter macOS auch .app-Programme.
 
 ### Geändert
+- Herkunft: Standardfelder (Titel, Künstler, BPM …) zeigen das v2.3/v2.4-Kennzeichen nicht mehr – nur noch Benutzer-
+  und Binärfelder ohne bekannte Anwendung. Einstellung „auch bei Standardfeldern“ unter Herkunft der Tags (#40).
+- Stems-Zuordnung beim Einlesen liest jeden Ordner nur noch einmal – deutlich schneller bei grossen Bibliotheken und
+  Netzlaufwerken (#43).
+- Vorschau-Player: Der lokale Audio-Server gibt nur noch die 300 zuletzt genutzten Dateien frei (#44).
+- Auswahlknöpfe (Radio) in Dialogen bleiben bei wenig Platz klein und umbrechen sauber.
 - Milestones neu geordnet: 3.2.0 Wiedergabe & Herkunft, 3.3.0 DJ-Set, 3.4.0 Online-Metadaten.
 
 ### Behoben

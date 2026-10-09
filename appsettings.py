@@ -25,7 +25,7 @@ GROUPS = [
     ("trivial", "Unwichtige Felder", ("trivial", "trivial_known")),
     ("saving", "Speichern und Sicherungen", ("backup_enabled", "backup_dir", "save_version")),
     ("player", "Player (Vorschau und externe)", ("player", "players")),
-    ("origin", "Herkunft der Tags (eigene Zuordnungen)", ("tag_origins",)),
+    ("origin", "Herkunft der Tags (eigene Zuordnungen)", ("tag_origins", "origin_std_badge")),
     ("plugins", "Plugins (an/aus, Optionen)", ("plugins_enabled", "plugin_options", "plugin_settings")),
 ]
 GROUP_IDS = [g[0] for g in GROUPS]

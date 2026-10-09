@@ -331,7 +331,9 @@ span.xml-treeonly{display:contents}
 .frm input,.frm select,.inp{height:40px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);padding:0 10px;min-width:0;width:100%}
 .frm input:focus,.inp:focus{outline:0;border-color:var(--acc)}
 .radios{display:flex;gap:16px}
-.radios label{display:flex;align-items:center;gap:6px;color:var(--fg)}
+.radios{flex-wrap:wrap}
+.radios label{display:flex;align-items:center;gap:6px;color:var(--fg);white-space:nowrap}
+.radios input[type=radio]{width:16px;height:16px;flex:none;accent-color:var(--acc)}
 .checklist{max-height:44vh;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:6px 10px;display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
 .checklist label{display:flex;align-items:center;gap:8px;min-height:30px;font-size:13px}
 .checklist input{accent-color:var(--acc);width:16px;height:16px}
@@ -357,7 +359,7 @@ span.xml-treeonly{display:contents}
 .tg-listhead{display:flex;align-items:center;gap:12px;padding-right:8px}
 .tg-listhead .search{flex:1;max-width:520px}
 .tg-table{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;background:var(--surf);overflow:hidden;outline:0}
-.tg-thead,.tg-row{display:grid;grid-template-columns:22px minmax(130px,1.5fr) minmax(80px,1fr) minmax(80px,1fr) minmax(80px,1fr) 52px 48px minmax(64px,.8fr) 50px 64px;gap:0 10px;align-items:center;padding:0 12px}
+.tg-thead,.tg-row{display:grid;grid-template-columns:22px var(--tg-name,minmax(130px,1.5fr)) minmax(80px,1fr) minmax(80px,1fr) minmax(80px,1fr) 52px 48px minmax(64px,.8fr) 50px 64px;gap:0 10px;align-items:center;padding:0 12px}
 .tg-thead{height:38px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
 .tg-thead button{border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;padding:0;display:flex;align-items:center;gap:4px;min-width:0}
 .tg-thead button:hover{color:var(--fg)}
@@ -739,3 +741,5 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .tg-len .i{width:17px;height:17px;color:var(--dim)}
 .tg-len .muted{font-size:12.5px;font-weight:400}
 .src-b.id3{color:var(--faint);background:transparent;border-color:var(--line)}
+.tg-thead .th-name{position:relative;display:flex;align-items:center;min-width:0;height:100%}
+.tg-thead .th-name .col-grip{top:6px;bottom:6px;right:-9px}

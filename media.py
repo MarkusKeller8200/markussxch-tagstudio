@@ -12,18 +12,20 @@ import os
 import re
 import secrets
 import threading
+from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 AUDIO_TYPES = {".mp3": "audio/mpeg", ".flac": "audio/flac", ".wav": "audio/wav", ".m4a": "audio/mp4",
                ".aac": "audio/aac", ".ogg": "audio/ogg", ".opus": "audio/ogg", ".aif": "audio/aiff", ".aiff": "audio/aiff"}
 CHUNK = 256 * 1024
+MAX_FILES = 300          # nur die zuletzt genutzten Dateien bleiben freigegeben (#44)
 _RANGE = re.compile(r"^bytes=(\d*)-(\d*)$")
 
 
 class MediaServer:
     def __init__(self):
         self.token = secrets.token_urlsafe(18)
-        self.files: dict[str, str] = {}
+        self.files: OrderedDict[str, str] = OrderedDict()
         self.lock = threading.Lock()
         self.srv = None
 
@@ -39,6 +41,9 @@ class MediaServer:
         fid = hashlib.sha1(path.encode("utf-8", "surrogatepass")).hexdigest()[:20]
         with self.lock:
             self.files[fid] = path
+            self.files.move_to_end(fid)
+            while len(self.files) > MAX_FILES:
+                self.files.popitem(last=False)
         self.start()
         return f"http://127.0.0.1:{self.srv.server_address[1]}/m/{self.token}/{fid}{ext}"
 

@@ -30,7 +30,7 @@ from version import VERSION  # einzige Versionsquelle
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
            "col_name": (int, float), "col_ratio": (int, float), "tg_edit_w": (int, float),
-           "tg_more_k": (int, float)}
+           "tg_more_k": (int, float), "tg_col_name": (int, float)}
 
 
 class Session:
@@ -126,8 +126,18 @@ class Session:
         """Herkunft eines Felds; ohne bekannte Anwendung die ID3-Version der Datei („v2.3“/„v2.4“, #38)."""
         sid = self.origins.of(key)
         if sid is None and f is not None:
+            fid = key.split(":")[0].split("#")[0]
+            standard = ":" not in key.split("#")[0] and (fid[:1] in ("T", "W") and fid not in ("TXXX", "WXXX")) \
+                or fid == "APIC"
+            if standard and not self.cfg.get("origin_std_badge"):     # #40: Titel, Künstler … ohne Kennzeichen
+                return None
             sid = "id3v4" if f.version == 4 else "id3v3"
         return sid
+
+    def set_origin_std_badge(self, on) -> bool:
+        self.cfg["origin_std_badge"] = bool(on)
+        core.save_config({"origin_std_badge": bool(on)})
+        return bool(on)
 
     def origin_catalog(self) -> dict:
         o = self.origins
@@ -139,7 +149,8 @@ class Session:
         return cat
 
     def tag_origins(self) -> dict:
-        return {"custom": list(self.cfg.get("tag_origins") or []), "catalog": self.origin_catalog()}
+        return {"custom": list(self.cfg.get("tag_origins") or []), "catalog": self.origin_catalog(),
+                "std_badge": bool(self.cfg.get("origin_std_badge"))}
 
     def set_tag_origins(self, rules) -> dict:
         import origins
@@ -167,6 +178,48 @@ class Session:
             d = self.tag_detail(idx)
             d["message"] = f"{len(plan)} Feld(er) von {name} entfernt – noch nicht gespeichert."
             return d
+
+    # ================================================================== Cache (#42)
+    @staticmethod
+    def _cache_dirs():
+        import re
+        import thumbs
+        import waveform
+        return {"covers": (thumbs.CACHE_DIR, re.compile(r"^[0-9a-f]{32}_\d+\.png$"), False),
+                "wave": (waveform.DIR, re.compile(r"^[0-9a-f]{32}\.json$"), True)}
+
+    def cache_info(self) -> dict:
+        out = {}
+        for name, (d, rx, deep) in self._cache_dirs().items():
+            n = size = 0
+            for root, _dirs, files in (os.walk(d) if deep else [(d, [], os.listdir(d) if os.path.isdir(d) else [])]):
+                for fn in files:
+                    if rx.match(fn):
+                        try:
+                            size += os.path.getsize(os.path.join(root, fn))
+                            n += 1
+                        except OSError:
+                            pass
+            out[name] = {"dir": d, "count": n, "bytes": size}
+        return out
+
+    def cache_clear(self, name) -> dict:
+        """Nur Dateien, die zum jeweiligen Cache gehören (Namensmuster), werden gelöscht."""
+        if name not in self._cache_dirs():
+            raise ValueError("Unbekannter Cache")
+        d, rx, deep = self._cache_dirs()[name]
+        gone = 0
+        for root, _dirs, files in (os.walk(d) if deep else [(d, [], os.listdir(d) if os.path.isdir(d) else [])]):
+            for fn in files:
+                if rx.match(fn):
+                    try:
+                        os.remove(os.path.join(root, fn))
+                        gone += 1
+                    except OSError:
+                        pass
+        info = self.cache_info()
+        info["removed"] = gone
+        return info
 
     # ================================================================== Einstellungsseite (#21)
     PLAYER_PREFS = {"wave": (bool, True), "follow": (bool, True), "start": (str, "0"), "vol": ((int, float), 0.8)}
@@ -664,6 +717,39 @@ class Session:
             st["pairs_changed"] = True
             return st
 
+    def compare_origin_remove(self, source, side="both", scope="cur", idx=None, apply=False):
+        """Felder einer Herkunft im Vergleich entfernen (#45): side L/R/both, scope cur/sel/all."""
+        if side not in ("L", "R", "both") or scope not in ("cur", "sel", "all"):
+            raise ValueError("Ungültige Seite oder Auswahl")
+        with self.lock:
+            if scope == "cur":
+                pidx = [self.cur] if self.cur is not None else []
+            elif scope == "sel":
+                pidx = [i for i in (idx or []) if isinstance(i, int) and 0 <= i < len(self.pairs)]
+            else:
+                pidx = list(range(len(self.pairs)))
+            files = []
+            for i in pidx:
+                l, r = self.pairs[i]
+                for s_, f in (("L", l), ("R", r)):
+                    if f is not None and side in (s_, "both") and all(f is not g for g in files):
+                        files.append(f)
+            plan = [(f, k) for f in files for k in sorted(f.items, key=sort_key)
+                    if not k.startswith("APIC") and self.origins.of(k) == source]
+            if not apply:
+                keys = sorted({k for _f, k in plan}, key=sort_key)
+                return {"count": len(plan), "files": len({id(f) for f, _k in plan}), "pairs": len(pidx),
+                        "keys": [[k, key_label(k), sum(1 for _f, x in plan if x == k)] for k in keys]}
+            if not plan:
+                return self.state("Keine Felder dieser Herkunft.", "warn")
+            name = self.origins.catalog().get(source, {}).get("name", source)
+            self.undo.checkpoint(f"Felder von {name} entfernt", list({id(f): f for f, _k in plan}.values()))
+            for f, k in plan:
+                f.set(k, None)
+            st = self._done(f"{len(plan)} Feld(er) von {name} entfernt – noch nicht gespeichert.")
+            st["pairs_changed"] = True
+            return st
+
     # ================================================================== Bilder (Vergleich)
     @staticmethod
     def _read_image(path):
@@ -914,13 +1000,14 @@ class Session:
         if self.cfg.get("tagger_stems_flat"):
             return []
         roots = self._stem_roots()
+        lister = stemsview.make_lister()
         where = {os.path.normcase(os.path.abspath(f.path)): i for i, f in enumerate(self.tag_files)}
         changed = []
         for i in range(len(self.tag_files)):
             f = self.tag_files[i]
             if stemsview.is_stem(f.path):
                 continue
-            found = stemsview.find(f.path, roots)
+            found = stemsview.find(f.path, roots, lister)
             if not found:
                 continue
             for st in found:

@@ -53,6 +53,19 @@ class TestStemsView(Lib):
         self.assertTrue(stemsview.is_stem(st[1]["path"]))
         self.assertFalse(stemsview.is_stem(os.path.join(self.lib, "01 Nordlicht – Stems", "fremd.mp3")))
         self.assertFalse(stemsview.is_stem(os.path.join(self.lib, "01 Nordlicht.mp3")))
+        lister = stemsview.make_lister()
+        self.assertEqual(len(stemsview.find(os.path.join(self.lib, "01 Nordlicht.mp3"), (), lister)), 5)
+        self.assertEqual(stemsview.find(os.path.join(self.lib, "02 Ohne.mp3"), (), lister), [])
+        calls = []
+        orig = os.listdir
+        os.listdir = lambda d: (calls.append(d), orig(d))[1]
+        try:
+            lister2 = stemsview.make_lister()
+            for n in ("02 Ohne.mp3", "x.mp3", "y.mp3"):
+                stemsview.find(os.path.join(self.lib, n), (), lister2)
+        finally:
+            os.listdir = orig
+        self.assertEqual(len(calls), 2)          # Bibliotheksordner einmal + „02 Ohne – Stems“
         fixed = os.path.join(self.dir, "Fest")
         touch(os.path.join(fixed, "02 Ohne – Stems", "02 Ohne (Vocals).wav"))
         self.assertEqual([x["ext"] for x in stemsview.find(os.path.join(self.lib, "02 Ohne.mp3"), [fixed])], ["WAV"])

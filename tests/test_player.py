@@ -31,6 +31,25 @@ class TestMedia(unittest.TestCase):
         with urllib.request.urlopen(req, timeout=10) as r:
             return r.status, dict(r.headers), r.read()
 
+    def test_registry_limit(self):
+        old = media.MAX_FILES
+        media.MAX_FILES = 3
+        try:
+            paths = []
+            for n in range(5):
+                p = os.path.join(self.dir, f"{n}.mp3")
+                with open(p, "wb") as fh:
+                    fh.write(b"x" * 10)
+                paths.append(p)
+            urls = [self.srv.register(p) for p in paths]
+            self.srv.register(paths[2])                      # zuletzt genutzt → bleibt
+            self.srv.register(os.path.join(self.dir, "Täst Song.mp3"))
+            live = [u for u in urls if self.srv.lookup("/" + u.split("/", 3)[3]) is not None]
+            self.assertEqual(len(self.srv.files), 3)
+            self.assertEqual(live, [urls[2], urls[4]])
+        finally:
+            media.MAX_FILES = old
+
     def test_full_and_range(self):
         url = self.srv.register(self.path)
         self.assertTrue(url.startswith("http://127.0.0.1:") and url.endswith(".mp3"))

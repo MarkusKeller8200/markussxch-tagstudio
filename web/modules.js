@@ -127,6 +127,37 @@ async function bulkCopy(direction) {
   await refreshAll(await call("bulk_apply", idx, direction, res.keys, res.del));
 }
 
+/** Felder einer Herkunft im Vergleich entfernen (#45) */
+async function compareOriginDialog() {
+  if (!S.pairs.length) return toast("Erst vergleichen.");
+  const cat = S.settings.origins || {};
+  const ids = Object.keys(cat).filter((k) => cat[k].kind !== "id3").sort((a, b) => cat[a].name.localeCompare(cat[b].name));
+  const sel = [...S.pairSel];
+  const radios = (name, opts, cur) => `<div class="radios">${opts.map(([v, l]) => `<label><input type="radio" name="${name}" value="${v}" ${v === cur ? "checked" : ""} ${opts.find((o) => o[0] === v)[2] ? "disabled" : ""}> ${esc(l)}</label>`).join("")}</div>`;
+  const read = (b) => ({ src: $("#coSrc", b).value, side: b.querySelector('input[name="co-side"]:checked').value, scope: b.querySelector('input[name="co-scope"]:checked').value });
+  const res = await modal({
+    title: "Felder nach Herkunft entfernen", wide: true,
+    html: `<div class="frm"><label for="coSrc">Herkunft</label><select id="coSrc" class="inp">${ids.map((k) => `<option value="${esc(k)}">${esc(cat[k].name)}</option>`).join("")}</select>
+      <label>Seite</label>${radios("co-side", [["R", "rechts"], ["L", "links"], ["both", "beide"]], "R")}
+      <label>Paare</label>${radios("co-scope", [["cur", "aktuelles Paar"], ["sel", `markierte (${sel.length})`, !sel.length], ["all", `alle (${fmtN(S.pairs.length)})`]], sel.length > 1 ? "sel" : "cur")}</div>
+      <div id="coPrev" style="margin-top:10px"></div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Entfernen", value: true, primary: true }],
+    onMount: (b) => {
+      const upd = async () => {
+        const o = read(b), p = await call("compare_origin_remove", o.src, o.side, o.scope, sel, false);
+        b.dataset.count = p.count;
+        $("#coPrev", b).innerHTML = p.count
+          ? `<div class="fx-table pl-prev"><table><thead><tr><th>Feld</th><th>Schlüssel</th><th style="text-align:right">Dateien</th></tr></thead><tbody>${p.keys.map(([k, l, n]) => `<tr><td>${esc(l)}</td><td><code>${esc(k)}</code></td><td style="text-align:right">${n}</td></tr>`).join("")}</tbody></table></div><div class="muted sm" style="margin-top:6px">${p.count} Feld(er) in ${p.files} Datei(en) – Rückgängig möglich, gespeichert wird erst mit „Speichern“.</div>`
+          : '<div class="muted">Keine Felder dieser Herkunft in der Auswahl.</div>';
+      };
+      b.addEventListener("change", upd); upd();
+    },
+    collect: (b) => (+b.dataset.count ? read(b) : (toast("Nichts zu entfernen."), false)),
+  });
+  if (!res) return;
+  await refreshAll(await call("compare_origin_remove", res.src, res.side, res.scope, sel, true));
+}
+
 function renderBulkBar() {
   const n = S.pairSel ? S.pairSel.size : 0;
   $("#bulkBar").hidden = n < 2;
@@ -354,6 +385,7 @@ async function backupDelete() {
 // ====================================================================== Ereignisse
 (function bindModules() {
   $("#addFieldBtn").addEventListener("click", () => addFieldCompare());
+  $("#originBtn").addEventListener("click", () => compareOriginDialog());
   $$("[data-bulk]").forEach((b) => b.addEventListener("click", () => bulkCopy(b.dataset.bulk)));
   $("#bulkClear").addEventListener("click", () => { S.pairSel.clear(); renderBulkBar(); drawPairWindow(); });
   const coverHandler = (e) => {

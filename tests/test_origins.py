@@ -87,7 +87,22 @@ class TestSessionOrigins(unittest.TestCase):
             s2.select(0)
             rows = {r["key"]: r["src"] for r in s2.view()["rows"]}
             self.assertEqual((rows["PRIV:TRAKTOR4"], rows["TXXX:MusicBrainz Album Id"], rows["TIT2"]),
-                             ("traktor", "u:Meine App", "id3v4"))     # ohne Herkunft: ID3-Version (#38)
+                             ("traktor", "u:Meine App", None))     # Standardfeld ohne Kennzeichen (#40)
+            s2.set_origin_std_badge(True)
+            rows = {r["key"]: r["src"] for r in s2.view()["rows"]}
+            self.assertEqual(rows["TIT2"], "id3v4")                     # auf Wunsch mit ID3-Version (#38)
+            # #45: im Vergleich nur rechts entfernen, mit Rückgängig
+            s2.select(0)
+            pv = s2.compare_origin_remove("serato", "R", "all")
+            self.assertEqual((pv["count"], pv["files"], pv["pairs"]), (4, 2, 2))
+            self.assertEqual(s2.compare_origin_remove("serato", "both", "cur")["count"], 4)
+            s2.compare_origin_remove("serato", "R", "all", apply=True)
+            self.assertIsNone(s2.pairs[0][1].get("GEOB:Serato Markers2"))
+            self.assertIsNotNone(s2.pairs[0][0].get("GEOB:Serato Markers2"))
+            s2.do_undo()
+            self.assertIsNotNone(s2.pairs[0][1].get("GEOB:Serato Markers2"))
+            with self.assertRaises(ValueError):
+                s2.compare_origin_remove("serato", "X", "all")
         finally:
             core.CONFIG, core.CONFIG_OLD = old
             shutil.rmtree(d, ignore_errors=True)

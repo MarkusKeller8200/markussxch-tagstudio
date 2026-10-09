@@ -32,12 +32,30 @@ def folders_for(path: str, roots=()) -> list[str]:
     return res
 
 
-def find(path: str, roots=()) -> list[dict]:
-    """Spuren zu einer Originaldatei → [{"name", "path", "ext", "size"}] (Vocals, Drums, Bass, Other …)."""
+def make_lister():
+    """Ordnerinhalte nur einmal lesen (#43): bei vielen Titeln je Ordner – wichtig auf Netzlaufwerken."""
+    cache: dict[str, frozenset] = {}
+
+    def names(folder: str) -> frozenset:
+        k = os.path.normcase(os.path.abspath(folder))
+        if k not in cache:
+            try:
+                cache[k] = frozenset(n for n in os.listdir(folder) if n.endswith(SUFFIX))
+            except OSError:
+                cache[k] = frozenset()
+        return cache[k]
+    return names
+
+
+def find(path: str, roots=(), lister=None) -> list[dict]:
+    """Spuren zu einer Originaldatei → [{"name", "path", "ext", "size"}] (Vocals, Drums, Bass, Other …).
+    lister: aus make_lister() – vermeidet einen Zugriff pro Titel auf nicht vorhandene Stems-Ordner."""
     base = os.path.splitext(os.path.basename(path))[0]
     rx = re.compile(r"^" + re.escape(base) + r" \(([^()]+)\)(\.[A-Za-z0-9]+)$")
     out, seen = [], set()
     for d in folders_for(path, roots):
+        if lister is not None and os.path.basename(d) not in lister(os.path.dirname(d)):
+            continue
         try:
             names = sorted(os.listdir(d))
         except OSError:

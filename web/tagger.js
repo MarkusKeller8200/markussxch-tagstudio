@@ -106,8 +106,20 @@ function tgApplyOrder() {
 }
 
 function renderTgHead() {
-  $("#tgHead").innerHTML = TG_COLS.map(([k, l]) => k === "m" ? "<span></span>"
-    : `<button data-sort="${k}" class="${TG.sort.col === k ? "on" : ""}">${esc(l)}${TG.sort.col === k ? (TG.sort.dir > 0 ? " ▴" : " ▾") : ""}</button>`).join("");
+  $("#tgHead").innerHTML = TG_COLS.map(([k, l]) => {
+    if (k === "m") return "<span></span>";
+    const b = `<button data-sort="${k}" class="${TG.sort.col === k ? "on" : ""}">${esc(l)}${TG.sort.col === k ? (TG.sort.dir > 0 ? " ▴" : " ▾") : ""}</button>`;
+    return k === "name" ? `<span class="th-name">${b}<span class="col-grip" id="tgNameGrip" role="separator" aria-orientation="vertical" aria-label="Breite der Spalte Datei" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: automatisch"></span></span>` : b;
+  }).join("");
+  const grip = $("#tgNameGrip");     // #41: Breite der Datei-Spalte
+  const setW = (w) => { LAYOUT.tg_col_name = w ? clamp(Math.round(w), 110, 900) : 0; applyLayout(); };
+  draggable(grip, {
+    onStart: () => ({ w: grip.parentElement.getBoundingClientRect().width }),
+    onMove: (dx, st) => setW(st.w + dx),
+    onEnd: () => saveUi("tg_col_name"),
+    onDouble: () => { setW(0); saveUi("tg_col_name"); },
+    onKey: (d) => { setW((LAYOUT.tg_col_name || grip.parentElement.getBoundingClientRect().width) + d); saveUi("tg_col_name"); },
+  });
 }
 
 function drawTgList() {

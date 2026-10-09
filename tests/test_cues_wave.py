@@ -118,6 +118,32 @@ class TestWaveCache(unittest.TestCase):
         self.assertEqual(waveform.prune(3), 0)
 
 
+class TestCacheAdmin(unittest.TestCase):
+    def test_info_and_clear(self):
+        import thumbs
+        from session import Session
+        d = tempfile.mkdtemp(prefix="ts_cache_")
+        old = (thumbs.CACHE_DIR, waveform.DIR)
+        thumbs.CACHE_DIR, waveform.DIR = d, os.path.join(d, "wave")
+        try:
+            waveform.save("ab" * 16, [1] * 20, [1] * 20)
+            for n in ("0" * 32 + "_64.png", "fremd.png"):
+                with open(os.path.join(d, n), "wb") as fh:
+                    fh.write(b"x" * 100)
+            s = Session.__new__(Session)
+            info = Session.cache_info(s)
+            self.assertEqual((info["wave"]["count"], info["covers"]["count"], info["covers"]["bytes"]), (1, 1, 100))
+            r = Session.cache_clear(s, "covers")
+            self.assertEqual((r["removed"], r["covers"]["count"]), (1, 0))
+            self.assertTrue(os.path.exists(os.path.join(d, "fremd.png")))      # nur Cache-Dateien
+            self.assertEqual(Session.cache_clear(s, "wave")["wave"]["count"], 0)
+            with self.assertRaises(ValueError):
+                Session.cache_clear(s, "alles")
+        finally:
+            thumbs.CACHE_DIR, waveform.DIR = old
+            shutil.rmtree(d, ignore_errors=True)
+
+
 class TestSessionExtra(unittest.TestCase):
     def test_media_extra_and_wave_save(self):
         import core

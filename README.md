@@ -125,7 +125,8 @@ passenden Editor, ✕ entfernt das Feld.
 
 - **Herkunft:** vor dem Feldnamen ein kleines Kennzeichen, welche Anwendung das Feld geschrieben hat (z. B.
   **Serato**, **MIK**, **MB** für MusicBrainz, **Beatport**, **Spotify**, **Discogs**, **Traktor**, **iTunes**), Tooltip mit
-  Erklärung; Felder ohne bekannte Anwendung tragen **v2.3/v2.4**. Auch im Vergleich. Über „Alle Herkünfte“ filtern; „Alle entfernen …“ bzw. **„Felder nach Herkunft …“** entfernt alle
+  Erklärung; Benutzerfelder ohne bekannte Anwendung tragen **v2.3/v2.4**. Auch im Vergleich – dort entfernt der Knopf
+  **„Herkunft“** die Felder einer Anwendung links, rechts oder auf beiden Seiten. Über „Alle Herkünfte“ filtern; „Alle entfernen …“ bzw. **„Felder nach Herkunft …“** entfernt alle
   Felder einer Anwendung aus den markierten Dateien (Vorschau, Rückgängig).
 
 > Programme wie Serato oder Mixed In Key erwarten in ihren Feldern ihr eigenes Format. Änderungen an DJ-Daten
@@ -351,7 +352,8 @@ Programm gerade liegt. Meldungen aus einem Dialog heraus erscheinen über diesem
 
 Die Seite **Einstellungen** fasst alles zusammen: Design, Tonart-Schreibweise, Stems-Anzeige im Tagger, ID3-Version
 beim Speichern (beibehalten / immer v2.3 / immer v2.4), Sicherung, Player, Herkunft der Tags (eigene Zuordnungen),
-unwichtige Felder (Liste bearbeiten, Standard wiederherstellen, ganze Herkunft „als unwichtig“). **Exportieren**
+unwichtige Felder (Liste bearbeiten, Standard wiederherstellen, ganze Herkunft „als unwichtig“), Cache (Wellenformen,
+Cover-Vorschauen: Grösse anzeigen, leeren). **Exportieren**
 speichert alles als Datei (ohne Zugangsdaten), **Importieren** übernimmt gewählte Bereiche – Pfade eines anderen
 Systems sind nicht vorgewählt –, **Zurücksetzen** geht für einzelne Bereiche oder alles. Vor Import und
 Zurücksetzen wird die alte Datei nach `~/TagStudio/Einstellungen` gesichert.
