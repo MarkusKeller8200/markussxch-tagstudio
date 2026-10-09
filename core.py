@@ -382,7 +382,7 @@ def load_files(path, recursive, cancel=None, progress=None, registry=None, use_c
     progress = progress or (lambda m: None)
     paths = scan(path, recursive, cancel, lambda n: progress(("count", n)))
     progress(("total", len(paths)))
-    cache = listcache.ListCache(path) if use_cache and paths else None
+    cache = listcache.ListCache(path) if use_cache and paths and os.path.isdir(path) else None   # einzelne Datei: immer frisch
     cached = []
     files, errors = _load_list(paths, cache, registry, cancel, progress, cached=cached)
     if stats is not None:
@@ -418,7 +418,7 @@ def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=Non
     import listcache
     errors, loaded, cached, caches = [], ([], []), [], []
     for side, paths, root in ((0, lpaths, lp), (1, rpaths, rp)):
-        cache = listcache.ListCache(root) if use_cache and paths else None
+        cache = listcache.ListCache(root) if use_cache and paths and os.path.isdir(root) else None  # Datei: immer frisch
         if cache is not None:
             caches.append(cache)
         fs, errs = _load_list(paths, cache, registry, cancel, progress, offset=len(lpaths) if side else 0,

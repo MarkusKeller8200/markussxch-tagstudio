@@ -95,6 +95,21 @@ class TestListCache(unittest.TestCase):
         s.start_tag_load(self.lib, False)
         self.assertEqual(self.wait(s)["cached"], 0)
 
+    def test_single_file_always_fresh(self):
+        """#81: eine einzelne Datei (z. B. aus dem Journal) kommt nie aus dem Cache."""
+        from session import Session
+        s = Session()
+        s.start_tag_load(self.lib, False)
+        self.wait(s)
+        st = os.stat(self.p(1))
+        f = MP3File(self.p(1))
+        f.set_text("TKEY", "11B")
+        f.save()
+        os.utime(self.p(1), ns=(st.st_atime_ns, st.st_mtime_ns))  # Änderungszeit erhalten (wie manche Programme)
+        s.start_load(self.p(1), self.p(2), False, "filename")
+        self.assertEqual(self.wait(s)["cached"], 0)
+        self.assertEqual(s.pairs[0][0].text("TKEY"), "11B")
+
     def wait(self, s):
         while not s.task_status()["done"]:
             time.sleep(0.01)

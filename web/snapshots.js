@@ -254,6 +254,7 @@ async function snOpenCompare(p) {
   $("#pathR").value = SN.b === "live" ? lib.root.replace(/[\\/]+$/, "") + (lib.root.includes("\\") ? "\\" : "/") + p.split("/").join(lib.root.includes("\\") ? "\\" : "/") : `snapshot:${SN.lid}/${SN.b}${q(p)}`;
   setModule("compare");
   await compare(false);
+  if (S.opts.filter !== "diff") applyState(await call("set_option", "filter", "diff"));   // #81: nur die Änderungen
 }
 
 async function snAddLibrary() {
