@@ -59,29 +59,41 @@ def hook_tqdm():
 
 
 def ensure_ffmpeg(data_dir):
-    """FFmpeg aus imageio-ffmpeg bereitstellen, falls keins im Suchpfad liegt."""
-    if shutil.which("ffmpeg"):
-        return
+    """Immer das vollständige FFmpeg aus imageio-ffmpeg verwenden und im Suchpfad nach vorne stellen.
+
+    Ein bereits vorhandenes „ffmpeg“ im PATH (z. B. von einem anderen Programm) ist oft eine abgespeckte Ausgabe
+    ohne MP3-Encoder – dann scheitert die MP3-Ausgabe mit „Encoder not found“. Darum hat unseres Vorrang."""
     try:
         import imageio_ffmpeg
         exe = imageio_ffmpeg.get_ffmpeg_exe()
         d = os.path.join(data_dir, "ffmpeg")
         os.makedirs(d, exist_ok=True)
         target = os.path.join(d, "ffmpeg.exe" if os.name == "nt" else "ffmpeg")
-        if not os.path.exists(target):
+        if not os.path.exists(target) or os.path.getsize(target) != os.path.getsize(exe):
             shutil.copy2(exe, target)
         os.environ["PATH"] = d + os.pathsep + os.environ.get("PATH", "")
+        os.environ["IMAGEIO_FFMPEG_EXE"] = target
+        return target
     except Exception as ex:  # noqa: BLE001
-        emit(event="warn", msg=f"FFmpeg nicht verfügbar: {ex}")
+        other = shutil.which("ffmpeg")
+        emit(event="warn", msg=f"FFmpeg aus imageio-ffmpeg nicht verfügbar ({ex})"
+             + (f" – verwende {other}; MP3-Ausgabe kann fehlschlagen, dann FLAC/WAV wählen." if other else ""))
+        return other
 
 
 def main(job_path):
     with open(job_path, encoding="utf-8") as fh:
         job = json.load(fh)
-    ensure_ffmpeg(job["data_dir"])
+    ff = ensure_ffmpeg(job["data_dir"])
     hook_tqdm()
     emit(event="status", msg="Lade audio-separator …")
     from audio_separator.separator import Separator
+    if ff:   # pydub (MP3-Ausgabe) sucht sonst selbst – zuerst nach „avconv“, dann nach „ffmpeg“ im PATH
+        try:
+            from pydub import AudioSegment
+            AudioSegment.converter = ff
+        except Exception:  # noqa: BLE001
+            pass
 
     kw = dict(output_dir=job["work"], output_format=job["format"], model_file_dir=job["model_dir"],
               output_single_stem=job.get("stem") or None, log_level=logging.WARNING)

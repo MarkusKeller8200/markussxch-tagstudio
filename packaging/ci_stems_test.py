@@ -92,6 +92,22 @@ def main():
     make_track(mp3)
     log(f"Testtitel erzeugt: {os.path.getsize(mp3)} Bytes · Variante {variant} · Modell {model} · {sys.platform}")
 
+    # Nachbau eines Benutzer-PCs mit einem fremden, abgespeckten „ffmpeg“ im PATH (ohne MP3-Encoder):
+    # Stems muss trotzdem das eigene, vollständige FFmpeg verwenden.
+    bad = os.path.join(home, "fremdes-ffmpeg")
+    os.makedirs(bad)
+    if os.name == "nt":
+        with open(os.path.join(bad, "ffmpeg.bat"), "w") as fh:
+            fh.write("@echo Encoder not found (fremdes ffmpeg) 1>&2\r\n@exit /b 3\r\n")
+    else:
+        fp = os.path.join(bad, "ffmpeg")
+        with open(fp, "w") as fh:
+            fh.write("#!/bin/sh\necho 'Encoder not found (fremdes ffmpeg)' >&2\nexit 3\n")
+        os.chmod(fp, 0o755)
+    os.environ["PATH"] = bad + os.pathsep + os.environ.get("PATH", "")
+    import shutil
+    log(f"Fremdes ffmpeg im PATH: {shutil.which('ffmpeg')}")
+
     from session import Session
     s = Session()
     info = {p["id"]: p for p in s.plugins_list(True)["plugins"]}

@@ -7,6 +7,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Behoben
+- **Stems:** MP3-Ausgabe scheiterte mit „Encoder not found“, wenn im PATH bereits ein abgespecktes „ffmpeg“ eines
+  anderen Programms lag (ohne MP3-Encoder). Stems verwendet jetzt immer das eigene, vollständige FFmpeg aus
+  imageio-ffmpeg. Der Stems-Test prüft das mit einem absichtlich defekten ffmpeg im PATH.
 - **Stems:** Der Fortschritt innerhalb eines Titels kam trotz 3.1.0 nicht an – die Fortschrittsmeldungen standen in
   derselben Zeile hinter dem Balken von tqdm und wurden übersehen. Jetzt werden sie überall in der Zeile erkannt.
   Gefunden mit dem neuen Stems-Test.
