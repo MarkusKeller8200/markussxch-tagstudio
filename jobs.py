@@ -186,22 +186,18 @@ class JobManager:
                 elif m[0] == "total":
                     job["total"] = m[1]
                 self.seq += 1
+        upd = {}
         try:
             res = self.runner(job, cancel, progress) or {}
-            with self.lock:
-                if res.get("cancelled") or cancel.is_set():
-                    job.update(status="cancelled", text="abgebrochen")
-                else:
-                    job.update(status="done", text="fertig", i=job["total"], frac=0.0)
-                job.update(message=str(res.get("message") or ""), outputs=list(res.get("outputs") or []),
-                           logfile=str(res.get("logfile") or ""), log=[str(x) for x in (res.get("log") or [])][-60:])
+            upd = {"status": "cancelled", "text": "abgebrochen"} if res.get("cancelled") or cancel.is_set() \
+                else {"status": "done", "text": "fertig", "i": job["total"], "frac": 0.0}
+            upd.update(message=str(res.get("message") or ""), outputs=list(res.get("outputs") or []),
+                       logfile=str(res.get("logfile") or ""), log=[str(x) for x in (res.get("log") or [])][-60:])
         except Exception as ex:  # noqa: BLE001 – ein Auftrag darf die Warteschlange nicht anhalten
-            with self.lock:
-                if cancel.is_set():
-                    job.update(status="cancelled", text="abgebrochen")
-                else:
-                    job.update(status="error", error=str(ex) or type(ex).__name__, text="Fehler")
+            upd = {"status": "cancelled", "text": "abgebrochen"} if cancel.is_set() \
+                else {"status": "error", "error": str(ex) or type(ex).__name__, "text": "Fehler"}
         finally:
-            with self.lock:
+            with self.lock:        # Status und vermerkte Warteschlange in einem Schritt (kein Zwischenstand)
+                job.update(upd or {"status": "error", "error": "abgebrochen", "text": "Fehler"})
                 job["finished"] = time.time()
                 self._changed()
