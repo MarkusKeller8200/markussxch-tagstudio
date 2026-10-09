@@ -148,6 +148,25 @@ class TestListCache(unittest.TestCase):
         self.assertIn("3 Titel", self.wait(s)["message"])
         self.assertEqual(len(listcache.ListCache(self.lib).entries), 3)
         self.assertEqual(len(s.wave_missing()), 3)
+        # als Hintergrund-Auftrag
+        import jobs
+        old = jobs.STATE_FILE
+        jobs.STATE_FILE = os.path.join(self.dir, "Auftraege.json")
+        try:
+            shutil.rmtree(listcache.DIR)
+            r = s.start_cache_build("lists", background=True)
+            self.assertTrue(r["ok"] and r["job"])
+            t0 = time.time()
+            while s.jobs_status()["active"]:
+                self.assertLess(time.time() - t0, 10)
+                time.sleep(0.02)
+            job = s.jobs_status()["jobs"][0]
+            self.assertEqual(job["status"], "done", job)
+            self.assertIn("3 Titel", job["message"])
+            self.assertEqual(len(listcache.ListCache(self.lib).entries), 3)
+        finally:
+            s.jobs.shutdown()
+            jobs.STATE_FILE = old
 
     def wait(self, s):
         while not s.task_status()["done"]:

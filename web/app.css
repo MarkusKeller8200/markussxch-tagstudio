@@ -8,7 +8,7 @@ html[data-theme="dark"]{
   --bg:#121419;--side:#0E1014;--surf:#191C23;--raise:#21252E;--line:#2B303B;--line2:#363C49;
   --fg:#E9EBF1;--dim:#9CA3B4;--faint:#6F7789;--acc:#8EA8FF;--acc-fg:#0E1430;--acc-soft:rgba(142,168,255,.14);
   --hl-bg:rgba(255,184,77,.22);--hl-fg:#FFD493;--row-diff:rgba(255,184,77,.06);--diff:#FFB84D;
-  --only:#C9A2FF;--row-only:rgba(201,162,255,.08);--triv:#8A93A6;--ok:#7FD1AE;--warn:#FF8A80;
+  --only:#C9A2FF;--row-only:rgba(201,162,255,.08);--triv:#8A93A6;--triv-acc:#5EAAFF;--tv-bg:rgba(94,170,255,.22);--tv-fg:#A9D1FF;--row-triv:rgba(94,170,255,.06);--ok:#7FD1AE;--warn:#FF8A80;
   --sel:rgba(142,168,255,.20);--shadow:0 18px 50px rgba(0,0,0,.45);
   color-scheme: dark;
 }
@@ -16,7 +16,7 @@ html[data-theme="light"]{
   --bg:#F4F5F8;--side:#ECEEF3;--surf:#FFFFFF;--raise:#ECEFF4;--line:#E2E5EC;--line2:#D3D8E2;
   --fg:#171A21;--dim:#555D6F;--faint:#737B8C;--acc:#2F56D9;--acc-fg:#FFFFFF;--acc-soft:rgba(47,86,217,.09);
   --hl-bg:rgba(230,138,0,.18);--hl-fg:#7A4200;--row-diff:rgba(230,138,0,.05);--diff:#B86A00;
-  --only:#7A3FD1;--row-only:rgba(122,63,209,.06);--triv:#6F7787;--ok:#1F7A55;--warn:#C62828;
+  --only:#7A3FD1;--row-only:rgba(122,63,209,.06);--triv:#6F7787;--triv-acc:#1E6EDC;--tv-bg:rgba(30,110,220,.15);--tv-fg:#0B4FA8;--row-triv:rgba(30,110,220,.05);--ok:#1F7A55;--warn:#C62828;
   --sel:rgba(47,86,217,.12);--shadow:0 18px 50px rgba(20,30,60,.18);
   color-scheme: light;
 }
@@ -125,7 +125,7 @@ select{height:40px;padding:0 10px;border:1px solid var(--line);border-radius:var
 .pair .n{font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pair .s{font-size:12px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pair .m{width:7px;height:7px;border-radius:99px;background:var(--acc);flex-shrink:0}
-.d-diff{background:var(--diff)} .d-triv{background:var(--triv)} .d-same{background:var(--ok)} .d-single{background:var(--only)}
+.d-diff{background:var(--diff)} .d-triv{background:var(--triv-acc)} .d-same{background:var(--ok)} .d-single{background:var(--only)}
 .pairs-empty{padding:24px 12px;color:var(--faint);font-size:13px;text-align:center}
 
 /* Vergleich */
@@ -171,12 +171,13 @@ select{height:40px;padding:0 10px;border:1px solid var(--line);border-radius:var
 .tr:hover{background:var(--raise)}
 .tr.diff{background:var(--row-diff);border-left-color:var(--diff)}
 .tr.only{background:var(--row-only);border-left-color:var(--only)}
-.tr.triv{border-left-color:var(--triv)}
+.tr.triv{background:var(--row-triv);border-left-color:var(--triv-acc)}   /* unwichtige Unterschiede: eigene Farbe */
 .tr.sel{background:var(--sel)!important}
 .f{display:flex;flex-direction:column;min-width:0;padding-right:10px}
 .f-n{font-weight:550;display:flex;align-items:center;gap:6px;min-width:0}
 .f-n span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .f-id{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:4px;min-width:0;line-height:15px}
+.f-id .triv-b{font:600 9.5px/13px var(--font);padding:0 4px;border-radius:5px;color:var(--tv-fg);background:var(--tv-bg);flex:none}
 .f-id .fid{overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:24px}
 /* #74: Kennzeichen in der Feld-ID-Zeile – keine zusätzliche Zeilenhöhe */
 .f-id .src-b{font-size:9.5px;line-height:13px;padding:0 4px;margin:0;vertical-align:0;flex:none}
@@ -187,7 +188,7 @@ select{height:40px;padding:0 10px;border:1px solid var(--line);border-radius:var
 .v .empty{color:var(--faint)}
 .v.noedit{cursor:default}
 .hl{background:var(--hl-bg);color:var(--hl-fg);border-radius:4px;padding:1px 1px}
-.tv{color:var(--triv);text-decoration:underline dotted;text-underline-offset:3px}
+.tv{background:var(--tv-bg);color:var(--tv-fg);border-radius:4px;padding:1px 1px;text-decoration:underline dotted;text-underline-offset:3px}
 .v a{color:var(--acc);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .acts{display:flex;justify-content:center;gap:6px}
 .arrow{width:32px;height:32px;border:1px solid var(--line2);border-radius:8px;background:var(--raise);color:var(--acc);display:flex;align-items:center;justify-content:center;padding:0}

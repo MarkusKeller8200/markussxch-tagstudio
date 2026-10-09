@@ -741,68 +741,78 @@ class Session:
                     out.append(f)
         return out
 
-    def start_cache_build(self, name):
-        """Listen-Cache bzw. Cover-Vorschauen für alle geladenen Titel neu aufbauen (Fortschritt, abbrechbar)."""
+    def start_cache_build(self, name, background=False):
+        """Listen-Cache bzw. Cover-Vorschauen für alle geladenen Titel neu aufbauen – mit Fortschritt oder als
+        Hintergrund-Auftrag (#80)."""
         if name not in ("lists", "covers"):
             raise ValueError("Unbekannter Cache")
         files = self._loaded_files()
         if not files:
             return {"ok": False, "error": "Erst einen Ordner im Tagger oder Vergleich einlesen – erstellt wird für die geladenen Titel."}
+        paths = [f.path for f in files]
+        roots = sorted({r for r in (self.tag_root, self.left_root, self.right_root) if r and os.path.isdir(r)})
+        label = "Listen-Cache erstellen" if name == "lists" else "Cover-Vorschauen erstellen"
+        if background:
+            job = self.jobs.add("tagstudio:cache", name, f"{label} ({len(paths)} Titel)", paths, {"roots": roots})
+            return {"ok": True, "job": job["id"]}
+        return self._run("cache_build", label, lambda cancel, progress: self._cache_work(name, paths, roots, cancel, progress))
 
-        def lists(cancel, progress):
+    def _cache_work(self, name, paths, roots, cancel, progress) -> dict:
+        """Eigentliche Arbeit – unabhängig von geladenen Objekten, damit ein Auftrag auch nach einem Neustart läuft."""
+        from id3tags import MP3File
+        progress(("total", len(paths)))
+        if name == "lists":
             import listcache
-            from id3tags import MP3File
-            roots = [r for r in {self.tag_root, self.left_root, self.right_root} if r and os.path.isdir(r)]
             done = 0
-            progress(("total", len(files)))
             for root in roots:
                 base = os.path.normcase(os.path.abspath(root)) + os.sep
-                mine = [f for f in files if os.path.normcase(os.path.abspath(f.path)).startswith(base)]
+                mine = [p for p in paths if os.path.normcase(os.path.abspath(p)).startswith(base)]
                 if not mine:
                     continue
                 c = listcache.ListCache(root)
                 c.entries = {}                               # neu: alles von der Platte
-                for f in mine:
+                for p in mine:
                     if cancel.is_set():
                         raise Cancelled()
                     try:
-                        st = os.stat(f.path)
+                        st = os.stat(p)
                         g = MP3File.__new__(MP3File)
-                        g.path = f.path
+                        g.path = p
                         g.load(keep_raw=True)
-                        c.store(f.path, st, g)
+                        c.store(p, st, g)
                     except OSError:
                         pass
                     done += 1
-                    if done % 10 == 0:
-                        progress(("progress", done, len(files), f.path))
+                    if done % 10 == 0 or done == len(paths):
+                        progress(("progress", done, len(paths), p))
                 c.dirty = True
                 c.save(prune=False)
-            n, size = listcache.cache_size()
+            _n, size = listcache.cache_size()
             return {"message": f"Listen-Cache neu erstellt: {done} Titel in {len(roots)} Ordner(n) · {fmt_bytes(size)}."}
-
-        def covers(cancel, progress):
-            import thumbs
-            uniq = {}
-            for f in files:
-                c = self._front_cover(f)
-                if c is not None:
-                    uniq.setdefault(self._cover_hash(f), c.data)
-            progress(("total", len(uniq)))
-            ok = 0
-            for i, (h, data) in enumerate(uniq.items(), 1):
-                if cancel.is_set():
-                    raise Cancelled()
-                if thumbs.make_png(data, self.THUMB):
-                    ok += 1
-                progress(("progress", i, len(uniq), f"Cover {i}"))
-            if uniq and not ok and not thumbs.backend():
-                return {"message": "Keine Vorschaubilder erzeugt – auf diesem System fehlt ein Bildwerkzeug (Pillow, ImageMagick …).",
-                        "tone": "warn"}
-            bad = len(uniq) - ok
-            return {"message": f"Cover-Vorschauen erstellt: {ok} von {len(uniq)} verschiedenen Cover(n)"
-                               + (f" – {bad} liessen sich nicht umwandeln." if bad else "."), "tone": "warn" if bad else "ok"}
-        return self._run("cache_build", "Cache erstellen", lists if name == "lists" else covers)
+        import thumbs
+        uniq, ok = {}, 0
+        for i, p in enumerate(paths, 1):
+            if cancel.is_set():
+                raise Cancelled()
+            f = self.reg.get(os.path.normcase(os.path.abspath(p)))
+            try:
+                f = f or MP3File(p)
+            except OSError:
+                continue
+            c = self._front_cover(f)
+            if c is not None:
+                h = self._cover_hash(f)
+                if h not in uniq:
+                    uniq[h] = True
+                    ok += bool(thumbs.make_png(c.data, self.THUMB))
+            if i % 10 == 0 or i == len(paths):
+                progress(("progress", i, len(paths), p))
+        if uniq and not ok and not thumbs.backend():
+            return {"message": "Keine Vorschaubilder erzeugt – auf diesem System fehlt ein Bildwerkzeug (Pillow, ImageMagick …).",
+                    "tone": "warn"}
+        bad = len(uniq) - ok
+        return {"message": f"Cover-Vorschauen erstellt: {ok} von {len(uniq)} verschiedenen Cover(n)"
+                           + (f" – {bad} liessen sich nicht umwandeln." if bad else "."), "tone": "warn" if bad else "ok"}
 
     THUMB = 96
 
@@ -1107,7 +1117,7 @@ class Session:
             for k in keys:
                 st = states[k]
                 row = {"key": k, "label": key_label(k), "state": st, "src": self._src(k, l if l is not None else r),
-                       "ver": self._ver(k, l if l is not None else r)}
+                       "ver": self._ver(k, l if l is not None else r), "trivial": self.rules.is_trivial(k)}
                 fids = []
                 for side, f, other in (("L", l, r), ("R", r, l)):
                     it = f.get(k) if f else None
@@ -2388,6 +2398,9 @@ class Session:
     def _job_runner(self, job, cancel, progress):
         """Führt einen Auftrag aus – mit eigenen, frisch von der Platte gelesenen Dateien (die Oberfläche
         bearbeitet derweil ihre eigenen Objekte weiter; ungespeicherte Änderungen fliessen nicht ein)."""
+        if job["plugin"] == "tagstudio:cache":            # eingebauter Auftrag: Cache erstellen (#80)
+            res = self._cache_work(job["action"], job["paths"], job["opts"].get("roots", []), cancel, progress)
+            return {"message": res["message"], "outputs": [], "log": []}
         if job["plugin"] == "tagstudio:snapshot":         # eingebauter Auftrag: Snapshot erstellen
             return self._snap_job(job, cancel, progress)
         from id3tags import MP3File

@@ -63,36 +63,57 @@ async function stSnapRender() {
     <span>Belegt</span><div class="st-path"><span>${snMB(o.total)} · ${o.libs.length} überwachte(r) Ordner</span><button class="ghost sm" id="stSnapGo">Zur Seite „Snapshots“</button></div>`;
 }
 
-/** #80: Cache für alle geladenen Titel (neu) erstellen */
+/** #80: Cache für alle geladenen Titel (neu) erstellen – jetzt (mit Fortschritt) oder im Hintergrund */
 async function stCacheBuild(k) {
-  if (k === "wave") return waveBuildAll();
-  const r = await runTask(call("start_cache_build", k), k === "lists" ? "Listen-Cache erstellen" : "Cover-Vorschauen erstellen");
+  const what = { lists: "Listen-Cache", wave: "Wellenformen", covers: "Cover-Vorschauen" }[k];
+  const how = await dialog({ title: `${what} erstellen`,
+    text: "Erstellt wird für alle im Tagger und Vergleich geladenen Titel. Das kann bei grossen Bibliotheken dauern – im Hintergrund kannst du derweil weiterarbeiten.",
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Jetzt", value: "now" }, { label: "Im Hintergrund", value: "bg", primary: true }] });
+  if (!how) return;
+  if (k === "wave") return waveBuildAll(how === "bg");
+  if (how === "bg") {
+    const r = await call("start_cache_build", k, true);
+    if (!r.ok) return info("Nicht möglich", r.error);
+    toast(`${what}: läuft als Hintergrund-Auftrag (Fortschritt unten links).`);
+    if (typeof jobsPoll === "function") jobsPoll();
+    return;
+  }
+  const r = await runTask(call("start_cache_build", k, false), `${what} erstellen`);
   if (r && !r.cancelled) status(r.message, r.tone || "ok");
 }
 
-/** Wellenformen im Browser berechnen (Web Audio) – mit Fortschritt und Abbrechen */
-async function waveBuildAll() {
+/** Wellenformen im Browser berechnen (Web Audio). bg: ohne Fenster – Fortschritt in der Fußleiste, Klick bricht ab. */
+const WAVEBG = { run: false, stop: false };
+async function waveBuildAll(bg = false) {
+  if (WAVEBG.run) { toast("Wellenformen werden bereits erstellt."); return; }
   const list = await call("wave_missing");
   if (!list.length) { toast("Alle geladenen Titel haben schon eine Wellenform (oder es ist nichts geladen)."); return; }
-  const ov = $("#progress"), bar = $("#progBar"), cancelBtn = $("#progCancel");
-  let stop = false;
-  const onCancel = () => { stop = true; };
-  $("#progTitle").textContent = "Wellenformen erstellen";
-  bar.classList.remove("indet");
-  cancelBtn.hidden = false;
-  cancelBtn.onclick = onCancel;
-  ov.hidden = false;
+  const ov = $("#progress"), bar = $("#progBar"), cancelBtn = $("#progCancel"), chip = $("#waveChip");
+  WAVEBG.run = true; WAVEBG.stop = false;
+  if (bg) {
+    chip.hidden = false;
+    chip.onclick = () => { WAVEBG.stop = true; chip.title = "wird abgebrochen …"; };
+  } else {
+    $("#progTitle").textContent = "Wellenformen erstellen";
+    bar.classList.remove("indet");
+    cancelBtn.hidden = false;
+    cancelBtn.onclick = () => { WAVEBG.stop = true; };
+    ov.hidden = false;
+  }
   let done = 0;
   for (const x of list) {
-    if (stop) break;
-    $("#progText").textContent = `${done + 1} / ${list.length} · ${x.name}`;
-    bar.style.width = (done / list.length * 100) + "%";
+    if (WAVEBG.stop) break;
+    if (bg) { $("#wcText").textContent = `Wellenformen ${done + 1} / ${list.length}`; chip.title = `${x.name}\nKlick: abbrechen`; $(".jc-ring", chip).style.setProperty("--p", Math.round(done / list.length * 100)); }
+    else { $("#progText").textContent = `${done + 1} / ${list.length} · ${x.name}`; bar.style.width = (done / list.length * 100) + "%"; }
     await plWaveCompute({ wave_key: x.key, url: x.url });
     done++;
   }
-  ov.hidden = true;
-  cancelBtn.onclick = null;
-  status(stop ? `Wellenformen: ${done} von ${list.length} erstellt (abgebrochen).` : `Wellenformen erstellt: ${done} Titel.`, stop ? "warn" : "ok");
+  if (bg) chip.hidden = true; else { ov.hidden = true; cancelBtn.onclick = null; }
+  WAVEBG.run = false;
+  const msg = WAVEBG.stop ? `Wellenformen: ${done} von ${list.length} erstellt (abgebrochen).` : `Wellenformen erstellt: ${done} Titel.`;
+  status(msg, WAVEBG.stop ? "warn" : "ok");
+  if (bg) toast(msg);
+  if (S.module === "settings") stCacheRender();
 }
 
 async function stCacheRender(info) {

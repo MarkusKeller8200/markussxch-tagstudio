@@ -255,6 +255,7 @@ async function snOpenCompare(p) {
   setModule("compare");
   await compare(false);
   if (S.opts.filter !== "diff") applyState(await call("set_option", "filter", "diff"));   // #81: nur die Änderungen
+  if (!S.opts.show_trivial) applyState(await call("set_option", "show_trivial", true));  // … auch die unwichtigen
 }
 
 async function snAddLibrary() {

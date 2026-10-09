@@ -702,7 +702,7 @@ function renderRows() {
     const roL = !!(v.left && v.left.readonly), roR = !!(v.right && v.right.readonly);
     const ed = (c) => (c && c.editable ? "" : " noedit");
     return `<div class="tr ${r.state}${S.sel.has(r.key) ? " sel" : ""}" data-n="${n}" data-key="${esc(r.key)}">
-      <div class="f"><span class="f-n"><span title="${esc(r.label)}">${esc(r.label)}</span></span><span class="f-id"><span class="fid" title="${esc(r.key)}">${esc(r.fid)}</span>${srcBadges(r.ver, r.src)}</span></div>
+      <div class="f"><span class="f-n"><span title="${esc(r.label)}">${esc(r.label)}</span></span><span class="f-id"><span class="fid" title="${esc(r.key)}">${esc(r.fid)}</span>${srcBadges(r.ver, r.src)}${r.trivial && r.state !== "same" ? '<span class="triv-b" title="Gilt als unwichtig (Einstellungen › Unwichtige Felder)">unwichtig</span>' : ""}</span></div>
       <div class="v${ed(r.L)}" data-side="L">${valueHtml(r.L, r.state)}</div>
       <div class="acts">${canCopy ? `${roL ? "<span></span>" : `<button class="arrow" data-dir="rl" title="Rechten Wert nach links übernehmen" aria-label="${esc(r.label)} nach links übernehmen">${ICON.left}</button>`}${roR ? "<span></span>" : `<button class="arrow" data-dir="lr" title="Linken Wert nach rechts übernehmen" aria-label="${esc(r.label)} nach rechts übernehmen">${ICON.right}</button>`}` : ""}</div>
       <div class="v r${ed(r.R)}" data-side="R">${valueHtml(r.R, r.state)}</div>
