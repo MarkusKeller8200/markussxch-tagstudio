@@ -716,6 +716,8 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 /* Hintergrund-Aufträge */
 .jobs-chip{flex:none;display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 11px 0 8px;border:1px solid var(--line);border-radius:99px;background:var(--bg);color:var(--fg);font:500 12.5px var(--font);cursor:pointer;white-space:nowrap;max-width:340px;overflow:hidden;text-overflow:ellipsis}
 .jobs-chip:hover{border-color:var(--acc)}
+.jobs-chip.sn-watch{color:var(--warn)}
+.snw-dot{width:8px;height:8px;border-radius:99px;background:currentColor}
 .jobs-chip.done{color:var(--ok,#30A46C)}
 .jobs-chip.err{color:#E5484D}
 .jc-ring{width:16px;height:16px;border-radius:99px;flex:none;background:conic-gradient(var(--acc) calc(var(--p,0)*1%),var(--line) 0);-webkit-mask:radial-gradient(circle,transparent 4.5px,#000 5px);mask:radial-gradient(circle,transparent 4.5px,#000 5px)}

@@ -54,6 +54,10 @@ async function snRun() {
   if (!SN.lid || !SN.a) return;
   const res = await runTask(call("start_snap_journal", SN.lid, SN.a, SN.b), "Änderungsjournal berechnen");
   if (!res) return;
+  if (SN.b === "live") {                    // #58: gesehen → Hinweis in der Fußleiste zurücksetzen
+    call("snap_watch_ack", SN.lid).catch(() => {});
+    if (SNW.res) { SNW.res.libs = SNW.res.libs.filter((l) => l.id !== SN.lid); SNW.res.total = SNW.res.libs.reduce((n, l) => n + l.count, 0); snWatchChip(); }
+  }
   SN.j = res; SN.sel = new Map(); SN.done = new Set(); SN.open = new Set(); SN.filter = new Set(); SN.prog = "*"; SN.fkey = "";
   const st = SN.j.counts;
   if (st.changed) SN.filter.add("changed");
@@ -248,8 +252,44 @@ async function snCreate(label = null) {
 function jobFinishedSnapshot(j) { if (j.plugin === "tagstudio:snapshot" && S.module === "snapshots") snapShow(); else if (j.plugin === "tagstudio:snapshot") call("snap_overview").then((o) => snSideSize(o.total)); }
 
 // ---------------------------------------------------------------------- Start (#54)
+// ---------------------------------------------------------------------- Überwachung zur Laufzeit (#58)
+const SNW = { timer: 0, last: 0, busy: false, res: null };
+function snWatchStart() {
+  clearInterval(SNW.timer);
+  SNW.last = Date.now();
+  SNW.timer = setInterval(snWatchTick, 30000);
+  snWatchTick(true);                        // Ausgangslage aufnehmen
+}
+async function snWatchTick(first = false) {
+  const min = (SN.ov && SN.ov.settings && SN.ov.settings.snap_watch !== undefined) ? SN.ov.settings.snap_watch : (SNW.res ? SNW.res.interval : 5);
+  if (SNW.busy || (!first && (!min || Date.now() - SNW.last < min * 60000))) return;
+  SNW.busy = true; SNW.last = Date.now();
+  try { SNW.res = await call("snap_watch"); } catch (e) { SNW.res = null; } finally { SNW.busy = false; }
+  snWatchChip();
+}
+function snWatchChip() {
+  const c = $("#snWatchChip"), r = SNW.res;
+  if (!c) return;
+  c.hidden = !(r && r.total);
+  if (c.hidden) return;
+  $("#snwText").textContent = `${fmtN(r.total)} Titel extern geändert`;
+  c.title = r.libs.map((l) => `${l.name}: ${l.count} Titel\n` + l.files.slice(0, 8).map((f) => "  " + f).join("\n") + (l.count > 8 ? "\n  …" : "")).join("\n") + "\n\nKlick: Journal letzter Snapshot ↔ jetzt";
+}
+async function snWatchOpen() {
+  const r = SNW.res;
+  if (!r || !r.libs.length) return;
+  const l = r.libs[0];
+  await call("snap_watch_ack", l.id);
+  r.total -= l.count; r.libs.shift();
+  snWatchChip();
+  SN.lid = l.id; SN.a = null; SN.b = "live";
+  setModule("snapshots");
+  setTimeout(async () => { await snLoadList(); if (SN.a) snRun(); else toast("Noch kein Snapshot – erst einen erstellen."); }, 300);
+}
+
 async function initSnapshots() {
   let st;
+  snWatchStart();
   try { st = await call("snap_startup"); } catch (e) { return; }
   try { snSideSize((await call("snap_overview")).total); } catch (e) { /* egal */ }
   const libs = st.libs.filter((l) => !l.missing);
@@ -289,6 +329,7 @@ async function initSnapshots() {
 
 (function bindSnapshots() {
   $("#snAddLib").addEventListener("click", snAddLibrary);
+  $("#snWatchChip").addEventListener("click", snWatchOpen);
   $("#snCreate").addEventListener("click", () => snCreate());
   $("#snRun").addEventListener("click", snRun);
   $("#snRevert").addEventListener("click", () => snRevert("undo"));

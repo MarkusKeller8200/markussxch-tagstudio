@@ -258,6 +258,29 @@ class TestSessionSnapshots(Base):
         self.assertEqual(j["programs"]["mik"], {"name": "Mixed In Key", "rows": 1, "fields": 2})
         self.assertEqual(j["programs"][""]["name"], "unbekannt")
 
+    def test_watch(self):
+        """#58: Abfrage meldet fremde Änderungen, nicht die eigenen."""
+        s, lid = self.s, self.libd["id"]
+        self.assertEqual(s.snap_watch()["total"], 0)            # erste Abfrage = Ausgangslage
+        f = MP3File(self.path(1))
+        f.set_text("TKEY", "9A")
+        f.save()
+        touch_later(self.path(1))
+        os.remove(self.path(4))
+        w = s.snap_watch()
+        self.assertEqual((w["total"], sorted(w["libs"][0]["files"])), (2, ["Album/01 Titel.mp3", "Album/04 Titel.mp3"]))
+        # eigene Änderung über den Tagger: zählt nicht
+        s.start_tag_load(self.lib, True)
+        self.wait_task()
+        i = next(k for k, g in enumerate(s.tag_files) if g.path.endswith("02 Titel.mp3"))
+        s.tag_files[i].set_text("TIT2", "Neu")
+        s.start_save()
+        self.wait_task()
+        touch_later(self.path(2))
+        self.assertEqual(s.snap_watch()["total"], 2)
+        s.snap_watch_ack(lid)
+        self.assertEqual(s.snap_watch()["total"], 0)
+
     def test_move_detect_use(self):
         """#60 über die Session: verschieben, erkennen, verwenden, ignorieren."""
         s, lid = self.s, self.libd["id"]

@@ -198,7 +198,8 @@ class Session:
             return d
 
     # ================================================================== Snapshots (#52–#54, #61)
-    SNAP_DEFAULTS = {"snap_daily": True, "snap_ask": True, "snap_keep": 20, "snap_weeks": 12, "snap_thorough": False}
+    SNAP_DEFAULTS = {"snap_daily": True, "snap_ask": True, "snap_keep": 20, "snap_weeks": 12, "snap_thorough": False,
+                     "snap_watch": 5}
 
     def _snap_cfg(self, k):
         v = self.cfg.get(k, self.SNAP_DEFAULTS.get(k))
@@ -364,6 +365,51 @@ class Session:
         self.cfg[name] = value
         core.save_config({name: value})
         return self.snap_overview()["settings"]
+
+    # ------------------------------------------------------------------ Überwachung zur Laufzeit (#58)
+    def snap_watch(self) -> dict:
+        """Sparsame Abfrage: je überwachtem Ordner ein Listing + Grösse/Änderungszeit. Verglichen wird mit der
+        vorigen Abfrage; Dateien, die TagStudio selbst gespeichert hat (Register, Tag-Bytes wie gespeichert),
+        zählen nicht. Funde sammeln sich, bis sie mit snap_watch_ack quittiert werden."""
+        import snapshots
+        base = self.__dict__.setdefault("_watch_base", {})
+        ext = self.__dict__.setdefault("_watch_ext", {})
+        out = []
+        st = self.snap_store
+        libs = st.libraries() if os.path.isdir(st.root) else []
+        for lib in libs:
+            root = lib["root"]
+            if not os.path.isdir(root):
+                continue
+            cur = {}
+            for p in snapshots.list_mp3(root):
+                try:
+                    stt = os.stat(p)
+                except OSError:
+                    continue
+                cur[snapshots.rel(root, p)] = (stt.st_size, stt.st_mtime_ns, p)
+            prev = base.get(lib["id"])
+            found = ext.setdefault(lib["id"], set())
+            if prev is not None:
+                for r, (size, mt, p) in cur.items():
+                    old = prev.get(r)
+                    if old is not None and old[:2] == (size, mt):
+                        continue
+                    f = self.reg.get(os.path.normcase(os.path.abspath(p)))
+                    if old is not None and f is not None and not f.external_change():
+                        continue                      # von TagStudio gespeichert
+                    found.add(r)
+                found.update(r for r in prev if r not in cur)
+            base[lib["id"]] = cur
+            if found:
+                out.append({"id": lib["id"], "name": lib["name"], "count": len(found), "files": sorted(found)[:20]})
+        return {"libs": out, "total": sum(x["count"] for x in out), "interval": int(self._snap_cfg("snap_watch") or 0)}
+
+    def snap_watch_ack(self, lid=None) -> dict:
+        ext = self.__dict__.setdefault("_watch_ext", {})
+        for k in ([str(lid)] if lid else list(ext)):
+            ext.pop(k, None)
+        return {"ok": True}
 
     # ------------------------------------------------------------------ Speicherort (#60)
     def _snap_dir_set(self, root):

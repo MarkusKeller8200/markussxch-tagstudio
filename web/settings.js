@@ -55,6 +55,7 @@ async function stSnapRender() {
   $("#stSnapRows").innerHTML = `<span>Automatik</span>${stCheck("snDaily", s.snap_daily, "Täglich einen Snapshot je überwachtem Ordner (beim ersten Start des Tages)")}
     <span>Beim Start</span>${stCheck("snAsk", s.snap_ask, "Fragen, ob ein weiterer Snapshot erstellt bzw. das Journal angezeigt werden soll")}
     <label for="snKeep">Aufbewahrung</label><div class="st-path"><input class="inp" type="number" min="1" max="500" id="snKeep" value="${s.snap_keep}" style="width:80px"><span>automatische behalten, danach je einer pro Woche für</span><input class="inp" type="number" min="0" max="520" id="snWeeks" value="${s.snap_weeks}" style="width:80px"><span>Wochen</span></div>
+    <label for="snWatch">Überwachung</label><div class="st-path"><span>Während TagStudio läuft alle</span><input class="inp" type="number" min="0" max="240" id="snWatch" value="${s.snap_watch}" style="width:70px"><span>Minuten auf fremde Änderungen prüfen (0 = aus)</span></div>
     <span>Gründlich</span>${stCheck("snThorough", s.snap_thorough, "Alle Dateien lesen (auch wenn Grösse und Änderungszeit gleich sind) – langsamer")}
     <span>Speicherort</span><div class="st-path"><code title="${esc(o.dir)}">${esc(o.dir)}</code><button class="ghost sm" data-copen="${esc(o.dir)}">Öffnen</button><button class="ghost sm" id="snMove" title="Ganzen Speicher an einen anderen Ort verschieben (z. B. in den MP3-Ordner, um ihn weiterzugeben)">Ändern …</button>${o.default ? "" : '<button class="ghost sm" id="snMoveDefault" title="Zurück in den TagStudio-Ordner verschieben">Standard</button>'}</div>
     ${o.readonly ? '<span></span><div class="hint warn">Dieser Speicher stammt aus einer neueren TagStudio-Version und wird nur gelesen – bitte TagStudio aktualisieren.</div>' : ""}
@@ -253,6 +254,7 @@ function initSettings() {
     else if (t.id === "snAsk") await call("snap_set", "snap_ask", t.checked);
     else if (t.id === "snThorough") await call("snap_set", "snap_thorough", t.checked);
     else if (t.id === "snKeep") { await call("snap_set", "snap_keep", Math.max(1, +t.value || 20)); toast("Aufbewahrung gespeichert."); }
+    else if (t.id === "snWatch") { await call("snap_set", "snap_watch", Math.max(0, +t.value || 0)); if (typeof SN !== "undefined" && SN.ov) SN.ov.settings.snap_watch = Math.max(0, +t.value || 0); toast("Überwachung gespeichert."); }
     else if (t.id === "snWeeks") { await call("snap_set", "snap_weeks", Math.max(0, +t.value || 0)); toast("Aufbewahrung gespeichert."); }
     else if (t.id === "stPlStart") plSetPref("start", t.value);
     else if (t.id === "stPlWave") plSetPref("wave", t.checked);
