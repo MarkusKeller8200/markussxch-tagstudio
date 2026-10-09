@@ -74,10 +74,12 @@ def results(sarif_dir):
 
 
 def patch_milestone():
-    """Nummer des nächsten offenen Patch-Milestones („X.Y.Z“) oder None."""
+    """Nummer des nächsten offenen Versions-Milestones: zuerst ein reiner Patch-Milestone („3.1.2“), sonst der
+    niedrigste mit Versionsnummer am Anfang („3.2.0 – DJ-Set“); ohne solche Milestones None."""
     ms = gh("GET", f"/repos/{REPO}/milestones?state=open&per_page=100") or []
-    cand = [m for m in ms if re.fullmatch(r"\d+\.\d+\.\d+", m.get("title", ""))]
-    cand.sort(key=lambda m: tuple(int(x) for x in m["title"].split(".")))
+    ver = lambda m: re.match(r"(\d+)\.(\d+)\.(\d+)", m.get("title", ""))
+    cand = [m for m in ms if ver(m)]
+    cand.sort(key=lambda m: (not re.fullmatch(r"\d+\.\d+\.\d+", m["title"]), tuple(int(x) for x in ver(m).groups())))
     return cand[0]["number"] if cand else None
 
 
