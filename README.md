@@ -485,10 +485,11 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 ## Ausblick
 
+Zuletzt erschienen: **3.2.0 – Wiedergabe & Herkunft** (Vorschau-Player mit Wellenform, Cue-Marken und Loops,
+externe Player, Herkunft der Tags, Einstellungsseite, Stems im Hintergrund und als Spuren im Tagger).
+
 Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
-- **3.2.0 – Wiedergabe & Herkunft** (als Beta verfügbar): Vorschau-Player mit Wellenform und Cue-Marken, externe
-  Player, Herkunft der Tags, Einstellungsseite mit Export/Import, Stems im Hintergrund und als Spuren im Tagger.
 - **3.3.0 – DJ-Set:** Reihenfolge eines Sets nach Tonart (Camelot), BPM und Energie optimieren, Bewertung jedes
   Übergangs, Exporte als M3U8, Rekordbox-XML und CSV.
 - **3.4.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
