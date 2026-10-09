@@ -121,22 +121,114 @@ def _utf8_decl(text: str) -> bytes:
     return re.sub(r'encoding\s*=\s*["\'][^"\']*["\']', 'encoding="UTF-8"', text, count=1).encode("utf-8")
 
 
+# =========================================================================== XML in Binärfeldern (GEOB, PRIV …)
+# XML kann in einem Binärfeld mitten in anderen Bytes stehen (Kopf, Längenangaben, Nullbytes am Ende).
+# Gesucht wird ein XML-Abschnitt in UTF-8 oder UTF-16; beim Bearbeiten wird nur dieser Abschnitt ersetzt,
+# alle übrigen Bytes (Frame-Kopf, Präfix, Suffix) bleiben byte-genau erhalten.
+_START = {
+    "utf-8": re.compile(rb"<\?xml|<[A-Za-z_]"),
+    "utf-16-le": re.compile(rb"<\x00(?:\?\x00x\x00m\x00l\x00|[A-Za-z_]\x00)"),
+    "utf-16-be": re.compile(rb"\x00<(?:\x00\?\x00x\x00m\x00l|\x00[A-Za-z_])"),
+}
+_END = {"utf-8": b">", "utf-16-le": b">\x00", "utf-16-be": b"\x00>"}
+_BOMS = ((b"\xff\xfe", "utf-16-le"), (b"\xfe\xff", "utf-16-be"), (b"\xef\xbb\xbf", "utf-8"))
+
+
+def _blob_header_len(it) -> int:
+    """Länge des Frame-Kopfs vor den eigentlichen Daten (GEOB: Kodierung, MIME, Dateiname, Beschreibung)."""
+    p = it.payload
+    if it.fid == "GEOB":
+        from id3tags import _geob_parts
+        return len(p) - len(_geob_parts(p)[3])
+    if it.fid == "PRIV":
+        i = p.find(b"\x00")
+        return i + 1 if i >= 0 else 0
+    return 0
+
+
+def find_xml(data: bytes):
+    """XML-Abschnitt in Binärdaten → {"codec", "start", "end", "text", "valid"} oder None.
+    Bevorzugt wohlgeformtes XML; sonst den ersten Abschnitt, der nach XML aussieht."""
+    if not data or len(data) < 7:
+        return None
+    order = ["utf-8", "utf-16-le", "utf-16-be"]
+    for bom, codec in _BOMS:   # BOM am Anfang der Daten entscheidet die Kodierung
+        if data.startswith(bom):
+            order.remove(codec)
+            order.insert(0, codec)
+            break
+    fallback = None
+    for codec in order:
+        end = data.rfind(_END[codec])
+        if end < 0:
+            continue
+        end += len(_END[codec])
+        for n, m in enumerate(_START[codec].finditer(data, 0, end)):
+            if n >= 20:
+                break
+            start = m.start()
+            chunk = data[start:end]
+            if codec != "utf-8" and len(chunk) % 2:
+                continue
+            try:
+                text = chunk.decode(codec)
+            except UnicodeDecodeError:
+                continue
+            if not looks_like_xml(text):
+                continue
+            hit = {"codec": codec, "start": start, "end": end, "text": text}
+            if check(text)["ok"]:
+                return dict(hit, valid=True)
+            if fallback is None:
+                fallback = dict(hit, valid=False)
+    return fallback
+
+
+def blob_xml(it):
+    """XML in einem Binärfeld: dict wie find_xml plus "offset" (Beginn der Daten im Frame) oder None."""
+    if it is None or it.kind != "raw" or not it.payload or it.fid in ("POPM", "APIC"):
+        return None
+    hdr = _blob_header_len(it)
+    hit = find_xml(it.payload[hdr:])
+    if hit is None:
+        return None
+    hit["offset"] = hdr
+    hit["editable"] = hit["text"].encode(hit["codec"]) == it.payload[hdr + hit["start"]:hdr + hit["end"]]
+    return hit
+
+
+def replace_blob_xml(it, text: str):
+    """Neues Feld mit ersetztem XML-Abschnitt (übrige Bytes unverändert) oder None, wenn kein XML gefunden."""
+    hit = blob_xml(it)
+    if hit is None or not hit["editable"]:
+        return None
+    from id3tags import Item
+    p, a, b = it.payload, hit["offset"] + hit["start"], hit["offset"] + hit["end"]
+    new = p[:a] + text.encode(hit["codec"]) + p[b:]
+    return Item(it.fid, it.key, desc=it.desc, lang=it.lang, payload=new)
+
+
 def xml_of_item(it):
     """XML-Inhalt eines Feldes: (text, bearbeitbar) oder None.
-    Textfelder: bearbeitbar. Binärfelder (GEOB/PRIV) mit XML-Inhalt: nur ansehen."""
+    Textfelder: bearbeitbar. Binärfelder (GEOB/PRIV …) mit XML-Abschnitt: bearbeitbar, wobei nur der
+    XML-Teil ersetzt wird."""
     if it is None:
         return None
     if it.kind in ("text", "txxx", "comment", "lyrics"):
         return (it.text, True) if looks_like_xml(it.text) else None
-    if it.kind == "raw" and it.payload and it.fid in ("GEOB", "PRIV"):
-        from id3tags import _geob_parts
-        p = it.payload
-        data = _geob_parts(p)[3] if it.fid == "GEOB" else (p.split(b"\x00", 1)[1] if b"\x00" in p else b"")
-        for enc in ("utf-8", "utf-16"):
-            try:
-                txt = data.decode(enc).strip("\x00").strip()
-            except UnicodeDecodeError:
-                continue
-            if looks_like_xml(txt):
-                return txt, False
+    hit = blob_xml(it)
+    if hit is not None:
+        return hit["text"], hit["editable"]
     return None
+
+
+def blob_info(it) -> str:
+    """Kurzbeschreibung für den Editor, z. B. „GEOB · UTF-8 · 412 von 1024 Bytes“ ("" bei Textfeldern)."""
+    hit = blob_xml(it)
+    if hit is None:
+        return ""
+    data_len = len(it.payload) - hit["offset"]
+    codec = {"utf-8": "UTF-8", "utf-16-le": "UTF-16 LE", "utf-16-be": "UTF-16 BE"}[hit["codec"]]
+    part = hit["end"] - hit["start"]
+    extra = " · weitere Bytes davor/danach bleiben unverändert" if part < data_len else ""
+    return f"{it.fid} · {codec} · XML {part} von {data_len} Bytes{extra}"

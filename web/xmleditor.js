@@ -15,7 +15,7 @@ async function openXml(side, key, opts = {}) {
   Object.assign(XE, { side, key, tag, editable: r.editable, original: r.text, text: r.text, decl: xmlDeclOf(r.text),
     dirty: false, err: null, valid: true });
   $("#xmlTitle").textContent = `XML-Editor – ${r.label}`;
-  $("#xmlSub").textContent = `${r.file}${tag !== null ? "" : side === "L" ? " · links" : " · rechts"}${r.editable ? "" : " · nur ansehen (Binärfeld)"}`;
+  $("#xmlSub").textContent = `${r.file}${tag !== null ? "" : side === "L" ? " · links" : " · rechts"}${r.blob ? ` · Binärfeld (${r.blob}) – nur der XML-Teil wird ersetzt` : ""}${r.editable ? "" : " · nur ansehen"}`;
   $("#xmlOk").textContent = r.editable ? "Übernehmen" : "Schließen";
   $("#xmlCancel").hidden = !r.editable;
   $("#xmlFormat").disabled = $("#xmlCompact").disabled = !r.editable;

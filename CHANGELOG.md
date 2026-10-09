@@ -17,6 +17,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   als einzelne Werte bearbeitet: Wert hinzufügen (auch Enter), entfernen, umsortieren; Umschalten auf „Text“ und
   Wahl der Trennung (z. B. „House; Techno“ in echte ID3v2.4-Mehrfachwerte umwandeln). Doppelklick auf ein solches
   Feld öffnet direkt die Einzelwerte.
+- **XML in Binärfeldern bearbeiten:** GEOB-, PRIV- und andere Binärfelder, in denen ein XML-Abschnitt steckt
+  (UTF-8 oder UTF-16, auch mitten zwischen anderen Bytes), lassen sich jetzt im XML-Editor bearbeiten statt nur
+  ansehen – im Vergleich, im Tagger und in der klassischen Oberfläche. Ersetzt wird nur der XML-Abschnitt in seiner
+  ursprünglichen Kodierung; Frame-Kopf (MIME, Dateiname, Beschreibung, Besitzer) und alle Bytes davor/danach bleiben
+  byte-genau erhalten. Der Editor zeigt Feldtyp, Kodierung und Grösse des XML-Teils an.
 
 ### Behoben
 - **Stems:** Der Fortschrittsbalken blieb während der Trennung eines Titels auf 0 stehen (er sprang erst nach dem

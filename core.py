@@ -101,8 +101,18 @@ def normalize_value(val: str) -> str:
 
 def apply_value(f, key: str, val: str) -> bool:
     """Setzt einen bearbeiteten Wert; leerer Wert entfernt das Feld. Liefert True bei Änderung."""
-    val = normalize_value(val)
     it = f.get(key)
+    if it is not None and it.kind == "raw":     # Binärfeld mit XML: nur den XML-Abschnitt ersetzen
+        import xmltools
+        if not val.strip():
+            f.set(key, None)
+            return True
+        new = xmltools.replace_blob_xml(it, val)
+        if new is None or new == it:
+            return False
+        f.set(key, new)
+        return True
+    val = normalize_value(val)
     if val == (it.text if it else ""):
         return False
     if val.strip() == "":
@@ -120,6 +130,10 @@ def can_edit_text(f, key: str) -> bool:
     it = f.get(key)
     if it is None:
         return key.split(":")[0] in TEXT_LABELS or key.startswith(("TXXX", "COMM", "WXXX", "USLT", "T", "W"))
+    if it.kind == "raw":   # Binärfeld: nur wenn es einen bearbeitbaren XML-Abschnitt enthält
+        import xmltools
+        hit = xmltools.blob_xml(it)
+        return bool(hit and hit["editable"])
     return it.editable
 
 

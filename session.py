@@ -290,7 +290,7 @@ class Session:
             if x is None:
                 return {"ok": False, "error": "Dieses Feld enthält kein XML."}
             return {"ok": True, "text": x[0], "editable": x[1], "label": key_label(key),
-                    "file": os.path.basename(f.path), "side": side, "key": key}
+                    "file": os.path.basename(f.path), "side": side, "key": key, "blob": xmltools.blob_info(it)}
 
     @staticmethod
     def xml_tool(action, text):
@@ -898,11 +898,12 @@ class Session:
             if not (0 <= i < len(self.tag_files)):
                 return {"ok": False, "error": "Keine Datei."}
             f = self.tag_files[i]
-            x = xmltools.xml_of_item(f.get(key))
+            it = f.get(key)
+            x = xmltools.xml_of_item(it)
             if x is None:
                 return {"ok": False, "error": "Dieses Feld enthält kein XML."}
             return {"ok": True, "text": x[0], "editable": x[1], "label": key_label(key),
-                    "file": os.path.basename(f.path), "key": key}
+                    "file": os.path.basename(f.path), "key": key, "blob": xmltools.blob_info(it)}
 
     # ================================================================== Tagger: weitere Werkzeuge
     def _plan_rows(self, plan, limit=2000):
