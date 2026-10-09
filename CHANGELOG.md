@@ -6,6 +6,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+- **Tagger – Weitere Felder:** Spaltenteiler zwischen Feldname und Wert (ziehen, Doppelklick = Standard, Breite wird
+  gemerkt) und ein **Feld-Editor** (Stift-Knopf oder Doppelklick): grosses mehrzeiliges Textfeld, Zeichen-/Zeilenzähler,
+  Blättern zum vorigen/nächsten Feld (‹ › oder Alt+↑/↓, speichert dabei), „Feld entfernen“, Strg/⌘+Enter übernimmt.
+  Mehrzeilige Felder (Kommentare, Liedtexte) sind jetzt bearbeitbar und werden in der Liste mehrzeilig angezeigt.
+
 ### Behoben
 - **Stems:** Der Fortschrittsbalken blieb während der Trennung eines Titels auf 0 stehen (er sprang erst nach dem
   ganzen Titel weiter – bei einem einzelnen Titel also nie). Jetzt zeigt er den Fortschritt innerhalb des Titels in

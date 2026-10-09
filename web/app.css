@@ -386,7 +386,21 @@ span.xml-treeonly{display:contents}
 .tg-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tg-tools .ghost{justify-content:flex-start}
 .tg-more{display:flex;flex-direction:column;gap:2px}
-.tg-f{display:grid;grid-template-columns:minmax(0,130px) minmax(0,1fr) 28px;gap:8px;align-items:center;min-height:34px;padding:2px 0;border-bottom:1px solid var(--line);font-size:13px}
+.tg-f,.tg-more-head{display:grid;grid-template-columns:minmax(0,var(--tg-more-k,130px)) minmax(0,1fr) 56px;gap:8px;align-items:center;min-height:34px;padding:2px 0;border-bottom:1px solid var(--line);font-size:13px}
+.tg-more-head{min-height:26px;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--faint);font-weight:600}
+.tg-more-head .k{position:relative;overflow:visible}
+.tg-more-head .col-grip{top:-4px;bottom:-4px;right:-8px}
+.tg-f .b{display:flex;justify-content:flex-end;gap:2px}
+.tg-f .v.ml{white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.tg-f .v{overflow-wrap:anywhere}
+.tg-f .x[data-tedit]:hover{color:var(--acc)}
+.fe-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.fe-head code{font-family:var(--mono)}
+.fe-nav{display:flex;align-items:center;gap:6px}
+.fe-val{width:100%;min-height:90px;max-height:60vh;resize:vertical;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);padding:10px 12px;font:inherit;line-height:1.5}
+.fe-val:focus{outline:0;border-color:var(--acc)}
+.fe-foot{display:flex;justify-content:space-between;gap:12px;margin-top:6px;align-items:baseline}
+.fe-foot kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line2);border-radius:4px;padding:0 4px}
 .tg-f .k{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tg-f .v{padding:2px 0;cursor:text}
 .tg-f .x{width:26px;height:26px;border:0;background:transparent;color:var(--faint);border-radius:6px;padding:0;display:flex;align-items:center;justify-content:center}

@@ -153,10 +153,18 @@ function renderTgEditor() {
     if (k === "TKEY") return `<label for="tgf-${k}">${esc(label)}</label><div class="key-inp">${inp}<button class="key-btn${KW.open ? " on" : ""}" id="tgKeyBtn" title="Camelot-Rad öffnen" aria-label="Camelot-Rad öffnen">${v.camelot ? keyBadge(v.camelot) : '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v4.5M12 16.5V21M3 12h4.5M16.5 12H21"/></svg>'}</button></div>`;
     return `<label for="tgf-${k}">${esc(label)}</label>${inp}`;
   }).join("");
-  const more = one && d.fields.length ? `<h4 style="margin:4px 0 0">Weitere Felder</h4><div class="tg-more">${d.fields.map((f) => `
-      <div class="tg-f" data-key="${esc(f.key)}"><span class="k" title="${esc(f.key)}">${f.mod ? '<span class="m" style="display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:6px"></span>' : ""}${esc(f.label)}</span>
-      <span class="v${f.editable ? "" : " noedit"}">${f.xml ? `<button class="xml-badge${f.xml === "view" ? " view" : ""}" data-txml="1">XML</button>` : ""}${esc(f.text.length > 160 ? f.text.slice(0, 160) + " …" : f.text)}</span>
-      <button class="x" data-tdel="1" title="Feld entfernen" aria-label="${esc(f.label)} entfernen"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>`).join("")}</div>` : "";
+  const PEN = '<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  const DEL = '<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+  const more = one && d.fields.length ? `<h4 style="margin:4px 0 0">Weitere Felder <span class="muted sm" style="font-weight:400">${d.fields.length}</span></h4>
+    <div class="tg-more">
+      <div class="tg-more-head"><span class="k">Feld<span class="col-grip" id="tgMoreGrip" role="separator" aria-orientation="vertical" aria-label="Breite der Feldnamen" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: Standardbreite"></span></span><span>Wert</span><span></span></div>
+      ${d.fields.map((f) => {
+        const full = f.edit || f.text, ml = f.multiline;
+        const shown = ml ? full : (f.text.length > 160 ? f.text.slice(0, 160) + " …" : f.text);
+        return `<div class="tg-f" data-key="${esc(f.key)}"><span class="k" title="${esc(f.label + "\n" + f.key)}">${f.mod ? '<span class="m" style="display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:6px"></span>' : ""}${esc(f.label)}</span>
+      <span class="v${f.editable ? "" : " noedit"}${ml ? " ml" : ""}" title="${f.editable ? "Doppelklick: bearbeiten" : ""}">${f.xml ? `<button class="xml-badge${f.xml === "view" ? " view" : ""}" data-txml="1">XML</button>` : ""}${esc(shown)}</span>
+      <span class="b">${f.editable || f.xml ? `<button class="x" data-tedit="1" title="Im Editor bearbeiten" aria-label="${esc(f.label)} bearbeiten">${PEN}</button>` : ""}<button class="x del" data-tdel="1" title="Feld entfernen" aria-label="${esc(f.label)} entfernen">${DEL}</button></span></div>`;
+      }).join("")}</div>` : "";
   const act = document.activeElement && box.contains(document.activeElement) ? document.activeElement.id : null;
   box.innerHTML = `${head}
     <div class="tg-cover"><button class="cover" id="tgCoverBig" title="${esc(c.desc || (c.state === "mixed" ? "unterschiedliche Cover" : "kein Cover"))}">${coverImg}</button>
@@ -183,6 +191,17 @@ function renderTgEditor() {
   if (act && $("#" + act)) { const el = $("#" + act); el.focus(); if (el.setSelectionRange && el.value && /^(text|search)$/.test(el.type)) el.setSelectionRange(el.value.length, el.value.length); }
   keyWheelSync();
   tgRenderPlugins();
+  const grip = $("#tgMoreGrip");
+  if (grip) {
+    const setK = (w) => { LAYOUT.tg_more_k = clamp(Math.round(w), 70, Math.max(120, box.clientWidth - 160)); document.documentElement.style.setProperty("--tg-more-k", LAYOUT.tg_more_k + "px"); };
+    draggable(grip, {
+      onStart: () => ({ w: LAYOUT.tg_more_k }),
+      onMove: (dx, st) => setK(st.w + dx),
+      onEnd: () => saveUi("tg_more_k"),
+      onDouble: () => { setK(130); saveUi("tg_more_k"); },
+      onKey: (dd) => { setK(LAYOUT.tg_more_k + dd); saveUi("tg_more_k"); },
+    });
+  }
 }
 
 async function tgRenderPlugins() {
@@ -287,6 +306,7 @@ function tgEditMore(row) {
   const i = tgSelected()[0];
   if (f.xml) return openXml(null, key, { tag: i });
   if (!f.editable) { toast(key.startsWith("APIC") ? "Bilder über „Cover wählen …“ ändern." : "Dieses Feld kann nicht als Text bearbeitet werden."); return; }
+  if (f.multiline) return tgFieldEditor(key);    // mehrzeilig (Kommentar, Liedtext …) → Editor
   const v = row.querySelector(".v");
   const inp = document.createElement("input");
   inp.value = f.edit;
@@ -300,6 +320,72 @@ function tgEditMore(row) {
   };
   inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); finish(true); } if (e.key === "Escape") { e.preventDefault(); finish(false); } e.stopPropagation(); });
   inp.addEventListener("blur", () => finish(true));
+}
+
+/** Editor für ein Feld aus „Weitere Felder“: mehrzeilig, mit Blättern zum vorigen/nächsten Feld. */
+async function tgFieldEditor(key) {
+  const i = tgSelected()[0];
+  let f = TG.detail.fields.find((x) => x.key === key);
+  if (!f) return;
+  if (f.xml) return openXml(null, key, { tag: i });
+  if (!f.editable) { toast("Dieses Feld kann nicht als Text bearbeitet werden."); return; }
+  const list = () => TG.detail.fields.filter((x) => x.editable && !x.xml);
+  const fill = (b) => {
+    const l = list(), k = l.findIndex((x) => x.key === f.key);
+    $("#feLabel", b).textContent = f.label;
+    $("#feKey", b).textContent = f.key;
+    const ta = $("#feVal", b);
+    ta.value = f.edit;
+    ta.rows = Math.min(18, Math.max(f.multiline ? 8 : 3, f.edit.split("\n").length + 1));
+    $("#fePrev", b).disabled = k <= 0;
+    $("#feNext", b).disabled = k < 0 || k >= l.length - 1;
+    $("#fePos", b).textContent = k >= 0 ? `${k + 1} von ${l.length}` : "";
+    upd(b);
+    ta.focus();
+  };
+  const upd = (b) => {
+    const v = $("#feVal", b).value;
+    const n = v.split("¦").filter((x) => x.trim()).length;
+    $("#feInfo", b).textContent = `${v.length} Zeichen · ${v ? v.split("\n").length : 0} Zeile(n)${n > 1 ? ` · ${n} Werte` : ""}${v !== f.edit ? " · geändert" : ""}`;
+  };
+  // Wert übernehmen, ohne den Dialog zu schliessen (beim Blättern)
+  const save = async (b) => {
+    const v = $("#feVal", b).value;
+    if (v === f.edit) return true;
+    taggerApplyDetail(await call("tag_set", [i], f.key, v));
+    return true;
+  };
+  const go = async (b, dir) => {
+    await save(b);
+    const l = list(), k = l.findIndex((x) => x.key === f.key);
+    const nx = l[k + dir] || l[k];
+    if (!nx) return;
+    f = nx;
+    fill(b);
+  };
+  const res = await modal({
+    title: "Feld bearbeiten", wide: true,
+    html: `<div class="fe-head"><div><b id="feLabel"></b> <code id="feKey" class="muted sm"></code></div>
+        <div class="fe-nav"><button class="ghost sm" id="fePrev" title="Voriges Feld (Alt+↑)">‹</button><span class="muted sm" id="fePos"></span><button class="ghost sm" id="feNext" title="Nächstes Feld (Alt+↓)">›</button></div></div>
+      <textarea id="feVal" class="fe-val" spellcheck="false"></textarea>
+      <div class="fe-foot"><span class="hint">Mehrere Werte mit <b>¦</b> trennen (ID3v2.4). Leer = Feld entfernen. <kbd>Strg</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd> übernimmt.</span><span class="muted sm" id="feInfo"></span></div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Feld entfernen", value: "del" }, { label: "Übernehmen", value: true, primary: true }],
+    onMount: (b) => {
+      const ta = $("#feVal", b);
+      ta.addEventListener("input", () => upd(b));
+      ta.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); $("#mBtns .primary").click(); }
+        if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) { e.preventDefault(); go(b, e.key === "ArrowUp" ? -1 : 1); }
+      });
+      $("#fePrev", b).onclick = () => go(b, -1);
+      $("#feNext", b).onclick = () => go(b, 1);
+      fill(b);
+    },
+    collect: (b, v) => ({ action: v, key: f.key, value: $("#feVal", b).value, before: f.edit }),
+  });
+  if (!res) return;
+  if (res.action === "del") taggerApplyDetail(await call("tag_remove", [i], [res.key]));
+  else if (res.value !== res.before) taggerApplyDetail(await call("tag_set", [i], res.key, res.value));
 }
 
 // ---------------------------------------------------------------------- Werkzeuge mit Vorschau
@@ -484,6 +570,7 @@ async function tgExportDialog() {
     const row = e.target.closest(".tg-f");
     if (row && e.target.closest("[data-tdel]")) taggerApplyDetail(await call("tag_remove", [idx[0]], [row.dataset.key]));
     else if (row && e.target.closest("[data-txml]")) openXml(null, row.dataset.key, { tag: idx[0] });
+    else if (row && e.target.closest("[data-tedit]")) tgFieldEditor(row.dataset.key);
   });
   ed.addEventListener("dblclick", (e) => { const row = e.target.closest(".tg-f"); if (row && !e.target.closest("button")) tgEditMore(row); });
   // Splitter zwischen Liste und Bearbeitungsbereich

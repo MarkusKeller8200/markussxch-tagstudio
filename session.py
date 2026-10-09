@@ -28,7 +28,8 @@ from version import VERSION  # einzige Versionsquelle
 
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
-           "col_name": (int, float), "col_ratio": (int, float), "tg_edit_w": (int, float)}
+           "col_name": (int, float), "col_ratio": (int, float), "tg_edit_w": (int, float),
+           "tg_more_k": (int, float)}
 
 
 class Session:
@@ -756,7 +757,8 @@ class Session:
                     it = f.get(k)
                     xml = xmltools.xml_of_item(it)
                     fields.append({"key": k, "label": key_label(k), "text": core.disp(it),
-                                   "editable": core.can_edit_text(f, k) and xml is None and "\n" not in it.text,
+                                   "editable": core.can_edit_text(f, k) and xml is None,
+                                   "multiline": "\n" in (it.text or "") or k.startswith(("COMM", "USLT")),
                                    "xml": None if xml is None else ("edit" if xml[1] else "view"),
                                    "mod": f.field_modified(k), "edit": core.edit_text(it) if it.kind != "picture" and xml is None else ""})
                 out["fields"] = fields
