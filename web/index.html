@@ -245,10 +245,10 @@
         <button class="icon-btn" id="plNext" title="Nächster Titel" aria-label="Nächster Titel"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14"/><path d="M5 5l10 7-10 7Z"/></svg></button>
         <div class="pl-mid">
           <div class="pl-line"><span class="pl-title" id="plTitle"></span><span class="pl-time" id="plTime"></span></div>
-          <input type="range" id="plSeek" min="0" max="1" value="0" step="1" aria-label="Position">
+          <div class="pl-wave" id="plWave"><canvas id="plCanvas" aria-hidden="true"></canvas><input type="range" id="plSeek" min="0" max="1" value="0" step="1" aria-label="Position"><div class="pl-cues" id="plCues"></div></div>
         </div>
         <div class="seg sm" id="plAB" hidden title="A/B: linke oder rechte Datei hören (Position bleibt)"><button data-side="L">L</button><button data-side="R">R</button></div>
-        <select id="plStart" class="inp sm" title="Startpunkt beim Abspielen" aria-label="Startpunkt"><option value="0">ab Anfang</option><option value="30">ab 30 %</option><option value="60">ab 1:00</option></select>
+        <select id="plStart" class="inp sm" title="Startpunkt beim Abspielen" aria-label="Startpunkt"><option value="0">ab Anfang</option><option value="30">ab 30 %</option><option value="60">ab 1:00</option><option value="cue">ab 1. Cue</option></select>
         <input type="range" id="plVol" min="0" max="100" value="80" title="Lautstärke" aria-label="Lautstärke">
         <button class="icon-btn" id="plMore" title="Externer Player …" aria-label="Externer Player"><svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
       </div>

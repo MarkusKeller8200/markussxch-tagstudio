@@ -1,10 +1,15 @@
 /* MarKusSXCH TagStudio – Vorschau-Player (unten in der Aktionsleiste) und externe Player.
-   Leertaste: markierten Titel abspielen/pausieren · Shift+←/→: ±10 s · Strg/Cmd+P: im externen Player öffnen.
+   Leertaste: markierten Titel abspielen/pausieren · Shift+←/→: ±10 s · Alt+Bild↑/↓: voriger/nächster Cue ·
+   Strg/Cmd+P: im externen Player öffnen. Wellenform: einmal per Web Audio berechnet, im Cache (waveform.py);
+   Cue-Marken aus Serato/Mixed In Key (cues.py).
    Im Tagger spielt der Player beim Wechsel der Markierung (↑/↓, Klick) automatisch weiter („Durchhören“).
    Im Vergleich schaltet A/B zwischen linker und rechter Datei um und behält die Position. */
 "use strict";
 
-const PLAYER = { audio: null, info: null, kind: null, ref: null, side: "L", loading: false, follow: true, startAt: "0" };
+const PLAYER = { audio: null, info: null, kind: null, ref: null, side: "L", loading: false, follow: true, startAt: "0",
+  wave: true, waveBusy: null };
+const WAVE_N = 800;               // Balken der Wellenform (im Cache gespeichert)
+const WAVE_MAX_BYTES = 80e6;      // sehr lange Mixe nicht dekodieren (Speicher)
 
 const ICON_PLAY = '<svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8Z"/></svg>';
 const ICON_PAUSE = '<svg class="i" viewBox="0 0 24 24"><path d="M7 4h3v16H7zM14 4h3v16h-3z"/></svg>';
@@ -39,10 +44,14 @@ async function plLoad(target, autoplay = true, keepTime = null) {
   const a = PLAYER.audio;
   a.src = info.url;
   const dur = info.duration || 0;
-  const start = keepTime !== null ? keepTime : PLAYER.startAt === "30" ? dur * 0.3 : PLAYER.startAt === "60" ? Math.min(60, dur * 0.5) : 0;
+  const firstCue = (info.cues || []).find((c) => c.pos > 0.05);
+  const start = keepTime !== null ? keepTime : PLAYER.startAt === "30" ? dur * 0.3 : PLAYER.startAt === "60" ? Math.min(60, dur * 0.5)
+    : PLAYER.startAt === "cue" ? (firstCue ? firstCue.pos : 0) : 0;
   const seek = () => { try { if (start > 0) a.currentTime = Math.min(start, (a.duration || dur) - 1); } catch (e) { /* egal */ } };
   a.addEventListener("loadedmetadata", seek, { once: true });
+  plCues();
   plRender();
+  if (PLAYER.wave && !info.wave) plWaveCompute(info);
   if (autoplay) {
     try { await a.play(); } catch (e) {
       // AbortError: schneller Titelwechsel – der neue Titel lädt bereits, kein Fehler
@@ -105,6 +114,7 @@ function plRender() {
   const seek = $("#plSeek");
   if (!seek.matches(":active")) { seek.max = String(Math.max(1, Math.round(dur * 10))); seek.value = String(Math.round(a.currentTime * 10)); }
   seek.disabled = !i;
+  plDrawWave();
   $("#plAB").hidden = S.module !== "compare";
   $$("#plAB button").forEach((b) => b.classList.toggle("on", b.dataset.side === PLAYER.side));
 }
@@ -113,6 +123,83 @@ function plSeekBy(sec) {
   if (!PLAYER.audio.src) return;
   PLAYER.audio.currentTime = Math.max(0, Math.min((PLAYER.audio.duration || 0) - 0.5, PLAYER.audio.currentTime + sec));
   plRender();
+}
+
+// ---------------------------------------------------------------------- Wellenform & Cue-Marken
+/** Wellenform einmal berechnen (Web Audio, niedrige Abtastrate spart Speicher) und im Cache ablegen. */
+async function plWaveCompute(info) {
+  if (!info.wave_key || PLAYER.waveBusy === info.wave_key) return;
+  PLAYER.waveBusy = info.wave_key;
+  try {
+    const res = await fetch(info.url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    if (+(res.headers.get("Content-Length") || 0) > WAVE_MAX_BYTES) return;
+    const buf = await res.arrayBuffer();
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    let audio = null;
+    for (const rate of [8000, 22050, 44100]) {
+      try { audio = await new OAC(1, 1, rate).decodeAudioData(buf.slice(0)); break; } catch (e) { audio = null; }
+    }
+    if (!audio) return;
+    const ch = [...Array(audio.numberOfChannels).keys()].map((c) => audio.getChannelData(c));
+    const len = ch[0].length, step = len / WAVE_N, peaks = [], rms = [];
+    for (let b = 0; b < WAVE_N; b++) {
+      const from = Math.floor(b * step), to = Math.max(from + 1, Math.floor((b + 1) * step));
+      let pk = 0, sq = 0, n = 0;
+      for (const d of ch) for (let k = from; k < to && k < len; k++) { const v = Math.abs(d[k]); if (v > pk) pk = v; sq += v * v; n++; }
+      peaks.push(Math.min(255, Math.round(pk * 255)));
+      rms.push(Math.min(255, Math.round(Math.sqrt(sq / Math.max(1, n)) * 255)));
+    }
+    const wave = { peaks, rms };
+    call("wave_save", info.wave_key, peaks, rms).catch(() => {});
+    if (PLAYER.info && PLAYER.info.wave_key === info.wave_key) { PLAYER.info.wave = wave; plRender(); }
+  } catch (e) { /* ohne Wellenform weiter – Wiedergabe ist wichtiger */ }
+  finally { if (PLAYER.waveBusy === info.wave_key) PLAYER.waveBusy = null; }
+}
+
+function plDrawWave() {
+  const box = $("#plWave"), cv = $("#plCanvas");
+  const w = PLAYER.wave && PLAYER.info && PLAYER.info.wave;
+  box.classList.toggle("wave", !!w);
+  if (!w) return;
+  const dpr = window.devicePixelRatio || 1, W = Math.max(1, Math.round(cv.clientWidth * dpr)), H = Math.max(1, Math.round(cv.clientHeight * dpr));
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  const g = cv.getContext("2d"), st = getComputedStyle(document.documentElement);
+  const acc = st.getPropertyValue("--acc").trim() || "#7c5cff", dim = st.getPropertyValue("--faint").trim() || "#888";
+  const a = PLAYER.audio, dur = a.duration || PLAYER.info.duration || 0, played = dur ? a.currentTime / dur : 0;
+  const n = w.peaks.length, top = Math.max(1, ...w.peaks), bw = W / n, mid = H / 2;
+  g.clearRect(0, 0, W, H);
+  for (let k = 0; k < n; k++) {
+    const x = k * bw, ph = Math.max(1, (w.peaks[k] / top) * (H - 2) / 2), rh = Math.max(0.5, (w.rms[k] / top) * (H - 2) / 2);
+    const on = k / n < played;
+    g.globalAlpha = on ? 0.45 : 0.3; g.fillStyle = on ? acc : dim;
+    g.fillRect(x, mid - ph, Math.max(1, bw - 0.4), ph * 2);
+    g.globalAlpha = on ? 1 : 0.75;
+    g.fillRect(x, mid - rh, Math.max(1, bw - 0.4), rh * 2);
+  }
+  g.globalAlpha = 1; g.fillStyle = acc;
+  g.fillRect(Math.round(played * W), 0, Math.max(1, Math.round(dpr)), H);
+}
+
+function plCues() {
+  const box = $("#plCues"), i = PLAYER.info, cues = (i && i.cues) || [];
+  const dur = (PLAYER.audio && PLAYER.audio.duration) || (i && i.duration) || 0;
+  box.innerHTML = dur ? cues.map((c, k) => {
+    const left = Math.max(0, Math.min(100, (c.pos / dur) * 100));
+    const w = c.kind === "loop" && c.end ? `--w:${Math.max(2, ((c.end - c.pos) / dur) * box.clientWidth)}px;` : "";
+    const label = `${c.kind === "loop" ? "Loop" : "Cue"} ${c.index + 1}${c.name ? " · " + c.name : ""} · ${fmtTime(c.pos)} (${c.source})`;
+    return `<button class="pl-cue${c.kind === "loop" ? " loop" : ""}" data-k="${k}" style="left:${left}%;${c.color ? `--cue:${esc(c.color)};` : ""}${w}" title="${esc(label)}" aria-label="${esc(label)}"></button>`;
+  }).join("") : "";
+}
+
+/** Zum nächsten/vorigen Cue springen (Shift+↑/↓ bzw. Alt+←/→ im Player). */
+function plCueJump(dir) {
+  const cues = (PLAYER.info && PLAYER.info.cues) || [], t = PLAYER.audio.currentTime;
+  if (!cues.length || !PLAYER.audio.src) return false;
+  const c = dir > 0 ? cues.find((x) => x.pos > t + 0.3) : [...cues].reverse().find((x) => x.pos < t - 1);
+  PLAYER.audio.currentTime = c ? c.pos : dir > 0 ? t : 0;
+  plRender();
+  return true;
 }
 
 // ---------------------------------------------------------------------- Externe Player
@@ -133,11 +220,12 @@ async function plExternal(index = null) {
 async function plMenu(btn) {
   const list = await call("players");
   const r = btn.getBoundingClientRect();
-  showMenu(r.left, r.top - 8 - (list.length + 3) * 34, [
+  showMenu(r.left, r.top - 8 - (list.length + 4) * 34, [
     ...list.map((p, k) => ({ label: `Öffnen mit ${p.name}` + (k === 0 ? "  (Strg/Cmd+P)" : ""), run: () => plExternal(k) })),
     { label: "Öffnen mit Standardprogramm" + (list.length ? "" : "  (Strg/Cmd+P)"), run: () => plExternal(null) },
     "-",
     { label: "Player einrichten …", run: () => plSetup() },
+    { label: (PLAYER.wave ? "✓ " : "    ") + "Wellenform anzeigen", run: () => { PLAYER.wave = !PLAYER.wave; plStore("wave", PLAYER.wave ? "1" : "0"); if (PLAYER.wave && PLAYER.info && !PLAYER.info.wave) plWaveCompute(PLAYER.info); plRender(); } },
   ]);
 }
 
@@ -192,7 +280,16 @@ function initPlayer() {
   a.volume = isFinite(vol) ? Math.max(0, Math.min(1, vol)) : 0.8;
   PLAYER.startAt = plStore("start") || "0";
   PLAYER.follow = plStore("follow") !== "0";
+  PLAYER.wave = plStore("wave") !== "0";
   ["play", "pause", "ended", "loadedmetadata", "emptied"].forEach((ev) => a.addEventListener(ev, plRender));
+  a.addEventListener("loadedmetadata", plCues);
+  window.addEventListener("resize", () => { plCues(); plDrawWave(); });
+  $("#plCues").addEventListener("click", (e) => {
+    const b = e.target.closest(".pl-cue"); if (!b || !PLAYER.info) return;
+    a.currentTime = PLAYER.info.cues[+b.dataset.k].pos;
+    if (a.paused) a.play().catch(() => {});
+    plRender();
+  });
   a.addEventListener("timeupdate", () => { const s = $("#plSeek"); if (!s.matches(":active")) plRender(); });
   a.addEventListener("ended", () => { if (PLAYER.follow && S.module === "tagger") plStep(1); });
   a.addEventListener("error", () => { if (a.src) toast("Datei kann nicht abgespielt werden."); });
@@ -214,6 +311,7 @@ function initPlayer() {
     if (S.module !== "tagger" && S.module !== "compare") return;
     if (e.key === " " && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plToggle(); }
     else if (e.shiftKey && (e.key === "ArrowRight" || e.key === "ArrowLeft") && PLAYER.audio.src) { e.preventDefault(); plSeekBy(e.key === "ArrowRight" ? 10 : -10); }
+    else if (e.altKey && (e.key === "PageDown" || e.key === "PageUp") && PLAYER.audio.src) { e.preventDefault(); plCueJump(e.key === "PageDown" ? 1 : -1); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); call("players").then((l) => plExternal(l.length ? 0 : null)); }
   });
   plRender();

@@ -962,6 +962,32 @@ class Session:
                     "duration": float(getattr(f, "duration", 0) or 0), "kind": kind, "ref": ref,
                     "key": keys.parse_key(f.text("TKEY")), "bpm": f.text("TBPM")}
 
+    def media_extra(self, kind, ref) -> dict:
+        """Cue-Punkte (Serato, Mixed In Key) und Wellenform aus dem Cache für den Player."""
+        import cues
+        import waveform
+        with self.lock:
+            f = self.tag_files[ref] if kind == "tag" and isinstance(ref, int) and 0 <= ref < len(self.tag_files) \
+                else self._file(ref) if kind == "side" and ref in ("L", "R") else None
+            if f is None:
+                raise ValueError("Keine Datei zum Abspielen gewählt.")
+            out = {"cues": cues.read(f), "wave": None, "wave_key": ""}
+        try:
+            out["wave_key"] = waveform.key_for(f)
+            out["wave"] = waveform.load(out["wave_key"])
+        except (OSError, ValueError):
+            pass
+        return out
+
+    def wave_save(self, key, peaks, rms) -> dict:
+        """Von der Oberfläche berechnete Wellenform im Cache ablegen."""
+        import waveform
+        try:
+            waveform.save(str(key), peaks, rms)
+        except (OSError, ValueError) as ex:
+            return {"ok": False, "error": str(ex)}
+        return {"ok": True}
+
     def media_paths(self, kind, refs) -> list:
         return [self.media_info(kind, r)["path"] for r in (refs if isinstance(refs, list) else [refs])]
 
