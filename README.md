@@ -24,8 +24,13 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.9 oder neuer – oder gar nich
 - **Tag-Fixer:** Mehrfachwerte (`;`, `/`, `feat.` …) vereinheitlichen oder in echte ID3v2.4-Mehrfachwerte umwandeln.
 - **Sicherheit beim Speichern:** vor jedem Speichern automatische Sicherung der Tags, Änderungs-Viewer,
   byte-genaues Wiederherstellen; Rückgängig/Wiederholen über alle Dateien.
-- **Plugins:** Stems (Gesang, Schlagzeug, Bass … trennen) und Beatport (Metadaten mit eigenem Login),
-  eigene Plugins möglich.
+- **Vorschau-Player:** Titel vorhören mit Wellenform und Cue-Marken (Serato, Mixed In Key), A/B im Vergleich,
+  externe Player (foobar2000, VLC …).
+- **Herkunft der Tags:** Kennzeichen, welche Anwendung ein Feld geschrieben hat; Felder einer Anwendung filtern
+  oder entfernen.
+- **Plugins:** Stems (Gesang, Schlagzeug, Bass … trennen – im Hintergrund, Spuren aufklappbar unter dem Titel) und
+  Beatport (Metadaten mit eigenem Login), eigene Plugins möglich.
+- **Einstellungen** an einem Ort, exportieren/importieren (z. B. Windows ↔ Mac) und zurücksetzen.
 
 ## Zwei Oberflächen, ein Kern
 
@@ -118,6 +123,11 @@ passenden Editor, ✕ entfernt das Feld.
   Besitzer) und Inhalt – lesbarer Text und Base64-kodierter Text/JSON direkt bearbeitbar (beim Übernehmen wieder
   gleich kodiert), XML im XML-Editor, sonst Hex-Ansicht. Geändert wird nur, was bearbeitet wurde.
 
+- **Herkunft:** vor dem Feldnamen ein kleines Kennzeichen, welche Anwendung das Feld geschrieben hat (z. B.
+  **Serato**, **MIK**, **MB** für MusicBrainz, **Beatport**, **Traktor**, **iTunes**), Tooltip mit Erklärung; auch im
+  Vergleich. Über „Alle Herkünfte“ filtern; „Alle entfernen …“ bzw. **„Felder nach Herkunft …“** entfernt alle
+  Felder einer Anwendung aus den markierten Dateien (Vorschau, Rückgängig).
+
 > Programme wie Serato oder Mixed In Key erwarten in ihren Feldern ihr eigenes Format. Änderungen an DJ-Daten
 > (z. B. neue Cue-Punkte) zuerst an einer Testdatei ausprobieren.
 
@@ -155,7 +165,11 @@ oder Reihenfolge, Unterordner.
 Unten in der Fußleiste – in Tagger und Vergleich:
 - **Abspielen** des markierten Titels (Leertaste oder ▶), ⏮/⏭ springt zum vorherigen/nächsten Titel, der Player
   folgt der Auswahl und spielt am Titelende den nächsten. **Shift+←/→** spult 10 s, Klick in die Leiste springt.
-- **Startpunkt:** Anfang, 30 % oder 1:00 – praktisch zum schnellen Durchhören. Lautstärke wird gemerkt.
+- **Startpunkt:** Anfang, 30 %, 1:00 oder erster Cue – praktisch zum schnellen Durchhören. Lautstärke wird gemerkt.
+- **Wellenform:** wird beim ersten Abspielen einmal berechnet und im Cache abgelegt (`~/TagStudio/cache/wave`,
+  bleibt beim Bearbeiten der Tags und Umbenennen gültig); im Menü ⋯ bzw. in den Einstellungen abschaltbar.
+- **Cue-Marken** aus Serato (Cues und Loops mit Farbe und Name) und Mixed In Key über der Leiste: Klick springt
+  hin, **Alt+Bild↑/↓** zum vorigen/nächsten Cue.
 - **A/B im Vergleich:** L/R wechselt zwischen linker und rechter Datei **an derselben Stelle**.
 - **Externe Player** (⋯ bzw. **Strg/Cmd+P**): markierte Titel in foobar2000, VLC, Rekordbox, Music … öffnen; ohne
   Einrichtung im Standardprogramm des Systems. Unter „Externe Player…“ beliebig viele Programme mit Argumenten
@@ -181,8 +195,11 @@ Seite „Plugins“: Erweiterungen ein-/ausschalten, fehlende Pakete per Knopf i
 Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen erst als **Vorschau mit Häkchen**.
 
 - **Stems:** trennt Titel in Gesang, Schlagzeug, Bass, Instrumental … (audio-separator, eigene Python-Umgebung,
-  Varianten CPU/DirectML/NVIDIA). Der Fortschritt läuft auch innerhalb eines Titels mit, beim ersten Gebrauch
-  inklusive Modell-Download.
+  Varianten CPU/DirectML/NVIDIA). Läuft **im Hintergrund**: der Dialog schliesst sofort, unten in der Fußleiste
+  steht der Fortschritt („Stems: 2 von 7 · 45 %“), ein Klick zeigt alle Aufträge (Abbrechen, Ordner, Protokoll).
+  Weitere Aufträge werden hinten angestellt, beim Beenden wird nachgefragt und die Warteschlange beim nächsten
+  Start zum Fortsetzen angeboten. Im Tagger hängen die Spuren **aufklappbar unter dem Original** (▸, →/←,
+  „Stems ▾/▸“ für alle): MP3-Spuren bearbeiten, FLAC/WAV anhören; „Stems: Tags vom Original …“ überträgt die Tags.
 - **Beatport (inoffiziell):** BPM, Tonart, Genre, Label, Katalognummer, ISRC, Remixer, Cover u. a. mit deinem
   eigenen Beatport-Login (Passwort wird nie gespeichert). Die Vorschau zeigt **alle gelieferten Felder** – gleiche
   grau, abgewählte und schon gefüllte ungehakt.
@@ -199,7 +216,7 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   ziehen (oder mit ←/→ auf dem Griff); Doppelklick setzt zurück, alles wird gemerkt. Die Seitenleiste lässt sich
   einklappen.
 - **Tastatur:** Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte
-  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · Strg/Cmd+P externer Player · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
+  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · Shift+←/→ ±10 s · Alt+Bild↑/↓ Cue · Strg/Cmd+P externer Player · →/← Stems auf-/zuklappen · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
 
 ## Klassische Oberfläche
 
@@ -331,19 +348,27 @@ Programm gerade liegt. Meldungen aus einem Dialog heraus erscheinen über diesem
 
 ## Einstellungen und Datenablage
 
-Einstellungen stehen in `~/.tagstudio.json` (Design, Fenstergröße, Layout, Pfad-Verlauf, Filter,
-Tonart-Schreibweise, Plugin-Einstellungen). Weitere Ordner unter `~/TagStudio`:
+Die Seite **Einstellungen** fasst alles zusammen: Design, Tonart-Schreibweise, Stems-Anzeige im Tagger, ID3-Version
+beim Speichern (beibehalten / immer v2.3 / immer v2.4), Sicherung, Player, Herkunft der Tags (eigene Zuordnungen),
+unwichtige Felder (Liste bearbeiten, Standard wiederherstellen, ganze Herkunft „als unwichtig“). **Exportieren**
+speichert alles als Datei (ohne Zugangsdaten), **Importieren** übernimmt gewählte Bereiche – Pfade eines anderen
+Systems sind nicht vorgewählt –, **Zurücksetzen** geht für einzelne Bereiche oder alles. Vor Import und
+Zurücksetzen wird die alte Datei nach `~/TagStudio/Einstellungen` gesichert.
+
+Gespeichert wird in `~/.tagstudio.json` (beide Oberflächen). Weitere Ordner unter `~/TagStudio`:
 
 | Ordner | Inhalt |
 |---|---|
 | `Sicherungen` | automatische Sicherungen der Tags (ZIP je Speichervorgang, Ordner änderbar) |
-| `cache` | Cover-Vorschaubilder |
+| `cache` | Cover-Vorschaubilder, Wellenformen (`wave`) |
+| `Einstellungen` | Sicherungen der Einstellungsdatei vor Import/Zurücksetzen |
 | `Plugins` | eigene Plugins |
 | `Plugin-Daten` | z. B. Stems-Umgebung und Modelle, Beatport-Token (unter Windows verschlüsselt) |
 | `Logs` | Protokolle von Plugins und Installationen |
+| `Auftraege.json` | offene Hintergrund-Aufträge (zum Fortsetzen nach einem Neustart) |
 
-Unter `"trivial"` steht die Liste der unwichtigen Felder (Platzhalter `*` erlaubt), z. B.
-`"TLEN"`, `"TXXX:Acoustid*"`, `"COMM:iTunNORM"` – frei anpassbar.
+Die unwichtigen Felder (`"trivial"`, Platzhalter `*`) und eigene Herkunfts-Zuordnungen (`"tag_origins"`) lassen sich
+in den Einstellungen bearbeiten.
 
 ## Technisches
 
@@ -367,7 +392,8 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `tagstudio.py` – klassische Oberfläche (tkinter), Programmstart
 - `tagstudio_web.py` + `web/` – neue Oberfläche (HTML/CSS/JS im App-Fenster über pywebview, sonst im Browser);
   `web/xmleditor.js` XML-Editor, `web/jsontree.js` JSON-Baum, `web/tagger.js` Tagger und Editoren,
-  `web/keywheel.js` Camelot-Rad, `web/features.js` Audio-Merkmale, `web/plugins.js` Plugin-Seite
+  `web/keywheel.js` Camelot-Rad, `web/features.js` Audio-Merkmale, `web/plugins.js` Plugin-Seite,
+  `web/player.js` Vorschau-Player, `web/settings.js` Einstellungen, `web/jobs.js` Hintergrund-Aufträge
 - `core.py` – gemeinsame Logik beider Oberflächen: Anzeige, Zeichen-Diff, Filter, Laden, Speichern, Einstellungen
 - `session.py` – Zustand und Befehle einer Sitzung für die neue Oberfläche
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)
@@ -380,6 +406,10 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `blobs.py` – Binärfelder (GEOB/PRIV): Inhalt erkennen (XML, Text, Base64, binär) und byte-genau ändern
 - `backup.py` – Sicherung und Wiederherstellung der Tags, Vergleich Sicherung ↔ Datei (Änderungs-Viewer)
 - `undo.py` – Rückgängig/Wiederholen
+- `media.py` – lokaler Audio-Server für den Player (Range-Anfragen, Token); `players.py` – externe Player
+- `cues.py` – Cue-Punkte aus Serato/Mixed In Key lesen; `waveform.py` – Wellenform-Cache
+- `origins.py` – Herkunft der Tags (Kennungsliste); `appsettings.py` – Einstellungen exportieren/importieren/zurücksetzen
+- `jobs.py` – Warteschlange für Hintergrund-Aufträge; `stemsview.py` – Stems einem Original zuordnen
 - `thumbs.py` – Cover-Vorschaubilder ohne Zusatzpakete
 - `plugins.py` + `plugins/` – Plugin-System (siehe [PLUGINS.md](PLUGINS.md)); eingebaut: `plugins/stems`,
   `plugins/beatport`
@@ -451,9 +481,8 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
-- **3.2.0 – Wiedergabe & Herkunft:** Vorschau-Player und externe Player (ab 3.2.0-beta.1 enthalten), Wellenform
-  und Cue-Punkte, Herkunft der Tags (welche Anwendung ein Feld geschrieben hat), Einstellungsseite mit
-  Export/Import, Stems als Hintergrundaufgabe und als aufklappbare Spuren im Tagger.
+- **3.2.0 – Wiedergabe & Herkunft** (als Beta verfügbar): Vorschau-Player mit Wellenform und Cue-Marken, externe
+  Player, Herkunft der Tags, Einstellungsseite mit Export/Import, Stems im Hintergrund und als Spuren im Tagger.
 - **3.3.0 – DJ-Set:** Reihenfolge eines Sets nach Tonart (Camelot), BPM und Energie optimieren, Bewertung jedes
   Übergangs, Exporte als M3U8, Rekordbox-XML und CSV.
 - **3.4.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
