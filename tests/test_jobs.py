@@ -61,9 +61,9 @@ class TestJobManager(unittest.TestCase):
         m = jobs.JobManager(self.runner, self.state)
         a = m.add("p", "x", "A", ["/a1", "/a2"], {})
         b = m.add("p", "x", "B", ["/b1"], {"fail": True})
-        wait_for(lambda: m.status()["running"] is not None)
+        wait_for(lambda: (m.status()["running"] or {}).get("frac") == 0.5)
         st = m.status()
-        self.assertEqual((st["active"], st["running"]["id"], st["running"]["frac"]), (2, a["id"], 0.5))
+        self.assertEqual((st["active"], st["running"]["id"]), (2, a["id"]))
         self.assertEqual([j["status"] for j in st["jobs"]], ["running", "waiting"])
         self.assertEqual(read_json(self.state)["pending"][1]["label"], "B")   # für Neustart vermerkt
         self.gate.set()

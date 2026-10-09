@@ -46,6 +46,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ### Geändert
 - Milestones neu geordnet: 3.2.0 Wiedergabe & Herkunft, 3.3.0 DJ-Set, 3.4.0 Online-Metadaten.
 
+### Behoben
+- Hintergrund-Aufträge (seit 3.2.0-beta.2): Beim Beenden konnte der gerade abgebrochene Auftrag den Vermerk der
+  offenen Warteschlange überschreiben – dann fehlte das Angebot zum Fortsetzen. Gefunden durch einen sporadisch
+  fehlschlagenden Test in GitHub Actions.
+- CodeQL #33: Der Einstellungs-Export galt fälschlich als Klartext-Speicherung von Geheimnissen (Filter umbenannt;
+  Zugangsdaten wurden schon vorher nicht exportiert).
+
 ## [3.1.1] – 2026-10-09
 
 ### Behoben

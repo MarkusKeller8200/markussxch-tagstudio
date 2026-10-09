@@ -29,6 +29,7 @@ class JobManager:
         self.wake = threading.Event()
         self.thread: threading.Thread | None = None
         self.seq = 0          # steigt bei jeder Änderung – die Oberfläche erkennt Neues
+        self.closing = False  # beim Beenden: Zustand nicht mehr überschreiben, nichts Neues starten
         self.resumable = self._read_state()
 
     # ------------------------------------------------------------------ Anlegen / Steuern
@@ -75,6 +76,7 @@ class JobManager:
         """Beim Beenden: laufenden Auftrag abbrechen. keep_queue=True: offene Aufträge bleiben für den nächsten
         Start vermerkt; sonst wird die Warteschlange verworfen."""
         with self.lock:
+            self.closing = True
             pending = [self._persist(j) for j in self.jobs if j["status"] in ACTIVE]
             running = [j for j in self.jobs if j["status"] == "running"]
             for j in running:
@@ -85,7 +87,7 @@ class JobManager:
         t0 = time.time()
         while running and time.time() - t0 < wait and any(j["status"] == "running" for j in running):
             time.sleep(0.1)
-        self._write_state(pending if keep_queue else [])
+        self._write_state(pending if keep_queue else [], force=True)
 
     # ------------------------------------------------------------------ Fortsetzen nach Neustart
     def resume(self, accept: bool) -> int:
@@ -134,7 +136,9 @@ class JobManager:
         except (OSError, ValueError, AttributeError):
             return []
 
-    def _write_state(self, pending):
+    def _write_state(self, pending, force=False):
+        if self.closing and not force:
+            return
         try:
             if not pending and not os.path.exists(self.state_file):
                 return
@@ -154,7 +158,7 @@ class JobManager:
     def _loop(self):
         while True:
             with self.lock:
-                job = next((j for j in self.jobs if j["status"] == "waiting"), None)
+                job = None if self.closing else next((j for j in self.jobs if j["status"] == "waiting"), None)
                 if job is not None:
                     job.update(status="running", started=time.time(), text="startet …")
                     self._changed()
