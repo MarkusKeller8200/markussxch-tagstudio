@@ -1,0 +1,38 @@
+name: CodeQL
+
+# Code-Scanning: prüft Python, JavaScript (web/) und die Workflows auf typische Sicherheitslücken.
+# Funde erscheinen auf GitHub unter „Security → Code scanning“.
+# Hinweis: Diese „erweiterte Einrichtung“ ersetzt die Standard-Einrichtung in den Einstellungen – dort bitte
+# NICHT zusätzlich „Default setup“ einschalten (sonst lehnt GitHub die Ergebnisse dieses Workflows ab).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "17 4 * * 1"   # montags, findet neu bekannte Muster auch ohne Änderung
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    name: CodeQL · ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, javascript-typescript, actions]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"
