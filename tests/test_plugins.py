@@ -324,6 +324,7 @@ class TestStems(PluginBase):
             ev(event="tick", n=8e3, total=1e3, unit="iB")             # Grösse falsch gemeldet → nur Menge
             ev(event="tick", n=50e6, total=100e6, unit="iB")          # Modell-Download
             ev(event="loaded")
+            on_line("\r  0%|          | 0/9 [00:00<?, ?it/s]" + "@@" + json.dumps({"event": "status", "msg": "hinter Balken"}))
             ev(event="start", i=0, path=f.path)
             for k in range(8):                                        # 8 Demucs-Durchgänge à 0 → 100 %
                 for n in (0, 30, 60, 100):
@@ -334,6 +335,7 @@ class TestStems(PluginBase):
         ctx.run_env = fake_run
         p.module.run("separate", ctx, [f], {"model": "htdemucs_ft.yaml", "overwrite": True})
         texts = [m[1] for m in seen if m[0] == "text"]
+        self.assertIn("hinter Balken", texts)           # Ereignis hinter einem tqdm-Balken in derselben Zeile
         self.assertTrue(any("Lade Modell herunter … 50 %" in t for t in texts), texts)
         self.assertFalse(any("800 %" in t for t in texts), texts)
         self.assertTrue(any(t.endswith("0.0 MB") for t in texts), texts)

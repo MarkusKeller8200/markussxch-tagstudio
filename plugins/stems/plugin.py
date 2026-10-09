@@ -139,10 +139,13 @@ def run(action, ctx, files, opts):
         ctx.progress(state["i"], len(todo), f"Trenne {name} · {round(100 * frac)} %", frac)
 
     def on_line(line):
-        if not line.startswith("@@"):
+        # tqdm schreibt „\r 42%|███…“ ohne Zeilenende auf denselben Kanal – das Ereignis kann daher hinter so einem
+        # Balken in derselben Zeile stehen. Deshalb nach „@@{“ suchen statt nur am Zeilenanfang.
+        k = line.find("@@{")
+        if k < 0:
             return
         try:
-            ev = json.loads(line[2:])
+            ev = json.loads(line[k + 2:])
         except ValueError:
             return
         kind = ev.get("event")
@@ -179,7 +182,7 @@ def run(action, ctx, files, opts):
     rc, tail = ctx.run_env([os.path.join(os.path.dirname(__file__), "worker.py"), job_path], on_line)
     shutil.rmtree(work, ignore_errors=True)
     if rc != 0 or state["fatal"]:
-        details = "\n".join(l for l in tail if not l.startswith("@@"))[-3000:]
+        details = "\n".join(l for l in tail if "@@{" not in l)[-3000:]
         ctx.log(details)
         raise RuntimeError(f"Stems fehlgeschlagen: {state['fatal'] or f'Code {rc}'}\n\n{details[-800:]}")
     ctx.progress(len(todo), len(todo), "fertig")

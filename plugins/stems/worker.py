@@ -12,7 +12,9 @@ import traceback
 
 
 def emit(**kw):
-    print("@@" + json.dumps(kw, ensure_ascii=False), flush=True)
+    # führender Zeilenumbruch: falls tqdm gerade einen Balken ohne Zeilenende geschrieben hat
+    sys.stderr.flush()
+    print("\n@@" + json.dumps(kw, ensure_ascii=False), flush=True)
 
 
 def hook_tqdm():
