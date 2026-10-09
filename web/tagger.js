@@ -151,6 +151,8 @@ function renderTgEditor() {
     const v = d.common[k];
     const inp = `<input id="tgf-${k}" data-key="${k}" value="${esc(v.value)}" ${v.mixed ? 'placeholder="‹verschieden›"' : ""} spellcheck="false">`;
     if (k === "TKEY") return `<label for="tgf-${k}">${esc(label)}</label><div class="key-inp">${inp}<button class="key-btn${KW.open ? " on" : ""}" id="tgKeyBtn" title="Camelot-Rad öffnen" aria-label="Camelot-Rad öffnen">${v.camelot ? keyBadge(v.camelot) : '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v4.5M12 16.5V21M3 12h4.5M16.5 12H21"/></svg>'}</button></div>`;
+    const u = !v.mixed && firstUrl(v.value);
+    if (u) return `<label for="tgf-${k}">${esc(label)}</label><div class="url-inp">${inp}<a class="url-btn" data-url="${esc(u)}" title="${esc(u)} öffnen" aria-label="Link öffnen"><svg class="i" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></a></div>`;
     return `<label for="tgf-${k}">${esc(label)}</label>${inp}`;
   }).join("");
   const PEN = '<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
@@ -162,7 +164,7 @@ function renderTgEditor() {
         const full = f.edit || f.text, ml = f.multiline;
         const shown = ml ? full : (f.text.length > 160 ? f.text.slice(0, 160) + " …" : f.text);
         return `<div class="tg-f" data-key="${esc(f.key)}"><span class="k" title="${esc(f.label + "\n" + f.key)}">${f.mod ? '<span class="m" style="display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:6px"></span>' : ""}${esc(f.label)}</span>
-      <span class="v${f.editable ? "" : " noedit"}${ml ? " ml" : ""}" title="${f.editable ? "Doppelklick: bearbeiten" : ""}">${f.xml ? `<button class="xml-badge${f.xml === "view" ? " view" : ""}" data-txml="1">XML</button>` : ""}${esc(shown)}</span>
+      <span class="v${f.editable ? "" : " noedit"}${ml ? " ml" : ""}" title="${f.editable ? "Doppelklick: bearbeiten" : ""}">${f.xml ? `<button class="xml-badge${f.xml === "view" ? " view" : ""}" data-txml="1">XML</button>` : ""}${linkify(shown)}</span>
       <span class="b">${f.editable || f.xml ? `<button class="x" data-tedit="1" title="Im Editor bearbeiten" aria-label="${esc(f.label)} bearbeiten">${PEN}</button>` : ""}<button class="x del" data-tdel="1" title="Feld entfernen" aria-label="${esc(f.label)} entfernen">${DEL}</button></span></div>`;
       }).join("")}</div>` : "";
   const act = document.activeElement && box.contains(document.activeElement) ? document.activeElement.id : null;
@@ -306,7 +308,7 @@ function tgEditMore(row) {
   const i = tgSelected()[0];
   if (f.xml) return openXml(null, key, { tag: i });
   if (!f.editable) { toast(key.startsWith("APIC") ? "Bilder über „Cover wählen …“ ändern." : "Dieses Feld kann nicht als Text bearbeitet werden."); return; }
-  if (f.multiline) return tgFieldEditor(key);    // mehrzeilig (Kommentar, Liedtext …) → Editor
+  if (f.multiline || mvDetect(f.edit, key)) return tgFieldEditor(key);    // mehrzeilig oder Mehrfachwerte → Editor
   const v = row.querySelector(".v");
   const inp = document.createElement("input");
   inp.value = f.edit;
@@ -322,14 +324,73 @@ function tgEditMore(row) {
   inp.addEventListener("blur", () => finish(true));
 }
 
-/** Editor für ein Feld aus „Weitere Felder“: mehrzeilig, mit Blättern zum vorigen/nächsten Feld. */
+/** URLs in einem Text als anklickbare Links (wie im Vergleich). */
+const TG_URL_RE = /(?:https?:\/\/|www\.)[^\s|¦<>"]+/gi;
+function linkify(text) {
+  let out = "", last = 0;
+  for (const m of text.matchAll(TG_URL_RE)) {
+    const u = m[0].replace(/[.,;)]+$/, "");
+    out += esc(text.slice(last, m.index)) + `<a data-url="${esc(/^www\./i.test(u) ? "https://" + u : u)}" title="${esc(u)} öffnen">${esc(u)}</a>`;
+    last = m.index + u.length;
+  }
+  return out + esc(text.slice(last));
+}
+function firstUrl(text) {
+  const m = (text || "").match(TG_URL_RE);
+  if (!m) return null;
+  const u = m[0].replace(/[.,;)]+$/, "");
+  return /^www\./i.test(u) ? "https://" + u : u;
+}
+
+// Mehrfachwerte: NULL-Zeichen (ID3v2.4, im Editor als ¦), Semikolon oder Komma
+const MV_SEPS = [["nul", "NULL-Zeichen (ID3v2.4-Mehrfachwert)", " ¦ "], [";", "Semikolon ;", "; "], [",", "Komma ,", ", "]];
+function mvDetect(text, key) {
+  // mehrzeilige Texte, URL-Felder und Texte mit Links nicht automatisch zerlegen (Umschalten auf „Einzelwerte“ geht immer)
+  if (!text || /\n/.test(text) || /^W/.test(key) || firstUrl(text)) return text && text.includes("¦") ? "nul" : null;
+  if (text.includes("¦")) return "nul";
+  if (text.includes(";")) return ";";
+  if (text.includes(",")) return ",";
+  return null;
+}
+function mvSplit(text, sep) {
+  const re = sep === "nul" ? /\s*¦\s*/ : sep === ";" ? /\s*;\s*/ : /\s*,\s*/;
+  return text.split(re).map((x) => x.trim()).filter((x, i, a) => x || a.length === 1);
+}
+function mvJoin(items, sep) {
+  return items.map((x) => x.trim()).filter(Boolean).join(MV_SEPS.find((x) => x[0] === sep)[2]);
+}
+
+/** Editor für ein Feld aus „Weitere Felder“: Text oder Einzelwerte, Blättern zum vorigen/nächsten Feld. */
 async function tgFieldEditor(key) {
   const i = tgSelected()[0];
   let f = TG.detail.fields.find((x) => x.key === key);
   if (!f) return;
   if (f.xml) return openXml(null, key, { tag: i });
   if (!f.editable) { toast("Dieses Feld kann nicht als Text bearbeitet werden."); return; }
+  const st = { mode: "text", sep: "nul", items: [] };
   const list = () => TG.detail.fields.filter((x) => x.editable && !x.xml);
+  const value = (b) => (st.mode === "list" ? mvJoin(st.items, st.sep) : $("#feVal", b).value);
+
+  const renderList = (b, focus) => {
+    const box = $("#feList", b);
+    box.innerHTML = st.items.map((v, k) => `<div class="fe-item" data-k="${k}"><span class="fe-n">${k + 1}</span>
+        <input value="${esc(v)}" data-fe="${k}" spellcheck="false" aria-label="Wert ${k + 1}">
+        <button class="x" data-up="${k}" title="Nach oben" ${k ? "" : "disabled"}>↑</button>
+        <button class="x" data-down="${k}" title="Nach unten" ${k < st.items.length - 1 ? "" : "disabled"}>↓</button>
+        <button class="x del" data-rm="${k}" title="Wert entfernen">✕</button></div>`).join("");
+    if (focus !== undefined) box.querySelector(`[data-fe="${focus}"]`)?.focus();
+    upd(b);
+  };
+  const setMode = (b, mode) => {
+    if (mode === st.mode) return;
+    if (mode === "list") st.items = mvSplit($("#feVal", b).value, st.sep);
+    else $("#feVal", b).value = mvJoin(st.items, st.sep);
+    st.mode = mode;
+    b.querySelectorAll("[data-fmode]").forEach((x) => x.classList.toggle("on", x.dataset.fmode === mode));
+    $("#feTextBox", b).hidden = mode !== "text";
+    $("#feListBox", b).hidden = mode !== "list";
+    if (mode === "list") renderList(b, 0); else { $("#feVal", b).focus(); upd(b); }
+  };
   const fill = (b) => {
     const l = list(), k = l.findIndex((x) => x.key === f.key);
     $("#feLabel", b).textContent = f.label;
@@ -340,20 +401,25 @@ async function tgFieldEditor(key) {
     $("#fePrev", b).disabled = k <= 0;
     $("#feNext", b).disabled = k < 0 || k >= l.length - 1;
     $("#fePos", b).textContent = k >= 0 ? `${k + 1} von ${l.length}` : "";
+    const sep = mvDetect(f.edit, f.key);
+    st.sep = sep || "nul";
+    $("#feSep", b).value = st.sep;
+    st.mode = "text";
+    setMode(b, sep ? "list" : "text");
+    if (!sep) { $("#feTextBox", b).hidden = false; $("#feListBox", b).hidden = true; b.querySelectorAll("[data-fmode]").forEach((x) => x.classList.toggle("on", x.dataset.fmode === "text")); ta.focus(); }
     upd(b);
-    ta.focus();
   };
   const upd = (b) => {
-    const v = $("#feVal", b).value;
-    const n = v.split("¦").filter((x) => x.trim()).length;
-    $("#feInfo", b).textContent = `${v.length} Zeichen · ${v ? v.split("\n").length : 0} Zeile(n)${n > 1 ? ` · ${n} Werte` : ""}${v !== f.edit ? " · geändert" : ""}`;
+    const v = value(b);
+    const n = st.mode === "list" ? st.items.filter((x) => x.trim()).length : 0;
+    $("#feInfo", b).textContent = st.mode === "list"
+      ? `${n} Wert(e)${v !== f.edit ? " · geändert" : ""}`
+      : `${v.length} Zeichen · ${v ? v.split("\n").length : 0} Zeile(n)${v !== f.edit ? " · geändert" : ""}`;
   };
   // Wert übernehmen, ohne den Dialog zu schliessen (beim Blättern)
   const save = async (b) => {
-    const v = $("#feVal", b).value;
-    if (v === f.edit) return true;
-    taggerApplyDetail(await call("tag_set", [i], f.key, v));
-    return true;
+    const v = value(b);
+    if (v !== f.edit) taggerApplyDetail(await call("tag_set", [i], f.key, v));
   };
   const go = async (b, dir) => {
     await save(b);
@@ -367,21 +433,48 @@ async function tgFieldEditor(key) {
     title: "Feld bearbeiten", wide: true,
     html: `<div class="fe-head"><div><b id="feLabel"></b> <code id="feKey" class="muted sm"></code></div>
         <div class="fe-nav"><button class="ghost sm" id="fePrev" title="Voriges Feld (Alt+↑)">‹</button><span class="muted sm" id="fePos"></span><button class="ghost sm" id="feNext" title="Nächstes Feld (Alt+↓)">›</button></div></div>
-      <textarea id="feVal" class="fe-val" spellcheck="false"></textarea>
-      <div class="fe-foot"><span class="hint">Mehrere Werte mit <b>¦</b> trennen (ID3v2.4). Leer = Feld entfernen. <kbd>Strg</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd> übernimmt.</span><span class="muted sm" id="feInfo"></span></div>`,
+      <div class="fe-modes"><div class="seg"><button data-fmode="text">Text</button><button data-fmode="list">Einzelwerte</button></div>
+        <label class="muted sm">Trennung <select id="feSep" class="inp sm">${MV_SEPS.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></label></div>
+      <div id="feTextBox"><textarea id="feVal" class="fe-val" spellcheck="false"></textarea></div>
+      <div id="feListBox" hidden><div id="feList" class="fe-list" data-keep-enter></div><button class="ghost sm" id="feAdd">+ Wert hinzufügen</button></div>
+      <div class="fe-foot"><span class="hint">Leer = Feld entfernen. NULL-getrennte Mehrfachwerte gibt es nur in ID3v2.4 (beim Speichern als v2.3 werden sie mit „ / “ verbunden). <kbd>Strg</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd> übernimmt.</span><span class="muted sm" id="feInfo"></span></div>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Feld entfernen", value: "del" }, { label: "Übernehmen", value: true, primary: true }],
     onMount: (b) => {
       const ta = $("#feVal", b);
       ta.addEventListener("input", () => upd(b));
-      ta.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); $("#mBtns .primary").click(); }
-        if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) { e.preventDefault(); go(b, e.key === "ArrowUp" ? -1 : 1); }
+      b.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); $("#mBtns .primary").click(); return; }
+        if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) { e.preventDefault(); go(b, e.key === "ArrowUp" ? -1 : 1); return; }
+        const inp = e.target.closest("[data-fe]");
+        if (inp && e.key === "Enter") {            // Enter in einem Wert: neuer Wert darunter (statt Dialog schliessen)
+          e.preventDefault(); e.stopPropagation();
+          const k = +inp.dataset.fe;
+          st.items.splice(k + 1, 0, "");
+          renderList(b, k + 1);
+        }
+        if (inp && e.key === "Backspace" && !inp.value && st.items.length > 1) {
+          e.preventDefault(); const k = +inp.dataset.fe; st.items.splice(k, 1); renderList(b, Math.max(0, k - 1));
+        }
+      }, true);
+      b.addEventListener("input", (e) => { const inp = e.target.closest("[data-fe]"); if (inp) { st.items[+inp.dataset.fe] = inp.value; upd(b); } });
+      b.addEventListener("click", (e) => {
+        const t = e.target.closest("button"); if (!t) return;
+        if (t.dataset.fmode) setMode(b, t.dataset.fmode);
+        else if (t.id === "feAdd") { st.items.push(""); renderList(b, st.items.length - 1); }
+        else if (t.dataset.rm !== undefined) { st.items.splice(+t.dataset.rm, 1); if (!st.items.length) st.items.push(""); renderList(b); }
+        else if (t.dataset.up !== undefined) { const k = +t.dataset.up; [st.items[k - 1], st.items[k]] = [st.items[k], st.items[k - 1]]; renderList(b, k - 1); }
+        else if (t.dataset.down !== undefined) { const k = +t.dataset.down; [st.items[k + 1], st.items[k]] = [st.items[k], st.items[k + 1]]; renderList(b, k + 1); }
+      });
+      $("#feSep", b).addEventListener("change", (e) => {
+        if (st.mode === "text") { const items = mvSplit(ta.value, st.sep); st.sep = e.target.value; ta.value = mvJoin(items, st.sep); }
+        else st.sep = e.target.value;
+        upd(b);
       });
       $("#fePrev", b).onclick = () => go(b, -1);
       $("#feNext", b).onclick = () => go(b, 1);
       fill(b);
     },
-    collect: (b, v) => ({ action: v, key: f.key, value: $("#feVal", b).value, before: f.edit }),
+    collect: (b, v) => ({ action: v, key: f.key, value: value(b), before: f.edit }),
   });
   if (!res) return;
   if (res.action === "del") taggerApplyDetail(await call("tag_remove", [i], [res.key]));
@@ -546,6 +639,8 @@ async function tgExportDialog() {
     if (e.target.id === "tgVer" && e.target.value) taggerApplyDetail(await call("tag_version", tgSelected(), +e.target.value));
   });
   ed.addEventListener("click", async (e) => {
+    const a = e.target.closest("a[data-url]");
+    if (a) { e.preventDefault(); call("open_url", a.dataset.url); return; }
     const id = e.target.closest("button")?.id;
     const idx = tgSelected();
     if (id === "tgCoverSet") { const d = await call("tag_cover_file", idx, ""); if (d) taggerApplyDetail(d); else if (!S.settings.native) toast("Im Browser-Modus ist kein Dateidialog verfügbar – bitte das App-Fenster verwenden."); }

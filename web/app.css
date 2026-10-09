@@ -549,3 +549,25 @@ span.xml-treeonly{display:contents}
 .bk-removed .bk-st{background:color-mix(in srgb,var(--warn) 20%,transparent);color:var(--warn)}
 #mBtns .bk-nav{min-width:40px;font-size:18px;padding:0 10px}
 #mBtns .bk-nav:nth-child(2){margin-right:auto}
+
+/* Tagger: Links und Mehrfachwerte */
+.tg-f .v a[data-url],.url-btn{color:var(--acc);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.url-inp{display:flex;gap:6px;min-width:0}
+.url-inp input{flex:1}
+.url-btn{flex-shrink:0;width:36px;height:36px;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.url-btn:hover{background:var(--raise)}
+.fe-modes{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.fe-modes .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.fe-modes .seg button{border:0;background:transparent;color:var(--dim);padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}
+.fe-modes .seg button.on{background:var(--acc-soft);color:var(--acc);font-weight:600}
+.fe-modes label{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.fe-modes select{height:32px;width:auto;min-width:0}
+.fe-list{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto;margin-bottom:8px}
+.fe-item{display:grid;grid-template-columns:22px minmax(0,1fr) 28px 28px 28px;gap:4px;align-items:center}
+.fe-item .fe-n{color:var(--faint);font-size:12px;text-align:right}
+.fe-item input{height:34px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);padding:0 10px;font:inherit;min-width:0}
+.fe-item input:focus{outline:0;border-color:var(--acc)}
+.fe-item .x{width:28px;height:28px;border:0;background:transparent;color:var(--faint);border-radius:6px;cursor:pointer}
+.fe-item .x:hover:not(:disabled){background:var(--raise);color:var(--fg)}
+.fe-item .x.del:hover{color:var(--warn)}
+.fe-item .x:disabled{opacity:.3;cursor:default}

@@ -11,6 +11,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   gemerkt) und ein **Feld-Editor** (Stift-Knopf oder Doppelklick): grosses mehrzeiliges Textfeld, Zeichen-/Zeilenzähler,
   Blättern zum vorigen/nächsten Feld (‹ › oder Alt+↑/↓, speichert dabei), „Feld entfernen“, Strg/⌘+Enter übernimmt.
   Mehrzeilige Felder (Kommentare, Liedtexte) sind jetzt bearbeitbar und werden in der Liste mehrzeilig angezeigt.
+- **Tagger – Links:** URLs werden wie im Vergleich als Links dargestellt und öffnen per Klick im Browser
+  (Weitere Felder; bei Standardfeldern wie Kommentar erscheint ein Link-Knopf neben dem Eingabefeld).
+- **Feld-Editor – Einzelwerte:** Mehrfachwerte, getrennt durch NULL-Zeichen (ID3v2.4), Semikolon oder Komma, werden
+  als einzelne Werte bearbeitet: Wert hinzufügen (auch Enter), entfernen, umsortieren; Umschalten auf „Text“ und
+  Wahl der Trennung (z. B. „House; Techno“ in echte ID3v2.4-Mehrfachwerte umwandeln). Doppelklick auf ein solches
+  Feld öffnet direkt die Einzelwerte.
 
 ### Behoben
 - **Stems:** Der Fortschrittsbalken blieb während der Trennung eines Titels auf 0 stehen (er sprang erst nach dem

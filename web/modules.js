@@ -32,7 +32,7 @@ function modal({ title, html, buttons, wide = false, onMount, collect }) {
     const onKey = (e) => {
       if (!$("#dialog").hidden) return;
       if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); finish(null); }
-      if (e.key === "Enter" && e.target.tagName === "INPUT") {
+      if (e.key === "Enter" && e.target.tagName === "INPUT" && !e.target.closest("[data-keep-enter]")) {
         e.preventDefault(); e.stopImmediatePropagation();
         const p = buttons.find((b) => b.primary); if (p) finish(p.value);
       }
