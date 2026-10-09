@@ -571,3 +571,12 @@ span.xml-treeonly{display:contents}
 .fe-item .x:hover:not(:disabled){background:var(--raise);color:var(--fg)}
 .fe-item .x.del:hover{color:var(--warn)}
 .fe-item .x:disabled{opacity:.3;cursor:default}
+
+/* Binärfeld-Editor */
+.bf-head{grid-template-columns:118px minmax(0,1fr)}
+.bf-head .ro{padding:6px 0;overflow-wrap:anywhere}
+.bf-info{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 6px;font-size:13px;color:var(--dim)}
+.bf-info .chip{font-family:var(--mono);font-size:11.5px;border:1px solid var(--line2);border-radius:5px;padding:1px 6px;color:var(--fg)}
+.bf-tools{margin-left:auto;display:flex;gap:6px}
+.bf-text{font-family:var(--mono);font-size:12.5px}
+.bf-hex{max-height:46vh;overflow:auto;margin:0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font:12px/1.5 var(--mono);color:var(--dim);white-space:pre}

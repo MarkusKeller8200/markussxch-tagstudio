@@ -165,7 +165,7 @@ function renderTgEditor() {
         const shown = ml ? full : (f.text.length > 160 ? f.text.slice(0, 160) + " …" : f.text);
         return `<div class="tg-f" data-key="${esc(f.key)}"><span class="k" title="${esc(f.label + "\n" + f.key)}">${f.mod ? '<span class="m" style="display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:6px"></span>' : ""}${esc(f.label)}</span>
       <span class="v${f.editable ? "" : " noedit"}${ml ? " ml" : ""}" title="${f.editable ? "Doppelklick: bearbeiten" : ""}">${f.xml ? `<button class="xml-badge${f.xml === "view" ? " view" : ""}" data-txml="1">XML</button>` : ""}${linkify(shown)}</span>
-      <span class="b">${f.editable || f.xml ? `<button class="x" data-tedit="1" title="Im Editor bearbeiten" aria-label="${esc(f.label)} bearbeiten">${PEN}</button>` : ""}<button class="x del" data-tdel="1" title="Feld entfernen" aria-label="${esc(f.label)} entfernen">${DEL}</button></span></div>`;
+      <span class="b">${f.editable || f.xml || f.blob ? `<button class="x" data-tedit="1" title="${f.blob ? "Binärfeld ansehen/bearbeiten" : "Im Editor bearbeiten"}" aria-label="${esc(f.label)} bearbeiten">${PEN}</button>` : ""}<button class="x del" data-tdel="1" title="Feld entfernen" aria-label="${esc(f.label)} entfernen">${DEL}</button></span></div>`;
       }).join("")}</div>` : "";
   const act = document.activeElement && box.contains(document.activeElement) ? document.activeElement.id : null;
   box.innerHTML = `${head}
@@ -307,6 +307,7 @@ function tgEditMore(row) {
   if (!f) return;
   const i = tgSelected()[0];
   if (f.xml) return openXml(null, key, { tag: i });
+  if (f.blob) return tgBlobEditor(key);
   if (!f.editable) { toast(key.startsWith("APIC") ? "Bilder über „Cover wählen …“ ändern." : "Dieses Feld kann nicht als Text bearbeitet werden."); return; }
   if (f.multiline || mvDetect(f.edit, key)) return tgFieldEditor(key);    // mehrzeilig oder Mehrfachwerte → Editor
   const v = row.querySelector(".v");
@@ -479,6 +480,53 @@ async function tgFieldEditor(key) {
   if (!res) return;
   if (res.action === "del") taggerApplyDetail(await call("tag_remove", [i], [res.key]));
   else if (res.value !== res.before) taggerApplyDetail(await call("tag_set", [i], res.key, res.value));
+}
+
+/** Binärfeld-Editor (GEOB/PRIV): Kopf (MIME, Dateiname) und – wenn lesbar – Inhalt als Text; sonst Hex-Ansicht. */
+async function tgBlobEditor(key) {
+  const i = tgSelected()[0];
+  const r = await call("tag_blob", i, key);
+  if (!r.ok) { toast(r.error); return; }
+  const geob = r.fid === "GEOB";
+  const head = geob
+    ? `<label>Beschreibung</label><div class="ro">${esc(r.desc) || '<span class="muted">(leer)</span>'}</div>
+       <label for="bfMime">MIME-Typ</label><input id="bfMime" value="${esc(r.mime)}" spellcheck="false">
+       <label for="bfName">Dateiname</label><input id="bfName" value="${esc(r.filename)}" spellcheck="false">`
+    : `<label>Besitzer</label><div class="ro">${esc(r.owner) || '<span class="muted">(leer)</span>'}</div>`;
+  const body = r.editable
+    ? `<textarea id="bfText" class="fe-val bf-text" spellcheck="false" rows="14">${esc(r.text)}</textarea>`
+    : `<pre class="bf-hex">${esc(r.hex)}</pre>`;
+  const tools = [
+    r.kind === "xml" ? '<button class="ghost sm" id="bfXml">Im XML-Editor öffnen</button>' : "",
+    r.editable && r.inner === "json" ? '<button class="ghost sm" id="bfJson">JSON formatieren</button>' : "",
+  ].join("");
+  const res = await modal({
+    title: `${r.label} – ${r.file}`, wide: true,
+    html: `<div class="frm bf-head">${head}</div>
+      <div class="bf-info"><span class="chip">${esc(r.fid)}</span><span>${esc(r.kind_label)}${r.codec ? " · " + esc(r.codec) : ""} · ${fmtN(r.size)} Bytes</span>
+        <span class="bf-tools">${tools}</span></div>
+      ${r.note ? `<div class="hint">${esc(r.note)}</div>` : ""}
+      ${body}
+      <div class="hint">${r.editable
+        ? (r.kind === "base64" ? "Bearbeitet wird der entschlüsselte Text; beim Übernehmen wird er wieder Base64-kodiert." : "Beim Übernehmen wird nur dieser Inhalt ersetzt, alle übrigen Bytes bleiben erhalten.")
+        : "Unbekanntes Binärformat – nur ansehen. MIME-Typ und Dateiname lassen sich trotzdem ändern."}
+        Programme, die das Feld geschrieben haben (z. B. Serato, Mixed In Key), erwarten ihr eigenes Format – Änderungen auf eigene Gefahr.</div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Feld entfernen", value: "del" }, { label: "Übernehmen", value: true, primary: true }],
+    onMount: (b) => {
+      $("#bfXml", b)?.addEventListener("click", () => { $("#mBtns .ghost").click(); setTimeout(() => openXml(null, key, { tag: i }), 50); });
+      $("#bfJson", b)?.addEventListener("click", async () => {
+        const p = await call("blob_pretty", $("#bfText", b).value, "json");
+        if (p.ok) $("#bfText", b).value = p.text; else toast(p.error);
+      });
+    },
+    collect: (b, v) => ({ action: v, text: r.editable ? $("#bfText", b).value : null,
+      mime: geob ? $("#bfMime", b).value : null, filename: geob ? $("#bfName", b).value : null }),
+  });
+  if (!res) return;
+  if (res.action === "del") { taggerApplyDetail(await call("tag_remove", [i], [key])); return; }
+  try {
+    taggerApplyDetail(await call("tag_blob_set", i, key, res.text, res.mime, res.filename));
+  } catch (e) { await info("Nicht übernommen", String(e.message || e)); }
 }
 
 // ---------------------------------------------------------------------- Werkzeuge mit Vorschau
@@ -665,7 +713,10 @@ async function tgExportDialog() {
     const row = e.target.closest(".tg-f");
     if (row && e.target.closest("[data-tdel]")) taggerApplyDetail(await call("tag_remove", [idx[0]], [row.dataset.key]));
     else if (row && e.target.closest("[data-txml]")) openXml(null, row.dataset.key, { tag: idx[0] });
-    else if (row && e.target.closest("[data-tedit]")) tgFieldEditor(row.dataset.key);
+    else if (row && e.target.closest("[data-tedit]")) {
+      const fd = TG.detail.fields.find((x) => x.key === row.dataset.key);
+      if (fd && fd.blob) tgBlobEditor(row.dataset.key); else tgFieldEditor(row.dataset.key);
+    }
   });
   ed.addEventListener("dblclick", (e) => { const row = e.target.closest(".tg-f"); if (row && !e.target.closest("button")) tgEditMore(row); });
   // Splitter zwischen Liste und Bearbeitungsbereich

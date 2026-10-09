@@ -20,6 +20,7 @@ import keys
 import plugins
 import tagger
 import xmltools
+import blobs
 from compare import (PAIR_MODES, Rules, DEFAULT_TRIVIAL, Cancelled, diff, copy_tags, all_keys, MULTI_FIELDS,
                      INPUT_SEPARATORS, plan_multi_fix)
 from id3tags import key_label, sort_key, TEXT_LABELS, STANDARD_KEYS, MV, MV_SHOW, Cover, Item
@@ -759,6 +760,7 @@ class Session:
                     fields.append({"key": k, "label": key_label(k), "text": core.disp(it),
                                    "editable": core.can_edit_text(f, k) and xml is None,
                                    "multiline": "\n" in (it.text or "") or k.startswith(("COMM", "USLT")),
+                                   "blob": blobs.is_blob(it),
                                    "xml": None if xml is None else ("edit" if xml[1] else "view"),
                                    "mod": f.field_modified(k), "edit": core.edit_text(it) if it.kind != "picture" and xml is None else ""})
                 out["fields"] = fields
@@ -904,6 +906,44 @@ class Session:
                 return {"ok": False, "error": "Dieses Feld enthält kein XML."}
             return {"ok": True, "text": x[0], "editable": x[1], "label": key_label(key),
                     "file": os.path.basename(f.path), "key": key, "blob": xmltools.blob_info(it)}
+
+    def tag_blob(self, i, key):
+        """Binärfeld (GEOB/PRIV) einer Tagger-Datei für den Binärfeld-Editor."""
+        with self.lock:
+            if not (0 <= i < len(self.tag_files)):
+                return {"ok": False, "error": "Keine Datei."}
+            f = self.tag_files[i]
+            it = f.get(key)
+            if not blobs.is_blob(it):
+                return {"ok": False, "error": "Kein Binärfeld."}
+            d = blobs.view(it)
+            d.update(ok=True, key=key, label=key_label(key), file=os.path.basename(f.path))
+            return d
+
+    def tag_blob_set(self, i, key, text=None, mime=None, filename=None):
+        """Binärfeld ändern (Inhalt als Text und/oder GEOB-Kopf). Mit Rückgängig, noch nicht gespeichert."""
+        with self.lock:
+            if not (0 <= i < len(self.tag_files)):
+                return self.tag_detail([i])
+            f = self.tag_files[i]
+            it = f.get(key)
+            if not blobs.is_blob(it):
+                raise ValueError("Kein Binärfeld.")
+            new = blobs.update(it, text, mime, filename)
+            if new is not it:
+                self.undo.checkpoint(f"„{key_label(key)}“ bearbeitet", [f])
+                f.set(key, new)
+                self.undo.commit()
+            d = self.tag_detail([i])
+            d["message"] = None if new is it else f"„{key_label(key)}“ geändert – noch nicht gespeichert."
+            return d
+
+    @staticmethod
+    def blob_pretty(text, inner):
+        try:
+            return {"ok": True, "text": blobs.pretty(text, inner)}
+        except ValueError as ex:
+            return {"ok": False, "error": f"Kein gültiges JSON: {ex}"}
 
     # ================================================================== Tagger: weitere Werkzeuge
     def _plan_rows(self, plan, limit=2000):

@@ -22,6 +22,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   ansehen – im Vergleich, im Tagger und in der klassischen Oberfläche. Ersetzt wird nur der XML-Abschnitt in seiner
   ursprünglichen Kodierung; Frame-Kopf (MIME, Dateiname, Beschreibung, Besitzer) und alle Bytes davor/danach bleiben
   byte-genau erhalten. Der Editor zeigt Feldtyp, Kodierung und Grösse des XML-Teils an.
+- **Binärfeld-Editor (GEOB, PRIV):** Bei „Weitere Felder“ haben jetzt auch Binärfelder einen Stift-Knopf
+  (bzw. Doppelklick). Der Editor zeigt den Kopf (Beschreibung, MIME-Typ und Dateiname änderbar bzw. Besitzer) und
+  den Inhalt: lesbarer Text und Base64-kodierter Text/JSON (z. B. Mixed In Key) sind direkt bearbeitbar
+  (JSON formatieren, beim Übernehmen wieder Base64-kodiert), XML öffnet den XML-Editor, unbekannte Binärdaten
+  erscheinen als Hex-Ansicht. Geändert wird nur, was bearbeitet wurde; mit Rückgängig.
 
 ### Behoben
 - **Stems:** Der Fortschrittsbalken blieb während der Trennung eines Titels auf 0 stehen (er sprang erst nach dem
