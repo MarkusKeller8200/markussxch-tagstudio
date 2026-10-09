@@ -332,7 +332,8 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
    den Abschnitt „[3.1.0] – Datum“. Danach committen und pushen (mit `--commit` erledigt das Skript Commit + Tag).
 3. **Tag `v3.1.0` setzen** – auf GitHub unter *Releases → Draft a new release* (Tag neu auf `main`) oder per
    `git push --follow-tags`. GitHub Actions prüft, dass Tag und `version.py` übereinstimmen, baut die Installer für
-   Windows und macOS, testet sie und veröffentlicht sie als **Release** mit dem Text aus dem CHANGELOG.
+   Windows und macOS, testet sie und veröffentlicht sie als **Release** „TagStudio 3.1.0“ mit dem Text aus dem
+   CHANGELOG. Im Browser angelegt: Titel „TagStudio X.Y.Z“, Beschreibung leer lassen – der Workflow füllt sie.
    Tags mit Zusatz (`v3.1.0-beta.1`) werden als **Vorabversion** veröffentlicht (Text aus „Unveröffentlicht“).
 4. **Dringender Fehler:** sofort eine PATCH-Version (3.1.1) auf demselben Weg.
 

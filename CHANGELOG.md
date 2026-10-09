@@ -6,6 +6,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Geändert
+- Release-Workflow: Titel neuer Releases lautet „TagStudio X.Y.Z“ (wie die bisherigen Releases).
+
 ## [3.1.0] – 2026-10-09
 
 ### Neu

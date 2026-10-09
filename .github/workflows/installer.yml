@@ -166,5 +166,5 @@ jobs:
             gh release upload "$GITHUB_REF_NAME" assets/* --clobber
             gh release edit "$GITHUB_REF_NAME" --notes-file notes.md $pre
           else
-            gh release create "$GITHUB_REF_NAME" assets/* --title "MarKusSXCH TagStudio ${GITHUB_REF_NAME#v}" --notes-file notes.md $pre
+            gh release create "$GITHUB_REF_NAME" assets/* --title "TagStudio ${GITHUB_REF_NAME#v}" --notes-file notes.md $pre
           fi
