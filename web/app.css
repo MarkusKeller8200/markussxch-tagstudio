@@ -357,7 +357,7 @@ span.xml-treeonly{display:contents}
 .tg-listhead{display:flex;align-items:center;gap:12px;padding-right:8px}
 .tg-listhead .search{flex:1;max-width:520px}
 .tg-table{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;background:var(--surf);overflow:hidden;outline:0}
-.tg-thead,.tg-row{display:grid;grid-template-columns:22px minmax(130px,1.5fr) minmax(80px,1fr) minmax(80px,1fr) minmax(80px,1fr) 52px 48px minmax(64px,.8fr) 64px;gap:0 10px;align-items:center;padding:0 12px}
+.tg-thead,.tg-row{display:grid;grid-template-columns:22px minmax(130px,1.5fr) minmax(80px,1fr) minmax(80px,1fr) minmax(80px,1fr) 52px 48px minmax(64px,.8fr) 50px 64px;gap:0 10px;align-items:center;padding:0 12px}
 .tg-thead{height:38px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
 .tg-thead button{border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;padding:0;display:flex;align-items:center;gap:4px;min-width:0}
 .tg-thead button:hover{color:var(--fg)}
@@ -638,6 +638,9 @@ span.xml-treeonly{display:contents}
 .player .seg button{border:0;background:transparent;color:var(--dim);padding:3px 8px;font:600 12px var(--font);cursor:pointer}
 .player .seg button.on{background:var(--acc-soft);color:var(--acc)}
 @media (max-width:1250px){.player #plVol,.player #plStart{display:none}}
+.player .pl-start button{padding:3px 7px;font-size:11.5px}
+.player .pl-cue-btn{width:26px!important;color:var(--acc)}
+.player .pl-cue-btn[hidden]{display:none}
 .pl-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .pl-row{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) minmax(0,190px) 28px;gap:6px;align-items:center}
 .pl-row.pl-head{font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.04em}
@@ -726,3 +729,13 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .tg-stem-btns{display:inline-flex;gap:4px}
 .tg-stem-btns[hidden]{display:none}
 .tg-stem-btns button{height:26px;padding:0 8px;font-size:12px;width:auto}
+
+/* 3.2.0-beta.3: Tempo-Spalte, Länge, v2.x-Kennzeichen */
+.tg-row .num{font-variant-numeric:tabular-nums;text-align:right;padding-right:6px}
+.pair .bpm{flex:none;min-width:34px;text-align:right;font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.pair .bpm.diff{color:var(--warn);font-weight:600}
+.bpm-chip.diff{color:var(--warn)!important;font-weight:600}
+.tg-len{display:inline-flex;align-items:center;gap:6px;font-size:18px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--fg)}
+.tg-len .i{width:17px;height:17px;color:var(--dim)}
+.tg-len .muted{font-size:12.5px;font-weight:400}
+.src-b.id3{color:var(--faint);background:transparent;border-color:var(--line)}

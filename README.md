@@ -124,8 +124,8 @@ passenden Editor, ✕ entfernt das Feld.
   gleich kodiert), XML im XML-Editor, sonst Hex-Ansicht. Geändert wird nur, was bearbeitet wurde.
 
 - **Herkunft:** vor dem Feldnamen ein kleines Kennzeichen, welche Anwendung das Feld geschrieben hat (z. B.
-  **Serato**, **MIK**, **MB** für MusicBrainz, **Beatport**, **Traktor**, **iTunes**), Tooltip mit Erklärung; auch im
-  Vergleich. Über „Alle Herkünfte“ filtern; „Alle entfernen …“ bzw. **„Felder nach Herkunft …“** entfernt alle
+  **Serato**, **MIK**, **MB** für MusicBrainz, **Beatport**, **Spotify**, **Discogs**, **Traktor**, **iTunes**), Tooltip mit
+  Erklärung; Felder ohne bekannte Anwendung tragen **v2.3/v2.4**. Auch im Vergleich. Über „Alle Herkünfte“ filtern; „Alle entfernen …“ bzw. **„Felder nach Herkunft …“** entfernt alle
   Felder einer Anwendung aus den markierten Dateien (Vorschau, Rückgängig).
 
 > Programme wie Serato oder Mixed In Key erwarten in ihren Feldern ihr eigenes Format. Änderungen an DJ-Daten
@@ -165,7 +165,8 @@ oder Reihenfolge, Unterordner.
 Unten in der Fußleiste – in Tagger und Vergleich:
 - **Abspielen** des markierten Titels (Leertaste oder ▶), ⏮/⏭ springt zum vorherigen/nächsten Titel, der Player
   folgt der Auswahl und spielt am Titelende den nächsten. **Shift+←/→** spult 10 s, Klick in die Leiste springt.
-- **Startpunkt:** Anfang, 30 %, 1:00 oder erster Cue – praktisch zum schnellen Durchhören. Lautstärke wird gemerkt.
+- **Startpunkt** per Umschalter: Start, 30 %, 1:00 oder erster Cue – praktisch zum schnellen Durchhören. Lautstärke
+  wird gemerkt. Bei Titeln mit Cue-Punkten springen zwei Knöpfe zum vorigen/nächsten Cue.
 - **Wellenform:** wird beim ersten Abspielen einmal berechnet und im Cache abgelegt (`~/TagStudio/cache/wave`,
   bleibt beim Bearbeiten der Tags und Umbenennen gültig); im Menü ⋯ bzw. in den Einstellungen abschaltbar.
 - **Cue-Marken** aus Serato (Cues und Loops mit Farbe und Name) und Mixed In Key über der Leiste: Klick springt

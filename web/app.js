@@ -305,7 +305,7 @@ function srcBadge(sid) {
   const o = srcInfo(sid);
   if (!o) return "";
   const short = SRC_SHORT[sid] || (o.kind === "plugin" ? "TagStudio" : o.name.length > 12 ? o.name.slice(0, 11) + "…" : o.name);
-  return `<span class="src-b${o.kind === "plugin" ? " own" : ""}" style="--h:${srcHue(sid)}" title="Herkunft: ${esc(o.name)} – ${esc(o.desc)}">${esc(short)}</span>`;
+  return `<span class="src-b${o.kind === "plugin" ? " own" : o.kind === "id3" ? " id3" : ""}" style="--h:${srcHue(sid)}" title="Herkunft: ${esc(o.name)} – ${esc(o.desc)}">${esc(short)}</span>`;
 }
 
 // ====================================================================== Start
@@ -351,7 +351,7 @@ function applyTheme() {
 }
 
 function syncOptions() {
-  $$(".seg button").forEach((b) => b.classList.toggle("on", b.dataset.filter === S.opts.filter));
+  $$(".seg button[data-filter]").forEach((b) => b.classList.toggle("on", b.dataset.filter === S.opts.filter));
   $("#trivBtn").classList.toggle("on", !!S.opts.show_trivial);
   $("#coverBtn").classList.toggle("on", !!S.opts.show_covers);
   $("#emptySet").value = S.opts.empty_set;
@@ -448,9 +448,17 @@ function drawPairWindow() {
     const name = p.left || p.right;
     const other = p.left && p.right && p.left !== p.right ? ` · ↔ ${p.right}` : "";
     html += `<button class="pair${p.i === S.cur ? " cur" : ""}${S.pairSel.has(p.i) ? " msel" : ""}" style="top:${k * ROW_H}px" data-i="${p.i}" title="${esc(p.left)}${p.right && p.right !== p.left ? "\n↔ " + esc(p.right) : ""}">
-      <span class="d d-${p.tag}"></span><span class="t"><span class="n">${esc(name)}</span><span class="s">${esc(p.info + other)}</span></span>${p.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</button>`;
+      <span class="d d-${p.tag}"></span><span class="t"><span class="n">${esc(name)}</span><span class="s">${esc(p.info + other)}</span></span>${pairBpm(p)}${p.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</button>`;
   }
   inner.innerHTML = html;
+}
+
+/** Tempo-Spalte der Paarliste (#35): ein Wert oder „links ≠ rechts“ hervorgehoben. */
+function pairBpm(p) {
+  const [l, r] = p.bpm || ["", ""];
+  if (!l && !r) return '<span class="bpm" title="kein Tempo"></span>';
+  const diff = l && r && l !== r;
+  return `<span class="bpm${diff ? " diff" : ""}" title="Tempo (BPM)${diff ? ` links ${esc(l)}, rechts ${esc(r)}` : ""}">${esc(diff ? `${l}≠${r}` : l || r)}</span>`;
 }
 
 function scrollPairIntoView(i) {
@@ -538,7 +546,7 @@ function renderHead(el, h, side) {
   // Datum/Größe nur im Tooltip; als Etiketten: ID3-Version, Dauer, Bitrate, Abtastrate, Kanäle
   const parts = h.info.split(/\s{2,}/).filter(Boolean).slice(2);
   el.innerHTML = `${covers}<div class="head-t"><div class="head-n" title="${esc(h.path + "\n" + h.info.split(/\s{2,}/).join(" · "))}">${esc(h.name)}${h.modified ? '<span class="m" title="ungespeicherte Änderungen"></span>' : ""}</div>
-    <div class="tags">${parts.map((p) => `<span>${esc(p)}</span>`).join("")}</div></div>`;
+    <div class="tags">${parts.map((p) => `<span>${esc(p)}</span>`).join("")}${h.bpm ? `<span class="bpm-chip${h.bpm_differs ? " diff" : ""}" title="Tempo${h.bpm_differs ? " – unterscheidet sich von der anderen Seite" : ""}">${esc(h.bpm)} BPM</span>` : ""}</div></div>`;
 }
 
 function valueHtml(cell, state) {
@@ -827,7 +835,7 @@ function bind() {
   $("#fReset").addEventListener("click", () => { $("#fField").value = ""; $("#fVal").value = ""; $("#fOp").selectedIndex = 0; $("#fSide").selectedIndex = 0; applyPairFilter(true); });
 
   // Optionen
-  $$(".seg button").forEach((b) => b.addEventListener("click", async () => applyState(await call("set_option", "filter", b.dataset.filter))));
+  $$(".seg button[data-filter]").forEach((b) => b.addEventListener("click", async () => applyState(await call("set_option", "filter", b.dataset.filter))));
   $("#trivBtn").addEventListener("click", async () => applyState(await call("set_option", "show_trivial", !S.opts.show_trivial)));
   $("#coverBtn").addEventListener("click", async () => applyState(await call("set_option", "show_covers", !S.opts.show_covers)));
   $("#emptySet").addEventListener("change", async (e) => applyState(await call("set_option", "empty_set", e.target.value)));

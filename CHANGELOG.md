@@ -7,6 +7,14 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Länge** des Titels gross neben dem Cover im Tagger, bei mehreren markierten Titeln die Gesamtlänge (#34).
+- **Tempo (BPM)** als sortierbare Spalte im Tagger; im Vergleich als Spalte in der Paarliste (abweichende Werte
+  „124≠126“ hervorgehoben) und als Kennzeichen im Dateikopf (#35).
+- Player: **Startpunkt als Umschalter** (Start · 30 % · 1:00 · Cue) statt Auswahlliste (#36) und **Cue-Sprung-Knöpfe**
+  (voriger/nächster Cue, nur bei Titeln mit Cues) (#37).
+- Herkunft der Tags: Felder ohne bekannte Anwendung tragen das Kennzeichen **v2.3/v2.4** (ID3-Version der Datei) (#38).
+  Neue Herkünfte **Spotify** und **Discogs**; `GEOB:Energy`/`GEOB:Key` → Mixed In Key, `GEOB:PlatinumNotes` → Platinum
+  Notes, `TXXX:Meter` und `TXXX:MOOD_*` → beaTunes (#39).
 - **Stems als Spuren im Tagger:** erzeugte Stems (Ordner „<Titel> – Stems“ bzw. fester Stems-Ordner) erscheinen
   nicht mehr als eigene Titel, sondern **aufklappbar unter dem Original** (▸ / Kennzeichen „4 Stems“, →/← auf-
   und zuklappen, „Stems ▾/▸“ für alle). MP3-Spuren sind normal bearbeitbar, FLAC/WAV-Spuren lassen sich anhören
@@ -47,6 +55,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - Milestones neu geordnet: 3.2.0 Wiedergabe & Herkunft, 3.3.0 DJ-Set, 3.4.0 Online-Metadaten.
 
 ### Behoben
+- Klick auf L/R im Player bzw. auf den Design-Umschalter der Einstellungen setzte nebenbei den Filter des Vergleichs
+  zurück (alle Segment-Schalter lösten den Filter-Befehl aus).
 - Hintergrund-Aufträge (seit 3.2.0-beta.2): Beim Beenden konnte der gerade abgebrochene Auftrag den Vermerk der
   offenen Warteschlange überschreiben – dann fehlte das Angebot zum Fortsetzen. Gefunden durch einen sporadisch
   fehlschlagenden Test in GitHub Actions.

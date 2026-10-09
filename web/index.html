@@ -263,13 +263,15 @@
       <div class="player" id="player" role="group" aria-label="Vorschau-Player">
         <button class="icon-btn" id="plPrev" title="Voriger Titel" aria-label="Voriger Titel"><svg class="i" viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M19 5 9 12l10 7Z"/></svg></button>
         <button class="icon-btn pl-play" id="plPlay" aria-label="Abspielen"></button>
+        <button class="icon-btn pl-cue-btn" id="plCuePrev" hidden title="Voriger Cue (Alt+Bild↑)" aria-label="Voriger Cue"><svg class="i" viewBox="0 0 24 24"><path d="M11 6 5 12l6 6"/><path d="M19 6l-6 6 6 6"/></svg></button>
+        <button class="icon-btn pl-cue-btn" id="plCueNext" hidden title="Nächster Cue (Alt+Bild↓)" aria-label="Nächster Cue"><svg class="i" viewBox="0 0 24 24"><path d="m13 6 6 6-6 6"/><path d="m5 6 6 6-6 6"/></svg></button>
         <button class="icon-btn" id="plNext" title="Nächster Titel" aria-label="Nächster Titel"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14"/><path d="M5 5l10 7-10 7Z"/></svg></button>
         <div class="pl-mid">
           <div class="pl-line"><span class="pl-title" id="plTitle"></span><span class="pl-time" id="plTime"></span></div>
           <div class="pl-wave" id="plWave"><canvas id="plCanvas" aria-hidden="true"></canvas><input type="range" id="plSeek" min="0" max="1" value="0" step="1" aria-label="Position"><div class="pl-cues" id="plCues"></div></div>
         </div>
         <div class="seg sm" id="plAB" hidden title="A/B: linke oder rechte Datei hören (Position bleibt)"><button data-side="L">L</button><button data-side="R">R</button></div>
-        <select id="plStart" class="inp sm" title="Startpunkt beim Abspielen" aria-label="Startpunkt"><option value="0">ab Anfang</option><option value="30">ab 30 %</option><option value="60">ab 1:00</option><option value="cue">ab 1. Cue</option></select>
+        <div class="seg sm pl-start" id="plStart" role="radiogroup" aria-label="Startpunkt beim Abspielen" title="Startpunkt beim Abspielen"><button data-v="0" role="radio" title="ab Anfang">Start</button><button data-v="30" role="radio" title="ab 30 %">30 %</button><button data-v="60" role="radio" title="ab 1:00">1:00</button><button data-v="cue" role="radio" title="ab erstem Cue-Punkt">Cue</button></div>
         <input type="range" id="plVol" min="0" max="100" value="80" title="Lautstärke" aria-label="Lautstärke">
         <button class="icon-btn" id="plMore" title="Externer Player …" aria-label="Externer Player"><svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
       </div>

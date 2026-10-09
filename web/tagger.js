@@ -6,7 +6,7 @@ const TG = { settings: null, loaded: false, rows: [], order: [], sel: new Set(),
   sort: { col: "name", dir: 1 }, detail: null, editing: false,
   view: [], open: new Set(), flat: false };     // view: angezeigte Zeilen inkl. aufgeklappter Stems (#31)
 const TG_COLS = [["m", ""], ["name", "Datei"], ["TIT2", "Titel"], ["TPE1", "Künstler"], ["TALB", "Album"],
-  ["TRCK", "Spur"], ["TDRC", "Jahr"], ["TCON", "Genre"], ["camelot", "Tonart"]];
+  ["TRCK", "Spur"], ["TDRC", "Jahr"], ["TCON", "Genre"], ["TBPM", "BPM"], ["camelot", "Tonart"]];
 const TG_ROW = 40;
 
 // ---------------------------------------------------------------------- Anzeigen / Laden
@@ -82,7 +82,9 @@ function tgApplyOrder() {
   const { col, dir } = TG.sort;
   let idx = TG.rows.filter((r) => r.parent === undefined).map((r) => r.i);   // Stems hängen unter dem Original
   if (q) idx = idx.filter((i) => { const r = TG.rows[i]; return [r.rel, r.TIT2, r.TPE1, r.TALB, r.TCON, r.TPE2].some((v) => (v || "").toLowerCase().includes(q)); });
-  const key = (r) => (col === "name" ? r.rel : col === "camelot" ? keySortValue(r.camelot) : col === "TRCK" ? trackNum(r.TPOS) * 10000 + trackNum(r.TRCK) : (r[col] || ""));
+  const bpmNum = (v) => { const n = parseFloat(String(v || "").replace(",", ".")); return isFinite(n) ? n : Infinity; };
+  const key = (r) => (col === "name" ? r.rel : col === "camelot" ? keySortValue(r.camelot) : col === "TRCK" ? trackNum(r.TPOS) * 10000 + trackNum(r.TRCK)
+    : col === "TBPM" ? bpmNum(r.TBPM) : (r[col] || ""));
   idx.sort((a, b) => {
     const x = key(TG.rows[a]), y = key(TG.rows[b]);
     const c = typeof x === "number" ? x - y : String(x).localeCompare(String(y), "de", { numeric: true, sensitivity: "base" });
@@ -134,7 +136,7 @@ function drawTgList() {
     h += `<div class="tg-row${TG.sel.has(r.i) ? " sel" : ""}${v.child !== undefined ? " child" : ""}" style="top:${k * TG_ROW}px" data-i="${r.i}" title="${esc(r.rel)}">
       <span>${r.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</span>
       <span class="fn">${name}</span><span>${esc(r.TIT2)}</span><span>${esc(r.TPE1)}</span><span>${esc(r.TALB)}</span>
-      <span>${esc(r.TRCK)}</span><span>${esc(r.TDRC)}</span><span>${esc(r.TCON)}</span>
+      <span>${esc(r.TRCK)}</span><span>${esc(r.TDRC)}</span><span>${esc(r.TCON)}</span><span class="num">${esc(r.TBPM)}</span>
       <span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx">${esc(r.TKEY)}</span>`}</span></div>`;
   }
   inner.innerHTML = h;
@@ -170,6 +172,15 @@ async function tgSelect(i, e = {}) {
   if (typeof playerFollow === "function") playerFollow();
 }
 
+/** Länge neben dem Cover (#34): ein Titel bzw. Gesamtlänge der markierten Titel. */
+function tgLength(d) {
+  const L = d.length;
+  if (!L || !L.total) return "";
+  const t = Math.round(L.total), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+  const txt = h ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
+  return `<span class="tg-len" title="${L.count > 1 ? "Gesamtlänge der markierten Titel" : "Länge"}"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M10 2h4"/></svg>${L.count > 1 ? `${txt} <span class="muted">gesamt · ${L.count} Titel</span>` : txt}</span>`;
+}
+
 // ---------------------------------------------------------------------- Bearbeiten
 function renderTgEditor() {
   const box = $("#tgEdit"), d = TG.detail;
@@ -201,7 +212,7 @@ function renderTgEditor() {
   const srcSel = srcOpts.length ? `<select id="tgSrcF" class="inp" title="Weitere Felder nach Herkunft filtern" aria-label="Nach Herkunft filtern">
       <option value="">Alle Herkünfte</option>${srcOpts.map((k) => `<option value="${esc(k)}"${TG.srcFilter === k ? " selected" : ""}>${esc(srcInfo(k)?.name || k)} (${srcs[k]})</option>`).join("")}
       ${srcs[""] ? `<option value="-"${TG.srcFilter === "-" ? " selected" : ""}>ohne bekannte Herkunft (${srcs[""]})</option>` : ""}</select>
-      ${TG.srcFilter && TG.srcFilter !== "-" ? `<button class="ghost sm" id="tgSrcDel" data-src="${esc(TG.srcFilter)}">Alle entfernen …</button>` : ""}` : "";
+      ${TG.srcFilter && TG.srcFilter !== "-" && srcInfo(TG.srcFilter)?.kind !== "id3" ? `<button class="ghost sm" id="tgSrcDel" data-src="${esc(TG.srcFilter)}">Alle entfernen …</button>` : ""}` : "";
   const more = one && d.fields.length ? `<div class="tg-more-tools"><h4>Weitere Felder <span class="muted sm" style="font-weight:400">${shownFields.length === d.fields.length ? d.fields.length : `${shownFields.length} von ${d.fields.length}`}</span></h4>${srcSel}</div>
     <div class="tg-more">
       <div class="tg-more-head"><span class="k">Feld<span class="col-grip" id="tgMoreGrip" role="separator" aria-orientation="vertical" aria-label="Breite der Feldnamen" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: Standardbreite"></span></span><span>Wert</span><span></span></div>
@@ -216,7 +227,7 @@ function renderTgEditor() {
   box.innerHTML = `${head}
     <div class="tg-cover"><button class="cover" id="tgCoverBig" title="${esc(c.desc || (c.state === "mixed" ? "unterschiedliche Cover" : "kein Cover"))}">${coverImg}</button>
       <div class="tg-cover-btns"><button class="ghost sm" id="tgCoverSet">Cover wählen …</button><button class="ghost sm" id="tgCoverDel" ${c.state === "none" ? "disabled" : ""}>Cover entfernen</button>
-      <span class="hint">${esc(c.desc || (c.state === "mixed" ? "unterschiedlich" : "kein Cover"))}</span></div></div>
+      <span class="hint">${esc(c.desc || (c.state === "mixed" ? "unterschiedlich" : "kein Cover"))}</span>${tgLength(d)}</div></div>
     <div class="tg-form">${form}
       <label for="tgVer">ID3-Version</label><select id="tgVer" class="inp" style="height:36px"><option value="3">ID3v2.3 (verbreitet)</option><option value="4">ID3v2.4 (Mehrfachwerte)</option>${d.version ? "" : '<option value="" selected>verschieden</option>'}</select>
     </div>
@@ -791,7 +802,7 @@ async function tgOriginDialog(preset = "") {
   const idx = tgSelected();
   if (!idx.length) return toast("Erst Dateien markieren.");
   const cat = S.settings.origins || {};
-  const ids = Object.keys(cat).sort((a, b) => cat[a].name.localeCompare(cat[b].name));
+  const ids = Object.keys(cat).filter((k) => cat[k].kind !== "id3").sort((a, b) => cat[a].name.localeCompare(cat[b].name));
   const res = await modal({
     title: "Felder nach Herkunft entfernen", wide: true,
     html: `<div class="frm"><label for="orSrc">Herkunft</label><select id="orSrc" class="inp">${ids.map((k) => `<option value="${esc(k)}"${k === preset ? " selected" : ""}>${esc(cat[k].name)}</option>`).join("")}</select></div>

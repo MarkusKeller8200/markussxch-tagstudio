@@ -134,7 +134,7 @@ async function originSettingsRender(card) {
   const o = await call("tag_origins");
   S.settings.origins = o.catalog;
   ST.origins = o.custom.length ? o.custom.map((r) => ({ ...r })) : [];
-  const cat = o.catalog, ids = Object.keys(cat).sort((a, b) => cat[a].name.localeCompare(cat[b].name));
+  const cat = o.catalog, ids = Object.keys(cat).filter((k) => cat[k].kind !== "id3").sort((a, b) => cat[a].name.localeCompare(cat[b].name));
   const triv = new Set(ST.data.trivial.map((t) => t.toLowerCase()));
   card.hidden = false;
   card.innerHTML = `<h3>Herkunft der Tags</h3>

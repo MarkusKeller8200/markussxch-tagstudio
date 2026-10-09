@@ -17,11 +17,16 @@ const ICON_PAUSE = '<svg class="i" viewBox="0 0 24 24"><path d="M7 4h3v16H7zM14 
 /** Player-Einstellung ändern und in den Einstellungen (~/.tagstudio.json, Gruppe „Player“) merken. */
 let plVolTimer = null;
 function plSetPref(k, v) {
-  if (k === "start") { PLAYER.startAt = v; $("#plStart").value = v; }
+  if (k === "start") { PLAYER.startAt = v; plStartSync(); }
   else if (k === "wave") { PLAYER.wave = !!v; if (PLAYER.wave && PLAYER.info && !PLAYER.info.wave) plWaveCompute(PLAYER.info); plRender(); }
   else if (k === "follow") PLAYER.follow = !!v;
   else if (k === "vol") { clearTimeout(plVolTimer); plVolTimer = setTimeout(() => call("set_player_pref", "vol", v).catch(() => {}), 400); return; }
   call("set_player_pref", k, v).catch(() => {});
+}
+
+/** Startpunkt-Umschalter (#36) */
+function plStartSync() {
+  $$("#plStart button").forEach((b) => { const on = b.dataset.v === PLAYER.startAt; b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
 }
 
 function plStore(k, v) {
@@ -126,6 +131,8 @@ function plRender() {
   seek.disabled = !i;
   plDrawWave();
   $("#plAB").hidden = S.module !== "compare";
+  const hasCues = !!(i && i.cues && i.cues.length);
+  $("#plCuePrev").hidden = $("#plCueNext").hidden = !hasCues;      // Cue-Sprünge (#37)
   $$("#plAB button").forEach((b) => b.classList.toggle("on", b.dataset.side === PLAYER.side));
 }
 
@@ -317,8 +324,10 @@ function initPlayer() {
   $("#plSeek").addEventListener("input", (e) => { a.currentTime = (+e.target.value) / 10; $("#plTime").textContent = `${fmtTime(a.currentTime)} / ${fmtTime(a.duration)}`; });
   $("#plVol").value = String(Math.round(a.volume * 100));
   $("#plVol").addEventListener("input", (e) => { a.volume = (+e.target.value) / 100; plSetPref("vol", a.volume); });
-  $("#plStart").value = PLAYER.startAt;
-  $("#plStart").addEventListener("change", (e) => plSetPref("start", e.target.value));
+  plStartSync();
+  $("#plStart").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) plSetPref("start", b.dataset.v); });
+  $("#plCuePrev").addEventListener("click", () => plCueJump(-1));
+  $("#plCueNext").addEventListener("click", () => plCueJump(1));
   $("#plAB").addEventListener("click", (e) => { const b = e.target.closest("[data-side]"); if (b) plSide(b.dataset.side); });
   $("#plMore").addEventListener("click", (e) => plMenu(e.currentTarget));
 

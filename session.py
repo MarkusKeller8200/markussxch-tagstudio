@@ -122,9 +122,18 @@ class Session:
             self._origins = origins.Origins(self.cfg.get("tag_origins"), pf)
         return self._origins
 
+    def _src(self, key, f):
+        """Herkunft eines Felds; ohne bekannte Anwendung die ID3-Version der Datei („v2.3“/„v2.4“, #38)."""
+        sid = self.origins.of(key)
+        if sid is None and f is not None:
+            sid = "id3v4" if f.version == 4 else "id3v3"
+        return sid
+
     def origin_catalog(self) -> dict:
         o = self.origins
         cat = o.catalog()
+        cat["id3v3"] = {"name": "v2.3", "desc": "keine bekannte Anwendung – Feld im ID3v2.3-Tag der Datei", "kind": "id3"}
+        cat["id3v4"] = {"name": "v2.4", "desc": "keine bekannte Anwendung – Feld im ID3v2.4-Tag der Datei", "kind": "id3"}
         for sid, v in cat.items():
             v["patterns"] = o.patterns(sid)
         return cat
@@ -338,7 +347,8 @@ class Session:
                 st = core.pair_status(l, r, self.rules)
                 counts[st["tag"]] += 1
                 rows.append({"i": i, "left": core.rel_name(l, self.left_root), "right": core.rel_name(r, self.right_root),
-                             "symbol": st["symbol"], "tag": st["tag"], "info": st["info"], "modified": st["modified"]})
+                             "symbol": st["symbol"], "tag": st["tag"], "info": st["info"], "modified": st["modified"],
+                             "bpm": self._pair_bpm(l, r)})
             return {"rows": rows, "counts": counts, "left_root": self.left_root, "right_root": self.right_root}
 
     def filter_pairs(self, query="", key=None, op="enthält", val="", side="links oder rechts") -> list[int]:
@@ -385,6 +395,7 @@ class Session:
             return None
         return {"name": os.path.basename(f.path), "rel": core.rel_name(f, root), "path": f.path,
                 "info": f.info(), "version": f.version, "modified": f.is_modified(),
+                "bpm": self._bpm(f), "bpm_differs": other is not None and self._bpm(other) != self._bpm(f),
                 "covers": self._covers(f, other) if self.opts["show_covers"] else []}
 
     def view(self) -> dict:
@@ -395,7 +406,7 @@ class Session:
             rows = []
             for k in keys:
                 st = states[k]
-                row = {"key": k, "label": key_label(k), "state": st, "src": self.origins.of(k)}
+                row = {"key": k, "label": key_label(k), "state": st, "src": self._src(k, l if l is not None else r)}
                 fids = []
                 for side, f, other in (("L", l, r), ("R", r, l)):
                     it = f.get(k) if f else None
@@ -434,7 +445,16 @@ class Session:
         l, r = self.pairs[i]
         st = core.pair_status(l, r, self.rules)
         return {"i": i, "left": core.rel_name(l, self.left_root), "right": core.rel_name(r, self.right_root),
-                "symbol": st["symbol"], "tag": st["tag"], "info": st["info"], "modified": st["modified"]}
+                "symbol": st["symbol"], "tag": st["tag"], "info": st["info"], "modified": st["modified"],
+                "bpm": self._pair_bpm(l, r)}
+
+    @staticmethod
+    def _bpm(f) -> str:
+        return (f.text("TBPM") or "").strip() if f is not None else ""
+
+    def _pair_bpm(self, l, r) -> list:
+        """Tempo links/rechts für die Spalte in der Paarliste."""
+        return [self._bpm(l), self._bpm(r)]
 
     def state(self, message=None, tone="info") -> dict:
         with self.lock:
@@ -1004,6 +1024,9 @@ class Session:
                     if len(cs["data"]) <= 4_000_000 else ""
             out["cover"] = cs
             out["features"] = features.common(files)
+            durs = [float(getattr(f, "duration", 0) or 0) for f in files]
+            out["length"] = {"total": round(sum(durs), 1), "count": len(files),
+                             "same": len({round(d) for d in durs}) == 1}
             vers = {f.version for f in files}
             out["version"] = vers.pop() if len(vers) == 1 else None
             if len(files) == 1:
@@ -1017,7 +1040,7 @@ class Session:
                         continue
                     it = f.get(k)
                     xml = xmltools.xml_of_item(it)
-                    fields.append({"key": k, "label": key_label(k), "text": core.disp(it), "src": self.origins.of(k),
+                    fields.append({"key": k, "label": key_label(k), "text": core.disp(it), "src": self._src(k, f),
                                    "editable": core.can_edit_text(f, k) and xml is None,
                                    "multiline": "\n" in (it.text or "") or k.startswith(("COMM", "USLT")),
                                    "blob": blobs.is_blob(it),

@@ -22,7 +22,13 @@ class TestOrigins(unittest.TestCase):
                          ("GEOB:Serato Markers2", "serato"), ("GEOB:CuePoints", "mik"), ("TXXX:EnergyLevel", "mik"),
                          ("PRIV:TRAKTOR4", "traktor"), ("COMM:iTunNORM", "itunes"), ("TXXX:BEATPORT_TRACK_ID", "beatport"),
                          ("txxx:musicbrainz artist id", "musicbrainz"), ("TXXX:replaygain_track_gain#2", "replaygain"),
-                         ("TIT2", None), ("TXXX:ENERGY", None)):
+                         ("TIT2", None), ("TXXX:ENERGY", None),
+                         # #39
+                         ("GEOB:Energy", "mik"), ("GEOB:Key", "mik"), ("GEOB:PlatinumNotes", "platinum"),
+                         ("TXXX:Meter", "beatunes"), ("TXXX:MOOD_ACOUSTIC", "beatunes"),
+                         ("TXXX:MOOD_DANCEABILITY", "beatunes"), ("TXXX:MOOD_ELECTRONIC", "beatunes"),
+                         ("TXXX:SPOTIFY_TRACK_ID", "spotify"), ("WXXX:Spotify", "spotify"),
+                         ("TXXX:DISCOGS_RELEASE_ID", "discogs"), ("TXXX:Discogs Style", "discogs")):
             self.assertEqual(o.of(key), sid, key)
         self.assertIn("GEOB:Serato*", o.patterns("serato"))
 
@@ -59,6 +65,7 @@ class TestSessionOrigins(unittest.TestCase):
             src = {f["key"]: f["src"] for f in s.tag_detail([0])["fields"]}
             self.assertEqual(src["GEOB:Serato Markers2"], "serato")
             self.assertEqual(src["PRIV:TRAKTOR4"], "traktor")
+            self.assertEqual(s.settings()["origins"]["id3v4"]["name"], "v2.4")
             self.assertEqual(src["TXXX:BEATPORT_TRACK_ID"], "p:Beatport (inoffiziell)")   # aus plugin.json „fields“
             pv = s.tag_origin_remove([0, 1], "serato")
             self.assertEqual((pv["count"], pv["files"], len(pv["keys"])), (4, 2, 2))
@@ -80,7 +87,7 @@ class TestSessionOrigins(unittest.TestCase):
             s2.select(0)
             rows = {r["key"]: r["src"] for r in s2.view()["rows"]}
             self.assertEqual((rows["PRIV:TRAKTOR4"], rows["TXXX:MusicBrainz Album Id"], rows["TIT2"]),
-                             ("traktor", "u:Meine App", None))
+                             ("traktor", "u:Meine App", "id3v4"))     # ohne Herkunft: ID3-Version (#38)
         finally:
             core.CONFIG, core.CONFIG_OLD = old
             shutil.rmtree(d, ignore_errors=True)
