@@ -134,8 +134,8 @@ def main(argv):
         subprocess.run(["git", "tag", "-a", f"v{new}", "-m", f"MarKusSXCH TagStudio {new}"], cwd=ROOT, check=True)
         print(f"Commit und Tag v{new} erstellt. Jetzt: git push --follow-tags")
     else:
-        print(f"Nächste Schritte: committen und pushen, dann Tag v{new} setzen "
-              "(GitHub → Releases → „Draft a new release“ oder git tag + git push).")
+        print(f"Nächste Schritte: committen und auf main pushen – der Workflow „Installer“ baut dann und legt "
+              f"Tag v{new} und das Release selbst an.")
     return 0
 
 

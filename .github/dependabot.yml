@@ -1,0 +1,14 @@
+# Dependabot: hält die GitHub-Actions im Workflow aktuell (z. B. checkout, setup-python, upload-artifact).
+# TagStudio selbst hat keine Python-Abhängigkeiten; Sicherheitswarnungen kommen über „Dependabot alerts“.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "CI"
+    labels: ["installer"]

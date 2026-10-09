@@ -1,13 +1,15 @@
 name: Installer
 
 # Baut die Installer für Windows (Setup.exe) und macOS (DMG).
-# - Bei einem Versions-Tag (v3.0 …) zusätzlich als GitHub-Release mit beiden Dateien veröffentlichen.
+# - Neue Versionsnummer in version.py auf main (python packaging/release.py X.Y.Z + Push): bauen, testen, dann
+#   legt der Workflow selbst Tag vX.Y.Z und Release „TagStudio X.Y.Z“ an (Text aus dem CHANGELOG).
+# - Von Hand gesetzter Versions-Tag (vX.Y.Z): ebenso, Release wird angelegt bzw. ergänzt.
 # - Von Hand: Actions → Installer → „Run workflow“ (Dateien dann unter „Artifacts“ des Laufs).
 on:
   push:
     tags: ["v*"]
     branches: [main]
-    paths: ["packaging/**", ".github/workflows/installer.yml"]
+    paths: ["version.py", "packaging/**", ".github/workflows/installer.yml"]
   workflow_dispatch:
 
 permissions:
@@ -18,7 +20,39 @@ env:
   PYTHONIOENCODING: "utf-8"
 
 jobs:
+  plan:
+    # Soll am Ende ein Release entstehen? Ja bei Versions-Tag oder wenn es den Tag zur Version auf main noch nicht gibt.
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.p.outputs.version }}
+      tag: ${{ steps.p.outputs.tag }}
+      release: ${{ steps.p.outputs.release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: p
+        shell: bash
+        run: |
+          ver="$(python3 -c 'import version; print(version.VERSION)')"
+          rel=false
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "tag=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"; rel=true
+          elif [[ "$GITHUB_REF" == refs/heads/main && "$GITHUB_EVENT_NAME" == push ]]; then
+            set +e
+            git ls-remote --exit-code --tags origin "refs/tags/v$ver" >/dev/null
+            rc=$?
+            set -e
+            if [ $rc -eq 2 ]; then          # 2 = Tag gibt es nicht
+              echo "tag=v$ver" >> "$GITHUB_OUTPUT"; rel=true
+              echo "::notice title=Neues Release::Version $ver hat noch keinen Tag – Tag v$ver und Release werden nach dem Build angelegt."
+            elif [ $rc -ne 0 ]; then
+              echo "::error::Tags konnten nicht abgefragt werden (git ls-remote: $rc)"; exit 1
+            fi
+          fi
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          echo "release=$rel" >> "$GITHUB_OUTPUT"
+
   windows:
+    needs: plan
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
@@ -89,6 +123,7 @@ jobs:
           path: dist/TagStudio-*-Windows-Setup.exe
 
   macos:
+    needs: plan
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
@@ -132,9 +167,11 @@ jobs:
           path: dist/TagStudio-*.dmg
 
   release:
-    needs: [windows, macos]
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [plan, windows, macos]
+    if: needs.plan.outputs.release == 'true'
     runs-on: ubuntu-latest
+    env:
+      TAG: ${{ needs.plan.outputs.tag }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v7
@@ -143,7 +180,7 @@ jobs:
           merge-multiple: true
       - name: Release-Text aus dem CHANGELOG
         run: |
-          ver="${GITHUB_REF_NAME#v}"
+          ver="${TAG#v}"
           python3 - "$ver" > notes.md <<'EOF'
           import sys
           sys.path.insert(0, "packaging")
@@ -161,10 +198,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           pre=""
-          case "$GITHUB_REF_NAME" in *-*) pre="--prerelease";; esac
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" assets/* --clobber
-            gh release edit "$GITHUB_REF_NAME" --notes-file notes.md $pre
+          case "$TAG" in *-*) pre="--prerelease";; esac
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" assets/* --clobber
+            gh release edit "$TAG" --notes-file notes.md $pre
           else
-            gh release create "$GITHUB_REF_NAME" assets/* --title "TagStudio ${GITHUB_REF_NAME#v}" --notes-file notes.md $pre
+            # legt den Tag auf genau diesem Commit an, falls es ihn noch nicht gibt
+            gh release create "$TAG" assets/* --target "$GITHUB_SHA" --title "TagStudio ${TAG#v}" --notes-file notes.md $pre
           fi
+          echo "::notice title=Release::TagStudio ${TAG#v} veröffentlicht"

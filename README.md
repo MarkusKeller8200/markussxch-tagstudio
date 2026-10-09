@@ -329,11 +329,11 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 1. **Laufend:** Jede Änderung kommt sofort in `CHANGELOG.md` unter **„Unveröffentlicht“**.
 2. **Version festlegen**, wenn ein zusammenhängendes Paket fertig und getestet ist:
    `python packaging/release.py 3.1.0` – setzt `version.py` und `pyproject.toml` und macht aus „Unveröffentlicht“
-   den Abschnitt „[3.1.0] – Datum“. Danach committen und pushen (mit `--commit` erledigt das Skript Commit + Tag).
-3. **Tag `v3.1.0` setzen** – auf GitHub unter *Releases → Draft a new release* (Tag neu auf `main`) oder per
-   `git push --follow-tags`. GitHub Actions prüft, dass Tag und `version.py` übereinstimmen, baut die Installer für
-   Windows und macOS, testet sie und veröffentlicht sie als **Release** „TagStudio 3.1.0“ mit dem Text aus dem
-   CHANGELOG. Im Browser angelegt: Titel „TagStudio X.Y.Z“, Beschreibung leer lassen – der Workflow füllt sie.
+   den Abschnitt „[3.1.0] – Datum“. Danach committen und auf `main` pushen.
+3. **Automatisch veröffentlichen** – sobald die neue Versionsnummer auf `main` landet, baut GitHub Actions die
+   Installer für Windows und macOS, testet sie und legt **selbst Tag `v3.1.0` und das Release „TagStudio 3.1.0“**
+   mit dem Text aus dem CHANGELOG an. Ein von Hand gesetzter Tag (*Releases → Draft a new release*) funktioniert
+   weiterhin; der Workflow prüft dann, dass Tag und `version.py` übereinstimmen.
    Tags mit Zusatz (`v3.1.0-beta.1`) werden als **Vorabversion** veröffentlicht (Text aus „Unveröffentlicht“).
 4. **Dringender Fehler:** sofort eine PATCH-Version (3.1.1) auf demselben Weg.
 
