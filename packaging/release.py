@@ -75,6 +75,12 @@ def check(root=ROOT) -> list:
         log = fh.read()
     if UNRELEASED not in log:
         probs.append("CHANGELOG.md: Abschnitt „## [Unveröffentlicht]“ fehlt.")
+    sec = os.path.join(root, "SECURITY.md")
+    if os.path.exists(sec) and "-" not in ver:
+        mm = ".".join(ver.split(".")[:2])
+        with open(sec, encoding="utf-8") as fh:
+            if f"| {mm}.x" not in fh.read():
+                probs.append(f"SECURITY.md: unterstützte Version ist nicht {mm}.x.")
     if "-" not in ver and f"## [{ver}]" not in log:
         probs.append(f"CHANGELOG.md: Abschnitt „## [{ver}]“ fehlt.")
     return probs
@@ -109,7 +115,25 @@ def release(new: str, today=None, root=ROOT) -> str:
             raise ValueError(f"Versionszeile in {name} nicht gefunden.")
         with open(p, "w", encoding="utf-8", newline="\n") as fh:
             fh.write(text)
+    if not pre:
+        update_security(new, root)
     return old
+
+
+def update_security(ver: str, root=ROOT) -> bool:
+    """SECURITY.md: Tabelle der unterstützten Versionen auf MAJOR.MINOR der neuen Version setzen."""
+    p = os.path.join(root, "SECURITY.md")
+    if not os.path.exists(p):
+        return False
+    mm = ".".join(ver.split("-")[0].split(".")[:2])
+    with open(p, encoding="utf-8") as fh:
+        text = fh.read()
+    new = re.sub(r"^\| [0-9]+\.[0-9]+\.x( *)\|", lambda m: f"| {mm}.x".ljust(len(m.group(0)) - 1) + "|", text, count=1, flags=re.M)
+    new = re.sub(r"^\| < [0-9]+\.[0-9]+( *)\|", lambda m: f"| < {mm}".ljust(len(m.group(0)) - 1) + "|", new, count=1, flags=re.M)
+    if new != text:
+        with open(p, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(new)
+    return new != text
 
 
 def main(argv):
@@ -127,9 +151,9 @@ def main(argv):
     except ValueError as ex:
         print(f"Fehler: {ex}")
         return 1
-    print(f"Version {old} → {new}: version.py, pyproject.toml" + ("" if "-" in new else ", CHANGELOG.md") + " angepasst.")
+    print(f"Version {old} → {new}: version.py, pyproject.toml" + ("" if "-" in new else ", CHANGELOG.md, SECURITY.md") + " angepasst.")
     if "--commit" in argv:
-        subprocess.run(["git", "add", "version.py", "pyproject.toml", "CHANGELOG.md"], cwd=ROOT, check=True)
+        subprocess.run(["git", "add", "version.py", "pyproject.toml", "CHANGELOG.md", "SECURITY.md"], cwd=ROOT, check=True)
         subprocess.run(["git", "commit", "-m", f"Version {new}"], cwd=ROOT, check=True)
         subprocess.run(["git", "tag", "-a", f"v{new}", "-m", f"MarKusSXCH TagStudio {new}"], cwd=ROOT, check=True)
         print(f"Commit und Tag v{new} erstellt. Jetzt: git push --follow-tags")

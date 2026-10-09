@@ -54,6 +54,16 @@ class TestRelease(unittest.TestCase):
         with self.assertRaises(ValueError):          # Unveröffentlicht ist jetzt leer
             release.release("9.1.1", root=self.dir)
 
+    def test_security_table(self):
+        """SECURITY.md: unterstützte Version wird bei MINOR/MAJOR-Release nachgezogen."""
+        with open(os.path.join(self.dir, "SECURITY.md"), "w", encoding="utf-8") as fh:
+            fh.write("| Version | Supported |\n| ------- | --------- |\n| 3.1.x   | ja        |\n| < 3.1   | nein      |\n")
+        self.assertTrue(release.update_security("4.0.0", self.dir))
+        t = self.read("SECURITY.md")
+        self.assertIn("| 4.0.x   | ja", t)
+        self.assertIn("| < 4.0   | nein", t)
+        self.assertFalse(release.update_security("4.0.1", self.dir))   # gleiche MINOR → keine Änderung
+
     def test_prerelease_order(self):
         """3.0.1: Vorabversionen werden nach SemVer sortiert (beta.10 nach beta.9)."""
         k = release.key

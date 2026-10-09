@@ -315,6 +315,8 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 
 ## Versionen & Releases
 
+Sicherheitslücken bitte nicht als öffentliches Issue, sondern privat melden – siehe [SECURITY.md](SECURITY.md).
+
 **Schema MAJOR.MINOR.PATCH** ([Semantic Versioning](https://semver.org/lang/de/)), einzige Quelle: `version.py`.
 
 | Teil | Wann erhöhen | Beispiel |

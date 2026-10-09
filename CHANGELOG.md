@@ -9,6 +9,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ### Geändert
 - Release-Workflow: Titel neuer Releases lautet „TagStudio X.Y.Z“ (wie die bisherigen Releases).
 - GitHub: Code-Scanning mit CodeQL (Python, JavaScript, Workflows; bei jedem Push, Pull Request und wöchentlich).
+- `SECURITY.md`: unterstützte Versionen und privates Melden von Sicherheitslücken; `release.py` zieht die Tabelle bei neuen MINOR/MAJOR-Versionen automatisch nach.
 - Release-Workflow: Eine neue Versionsnummer auf `main` (nach `release.py X.Y.Z`) wird automatisch veröffentlicht –
   der Workflow baut, testet und legt Tag `vX.Y.Z` und das Release selbst an. Von Hand gesetzte Tags gehen weiterhin.
 - Dependabot hält die GitHub-Actions im Workflow aktuell (monatlich, als ein gemeinsamer Pull Request).
