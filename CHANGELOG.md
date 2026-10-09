@@ -59,7 +59,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   aufheben; Esc hebt auf) mit Markierung auf der Wellenform; bleibt beim Umschalten Original/Stems und L/R (#79).
 - Einstellungen › Cache: **„Erstellen“** je Cache – Listen-Cache neu von der Platte aufbauen, fehlende
   **Wellenformen** berechnen, **Cover-Vorschauen** erzeugen; jeweils für alle geladenen Titel (Tagger und Vergleich),
-  mit Fortschritt und Abbrechen (#80).
+  mit Fortschritt und Abbrechen – wahlweise **im Hintergrund** (Listen und Cover als Hintergrund-Auftrag,
+  Wellenformen mit Fortschritt in der Fußleiste) (#80).
+- Vergleich: **unwichtige Unterschiede deutlich markiert** – eigene Farbe für Zeile und geänderte Zeichen,
+  Kennzeichen „unwichtig“ neben der Feld-ID (#83).
 - Vergleich: **„Paar neu“** (Shift+F5) liest nur die beiden Dateien des aktuellen Paars neu – die übrige Liste
   bleibt, bei ungespeicherten Änderungen wird gefragt (#82).
 
@@ -69,7 +72,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - Fehlermeldungen aus Aktionen, die nicht abgefangen wurden, erscheinen jetzt als Hinweis statt still zu verschwinden.
 - Journal: ⇄ öffnet im Vergleich nur noch den einen Titel statt den ganzen Ordner neu einzulesen (#56).
 - Journal → Vergleich: rechts erscheint immer der aktuelle Stand (einzelne Dateien kommen nie aus dem
-  Listen-Cache), der Filter steht direkt auf „Unterschiede“ (#81).
+  Listen-Cache), der Filter steht direkt auf „Unterschiede“ und „Unwichtige“ ist eingeschaltet (#81).
 
 ### Geändert
 - **Schneller einlesen:** jede Datei wird nur noch einmal gelesen (der Fingerabdruck für den Konfliktschutz entsteht
