@@ -27,6 +27,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   den Inhalt: lesbarer Text und Base64-kodierter Text/JSON (z. B. Mixed In Key) sind direkt bearbeitbar
   (JSON formatieren, beim Übernehmen wieder Base64-kodiert), XML öffnet den XML-Editor, unbekannte Binärdaten
   erscheinen als Hex-Ansicht. Geändert wird nur, was bearbeitet wurde; mit Rückgängig.
+- **JSON-Baum:** JSON (im Binärfeld-Editor, z. B. Mixed In Key, und in Textfeldern im Feld-Editor) wird wie im
+  XML-Editor als aufklappbarer Baum mit Schlüssel/Wert-Paaren angezeigt. Bearbeitbar sind nur die Werte – Text,
+  Zahlen (mit Prüfung, ungültige rot), Ja/Nein als Häkchen; Schlüssel und Aufbau bleiben fest. Beim Übernehmen
+  werden nur die geänderten Werte im Originaltext ersetzt, Format, Einrückung und Escapes bleiben exakt erhalten.
+  Die Textansicht steht weiterhin zur Verfügung.
 
 ### Behoben
 - **Stems:** Der Fortschrittsbalken blieb während der Trennung eines Titels auf 0 stehen (er sprang erst nach dem

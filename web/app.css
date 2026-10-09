@@ -580,3 +580,13 @@ span.xml-treeonly{display:contents}
 .bf-tools{margin-left:auto;display:flex;gap:6px}
 .bf-text{font-family:var(--mono);font-size:12.5px}
 .bf-hex{max-height:46vh;overflow:auto;margin:0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font:12px/1.5 var(--mono);color:var(--dim);white-space:pre}
+
+/* JSON-Baum (wie XML-Baum) */
+.fe-tree{max-height:52vh;min-height:120px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:10px 12px}
+.json-tree .jidx{color:var(--faint);margin-left:6px}
+.json-tree .xin.num{color:var(--ok)}
+.json-tree .xin.bad{border-color:var(--warn);color:var(--warn)}
+.json-tree .jnull{color:var(--faint);font-style:italic;margin-left:4px}
+.json-tree .jbool{display:inline-flex;align-items:center;gap:6px;color:var(--only);margin-left:4px;cursor:pointer}
+.json-tree .jclose{min-height:22px;padding-left:28px}
+.json-tree .xn.closed>.jclose{display:none}
