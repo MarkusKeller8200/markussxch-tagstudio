@@ -643,8 +643,56 @@ class Session:
             return self.state(f"Wiederholt: {e['label']}" if e else None)
 
     # ================================================================== Speichern
-    def start_save(self):
+    def save_conflicts(self) -> dict:
+        """Ungespeicherte Dateien, die inzwischen von einem anderen Programm geändert wurden (#55),
+        mit den extern geänderten Feldern."""
+        import snapshots
+        from id3tags import MP3File
+        out = []
+        with self.lock:
+            for f in self.modified():
+                if not f.external_change():
+                    continue
+                try:
+                    disk = MP3File(f.path)
+                    rows = snapshots.diff_items(f._orig, disk.items)
+                except OSError as ex:
+                    rows = [{"key": "", "label": f"nicht lesbar: {ex}", "state": "changed", "old": "", "new": ""}]
+                mine = set(f.modified_keys())
+                for r in rows:
+                    r["mine"] = r["key"] in mine
+                out.append({"path": f.path, "name": os.path.basename(f.path), "fields": rows,
+                            "clash": sorted(mine & {r["key"] for r in rows})})
+        return {"conflicts": out}
+
+    def save_merge_external(self, paths=None) -> dict:
+        """Externe Änderungen übernehmen, eigene (ungespeicherte) Änderungen behalten: Datei neu einlesen und die
+        selbst geänderten Felder wieder darüberlegen. Bei Feldern, die beide geändert haben, gewinnt TagStudio."""
+        n = 0
+        with self.lock:
+            want = {os.path.normcase(os.path.abspath(p)) for p in (paths or [])}
+            for f in self.modified():
+                if want and os.path.normcase(os.path.abspath(f.path)) not in want:
+                    continue
+                if not f.external_change():
+                    continue
+                mine = {k: f.items.get(k) for k in f.modified_keys()}
+                ver = f.version if f.version != f._orig_version else None
+                f.load()
+                for k, it in mine.items():
+                    f.set(k, it)
+                if ver:
+                    f.set_version(ver)
+                n += 1
+        st = self.state(f"{n} Datei(en) neu eingelesen – externe Änderungen übernommen, eigene Änderungen behalten.")
+        st["pairs_changed"] = True
+        return st
+
+    def start_save(self, force=False):
         files = self.modified()
+        if not force and any(f.external_change() for f in files):
+            return {"ok": False, "conflict": True,
+                    "error": "Dateien wurden inzwischen von einem anderen Programm geändert."}
         if not files:
             return {"ok": False, "error": "Keine ungespeicherten Änderungen."}
         backup_on = self.cfg.get("backup_enabled", True)
@@ -656,7 +704,7 @@ class Session:
 
         def job(cancel, progress):
             with self.lock:
-                return core.save_files(files, backup_on, folder, cancel, progress)
+                return core.save_files(files, backup_on, folder, cancel, progress, force=bool(force))
         return self._run("save", f"{len(files)} Datei(en) speichern", job)
 
     # ================================================================== Feld hinzufügen

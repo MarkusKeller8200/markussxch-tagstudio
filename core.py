@@ -402,7 +402,7 @@ class BackupUnavailable(Exception):
     """Sicherungsordner nicht verfügbar – es wurde nichts gespeichert."""
 
 
-def save_files(files, backup_on=True, folder=None, cancel=None, progress=None) -> dict:
+def save_files(files, backup_on=True, folder=None, cancel=None, progress=None, force=False) -> dict:
     """Speichert Dateien; vorher werden die bisherigen Tags gesichert (eine ZIP pro Vorgang).
     Schlägt die Sicherung einer Datei fehl, wird diese Datei nicht gespeichert.
     → {"saved": n, "errors": [...], "backup": pfad|None, "cancelled": bool}"""
@@ -420,6 +420,10 @@ def save_files(files, backup_on=True, folder=None, cancel=None, progress=None) -
         if cancel is not None and cancel.is_set():
             break
         name = os.path.basename(f.path)
+        if not force and f.external_change():      # #55: nie stillschweigend fremde Änderungen überschreiben
+            errors.append(f"{name}: wurde von einem anderen Programm geändert – NICHT gespeichert")
+            progress(("progress", i, len(files), f.path))
+            continue
         try:
             if bw:
                 bw.add(f.path)

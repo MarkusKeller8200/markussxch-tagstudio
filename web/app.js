@@ -678,7 +678,16 @@ async function copyAll(dir) {
 
 async function save(fromConfirm = false) {
   if (!S.meta.unsaved && !fromConfirm) { status("Keine ungespeicherten Änderungen.", "ok"); return true; }
-  const res = await runTask(call("start_save"), "Speichern");
+  // #55: Wurden Dateien inzwischen von einem anderen Programm geändert?
+  let force = false;
+  const cf = (await call("save_conflicts")).conflicts;
+  if (cf.length) {
+    const what = await saveConflictDialog(cf);
+    if (!what) return false;
+    if (what === "merge") { applyState(await call("save_merge_external")); if (typeof taggerRefresh === "function") await taggerRefresh(); }
+    else force = true;
+  }
+  const res = await runTask(call("start_save", force), "Speichern");
   if (!res) return false;
   await loadPairs();
   applyState(await call("state"));
@@ -693,6 +702,21 @@ async function save(fromConfirm = false) {
     status(`${res.saved} Datei(en) gespeichert.${b}`, "ok");
   }
   return !res.errors.length && !res.cancelled;
+}
+
+/** Externe Änderungen vor dem Speichern (#55) */
+async function saveConflictDialog(cf) {
+  const anyClash = cf.some((c) => c.clash.length);
+  const list = cf.slice(0, 40).map((c) => `<div class="cf-file"><b>${esc(c.name)}</b>
+    ${c.fields.slice(0, 12).map((f) => `<div class="cf-row${f.mine ? " clash" : ""}"><span class="k">${esc(f.label)}</span><span class="o">${esc(f.old || "—")}</span><span class="arr">→</span><span class="n">${esc(f.new || "—")}</span>${f.mine ? '<span class="tag">auch von dir geändert</span>' : ""}</div>`).join("")}
+    ${c.fields.length > 12 ? `<div class="muted sm">… ${c.fields.length - 12} weitere</div>` : ""}</div>`).join("");
+  return modal({
+    title: `${cf.length} Datei(en) wurden von einem anderen Programm geändert`, wide: true,
+    html: `<p class="muted" style="margin:0 0 10px">Seit TagStudio die Dateien eingelesen hat, hat z. B. Mp3tag, Mixed In Key oder beaTunes diese Felder geändert. Beim Speichern würden diese Änderungen sonst überschrieben.</p>
+      <div class="cf-list">${list}</div>
+      <p class="muted sm" style="margin:10px 0 0"><b>Übernehmen und speichern</b> liest die Dateien neu ein, behält deine eigenen Änderungen${anyClash ? " (bei Feldern, die beide geändert haben, gewinnt deine Änderung)" : ""} und speichert danach.</p>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Trotzdem überschreiben", value: "force" }, { label: "Übernehmen und speichern", value: "merge", primary: true }],
+  });
 }
 
 function openCover(side, key) {

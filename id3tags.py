@@ -603,6 +603,27 @@ _SRATES = {1: [44100, 48000, 32000], 2: [22050, 24000, 16000], 25: [11025, 12000
 
 
 # =========================================================================== MP3File
+def disk_sig(path: str) -> str:
+    """Fingerabdruck der Tag-Bytes einer Datei (ID3v2-Bereich und ID3v1) – ohne Audio."""
+    import hashlib
+    h = hashlib.sha1()
+    size = os.path.getsize(path)
+    with open(path, "rb") as f:
+        head = f.read(10)
+        tag_len = 0
+        if len(head) == 10 and head[:3] == b"ID3" and head[3] in (2, 3, 4):
+            tag_len = 10 + _syncsafe(head[6:10])
+            f.seek(0)
+            h.update(f.read(tag_len))
+        if size - tag_len >= 128:
+            f.seek(-128, os.SEEK_END)
+            t = f.read(128)
+            if t[:3] == b"TAG":
+                h.update(t)
+    h.update(str(size).encode())
+    return h.hexdigest()
+
+
 class MP3File:
     def __init__(self, path: str):
         self.path = path
@@ -645,7 +666,16 @@ class MP3File:
                         self.tag_desc = "ID3v1"
                         self._parse_v1(v1)
         self._parse_mpeg(mpeg_head)
+        self.disk_sig = disk_sig(self.path)
         self._snapshot()
+
+    def external_change(self) -> bool:
+        """Hat ein anderes Programm die Tags geändert, seit diese Datei eingelesen wurde? (#55)
+        Vergleicht die Tag-Bytes (ID3v2 + ID3v1) – erkennt auch Programme, die die Änderungszeit erhalten."""
+        try:
+            return disk_sig(self.path) != getattr(self, "disk_sig", None)
+        except OSError:
+            return True
 
     def _parse_v2(self, ver, flags, body):
         if ver in (2, 3) and flags & 0x80:

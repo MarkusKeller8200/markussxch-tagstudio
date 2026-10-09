@@ -754,3 +754,13 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .player #plVol.muted{opacity:.35}
 .src-click{cursor:pointer;display:inline-flex}
 .src-click:hover .src-b{filter:brightness(1.15);outline:1px solid currentColor}
+
+/* Konflikt beim Speichern (#55) */
+.cf-list{max-height:50vh;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.cf-file{border:1px solid var(--line);border-radius:10px;padding:8px 12px;display:flex;flex-direction:column;gap:3px;font-size:13px}
+.cf-row{display:grid;grid-template-columns:minmax(110px,180px) minmax(0,1fr) 16px minmax(0,1fr) auto;gap:8px;align-items:baseline}
+.cf-row .k{color:var(--dim)}
+.cf-row .o{color:var(--faint);text-decoration:line-through;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cf-row .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cf-row .arr{color:var(--faint)}
+.cf-row .tag{font-size:11px;color:var(--warn);font-weight:600}
