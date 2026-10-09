@@ -807,11 +807,15 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .sn-jhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .sn-jhead select{height:34px;width:auto;max-width:280px}
 .sn-filter{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sn-filter select.inp{height:30px;width:auto;max-width:220px;font-size:12.5px}
+.sn-guess{overflow:hidden;white-space:nowrap}
+.sn-guess .src-b{margin:0}
+.sn-guess.unk{color:var(--faint);font-size:12px;text-align:center;width:22px}
 .sn-chip{border:1px solid var(--line);border-radius:99px;padding:2px 10px;font-size:12px;background:transparent;color:var(--dim);cursor:pointer}
 .sn-chip.on{background:var(--acc-soft);color:var(--acc);border-color:transparent}
 .sn-filter input{height:30px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);padding:0 9px;min-width:180px;flex:1}
 .sn-row{border-bottom:1px solid var(--line);padding:6px 4px}
-.sn-row .h{display:grid;grid-template-columns:22px 92px minmax(0,1fr) auto;gap:8px;align-items:center;cursor:pointer}
+.sn-row .h{display:grid;grid-template-columns:22px 92px 78px minmax(0,1fr) auto;gap:8px;align-items:center;cursor:pointer}
 .sn-row .p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
 .sn-row .p .d{color:var(--faint)}
 .sn-row .sum{font-size:12px;color:var(--dim);white-space:nowrap}

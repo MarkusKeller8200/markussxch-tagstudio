@@ -2,7 +2,7 @@
    (#53, #54, #61). Logik in snapshots.py / session.py; Konzept: docs/KONZEPT-SNAPSHOTS.md */
 "use strict";
 
-const SN = { ov: null, lid: null, list: null, a: null, b: "live", j: null, filter: new Set(), q: "", open: new Set(),
+const SN = { ov: null, lid: null, list: null, a: null, b: "live", j: null, filter: new Set(), q: "", open: new Set(), prog: "*", fkey: "",
   sel: new Map(), done: new Set() };
 const SN_STATUS = { changed: "geändert", rewrite: "umgeschrieben", renamed: "umbenannt", audio: "Audio", new: "neu", removed: "entfernt" };
 
@@ -54,7 +54,7 @@ async function snRun() {
   if (!SN.lid || !SN.a) return;
   const res = await runTask(call("start_snap_journal", SN.lid, SN.a, SN.b), "Änderungsjournal berechnen");
   if (!res) return;
-  SN.j = res; SN.sel = new Map(); SN.done = new Set(); SN.open = new Set(); SN.filter = new Set();
+  SN.j = res; SN.sel = new Map(); SN.done = new Set(); SN.open = new Set(); SN.filter = new Set(); SN.prog = "*"; SN.fkey = "";
   const st = SN.j.counts;
   if (st.changed) SN.filter.add("changed");
   snRender();
@@ -64,6 +64,7 @@ async function snRun() {
 function snVisible() {
   const q = SN.q.trim().toLowerCase();
   return SN.j.rows.filter((r) => (!SN.filter.size || SN.filter.has(r.status) || (SN.filter.has("audio") && r.audio))
+    && (SN.prog === "*" || r.guess === SN.prog) && (!SN.fkey || r.fields.some((f) => f.key === SN.fkey))   // #57
     && (!q || r.p.toLowerCase().includes(q) || r.fields.some((f) => (f.label + " " + f.key + " " + f.old + " " + f.new).toLowerCase().includes(q))));
 }
 
@@ -72,7 +73,9 @@ function snRender() {
   if (!j) return;
   const c = j.counts, keys = ["changed", "renamed", "audio", "new", "removed", "rewrite"];
   $("#snFilter").innerHTML = keys.filter((k) => c[k]).map((k) => `<button class="sn-chip${SN.filter.has(k) ? " on" : ""}" data-f="${k}">${SN_STATUS[k]} ${fmtN(c[k])}</button>`).join("")
-    + `<input id="snQ" placeholder="Titel, Feld oder Wert suchen …" value="${esc(SN.q)}" aria-label="Journal durchsuchen">`;
+    + snProgFieldSelects()
+    + `<input id="snQ" placeholder="Titel, Feld oder Wert suchen …" value="${esc(SN.q)}" aria-label="Journal durchsuchen">`
+    + `<button class="ghost sm" id="snSelVis" title="In allen sichtbaren Titeln die (gefilterten) Felder zum Zurücksetzen auswählen">Sichtbare auswählen</button>`;
   const rows = snVisible();
   const total = j.rows.length;
   $("#snJournal").innerHTML = !total ? `<div class="tg-empty">Keine Änderungen zwischen „${esc(j.a.label)}“ und „${esc(j.b.label)}“. 🎉</div>`
@@ -86,7 +89,7 @@ function snRender() {
       const open = SN.open.has(r.p);
       return `<div class="sn-row${SN.done.has(r.p) ? " done" : ""}" data-p="${esc(r.p)}">
         <div class="h"><input type="checkbox" data-row ${can ? "" : "disabled"} ${all ? "checked" : ""} aria-label="${esc(r.p)} auswählen">
-          <span class="sn-st ${r.status}">${SN_STATUS[r.status]}${r.audio && r.status !== "audio" ? " · Audio" : ""}</span>
+          <span class="sn-st ${r.status}">${SN_STATUS[r.status]}${r.audio && r.status !== "audio" ? " · Audio" : ""}</span>${snGuess(r)}
           <span class="p" title="${esc(r.p)}"><span class="d">${esc(dir)}</span>${esc(r.p.slice(dir.length))}</span>
           <span class="sum">${esc(sum)} ${r.fields.length ? (open ? "▾" : "▸") : ""}</span></div>
         ${open && r.fields.length ? `<div class="sn-fields">${r.fields.map((f) => `<div class="sn-f"><input type="checkbox" data-k="${esc(f.key)}" ${ks && ks.has(f.key) ? "checked" : ""} aria-label="${esc(f.label)} zurücksetzen">
@@ -94,6 +97,37 @@ function snRender() {
       </div>`;
     }).join("") + (rows.length > 1500 ? `<div class="tg-empty">… ${fmtN(rows.length - 1500)} weitere – Filter benutzen.</div>` : "");
   snSelInfo();
+}
+
+/** #57: vermutliches Programm je Titel */
+function snGuess(r) {
+  if (r.guess === null || r.guess === undefined) return '<span class="sn-guess"></span>';
+  const p = (SN.j.programs || {})[r.guess];
+  return r.guess ? `<span class="sn-guess" title="vermutlich geändert von ${esc(p ? p.name : r.guess)} (aus der Herkunft der geänderten Felder)">${srcBadge(r.guess) || esc(p ? p.name : r.guess)}</span>`
+    : '<span class="sn-guess unk" title="Programm nicht erkennbar – nur Standardfelder geändert">?</span>';
+}
+
+/** #57: Filter „vermutlich von …“ und „Feld …“ */
+function snProgFieldSelects() {
+  const progs = Object.entries(SN.j.programs || {}).sort((a, b) => (a[0] === "") - (b[0] === "") || b[1].rows - a[1].rows);
+  const keys = new Map();
+  SN.j.rows.forEach((r) => { if (SN.prog === "*" || r.guess === SN.prog) r.fields.forEach((f) => { const k = keys.get(f.key) || { label: f.label, n: 0 }; k.n++; keys.set(f.key, k); }); });
+  if (SN.fkey && !keys.has(SN.fkey)) SN.fkey = "";
+  const fk = [...keys.entries()].sort((a, b) => b[1].n - a[1].n);
+  return `<select id="snProg" class="inp sm" aria-label="Vermutlich geändert von"><option value="*">Alle Programme</option>${progs.map(([k, v]) => `<option value="${esc(k)}" ${k === SN.prog ? "selected" : ""}>${esc(k ? "vermutlich " + v.name : "Programm unbekannt")} (${fmtN(v.rows)})</option>`).join("")}</select>`
+    + `<select id="snFkey" class="inp sm" aria-label="Feld"><option value="">Alle Felder</option>${fk.map(([k, v]) => `<option value="${esc(k)}" ${k === SN.fkey ? "selected" : ""}>${esc(v.label)} (${fmtN(v.n)})</option>`).join("")}</select>`;
+}
+
+/** #57: „alle Änderungen von … an Feld … zurück“ – sichtbare Titel (und ggf. nur das gefilterte Feld) auswählen */
+function snSelectVisible() {
+  let n = 0;
+  snVisible().forEach((r) => {
+    if (!r.fields.length || r.status === "removed" || r.status === "new" || SN.done.has(r.p)) return;
+    const ks = SN.fkey ? [SN.fkey] : r.fields.map((f) => f.key);
+    SN.sel.set(r.p, new Set(ks)); n += ks.length;
+  });
+  snRender();
+  toast(n ? `${fmtN(n)} Feld(er) ausgewählt – „Auswahl zurücksetzen“ übernimmt den Snapshot-Stand.` : "Nichts zum Auswählen.");
 }
 
 function snSelInfo() {
@@ -304,6 +338,11 @@ async function initSnapshots() {
     SN.filter.has(c.dataset.f) ? SN.filter.delete(c.dataset.f) : SN.filter.add(c.dataset.f);
     snRender();
   });
+  $("#snFilter").addEventListener("change", (e) => {
+    if (e.target.id === "snProg") { SN.prog = e.target.value; snRender(); }
+    else if (e.target.id === "snFkey") { SN.fkey = e.target.value; snRender(); }
+  });
+  $("#snFilter").addEventListener("click", (e) => { if (e.target.id === "snSelVis") snSelectVisible(); });
   $("#snFilter").addEventListener("input", (e) => { if (e.target.id === "snQ") { SN.q = e.target.value; const pos = e.target.selectionStart; snRender(); const q = $("#snQ"); q.focus(); q.setSelectionRange(pos, pos); } });
   $("#snJournal").addEventListener("click", (e) => {
     const row = e.target.closest(".sn-row"); if (!row) return;

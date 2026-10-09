@@ -422,6 +422,30 @@ class Session:
         return {"ok": True}
 
     # ------------------------------------------------------------------ Journal
+    _GUESS_SKIP = {"tagstudio", "encoder", "id3v3", "id3v4"}
+
+    def _snap_guess(self, rows) -> dict:
+        """#57: je Titel das vermutliche Programm aus der Herkunft der geänderten Felder (häufigste bekannte
+        Herkunft; TKEY, BPM & Co. sagen allein nichts). → {sid: {"name", "rows", "fields"}}, "" = unbekannt."""
+        cat = self.origin_catalog()
+        progs: dict = {}
+        for r in rows:
+            n: dict = {}
+            for fld in r["fields"]:
+                sid = fld.get("src")
+                if sid and sid not in self._GUESS_SKIP:
+                    n[sid] = n.get(sid, 0) + 1
+            g = max(n, key=lambda k: (n[k], k)) if n else ""
+            if not r["fields"] and r["status"] not in ("changed", "rewrite"):
+                g = None                      # neu/entfernt/umbenannt ohne Feldänderung: keine Vermutung
+            r["guess"] = g
+            if g is None:
+                continue
+            p = progs.setdefault(g, {"name": cat.get(g, {}).get("name", g) if g else "unbekannt", "rows": 0, "fields": 0})
+            p["rows"] += 1
+            p["fields"] += len(r["fields"])
+        return progs
+
     def start_snap_journal(self, lid, a_sid, b_sid="live"):
         """Journal A → B (B = „live“ oder ein Snapshot) berechnen – mit Fortschritt."""
         import snapshots
@@ -445,9 +469,10 @@ class Session:
             for r in j["rows"]:
                 for fld in r["fields"]:
                     fld["src"] = self._src(fld["key"], None)
+            j["programs"] = self._snap_guess(j["rows"])
             self._jctx = {"lid": lib["id"], "root": lib["root"], "a": a, "A": {e["p"]: e for e in a["files"]},
                           "B": {e["p"]: e for e in b_files}}
-            return {"rows": j["rows"], "counts": j["counts"], "errors": errors[:50], "root": lib["root"],
+            return {"rows": j["rows"], "counts": j["counts"], "programs": j["programs"], "errors": errors[:50], "root": lib["root"],
                     "a": {k: a.get(k) for k in ("id", "label", "created")}, "b": b_meta}
         return self._run("journal", "Änderungsjournal berechnen", job)
 

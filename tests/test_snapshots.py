@@ -236,6 +236,28 @@ class TestSessionSnapshots(Base):
         plugins.log_dir = self._logdir
         super().tearDown()
 
+    def test_program_guess(self):
+        """#57: Mixed In Key an TKEY + EnergyLevel erkannt, reine Titeländerung unbekannt."""
+        s, lid = self.s, self.libd["id"]
+        s.snap_create(lid, "Vor MIK")
+        self.wait_jobs()
+        sid = s.snap_list(lid)["snapshots"][0]["id"]
+        f = MP3File(self.path(1))
+        f.set_text("TKEY", "9A")
+        f.set_text("TXXX:EnergyLevel", "7")
+        f.save()
+        f = MP3File(self.path(2))
+        f.set_text("TIT2", "Anders")
+        f.save()
+        for n in (1, 2):
+            touch_later(self.path(n))
+        s.start_snap_journal(lid, sid, "live")
+        j = self.wait_task()
+        g = {r["p"]: r["guess"] for r in j["rows"]}
+        self.assertEqual((g["Album/01 Titel.mp3"], g["Album/02 Titel.mp3"]), ("mik", ""))
+        self.assertEqual(j["programs"]["mik"], {"name": "Mixed In Key", "rows": 1, "fields": 2})
+        self.assertEqual(j["programs"][""]["name"], "unbekannt")
+
     def test_move_detect_use(self):
         """#60 über die Session: verschieben, erkennen, verwenden, ignorieren."""
         s, lid = self.s, self.libd["id"]
