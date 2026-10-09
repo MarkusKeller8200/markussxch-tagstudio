@@ -841,3 +841,13 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .sn-lib .x{width:22px;height:22px;border:0;border-radius:6px;background:transparent;color:var(--faint);cursor:pointer}
 .sn-lib .x:hover{background:var(--line);color:var(--fg)}
 .sn-jhead select{max-width:240px}
+
+/* #56: Snapshot-Seite im Vergleich */
+.head-snap{font-size:11.5px;font-weight:600;color:var(--acc);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sn-pick{display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow:auto}
+.sn-pick .lib{font-weight:600;margin-top:6px}
+.sn-pick button{display:flex;justify-content:space-between;gap:10px;text-align:left;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);padding:7px 10px;font:13px var(--font);cursor:pointer}
+.sn-pick button:hover{border-color:var(--acc)}
+.sn-pick button .muted{font-size:12px}
+.sn-cmp{margin-left:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--acc);font:600 12px var(--font);padding:0 6px;cursor:pointer}
+.sn-cmp:hover{border-color:var(--acc)}

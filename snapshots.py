@@ -637,6 +637,97 @@ def _mp3(tag: bytes, v1: bytes):
             pass
 
 
+class ReadOnly(ValueError):
+    """Schreibversuch auf eine Snapshot-Seite (#56)."""
+
+
+SPEC_PREFIX = "snapshot:"
+
+
+def parse_spec(spec: str):
+    """„snapshot:<lib>/<snap>“ → (lib, snap) oder None."""
+    if not isinstance(spec, str) or not spec.startswith(SPEC_PREFIX):
+        return None
+    rest = spec[len(SPEC_PREFIX):].strip().strip("/")
+    if "/" not in rest:
+        return None
+    lid, sid = rest.split("/", 1)
+    return lid, sid
+
+
+_SNAPFILE = None
+
+
+def _snapfile_class():
+    global _SNAPFILE
+    if _SNAPFILE is None:
+        from id3tags import MP3File
+
+        class SnapFile(MP3File):
+            readonly = True
+
+            def set(self, key, item):
+                raise ReadOnly(RO_MESSAGE)
+
+            def set_version(self, ver):
+                raise ReadOnly(RO_MESSAGE)
+
+            def save(self):
+                raise ReadOnly(RO_MESSAGE)
+
+            def external_change(self):
+                return False
+
+        _SNAPFILE = SnapFile
+    return _SNAPFILE
+
+
+def snap_file(store, entry: dict, root: str, label: str):
+    """Snapshot-Eintrag als schreibgeschützte MP3File (Pfad = Ort der Datei im überwachten Ordner)."""
+    SnapFile = _snapfile_class()
+    tag, v1 = store.tag_bytes(entry)
+    fd, tmp = tempfile.mkstemp(suffix=".mp3", prefix="tagstudio_snap_")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(tag + b"\x00" * 1024 + v1)
+        f = SnapFile(tmp)
+    finally:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+    f.path = os.path.join(root, *entry["p"].split("/"))
+    f.audio_key = entry.get("audio") or ""
+    f.snap_label = label
+    f.size = entry.get("size", 0)
+    return f
+
+
+RO_MESSAGE = "Die Snapshot-Seite ist schreibgeschützt – übernehmen geht nur in Richtung der echten Dateien."
+
+
+def load_snapshot(store, spec: str, cancel=None, progress=None) -> tuple[list, str, str]:
+    """Alle Einträge eines Snapshots als schreibgeschützte Dateien → (Dateien, Ordner, Bezeichnung)."""
+    ids = parse_spec(spec)
+    if not ids:
+        raise StoreError(f"Ungültige Snapshot-Angabe: {spec}")
+    lib = store.library(ids[0])
+    m = store.manifest(lib["id"], ids[1])
+    label = f"{lib['name']} · {m.get('label', '')} ({str(m.get('created', ''))[:16].replace('T', ' ')})"
+    progress = progress or (lambda x: None)
+    out = []
+    files = m.get("files", [])
+    progress(("total", len(files)))
+    for i, e in enumerate(files, 1):
+        if cancel is not None and cancel.is_set():
+            from compare import Cancelled
+            raise Cancelled()
+        out.append(snap_file(store, e, lib["root"], label))
+        if i % 50 == 0 or i == len(files):
+            progress(("progress", i, len(files), e["p"]))
+    return out, lib["root"], label
+
+
 def _disp(it) -> str:
     if it is None:
         return ""

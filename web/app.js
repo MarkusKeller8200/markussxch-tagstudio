@@ -310,6 +310,12 @@ function srcBadge(sid) {
   return `<span class="src-b${o.kind === "plugin" ? " own" : o.kind === "id3" ? " id3" : ""}" style="--h:${srcHue(sid)}" title="Herkunft: ${esc(o.name)} – ${esc(o.desc)}">${esc(short)}</span>`;
 }
 
+// Unbehandelte Fehler aus Aufrufen (z. B. Schreibschutz einer Snapshot-Seite) verständlich anzeigen
+window.addEventListener("unhandledrejection", (e) => {
+  const m = e.reason && (e.reason.message || String(e.reason));
+  if (m && typeof toast === "function") toast(m);
+});
+
 // ====================================================================== Start
 async function init() {
   const st = await call("settings");
@@ -538,7 +544,9 @@ function showView(v) {
   renderHead($("#headR"), v.right, "R");
   const c = v.counts;
   $("#summary").textContent = v.both ? `${c.diff} wichtig · ${c.only} nur eine Seite · ${c.triv} unwichtig` : "Nur eine Seite – Tags können bearbeitet werden";
-  $$("[data-copyall],[data-missing]").forEach((b) => (b.disabled = !v.both));
+  // #56: nie in Richtung einer Snapshot-Seite (schreibgeschützt)
+  const roL = !!(v.left && v.left.readonly), roR = !!(v.right && v.right.readonly);
+  $$("[data-copyall],[data-missing]").forEach((b) => { const d = b.dataset.copyall || b.dataset.missing; b.disabled = !v.both || (d === "rl" && roL) || (d === "lr" && roR); });
   renderRows();
 }
 
@@ -549,7 +557,8 @@ function renderHead(el, h, side) {
     : S.opts.show_covers ? `<div class="covers"><button class="cover add" data-addcover="${side}" title="Kein Cover – klicken zum Hinzufügen" aria-label="Cover hinzufügen">${ICON.note}</button></div>` : "";
   // Datum/Größe nur im Tooltip; als Etiketten: ID3-Version, Dauer, Bitrate, Abtastrate, Kanäle
   const parts = h.info.split(/\s{2,}/).filter(Boolean).slice(2);
-  el.innerHTML = `${covers}<div class="head-t"><div class="head-n" title="${esc(h.path + "\n" + h.info.split(/\s{2,}/).join(" · "))}">${esc(h.name)}${h.modified ? '<span class="m" title="ungespeicherte Änderungen"></span>' : ""}</div>
+  el.classList.toggle("ro", !!h.readonly);
+  el.innerHTML = `${covers}<div class="head-t">${h.readonly ? `<div class="head-snap" title="Snapshot – schreibgeschützt; übernehmen nur in Richtung der echten Dateien">📸 ${esc(h.snapshot)} · schreibgeschützt</div>` : ""}<div class="head-n" title="${esc(h.path + "\n" + h.info.split(/\s{2,}/).join(" · "))}">${esc(h.name)}${h.modified ? '<span class="m" title="ungespeicherte Änderungen"></span>' : ""}</div>
     <div class="tags">${parts.map((p) => `<span>${esc(p)}</span>`).join("")}${h.bpm ? `<span class="bpm-chip${h.bpm_differs ? " diff" : ""}" title="Tempo${h.bpm_differs ? " – unterscheidet sich von der anderen Seite" : ""}">${esc(h.bpm)} BPM</span>` : ""}</div></div>`;
 }
 
@@ -590,11 +599,12 @@ function renderRows() {
   }
   body.innerHTML = v.rows.map((r, n) => {
     const canCopy = v.both && r.state !== "same" && r.state !== "empty";
+    const roL = !!(v.left && v.left.readonly), roR = !!(v.right && v.right.readonly);
     const ed = (c) => (c && c.editable ? "" : " noedit");
     return `<div class="tr ${r.state}${S.sel.has(r.key) ? " sel" : ""}" data-n="${n}" data-key="${esc(r.key)}">
       <div class="f"><span class="f-n">${srcBadge(r.src)}<span title="${esc(r.label)}">${esc(r.label)}</span></span><span class="f-id" title="${esc(r.key)}">${esc(r.fid)}</span></div>
       <div class="v${ed(r.L)}" data-side="L">${valueHtml(r.L, r.state)}</div>
-      <div class="acts">${canCopy ? `<button class="arrow" data-dir="rl" title="Rechten Wert nach links übernehmen" aria-label="${esc(r.label)} nach links übernehmen">${ICON.left}</button><button class="arrow" data-dir="lr" title="Linken Wert nach rechts übernehmen" aria-label="${esc(r.label)} nach rechts übernehmen">${ICON.right}</button>` : ""}</div>
+      <div class="acts">${canCopy ? `${roL ? "<span></span>" : `<button class="arrow" data-dir="rl" title="Rechten Wert nach links übernehmen" aria-label="${esc(r.label)} nach links übernehmen">${ICON.left}</button>`}${roR ? "<span></span>" : `<button class="arrow" data-dir="lr" title="Linken Wert nach rechts übernehmen" aria-label="${esc(r.label)} nach rechts übernehmen">${ICON.right}</button>`}` : ""}</div>
       <div class="v r${ed(r.R)}" data-side="R">${valueHtml(r.R, r.state)}</div>
     </div>`;
   }).join("");

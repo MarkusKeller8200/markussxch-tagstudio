@@ -95,7 +95,7 @@ function snRender() {
         <div class="h"><input type="checkbox" data-row ${can ? "" : "disabled"} ${all ? "checked" : ""} aria-label="${esc(r.p)} auswählen">
           <span class="sn-st ${r.status}">${SN_STATUS[r.status]}${r.audio && r.status !== "audio" ? " · Audio" : ""}</span>${snGuess(r)}
           <span class="p" title="${esc(r.p)}"><span class="d">${esc(dir)}</span>${esc(r.p.slice(dir.length))}</span>
-          <span class="sum">${esc(sum)} ${r.fields.length ? (open ? "▾" : "▸") : ""}</span></div>
+          <span class="sum">${esc(sum)} ${r.fields.length ? (open ? "▾" : "▸") : ""}${r.status !== "removed" && r.status !== "new" ? '<button class="sn-cmp" data-cmp title="Im Vergleich öffnen (Snapshot ↔ jetzt)">⇄</button>' : ""}</span></div>
         ${open && r.fields.length ? `<div class="sn-fields">${r.fields.map((f) => `<div class="sn-f"><input type="checkbox" data-k="${esc(f.key)}" ${ks && ks.has(f.key) ? "checked" : ""} aria-label="${esc(f.label)} zurücksetzen">
           <span class="k">${srcBadge(f.src)}${esc(f.label)}</span><span class="o${f.state === "removed" ? "" : ""}" title="${esc(f.old)}">${f.state === "added" ? "<i>– fehlte –</i>" : esc(f.old)}</span><span class="muted">→</span><span class="n" title="${esc(f.new)}">${f.state === "removed" ? "<i>– entfernt –</i>" : esc(f.new)}</span></div>`).join("")}</div>` : ""}
       </div>`;
@@ -201,7 +201,7 @@ async function snMoveStore(toDefault = false) {
 
 /** #60: Nach dem Einlesen: liegt im Ordner ein anderer Snapshot-Speicher? Anbieten, ihn zu verwenden. */
 async function snDetect(path) {
-  if (!path) return;
+  if (!path || path.startsWith("snapshot:")) return;
   let d = null;
   try { d = await call("snap_detect", path); } catch (e) { return; }
   if (!d) return;
@@ -216,6 +216,43 @@ async function snDetect(path) {
   toast("Snapshot-Speicher gewechselt.");
   snSizeRefresh();
   if (S.module === "snapshots") snapShow();
+}
+
+/** #56: Snapshot als Quelle im Vergleich wählen → Pfadfeld bekommt „snapshot:<Ordner>/<Snapshot>“. */
+async function snPickSpec(side) {
+  const ov = await call("snap_overview");
+  if (!ov.libs.length) return info("Keine Snapshots", "Noch kein Ordner überwacht – auf der Seite „Snapshots“ einen Ordner hinzufügen und einen Snapshot erstellen.");
+  const lists = await Promise.all(ov.libs.map((l) => call("snap_list", l.id)));
+  const html = '<div class="sn-pick">' + ov.libs.map((l, k) => `<div class="lib">${esc(l.name)} <span class="muted sm">${esc(l.root)}</span></div>`
+    + (lists[k].snapshots.map((s) => `<button data-spec="snapshot:${esc(l.id)}/${esc(s.id)}"><span>${esc(s.label)}${s.pinned ? " 📌" : ""}</span><span class="muted">${snTime(s.created)} · ${s.count} Titel</span></button>`).join("") || '<div class="muted sm">noch kein Snapshot</div>')).join("") + "</div>";
+  let picked = null;
+  await modal({ title: `Snapshot ${side === "L" ? "links" : "rechts"}`, wide: true,
+    html: `<p class="muted sm" style="margin:0 0 8px">Die Snapshot-Seite ist schreibgeschützt: Werte lassen sich nur in Richtung der echten Dateien übernehmen. Tipp: Zuordnung „Audio-Inhalt“ findet auch umbenannte Titel.</p>${html}`,
+    buttons: [{ label: "Abbrechen", value: null }],
+    onMount: (b) => b.addEventListener("click", (e) => { const t = e.target.closest("[data-spec]"); if (t) { picked = t.dataset.spec; $("#mBtns button")?.click(); } }) });
+  if (!picked) return;
+  $(side === "L" ? "#pathL" : "#pathR").value = picked;
+  const other = $(side === "L" ? "#pathR" : "#pathL");
+  if (!other.value.trim()) {
+    const lib = ov.libs.find((l) => picked.startsWith(`snapshot:${l.id}/`));
+    if (lib && lib.exists) other.value = lib.root;           // Standard: Snapshot ↔ Jetzt
+  }
+  toast("Snapshot gewählt – „Vergleichen“ startet.");
+}
+
+/** #56: aus dem Journal: Snapshot ↔ Jetzt (bzw. zweiter Snapshot) im Vergleich öffnen, Titel auswählen */
+async function snOpenCompare(p) {
+  const lib = SN.ov.libs.find((l) => l.id === SN.lid);
+  if (!lib) return;
+  $("#pathL").value = `snapshot:${SN.lid}/${SN.a}`;
+  $("#pathR").value = SN.b === "live" ? lib.root : `snapshot:${SN.lid}/${SN.b}`;
+  $("#recursive").checked = true;
+  setModule("compare");
+  await compare(false);
+  const name = p.split("/").pop().toLowerCase();
+  const rows = (await call("pair_rows")).rows;
+  const hit = rows.find((r) => (r.left || "").replace(/\\/g, "/").toLowerCase().endsWith(p.toLowerCase()) || (r.right || "").toLowerCase().endsWith(name));
+  if (hit) await selectPair(hit.i);
 }
 
 async function snAddLibrary() {
@@ -329,6 +366,7 @@ async function initSnapshots() {
 
 (function bindSnapshots() {
   $("#snAddLib").addEventListener("click", snAddLibrary);
+  $$("[data-snappick]").forEach((b) => b.addEventListener("click", () => snPickSpec(b.dataset.snappick)));
   $("#snWatchChip").addEventListener("click", snWatchOpen);
   $("#snCreate").addEventListener("click", () => snCreate());
   $("#snRun").addEventListener("click", snRun);
@@ -388,6 +426,7 @@ async function initSnapshots() {
   $("#snJournal").addEventListener("click", (e) => {
     const row = e.target.closest(".sn-row"); if (!row) return;
     const p = row.dataset.p, r = SN.j.rows.find((x) => x.p === p);
+    if (e.target.closest("[data-cmp]")) { snOpenCompare(p); return; }
     if (e.target.matches("[data-row]")) {
       SN.sel.set(p, e.target.checked ? new Set(r.fields.map((f) => f.key)) : new Set());
       return snRender();

@@ -15,6 +15,7 @@ PAIR_MODES = {
     "track": "Disc + Spurnummer",
     "title": "Titel",
     "order": "Reihenfolge (alphabetisch)",
+    "audio": "Audio-Inhalt (findet umbenannte Titel)",
 }
 
 # Felder, die sich zwischen Dateien fast immer unterscheiden ("unwichtig", wie "Triv." in Beyond Compare)
@@ -89,7 +90,25 @@ def _key(f: MP3File, mode: str, root: str):
         return None if t is None else (_num(f.text("TPOS")) or 1, t)
     if mode == "title":
         return f.text("TIT2").strip().lower() or None
+    if mode == "audio":                       # #56: gleicher Audio-Inhalt (Länge + Anfang + Ende des Audioteils)
+        return audio_key_of(f)
     return None
+
+
+def audio_key_of(f) -> str | None:
+    k = getattr(f, "audio_key", None)
+    if k:
+        return k
+    try:
+        import snapshots
+        k = snapshots.audio_key(f.path, snapshots.read_tags(f.path))
+    except (OSError, ValueError):
+        return None
+    try:
+        f.audio_key = k
+    except AttributeError:
+        pass
+    return k
 
 
 def pair_files(left, right, mode, left_root="", right_root=""):

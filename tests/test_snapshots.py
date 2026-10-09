@@ -281,6 +281,44 @@ class TestSessionSnapshots(Base):
         s.snap_watch_ack(lid)
         self.assertEqual(s.snap_watch()["total"], 0)
 
+    def test_compare_with_snapshot(self):
+        """#56: Snapshot als linke Seite (schreibgeschützt), Zuordnung nach Audio-Inhalt."""
+        s, lid = self.s, self.libd["id"]
+        s.snap_create(lid, "Vor MIK")
+        self.wait_jobs()
+        sid = s.snap_list(lid)["snapshots"][0]["id"]
+        f = MP3File(self.path(1))
+        f.set_text("TKEY", "9A")
+        f.save()
+        os.rename(self.path(2), os.path.join(self.lib, "Album", "02 Umbenannt.mp3"))
+        spec = f"snapshot:{lid}/{sid}"
+        self.assertTrue(s.start_load(spec, self.lib, True, "filename")["ok"])
+        self.wait_task()
+        rows = s.pair_rows()
+        self.assertEqual(len(rows["rows"]), 5)                     # 02 alt (nur links) + 02 neu (nur rechts)
+        i = next(r["i"] for r in rows["rows"] if r["left"].endswith("01 Titel.mp3"))
+        s.select(i)
+        v = s.view()
+        self.assertTrue(v["left"]["readonly"] and "Vor MIK" in v["left"]["snapshot"])
+        self.assertFalse(v["right"]["readonly"])
+        row = next(r for r in v["rows"] if r["key"] == "TKEY")
+        self.assertEqual((row["L"]["text"], row["R"]["text"], row["L"]["editable"]), ("8A", "9A", False))
+        st = s.copy_keys(["TKEY"], "lr")                          # Snapshot (links) → Live: erlaubt
+        self.assertEqual(s.files()[1].text("TKEY"), "8A")
+        st = s.copy_keys(["TKEY"], "rl")                          # → Snapshot: abgelehnt
+        self.assertEqual(st["tone"], "warn")
+        self.assertIn("schreibgeschützt", st["message"])
+        self.assertEqual(s.remove("L", ["TKEY"])["tone"], "warn")
+        self.assertEqual(s.unsaved(), 1)                           # nur die echte Datei
+        # Audio-Inhalt findet den umbenannten Titel
+        s.do_undo()
+        s.start_load(spec, self.lib, True, "audio")
+        self.wait_task()
+        rows = s.pair_rows()["rows"]
+        self.assertEqual(len(rows), 4)
+        r2 = next(r for r in rows if r["left"].endswith("02 Titel.mp3"))
+        self.assertTrue(r2["right"].endswith("02 Umbenannt.mp3"))
+
     def test_move_detect_use(self):
         """#60 über die Session: verschieben, erkennen, verwenden, ignorieren."""
         s, lid = self.s, self.libd["id"]

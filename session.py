@@ -795,12 +795,22 @@ class Session:
             mode = "filename"
         keep = self.cur if keep_current else None
 
+        def snap_loader(spec, cancel, progress):      # #56: Snapshot als Quelle (schreibgeschützt)
+            import snapshots
+            return snapshots.load_snapshot(self.snap_store, spec, cancel, progress)
+
+        def root_of(p):
+            import snapshots
+            ids = snapshots.parse_spec(p)
+            return self.snap_store.library(ids[0])["root"] if ids else p
+
         def job(cancel, progress):
-            pairs, errors = core.load_pairs(lp, rp, recursive, mode, cancel, progress, self.reg)
+            pairs, errors = core.load_pairs(lp, rp, recursive, mode, cancel, progress, self.reg, snap_loader)
             with self.lock:
                 self.undo.clear()
                 self.pairs = pairs
-                self.left_root, self.right_root = lp, rp
+                self.left_root, self.right_root = root_of(lp), root_of(rp)
+                self.left_spec, self.right_spec = lp, rp
                 self.cur = keep if keep is not None and keep < len(pairs) else (0 if pairs else None)
             self.cfg.update(hist_left=core.history(self.cfg, "hist_left", lp),
                             hist_right=core.history(self.cfg, "hist_right", rp), mode=mode, recursive=recursive)
@@ -864,6 +874,7 @@ class Session:
         if f is None:
             return None
         return {"name": os.path.basename(f.path), "rel": core.rel_name(f, root), "path": f.path,
+                "readonly": bool(getattr(f, "readonly", False)), "snapshot": getattr(f, "snap_label", ""),
                 "info": f.info(), "version": f.version, "modified": f.is_modified(),
                 "bpm": self._bpm(f), "bpm_differs": other is not None and self._bpm(other) != self._bpm(f),
                 "covers": self._covers(f, other) if self.opts["show_covers"] else []}
@@ -959,6 +970,12 @@ class Session:
         l, r = self.files()
         return (l, r) if direction == "lr" else (r, l)
 
+    _RO = "Die Snapshot-Seite ist schreibgeschützt – übernehmen geht nur in Richtung der echten Dateien."
+
+    @staticmethod
+    def _ro(f) -> bool:
+        return bool(getattr(f, "readonly", False))
+
     def _done(self, msg, tone="info"):
         self.undo.commit()
         return self.state(msg, tone)
@@ -968,6 +985,8 @@ class Session:
             src, dst = self._src_dst(direction)
             if not (src and dst):
                 return self.state("Kopieren geht nur, wenn links und rechts eine Datei vorhanden ist.", "warn")
+            if self._ro(dst):
+                return self.state(self._RO, "warn")
             self.undo.checkpoint(f"{len(keys)} Feld(er) {self._dir(direction)}", [dst])
             n = 0
             for k in keys:
@@ -983,6 +1002,8 @@ class Session:
             src, dst = self._src_dst(direction)
             if not (src and dst):
                 return self.state()
+            if self._ro(dst):
+                return self.state(self._RO, "warn")
             imp, triv = diff(src, dst, self.rules)
             keys = imp + (triv if self.opts["show_trivial"] else [])
             if not keys:
@@ -1000,6 +1021,8 @@ class Session:
             src, dst = self._src_dst(direction)
             if not (src and dst):
                 return self.state()
+            if self._ro(dst):
+                return self.state(self._RO, "warn")
             keys = [k for k in all_keys(src, dst) if src.get(k) is not None and dst.get(k) is None]
             if not self.opts["show_trivial"]:
                 keys = [k for k in keys if not self.rules.is_trivial(k)]
@@ -1013,6 +1036,8 @@ class Session:
     def remove(self, side, keys):
         with self.lock:
             f = self._file(side)
+            if self._ro(f):
+                return self.state(self._RO, "warn")
             keys = [k for k in keys if f is not None and f.get(k) is not None]
             if not keys:
                 return self.state()
@@ -1035,7 +1060,7 @@ class Session:
 
     def revert_pair(self):
         with self.lock:
-            files = [f for f in self.files() if f]
+            files = [f for f in self.files() if f and not self._ro(f)]
             self.undo.checkpoint("Paar verworfen", files)
             for f in files:
                 f.revert()
@@ -1150,6 +1175,8 @@ class Session:
             f = self._file(side)
             if f is None:
                 return {"ok": False, "error": "Auf dieser Seite ist keine Datei."}
+            if self._ro(f):
+                return {"ok": False, "error": self._RO}
             key, err = self._add_to([f], fid, desc, value, replace)
             if err:
                 return err
@@ -1169,9 +1196,11 @@ class Session:
 
     def bulk_apply(self, idx, direction, keys, delete_missing=False):
         with self.lock:
-            idx = [i for i in idx if 0 <= i < len(self.pairs) and all(self.pairs[i])]
+            idx = [i for i in idx if 0 <= i < len(self.pairs) and all(self.pairs[i])
+                   and not self._ro(self.pairs[i][1 if direction == "lr" else 0])]
             if not idx or not keys:
-                return self.state("Nichts zu übernehmen.", "warn")
+                return self.state(self._RO if self.pairs and any(self._ro(p[1 if direction == "lr" else 0]) for p in self.pairs)
+                                  else "Nichts zu übernehmen.", "warn")
             self.undo.checkpoint(f"Sammelkopie {len(idx)} Paar(e)", [self.pairs[i][1 if direction == "lr" else 0] for i in idx])
             n = 0
             for i in idx:
@@ -1197,7 +1226,7 @@ class Session:
             for i in pidx:
                 l, r = self.pairs[i]
                 for s_, f in (("L", l), ("R", r)):
-                    if f is not None and side in (s_, "both") and all(f is not g for g in files):
+                    if f is not None and not self._ro(f) and side in (s_, "both") and all(f is not g for g in files):
                         files.append(f)
             plan = [(f, k) for f in files for k in sorted(f.items, key=sort_key)
                     if not k.startswith("APIC") and self.origins.of(k) == source]
@@ -1229,6 +1258,8 @@ class Session:
             f = self._file(side)
             if f is None or not path:
                 return self.state()
+            if self._ro(f):
+                return self.state(self._RO, "warn")
             try:
                 data = self._read_image(path)
             except (OSError, ValueError) as ex:
@@ -1288,7 +1319,7 @@ class Session:
 
     def _fixer_plan(self, o):
         out = MV if o.get("mode") == "v24" else (o.get("sep") or ", ")
-        return plan_multi_fix(self._fixer_files(o), o.get("fields", []), o.get("seps", []), out,
+        return plan_multi_fix([f for f in self._fixer_files(o) if not self._ro(f)], o.get("fields", []), o.get("seps", []), out,
                               bool(o.get("dedupe", True)), bool(o.get("all_text")), bool(o.get("upgrade", True)))
 
     def fixer_preview(self, o) -> dict:

@@ -125,7 +125,7 @@ def apply_value(f, key: str, val: str) -> bool:
 def can_edit_text(f, key: str) -> bool:
     """Lässt sich das Feld als Text bearbeiten (bzw. neu anlegen)?"""
     from id3tags import TEXT_LABELS
-    if f is None or key.startswith("APIC"):
+    if f is None or key.startswith("APIC") or getattr(f, "readonly", False):
         return False
     it = f.get(key)
     if it is None:
@@ -326,6 +326,8 @@ def check_paths(lp: str, rp: str) -> str | None:
     if not lp and not rp:
         return "Bitte links und/oder rechts einen Ordner oder eine Datei wählen."
     for p, n in ((lp, "Links"), (rp, "Rechts")):
+        if p and p.startswith("snapshot:"):        # #56: Snapshot als Quelle
+            continue
         if p and not os.path.exists(p):
             return f"{n}: Der Pfad existiert nicht.\n\n{p}"
     if lp and rp and os.path.abspath(lp) == os.path.abspath(rp):
@@ -365,7 +367,7 @@ def load_files(path, recursive, cancel=None, progress=None, registry=None):
     return files, errors
 
 
-def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=None):
+def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=None, snap_loader=None):
     """Ordner/Dateien einlesen und zuordnen → (pairs, errors).
     progress(msg): ("count", n) beim Zählen, ("total", n), ("progress", i, total, pfad).
     Wirft Cancelled, wenn cancel (threading.Event) gesetzt wird.
@@ -378,8 +380,15 @@ def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=Non
             found[side] = n
             progress(("count", found[0] + found[1]))
         return cb
-    lpaths = scan(lp, recursive, cancel, counter(0)) if lp else []
-    rpaths = scan(rp, recursive, cancel, counter(1)) if rp else []
+    snap = {0: None, 1: None}          # #56: Seite aus einem Snapshot (schreibgeschützt)
+    roots = [lp, rp]
+    for side, p in ((0, lp), (1, rp)):
+        if p and p.startswith("snapshot:"):
+            if snap_loader is None:
+                raise ValueError("Snapshots sind hier nicht verfügbar.")
+            snap[side], roots[side], _label = snap_loader(p, cancel, progress)
+    lpaths = scan(lp, recursive, cancel, counter(0)) if lp and snap[0] is None else []
+    rpaths = scan(rp, recursive, cancel, counter(1)) if rp and snap[1] is None else []
     total = len(lpaths) + len(rpaths)
     progress(("total", total))
     errors, loaded = [], ([], [])
@@ -393,8 +402,11 @@ def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=Non
         progress(("progress", i, total, p))
     if cancel is not None and cancel.is_set():
         raise Cancelled()
+    for side in (0, 1):
+        if snap[side] is not None:
+            loaded[side].extend(snap[side])
     progress(("pairing",))
-    return pair_files(loaded[0], loaded[1], mode, lp, rp), errors
+    return pair_files(loaded[0], loaded[1], mode, roots[0], roots[1]), errors
 
 
 # =========================================================================== Speichern
