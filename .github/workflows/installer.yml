@@ -28,7 +28,7 @@ jobs:
       tag: ${{ steps.p.outputs.tag }}
       release: ${{ steps.p.outputs.release }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - id: p
         shell: bash
         run: |
@@ -55,8 +55,8 @@ jobs:
     needs: plan
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Versionierung prüfen
@@ -126,8 +126,8 @@ jobs:
     needs: plan
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Versionierung prüfen
@@ -173,7 +173,7 @@ jobs:
     env:
       TAG: ${{ needs.plan.outputs.tag }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v7
         with:
           path: assets
