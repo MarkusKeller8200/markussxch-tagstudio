@@ -1,0 +1,43 @@
+name: Stems-Test
+
+# Echter Ende-zu-Ende-Test des Stems-Plugins mit synthetischem Testtitel (keine echte Musik):
+# Umgebung installieren wie in der App (uv, Python 3.12, PyTorch), Modell laden, trennen, Fortschritt prüfen.
+# Läuft nur von Hand (Actions → Stems-Test → Run workflow) und bei Änderungen am Stems-Plugin.
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Modell"
+        default: "htdemucs.yaml"
+  push:
+    branches: [main]
+    paths: ["plugins/stems/**", "plugins.py", "packaging/ci_stems_test.py", ".github/workflows/stems-test.yml"]
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: "utf-8"
+
+jobs:
+  stems:
+    name: Stems · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Werkzeuge
+        run: python -m pip install --upgrade pip uv imageio-ffmpeg
+      - name: Installieren, trennen, prüfen
+        run: python packaging/ci_stems_test.py cpu "${{ inputs.model || 'htdemucs.yaml' }}"
+      - name: Ergebnis anzeigen
+        if: always()
+        run: python packaging/ci_note.py notice "Stems-Test ${{ matrix.os }}" stems-test.txt 80

@@ -13,6 +13,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Geändert
 - Release-Workflow: Titel neuer Releases lautet „TagStudio X.Y.Z“ (wie die bisherigen Releases).
+- GitHub: Workflow „Stems-Test“ – echter Ende-zu-Ende-Test des Stems-Plugins auf Windows und macOS (Installation
+  wie in der App, Trennung eines synthetischen Testtitels, Prüfung von Fortschritt, Spuren und Tags).
 - GitHub: Code-Scanning mit CodeQL (Python, JavaScript, Workflows; bei jedem Push, Pull Request und wöchentlich);
   Funde werden automatisch als Issues (bug, security, codeql) im nächsten Patch-Milestone angelegt und nach der
   Behebung geschlossen.
