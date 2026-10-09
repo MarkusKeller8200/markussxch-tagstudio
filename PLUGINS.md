@@ -116,7 +116,7 @@ Die zuletzt benutzten Werte merkt sich TagStudio pro Aktion.
 | `ctx.log(text)` | Zeile ins Protokoll (wird nach dem Lauf angezeigt) |
 | `ctx.output(pfad)` | erzeugte Datei/Ordner melden („Im Explorer zeigen“) |
 | `ctx.edit_tags(files, fn, label)` | Tags ändern – mit Rückgängig, gespeichert wird wie gewohnt mit „Speichern“ |
-| `ctx.propose(f, key, neu, label, note=, checked=)` | Änderung **vorschlagen**: nach dem Lauf erscheint eine Vorschau mit Häkchen, übernommen wird erst nach Bestätigung (mit Rückgängig). `kind="cover", data=Bytes` für Cover |
+| `ctx.propose(f, key, neu, label, note=, checked=)` | Änderung **vorschlagen**: nach dem Lauf erscheint eine Vorschau mit Häkchen, übernommen wird erst nach Bestätigung (mit Rückgängig). `kind="cover", data=Bytes` für Cover (ohne `data` = reine Info-Zeile). `hint=` Hinweis zum Feld, `show_same=True` zeigt auch unveränderte Werte (grau, nicht wählbar) |
 | `ctx.data_dir` | eigener Datenordner des Plugins |
 | `ctx.run_env(args, on_line)` | Python der eigenen Umgebung starten (nur mit `env`) |
 

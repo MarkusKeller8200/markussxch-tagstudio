@@ -223,16 +223,25 @@ class TestBeatport(Base):
         self.assertEqual(by["Tonart"]["new"], "Am")
         self.assertEqual(by["Genre"]["old"], "Synthpop")
         self.assertEqual(by["Genre"]["new"], "Melodic House & Techno; Melodic House")
-        self.assertNotIn("Titel", by)              # schon „Nordlicht (Extended Mix)“ → kein Vorschlag
-        self.assertNotIn("Künstler", by)
+        # Alle gelieferten Felder werden gezeigt: gleiche grau/nicht wählbar, abgewählte ungehakt
+        self.assertTrue(by["Titel"]["same"])       # schon „Nordlicht (Extended Mix)“
+        self.assertFalse(by["Titel"]["checked"])
+        self.assertTrue(by["Künstler"]["same"])
         self.assertEqual(by["Album"]["new"], "Nachtfahrt EP")
-        self.s.plugin_apply(st["result"]["proposals_token"], [r["id"] for r in st["result"]["proposals"]])
+        self.assertTrue(by["Album"]["checked"])
+        self.assertFalse(by["Label"]["checked"])   # label=False → gezeigt, nicht angehakt
+        self.assertIn("abgewählt", by["Label"]["hint"])
+        self.assertTrue(by["Cover"]["same"])       # cover="no" → nur Info
+        want = [r["id"] for r in st["result"]["proposals"] if r["checked"]]
+        res = self.s.plugin_apply(st["result"]["proposals_token"], want + [by["Titel"]["id"], by["Cover"]["id"]])
+        self.assertEqual(res["count"], len(want))  # gleiche/Info-Zeilen werden nie angewendet
         # zweiter Lauf: direkt über gespeicherte ID, ohne Suche
         self.fake.calls.clear()
         st = self.act("fetch", [i], mode="overwrite", bpm=True, key=False, genre=False, label=False, date="no",
                       isrc=False, remixer=False, names=False, cover="no", ids=True)
         self.assertFalse(any(p == "/v4/catalog/search/" for _m, p, _q in self.fake.calls))
-        self.assertIn("Keine Änderungen", st["result"]["message"])
+        self.assertFalse([r for r in st["result"]["proposals"] if r["checked"]])
+        self.assertIn("0 vorausgewählt", st["result"]["message"])
 
     def test_same_value_and_existing(self):
         m = self.mod
@@ -246,8 +255,12 @@ class TestBeatport(Base):
         f.set_text("TKEY", "Am")
         st = self.act("fetch", [self.idx["n.mp3"]], mode="empty", bpm=True, key=True, genre=False, label=False,
                       date="no", isrc=False, remixer=False, names=False, cover="no", ids=False)
-        self.assertEqual(st["result"].get("proposals", []), [])
-        self.assertIn("2 Feld(er) stimmen bereits überein", st["result"]["message"])
+        by = {r["label"]: r for r in st["result"]["proposals"]}
+        self.assertFalse(by["BPM"]["checked"])     # 124.0 = 124 → gezeigt, nicht angehakt
+        self.assertIn("Schreibweise", by["BPM"]["hint"])
+        self.assertFalse(by["Tonart"]["checked"])  # Am = 8A
+        self.assertFalse([r for r in by.values() if r["checked"]])
+        self.assertIn("4 Feld(er) stimmen bereits überein", st["result"]["message"])   # BPM, Tonart, Titel, Künstler
 
     def test_matching_helpers(self):
         m = self.mod

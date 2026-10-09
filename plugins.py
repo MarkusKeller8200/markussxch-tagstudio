@@ -183,20 +183,26 @@ class Context:
         self.outputs.append(path)
 
     # ---- Vorschläge (werden nach dem Lauf als Vorschau mit Häkchen gezeigt)
-    def propose(self, f, key, new, label=None, note="", checked=True, kind="text", data=None, group=None, hint=""):
+    def propose(self, f, key, new, label=None, note="", checked=True, kind="text", data=None, group=None, hint="",
+                show_same=False):
         """Änderung vorschlagen statt sie direkt auszuführen. kind="text" (key/new) oder "cover" (data=Bytes).
         note: Hinweis zur Datei (z. B. Treffer und Sicherheit), group: Überschrift je Datei,
-        hint: Hinweis zu genau diesem Feld (z. B. „schon gefüllt“)."""
+        hint: Hinweis zu genau diesem Feld (z. B. „schon gefüllt“).
+        show_same=True: auch einen unveränderten Wert als (nicht wählbare) Zeile „gleich“ zeigen."""
+        same = False
         if kind == "text":
             it = f.get(key)
             old = it.text if it is not None and it.kind not in ("picture", "raw") else ""
             if (new or "") == old:
-                return False
+                if not show_same:
+                    return False
+                same = True
         else:
             old = "vorhanden" if f.get(key) is not None else ""
+            same = data is None    # nur Info (z. B. Cover vorhanden, nicht geladen)
         self.proposals.append({"file": f, "key": key, "new": "" if new is None else str(new), "old": old,
-                               "label": label or key, "note": note, "checked": bool(checked), "kind": kind,
-                               "data": data, "group": group, "hint": hint})
+                               "label": label or key, "note": note, "checked": bool(checked) and not same, "kind": kind,
+                               "data": data, "group": group, "hint": hint, "same": same})
         return True
 
     # ---- Tags ändern (mit Rückgängig, noch nicht gespeichert)

@@ -1017,7 +1017,8 @@ class Session:
                                      "gkey": f'{p["file"].path}|{p["group"] or ""}',
                                      "folder": os.path.basename(os.path.dirname(p["file"].path)),
                                      "label": p["label"], "old": p["old"].replace(MV, MV_SHOW), "new": p["new"].replace(MV, MV_SHOW),
-                                     "note": p["note"], "checked": p["checked"], "kind": p["kind"], "hint": p.get("hint", "")}
+                                     "note": p["note"], "checked": p["checked"], "kind": p["kind"], "hint": p.get("hint", ""),
+                                     "same": bool(p.get("same"))}
                                     for n, p in enumerate(props)]
             res["unsaved"] = self.unsaved()
             return res
@@ -1028,7 +1029,8 @@ class Session:
         pend = self._pending
         if not pend or pend["token"] != token:
             return {"ok": False, "error": "Die Vorschläge sind nicht mehr aktuell – bitte das Plugin erneut ausführen."}
-        chosen = [pend["items"][i] for i in ids if isinstance(i, int) and 0 <= i < len(pend["items"])]
+        chosen = [pend["items"][i] for i in ids if isinstance(i, int) and 0 <= i < len(pend["items"])
+                  and not pend["items"][i].get("same")]
         self._pending = None
         if not chosen:
             return {"ok": True, "count": 0, "message": "Nichts übernommen."}

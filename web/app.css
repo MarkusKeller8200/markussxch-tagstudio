@@ -510,6 +510,9 @@ span.xml-treeonly{display:contents}
 .pl-prev td{vertical-align:top}
 .pl-prev .pv-file td{background:var(--raise);border-top:1px solid var(--line)}
 .pl-prev .pv-unsure td{opacity:.75}
+.pl-prev .pv-same td{color:var(--faint)}
+.pl-prev .pv-same td.new{color:var(--faint)}
+.pl-prev .pv-eq{display:inline-block;width:16px;text-align:center;color:var(--faint);font-weight:600}
 .pl-prev-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .pl-prev-tools .muted{margin-left:auto}
 

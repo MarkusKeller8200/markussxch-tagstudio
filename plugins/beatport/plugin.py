@@ -457,16 +457,29 @@ def same_value(key, old, new):
 
 
 def proposals_for(ctx, f, t, opts, note, checked, notation, group, stats):
+    """Alle Felder, die Beatport liefert, in die Vorschau – auch gleiche und abgewählte.
+    Angehakt wird nur, was nach den Optionen übernommen werden soll."""
     empty_only = opts.get("mode", "empty") == "empty"
 
-    def prop(key, val, label):
+    def prop(key, val, label, wanted=True):
         val = "" if val is None else str(val).strip()
         if not val:
             stats["missing"].add(label)
             return
         cur = f.text(key).strip()
-        if cur and same_value(key, cur, val):
+        if cur == val:                                   # identisch: nur anzeigen
             stats["same"] += 1
+            ctx.propose(f, key, val, label, note=note, checked=False, group=group, hint="gleich", show_same=True)
+            return
+        if not wanted:                                   # in den Optionen abgewählt: zeigen, nicht anhaken
+            stats["off"] += 1
+            ctx.propose(f, key, val, label, note=note, checked=False, group=group,
+                        hint="in den Optionen abgewählt – bei Bedarf anhaken")
+            return
+        if cur and same_value(key, cur, val):            # gleicher Wert, andere Schreibweise
+            stats["same"] += 1
+            ctx.propose(f, key, val, label, note=note, checked=False, group=group,
+                        hint="gleicher Wert, andere Schreibweise")
             return
         if cur and empty_only:      # gefüllt: zeigen, aber nicht vorauswählen
             stats["filled"] += 1
@@ -475,45 +488,45 @@ def proposals_for(ctx, f, t, opts, note, checked, notation, group, stats):
             return
         ctx.propose(f, key, val, label, note=note, checked=checked, group=group)
 
-    if opts.get("bpm") and t.get("bpm"):
-        prop("TBPM", int(round(float(t["bpm"]))), "BPM")
-    if opts.get("key"):
-        prop("TKEY", key_text(t, notation), "Tonart")
-    if opts.get("genre"):
-        prop("TCON", genre_text(t, opts.get("genre_mode", "sub")), "Genre")
+    if t.get("bpm"):
+        prop("TBPM", int(round(float(t["bpm"]))), "BPM", opts.get("bpm"))
+    prop("TKEY", key_text(t, notation), "Tonart", opts.get("key"))
+    prop("TCON", genre_text(t, opts.get("genre_mode", "sub")), "Genre", opts.get("genre"))
     rel = t.get("release") or {}
-    if opts.get("label"):
-        prop("TPUB", (rel.get("label") or {}).get("name", ""), "Label")
-        prop("TXXX:CATALOGNUMBER", t.get("catalog_number") or rel.get("catalog_number") or "", "Katalognummer")
+    prop("TPUB", (rel.get("label") or {}).get("name", ""), "Label", opts.get("label"))
+    prop("TXXX:CATALOGNUMBER", t.get("catalog_number") or rel.get("catalog_number") or "", "Katalognummer", opts.get("label"))
     date = t.get("publish_date") or t.get("new_release_date") or rel.get("new_release_date") or ""
-    if opts.get("date") == "year" and date[:4].isdigit():
-        prop("TDRC", date[:4], "Jahr")
-    elif opts.get("date") == "full" and re.match(r"\d{4}-\d{2}-\d{2}", date):
+    dmode = opts.get("date", "year")
+    if dmode == "full" and re.match(r"\d{4}-\d{2}-\d{2}", date):
         prop("TDRC", date[:10], "Datum")
-    if opts.get("isrc"):
-        prop("TSRC", (t.get("isrc") or "").upper(), "ISRC")
-    if opts.get("remixer"):
-        prop("TPE4", ", ".join(artists_of(t, "remixers")), "Remixer")
-    if opts.get("names"):
-        mix = t.get("mix_name") or ""
-        prop("TIT2", f"{t.get('name', '')} ({mix})" if mix else t.get("name", ""), "Titel")
-        prop("TPE1", ", ".join(artists_of(t)), "Künstler")
-        prop("TALB", rel.get("name", ""), "Album")
-    if opts.get("ids") and t.get("id"):
-        prop("TXXX:BEATPORT_TRACK_ID", t["id"], "Beatport-ID")
+    elif date[:4].isdigit():
+        prop("TDRC", date[:4], "Jahr", dmode != "no")
+    prop("TSRC", (t.get("isrc") or "").upper(), "ISRC", opts.get("isrc"))
+    prop("TPE4", ", ".join(artists_of(t, "remixers")), "Remixer", opts.get("remixer"))
+    mix = t.get("mix_name") or ""
+    names = bool(opts.get("names"))
+    prop("TIT2", f"{t.get('name', '')} ({mix})" if mix else t.get("name", ""), "Titel", names)
+    prop("TPE1", ", ".join(artists_of(t)), "Künstler", names)
+    prop("TALB", rel.get("name", ""), "Album", names)
+    if t.get("id"):
+        prop("TXXX:BEATPORT_TRACK_ID", t["id"], "Beatport-ID", opts.get("ids"))
     cov = opts.get("cover", "missing")
-    if cov != "no":
-        has = f.get("APIC:3") is not None
-        url = cover_url(t)
-        if url and (cov == "replace" or not has):
-            try:
-                st, _h, data = request("GET", url)
-                if st == 200 and data[:3] in (b"\xff\xd8\xff", b"\x89PN"):
-                    ctx.propose(f, "APIC:3", "Cover von Beatport (1400 px)", "Cover", note=note,
-                                checked=checked and not has, kind="cover", data=data, group=group,
-                                hint="ersetzt vorhandenes Cover" if has else "")
-            except HttpError as ex:
-                ctx.log(f"Cover für {os.path.basename(f.path)} nicht geladen: {ex}")
+    has = f.get("APIC:3") is not None
+    url = cover_url(t)
+    if url and cov != "no" and (cov == "replace" or not has):
+        try:
+            st, _h, data = request("GET", url)
+            if st == 200 and data[:3] in (b"\xff\xd8\xff", b"\x89PN"):
+                ctx.propose(f, "APIC:3", "Cover von Beatport (1400 px)", "Cover", note=note,
+                            checked=checked and not has, kind="cover", data=data, group=group,
+                            hint="ersetzt vorhandenes Cover" if has else "")
+        except HttpError as ex:
+            ctx.log(f"Cover für {os.path.basename(f.path)} nicht geladen: {ex}")
+    elif url:                       # Cover geliefert, aber nicht geladen: als Info zeigen
+        ctx.propose(f, "APIC:3", "Beatport-Cover verfügbar (1400 px)", "Cover", note=note, checked=False, kind="cover",
+                    data=None, group=group,
+                    hint="Datei hat schon ein Cover – Option Cover → „Ersetzen“ lädt es" if has
+                    else "Option Cover → „Nur wenn keins vorhanden“ lädt es")
 
 
 # =========================================================================== Aktionen
@@ -564,7 +577,7 @@ def run(action, ctx, files, opts):
     client = Client(ctx)
     notation = _notation()
     found = unsure = missing = 0
-    tot_same = tot_filled = 0
+    tot_same = tot_filled = tot_off = 0
     for i, f in enumerate(files):
         name = os.path.basename(f.path)
         ctx.progress(i, len(files), f"Suche {name}")
@@ -591,26 +604,32 @@ def run(action, ctx, files, opts):
         hit = f"{', '.join(artists_of(t))} – {t.get('name', '')}" + (f" ({t['mix_name']})" if t.get("mix_name") else "")
         note = f"{hit} · {round(s * 100)} %" + (f" · {how}" if how else "") + ("" if sure else " · unsicher")
         before = len(ctx.proposals)
-        stats = {"same": 0, "filled": 0, "missing": set()}
+        stats = {"same": 0, "filled": 0, "off": 0, "missing": set()}
         proposals_for(ctx, f, t, opts, note, sure, notation, name, stats)
         tot_same += stats["same"]
         tot_filled += stats["filled"]
+        tot_off += stats["off"]
         ctx.log(f"{name}: {hit} ({round(s * 100)} %) – Beatport liefert "
                 + ", ".join(_present(t)) + (f"; ohne Wert: {', '.join(sorted(stats['missing']))}" if stats["missing"] else "")
-                + f"; {stats['same']} gleich, {len(ctx.proposals) - before} Vorschlag/Vorschläge")
+                + f"; {stats['same']} gleich, {sum(1 for p in ctx.proposals[before:] if not p['same'])} Vorschlag/Vorschläge")
     ctx.progress(len(files), len(files), "fertig")
     msg = f"{found} sicher gefunden"
     if unsure:
         msg += f", {unsure} unsicher (nicht vorausgewählt)"
     if missing:
         msg += f", {missing} nicht gefunden"
-    n = len(ctx.proposals)
+    n = sum(1 for p in ctx.proposals if p["checked"])
+    m = sum(1 for p in ctx.proposals if not p["same"])
     extra = ""
     if tot_same:
-        extra += f" {tot_same} Feld(er) stimmen bereits überein."
+        extra += f" {tot_same} Feld(er) stimmen bereits überein (grau)."
     if tot_filled:
         extra += f" {tot_filled} schon gefüllte Feld(er) mit anderem Wert sind gelistet, aber nicht angehakt."
-    return {"message": (f"{msg}. {n} Änderung(en) vorgeschlagen." if n else f"{msg}. Keine Änderungen nötig.") + extra}
+    if tot_off:
+        extra += f" {tot_off} in den Optionen abgewählte Feld(er) sind gelistet, aber nicht angehakt."
+    if not ctx.proposals:
+        return {"message": f"{msg}. Beatport hat keine Felder geliefert."}
+    return {"message": f"{msg}. {m} mögliche Änderung(en), {n} vorausgewählt." + extra}
 
 
 def _present(t):

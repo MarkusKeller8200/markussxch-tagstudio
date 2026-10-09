@@ -165,8 +165,8 @@ async function pluginPreview(f, res) {
     <div class="pl-prev-tools"><button class="ghost sm" data-pv="all">Alle wählen</button><button class="ghost sm" data-pv="none">Keine</button><button class="ghost sm" data-pv="default">Vorschlag</button>
       <span class="muted sm" id="pvCount"></span></div>
     <div class="fx-table pl-prev"><table><thead><tr><th style="width:28px"></th><th>Feld</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody>
-    ${groups.map((g) => `<tr class="pv-file"><td><input type="checkbox" data-pvg="${g.idx}" aria-label="${esc(g.name)} alle"></td><td colspan="3"><b>${esc(g.name)}</b>${dup(g) && g.folder ? ` <span class="muted sm">(${esc(g.folder)})</span>` : ""} <span class="muted sm">${esc(g.note || "")}</span></td></tr>
-      ${g.rows.map((r) => `<tr class="${r.note.includes("unsicher") ? "pv-unsure" : ""}"><td><input type="checkbox" data-pvi="${r.id}" data-pvgroup="${g.idx}" data-default="${r.checked ? 1 : 0}" ${r.checked ? "checked" : ""}></td>
+    ${groups.map((g) => `<tr class="pv-file"><td>${g.rows.some((r) => !r.same) ? `<input type="checkbox" data-pvg="${g.idx}" aria-label="${esc(g.name)} alle">` : ""}</td><td colspan="3"><b>${esc(g.name)}</b>${dup(g) && g.folder ? ` <span class="muted sm">(${esc(g.folder)})</span>` : ""} <span class="muted sm">${esc(g.note || "")}</span></td></tr>
+      ${g.rows.map((r) => `<tr class="${r.same ? "pv-same" : r.note.includes("unsicher") ? "pv-unsure" : ""}"><td>${r.same ? '<span class="pv-eq" title="Wert ist bereits gleich">=</span>' : `<input type="checkbox" data-pvi="${r.id}" data-pvgroup="${g.idx}" data-default="${r.checked ? 1 : 0}" ${r.checked ? "checked" : ""}>`}</td>
         <td>${esc(r.label)}</td><td class="old">${esc(r.old) || "–"}</td><td class="new">${esc(r.new)}${r.hint ? `<div class="hint">${esc(r.hint)}</div>` : ""}</td></tr>`).join("")}`).join("")}
     </tbody></table></div>
     ${(res.log || []).length ? `<details class="sm"><summary class="muted">Protokoll (${res.log.length})</summary><pre class="pl-log">${esc(res.log.slice(-60).join("\n"))}</pre></details>` : ""}`;
