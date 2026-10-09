@@ -32,6 +32,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Zahlen (mit Prüfung, ungültige rot), Ja/Nein als Häkchen; Schlüssel und Aufbau bleiben fest. Beim Übernehmen
   werden nur die geänderten Werte im Originaltext ersetzt, Format, Einrückung und Escapes bleiben exakt erhalten.
   Die Textansicht steht weiterhin zur Verfügung.
+- **JSON-Expertenmodus** (Häkchen im Baum, wird gemerkt): Einträge hinzufügen – bei Listen „+ Element (Kopie des
+  letzten)“, z. B. ein neuer Cue-Punkt mit gleichem Aufbau, oder ein leeres Element eines Typs; bei Objekten neuer
+  Schlüssel mit Typ (Text, Zahl, Ja/Nein, Objekt, Liste, null) –, Einträge duplizieren (⧉) und entfernen (✕).
+  Neue Einträge übernehmen Einrückung und Trennzeichen der Nachbarn.
+- **Farben:** Felder mit „COLOR“/„Farbe“ im Namen (z. B. TXXX:COLOR) und JSON-Werte unter „color“ werden, wenn sie
+  ein Hex-Wert sind (#RGB, #RRGGBB, 0xAARRGGBB, RRGGBB …), als Farbfeld angezeigt und lassen sich per Farbwähler
+  ändern; die Schreibweise (Präfix, Gross-/Kleinschreibung, Alpha-Anteil) bleibt erhalten.
 
 ### Behoben
 - **Stems:** Der Fortschrittsbalken blieb während der Trennung eines Titels auf 0 stehen (er sprang erst nach dem

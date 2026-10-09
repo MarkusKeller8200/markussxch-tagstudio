@@ -590,3 +590,20 @@ span.xml-treeonly{display:contents}
 .json-tree .jbool{display:inline-flex;align-items:center;gap:6px;color:var(--only);margin-left:4px;cursor:pointer}
 .json-tree .jclose{min-height:22px;padding-left:28px}
 .json-tree .xn.closed>.jclose{display:none}
+
+/* JSON-Expertenmodus und Farben */
+.jexp{font-size:12.5px;color:var(--dim);display:inline-flex;align-items:center;gap:6px;margin-right:6px;white-space:nowrap}
+.json-tree .jtools{display:none;margin-left:8px;gap:2px}
+.json-tree.expert .xr:hover>.jtools,.json-tree.expert .xr:focus-within>.jtools{display:inline-flex}
+.json-tree .jx{border:1px solid transparent;background:transparent;color:var(--faint);border-radius:5px;padding:0 6px;height:24px;font:12px var(--font);cursor:pointer}
+.json-tree .jx:hover{background:var(--line);color:var(--fg)}
+.json-tree .jx.del:hover{color:var(--warn)}
+.json-tree .jadd{padding-left:28px;gap:6px}
+.json-tree .jx.add{border-color:var(--line);color:var(--acc)}
+.json-tree .jx.add:hover{background:var(--acc-soft)}
+.json-tree .jtype{height:24px;border:1px solid var(--line);border-radius:5px;background:var(--surf);color:var(--fg);font:12px var(--font)}
+.json-tree .jkey{color:var(--only)}
+.jleaf{display:inline-flex;align-items:center;gap:6px}
+.jcolor,#feColorPick{width:28px;height:22px;padding:0;border:1px solid var(--line);border-radius:5px;background:transparent;cursor:pointer}
+.swatch{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid var(--line2);vertical-align:-2px;margin-right:6px}
+.fe-color{display:flex;align-items:center;gap:10px;margin-bottom:8px}

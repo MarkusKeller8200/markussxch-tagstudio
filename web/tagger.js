@@ -164,7 +164,7 @@ function renderTgEditor() {
         const full = f.edit || f.text, ml = f.multiline;
         const shown = ml ? full : (f.text.length > 160 ? f.text.slice(0, 160) + " …" : f.text);
         return `<div class="tg-f" data-key="${esc(f.key)}"><span class="k" title="${esc(f.label + "\n" + f.key)}">${f.mod ? '<span class="m" style="display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:6px"></span>' : ""}${esc(f.label)}</span>
-      <span class="v${f.editable ? "" : " noedit"}${ml ? " ml" : ""}" title="${f.editable ? "Doppelklick: bearbeiten" : ""}">${f.xml ? `<button class="xml-badge${f.xml === "view" ? " view" : ""}" data-txml="1">XML</button>` : ""}${linkify(shown)}</span>
+      <span class="v${f.editable ? "" : " noedit"}${ml ? " ml" : ""}" title="${f.editable ? "Doppelklick: bearbeiten" : ""}">${f.xml ? `<button class="xml-badge${f.xml === "view" ? " view" : ""}" data-txml="1">XML</button>` : ""}${COLOR_KEY_RE.test(f.key) ? colorSwatch(full) : ""}${linkify(shown)}</span>
       <span class="b">${f.editable || f.xml || f.blob ? `<button class="x" data-tedit="1" title="${f.blob ? "Binärfeld ansehen/bearbeiten" : "Im Editor bearbeiten"}" aria-label="${esc(f.label)} bearbeiten">${PEN}</button>` : ""}<button class="x del" data-tdel="1" title="Feld entfernen" aria-label="${esc(f.label)} entfernen">${DEL}</button></span></div>`;
       }).join("")}</div>` : "";
   const act = document.activeElement && box.contains(document.activeElement) ? document.activeElement.id : null;
@@ -309,7 +309,7 @@ function tgEditMore(row) {
   if (f.xml) return openXml(null, key, { tag: i });
   if (f.blob) return tgBlobEditor(key);
   if (!f.editable) { toast(key.startsWith("APIC") ? "Bilder über „Cover wählen …“ ändern." : "Dieses Feld kann nicht als Text bearbeitet werden."); return; }
-  if (f.multiline || mvDetect(f.edit, key)) return tgFieldEditor(key);    // mehrzeilig oder Mehrfachwerte → Editor
+  if (f.multiline || mvDetect(f.edit, key) || isJsonDoc(f.edit) || (COLOR_KEY_RE.test(key) && colorInfo(f.edit))) return tgFieldEditor(key);    // mehrzeilig oder Mehrfachwerte → Editor
   const v = row.querySelector(".v");
   const inp = document.createElement("input");
   inp.value = f.edit;
@@ -389,7 +389,8 @@ async function tgFieldEditor(key) {
     $("#feVal", b).value = cur;
     st.mode = mode;
     if (mode === "list") st.items = mvSplit(cur, st.sep);
-    if (mode === "tree") st.tree = jsonTreeEditor($("#feTree", b), cur, () => upd(b));
+    if (mode === "tree") st.tree = jsonTreeEditor($("#feTree", b), cur, () => upd(b), { expert: jsonExpert() });
+    $(".jexp", b).hidden = mode !== "tree";
     b.querySelectorAll("[data-fmode]").forEach((x) => x.classList.toggle("on", x.dataset.fmode === mode));
     $("#feTextBox", b).hidden = mode !== "text";
     $("#feListBox", b).hidden = mode !== "list";
@@ -417,7 +418,13 @@ async function tgFieldEditor(key) {
     setMode(b, json ? "tree" : sep ? "list" : "text", true);
     upd(b);
   };
+  const syncFeColor = (b) => {
+    const c = COLOR_KEY_RE.test(f.key) && st.mode === "text" ? colorInfo($("#feVal", b).value) : null;
+    $("#feColor", b).hidden = !c;
+    if (c) { $("#feColorPick", b).value = c.hex; $("#feColorTxt", b).textContent = `Farbe ${c.hex.toUpperCase()} – Schreibweise bleibt (${c.raw})`; }
+  };
   const upd = (b) => {
+    syncFeColor(b);
     const v = value(b);
     const n = st.mode === "list" ? st.items.filter((x) => x.trim()).length : 0;
     $("#feInfo", b).textContent = st.mode === "tree"
@@ -444,15 +451,26 @@ async function tgFieldEditor(key) {
     html: `<div class="fe-head"><div><b id="feLabel"></b> <code id="feKey" class="muted sm"></code></div>
         <div class="fe-nav"><button class="ghost sm" id="fePrev" title="Voriges Feld (Alt+↑)">‹</button><span class="muted sm" id="fePos"></span><button class="ghost sm" id="feNext" title="Nächstes Feld (Alt+↓)">›</button></div></div>
       <div class="fe-modes"><div class="seg"><button data-fmode="tree" hidden>Baum</button><button data-fmode="text">Text</button><button data-fmode="list">Einzelwerte</button></div>
-        <label class="muted sm" id="feSepWrap">Trennung <select id="feSep" class="inp sm">${MV_SEPS.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></label></div>
+        ${EXPERT_HTML}<label class="muted sm" id="feSepWrap">Trennung <select id="feSep" class="inp sm">${MV_SEPS.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></label></div>
       <div id="feTreeBox" hidden><div id="feTree" class="xml-tree fe-tree"></div></div>
-      <div id="feTextBox"><textarea id="feVal" class="fe-val" spellcheck="false"></textarea></div>
+      <div id="feTextBox"><div class="fe-color" id="feColor" hidden><input type="color" id="feColorPick" title="Farbe wählen"><span class="muted sm" id="feColorTxt"></span></div>
+        <textarea id="feVal" class="fe-val" spellcheck="false"></textarea></div>
       <div id="feListBox" hidden><div id="feList" class="fe-list" data-keep-enter></div><button class="ghost sm" id="feAdd">+ Wert hinzufügen</button></div>
       <div class="fe-foot"><span class="hint">Leer = Feld entfernen. NULL-getrennte Mehrfachwerte gibt es nur in ID3v2.4 (beim Speichern als v2.3 werden sie mit „ / “ verbunden). <kbd>Strg</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd> übernimmt.</span><span class="muted sm" id="feInfo"></span></div>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Feld entfernen", value: "del" }, { label: "Übernehmen", value: true, primary: true }],
     onMount: (b) => {
       const ta = $("#feVal", b);
       ta.addEventListener("input", () => upd(b));
+      $("#feColorPick", b).addEventListener("input", (e) => {
+        const c = colorInfo(ta.value);
+        if (c) { ta.value = colorFormat(c, e.target.value); upd(b); }
+      });
+      const ecb = $(".jexp-cb", b);
+      ecb.checked = jsonExpert();
+      ecb.addEventListener("change", () => {
+        if (st.tree && !st.tree.setExpert(ecb.checked)) { ecb.checked = !ecb.checked; toast("Erst die rot markierten Zahlen korrigieren."); return; }
+        jsonExpert(ecb.checked);
+      });
       b.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); $("#mBtns .primary").click(); return; }
         if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) { e.preventDefault(); go(b, e.key === "ArrowUp" ? -1 : 1); return; }
@@ -492,6 +510,13 @@ async function tgFieldEditor(key) {
   else if (res.value !== res.before) taggerApplyDetail(await call("tag_set", [i], res.key, res.value));
 }
 
+/** Expertenmodus für den JSON-Baum (pro Browser gemerkt). */
+function jsonExpert(v) {
+  try { if (v !== undefined) localStorage.setItem("ts_json_expert", v ? "1" : ""); return !!localStorage.getItem("ts_json_expert"); }
+  catch (e) { if (v !== undefined) jsonExpert._v = !!v; return !!jsonExpert._v; }
+}
+const EXPERT_HTML = `<label class="check jexp" title="Expertenmodus: Einträge hinzufügen, duplizieren und entfernen (z. B. neue Cue-Punkte)"><input type="checkbox" class="jexp-cb"> Expertenmodus</label>`;
+
 /** Binärfeld-Editor (GEOB/PRIV): Kopf (MIME, Dateiname) und – wenn lesbar – Inhalt als Text; sonst Hex-Ansicht. */
 async function tgBlobEditor(key) {
   const i = tgSelected()[0];
@@ -506,7 +531,7 @@ async function tgBlobEditor(key) {
   const json = r.editable && r.inner === "json" && isJsonDoc(r.text);
   const body = r.editable
     ? `${json ? `<div class="fe-modes"><div class="seg"><button data-bmode="tree" class="on">Baum</button><button data-bmode="text">Text</button></div>
-        <span class="bf-tools"><button class="ghost sm" id="bfOpenAll">Alle aufklappen</button><button class="ghost sm" id="bfCloseAll">Alle zuklappen</button></span></div>
+        <span class="bf-tools">${EXPERT_HTML}<button class="ghost sm" id="bfOpenAll">Alle aufklappen</button><button class="ghost sm" id="bfCloseAll">Alle zuklappen</button></span></div>
         <div id="bfTree" class="xml-tree fe-tree"></div>` : ""}
       <textarea id="bfText" class="fe-val bf-text" spellcheck="false" rows="14" ${json ? "hidden" : ""}>${esc(r.text)}</textarea>`
     : `<pre class="bf-hex">${esc(r.hex)}</pre>`;
@@ -530,7 +555,12 @@ async function tgBlobEditor(key) {
       const bs = { mode: json ? "tree" : "text", tree: null };
       const text = () => (bs.mode === "tree" && bs.tree ? bs.tree.text() : $("#bfText", b).value);
       b._bfText = text; b._bfState = bs;
-      if (json) bs.tree = jsonTreeEditor($("#bfTree", b), r.text, () => {});
+      if (json) bs.tree = jsonTreeEditor($("#bfTree", b), r.text, () => {}, { expert: jsonExpert() });
+      const ecb = $(".jexp-cb", b);
+      if (ecb) {
+        ecb.checked = jsonExpert();
+        ecb.addEventListener("change", () => { if (bs.tree && !bs.tree.setExpert(ecb.checked)) { ecb.checked = !ecb.checked; toast("Erst die rot markierten Zahlen korrigieren."); return; } jsonExpert(ecb.checked); });
+      }
       b.querySelectorAll("[data-bmode]").forEach((btn) => btn.addEventListener("click", () => {
         const m = btn.dataset.bmode;
         if (m === bs.mode) return;
@@ -538,12 +568,13 @@ async function tgBlobEditor(key) {
         const cur = text();
         bs.mode = m;
         $("#bfText", b).value = cur;
-        if (m === "tree") bs.tree = jsonTreeEditor($("#bfTree", b), cur, () => {});
+        if (m === "tree") bs.tree = jsonTreeEditor($("#bfTree", b), cur, () => {}, { expert: jsonExpert() });
         b.querySelectorAll("[data-bmode]").forEach((x) => x.classList.toggle("on", x.dataset.bmode === m));
         $("#bfTree", b).hidden = m !== "tree";
         $("#bfText", b).hidden = m !== "text";
         $("#bfJson", b).hidden = m !== "text";
         $("#bfOpenAll", b).hidden = $("#bfCloseAll", b).hidden = m !== "tree";
+        $(".jexp", b).hidden = m !== "tree";
       }));
       $("#bfOpenAll", b)?.addEventListener("click", () => bs.tree && bs.tree.expandAll(true));
       $("#bfCloseAll", b)?.addEventListener("click", () => bs.tree && bs.tree.expandAll(false));
