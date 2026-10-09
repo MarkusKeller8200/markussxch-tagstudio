@@ -442,6 +442,10 @@ Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markuss
 - **3.2.0 – DJ-Set:** Reihenfolge eines Sets nach Tonart (Camelot), BPM und Energie optimieren, Bewertung jedes
   Übergangs, Exporte als M3U8, Rekordbox-XML und CSV.
 - **3.3.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
+- **3.4.0 – Wiedergabe & Herkunft:** Vorschau-Player (Leertaste, Cue-Punkte, A/B im Vergleich), externen Player
+  aufrufen, Herkunft der Tags (welche Anwendung ein Feld geschrieben hat), Einstellungsseite mit Export/Import.
+- **Plugin-Ideen:** Liedtexte (LRCLIB), Lautheit/ReplayGain, Duplikate finden, Qualitätsprüfung (falsche
+  320 kbit/s), Import aus Rekordbox/Traktor/Serato, Bibliothek nach Tags ordnen.
 - **Später:** Analyse mit librosa bzw. Essentia-Modellen, Filter und Spalten nach Audio-Merkmalen, Mood-Feld,
   Binärfeld-/JSON-Editor auch im Vergleich, signierte Installer, Intel-Mac, Datenbank-Modul für die Bibliothek.
 
