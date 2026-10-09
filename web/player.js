@@ -9,7 +9,7 @@
 "use strict";
 
 const PLAYER = { audio: null, info: null, kind: null, ref: null, side: "L", loading: false, follow: true, startAt: "0",
-  wave: true, waveBusy: null, loop: null, raf: 0 };
+  wave: true, waveBusy: null, loop: null, raf: 0, repeat: false, ab: null };
 const WAVE_N = 800;               // Balken der Wellenform (im Cache gespeichert)
 const WAVE_MAX_BYTES = 80e6;      // sehr lange Mixe nicht dekodieren (Speicher)
 
@@ -22,6 +22,7 @@ function plSetPref(k, v) {
   if (k === "start") { PLAYER.startAt = v; plStartSync(); }
   else if (k === "wave") { PLAYER.wave = !!v; if (PLAYER.wave && PLAYER.info && !PLAYER.info.wave) plWaveCompute(PLAYER.info); plRender(); }
   else if (k === "follow") PLAYER.follow = !!v;
+  else if (k === "repeat") { PLAYER.repeat = !!v; plRender(); }
   else if (k === "vol") { clearTimeout(plVolTimer); plVolTimer = setTimeout(() => call("set_player_pref", "vol", v).catch(() => {}), 400); return; }
   call("set_player_pref", k, v).catch(() => {});
 }
@@ -63,7 +64,8 @@ async function plLoad(target, autoplay = true, keepTime = null) {
   if (seq !== PLAYER.loadSeq) return;       // inzwischen ein anderer Titel gewünscht
   PLAYER.info = info; PLAYER.kind = target.kind; PLAYER.ref = target.ref;
   const a = PLAYER.audio;
-  plLoopSet(null);
+  const keepAB = keepTime !== null && PLAYER.ab && PLAYER.ab.b !== undefined && plInGroupOf(target) ;   // #79: bei Stems/A-B gleiche Stelle → Schleife behalten
+  if (!keepAB) { PLAYER.ab = null; plLoopSet(null); }
   a.src = info.url;
   const dur = info.duration || 0;
   const firstCue = (info.cues || []).find((c) => c.pos > 0.05);
@@ -92,6 +94,33 @@ function plForget(kind) {
   plLoopSet(null);
   PLAYER.info = null; PLAYER.kind = null; PLAYER.ref = null;
   plCues(); plRender();
+}
+
+/** gleiche Aufnahme (Stems-Gruppe oder L/R im Vergleich)? */
+function plInGroupOf(t) { return plInGroup(t) || (t && t.kind === "side" && PLAYER.kind === "side"); }
+
+/** #79: A–B-Schleife – 1. Aufruf A setzen, 2. B setzen und spielen, 3. aufheben */
+function plABStep() {
+  const a = PLAYER.audio;
+  if (!a.src) return;
+  if (!PLAYER.ab) { PLAYER.ab = { a: a.currentTime }; toast(`A gesetzt bei ${fmtTime(a.currentTime)} – nochmals für B.`); }
+  else if (PLAYER.ab.b === undefined) {
+    const t = a.currentTime;
+    if (t <= PLAYER.ab.a + 0.2) { toast("B muss nach A liegen."); return; }
+    PLAYER.ab.b = t;
+    plLoopSet({ pos: PLAYER.ab.a, end: t, k: -1 });
+    toast(`Schleife ${fmtTime(PLAYER.ab.a)}–${fmtTime(t)} – nochmals (L) oder Esc zum Aufheben.`);
+  } else { plABClear(); toast("Schleife aufgehoben."); }
+  plABDraw(); plRender();
+}
+function plABClear() { PLAYER.ab = null; if (PLAYER.loop && PLAYER.loop.k === -1) plLoopSet(null); plABDraw(); plRender(); }
+function plABDraw() {
+  const box = $("#plCues"); if (!box) return;
+  $("#plABMark")?.remove();
+  const ab = PLAYER.ab, dur = (PLAYER.audio && PLAYER.audio.duration) || (PLAYER.info && PLAYER.info.duration) || 0;
+  if (!ab || !dur) return;
+  const l = (ab.a / dur) * 100, w = ab.b !== undefined ? ((ab.b - ab.a) / dur) * 100 : 0;
+  box.insertAdjacentHTML("beforeend", `<button class="pl-abmark${ab.b === undefined ? " open" : ""}" id="plABMark" style="left:${l}%;width:${Math.max(0.4, w)}%" title="A–B-Schleife ${fmtTime(ab.a)}${ab.b !== undefined ? "–" + fmtTime(ab.b) : " (B fehlt)"} · Klick: aufheben"></button>`);
 }
 
 function plSame(t) { return t && PLAYER.info && t.kind === PLAYER.kind && t.ref === PLAYER.ref; }
@@ -187,6 +216,8 @@ function plRender() {
   seek.disabled = !i;
   plDrawWave();
   $("#plAB").hidden = S.module !== "compare";
+  $("#plRepeat").classList.toggle("on", PLAYER.repeat); $("#plRepeat").setAttribute("aria-pressed", String(PLAYER.repeat));
+  $("#plAB2").classList.toggle("on", !!PLAYER.ab); $("#plAB2").classList.toggle("half", !!PLAYER.ab && PLAYER.ab.b === undefined);
   const hasCues = !!(i && i.cues && i.cues.length);
   $("#plCuePrev").hidden = $("#plCueNext").hidden = !hasCues;      // Cue-Sprünge (#37)
   $$("#plAB button").forEach((b) => b.classList.toggle("on", b.dataset.side === PLAYER.side));
@@ -298,11 +329,13 @@ function plCues() {
     const label = `${c.kind === "loop" ? "Loop" : "Cue"} ${c.index + 1}${c.name ? " · " + c.name : ""} · ${fmtTime(c.pos)}${c.kind === "loop" && c.end ? `–${fmtTime(c.end)} · Klick: Schleife an/aus` : ""} (${c.source})`;
     return `<button class="pl-cue${c.kind === "loop" ? " loop" : ""}${PLAYER.loop && PLAYER.loop.k === k ? " on" : ""}" data-k="${k}" style="left:${left}%;${c.color ? `--cue:${esc(c.color)};` : ""}${w}" title="${esc(label)}" aria-label="${esc(label)}"></button>`;
   }).join("") : "";
+  plABDraw();
 }
 
 /** #47: Serato-Loop als Schleife abspielen (null = aus) */
 function plLoopSet(c) {
   PLAYER.loop = c && c.end > c.pos ? { pos: c.pos, end: c.end, k: c.k } : null;
+  if (c && c.k !== -1 && PLAYER.ab) { PLAYER.ab = null; plABDraw(); }     // Serato-Loop ersetzt A–B
   cancelAnimationFrame(PLAYER.raf);
   $$("#plCues .pl-cue.loop").forEach((b) => b.classList.toggle("on", !!PLAYER.loop && +b.dataset.k === PLAYER.loop.k));
   if (!PLAYER.loop) return;
@@ -423,13 +456,15 @@ function initPlayer() {
   PLAYER.startAt = pp.start;
   PLAYER.follow = pp.follow;
   PLAYER.wave = pp.wave;
+  PLAYER.repeat = !!pp.repeat;
   ["play", "pause", "ended", "loadedmetadata", "emptied"].forEach((ev) => a.addEventListener(ev, plRender));
-  a.addEventListener("loadedmetadata", plCues);
+  a.addEventListener("loadedmetadata", () => { plCues(); plABDraw(); });
   $("#plWave").insertAdjacentHTML("beforeend", '<div class="pl-hover" id="plHover" hidden></div>');
   $("#plWave").addEventListener("mousemove", plHover);
   $("#plWave").addEventListener("mouseleave", plHover);
   window.addEventListener("resize", () => { plCues(); plDrawWave(); });
   $("#plCues").addEventListener("click", (e) => {
+    if (e.target.closest("#plABMark")) { plABClear(); toast("Schleife aufgehoben."); return; }
     const b = e.target.closest(".pl-cue"); if (!b || !PLAYER.info) return;
     const c = PLAYER.info.cues[+b.dataset.k];
     if (c.kind === "loop" && c.end) {            // #47: Loop an/aus
@@ -442,7 +477,10 @@ function initPlayer() {
     plRender();
   });
   a.addEventListener("timeupdate", () => { const s = $("#plSeek"); if (!s.matches(":active")) plRender(); });
-  a.addEventListener("ended", () => { if (PLAYER.follow && S.module === "tagger") plStep(1); });
+  a.addEventListener("ended", () => {
+    if (PLAYER.repeat) { a.currentTime = 0; a.play().catch(() => {}); return; }      // #79
+    if (PLAYER.follow && S.module === "tagger") plStep(1);
+  });
   a.addEventListener("error", () => { if (a.src) toast("Datei kann nicht abgespielt werden."); });
 
   $("#plPlay").addEventListener("click", () => plToggle());
@@ -459,6 +497,8 @@ function initPlayer() {
   $("#plCueNext").addEventListener("click", () => plCueJump(1));
   $("#plAB").addEventListener("click", (e) => { const b = e.target.closest("[data-side]"); if (b) plSide(b.dataset.side); });
   $("#plMore").addEventListener("click", (e) => plMenu(e.currentTarget));
+  $("#plRepeat").addEventListener("click", () => { plSetPref("repeat", !PLAYER.repeat); toast(PLAYER.repeat ? "Titel wird wiederholt." : "Titel nicht mehr wiederholen."); });
+  $("#plAB2").addEventListener("click", plABStep);
 
   document.addEventListener("keydown", (e) => {
     const inField = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && document.activeElement?.type !== "range";
@@ -467,6 +507,9 @@ function initPlayer() {
     if (e.key === " " && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plToggle(); }
     else if (e.shiftKey && (e.key === "ArrowRight" || e.key === "ArrowLeft") && PLAYER.audio.src) { e.preventDefault(); plSeekBy(e.key === "ArrowRight" ? 10 : -10); }
     else if ((e.key === "s" || e.key === "S") && !e.ctrlKey && !e.metaKey && !e.altKey && PLAYER.audio.src && plStemCycle(e.shiftKey ? -1 : 1)) e.preventDefault();   // #66
+    else if ((e.key === "l" || e.key === "L") && !e.ctrlKey && !e.metaKey && !e.altKey && PLAYER.audio.src) { e.preventDefault(); plABStep(); }   // #79
+    else if ((e.key === "r" || e.key === "R") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); $("#plRepeat").click(); }
+    else if (e.key === "Escape" && PLAYER.ab) { plABClear(); }
     else if ((e.key === "m" || e.key === "M") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); PLAYER.audio.muted = !PLAYER.audio.muted; plRender(); toast(PLAYER.audio.muted ? "Stumm (M)" : "Ton an"); }   // #49
     else if (e.altKey && (e.key === "PageDown" || e.key === "PageUp") && PLAYER.audio.src) { e.preventDefault(); plCueJump(e.key === "PageDown" ? 1 : -1); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); call("players").then((l) => plExternal(l.length ? 0 : null)); }

@@ -109,6 +109,8 @@ function tgApplyOrder() {
 }
 
 function renderTgHead() {
+  $("#tgTable").classList.toggle("covers", !!LAYOUT.tg_cover_col);       // #73
+  const cb = $("#tgCoverCol"); if (cb) cb.classList.toggle("on", !!LAYOUT.tg_cover_col);
   $("#tgHead").innerHTML = TG_COLS.map(([k, l]) => {
     if (k === "m") return "<span></span>";
     const b = `<button data-sort="${k}" class="${TG.sort.col === k ? "on" : ""}">${esc(l)}${TG.sort.col === k ? (TG.sort.dir > 0 ? " ▴" : " ▾") : ""}</button>`;
@@ -150,11 +152,36 @@ function drawTgList() {
       : `${tw}<span class="nm">${esc(r.rel)}</span>${r.stems ? `<span class="stem-b" title="${esc(r.stems.map((x) => x.name + " (" + x.ext + ")").join(", "))}">${r.stems.length} Stems</span>` : ""}`;
     h += `<div class="tg-row${TG.sel.has(r.i) ? " sel" : ""}${v.child !== undefined ? " child" : ""}" style="top:${k * TG_ROW}px" data-i="${r.i}" title="${esc(r.rel)}">
       <span>${r.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</span>
-      <span class="fn">${name}</span><span>${esc(r.TIT2)}</span><span>${esc(r.TPE1)}</span><span>${esc(r.TALB)}</span>
+      <span class="fn">${LAYOUT.tg_cover_col && v.child === undefined ? `<span class="tg-thumb${r.ch ? "" : " none"}"${r.ch ? ` data-ch="${r.ch}"` : ""}>${r.ch && TG_THUMBS.get(r.ch) ? `<img src="${TG_THUMBS.get(r.ch)}" alt="">` : ""}</span>` : ""}${name}</span><span>${esc(r.TIT2)}</span><span>${esc(r.TPE1)}</span><span>${esc(r.TALB)}</span>
       <span>${esc(r.TRCK)}</span><span>${esc(r.TDRC)}</span><span>${esc(r.TCON)}</span><span class="num">${esc(r.TBPM)}</span>
       <span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx">${esc(r.TKEY)}</span>`}</span></div>`;
   }
   inner.innerHTML = h;
+  if (LAYOUT.tg_cover_col) tgThumbsLoad();
+}
+
+// ---------------------------------------------------------------------- Cover-Spalte (#73)
+const TG_THUMBS = new Map();     // Hash → Bild (gleiche Cover eines Albums nur einmal)
+const TG_THUMB_WAIT = new Set();
+async function tgThumbsLoad() {
+  const need = [...new Set($$("#tgInner .tg-thumb[data-ch]").map((e) => e.dataset.ch))].filter((h) => !TG_THUMBS.has(h) && !TG_THUMB_WAIT.has(h));
+  for (const h of need) {
+    TG_THUMB_WAIT.add(h);
+    try { const r = await call("tag_cover_thumb", h); TG_THUMBS.set(h, r.ok ? r.src : ""); } catch (e) { TG_THUMBS.set(h, ""); }
+    TG_THUMB_WAIT.delete(h);
+    const src = TG_THUMBS.get(h);
+    $$(`#tgInner .tg-thumb[data-ch="${h}"]`).forEach((el) => { el.innerHTML = src ? `<img src="${src}" alt="">` : ""; });
+  }
+}
+function tgCoverPop(e) {
+  const th = e.target.closest && e.target.closest(".tg-thumb[data-ch]"), pop = $("#tgThumbPop");
+  if (!th || e.type === "mouseout") { if (pop) pop.hidden = true; return; }
+  const src = TG_THUMBS.get(th.dataset.ch); if (!src) return;
+  const r = th.getBoundingClientRect();
+  pop.innerHTML = `<img src="${src}" alt="">`;
+  pop.hidden = false;
+  pop.style.left = (r.right + 8) + "px";
+  pop.style.top = Math.max(8, Math.min(innerHeight - 228, r.top - 90)) + "px";
 }
 
 /** Stems eines Originals auf-/zuklappen (open: true/false/undefined = umschalten) */
@@ -241,8 +268,8 @@ function renderTgEditor() {
   const act = document.activeElement && box.contains(document.activeElement) ? document.activeElement.id : null;
   box.innerHTML = `${head}
     <div class="tg-cover"><button class="cover" id="tgCoverBig" title="${esc(c.desc || (c.state === "mixed" ? "unterschiedliche Cover" : "kein Cover"))}">${coverImg}</button>
-      <div class="tg-cover-btns"><button class="ghost sm" id="tgCoverSet">Cover wählen …</button><button class="ghost sm" id="tgCoverDel" ${c.state === "none" ? "disabled" : ""}>Cover entfernen</button>
-      <span class="hint">${esc(c.desc || (c.state === "mixed" ? "unterschiedlich" : "kein Cover"))}</span>${tgLength(d)}</div></div>
+      <div class="tg-cover-btns"><div class="row"><button class="ghost sm" id="tgCoverSet">Cover wählen …</button><button class="ghost sm" id="tgCoverDel" ${c.state === "none" ? "disabled" : ""}>Cover entfernen</button></div>
+      <span class="hint" title="${esc(c.desc || "")}">${esc(c.desc || (c.state === "mixed" ? "unterschiedlich" : "kein Cover"))}</span>${tgLength(d)}</div></div>
     <div class="tg-form">${form}
       <label for="tgVer">ID3-Version</label><select id="tgVer" class="inp" style="height:36px"><option value="3">ID3v2.3 (verbreitet)</option><option value="4">ID3v2.4 (Mehrfachwerte)</option>${d.version ? "" : '<option value="" selected>verschieden</option>'}</select>
     </div>
@@ -871,6 +898,9 @@ async function tgOriginDialog(preset = "") {
     }
     const r = e.target.closest(".tg-row"); if (r) tgSelect(+r.dataset.i, e);
   });
+  $("#tgCoverCol").addEventListener("click", () => { LAYOUT.tg_cover_col = !LAYOUT.tg_cover_col; saveUi("tg_cover_col"); renderTgHead(); drawTgList(); });
+  $("#tgInner").addEventListener("mouseover", tgCoverPop);
+  $("#tgInner").addEventListener("mouseout", tgCoverPop);
   $("#tgStemOpen").addEventListener("click", () => { TG.rows.forEach((r) => { if (r.stems) TG.open.add(r.i); }); tgApplyOrder(); });
   $("#tgStemClose").addEventListener("click", () => { [...TG.open].forEach((i) => tgToggleStems(i, false)); });
   $("#tgTable").addEventListener("keydown", (e) => {

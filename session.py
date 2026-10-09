@@ -30,7 +30,7 @@ from version import VERSION  # einzige Versionsquelle
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
            "col_name": (int, float), "col_ratio": (int, float), "tg_edit_w": (int, float),
-           "tg_more_k": (int, float), "tg_col_name": (int, float)}
+           "tg_more_k": (int, float), "tg_col_name": (int, float), "tg_cover_col": bool}
 
 
 def fmt_bytes(n) -> str:
@@ -728,7 +728,8 @@ class Session:
         return info
 
     # ================================================================== Einstellungsseite (#21)
-    PLAYER_PREFS = {"wave": (bool, True), "follow": (bool, True), "start": (str, "0"), "vol": ((int, float), 0.8)}
+    PLAYER_PREFS = {"wave": (bool, True), "follow": (bool, True), "start": (str, "0"), "vol": ((int, float), 0.8),
+                    "repeat": (bool, False)}
 
     def player_prefs(self) -> dict:
         p = self.cfg.get("player") if isinstance(self.cfg.get("player"), dict) else {}
@@ -1736,9 +1737,37 @@ class Session:
 
     def _tag_row_base(self, i, f):
         return {"i": i, "name": os.path.basename(f.path), "rel": core.rel_name(f, self.tag_root),
-                "modified": f.is_modified(), "cover": f.get("APIC:3") is not None, "version": f.version,
+                "modified": f.is_modified(), "cover": f.get("APIC:3") is not None, "ch": self._cover_hash(f),
+                "version": f.version,
                 **{key: tagger.text_of(f, key) for key, _l, _p in tagger.FIELDS},
                 "camelot": keys.parse_key(tagger.text_of(f, "TKEY")), "feat": features.values(f)}
+
+    @staticmethod
+    def _front_cover(f):
+        it = f.get("APIC:3") or next((f.get(k) for k in f.items if k.startswith("APIC")), None)
+        return it.cover if it is not None and it.cover and it.cover.data else None
+
+    def _cover_hash(self, f) -> str:
+        """#73: kurzer Hash des Covers (am Cover-Objekt gemerkt) – gleiche Cover eines Albums nur einmal laden."""
+        import hashlib
+        c = self._front_cover(f)
+        if c is None:
+            return ""
+        h = getattr(c, "_h", None)
+        if h is None or getattr(c, "_hlen", -1) != len(c.data):
+            h = hashlib.md5(c.data).hexdigest()[:16]
+            c._h, c._hlen = h, len(c.data)
+        return h
+
+    def tag_cover_thumb(self, h) -> dict:
+        """Cover zu einem Hash aus tag_rows (für die Cover-Spalte, #73)."""
+        with self.lock:
+            for f in self.tag_files:
+                if self._cover_hash(f) == h:
+                    c = self._front_cover(f)
+                    return {"ok": True, "src": f"data:{c.mime or 'image/jpeg'};base64,{base64.b64encode(c.data).decode('ascii')}",
+                            "desc": c.describe()}
+        return {"ok": False}
 
     def tag_rows(self) -> dict:
         with self.lock:

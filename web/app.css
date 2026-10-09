@@ -369,6 +369,12 @@ span.xml-treeonly{display:contents}
 .tg-thead button.on{color:var(--acc)}
 .tg-scroll{flex:1;overflow:auto;position:relative}
 #tgInner{position:relative}
+.tg-thumb{width:30px;height:30px;border-radius:5px;overflow:hidden;background:var(--raise);display:block;flex:none;margin-right:8px}
+.tg-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.tg-thumb.none{background:transparent;border:1px dashed var(--line)}
+.tg-thumb-pop{position:fixed;z-index:60;width:220px;height:220px;border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.35);pointer-events:none;background:var(--raise)}
+.tg-thumb-pop img{width:100%;height:100%;object-fit:cover}
+.tg-cover-col.on{color:var(--acc);border-color:var(--acc)}
 .tg-row{position:absolute;left:0;right:0;height:40px;border-bottom:1px solid var(--line);font-size:13px;cursor:default;user-select:none}
 .tg-row:hover{background:var(--raise)}
 .tg-row.sel{background:var(--sel)}
@@ -379,9 +385,13 @@ span.xml-treeonly{display:contents}
 .tg-empty{padding:40px 20px;text-align:center;color:var(--faint)}
 .tg-edit{width:var(--tg-edit-w,430px);flex-shrink:0;border-left:1px solid var(--line);background:var(--surf);overflow:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px}
 .tg-edit h3{margin:0;font-size:16px;overflow-wrap:anywhere}
-.tg-cover{display:flex;gap:14px;align-items:center}
-.tg-cover .cover{width:96px;height:96px}
-.tg-cover-btns{display:flex;flex-direction:column;gap:6px}
+/* #71: Cover in der Breite der Feldnamen, Infos bündig mit den Eingabefeldern darunter */
+.tg-cover{display:grid;grid-template-columns:118px minmax(0,1fr);gap:10px;align-items:stretch}
+.tg-cover .cover{width:118px;height:118px}
+.tg-cover-btns{display:flex;flex-direction:column;justify-content:space-between;gap:6px;min-width:0}
+.tg-cover-btns .row{display:flex;gap:6px;flex-wrap:wrap}
+.tg-cover-btns .row .sm{flex:1 1 auto}
+.tg-cover-btns .hint{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tg-form{display:grid;grid-template-columns:118px minmax(0,1fr);gap:8px 10px;align-items:center}
 .tg-form label{font-size:13px;color:var(--dim)}
 .tg-form input{height:36px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:0 10px;min-width:0;width:100%}
@@ -866,3 +876,24 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .sn-pick button .muted{font-size:12px}
 .sn-cmp{margin-left:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--acc);font:600 12px var(--font);padding:0 6px;cursor:pointer}
 .sn-cmp:hover{border-color:var(--acc)}
+
+/* #72: Hover-Infos */
+.tip{position:fixed;z-index:200;max-width:min(420px,calc(100vw - 16px));padding:8px 10px;border-radius:10px;background:var(--surf);color:var(--fg);
+  border:1px solid var(--line2,var(--line));box-shadow:0 10px 30px rgba(0,0,0,.28);font:12.5px/1.45 var(--font);pointer-events:none;white-space:normal;word-break:break-word}
+.tip-h{font-weight:650;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.tip-h:only-child{margin:0}
+.tip-r{display:grid;grid-template-columns:auto minmax(0,1fr);gap:0 10px}
+.tip-k{color:var(--dim)}
+.tip-l{color:var(--dim)}
+.tip-h+.tip-l,.tip-l:first-child{color:var(--fg)}
+.tip-key{padding:0 5px;border-radius:5px;background:var(--kc);color:var(--kt);font-size:11px}
+.tip-bpm{color:var(--acc)}
+.tip-warn{color:var(--warn);font-weight:600}
+.tip .src-b{margin:0}
+
+/* #79: Titel wiederholen, A–B-Schleife */
+.player .pl-tog.on{color:var(--acc);background:var(--acc-soft)}
+.player .pl-ab-btn{width:auto!important;padding:0 6px;white-space:nowrap;font:700 10.5px var(--font);letter-spacing:.02em}
+.player .pl-ab-btn.half{background:repeating-linear-gradient(90deg,var(--acc-soft) 0 50%,transparent 50% 100%)}
+.pl-abmark{position:absolute;top:0;bottom:0;padding:0;border:0;border-left:2px solid var(--acc);border-right:2px solid var(--acc);background:color-mix(in srgb,var(--acc) 22%,transparent);pointer-events:auto;cursor:pointer}
+.pl-abmark.open{border-right:0;background:transparent;width:2px!important}

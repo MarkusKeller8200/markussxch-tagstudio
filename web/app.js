@@ -127,7 +127,7 @@ async function runTask(startPromise, title) {
 
 
 // ====================================================================== Splitter & Layout
-const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5, tg_edit_w: 430, tg_more_k: 130, tg_col_name: 0 };
+const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5, tg_edit_w: 430, tg_more_k: 130, tg_col_name: 0, tg_cover_col: false };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 let uiSaveTimers = {};
 function saveUi(key) {
@@ -309,10 +309,67 @@ function srcBadge(sid) {
   const own = o.hue !== null && o.hue !== undefined;         // #75: eigene Farbe
   const cls = own ? "" : o.kind === "plugin" ? " own" : o.kind === "id3" ? " id3" : o.kind === "unknown" ? " unk" : "";
   const what = o.kind === "id3" ? "ID3-Version" : "Herkunft";
-  return `<span class="src-b${cls}" style="--h:${own ? o.hue : srcHue(sid)}" title="${what}: ${esc(o.name)} – ${esc(o.desc)}">${esc(short)}</span>`;
+  const tip = `<div class="tip-h"><span class="src-b${cls}" style="--h:${own ? o.hue : srcHue(sid)}">${esc(short)}</span>${o.name !== short ? " " + esc(o.name) : ""}</div><div class="tip-l">${esc(what)} – ${esc(o.desc)}</div>`;
+  return `<span class="src-b${cls}" style="--h:${own ? o.hue : srcHue(sid)}" aria-label="${what}: ${esc(o.name)}" data-tip-html="${esc(tip)}">${esc(short)}</span>`;
 }
 /** #74: ID3-Version (offizielle Felder) + Herkunft */
 function srcBadges(ver, src) { return srcBadge(ver) + srcBadge(src); }
+
+// ====================================================================== Hover-Infos (#72)
+/* Eigene Tooltips statt der Browser-Tooltips: im Design der App (hell/dunkel), mit Überschrift (erste Zeile),
+   „Feld: Wert“-Zeilen als Tabelle und farbigen Hervorhebungen (Herkunft, Tonart, BPM, Abweichungen).
+   Quelle bleibt das title-Attribut (bzw. data-tip-html für reichere Inhalte) – es wird nur während des Hoverns
+   beiseitegelegt, damit kein doppelter Browser-Tooltip erscheint. */
+const TIP = { el: null, target: null, timer: 0 };
+function tipHtml(el) {
+  if (el.dataset.tipHtml) return el.dataset.tipHtml;
+  const text = el.dataset.tipTitle || "";
+  if (!text.trim()) return "";
+  const lines = text.split("\n").filter((l, k, all) => l.trim() || (k && k < all.length - 1));
+  const head = lines.length > 1 ? `<div class="tip-h">${esc(lines.shift())}</div>` : "";
+  const rows = lines.map((l) => {
+    const m = l.match(/^\s*([^:]{1,32}):\s+(.+)$/);
+    const val = (s) => esc(s).replace(/\b(0?([1-9]|1[0-2])[AB])\b/g, (k) => (typeof keyStyle === "function" ? `<b class="tip-key" style="${keyStyle(k.replace(/^0/, ""))}">${k}</b>` : k))
+      .replace(/(\d+(?:[.,]\d+)?\s?BPM)/g, '<b class="tip-bpm">$1</b>').replace(/(unterscheidet sich[^·]*|geändert|fehlt|NICHT[^·]*)/g, '<span class="tip-warn">$1</span>');
+    return m ? `<div class="tip-r"><span class="tip-k">${esc(m[1])}</span><span class="tip-v">${val(m[2])}</span></div>` : `<div class="tip-l">${val(l)}</div>`;
+  }).join("");
+  return head + rows;
+}
+function tipShow(el) {
+  const html = tipHtml(el);
+  if (!html) return;
+  const t = TIP.el;
+  t.innerHTML = html;
+  t.hidden = false;
+  const r = el.getBoundingClientRect(), w = t.offsetWidth, h = t.offsetHeight;
+  let x = r.left + r.width / 2 - w / 2, y = r.bottom + 8;
+  if (y + h > innerHeight - 8) y = r.top - h - 8;
+  t.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + "px";
+  t.style.top = Math.max(8, y) + "px";
+}
+function tipHide() {
+  clearTimeout(TIP.timer);
+  if (TIP.el) TIP.el.hidden = true;
+  const el = TIP.target;
+  if (el && el.dataset.tipTitle !== undefined) { el.setAttribute("title", el.dataset.tipTitle); delete el.dataset.tipTitle; }
+  TIP.target = null;
+}
+function initTips() {
+  TIP.el = document.createElement("div");
+  TIP.el.className = "tip"; TIP.el.hidden = true; TIP.el.setAttribute("role", "tooltip");
+  document.body.appendChild(TIP.el);
+  document.addEventListener("mouseover", (e) => {
+    const el = e.target.closest && e.target.closest("[title],[data-tip-html]");
+    if (el === TIP.target) return;
+    tipHide();
+    if (!el || el.closest(".tg-thumb") || el.matches("input,textarea,select,option") || el.closest("#tgThumbPop")) return;
+    TIP.target = el;
+    if (el.hasAttribute("title")) { el.dataset.tipTitle = el.getAttribute("title"); el.removeAttribute("title"); }
+    TIP.timer = setTimeout(() => { if (TIP.target === el && el.isConnected) tipShow(el); }, 380);
+  });
+  ["mousedown", "keydown", "scroll", "blur"].forEach((ev) => window.addEventListener(ev, tipHide, true));
+  document.addEventListener("mouseleave", tipHide);
+}
 
 // ====================================================================== Listen-Cache: Prüfung im Hintergrund (#70)
 let verifyTimer = 0;
@@ -352,6 +409,7 @@ async function init() {
   for (const k of Object.keys(LAYOUT)) if (st.ui && st.ui[k] !== undefined) LAYOUT[k] = st.ui[k];
   applyLayout();
   applyTheme();
+  initTips();                       // #72
   $("#ver").textContent = "Version " + st.version + (st.native ? "" : " · Browser");
   $("#mode").innerHTML = st.modes.map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("");
   $("#mode").value = st.mode;
