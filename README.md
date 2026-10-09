@@ -83,7 +83,9 @@ zusammen gespeichert (Strg/Cmd+S) und lassen sich gemeinsam rückgängig machen.
 
 ### Tagger
 
-- **Liste:** Ordner oder Datei einlesen; Spalten Datei, Titel, Künstler, Album, Spur, Jahr, Genre, Tonart –
+- **Schnell wieder da:** ein schon eingelesener Ordner erscheint sofort aus dem Listen-Cache; danach prüft TagStudio
+  im Hintergrund jeden Titel über einen Hash seiner Tags und liest Geändertes neu (Stand in der Statuszeile).
+- **Liste:** Ordner oder Datei einlesen; optional mit **Cover-Spalte** (Knopf „Cover“); Spalten Datei, Titel, Künstler, Album, Spur, Jahr, Genre, Tonart –
   sortierbar per Klick, filterbar. Markieren mit Klick, Shift, Strg/Cmd, Strg/Cmd+A.
 - **Bearbeiten:** rechts die Standardfelder der markierten Dateien. Bei mehreren Dateien zeigt „‹verschieden›“
   unterschiedliche Werte – sie bleiben unverändert, bis du etwas einträgst. Cover setzen/entfernen, ID3-Version
@@ -182,6 +184,8 @@ Unten in der Fußleiste – in Tagger und Vergleich:
   Laufzeit, **Restlaufzeit** (blinkt in den letzten 30 Sekunden rot) und Länge. Taste **M** schaltet stumm.
 - **Stems:** Bei Titeln mit Stems wählt der Knopf neben dem Titel (oder **S** / Shift+S) zwischen Original und den
   Spuren – die Wiedergabe läuft **an derselben Stelle** weiter.
+- **Titel wiederholen** (🔁 bzw. **R**) und **A–B-Schleife** (Knopf „A–B“ bzw. **L**: A setzen, B setzen,
+  aufheben; **Esc** hebt auf).
 - **A/B im Vergleich:** L/R wechselt zwischen linker und rechter Datei **an derselben Stelle**.
 - **Externe Player** (⋯ bzw. **Strg/Cmd+P**): markierte Titel in foobar2000, VLC, Rekordbox, Music … öffnen; ohne
   Einrichtung im Standardprogramm des Systems. Unter „Externe Player…“ beliebig viele Programme mit Argumenten
@@ -215,6 +219,8 @@ Für Bibliotheken, die auch andere Programme bearbeiten (Mp3tag, beaTunes, Mixed
 - **Zurücksetzen:** einzelne Felder oder ganze Titel ankreuzen → „Auswahl zurücksetzen“ (Rückgängig möglich, wird
   mit „Speichern“ geschrieben) oder „Byte-genau zurückschreiben“ (exakt der Snapshot-Stand inkl. Serato-/Cue-Daten,
   vorher Sicherung; Titel mit geändertem Audio werden übersprungen).
+- **Mehrere Ordner** mit Farbe, eindeutigem Namen und Pfad; Anzeigename und Ordner änderbar, täglicher Snapshot je
+  Ordner abschaltbar. Solange kein Ordner überwacht wird, weist TagStudio beim Start darauf hin.
 - **Automatik:** einmal täglich ein Snapshot je Ordner, beim Start die Frage mit der Zahl geänderter Titel (beides
   abschaltbar). Aufräumen: 20 automatische + je einer pro Woche der letzten 12 Wochen (einstellbar).
 - **Speicherplatz** je Snapshot, je Ordner und gesamt; die Summe steht auch in der Seitenleiste.
@@ -258,7 +264,7 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   ziehen (oder mit ←/→ auf dem Griff); Doppelklick setzt zurück, alles wird gemerkt. Die Seitenleiste lässt sich
   einklappen.
 - **Tastatur:** Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte
-  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · ↑/↓ Titel wechseln (überall) · S Stem-Spur · Shift+←/→ ±10 s · Alt+Bild↑/↓ Cue · Strg/Cmd+P externer Player · →/← Stems auf-/zuklappen · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
+  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · ↑/↓ Titel wechseln (überall) · S Stem-Spur · R wiederholen · L A–B-Schleife · Shift+←/→ ±10 s · Alt+Bild↑/↓ Cue · Strg/Cmd+P externer Player · →/← Stems auf-/zuklappen · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
 
 ## Klassische Oberfläche
 

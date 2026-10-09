@@ -43,13 +43,33 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Herkunfts-Kennzeichen:** offizielle ID3-Felder zeigen die Version (v2.3/v2.4) zusammen mit der Herkunft;
   benutzerdefinierte Felder (TXXX, GEOB, PRIV …) ohne bekannte Herkunft heissen „unbekannt“ (#74). **Eigene
   Kennzeichen** (Text und Farbe) je Herkunft in den Einstellungen, einzeln oder alle auf Standard zurücksetzbar (#75).
+- **Listen-Cache mit Hash je Titel:** Tagger und Vergleich zeigen einen schon einmal eingelesenen Ordner sofort aus
+  dem Cache (Dateien mit gleicher Grösse und Änderungszeit werden gar nicht geöffnet) und prüfen danach im
+  Hintergrund jeden Titel über den Hash seiner Tag-Bytes – auch Änderungen von Programmen, die die Änderungszeit
+  erhalten. Stand in der Statuszeile („prüfe 340 / 1'500 …“, „3 Titel ausserhalb geändert – neu gelesen“).
+  Einstellungen › Cache: an/aus, Grösse, leeren (#70).
+- **Mehrere überwachte Ordner** eindeutig: Farbe, Name (gleiche Namen mit übergeordnetem Ordner), Pfad, Grösse,
+  letzter Snapshot; Anzeigename und Ordner änderbar, täglicher Snapshot je Ordner abschaltbar (#77).
+- **Hinweis beim Start**, solange kein Ordner überwacht wird – „Ordner wählen …“ / „Später“ / „Nicht mehr
+  fragen“ (#78).
+- Tagger: **Cover-Spalte** (ein-/ausblendbar, gleiche Zeilenhöhe, Hover zeigt das Cover gross) (#73).
+- **Hover-Infos** im App-Design statt der Browser-Tooltips: Überschrift, Feld/Wert-Zeilen, Tonart in
+  Camelot-Farbe, BPM und Abweichungen hervorgehoben, Herkunfts-Kennzeichen mit Erklärung (#72).
+- Player: **Titel wiederholen** (🔁, Taste R) und **A–B-Schleife** (Knopf bzw. Taste L: A setzen, B setzen,
+  aufheben; Esc hebt auf) mit Markierung auf der Wellenform; bleibt beim Umschalten Original/Stems und L/R (#79).
 
 ### Behoben
 - Hintergrund-Aufträge, die sehr schnell fertig waren, meldeten ihr Ende nicht.
 - Player: Nach dem Einlesen eines anderen Ordners im Tagger konnte die Leertaste noch den alten Titel abspielen.
 - Fehlermeldungen aus Aktionen, die nicht abgefangen wurden, erscheinen jetzt als Hinweis statt still zu verschwinden.
+- Journal: ⇄ öffnet im Vergleich nur noch den einen Titel statt den ganzen Ordner neu einzulesen (#56).
 
 ### Geändert
+- **Schneller einlesen:** jede Datei wird nur noch einmal gelesen (der Fingerabdruck für den Konfliktschutz entsteht
+  aus den gelesenen Bytes), die Stems-Suche kostet ohne Stems-Ordner fast nichts – 1'500 Titel ohne Cache etwa
+  doppelt so schnell (#70).
+- Vergleich: Version und Herkunft stehen klein neben der Feld-ID – der Feldname hat die volle Breite (#74).
+- Tagger: Cover in der Breite der Feldnamen, Infos und Länge bündig mit den Eingabefeldern (#71).
 - Die Option „v2.3/v2.4-Kennzeichen auch bei Standardfeldern“ (#40) heisst jetzt „ID3-Version bei offiziellen
   Feldern zeigen“ und ist standardmässig **an** (#74).
 - Player neu geordnet: Tonart (Camelot-Kennzeichen plus musikalische und Open-Key-Schreibweise), BPM, Laufzeit,
