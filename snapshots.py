@@ -645,14 +645,22 @@ SPEC_PREFIX = "snapshot:"
 
 
 def parse_spec(spec: str):
-    """„snapshot:<lib>/<snap>“ → (lib, snap) oder None."""
+    """„snapshot:<lib>/<snap>[?p=<relativer Pfad>]“ → (lib, snap, pfad|None) oder None.
+    Mit ?p= nur dieser eine Titel (schnell, z. B. aus dem Journal)."""
+    from urllib.parse import unquote
     if not isinstance(spec, str) or not spec.startswith(SPEC_PREFIX):
         return None
-    rest = spec[len(SPEC_PREFIX):].strip().strip("/")
+    rest, _q, query = spec[len(SPEC_PREFIX):].strip().partition("?p=")
+    rest = rest.strip("/")
     if "/" not in rest:
         return None
     lid, sid = rest.split("/", 1)
-    return lid, sid
+    return lid, sid, (unquote(query) if query else None)
+
+
+def make_spec(lid: str, sid: str, p: str | None = None) -> str:
+    from urllib.parse import quote
+    return f"{SPEC_PREFIX}{lid}/{sid}" + (f"?p={quote(p)}" if p else "")
 
 
 _SNAPFILE = None
@@ -713,10 +721,15 @@ def load_snapshot(store, spec: str, cancel=None, progress=None) -> tuple[list, s
         raise StoreError(f"Ungültige Snapshot-Angabe: {spec}")
     lib = store.library(ids[0])
     m = store.manifest(lib["id"], ids[1])
+    only = ids[2]
     label = f"{lib['name']} · {m.get('label', '')} ({str(m.get('created', ''))[:16].replace('T', ' ')})"
     progress = progress or (lambda x: None)
     out = []
     files = m.get("files", [])
+    if only:
+        files = [e for e in files if e["p"] == only]
+        if not files:
+            raise StoreError(f"Der Titel „{only}“ ist in diesem Snapshot nicht enthalten.")
     progress(("total", len(files)))
     for i, e in enumerate(files, 1):
         if cancel is not None and cancel.is_set():
@@ -725,7 +738,7 @@ def load_snapshot(store, spec: str, cancel=None, progress=None) -> tuple[list, s
         out.append(snap_file(store, e, lib["root"], label))
         if i % 50 == 0 or i == len(files):
             progress(("progress", i, len(files), e["p"]))
-    return out, lib["root"], label
+    return out, (os.path.join(lib["root"], *only.split("/")) if only else lib["root"]), label
 
 
 def _disp(it) -> str:

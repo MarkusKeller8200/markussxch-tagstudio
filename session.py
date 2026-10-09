@@ -848,7 +848,10 @@ class Session:
         def root_of(p):
             import snapshots
             ids = snapshots.parse_spec(p)
-            return self.snap_store.library(ids[0])["root"] if ids else p
+            if not ids:
+                return p
+            root = self.snap_store.library(ids[0])["root"]
+            return os.path.join(root, *ids[2].split("/")) if ids[2] else root      # ein Titel: Datei als Wurzel
 
         def job(cancel, progress):
             pairs, errors = core.load_pairs(lp, rp, recursive, mode, cancel, progress, self.reg, snap_loader)

@@ -240,19 +240,17 @@ async function snPickSpec(side) {
   toast("Snapshot gewählt – „Vergleichen“ startet.");
 }
 
-/** #56: aus dem Journal: Snapshot ↔ Jetzt (bzw. zweiter Snapshot) im Vergleich öffnen, Titel auswählen */
+/** #56: aus dem Journal: nur diesen einen Titel im Vergleich öffnen (Snapshot ↔ jetzt bzw. zweiter Snapshot) */
 async function snOpenCompare(p) {
   const lib = SN.ov.libs.find((l) => l.id === SN.lid);
-  if (!lib) return;
-  $("#pathL").value = `snapshot:${SN.lid}/${SN.a}`;
-  $("#pathR").value = SN.b === "live" ? lib.root : `snapshot:${SN.lid}/${SN.b}`;
-  $("#recursive").checked = true;
+  const r = SN.j.rows.find((x) => x.p === p);
+  if (!lib || !r) return;
+  const q = (rel) => "?p=" + encodeURIComponent(rel);
+  const old = r.p_old || p;                       // umbenannt: im Snapshot unter dem alten Pfad
+  $("#pathL").value = `snapshot:${SN.lid}/${SN.a}${q(old)}`;
+  $("#pathR").value = SN.b === "live" ? lib.root.replace(/[\\/]+$/, "") + (lib.root.includes("\\") ? "\\" : "/") + p.split("/").join(lib.root.includes("\\") ? "\\" : "/") : `snapshot:${SN.lid}/${SN.b}${q(p)}`;
   setModule("compare");
   await compare(false);
-  const name = p.split("/").pop().toLowerCase();
-  const rows = (await call("pair_rows")).rows;
-  const hit = rows.find((r) => (r.left || "").replace(/\\/g, "/").toLowerCase().endsWith(p.toLowerCase()) || (r.right || "").toLowerCase().endsWith(name));
-  if (hit) await selectPair(hit.i);
 }
 
 async function snAddLibrary() {

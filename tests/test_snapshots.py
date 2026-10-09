@@ -310,6 +310,16 @@ class TestSessionSnapshots(Base):
         self.assertIn("schreibgeschützt", st["message"])
         self.assertEqual(s.remove("L", ["TKEY"])["tone"], "warn")
         self.assertEqual(s.unsaved(), 1)                           # nur die echte Datei
+        # #56: aus dem Journal nur ein Titel – schnell, ohne den ganzen Ordner
+        one = sn.make_spec(lid, sid, "Album/01 Titel.mp3")
+        s.start_load(one, self.path(1), False, "filename")
+        self.wait_task()
+        rows1 = s.pair_rows()["rows"]
+        self.assertEqual((len(rows1), rows1[0]["left"], rows1[0]["right"]), (1, "01 Titel.mp3", "01 Titel.mp3"))
+        s.start_load(sn.make_spec(lid, sid, "Album/02 Titel.mp3"), os.path.join(self.lib, "Album", "02 Umbenannt.mp3"), False, "filename")
+        self.wait_task()
+        self.assertEqual(len(s.pair_rows()["rows"]), 1)                     # umbenannt: alter ↔ neuer Pfad
+        self.assertTrue(all(s.pairs[0]))
         # Audio-Inhalt findet den umbenannten Titel
         s.do_undo()
         s.start_load(spec, self.lib, True, "audio")
