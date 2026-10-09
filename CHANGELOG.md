@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [3.3.0] – 2026-10-10
+
 ### Neu
 - **Snapshots & Änderungsjournal** (Seite „Snapshots“): Ordner überwachen und ihren Tag-Zustand festhalten – byte-genau,
   ohne Audio, platzsparend (jeder ID3-Frame wird nur einmal gespeichert; unveränderte Titel kosten fast nichts).

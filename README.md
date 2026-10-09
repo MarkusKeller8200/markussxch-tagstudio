@@ -533,15 +533,13 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 ## Ausblick
 
-Zuletzt erschienen: **3.2.0 – Wiedergabe & Herkunft** (Vorschau-Player mit Wellenform, Cue-Marken und Loops,
-externe Player, Herkunft der Tags, Einstellungsseite, Stems im Hintergrund und als Spuren im Tagger).
+Zuletzt erschienen: **3.3.0 – Snapshots & Änderungsjournal** (Tag-Zustand überwachter Ordner festhalten,
+Änderungen anderer Programme erkennen und einzeln zurücknehmen, Snapshots im Vergleich, Schutz vor dem Überschreiben
+externer Änderungen, Listen-Cache für schnelles Einlesen, Player mit Stems-Umschaltung und A–B-Schleife,
+Standardordner). Davor: **3.2.0 – Wiedergabe & Herkunft**.
 
 Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
-- **3.3.0 – Snapshots & Änderungsjournal:** Tag-Zustand überwachter Ordner täglich festhalten, Änderungen durch andere
-  Programme (Mp3tag, beaTunes, Mixed In Key, Platinum Notes …) erkennen und einzeln zurücknehmen, Snapshots im
-  Vergleich, Schutz vor dem Überschreiben externer Änderungen – Konzept in
-  [docs/KONZEPT-SNAPSHOTS.md](docs/KONZEPT-SNAPSHOTS.md).
 - **3.4.0 – DJ-Set:** Reihenfolge eines Sets nach Tonart (Camelot), BPM und Energie optimieren, Bewertung jedes
   Übergangs, Exporte als M3U8, Rekordbox-XML und CSV.
 - **3.5.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.

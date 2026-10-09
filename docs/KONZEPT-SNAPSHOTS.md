@@ -1,6 +1,6 @@
 # Konzept: Snapshots und Änderungsjournal
 
-Stand: 2026-10-09 · Status: **Konzept, Entscheidungen getroffen** (Abschnitt 8) · geplant für **Version 3.3.0**
+Stand: 2026-10-10 · Status: **umgesetzt in Version 3.3.0** (Ausbau: Issue #59) · Entscheidungen in Abschnitt 8
 
 ## 1. Ziel
 
