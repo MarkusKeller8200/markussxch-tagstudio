@@ -16,6 +16,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - GitHub: Code-Scanning mit CodeQL (Python, JavaScript, Workflows; bei jedem Push, Pull Request und wöchentlich);
   Funde werden automatisch als Issues (bug, security, codeql) im nächsten Patch-Milestone angelegt und nach der
   Behebung geschlossen.
+- README überarbeitet: Funktionsüberblick, Tagger mit allen Editoren (Feld-Editor, Einzelwerte, JSON-Baum,
+  XML, Binärfelder, Farben), Plugins, Datenablage, GitHub-Abläufe (CodeQL-Issues, Dependabot, automatisches
+  Release), Fehler melden, Ausblick mit Milestones.
 - `SECURITY.md`: unterstützte Versionen und privates Melden von Sicherheitslücken; `release.py` zieht die Tabelle bei neuen MINOR/MAJOR-Versionen automatisch nach.
 - Release-Workflow: Eine neue Versionsnummer auf `main` (nach `release.py X.Y.Z`) wird automatisch veröffentlicht –
   der Workflow baut, testet und legt Tag `vX.Y.Z` und das Release selbst an. Von Hand gesetzte Tags gehen weiterhin.

@@ -1,12 +1,31 @@
 # MarKusSXCH TagStudio
 
-Werkzeugkasten für MP3-Bibliotheken von DJs – **Tagger, Vergleich (im Stil von Beyond Compare), Tag-Fixer,
-Sicherungen, Camelot-Rad, Audio-Merkmale und Plugins** (z. B. Stems, Beatport). Für **Windows und macOS**.
-Der Kern braucht keine Zusatzpakete, nur Python 3.9 oder neuer.
+Werkzeugkasten für MP3-Bibliotheken von DJs: **Tagger, Vergleich** (im Stil von Beyond Compare), **Tag-Fixer,
+Sicherungen, Camelot-Rad, Audio-Merkmale** und **Plugins** (z. B. Stems, Beatport). Für **Windows und macOS**.
+Der Kern braucht keine Zusatzpakete, nur Python 3.9 oder neuer – oder gar nichts, mit dem Installer.
+
+**Download:** [Releases](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases) ·
+**Änderungen:** [CHANGELOG.md](CHANGELOG.md) · **Plugins:** [PLUGINS.md](PLUGINS.md) ·
+**Fehler & Ideen:** [Issues](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues) ·
+**Sicherheit:** [SECURITY.md](SECURITY.md)
 
 > Bis Version 2.8 hieß das Programm „MP3 Tag Compare“. Einstellungen und Sicherungen von damals werden automatisch übernommen.
 
-**Aktuelle Version:** 3.0.0 · Änderungen siehe [CHANGELOG.md](CHANGELOG.md) · Plugins: [PLUGINS.md](PLUGINS.md)
+## Funktionen im Überblick
+
+- **Tagger:** viele Dateien gemeinsam bearbeiten, Cover, Tags aus Dateiname, Umbenennen, Spurnummern,
+  Groß-/Kleinschreibung, Suchen & Ersetzen, Export nach Excel/CSV.
+- **Editoren für jedes Feld:** mehrzeiliger Feld-Editor, Mehrfachwerte als Einzelwerte, JSON als Baum,
+  XML-Editor, Binärfeld-Editor für DJ-Daten (GEOB/PRIV), Farbwähler für Hex-Farben, anklickbare Links.
+- **Tonart:** Camelot-Rad mit harmonisch passenden Tonarten; Schreibweise Camelot (`08A`), musikalisch (`Am`)
+  oder Open Key (`1m`).
+- **Audio-Merkmale:** Energy, Danceability, Happiness … als Felder mit Werten 0–100.
+- **Vergleich zweier Ordner/Dateien:** Feld für Feld mit zeichengenauen Markierungen, Werte per Pfeil übernehmen.
+- **Tag-Fixer:** Mehrfachwerte (`;`, `/`, `feat.` …) vereinheitlichen oder in echte ID3v2.4-Mehrfachwerte umwandeln.
+- **Sicherheit beim Speichern:** vor jedem Speichern automatische Sicherung der Tags, Änderungs-Viewer,
+  byte-genaues Wiederherstellen; Rückgängig/Wiederholen über alle Dateien.
+- **Plugins:** Stems (Gesang, Schlagzeug, Bass … trennen) und Beatport (Metadaten mit eigenem Login),
+  eigene Plugins möglich.
 
 ## Zwei Oberflächen, ein Kern
 
@@ -16,7 +35,8 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.9 oder neuer.
 | Start macOS | `start_web_mac.command` | `start_mac.command` |
 | Terminal | `python tagstudio_web.py [links] [rechts]` | `python3 tagstudio.py [links] [rechts]` |
 | Technik | HTML/CSS/JS im eigenen App-Fenster (pywebview), sonst im Browser | tkinter |
-| Umfang | Vergleich, **Tagger**, Tag-Fixer, Sicherungen, **Plugins**, Update-Knopf | Vergleich, Tag-Fixer, Sicherungen |
+| Umfang | Vergleich, **Tagger** mit allen Editoren, Tag-Fixer, Sicherungen, **Plugins**, Update-Knopf | Vergleich, Tag-Fixer, Sicherungen, XML-Editor |
+| Installer | ja | nein (nur Quellcode) |
 
 Beide nutzen denselben Kern und dieselben Einstellungen (`~/.tagstudio.json`) und lassen sich abwechselnd verwenden.
 
@@ -24,7 +44,7 @@ Beide nutzen denselben Kern und dieselben Einstellungen (`~/.tagstudio.json`) un
 
 ### Mit Installer (empfohlen, kein Python nötig)
 
-Auf GitHub unter **Releases** die neueste Version herunterladen:
+Unter [Releases](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases) die neueste Version laden:
 
 - **Windows:** `TagStudio-<Version>-Windows-Setup.exe` ausführen. Installiert ohne Administratorrechte nach
   `%LOCALAPPDATA%\Programs\TagStudio`, mit Startmenü-Eintrag, optionalem Desktop-Symbol und Deinstallation über
@@ -35,9 +55,8 @@ Auf GitHub unter **Releases** die neueste Version herunterladen:
   Datenschutz & Sicherheit → „Trotzdem öffnen“** (Details in „Zuerst lesen.txt“ im Disk-Image).
 
 Die installierte App enthält die neue Oberfläche samt Plugins (Stems richtet seine eigene Umgebung beim ersten
-Installieren selbst ein). **Updates:** neue Version unter Releases laden und darüber installieren – Einstellungen,
-Sicherungen und Plugin-Daten liegen im Benutzerordner und bleiben erhalten. Die klassische Oberfläche gibt es nur
-in der Quellcode-Variante.
+Installieren selbst ein). **Updates:** Der Knopf „Nach Update suchen“ öffnet die Releases-Seite; neue Version laden
+und darüber installieren – Einstellungen, Sicherungen und Plugin-Daten liegen im Benutzerordner und bleiben erhalten.
 
 ### Aus dem Quellcode (für Entwicklung und Update-Knopf)
 
@@ -52,78 +71,123 @@ in der Quellcode-Variante.
 
 ## Neue Oberfläche
 
+Seitenleiste mit **Vergleich, Tagger, Tag-Fixer, Sicherungen, Plugins**, unten Update-Knopf, Einklappen und
+Hell/Dunkel. Vergleich und Tagger arbeiten mit denselben Dateien – Änderungen sind in beiden sichtbar, werden
+zusammen gespeichert (Strg/Cmd+S) und lassen sich gemeinsam rückgängig machen.
 
-- **Vergleich:** Pfade mit Verlauf und Ordner-/Dateiauswahl, Zuordnung, Unterordner; Paarliste mit
-  Status-Filtern (≠ ≈ = ◧), Suche in Dateinamen und Werten, erweiterter Filter nach Feld/Bedingung/Seite;
-  Vergleich mit zeichengenauen Markierungen, Pfeil-Knöpfen pro Feld, Alles/Fehlende nach links/rechts,
-  Mehrfachauswahl (Klick, Shift, Strg/Cmd), Bearbeiten per Doppelklick (Tab = nächstes Feld, Mehrfachwerte mit ¦),
-  Kontextmenü (kopieren, bearbeiten, entfernen, Link öffnen, im Explorer/Finder zeigen), klickbare Links,
-  Cover-Vorschau mit Großansicht, Filter Alle/Unterschiede/Gleiche, Unwichtige, leere Felder, Feldsuche,
-  Rückgängig/Wiederholen, Speichern mit automatischer Sicherung, Hell/Dunkel.
-- **XML-Editor:** Felder mit XML-Inhalt (z. B. Analysedaten in Benutzertexten) tragen das Kennzeichen **XML**.
-  Klick darauf oder Doppelklick öffnet den Editor: **Baum** (Attribute und Texte direkt bearbeiten, auf-/zuklappen,
-  suchen) und **Quelltext** (farbig, Zeilennummern). Laufende Prüfung mit Zeile/Spalte der Fehlerstelle (Klick springt
-  hin), **Formatieren** (eingerückt) und **Kompakt** (eine Zeile). Auch XML in Binärfeldern (GEOB/PRIV) ist
-  bearbeitbar – ersetzt wird nur der XML-Abschnitt, alle übrigen Bytes bleiben erhalten.
-  Strg/Cmd+Enter übernimmt, Esc schließt. Die klassische Oberfläche hat denselben Editor (Quelltext-Ansicht).
-- **Update:** Unten in der Seitenleiste „Nach Update suchen“. TagStudio prüft beim Start selbst, ob es auf GitHub
-  eine neue Version gibt (Punkt am Knopf). Ein Klick lädt sie (`git pull`, nur wenn der Programmordner keine
-  eigenen Änderungen hat) und startet TagStudio neu – die gewählten Ordner werden wieder eingelesen.
-  Voraussetzung: Der Programmordner ist ein Git-Klon und git ist installiert. Ungespeicherte Änderungen werden
-  vorher abgefragt. Wer noch auf dem früheren Entwicklungszweig `web-ui` steht, wird beim nächsten Update
-  automatisch auf den Hauptzweig `main` umgestellt.
-- **Splitter:** Seitenleiste, Paarliste und Tabellenspalten lassen sich mit der Maus ziehen (oder per Tastatur
-  mit ←/→ auf dem Griff). Die Seitenleiste lässt sich einklappen (Knopf unten, Doppelklick auf den Splitter oder
-  ganz schmal ziehen). In der Tabelle verschiebt der Griff zwischen den Wertespalten die Aufteilung links/rechts,
-  der Griff rechts neben „Feld“ die Breite der Feldspalte. Doppelklick setzt jeweils zurück. Alles wird gemerkt.
-- **Tagger** (Seitenleiste): Ordner oder Datei einlesen, Liste mit Titel/Künstler/Album/Spur/Jahr/Genre (sortierbar
-  per Klick auf die Spalte, filterbar). Eine oder mehrere Dateien markieren (Klick, Shift, Strg/Cmd, Strg/Cmd+A) und
-  rechts gemeinsam bearbeiten – Felder mit „‹verschieden›“ bleiben unverändert, bis du etwas einträgst. Cover für die
-  Auswahl setzen/entfernen, ID3-Version wählen, weitere Felder (einzelne Datei) bearbeiten/entfernen, XML-Editor.
-  **Weitere Felder:** Spaltenteiler Feld/Wert, Links anklickbar, Farbfeld bei Hex-Farben (COLOR), Stift-Knopf öffnet
-  den **Feld-Editor** (mehrzeilig, Blättern mit ‹ ›, Mehrfachwerte als **Einzelwerte**, JSON als **Baum** mit
-  Expertenmodus zum Hinzufügen/Entfernen von Einträgen, Farbwähler) bzw. bei GEOB/PRIV den **Binärfeld-Editor**
-  (MIME/Dateiname, Text oder Base64-Text/JSON bearbeiten, XML, sonst Hex-Ansicht).
-  Werkzeuge mit Vorschau: **Tags aus Dateiname** (Muster z. B. `%track% - %artist% - %title%`, `%dummy%` überspringt),
-  **Dateien umbenennen** (aus Tags, ungültige Zeichen → `_`, Kollisionen werden erkannt; sofort, nicht über
-  „Speichern“), **Spurnummern** (in Listenreihenfolge, optional mit Gesamtzahl), **Groß-/Kleinschreibung**
-  (Titel-Schreibweise, Satzanfang, GROSS, klein; Abkürzungen wie DJ/AC/DC bleiben, kleine Wörter wahlweise klein),
-  **Suchen & Ersetzen** (über alle markierten Dateien, wählbare Felder, ganze Wörter, reguläre Ausdrücke),
-  **Cover aus Ordner** (cover/folder/front/album.jpg|png im Ordner der Datei, sonst das größte Bild; wahlweise nur
-  für Dateien ohne Cover) und **Liste exportieren** (Excel .xlsx oder CSV mit Semikolon, inkl. Camelot-Spalte).
-  **Tonart mit Camelot-Rad:** Knopf neben dem Feld „Tonart“ öffnet das Rad (aussen Dur, innen Moll); Klick setzt die
-  Tonart der markierten Dateien, die aktuelle und die harmonisch passenden Tonarten (±1, Paralleltonart) sind
-  hervorgehoben. Geschrieben wird wahlweise als Camelot (immer zweistellig: 08A, 01B), musikalisch (Am) oder Open Key (1m); erkannt werden
-  auch Schreibweisen wie A minor, F♯m, a-Moll oder Es-Dur. „Schreibweise vereinheitlichen“ schreibt alle markierten
-  Dateien um. In der Liste zeigt die Spalte „Tonart“ farbige Camelot-Codes (sortierbar); bei einer markierten Datei
-  sind die passenden Titel umrandet. Vergleich und Tagger arbeiten mit
-  denselben Dateien – Änderungen sind in beiden sichtbar und werden zusammen gespeichert.
-- **Audio-Merkmale** im Tagger (aufklappbarer Bereich): Energy, Danceability, Happiness, Valence, Acousticness,
-  Instrumentalness, Liveness, Speechiness, Brightness, Aggressiveness als `TXXX:ENERGY` … mit Werten 0–100.
-  Schieberegler oder Zahl (auch 0.78 → 78), für eine oder mehrere Dateien; Felder in anderer Schreibweise
-  (z. B. `TXXX:Energy`) werden erkannt und beim Ändern vereinheitlicht. Im Export als eigene Spalten.
-- **Plugins** (Seitenleiste): Erweiterungen ein-/ausschalten, fehlende Python-Pakete per Knopf installieren;
-  Aktionen erscheinen im Tagger unter „Plugins“. Eingebaut ist **Stems** (Titel in Gesang, Schlagzeug, Bass,
-  Instrumental … trennen, mit audio-separator) und **Beatport (inoffiziell)** (BPM, Tonart, Genre, Label,
-  Katalognummer, ISRC, Cover mit eigenem Beatport-Login, Vorschau mit Häkchen). Eigene Plugins in `~/TagStudio/Plugins` – Anleitung in
-  [PLUGINS.md](PLUGINS.md).
-- **Tag-Fixer** (Seitenleiste): Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare,
-  alle Dateien, Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte),
-  laufende Vorschau.
-- **Sicherungen** (Seitenleiste): alle Sicherungen, Dateien mit Status (wiederherstellbar/gleich/fehlt/Audio geändert)
-  und **geänderten Feldern** (Anzahl + Namen). Klick darauf öffnet den **Änderungs-Viewer**: jedes Feld mit
-  „Vorher (Sicherung)“ und „Jetzt“, geändert/neu/entfernt markiert, abweichende Zeichen hervorgehoben; mit ‹ › durch
-  alle geänderten Dateien blättern und einzelne Dateien direkt wiederherstellen. Außerdem
-  markierte oder alle wiederherstellen (vorher wird der aktuelle Stand selbst gesichert), Sicherung löschen,
-  automatische Sicherung ein/aus, Ordner ändern/öffnen.
-- **Sammelkopie:** In der Paarliste mehrere Paare mit Strg/Cmd- oder Shift-Klick markieren → „◀ Sammelkopie“ /
-  „Sammelkopie ▶“ → Felder wählen.
-- **Feld hinzufügen:** Knopf „+ Feld“ über der Tabelle oder Kontextmenü.
-- **Bilder:** Rechtsklick auf ein Cover (oder die Bild-Zeile): anzeigen, ersetzen, exportieren, entfernen;
-  Klick auf den leeren Cover-Platz fügt ein Cover hinzu. (Dateidialoge gibt es im App-Fenster; im Browser-Modus nur
-  unter Windows/Linux.)
+### Tagger
+
+- **Liste:** Ordner oder Datei einlesen; Spalten Datei, Titel, Künstler, Album, Spur, Jahr, Genre, Tonart –
+  sortierbar per Klick, filterbar. Markieren mit Klick, Shift, Strg/Cmd, Strg/Cmd+A.
+- **Bearbeiten:** rechts die Standardfelder der markierten Dateien. Bei mehreren Dateien zeigt „‹verschieden›“
+  unterschiedliche Werte – sie bleiben unverändert, bis du etwas einträgst. Cover setzen/entfernen, ID3-Version
+  (v2.3/v2.4) wählen. Steht eine Internetadresse im Feld (z. B. Kommentar), erscheint daneben ein Link-Knopf.
+- **Werkzeuge** (alle mit Vorschau):
+  - **Tags aus Dateiname** – Muster wie `%track% - %artist% - %title%`, `%dummy%` überspringt einen Teil.
+  - **Dateien umbenennen** – aus Tags; ungültige Zeichen → `_`, Kollisionen werden erkannt (sofort, nicht über
+    „Speichern“).
+  - **Spurnummern** – in Listenreihenfolge, optional mit Gesamtzahl (3/12).
+  - **Groß-/Kleinschreibung** – Titel-Schreibweise, Satzanfang, GROSS, klein; Abkürzungen wie DJ/AC/DC bleiben.
+  - **Suchen & Ersetzen** – über alle markierten Dateien, wählbare Felder, ganze Wörter, reguläre Ausdrücke.
+  - **Cover aus Ordner** – `cover/folder/front/album.jpg|png` im Ordner der Datei, sonst das größte Bild.
+  - **Liste exportieren** – Excel (.xlsx) oder CSV mit Semikolon, inkl. Camelot- und Audio-Merkmal-Spalten.
+  - **Feld hinzufügen**, **Tag-Fixer**, **Im Explorer/Finder zeigen**.
+
+#### Weitere Felder und Editoren
+
+Bei einer markierten Datei listet „Weitere Felder“ alle übrigen Tags. Der Teiler zwischen Feld und Wert lässt sich
+ziehen (Doppelklick = Standard, Breite wird gemerkt). Links sind anklickbar, Hex-Farben (Felder mit „COLOR“ im
+Namen, z. B. `#CC0000`, `0xFFCC0000`) erscheinen als Farbfeld. **Stift-Knopf** oder **Doppelklick** öffnet den
+passenden Editor, ✕ entfernt das Feld.
+
+- **Feld-Editor:** großes, mehrzeiliges Textfeld (Kommentare, Liedtexte), Zeichen-/Zeilenzähler, mit ‹ › bzw.
+  Alt+↑/↓ zum vorigen/nächsten Feld blättern (speichert dabei), Strg/Cmd+Enter übernimmt.
+  - **Einzelwerte:** Mehrfachwerte (getrennt durch NULL-Zeichen/ID3v2.4, Semikolon oder Komma) als Liste –
+    Wert hinzufügen (auch Enter), entfernen, umsortieren; Trennung umstellbar, z. B. „House; Techno“ in echte
+    ID3v2.4-Mehrfachwerte umwandeln.
+  - **Farbwähler** bei Hex-Farben – die Schreibweise (Präfix, Groß-/Kleinschreibung, Alpha) bleibt erhalten.
+- **JSON-Baum** (für JSON in Textfeldern und DJ-Daten, z. B. Mixed In Key): Schlüssel/Wert-Paare wie im XML-Editor,
+  aufklappbar. Bearbeitet werden nur die Werte – Text, Zahlen (mit Prüfung), Ja/Nein als Häkchen; nur die
+  geänderten Werte werden im Originaltext ersetzt, Format und Einrückung bleiben exakt.
+  **Expertenmodus** (Häkchen, wird gemerkt): Einträge hinzufügen – bei Listen z. B. einen neuen Cue-Punkt als Kopie
+  des letzten, bei Objekten neue Schlüssel mit Typ –, duplizieren (⧉) und entfernen (✕).
+- **XML-Editor** (Kennzeichen **XML**, auch im Vergleich): **Baum** (Attribute und Texte direkt bearbeiten,
+  auf-/zuklappen, suchen) und **Quelltext** (farbig, Zeilennummern), laufende Prüfung mit Fehlerstelle,
+  **Formatieren** und **Kompakt**. Auch XML in Binärfeldern ist bearbeitbar – ersetzt wird nur der XML-Abschnitt.
+- **Binärfeld-Editor** (GEOB/PRIV, z. B. Serato, Mixed In Key): Kopf (Beschreibung, MIME-Typ und Dateiname bzw.
+  Besitzer) und Inhalt – lesbarer Text und Base64-kodierter Text/JSON direkt bearbeitbar (beim Übernehmen wieder
+  gleich kodiert), XML im XML-Editor, sonst Hex-Ansicht. Geändert wird nur, was bearbeitet wurde.
+
+> Programme wie Serato oder Mixed In Key erwarten in ihren Feldern ihr eigenes Format. Änderungen an DJ-Daten
+> (z. B. neue Cue-Punkte) zuerst an einer Testdatei ausprobieren.
+
+#### Tonart und Camelot-Rad
+
+Knopf neben dem Feld „Tonart“ öffnet das Rad (außen Dur, innen Moll). Klick setzt die Tonart der markierten
+Dateien; die aktuelle und die harmonisch passenden Tonarten (±1, Paralleltonart) sind hervorgehoben. Geschrieben
+wird wahlweise als **Camelot** (immer zweistellig: `08A`, `01B`), **musikalisch** (`Am`) oder **Open Key** (`1m`);
+erkannt werden auch Schreibweisen wie `8A`, `A minor`, `F♯m`, `a-Moll` oder `Es-Dur`. „Schreibweise
+vereinheitlichen“ schreibt alle markierten Dateien um. Die Spalte „Tonart“ zeigt farbige Camelot-Codes
+(sortierbar); bei einer markierten Datei sind die passenden Titel umrandet.
+
+#### Audio-Merkmale
+
+Aufklappbarer Bereich im Tagger: Energy, Danceability, Happiness, Valence, Acousticness, Instrumentalness,
+Liveness, Speechiness, Brightness, Aggressiveness als `TXXX:ENERGY` … mit Werten 0–100 – per Schieberegler oder
+Zahl (0.78 → 78), für eine oder mehrere Dateien. Andere Schreibweisen (`TXXX:Energy`) werden erkannt und beim
+Ändern vereinheitlicht.
+
+### Vergleich
+
+Zwei Ordner oder Dateien nebeneinander: Pfade mit Verlauf, Zuordnung nach Dateiname, Disc + Spurnummer, Titel
+oder Reihenfolge, Unterordner.
+- **Paarliste** mit Status (≠ Unterschiede, ≈ nur unwichtige, = gleich, ◧/◨ nur eine Seite), Suche in Dateinamen
+  und Werten, erweiterter Filter nach Feld/Bedingung/Seite, Mehrfachauswahl und **Sammelkopie**.
+- **Tabelle** mit zeichengenauen Markierungen, Pfeil-Knöpfen pro Feld, Alles/Fehlende nach links/rechts,
+  Bearbeiten per Doppelklick (Tab = nächstes Feld, Mehrfachwerte mit `¦`), Kontextmenü (kopieren, bearbeiten,
+  entfernen, Link öffnen, im Explorer/Finder zeigen), klickbare Links, Cover-Vorschau mit Großansicht,
+  Filter Alle/Unterschiede/Gleiche, Unwichtige, leere Felder, Feldsuche, **+ Feld**.
+- **Bilder:** Rechtsklick auf ein Cover: anzeigen, ersetzen, exportieren, entfernen; Klick auf den leeren
+  Cover-Platz fügt eines hinzu. (Dateidialoge im App-Fenster; im Browser-Modus nur unter Windows/Linux.)
+
+### Tag-Fixer
+
+Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare, alle Dateien,
+Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte), laufende Vorschau.
+
+### Sicherungen
+
+Alle Sicherungen mit Dateien, Status (wiederherstellbar/gleich/fehlt/Audio geändert) und **geänderten Feldern**.
+Klick öffnet den **Änderungs-Viewer**: jedes Feld „Vorher (Sicherung)“ und „Jetzt“, geändert/neu/entfernt markiert,
+abweichende Zeichen hervorgehoben; mit ‹ › blättern und einzelne Dateien direkt wiederherstellen. Außerdem
+markierte oder alle wiederherstellen (vorher wird der aktuelle Stand selbst gesichert), Sicherung löschen,
+automatische Sicherung ein/aus, Ordner ändern/öffnen.
+
+### Plugins
+
+Seite „Plugins“: Erweiterungen ein-/ausschalten, fehlende Pakete per Knopf installieren; Aktionen erscheinen im
+Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen erst als **Vorschau mit Häkchen**.
+
+- **Stems:** trennt Titel in Gesang, Schlagzeug, Bass, Instrumental … (audio-separator, eigene Python-Umgebung,
+  Varianten CPU/DirectML/NVIDIA). Der Fortschritt läuft auch innerhalb eines Titels mit, beim ersten Gebrauch
+  inklusive Modell-Download.
+- **Beatport (inoffiziell):** BPM, Tonart, Genre, Label, Katalognummer, ISRC, Remixer, Cover u. a. mit deinem
+  eigenen Beatport-Login (Passwort wird nie gespeichert). Die Vorschau zeigt **alle gelieferten Felder** – gleiche
+  grau, abgewählte und schon gefüllte ungehakt.
+- **Eigene Plugins** in `~/TagStudio/Plugins` – Anleitung in [PLUGINS.md](PLUGINS.md).
+
+### Update, Layout, Tastatur
+
+- **Update:** „Nach Update suchen“ unten in der Seitenleiste; TagStudio prüft beim Start selbst (Punkt am Knopf).
+  In der Quellcode-Variante lädt ein Klick die neue Version (`git pull`, nur ohne eigene Änderungen im
+  Programmordner) und startet neu; ungespeicherte Änderungen werden vorher abgefragt. Wer noch auf dem früheren
+  Zweig `web-ui` steht, wird automatisch auf `main` umgestellt. In der installierten App öffnet der Knopf die
+  Releases-Seite.
+- **Splitter:** Seitenleiste, Paarliste, Tabellenspalten, Bearbeitungsbereich und Feldnamen-Spalte lassen sich
+  ziehen (oder mit ←/→ auf dem Griff); Doppelklick setzt zurück, alles wird gemerkt. Die Seitenleiste lässt sich
+  einklappen.
 - **Tastatur:** Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte
-  kopieren · Strg/Cmd+A alle Felder markieren · F5 neu einlesen · ↑/↓ in Paarliste und Tabelle.
+  kopieren · Strg/Cmd+A alles markieren · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
 
 ## Klassische Oberfläche
 
@@ -253,11 +317,19 @@ Alle Dialoge (Sicherungen, Tag-Fixer, Sammelkopie, Feld hinzufügen, Cover-Ansic
 und Datei-Dialoge öffnen sich **zentriert über dem Programmfenster** – also auf dem Bildschirm, auf dem das
 Programm gerade liegt. Meldungen aus einem Dialog heraus erscheinen über diesem Dialog.
 
-## Einstellungen
+## Einstellungen und Datenablage
 
-Werden in `~/.tagstudio.json` gespeichert (Design, Fenstergröße, Layout, Pfad-Verlauf, Filter, Tonart-Schreibweise,
-Plugin-Einstellungen). Weitere Ordner unter `~/TagStudio`: `Sicherungen`, `cache`, `Plugins` (eigene Plugins),
-`Plugin-Daten` (z. B. Stems-Umgebung und Modelle, Beatport-Token verschlüsselt), `Logs` (Protokolle).
+Einstellungen stehen in `~/.tagstudio.json` (Design, Fenstergröße, Layout, Pfad-Verlauf, Filter,
+Tonart-Schreibweise, Plugin-Einstellungen). Weitere Ordner unter `~/TagStudio`:
+
+| Ordner | Inhalt |
+|---|---|
+| `Sicherungen` | automatische Sicherungen der Tags (ZIP je Speichervorgang, Ordner änderbar) |
+| `cache` | Cover-Vorschaubilder |
+| `Plugins` | eigene Plugins |
+| `Plugin-Daten` | z. B. Stems-Umgebung und Modelle, Beatport-Token (unter Windows verschlüsselt) |
+| `Logs` | Protokolle von Plugins und Installationen |
+
 Unter `"trivial"` steht die Liste der unwichtigen Felder (Platzhalter `*` erlaubt), z. B.
 `"TLEN"`, `"TXXX:Acoustid*"`, `"COMM:iTunNORM"` – frei anpassbar.
 
@@ -267,97 +339,110 @@ Unter `"trivial"` steht die Liste der unwichtigen Felder (Platzhalter `*` erlaub
 wurden eingelesen sowie auf Kopien neu geschrieben, zwischen v2.4 und v2.3 umgewandelt und einzeln geändert –
 ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 
-- **DJ-Daten** (eingebettete GEOB-Objekte wie *Serato Markers2*, Mixed-In-Key *Key/Energy/CuePoints*, *PlatinumNotes*)
-  werden nach ihrer Beschreibung zugeordnet, lesbar angezeigt und unverändert erhalten. Sie gelten standardmäßig als
-  „unwichtig“, da Cue-Punkte/Beatgrids zu genau einem Track gehören.
-
 - Liest ID3v2.2/2.3/2.4 und ID3v1, schreibt in der vorhandenen Version (v2.3 bei Dateien ohne Tag).
 - Unveränderte Felder werden byte-genau zurückgeschrieben, Audiodaten nie angefasst.
   Wächst der Tag, wird über eine temporäre Datei geschrieben und erst danach ersetzt.
-- Beim Kopieren zwischen v2.3 und v2.4 werden Felder korrekt umgewandelt (z. B. Datum TDRC ↔ TYER/TDAT).
+- Beim Kopieren zwischen v2.3 und v2.4 werden Felder korrekt umgewandelt (z. B. Datum TDRC ↔ TYER/TDAT);
+  ID3v2.4-Mehrfachwerte werden in v2.3 mit „ / “ verbunden.
+- **DJ-Daten** (GEOB-Objekte wie *Serato Markers2*, Mixed-In-Key *Key/Energy/CuePoints*, *PlatinumNotes*) werden
+  nach ihrer Beschreibung zugeordnet, lesbar angezeigt und unverändert erhalten, solange man sie nicht bewusst
+  bearbeitet. Im Vergleich gelten sie standardmäßig als „unwichtig“, da Cue-Punkte/Beatgrids zu genau einem Track
+  gehören.
 - Tipp: Vor dem ersten Einsatz an einer Kopie der Musik ausprobieren.
 
 ## Dateien
 
 - `tagstudio.py` – klassische Oberfläche (tkinter), Programmstart
-- `tagstudio_web.py` + `web/` – neue Oberfläche (HTML/CSS/JS im App-Fenster über pywebview, sonst im Browser)
+- `tagstudio_web.py` + `web/` – neue Oberfläche (HTML/CSS/JS im App-Fenster über pywebview, sonst im Browser);
+  `web/xmleditor.js` XML-Editor, `web/jsontree.js` JSON-Baum, `web/tagger.js` Tagger und Editoren,
+  `web/keywheel.js` Camelot-Rad, `web/features.js` Audio-Merkmale, `web/plugins.js` Plugin-Seite
 - `core.py` – gemeinsame Logik beider Oberflächen: Anzeige, Zeichen-Diff, Filter, Laden, Speichern, Einstellungen
 - `session.py` – Zustand und Befehle einer Sitzung für die neue Oberfläche
-- `undo.py` – Rückgängig/Wiederholen
-- `xmltools.py` – XML in Feldern erkennen, prüfen, formatieren/kompakt schreiben
+- `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)
+- `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `tagger.py` – Tagger-Logik: gemeinsame Felder, Tags aus Dateiname, Umbenennen, Spurnummern, Cover,
   Groß-/Kleinschreibung, Suchen & Ersetzen, Cover aus Ordner, Export (CSV/Excel ohne Zusatzpakete)
-- `features.py` – Audio-Merkmale (TXXX, 0–100)
 - `keys.py` – Tonarten: erkennen, umschreiben (Camelot, musikalisch, Open Key), passende Tonarten
+- `features.py` – Audio-Merkmale (TXXX, 0–100)
+- `xmltools.py` – XML in Feldern und Binärfeldern erkennen, prüfen, formatieren, ersetzen
 - `blobs.py` – Binärfelder (GEOB/PRIV): Inhalt erkennen (XML, Text, Base64, binär) und byte-genau ändern
-- `plugins.py` + `plugins/` – Plugin-System (siehe [PLUGINS.md](PLUGINS.md)); eingebaut: `plugins/stems`
-  (Einzelspuren, eigene Python-Umgebung), `plugins/beatport` (Metadaten von Beatport, inoffiziell)
+- `backup.py` – Sicherung und Wiederherstellung der Tags, Vergleich Sicherung ↔ Datei (Änderungs-Viewer)
+- `undo.py` – Rückgängig/Wiederholen
+- `thumbs.py` – Cover-Vorschaubilder ohne Zusatzpakete
+- `plugins.py` + `plugins/` – Plugin-System (siehe [PLUGINS.md](PLUGINS.md)); eingebaut: `plugins/stems`,
+  `plugins/beatport`
+- `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen)
 - `version.py` – Versionsnummer (einzige Stelle)
 - `packaging/` – Installer: `build.py` (PyInstaller), `windows.iss` (Inno Setup), `make_dmg.sh` (macOS), Icon;
   `release.py` (neue Version vorbereiten)
-- `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen; wechselt von abgeschlossenen
-  Entwicklungszweigen auf `main`)
-- `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
-- `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)
-- `backup.py` – Sicherung und Wiederherstellung der Tags, Vergleich Sicherung ↔ Datei (Änderungs-Viewer)
-- `thumbs.py` – Cover-Vorschaubilder ohne Zusatzpakete
-
+- `.github/` – Workflows (Tests, Installer/Release, CodeQL), Dependabot, Skript für CodeQL-Issues
 
 ## Entwicklung
 
-- **Tests:** `python -m unittest discover -s tests -v` – prüfen ID3-Lesen/-Schreiben (v2.3/v2.4, Mehrfachwerte,
-  BOM, GEOB, Datumsumwandlung), Vergleich, Tag-Fixer, Sicherung/Wiederherstellung, Sitzung der neuen Oberfläche,
-  Tagger-Werkzeuge, Tonarten, Audio-Merkmale, XML, Updater und Plugins (Stems und Beatport mit nachgebauter
-  Gegenseite) – mit synthetischen MP3-Dateien, ohne Zusatzpakete und ohne Netz. Die klassische Oberfläche wird in
-  der CI zusätzlich per Smoke-Test geprüft.
-- **Automatische Prüfung (GitHub Actions):** Bei jedem Push laufen die Tests auf Windows, macOS und Linux
-  (`.github/workflows/tests.yml`); die Installer baut `.github/workflows/installer.yml` (siehe unten).
+- **Tests:** `python -m unittest discover -s tests -v` – ID3-Lesen/-Schreiben (v2.3/v2.4, Mehrfachwerte, BOM,
+  GEOB, Datumsumwandlung), Vergleich, Tag-Fixer, Sicherung/Wiederherstellung, Sitzung der neuen Oberfläche,
+  Tagger-Werkzeuge, Tonarten, Audio-Merkmale, XML und Binärfelder, Versionierung, Updater und Plugins (Stems und
+  Beatport mit nachgebauter Gegenseite) – mit synthetischen MP3-Dateien, ohne Zusatzpakete und ohne Netz.
+- **GitHub Actions:**
+  - `tests.yml` – bei jedem Push die Tests auf Windows, macOS und Linux (Python 3.9–3.13), dazu ein Smoke-Test
+    der klassischen Oberfläche.
+  - `installer.yml` – baut und testet die Installer (Selbsttest der gebauten und der installierten App) und
+    veröffentlicht bei neuer Versionsnummer das Release (siehe unten).
+  - `codeql.yml` – Code-Scanning (Python, JavaScript, Workflows). Neue Funde werden automatisch als Issue mit den
+    Labels `bug`, `security`, `codeql` im nächsten Patch-Milestone angelegt und nach der Behebung geschlossen.
+  - **Dependabot** hält die verwendeten Actions aktuell (monatlicher Pull Request).
+- **Planung:** offene Punkte als [Issues](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues), geplante
+  Versionen als [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones). Commits mit
+  „Fixes #n“ schließen das Issue automatisch.
 
 ## Versionen & Releases
-
-Sicherheitslücken bitte nicht als öffentliches Issue, sondern privat melden – siehe [SECURITY.md](SECURITY.md).
 
 **Schema MAJOR.MINOR.PATCH** ([Semantic Versioning](https://semver.org/lang/de/)), einzige Quelle: `version.py`.
 
 | Teil | Wann erhöhen | Beispiel |
 |---|---|---|
-| PATCH | nur Fehlerbehebungen | 3.0.0 → 3.0.1 |
-| MINOR | neue Funktionen (der Normalfall) | 3.0.1 → 3.1.0 |
+| PATCH | nur Fehlerbehebungen | 3.1.0 → 3.1.1 |
+| MINOR | neue Funktionen (der Normalfall) | 3.1.1 → 3.2.0 |
 | MAJOR | grosse Umbrüche, z. B. inkompatible Einstellungen/Datenbank | 3.4.2 → 4.0.0 |
-| Vorabversion | zum Testen vor einer Version | 3.1.0-beta.1 |
+| Vorabversion | zum Testen vor einer Version | 3.2.0-beta.1 |
 
 **Ablauf**
 
 1. **Laufend:** Jede Änderung kommt sofort in `CHANGELOG.md` unter **„Unveröffentlicht“**.
 2. **Version festlegen**, wenn ein zusammenhängendes Paket fertig und getestet ist:
-   `python packaging/release.py 3.1.0` – setzt `version.py` und `pyproject.toml` und macht aus „Unveröffentlicht“
-   den Abschnitt „[3.1.0] – Datum“. Danach committen und auf `main` pushen.
+   `python packaging/release.py 3.2.0` – setzt `version.py`, `pyproject.toml` und die unterstützte Version in
+   `SECURITY.md` und macht aus „Unveröffentlicht“ den Abschnitt „[3.2.0] – Datum“. Danach committen und auf `main`
+   pushen.
 3. **Automatisch veröffentlichen** – sobald die neue Versionsnummer auf `main` landet, baut GitHub Actions die
-   Installer für Windows und macOS, testet sie und legt **selbst Tag `v3.1.0` und das Release „TagStudio 3.1.0“**
-   mit dem Text aus dem CHANGELOG an. Ein von Hand gesetzter Tag (*Releases → Draft a new release*) funktioniert
-   weiterhin; der Workflow prüft dann, dass Tag und `version.py` übereinstimmen.
-   Tags mit Zusatz (`v3.1.0-beta.1`) werden als **Vorabversion** veröffentlicht (Text aus „Unveröffentlicht“).
-4. **Dringender Fehler:** sofort eine PATCH-Version (3.1.1) auf demselben Weg.
+   Installer für Windows und macOS, testet sie und legt **selbst Tag `v3.2.0` und das Release „TagStudio 3.2.0“**
+   mit dem Text aus dem CHANGELOG an. Ein von Hand gesetzter Tag (*Releases → Draft a new release*, Titel
+   „TagStudio X.Y.Z“, Beschreibung leer) funktioniert weiterhin; der Workflow prüft dann, dass Tag und
+   `version.py` übereinstimmen. Tags mit Zusatz (`v3.2.0-beta.1`) werden als **Vorabversion** veröffentlicht.
+4. **Dringender Fehler:** sofort eine PATCH-Version auf demselben Weg.
 
-`python packaging/release.py --check` prüft, ob Versionsnummer, `pyproject.toml` und CHANGELOG zusammenpassen
-(läuft auch in den Tests).
+`python packaging/release.py --check` prüft, ob Versionsnummer, `pyproject.toml`, `SECURITY.md` und CHANGELOG
+zusammenpassen (läuft auch in den Tests).
 
-**Zwei Kanäle**
+**Zwei Kanäle:** **Installer (Releases)** – stabile Versionen für den Alltag. **Git-Klon mit Update-Knopf** – folgt
+`main` und bekommt jede Änderung sofort (Testkanal).
 
-- **Installer (Releases):** stabile Versionen für den Alltag.
-- **Git-Klon mit Update-Knopf:** folgt `main` und bekommt jede Änderung sofort – der Testkanal.
+**Zweige:** `main` ist immer lauffähig (die CI prüft jeden Commit). Größere Vorhaben entstehen in kurzlebigen
+Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind.
 
-**Zweige:** `main` ist immer lauffähig (die CI prüft jeden Commit auf Windows, macOS und Linux). Grössere Vorhaben
-entstehen in kurzlebigen Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind.
-Version 3.0 entstand im Zweig `web-ui`.
+## Fehler melden, Ideen, Sicherheit
+
+- **Fehler und Wünsche:** als [Issue](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/new) – mit
+  Version, Betriebssystem, Schritten zum Nachstellen und, falls vorhanden, dem Protokoll aus `~/TagStudio/Logs`.
+- **Sicherheitslücken** bitte nicht öffentlich, sondern privat melden – siehe [SECURITY.md](SECURITY.md).
 
 ## Ausblick
 
-- Plugin „Online-Metadaten“ mit offiziellen Quellen: MusicBrainz/AcoustID, Discogs, Deezer, iTunes, Last.fm
-- Analyse-Plugin mit librosa (BPM, Tonart-Vorschlag, Brightness), später Essentia-Modelle (Danceability, Mood)
-- Filter und Spalten nach Audio-Merkmalen; Mood-Feld; Umrechnen fremder Skalen (z. B. Lexicon 0–10)
-- Installer signieren (Windows-Codesignatur, Apple-Beglaubigung); macOS-Variante für Intel; Update-Hinweis in der
-  installierten App
-- Datenbank-Modul für die Musikbibliothek
+Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
+
+- **3.2.0 – DJ-Set:** Reihenfolge eines Sets nach Tonart (Camelot), BPM und Energie optimieren, Bewertung jedes
+  Übergangs, Exporte als M3U8, Rekordbox-XML und CSV.
+- **3.3.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
+- **Später:** Analyse mit librosa bzw. Essentia-Modellen, Filter und Spalten nach Audio-Merkmalen, Mood-Feld,
+  Binärfeld-/JSON-Editor auch im Vergleich, signierte Installer, Intel-Mac, Datenbank-Modul für die Bibliothek.
 
 Verworfen: Umstieg auf Qt (PySide6) – bringt gegenüber der neuen Oberfläche keinen Vorteil.
