@@ -103,7 +103,7 @@ def main():
         fp = os.path.join(bad, "ffmpeg")
         with open(fp, "w") as fh:
             fh.write("#!/bin/sh\necho 'Encoder not found (fremdes ffmpeg)' >&2\nexit 3\n")
-        os.chmod(fp, 0o755)
+        os.chmod(fp, 0o700)   # nur für den eigenen Benutzer ausführbar
     os.environ["PATH"] = bad + os.pathsep + os.environ.get("PATH", "")
     import shutil
     log(f"Fremdes ffmpeg im PATH: {shutil.which('ffmpeg')}")
