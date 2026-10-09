@@ -128,6 +128,40 @@ async function stReset() {
   setTimeout(() => location.reload(), 600);
 }
 
+// ---------------------------------------------------------------------- Herkunft der Tags (#22)
+async function originSettingsRender(card) {
+  const o = await call("tag_origins");
+  S.settings.origins = o.catalog;
+  ST.origins = o.custom.length ? o.custom.map((r) => ({ ...r })) : [];
+  const cat = o.catalog, ids = Object.keys(cat).sort((a, b) => cat[a].name.localeCompare(cat[b].name));
+  const triv = new Set(ST.data.trivial.map((t) => t.toLowerCase()));
+  card.hidden = false;
+  card.innerHTML = `<h3>Herkunft der Tags</h3>
+    <p class="muted sm" style="margin:0">TagStudio zeigt bei „Weitere Felder“ und im Vergleich, welche Anwendung ein Feld geschrieben hat. Eigene Zuordnungen gehen vor der eingebauten Liste.</p>
+    <div class="or-list" id="orList"></div>
+    <div><button class="ghost sm" id="orAdd" style="width:auto">+ Zuordnung</button> <button class="primary sm" id="orSave" style="width:auto" hidden>Zuordnungen speichern</button></div>
+    <details class="or-all"><summary>Bekannte Herkünfte (${ids.length})</summary>
+      ${ids.map((k) => { const v = cat[k], all = v.patterns.length && v.patterns.every((p) => triv.has(p.toLowerCase()));
+        return `<div class="or-src">${srcBadge(k)}<div class="d"><b>${esc(v.name)}</b> – ${esc(v.desc)}<br><code>${esc(v.patterns.join("  ·  "))}</code></div>
+        ${v.patterns.length ? `<button class="ghost sm" data-triv="${esc(k)}" ${all ? "disabled" : ""} title="Muster dieser Herkunft zu den unwichtigen Feldern hinzufügen">${all ? "unwichtig ✓" : "als unwichtig"}</button>` : ""}</div>`; }).join("")}
+    </details>`;
+  orRender();
+}
+
+function orRender() {
+  $("#orList").innerHTML = ST.origins.length
+    ? `<div class="or-row or-head"><span class="muted sm">Feld-Muster</span><span class="muted sm">Herkunft</span><span></span></div>` + ST.origins.map((r, k) => `<div class="or-row" data-k="${k}">
+        <input class="pat" value="${esc(r.pattern)}" placeholder="z. B. TXXX:VDJ*" spellcheck="false" aria-label="Feld-Muster">
+        <input class="src" value="${esc(r.source)}" placeholder="z. B. VirtualDJ" aria-label="Herkunft" list="orNames">
+        <button class="x" data-ordel="${k}" title="Entfernen" aria-label="Entfernen">✕</button></div>`).join("")
+      + `<datalist id="orNames">${Object.values(S.settings.origins || {}).filter((v) => v.kind !== "plugin").map((v) => `<option value="${esc(v.name)}">`).join("")}</datalist>`
+    : '<span class="muted sm">Keine eigenen Zuordnungen.</span>';
+}
+
+function orRead() {
+  return $$("#orList .or-row[data-k]").map((r) => ({ pattern: $(".pat", r).value.trim(), source: $(".src", r).value.trim() }));
+}
+
 function initSettings() {
   $("#stExport").addEventListener("click", () => stTransfer("export"));
   $("#stImport").addEventListener("click", () => stTransfer("import"));
@@ -145,8 +179,27 @@ function initSettings() {
     else if (t.id === "stTrivAdd") { const v = $("#stTrivIn").value.trim(); if (v) { await stTrivSet([...ST.data.trivial, v]); $("#stTrivIn").value = ""; } }
     else if (t.id === "stTrivDef") { if (await dialog({ title: "Standardliste wiederherstellen?", text: "Eigene Muster gehen verloren.", buttons: [{ label: "Abbrechen", value: null }, { label: "Wiederherstellen", value: true, primary: true }] })) stTrivSet(ST.data.trivial_default); }
     else if (t.dataset.k !== undefined && t.closest("#stTriv")) { const l = [...ST.data.trivial]; l.splice(+t.dataset.k, 1); stTrivSet(l); }
+    else if (t.id === "orAdd") { ST.origins = orRead(); ST.origins.push({ pattern: "", source: "" }); orRender(); $("#orSave").hidden = false; $$("#orList .pat").pop()?.focus(); }
+    else if (t.dataset.ordel !== undefined) { ST.origins = orRead(); ST.origins.splice(+t.dataset.ordel, 1); orRender(); $("#orSave").hidden = false; }
+    else if (t.id === "orSave") {
+      const rules = orRead().filter((r) => r.pattern || r.source);
+      if (rules.some((r) => !r.pattern || !r.source)) return toast("Bitte Muster und Herkunft ausfüllen.");
+      const o = await call("set_tag_origins", rules);
+      S.settings.origins = o.catalog;
+      toast(`${o.custom.length} eigene Zuordnung(en) gespeichert.`);
+      originSettingsRender($("#stOriginCard"));
+      if (S.module === "settings" && TG.detail) renderTgEditor();
+    }
+    else if (t.dataset.triv) {
+      const pats = (S.settings.origins[t.dataset.triv] || {}).patterns || [];
+      const have = new Set(ST.data.trivial.map((x) => x.toLowerCase()));
+      await stTrivSet([...ST.data.trivial, ...pats.filter((p) => !have.has(p.toLowerCase()))]);
+      toast(`${S.settings.origins[t.dataset.triv].name}: Felder gelten jetzt als unwichtig.`);
+      originSettingsRender($("#stOriginCard"));
+    }
   });
   grid.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.id === "stTrivIn") { e.preventDefault(); $("#stTrivAdd").click(); } });
+  grid.addEventListener("input", (e) => { if (e.target.closest("#orList")) $("#orSave").hidden = false; });
   grid.addEventListener("change", async (e) => {
     const t = e.target;
     if (t.id === "stNotation") {

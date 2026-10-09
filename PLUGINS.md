@@ -39,7 +39,8 @@ Plugins/
   "requires": [{"module": "numpy", "label": "NumPy"}],
   "install": [{"id": "std", "label": "Installieren", "packages": ["numpy"], "hint": "optionaler Hinweis"}],
   "external": [{"cmd": "ffmpeg", "label": "FFmpeg", "hint": "So installierst du es …"}],
-  "notes": "Zusätzlicher Hinweis bei fehlenden Paketen"
+  "notes": "Zusätzlicher Hinweis bei fehlenden Paketen",
+  "fields": ["TXXX:MEIN_PLUGIN_*"]
 }
 ```
 
@@ -47,6 +48,8 @@ Plugins/
 - `requires`: Python-Module, die vorhanden sein müssen. Fehlen sie, steht das Plugin auf „Pakete fehlen“
   und bietet die `install`-Varianten als Knöpfe an (`pip install …` mit dem Python von TagStudio).
 - `external`: Programme, die im Suchpfad liegen sollten (nur Hinweis, blockiert nicht).
+- `fields`: Felder, die das Plugin schreibt (Muster mit `*`). TagStudio zeigt bei diesen Feldern die Herkunft
+  „TagStudio · Plugin-Name“ an (Tagger, Vergleich), damit eigene Felder erkennbar bleiben.
 
 ### Eigene Python-Umgebung (`env`) – für schwere Pakete
 

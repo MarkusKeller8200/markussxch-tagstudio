@@ -296,6 +296,18 @@ async function runUpdate() {
   }
 }
 
+// ====================================================================== Herkunft der Tags (#22)
+const SRC_SHORT = { mik: "MIK", itunes: "iTunes", wmp: "WMP", platinum: "PN", replaygain: "ReplayGain", musicbrainz: "MB" };
+function srcInfo(sid) { return sid && S.settings && S.settings.origins ? S.settings.origins[sid] : null; }
+function srcHue(sid) { let h = 0; for (const c of String(sid)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; }
+/** Kleines Kennzeichen „von welcher Anwendung“ vor dem Feldnamen. */
+function srcBadge(sid) {
+  const o = srcInfo(sid);
+  if (!o) return "";
+  const short = SRC_SHORT[sid] || (o.kind === "plugin" ? "TagStudio" : o.name.length > 12 ? o.name.slice(0, 11) + "…" : o.name);
+  return `<span class="src-b${o.kind === "plugin" ? " own" : ""}" style="--h:${srcHue(sid)}" title="Herkunft: ${esc(o.name)} – ${esc(o.desc)}">${esc(short)}</span>`;
+}
+
 // ====================================================================== Start
 async function init() {
   const st = await call("settings");
@@ -567,7 +579,7 @@ function renderRows() {
     const canCopy = v.both && r.state !== "same" && r.state !== "empty";
     const ed = (c) => (c && c.editable ? "" : " noedit");
     return `<div class="tr ${r.state}${S.sel.has(r.key) ? " sel" : ""}" data-n="${n}" data-key="${esc(r.key)}">
-      <div class="f"><span class="f-n"><span title="${esc(r.label)}">${esc(r.label)}</span></span><span class="f-id" title="${esc(r.key)}">${esc(r.fid)}</span></div>
+      <div class="f"><span class="f-n">${srcBadge(r.src)}<span title="${esc(r.label)}">${esc(r.label)}</span></span><span class="f-id" title="${esc(r.key)}">${esc(r.fid)}</span></div>
       <div class="v${ed(r.L)}" data-side="L">${valueHtml(r.L, r.state)}</div>
       <div class="acts">${canCopy ? `<button class="arrow" data-dir="rl" title="Rechten Wert nach links übernehmen" aria-label="${esc(r.label)} nach links übernehmen">${ICON.left}</button><button class="arrow" data-dir="lr" title="Linken Wert nach rechts übernehmen" aria-label="${esc(r.label)} nach rechts übernehmen">${ICON.right}</button>` : ""}</div>
       <div class="v r${ed(r.R)}" data-side="R">${valueHtml(r.R, r.state)}</div>

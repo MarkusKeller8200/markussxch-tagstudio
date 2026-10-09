@@ -158,13 +158,22 @@ function renderTgEditor() {
   }).join("");
   const PEN = '<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
   const DEL = '<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
-  const more = one && d.fields.length ? `<h4 style="margin:4px 0 0">Weitere Felder <span class="muted sm" style="font-weight:400">${d.fields.length}</span></h4>
+  const srcs = {};
+  (one ? d.fields : []).forEach((f) => { const k = f.src || ""; srcs[k] = (srcs[k] || 0) + 1; });
+  if (TG.srcFilter && !(TG.srcFilter in srcs)) TG.srcFilter = "";
+  const shownFields = one ? d.fields.filter((f) => !TG.srcFilter || (f.src || "") === (TG.srcFilter === "-" ? "" : TG.srcFilter)) : [];
+  const srcOpts = Object.keys(srcs).filter(Boolean).sort((a, b) => (srcInfo(a)?.name || a).localeCompare(srcInfo(b)?.name || b));
+  const srcSel = srcOpts.length ? `<select id="tgSrcF" class="inp" title="Weitere Felder nach Herkunft filtern" aria-label="Nach Herkunft filtern">
+      <option value="">Alle Herkünfte</option>${srcOpts.map((k) => `<option value="${esc(k)}"${TG.srcFilter === k ? " selected" : ""}>${esc(srcInfo(k)?.name || k)} (${srcs[k]})</option>`).join("")}
+      ${srcs[""] ? `<option value="-"${TG.srcFilter === "-" ? " selected" : ""}>ohne bekannte Herkunft (${srcs[""]})</option>` : ""}</select>
+      ${TG.srcFilter && TG.srcFilter !== "-" ? `<button class="ghost sm" id="tgSrcDel" data-src="${esc(TG.srcFilter)}">Alle entfernen …</button>` : ""}` : "";
+  const more = one && d.fields.length ? `<div class="tg-more-tools"><h4>Weitere Felder <span class="muted sm" style="font-weight:400">${shownFields.length === d.fields.length ? d.fields.length : `${shownFields.length} von ${d.fields.length}`}</span></h4>${srcSel}</div>
     <div class="tg-more">
       <div class="tg-more-head"><span class="k">Feld<span class="col-grip" id="tgMoreGrip" role="separator" aria-orientation="vertical" aria-label="Breite der Feldnamen" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: Standardbreite"></span></span><span>Wert</span><span></span></div>
-      ${d.fields.map((f) => {
+      ${shownFields.map((f) => {
         const full = f.edit || f.text, ml = f.multiline;
         const shown = ml ? full : (f.text.length > 160 ? f.text.slice(0, 160) + " …" : f.text);
-        return `<div class="tg-f" data-key="${esc(f.key)}"><span class="k" title="${esc(f.label + "\n" + f.key)}">${f.mod ? '<span class="m" style="display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:6px"></span>' : ""}${esc(f.label)}</span>
+        return `<div class="tg-f" data-key="${esc(f.key)}"><span class="k" title="${esc(f.label + "\n" + f.key)}">${srcBadge(f.src)}${f.mod ? '<span class="m" style="display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:6px"></span>' : ""}${esc(f.label)}</span>
       <span class="v${f.editable ? "" : " noedit"}${ml ? " ml" : ""}" title="${f.editable ? "Doppelklick: bearbeiten" : ""}">${f.xml ? `<button class="xml-badge${f.xml === "view" ? " view" : ""}" data-txml="1">XML</button>` : ""}${COLOR_KEY_RE.test(f.key) ? colorSwatch(full) : ""}${linkify(shown)}</span>
       <span class="b">${f.editable || f.xml || f.blob ? `<button class="x" data-tedit="1" title="${f.blob ? "Binärfeld ansehen/bearbeiten" : "Im Editor bearbeiten"}" aria-label="${esc(f.label)} bearbeiten">${PEN}</button>` : ""}<button class="x del" data-tdel="1" title="Feld entfernen" aria-label="${esc(f.label)} entfernen">${DEL}</button></span></div>`;
       }).join("")}</div>` : "";
@@ -187,6 +196,7 @@ function renderTgEditor() {
       <button class="ghost" id="tgReplace">Suchen &amp; Ersetzen …</button>
       <button class="ghost" id="tgFolderCover">Cover aus Ordner …</button>
       <button class="ghost" id="tgExport">Liste exportieren …</button>
+      <button class="ghost" id="tgOrigin">Felder nach Herkunft …</button>
       ${one ? '<button class="ghost" id="tgReveal">' + (IS_MAC ? "Im Finder zeigen" : "Im Explorer zeigen") + "</button>" : ""}
     </div>
     <div class="tg-plugins" id="tgPlugins"></div>${more}`;
@@ -716,6 +726,38 @@ async function tgExportDialog() {
   else if (!S.settings.native) toast("Im Browser-Modus ist kein Speichern-Dialog verfügbar – bitte das App-Fenster verwenden.");
 }
 
+/** Alle Felder einer Herkunft (z. B. Serato, iTunes) aus den markierten Dateien entfernen – mit Vorschau. */
+async function tgOriginDialog(preset = "") {
+  const idx = tgSelected();
+  if (!idx.length) return toast("Erst Dateien markieren.");
+  const cat = S.settings.origins || {};
+  const ids = Object.keys(cat).sort((a, b) => cat[a].name.localeCompare(cat[b].name));
+  const res = await modal({
+    title: "Felder nach Herkunft entfernen", wide: true,
+    html: `<div class="frm"><label for="orSrc">Herkunft</label><select id="orSrc" class="inp">${ids.map((k) => `<option value="${esc(k)}"${k === preset ? " selected" : ""}>${esc(cat[k].name)}</option>`).join("")}</select></div>
+      <div class="hint" id="orDesc" style="margin:6px 0 10px"></div><div id="orPrev"></div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Entfernen", value: true, primary: true }],
+    onMount: (b) => {
+      const upd = async () => {
+        const sid = $("#orSrc", b).value;
+        $("#orDesc", b).textContent = cat[sid] ? cat[sid].desc + " – " + idx.length + " markierte Datei(en)." : "";
+        const p = await call("tag_origin_remove", idx, sid, false);
+        $("#orPrev", b).innerHTML = p.count
+          ? `<div class="fx-table pl-prev"><table><thead><tr><th>Feld</th><th>Schlüssel</th><th style="text-align:right">Dateien</th></tr></thead><tbody>${p.keys.map(([k, l, n]) => `<tr><td>${esc(l)}</td><td><code>${esc(k)}</code></td><td style="text-align:right">${n}</td></tr>`).join("")}</tbody></table></div><div class="muted sm" style="margin-top:6px">${p.count} Feld(er) in ${p.files} Datei(en) – Rückgängig ist möglich, gespeichert wird erst mit „Speichern“.</div>`
+          : '<div class="muted">Keine Felder dieser Herkunft in den markierten Dateien.</div>';
+        b.dataset.count = p.count;
+      };
+      $("#orSrc", b).addEventListener("change", upd); upd();
+    },
+    collect: (b) => (+b.dataset.count ? $("#orSrc", b).value : (toast("Nichts zu entfernen."), false)),
+  });
+  if (!res) return;
+  const d = await call("tag_origin_remove", idx, res, true);
+  taggerApplyDetail(d);
+  if (typeof taggerRefresh === "function") await taggerRefresh();
+  status(d.message, "ok");
+}
+
 // ---------------------------------------------------------------------- Ereignisse
 (function bindTagger() {
   $("#tgLoad").addEventListener("click", taggerLoad);
@@ -754,6 +796,7 @@ async function tgExportDialog() {
   ed.addEventListener("focusout", (e) => { const inp = e.target.closest(".tg-form input[data-key]"); if (inp) tgCommit(inp); });
   ed.addEventListener("change", async (e) => {
     if (e.target.id === "tgVer" && e.target.value) taggerApplyDetail(await call("tag_version", tgSelected(), +e.target.value));
+    else if (e.target.id === "tgSrcF") { TG.srcFilter = e.target.value; renderTgEditor(); }
   });
   ed.addEventListener("click", async (e) => {
     const a = e.target.closest("a[data-url]");
@@ -776,6 +819,8 @@ async function tgExportDialog() {
     else if (id === "tgReplace") tgReplaceDialog();
     else if (id === "tgFolderCover") tgFolderCoverDialog();
     else if (id === "tgExport") tgExportDialog();
+    else if (id === "tgOrigin") tgOriginDialog();
+    else if (id === "tgSrcDel") tgOriginDialog(e.target.closest("button").dataset.src);
     else if (id === "tgKeyBtn") keyWheelOpen();
     const pb = e.target.closest("[data-plugin]");
     if (pb) pluginRun(pb.dataset.plugin, pb.dataset.action);

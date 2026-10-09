@@ -7,6 +7,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Herkunft der Tags:** kleines Kennzeichen bei „Weitere Felder“ und im Vergleich, welche Anwendung ein Feld
+  geschrieben hat (MusicBrainz, Serato, Mixed In Key, Beatport, Traktor, Rekordbox, beaTunes, Lexicon, Platinum
+  Notes, iTunes, Windows Media Player, Amazon, ReplayGain, Kodierer, TagStudio-Plugins), Tooltip mit Erklärung.
+  Im Tagger nach Herkunft filtern und **„Felder nach Herkunft entfernen …“** (Vorschau, Rückgängig). In den
+  Einstellungen eigene Zuordnungen (Muster → Anwendung) und „als unwichtig“ je Herkunft. Plugins geben ihre
+  Felder in `plugin.json` unter `fields` an (Beatport: `TXXX:BEATPORT_TRACK_ID`).
 - **Einstellungen** als eigene Seite: Design, Tonart-Schreibweise, ID3-Version beim Speichern (beibehalten/immer
   v2.3/immer v2.4), Sicherung und Ordner, Player (Startpunkt, Wellenform, Durchhören, externe Player), Liste der
   unwichtigen Felder zum Bearbeiten (mit „Standard“), Plugins. **Exportieren/Importieren** als Datei ohne

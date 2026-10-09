@@ -47,6 +47,7 @@ class Session:
         self.task = {"running": False}
         self._cancel = None
         self._plugins = None   # wird beim ersten Zugriff gesucht
+        self._origins = None
         self._pending = None   # Vorschläge eines Plugins, warten auf Bestätigung
 
     def _load_cfg(self):
@@ -68,6 +69,7 @@ class Session:
         self.ui = {k: v for k, v in (ui.items() if isinstance(ui, dict) else []) if k in UI_KEYS}
         if getattr(self, "_plugins", None) is not None:
             self._plugins = None
+        self._origins = None
 
     # ================================================================== Einstellungen
     def settings(self) -> dict:
@@ -79,7 +81,7 @@ class Session:
             "recursive": c.get("recursive", False), "options": dict(self.opts),
             "empty_sets": [[k, v] for k, v in core.EMPTY_SETS.items()],
             "filter_ops": core.FILTER_OPS, "filter_sides": core.FILTER_SIDES,
-            "ui": dict(self.ui), "player": self.player_prefs(),
+            "ui": dict(self.ui), "player": self.player_prefs(), "origins": self.origin_catalog(),
         }
 
     def set_ui(self, name: str, value):
@@ -100,6 +102,59 @@ class Session:
             self.cfg[key] = value
             core.save_config({key: value})
         return self.state()
+
+    # ================================================================== Herkunft der Tags (#22)
+    @property
+    def origins(self):
+        import origins
+        if self._origins is None:
+            pf = []
+            try:
+                for pl in self.plugins.plugins.values():
+                    for pat in (getattr(pl, "manifest", None) or {}).get("fields") or []:
+                        if isinstance(pat, str) and pat.strip():
+                            pf.append((pat.strip(), pl.name))
+            except Exception:  # noqa: BLE001 – Herkunft ist nur Anzeige
+                pf = []
+            self._origins = origins.Origins(self.cfg.get("tag_origins"), pf)
+        return self._origins
+
+    def origin_catalog(self) -> dict:
+        o = self.origins
+        cat = o.catalog()
+        for sid, v in cat.items():
+            v["patterns"] = o.patterns(sid)
+        return cat
+
+    def tag_origins(self) -> dict:
+        return {"custom": list(self.cfg.get("tag_origins") or []), "catalog": self.origin_catalog()}
+
+    def set_tag_origins(self, rules) -> dict:
+        import origins
+        cleaned = origins.clean_custom(rules)
+        self.cfg["tag_origins"] = cleaned
+        core.save_config({"tag_origins": cleaned})
+        self._origins = None
+        return self.tag_origins()
+
+    def tag_origin_remove(self, idx, source, apply=False):
+        """Alle Felder einer Quelle aus den gewählten Dateien entfernen (Vorschau, dann mit Rückgängig)."""
+        with self.lock:
+            files = self._tsel(idx)
+            plan = [(f, k) for f in files for k in sorted(f.items, key=sort_key)
+                    if not k.startswith("APIC") and self.origins.of(k) == source]
+            if not apply:
+                keys = sorted({k for _f, k in plan}, key=sort_key)
+                return {"count": len(plan), "files": len({id(f) for f, _k in plan}),
+                        "keys": [[k, key_label(k), sum(1 for _f, x in plan if x == k)] for k in keys]}
+            name = self.origins.catalog().get(source, {}).get("name", source)
+            self.undo.checkpoint(f"Felder von {name} entfernt", list({id(f): f for f, _k in plan}.values()))
+            for f, k in plan:
+                f.set(k, None)
+            self.undo.commit()
+            d = self.tag_detail(idx)
+            d["message"] = f"{len(plan)} Feld(er) von {name} entfernt – noch nicht gespeichert."
+            return d
 
     # ================================================================== Einstellungsseite (#21)
     PLAYER_PREFS = {"wave": (bool, True), "follow": (bool, True), "start": (str, "0"), "vol": ((int, float), 0.8)}
@@ -336,7 +391,7 @@ class Session:
             rows = []
             for k in keys:
                 st = states[k]
-                row = {"key": k, "label": key_label(k), "state": st}
+                row = {"key": k, "label": key_label(k), "state": st, "src": self.origins.of(k)}
                 fids = []
                 for side, f, other in (("L", l, r), ("R", r, l)):
                     it = f.get(k) if f else None
@@ -862,7 +917,7 @@ class Session:
                         continue
                     it = f.get(k)
                     xml = xmltools.xml_of_item(it)
-                    fields.append({"key": k, "label": key_label(k), "text": core.disp(it),
+                    fields.append({"key": k, "label": key_label(k), "text": core.disp(it), "src": self.origins.of(k),
                                    "editable": core.can_edit_text(f, k) and xml is None,
                                    "multiline": "\n" in (it.text or "") or k.startswith(("COMM", "USLT")),
                                    "blob": blobs.is_blob(it),
@@ -1189,6 +1244,8 @@ class Session:
         return self._plugins
 
     def plugins_list(self, rescan=False):
+        if rescan:
+            self._origins = None
         lst = self.plugins.scan() if rescan else self.plugins.list()
         return {"plugins": lst, "user_dir": plugins.user_dir(), "log_dir": plugins.log_dir(),
                 "frozen": bool(getattr(sys, "frozen", False))}
