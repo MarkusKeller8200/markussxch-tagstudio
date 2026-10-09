@@ -21,8 +21,8 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Versionierung prüfen
@@ -83,7 +83,7 @@ jobs:
           if (-not (Test-Path $out)) { "keine Ausgabe (Code $($q.ExitCode))" | Out-File $out }
           python packaging/ci_note.py notice "Windows-installiert" $out
           if ($q.ExitCode -ne 0) { exit 1 }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: TagStudio-Windows
           path: dist/TagStudio-*-Windows-Setup.exe
@@ -91,8 +91,8 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Versionierung prüfen
@@ -126,7 +126,7 @@ jobs:
           exit $rc
       - name: Disk-Image bauen
         run: bash packaging/make_dmg.sh "$TS_VERSION"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: TagStudio-macOS
           path: dist/TagStudio-*.dmg
@@ -136,8 +136,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v7
         with:
           path: assets
           merge-multiple: true

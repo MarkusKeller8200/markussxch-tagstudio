@@ -236,10 +236,10 @@ function bindLayout() {
 let updateInfo = null;
 function showUpdateBadge(st) {
   updateInfo = st;
-  const has = !!(st && st.ok && st.behind);
+  const has = !!(st && st.ok && (st.behind || st.switch));
   $("#updateDot").hidden = !has;
   $("#updateBtn").classList.toggle("has-update", has);
-  $("#updateLbl").textContent = has ? `Update verfügbar (${st.behind})` : "Nach Update suchen";
+  $("#updateLbl").textContent = has ? (st.behind ? `Update verfügbar (${st.behind})` : "Update verfügbar") : "Nach Update suchen";
   $("#updateBtn").title = has ? `Neue Version auf GitHub (${st.branch}): ${st.behind} Änderung(en)` : "Nach neuer Version suchen";
 }
 
@@ -259,11 +259,14 @@ async function runUpdate() {
     return;
   }
   if (!st.ok) { await info("Update nicht möglich", st.error); return; }
-  if (!st.behind) { toast(`Du hast die neueste Version (${st.branch}, ${st.current}).`); return; }
-  const list = st.commits.map((c) => "• " + c).join("\n");
+  if (!st.behind && !st.switch) { toast(`Du hast die neueste Version (${st.branch}, ${st.current}).`); return; }
+  const list = (st.commits || []).map((c) => "• " + c).join("\n");
+  const head = st.switch && !st.behind
+    ? `Der Zweig „${st.branch}“ wurde nach „${st.switch}“ verschoben – TagStudio wechselt auf „${st.switch}“ (gleicher Stand).`
+    : `Zweig „${st.switch || st.branch}“: ${st.behind} Änderung(en)\n\n${list}`;
   const go = await dialog({
     title: "Neue Version verfügbar",
-    text: `Zweig „${st.branch}“: ${st.behind} Änderung(en)\n\n${list}\n\nJetzt laden? TagStudio startet danach neu – die gewählten Ordner werden wieder eingelesen.`,
+    text: `${head}\n\nJetzt laden? TagStudio startet danach neu – die gewählten Ordner werden wieder eingelesen.`,
     buttons: [{ label: "Später", value: null }, { label: "Laden und neu starten", value: true, primary: true }],
   });
   if (!go) return;
@@ -525,8 +528,12 @@ function valueHtml(cell, state) {
   const s = cell.text;
   if (!s) return (cell.mod ? '<span class="mod"></span>' : "") + '<span class="empty">(leer)</span>';
   const n = s.length, chg = new Uint8Array(n), url = new Array(n).fill(null);
-  for (const [a, b] of cell.spans) for (let i = a; i < Math.min(b, n); i++) chg[i] = 1;
-  for (const [a, b, u] of cell.links) for (let i = a; i < Math.min(b, n); i++) url[i] = u;
+  // Python zählt Zeichen (Codepoints), JS UTF-16-Einheiten – bei Emoji o. Ä. umrechnen
+  let pos = null;
+  if (/[\uD800-\uDBFF]/.test(s)) { pos = [0]; for (const ch of s) pos.push(pos[pos.length - 1] + ch.length); }
+  const u16 = (i) => (pos ? pos[Math.min(i, pos.length - 1)] : i);
+  for (const [a, b] of cell.spans || []) for (let i = u16(a); i < Math.min(u16(b), n); i++) chg[i] = 1;
+  for (const [a, b, u] of cell.links || []) for (let i = u16(a); i < Math.min(u16(b), n); i++) url[i] = u;
   let out = cell.mod ? '<span class="mod" title="geändert, noch nicht gespeichert"></span>' : "";
   if (cell.xml) out += `<button class="xml-badge${cell.xml === "view" ? " view" : ""}" data-xml="1" title="${cell.xml === "view" ? "XML ansehen (Binärfeld)" : "Im XML-Editor bearbeiten"}">XML</button>`;
   let start = 0;

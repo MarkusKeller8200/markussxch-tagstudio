@@ -54,6 +54,16 @@ class TestRelease(unittest.TestCase):
         with self.assertRaises(ValueError):          # Unveröffentlicht ist jetzt leer
             release.release("9.1.1", root=self.dir)
 
+    def test_prerelease_order(self):
+        """3.0.1: Vorabversionen werden nach SemVer sortiert (beta.10 nach beta.9)."""
+        k = release.key
+        self.assertLess(k("3.1.0-beta.9"), k("3.1.0-beta.10"))
+        self.assertLess(k("3.1.0-beta.10"), k("3.1.0-rc.1"))
+        self.assertLess(k("3.1.0-rc.1"), k("3.1.0"))
+        self.assertLess(k("3.0.9"), k("3.0.10"))
+        with self.assertRaises(ValueError):
+            k("3.1")
+
     def test_rules(self):
         with self.assertRaises(ValueError):
             release.release("3.1", root=self.dir)          # kein MAJOR.MINOR.PATCH

@@ -34,10 +34,14 @@ def current_version(root=ROOT) -> str:
 
 
 def key(v):
-    """Sortierschlüssel: 3.1.0-beta.1 < 3.1.0."""
-    m = SEMVER.match(v)
+    """Sortierschlüssel nach SemVer: 3.1.0-beta.2 < 3.1.0-beta.10 < 3.1.0-rc.1 < 3.1.0."""
+    m = SEMVER.match(v or "")
+    if not m:
+        raise ValueError(f"„{v}“ ist keine gültige Version (MAJOR.MINOR.PATCH).")
     major, minor, patch, pre = int(m[1]), int(m[2]), int(m[3]), m[4]
-    return (major, minor, patch, 0 if pre else 1, pre or "")
+    # Zahlen-Teile numerisch, Zahlen vor Text
+    ids = tuple((0, int(x), "") if x.isdigit() else (1, 0, x) for x in pre.lstrip("-").split(".")) if pre else ()
+    return (major, minor, patch, 0 if pre else 1, ids)
 
 
 def unreleased_text(changelog: str) -> str:

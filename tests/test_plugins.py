@@ -93,6 +93,43 @@ class TestManager(PluginBase):
         self.assertIn(("demo", "mark"), [(a["plugin"], a["id"]) for a in acts])
         self.assertNotIn("needs", [a["plugin"] for a in acts])
 
+    def test_malformed_manifests_do_not_break_list(self):
+        """3.0.1: Ein fehlerhaftes plugin.json legt nicht mehr die ganze Plugin-Liste lahm."""
+        make_plugin(self.udir, "demo")
+        make_plugin(self.udir, "badapi", {"api": "1.0"})
+        make_plugin(self.udir, "badlists", {"requires": [{"label": "ohne Modul"}, 5], "install": ["x", {"packages": ["y"]}],
+                                             "external": ["ffmpeg", {"label": "ohne cmd"}]})
+        d = os.path.join(self.udir, "liste")
+        os.makedirs(d)
+        with open(os.path.join(d, "plugin.json"), "w", encoding="utf-8") as fh:
+            fh.write('["kein", "objekt"]')
+        info = {p["id"]: p for p in plugins.Manager({}).list()}
+        self.assertEqual(info["demo"]["state"], "ready")
+        self.assertEqual(info["badapi"]["state"], "error")
+        self.assertIn("Plugin-API", info["badapi"]["error"])
+        self.assertEqual(info["badlists"]["state"], "ready")
+        self.assertEqual(info["badlists"]["external"], [])
+        self.assertEqual(info["liste"]["state"], "error")
+
+    def test_failed_edit_closes_undo_step(self):
+        """3.0.1: Bricht ein Plugin mitten in edit_tags ab, bleibt kein halber Undo-Schritt offen."""
+        make_plugin(self.udir, "demo")
+        s = self.session()
+        p = s.plugins.get("demo")
+        ctx = plugins.Context(p, session=s)
+        files = s.tag_files[:2]
+        self.assertEqual(len(files), 2)
+        calls = []
+
+        def fn(f):
+            calls.append(f)
+            if len(calls) == 2:
+                raise RuntimeError("kaputt")
+            f.set_text("TXXX:Demo", "x")
+        with self.assertRaises(RuntimeError):
+            ctx.edit_tags(files, fn, "Demo")
+        self.assertIsNone(s.undo.pending)
+
     def test_user_overrides_builtin_and_disable(self):
         make_plugin(self.udir, "stems", {"name": "Meine Stems"})
         cfg = {}

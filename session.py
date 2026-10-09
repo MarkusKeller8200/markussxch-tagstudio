@@ -1014,6 +1014,8 @@ class Session:
                 self._pending = {"token": token, "plugin": pid, "items": props}
                 res["proposals_token"] = token
                 res["proposals"] = [{"id": n, "name": os.path.basename(p["file"].path), "group": p["group"] or os.path.basename(p["file"].path),
+                                     "gkey": f'{p["file"].path}|{p["group"] or ""}',
+                                     "folder": os.path.basename(os.path.dirname(p["file"].path)),
                                      "label": p["label"], "old": p["old"].replace(MV, MV_SHOW), "new": p["new"].replace(MV, MV_SHOW),
                                      "note": p["note"], "checked": p["checked"], "kind": p["kind"], "hint": p.get("hint", "")}
                                     for n, p in enumerate(props)]
@@ -1035,14 +1037,16 @@ class Session:
             name = self.plugins.get(pend["plugin"]).name if pend["plugin"] in self.plugins.plugins else pend["plugin"]
             self.undo.checkpoint(f"{name}: {len(chosen)} Änderung(en)", files)
             n = 0
-            for p in chosen:
-                if p["kind"] == "cover":
-                    if p["data"]:
-                        tagger.set_cover([p["file"]], p["data"])
+            try:
+                for p in chosen:
+                    if p["kind"] == "cover":
+                        if p["data"]:
+                            tagger.set_cover([p["file"]], p["data"])
+                            n += 1
+                    elif core.apply_value(p["file"], p["key"], p["new"]):
                         n += 1
-                elif core.apply_value(p["file"], p["key"], p["new"]):
-                    n += 1
-            self.undo.commit()
+            finally:   # auch bei Fehler abschliessen, sonst landen Teiländerungen im nächsten Undo-Schritt
+                self.undo.commit()
         return {"ok": True, "count": n, "files": len(files), "unsaved": self.unsaved(),
                 "message": f"{n} Änderung(en) in {len(files)} Datei(en) übernommen – noch nicht gespeichert."}
 

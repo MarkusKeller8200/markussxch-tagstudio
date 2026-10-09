@@ -272,7 +272,7 @@ class Client:
                 self.tok = refresh(self.ctx, self.tok) or self._expired()
                 continue
             if st == 429:
-                time.sleep(min(30, float(h.get("Retry-After") or 5)))
+                time.sleep(_retry_after(h.get("Retry-After")))
                 continue
             if st == 404:
                 return None
@@ -305,10 +305,27 @@ _MIX_RE = re.compile(r"\s*[\(\[]([^\)\]]*(mix|edit|remix|version|dub|rework|boot
 _FEAT_RE = re.compile(r"\s*[\(\[]?\b(feat\.?|ft\.?|featuring)\b.*$", re.I)
 
 
+def _retry_after(v) -> float:
+    """Retry-After als Sekunden oder HTTP-Datum → Wartezeit (max. 30 s, sonst 5 s)."""
+    try:
+        return max(0.0, min(30.0, float(v)))
+    except (TypeError, ValueError):
+        pass
+    try:
+        import email.utils
+        when = email.utils.parsedate_to_datetime(str(v)).timestamp()
+        return max(0.0, min(30.0, when - time.time()))
+    except (TypeError, ValueError, IndexError, OverflowError):
+        return 5.0
+
+
 def norm(s):
-    s = unicodedata.normalize("NFKD", s or "").encode("ascii", "ignore").decode().lower()
-    s = re.sub(r"&", " and ", s)
-    s = re.sub(r"[^a-z0-9]+", " ", s)
+    """Für den Vergleich: Akzente weg, Kleinbuchstaben, nur Buchstaben/Ziffern. Nicht-lateinische Schrift
+    (Kyrillisch, Japanisch …) bleibt erhalten – sonst würden zwei solche Titel als „gleich“ (leer) gelten."""
+    s = unicodedata.normalize("NFKD", s or "")
+    s = "".join(c for c in s if not unicodedata.combining(c)).casefold()
+    s = s.replace("ß", "ss").replace("&", " and ")
+    s = re.sub(r"[\W_]+", " ", s)
     return " ".join(s.split())
 
 
@@ -343,7 +360,8 @@ def score(info, t):
     """0–1: wie gut passt Beatport-Titel t zur Datei?"""
     if info["isrc"] and (t.get("isrc") or "").upper() == info["isrc"]:
         return 1.0
-    ts = difflib.SequenceMatcher(None, norm(_FEAT_RE.sub("", info["title"])), norm(_FEAT_RE.sub("", t.get("name", "")))).ratio()
+    a, b = norm(_FEAT_RE.sub("", info["title"])), norm(_FEAT_RE.sub("", t.get("name", "")))
+    ts = difflib.SequenceMatcher(None, a, b).ratio() if a and b else 0.0   # leer = unbekannt, nicht „gleich“
     fa = norm(_FEAT_RE.sub("", info["artist"]))
     cand = [norm(a) for a in artists_of(t)] + [norm(", ".join(artists_of(t)))]
     as_ = max([difflib.SequenceMatcher(None, fa, c).ratio() for c in cand] + [0.0]) if fa else 0.5

@@ -210,9 +210,11 @@ class Context:
         s = self._session
         with s.lock:
             s.undo.checkpoint(label or self.plugin.name, list(files))
-            for f in files:
-                fn(f)
-            s.undo.commit()
+            try:
+                for f in files:
+                    fn(f)
+            finally:   # auch bei Fehler abschliessen, sonst landen Teiländerungen im nächsten Undo-Schritt
+                s.undo.commit()
         self.changed = True
 
 
@@ -228,6 +230,15 @@ class Plugin:
         self.enabled = True
         self._load_manifest()
 
+    @classmethod
+    def broken(cls, path: str, builtin: bool, ex: Exception) -> "Plugin":
+        pl = cls.__new__(cls)
+        pl.path, pl.builtin, pl.manifest, pl.module = path, builtin, {}, None
+        pl.settings, pl.enabled = {}, True
+        pl.id = re.sub(r"[^a-z0-9_-]", "_", os.path.basename(path).lower())[:40] or "plugin"
+        pl.error = f"Plugin nicht ladbar: {str(ex) or type(ex).__name__}"
+        return pl
+
     # ---- Manifest
     def _load_manifest(self):
         mf = os.path.join(self.path, "plugin.json")
@@ -237,10 +248,27 @@ class Plugin:
         except (OSError, ValueError) as ex:
             self.manifest = {}
             self.error = f"plugin.json nicht lesbar: {ex}"
-        pid = str(self.manifest.get("id") or os.path.basename(self.path)).lower()
+        if not isinstance(self.manifest, dict):
+            self.manifest = {}
+            self.error = "plugin.json muss ein Objekt { … } sein."
+        m = self.manifest
+        # Listen-Einträge bereinigen, damit ein fehlerhaftes Manifest nicht die ganze Plugin-Liste lahmlegt
+        req = m.get("requires", [])
+        m["requires"] = [r for r in (req if isinstance(req, list) else [])
+                         if (isinstance(r, str) and r) or (isinstance(r, dict) and isinstance(r.get("module"), str) and r["module"])]
+        for k, need in (("install", None), ("external", "cmd")):
+            v = m.get(k, [])
+            m[k] = [e for e in (v if isinstance(v, list) else []) if isinstance(e, dict) and (need is None or e.get(need))]
+        pid = str(m.get("id") or os.path.basename(self.path)).lower()
         self.id = pid if _ID_RE.match(pid) else re.sub(r"[^a-z0-9_-]", "_", pid)[:40] or "plugin"
-        if not self.error and int(self.manifest.get("api", 1)) > API_VERSION:
-            self.error = f"Benötigt eine neuere TagStudio-Version (Plugin-API {self.manifest.get('api')})."
+        try:
+            api = int(m.get("api", 1))
+        except (TypeError, ValueError):
+            api = None
+            if not self.error:
+                self.error = f"Ungültige Plugin-API-Angabe „{m.get('api')}“ (erwartet: Ganzzahl)."
+        if not self.error and api > API_VERSION:
+            self.error = f"Benötigt eine neuere TagStudio-Version (Plugin-API {m.get('api')})."
 
     @property
     def name(self) -> str:
@@ -391,7 +419,10 @@ class Manager:
                 p = os.path.join(base, name)
                 if name.startswith((".", "_")) or not os.path.isfile(os.path.join(p, "plugin.json")):
                     continue
-                pl = Plugin(p, builtin)
+                try:
+                    pl = Plugin(p, builtin)
+                except Exception as ex:  # noqa: BLE001 – ein defektes Plugin darf die Liste nicht blockieren
+                    pl = Plugin.broken(p, builtin, ex)
                 if pl.id in found:   # Benutzer-Plugin mit gleicher id ersetzt das eingebaute
                     if builtin:
                         continue
@@ -402,7 +433,17 @@ class Manager:
         return self.list()
 
     def list(self) -> list[dict]:
-        return [p.info() for p in sorted(self.plugins.values(), key=lambda p: (not p.builtin, p.name.lower()))]
+        out = []
+        for p in sorted(self.plugins.values(), key=lambda p: (not p.builtin, p.name.lower())):
+            try:
+                out.append(p.info())
+            except Exception as ex:  # noqa: BLE001
+                p.error = f"Plugin-Beschreibung fehlerhaft: {str(ex) or type(ex).__name__}"
+                out.append({"id": p.id, "name": p.name, "version": "", "description": "", "author": "", "url": "",
+                            "builtin": p.builtin, "path": p.path, "enabled": p.enabled, "state": "error",
+                            "error": p.error, "missing": [], "external": [], "install": [], "notes": "",
+                            "env": False, "env_variant": ""})
+        return out
 
     def get(self, pid) -> Plugin:
         p = self.plugins.get(pid)

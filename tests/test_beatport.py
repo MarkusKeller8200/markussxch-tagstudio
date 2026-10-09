@@ -260,6 +260,15 @@ class TestBeatport(Base):
         self.assertLess(m.score(info, TRACKS[1002]), m.MAYBE)
         self.assertEqual(m.score(dict(info, isrc="CHA012100001"), TRACKS[1001]), 1.0)
         self.assertEqual(m.key_text({"key": {"name": "Eb Minor"}}, "camelot"), "2A")
+        # 3.0.1: nicht-lateinische Titel sind nicht automatisch „gleich“
+        jp = {"title": "東京", "mix": "", "artist": "ヨアソビ", "isrc": "", "duration": 0, "bpid": ""}
+        ru = {"name": "Москва", "mix_name": "", "artists": [{"name": "Иван"}]}
+        self.assertLess(m.score(jp, ru), m.MAYBE)
+        self.assertGreaterEqual(m.score(jp, {"name": "東京", "mix_name": "", "artists": [{"name": "ヨアソビ"}]}), m.SURE)
+        self.assertEqual(m.norm("Beyoncé & Jay-Z"), "beyonce and jay z")
+        self.assertEqual(m._retry_after("3"), 3.0)
+        self.assertEqual(m._retry_after("kaputt"), 5.0)
+        self.assertLessEqual(m._retry_after("Wed, 21 Oct 2099 07:28:00 GMT"), 30.0)
         self.assertEqual(m.cover_url(TRACKS[1001]), "https://geo-media.beatport.com/image_size/1400x1400/abc.jpg")
 
 
