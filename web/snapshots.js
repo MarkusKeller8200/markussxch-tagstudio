@@ -235,6 +235,7 @@ async function snPickSpec(side) {
     onMount: (b) => b.addEventListener("click", (e) => { const t = e.target.closest("[data-spec]"); if (t) { picked = t.dataset.spec; $("#mBtns button")?.click(); } }) });
   if (!picked) return;
   $(side === "L" ? "#pathL" : "#pathR").value = picked;
+  if (typeof homeSync === "function") homeSync();
   const other = $(side === "L" ? "#pathR" : "#pathL");
   if (!other.value.trim()) {
     const lib = ov.libs.find((l) => picked.startsWith(`snapshot:${l.id}/`));

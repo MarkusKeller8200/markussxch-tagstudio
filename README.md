@@ -396,7 +396,7 @@ Programm gerade liegt. Meldungen aus einem Dialog heraus erscheinen über diesem
 
 ## Einstellungen und Datenablage
 
-Die Seite **Einstellungen** fasst alles zusammen: Design, Tonart-Schreibweise, Stems-Anzeige im Tagger, ID3-Version
+Die Seite **Einstellungen** fasst alles zusammen: Design, Standardordner für Vergleich (links/rechts) und Tagger, Tonart-Schreibweise, Stems-Anzeige im Tagger, ID3-Version
 beim Speichern (beibehalten / immer v2.3 / immer v2.4), Sicherung, Player, Herkunft der Tags (eigene Zuordnungen),
 unwichtige Felder (Liste bearbeiten, Standard wiederherstellen, ganze Herkunft „als unwichtig“), Cache (Wellenformen,
 Cover-Vorschauen: Grösse anzeigen, leeren). **Exportieren**

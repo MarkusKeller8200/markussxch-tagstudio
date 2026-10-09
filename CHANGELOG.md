@@ -61,6 +61,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   **Wellenformen** berechnen, **Cover-Vorschauen** erzeugen; jeweils für alle geladenen Titel (Tagger und Vergleich),
   mit Fortschritt und Abbrechen – wahlweise **im Hintergrund** (Listen und Cover als Hintergrund-Auftrag,
   Wellenformen mit Fortschritt in der Fußleiste) (#80).
+- **Standardordner** (Einstellungen › Vergleich: links und rechts; › Tagger): stehen beim Start in den Pfadfeldern;
+  weicht ein Feld ab (z. B. nach einem Snapshot-Vergleich), trägt ⌂ neben dem Feld den Standard wieder ein.
+  Snapshot-Angaben landen nicht mehr im Pfad-Verlauf (#84).
 - Vergleich: **unwichtige Unterschiede deutlich markiert** – eigene Farbe für Zeile und geänderte Zeichen,
   Kennzeichen „unwichtig“ neben der Feld-ID (#83).
 - Vergleich: **„Paar neu“** (Shift+F5) liest nur die beiden Dateien des aktuellen Paars neu – die übrige Liste

@@ -103,7 +103,26 @@ class Session:
             "empty_sets": [[k, v] for k, v in core.EMPTY_SETS.items()],
             "filter_ops": core.FILTER_OPS, "filter_sides": core.FILTER_SIDES,
             "ui": dict(self.ui), "player": self.player_prefs(), "origins": self.origin_catalog(),
+            "defaults": self.default_dirs(),
         }
+
+    # ------------------------------------------------------------------ Standardordner (#84)
+    DEFAULT_DIRS = ("default_left", "default_right", "default_tagger")
+
+    def default_dirs(self) -> dict:
+        return {k[8:]: str(self.cfg.get(k) or "") for k in self.DEFAULT_DIRS}
+
+    def set_default_dir(self, which, path) -> dict:
+        """which: left | right | tagger; leerer Pfad = kein Standardordner."""
+        key = "default_" + str(which)
+        if key not in self.DEFAULT_DIRS:
+            raise ValueError("left, right oder tagger erwartet")
+        path = (path or "").strip()
+        if path and not os.path.exists(path):
+            return {"ok": False, "error": f"Ordner nicht gefunden: {path}"}
+        self.cfg[key] = path
+        core.save_config({key: path})
+        return {"ok": True, "defaults": self.default_dirs()}
 
     def set_ui(self, name: str, value):
         """Layout merken (Breiten der Splitter, eingeklappte Seitenleiste)."""
@@ -1010,8 +1029,9 @@ class Session:
                 self.left_root, self.right_root = root_of(lp), root_of(rp)
                 self.left_spec, self.right_spec = lp, rp
                 self.cur = keep if keep is not None and keep < len(pairs) else (0 if pairs else None)
-            self.cfg.update(hist_left=core.history(self.cfg, "hist_left", lp),
-                            hist_right=core.history(self.cfg, "hist_right", rp), mode=mode, recursive=recursive)
+            hist = lambda key, p: self.cfg.get(key, []) if p.startswith("snapshot:") else core.history(self.cfg, key, p)
+            self.cfg.update(hist_left=hist("hist_left", lp), hist_right=hist("hist_right", rp), mode=mode,
+                            recursive=recursive)                       # Snapshot-Angaben nicht in den Verlauf (#84)
             core.save_config({k: self.cfg[k] for k in ("hist_left", "hist_right", "mode", "recursive")})
             return {"pairs": len(pairs), "errors": errors, **self._verify_start(stats, "compare")}
         return self._run("load", "Dateien einlesen", job)
@@ -1767,6 +1787,7 @@ class Session:
 
     def tagger_settings(self):
         return {"hist": self.cfg.get("hist_tagger", []), "recursive": self.cfg.get("tagger_recursive", False),
+                "default": str(self.cfg.get("default_tagger") or ""),
                 "fields": [[k, label, ph] for k, label, ph in tagger.FIELDS],
                 "features": [[n, label, desc] for n, label, desc in features.FEATURES],
                 "features_open": self.cfg.get("features_open", True),

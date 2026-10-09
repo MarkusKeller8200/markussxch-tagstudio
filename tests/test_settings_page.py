@@ -127,5 +127,32 @@ class TestSessionSettings(Base):
         self.assertEqual((f.text("TIT2"), f.tag_desc), ("B", "ID3v2.3"))
 
 
+class TestDefaultDirs(unittest.TestCase):
+    """#84: Standardordner für Vergleich und Tagger; Snapshot-Angaben nicht im Verlauf."""
+
+    def test_defaults(self):
+        import tempfile, shutil
+        import core
+        from session import Session
+        d = tempfile.mkdtemp(prefix="ts_def_")
+        old = (core.CONFIG, core.CONFIG_OLD)
+        core.CONFIG = core.CONFIG_OLD = os.path.join(d, "cfg.json")
+        try:
+            s = Session()
+            self.assertEqual(s.settings()["defaults"], {"left": "", "right": "", "tagger": ""})
+            self.assertFalse(s.set_default_dir("left", os.path.join(d, "fehlt"))["ok"])
+            self.assertEqual(s.set_default_dir("left", d)["defaults"]["left"], d)
+            s.set_default_dir("tagger", d)
+            s2 = Session()
+            self.assertEqual((s2.settings()["defaults"]["left"], s2.tagger_settings()["default"]), (d, d))
+            with self.assertRaises(ValueError):
+                s.set_default_dir("mitte", d)
+            s.set_default_dir("left", "")
+            self.assertEqual(Session().settings()["defaults"]["left"], "")
+        finally:
+            core.CONFIG, core.CONFIG_OLD = old
+            shutil.rmtree(d, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main()

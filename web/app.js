@@ -415,8 +415,11 @@ async function init() {
   $("#mode").value = st.mode;
   $("#recursive").checked = !!st.recursive;
   fillHistory();
-  $("#pathL").value = st.start_paths[0] ?? st.hist_left[0] ?? "";
-  $("#pathR").value = st.start_paths[1] ?? (st.start_paths.length ? "" : st.hist_right[0] ?? "");
+  // #84: beim Start die Standardordner (sonst wie bisher der letzte Pfad)
+  const dd = st.defaults || {};
+  $("#pathL").value = st.start_paths[0] ?? (dd.left || st.hist_left[0] || "");
+  $("#pathR").value = st.start_paths[1] ?? (st.start_paths.length ? "" : dd.right || st.hist_right[0] || "");
+  homeSync();
   $("#emptySet").innerHTML = st.empty_sets.map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("");
   $("#fOp").innerHTML = st.filter_ops.map((o) => `<option>${esc(o)}</option>`).join("");
   $("#fSide").innerHTML = st.filter_sides.map((o) => `<option>${esc(o)}</option>`).join("");
@@ -469,6 +472,7 @@ async function confirmDiscard() {
 async function compare(skipConfirm = false, keep = false) {
   if (!skipConfirm && !(await confirmDiscard())) return;
   const lp = $("#pathL").value.trim(), rp = $("#pathR").value.trim();
+  homeSync();
   const res = await runTask(call("start_load", lp, rp, $("#recursive").checked, $("#mode").value, keep), "Dateien einlesen");
   if (!res) return;
   if (res.cancelled) { status("Einlesen abgebrochen – bisherige Ansicht bleibt erhalten.", "warn"); return; }
@@ -585,6 +589,15 @@ async function refreshFieldChoices() {
 }
 
 // ====================================================================== Zustand anwenden
+/** #84: Knopf „Standardordner eintragen“ nur zeigen, wenn ein Standard gesetzt ist und das Feld abweicht */
+function homeSync() {
+  const d = (S.settings && S.settings.defaults) || {};
+  [["L", "#pathL", d.left], ["R", "#pathR", d.right], ["T", "#tgPath", d.tagger]].forEach(([k, sel, def]) => {
+    const b = $(`[data-home="${k}"]`), inp = $(sel);
+    if (b && inp) { b.hidden = !def || inp.value.trim() === def; if (def) b.title = `Standardordner wieder eintragen:\n${def}`; }
+  });
+}
+
 /** #82: nur das aktuelle Paar neu von der Platte lesen */
 async function reloadPair() {
   if (S.cur === null || S.cur === undefined) return toast("Erst ein Dateipaar wählen.");
@@ -912,6 +925,7 @@ function bind() {
     const p = await call("pick_path", side, b.dataset.folder === "1", inp.value.trim());
     if (p) {
       inp.value = p;
+      homeSync();
       const other = side === "L" ? $("#pathR") : $("#pathL");
       if (other.value.trim()) compare();
     } else if (!S.settings.native) {
@@ -920,7 +934,7 @@ function bind() {
   }));
   $("#swapBtn").addEventListener("click", async () => {
     if (!(await confirmDiscard())) return;
-    const l = $("#pathL").value; $("#pathL").value = $("#pathR").value; $("#pathR").value = l;
+    const l = $("#pathL").value; $("#pathL").value = $("#pathR").value; $("#pathR").value = l; homeSync();
     if (S.pairs.length) compare(true, true);
   });
   $("#themeBtn").addEventListener("click", async () => {
@@ -981,6 +995,14 @@ function bind() {
   $("#fieldQuery").addEventListener("input", (e) => { clearTimeout(fq); fq = setTimeout(async () => applyState(await call("set_option", "query", e.target.value)), 200); });
   $$("[data-copyall]").forEach((b) => b.addEventListener("click", () => copyAll(b.dataset.copyall)));
   $("#pairReloadBtn").addEventListener("click", reloadPair);
+  $$("[data-home]").forEach((b) => b.addEventListener("click", () => {     // #84
+    const d = S.settings.defaults || {}, k = b.dataset.home;
+    const inp = $(k === "L" ? "#pathL" : k === "R" ? "#pathR" : "#tgPath");
+    inp.value = k === "L" ? d.left : k === "R" ? d.right : d.tagger;
+    homeSync();
+    toast("Standardordner eingetragen – „" + (k === "T" ? "Einlesen" : "Vergleichen") + "“ lädt ihn.");
+  }));
+  ["#pathL", "#pathR", "#tgPath"].forEach((s) => $(s).addEventListener("input", homeSync));
   $$("[data-missing]").forEach((b) => b.addEventListener("click", async () => applyState(await call("copy_missing", b.dataset.missing))));
 
   // Tabelle

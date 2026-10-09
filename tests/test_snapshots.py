@@ -296,6 +296,8 @@ class TestSessionSnapshots(Base):
         self.wait_task()
         rows = s.pair_rows()
         self.assertEqual(len(rows["rows"]), 5)                     # 02 alt (nur links) + 02 neu (nur rechts)
+        self.assertNotIn(spec, s.cfg.get("hist_left", []))         # #84: Snapshot nicht im Verlauf
+        self.assertEqual(s.cfg["hist_right"][0], self.lib)
         i = next(r["i"] for r in rows["rows"] if r["left"].endswith("01 Titel.mp3"))
         s.select(i)
         v = s.view()

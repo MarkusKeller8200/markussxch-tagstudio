@@ -14,7 +14,8 @@ async function taggerShow() {
   if (!TG.settings) {
     TG.settings = await call("tagger_settings");
     $("#histTg").innerHTML = TG.settings.hist.map((h) => `<option value="${esc(h)}"></option>`).join("");
-    $("#tgPath").value = TG.settings.hist[0] || "";
+    $("#tgPath").value = TG.settings.default || TG.settings.hist[0] || "";      // #84: Standardordner
+    if (typeof homeSync === "function") homeSync();
     $("#tgRec").checked = !!TG.settings.recursive;
     renderTgHead();
     renderTgEditor();
@@ -27,6 +28,7 @@ async function taggerShow() {
 async function taggerLoad() {
   if (!(await confirmDiscard())) return;
   const path = $("#tgPath").value.trim();
+  if (typeof homeSync === "function") homeSync();
   const res = await runTask(call("start_tag_load", path, $("#tgRec").checked), "Dateien einlesen");
   if (!res) return;
   if (res.cancelled) { status("Einlesen abgebrochen.", "warn"); return; }

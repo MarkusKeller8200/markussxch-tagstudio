@@ -19,6 +19,11 @@ async function settingsShow() {
         <label for="stNotation">Tonart-Schreibweise</label>${stSel("stNotation", d.notations, d.key_notation)}
         <span>Tagger</span>${stCheck("stStemsFlat", d.stems_flat, "Stems als eigene Titel anzeigen (statt aufklappbar unter dem Original)")}
       </div></section>
+    <section class="card"><h3>Vergleich</h3>
+      <p class="muted sm" style="margin:0">Standardordner stehen beim Start in den Pfadfeldern; weicht ein Feld ab (z. B. nach einem Snapshot-Vergleich), trägt ⌂ den Standard wieder ein.</p>
+      <div class="st-row">${stDefRow("left", "Standard links")}${stDefRow("right", "Standard rechts")}</div></section>
+    <section class="card"><h3>Tagger</h3>
+      <div class="st-row">${stDefRow("tagger", "Standardordner")}</div></section>
     <section class="card"><h3>Speichern und Sicherungen</h3>
       <div class="st-row">
         <label for="stSaveVer">ID3-Version beim Speichern</label>${stSel("stSaveVer", [[0, "beibehalten (wie die Datei)"], [3, "immer ID3v2.3 (am verträglichsten)"], [4, "immer ID3v2.4"]], d.save_version)}
@@ -48,6 +53,21 @@ async function settingsShow() {
   stCacheRender();
   stSnapRender();
   if (typeof originSettingsRender === "function") originSettingsRender($("#stOriginCard"));
+}
+
+/** #84: Zeile „Standardordner“ */
+function stDefRow(k, label) {
+  const v = (S.settings.defaults || {})[k] || "";
+  return `<label for="stDef_${k}">${esc(label)}</label><div class="st-path"><input class="inp" id="stDef_${k}" data-defdir="${k}" value="${esc(v)}" placeholder="kein Standard – letzter Pfad wird verwendet" spellcheck="false">
+    <button class="ghost sm" data-defpick="${k}" title="Ordner wählen">…</button><button class="ghost sm" data-defclear="${k}" ${v ? "" : "disabled"} title="Kein Standardordner">✕</button></div>`;
+}
+async function stDefSet(k, v) {
+  const r = await call("set_default_dir", k, v);
+  if (!r.ok) { info("Nicht möglich", r.error); return; }
+  S.settings.defaults = r.defaults;
+  if (typeof homeSync === "function") homeSync();
+  toast(v ? "Standardordner gespeichert." : "Kein Standardordner mehr.");
+  settingsShow();
 }
 
 async function stSnapRender() {
@@ -296,6 +316,8 @@ function initSettings() {
       }
     }
     else if (t.dataset.cbuild) { await stCacheBuild(t.dataset.cbuild); stCacheRender(); }
+    else if (t.dataset.defpick) { const v = await call("pick_path", "", true, (S.settings.defaults || {})[t.dataset.defpick] || ""); if (v) stDefSet(t.dataset.defpick, v); else if (!S.settings.native) toast("Im Browser-Modus den Pfad eintragen."); }
+    else if (t.dataset.defclear) stDefSet(t.dataset.defclear, "");
     else if (t.dataset.copen) call("open_folder", t.dataset.copen);
     else if (t.id === "stTrivAdd") { const v = $("#stTrivIn").value.trim(); if (v) { await stTrivSet([...ST.data.trivial, v]); $("#stTrivIn").value = ""; } }
     else if (t.id === "stTrivDef") { if (await dialog({ title: "Standardliste wiederherstellen?", text: "Eigene Muster gehen verloren.", buttons: [{ label: "Abbrechen", value: null }, { label: "Wiederherstellen", value: true, primary: true }] })) stTrivSet(ST.data.trivial_default); }
@@ -334,6 +356,7 @@ function initSettings() {
     } else if (t.id === "stSaveVer") { await call("set_save_version", +t.value); toast(+t.value ? `Beim Speichern immer ID3v2.${t.value}.` : "ID3-Version bleibt wie in der Datei."); }
     else if (t.id === "stBackup") { await call("set_backup", t.checked, null); if (!t.checked) toast("Achtung: Vor dem Speichern wird nicht mehr gesichert."); }
     else if (t.id === "stStemsFlat") { await call("set_stems_flat", t.checked); if (TG.loaded) { TG.open = new Set(); await taggerRefresh(); } toast(t.checked ? "Stems erscheinen als eigene Titel." : "Stems erscheinen aufklappbar unter dem Original."); }
+    else if (t.dataset.defdir) stDefSet(t.dataset.defdir, t.value.trim());
     else if (t.id === "stListCache") { await call("set_list_cache", t.checked); toast(t.checked ? "Listen-Cache an." : "Listen-Cache aus – es wird immer von der Platte gelesen."); }
     else if (t.id === "orVer") {
       await call("set_origin_ver_badge", t.checked);
