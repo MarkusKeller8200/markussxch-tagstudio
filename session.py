@@ -140,35 +140,81 @@ class Session:
             self._origins = origins.Origins(self.cfg.get("tag_origins"), pf)
         return self._origins
 
+    _CUSTOM_FIDS = ("TXXX", "WXXX", "GEOB", "PRIV", "UFID")
+    SRC_SHORT = {"mik": "MIK", "itunes": "iTunes", "wmp": "WMP", "platinum": "PN", "replaygain": "ReplayGain",
+                 "musicbrainz": "MB"}
+
+    @classmethod
+    def _official(cls, key) -> bool:
+        """Offizielles ID3-Feld (Titel, Künstler, BPM, Cover …) – nicht TXXX, GEOB, PRIV & Co. (#74)."""
+        fid, _sep, desc = key.split("#")[0].partition(":")
+        if fid in cls._CUSTOM_FIDS:
+            return False
+        return not (fid in ("COMM", "USLT") and desc)
+
     def _src(self, key, f):
-        """Herkunft eines Felds; ohne bekannte Anwendung die ID3-Version der Datei („v2.3“/„v2.4“, #38)."""
+        """Herkunft eines Felds (#22, #74): bekannte Anwendung; benutzerdefinierte Felder ohne bekannte Herkunft
+        → „unknown“; offizielle Felder ohne bekannte Herkunft → None (dort steht nur die ID3-Version, _ver)."""
         sid = self.origins.of(key)
-        if sid is None and f is not None:
-            fid = key.split(":")[0].split("#")[0]
-            standard = ":" not in key.split("#")[0] and (fid[:1] in ("T", "W") and fid not in ("TXXX", "WXXX")) \
-                or fid == "APIC"
-            if standard and not self.cfg.get("origin_std_badge"):     # #40: Titel, Künstler … ohne Kennzeichen
-                return None
-            sid = "id3v4" if f.version == 4 else "id3v3"
+        if sid is None and not self._official(key):
+            sid = "unknown"
         return sid
 
-    def set_origin_std_badge(self, on) -> bool:
-        self.cfg["origin_std_badge"] = bool(on)
-        core.save_config({"origin_std_badge": bool(on)})
+    def _ver(self, key, f):
+        """ID3-Version (v2.3/v2.4) als Kennzeichen bei offiziellen Feldern (#74, abschaltbar)."""
+        if f is None or not self._official(key) or not self.cfg.get("origin_ver_badge", True):
+            return None
+        return "id3v4" if f.version == 4 else "id3v3"
+
+    def set_origin_ver_badge(self, on) -> bool:
+        self.cfg["origin_ver_badge"] = bool(on)
+        core.save_config({"origin_ver_badge": bool(on)})
         return bool(on)
+
+    def set_origin_std_badge(self, on) -> bool:          # alter Name (bis 3.3.0-beta.2)
+        return self.set_origin_ver_badge(on)
 
     def origin_catalog(self) -> dict:
         o = self.origins
         cat = o.catalog()
-        cat["id3v3"] = {"name": "v2.3", "desc": "keine bekannte Anwendung – Feld im ID3v2.3-Tag der Datei", "kind": "id3"}
-        cat["id3v4"] = {"name": "v2.4", "desc": "keine bekannte Anwendung – Feld im ID3v2.4-Tag der Datei", "kind": "id3"}
+        cat["id3v3"] = {"name": "v2.3", "desc": "offizielles Feld im ID3v2.3-Tag der Datei", "kind": "id3"}
+        cat["id3v4"] = {"name": "v2.4", "desc": "offizielles Feld im ID3v2.4-Tag der Datei", "kind": "id3"}
+        cat["unknown"] = {"name": "unbekannt", "desc": "benutzerdefiniertes Feld – Herkunft nicht ermittelbar", "kind": "unknown"}
+        labels = self.cfg.get("origin_labels") or {}
         for sid, v in cat.items():
             v["patterns"] = o.patterns(sid)
+            name = v["name"]
+            v["short_default"] = self.SRC_SHORT.get(sid) or ("TagStudio" if v["kind"] == "plugin"
+                                                              else name if len(name) <= 12 else name[:11] + "…")
+            own = labels.get(sid) or {}
+            v["short"] = own.get("short") or v["short_default"]
+            v["hue"] = own.get("hue")
+            v["custom_label"] = bool(own)
         return cat
+
+    def set_origin_label(self, sid, short=None, hue=None) -> dict:
+        """#75: eigenes Kennzeichen (Text, Farbton 0–359) je Herkunft; sid=None + leer = alle zurücksetzen."""
+        labels = dict(self.cfg.get("origin_labels") or {})
+        if sid is None:
+            labels = {}
+        else:
+            sid = str(sid)[:80]
+            short = (str(short).strip()[:16] if short is not None else "")
+            try:
+                hue = None if hue in (None, "") else int(hue) % 360
+            except (TypeError, ValueError):
+                hue = None
+            if not short and hue is None:
+                labels.pop(sid, None)
+            else:
+                labels[sid] = {k: v for k, v in (("short", short), ("hue", hue)) if v not in ("", None)}
+        self.cfg["origin_labels"] = labels
+        core.save_config({"origin_labels": labels})
+        return self.tag_origins()
 
     def tag_origins(self) -> dict:
         return {"custom": list(self.cfg.get("tag_origins") or []), "catalog": self.origin_catalog(),
-                "std_badge": bool(self.cfg.get("origin_std_badge"))}
+                "ver_badge": bool(self.cfg.get("origin_ver_badge", True))}
 
     def set_tag_origins(self, rules) -> dict:
         import origins
@@ -183,12 +229,12 @@ class Session:
         with self.lock:
             files = self._tsel(idx)
             plan = [(f, k) for f in files for k in sorted(f.items, key=sort_key)
-                    if not k.startswith("APIC") and self.origins.of(k) == source]
+                    if not k.startswith("APIC") and self._src(k, f) == source]
             if not apply:
                 keys = sorted({k for _f, k in plan}, key=sort_key)
                 return {"count": len(plan), "files": len({id(f) for f, _k in plan}),
                         "keys": [[k, key_label(k), sum(1 for _f, x in plan if x == k)] for k in keys]}
-            name = self.origins.catalog().get(source, {}).get("name", source)
+            name = self.origin_catalog().get(source, {}).get("name", source)
             self.undo.checkpoint(f"Felder von {name} entfernt", list({id(f): f for f, _k in plan}.values()))
             for f, k in plan:
                 f.set(k, None)
@@ -468,7 +514,7 @@ class Session:
         return {"ok": True}
 
     # ------------------------------------------------------------------ Journal
-    _GUESS_SKIP = {"tagstudio", "encoder", "id3v3", "id3v4"}
+    _GUESS_SKIP = {"tagstudio", "encoder", "id3v3", "id3v4", "unknown"}
 
     def _snap_guess(self, rows) -> dict:
         """#57: je Titel das vermutliche Programm aus der Herkunft der geänderten Felder (häufigste bekannte
@@ -887,7 +933,8 @@ class Session:
             rows = []
             for k in keys:
                 st = states[k]
-                row = {"key": k, "label": key_label(k), "state": st, "src": self._src(k, l if l is not None else r)}
+                row = {"key": k, "label": key_label(k), "state": st, "src": self._src(k, l if l is not None else r),
+                       "ver": self._ver(k, l if l is not None else r)}
                 fids = []
                 for side, f, other in (("L", l, r), ("R", r, l)):
                     it = f.get(k) if f else None
@@ -1229,14 +1276,14 @@ class Session:
                     if f is not None and not self._ro(f) and side in (s_, "both") and all(f is not g for g in files):
                         files.append(f)
             plan = [(f, k) for f in files for k in sorted(f.items, key=sort_key)
-                    if not k.startswith("APIC") and self.origins.of(k) == source]
+                    if not k.startswith("APIC") and self._src(k, f) == source]
             if not apply:
                 keys = sorted({k for _f, k in plan}, key=sort_key)
                 return {"count": len(plan), "files": len({id(f) for f, _k in plan}), "pairs": len(pidx),
                         "keys": [[k, key_label(k), sum(1 for _f, x in plan if x == k)] for k in keys]}
             if not plan:
                 return self.state("Keine Felder dieser Herkunft.", "warn")
-            name = self.origins.catalog().get(source, {}).get("name", source)
+            name = self.origin_catalog().get(source, {}).get("name", source)
             self.undo.checkpoint(f"Felder von {name} entfernt", list({id(f): f for f, _k in plan}.values()))
             for f, k in plan:
                 f.set(k, None)
@@ -1623,7 +1670,7 @@ class Session:
                         continue
                     it = f.get(k)
                     xml = xmltools.xml_of_item(it)
-                    fields.append({"key": k, "label": key_label(k), "text": core.disp(it), "src": self._src(k, f),
+                    fields.append({"key": k, "label": key_label(k), "text": core.disp(it), "src": self._src(k, f), "ver": self._ver(k, f),
                                    "editable": core.can_edit_text(f, k) and xml is None,
                                    "multiline": "\n" in (it.text or "") or k.startswith(("COMM", "USLT")),
                                    "blob": blobs.is_blob(it),

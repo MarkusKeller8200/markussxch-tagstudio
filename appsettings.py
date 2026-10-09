@@ -27,7 +27,7 @@ GROUPS = [
     ("player", "Player (Vorschau und externe)", ("player", "players")),
     ("snapshots", "Snapshots (Automatik, Aufbewahrung, Speicherort)", ("snap_daily", "snap_ask", "snap_keep",
                                                                        "snap_weeks", "snap_thorough", "snap_dir")),
-    ("origin", "Herkunft der Tags (eigene Zuordnungen)", ("tag_origins", "origin_std_badge")),
+    ("origin", "Herkunft der Tags (eigene Zuordnungen)", ("tag_origins", "origin_std_badge", "origin_ver_badge", "origin_labels")),
     ("plugins", "Plugins (an/aus, Optionen)", ("plugins_enabled", "plugin_options", "plugin_settings")),
 ]
 GROUP_IDS = [g[0] for g in GROUPS]

@@ -158,20 +158,50 @@ async function originSettingsRender(card) {
   const o = await call("tag_origins");
   S.settings.origins = o.catalog;
   ST.origins = o.custom.length ? o.custom.map((r) => ({ ...r })) : [];
-  const cat = o.catalog, ids = Object.keys(cat).filter((k) => cat[k].kind !== "id3").sort((a, b) => cat[a].name.localeCompare(cat[b].name));
+  const cat = o.catalog, rank = (k) => (cat[k].kind === "id3" ? 0 : cat[k].kind === "unknown" ? 1 : 2);
+  const ids = Object.keys(cat).sort((a, b) => rank(a) - rank(b) || cat[a].name.localeCompare(cat[b].name));
+  const nOwn = ids.filter((k) => cat[k].custom_label).length;
   const triv = new Set(ST.data.trivial.map((t) => t.toLowerCase()));
   card.hidden = false;
   card.innerHTML = `<h3>Herkunft der Tags</h3>
     <p class="muted sm" style="margin:0">TagStudio zeigt bei „Weitere Felder“ und im Vergleich, welche Anwendung ein Feld geschrieben hat. Eigene Zuordnungen gehen vor der eingebauten Liste.</p>
-    ${stCheck("orStd", o.std_badge, "v2.3/v2.4-Kennzeichen auch bei Standardfeldern (Titel, Künstler, BPM …)")}
+    ${stCheck("orVer", o.ver_badge, "ID3-Version (v2.3/v2.4) bei offiziellen Feldern zeigen – zusammen mit der Herkunft; benutzerdefinierte Felder (TXXX, GEOB, PRIV …) ohne bekannte Herkunft heissen „unbekannt“")}
     <div class="or-list" id="orList"></div>
     <div><button class="ghost sm" id="orAdd" style="width:auto">+ Zuordnung</button> <button class="primary sm" id="orSave" style="width:auto" hidden>Zuordnungen speichern</button></div>
-    <details class="or-all"><summary>Bekannte Herkünfte (${ids.length})</summary>
+    <details class="or-all" ${ST.orOpen ? "open" : ""}><summary>Kennzeichen und bekannte Herkünfte (${ids.length})${nOwn ? ` · ${nOwn} eigene` : ""}</summary>
+      <p class="muted sm" style="margin:6px 0">Text und Farbe jedes Kennzeichens lassen sich anpassen (#75); ↺ setzt auf den Standard zurück.
+        ${nOwn ? '<button class="ghost sm" id="orLabReset" style="width:auto">Alle Kennzeichen zurücksetzen</button>' : ""}</p>
       ${ids.map((k) => { const v = cat[k], all = v.patterns.length && v.patterns.every((p) => triv.has(p.toLowerCase()));
-        return `<div class="or-src">${srcBadge(k)}<div class="d"><b>${esc(v.name)}</b> – ${esc(v.desc)}<br><code>${esc(v.patterns.join("  ·  "))}</code></div>
+        return `<div class="or-src" data-sid="${esc(k)}"><span class="prev">${srcBadge(k)}</span><div class="d"><b>${esc(v.name)}</b> – ${esc(v.desc)}${v.patterns.length ? `<br><code>${esc(v.patterns.join("  ·  "))}</code>` : ""}</div>
+        <span class="lab"><input type="text" class="or-short" maxlength="16" value="${esc(v.custom_label ? v.short : "")}" placeholder="${esc(v.short_default)}" aria-label="Kennzeichen für ${esc(v.name)}" title="Eigener Text des Kennzeichens">
+          <input type="color" class="or-hue" value="${hueHex(v.hue ?? srcHue(k))}" aria-label="Farbe für ${esc(v.name)}" title="Farbe des Kennzeichens">
+          <button class="ghost sm" data-orreset="${esc(k)}" ${v.custom_label ? "" : "disabled"} title="Auf Standard zurücksetzen">↺</button></span>
         ${v.patterns.length ? `<button class="ghost sm" data-triv="${esc(k)}" ${all ? "disabled" : ""} title="Muster dieser Herkunft zu den unwichtigen Feldern hinzufügen">${all ? "unwichtig ✓" : "als unwichtig"}</button>` : ""}</div>`; }).join("")}
     </details>`;
+  $("details.or-all", card).addEventListener("toggle", (e) => { ST.orOpen = e.target.open; });
   orRender();
+}
+
+/** Farbton ↔ Farbe für die Farbwahl (#75) */
+function hueHex(h) {
+  const f = (n) => { const k = (n + h / 30) % 12, a = 0.6 * Math.min(0.5, 1 - 0.5); const c = 0.5 - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return Math.round(c * 255).toString(16).padStart(2, "0"); };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+function hexHue(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  if (!d) return 0;
+  const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return Math.round((h * 60 + 360) % 360);
+}
+
+/** #75: eigenes Kennzeichen speichern und überall neu zeichnen */
+async function orLabelSet(sid, short, hue) {
+  const o = await call("set_origin_label", sid, short, hue);
+  S.settings.origins = o.catalog;
+  originSettingsRender($("#stOriginCard"));
+  if (S.pairs && S.pairs.length) refreshAll(await call("state"));
+  if (typeof TG !== "undefined" && TG.detail && typeof renderTgEditor === "function") renderTgEditor();
 }
 
 function orRender() {
@@ -214,6 +244,10 @@ function initSettings() {
     else if (t.id === "stTrivAdd") { const v = $("#stTrivIn").value.trim(); if (v) { await stTrivSet([...ST.data.trivial, v]); $("#stTrivIn").value = ""; } }
     else if (t.id === "stTrivDef") { if (await dialog({ title: "Standardliste wiederherstellen?", text: "Eigene Muster gehen verloren.", buttons: [{ label: "Abbrechen", value: null }, { label: "Wiederherstellen", value: true, primary: true }] })) stTrivSet(ST.data.trivial_default); }
     else if (t.dataset.k !== undefined && t.closest("#stTriv")) { const l = [...ST.data.trivial]; l.splice(+t.dataset.k, 1); stTrivSet(l); }
+    else if (t.dataset.orreset) { await orLabelSet(t.dataset.orreset, "", null); toast("Kennzeichen zurückgesetzt."); }
+    else if (t.id === "orLabReset") {
+      if (await dialog({ title: "Alle Kennzeichen zurücksetzen?", text: "Eigene Texte und Farben der Herkunfts-Kennzeichen gehen verloren.", buttons: [{ label: "Abbrechen", value: null }, { label: "Zurücksetzen", value: true, primary: true }] })) { await orLabelSet(null); toast("Alle Kennzeichen auf Standard."); }
+    }
     else if (t.id === "orAdd") { ST.origins = orRead(); ST.origins.push({ pattern: "", source: "" }); orRender(); $("#orSave").hidden = false; $$("#orList .pat").pop()?.focus(); }
     else if (t.dataset.ordel !== undefined) { ST.origins = orRead(); ST.origins.splice(+t.dataset.ordel, 1); orRender(); $("#orSave").hidden = false; }
     else if (t.id === "orSave") {
@@ -244,10 +278,18 @@ function initSettings() {
     } else if (t.id === "stSaveVer") { await call("set_save_version", +t.value); toast(+t.value ? `Beim Speichern immer ID3v2.${t.value}.` : "ID3-Version bleibt wie in der Datei."); }
     else if (t.id === "stBackup") { await call("set_backup", t.checked, null); if (!t.checked) toast("Achtung: Vor dem Speichern wird nicht mehr gesichert."); }
     else if (t.id === "stStemsFlat") { await call("set_stems_flat", t.checked); if (TG.loaded) { TG.open = new Set(); await taggerRefresh(); } toast(t.checked ? "Stems erscheinen als eigene Titel." : "Stems erscheinen aufklappbar unter dem Original."); }
-    else if (t.id === "orStd") {
-      await call("set_origin_std_badge", t.checked);
+    else if (t.id === "orVer") {
+      await call("set_origin_ver_badge", t.checked);
       if (S.pairs && S.pairs.length) refreshAll(await call("state"));
-      toast(t.checked ? "Auch Standardfelder zeigen ihre ID3-Version." : "Standardfelder ohne Kennzeichen.");
+      if (typeof TG !== "undefined" && TG.loaded) await tgLoadDetail();
+      toast(t.checked ? "Offizielle Felder zeigen ihre ID3-Version." : "Offizielle Felder ohne Versions-Kennzeichen.");
+    }
+    else if (t.classList.contains("or-short") || t.classList.contains("or-hue")) {
+      const row = t.closest("[data-sid]"), sid = row.dataset.sid, v = S.settings.origins[sid] || {};
+      const short = $(".or-short", row).value.trim();
+      const hue = t.classList.contains("or-hue") ? hexHue(t.value) : (v.custom_label ? v.hue : null);
+      await orLabelSet(sid, short, hue ?? null);
+      toast("Kennzeichen gespeichert.");
     }
     else if (t.id === "snMove" || t.id === "snMoveDefault") { if (await snMoveStore(t.id === "snMoveDefault")) stSnapRender(); }
     else if (t.id === "snDaily") await call("snap_set", "snap_daily", t.checked);

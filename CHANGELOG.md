@@ -29,12 +29,29 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   **S** / Shift+S) zwischen Original und den Spuren; die Wiedergabe läuft an der gleichen Position weiter. Spuren
   ohne eigene Tags zeigen Titel, Tonart und Tempo des Originals (#66).
 - Player: **Restlaufzeit**, in den letzten 30 Sekunden **rot blinkend** (ohne Blinken bei „Bewegung reduzieren“) (#65).
+- **Snapshots im Vergleich:** links oder rechts einen Snapshot wählen (📷 neben dem Pfad) – schreibgeschützt,
+  übernehmen nur in Richtung der echten Dateien; Snapshot ↔ Snapshot nur ansehen. Neue Zuordnung **„Audio-Inhalt“**
+  findet umbenannte und verschobene Titel. Im Journal öffnet ⇄ den Titel direkt im Vergleich (#56).
+- Journal: **„vermutlich geändert von …“** je Titel aus der Herkunft der geänderten Felder, Filter nach Programm und
+  Feld und **„Sichtbare auswählen“** für Sammel-Rückgängig (z. B. alle Tonart-Änderungen von Mixed In Key) (#57).
+- **Ordnerüberwachung während TagStudio läuft:** alle 5 Minuten (einstellbar, 0 = aus) nur Grösse/Änderungszeit;
+  Hinweis „n Titel extern geändert“ in der Fußleiste öffnet das Journal; eigene Speicherungen zählen nicht (#58).
+- **Snapshot-Speicher verschieben** (Einstellungen › Snapshots › „Ändern …“): kopieren, prüfen, dann alten entfernen;
+  in einem nicht leeren Ordner als `.tagstudio-snapshots`. Ordner werden auch nach der Weitergabe (anderer Pfad,
+  anderer Rechner) über ihren Pfad relativ zum Speicher gefunden. Ein Speicher im eingelesenen Ordner wird zur
+  Übernahme angeboten (#60).
+- **Herkunfts-Kennzeichen:** offizielle ID3-Felder zeigen die Version (v2.3/v2.4) zusammen mit der Herkunft;
+  benutzerdefinierte Felder (TXXX, GEOB, PRIV …) ohne bekannte Herkunft heissen „unbekannt“ (#74). **Eigene
+  Kennzeichen** (Text und Farbe) je Herkunft in den Einstellungen, einzeln oder alle auf Standard zurücksetzbar (#75).
 
 ### Behoben
 - Hintergrund-Aufträge, die sehr schnell fertig waren, meldeten ihr Ende nicht.
 - Player: Nach dem Einlesen eines anderen Ordners im Tagger konnte die Leertaste noch den alten Titel abspielen.
+- Fehlermeldungen aus Aktionen, die nicht abgefangen wurden, erscheinen jetzt als Hinweis statt still zu verschwinden.
 
 ### Geändert
+- Die Option „v2.3/v2.4-Kennzeichen auch bei Standardfeldern“ (#40) heisst jetzt „ID3-Version bei offiziellen
+  Feldern zeigen“ und ist standardmässig **an** (#74).
 - Player neu geordnet: Tonart (Camelot-Kennzeichen plus musikalische und Open-Key-Schreibweise), BPM, Laufzeit,
   Restlaufzeit und Länge stehen jetzt in einem eigenen Block zwischen Wellenform und Startpunkt – die Wellenform hat
   die ganze Breite (#63). Der Statustext in der Fußleiste wird bei Platzmangel gekürzt (voller Text als Tooltip).

@@ -299,16 +299,20 @@ async function runUpdate() {
 }
 
 // ====================================================================== Herkunft der Tags (#22)
-const SRC_SHORT = { mik: "MIK", itunes: "iTunes", wmp: "WMP", platinum: "PN", replaygain: "ReplayGain", musicbrainz: "MB" };
 function srcInfo(sid) { return sid && S.settings && S.settings.origins ? S.settings.origins[sid] : null; }
 function srcHue(sid) { let h = 0; for (const c of String(sid)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; }
 /** Kleines Kennzeichen „von welcher Anwendung“ vor dem Feldnamen. */
 function srcBadge(sid) {
   const o = srcInfo(sid);
   if (!o) return "";
-  const short = SRC_SHORT[sid] || (o.kind === "plugin" ? "TagStudio" : o.name.length > 12 ? o.name.slice(0, 11) + "…" : o.name);
-  return `<span class="src-b${o.kind === "plugin" ? " own" : o.kind === "id3" ? " id3" : ""}" style="--h:${srcHue(sid)}" title="Herkunft: ${esc(o.name)} – ${esc(o.desc)}">${esc(short)}</span>`;
+  const short = o.short || (o.kind === "plugin" ? "TagStudio" : o.name.length > 12 ? o.name.slice(0, 11) + "…" : o.name);
+  const own = o.hue !== null && o.hue !== undefined;         // #75: eigene Farbe
+  const cls = own ? "" : o.kind === "plugin" ? " own" : o.kind === "id3" ? " id3" : o.kind === "unknown" ? " unk" : "";
+  const what = o.kind === "id3" ? "ID3-Version" : "Herkunft";
+  return `<span class="src-b${cls}" style="--h:${own ? o.hue : srcHue(sid)}" title="${what}: ${esc(o.name)} – ${esc(o.desc)}">${esc(short)}</span>`;
 }
+/** #74: ID3-Version (offizielle Felder) + Herkunft */
+function srcBadges(ver, src) { return srcBadge(ver) + srcBadge(src); }
 
 // Unbehandelte Fehler aus Aufrufen (z. B. Schreibschutz einer Snapshot-Seite) verständlich anzeigen
 window.addEventListener("unhandledrejection", (e) => {
@@ -602,7 +606,7 @@ function renderRows() {
     const roL = !!(v.left && v.left.readonly), roR = !!(v.right && v.right.readonly);
     const ed = (c) => (c && c.editable ? "" : " noedit");
     return `<div class="tr ${r.state}${S.sel.has(r.key) ? " sel" : ""}" data-n="${n}" data-key="${esc(r.key)}">
-      <div class="f"><span class="f-n">${srcBadge(r.src)}<span title="${esc(r.label)}">${esc(r.label)}</span></span><span class="f-id" title="${esc(r.key)}">${esc(r.fid)}</span></div>
+      <div class="f"><span class="f-n">${srcBadges(r.ver, r.src)}<span title="${esc(r.label)}">${esc(r.label)}</span></span><span class="f-id" title="${esc(r.key)}">${esc(r.fid)}</span></div>
       <div class="v${ed(r.L)}" data-side="L">${valueHtml(r.L, r.state)}</div>
       <div class="acts">${canCopy ? `${roL ? "<span></span>" : `<button class="arrow" data-dir="rl" title="Rechten Wert nach links übernehmen" aria-label="${esc(r.label)} nach links übernehmen">${ICON.left}</button>`}${roR ? "<span></span>" : `<button class="arrow" data-dir="lr" title="Linken Wert nach rechts übernehmen" aria-label="${esc(r.label)} nach rechts übernehmen">${ICON.right}</button>`}` : ""}</div>
       <div class="v r${ed(r.R)}" data-side="R">${valueHtml(r.R, r.state)}</div>

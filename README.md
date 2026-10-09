@@ -126,7 +126,9 @@ passenden Editor, ✕ entfernt das Feld.
 
 - **Herkunft:** vor dem Feldnamen ein kleines Kennzeichen, welche Anwendung das Feld geschrieben hat (z. B.
   **Serato**, **MIK**, **MB** für MusicBrainz, **Beatport**, **Spotify**, **Discogs**, **Traktor**, **iTunes**), Tooltip mit
-  Erklärung; Benutzerfelder ohne bekannte Anwendung tragen **v2.3/v2.4**. Auch im Vergleich – dort entfernt der Knopf
+  Erklärung. Offizielle ID3-Felder (Titel, Künstler, BPM, Cover …) zeigen zusätzlich ihre **ID3-Version** (v2.3/v2.4,
+  abschaltbar); benutzerdefinierte Felder (TXXX, GEOB, PRIV …) ohne bekannte Anwendung heissen **„unbekannt“**.
+  Text und Farbe jedes Kennzeichens lassen sich in den Einstellungen anpassen und wieder zurücksetzen. Auch im Vergleich – dort entfernt der Knopf
   **„Herkunft“** die Felder einer Anwendung links, rechts oder auf beiden Seiten. Im Tagger über „Alle Herkünfte“
   filtern; „Alle entfernen …“ bzw. **„Felder nach Herkunft …“** entfernt alle Felder einer Anwendung aus den
   markierten Dateien (Vorschau, Rückgängig).
@@ -206,19 +208,28 @@ Für Bibliotheken, die auch andere Programme bearbeiten (Mp3tag, beaTunes, Mixed
   ohne Audio. Jeder Frame wird nur einmal gespeichert; weitere Snapshots kosten nur, was sich geändert hat.
   Snapshots lassen sich benennen („Vor Mixed In Key“), anheften (werden nie aufgeräumt) und löschen.
 - **Journal:** Snapshot ↔ jetzt (oder zwei Snapshots) – geänderte, neue, entfernte, umbenannte Titel und Titel mit
-  geändertem Audio; je Titel alle Felder alt/neu mit Herkunfts-Kennzeichen. Filter nach Status, Suche nach Titel,
-  Feld oder Wert.
+  geändertem Audio; je Titel alle Felder alt/neu mit Herkunfts-Kennzeichen und dem **vermutlichen Programm**
+  (z. B. Mixed In Key bei Tonart + Energy). Filter nach Status, Programm und Feld, Suche nach Titel, Feld oder Wert;
+  „Sichtbare auswählen“ wählt z. B. alle Tonart-Änderungen von Mixed In Key zum Zurücksetzen aus. ⇄ öffnet den Titel
+  im Vergleich.
 - **Zurücksetzen:** einzelne Felder oder ganze Titel ankreuzen → „Auswahl zurücksetzen“ (Rückgängig möglich, wird
   mit „Speichern“ geschrieben) oder „Byte-genau zurückschreiben“ (exakt der Snapshot-Stand inkl. Serato-/Cue-Daten,
   vorher Sicherung; Titel mit geändertem Audio werden übersprungen).
 - **Automatik:** einmal täglich ein Snapshot je Ordner, beim Start die Frage mit der Zahl geänderter Titel (beides
   abschaltbar). Aufräumen: 20 automatische + je einer pro Woche der letzten 12 Wochen (einstellbar).
 - **Speicherplatz** je Snapshot, je Ordner und gesamt; die Summe steht auch in der Seitenleiste.
+- **Überwachung während TagStudio läuft:** alle 5 Minuten (einstellbar) ein sparsamer Blick auf Grösse und
+  Änderungszeit; „n Titel extern geändert“ in der Fußleiste öffnet das Journal. Eigene Speicherungen zählen nicht.
+- **Im Vergleich:** links oder rechts einen **Snapshot** wählen (📷 neben dem Pfad) – schreibgeschützt, Werte gehen nur
+  in Richtung der echten Dateien. Zuordnung **„Audio-Inhalt“** findet auch umbenannte und verschobene Titel.
+- **Speicherort ändern:** Der ganze Speicher wird kopiert, geprüft und erst dann am alten Ort entfernt – z. B. in den
+  MP3-Ordner (`.tagstudio-snapshots`), um ihn samt Historie weiterzugeben. Wird ein Ordner mit einem solchen Speicher
+  eingelesen, bietet TagStudio an, ihn zu verwenden.
 - **Protokoll** je Snapshot-Auftrag in `Logs/snapshots.log`: Start, Ende, Dauer, Titel, Fehler und Speicherplatz.
 - Unabhängig davon schützt TagStudio beim **Speichern** vor dem Überschreiben fremder Änderungen: es zeigt, was ein
   anderes Programm seit dem Einlesen geändert hat, und übernimmt es auf Wunsch zusammen mit den eigenen Änderungen.
 
-Konzept und weitere Schritte (Snapshots im Vergleich, Speicher verschieben): [docs/KONZEPT-SNAPSHOTS.md](docs/KONZEPT-SNAPSHOTS.md).
+Konzept: [docs/KONZEPT-SNAPSHOTS.md](docs/KONZEPT-SNAPSHOTS.md).
 
 ### Plugins
 

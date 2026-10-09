@@ -85,12 +85,14 @@ class TestSessionOrigins(unittest.TestCase):
             while not s2.task_status()["done"]:
                 time.sleep(0.02)
             s2.select(0)
-            rows = {r["key"]: r["src"] for r in s2.view()["rows"]}
+            rows = {r["key"]: (r["src"], r["ver"]) for r in s2.view()["rows"]}
+            # #74: offizielle Felder mit ID3-Version (+ Herkunft), benutzerdefinierte ohne Version
             self.assertEqual((rows["PRIV:TRAKTOR4"], rows["TXXX:MusicBrainz Album Id"], rows["TIT2"]),
-                             ("traktor", "u:Meine App", None))     # Standardfeld ohne Kennzeichen (#40)
-            s2.set_origin_std_badge(True)
-            rows = {r["key"]: r["src"] for r in s2.view()["rows"]}
-            self.assertEqual(rows["TIT2"], "id3v4")                     # auf Wunsch mit ID3-Version (#38)
+                             (("traktor", None), ("u:Meine App", None), (None, "id3v4")))
+            s2.set_origin_ver_badge(False)
+            rows = {r["key"]: (r["src"], r["ver"]) for r in s2.view()["rows"]}
+            self.assertEqual(rows["TIT2"], (None, None))                # abschaltbar
+            s2.set_origin_ver_badge(True)
             # #45: im Vergleich nur rechts entfernen, mit Rückgängig
             s2.select(0)
             pv = s2.compare_origin_remove("serato", "R", "all")
@@ -103,6 +105,38 @@ class TestSessionOrigins(unittest.TestCase):
             self.assertIsNotNone(s2.pairs[0][1].get("GEOB:Serato Markers2"))
             with self.assertRaises(ValueError):
                 s2.compare_origin_remove("serato", "X", "all")
+        finally:
+            core.CONFIG, core.CONFIG_OLD = old
+            shutil.rmtree(d, ignore_errors=True)
+
+
+class TestLabels(unittest.TestCase):
+    """#74 offizielle/benutzerdefinierte Felder, #75 eigene Kennzeichen."""
+
+    def test_official_unknown_and_labels(self):
+        from session import Session
+        d = tempfile.mkdtemp(prefix="ts_or_")
+        old = (core.CONFIG, core.CONFIG_OLD)
+        core.CONFIG = core.CONFIG_OLD = os.path.join(d, "cfg.json")
+        try:
+            s = Session()
+            for k, off in (("TIT2", True), ("TKEY", True), ("COMM:", True), ("APIC:3", True), ("WOAR", True),
+                           ("COMM:iTunNORM", False), ("USLT:x", False), ("TXXX:Foo", False), ("GEOB:Bar", False),
+                           ("PRIV:x", False), ("UFID:x", False), ("WXXX:", False)):
+                self.assertEqual(Session._official(k), off, k)
+            self.assertEqual((s._src("TXXX:Unbekannt", None), s._src("TIT2", None), s._src("GEOB:Serato Markers2", None)),
+                             ("unknown", None, "serato"))
+            cat = s.tag_origins()["catalog"]
+            self.assertEqual((cat["unknown"]["short"], cat["mik"]["short"], cat["serato"]["hue"]), ("unbekannt", "MIK", None))
+            o = s.set_origin_label("mik", "Mixed", 120)
+            self.assertEqual((o["catalog"]["mik"]["short"], o["catalog"]["mik"]["hue"], o["catalog"]["mik"]["custom_label"]),
+                             ("Mixed", 120, True))
+            s.set_origin_label("unknown", "?", None)
+            self.assertEqual(Session().tag_origins()["catalog"]["unknown"]["short"], "?")      # gespeichert
+            o = s.set_origin_label("mik", "", None)                                              # zurück
+            self.assertEqual((o["catalog"]["mik"]["short"], o["catalog"]["mik"]["custom_label"]), ("MIK", False))
+            o = s.set_origin_label(None)
+            self.assertEqual(o["catalog"]["unknown"]["short"], "unbekannt")
         finally:
             core.CONFIG, core.CONFIG_OLD = old
             shutil.rmtree(d, ignore_errors=True)

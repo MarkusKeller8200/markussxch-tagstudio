@@ -711,6 +711,10 @@ span.xml-treeonly{display:contents}
 .or-src .d{flex:1;min-width:0;color:var(--dim)}
 .or-src code{font-size:11.5px;color:var(--faint)}
 .or-src button{flex:none}
+.or-src .lab{display:flex;align-items:center;gap:4px;flex:none}
+.or-src .lab input[type=text]{width:92px;height:28px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--fg);padding:0 7px;font:12px var(--font)}
+.or-src .lab input[type=color]{width:28px;height:28px;padding:0;border:1px solid var(--line);border-radius:7px;background:transparent;cursor:pointer}
+.or-src .prev{min-width:70px}
 details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 
 /* Hintergrund-Aufträge */
@@ -763,6 +767,8 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .tg-len .i{width:17px;height:17px;color:var(--dim)}
 .tg-len .muted{font-size:12.5px;font-weight:400}
 .src-b.id3{color:var(--faint);background:transparent;border-color:var(--line)}
+.src-b.unk{color:var(--faint);background:transparent;border:1px dashed var(--line2,var(--line));font-style:italic}
+.f-n .src-b+.src-b,.k .src-b+.src-click,.k .src-b+.src-b{margin-left:3px}
 .tg-thead .th-name{position:relative;display:flex;align-items:center;min-width:0;height:100%}
 .tg-thead .th-name .col-grip{top:6px;bottom:6px;right:-9px}
 
