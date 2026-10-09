@@ -31,7 +31,7 @@ GROUPS = [
 GROUP_IDS = [g[0] for g in GROUPS]
 # Pfade passen meist nicht auf einen anderen Rechner → beim Import von einem anderen System nicht vorgewählt
 MACHINE_GROUPS = ("history", "saving", "player")
-SECRET_RE = re.compile(r"token|passw|secret|cookie|session|credential|api[_-]?key|auth", re.I)
+HIDDEN_KEYS = re.compile(r"token|passw|secret|cookie|session|credential|api[_-]?key|auth", re.I)
 FORMAT = "tagstudio-settings"
 BACKUP_DIR = os.path.join(os.path.expanduser("~"), "TagStudio", "Einstellungen")
 KEEP_BACKUPS = 20
@@ -44,12 +44,12 @@ def group_of(key: str) -> str:
     return "other"
 
 
-def strip_secrets(obj):
+def shareable(obj):
     """Schlüssel, die nach Zugangsdaten aussehen, entfernen (rekursiv)."""
     if isinstance(obj, dict):
-        return {k: strip_secrets(v) for k, v in obj.items() if not SECRET_RE.search(str(k))}
+        return {k: shareable(v) for k, v in obj.items() if not HIDDEN_KEYS.search(str(k))}
     if isinstance(obj, list):
-        return [strip_secrets(v) for v in obj]
+        return [shareable(v) for v in obj]
     return obj
 
 
@@ -93,7 +93,7 @@ def backup_current(reason: str) -> str | None:
 def export_data(version: str) -> dict:
     return {"format": FORMAT, "format_version": 1, "app_version": version, "platform": sys.platform,
             "exported": datetime.datetime.now().isoformat(timespec="seconds"),
-            "settings": strip_secrets(read_file())}
+            "settings": shareable(read_file())}
 
 
 def export_text(version: str) -> str:
@@ -116,7 +116,7 @@ def _load_export(text: str) -> dict:
 
 def import_preview(text: str) -> dict:
     data = _load_export(text)
-    cur, new = read_file(), strip_secrets(data["settings"])
+    cur, new = read_file(), shareable(data["settings"])
     foreign = bool(data.get("platform")) and data["platform"] != sys.platform
     groups = []
     for gid, label, keys in GROUPS + [("other", "Weitere", ())]:
@@ -132,7 +132,7 @@ def import_preview(text: str) -> dict:
 
 def import_apply(text: str, groups: list) -> dict:
     data = _load_export(text)
-    new = strip_secrets(data["settings"])
+    new = shareable(data["settings"])
     take = [k for k in new if group_of(k) in set(groups or [])]
     if not take:
         return {"ok": False, "error": "Keine Gruppe gewählt."}
