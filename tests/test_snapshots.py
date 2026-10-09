@@ -185,14 +185,38 @@ class TestSessionSnapshots(Base):
         core.CONFIG = core.CONFIG_OLD = os.path.join(self.dir, "cfg.json")
         jobs.STATE_FILE = os.path.join(self.dir, "Auftraege.json")
         core.save_config({"snap_dir": self.store.root, "backup_dir": os.path.join(self.dir, "Sicherungen")})
+        import plugins
+        self._logdir = plugins.log_dir
+        logs = os.path.join(self.dir, "Logs")
+        os.makedirs(logs, exist_ok=True)
+        plugins.log_dir = lambda: logs
         from session import Session
         self.s = Session()
 
     def tearDown(self):
         import core
         import jobs
+        import plugins
         core.CONFIG, core.CONFIG_OLD, jobs.STATE_FILE = self._old
+        plugins.log_dir = self._logdir
         super().tearDown()
+
+    def test_job_log(self):
+        """#62: Protokoll mit Start, Ende, Dauer und Speicherplatz."""
+        s, lid = self.s, self.libd["id"]
+        s.snap_create(lid, "Erster")
+        self.wait_jobs()
+        s.snap_create(lid, "Zweiter")
+        self.wait_jobs()
+        job = next(j for j in s.jobs_status()["jobs"] if j["logfile"])
+        self.assertEqual(job["status"], "done", job)
+        self.assertTrue(job["logfile"].endswith("snapshots.log"))
+        with open(job["logfile"], encoding="utf-8") as fh:
+            text = fh.read()
+        for word in ("Start:", "Ende:", "Dauer:", "Speicherplatz:", "alle Snapshots"):
+            self.assertIn(word, text)
+        self.assertEqual(text.count("===== "), 2)
+        self.assertIn("unverändert übernommen 4", text)
 
     def wait_jobs(self):
         t0 = time.time()

@@ -418,9 +418,12 @@ def entry_for(path: str, root: str, sink, st=None) -> dict:
             "ver": info["ver"]}
 
 
-def scan(root: str, sink, prev: dict | None = None, thorough=False, cancel=None, progress=None) -> tuple[list, list]:
+def scan(root: str, sink, prev: dict | None = None, thorough=False, cancel=None, progress=None,
+         stats: dict | None = None) -> tuple[list, list]:
     """Alle MP3 unter root einlesen. Unveränderte Dateien (Grösse + Änderungszeit wie in `prev`) werden ohne Lesen
-    übernommen. → (Einträge, Fehler)."""
+    übernommen. → (Einträge, Fehler). `stats` (optional) erhält "read" und "reused"."""
+    stats = stats if stats is not None else {}
+    stats.update(read=0, reused=0)
     progress = progress or (lambda m: None)
     known = {e["p"]: e for e in (prev or {}).get("files", [])}
     paths = list_mp3(root, cancel)
@@ -435,8 +438,10 @@ def scan(root: str, sink, prev: dict | None = None, thorough=False, cancel=None,
             old = known.get(rel(root, p))
             if old and not thorough and old["size"] == st.st_size and old["mt"] == st.st_mtime_ns:
                 out.append(old)
+                stats["reused"] += 1
             else:
                 out.append(entry_for(p, root, sink, st))
+                stats["read"] += 1
         except OSError as ex:
             errors.append(f"{rel(root, p)}: {ex}")
         if i % 25 == 0 or i == len(paths):
@@ -477,13 +482,14 @@ def create(store: Store, lid: str, label: str = "", auto=False, pinned=False, th
         raise StoreError(f"Ordner nicht erreichbar: {lib['root']}")
     store._init()
     prev = store.latest(lid)
-    files, errors = scan(lib["root"], store, prev, thorough, cancel, progress)
+    stats: dict = {}
+    files, errors = scan(lib["root"], store, prev, thorough, cancel, progress, stats)
     now = datetime.datetime.now()
     m = {"v": MANIFEST_VERSION, "id": now.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:6], "created": _now(now),
          "label": label or ("Automatisch" if auto else "Snapshot"), "auto": bool(auto), "pinned": bool(pinned),
          "root": lib["root"], "count": len(files), "files": files, "errors": errors[:200]}
     store.write_manifest(lid, m)
-    return {k: m.get(k) for k in ("id", "created", "label", "pinned", "auto", "count")} | {"errors": errors}
+    return {k: m.get(k) for k in ("id", "created", "label", "pinned", "auto", "count")} | {"errors": errors, **stats}
 
 
 # =========================================================================== Journal

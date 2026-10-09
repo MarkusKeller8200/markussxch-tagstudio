@@ -33,6 +33,24 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
            "tg_more_k": (int, float), "tg_col_name": (int, float)}
 
 
+def fmt_bytes(n) -> str:
+    n = float(n or 0)
+    for unit in ("B", "KB", "MB", "GB"):
+        if n < 1024 or unit == "GB":
+            return f"{n:.0f} {unit}" if unit == "B" else f"{n:.1f} {unit}"
+        n /= 1024
+    return f"{n:.1f} GB"
+
+
+def fmt_duration(sec) -> str:
+    sec = max(0.0, float(sec))
+    if sec < 60:
+        return f"{sec:.1f} s"
+    m, s = divmod(int(round(sec)), 60)
+    h, m = divmod(m, 60)
+    return f"{h}:{m:02d}:{s:02d} h" if h else f"{m}:{s:02d} min"
+
+
 class Session:
     def __init__(self):
         self.lock = threading.RLock()
@@ -258,19 +276,61 @@ class Session:
         return {"ok": True, "background": True, "job": job["id"], "waiting": 1}
 
     def _snap_job(self, job, cancel, progress):
+        """Snapshot im Hintergrund (#53) mit Protokoll in Logs/snapshots.log (#62): Start, Ende, Dauer, Platz."""
+        import datetime
+        import time
         import snapshots
         o = job["opts"]
-        res = snapshots.create(self.snap_store, o["lid"], o["label"], o["auto"], o["pinned"], o["thorough"], cancel,
-                               progress)
-        pruned = 0
+        st = self.snap_store
+        try:
+            lib = st.library(o["lid"])
+            name, root = lib["name"], lib["root"]
+        except Exception:  # noqa: BLE001
+            name, root = o.get("lid", "?"), "?"
+        t0, start = time.monotonic(), datetime.datetime.now()
+        lines = [f"Snapshot „{o.get('label') or ('Automatisch' if o.get('auto') else 'Snapshot')}“ – {name}",
+                 f"Ordner:   {root}",
+                 f"Start:    {start:%Y-%m-%d %H:%M:%S}" + (" (gründlich)" if o.get("thorough") else "")]
+
+        def finish(status):
+            end = datetime.datetime.now()
+            lines.append(f"Ende:     {end:%Y-%m-%d %H:%M:%S} – {status}")
+            lines.append(f"Dauer:    {fmt_duration(time.monotonic() - t0)}")
+            return plugins.write_log("snapshots.log", "\n".join(lines))
+
+        try:
+            res = snapshots.create(st, o["lid"], o["label"], o["auto"], o["pinned"], o["thorough"], cancel, progress)
+        except Exception as ex:
+            from compare import Cancelled
+            path = finish("abgebrochen" if isinstance(ex, Cancelled) else f"Fehler: {ex}")
+            if isinstance(ex, Cancelled):
+                raise
+            raise RuntimeError(f"{ex}\n\nDetails im Protokoll: {path}") from ex
+        lines.append(f"Titel:    {res['count']} (neu eingelesen {res.get('read', 0)}, unverändert übernommen "
+                     f"{res.get('reused', 0)})")
+        pruned, freed = [], 0
         if o["auto"]:
-            pruned = len(self.snap_store.prune(o["lid"], int(self._snap_cfg("snap_keep")), int(self._snap_cfg("snap_weeks"))))
+            before = st.sizes()["total"]
+            pruned = st.prune(o["lid"], int(self._snap_cfg("snap_keep")), int(self._snap_cfg("snap_weeks")))
+            if pruned:
+                freed = max(0, before - st.sizes()["total"])
+        sz = st.sizes()
+        own = sz.get("snaps", {}).get(f"{o['lid']}/{res['id']}", 0)
+        if res["errors"]:
+            lines.append(f"Nicht lesbar: {len(res['errors'])}")
+            lines += ["  " + e for e in res["errors"][:200]]
+        if pruned:
+            lines.append(f"Aufgeräumt: {len(pruned)} alte(r) Snapshot(s), {fmt_bytes(freed)} freigegeben")
+        lines.append(f"Speicherplatz: dieser Snapshot {fmt_bytes(own)} · Bibliothek "
+                     f"{fmt_bytes(sz.get('libs', {}).get(o['lid'], 0))} · alle Snapshots {fmt_bytes(sz.get('total', 0))}")
+        logfile = finish("fertig")
         msg = f"Snapshot „{res['label']}“: {res['count']} Titel"
         if res["errors"]:
             msg += f", {len(res['errors'])} nicht lesbar"
         if pruned:
-            msg += f" · {pruned} alte(r) Snapshot(s) aufgeräumt"
-        return {"message": msg, "outputs": [], "log": res["errors"][:60]}
+            msg += f" · {len(pruned)} alte(r) Snapshot(s) aufgeräumt"
+        msg += f" · {fmt_duration(time.monotonic() - t0)} · gesamt {fmt_bytes(sz.get('total', 0))}"
+        return {"message": msg, "outputs": [], "log": lines, "logfile": logfile}
 
     def snap_startup(self) -> dict:
         """Beim Start (#54): je überwachtem Ordner schnelle Prüfung seit dem letzten Snapshot + fällig für heute?"""
