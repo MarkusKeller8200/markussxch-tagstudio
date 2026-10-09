@@ -32,9 +32,21 @@ jobs:
         run: python -m compileall -q .
       - name: Tests (Linux mit virtuellem Bildschirm für den Oberflächentest)
         if: runner.os == 'Linux'
+        env:
+          PYTHONIOENCODING: utf-8
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq xvfb > /dev/null
-          xvfb-run -a python -m unittest discover -s tests -v
+          set -o pipefail
+          xvfb-run -a python -m unittest discover -s tests -v 2>&1 | tee test-output.txt
       - name: Tests
         if: runner.os != 'Linux'
-        run: python -m unittest discover -s tests -v
+        shell: bash
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -v 2>&1 | tee test-output.txt
+      - name: Fehlgeschlagene Tests als Anmerkung
+        if: failure()
+        shell: bash
+        run: python .github/scripts/test_annotations.py test-output.txt
