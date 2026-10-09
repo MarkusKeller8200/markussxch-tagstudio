@@ -38,7 +38,7 @@ _PASS = {
     "fixer_settings", "fixer_preview", "fixer_apply",
     "backups", "set_backup", "start_backup_check", "start_restore", "backup_diff", "delete_backup",
     "start_tag_load", "tagger_settings", "tag_rows", "tag_detail", "tag_set", "tag_remove", "tag_add_field",
-    "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml", "tag_blob", "tag_blob_set", "blob_pretty",
+    "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml", "tag_blob", "tag_blob_set", "blob_pretty", "players", "set_players", "play_external",
     "tag_case_modes", "tag_case", "tag_replace", "tag_folder_cover", "tag_key_notation", "tag_key_set", "tag_key_convert", "tag_feature_set", "tag_features_open",
     "plugins_list", "plugin_enable", "plugin_actions", "plugin_form", "start_plugin_action", "start_plugin_install", "plugin_apply",
 }
@@ -170,12 +170,21 @@ class Api:
             subprocess.Popen(["open" if sys.platform == "darwin" else "xdg-open", path])
         return True
 
+    # ---------- Wiedergabe
+    def media_url(self, kind, ref):
+        """Adresse für den Vorschau-Player (lokaler Server mit Range-Anfragen) plus Titelinfos."""
+        import media
+        info = self._s.media_info(kind, ref)
+        info["url"] = media.SERVER.register(info["path"])
+        return info
+
     # ---------- System
     def pick_file(self, kind="image", start=""):
         """Datei wählen: kind = image | mp3."""
         start = start if start and os.path.isdir(start) else (os.path.dirname(start) if start else os.path.expanduser("~"))
         types = {"image": ("Bilder (*.jpg;*.jpeg;*.png;*.gif)", "Alle Dateien (*.*)"),
-                 "mp3": ("MP3-Dateien (*.mp3;*.MP3)", "Alle Dateien (*.*)")}[kind]
+                 "mp3": ("MP3-Dateien (*.mp3;*.MP3)", "Alle Dateien (*.*)"),
+                 "program": ("Programme (*.exe;*.app;*.bat;*.cmd)", "Alle Dateien (*.*)")}[kind]
         if self._window is not None:
             import webview
             res = self._window.create_file_dialog(webview.OPEN_DIALOG, directory=start, file_types=types)
@@ -302,8 +311,8 @@ def _tk_dialog(kind, start, extra=""):
                 ext = os.path.splitext(extra)[1]
                 p = filedialog.asksaveasfilename(initialdir=start, initialfile=extra, defaultextension=ext, parent=root)
             else:
-                ft = [("Bilder", "*.jpg *.jpeg *.png *.gif *.JPG *.JPEG *.PNG")] if extra == "image" else \
-                    [("MP3-Dateien", "*.mp3 *.MP3")]
+                ft = {"image": [("Bilder", "*.jpg *.jpeg *.png *.gif *.JPG *.JPEG *.PNG")],
+                      "program": [("Programme", "*.exe *.bat *.cmd")]}.get(extra, [("MP3-Dateien", "*.mp3 *.MP3")])
                 p = filedialog.askopenfilename(initialdir=start, parent=root, filetypes=ft + [("Alle Dateien", "*")])
             root.destroy()
             result["p"] = os.path.normpath(p) if p else ""

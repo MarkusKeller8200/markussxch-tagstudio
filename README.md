@@ -150,6 +150,18 @@ oder Reihenfolge, Unterordner.
 - **Bilder:** Rechtsklick auf ein Cover: anzeigen, ersetzen, exportieren, entfernen; Klick auf den leeren
   Cover-Platz fügt eines hinzu. (Dateidialoge im App-Fenster; im Browser-Modus nur unter Windows/Linux.)
 
+### Vorschau-Player und externe Player
+
+Unten in der Fußleiste – in Tagger und Vergleich:
+- **Abspielen** des markierten Titels (Leertaste oder ▶), ⏮/⏭ springt zum vorherigen/nächsten Titel, der Player
+  folgt der Auswahl und spielt am Titelende den nächsten. **Shift+←/→** spult 10 s, Klick in die Leiste springt.
+- **Startpunkt:** Anfang, 30 % oder 1:00 – praktisch zum schnellen Durchhören. Lautstärke wird gemerkt.
+- **A/B im Vergleich:** L/R wechselt zwischen linker und rechter Datei **an derselben Stelle**.
+- **Externe Player** (⋯ bzw. **Strg/Cmd+P**): markierte Titel in foobar2000, VLC, Rekordbox, Music … öffnen; ohne
+  Einrichtung im Standardprogramm des Systems. Unter „Externe Player…“ beliebig viele Programme mit Argumenten
+  (`{files}` alle Dateien, `{file}` erste, `{folder}` Ordner, `{m3u}` temporäre Playlist).
+- Die Wiedergabe läuft über einen lokalen Mini-Server (nur 127.0.0.1, nur freigegebene Dateien, zufälliges Token).
+
 ### Tag-Fixer
 
 Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare, alle Dateien,
@@ -187,7 +199,7 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   ziehen (oder mit ←/→ auf dem Griff); Doppelklick setzt zurück, alles wird gemerkt. Die Seitenleiste lässt sich
   einklappen.
 - **Tastatur:** Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte
-  kopieren · Strg/Cmd+A alles markieren · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
+  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · Strg/Cmd+P externer Player · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
 
 ## Klassische Oberfläche
 
@@ -439,11 +451,12 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
-- **3.2.0 – DJ-Set:** Reihenfolge eines Sets nach Tonart (Camelot), BPM und Energie optimieren, Bewertung jedes
+- **3.2.0 – Wiedergabe & Herkunft:** Vorschau-Player und externe Player (ab 3.2.0-beta.1 enthalten), Wellenform
+  und Cue-Punkte, Herkunft der Tags (welche Anwendung ein Feld geschrieben hat), Einstellungsseite mit
+  Export/Import, Stems als Hintergrundaufgabe und als aufklappbare Spuren im Tagger.
+- **3.3.0 – DJ-Set:** Reihenfolge eines Sets nach Tonart (Camelot), BPM und Energie optimieren, Bewertung jedes
   Übergangs, Exporte als M3U8, Rekordbox-XML und CSV.
-- **3.3.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
-- **3.4.0 – Wiedergabe & Herkunft:** Vorschau-Player (Leertaste, Cue-Punkte, A/B im Vergleich), externen Player
-  aufrufen, Herkunft der Tags (welche Anwendung ein Feld geschrieben hat), Einstellungsseite mit Export/Import.
+- **3.4.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
 - **Plugin-Ideen:** Liedtexte (LRCLIB), Lautheit/ReplayGain, Duplikate finden, Qualitätsprüfung (falsche
   320 kbit/s), Import aus Rekordbox/Traktor/Serato, Bibliothek nach Tags ordnen.
 - **Später:** Analyse mit librosa bzw. Essentia-Modellen, Filter und Spalten nach Audio-Merkmalen, Mood-Feld,

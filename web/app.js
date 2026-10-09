@@ -316,6 +316,7 @@ async function init() {
   $("#fSide").innerHTML = st.filter_sides.map((o) => `<option>${esc(o)}</option>`).join("");
   bind();
   bindLayout();
+  if (typeof initPlayer === "function") initPlayer();
   $("#updateBtn").addEventListener("click", runUpdate);
   setTimeout(checkUpdateQuietly, 1500);
   syncOptions();
@@ -455,6 +456,7 @@ async function selectPair(i) {
   S.anchor = null;
   applyState(await call("select", i));
   scrollPairIntoView(i);
+  if (typeof playerFollow === "function") playerFollow();
 }
 
 async function refreshFieldChoices() {
@@ -913,6 +915,7 @@ function setModule(m, opts = {}) {
   if (m === "backups") backupsShow();
   if (m === "plugins" && typeof pluginsShow === "function") pluginsShow();
   if (m === "tagger" && typeof taggerShow === "function") taggerShow();
+  if (typeof plRender === "function") plRender();
 }
 
 init().catch((e) => { console.error(e); info("Start fehlgeschlagen", String(e && e.message ? e.message : e)); });

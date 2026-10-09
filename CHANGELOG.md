@@ -6,6 +6,18 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+- **Vorschau-Player** in der Fußleiste (Tagger und Vergleich): Leertaste spielt/pausiert, ⏮/⏭ und Folgen der
+  Auswahl, am Titelende weiter zum nächsten Titel, Shift+←/→ spult 10 s, Startpunkt Anfang/30 %/1:00, Lautstärke
+  wird gemerkt. Im Vergleich wechselt **A/B** zwischen linker und rechter Datei an derselben Stelle. Die Dateien
+  liefert ein lokaler Mini-Server (nur 127.0.0.1, nur freigegebene Dateien, Token, Spulen per Range).
+- **Externe Player:** markierte Titel mit Strg/Cmd+P oder über ⋯ in einem eigenen Player öffnen (foobar2000, VLC,
+  Rekordbox, Music …) oder im Standardprogramm des Systems. Einrichtung unter „Externe Player…“ mit Platzhaltern
+  `{files}`, `{file}`, `{folder}`, `{m3u}`; unter macOS auch .app-Programme.
+
+### Geändert
+- Milestones neu geordnet: 3.2.0 Wiedergabe & Herkunft, 3.3.0 DJ-Set, 3.4.0 Online-Metadaten.
+
 ## [3.1.1] – 2026-10-09
 
 ### Behoben

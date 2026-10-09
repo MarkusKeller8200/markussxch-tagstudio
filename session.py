@@ -945,6 +945,48 @@ class Session:
         except ValueError as ex:
             return {"ok": False, "error": f"Kein gültiges JSON: {ex}"}
 
+    # ================================================================== Wiedergabe
+    def media_info(self, kind, ref) -> dict:
+        """Datei für den Player: kind „tag“ (ref = Index im Tagger) oder „side“ (ref = „L“/„R“ im Vergleich)."""
+        with self.lock:
+            if kind == "tag" and isinstance(ref, int) and 0 <= ref < len(self.tag_files):
+                f = self.tag_files[ref]
+            elif kind == "side" and ref in ("L", "R"):
+                f = self._file(ref)
+            else:
+                f = None
+            if f is None:
+                raise ValueError("Keine Datei zum Abspielen gewählt.")
+            title, artist = f.text("TIT2"), f.text("TPE1").replace(MV, ", ")
+            return {"path": f.path, "name": os.path.basename(f.path), "title": title, "artist": artist,
+                    "duration": float(getattr(f, "duration", 0) or 0), "kind": kind, "ref": ref,
+                    "key": keys.parse_key(f.text("TKEY")), "bpm": f.text("TBPM")}
+
+    def media_paths(self, kind, refs) -> list:
+        return [self.media_info(kind, r)["path"] for r in (refs if isinstance(refs, list) else [refs])]
+
+    def players(self) -> list:
+        return list(self.cfg.get("players") or [])
+
+    def set_players(self, lst) -> list:
+        import players as pl
+        cleaned = pl.clean(lst)
+        self.cfg["players"] = cleaned
+        core.save_config({"players": cleaned})
+        return cleaned
+
+    def play_external(self, kind, refs, index=None) -> dict:
+        """Dateien im externen Player (index in der Player-Liste) bzw. im Standardprogramm öffnen."""
+        import players as pl
+        paths = self.media_paths(kind, refs)
+        lst = self.players()
+        player = lst[index] if isinstance(index, int) and 0 <= index < len(lst) else None
+        try:
+            pl.open_files(paths, player)
+        except (OSError, ValueError) as ex:
+            return {"ok": False, "error": str(ex) or type(ex).__name__}
+        return {"ok": True, "count": len(paths), "player": player["name"] if player else "Standardprogramm"}
+
     # ================================================================== Tagger: weitere Werkzeuge
     def _plan_rows(self, plan, limit=2000):
         return [{"name": os.path.basename(f.path), "label": key_label(k), "old": o.replace(MV, MV_SHOW),

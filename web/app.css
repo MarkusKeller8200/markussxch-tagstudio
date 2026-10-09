@@ -607,3 +607,30 @@ span.xml-treeonly{display:contents}
 .jcolor,#feColorPick{width:28px;height:22px;padding:0;border:1px solid var(--line);border-radius:5px;background:transparent;cursor:pointer}
 .swatch{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid var(--line2);vertical-align:-2px;margin-right:6px}
 .fe-color{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+
+/* Vorschau-Player (Aktionsleiste) */
+.player{display:flex;align-items:center;gap:6px;min-width:0;flex:0 1 640px;padding:4px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.player .icon-btn{width:30px;height:30px}
+.player .pl-play{width:34px;height:34px;border-radius:99px;background:var(--acc-soft);color:var(--acc)}
+.player.on .pl-play{background:var(--acc);color:var(--acc-fg)}
+.player .pl-mid{flex:1;min-width:120px;display:flex;flex-direction:column;gap:2px}
+.player .pl-line{display:flex;gap:8px;align-items:baseline;font-size:12.5px;min-width:0}
+.player .pl-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dim)}
+.player.on .pl-title{color:var(--fg)}
+.player .pl-time{color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.player input[type=range]{accent-color:var(--acc);height:14px;margin:0}
+.player #plSeek{width:100%}
+.player #plVol{width:70px}
+.player select.sm{height:28px;font-size:12px;width:auto}
+.player .seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.player .seg button{border:0;background:transparent;color:var(--dim);padding:3px 8px;font:600 12px var(--font);cursor:pointer}
+.player .seg button.on{background:var(--acc-soft);color:var(--acc)}
+@media (max-width:1250px){.player #plVol,.player #plStart{display:none}}
+.pl-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.pl-row{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) minmax(0,190px) 28px;gap:6px;align-items:center}
+.pl-row.pl-head{font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.04em}
+.pl-row input{height:34px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);padding:0 10px;font:inherit;min-width:0;width:100%}
+.pl-row .pl-args{font-family:var(--mono);font-size:12.5px}
+.pl-cmd{display:flex;gap:4px;min-width:0}
+.pl-row .x{width:28px;height:28px;border:0;background:transparent;color:var(--faint);border-radius:6px;cursor:pointer}
+.pl-row .x:hover{color:var(--warn);background:var(--raise)}

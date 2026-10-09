@@ -239,6 +239,19 @@
       <span class="dot" id="pendingDot"></span>
       <span class="muted" id="statusText">Bereit.</span>
       <div class="grow"></div>
+      <div class="player" id="player" role="group" aria-label="Vorschau-Player">
+        <button class="icon-btn" id="plPrev" title="Voriger Titel" aria-label="Voriger Titel"><svg class="i" viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M19 5 9 12l10 7Z"/></svg></button>
+        <button class="icon-btn pl-play" id="plPlay" aria-label="Abspielen"></button>
+        <button class="icon-btn" id="plNext" title="Nächster Titel" aria-label="Nächster Titel"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14"/><path d="M5 5l10 7-10 7Z"/></svg></button>
+        <div class="pl-mid">
+          <div class="pl-line"><span class="pl-title" id="plTitle"></span><span class="pl-time" id="plTime"></span></div>
+          <input type="range" id="plSeek" min="0" max="1" value="0" step="1" aria-label="Position">
+        </div>
+        <div class="seg sm" id="plAB" hidden title="A/B: linke oder rechte Datei hören (Position bleibt)"><button data-side="L">L</button><button data-side="R">R</button></div>
+        <select id="plStart" class="inp sm" title="Startpunkt beim Abspielen" aria-label="Startpunkt"><option value="0">ab Anfang</option><option value="30">ab 30 %</option><option value="60">ab 1:00</option></select>
+        <input type="range" id="plVol" min="0" max="100" value="80" title="Lautstärke" aria-label="Lautstärke">
+        <button class="icon-btn" id="plMore" title="Externer Player …" aria-label="Externer Player"><svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
+      </div>
       <button class="icon-btn lg" id="undoBtn" title="Rückgängig (Strg/Cmd+Z)" aria-label="Rückgängig"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
       <button class="icon-btn lg" id="redoBtn" title="Wiederholen (Strg+Y / Cmd+Shift+Z)" aria-label="Wiederholen"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
       <button class="primary save" id="saveBtn"><svg class="i" viewBox="0 0 24 24"><path d="M5 3h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M7 3v6h8"/><path d="M7 21v-7h10v7"/></svg><span id="saveLbl">Speichern</span></button>
@@ -313,5 +326,6 @@
 <script src="keywheel.js"></script>
 <script src="features.js"></script>
 <script src="plugins.js"></script>
+<script src="player.js"></script>
 </body>
 </html>

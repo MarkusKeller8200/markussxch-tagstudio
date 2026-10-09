@@ -132,6 +132,7 @@ async function tgSelect(i, e = {}) {
   } else { TG.sel = new Set([i]); TG.anchor = i; }
   tgApplyOrder();
   await tgLoadDetail();
+  if (typeof playerFollow === "function") playerFollow();
 }
 
 // ---------------------------------------------------------------------- Bearbeiten
