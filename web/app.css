@@ -176,7 +176,10 @@ select{height:40px;padding:0 10px;border:1px solid var(--line);border-radius:var
 .f{display:flex;flex-direction:column;min-width:0;padding-right:10px}
 .f-n{font-weight:550;display:flex;align-items:center;gap:6px;min-width:0}
 .f-n span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.f-id{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.f-id{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:4px;min-width:0;line-height:15px}
+.f-id .fid{overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:24px}
+/* #74: Kennzeichen in der Feld-ID-Zeile – keine zusätzliche Zeilenhöhe */
+.f-id .src-b{font-size:9.5px;line-height:13px;padding:0 4px;margin:0;vertical-align:0;flex:none}
 .v{min-width:0;padding:4px 12px 4px 0;overflow-wrap:break-word;word-break:break-word;border-radius:6px;cursor:text}
 .v.r{padding:4px 0 4px 12px}
 .v .mod{display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:7px;vertical-align:middle}
