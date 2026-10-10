@@ -203,8 +203,9 @@ vorhören. Zeilen lassen sich auch auf Player A oder B ziehen.
 **Rechts:** der Weg des Sets durch das Camelot-Rad (Start eingekreist) und der Verlauf von Energie, Soll-Kurve und
 BPM.
 
-**Exportieren ▾:** M3U8-Playlist mit absoluten oder relativen Pfaden, Rekordbox-XML (in Rekordbox über
-*Datei › Importieren › Collection/rekordbox xml*), CSV für Excel mit Übergangsbewertung, sowie **Spurnummern in
+**Exportieren ▾:** M3U8-Playlist mit absoluten oder relativen Pfaden, Rekordbox-XML (in Rekordbox unter
+*Einstellungen › Erweitert › rekordbox xml* die Datei einbinden, dann erscheint die Playlist im Bereich „rekordbox
+xml“ und lässt sich importieren), CSV für Excel mit Übergangsbewertung, sowie **Spurnummern in
 Set-Reihenfolge** schreiben (Vorschau, rückgängig machbar, gespeichert wird wie gewohnt).
 
 Das Set und die Optionen merkt sich TagStudio; Titel aus einem anderen Ordner bleiben im Set, erscheinen aber grau,
