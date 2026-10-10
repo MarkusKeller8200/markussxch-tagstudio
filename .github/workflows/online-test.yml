@@ -33,4 +33,4 @@ jobs:
         run: python .github/scripts/test_annotations.py test-output.txt
       - name: Gelieferte Felder als Anmerkung
         if: always()
-        run: grep -E "^(MusicBrainz|Deezer|iTunes):" test-output.txt | sed 's/^/::notice title=Live-Felder::/' || true
+        run: grep -E "^(MusicBrainz|Deezer|iTunes)( roh)?:" test-output.txt | sed 's/^/::notice title=Live-Felder::/' || true

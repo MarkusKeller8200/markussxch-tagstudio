@@ -151,12 +151,22 @@ def _mb_artists(credit) -> list:
     return [c.get("name") or (c.get("artist") or {}).get("name", "") for c in (credit or []) if isinstance(c, dict)]
 
 
+_MB_SECONDARY = {"compilation", "dj-mix", "live", "soundtrack", "mixtape/street", "remix"}
+
+
+def _mb_rel_rank(r) -> tuple:
+    """Original-Veröffentlichung zuerst: offiziell, keine Kompilation/DJ-Mix/Live, Album/Single/EP, frühestes Datum."""
+    rg = r.get("release-group") or {}
+    sec = {x.lower() for x in rg.get("secondary-types") or []}
+    prim = (rg.get("primary-type") or "").lower()
+    return (r.get("status", "Official") != "Official", bool(sec & _MB_SECONDARY),
+            prim not in ("album", "single", "ep", ""), r.get("date") or "9999")
+
+
 def _mb_cand(rec) -> dict:
-    rels = rec.get("releases") or []
-    # bevorzugt offizielle Veröffentlichungen
-    rels = sorted(rels, key=lambda r: (r.get("status") != "Official", r.get("date") or "9999"))
+    rels = sorted(rec.get("releases") or [], key=_mb_rel_rank)
     rel = rels[0] if rels else {}
-    return {"source": "mb", "id": rec.get("id", ""), "title": rec.get("title", ""), "artists": _mb_artists(rec.get("artist-credit")),
+    return {"rank": _mb_rel_rank(rel)[:3] if rel else (True, True, True), "source": "mb", "id": rec.get("id", ""), "title": rec.get("title", ""), "artists": _mb_artists(rec.get("artist-credit")),
             "length": (rec.get("length") or 0) / 1000 or None, "isrc": ((rec.get("isrcs") or [""])[0] or "").upper(),
             "album": rel.get("title", ""), "date": rel.get("date", ""), "release_id": rel.get("id", ""),
             "rg_id": (rel.get("release-group") or {}).get("id", ""),
@@ -175,8 +185,10 @@ def mb_candidates(cl, info) -> list:
     q = f'recording:"{_lucene(info["title"])}"'
     if info["artist"]:
         q += f' AND artist:"{_lucene(om.first_artist(info))}"'
-    d = cl.json(f"{MB}/recording?query={_q(q)}&limit=10&fmt=json") or {}
-    return [_mb_cand(r) for r in d.get("recordings") or []]
+    d = cl.json(f"{MB}/recording?query={_q(q)}&limit=25&fmt=json") or {}
+    out = [_mb_cand(r) for r in d.get("recordings") or []]
+    # bei gleicher Bewertung gewinnt der frühere Kandidat → Aufnahmen mit Original-Veröffentlichung nach vorn
+    return sorted(out, key=lambda c: c["rank"])
 
 
 def mb_details(cl, c) -> dict:
@@ -268,7 +280,12 @@ def deezer_candidates(cl, info) -> list:
             return [_dz_cand(d)]
     q = f'track:"{info["title"]}"' + (f' artist:"{om.first_artist(info)}"' if info["artist"] else "")
     d = cl.json(f"https://api.deezer.com/search/track?q={_q(q)}&limit=10")
-    return [_dz_cand(t) for t in (d.get("data") or [])] if _dz_ok(d) else []
+    out = [_dz_cand(t) for t in (d.get("data") or [])] if _dz_ok(d) else []
+    if not out:                    # erweiterte Suche liefert nichts → einfache Suche
+        q = " ".join(x for x in (om.first_artist(info), info["title"]) if x)
+        d = cl.json(f"https://api.deezer.com/search?q={_q(q)}&limit=10")
+        out = [_dz_cand(t) for t in (d.get("data") or [])] if _dz_ok(d) else []
+    return out
 
 
 def deezer_details(cl, c) -> dict:

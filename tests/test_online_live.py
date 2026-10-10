@@ -50,6 +50,8 @@ class TestLive(unittest.TestCase):
             self.assertTrue(cands, "ISRC-Suche liefert nichts")
 
     def test_deezer(self):
+        raw = self.cl.json("https://api.deezer.com/search?q=" + om.urllib.parse.quote("Daft Punk One More Time") + "&limit=3")
+        print("Deezer roh:", str(raw)[:400])
         c, s = om.best(INFO, self.mod.deezer_candidates(self.cl, INFO))
         self.check(c, s, "Deezer")
         c = self.mod.deezer_details(self.cl, c)

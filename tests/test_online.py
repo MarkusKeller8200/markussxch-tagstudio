@@ -135,7 +135,7 @@ class TestMatch(unittest.TestCase):
         d = cl.json("https://musicbrainz.org/ws/2/release/rel-1?fmt=json")
         self.assertEqual(d["id"], "rel-1")                      # 503 einmal → wiederholt
         cl.json("https://musicbrainz.org/ws/2/release/rel-1?fmt=json")
-        self.assertGreaterEqual(time.monotonic() - t0, 0.1)      # Mindestabstand eingehalten
+        self.assertGreaterEqual(time.monotonic() - t0, 0.08)     # Mindestabstand (Windows-Uhr ±16 ms)
         self.assertEqual(fake.calls[0][3]["User-Agent"], "UA")
         self.assertIsNone(cl.json("https://musicbrainz.org/ws/2/isrc/NOPE"))     # 404 → None
 
