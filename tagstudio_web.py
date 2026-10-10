@@ -159,6 +159,13 @@ class Api:
             return {"ok": False, "cancelled": True}
         return self._s.tag_export_file(list(idx or []), fmt, dest)
 
+    def dj_export(self, fmt, opts=None):
+        """#4: DJ-Set als M3U8, Rekordbox-XML oder CSV speichern."""
+        dest = self.save_dialog(self._s.dj_export_name(fmt))
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        return self._s.dj_export_file(fmt, dest, opts or {})
+
     def backup_pick_folder(self):
         p = self.pick_path("", True, self._s._backup_folder())
         return self._s.set_backup(folder=p) if p else None

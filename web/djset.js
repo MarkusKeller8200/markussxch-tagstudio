@@ -65,6 +65,7 @@ function djRender() {
   $("#djOpt").disabled = live < 2;
   $("#djRevert").disabled = !st.can_revert;
   $("#djClear").disabled = !st.items.length;
+  $("#djExport").disabled = !st.items.length;
   $("#djFromTagger").disabled = !st.tagger;
   $("#djAllTagger").disabled = !st.tagger;
   const missing = st.items.length - live;
@@ -242,6 +243,7 @@ function djInit() {
   $("#djFromTagger").addEventListener("click", () => djAddFromTagger(false));
   $("#djAllTagger").addEventListener("click", () => djAddFromTagger(true));
   $("#djOpt").addEventListener("click", () => djCall("dj_optimize"));
+  $("#djExport").addEventListener("click", (e) => { e.stopPropagation(); djExportMenu(); });
   $("#djRevert").addEventListener("click", () => djCall("dj_revert"));
   $("#djClear").addEventListener("click", async () => {
     const missing = DJ.st.items.some((r) => r.missing);
@@ -311,6 +313,50 @@ function djInit() {
     djCall("dj_order", items);
   });
   document.addEventListener("keydown", djKey, true);
+}
+
+// ---------------------------------------------------------------- Exporte (#4)
+function djExportMenu() {
+  const b = $("#djExport").getBoundingClientRect();
+  showMenu(b.left, b.bottom + 6, [
+    { label: "M3U8-Playlist (absolute Pfade) …", run: () => djExport("m3u8", { relative: false }) },
+    { label: "M3U8-Playlist (Pfade relativ zur Playlist) …", run: () => djExport("m3u8", { relative: true }) },
+    { label: "Rekordbox-XML …", run: () => djExport("xml", { notation: "musical" }) },
+    { label: "CSV für Excel (mit Übergangsbewertung) …", run: () => djExport("csv", {}) },
+    "-",
+    { label: "Spurnummern in Set-Reihenfolge schreiben …", run: djNumberDialog },
+  ]);
+}
+
+async function djExport(fmt, opts) {
+  if (!DJ.st || !DJ.st.items.length) { toast("Das Set ist leer."); return; }
+  try {
+    const r = await call("dj_export", fmt, opts);
+    if (r && r.ok) { status(`${r.message} (${r.path})`, "info"); toast(r.message); }
+  } catch (e) { toast(String(e.message || e)); }
+}
+
+async function djNumberDialog() {
+  const idx = await call("dj_tag_indices");
+  if (!idx.length) { toast("Keine geladenen Titel im Set."); return; }
+  const prev = async (b) => {
+    const r = await call("tag_number", idx, $("#djNumTot", b).checked, false);
+    $("#djNumPrev", b).innerHTML = r.rows.length ? `<table><thead><tr><th>Datei</th><th>Bisher</th><th>Neu</th></tr></thead><tbody>${r.rows.map((x) => `<tr><td>${esc(x.name)}</td><td class="old">${esc(x.old) || "–"}</td><td class="new">${esc(x.new)}</td></tr>`).join("")}</tbody></table>` : '<div class="empty">Alle Spurnummern stimmen bereits.</div>';
+  };
+  const res = await modal({
+    title: `Spurnummern in Set-Reihenfolge (${idx.length} Titel)`, wide: true,
+    html: `<div class="hint">Schreibt das Feld „Spurnummer“ (TRCK) in der Reihenfolge des Sets. Nicht geladene Titel werden übersprungen. Rückgängig mit Strg+Z; gespeichert wird wie gewohnt mit „Speichern“.</div>
+      <label class="check"><input type="checkbox" id="djNumTot" checked> Mit Gesamtzahl (z. B. 3/12)</label>
+      <div class="fx-table" id="djNumPrev" style="max-height:50vh"></div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
+    onMount: (b) => { $("#djNumTot", b).addEventListener("change", () => prev(b)); prev(b); },
+    collect: (b) => ({ tot: $("#djNumTot", b).checked }),
+  });
+  if (!res) return;
+  const d = await call("tag_number", idx, res.tot, true);
+  if (d.meta) { S.meta = d.meta; renderMeta(); }
+  if (typeof taggerRefresh === "function" && TG.loaded) await taggerRefresh();
+  toast(d.message || "Spurnummern gesetzt.");
 }
 
 async function djShowInTagger(i) {

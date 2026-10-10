@@ -8,7 +8,11 @@ from __future__ import annotations
 
 import os
 
+import time
+
 import core
+from id3tags import MV
+import setexport
 import setplan
 
 # Optionen der Seite → Typ und Grenzen
@@ -220,4 +224,35 @@ class DjSetMixin:
         """Tagger-Indizes der Set-Titel in Set-Reihenfolge (für Markieren im Tagger, Exporte)."""
         with self.lock:
             return [i for (_it, i, _t) in self._dj_tracks() if i is not None]
+
+    # ------------------------------------------------------------------ Exporte (#4)
+    def _dj_entries(self) -> list:
+        st = self.dj_state()
+        out = []
+        for r in st["items"]:
+            e = {"path": r["path"], "title": "", "artist": "", "album": "", "genre": "", "key": r["key"],
+                 "bpm": r["bpm"], "energy": None if r["energy_est"] else r["energy"], "duration": r["duration"],
+                 "to_next": r.get("to_next")}
+            if r["i"] is not None:
+                f = self.tag_files[r["i"]]
+                e.update(title=f.text("TIT2"), artist=f.text("TPE1").replace(MV, ", "),
+                         album=f.text("TALB"), genre=f.text("TCON").replace(MV, ", "))
+            out.append(e)
+        return out
+
+    def dj_export_name(self, fmt) -> str:
+        ext = {"m3u8": "m3u8", "xml": "xml", "csv": "csv"}.get(fmt, "txt")
+        return f"DJ-Set {time.strftime('%Y-%m-%d')}.{ext}"
+
+    def dj_export_file(self, fmt, dest, opts=None) -> dict:
+        from version import VERSION
+        opts = opts or {}
+        with self.lock:
+            entries = self._dj_entries()
+            if not entries:
+                raise ValueError("Das Set ist leer.")
+            name = os.path.splitext(os.path.basename(dest))[0]
+            n = setexport.write(fmt, dest, entries, relative=bool(opts.get("relative")), name=name,
+                                version=VERSION, notation=opts.get("notation") or "musical", kinds=setplan.KEY_KINDS)
+            return {"ok": True, "path": dest, "count": n, "message": f"{n} Titel exportiert: {os.path.basename(dest)}"}
 

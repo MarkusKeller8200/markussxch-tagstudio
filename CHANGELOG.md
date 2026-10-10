@@ -20,6 +20,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   **sperren** 🔒 (dann „Rest optimieren“); Tasten ↑/↓, Alt+↑/↓ verschieben, G sperren, Entf entfernen, Enter bzw.
   Doppelklick spielt. Rechts der **Weg durch das Camelot-Rad** und die **Energie-/BPM-Kurve**. Der Player folgt
   der Set-Reihenfolge, auch beim Überblenden. Set und Optionen werden gemerkt (#3).
+- DJ-Set **exportieren**: M3U8-Playlist mit absoluten oder relativen Pfaden, **Rekordbox-XML** (Playlist mit
+  BPM, Tonart, Dauer; Pfade mit Umlauten und Leerzeichen korrekt kodiert) und CSV für Excel mit
+  Übergangsbewertung; dazu **Spurnummern in Set-Reihenfolge** schreiben (mit Vorschau, rückgängig machbar) (#4).
 
 ## [3.5.0] – 2026-10-10
 

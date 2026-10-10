@@ -261,6 +261,20 @@ class UiTest(unittest.TestCase):
         pg.wait_for_function("typeof S !== 'undefined' && S.settings")
         ok = self.until("S.module === 'djset' && DJ.st && DJ.st.items.length === 2")
         self.assertTrue(ok, pg.evaluate("JSON.stringify({m: S.module, n: DJ.st && DJ.st.items.length})"))
+        # #4: Export-Menü und Spurnummern in Set-Reihenfolge
+        pg.click("#djExport")
+        self.assertEqual(pg.locator("#menu button").count(), 5)
+        pg.click("#menu button >> text=Spurnummern")
+        pg.wait_for_selector("#djNumPrev table")
+        self.assertEqual(pg.locator("#djNumPrev tbody tr").count(), 2)
+        pg.click("#mBtns .primary")
+        order = pg.evaluate("DJ.st.items.map(r => r.i)")
+        for _ in range(30):                             # Übernehmen läuft asynchron
+            rows = pg.evaluate("call('tag_rows').then(t => t.rows.map(r => r.TRCK))")
+            if [rows[order[0]], rows[order[1]]] == ["1/2", "2/2"]:
+                break
+            time.sleep(0.1)
+        self.assertEqual([rows[order[0]], rows[order[1]]], ["1/2", "2/2"])
 
 
 if __name__ == "__main__":
