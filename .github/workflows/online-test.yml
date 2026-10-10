@@ -1,0 +1,36 @@
+name: Online-Test
+
+# Echte Abfragen bei MusicBrainz, Deezer und iTunes (#6, #7): prüft, ob die Antworten der Dienste noch zu den
+# Feldzuordnungen des Plugins „Online-Metadaten“ passen. Läuft bei Änderungen am Plugin, wöchentlich und von Hand.
+on:
+  push:
+    branches: [main]
+    paths: ["plugins/online/**", "onlinematch.py", "tests/test_online_live.py", ".github/workflows/online-test.yml"]
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Live-Test
+        env:
+          ONLINE_TESTS: "1"
+          PYTHONIOENCODING: utf-8
+        run: |
+          set -o pipefail
+          python -m unittest tests.test_online_live -v 2>&1 | tee test-output.txt
+      - name: Fehlgeschlagene Tests als Anmerkung
+        if: failure()
+        run: python .github/scripts/test_annotations.py test-output.txt
+      - name: Gelieferte Felder als Anmerkung
+        if: always()
+        run: grep -E "^(MusicBrainz|Deezer|iTunes):" test-output.txt | sed 's/^/::notice title=Live-Felder::/' || true

@@ -26,11 +26,12 @@ HIDDEN = [
     # eigene Module (werden teils erst bei Bedarf importiert)
     "session", "core", "keys", "features", "plugins", "updater", "xmltools", "tagger", "backup", "compare",
     "id3tags", "thumbs", "undo", "version", "blobs", "media", "cues", "waveform", "appsettings", "origins", "jobs", "stemsview", "snapshots", "players",
-    "session_player", "session_snapshots", "ratings", "listcache", "setplan", "session_djset", "setexport",
+    "session_player", "session_snapshots", "ratings", "listcache", "setplan", "session_djset", "setexport", "onlinematch",
     # Standardbibliothek für Plugins
     "http.cookiejar", "urllib.request", "urllib.parse", "urllib.error", "difflib", "unicodedata", "ctypes",
     "ctypes.wintypes", "uuid", "csv", "zipfile", "logging", "base64", "hashlib", "html", "html.parser",
     "xml.dom.minidom", "xml.etree.ElementTree", "sqlite3", "datetime", "statistics", "shlex", "tempfile",
+    "email.utils", "subprocess", "shutil", "threading",
     # Dialoge
     "tkinter", "tkinter.filedialog", "tkinter.messagebox",
 ]

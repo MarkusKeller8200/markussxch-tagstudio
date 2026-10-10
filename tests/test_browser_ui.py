@@ -336,6 +336,34 @@ class UiTest(unittest.TestCase):
         self.assertEqual(sorted(snaps), [["Baseline", True], ["Wichtig", False]])
         pg.wait_for_selector("#snSnaps .sn-base")
 
+    def test_online_plugin(self):
+        """#6–#8: Plugin Online-Metadaten – Schlüssel speichern (nie in der Konfiguration), Formular im Tagger."""
+        pg = self.pg
+        pg.click('.nav[data-module="plugins"]')
+        card = '.pl-card[data-pid="online"]'
+        pg.wait_for_selector(card)
+        if not pg.locator(card + " [data-enable]").is_checked():
+            pg.click(card + " .switch")
+            pg.wait_for_selector(card + ' [data-paction="keys"]')
+        self.assertIn("Schlüssel: keine", pg.inner_text(card))
+        pg.click(card + ' [data-paction="keys"]')
+        pg.fill('#modal [data-ok="discogs"]', "geheim-123")
+        pg.click("#mBtns .primary")
+        pg.wait_for_selector("#modal .pl-log, #modal p")
+        self.assertTrue(self.until("document.querySelector('#modal').textContent.includes('Schlüssel: Discogs')"))
+        pg.click("#mBtns button >> nth=0")
+        pg.wait_for_function(f"document.querySelector('{card}').textContent.includes('Schlüssel: Discogs')")
+        with open(os.path.join(self.home, ".tagstudio.json"), encoding="utf-8") as fh:
+            self.assertNotIn("geheim-123", fh.read())
+        # Formular im Tagger (ohne Netzabfrage abbrechen)
+        self.load_tagger()
+        pg.click(".tg-row >> nth=0")
+        pg.click('#tgPlugins [data-plugin="online"][data-action="fetch"]')
+        pg.wait_for_selector('#modal [data-ok="mb"]')
+        self.assertTrue(pg.locator('#modal [data-ok="mb"]').is_checked())
+        self.assertFalse(pg.locator('#modal [data-ok="lastfm"]').is_checked())
+        self.assertEqual(pg.locator('#modal [data-ok="mode"]').input_value(), "empty")
+
     def test_tagger_feature_columns(self):
         """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""
         pg = self.pg

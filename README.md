@@ -345,6 +345,10 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
 - **Beatport (inoffiziell):** BPM, Tonart, Genre, Label, Katalognummer, ISRC, Remixer, Cover u. a. mit deinem
   eigenen Beatport-Login (Passwort wird nie gespeichert). Die Vorschau zeigt **alle gelieferten Felder** – gleiche
   grau, abgewählte und schon gefüllte ungehakt.
+- **Online-Metadaten:** Album, Datum, Label, Katalognummer, ISRC, Genre, Cover u. a. von MusicBrainz (auch per
+  AcoustID-Fingerabdruck), Deezer, iTunes, Discogs und Last.fm. Standard: nur leere Felder ergänzen; je Feld ist die
+  erste Quelle vorausgewählt, andere erscheinen als Alternative. Discogs-Token, Last.fm- und AcoustID-Schlüssel unter
+  Plugins › Online-Metadaten › „Schlüssel …“ (verschlüsselt gespeichert); „Verbindungen testen“ prüft die Dienste.
 - **Eigene Plugins** in `~/TagStudio/Plugins` – Anleitung in [PLUGINS.md](PLUGINS.md).
 
 ### Update, Layout, Tastatur
@@ -521,7 +525,8 @@ Merkmal-Spalten und -Filter, Ziehen auf die Player, Snapshot-Baseline). Davor **
 
 Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
-- **4.1.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
+- **4.1.0 – Online-Metadaten & App-Zustand** (in Beta): Plugin Online-Metadaten, Fenstergrösse, Wiedergabe
+  fortsetzen, Tagger-Zustand.
 - **Tracks vorbereiten** (Konzept, [docs/KONZEPT-VORBEREITEN.md](docs/KONZEPT-VORBEREITEN.md)): Workflow vom
   Eingangsordner über Tag-Rezepte und externe Programme bis in die Bibliothek, Schutz bestehender Tags, später
   Download gekaufter Titel und Vorschläge mit Vorhören.

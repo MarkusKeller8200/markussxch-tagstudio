@@ -7,6 +7,14 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- Neues Plugin **Online-Metadaten**: sucht für markierte Titel bei **MusicBrainz** (über ISRC oder Titel/Künstler,
+  Cover aus dem Cover Art Archive), optional per **AcoustID-Fingerabdruck** (fpcalc), bei **Deezer**, **iTunes**
+  (Land wählbar, Cover 1400 px), **Discogs** (eigener Token) und **Last.fm** (Tags, nie vorausgewählt). Treffer werden
+  bewertet (ISRC, Titel ohne Mix, Künstler, Dauer); Album, Datum, Label/Katalognummer, ISRC, Genre, BPM, Spur-/CD-Nummer,
+  Cover und Dienst-IDs erscheinen als **Vorschau mit Häkchen** – je Feld die erste Quelle vorausgewählt, andere Quellen als
+  Alternative. Modus „nur leere Felder ergänzen“ (Standard) oder „überschreiben“. Abfragen werden je Dienst gedrosselt
+  (MusicBrainz 1/s), 429/503 werden wiederholt. Schlüssel werden verschlüsselt im Plugin-Ordner abgelegt (Windows: DPAPI),
+  nie protokolliert; „Verbindungen testen“ prüft alle Dienste (#6, #7, #8).
 - Tagger merkt sich seinen **Zustand** (Ordner, Unterordner, Markierung, Sortierung, Suchfeld/Filter, aufgeklappte
   Stems, Bildlauf) und stellt ihn beim Start wieder her – auf jeder Startseite, damit z. B. DJ-Set-Titel sofort
   geladen sind. Einstellungen › Tagger › „Beim Start laden“: zuletzt geladenen Ordner (Standard), Standardordner oder
