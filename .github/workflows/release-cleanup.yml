@@ -1,0 +1,24 @@
+name: Releases aufräumen
+
+# Entfernt Beta-Releases von der Releases-Seite, sobald ihre finale Version erschienen ist (Tags bleiben).
+# Läuft einmal, wenn diese Datei geändert wird, sonst von Hand (Actions → „Releases aufräumen“ → „Run workflow“).
+# Nach jeder finalen Version erledigt das der Workflow „Installer“ selbst.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/release-cleanup.yml", ".github/scripts/cleanup_betas.py"]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Beta-Releases fertiger Versionen entfernen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 .github/scripts/cleanup_betas.py

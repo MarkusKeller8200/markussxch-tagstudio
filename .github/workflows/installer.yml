@@ -207,3 +207,9 @@ jobs:
             gh release create "$TAG" assets/* --target "$GITHUB_SHA" --title "TagStudio ${TAG#v}" --notes-file notes.md $pre
           fi
           echo "::notice title=Release::TagStudio ${TAG#v} veröffentlicht"
+      - name: Beta-Releases dieser Version aufräumen (Tags bleiben)
+        if: ${{ !contains(needs.plan.outputs.tag, '-') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 .github/scripts/cleanup_betas.py
