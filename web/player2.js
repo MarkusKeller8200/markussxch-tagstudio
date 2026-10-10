@@ -13,12 +13,15 @@ const DET = { on: false, timer: 0, seq: 0, popup: null, t0: 0, waveKey: { A: nul
 function plXfadeCheck() {
   const a = PLAYER.audio, x = PLAYER.xfade;
   if (!x || PLAYER.fade || PLAYER.loading || a.paused || !a.src || PLAYER.repeat || PLAYER.loop || PLAYER.ab || !PLAYER.follow) return;
-  if (S.module !== "tagger" || PLAYER.kind !== "tag" || !TG.order.length) return;
+  if (PLAYER.kind !== "tag") return;
+  const dj = S.module === "djset" && typeof djNextTag === "function";
+  if (!dj && (S.module !== "tagger" || !TG.order.length)) return;
   const dur = a.duration;
   if (!isFinite(dur) || dur < x + 2) return;
   let at = dur - x;
   if (PLAYER.xfadeAfter > 0) at = Math.min(at, (PLAYER.playFrom || 0) + PLAYER.xfadeAfter);   // Durchhören: nach x Sekunden
   if (a.currentTime < at || a.currentTime > dur - 0.3) return;
+  if (dj) { const n = djNextTag(); if (n !== null) plCrossfade(n); return; }     // #3: Set-Reihenfolge
   const k = TG.order.indexOf(TG.anchor);
   if (k < 0 || k >= TG.order.length - 1) return;
   plCrossfade(TG.order[k + 1]);
@@ -64,9 +67,12 @@ async function plCrossfade(i) {
   PLAYER.audio = nu;
   nu.muted = old.muted;
   nu.volume = 0;
-  await tgSelect(i, {});            // Player B / „Folgen“: nu ist noch leer → kein Laden über playerFollow
-  TG.anchor = i;
-  tgScrollTo(i);
+  if (S.module === "djset" && typeof djSelectTag === "function") djSelectTag(i);   // #3
+  else {
+    await tgSelect(i, {});            // Player B / „Folgen“: nu ist noch leer → kein Laden über playerFollow
+    TG.anchor = i;
+    tgScrollTo(i);
+  }
   await plLoad({ kind: "tag", ref: i }, true, null, PLAYER.xfadeStart === "start" ? null : PLAYER.xfadeStart, true);
   const f = PLAYER.fade;
   if (!f || f.old !== old) return;
@@ -502,6 +508,10 @@ function plRowMenu(e, t, label) {
   const items = [{ label: `${label} in Player A abspielen`, run: () => plLoad(t, true) }];
   if (PL2.layout === "top") items.push({ label: `${label} in Player B laden`, run: () => dbLoad(t, true) });
   items.push("-", { label: "Mit externem Player öffnen", run: () => call("players").then((l) => plExternal(l.length ? 0 : null)) });
+  if (t.kind === "tag" && typeof djAddFromTagger === "function" && S.module === "tagger") {
+    const n = typeof tgSelected === "function" ? tgSelected().length : 1;
+    items.push("-", { label: `Zum DJ-Set hinzufügen${n > 1 ? ` (${n})` : ""}`, run: () => djAddFromTagger(false) });
+  }
   showMenu(e.clientX, e.clientY, items);
 }
 

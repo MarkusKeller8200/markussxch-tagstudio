@@ -182,6 +182,107 @@ class TestOptimize(unittest.TestCase):
         self.assertLess(time.monotonic() - t0, 15)
 
 
+class TestSession(unittest.TestCase):
+    """DJ-Set in der Sitzung (#3): hinzufügen, optimieren, sperren, Reihenfolge, gemerkt in der Konfiguration."""
+
+    def setUp(self):
+        import core
+        self.dir = tempfile.mkdtemp(prefix="tagstudio_dj_")
+        self._env = {k: os.environ.get(k) for k in ("HOME", "USERPROFILE")}
+        os.environ["HOME"] = os.environ["USERPROFILE"] = self.dir
+        self._cfg = (core.CONFIG, core.CONFIG_OLD)
+        core.CONFIG = core.CONFIG_OLD = os.path.join(self.dir, "cfg.json")
+        self.lib = os.path.join(self.dir, "lib")
+        os.makedirs(self.lib)
+        spec = [("a", "10A", "124"), ("b", "8A", "124"), ("c", "9A", "125"), ("d", "11A", "126"), ("e", "", "")]
+        for n, (name, key, bpm) in enumerate(spec):
+            fr = [text("TIT2", name.upper())]
+            if key:
+                fr += [text("TKEY", key), text("TBPM", bpm)]
+            write_mp3(os.path.join(self.lib, f"{name}.mp3"), fr, audio_seed=n + 1)
+
+    def tearDown(self):
+        import core
+        import shutil
+        core.CONFIG, core.CONFIG_OLD = self._cfg
+        for k, v in self._env.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+        shutil.rmtree(self.dir, ignore_errors=True)
+
+    def session(self):
+        from session import Session
+        s = Session()
+        s.start_tag_load(self.lib, False)
+        while not s.task_status()["done"]:
+            time.sleep(0.02)
+        return s
+
+    def names(self, st):
+        return [r["name"] for r in st["items"]]
+
+    def test_flow(self):
+        s = self.session()
+        st = s.dj_add()
+        self.assertEqual(len(st["items"]), 5)
+        self.assertIn("5 Titel", st["message"])
+        self.assertIn("schon im Set", s.dj_add([0])["message"])
+        # Ordnung a b c d e → optimiert 8A 9A 10A 11A (oder umgekehrt), Titel ohne Tonart ans Ende
+        st = s.dj_optimize()
+        got = self.names(st)
+        self.assertEqual(got[-1], "e.mp3")
+        self.assertIn(got[:4], (["b.mp3", "c.mp3", "a.mp3", "d.mp3"], ["d.mp3", "a.mp3", "c.mp3", "b.mp3"]))
+        self.assertEqual(st["method"], "exact")
+        self.assertGreaterEqual(st["score"], st["before"])
+        self.assertTrue(st["can_revert"])
+        tr = st["items"][0]["to_next"]
+        self.assertEqual(tr["key"], "adjacent")
+        self.assertIsNone(st["items"][-1]["to_next"])
+        # Vorher/Nachher
+        back = s.dj_revert()
+        self.assertEqual(self.names(back), ["a.mp3", "b.mp3", "c.mp3", "d.mp3", "e.mp3"])
+        self.assertEqual(self.names(s.dj_revert()), got)
+        # Sperren: a an Position 0 festhalten
+        s.dj_order([os.path.join(self.lib, "a.mp3")])
+        s.dj_lock(os.path.join(self.lib, "a.mp3"), True)
+        st = s.dj_optimize()
+        self.assertEqual(self.names(st)[0], "a.mp3")
+        self.assertTrue(st["items"][0]["lock"])
+        # Optionen und Entfernen
+        st = s.dj_set_opt("profile", "rise")
+        self.assertEqual(st["opts"]["profile"], "rise")
+        self.assertIsNotNone(st["energy_fit"])
+        self.assertEqual(s.dj_set_opt("max_jump", 99)["opts"]["max_jump"], 30)
+        with self.assertRaises(ValueError):
+            s.dj_set_opt("nix", 1)
+        st = s.dj_remove([os.path.join(self.lib, "e.mp3")])
+        self.assertEqual(len(st["items"]), 4)
+        self.assertEqual(len(s.dj_tag_indices()), 4)
+
+    def test_persist_and_missing(self):
+        s = self.session()
+        s.dj_add()
+        s.dj_lock(os.path.join(self.lib, "b.mp3"), True)
+        s.dj_set_opt("w_key", 0.9)
+        from session import Session
+        s2 = Session()                    # Tagger leer: Titel bleiben im Set, aber „nicht geladen“
+        st = s2.dj_state()
+        self.assertEqual(len(st["items"]), 5)
+        self.assertTrue(all(r["missing"] for r in st["items"]))
+        self.assertTrue(st["items"][1]["lock"])
+        self.assertEqual(st["opts"]["w_key"], 0.9)
+        with self.assertRaises(ValueError):
+            s2.dj_optimize()
+        s2.start_tag_load(self.lib, False)
+        while not s2.task_status()["done"]:
+            time.sleep(0.02)
+        self.assertFalse(any(r["missing"] for r in s2.dj_state()["items"]))
+        self.assertEqual(len(s2.dj_clear(missing_only=True)["items"]), 5)
+        self.assertEqual(s2.dj_clear()["items"], [])
+
+
 class TestFromFile(unittest.TestCase):
     def test_track_from_file(self):
         with tempfile.TemporaryDirectory() as d:

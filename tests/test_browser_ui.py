@@ -118,7 +118,7 @@ class UiTest(unittest.TestCase):
         """#88 Menü-Reihenfolge und Startseite, #87 Einstellungskacheln, #85/#86 Vorgaben, #89 Kanal."""
         pg = self.pg
         navs = pg.evaluate("[...document.querySelectorAll('.nav[data-module]')].map(b=>b.dataset.module)")
-        self.assertEqual(navs, ["tagger", "fixer", "compare", "snapshots", "backups", "plugins", "settings", "db"])
+        self.assertEqual(navs, ["tagger", "fixer", "compare", "djset", "snapshots", "backups", "plugins", "settings", "db"])
         self.assertEqual(pg.evaluate("S.module"), "tagger")
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stUpdateCard")
@@ -198,6 +198,69 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("DECKB.audio.paused"))
         pop.close()
         self.assertTrue(self.until("!DET.on", 10))
+
+    def test_djset_page(self):
+        """#3 DJ-Set: aus dem Tagger übernehmen, optimieren, sperren, ziehen, Tasten, Wiedergabe, gemerkte Optionen."""
+        pg = self.pg
+        self.load_tagger()
+        for i, (key, bpm) in enumerate((("10A", "124"), ("8A", "120"), ("9A", "122"))):
+            pg.evaluate(f"call('tag_set', [{i}], 'TKEY', '{key}')")
+            pg.evaluate(f"call('tag_set', [{i}], 'TBPM', '{bpm}')")
+        # Kontextmenü im Tagger bietet „Zum DJ-Set hinzufügen“
+        pg.click('.tg-row[data-i="0"]', button="right")
+        self.assertTrue(pg.locator("#menu button", has_text="Zum DJ-Set hinzufügen").is_visible())
+        pg.keyboard.press("Escape")
+        pg.evaluate("hideMenu()")
+        pg.click('.nav[data-module="djset"]')
+        pg.click("#djAllTagger")
+        pg.wait_for_function("DJ.st && DJ.st.items.length === 3")
+        self.assertEqual(pg.locator("#djList .dj-row").count(), 3)
+        self.assertEqual(pg.locator("#djList .dj-tr").count(), 2)
+        before = pg.evaluate("DJ.st.score")
+        pg.click("#djOpt")
+        pg.wait_for_function("DJ.st.method === 'exact'")
+        keys = pg.evaluate("DJ.st.items.map(r => r.key)")
+        self.assertIn(keys, (["8A", "9A", "10A"], ["10A", "9A", "8A"]))
+        self.assertGreaterEqual(pg.evaluate("DJ.st.score"), before)
+        self.assertEqual(pg.locator("#djWheel .wk.on").count(), 3)
+        self.assertEqual(pg.locator("#djCurve svg").count(), 1)
+        # Vorher/Nachher
+        pg.click("#djRevert")
+        pg.wait_for_function("DJ.st.items[0].key === '10A' && DJ.st.items[1].key === '8A'")
+        pg.click("#djRevert")
+        pg.wait_for_function(f"DJ.st.items[0].key === '{keys[0]}'")
+        # Sperren per Knopf, dann Ziehen: erste Zeile ans Ende
+        pg.click('#djList .dj-row[data-k="0"] [data-lock]')
+        pg.wait_for_function("DJ.st.items[0].lock")
+        self.assertEqual(pg.locator("#djList .dj-row.locked").count(), 1)
+        first = pg.evaluate("DJ.st.items[0].path")
+        box = pg.locator('#djList .dj-row[data-k="2"]').bounding_box()
+        pg.drag_and_drop('#djList .dj-row[data-k="0"] .h', '#djList .dj-row[data-k="2"]',
+                         target_position={"x": 40, "y": box["height"] - 4})
+        pg.wait_for_function(f"DJ.st.items[2].path === {json.dumps(first)}")
+        # Tasten: Zeile wählen, Alt+↑ verschiebt, G entsperrt, Enter spielt
+        pg.click('#djList .dj-row[data-k="2"] .t')
+        pg.keyboard.press("Alt+ArrowUp")
+        pg.wait_for_function(f"DJ.st.items[1].path === {json.dumps(first)}")
+        pg.keyboard.press("g")
+        pg.wait_for_function("!DJ.st.items.some(r => r.lock)")
+        pg.keyboard.press("Enter")
+        self.assertTrue(self.until(f"PLAYER.kind === 'tag' && !PLAYER.audio.paused && PLAYER.info.path === {json.dumps(first)}"))
+        pg.keyboard.press("Space")
+        # Optionen werden gemerkt
+        pg.click('#djProfile [data-prof="rise"]')
+        pg.wait_for_function("DJ.st.opts.profile === 'rise' && DJ.st.energy_fit !== null")
+        self.assertEqual(self.cfg()["djset_opts"]["profile"], "rise")
+        self.assertEqual(len(self.cfg()["djset_items"]), 3)
+        # Entfernen per Entf
+        pg.click('#djList .dj-row[data-k="0"] .t')
+        pg.keyboard.press("Delete")
+        pg.wait_for_function("DJ.st.items.length === 2")
+        # Neu laden: Set und Seite bleiben
+        pg.reload()
+        pg.wait_for_function("typeof S !== 'undefined' && S.settings")
+        ok = self.until("S.module === 'djset' && DJ.st && DJ.st.items.length === 2")
+        self.assertTrue(ok, pg.evaluate("JSON.stringify({m: S.module, n: DJ.st && DJ.st.items.length})"))
 
 
 if __name__ == "__main__":

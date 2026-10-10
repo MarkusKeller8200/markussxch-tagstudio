@@ -13,6 +13,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Energieverlauf steigend, fallend oder Welle. Bis 15 Titel exakt, darüber schnelle Näherung; Start, Ende und
   gesperrte Positionen bleiben fest; Titel ohne Tonart/BPM ans Ende oder neutral; Note 0–100 je Übergang und
   für das ganze Set, vorher/nachher (#2).
+- Neue Seite **DJ-Set** in der Seitenleiste: Titel aus dem Tagger übernehmen (Markierte, ganzer Ordner oder per
+  Rechtsklick „Zum DJ-Set hinzufügen“), Energieverlauf, Gewichtung von Tonart/BPM/Energie, maximaler BPM-Sprung;
+  Liste mit Tonart-Plakette, BPM, Energie (mit Soll-Wert) und je Übergang Ampel, Art des Tonartwechsels,
+  BPM-Unterschied und Note; Gesamtnote mit Vorher/Nachher-Umschalter. Titel per **Ziehen** umsortieren oder
+  **sperren** 🔒 (dann „Rest optimieren“); Tasten ↑/↓, Alt+↑/↓ verschieben, G sperren, Entf entfernen, Enter bzw.
+  Doppelklick spielt. Rechts der **Weg durch das Camelot-Rad** und die **Energie-/BPM-Kurve**. Der Player folgt
+  der Set-Reihenfolge, auch beim Überblenden. Set und Optionen werden gemerkt (#3).
 
 ## [3.5.0] – 2026-10-10
 

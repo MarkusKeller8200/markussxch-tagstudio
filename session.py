@@ -30,6 +30,7 @@ from version import VERSION  # einzige Versionsquelle
 from session_player import PlayerMixin
 from core import size_text as fmt_bytes, duration_text as fmt_duration  # noqa: F401 (auch für session_snapshots)
 from session_snapshots import SnapshotMixin
+from session_djset import DjSetMixin
 
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
@@ -38,7 +39,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
            "module": str}                                    # #88: zuletzt benutzte Seite
 
 
-class Session(SnapshotMixin, PlayerMixin):
+class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
     def __init__(self):
         self.lock = threading.RLock()
         self._bus, self._buslock = {}, threading.Lock()       # Nachrichten zwischen Fenstern (#69)
@@ -62,6 +63,7 @@ class Session(SnapshotMixin, PlayerMixin):
     def _load_cfg(self):
         """Einstellungen (neu) einlesen – beim Start und nach Import/Zurücksetzen."""
         self.cfg = core.load_config()
+        self._djstate = None                                   # DJ-Set neu aus cfg (#3)
         triv = list(self.cfg.get("trivial", DEFAULT_TRIVIAL))
         known = set(self.cfg.get("trivial_known", triv))
         triv += [p for p in DEFAULT_TRIVIAL if p not in known and p not in triv]

@@ -57,13 +57,14 @@ function plTarget() {
     return i === null || i === undefined ? null : { kind: "tag", ref: i };
   }
   if (S.module === "compare" && S.cur !== null && S.cur !== undefined) return { kind: "side", ref: PLAYER.side };
+  if (S.module === "djset" && typeof djTarget === "function") return djTarget();      // #3
   return null;
 }
 
 async function plLoad(target, autoplay = true, keepTime = null, startMode = null, fromFade = false) {
   if (PLAYER.fade && !fromFade && typeof plFadeStop === "function") plFadeStop();
   if (!fromFade && typeof plTempoStop === "function") plTempoStop();
-  if (!target) { toast(S.module === "tagger" ? "Erst einen Titel markieren." : "Erst ein Dateipaar wählen."); return; }
+  if (!target) { toast(S.module === "compare" ? "Erst ein Dateipaar wählen." : "Erst einen Titel markieren."); return; }
   const seq = PLAYER.loadSeq = (PLAYER.loadSeq || 0) + 1;
   PLAYER.loading = true;
   // schnelle Folge (S S, ↓↓): vom gewünschten statt vom noch ladenden Titel aus weiter
@@ -246,6 +247,7 @@ function plStemSwitch(k) {
 
 /** Voriger/nächster Titel. play=false: nur die Markierung bewegen (läuft der Player, folgt er ohnehin). */
 async function plStep(dir, play = true) {
+  if (S.module === "djset" && typeof djStep === "function") return djStep(dir, play);   // #3
   if (S.module === "tagger" && TG.order.length) {
     const k = Math.max(0, Math.min(TG.order.length - 1, TG.order.indexOf(TG.anchor) + dir));
     const i = TG.order[k];
@@ -574,7 +576,7 @@ function plBindAudio(el) {
   el.addEventListener("ended", act(() => {
     const a = PLAYER.audio;
     if (PLAYER.repeat) { a.currentTime = 0; a.play().catch(() => {}); return; }      // #79
-    if (PLAYER.follow && S.module === "tagger") plStep(1);
+    if (PLAYER.follow && (S.module === "tagger" || S.module === "djset")) plStep(1);
   }));
   el.addEventListener("error", act(() => { if (PLAYER.audio.src) toast("Datei kann nicht abgespielt werden."); }));
 }
@@ -637,7 +639,7 @@ function plKeydown(e) {
     const ae = document.activeElement;
     const inField = /INPUT|TEXTAREA|SELECT/.test(ae?.tagName || "") && ae?.type !== "range";
     if (inField || !$("#modal").hidden || !$("#dialog").hidden || !$("#xmlEd").hidden) return;
-    if (S.module !== "tagger" && S.module !== "compare") return;
+    if (S.module !== "tagger" && S.module !== "compare" && S.module !== "djset") return;
     if (typeof dbKey === "function" && dbKey(e)) return;          // #67: Ziel Player B
     if (e.key === " " && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plToggle(); }
     else if (e.shiftKey && (e.key === "ArrowRight" || e.key === "ArrowLeft") && PLAYER.audio.src) { e.preventDefault(); plSeekBy(e.key === "ArrowRight" ? 10 : -10); }

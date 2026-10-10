@@ -22,6 +22,8 @@
       <svg class="i" viewBox="0 0 24 24"><path d="m15 4 5 5"/><path d="M4 20 15.5 8.5"/><path d="M18 2v3M21.5 5.5 19 6M5 3v2M3 4h4M20 13v2M19 14h2"/></svg><span class="nt">Tag-Fixer</span></button>
     <button class="nav" data-module="compare" title="Vergleich">
       <svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/></svg><span class="nt">Vergleich</span></button>
+    <button class="nav" data-module="djset" title="DJ-Set: Reihenfolge nach Tonart, BPM und Energie">
+      <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M12 3v3M21 12h-3M12 21v-3M3 12h3"/></svg><span class="nt">DJ-Set</span></button>
     <button class="nav" data-module="snapshots" title="Snapshots und Änderungsjournal">
       <svg class="i" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><circle cx="12" cy="13" r="3.5"/></svg><span class="nt">Snapshots</span><span class="nav-sub nt" id="snapSize"></span></button>
     <button class="nav" data-module="backups" title="Sicherungen">
@@ -248,6 +250,47 @@
       </div>
     </div>
 
+    <div class="work module" id="moduleDjset" hidden>
+      <div class="mod-page">
+        <header class="mod-head">
+          <div><h2>DJ-Set</h2>
+          <p class="muted">Ordnet Titel so, dass die Übergänge passen: Tonart auf dem Camelot-Rad, BPM (auch Halb-/Doppeltempo) und Energie. Titel kommen aus dem Tagger; gesperrte 🔒 bleiben beim Optimieren an ihrem Platz. Ziehen sortiert um, Doppelklick spielt.</p></div>
+          <div class="mod-actions">
+            <button class="ghost" id="djFromTagger" title="Im Tagger markierte Titel ans Ende des Sets">+ Markierte aus dem Tagger</button>
+            <button class="ghost" id="djAllTagger" title="Alle im Tagger geladenen Titel">+ Ganzer Tagger-Ordner</button>
+            <button class="ghost" id="djClear">Leeren …</button>
+          </div>
+        </header>
+        <div class="dj-grid">
+          <section class="card dj-main" aria-label="Set">
+            <div class="dj-opts">
+              <div class="dj-o"><span class="muted sm">Energieverlauf</span><div class="seg" id="djProfile" role="radiogroup" aria-label="Energieverlauf"></div></div>
+              <div class="dj-o dj-w"><span class="muted sm">Gewichtung</span>
+                <label>Tonart <input type="range" id="dj_w_key" min="0" max="100" step="5"> <b id="dj_w_key_v"></b></label>
+                <label>BPM <input type="range" id="dj_w_bpm" min="0" max="100" step="5"> <b id="dj_w_bpm_v"></b></label>
+                <label>Energie <input type="range" id="dj_w_energy" min="0" max="100" step="5"> <b id="dj_w_energy_v"></b></label></div>
+              <div class="dj-o"><label class="muted sm" for="djMaxJump">Max. BPM-Sprung %</label><input type="number" class="inp" id="djMaxJump" min="1" max="30" step="0.5" style="width:76px"></div>
+              <div class="dj-o"><label class="muted sm" for="djMissing">Ohne Tonart/BPM</label><select class="inp" id="djMissing"><option value="end">ans Ende</option><option value="neutral">neutral mitplanen</option></select></div>
+            </div>
+            <div class="dj-head">
+              <div class="dj-score" id="djScore"></div>
+              <div class="grow"></div>
+              <button class="ghost" id="djRevert" title="Zwischen der Reihenfolge vor und nach der letzten Optimierung wechseln">⇄ Vorher/Nachher</button>
+              <button class="primary" id="djOpt">Optimieren</button>
+            </div>
+            <div class="muted sm" id="djInfo"></div>
+            <div class="dj-list" id="djList" tabindex="0" role="listbox" aria-label="Titel im Set (↑/↓ wählen, Alt+↑/↓ verschieben, G sperren, Entf entfernen, Enter spielen)"></div>
+          </section>
+          <section class="card dj-side" aria-label="Verlauf">
+            <h4>Weg durch das Camelot-Rad</h4>
+            <div id="djWheel"></div>
+            <h4>Energie und BPM</h4>
+            <div id="djCurve"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+
     <div class="work module" id="moduleSnapshots" hidden>
       <div class="mod-page">
         <header class="mod-head">
@@ -451,5 +494,6 @@
 <script src="settings.js"></script>
 <script src="jobs.js"></script>
 <script src="snapshots.js"></script>
+<script src="djset.js"></script>
 </body>
 </html>
