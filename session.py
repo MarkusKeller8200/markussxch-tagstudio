@@ -1414,6 +1414,49 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
         v["removed"] = [os.path.basename(p) for p in v.get("removed", [])][:50]
         return v
 
+    # ------------------------------------------------------------------ Fenster (#125)
+    WIN_DEFAULT = (1440, 920)
+    WIN_MIN = (1000, 640)
+
+    def window_start(self, screens=None) -> dict:
+        """Startgrösse des Hauptfensters aus der gemerkten Geometrie (cfg „window“).
+        screens = [(x, y, breite, höhe), …]: liegt das Fenster nicht sichtbar auf einem Bildschirm, wird nur die
+        Position verworfen (Fenster mittig); zu grosse Fenster werden auf den grössten Bildschirm verkleinert."""
+        g = self.cfg.get("window") if isinstance(self.cfg.get("window"), dict) else {}
+        num = lambda v: int(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+        w, h = num(g.get("w")) or self.WIN_DEFAULT[0], num(g.get("h")) or self.WIN_DEFAULT[1]
+        w, h = max(self.WIN_MIN[0], w), max(self.WIN_MIN[1], h)
+        x, y = num(g.get("x")), num(g.get("y"))
+        scr = [tuple(int(v) for v in sc) for sc in (screens or []) if len(sc) == 4]
+        if scr:
+            mw, mh = max(sc[2] for sc in scr), max(sc[3] for sc in scr)
+            w, h = min(w, max(self.WIN_MIN[0], mw)), min(h, max(self.WIN_MIN[1], mh))
+            if x is not None and y is not None:
+                # sichtbar = Titelleiste (obere 40 px, mind. 100 px breit) liegt auf einem Bildschirm
+                ok = any(sx - w + 100 <= x <= sx + sw - 100 and sy <= y <= sy + sh - 40 for sx, sy, sw, sh in scr)
+                if not ok:
+                    x = y = None
+        out = {"width": w, "height": h, "maximized": bool(g.get("max"))}
+        if x is not None and y is not None:
+            out.update(x=x, y=y)
+        return out
+
+    def set_window_geometry(self, g) -> dict:
+        """Geometrie beim Schliessen merken: {"w", "h", "x", "y", "max"}."""
+        if not isinstance(g, dict):
+            raise ValueError("Geometrie erwartet")
+        num = lambda v: int(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+        out = {"w": num(g.get("w")), "h": num(g.get("h")), "x": num(g.get("x")), "y": num(g.get("y")),
+               "max": bool(g.get("max"))}
+        out = {k: v for k, v in out.items() if v is not None}
+        if out.get("w", 0) < 200 or out.get("h", 0) < 200:          # unbrauchbar (z. B. minimiert)
+            out.pop("w", None), out.pop("h", None)
+            old = self.cfg.get("window") if isinstance(self.cfg.get("window"), dict) else {}
+            out = {**{k: old[k] for k in ("w", "h") if k in old}, **out}
+        self.cfg["window"] = out
+        core.save_config({"window": out})
+        return out
+
     def tagger_start(self) -> str:
         """#127: Was beim Start in den Tagger kommt – „last“ (zuletzt geladen samt Zustand), „default“
         (Standardordner) oder „none“. Ältere Einstellung „autoload“ wird übernommen."""

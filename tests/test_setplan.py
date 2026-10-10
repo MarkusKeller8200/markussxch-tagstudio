@@ -300,6 +300,31 @@ class TestSession(unittest.TestCase):
         with self.assertRaises(ValueError):
             s2.tag_state_save("kaputt")
 
+    def test_window_geometry(self):
+        """#125: Fenstergeometrie merken, prüfen und beim Start anwenden."""
+        from session import Session
+        s = Session()
+        self.assertEqual(s.window_start([]), {"width": 1440, "height": 920, "maximized": False})
+        s.set_window_geometry({"w": 1600, "h": 1000, "x": 100, "y": 50, "max": False})
+        two = [(0, 0, 1920, 1080), (1920, 0, 2560, 1440)]
+        self.assertEqual(Session().window_start(two), {"width": 1600, "height": 1000, "maximized": False, "x": 100, "y": 50})
+        # auf dem zweiten Bildschirm, der jetzt fehlt → Position verwerfen, Grösse bleibt
+        s.set_window_geometry({"w": 1600, "h": 1000, "x": 2500, "y": 100})
+        self.assertNotIn("x", Session().window_start([(0, 0, 1920, 1080)]))
+        self.assertEqual(Session().window_start(two)["x"], 2500)
+        # zu gross für den einzigen Bildschirm → verkleinern, nie unter die Mindestgrösse
+        s.set_window_geometry({"w": 3000, "h": 2000, "x": 0, "y": 0, "max": True})
+        st = Session().window_start([(0, 0, 1366, 768)])
+        self.assertEqual((st["width"], st["height"], st["maximized"]), (1366, 768, True))
+        self.assertEqual(Session().window_start([(0, 0, 800, 600)])["width"], 1000)
+        # minimiert/unbrauchbar → alte Grösse behalten
+        s.set_window_geometry({"w": 160, "h": 28, "x": -32000, "y": -32000})
+        st = Session().window_start([(0, 0, 3840, 2160)])
+        self.assertEqual((st["width"], st["height"]), (3000, 2000))
+        self.assertNotIn("x", st)
+        with self.assertRaises(ValueError):
+            s.set_window_geometry("1600x1000")
+
     def test_persist_and_missing(self):
         s = self.session()
         s.dj_add()

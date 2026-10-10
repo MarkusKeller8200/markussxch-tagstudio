@@ -597,13 +597,46 @@ def titlebar_theme(win, dark: bool) -> bool:
 def run_window(api: Api):
     import webview
     _app_user_model_id()
-    win = webview.create_window(APP, url=os.path.join(WEB, "index.html"), js_api=api,
-                                width=1440, height=920, min_size=(1000, 640), background_color="#121419")
+    # #125: Grösse, Position und „maximiert“ vom letzten Mal (nur wenn sichtbar auf einem Bildschirm)
+    try:
+        screens = [(sc.x, sc.y, sc.width, sc.height) for sc in webview.screens]
+    except Exception:  # noqa: BLE001 – ältere pywebview-Versionen
+        screens = []
+    kw = api._s.window_start(screens)
+    geom = {"w": kw["width"], "h": kw["height"], "x": kw.get("x"), "y": kw.get("y"), "max": kw["maximized"]}
+    common = dict(url=os.path.join(WEB, "index.html"), js_api=api, min_size=api._s.WIN_MIN, background_color="#121419")
+    try:
+        win = webview.create_window(APP, **common, **kw)
+    except TypeError:                                                    # ältere pywebview: ohne x/y/maximized
+        win = webview.create_window(APP, **common, width=kw["width"], height=kw["height"])
     api._window = win
+
+    def nums(a):                               # pywebview gibt evtl. zuerst das Fenster mit – nur Zahlen zählen
+        return [v for v in a if isinstance(v, (int, float)) and not isinstance(v, bool)]
+
+    def on_resized(*a):
+        n = nums(a)
+        if len(n) >= 2 and not geom["max"]:
+            geom.update(w=n[0], h=n[1])
+
+    def on_moved(*a):
+        n = nums(a)
+        if len(n) >= 2 and not geom["max"]:
+            geom.update(x=n[0], y=n[1])
+
+    def on_maximized(*_a):
+        geom["max"] = True
+
+    def on_restored(*_a):
+        geom["max"] = False
 
     def on_closing():
         try:                                   # #126/#127: Tagger-Zustand und Wiedergabe noch speichern
             win.evaluate_js("appFlushState()")
+        except Exception:  # noqa: BLE001
+            pass
+        try:                                   # #125: Fenstergeometrie
+            api._s.set_window_geometry(geom)
         except Exception:  # noqa: BLE001
             pass
         n = api.unsaved()
@@ -614,6 +647,10 @@ def run_window(api: Api):
     try:
         win.events.closing += on_closing
         win.events.closed += api.player_window_close      # abgedockten Player mit schliessen (#69)
+        for ev, fn in (("resized", on_resized), ("moved", on_moved), ("maximized", on_maximized), ("restored", on_restored)):
+            event = getattr(win.events, ev, None)
+            if event is not None:
+                event += fn                               # pywebview: Event.__iadd__ hängt den Handler an
     except Exception:  # noqa: BLE001 – ältere pywebview-Versionen
         pass
     icon = os.path.join(WEB, "icon.ico" if sys.platform.startswith("win") else "icon.png")

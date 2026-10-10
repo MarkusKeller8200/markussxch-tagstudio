@@ -89,6 +89,7 @@ Seitenleiste mit **Tagger, Tag-Fixer, Vergleich, DJ-Set, Snapshots, Sicherungen,
 Sortierung, Filter und Bildlauf wieder her (Einstellungen › Tagger › „Beim Start laden“: zuletzt geladen, Standardordner
 oder nichts). Vergleich und Tagger arbeiten mit denselben Dateien – Änderungen sind in beiden sichtbar, werden
 zusammen gespeichert (Strg/Cmd+S) und lassen sich gemeinsam rückgängig machen.
+Das App-Fenster öffnet in der Grösse und Position vom letzten Mal (auch maximiert).
 
 ### Tagger
 

@@ -13,6 +13,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   nichts (#127).
 - Player: **Wiedergabe fortsetzen** – Titel und Position von Player A und B werden gemerkt und beim Start in Pause an
   derselben Stelle geladen; abschaltbar unter Einstellungen › Player › „Fortsetzen“ (#126).
+- App-Fenster merkt sich **Grösse, Position und „maximiert“** und öffnet beim nächsten Start wieder so; liegt die
+  Position auf einem nicht mehr angeschlossenen Bildschirm, erscheint es mittig auf dem Hauptbildschirm (#125).
 
 ### Behoben
 - Einstellungen: gleichzeitige Speichervorgänge konnten sich gegenseitig Einträge überschreiben; die Datei wird jetzt
