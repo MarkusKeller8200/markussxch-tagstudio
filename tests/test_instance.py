@@ -38,12 +38,17 @@ class TestInstance(unittest.TestCase):
     def test_second_start_exits(self):
         home = os.path.join(self.dir, "home")
         os.makedirs(home)
-        env = dict(os.environ, HOME=home, USERPROFILE=home)
+        env = dict(os.environ, HOME=home, USERPROFILE=home, PYTHONUNBUFFERED="1")
         env.pop("TAGSTUDIO_RESTART", None)
         first = subprocess.Popen([sys.executable, os.path.join(ROOT, "tagstudio_web.py"), "--browser", "--no-open", "--port", "0"],
                                  env=env, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
         try:
-            self.assertIn("http://", first.stdout.readline() + first.stdout.readline())
+            line = ""
+            for _ in range(50):                  # nur bis zur Adresszeile lesen (weitere Zeilen evtl. gepuffert)
+                line = first.stdout.readline()
+                if "http://" in line or not line:
+                    break
+            self.assertIn("http://", line)
             r = subprocess.run([sys.executable, os.path.join(ROOT, "tagstudio_web.py"), "--browser", "--no-open", "--port", "0"],
                                env=env, capture_output=True, text=True, timeout=60)
             self.assertEqual(r.returncode, 0)
