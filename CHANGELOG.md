@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [3.4.0] – 2026-10-10
+
 ### Neu
 - Player: **Bewertung** 0–5 Sterne (Feld POPM, vorhandene Frames werden angepasst, Zähler bleibt; `TXXX:FMPS_Rating`
   wird mitgeführt) und **Like** (♥, `TXXX:TAGSTUDIO` als JSON) – im Player, Tasten 0–5 und F (#95, #96).
