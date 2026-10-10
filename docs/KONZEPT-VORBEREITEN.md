@@ -1,6 +1,6 @@
 # Konzept: Tracks vorbereiten
 
-Status: **Entwurf** (2026-10-10) – Issues mit Label `vorbereiten`, Meilenstein „Tracks vorbereiten (Konzept)“.
+Status: **Entwurf** (2026-10-10) – Übersicht #121, Teil-Issues #109–#120 (Label `vorbereiten`, Meilenstein „Tracks vorbereiten (Konzept)“).
 
 ## Ziel
 
