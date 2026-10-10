@@ -533,6 +533,10 @@ span.xml-treeonly{display:contents}
 .ft-x .i{width:14px;height:14px}
 .pl-opt{display:contents}
 .pl-opt[hidden]{display:none}
+.pl-info{color:var(--dim);line-height:1.45}
+.pl-links{margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 10px}
+.pl-link{color:var(--acc);text-decoration:none}
+.pl-link:hover{text-decoration:underline}
 .pl-ta{height:auto;min-height:84px;padding:8px 10px;font:12px/1.4 ui-monospace,Consolas,monospace;resize:vertical}
 .pl-page{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .pl-stat{flex:1 1 100%;color:var(--fg)}

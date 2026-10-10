@@ -73,10 +73,30 @@ ACTIONS = [
         "id": "keys", "label": "Schlüssel …", "where": "page", "run_label": "Speichern", "needs_selection": False,
         "description": "Eigene Schlüssel für Discogs, Last.fm und AcoustID. Leer lassen = unverändert. Die Schlüssel werden verschlüsselt gespeichert und nie angezeigt.",
         "options": [
-            {"key": "discogs", "type": "password", "label": "Discogs: persönlicher Token (discogs.com → Einstellungen → Entwickler)"},
-            {"key": "lastfm", "type": "password", "label": "Last.fm: API-Schlüssel (last.fm/api/account/create)"},
-            {"key": "acoustid", "type": "password", "label": "AcoustID: Anwendungs-Schlüssel (acoustid.org/new-application)"},
+            {"type": "info", "title": "Discogs",
+             "label": "Kostenlos, nur ein Discogs-Konto nötig. 1. Bei discogs.com anmelden. 2. Einstellungen › Entwickler "
+                      "öffnen. 3. „Neuen Token generieren“ klicken. 4. Den Token kopieren und unten einfügen.",
+             "links": [["Discogs: Entwickler-Einstellungen", "https://www.discogs.com/settings/developers"],
+                       ["Konto anlegen", "https://accounts.discogs.com/register"]]},
+            {"key": "discogs", "type": "password", "label": "Discogs: persönlicher Token"},
+            {"type": "info", "title": "Last.fm",
+             "label": "Kostenlos mit Last.fm-Konto. 1. Anmelden. 2. „API-Konto erstellen“ öffnen. 3. Kontakt-E-Mail, "
+                      "Anwendungsname (z. B. TagStudio) und kurze Beschreibung eintragen, Callback-URL und Homepage leer "
+                      "lassen, absenden. 4. Den „API key“ kopieren (nicht das „Shared secret“) und unten einfügen.",
+             "links": [["Last.fm: API-Konto erstellen", "https://www.last.fm/api/account/create"],
+                       ["Meine API-Konten", "https://www.last.fm/api/accounts"]]},
+            {"key": "lastfm", "type": "password", "label": "Last.fm: API-Schlüssel"},
+            {"type": "info", "title": "AcoustID",
+             "label": "Nur für den Fingerabdruck (Titel ohne brauchbare Tags). 1. Bei acoustid.org anmelden. "
+                      "2. „Register a new application“: Name TagStudio, Version, Website (z. B. die GitHub-Seite). "
+                      "3. Den „API key“ der Anwendung kopieren und unten einfügen. 4. Zusätzlich das Programm fpcalc "
+                      "(Chromaprint) herunterladen, entpacken und den Pfad zu fpcalc(.exe) unten eintragen.",
+             "links": [["AcoustID: Anwendung registrieren", "https://acoustid.org/new-application"],
+                       ["fpcalc (Chromaprint) herunterladen", "https://acoustid.org/chromaprint"]]},
+            {"key": "acoustid", "type": "password", "label": "AcoustID: Anwendungs-Schlüssel"},
             {"key": "fpcalc", "type": "text", "label": "Pfad zu fpcalc (leer = im Suchpfad suchen)"},
+            {"type": "info", "label": "MusicBrainz, Deezer und iTunes brauchen keinen Schlüssel. Die Schlüssel werden nur "
+                                      "verschlüsselt im Plugin-Ordner gespeichert, nie angezeigt und nie protokolliert."},
             {"key": "clear", "type": "select", "label": "Löschen",
              "choices": [["", "nichts löschen"], ["discogs", "Discogs-Token löschen"], ["lastfm", "Last.fm-Schlüssel löschen"],
                          ["acoustid", "AcoustID-Schlüssel löschen"], ["all", "alle löschen"]], "default": ""},

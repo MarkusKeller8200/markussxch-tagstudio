@@ -88,7 +88,12 @@ function pluginOptionHtml(o, n) {
 
 function pluginOptionInner(o, id) {
   const lab = `<label for="${id}">${esc(o.label || o.key)}</label>`;
-  if (o.type === "info") return `<span></span><div class="hint">${esc(o.label)}</div>`;
+  if (o.type === "info") {
+    // Hinweis, optional mit Links [[Text, https://…], …] – öffnen im Standard-Browser
+    const links = (o.links || []).filter((l) => Array.isArray(l) && /^https:\/\//.test(l[1] || ""))
+      .map((l) => `<a href="#" class="pl-link" data-url="${esc(l[1])}" title="${esc(l[1])}">${esc(l[0])} ↗</a>`).join(" · ");
+    return `<span>${o.title ? `<b>${esc(o.title)}</b>` : ""}</span><div class="hint pl-info">${esc(o.label)}${links ? `<div class="pl-links">${links}</div>` : ""}</div>`;
+  }
   if (o.type === "password") return lab + `<input id="${id}" type="password" data-ok="${esc(o.key)}" autocomplete="off" spellcheck="false">`;
   if (o.type === "textarea") return lab + `<textarea id="${id}" class="inp pl-ta" data-ok="${esc(o.key)}" spellcheck="false" rows="4">${esc(o.value)}</textarea>`;
   if (o.type === "check") return `<span></span><label class="check"><input type="checkbox" id="${id}" data-ok="${esc(o.key)}" ${o.value ? "checked" : ""}> ${esc(o.label || o.key)}</label>`;
@@ -109,6 +114,10 @@ async function pluginRun(pid, aid) {
       <div class="hint">Plugin: ${esc(f.plugin_name)}${f.background ? " · läuft im Hintergrund – du kannst währenddessen weiterarbeiten (Fortschritt unten in der Fußleiste)" : ""}</div>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: f.run_label, value: true, primary: true }],
     onMount: (b) => {
+      b.addEventListener("click", (e) => {
+        const l = e.target.closest(".pl-link[data-url]");
+        if (l) { e.preventDefault(); call("open_url", l.dataset.url); }
+      });
       b.querySelectorAll("[data-plpick]").forEach((btn) => btn.addEventListener("click", async () => {
         const inp = $("#" + btn.dataset.plpick, b);
         const p = await call("pick_path", "", true, inp.value.trim());

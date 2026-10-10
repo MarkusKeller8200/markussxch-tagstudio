@@ -93,6 +93,8 @@ ACTIONS = [{
         {"key": "mode",  "type": "select", "label": "Modus", "choices": [["a", "Variante A"], ["b", "B"]], "default": "a"},
         {"key": "ziel",  "type": "folder", "label": "Ordner"},
         {"type": "info", "label": "Nur ein Hinweistext."},
+        {"type": "info", "title": "Anleitung", "label": "Hinweis mit Links (nur https://, öffnen im Browser).",
+         "links": [["Beispiel-Seite", "https://example.org"]]},
     ],
 }]
 

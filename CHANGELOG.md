@@ -14,7 +14,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Cover und Dienst-IDs erscheinen als **Vorschau mit Häkchen** – je Feld die erste Quelle vorausgewählt, andere Quellen als
   Alternative. Modus „nur leere Felder ergänzen“ (Standard) oder „überschreiben“. Abfragen werden je Dienst gedrosselt
   (MusicBrainz 1/s), 429/503 werden wiederholt. Schlüssel werden verschlüsselt im Plugin-Ordner abgelegt (Windows: DPAPI),
-  nie protokolliert; „Verbindungen testen“ prüft alle Dienste (#6, #7, #8).
+  nie protokolliert; „Schlüssel …“ erklärt Schritt für Schritt mit Links, wie man Discogs-Token, Last.fm- und
+  AcoustID-Schlüssel erstellt und fpcalc bekommt; „Verbindungen testen“ prüft alle Dienste (#6, #7, #8).
 - Tagger merkt sich seinen **Zustand** (Ordner, Unterordner, Markierung, Sortierung, Suchfeld/Filter, aufgeklappte
   Stems, Bildlauf) und stellt ihn beim Start wieder her – auf jeder Startseite, damit z. B. DJ-Set-Titel sofort
   geladen sind. Einstellungen › Tagger › „Beim Start laden“: zuletzt geladenen Ordner (Standard), Standardordner oder
