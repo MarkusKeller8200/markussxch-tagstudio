@@ -102,11 +102,10 @@ Machbarkeit je Dienst (Stand 2026-10):
 2. **Online:** Download gekaufter Titel (nach Machbarkeit), weitere Kaufplattformen, optional eigene Lautheit.
 3. **Entdecken:** Beatport-Neuheiten mit Vorhören und Merkliste, weitere Quellen.
 
-## Offene Fragen an den User
-1. Sollen die Stufen-Ordner (`_02_MP3Tag`, `_03_PlatinumNotes`) dauerhaft bleiben oder nach der Übernahme
-   aufgeräumt werden (nur nach Rückfrage)?
-2. Platinum Notes: „Replace original files“ im Stufen-Ordner – passt es, wenn TagStudio vorher nach `_03_…`
-   kopiert und Platinum Notes dort ersetzt?
-3. Picard/AudioRanger/OneTagger: weiter extern nutzen oder soweit möglich durch TagStudio (4.1.0) ersetzen?
-4. Welche Felder gelten als „bestehendes Tagging“ für die Schutzregel – alle oder eine Liste?
-5. Beatport-Download: Risiko inoffizieller Zugriff akzeptiert, falls kein offizieller Weg existiert?
+## Entscheide des Users (2026-10-10)
+1. **Stufen-Ordner** (`_02_MP3Tag`, `_03_PlatinumNotes`): nach der Übernahme **optional löschen** (Auswahl, mit Rückfrage).
+2. **Platinum Notes:** TagStudio kopiert nach `_03_PlatinumNotes`, Platinum Notes ersetzt die Dateien dort – **ja**.
+3. **Picard, AudioRanger, OneTagger:** **vorerst weiter extern**; wenn TagStudio (4.1.0 Online-Metadaten, nur ergänzend)
+   den Funktionsumfang komplett abdeckt, eventuell nicht mehr.
+4. **Schutzregel – welche Felder:** in Klärung (Erläuterung und Vorschlag in #121).
+5. **Beatport-Download:** inoffizieller Zugriff ist **akzeptiert**, falls es keinen offiziellen Weg gibt.
