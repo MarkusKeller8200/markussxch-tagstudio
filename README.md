@@ -25,26 +25,29 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.9 oder neuer – oder gar nich
 - **Tag-Fixer:** Mehrfachwerte (`;`, `/`, `feat.` …) vereinheitlichen oder in echte ID3v2.4-Mehrfachwerte umwandeln.
 - **Sicherheit beim Speichern:** vor jedem Speichern automatische Sicherung der Tags, Änderungs-Viewer,
   byte-genaues Wiederherstellen; Rückgängig/Wiederholen über alle Dateien.
-- **Vorschau-Player:** Titel vorhören mit Wellenform und Cue-Marken (Serato, Mixed In Key), A/B im Vergleich,
-  externe Player (foobar2000, VLC …).
+- **Vorschau-Player:** Titel vorhören mit Wellenform und Cue-Marken (Serato, Mixed In Key), Live-Vorschau,
+  Überblenden mit Tempo-Angleichung, **Bewertung und Like**, zweiter Player zum Vorhören, abdockbar auf einen zweiten
+  Bildschirm, A/B im Vergleich, externe Player (foobar2000, VLC …).
+- **Snapshots & Änderungsjournal:** Tag-Zustand überwachter Ordner festhalten, Änderungen anderer Programme erkennen
+  und einzeln zurücknehmen; Schutz vor dem Überschreiben fremder Änderungen.
 - **Herkunft der Tags:** Kennzeichen, welche Anwendung ein Feld geschrieben hat; Felder einer Anwendung filtern
   oder entfernen.
 - **Plugins:** Stems (Gesang, Schlagzeug, Bass … trennen – im Hintergrund, Spuren aufklappbar unter dem Titel) und
   Beatport (Metadaten mit eigenem Login), eigene Plugins möglich.
-- **Einstellungen** an einem Ort, exportieren/importieren (z. B. Windows ↔ Mac) und zurücksetzen.
+- **Einstellungen** an einem Ort – mit Vorgaben für den Start –, exportieren/importieren (z. B. Windows ↔ Mac) und
+  zurücksetzen; Updates wahlweise nur offizielle oder auch Beta-Versionen, Versionshinweise direkt in der App.
 
-## Zwei Oberflächen, ein Kern
+## Programmstart
 
-| | Neue Oberfläche (empfohlen) | Klassische Oberfläche |
-|---|---|---|
-| Start Windows | `start_web_windows.bat` | `start_windows.bat` |
-| Start macOS | `start_web_mac.command` | `start_mac.command` |
-| Terminal | `python tagstudio_web.py [links] [rechts]` | `python3 tagstudio.py [links] [rechts]` |
-| Technik | HTML/CSS/JS im eigenen App-Fenster (pywebview), sonst im Browser | tkinter |
-| Umfang | Vergleich, **Tagger** mit allen Editoren, Tag-Fixer, Sicherungen, **Plugins**, Update-Knopf | Vergleich, Tag-Fixer, Sicherungen, XML-Editor |
-| Installer | ja | nein (nur Quellcode) |
+| | |
+|---|---|
+| Installiert | **TagStudio** im Startmenü bzw. unter Programme |
+| Quellcode Windows | `start_windows.bat` (bzw. `start_web_windows.bat`) |
+| Quellcode macOS | `start_mac.command` (bzw. `start_web_mac.command`) |
+| Terminal | `python tagstudio_web.py [links] [rechts]` – mit `--browser` im Browser statt im eigenen Fenster |
 
-Beide nutzen denselben Kern und dieselben Einstellungen (`~/.tagstudio.json`) und lassen sich abwechselnd verwenden.
+Die erste, klassische Oberfläche (tkinter) ist seit Version 3.0 eingefroren – siehe
+[Klassische Oberfläche](#klassische-oberfläche-eingefroren) am Ende.
 
 ## Installation
 
@@ -75,10 +78,11 @@ und darüber installieren – Einstellungen, Sicherungen und Plugin-Daten liegen
    Die neue Oberfläche installiert beim ersten Start `pywebview` (klein, Internet nötig) und öffnet ein eigenes
    App-Fenster. Ohne pywebview öffnet sie sich im Browser (`python tagstudio_web.py --browser`).
 
-## Neue Oberfläche
+## Bedienung
 
-Seitenleiste mit **Vergleich, Tagger, Tag-Fixer, Sicherungen, Plugins**, unten Update-Knopf, Einklappen und
-Hell/Dunkel. Vergleich und Tagger arbeiten mit denselben Dateien – Änderungen sind in beiden sichtbar, werden
+Seitenleiste mit **Tagger, Tag-Fixer, Vergleich, Snapshots, Sicherungen, Plugins, Einstellungen**, unten
+„Nach Update suchen“, Versionshinweise, Einklappen und Hell/Dunkel. Beim Start öffnet die zuletzt benutzte Seite
+(beim ersten Start der Tagger). Vergleich und Tagger arbeiten mit denselben Dateien – Änderungen sind in beiden sichtbar, werden
 zusammen gespeichert (Strg/Cmd+S) und lassen sich gemeinsam rückgängig machen.
 
 ### Tagger
@@ -154,6 +158,11 @@ Liveness, Speechiness, Brightness, Aggressiveness als `TXXX:ENERGY` … mit Wert
 Zahl (0.78 → 78), für eine oder mehrere Dateien. Andere Schreibweisen (`TXXX:Energy`) werden erkannt und beim
 Ändern vereinheitlicht.
 
+### Tag-Fixer
+
+Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare, alle Dateien,
+Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte), laufende Vorschau.
+
 ### Vergleich
 
 Zwei Ordner oder Dateien nebeneinander: Pfade mit Verlauf, Zuordnung nach Dateiname, Disc + Spurnummer, Titel
@@ -220,19 +229,6 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   (`{files}` alle Dateien, `{file}` erste, `{folder}` Ordner, `{m3u}` temporäre Playlist).
 - Die Wiedergabe läuft über einen lokalen Mini-Server (nur 127.0.0.1, nur freigegebene Dateien, zufälliges Token).
 
-### Tag-Fixer
-
-Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare, alle Dateien,
-Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte), laufende Vorschau.
-
-### Sicherungen
-
-Alle Sicherungen mit Dateien, Status (wiederherstellbar/gleich/fehlt/Audio geändert) und **geänderten Feldern**.
-Klick öffnet den **Änderungs-Viewer**: jedes Feld „Vorher (Sicherung)“ und „Jetzt“, geändert/neu/entfernt markiert,
-abweichende Zeichen hervorgehoben; mit ‹ › blättern und einzelne Dateien direkt wiederherstellen. Außerdem
-markierte oder alle wiederherstellen (vorher wird der aktuelle Stand selbst gesichert), Sicherung löschen,
-automatische Sicherung ein/aus, Ordner ändern/öffnen.
-
 ### Snapshots & Änderungsjournal
 
 Für Bibliotheken, die auch andere Programme bearbeiten (Mp3tag, beaTunes, Mixed In Key, Platinum Notes, Rekordbox …):
@@ -265,6 +261,14 @@ Für Bibliotheken, die auch andere Programme bearbeiten (Mp3tag, beaTunes, Mixed
 
 Konzept: [docs/KONZEPT-SNAPSHOTS.md](docs/KONZEPT-SNAPSHOTS.md).
 
+### Sicherungen
+
+Alle Sicherungen mit Dateien, Status (wiederherstellbar/gleich/fehlt/Audio geändert) und **geänderten Feldern**.
+Klick öffnet den **Änderungs-Viewer**: jedes Feld „Vorher (Sicherung)“ und „Jetzt“, geändert/neu/entfernt markiert,
+abweichende Zeichen hervorgehoben; mit ‹ › blättern und einzelne Dateien direkt wiederherstellen. Außerdem
+markierte oder alle wiederherstellen (vorher wird der aktuelle Stand selbst gesichert), Sicherung löschen,
+automatische Sicherung ein/aus, Ordner ändern/öffnen.
+
 ### Plugins
 
 Seite „Plugins“: Erweiterungen ein-/ausschalten, fehlende Pakete per Knopf installieren; Aktionen erscheinen im
@@ -284,155 +288,31 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
 ### Update, Layout, Tastatur
 
 - **Update:** „Nach Update suchen“ unten in der Seitenleiste; TagStudio prüft beim Start selbst (Punkt am Knopf).
-  In der Quellcode-Variante lädt ein Klick die neue Version (`git pull`, nur ohne eigene Änderungen im
-  Programmordner) und startet neu; ungespeicherte Änderungen werden vorher abgefragt. Wer noch auf dem früheren
-  Zweig `web-ui` steht, wird automatisch auf `main` umgestellt. In der installierten App öffnet der Knopf die
-  Releases-Seite.
+  Unter Einstellungen › Updates: **nur offizielle Versionen** oder **auch Beta-Versionen**. Die installierte App
+  zeigt die neue Version mit ihren Hinweisen und lädt den passenden Installer herunter. In der Quellcode-Variante
+  lädt ein Klick die neue Version (`git`, nur Vorspulen, nur ohne eigene Änderungen im Programmordner; bei „nur
+  offizielle“ bis zum neuesten Versions-Tag) und startet neu; ungespeicherte Änderungen werden vorher abgefragt.
+- **Versionshinweise:** unter dem Update-Knopf – was in der installierten Version neu ist und, falls vorhanden,
+  in der neuesten; mit Link zu GitHub.
 - **Splitter:** Seitenleiste, Paarliste, Tabellenspalten, Bearbeitungsbereich und Feldnamen-Spalte lassen sich
   ziehen (oder mit ←/→ auf dem Griff); Doppelklick setzt zurück, alles wird gemerkt. Die Seitenleiste lässt sich
   einklappen.
 - **Tastatur:** Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte
   kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · Doppelklick abspielen · 0–5 Bewertung · F Like · B Player A/B · Shift+P Player-Leiste ein/aus · ↑/↓ Titel wechseln (überall) · S Stem-Spur · R wiederholen · L A–B-Schleife · Shift+←/→ ±10 s · Shift+F5 Paar neu einlesen · Alt+Bild↑/↓ Cue · Strg/Cmd+P externer Player · →/← Stems auf-/zuklappen · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
 
-## Klassische Oberfläche
-
-Die folgenden Abschnitte beschreiben die klassische Oberfläche (`tagstudio.py`). Vergleich, Filter, Tag-Fixer,
-Sicherungen und Tastenkürzel funktionieren in der neuen Oberfläche sinngemäss gleich.
-
-### Aufbau
-
-- **Oben:** Werkzeugleiste. Darunter links und rechts der Pfad (Ordner oder Datei, mit Verlauf)
-  sowie Datei-Infos: Datum, Größe, ID3-Version, Dauer, Bitrate, Abtastrate.
-- **Dateipaare** (nur bei Ordnern): Status pro Paar – ≠ Unterschiede, ≈ nur unwichtige, = gleich, ◧/◨ nur eine Seite.
-- **Vergleich:** Alle ID3-Felder als Tabelle „Name | Wert“, links und rechts synchron scrollend.
-  Dazwischen die **Befehlsspalte**: ◀ übernimmt den rechten Wert nach links, ▶ den linken nach rechts
-  (linke/rechte Hälfte der Spalte anklicken). Pfeile erscheinen nur, wo es etwas zu übernehmen gibt.
-- **Splitter:** Die Breiten von links / Befehlsspalte / rechts sowie die Grenze Name | Wert lassen sich ziehen
-  (Name | Wert im Spaltenkopf oder direkt an der Linie in der Tabelle). Standardmäßig wird alles **automatisch
-  optimal** nach Inhalt gesetzt – längster Feldname bzw. Länge der Werte je Seite.
-  **Doppelklick** auf einen Splitter stellt die optimale Breite wieder her.
-
-| Farbe | Bedeutung |
-|---|---|
-| Rot hinterlegt, rote Zeichen | Unterschied (die abweichenden Zeichen sind rot) |
-| Braun/orange | unwichtiger Unterschied (Länge, Encoder, Fingerprints …) |
-| Violett | Feld gibt es nur auf dieser Seite |
-| ● blau | geändert, noch nicht gespeichert |
-| *kursiv, grau* | vorgesehenes, aber leeres Feld (Option „Leere Felder“) |
-
-Die Zeilen sind durch feine Linien getrennt. Mehrfachwerte (ID3v2.4) werden als `A ¦ B ¦ C` angezeigt.
-
-### Cover-Vorschau
-
-Über der Tabelle zeigt jede Seite alle eingebetteten Bilder als Vorschau mit Größe (z. B. 1400×1400 · 245 KB).
-Unterschiedliche Cover sind **rot umrandet**, in der Mitte steht = oder ≠. Klick auf ein Bild öffnet eine große
-Ansicht (mit „Im Bildbetrachter öffnen“ und „Speichern unter“). **▣ Cover** blendet die Leiste aus/ein.
-Technik: Tk kann kein JPEG – die Vorschau wird ohne Zusatzpakete erzeugt (Windows: eingebautes .NET über PowerShell,
-macOS: `sips`, Linux: ImageMagick; falls Pillow installiert ist, wird es bevorzugt) und in
-`~/TagStudio/cache` zwischengespeichert. Die erste Vorschau eines Covers dauert unter Windows evtl. ~1 s.
-
-### Suchen & Filtern
-
-**Dateipaare** – Zeile unter der Überschrift:
-- **Suchen:** sucht in Dateinamen und allen Tag-Werten beider Seiten.
-- **Filter:** Feld (jedes vorkommende Feld, „Dateiname“ oder „Beliebiges Feld“) · Bedingung · Wert · Seite.
-  Bedingungen: *enthält, enthält nicht, ist, ist nicht, beginnt mit, fehlt / leer, vorhanden, größer als,
-  kleiner als, Regex*. Seite: *links oder rechts, links, rechts, beide Seiten*.
-- Beispiele: *Tonart · fehlt / leer* → alle Tracks ohne Tonart; *Genre · enthält · techno*;
-  *Beats pro Minute · größer als · 125*; *Benutzertext (EnergyLevel) · ist · 7*.
-- Die Kopfzeile zeigt „x von y Paaren“. **Alle markieren** markiert nur die gefilterten Paare – praktisch für
-  Sammelkopie oder den Tag-Fixer auf genau diese Auswahl. **✕ Zurücksetzen** hebt alles auf.
-
-**Felder suchen** (oben rechts) blendet in der Vergleichstabelle nur Felder ein, deren Name, Frame-ID oder Wert
-den Suchtext enthält – z. B. „bpm“, „serato“, „TXXX“, „mixedinkey“.
-
-### Einlesen großer Ordner
-
-Beim Vergleichen werden zuerst alle MP3-Dateien gezählt, danach erscheint ein Fortschrittsbalken
-mit Anzahl, Prozent, geschätzter Restzeit und aktuellem Dateinamen. **Abbrechen** (oder Esc) stoppt
-sofort – die bisherige Ansicht bleibt dann unverändert. Bei schnellen Vorgängen erscheint der Dialog gar nicht erst.
-Hinweis: Bei OneDrive-Ordnern mit „nur online“-Dateien lädt Windows diese beim Einlesen herunter.
-
-### Leere Felder einblenden
-
-Toolbar **☐ Leere Felder** → wählen: ID3v1, ID3v2.3, ID3v2.4 oder alle. Dann erscheinen alle Felder, die der
-jeweilige Standard vorsieht (Text-, URL-, Kommentar-, Liedtext- und Cover-Felder), auch wenn sie unbeschrieben sind.
-Doppelklick auf ein leeres Feld füllt es.
-
-### Tag-Fixer: Mehrfachwerte
-
-Toolbar **¦ Mehrfachwerte** vereinheitlicht Felder mit mehreren Werten (z. B. „Adriatique; Vincent Vossen / Yubik“):
-
-- **Dateien:** aktuelles Paar (beide/links/rechts), markierte Paare oder alle geladenen Dateien.
-- **Felder:** Künstler, Album-Künstler, Komponist, Texter, Genre, Sortierfelder … oder alle Textfelder.
-- **Als Trenner erkennen:** Null (v2.4), `;`, ` / `, `\\` (Mp3tag) – optional `,`, `/`, `&`, `feat.`, ` x `.
-- **Ausgabe:** Trennzeichen (Standard `, `) **oder ID3v2.4-Standard** (echte, null-getrennte Mehrfachwerte).
-  Für Letzteres können v2.3-Dateien automatisch auf v2.4 umgestellt werden; sonst erhalten sie `; `.
-- Doppelte Werte werden auf Wunsch entfernt. Eine **Vorschau** zeigt jede Änderung vorher/nachher.
-- Beim Bearbeiten trennt `¦` einzelne Werte (wird als v2.4-Mehrfachwert gespeichert; in v2.3 als ` / `).
-- Hinweis: Nicht alle Programme zeigen v2.4-Mehrfachwerte vollständig an (manche nur den ersten Wert).
-
-### Bedienung
-
-| Aktion | So geht’s |
-|---|---|
-| Felder markieren | Klick, Shift-Klick (Bereich), Strg/Cmd-Klick (einzeln), ↑/↓ |
-| Markierte kopieren | Toolbar **Auswahl →** / **← Auswahl**, Strg/Cmd + → / ←, oder Rechtsklick |
-| Alles kopieren | **Alles →** / **← Alles** bzw. „Alle ⇉“ / „⇇ Alle“ im Kopf der Befehlsspalte (fragt, ob nur im Ziel vorhandene Felder entfernt werden sollen) |
-| Fehlende ergänzen | **Fehlende →** / **← Fehlende** bzw. „Fehl. ▷“ / „◁ Fehl.“ – übernimmt nur Felder, die im Ziel fehlen; vorhandene Werte bleiben unangetastet |
-| Einzelnes Feld | ◀ / ▶ in der Befehlsspalte |
-| Bearbeiten | Doppelklick oder Enter auf einem Wert; Tab springt zum nächsten Feld; Esc bricht ab |
-| Feld leeren | Wert löschen und Enter – das Feld wird entfernt |
-| Neues Feld | **+ Feld** (z. B. Benutzertext/TXXX mit Beschreibung) |
-| Original-Tag anzeigen | Maus über den Feldnamen halten → Frame-ID (z. B. `TPE1`, `TXXX`, bei v2.3-Datum `TYER + TDAT`), Beschreibung, Sprache, Bildtyp, ID3-Version |
-| Links öffnen | URLs in Werten (Internetseiten-Felder, Benutzertexte, Kommentare …) sind blau unterstrichen – **ein Klick** öffnet sie im Browser; mehrere Links in einem Feld einzeln. Auch per Rechtsklick → „Link öffnen“ |
-| Bilder | Rechtsklick auf „Bild (…)“: anzeigen, speichern unter, ersetzen |
-| Sammelkopie | Paare in der Liste markieren → **Markierte … →** → Felder auswählen |
-| Filter | **Alle / Unterschiede / Gleiche**, **Unwichtige** ein-/ausblenden |
-| Speichern | **Speichern** oder Strg/Cmd + S (erst dann wird in die Dateien geschrieben; vorher automatische Sicherung) |
-| Rückgängig / Wiederholen | **↶** / **↷** bzw. Strg/Cmd+Z, Strg+Y |
-| Sicherungen | **⟲ Sicherungen** – Tags früherer Stände wiederherstellen |
-| Design | **◐ Design** schaltet zwischen Dunkel und Hell |
-
-### Rückgängig / Wiederholen
-
-Jede Änderung – Feld bearbeiten, ◀/▶, Auswahl/Alles/Fehlende kopieren, Sammelkopie, Tag-Fixer, Feld entfernen,
-Bild ersetzen, Paar verwerfen – lässt sich mit **↶ Rückgängig** (Strg/Cmd+Z) zurücknehmen und mit
-**↷ Wiederholen** (Strg+Y bzw. Strg/Cmd+Shift+Z) erneut ausführen. Bis zu 200 Schritte, über alle Dateien.
-Auch nach dem Speichern kann man zurückgehen – die Datei gilt dann wieder als „geändert“ und kann erneut gespeichert werden.
-Beim Laden neuer Ordner wird der Verlauf geleert. Während man in einem Feld tippt, gilt Strg+Z für das Eingabefeld.
-
-### Automatische Sicherung & Wiederherstellen
-
-- Vor jedem Speichern werden die **bisherigen Tags** aller betroffenen Dateien gesichert – nur die Tag-Bytes
-  (inkl. Cover, DJ-Daten, ID3v1), nicht die Musik. Pro Speichervorgang entsteht ein ZIP in
-  `~/TagStudio/Sicherungen` (Ordner änderbar).
-- Speichern läuft mit **Fortschrittsbalken**; *Abbrechen* stoppt nach der aktuellen Datei.
-- Schlägt die Sicherung einer Datei fehl, wird diese Datei **nicht** gespeichert.
-- **⟲ Sicherungen** zeigt alle Sicherungen mit Status je Datei (wiederherstellbar / bereits gleich / Datei fehlt /
-  Audio verändert) und stellt markierte oder alle Dateien **byte-genau** wieder her. Vor dem Wiederherstellen wird
-  der aktuelle Stand selbst gesichert – auch das ist also umkehrbar.
-- Es wird **nie automatisch gelöscht**. Alte Sicherungen löscht man im Dialog einzeln (mit Rückfrage).
-- Größe: Bibliotheken mit umfangreichen Analysedaten (z. B. beaTunes) haben große Tags – im Test etwa 0,8 MB
-  pro Datei als ZIP. Eine Änderung an der ganzen Bibliothek (1'500 Dateien) erzeugt also eine Sicherung von gut 1 GB.
-
-### Fenster & Dialoge
-
-Alle Dialoge (Sicherungen, Tag-Fixer, Sammelkopie, Feld hinzufügen, Cover-Ansicht, Bearbeiten) sowie Meldungen
-und Datei-Dialoge öffnen sich **zentriert über dem Programmfenster** – also auf dem Bildschirm, auf dem das
-Programm gerade liegt. Meldungen aus einem Dialog heraus erscheinen über diesem Dialog.
-
 ## Einstellungen und Datenablage
 
-Die Seite **Einstellungen** fasst alles zusammen: Design, Standardordner für Vergleich (links/rechts) und Tagger, Tonart-Schreibweise, Stems-Anzeige im Tagger, ID3-Version
-beim Speichern (beibehalten / immer v2.3 / immer v2.4), Sicherung, Player, Herkunft der Tags (eigene Zuordnungen),
-unwichtige Felder (Liste bearbeiten, Standard wiederherstellen, ganze Herkunft „als unwichtig“), Cache (Wellenformen,
-Cover-Vorschauen: Grösse anzeigen, leeren). **Exportieren**
+Die Seite **Einstellungen** fasst alles zusammen – Kacheln in der Reihenfolge des Menüs, oben Sprungmarken:
+Darstellung · **Tagger** (Standardordner, Stems; *beim Start:* automatisch einlesen, Unterordner, Sortierung,
+Cover-Spalte, Herkunfts-Filter) · Tag-Fixer · **Vergleich** (Standardordner; *beim Start:* Unterordner, Zuordnen nach,
+Anzeige, Unwichtige, Leere Felder, Cover – weicht der Vergleich davon ab, setzt ⌂ „Standard“ ihn zurück) ·
+Snapshots · Sicherungen und Speichern (ID3-Version, Sicherung) · Player · Plugins · Herkunft der Tags · unwichtige
+Felder · Cache · Updates. Jede Vorgabe „beim Start“ kann auch „wie zuletzt benutzt“ bleiben. **Exportieren**
 speichert alles als Datei (ohne Zugangsdaten), **Importieren** übernimmt gewählte Bereiche – Pfade eines anderen
 Systems sind nicht vorgewählt –, **Zurücksetzen** geht für einzelne Bereiche oder alles. Vor Import und
 Zurücksetzen wird die alte Datei nach `~/TagStudio/Einstellungen` gesichert.
 
-Gespeichert wird in `~/.tagstudio.json` (beide Oberflächen). Weitere Ordner unter `~/TagStudio`:
+Gespeichert wird in `~/.tagstudio.json`. Weitere Ordner unter `~/TagStudio`:
 
 | Ordner | Inhalt |
 |---|---|
@@ -467,14 +347,14 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 
 ## Dateien
 
-- `tagstudio.py` – klassische Oberfläche (tkinter), Programmstart
-- `tagstudio_web.py` + `web/` – neue Oberfläche (HTML/CSS/JS im App-Fenster über pywebview, sonst im Browser);
+- `tagstudio_web.py` + `web/` – die App (HTML/CSS/JS im App-Fenster über pywebview, sonst im Browser);
   `web/xmleditor.js` XML-Editor, `web/jsontree.js` JSON-Baum, `web/tagger.js` Tagger und Editoren,
   `web/keywheel.js` Camelot-Rad, `web/features.js` Audio-Merkmale, `web/plugins.js` Plugin-Seite,
   `web/player.js` Vorschau-Player, `web/player2.js` Überblenden, Player oben, Player B, Abdocken,
   `web/player-window.html` + `web/playerwin.js` abgedocktes Player-Fenster, `web/settings.js` Einstellungen, `web/jobs.js` Hintergrund-Aufträge
-- `core.py` – gemeinsame Logik beider Oberflächen: Anzeige, Zeichen-Diff, Filter, Laden, Speichern, Einstellungen
-- `session.py` – Zustand und Befehle einer Sitzung für die neue Oberfläche
+- `core.py` – gemeinsame Logik: Anzeige, Zeichen-Diff, Filter, Laden, Speichern, Einstellungen
+- `session.py` – Zustand und Befehle einer Sitzung; Teile in `session_player.py` (Player, Fenster-Nachrichten,
+  Wiedergabe) und `session_snapshots.py` (Snapshots, Journal)
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `tagger.py` – Tagger-Logik: gemeinsame Felder, Tags aus Dateiname, Umbenennen, Spurnummern, Cover,
@@ -494,11 +374,14 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `thumbs.py` – Cover-Vorschaubilder ohne Zusatzpakete
 - `plugins.py` + `plugins/` – Plugin-System (siehe [PLUGINS.md](PLUGINS.md)); eingebaut: `plugins/stems`,
   `plugins/beatport`
-- `updater.py` – neue Version von GitHub holen (git fetch/pull, nur Vorspulen)
+- `updater.py` – Updates: GitHub-Releases (installierte App, Kanal offiziell/Beta) bzw. git (Quellcode, nur
+  Vorspulen); Versionshinweise aus dem CHANGELOG
+- `tagstudio.py` – klassische Oberfläche (tkinter, eingefroren auf Stand 3.0)
 - `version.py` – Versionsnummer (einzige Stelle)
 - `packaging/` – Installer: `build.py` (PyInstaller), `windows.iss` (Inno Setup), `make_dmg.sh` (macOS), Icon;
   `release.py` (neue Version vorbereiten)
-- `.github/` – Workflows (Tests, Installer/Release, CodeQL), Dependabot, Skript für CodeQL-Issues
+- `.github/` – Workflows (Tests, Installer/Release, Releases aufräumen, CodeQL), Dependabot, Skripte für CodeQL-Issues
+  und das Aufräumen alter Beta-Releases
 
 ## Entwicklung
 
@@ -506,6 +389,10 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   GEOB, Datumsumwandlung), Vergleich, Tag-Fixer, Sicherung/Wiederherstellung, Sitzung der neuen Oberfläche,
   Tagger-Werkzeuge, Tonarten, Audio-Merkmale, XML und Binärfelder, Versionierung, Updater und Plugins (Stems und
   Beatport mit nachgebauter Gegenseite) – mit synthetischen MP3-Dateien, ohne Zusatzpakete und ohne Netz.
+  Einzelne Datei: `python -m unittest tests.test_player`.
+- **Oberflächen-Tests** im Browser (Playwright/Chromium, ffmpeg): `TAGSTUDIO_UI_TESTS=1 python -m unittest
+  discover -s tests -p "test_browser_ui.py" -v` – Menü und Einstellungen, Player (Live-Vorschau, Doppelklick,
+  Bewertung, Überblenden mit Tempo, Player B, Abdocken). Ohne die Variable werden sie übersprungen.
 - **GitHub Actions:**
   - `tests.yml` – bei jedem Push die Tests auf Windows, macOS und Linux (Python 3.9–3.13), dazu ein Smoke-Test
     der klassischen Oberfläche.
@@ -546,8 +433,9 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 `python packaging/release.py --check` prüft, ob Versionsnummer, `pyproject.toml`, `SECURITY.md` und CHANGELOG
 zusammenpassen (läuft auch in den Tests).
 
-**Zwei Kanäle:** **Installer (Releases)** – stabile Versionen für den Alltag. **Git-Klon mit Update-Knopf** – folgt
-`main` und bekommt jede Änderung sofort (Testkanal).
+**Kanäle:** In den Einstellungen wählbar – **nur offizielle Versionen** oder **auch Beta-Versionen**. Beta-Releases
+einer Version werden automatisch von der Releases-Seite entfernt, sobald die finale Version erscheint (ihre Git-Tags
+bleiben). Ein Git-Klon mit „auch Beta“ folgt `main` und bekommt jede Änderung sofort.
 
 **Zweige:** `main` ist immer lauffähig (die CI prüft jeden Commit). Größere Vorhaben entstehen in kurzlebigen
 Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind.
@@ -563,22 +451,31 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 ## Ausblick
 
-Zuletzt erschienen: **3.3.1** (Herkunfts-Filter im Vergleich, weitere beaTunes-/Beatport-Felder) nach **3.3.0 – Snapshots & Änderungsjournal** (Tag-Zustand überwachter Ordner festhalten,
-Änderungen anderer Programme erkennen und einzeln zurücknehmen, Snapshots im Vergleich, Schutz vor dem Überschreiben
-externer Änderungen, Listen-Cache für schnelles Einlesen, Player mit Stems-Umschaltung und A–B-Schleife,
-Standardordner). Davor: **3.2.0 – Wiedergabe & Herkunft**.
+Zuletzt erschienen: **3.4.0 – Wiedergabe & Bewertung** (Bewertung und Like, Live-Vorschau, Überblenden mit
+Tempo-Angleichung, Player oben, Player B, Abdocken). Davor **3.3.0 – Snapshots & Änderungsjournal**.
 
 Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
-- **3.4.0 – DJ-Set:** Reihenfolge eines Sets nach Tonart (Camelot), BPM und Energie optimieren, Bewertung jedes
+- **3.5.0 – App allgemein & Aufräumen:** Menü und Einstellungen ordnen, Vorgaben beim Start, Update-Kanal und
+  Versionshinweise, Fenster-Symbol, Aufräumen von Code, Tests und Dokumentation.
+- **3.6.0 – DJ-Set:** Reihenfolge eines Sets nach Tonart (Camelot), BPM und Energie optimieren, Bewertung jedes
   Übergangs, Exporte als M3U8, Rekordbox-XML und CSV.
-- **3.5.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
-- **Plugin-Ideen:** Liedtexte (LRCLIB), Lautheit/ReplayGain, Duplikate finden, Qualitätsprüfung (falsche
-  320 kbit/s), Import aus Rekordbox/Traktor/Serato, Bibliothek nach Tags ordnen.
-- **Später:** Analyse mit librosa bzw. Essentia-Modellen, Filter und Spalten nach Audio-Merkmalen, Mood-Feld,
-  Binärfeld-/JSON-Editor auch im Vergleich, signierte Installer, Intel-Mac, Datenbank-Modul für die Bibliothek.
+- **3.7.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
+- **Später:** Beatgrid und Beatmatching im Player, Symbol-Werkzeugleiste im Vergleich, Plugin-Ideen (Liedtexte,
+  Lautheit, Duplikate, Qualitätsprüfung, Import aus Rekordbox/Traktor/Serato), Analyse-Modelle, signierte
+  Installer, Datenbank-Modul für die Bibliothek.
 
-Verworfen: Umstieg auf Qt (PySide6) – bringt gegenüber der neuen Oberfläche keinen Vorteil.
+Verworfen: Umstieg auf Qt (PySide6) – bringt gegenüber der neuen Oberfläche keinen Vorteil; Intel-Mac-Build (kein
+Bedarf).
+
+## Klassische Oberfläche (eingefroren)
+
+Die erste Oberfläche von TagStudio (`tagstudio.py`, tkinter) ist auf dem **Stand von Version 3.0 eingefroren** und
+wird nicht mehr weiterentwickelt. Sie kann vergleichen, kopieren, Felder bearbeiten, Mehrfachwerte vereinheitlichen
+(Tag-Fixer), sichern und wiederherstellen und hat eine Symbol-Werkzeugleiste. Alles, was seither dazukam (Tagger,
+Snapshots, Player, Plugins …), gibt es nur in der neuen Oberfläche. Start: `start_classic_windows.bat`,
+`start_classic_mac.command` oder `python3 tagstudio.py [links] [rechts]`. Sie nutzt dieselben Einstellungen; ein
+Rauchtest in der CI stellt sicher, dass sie weiterhin startet.
 
 ## Lizenz
 

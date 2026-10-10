@@ -6,7 +6,6 @@ gespeichert; der Token liegt verschlüsselt (Windows: DPAPI, nur dein Benutzerko
 
 Nur Standardbibliothek. Alle Änderungen werden als Vorschläge zurückgegeben (Vorschau mit Häkchen).
 """
-import base64
 import difflib
 import json
 import os

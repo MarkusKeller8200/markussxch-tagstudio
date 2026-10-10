@@ -487,3 +487,24 @@ def save_files(files, backup_on=True, folder=None, cancel=None, progress=None, f
 
 def fmt_n(n) -> str:
     return f"{n:,}".replace(",", "'")
+
+
+# =========================================================================== Anzeige von Grösse und Dauer
+def size_text(n) -> str:
+    """Grösse kurz: „12.3 MB“."""
+    n = float(n or 0)
+    for unit in ("B", "KB", "MB", "GB"):
+        if n < 1024 or unit == "GB":
+            return f"{n:.0f} {unit}" if unit == "B" else f"{n:.1f} {unit}"
+        n /= 1024
+    return f"{n:.1f} GB"
+
+
+def duration_text(sec) -> str:
+    """Dauer kurz: „4.2 s“, „3:05 min“, „1:02:03 h“."""
+    sec = max(0.0, float(sec))
+    if sec < 60:
+        return f"{sec:.1f} s"
+    m, s = divmod(int(round(sec)), 60)
+    h, m = divmod(m, 60)
+    return f"{h}:{m:02d}:{s:02d} h" if h else f"{m}:{s:02d} min"

@@ -10,7 +10,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import blobs  # noqa: E402
-from id3tags import Item, MP3File  # noqa: E402
+from id3tags import Item  # noqa: E402
 from helpers import frame, write_mp3  # noqa: E402
 
 

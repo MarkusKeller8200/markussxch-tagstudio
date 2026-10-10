@@ -6,7 +6,7 @@ import tempfile
 import threading
 import unittest
 
-from helpers import write_mp3, text, txxx, geob, id3v1
+from helpers import write_mp3, text, geob, id3v1
 from id3tags import MP3File, MV
 import compare
 from compare import scan, pair_files, diff, copy_tags, Rules, fix_multi, plan_multi_fix, INPUT_SEPARATORS, MULTI_FIELDS

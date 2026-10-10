@@ -5,7 +5,7 @@ import time
 import unittest
 import urllib.parse
 
-from helpers import write_mp3, text, txxx
+from helpers import write_mp3, text
 from test_tagger_tools import Base
 
 import plugins

@@ -269,8 +269,3 @@ def _write_tags(path: str, tag: bytes, v1: bytes):
         raise
 
 
-def folder_size(folder: str | None = None) -> int:
-    folder = folder or default_dir()
-    if not os.path.isdir(folder):
-        return 0
-    return sum(os.path.getsize(os.path.join(folder, n)) for n in os.listdir(folder) if n.endswith(".zip"))

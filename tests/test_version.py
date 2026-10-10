@@ -8,6 +8,7 @@ import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "packaging"))
+sys.path.insert(0, ROOT)
 import release  # noqa: E402
 import version  # noqa: E402
 

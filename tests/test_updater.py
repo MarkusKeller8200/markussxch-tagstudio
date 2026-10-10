@@ -2,10 +2,13 @@
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 
-import updater
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import updater  # noqa: E402
 
 HAVE_GIT = shutil.which("git") is not None
 

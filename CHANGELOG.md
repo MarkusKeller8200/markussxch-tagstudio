@@ -6,6 +6,36 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+- Seitenleiste in neuer Reihenfolge: **Tagger, Tag-Fixer, Vergleich, Snapshots, Sicherungen, Plugins,
+  Einstellungen**; beim Start öffnet die zuletzt benutzte Seite (beim ersten Start der Tagger) (#88).
+- Einstellungen: Kacheln in der Reihenfolge des Menüs, oben **Sprungmarken**; allgemeine Kacheln (Darstellung,
+  Cache, Updates) am Anfang bzw. Ende (#87).
+- Einstellungen › Vergleich: **Vorgaben beim Start** für Unterordner, Zuordnen nach, Anzeige, Unwichtige, Leere
+  Felder und Cover; weicht der Vergleich ab, setzt der Knopf ⌂ „Standard“ in der Werkzeugleiste ihn zurück (#85).
+- Einstellungen › Tagger: Vorgaben beim Start für automatisches Einlesen des Standardordners, Unterordner,
+  Sortierung, Cover-Spalte und Herkunfts-Filter (#86).
+- Updates: wählbar **nur offizielle Versionen** oder **auch Beta-Versionen**; die installierte App zeigt eine neue
+  Version mit Hinweisen und lädt den passenden Installer; Kennzeichen „Beta“ bei der Versionsnummer (#89).
+- **Versionshinweise** unter „Nach Update suchen“: installierte und neueste Version, Link zu GitHub, verständlicher
+  Hinweis ohne Verbindung (#90).
+- App-Fenster mit **TagStudio-Symbol** (Fenster und Taskleiste, auch im Quellcode-Start) und Titelleiste passend
+  zum hellen bzw. dunklen Design (Windows 10/11) (#103).
+- Beta-Releases verschwinden nach der finalen Version automatisch von der Releases-Seite (Tags bleiben) (#106).
+
+### Geändert
+- Projekt aufgeräumt (#106): `session.py` in Teile aufgeteilt (`session_player.py`, `session_snapshots.py`),
+  ungenutzter Code und Übernahme alter Player-Einstellungen (bis 3.2.0) entfernt, Oberflächen-Tests im Browser als
+  feste Testsuite (`tests/test_browser_ui.py`), Testdateien auch einzeln startbar, README neu gegliedert, ältere
+  CHANGELOG-Einträge zusammengefasst.
+- Klassische Oberfläche (`tagstudio.py`) eingefroren auf Stand 3.0 (Hinweis im Fenstertitel);
+  `start_windows.bat`/`start_mac.command` starten jetzt die neue Oberfläche, die klassische über
+  `start_classic_windows.bat`/`start_classic_mac.command` (#106).
+
+### Behoben
+- Tagger: leere Werte stehen beim Sortieren immer am Ende (auch absteigend); Sortierung nach Spur ohne Disc-Nummer
+  funktioniert wieder.
+
 ## [3.4.0] – 2026-10-10
 
 ### Neu
@@ -367,11 +397,8 @@ Grosses Update: neue Oberfläche mit Tagger und Plugins (entwickelt im Zweig `we
 - Knopf „Nach Update suchen“: prüft beim Start auf neue Versionen, lädt sie per Klick und startet neu.
 - Gemeinsamer Kern `core.py` (Anzeige-Logik, Filter, Laden, Speichern) und `session.py`; beide Oberflächen
   nutzen dieselbe Logik und dieselben Einstellungen.
-### Neu (Sicherungen)
 - **Änderungs-Viewer** in den Sicherungen: Spalte „Geänderte Felder“ je Datei; Ansicht Feld für Feld
   „Vorher (Sicherung)“ ↔ „Jetzt“ mit Hervorhebung, Blättern durch geänderte Dateien, einzelne Datei wiederherstellen.
-
-### Neu (Installer)
 - **Installer** für Windows (`…-Windows-Setup.exe`, ohne Adminrechte) und macOS (`…-macOS-Apple-Chip.dmg`) –
   kein Python nötig. Gebaut von GitHub Actions bei jedem Versions-Tag, mit Selbsttest; erscheinen als GitHub-Release.
 
@@ -383,61 +410,24 @@ Grosses Update: neue Oberfläche mit Tagger und Plugins (entwickelt im Zweig `we
 - Rückgängig/Wiederholen in `undo.py` ausgelagert.
 
 ## [2.9] – 2026-10-08
+
+### Neu
+- Git-Repository, automatische Tests (`tests/`) und GitHub Actions für Windows, macOS und Linux.
+
 ### Geändert
 - Projekt umbenannt in **MarKusSXCH TagStudio** (Hauptdatei `tagstudio.py`, Einstellungen `~/.tagstudio.json`,
   Sicherungen `~/TagStudio/Sicherungen`, Cache `~/TagStudio/cache`).
 - Einstellungen und Sicherungen der Vorgängerversion werden automatisch weiterverwendet.
-### Neu
-- Git-Repository, automatische Tests (`tests/`) und GitHub Actions für Windows, macOS und Linux.
 
-## [2.8] – 2026-10-08
-### Neu
-- URLs in Tag-Werten sind klickbar und öffnen im Browser; Kontextmenü „Link öffnen“.
-- Alle Dialoge, Meldungen und Dateidialoge öffnen sich zentriert über dem aktiven Programmfenster.
+## Frühere Versionen als „MP3 Tag Compare“ (1.0 – 2.8, 2026-10-04 bis 2026-10-08)
 
-## [2.7] – 2026-10-08
-### Neu
-- Cover-Vorschau über der Tabelle, Unterschiede rot umrandet, große Ansicht per Klick.
-- Suche und Filter in der Paarliste (Feld · Bedingung · Wert · Seite), „Felder suchen“ in der Tabelle.
-
-## [2.6] – 2026-10-08
-### Neu
-- Rückgängig/Wiederholen (Strg/Cmd+Z, Strg+Y) über alle Änderungen.
-- Automatische Sicherung der Tags vor jedem Speichern, Dialog „Sicherungen“ zum Wiederherstellen (byte-genau).
-- Speichern im Hintergrund mit Fortschrittsbalken.
-
-## [2.5] – 2026-10-08
-### Behoben (Praxistest mit 1'493 Dateien)
-- Unsichtbare BOM-Zeichen in Mehrfachwerten werden entfernt.
-- Eingebettete DJ-Daten (GEOB: Serato, Mixed In Key, PlatinumNotes) werden nach Beschreibung zugeordnet und lesbar angezeigt.
-- Beteiligte Personen (TIPL) als „Rolle: Name“.
-### Geändert
-- Analyse-/DJ-Daten (beaTunes, GEOB, ETCO …) gelten standardmäßig als „unwichtig“.
-
-## [2.4] – 2026-10-08
-### Neu
-- Splitter zwischen links / Befehlsspalte / rechts und zwischen Name | Wert, automatisch optimale Breiten.
-- Befehlsspalte mit ◀/▶ pro Zeile; „Alles“ und „Fehlende“ nach links/rechts übernehmen.
-
-## [2.3] – 2026-10-08
-### Neu
-- Tag-Fixer für Mehrfachwerte (Trennzeichen oder ID3v2.4-Standard).
-- Feine Trennlinien zwischen den Zeilen.
-- Leere Standardfelder (ID3v1 / v2.3 / v2.4) einblenden.
-
-## [2.2] – 2026-10-08
-### Neu
-- Tooltip mit der originalen Frame-ID beim Überfahren eines Feldnamens.
-
-## [2.1] – 2026-10-08
-### Neu
-- Einlesen großer Ordner mit Zählung, Fortschrittsbalken und Abbrechen.
-
-## [2.0] – 2026-10-08
-### Neu
-- Oberfläche im Stil von Beyond Compare (Dunkel/Hell), alle ID3-Frames, Zeichen-Diff, Inline-Bearbeitung,
-  Kontextmenü, Sammelkopie, Datei-Infos (Dauer, Bitrate).
-
-## [1.0] – 2026-10-04
-### Neu
-- Erste Version: zwei Ordner oder Dateien vergleichen, Standardfelder links ↔ rechts kopieren, eigene ID3-Bibliothek ohne Zusatzpakete.
+Zusammengefasst – die klassische Oberfläche (tkinter) entstand in diesen Versionen:
+- **1.0:** zwei Ordner oder Dateien vergleichen, Standardfelder links ↔ rechts kopieren, eigene ID3-Bibliothek ohne
+  Zusatzpakete.
+- **2.0 – 2.4:** Oberfläche im Stil von Beyond Compare (Dunkel/Hell) mit allen ID3-Frames, Zeichen-Diff,
+  Inline-Bearbeitung, Kontextmenü und Sammelkopie; Einlesen grosser Ordner mit Fortschritt; Tooltip mit Frame-ID;
+  Tag-Fixer für Mehrfachwerte; leere Standardfelder einblenden; Splitter und Befehlsspalte (◀/▶, „Alles“, „Fehlende“).
+- **2.5:** Praxistest mit 1'493 Dateien – BOM in Mehrfachwerten entfernt, DJ-Daten (GEOB: Serato, Mixed In Key,
+  PlatinumNotes) lesbar zugeordnet, TIPL als „Rolle: Name“; Analyse-/DJ-Daten gelten als „unwichtig“.
+- **2.6 – 2.8:** Rückgängig/Wiederholen, automatische Sicherung vor jedem Speichern mit Wiederherstellen,
+  Speichern im Hintergrund; Cover-Vorschau, Suche und Filter in der Paarliste; klickbare URLs, zentrierte Dialoge.

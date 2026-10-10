@@ -43,10 +43,6 @@ function plStartSync() {
   $$("#plStart button").forEach((b) => { const on = b.dataset.v === PLAYER.startAt; b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
 }
 
-function plStore(k, v) {
-  try { if (v === undefined) return localStorage.getItem("ts_pl_" + k); localStorage.setItem("ts_pl_" + k, String(v)); } catch (e) { /* egal */ }
-  return null;
-}
 const fmtTime = (s) => {
   if (!isFinite(s) || s < 0) s = 0;
   const m = Math.floor(s / 60), r = Math.floor(s % 60);
@@ -588,14 +584,7 @@ function initPlayer() {
   PLAYER.audio = a;
   PLAYER.spare = new Audio();
   plBindAudio(a); plBindAudio(PLAYER.spare);
-  const pp = (S.settings && S.settings.player) || { vol: 0.8, start: "0", follow: true, wave: true, saved: true };
-  if (!pp.saved) {          // bis 3.2.0-beta.1 im Browser-Speicher → einmalig in die Einstellungen übernehmen
-    const v = parseFloat(plStore("vol")), st = plStore("start");
-    if (isFinite(v)) { pp.vol = Math.max(0, Math.min(1, v)); call("set_player_pref", "vol", pp.vol).catch(() => {}); }
-    if (st && ["0", "30", "60", "cue"].includes(st)) { pp.start = st; call("set_player_pref", "start", st).catch(() => {}); }
-    if (plStore("wave") === "0") { pp.wave = false; call("set_player_pref", "wave", false).catch(() => {}); }
-    if (plStore("follow") === "0") { pp.follow = false; call("set_player_pref", "follow", false).catch(() => {}); }
-  }
+  const pp = (S.settings && S.settings.player) || { vol: 0.8, start: "0", follow: true, wave: true };
   plApplyPrefs(pp);
   $("#plWave").insertAdjacentHTML("beforeend", '<div class="pl-hover" id="plHover" hidden></div>');
   $("#plWave").addEventListener("mousemove", plHover);

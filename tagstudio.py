@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """
-MarKusSXCH TagStudio – MP3-Tagger, Vergleich (im Stil von Beyond Compare), Tag-Fixer und mehr.
+MarKusSXCH TagStudio – KLASSISCHE OBERFLÄCHE (tkinter), eingefroren auf dem Stand von Version 3.0.
+
+Wird nicht mehr weiterentwickelt (Entscheid 2026-10-10, #106). Die aktuelle App ist die neue Oberfläche
+(tagstudio_web.py + web/, im Installer „TagStudio“). Dieser Stand bleibt startfähig, solange er mit dem
+gemeinsamen Kern (core.py, id3tags.py …) läuft – der Rauchtest tests/test_gui_smoke.py prüft das.
+
+Ursprüngliche Beschreibung: MP3-Tagger, Vergleich (im Stil von Beyond Compare), Tag-Fixer und mehr.
 
 Links und rechts je einen Ordner oder eine Datei laden. Alle ID3-Felder werden
 zeilenweise gegenübergestellt, Unterschiede rot und zeichengenau markiert. Felder lassen
@@ -304,7 +310,7 @@ class App(tk.Tk):
         _APP = self
         self.cfg = self._load_cfg()
         self.th = THEMES[self.cfg.get("theme", "dark")]
-        self.title(f"{APP} {VERSION}")
+        self.title(f"{APP} {VERSION} – klassische Oberfläche (Stand 3.0, nicht mehr gepflegt)")
         self.geometry(self.cfg.get("geometry", "1500x920"))
         self.minsize(1050, 650)
         # neue Standard-Muster für "unwichtig" auch in bestehende Einstellungen übernehmen

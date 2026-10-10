@@ -6,7 +6,7 @@ import tempfile
 import time
 import unittest
 
-from helpers import write_mp3, text, txxx
+from helpers import write_mp3, text
 from sample_library import png_solid
 
 import core
