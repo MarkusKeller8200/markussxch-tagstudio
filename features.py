@@ -38,8 +38,21 @@ def get(f, name) -> str:
     return it.text.strip() if it is not None and it.kind not in ("picture", "raw") else ""
 
 
-def number(text):
-    """Text → int 0–100 oder None. Versteht 78, 78.4, 0.78 (Anteil), „78 %“."""
+# Skala der Werte in den Dateien (#11): 100 = 0–100 (Standard), 10 = 0–10 (z. B. Lexicon).
+# Angezeigt und bearbeitet wird immer 0–100; umgerechnet wird beim Lesen und Schreiben.
+SCALE = 100
+SCALES = {100: "0–100 (Standard)", 10: "0–10 (z. B. Lexicon)"}
+
+
+def set_scale(v) -> int:
+    global SCALE
+    SCALE = 10 if v in (10, "10") else 100
+    return SCALE
+
+
+def number(text, scale=None):
+    """Text aus der Datei → int 0–100 oder None.
+    Skala 100: versteht 78, 78.4, 0.78 (Anteil), „78 %“. Skala 10: 7 → 70, 7.5 → 75."""
     if text is None:
         return None
     s = str(text).strip().replace(",", ".").rstrip("%").strip()
@@ -48,6 +61,8 @@ def number(text):
     if not re.fullmatch(r"-?\d+(\.\d+)?", s):
         return None
     v = float(s)
+    if (scale or SCALE) == 10:
+        return int(round(v * 10)) if 0 <= v <= 10 else None
     if "." in s and 0 <= v <= 1:      # 0.78 → 78
         v *= 100
     if v < 0 or v > 100:
@@ -55,14 +70,25 @@ def number(text):
     return int(round(v))
 
 
+def display(text) -> str:
+    """Wert für die Anzeige (0–100); ungültige Werte bleiben, wie sie sind."""
+    n = number(text)
+    return text if n is None else str(n) if SCALE == 10 else text
+
+
+def stored(n: int) -> str:
+    """0–100 → Text für die Datei in der eingestellten Skala."""
+    return str(n) if SCALE != 10 else f"{n / 10:g}"
+
+
 def normalize(text) -> str:
-    """Eingabe → gespeicherter Text ('' = entfernen). ValueError bei ungültigen Werten."""
+    """Eingabe (0–100) → gespeicherter Text ('' = entfernen). ValueError bei ungültigen Werten."""
     if text is None or str(text).strip() == "":
         return ""
-    n = number(text)
+    n = number(text, 100)
     if n is None:
         raise ValueError(f"„{text}“ ist kein Wert zwischen 0 und 100.")
-    return str(n)
+    return stored(n)
 
 
 def set_value(f, name, value) -> bool:
@@ -92,7 +118,7 @@ def common(files) -> dict:
     for name in NAMES:
         vals = {get(f, name) for f in files}
         v = vals.pop() if len(vals) == 1 else ""
-        out[name] = {"value": v, "mixed": len(vals) > 0, "num": number(v)}
+        out[name] = {"value": display(v), "mixed": len(vals) > 0, "num": number(v)}
     return out
 
 

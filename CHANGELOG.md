@@ -23,6 +23,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - DJ-Set **exportieren**: M3U8-Playlist mit absoluten oder relativen Pfaden, **Rekordbox-XML** (Playlist mit
   BPM, Tonart, Dauer; Pfade mit Umlauten und Leerzeichen korrekt kodiert) und CSV für Excel mit
   Übergangsbewertung; dazu **Spurnummern in Set-Reihenfolge** schreiben (mit Vorschau, rückgängig machbar) (#4).
+- Tagger: **Spalten mit Audio-Merkmalen** (Energy, Danceability …) über „Merkmale ▾“ ein- und ausblenden, nach
+  ihnen sortieren; das Suchfeld versteht **Zahlenfilter** wie `energy>=70`, `Energie ≥ 70`, `dance<40` oder
+  `bpm:120-128`, auch kombiniert mit Text. Einstellungen › Tagger: Skala der Merkmale in den Dateien wählbar
+  (0–100 oder 0–10 wie Lexicon); angezeigt wird immer 0–100, beim Lesen und Schreiben wird umgerechnet (#11).
 
 ## [3.5.0] – 2026-10-10
 

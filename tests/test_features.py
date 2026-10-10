@@ -31,6 +31,26 @@ class TestFeatures(unittest.TestCase):
             features.normalize("200")
         self.assertEqual(len(features.FEATURES), 10)
 
+    def test_scale_10(self):
+        """#11: Werte in den Dateien 0–10 (Lexicon), Anzeige und Eingabe 0–100."""
+        try:
+            self.assertEqual(features.set_scale(10), 10)
+            n = features.number
+            self.assertEqual(n("7"), 70)
+            self.assertEqual(n("7.5"), 75)
+            self.assertEqual(n("0,4"), 4)
+            self.assertIsNone(n("70"))                 # passt nicht zur Skala
+            self.assertEqual(n("70", 100), 70)
+            self.assertEqual(features.normalize("75"), "7.5")
+            self.assertEqual(features.normalize("70"), "7")
+            self.assertEqual(features.display("7"), "70")
+            self.assertEqual(features.display("hoch"), "hoch")
+        finally:
+            features.set_scale(100)
+        self.assertEqual(features.SCALE, 100)
+        self.assertEqual(features.normalize("75"), "75")
+        self.assertEqual(features.display("0.75"), "0.75")
+
 
 class TestFeatureSession(Base):
     def setUp(self):
@@ -82,6 +102,27 @@ class TestFeatureSession(Base):
         self.assertFalse(s.tagger_settings()["features_open"] is None)
         s.tag_features_open(False)
         self.assertFalse(Session().tagger_settings()["features_open"])
+
+    def test_scale_and_columns_in_session(self):
+        from session import Session
+        s = Session()
+        try:
+            self.assertEqual(s.set_feat_scale(10)["scale"], 10)
+            self.assertEqual(Session().settings_page()["feat_scale"], 10)     # gemerkt
+            s.start_tag_load(self.B, False)
+            while not s.task_status()["done"]:
+                time.sleep(0.02)
+            i = [os.path.basename(f.path) for f in s.tag_files].index("4.mp3")
+            self.assertIsNone(s.tag_rows()["rows"][i]["feat"]["DANCEABILITY"])   # „90“ ist bei 0–10 ungültig
+            s.tag_feature_set([i], "ENERGY", "65")
+            self.assertEqual(s.tag_files[i].text("TXXX:ENERGY"), "6.5")
+            self.assertEqual(s.tag_rows()["rows"][i]["feat"]["ENERGY"], 65)
+        finally:
+            s.set_feat_scale(100)
+        s.set_ui("tg_feat_cols", ["ENERGY", "NOPE", "ENERGY", "VALENCE"])
+        self.assertEqual(s.ui["tg_feat_cols"], ["ENERGY", "VALENCE"])
+        with self.assertRaises(ValueError):
+            s.set_ui("tg_feat_cols", "ENERGY")
 
     def test_export_columns(self):
         files = [MP3File(os.path.join(self.B, "4.mp3"))]

@@ -169,9 +169,9 @@
         <div class="tg-body">
           <section class="tg-list" aria-label="Dateien">
             <div class="tg-listhead">
-              <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="tgQuery" placeholder="Dateien filtern (Name, Titel, Künstler …)" aria-label="Dateien filtern"></label>
+              <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="tgQuery" placeholder="Filtern: Name, Titel, Künstler … oder energy>=70, bpm:120-128" aria-label="Dateien filtern" title="Text sucht in Datei, Titel, Künstler, Album, Genre. Zahlenfilter: bpm, Tonart nicht; Audio-Merkmale wie energy>=70, dance<40, energie:60-80 (auch ≥ ≤ = &lt; &gt;). Mehrere Filter mit Leerzeichen."></label>
               <span class="muted sm" id="tgCount"></span>
-              <button class="ghost sm tg-cover-col" id="tgCoverCol" title="Cover-Spalte ein-/ausblenden">Cover</button><span class="tg-stem-btns" id="tgStemBtns" hidden><button class="ghost sm" id="tgStemOpen" title="Alle Stems aufklappen">Stems ▾</button><button class="ghost sm" id="tgStemClose" title="Alle Stems zuklappen">Stems ▸</button></span>
+              <button class="ghost sm tg-cover-col" id="tgCoverCol" title="Cover-Spalte ein-/ausblenden">Cover</button><button class="ghost sm tg-cover-col" id="tgFeatCols" aria-haspopup="menu" title="Spalten mit Audio-Merkmalen (Energy, Danceability …) ein-/ausblenden">Merkmale ▾</button><span class="tg-stem-btns" id="tgStemBtns" hidden><button class="ghost sm" id="tgStemOpen" title="Alle Stems aufklappen">Stems ▾</button><button class="ghost sm" id="tgStemClose" title="Alle Stems zuklappen">Stems ▸</button></span>
             </div>
             <div class="tg-table" id="tgTable" tabindex="0" aria-label="Dateiliste">
               <div class="tg-thead" id="tgHead"></div>

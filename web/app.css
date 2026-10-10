@@ -363,7 +363,7 @@ span.xml-treeonly{display:contents}
 .tg-listhead{display:flex;align-items:center;gap:12px;padding-right:8px}
 .tg-listhead .search{flex:1;max-width:520px}
 .tg-table{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;background:var(--surf);overflow:hidden;outline:0}
-.tg-thead,.tg-row{display:grid;grid-template-columns:22px var(--tg-name,minmax(130px,1.5fr)) minmax(80px,1fr) minmax(80px,1fr) minmax(80px,1fr) 52px 48px minmax(64px,.8fr) 50px 64px;gap:0 10px;align-items:center;padding:0 12px}
+.tg-thead,.tg-row{display:grid;grid-template-columns:22px var(--tg-name,minmax(130px,1.5fr)) minmax(80px,1fr) minmax(80px,1fr) minmax(80px,1fr) 52px 48px minmax(64px,.8fr) 50px 64px var(--tg-feat,);gap:0 10px;align-items:center;padding:0 12px}
 .tg-thead{height:38px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
 .tg-thead button{border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;padding:0;display:flex;align-items:center;gap:4px;min-width:0}
 .tg-thead button:hover{color:var(--fg)}
@@ -1103,3 +1103,13 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .dj-legend{display:flex;gap:14px;flex-wrap:wrap}
 .dj-legend .le::before{content:"";display:inline-block;width:14px;height:0;border-top:2px solid var(--acc);vertical-align:middle;margin-right:5px}
 .dj-legend .le.bpm::before{border-top-color:var(--diff)} .dj-legend .le.tgt::before{border-top:1.5px dashed var(--fg);opacity:.6}
+
+/* Tagger: Spalten mit Audio-Merkmalen (#11) – dann schmalere Grundspalten, ab 4 Merkmalen ohne Album/Jahr/Genre */
+.tg-table.feat .tg-thead,.tg-table.feat .tg-row{gap:0 8px;grid-template-columns:22px var(--tg-name,minmax(110px,1.4fr)) minmax(60px,1fr) minmax(60px,1fr) minmax(40px,.7fr) 40px 40px minmax(40px,.6fr) 44px 56px var(--tg-feat,)}
+.tg-table.feat-many .tg-thead,.tg-table.feat-many .tg-row{grid-template-columns:22px var(--tg-name,minmax(110px,1.4fr)) minmax(60px,1fr) minmax(60px,1fr) 40px 44px 56px var(--tg-feat,)}
+.tg-table.feat-many .tg-thead>:nth-child(5),.tg-table.feat-many .tg-thead>:nth-child(7),.tg-table.feat-many .tg-thead>:nth-child(8),
+.tg-table.feat-many .tg-row:not(.stem-x)>:nth-child(5),.tg-table.feat-many .tg-row:not(.stem-x)>:nth-child(7),.tg-table.feat-many .tg-row:not(.stem-x)>:nth-child(8){display:none}
+.tg-thead button.ft-h{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.ft-c{position:relative;min-width:0;padding:4px 0 5px;text-align:right;font-variant-numeric:tabular-nums;color:var(--dim);font-size:12.5px}
+.ft-c i{position:absolute;left:0;bottom:0;height:2px;border-radius:2px;background:var(--acc);opacity:.6}
+.tg-cover-col.on{color:var(--acc);border-color:var(--acc)}

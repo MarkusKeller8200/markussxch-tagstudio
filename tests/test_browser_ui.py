@@ -105,6 +105,19 @@ class UiTest(unittest.TestCase):
         pg.click("#tgLoad")
         pg.wait_for_function("TG.loaded && TG.rows.length === 3")
 
+    def cfg_until(self, test, timeout=4.0):
+        """Konfiguration lesen, bis test(cfg) wahr ist (Speichern ist teils verzögert)."""
+        t0 = time.time()
+        while True:
+            try:
+                c = self.cfg()
+                if test(c) or time.time() - t0 > timeout:
+                    return c
+            except (OSError, ValueError):
+                if time.time() - t0 > timeout:
+                    raise
+            time.sleep(0.1)
+
     def until(self, js, timeout=6.0):
         t0 = time.time()
         while time.time() - t0 < timeout:
@@ -198,6 +211,33 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("DECKB.audio.paused"))
         pop.close()
         self.assertTrue(self.until("!DET.on", 10))
+
+    def test_tagger_feature_columns(self):
+        """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("call('tag_feature_set', [0], 'ENERGY', '80')")
+        pg.evaluate("call('tag_feature_set', [1], 'ENERGY', '40')")
+        pg.evaluate("taggerRefresh()")
+        pg.click("#tgFeatCols")
+        pg.locator("#menu button", has_text="Energy – ").click()
+        pg.wait_for_selector('#tgHead [data-sort="f:ENERGY"]')
+        self.assertEqual(pg.locator("#tgInner .ft-c").count(), 2)
+        self.assertEqual(self.cfg_until(lambda c: "tg_feat_cols" in c.get("web_ui", {}))["web_ui"]["tg_feat_cols"], ["ENERGY"])
+        # Sortieren nach Energy: 40 vor 80, leere ans Ende
+        pg.click('#tgHead [data-sort="f:ENERGY"]')
+        self.assertEqual(pg.evaluate("TG.order.map(i => TG.rows[i].feat.ENERGY)"), [40, 80, None])
+        # Filter
+        for q, n in (("energy>=70", 1), ("Energie ≥ 30", 2), ("bpm:118-125", 2), ("dance<10", 0), ("Ton 220 energy>50", 1)):
+            pg.fill("#tgQuery", q)
+            self.assertTrue(self.until(f"TG.order.length === {n}"), q)
+        pg.fill("#tgQuery", "")
+        self.assertTrue(self.until("TG.order.length === 3"))
+        # Skala 0–10: Anzeige bleibt 0–100, gespeichert wird ÷10
+        pg.click('.nav[data-module="settings"]')
+        pg.select_option("#stFeatScale", "10")
+        self.assertEqual(self.cfg_until(lambda c: c.get("feat_scale") == 10).get("feat_scale"), 10)
+        pg.select_option("#stFeatScale", "100")
 
     def test_djset_page(self):
         """#3 DJ-Set: aus dem Tagger übernehmen, optimieren, sperren, ziehen, Tasten, Wiedergabe, gemerkte Optionen."""

@@ -90,10 +90,14 @@ function tgApplyOrder() {
   const q = ($("#tgQuery").value || "").trim().toLowerCase();
   const { col, dir } = TG.sort;
   let idx = TG.rows.filter((r) => r.parent === undefined).map((r) => r.i);   // Stems hängen unter dem Original
-  if (q) idx = idx.filter((i) => { const r = TG.rows[i]; return [r.rel, r.TIT2, r.TPE1, r.TALB, r.TCON, r.TPE2].some((v) => (v || "").toLowerCase().includes(q)); });
   const bpmNum = (v) => { const n = parseFloat(String(v || "").replace(",", ".")); return isFinite(n) ? n : Infinity; };
+  const { text, nums } = tgParseQuery(q);                                    // #11: Zahlenfilter wie energy>=70
+  if (text) idx = idx.filter((i) => { const r = TG.rows[i]; return [r.rel, r.TIT2, r.TPE1, r.TALB, r.TCON, r.TPE2].some((v) => (v || "").toLowerCase().includes(text)); });
+  if (nums.length) idx = idx.filter((i) => { const r = TG.rows[i];
+    return nums.every((f) => { const v = f.field === "bpm" ? bpmNum(r.TBPM) : r.feat ? r.feat[f.field] : null;
+      return v !== null && v !== undefined && v !== Infinity && f.test(v); }); });
   const key = (r) => (col === "name" ? r.rel : col === "camelot" ? keySortValue(r.camelot) : col === "TRCK" ? (r.TPOS ? trackNum(r.TPOS) : 0) * 10000 + trackNum(r.TRCK)
-    : col === "TBPM" ? bpmNum(r.TBPM) : (r[col] || ""));
+    : col === "TBPM" ? bpmNum(r.TBPM) : col.startsWith("f:") ? (r.feat && r.feat[col.slice(2)] !== null && r.feat[col.slice(2)] !== undefined ? r.feat[col.slice(2)] : Infinity) : (r[col] || ""));
   idx.sort((a, b) => {
     const x = key(TG.rows[a]), y = key(TG.rows[b]);
     const ex = x === "" || x === Infinity || x === 999, ey = y === "" || y === Infinity || y === 999;
@@ -117,14 +121,76 @@ function tgApplyOrder() {
   drawTgList();
 }
 
+// ---------------------------------------------------------------------- Audio-Merkmale als Spalten und Filter (#11)
+function tgFeatCols() {
+  const list = (TG.settings && TG.settings.features) || [];
+  const want = new Set(LAYOUT.tg_feat_cols || []);
+  return list.filter(([n]) => want.has(n));
+}
+
+const TG_FEAT_ALIAS = { energie: "ENERGY", tanz: "DANCEABILITY", dance: "DANCEABILITY", froh: "HAPPINESS", happy: "HAPPINESS",
+  stimmung: "VALENCE", valenz: "VALENCE", akustik: "ACOUSTICNESS", acoustic: "ACOUSTICNESS", instrument: "INSTRUMENTALNESS",
+  live: "LIVENESS", sprache: "SPEECHINESS", speech: "SPEECHINESS", hell: "BRIGHTNESS", bright: "BRIGHTNESS",
+  aggress: "AGGRESSIVENESS", tempo: "bpm" };
+
+/** Suchtext in Text und Zahlenfilter zerlegen: „energy>=70 bpm:120-128 house“ → {text: "house", nums: [...]} */
+function tgParseQuery(q) {
+  const names = ((TG.settings && TG.settings.features) || []).map(([n]) => n);
+  const field = (w) => {
+    w = w.toLowerCase();
+    if (w === "bpm") return "bpm";
+    const a = Object.keys(TG_FEAT_ALIAS).find((k) => w.startsWith(k) || (w.length >= 3 && k.startsWith(w)));
+    if (a) return TG_FEAT_ALIAS[a];
+    return names.find((n) => w.length >= 3 && n.toLowerCase().startsWith(w)) || null;
+  };
+  const norm = String(q || "").replace(/≥/g, ">=").replace(/≤/g, "<=").replace(/([a-zäöü])\s*(>=|<=|>|<|=|:)\s*(?=\d)/gi, "$1$2");
+  const text = [], nums = [];
+  for (const tok of norm.split(/\s+/).filter(Boolean)) {
+    const m = tok.match(/^([a-zäöü]+)(>=|<=|>|<|=|:)(\d+(?:[.,]\d+)?)(?:-(\d+(?:[.,]\d+)?))?$/i);
+    const f = m && field(m[1]);
+    if (!f) { text.push(tok); continue; }
+    const a = parseFloat(m[3].replace(",", ".")), b = m[4] !== undefined ? parseFloat(m[4].replace(",", ".")) : null;
+    const op = m[2];
+    const test = b !== null ? (v) => v >= Math.min(a, b) && v <= Math.max(a, b)
+      : op === ">=" ? (v) => v >= a : op === "<=" ? (v) => v <= a : op === ">" ? (v) => v > a : op === "<" ? (v) => v < a
+      : f === "bpm" ? (v) => Math.abs(v - a) < 0.5 : (v) => v === a;
+    nums.push({ field: f, test });
+  }
+  return { text: text.join(" ").toLowerCase(), nums };
+}
+
+function tgFeatMenu(btn) {
+  const list = (TG.settings && TG.settings.features) || [];
+  const on = new Set(LAYOUT.tg_feat_cols || []);
+  const toggle = (n) => {
+    const s = new Set(LAYOUT.tg_feat_cols || []);
+    s.has(n) ? s.delete(n) : s.add(n);
+    LAYOUT.tg_feat_cols = list.map(([x]) => x).filter((x) => s.has(x));
+    saveUi("tg_feat_cols"); renderTgHead(); drawTgList();
+  };
+  const r = btn.getBoundingClientRect();
+  showMenu(r.left, r.bottom + 6, [
+    ...list.map(([n, label, desc]) => ({ label: `${on.has(n) ? "✓ " : "    "}${label} – ${desc}`, run: () => toggle(n) })),
+    "-",
+    { label: "Alle Merkmal-Spalten ausblenden", run: () => { LAYOUT.tg_feat_cols = []; saveUi("tg_feat_cols"); renderTgHead(); drawTgList(); } },
+    { label: "Filter-Beispiel einsetzen: energy>=70", run: () => { $("#tgQuery").value = "energy>=70"; tgApplyOrder(); $("#tgQuery").focus(); } },
+  ]);
+}
+
 function renderTgHead() {
   $("#tgTable").classList.toggle("covers", !!LAYOUT.tg_cover_col);       // #73
   const cb = $("#tgCoverCol"); if (cb) cb.classList.toggle("on", !!LAYOUT.tg_cover_col);
+  const fcols = tgFeatCols();
+  const fb = $("#tgFeatCols"); if (fb) { fb.classList.toggle("on", fcols.length > 0); fb.textContent = fcols.length ? `Merkmale (${fcols.length}) ▾` : "Merkmale ▾"; }
+  $("#tgTable").style.setProperty("--tg-feat", fcols.length ? `repeat(${fcols.length}, 52px)` : " ");
+  $("#tgTable").classList.toggle("feat", fcols.length > 0);
+  $("#tgTable").classList.toggle("feat-many", fcols.length >= 4);
   $("#tgHead").innerHTML = TG_COLS.map(([k, l]) => {
     if (k === "m") return "<span></span>";
     const b = `<button data-sort="${k}" class="${TG.sort.col === k ? "on" : ""}">${esc(l)}${TG.sort.col === k ? (TG.sort.dir > 0 ? " ▴" : " ▾") : ""}</button>`;
     return k === "name" ? `<span class="th-name">${b}<span class="col-grip" id="tgNameGrip" role="separator" aria-orientation="vertical" aria-label="Breite der Spalte Datei" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: automatisch"></span></span>` : b;
-  }).join("");
+  }).join("") + fcols.map(([n, label, desc]) => { const k = "f:" + n, on = TG.sort.col === k;
+    return `<button data-sort="${k}" class="ft-h${on ? " on" : ""}" title="${esc(label)} – ${esc(desc)} (0–100)">${esc(label.slice(0, 7))}${on ? (TG.sort.dir > 0 ? " ▴" : " ▾") : ""}</button>`; }).join("");
   const grip = $("#tgNameGrip");     // #41: Breite der Datei-Spalte
   const setW = (w) => { LAYOUT.tg_col_name = w ? clamp(Math.round(w), 110, 900) : 0; applyLayout(); };
   draggable(grip, {
@@ -146,6 +212,7 @@ function drawTgList() {
   const sel1 = TG.sel.size === 1 ? TG.rows[[...TG.sel][0]] : null;
   const fit = new Set(sel1 && sel1.camelot ? keyCompat(sel1.camelot) : []);
   const mb = (b) => (b < 1048576 ? `${Math.round(b / 1024)} KB` : `${(b / 1048576).toFixed(1).replace(".", ",")} MB`);
+  const fcols = tgFeatCols();
   for (let k = first; k < last; k++) {
     const v = TG.view[k];
     if (v.stem) {         // FLAC/WAV-Spur: nur anhören / zeigen
@@ -163,7 +230,8 @@ function drawTgList() {
       <span>${r.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</span>
       <span class="fn">${LAYOUT.tg_cover_col && v.child === undefined ? `<span class="tg-thumb${r.ch ? "" : " none"}"${r.ch ? ` data-ch="${r.ch}"` : ""}>${r.ch && TG_THUMBS.get(r.ch) ? `<img src="${TG_THUMBS.get(r.ch)}" alt="">` : ""}</span>` : ""}${name}${rateMini(r.rating, r.like)}</span><span>${esc(r.TIT2)}</span><span>${esc(r.TPE1)}</span><span>${esc(r.TALB)}</span>
       <span>${esc(r.TRCK)}</span><span>${esc(r.TDRC)}</span><span>${esc(r.TCON)}</span><span class="num">${esc(r.TBPM)}</span>
-      <span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx">${esc(r.TKEY)}</span>`}</span></div>`;
+      <span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx">${esc(r.TKEY)}</span>`}</span>${fcols.map(([n]) => { const v = r.feat ? r.feat[n] : null;
+        return v === null || v === undefined ? "<span></span>" : `<span class="ft-c"><i style="width:${v}%"></i>${v}</span>`; }).join("")}</div>`;
   }
   inner.innerHTML = h;
   if (LAYOUT.tg_cover_col) tgThumbsLoad();
@@ -928,6 +996,7 @@ async function tgOriginDialog(preset = "") {
     tgSelect(+r.dataset.i, e).then(() => { if (dbl && typeof plPlayRow === "function") plPlayRow(); });
   });
   $("#tgCoverCol").addEventListener("click", () => { LAYOUT.tg_cover_col = !LAYOUT.tg_cover_col; saveUi("tg_cover_col"); renderTgHead(); drawTgList(); });
+  $("#tgFeatCols").addEventListener("click", (e) => { e.stopPropagation(); tgFeatMenu(e.currentTarget); });
   $("#tgInner").addEventListener("mouseover", tgCoverPop);
   $("#tgInner").addEventListener("mouseout", tgCoverPop);
   $("#tgStemOpen").addEventListener("click", () => { TG.rows.forEach((r) => { if (r.stems) TG.open.add(r.i); }); tgApplyOrder(); });

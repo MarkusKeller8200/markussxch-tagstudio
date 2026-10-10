@@ -22,6 +22,8 @@ async function settingsShow() {
     <section class="card" id="stTaggerCard"><h3>Tagger</h3>
       <div class="st-row">${stDefRow("tagger", "Standardordner")}
         <span>Stems</span>${stCheck("stStemsFlat", d.stems_flat, "Stems als eigene Titel anzeigen (statt aufklappbar unter dem Original)")}
+        <label for="stFeatScale">Audio-Merkmale in den Dateien</label>${stSel("stFeatScale", d.feat_scales || [[100, "0–100"]], d.feat_scale || 100)}
+        <span></span><span class="muted sm">Angezeigt und bearbeitet wird immer 0–100. Bei 0–10 (z. B. Lexicon) rechnet TagStudio beim Lesen ×10 und beim Schreiben ÷10 um.</span>
       </div>
       <h4 class="st-sub">Beim Start</h4>
       <div class="st-row">
@@ -442,6 +444,11 @@ function initSettings() {
     } else if (t.id === "stSaveVer") { await call("set_save_version", +t.value); toast(+t.value ? `Beim Speichern immer ID3v2.${t.value}.` : "ID3-Version bleibt wie in der Datei."); }
     else if (t.id === "stBackup") { await call("set_backup", t.checked, null); if (!t.checked) toast("Achtung: Vor dem Speichern wird nicht mehr gesichert."); }
     else if (t.id === "stStemsFlat") { await call("set_stems_flat", t.checked); if (TG.loaded) { TG.open = new Set(); await taggerRefresh(); } toast(t.checked ? "Stems erscheinen als eigene Titel." : "Stems erscheinen aufklappbar unter dem Original."); }
+    else if (t.id === "stFeatScale") {                                           // #11
+      await call("set_feat_scale", +t.value);
+      if (typeof TG !== "undefined" && TG.loaded) { await taggerRefresh(); }
+      toast(+t.value === 10 ? "Audio-Merkmale: Dateien in 0–10, Anzeige 0–100." : "Audio-Merkmale: 0–100.");
+    }
     else if (t.dataset.defdir) stDefSet(t.dataset.defdir, t.value.trim());
     else if (t.id === "stListCache") { await call("set_list_cache", t.checked); toast(t.checked ? "Listen-Cache an." : "Listen-Cache aus – es wird immer von der Platte gelesen."); }
     else if (t.id === "orVer") {

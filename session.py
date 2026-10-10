@@ -36,7 +36,8 @@ from session_djset import DjSetMixin
 UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
            "col_name": (int, float), "col_ratio": (int, float), "tg_edit_w": (int, float),
            "tg_more_k": (int, float), "tg_col_name": (int, float), "tg_cover_col": bool,
-           "module": str}                                    # #88: zuletzt benutzte Seite
+           "module": str,                                    # #88: zuletzt benutzte Seite
+           "tg_feat_cols": list}                             # #11: Spalten mit Audio-Merkmalen im Tagger
 
 
 class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
@@ -64,6 +65,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
         """Einstellungen (neu) einlesen – beim Start und nach Import/Zurücksetzen."""
         self.cfg = core.load_config()
         self._djstate = None                                   # DJ-Set neu aus cfg (#3)
+        features.set_scale(self.cfg.get("feat_scale", 100))   # #11: Skala der Audio-Merkmale in den Dateien
         triv = list(self.cfg.get("trivial", DEFAULT_TRIVIAL))
         known = set(self.cfg.get("trivial_known", triv))
         triv += [p for p in DEFAULT_TRIVIAL if p not in known and p not in triv]
@@ -207,6 +209,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
         """Layout merken (Breiten der Splitter, eingeklappte Seitenleiste)."""
         if name not in UI_KEYS or not isinstance(value, UI_KEYS[name]) or isinstance(value, bool) != (UI_KEYS[name] is bool):
             raise ValueError(f"Ungültige Layout-Einstellung: {name}")
+        if name == "tg_feat_cols":
+            value = [x for x in dict.fromkeys(value) if x in features.NAMES]
         self.ui[name] = value
         self.cfg["web_ui"] = dict(self.ui)
         core.save_config({"web_ui": dict(self.ui)})
@@ -506,6 +510,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                 "backup_enabled": c.get("backup_enabled", True), "backup_dir": self._backup_folder(),
                 "player": self.player_prefs(), "players": len(c.get("players") or []),
                 "stems_flat": bool(c.get("tagger_stems_flat")),
+                "feat_scale": features.SCALE, "feat_scales": [[k, v] for k, v in features.SCALES.items()],
                 "update_channel": self.update_channel(), "version": VERSION,
                 "view_defaults": self.view_defaults(), "modes": [[k, v] for k, v in PAIR_MODES.items()],
                 "empty_sets": [[k, v] for k, v in core.EMPTY_SETS.items()],
@@ -1469,6 +1474,13 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
             changed = self._attach_stems()
             new = [i for i in changed if len(self.tag_stems.get(i, [])) != before.get(i, 0)]
             return {"rows": [self._tag_row(i, f) for i, f in enumerate(self.tag_files)], "new": new}
+
+    def set_feat_scale(self, scale) -> dict:
+        """#11: Skala der Audio-Merkmale in den Dateien (100 oder 10); Anzeige bleibt 0–100."""
+        v = features.set_scale(int(scale))
+        self.cfg["feat_scale"] = v
+        core.save_config({"feat_scale": v})
+        return {"scale": v}
 
     def set_stems_flat(self, flat) -> dict:
         self.cfg["tagger_stems_flat"] = bool(flat)
