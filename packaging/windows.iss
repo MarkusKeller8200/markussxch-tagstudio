@@ -29,6 +29,8 @@ WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 CloseApplications=yes
+; laufendes TagStudio erkennen (Mutex aus instance.py) – erst schliessen, dann installieren
+AppMutex=MarKusSXCH-TagStudio
 
 [Languages]
 Name: "german"; MessagesFile: "compiler:Languages\German.isl"

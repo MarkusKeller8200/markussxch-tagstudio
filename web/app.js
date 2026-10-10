@@ -339,6 +339,7 @@ async function runUpdate() {
   $("#progCancel").hidden = true;
   ov.hidden = false;
   S.meta.unsaved = 0;
+  await appFlushState().catch(() => {});        // Zustände speichern, bevor die neue Instanz sie liest
   await call("restart");
   if (!S.settings.native) {
     // Browser-Modus: der neue Server übernimmt Adresse und Schlüssel → Seite neu laden, sobald er antwortet

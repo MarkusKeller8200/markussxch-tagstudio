@@ -26,6 +26,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from session import Session  # noqa: E402
+import instance  # noqa: E402
 import updater  # noqa: E402
 from version import VERSION  # noqa: E402
 
@@ -373,11 +374,19 @@ class Api:
             else [sys.executable, os.path.join(HERE, "tagstudio_web.py"), *args]
         if l or r:
             cmd += [l, r] if r else [l]
-        env = dict(os.environ)
+        env = dict(os.environ, TAGSTUDIO_RESTART="1")     # neue Instanz wartet, bis diese beendet ist
         if self._server is not None:
             srv, token = self._server
             cmd += ["--browser", "--no-open", "--port", str(srv.server_address[1])]
             env["TAGSTUDIO_TOKEN"] = token
+
+        self._restarting = True                # Schliessen-Ereignis nicht mehr behandeln (keine Rückfragen, kein JS)
+        geom = getattr(self, "_geom", None)
+        if geom:
+            try:
+                self._s.set_window_geometry(geom)
+            except Exception:  # noqa: BLE001
+                pass
 
         def go():
             if self._server is not None:
@@ -385,11 +394,8 @@ class Api:
                 self._server[0].server_close()
             kw = {"creationflags": 0x00000008 | 0x00000200} if sys.platform.startswith("win") else {"start_new_session": True}
             subprocess.Popen(cmd, cwd=HERE, env=env, close_fds=True, **kw)
-            if self._window is not None:
-                try:
-                    self._window.destroy()
-                except Exception:  # noqa: BLE001
-                    pass
+            # Fenster nicht über destroy() schliessen: das löst das Schliessen-Ereignis aus und kann hängen bleiben,
+            # sodass die alte Instanz offen bleibt. os._exit beendet Fenster und Prozess sofort.
             os._exit(0)
         t = threading.Timer(0.4, go)
         t.daemon = False  # sonst endet das Programm nach shutdown(), bevor der Neustart läuft
@@ -610,6 +616,7 @@ def run_window(api: Api):
     except TypeError:                                                    # ältere pywebview: ohne x/y/maximized
         win = webview.create_window(APP, **common, width=kw["width"], height=kw["height"])
     api._window = win
+    api._geom = geom
 
     def nums(a):                               # pywebview gibt evtl. zuerst das Fenster mit – nur Zahlen zählen
         return [v for v in a if isinstance(v, (int, float)) and not isinstance(v, bool)]
@@ -630,11 +637,20 @@ def run_window(api: Api):
     def on_restored(*_a):
         geom["max"] = False
 
-    def on_closing():
-        try:                                   # #126/#127: Tagger-Zustand und Wiedergabe noch speichern
+    def flush_state():
+        try:
             win.evaluate_js("appFlushState()")
         except Exception:  # noqa: BLE001
             pass
+
+    def on_closing():
+        if getattr(api, "_restarting", False):
+            return True
+        # #126/#127: Tagger-Zustand und Wiedergabe noch speichern – in einem eigenen Faden mit Zeitlimit, denn
+        # evaluate_js im Schliessen-Ereignis kann je nach System auf den Oberflächen-Faden warten und hängen.
+        t = threading.Thread(target=flush_state, daemon=True)
+        t.start()
+        t.join(1.5)
         try:                                   # #125: Fenstergeometrie
             api._s.set_window_geometry(geom)
         except Exception:  # noqa: BLE001
@@ -727,7 +743,16 @@ def main(argv=None):
         port = int(argv[i + 1])
         del argv[i:i + 2]
     paths = [a for a in argv if not a.startswith("--")][:2]
+    # nur eine Instanz: zwei gleichzeitige überschreiben sich die Einstellungen (z. B. nach einem Update)
+    inst = instance.Instance()
+    restart = os.environ.pop("TAGSTUDIO_RESTART", "") == "1"
+    if not inst.acquire(wait=25.0 if restart else 2.0):
+        instance.already_running_message("TagStudio läuft bereits.\n\nBitte das offene Fenster verwenden oder es zuerst "
+                                         "schliessen. (Zwei gleichzeitige Instanzen würden sich die Einstellungen "
+                                         "gegenseitig überschreiben.)")
+        return 0
     api = Api(paths, argv)
+    api._instance = inst
     if not browser:
         try:
             import webview  # noqa: F401

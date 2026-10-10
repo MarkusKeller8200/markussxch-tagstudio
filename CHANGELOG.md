@@ -25,6 +25,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Position auf einem nicht mehr angeschlossenen Bildschirm, erscheint es mittig auf dem Hauptbildschirm (#125).
 
 ### Behoben
+- Update: die alte Instanz blieb offen und die neue startete ohne die gespeicherten Einstellungen. Es läuft jetzt nur
+  noch **eine Instanz** (ein zweiter Start meldet „TagStudio läuft bereits“); der Installer erkennt ein offenes
+  TagStudio und bittet, es zu schliessen; beim Neustart nach einem Update werden Zustände vorher gespeichert und die
+  neue Instanz wartet, bis die alte beendet ist (#131).
 - Einstellungen: gleichzeitige Speichervorgänge konnten sich gegenseitig Einträge überschreiben; die Datei wird jetzt
   gesperrt und atomar geschrieben. Beim Schliessen der App werden ausstehende Zustände sofort gespeichert.
 
