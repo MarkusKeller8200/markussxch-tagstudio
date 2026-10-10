@@ -37,7 +37,7 @@ body:
         - Installer (Setup / DMG)
         - Quellcode – neue Oberfläche (App-Fenster)
         - Quellcode – neue Oberfläche (Browser)
-        - Quellcode – klassische Oberfläche
+        - Quellcode – klassische Oberfläche (eingefroren, nur noch Startfehler)
     validations:
       required: true
   - type: dropdown
@@ -46,9 +46,10 @@ body:
       label: Bereich
       options:
         - Tagger
+        - Tag-Fixer
         - Vergleich
         - Vorschau-Player / externe Player
-        - Tag-Fixer
+        - Snapshots / Änderungsjournal
         - Sicherungen
         - Einstellungen
         - Plugin Stems

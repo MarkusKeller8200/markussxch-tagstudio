@@ -20,7 +20,7 @@ Danke für dein Interesse! Fehlerberichte, Ideen, Plugins und Pull Requests sind
 git clone https://github.com/MarkusKeller8200/markussxch-tagstudio.git
 cd markussxch-tagstudio
 python tagstudio_web.py            # neue Oberfläche (App-Fenster mit pywebview, sonst Browser)
-python tagstudio.py                # klassische Oberfläche (tkinter)
+python tagstudio.py                # klassische Oberfläche (tkinter, eingefroren – keine Änderungen mehr)
 python -m unittest discover -s tests -v
 ```
 

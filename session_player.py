@@ -51,7 +51,6 @@ class PlayerMixin:
             mode = out["startmode"]
             out = self._player_clean(defaults)
             out["startmode"] = mode
-        out["saved"] = isinstance(self.cfg.get("player"), dict)
         out["has_defaults"] = isinstance(defaults, dict)
         out["window"] = self.cfg.get("player_window") if isinstance(self.cfg.get("player_window"), dict) else None
         return out
