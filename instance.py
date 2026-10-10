@@ -93,9 +93,9 @@ class Instance:
             self.mutex = None
 
 
-def already_running_message(text: str):
-    """Hinweis ohne Oberfläche: Windows-Meldungsfenster, sonst Konsole."""
-    if sys.platform.startswith("win"):
+def already_running_message(text: str, gui: bool = True):
+    """Hinweis ohne Oberfläche: Windows-Meldungsfenster (nur App-Modus), sonst Konsole."""
+    if gui and sys.platform.startswith("win"):
         try:
             import ctypes
             ctypes.windll.user32.MessageBoxW(None, text, "MarKusSXCH TagStudio", 0x40 | 0x40000)

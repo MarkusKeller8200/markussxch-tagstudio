@@ -38,7 +38,7 @@ class TestInstance(unittest.TestCase):
     def test_second_start_exits(self):
         home = os.path.join(self.dir, "home")
         os.makedirs(home)
-        env = dict(os.environ, HOME=home, USERPROFILE=home, PYTHONUNBUFFERED="1")
+        env = dict(os.environ, HOME=home, USERPROFILE=home, PYTHONUNBUFFERED="1", PYTHONIOENCODING="utf-8")
         env.pop("TAGSTUDIO_RESTART", None)
         first = subprocess.Popen([sys.executable, os.path.join(ROOT, "tagstudio_web.py"), "--browser", "--no-open", "--port", "0"],
                                  env=env, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
@@ -50,7 +50,7 @@ class TestInstance(unittest.TestCase):
                     break
             self.assertIn("http://", line)
             r = subprocess.run([sys.executable, os.path.join(ROOT, "tagstudio_web.py"), "--browser", "--no-open", "--port", "0"],
-                               env=env, capture_output=True, text=True, timeout=60)
+                               env=env, capture_output=True, text=True, encoding="utf-8", timeout=60)
             self.assertEqual(r.returncode, 0)
             self.assertIn("läuft bereits", r.stderr)
         finally:

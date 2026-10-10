@@ -914,7 +914,7 @@ def main(argv=None):
         applog.info(f"Zweiter Start abgelehnt (PID {os.getpid()}): TagStudio läuft bereits")
         instance.already_running_message("TagStudio läuft bereits.\n\nBitte das offene Fenster verwenden oder es zuerst "
                                          "schliessen. (Zwei gleichzeitige Instanzen würden sich die Einstellungen "
-                                         "gegenseitig überschreiben.)")
+                                         "gegenseitig überschreiben.)", gui="--browser" not in argv)
         return 0
     applog.info(f"Start {VERSION} ({'Browser' if browser else 'Fenster'}, PID {os.getpid()})")
     api = Api(paths, argv)
