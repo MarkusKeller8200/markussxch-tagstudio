@@ -269,6 +269,11 @@ class UiTest(unittest.TestCase):
         ok = self.until("PLAYER.info && PLAYER.ref === 1 && PLAYER.audio.paused && Math.abs(PLAYER.audio.currentTime - 12) < 1", 15)
         self.assertTrue(ok, pg.evaluate("call('tagger_settings').then(ts => call('player_resume').then(r => JSON.stringify({ts: [ts.start, ts.state], r, loaded: TG.loaded, info: !!PLAYER.info, ref: PLAYER.ref, t: PLAYER.audio.currentTime, done: RESUME.done, mod: S.module})))"))
         self.assertTrue(self.until("DECKB.info && DECKB.ref === 2 && DECKB.audio.paused && Math.abs(DECKB.audio.currentTime - 20) < 1", 10))
+        # Autoplay nach dem Neustart: A spielt, B (war in Pause) bleibt in Pause
+        pg.evaluate("call('set_player_pref', 'resume_play', 'play')")
+        pg = self.restart()
+        self.assertTrue(self.until("PLAYER.ref === 1 && !PLAYER.audio.paused && PLAYER.audio.currentTime >= 11.5", 15))
+        self.assertTrue(self.until("DECKB.ref === 2 && DECKB.audio.paused", 10))
         # ausgeschaltet → Player startet leer
         pg.evaluate("call('set_player_pref', 'resume', false)")
         pg = self.restart()

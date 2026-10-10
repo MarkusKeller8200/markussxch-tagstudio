@@ -254,6 +254,13 @@ class TestPlayerResume(unittest.TestCase):
         while not s.task_status()["done"]:
             time.sleep(0.02)
         self.assertEqual(s.player_resume()["A"]["i"], 0)                 # jetzt im Tagger geladen
+        self.assertEqual(s.player_resume()["play"], "pause")             # Standard: in Pause laden
+        self.assertTrue(s.player_resume_save({"A": {"path": self.f, "pos": 12.345, "playing": True}}))
+        s.set_player_pref("resume_play", "was")
+        r = Session().player_resume()
+        self.assertEqual((r["play"], r["A"]["playing"]), ("was", True))
+        with self.assertRaises(ValueError):
+            s.set_player_pref("resume_play", "laut")
         s.set_player_pref("resume", False)
         self.assertFalse(Session().player_resume()["on"])
         os.remove(self.f)

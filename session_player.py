@@ -25,8 +25,8 @@ class PlayerMixin:
                     "deck2": (bool, False), "deck_target": (str, "A"), "vol_b": ((int, float), 0.8),     # #67
                     "sink_b": (str, ""), "start_b": (str, "0"), "repeat_b": (bool, False),
                     "startmode": (str, "last"),                                                          # #93
-                    "resume": (bool, True)}                                                              # #126
-    PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "layout": ("bottom", "top"), "startmode": ("last", "default"),
+                    "resume": (bool, True), "resume_play": (str, "pause")}                               # #126
+    PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "resume_play": ("pause", "play", "was"), "layout": ("bottom", "top"), "startmode": ("last", "default"),
                       "xfade_start": ("start", "0", "cue"), "deck_target": ("A", "B"),
                       "start_b": ("0", "30", "60", "cue")}
     PLAYER_RANGES = {"vol": (0.0, 1.0), "vol_b": (0.0, 1.0), "xfade": (0, 30), "xfade_after": (0, 600), "xfade_return": (0, 120)}
@@ -65,7 +65,8 @@ class PlayerMixin:
         for deck in ("A", "B"):
             d = state.get(deck)
             if isinstance(d, dict) and isinstance(d.get("path"), str) and d["path"]:
-                out[deck] = {"path": d["path"][:4096], "pos": max(0.0, round(float(d.get("pos") or 0), 1))}
+                out[deck] = {"path": d["path"][:4096], "pos": max(0.0, round(float(d.get("pos") or 0), 1)),
+                             "playing": bool(d.get("playing"))}
         if out == self.cfg.get("player_resume"):
             return False
         self.cfg["player_resume"] = out
@@ -75,14 +76,15 @@ class PlayerMixin:
     def player_resume(self) -> dict:
         """Gemerkter Stand je Player mit Tagger-Index, falls die Datei gerade im Tagger geladen ist."""
         st = self.cfg.get("player_resume") if isinstance(self.cfg.get("player_resume"), dict) else {}
-        on = self._player_clean(self.cfg.get("player")).get("resume", True)
+        prefs = self._player_clean(self.cfg.get("player"))
+        on = prefs.get("resume", True)
         with self.lock:
             where = {os.path.normcase(os.path.abspath(f.path)): i for i, f in enumerate(self.tag_files)}
-        out = {"on": on}
+        out = {"on": on, "play": prefs.get("resume_play", "pause")}
         for deck, d in st.items():
             if deck in ("A", "B") and isinstance(d, dict) and d.get("path"):
                 p = d["path"]
-                out[deck] = {"path": p, "pos": float(d.get("pos") or 0), "exists": os.path.isfile(p),
+                out[deck] = {"path": p, "pos": float(d.get("pos") or 0), "exists": os.path.isfile(p), "playing": bool(d.get("playing")),
                              "i": where.get(os.path.normcase(os.path.abspath(p)))}
         return out
 
