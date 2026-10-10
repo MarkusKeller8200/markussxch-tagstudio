@@ -33,7 +33,10 @@ class TestOrigins(unittest.TestCase):
                          ("TXXX:AnalysisDate", "beatunes"), ("TXXX:FILEOWNER", "beatport"), ("TXXX:LABEL", "beatport"),
                          ("TXXX:LABEL_URL", "beatport"), ("TXXX:RELEASE_TIME", "beatport"), ("TXXX:TRACK_URL", "beatport"),
                          ("TXXX:WWWAUDIOFILE", "beatport"), ("TXXX:BPM", "beatport"), ("TXXX:COMMENT", "beatport"),
-                         ("TXXX:FILETYPE", "beatport"), ("TXXX:INITIAL_KEA", "beatport"), ("TXXX:INITIAL_KEY", "beatport"),
+                         ("TXXX:FILETYPE", "beatport"), ("TXXX:INITIAL_KEA", None), ("TXXX:INITIAL_KEY", "beatport"),
+                         ("TXXX:BPMAlgorithm", "beatunes"), ("TXXX:fBPM", "beatunes"), ("TXXX:fBPM2", "beatunes"),
+                         ("TXXX:FMPS_Rating", "beatunes"), ("TXXX:Liking", "beatunes"), ("TXXX:MoodAlgorithm", "beatunes"),
+                         ("TXXX:MOOD_AROUSAL", "beatunes"), ("TXXX:MOOD_VALENCE", "beatunes"), ("TXXX:ValenceArousal", "beatunes"),
                          ("TXXX:ISRC", "beatport"), ("TXXX:ORGANIZATION", "beatport"), ("TXXX:YEAR", "beatport"),
                          ("TXXX:LABELS", None)):
             self.assertEqual(o.of(key), sid, key)

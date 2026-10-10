@@ -13,8 +13,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Geändert
 - Herkunft: weitere Felder erkannt – `TXXX:AnalysisDate` als beaTunes; `TXXX:FILEOWNER`, `LABEL`, `LABEL_URL`,
-  `RELEASE_TIME`, `TRACK_URL`, `WWWAUDIOFILE`, `BPM`, `COMMENT`, `FILETYPE`, `INITIAL_KEA`/`INITIAL_KEY`, `ISRC`,
-  `ORGANIZATION` und `YEAR` als Beatport (#100).
+  `RELEASE_TIME`, `TRACK_URL`, `WWWAUDIOFILE`, `BPM`, `COMMENT`, `FILETYPE`, `INITIAL_KEY`, `ISRC`,
+  `ORGANIZATION` und `YEAR` als Beatport; `TXXX:FMPS_Rating`, `Liking` und `ValenceArousal` als beaTunes
+  (`BPMAlgorithm`, `MoodAlgorithm`, `fBPM`, `fBPM2`, `MOOD_AROUSAL`, `MOOD_VALENCE` waren schon erkannt) (#100).
 
 ## [3.3.0] – 2026-10-10
 
