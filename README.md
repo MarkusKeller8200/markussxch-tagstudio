@@ -511,12 +511,15 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 ## Ausblick
 
-In Arbeit: **4.0.0 – DJ-Set** (Set-Optimierung, Seite, Exporte, Merkmal-Spalten und -Filter, Ziehen auf die
-Player). Zuletzt erschienen: **3.5.0 – App allgemein & Aufräumen**, davor **3.4.0 – Wiedergabe & Bewertung**.
+Zuletzt erschienen: **4.0.0 – DJ-Set** (Set-Optimierung und -Bewertung, Seite DJ-Set, Exporte M3U8/Rekordbox/CSV,
+Merkmal-Spalten und -Filter, Ziehen auf die Player, Snapshot-Baseline). Davor **3.5.0 – App allgemein & Aufräumen**.
 
 Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
 - **4.1.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
+- **Tracks vorbereiten** (Konzept, [docs/KONZEPT-VORBEREITEN.md](docs/KONZEPT-VORBEREITEN.md)): Workflow vom
+  Eingangsordner über Tag-Rezepte und externe Programme bis in die Bibliothek, Schutz bestehender Tags, später
+  Download gekaufter Titel und Vorschläge mit Vorhören.
 - **Später:** Beatgrid und Beatmatching im Player, Symbol-Werkzeugleiste im Vergleich, Plugin-Ideen (Liedtexte,
   Lautheit, Duplikate, Qualitätsprüfung, Import aus Rekordbox/Traktor/Serato), Analyse-Modelle, signierte
   Installer, Datenbank-Modul für die Bibliothek.
