@@ -6,6 +6,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+- Tagger merkt sich seinen **Zustand** (Ordner, Unterordner, Markierung, Sortierung, Suchfeld/Filter, aufgeklappte
+  Stems, Bildlauf) und stellt ihn beim Start wieder her – auf jeder Startseite, damit z. B. DJ-Set-Titel sofort
+  geladen sind. Einstellungen › Tagger › „Beim Start laden“: zuletzt geladenen Ordner (Standard), Standardordner oder
+  nichts (#127).
+
 ## [4.0.0] – 2026-10-10
 
 ### Neu

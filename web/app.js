@@ -490,6 +490,7 @@ async function init() {
   const last = st.ui && st.ui.module;
   setModule(st.start_paths.length ? "compare" : (last && last in MODULE_IDS ? last : "tagger"), { start: true });
   if (st.start_paths.length) compare(true);
+  else if (typeof taggerAutoStart === "function") setTimeout(() => taggerAutoStart().catch(() => {}), 50);   // #127
 }
 
 function fillHistory() {

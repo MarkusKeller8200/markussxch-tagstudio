@@ -22,7 +22,7 @@ GROUPS = [
                                     "tagger_recursive", "tagger_stems_flat", "cmp_defaults", "tg_defaults", "feat_scale")),
     ("history", "Pfad-Verlauf, Standardordner, Muster und Tag-Fixer", ("hist_left", "hist_right", "hist_tagger",
                                                                        "default_left", "default_right", "default_tagger",
-                                                                       "tagger_patterns", "fixer", "djset_items")),
+                                                                       "tagger_patterns", "fixer", "djset_items", "tagger_state")),
     ("trivial", "Unwichtige Felder", ("trivial", "trivial_known")),
     ("saving", "Speichern und Sicherungen", ("backup_enabled", "backup_dir", "save_version")),
     ("update", "Updates (Kanal)", ("update_channel",)),

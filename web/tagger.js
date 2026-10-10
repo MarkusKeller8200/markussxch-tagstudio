@@ -10,8 +10,9 @@ const TG_COLS = [["m", ""], ["name", "Datei"], ["TIT2", "Titel"], ["TPE1", "Kün
 const TG_ROW = 40;
 
 // ---------------------------------------------------------------------- Anzeigen / Laden
-async function taggerShow() {
-  if (!TG.settings) {
+/** Einstellungen holen und Oberfläche vorbereiten – einmal, auch wenn mehrere Stellen gleichzeitig fragen. */
+function tgInitOnce() {
+  if (!TG.initP) TG.initP = (async () => {
     TG.settings = await call("tagger_settings");
     $("#histTg").innerHTML = TG.settings.hist.map((h) => `<option value="${esc(h)}"></option>`).join("");
     $("#tgPath").value = TG.settings.default || TG.settings.hist[0] || "";      // #84: Standardordner
@@ -22,11 +23,72 @@ async function taggerShow() {
     if (td.src_filter) TG.srcFilter = td.src_filter;
     renderTgHead();
     renderTgEditor();
-    if (td.autoload && $("#tgPath").value && !TG.loaded) { await taggerLoad(); return; }
+  })();
+  return TG.initP;
+}
+
+/** #127: beim App-Start (egal welche Seite) den Tagger laden – zuletzt geladener Ordner samt Zustand,
+    Standardordner oder nichts (Einstellungen › Tagger). */
+async function taggerAutoStart() {
+  if (TG.autoStarted) return;
+  TG.autoStarted = true;
+  await tgInitOnce();
+  if (TG.loaded) return;
+  const start = TG.settings.start, st = TG.settings.state || {};
+  // Seite neu geladen, Sitzung läuft noch (Browser-Modus): vorhandene Liste übernehmen statt neu einlesen
+  const cur = await call("tag_rows");
+  if (cur.rows && cur.rows.length) {
+    TG.restore = st.root && cur.root === st.root ? st : null;
+    await tgAdopt(cur, cur.root, !!st.recursive);
+    return;
   }
+  if (start === "last" && st.root) {
+    if (!st.exists) { status(`Zuletzt geladener Tagger-Ordner nicht gefunden: ${st.root}`, "warn"); return; }
+    $("#tgPath").value = st.root; $("#tgRec").checked = !!st.recursive;
+    TG.restore = st;
+    await taggerLoad();
+  } else if (start === "default" && $("#tgPath").value) {
+    await taggerLoad();
+  }
+}
+
+async function taggerShow() {
+  await tgInitOnce();
+  if (!TG.autoStarted) await taggerAutoStart();
   if (!TG.loaded) drawTgList();
   else await taggerRefresh();
   $("#tgTable").focus();
+}
+
+// ---------------------------------------------------------------------- Zustand merken (#127)
+let tgStateTimer = 0;
+function tgStateSave() {
+  if (!TG.loaded || TG.restore) return;
+  clearTimeout(tgStateTimer);
+  tgStateTimer = setTimeout(() => {
+    const rel = (i) => (TG.rows[i] ? TG.rows[i].rel : null);
+    call("tag_state_save", {
+      root: TG.root || "", recursive: !!TG.recursive,
+      sel: [...TG.sel].map(rel).filter(Boolean), anchor: rel(TG.anchor) || "",
+      sort: TG.sort, query: $("#tgQuery").value || "", open: [...TG.open].map(rel).filter(Boolean),
+      scroll: Math.round($("#tgScroll").scrollTop),
+    }).catch(() => {});
+  }, 700);
+}
+
+/** Gemerkten Zustand auf die frisch geladene Liste anwenden (Pfade → Indizes) */
+function tgStateApply(st) {
+  const idx = new Map(TG.rows.map((r) => [r.rel, r.i]));
+  if (st.sort && st.sort.col) TG.sort = { col: st.sort.col, dir: st.sort.dir === -1 ? -1 : 1 };
+  $("#tgQuery").value = st.query || "";
+  TG.open = new Set((st.open || []).map((p) => idx.get(p)).filter((i) => i !== undefined));
+  const sel = (st.sel || []).map((p) => idx.get(p)).filter((i) => i !== undefined);
+  if (sel.length) TG.sel = new Set(sel);
+  const a = idx.get(st.anchor);
+  TG.anchor = a !== undefined ? a : sel.length ? sel[0] : TG.anchor;
+  renderTgHead();
+  tgApplyOrder();
+  requestAnimationFrame(() => { $("#tgScroll").scrollTop = st.scroll || 0; drawTgList(); });
 }
 
 async function taggerLoad() {
@@ -38,19 +100,29 @@ async function taggerLoad() {
   if (res.cancelled) { status("Einlesen abgebrochen.", "warn"); return; }
   TG.settings = await call("tagger_settings");
   $("#histTg").innerHTML = TG.settings.hist.map((h) => `<option value="${esc(h)}"></option>`).join("");
-  TG.loaded = true;
   if (typeof plForget === "function") plForget("tag");     // Indizes gelten nur für die vorige Liste
-  const tr = await call("tag_rows");
-  TG.rows = tr.rows; TG.flat = !!tr.stems_flat; TG.open = new Set();
-  TG.sel = new Set(TG.rows.length ? [0] : []);
-  TG.anchor = TG.rows.length ? 0 : null;
-  tgApplyOrder();
-  await tgLoadDetail();
+  await tgAdopt(await call("tag_rows"), path, $("#tgRec").checked);
   if (S.pairs.length) await refreshAll();  // gemeinsames Register: Vergleich frisch halten
   status(`${fmtN(res.files)} Datei(en) im Tagger${res.stems ? ` · ${fmtN(res.stems)} mit Stems (▸ aufklappen)` : ""}.`, res.files ? "ok" : "warn");
   if (typeof verifyWatch === "function") verifyWatch(res, `${fmtN(res.files)} Datei(en) im Tagger`);
   if (res.errors.length) await info(`${res.errors.length} Datei(en) nicht lesbar`, res.errors.slice(0, 30).join("\n"));
   if (typeof snDetect === "function") snDetect(path);       // #60: mitgegebenen Snapshot-Speicher anbieten
+}
+
+/** Geladene Liste übernehmen (nach Einlesen oder beim Neuladen der Seite) und gemerkten Zustand anwenden (#127) */
+async function tgAdopt(tr, path, recursive) {
+  TG.loaded = true;
+  TG.rows = tr.rows; TG.flat = !!tr.stems_flat; TG.open = new Set();
+  TG.root = tr.root || path; TG.recursive = !!recursive;
+  if (tr.root) $("#tgPath").value = tr.root;
+  TG.sel = new Set(TG.rows.length ? [0] : []);
+  TG.anchor = TG.rows.length ? 0 : null;
+  const restore = TG.restore;
+  if (restore) tgStateApply(restore); else tgApplyOrder();
+  TG.restore = null;
+  tgStateSave();
+  await tgLoadDetail();
+  if (typeof djAfterTaggerLoad === "function") djAfterTaggerLoad();     // DJ-Set: Titel sind jetzt geladen
 }
 
 /** Nach Änderungen anderswo (Vergleich, Undo, Speichern …) */
@@ -119,6 +191,7 @@ function tgApplyOrder() {
   $("#tgStemBtns").hidden = !nStem;
   $("#tgInner").style.height = view.length * TG_ROW + "px";
   drawTgList();
+  tgStateSave();                                                      // #127
 }
 
 // ---------------------------------------------------------------------- Audio-Merkmale als Spalten und Filter (#11)
@@ -979,7 +1052,7 @@ async function tgOriginDialog(preset = "") {
     TG.sort = { col: b.dataset.sort, dir: TG.sort.col === b.dataset.sort ? -TG.sort.dir : 1 };
     renderTgHead(); tgApplyOrder();
   });
-  $("#tgScroll").addEventListener("scroll", () => requestAnimationFrame(drawTgList));
+  $("#tgScroll").addEventListener("scroll", () => { requestAnimationFrame(drawTgList); tgStateSave(); });
   $("#tgInner").addEventListener("click", (e) => {
     const tw = e.target.closest("[data-tw]");
     if (tw) { e.stopPropagation(); tgToggleStems(+tw.dataset.tw); return; }

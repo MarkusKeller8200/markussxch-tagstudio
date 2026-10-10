@@ -135,7 +135,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
             "compare": {"recursive": (bool,), "mode": tuple(PAIR_MODES), "filter": ("all", "diff", "same"),
                         "show_trivial": (bool,), "empty_set": tuple(core.EMPTY_SETS), "show_covers": (bool,)},
             "tagger": {"recursive": (bool,), "sort_col": self.TG_SORT_COLS, "sort_dir": (1, -1), "cover_col": (bool,),
-                       "stems_flat": (bool,), "src_filter": (str,), "autoload": (bool,)},
+                       "stems_flat": (bool,), "src_filter": (str,), "autoload": (bool,),
+                       "start": ("last", "default", "none")},                        # #127
         }
 
     def _view_default_ok(self, choices, v) -> bool:
@@ -1413,10 +1414,44 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
         v["removed"] = [os.path.basename(p) for p in v.get("removed", [])][:50]
         return v
 
+    def tagger_start(self) -> str:
+        """#127: Was beim Start in den Tagger kommt – „last“ (zuletzt geladen samt Zustand), „default“
+        (Standardordner) oder „none“. Ältere Einstellung „autoload“ wird übernommen."""
+        td = self.view_defaults()["tagger"]
+        if "start" in td:
+            return td["start"]
+        if "autoload" in td:
+            return "default" if td["autoload"] else "none"
+        return "last"
+
+    def tag_state(self) -> dict:
+        st = self.cfg.get("tagger_state")
+        return st if isinstance(st, dict) else {}
+
+    def tag_state_save(self, state) -> bool:
+        """#127: Zustand des Taggers merken (Ordner, Markierung, Sortierung, Filter, Bildlauf, aufgeklappte Stems).
+        Pfade relativ zum Ordner; nur geprüfte Werte."""
+        if not isinstance(state, dict):
+            raise ValueError("Zustand erwartet")
+        rels = lambda v: [x for x in v if isinstance(x, str) and len(x) < 1024][:5000] if isinstance(v, list) else []
+        sort = state.get("sort") if isinstance(state.get("sort"), dict) else {}
+        col = sort.get("col") if isinstance(sort.get("col"), str) and len(sort.get("col")) <= 40 else "name"
+        out = {"root": str(state.get("root") or "")[:2048], "recursive": bool(state.get("recursive")),
+               "sel": rels(state.get("sel")), "anchor": str(state.get("anchor") or "")[:1024],
+               "sort": {"col": col, "dir": -1 if sort.get("dir") == -1 else 1},
+               "query": str(state.get("query") or "")[:200], "open": rels(state.get("open")),
+               "scroll": max(0, int(state.get("scroll") or 0))}
+        if out == self.cfg.get("tagger_state"):
+            return False
+        self.cfg["tagger_state"] = out
+        core.save_config({"tagger_state": out})
+        return True
+
     def tagger_settings(self):
         td = self.view_defaults()["tagger"]
         return {"hist": self.cfg.get("hist_tagger", []), "recursive": td.get("recursive", self.cfg.get("tagger_recursive", False)),
-                "defaults": td,
+                "defaults": td, "start": self.tagger_start(),
+                "state": {**self.tag_state(), "exists": bool(self.tag_state().get("root")) and os.path.exists(self.tag_state()["root"])},
                 "default": str(self.cfg.get("default_tagger") or ""),
                 "fields": [[k, label, ph] for k, label, ph in tagger.FIELDS],
                 "features": [[n, label, desc] for n, label, desc in features.FEATURES],

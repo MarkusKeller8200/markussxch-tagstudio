@@ -212,6 +212,39 @@ class UiTest(unittest.TestCase):
         pop.close()
         self.assertTrue(self.until("!DET.on", 10))
 
+    def test_tagger_state_restore(self):
+        """#127: Tagger-Zustand (Ordner, Sortierung, Filter, Markierung) nach einem Neustart der App wiederherstellen;
+        DJ-Set-Titel sind danach sofort geladen, auch wenn die App auf der DJ-Set-Seite startet."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('#tgHead [data-sort="TIT2"]')
+        pg.click('#tgHead [data-sort="TIT2"]')                      # absteigend
+        pg.fill("#tgQuery", "Ton")
+        pg.click('.tg-row[data-i="1"] .nm')
+        pg.click('.tg-row[data-i="2"] .nm', modifiers=["Control"])
+        pg.evaluate("call('dj_add', null)")
+        c = self.cfg_until(lambda c: len(c.get("tagger_state", {}).get("sel", [])) == 2)
+        st = c["tagger_state"]
+        self.assertEqual((st["sort"], st["query"], st["root"]), ({"col": "TIT2", "dir": -1}, "Ton", self.lib))
+        pg.click('.nav[data-module="djset"]')
+        time.sleep(0.5)
+        # App neu starten (neuer Server, gleiches Benutzerverzeichnis)
+        self.server.terminate(); self.server.wait(10); pg.close()
+        self.server, self.url = self.start_server()
+        pg = self.pg = self.page()
+        self.assertTrue(self.until("TG.loaded && TG.rows.length === 3", 15))
+        self.assertEqual(pg.evaluate("S.module"), "djset")
+        self.assertEqual(pg.evaluate("[TG.sort.col, TG.sort.dir, document.querySelector('#tgQuery').value]"), ["TIT2", -1, "Ton"])
+        self.assertEqual(sorted(pg.evaluate("[...TG.sel].map(i => TG.rows[i].rel)")), sorted(st["sel"]))
+        self.assertTrue(self.until("DJ.st && DJ.st.items.length === 3 && DJ.st.items.every(r => !r.missing)", 10))
+        # Einstellung „nichts“: Tagger bleibt beim nächsten Start leer
+        pg.evaluate("call('set_view_default', 'tagger', 'start', 'none')")
+        self.server.terminate(); self.server.wait(10); pg.close()
+        self.server, self.url = self.start_server()
+        pg = self.pg = self.page()
+        time.sleep(1.5)
+        self.assertFalse(pg.evaluate("TG.loaded"))
+
     def test_drag_to_player(self):
         """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""
         pg = self.pg

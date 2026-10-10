@@ -11,6 +11,12 @@ async function djsetShow() {
   try { djApply(await call("dj_state")); } catch (e) { toast(String(e.message || e)); }
 }
 
+/** #127: Tagger wurde (neu) geladen → Set-Titel neu auflösen */
+function djAfterTaggerLoad() {
+  if (S.module === "djset") return djsetShow();
+  call("dj_state").then((st) => { if (DJ.st) DJ.st = st; djSideCount(st); }).catch(() => {});
+}
+
 /** Anzahl Titel im Set in der Seitenleiste (Wunsch des Users) */
 function djSideCount(st) {
   const el = $("#djCount"); if (!el || !st) return;

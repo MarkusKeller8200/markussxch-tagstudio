@@ -276,6 +276,30 @@ class TestSession(unittest.TestCase):
         self.assertEqual(len(st["items"]), 4)
         self.assertEqual(len(s.dj_tag_indices()), 4)
 
+    def test_tagger_state(self):
+        """#127: Zustand speichern (bereinigt) und Startvorgabe."""
+        s = self.session()
+        self.assertEqual(s.tagger_start(), "last")
+        self.assertTrue(s.tag_state_save({"root": self.lib, "recursive": 1, "sel": ["a.mp3", 5, "b.mp3"],
+                                          "sort": {"col": "TIT2", "dir": -1}, "query": "x" * 500, "scroll": -3,
+                                          "open": None, "anchor": "a.mp3"}))
+        st = s.tag_state()
+        self.assertEqual((st["sel"], st["recursive"], st["sort"], len(st["query"]), st["scroll"], st["open"]),
+                         (["a.mp3", "b.mp3"], True, {"col": "TIT2", "dir": -1}, 200, 0, []))
+        self.assertFalse(s.tag_state_save(dict(st)))          # unverändert → nicht neu schreiben
+        from session import Session
+        s2 = Session()
+        ts = s2.tagger_settings()
+        self.assertEqual((ts["start"], ts["state"]["root"], ts["state"]["exists"]), ("last", self.lib, True))
+        s2.set_view_default("tagger", "autoload", True)        # alte Einstellung wird übernommen
+        self.assertEqual(s2.tagger_start(), "default")
+        s2.set_view_default("tagger", "start", "none")
+        self.assertEqual(s2.tagger_start(), "none")
+        with self.assertRaises(ValueError):
+            s2.set_view_default("tagger", "start", "irgendwo")
+        with self.assertRaises(ValueError):
+            s2.tag_state_save("kaputt")
+
     def test_persist_and_missing(self):
         s = self.session()
         s.dj_add()

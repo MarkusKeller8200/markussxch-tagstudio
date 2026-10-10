@@ -27,7 +27,7 @@ async function settingsShow() {
       </div>
       <h4 class="st-sub">Beim Start</h4>
       <div class="st-row">
-        ${stVd("tagger", "autoload", "Ordner einlesen", [[true, "Standardordner automatisch einlesen"], [false, "nicht automatisch einlesen"]], td, "nicht automatisch einlesen")}
+        ${stVd("tagger", "start", "Beim Start laden", [["last", "zuletzt geladenen Ordner (mit Markierung, Sortierung, Filter)"], ["default", "Standardordner"], ["none", "nichts"]], td, "zuletzt geladenen Ordner (Standard)")}
         ${stVd("tagger", "recursive", "Unterordner", [[true, "einbeziehen"], [false, "nicht einbeziehen"]], td)}
         ${stVd("tagger", "sort", "Sortierung", (d.tg_sort_cols || []).flatMap(([c, l]) => [[c + ":1", l + " ↑"], [c + ":-1", l + " ↓"]]), td.sort_col ? { sort: td.sort_col + ":" + (td.sort_dir || 1) } : {})}
         ${stVd("tagger", "cover_col", "Cover-Spalte", [[true, "anzeigen"], [false, "ausblenden"]], td)}
