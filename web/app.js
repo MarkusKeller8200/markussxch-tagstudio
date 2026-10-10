@@ -572,13 +572,13 @@ function scrollPairIntoView(i) {
   drawPairWindow();
 }
 
-async function selectPair(i) {
+async function selectPair(i, src = "key") {
   if (i === S.cur) return;
   S.sel.clear();
   S.anchor = null;
   applyState(await call("select", i));
   scrollPairIntoView(i);
-  if (typeof playerFollow === "function") playerFollow();
+  if (typeof playerFollow === "function") playerFollow(src);
 }
 
 async function refreshFieldChoices() {
@@ -977,10 +977,13 @@ function bind() {
     } else {
       S.pairSel.clear();
       S.pairAnchor = i;
-      selectPair(i);
+      selectPair(i, "click");
     }
     renderBulkBar();
     drawPairWindow();
+  });
+  $("#pairsInner").addEventListener("dblclick", (e) => {     // #92: Doppelklick spielt das Paar
+    if (e.target.closest(".pair") && typeof plPlayRow === "function") plPlayRow();
   });
   $("#pairsScroll").addEventListener("keydown", (e) => {
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;

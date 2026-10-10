@@ -133,5 +133,44 @@ class TestSessionMedia(unittest.TestCase):
             shutil.rmtree(d, ignore_errors=True)
 
 
+
+class TestPlayerDefaults(unittest.TestCase):
+    """#93: Standard-Einstellungen beim Start."""
+
+    def test_defaults(self):
+        import core
+        from session import Session
+        d = tempfile.mkdtemp(prefix="tagstudio_pld_")
+        old = (core.CONFIG, core.CONFIG_OLD)
+        core.CONFIG = core.CONFIG_OLD = os.path.join(d, "cfg.json")
+        try:
+            s = Session()
+            p = s.player_prefs()
+            self.assertEqual((p["live"], p["xfade"], p["layout"], p["deck2"], p["startmode"], p["has_defaults"]),
+                             (False, 0, "bottom", False, "last", False))
+            s.set_player_pref("vol", 0.3)
+            s.set_player_pref("live", True)
+            s.set_player_pref("xfade", 99)
+            self.assertEqual(s.player_prefs()["xfade"], 30)
+            with self.assertRaises(ValueError):
+                s.set_player_pref("layout", "links")
+            r = s.player_defaults("save")
+            self.assertTrue(r["has_defaults"] and r["defaults"]["live"])
+            s.set_player_pref("vol", 0.9)
+            s.set_player_pref("live", False)
+            self.assertEqual(Session().settings()["player"]["vol"], 0.9)       # „zuletzt benutzt“
+            s.set_player_pref("startmode", "default")
+            st = Session().settings()["player"]
+            self.assertEqual((st["vol"], st["live"], st["startmode"]), (0.3, True, "default"))   # Standards beim Start
+            self.assertEqual(Session().player_prefs()["vol"], 0.9)              # aktuelle bleiben erhalten
+            s.player_defaults("apply")
+            self.assertEqual(s.player_prefs()["vol"], 0.3)
+            s.player_defaults("reset")
+            self.assertFalse(Session().settings()["player"]["has_defaults"])
+        finally:
+            core.CONFIG, core.CONFIG_OLD = old
+            shutil.rmtree(d, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -25,7 +25,7 @@ GROUPS = [
                                                                        "tagger_patterns", "fixer")),
     ("trivial", "Unwichtige Felder", ("trivial", "trivial_known")),
     ("saving", "Speichern und Sicherungen", ("backup_enabled", "backup_dir", "save_version")),
-    ("player", "Player (Vorschau und externe)", ("player", "players")),
+    ("player", "Player (Vorschau und externe)", ("player", "player_defaults", "players")),
     ("snapshots", "Snapshots (Automatik, Aufbewahrung, Speicherort)", ("snap_daily", "snap_ask", "snap_keep",
                                                                        "snap_weeks", "snap_thorough", "snap_dir")),
     ("origin", "Herkunft der Tags (eigene Zuordnungen)", ("tag_origins", "origin_std_badge", "origin_ver_badge", "origin_labels")),

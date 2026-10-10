@@ -102,7 +102,7 @@ class Session:
             "recursive": c.get("recursive", False), "options": dict(self.opts),
             "empty_sets": [[k, v] for k, v in core.EMPTY_SETS.items()],
             "filter_ops": core.FILTER_OPS, "filter_sides": core.FILTER_SIDES,
-            "ui": dict(self.ui), "player": self.player_prefs(), "origins": self.origin_catalog(),
+            "ui": dict(self.ui), "player": self.player_prefs(at_start=True), "origins": self.origin_catalog(),
             "defaults": self.default_dirs(),
         }
 
@@ -851,18 +851,33 @@ class Session:
 
     # ================================================================== Einstellungsseite (#21)
     PLAYER_PREFS = {"wave": (bool, True), "follow": (bool, True), "start": (str, "0"), "vol": ((int, float), 0.8),
-                    "repeat": (bool, False)}
+                    "repeat": (bool, False), "live": (bool, False), "xfade": (int, 0), "layout": (str, "bottom"),
+                    "top_collapsed": (bool, False), "deck2": (bool, False), "startmode": (str, "last")}
+    PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "layout": ("bottom", "top"), "startmode": ("last", "default")}
 
-    def player_prefs(self) -> dict:
-        p = self.cfg.get("player") if isinstance(self.cfg.get("player"), dict) else {}
+    def _player_clean(self, p) -> dict:
+        p = p if isinstance(p, dict) else {}
         out = {}
         for k, (typ, default) in self.PLAYER_PREFS.items():
             v = p.get(k, default)
             out[k] = v if isinstance(v, typ) and (typ is bool) == isinstance(v, bool) else default
-        if out["start"] not in ("0", "30", "60", "cue"):
-            out["start"] = "0"
+            if k in self.PLAYER_CHOICES and out[k] not in self.PLAYER_CHOICES[k]:
+                out[k] = default
         out["vol"] = max(0.0, min(1.0, float(out["vol"])))
+        out["xfade"] = max(0, min(30, int(out["xfade"])))
+        return out
+
+    def player_prefs(self, at_start=False) -> dict:
+        """Aktuelle Player-Einstellungen; at_start: beim Programmstart – mit „startmode = default“ gelten die
+        gespeicherten Standards (#93), sonst die zuletzt benutzten."""
+        out = self._player_clean(self.cfg.get("player"))
+        defaults = self.cfg.get("player_defaults")
+        if at_start and out["startmode"] == "default" and isinstance(defaults, dict):
+            mode = out["startmode"]
+            out = self._player_clean(defaults)
+            out["startmode"] = mode
         out["saved"] = isinstance(self.cfg.get("player"), dict)
+        out["has_defaults"] = isinstance(defaults, dict)
         return out
 
     def set_player_pref(self, name, value):
@@ -871,13 +886,34 @@ class Session:
         typ = self.PLAYER_PREFS[name][0]
         if not isinstance(value, typ) or (typ is bool) != isinstance(value, bool):
             raise ValueError(f"Ungültiger Wert für {name}")
-        if name == "start" and value not in ("0", "30", "60", "cue"):
-            raise ValueError("Startpunkt: 0, 30, 60 oder cue")
+        if name in self.PLAYER_CHOICES and value not in self.PLAYER_CHOICES[name]:
+            raise ValueError(f"{name}: {', '.join(self.PLAYER_CHOICES[name])}")
         p = dict(self.cfg.get("player") or {})
-        p[name] = max(0.0, min(1.0, float(value))) if name == "vol" else value
+        p[name] = max(0.0, min(1.0, float(value))) if name == "vol" else max(0, min(30, value)) if name == "xfade" else value
         self.cfg["player"] = p
         core.save_config({"player": p})
         return self.player_prefs()
+
+    def player_defaults(self, action) -> dict:
+        """#93: „save“ = aktuelle Einstellungen als Standard beim Start, „reset“ = Standards löschen,
+        „apply“ = Standards jetzt übernehmen."""
+        if action == "save":
+            d = self._player_clean(self.cfg.get("player"))
+            d.pop("startmode", None)
+            self.cfg["player_defaults"] = d
+            core.save_config({"player_defaults": d})
+        elif action == "reset":
+            self.cfg["player_defaults"] = None
+            core.save_config({"player_defaults": None})
+        elif action == "apply":
+            d = self.cfg.get("player_defaults")
+            if isinstance(d, dict):
+                p = {**self._player_clean(d), "startmode": self._player_clean(self.cfg.get("player"))["startmode"]}
+                self.cfg["player"] = p
+                core.save_config({"player": p})
+        else:
+            raise ValueError("save, reset oder apply")
+        return {**self.player_prefs(), "defaults": self.cfg.get("player_defaults")}
 
     def settings_page(self) -> dict:
         import appsettings

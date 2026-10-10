@@ -23,6 +23,7 @@ function plSetPref(k, v) {
   else if (k === "wave") { PLAYER.wave = !!v; if (PLAYER.wave && PLAYER.info && !PLAYER.info.wave) plWaveCompute(PLAYER.info); plRender(); }
   else if (k === "follow") PLAYER.follow = !!v;
   else if (k === "repeat") { PLAYER.repeat = !!v; plRender(); }
+  else if (k === "live") { PLAYER.live = !!v; plRender(); }
   else if (k === "vol") { clearTimeout(plVolTimer); plVolTimer = setTimeout(() => call("set_player_pref", "vol", v).catch(() => {}), 400); return; }
   call("set_player_pref", k, v).catch(() => {});
 }
@@ -134,11 +135,32 @@ async function plToggle() {
   if (PLAYER.audio.paused) { try { await PLAYER.audio.play(); } catch (e) { toast(String(e.message || e)); } } else PLAYER.audio.pause();
 }
 
-/** Markierung hat sich geändert (Tagger/Vergleich): beim Abspielen gleich weiter mit dem neuen Titel. */
-function playerFollow() {
-  if (!PLAYER.audio || PLAYER.audio.paused || !PLAYER.follow || PLAYER.loading) { plRender(); return; }
+/** Markierung hat sich geändert (Tagger/Vergleich). src: „key“ (↑/↓, Programm), „click“ (Einfachklick), „multi“.
+    Live-Vorschau (#91): Klick spielt sofort. Ohne Live-Vorschau (#92) wechselt ein Klick den laufenden Titel nicht –
+    dafür Doppelklick; ↑/↓ und „Folgen“ wechseln beim Abspielen weiter. */
+function playerFollow(src = "key") {
+  if (!PLAYER.audio || PLAYER.loading || src === "multi") { plRender(); return; }
   const t = plTarget();
+  if (src === "click" && PLAYER.live) {
+    if (t && (!plSame(t) || PLAYER.audio.paused)) plLoad(t, true, plInGroup(t) ? PLAYER.audio.currentTime : null);
+    return;
+  }
+  if (src === "click" || PLAYER.audio.paused || !PLAYER.follow) { plRender(); return; }
   if (t && !plSame(t)) plLoad(t, true, plInGroup(t) ? PLAYER.audio.currentTime : null);   // Spur derselben Gruppe: Stelle halten
+}
+
+/** #92: Doppelklick auf eine Zeile – diesen Titel spielen (bzw. von vorn, wenn er schon läuft) */
+function plPlayRow() {
+  const t = plTarget();
+  if (!t) return;
+  if (plSame(t) && !PLAYER.audio.paused) return;
+  plLoad(t, true, plInGroup(t) ? PLAYER.audio.currentTime : null);
+}
+
+/** #91: Live-Vorschau an/aus */
+function plLiveSet(on) {
+  plSetPref("live", !!on);
+  toast(on ? "Live-Vorschau: Klick auf einen Titel spielt ihn sofort." : "Live-Vorschau aus – Doppelklick spielt einen Titel.");
 }
 
 /** #66: zwischen Original und Stem-Spuren umschalten – gleiche Stelle, Wiedergabe läuft weiter. */
@@ -216,6 +238,7 @@ function plRender() {
   seek.disabled = !i;
   plDrawWave();
   $("#plAB").hidden = S.module !== "compare";
+  $("#plLive").classList.toggle("on", !!PLAYER.live); $("#plLive").setAttribute("aria-pressed", String(!!PLAYER.live));
   $("#plRepeat").classList.toggle("on", PLAYER.repeat); $("#plRepeat").setAttribute("aria-pressed", String(PLAYER.repeat));
   $("#plAB2").classList.toggle("on", !!PLAYER.ab); $("#plAB2").classList.toggle("half", !!PLAYER.ab && PLAYER.ab.b === undefined);
   const hasCues = !!(i && i.cues && i.cues.length);
@@ -457,6 +480,7 @@ function initPlayer() {
   PLAYER.follow = pp.follow;
   PLAYER.wave = pp.wave;
   PLAYER.repeat = !!pp.repeat;
+  PLAYER.live = !!pp.live;
   ["play", "pause", "ended", "loadedmetadata", "emptied"].forEach((ev) => a.addEventListener(ev, plRender));
   a.addEventListener("loadedmetadata", () => { plCues(); plABDraw(); });
   $("#plWave").insertAdjacentHTML("beforeend", '<div class="pl-hover" id="plHover" hidden></div>');
@@ -499,6 +523,7 @@ function initPlayer() {
   $("#plMore").addEventListener("click", (e) => plMenu(e.currentTarget));
   $("#plRepeat").addEventListener("click", () => { plSetPref("repeat", !PLAYER.repeat); toast(PLAYER.repeat ? "Titel wird wiederholt." : "Titel nicht mehr wiederholen."); });
   $("#plAB2").addEventListener("click", plABStep);
+  $("#plLive").addEventListener("click", () => plLiveSet(!PLAYER.live));
 
   document.addEventListener("keydown", (e) => {
     const inField = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && document.activeElement?.type !== "range";

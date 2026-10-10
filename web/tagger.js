@@ -213,7 +213,7 @@ async function tgSelect(i, e = {}) {
   } else { TG.sel = new Set([i]); TG.anchor = i; }
   tgApplyOrder();
   await tgLoadDetail();
-  if (typeof playerFollow === "function") playerFollow();
+  if (typeof playerFollow === "function") playerFollow(e && e.type === "click" ? (e.shiftKey || e.ctrlKey || e.metaKey ? "multi" : "click") : "key");
 }
 
 /** Länge neben dem Cover (#34): ein Titel bzw. Gesamtlänge der markierten Titel. */
@@ -889,6 +889,10 @@ async function tgOriginDialog(preset = "") {
     renderTgHead(); tgApplyOrder();
   });
   $("#tgScroll").addEventListener("scroll", () => requestAnimationFrame(drawTgList));
+  $("#tgInner").addEventListener("dblclick", (e) => {      // #92: Doppelklick spielt den Titel
+    const r = e.target.closest(".tg-row[data-i]"); if (!r || e.target.closest("button")) return;
+    if (typeof plPlayRow === "function") plPlayRow();
+  });
   $("#tgInner").addEventListener("click", (e) => {
     const tw = e.target.closest("[data-tw]");
     if (tw) { e.stopPropagation(); tgToggleStems(+tw.dataset.tw); return; }
