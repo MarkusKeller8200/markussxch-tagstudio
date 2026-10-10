@@ -22,6 +22,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - Einstellungen → Player: alle Player-Optionen, **Standard speichern / zurücksetzen / löschen** und „Nach dem Start:
   zuletzt benutzte oder Standard-Einstellungen“ (#93).
 
+- Abgedockter Player zeigt auch **Player B** (wenn eingeschaltet) und je Player das **Cover**; Beschriftung A/B
+  wählt das Ziel, Tasten im Fenster wirken auf den gewählten Player (#101).
+- Überblenden: **Tempo angleichen** – der nächste Titel läuft während des Überblendens im BPM des laufenden
+  (Tonhöhe bleibt, höchstens ±10 %, halbes/doppeltes Tempo erkannt) und gleitet danach in einstellbarer Zeit auf sein
+  eigenes BPM zurück; angeglichenes BPM im Player hervorgehoben (#102).
+
 ### Geändert
 - Ein einfacher Klick auf einen anderen Titel wechselt den laufenden Titel nur noch mit Live-Vorschau (#92).
 - Player B nur noch mit „Player oben“ und dort unter Player A; gleich aufgebaut wie A (⏮/⏭, Cue-Sprünge,

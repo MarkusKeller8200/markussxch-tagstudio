@@ -855,6 +855,7 @@ class Session:
     PLAYER_PREFS = {"wave": (bool, True), "follow": (bool, True), "start": (str, "0"), "vol": ((int, float), 0.8),
                     "repeat": (bool, False), "live": (bool, False),
                     "xfade": (int, 0), "xfade_start": (str, "start"), "xfade_after": (int, 0),          # #94
+                    "xfade_sync": (bool, True), "xfade_return": (int, 8),                                # #102
                     "layout": (str, "bottom"), "top_collapsed": (bool, False),                           # #68
                     "deck2": (bool, False), "deck_target": (str, "A"), "vol_b": ((int, float), 0.8),     # #67
                     "sink_b": (str, ""), "start_b": (str, "0"), "repeat_b": (bool, False),
@@ -862,7 +863,7 @@ class Session:
     PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "layout": ("bottom", "top"), "startmode": ("last", "default"),
                       "xfade_start": ("start", "0", "cue"), "deck_target": ("A", "B"),
                       "start_b": ("0", "30", "60", "cue")}
-    PLAYER_RANGES = {"vol": (0.0, 1.0), "vol_b": (0.0, 1.0), "xfade": (0, 30), "xfade_after": (0, 600)}
+    PLAYER_RANGES = {"vol": (0.0, 1.0), "vol_b": (0.0, 1.0), "xfade": (0, 30), "xfade_after": (0, 600), "xfade_return": (0, 120)}
 
     def _player_clean(self, p) -> dict:
         p = p if isinstance(p, dict) else {}
@@ -2377,6 +2378,27 @@ class Session:
             out.append({"label": s["name"], "kind": "tag" if s["i"] is not None else "stem",
                         "ref": s["i"] if s["i"] is not None else s["path"]})
         return out
+
+    def media_cover(self, kind, ref, size=240) -> dict:
+        """#101: Cover des Titels im Player (verkleinert, aus dem Vorschau-Cache) als data-URL."""
+        import thumbs
+        with self.lock:
+            if kind == "tag" and isinstance(ref, int) and 0 <= ref < len(self.tag_files):
+                f = self.tag_files[ref]
+            elif kind == "side" and ref in ("L", "R"):
+                f = self._file(ref)
+            else:
+                f = None
+            c = self._front_cover(f) if f is not None else None
+        if c is None:
+            return {"src": ""}
+        size = max(48, min(600, int(size or 240)))
+        png = thumbs.make_png(c.data, size)
+        if png:
+            return {"src": "data:image/png;base64," + base64.b64encode(png).decode("ascii"), "desc": c.describe()}
+        if len(c.data) > 4_000_000:
+            return {"src": ""}
+        return {"src": f"data:{c.mime or 'image/jpeg'};base64,{base64.b64encode(c.data).decode('ascii')}", "desc": c.describe()}
 
     def media_extra(self, kind, ref) -> dict:
         """Cue-Punkte (Serato, Mixed In Key) und Wellenform aus dem Cache für den Player."""

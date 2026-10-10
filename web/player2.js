@@ -6,7 +6,7 @@
 
 const PL2 = { layout: "bottom", collapsed: false, deck2: false, window: null, ready: false };
 const DECKB = { audio: null, info: null, kind: null, ref: null, seq: 0, sink: "", startAt: "0", repeat: false, ab: null, loop: null, raf: 0 };
-const DET = { on: false, timer: 0, seq: 0, popup: null, t0: 0, waveKey: null, last: "", busy: false };
+const DET = { on: false, timer: 0, seq: 0, popup: null, t0: 0, waveKey: { A: null, B: null }, last: "", busy: false };
 
 // ====================================================================== #94 Überblenden
 /** Beim Abspielen prüfen, ob es Zeit zum Überblenden ist (aus dem timeupdate des aktiven Elements). */
@@ -25,8 +25,40 @@ function plXfadeCheck() {
 }
 
 /** Zum Titel i überblenden: neues Element lädt und blendet ein, das alte gleichmässig aus (gleiche Leistung, sin/cos). */
+/** BPM-Zahl aus dem Tag (z. B. „124“, „123,5“) oder 0 */
+function bpmOf(info) { const b = parseFloat(String((info && info.bpm) || "").replace(",", ".")); return b > 30 && b < 400 ? b : 0; }
+
+/** #102: Tempo-Faktor, damit der nächste Titel im Tempo des laufenden läuft (halbes/doppeltes Tempo erkannt). 1 = nicht angleichen. */
+function plTempoRatio(bpmFrom, bpmTo) {
+  if (!bpmFrom || !bpmTo) return 1;
+  let r = bpmFrom / bpmTo;
+  if (r > 1.5) r /= 2; else if (r < 0.75) r *= 2;
+  return r >= 0.9 && r <= 1.1 ? r : 1;           // höchstens ±10 % (wie ein Pitch-Regler)
+}
+
+/** Tempo des aktiven Titels in sec Sekunden gleichmässig auf 1 (eigenes BPM) zurückführen */
+function plTempoReturn(sec) {
+  plTempoStop(false);
+  const a = PLAYER.audio, r0 = a.playbackRate;
+  if (Math.abs(r0 - 1) < 0.0005) return;
+  if (!sec) { a.playbackRate = 1; plRender(); return; }
+  const t0 = performance.now();
+  PLAYER.tempo = { timer: setInterval(() => {
+    if (PLAYER.audio !== a) return plTempoStop(false);
+    const g = Math.min(1, (performance.now() - t0) / (sec * 1000));
+    a.playbackRate = r0 + (1 - r0) * g;
+    if (g >= 1) { plTempoStop(false); plRender(); }
+  }, 100) };
+}
+
+function plTempoStop(reset = true) {
+  if (PLAYER.tempo) { clearInterval(PLAYER.tempo.timer); PLAYER.tempo = null; }
+  if (reset && PLAYER.audio) PLAYER.audio.playbackRate = 1;
+}
+
 async function plCrossfade(i) {
   const old = PLAYER.audio, nu = PLAYER.spare, D = PLAYER.xfade * 1000;
+  const bpmFrom = bpmOf(PLAYER.info) * (old.playbackRate || 1);
   PLAYER.fade = { old, timer: 0 };
   PLAYER.spare = old;
   PLAYER.audio = nu;
@@ -38,13 +70,16 @@ async function plCrossfade(i) {
   await plLoad({ kind: "tag", ref: i }, true, null, PLAYER.xfadeStart === "start" ? null : PLAYER.xfadeStart, true);
   const f = PLAYER.fade;
   if (!f || f.old !== old) return;
+  const ratio = PLAYER.xfadeSync ? plTempoRatio(bpmFrom, bpmOf(PLAYER.info)) : 1;
+  if (ratio !== 1) { nu.preservesPitch = true; nu.playbackRate = ratio; }      // Tonhöhe bleibt
+  f.ratio = ratio;
   const t0 = performance.now();
   f.timer = setInterval(() => {
     if (PLAYER.fade !== f) return clearInterval(f.timer);
     const g = Math.min(1, (performance.now() - t0) / D), v = PLAYER.vol;
     PLAYER.audio.volume = v * Math.sin((g * Math.PI) / 2);
     old.volume = v * Math.cos((g * Math.PI) / 2);
-    if (g >= 1) plFadeStop();
+    if (g >= 1) { plFadeStop(); if (f.ratio !== 1) plTempoReturn(PLAYER.xfadeReturn); }
   }, 40);
 }
 
@@ -73,7 +108,7 @@ function pl2Layout() {
   if (top && p.parentElement !== $("#plTopSlot")) $("#plTopSlot").appendChild(p);
   else if (!top && p.parentElement !== PL2.home) PL2.home.insertBefore(p, $("#undoBtn"));
   if (db.parentElement !== box) box.appendChild(db);           // B immer unter A
-  box.hidden = !top || (DET.on && !b);
+  box.hidden = !top || DET.on;                                 // abgedockt: A und B im eigenen Fenster (#101)
   box.classList.toggle("collapsed", top && PL2.collapsed);
   box.classList.toggle("two", b);
   const fold = $("#plTopFold"), lbl = PL2.collapsed ? "Player-Leiste ausklappen (Shift+P)" : "Player-Leiste einklappen (Shift+P)";
@@ -347,7 +382,7 @@ async function plDetach() {
     DET.popup = window.open("player-window.html#token=" + encodeURIComponent(TOKEN), "tsPlayer", f + ",resizable=yes");
     if (!DET.popup) { toast("Das Player-Fenster wurde vom Browser blockiert – bitte Popups für diese Seite erlauben."); return; }
   } else if (!r.ok) { toast(r.error || "Player-Fenster konnte nicht geöffnet werden."); return; }
-  DET.on = true; DET.t0 = Date.now(); DET.seq = 0; DET.waveKey = null; DET.last = "";
+  DET.on = true; DET.t0 = Date.now(); DET.seq = 0; DET.waveKey = { A: null, B: null }; DET.last = "";
   pl2Layout();
   clearInterval(DET.timer);
   DET.timer = setInterval(detTick, 200);
@@ -366,21 +401,31 @@ function plDock() {
   plRender();
 }
 
-/** Zustand für das Player-Fenster (Wellenform nur bei neuem Titel) */
-function detState() {
-  const a = PLAYER.audio, i = PLAYER.info;
+/** Zustand eines Players für das Fenster (Wellenform nur bei neuem Titel) */
+function detDeck(d, a, i, x) {
   const st = { on: !!(a.src && i), paused: a.paused, t: Math.round(a.currentTime * 10) / 10, dur: a.duration || (i && i.duration) || 0,
-    vol: PLAYER.vol, muted: a.muted, repeat: PLAYER.repeat, live: PLAYER.live, start: PLAYER.startAt,
-    ab: PLAYER.ab ? (PLAYER.ab.b === undefined ? "half" : "on") : "", theme: document.documentElement.dataset.theme || "dark",
-    module: S.module, fade: !!PLAYER.fade };
+    vol: x.vol, muted: a.muted, repeat: x.repeat, start: x.start, ab: x.ab ? (x.ab.b === undefined ? "half" : "on") : "",
+    rate: Math.round((a.playbackRate || 1) * 1000) / 1000, live: x.live };
   if (i) {
     Object.assign(st, { title: i.title || "", artist: i.artist || "", name: i.name, path: i.path, key: i.key || "", key_alt: i.key_alt || {},
       bpm: i.bpm || "", rating: i.rating, like: i.like, markable: i.markable !== false && i.rating !== undefined,
+      kind: x.kind, ref: x.kind === "side" ? i.ref : x.ref,
       cues: (i.cues || []).map((c) => ({ pos: c.pos, end: c.end, kind: c.kind, index: c.index, name: c.name, color: c.color })),
-      wkey: i.wave_key || i.path, stem: ((i.stems || []).find((g) => plSame(g)) || {}).label || "" });
+      wkey: i.wave_key || i.path, stem: x.stem || "" });
     const wk = (i.wave_key || i.path) + (i.wave ? ":w" : "");
-    if (DET.waveKey !== wk) { DET.waveKey = wk; st.wave = (PLAYER.wave && i.wave) || null; }
+    if (DET.waveKey[d] !== wk) { DET.waveKey[d] = wk; st.wave = (PLAYER.wave && i.wave) || null; }
   }
+  return st;
+}
+
+function detState() {
+  const i = PLAYER.info, b = pl2B();
+  const st = { theme: document.documentElement.dataset.theme || "dark", module: S.module, target: b ? PLAYER.target : "A", two: b,
+    A: detDeck("A", PLAYER.audio, i, { vol: PLAYER.vol, repeat: PLAYER.repeat, start: PLAYER.startAt, ab: PLAYER.ab, live: PLAYER.live,
+      kind: PLAYER.kind, ref: PLAYER.ref, stem: i ? ((i.stems || []).find((g) => plSame(g)) || {}).label : "" }) };
+  if (b) st.B = detDeck("B", DECKB.audio, DECKB.info, { vol: DECKB.audio.volume, repeat: DECKB.repeat, start: DB_START(), ab: DECKB.ab,
+    kind: DECKB.kind, ref: DECKB.ref });
+  else DET.waveKey.B = null;
   return st;
 }
 
@@ -388,8 +433,8 @@ async function detTick() {
   if (DET.busy || !DET.on) return;
   DET.busy = true;
   try {
-    const st = detState(), j = JSON.stringify({ ...st, wave: st.wave ? 1 : 0 });
-    const send = j !== DET.last || st.wave !== undefined;
+    const st = detState(), j = JSON.stringify(st, (k, v) => (k === "wave" ? (v ? 1 : 0) : v));
+    const send = j !== DET.last || (st.A && st.A.wave !== undefined) || (st.B && st.B.wave !== undefined);
     if (send) DET.last = j;
     const r = await call("bus_sync", "pl_cmd", DET.seq, send ? "pl_state" : null, send ? st : null, "pl_state");
     DET.seq = r.seq;
@@ -400,30 +445,52 @@ async function detTick() {
   } catch (e) { /* nächster Takt */ } finally { DET.busy = false; }
 }
 
-/** Befehle aus dem Player-Fenster ausführen */
+/** Befehle aus dem Player-Fenster ausführen (deck „A“ oder „B“) */
 async function detCmd(m) {
-  const a = PLAYER.audio;
+  if (m.cmd === "hello") { DET.waveKey = { A: null, B: null }; DET.last = ""; return; }
+  if (m.cmd === "dock") return plDock();
+  if (m.cmd === "target") return dbTargetSet(m.deck === "B" ? "B" : "A");
+  if (m.cmd === "up" || m.cmd === "down") return plStep(m.cmd === "down" ? 1 : -1, false);
+  if (m.deck === "B") return detCmdB(m);
+  const a = PLAYER.audio, r = PLAYER.info ? { kind: PLAYER.kind, ref: PLAYER.kind === "side" ? PLAYER.info.ref : PLAYER.ref } : null;
   switch (m.cmd) {
-    case "hello": DET.waveKey = null; DET.last = ""; break;
-    case "dock": plDock(); break;
-    case "toggle":                        // Knopf/Leertaste im Fenster: den geladenen Titel anhalten/fortsetzen
+    case "toggle":                        // Knopf im Fenster: den geladenen Titel anhalten/fortsetzen
       if (a.src && PLAYER.info) { if (a.paused) a.play().catch(() => {}); else a.pause(); } else await plToggle();
       break;
     case "prev": await plStep(-1); break;
     case "next": await plStep(1); break;
-    case "up": case "down": await plStep(m.cmd === "down" ? 1 : -1, false); break;
     case "seek": if (a.src && isFinite(m.t)) { a.currentTime = Math.max(0, m.t); plRender(); } break;
     case "seekby": plSeekBy(+m.s || 0); break;
     case "vol": PLAYER.vol = Math.max(0, Math.min(1, +m.v)); if (!PLAYER.fade) a.volume = PLAYER.vol; $("#plVol").value = String(Math.round(PLAYER.vol * 100)); plSetPref("vol", PLAYER.vol); break;
     case "mute": a.muted = !a.muted; plRender(); break;
-    case "rate": if (PLAYER.info) await plMarkTarget({ kind: PLAYER.kind, ref: PLAYER.kind === "side" ? PLAYER.info.ref : PLAYER.ref }, +m.n, null); break;
-    case "like": if (PLAYER.info) await plMarkTarget({ kind: PLAYER.kind, ref: PLAYER.kind === "side" ? PLAYER.info.ref : PLAYER.ref }, null, "toggle"); break;
+    case "rate": if (r) await plMarkTarget(r, +m.n, null); break;
+    case "like": if (r) await plMarkTarget(r, null, "toggle"); break;
     case "repeat": $("#plRepeat").click(); break;
     case "ab": plABStep(); break;
     case "live": plLiveSet(!PLAYER.live); break;
     case "cue": plCueJump(m.dir > 0 ? 1 : -1); break;
     case "start": if (["0", "30", "60", "cue"].includes(m.v)) plSetPref("start", m.v); break;
     case "stem": plStemCycle(m.dir || 1); break;
+    default: break;
+  }
+}
+
+async function detCmdB(m) {
+  const a = DECKB.audio, r = dbRefOf();
+  switch (m.cmd) {
+    case "toggle": if (!a.src) await dbLoad(plTarget()); else if (a.paused) a.play().catch(() => {}); else a.pause(); break;
+    case "prev": await dbStep(-1); break;
+    case "next": await dbStep(1); break;
+    case "seek": if (a.src && isFinite(m.t)) { a.currentTime = Math.max(0, m.t); dbRender(); } break;
+    case "seekby": dbSeekBy(+m.s || 0); break;
+    case "vol": { const v = Math.max(0, Math.min(1, +m.v)); $("#dbVol").value = String(Math.round(v * 100)); plSetPref("vol_b", v); break; }
+    case "mute": a.muted = !a.muted; dbRender(); break;
+    case "rate": if (r) await plMarkTarget(r, +m.n, null); break;
+    case "like": if (r) await plMarkTarget(r, null, "toggle"); break;
+    case "repeat": $("#dbRepeat").click(); break;
+    case "ab": dbABStep(); break;
+    case "cue": dbCueJump(m.dir > 0 ? 1 : -1); break;
+    case "start": if (["0", "30", "60", "cue"].includes(m.v)) plSetPref("start_b", m.v); break;
     default: break;
   }
 }

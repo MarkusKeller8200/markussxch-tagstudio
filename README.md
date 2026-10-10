@@ -197,6 +197,10 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
 - **Überblenden** (Einstellungen → Player oder ⋯): am Titelende gleichmässig (gleiche Leistung) in den nächsten
   Titel überblenden, 2–12 s; der nächste Titel startet ab Startpunkt, Anfang oder erstem Cue; wahlweise schon nach
   15 s … 2 Minuten (zum schnellen Durchhören). Nicht bei „Titel wiederholen“ oder einer Schleife.
+  **Tempo angleichen** (Standard an): der nächste Titel läuft während des Überblendens im BPM des laufenden
+  (Tonhöhe bleibt, höchstens ±10 %, halbes/doppeltes Tempo wird erkannt; ohne BPM-Feld kein Angleichen) und gleitet
+  danach in der eingestellten Zeit (sofort … 1 Minute) auf sein eigenes BPM zurück. Nur das Tempo wird angeglichen,
+  die Beats werden nicht übereinandergelegt (dafür fehlt ein Beatgrid).
 - **Player oben** (Einstellungen → Player → Position oder Regler-Menü): eigene Leiste über der Seite mit voller Breite
   und grösserer Wellenform; Knopf ˄ bzw. **Shift+P** klappt sie ein (je Player eine Zeile mit ▶/⏸, Titel und
   Restlaufzeit).
@@ -205,7 +209,8 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   Vergleich) und mit eigenem **Ausgabegerät** im Menü (wenn das System es erlaubt), z. B. Kopfhörer. Rechtsklick auf
   einen Titel → „In Player B laden“. Ein Klick auf die Beschriftung **A** bzw. **B** ganz vorne (oder Taste **B**)
   legt fest, worauf Markierung, Leertaste, Doppelklick und Tasten wirken.
-- **Abdocken** (Knopf ⧉): der Player erscheint in einem eigenen Fenster, z. B. auf dem zweiten Bildschirm; die
+- **Abdocken** (Knopf ⧉): der Player – mit Cover und, wenn eingeschaltet, auch Player B – erscheint in einem
+  eigenen Fenster, z. B. auf dem zweiten Bildschirm; die
   Wiedergabe läuft an derselben Stelle weiter, Markierung, ↑/↓ und Leertaste im Hauptfenster steuern ihn weiter.
   Grösse und Position werden gemerkt; Schliessen des Fensters (oder „Andocken“) holt ihn zurück.
 - **Standard-Einstellungen** (Einstellungen → Player): „Aktuelle als Standard speichern“, „Auf Standard

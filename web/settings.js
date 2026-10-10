@@ -41,6 +41,8 @@ async function settingsShow() {
         <label for="stPlXf">Überblenden</label><div class="st-path">${stSel("stPlXf", [[0, "aus"], [2, "2 s"], [4, "4 s"], [6, "6 s"], [8, "8 s"], [10, "10 s"], [12, "12 s"]], p.xfade)}
           ${stSel("stPlXfStart", [["start", "nächster Titel ab Startpunkt"], ["0", "nächster Titel ab Anfang"], ["cue", "nächster Titel ab 1. Cue"]], p.xfade_start)}</div>
         <label for="stPlXfAfter">Überblenden wann</label>${stSel("stPlXfAfter", [[0, "am Titelende"], [15, "nach 15 s (Durchhören)"], [30, "nach 30 s"], [45, "nach 45 s"], [60, "nach 1 Minute"], [90, "nach 1:30"], [120, "nach 2 Minuten"]], p.xfade_after)}
+        <span>Tempo angleichen</span><div class="st-path">${stCheck("stPlXfSync", p.xfade_sync, "Nächsten Titel beim Überblenden im BPM des laufenden spielen (Tonhöhe bleibt, max. ±10 %)")}</div>
+        <label for="stPlXfRet">Zurück auf eigenes BPM</label>${stSel("stPlXfRet", [[0, "sofort nach dem Überblenden"], [4, "in 4 s"], [8, "in 8 s"], [16, "in 16 s"], [30, "in 30 s"], [60, "in 1 Minute"]], p.xfade_return)}
         <span></span><span class="muted sm">Überblenden wirkt im Tagger mit „Durchhören“, nicht bei „Titel wiederholen“ oder einer Schleife.</span>
         <label for="stPlLayout">Position</label>${stSel("stPlLayout", [["bottom", "unten in der Aktionsleiste"], ["top", "oben als eigene Leiste (einklappbar, Shift+P)"]], p.layout)}
         <span>Player B</span><div>${stCheck("stPlDeck2", p.deck2 && p.layout === "top", "Zweiten Player unter Player A anzeigen (Vorhören, eigenes Ausgabegerät)")}${p.layout === "top" ? "" : '<div class="muted sm">Nur mit Position „oben“ verfügbar.</div>'}</div>
@@ -403,6 +405,8 @@ function initSettings() {
     else if (t.id === "stPlXf") plSetPref("xfade", +t.value);
     else if (t.id === "stPlXfStart") plSetPref("xfade_start", t.value);
     else if (t.id === "stPlXfAfter") plSetPref("xfade_after", +t.value);
+    else if (t.id === "stPlXfSync") plSetPref("xfade_sync", t.checked);
+    else if (t.id === "stPlXfRet") plSetPref("xfade_return", +t.value);
     else if (t.id === "stPlLayout") { pl2Pref("layout", t.value); await call("set_player_pref", "layout", t.value); settingsShow(); }
     else if (t.id === "stPlDeck2") plSetPref("deck2", t.checked);
     else if (t.id === "stPlStartmode") plSetPref("startmode", t.value);

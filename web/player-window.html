@@ -7,26 +7,8 @@
 <link rel="stylesheet" href="app.css">
 </head>
 <body class="pw-body">
-<div class="pw" id="pw" role="group" aria-label="Player (abgedockt)">
-  <div class="pw-head">
-    <div class="pw-title"><b id="pwTitle">Verbinde …</b><span id="pwSub" class="muted"></span></div>
-    <div class="pw-meta" id="pwMeta"></div>
-    <span id="pwRate"></span>
-    <button class="ghost sm" id="pwDock" title="Player wieder ins Hauptfenster holen">Andocken</button>
-  </div>
-  <div class="pl-wave pw-wave" id="pwWave"><canvas id="pwCanvas" aria-hidden="true"></canvas><input type="range" id="pwSeek" min="0" max="1" value="0" step="1" aria-label="Position"><div class="pl-cues" id="pwCues"></div></div>
-  <div class="pw-bar">
-    <button class="icon-btn" data-cmd="prev" title="Voriger Titel" aria-label="Voriger Titel"><svg class="i" viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M19 5 9 12l10 7Z"/></svg></button>
-    <button class="icon-btn pl-play" id="pwPlay" data-cmd="toggle" aria-label="Abspielen"></button>
-    <button class="icon-btn" data-cmd="next" title="Nächster Titel" aria-label="Nächster Titel"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14"/><path d="M5 5l10 7-10 7Z"/></svg></button>
-    <button class="icon-btn pl-tog" id="pwLive" data-cmd="live" title="Live-Vorschau" aria-label="Live-Vorschau"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4"/><path d="M5 5a10 10 0 0 0 0 14"/><path d="M19 5a10 10 0 0 1 0 14"/></svg></button>
-    <button class="icon-btn pl-tog" id="pwRepeat" data-cmd="repeat" title="Titel wiederholen (R)" aria-label="Titel wiederholen"><svg class="i" viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></button>
-    <button class="icon-btn pl-tog pl-ab-btn" id="pwAB" data-cmd="ab" title="A–B-Schleife (L)" aria-label="A–B-Schleife">A–B</button>
-    <div class="pw-time"><span id="pwElapsed">0:00</span><span id="pwRemain" class="pl-remain">−0:00</span><span id="pwLen" class="muted">0:00</span></div>
-    <div class="grow"></div>
-    <div class="seg sm pl-start" id="pwStart" title="Startpunkt beim Abspielen"><button data-v="0">Start</button><button data-v="30">30 %</button><button data-v="60">1:00</button><button data-v="cue">Cue</button></div>
-    <input type="range" id="pwVol" min="0" max="100" value="80" title="Lautstärke (M: stumm)" aria-label="Lautstärke">
-  </div>
+<div class="pw-wrap">
+  <div class="pw-decks" id="pwDecks"></div>
 </div>
 <script src="playerwin.js"></script>
 </body>

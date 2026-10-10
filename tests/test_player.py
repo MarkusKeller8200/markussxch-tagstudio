@@ -178,6 +178,11 @@ class TestPlayerDefaults(unittest.TestCase):
             self.assertFalse(s.set_player_window({"x": 1, "y": 2, "w": 50, "h": 50}))
             self.assertTrue(s.set_player_window({"x": 10, "y": 20, "w": 900.4, "h": 160}))
             self.assertEqual(Session().player_prefs()["window"], {"x": 10, "y": 20, "w": 900, "h": 160})
+            p = s.player_prefs()
+            self.assertEqual((p["xfade_sync"], p["xfade_return"]), (True, 8))      # #102
+            s.set_player_pref("xfade_return", 500)
+            self.assertEqual(s.player_prefs()["xfade_return"], 120)
+            self.assertEqual(s.media_cover("tag", 0), {"src": ""})                  # #101: nichts geladen
         finally:
             core.CONFIG, core.CONFIG_OLD = old
             shutil.rmtree(d, ignore_errors=True)

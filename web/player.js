@@ -28,6 +28,8 @@ function plSetPref(k, v) {
   else if (k === "xfade") PLAYER.xfade = +v || 0;
   else if (k === "xfade_start") PLAYER.xfadeStart = v;
   else if (k === "xfade_after") PLAYER.xfadeAfter = +v || 0;
+  else if (k === "xfade_sync") PLAYER.xfadeSync = !!v;
+  else if (k === "xfade_return") PLAYER.xfadeReturn = +v || 0;
   else if (k === "layout" || k === "top_collapsed" || k === "deck2" || k === "deck_target" || k === "sink_b" || k === "vol_b" || k === "start_b" || k === "repeat_b") {
     if (typeof pl2Pref === "function") pl2Pref(k, v);
     if (k === "vol_b") { clearTimeout(plVolTimer); plVolTimer = setTimeout(() => call("set_player_pref", "vol_b", v).catch(() => {}), 400); return; }
@@ -64,6 +66,7 @@ function plTarget() {
 
 async function plLoad(target, autoplay = true, keepTime = null, startMode = null, fromFade = false) {
   if (PLAYER.fade && !fromFade && typeof plFadeStop === "function") plFadeStop();
+  if (!fromFade && typeof plTempoStop === "function") plTempoStop();
   if (!target) { toast(S.module === "tagger" ? "Erst einen Titel markieren." : "Erst ein Dateipaar wählen."); return; }
   const seq = PLAYER.loadSeq = (PLAYER.loadSeq || 0) + 1;
   PLAYER.loading = true;
@@ -298,9 +301,10 @@ function plRender() {
   $("#plTitle").title = i ? i.path : "";
   bar.classList.toggle("playing", !a.paused);
   // #46/#63: Tonart (mit den anderen Schreibweisen) und Tempo des laufenden Titels
-  const bpm = i && i.bpm ? String(Math.round(parseFloat(String(i.bpm).replace(",", ".")) || 0) || i.bpm) : "";
+  const rate = a.playbackRate || 1, bpmN = parseFloat(String((i && i.bpm) || "").replace(",", ".")) || 0;
+  const bpm = !i || !i.bpm ? "" : Math.abs(rate - 1) > 0.0005 && bpmN ? `${(bpmN * rate).toFixed(1)}` : String(Math.round(bpmN) || i.bpm);
   const alt = i && i.key_alt ? [i.key_alt.musical, i.key_alt.openkey].filter(Boolean) : [];
-  const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${alt.length ? `<span class="pl-key-alt" title="Musikalisch · Open Key">${esc(alt.join(" · "))}</span>` : ""}${bpm ? `<span class="pl-bpm">${esc(bpm)} BPM</span>` : ""}` : "";
+  const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${alt.length ? `<span class="pl-key-alt" title="Musikalisch · Open Key">${esc(alt.join(" · "))}</span>` : ""}${bpm ? `<span class="pl-bpm${Math.abs(rate - 1) > 0.0005 ? " synced" : ""}" title="${Math.abs(rate - 1) > 0.0005 ? `Tempo angeglichen (${rate > 1 ? "+" : ""}${((rate - 1) * 100).toFixed(1)} %, Original ${Math.round(bpmN)} BPM)` : "Tempo"}">${esc(bpm)} BPM</span>` : ""}` : "";
   if ($("#plMeta").dataset.v !== meta) { $("#plMeta").innerHTML = meta; $("#plMeta").dataset.v = meta; }
   plStemsRender();
   const rh = i && i.markable !== false && i.rating !== undefined ? rateHtml(i.rating, i.like, { keys: true }) : "";
@@ -558,6 +562,7 @@ function plApplyPrefs(pp) {
   PLAYER.repeat = !!pp.repeat;
   PLAYER.live = !!pp.live;
   PLAYER.xfade = +pp.xfade || 0; PLAYER.xfadeStart = pp.xfade_start || "start"; PLAYER.xfadeAfter = +pp.xfade_after || 0;
+  PLAYER.xfadeSync = pp.xfade_sync !== false; PLAYER.xfadeReturn = pp.xfade_return ?? 8;
   if (typeof pl2Apply === "function") pl2Apply(pp);
   if ($("#plStart")) plStartSync();
   plRender();
