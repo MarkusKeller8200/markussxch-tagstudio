@@ -38,7 +38,7 @@ _PASS = {
     "fixer_settings", "fixer_preview", "fixer_apply",
     "backups", "set_backup", "start_backup_check", "start_restore", "backup_diff", "delete_backup",
     "start_tag_load", "tagger_settings", "tag_rows", "tag_detail", "tag_set", "tag_set_rating", "player_mark", "tag_remove", "tag_add_field",
-    "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml", "tag_blob", "tag_blob_set", "blob_pretty", "players", "set_players", "play_external", "wave_save", "settings_page", "set_trivial", "set_save_version", "set_player_pref", "player_defaults", "settings_export_text", "settings_import_preview", "settings_import", "settings_reset", "tag_origins", "set_tag_origins", "tag_origin_remove", "jobs_status", "job_cancel", "jobs_cancel_all", "jobs_clear", "jobs_resume", "tag_attach_stems", "set_stems_flat", "tag_stem_tags", "set_origin_std_badge", "set_origin_ver_badge", "set_origin_label", "cache_info", "cache_clear", "set_list_cache", "verify_status", "tag_cover_thumb", "reload_pair", "set_default_dir", "start_cache_build", "compare_origin_remove", "save_conflicts", "save_merge_external", "snap_overview", "snap_list", "snap_add_library", "snap_remove_library", "snap_update_library", "snap_update", "snap_delete", "snap_prune", "snap_create", "snap_startup", "snap_set", "start_snap_journal", "snap_revert", "start_snap_move", "snap_detect", "snap_use", "snap_ignore", "snap_watch", "snap_watch_ack",
+    "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml", "tag_blob", "tag_blob_set", "blob_pretty", "players", "set_players", "play_external", "wave_save", "settings_page", "set_trivial", "set_save_version", "set_player_pref", "player_defaults", "set_player_window", "bus_post", "bus_poll", "bus_peer", "bus_reset", "bus_sync", "settings_export_text", "settings_import_preview", "settings_import", "settings_reset", "tag_origins", "set_tag_origins", "tag_origin_remove", "jobs_status", "job_cancel", "jobs_cancel_all", "jobs_clear", "jobs_resume", "tag_attach_stems", "set_stems_flat", "tag_stem_tags", "set_origin_std_badge", "set_origin_ver_badge", "set_origin_label", "cache_info", "cache_clear", "set_list_cache", "verify_status", "tag_cover_thumb", "reload_pair", "set_default_dir", "start_cache_build", "compare_origin_remove", "save_conflicts", "save_merge_external", "snap_overview", "snap_list", "snap_add_library", "snap_remove_library", "snap_update_library", "snap_update", "snap_delete", "snap_prune", "snap_create", "snap_startup", "snap_set", "start_snap_journal", "snap_revert", "start_snap_move", "snap_detect", "snap_use", "snap_ignore", "snap_watch", "snap_watch_ack",
     "tag_case_modes", "tag_case", "tag_replace", "tag_folder_cover", "tag_key_notation", "tag_key_set", "tag_key_convert", "tag_feature_set", "tag_features_open",
     "plugins_list", "plugin_enable", "plugin_actions", "plugin_form", "start_plugin_action", "start_plugin_install", "plugin_apply",
 }
@@ -53,6 +53,7 @@ class Api:
         self._start = start_paths or []
         self._argv = list(argv or [])   # für den Neustart nach einem Update
         self._server = None             # (srv, token) im Browser-Modus
+        self._pwin = None               # abgedocktes Player-Fenster (#69, nur im App-Fenster)
 
     # ---------- Sitzung
     def settings(self):
@@ -186,6 +187,48 @@ class Api:
         info["url"] = media.SERVER.register(info["path"])
         info.update(self._s.media_extra(kind, ref))
         return info
+
+    # ---------- abgedockter Player (#69)
+    def player_window_open(self):
+        """Eigenes Fenster für den Player. Im Browser-Modus öffnet die Oberfläche selbst ein Popup."""
+        if self._window is None:
+            return {"ok": False, "browser": True}
+        if self._pwin is not None:
+            try:
+                self._pwin.restore()
+                self._pwin.show()
+            except Exception:  # noqa: BLE001
+                pass
+            return {"ok": True}
+        import webview
+        g = self._s.cfg.get("player_window") if isinstance(self._s.cfg.get("player_window"), dict) else {}
+        kw = {"width": g.get("w", 1100), "height": g.get("h", 230)}
+        if "x" in g and "y" in g:
+            kw.update(x=g["x"], y=g["y"])
+        try:
+            w = webview.create_window(f"{APP} – Player", url=os.path.join(WEB, "player-window.html"), js_api=self,
+                                      min_size=(560, 170), background_color="#121419", **kw)
+        except Exception as ex:  # noqa: BLE001
+            return {"ok": False, "error": f"Fenster konnte nicht geöffnet werden: {ex}"}
+        self._pwin = w
+
+        def closed():
+            self._pwin = None
+            self._s.bus_post("pl_cmd", {"cmd": "dock"})
+        try:
+            w.events.closed += closed
+        except Exception:  # noqa: BLE001
+            pass
+        return {"ok": True}
+
+    def player_window_close(self):
+        w, self._pwin = self._pwin, None
+        if w is not None:
+            try:
+                w.destroy()
+            except Exception:  # noqa: BLE001
+                pass
+        return True
 
     # ---------- Hintergrund-Aufträge beim Beenden
     def jobs_on_close(self, win=None) -> bool:
@@ -491,6 +534,7 @@ def run_window(api: Api):
         return api.jobs_on_close(win)
     try:
         win.events.closing += on_closing
+        win.events.closed += api.player_window_close      # abgedockten Player mit schliessen (#69)
     except Exception:  # noqa: BLE001 – ältere pywebview-Versionen
         pass
     webview.start()

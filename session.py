@@ -55,6 +55,7 @@ def fmt_duration(sec) -> str:
 class Session:
     def __init__(self):
         self.lock = threading.RLock()
+        self._bus, self._buslock = {}, threading.Lock()       # Nachrichten zwischen Fenstern (#69)
         self._load_cfg()
         self.pairs: list = []
         self.reg: dict = {}          # gemeinsames Dateiregister (Vergleich + Tagger): Pfad → MP3File
@@ -852,9 +853,14 @@ class Session:
 
     # ================================================================== Einstellungsseite (#21)
     PLAYER_PREFS = {"wave": (bool, True), "follow": (bool, True), "start": (str, "0"), "vol": ((int, float), 0.8),
-                    "repeat": (bool, False), "live": (bool, False), "xfade": (int, 0), "layout": (str, "bottom"),
-                    "top_collapsed": (bool, False), "deck2": (bool, False), "startmode": (str, "last")}
-    PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "layout": ("bottom", "top"), "startmode": ("last", "default")}
+                    "repeat": (bool, False), "live": (bool, False),
+                    "xfade": (int, 0), "xfade_start": (str, "start"), "xfade_after": (int, 0),          # #94
+                    "layout": (str, "bottom"), "top_collapsed": (bool, False),                           # #68
+                    "deck2": (bool, False), "deck_target": (str, "A"), "vol_b": ((int, float), 0.8),     # #67
+                    "sink_b": (str, ""), "startmode": (str, "last")}                                     # #93
+    PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "layout": ("bottom", "top"), "startmode": ("last", "default"),
+                      "xfade_start": ("start", "0", "cue"), "deck_target": ("A", "B")}
+    PLAYER_RANGES = {"vol": (0.0, 1.0), "vol_b": (0.0, 1.0), "xfade": (0, 30), "xfade_after": (0, 600)}
 
     def _player_clean(self, p) -> dict:
         p = p if isinstance(p, dict) else {}
@@ -864,8 +870,8 @@ class Session:
             out[k] = v if isinstance(v, typ) and (typ is bool) == isinstance(v, bool) else default
             if k in self.PLAYER_CHOICES and out[k] not in self.PLAYER_CHOICES[k]:
                 out[k] = default
-        out["vol"] = max(0.0, min(1.0, float(out["vol"])))
-        out["xfade"] = max(0, min(30, int(out["xfade"])))
+        for k, (lo, hi) in self.PLAYER_RANGES.items():
+            out[k] = max(lo, min(hi, type(lo)(out[k])))
         return out
 
     def player_prefs(self, at_start=False) -> dict:
@@ -879,6 +885,7 @@ class Session:
             out["startmode"] = mode
         out["saved"] = isinstance(self.cfg.get("player"), dict)
         out["has_defaults"] = isinstance(defaults, dict)
+        out["window"] = self.cfg.get("player_window") if isinstance(self.cfg.get("player_window"), dict) else None
         return out
 
     def set_player_pref(self, name, value):
@@ -890,10 +897,65 @@ class Session:
         if name in self.PLAYER_CHOICES and value not in self.PLAYER_CHOICES[name]:
             raise ValueError(f"{name}: {', '.join(self.PLAYER_CHOICES[name])}")
         p = dict(self.cfg.get("player") or {})
-        p[name] = max(0.0, min(1.0, float(value))) if name == "vol" else max(0, min(30, value)) if name == "xfade" else value
+        if name in self.PLAYER_RANGES:
+            lo, hi = self.PLAYER_RANGES[name]
+            value = max(lo, min(hi, type(lo)(value)))
+        p[name] = value
         self.cfg["player"] = p
         core.save_config({"player": p})
         return self.player_prefs()
+
+    # ------------------------------------------------------------------ Nachrichten zwischen Fenstern (#69)
+    def bus_post(self, chan, msg) -> int:
+        """Nachricht an einen Kanal (z. B. „pl_cmd“: Befehle vom abgedockten Player, „pl_state“: Zustand für ihn)."""
+        import collections
+        with self._bus_lock():
+            q = self._bus.setdefault(str(chan), {"seq": 0, "msgs": collections.deque(maxlen=200), "seen": 0.0})
+            q["seq"] += 1
+            q["msgs"].append((q["seq"], msg))
+            return q["seq"]
+
+    def bus_poll(self, chan, since=0) -> dict:
+        """Neue Nachrichten seit `since`. `peer`: Sekunden seit die Gegenseite diesen Kanal zuletzt abgefragt hat
+        (das Hauptfenster erkennt so ein geschlossenes Player-Fenster)."""
+        import collections
+        with self._bus_lock():
+            q = self._bus.setdefault(str(chan), {"seq": 0, "msgs": collections.deque(maxlen=200), "seen": 0.0})
+            q["seen"] = time.time()
+            since = since if isinstance(since, int) else 0
+            return {"seq": q["seq"], "msgs": [m for n, m in q["msgs"] if n > since]}
+
+    def bus_sync(self, poll_chan, since=0, post_chan=None, msg=None, peer_chan=None) -> dict:
+        """Ein Aufruf statt drei (Abfrage, optional senden, Gegenseite prüfen) – für den 5-mal-pro-Sekunde-Takt."""
+        if post_chan is not None and msg is not None:
+            self.bus_post(post_chan, msg)
+        out = self.bus_poll(poll_chan, since)
+        if peer_chan is not None:
+            out["peer"] = self.bus_peer(peer_chan)
+        return out
+
+    def bus_peer(self, chan) -> float | None:
+        with self._bus_lock():
+            q = self._bus.get(str(chan))
+            return round(time.time() - q["seen"], 2) if q and q["seen"] else None
+
+    def bus_reset(self, chan) -> None:
+        with self._bus_lock():
+            self._bus.pop(str(chan), None)
+
+    def _bus_lock(self):
+        return self._buslock
+
+    def set_player_window(self, geom) -> bool:
+        """#69: Grösse und Position des abgedockten Player-Fensters merken."""
+        if not isinstance(geom, dict):
+            return False
+        g = {k: int(geom[k]) for k in ("x", "y", "w", "h") if isinstance(geom.get(k), (int, float))}
+        if len(g) != 4 or g["w"] < 200 or g["h"] < 80:
+            return False
+        self.cfg["player_window"] = g
+        core.save_config({"player_window": g})
+        return True
 
     def player_defaults(self, action) -> dict:
         """#93: „save“ = aktuelle Einstellungen als Standard beim Start, „reset“ = Standards löschen,

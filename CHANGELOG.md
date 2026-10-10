@@ -6,6 +6,25 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+- Player: **Bewertung** 0–5 Sterne (Feld POPM, vorhandene Frames werden angepasst, Zähler bleibt; `TXXX:FMPS_Rating`
+  wird mitgeführt) und **Like** (♥, `TXXX:TAGSTUDIO` als JSON) – im Player, Tasten 0–5 und F (#95, #96).
+- Tagger: Sterne und ♥ neben der Länge, auch für mehrere markierte Titel; kleine Anzeige in der Liste (#97).
+- Player: **Live-Vorschau** – ein Klick auf einen Titel spielt ihn sofort (#91); **Doppelklick** spielt einen
+  Titel, ohne Live-Vorschau wechselt ein einfacher Klick den laufenden Titel nicht mehr (#92).
+- Player: **Überblenden** zum nächsten Titel (2–12 s, gleichmässige Kurve), nächster Titel ab Startpunkt/Anfang/
+  erstem Cue, wahlweise schon nach 15 s … 2 min; nicht bei Wiederholen/Schleife (#94).
+- Player **oben** als eigene, einklappbare Leiste (Shift+P) mit grösserer Wellenform (#68).
+- **Player B:** zweiter Player zum Vorhören mit eigener Lautstärke, Wellenform und Ausgabegerät; Rechtsklick
+  „In Player B laden“, Ziel A/B umschaltbar (Taste B) (#67).
+- Player **abdocken** in ein eigenes Fenster (z. B. zweiter Bildschirm); Wiedergabe läuft weiter, Grösse und
+  Position werden gemerkt, Schliessen dockt wieder an (#69).
+- Einstellungen → Player: alle Player-Optionen, **Standard speichern / zurücksetzen / löschen** und „Nach dem Start:
+  zuletzt benutzte oder Standard-Einstellungen“ (#93).
+
+### Geändert
+- Ein einfacher Klick auf einen anderen Titel wechselt den laufenden Titel nur noch mit Live-Vorschau (#92).
+
 ## [3.3.1] – 2026-10-10
 
 ### Neu

@@ -920,3 +920,64 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .tg-rate button{font-size:19px}
 .rate-mini{flex:none;margin-left:6px;color:#f5a623;font-size:11px;letter-spacing:-1px}
 .rate-mini b{color:#e0457b;font-weight:400;margin-left:3px}
+
+/* Player oben (#68) */
+.pl-top{display:flex;flex-direction:column;gap:6px;padding:8px 24px;border-bottom:1px solid var(--line);background:var(--surf);position:relative}
+.pl-top-slot{display:flex;min-width:0;padding-right:34px}
+.pl-top .player{max-width:none;flex:1 1 auto}
+.pl-top .player .pl-wave{height:40px}
+.pl-top .player .pl-wave:not(.wave) #plSeek{top:13px}
+.pl-top .pl-fold{position:absolute;right:20px;top:10px;width:28px;height:28px}
+.pl-top.collapsed{padding-top:4px;padding-bottom:4px}
+.pl-top.collapsed .pl-fold svg{transform:rotate(180deg)}
+.pl-top.collapsed .player > :not(#plPlay):not(.pl-mid):not(.pl-info){display:none!important}
+.pl-top.collapsed .player .pl-wave,.pl-top.collapsed .player .pl-meta,.pl-top.collapsed #plElapsed,.pl-top.collapsed #plLen,.pl-top.collapsed .pl-line > :not(.pl-title){display:none!important}
+.pl-top.collapsed .player{border:0;background:none;padding:0}
+.pl-top.collapsed .player .pl-info{min-width:0}
+.pl-top.collapsed .pl-fold{top:4px}
+.pl-top.collapsed .deck-b{display:none}
+/* Player B (#67) */
+.deck-b{margin:0 24px 8px;max-width:none;flex:none;gap:8px}
+.pl-top .deck-b{margin:0}
+.deck-b .db-tag{flex:none;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font:800 12px var(--font);background:var(--acc-soft);color:var(--acc)}
+.deck-b.target .db-tag{background:var(--acc);color:var(--acc-fg)}
+.deck-b .pl-time{display:flex;gap:8px;font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.deck-b #dbElapsed{color:var(--fg)}
+.deck-b #dbSeek{width:100%;position:absolute;left:0;right:0;top:1px}
+.deck-b .pl-wave canvas{position:absolute;inset:0;width:100%;height:100%;display:none;pointer-events:none}
+.deck-b .pl-wave.wave canvas{display:block}
+.deck-b #dbVol{width:58px}
+.deck-b #dbSink{max-width:170px;height:28px;font-size:12px}
+.deck-b .seg button{padding:3px 6px;white-space:nowrap}
+.pl-detached #player,.pl-detached #plTop{display:none!important}
+.deck-b .pl-wave.wave #dbSeek{top:0;height:100%;opacity:0;cursor:pointer}
+/* abgedockter Player (#69) */
+.pw-body{margin:0;height:100vh;background:var(--bg);color:var(--fg);font-family:var(--font);overflow:hidden}
+.pw{display:flex;flex-direction:column;gap:8px;height:100%;box-sizing:border-box;padding:10px 14px}
+.pw-head{display:flex;align-items:center;gap:12px;min-width:0}
+.pw-title{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.pw-title b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dim)}
+.pw.on .pw-title b{color:var(--fg)}
+.pw-title span{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pw-meta{display:flex;align-items:center;gap:8px;font-size:12.5px;white-space:nowrap}
+.pw-meta .pl-key-alt,.pw-meta .pl-bpm{color:var(--dim)}
+.pw-wave{flex:1 1 auto;min-height:36px;height:auto!important}
+.pw-wave #pwSeek{position:absolute;left:0;right:0;top:calc(50% - 7px);width:100%;accent-color:var(--acc)}
+.pw-wave.wave #pwSeek{top:0;height:100%;opacity:0;cursor:pointer}
+.pw-bar{display:flex;align-items:center;gap:6px}
+.pw-bar .icon-btn{width:32px;height:32px}
+.pw-bar .pl-play{width:40px;height:40px;border-radius:99px;background:var(--acc-soft);color:var(--acc)}
+.pw.on .pw-bar .pl-play{background:var(--acc);color:var(--acc-fg)}
+.pw-bar .pl-tog.on{color:var(--acc);background:var(--acc-soft)}
+.pw-bar .pl-ab-btn{width:auto;padding:0 6px;font:700 10.5px var(--font)}
+.pw-bar .pl-ab-btn.half{background:repeating-linear-gradient(90deg,var(--acc-soft) 0 50%,transparent 50% 100%)}
+.pw-time{display:flex;gap:10px;margin-left:8px;font-size:14px;font-variant-numeric:tabular-nums;color:var(--faint)}
+.pw-time #pwElapsed{color:var(--fg);font-weight:600}
+.pw-time .pl-remain.end{color:#E5484D;font-weight:600}
+.pw-bar .seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.pw-bar .seg button{border:0;background:transparent;color:var(--dim);padding:3px 7px;font:600 11.5px var(--font);cursor:pointer}
+.pw-bar .seg button.on{background:var(--acc-soft);color:var(--acc)}
+.pw-bar #pwVol{width:90px;accent-color:var(--acc)}
+.pw-bar #pwVol.muted{opacity:.35}
+.pw-head .rate button{font-size:17px}
+.player .pl-start,.player #plAB{flex:none}

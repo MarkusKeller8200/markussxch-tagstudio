@@ -167,9 +167,43 @@ class TestPlayerDefaults(unittest.TestCase):
             self.assertEqual(s.player_prefs()["vol"], 0.3)
             s.player_defaults("reset")
             self.assertFalse(Session().settings()["player"]["has_defaults"])
+            # #94/#67/#69: weitere Werte
+            s.set_player_pref("xfade_after", 5000)
+            s.set_player_pref("vol_b", 2)
+            s.set_player_pref("deck_target", "B")
+            p = s.player_prefs()
+            self.assertEqual((p["xfade_after"], p["vol_b"], p["deck_target"], p["xfade_start"]), (600, 1.0, "B", "start"))
+            with self.assertRaises(ValueError):
+                s.set_player_pref("xfade_start", "mitte")
+            self.assertFalse(s.set_player_window({"x": 1, "y": 2, "w": 50, "h": 50}))
+            self.assertTrue(s.set_player_window({"x": 10, "y": 20, "w": 900.4, "h": 160}))
+            self.assertEqual(Session().player_prefs()["window"], {"x": 10, "y": 20, "w": 900, "h": 160})
         finally:
             core.CONFIG, core.CONFIG_OLD = old
             shutil.rmtree(d, ignore_errors=True)
+
+
+class TestBus(unittest.TestCase):
+    """#69: Nachrichten zwischen Hauptfenster und abgedocktem Player."""
+
+    def test_bus(self):
+        from session import Session
+        s = Session()
+        self.assertIsNone(s.bus_peer("pl_state"))
+        s.bus_post("pl_cmd", {"cmd": "toggle"})
+        s.bus_post("pl_cmd", {"cmd": "seek", "t": 12})
+        r = s.bus_poll("pl_cmd", 0)
+        self.assertEqual((r["seq"], [m["cmd"] for m in r["msgs"]]), (2, ["toggle", "seek"]))
+        self.assertEqual(s.bus_poll("pl_cmd", r["seq"])["msgs"], [])
+        r = s.bus_sync("pl_cmd", 2, "pl_state", {"t": 1}, "pl_state")
+        self.assertEqual((r["msgs"], r["peer"]), ([], None))          # Zustand noch nie abgeholt
+        self.assertEqual(s.bus_poll("pl_state")["msgs"], [{"t": 1}])
+        self.assertLess(s.bus_peer("pl_state"), 1)
+        for k in range(300):
+            s.bus_post("x", k)
+        self.assertEqual(len(s.bus_poll("x")["msgs"]), 200)            # begrenzt
+        s.bus_reset("x")
+        self.assertEqual(s.bus_poll("x")["seq"], 0)
 
 
 if __name__ == "__main__":

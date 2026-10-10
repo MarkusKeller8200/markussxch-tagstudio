@@ -169,9 +169,11 @@ oder Reihenfolge, Unterordner.
 
 ### Vorschau-Player und externe Player
 
-Unten in der Fußleiste – in Tagger und Vergleich:
-- **Abspielen** des markierten Titels (Leertaste oder ▶), ⏮/⏭ springt zum vorherigen/nächsten Titel, der Player
-  folgt der Auswahl und spielt am Titelende den nächsten. **↑/↓** wechseln den Titel, egal wo der Fokus gerade ist
+Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
+- **Abspielen** des markierten Titels (Leertaste, ▶ oder **Doppelklick** auf die Zeile), ⏮/⏭ springt zum
+  vorherigen/nächsten Titel; beim Abspielen folgt der Player ↑/↓ und spielt am Titelende den nächsten.
+  **Live-Vorschau** (Knopf mit den Funkwellen): ein einfacher Klick auf einen Titel spielt ihn sofort; ohne
+  Live-Vorschau wechselt ein Klick den laufenden Titel nicht. **↑/↓** wechseln den Titel, egal wo der Fokus gerade ist
   (außer in mehrzeiligen, Auswahl- und Zahlenfeldern). **Shift+←/→** spult 10 s, Klick in die Leiste springt.
 - **Startpunkt** per Umschalter: Start, 30 %, 1:00 oder erster Cue – praktisch zum schnellen Durchhören. Lautstärke
   wird gemerkt. Bei Titeln mit Cue-Punkten springen zwei Knöpfe zum vorigen/nächsten Cue.
@@ -187,6 +189,25 @@ Unten in der Fußleiste – in Tagger und Vergleich:
 - **Titel wiederholen** (🔁 bzw. **R**) und **A–B-Schleife** (Knopf „A–B“ bzw. **L**: A setzen, B setzen,
   aufheben; **Esc** hebt auf).
 - **A/B im Vergleich:** L/R wechselt zwischen linker und rechter Datei **an derselben Stelle**.
+- **Bewertung und Like:** Sterne und ♥ neben dem Titel im Player, Tasten **0–5** (gleicher Stern nochmals: löschen)
+  und **F**. Die Bewertung steht im Feld **POPM** (wie Windows Media Player, MusicBee, Mp3tag; vorhandene POPM-Frames
+  werden angepasst, der Wiedergabezähler bleibt) und – falls vorhanden – in `TXXX:FMPS_Rating`; das Like steht als
+  `{"like":true}` in `TXXX:TAGSTUDIO`. Im Tagger stehen die Sterne neben der Länge (auch für mehrere markierte Titel)
+  und klein in der Liste. Änderungen lassen sich rückgängig machen und werden mit „Speichern“ geschrieben.
+- **Überblenden** (Einstellungen → Player oder ⋯): am Titelende gleichmässig (gleiche Leistung) in den nächsten
+  Titel überblenden, 2–12 s; der nächste Titel startet ab Startpunkt, Anfang oder erstem Cue; wahlweise schon nach
+  15 s … 2 Minuten (zum schnellen Durchhören). Nicht bei „Titel wiederholen“ oder einer Schleife.
+- **Player oben** (Einstellungen → Player → Position oder ⋯): eigene Leiste über der Seite mit voller Breite und
+  grösserer Wellenform; Knopf ˄ bzw. **Shift+P** klappt sie auf eine schmale Zeile (Titel, ▶, Restlaufzeit) ein.
+- **Player B** (⋯ oder Einstellungen): zweiter, unabhängiger Player zum Vorhören, während A weiterläuft – mit eigener
+  Position, Lautstärke, Wellenform und (wenn das System es erlaubt) eigenem **Ausgabegerät**, z. B. Kopfhörer.
+  Rechtsklick auf einen Titel → „In Player B laden“; **→ A / → B** (bzw. Taste **B**) legt fest, worauf Markierung,
+  Leertaste, Doppelklick und Bewertung wirken.
+- **Abdocken** (Knopf ⧉): der Player erscheint in einem eigenen Fenster, z. B. auf dem zweiten Bildschirm; die
+  Wiedergabe läuft an derselben Stelle weiter, Markierung, ↑/↓ und Leertaste im Hauptfenster steuern ihn weiter.
+  Grösse und Position werden gemerkt; Schliessen des Fensters (oder „Andocken“) holt ihn zurück.
+- **Standard-Einstellungen** (Einstellungen → Player): „Aktuelle als Standard speichern“, „Auf Standard
+  zurücksetzen“ und „Nach dem Start: zuletzt benutzte / immer die Standard-Einstellungen“.
 - **Externe Player** (⋯ bzw. **Strg/Cmd+P**): markierte Titel in foobar2000, VLC, Rekordbox, Music … öffnen; ohne
   Einrichtung im Standardprogramm des Systems. Unter „Externe Player…“ beliebig viele Programme mit Argumenten
   (`{files}` alle Dateien, `{file}` erste, `{folder}` Ordner, `{m3u}` temporäre Playlist).
@@ -264,7 +285,7 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   ziehen (oder mit ←/→ auf dem Griff); Doppelklick setzt zurück, alles wird gemerkt. Die Seitenleiste lässt sich
   einklappen.
 - **Tastatur:** Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte
-  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · ↑/↓ Titel wechseln (überall) · S Stem-Spur · R wiederholen · L A–B-Schleife · Shift+←/→ ±10 s · Shift+F5 Paar neu einlesen · Alt+Bild↑/↓ Cue · Strg/Cmd+P externer Player · →/← Stems auf-/zuklappen · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
+  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · Doppelklick abspielen · 0–5 Bewertung · F Like · B Player A/B · Shift+P Player-Leiste ein/aus · ↑/↓ Titel wechseln (überall) · S Stem-Spur · R wiederholen · L A–B-Schleife · Shift+←/→ ±10 s · Shift+F5 Paar neu einlesen · Alt+Bild↑/↓ Cue · Strg/Cmd+P externer Player · →/← Stems auf-/zuklappen · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
 
 ## Klassische Oberfläche
 
@@ -443,7 +464,8 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `tagstudio_web.py` + `web/` – neue Oberfläche (HTML/CSS/JS im App-Fenster über pywebview, sonst im Browser);
   `web/xmleditor.js` XML-Editor, `web/jsontree.js` JSON-Baum, `web/tagger.js` Tagger und Editoren,
   `web/keywheel.js` Camelot-Rad, `web/features.js` Audio-Merkmale, `web/plugins.js` Plugin-Seite,
-  `web/player.js` Vorschau-Player, `web/settings.js` Einstellungen, `web/jobs.js` Hintergrund-Aufträge
+  `web/player.js` Vorschau-Player, `web/player2.js` Überblenden, Player oben, Player B, Abdocken,
+  `web/player-window.html` + `web/playerwin.js` abgedocktes Player-Fenster, `web/settings.js` Einstellungen, `web/jobs.js` Hintergrund-Aufträge
 - `core.py` – gemeinsame Logik beider Oberflächen: Anzeige, Zeichen-Diff, Filter, Laden, Speichern, Einstellungen
 - `session.py` – Zustand und Befehle einer Sitzung für die neue Oberfläche
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)
@@ -457,6 +479,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `backup.py` – Sicherung und Wiederherstellung der Tags, Vergleich Sicherung ↔ Datei (Änderungs-Viewer)
 - `undo.py` – Rückgängig/Wiederholen
 - `media.py` – lokaler Audio-Server für den Player (Range-Anfragen, Token); `players.py` – externe Player
+- `ratings.py` – Bewertung (POPM, FMPS_Rating) und Like (TXXX:TAGSTUDIO)
 - `cues.py` – Cue-Punkte aus Serato/Mixed In Key lesen; `waveform.py` – Wellenform-Cache
 - `origins.py` – Herkunft der Tags (Kennungsliste); `appsettings.py` – Einstellungen exportieren/importieren/zurücksetzen
 - `jobs.py` – Warteschlange für Hintergrund-Aufträge; `stemsview.py` – Stems einem Original zuordnen

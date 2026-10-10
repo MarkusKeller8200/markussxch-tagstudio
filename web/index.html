@@ -43,6 +43,11 @@
   <div class="splitter" id="sideSplit" role="separator" aria-orientation="vertical" aria-label="Breite der Seitenleiste" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: ein-/ausklappen"></div>
 
   <main class="main">
+    <!-- Player oben (#68) -->
+    <div class="pl-top" id="plTop" hidden>
+      <div class="pl-top-slot" id="plTopSlot"></div>
+      <button class="icon-btn pl-fold" id="plTopFold" title="Player-Leiste einklappen (Shift+P)" aria-label="Player-Leiste einklappen" aria-expanded="true"><svg class="i" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg></button>
+    </div>
     <!-- Quellen -->
     <header class="sources" id="srcCompare">
       <div class="src">
@@ -302,12 +307,28 @@
       </div>
     </div>
 
+    <!-- Player B (#67) -->
+    <div class="player deck-b" id="deckB" hidden role="group" aria-label="Player B">
+      <span class="db-tag" title="Player B – zweiter, unabhängiger Player zum Vorhören">B</span>
+      <button class="icon-btn pl-play" id="dbPlay" aria-label="Player B abspielen"></button>
+      <div class="pl-mid">
+        <div class="pl-line"><span class="pl-title" id="dbTitle"></span></div>
+        <div class="pl-wave" id="dbWave"><canvas id="dbCanvas" aria-hidden="true"></canvas><input type="range" id="dbSeek" min="0" max="1" value="0" step="1" aria-label="Position Player B"></div>
+      </div>
+      <div class="pl-time"><span id="dbElapsed">0:00</span><span id="dbRemain" class="pl-remain">−0:00</span></div>
+      <div class="seg sm" id="dbTarget" role="radiogroup" aria-label="Markierung steuert" title="Wohin wirken Markierung, Leertaste und Doppelklick?"><button data-v="A" role="radio">→ A</button><button data-v="B" role="radio">→ B</button></div>
+      <select class="inp sm" id="dbSink" hidden title="Ausgabegerät für Player B (z. B. Kopfhörer)" aria-label="Ausgabegerät Player B"></select>
+      <input type="range" id="dbVol" min="0" max="100" value="80" title="Lautstärke Player B" aria-label="Lautstärke Player B">
+      <button class="icon-btn" id="dbClose" title="Player B ausblenden" aria-label="Player B ausblenden"><svg class="i" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+
     <!-- Aktionsleiste -->
     <footer class="actions">
       <span class="dot" id="pendingDot"></span>
       <span class="muted" id="statusText">Bereit.</span>
       <button class="jobs-chip" id="jobsChip" hidden title="Hintergrund-Aufträge anzeigen"><span class="jc-ring" id="jcRing"></span><span id="jcText"></span></button>
       <button class="jobs-chip" id="waveChip" hidden title="Klick: abbrechen"><span class="jc-ring"></span><span id="wcText"></span></button>
+      <button class="jobs-chip" id="plDockChip" hidden title="Player wieder in dieses Fenster holen">Player abgedockt · Andocken</button>
       <button class="jobs-chip sn-watch" id="snWatchChip" hidden><span class="snw-dot"></span><span id="snwText"></span></button>
       <div class="grow"></div>
       <div class="player" id="player" role="group" aria-label="Vorschau-Player">
@@ -330,6 +351,7 @@
         <div class="seg sm" id="plAB" hidden title="A/B: linke oder rechte Datei hören (Position bleibt)"><button data-side="L">L</button><button data-side="R">R</button></div>
         <div class="seg sm pl-start" id="plStart" role="radiogroup" aria-label="Startpunkt beim Abspielen" title="Startpunkt beim Abspielen"><button data-v="0" role="radio" title="ab Anfang">Start</button><button data-v="30" role="radio" title="ab 30 %">30 %</button><button data-v="60" role="radio" title="ab 1:00">1:00</button><button data-v="cue" role="radio" title="ab erstem Cue-Punkt">Cue</button></div>
         <input type="range" id="plVol" min="0" max="100" value="80" title="Lautstärke" aria-label="Lautstärke">
+        <button class="icon-btn" id="plDetach" title="Player abdocken (eigenes Fenster)" aria-label="Player abdocken"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="13" rx="2"/><path d="M9 3h12v12"/></svg></button>
         <button class="icon-btn" id="plMore" title="Externer Player …" aria-label="Externer Player"><svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
       </div>
       <button class="icon-btn lg" id="undoBtn" title="Rückgängig (Strg/Cmd+Z)" aria-label="Rückgängig"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
@@ -408,6 +430,7 @@
 <script src="features.js"></script>
 <script src="plugins.js"></script>
 <script src="player.js"></script>
+<script src="player2.js"></script>
 <script src="settings.js"></script>
 <script src="jobs.js"></script>
 <script src="snapshots.js"></script>

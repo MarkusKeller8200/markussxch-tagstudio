@@ -9,7 +9,8 @@
 "use strict";
 
 const PLAYER = { audio: null, info: null, kind: null, ref: null, side: "L", loading: false, follow: true, startAt: "0",
-  wave: true, waveBusy: null, loop: null, raf: 0, repeat: false, ab: null };
+  wave: true, waveBusy: null, loop: null, raf: 0, repeat: false, ab: null,
+  vol: 0.8, spare: null, fade: null, xfade: 0, xfadeStart: "start", xfadeAfter: 0, playFrom: 0, target: "A" };
 const WAVE_N = 800;               // Balken der Wellenform (im Cache gespeichert)
 const WAVE_MAX_BYTES = 80e6;      // sehr lange Mixe nicht dekodieren (Speicher)
 
@@ -24,6 +25,13 @@ function plSetPref(k, v) {
   else if (k === "follow") PLAYER.follow = !!v;
   else if (k === "repeat") { PLAYER.repeat = !!v; plRender(); }
   else if (k === "live") { PLAYER.live = !!v; plRender(); }
+  else if (k === "xfade") PLAYER.xfade = +v || 0;
+  else if (k === "xfade_start") PLAYER.xfadeStart = v;
+  else if (k === "xfade_after") PLAYER.xfadeAfter = +v || 0;
+  else if (k === "layout" || k === "top_collapsed" || k === "deck2" || k === "deck_target" || k === "sink_b" || k === "vol_b") {
+    if (typeof pl2Pref === "function") pl2Pref(k, v);
+    if (k === "vol_b") { clearTimeout(plVolTimer); plVolTimer = setTimeout(() => call("set_player_pref", "vol_b", v).catch(() => {}), 400); return; }
+  }
   else if (k === "vol") { clearTimeout(plVolTimer); plVolTimer = setTimeout(() => call("set_player_pref", "vol", v).catch(() => {}), 400); return; }
   call("set_player_pref", k, v).catch(() => {});
 }
@@ -54,7 +62,8 @@ function plTarget() {
   return null;
 }
 
-async function plLoad(target, autoplay = true, keepTime = null) {
+async function plLoad(target, autoplay = true, keepTime = null, startMode = null, fromFade = false) {
+  if (PLAYER.fade && !fromFade && typeof plFadeStop === "function") plFadeStop();
   if (!target) { toast(S.module === "tagger" ? "Erst einen Titel markieren." : "Erst ein Dateipaar wählen."); return; }
   const seq = PLAYER.loadSeq = (PLAYER.loadSeq || 0) + 1;
   PLAYER.loading = true;
@@ -70,9 +79,10 @@ async function plLoad(target, autoplay = true, keepTime = null) {
   a.src = info.url;
   const dur = info.duration || 0;
   const firstCue = (info.cues || []).find((c) => c.pos > 0.05);
-  const start = keepTime !== null ? keepTime : PLAYER.startAt === "30" ? dur * 0.3 : PLAYER.startAt === "60" ? Math.min(60, dur * 0.5)
-    : PLAYER.startAt === "cue" ? (firstCue ? firstCue.pos : 0) : 0;
-  PLAYER.wantTime = start;
+  const sm = startMode || PLAYER.startAt;
+  const start = keepTime !== null ? keepTime : sm === "30" ? dur * 0.3 : sm === "60" ? Math.min(60, dur * 0.5)
+    : sm === "cue" ? (firstCue ? firstCue.pos : 0) : 0;
+  PLAYER.wantTime = start; PLAYER.playFrom = start;
   const seek = () => { try { if (start > 0) a.currentTime = Math.min(start, (a.duration || dur) - 1); } catch (e) { /* egal */ } };
   a.addEventListener("loadedmetadata", seek, { once: true });
   plCues();
@@ -89,7 +99,9 @@ async function plLoad(target, autoplay = true, keepTime = null) {
 
 /** Liste neu eingelesen: der Player darf nicht mehr auf alte Indizes zeigen. */
 function plForget(kind) {
+  if (typeof DECKB !== "undefined" && DECKB.kind === kind) dbForget();
   if (!PLAYER.audio || PLAYER.kind !== kind) return;
+  if (PLAYER.fade) plFadeStop();
   PLAYER.audio.pause();
   PLAYER.audio.removeAttribute("src"); PLAYER.audio.load();
   plLoopSet(null);
@@ -129,6 +141,7 @@ function plSame(t) { return t && PLAYER.info && t.kind === PLAYER.kind && t.ref 
 function plInGroup(t) { return !!(t && PLAYER.info && (PLAYER.info.stems || []).some((g) => g.kind === t.kind && g.ref === t.ref)); }
 
 async function plToggle() {
+  if (PLAYER.target === "B" && typeof dbToggle === "function") return dbToggle();
   const t = plTarget();
   if (!PLAYER.audio.src || (t && !plSame(t) && !plInGroup(t) && !(t.kind === "side" && PLAYER.kind === "side"))) return plLoad(t);
   if (t && t.kind === "side" && PLAYER.kind === "side" && PLAYER.info && PLAYER.info.ref !== PLAYER.side) return plLoad(t, true);
@@ -139,6 +152,8 @@ async function plToggle() {
     Live-Vorschau (#91): Klick spielt sofort. Ohne Live-Vorschau (#92) wechselt ein Klick den laufenden Titel nicht –
     dafür Doppelklick; ↑/↓ und „Folgen“ wechseln beim Abspielen weiter. */
 function playerFollow(src = "key") {
+  if (PLAYER.noFollow) { plRender(); return; }          // Rechtsklick-Menü: nur markieren
+  if (PLAYER.target === "B" && typeof dbFollow === "function") return dbFollow(src);   // #67: Player B folgt der Markierung
   if (!PLAYER.audio || PLAYER.loading || src === "multi") { plRender(); return; }
   const t = plTarget();
   if (src === "click" && PLAYER.live) {
@@ -151,6 +166,7 @@ function playerFollow(src = "key") {
 
 /** #92: Doppelklick auf eine Zeile – diesen Titel spielen (bzw. von vorn, wenn er schon läuft) */
 function plPlayRow() {
+  if (PLAYER.target === "B" && typeof dbPlayRow === "function") return dbPlayRow();
   const t = plTarget();
   if (!t) return;
   if (plSame(t) && !PLAYER.audio.paused) return;
@@ -180,6 +196,9 @@ function rateMini(v, like) {
 
 /** Tasten 0–5/F: den laufenden Titel bewerten – steht der Player, die Markierung (Tagger: alle markierten). */
 async function plMark(stars, like) {
+  if (PLAYER.target === "B" && typeof DECKB !== "undefined" && DECKB.info && DECKB.kind !== "stem") {   // #67: Player B bewerten
+    return plMarkTarget({ kind: DECKB.kind, ref: DECKB.kind === "side" ? DECKB.info.ref : DECKB.ref }, stars, like);
+  }
   const loaded = PLAYER.info && (PLAYER.kind === "tag" || PLAYER.kind === "side");
   const sel = plTarget();
   const useP = loaded && (!PLAYER.audio.paused || plSame(sel) || (sel && sel.kind === "side" && PLAYER.kind === "side"));
@@ -194,10 +213,13 @@ async function plMark(stars, like) {
 }
 
 async function plMarkTarget(t, stars, like) {
-  if (stars !== null && stars !== undefined && PLAYER.info && plSame(t) && PLAYER.info.rating === stars) stars = 0;   // gleicher Stern: löschen
+  const db = typeof DECKB !== "undefined" && DECKB.info && t.kind === DECKB.kind && (t.kind === "side" ? DECKB.info.ref === t.ref : DECKB.ref === t.ref) ? DECKB.info : null;
+  const cur = PLAYER.info && plSame(t) ? PLAYER.info : db;
+  if (stars !== null && stars !== undefined && cur && cur.rating === stars) stars = 0;   // gleicher Stern: löschen
   const r = await call("player_mark", t.kind, t.ref, stars ?? null, like ?? null);
   if (!r.ok) { toast(r.error); return; }
   if (PLAYER.info && (plSame(t) || (t.kind === "side" && PLAYER.kind === "side" && PLAYER.info.ref === t.ref))) { PLAYER.info.rating = r.rating; PLAYER.info.like = r.like; }
+  if (db) { db.rating = r.rating; db.like = r.like; }
   if (r.meta) { S.meta = r.meta; renderMeta(); }
   if (r.row && typeof TG !== "undefined") {
     TG.rows[r.row.i] = r.row;
@@ -320,7 +342,8 @@ function plStemsRender() {
 function plStemsMenu(btn) {
   const g = (PLAYER.info && PLAYER.info.stems) || [];
   const r = btn.getBoundingClientRect();
-  showMenu(r.left, r.top - 8 - (g.length + 1) * 34, g.map((x, k) => ({
+  const top = typeof PL2 !== "undefined" && PL2.layout === "top";
+  showMenu(r.left, top ? r.bottom + 6 : r.top - 8 - (g.length + 1) * 34, g.map((x, k) => ({
     label: (plSame(x) ? "✓ " : "    ") + x.label, run: () => plStemSwitch(k) })));
 }
 
@@ -368,6 +391,7 @@ async function plWaveCompute(info) {
     const wave = { peaks, rms };
     call("wave_save", info.wave_key, peaks, rms).catch(() => {});
     if (PLAYER.info && PLAYER.info.wave_key === info.wave_key) { PLAYER.info.wave = wave; plRender(); }
+    if (typeof DECKB !== "undefined" && DECKB.info && DECKB.info.wave_key === info.wave_key) { DECKB.info.wave = wave; dbRender(); }
   } catch (e) { /* ohne Wellenform weiter – Wiedergabe ist wichtiger */ }
   finally { if (PLAYER.waveBusy === info.wave_key) PLAYER.waveBusy = null; }
 }
@@ -464,12 +488,17 @@ async function plExternal(index = null) {
 async function plMenu(btn) {
   const list = await call("players");
   const r = btn.getBoundingClientRect();
-  showMenu(r.left, r.top - 8 - (list.length + 4) * 34, [
+  const top = PL2.layout === "top" && !DET.on;
+  showMenu(r.left, top ? r.bottom + 6 : r.top - 8 - (list.length + 8) * 34, [
     ...list.map((p, k) => ({ label: `Öffnen mit ${p.name}` + (k === 0 ? "  (Strg/Cmd+P)" : ""), run: () => plExternal(k) })),
     { label: "Öffnen mit Standardprogramm" + (list.length ? "" : "  (Strg/Cmd+P)"), run: () => plExternal(null) },
     "-",
     { label: "Player einrichten …", run: () => plSetup() },
     { label: (PLAYER.wave ? "✓ " : "    ") + "Wellenform anzeigen", run: () => plSetPref("wave", !PLAYER.wave) },
+    { label: (PL2.deck2 ? "✓ " : "    ") + "Player B anzeigen", run: () => plSetPref("deck2", !PL2.deck2) },
+    { label: (PL2.layout === "top" ? "✓ " : "    ") + "Player oben anordnen", run: () => plSetPref("layout", PL2.layout === "top" ? "bottom" : "top") },
+    { label: (PLAYER.xfade ? `✓ Überblenden (${PLAYER.xfade} s)` : "    Überblenden"), run: () => plSetPref("xfade", PLAYER.xfade ? 0 : 6) },
+    { label: "Player abdocken (eigenes Fenster)", run: () => plDetach() },
   ]);
 }
 
@@ -516,10 +545,41 @@ async function plSetup() {
 }
 
 // ---------------------------------------------------------------------- Einrichten
+/** Einstellungen auf den Player anwenden (Start, „Standard übernehmen“ #93) */
+function plApplyPrefs(pp) {
+  PLAYER.vol = pp.vol; if (!PLAYER.fade) PLAYER.audio.volume = pp.vol;
+  if ($("#plVol")) $("#plVol").value = String(Math.round(pp.vol * 100));
+  PLAYER.startAt = pp.start;
+  PLAYER.follow = pp.follow;
+  PLAYER.wave = pp.wave;
+  PLAYER.repeat = !!pp.repeat;
+  PLAYER.live = !!pp.live;
+  PLAYER.xfade = +pp.xfade || 0; PLAYER.xfadeStart = pp.xfade_start || "start"; PLAYER.xfadeAfter = +pp.xfade_after || 0;
+  if (typeof pl2Apply === "function") pl2Apply(pp);
+  if ($("#plStart")) plStartSync();
+  plRender();
+}
+
+/** beide Audio-Elemente (zweites für das Überblenden #94): Ereignisse nur vom aktiven auswerten */
+function plBindAudio(el) {
+  el.preload = "metadata";
+  const act = (fn) => (e) => { if (e.target === PLAYER.audio) fn(e); };
+  ["play", "pause", "ended", "loadedmetadata", "emptied"].forEach((ev) => el.addEventListener(ev, plRender));
+  el.addEventListener("loadedmetadata", act(() => { plCues(); plABDraw(); }));
+  el.addEventListener("timeupdate", act(() => { const s = $("#plSeek"); if (!s.matches(":active")) plRender(); if (typeof plXfadeCheck === "function") plXfadeCheck(); }));
+  el.addEventListener("ended", act(() => {
+    const a = PLAYER.audio;
+    if (PLAYER.repeat) { a.currentTime = 0; a.play().catch(() => {}); return; }      // #79
+    if (PLAYER.follow && S.module === "tagger") plStep(1);
+  }));
+  el.addEventListener("error", act(() => { if (PLAYER.audio.src) toast("Datei kann nicht abgespielt werden."); }));
+}
+
 function initPlayer() {
   const a = new Audio();
-  a.preload = "metadata";
   PLAYER.audio = a;
+  PLAYER.spare = new Audio();
+  plBindAudio(a); plBindAudio(PLAYER.spare);
   const pp = (S.settings && S.settings.player) || { vol: 0.8, start: "0", follow: true, wave: true, saved: true };
   if (!pp.saved) {          // bis 3.2.0-beta.1 im Browser-Speicher → einmalig in die Einstellungen übernehmen
     const v = parseFloat(plStore("vol")), st = plStore("start");
@@ -528,14 +588,7 @@ function initPlayer() {
     if (plStore("wave") === "0") { pp.wave = false; call("set_player_pref", "wave", false).catch(() => {}); }
     if (plStore("follow") === "0") { pp.follow = false; call("set_player_pref", "follow", false).catch(() => {}); }
   }
-  a.volume = pp.vol;
-  PLAYER.startAt = pp.start;
-  PLAYER.follow = pp.follow;
-  PLAYER.wave = pp.wave;
-  PLAYER.repeat = !!pp.repeat;
-  PLAYER.live = !!pp.live;
-  ["play", "pause", "ended", "loadedmetadata", "emptied"].forEach((ev) => a.addEventListener(ev, plRender));
-  a.addEventListener("loadedmetadata", () => { plCues(); plABDraw(); });
+  plApplyPrefs(pp);
   $("#plWave").insertAdjacentHTML("beforeend", '<div class="pl-hover" id="plHover" hidden></div>');
   $("#plWave").addEventListener("mousemove", plHover);
   $("#plWave").addEventListener("mouseleave", plHover);
@@ -549,25 +602,19 @@ function initPlayer() {
       plLoopSet({ pos: c.pos, end: c.end, k: +b.dataset.k });
       toast(`Schleife ${fmtTime(c.pos)}–${fmtTime(c.end)} – erneut klicken zum Beenden.`);
     }
-    a.currentTime = c.pos;
-    if (a.paused) a.play().catch(() => {});
+    PLAYER.audio.currentTime = c.pos;
+    if (PLAYER.audio.paused) PLAYER.audio.play().catch(() => {});
     plRender();
   });
-  a.addEventListener("timeupdate", () => { const s = $("#plSeek"); if (!s.matches(":active")) plRender(); });
-  a.addEventListener("ended", () => {
-    if (PLAYER.repeat) { a.currentTime = 0; a.play().catch(() => {}); return; }      // #79
-    if (PLAYER.follow && S.module === "tagger") plStep(1);
-  });
-  a.addEventListener("error", () => { if (a.src) toast("Datei kann nicht abgespielt werden."); });
 
   $("#plPlay").addEventListener("click", () => plToggle());
   $("#plPrev").addEventListener("click", () => plStep(-1));
   $("#plNext").addEventListener("click", () => plStep(1));
-  $("#plSeek").addEventListener("input", (e) => { a.currentTime = (+e.target.value) / 10; plTimes(a.currentTime, a.duration || 0); });
+  $("#plSeek").addEventListener("input", (e) => { const x = PLAYER.audio; x.currentTime = (+e.target.value) / 10; plTimes(x.currentTime, x.duration || 0); });
   $("#plStems").addEventListener("click", (e) => { e.stopPropagation(); plStemsMenu(e.currentTarget); });
   document.addEventListener("keydown", plArrowKey, true);     // #64: vor den Handlern der Eingabefelder
-  $("#plVol").value = String(Math.round(a.volume * 100));
-  $("#plVol").addEventListener("input", (e) => { a.volume = (+e.target.value) / 100; plSetPref("vol", a.volume); });
+  $("#plVol").value = String(Math.round(PLAYER.vol * 100));
+  $("#plVol").addEventListener("input", (e) => { PLAYER.vol = (+e.target.value) / 100; if (!PLAYER.fade) PLAYER.audio.volume = PLAYER.vol; plSetPref("vol", PLAYER.vol); });
   plStartSync();
   $("#plStart").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) plSetPref("start", b.dataset.v); });
   $("#plCuePrev").addEventListener("click", () => plCueJump(-1));
@@ -584,8 +631,14 @@ function initPlayer() {
     if (b.dataset.star) plMarkTarget(t, +b.dataset.star, null); else if (b.dataset.like) plMarkTarget(t, null, "toggle");
   });
 
-  document.addEventListener("keydown", (e) => {
-    const inField = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && document.activeElement?.type !== "range";
+  document.addEventListener("keydown", plKeydown);
+  if (typeof initPlayer2 === "function") initPlayer2(pp);
+  plRender();
+}
+
+function plKeydown(e) {
+    const ae = document.activeElement;
+    const inField = /INPUT|TEXTAREA|SELECT/.test(ae?.tagName || "") && ae?.type !== "range";
     if (inField || !$("#modal").hidden || !$("#dialog").hidden || !$("#xmlEd").hidden) return;
     if (S.module !== "tagger" && S.module !== "compare") return;
     if (e.key === " " && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plToggle(); }
@@ -596,9 +649,8 @@ function initPlayer() {
     else if (e.key === "Escape" && PLAYER.ab) { plABClear(); }
     else if (/^[0-5]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plMark(+e.key, null); }   // #96
     else if ((e.key === "f" || e.key === "F") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plMark(null, "toggle"); }   // #95
-    else if ((e.key === "m" || e.key === "M") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); PLAYER.audio.muted = !PLAYER.audio.muted; plRender(); toast(PLAYER.audio.muted ? "Stumm (M)" : "Ton an"); }   // #49
+    else if ((e.key === "m" || e.key === "M") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); PLAYER.audio.muted = !PLAYER.audio.muted; if (PLAYER.fade) PLAYER.fade.old.muted = PLAYER.audio.muted; plRender(); toast(PLAYER.audio.muted ? "Stumm (M)" : "Ton an"); }   // #49
     else if (e.altKey && (e.key === "PageDown" || e.key === "PageUp") && PLAYER.audio.src) { e.preventDefault(); plCueJump(e.key === "PageDown" ? 1 : -1); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); call("players").then((l) => plExternal(l.length ? 0 : null)); }
-  });
-  plRender();
+    else if (typeof pl2Key === "function") pl2Key(e);
 }

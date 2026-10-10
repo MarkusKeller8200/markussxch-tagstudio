@@ -35,6 +35,18 @@ async function settingsShow() {
         <label for="stPlStart">Startpunkt</label>${stSel("stPlStart", [["0", "ab Anfang"], ["30", "ab 30 %"], ["60", "ab 1:00"], ["cue", "ab 1. Cue"]], p.start)}
         <span>Anzeige</span>${stCheck("stPlWave", p.wave, "Wellenform anzeigen (einmal berechnet, im Cache)")}
         <span>Durchhören</span>${stCheck("stPlFollow", p.follow, "Beim Wechsel der Markierung weiterspielen, am Titelende nächster Titel")}
+        <span>Wiederholen</span>${stCheck("stPlRepeat", p.repeat, "Titel wiederholen (R)")}
+        <span>Live-Vorschau</span>${stCheck("stPlLive", p.live, "Klick auf einen Titel spielt ihn sofort (aus: Doppelklick spielt)")}
+        <label for="stPlVol">Lautstärke</label><div class="st-path"><input type="range" id="stPlVol" min="0" max="100" value="${Math.round(p.vol * 100)}" style="width:160px"><span class="muted sm" id="stPlVolV">${Math.round(p.vol * 100)} %</span></div>
+        <label for="stPlXf">Überblenden</label><div class="st-path">${stSel("stPlXf", [[0, "aus"], [2, "2 s"], [4, "4 s"], [6, "6 s"], [8, "8 s"], [10, "10 s"], [12, "12 s"]], p.xfade)}
+          ${stSel("stPlXfStart", [["start", "nächster Titel ab Startpunkt"], ["0", "nächster Titel ab Anfang"], ["cue", "nächster Titel ab 1. Cue"]], p.xfade_start)}</div>
+        <label for="stPlXfAfter">Überblenden wann</label>${stSel("stPlXfAfter", [[0, "am Titelende"], [15, "nach 15 s (Durchhören)"], [30, "nach 30 s"], [45, "nach 45 s"], [60, "nach 1 Minute"], [90, "nach 1:30"], [120, "nach 2 Minuten"]], p.xfade_after)}
+        <span></span><span class="muted sm">Überblenden wirkt im Tagger mit „Durchhören“, nicht bei „Titel wiederholen“ oder einer Schleife.</span>
+        <label for="stPlLayout">Position</label>${stSel("stPlLayout", [["bottom", "unten in der Aktionsleiste"], ["top", "oben als eigene Leiste (einklappbar, Shift+P)"]], p.layout)}
+        <span>Player B</span>${stCheck("stPlDeck2", p.deck2, "Zweiten Player anzeigen (Vorhören, eigenes Ausgabegerät; B schaltet das Ziel um)")}
+        <label for="stPlStartmode">Nach dem Start</label>${stSel("stPlStartmode", [["last", "zuletzt benutzte Einstellungen"], ["default", "immer die Standard-Einstellungen"]], p.startmode)}
+        <span>Standard</span><div class="st-path"><button class="ghost sm" id="stPlDefSave" title="Die Einstellungen oben als Standard für den Start merken">Aktuelle als Standard speichern</button><button class="ghost sm" id="stPlDefApply" ${p.has_defaults ? "" : "disabled"} title="Player jetzt auf den gespeicherten Standard setzen">Auf Standard zurücksetzen</button><button class="ghost sm" id="stPlDefDel" ${p.has_defaults ? "" : "disabled"}>Standard löschen</button></div>
+        <span></span><span class="muted sm">${p.has_defaults ? "Ein Standard ist gespeichert." : "Noch kein Standard gespeichert – „Aktuelle als Standard speichern“ merkt die Einstellungen oben."}</span>
         <span>Externe Player</span><div class="st-path"><span>${d.players ? `${d.players} eingerichtet` : "keiner – Standardprogramm des Systems"}</span><button class="ghost sm" id="stPlayers">Einrichten …</button></div>
       </div></section>
     <section class="card" id="stSnapCard"><h3>Snapshots</h3><div class="st-row" id="stSnapRows"><span class="muted sm">…</span></div></section>
@@ -306,6 +318,9 @@ function initSettings() {
     } else if (t.id === "stBkFolder") { const d = await call("backup_pick_folder"); if (d) settingsShow(); else if (!S.settings.native) toast("Im Browser-Modus ist kein Ordnerdialog verfügbar."); }
     else if (t.id === "stBkOpen") call("open_folder", ST.data.backup_dir);
     else if (t.id === "stPlayers") { await plSetup(); settingsShow(); }
+    else if (t.id === "stPlDefSave") { await call("player_defaults", "save"); toast("Player-Einstellungen als Standard gespeichert."); settingsShow(); }
+    else if (t.id === "stPlDefApply") { const pp = await call("player_defaults", "apply"); plApplyPrefs(pp); toast("Player auf Standard zurückgesetzt."); settingsShow(); }
+    else if (t.id === "stPlDefDel") { await call("player_defaults", "reset"); toast("Standard gelöscht."); settingsShow(); }
     else if (t.id === "stPlugins") setModule("plugins");
     else if (t.id === "stSnapGo") setModule("snapshots");
     else if (t.dataset.cclear) {
@@ -382,7 +397,17 @@ function initSettings() {
     else if (t.id === "stPlStart") plSetPref("start", t.value);
     else if (t.id === "stPlWave") plSetPref("wave", t.checked);
     else if (t.id === "stPlFollow") plSetPref("follow", t.checked);
+    else if (t.id === "stPlRepeat") plSetPref("repeat", t.checked);
+    else if (t.id === "stPlLive") plSetPref("live", t.checked);
+    else if (t.id === "stPlVol") { PLAYER.vol = (+t.value) / 100; if (!PLAYER.fade) PLAYER.audio.volume = PLAYER.vol; $("#plVol").value = t.value; plSetPref("vol", PLAYER.vol); }
+    else if (t.id === "stPlXf") plSetPref("xfade", +t.value);
+    else if (t.id === "stPlXfStart") plSetPref("xfade_start", t.value);
+    else if (t.id === "stPlXfAfter") plSetPref("xfade_after", +t.value);
+    else if (t.id === "stPlLayout") plSetPref("layout", t.value);
+    else if (t.id === "stPlDeck2") plSetPref("deck2", t.checked);
+    else if (t.id === "stPlStartmode") plSetPref("startmode", t.value);
   });
+  grid.addEventListener("input", (e) => { if (e.target.id === "stPlVol") $("#stPlVolV").textContent = e.target.value + " %"; });
 }
 
 initSettings();
