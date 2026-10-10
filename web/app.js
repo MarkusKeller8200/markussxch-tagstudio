@@ -977,13 +977,11 @@ function bind() {
     } else {
       S.pairSel.clear();
       S.pairAnchor = i;
-      selectPair(i, "click");
+      const dbl = e.detail === 2;     // #92: Doppelklick spielt das Paar (Zeile wird beim ersten Klick neu gezeichnet)
+      Promise.resolve(selectPair(i, "click")).then(() => { if (dbl && typeof plPlayRow === "function") plPlayRow(); });
     }
     renderBulkBar();
     drawPairWindow();
-  });
-  $("#pairsInner").addEventListener("dblclick", (e) => {     // #92: Doppelklick spielt das Paar
-    if (e.target.closest(".pair") && typeof plPlayRow === "function") plPlayRow();
   });
   $("#pairsScroll").addEventListener("keydown", (e) => {
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;

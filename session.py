@@ -18,6 +18,7 @@ import core
 import features
 import keys
 import plugins
+import ratings
 import tagger
 import xmltools
 import blobs
@@ -1931,7 +1932,8 @@ class Session:
                 "modified": f.is_modified(), "cover": f.get("APIC:3") is not None, "ch": self._cover_hash(f),
                 "version": f.version,
                 **{key: tagger.text_of(f, key) for key, _l, _p in tagger.FIELDS},
-                "camelot": keys.parse_key(tagger.text_of(f, "TKEY")), "feat": features.values(f)}
+                "camelot": keys.parse_key(tagger.text_of(f, "TKEY")), "feat": features.values(f),
+                "rating": ratings.get_rating(f), "like": ratings.get_like(f)}
 
     @staticmethod
     def _front_cover(f):
@@ -1991,6 +1993,9 @@ class Session:
                     if len(cs["data"]) <= 4_000_000 else ""
             out["cover"] = cs
             out["features"] = features.common(files)
+            rs, ls = {ratings.get_rating(f) for f in files}, {ratings.get_like(f) for f in files}
+            out["rating"] = {"value": next(iter(rs)) if len(rs) == 1 else None, "mixed": len(rs) > 1,
+                             "like": next(iter(ls)) if len(ls) == 1 else None}
             durs = [float(getattr(f, "duration", 0) or 0) for f in files]
             out["length"] = {"total": round(sum(durs), 1), "count": len(files),
                              "same": len({round(d) for d in durs}) == 1}
@@ -2027,6 +2032,59 @@ class Session:
             d = self.tag_detail(idx)
             d["message"] = f"„{key_label(key)}“ in {n} Datei(en) geändert – noch nicht gespeichert." if n else None
             return d
+
+    def tag_set_rating(self, idx, stars=None, like=None):
+        """#96/#97: Bewertung (0–5) und/oder Like (#95) für die gewählten Dateien – mit Rückgängig."""
+        with self.lock:
+            files = [f for f in self._tsel(idx) if not self._ro(f)]
+            if not files:
+                return self.tag_detail(idx)
+            n = self._mark(files, stars, like)
+            d = self.tag_detail(idx)
+            d["message"] = self._mark_msg(n, stars, like)
+            return d
+
+    def _mark(self, files, stars, like) -> int:
+        what = "Bewertung" if stars is not None else "Like"
+        self.undo.checkpoint(f"{what} in {len(files)} Datei(en)", files)
+        n = 0
+        for f in files:
+            ch = ratings.set_rating(f, stars) if stars is not None else False
+            if like is not None:
+                ch = ratings.set_like(f, bool(like)) or ch
+            n += bool(ch)
+        self.undo.commit()
+        return n
+
+    @staticmethod
+    def _mark_msg(n, stars, like):
+        if not n:
+            return None
+        if stars is not None:
+            what = f"Bewertung {'★' * int(stars)}{'☆' * (5 - int(stars))}" if stars else "Bewertung entfernt"
+        else:
+            what = "♥ Like gesetzt" if like else "Like entfernt"
+        return f"{what} – {n} Datei(en), noch nicht gespeichert."
+
+    def player_mark(self, kind, ref, stars=None, like=None) -> dict:
+        """#95/#96: Bewertung/Like für den Titel im Player (Tagger-Zeile oder Vergleichsseite)."""
+        with self.lock:
+            if kind == "tag" and isinstance(ref, int) and 0 <= ref < len(self.tag_files):
+                f = self.tag_files[ref]
+            elif kind == "side" and ref in ("L", "R"):
+                f = self._file(ref)
+            else:
+                return {"ok": False, "error": "Dieser Titel kann nicht bewertet werden (keine MP3 geladen)."}
+            if f is None or self._ro(f):
+                return {"ok": False, "error": "Diese Datei kann nicht geändert werden."}
+            if like == "toggle":
+                like = not ratings.get_like(f)
+            n = self._mark([f], stars, like)
+            out = {"ok": True, "rating": ratings.get_rating(f), "like": ratings.get_like(f),
+                   "changed": bool(n), "message": self._mark_msg(n, stars, like), "meta": self.meta()}
+            if kind == "tag":
+                out["row"] = self._tag_row(ref, f)
+            return out
 
     def tag_remove(self, idx, keys):
         with self.lock:
@@ -2225,7 +2283,8 @@ class Session:
             title, artist = f.text("TIT2"), f.text("TPE1").replace(MV, ", ")
             out = {"path": f.path, "name": os.path.basename(f.path), "title": title, "artist": artist,
                    "duration": float(getattr(f, "duration", 0) or 0), "kind": kind, "ref": ref,
-                   **self._key_info(f), "bpm": f.text("TBPM"), "stems": []}
+                   **self._key_info(f), "bpm": f.text("TBPM"), "stems": [],
+                   "rating": ratings.get_rating(f), "like": ratings.get_like(f), "markable": not self._ro(f)}
             if kind == "tag":
                 parent = self.tag_parent.get(ref, ref if ref in self.tag_stems else None)
                 out["stems"] = self._stem_group(parent)

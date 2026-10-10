@@ -157,6 +157,57 @@ function plPlayRow() {
   plLoad(t, true, plInGroup(t) ? PLAYER.audio.currentTime : null);
 }
 
+// ---------------------------------------------------------------------- Bewertung & Like (#95/#96/#97)
+/** Sterne (0–5, null = verschieden) und ♥ als Knöpfe. Klick auf den aktuellen Stern löscht die Bewertung. */
+function rateHtml(v, like, opt = {}) {
+  const mixed = v === null || v === undefined;
+  let h = `<span class="rate${mixed ? " mixed" : ""}${opt.cls ? " " + opt.cls : ""}" role="group" aria-label="Bewertung"${mixed ? ' title="Bewertung verschieden"' : ""}>`;
+  for (let n = 1; n <= 5; n++) {
+    h += `<button type="button" class="rs${!mixed && n <= v ? " on" : ""}" data-star="${n}" title="${n} Stern${n > 1 ? "e" : ""}${opt.keys ? ` (${n})` : ""}${!mixed && n === v ? " – nochmals: Bewertung entfernen" : ""}" aria-label="${n} Stern${n > 1 ? "e" : ""}" aria-pressed="${!mixed && n <= v}">★</button>`;
+  }
+  if (opt.like !== false) {
+    const lm = like === null || like === undefined;
+    h += `<button type="button" class="rl${like ? " on" : ""}${lm ? " mixed" : ""}" data-like="1" title="${like ? "Like entfernen" : "Like"}${opt.keys ? " (F)" : ""}${lm ? " – verschieden" : ""}" aria-label="Like" aria-pressed="${!!like}">♥</button>`;
+  }
+  return h + "</span>";
+}
+
+/** Kleine Anzeige in Listen: ★★★ und ♥ (nur wenn gesetzt) */
+function rateMini(v, like) {
+  if (!v && !like) return "";
+  return `<span class="rate-mini" title="${v ? `${v} Stern${v > 1 ? "e" : ""}` : ""}${v && like ? " · " : ""}${like ? "Like" : ""}">${v ? "★".repeat(v) : ""}${like ? '<b>♥</b>' : ""}</span>`;
+}
+
+/** Tasten 0–5/F: den laufenden Titel bewerten – steht der Player, die Markierung (Tagger: alle markierten). */
+async function plMark(stars, like) {
+  const loaded = PLAYER.info && (PLAYER.kind === "tag" || PLAYER.kind === "side");
+  const sel = plTarget();
+  const useP = loaded && (!PLAYER.audio.paused || plSame(sel) || (sel && sel.kind === "side" && PLAYER.kind === "side"));
+  const t = useP ? { kind: PLAYER.kind, ref: PLAYER.kind === "side" ? PLAYER.info.ref : PLAYER.ref } : null;
+  if (!t) {
+    if (S.module === "tagger" && typeof tgMark === "function" && tgSelected().length) return tgMark(stars, like);
+    const p = plTarget();
+    if (!p) { toast("Erst einen Titel markieren oder abspielen."); return; }
+    return plMarkTarget(p, stars, like);
+  }
+  return plMarkTarget(t, stars, like);
+}
+
+async function plMarkTarget(t, stars, like) {
+  if (stars !== null && stars !== undefined && PLAYER.info && plSame(t) && PLAYER.info.rating === stars) stars = 0;   // gleicher Stern: löschen
+  const r = await call("player_mark", t.kind, t.ref, stars ?? null, like ?? null);
+  if (!r.ok) { toast(r.error); return; }
+  if (PLAYER.info && (plSame(t) || (t.kind === "side" && PLAYER.kind === "side" && PLAYER.info.ref === t.ref))) { PLAYER.info.rating = r.rating; PLAYER.info.like = r.like; }
+  if (r.meta) { S.meta = r.meta; renderMeta(); }
+  if (r.row && typeof TG !== "undefined") {
+    TG.rows[r.row.i] = r.row;
+    if (TG.sel.has(r.row.i)) await tgLoadDetail(); else drawTgList();
+  }
+  if (t.kind === "side") applyState(await call("state"));
+  plRender();
+  if (r.message) toast(r.message);
+}
+
 /** #91: Live-Vorschau an/aus */
 function plLiveSet(on) {
   plSetPref("live", !!on);
@@ -229,6 +280,8 @@ function plRender() {
   const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${alt.length ? `<span class="pl-key-alt" title="Musikalisch · Open Key">${esc(alt.join(" · "))}</span>` : ""}${bpm ? `<span class="pl-bpm">${esc(bpm)} BPM</span>` : ""}` : "";
   if ($("#plMeta").dataset.v !== meta) { $("#plMeta").innerHTML = meta; $("#plMeta").dataset.v = meta; }
   plStemsRender();
+  const rh = i && i.markable !== false && i.rating !== undefined ? rateHtml(i.rating, i.like, { keys: true }) : "";
+  if ($("#plRate").dataset.v !== rh) { $("#plRate").innerHTML = rh; $("#plRate").dataset.v = rh; }
   $("#plVol").classList.toggle("muted", a.muted);
   $("#plVol").title = a.muted ? "Stumm (M)" : "Lautstärke (M: stumm)";
   const dur = a.duration || (i && i.duration) || 0;
@@ -524,6 +577,12 @@ function initPlayer() {
   $("#plRepeat").addEventListener("click", () => { plSetPref("repeat", !PLAYER.repeat); toast(PLAYER.repeat ? "Titel wird wiederholt." : "Titel nicht mehr wiederholen."); });
   $("#plAB2").addEventListener("click", plABStep);
   $("#plLive").addEventListener("click", () => plLiveSet(!PLAYER.live));
+  $("#plRate").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (!PLAYER.info) return;
+    const t = { kind: PLAYER.kind, ref: PLAYER.kind === "side" ? PLAYER.info.ref : PLAYER.ref };
+    if (b.dataset.star) plMarkTarget(t, +b.dataset.star, null); else if (b.dataset.like) plMarkTarget(t, null, "toggle");
+  });
 
   document.addEventListener("keydown", (e) => {
     const inField = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && document.activeElement?.type !== "range";
@@ -535,6 +594,8 @@ function initPlayer() {
     else if ((e.key === "l" || e.key === "L") && !e.ctrlKey && !e.metaKey && !e.altKey && PLAYER.audio.src) { e.preventDefault(); plABStep(); }   // #79
     else if ((e.key === "r" || e.key === "R") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); $("#plRepeat").click(); }
     else if (e.key === "Escape" && PLAYER.ab) { plABClear(); }
+    else if (/^[0-5]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plMark(+e.key, null); }   // #96
+    else if ((e.key === "f" || e.key === "F") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plMark(null, "toggle"); }   // #95
     else if ((e.key === "m" || e.key === "M") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); PLAYER.audio.muted = !PLAYER.audio.muted; plRender(); toast(PLAYER.audio.muted ? "Stumm (M)" : "Ton an"); }   // #49
     else if (e.altKey && (e.key === "PageDown" || e.key === "PageUp") && PLAYER.audio.src) { e.preventDefault(); plCueJump(e.key === "PageDown" ? 1 : -1); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); call("players").then((l) => plExternal(l.length ? 0 : null)); }

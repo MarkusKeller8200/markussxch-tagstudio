@@ -903,3 +903,20 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .cmp-src{height:34px;width:auto;max-width:190px;font-size:12.5px}
 .cmp-src.on{border-color:var(--acc);color:var(--acc)}
 .f-id .src-b{cursor:pointer}
+
+/* Bewertung & Like (#95/#96/#97) */
+.rate{display:inline-flex;align-items:center;gap:1px;flex:none}
+.rate button{border:0;background:none;padding:0 1px;font-size:16px;line-height:1;color:var(--dim);opacity:.45;cursor:pointer}
+.rate button:hover{opacity:1}
+.rate .rs.on{color:#f5a623;opacity:1}
+.rate .rl{margin-left:6px}
+.rate .rl.on{color:#e0457b;opacity:1}
+.rate.mixed .rs,.rate .rl.mixed{opacity:.3}
+.rate .rs:has(~ .rs:hover),.rate .rs:hover{color:#f5a623;opacity:.85}
+.player .pl-rate{margin-left:auto}
+.player .pl-rate .rate button{font-size:13px}
+.tg-lenrate{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.tg-lenrate:empty{display:none}
+.tg-rate button{font-size:19px}
+.rate-mini{flex:none;margin-left:6px;color:#f5a623;font-size:11px;letter-spacing:-1px}
+.rate-mini b{color:#e0457b;font-weight:400;margin-left:3px}

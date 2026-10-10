@@ -154,7 +154,7 @@ function drawTgList() {
       : `${tw}<span class="nm">${esc(r.rel)}</span>${r.stems ? `<span class="stem-b" title="${esc(r.stems.map((x) => x.name + " (" + x.ext + ")").join(", "))}">${r.stems.length} Stems</span>` : ""}`;
     h += `<div class="tg-row${TG.sel.has(r.i) ? " sel" : ""}${v.child !== undefined ? " child" : ""}" style="top:${k * TG_ROW}px" data-i="${r.i}" title="${esc(r.rel)}">
       <span>${r.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</span>
-      <span class="fn">${LAYOUT.tg_cover_col && v.child === undefined ? `<span class="tg-thumb${r.ch ? "" : " none"}"${r.ch ? ` data-ch="${r.ch}"` : ""}>${r.ch && TG_THUMBS.get(r.ch) ? `<img src="${TG_THUMBS.get(r.ch)}" alt="">` : ""}</span>` : ""}${name}</span><span>${esc(r.TIT2)}</span><span>${esc(r.TPE1)}</span><span>${esc(r.TALB)}</span>
+      <span class="fn">${LAYOUT.tg_cover_col && v.child === undefined ? `<span class="tg-thumb${r.ch ? "" : " none"}"${r.ch ? ` data-ch="${r.ch}"` : ""}>${r.ch && TG_THUMBS.get(r.ch) ? `<img src="${TG_THUMBS.get(r.ch)}" alt="">` : ""}</span>` : ""}${name}${rateMini(r.rating, r.like)}</span><span>${esc(r.TIT2)}</span><span>${esc(r.TPE1)}</span><span>${esc(r.TALB)}</span>
       <span>${esc(r.TRCK)}</span><span>${esc(r.TDRC)}</span><span>${esc(r.TCON)}</span><span class="num">${esc(r.TBPM)}</span>
       <span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx">${esc(r.TKEY)}</span>`}</span></div>`;
   }
@@ -216,6 +216,22 @@ async function tgSelect(i, e = {}) {
   if (typeof playerFollow === "function") playerFollow(e && e.type === "click" ? (e.shiftKey || e.ctrlKey || e.metaKey ? "multi" : "click") : "key");
 }
 
+/** #97: Bewertung/Like für alle markierten Dateien (Sterne neben dem Cover, Tasten 0–5/F). */
+async function tgMark(stars, like) {
+  const idx = tgSelected();
+  if (!idx.length) return;
+  const r = TG.detail && TG.detail.rating;
+  if (stars !== null && stars !== undefined && r && !r.mixed && r.value === stars) stars = 0;   // gleicher Stern: löschen
+  if (like === "toggle") like = !(r && r.like);
+  const d = await call("tag_set_rating", idx, stars ?? null, like ?? null);
+  taggerApplyDetail(d);
+  if (PLAYER.info && PLAYER.kind === "tag" && idx.includes(PLAYER.ref)) {
+    const row = TG.rows[PLAYER.ref];
+    if (row) { PLAYER.info.rating = row.rating; PLAYER.info.like = row.like; plRender(); }
+  }
+  if (d.message) toast(d.message);
+}
+
 /** Länge neben dem Cover (#34): ein Titel bzw. Gesamtlänge der markierten Titel. */
 function tgLength(d) {
   const L = d.length;
@@ -271,7 +287,7 @@ function renderTgEditor() {
   box.innerHTML = `${head}
     <div class="tg-cover"><button class="cover" id="tgCoverBig" title="${esc(c.desc || (c.state === "mixed" ? "unterschiedliche Cover" : "kein Cover"))}">${coverImg}</button>
       <div class="tg-cover-btns"><div class="row"><button class="ghost sm" id="tgCoverSet">Cover wählen …</button><button class="ghost sm" id="tgCoverDel" ${c.state === "none" ? "disabled" : ""}>Cover entfernen</button></div>
-      <span class="hint" title="${esc(c.desc || "")}">${esc(c.desc || (c.state === "mixed" ? "unterschiedlich" : "kein Cover"))}</span>${tgLength(d)}</div></div>
+      <span class="hint" title="${esc(c.desc || "")}">${esc(c.desc || (c.state === "mixed" ? "unterschiedlich" : "kein Cover"))}</span><div class="tg-lenrate">${tgLength(d)}${d.rating ? rateHtml(d.rating.value, d.rating.like, { cls: "tg-rate", keys: true }) : ""}</div></div></div>
     <div class="tg-form">${form}
       <label for="tgVer">ID3-Version</label><select id="tgVer" class="inp" style="height:36px"><option value="3">ID3v2.3 (verbreitet)</option><option value="4">ID3v2.4 (Mehrfachwerte)</option>${d.version ? "" : '<option value="" selected>verschieden</option>'}</select>
     </div>
@@ -889,10 +905,6 @@ async function tgOriginDialog(preset = "") {
     renderTgHead(); tgApplyOrder();
   });
   $("#tgScroll").addEventListener("scroll", () => requestAnimationFrame(drawTgList));
-  $("#tgInner").addEventListener("dblclick", (e) => {      // #92: Doppelklick spielt den Titel
-    const r = e.target.closest(".tg-row[data-i]"); if (!r || e.target.closest("button")) return;
-    if (typeof plPlayRow === "function") plPlayRow();
-  });
   $("#tgInner").addEventListener("click", (e) => {
     const tw = e.target.closest("[data-tw]");
     if (tw) { e.stopPropagation(); tgToggleStems(+tw.dataset.tw); return; }
@@ -902,7 +914,11 @@ async function tgOriginDialog(preset = "") {
       else if (e.target.closest("[data-sreveal]")) call("reveal", sx.dataset.stem);
       return;
     }
-    const r = e.target.closest(".tg-row"); if (r) tgSelect(+r.dataset.i, e);
+    const r = e.target.closest(".tg-row");
+    if (!r) return;
+    // #92: Doppelklick spielt den Titel (über e.detail – die Zeile wird beim ersten Klick neu gezeichnet)
+    const dbl = e.detail === 2 && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.target.closest("button");
+    tgSelect(+r.dataset.i, e).then(() => { if (dbl && typeof plPlayRow === "function") plPlayRow(); });
   });
   $("#tgCoverCol").addEventListener("click", () => { LAYOUT.tg_cover_col = !LAYOUT.tg_cover_col; saveUi("tg_cover_col"); renderTgHead(); drawTgList(); });
   $("#tgInner").addEventListener("mouseover", tgCoverPop);
@@ -942,6 +958,8 @@ async function tgOriginDialog(preset = "") {
     else if (e.target.id === "tgSrcF") { TG.srcFilter = e.target.value; renderTgEditor(); }
   });
   ed.addEventListener("click", async (e) => {
+    const rb = e.target.closest(".tg-rate button");
+    if (rb) { if (rb.dataset.star) tgMark(+rb.dataset.star, null); else tgMark(null, "toggle"); return; }
     const a = e.target.closest("a[data-url]");
     if (a) { e.preventDefault(); call("open_url", a.dataset.url); return; }
     const id = e.target.closest("button")?.id;
