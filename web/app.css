@@ -898,3 +898,8 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .player .pl-ab-btn.half{background:repeating-linear-gradient(90deg,var(--acc-soft) 0 50%,transparent 50% 100%)}
 .pl-abmark{position:absolute;top:0;bottom:0;padding:0;border:0;border-left:2px solid var(--acc);border-right:2px solid var(--acc);background:color-mix(in srgb,var(--acc) 22%,transparent);pointer-events:auto;cursor:pointer}
 .pl-abmark.open{border-right:0;background:transparent;width:2px!important}
+
+/* #99: Herkunfts-Filter im Vergleich */
+.cmp-src{height:34px;width:auto;max-width:190px;font-size:12.5px}
+.cmp-src.on{border-color:var(--acc);color:var(--acc)}
+.f-id .src-b{cursor:pointer}

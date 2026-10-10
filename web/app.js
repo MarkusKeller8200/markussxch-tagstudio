@@ -310,7 +310,7 @@ function srcBadge(sid) {
   const cls = own ? "" : o.kind === "plugin" ? " own" : o.kind === "id3" ? " id3" : o.kind === "unknown" ? " unk" : "";
   const what = o.kind === "id3" ? "ID3-Version" : "Herkunft";
   const tip = `<div class="tip-h"><span class="src-b${cls}" style="--h:${own ? o.hue : srcHue(sid)}">${esc(short)}</span>${o.name !== short ? " " + esc(o.name) : ""}</div><div class="tip-l">${esc(what)} – ${esc(o.desc)}</div>`;
-  return `<span class="src-b${cls}" style="--h:${own ? o.hue : srcHue(sid)}" aria-label="${what}: ${esc(o.name)}" data-tip-html="${esc(tip)}">${esc(short)}</span>`;
+  return `<span class="src-b${cls}" data-sid="${esc(sid)}" style="--h:${own ? o.hue : srcHue(sid)}" aria-label="${what}: ${esc(o.name)}" data-tip-html="${esc(tip)}">${esc(short)}</span>`;
 }
 /** #74: ID3-Version (offizielle Felder) + Herkunft */
 function srcBadges(ver, src) { return srcBadge(ver) + srcBadge(src); }
@@ -703,14 +703,31 @@ function valueHtml(cell, state) {
   return out;
 }
 
+/** #99: Filter nach Herkunft im Vergleich – Auswahl aus den Herkünften des aktuellen Paars */
+function visRows() { const r = (S.view && S.view.rows) || []; return S.srcFilter ? r.filter((x) => cmpSrcOf(x).includes(S.srcFilter)) : r; }
+function cmpSrcOf(r) { return [r.src || "", r.ver || ""].filter(Boolean); }
+function cmpSrcSync(rows) {
+  const n = {};
+  rows.forEach((r) => cmpSrcOf(r).forEach((s) => { n[s] = (n[s] || 0) + 1; }));
+  if (S.srcFilter && !(S.srcFilter in n)) n[S.srcFilter] = 0;          // gewählte Herkunft bleibt wählbar
+  const keys = Object.keys(n).sort((x, y) => (srcInfo(x)?.kind === "id3") - (srcInfo(y)?.kind === "id3") || (srcInfo(x)?.name || x).localeCompare(srcInfo(y)?.name || y));
+  const html = '<option value="">Alle Herkünfte</option>' + keys.map((k) => `<option value="${esc(k)}">${esc(srcInfo(k)?.name || k)} (${n[k]})</option>`).join("");
+  const sel = $("#cmpSrc");
+  if (sel.dataset.v !== html) { sel.innerHTML = html; sel.dataset.v = html; }
+  sel.value = S.srcFilter || "";
+  sel.classList.toggle("on", !!S.srcFilter);
+}
+
 function renderRows() {
   const v = S.view;
   const body = $("#tbody");
-  if (!v.rows.length) {
-    body.innerHTML = `<div class="table-empty">${S.opts.filter === "diff" ? "Keine Unterschiede." : "Keine Felder."}</div>`;
+  cmpSrcSync(v.rows);
+  const rows = visRows();
+  if (!rows.length) {
+    body.innerHTML = `<div class="table-empty">${S.srcFilter ? `Keine Felder mit Herkunft „${esc(srcInfo(S.srcFilter)?.name || S.srcFilter)}“.` : S.opts.filter === "diff" ? "Keine Unterschiede." : "Keine Felder."}</div>`;
     return;
   }
-  body.innerHTML = v.rows.map((r, n) => {
+  body.innerHTML = rows.map((r, n) => {
     const canCopy = v.both && r.state !== "same" && r.state !== "empty";
     const roL = !!(v.left && v.left.readonly), roR = !!(v.right && v.right.readonly);
     const ed = (c) => (c && c.editable ? "" : " noedit");
@@ -727,12 +744,12 @@ function paintSelection() {
   $$("#tbody .tr").forEach((tr) => tr.classList.toggle("sel", S.sel.has(tr.dataset.key)));
 }
 
-function rowKeys() { return S.view ? S.view.rows.map((r) => r.key) : []; }
+function rowKeys() { return visRows().map((r) => r.key); }
 function selectedKeys() { return rowKeys().filter((k) => S.sel.has(k)); }
 
 // ====================================================================== Bearbeiten
 function startEdit(tr, side) {
-  const r = S.view.rows[+tr.dataset.n];
+  const r = visRows()[+tr.dataset.n];
   const cell = r[side];
   if (cell && cell.xml) return openXml(side, r.key);
   if (!cell || !cell.editable) {
@@ -759,7 +776,7 @@ function startEdit(tr, side) {
     if (next) {
       const rows = $$("#tbody .tr");
       for (let k = +tr.dataset.n + next; k >= 0 && k < rows.length; k += next) {
-        const c = S.view.rows[k][side];
+        const c = visRows()[k][side];
         if (c && c.editable && !c.multiline) { startEdit(rows[k], side); break; }
       }
     } else $("#table").focus();
@@ -875,7 +892,7 @@ function showMenu(x, y, items) {
 function hideMenu() { $("#menu").hidden = true; }
 
 function rowMenu(e, tr) {
-  const r = S.view.rows[+tr.dataset.n];
+  const r = visRows()[+tr.dataset.n];
   if (!S.sel.has(r.key)) { S.sel = new Set([r.key]); S.anchor = r.key; paintSelection(); }
   const keys = selectedKeys();
   const sideEl = e.target.closest(".v");
@@ -995,6 +1012,15 @@ function bind() {
   $("#fieldQuery").addEventListener("input", (e) => { clearTimeout(fq); fq = setTimeout(async () => applyState(await call("set_option", "query", e.target.value)), 200); });
   $$("[data-copyall]").forEach((b) => b.addEventListener("click", () => copyAll(b.dataset.copyall)));
   $("#pairReloadBtn").addEventListener("click", reloadPair);
+  $("#cmpSrc").addEventListener("change", (e) => { S.srcFilter = e.target.value; renderRows(); });      // #99
+  $("#tbody").addEventListener("click", (e) => {
+    const b = e.target.closest(".f-id .src-b"); if (!b) return;
+    e.stopPropagation();
+    const k = b.dataset.sid;
+    S.srcFilter = S.srcFilter === k ? "" : k;
+    renderRows();
+    toast(S.srcFilter ? `Nur Felder mit Herkunft „${srcInfo(k)?.name || k}“ – erneut klicken zeigt alle.` : "Alle Herkünfte.");
+  }, true);
   $$("[data-home]").forEach((b) => b.addEventListener("click", () => {     // #84
     const d = S.settings.defaults || {}, k = b.dataset.home;
     const inp = $(k === "L" ? "#pathL" : k === "R" ? "#pathR" : "#tgPath");

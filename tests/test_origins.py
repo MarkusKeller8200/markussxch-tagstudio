@@ -28,7 +28,14 @@ class TestOrigins(unittest.TestCase):
                          ("TXXX:Meter", "beatunes"), ("TXXX:MOOD_ACOUSTIC", "beatunes"),
                          ("TXXX:MOOD_DANCEABILITY", "beatunes"), ("TXXX:MOOD_ELECTRONIC", "beatunes"),
                          ("TXXX:SPOTIFY_TRACK_ID", "spotify"), ("WXXX:Spotify", "spotify"),
-                         ("TXXX:DISCOGS_RELEASE_ID", "discogs"), ("TXXX:Discogs Style", "discogs")):
+                         ("TXXX:DISCOGS_RELEASE_ID", "discogs"), ("TXXX:Discogs Style", "discogs"),
+                         # #100
+                         ("TXXX:AnalysisDate", "beatunes"), ("TXXX:FILEOWNER", "beatport"), ("TXXX:LABEL", "beatport"),
+                         ("TXXX:LABEL_URL", "beatport"), ("TXXX:RELEASE_TIME", "beatport"), ("TXXX:TRACK_URL", "beatport"),
+                         ("TXXX:WWWAUDIOFILE", "beatport"), ("TXXX:BPM", "beatport"), ("TXXX:COMMENT", "beatport"),
+                         ("TXXX:FILETYPE", "beatport"), ("TXXX:INITIAL_KEA", "beatport"), ("TXXX:INITIAL_KEY", "beatport"),
+                         ("TXXX:ISRC", "beatport"), ("TXXX:ORGANIZATION", "beatport"), ("TXXX:YEAR", "beatport"),
+                         ("TXXX:LABELS", None)):
             self.assertEqual(o.of(key), sid, key)
         self.assertIn("GEOB:Serato*", o.patterns("serato"))
 

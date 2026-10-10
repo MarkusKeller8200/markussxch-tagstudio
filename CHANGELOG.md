@@ -6,6 +6,16 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+- Vergleich: **Filter nach Herkunft** – Auswahl „Alle Herkünfte“ in der Werkzeugleiste (mit Anzahl je Herkunft des
+  aktuellen Paars) oder Klick auf ein Kennzeichen; erneuter Klick zeigt wieder alle. Der Filter bleibt beim Wechsel
+  des Paars erhalten (#99).
+
+### Geändert
+- Herkunft: weitere Felder erkannt – `TXXX:AnalysisDate` als beaTunes; `TXXX:FILEOWNER`, `LABEL`, `LABEL_URL`,
+  `RELEASE_TIME`, `TRACK_URL`, `WWWAUDIOFILE`, `BPM`, `COMMENT`, `FILETYPE`, `INITIAL_KEA`/`INITIAL_KEY`, `ISRC`,
+  `ORGANIZATION` und `YEAR` als Beatport (#100).
+
 ## [3.3.0] – 2026-10-10
 
 ### Neu
