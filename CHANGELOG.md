@@ -30,6 +30,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - Player: Titel per **Ziehen** laden – eine Zeile aus Tagger oder DJ-Set auf Player A oder B ziehen; ein Paar aus
   dem Vergleich fragt beim Ablegen nach links oder rechts. Die Player sind beim Ziehen markiert, das Ziel unter der
   Maus hervorgehoben (#105).
+- README: neue Abschnitte „DJ-Set“ sowie Spalten und Filter der Audio-Merkmale; Oberflächentests für DJ-Set,
+  Exporte, Merkmal-Spalten und Ziehen auf die Player (#5).
 
 ## [3.5.0] – 2026-10-10
 

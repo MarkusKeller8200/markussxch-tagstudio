@@ -20,7 +20,10 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.9 oder neuer – oder gar nich
   XML-Editor, Binärfeld-Editor für DJ-Daten (GEOB/PRIV), Farbwähler für Hex-Farben, anklickbare Links.
 - **Tonart:** Camelot-Rad mit harmonisch passenden Tonarten; Schreibweise Camelot (`08A`), musikalisch (`Am`)
   oder Open Key (`1m`).
-- **Audio-Merkmale:** Energy, Danceability, Happiness … als Felder mit Werten 0–100.
+- **Audio-Merkmale:** Energy, Danceability, Happiness … als Felder mit Werten 0–100, als Spalten im Tagger,
+  sortier- und filterbar (`energy>=70`); Dateien wahlweise in 0–10 (Lexicon).
+- **DJ-Set:** Reihenfolge nach Tonart (Camelot), BPM und Energie optimieren, jeden Übergang bewerten, per Ziehen
+  umsortieren und sperren, Weg durch das Camelot-Rad und Energiekurve; Export als M3U8, Rekordbox-XML und CSV.
 - **Vergleich zweier Ordner/Dateien:** Feld für Feld mit zeichengenauen Markierungen, Werte per Pfeil übernehmen.
 - **Tag-Fixer:** Mehrfachwerte (`;`, `/`, `feat.` …) vereinheitlichen oder in echte ID3v2.4-Mehrfachwerte umwandeln.
 - **Sicherheit beim Speichern:** vor jedem Speichern automatische Sicherung der Tags, Änderungs-Viewer,
@@ -80,7 +83,7 @@ und darüber installieren – Einstellungen, Sicherungen und Plugin-Daten liegen
 
 ## Bedienung
 
-Seitenleiste mit **Tagger, Tag-Fixer, Vergleich, Snapshots, Sicherungen, Plugins, Einstellungen**, unten
+Seitenleiste mit **Tagger, Tag-Fixer, Vergleich, DJ-Set, Snapshots, Sicherungen, Plugins, Einstellungen**, unten
 „Nach Update suchen“, Versionshinweise, Einklappen und Hell/Dunkel. Beim Start öffnet die zuletzt benutzte Seite
 (beim ersten Start der Tagger). Vergleich und Tagger arbeiten mit denselben Dateien – Änderungen sind in beiden sichtbar, werden
 zusammen gespeichert (Strg/Cmd+S) und lassen sich gemeinsam rückgängig machen.
@@ -158,6 +161,55 @@ Liveness, Speechiness, Brightness, Aggressiveness als `TXXX:ENERGY` … mit Wert
 Zahl (0.78 → 78), für eine oder mehrere Dateien. Andere Schreibweisen (`TXXX:Energy`) werden erkannt und beim
 Ändern vereinheitlicht.
 
+**Spalten und Filter:** Über „Merkmale ▾“ in der Liste lassen sich Merkmale als Spalten einblenden (mit kleinem
+Balken) und per Klick auf den Spaltenkopf sortieren. Das Suchfeld versteht neben Text auch Zahlenfilter, mehrere mit
+Leerzeichen getrennt und mit Text kombinierbar:
+
+| Eingabe | findet |
+|---|---|
+| `energy>=70`, `Energie ≥ 70` | Energy ab 70 |
+| `dance<40`, `tanz<40` | Danceability unter 40 |
+| `energy:60-80` | Energy von 60 bis 80 |
+| `bpm:120-128`, `tempo=124` | BPM-Bereich bzw. genau 124 |
+| `house energy>50` | Text „house“ und Energy über 50 |
+
+Namen dürfen abgekürzt (`ener`, `dance`) oder deutsch sein (Energie, Tanz, Stimmung, Akustik, Sprache …).
+**Skala:** Unter Einstellungen › Tagger lässt sich einstellen, dass die Werte in den Dateien 0–10 sind (z. B. aus
+Lexicon). Angezeigt und eingegeben wird dann weiterhin 0–100; beim Lesen wird ×10, beim Schreiben ÷10 gerechnet.
+
+### DJ-Set
+
+Ordnet Titel so, dass die Übergänge passen. Seite **DJ-Set** in der Seitenleiste.
+
+1. **Titel holen:** im Tagger einen Ordner einlesen, dann „+ Markierte aus dem Tagger“ oder „+ Ganzer
+   Tagger-Ordner“ – oder im Tagger Titel markieren und per Rechtsklick „Zum DJ-Set hinzufügen“.
+2. **Einstellen:** Energieverlauf (egal, steigend, fallend, Welle), Gewichtung von Tonart, BPM und Energie,
+   maximaler BPM-Sprung in Prozent, Titel ohne Tonart/BPM ans Ende oder neutral mitplanen.
+3. **Optimieren:** bis 15 Titel wird die beste Reihenfolge exakt berechnet, darüber eine sehr gute Näherung
+   (meist unter 2 % vom Optimum, bei 200 Titeln wenige Sekunden). „⇄ Vorher/Nachher“ wechselt zwischen alter und
+   neuer Reihenfolge.
+
+**Bewertung:** Zwischen zwei Titeln steht der Übergang mit Ampel, Art des Tonartwechsels (gleich, ±1 auf dem Rad,
+Paralleltonart, Energie-Sprung +2/diagonal, Sprung), BPM-Unterschied (Halb-/Doppeltempo wird erkannt, ×2 bzw. ½) und
+einer Note 0–100. Übergänge über dem maximalen BPM-Sprung bekommen 0. Die Gesamtnote ist der Durchschnitt der
+Übergänge, mit Energieverlauf zu 20 % die Nähe zur Soll-Kurve. Fehlt das Feld ENERGY, wird die Energie grob aus dem
+BPM geschätzt (gestreifter Balken).
+
+**Von Hand anpassen:** Zeilen mit der Maus ziehen; 🔒 **sperrt** einen Titel auf seiner Position – „Rest optimieren“
+ordnet dann nur die übrigen. Tasten: ↑/↓ wählen, Alt+↑/↓ verschieben, G sperren, Entf entfernen, Enter oder
+Doppelklick spielt. Der Player folgt der Set-Reihenfolge (⏮/⏭, „Folgen“, Überblenden), so lassen sich Übergänge
+vorhören. Zeilen lassen sich auch auf Player A oder B ziehen.
+
+**Rechts:** der Weg des Sets durch das Camelot-Rad (Start eingekreist) und der Verlauf von Energie, Soll-Kurve und
+BPM.
+
+**Exportieren ▾:** M3U8-Playlist mit absoluten oder relativen Pfaden, Rekordbox-XML (in Rekordbox über
+*Datei › Importieren › Collection/rekordbox xml*), CSV für Excel mit Übergangsbewertung, sowie **Spurnummern in
+Set-Reihenfolge** schreiben (Vorschau, rückgängig machbar, gespeichert wird wie gewohnt).
+
+Das Set und die Optionen merkt sich TagStudio; Titel aus einem anderen Ordner bleiben im Set, erscheinen aber grau,
+bis ihr Ordner wieder im Tagger geladen ist.
+
 ### Tag-Fixer
 
 Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare, alle Dateien,
@@ -216,7 +268,8 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
 - **Player B** (nur mit Player oben, Regler-Menü oder Einstellungen): zweiter, unabhängiger Player unter Player A zum
   Vorhören – gleich aufgebaut (⏮/⏭, Cues, Wiederholen, A–B, Bewertung, eigener Startpunkt und Lautstärke, L/R im
   Vergleich) und mit eigenem **Ausgabegerät** im Menü (wenn das System es erlaubt), z. B. Kopfhörer. Rechtsklick auf
-  einen Titel → „In Player B laden“. Ein Klick auf die Beschriftung **A** bzw. **B** ganz vorne (oder Taste **B**)
+  einen Titel → „In Player B laden“ – oder den Titel (aus Tagger, DJ-Set oder ein Paar aus dem Vergleich) einfach auf
+  Player A oder B **ziehen**. Ein Klick auf die Beschriftung **A** bzw. **B** ganz vorne (oder Taste **B**)
   legt fest, worauf Markierung, Leertaste, Doppelklick und Tasten wirken.
 - **Abdocken** (Knopf ⧉): der Player – mit Cover und, wenn eingeschaltet, auch Player B – erscheint in einem
   eigenen Fenster, z. B. auf dem zweiten Bildschirm; die
@@ -351,16 +404,19 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   `web/xmleditor.js` XML-Editor, `web/jsontree.js` JSON-Baum, `web/tagger.js` Tagger und Editoren,
   `web/keywheel.js` Camelot-Rad, `web/features.js` Audio-Merkmale, `web/plugins.js` Plugin-Seite,
   `web/player.js` Vorschau-Player, `web/player2.js` Überblenden, Player oben, Player B, Abdocken,
-  `web/player-window.html` + `web/playerwin.js` abgedocktes Player-Fenster, `web/settings.js` Einstellungen, `web/jobs.js` Hintergrund-Aufträge
+  `web/player-window.html` + `web/playerwin.js` abgedocktes Player-Fenster, `web/settings.js` Einstellungen, `web/jobs.js` Hintergrund-Aufträge,
+  `web/djset.js` Seite „DJ-Set“
 - `core.py` – gemeinsame Logik: Anzeige, Zeichen-Diff, Filter, Laden, Speichern, Einstellungen
 - `session.py` – Zustand und Befehle einer Sitzung; Teile in `session_player.py` (Player, Fenster-Nachrichten,
-  Wiedergabe) und `session_snapshots.py` (Snapshots, Journal)
+  Wiedergabe), `session_snapshots.py` (Snapshots, Journal) und `session_djset.py` (DJ-Set)
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `tagger.py` – Tagger-Logik: gemeinsame Felder, Tags aus Dateiname, Umbenennen, Spurnummern, Cover,
   Groß-/Kleinschreibung, Suchen & Ersetzen, Cover aus Ordner, Export (CSV/Excel ohne Zusatzpakete)
 - `keys.py` – Tonarten: erkennen, umschreiben (Camelot, musikalisch, Open Key), passende Tonarten
-- `features.py` – Audio-Merkmale (TXXX, 0–100)
+- `features.py` – Audio-Merkmale (TXXX, 0–100; Dateien wahlweise 0–10)
+- `setplan.py` – DJ-Set: Übergänge bewerten, Reihenfolge optimieren (Held-Karp bzw. Greedy + 2-opt);
+  `setexport.py` – Exporte M3U8, Rekordbox-XML, CSV
 - `xmltools.py` – XML in Feldern und Binärfeldern erkennen, prüfen, formatieren, ersetzen
 - `blobs.py` – Binärfelder (GEOB/PRIV): Inhalt erkennen (XML, Text, Base64, binär) und byte-genau ändern
 - `backup.py` – Sicherung und Wiederherstellung der Tags, Vergleich Sicherung ↔ Datei (Änderungs-Viewer)
@@ -451,16 +507,12 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 ## Ausblick
 
-Zuletzt erschienen: **3.4.0 – Wiedergabe & Bewertung** (Bewertung und Like, Live-Vorschau, Überblenden mit
-Tempo-Angleichung, Player oben, Player B, Abdocken). Davor **3.3.0 – Snapshots & Änderungsjournal**.
+In Arbeit: **4.0.0 – DJ-Set** (Set-Optimierung, Seite, Exporte, Merkmal-Spalten und -Filter, Ziehen auf die
+Player). Zuletzt erschienen: **3.5.0 – App allgemein & Aufräumen**, davor **3.4.0 – Wiedergabe & Bewertung**.
 
 Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
-- **3.5.0 – App allgemein & Aufräumen:** Menü und Einstellungen ordnen, Vorgaben beim Start, Update-Kanal und
-  Versionshinweise, Fenster-Symbol, Aufräumen von Code, Tests und Dokumentation.
-- **3.6.0 – DJ-Set:** Reihenfolge eines Sets nach Tonart (Camelot), BPM und Energie optimieren, Bewertung jedes
-  Übergangs, Exporte als M3U8, Rekordbox-XML und CSV.
-- **3.7.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
+- **4.1.0 – Online-Metadaten:** MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm.
 - **Später:** Beatgrid und Beatmatching im Player, Symbol-Werkzeugleiste im Vergleich, Plugin-Ideen (Liedtexte,
   Lautheit, Duplikate, Qualitätsprüfung, Import aus Rekordbox/Traktor/Serato), Analyse-Modelle, signierte
   Installer, Datenbank-Modul für die Bibliothek.
