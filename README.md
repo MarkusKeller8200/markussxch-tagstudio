@@ -197,12 +197,14 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
 - **Überblenden** (Einstellungen → Player oder ⋯): am Titelende gleichmässig (gleiche Leistung) in den nächsten
   Titel überblenden, 2–12 s; der nächste Titel startet ab Startpunkt, Anfang oder erstem Cue; wahlweise schon nach
   15 s … 2 Minuten (zum schnellen Durchhören). Nicht bei „Titel wiederholen“ oder einer Schleife.
-- **Player oben** (Einstellungen → Player → Position oder ⋯): eigene Leiste über der Seite mit voller Breite und
-  grösserer Wellenform; Knopf ˄ bzw. **Shift+P** klappt sie auf eine schmale Zeile (Titel, ▶, Restlaufzeit) ein.
-- **Player B** (⋯ oder Einstellungen): zweiter, unabhängiger Player zum Vorhören, während A weiterläuft – mit eigener
-  Position, Lautstärke, Wellenform und (wenn das System es erlaubt) eigenem **Ausgabegerät**, z. B. Kopfhörer.
-  Rechtsklick auf einen Titel → „In Player B laden“; **→ A / → B** (bzw. Taste **B**) legt fest, worauf Markierung,
-  Leertaste, Doppelklick und Bewertung wirken.
+- **Player oben** (Einstellungen → Player → Position oder Regler-Menü): eigene Leiste über der Seite mit voller Breite
+  und grösserer Wellenform; Knopf ˄ bzw. **Shift+P** klappt sie ein (je Player eine Zeile mit ▶/⏸, Titel und
+  Restlaufzeit).
+- **Player B** (nur mit Player oben, Regler-Menü oder Einstellungen): zweiter, unabhängiger Player unter Player A zum
+  Vorhören – gleich aufgebaut (⏮/⏭, Cues, Wiederholen, A–B, Bewertung, eigener Startpunkt und Lautstärke, L/R im
+  Vergleich) und mit eigenem **Ausgabegerät** im Menü (wenn das System es erlaubt), z. B. Kopfhörer. Rechtsklick auf
+  einen Titel → „In Player B laden“. Ein Klick auf die Beschriftung **A** bzw. **B** ganz vorne (oder Taste **B**)
+  legt fest, worauf Markierung, Leertaste, Doppelklick und Tasten wirken.
 - **Abdocken** (Knopf ⧉): der Player erscheint in einem eigenen Fenster, z. B. auf dem zweiten Bildschirm; die
   Wiedergabe läuft an derselben Stelle weiter, Markierung, ↑/↓ und Leertaste im Hauptfenster steuern ihn weiter.
   Grösse und Position werden gemerkt; Schliessen des Fensters (oder „Andocken“) holt ihn zurück.

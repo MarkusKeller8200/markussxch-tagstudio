@@ -5,7 +5,7 @@
 const ST = { data: null };
 
 const stSel = (id, opts, cur) => `<select class="inp" id="${id}">${opts.map(([v, l]) => `<option value="${esc(String(v))}"${String(v) === String(cur) ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
-const stCheck = (id, on, label) => `<label class="check"><input type="checkbox" id="${id}"${on ? " checked" : ""}> ${esc(label)}</label>`;
+const stCheck = (id, on, label) => `<label class="check"><input type="checkbox" id="${id}"${on ? " checked" : ""}${id === "stPlDeck2" && ST.data && ST.data.player.layout !== "top" ? " disabled" : ""}> ${esc(label)}</label>`;
 
 async function settingsShow() {
   const d = ST.data = await call("settings_page");
@@ -43,7 +43,7 @@ async function settingsShow() {
         <label for="stPlXfAfter">Überblenden wann</label>${stSel("stPlXfAfter", [[0, "am Titelende"], [15, "nach 15 s (Durchhören)"], [30, "nach 30 s"], [45, "nach 45 s"], [60, "nach 1 Minute"], [90, "nach 1:30"], [120, "nach 2 Minuten"]], p.xfade_after)}
         <span></span><span class="muted sm">Überblenden wirkt im Tagger mit „Durchhören“, nicht bei „Titel wiederholen“ oder einer Schleife.</span>
         <label for="stPlLayout">Position</label>${stSel("stPlLayout", [["bottom", "unten in der Aktionsleiste"], ["top", "oben als eigene Leiste (einklappbar, Shift+P)"]], p.layout)}
-        <span>Player B</span>${stCheck("stPlDeck2", p.deck2, "Zweiten Player anzeigen (Vorhören, eigenes Ausgabegerät; B schaltet das Ziel um)")}
+        <span>Player B</span><div>${stCheck("stPlDeck2", p.deck2 && p.layout === "top", "Zweiten Player unter Player A anzeigen (Vorhören, eigenes Ausgabegerät)")}${p.layout === "top" ? "" : '<div class="muted sm">Nur mit Position „oben“ verfügbar.</div>'}</div>
         <label for="stPlStartmode">Nach dem Start</label>${stSel("stPlStartmode", [["last", "zuletzt benutzte Einstellungen"], ["default", "immer die Standard-Einstellungen"]], p.startmode)}
         <span>Standard</span><div class="st-path"><button class="ghost sm" id="stPlDefSave" title="Die Einstellungen oben als Standard für den Start merken">Aktuelle als Standard speichern</button><button class="ghost sm" id="stPlDefApply" ${p.has_defaults ? "" : "disabled"} title="Player jetzt auf den gespeicherten Standard setzen">Auf Standard zurücksetzen</button><button class="ghost sm" id="stPlDefDel" ${p.has_defaults ? "" : "disabled"}>Standard löschen</button></div>
         <span></span><span class="muted sm">${p.has_defaults ? "Ein Standard ist gespeichert." : "Noch kein Standard gespeichert – „Aktuelle als Standard speichern“ merkt die Einstellungen oben."}</span>
@@ -403,7 +403,7 @@ function initSettings() {
     else if (t.id === "stPlXf") plSetPref("xfade", +t.value);
     else if (t.id === "stPlXfStart") plSetPref("xfade_start", t.value);
     else if (t.id === "stPlXfAfter") plSetPref("xfade_after", +t.value);
-    else if (t.id === "stPlLayout") plSetPref("layout", t.value);
+    else if (t.id === "stPlLayout") { pl2Pref("layout", t.value); await call("set_player_pref", "layout", t.value); settingsShow(); }
     else if (t.id === "stPlDeck2") plSetPref("deck2", t.checked);
     else if (t.id === "stPlStartmode") plSetPref("startmode", t.value);
   });

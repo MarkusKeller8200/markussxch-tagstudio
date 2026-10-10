@@ -24,6 +24,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Geändert
 - Ein einfacher Klick auf einen anderen Titel wechselt den laufenden Titel nur noch mit Live-Vorschau (#92).
+- Player B nur noch mit „Player oben“ und dort unter Player A; gleich aufgebaut wie A (⏮/⏭, Cue-Sprünge,
+  Wiederholen, A–B-Schleife, Cue-Marken, Bewertung, Tonart/BPM, Laufzeit/Rest/Länge, eigener Startpunkt, L/R im
+  Vergleich, Menü mit Ausgabegerät), Platzhalter wo eine Funktion nur A hat – alles bündig (#68).
+- Statt „→ A / → B“: Klick auf die Beschriftung **A** bzw. **B** ganz vorne wählt, worauf Markierung, Leertaste,
+  Doppelklick und Tasten wirken (Taste B schaltet weiterhin um) (#68).
+- Eingeklappte Player-Leiste: je Player eine Zeile mit Beschriftung, ▶/⏸, Titel und Restlaufzeit (#68).
+- Eigenes Symbol für das Player-Menü (Regler) mit „Alle Player-Einstellungen …“ (#68).
 
 ## [3.3.1] – 2026-10-10
 

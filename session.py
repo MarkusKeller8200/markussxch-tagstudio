@@ -857,9 +857,11 @@ class Session:
                     "xfade": (int, 0), "xfade_start": (str, "start"), "xfade_after": (int, 0),          # #94
                     "layout": (str, "bottom"), "top_collapsed": (bool, False),                           # #68
                     "deck2": (bool, False), "deck_target": (str, "A"), "vol_b": ((int, float), 0.8),     # #67
-                    "sink_b": (str, ""), "startmode": (str, "last")}                                     # #93
+                    "sink_b": (str, ""), "start_b": (str, "0"), "repeat_b": (bool, False),
+                    "startmode": (str, "last")}                                                          # #93
     PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "layout": ("bottom", "top"), "startmode": ("last", "default"),
-                      "xfade_start": ("start", "0", "cue"), "deck_target": ("A", "B")}
+                      "xfade_start": ("start", "0", "cue"), "deck_target": ("A", "B"),
+                      "start_b": ("0", "30", "60", "cue")}
     PLAYER_RANGES = {"vol": (0.0, 1.0), "vol_b": (0.0, 1.0), "xfade": (0, 30), "xfade_after": (0, 600)}
 
     def _player_clean(self, p) -> dict:

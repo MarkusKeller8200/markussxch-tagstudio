@@ -28,7 +28,7 @@ function plSetPref(k, v) {
   else if (k === "xfade") PLAYER.xfade = +v || 0;
   else if (k === "xfade_start") PLAYER.xfadeStart = v;
   else if (k === "xfade_after") PLAYER.xfadeAfter = +v || 0;
-  else if (k === "layout" || k === "top_collapsed" || k === "deck2" || k === "deck_target" || k === "sink_b" || k === "vol_b") {
+  else if (k === "layout" || k === "top_collapsed" || k === "deck2" || k === "deck_target" || k === "sink_b" || k === "vol_b" || k === "start_b" || k === "repeat_b") {
     if (typeof pl2Pref === "function") pl2Pref(k, v);
     if (k === "vol_b") { clearTimeout(plVolTimer); plVolTimer = setTimeout(() => call("set_player_pref", "vol_b", v).catch(() => {}), 400); return; }
   }
@@ -227,6 +227,7 @@ async function plMarkTarget(t, stars, like) {
   }
   if (t.kind === "side") applyState(await call("state"));
   plRender();
+  if (typeof dbRender === "function") dbRender();
   if (r.message) toast(r.message);
 }
 
@@ -495,10 +496,12 @@ async function plMenu(btn) {
     "-",
     { label: "Player einrichten …", run: () => plSetup() },
     { label: (PLAYER.wave ? "✓ " : "    ") + "Wellenform anzeigen", run: () => plSetPref("wave", !PLAYER.wave) },
-    { label: (PL2.deck2 ? "✓ " : "    ") + "Player B anzeigen", run: () => plSetPref("deck2", !PL2.deck2) },
+    ...(PL2.layout === "top" ? [{ label: (PL2.deck2 ? "✓ " : "    ") + "Player B anzeigen", run: () => plSetPref("deck2", !PL2.deck2) }] : []),
     { label: (PL2.layout === "top" ? "✓ " : "    ") + "Player oben anordnen", run: () => plSetPref("layout", PL2.layout === "top" ? "bottom" : "top") },
     { label: (PLAYER.xfade ? `✓ Überblenden (${PLAYER.xfade} s)` : "    Überblenden"), run: () => plSetPref("xfade", PLAYER.xfade ? 0 : 6) },
     { label: "Player abdocken (eigenes Fenster)", run: () => plDetach() },
+    "-",
+    { label: "Alle Player-Einstellungen …", run: () => setModule("settings") },
   ]);
 }
 
@@ -641,6 +644,7 @@ function plKeydown(e) {
     const inField = /INPUT|TEXTAREA|SELECT/.test(ae?.tagName || "") && ae?.type !== "range";
     if (inField || !$("#modal").hidden || !$("#dialog").hidden || !$("#xmlEd").hidden) return;
     if (S.module !== "tagger" && S.module !== "compare") return;
+    if (typeof dbKey === "function" && dbKey(e)) return;          // #67: Ziel Player B
     if (e.key === " " && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plToggle(); }
     else if (e.shiftKey && (e.key === "ArrowRight" || e.key === "ArrowLeft") && PLAYER.audio.src) { e.preventDefault(); plSeekBy(e.key === "ArrowRight" ? 10 : -10); }
     else if ((e.key === "s" || e.key === "S") && !e.ctrlKey && !e.metaKey && !e.altKey && PLAYER.audio.src && plStemCycle(e.shiftKey ? -1 : 1)) e.preventDefault();   // #66

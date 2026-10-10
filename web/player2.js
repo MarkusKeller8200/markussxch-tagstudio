@@ -5,7 +5,7 @@
 "use strict";
 
 const PL2 = { layout: "bottom", collapsed: false, deck2: false, window: null, ready: false };
-const DECKB = { audio: null, info: null, kind: null, ref: null, seq: 0, sink: "" };
+const DECKB = { audio: null, info: null, kind: null, ref: null, seq: 0, sink: "", startAt: "0", repeat: false, ab: null, loop: null, raf: 0 };
 const DET = { on: false, timer: 0, seq: 0, popup: null, t0: 0, waveKey: null, last: "", busy: false };
 
 // ====================================================================== #94 Überblenden
@@ -63,51 +63,81 @@ function plFadeStop() {
 }
 
 // ====================================================================== #68 Player oben
+/** Player B gibt es nur mit „Player oben“ – dort steht er unter Player A. */
+function pl2B() { return PL2.deck2 && PL2.layout === "top"; }
+
 function pl2Layout() {
   if (!PL2.ready) return;
-  const top = PL2.layout === "top" && !DET.on;
+  const top = PL2.layout === "top", b = pl2B();
   const p = $("#player"), box = $("#plTop"), db = $("#deckB");
   if (top && p.parentElement !== $("#plTopSlot")) $("#plTopSlot").appendChild(p);
   else if (!top && p.parentElement !== PL2.home) PL2.home.insertBefore(p, $("#undoBtn"));
-  box.hidden = !top;
+  if (db.parentElement !== box) box.appendChild(db);           // B immer unter A
+  box.hidden = !top || (DET.on && !b);
   box.classList.toggle("collapsed", top && PL2.collapsed);
+  box.classList.toggle("two", b);
   const fold = $("#plTopFold"), lbl = PL2.collapsed ? "Player-Leiste ausklappen (Shift+P)" : "Player-Leiste einklappen (Shift+P)";
   fold.title = lbl; fold.setAttribute("aria-label", lbl); fold.setAttribute("aria-expanded", String(!PL2.collapsed));
-  if (top) { if (db.parentElement !== box) box.appendChild(db); }
-  else if (db.nextElementSibling !== $("footer.actions")) $(".main").insertBefore(db, $("footer.actions"));
-  db.hidden = !PL2.deck2;
+  db.hidden = !b;
+  if (!b) { if (DECKB.audio && !DECKB.audio.paused) DECKB.audio.pause(); PLAYER.target = "A"; }
   document.body.classList.toggle("pl-at-top", top);
   document.body.classList.toggle("pl-detached", DET.on);
   $("#plDockChip").hidden = !DET.on;
   const dt = $("#plDetach"), dl = DET.on ? "Player andocken" : "Player abdocken (eigenes Fenster)";
   dt.title = dl; dt.setAttribute("aria-label", dl);
-  requestAnimationFrame(() => { plCues(); plDrawWave(); dbRender(); });
+  plTagSync();
+  requestAnimationFrame(() => { plCues(); plDrawWave(); dbCues(); dbRender(); });
 }
 
 function plTopFold(on = !PL2.collapsed) {
   plSetPref("top_collapsed", !!on);
 }
 
+/** Beschriftung A/B ganz vorne: hervorgehoben = Ziel von Markierung, Leertaste, Doppelklick und Tasten */
+function plTagSync() {
+  const b = pl2B();
+  [["#plTag", "A"], ["#dbTag", "B"]].forEach(([id, v]) => {
+    const el = $(id), on = PLAYER.target === v;
+    el.classList.toggle("on", on && b);
+    el.setAttribute("aria-pressed", String(on));
+  });
+  $("#plTag").hidden = !b;
+  $("#player").classList.toggle("target", b && PLAYER.target === "A");
+  $("#deckB").classList.toggle("target", b && PLAYER.target === "B");
+}
+
+function dbTargetSet(v) {
+  if (!pl2B()) v = "A";
+  if (PLAYER.target === v) return;
+  plSetPref("deck_target", v);
+  toast(v === "B" ? "Markierung, Leertaste, Doppelklick und Tasten wirken jetzt auf Player B." : "Markierung, Leertaste, Doppelklick und Tasten wirken auf Player A.");
+}
+
 // ====================================================================== #67 Player B
-async function dbLoad(t, autoplay = true) {
+const DB_START = () => DECKB.startAt || "0";
+
+async function dbLoad(t, autoplay = true, keepTime = null) {
   if (!t) { toast(S.module === "tagger" ? "Erst einen Titel markieren." : "Erst ein Dateipaar wählen."); return; }
+  if (PL2.layout !== "top") { toast("Player B gibt es nur mit „Player oben“ (Einstellungen → Player → Position)."); return; }
   if (!PL2.deck2) plSetPref("deck2", true);
   const seq = ++DECKB.seq;
   let info;
   try { info = await call("media_url", t.kind, t.ref); } catch (e) { toast(String(e.message || e)); return; }
   if (seq !== DECKB.seq) return;
   DECKB.info = info; DECKB.kind = t.kind; DECKB.ref = t.ref;
-  const a = DECKB.audio, dur = info.duration || 0, firstCue = (info.cues || []).find((c) => c.pos > 0.05);
-  const sm = PLAYER.startAt;
-  const start = sm === "30" ? dur * 0.3 : sm === "60" ? Math.min(60, dur * 0.5) : sm === "cue" ? (firstCue ? firstCue.pos : 0) : 0;
+  if (keepTime === null) dbABClear(true);
+  const a = DECKB.audio, dur = info.duration || 0, firstCue = (info.cues || []).find((c) => c.pos > 0.05), sm = DB_START();
+  const start = keepTime !== null ? keepTime : sm === "30" ? dur * 0.3 : sm === "60" ? Math.min(60, dur * 0.5) : sm === "cue" ? (firstCue ? firstCue.pos : 0) : 0;
   a.src = info.url;
   a.addEventListener("loadedmetadata", () => { try { if (start > 0) a.currentTime = Math.min(start, (a.duration || dur) - 1); } catch (e) { /* egal */ } }, { once: true });
   if (PLAYER.wave && !info.wave) plWaveCompute(info);
+  dbCues();
   dbRender();
   if (autoplay) { try { await a.play(); } catch (e) { if (e.name !== "AbortError") toast("Wiedergabe nicht möglich: " + (e.message || e)); } }
 }
 
 function dbSame(t) { return t && DECKB.info && t.kind === DECKB.kind && t.ref === DECKB.ref; }
+function dbRefOf() { return DECKB.info ? { kind: DECKB.kind, ref: DECKB.kind === "side" ? DECKB.info.ref : DECKB.ref } : null; }
 
 function dbToggle() {
   const t = plTarget(), a = DECKB.audio;
@@ -115,10 +145,10 @@ function dbToggle() {
   if (a.paused) a.play().catch((e) => toast(String(e.message || e))); else a.pause();
 }
 
-/** wie playerFollow, für Player B (wenn die Markierung auf B wirkt) */
+/** wie playerFollow, für Player B (wenn B das Ziel ist) */
 function dbFollow(src) {
   const a = DECKB.audio;
-  if (src === "multi") { dbRender(); return; }
+  if (PLAYER.noFollow || src === "multi") { dbRender(); return; }
   const t = plTarget();
   if (src === "click" && PLAYER.live) { if (t && (!dbSame(t) || a.paused)) dbLoad(t); return; }
   if (src === "click" || a.paused || !PLAYER.follow) { dbRender(); return; }
@@ -127,12 +157,97 @@ function dbFollow(src) {
 
 function dbPlayRow() { const t = plTarget(); if (t && !(dbSame(t) && !DECKB.audio.paused)) dbLoad(t); }
 
+/** Voriger/nächster Titel in Player B. Ist B das Ziel, wandert die Markierung mit. */
+async function dbStep(dir) {
+  const a = DECKB.audio, playing = !a.paused || !a.src;
+  if (S.module === "tagger" && TG.order.length) {
+    const from = DECKB.kind === "tag" ? DECKB.ref : TG.anchor;
+    const k = Math.max(0, Math.min(TG.order.length - 1, TG.order.indexOf(from) + dir));
+    const i = TG.order[k];
+    if (i === undefined) return;
+    if (PLAYER.target === "B") { PLAYER.noFollow = true; try { await tgSelect(i, {}); } finally { PLAYER.noFollow = false; } TG.anchor = i; tgScrollTo(i); }
+    return dbLoad({ kind: "tag", ref: i }, playing);
+  }
+  if (S.module === "compare" && S.visible && S.visible.length) {
+    const k = Math.max(0, Math.min(S.visible.length - 1, S.visible.indexOf(S.cur) + dir));
+    PLAYER.noFollow = true;
+    try { await selectPair(S.visible[k]); } finally { PLAYER.noFollow = false; }
+    return dbLoad({ kind: "side", ref: DECKB.kind === "side" ? DECKB.info.ref : "L" }, playing);
+  }
+}
+
 function dbForget() {
   const a = DECKB.audio;
   if (!a) return;
   a.pause(); a.removeAttribute("src"); a.load();
   DECKB.info = null; DECKB.kind = null; DECKB.ref = null;
+  dbABClear(true); dbCues(); dbRender();
+}
+
+function dbSide(side) {
+  if (DECKB.kind !== "side" || !DECKB.audio.src) return dbLoad({ kind: "side", ref: side });
+  dbLoad({ kind: "side", ref: side }, !DECKB.audio.paused, DECKB.audio.currentTime);
+}
+
+function dbSeekBy(sec) {
+  const a = DECKB.audio;
+  if (!a.src) return;
+  a.currentTime = Math.max(0, Math.min((a.duration || 0) - 0.5, a.currentTime + sec));
   dbRender();
+}
+
+function dbCueJump(dir) {
+  const cues = (DECKB.info && DECKB.info.cues) || [], a = DECKB.audio, t = a.currentTime;
+  if (!cues.length || !a.src) return;
+  const c = dir > 0 ? cues.find((x) => x.pos > t + 0.3) : [...cues].reverse().find((x) => x.pos < t - 1);
+  a.currentTime = c ? c.pos : dir > 0 ? t : 0;
+  dbRender();
+}
+
+/** Schleife (A–B oder Serato-Loop) für Player B */
+function dbLoopSet(c) {
+  DECKB.loop = c && c.end > c.pos ? c : null;
+  cancelAnimationFrame(DECKB.raf);
+  $$("#dbCues .pl-cue.loop").forEach((b) => b.classList.toggle("on", !!DECKB.loop && +b.dataset.k === DECKB.loop.k));
+  if (!DECKB.loop) return;
+  const tick = () => {
+    const L = DECKB.loop, a = DECKB.audio;
+    if (!L) return;
+    if (a.currentTime >= L.end || a.currentTime < L.pos - 0.5) a.currentTime = L.pos;
+    DECKB.raf = requestAnimationFrame(tick);
+  };
+  DECKB.raf = requestAnimationFrame(tick);
+}
+
+function dbABStep() {
+  const a = DECKB.audio;
+  if (!a.src) return;
+  if (!DECKB.ab) { DECKB.ab = { a: a.currentTime }; toast(`Player B: A gesetzt bei ${fmtTime(a.currentTime)} – nochmals für B.`); }
+  else if (DECKB.ab.b === undefined) {
+    const t = a.currentTime;
+    if (t <= DECKB.ab.a + 0.2) { toast("B muss nach A liegen."); return; }
+    DECKB.ab.b = t;
+    dbLoopSet({ pos: DECKB.ab.a, end: t, k: -1 });
+    toast(`Player B: Schleife ${fmtTime(DECKB.ab.a)}–${fmtTime(t)}.`);
+  } else { dbABClear(); toast("Player B: Schleife aufgehoben."); }
+  dbCues(); dbRender();
+}
+function dbABClear(quiet) { DECKB.ab = null; if (DECKB.loop && DECKB.loop.k === -1) dbLoopSet(null); if (!quiet) { dbCues(); dbRender(); } }
+
+/** Cue-Marken (und A–B-Bereich) über der Leiste von Player B */
+function dbCues() {
+  const box = $("#dbCues"), i = DECKB.info, a = DECKB.audio;
+  if (!box) return;
+  const dur = (a && a.duration) || (i && i.duration) || 0;
+  let h = i && dur ? (i.cues || []).map((c, k) => {
+    const left = (c.pos / dur) * 100;
+    const w = c.kind === "loop" && c.end ? `--w:${Math.max(2, ((c.end - c.pos) / dur) * box.clientWidth)}px;` : "";
+    const label = `${c.kind === "loop" ? "Loop" : "Cue"} ${c.index + 1}${c.name ? " · " + c.name : ""} · ${fmtTime(c.pos)}${c.kind === "loop" && c.end ? `–${fmtTime(c.end)} · Klick: Schleife an/aus` : ""}`;
+    return `<button class="pl-cue${c.kind === "loop" ? " loop" : ""}${DECKB.loop && DECKB.loop.k === k ? " on" : ""}" data-k="${k}" style="left:${left}%;${c.color ? `--cue:${esc(c.color)};` : ""}${w}" title="${esc(label)}" aria-label="${esc(label)}"></button>`;
+  }).join("") : "";
+  const ab = DECKB.ab;
+  if (ab && dur) h += `<button class="pl-abmark${ab.b === undefined ? " open" : ""}" data-abclear="1" style="left:${(ab.a / dur) * 100}%;width:${Math.max(0.4, ab.b !== undefined ? ((ab.b - ab.a) / dur) * 100 : 0)}%" title="A–B-Schleife · Klick: aufheben"></button>`;
+  box.innerHTML = h;
 }
 
 function dbRender() {
@@ -141,20 +256,35 @@ function dbRender() {
   const i = DECKB.info, box = $("#deckB");
   box.classList.toggle("on", !!a.src);
   box.classList.toggle("playing", !a.paused);
-  box.classList.toggle("target", PLAYER.target === "B");
+  const tgt = PLAYER.target === "B";
   $("#dbPlay").innerHTML = a.paused ? ICON_PLAY : ICON_PAUSE;
-  $("#dbPlay").title = a.paused ? `Player B abspielen${PLAYER.target === "B" ? " (Leertaste)" : ""}` : "Player B anhalten";
-  const title = i ? (i.title ? `${i.artist ? i.artist + " – " : ""}${i.title}` : i.name) : "Player B: Titel per Rechtsklick → „In Player B laden“ oder Ziel → B";
+  $("#dbPlay").title = a.paused ? `Player B abspielen${tgt ? " (Leertaste)" : ""}` : `Player B anhalten${tgt ? " (Leertaste)" : ""}`;
+  const title = i ? (i.title ? `${i.artist ? i.artist + " – " : ""}${i.title}` : i.name) : "Player B: Rechtsklick auf einen Titel → „In Player B laden“ oder Beschriftung B anklicken";
   if ($("#dbTitle").textContent !== title) $("#dbTitle").textContent = title;
   $("#dbTitle").title = i ? i.path : "";
+  const rh = i && i.markable !== false && i.rating !== undefined ? rateHtml(i.rating, i.like, { keys: tgt }) : "";
+  if ($("#dbRate").dataset.v !== rh) { $("#dbRate").innerHTML = rh; $("#dbRate").dataset.v = rh; }
+  const bpm = i && i.bpm ? String(Math.round(parseFloat(String(i.bpm).replace(",", ".")) || 0) || i.bpm) : "";
+  const alt = i && i.key_alt ? [i.key_alt.musical, i.key_alt.openkey].filter(Boolean) : [];
+  const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${alt.length ? `<span class="pl-key-alt" title="Musikalisch · Open Key">${esc(alt.join(" · "))}</span>` : ""}${bpm ? `<span class="pl-bpm">${esc(bpm)} BPM</span>` : ""}` : "";
+  if ($("#dbMeta").dataset.v !== meta) { $("#dbMeta").innerHTML = meta; $("#dbMeta").dataset.v = meta; }
   const dur = a.duration || (i && i.duration) || 0, t = i ? a.currentTime : 0;
   $("#dbElapsed").textContent = fmtTime(t);
   $("#dbRemain").textContent = "−" + fmtTime(Math.ceil(Math.max(0, dur - t) - 0.001));
   $("#dbRemain").classList.toggle("end", !!i && dur > 0 && dur - t <= 30);
+  $("#dbLen").textContent = fmtTime(dur);
   const seek = $("#dbSeek");
   if (!seek.matches(":active")) { seek.max = String(Math.max(1, Math.round(dur * 10))); seek.value = String(Math.round(t * 10)); }
   seek.disabled = !i;
-  $$("#dbTarget button").forEach((b) => { const on = b.dataset.v === PLAYER.target; b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
+  const hasCues = !!(i && i.cues && i.cues.length);
+  $("#dbCuePrev").hidden = $("#dbCueNext").hidden = !hasCues;
+  $("#dbRepeat").classList.toggle("on", !!DECKB.repeat); $("#dbRepeat").setAttribute("aria-pressed", String(!!DECKB.repeat));
+  $("#dbAB2").classList.toggle("on", !!DECKB.ab); $("#dbAB2").classList.toggle("half", !!DECKB.ab && DECKB.ab.b === undefined);
+  $("#dbAB").hidden = S.module !== "compare";
+  $$("#dbAB button").forEach((b) => b.classList.toggle("on", DECKB.kind === "side" && i && b.dataset.side === i.ref));
+  $$("#dbStart button").forEach((b) => { const on = b.dataset.v === DB_START(); b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
+  $("#dbVol").classList.toggle("muted", a.muted);
+  plTagSync();
   drawWaveInto($("#dbWave"), $("#dbCanvas"), PLAYER.wave && i && i.wave, dur ? t / dur : 0);
 }
 
@@ -179,21 +309,31 @@ function drawWaveInto(box, cv, w, played) {
   g.fillRect(Math.round(played * W), 0, Math.max(1, Math.round(dpr)), H);
 }
 
-/** Ausgabegeräte für Player B (nur wenn der Browser setSinkId kann) */
-async function dbSinks() {
-  const sel = $("#dbSink");
-  if (typeof DECKB.audio.setSinkId !== "function" || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) { sel.hidden = true; return; }
-  let devs = [];
-  try { devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audiooutput" && d.deviceId !== "default"); } catch (e) { devs = []; }
-  sel.innerHTML = `<option value="">Ausgabe: Standard</option>` + devs.map((d, k) => `<option value="${esc(d.deviceId)}">${esc(d.label || `Ausgabegerät ${k + 1}`)}</option>`).join("");
-  sel.value = devs.some((d) => d.deviceId === DECKB.sink) ? DECKB.sink : "";
-  sel.hidden = !devs.length;
-  if (sel.value) DECKB.audio.setSinkId(sel.value).catch(() => {});
+/** Ausgabegeräte (nur wenn der Browser setSinkId kann) → [{id, label}] oder null */
+async function dbSinkList() {
+  if (typeof DECKB.audio.setSinkId !== "function" || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return null;
+  try {
+    return (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audiooutput" && d.deviceId !== "default")
+      .map((d, k) => ({ id: d.deviceId, label: d.label || `Ausgabegerät ${k + 1}` }));
+  } catch (e) { return []; }
 }
 
-function dbTargetSet(v) {
-  plSetPref("deck_target", v);
-  toast(v === "B" ? "Markierung, Leertaste und Doppelklick wirken jetzt auf Player B." : "Markierung, Leertaste und Doppelklick wirken auf Player A.");
+async function dbSinkSet(id, quiet = false) {
+  try { await DECKB.audio.setSinkId(id); DECKB.sink = id; if (!quiet) { plSetPref("sink_b", id); toast("Ausgabegerät für Player B gesetzt."); } }
+  catch (x) { if (!quiet) toast("Ausgabegerät nicht verfügbar: " + (x.message || x)); }
+}
+
+/** Menü von Player B (gleicher Platz wie das Menü von A) */
+async function dbMenu(btn) {
+  const sinks = await dbSinkList(), r = btn.getBoundingClientRect();
+  const items = [];
+  if (sinks === null) items.push({ label: "    Ausgabegerät: wird hier nicht unterstützt", run: () => {} });
+  else {
+    items.push({ label: (DECKB.sink ? "    " : "✓ ") + "Ausgabe: Standard des Systems", run: () => dbSinkSet("") });
+    sinks.forEach((s) => items.push({ label: (DECKB.sink === s.id ? "✓ " : "    ") + "Ausgabe: " + s.label, run: () => dbSinkSet(s.id) }));
+  }
+  items.push("-", { label: "Player B ausblenden", run: () => plSetPref("deck2", false) });
+  showMenu(r.left - 200, r.bottom + 6, items);
 }
 
 // ====================================================================== #69 Abdocken
@@ -291,12 +431,10 @@ async function detCmd(m) {
 // ====================================================================== Kontextmenü: in Player A/B laden
 function plRowMenu(e, t, label) {
   e.preventDefault();
-  showMenu(e.clientX, e.clientY, [
-    { label: `${label} in Player A abspielen`, run: () => plLoad(t, true) },
-    { label: `${label} in Player B laden`, run: () => dbLoad(t, true) },
-    "-",
-    { label: "Mit externem Player öffnen", run: () => call("players").then((l) => plExternal(l.length ? 0 : null)) },
-  ]);
+  const items = [{ label: `${label} in Player A abspielen`, run: () => plLoad(t, true) }];
+  if (PL2.layout === "top") items.push({ label: `${label} in Player B laden`, run: () => dbLoad(t, true) });
+  items.push("-", { label: "Mit externem Player öffnen", run: () => call("players").then((l) => plExternal(l.length ? 0 : null)) });
+  showMenu(e.clientX, e.clientY, items);
 }
 
 // ====================================================================== Einstellungen, Tasten, Start
@@ -304,37 +442,63 @@ function pl2Apply(pp) {
   PL2.layout = pp.layout || "bottom";
   PL2.collapsed = !!pp.top_collapsed;
   PL2.deck2 = !!pp.deck2;
-  PLAYER.target = pp.deck2 && pp.deck_target === "B" ? "B" : "A";
+  PLAYER.target = pp.deck2 && pp.layout === "top" && pp.deck_target === "B" ? "B" : "A";
   PL2.window = pp.window || PL2.window;
+  DECKB.startAt = pp.start_b || "0";
+  DECKB.repeat = !!pp.repeat_b;
   if (DECKB.audio) { DECKB.audio.volume = pp.vol_b ?? 0.8; $("#dbVol").value = String(Math.round(DECKB.audio.volume * 100)); }
   DECKB.sink = pp.sink_b || "";
   if (!PL2.ready) return;
   pl2Layout();
-  if (PL2.deck2) dbSinks();
+  if (DECKB.sink) dbSinkSet(DECKB.sink, true);
 }
 
 function pl2Pref(k, v) {
   if (k === "layout") PL2.layout = v;
   else if (k === "top_collapsed") PL2.collapsed = !!v;
-  else if (k === "deck2") { PL2.deck2 = !!v; if (!v) { DECKB.audio.pause(); PLAYER.target = "A"; } else dbSinks(); }
-  else if (k === "deck_target") PLAYER.target = v === "B" && PL2.deck2 ? "B" : "A";
+  else if (k === "deck2") { PL2.deck2 = !!v; if (!v) { DECKB.audio.pause(); PLAYER.target = "A"; } }
+  else if (k === "deck_target") PLAYER.target = v === "B" && pl2B() ? "B" : "A";
   else if (k === "sink_b") DECKB.sink = v;
+  else if (k === "start_b") DECKB.startAt = v;
+  else if (k === "repeat_b") DECKB.repeat = !!v;
   else if (k === "vol_b") { DECKB.audio.volume = v; return; }
   pl2Layout();
   plRender();
+  dbRender();
 }
 
 function pl2Key(e) {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
-  if (e.key === "P" && e.shiftKey && PL2.layout === "top" && !DET.on) { e.preventDefault(); plTopFold(); }
-  else if ((e.key === "b" || e.key === "B") && !e.shiftKey && PL2.deck2) { e.preventDefault(); dbTargetSet(PLAYER.target === "B" ? "A" : "B"); }
+  if (e.key === "P" && e.shiftKey && PL2.layout === "top") { e.preventDefault(); plTopFold(); }
+  else if ((e.key === "b" || e.key === "B") && !e.shiftKey && pl2B()) { e.preventDefault(); dbTargetSet(PLAYER.target === "B" ? "A" : "B"); }
+}
+
+/** Tasten, die bei Ziel B auf Player B wirken (Leertaste, 0–5 und F laufen über plToggle/plMark). → true = erledigt */
+function dbKey(e) {
+  if (PLAYER.target !== "B" || !pl2B()) return false;
+  const a = DECKB.audio, plain = !e.ctrlKey && !e.metaKey && !e.altKey, k = e.key;
+  if (e.shiftKey && (k === "ArrowRight" || k === "ArrowLeft") && a.src) dbSeekBy(k === "ArrowRight" ? 10 : -10);
+  else if (plain && (k === "l" || k === "L") && a.src) dbABStep();
+  else if (plain && (k === "r" || k === "R")) $("#dbRepeat").click();
+  else if (k === "Escape" && DECKB.ab) dbABClear();
+  else if (plain && (k === "m" || k === "M")) { a.muted = !a.muted; dbRender(); toast(a.muted ? "Player B stumm (M)" : "Player B: Ton an"); }
+  else if (e.altKey && (k === "PageDown" || k === "PageUp") && a.src) dbCueJump(k === "PageDown" ? 1 : -1);
+  else return false;
+  e.preventDefault();
+  return true;
 }
 
 function initPlayer2(pp) {
   const b = new Audio();
   b.preload = "metadata";
   DECKB.audio = b;
-  ["play", "pause", "ended", "loadedmetadata", "emptied", "timeupdate"].forEach((ev) => b.addEventListener(ev, dbRender));
+  ["play", "pause", "emptied", "timeupdate"].forEach((ev) => b.addEventListener(ev, dbRender));
+  b.addEventListener("loadedmetadata", () => { dbCues(); dbRender(); });
+  b.addEventListener("ended", () => {
+    if (DECKB.repeat) { b.currentTime = 0; b.play().catch(() => {}); return; }
+    if (PLAYER.follow && PLAYER.target === "B") dbStep(1);
+    dbRender();
+  });
   b.addEventListener("error", () => { if (b.src) toast("Player B: Datei kann nicht abgespielt werden."); });
   PL2.home = $("#player").parentElement;
   PL2.ready = true;
@@ -342,16 +506,37 @@ function initPlayer2(pp) {
   $("#plTopFold").addEventListener("click", () => plTopFold());
   $("#plDetach").addEventListener("click", plDetach);
   $("#plDockChip").addEventListener("click", plDock);
-  $("#dbPlay").addEventListener("click", () => { if (!DECKB.audio.src) dbLoad(plTarget()); else dbToggle(); });
-  $("#dbClose").addEventListener("click", () => plSetPref("deck2", false));
-  $("#dbTarget").addEventListener("click", (e) => { const t = e.target.closest("[data-v]"); if (t) dbTargetSet(t.dataset.v); });
+  $("#plTag").addEventListener("click", () => dbTargetSet("A"));
+  $("#dbTag").addEventListener("click", () => dbTargetSet("B"));
+  $("#dbPlay").addEventListener("click", () => { if (!b.src) dbLoad(plTarget()); else if (b.paused) b.play().catch(() => {}); else b.pause(); });
+  $("#dbPrev").addEventListener("click", () => dbStep(-1));
+  $("#dbNext").addEventListener("click", () => dbStep(1));
+  $("#dbCuePrev").addEventListener("click", () => dbCueJump(-1));
+  $("#dbCueNext").addEventListener("click", () => dbCueJump(1));
+  $("#dbRepeat").addEventListener("click", () => { plSetPref("repeat_b", !DECKB.repeat); toast(DECKB.repeat ? "Player B wiederholt den Titel." : "Player B: nicht mehr wiederholen."); });
+  $("#dbAB2").addEventListener("click", dbABStep);
+  $("#dbAB").addEventListener("click", (e) => { const t = e.target.closest("[data-side]"); if (t) dbSide(t.dataset.side); });
+  $("#dbStart").addEventListener("click", (e) => { const t = e.target.closest("[data-v]"); if (t) plSetPref("start_b", t.dataset.v); });
+  $("#dbMore").addEventListener("click", (e) => dbMenu(e.currentTarget));
   $("#dbSeek").addEventListener("input", (e) => { b.currentTime = (+e.target.value) / 10; dbRender(); });
   $("#dbVol").addEventListener("input", (e) => plSetPref("vol_b", (+e.target.value) / 100));
-  $("#dbSink").addEventListener("change", (e) => {
-    const v = e.target.value;
-    b.setSinkId(v).then(() => { plSetPref("sink_b", v); toast("Ausgabegerät für Player B gesetzt."); }).catch((x) => toast("Ausgabegerät nicht verfügbar: " + (x.message || x)));
+  $("#dbRate").addEventListener("click", (e) => {
+    const t = e.target.closest("button"), r = dbRefOf(); if (!t || !r) return;
+    if (t.dataset.star) plMarkTarget(r, +t.dataset.star, null); else if (t.dataset.like) plMarkTarget(r, null, "toggle");
   });
-  window.addEventListener("resize", dbRender);
+  $("#dbCues").addEventListener("click", (e) => {
+    if (e.target.closest("[data-abclear]")) { dbABClear(); toast("Player B: Schleife aufgehoben."); return; }
+    const t = e.target.closest(".pl-cue"); if (!t || !DECKB.info) return;
+    const c = DECKB.info.cues[+t.dataset.k];
+    if (c.kind === "loop" && c.end) {
+      if (DECKB.loop && DECKB.loop.k === +t.dataset.k) { dbLoopSet(null); return; }
+      dbLoopSet({ pos: c.pos, end: c.end, k: +t.dataset.k });
+    }
+    b.currentTime = c.pos;
+    if (b.paused) b.play().catch(() => {});
+    dbRender();
+  });
+  window.addEventListener("resize", () => { dbCues(); dbRender(); });
   window.addEventListener("beforeunload", () => { if (DET.popup && !DET.popup.closed) DET.popup.close(); });
   // Rechtsklick auf Titel (Tagger) und Dateipaare (Vergleich)
   $("#tgInner").addEventListener("contextmenu", async (e) => {
@@ -365,12 +550,13 @@ function initPlayer2(pp) {
     const r = e.target.closest(".pair[data-i]"); if (!r) return;
     e.preventDefault();
     if (S.cur !== +r.dataset.i) { PLAYER.noFollow = true; try { await selectPair(+r.dataset.i); } finally { PLAYER.noFollow = false; } }
-    showMenu(e.clientX, e.clientY, [
+    const items = [
       { label: "Links in Player A abspielen", run: () => plLoad({ kind: "side", ref: "L" }) },
       { label: "Rechts in Player A abspielen", run: () => plLoad({ kind: "side", ref: "R" }) },
-      "-",
+    ];
+    if (PL2.layout === "top") items.push("-",
       { label: "Links in Player B laden", run: () => dbLoad({ kind: "side", ref: "L" }) },
-      { label: "Rechts in Player B laden", run: () => dbLoad({ kind: "side", ref: "R" }) },
-    ]);
+      { label: "Rechts in Player B laden", run: () => dbLoad({ kind: "side", ref: "R" }) });
+    showMenu(e.clientX, e.clientY, items);
   });
 }
