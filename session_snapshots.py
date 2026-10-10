@@ -112,13 +112,40 @@ class SnapshotMixin:
         after = st.sizes()["total"] if os.path.isdir(st.root) else 0
         return {"removed": len(gone), "freed": max(0, before - after)}
 
-    def snap_create(self, lid, label="", auto=False, pinned=False) -> dict:
-        """Snapshot als Hintergrund-Auftrag (Fortschritt in der Fussleiste)."""
+    def snap_baseline_info(self, lid, sid=None, include_pinned=False) -> dict:
+        """Vorschau für „Neue Baseline“: wie viele ältere Snapshots gelöscht würden (sid=None: alle bisherigen)."""
+        st = self.snap_store
+        snaps = st.snapshots(str(lid))
+        if sid:
+            older = st.older_than(str(lid), str(sid), include_pinned)
+            pinned = [x for x in st.older_than(str(lid), str(sid), True) if x.get("pinned")]
+        else:
+            older = [x for x in snaps if include_pinned or not x.get("pinned")]
+            pinned = [x for x in snaps if x.get("pinned")]
+        sizes = st.sizes()
+        return {"older": len(older), "pinned": len(pinned), "total": len(snaps),
+                "bytes": sum(sizes["snaps"].get(f"{lid}/{x['id']}", 0) for x in older),
+                "current": next((x["id"] for x in snaps if x.get("baseline")), None)}
+
+    def snap_set_baseline(self, lid, sid, delete_older=True, include_pinned=False) -> dict:
+        """Vorhandenen Snapshot als neue Baseline; ältere auf Wunsch löschen."""
+        res = self.snap_store.set_baseline(str(lid), str(sid), bool(delete_older), bool(include_pinned))
+        msg = "Neue Baseline gesetzt"
+        if res["removed"]:
+            msg += f" · {res['removed']} ältere(r) Snapshot(s) gelöscht, {fmt_bytes(res['freed'])} frei"
+        return {**res, "message": msg, **self.snap_list(lid)}
+
+    def snap_create(self, lid, label="", auto=False, pinned=False, baseline=None) -> dict:
+        """Snapshot als Hintergrund-Auftrag (Fortschritt in der Fussleiste).
+        baseline = {"delete_older": bool, "include_pinned": bool}: danach als neue Baseline setzen."""
         lib = self.snap_store.library(str(lid))
         if self.snap_store.readonly:
             return {"ok": False, "error": "Der Snapshot-Speicher stammt aus einer neueren TagStudio-Version (nur lesen)."}
         opts = {"lid": lib["id"], "label": str(label or ""), "auto": bool(auto), "pinned": bool(pinned),
                 "thorough": bool(self._snap_cfg("snap_thorough"))}
+        if isinstance(baseline, dict):
+            opts["baseline"] = {"delete_older": bool(baseline.get("delete_older", True)),
+                                "include_pinned": bool(baseline.get("include_pinned"))}
         job = self.jobs.add("tagstudio:snapshot", "create", f"Snapshot: {lib['name']}", [lib["root"]], opts,
                             names=[lib["name"]])
         return {"ok": True, "background": True, "job": job["id"], "waiting": 1}
@@ -156,6 +183,11 @@ class SnapshotMixin:
             raise RuntimeError(f"{ex}\n\nDetails im Protokoll: {path}") from ex
         lines.append(f"Titel:    {res['count']} (neu eingelesen {res.get('read', 0)}, unverändert übernommen "
                      f"{res.get('reused', 0)})")
+        based = None
+        if o.get("baseline"):                                   # „Neue Baseline“ aus dem aktuellen Stand
+            based = st.set_baseline(o["lid"], res["id"], o["baseline"]["delete_older"], o["baseline"]["include_pinned"])
+            lines.append(f"Baseline: neu gesetzt, {based['removed']} ältere(r) Snapshot(s) gelöscht, "
+                         f"{fmt_bytes(based['freed'])} freigegeben")
         pruned, freed = [], 0
         if o["auto"]:
             before = st.sizes()["total"]
@@ -177,6 +209,8 @@ class SnapshotMixin:
             msg += f", {len(res['errors'])} nicht lesbar"
         if pruned:
             msg += f" · {len(pruned)} alte(r) Snapshot(s) aufgeräumt"
+        if based:
+            msg += f" · neue Baseline ({based['removed']} ältere gelöscht, {fmt_bytes(based['freed'])} frei)"
         msg += f" · {fmt_duration(time.monotonic() - t0)} · gesamt {fmt_bytes(sz.get('total', 0))}"
         return {"message": msg, "outputs": [], "log": lines, "logfile": logfile}
 

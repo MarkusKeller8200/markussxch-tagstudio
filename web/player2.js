@@ -684,7 +684,9 @@ function pl2DragInit() {
 }
 
 async function plDropLoad(t, deck, x, y) {
-  const load = (target) => (deck === "B" ? dbLoad(target, true) : plLoad(target, true));
+  // Wunsch des Users: nur abspielen, wenn gerade nichts läuft – sonst in Pause laden (z. B. B vorbereiten, während A spielt)
+  const busy = (PLAYER.audio && PLAYER.audio.src && !PLAYER.audio.paused) || (typeof DECKB !== "undefined" && DECKB.audio && DECKB.audio.src && !DECKB.audio.paused);
+  const load = (target) => (deck === "B" ? dbLoad(target, !busy) : plLoad(target, !busy));
   if (t.kind === "tag") return load({ kind: "tag", ref: t.ref });
   if (t.kind !== "pair") return;
   if (S.cur !== t.ref) { PLAYER.noFollow = true; try { await selectPair(t.ref); } finally { PLAYER.noFollow = false; } }

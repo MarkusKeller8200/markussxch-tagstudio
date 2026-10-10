@@ -1117,3 +1117,6 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 /* #105: Titel auf Player A/B ziehen */
 body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .player.drop-on{outline:2px solid var(--acc)!important;outline-offset:-2px;background:var(--acc-soft)}
+
+/* Snapshot-Baseline */
+.sn-base{display:inline-block;margin-left:6px;padding:0 6px;border-radius:5px;font-size:11px;font-weight:700;background:var(--acc-soft);color:var(--acc);vertical-align:1px}

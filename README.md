@@ -179,7 +179,7 @@ Lexicon). Angezeigt und eingegeben wird dann weiterhin 0–100; beim Lesen wird 
 
 ### DJ-Set
 
-Ordnet Titel so, dass die Übergänge passen. Seite **DJ-Set** in der Seitenleiste.
+Ordnet Titel so, dass die Übergänge passen. Seite **DJ-Set** in der Seitenleiste (daneben die Anzahl Titel im Set).
 
 1. **Titel holen:** im Tagger einen Ordner einlesen, dann „+ Markierte aus dem Tagger“ oder „+ Ganzer
    Tagger-Ordner“ – oder im Tagger Titel markieren und per Rechtsklick „Zum DJ-Set hinzufügen“.
@@ -270,7 +270,7 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   Vorhören – gleich aufgebaut (⏮/⏭, Cues, Wiederholen, A–B, Bewertung, eigener Startpunkt und Lautstärke, L/R im
   Vergleich) und mit eigenem **Ausgabegerät** im Menü (wenn das System es erlaubt), z. B. Kopfhörer. Rechtsklick auf
   einen Titel → „In Player B laden“ – oder den Titel (aus Tagger, DJ-Set oder ein Paar aus dem Vergleich) einfach auf
-  Player A oder B **ziehen**. Ein Klick auf die Beschriftung **A** bzw. **B** ganz vorne (oder Taste **B**)
+  Player A oder B **ziehen**. Läuft gerade ein Player, wird der gezogene Titel in Pause geladen. Ein Klick auf die Beschriftung **A** bzw. **B** ganz vorne (oder Taste **B**)
   legt fest, worauf Markierung, Leertaste, Doppelklick und Tasten wirken.
 - **Abdocken** (Knopf ⧉): der Player – mit Cover und, wenn eingeschaltet, auch Player B – erscheint in einem
   eigenen Fenster, z. B. auf dem zweiten Bildschirm; die
@@ -302,6 +302,9 @@ Für Bibliotheken, die auch andere Programme bearbeiten (Mp3tag, beaTunes, Mixed
 - **Automatik:** einmal täglich ein Snapshot je Ordner, beim Start die Frage mit der Zahl geänderter Titel (beides
   abschaltbar). Aufräumen: 20 automatische + je einer pro Woche der letzten 12 Wochen (einstellbar).
 - **Speicherplatz** je Snapshot, je Ordner und gesamt; die Summe steht auch in der Seitenleiste.
+- **⚑ Neue Baseline:** den aktuellen Stand (neuer Snapshot) oder einen vorhandenen Snapshot als neuen Ausgangspunkt
+  setzen und dabei ältere Snapshots löschen; angeheftete nur, wenn ausdrücklich gewählt. Die Baseline ist
+  gekennzeichnet und wird beim Aufräumen nie gelöscht.
 - **Überwachung während TagStudio läuft:** alle 5 Minuten (einstellbar) ein sparsamer Blick auf Grösse und
   Änderungszeit; „n Titel extern geändert“ in der Fußleiste öffnet das Journal. Eigene Speicherungen zählen nicht.
 - **Im Vergleich:** links oder rechts einen **Snapshot** wählen (📷 neben dem Pfad) – schreibgeschützt, Werte gehen nur

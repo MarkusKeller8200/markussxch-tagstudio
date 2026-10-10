@@ -33,6 +33,15 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - README: neue Abschnitte „DJ-Set“ sowie Spalten und Filter der Audio-Merkmale; Oberflächentests für DJ-Set,
   Exporte, Merkmal-Spalten und Ziehen auf die Player (#5).
 
+- Seitenleiste zeigt die **Anzahl Titel im DJ-Set** (#123).
+- Snapshots: **⚑ Neue Baseline** – den aktuellen Stand oder einen vorhandenen Snapshot als neuen Ausgangspunkt
+  setzen und ältere Snapshots löschen (Vorschau mit Anzahl und freiem Platz; angeheftete nur auf Wunsch). Die
+  Baseline wird beim Aufräumen nie gelöscht (#124).
+
+### Geändert
+- Ziehen auf Player A/B spielt nur, wenn gerade kein Player läuft – sonst wird der Titel in Pause geladen, z. B. um
+  in Player B vorzubereiten, während A spielt (#105).
+
 ### Behoben
 - DJ-Set: Optimieren grosser Sets deutlich schneller (1500 Titel ca. 4 s statt 20 s, Zeitlimit wird eingehalten);
   der BPM-Unterschied gilt jetzt in beide Richtungen gleich (Prozent bezogen auf den kleineren Wert); Hinweis

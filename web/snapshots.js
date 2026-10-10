@@ -26,6 +26,7 @@ async function snapShow() {
       <label class="s auto" title="Täglicher automatischer Snapshot für diesen Ordner"><input type="checkbox" data-lauto="${esc(l.id)}" ${l.auto ? "checked" : ""}> täglich</label></div>`).join("")
     : '<div class="tg-empty">Noch kein Ordner überwacht. Oben „+ Ordner überwachen …“ wählen – z. B. deine MP3-Bibliothek.</div>';
   $("#snCreate").disabled = !SN.lid || SN.ov.readonly;
+  $("#snBaseline").disabled = !SN.lid || SN.ov.readonly;
   await snLoadList();
 }
 
@@ -35,8 +36,8 @@ async function snLoadList() {
   if (!SN.list.snapshots.some((s) => s.id === SN.a)) SN.a = SN.list.snapshots.length ? SN.list.snapshots[0].id : null;
   if (SN.b !== "live" && !SN.list.snapshots.some((s) => s.id === SN.b)) SN.b = "live";
   $("#snSnaps").innerHTML = SN.list.snapshots.length ? SN.list.snapshots.map((s) => `<div class="sn-snap${s.id === SN.a ? " a" : ""}" data-snap="${esc(s.id)}" title="Klick: als Basis für das Journal">
-      <span class="t">${esc(s.label)}${s.pinned ? " 📌" : ""}</span>
-      <span class="acts"><button data-pin="${esc(s.id)}" class="${s.pinned ? "on" : ""}" title="${s.pinned ? "Nicht mehr anheften" : "Anheften (wird nie aufgeräumt)"}">📌</button><button data-ren="${esc(s.id)}" title="Umbenennen">✎</button><button data-del="${esc(s.id)}" title="Löschen">✕</button></span>
+      <span class="t">${esc(s.label)}${s.pinned ? " 📌" : ""}${s.baseline ? ' <span class="sn-base" title="Baseline – wird beim Aufräumen nie gelöscht">Baseline</span>' : ""}</span>
+      <span class="acts"><button data-base="${esc(s.id)}" class="${s.baseline ? "on" : ""}" title="Als neue Baseline setzen (ältere Snapshots können gelöscht werden)">⚑</button><button data-pin="${esc(s.id)}" class="${s.pinned ? "on" : ""}" title="${s.pinned ? "Nicht mehr anheften" : "Anheften (wird nie aufgeräumt)"}">📌</button><button data-ren="${esc(s.id)}" title="Umbenennen">✎</button><button data-del="${esc(s.id)}" title="Löschen">✕</button></span>
       <span class="m">${snTime(s.created)} · ${s.count} Titel · ${snMB(s.bytes)}${s.auto ? " · automatisch" : ""}</span></div>`).join("")
     : '<div class="tg-empty">Noch kein Snapshot. „Snapshot erstellen“ hält den jetzigen Stand fest.</div>';
   snFillSelects();
@@ -290,6 +291,46 @@ async function snCreate(label = null) {
   jobsQueued(r);
 }
 
+/** Neue Baseline (Wunsch des Users): aus dem aktuellen Stand (neuer Snapshot) oder aus einem vorhandenen Snapshot.
+    Ältere Snapshots lassen sich dabei löschen – angeheftete nur, wenn ausdrücklich gewählt. */
+async function snBaseline(sid = null) {
+  if (!SN.lid) return toast("Erst einen Ordner überwachen.");
+  const snaps = (SN.list && SN.list.snapshots) || [];
+  const from = sid ? snaps.find((x) => x.id === sid) : null;
+  const preview = async (b) => {
+    const del = $("#sbDel", b).checked, pin = $("#sbPin", b).checked;
+    $("#sbPin", b).disabled = !del;
+    if (!del) { $("#sbInfo", b).textContent = "Es wird nichts gelöscht."; return; }
+    const i = await call("snap_baseline_info", SN.lid, sid, pin);
+    $("#sbInfo", b).innerHTML = i.older
+      ? `Es werden <b>${i.older}</b> ältere(r) Snapshot(s) gelöscht (ca. ${snMB(i.bytes)}).${!pin && i.pinned ? ` ${i.pinned} angeheftete(r) bleiben.` : ""}`
+      : "Keine älteren Snapshots zum Löschen.";
+  };
+  const v = await modal({
+    title: "Neue Baseline setzen",
+    html: `<div class="hint">Die Baseline ist der neue Ausgangspunkt: Das Journal vergleicht ab hier, ältere Stände werden nicht mehr gebraucht. Die Baseline selbst wird beim Aufräumen nie gelöscht.</div>
+      <div class="frm">
+        <label>Baseline</label><div>${from ? `Snapshot „${esc(from.label)}“ vom ${esc(snTime(from.created))}` : "Jetzt – ein neuer Snapshot des aktuellen Stands"}</div>
+        ${from ? "" : '<label for="sbLabel">Bezeichnung</label><input id="sbLabel" value="Baseline" autofocus>'}
+        <label></label><label class="check"><input type="checkbox" id="sbDel" checked> ältere Snapshots löschen und Platz freigeben</label>
+        <label></label><label class="check"><input type="checkbox" id="sbPin"> auch angeheftete 📌 löschen</label>
+        <label></label><div class="muted sm" id="sbInfo">…</div>
+      </div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Baseline setzen", value: true, primary: true }],
+    onMount: (b) => { $("#sbDel", b).addEventListener("change", () => preview(b)); $("#sbPin", b).addEventListener("change", () => preview(b)); preview(b); },
+    collect: (b) => ({ del: $("#sbDel", b).checked, pin: $("#sbPin", b).checked, label: from ? "" : ($("#sbLabel", b).value.trim() || "Baseline") }),
+  });
+  if (!v) return;
+  if (from) {
+    const r = await call("snap_set_baseline", SN.lid, sid, v.del, v.pin);
+    toast(r.message);
+    return snapShow();
+  }
+  const r = await call("snap_create", SN.lid, v.label, false, true, { delete_older: v.del, include_pinned: v.pin });
+  if (!r.ok) return info("Snapshot nicht möglich", r.error);
+  jobsQueued(r);
+}
+
 function jobFinishedSnapshot(j) { if (j.plugin === "tagstudio:snapshot" && S.module === "snapshots") snapShow(); else if (j.plugin === "tagstudio:snapshot") call("snap_overview").then((o) => snSideSize(o.total)); }
 
 // ---------------------------------------------------------------------- Start (#54)
@@ -383,6 +424,7 @@ async function initSnapshots() {
   $$("[data-snappick]").forEach((b) => b.addEventListener("click", () => snPickSpec(b.dataset.snappick)));
   $("#snWatchChip").addEventListener("click", snWatchOpen);
   $("#snCreate").addEventListener("click", () => snCreate());
+  $("#snBaseline").addEventListener("click", () => snBaseline(null));
   $("#snRun").addEventListener("click", snRun);
   $("#snRevert").addEventListener("click", () => snRevert("undo"));
   $("#snBytes").addEventListener("click", () => snRevert("bytes"));
@@ -435,6 +477,7 @@ async function initSnapshots() {
   });
   $("#snSnaps").addEventListener("click", async (e) => {
     const t = e.target.closest("button");
+    if (t && t.dataset.base) return snBaseline(t.dataset.base);
     if (t && t.dataset.pin) { const s = SN.list.snapshots.find((x) => x.id === t.dataset.pin); await call("snap_update", SN.lid, s.id, null, !s.pinned); return snLoadList(); }
     if (t && t.dataset.ren) {
       const s = SN.list.snapshots.find((x) => x.id === t.dataset.ren);

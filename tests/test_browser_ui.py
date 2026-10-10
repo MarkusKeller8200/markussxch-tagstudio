@@ -222,8 +222,13 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("PLAYER.ref === 2 && !PLAYER.audio.paused"))
         self.assertEqual(pg.locator(".player.drop-on").count(), 0)
         self.assertFalse(pg.evaluate("document.body.classList.contains('pl-dragging')"))
-        pg.drag_and_drop('.tg-row[data-i="1"] .nm', "#deckB")
-        self.assertTrue(self.until("DECKB.ref === 1 && !DECKB.audio.paused"))
+        pg.drag_and_drop('.tg-row[data-i="1"] .nm', "#deckB")       # A läuft → B lädt in Pause
+        self.assertTrue(self.until("DECKB.ref === 1 && DECKB.audio.paused && !PLAYER.audio.paused"))
+        pg.evaluate("PLAYER.audio.pause()")
+        self.assertTrue(self.until("PLAYER.audio.paused"))
+        pg.drag_and_drop('.tg-row[data-i="0"] .nm', "#deckB")       # nichts läuft → spielt
+        self.assertTrue(self.until("DECKB.ref === 0 && !DECKB.audio.paused"))
+        pg.evaluate("DECKB.audio.pause()")
         # Hervorhebung während des Ziehens
         pg.evaluate("""() => { const dt = new DataTransfer(); dt.setData(PL_DND, '{"kind":"tag","ref":0}');
             document.querySelector('#player').dispatchEvent(new DragEvent('dragover', {dataTransfer: dt, bubbles: true, cancelable: true})); }""")
@@ -242,6 +247,30 @@ class UiTest(unittest.TestCase):
         pg.drag_and_drop('.pair[data-i="0"]', "#player")
         pg.click('#menu button:has-text("Rechts in Player A laden")')
         self.assertTrue(self.until("PLAYER.kind === 'side' && PLAYER.ref === 'R' && S.cur === 0 && !PLAYER.audio.paused"))
+
+    def test_snapshot_baseline(self):
+        """Neue Baseline: aus dem aktuellen Stand, ältere Snapshots löschen (angeheftete nur auf Wunsch)."""
+        pg = self.pg
+        lid = pg.evaluate(f"call('snap_add_library', {json.dumps(self.lib)}).then(r => r.library.id)")
+        for label, pin in (("Alt", False), ("Wichtig", True)):
+            pg.evaluate(f"call('snap_create', '{lid}', '{label}', false, {str(pin).lower()})")
+            for _ in range(100):
+                if pg.evaluate(f"call('snap_list', '{lid}').then(r => r.snapshots.length)") >= (1 if label == "Alt" else 2):
+                    break
+                time.sleep(0.1)
+        pg.click('.nav[data-module="snapshots"]')
+        pg.wait_for_selector("#snSnaps [data-base]")
+        pg.click("#snBaseline")
+        pg.wait_for_function("document.querySelector('#sbInfo') && /1 ältere/.test(document.querySelector('#sbInfo').textContent)")
+        self.assertIn("1 angeheftete", pg.inner_text("#sbInfo"))
+        pg.click("#mBtns .primary")
+        for _ in range(100):
+            snaps = pg.evaluate(f"call('snap_list', '{lid}').then(r => r.snapshots.map(s => [s.label, !!s.baseline]))")
+            if any(b for _l, b in snaps):
+                break
+            time.sleep(0.1)
+        self.assertEqual(sorted(snaps), [["Baseline", True], ["Wichtig", False]])
+        pg.wait_for_selector("#snSnaps .sn-base")
 
     def test_tagger_feature_columns(self):
         """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""
@@ -285,6 +314,7 @@ class UiTest(unittest.TestCase):
         pg.click('.nav[data-module="djset"]')
         pg.click("#djAllTagger")
         pg.wait_for_function("DJ.st && DJ.st.items.length === 3")
+        self.assertEqual(pg.inner_text("#djCount").strip(), "3")        # Anzahl in der Seitenleiste
         self.assertEqual(pg.locator("#djList .dj-row").count(), 3)
         self.assertEqual(pg.locator("#djList .dj-tr").count(), 2)
         before = pg.evaluate("DJ.st.score")

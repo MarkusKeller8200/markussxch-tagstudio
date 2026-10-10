@@ -254,7 +254,7 @@ class Store:
                     m = self.manifest(lid, n[:-8])
                 except StoreError:
                     continue
-                out.append({k: m.get(k) for k in ("id", "created", "label", "pinned", "auto", "count")})
+                out.append({k: m.get(k) for k in ("id", "created", "label", "pinned", "auto", "count", "baseline")})
         return sorted(out, key=lambda m: m["created"], reverse=True)
 
     def manifest(self, lid: str, sid: str) -> dict:
@@ -284,12 +284,44 @@ class Store:
         if pinned is not None:
             m["pinned"] = bool(pinned)
         self.write_manifest(lid, m)
-        return {k: m.get(k) for k in ("id", "created", "label", "pinned", "auto", "count")}
+        return {k: m.get(k) for k in ("id", "created", "label", "pinned", "auto", "count", "baseline")}
 
     def delete_snapshot(self, lid: str, sid: str) -> int:
         os.remove(self._snap_path(lid, sid))
         self._stats_dirty()
         return self.gc()
+
+    def older_than(self, lid: str, sid: str, include_pinned: bool = False) -> list[dict]:
+        """Snapshots vor `sid` (die bei einer neuen Baseline gelöscht würden)."""
+        snaps = self.snapshots(lid)
+        base = next((x for x in snaps if x["id"] == sid), None)
+        if base is None:
+            raise StoreError("Snapshot nicht gefunden.")
+        # gleiche Sekunde zählt als älter (z. B. „Neue Baseline“ direkt nach einem Snapshot)
+        return [x for x in snaps if x["id"] != sid and x["created"] <= base["created"]
+                and (include_pinned or not x.get("pinned"))]
+
+    def set_baseline(self, lid: str, sid: str, delete_older: bool = True, include_pinned: bool = False) -> dict:
+        """Snapshot `sid` als Baseline markieren (nur eine je Bibliothek); auf Wunsch ältere löschen und Platz freigeben.
+        Die Baseline ist vor dem automatischen Aufräumen geschützt."""
+        if self.readonly:
+            raise StoreError("Nur lesen – Speicher aus einer neueren TagStudio-Version.")
+        gone = [x["id"] for x in self.older_than(lid, sid, include_pinned)] if delete_older else []
+        for x in self.snapshots(lid):
+            if x.get("baseline") and x["id"] != sid:
+                m = self.manifest(lid, x["id"])
+                m.pop("baseline", None)
+                self.write_manifest(lid, m)
+        m = self.manifest(lid, sid)
+        m["baseline"] = True
+        self.write_manifest(lid, m)
+        for g in gone:
+            try:
+                os.remove(self._snap_path(lid, g))
+            except OSError:
+                pass
+        freed = self.gc() if gone else 0
+        return {"id": sid, "removed": len(gone), "freed": freed}
 
     def latest(self, lid: str, before: str | None = None) -> dict | None:
         snaps = self.snapshots(lid)
@@ -303,7 +335,7 @@ class Store:
         """Automatische Snapshots ausdünnen: die neuesten `keep` bleiben, danach je einer pro Kalenderwoche der
         letzten `weeks` Wochen. Angeheftete und benannte (nicht automatische) Snapshots bleiben immer."""
         now = now or datetime.datetime.now()
-        autos = [s for s in self.snapshots(lid) if s.get("auto") and not s.get("pinned")]
+        autos = [s for s in self.snapshots(lid) if s.get("auto") and not s.get("pinned") and not s.get("baseline")]
         keep_ids = {s["id"] for s in autos[:max(0, keep)]}
         seen_weeks = set()
         limit = now - datetime.timedelta(weeks=max(0, weeks))

@@ -150,6 +150,35 @@ class TestSnapshots(Base):
             self.store.delete_snapshot(lid, s)
         self.assertEqual(sum(len(f) for _d, _s, f in os.walk(os.path.join(self.store.root, "objects"))), 0)
 
+    def test_baseline(self):
+        """Neue Baseline: ältere Snapshots löschen (angeheftete nur auf Wunsch), Platz frei, Schutz beim Aufräumen."""
+        lid = self.libd["id"]
+        base = datetime.datetime(2026, 10, 9, 12, 0)
+        snap = sn.create(self.store, lid, auto=True)
+        m = self.store.manifest(lid, snap["id"])
+        self.store.delete_snapshot(lid, snap["id"])
+        for d, (sid, pin) in enumerate((("neu", False), ("mitte", False), ("pin", True), ("alt", False))):
+            self.store.write_manifest(lid, dict(m, id=sid, created=sn._now(base - datetime.timedelta(days=d * 10)),
+                                                pinned=pin, auto=True))
+        self.assertEqual([x["id"] for x in self.store.older_than(lid, "mitte")], ["alt"])
+        self.assertEqual([x["id"] for x in self.store.older_than(lid, "mitte", True)], ["pin", "alt"])
+        r = self.store.set_baseline(lid, "mitte")
+        self.assertEqual(r["removed"], 1)
+        self.assertEqual({x["id"]: bool(x.get("baseline")) for x in self.store.snapshots(lid)},
+                         {"neu": False, "mitte": True, "pin": False})
+        # nur eine Baseline je Bibliothek; ohne Löschen
+        self.assertEqual(self.store.set_baseline(lid, "neu", delete_older=False)["removed"], 0)
+        self.assertEqual([x["id"] for x in self.store.snapshots(lid) if x.get("baseline")], ["neu"])
+        # Baseline wird beim Aufräumen nie gelöscht
+        self.store.write_manifest(lid, dict(self.store.manifest(lid, "neu"), created=sn._now(base - datetime.timedelta(days=400))))
+        self.store.prune(lid, keep=0, weeks=0, now=base)
+        self.assertIn("neu", {x["id"] for x in self.store.snapshots(lid)})
+        # mit angehefteten: alles Ältere weg
+        self.store.write_manifest(lid, dict(m, id="jetzt", created=sn._now(base + datetime.timedelta(days=1))))
+        r = self.store.set_baseline(lid, "jetzt", include_pinned=True)
+        self.assertEqual([x["id"] for x in self.store.snapshots(lid)], ["jetzt"])
+        self.assertGreaterEqual(r["removed"], 2)
+
     def test_format_versioning(self):
         sn.create(self.store, self.libd["id"])
         meta = os.path.join(self.store.root, "store.json")
@@ -447,3 +476,28 @@ class TestSessionSnapshots(Base):
         # Aufräumen lässt den angehefteten stehen
         self.assertEqual(s.snap_prune()["removed"], 0)
         self.assertEqual(s.snap_set("snap_keep", 5)["snap_keep"], 5)
+
+    def test_new_baseline_from_current_state(self):
+        """„Neue Baseline“ aus dem aktuellen Stand: Snapshot erstellen, als Baseline setzen, Ältere löschen."""
+        s, lid = self.s, self.libd["id"]
+        s.snap_create(lid, "Alt 1")
+        self.wait_jobs()
+        s.snap_create(lid, "Alt 2", pinned=True)
+        self.wait_jobs()
+        info = s.snap_baseline_info(lid)
+        self.assertEqual((info["older"], info["pinned"], info["total"]), (1, 1, 2))
+        self.assertEqual(s.snap_baseline_info(lid, include_pinned=True)["older"], 2)
+        self.assertTrue(s.snap_create(lid, "Baseline", pinned=True,
+                                      baseline={"delete_older": True, "include_pinned": True})["ok"])
+        self.wait_jobs()
+        snaps = s.snap_list(lid)["snapshots"]
+        self.assertEqual([(x["label"], bool(x.get("baseline"))) for x in snaps], [("Baseline", True)])
+        # Baseline aus vorhandenem Snapshot
+        s.snap_create(lid, "Später")
+        self.wait_jobs()
+        later = s.snap_list(lid)["snapshots"][0]["id"]
+        res = s.snap_set_baseline(lid, later)
+        self.assertEqual(res["removed"], 0)                     # die alte Baseline ist angeheftet
+        self.assertIn("Neue Baseline", res["message"])
+        self.assertEqual(s.snap_baseline_info(lid)["current"], later)
+

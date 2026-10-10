@@ -11,8 +11,17 @@ async function djsetShow() {
   try { djApply(await call("dj_state")); } catch (e) { toast(String(e.message || e)); }
 }
 
+/** Anzahl Titel im Set in der Seitenleiste (Wunsch des Users) */
+function djSideCount(st) {
+  const el = $("#djCount"); if (!el || !st) return;
+  const n = st.items.length, live = st.items.filter((r) => !r.missing).length;
+  el.textContent = n ? String(n) : "";
+  el.title = n ? `${n} Titel im DJ-Set${live < n ? ` (${n - live} nicht geladen)` : ""}` : "DJ-Set ist leer";
+}
+
 function djApply(st) {
   DJ.st = st;
+  djSideCount(st);
   if (st.message) toast(st.message);
   if (DJ.sel && !st.items.some((r) => r.path === DJ.sel)) DJ.sel = null;
   djOpts();
@@ -158,7 +167,7 @@ async function djAddFromTagger(all = false) {
   if (!all && !idx.length) { toast("Im Tagger zuerst Titel markieren."); return; }
   try {
     const st = await call("dj_add", idx);
-    if (S.module === "djset") djApply(st); else { DJ.st = st; toast(st.message); }
+    if (S.module === "djset") djApply(st); else { DJ.st = st; djSideCount(st); toast(st.message); }
   } catch (e) { toast(String(e.message || e)); }
 }
 
@@ -374,3 +383,4 @@ async function djShowInTagger(i) {
 djInit();
 // Startseite DJ-Set: init() kann die Seite setzen, bevor dieses Skript geladen ist
 if (typeof S !== "undefined" && S.module === "djset" && !DJ.st) djsetShow();
+else setTimeout(() => { if (!DJ.st) call("dj_state").then(djSideCount).catch(() => {}); }, 800);   // Anzahl in der Seitenleiste
