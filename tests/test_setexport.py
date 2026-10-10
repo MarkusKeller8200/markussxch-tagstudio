@@ -41,7 +41,8 @@ class TestFormats(unittest.TestCase):
         self.assertEqual(rel[4], os.path.join("sub dir", "02 #1 50%.mp3"))
 
     def test_location_roundtrip(self):
-        for p in ("/Users/mk/Musik/Grüße & Küsse #1 50%.mp3", "/a b/c.mp3"):
+        for p in (os.path.abspath(os.path.join(self.dir, "Musik", "Grüße & Küsse #1 50%.mp3")),
+                  os.path.abspath(os.path.join(os.sep, "a b", "c.mp3"))):          # Windows: mit Laufwerk
             loc = setexport.location(p)
             self.assertTrue(loc.startswith("file://localhost/"))
             self.assertNotIn(" ", loc)
