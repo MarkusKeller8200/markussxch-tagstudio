@@ -8,5 +8,5 @@ Schema MAJOR.MINOR.PATCH (Semantic Versioning):
 
 Nicht von Hand ändern, sondern:  python packaging/release.py 3.1.0
 """
-VERSION = "3.4.0-beta.1"
+VERSION = "3.4.0-beta.2"
 APP = "MarKusSXCH TagStudio"
