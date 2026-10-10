@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [3.5.0] – 2026-10-10
+
 ### Neu
 - Seitenleiste in neuer Reihenfolge: **Tagger, Tag-Fixer, Vergleich, Snapshots, Sicherungen, Plugins,
   Einstellungen**; beim Start öffnet die zuletzt benutzte Seite (beim ersten Start der Tagger) (#88).
