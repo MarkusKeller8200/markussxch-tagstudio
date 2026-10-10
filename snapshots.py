@@ -255,7 +255,7 @@ class Store:
                 except StoreError:
                     continue
                 out.append({k: m.get(k) for k in ("id", "created", "label", "pinned", "auto", "count", "baseline")})
-        return sorted(out, key=lambda m: m["created"], reverse=True)
+        return sorted(out, key=lambda m: (m["created"], m["id"]), reverse=True)    # eindeutig auch bei gleicher Sekunde
 
     def manifest(self, lid: str, sid: str) -> dict:
         try:

@@ -495,7 +495,7 @@ class TestSessionSnapshots(Base):
         # Baseline aus vorhandenem Snapshot
         s.snap_create(lid, "Später")
         self.wait_jobs()
-        later = s.snap_list(lid)["snapshots"][0]["id"]
+        later = next(x["id"] for x in s.snap_list(lid)["snapshots"] if x["label"] == "Später")
         res = s.snap_set_baseline(lid, later)
         self.assertEqual(res["removed"], 0)                     # die alte Baseline ist angeheftet
         self.assertIn("Neue Baseline", res["message"])
