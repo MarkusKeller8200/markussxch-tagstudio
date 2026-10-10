@@ -28,6 +28,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   (Tonhöhe bleibt, höchstens ±10 %, halbes/doppeltes Tempo erkannt) und gleitet danach in einstellbarer Zeit auf sein
   eigenes BPM zurück; angeglichenes BPM im Player hervorgehoben (#102).
 
+- Abgedockter Player: grösseres Fenster (Standard 1280×380, mit Player B 1280×680; nie kleiner als die
+  Mindestgrösse, auch wenn eine kleinere Grösse gemerkt ist) und grössere Schrift, Knöpfe, Wellenform und Cover.
+
 ### Geändert
 - Ein einfacher Klick auf einen anderen Titel wechselt den laufenden Titel nur noch mit Live-Vorschau (#92).
 - Player B nur noch mit „Player oben“ und dort unter Player A; gleich aufgebaut wie A (⏮/⏭, Cue-Sprünge,

@@ -178,6 +178,9 @@ class TestPlayerDefaults(unittest.TestCase):
             self.assertFalse(s.set_player_window({"x": 1, "y": 2, "w": 50, "h": 50}))
             self.assertTrue(s.set_player_window({"x": 10, "y": 20, "w": 900.4, "h": 160}))
             self.assertEqual(Session().player_prefs()["window"], {"x": 10, "y": 20, "w": 900, "h": 160})
+            g = s.player_window_size(False)                                       # zu klein gemerkt → Mindestgrösse
+            self.assertEqual((g["w"], g["h"], g["x"]), (1000, 330, 10))
+            self.assertEqual(s.player_window_size(True)["h"], 600)                  # mit Player B höher
             p = s.player_prefs()
             self.assertEqual((p["xfade_sync"], p["xfade_return"]), (True, 8))      # #102
             s.set_player_pref("xfade_return", 500)

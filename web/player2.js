@@ -376,9 +376,10 @@ async function plDetach() {
   if (DET.on) return plDock();
   await call("bus_reset", "pl_cmd"); await call("bus_reset", "pl_state");
   let r;
-  try { r = await call("player_window_open"); } catch (e) { r = { ok: false, error: String(e.message || e) }; }
+  try { r = await call("player_window_open", pl2B()); } catch (e) { r = { ok: false, error: String(e.message || e) }; }
   if (!r.ok && r.browser) {
-    const g = PL2.window, f = g ? `left=${g.x},top=${g.y},width=${g.w},height=${g.h}` : "width=1100,height=230";
+    const pos = r.x !== null && r.x !== undefined ? `left=${r.x},top=${r.y},` : "";
+    const f = `${pos}width=${r.w || 1280},height=${r.h || 380}`;
     DET.popup = window.open("player-window.html#token=" + encodeURIComponent(TOKEN), "tsPlayer", f + ",resizable=yes");
     if (!DET.popup) { toast("Das Player-Fenster wurde vom Browser blockiert – bitte Popups für diese Seite erlauben."); return; }
   } else if (!r.ok) { toast(r.error || "Player-Fenster konnte nicht geöffnet werden."); return; }

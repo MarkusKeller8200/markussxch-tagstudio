@@ -949,6 +949,17 @@ class Session:
     def _bus_lock(self):
         return self._buslock
 
+    PLAYER_WIN_MIN = {False: (1000, 330), True: (1000, 600)}       # #69: (Breite, Höhe) ohne / mit Player B
+    PLAYER_WIN_DEFAULT = {False: (1280, 380), True: (1280, 680)}
+
+    def player_window_size(self, two=False) -> dict:
+        """Grösse des abgedockten Players: gemerkte Grösse, aber nie kleiner als nötig (mit Player B höher)."""
+        g = self.cfg.get("player_window") if isinstance(self.cfg.get("player_window"), dict) else {}
+        mw, mh = self.PLAYER_WIN_MIN[bool(two)]
+        dw, dh = self.PLAYER_WIN_DEFAULT[bool(two)]
+        w, h = (g.get("w") or dw), (g.get("h") or dh)
+        return {"w": max(mw, int(w)), "h": max(mh, int(h)), "x": g.get("x"), "y": g.get("y")}
+
     def set_player_window(self, geom) -> bool:
         """#69: Grösse und Position des abgedockten Player-Fensters merken."""
         if not isinstance(geom, dict):

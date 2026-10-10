@@ -189,10 +189,11 @@ class Api:
         return info
 
     # ---------- abgedockter Player (#69)
-    def player_window_open(self):
-        """Eigenes Fenster für den Player. Im Browser-Modus öffnet die Oberfläche selbst ein Popup."""
+    def player_window_open(self, two=False):
+        """Eigenes Fenster für den Player. Im Browser-Modus öffnet die Oberfläche selbst ein Popup.
+        two: Player B wird mit angezeigt (grössere Mindesthöhe)."""
         if self._window is None:
-            return {"ok": False, "browser": True}
+            return {"ok": False, "browser": True, **self._s.player_window_size(bool(two))}
         if self._pwin is not None:
             try:
                 self._pwin.restore()
@@ -201,13 +202,13 @@ class Api:
                 pass
             return {"ok": True}
         import webview
-        g = self._s.cfg.get("player_window") if isinstance(self._s.cfg.get("player_window"), dict) else {}
-        kw = {"width": g.get("w", 1100), "height": g.get("h", 230)}
-        if "x" in g and "y" in g:
+        g = self._s.player_window_size(bool(two))
+        kw = {"width": g["w"], "height": g["h"]}
+        if g.get("x") is not None and g.get("y") is not None:
             kw.update(x=g["x"], y=g["y"])
         try:
             w = webview.create_window(f"{APP} – Player", url=os.path.join(WEB, "player-window.html"), js_api=self,
-                                      min_size=(560, 170), background_color="#121419", **kw)
+                                      min_size=(760, 300), background_color="#121419", **kw)
         except Exception as ex:  # noqa: BLE001
             return {"ok": False, "error": f"Fenster konnte nicht geöffnet werden: {ex}"}
         self._pwin = w
