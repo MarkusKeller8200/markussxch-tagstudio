@@ -170,6 +170,30 @@ class TestSession(TempHome):
         self.assertEqual(Session().settings()["ui"], {"pairs_w": 420, "side_collapsed": True})
 
 
+class TestWindowMode(TempHome):
+    def test_window_mode(self):
+        """#134: Vollbild ein/aus, zurück ins Fenster; ohne Fenster (Browser-Modus) nichts."""
+        import tagstudio_web
+        calls = []
+
+        class FakeWin:
+            def toggle_fullscreen(self):
+                calls.append("fs")
+
+            def restore(self):
+                calls.append("restore")
+        api = tagstudio_web.Api()
+        self.assertFalse(api.window_mode("fullscreen")["ok"])
+        api._window = FakeWin()
+        self.assertTrue(api.window_mode("fullscreen")["fullscreen"])
+        self.assertFalse(api.window_mode("window")["fullscreen"])      # aus Vollbild zurück
+        api.window_mode("window")                                       # maximiert → normal
+        self.assertEqual(calls, ["fs", "fs", "restore"])
+        with self.assertRaises(ValueError):
+            api.window_mode("riesig")
+        self.assertTrue(api.close_cancelled())
+
+
 class TestWebServer(TempHome):
     def test_api_and_static(self):
         import threading

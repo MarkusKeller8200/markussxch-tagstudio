@@ -359,6 +359,10 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   zeigt die neue Version mit ihren Hinweisen und lädt den passenden Installer herunter. In der Quellcode-Variante
   lädt ein Klick die neue Version (`git`, nur Vorspulen, nur ohne eigene Änderungen im Programmordner; bei „nur
   offizielle“ bis zum neuesten Versions-Tag) und startet neu; ungespeicherte Änderungen werden vorher abgefragt.
+- **Fenster und Programm:** ganz unten in der Seitenleiste Vollbild (auch F11), Fenstermodus (zurück aus Vollbild
+  bzw. maximiert), Neu starten und Beenden. Beim Beenden – auch über das X des Fensters – erscheint kurz
+  „Einstellungen werden gespeichert …“; ungespeicherte Änderungen und laufende Aufträge werden vorher abgefragt.
+  Es läuft immer nur **eine Instanz**; ein zweiter Start meldet „TagStudio läuft bereits“.
 - **Versionshinweise:** unter dem Update-Knopf – was in der installierten Version neu ist und, falls vorhanden,
   in der neuesten; mit Link zu GitHub.
 - **Splitter:** Seitenleiste, Paarliste, Tabellenspalten, Bearbeitungsbereich und Feldnamen-Spalte lassen sich

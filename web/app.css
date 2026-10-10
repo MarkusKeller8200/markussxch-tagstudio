@@ -57,6 +57,11 @@ button{cursor:pointer}
 .nav,.brand{white-space:nowrap}
 /* eingeklappte Seitenleiste: nur Symbole */
 .side.collapsed{width:68px;padding:20px 10px}
+.side-win{display:flex;gap:2px;justify-content:space-between;padding:6px 4px 0;border-top:1px solid var(--line);margin-top:4px}
+.side-win .icon-btn{width:36px;height:32px}
+.side-win #winQuit:hover{color:var(--bad,#e5484d)}
+.side.collapsed .side-win{flex-wrap:wrap;justify-content:center;padding:6px 0 0}
+.side.collapsed .side-win .icon-btn{width:22px;height:26px}
 .side.collapsed .nt{display:none}
 .side.collapsed .brand{padding:4px 0 22px;justify-content:center}
 .side.collapsed .nav{justify-content:center;padding:0}

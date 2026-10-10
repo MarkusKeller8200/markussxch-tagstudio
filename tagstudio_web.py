@@ -18,6 +18,7 @@ import secrets
 import subprocess
 import sys
 import threading
+import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, quote
@@ -366,6 +367,60 @@ class Api:
             return {"ok": False, "message": "Es läuft noch ein Vorgang."}
         return updater.pull(channel=self._s.update_channel())
 
+    # ---------- Beenden, Fenster (#132, #134)
+    def quit(self, stop_jobs=True):
+        """Sauber beenden: Fenstergrösse speichern, Hintergrund-Aufträge anhalten (Warteschlange bleibt), Prozess beenden.
+        Tagger-Zustand und Wiedergabe hat die Seite vorher gespeichert (appQuit)."""
+        self._quitting = True
+        geom = getattr(self, "_geom", None)
+        if geom:
+            try:
+                self._s.set_window_geometry(geom)
+            except Exception:  # noqa: BLE001
+                pass
+        s = self._s
+        if stop_jobs and s._jobs is not None and s._jobs.status()["active"]:
+            s._jobs.shutdown(keep_queue=True)
+
+        def go():
+            time.sleep(0.3)                    # Antwort noch an die Seite schicken
+            if self._server is not None:
+                try:
+                    self._server[0].shutdown()
+                except Exception:  # noqa: BLE001
+                    pass
+            os._exit(0)
+        threading.Thread(target=go, daemon=False).start()
+        return True
+
+    def close_cancelled(self):
+        """Seite hat das Beenden abgebrochen (z. B. ungespeicherte Änderungen behalten)."""
+        self._close_req = 0.0
+        return True
+
+    def window_mode(self, what):
+        """„fullscreen“ = Vollbild ein/aus, „window“ = zurück ins normale Fenster (aus Vollbild oder maximiert)."""
+        w = self._window
+        if w is None:
+            return {"ok": False, "fullscreen": False}
+        fs = bool(getattr(self, "_fs", False))
+        try:
+            if what == "fullscreen":
+                w.toggle_fullscreen()
+                fs = not fs
+            elif what == "window":
+                if fs:
+                    w.toggle_fullscreen()
+                    fs = False
+                else:
+                    w.restore()
+            else:
+                raise ValueError(f"Unbekannt: {what}")
+        except AttributeError:
+            return {"ok": False, "fullscreen": fs}
+        self._fs = fs
+        return {"ok": True, "fullscreen": fs}
+
     def restart(self):
         """Programm mit dem neuen Stand neu starten (gleiche Pfade, im Browser-Modus gleiche Adresse)."""
         l, r = self._s.left_root, self._s.right_root
@@ -623,12 +678,12 @@ def run_window(api: Api):
 
     def on_resized(*a):
         n = nums(a)
-        if len(n) >= 2 and not geom["max"]:
+        if len(n) >= 2 and not geom["max"] and not getattr(api, "_fs", False):
             geom.update(w=n[0], h=n[1])
 
     def on_moved(*a):
         n = nums(a)
-        if len(n) >= 2 and not geom["max"]:
+        if len(n) >= 2 and not geom["max"] and not getattr(api, "_fs", False):
             geom.update(x=n[0], y=n[1])
 
     def on_maximized(*_a):
@@ -643,9 +698,22 @@ def run_window(api: Api):
         except Exception:  # noqa: BLE001
             pass
 
+    def ask_page():
+        try:
+            win.evaluate_js("appQuit()")
+        except Exception:  # noqa: BLE001
+            api._close_req = 0.0
+
     def on_closing():
-        if getattr(api, "_restarting", False):
+        if getattr(api, "_restarting", False) or getattr(api, "_quitting", False):
             return True
+        # #132: Schliessen übernimmt die Seite (Hinweis „Einstellungen werden gespeichert“, Rückfragen, dann quit()).
+        # Antwortet sie nicht, schliesst ein zweiter Klick auf X direkt (alter Weg unten).
+        now = time.monotonic()
+        if not getattr(api, "_close_req", 0.0) or now - api._close_req > 15:
+            api._close_req = now
+            threading.Thread(target=ask_page, daemon=True).start()
+            return False
         # #126/#127: Tagger-Zustand und Wiedergabe noch speichern – in einem eigenen Faden mit Zeitlimit, denn
         # evaluate_js im Schliessen-Ereignis kann je nach System auf den Oberflächen-Faden warten und hängen.
         t = threading.Thread(target=flush_state, daemon=True)

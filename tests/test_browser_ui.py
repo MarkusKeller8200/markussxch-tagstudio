@@ -372,6 +372,36 @@ class UiTest(unittest.TestCase):
         self.assertFalse(pg.locator('#modal [data-ok="lastfm"]').is_checked())
         self.assertEqual(pg.locator('#modal [data-ok="mode"]').input_value(), "empty")
 
+    def test_restart_and_quit_buttons(self):
+        """#134/#132: Symbole unten in der Seitenleiste – Neustart stellt den Zustand wieder her, Beenden speichert
+        und beendet den Server; ein zweiter Start während die erste Instanz läuft, endet sofort (#131)."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="2"] .nm')
+        self.assertEqual(pg.locator("#sideWin .icon-btn").count(), 4)
+        pg.evaluate("window.__alt = 1")
+        pg.click("#winRestart")
+        pg.wait_for_function("/startet neu/.test(document.querySelector('#progTitle').textContent)")
+        pg.wait_for_function("!window.__alt && typeof TG !== 'undefined' && TG.loaded && TG.rows.length === 3", timeout=30000)
+        self.assertEqual(pg.evaluate("tgSelected()"), [2])
+        lock = os.path.join(self.home, ".tagstudio.lock")
+        with open(lock, encoding="utf-8") as fh:
+            pid = int(fh.read().strip() or 0)
+        self.assertNotEqual(pid, self.server.pid)                  # neue Instanz läuft
+        pg.click("#winQuit")
+        pg.wait_for_function("/beendet/.test(document.querySelector('#progTitle').textContent)", timeout=15000)
+        for _ in range(50):
+            try:
+                os.kill(pid, 0)
+            except OSError:
+                break
+            time.sleep(0.1)
+        else:
+            os.kill(pid, 9)
+            self.fail("Server läuft nach „Beenden“ weiter")
+        c = self.cfg()
+        self.assertEqual(c["tagger_state"]["sel"], ["03 Ton 440.mp3"])
+
     def test_tagger_feature_columns(self):
         """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""
         pg = self.pg

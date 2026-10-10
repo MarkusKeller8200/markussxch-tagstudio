@@ -332,12 +332,80 @@ async function runUpdate() {
   if (await call("unsaved")) applyState(await call("discard_all"));  // „Verwerfen“ gewählt
   const res = await call("apply_update");
   if (!res.ok) { await info("Update nicht möglich", res.message); return; }
-  const ov = $("#progress");
-  $("#progTitle").textContent = "Neue Version geladen – TagStudio startet neu …";
-  $("#progText").textContent = res.message;
+  await appRestartNow("Neue Version geladen – TagStudio startet neu …", res.message);
+}
+
+// ====================================================================== Beenden, Neustart, Fenster (#132, #134)
+const APPQ = { busy: false };
+/** Hinweis-Fenster (ohne Abbrechen), z. B. „Einstellungen werden gespeichert …“ */
+function appBusy(title, text) {
+  $("#progTitle").textContent = title;
+  $("#progText").textContent = text || "";
   $("#progBar").classList.add("indet");
   $("#progCancel").hidden = true;
-  ov.hidden = false;
+  $("#progress").hidden = false;
+}
+/** Rückfragen vor dem Beenden/Neustart: ungespeicherte Änderungen, laufende Aufträge. true = weiter */
+async function appCloseChecks(what) {
+  if (!(await confirmDiscard())) return false;
+  if (await call("unsaved")) applyState(await call("discard_all"));
+  let n = 0;
+  try { n = (await call("jobs_status")).active || 0; } catch (e) { /* egal */ }
+  if (n) {
+    const go = await dialog({
+      title: "Hintergrund-Aufträge laufen",
+      text: `${n} Auftrag/Aufträge (z. B. Stems) laufen noch.\n\n${what} und abbrechen? Die Warteschlange wird beim nächsten Start zum Fortsetzen angeboten.`,
+      buttons: [{ label: "Abbrechen", value: null }, { label: what, value: true, primary: true }],
+    });
+    if (!go) return false;
+  }
+  return true;
+}
+/** Beenden – auch vom Fenster-X aus aufgerufen (tagstudio_web.on_closing) */
+async function appQuit() {
+  if (APPQ.busy) return;
+  APPQ.busy = true;
+  try {
+    if (!(await appCloseChecks("Beenden"))) { call("close_cancelled").catch(() => {}); return; }
+    appBusy("TagStudio wird beendet …", "Einstellungen werden gespeichert (Fenster, Tagger, Player) …");
+    const t0 = Date.now();
+    await appFlushState().catch(() => {});
+    await new Promise((r) => setTimeout(r, Math.max(0, 600 - (Date.now() - t0))));   // Hinweis kurz sichtbar
+    $("#progText").textContent = "Gespeichert.";
+    await call("quit", true);
+    if (!S.settings.native) {
+      $("#progTitle").textContent = "TagStudio wurde beendet.";
+      $("#progText").textContent = "Dieses Browserfenster kann geschlossen werden.";
+      $("#progBar").classList.remove("indet");
+    }
+  } finally { APPQ.busy = false; }
+}
+/** Vollbild ein/aus bzw. zurück ins normale Fenster; im Browser über die Vollbild-Schnittstelle der Seite */
+async function appWindow(what) {
+  if (S.settings && S.settings.native) {
+    const r = await call("window_mode", what);
+    if (!r.ok) toast("Diese Fensterfunktion wird hier nicht unterstützt.");
+    $("#winFull").classList.toggle("on", !!r.fullscreen);
+    return r;
+  }
+  const fs = !!document.fullscreenElement;
+  try {
+    if (what === "fullscreen" && !fs) await document.documentElement.requestFullscreen();
+    else if (fs) await document.exitFullscreen();
+  } catch (e) { toast("Vollbild ist hier nicht möglich."); }
+  $("#winFull").classList.toggle("on", !!document.fullscreenElement);
+  return { ok: true, fullscreen: !!document.fullscreenElement };
+}
+async function appRestart() {
+  if (APPQ.busy) return;
+  APPQ.busy = true;
+  try {
+    if (!(await appCloseChecks("Neu starten"))) return;
+    await appRestartNow("TagStudio startet neu …", "Einstellungen werden gespeichert …");
+  } finally { APPQ.busy = false; }
+}
+async function appRestartNow(title, text) {
+  appBusy(title, text);
   S.meta.unsaved = 0;
   await appFlushState().catch(() => {});        // Zustände speichern, bevor die neue Instanz sie liest
   await call("restart");
@@ -482,6 +550,13 @@ async function init() {
   if (typeof initJobs === "function") initJobs();
   if (typeof initSnapshots === "function") setTimeout(initSnapshots, 1200);
   $("#updateBtn").addEventListener("click", runUpdate);
+  $("#winFull").addEventListener("click", () => appWindow("fullscreen"));
+  $("#winNormal").addEventListener("click", () => appWindow("window"));
+  $("#winRestart").addEventListener("click", appRestart);
+  $("#winQuit").addEventListener("click", appQuit);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "F11" && !e.ctrlKey && !e.altKey && !e.metaKey) { e.preventDefault(); appWindow("fullscreen"); }
+  });
   $("#notesBtn").addEventListener("click", showReleaseNotes);                // #90
   setTimeout(checkUpdateQuietly, 1500);
   syncOptions();

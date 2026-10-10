@@ -7,6 +7,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- Seitenleiste unten: Symbole für **Vollbild** (auch F11), **Fenstermodus**, **Neu starten** und **Beenden** (#134).
+- Beim **Beenden** (auch über das X des Fensters) erscheint „Einstellungen werden gespeichert …“; ungespeicherte
+  Änderungen und laufende Hintergrund-Aufträge werden vorher in der App abgefragt (#132).
 - Neues Plugin **Online-Metadaten**: sucht für markierte Titel bei **MusicBrainz** (über ISRC oder Titel/Künstler,
   Cover aus dem Cover Art Archive), optional per **AcoustID-Fingerabdruck** (fpcalc), bei **Deezer**, **iTunes**
   (Land wählbar, Cover 1400 px), **Discogs** (eigener Token) und **Last.fm** (Tags, nie vorausgewählt). Treffer werden
