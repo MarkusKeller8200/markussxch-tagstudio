@@ -70,6 +70,19 @@ nutzbar. Benötigte Aktionen für das Rezept des Users:
   neue Felder = ok, geänderte oder entfernte Felder = Warnung mit Liste.
 - Auf Wunsch die alten Werte feldweise zurückschreiben (wie im Änderungsjournal).
 
+**Einstellungen (Entscheid 2026-10-10: konfigurierbar)** – Teil der Workflow-Vorlage (#110):
+
+| Einstellung | Wo | Auswahl | Vorgabe |
+|---|---|---|---|
+| Schutz an/aus | je Schritt | an / aus | an ab Schritt 04 |
+| Variante | Workflow, je Schritt überschreibbar | A alle · B Liste · C alle mit Ausnahmen | C |
+| Geschützte Felder (für B) | Workflow | Feldliste | Titel, Künstler, Album, Remixer, Label, Katalognummer, Genre, Jahr, ISRC, Cover |
+| Immer freie Felder (für C) | Workflow | Feldliste mit Mustern (`GEOB:Serato*`) | Laufzeit, Encoder, Serato- und MIK-Binärdaten |
+| Erlaubte Felder je Programm (für C) | je Schritt | Feldliste | MIK: Tonart, BPM, Energie, Cues · beaTunes: BPM, Analysefelder · Picard/AudioRanger/OneTagger: keine |
+| Bei Verstoss | Workflow, je Schritt überschreibbar | a nur melden · b automatisch zurücksetzen | a |
+
+In der Meldung zusätzlich „Feld künftig erlauben“ (übernimmt das Feld in die erlaubten Felder des Schritts).
+
 ### 6. Übernahme in die Bibliothek
 - Kopieren in den Zielordner (Namensschema wählbar), Prüfung auf Duplikate (gleicher Titel/Künstler/Mix oder
   gleicher Audio-Inhalt), Konflikte melden statt überschreiben.
@@ -107,5 +120,5 @@ Machbarkeit je Dienst (Stand 2026-10):
 2. **Platinum Notes:** TagStudio kopiert nach `_03_PlatinumNotes`, Platinum Notes ersetzt die Dateien dort – **ja**.
 3. **Picard, AudioRanger, OneTagger:** **vorerst weiter extern**; wenn TagStudio (4.1.0 Online-Metadaten, nur ergänzend)
    den Funktionsumfang komplett abdeckt, eventuell nicht mehr.
-4. **Schutzregel – welche Felder:** in Klärung (Erläuterung und Vorschlag in #121).
+4. **Schutzregel – welche Felder:** **konfigurierbar** (siehe Abschnitt 5); Vorgabe Variante C mit Option „nur melden“.
 5. **Beatport-Download:** inoffizieller Zugriff ist **akzeptiert**, falls es keinen offiziellen Weg gibt.
