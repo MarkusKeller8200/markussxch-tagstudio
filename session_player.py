@@ -24,7 +24,8 @@ class PlayerMixin:
                     "layout": (str, "bottom"), "top_collapsed": (bool, False),                           # #68
                     "deck2": (bool, False), "deck_target": (str, "A"), "vol_b": ((int, float), 0.8),     # #67
                     "sink_b": (str, ""), "start_b": (str, "0"), "repeat_b": (bool, False),
-                    "startmode": (str, "last")}                                                          # #93
+                    "startmode": (str, "last"),                                                          # #93
+                    "resume": (bool, True)}                                                              # #126
     PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "layout": ("bottom", "top"), "startmode": ("last", "default"),
                       "xfade_start": ("start", "0", "cue"), "deck_target": ("A", "B"),
                       "start_b": ("0", "30", "60", "cue")}
@@ -53,6 +54,36 @@ class PlayerMixin:
             out["startmode"] = mode
         out["has_defaults"] = isinstance(defaults, dict)
         out["window"] = self.cfg.get("player_window") if isinstance(self.cfg.get("player_window"), dict) else None
+        return out
+
+    # ------------------------------------------------------------------ Wiedergabe fortsetzen (#126)
+    def player_resume_save(self, state) -> bool:
+        """Titel (Pfad) und Position je Player merken: {"A": {"path", "pos", "vol"} | None, "B": …}."""
+        if not isinstance(state, dict):
+            raise ValueError("Zustand erwartet")
+        out = {}
+        for deck in ("A", "B"):
+            d = state.get(deck)
+            if isinstance(d, dict) and isinstance(d.get("path"), str) and d["path"]:
+                out[deck] = {"path": d["path"][:4096], "pos": max(0.0, round(float(d.get("pos") or 0), 1))}
+        if out == self.cfg.get("player_resume"):
+            return False
+        self.cfg["player_resume"] = out
+        core.save_config({"player_resume": out})
+        return True
+
+    def player_resume(self) -> dict:
+        """Gemerkter Stand je Player mit Tagger-Index, falls die Datei gerade im Tagger geladen ist."""
+        st = self.cfg.get("player_resume") if isinstance(self.cfg.get("player_resume"), dict) else {}
+        on = self._player_clean(self.cfg.get("player")).get("resume", True)
+        with self.lock:
+            where = {os.path.normcase(os.path.abspath(f.path)): i for i, f in enumerate(self.tag_files)}
+        out = {"on": on}
+        for deck, d in st.items():
+            if deck in ("A", "B") and isinstance(d, dict) and d.get("path"):
+                p = d["path"]
+                out[deck] = {"path": p, "pos": float(d.get("pos") or 0), "exists": os.path.isfile(p),
+                             "i": where.get(os.path.normcase(os.path.abspath(p)))}
         return out
 
     def set_player_pref(self, name, value):

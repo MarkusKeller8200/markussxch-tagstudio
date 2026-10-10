@@ -229,9 +229,7 @@ class UiTest(unittest.TestCase):
         pg.click('.nav[data-module="djset"]')
         time.sleep(0.5)
         # App neu starten (neuer Server, gleiches Benutzerverzeichnis)
-        self.server.terminate(); self.server.wait(10); pg.close()
-        self.server, self.url = self.start_server()
-        pg = self.pg = self.page()
+        pg = self.restart()
         self.assertTrue(self.until("TG.loaded && TG.rows.length === 3", 15))
         self.assertEqual(pg.evaluate("S.module"), "djset")
         self.assertEqual(pg.evaluate("[TG.sort.col, TG.sort.dir, document.querySelector('#tgQuery').value]"), ["TIT2", -1, "Ton"])
@@ -239,11 +237,44 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("DJ.st && DJ.st.items.length === 3 && DJ.st.items.every(r => !r.missing)", 10))
         # Einstellung „nichts“: Tagger bleibt beim nächsten Start leer
         pg.evaluate("call('set_view_default', 'tagger', 'start', 'none')")
-        self.server.terminate(); self.server.wait(10); pg.close()
-        self.server, self.url = self.start_server()
-        pg = self.pg = self.page()
+        pg = self.restart()
         time.sleep(1.5)
         self.assertFalse(pg.evaluate("TG.loaded"))
+
+    def restart(self):
+        """App neu starten: neuer Server, gleiches Benutzerverzeichnis. Wie beim Schliessen des App-Fensters wird
+        vorher der ausstehende Zustand gespeichert (appFlushState)."""
+        self.pg.evaluate("appFlushState()")
+        self.server.terminate(); self.server.wait(10)
+        self.pg.close()
+        self.server, self.url = self.start_server()
+        self.pg = self.page()
+        return self.pg
+
+    def test_player_resume(self):
+        """#126: Titel und Position je Player beim Schliessen merken, beim Start in Pause dort laden."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("plSetPref('layout','top'); plSetPref('deck2', true)")
+        time.sleep(0.3)
+        pg.dblclick('.tg-row[data-i="1"] .nm')
+        self.assertTrue(self.until("PLAYER.ref === 1 && !PLAYER.audio.paused"))
+        pg.evaluate("PLAYER.audio.currentTime = 12; PLAYER.audio.pause()")
+        pg.evaluate("dbLoad({kind: 'tag', ref: 2}, false, 20)")
+        self.assertTrue(self.until("DECKB.ref === 2 && DECKB.audio.currentTime > 19"))
+        pg.evaluate("plResumeSave(true)")
+        c = self.cfg_until(lambda c: (c.get("player_resume", {}).get("B") or {}).get("pos", 0) >= 19)
+        self.assertAlmostEqual(c["player_resume"]["A"]["pos"], 12, delta=1)
+        pg = self.restart()
+        ok = self.until("PLAYER.info && PLAYER.ref === 1 && PLAYER.audio.paused && Math.abs(PLAYER.audio.currentTime - 12) < 1", 15)
+        self.assertTrue(ok, pg.evaluate("call('tagger_settings').then(ts => call('player_resume').then(r => JSON.stringify({ts: [ts.start, ts.state], r, loaded: TG.loaded, info: !!PLAYER.info, ref: PLAYER.ref, t: PLAYER.audio.currentTime, done: RESUME.done, mod: S.module})))"))
+        self.assertTrue(self.until("DECKB.info && DECKB.ref === 2 && DECKB.audio.paused && Math.abs(DECKB.audio.currentTime - 20) < 1", 10))
+        # ausgeschaltet → Player startet leer
+        pg.evaluate("call('set_player_pref', 'resume', false)")
+        pg = self.restart()
+        self.assertTrue(self.until("TG.loaded", 15))
+        time.sleep(1)
+        self.assertFalse(pg.evaluate("!!PLAYER.info"))
 
     def test_drag_to_player(self):
         """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""

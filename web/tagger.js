@@ -29,9 +29,11 @@ function tgInitOnce() {
 
 /** #127: beim App-Start (egal welche Seite) den Tagger laden – zuletzt geladener Ordner samt Zustand,
     Standardordner oder nichts (Einstellungen › Tagger). */
-async function taggerAutoStart() {
-  if (TG.autoStarted) return;
-  TG.autoStarted = true;
+function taggerAutoStart() {
+  if (!TG.autoP) { TG.autoStarted = true; TG.autoP = tgAutoStartRun(); }
+  return TG.autoP;                              // gemeinsames Versprechen – Fortsetzen (#126) wartet darauf
+}
+async function tgAutoStartRun() {
   await tgInitOnce();
   if (TG.loaded) return;
   const start = TG.settings.start, st = TG.settings.state || {};
@@ -64,8 +66,9 @@ async function taggerShow() {
 let tgStateTimer = 0;
 function tgStateSave() {
   if (!TG.loaded || TG.restore) return;
-  clearTimeout(tgStateTimer);
+  if (tgStateTimer) return;              // läuft schon – nicht verschieben (die Liste wird beim Abspielen laufend neu gezeichnet)
   tgStateTimer = setTimeout(() => {
+    tgStateTimer = 0;
     const rel = (i) => (TG.rows[i] ? TG.rows[i].rel : null);
     call("tag_state_save", {
       root: TG.root || "", recursive: !!TG.recursive,
@@ -74,6 +77,19 @@ function tgStateSave() {
       scroll: Math.round($("#tgScroll").scrollTop),
     }).catch(() => {});
   }, 700);
+}
+
+/** Ausstehendes Speichern sofort ausführen (beim Schliessen der App) */
+function tgStateFlush() {
+  if (!tgStateTimer) return;
+  clearTimeout(tgStateTimer); tgStateTimer = 0;
+  const rel = (i) => (TG.rows[i] ? TG.rows[i].rel : null);
+  return call("tag_state_save", {
+    root: TG.root || "", recursive: !!TG.recursive,
+    sel: [...TG.sel].map(rel).filter(Boolean), anchor: rel(TG.anchor) || "",
+    sort: TG.sort, query: $("#tgQuery").value || "", open: [...TG.open].map(rel).filter(Boolean),
+    scroll: Math.round($("#tgScroll").scrollTop),
+  }).catch(() => {});
 }
 
 /** Gemerkten Zustand auf die frisch geladene Liste anwenden (Pfade → Indizes) */

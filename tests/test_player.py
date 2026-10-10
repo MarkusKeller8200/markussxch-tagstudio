@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 import unittest
 import urllib.error
 import urllib.request
@@ -216,3 +217,47 @@ class TestBus(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPlayerResume(unittest.TestCase):
+    """#126: Wiedergabe-Stand je Player merken."""
+
+    def setUp(self):
+        import core
+        from helpers import write_mp3, text
+        self.dir = tempfile.mkdtemp(prefix="ts_resume_")
+        self._env = {k: os.environ.get(k) for k in ("HOME", "USERPROFILE")}
+        os.environ["HOME"] = os.environ["USERPROFILE"] = self.dir
+        self._cfg = (core.CONFIG, core.CONFIG_OLD)
+        core.CONFIG = core.CONFIG_OLD = os.path.join(self.dir, "cfg.json")
+        self.f = os.path.join(self.dir, "a.mp3")
+        write_mp3(self.f, [text("TIT2", "A")])
+
+    def tearDown(self):
+        import core
+        core.CONFIG, core.CONFIG_OLD = self._cfg
+        for k, v in self._env.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+        shutil.rmtree(self.dir, ignore_errors=True)
+
+    def test_save_and_map(self):
+        from session import Session
+        s = Session()
+        self.assertTrue(s.player_resume_save({"A": {"path": self.f, "pos": 12.345}, "B": None, "X": {"path": "x"}}))
+        self.assertFalse(s.player_resume_save({"A": {"path": self.f, "pos": 12.345}}))     # unverändert
+        r = s.player_resume()
+        self.assertEqual((r["on"], r["A"]["pos"], r["A"]["exists"], r["A"]["i"], "B" in r), (True, 12.3, True, None, False))
+        s.start_tag_load(self.dir, False)
+        while not s.task_status()["done"]:
+            time.sleep(0.02)
+        self.assertEqual(s.player_resume()["A"]["i"], 0)                 # jetzt im Tagger geladen
+        s.set_player_pref("resume", False)
+        self.assertFalse(Session().player_resume()["on"])
+        os.remove(self.f)
+        self.assertFalse(Session().player_resume()["A"]["exists"])
+        with self.assertRaises(ValueError):
+            s.player_resume_save("kaputt")
+

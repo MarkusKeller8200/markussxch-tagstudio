@@ -490,7 +490,8 @@ async function init() {
   const last = st.ui && st.ui.module;
   setModule(st.start_paths.length ? "compare" : (last && last in MODULE_IDS ? last : "tagger"), { start: true });
   if (st.start_paths.length) compare(true);
-  else if (typeof taggerAutoStart === "function") setTimeout(() => taggerAutoStart().catch(() => {}), 50);   // #127
+  else if (typeof taggerAutoStart === "function") setTimeout(() => taggerAutoStart().catch(() => {}).then(() => typeof plResume === "function" && plResume()), 50);   // #127, #126
+  if (st.start_paths.length && typeof plResume === "function") plResume();
 }
 
 function fillHistory() {
@@ -1179,6 +1180,17 @@ function bind() {
     }
   });
   window.addEventListener("beforeunload", (e) => { if (S.meta.unsaved && !S.settings.native) { e.preventDefault(); e.returnValue = ""; } });
+  window.addEventListener("pagehide", () => appFlushState());
+}
+
+/** #126/#127: ausstehende Zustände (Tagger, Player) sofort speichern – beim Schliessen; das App-Fenster ruft das
+    vor dem Beenden über evaluate_js auf und wartet auf das Ergebnis. */
+async function appFlushState() {
+  const jobs = [];
+  if (typeof tgStateFlush === "function") jobs.push(tgStateFlush());
+  if (typeof plResumeSave === "function" && typeof RESUME !== "undefined" && RESUME.done) jobs.push(call("player_resume_save", plResumeState()).catch(() => {}));
+  await Promise.all(jobs);
+  return true;
 }
 
 const MODULES = {

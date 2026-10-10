@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import difflib
 import json
+import threading
 import os
 import re
 
@@ -40,19 +41,26 @@ def load_config() -> dict:
         return {}
 
 
+_CFG_LOCK = threading.Lock()
+
+
 def save_config(updates: dict) -> None:
-    """Schreibt nur die übergebenen Schlüssel – Einstellungen anderer Oberflächen bleiben erhalten."""
-    try:
-        with open(CONFIG, encoding="utf-8") as fh:
-            cfg = json.load(fh)
-    except Exception:  # noqa: BLE001
-        cfg = {}
-    cfg.update(updates)
-    try:
-        with open(CONFIG, "w", encoding="utf-8") as fh:
-            json.dump(cfg, fh, indent=2, ensure_ascii=False)
-    except OSError:
-        pass
+    """Schreibt nur die übergebenen Schlüssel – Einstellungen anderer Oberflächen bleiben erhalten.
+    Gesperrt und atomar: gleichzeitige Aufrufe (mehrere Anfragen der Oberfläche) verlieren keine Schlüssel mehr."""
+    with _CFG_LOCK:
+        try:
+            with open(CONFIG, encoding="utf-8") as fh:
+                cfg = json.load(fh)
+        except Exception:  # noqa: BLE001
+            cfg = {}
+        cfg.update(updates)
+        tmp = CONFIG + ".tmp"
+        try:
+            with open(tmp, "w", encoding="utf-8") as fh:
+                json.dump(cfg, fh, indent=2, ensure_ascii=False)
+            os.replace(tmp, CONFIG)
+        except OSError:
+            pass
 
 
 def history(cfg: dict, name: str, value: str, n: int = 12) -> list[str]:

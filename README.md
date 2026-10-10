@@ -268,6 +268,8 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
 - **Player oben** (Einstellungen → Player → Position oder Regler-Menü): eigene Leiste über der Seite mit voller Breite
   und grösserer Wellenform; Knopf ˄ bzw. **Shift+P** klappt sie ein (je Player eine Zeile mit ▶/⏸, Titel und
   Restlaufzeit).
+- **Fortsetzen:** Beim Start lädt der Player den zuletzt gehörten Titel (A und B) in Pause an derselben Stelle,
+  sofern er im geladenen Tagger-Ordner liegt; abschaltbar in Einstellungen › Player.
 - **Player B** (nur mit Player oben, Regler-Menü oder Einstellungen): zweiter, unabhängiger Player unter Player A zum
   Vorhören – gleich aufgebaut (⏮/⏭, Cues, Wiederholen, A–B, Bewertung, eigener Startpunkt und Lautstärke, L/R im
   Vergleich) und mit eigenem **Ausgabegerät** im Menü (wenn das System es erlaubt), z. B. Kopfhörer. Rechtsklick auf

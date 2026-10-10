@@ -26,7 +26,7 @@ GROUPS = [
     ("trivial", "Unwichtige Felder", ("trivial", "trivial_known")),
     ("saving", "Speichern und Sicherungen", ("backup_enabled", "backup_dir", "save_version")),
     ("update", "Updates (Kanal)", ("update_channel",)),
-    ("player", "Player (Vorschau und externe)", ("player", "player_defaults", "player_window", "players")),
+    ("player", "Player (Vorschau und externe)", ("player", "player_defaults", "player_window", "players", "player_resume")),
     ("snapshots", "Snapshots (Automatik, Aufbewahrung, Speicherort)", ("snap_daily", "snap_ask", "snap_keep",
                                                                        "snap_weeks", "snap_thorough", "snap_dir")),
     ("djset", "DJ-Set (Gewichtung, Energieverlauf)", ("djset_opts",)),

@@ -73,6 +73,7 @@ async function settingsShow() {
         <span></span><span class="muted sm">Überblenden wirkt im Tagger mit „Durchhören“, nicht bei „Titel wiederholen“ oder einer Schleife.</span>
         <label for="stPlLayout">Position</label>${stSel("stPlLayout", [["bottom", "unten in der Aktionsleiste"], ["top", "oben als eigene Leiste (einklappbar, Shift+P)"]], p.layout)}
         <span>Player B</span><div>${stCheck("stPlDeck2", p.deck2 && p.layout === "top", "Zweiten Player unter Player A anzeigen (Vorhören, eigenes Ausgabegerät)")}${p.layout === "top" ? "" : '<div class="muted sm">Nur mit Position „oben“ verfügbar.</div>'}</div>
+        <span>Fortsetzen</span>${stCheck("stPlResume", p.resume !== false, "Beim Start den zuletzt geladenen Titel an derselben Stelle laden (in Pause)")}
         <label for="stPlStartmode">Nach dem Start</label>${stSel("stPlStartmode", [["last", "zuletzt benutzte Einstellungen"], ["default", "immer die Standard-Einstellungen"]], p.startmode)}
         <span>Standard</span><div class="st-path"><button class="ghost sm" id="stPlDefSave" title="Die Einstellungen oben als Standard für den Start merken">Aktuelle als Standard speichern</button><button class="ghost sm" id="stPlDefApply" ${p.has_defaults ? "" : "disabled"} title="Player jetzt auf den gespeicherten Standard setzen">Auf Standard zurücksetzen</button><button class="ghost sm" id="stPlDefDel" ${p.has_defaults ? "" : "disabled"}>Standard löschen</button></div>
         <span></span><span class="muted sm">${p.has_defaults ? "Ein Standard ist gespeichert." : "Noch kein Standard gespeichert – „Aktuelle als Standard speichern“ merkt die Einstellungen oben."}</span>
@@ -487,6 +488,7 @@ function initSettings() {
     else if (t.id === "stUpdCh") { await call("set_update_channel", t.value); toast(t.value === "beta" ? "Updates: auch Beta-Versionen." : "Updates: nur offizielle Versionen."); settingsShow(); checkUpdateQuietly(); }
     else if (t.id === "stPlLayout") { pl2Pref("layout", t.value); await call("set_player_pref", "layout", t.value); settingsShow(); }
     else if (t.id === "stPlDeck2") plSetPref("deck2", t.checked);
+    else if (t.id === "stPlResume") { await call("set_player_pref", "resume", t.checked); toast(t.checked ? "Wiedergabe wird beim Start fortgesetzt." : "Player startet leer."); }
     else if (t.id === "stPlStartmode") plSetPref("startmode", t.value);
   });
   grid.addEventListener("input", (e) => { if (e.target.id === "stPlVol") $("#stPlVolV").textContent = e.target.value + " %"; });

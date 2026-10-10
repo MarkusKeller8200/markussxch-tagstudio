@@ -210,3 +210,27 @@ class TestWebServer(TempHome):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSaveConfigConcurrent(unittest.TestCase):
+    """Gleichzeitige save_config-Aufrufe (mehrere Anfragen der Oberfläche) dürfen keine Schlüssel verlieren."""
+
+    def test_no_lost_updates(self):
+        import json
+        import tempfile
+        import threading
+        import core
+        d = tempfile.mkdtemp(prefix="ts_cfg_")
+        old = core.CONFIG
+        core.CONFIG = os.path.join(d, "cfg.json")
+        try:
+            ts = [threading.Thread(target=core.save_config, args=({f"k{i}": i},)) for i in range(100)]
+            for t in ts:
+                t.start()
+            for t in ts:
+                t.join()
+            with open(core.CONFIG, encoding="utf-8") as fh:
+                self.assertEqual(len(json.load(fh)), 100)
+            self.assertFalse(os.path.exists(core.CONFIG + ".tmp"))
+        finally:
+            core.CONFIG = old

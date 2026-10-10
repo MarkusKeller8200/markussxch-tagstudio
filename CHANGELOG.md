@@ -11,6 +11,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Stems, Bildlauf) und stellt ihn beim Start wieder her – auf jeder Startseite, damit z. B. DJ-Set-Titel sofort
   geladen sind. Einstellungen › Tagger › „Beim Start laden“: zuletzt geladenen Ordner (Standard), Standardordner oder
   nichts (#127).
+- Player: **Wiedergabe fortsetzen** – Titel und Position von Player A und B werden gemerkt und beim Start in Pause an
+  derselben Stelle geladen; abschaltbar unter Einstellungen › Player › „Fortsetzen“ (#126).
+
+### Behoben
+- Einstellungen: gleichzeitige Speichervorgänge konnten sich gegenseitig Einträge überschreiben; die Datei wird jetzt
+  gesperrt und atomar geschrieben. Beim Schliessen der App werden ausstehende Zustände sofort gespeichert.
 
 ## [4.0.0] – 2026-10-10
 

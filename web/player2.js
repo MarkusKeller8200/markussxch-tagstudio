@@ -695,3 +695,41 @@ async function plDropLoad(t, deck, x, y) {
     { label: `Rechts in Player ${deck} laden`, run: () => load({ kind: "side", ref: "R" }) },
   ]);
 }
+
+// ====================================================================== #126 Wiedergabe fortsetzen
+const RESUME = { last: "", timer: 0, done: false };
+function plResumeState() {
+  const one = (info, audio, kind) => (info && info.path && kind !== "stem" && audio && audio.src
+    ? { path: info.path, pos: Math.max(0, audio.currentTime || 0) } : null);
+  return { A: one(PLAYER.info, PLAYER.audio, PLAYER.kind), B: typeof DECKB !== "undefined" ? one(DECKB.info, DECKB.audio, DECKB.kind) : null };
+}
+/** Stand merken – höchstens alle paar Sekunden, sofort bei Pause/Titelwechsel (force) */
+function plResumeSave(force = false) {
+  if (!RESUME.done) return;                   // erst nach dem Wiederherstellen, sonst überschreibt ein leerer Start den Stand
+  const st = plResumeState();
+  const sig = JSON.stringify([st.A && st.A.path, st.A && Math.floor(st.A.pos / 5), st.B && st.B.path, st.B && Math.floor(st.B.pos / 5)]);
+  if (!force && sig === RESUME.last) return;
+  RESUME.last = sig;
+  call("player_resume_save", st).catch(() => {});
+}
+/** Beim Start (nach dem Tagger): Titel in Pause an der gemerkten Stelle laden */
+async function plResume() {
+  try {
+    const r = await call("player_resume");
+    if (r.on) {
+      if (r.A && r.A.i !== null && r.A.i !== undefined && r.A.exists) await plLoad({ kind: "tag", ref: r.A.i }, false, r.A.pos);
+      if (r.B && r.B.i !== null && r.B.i !== undefined && r.B.exists && PL2.layout === "top" && PL2.deck2) await dbLoad({ kind: "tag", ref: r.B.i }, false, r.B.pos);
+    }
+  } catch (e) { /* egal – dann eben leer */ }
+  RESUME.done = true;
+  // Nur echte Änderungen speichern – konnte nichts geladen werden, bleibt der gemerkte Stand erhalten
+  const st0 = plResumeState();
+  RESUME.last = JSON.stringify([st0.A && st0.A.path, st0.A && Math.floor(st0.A.pos / 5), st0.B && st0.B.path, st0.B && Math.floor(st0.B.pos / 5)]);
+  clearInterval(RESUME.timer);
+  RESUME.timer = setInterval(() => plResumeSave(false), 4000);
+  for (const a of [PLAYER.audio, PLAYER.spare, typeof DECKB !== "undefined" ? DECKB.audio : null]) {
+    if (a) a.addEventListener("pause", () => { if (PLAYER.info || (typeof DECKB !== "undefined" && DECKB.info)) plResumeSave(true); });
+  }
+  window.addEventListener("pagehide", () => plResumeSave(true));
+}
+
