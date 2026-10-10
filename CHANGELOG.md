@@ -7,6 +7,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- Einstellungen › **Expert**: Diagnose (Version, Python, System, Oberfläche, Plugins, Pfade) mit „Diagnose kopieren“,
+  **Einstellungsdatei** ansehen und durchsuchen (Zugangsdaten ausgeblendet), **Protokolle** ansehen; neues
+  App-Protokoll `~/TagStudio/Logs/app.log` mit Start/Ende, Fehlern und Warnungen, auch aus der Oberfläche (#133).
 - Seitenleiste unten: Symbole für **Vollbild** (auch F11), **Fenstermodus**, **Neu starten** und **Beenden** (#134).
 - Beim **Beenden** (auch über das X des Fensters) erscheint „Einstellungen werden gespeichert …“; ungespeicherte
   Änderungen und laufende Hintergrund-Aufträge werden vorher in der App abgefragt (#132).

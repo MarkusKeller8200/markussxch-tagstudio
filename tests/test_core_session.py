@@ -170,6 +170,49 @@ class TestSession(TempHome):
         self.assertEqual(Session().settings()["ui"], {"pairs_w": 420, "side_collapsed": True})
 
 
+class TestExpert(TempHome):
+    def test_applog_and_expert(self):
+        """#133: App-Protokoll mit Rotation, Einstellungsdatei maskiert, Protokolle lesen."""
+        import applog
+        import core
+        import tagstudio_web
+        applog.info("Hallo")
+        applog.warn("api_key: geheim")                          # sieht nach Zugangsdaten aus → unkenntlich
+        try:
+            raise RuntimeError("kaputt")
+        except RuntimeError as ex:
+            applog.error("Test", ex)
+        with open(applog.path(), encoding="utf-8") as fh:
+            text = fh.read()
+        self.assertIn("INFO  Hallo", text)
+        self.assertIn("RuntimeError: kaputt", text)
+        self.assertNotIn("geheim", text)
+        core.save_config({"beatport_token": "abc", "nested": {"password": "x", "ok": 1}, "theme": "dark"})
+        api = tagstudio_web.Api()
+        cfg = json.loads(api.expert_config()["text"])
+        self.assertEqual((cfg["beatport_token"], cfg["nested"]["password"], cfg["nested"]["ok"], cfg["theme"]),
+                         ("•••", "•••", 1, "dark"))
+        names = [x["name"] for x in api.expert_logs()]
+        self.assertIn("app.log", names)
+        self.assertIn("Hallo", api.expert_log("app.log")["text"])
+        with self.assertRaises(ValueError):
+            api.expert_log("../.tagstudio.json")
+        inf = api.expert_info()
+        self.assertIn("Version", [k for k, _v in inf["facts"]])
+        self.assertTrue(any(p == core.CONFIG for _k, p in inf["paths"]))
+        self.assertTrue(api.client_log("error", "x is undefined"))
+        self.assertIn("Oberfläche: x is undefined", api.expert_log("app.log")["text"])
+        # Rotation
+        old = applog.MAX_BYTES
+        applog.MAX_BYTES = 10
+        try:
+            applog.info("noch eine Zeile")
+        finally:
+            applog.MAX_BYTES = old
+        self.assertTrue(os.path.isfile(applog.path() + ".1"))
+        self.assertIn("app.log.1", [x["name"] for x in api.expert_logs()])
+
+
 class TestWindowMode(TempHome):
     def test_window_mode(self):
         """#134: Vollbild ein/aus, zurück ins Fenster; ohne Fenster (Browser-Modus) nichts."""

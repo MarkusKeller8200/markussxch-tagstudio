@@ -402,6 +402,25 @@ class UiTest(unittest.TestCase):
         c = self.cfg()
         self.assertEqual(c["tagger_state"]["sel"], ["03 Ton 440.mp3"])
 
+    def test_expert_settings(self):
+        """#133: Einstellungen › Expert – Diagnose, Einstellungsdatei (maskiert, Suche), Protokolle."""
+        pg = self.pg
+        pg.evaluate("call('set_option', 'theme', 'dark')")
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stExpertRows #stXConfig")
+        self.assertIn("Expert", pg.inner_text("#stToc"))
+        self.assertIn("Version", pg.inner_text("#stExpertRows"))
+        pg.click("#stXConfig")
+        pg.wait_for_selector("#xText")
+        self.assertIn('"web_theme": "dark"', pg.input_value("#xText"))
+        pg.fill("#xFind", "theme")
+        self.assertTrue(self.until("/Treffer/.test(document.querySelector('#xHits').textContent)"))
+        pg.click("#mBtns .primary")
+        pg.click('#stExpertRows [data-xlog="app.log"]')
+        pg.wait_for_selector("#xText")
+        self.assertIn("Start ", pg.input_value("#xText"))
+        pg.click("#mBtns .primary")
+
     def test_tagger_feature_columns(self):
         """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""
         pg = self.pg

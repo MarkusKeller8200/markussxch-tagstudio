@@ -517,6 +517,13 @@ function verifyWatch(res, baseMsg) {
 }
 
 // Unbehandelte Fehler aus Aufrufen (z. B. Schreibschutz einer Snapshot-Seite) verständlich anzeigen
+// #133: Skriptfehler der Oberfläche ins App-Protokoll (höchstens 20 pro Sitzung)
+let CLIENT_LOGS = 0;
+window.addEventListener("error", (e) => {
+  if (CLIENT_LOGS++ >= 20) return;
+  const where = e.filename ? ` (${String(e.filename).split("/").pop()}:${e.lineno}:${e.colno})` : "";
+  call("client_log", "error", `${e.message || e}${where}${e.error && e.error.stack ? "\n" + e.error.stack : ""}`).catch(() => {});
+});
 window.addEventListener("unhandledrejection", (e) => {
   const m = e.reason && (e.reason.message || String(e.reason));
   if (m && typeof toast === "function") toast(m);

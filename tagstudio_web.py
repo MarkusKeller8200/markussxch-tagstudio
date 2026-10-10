@@ -27,6 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from session import Session  # noqa: E402
+import applog  # noqa: E402
 import instance  # noqa: E402
 import updater  # noqa: E402
 from version import VERSION  # noqa: E402
@@ -36,6 +37,8 @@ WEB = os.path.join(HERE, "web")
 
 
 # Sitzungs-Methoden, die die Oberfläche direkt aufrufen darf
+_STARTED = time.time()
+
 _PASS = {
     "add_field_choices", "add_field", "bulk_keys", "bulk_apply", "cover_remove",
     "fixer_settings", "fixer_preview", "fixer_apply",
@@ -367,11 +370,95 @@ class Api:
             return {"ok": False, "message": "Es läuft noch ein Vorgang."}
         return updater.pull(channel=self._s.update_channel())
 
+    # ---------- Expert (#133): Einstellungsdatei, Protokolle, Diagnose
+    _SECRET_KEYS = ("token", "password", "passwort", "secret", "api_key", "apikey")
+
+    def _mask(self, v):
+        if isinstance(v, dict):
+            return {k: ("•••" if any(w in str(k).lower() for w in self._SECRET_KEYS) and v[k] else self._mask(v[k])) for k in v}
+        if isinstance(v, list):
+            return [self._mask(x) for x in v]
+        return v
+
+    def expert_info(self) -> dict:
+        import platform
+        import plugins as plg
+        import appsettings
+        try:
+            import webview
+            wv = getattr(webview, "__version__", "") or "installiert"
+        except ImportError:
+            wv = "nicht installiert"
+        s = self._s
+        cfg_path = appsettings.core.CONFIG
+        paths = [["Einstellungsdatei", cfg_path], ["Sicherungen der Einstellungen", appsettings.BACKUP_DIR],
+                 ["Protokolle", applog.log_dir()], ["Eigene Plugins", plg.user_dir()], ["Plugin-Daten", plg.data_root()],
+                 ["Programmordner", HERE], ["Sperrdatei (eine Instanz)", instance.LOCKFILE]]
+        try:
+            pl = [f"{p['id']} {p.get('version', '')} ({'an' if p.get('enabled') else 'aus'}, {p.get('state', '')})"
+                  for p in s.plugins_list()]
+        except Exception as ex:  # noqa: BLE001
+            pl = [f"(Fehler: {ex})"]
+        try:
+            jobs = s._jobs.status()["active"] if s._jobs is not None else 0
+        except Exception:  # noqa: BLE001
+            jobs = "?"
+        facts = [["Version", VERSION], ["Python", f"{platform.python_version()} ({sys.executable})"],
+                 ["Betriebssystem", f"{platform.platform()} · {platform.machine()}"],
+                 ["Paket", "Installer (gepackt)" if getattr(sys, "frozen", False) else "Quellcode"],
+                 ["Oberfläche", "App-Fenster" if self._window is not None else "Browser"], ["pywebview", wv],
+                 ["Prozess", f"PID {os.getpid()} · läuft seit {time.strftime('%H:%M:%S', time.localtime(_STARTED))}"],
+                 ["Einstellungsdatei", f"{os.path.getsize(cfg_path) // 1024 if os.path.isfile(cfg_path) else 0} KB"],
+                 ["Laufende Aufträge", str(jobs)], ["Plugins", ", ".join(pl) or "keine"]]
+        return {"facts": facts, "paths": paths}
+
+    def expert_config(self) -> dict:
+        """Einstellungsdatei (nur lesen); Werte unter Schlüsseln wie *token*/*password* werden ausgeblendet."""
+        import appsettings
+        p = appsettings.core.CONFIG
+        try:
+            with open(p, encoding="utf-8") as fh:
+                raw = fh.read()
+        except OSError as ex:
+            return {"path": p, "text": "", "error": str(ex)}
+        try:
+            text = json.dumps(self._mask(json.loads(raw)), ensure_ascii=False, indent=2, sort_keys=True)
+        except ValueError as ex:
+            text, err = raw, f"Keine gültige JSON-Datei: {ex}"
+            return {"path": p, "text": text, "error": err}
+        return {"path": p, "text": text, "error": None}
+
+    def expert_logs(self) -> list:
+        d = applog.log_dir()
+        out = []
+        try:
+            for n in os.listdir(d):
+                fp = os.path.join(d, n)
+                if os.path.isfile(fp):
+                    st = os.stat(fp)
+                    out.append({"name": n, "size": st.st_size, "mtime": st.st_mtime})
+        except OSError:
+            pass
+        return sorted(out, key=lambda x: -x["mtime"])
+
+    def expert_log(self, name) -> dict:
+        d = applog.log_dir()
+        fp = os.path.join(d, os.path.basename(str(name)))
+        if not os.path.isfile(fp):
+            raise ValueError("Protokoll nicht gefunden")
+        return {"path": fp, "text": applog.tail(fp)}
+
+    def client_log(self, level, msg):
+        """Fehler aus der Oberfläche (JavaScript) ins App-Protokoll."""
+        applog.write("WARN" if level != "error" else "ERROR", "Oberfläche: " + str(msg)[:2000])
+        return True
+
     # ---------- Beenden, Fenster (#132, #134)
     def quit(self, stop_jobs=True):
         """Sauber beenden: Fenstergrösse speichern, Hintergrund-Aufträge anhalten (Warteschlange bleibt), Prozess beenden.
         Tagger-Zustand und Wiedergabe hat die Seite vorher gespeichert (appQuit)."""
         self._quitting = True
+        applog.info("Beenden")
         geom = getattr(self, "_geom", None)
         if geom:
             try:
@@ -435,6 +522,7 @@ class Api:
             cmd += ["--browser", "--no-open", "--port", str(srv.server_address[1])]
             env["TAGSTUDIO_TOKEN"] = token
 
+        applog.info("Neustart")
         self._restarting = True                # Schliessen-Ereignis nicht mehr behandeln (keine Rückfragen, kein JS)
         geom = getattr(self, "_geom", None)
         if geom:
@@ -479,7 +567,14 @@ class Api:
 
 def _passthrough(name):
     def method(self, *args):
-        return getattr(self._s, name)(*args)
+        try:
+            return getattr(self._s, name)(*args)
+        except (ValueError, KeyError) as ex:           # Eingabe-/Bedienfehler: kurz protokollieren
+            applog.warn(f"{name}: {ex}")
+            raise
+        except Exception as ex:  # noqa: BLE001
+            applog.error(f"{name}: {ex}", ex)
+            raise
     method.__name__ = name
     method.__doc__ = f"Weitergereicht an Session.{name}"
     return method
@@ -811,14 +906,17 @@ def main(argv=None):
         port = int(argv[i + 1])
         del argv[i:i + 2]
     paths = [a for a in argv if not a.startswith("--")][:2]
+    applog.install_hooks()
     # nur eine Instanz: zwei gleichzeitige überschreiben sich die Einstellungen (z. B. nach einem Update)
     inst = instance.Instance()
     restart = os.environ.pop("TAGSTUDIO_RESTART", "") == "1"
     if not inst.acquire(wait=25.0 if restart else 2.0):
+        applog.info(f"Zweiter Start abgelehnt (PID {os.getpid()}): TagStudio läuft bereits")
         instance.already_running_message("TagStudio läuft bereits.\n\nBitte das offene Fenster verwenden oder es zuerst "
                                          "schliessen. (Zwei gleichzeitige Instanzen würden sich die Einstellungen "
                                          "gegenseitig überschreiben.)")
         return 0
+    applog.info(f"Start {VERSION} ({'Browser' if browser else 'Fenster'}, PID {os.getpid()})")
     api = Api(paths, argv)
     api._instance = inst
     if not browser:

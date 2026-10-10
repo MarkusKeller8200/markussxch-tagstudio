@@ -378,7 +378,8 @@ Darstellung · **Tagger** (Standardordner, Stems; *beim Start:* automatisch einl
 Cover-Spalte, Herkunfts-Filter) · Tag-Fixer · **Vergleich** (Standardordner; *beim Start:* Unterordner, Zuordnen nach,
 Anzeige, Unwichtige, Leere Felder, Cover – weicht der Vergleich davon ab, setzt ⌂ „Standard“ ihn zurück) ·
 Snapshots · Sicherungen und Speichern (ID3-Version, Sicherung) · Player · Plugins · Herkunft der Tags · unwichtige
-Felder · Cache · Updates. Jede Vorgabe „beim Start“ kann auch „wie zuletzt benutzt“ bleiben. **Exportieren**
+Felder · Cache · Updates · **Expert** (Diagnose mit Version, System und Pfaden zum Kopieren, Einstellungsdatei und
+Protokolle ansehen und durchsuchen – Zugangsdaten ausgeblendet). Jede Vorgabe „beim Start“ kann auch „wie zuletzt benutzt“ bleiben. **Exportieren**
 speichert alles als Datei (ohne Zugangsdaten), **Importieren** übernimmt gewählte Bereiche – Pfade eines anderen
 Systems sind nicht vorgewählt –, **Zurücksetzen** geht für einzelne Bereiche oder alles. Vor Import und
 Zurücksetzen wird die alte Datei nach `~/TagStudio/Einstellungen` gesichert.
@@ -392,9 +393,11 @@ Gespeichert wird in `~/.tagstudio.json`. Weitere Ordner unter `~/TagStudio`:
 | `Einstellungen` | Sicherungen der Einstellungsdatei vor Import/Zurücksetzen |
 | `Plugins` | eigene Plugins |
 | `Plugin-Daten` | z. B. Stems-Umgebung und Modelle, Beatport-Token (unter Windows verschlüsselt) |
-| `Logs` | Protokolle von Plugins und Installationen |
+| `Logs` | App-Protokoll `app.log` (Start, Ende, Fehler, Warnungen; ab 1 MB `app.log.1`), Protokolle von Plugins und Installationen |
 | `Auftraege.json` | offene Hintergrund-Aufträge (zum Fortsetzen nach einem Neustart) |
 | `Snapshots` | Snapshots überwachter Ordner (Speicherort einstellbar) |
+
+Daneben liegt `~/.tagstudio.lock`: solange TagStudio läuft, gesperrt (nur eine Instanz).
 
 Die unwichtigen Felder (`"trivial"`, Platzhalter `*`) und eigene Herkunfts-Zuordnungen (`"tag_origins"`) lassen sich
 in den Einstellungen bearbeiten.

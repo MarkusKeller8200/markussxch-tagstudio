@@ -97,11 +97,13 @@ async function settingsShow() {
         <label for="stUpdCh">Updates anbieten</label>${stSel("stUpdCh", [["stable", "nur offizielle Versionen"], ["beta", "auch Beta-Versionen (zum Testen)"]], d.update_channel)}
         <span></span><span class="muted sm">${d.update_channel === "stable" && /-/.test(d.version) ? "Du verwendest eine Beta – die nächste offizielle Version wird angeboten, sobald sie erscheint." : "Beta-Versionen erscheinen nur, solange eine neue Version in Arbeit ist."}</span>
         <span></span><div class="st-path"><button class="ghost sm" id="stUpdCheck">Jetzt nach Updates suchen</button><button class="ghost sm" id="stUpdNotes">Versionshinweise</button></div>
-      </div></section>`;
+      </div></section>
+    <section class="card" id="stExpertCard"><h3>Expert</h3><div class="st-row" id="stExpertRows"><span class="muted sm">…</span></div></section>`;
   stToc();
   stTrivRender();
   stCacheRender();
   stSnapRender();
+  stExpertRender();
   if (typeof originSettingsRender === "function") await originSettingsRender($("#stOriginCard"));
   stToc();
 }
@@ -224,6 +226,84 @@ async function stCacheRender(info) {
     <button class="ghost sm" data-cbuild="${k}" title="Für alle geladenen Titel (Tagger und Vergleich) neu erstellen">Erstellen</button><button class="ghost sm" data-cclear="${k}" ${c[k].count ? "" : "disabled"}>Leeren</button><button class="ghost sm" data-copen="${esc(c[k].dir)}">Ordner</button></div>`;
   $("#stCacheRows").innerHTML = `<span>Listen-Cache</span>${stCheck("stListCache", c.lists.on, "Tagger und Vergleich sofort aus dem Cache anzeigen, danach im Hintergrund über einen Hash je Titel auf Änderungen prüfen")}`
     + row("lists", "Listen") + row("wave", "Wellenformen") + row("covers", "Cover-Vorschauen");
+}
+
+// ---------------------------------------------------------------------- Expert (#133)
+async function stExpertRender() {
+  const box = $("#stExpertRows");
+  if (!box) return;
+  const [inf, logs] = await Promise.all([call("expert_info"), call("expert_logs")]);
+  ST.expert = inf;
+  const kb = (b) => (b < 1024 ? `${b} B` : b < 1048576 ? `${Math.round(b / 1024)} KB` : `${(b / 1048576).toFixed(1).replace(".", ",")} MB`);
+  const when = (t) => new Date(t * 1000).toLocaleString("de-CH", { dateStyle: "short", timeStyle: "short" });
+  box.innerHTML = inf.facts.map(([k, v]) => `<span>${esc(k)}</span><span class="x-val">${esc(v)}</span>`).join("")
+    + `<span>Einstellungsdatei</span><div class="st-path"><button class="ghost sm" id="stXConfig">Anzeigen …</button><button class="ghost sm" id="stXCopy" title="Version, System und Pfade für eine Fehlermeldung kopieren">Diagnose kopieren</button></div>`
+    + `<span>Protokolle</span><div class="x-logs">${logs.length ? logs.map((l) => `<button class="ghost sm" data-xlog="${esc(l.name)}" title="${esc(when(l.mtime))}">${esc(l.name)} <span class="faint">${kb(l.size)}</span></button>`).join("") : '<span class="muted sm">noch keine</span>'}<button class="ghost sm" id="stXLogs" title="Liste neu laden">↻</button></div>`
+    + inf.paths.map(([k, p]) => `<span>${esc(k)}</span><div class="st-path"><code class="x-path" title="${esc(p)}">${esc(p)}</code><button class="ghost sm" data-xreveal="${esc(p)}">Zeigen</button></div>`).join("");
+  stToc();
+}
+function stExpertText() {
+  const inf = ST.expert || { facts: [], paths: [] };
+  return ["MarKusSXCH TagStudio – Diagnose", ...inf.facts.map(([k, v]) => `${k}: ${v}`), "", ...inf.paths.map(([k, p]) => `${k}: ${p}`)].join("\n");
+}
+async function stCopyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* Fallback unten */ }
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  ta.remove();
+  return ok;
+}
+async function stExpertCopy() {
+  toast((await stCopyText(stExpertText())) ? "Diagnose kopiert." : "Kopieren nicht möglich.");
+}
+/** Textdatei ansehen: nur lesen, Suche mit Treffer-Zähler, kopieren, im Explorer zeigen */
+function stTextViewer(title, path, text, note) {
+  return modal({
+    title, wide: true,
+    html: `${note ? `<p class="muted sm" style="margin:0 0 6px">${esc(note)}</p>` : ""}
+      <div class="x-bar"><input class="inp" id="xFind" placeholder="Suchen …" spellcheck="false"><span class="muted sm" id="xHits"></span>
+        <button class="ghost sm" id="xCopy">Kopieren</button><button class="ghost sm" id="xShow">Im Ordner zeigen</button></div>
+      <textarea class="inp x-text" id="xText" readonly spellcheck="false"></textarea>
+      <div class="hint">${esc(path)}</div>`,
+    buttons: [{ label: "Schliessen", value: null, primary: true }],
+    onMount: (b) => {
+      const ta = $("#xText", b), inp = $("#xFind", b);
+      ta.value = text;
+      ta.scrollTop = /\.log/.test(path) ? ta.scrollHeight : 0;          // Protokolle: Ende zeigen
+      let pos = 0;
+      const find = (next) => {
+        const q = inp.value.toLowerCase();
+        if (!q) { $("#xHits", b).textContent = ""; return; }
+        const low = text.toLowerCase();
+        const hits = low.split(q).length - 1;
+        let i = low.indexOf(q, next ? pos + 1 : pos);
+        if (i < 0) i = low.indexOf(q);
+        $("#xHits", b).textContent = hits ? `${hits} Treffer` : "kein Treffer";
+        if (i >= 0) {
+          pos = i;
+          ta.focus(); ta.setSelectionRange(i, i + q.length);
+          const line = text.slice(0, i).split("\n").length;
+          ta.scrollTop = Math.max(0, (line - 5) * parseFloat(getComputedStyle(ta).lineHeight || "16"));
+          inp.focus();
+        }
+      };
+      inp.addEventListener("input", () => { pos = 0; find(false); });
+      inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); find(true); } });
+      $("#xCopy", b).onclick = async () => toast((await stCopyText(text)) ? "Kopiert." : "Kopieren nicht möglich.");
+      $("#xShow", b).onclick = () => call("reveal", path);
+    },
+  });
+}
+async function stExpertConfig() {
+  const r = await call("expert_config");
+  stTextViewer("Einstellungsdatei", r.path, r.text || "", r.error || "Nur lesen. Werte von Zugangsdaten (Token, Passwort) werden ausgeblendet; Schlüssel der Plugins liegen ohnehin nicht in dieser Datei.");
+}
+async function stExpertLog(name) {
+  const r = await call("expert_log", name);
+  stTextViewer(`Protokoll: ${name}`, r.path, r.text || "(leer)", "");
 }
 
 function stTrivRender() {
@@ -409,6 +489,11 @@ function initSettings() {
     else if (t.dataset.defpick) { const v = await call("pick_path", "", true, (S.settings.defaults || {})[t.dataset.defpick] || ""); if (v) stDefSet(t.dataset.defpick, v); else if (!S.settings.native) toast("Im Browser-Modus den Pfad eintragen."); }
     else if (t.dataset.defclear) stDefSet(t.dataset.defclear, "");
     else if (t.dataset.copen) call("open_folder", t.dataset.copen);
+    else if (t.dataset.xreveal) { if (!(await call("reveal", t.dataset.xreveal))) call("open_folder", t.dataset.xreveal); }
+    else if (t.id === "stXConfig") stExpertConfig();
+    else if (t.dataset.xlog) stExpertLog(t.dataset.xlog);
+    else if (t.id === "stXCopy") stExpertCopy();
+    else if (t.id === "stXLogs") stExpertRender();
     else if (t.id === "stTrivAdd") { const v = $("#stTrivIn").value.trim(); if (v) { await stTrivSet([...ST.data.trivial, v]); $("#stTrivIn").value = ""; } }
     else if (t.id === "stTrivDef") { if (await dialog({ title: "Standardliste wiederherstellen?", text: "Eigene Muster gehen verloren.", buttons: [{ label: "Abbrechen", value: null }, { label: "Wiederherstellen", value: true, primary: true }] })) stTrivSet(ST.data.trivial_default); }
     else if (t.dataset.k !== undefined && t.closest("#stTriv")) { const l = [...ST.data.trivial]; l.splice(+t.dataset.k, 1); stTrivSet(l); }

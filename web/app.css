@@ -715,6 +715,12 @@ span.xml-treeonly{display:contents}
 .st-groups .check{color:var(--fg)}
 .st-groups .n{color:var(--faint);font-size:12px;margin-left:4px}
 @media (max-width:700px){.st-row{grid-template-columns:1fr}}
+.x-val{overflow-wrap:anywhere}
+.x-logs{display:flex;flex-wrap:wrap;gap:6px}
+.x-path{font:12px ui-monospace,Consolas,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.x-bar{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.x-bar .inp{flex:1;height:34px}
+.x-text{width:100%;height:min(60vh,520px);padding:8px 10px;font:12px/1.45 ui-monospace,Consolas,monospace;resize:vertical;white-space:pre;overflow:auto}
 
 /* Herkunft der Tags */
 .src-b{display:inline-block;flex:none;margin-right:6px;padding:0 6px;border-radius:5px;font:600 10.5px/16px var(--font);vertical-align:1px;
