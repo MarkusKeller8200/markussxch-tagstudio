@@ -37,7 +37,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - DJ-Set: Optimieren grosser Sets deutlich schneller (1500 Titel ca. 4 s statt 20 s, Zeitlimit wird eingehalten);
   der BPM-Unterschied gilt jetzt in beide Richtungen gleich (Prozent bezogen auf den kleineren Wert); Hinweis
   „Optimiere …“ während der Berechnung. Rekordbox-XML ohne Kommentarfeld, damit ein Import eigene Kommentare
-  nicht überschreibt (#2, #4).
+  nicht überschreibt (#122).
 
 ## [3.5.0] – 2026-10-10
 
