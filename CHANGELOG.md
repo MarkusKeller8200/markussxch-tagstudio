@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [3.3.1] – 2026-10-10
+
 ### Neu
 - Vergleich: **Filter nach Herkunft** – Auswahl „Alle Herkünfte“ in der Werkzeugleiste (mit Anzahl je Herkunft des
   aktuellen Paars) oder Klick auf ein Kennzeichen; erneuter Klick zeigt wieder alle. Der Filter bleibt beim Wechsel

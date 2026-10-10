@@ -533,7 +533,7 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 ## Ausblick
 
-Zuletzt erschienen: **3.3.0 – Snapshots & Änderungsjournal** (Tag-Zustand überwachter Ordner festhalten,
+Zuletzt erschienen: **3.3.1** (Herkunfts-Filter im Vergleich, weitere beaTunes-/Beatport-Felder) nach **3.3.0 – Snapshots & Änderungsjournal** (Tag-Zustand überwachter Ordner festhalten,
 Änderungen anderer Programme erkennen und einzeln zurücknehmen, Snapshots im Vergleich, Schutz vor dem Überschreiben
 externer Änderungen, Listen-Cache für schnelles Einlesen, Player mit Stems-Umschaltung und A–B-Schleife,
 Standardordner). Davor: **3.2.0 – Wiedergabe & Herkunft**.
