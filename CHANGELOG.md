@@ -6,6 +6,14 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+- DJ-Set, Grundlage: neues Modul `setplan.py` bewertet und optimiert die Reihenfolge eines Sets nach
+  **Tonart** (Camelot-Rad: gleich, ±1, Paralleltonart, Energie-Sprung), **BPM** (auch Halb-/Doppeltempo,
+  maximaler Sprung einstellbar) und **Energie** (Feld ENERGY, sonst aus dem BPM geschätzt), wahlweise mit
+  Energieverlauf steigend, fallend oder Welle. Bis 15 Titel exakt, darüber schnelle Näherung; Start, Ende und
+  gesperrte Positionen bleiben fest; Titel ohne Tonart/BPM ans Ende oder neutral; Note 0–100 je Übergang und
+  für das ganze Set, vorher/nachher (#2).
+
 ## [3.5.0] – 2026-10-10
 
 ### Neu
