@@ -55,6 +55,7 @@ class TestFormats(unittest.TestCase):
         self.assertIn('Tonality="Am"', xml)
         self.assertIn('AverageBpm="124.00"', xml)
         self.assertIn("&lt;live&gt;", xml)
+        self.assertNotIn("Comments", xml)
         back = setexport.read_rekordbox(xml)
         self.assertEqual(back["playlists"]["Set 1"], [e["path"] for e in es])
         self.assertEqual(back["tracks"]["1"]["Name"], "Grüße <live>")

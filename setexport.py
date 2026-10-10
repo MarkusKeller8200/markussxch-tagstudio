@@ -72,8 +72,7 @@ def rekordbox_xml(entries, name: str = "TagStudio DJ-Set", version: str = "", no
             a["AverageBpm"] = f"{float(e['bpm']):.2f}"
         if e.get("key"):
             a["Tonality"] = keys.format_key(e["key"], notation)
-        if e.get("energy") is not None:
-            a["Comments"] = f"Energie {e['energy']}"
+        # kein „Comments“: beim Import in eine bestehende Sammlung könnte das eigene Kommentare überschreiben
         ET.SubElement(col, "TRACK", **a)
     pls = ET.SubElement(root, "PLAYLISTS")
     top = ET.SubElement(pls, "NODE", Type="0", Name="ROOT", Count="1")

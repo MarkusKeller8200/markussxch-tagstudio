@@ -33,6 +33,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - README: neue Abschnitte „DJ-Set“ sowie Spalten und Filter der Audio-Merkmale; Oberflächentests für DJ-Set,
   Exporte, Merkmal-Spalten und Ziehen auf die Player (#5).
 
+### Behoben
+- DJ-Set: Optimieren grosser Sets deutlich schneller (1500 Titel ca. 4 s statt 20 s, Zeitlimit wird eingehalten);
+  der BPM-Unterschied gilt jetzt in beide Richtungen gleich (Prozent bezogen auf den kleineren Wert); Hinweis
+  „Optimiere …“ während der Berechnung. Rekordbox-XML ohne Kommentarfeld, damit ein Import eigene Kommentare
+  nicht überschreibt (#2, #4).
+
 ## [3.5.0] – 2026-10-10
 
 ### Neu

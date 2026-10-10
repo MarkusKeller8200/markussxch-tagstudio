@@ -98,13 +98,15 @@ def key_kind(a: str | None, b: str | None) -> tuple[str, float]:
 
 
 def bpm_step(a: float | None, b: float | None) -> tuple[float | None, str]:
-    """Prozentualer BPM-Unterschied unter Berücksichtigung von Halb-/Doppeltempo."""
+    """Prozentualer BPM-Unterschied unter Berücksichtigung von Halb-/Doppeltempo.
+    Bezogen auf den kleineren der beiden verglichenen Werte – damit gilt a→b gleich wie b→a."""
     if not a or not b or a <= 0 or b <= 0:
         return None, ""
-    best, rel = abs(b - a) / a * 100, ""
-    for factor, name in ((2.0, "x2"), (0.5, "half")):
-        p = abs(b * factor - a) / a * 100
-        if p + 1e-9 < best:
+    best, rel = None, ""
+    for factor, name in ((1.0, ""), (2.0, "x2"), (0.5, "half")):
+        bb = b * factor
+        p = abs(bb - a) / min(a, bb) * 100
+        if best is None or p + 1e-9 < best:
             best, rel = p, name
     return best, rel
 
@@ -163,31 +165,68 @@ def transition(a: Track, b: Track, opts: Options) -> dict:
 
 # ---------------------------------------------------------------- Bewertung
 
+_KEY_TAB: dict = {}
+
+
+def _key_cost(a, b) -> float:
+    """Tonart-Kosten aus einer Tabelle (24×24 Codes + fehlend) – schnell bei grossen Sets."""
+    k = (a, b)
+    c = _KEY_TAB.get(k)
+    if c is None:
+        c = _KEY_TAB[k] = key_kind(a, b)[1]
+    return c
+
+
+def _curve_for(tracks: list[Track], opts: Options):
+    """Soll-Kurve über die Energie-Spanne des Sets; dazu die Energie je Titel."""
+    en = [energy_of(t)[0] for t in tracks]
+    known = [e for e in en if e is not None]
+    lo, hi = (min(known), max(known)) if known else (0, 100)
+    if hi - lo < 20:                       # flache Sets: Kurve trotzdem sichtbar
+        mid = (hi + lo) / 2
+        lo, hi = max(0, mid - 10), min(100, mid + 10)
+    return target_curve(opts.profile, len(tracks), lo, hi), en
+
+
 class _Model:
-    """Vorberechnete Kostenmatrix und Positionskosten für eine Titelmenge."""
+    """Vorberechnete Kostenmatrix und Positionskosten für eine Titelmenge.
+    Die Paarkosten sind dieselben wie in transition()["cost"], nur ohne Zwischen-Dicts berechnet."""
 
     def __init__(self, tracks: list[Track], opts: Options):
         self.tracks, self.opts, n = tracks, opts, len(tracks)
         self.n = n
-        self.T = [[0.0] * n for _ in range(n)]
-        for i in range(n):
-            for j in range(i + 1, n):
-                c = transition(tracks[i], tracks[j], opts)["cost"]
-                self.T[i][j] = self.T[j][i] = c
-        en = [energy_of(t)[0] for t in tracks]
-        known = [e for e in en if e is not None]
-        lo, hi = (min(known), max(known)) if known else (0, 100)
-        if hi - lo < 20:                       # flache Sets: Kurve trotzdem sichtbar
-            mid = (hi + lo) / 2
-            lo, hi = max(0, mid - 10), min(100, mid + 10)
-        self.curve = target_curve(opts.profile, n, lo, hi)
+        self.curve, en = _curve_for(tracks, opts)
         wsum = (opts.w_key + opts.w_bpm + opts.w_energy) or 1.0
-        pw = opts.w_energy / wsum
+        wk, wb, we, mj = opts.w_key / wsum, opts.w_bpm / wsum, opts.w_energy / wsum, opts.max_jump
+        ks = [t.key or None for t in tracks]
+        bs = [t.bpm if t.bpm and t.bpm > 0 else None for t in tracks]
+        T = self.T = [[0.0] * n for _ in range(n)]
+        for i in range(n):
+            ki, bi, ei, Ti = ks[i], bs[i], en[i], T[i]
+            for j in range(i + 1, n):
+                c = wk * _key_cost(ki, ks[j])
+                bj = bs[j]
+                if bi and bj:
+                    pct = min(abs(bj - bi) / min(bi, bj), abs(bj * 2.0 - bi) / min(bi, bj * 2.0),
+                              abs(bj * 0.5 - bi) / min(bi, bj * 0.5)) * 100
+                    c += wb * (pct / mj if pct < mj else 1.0) + (PENALTY if pct > mj else 0.0)
+                else:
+                    c += wb * 0.5
+                ej = en[j]
+                c += we * (abs(ei - ej) / 100 if ei is not None and ej is not None else 0.25)
+                Ti[j] = c
+                T[j][i] = c
         self.P = [[0.0] * n for _ in range(n)]          # P[track][position]
         if opts.profile != "none":
+            curve = self.curve
             for i, e in enumerate(en):
-                for p in range(n):
-                    self.P[i][p] = pw * (abs(e - self.curve[p]) / 100 if e is not None else 0.25)
+                Pi = self.P[i]
+                if e is None:
+                    for p in range(n):
+                        Pi[p] = we * 0.25
+                else:
+                    for p in range(n):
+                        Pi[p] = we * abs(e - curve[p]) / 100
 
     def cost(self, order: list[int]) -> float:
         c = sum(self.P[t][p] for p, t in enumerate(order))
@@ -199,20 +238,13 @@ def evaluate(tracks: list[Track], opts: Options | None = None) -> dict:
     opts = opts or Options()
     trs = [transition(a, b, opts) for a, b in zip(tracks, tracks[1:])]
     mean = sum(t["score"] for t in trs) / len(trs) if trs else 100.0
-    fit = None
+    fit, curve = None, None
     if opts.profile != "none" and tracks:
-        m = _Model(tracks, opts)
-        dev = []
-        for p, t in enumerate(tracks):
-            e, _ = energy_of(t)
-            if e is not None:
-                dev.append(abs(e - m.curve[p]))
+        curve, en = _curve_for(tracks, opts)
+        dev = [abs(e - curve[p]) for p, e in enumerate(en) if e is not None]
         fit = int(round(100 - sum(dev) / len(dev))) if dev else None
     score = mean if fit is None else 0.8 * mean + 0.2 * fit
-    return {
-        "score": int(round(score)), "transitions": trs, "energy_fit": fit,
-        "curve": _Model(tracks, opts).curve if opts.profile != "none" else None,
-    }
+    return {"score": int(round(score)), "transitions": trs, "energy_fit": fit, "curve": curve}
 
 
 # ---------------------------------------------------------------- Optimierung

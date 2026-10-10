@@ -242,7 +242,12 @@ function djSetOpt(k, v, delay = 0) {
 function djInit() {
   $("#djFromTagger").addEventListener("click", () => djAddFromTagger(false));
   $("#djAllTagger").addEventListener("click", () => djAddFromTagger(true));
-  $("#djOpt").addEventListener("click", () => djCall("dj_optimize"));
+  $("#djOpt").addEventListener("click", async () => {
+    const b = $("#djOpt"), n = DJ.st ? DJ.st.items.filter((r) => !r.missing).length : 0;
+    b.disabled = true; b.textContent = "Optimiere …";
+    if (n > 15) status(`Optimiere ${n} Titel – das dauert einige Sekunden …`, "info");
+    try { await djCall("dj_optimize"); } finally { if (DJ.st) djRender(); }
+  });
   $("#djExport").addEventListener("click", (e) => { e.stopPropagation(); djExportMenu(); });
   $("#djRevert").addEventListener("click", () => djCall("dj_revert"));
   $("#djClear").addEventListener("click", async () => {

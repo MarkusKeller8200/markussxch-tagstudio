@@ -64,6 +64,21 @@ class TestParts(unittest.TestCase):
         self.assertEqual((round(pct, 1), rel), (5.0, ""))
         self.assertEqual(setplan.bpm_step(None, 120), (None, ""))
 
+    def test_bpm_symmetric(self):
+        for a, b in ((60, 128), (120, 126), (87, 176), (124, 124)):
+            self.assertAlmostEqual(setplan.bpm_step(a, b)[0], setplan.bpm_step(b, a)[0])
+
+    def test_matrix_matches_transition(self):
+        """Die schnelle Kostenmatrix muss genau transition()["cost"] entsprechen – in beide Richtungen."""
+        tr = random_tracks(30, 9, missing=0.2)
+        for prof in ("none", "wave"):
+            o = Options(profile=prof, max_jump=4)
+            m = setplan._Model(tr, o)
+            for i in range(30):
+                for j in range(30):
+                    if i != j:
+                        self.assertAlmostEqual(m.T[i][j], setplan.transition(tr[i], tr[j], o)["cost"], places=12)
+
     def test_energy_estimate(self):
         self.assertEqual(setplan.energy_of(Track(1, energy=55)), (55, False))
         e, est = setplan.energy_of(Track(1, bpm=140))
