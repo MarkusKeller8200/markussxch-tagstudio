@@ -226,7 +226,7 @@ function drawTgList() {
     const tw = r.stems ? `<button class="tw" data-tw="${r.i}" aria-expanded="${TG.open.has(r.i)}" title="Stems ${TG.open.has(r.i) ? "zuklappen" : "aufklappen"}">${TG.open.has(r.i) ? "▾" : "▸"}</button>` : "";
     const name = v.child !== undefined ? `<span class="tw-ind">└</span><span class="nm"><b>${esc(r.stem || r.name)}</b></span><span class="sx">MP3</span>`
       : `${tw}<span class="nm">${esc(r.rel)}</span>${r.stems ? `<span class="stem-b" title="${esc(r.stems.map((x) => x.name + " (" + x.ext + ")").join(", "))}">${r.stems.length} Stems</span>` : ""}`;
-    h += `<div class="tg-row${TG.sel.has(r.i) ? " sel" : ""}${v.child !== undefined ? " child" : ""}" style="top:${k * TG_ROW}px" data-i="${r.i}" title="${esc(r.rel)}">
+    h += `<div class="tg-row${TG.sel.has(r.i) ? " sel" : ""}${v.child !== undefined ? " child" : ""}" style="top:${k * TG_ROW}px" data-i="${r.i}" title="${esc(r.rel)}" draggable="true">
       <span>${r.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</span>
       <span class="fn">${LAYOUT.tg_cover_col && v.child === undefined ? `<span class="tg-thumb${r.ch ? "" : " none"}"${r.ch ? ` data-ch="${r.ch}"` : ""}>${r.ch && TG_THUMBS.get(r.ch) ? `<img src="${TG_THUMBS.get(r.ch)}" alt="">` : ""}</span>` : ""}${name}${rateMini(r.rating, r.like)}</span><span>${esc(r.TIT2)}</span><span>${esc(r.TPE1)}</span><span>${esc(r.TALB)}</span>
       <span>${esc(r.TRCK)}</span><span>${esc(r.TDRC)}</span><span>${esc(r.TCON)}</span><span class="num">${esc(r.TBPM)}</span>

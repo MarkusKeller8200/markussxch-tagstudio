@@ -637,4 +637,59 @@ function initPlayer2(pp) {
       { label: "Rechts in Player B laden", run: () => dbLoad({ kind: "side", ref: "R" }) });
     showMenu(e.clientX, e.clientY, items);
   });
+  pl2DragInit();
+}
+
+// ====================================================================== #105 Titel per Ziehen laden
+const PL_DND = "application/x-tagstudio-track";
+/** Ziehen beginnt (Tagger, Vergleich, DJ-Set): Ziel im Player merken. t = {kind:"tag", ref} oder {kind:"pair", ref} */
+function plDragStart(e, t) {
+  try { e.dataTransfer.setData(PL_DND, JSON.stringify(t)); } catch (err) { return; }
+  e.dataTransfer.effectAllowed = e.dataTransfer.effectAllowed === "move" ? "copyMove" : "copy";
+  document.body.classList.add("pl-dragging");
+}
+
+function pl2DragInit() {
+  $("#tgInner").addEventListener("dragstart", (e) => {
+    const r = e.target.closest(".tg-row[data-i]"); if (!r) return;
+    plDragStart(e, { kind: "tag", ref: +r.dataset.i });
+  });
+  $("#pairsInner").addEventListener("dragstart", (e) => {
+    const r = e.target.closest(".pair[data-i]"); if (!r) return;
+    plDragStart(e, { kind: "pair", ref: +r.dataset.i });
+  });
+  document.addEventListener("dragend", () => {
+    document.body.classList.remove("pl-dragging");
+    $$(".player.drop-on").forEach((x) => x.classList.remove("drop-on"));
+  });
+  for (const [id, deck] of [["#player", "A"], ["#deckB", "B"]]) {
+    const el = $(id);
+    el.addEventListener("dragover", (e) => {
+      if (!e.dataTransfer.types.includes(PL_DND)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+      el.classList.add("drop-on");
+    });
+    el.addEventListener("dragleave", (e) => { if (!el.contains(e.relatedTarget)) el.classList.remove("drop-on"); });
+    el.addEventListener("drop", (e) => {
+      if (!e.dataTransfer.types.includes(PL_DND)) return;
+      e.preventDefault();
+      el.classList.remove("drop-on");
+      document.body.classList.remove("pl-dragging");
+      let t;
+      try { t = JSON.parse(e.dataTransfer.getData(PL_DND)); } catch (err) { return; }
+      plDropLoad(t, deck, e.clientX, e.clientY);
+    });
+  }
+}
+
+async function plDropLoad(t, deck, x, y) {
+  const load = (target) => (deck === "B" ? dbLoad(target, true) : plLoad(target, true));
+  if (t.kind === "tag") return load({ kind: "tag", ref: t.ref });
+  if (t.kind !== "pair") return;
+  if (S.cur !== t.ref) { PLAYER.noFollow = true; try { await selectPair(t.ref); } finally { PLAYER.noFollow = false; } }
+  showMenu(x, y, [
+    { label: `Links in Player ${deck} laden`, run: () => load({ kind: "side", ref: "L" }) },
+    { label: `Rechts in Player ${deck} laden`, run: () => load({ kind: "side", ref: "R" }) },
+  ]);
 }

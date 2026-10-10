@@ -290,6 +290,8 @@ function djInit() {
     row.classList.add("dragging");
     e.dataTransfer.effectAllowed = "move";
     try { e.dataTransfer.setData("text/plain", DJ.st.items[DJ.drag].path); } catch (err) { /* egal */ }
+    const it = DJ.st.items[DJ.drag];                 // #105: auch auf Player A/B ziehbar
+    if (!it.missing && typeof plDragStart === "function") plDragStart(e, { kind: "tag", ref: it.i });
   });
   list.addEventListener("dragover", (e) => {
     if (DJ.drag === null) return;

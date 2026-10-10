@@ -624,7 +624,7 @@ function drawPairWindow() {
     const p = S.pairs[S.visible[k]];
     const name = p.left || p.right;
     const other = p.left && p.right && p.left !== p.right ? ` · ↔ ${p.right}` : "";
-    html += `<button class="pair${p.i === S.cur ? " cur" : ""}${S.pairSel.has(p.i) ? " msel" : ""}" style="top:${k * ROW_H}px" data-i="${p.i}" title="${esc(p.left)}${p.right && p.right !== p.left ? "\n↔ " + esc(p.right) : ""}">
+    html += `<button class="pair${p.i === S.cur ? " cur" : ""}${S.pairSel.has(p.i) ? " msel" : ""}" style="top:${k * ROW_H}px" data-i="${p.i}" draggable="true" title="${esc(p.left)}${p.right && p.right !== p.left ? "\n↔ " + esc(p.right) : ""}">
       <span class="d d-${p.tag}"></span><span class="t"><span class="n">${esc(name)}</span><span class="s">${esc(p.info + other)}</span></span>${pairBpm(p)}${p.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</button>`;
   }
   inner.innerHTML = html;

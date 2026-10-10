@@ -212,6 +212,37 @@ class UiTest(unittest.TestCase):
         pop.close()
         self.assertTrue(self.until("!DET.on", 10))
 
+    def test_drag_to_player(self):
+        """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("plSetPref('layout','top'); plSetPref('deck2', true)")
+        time.sleep(0.4)
+        pg.drag_and_drop('.tg-row[data-i="2"] .nm', "#player")
+        self.assertTrue(self.until("PLAYER.ref === 2 && !PLAYER.audio.paused"))
+        self.assertEqual(pg.locator(".player.drop-on").count(), 0)
+        self.assertFalse(pg.evaluate("document.body.classList.contains('pl-dragging')"))
+        pg.drag_and_drop('.tg-row[data-i="1"] .nm', "#deckB")
+        self.assertTrue(self.until("DECKB.ref === 1 && !DECKB.audio.paused"))
+        # Hervorhebung während des Ziehens
+        pg.evaluate("""() => { const dt = new DataTransfer(); dt.setData(PL_DND, '{"kind":"tag","ref":0}');
+            document.querySelector('#player').dispatchEvent(new DragEvent('dragover', {dataTransfer: dt, bubbles: true, cancelable: true})); }""")
+        self.assertEqual(pg.locator("#player.drop-on").count(), 1)
+        pg.evaluate("document.dispatchEvent(new DragEvent('dragend'))")
+        self.assertEqual(pg.locator(".player.drop-on").count(), 0)
+        # Vergleich: Paar ziehen → links/rechts wählen
+        lib2 = os.path.join(self.dir, "lib2")
+        shutil.copytree(self.lib, lib2)
+        pg.click('.nav[data-module="compare"]')
+        pg.fill("#pathL", self.lib)
+        pg.fill("#pathR", lib2)
+        pg.evaluate("void compare(true)")
+        ok = self.until("S.pairs.length === 3", 10)
+        self.assertTrue(ok, pg.evaluate("JSON.stringify({n: S.pairs.length, dlg: !document.querySelector('#dialog').hidden && document.querySelector('#dialog').textContent.slice(0, 200), st: document.querySelector('#statusText') && document.querySelector('#statusText').textContent})"))
+        pg.drag_and_drop('.pair[data-i="0"]', "#player")
+        pg.click('#menu button:has-text("Rechts in Player A laden")')
+        self.assertTrue(self.until("PLAYER.kind === 'side' && PLAYER.ref === 'R' && S.cur === 0 && !PLAYER.audio.paused"))
+
     def test_tagger_feature_columns(self):
         """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""
         pg = self.pg

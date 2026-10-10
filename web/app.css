@@ -1113,3 +1113,7 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .ft-c{position:relative;min-width:0;padding:4px 0 5px;text-align:right;font-variant-numeric:tabular-nums;color:var(--dim);font-size:12.5px}
 .ft-c i{position:absolute;left:0;bottom:0;height:2px;border-radius:2px;background:var(--acc);opacity:.6}
 .tg-cover-col.on{color:var(--acc);border-color:var(--acc)}
+
+/* #105: Titel auf Player A/B ziehen */
+body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
+.player.drop-on{outline:2px solid var(--acc)!important;outline-offset:-2px;background:var(--acc-soft)}

@@ -27,6 +27,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   ihnen sortieren; das Suchfeld versteht **Zahlenfilter** wie `energy>=70`, `Energie ≥ 70`, `dance<40` oder
   `bpm:120-128`, auch kombiniert mit Text. Einstellungen › Tagger: Skala der Merkmale in den Dateien wählbar
   (0–100 oder 0–10 wie Lexicon); angezeigt wird immer 0–100, beim Lesen und Schreiben wird umgerechnet (#11).
+- Player: Titel per **Ziehen** laden – eine Zeile aus Tagger oder DJ-Set auf Player A oder B ziehen; ein Paar aus
+  dem Vergleich fragt beim Ablegen nach links oder rechts. Die Player sind beim Ziehen markiert, das Ziel unter der
+  Maus hervorgehoben (#105).
 
 ## [3.5.0] – 2026-10-10
 
