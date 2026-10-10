@@ -242,11 +242,50 @@ function bindLayout() {
 let updateInfo = null;
 function showUpdateBadge(st) {
   updateInfo = st;
-  const has = !!(st && st.ok && (st.behind || st.switch));
+  const rel = st && st.kind === "release";
+  const has = !!(st && st.ok && (rel ? st.newer : st.behind || st.switch));
   $("#updateDot").hidden = !has;
   $("#updateBtn").classList.toggle("has-update", has);
-  $("#updateLbl").textContent = has ? (st.behind ? `Update verfügbar (${st.behind})` : "Update verfügbar") : "Nach Update suchen";
-  $("#updateBtn").title = has ? `Neue Version auf GitHub (${st.branch}): ${st.behind} Änderung(en)` : "Nach neuer Version suchen";
+  const lv = rel && st.latest ? st.latest.version : "";
+  $("#updateLbl").textContent = has ? (rel ? `Update: ${lv}` : st.behind ? `Update verfügbar (${st.behind})` : "Update verfügbar") : "Nach Update suchen";
+  $("#updateBtn").title = has ? (rel ? `Neue Version ${lv}${st.latest.beta ? " (Beta)" : ""} auf GitHub` : `Neue Version auf GitHub (${st.branch}): ${st.behind} Änderung(en)`)
+    : `Nach neuer Version suchen (${(st && st.channel) === "beta" ? "auch Beta-Versionen" : "nur offizielle Versionen"})`;
+}
+
+/** Sehr einfache Markdown-Darstellung für Versionshinweise (#90): Überschriften, Listen, fett, Code, Links */
+function mdLite(md) {
+  const inl = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="#" data-url="$2">$1</a>');
+  let h = "", list = false;
+  for (const raw of String(md || "").split("\n")) {
+    const line = raw.replace(/\s+$/, "");
+    const li = line.match(/^\s*[-*] (.*)$/), hd = line.match(/^(#{1,4}) (.*)$/);
+    if (li) { if (!list) { h += "<ul>"; list = true; } h += `<li>${inl(li[1])}</li>`; continue; }
+    if (list && /^\s{2,}\S/.test(line)) { h = h.replace(/<\/li>$/, " " + inl(line.trim()) + "</li>"); continue; }
+    if (list) { h += "</ul>"; list = false; }
+    if (hd) h += `<h${Math.min(6, hd[1].length + 2)}>${inl(hd[2])}</h${Math.min(6, hd[1].length + 2)}>`;
+    else if (line.startsWith(">")) h += `<p class="md-note">${inl(line.replace(/^>\s?/, ""))}</p>`;
+    else if (line.trim()) h += `<p>${inl(line)}</p>`;
+  }
+  return h + (list ? "</ul>" : "");
+}
+
+/** #90: Versionshinweise – installierte Version (CHANGELOG) und neueste Version (GitHub) */
+async function showReleaseNotes() {
+  let r;
+  try { r = await call("release_notes"); } catch (e) { r = { version: S.settings.version, current: "", online: false, error: String(e.message || e) }; }
+  const nw = r.newer && r.latest;
+  const html = `<div class="rn">
+    ${nw ? `<section class="rn-new"><h3>Neu in ${esc(r.latest.version)}${r.latest.beta ? ' <span class="beta-b">Beta</span>' : ""}<span class="muted sm"> ${esc(r.latest.date || "")}</span></h3>
+      ${mdLite(r.latest.notes.replace(/^\*\*Download:\*\*.*$/m, "").replace(/^Die Installer sind nicht signiert.*$/m, ""))}
+      <p><a href="#" data-url="${esc(r.latest.url)}">Auf GitHub ansehen und herunterladen</a></p></section>` : ""}
+    <section><h3>Installiert: ${esc(r.version)}${r.beta ? ' <span class="beta-b">Beta</span>' : ""}</h3>
+      ${r.current ? mdLite(r.current) : '<p class="muted">Keine Versionshinweise gefunden.</p>'}
+      <p><a href="#" data-url="${esc(r.current_url || r.releases_url)}">Auf GitHub ansehen</a> · <a href="#" data-url="${esc(r.releases_url)}">Alle Versionen</a></p></section>
+    ${!r.online ? `<p class="muted sm">Neuere Versionen konnten nicht geprüft werden – keine Verbindung zu GitHub.</p>` : r.note ? `<p class="muted sm">${esc(r.note)}</p>` : !nw ? `<p class="muted sm">Das ist die neueste ${r.channel === "beta" ? "Version (inkl. Beta)" : "offizielle Version"}.</p>` : ""}
+  </div>`;
+  await modal({ title: "Versionshinweise", wide: true, html, buttons: [{ label: "Schliessen", value: null, primary: true }],
+    onMount: (b) => { b.onclick = (e) => { const a = e.target.closest(".rn [data-url]"); if (a) { e.preventDefault(); call("open_url", a.dataset.url); } }; } });
 }
 
 async function checkUpdateQuietly() {
@@ -258,6 +297,19 @@ async function runUpdate() {
   let st;
   try { st = await call("update_status", true); } catch (e) { st = { ok: false, error: String(e.message || e) }; }
   showUpdateBadge(st);
+  if (st.kind === "release") {                // installierte App: neue Version über den Installer (#89)
+    if (!st.ok) { await info("Update", (st.error || "GitHub ist nicht erreichbar.") + "\n\nBitte später nochmals versuchen."); return; }
+    if (!st.newer) { toast(st.note || `Du hast die neueste ${st.channel === "beta" ? "Version" : "offizielle Version"} (${st.version}).`); return; }
+    const lt = st.latest, win = /Win/.test(navigator.platform);
+    const asset = (lt.assets || []).find((a) => (win ? /\.exe$/i : /\.dmg$/i).test(a.name || ""));
+    const go = await modal({ title: `Neue Version ${lt.version}${lt.beta ? " (Beta)" : ""}`, wide: true,
+      html: `<div class="rn"><p>Installiert: <b>${esc(st.version)}</b> · neu: <b>${esc(lt.version)}</b>${lt.date ? ` vom ${esc(lt.date)}` : ""}</p>
+        ${mdLite(lt.notes.replace(/^\*\*Download:\*\*.*$/m, "").replace(/^Die Installer sind nicht signiert.*$/m, ""))}
+        <p class="muted sm">Herunterladen, TagStudio schliessen und den Installer ausführen – Einstellungen bleiben erhalten.</p></div>`,
+      buttons: [{ label: "Später", value: null }, { label: "Auf GitHub ansehen", value: "page" }, ...(asset ? [{ label: "Installer herunterladen", value: "dl", primary: true }] : [])] });
+    if (go === "dl") call("open_url", asset.url); else if (go === "page") call("open_url", lt.url);
+    return;
+  }
   if (!st.ok && st.frozen) {
     const go = await dialog({ title: "Update", text: st.error,
       buttons: [{ label: "Schliessen", value: null }, { label: "Releases auf GitHub öffnen", value: true, primary: true }] });
@@ -265,7 +317,7 @@ async function runUpdate() {
     return;
   }
   if (!st.ok) { await info("Update nicht möglich", st.error); return; }
-  if (!st.behind && !st.switch) { toast(`Du hast die neueste Version (${st.branch}, ${st.current}).`); return; }
+  if (!st.behind && !st.switch) { toast(st.note || `Du hast die neueste ${st.channel === "stable" ? "offizielle Version" : "Version"} (${st.version || st.branch}, ${st.current}).`); return; }
   const list = (st.commits || []).map((c) => "• " + c).join("\n");
   const head = st.switch && !st.behind
     ? `Der Zweig „${st.branch}“ wurde nach „${st.switch}“ verschoben – TagStudio wechselt auf „${st.switch}“ (gleicher Stand).`
@@ -410,7 +462,7 @@ async function init() {
   applyLayout();
   applyTheme();
   initTips();                       // #72
-  $("#ver").textContent = "Version " + st.version + (st.native ? "" : " · Browser");
+  $("#ver").innerHTML = `Version ${esc(st.version)}${/-/.test(st.version) ? ' <span class="beta-b" title="Vorabversion zum Testen">Beta</span>' : ""}${st.native ? "" : " · Browser"}`;
   $("#mode").innerHTML = st.modes.map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("");
   $("#mode").value = st.mode;
   $("#recursive").checked = !!st.recursive;
@@ -429,10 +481,14 @@ async function init() {
   if (typeof initJobs === "function") initJobs();
   if (typeof initSnapshots === "function") setTimeout(initSnapshots, 1200);
   $("#updateBtn").addEventListener("click", runUpdate);
+  $("#notesBtn").addEventListener("click", showReleaseNotes);                // #90
   setTimeout(checkUpdateQuietly, 1500);
   syncOptions();
   renderPairs();
   showView(null);
+  // #88: Startseite – mit Pfaden auf der Befehlszeile der Vergleich, sonst die zuletzt benutzte Seite (zuerst: Tagger)
+  const last = st.ui && st.ui.module;
+  setModule(st.start_paths.length ? "compare" : (last && last in MODULE_IDS ? last : "tagger"), { start: true });
   if (st.start_paths.length) compare(true);
 }
 
@@ -446,6 +502,7 @@ function applyTheme() {
   const dark = S.opts.theme !== "light";
   document.documentElement.dataset.theme = dark ? "dark" : "light";
   $("#themeLbl").textContent = dark ? "Helles Design" : "Dunkles Design";
+  if (S.settings && S.settings.native) call("set_titlebar", dark).catch(() => {});      // #103: Titelleiste im Theme
 }
 
 function syncOptions() {
@@ -453,6 +510,25 @@ function syncOptions() {
   $("#trivBtn").classList.toggle("on", !!S.opts.show_trivial);
   $("#coverBtn").classList.toggle("on", !!S.opts.show_covers);
   $("#emptySet").value = S.opts.empty_set;
+  cmpHomeSync();
+}
+
+/** #85: Knopf „Standard“ im Vergleich – nur sichtbar, wenn etwas von den Vorgaben abweicht */
+function cmpHomeSync() {
+  const d = (S.settings && S.settings.view_defaults && S.settings.view_defaults.compare) || {}, b = $("#cmpHome");
+  if (!b) return;
+  const cur = { filter: S.opts.filter, show_trivial: !!S.opts.show_trivial, empty_set: S.opts.empty_set, show_covers: !!S.opts.show_covers,
+    mode: $("#mode").value, recursive: $("#recursive").checked };
+  const diff = Object.keys(d).filter((k) => d[k] !== cur[k]);
+  b.hidden = !diff.length;
+  b.title = `Vergleich auf die Vorgaben zurücksetzen (Einstellungen › Vergleich) – abweichend: ${diff.length}`;
+}
+
+async function cmpHomeApply() {
+  const r = await call("cmp_defaults_apply");
+  $("#mode").value = r.mode;
+  $("#recursive").checked = !!r.recursive;
+  applyState(r);
 }
 
 // ====================================================================== Laden
@@ -1009,6 +1085,8 @@ function bind() {
   $("#trivBtn").addEventListener("click", async () => applyState(await call("set_option", "show_trivial", !S.opts.show_trivial)));
   $("#coverBtn").addEventListener("click", async () => applyState(await call("set_option", "show_covers", !S.opts.show_covers)));
   $("#emptySet").addEventListener("change", async (e) => applyState(await call("set_option", "empty_set", e.target.value)));
+  $("#cmpHome").addEventListener("click", cmpHomeApply);                     // #85
+  ["#mode", "#recursive"].forEach((s) => $(s).addEventListener("change", cmpHomeSync));
   let fq = null;
   $("#fieldQuery").addEventListener("input", (e) => { clearTimeout(fq); fq = setTimeout(async () => applyState(await call("set_option", "query", e.target.value)), 200); });
   $$("[data-copyall]").forEach((b) => b.addEventListener("click", () => copyAll(b.dataset.copyall)));
@@ -1116,6 +1194,7 @@ async function undoRedo(redo) {
 const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups", plugins: "modulePlugins", settings: "moduleSettings", snapshots: "moduleSnapshots" };
 function setModule(m, opts = {}) {
   S.module = m;
+  if (!opts.start && m in MODULE_IDS) call("set_ui", "module", m).catch(() => {});      // #88: zuletzt benutzte Seite
   $$(".nav[data-module]").forEach((b) => { b.classList.toggle("active", b.dataset.module === m); b.toggleAttribute("aria-current", b.dataset.module === m); });
   for (const [k, id] of Object.entries(MODULE_IDS)) $("#" + id).hidden = k !== m;
   $("#srcCompare").hidden = m !== "compare";

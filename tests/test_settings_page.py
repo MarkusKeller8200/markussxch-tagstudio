@@ -154,5 +154,51 @@ class TestDefaultDirs(unittest.TestCase):
             shutil.rmtree(d, ignore_errors=True)
 
 
+class TestViewDefaults(Base):
+    """#85/#86: Vorgaben für Vergleich und Tagger beim Start; „Auf Standard zurück“."""
+
+    def test_compare_tagger_defaults(self):
+        from session import Session
+        s = Session()
+        self.assertEqual(s.view_defaults(), {"compare": {}, "tagger": {}})
+        s.set_option("filter", "same")
+        s.set_view_default("compare", "filter", "diff")
+        s.set_view_default("compare", "recursive", True)
+        s.set_view_default("compare", "mode", "audio")
+        s.set_view_default("compare", "show_trivial", False)
+        with self.assertRaises(ValueError):
+            s.set_view_default("compare", "filter", "einige")
+        with self.assertRaises(ValueError):
+            s.set_view_default("compare", "recursive", 1)
+        with self.assertRaises(ValueError):
+            s.set_view_default("mitte", "filter", "all")
+        st = Session().settings()                                     # Neustart: Vorgaben gelten
+        self.assertEqual((st["options"]["filter"], st["options"]["show_trivial"], st["recursive"], st["mode"]),
+                         ("diff", False, True, "audio"))
+        self.assertEqual(st["view_defaults"]["compare"]["filter"], "diff")
+        s2 = Session()
+        s2.set_option("filter", "all")
+        r = s2.cmp_defaults_apply()
+        self.assertEqual((s2.opts["filter"], r["mode"], r["recursive"]), ("diff", "audio", True))
+        s2.set_view_default("compare", "filter", None)                # wieder „wie zuletzt“
+        s2.set_option("filter", "same")
+        self.assertEqual(Session().settings()["options"]["filter"], "same")
+        # Tagger
+        s2.set_view_default("tagger", "sort_col", "TBPM")
+        s2.set_view_default("tagger", "sort_dir", -1)
+        s2.set_view_default("tagger", "autoload", True)
+        s2.set_view_default("tagger", "stems_flat", True)
+        s2.set_view_default("tagger", "cover_col", True)
+        with self.assertRaises(ValueError):
+            s2.set_view_default("tagger", "sort_dir", 2)
+        s3 = Session()
+        ts = s3.tagger_settings()
+        self.assertEqual(ts["defaults"], {"sort_col": "TBPM", "sort_dir": -1, "autoload": True, "stems_flat": True,
+                                          "cover_col": True})
+        self.assertTrue(s3.settings()["ui"]["tg_cover_col"])
+        self.assertTrue(s3.settings_page()["stems_flat"])
+        self.assertIn("cmp_defaults", dict((g, k) for g, _l, k in appsettings.GROUPS)["view"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -103,9 +103,61 @@ class TestUpdater(unittest.TestCase):
         self.assertFalse(res["ok"])
         self.assertIn("a.txt", res["message"])
 
+    def test_stable_channel_stops_at_final_tag(self):
+        """#89: Kanal „stable“ lädt nur bis zur neuesten offiziellen Version (Tag), „beta“ bis zum Zweig."""
+        self._new_commit("3.5.0", "2\n")
+        git(self.dev, "tag", "v3.5.0")
+        git(self.dev, "push", "-q", "origin", "v3.5.0")
+        self._new_commit("Beta", "3\n")
+        git(self.dev, "tag", "v3.6.0-beta.1")
+        git(self.dev, "push", "-q", "origin", "v3.6.0-beta.1")
+        st = updater.status(True, self.app, channel="stable")
+        self.assertEqual((st["behind"], st["upstream"]), (1, "v3.5.0"))
+        self.assertTrue(updater.pull(self.app, channel="stable")["updated"])
+        with open(os.path.join(self.app, "a.txt")) as fh:
+            self.assertEqual(fh.read(), "2\n")
+        self.assertEqual(updater.status(True, self.app, channel="beta")["behind"], 1)
+        updater.pull(self.app, channel="beta")
+        st = updater.status(True, self.app, channel="stable")       # Beta weiter als offiziell → Hinweis
+        self.assertEqual(st["behind"], 0)
+        self.assertIn("Beta", st["note"])
+
     def test_not_a_repo(self):
         st = updater.status(False, self.dir)
         self.assertFalse(st["ok"])
+
+
+class TestReleases(unittest.TestCase):
+    """#89/#90: Versionen vergleichen, Kanal, Versionshinweise – ohne Netz."""
+    RELS = [{"tag": "v3.5.0-beta.1", "beta": True}, {"tag": "v3.4.0", "beta": False},
+            {"tag": "v3.5.0-beta.2", "beta": True}, {"tag": "v3.3.1", "beta": False}]
+
+    def test_versions(self):
+        pv = updater.parse_version
+        self.assertLess(pv("3.5.0-beta.2"), pv("3.5.0"))
+        self.assertLess(pv("v3.5.0-beta.2"), pv("3.5.0-beta.10"))
+        self.assertLess(pv("3.4.0"), pv("3.5.0-beta.1"))
+        self.assertIsNone(pv("web-ui"))
+        self.assertEqual(updater.newest(self.RELS, "stable")["tag"], "v3.4.0")
+        self.assertEqual(updater.newest(self.RELS, "beta")["tag"], "v3.5.0-beta.2")
+
+    def test_release_check(self):
+        rc = updater.release_check("3.4.0", "stable", self.RELS)
+        self.assertFalse(rc["newer"])
+        rc = updater.release_check("3.4.0", "beta", self.RELS)
+        self.assertTrue(rc["newer"] and rc["latest"]["tag"] == "v3.5.0-beta.2")
+        rc = updater.release_check("3.5.0-beta.2", "stable", self.RELS)    # Beta → offiziell: Hinweis
+        self.assertFalse(rc["newer"])
+        self.assertIn("Beta", rc["note"])
+        rc = updater.release_check("3.5.0-beta.2", "stable", self.RELS + [{"tag": "v3.5.0", "beta": False}])
+        self.assertTrue(rc["newer"])
+
+    def test_changelog_section(self):
+        log = "# C\n\n## [Unveröffentlicht]\n\n- neu\n\n## [3.4.0] – 2026\n\n### Neu\n- Player\n\n## [3.3.1]\n- x\n"
+        self.assertEqual(updater.changelog_section(log, "3.4.0"), "### Neu\n- Player")
+        self.assertEqual(updater.changelog_section(log, "3.5.0-beta.1"), "- neu")
+        self.assertEqual(updater.changelog_section(log, "9.9.9"), "")
+        self.assertIn("## [", updater.local_changelog())
 
 
 if __name__ == "__main__":

@@ -12,25 +12,50 @@ async function settingsShow() {
   const f = d.file;
   $("#stFile").textContent = `Datei: ${f.path}${f.exists ? "" : " (noch nicht angelegt)"} · Sicherungen vor Import/Zurücksetzen: ${f.backup_dir}`;
   const p = d.player;
+  const vd = d.view_defaults || { compare: {}, tagger: {} }, cd = vd.compare, td = vd.tagger;
   $("#stGrid").innerHTML = `
-    <section class="card"><h3>Darstellung</h3>
+    <section class="card" id="stLookCard"><h3>Darstellung</h3>
       <div class="st-row"><span>Design</span>
         <div class="seg" id="stTheme"><button data-v="dark"${d.theme !== "light" ? ' class="on"' : ""}>Dunkel</button><button data-v="light"${d.theme === "light" ? ' class="on"' : ""}>Hell</button></div>
         <label for="stNotation">Tonart-Schreibweise</label>${stSel("stNotation", d.notations, d.key_notation)}
-        <span>Tagger</span>${stCheck("stStemsFlat", d.stems_flat, "Stems als eigene Titel anzeigen (statt aufklappbar unter dem Original)")}
       </div></section>
-    <section class="card"><h3>Vergleich</h3>
+    <section class="card" id="stTaggerCard"><h3>Tagger</h3>
+      <div class="st-row">${stDefRow("tagger", "Standardordner")}
+        <span>Stems</span>${stCheck("stStemsFlat", d.stems_flat, "Stems als eigene Titel anzeigen (statt aufklappbar unter dem Original)")}
+      </div>
+      <h4 class="st-sub">Beim Start</h4>
+      <div class="st-row">
+        ${stVd("tagger", "autoload", "Ordner einlesen", [[true, "Standardordner automatisch einlesen"], [false, "nicht automatisch einlesen"]], td, "nicht automatisch einlesen")}
+        ${stVd("tagger", "recursive", "Unterordner", [[true, "einbeziehen"], [false, "nicht einbeziehen"]], td)}
+        ${stVd("tagger", "sort", "Sortierung", (d.tg_sort_cols || []).flatMap(([c, l]) => [[c + ":1", l + " ↑"], [c + ":-1", l + " ↓"]]), td.sort_col ? { sort: td.sort_col + ":" + (td.sort_dir || 1) } : {})}
+        ${stVd("tagger", "cover_col", "Cover-Spalte", [[true, "anzeigen"], [false, "ausblenden"]], td)}
+        ${stVd("tagger", "src_filter", "Herkunfts-Filter", [["-", "ohne Herkunft"], ...Object.entries(S.settings.origins || {}).filter(([, v]) => v.kind !== "plugin").map(([k, v]) => [k, v.name])], td, "alle Herkünfte")}
+      </div></section>
+    <section class="card" id="stFixerCard"><h3>Tag-Fixer</h3>
+      <p class="muted sm" style="margin:0">Mehrfachwerte, Gross-/Kleinschreibung, Suchen &amp; Ersetzen – die zuletzt benutzten Einstellungen merkt der Tag-Fixer selbst.</p>
+      <div><button class="ghost sm" id="stFixerGo" style="width:auto">Zum Tag-Fixer</button></div>
+    </section>
+    <section class="card" id="stCompareCard"><h3>Vergleich</h3>
       <p class="muted sm" style="margin:0">Standardordner stehen beim Start in den Pfadfeldern; weicht ein Feld ab (z. B. nach einem Snapshot-Vergleich), trägt ⌂ den Standard wieder ein.</p>
-      <div class="st-row">${stDefRow("left", "Standard links")}${stDefRow("right", "Standard rechts")}</div></section>
-    <section class="card"><h3>Tagger</h3>
-      <div class="st-row">${stDefRow("tagger", "Standardordner")}</div></section>
-    <section class="card"><h3>Speichern und Sicherungen</h3>
+      <div class="st-row">${stDefRow("left", "Standard links")}${stDefRow("right", "Standard rechts")}</div>
+      <h4 class="st-sub">Beim Start</h4>
+      <div class="st-row">
+        ${stVd("compare", "recursive", "Unterordner", [[true, "einbeziehen"], [false, "nicht einbeziehen"]], cd)}
+        ${stVd("compare", "mode", "Zuordnen nach", d.modes || [], cd)}
+        ${stVd("compare", "filter", "Anzeige", [["all", "Alle"], ["diff", "Unterschiede"], ["same", "Gleiche"]], cd)}
+        ${stVd("compare", "show_trivial", "Unwichtige", [[true, "anzeigen"], [false, "ausblenden"]], cd)}
+        ${stVd("compare", "empty_set", "Leere Felder", d.empty_sets || [], cd)}
+        ${stVd("compare", "show_covers", "Cover", [[true, "anzeigen"], [false, "ausblenden"]], cd)}
+        <span></span><span class="muted sm">Weicht der Vergleich von den Vorgaben ab, setzt ihn der Knopf ⌂ „Standard“ in der Werkzeugleiste zurück.</span>
+      </div></section>
+    <section class="card" id="stSnapCard"><h3>Snapshots</h3><div class="st-row" id="stSnapRows"><span class="muted sm">…</span></div></section>
+    <section class="card" id="stSaveCard"><h3>Sicherungen und Speichern</h3>
       <div class="st-row">
         <label for="stSaveVer">ID3-Version beim Speichern</label>${stSel("stSaveVer", [[0, "beibehalten (wie die Datei)"], [3, "immer ID3v2.3 (am verträglichsten)"], [4, "immer ID3v2.4"]], d.save_version)}
         <span>Sicherung</span>${stCheck("stBackup", d.backup_enabled, "Vor dem Speichern die bisherigen Tags sichern")}
         <span>Sicherungsordner</span><div class="st-path"><code title="${esc(d.backup_dir)}">${esc(d.backup_dir)}</code><button class="ghost sm" id="stBkFolder">Ändern …</button><button class="ghost sm" id="stBkOpen">Öffnen</button></div>
       </div></section>
-    <section class="card"><h3>Player</h3>
+    <section class="card" id="stPlayerCard"><h3>Player</h3>
       <div class="st-row">
         <label for="stPlStart">Startpunkt</label>${stSel("stPlStart", [["0", "ab Anfang"], ["30", "ab 30 %"], ["60", "ab 1:00"], ["cue", "ab 1. Cue"]], p.start)}
         <span>Anzeige</span>${stCheck("stPlWave", p.wave, "Wellenform anzeigen (einmal berechnet, im Cache)")}
@@ -51,25 +76,63 @@ async function settingsShow() {
         <span></span><span class="muted sm">${p.has_defaults ? "Ein Standard ist gespeichert." : "Noch kein Standard gespeichert – „Aktuelle als Standard speichern“ merkt die Einstellungen oben."}</span>
         <span>Externe Player</span><div class="st-path"><span>${d.players ? `${d.players} eingerichtet` : "keiner – Standardprogramm des Systems"}</span><button class="ghost sm" id="stPlayers">Einrichten …</button></div>
       </div></section>
-    <section class="card" id="stSnapCard"><h3>Snapshots</h3><div class="st-row" id="stSnapRows"><span class="muted sm">…</span></div></section>
+    <section class="card" id="stPluginCard"><h3>Plugins</h3>
+      <p class="muted sm" style="margin:0">Plugins ein-/ausschalten, Pakete installieren und Optionen festlegen – auf der Seite „Plugins“.</p>
+      <div><button class="ghost sm" id="stPlugins" style="width:auto">Zur Plugin-Seite</button></div>
+    </section>
     <section class="card" id="stOriginCard" hidden></section>
-    <section class="card"><h3>Unwichtige Felder</h3>
+    <section class="card" id="stTrivCard"><h3>Unwichtige Felder</h3>
       <p class="muted sm" style="margin:0">Felder, die sich zwischen Dateien fast immer unterscheiden (Analyse-Daten, Kodierer …). Im Vergleich lassen sie sich ausblenden und zählen nicht als Unterschied. Muster mit <code>*</code>, z. B. <code>TXXX:MusicBrainz*</code> oder <code>GEOB:*</code>.</p>
       <div class="st-chips" id="stTriv"></div>
       <div class="st-add"><input class="inp" id="stTrivIn" placeholder="Muster hinzufügen, z. B. TXXX:Serato*" spellcheck="false"><button class="ghost sm" id="stTrivAdd">Hinzufügen</button><button class="ghost sm" id="stTrivDef" title="Standardliste wiederherstellen">Standard</button></div>
     </section>
     <section class="card" id="stCache"><h3>Cache</h3><div class="st-row" id="stCacheRows"><span class="muted sm">…</span></div></section>
-    <section class="card"><h3>Plugins</h3>
-      <p class="muted sm" style="margin:0">Plugins ein-/ausschalten, Pakete installieren und Optionen festlegen – auf der Seite „Plugins“.</p>
-      <div><button class="ghost sm" id="stPlugins" style="width:auto">Zur Plugin-Seite</button></div>
-    </section>`;
+    <section class="card" id="stUpdateCard"><h3>Updates</h3>
+      <div class="st-row">
+        <span>Installiert</span><span>Version ${esc(d.version)}${/-/.test(d.version) ? ' <span class="beta-b">Beta</span>' : ""}</span>
+        <label for="stUpdCh">Updates anbieten</label>${stSel("stUpdCh", [["stable", "nur offizielle Versionen"], ["beta", "auch Beta-Versionen (zum Testen)"]], d.update_channel)}
+        <span></span><span class="muted sm">${d.update_channel === "stable" && /-/.test(d.version) ? "Du verwendest eine Beta – die nächste offizielle Version wird angeboten, sobald sie erscheint." : "Beta-Versionen erscheinen nur, solange eine neue Version in Arbeit ist."}</span>
+        <span></span><div class="st-path"><button class="ghost sm" id="stUpdCheck">Jetzt nach Updates suchen</button><button class="ghost sm" id="stUpdNotes">Versionshinweise</button></div>
+      </div></section>`;
+  stToc();
   stTrivRender();
   stCacheRender();
   stSnapRender();
-  if (typeof originSettingsRender === "function") originSettingsRender($("#stOriginCard"));
+  if (typeof originSettingsRender === "function") await originSettingsRender($("#stOriginCard"));
+  stToc();
 }
 
 /** #84: Zeile „Standardordner“ */
+/** #85/#86: Vorgabe beim Start – erste Option „wie zuletzt benutzt“ (keine Vorgabe) */
+function stVd(area, key, label, options, cur, none = "wie zuletzt benutzt") {
+  const has = Object.prototype.hasOwnProperty.call(cur, key), v = has ? JSON.stringify(cur[key]) : "";
+  const id = `stVd_${area}_${key}`;
+  return `<label for="${id}">${esc(label)}</label><select class="inp" id="${id}" data-vd="${area}:${key}">
+    <option value=""${has ? "" : " selected"}>${esc(none)}</option>
+    ${options.map(([val, l]) => { const j = JSON.stringify(val); return `<option value="${esc(j)}"${j === v ? " selected" : ""}>${esc(l)}</option>`; }).join("")}</select>`;
+}
+
+async function stVdSet(sel) {
+  const [area, key] = sel.dataset.vd.split(":"), raw = sel.value;
+  let r;
+  if (key === "sort") {
+    const [col, dir] = raw ? JSON.parse(raw).split(":") : [null, null];
+    await call("set_view_default", area, "sort_col", col);
+    r = await call("set_view_default", area, "sort_dir", dir === null ? null : +dir);
+  } else r = await call("set_view_default", area, key, raw ? JSON.parse(raw) : null);
+  S.settings.view_defaults = r;
+  if (typeof TG !== "undefined" && TG.settings) TG.settings.defaults = r.tagger;
+  if (typeof cmpHomeSync === "function") cmpHomeSync();
+  toast(raw ? "Vorgabe gespeichert – gilt ab dem nächsten Start." : "Keine Vorgabe – wie zuletzt benutzt.");
+}
+
+/** #87: Sprungmarken zu den Karten */
+function stToc() {
+  const box = $("#stToc");
+  if (!box) return;
+  box.innerHTML = $$("#stGrid > .card").filter((c) => !c.hidden && $("h3", c)).map((c) => `<button class="chip" data-goto="${c.id}">${esc($("h3", c).textContent)}</button>`).join("");
+}
+
 function stDefRow(k, label) {
   const v = (S.settings.defaults || {})[k] || "";
   return `<label for="stDef_${k}">${esc(label)}</label><div class="st-path"><input class="inp" id="stDef_${k}" data-defdir="${k}" value="${esc(v)}" placeholder="kein Standard – letzter Pfad wird verwendet" spellcheck="false">
@@ -311,6 +374,9 @@ function initSettings() {
   $("#stExport").addEventListener("click", () => stTransfer("export"));
   $("#stImport").addEventListener("click", () => stTransfer("import"));
   $("#stReset").addEventListener("click", () => stReset());
+  $("#stToc").addEventListener("click", (e) => {                         // #87: Sprungmarken
+    const b = e.target.closest("[data-goto]"); if (b) $("#" + b.dataset.goto)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
   const grid = $("#stGrid");
   grid.addEventListener("click", async (e) => {
     const t = e.target.closest("button"); if (!t) return;
@@ -324,6 +390,9 @@ function initSettings() {
     else if (t.id === "stPlDefApply") { const pp = await call("player_defaults", "apply"); plApplyPrefs(pp); toast("Player auf Standard zurückgesetzt."); settingsShow(); }
     else if (t.id === "stPlDefDel") { await call("player_defaults", "reset"); toast("Standard gelöscht."); settingsShow(); }
     else if (t.id === "stPlugins") setModule("plugins");
+    else if (t.id === "stFixerGo") setModule("fixer");
+    else if (t.id === "stUpdCheck") runUpdate();
+    else if (t.id === "stUpdNotes") showReleaseNotes();
     else if (t.id === "stSnapGo") setModule("snapshots");
     else if (t.dataset.cclear) {
       const what = t.dataset.cclear === "wave" ? "Wellenformen" : t.dataset.cclear === "lists" ? "Listen-Cache" : "Cover-Vorschauen";
@@ -407,6 +476,8 @@ function initSettings() {
     else if (t.id === "stPlXfAfter") plSetPref("xfade_after", +t.value);
     else if (t.id === "stPlXfSync") plSetPref("xfade_sync", t.checked);
     else if (t.id === "stPlXfRet") plSetPref("xfade_return", +t.value);
+    else if (t.dataset.vd) await stVdSet(t);
+    else if (t.id === "stUpdCh") { await call("set_update_channel", t.value); toast(t.value === "beta" ? "Updates: auch Beta-Versionen." : "Updates: nur offizielle Versionen."); settingsShow(); checkUpdateQuietly(); }
     else if (t.id === "stPlLayout") { pl2Pref("layout", t.value); await call("set_player_pref", "layout", t.value); settingsShow(); }
     else if (t.id === "stPlDeck2") plSetPref("deck2", t.checked);
     else if (t.id === "stPlStartmode") plSetPref("startmode", t.value);

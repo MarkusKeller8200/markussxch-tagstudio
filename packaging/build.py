@@ -71,6 +71,7 @@ def main():
             "--icon", os.path.join(PKG, "icon.ico" if win else "icon.png"),
             "--add-data", f"{os.path.join(ROOT, 'web')}{sep}web",
             "--add-data", f"{stage_plugins()}{sep}plugins",
+            "--add-data", f"{os.path.join(ROOT, 'CHANGELOG.md')}{sep}.",          # Versionshinweise in der App (#90)
             "--add-binary", f"{uv_binary()}{sep}.",
             "--paths", ROOT]
     for h in HIDDEN:

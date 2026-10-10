@@ -31,7 +31,8 @@ from version import VERSION  # einzige Versionsquelle
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
            "col_name": (int, float), "col_ratio": (int, float), "tg_edit_w": (int, float),
-           "tg_more_k": (int, float), "tg_col_name": (int, float), "tg_cover_col": bool}
+           "tg_more_k": (int, float), "tg_col_name": (int, float), "tg_cover_col": bool,
+           "module": str}                                    # #88: zuletzt benutzte Seite
 
 
 def fmt_bytes(n) -> str:
@@ -90,6 +91,16 @@ class Session:
         }
         ui = self.cfg.get("web_ui")
         self.ui = {k: v for k, v in (ui.items() if isinstance(ui, dict) else []) if k in UI_KEYS}
+        # #85/#86: Vorgaben beim Start (fehlende = wie zuletzt benutzt)
+        cd = self.view_defaults()["compare"]
+        for k in ("filter", "show_trivial", "empty_set", "show_covers"):
+            if k in cd:
+                self.opts[k] = cd[k]
+        td = self.view_defaults()["tagger"]
+        if "stems_flat" in td:
+            self.cfg["tagger_stems_flat"] = td["stems_flat"]
+        if "cover_col" in td:
+            self.ui["tg_cover_col"] = td["cover_col"]
         if getattr(self, "_plugins", None) is not None:
             self._plugins = None
         self._origins = None
@@ -100,8 +111,9 @@ class Session:
         return {
             "version": VERSION,
             "hist_left": c.get("hist_left", []), "hist_right": c.get("hist_right", []),
-            "mode": c.get("mode", "filename"), "modes": [[k, v] for k, v in PAIR_MODES.items()],
-            "recursive": c.get("recursive", False), "options": dict(self.opts),
+            "mode": self.view_defaults()["compare"].get("mode", c.get("mode", "filename")), "modes": [[k, v] for k, v in PAIR_MODES.items()],
+            "recursive": self.view_defaults()["compare"].get("recursive", c.get("recursive", False)),
+            "options": dict(self.opts), "view_defaults": self.view_defaults(),
             "empty_sets": [[k, v] for k, v in core.EMPTY_SETS.items()],
             "filter_ops": core.FILTER_OPS, "filter_sides": core.FILTER_SIDES,
             "ui": dict(self.ui), "player": self.player_prefs(at_start=True), "origins": self.origin_catalog(),
@@ -125,6 +137,84 @@ class Session:
         self.cfg[key] = path
         core.save_config({key: path})
         return {"ok": True, "defaults": self.default_dirs()}
+
+    # ------------------------------------------------------------------ Vorgaben beim Start (#85, #86)
+    TG_SORT_COLS = ("name", "TIT2", "TPE1", "TALB", "TRCK", "TDRC", "TCON", "TBPM", "camelot")
+
+    def _view_default_spec(self):
+        return {
+            "compare": {"recursive": (bool,), "mode": tuple(PAIR_MODES), "filter": ("all", "diff", "same"),
+                        "show_trivial": (bool,), "empty_set": tuple(core.EMPTY_SETS), "show_covers": (bool,)},
+            "tagger": {"recursive": (bool,), "sort_col": self.TG_SORT_COLS, "sort_dir": (1, -1), "cover_col": (bool,),
+                       "stems_flat": (bool,), "src_filter": (str,), "autoload": (bool,)},
+        }
+
+    def _view_default_ok(self, choices, v) -> bool:
+        if choices == (bool,):
+            return isinstance(v, bool)
+        if choices == (str,):
+            return isinstance(v, str) and len(v) <= 64
+        return not isinstance(v, bool) and v in choices
+
+    def view_defaults(self) -> dict:
+        """Gespeicherte Vorgaben je Bereich; nur gesetzte Schlüssel (fehlend = wie zuletzt benutzt)."""
+        out = {}
+        for area, spec in self._view_default_spec().items():
+            d = self.cfg.get(f"{'cmp' if area == 'compare' else 'tg'}_defaults")
+            d = d if isinstance(d, dict) else {}
+            out[area] = {k: v for k, v in d.items() if k in spec and self._view_default_ok(spec[k], v)}
+        return out
+
+    def set_view_default(self, area, key, value) -> dict:
+        """Eine Vorgabe setzen; value None = keine Vorgabe (wie zuletzt benutzt)."""
+        spec = self._view_default_spec().get(area)
+        if spec is None or key not in spec:
+            raise ValueError(f"Unbekannte Vorgabe: {area}/{key}")
+        if value is not None and not self._view_default_ok(spec[key], value):
+            raise ValueError(f"Ungültiger Wert für {key}")
+        cfg_key = f"{'cmp' if area == 'compare' else 'tg'}_defaults"
+        d = dict(self.view_defaults()[area])
+        if value is None:
+            d.pop(key, None)
+        else:
+            d[key] = value
+        self.cfg[cfg_key] = d
+        core.save_config({cfg_key: d})
+        return self.view_defaults()
+
+    def cmp_defaults_apply(self) -> dict:
+        """#85: Vergleich jetzt auf die Vorgaben zurücksetzen (Filter, Unwichtige, Leere, Cover, Zuordnung, Unterordner)."""
+        d = self.view_defaults()["compare"]
+        with self.lock:
+            for k in ("filter", "show_trivial", "empty_set", "show_covers"):
+                if k in d:
+                    self.opts[k] = d[k]
+                    self.cfg[k] = d[k]
+            save = {k: self.cfg[k] for k in ("filter", "show_trivial", "empty_set", "show_covers") if k in d}
+            for k in ("mode", "recursive"):
+                if k in d:
+                    self.cfg[k] = d[k]
+                    save[k] = d[k]
+            if save:
+                core.save_config(save)
+            st = self.state("Vergleich auf die Vorgaben zurückgesetzt." if d else "Keine Vorgaben gespeichert (Einstellungen › Vergleich).")
+            st["mode"] = self.cfg.get("mode", "filename")
+            st["recursive"] = bool(self.cfg.get("recursive", False))
+            return st
+
+    # ------------------------------------------------------------------ Update-Kanal (#89)
+    def update_channel(self) -> str:
+        ch = self.cfg.get("update_channel")
+        if ch in ("stable", "beta"):
+            return ch
+        return "beta" if "-" in VERSION else "stable"
+
+    def set_update_channel(self, channel) -> str:
+        if channel not in ("stable", "beta"):
+            raise ValueError("stable oder beta erwartet")
+        self.cfg["update_channel"] = channel
+        core.save_config({"update_channel": channel})
+        return channel
 
     def set_ui(self, name: str, value):
         """Layout merken (Breiten der Splitter, eingeklappte Seitenleiste)."""
@@ -1001,6 +1091,11 @@ class Session:
                 "backup_enabled": c.get("backup_enabled", True), "backup_dir": self._backup_folder(),
                 "player": self.player_prefs(), "players": len(c.get("players") or []),
                 "stems_flat": bool(c.get("tagger_stems_flat")),
+                "update_channel": self.update_channel(), "version": VERSION,
+                "view_defaults": self.view_defaults(), "modes": [[k, v] for k, v in PAIR_MODES.items()],
+                "empty_sets": [[k, v] for k, v in core.EMPTY_SETS.items()],
+                "tg_sort_cols": [["name", "Datei"], ["TIT2", "Titel"], ["TPE1", "Künstler"], ["TALB", "Album"], ["TRCK", "Spur"],
+                                 ["TDRC", "Jahr"], ["TCON", "Genre"], ["TBPM", "BPM"], ["camelot", "Tonart"]],
                 "groups": [[g, label] for g, label, _k in appsettings.GROUPS]}
 
     def set_trivial(self, patterns) -> list:
@@ -1899,7 +1994,9 @@ class Session:
         return v
 
     def tagger_settings(self):
-        return {"hist": self.cfg.get("hist_tagger", []), "recursive": self.cfg.get("tagger_recursive", False),
+        td = self.view_defaults()["tagger"]
+        return {"hist": self.cfg.get("hist_tagger", []), "recursive": td.get("recursive", self.cfg.get("tagger_recursive", False)),
+                "defaults": td,
                 "default": str(self.cfg.get("default_tagger") or ""),
                 "fields": [[k, label, ph] for k, label, ph in tagger.FIELDS],
                 "features": [[n, label, desc] for n, label, desc in features.FEATURES],

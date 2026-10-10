@@ -17,8 +17,12 @@ async function taggerShow() {
     $("#tgPath").value = TG.settings.default || TG.settings.hist[0] || "";      // #84: Standardordner
     if (typeof homeSync === "function") homeSync();
     $("#tgRec").checked = !!TG.settings.recursive;
+    const td = TG.settings.defaults || {};                                    // #86: Vorgaben beim Start
+    if (td.sort_col) TG.sort = { col: td.sort_col, dir: td.sort_dir === -1 ? -1 : 1 };
+    if (td.src_filter) TG.srcFilter = td.src_filter;
     renderTgHead();
     renderTgEditor();
+    if (td.autoload && $("#tgPath").value && !TG.loaded) { await taggerLoad(); return; }
   }
   if (!TG.loaded) drawTgList();
   else await taggerRefresh();
@@ -88,10 +92,13 @@ function tgApplyOrder() {
   let idx = TG.rows.filter((r) => r.parent === undefined).map((r) => r.i);   // Stems hängen unter dem Original
   if (q) idx = idx.filter((i) => { const r = TG.rows[i]; return [r.rel, r.TIT2, r.TPE1, r.TALB, r.TCON, r.TPE2].some((v) => (v || "").toLowerCase().includes(q)); });
   const bpmNum = (v) => { const n = parseFloat(String(v || "").replace(",", ".")); return isFinite(n) ? n : Infinity; };
-  const key = (r) => (col === "name" ? r.rel : col === "camelot" ? keySortValue(r.camelot) : col === "TRCK" ? trackNum(r.TPOS) * 10000 + trackNum(r.TRCK)
+  const key = (r) => (col === "name" ? r.rel : col === "camelot" ? keySortValue(r.camelot) : col === "TRCK" ? (r.TPOS ? trackNum(r.TPOS) : 0) * 10000 + trackNum(r.TRCK)
     : col === "TBPM" ? bpmNum(r.TBPM) : (r[col] || ""));
   idx.sort((a, b) => {
     const x = key(TG.rows[a]), y = key(TG.rows[b]);
+    const ex = x === "" || x === Infinity || x === 999, ey = y === "" || y === Infinity || y === 999;
+    if (ex !== ey) return ex ? 1 : -1;                     // leere Werte immer ans Ende, auch absteigend
+    if (ex) return a - b;
     const c = typeof x === "number" ? x - y : String(x).localeCompare(String(y), "de", { numeric: true, sensitivity: "base" });
     return c * dir || a - b;
   });

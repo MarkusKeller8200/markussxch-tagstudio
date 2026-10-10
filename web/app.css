@@ -693,7 +693,7 @@ span.xml-treeonly{display:contents}
 .st-row>label:first-child,.st-row>span:first-child{color:var(--dim)}
 .st-row .inp{height:34px}
 .st-row .seg{width:max-content}
-.st-path{display:flex;gap:6px;min-width:0;align-items:center}
+.st-path{display:flex;flex-wrap:wrap;gap:6px;min-width:0;align-items:center}
 .st-path code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
 .st-chips{display:flex;flex-wrap:wrap;gap:5px;max-height:220px;overflow:auto;padding:2px}
 .st-chip{display:inline-flex;align-items:center;gap:2px;padding:2px 3px 2px 9px;border-radius:99px;background:var(--raise);font:12px var(--mono)}
@@ -1013,3 +1013,27 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 
 .player .pl-bpm.synced{color:var(--acc);font-weight:600}
 .pw-wrap .pl-tag{width:28px;height:28px;font-size:14px}
+
+/* Einstellungen: Sprungmarken und Unterüberschriften (#87, #85/#86) */
+.st-toc{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px}
+.st-toc .chip{border:1px solid var(--line);background:var(--surf);color:var(--dim);border-radius:99px;padding:4px 11px;font:600 12px var(--font);cursor:pointer}
+.st-toc .chip:hover{color:var(--acc);border-color:var(--acc)}
+.st-sub{margin:12px 0 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--faint)}
+.st-grid>.card{scroll-margin-top:12px}
+
+/* Updates und Versionshinweise (#89, #90) */
+.beta-b{display:inline-block;margin-left:4px;padding:0 6px;border-radius:99px;background:#F5A62333;color:#C77D00;font:700 10.5px/16px var(--font);letter-spacing:.03em;vertical-align:1px}
+[data-theme="dark"] .beta-b{color:#F5B54A}
+.nav.nav-sub{height:30px;font-size:12.5px;color:var(--dim)}
+.nav.nav-sub .i{width:16px;height:16px}
+.rn{max-height:62vh;overflow:auto;font-size:13.5px;line-height:1.5}
+.rn h3{margin:4px 0 6px;font-size:15px}
+.rn h4,.rn h5{margin:10px 0 4px;font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.03em}
+.rn ul{margin:4px 0 8px;padding-left:20px}
+.rn li{margin:2px 0}
+.rn section{padding:10px 0;border-bottom:1px solid var(--line)}
+.rn section:last-of-type{border-bottom:0}
+.rn .rn-new{background:var(--acc-soft);border-radius:10px;padding:10px 14px;border:0;margin-bottom:8px}
+.rn code{font-family:var(--mono);font-size:12px}
+.rn a{color:var(--acc)}
+.md-note{color:var(--dim);font-style:italic}

@@ -27,6 +27,7 @@ sys.path.insert(0, HERE)
 
 from session import Session  # noqa: E402
 import updater  # noqa: E402
+from version import VERSION  # noqa: E402
 
 APP = "MarKusSXCH TagStudio"
 WEB = os.path.join(HERE, "web")
@@ -38,7 +39,7 @@ _PASS = {
     "fixer_settings", "fixer_preview", "fixer_apply",
     "backups", "set_backup", "start_backup_check", "start_restore", "backup_diff", "delete_backup",
     "start_tag_load", "tagger_settings", "tag_rows", "tag_detail", "tag_set", "tag_set_rating", "player_mark", "tag_remove", "tag_add_field",
-    "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml", "tag_blob", "tag_blob_set", "blob_pretty", "players", "set_players", "play_external", "wave_save", "settings_page", "set_trivial", "set_save_version", "set_player_pref", "player_defaults", "set_player_window", "bus_post", "bus_poll", "bus_peer", "bus_reset", "bus_sync", "media_cover", "settings_export_text", "settings_import_preview", "settings_import", "settings_reset", "tag_origins", "set_tag_origins", "tag_origin_remove", "jobs_status", "job_cancel", "jobs_cancel_all", "jobs_clear", "jobs_resume", "tag_attach_stems", "set_stems_flat", "tag_stem_tags", "set_origin_std_badge", "set_origin_ver_badge", "set_origin_label", "cache_info", "cache_clear", "set_list_cache", "verify_status", "tag_cover_thumb", "reload_pair", "set_default_dir", "start_cache_build", "compare_origin_remove", "save_conflicts", "save_merge_external", "snap_overview", "snap_list", "snap_add_library", "snap_remove_library", "snap_update_library", "snap_update", "snap_delete", "snap_prune", "snap_create", "snap_startup", "snap_set", "start_snap_journal", "snap_revert", "start_snap_move", "snap_detect", "snap_use", "snap_ignore", "snap_watch", "snap_watch_ack",
+    "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml", "tag_blob", "tag_blob_set", "blob_pretty", "players", "set_players", "play_external", "wave_save", "settings_page", "set_trivial", "set_save_version", "set_player_pref", "player_defaults", "set_player_window", "bus_post", "bus_poll", "bus_peer", "bus_reset", "bus_sync", "media_cover", "settings_export_text", "settings_import_preview", "settings_import", "settings_reset", "tag_origins", "set_tag_origins", "tag_origin_remove", "jobs_status", "job_cancel", "jobs_cancel_all", "jobs_clear", "jobs_resume", "tag_attach_stems", "set_stems_flat", "tag_stem_tags", "set_origin_std_badge", "set_origin_ver_badge", "set_origin_label", "cache_info", "cache_clear", "set_list_cache", "verify_status", "tag_cover_thumb", "reload_pair", "set_default_dir", "set_view_default", "cmp_defaults_apply", "start_cache_build", "compare_origin_remove", "save_conflicts", "save_merge_external", "snap_overview", "snap_list", "snap_add_library", "snap_remove_library", "snap_update_library", "snap_update", "snap_delete", "snap_prune", "snap_create", "snap_startup", "snap_set", "start_snap_journal", "snap_revert", "start_snap_move", "snap_detect", "snap_use", "snap_ignore", "snap_watch", "snap_watch_ack",
     "tag_case_modes", "tag_case", "tag_replace", "tag_folder_cover", "tag_key_notation", "tag_key_set", "tag_key_convert", "tag_feature_set", "tag_features_open",
     "plugins_list", "plugin_enable", "plugin_actions", "plugin_form", "start_plugin_action", "start_plugin_install", "plugin_apply",
 }
@@ -212,6 +213,10 @@ class Api:
         except Exception as ex:  # noqa: BLE001
             return {"ok": False, "error": f"Fenster konnte nicht geöffnet werden: {ex}"}
         self._pwin = w
+        try:
+            w.events.shown += lambda: titlebar_theme(w, getattr(self, "_dark", True))
+        except Exception:  # noqa: BLE001
+            pass
 
         def closed():
             self._pwin = None
@@ -310,10 +315,39 @@ class Api:
 
     # ---------- Update
     def update_status(self, fetch=True):
-        """Gibt es auf GitHub eine neue Version?"""
-        st = updater.status(bool(fetch))
+        """Gibt es auf GitHub eine neue Version? Installierte App: über die GitHub-Releases (#89), Quellcode: über git."""
+        ch = self._s.update_channel()
+        if updater.frozen():
+            st = updater.release_check(VERSION, ch) if fetch else {"ok": False, "error": None}
+            st.update(kind="release", frozen=True, channel=ch, version=VERSION, behind=1 if st.get("newer") else 0)
+        else:
+            st = updater.status(bool(fetch), channel=ch)
+            st.update(kind="git", version=VERSION)
         st["unsaved"] = self._s.unsaved()
         return st
+
+    def release_notes(self):
+        """#90: Versionshinweise der installierten Version (CHANGELOG) und – falls neuer – der neuesten auf GitHub."""
+        ch = self._s.update_channel()
+        out = {"version": VERSION, "beta": updater.is_beta(VERSION), "channel": ch, "releases_url": updater.RELEASES_URL,
+               "current": updater.changelog_section(updater.local_changelog(), VERSION)}
+        rc = updater.release_check(VERSION, ch)
+        out.update(online=rc.get("ok", False), error=rc.get("error"), newer=rc.get("newer", False), note=rc.get("note"))
+        lt = rc.get("latest")
+        if lt:
+            out["latest"] = {k: lt[k] for k in ("version", "beta", "url", "notes", "date")}
+            out["current_url"] = f"{updater.RELEASES_URL}/tag/v{VERSION}"
+        return out
+
+    def set_titlebar(self, dark=True):
+        """#103: Titelleiste(n) der App-Fenster an das Theme anpassen (nur Windows, sonst ohne Wirkung)."""
+        self._dark = bool(dark)
+        ok = titlebar_theme(self._window, self._dark)
+        titlebar_theme(self._pwin, self._dark)
+        return ok
+
+    def set_update_channel(self, channel):
+        return self._s.set_update_channel(channel)
 
     def apply_update(self):
         """Neue Version holen (git pull, nur Vorspulen). Danach restart() aufrufen."""
@@ -321,7 +355,7 @@ class Api:
             return {"ok": False, "message": "Bitte zuerst speichern oder die Änderungen verwerfen."}
         if self._s.task.get("running"):
             return {"ok": False, "message": "Es läuft noch ein Vorgang."}
-        return updater.pull()
+        return updater.pull(channel=self._s.update_channel())
 
     def restart(self):
         """Programm mit dem neuen Stand neu starten (gleiche Pfade, im Browser-Modus gleiche Adresse)."""
@@ -521,8 +555,40 @@ def run_browser(api: Api, port=0, open_browser=True):
 
 
 # =========================================================================== App-Fenster (pywebview)
+def _app_user_model_id():
+    """#103 Windows: eigene App-Kennung, damit die Taskleiste das TagStudio-Symbol zeigt (nicht das von Python)."""
+    if sys.platform.startswith("win"):
+        try:
+            import ctypes
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("ch.markussxch.tagstudio")
+        except Exception:  # noqa: BLE001
+            pass
+
+
+def titlebar_theme(win, dark: bool) -> bool:
+    """#103 Windows 10/11: Titelleiste hell/dunkel wie das Theme der App (statt wie das System).
+    Windows 11 zusätzlich in der Hintergrundfarbe der Seitenleiste."""
+    if win is None or not sys.platform.startswith("win"):
+        return False
+    try:
+        import ctypes
+        hwnd = int(win.native.Handle.ToInt32())
+        dwm = ctypes.windll.dwmapi
+        val = ctypes.c_int(1 if dark else 0)
+        for attr in (20, 19):          # DWMWA_USE_IMMERSIVE_DARK_MODE (ab 20H1 = 20, davor 19)
+            if dwm.DwmSetWindowAttribute(hwnd, attr, ctypes.byref(val), 4) == 0:
+                break
+        rgb = (0x0E, 0x10, 0x14) if dark else (0xEC, 0xEE, 0xF3)      # --side
+        color = ctypes.c_int(rgb[0] | (rgb[1] << 8) | (rgb[2] << 16))
+        dwm.DwmSetWindowAttribute(hwnd, 35, ctypes.byref(color), 4)  # DWMWA_CAPTION_COLOR (Windows 11)
+        return True
+    except Exception:  # noqa: BLE001 – anderes System / ältere pywebview
+        return False
+
+
 def run_window(api: Api):
     import webview
+    _app_user_model_id()
     win = webview.create_window(APP, url=os.path.join(WEB, "index.html"), js_api=api,
                                 width=1440, height=920, min_size=(1000, 640), background_color="#121419")
     api._window = win
@@ -538,7 +604,11 @@ def run_window(api: Api):
         win.events.closed += api.player_window_close      # abgedockten Player mit schliessen (#69)
     except Exception:  # noqa: BLE001 – ältere pywebview-Versionen
         pass
-    webview.start()
+    icon = os.path.join(WEB, "icon.ico" if sys.platform.startswith("win") else "icon.png")
+    try:
+        webview.start(icon=icon if os.path.isfile(icon) else None)     # #103: TagStudio-Symbol statt Python
+    except TypeError:                                                    # ältere pywebview-Versionen
+        webview.start()
     return 0
 
 

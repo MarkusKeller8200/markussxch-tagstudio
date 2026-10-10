@@ -46,7 +46,7 @@ def available(cwd=HERE) -> str | None:
     return None
 
 
-def status(fetch: bool = True, cwd=HERE) -> dict:
+def status(fetch: bool = True, cwd=HERE, channel: str = "beta") -> dict:
     """Vergleicht den lokalen Stand mit GitHub.
     → {"ok", "error", "branch", "behind", "ahead", "commits": [Betreff…], "dirty": [Dateien…], "current"}"""
     err = available(cwd)
@@ -62,7 +62,7 @@ def status(fetch: bool = True, cwd=HERE) -> dict:
         upstream = f"origin/{MOVED[branch]}"      # alter Zweig auf GitHub gelöscht → trotzdem umstellen
     remote = upstream.split("/", 1)[0]
     if fetch:
-        code, _, err = _git(["fetch", "--quiet", remote], cwd, timeout=90)
+        code, _, err = _git(["fetch", "--quiet", "--tags", remote], cwd, timeout=90)
         if code != 0:
             return {"ok": False, "error": f"GitHub ist nicht erreichbar:\n{err}", "branch": branch}
     switch = None
@@ -72,6 +72,14 @@ def status(fetch: bool = True, cwd=HERE) -> dict:
         if _git(["rev-parse", "--verify", "--quiet", ref], cwd)[0] == 0 \
                 and _git(["merge-base", "--is-ancestor", "HEAD", ref], cwd)[0] == 0:
             upstream, switch = ref, target
+    note = None
+    if channel == "stable":                      # #89: nur offizielle Versionen → bis zum neuesten Versions-Tag
+        tag = final_tag_target(cwd)
+        if tag and _git(["merge-base", "--is-ancestor", "HEAD", tag], cwd)[0] == 0:
+            upstream, switch = tag, None
+        else:
+            upstream, switch = "HEAD", None
+            note = "Du bist auf einem neueren Stand als die letzte offizielle Version (Beta). Die nächste offizielle Version wird angeboten, sobald sie erscheint."
     _, counts, _ = _git(["rev-list", "--left-right", "--count", f"HEAD...{upstream}"], cwd)
     ahead, behind = (int(x) for x in (counts.split() + ["0", "0"])[:2])
     _, log, _ = _git(["log", "--format=%s", f"HEAD..{upstream}"], cwd)
@@ -79,12 +87,12 @@ def status(fetch: bool = True, cwd=HERE) -> dict:
     _, cur, _ = _git(["log", "-1", "--format=%h · %cd", "--date=format:%d.%m.%Y %H:%M"], cwd)
     return {"ok": True, "error": None, "branch": branch, "upstream": upstream, "behind": behind, "ahead": ahead,
             "commits": [c for c in log.splitlines() if c][:30], "dirty": [d.split(maxsplit=1)[-1] for d in dirty.splitlines() if d.strip()],
-            "current": cur, "switch": switch}
+            "current": cur, "switch": switch, "channel": channel, "note": note}
 
 
-def pull(cwd=HERE) -> dict:
+def pull(cwd=HERE, channel: str = "beta") -> dict:
     """Holt die neue Version (nur Vorspulen). → {"ok", "message"}"""
-    st = status(fetch=True, cwd=cwd)
+    st = status(fetch=True, cwd=cwd, channel=channel)
     if not st.get("ok"):
         return {"ok": False, "message": st.get("error")}
     if not st["behind"] and not st.get("switch"):
@@ -106,3 +114,90 @@ def pull(cwd=HERE) -> dict:
     if code != 0:
         return {"ok": False, "message": f"Update nicht möglich:\n{err or out}"}
     return {"ok": True, "message": f"{st['behind']} Änderung(en) geladen.{note}", "updated": True}
+
+
+# =========================================================================== Versionen und Kanal (#89, #90)
+import json as _json
+import re as _re
+
+API_RELEASES = "https://api.github.com/repos/MarkusKeller8200/markussxch-tagstudio/releases?per_page=30"
+CHANNELS = ("stable", "beta")
+
+
+def parse_version(v: str):
+    """„v3.5.0-beta.2“ → (3, 5, 0, 0, 2); finale Versionen sortieren nach ihren Betas: „3.5.0“ → (3, 5, 0, 1, 0)."""
+    m = _re.match(r"^v?(\d+)\.(\d+)\.(\d+)(?:-[A-Za-z]+\.?(\d+))?$", (v or "").strip())
+    if not m:
+        return None
+    a, b, c, n = m.groups()
+    return (int(a), int(b), int(c), 0 if n is not None else 1, int(n or 0))
+
+
+def is_beta(v: str) -> bool:
+    return "-" in (v or "")
+
+
+def fetch_releases(timeout: float = 8.0) -> list:
+    """Releases von GitHub (öffentliche API, ohne Anmeldung). Wirft OSError/ValueError, wenn offline."""
+    import urllib.request
+    req = urllib.request.Request(API_RELEASES, headers={"Accept": "application/vnd.github+json",
+                                                        "User-Agent": "MarKusSXCH-TagStudio"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        data = _json.loads(r.read().decode("utf-8"))
+    out = []
+    for x in data if isinstance(data, list) else []:
+        tag = str(x.get("tag_name") or "")
+        if parse_version(tag) is None or x.get("draft"):
+            continue
+        out.append({"tag": tag, "version": tag.lstrip("v"), "beta": bool(x.get("prerelease")) or is_beta(tag),
+                    "url": x.get("html_url") or RELEASES_URL, "notes": str(x.get("body") or ""),
+                    "date": str(x.get("published_at") or "")[:10],
+                    "assets": [{"name": a.get("name"), "url": a.get("browser_download_url")} for a in x.get("assets") or []]})
+    return out
+
+
+def newest(releases: list, channel: str):
+    """Neueste Version für den Kanal: „stable“ nur offizielle, „beta“ auch Vorabversionen."""
+    cand = [r for r in releases if channel == "beta" or not r["beta"]]
+    return max(cand, key=lambda r: parse_version(r["tag"]), default=None)
+
+
+def release_check(current: str, channel: str, releases: list | None = None) -> dict:
+    """Gibt es eine neuere Version im gewählten Kanal? → {"ok", "newer", "latest", "error"}"""
+    try:
+        rels = fetch_releases() if releases is None else releases
+    except (OSError, ValueError) as ex:
+        return {"ok": False, "offline": True, "error": f"GitHub ist nicht erreichbar ({ex.__class__.__name__}).",
+                "releases_url": RELEASES_URL}
+    top = newest(rels, channel)
+    cur = parse_version(current)
+    newer = bool(top and cur and parse_version(top["tag"]) > cur)
+    note = None
+    if channel == "stable" and is_beta(current) and not newer:
+        note = "Du verwendest eine Beta-Version. Die nächste offizielle Version wird angeboten, sobald sie erscheint."
+    return {"ok": True, "newer": newer, "latest": top, "note": note, "releases_url": RELEASES_URL}
+
+
+def changelog_section(text: str, ver: str) -> str:
+    """Abschnitt einer Version aus dem CHANGELOG; Vorabversionen → „Unveröffentlicht“."""
+    if is_beta(ver):
+        m = _re.search(r"^## \[Unveröffentlicht\][^\n]*\n(.*?)(?=^## \[|\Z)", text, _re.S | _re.M)
+    else:
+        m = _re.search(r"^## \[" + _re.escape(ver) + r"\][^\n]*\n(.*?)(?=^## \[|\Z)", text, _re.S | _re.M)
+    return m.group(1).strip() if m else ""
+
+
+def local_changelog() -> str:
+    for base in (HERE, getattr(sys, "_MEIPASS", HERE)):
+        p = os.path.join(base, "CHANGELOG.md")
+        if os.path.isfile(p):
+            with open(p, encoding="utf-8") as fh:
+                return fh.read()
+    return ""
+
+
+def final_tag_target(cwd=HERE) -> str | None:
+    """Git-Modus, Kanal „stable“: neueste offizielle Version (Tag vX.Y.Z) auf GitHub."""
+    code, out, _ = _git(["tag", "-l", "v*"], cwd)
+    tags = [t for t in out.splitlines() if parse_version(t) and not is_beta(t)] if code == 0 else []
+    return max(tags, key=parse_version, default=None)
