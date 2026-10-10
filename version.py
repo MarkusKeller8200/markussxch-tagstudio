@@ -7,6 +7,8 @@ Schema MAJOR.MINOR.PATCH (Semantic Versioning):
   Vorabversionen mit Zusatz: 3.1.0-beta.1
 
 Nicht von Hand ändern, sondern:  python packaging/release.py 3.1.0
+Schlägt der Build fehl (kein Tag entstanden), nach der Korrektur eine Änderung an dieser Datei pushen –
+der Workflow „Installer“ startet nur bei Änderungen hier bzw. unter packaging/.
 """
 VERSION = "4.0.0-beta.3"
 APP = "MarKusSXCH TagStudio"
