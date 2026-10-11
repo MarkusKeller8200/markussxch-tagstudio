@@ -10,6 +10,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Vergleich:** Binärfelder (GEOB/PRIV, z. B. Serato, Mixed In Key) lassen sich wie im Tagger im **Binärfeld-Editor**
   ansehen und bearbeiten (Doppelklick oder Rechtsklick › „Binärfeld-Editor“), mit Serato-Ansicht, JSON-Baum und Hex-
   Ansicht; JSON in Textfeldern öffnet den **JSON-Baum** (#13).
+- Beatport-Plugin: **„Gekaufte Titel abgleichen (Test)“** (Plugins › Beatport) – liest die Käufe deines Kontos und
+  prüft, welche in deinen Ordnern schon liegen (Beatport-ID, ISRC, Künstler + Titel + Mix); Ergebnis als CSV. Noch
+  ohne Download – erst klären, ob Beatport die Käufe zuverlässig liefert (#117).
 - Neues Plugin **Lautheit messen**: integrierte Lautheit (LUFS), True Peak und Lautheitsbereich nach EBU R128 mit
   FFmpeg (aus dem Stems-Plugin oder dem Suchpfad) als Felder TXXX:LUFS_I, TXXX:TRUE_PEAK, TXXX:LOUDNESS_RANGE, auf
   Wunsch ReplayGain; optional eine angeglichene Kopie (z. B. −10,5 LUFS, 320 kbit/s) in einem eigenen Ordner – das

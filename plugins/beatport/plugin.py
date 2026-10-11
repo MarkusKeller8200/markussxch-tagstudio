@@ -69,6 +69,15 @@ ACTIONS = [
      "description": "Gespeicherten Token löschen.", "options": []},
     {"id": "test", "label": "Verbindung testen", "where": "page", "run_label": "Testen", "needs_selection": False,
      "description": "Prüft die Anmeldung bei Beatport.", "options": []},
+    {"id": "purchases", "label": "Gekaufte Titel abgleichen (Test) …", "where": "page", "run_label": "Abgleichen",
+     "needs_selection": False,
+     "description": "#117 (Machbarkeit): liest die gekauften Titel deines Beatport-Kontos und prüft, welche in deinen Ordnern "
+                    "schon vorhanden sind. Es wird noch nichts heruntergeladen – Ergebnis als CSV-Liste.",
+     "options": [
+         {"key": "folders", "type": "textarea", "label": "Ordner zum Abgleich (je Zeile einer, z. B. Bibliothek und Eingang)"},
+         {"key": "max", "type": "number", "label": "Höchstens so viele Käufe lesen", "default": 2000},
+         {"type": "info", "label": "Abgleich über Beatport-ID (TXXX:BEATPORT_TRACK_ID), ISRC oder Künstler + Titel + Mix."},
+     ]},
 ]
 
 
@@ -579,6 +588,8 @@ def run(action, ctx, files, opts):
     if action == "test":
         acc = Client(ctx).get("/my/account/") or {}
         return {"message": f"Verbindung in Ordnung – angemeldet als {acc.get('username', '?')}."}
+    if action == "purchases":
+        return run_purchases(ctx, opts)
     if action != "fetch":
         raise ValueError(f"Unbekannte Aktion: {action}")
 
@@ -640,6 +651,92 @@ def run(action, ctx, files, opts):
     if not ctx.proposals:
         return {"message": f"{msg}. Beatport hat keine Felder geliefert."}
     return {"message": f"{msg}. {m} mögliche Änderung(en), {n} vorausgewählt." + extra}
+
+
+# =========================================================================== #117 Käufe abgleichen
+PURCHASE_PATHS = ["/my/downloads/", "/my/library/tracks/", "/my/library/"]
+
+
+def purchases(client, limit=2000, log=None):
+    """Gekaufte Titel des Kontos (Machbarkeit: mehrere bekannte Pfade der inoffiziellen API v4 probieren)."""
+    for path in PURCHASE_PATHS:
+        out, page = [], 1
+        try:
+            while len(out) < limit:
+                res = client.get(path, page=page, per_page=100)
+                if res is None:
+                    break
+                items = res if isinstance(res, list) else (res.get("results") or res.get("tracks") or []) \
+                    if isinstance(res, dict) else []
+                if not items:
+                    break
+                for it in items:
+                    t = it.get("track") if isinstance(it, dict) and isinstance(it.get("track"), dict) else it
+                    if isinstance(t, dict) and t.get("id"):
+                        out.append(t)
+                if log and page == 1:
+                    log(f"{path}: Felder je Eintrag: {', '.join(sorted(items[0].keys())) if isinstance(items[0], dict) else type(items[0]).__name__}")
+                if len(items) < 100:
+                    break
+                page += 1
+        except HttpError as ex:
+            if log:
+                log(f"{path}: {ex}")
+            continue
+        if out:
+            return path, out[:limit]
+    return "", []
+
+
+def _local_index(folders, ctx):
+    import core
+    by_id, by_isrc, by_name = {}, {}, {}
+    n = 0
+    for folder in folders:
+        if not os.path.isdir(folder):
+            ctx.log(f"Ordner nicht gefunden: {folder}")
+            continue
+        files, _e = core.load_files(folder, True, None, None, None, True)
+        for f in files:
+            n += 1
+            tid = f.text("TXXX:BEATPORT_TRACK_ID").strip()
+            if tid:
+                by_id[tid] = f.path
+            if f.text("TSRC").strip():
+                by_isrc[f.text("TSRC").strip().upper()] = f.path
+            info = file_info(f)
+            by_name[(norm(info["artist"]), norm(info["title"]), norm(info.get("mix") or ""))] = f.path
+    return by_id, by_isrc, by_name, n
+
+
+def run_purchases(ctx, opts):
+    client = Client(ctx)
+    ctx.status("Lese gekaufte Titel …")
+    path, items = purchases(client, int(opts.get("max") or 2000), ctx.log)
+    if not items:
+        return {"message": "Keine gekauften Titel über die bekannten Schnittstellen gefunden – Details im Protokoll "
+                           "(bitte an Claude weitergeben, #117)."}
+    folders = [x.strip() for x in str(opts.get("folders") or "").splitlines() if x.strip()]
+    by_id, by_isrc, by_name, nloc = _local_index(folders, ctx) if folders else ({}, {}, {}, 0)
+    rows, have = [], 0
+    for t in items:
+        artist = ", ".join(artists_of(t))
+        mix = t.get("mix_name") or ""
+        hit = by_id.get(str(t.get("id"))) or by_isrc.get(str(t.get("isrc") or "").upper()) \
+            or by_name.get((norm(artist), norm(t.get("name", "")), norm(mix)))
+        have += bool(hit)
+        rows.append([str(t.get("id")), artist, t.get("name", ""), mix, t.get("isrc") or "",
+                     (t.get("release") or {}).get("name", ""), "vorhanden" if hit else "fehlt", hit or ""])
+    import csv
+    out = os.path.join(ctx.data_dir, "gekaufte-titel.csv")
+    with open(out, "w", encoding="utf-8-sig", newline="") as fh:
+        w = csv.writer(fh, delimiter=";")
+        w.writerow(["Beatport-ID", "Künstler", "Titel", "Mix", "ISRC", "Release", "Status", "Datei"])
+        w.writerows(rows)
+    ctx.output(out)
+    return {"message": f"{len(items)} gekaufte Titel gelesen ({path}); {have} vorhanden, {len(items) - have} fehlen"
+                       + (f" (verglichen mit {nloc} Dateien)" if folders else " (kein Ordner zum Abgleich angegeben)")
+                       + ". Liste als CSV gespeichert."}
 
 
 def _present(t):
