@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-11, 4.4.0-beta.5**. Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
+Stand: **2026-10-11, 4.4.0-beta.6**. Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -59,7 +59,7 @@ Zug nachführen.**
   verschlüsselt im Plugin), nie protokollieren oder exportieren. Nichts Privates ins öffentliche Repo.
 - **Keine Extra-Kredits verbrauchen.**
 
-## Offen (Stand 4.4.0-beta.5)
+## Offen (Stand 4.4.0-beta.6)
 
 - Wartet auf Tests des Users (`_3 Beta-Test`): #171 CodeQL-Fix, #174 Tempo von Hand, #175 „Im Tagger zeigen“,
   #176 Lizenzen-Seite und monatliche Prüfung, #177/#178 Ordner grün.

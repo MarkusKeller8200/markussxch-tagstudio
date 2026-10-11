@@ -1,6 +1,6 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-11 ~23:59: **4.3.0 final**; **4.4.0-beta.5** (Meilenstein #10 „4.4.0 – Beatport-Download, Profile, Einrichtungsassistent“). Getestet und geschlossen: #117, #163–#165, #167–#170, #172, #173. In beta.5 (`_3 Beta-Test`): #171 CodeQL Dateirechte (`0o700`), #174 Tempo von Hand (Klick auf BPM, `plTempoDialog`/`plTempoSet`), #175 „Im Tagger zeigen“ (`tag_locate`, `plShowInTagger`), #176 Hilfe › Lizenzen (`docs/third-party.json`, `help_licenses`, Workflow „Fremdkomponenten prüfen“ monatlich → Issue; Stände mit `third_party_check.py --apply` übernehmen), #177/#178 Ordner grün (`.path-dir`). **Vor der Freigabe an andere** (Wunsch User): diese Punkte abschliessen, dann 4.4.0 final auf Wunsch. #111 Wortliste offen.
+> Stand 2026-10-11 ~23:59: **4.3.0 final**; **4.4.0-beta.6** (Meilenstein #10 „4.4.0 – Beatport-Download, Profile, Einrichtungsassistent“). Getestet und geschlossen: #117, #163–#165, #167–#170, #172, #173. In beta.5 (`_3 Beta-Test`): #171 CodeQL Dateirechte (`0o700`), #174 Tempo von Hand (Klick auf BPM, `plTempoDialog`/`plTempoSet`), #175 „Im Tagger zeigen“ (`tag_locate`, `plShowInTagger`), #176 Hilfe › Lizenzen (`docs/third-party.json`, `help_licenses`, Workflow „Fremdkomponenten prüfen“ monatlich → Issue; Stände mit `third_party_check.py --apply` übernehmen), #177/#178 Ordner grün (`.path-dir`). **Vor der Freigabe an andere** (Wunsch User): diese Punkte abschliessen, dann 4.4.0 final auf Wunsch. #111 Wortliste offen.
 
 ## Aktueller Stand (nach 4.1.0)
 

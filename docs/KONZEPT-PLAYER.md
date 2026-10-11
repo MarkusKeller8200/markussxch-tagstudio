@@ -1,6 +1,6 @@
 # Konzept: Player (Vorschau-Player und externe Player)
 
-Stand: 2026-10-11 (4.4.0-beta.5) · Status: **umgesetzt** (3.2.0, ausgebaut 3.4.0, 4.1.0, 4.2.0) · nachträglich erstellt
+Stand: 2026-10-11 (4.4.0-beta.6) · Status: **umgesetzt** (3.2.0, ausgebaut 3.4.0, 4.1.0, 4.2.0) · nachträglich erstellt
 
 > **Pflege:** Dieses Dokument wurde nachträglich aus Code und Handbuch zusammengestellt. Wird am Player
 > weitergearbeitet, ist es im selben Zug anzupassen (Funktionen, Umsetzung, Entscheide, Offen).
