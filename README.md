@@ -410,7 +410,8 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
 wählst du einen Basisordner, z. B. `D:\TagStudio`; jede Ordnerauswahl beginnt dort. Empfohlene Struktur:
 `00_New` (neue Musik, Rohdaten) · `01_Library` (Bibliothek) · `02_Archiv` (aussortiert) · `90_Download` (temporäre
 Downloads) · `91_Work` (Arbeitsordner mit Stufen-Ordnern) · `99_Sicherung` (Sicherungen der Tags und Snapshots).
-TagStudio sichert nur Tags – die Musik selbst zusätzlich auf ein anderes Laufwerk sichern.
+TagStudio sichert nur Tags – die Musik selbst zusätzlich auf ein anderes Laufwerk sichern. Alle Ablageorte im Überblick:
+[docs/KONZEPT-SPEICHER.md](docs/KONZEPT-SPEICHER.md).
 
 **Profile:** Unter Einstellungen › Profile lässt sich ein weiteres Profil anlegen – eine unabhängige TagStudio-Instanz
 mit eigenen Einstellungen und Daten (unter `~/TagStudio-Profile/<Name>/`). Ein leeres Profil startet wie eine frische
