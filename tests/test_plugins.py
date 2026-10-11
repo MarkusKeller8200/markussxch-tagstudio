@@ -406,6 +406,8 @@ class TestStems(PluginBase):
                 state["checks"] += 1
                 if state["checks"] == 1:
                     return 1, ["ModuleNotFoundError: No module named 'audioread'"]
+            if cmd[-2:] == ["-c", "import sys"] and state.pop("broken", False):
+                return 1, ["error: uv trampoline failed to spawn Python child process"]
             if "venv" in cmd:      # Umgebung „anlegen“
                 py = plugins._env_python(cmd[-1])
                 os.makedirs(os.path.dirname(py), exist_ok=True)
@@ -432,6 +434,26 @@ class TestStems(PluginBase):
             s.start_plugin_install("stems", "dml")
             self.assertTrue(self.wait(s)["result"]["ok"])
             self.assertTrue(any(" venv " in c for c in calls))
+            # #135: gleiche Variante, aber Basis-Python fehlt (uv-Trampolin) → neu anlegen statt weiterverwenden
+            state["broken"] = True
+            calls.clear()
+            s.start_plugin_install("stems", "dml")
+            self.assertTrue(self.wait(s)["result"]["ok"])
+            self.assertTrue(any(" venv " in c for c in calls), calls)
+        finally:
+            plugins.run_lines = orig
+
+    def test_broken_env_message(self):
+        """#135: startet das Umgebungs-Python nicht (Basis-Python weg), klare Meldung statt „Code 1“."""
+        def fake_run(cmd, on_line=None, cancel=None, env=None, cwd=None, low_priority=False):
+            return 1, ["error: uv trampoline failed to spawn Python child process",
+                       "  Caused by: entity not found (os error 2)"]
+        self.assertTrue(plugins.env_broken(["error: uv trampoline failed to spawn Python child process"]))
+        self.assertFalse(plugins.env_broken(["Traceback", "ValueError: kaputt"]))
+        orig = plugins.run_lines
+        plugins.run_lines = fake_run
+        try:
+            self.assertFalse(plugins.env_runs(__file__))
         finally:
             plugins.run_lines = orig
 

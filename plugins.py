@@ -65,6 +65,30 @@ def _env_python(env_dir: str) -> str:
     return os.path.join(env_dir, "Scripts", "python.exe") if os.name == "nt" else os.path.join(env_dir, "bin", "python")
 
 
+# Meldungen, wenn das Basis-Python einer Umgebung fehlt (z. B. uv-Python verschoben/aufgeräumt) – #135
+_BROKEN_ENV = ("failed to spawn python child process", "no python at", "did not find executable at",
+               "unable to create process using")
+BROKEN_ENV_MSG = ("Die Umgebung des Plugins ist beschädigt: das Python, auf das sie verweist, gibt es nicht mehr "
+                  "(z. B. nach einem Update von uv oder Python). Bitte auf der Plugin-Seite „Neu installieren …“ "
+                  "wählen – die Umgebung wird dann neu angelegt.")
+
+
+def env_broken(lines) -> bool:
+    text = "\n".join(lines).lower()
+    return any(m in text for m in _BROKEN_ENV)
+
+
+def env_runs(py: str) -> bool:
+    """Startet das Python der Umgebung überhaupt? (Basis-Python vorhanden, Umgebung nicht beschädigt)"""
+    if not py or not os.path.exists(py):
+        return False
+    try:
+        rc, _tail = run_lines([py, "-c", "import sys"])
+    except OSError:
+        return False
+    return rc == 0
+
+
 # Von PyInstaller gesetzte Variablen, die ein fremdes Python (Plugin-Umgebung) stören würden
 _FROZEN_VARS = {"TCL_LIBRARY", "TK_LIBRARY", "PYTHONHOME", "PYTHONPATH", "SSL_CERT_FILE"}
 
@@ -166,7 +190,10 @@ class Context:
         py = self.env_python
         if not py or not os.path.exists(py):
             raise RuntimeError("Die Umgebung des Plugins ist nicht installiert – bitte auf der Plugin-Seite installieren.")
-        return run_lines([py, *args], on_line, self._cancel, env=env, cwd=self.data_dir, low_priority=self.background)
+        rc, tail = run_lines([py, *args], on_line, self._cancel, env=env, cwd=self.data_dir, low_priority=self.background)
+        if rc != 0 and env_broken(tail):
+            raise RuntimeError(BROKEN_ENV_MSG)
+        return rc, tail
 
     # ---- Fortschritt / Abbruch / Protokoll
     def progress(self, i: int, total: int, text: str = "", frac: float = None):
@@ -670,6 +697,10 @@ def env_install(plugin, variant: dict, cancel=None, progress=None) -> dict:
     py = _env_python(env_dir)
     pyver = str(plugin.env_spec.get("python", "3.12"))
     reuse = os.path.exists(py) and last_variant == variant.get("id")
+    if reuse and not env_runs(py):             # #135: Basis-Python fehlt → nicht weiterverwenden
+        say("Vorhandene Umgebung ist beschädigt – wird neu angelegt …")
+        log.append("Vorhandene Umgebung startet nicht (Basis-Python fehlt) – wird neu angelegt.")
+        reuse = False
     if reuse:
         say("Vorhandene Umgebung wird weiterverwendet …")
         log.append("Vorhandene Umgebung wird weiterverwendet (gleiche Variante).")

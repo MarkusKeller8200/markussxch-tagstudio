@@ -38,6 +38,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   macOS und Linux; der Installer-Workflow kann von Hand mit einer anderen Python-Version bauen (Probe-Build) (#135).
 
 ### Behoben
+- Plugins mit eigener Umgebung (Stems): fehlt das Python, auf das die Umgebung verweist (z. B. nach einem Update von
+  uv oder Python), meldet TagStudio das verständlich statt „Code 1“, und „Neu installieren …“ legt die Umgebung neu an,
+  statt die beschädigte weiterzuverwenden (#135).
 - Update: die alte Instanz blieb offen und die neue startete ohne die gespeicherten Einstellungen. Es läuft jetzt nur
   noch **eine Instanz** (ein zweiter Start meldet „TagStudio läuft bereits“); der Installer erkennt ein offenes
   TagStudio und bittet, es zu schliessen; beim Neustart nach einem Update werden Zustände vorher gespeichert und die
