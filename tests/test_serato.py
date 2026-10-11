@@ -85,6 +85,18 @@ class TestSerato(unittest.TestCase):
             self.assertTrue(texts["GEOB:Serato BeatGrid"].startswith("Serato BeatGrid: Beatgrid: 1 Marker, 126.0 BPM"))
             v = s.tag_blob(0, "GEOB:Serato Autotags")
             self.assertEqual(v["serato"]["bpm"], 124.0)
+            # #76 Schritt 2: Beatgrid für den Player – Serato vor BPM-Tag
+            g = s.media_extra("tag", 0)["grid"]
+            self.assertEqual((g["bpm"], g["first"], g["source"], g["exact"]), (126.0, 0.25, "Serato", True))
+            from session_player import PlayerMixin
+            f2 = MP3File(p)
+            f2.items.pop("GEOB:Serato BeatGrid", None)
+            f2.set_text("TBPM", "120")
+            g2 = PlayerMixin._beat_grid(f2, [{"kind": "cue", "pos": 1.75}])
+            self.assertEqual((g2["bpm"], g2["exact"]), (120.0, False))
+            self.assertAlmostEqual(g2["first"], 0.25)                   # 1,75 s im Raster von 0,5 s
+            f2.set_text("TBPM", "")
+            self.assertIsNone(PlayerMixin._beat_grid(f2, []))
         finally:
             core.CONFIG, core.CONFIG_OLD = cfg
             for k, v in old.items():

@@ -30,6 +30,8 @@ function plSetPref(k, v) {
   else if (k === "xfade_after") PLAYER.xfadeAfter = +v || 0;
   else if (k === "xfade_sync") PLAYER.xfadeSync = !!v;
   else if (k === "xfade_return") PLAYER.xfadeReturn = +v || 0;
+  else if (k === "xfade_phase") PLAYER.xfadePhase = !!v;                     // #76
+  else if (k === "xfade_bars") PLAYER.xfadeBars = +v || 0;
   else if (k === "layout" || k === "top_collapsed" || k === "deck2" || k === "deck_target" || k === "sink_b" || k === "vol_b" || k === "start_b" || k === "repeat_b") {
     if (typeof pl2Pref === "function") pl2Pref(k, v);
     if (k === "vol_b") { clearTimeout(plVolTimer); plVolTimer = setTimeout(() => call("set_player_pref", "vol_b", v).catch(() => {}), 400); return; }
@@ -63,6 +65,7 @@ function plTarget() {
 
 async function plLoad(target, autoplay = true, keepTime = null, startMode = null, fromFade = false) {
   if (PLAYER.fade && !fromFade && typeof plFadeStop === "function") plFadeStop();
+  if (PLAYER.xfadeWait && !fromFade) { clearTimeout(PLAYER.xfadeWait); PLAYER.xfadeWait = 0; }      // #76
   if (!fromFade && typeof plTempoStop === "function") plTempoStop();
   if (!target) { toast(S.module === "compare" ? "Erst ein Dateipaar wählen." : "Erst einen Titel markieren."); return; }
   const seq = PLAYER.loadSeq = (PLAYER.loadSeq || 0) + 1;
@@ -419,6 +422,7 @@ function plDrawWave() {
     g.globalAlpha = on ? 1 : 0.75;
     g.fillRect(x, mid - rh, Math.max(1, bw - 0.4), rh * 2);
   }
+  if (typeof drawGridLines === "function") drawGridLines(g, W, H, dur, PLAYER.info);   // #76
   g.globalAlpha = 1; g.fillStyle = acc;
   g.fillRect(Math.round(played * W), 0, Math.max(1, Math.round(dpr)), H);
 }
@@ -561,6 +565,7 @@ function plApplyPrefs(pp) {
   PLAYER.live = !!pp.live;
   PLAYER.xfade = +pp.xfade || 0; PLAYER.xfadeStart = pp.xfade_start || "start"; PLAYER.xfadeAfter = +pp.xfade_after || 0;
   PLAYER.xfadeSync = pp.xfade_sync !== false; PLAYER.xfadeReturn = pp.xfade_return ?? 8;
+  PLAYER.xfadePhase = pp.xfade_phase !== false; PLAYER.xfadeBars = +pp.xfade_bars || 0;     // #76
   if (typeof pl2Apply === "function") pl2Apply(pp);
   if ($("#plStart")) plStartSync();
   plRender();

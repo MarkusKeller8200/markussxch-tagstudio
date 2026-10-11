@@ -71,6 +71,8 @@ async function settingsShow() {
           ${stSel("stPlXfStart", [["start", "nächster Titel ab Startpunkt"], ["0", "nächster Titel ab Anfang"], ["cue", "nächster Titel ab 1. Cue"]], p.xfade_start)}</div>
         <label for="stPlXfAfter">Überblenden wann</label>${stSel("stPlXfAfter", [[0, "am Titelende"], [15, "nach 15 s (Durchhören)"], [30, "nach 30 s"], [45, "nach 45 s"], [60, "nach 1 Minute"], [90, "nach 1:30"], [120, "nach 2 Minuten"]], p.xfade_after)}
         <span>Tempo angleichen</span><div class="st-path">${stCheck("stPlXfSync", p.xfade_sync, "Nächsten Titel beim Überblenden im BPM des laufenden spielen (Tonhöhe bleibt, max. ±10 %)")}</div>
+        <span>Im Takt</span><div class="st-path">${stCheck("stPlXfPhase", p.xfade_phase !== false, "Nächsten Titel im Schlag des laufenden starten (Beatgrid aus Serato, sonst aus BPM geschätzt)")}</div>
+        <label for="stPlXfBars">Überblenden auf Taktgrenze</label>${stSel("stPlXfBars", [[0, "sofort"], [4, "nächster Takt (4 Schläge)"], [8, "nach 8 Schlägen"], [16, "nächste Phrase (16 Schläge)"]], p.xfade_bars || 0)}
         <label for="stPlXfRet">Zurück auf eigenes BPM</label>${stSel("stPlXfRet", [[0, "sofort nach dem Überblenden"], [4, "in 4 s"], [8, "in 8 s"], [16, "in 16 s"], [30, "in 30 s"], [60, "in 1 Minute"]], p.xfade_return)}
         <span></span><span class="muted sm">Überblenden wirkt im Tagger mit „Durchhören“, nicht bei „Titel wiederholen“ oder einer Schleife.</span>
         <label for="stPlLayout">Position</label>${stSel("stPlLayout", [["bottom", "unten in der Aktionsleiste"], ["top", "oben als eigene Leiste (einklappbar, Shift+P)"]], p.layout)}
@@ -583,6 +585,8 @@ function initSettings() {
     else if (t.id === "stPlXfStart") plSetPref("xfade_start", t.value);
     else if (t.id === "stPlXfAfter") plSetPref("xfade_after", +t.value);
     else if (t.id === "stPlXfSync") plSetPref("xfade_sync", t.checked);
+    else if (t.id === "stPlXfPhase") plSetPref("xfade_phase", t.checked);
+    else if (t.id === "stPlXfBars") plSetPref("xfade_bars", +t.value);
     else if (t.id === "stPlXfRet") plSetPref("xfade_return", +t.value);
     else if (t.dataset.vd) await stVdSet(t);
     else if (t.id === "stUpdCh") { await call("set_update_channel", t.value); toast(t.value === "beta" ? "Updates: auch Beta-Versionen." : "Updates: nur offizielle Versionen."); settingsShow(); checkUpdateQuietly(); }

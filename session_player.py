@@ -25,8 +25,9 @@ class PlayerMixin:
                     "deck2": (bool, False), "deck_target": (str, "A"), "vol_b": ((int, float), 0.8),     # #67
                     "sink_b": (str, ""), "start_b": (str, "0"), "repeat_b": (bool, False),
                     "startmode": (str, "last"),                                                          # #93
-                    "resume": (bool, True), "resume_play": (str, "pause")}                               # #126
-    PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "resume_play": ("pause", "play", "was"), "layout": ("bottom", "top"), "startmode": ("last", "default"),
+                    "resume": (bool, True), "resume_play": (str, "pause"),                               # #126
+                    "xfade_phase": (bool, True), "xfade_bars": (int, 0)}                                 # #76
+    PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "resume_play": ("pause", "play", "was"), "xfade_bars": (0, 4, 8, 16), "layout": ("bottom", "top"), "startmode": ("last", "default"),
                       "xfade_start": ("start", "0", "cue"), "deck_target": ("A", "B"),
                       "start_b": ("0", "30", "60", "cue")}
     PLAYER_RANGES = {"vol": (0.0, 1.0), "vol_b": (0.0, 1.0), "xfade": (0, 30), "xfade_after": (0, 600), "xfade_return": (0, 120)}
@@ -291,12 +292,38 @@ class PlayerMixin:
             if f is None:
                 raise ValueError("Keine Datei zum Abspielen gewählt.")
             out = {"cues": cues.read(f), "wave": None, "wave_key": ""}
+            out["grid"] = self._beat_grid(f, out["cues"])                        # #76: Beatgrid für den Player
         try:
             out["wave_key"] = waveform.key_for(f)
             out["wave"] = waveform.load(out["wave_key"])
         except (OSError, ValueError):
             pass
         return out
+
+    @staticmethod
+    def _beat_grid(f, cue_list) -> dict | None:
+        """#76: Beatgrid aus Serato (GEOB „Serato BeatGrid“), sonst geschätzt aus dem BPM-Tag mit dem ersten Cue
+        als erstem Schlag. → {"bpm", "first", "markers", "source", "exact"} oder None."""
+        import serato
+        try:
+            bg = serato.of_file(f).get("BeatGrid")
+        except Exception:  # noqa: BLE001
+            bg = None
+        if bg and not bg.get("error") and bg.get("bpm") and bg.get("markers"):
+            return {"bpm": bg["bpm"], "first": bg["first"], "source": "Serato", "exact": True,
+                    "markers": [{"pos": m["pos"], "bpm": m["bpm"]} for m in bg["markers"]]}
+        import tagger
+        try:
+            bpm = float(tagger.text_of(f, "TBPM").replace(",", ".") or 0)
+        except ValueError:
+            bpm = 0
+        if not 40 <= bpm <= 300:
+            return None
+        first = next((c["pos"] for c in cue_list if c.get("kind") == "cue"), 0.0)
+        period = 60 / bpm
+        first = first % period if first else 0.0           # erster Schlag am Anfang, im Raster des ersten Cues
+        return {"bpm": round(bpm, 3), "first": round(first, 4), "source": "BPM-Tag" + (" + Cue" if first else ""),
+                "exact": False, "markers": [{"pos": round(first, 4), "bpm": round(bpm, 3)}]}
 
     def wave_save(self, key, peaks, rms) -> dict:
         """Von der Oberfläche berechnete Wellenform im Cache ablegen."""

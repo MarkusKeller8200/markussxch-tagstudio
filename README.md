@@ -270,8 +270,12 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   15 s … 2 Minuten (zum schnellen Durchhören). Nicht bei „Titel wiederholen“ oder einer Schleife.
   **Tempo angleichen** (Standard an): der nächste Titel läuft während des Überblendens im BPM des laufenden
   (Tonhöhe bleibt, höchstens ±10 %, halbes/doppeltes Tempo wird erkannt; ohne BPM-Feld kein Angleichen) und gleitet
-  danach in der eingestellten Zeit (sofort … 1 Minute) auf sein eigenes BPM zurück. Nur das Tempo wird angeglichen,
-  die Beats werden nicht übereinandergelegt (dafür fehlt ein Beatgrid).
+  danach in der eingestellten Zeit (sofort … 1 Minute) auf sein eigenes BPM zurück.
+  **Im Takt** (Standard an): mit Beatgrid startet der nächste Titel im Schlag des laufenden; „Überblenden auf
+  Taktgrenze“ wartet auf den nächsten Takt (4), 8 Schläge oder die nächste Phrase (16).
+- **Beatgrid:** aus Serato (`GEOB:Serato BeatGrid`), sonst geschätzt aus dem BPM-Feld mit dem ersten Cue als Schlag.
+  Die Wellenform zeigt Rasterlinien (Takt/Phrase kräftiger, geschätzte blasser). **Sync** in Player B bringt ihn ins
+  Tempo und – mit Beatgrid – in den Takt von Player A.
 - **Player oben** (Einstellungen → Player → Position oder Regler-Menü): eigene Leiste über der Seite mit voller Breite
   und grösserer Wellenform; Knopf ˄ bzw. **Shift+P** klappt sie ein (je Player eine Zeile mit ▶/⏸, Titel und
   Restlaufzeit).

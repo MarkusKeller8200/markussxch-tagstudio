@@ -8,6 +8,55 @@ const PL2 = { layout: "bottom", collapsed: false, deck2: false, window: null, re
 const DECKB = { audio: null, info: null, kind: null, ref: null, seq: 0, sink: "", startAt: "0", repeat: false, ab: null, loop: null, raf: 0 };
 const DET = { on: false, timer: 0, seq: 0, popup: null, t0: 0, waveKey: { A: null, B: null }, last: "", busy: false };
 
+// ====================================================================== #76 Beatgrid
+/** Beatgrid eines Titels (aus media_extra: Serato oder geschätzt aus BPM) oder null */
+function gridOf(info) { const g = info && info.grid; return g && g.bpm > 0 && g.markers && g.markers.length ? g : null; }
+/** Schlagnummer (mit Nachkommastelle) zur Zeit t – stückweise linear über die Marker */
+function gridBeatAt(g, t) {
+  const m = g.markers;
+  let beats = 0, k = 0;
+  while (k < m.length - 1 && t >= m[k + 1].pos) { beats += (m[k + 1].pos - m[k].pos) * (m[k].bpm || g.bpm) / 60; k++; }
+  return beats + (t - m[k].pos) * (m[k].bpm || g.bpm) / 60;
+}
+/** Zeit eines Schlags (Umkehrung von gridBeatAt) */
+function gridTimeOfBeat(g, b) {
+  const m = g.markers;
+  let beats = 0;
+  for (let k = 0; k < m.length; k++) {
+    const bpm = m[k].bpm || g.bpm, seg = k < m.length - 1 ? (m[k + 1].pos - m[k].pos) * bpm / 60 : Infinity;
+    if (b < beats + seg || k === m.length - 1) return m[k].pos + (b - beats) * 60 / bpm;
+    beats += seg;
+  }
+  return m[0].pos;
+}
+/** Rasterlinien in die Wellenform: Abstand so gewählt, dass Linien mindestens 5 px auseinander liegen;
+    jeder 4. (bzw. 16.) Abstand kräftiger (Takt bzw. Phrase). */
+function drawGridLines(g2, W, H, dur, info) {
+  const g = gridOf(info);
+  if (!g || !dur) return;
+  const pxPerBeat = (W / dur) * 60 / g.bpm, dpr = window.devicePixelRatio || 1;
+  const step = [1, 2, 4, 8, 16, 32, 64, 128].find((s) => s * pxPerBeat >= 5 * dpr) || 256;
+  const st = getComputedStyle(document.documentElement), col = st.getPropertyValue("--fg").trim() || "#fff";
+  const b0 = Math.ceil(gridBeatAt(g, 0) / step) * step, bEnd = gridBeatAt(g, dur);
+  g2.fillStyle = col;
+  for (let b = b0; b <= bEnd; b += step) {
+    const x = Math.round((gridTimeOfBeat(g, b) / dur) * W);
+    const strong = b % (step * 4) === 0;
+    g2.globalAlpha = g.exact ? (strong ? 0.32 : 0.14) : (strong ? 0.18 : 0.08);
+    g2.fillRect(x, 0, Math.max(1, Math.round(dpr * (strong ? 1 : 0.6))), H);
+  }
+  g2.globalAlpha = 1;
+}
+/** Phasenlage (0–1) innerhalb des Schlags bzw. Takts (bar Schläge) */
+function gridPhase(g, t, bar = 1) { const b = gridBeatAt(g, t) / bar; return b - Math.floor(b); }
+/** Zielzeit im Titel g, damit seine Phase (im Takt von bar Schlägen) der Phase ph entspricht – nahe bei t0 */
+function gridAlign(g, t0, ph, bar = 1) {
+  const b0 = gridBeatAt(g, t0) / bar;
+  let b = Math.floor(b0) + ph;
+  if (b - b0 > 0.5) b -= 1; else if (b0 - b > 0.5) b += 1;
+  return Math.max(0, gridTimeOfBeat(g, b * bar));
+}
+
 // ====================================================================== #94 Überblenden
 /** Beim Abspielen prüfen, ob es Zeit zum Überblenden ist (aus dem timeupdate des aktiven Elements). */
 function plXfadeCheck() {
@@ -21,10 +70,22 @@ function plXfadeCheck() {
   let at = dur - x;
   if (PLAYER.xfadeAfter > 0) at = Math.min(at, (PLAYER.playFrom || 0) + PLAYER.xfadeAfter);   // Durchhören: nach x Sekunden
   if (a.currentTime < at || a.currentTime > dur - 0.3) return;
-  if (dj) { const n = djNextTag(); if (n !== null) plCrossfade(n); return; }     // #3: Set-Reihenfolge
-  const k = TG.order.indexOf(TG.anchor);
-  if (k < 0 || k >= TG.order.length - 1) return;
-  plCrossfade(TG.order[k + 1]);
+  let next = null;
+  if (dj) next = djNextTag();                                                // #3: Set-Reihenfolge
+  else { const k = TG.order.indexOf(TG.anchor); if (k >= 0 && k < TG.order.length - 1) next = TG.order[k + 1]; }
+  if (next === null || next === undefined) return;
+  // #76: auf Taktgrenze (4/8/16 Schläge) warten, wenn ein Beatgrid da ist
+  const g = gridOf(PLAYER.info), bars = +PLAYER.xfadeBars || 0;
+  if (g && bars) {
+    if (PLAYER.xfadeWait) return;
+    const bt = gridBeatAt(g, a.currentTime), nb = Math.ceil(bt / bars - 1e-6) * bars, tb = gridTimeOfBeat(g, nb);
+    const wait = (tb - a.currentTime) / (a.playbackRate || 1);
+    if (wait > 0.02 && wait < 30 && tb < dur - 0.3) {
+      PLAYER.xfadeWait = setTimeout(() => { PLAYER.xfadeWait = 0; if (!a.paused && PLAYER.audio === a && !PLAYER.fade) plCrossfade(next, { bar: bars }); }, wait * 1000);
+      return;
+    }
+  }
+  plCrossfade(next, bars && g ? { bar: bars } : {});
 }
 
 /** Zum Titel i überblenden: neues Element lädt und blendet ein, das alte gleichmässig aus (gleiche Leistung, sin/cos). */
@@ -59,9 +120,10 @@ function plTempoStop(reset = true) {
   if (reset && PLAYER.audio) PLAYER.audio.playbackRate = 1;
 }
 
-async function plCrossfade(i) {
+async function plCrossfade(i, opt = {}) {
   const old = PLAYER.audio, nu = PLAYER.spare, D = PLAYER.xfade * 1000;
   const bpmFrom = bpmOf(PLAYER.info) * (old.playbackRate || 1);
+  const gOld = gridOf(PLAYER.info);
   PLAYER.fade = { old, timer: 0 };
   PLAYER.spare = old;
   PLAYER.audio = nu;
@@ -79,6 +141,14 @@ async function plCrossfade(i) {
   const ratio = PLAYER.xfadeSync ? plTempoRatio(bpmFrom, bpmOf(PLAYER.info)) : 1;
   if (ratio !== 1) { nu.preservesPitch = true; nu.playbackRate = ratio; }      // Tonhöhe bleibt
   f.ratio = ratio;
+  // #76: neuen Titel im Takt starten – gleiche Phase wie der laufende (Schlag bzw. Taktgrenze)
+  const gNew = gridOf(PLAYER.info);
+  const sameTempo = ratio !== 1 || (gNew && bpmFrom && Math.abs(bpmFrom - gNew.bpm) / bpmFrom < 0.02);
+  if (PLAYER.xfadePhase && gOld && gNew && sameTempo) {
+    const bar = opt.bar || 1;
+    const ph = opt.bar ? 0 : gridPhase(gOld, old.currentTime);
+    try { nu.currentTime = gridAlign(gNew, nu.currentTime || 0, ph, bar); f.phase = true; } catch (e) { /* egal */ }
+  }
   const t0 = performance.now();
   f.timer = setInterval(() => {
     if (PLAYER.fade !== f) return clearInterval(f.timer);
@@ -326,11 +396,12 @@ function dbRender() {
   $$("#dbStart button").forEach((b) => { const on = b.dataset.v === DB_START(); b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
   $("#dbVol").classList.toggle("muted", a.muted);
   plTagSync();
-  drawWaveInto($("#dbWave"), $("#dbCanvas"), PLAYER.wave && i && i.wave, dur ? t / dur : 0);
+  drawWaveInto($("#dbWave"), $("#dbCanvas"), PLAYER.wave && i && i.wave, dur ? t / dur : 0, i, dur);
+  const sb = $("#dbSync"); if (sb) { sb.disabled = !i || !PLAYER.info; sb.classList.toggle("on", Math.abs((a.playbackRate || 1) - 1) > 0.0005); }
 }
 
 /** Wellenform in eine Leiste zeichnen (wie plDrawWave, für Player B) */
-function drawWaveInto(box, cv, w, played) {
+function drawWaveInto(box, cv, w, played, info = null, dur = 0) {
   box.classList.toggle("wave", !!w);
   if (!w || !cv.clientWidth) return;
   const dpr = window.devicePixelRatio || 1, W = Math.max(1, Math.round(cv.clientWidth * dpr)), H = Math.max(1, Math.round(cv.clientHeight * dpr));
@@ -346,8 +417,27 @@ function drawWaveInto(box, cv, w, played) {
     g.globalAlpha = on ? 1 : 0.75;
     g.fillRect(x, mid - rh, Math.max(1, bw - 0.4), rh * 2);
   }
+  drawGridLines(g, W, H, dur, info);          // #76
   g.globalAlpha = 1; g.fillStyle = acc;
   g.fillRect(Math.round(played * W), 0, Math.max(1, Math.round(dpr)), H);
+}
+
+/** #76: Player B im Tempo und Takt von Player A (Sync) */
+function dbSync() {
+  const a = PLAYER.audio, b = DECKB.audio, ga = gridOf(PLAYER.info), gb = gridOf(DECKB.info);
+  if (!PLAYER.info || !DECKB.info) { toast("Für Sync müssen beide Player einen Titel haben."); return; }
+  const bpmA = (ga ? ga.bpm : bpmOf(PLAYER.info)) * (a.playbackRate || 1), bpmB = gb ? gb.bpm : bpmOf(DECKB.info);
+  if (!bpmA || !bpmB) { toast("Für Sync fehlt das BPM eines Titels."); return; }
+  let r = bpmA / bpmB;
+  if (r > 1.5) r /= 2; else if (r < 0.75) r *= 2;
+  if (r < 0.84 || r > 1.16) { toast(`Tempo zu verschieden (${Math.round(bpmA)} / ${Math.round(bpmB)} BPM).`); return; }
+  b.preservesPitch = true;
+  b.playbackRate = r;
+  if (ga && gb) {
+    try { b.currentTime = gridAlign(gb, b.currentTime || 0, gridPhase(ga, a.currentTime)); } catch (e) { /* egal */ }
+  }
+  dbRender();
+  toast(`Player B synchron: ${(bpmB * r).toFixed(1)} BPM${ga && gb ? ", im Takt" : " (ohne Beatgrid nur Tempo)"}.`);
 }
 
 /** Ausgabegeräte (nur wenn der Browser setSinkId kann) → [{id, label}] oder null */
@@ -593,6 +683,7 @@ function initPlayer2(pp) {
   $("#dbCueNext").addEventListener("click", () => dbCueJump(1));
   $("#dbRepeat").addEventListener("click", () => { plSetPref("repeat_b", !DECKB.repeat); toast(DECKB.repeat ? "Player B wiederholt den Titel." : "Player B: nicht mehr wiederholen."); });
   $("#dbAB2").addEventListener("click", dbABStep);
+  $("#dbSync").addEventListener("click", dbSync);                     // #76
   $("#dbAB").addEventListener("click", (e) => { const t = e.target.closest("[data-side]"); if (t) dbSide(t.dataset.side); });
   $("#dbStart").addEventListener("click", (e) => { const t = e.target.closest("[data-v]"); if (t) plSetPref("start_b", t.dataset.v); });
   $("#dbMore").addEventListener("click", (e) => dbMenu(e.currentTarget));

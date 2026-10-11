@@ -551,6 +551,29 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.locator("#modal .bf-ov rect").count(), 240)
         pg.click("#mBtns button >> nth=0")
 
+    def test_beatgrid_sync(self):
+        """#76: Beatgrid-Rechnung, Rasterlinien, Player B synchron zu Player A (Tempo und Takt)."""
+        pg = self.pg
+        g = pg.evaluate("""(() => { const g = {bpm: 120, markers: [{pos: 0.5, bpm: 120}, {pos: 32.5, bpm: 128}]};
+            return [gridBeatAt(g, 0.5), gridBeatAt(g, 32.5), gridTimeOfBeat(g, 64), gridTimeOfBeat(g, 72),
+                    gridAlign({bpm: 120, markers: [{pos: 0, bpm: 120}]}, 10.1, 0.5), gridPhase({bpm: 120, markers: [{pos: 0, bpm: 120}]}, 10.25)]; })()""")
+        self.assertAlmostEqual(g[0], 0)
+        self.assertAlmostEqual(g[1], 64)
+        self.assertAlmostEqual(g[2], 32.5)
+        self.assertAlmostEqual(g[3], 32.5 + 8 * 60 / 128, places=3)
+        self.assertAlmostEqual(g[4], 10.25, places=3)
+        self.assertAlmostEqual(g[5], 0.5, places=3)
+        self.load_tagger()
+        pg.evaluate("plSetPref('layout','top'); plSetPref('deck2', true)")
+        time.sleep(0.3)
+        pg.evaluate("plLoad({kind: 'tag', ref: 0}, true)")                  # 124 BPM
+        pg.evaluate("dbLoad({kind: 'tag', ref: 1}, false)")                 # 120 BPM
+        self.assertTrue(self.until("PLAYER.info && PLAYER.info.grid && DECKB.info && DECKB.info.grid"))
+        self.assertEqual(pg.evaluate("[PLAYER.info.grid.bpm, PLAYER.info.grid.exact, DECKB.info.grid.bpm]"), [124, False, 120])
+        pg.click("#dbSync")
+        self.assertTrue(self.until("Math.abs(DECKB.audio.playbackRate - 124 / 120) < 0.001"))
+        self.assertTrue(pg.evaluate("document.querySelector('#dbSync').classList.contains('on')"))
+
     def test_tagger_feature_columns(self):
         """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""
         pg = self.pg
