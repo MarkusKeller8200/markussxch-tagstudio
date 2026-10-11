@@ -21,6 +21,14 @@ function prepApply(d) {
   const names = new Set(d.rows.map((r) => r.name));
   PREP.sel = new Set([...PREP.sel].filter((n) => names.has(n)));
   prepSideCount(d);
+  const fb = $("#prepFetch"), qs = w.sources || [];
+  if (fb) {
+    const nNew = Object.values(d.sources_new || {}).reduce((a, b) => a + b, 0);
+    fb.hidden = !qs.length;
+    fb.textContent = nNew ? `Abholen (${fmtN(nNew)})` : "Abholen";
+    fb.classList.toggle("primary", !!nNew); fb.classList.toggle("ghost", !nNew);
+    fb.title = "Neue Downloads in den Eingangsordner kopieren – " + qs.map((q) => `${q.name}: ${(d.sources_new || {})[q.id] || 0} neu`).join(", ");
+  }
   prepRenderSteps();
   prepRenderTable();
 }
@@ -58,12 +66,20 @@ function prepRenderTable() {
   $("#prepTable").innerHTML = `<table class="prep-t"><thead><tr><th><input type="checkbox" id="prepAll" ${all ? "checked" : ""} aria-label="Alle wählen"></th><th>Titel</th>
     ${w.steps.map((s, i) => `<th title="${esc(s.label)}">${esc(prepShort(s, i))}</th>`).join("")}</tr></thead><tbody>
     ${d.rows.map((r) => `<tr data-name="${esc(r.name)}" class="${r.exists ? "" : "gone"}"><td><input type="checkbox" data-sel ${PREP.sel.has(r.name) ? "checked" : ""}></td>
-      <td class="nm" title="${esc(r.path)}">${esc(r.name)}${r.exists ? "" : ' <span class="st-missing sm">fehlt</span>'}</td>
+      <td class="nm" title="${esc(r.path)}${r.source ? `\nQuelle: ${esc(r.source)}${r.origin_file ? " – " + esc(r.origin_file) : ""}` : ""}">${esc(r.name)}${r.source ? ` <span class="prep-src">${esc(r.source)}</span>` : ""}${r.exists ? "" : ' <span class="st-missing sm">fehlt</span>'}</td>
       ${r.cells.map((c, i) => `<td class="pc s-${c.state}" data-step="${i}" title="${esc(w.steps[i].label)}: ${esc(d.states[c.state] || (c.state === "blocked" ? "vorherige Schritte zuerst" : c.state))}${c.note ? " – " + esc(c.note) : ""}${c.viol.length ? ` – ${c.viol.length} geänderte(s) Feld(er)` : ""}">${PREP_ICON[c.state] || ""}</td>`).join("")}</tr>`).join("")}
     </tbody></table>`;
 }
 
 function prepNames() { return PREP.sel.size ? [...PREP.sel] : null; }
+
+async function prepFetch() {
+  const r = await runTask(call("start_prep_fetch", PREP.d.workflow.id, null), "Quellen abholen");
+  if (!r || r.cancelled) { prepShow(); return; }
+  status(`${fmtN(r.got.length)} neue(r) Titel abgeholt${r.same ? `, ${fmtN(r.same)} schon im Eingang` : ""}${r.per.length > 1 ? " (" + r.per.join(", ") + ")" : ""}.`, r.errors.length ? "warn" : "info");
+  if (r.errors.length) await info("Hinweise", r.errors.join("\n"));
+  prepShow();
+}
 
 async function prepRun(sid, names = null, force = false) {
   const s = PREP.d.workflow.steps.find((x) => x.id === sid);
@@ -167,6 +183,15 @@ async function prepEditWorkflow() {
     box.innerHTML = `<div class="frm">${prepStepForm(s, recipesList, origins, pluginActs)}</div><div class="rc-edit-b"><button class="ghost sm" data-pse="cancel">Abbrechen</button><button class="ghost sm" data-pse="ok"><b>Übernehmen</b></button></div>`;
     box.onclick = (e) => { const t = e.target.closest("[data-pse]"); if (!t) return; e.stopPropagation(); if (t.dataset.pse === "ok") w.steps[i] = prepReadStep(box, s); box.hidden = true; box.innerHTML = ""; render(b); };
   };
+  w.sources = w.sources || [];
+  const srcRow = (q, k) => `<div class="prep-src-row" data-q="${k}"><input data-f="name" value="${esc(q.name || "")}" placeholder="Name, z. B. Bandcamp" aria-label="Name der Quelle">
+    <input data-f="folder" value="${esc(q.folder || "")}" placeholder="Download-Ordner, z. B. C:\\Users\\…\\Downloads" aria-label="Ordner" spellcheck="false">
+    <input data-f="pattern" value="${esc(q.pattern || "")}" placeholder="Filter, z. B. *Beatport*;*.mp3" aria-label="Dateifilter" spellcheck="false">
+    <input data-f="sub" value="${esc(q.sub || "")}" placeholder="Unterordner im Eingang (optional)" aria-label="Unterordner">
+    <label class="check sm" title="MP3 aus ZIP-Archiven entpacken"><input type="checkbox" data-f="zip" ${q.zip !== false ? "checked" : ""}> ZIP</label>
+    <button class="icon-btn" data-qdel title="Quelle entfernen">✕</button></div>`;
+  const readSrc = (b) => [...b.querySelectorAll(".prep-src-row")].map((el) => { const q = w.sources[+el.dataset.q] || {}; const g = (f) => el.querySelector(`[data-f="${f}"]`); return { ...q, name: g("name").value.trim(), folder: g("folder").value.trim(), pattern: g("pattern").value.trim(), sub: g("sub").value.trim(), zip: g("zip").checked }; });
+  const renderSrc = (b) => { $("#pwSrc", b).innerHTML = w.sources.map(srcRow).join("") || '<p class="muted sm" style="margin:0 0 6px">Keine Quellen.</p>'; };
   const p = w.protect;
   const res = await modal({
     title: "Workflow bearbeiten", wide: true,
@@ -174,6 +199,9 @@ async function prepEditWorkflow() {
         <label for="pwInbox">Eingangsordner</label><input id="pwInbox" value="${esc(w.inbox)}" placeholder="z. B. S:\\_MP3\\00_Neu\\_01_Original">
         <label for="pwWork">Arbeitsordner</label><input id="pwWork" value="${esc(w.work)}" placeholder="leer = Ordner über dem Eingang (Stufen-Ordner kommen dorthin)">
         <label for="pwLib">Bibliothek</label><input id="pwLib" value="${esc(w.library)}" placeholder="z. B. S:\\_MP3\\01_Library"></div>
+      <h4 class="st-sub">Quellen (Download-Ordner)</h4>
+      <p class="muted sm" style="margin:0 0 6px">„Abholen“ kopiert neue MP3 – auch aus ZIP-Archiven (z. B. Bandcamp) – in den Eingangsordner und merkt sich die Quelle. Die Downloads bleiben unverändert und werden nicht doppelt geholt.</p>
+      <div id="pwSrc"></div><button class="ghost sm" id="pwSrcAdd">+ Quelle</button>
       <h4 class="st-sub">Schritte</h4><div class="rc-acts" id="pwSteps"></div><div class="rc-edit" id="pwEdit" hidden data-keep-enter></div>
       <div class="rc-add"><select id="pwType" class="inp">${Object.entries(PREP.d.types).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("")}</select><button class="ghost sm" id="pwAdd">+ Schritt</button></div>
       <h4 class="st-sub">Schutzregel „nur ergänzen“</h4>
@@ -183,9 +211,11 @@ async function prepEditWorkflow() {
         <label for="pwOn">Bei Verstoss</label><select id="pwOn" class="inp"><option value="report" ${p.on_violation === "report" ? "selected" : ""}>nur melden</option><option value="revert" ${p.on_violation === "revert" ? "selected" : ""}>automatisch zurücksetzen</option></select></div>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Speichern", value: true, primary: true }],
     onMount: (b) => {
-      render(b);
+      render(b); renderSrc(b);
       b.addEventListener("click", (e) => {
         const t = e.target.closest("button"); if (!t || t.closest("#pwEdit")) return;
+        if (t.id === "pwSrcAdd") { w.sources = readSrc(b); w.sources.push({ name: "", folder: "", pattern: "", sub: "", zip: true }); renderSrc(b); const rows = b.querySelectorAll(".prep-src-row"); rows[rows.length - 1].querySelector("input").focus(); return; }
+        if (t.hasAttribute("data-qdel")) { w.sources = readSrc(b); w.sources.splice(+t.closest(".prep-src-row").dataset.q, 1); renderSrc(b); return; }
         if (t.id === "pwAdd") { const type = $("#pwType", b).value; w.steps.push({ id: "", type, label: PREP.d.types[type], folder: ["recipe", "plugin"].includes(type) ? "_neu" : "", mode: "fill", ...(type === "verify" ? { fields: ["TIT2", "TPE1", "TKEY", "TBPM", "APIC*"] } : {}) }); render(b); edit(b, w.steps.length - 1); return; }
         const k = t.closest(".rc-act") ? +t.closest(".rc-act").dataset.k : -1;
         if (k < 0) return;
@@ -198,7 +228,7 @@ async function prepEditWorkflow() {
     collect: (b) => {
       const v = (id) => $("#" + id, b).value;
       const list = (x) => x.split(/\s*,\s*/).filter(Boolean);
-      return { ...w, name: v("pwName"), inbox: v("pwInbox").trim(), work: v("pwWork").trim(), library: v("pwLib").trim(),
+      return { ...w, sources: readSrc(b), name: v("pwName"), inbox: v("pwInbox").trim(), work: v("pwWork").trim(), library: v("pwLib").trim(),
         protect: { variant: v("pwVar"), fields: list(v("pwFields")), free: list(v("pwFree")), on_violation: v("pwOn") } };
     },
   });
@@ -237,9 +267,10 @@ async function prepPendingTick() {
   try {
     const r = await call("prep_pending");
     const el = $("#prepCount"); if (!el) return;
-    el.textContent = r.count ? String(r.count) : "";
+    el.textContent = r.count ? String(r.count) : r.sources ? `↓${r.sources}` : "";
     el.title = "Titel im Eingang, die noch nicht übernommen sind" + (r.new ? ` – davon ${r.new} neu` : "");
-    el.classList.toggle("new", !!r.new);
+    el.classList.toggle("new", !!(r.new || r.sources));
+    if (r.sources) el.title += ` – ${r.sources} neue(r) Download(s) zum Abholen`;
   } catch (e) { /* noch nicht bereit */ }
 }
 
@@ -247,6 +278,7 @@ async function prepPendingTick() {
   setTimeout(prepPendingTick, 4000);
   setInterval(prepPendingTick, 120000);
   $("#prepRefresh").addEventListener("click", prepShow);
+  $("#prepFetch").addEventListener("click", prepFetch);
   $("#prepEdit").addEventListener("click", prepEditWorkflow);
   $("#prepMore").addEventListener("click", (e) => { e.stopPropagation(); prepMoreMenu(); });
   $("#prepWf").addEventListener("change", async (e) => { PREP.sel.clear(); prepApply(await call("prep_refresh", e.target.value)); });

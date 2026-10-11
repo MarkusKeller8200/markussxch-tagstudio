@@ -478,6 +478,21 @@ class UiTest(unittest.TestCase):
         pg.click('#pwEdit [data-pse="ok"]')
         pg.click("#mBtns .primary")
         pg.wait_for_function("PREP.d.workflow.steps[1].label === '03 Lautheit'")
+        # Quelle (#118): Download-Ordner hinzufügen, abholen
+        dl = os.path.join(self.dir, "Downloads")
+        os.makedirs(dl)
+        shutil.copy(os.path.join(inbox, "01 Ton 220.mp3"), os.path.join(dl, "Neu gekauft.mp3"))
+        self.assertTrue(pg.locator("#prepFetch").is_hidden())
+        pg.click("#prepEdit")
+        pg.click("#pwSrcAdd")
+        pg.fill('.prep-src-row [data-f="name"]', "Bandcamp")
+        pg.fill('.prep-src-row [data-f="folder"]', dl)
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("PREP.d.workflow.sources.length === 1")
+        self.assertIn("(1)", pg.inner_text("#prepFetch"))
+        pg.click("#prepFetch")
+        pg.wait_for_function("PREP.d.rows.length === 4")
+        self.assertIn("Bandcamp", pg.inner_text('#prepTable tr[data-name="Neu gekauft.mp3"] .nm'))
 
     def test_snapshot_baseline(self):
         """Neue Baseline: aus dem aktuellen Stand, ältere Snapshots löschen (angeheftete nur auf Wunsch)."""

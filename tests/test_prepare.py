@@ -122,10 +122,50 @@ class TestPrepare(Base):
         self.assertEqual(self.cells(self.s.prep_overview(self.wid), "a.mp3")["v1"]["state"], "done")
         self.assertEqual(prepare.clean_workflow({"steps": [{"type": "verify"}]})["steps"][0]["fields"], prepare.VERIFY_DEFAULT)
 
+    def test_sources(self):
+        import zipfile
+        dl = os.path.join(self.dir, "Downloads")
+        os.makedirs(dl)
+        write_mp3(os.path.join(dl, "Beatport - c.mp3"), [text("TIT2", "C")], audio_seed=91)
+        write_mp3(os.path.join(dl, "andere.mp3"), [text("TIT2", "X")], audio_seed=92)
+        tmp = os.path.join(self.dir, "d.mp3")
+        write_mp3(tmp, [text("TIT2", "D")], audio_seed=93)
+        with zipfile.ZipFile(os.path.join(dl, "Bandcamp-Album.zip"), "w") as z:
+            z.write(tmp, "Album/d.mp3")
+            z.writestr("Album/cover.jpg", b"jpg")
+            z.writestr("__MACOSX/._d.mp3", b"x")
+        w = dict(self.w)
+        w["sources"] = [{"name": "Beatport", "folder": dl, "pattern": "*Beatport*", "zip": False},
+                        {"name": "Bandcamp", "folder": dl, "pattern": "", "zip": True, "sub": "Bandcamp"},
+                        {"name": "leer", "folder": ""}]
+        self.s.prep_workflow_save(w)
+        ov = self.s.prep_overview(self.wid)
+        self.assertEqual(len(ov["workflow"]["sources"]), 2)
+        self.assertEqual(sorted(ov["sources_new"].values()), [1, 3])   # Bandcamp: 2 MP3 direkt + 1 aus ZIP
+        self.assertEqual(self.s.prep_pending()["sources"], 4)
+        self.assertTrue(self.s.start_prep_fetch(self.wid)["ok"])
+        r = self.wait()
+        # eine Datei, die zu zwei Quellen passt, wird nur einmal geholt (von der ersten)
+        self.assertEqual(sorted(r["got"]), ["Bandcamp/andere.mp3", "Bandcamp/d.mp3", "Beatport - c.mp3"])
+        self.assertTrue(os.path.isfile(os.path.join(dl, "Beatport - c.mp3")))     # Download bleibt
+        ov = self.s.prep_overview(self.wid)
+        row = next(x for x in ov["rows"] if x["name"] == "Bandcamp/d.mp3")
+        self.assertEqual((row["source"], row["origin_file"]), ("Bandcamp", "Bandcamp-Album.zip › Album/d.mp3"))
+        self.assertEqual(MP3File(os.path.join(self.inbox, "Bandcamp", "d.mp3")).text("TIT2"), "D")
+        self.assertEqual(sum(ov["sources_new"].values()), 0)
+        # nochmals: nichts Neues; geänderter Download wird neu geholt, gleicher Name + andere Grösse → (2)
+        self.s.start_prep_fetch(self.wid)
+        self.assertEqual(self.wait()["got"], [])
+        write_mp3(os.path.join(dl, "Beatport - c.mp3"), [text("TIT2", "C2"), text("TPE1", "neu")], audio_seed=94)
+        os.utime(os.path.join(dl, "Beatport - c.mp3"), (time.time() + 5, time.time() + 5))
+        self.s.start_prep_fetch(self.wid)
+        self.assertIn("Beatport - c (2).mp3", self.wait()["got"])
+        self.assertNotIn(self.dir, self.s.prep_export(self.wid).replace("\\\\", "\\"))
+
     def test_pending(self):
-        self.assertEqual(self.s.prep_pending(), {"count": 2, "new": 2})
+        self.assertEqual(self.s.prep_pending(), {"count": 2, "new": 2, "sources": 0})
         self.s.prep_mark(self.wid, "s02", ["a.mp3"], "skipped")
-        self.assertEqual(self.s.prep_pending(), {"count": 2, "new": 1})
+        self.assertEqual(self.s.prep_pending(), {"count": 2, "new": 1, "sources": 0})
 
     def test_export_import(self):
         txt = self.s.prep_export(self.wid)

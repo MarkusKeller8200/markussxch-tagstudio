@@ -13,6 +13,9 @@ Schritte:
   verify    Pflichtfelder prüfen (z. B. vor der Übernahme: Tonart, BPM, Cover) – automatisch, ändert nichts
   plugin    Plugin-Aktion (Lautheit, Online-Metadaten …) auf eine Kopie im Stufen-Ordner; Vorschläge werden je nach
             Modus übernommen (nur leere Felder füllen · alle vorgeschlagenen · nur messen) und gespeichert
+Quellen (#118): Download-Ordner je Kaufplattform (Beatport, Bandcamp, Traxsource, Juno …). „Abholen“ kopiert neue
+MP3 – auch aus ZIP-Archiven – in den Eingangsordner und merkt sich Quelle und Herkunftsdatei; die Downloads selbst
+bleiben unverändert und werden nicht doppelt geholt.
 Nur Standardbibliothek. Gelöscht wird nur auf ausdrücklichen Wunsch (Stufen-Kopien nach der Übernahme).
 """
 from __future__ import annotations
@@ -84,6 +87,7 @@ def clean_workflow(w: dict) -> dict:
            "name": str(w.get("name") or "Workflow").strip()[:80],
            "inbox": str(w.get("inbox") or "").strip(), "work": str(w.get("work") or "").strip(),
            "library": str(w.get("library") or "").strip()}
+    out["sources"] = clean_sources(w.get("sources"))
     p = w.get("protect") if isinstance(w.get("protect"), dict) else {}
     out["protect"] = {"variant": p.get("variant") if p.get("variant") in ("A", "B", "C") else "C",
                       "fields": [str(x) for x in p.get("fields", PROTECT_DEFAULT["fields"]) if str(x).strip()],
@@ -120,6 +124,22 @@ def clean_workflow(w: dict) -> dict:
                       allow=[str(x) for x in s.get("allow") or [] if str(x).strip()])
         steps.append(st)
     out["steps"] = steps
+    return out
+
+
+def clean_sources(sources) -> list[dict]:
+    out, seen = [], set()
+    for q in sources or []:
+        if not isinstance(q, dict) or not str(q.get("folder") or "").strip():
+            continue
+        qid = re.sub(r"[^0-9a-zA-Z_-]", "", str(q.get("id") or "")) or uuid.uuid4().hex[:6]
+        while qid in seen:
+            qid += "x"
+        seen.add(qid)
+        out.append({"id": qid, "name": str(q.get("name") or "Quelle").strip()[:40] or "Quelle",
+                    "folder": str(q.get("folder")).strip(), "pattern": str(q.get("pattern") or "").strip()[:120],
+                    "sub": re.sub(r'[<>:"/\\|?*]', "", str(q.get("sub") or "")).strip()[:60],
+                    "zip": q.get("zip", True) is not False})
     return out
 
 
@@ -262,6 +282,103 @@ def missing_fields(path: str, pats) -> list[str]:
     f = MP3File(path)
     have = [k for k, it in f.items.items() if it.kind in ("picture", "raw") or (it.text or "").strip()]
     return [p for p in pats or [] if not any(_match(k, [p]) for k in have)]
+
+
+# =========================================================================== Quellen (#118)
+def _src_key(path: str, size: int, mtime: float) -> str:
+    return f"{os.path.normcase(os.path.abspath(path))}|{size}|{int(mtime)}"
+
+
+def _pattern_ok(name: str, pattern: str) -> bool:
+    pats = [p.strip().lower() for p in re.split(r"[;,]", pattern or "") if p.strip()]
+    return not pats or any(fnmatch.fnmatchcase(name.lower(), p) for p in pats)
+
+
+def source_candidates(q: dict, st: dict) -> list[dict]:
+    """Neue Dateien einer Quelle: MP3 direkt im Ordner (ohne Unterordner) und MP3 in ZIP-Archiven.
+    → [{"key", "path", "member", "name", "size"}], ohne schon abgeholte."""
+    import zipfile
+    folder = q.get("folder")
+    if not folder or not os.path.isdir(folder):
+        return []
+    done = st.get("fetched") or {}
+    out = []
+    for n in sorted(os.listdir(folder), key=str.lower):
+        p = os.path.join(folder, n)
+        if n.startswith(".") or not os.path.isfile(p):
+            continue
+        low = n.lower()
+        try:
+            stt = os.stat(p)
+        except OSError:
+            continue
+        if low.endswith(".mp3") and _pattern_ok(n, q.get("pattern")):
+            k = _src_key(p, stt.st_size, stt.st_mtime)
+            if k not in done:
+                out.append({"key": k, "path": p, "member": "", "name": n, "size": stt.st_size})
+        elif low.endswith(".zip") and q.get("zip", True):
+            try:
+                with zipfile.ZipFile(p) as z:
+                    for zi in z.infolist():
+                        base = os.path.basename(zi.filename)
+                        if zi.is_dir() or not base.lower().endswith(".mp3") or base.startswith((".", "._")) \
+                                or not _pattern_ok(base, q.get("pattern")):
+                            continue
+                        k = _src_key(p, stt.st_size, stt.st_mtime) + "|" + zi.filename
+                        if k not in done:
+                            out.append({"key": k, "path": p, "member": zi.filename, "name": base, "size": zi.file_size})
+            except (OSError, zipfile.BadZipFile):
+                continue
+    return out
+
+
+def _free_name(folder: str, name: str, size: int) -> tuple[str, bool]:
+    """Zielname im Eingang; (Name, schon_gleich) – gleiche Datei (Name + Grösse) wird nicht nochmals abgelegt."""
+    stem, ext = os.path.splitext(name)
+    cand, k = name, 1
+    while os.path.exists(os.path.join(folder, cand)):
+        if os.path.getsize(os.path.join(folder, cand)) == size:
+            return cand, True
+        k += 1
+        cand = f"{stem} ({k}){ext}"
+    return cand, False
+
+
+def fetch_source(w: dict, q: dict, st: dict, cancel=None, progress=None) -> dict:
+    """Neue Dateien einer Quelle in den Eingang kopieren (ZIP: MP3 entpacken). Zustand st wird ergänzt."""
+    import zipfile
+    dest_dir = os.path.join(w["inbox"], q["sub"]) if q.get("sub") else w["inbox"]
+    cands = source_candidates(q, st)
+    got, same, errors = [], 0, []
+    for i, c in enumerate(cands, 1):
+        if cancel is not None and cancel.is_set():
+            break
+        if progress:
+            progress(("progress", i, len(cands), c["name"]))
+        try:
+            name, exists = _free_name(dest_dir, c["name"], c["size"])
+            dst = os.path.join(dest_dir, name)
+            if not exists:
+                os.makedirs(dest_dir, exist_ok=True)
+                tmp = dst + ".tstmp"
+                if c["member"]:
+                    with zipfile.ZipFile(c["path"]) as z, z.open(c["member"]) as src, open(tmp, "wb") as out:
+                        shutil.copyfileobj(src, out)
+                else:
+                    shutil.copy2(c["path"], tmp)
+                os.replace(tmp, dst)
+            else:
+                same += 1
+            rel = os.path.relpath(dst, w["inbox"]).replace(os.sep, "/")
+            st.setdefault("fetched", {})[c["key"]] = {"name": rel, "at": now(), "source": q["name"]}
+            t = st["tracks"].setdefault(rel, {"added": now(), "steps": {}})
+            t.setdefault("source", q["name"])
+            t.setdefault("origin_file", os.path.basename(c["path"]) + (f" › {c['member']}" if c["member"] else ""))
+            if not exists:
+                got.append(rel)
+        except (OSError, zipfile.BadZipFile) as ex:
+            errors.append(f"{c['name']}: {ex}")
+    return {"got": got, "same": same, "errors": errors, "total": len(cands)}
 
 
 # =========================================================================== Plugin-Schritt

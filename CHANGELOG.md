@@ -11,6 +11,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   beaTunes) läuft automatisch auf einer Kopie im Stufen-Ordner. Die Vorschläge werden je nach Einstellung übernommen:
   **nur leere Felder füllen** (Vorgabe), alle vorausgewählten oder keine (nur ausführen); danach wird gespeichert.
   Es gelten die zuletzt im Tagger gewählten Optionen der Aktion, die Schutzregel „nur ergänzen“ ist wählbar (#110).
+- **Vorbereiten: Quellen (Download-Ordner)** – je Workflow Download-Ordner für Kaufplattformen festlegen (Beatport,
+  Bandcamp, Traxsource, Juno …, mit Dateifilter und optionalem Unterordner). **„Abholen“** kopiert neue MP3 – auch
+  aus ZIP-Archiven – in den Eingangsordner; die Quelle steht in der Tabelle, die Downloads bleiben unverändert und
+  werden nicht doppelt geholt. Neue Downloads zeigt die Seitenleiste mit „↓n“ an (#118).
 - **Vorbereiten: Schritt-Typ „Pflichtfelder prüfen“** – z. B. vor der Übernahme: fehlen Tonart, BPM, Cover oder andere
   Felder (Muster wie `APIC*`, `TXXX:ENERGY`), wird der Titel mit der Liste markiert; nach dem Ergänzen „Erneut prüfen“.
 - **Vorbereiten in der Seitenleiste:** die Anzahl offener Titel im Eingang wird alle 2 Minuten aktualisiert, auch ohne

@@ -65,6 +65,8 @@ class PrepareMixin:
         """Workflow als JSON zum Weitergeben – ohne persönliche Ordner und Programmpfade."""
         w = json.loads(json.dumps(self._prep_get(wid)))
         w["inbox"] = w["work"] = w["library"] = ""
+        for q in w.get("sources") or []:
+            q["folder"] = ""
         for s in w["steps"]:
             if "program" in s:
                 s["program"] = ""
@@ -81,11 +83,13 @@ class PrepareMixin:
 
     def prep_pending(self) -> dict:
         """Für die Seitenleiste: Titel im Eingang, die noch nicht übernommen sind (alle Workflows, ohne Tags zu lesen)."""
-        total, new = 0, 0
+        total, new, waiting = 0, 0, 0
         for w in self._prep_workflows():
             if not w.get("inbox"):
                 continue
             st = prepare.load_state(w["id"])
+            for q in w.get("sources") or []:
+                waiting += len(prepare.source_candidates(q, st))
             imp = next((s["id"] for s in w["steps"] if s["type"] == "import"), None)
             for n in prepare.list_inbox(w):
                 t = st["tracks"].get(n)
@@ -93,7 +97,7 @@ class PrepareMixin:
                     new += 1
                 if not imp or (((t or {}).get("steps") or {}).get(imp) or {}).get("state") not in ("done", "warn"):
                     total += 1
-        return {"count": total, "new": new}
+        return {"count": total, "new": new, "sources": waiting}
 
     # ------------------------------------------------------------------ Übersicht
     def prep_overview(self, wid=None) -> dict:
@@ -116,8 +120,10 @@ class PrepareMixin:
                               "viol": rec.get("viol") or []})
             path = prepare.track_path(w, st, n)
             rows.append({"name": n, "cells": cells, "path": path, "exists": os.path.isfile(path),
+                         "source": t.get("source", ""), "origin_file": t.get("origin_file", ""),
                          "missing_inbox": not os.path.isfile(os.path.join(w["inbox"], n)) if w["inbox"] else True})
-        return {"workflow": w, "workflows": [{"id": x["id"], "name": x["name"]} for x in self._prep_workflows()],
+        waiting = {q["id"]: len(prepare.source_candidates(q, st)) for q in w.get("sources") or []}
+        return {"workflow": w, "sources_new": waiting, "workflows": [{"id": x["id"], "name": x["name"]} for x in self._prep_workflows()],
                 "rows": rows, "counts": counts, "types": prepare.STEP_TYPES, "states": prepare.STATES,
                 "plugin_modes": prepare.PLUGIN_MODES,
                 "work": prepare.work_dir(w), "origins": {k: v.get("name") for k, v in self.origin_catalog().items()}}
@@ -267,6 +273,32 @@ class PrepareMixin:
             return {"done": done, "errors": errors[:50], "launched": launched, "folder": ext_folder, "snapshot": snap,
                     "step": s["label"]}
         return self._run("prep", f"Vorbereiten: {s['label']}", job)
+
+    def start_prep_fetch(self, wid, qids=None):
+        """Quellen abholen (#118): neue Downloads (MP3, ZIP) in den Eingangsordner kopieren."""
+        w = self._prep_get(wid)
+        if not w["inbox"] or not os.path.isdir(w["inbox"]):
+            return {"ok": False, "error": "Eingangsordner fehlt oder ist nicht erreichbar – Workflow bearbeiten."}
+        qs = [q for q in w.get("sources") or [] if not qids or q["id"] in qids]
+        if not qs:
+            return {"ok": False, "error": "Keine Quellen festgelegt (Workflow bearbeiten › Quellen)."}
+
+        def job(cancel, progress):
+            st = prepare.load_state(w["id"])
+            got, same, errors, per = [], 0, [], []
+            for q in qs:
+                if not os.path.isdir(q["folder"]):
+                    errors.append(f"{q['name']}: Ordner nicht erreichbar ({q['folder']})")
+                    continue
+                progress(("text", f"Quelle {q['name']} …"))
+                r = prepare.fetch_source(w, q, st, cancel, progress)
+                got += r["got"]
+                same += r["same"]
+                errors += [f"{q['name']}: {e}" for e in r["errors"]]
+                per.append(f"{q['name']}: {len(r['got'])}")
+                prepare.save_state(w["id"], st)
+            return {"got": got, "same": same, "errors": errors[:50], "per": per}
+        return self._run("prep", "Quellen abholen", job)
 
     def _prep_plugin(self, w, s, plug, errors, cancel, progress) -> int:
         """Plugin-Aktion auf die Stufen-Kopien anwenden, Vorschläge je nach Modus übernehmen und speichern."""

@@ -1242,6 +1242,10 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .prep-step .a{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .prep-step.t-import{border-color:var(--acc)}
 .prep-step.t-check{opacity:.92}
+.prep-src{font-size:10.5px;padding:0 5px;border-radius:8px;background:var(--bg2,rgba(127,127,127,.15));color:var(--dim);margin-left:4px}
+.prep-src-row{display:grid;grid-template-columns:minmax(90px,1fr) minmax(160px,2.4fr) minmax(110px,1.4fr) minmax(110px,1.3fr) auto auto;gap:6px;align-items:center;margin-bottom:6px}
+.prep-src-row input:not([type]){min-width:0}
+@media (max-width:700px){.prep-src-row{grid-template-columns:1fr 1fr}}
 .prep-table{overflow:auto;padding:0;flex:1;min-height:160px}
 .prep-t{border-collapse:collapse;width:100%;font-size:13px}
 .prep-t th{position:sticky;top:0;background:var(--surf);text-align:center;color:var(--dim);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}

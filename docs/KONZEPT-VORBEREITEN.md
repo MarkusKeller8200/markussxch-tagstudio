@@ -1,7 +1,9 @@
 # Konzept: Tracks vorbereiten
 
 Status: **Phase 1 umgesetzt in 4.3.0-beta.2** (2026-10-11): Seite „Vorbereiten“, Workflow-Vorlagen, Tag-Rezepte, ID3v1
-schreiben, externe Schritte, Schutzregel, Übernahme, nachgelagerte Programme. Noch offen: Phase 2 (#117–#119), Phase 3
+schreiben, externe Schritte, Schutzregel, Übernahme, nachgelagerte Programme. **Phase 2 in 4.3.0-beta.5:** Quellen
+(Download-Ordner inkl. ZIP, #118), Lautheit mit Clipping-Zählung (#119), Plugin- und Pflichtfeld-Schritte; offen nur
+der automatische Beatport-Download (#117, wartet auf das Ergebnis des Abgleich-Tests). Danach Phase 3
 (#120). Entwurf vom 2026-10-10 – Übersicht #121, Teil-Issues #109–#120 (Label `vorbereiten`, Meilenstein „Tracks vorbereiten (Konzept)“).
 
 ## Ziel
