@@ -1,6 +1,6 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-11 ~23:00: **4.3.0 final**; **4.4.0-beta.4** (Meilenstein #10 „4.4.0 – Beatport-Download, Profile, Einrichtungsassistent“): #117 Beatport-Download (beta.1), #163–#165 Profile (`paths.py`: data_dir/config_file/lock_file/mutex_name/shared_plugin_data, Profilwahl `profilePick`, Registry `~/TagStudio/profile.json`, Profile unter `~/TagStudio-Profile/<Name>/`, `ctx.shared_dir` für Stems-Modelle/FFmpeg, Restart setzt TAGSTUDIO_NOASK), #167–#170 Einrichtung (`session_setup.py`, `web/setup.js`: Assistent 7 Schritte, `nav_recommended` ★, `nav_hidden`, Erste-Schritte-Karte `#firstSteps`, `whats_new` ab `seen_version`; bestehende Installationen über USED_KEYS migriert, first_steps aus; `modal()` wartet, solange `#wizard` offen). Alle `_3 Beta-Test`. #166 nicht nötig (Entscheid). UI-Tests schreiben `.tagstudio.json` mit setup_done, ausser Tests mit „wizard“ im Namen. beta.3: #172 Basisordner (`base_dir`, Start jeder Ordnerauswahl, `FoldersMixin` in session_setup.py: folders_overview/set_base_dir/setup_structure, STRUCTURE 00_New…99_Sicherung, Wizard-Schritt „Speicherort“ mit Laufwerken, Einstellungen-Karte `#stFolders`); beta.4: #173 Aussortieren (`archive.py` plan/move/entries/restore, Vermerk `_aussortiert.csv` im Archiv, `ArchiveMixin` in session_setup.py: tag_archive/prep_archive/archive_list/archive_restore, Knopf `tgArchive`, Zellen-Menü in Vorbereiten, Unterordner bleiben, Stems wandern mit) – `_3 Beta-Test`. Speicherkonzept: `docs/KONZEPT-SPEICHER.md` (im Projekt als `claude/speicherkonzept.md`), bei Änderungen nachführen.
+> Stand 2026-10-11 ~23:59: **4.3.0 final**; **4.4.0-beta.5** (Meilenstein #10 „4.4.0 – Beatport-Download, Profile, Einrichtungsassistent“). Getestet und geschlossen: #117, #163–#165, #167–#170, #172, #173. In beta.5 (`_3 Beta-Test`): #171 CodeQL Dateirechte (`0o700`), #174 Tempo von Hand (Klick auf BPM, `plTempoDialog`/`plTempoSet`), #175 „Im Tagger zeigen“ (`tag_locate`, `plShowInTagger`), #176 Hilfe › Lizenzen (`docs/third-party.json`, `help_licenses`, Workflow „Fremdkomponenten prüfen“ monatlich → Issue; Stände mit `third_party_check.py --apply` übernehmen), #177/#178 Ordner grün (`.path-dir`). **Vor der Freigabe an andere** (Wunsch User): diese Punkte abschliessen, dann 4.4.0 final auf Wunsch. #111 Wortliste offen.
 
 ## Aktueller Stand (nach 4.1.0)
 
@@ -141,7 +141,7 @@
 
 ## Offene Meilensteine und Issues
 
-- **#10 „4.4.0 – Beatport-Download, Profile, Einrichtungsassistent“:** #117, #163–#165, #167–#170, #172, #173 in `_3 Beta-Test`; #171 CodeQL (Dateirechte `tagstudio_web.py:150`) offen.
+- **#10 „4.4.0 – Beatport-Download, Profile, Einrichtungsassistent“:** #171, #174–#178 in `_3 Beta-Test` (beta.5); übrige getestet und geschlossen.
 - **#4 „Später“:** #9, #14, #107, #108, #156 (WAV), #157 (Mehrsprachigkeit).
 - Offene Frage an den User: #111 Wortliste („Dj, Feat, Mc, Vs“).
 

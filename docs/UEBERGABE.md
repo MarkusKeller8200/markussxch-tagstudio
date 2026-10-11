@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-11, 4.4.0-beta.4**. Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
+Stand: **2026-10-11, 4.4.0-beta.5**. Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -59,12 +59,13 @@ Zug nachführen.**
   verschlüsselt im Plugin), nie protokollieren oder exportieren. Nichts Privates ins öffentliche Repo.
 - **Keine Extra-Kredits verbrauchen.**
 
-## Offen (Stand 4.4.0-beta.4)
+## Offen (Stand 4.4.0-beta.5)
 
-- Wartet auf Tests des Users (`_3 Beta-Test`): #117 Beatport-Download (gegen die echte API noch ungetestet, Download-
-  Endpunkt wird geprobt), #163–#165 Profile, #167–#170 Einrichtungsassistent, Seitenleiste, Erste Schritte,
-  #172 Basisordner und Ordnerstruktur, #173 Aussortieren.
-- #171 CodeQL-Fund (Dateirechte, `tagstudio_web.py:150`) – noch zu beheben.
+- Wartet auf Tests des Users (`_3 Beta-Test`): #171 CodeQL-Fix, #174 Tempo von Hand, #175 „Im Tagger zeigen“,
+  #176 Lizenzen-Seite und monatliche Prüfung, #177/#178 Ordner grün.
+- #176: erstes Issue „Fremdkomponenten: Änderungen prüfen“ durchsehen, Lizenzangaben in `docs/third-party.json`
+  abgleichen, Stände mit `python .github/scripts/third_party_check.py --apply datei.json` übernehmen.
+- Danach 4.4.0 final (nur auf Wunsch) – der User will diese Version an andere freigeben.
 - Offene Frage an den User: #111 Wortliste („Dj, Feat, Mc, Vs“).
-- Nach den Tests: 4.4.0 final (nur auf Wunsch), danach Meilenstein „Später“ (#9, #14, #107, #108, #156 WAV, #157
-  Mehrsprachigkeit).
+- Meilenstein „Später“: #9, #14, #107, #108, #156 WAV, #157 Mehrsprachigkeit.
+- Neue Fremdkomponenten immer in `docs/third-party.json` eintragen.
