@@ -1,6 +1,6 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-11 ~23:59: **4.3.0 final**; **4.4.0-beta.6** (Meilenstein #10 „4.4.0 – Beatport-Download, Profile, Einrichtungsassistent“). Getestet und geschlossen: #117, #163–#165, #167–#170, #172, #173. In beta.5 (`_3 Beta-Test`): #171 CodeQL Dateirechte (`0o700`), #174 Tempo von Hand (Klick auf BPM, `plTempoDialog`/`plTempoSet`), #175 „Im Tagger zeigen“ (`tag_locate`, `plShowInTagger`), #176 Hilfe › Lizenzen (`docs/third-party.json`, `help_licenses`, Workflow „Fremdkomponenten prüfen“ monatlich → Issue; Stände mit `third_party_check.py --apply` übernehmen), #177/#178 Ordner grün (`.path-dir`). **Vor der Freigabe an andere** (Wunsch User): diese Punkte abschliessen, dann 4.4.0 final auf Wunsch.
+> Stand 2026-10-12 ~00:45: **4.4.0 final** (Meilenstein #10 „4.4.0 – Beatport-Download, Profile, Einrichtungsassistent“ geschlossen): Beatport-Download (#117), Profile (#163–#165), Einrichtungsassistent, Seitenleiste, Erste Schritte (#167–#170), Basisordner/Ordnerstruktur (#172), Aussortieren (#173), CodeQL-Fix (#171), Tempo von Hand (#174), Im Tagger zeigen (#175), Hilfe › Lizenzen mit monatlicher Prüfung (#176, `docs/third-party.json`), Ordner grün (#177/#178). Version zur Freigabe an andere gedacht. Übersicht Programme/Plattformen: `docs/Tag-Programme-und-Musik-Plattformen.docx/.pdf` (Original als Claude-Doc). Nächster Meilenstein offen.
 
 ## Aktueller Stand (nach 4.1.0)
 
@@ -141,7 +141,7 @@
 
 ## Offene Meilensteine und Issues
 
-- **#10 „4.4.0 – Beatport-Download, Profile, Einrichtungsassistent“:** #171, #174–#178 in `_3 Beta-Test` (beta.5); übrige getestet und geschlossen.
+- **#10 „4.4.0 – …“:** abgeschlossen mit 4.4.0 final (2026-10-12).
 - **#4 „Später“:** #9, #14, #107, #108, #156 (WAV), #157 (Mehrsprachigkeit).
 
 ## Versionen (Kurz)

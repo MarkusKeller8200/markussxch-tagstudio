@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-11, 4.4.0-beta.6**. Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
+Stand: **2026-10-12, 4.4.0 final**. Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -60,12 +60,10 @@ Zug nachführen.**
   verschlüsselt im Plugin), nie protokollieren oder exportieren. Nichts Privates ins öffentliche Repo.
 - **Keine Extra-Kredits verbrauchen.**
 
-## Offen (Stand 4.4.0-beta.6)
+## Offen (Stand 4.4.0 final)
 
-- Wartet auf Tests des Users (`_3 Beta-Test`): #171 CodeQL-Fix, #174 Tempo von Hand, #175 „Im Tagger zeigen“,
-  #176 Lizenzen-Seite und monatliche Prüfung, #177/#178 Ordner grün.
-- #176: erstes Issue „Fremdkomponenten: Änderungen prüfen“ durchsehen, Lizenzangaben in `docs/third-party.json`
-  abgleichen, Stände mit `python .github/scripts/third_party_check.py --apply datei.json` übernehmen.
-- Danach 4.4.0 final (nur auf Wunsch) – der User will diese Version an andere freigeben.
-- Meilenstein „Später“: #9, #14, #107, #108, #156 WAV, #157 Mehrsprachigkeit.
+- 4.4.0 ist final (2026-10-12), Meilenstein #10 geschlossen; alle Issues getestet und geschlossen.
+- Nächster Meilenstein noch nicht geplant – „Später“: #9, #14, #107, #108, #156 WAV, #157 Mehrsprachigkeit.
+- Monatlich: Issue „Fremdkomponenten: Änderungen prüfen“ durchsehen, Stände mit
+  `python .github/scripts/third_party_check.py --apply datei.json` übernehmen.
 - Neue Fremdkomponenten immer in `docs/third-party.json` eintragen.

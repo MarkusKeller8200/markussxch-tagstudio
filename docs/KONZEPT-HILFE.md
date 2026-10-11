@@ -1,6 +1,6 @@
 # Konzept: Hilfe
 
-Stand: 2026-10-11 (4.4.0-beta.6) · Status: **umgesetzt in 4.3.0** (#158, #159) · nachträglich erstellt
+Stand: 2026-10-11 (4.4.0) · Status: **umgesetzt in 4.3.0** (#158, #159) · nachträglich erstellt
 
 > **Pflege:** Dieses Dokument wurde nachträglich aus Code und Handbuch zusammengestellt. Wird an der Hilfe
 > weitergearbeitet – auch neue Tastenkürzel oder Felder –, ist es im selben Zug anzupassen.

@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.4.0] – 2026-10-12
+
 ### Neu
 - Beatport: **„Fehlende Käufe herunterladen …“** (Plugins › Beatport) – lädt gekaufte Titel, die in deinen Ordnern
   noch fehlen, unverändert in einen Zielordner (z. B. den Eingangsordner von „Vorbereiten“), im gekauften Format;
