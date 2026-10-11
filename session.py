@@ -38,7 +38,11 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
            "tg_more_k": (int, float), "tg_col_name": (int, float), "tg_cover_col": bool,
            "module": str,                                    # #88: zuletzt benutzte Seite
            "tg_feat_cols": list,                             # #11: Spalten mit Audio-Merkmalen im Tagger
-           "tg_more_sort": str}                              # #141: Weitere Felder nach Feld oder Herkunft
+           "tg_more_sort": str,                              # #141: Weitere Felder nach Feld oder Herkunft
+           "tg_cols": list,                                  # #152/#154: sichtbare Spalten und Reihenfolge
+           "tg_fit": str,                                    # #148: „fit“ an Fenster anpassen, „scroll“ optimale Breite
+           "tg_sort_default": list,                          # #153: Standard-Sortierung (bis 3 Stufen)
+           "tg_view_default": dict}                          # #155: bevorzugte Ansicht
 
 
 class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
@@ -213,10 +217,34 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
             raise ValueError(f"Ungültige Layout-Einstellung: {name}")
         if name == "tg_feat_cols":
             value = [x for x in dict.fromkeys(value) if x in features.NAMES]
+        elif name == "tg_cols":
+            value = [x for x in dict.fromkeys(value) if isinstance(x, str) and 0 < len(x) <= 80][:40]
+        elif name == "tg_fit" and value not in ("fit", "scroll"):
+            raise ValueError("tg_fit: fit oder scroll")
+        elif name == "tg_sort_default":
+            value = self._clean_sorts(value)
+        elif name == "tg_view_default":
+            value = {"cols": [x for x in value.get("cols", []) if isinstance(x, str) and len(x) <= 80][:40],
+                     "fit": "scroll" if value.get("fit") == "scroll" else "fit",
+                     "sorts": self._clean_sorts(value.get("sorts", [])),
+                     "feat": [x for x in value.get("feat", []) if x in features.NAMES]} if value else {}
         self.ui[name] = value
         self.cfg["web_ui"] = dict(self.ui)
         core.save_config({"web_ui": dict(self.ui)})
         return True
+
+    @staticmethod
+    def _clean_sorts(v) -> list:
+        out = []
+        for s in v if isinstance(v, list) else []:
+            if isinstance(s, dict) and isinstance(s.get("col"), str) and 0 < len(s["col"]) <= 80:
+                if s["col"] not in [x["col"] for x in out]:
+                    out.append({"col": s["col"], "dir": -1 if s.get("dir") == -1 else 1})
+        return out[:3]
+
+    def _tg_extra_keys(self) -> list:
+        """#154: Felder der sichtbaren Zusatzspalten („fld:SCHLÜSSEL“) – nur diese gehen mit den Zeilen mit."""
+        return list(dict.fromkeys(c[4:] for c in (self.ui.get("tg_cols") or []) if isinstance(c, str) and c.startswith("fld:")))
 
     def set_option(self, name: str, value):
         if name not in self.opts:
@@ -1486,10 +1514,11 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
             raise ValueError("Zustand erwartet")
         rels = lambda v: [x for x in v if isinstance(x, str) and len(x) < 1024][:5000] if isinstance(v, list) else []
         sort = state.get("sort") if isinstance(state.get("sort"), dict) else {}
-        col = sort.get("col") if isinstance(sort.get("col"), str) and len(sort.get("col")) <= 40 else "name"
+        col = sort.get("col") if isinstance(sort.get("col"), str) and len(sort.get("col")) <= 80 else "name"
+        sorts = self._clean_sorts(state.get("sorts")) or [{"col": col, "dir": -1 if sort.get("dir") == -1 else 1}]   # #153
         out = {"root": str(state.get("root") or "")[:2048], "recursive": bool(state.get("recursive")),
                "sel": rels(state.get("sel")), "anchor": str(state.get("anchor") or "")[:1024],
-               "sort": {"col": col, "dir": -1 if sort.get("dir") == -1 else 1},
+               "sort": dict(sorts[0]), "sorts": sorts,
                "query": str(state.get("query") or "")[:200], "open": rels(state.get("open")),
                "scroll": max(0, int(state.get("scroll") or 0))}
         if out == self.cfg.get("tagger_state"):
@@ -1505,6 +1534,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                 "state": {**self.tag_state(), "exists": bool(self.tag_state().get("root")) and os.path.exists(self.tag_state()["root"])},
                 "default": str(self.cfg.get("default_tagger") or ""),
                 "fields": [[k, label, ph, field_name(k), field_help(k)] for k, label, ph in tagger.FIELDS],   # #151
+                "extra_cols": [[k, label, field_name(k)] for k, label in tagger.EXTRA_COLS],                  # #154
                 "features": [[n, label, desc] for n, label, desc in features.FEATURES],
                 "features_open": self.cfg.get("features_open", True),
                 "keys": {"wheel": keys.wheel(), "notations": [[k, v] for k, v in keys.NOTATIONS.items()],
@@ -1619,7 +1649,9 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                 "version": f.version,
                 **{key: tagger.text_of(f, key) for key, _l, _p in tagger.FIELDS},
                 "camelot": keys.parse_key(tagger.text_of(f, "TKEY")), "feat": features.values(f),
-                "rating": ratings.get_rating(f), "like": ratings.get_like(f)}
+                "rating": ratings.get_rating(f), "like": ratings.get_like(f),
+                "x": {k: tagger.text_of(f, k) for k in self._tg_extra_keys()},           # #154: weitere Spalten
+                "len": round(float(getattr(f, "duration", 0) or 0)), "kbps": int(getattr(f, "bitrate", 0) or 0)}
 
     @staticmethod
     def _front_cover(f):

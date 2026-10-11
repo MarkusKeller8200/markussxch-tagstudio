@@ -276,6 +276,27 @@ class TestSession(unittest.TestCase):
         self.assertEqual(len(st["items"]), 4)
         self.assertEqual(len(s.dj_tag_indices()), 4)
 
+    def test_tagger_columns_and_sorts(self):
+        """#152–#155: Spalten, Sortierstufen und bevorzugte Ansicht werden geprüft gemerkt; Feld-Spalten liefern Werte."""
+        s = self.session()
+        s.set_ui("tg_cols", ["TIT2", "TIT2", "fld:TXXX:LABEL", "", 5])
+        self.assertEqual(s.ui["tg_cols"], ["TIT2", "fld:TXXX:LABEL"])
+        with self.assertRaises(ValueError):
+            s.set_ui("tg_fit", "breit")
+        s.set_ui("tg_sort_default", [{"col": "TPE1", "dir": -1}, {"col": "TPE1"}, {"col": "TIT2"}, {"col": "a"}, {"col": "b"}])
+        self.assertEqual(s.ui["tg_sort_default"], [{"col": "TPE1", "dir": -1}, {"col": "TIT2", "dir": 1}, {"col": "a", "dir": 1}])
+        s.set_ui("tg_view_default", {"cols": ["name"], "fit": "scroll", "sorts": [{"col": "name"}], "feat": ["ENERGY", "XX"]})
+        self.assertEqual(s.ui["tg_view_default"], {"cols": ["name"], "fit": "scroll", "sorts": [{"col": "name", "dir": 1}], "feat": ["ENERGY"]})
+        s.start_tag_load(self.lib, False)
+        while not s.task_status()["done"]:
+            time.sleep(0.02)
+        row = s.tag_rows()["rows"][0]
+        self.assertIn("TXXX:LABEL", row["x"])
+        self.assertIn("len", row)
+        self.assertTrue(s.tag_state_save({"root": self.lib, "sorts": [{"col": "TPE1", "dir": -1}, {"col": "TIT2"}]}))
+        self.assertEqual(s.tag_state()["sorts"], [{"col": "TPE1", "dir": -1}, {"col": "TIT2", "dir": 1}])
+        self.assertEqual(s.tag_state()["sort"], {"col": "TPE1", "dir": -1})
+
     def test_tagger_state(self):
         """#127: Zustand speichern (bereinigt) und Startvorgabe."""
         s = self.session()

@@ -485,6 +485,51 @@ class UiTest(unittest.TestCase):
         ys = pg.evaluate("['#tgCoverSet', '#tgCoverDel', '#tgCoverWeb'].map(s => document.querySelector(s).getBoundingClientRect().top)")
         self.assertTrue(ys[0] < ys[1] < ys[2], ys)
 
+    def test_tagger_columns_sort_view(self):
+        """#152 Spalten anordnen, #154 weitere Spalten, #148 waagrecht blättern, #153 Sortierstufen, #155 Ansicht."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("call('tag_add_field', [0, 1, 2], 'TXXX', 'CATALOGNUMBER', 'POL042', false)")
+        # Spalte „Länge“ über das Menü
+        pg.click("#tgColsBtn")
+        pg.locator("#menu .menu-chk", has_text="Länge").click()
+        pg.keyboard.press("Escape")
+        pg.wait_for_selector('#tgHead [data-col="len"]')
+        self.assertIn("0:40", pg.inner_text('.tg-row[data-i="0"]'))
+        # eigenes Feld als Spalte
+        pg.evaluate("tgSetCols([...tgCols(), 'fld:TXXX:CATALOGNUMBER'], true)")
+        self.assertTrue(self.until("document.querySelector('.tg-row[data-i=\"0\"]').textContent.includes('POL042')"))
+        # Spalte per Ziehen vor „Datei“ setzen
+        pg.drag_and_drop('#tgHead [data-col="TIT2"]', '#tgHead [data-col="name"]')
+        self.assertEqual(pg.evaluate("tgCols()[0]"), "TIT2")
+        c = self.cfg_until(lambda c: (c.get("web_ui", {}).get("tg_cols") or [""])[0] == "TIT2")
+        self.assertIn("fld:TXXX:CATALOGNUMBER", c["web_ui"]["tg_cols"])
+        # zwei Sortierstufen, zurücksetzen
+        pg.click('#tgHead [data-sort="TPE1"]')
+        pg.click('#tgHead [data-sort="TIT2"]', modifiers=["Shift"])
+        self.assertEqual(pg.evaluate("TG.sorts.map(s => s.col)"), ["TPE1", "TIT2"])
+        self.assertIn("2", pg.inner_text('#tgHead [data-sort="TIT2"] sup'))
+        self.assertTrue(pg.locator("#tgSortReset").is_visible())
+        pg.click("#tgSortReset")
+        self.assertEqual(pg.evaluate("TG.sorts.map(s => s.col)"), ["name"])
+        # optimale Breite → waagrecht blättern, Kopfzeile läuft mit
+        pg.evaluate("tgSetFit('scroll')")
+        self.assertTrue(pg.evaluate("document.querySelector('#tgTable').classList.contains('hscroll')"))
+        self.assertTrue(pg.evaluate("(() => { const s = document.querySelector('#tgScroll'); return s.scrollWidth > s.clientWidth; })()"))
+        pg.evaluate("document.querySelector('#tgScroll').scrollLeft = 120; document.querySelector('#tgScroll').dispatchEvent(new Event('scroll'))")
+        self.assertIn("translateX(-120px)", pg.evaluate("document.querySelector('#tgHead').style.transform"))
+        # bevorzugte Ansicht speichern und wieder laden
+        pg.evaluate("tgViewSave()")
+        v = self.cfg_until(lambda c: c.get("web_ui", {}).get("tg_view_default", {}).get("fit") == "scroll")["web_ui"]["tg_view_default"]
+        self.assertEqual(v["cols"][0], "TIT2")
+        pg.evaluate("tgSetCols(TG_DEFAULT_COLS.slice(), false); tgSetFit('fit')")
+        pg.evaluate("tgViewApply()")
+        self.assertTrue(self.until("tgCols()[0] === 'TIT2' && LAYOUT.tg_fit === 'scroll'"))
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stTgViewInfo")
+        self.assertIn("Titel", pg.inner_text("#stTgViewInfo"))
+        self.assertIn("optimale Breite", pg.inner_text("#stTgViewInfo"))
+
     def test_tagger_feature_columns(self):
         """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""
         pg = self.pg

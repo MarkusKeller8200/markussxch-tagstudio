@@ -29,6 +29,9 @@ FIELDS = [
     ("COMM:", "Kommentar", "comment"),
 ]
 PLACEHOLDERS = {ph: key for key, _l, ph in FIELDS}
+# #154: zusätzliche Spalten der Dateiliste (Felder, die nicht schon in FIELDS stehen)
+EXTRA_COLS = [("TPUB", "Label"), ("TXXX:CATALOGNUMBER", "Katalognummer"), ("TPE4", "Remixer"), ("TSRC", "ISRC"),
+              ("TMOO", "Stimmung"), ("TIT3", "Untertitel"), ("TENC", "Kodiert von")]
 INVALID = re.compile(r'[\\/:*?"<>|\x00-\x1f]')
 
 

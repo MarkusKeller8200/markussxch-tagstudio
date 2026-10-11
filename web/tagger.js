@@ -3,10 +3,32 @@
 "use strict";
 
 const TG = { settings: null, loaded: false, rows: [], order: [], sel: new Set(), anchor: null,
-  sort: { col: "name", dir: 1 }, detail: null, editing: false,
+  sort: { col: "name", dir: 1 }, sorts: [{ col: "name", dir: 1 }], detail: null, editing: false,
   view: [], open: new Set(), flat: false };     // view: angezeigte Zeilen inkl. aufgeklappter Stems (#31)
-const TG_COLS = [["m", ""], ["name", "Datei"], ["TIT2", "Titel"], ["TPE1", "Künstler"], ["TALB", "Album"],
-  ["TRCK", "Spur"], ["TDRC", "Jahr"], ["TCON", "Genre"], ["TBPM", "BPM"], ["camelot", "Tonart"]];
+// #148/#152/#154: Spalten der Dateiliste – Reihenfolge und Auswahl in LAYOUT.tg_cols, Zusatzfelder als „fld:SCHLÜSSEL“
+const TG_DEFAULT_COLS = ["name", "TIT2", "TPE1", "TALB", "TRCK", "TDRC", "TCON", "TBPM", "camelot"];
+const TG_COLDEF = {
+  name: { l: "Datei", fit: "var(--tg-name,minmax(130px,1.5fr))", px: 260 },
+  TIT2: { l: "Titel", fit: "minmax(80px,1fr)", px: 200 }, TPE1: { l: "Künstler", fit: "minmax(80px,1fr)", px: 180 },
+  TALB: { l: "Album", fit: "minmax(80px,1fr)", px: 180 }, TRCK: { l: "Spur", fit: "52px", px: 56 },
+  TDRC: { l: "Jahr", fit: "48px", px: 56 }, TCON: { l: "Genre", fit: "minmax(64px,.8fr)", px: 140 },
+  TBPM: { l: "BPM", fit: "50px", px: 56, num: true }, camelot: { l: "Tonart", fit: "64px", px: 68 },
+  TPE2: { l: "Album-Künstler", fit: "minmax(80px,1fr)", px: 180 }, TPOS: { l: "Disk", fit: "44px", px: 52 },
+  TCOM: { l: "Komponist", fit: "minmax(80px,1fr)", px: 160 }, "COMM:": { l: "Kommentar", fit: "minmax(80px,1fr)", px: 220 },
+  len: { l: "Länge", fit: "56px", px: 60, num: true }, kbps: { l: "kbit/s", fit: "56px", px: 60, num: true },
+  rating: { l: "Bewertung", fit: "86px", px: 90 }, ver: { l: "ID3", fit: "44px", px: 48 },
+};
+const TG_BASE_EXTRA = ["TPE2", "TPOS", "TCOM", "COMM:", "len", "kbps", "rating", "ver"];
+function tgCols() {
+  const c = (LAYOUT.tg_cols || []).filter((id) => TG_COLDEF[id] || id.startsWith("fld:"));
+  return c.length ? c : TG_DEFAULT_COLS;
+}
+function tgColDef(id) {
+  if (TG_COLDEF[id]) return TG_COLDEF[id];
+  const key = id.slice(4), ex = ((TG.settings && TG.settings.extra_cols) || []).find(([k]) => k === key);
+  return { l: ex ? ex[1] : key.replace(/^TXXX:/, ""), fit: "minmax(80px,1fr)", px: 160, key };
+}
+const tgMmss = (s) => (s ? `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}` : "");
 const TG_ROW = 40;
 
 // ---------------------------------------------------------------------- Anzeigen / Laden
@@ -19,7 +41,7 @@ function tgInitOnce() {
     if (typeof homeSync === "function") homeSync();
     $("#tgRec").checked = !!TG.settings.recursive;
     const td = TG.settings.defaults || {};                                    // #86: Vorgaben beim Start
-    if (td.sort_col) TG.sort = { col: td.sort_col, dir: td.sort_dir === -1 ? -1 : 1 };
+    tgSetSorts(tgDefaultSorts(td));
     if (td.src_filter) TG.srcFilter = td.src_filter;
     renderTgHead();
     renderTgEditor();
@@ -108,7 +130,7 @@ function tgStateSave() {
     call("tag_state_save", {
       root: TG.root || "", recursive: !!TG.recursive,
       sel: [...TG.sel].map(rel).filter(Boolean), anchor: rel(TG.anchor) || "",
-      sort: TG.sort, query: $("#tgQuery").value || "", open: [...TG.open].map(rel).filter(Boolean),
+      sort: TG.sort, sorts: TG.sorts, query: $("#tgQuery").value || "", open: [...TG.open].map(rel).filter(Boolean),
       scroll: Math.round($("#tgScroll").scrollTop),
     }).catch(() => {});
   }, 700);
@@ -122,7 +144,7 @@ function tgStateFlush() {
   return call("tag_state_save", {
     root: TG.root || "", recursive: !!TG.recursive,
     sel: [...TG.sel].map(rel).filter(Boolean), anchor: rel(TG.anchor) || "",
-    sort: TG.sort, query: $("#tgQuery").value || "", open: [...TG.open].map(rel).filter(Boolean),
+    sort: TG.sort, sorts: TG.sorts, query: $("#tgQuery").value || "", open: [...TG.open].map(rel).filter(Boolean),
     scroll: Math.round($("#tgScroll").scrollTop),
   }).catch(() => {});
 }
@@ -130,7 +152,8 @@ function tgStateFlush() {
 /** Gemerkten Zustand auf die frisch geladene Liste anwenden (Pfade → Indizes) */
 function tgStateApply(st) {
   const idx = new Map(TG.rows.map((r) => [r.rel, r.i]));
-  if (st.sort && st.sort.col) TG.sort = { col: st.sort.col, dir: st.sort.dir === -1 ? -1 : 1 };
+  if (st.sorts && st.sorts.length) tgSetSorts(st.sorts);
+  else if (st.sort && st.sort.col) tgSetSorts([st.sort]);
   $("#tgQuery").value = st.query || "";
   TG.open = new Set((st.open || []).map((p) => idx.get(p)).filter((i) => i !== undefined));
   const sel = (st.sel || []).map((p) => idx.get(p)).filter((i) => i !== undefined);
@@ -220,7 +243,6 @@ function trackNum(v) { const m = String(v || "").match(/^\s*(\d+)/); return m ? 
 
 function tgApplyOrder() {
   const q = ($("#tgQuery").value || "").trim().toLowerCase();
-  const { col, dir } = TG.sort;
   let idx = TG.rows.filter((r) => r.parent === undefined).map((r) => r.i);   // Stems hängen unter dem Original
   const bpmNum = (v) => { const n = parseFloat(String(v || "").replace(",", ".")); return isFinite(n) ? n : Infinity; };
   const { text, nums } = tgParseQuery(q);                                    // #11: Zahlenfilter wie energy>=70
@@ -228,16 +250,19 @@ function tgApplyOrder() {
   if (nums.length) idx = idx.filter((i) => { const r = TG.rows[i];
     return nums.every((f) => { const v = f.field === "bpm" ? bpmNum(r.TBPM) : r.feat ? r.feat[f.field] : null;
       return v !== null && v !== undefined && v !== Infinity && f.test(v); }); });
-  const key = (r) => (col === "name" ? r.rel : col === "camelot" ? keySortValue(r.camelot) : col === "TRCK" ? (r.TPOS ? trackNum(r.TPOS) : 0) * 10000 + trackNum(r.TRCK)
-    : col === "TBPM" ? bpmNum(r.TBPM) : col.startsWith("f:") ? (r.feat && r.feat[col.slice(2)] !== null && r.feat[col.slice(2)] !== undefined ? r.feat[col.slice(2)] : Infinity) : (r[col] || ""));
-  idx.sort((a, b) => {
-    const x = key(TG.rows[a]), y = key(TG.rows[b]);
+  const key = (r, col) => (col === "name" ? r.rel : col === "camelot" ? keySortValue(r.camelot) : col === "TRCK" ? (r.TPOS ? trackNum(r.TPOS) : 0) * 10000 + trackNum(r.TRCK)
+    : col === "TBPM" ? bpmNum(r.TBPM) : col.startsWith("f:") ? (r.feat && r.feat[col.slice(2)] !== null && r.feat[col.slice(2)] !== undefined ? r.feat[col.slice(2)] : Infinity)
+    : col === "len" ? (r.len || Infinity) : col === "kbps" ? (r.kbps || Infinity) : col === "rating" ? (r.rating ? -r.rating : Infinity)
+    : col === "ver" ? (r.version || Infinity) : col.startsWith("fld:") ? ((r.x && r.x[col.slice(4)]) || "") : (r[col] || ""));
+  const cmp1 = (a, b, { col, dir }) => {                   // #153: bis zu drei Sortierstufen
+    const x = key(TG.rows[a], col), y = key(TG.rows[b], col);
     const ex = x === "" || x === Infinity || x === 999, ey = y === "" || y === Infinity || y === 999;
     if (ex !== ey) return ex ? 1 : -1;                     // leere Werte immer ans Ende, auch absteigend
-    if (ex) return a - b;
+    if (ex) return 0;
     const c = typeof x === "number" ? x - y : String(x).localeCompare(String(y), "de", { numeric: true, sensitivity: "base" });
-    return c * dir || a - b;
-  });
+    return c * (col === "rating" ? 1 : dir) * (col === "rating" ? dir : 1);
+  };
+  idx.sort((a, b) => { for (const s of TG.sorts) { const c = cmp1(a, b, s); if (c) return c; } return a - b; });
   const view = [];
   for (const i of idx) {
     view.push({ i });
@@ -313,18 +338,29 @@ function tgFeatMenu(btn) {
 function renderTgHead() {
   $("#tgTable").classList.toggle("covers", !!LAYOUT.tg_cover_col);       // #73
   const cb = $("#tgCoverCol"); if (cb) cb.classList.toggle("on", !!LAYOUT.tg_cover_col);
-  const fcols = tgFeatCols();
+  const fcols = tgFeatCols(), cols = tgCols(), scroll = LAYOUT.tg_fit === "scroll";
   const fb = $("#tgFeatCols"); if (fb) { fb.classList.toggle("on", fcols.length > 0); fb.textContent = fcols.length ? `Merkmale (${fcols.length}) ▾` : "Merkmale ▾"; }
-  $("#tgTable").style.setProperty("--tg-feat", fcols.length ? `repeat(${fcols.length}, 52px)` : " ");
-  $("#tgTable").classList.toggle("feat", fcols.length > 0);
-  $("#tgTable").classList.toggle("feat-many", fcols.length >= 4);
-  $("#tgHead").innerHTML = TG_COLS.map(([k, l]) => {
-    if (k === "m") return "<span></span>";
-    const b = `<button data-sort="${k}" class="${TG.sort.col === k ? "on" : ""}">${esc(l)}${TG.sort.col === k ? (TG.sort.dir > 0 ? " ▴" : " ▾") : ""}</button>`;
+  // #148: „fit“ = an Fenster anpassen, „scroll“ = optimale Breite mit horizontalem Bildlauf
+  const w = (id) => { const d = tgColDef(id); return scroll ? (id === "name" ? "var(--tg-name-px,260px)" : `${d.px}px`) : d.fit; };
+  const grid = ["22px", ...cols.map(w), ...fcols.map(() => (scroll ? "60px" : "52px"))].join(" ");
+  const tbl = $("#tgTable");
+  tbl.style.setProperty("--tg-grid", grid);
+  tbl.classList.toggle("hscroll", scroll);
+  tbl.classList.toggle("feat", fcols.length > 0);
+  const multi = TG.sorts.length > 1;
+  const mark = (k) => { const n = TG.sorts.findIndex((s) => s.col === k); if (n < 0) return ""; return (TG.sorts[n].dir > 0 ? " ▴" : " ▾") + (multi ? `<sup>${n + 1}</sup>` : ""); };
+  const on = (k) => (TG.sorts.some((s) => s.col === k) ? "on" : "");
+  const tip = "Klick: sortieren · Shift+Klick: weitere Sortierstufe (bis 3) · Ziehen: Spalte verschieben";
+  $("#tgHead").innerHTML = "<span></span>" + cols.map((k) => {
+    const d = tgColDef(k);
+    const b = `<button data-sort="${esc(k)}" data-col="${esc(k)}" draggable="true" class="${on(k)}${d.num ? " num" : ""}" title="${esc(d.l + (d.key ? ` (${d.key})` : "") + "\n" + tip)}">${esc(d.l)}${mark(k)}</button>`;
     return k === "name" ? `<span class="th-name">${b}<span class="col-grip" id="tgNameGrip" role="separator" aria-orientation="vertical" aria-label="Breite der Spalte Datei" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: automatisch"></span></span>` : b;
-  }).join("") + fcols.map(([n, label, desc]) => { const k = "f:" + n, on = TG.sort.col === k;
-    return `<button data-sort="${k}" class="ft-h${on ? " on" : ""}" title="${esc(label)} – ${esc(desc)} (0–100)">${esc(label.slice(0, 7))}${on ? (TG.sort.dir > 0 ? " ▴" : " ▾") : ""}</button>`; }).join("");
+  }).join("") + fcols.map(([n, label, desc]) => { const k = "f:" + n;
+    return `<button data-sort="${k}" class="ft-h ${on(k)}" title="${esc(label)} – ${esc(desc)} (0–100)">${esc(label.slice(0, 7))}${mark(k)}</button>`; }).join("");
+  $("#tgSortReset").hidden = tgSortsEqual(TG.sorts, tgDefaultSorts());
+  tgHeadScrollSync();
   const grip = $("#tgNameGrip");     // #41: Breite der Datei-Spalte
+  if (!grip) return;
   const setW = (w) => { LAYOUT.tg_col_name = w ? clamp(Math.round(w), 110, 900) : 0; applyLayout(); };
   draggable(grip, {
     onStart: () => ({ w: grip.parentElement.getBoundingClientRect().width }),
@@ -346,7 +382,7 @@ function drawTgList() {
   const sel1 = TG.sel.size === 1 ? TG.rows[[...TG.sel][0]] : null;
   const fit = new Set(sel1 && sel1.camelot ? keyCompat(sel1.camelot) : []);
   const mb = (b) => (b < 1048576 ? `${Math.round(b / 1024)} KB` : `${(b / 1048576).toFixed(1).replace(".", ",")} MB`);
-  const fcols = tgFeatCols();
+  const fcols = tgFeatCols(), cols = tgCols();
   for (let k = first; k < last; k++) {
     const v = TG.view[k];
     if (v.stem) {         // FLAC/WAV-Spur: nur anhören / zeigen
@@ -362,13 +398,144 @@ function drawTgList() {
       : `${tw}<span class="nm">${esc(r.rel)}</span>${r.stems ? `<span class="stem-b" title="${esc(r.stems.map((x) => x.name + " (" + x.ext + ")").join(", "))}">${r.stems.length} Stems</span>` : ""}`;
     h += `<div class="tg-row${TG.sel.has(r.i) ? " sel" : ""}${v.child !== undefined ? " child" : ""}" style="top:${k * TG_ROW}px" data-i="${r.i}" title="${esc(r.rel)}" draggable="true">
       <span>${r.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</span>
-      <span class="fn">${LAYOUT.tg_cover_col && v.child === undefined ? `<span class="tg-thumb${r.ch ? "" : " none"}"${r.ch ? ` data-ch="${r.ch}"` : ""}>${r.ch && TG_THUMBS.get(r.ch) ? `<img src="${TG_THUMBS.get(r.ch)}" alt="">` : ""}</span>` : ""}${name}${rateMini(r.rating, r.like)}</span><span>${esc(r.TIT2)}</span><span>${esc(r.TPE1)}</span><span>${esc(r.TALB)}</span>
-      <span>${esc(r.TRCK)}</span><span>${esc(r.TDRC)}</span><span>${esc(r.TCON)}</span><span class="num">${esc(r.TBPM)}</span>
-      <span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx">${esc(r.TKEY)}</span>`}</span>${fcols.map(([n]) => { const v = r.feat ? r.feat[n] : null;
+      ${cols.map((c) => tgCell(r, c, v, name, fit)).join("")}${fcols.map(([n]) => { const v = r.feat ? r.feat[n] : null;
         return v === null || v === undefined ? "<span></span>" : `<span class="ft-c"><i style="width:${v}%"></i>${v}</span>`; }).join("")}</div>`;
   }
   inner.innerHTML = h;
   if (LAYOUT.tg_cover_col) tgThumbsLoad();
+}
+
+/** Eine Zelle der Dateiliste (#152/#154) */
+function tgCell(r, c, v, name, fit) {
+  switch (c) {
+    case "name": return `<span class="fn">${LAYOUT.tg_cover_col && v.child === undefined ? `<span class="tg-thumb${r.ch ? "" : " none"}"${r.ch ? ` data-ch="${r.ch}"` : ""}>${r.ch && TG_THUMBS.get(r.ch) ? `<img src="${TG_THUMBS.get(r.ch)}" alt="">` : ""}</span>` : ""}${name}${rateMini(r.rating, r.like)}</span>`;
+    case "TBPM": return `<span class="num">${esc(r.TBPM)}</span>`;
+    case "camelot": return `<span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx">${esc(r.TKEY)}</span>`}</span>`;
+    case "len": return `<span class="num">${tgMmss(r.len)}</span>`;
+    case "kbps": return `<span class="num">${r.kbps || ""}</span>`;
+    case "rating": return `<span>${r.rating ? "★".repeat(r.rating) : ""}${r.like ? " ♥" : ""}</span>`;
+    case "ver": return `<span>${r.version ? "v2." + r.version : ""}</span>`;
+    default: {
+      const val = c.startsWith("fld:") ? (r.x && r.x[c.slice(4)]) || "" : r[c] || "";
+      return `<span title="${esc(val)}">${esc(val)}</span>`;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------- Spalten, Sortierung, Ansicht (#148, #152–#155)
+function tgSetSorts(list) {
+  const s = (list || []).filter((x) => x && x.col).slice(0, 3).map((x) => ({ col: x.col, dir: x.dir === -1 ? -1 : 1 }));
+  TG.sorts = s.length ? s : [{ col: "name", dir: 1 }];
+  TG.sort = TG.sorts[0];                             // Kompatibilität: erste Stufe
+}
+/** Standard-Sortierung: eigene (#153) → Vorgabe beim Start (#86) → Datei aufsteigend */
+function tgDefaultSorts(td) {
+  if ((LAYOUT.tg_sort_default || []).length) return LAYOUT.tg_sort_default;
+  td = td || (TG.settings && TG.settings.defaults) || {};
+  return td.sort_col ? [{ col: td.sort_col, dir: td.sort_dir === -1 ? -1 : 1 }] : [{ col: "name", dir: 1 }];
+}
+const tgSortsEqual = (a, b) => JSON.stringify((a || []).map((x) => [x.col, x.dir])) === JSON.stringify((b || []).map((x) => [x.col, x.dir]));
+function tgSortReset() { tgSetSorts(tgDefaultSorts()); renderTgHead(); tgApplyOrder(); toast("Sortierung zurückgesetzt."); }
+/** Kopfzeile beim waagrechten Bildlauf mitführen (#148) */
+function tgHeadScrollSync() {
+  const h = $("#tgHead"), sc = $("#tgScroll");
+  if (h) h.style.transform = LAYOUT.tg_fit === "scroll" && sc.scrollLeft ? `translateX(${-sc.scrollLeft}px)` : "";
+}
+async function tgSetCols(cols, reload) {
+  LAYOUT.tg_cols = cols;
+  await call("set_ui", "tg_cols", cols).catch(() => {});
+  renderTgHead();
+  if (reload && TG.loaded) {                         // neue Feld-Spalte: Werte mit den Zeilen holen
+    const tr = await call("tag_rows");
+    TG.rows = tr.rows;
+    tgApplyOrder();
+  } else drawTgList();
+}
+function tgColsMenu(btn) {
+  const cols = tgCols(), on = new Set(cols);
+  const extra = ((TG.settings && TG.settings.extra_cols) || []).map(([k]) => "fld:" + k);
+  const own = cols.filter((c) => c.startsWith("fld:") && !extra.includes(c));
+  const all = [...TG_DEFAULT_COLS, ...TG_BASE_EXTRA, ...extra, ...own];
+  const toggle = (id) => {
+    const cur = tgCols().slice();
+    const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+    if (!next.length) { toast("Mindestens eine Spalte bleibt sichtbar."); return; }
+    tgSetCols(next, id.startsWith("fld:") && !cur.includes(id));
+  };
+  const r = btn.getBoundingClientRect();
+  showMenu(r.left, r.bottom + 6, [
+    ...all.map((id) => ({ label: tgColDef(id).l + (id.startsWith("fld:") ? ` (${tgColDef(id).key})` : ""), check: on.has(id), run: () => toggle(id) })),
+    "-",
+    { label: "Feld als Spalte hinzufügen …", run: tgColAddField },
+    { label: "An Fenster anpassen", check: LAYOUT.tg_fit !== "scroll", run: () => tgSetFit("fit") },
+    { label: "Optimale Breite (waagrecht blättern)", check: LAYOUT.tg_fit === "scroll", run: () => tgSetFit("scroll") },
+    "-",
+    { label: "Aktuelle Sortierung als Standard", run: () => { LAYOUT.tg_sort_default = TG.sorts.slice(); call("set_ui", "tg_sort_default", LAYOUT.tg_sort_default); renderTgHead(); toast("Standard-Sortierung gespeichert."); } },
+    { label: "Ansicht als bevorzugt speichern", run: tgViewSave },
+    ...(LAYOUT.tg_view_default && LAYOUT.tg_view_default.cols ? [{ label: "Bevorzugte Ansicht laden", run: tgViewApply }] : []),
+    { label: "Standard-Spalten wiederherstellen", run: () => tgSetCols(TG_DEFAULT_COLS.slice(), false) },
+  ]);
+}
+function tgSetFit(mode) {
+  LAYOUT.tg_fit = mode; call("set_ui", "tg_fit", mode).catch(() => {});
+  hideMenu(); renderTgHead(); drawTgList();
+}
+async function tgColAddField() {
+  const key = await modal({
+    title: "Feld als Spalte",
+    html: `<div class="frm"><label for="tcKey">Feld</label><input id="tcKey" class="inp" placeholder="z. B. TXXX:LABEL, TPUB, TSRC" spellcheck="false"></div>
+      <div class="hint">Benutzertext als „TXXX:NAME“, sonst die ID3-Kennung (z. B. TPUB = Label, TSRC = ISRC). Der Feldname steht bei „Weitere Felder“ hinten.</div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Hinzufügen", value: true, primary: true }],
+    collect: (b) => { const v = $("#tcKey", b).value.trim(); if (!/^[A-Z0-9]{4}(:.{1,60})?$/i.test(v)) { toast("Bitte eine Feldkennung wie TXXX:LABEL eingeben."); return false; } return v.replace(/^([a-z0-9]{4})/i, (m) => m.toUpperCase()); },
+  });
+  if (!key) return;
+  const id = "fld:" + key;
+  if (!tgCols().includes(id)) tgSetCols([...tgCols(), id], true);
+}
+function tgViewNow() { return { cols: tgCols().slice(), fit: LAYOUT.tg_fit || "fit", sorts: TG.sorts.slice(), feat: (LAYOUT.tg_feat_cols || []).slice() }; }
+async function tgViewSave() {
+  LAYOUT.tg_view_default = tgViewNow();
+  await call("set_ui", "tg_view_default", LAYOUT.tg_view_default).catch(() => {});
+  toast("Bevorzugte Ansicht gespeichert (Spalten, Breite, Sortierung, Merkmale).");
+}
+async function tgViewApply() {
+  const v = LAYOUT.tg_view_default || {};
+  if (!v.cols) { toast("Noch keine bevorzugte Ansicht gespeichert."); return; }
+  LAYOUT.tg_fit = v.fit || "fit"; call("set_ui", "tg_fit", LAYOUT.tg_fit).catch(() => {});
+  LAYOUT.tg_feat_cols = v.feat || []; call("set_ui", "tg_feat_cols", LAYOUT.tg_feat_cols).catch(() => {});
+  tgSetSorts(v.sorts);
+  await tgSetCols(v.cols, v.cols.some((c) => c.startsWith("fld:")));
+  tgApplyOrder();
+  toast("Bevorzugte Ansicht geladen.");
+}
+/** Spalten per Ziehen in der Kopfzeile umordnen (#152) */
+function tgHeadDragInit() {
+  const head = $("#tgHead");
+  let drag = null;
+  head.addEventListener("dragstart", (e) => {
+    const b = e.target.closest("[data-col]"); if (!b) return;
+    drag = b.dataset.col;
+    e.dataTransfer.setData("text/plain", drag);
+    e.dataTransfer.effectAllowed = "move";
+  });
+  head.addEventListener("dragover", (e) => {
+    if (!drag) return;
+    const b = e.target.closest("[data-col]"); if (!b) return;
+    e.preventDefault();
+    $$("#tgHead .drop-before").forEach((x) => x.classList.remove("drop-before"));
+    if (b.dataset.col !== drag) b.classList.add("drop-before");
+  });
+  head.addEventListener("drop", (e) => {
+    const b = e.target.closest("[data-col]");
+    $$("#tgHead .drop-before").forEach((x) => x.classList.remove("drop-before"));
+    if (!drag || !b || b.dataset.col === drag) { drag = null; return; }
+    e.preventDefault();
+    const cols = tgCols().filter((c) => c !== drag);
+    cols.splice(cols.indexOf(b.dataset.col), 0, drag);
+    drag = null;
+    tgSetCols(cols, false);
+  });
+  head.addEventListener("dragend", () => { drag = null; $$("#tgHead .drop-before").forEach((x) => x.classList.remove("drop-before")); });
 }
 
 // ---------------------------------------------------------------------- Cover-Spalte (#73)
@@ -1149,10 +1316,19 @@ async function tgOriginDialog(preset = "") {
   $("#tgQuery").addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(tgApplyOrder, 150); });
   $("#tgHead").addEventListener("click", (e) => {
     const b = e.target.closest("[data-sort]"); if (!b) return;
-    TG.sort = { col: b.dataset.sort, dir: TG.sort.col === b.dataset.sort ? -TG.sort.dir : 1 };
+    const col = b.dataset.sort, n = TG.sorts.findIndex((s) => s.col === col);
+    if (e.shiftKey) {                                  // #153: weitere Sortierstufe (bis 3)
+      if (n >= 0) TG.sorts[n] = { col, dir: -TG.sorts[n].dir };
+      else if (TG.sorts.length < 3) TG.sorts.push({ col, dir: 1 });
+      else toast("Höchstens drei Sortierstufen – „Sortierung zurücksetzen“ beginnt neu.");
+      tgSetSorts(TG.sorts);
+    } else tgSetSorts([{ col, dir: n === 0 && TG.sorts.length === 1 ? -TG.sorts[0].dir : 1 }]);
     renderTgHead(); tgApplyOrder();
   });
-  $("#tgScroll").addEventListener("scroll", () => { requestAnimationFrame(drawTgList); tgStateSave(); });
+  tgHeadDragInit();
+  $("#tgColsBtn").addEventListener("click", (e) => { e.stopPropagation(); tgColsMenu(e.currentTarget); });
+  $("#tgSortReset").addEventListener("click", tgSortReset);
+  $("#tgScroll").addEventListener("scroll", () => { requestAnimationFrame(drawTgList); tgHeadScrollSync(); tgStateSave(); });
   $("#tgInner").addEventListener("click", (e) => {
     const tw = e.target.closest("[data-tw]");
     if (tw) { e.stopPropagation(); tgToggleStems(+tw.dataset.tw); return; }

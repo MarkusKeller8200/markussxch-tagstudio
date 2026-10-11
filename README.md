@@ -98,6 +98,11 @@ Das App-Fenster öffnet in der Grösse und Position vom letzten Mal (auch maximi
   im Hintergrund jeden Titel über einen Hash seiner Tags und liest Geändertes neu (Stand in der Statuszeile).
 - **Liste:** Ordner oder Datei einlesen; optional mit **Cover-Spalte** (Knopf „Cover“); Spalten Datei, Titel, Künstler, Album, Spur, Jahr, Genre, Tonart –
   sortierbar per Klick, filterbar. Markieren mit Klick, Shift, Strg/Cmd, Strg/Cmd+A.
+- **Spalten ▾:** weitere Spalten (Album-Künstler, Disk, Komponist, Kommentar, Länge, kbit/s, Bewertung, ID3-Version,
+  Label, Katalognummer, Remixer, ISRC … oder **beliebiges Feld** wie `TXXX:LABEL`), Reihenfolge per **Ziehen in der
+  Kopfzeile**, „An Fenster anpassen“ oder „Optimale Breite“ mit waagrechtem Blättern. **Sortieren** in bis zu drei
+  Stufen (Shift+Klick auf weitere Spalten), „↺ Sortierung“ setzt auf den Standard zurück; „Aktuelle Sortierung als
+  Standard“ und **„Ansicht als bevorzugt speichern“** (auch unter Einstellungen › Tagger).
 - **Bearbeiten:** rechts die Standardfelder der markierten Dateien. Bei mehreren Dateien zeigt „‹verschieden›“
   unterschiedliche Werte – sie bleiben unverändert, bis du etwas einträgst. Cover setzen/entfernen, ID3-Version
   (v2.3/v2.4) wählen. Steht eine Internetadresse im Feld (z. B. Kommentar), erscheint daneben ein Link-Knopf.

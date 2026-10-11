@@ -24,6 +24,8 @@ async function settingsShow() {
         <span>Stems</span>${stCheck("stStemsFlat", d.stems_flat, "Stems als eigene Titel anzeigen (statt aufklappbar unter dem Original)")}
         <label for="stFeatScale">Audio-Merkmale in den Dateien</label>${stSel("stFeatScale", d.feat_scales || [[100, "0–100"]], d.feat_scale || 100)}
         <span></span><span class="muted sm">Angezeigt und bearbeitet wird immer 0–100. Bei 0–10 (z. B. Lexicon) rechnet TagStudio beim Lesen ×10 und beim Schreiben ÷10 um.</span>
+        <span>Bevorzugte Ansicht</span><div><div class="st-path"><button class="ghost sm" id="stTgViewSave" title="Spalten, Reihenfolge, Breite, Sortierung und Merkmal-Spalten der Dateiliste merken">Aktuelle Ansicht speichern</button><button class="ghost sm" id="stTgViewApply" ${LAYOUT.tg_view_default && LAYOUT.tg_view_default.cols ? "" : "disabled"}>Anwenden</button><button class="ghost sm" id="stTgViewDel" ${LAYOUT.tg_view_default && LAYOUT.tg_view_default.cols ? "" : "disabled"}>Löschen</button></div>
+          <div class="muted sm" id="stTgViewInfo">${stTgViewInfo()}</div></div>
       </div>
       <h4 class="st-sub">Beim Start</h4>
       <div class="st-row">
@@ -226,6 +228,15 @@ async function stCacheRender(info) {
     <button class="ghost sm" data-cbuild="${k}" title="Für alle geladenen Titel (Tagger und Vergleich) neu erstellen">Erstellen</button><button class="ghost sm" data-cclear="${k}" ${c[k].count ? "" : "disabled"}>Leeren</button><button class="ghost sm" data-copen="${esc(c[k].dir)}">Ordner</button></div>`;
   $("#stCacheRows").innerHTML = `<span>Listen-Cache</span>${stCheck("stListCache", c.lists.on, "Tagger und Vergleich sofort aus dem Cache anzeigen, danach im Hintergrund über einen Hash je Titel auf Änderungen prüfen")}`
     + row("lists", "Listen") + row("wave", "Wellenformen") + row("covers", "Cover-Vorschauen");
+}
+
+/** #155: kurze Beschreibung der gespeicherten Ansicht */
+function stTgViewInfo() {
+  const v = LAYOUT.tg_view_default || {};
+  if (!v.cols) return "Noch keine gespeichert – im Tagger unter „Spalten ▾“ oder hier speichern.";
+  const name = (c) => (typeof tgColDef === "function" ? tgColDef(c).l : c);
+  const sorts = (v.sorts || []).map((s, k) => `${k + 1}. ${s.col.startsWith("f:") ? s.col.slice(2) : name(s.col)} ${s.dir > 0 ? "↑" : "↓"}`).join(", ");
+  return `Spalten: ${v.cols.map(name).join(", ")}${(v.feat || []).length ? ` · Merkmale: ${v.feat.length}` : ""} · ${v.fit === "scroll" ? "optimale Breite" : "an Fenster angepasst"}${sorts ? ` · Sortierung: ${sorts}` : ""}`;
 }
 
 // ---------------------------------------------------------------------- Expert (#133)
@@ -491,6 +502,9 @@ function initSettings() {
     else if (t.dataset.copen) call("open_folder", t.dataset.copen);
     else if (t.dataset.xreveal) { if (!(await call("reveal", t.dataset.xreveal))) call("open_folder", t.dataset.xreveal); }
     else if (t.id === "stXConfig") stExpertConfig();
+    else if (t.id === "stTgViewSave" && typeof tgViewSave === "function") { await tgViewSave(); settingsShow(); }
+    else if (t.id === "stTgViewApply" && typeof tgViewApply === "function") await tgViewApply();
+    else if (t.id === "stTgViewDel") { LAYOUT.tg_view_default = {}; await call("set_ui", "tg_view_default", {}); toast("Bevorzugte Ansicht gelöscht."); settingsShow(); }
     else if (t.dataset.xlog) stExpertLog(t.dataset.xlog);
     else if (t.id === "stXCopy") stExpertCopy();
     else if (t.id === "stXLogs") stExpertRender();
