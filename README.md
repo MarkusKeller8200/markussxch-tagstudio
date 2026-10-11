@@ -505,6 +505,8 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
    mit dem Text aus dem CHANGELOG an. Ein von Hand gesetzter Tag (*Releases → Draft a new release*, Titel
    „TagStudio X.Y.Z“, Beschreibung leer) funktioniert weiterhin; der Workflow prüft dann, dass Tag und
    `version.py` übereinstimmen. Tags mit Zusatz (`v3.2.0-beta.1`) werden als **Vorabversion** veröffentlicht.
+   Betas werden **nur für Windows** gebaut (macOS nur bei finalen Versionen oder beim Start von Hand mit „Auch
+   macOS bauen“).
 4. **Dringender Fehler:** sofort eine PATCH-Version auf demselben Weg.
 
 `python packaging/release.py --check` prüft, ob Versionsnummer, `pyproject.toml`, `SECURITY.md` und CHANGELOG

@@ -35,6 +35,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Position auf einem nicht mehr angeschlossenen Bildschirm, erscheint es mittig auf dem Hauptbildschirm (#125).
 
 ### Geändert
+- Beta-Versionen werden nur noch für Windows gebaut; macOS-Installer gibt es mit den finalen Versionen.
 - **Python 3.12 oder neuer** nötig für die Quellcode-Variante (vorher 3.9; 3.9 und 3.10 bekommen keine Updates
   mehr). Der Installer bringt jetzt **Python 3.15** mit (vorher 3.12; Stems-Umgebung bleibt 3.12). Tests laufen mit 3.12 und 3.15 auf Windows
   und macOS (Linux derzeit nicht vorgesehen); der Installer-Workflow kann von Hand mit einer anderen Python-Version bauen (Probe-Build) (#135).

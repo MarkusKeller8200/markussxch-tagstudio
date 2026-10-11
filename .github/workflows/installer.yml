@@ -17,6 +17,10 @@ on:
         description: "Python-Version für den Build (Probe-Build, z. B. 3.15)"
         required: false
         default: "3.15"
+      macos:
+        description: "Auch macOS bauen (Betas sonst nur Windows)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -35,6 +39,7 @@ jobs:
       version: ${{ steps.p.outputs.version }}
       tag: ${{ steps.p.outputs.tag }}
       release: ${{ steps.p.outputs.release }}
+      mac: ${{ steps.p.outputs.mac }}
     steps:
       - uses: actions/checkout@v7
       - id: p
@@ -58,6 +63,11 @@ jobs:
           fi
           echo "version=$ver" >> "$GITHUB_OUTPUT"
           echo "release=$rel" >> "$GITHUB_OUTPUT"
+          # macOS nur für finale Versionen (Betas testet der User ausschliesslich auf Windows) oder auf Wunsch von Hand
+          mac=false
+          if [[ "$ver" != *-* || "${{ inputs.macos }}" == "true" ]]; then mac=true; fi
+          echo "mac=$mac" >> "$GITHUB_OUTPUT"
+          [ "$mac" = true ] || echo "::notice title=macOS übersprungen::Beta $ver – nur Windows wird gebaut."
 
   windows:
     needs: plan
@@ -132,6 +142,7 @@ jobs:
 
   macos:
     needs: plan
+    if: needs.plan.outputs.mac == 'true'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
@@ -176,7 +187,10 @@ jobs:
 
   release:
     needs: [plan, windows, macos]
-    if: needs.plan.outputs.release == 'true'
+    # macOS darf bei Betas übersprungen sein
+    if: >-
+      always() && needs.plan.outputs.release == 'true' && needs.windows.result == 'success' &&
+      (needs.macos.result == 'success' || needs.macos.result == 'skipped')
     runs-on: ubuntu-latest
     env:
       TAG: ${{ needs.plan.outputs.tag }}
@@ -195,7 +209,10 @@ jobs:
           import release
           ver = sys.argv[1]
           body = release.section_text(open("CHANGELOG.md", encoding="utf-8").read(), ver)
-          print("**Download:** Windows → `TagStudio-…-Windows-Setup.exe` · macOS (Apple-Chip) → `TagStudio-…-macOS-Apple-Chip.dmg`\n")
+          import glob
+          mac = bool(glob.glob("assets/*.dmg"))
+          print("**Download:** Windows → `TagStudio-…-Windows-Setup.exe`"
+                + (" · macOS (Apple-Chip) → `TagStudio-…-macOS-Apple-Chip.dmg`" if mac else " (Beta: nur Windows)") + "\n")
           print("Die Installer sind nicht signiert: Windows zeigt evtl. „Der Computer wurde durch Windows geschützt“ → „Weitere Informationen“ → „Trotzdem ausführen“. macOS: siehe „Zuerst lesen.txt“ im Disk-Image.\n")
           if "-" in ver:
               print("> **Vorabversion** zum Testen – noch nicht für den Alltag gedacht.\n")
