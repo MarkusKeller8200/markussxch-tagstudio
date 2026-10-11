@@ -206,7 +206,8 @@ async function tgAdopt(tr, path, recursive) {
   tgStateSave();
   await tgLoadDetail();
   if (typeof djAfterTaggerLoad === "function") djAfterTaggerLoad();     // DJ-Set: Titel sind jetzt geladen
-  if (typeof pqAfterTaggerLoad === "function") pqAfterTaggerLoad();     // #138 Warteschlange
+  if (typeof pqAfterTaggerLoad === "function") pqAfterTaggerLoad();
+  TG.moodSuggest = null;                                                    // #12: Vorschläge neu sammeln     // #138 Warteschlange
 }
 
 /** Nach Änderungen anderswo (Vergleich, Undo, Speichern …) */
@@ -609,6 +610,35 @@ async function tgMark(stars, like) {
   if (d.message) toast(d.message);
 }
 
+// ---------------------------------------------------------------------- #12 Stimmung (Mood)
+/** Zeile im Formular: Stimmungen als Chips (× entfernt), teilweise vorhandene gestrichelt (Klick: allen geben). */
+function tgMoodRow(d) {
+  const m = d.mood || { all: [], some: [] };
+  if (!TG.moodSuggest) tgMoodSuggestLoad();
+  const chips = m.all.map((v) => `<span class="mood-chip">${esc(v)}<button class="x" data-mood-del="${esc(v)}" title="„${esc(v)}“ entfernen" aria-label="${esc(v)} entfernen">×</button></span>`).join("")
+    + m.some.map(([v, n]) => `<button class="mood-chip part" data-mood-add="${esc(v)}" title="nur in ${n} von ${d.count} Dateien – Klick: allen geben">${esc(v)} <span class="muted">${n}/${d.count}</span></button>`).join("");
+  const sug = (TG.moodSuggest || []).map((s) => `<option value="${esc(s.value)}">${s.count ? `${s.count}×` : ""}</option>`).join("");
+  return `<label for="tgMoodIn" title="Stimmung (mehrere möglich). ID3v2.4: TMOO · ID3v2.3: TXXX:MOOD · Mp3tag: MOOD">Stimmung <span class="fname">MOOD</span></label>
+    <div class="mood-box" id="tgMood">${chips}<input id="tgMoodIn" list="tgMoodList" placeholder="${m.all.length || m.some.length ? "+" : "z. B. Dark, Driving"}" spellcheck="false" autocomplete="off" aria-label="Stimmung hinzufügen (Enter)"><datalist id="tgMoodList">${sug}</datalist></div>`;
+}
+
+async function tgMoodSuggestLoad() {
+  if (TG.moodLoading) return;
+  TG.moodLoading = true;
+  try { TG.moodSuggest = await call("tag_mood_suggest"); } catch (e) { TG.moodSuggest = []; }
+  finally { TG.moodLoading = false; }
+  const dl = $("#tgMoodList");
+  if (dl) dl.innerHTML = TG.moodSuggest.map((s) => `<option value="${esc(s.value)}">${s.count ? `${s.count}×` : ""}</option>`).join("");
+}
+
+async function tgMoodEdit(add, remove) {
+  const d = await call("tag_mood", tgSelected(), add, remove);
+  TG.moodSuggest = null;                      // neue Werte erscheinen in den Vorschlägen
+  taggerApplyDetail(d);
+  if (d.message) status(d.message, "info");
+  setTimeout(() => $("#tgMoodIn")?.focus(), 0);
+}
+
 /** Länge neben dem Cover (#34): ein Titel bzw. Gesamtlänge der markierten Titel. */
 function tgLength(d) {
   const L = d.length;
@@ -673,7 +703,7 @@ function renderTgEditor() {
         <button class="ghost sm" id="tgCoverSet" title="Cover aus einer Bilddatei setzen">Wählen …</button>
         <button class="ghost sm" id="tgCoverDel" title="Cover entfernen" ${c.state === "none" ? "disabled" : ""}>Entfernen</button>
         <button class="ghost sm" id="tgCoverWeb" title="Cover im Internet suchen: Bildersuche im Browser mit Künstler, Titel bzw. Album – gefundenes Bild speichern und mit „Wählen …“ setzen">Im Web suchen ↗</button></div></div></div></div>
-    <div class="tg-form">${form}
+    <div class="tg-form">${form}${tgMoodRow(d)}
       <label for="tgVer">ID3-Version</label><select id="tgVer" class="inp" style="height:36px"><option value="3">ID3v2.3 (verbreitet)</option><option value="4">ID3v2.4 (Mehrfachwerte)</option>${d.version ? "" : '<option value="" selected>verschieden</option>'}</select>
     </div>
     ${typeof featSection === "function" ? featSection(d) : ""}
@@ -1381,6 +1411,13 @@ async function tgOriginDialog(preset = "") {
   });
   const ed = $("#tgEdit");
   ed.addEventListener("keydown", (e) => {
+    if (e.target.id === "tgMoodIn") {                                          // #12
+      const v = e.target.value.trim();
+      if ((e.key === "Enter" || e.key === ",") && v) { e.preventDefault(); tgMoodEdit(v.split(/\s*[,;]\s*/).filter(Boolean), []); }
+      else if (e.key === "Backspace" && !v && TG.detail.mood && TG.detail.mood.all.length) { e.preventDefault(); tgMoodEdit([], [TG.detail.mood.all.at(-1)]); }
+      else if (e.key === "Escape") e.target.value = "";
+      return;
+    }
     const inp = e.target.closest(".tg-form input[data-key]");
     if (!inp) return;
     if (e.key === "Enter") { e.preventDefault(); tgCommit(inp); }
@@ -1392,6 +1429,10 @@ async function tgOriginDialog(preset = "") {
     else if (e.target.id === "tgSrcF") { TG.srcFilter = e.target.value; renderTgEditor(); }
   });
   ed.addEventListener("click", async (e) => {
+    const md = e.target.closest("[data-mood-del]"), ma = e.target.closest("[data-mood-add]");   // #12
+    if (md) { tgMoodEdit([], [md.dataset.moodDel]); return; }
+    if (ma) { tgMoodEdit([ma.dataset.moodAdd], []); return; }
+    if (e.target.id === "tgMood") { $("#tgMoodIn").focus(); return; }
     const rb = e.target.closest(".tg-rate button");
     if (rb) { if (rb.dataset.star) tgMark(+rb.dataset.star, null); else tgMark(null, "toggle"); return; }
     const a = e.target.closest("a[data-url]");

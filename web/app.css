@@ -1181,3 +1181,13 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .pq-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tg-cover-side .tg-rate{flex-wrap:wrap;row-gap:4px}
 .tg-cover-side .tg-rate button{font-size:17px}
+/* #12 Stimmung */
+.mood-box{display:flex;flex-wrap:wrap;align-items:center;gap:4px;min-height:36px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);cursor:text;min-width:0}
+.mood-box:focus-within{border-color:var(--acc)}
+.mood-box input{flex:1 1 90px;min-width:90px;border:0;outline:0;background:transparent;color:var(--fg);font:inherit;padding:4px 2px}
+.mood-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 4px 2px 8px;border-radius:99px;background:var(--acc-soft);color:var(--fg);font-size:12.5px;line-height:1.5;border:1px solid transparent}
+.mood-chip .x{border:0;background:none;color:var(--dim);cursor:pointer;padding:0 4px;font-size:14px;line-height:1}
+.mood-chip .x:hover{color:var(--fg)}
+.mood-chip.part{background:transparent;border:1px dashed var(--line2);cursor:pointer;padding-right:8px;font:inherit;font-size:12.5px}
+.mood-chip.part:hover{border-color:var(--acc)}
+.tg-form .mood-box input{height:28px;border:0;background:transparent;padding:0 2px;width:auto}

@@ -44,6 +44,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   und **Lexicon übernehmen** (Tanzbarkeit, Energie, Fröhlichkeit und Mood-Tags über die Lexicon Local API) – beide mit
   **Abgleich**: Wurde ein Wert in der Datei seit dem letzten Übernehmen geändert, ist der Vorschlag nicht angehakt (#145,
   #146).
+- Tagger: **Stimmung (Mood)** als eigenes Feld mit mehreren Werten – Chips mit ×, Eingabe mit Vorschlägen (Werte im
+  Ordner, eigene Liste unter Einstellungen › Tagger, Grundliste); bei Mehrfachauswahl werden teilweise vorhandene Werte
+  gestrichelt gezeigt (Klick: allen geben). Gespeichert wie in Mp3tag: ID3v2.4 `TMOO`, ID3v2.3 `TXXX:MOOD`; Spalte
+  „Stimmung“ und Lexicon-Mood-Tags nutzen dasselbe Feld (#12).
 - Plugin-Vorschau: Knopf **„Nur fehlende“** wählt nur Felder, die in der Datei noch leer sind; „Vorschlag“ heisst
   jetzt „Vorauswahl“ (#142).
 - **Bevorzugte Ansicht** (Spalten, Breite, Sortierung, Merkmale) speichern und wieder laden – im Spalten-Menü und

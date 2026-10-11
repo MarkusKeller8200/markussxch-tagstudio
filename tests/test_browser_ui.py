@@ -510,6 +510,32 @@ class UiTest(unittest.TestCase):
         self.assertLess(g["len"], g["btn"], g)
         self.assertLess(g["hint"], g["set"], g)
 
+    def test_mood_field(self):
+        """#12: Stimmung als Chips mit Vorschlägen, Mehrfachauswahl (teilweise vorhanden → allen geben), Spalte."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="0"] .nm')
+        pg.wait_for_selector("#tgMoodIn")
+        self.assertTrue(self.until("TG.moodSuggest && TG.moodSuggest.some(s => s.value === 'Uplifting')"))
+        pg.fill("#tgMoodIn", "Dark, Driving")
+        pg.keyboard.press("Enter")
+        pg.wait_for_function("TG.detail.mood.all.length === 2")
+        self.assertEqual(pg.locator("#tgMood .mood-chip").count(), 2)
+        pg.click('#tgMood [data-mood-del="Driving"]')
+        pg.wait_for_function("TG.detail.mood.all.join() === 'Dark'")
+        pg.click('.tg-row[data-i="1"] .nm', modifiers=["Shift"])
+        pg.wait_for_function("TG.detail.count === 2")
+        part = pg.locator('#tgMood [data-mood-add="Dark"]')
+        self.assertIn("1/2", part.inner_text())
+        part.click()
+        pg.wait_for_function("TG.detail.mood.all.join() === 'Dark' && !TG.detail.mood.some.length")
+        pg.keyboard.press("Backspace") if pg.evaluate("document.activeElement.id") == "tgMoodIn" else None
+        pg.wait_for_function("TG.detail.mood.all.length === 0")
+        # Spalte „Stimmung“ zeigt den Wert aus TMOO bzw. TXXX:MOOD
+        pg.evaluate("call('tag_mood', [2], ['Hypnotic'], []).then(taggerApplyDetail)")
+        pg.evaluate("tgSetCols([...tgCols(), 'fld:TMOO'], true)")
+        self.assertTrue(self.until("TG.rows[2] && TG.rows[2].x && TG.rows[2].x.TMOO === 'Hypnotic'"))
+
     def test_tagger_columns_sort_view(self):
         """#152 Spalten anordnen, #154 weitere Spalten, #148 waagrecht blättern, #153 Sortierstufen, #155 Ansicht."""
         pg = self.pg

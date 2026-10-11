@@ -26,6 +26,8 @@ async function settingsShow() {
         <span></span><span class="muted sm">Angezeigt und bearbeitet wird immer 0–100. Bei 0–10 (z. B. Lexicon) rechnet TagStudio beim Lesen ×10 und beim Schreiben ÷10 um.</span>
         <span>Bevorzugte Ansicht</span><div><div class="st-path"><button class="ghost sm" id="stTgViewSave" title="Spalten, Reihenfolge, Breite, Sortierung und Merkmal-Spalten der Dateiliste merken">Aktuelle Ansicht speichern</button><button class="ghost sm" id="stTgViewApply" ${LAYOUT.tg_view_default && LAYOUT.tg_view_default.cols ? "" : "disabled"}>Anwenden</button><button class="ghost sm" id="stTgViewDel" ${LAYOUT.tg_view_default && LAYOUT.tg_view_default.cols ? "" : "disabled"}>Löschen</button></div>
           <div class="muted sm" id="stTgViewInfo">${stTgViewInfo()}</div></div>
+        <label for="stMoodList">Stimmungen (Vorschläge)</label><div><textarea class="inp" id="stMoodList" rows="2" style="width:100%;resize:vertical" placeholder="z. B. Dark, Driving, Hypnotic" spellcheck="false">${esc((d.mood_list || []).join(", "))}</textarea>
+          <div class="muted sm">Eigene Vorschläge für das Feld Stimmung (durch Komma getrennt). Dazu kommen die Werte im geladenen Ordner und eine kleine Grundliste.</div></div>
       </div>
       <h4 class="st-sub">Beim Start</h4>
       <div class="st-row">
@@ -552,6 +554,12 @@ function initSettings() {
       await call("set_feat_scale", +t.value);
       if (typeof TG !== "undefined" && TG.loaded) { await taggerRefresh(); }
       toast(+t.value === 10 ? "Audio-Merkmale: Dateien in 0–10, Anzeige 0–100." : "Audio-Merkmale: 0–100.");
+    }
+    else if (t.id === "stMoodList") {                                            // #12
+      const v = await call("set_mood_list", t.value.split(/\s*[,;]\s*/).join("\n"));
+      t.value = v.join(", ");
+      if (typeof TG !== "undefined") TG.moodSuggest = null;
+      toast(`${v.length} eigene Stimmung(en) gespeichert.`);
     }
     else if (t.dataset.defdir) stDefSet(t.dataset.defdir, t.value.trim());
     else if (t.id === "stListCache") { await call("set_list_cache", t.checked); toast(t.checked ? "Listen-Cache an." : "Listen-Cache aus – es wird immer von der Platte gelesen."); }

@@ -165,7 +165,7 @@ class TestLexicon(_Run):
         self.assertEqual(by[("p.mp3", "Danceability (DANCEABILITY)")]["new"], "70")
         self.assertEqual(by[("p.mp3", "Energy (ENERGY)")]["new"], "60")
         self.assertNotIn(("p.mp3", "Happiness (HAPPINESS)"), by)              # 0 = nicht analysiert
-        self.assertEqual(by[("p.mp3", "Stimmung (TMOO)")]["new"], "Dark, Driving")
+        self.assertEqual(by[("p.mp3", "Stimmung (MOOD)")]["new"], "Dark ¦ Driving")
         self.assertIn("über Pfad", by[("p.mp3", "Danceability (DANCEABILITY)")]["note"])
         self.assertNotIn(("n.mp3", "Energy (ENERGY)"), by)                     # schon gleich
         self.assertIn("Künstler + Titel", by[("n.mp3", "Happiness (HAPPINESS)")]["note"])

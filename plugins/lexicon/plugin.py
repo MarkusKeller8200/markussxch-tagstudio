@@ -14,6 +14,8 @@ import urllib.parse
 import urllib.request
 
 import importsync
+import moods
+from id3tags import MV
 
 SOURCE, SOURCE_NAME = "lexicon", "Lexicon"
 FIELDS = (("danceability", "DANCEABILITY"), ("energy", "ENERGY"), ("happiness", "HAPPINESS"))
@@ -29,7 +31,7 @@ ACTIONS = [{
         {"key": "danceability", "type": "check", "label": "Tanzbarkeit → DANCEABILITY", "default": True},
         {"key": "energy", "type": "check", "label": "Energie → ENERGY", "default": True},
         {"key": "happiness", "type": "check", "label": "Fröhlichkeit → HAPPINESS", "default": False},
-        {"key": "mood", "type": "check", "label": "Lexicon-Tags der Kategorie „Mood“ → Stimmung (TMOO)", "default": False},
+        {"key": "mood", "type": "check", "label": "Lexicon-Tags der Kategorie „Mood“ → Stimmung (MOOD)", "default": False},
         {"key": "by_name", "type": "check", "label": "Titel ohne Pfad-Treffer über Künstler + Titel zuordnen", "default": True},
         {"type": "info", "label": "Lexicon muss laufen und die Local API eingeschaltet sein (Settings › Integrations). "
                                   "Lexicon-Werte 1–10 werden zu 10–100; 0 heisst „nicht analysiert“ und wird übergangen."},
@@ -128,7 +130,7 @@ def run(action, ctx, files, opts):
     base = (opts.get("url") or "http://localhost:48624").strip()
     ctx.status("Verbinde mit Lexicon …")
     tracks = load_tracks(base, ctx)
-    moods = load_moods(base) if opts.get("mood") else {}
+    mood_tags = load_moods(base) if opts.get("mood") else {}
     by_path, by_name = index(tracks)
     found = changed = asks = 0
     missing = []
@@ -154,12 +156,13 @@ def run(action, ctx, files, opts):
                                     group=group, note=note)
             any_ |= st != "same"
             asks += st == "conflict"
-        if moods:
-            names = [moods[i] for i in t.get("tags") or [] if i in moods]
-            if names:
-                val = ", ".join(names)
-                any_ |= ctx.propose(f, "TMOO", val, "Stimmung (TMOO)", note=note, checked=not f.text("TMOO"), group=group,
-                                    hint="aus Lexicon-Tags" + (" · Feld schon gefüllt" if f.text("TMOO") else ""))
+        if mood_tags:
+            names = [mood_tags[i] for i in t.get("tags") or [] if i in mood_tags]
+            cur = moods.values(f)
+            if names and [n.lower() for n in names] != [c.lower() for c in cur]:
+                key = moods.key_for(f)                                  # #12: TMOO (v2.4) bzw. TXXX:MOOD (v2.3)
+                any_ |= ctx.propose(f, key, MV.join(names), "Stimmung (MOOD)", note=note, checked=not cur, group=group,
+                                    hint="aus Lexicon-Tags" + (f" · Datei hat {', '.join(cur)}" if cur else ""))
         changed += bool(any_)
     ctx.progress(len(files), len(files), "fertig")
     msg = (f"{found} von {len(files)} Titel(n) in Lexicon gefunden ({len(tracks)} Titel in Lexicon); "

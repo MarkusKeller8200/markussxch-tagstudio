@@ -18,6 +18,7 @@ import core
 import features
 import keys
 import importsync
+import moods
 import plugins
 import ratings
 import serato
@@ -543,6 +544,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                 "backup_enabled": c.get("backup_enabled", True), "backup_dir": self._backup_folder(),
                 "player": self.player_prefs(), "players": len(c.get("players") or []),
                 "stems_flat": bool(c.get("tagger_stems_flat")),
+                "mood_list": c.get("mood_list") if isinstance(c.get("mood_list"), list) else [],
                 "feat_scale": features.SCALE, "feat_scales": [[k, v] for k, v in features.SCALES.items()],
                 "update_channel": self.update_channel(), "version": VERSION,
                 "view_defaults": self.view_defaults(), "modes": [[k, v] for k, v in PAIR_MODES.items()],
@@ -1655,7 +1657,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                 **{key: tagger.text_of(f, key) for key, _l, _p in tagger.FIELDS},
                 "camelot": keys.parse_key(tagger.text_of(f, "TKEY")), "feat": features.values(f),
                 "rating": ratings.get_rating(f), "like": ratings.get_like(f),
-                "x": {k: tagger.text_of(f, k) for k in self._tg_extra_keys()},           # #154: weitere Spalten
+                "x": {k: (moods.text(f) if k == "TMOO" else tagger.text_of(f, k)) for k in self._tg_extra_keys()},   # #154 (#12: Stimmung aus TMOO/TXXX:MOOD)
                 "len": round(float(getattr(f, "duration", 0) or 0)), "kbps": int(getattr(f, "bitrate", 0) or 0)}
 
     @staticmethod
@@ -1716,6 +1718,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                     if len(cs["data"]) <= 4_000_000 else ""
             out["cover"] = cs
             out["features"] = features.common(files)
+            out["mood"] = moods.common(files)                                            # #12
             rs, ls = {ratings.get_rating(f) for f in files}, {ratings.get_like(f) for f in files}
             out["rating"] = {"value": next(iter(rs)) if len(rs) == 1 else None, "mixed": len(rs) > 1,
                              "like": next(iter(ls)) if len(ls) == 1 else None}
@@ -1731,7 +1734,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                 feat = {f"TXXX:{n}".upper() for n in features.NAMES}
                 fields = []
                 for k in sorted(f.items, key=sort_key):
-                    if k in std or k.upper() in feat:
+                    if k in std or k.upper() in feat or k == "TMOO" or k.upper() == "TXXX:MOOD":   # Stimmung: eigenes Feld (#12)
                         continue
                     it = f.get(k)
                     xml = xmltools.xml_of_item(it)
@@ -1761,6 +1764,34 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
             d = self.tag_detail(idx)
             d["message"] = f"„{key_label(key)}“ in {n} Datei(en) geändert – noch nicht gespeichert." if n else None
             return d
+
+    def tag_mood(self, idx, add=None, remove=None):
+        """#12: Stimmungen den gewählten Dateien hinzufügen bzw. entfernen – mit Rückgängig."""
+        with self.lock:
+            files = [f for f in self._tsel(idx) if not self._ro(f)]
+            if not files:
+                return self.tag_detail(idx)
+            self.undo.checkpoint(f"Stimmung in {len(files)} Datei(en)", files)
+            try:
+                n = moods.edit(files, add or [], remove or [])
+            finally:
+                self.undo.commit()
+            d = self.tag_detail(idx)
+            d["message"] = f"Stimmung in {n} Datei(en) geändert – noch nicht gespeichert." if n else ""
+            return d
+
+    def tag_mood_suggest(self) -> list:
+        """#12: Vorschlagsliste (Werte im geladenen Ordner, eigene Liste aus den Einstellungen, Vorgaben)."""
+        with self.lock:
+            extra = self.cfg.get("mood_list") if isinstance(self.cfg.get("mood_list"), list) else []
+            return moods.suggestions(self.tag_files, extra)
+
+    def set_mood_list(self, text) -> list:
+        """Eigene Vorschläge (eine Stimmung pro Zeile oder durch Komma getrennt)."""
+        vals = moods.split(",".join(str(text or "").splitlines()))
+        self.cfg["mood_list"] = vals
+        core.save_config({"mood_list": vals})
+        return vals
 
     def tag_set_rating(self, idx, stars=None, like=None):
         """#96/#97: Bewertung (0–5) und/oder Like (#95) für die gewählten Dateien – mit Rückgängig."""
