@@ -144,3 +144,22 @@ class TestSession(Base):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTagLocate(Base):
+    """#175: Datei im Tagger finden (für „Im Tagger zeigen“ im Player)."""
+
+    def test_locate(self):
+        from session import Session
+        s = Session()
+        r0 = s.tag_locate(os.path.join(self.A, "1.mp3"))
+        self.assertEqual((r0["index"], r0["loaded"]), (None, False))
+        s.start_tag_load(self.A, False)
+        for _ in range(500):
+            if s.task_status().get("done"):
+                break
+            time.sleep(0.02)
+        r = s.tag_locate(os.path.join(self.A, "2.mp3"))
+        self.assertEqual(s.tag_files[r["index"]].path, os.path.join(self.A, "2.mp3"))
+        r = s.tag_locate(os.path.join(self.B, "3.mp3"))
+        self.assertEqual((r["index"], r["folder"], r["loaded"]), (None, self.B, True))

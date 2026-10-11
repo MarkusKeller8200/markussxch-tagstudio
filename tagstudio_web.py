@@ -45,6 +45,7 @@ WEB = os.path.join(HERE, "web")
 _STARTED = time.time()
 
 _PASS = {
+    "tag_locate",                                                   # #175
     "add_field_choices", "add_field", "bulk_keys", "bulk_apply", "cover_remove",
     "fixer_settings", "fixer_preview", "fixer_apply",
     "backups", "set_backup", "start_backup_check", "start_restore", "backup_diff", "delete_backup",
@@ -54,7 +55,7 @@ _PASS = {
     "dj_state", "dj_add", "dj_remove", "dj_clear", "dj_order", "dj_lock", "dj_set_opt", "dj_optimize", "dj_revert", "dj_tag_indices",
     "dj_lists", "dj_save_as", "dj_load", "dj_new", "dj_list_delete", "dj_list_rename",
     "pq_state", "pq_add", "pq_set", "pq_take", "pq_to_djset",
-    "help_docs", "help_tags", "start_tag_scan", "tag_field_filter",
+    "help_docs", "help_licenses", "help_tags", "start_tag_scan", "tag_field_filter",
     "setup_state", "setup_finish", "set_nav_hidden", "first_steps_seen", "first_steps_restart", "set_first_steps", "whats_new", "whats_new_seen", "folders_overview", "set_base_dir", "setup_structure", "set_archive_dir", "tag_archive", "prep_archive", "archive_list", "archive_restore",
     "disc_overview", "disc_follow_save", "disc_set", "disc_genres", "disc_auto", "disc_auto_status", "start_disc_suggest", "start_disc_run",
     "prep_overview", "prep_pending", "start_prep_fetch", "prep_workflow_save", "prep_workflow_new", "prep_workflow_delete", "prep_export", "prep_import", "start_prep_run", "prep_refresh", "prep_mark", "prep_revert", "prep_allow", "prep_cleanup",
@@ -148,7 +149,7 @@ class Api:
         path = os.path.join(desk, label + (".command" if sys.platform == "darwin" else ".sh"))
         with open(path, "w", encoding="utf-8") as fh:
             fh.write("#!/bin/sh\n" + " ".join(f'"{a}"' for a in [target, *args]) + ' "$@"\n')
-        os.chmod(path, 0o755)
+        os.chmod(path, 0o700)          # nur für den eigenen Benutzer ausführbar (#171)
         return {"ok": True, "path": path}
 
     def set_option(self, name, value):

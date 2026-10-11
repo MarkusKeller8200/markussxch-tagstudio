@@ -244,3 +244,8 @@ v2.3 → v2.4 umschreiben), Journal-Status prüfen, Feld- und Byte-Rückgängig,
 4. **Audio-Änderungen:** nur melden.
 5. **Planung:** nächste Version **3.3.0**; DJ-Set wird 3.4.0, Online-Metadaten 3.5.0.
 6. **Speicherplatz:** je Snapshot und gesamt anzeigen, auch kompakt im Hauptprogramm.
+
+## 9. Darstellung (4.4.0)
+
+- Überwachte Verzeichnisse und der Speicherort erscheinen in grüner Schrift (`.path-dir`, Farbe `--ok`); nicht
+  erreichbare Ordner bleiben rot (#178).

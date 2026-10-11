@@ -259,6 +259,9 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   **Live-Vorschau** (Knopf mit den Funkwellen): ein einfacher Klick auf einen Titel spielt ihn sofort; ohne
   Live-Vorschau wechselt ein Klick den laufenden Titel nicht. **↑/↓** wechseln den Titel, egal wo der Fokus gerade ist
   (außer in mehrzeiligen, Auswahl- und Zahlenfeldern). **Shift+←/→** spult 10 s, Klick in die Leiste springt.
+- **Tempo von Hand:** Klick auf die BPM-Anzeige → neues Tempo eingeben (50–200 %), **Reset** = Original-Tempo; gilt
+  nur für den laufenden Titel, an der Datei ändert sich nichts. Der Knopf neben dem Titel (**Im Tagger zeigen**)
+  wechselt zum Tagger und markiert den laufenden Titel.
 - **Startpunkt** per Umschalter: Start, 30 %, 1:00 oder erster Cue – praktisch zum schnellen Durchhören. Lautstärke
   wird gemerkt. Bei Titeln mit Cue-Punkten springen zwei Knöpfe zum vorigen/nächsten Cue.
 - **Wellenform:** wird beim ersten Abspielen einmal berechnet und im Cache abgelegt (`~/TagStudio/cache/wave`,
@@ -520,6 +523,9 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - **Konzepte:** je Bereich ein Dokument `docs/KONZEPT-*.md` (Tagger, Tag-Fixer, Vergleich, DJ-Set, Player, Plugins,
   Einstellungen, Hilfe, Update, App/Oberfläche, Vorbereiten, Snapshots, Einrichtung, Speicher …) – Übersicht in
   [docs/UEBERGABE.md](docs/UEBERGABE.md).
+- **Lizenzen und Fremdkomponenten:** [docs/third-party.json](docs/third-party.json) (Anzeige unter Hilfe › Lizenzen);
+  der Workflow „Fremdkomponenten prüfen“ meldet monatlich neue Versionen und geänderte Lizenzen als Issue. Neue
+  Bibliotheken, Plugin-Pakete oder übernommene Vorlagen dort eintragen.
 - **Tests:** `python -m unittest discover -s tests -v` – ID3-Lesen/-Schreiben (v2.3/v2.4, Mehrfachwerte, BOM,
   GEOB, Datumsumwandlung), Vergleich, Tag-Fixer, Sicherung/Wiederherstellung, Sitzung der neuen Oberfläche,
   Tagger-Werkzeuge, Tonarten, Audio-Merkmale, XML und Binärfelder, Versionierung, Updater und Plugins (Stems und

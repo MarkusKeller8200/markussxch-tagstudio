@@ -839,6 +839,9 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .sn-lib .r,.sn-lib .s{font-size:12px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sn-lib .z{font-size:12px;color:var(--faint);text-align:right}
 .sn-lib.missing .r{color:var(--warn)}
+/* #177/#178: Ordner und Verzeichnisse grün, damit sie sich vom übrigen Text abheben */
+.path-dir{color:var(--ok)}
+.sn-lib .r.path-dir{color:var(--ok)}
 .sn-snap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1px 8px;padding:7px 10px;border-radius:9px;cursor:pointer}
 .sn-snap:hover{background:var(--raise)}
 .sn-snap.a{background:var(--acc-soft);box-shadow:inset 0 0 0 1px var(--acc)}
@@ -1034,6 +1037,12 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .player .pl-start,.player #plAB{flex:none}
 
 .player .pl-bpm.synced{color:var(--acc);font-weight:600}
+.player .pl-bpm{cursor:pointer;border-radius:4px;padding:0 3px}
+.player .pl-bpm:hover{background:var(--acc-soft);color:var(--fg)}
+.player .pl-bpm.manual{color:var(--warn,#d9822b);font-weight:600}
+.player .pl-goto{flex:none;border:0;background:none;color:var(--dim);padding:0 2px;cursor:pointer;display:inline-flex;align-items:center;border-radius:4px}
+.player .pl-goto:hover{color:var(--acc);background:var(--acc-soft)}
+.player .pl-goto .i{width:15px;height:15px}
 .pw-wrap .pl-tag{width:28px;height:28px;font-size:14px}
 
 /* Einstellungen: Sprungmarken und Unterüberschriften (#87, #85/#86) */

@@ -1,0 +1,29 @@
+name: Fremdkomponenten prüfen
+
+# #176: Monatlich prüfen, ob sich verwendete Bibliotheken, Werkzeuge und Vorlagen geändert haben (neue Version,
+# Lizenzwechsel). Liste: docs/third-party.json (auch Hilfe › Lizenzen). Änderungen kommen als Issue
+# „Fremdkomponenten: Änderungen prüfen“ (wird aktualisiert, nicht doppelt angelegt).
+on:
+  schedule:
+    - cron: "23 5 1 * *"   # am 1. jedes Monats
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [docs/third-party.json, .github/scripts/third_party_check.py, .github/workflows/third-party.yml]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Fremdkomponenten prüfen
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .github/scripts/third_party_check.py

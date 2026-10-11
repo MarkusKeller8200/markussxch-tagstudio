@@ -77,6 +77,7 @@ def main():
             "--add-data", f"{os.path.join(ROOT, 'README.md')}{sep}.",             # Hilfe (#158)
             "--add-data", f"{os.path.join(ROOT, 'PLUGINS.md')}{sep}.",
             "--add-data", f"{os.path.join(ROOT, 'docs', 'ID3-FELDER.md')}{sep}docs",
+            "--add-data", f"{os.path.join(ROOT, 'docs', 'third-party.json')}{sep}docs",   # Hilfe › Lizenzen (#176)
             "--add-binary", f"{uv_binary()}{sep}.",
             "--paths", ROOT]
     for h in HIDDEN:

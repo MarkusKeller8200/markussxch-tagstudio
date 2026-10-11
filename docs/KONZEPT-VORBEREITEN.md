@@ -126,3 +126,8 @@ Machbarkeit je Dienst (Stand 2026-10):
    den Funktionsumfang komplett abdeckt, eventuell nicht mehr.
 4. **Schutzregel – welche Felder:** **konfigurierbar** (siehe Abschnitt 5); Vorgabe Variante C mit Option „nur melden“.
 5. **Beatport-Download:** inoffizieller Zugriff ist **akzeptiert**, falls es keinen offiziellen Weg gibt.
+
+## Darstellung (4.4.0)
+
+- Eingang, Arbeitsordner, Bibliothek und Stufen-Ordner erscheinen in grüner Schrift (`.path-dir`, Farbe `--ok`), auch in
+  den Ordnerfeldern des Workflow-Editors (#177).

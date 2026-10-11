@@ -1,6 +1,6 @@
 # Konzept: Player (Vorschau-Player und externe Player)
 
-Stand: 2026-10-11 (4.4.0-beta.4) · Status: **umgesetzt** (3.2.0, ausgebaut 3.4.0, 4.1.0, 4.2.0) · nachträglich erstellt
+Stand: 2026-10-11 (4.4.0-beta.5) · Status: **umgesetzt** (3.2.0, ausgebaut 3.4.0, 4.1.0, 4.2.0) · nachträglich erstellt
 
 > **Pflege:** Dieses Dokument wurde nachträglich aus Code und Handbuch zusammengestellt. Wird am Player
 > weitergearbeitet, ist es im selben Zug anzupassen (Funktionen, Umsetzung, Entscheide, Offen).
@@ -16,6 +16,8 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
 |---|---|
 | Wiedergabe | Leertaste/▶/Doppelklick, ⏮/⏭, folgt ↑/↓ und spielt am Ende den nächsten, Live-Vorschau (Klick spielt), Startpunkt (Start, 30 %, 1:00, erster Cue), Shift+←/→ ±10 s, stumm (M) |
 | Anzeige | Wellenform (einmal berechnet, Cache), Cue- und Loop-Marken (Serato, Mixed In Key), Beatgrid-Raster, Tonart in drei Schreibweisen, BPM, Lauf-/Restzeit (rot blinkend in den letzten 30 s) |
+| Tempo | Klick auf BPM → Tempo von Hand (50–200 %, Tonhöhe nach Einstellung), Reset = Original; nur für den laufenden Titel (#174) |
+| Tagger | Knopf „Im Tagger zeigen“ neben dem Titel: wechselt zum Tagger, markiert den laufenden Titel, hebt Filter auf, lädt bei Bedarf dessen Ordner (#175) |
 | Steuerung | Cue-Sprünge (Alt+Bild↑/↓), Loop als Schleife, Titel wiederholen (R), A–B-Schleife (L), Stem-Spur wechseln (S) an derselben Stelle, A/B im Vergleich (L/R) |
 | Bewertung | Sterne 0–5 (POPM, `TXXX:FMPS_Rating`) und Like (`TXXX:TAGSTUDIO`), mit Undo |
 | Überblenden | 2–12 s, gleiche Leistung, früh überblenden zum Durchhören, Tempo angleichen (±10 %, Rückkehr einstellbar), im Takt / auf Taktgrenze, Tonhöhe beibehalten |
@@ -31,7 +33,8 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
   `waveform.py` (Cache `cache/wave`), `cues.py`, `serato.py` (Beatgrid), `ratings.py`, `players.py`.
 - **Session:** `session_player.py` (`PlayerMixin`: `player_prefs`, `set_player_pref`, `player_defaults`,
   `player_resume*`, `media_info`, `media_cover`, `media_extra`, `wave_save`, Bus `bus_*` für das abgedockte Fenster,
-  `player_window_size`, `players`, `play_external`); `tag_set_rating`, `player_mark` in `session.py`.
+  `player_window_size`, `players`, `play_external`); `tag_set_rating`, `player_mark`, `tag_locate` (#175) in `session.py`.
+- **Tempo von Hand:** `plTempoDialog`/`plTempoSet` in `web/player2.js` (setzt `playbackRate`, Kennzeichen `tempoManual`).
 - **Oberfläche:** `web/player.js` (Player A, Wellenform, Analyse), `web/player2.js` (Überblenden, Player oben,
   Player B, Abdocken), `web/player-window.html` + `web/playerwin.js` (Fernanzeige), `web/queue.js`.
 - **Einstellungen:** `player` (Werte aus `PLAYER_PREFS` mit Bereichen), `player_defaults`, `player_window`,
@@ -42,6 +45,7 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
 - Beim Abdocken läuft die Wiedergabe weiter im Hauptfenster; das Fenster ist eine Fernanzeige (Session-Bus).
 - Player B nur mit Layout „oben“.
 - Beatgrid-Reihenfolge: Serato → eigene Audio-Analyse (Cache) → Schätzung aus BPM-Feld.
+- Tempo von Hand wird nicht gespeichert und gilt nur für den Titel; ein neuer Titel startet im eigenen Tempo (#174).
 
 ## 5. Offen / Ideen
 

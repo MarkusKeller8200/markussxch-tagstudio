@@ -186,6 +186,48 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("PLAYER.info.like === true"))
         self.assertIn("★★★★", pg.inner_text(".tg-row[data-i='0'] .rate-mini"))
 
+    def test_player_manual_tempo_and_goto_tagger(self):
+        """#174 Tempo von Hand (Klick auf BPM, Reset), #175 laufenden Titel im Tagger zeigen."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="1"] .nm')
+        pg.keyboard.press(" ")
+        self.assertTrue(self.until("PLAYER.ref === 1 && !PLAYER.audio.paused && !!document.querySelector('#plMeta .pl-bpm')"))
+        orig = pg.evaluate("bpmOf(PLAYER.info)")
+        self.assertGreater(orig, 0)
+        pg.click("#plMeta .pl-bpm")
+        pg.wait_for_selector("#tpBpm")
+        pg.fill("#tpBpm", str(round(orig * 1.05, 1)))
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until(f"Math.abs(PLAYER.audio.playbackRate - {round(orig * 1.05, 1)} / {orig}) < 0.002"))
+        pg.wait_for_selector("#plMeta .pl-bpm.manual")
+        pg.click("#plMeta .pl-bpm")
+        pg.fill("#tpBpm", "1")                                                       # ausserhalb → Dialog bleibt offen
+        pg.click("#mBtns .primary")
+        self.assertTrue(pg.locator("#modal").is_visible())
+        pg.click("#mBtns button >> text=Reset")
+        self.assertTrue(self.until("PLAYER.audio.playbackRate === 1 && !document.querySelector('#plMeta .pl-bpm.manual')"))
+        # #175: woanders hin, Markierung ändern, Filter setzen → Knopf führt zurück und markiert den laufenden Titel
+        pg.click('.tg-row[data-i="0"] .nm')
+        pg.fill("#tgQuery", "zzz-nichts")
+        pg.wait_for_function("TG.order.length === 0")
+        pg.click('.nav[data-module="compare"]')
+        pg.click("#plGoto")
+        self.assertTrue(self.until("S.module === 'tagger' && TG.sel.size === 1 && TG.sel.has(1) && TG.order.includes(1)"))
+        self.assertEqual(pg.evaluate("PLAYER.ref"), 1)
+        self.assertTrue(pg.evaluate("!PLAYER.audio.paused"))
+
+    def test_help_licenses(self):
+        """#176: Hilfe › Lizenzen listet die Fremdkomponenten mit Lizenz und Quelle."""
+        pg = self.pg
+        pg.click('.nav[data-module="help"]')
+        pg.click('#helpTabs [data-htab="licenses"]')
+        pg.wait_for_selector("#helpDoc .help-lic")
+        txt = pg.inner_text("#helpDoc")
+        for s in ("Lizenzen und Quellen", "GPL-3.0-or-later", "pywebview", "BSD-3-Clause", "serato-tags", "Im Programm enthalten"):
+            self.assertIn(s, txt)
+        self.assertGreater(pg.locator("#helpDoc a[data-url]").count(), 20)
+
     def test_crossfade_with_tempo(self):
         """#94 Überblenden, #102 Tempo angleichen (124 → 120 BPM)."""
         pg = self.pg
@@ -492,6 +534,9 @@ class UiTest(unittest.TestCase):
         pg.evaluate(f"call('prep_workflow_save', {json.dumps(w)}).then(prepApply)")
         pg.wait_for_function("PREP.d.rows.length === 3")
         self.assertEqual(pg.locator("#prepTable td.pc.s-open").count(), 3)
+        self.assertEqual(pg.locator("#prepPaths .path-dir").count(), 3)                 # #177: Ordner grün
+        self.assertNotEqual(pg.evaluate("getComputedStyle(document.querySelector('#prepPaths .path-dir')).color"),
+                            pg.evaluate("getComputedStyle(document.querySelector('#prepPaths')).color"))
         pg.click('#prepSteps [data-run="s02"]')
         pg.wait_for_function("PREP.d.counts.s02.done === 3")
         self.assertTrue(os.path.isfile(os.path.join(self.dir, "Neu", "_02_MP3Tag", "01 Ton 220.mp3")))
@@ -665,6 +710,8 @@ class UiTest(unittest.TestCase):
                 time.sleep(0.1)
         pg.click('.nav[data-module="snapshots"]')
         pg.wait_for_selector("#snSnaps [data-base]")
+        self.assertEqual(pg.locator("#snLibs .sn-lib .r.path-dir").count(), 1)          # #178: Verzeichnis grün
+        self.assertEqual(pg.locator("#snInfo .path-dir").count(), 1)
         pg.click("#snBaseline")
         pg.wait_for_function("document.querySelector('#sbInfo') && /1 ältere/.test(document.querySelector('#sbInfo').textContent)")
         self.assertIn("1 angeheftete", pg.inner_text("#sbInfo"))

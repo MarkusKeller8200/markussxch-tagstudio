@@ -10,6 +10,7 @@ import taghelp
 HERE = os.path.dirname(os.path.abspath(__file__))
 DOCS = {"readme": ("Handbuch", "README.md"), "id3": ("ID3-Felder", os.path.join("docs", "ID3-FELDER.md")),
         "plugins": ("Plugins", "PLUGINS.md")}
+LICENSES = os.path.join("docs", "third-party.json")                                # #176
 
 
 def _read_doc(rel: str) -> str:
@@ -27,6 +28,21 @@ class HelpMixin:
     # ------------------------------------------------------------------ Dokumente
     def help_docs(self) -> dict:
         return {k: {"title": t, "text": _read_doc(rel)} for k, (t, rel) in DOCS.items()}
+
+    def help_licenses(self) -> dict:
+        """#176: verwendete Bibliotheken, Werkzeuge, Dienste und Vorlagen mit Lizenz und Quelle (docs/third-party.json)."""
+        import json
+        text = _read_doc(LICENSES)
+        try:
+            data = json.loads(text) if text else {}
+        except ValueError:
+            data = {}
+        groups = data.get("groups") or {}
+        items = [it for it in data.get("items") or [] if isinstance(it, dict) and it.get("name")]
+        order = list(groups)
+        items.sort(key=lambda it: (order.index(it.get("group")) if it.get("group") in order else len(order),
+                                   it.get("group") != "app", str(it.get("name")).lower()))
+        return {"groups": groups, "items": items, "found": bool(items)}
 
     # ------------------------------------------------------------------ Tag-Übersicht
     def _help_roots(self) -> list[dict]:

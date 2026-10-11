@@ -1772,6 +1772,21 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return {"root": self.tag_root, "rows": [self._tag_row(i, f) for i, f in enumerate(self.tag_files)],
                     "stems_flat": bool(self.cfg.get("tagger_stems_flat"))}
 
+    def tag_locate(self, path) -> dict:
+        """#175: Index einer Datei im Tagger (Stem-Spur → Original). index None = nicht im geladenen Ordner."""
+        norm = lambda p: os.path.normcase(os.path.abspath(str(p or "")))
+        want = norm(path)
+        with self.lock:
+            for i, f in enumerate(self.tag_files):
+                if norm(f.path) == want:
+                    return {"index": i, "parent": self.tag_parent.get(i), "folder": os.path.dirname(want),
+                            "loaded": True}
+            for i, lst in self.tag_stems.items():
+                if any(norm(s.get("path")) == want for s in lst):
+                    return {"index": i, "stem": True, "folder": os.path.dirname(self.tag_files[i].path),
+                            "loaded": True}
+            return {"index": None, "folder": os.path.dirname(want), "loaded": bool(self.tag_files)}
+
     def _tsel(self, idx):
         return [self.tag_files[i] for i in idx if isinstance(i, int) and 0 <= i < len(self.tag_files)]
 

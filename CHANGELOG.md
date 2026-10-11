@@ -40,6 +40,22 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Seitenleiste:** Menüpunkte lassen sich ausblenden (Einstellungen › Darstellung) (#169).
 - **„Erste Schritte“** – kurze Hinweise beim ersten Besuch jeder Seite (neu startbar über Hilfe) – und **„Neu in
   dieser Version“** nach einem Update (#170).
+- **Player: Tempo von Hand** – Klick auf die BPM-Anzeige (Player A und B), neues Tempo eingeben (50–200 % des
+  Originals, Tonhöhe nach Einstellung); **Reset** stellt das Original-Tempo wieder her. Gilt nur für den laufenden Titel,
+  die Datei bleibt unverändert (#174).
+- **Player: „Im Tagger zeigen“** – Knopf neben dem Titel wechselt zum Tagger und markiert den laufenden Titel (Filter
+  wird bei Bedarf aufgehoben, Stems aufgeklappt); liegt der Titel nicht im geladenen Ordner, bietet TagStudio an, dessen
+  Ordner zu laden (#175).
+- **Hilfe › Lizenzen** – alle verwendeten Bibliotheken, Werkzeuge, Online-Dienste und Vorlagen mit Lizenz und Quelle
+  (`docs/third-party.json`). Der neue Workflow „Fremdkomponenten prüfen“ vergleicht sie monatlich mit PyPI/GitHub und
+  meldet neue Versionen oder geänderte Lizenzen als Issue (#176).
+
+### Geändert
+- **Vorbereiten:** Eingang, Arbeitsordner, Bibliothek und Stufen-Ordner in grüner Schrift (#177).
+- **Snapshots:** überwachte Verzeichnisse und Speicherort in grüner Schrift (#178).
+
+### Behoben
+- Desktop-Verknüpfung eines Profils (macOS/Linux) nur noch für den eigenen Benutzer ausführbar (CodeQL, #171).
 
 ## [4.3.0] – 2026-10-11
 

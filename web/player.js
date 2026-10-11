@@ -303,12 +303,13 @@ function plRender() {
   const i = PLAYER.info;
   $("#plTitle").textContent = i ? (i.title ? `${i.artist ? i.artist + " – " : ""}${i.title}` : i.name) : "Vorhören: Titel markieren, Leertaste";
   $("#plTitle").title = i ? i.path : "";
+  $("#plGoto").hidden = !i || !i.path;                                // #175
   bar.classList.toggle("playing", !a.paused);
   // #46/#63: Tonart (mit den anderen Schreibweisen) und Tempo des laufenden Titels
   const rate = a.playbackRate || 1, bpmN = parseFloat(String((i && i.bpm) || "").replace(",", ".")) || 0;
   const bpm = !i || !i.bpm ? "" : Math.abs(rate - 1) > 0.0005 && bpmN ? `${(bpmN * rate).toFixed(1)}` : String(Math.round(bpmN) || i.bpm);
   const alt = i && i.key_alt ? [i.key_alt.musical, i.key_alt.openkey].filter(Boolean) : [];
-  const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${alt.length ? `<span class="pl-key-alt" title="Musikalisch · Open Key">${esc(alt.join(" · "))}</span>` : ""}${bpm ? `<span class="pl-bpm${Math.abs(rate - 1) > 0.0005 ? " synced" : ""}" title="${Math.abs(rate - 1) > 0.0005 ? `Tempo angeglichen (${rate > 1 ? "+" : ""}${((rate - 1) * 100).toFixed(1)} %, Original ${Math.round(bpmN)} BPM)` : "Tempo"}">${esc(bpm)} BPM</span>` : ""}` : "";
+  const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${alt.length ? `<span class="pl-key-alt" title="Musikalisch · Open Key">${esc(alt.join(" · "))}</span>` : ""}${bpm ? `<span class="pl-bpm${Math.abs(rate - 1) > 0.0005 ? " synced" : ""}${PLAYER.tempoManual ? " manual" : ""}" role="button" tabindex="0" title="${Math.abs(rate - 1) > 0.0005 ? `${PLAYER.tempoManual ? "Tempo von Hand" : "Tempo angeglichen"} (${rate > 1 ? "+" : ""}${((rate - 1) * 100).toFixed(1)} %, Original ${Math.round(bpmN)} BPM) – klicken: ändern oder Reset` : "Tempo – klicken: Tempo ändern"}">${esc(bpm)} BPM</span>` : ""}` : "";
   if ($("#plMeta").dataset.v !== meta) { $("#plMeta").innerHTML = meta; $("#plMeta").dataset.v = meta; }
   plStemsRender();
   const rh = i && i.markable !== false && i.rating !== undefined ? rateHtml(i.rating, i.like, { keys: true }) : "";

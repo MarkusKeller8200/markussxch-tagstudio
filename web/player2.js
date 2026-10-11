@@ -119,9 +119,11 @@ function plTempoReturn(sec) {
 function plTempoStop(reset = true) {
   if (PLAYER.tempo) { clearInterval(PLAYER.tempo.timer); PLAYER.tempo = null; }
   if (reset && PLAYER.audio) PLAYER.audio.playbackRate = 1;
+  if (reset) PLAYER.tempoManual = false;
 }
 
 async function plCrossfade(i, opt = {}) {
+  PLAYER.tempoManual = false;                                         // #174: Tempo von Hand gilt nur für den Titel
   const old = PLAYER.audio, nu = PLAYER.spare, D = PLAYER.xfade * 1000;
   const bpmFrom = (gridOf(PLAYER.info) ? gridOf(PLAYER.info).bpm : bpmOf(PLAYER.info)) * (old.playbackRate || 1);
   const gOld = gridOf(PLAYER.info);
@@ -381,11 +383,13 @@ function dbRender() {
   const title = i ? (i.title ? `${i.artist ? i.artist + " – " : ""}${i.title}` : i.name) : "Player B: Rechtsklick auf einen Titel → „In Player B laden“ oder Beschriftung B anklicken";
   if ($("#dbTitle").textContent !== title) $("#dbTitle").textContent = title;
   $("#dbTitle").title = i ? i.path : "";
+  $("#dbGoto").hidden = !i || !i.path;                                // #175
   const rh = i && i.markable !== false && i.rating !== undefined ? rateHtml(i.rating, i.like, { keys: tgt }) : "";
   if ($("#dbRate").dataset.v !== rh) { $("#dbRate").innerHTML = rh; $("#dbRate").dataset.v = rh; }
-  const bpm = i && i.bpm ? String(Math.round(parseFloat(String(i.bpm).replace(",", ".")) || 0) || i.bpm) : "";
+  const rateB = a.playbackRate || 1, bpmNB = bpmOf(i), offB = Math.abs(rateB - 1) > 0.0005;
+  const bpm = i && i.bpm ? (offB && bpmNB ? (bpmNB * rateB).toFixed(1) : String(Math.round(parseFloat(String(i.bpm).replace(",", ".")) || 0) || i.bpm)) : "";
   const alt = i && i.key_alt ? [i.key_alt.musical, i.key_alt.openkey].filter(Boolean) : [];
-  const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${alt.length ? `<span class="pl-key-alt" title="Musikalisch · Open Key">${esc(alt.join(" · "))}</span>` : ""}${bpm ? `<span class="pl-bpm">${esc(bpm)} BPM</span>` : ""}` : "";
+  const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${alt.length ? `<span class="pl-key-alt" title="Musikalisch · Open Key">${esc(alt.join(" · "))}</span>` : ""}${bpm ? `<span class="pl-bpm${offB ? " synced" : ""}${DECKB.tempoManual ? " manual" : ""}" role="button" tabindex="0" title="${offB ? `${DECKB.tempoManual ? "Tempo von Hand" : "Tempo angeglichen"} (${rateB > 1 ? "+" : ""}${((rateB - 1) * 100).toFixed(1)} %, Original ${Math.round(bpmNB)} BPM) – klicken: ändern oder Reset` : "Tempo – klicken: Tempo ändern"}">${esc(bpm)} BPM</span>` : ""}` : "";
   if ($("#dbMeta").dataset.v !== meta) { $("#dbMeta").innerHTML = meta; $("#dbMeta").dataset.v = meta; }
   const dur = a.duration || (i && i.duration) || 0, t = i ? a.currentTime : 0;
   $("#dbElapsed").textContent = fmtTime(t);
@@ -696,6 +700,11 @@ function initPlayer2(pp) {
   $("#dbRepeat").addEventListener("click", () => { plSetPref("repeat_b", !DECKB.repeat); toast(DECKB.repeat ? "Player B wiederholt den Titel." : "Player B: nicht mehr wiederholen."); });
   $("#dbAB2").addEventListener("click", dbABStep);
   $("#dbSync").addEventListener("click", dbSync);                     // #76
+  [["#plMeta", "A"], ["#dbMeta", "B"]].forEach(([id, dk]) => $(id).addEventListener("click", (e) => {      // #174
+    if (e.target.closest(".pl-bpm")) plTempoDialog(dk);
+  }));
+  $("#plGoto").addEventListener("click", () => plShowInTagger("A"));  // #175
+  $("#dbGoto").addEventListener("click", () => plShowInTagger("B"));
   $("#dbAB").addEventListener("click", (e) => { const t = e.target.closest("[data-side]"); if (t) dbSide(t.dataset.side); });
   $("#dbStart").addEventListener("click", (e) => { const t = e.target.closest("[data-v]"); if (t) plSetPref("start_b", t.dataset.v); });
   $("#dbMore").addEventListener("click", (e) => dbMenu(e.currentTarget));
@@ -838,3 +847,77 @@ async function plResume() {
   window.addEventListener("pagehide", () => plResumeSave(true));
 }
 
+
+// ====================================================================== #174: Tempo von Hand
+/** Player A oder B: Audio-Element, Titel-Info und Zustand */
+function plDeck(deck) { return deck === "B" ? { a: DECKB.audio, info: DECKB.info, st: DECKB } : { a: PLAYER.audio, info: PLAYER.info, st: PLAYER }; }
+
+/** Tempo setzen (BPM) bzw. mit bpm = 0 auf das Original zurück. Grenzen wie ein weiter Pitch-Regler: 50–200 %. */
+function plTempoSet(deck, bpm) {
+  const d = plDeck(deck), orig = bpmOf(d.info);
+  if (!d.a || !d.info || !orig) return false;
+  if (deck !== "B") plTempoStop(false);                       // laufendes Zurückgleiten nach dem Überblenden beenden
+  const r = bpm ? Math.min(2, Math.max(0.5, bpm / orig)) : 1;
+  d.a.preservesPitch = PLAYER.xfadePitch !== false;
+  d.a.playbackRate = r;
+  d.st.tempoManual = Math.abs(r - 1) > 0.0005;
+  if (deck === "B") dbRender(); else plRender();
+  return true;
+}
+
+async function plTempoDialog(deck) {
+  const d = plDeck(deck), orig = bpmOf(d.info);
+  if (!d.info) return;
+  if (!orig) { toast("Dieser Titel hat kein BPM-Feld – Tempo lässt sich nicht einstellen."); return; }
+  const cur = Math.round(orig * (d.a.playbackRate || 1) * 10) / 10;
+  const v = await modal({
+    title: `Tempo ${deck === "B" ? "Player B" : "Player A"}`,
+    html: `<label class="field">BPM <input type="number" id="tpBpm" min="${(orig / 2).toFixed(1)}" max="${(orig * 2).toFixed(1)}" step="0.1" value="${cur}" autofocus></label>
+      <p class="muted sm">Original: ${orig.toFixed(1).replace(/\.0$/, "")} BPM · möglich ${(orig / 2).toFixed(1)}–${(orig * 2).toFixed(1)} BPM ·
+      ${PLAYER.xfadePitch !== false ? "Tonhöhe bleibt" : "Tonhöhe ändert sich mit (Einstellungen › Player)"}.
+      Gilt nur für diesen Titel; ein neuer Titel startet im eigenen Tempo. In der Datei wird nichts geändert.</p>`,
+    buttons: [{ label: "Reset", value: "reset" }, { label: "Abbrechen", value: null }, { label: "Übernehmen", value: "ok", primary: true }],
+    collect: (body, val) => {
+      if (val === "reset") return { reset: true };
+      const n = parseFloat(String($("#tpBpm", body).value).replace(",", "."));
+      if (!isFinite(n) || n < orig / 2 - 0.05 || n > orig * 2 + 0.05) { toast(`Bitte ein Tempo zwischen ${(orig / 2).toFixed(1)} und ${(orig * 2).toFixed(1)} BPM eingeben.`); return false; }
+      return { bpm: n };
+    },
+  });
+  if (!v) return;
+  plTempoSet(deck, v.reset ? 0 : v.bpm);
+  toast(v.reset ? `Tempo zurückgesetzt (${orig.toFixed(1).replace(/\.0$/, "")} BPM).` : `Tempo: ${v.bpm} BPM.`);
+}
+
+// ====================================================================== #175: laufenden Titel im Tagger zeigen
+async function plShowInTagger(deck) {
+  const d = plDeck(deck);
+  if (!d.info || !d.info.path) { toast("Im Player ist kein Titel geladen."); return; }
+  let r = await call("tag_locate", d.info.path);
+  if (r.index === null || r.index === undefined) {
+    const ok = await modal({ title: "Im Tagger zeigen",
+      html: `<p>Der Titel liegt nicht im ${r.loaded ? "geladenen Tagger-Ordner" : "Tagger (noch nichts geladen)"}.</p><p class="muted sm">${esc(r.folder)}</p>`,
+      buttons: [{ label: "Abbrechen", value: null }, { label: "Diesen Ordner im Tagger laden", value: "load", primary: true }] });
+    if (!ok) return;
+    setModule("tagger");
+    $("#tgPath").value = r.folder; $("#tgRec").checked = false;
+    await taggerLoad();
+    r = await call("tag_locate", d.info.path);
+    if (r.index === null || r.index === undefined) return;
+  }
+  setModule("tagger");
+  let i = r.index;
+  if (r.stem) TG.open.add(i);                                         // FLAC/WAV-Spur: Original aufklappen und markieren
+  else if (r.parent !== null && r.parent !== undefined) TG.open.add(r.parent);
+  tgApplyOrder();
+  if (!TG.order.includes(i)) {                                        // ausgefiltert → Filter aufheben
+    $("#tgQuery").value = "";
+    if (TG.fieldFilter) { TG.fieldFilter = null; if (typeof tgFieldFilterChip === "function") tgFieldFilterChip(); }
+    tgApplyOrder();
+    toast("Filter aufgehoben, damit der Titel sichtbar ist.");
+  }
+  TG.sel = new Set([i]); TG.anchor = i;                               // markieren ohne den Player umzuschalten
+  tgApplyOrder();
+  tgScrollTo(i);
+  await tgLoadDetail();
+}

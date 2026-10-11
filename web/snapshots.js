@@ -16,11 +16,11 @@ async function snapShow() {
   SN.ov = await call("snap_overview");
   snSideSize(SN.ov.total);
   if (!SN.ov.libs.some((l) => l.id === SN.lid)) SN.lid = SN.ov.libs.length ? SN.ov.libs[0].id : null;
-  $("#snInfo").textContent = `Speicher: ${SN.ov.dir} · gesamt ${snMB(SN.ov.total)}${SN.ov.readonly ? " · NUR LESEN (aus neuerer TagStudio-Version)" : ""}`;
+  $("#snInfo").innerHTML = `Speicher: <span class="path-dir">${esc(SN.ov.dir)}</span> · gesamt ${snMB(SN.ov.total)}${SN.ov.readonly ? " · NUR LESEN (aus neuerer TagStudio-Version)" : ""}`;   // #178
   // #77: mehrere Ordner eindeutig – Farbe, Name (bei gleichen Namen mit übergeordnetem Ordner), Pfad, Zustand
   $("#snLibs").innerHTML = SN.ov.libs.length ? `<div class="muted sm">${SN.ov.libs.length} überwachte(r) Ordner</div>` + SN.ov.libs.map((l) => `<div class="sn-lib${l.id === SN.lid ? " cur" : ""}${l.exists ? "" : " missing"}" data-lib="${esc(l.id)}" role="button" tabindex="0" style="--lh:${l.hue}">
       <span class="n"><i class="sn-dot"></i>${esc(l.label || l.name)}</span><span class="z">${snMB(l.bytes)}</span>
-      <span class="r" title="${esc(l.root)}">${l.exists ? esc(l.root) : "nicht erreichbar: " + esc(l.root)}</span>
+      <span class="r${l.exists ? " path-dir" : ""}" title="${esc(l.root)}">${l.exists ? esc(l.root) : "nicht erreichbar: " + esc(l.root)}</span>
       <span class="z acts"><button class="x" data-lren="${esc(l.id)}" title="Anzeigename ändern">✎</button><button class="x" data-lmove="${esc(l.id)}" title="Ordner ändern (z. B. nach Umzug auf ein anderes Laufwerk)">📁</button><button class="x" data-unwatch="${esc(l.id)}" title="Nicht mehr überwachen (Snapshots löschen)">✕</button></span>
       <span class="s">${l.count} Snapshot(s)${l.last ? " · zuletzt " + esc(l.last.age) : ""}</span>
       <label class="s auto" title="Täglicher automatischer Snapshot für diesen Ordner"><input type="checkbox" data-lauto="${esc(l.id)}" ${l.auto ? "checked" : ""}> täglich</label></div>`).join("")
@@ -252,7 +252,7 @@ async function snPickSpec(side) {
   const ov = await call("snap_overview");
   if (!ov.libs.length) return info("Keine Snapshots", "Noch kein Ordner überwacht – auf der Seite „Snapshots“ einen Ordner hinzufügen und einen Snapshot erstellen.");
   const lists = await Promise.all(ov.libs.map((l) => call("snap_list", l.id)));
-  const html = '<div class="sn-pick">' + ov.libs.map((l, k) => `<div class="lib">${esc(l.label || l.name)} <span class="muted sm">${esc(l.root)}</span></div>`
+  const html = '<div class="sn-pick">' + ov.libs.map((l, k) => `<div class="lib">${esc(l.label || l.name)} <span class="sm path-dir">${esc(l.root)}</span></div>`
     + (lists[k].snapshots.map((s) => `<button data-spec="snapshot:${esc(l.id)}/${esc(s.id)}"><span>${esc(s.label)}${s.pinned ? " 📌" : ""}</span><span class="muted">${snTime(s.created)} · ${s.count} Titel</span></button>`).join("") || '<div class="muted sm">noch kein Snapshot</div>')).join("") + "</div>";
   let picked = null;
   await modal({ title: `Snapshot ${side === "L" ? "links" : "rechts"}`, wide: true,

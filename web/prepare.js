@@ -16,7 +16,7 @@ function prepApply(d) {
   if (d.message) toast(d.message);
   const w = d.workflow;
   $("#prepWf").innerHTML = d.workflows.map((x) => `<option value="${esc(x.id)}" ${x.id === w.id ? "selected" : ""}>${esc(x.name)}</option>`).join("");
-  const miss = (p) => (p ? esc(p) : '<span class="st-missing">nicht festgelegt</span>');
+  const miss = (p) => (p ? `<span class="path-dir">${esc(p)}</span>` : '<span class="st-missing">nicht festgelegt</span>');   // #177: Ordner grün
   $("#prepPaths").innerHTML = `Eingang: ${miss(w.inbox)} · Arbeitsordner: ${miss(d.work)} · Bibliothek: ${miss(w.library)}`;
   const names = new Set(d.rows.map((r) => r.name));
   PREP.sel = new Set([...PREP.sel].filter((n) => names.has(n)));
@@ -129,7 +129,7 @@ async function prepViolations(name, i) {
 // ---------------------------------------------------------------------- Workflow bearbeiten
 /** Eingabefeld mit Knopf für den Dateibrowser (#161). kind: "folder" oder "program" */
 function prepPathInput(id, value, ph, kind = "folder", extra = "") {
-  return `<div class="pl-folder"><input id="${id}" value="${esc(value ?? "")}" placeholder="${esc(ph)}" spellcheck="false" ${extra}><button class="ghost sm" type="button" data-pick="${id}" data-kind="${kind}" title="${kind === "program" ? "Programm auswählen" : "Ordner auswählen"}">Wählen …</button></div>`;
+  return `<div class="pl-folder"><input id="${id}"${kind === "program" ? "" : ' class="path-dir"'} value="${esc(value ?? "")}" placeholder="${esc(ph)}" spellcheck="false" ${extra}><button class="ghost sm" type="button" data-pick="${id}" data-kind="${kind}" title="${kind === "program" ? "Programm auswählen" : "Ordner auswählen"}">Wählen …</button></div>`;
 }
 
 /** Klick auf „Wählen …“ in einem Dialog: Dateibrowser öffnen, Pfad ins Feld übernehmen. */
@@ -192,7 +192,7 @@ async function prepEditWorkflow() {
   try { pluginActs = await call("plugin_actions", "tagger"); } catch (e) { pluginActs = []; }
   const origins = PREP.d.origins || {};
   const render = (b) => {
-    $("#pwSteps", b).innerHTML = w.steps.map((s, i) => `<div class="rc-act" data-k="${i}"><span class="rc-n">${i + 1}</span><span class="rc-t"><b>${esc(s.label)}</b> <span class="muted sm">${esc(PREP.d.types[s.type])}${s.folder ? " · " + esc(s.folder) : ""}${s.protect ? " · 🔒" : ""}${s.type === "external" && !s.program ? " · kein Programm" : ""}${s.type === "verify" ? " · " + esc((s.fields || []).join(", ")) : ""}${s.type === "plugin" ? " · " + esc(s.plugin ? `${s.plugin}/${s.action}` : "kein Plugin") : ""}</span></span>
+    $("#pwSteps", b).innerHTML = w.steps.map((s, i) => `<div class="rc-act" data-k="${i}"><span class="rc-n">${i + 1}</span><span class="rc-t"><b>${esc(s.label)}</b> <span class="muted sm">${esc(PREP.d.types[s.type])}${s.folder ? ` · <span class="path-dir">${esc(s.folder)}</span>` : ""}${s.protect ? " · 🔒" : ""}${s.type === "external" && !s.program ? " · kein Programm" : ""}${s.type === "verify" ? " · " + esc((s.fields || []).join(", ")) : ""}${s.type === "plugin" ? " · " + esc(s.plugin ? `${s.plugin}/${s.action}` : "kein Plugin") : ""}</span></span>
       <button class="icon-btn" data-ps="edit" title="Bearbeiten">✎</button><button class="icon-btn" data-ps="up" ${i ? "" : "disabled"}>↑</button><button class="icon-btn" data-ps="down" ${i < w.steps.length - 1 ? "" : "disabled"}>↓</button><button class="icon-btn" data-ps="del" title="Entfernen">✕</button></div>`).join("");
   };
   const edit = (b, i) => {

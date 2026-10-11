@@ -45,6 +45,20 @@ function helpKeysHtml() {
     + HELP_KEYS.map(([t, d, rows]) => `<h3>${esc(t)}</h3>${d ? `<p class="muted sm">${esc(d)}</p>` : ""}<table class="help-t help-keys"><tbody>${rows.map(([k, w]) => `<tr><td>${k.split(" · ").map((x) => x.split(" / ").map((y) => `<kbd>${esc(y)}</kbd>`).join(" / ")).join(" · ")}</td><td>${esc(w)}</td></tr>`).join("")}</tbody></table>`).join("");
 }
 
+/** #176: Lizenzen und Quellen aller fremden Bestandteile, gruppiert */
+function helpLicensesHtml(d) {
+  if (!d.found) return '<div class="tg-empty">Liste der Fremdkomponenten nicht gefunden (docs/third-party.json).</div>';
+  const link = (url, txt) => (url && /^https?:/.test(url) ? `<a href="#" data-url="${esc(url)}">${esc(txt)} ↗</a>` : esc(txt));
+  const groups = Object.keys(d.groups).filter((g) => d.items.some((it) => it.group === g));
+  return `<h2>Lizenzen und Quellen</h2>
+    <p class="muted">TagStudio ist freie Software unter der GNU General Public License v3 (oder neuer). Hier stehen alle fremden
+    Bibliotheken, Werkzeuge, Online-Dienste und Vorlagen mit Lizenz und Quelle. Die Liste wird monatlich automatisch auf neue
+    Versionen und geänderte Lizenzen geprüft; „Geprüft“ zeigt den zuletzt durchgesehenen Stand.</p>`
+    + groups.map((g) => `<h3>${esc(d.groups[g])}</h3><table class="help-t help-lic"><thead><tr><th>Komponente</th><th>Verwendung</th><th>Lizenz</th><th>Geprüft</th></tr></thead><tbody>${
+      d.items.filter((it) => it.group === g).map((it) => `<tr><td>${link(it.url, it.name)}</td><td>${esc(it.use || "")}</td><td>${link(it.license_url, it.license || "–")}</td><td class="muted sm">${
+        it.checked ? esc(`${it.checked.version || ""}${it.checked.date ? " · " + it.checked.date : ""}`) : it.check ? "ausstehend" : "–"}</td></tr>`).join("")}</tbody></table>`).join("");
+}
+
 async function helpTab(tab) {
   HELP.tab = tab;
   $$("#helpTabs [data-htab]").forEach((b) => { b.classList.toggle("on", b.dataset.htab === tab); b.setAttribute("aria-selected", String(b.dataset.htab === tab)); });
@@ -52,6 +66,7 @@ async function helpTab(tab) {
   $("#helpDoc").hidden = tab === "tags";
   if (tab === "tags") return helpLoadTags();
   if (tab === "keys") { $("#helpDoc").innerHTML = helpKeysHtml(); $("#helpDoc").scrollTop = 0; return; }
+  if (tab === "licenses") { $("#helpDoc").innerHTML = helpLicensesHtml(await call("help_licenses")); $("#helpDoc").scrollTop = 0; return; }
   if (!HELP.docs) HELP.docs = await call("help_docs");
   const d = HELP.docs[tab];
   $("#helpDoc").innerHTML = d && d.text ? mdToHtml(d.text) : '<div class="tg-empty">Dokument nicht gefunden.</div>';

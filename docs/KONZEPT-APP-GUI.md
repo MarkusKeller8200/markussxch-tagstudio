@@ -24,6 +24,7 @@ Grösse, Layout und Zustand merkt und Fehler nachvollziehbar protokolliert – o
 - **Gemeinsame Bausteine:** `modal()` (Dialoge; frischer Inhalt je Dialog, wartet bei offenem Assistenten), `toast()`,
   Tooltips (`initTips`, farbige Hover-Infos), Fortschritts-Overlay, Aufträge-Chip in der Fusszeile, Statuszeile,
   Splitter (ziehen, ←/→, Doppelklick = Standard, gemerkt), Dateibrowser `pick_path` (startet im Basisordner).
+- **Ordner und Pfade** werden einheitlich grün dargestellt (Klasse `.path-dir`, Farbe `--ok`; #177, #178).
 - **Speichern und Undo:** global für Tagger und Vergleich (Strg/Cmd+S, Strg/Cmd+Z/Y), Konfliktschutz.
 - **Beenden:** „Einstellungen werden gespeichert …“, Abfrage ungespeicherter Änderungen und laufender Aufträge;
   **nur eine Instanz** je Profil (Sperrdatei + Windows-Mutex).

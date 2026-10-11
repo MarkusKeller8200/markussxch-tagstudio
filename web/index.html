@@ -401,7 +401,7 @@
           <p class="muted">Übersicht aller Tags mit Bedeutung und Herkunft, Handbuch und technische Details. Der Scan zeigt, welche Felder in deiner Bibliothek vorkommen – ein Klick auf die Anzahl filtert die Titel im Tagger.</p></div>
           <div class="mod-actions"><button class="ghost" data-setup="wizard" title="Geführte Einrichtung erneut durchlaufen">Einrichtungsassistent</button><button class="ghost" data-setup="firststeps" title="Die Hinweise „Erste Schritte“ wieder auf jeder Seite zeigen">Erste Schritte</button></div>
           <div class="seg" id="helpTabs" role="tablist" aria-label="Hilfe-Bereiche">
-            <button data-htab="tags" role="tab" class="on">Tag-Übersicht</button><button data-htab="readme" role="tab">Handbuch</button><button data-htab="id3" role="tab">ID3-Felder</button><button data-htab="plugins" role="tab">Plugins</button><button data-htab="keys" role="tab">Tastatur</button>
+            <button data-htab="tags" role="tab" class="on">Tag-Übersicht</button><button data-htab="readme" role="tab">Handbuch</button><button data-htab="id3" role="tab">ID3-Felder</button><button data-htab="plugins" role="tab">Plugins</button><button data-htab="keys" role="tab">Tastatur</button><button data-htab="licenses" role="tab">Lizenzen</button>
           </div>
         </header>
         <div id="helpTags">
@@ -442,7 +442,7 @@
       <button class="icon-btn pl-tog pl-ab-btn" id="dbSync" title="Sync: Player B ins Tempo und in den Takt von Player A bringen (Beatgrid aus Serato, sonst nur Tempo)" aria-label="Player B mit Player A synchronisieren">Sync</button>
       <button class="icon-btn" id="dbNext" title="Nächster Titel in Player B" aria-label="Nächster Titel in Player B"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14"/><path d="M5 5l10 7-10 7Z"/></svg></button>
       <div class="pl-mid">
-        <div class="pl-line"><span class="pl-title" id="dbTitle"></span><span class="pl-rate" id="dbRate"></span></div>
+        <div class="pl-line"><span class="pl-title" id="dbTitle"></span><button class="pl-goto" id="dbGoto" title="Im Tagger zeigen: zum Tagger wechseln und den laufenden Titel markieren" aria-label="Im Tagger zeigen"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 12h7"/><path d="M4 18h10"/><path d="m15 9 4 3-4 3"/></svg></button><span class="pl-rate" id="dbRate"></span></div>
         <div class="pl-wave" id="dbWave"><canvas id="dbCanvas" aria-hidden="true"></canvas><input type="range" id="dbSeek" min="0" max="1" value="0" step="1" aria-label="Position Player B"><div class="pl-cues" id="dbCues"></div></div>
       </div>
       <div class="pl-info" aria-live="off">
@@ -476,7 +476,7 @@
         <button class="icon-btn pl-tog pl-ab-btn" id="plAB2" title="A–B-Schleife: 1. Klick setzt A, 2. Klick setzt B, 3. Klick hebt auf (L)" aria-label="A–B-Schleife">A–B</button>
         <button class="icon-btn" id="plNext" title="Nächster Titel" aria-label="Nächster Titel"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14"/><path d="M5 5l10 7-10 7Z"/></svg></button>
         <div class="pl-mid">
-          <div class="pl-line"><span class="pl-title" id="plTitle"></span><button class="pl-stems" id="plStems" hidden aria-haspopup="menu" title="Original oder Stem-Spur an derselben Stelle hören (S: nächste Spur)"></button><span class="pl-rate" id="plRate"></span></div>
+          <div class="pl-line"><span class="pl-title" id="plTitle"></span><button class="pl-goto" id="plGoto" title="Im Tagger zeigen: zum Tagger wechseln und den laufenden Titel markieren" aria-label="Im Tagger zeigen"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 12h7"/><path d="M4 18h10"/><path d="m15 9 4 3-4 3"/></svg></button><button class="pl-stems" id="plStems" hidden aria-haspopup="menu" title="Original oder Stem-Spur an derselben Stelle hören (S: nächste Spur)"></button><span class="pl-rate" id="plRate"></span></div>
           <div class="pl-wave" id="plWave"><canvas id="plCanvas" aria-hidden="true"></canvas><input type="range" id="plSeek" min="0" max="1" value="0" step="1" aria-label="Position"><div class="pl-cues" id="plCues"></div></div>
         </div>
         <div class="pl-info" id="plInfo" aria-live="off">
