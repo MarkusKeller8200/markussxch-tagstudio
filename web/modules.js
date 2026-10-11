@@ -7,7 +7,10 @@
     collect(body, value) liefert das Ergebnis (oder false = Dialog bleibt offen). */
 function modal({ title, html, buttons, wide = false, onMount, collect }) {
   return new Promise((resolve) => {
-    const ov = $("#modal"), body = $("#mBody"), box = $("#mBtns");
+    const ov = $("#modal"), box = $("#mBtns");
+    // frischer Inhalt-Container je Dialog: Klick-Handler aus onMount früherer Dialoge dürfen nicht weiterlaufen
+    const old = $("#mBody"), body = old.cloneNode(false);
+    old.replaceWith(body);
     $("#mTitle").textContent = title;
     body.innerHTML = html;
     $(".modal-dlg").classList.toggle("wide", wide);

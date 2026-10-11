@@ -8,12 +8,50 @@ async function helpShow() {
   helpTab(HELP.tab);
 }
 
+// ---------------------------------------------------------------------- Tastenkombinationen (#159)
+const MODK = /Mac|iPhone|iPad/.test(navigator.platform || "") ? "Cmd" : "Strg";
+const HELP_KEYS = [
+  ["Allgemein", "", [
+    [`${MODK}+S`, "Speichern"], [`${MODK}+Z`, "Rückgängig"], [`${MODK}+Y · ${MODK}+Shift+Z`, "Wiederholen"],
+    ["F11", "Vollbild ein/aus (App-Fenster)"], ["Esc", "Menü, Cover-Ansicht oder Dialog schliessen"],
+    ["Enter", "Im Dialog: Hauptknopf (z. B. Speichern, Übernehmen)"], ["←/→ auf einem Trenngriff", "Splitter verschieben (Doppelklick setzt zurück)"]]],
+  ["Player", "Tagger, Vergleich und DJ-Set – nicht während der Eingabe in ein Feld", [
+    ["Leertaste", "Abspielen / Pause"], ["↑ / ↓", "Vorheriger / nächster Titel (überall, ausser in Listen mit eigener Auswahl)"],
+    ["Shift+← / Shift+→", "10 Sekunden zurück / vor"], ["Alt+Bild↑ / Alt+Bild↓", "Vorheriger / nächster Cue-Punkt"],
+    ["0–5", "Bewertung setzen (0 = keine)"], ["F", "Like ein/aus"], ["R", "Wiederholen ein/aus"], ["L", "A–B-Schleife setzen (dreimal: aufheben)"],
+    ["Esc", "A–B-Schleife aufheben"], ["M", "Stumm ein/aus"], ["S / Shift+S", "Nächste / vorherige Stem-Spur"],
+    ["B", "Tasten wirken auf Player A bzw. B (bei zwei Playern)"], ["Shift+P", "Player-Leiste oben ein-/ausklappen"],
+    [`${MODK}+P`, "Im externen Player öffnen"], ["Doppelklick auf einen Titel", "Titel abspielen"]]],
+  ["Tagger", "Titelliste", [
+    ["↑ / ↓", "Markierung bewegen"], ["Shift+↑ / Shift+↓", "Markierung erweitern"], [`${MODK}+A`, "Alle Titel markieren"],
+    ["→ / ←", "Stems auf- / zuklappen"], ["F5", "Ordner neu einlesen"], ["Enter (im Feld)", "Wert übernehmen"], ["Esc (im Feld)", "Eingabe verwerfen"],
+    ["Enter oder , (Stimmung)", "Stimmung hinzufügen"], ["Rücktaste (leeres Stimmungsfeld)", "Letzte Stimmung entfernen"]]],
+  ["Vergleich", "", [
+    ["↑ / ↓", "Paar bzw. Feld wechseln"], ["Alt+→ / Alt+←", "Markierte Felder nach rechts / links kopieren"],
+    [`${MODK}+A`, "Alle Felder markieren"], ["Enter oder F2", "Feld bearbeiten"], ["F5", "Neu vergleichen"], ["Shift+F5", "Aktuelles Paar neu einlesen"],
+    ["Enter (in den Pfadfeldern)", "Vergleich starten"]]],
+  ["DJ-Set", "", [
+    ["↑ / ↓", "Titel wählen"], ["Alt+↑ / Alt+↓", "Titel nach oben / unten verschieben"], ["G", "Titel an seinem Platz fixieren / lösen"],
+    ["Entf / Rücktaste", "Titel aus dem Set entfernen"], ["Enter", "Titel im Player laden und abspielen"]]],
+  ["Text- und XML-Editor", "", [
+    [`${MODK}+Enter · ${MODK}+S`, "Übernehmen und schliessen"], ["Esc", "Schliessen ohne Übernehmen"], ["Tab", "Einrücken (Text-Ansicht)"]]],
+  ["Player-Fenster (separat)", "", [
+    ["Leertaste", "Abspielen / Pause"], ["↑ / ↓", "Vorheriger / nächster Titel"], ["Shift+← / Shift+→", "±10 Sekunden"],
+    ["Alt+Bild↑ / Alt+Bild↓", "Cue-Punkte"], ["0–5 · F · R · L · M", "Bewertung, Like, Wiederholen, A–B, Stumm"], ["B", "Ziel Player A / B"]]],
+];
+
+function helpKeysHtml() {
+  return `<h2>Tastenkombinationen</h2><p class="muted">Die meisten Tasten wirken nicht, solange in ein Eingabefeld geschrieben wird.${MODK === "Cmd" ? "" : " Auf dem Mac gilt Cmd statt Strg."}</p>`
+    + HELP_KEYS.map(([t, d, rows]) => `<h3>${esc(t)}</h3>${d ? `<p class="muted sm">${esc(d)}</p>` : ""}<table class="help-t help-keys"><tbody>${rows.map(([k, w]) => `<tr><td>${k.split(" · ").map((x) => x.split(" / ").map((y) => `<kbd>${esc(y)}</kbd>`).join(" / ")).join(" · ")}</td><td>${esc(w)}</td></tr>`).join("")}</tbody></table>`).join("");
+}
+
 async function helpTab(tab) {
   HELP.tab = tab;
   $$("#helpTabs [data-htab]").forEach((b) => { b.classList.toggle("on", b.dataset.htab === tab); b.setAttribute("aria-selected", String(b.dataset.htab === tab)); });
   $("#helpTags").hidden = tab !== "tags";
   $("#helpDoc").hidden = tab === "tags";
   if (tab === "tags") return helpLoadTags();
+  if (tab === "keys") { $("#helpDoc").innerHTML = helpKeysHtml(); $("#helpDoc").scrollTop = 0; return; }
   if (!HELP.docs) HELP.docs = await call("help_docs");
   const d = HELP.docs[tab];
   $("#helpDoc").innerHTML = d && d.text ? mdToHtml(d.text) : '<div class="tg-empty">Dokument nicht gefunden.</div>';

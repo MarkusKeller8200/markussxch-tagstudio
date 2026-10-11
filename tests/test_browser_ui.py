@@ -131,7 +131,7 @@ class UiTest(unittest.TestCase):
         """#88 Menü-Reihenfolge und Startseite, #87 Einstellungskacheln, #85/#86 Vorgaben, #89 Kanal."""
         pg = self.pg
         navs = pg.evaluate("[...document.querySelectorAll('.nav[data-module]')].map(b=>b.dataset.module)")
-        self.assertEqual(navs, ["tagger", "fixer", "prep", "compare", "djset", "snapshots", "backups", "plugins", "settings", "help", "db"])
+        self.assertEqual(navs, ["prep", "tagger", "fixer", "compare", "djset", "snapshots", "backups", "plugins", "settings", "help", "db"])
         self.assertEqual(pg.evaluate("S.module"), "tagger")
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stUpdateCard")
@@ -448,6 +448,9 @@ class UiTest(unittest.TestCase):
         self.assertTrue(pg.locator("#helpDoc table").count() >= 0)
         pg.click('#helpTabs [data-htab="id3"]')
         pg.wait_for_selector("#helpDoc table.help-t")
+        pg.click('#helpTabs [data-htab="keys"]')                                  # #159
+        pg.wait_for_selector("#helpDoc table.help-keys kbd")
+        self.assertIn("A–B-Schleife", pg.inner_text("#helpDoc"))
 
     def test_recipe_dialog(self):
         """#111: Tag-Rezepte – Vorlage, Aktion hinzufügen, Vorschau, Anwenden."""
@@ -505,7 +508,11 @@ class UiTest(unittest.TestCase):
         shutil.copy(os.path.join(inbox, "01 Ton 220.mp3"), os.path.join(dl, "Neu gekauft.mp3"))
         self.assertTrue(pg.locator("#prepFetch").is_hidden())
         pg.click("#prepEdit")
+        self.assertEqual(pg.locator('#modal [data-pick="pwInbox"]').count(), 1)    # #161 Dateibrowser
+        self.assertEqual(pg.locator('#modal [data-pick="pwLib"]').count(), 1)
         pg.click("#pwSrcAdd")
+        self.assertEqual(pg.locator('.prep-src-row').count(), 1)                 # Handler früherer Dialoge laufen nicht mit
+        self.assertEqual(pg.locator('.prep-src-row [data-pick]').count(), 1)
         pg.fill('.prep-src-row [data-f="name"]', "Bandcamp")
         pg.fill('.prep-src-row [data-f="folder"]', dl)
         pg.click("#mBtns .primary")

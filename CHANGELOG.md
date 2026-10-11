@@ -7,6 +7,15 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Hilfe › Tastatur:** alle Tastenkombinationen auf einer Seite (Allgemein, Player, Tagger, Vergleich, DJ-Set,
+  Editor, Player-Fenster) (#159).
+- **Vorbereiten** steht jetzt als **erster Menüpunkt** in der Seitenleiste (#160).
+- **Vorbereiten › Workflow bearbeiten:** überall **„Wählen …“** für den Dateibrowser – Eingangsordner, Arbeitsordner,
+  Bibliothek, Download-Ordner der Quellen und Programmpfade externer Schritte (#161).
+- **Entdecken:** auf Wunsch **täglich beim Start automatisch suchen** (im Hintergrund, Meldung mit Anzahl neuer
+  Vorschläge), **Merkliste als Excel/CSV exportieren**, und der Beatport-Abgleich „Gekaufte Titel“ markiert gekaufte
+  Titel in „Entdecken“ als **gekauft** (#162).
+
 - **Entdecken:** kompakte, einzeilige Tabelle (eigene Spalten Künstler, Titel, Label, Datum, BPM · Tonart, Quelle),
   kleines Cover mit **Vergrösserung beim Darüberfahren**, Knöpfe nebeneinander (#120).
 - Beatport › „Gekaufte Titel abgleichen“: Ordner zum Abgleich per **„+ Ordner …“** auswählen (Dateiauswahl, je Zeile
@@ -78,6 +87,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Wiedergabezähler, Besitzer/Kauf (OWNE/COMR), Verknüpfungen (LINK).
 
 ### Behoben
+- Dialoge: Klick-Handler früherer Dialoge liefen weiter mit (z. B. legte „+ Quelle“ nach dem zweiten Öffnen zwei
+  Zeilen an).
 - ID3v2.2: alle Frames werden übernommen (bisher fehlten u. a. SLT, CNT, ETC, EQU, RVA, IPL, GEO, LNK, TOA, TOT …);
   LINK-Verweise erhalten die 4-Zeichen-ID (#98).
 - ID3v2.3 `IPLS` (Beteiligte Personen) wird als `TIPL` gelesen und beim Umwandeln v2.3 ↔ v2.4 korrekt umgesetzt;

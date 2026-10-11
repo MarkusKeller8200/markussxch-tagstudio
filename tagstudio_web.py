@@ -55,7 +55,7 @@ _PASS = {
     "dj_lists", "dj_save_as", "dj_load", "dj_new", "dj_list_delete", "dj_list_rename",
     "pq_state", "pq_add", "pq_set", "pq_take", "pq_to_djset",
     "help_docs", "help_tags", "start_tag_scan", "tag_field_filter",
-    "disc_overview", "disc_follow_save", "disc_set", "disc_genres", "start_disc_suggest", "start_disc_run",
+    "disc_overview", "disc_follow_save", "disc_set", "disc_genres", "disc_auto", "disc_auto_status", "start_disc_suggest", "start_disc_run",
     "prep_overview", "prep_pending", "start_prep_fetch", "prep_workflow_save", "prep_workflow_new", "prep_workflow_delete", "prep_export", "prep_import", "start_prep_run", "prep_refresh", "prep_mark", "prep_revert", "prep_allow", "prep_cleanup",
     "plugins_list", "plugin_enable", "plugin_actions", "plugin_form", "start_plugin_action", "start_plugin_install", "plugin_apply",
 }
@@ -180,6 +180,13 @@ class Api:
         if not dest:
             return {"ok": False, "cancelled": True}
         return self._s.snap_journal_write(fmt, dest, rows)
+
+    def disc_export(self, fmt, which="saved"):
+        """#162: Merkliste von „Entdecken“ als Excel/CSV speichern."""
+        dest = self.save_dialog(f"Merkliste.{'xlsx' if fmt == 'xlsx' else 'csv'}")
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        return self._s.disc_export_write(fmt, dest, which)
 
     def dj_export(self, fmt, opts=None):
         """#4: DJ-Set als M3U8, Rekordbox-XML oder CSV speichern."""
@@ -330,18 +337,22 @@ class Api:
             return os.path.join(os.path.expanduser("~/Downloads"), name)
         return ""
 
-    def pick_path(self, side, folder=True, start=""):
-        """Ordner- bzw. Dateiauswahl des Betriebssystems. Liefert den Pfad oder ''."""
+    def pick_path(self, side, folder=True, start="", kind="mp3"):
+        """Ordner- bzw. Dateiauswahl des Betriebssystems. Liefert den Pfad oder ''.
+        kind (nur Dateien): "mp3" oder "program" (Programme, z. B. für externe Schritte im Workflow)."""
         start = start if start and os.path.isdir(start) else (os.path.dirname(start) if start else os.path.expanduser("~"))
+        if start and not os.path.isdir(start):
+            start = os.path.expanduser("~")
         if self._window is not None:
             import webview
-            kind = webview.FOLDER_DIALOG if folder else webview.OPEN_DIALOG
-            types = () if folder else ("MP3-Dateien (*.mp3;*.MP3)", "Alle Dateien (*.*)")
-            res = self._window.create_file_dialog(kind, directory=start, file_types=types)
+            dlg = webview.FOLDER_DIALOG if folder else webview.OPEN_DIALOG
+            types = () if folder else (("Programme (*.exe;*.app;*.bat;*.cmd)", "Alle Dateien (*.*)") if kind == "program"
+                                       else ("MP3-Dateien (*.mp3;*.MP3)", "Alle Dateien (*.*)"))
+            res = self._window.create_file_dialog(dlg, directory=start, file_types=types)
             if not res:
                 return ""
             return os.path.normpath(res[0] if isinstance(res, (list, tuple)) else res)
-        return _tk_pick(folder, start)
+        return _tk_pick(folder, start, kind)
 
     # ---------- Update
     def update_status(self, fetch=True):
@@ -634,7 +645,7 @@ def _tk_dialog(kind, start, extra=""):
     return result["p"]
 
 
-def _tk_pick(folder, start):
+def _tk_pick(folder, start, kind="mp3"):
     """Rückfall für den Browser-Modus: Dialog über tkinter (falls vorhanden)."""
     result = {"p": ""}
 
@@ -648,8 +659,10 @@ def _tk_pick(folder, start):
             if folder:
                 p = filedialog.askdirectory(initialdir=start, title="Ordner wählen", parent=root)
             else:
-                p = filedialog.askopenfilename(initialdir=start, title="MP3-Datei wählen", parent=root,
-                                               filetypes=[("MP3-Dateien", "*.mp3 *.MP3"), ("Alle Dateien", "*")])
+                ft = [("Programme", "*.exe *.app *.bat *.cmd"), ("Alle Dateien", "*")] if kind == "program" \
+                    else [("MP3-Dateien", "*.mp3 *.MP3"), ("Alle Dateien", "*")]
+                p = filedialog.askopenfilename(initialdir=start, title="Programm wählen" if kind == "program" else "MP3-Datei wählen",
+                                               parent=root, filetypes=ft)
             root.destroy()
             result["p"] = os.path.normpath(p) if p else ""
         except Exception:  # noqa: BLE001

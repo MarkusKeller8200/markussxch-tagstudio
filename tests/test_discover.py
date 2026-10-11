@@ -121,6 +121,34 @@ class TestDiscover(Base):
         with self.assertRaises(ValueError):
             s.disc_set(["deezer:702"], "egal")
 
+    def test_auto_export_bought(self):
+        """#162: tägliche Suche im Hintergrund, Merkliste exportieren, Beatport-Käufe als gekauft."""
+        from session import Session
+        s = Session()
+        self.assertFalse(s.disc_auto()["started"])                          # aus
+        s.disc_follow_save({"artists": ["Mara Lind"], "sources": ["deezer"], "auto": True})
+        self.assertTrue(discover.load()["follow"]["auto"])
+        self.assertTrue(s.disc_auto()["started"])
+        for _ in range(500):
+            if not s.disc_auto_status()["running"]:
+                break
+            time.sleep(0.02)
+        st = s.disc_auto_status()
+        self.assertEqual((st["auto_new"], st["count_new"]), (2, 2))
+        self.assertFalse(s.disc_auto()["started"])                          # heute schon gesucht
+        s.disc_set(["deezer:702"], "saved")
+        dest = os.path.join(self.dir, "Merkliste.csv")
+        r = s.disc_export_write("csv", dest, "saved")
+        self.assertEqual(r["count"], 1)
+        with open(dest, encoding="utf-8-sig") as fh:
+            txt = fh.read()
+        self.assertIn("Morgenrot", txt)
+        self.assertNotIn("Golden Hour", txt)
+        n = discover.mark_bought([{"id": 1, "name": "Golden Hour", "artists": [{"name": "Mara Lind"}]}])
+        self.assertEqual(n, 1)
+        self.assertEqual(discover.load()["items"]["deezer:701"]["status"], "bought")
+        self.assertEqual(discover.mark_bought([{"id": 1, "name": "Golden Hour", "artists": [{"name": "Mara Lind"}]}]), 0)
+
     def test_suggest(self):
         lib = os.path.join(self.dir, "Lib2")
         os.makedirs(lib)

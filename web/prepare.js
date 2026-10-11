@@ -126,6 +126,24 @@ async function prepViolations(name, i) {
 }
 
 // ---------------------------------------------------------------------- Workflow bearbeiten
+/** Eingabefeld mit Knopf für den Dateibrowser (#161). kind: "folder" oder "program" */
+function prepPathInput(id, value, ph, kind = "folder", extra = "") {
+  return `<div class="pl-folder"><input id="${id}" value="${esc(value ?? "")}" placeholder="${esc(ph)}" spellcheck="false" ${extra}><button class="ghost sm" type="button" data-pick="${id}" data-kind="${kind}" title="${kind === "program" ? "Programm auswählen" : "Ordner auswählen"}">Wählen …</button></div>`;
+}
+
+/** Klick auf „Wählen …“ in einem Dialog: Dateibrowser öffnen, Pfad ins Feld übernehmen. */
+async function prepPickClick(e, root) {
+  const b = e.target.closest("[data-pick]");
+  if (!b) return false;
+  e.preventDefault(); e.stopPropagation();
+  const inp = root.querySelector("#" + CSS.escape(b.dataset.pick)) || b.parentElement.querySelector("input");
+  const prog = b.dataset.kind === "program";
+  const p = await call("pick_path", "", !prog, inp.value.trim(), prog ? "program" : "mp3");
+  if (p) { inp.value = p; inp.dispatchEvent(new Event("input", { bubbles: true })); }
+  else if (!S.settings.native) toast("Pfad bitte direkt ins Feld eintippen.");
+  return true;
+}
+
 function prepStepForm(s, recipesList, origins, pluginActs = []) {
   const inp = (id, label, v, ph = "") => `<label for="${id}">${esc(label)}</label><input id="${id}" value="${esc(v ?? "")}" placeholder="${esc(ph)}" spellcheck="false">`;
   const sel = (id, label, v, opts) => `<label for="${id}">${esc(label)}</label><select id="${id}" class="inp">${opts.map(([k, t]) => `<option value="${esc(k)}" ${k === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select>`;
@@ -133,7 +151,7 @@ function prepStepForm(s, recipesList, origins, pluginActs = []) {
   const det = sel("psDetect", "Abschluss erkennen an", s.detect || "", [["", "nicht erkennen (von Hand bestätigen)"], ...Object.entries(origins).filter(([k]) => !["id3v3", "id3v4", "unknown"].includes(k)).map(([k, v]) => [k, `Herkunft ${v}`])]);
   let f = inp("psLabel", "Bezeichnung", s.label);
   if (s.type === "recipe") f += sel("psRecipe", "Tag-Rezept", s.recipe, recipesList.map((r) => [r.id, r.name])) + inp("psFolder", "Stufen-Ordner", s.folder, "_02_MP3Tag");
-  if (s.type === "external") f += inp("psProgram", "Programm (Pfad)", s.program, "z. B. C:\\Program Files\\Platinum Notes\\PlatinumNotes.exe")
+  if (s.type === "external") f += `<label for="psProgram">Programm (Pfad)</label>` + prepPathInput("psProgram", s.program, "z. B. C:\\Program Files\\Platinum Notes\\PlatinumNotes.exe", "program")
     + inp("psArgs", "Argumente", s.args, "{folder} oder {files}") + inp("psFolder", "Stufen-Ordner", s.folder, "leer = im bisherigen Ordner arbeiten")
     + chk("psCopy", "In den Stufen-Ordner kopieren (Programm ersetzt dort die Dateien)", s.copy) + det
     + chk("psProtect", "Schutzregel „nur ergänzen“", s.protect) + inp("psAllow", "Erlaubte Felder", (s.allow || []).join(", "), "z. B. TKEY, TBPM, GEOB:*");
@@ -181,11 +199,11 @@ async function prepEditWorkflow() {
     const box = $("#pwEdit", b);
     box.hidden = false;
     box.innerHTML = `<div class="frm">${prepStepForm(s, recipesList, origins, pluginActs)}</div><div class="rc-edit-b"><button class="ghost sm" data-pse="cancel">Abbrechen</button><button class="ghost sm" data-pse="ok"><b>Übernehmen</b></button></div>`;
-    box.onclick = (e) => { const t = e.target.closest("[data-pse]"); if (!t) return; e.stopPropagation(); if (t.dataset.pse === "ok") w.steps[i] = prepReadStep(box, s); box.hidden = true; box.innerHTML = ""; render(b); };
+    box.onclick = (e) => { if (e.target.closest("[data-pick]")) return; const t = e.target.closest("[data-pse]"); if (!t) return; e.stopPropagation(); if (t.dataset.pse === "ok") w.steps[i] = prepReadStep(box, s); box.hidden = true; box.innerHTML = ""; render(b); };
   };
   w.sources = w.sources || [];
   const srcRow = (q, k) => `<div class="prep-src-row" data-q="${k}"><input data-f="name" value="${esc(q.name || "")}" placeholder="Name, z. B. Bandcamp" aria-label="Name der Quelle">
-    <input data-f="folder" value="${esc(q.folder || "")}" placeholder="Download-Ordner, z. B. C:\\Users\\…\\Downloads" aria-label="Ordner" spellcheck="false">
+    ${prepPathInput("pwSrcF" + k, q.folder || "", "Download-Ordner, z. B. C:\\Users\\…\\Downloads", "folder", 'data-f="folder" aria-label="Ordner"')}
     <input data-f="pattern" value="${esc(q.pattern || "")}" placeholder="Filter, z. B. *Beatport*;*.mp3" aria-label="Dateifilter" spellcheck="false">
     <input data-f="sub" value="${esc(q.sub || "")}" placeholder="Unterordner im Eingang (optional)" aria-label="Unterordner">
     <label class="check sm" title="MP3 aus ZIP-Archiven entpacken"><input type="checkbox" data-f="zip" ${q.zip !== false ? "checked" : ""}> ZIP</label>
@@ -196,9 +214,9 @@ async function prepEditWorkflow() {
   const res = await modal({
     title: "Workflow bearbeiten", wide: true,
     html: `<div class="frm"><label for="pwName">Name</label><input id="pwName" value="${esc(w.name)}">
-        <label for="pwInbox">Eingangsordner</label><input id="pwInbox" value="${esc(w.inbox)}" placeholder="z. B. S:\\_MP3\\00_Neu\\_01_Original">
-        <label for="pwWork">Arbeitsordner</label><input id="pwWork" value="${esc(w.work)}" placeholder="leer = Ordner über dem Eingang (Stufen-Ordner kommen dorthin)">
-        <label for="pwLib">Bibliothek</label><input id="pwLib" value="${esc(w.library)}" placeholder="z. B. S:\\_MP3\\01_Library"></div>
+        <label for="pwInbox">Eingangsordner</label>${prepPathInput("pwInbox", w.inbox, "z. B. S:\\_MP3\\00_Neu\\_01_Original")}
+        <label for="pwWork">Arbeitsordner</label>${prepPathInput("pwWork", w.work, "leer = Ordner über dem Eingang (Stufen-Ordner kommen dorthin)")}
+        <label for="pwLib">Bibliothek</label>${prepPathInput("pwLib", w.library, "z. B. S:\\_MP3\\01_Library")}</div>
       <h4 class="st-sub">Quellen (Download-Ordner)</h4>
       <p class="muted sm" style="margin:0 0 6px">„Abholen“ kopiert neue MP3 – auch aus ZIP-Archiven (z. B. Bandcamp) – in den Eingangsordner und merkt sich die Quelle. Die Downloads bleiben unverändert und werden nicht doppelt geholt.</p>
       <div id="pwSrc"></div><button class="ghost sm" id="pwSrcAdd">+ Quelle</button>
@@ -213,6 +231,7 @@ async function prepEditWorkflow() {
     onMount: (b) => {
       render(b); renderSrc(b);
       b.addEventListener("click", (e) => {
+        if (e.target.closest("[data-pick]")) { prepPickClick(e, b); return; }
         const t = e.target.closest("button"); if (!t || t.closest("#pwEdit")) return;
         if (t.id === "pwSrcAdd") { w.sources = readSrc(b); w.sources.push({ name: "", folder: "", pattern: "", sub: "", zip: true }); renderSrc(b); const rows = b.querySelectorAll(".prep-src-row"); rows[rows.length - 1].querySelector("input").focus(); return; }
         if (t.hasAttribute("data-qdel")) { w.sources = readSrc(b); w.sources.splice(+t.closest(".prep-src-row").dataset.q, 1); renderSrc(b); return; }

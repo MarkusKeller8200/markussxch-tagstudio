@@ -45,7 +45,7 @@ def load() -> dict:
     f = d.get("follow") if isinstance(d.get("follow"), dict) else {}
     d["follow"] = {"artists": _names(f.get("artists")), "labels": _names(f.get("labels")),
                    "genres": [g for g in f.get("genres") or [] if isinstance(g, dict) and g.get("id")],
-                   "days": int(f.get("days") or 60), "sources": [s for s in f.get("sources") or ["deezer", "beatport"]
+                   "days": int(f.get("days") or 60), "auto": bool(f.get("auto")), "sources": [s for s in f.get("sources") or ["deezer", "beatport"]
                                                                 if s in ("deezer", "beatport")]}
     d["items"] = d.get("items") if isinstance(d.get("items"), dict) else {}
     return d
@@ -146,6 +146,58 @@ def _recent(date: str, days: int) -> bool:
     except ValueError:
         return True
     return t >= time.time() - days * 86400
+
+
+def mark_bought(tracks, d: dict | None = None) -> int:
+    """Gekaufte Titel (Beatport-Käufe: id, name, artists) in der Liste als „gekauft“ markieren. → Anzahl."""
+    own = d is None
+    d = d or load()
+    ids = {f"beatport:{t.get('id')}" for t in tracks if isinstance(t, dict) and t.get("id")}
+    names = set()
+    for t in tracks:
+        if not isinstance(t, dict):
+            continue
+        title = norm(t.get("name"))
+        for a in t.get("artists") or []:
+            if isinstance(a, dict) and title:
+                names.add((norm(a.get("name")), title))
+    n = 0
+    for e in d["items"].values():
+        if e.get("status") == "bought":
+            continue
+        if e["key"] in ids or is_owned(e, names):
+            e["status"] = "bought"
+            n += 1
+    if own and n:
+        save(d)
+    return n
+
+
+EXPORT_HEAD = ["Status", "Künstler", "Titel", "Mix", "Label", "Release", "Datum", "BPM", "Tonart", "Genre", "Quelle", "Link"]
+
+
+def export_rows(d: dict, status=("saved",)) -> list[list[str]]:
+    rows = []
+    for e in sorted(d["items"].values(), key=lambda e: (e.get("artist", "").lower(), e.get("title", "").lower())):
+        if status and e.get("status") not in status:
+            continue
+        rows.append([STATUS.get(e.get("status"), ""), e.get("artist", ""), e.get("title", ""), e.get("mix", ""),
+                     e.get("label", ""), e.get("release", ""), (e.get("date") or "")[:10], str(e.get("bpm") or ""),
+                     e.get("key_name", ""), e.get("genre", ""), {"deezer": "Deezer", "beatport": "Beatport"}.get(e.get("src"), e.get("src", "")),
+                     e.get("url", "")])
+    return rows
+
+
+def auto_due(d: dict, hours=20) -> bool:
+    """Tägliche Suche fällig? (eingeschaltet, etwas gefolgt, letzte Suche älter als hours)"""
+    f = d["follow"]
+    if not f.get("auto") or not (f["artists"] or f["labels"] or f["genres"]):
+        return False
+    try:
+        last = time.mktime(time.strptime(d.get("last", "")[:19], "%Y-%m-%dT%H:%M:%S"))
+    except ValueError:
+        return True
+    return time.time() - last >= hours * 3600
 
 
 # =========================================================================== Deezer

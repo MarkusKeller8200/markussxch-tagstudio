@@ -103,6 +103,7 @@ async function discFollowDialog() {
       <div style="margin:8px 0"><button class="ghost sm" id="dfSuggest" ${DISC.d.library ? "" : "disabled title=\"Zuerst im Workflow eine Bibliothek festlegen\""}>Aus der Bibliothek vorschlagen …</button><span class="muted sm" id="dfSugInfo"></span><div class="disc-sug" id="dfSug"></div></div>
       <label><b>Genres</b></label><div class="disc-genres" id="dfGenres"></div>
       <div class="frm" style="margin-top:10px"><label for="dfDays">Zeitraum</label><span><input id="dfDays" type="number" min="1" max="3650" value="${f.days || 60}" style="width:80px"> Tage zurück</span>
+        <span></span><label class="check"><input type="checkbox" id="dfAuto" ${f.auto ? "checked" : ""}> Täglich beim Start automatisch suchen (im Hintergrund)</label>
         <label>Quellen</label><span><label class="check"><input type="checkbox" id="dfDz" ${f.sources.includes("deezer") ? "checked" : ""}> Deezer</label> <label class="check"><input type="checkbox" id="dfBp" ${f.sources.includes("beatport") ? "checked" : ""}> Beatport${DISC.d.beatport ? "" : ' <span class="muted sm">(Plugin aus oder nicht bereit)</span>'}</label></span></div></div>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Speichern", value: true, primary: true }],
     onMount: (b) => {
@@ -137,7 +138,7 @@ async function discFollowDialog() {
     collect: (b) => {
       const lines = (id) => $(id, b).value.split("\n").map((x) => x.trim()).filter(Boolean);
       const g = genres ? [...b.querySelectorAll("#dfGenres [data-g]:checked")].map((x) => ({ id: +x.dataset.g || x.dataset.g, name: x.dataset.n })) : f.genres;
-      return { artists: lines("#dfArt"), labels: lines("#dfLab"), genres: g, days: +$("#dfDays", b).value || 60,
+      return { artists: lines("#dfArt"), labels: lines("#dfLab"), genres: g, days: +$("#dfDays", b).value || 60, auto: $("#dfAuto", b).checked,
         sources: [$("#dfDz", b).checked ? "deezer" : "", $("#dfBp", b).checked ? "beatport" : ""].filter(Boolean) };
     },
   });
@@ -145,7 +146,46 @@ async function discFollowDialog() {
   try { discApply(await call("disc_follow_save", res)); toast("Gespeichert – „Suchen“ holt die neuen Titel."); } catch (e) { toast(String(e.message || e)); }
 }
 
+/** Merkliste exportieren (#162) */
+function discExportMenu() {
+  const b = $("#discExport").getBoundingClientRect(), c = (DISC.d && DISC.d.counts) || {};
+  const run = async (fmt, which) => {
+    const r = await call("disc_export", fmt, which);
+    if (r && r.ok) status(r.message, "info"); else if (r && r.error) toast(r.error);
+  };
+  showMenu(b.left, b.bottom + 6, [
+    { label: `Merkliste als Excel (${fmtN(c.saved || 0)})`, run: () => run("xlsx", "saved") },
+    { label: "Merkliste als CSV", run: () => run("csv", "saved") }, "-",
+    { label: `Gekaufte als Excel (${fmtN(c.bought || 0)})`, run: () => run("xlsx", "bought") },
+    { label: "Neu + gemerkt + gekauft als Excel", run: () => run("xlsx", "all") },
+  ]);
+}
+
+/** Tägliche Suche beim Start (#162): im Hintergrund, danach Anzahl neuer Vorschläge melden */
+async function discAutoStart() {
+  let r;
+  try { r = await call("disc_auto"); } catch (e) { return; }
+  if (!r || !r.started) { discBadge(); return; }
+  for (let i = 0; i < 180; i++) {
+    await new Promise((ok) => setTimeout(ok, 5000));
+    let st; try { st = await call("disc_auto_status"); } catch (e) { return; }
+    if (!st.running) {
+      discBadge(st.count_new);
+      if (st.auto_new) toast(`Entdecken: ${fmtN(st.auto_new)} neue(r) Vorschlag/Vorschläge.`);
+      if (S.module === "prep" && !$("#discPane").hidden) discShow();
+      return;
+    }
+  }
+}
+
+async function discBadge(n) {
+  if (n === undefined) { try { n = (await call("disc_auto_status")).count_new; } catch (e) { return; } }
+  const el = $("#discCount"); if (el) el.textContent = n ? String(n) : "";
+}
+
 (function bindDiscover() {
+  setTimeout(discAutoStart, 8000);
+  $("#discExport").addEventListener("click", (e) => { e.stopPropagation(); discExportMenu(); });
   $("#prepTabs").addEventListener("click", (e) => { const b = e.target.closest("[data-ptab]"); if (b) prepTab(b.dataset.ptab); });
   $("#discFilter").addEventListener("click", (e) => { const b = e.target.closest("[data-f]"); if (!b) return; DISC.filter = b.dataset.f; discApply(DISC.d); });
   $("#discSearch").addEventListener("input", () => DISC.d && discRender());

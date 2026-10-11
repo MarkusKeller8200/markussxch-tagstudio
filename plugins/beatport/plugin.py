@@ -716,6 +716,12 @@ def run_purchases(ctx, opts):
     if not items:
         return {"message": "Keine gekauften Titel über die bekannten Schnittstellen gefunden – Details im Protokoll "
                            "(bitte an Claude weitergeben, #117)."}
+    bought = 0
+    try:                                     # #162: Käufe in „Entdecken“ als gekauft markieren
+        import discover
+        bought = discover.mark_bought(items)
+    except Exception as ex:  # noqa: BLE001
+        ctx.log(f"Entdecken: {ex}")
     folders = [x.strip() for x in str(opts.get("folders") or "").splitlines() if x.strip()]
     by_id, by_isrc, by_name, nloc = _local_index(folders, ctx) if folders else ({}, {}, {}, 0)
     rows, have = [], 0
@@ -736,7 +742,8 @@ def run_purchases(ctx, opts):
     ctx.output(out)
     return {"message": f"{len(items)} gekaufte Titel gelesen ({path}); {have} vorhanden, {len(items) - have} fehlen"
                        + (f" (verglichen mit {nloc} Dateien)" if folders else " (kein Ordner zum Abgleich angegeben)")
-                       + ". Liste als CSV gespeichert."}
+                       + ". Liste als CSV gespeichert."
+                       + (f" In „Entdecken“ {bought} Titel als gekauft markiert." if bought else "")}
 
 
 def _present(t):

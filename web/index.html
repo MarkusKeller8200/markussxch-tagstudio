@@ -16,12 +16,12 @@
       <div class="logo"><svg class="i" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
       <div class="brand-t nt"><span class="brand-k">MarKusSXCH</span><span class="brand-n">TagStudio</span></div>
     </div>
+    <button class="nav" data-module="prep" title="Tracks vorbereiten: Eingang → Stufen → Bibliothek">
+      <svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 12h7"/><path d="M4 18h4"/><path d="m14 15 3 3 5-6"/></svg><span class="nt">Vorbereiten</span><span class="nav-sub nt" id="prepCount" title="Titel im Eingang, die noch nicht übernommen sind"></span></button>
     <button class="nav" data-module="tagger" title="Tagger">
       <svg class="i" viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><span class="nt">Tagger</span></button>
     <button class="nav" data-module="fixer" title="Tag-Fixer">
       <svg class="i" viewBox="0 0 24 24"><path d="m15 4 5 5"/><path d="M4 20 15.5 8.5"/><path d="M18 2v3M21.5 5.5 19 6M5 3v2M3 4h4M20 13v2M19 14h2"/></svg><span class="nt">Tag-Fixer</span></button>
-    <button class="nav" data-module="prep" title="Tracks vorbereiten: Eingang → Stufen → Bibliothek">
-      <svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 12h7"/><path d="M4 18h4"/><path d="m14 15 3 3 5-6"/></svg><span class="nt">Vorbereiten</span><span class="nav-sub nt" id="prepCount" title="Titel im Eingang, die noch nicht übernommen sind"></span></button>
     <button class="nav" data-module="compare" title="Vergleich">
       <svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/></svg><span class="nt">Vergleich</span></button>
     <button class="nav" data-module="djset" title="DJ-Set: Reihenfolge nach Tonart, BPM und Energie">
@@ -385,7 +385,7 @@
             <div class="seg sm" id="discFilter" role="radiogroup" aria-label="Anzeigen"></div>
             <input id="discSearch" class="inp" type="search" placeholder="Suchen (Künstler, Titel, Label)" aria-label="Suchen">
             <label class="check sm" title="Titel, die schon in der Bibliothek sind (gleicher Künstler und Titel), ausblenden"><input type="checkbox" id="discHideOwned" checked> vorhandene ausblenden</label>
-            <span class="disc-acts"><button class="ghost" id="discFollow">Folgen …</button><button class="primary" id="discRun" title="Neue Titel bei Deezer und Beatport suchen">Suchen</button></span>
+            <span class="disc-acts"><button class="ghost" id="discExport" aria-haspopup="menu" title="Merkliste als Excel oder CSV speichern">Exportieren ▾</button><button class="ghost" id="discFollow">Folgen …</button><button class="primary" id="discRun" title="Neue Titel bei Deezer und Beatport suchen">Suchen</button></span>
           </div>
           <div class="muted sm" id="discInfo"></div>
           <div class="prep-table card" id="discList"></div>
@@ -400,7 +400,7 @@
           <div><h2>Hilfe</h2>
           <p class="muted">Übersicht aller Tags mit Bedeutung und Herkunft, Handbuch und technische Details. Der Scan zeigt, welche Felder in deiner Bibliothek vorkommen – ein Klick auf die Anzahl filtert die Titel im Tagger.</p></div>
           <div class="seg" id="helpTabs" role="tablist" aria-label="Hilfe-Bereiche">
-            <button data-htab="tags" role="tab" class="on">Tag-Übersicht</button><button data-htab="readme" role="tab">Handbuch</button><button data-htab="id3" role="tab">ID3-Felder</button><button data-htab="plugins" role="tab">Plugins</button>
+            <button data-htab="tags" role="tab" class="on">Tag-Übersicht</button><button data-htab="readme" role="tab">Handbuch</button><button data-htab="id3" role="tab">ID3-Felder</button><button data-htab="plugins" role="tab">Plugins</button><button data-htab="keys" role="tab">Tastatur</button>
           </div>
         </header>
         <div id="helpTags">
