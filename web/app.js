@@ -1393,6 +1393,7 @@ function setModule(m, opts = {}) {
   if (m === "djset" && typeof djsetShow === "function") djsetShow();
   if (m === "help" && typeof helpShow === "function") helpShow();                // #158
   if (m === "prep" && typeof prepShow === "function") prepShow();                // #109
+  if (m !== "prep" && typeof discStop === "function") discStop();                // #120 Vorhören beenden
   if (typeof plRender === "function") plRender();
 }
 

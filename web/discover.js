@@ -1,0 +1,162 @@
+/* MarKusSXCH TagStudio – Vorbereiten › Entdecken (#120): neue Titel gefolgter Künstler, Labels und Genres mit
+   Vorhören, Merkliste und Kauf-Link. Logik in discover.py / session_discover.py. Gekauft wird nie automatisch. */
+"use strict";
+
+const DISC = { d: null, filter: "new", playing: "" };
+const DISC_FILTERS = [["new", "Neu"], ["saved", "Gemerkt"], ["all", "Alle"], ["bought", "Gekauft"], ["hidden", "Ausgeblendet"]];
+
+function prepTab(tab) {
+  $$("#prepTabs [data-ptab]").forEach((b) => { b.classList.toggle("on", b.dataset.ptab === tab); b.setAttribute("aria-selected", String(b.dataset.ptab === tab)); });
+  $("#prepWfPane").hidden = tab !== "wf";
+  $("#prepWfActs").style.visibility = tab === "wf" ? "" : "hidden";
+  $("#discPane").hidden = tab !== "disc";
+  if (tab === "disc") discShow(); else discStop();
+}
+
+async function discShow() {
+  try { discApply(await call("disc_overview")); } catch (e) { toast(String(e.message || e)); }
+}
+
+function discApply(d) {
+  DISC.d = d;
+  const c = d.counts || {};
+  $("#discCount").textContent = c.new ? String(c.new) : "";
+  $("#discFilter").innerHTML = DISC_FILTERS.map(([k, t]) => `<button data-f="${k}" role="radio" aria-checked="${k === DISC.filter}" class="${k === DISC.filter ? "on" : ""}">${t}${k !== "all" && c[k] ? ` <span class="muted">${fmtN(c[k])}</span>` : ""}</button>`).join("");
+  const f = d.follow, n = f.artists.length + f.labels.length + f.genres.length;
+  $("#discInfo").textContent = n ? `${n} gefolgt · ${d.last ? "zuletzt gesucht " + d.last.replace("T", " ").slice(0, 16) : "noch nicht gesucht"}${d.library ? "" : " · keine Bibliothek (für „vorhanden“)"}` : "Noch nichts gefolgt – „Folgen …“";
+  discRender();
+}
+
+function discRows() {
+  const d = DISC.d, q = ($("#discSearch").value || "").toLowerCase().trim(), hide = $("#discHideOwned").checked;
+  return d.items.filter((e) => (DISC.filter === "all" ? e.status !== "hidden" : e.status === DISC.filter)
+    && !(hide && e.owned && DISC.filter !== "bought")
+    && (!q || `${e.artist} ${e.title} ${e.mix} ${e.label} ${e.release}`.toLowerCase().includes(q)));
+}
+
+function discRender() {
+  const rows = discRows().slice(0, 1000);
+  if (!rows.length) {
+    const msg = !DISC.d.items.length ? "Noch keine Vorschläge. Unter „Folgen …“ Künstler, Labels oder Genres festlegen und „Suchen“."
+      : DISC.filter === "new" ? "Keine neuen Vorschläge." : "Nichts in dieser Ansicht.";
+    $("#discList").innerHTML = `<div class="tg-empty">${msg}</div>`;
+    return;
+  }
+  const src = { deezer: "Deezer", beatport: "Beatport" };
+  $("#discList").innerHTML = `<table class="disc-t"><thead><tr><th></th><th></th><th>Titel</th><th>Label · Release</th><th>Datum</th><th>Quelle</th><th></th></tr></thead><tbody>
+    ${rows.map((e) => `<tr data-k="${esc(e.key)}" class="st-${e.status}${e.owned ? " owned" : ""}">
+      <td><button class="icon-btn play ${DISC.playing === e.key ? "on" : ""}" data-a="play" ${e.preview ? "" : "disabled"} title="${e.preview ? "Vorhören (Ausschnitt)" : "kein Vorhör-Ausschnitt"}" aria-label="Vorhören">${DISC.playing === e.key ? "❚❚" : "▶"}</button></td>
+      <td>${e.cover ? `<img src="${esc(e.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}</td>
+      <td class="nm"><b>${esc(e.title)}</b>${e.mix ? ` <span class="muted">(${esc(e.mix)})</span>` : ""}${e.status === "new" && DISC.filter !== "new" ? '<span class="disc-badge">neu</span>' : ""}${e.owned ? '<span class="disc-badge" title="Gleicher Künstler und Titel ist schon in der Bibliothek">vorhanden</span>' : ""}<br><span class="muted sm">${esc(e.artist)}</span></td>
+      <td class="sm">${esc(e.label || "")}${e.release ? `<br><span class="muted">${esc(e.release)}</span>` : ""}</td>
+      <td class="sm">${esc((e.date || "").slice(0, 10))}${e.bpm || e.key_name ? `<br><span class="muted">${esc([e.bpm ? e.bpm + " BPM" : "", e.key_name].filter(Boolean).join(" · "))}</span>` : ""}</td>
+      <td class="sm" title="${esc(e.seed || "")}">${esc(src[e.src] || e.src)}${e.genre ? `<br><span class="muted">${esc(e.genre)}</span>` : ""}</td>
+      <td class="d-acts"><button class="ghost sm" data-a="open" title="Auf ${esc(src[e.src] || e.src)} öffnen (Kauf nur dort)">Öffnen</button>
+        ${e.status !== "saved" ? '<button class="icon-btn" data-a="saved" title="Merken">☆</button>' : '<button class="icon-btn" data-a="new" title="Nicht mehr merken">★</button>'}
+        ${e.status !== "bought" ? '<button class="icon-btn" data-a="bought" title="Als gekauft markieren">✓</button>' : ""}
+        ${e.status !== "hidden" ? '<button class="icon-btn" data-a="hidden" title="Ausblenden">✕</button>' : '<button class="icon-btn" data-a="new" title="Wieder anzeigen">↺</button>'}</td></tr>`).join("")}
+    </tbody></table>${discRows().length > 1000 ? '<div class="muted sm" style="padding:8px">Die ersten 1000 Einträge – Suche oder Filter einschränken.</div>' : ""}`;
+}
+
+function discStop() {
+  const a = $("#discAudio");
+  if (a) { a.pause(); a.removeAttribute("src"); }
+  if (DISC.playing) { DISC.playing = ""; if (DISC.d) discRender(); }
+}
+
+function discPlay(e) {
+  const a = $("#discAudio");
+  if (DISC.playing === e.key) { discStop(); return; }
+  try { if (typeof PLAYER !== "undefined" && PLAYER.audio && !PLAYER.audio.paused) PLAYER.audio.pause(); } catch (x) { /* Player nicht aktiv */ }
+  a.src = e.preview;
+  a.play().catch((x) => toast("Vorhören nicht möglich: " + (x.message || x)));
+  DISC.playing = e.key;
+  discRender();
+}
+
+async function discRun() {
+  discStop();
+  const r = await runTask(call("start_disc_run"), "Entdecken – neue Titel suchen");
+  if (!r) { discShow(); return; }
+  status(`${fmtN(r.new)} neue(r) Vorschlag/Vorschläge (${fmtN(r.found)} gefunden).`, r.log.length ? "warn" : "info");
+  DISC.filter = "new";
+  await discShow();
+  if (r.log.length && !r.new) await info("Hinweise zur Suche", r.log.join("\n"));
+}
+
+async function discFollowDialog() {
+  const f = JSON.parse(JSON.stringify(DISC.d.follow));
+  let genres = null;
+  const genreBox = (b) => {
+    const box = $("#dfGenres", b);
+    if (!genres) { box.innerHTML = '<span class="muted sm">Genre-Charts (Top 100) kommen von Beatport. </span><button class="ghost sm" id="dfLoadG">Genres laden</button>'; return; }
+    const on = new Set(f.genres.map((g) => String(g.id)));
+    box.innerHTML = genres.map((g) => `<label class="check"><input type="checkbox" data-g="${esc(String(g.id))}" data-n="${esc(g.name)}" ${on.has(String(g.id)) ? "checked" : ""}> ${esc(g.name)}</label>`).join("");
+  };
+  const res = await modal({
+    title: "Folgen – Künstler, Labels, Genres", wide: true,
+    html: `<div class="disc-f"><p class="muted sm" style="margin:0 0 8px">„Suchen“ fragt für alles hier neue Veröffentlichungen ab. Deezer braucht keine Anmeldung; Beatport nutzt die Anmeldung des Beatport-Plugins. Es wird nie etwas gekauft – nur gemerkt und verlinkt.</p>
+      <div class="cols"><div><label for="dfArt"><b>Künstler</b> <span class="muted sm">(einer pro Zeile)</span></label><textarea id="dfArt" class="fe-val" spellcheck="false">${esc(f.artists.join("\n"))}</textarea></div>
+      <div><label for="dfLab"><b>Labels</b> <span class="muted sm">(eines pro Zeile)</span></label><textarea id="dfLab" class="fe-val" spellcheck="false">${esc(f.labels.join("\n"))}</textarea></div></div>
+      <div style="margin:8px 0"><button class="ghost sm" id="dfSuggest" ${DISC.d.library ? "" : "disabled title=\"Zuerst im Workflow eine Bibliothek festlegen\""}>Aus der Bibliothek vorschlagen …</button><span class="muted sm" id="dfSugInfo"></span><div class="disc-sug" id="dfSug"></div></div>
+      <label><b>Genres</b></label><div class="disc-genres" id="dfGenres"></div>
+      <div class="frm" style="margin-top:10px"><label for="dfDays">Zeitraum</label><span><input id="dfDays" type="number" min="1" max="3650" value="${f.days || 60}" style="width:80px"> Tage zurück</span>
+        <label>Quellen</label><span><label class="check"><input type="checkbox" id="dfDz" ${f.sources.includes("deezer") ? "checked" : ""}> Deezer</label> <label class="check"><input type="checkbox" id="dfBp" ${f.sources.includes("beatport") ? "checked" : ""}> Beatport${DISC.d.beatport ? "" : ' <span class="muted sm">(Plugin aus oder nicht bereit)</span>'}</label></span></div></div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Speichern", value: true, primary: true }],
+    onMount: (b) => {
+      genreBox(b);
+      b.addEventListener("click", async (e) => {
+        const t = e.target.closest("button"); if (!t) return;
+        if (t.id === "dfLoadG") {
+          t.disabled = true; t.textContent = "Lade …";
+          const r = await call("disc_genres");
+          if (!r.ok) { $("#dfGenres", b).innerHTML = `<span class="st-missing sm">${esc(r.error)}</span>`; return; }
+          genres = r.genres; genreBox(b);
+        } else if (t.id === "dfSuggest") {
+          t.disabled = true; $("#dfSugInfo", b).textContent = " Lese die Bibliothek …";
+          const st = await call("start_disc_suggest");
+          if (!st.ok) { $("#dfSugInfo", b).textContent = " " + st.error; t.disabled = false; return; }
+          let s;
+          for (;;) { s = await call("task_status"); if (s.done) break; await new Promise((ok) => setTimeout(ok, 200)); }
+          t.disabled = false;
+          if (s.error) { $("#dfSugInfo", b).textContent = " " + s.error; return; }
+          $("#dfSugInfo", b).textContent = " Klick übernimmt in die Liste:";
+          const have = (id) => new Set($(id, b).value.split("\n").map((x) => x.trim().toLowerCase()));
+          const ha = have("#dfArt"), hl = have("#dfLab");
+          $("#dfSug", b).innerHTML = s.result.artists.filter((x) => !ha.has(x.name.toLowerCase())).slice(0, 20).map((x) => `<button class="ghost sm" data-add="dfArt" data-v="${esc(x.name)}" title="${x.count} Titel">+ ${esc(x.name)}</button>`).join("")
+            + s.result.labels.filter((x) => !hl.has(x.name.toLowerCase())).slice(0, 12).map((x) => `<button class="ghost sm" data-add="dfLab" data-v="${esc(x.name)}" title="Label · ${x.count} Titel">+ ${esc(x.name)} <span class="muted">Label</span></button>`).join("");
+        } else if (t.dataset.add) {
+          const ta = $("#" + t.dataset.add, b);
+          ta.value = (ta.value.trim() ? ta.value.trim() + "\n" : "") + t.dataset.v;
+          t.remove();
+        }
+      });
+    },
+    collect: (b) => {
+      const lines = (id) => $(id, b).value.split("\n").map((x) => x.trim()).filter(Boolean);
+      const g = genres ? [...b.querySelectorAll("#dfGenres [data-g]:checked")].map((x) => ({ id: +x.dataset.g || x.dataset.g, name: x.dataset.n })) : f.genres;
+      return { artists: lines("#dfArt"), labels: lines("#dfLab"), genres: g, days: +$("#dfDays", b).value || 60,
+        sources: [$("#dfDz", b).checked ? "deezer" : "", $("#dfBp", b).checked ? "beatport" : ""].filter(Boolean) };
+    },
+  });
+  if (!res) return;
+  try { discApply(await call("disc_follow_save", res)); toast("Gespeichert – „Suchen“ holt die neuen Titel."); } catch (e) { toast(String(e.message || e)); }
+}
+
+(function bindDiscover() {
+  $("#prepTabs").addEventListener("click", (e) => { const b = e.target.closest("[data-ptab]"); if (b) prepTab(b.dataset.ptab); });
+  $("#discFilter").addEventListener("click", (e) => { const b = e.target.closest("[data-f]"); if (!b) return; DISC.filter = b.dataset.f; discApply(DISC.d); });
+  $("#discSearch").addEventListener("input", () => DISC.d && discRender());
+  $("#discHideOwned").addEventListener("change", () => DISC.d && discRender());
+  $("#discRun").addEventListener("click", discRun);
+  $("#discFollow").addEventListener("click", discFollowDialog);
+  $("#discAudio").addEventListener("ended", discStop);
+  $("#discList").addEventListener("click", async (ev) => {
+    const b = ev.target.closest("[data-a]"); if (!b) return;
+    const k = b.closest("tr").dataset.k, e = DISC.d.items.find((x) => x.key === k); if (!e) return;
+    if (b.dataset.a === "play") return discPlay(e);
+    if (b.dataset.a === "open") return call("open_url", e.url);
+    if (DISC.playing === k && b.dataset.a === "hidden") discStop();
+    discApply(await call("disc_set", [k], b.dataset.a));
+  });
+})();

@@ -186,6 +186,19 @@ Namen dürfen abgekürzt (`ener`, `dance`) oder deutsch sein (Energie, Tanz, Sti
 **Skala:** Unter Einstellungen › Tagger lässt sich einstellen, dass die Werte in den Dateien 0–10 sind (z. B. aus
 Lexicon). Angezeigt und eingegeben wird dann weiterhin 0–100; beim Lesen wird ×10, beim Schreiben ÷10 gerechnet.
 
+### Vorbereiten und Entdecken
+
+**Workflow:** Neue Titel laufen vom **Eingangsordner** über frei zusammenstellbare Schritte in die **Bibliothek** – jede
+Stufe arbeitet auf einer Kopie, die Rohdaten bleiben unverändert. Schritt-Typen: Tag-Rezept, externes Programm
+(Abschluss an der Herkunft erkennen oder bestätigen), Plugin (z. B. Lautheit, Online-Metadaten – „nur leere Felder
+füllen“), Pflichtfelder prüfen, Übernahme mit Duplikatprüfung und nachgelagerte Programme als Status. Die Schutzregel
+„nur ergänzen“ meldet (oder setzt zurück), wenn ein Programm bestehende Tags ändert. **Quellen** sind Download-Ordner
+der Kaufplattformen; „Abholen“ kopiert neue MP3 (auch aus ZIP) in den Eingang.
+
+**Entdecken:** Unter „Folgen …“ Künstler, Labels und Beatport-Genres festlegen (oder aus der Bibliothek vorschlagen
+lassen); „Suchen“ holt neue Veröffentlichungen von Deezer und Beatport. In der Liste vorhören (▶), merken (☆), als
+gekauft markieren (✓) oder ausblenden (✕); „Öffnen“ führt zur Seite des Titels. Gekauft wird nie automatisch.
+
 ### DJ-Set
 
 Ordnet Titel so, dass die Übergänge passen. Seite **DJ-Set** in der Seitenleiste (daneben die Anzahl Titel im Set).

@@ -366,7 +366,7 @@
         <header class="mod-head">
           <div><h2>Tracks vorbereiten</h2>
           <p class="muted">Neue Titel laufen vom Eingangsordner Schritt für Schritt bis in die Bibliothek. Jede Stufe arbeitet auf einer Kopie – die Rohdaten bleiben unverändert. Ab „nur ergänzen“-Schritten meldet TagStudio, wenn ein Programm bestehende Tags ändert.</p></div>
-          <div class="mod-actions">
+          <div class="mod-actions" id="prepWfActs">
             <select id="prepWf" class="inp" aria-label="Workflow"></select>
             <button class="ghost" id="prepFetch" hidden title="Neue Downloads der Quellen (MP3, ZIP) in den Eingangsordner kopieren">Abholen</button>
             <button class="ghost" id="prepEdit">Workflow bearbeiten …</button>
@@ -374,9 +374,23 @@
             <button class="primary" id="prepRefresh" title="Eingangsordner neu lesen und Programme erkennen">Aktualisieren</button>
           </div>
         </header>
+        <div class="seg prep-tabs" id="prepTabs" role="tablist" aria-label="Bereiche"><button data-ptab="wf" role="tab" class="on" aria-selected="true">Workflow</button><button data-ptab="disc" role="tab" aria-selected="false">Entdecken <span class="tab-n" id="discCount"></span></button></div>
+        <div id="prepWfPane" class="prep-pane">
         <div class="muted sm prep-paths" id="prepPaths"></div>
         <div class="prep-steps" id="prepSteps"></div>
         <div class="prep-table card" id="prepTable"></div>
+        </div>
+        <div id="discPane" class="prep-pane" hidden>
+          <div class="disc-bar">
+            <div class="seg sm" id="discFilter" role="radiogroup" aria-label="Anzeigen"></div>
+            <input id="discSearch" class="inp" type="search" placeholder="Suchen (Künstler, Titel, Label)" aria-label="Suchen">
+            <label class="check sm" title="Titel, die schon in der Bibliothek sind (gleicher Künstler und Titel), ausblenden"><input type="checkbox" id="discHideOwned" checked> vorhandene ausblenden</label>
+            <span class="disc-acts"><button class="ghost" id="discFollow">Folgen …</button><button class="primary" id="discRun" title="Neue Titel bei Deezer und Beatport suchen">Suchen</button></span>
+          </div>
+          <div class="muted sm" id="discInfo"></div>
+          <div class="prep-table card" id="discList"></div>
+          <audio id="discAudio" preload="none"></audio>
+        </div>
       </div>
     </div>
 
@@ -558,5 +572,6 @@
 <script src="help.js"></script>
 <script src="recipes.js"></script>
 <script src="prepare.js"></script>
+<script src="discover.js"></script>
 </body>
 </html>

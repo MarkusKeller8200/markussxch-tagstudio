@@ -36,6 +36,7 @@ from session_snapshots import SnapshotMixin
 from session_djset import DjSetMixin
 from session_help import HelpMixin
 from session_prepare import PrepareMixin
+from session_discover import DiscoverMixin
 
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
@@ -50,7 +51,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
            "tg_view_default": dict}                          # #155: bevorzugte Ansicht
 
 
-class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin):
+class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, DiscoverMixin):
     def __init__(self):
         self.lock = threading.RLock()
         self._bus, self._buslock = {}, threading.Lock()       # Nachrichten zwischen Fenstern (#69)

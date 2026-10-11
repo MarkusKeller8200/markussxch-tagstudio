@@ -494,6 +494,36 @@ class UiTest(unittest.TestCase):
         pg.wait_for_function("PREP.d.rows.length === 4")
         self.assertIn("Bandcamp", pg.inner_text('#prepTable tr[data-name="Neu gekauft.mp3"] .nm'))
 
+    def test_discover_tab(self):
+        """#120: Entdecken – Liste, Merken, Filter, Folgen-Dialog."""
+        pg = self.pg
+        d = os.path.join(self.home, "TagStudio", "Entdecken")
+        os.makedirs(d, exist_ok=True)
+        items = {f"deezer:{i}": {"key": f"deezer:{i}", "src": "deezer", "id": str(i), "artist": "Mara Lind", "title": f"Titel {i}",
+                                 "mix": "", "label": "Nordwerk", "date": "2026-10-0%d" % i, "preview": "", "url": "https://www.deezer.com/track/1",
+                                 "status": "new", "owned": i == 3, "first": "2026-10-11T10:00:00"} for i in (1, 2, 3)}
+        with open(os.path.join(d, "entdecken.json"), "w", encoding="utf-8") as fh:
+            json.dump({"follow": {"artists": ["Mara Lind"]}, "items": items}, fh)
+        pg.click('.nav[data-module="prep"]')
+        pg.wait_for_function("PREP.d && PREP.d.workflow")
+        pg.click('#prepTabs [data-ptab="disc"]')
+        pg.wait_for_function("DISC.d && DISC.d.items.length === 3")
+        self.assertTrue(pg.locator("#prepWfPane").is_hidden())
+        self.assertEqual(pg.locator("#discList tbody tr").count(), 2)          # vorhandener ausgeblendet
+        pg.uncheck("#discHideOwned")
+        self.assertEqual(pg.locator("#discList tbody tr").count(), 3)
+        pg.click('#discList tr[data-k="deezer:2"] [data-a="saved"]')
+        pg.wait_for_function("DISC.d.counts.saved === 1")
+        pg.click('#discFilter [data-f="saved"]')
+        self.assertEqual(pg.locator("#discList tbody tr").count(), 1)
+        self.assertEqual(pg.inner_text("#discCount").strip(), "2")
+        pg.click("#discFollow")
+        pg.fill("#dfLab", "Nordwerk\nDrumcode")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("DISC.d.follow.labels.length === 2")
+        pg.click('#prepTabs [data-ptab="wf"]')
+        self.assertTrue(pg.locator("#discPane").is_hidden())
+
     def test_snapshot_baseline(self):
         """Neue Baseline: aus dem aktuellen Stand, ältere Snapshots löschen (angeheftete nur auf Wunsch)."""
         pg = self.pg

@@ -1258,3 +1258,27 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .prep-t td.s-waiting{color:var(--acc)}.prep-t td.s-open{color:var(--dim)}.prep-t td.s-skipped{color:var(--faint)}
 .prep-t tr.gone td.nm{opacity:.6}
 .rc-acts{flex:none}
+/* Entdecken (#120) */
+.prep-pane{display:flex;flex-direction:column;gap:12px;flex:1;min-height:0}
+.prep-pane[hidden]{display:none}
+.prep-tabs{align-self:flex-start}
+.tab-n{font-size:11px;color:var(--acc);font-variant-numeric:tabular-nums}
+.disc-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.disc-bar #discSearch{flex:1;min-width:160px;max-width:320px}
+.disc-acts{margin-left:auto;display:flex;gap:8px}
+.disc-t{border-collapse:collapse;width:100%;font-size:13px}
+.disc-t th{text-align:left;font-weight:600;color:var(--dim);font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surf)}
+.disc-t td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.disc-t tr.owned td{opacity:.55}
+.disc-t tr.st-saved .nm b{color:var(--acc)}
+.disc-t img{width:36px;height:36px;border-radius:4px;object-fit:cover;display:block;background:var(--line)}
+.disc-t .d-acts{white-space:nowrap;text-align:right}
+.disc-t .play{width:30px;height:30px;border-radius:50%}
+.disc-t .play.on{background:var(--acc-soft);color:var(--acc)}
+.disc-badge{font-size:10.5px;padding:0 5px;border-radius:8px;background:var(--acc-soft);color:var(--acc);margin-left:4px}
+.disc-f textarea{width:100%;min-height:110px;resize:vertical}
+.disc-f .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.disc-genres{max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:var(--r);padding:6px 8px;columns:2;font-size:12.5px}
+.disc-sug{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.disc-sug button{font-size:12px}
+@media (max-width:700px){.disc-f .cols{grid-template-columns:1fr}.disc-genres{columns:1}}

@@ -7,6 +7,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Entdecken** (Vorbereiten › Reiter „Entdecken“, Phase 3): neue Titel von **gefolgten Künstlern, Labels und
+  Genres** vorschlagen – über **Deezer** (ohne Anmeldung, 30-s-Vorhören) und **Beatport** (Anmeldung des Plugins,
+  Vorhör-Ausschnitt, Genre-Charts Top 100, BPM/Tonart). **Vorhören** direkt in der Liste, **Merken**, als gekauft
+  markieren, ausblenden; Titel, die schon in der Bibliothek sind, werden erkannt und auf Wunsch ausgeblendet.
+  „Aus der Bibliothek vorschlagen“ schlägt die häufigsten Künstler und Labels zum Folgen vor. Gekauft wird nie
+  automatisch – „Öffnen“ führt zur Seite des Titels (#120).
 - **Vorbereiten: Schritt-Typ „Plugin“** – eine Plugin-Aktion (z. B. Lautheit messen, Online-Metadaten, Lexicon,
   beaTunes) läuft automatisch auf einer Kopie im Stufen-Ordner. Die Vorschläge werden je nach Einstellung übernommen:
   **nur leere Felder füllen** (Vorgabe), alle vorausgewählten oder keine (nur ausführen); danach wird gespeichert.
