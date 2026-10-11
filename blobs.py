@@ -155,6 +155,10 @@ def view(it) -> dict:
         d["note"] = xmltools.blob_info(it)
     if s["fid"] == "GEOB":
         d.update(mime=s["mime"], filename=s["filename"], desc=s["desc"])
+        import serato                                  # #76: Serato-Daten lesbar (nur Ansicht)
+        dec = serato.decode(s["desc"], s["data"])
+        if dec is not None:
+            d["serato"] = dec
     else:
         d["owner"] = s["owner"]
     return d

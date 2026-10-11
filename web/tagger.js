@@ -1072,9 +1072,14 @@ async function tgBlobEditor(key) {
     r.kind === "xml" ? '<button class="ghost sm" id="bfXml">Im XML-Editor öffnen</button>' : "",
     r.editable && r.inner === "json" ? `<button class="ghost sm" id="bfJson" ${json ? "hidden" : ""}>JSON formatieren</button>` : "",
   ].join("");
+  const sr = r.serato;          // #76: Serato-Daten lesbar
+  const srHtml = sr ? `<div class="bf-serato"><h4>Serato ${esc(sr.name)} <span class="muted sm">(lesbar, nur Ansicht)</span></h4>
+      ${sr.error ? `<div class="hint st-missing">${esc(sr.error)}</div>` : `<div class="muted sm">${esc(sr.summary)}</div>`}
+      ${sr.bars ? `<svg class="bf-ov" viewBox="0 0 ${sr.bars.length} 40" preserveAspectRatio="none" aria-label="Wellenform-Übersicht">${sr.bars.map((h, k) => `<rect x="${k}" y="${(20 - h * 20).toFixed(2)}" width="1" height="${(h * 40).toFixed(2)}"/>`).join("")}</svg>` : ""}
+      ${(sr.rows || []).length ? `<table class="bf-srt"><tbody>${sr.rows.map(([a, v]) => `<tr><td>${esc(a)}</td><td>${/^#[0-9A-F]{6}/.test(v) ? `<span class="sw" style="background:${esc(v.slice(0, 7))}"></span>` : ""}${esc(v)}</td></tr>`).join("")}</tbody></table>` : ""}</div>` : "";
   const res = await modal({
     title: `${r.label} – ${r.file}`, wide: true,
-    html: `<div class="frm bf-head">${head}</div>
+    html: `<div class="frm bf-head">${head}</div>${srHtml}
       <div class="bf-info"><span class="chip">${esc(r.fid)}</span><span>${esc(r.kind_label)}${r.codec ? " · " + esc(r.codec) : ""} · ${fmtN(r.size)} Bytes</span>
         <span class="bf-tools">${tools}</span></div>
       ${r.note ? `<div class="hint">${esc(r.note)}</div>` : ""}

@@ -19,6 +19,7 @@ import features
 import keys
 import plugins
 import ratings
+import serato
 import tagger
 import xmltools
 import blobs
@@ -1730,8 +1731,13 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                         continue
                     it = f.get(k)
                     xml = xmltools.xml_of_item(it)
+                    shown = core.disp(it)
+                    if k.startswith("GEOB:Serato"):            # #76: Serato-Daten als lesbare Kurzfassung
+                        dec = serato.decode(it.desc or k[5:], blobs.split(it)["data"]) if it.payload is not None else None
+                        if dec is not None:
+                            shown = "Serato " + dec["name"] + ": " + (dec.get("error") or dec["summary"])
                     fields.append({"key": k, "label": key_label(k), "name": field_name(k), "help": field_help(k),
-                                   "text": core.disp(it), "src": self._src(k, f), "ver": self._ver(k, f),
+                                   "text": shown, "src": self._src(k, f), "ver": self._ver(k, f),
                                    "editable": core.can_edit_text(f, k) and xml is None,
                                    "multiline": "\n" in (it.text or "") or k.startswith(("COMM", "USLT")),
                                    "blob": blobs.is_blob(it),

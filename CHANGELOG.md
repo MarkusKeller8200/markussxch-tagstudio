@@ -7,6 +7,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Serato-Daten lesbar** (nur Ansicht): Markers2 (Cues, Loops, Farben, Namen, Track-Farbe, BPM-Sperre), Autotags
+  (BPM, Auto-Gain, Gain), BeatGrid (Marker, BPM, erster Schlag), Overview (kleine Wellenform), Analyse-Version – als
+  Kurzfassung bei „Weitere Felder“ und ausführlich im Binärfeld-Editor; kaputte Daten werden verständlich gemeldet (#76).
 - Vorschau der Plugins **Online-Metadaten** und **Beatport**: Links zum Treffer auf der Plattform (je Datei und je
   Feld), um z. B. eine andere Version eines Titels zu erkennen, bevor man übernimmt (#144).
 - Tagger: Feldnamen wie in Mp3tag (z. B. TITLE, INITIALKEY, CATALOGNUMBER) bei den wichtigen Feldern am Ende und bei

@@ -530,6 +530,27 @@ class UiTest(unittest.TestCase):
         self.assertIn("Titel", pg.inner_text("#stTgViewInfo"))
         self.assertIn("optimale Breite", pg.inner_text("#stTgViewInfo"))
 
+    def test_serato_readable(self):
+        """#76: Serato-Felder als lesbare Kurzfassung bei „Weitere Felder“ und im Binärfeld-Editor."""
+        sys.path.insert(0, HERE)
+        from helpers import geob, text, write_mp3
+        from test_serato import AUTOTAGS, OVERVIEW, grid
+        write_mp3(os.path.join(self.lib, "04 Serato.mp3"), [text("TIT2", "Serato"), geob("Serato BeatGrid", grid([], 0.25, 126.0)),
+                                                            geob("Serato Autotags", AUTOTAGS), geob("Serato Overview", OVERVIEW)], audio_frames=400)
+        pg = self.pg
+        pg.click('.nav[data-module="tagger"]')
+        pg.fill("#tgPath", self.lib)
+        pg.click("#tgLoad")
+        pg.wait_for_function("TG.loaded && TG.rows.length === 4")
+        i = pg.evaluate("TG.rows.find(r => r.name.startsWith('04')).i")
+        pg.click(f'.tg-row[data-i="{i}"] .nm')
+        pg.wait_for_selector('.tg-f[data-key="GEOB:Serato BeatGrid"]')
+        self.assertIn("126.0 BPM", pg.inner_text('.tg-f[data-key="GEOB:Serato BeatGrid"] .v'))
+        pg.click('.tg-f[data-key="GEOB:Serato Overview"] [data-tedit]')
+        pg.wait_for_selector("#modal .bf-serato")
+        self.assertEqual(pg.locator("#modal .bf-ov rect").count(), 240)
+        pg.click("#mBtns button >> nth=0")
+
     def test_tagger_feature_columns(self):
         """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""
         pg = self.pg
