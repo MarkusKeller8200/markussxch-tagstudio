@@ -10,6 +10,16 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Vergleich:** Binärfelder (GEOB/PRIV, z. B. Serato, Mixed In Key) lassen sich wie im Tagger im **Binärfeld-Editor**
   ansehen und bearbeiten (Doppelklick oder Rechtsklick › „Binärfeld-Editor“), mit Serato-Ansicht, JSON-Baum und Hex-
   Ansicht; JSON in Textfeldern öffnet den **JSON-Baum** (#13).
+- **Alle ID3-Frames** (#98): Katalog aller Frames aus ID3v2.2, v2.3 und v2.4 (inkl. Kapitel CHAP/CTOC und iTunes-
+  Frames) mit Übersicht in `docs/ID3-FELDER.md`. Binär-Frames werden lesbar angezeigt statt nur mit Grösse und
+  Prüfsumme – z. B. synchronisierter Liedtext (SYLT), Ereignisse (ETCO), Lautstärke (RVA2/RVAD), Equalizer, Kapitel,
+  Wiedergabezähler, Besitzer/Kauf (OWNE/COMR), Verknüpfungen (LINK).
+
+### Behoben
+- ID3v2.2: alle Frames werden übernommen (bisher fehlten u. a. SLT, CNT, ETC, EQU, RVA, IPL, GEO, LNK, TOA, TOT …);
+  LINK-Verweise erhalten die 4-Zeichen-ID (#98).
+- ID3v2.3 `IPLS` (Beteiligte Personen) wird als `TIPL` gelesen und beim Umwandeln v2.3 ↔ v2.4 korrekt umgesetzt;
+  leere Rollen bleiben erhalten (#98).
 
 ## [4.2.0] – 2026-10-11
 

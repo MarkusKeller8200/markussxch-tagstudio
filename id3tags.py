@@ -43,7 +43,8 @@ TEXT_LABELS = {
     "WOAF": "Audiodatei Internetseite", "WOAR": "Künstler Internetseiten",
     "WOAS": "Audioquelle Internetseite", "WORS": "Internetradio Internetseite",
     "WPAY": "Bezahlung Internetseite", "WPUB": "Herausgeber Internetseite",
-    "WFED": "Podcast-Feed",
+    "WFED": "Podcast-Feed", "XSOA": "Album einsortieren als (v2.3)", "XSOP": "Künstler einsortieren als (v2.3)",
+    "XSOT": "Titel einsortieren als (v2.3)",
 }
 PIC_TYPES = [
     "Anderes", "Datei-Icon", "Anderes Icon", "Cover vorne", "Cover hinten", "Booklet",
@@ -401,7 +402,7 @@ def _kind_of(fid: str) -> str:
         return "lyrics"
     if fid == "APIC":
         return "picture"
-    if fid[0] == "T" or fid in ("GRP1", "MVNM", "MVIN"):
+    if fid[0] == "T" or fid in ("GRP1", "MVNM", "MVIN", "XSOA", "XSOP", "XSOT"):
         return "text"
     if fid[0] == "W":
         return "url"
@@ -479,6 +480,9 @@ class Item:
                     except (UnicodeDecodeError, ValueError):
                         pass
                 return f"{mime or 'binär'} · {fmt_bytes(len(data))} Bytes · {hashlib.md5(data).hexdigest()[:8]}"
+            d = _describe_frame(self.fid, p)                        # #98: SYLT, ETCO, RVA2, CHAP, PCNT …
+            if d is not None:
+                return d
             if self.fid in ("PRIV", "UFID"):
                 data = p.split(b"\x00", 1)[1] if b"\x00" in p else p
                 if data and all(32 <= c < 127 for c in data[:200]):
@@ -564,6 +568,10 @@ class Item:
                 return out
             if ver == 3 and fid == "TDOR":
                 return [_frame_bytes("TORY", b"\x00" + text[:4].encode("latin-1", "replace"), 3)]
+            if fid in ("TIPL", "TMCL"):            # Paare Rolle/Name: auch in v2.3 null-getrennt (dort als IPLS)
+                e = _pick_enc(ver, text)
+                body = bytes([e]) + _term(e).join(_enc(e, x) for x in text.split(MV))
+                return [_frame_bytes("IPLS" if ver == 3 and fid == "TIPL" else fid, body, ver)]
             if ver != 4 and MV in text:  # v2.3 kennt keine Null-Trennung
                 text = V23_JOIN.join(x.strip() for x in text.split(MV) if x.strip())
             e = _pick_enc(ver, text)
@@ -648,15 +656,7 @@ def _frame_payload(fr: _Frame, version: int):
     return data
 
 
-V22_TO_V23 = {
-    "TT1": "TIT1", "TT2": "TIT2", "TT3": "TIT3", "TP1": "TPE1", "TP2": "TPE2", "TP3": "TPE3",
-    "TP4": "TPE4", "TAL": "TALB", "TYE": "TYER", "TRK": "TRCK", "TPA": "TPOS", "TCO": "TCON",
-    "TCM": "TCOM", "TXT": "TEXT", "TBP": "TBPM", "TEN": "TENC", "TSS": "TSSE", "TLE": "TLEN",
-    "TKE": "TKEY", "TLA": "TLAN", "TPB": "TPUB", "TCR": "TCOP", "TRC": "TSRC", "TOR": "TORY",
-    "TDA": "TDAT", "TXX": "TXXX", "WXX": "WXXX", "WAR": "WOAR", "WAF": "WOAF", "WPB": "WPUB",
-    "COM": "COMM", "ULT": "USLT", "PIC": "APIC", "POP": "POPM", "UFI": "UFID", "TCP": "TCMP",
-    "TS2": "TSO2", "TSA": "TSOA", "TSP": "TSOP", "TST": "TSOT", "TSC": "TSOC",
-}
+from id3frames import V22_TO_V23, describe as _describe_frame   # #98: vollständige v2.2-Zuordnung, lesbare Binär-Frames
 
 # MPEG-Tabellen
 _BITRATES = {
@@ -805,6 +805,9 @@ class MP3File:
                 if not nid:
                     continue
                 data = fr.data
+                if nid == "LINK" and len(data) >= 3:          # v2.2: Frame-ID mit 3 Zeichen
+                    lid = V22_TO_V23.get(data[:3].decode("latin-1", "replace"))
+                    data = (lid.encode() if lid else data[:3] + b" ") + data[3:]
                 if nid == "APIC" and len(data) >= 5:
                     fmt = data[1:4].decode("latin-1").upper()
                     mime = {"PNG": "image/png", "GIF": "image/gif"}.get(fmt, "image/jpeg")
@@ -864,6 +867,8 @@ class MP3File:
             p = _frame_payload(fr, ver)
             fid = fr.id
             kind = _kind_of(fid)
+            if fid == "IPLS":                      # #98: ID3v2.3-Personenliste = TIPL (gleicher Aufbau)
+                fid, kind = "TIPL", "text"
             if p is None:
                 it = Item(fid, fid, payload=None)
                 it.kind = "raw"
@@ -874,6 +879,10 @@ class MP3File:
                     if not p:
                         continue
                     parts = [x for x in _decode(p[0], p[1:]).split("\x00") if x.strip()]
+                    if fid in ("TIPL", "TMCL"):            # Paare Rolle/Name: leere Rolle behalten, Abschluss-Null weg
+                        parts = _decode(p[0], p[1:]).split("\x00")
+                        if len(parts) % 2 and not parts[-1].strip():
+                            parts = parts[:-1]
                     if fid == "TCON":
                         parts = [genre_from_raw(x) for x in parts]
                     text = MV.join(p.strip() for p in parts)
