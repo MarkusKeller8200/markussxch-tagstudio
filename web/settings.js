@@ -18,7 +18,7 @@ async function settingsShow() {
       <div class="st-row"><span>Design</span>
         <div class="seg" id="stTheme"><button data-v="dark"${d.theme !== "light" ? ' class="on"' : ""}>Dunkel</button><button data-v="light"${d.theme === "light" ? ' class="on"' : ""}>Hell</button></div>
         <label for="stNotation">Tonart-Schreibweise</label>${stSel("stNotation", d.notations, d.key_notation)}
-      </div></section>
+      </div>${typeof setupSettingsHtml === "function" ? setupSettingsHtml() : ""}</section>
     <section class="card" id="stTaggerCard"><h3>Tagger</h3>
       <div class="st-row">${stDefRow("tagger", "Standardordner")}
         <span>Stems</span>${stCheck("stStemsFlat", d.stems_flat, "Stems als eigene Titel anzeigen (statt aufklappbar unter dem Original)")}

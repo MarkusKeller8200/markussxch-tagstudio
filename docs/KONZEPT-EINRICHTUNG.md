@@ -1,6 +1,6 @@
 # Konzept: Profile (zweite unabhängige Installation) und Einrichtungsassistent
 
-Status: **Entschieden 2026-10-11 (20:55)** – siehe „Entscheide des Users“ am Ende. Issues im Meilenstein „4.4.0 – Beatport-Download,
+Status: **Entschieden 2026-10-11 (20:55), umgesetzt in 4.4.0-beta.2** – siehe „Entscheide des Users“ am Ende. Issues im Meilenstein „4.4.0 – Beatport-Download,
 Profile, Einrichtungsassistent“ (Label `idee` – zur Prüfung), Reihenfolge und Umfang legt der User fest.
 
 Issues: #163 zentrale Pfade · #164 Start mit Profil · #165 Profil-Verwaltung · #166 zweite Installation (optional) ·

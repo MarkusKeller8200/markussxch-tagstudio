@@ -1316,3 +1316,28 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .prof-rows{display:flex;flex-direction:column;gap:4px}
 .prof-row{display:flex;align-items:center;gap:8px;justify-content:space-between;max-width:520px}
 .prof-acts{display:flex;gap:6px}
+/* Einrichtung (#167–#170) */
+.wiz{position:fixed;inset:0;z-index:60;background:rgba(10,12,18,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+.wiz[hidden]{display:none}
+.wiz-box{width:min(820px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;background:var(--surf);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.wiz-steps{display:flex;flex-wrap:wrap;gap:4px 14px;padding:14px 20px;border-bottom:1px solid var(--line);font-size:12px;color:var(--faint)}
+.wiz-steps .on{color:var(--acc);font-weight:700}.wiz-steps .done{color:var(--dim)}
+.wiz-body{padding:18px 22px;overflow:auto;flex:1}
+.wiz-body h2{margin:0 0 6px;font-size:20px}.wiz-body h4{margin:16px 0 8px}
+.wiz-opts{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.wiz-opts.cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.wiz-opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.wiz-opt:has(input:checked){border-color:var(--acc);background:var(--acc-soft)}
+.wiz-opt>span{display:flex;flex-direction:column;gap:2px}
+.wiz-foot{display:flex;gap:8px;align-items:center;padding:12px 20px;border-top:1px solid var(--line)}
+.wiz-foot .grow{flex:1}
+.wiz-sum{margin:6px 0 14px;padding-left:20px;line-height:1.7}
+.rec-dot{color:#E8B33A;font-size:11px;margin-left:auto}
+.nav.rec .rec-dot+.nav-sub,.nav .nav-sub~.rec-dot{margin-left:6px}
+.nav-pick{display:flex;flex-wrap:wrap;gap:6px 16px}
+.fs-card{position:fixed;right:18px;bottom:96px;z-index:40;width:min(360px,calc(100vw - 32px));background:var(--surf);border:1px solid var(--acc);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);padding:12px 14px;font-size:13px}
+.fs-card[hidden]{display:none}
+.fs-card .fs-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.fs-card ol{margin:8px 0;padding-left:20px;line-height:1.5}
+.fs-card .fs-b{display:flex;justify-content:flex-end;gap:8px}
+.wn h3{margin:12px 0 4px}

@@ -12,7 +12,18 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   ZIP-Downloads werden entpackt, bereits geladene Titel nicht doppelt geholt. Beatport hat dafür keine offizielle
   Schnittstelle – der Weg wird vorsichtig ermittelt und protokolliert, Vorhör-Ausschnitte werden nie als Download
   genommen. Zuerst mit 1 Titel testen (#117).
-- Konzept **Profile und Einrichtungsassistent** ([docs/KONZEPT-EINRICHTUNG.md](docs/KONZEPT-EINRICHTUNG.md)).
+- **Profile** – eine zweite, unabhängige TagStudio-Instanz mit eigenen Einstellungen und Daten (Sicherungen,
+  Snapshots, Vorbereiten, Entdecken, Caches, Protokolle); Plugins, die Stems-Umgebung, Modelle und FFmpeg werden
+  gemeinsam genutzt. Einstellungen › Profile: neues Profil (leer oder mit den aktuellen Einstellungen), wechseln,
+  Verknüpfung auf dem Desktop; beim Start Profilwahl (abschaltbar). Profile laufen auch gleichzeitig; das Profil steht
+  im Fenstertitel und unten in der Seitenleiste. Start auch mit `--profil NAME` (#163–#165).
+- **Einrichtungsassistent** beim ersten Start (bzw. in einem neuen Profil): Ziele, Musikordner, Sicherungen und
+  Snapshots, genutzte Programme (Plugins und Vorbereiten-Workflow passend), Online-Dienste, Darstellung. Gewählte
+  Bereiche werden in der Seitenleiste mit ★ empfohlen. Jederzeit erneut über Hilfe oder Einstellungen › Darstellung
+  (#167, #168).
+- **Seitenleiste:** Menüpunkte lassen sich ausblenden (Einstellungen › Darstellung) (#169).
+- **„Erste Schritte“** – kurze Hinweise beim ersten Besuch jeder Seite (neu startbar über Hilfe) – und **„Neu in
+  dieser Version“** nach einem Update (#170).
 
 ## [4.3.0] – 2026-10-11
 

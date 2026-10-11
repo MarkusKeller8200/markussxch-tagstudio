@@ -406,6 +406,12 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
 
 ## Einstellungen und Datenablage
 
+**Profile:** Unter Einstellungen › Profile lässt sich ein weiteres Profil anlegen – eine unabhängige TagStudio-Instanz
+mit eigenen Einstellungen und Daten (unter `~/TagStudio-Profile/<Name>/`). Ein leeres Profil startet wie eine frische
+Installation mit dem **Einrichtungsassistenten**. Plugins, die Stems-Umgebung und Modelle werden mitbenutzt. Gestartet
+wird über die Profilwahl beim Start, eine Desktop-Verknüpfung oder `--profil Name`; das Standardprofil benutzt wie
+bisher `~/.tagstudio.json` und `~/TagStudio`.
+
 Die Seite **Einstellungen** fasst alles zusammen – Kacheln in der Reihenfolge des Menüs, oben Sprungmarken:
 Darstellung · **Tagger** (Standardordner, Stems; *beim Start:* automatisch einlesen, Unterordner, Sortierung,
 Cover-Spalte, Herkunfts-Filter) · Tag-Fixer · **Vergleich** (Standardordner; *beim Start:* Unterordner, Zuordnen nach,

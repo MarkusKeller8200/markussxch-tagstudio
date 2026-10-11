@@ -18,7 +18,9 @@ import core
 
 GROUPS = [
     ("design", "Design und Tonart-Schreibweise", ("web_theme", "theme", "key_notation")),
-    ("layout", "Layout (Splitter, Seitenleiste, Fenster)", ("web_ui", "geometry", "features_open", "window")),
+    ("layout", "Layout (Splitter, Seitenleiste, Fenster)", ("web_ui", "geometry", "features_open", "window",
+                                                           "nav_hidden", "nav_recommended")),
+    ("setup", "Einrichtung (Assistent, Erste Schritte)", ("setup_done", "first_steps", "first_steps_seen", "seen_version")),
     ("view", "Ansicht und Filter", ("filter", "show_trivial", "empty_set", "show_covers", "mode", "recursive",
                                     "tagger_recursive", "tagger_stems_flat", "cmp_defaults", "tg_defaults", "feat_scale", "mood_list")),
     ("history", "Pfad-Verlauf, Standardordner, Muster und Tag-Fixer", ("hist_left", "hist_right", "hist_tagger",

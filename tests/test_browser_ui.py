@@ -55,6 +55,10 @@ class UiTest(unittest.TestCase):
         shutil.copytree(self.src, self.lib)
         self.home = os.path.join(self.dir, "home")
         os.makedirs(self.home)
+        if "wizard" not in self._testMethodName:          # #167: ohne Einrichtungsassistent (bestehende Installation)
+            from version import VERSION
+            with open(os.path.join(self.home, ".tagstudio.json"), "w", encoding="utf-8") as fh:
+                json.dump({"setup_done": "test", "seen_version": VERSION, "first_steps": False}, fh)
         self.errors = []
         self.server, self.url = self.start_server()
         self.pw = sync_playwright().start()
@@ -571,6 +575,47 @@ class UiTest(unittest.TestCase):
         pg.wait_for_selector('#modal input[name="profPick"][value="Frisch"]')
         pg.click("#mBtns .primary")
         self.assertFalse(pg.evaluate("window.__pp"))
+
+    def test_wizard_first_start(self):
+        """#167–#170: frisches Profil → Assistent; Einstellungen übernehmen; Empfehlung; Erste Schritte."""
+        pg = self.pg
+        pg.wait_for_selector("#wizard .wiz-box")
+        self.assertIn("Willkommen", pg.inner_text("#wizard"))
+        pg.check('#wizard [data-w="goal"][value="prep"]')
+        pg.click('#wizard [data-wiz="next"]')
+        pg.fill("#wLib", self.lib)
+        pg.click('#wizard [data-wiz="next"]')                       # Sicherheit
+        pg.click('#wizard [data-wiz="next"]')                       # Programme
+        pg.check('#wizard [data-w="prog"][value="mik"]')
+        pg.click('#wizard [data-wiz="next"]')                       # Online
+        pg.click('#wizard [data-wiz="next"]')                       # Darstellung
+        pg.click('#wizard .wiz-theme [data-v="light"]')
+        pg.click('#wizard [data-wiz="next"]')                       # Fertig
+        self.assertIn(self.lib, pg.inner_text("#wizard"))
+        pg.click('#wizard [data-wiz="next"]')                       # Einrichten
+        pg.wait_for_function("document.querySelector('#wizard').hidden")
+        cfg = self.cfg()
+        self.assertEqual(cfg["default_tagger"], self.lib)
+        self.assertEqual(cfg["web_theme"], "light")
+        self.assertIn("prep", cfg["nav_recommended"])
+        self.assertTrue(cfg["setup_done"])
+        names = [w["steps"] for w in cfg["prep_workflows"]][0]
+        labels = " ".join(st["label"] for st in names)
+        self.assertIn("Mixed In Key", labels)
+        self.assertNotIn("beaTunes", labels)                        # nicht gewählt → aus dem Workflow entfernt
+        self.assertTrue(pg.locator('.nav[data-module="prep"] .rec-dot').count())
+        # Erste Schritte auf der Startseite, „Verstanden“ blendet aus
+        pg.wait_for_selector("#firstSteps:not([hidden])")
+        pg.click('#firstSteps [data-fs="ok"]')
+        pg.wait_for_selector("#firstSteps", state="hidden")
+        # Menüpunkt ausblenden in den Einstellungen (Hinweise, die nach dem Assistenten kommen, schliessen)
+        for _ in range(20):
+            time.sleep(0.2)
+            if pg.locator("#modal").is_visible():
+                pg.click("#mBtns button >> nth=0")
+        pg.click('.nav[data-module="settings"]')
+        pg.uncheck('[data-navshow="djset"]')
+        pg.wait_for_function("document.querySelector('.nav[data-module=\"djset\"]').hidden")
 
     def test_snapshot_baseline(self):
         """Neue Baseline: aus dem aktuellen Stand, ältere Snapshots löschen (angeheftete nur auf Wunsch)."""

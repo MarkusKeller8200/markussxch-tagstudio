@@ -399,6 +399,7 @@
         <header class="mod-head">
           <div><h2>Hilfe</h2>
           <p class="muted">Übersicht aller Tags mit Bedeutung und Herkunft, Handbuch und technische Details. Der Scan zeigt, welche Felder in deiner Bibliothek vorkommen – ein Klick auf die Anzahl filtert die Titel im Tagger.</p></div>
+          <div class="mod-actions"><button class="ghost" data-setup="wizard" title="Geführte Einrichtung erneut durchlaufen">Einrichtungsassistent</button><button class="ghost" data-setup="firststeps" title="Die Hinweise „Erste Schritte“ wieder auf jeder Seite zeigen">Erste Schritte</button></div>
           <div class="seg" id="helpTabs" role="tablist" aria-label="Hilfe-Bereiche">
             <button data-htab="tags" role="tab" class="on">Tag-Übersicht</button><button data-htab="readme" role="tab">Handbuch</button><button data-htab="id3" role="tab">ID3-Felder</button><button data-htab="plugins" role="tab">Plugins</button><button data-htab="keys" role="tab">Tastatur</button>
           </div>
@@ -575,5 +576,8 @@
 <script src="prepare.js"></script>
 <script src="discover.js"></script>
 <script src="profiles.js"></script>
+<script src="setup.js"></script>
+<div id="wizard" class="wiz" hidden></div>
+<aside id="firstSteps" class="fs-card" hidden aria-live="polite"></aside>
 </body>
 </html>

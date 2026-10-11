@@ -6,7 +6,9 @@
 /** Dialog mit eigenem Inhalt. buttons: [{label, value, primary}]; onMount(body) vor dem Anzeigen;
     collect(body, value) liefert das Ergebnis (oder false = Dialog bleibt offen). */
 function modal({ title, html, buttons, wide = false, onMount, collect }) {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
+    // Hinweise beim Start (Snapshots, Update …) erst nach dem Einrichtungsassistenten zeigen (#167)
+    while ($("#wizard") && !$("#wizard").hidden) await new Promise((ok) => setTimeout(ok, 400));
     const ov = $("#modal"), box = $("#mBtns");
     // frischer Inhalt-Container je Dialog: Klick-Handler aus onMount früherer Dialoge dürfen nicht weiterlaufen
     const old = $("#mBody"), body = old.cloneNode(false);

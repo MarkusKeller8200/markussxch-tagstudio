@@ -606,6 +606,8 @@ async function init() {
   showView(null);
   // #164: Profilwahl beim Start (vor dem automatischen Einlesen)
   if (st.profile && st.profile.ask && typeof profilePick === "function" && await profilePick(st.profile)) return;
+  // #167: Einrichtungsassistent beim ersten Start (setzt die Startseite selbst)
+  if (typeof setupInit === "function" && await setupInit(st).catch(() => false)) return;
   // #88: Startseite – mit Pfaden auf der Befehlszeile der Vergleich, sonst die zuletzt benutzte Seite (zuerst: Tagger)
   const last = st.ui && st.ui.module;
   setModule(st.start_paths.length ? "compare" : (last && last in MODULE_IDS ? last : "tagger"), { start: true });
@@ -1397,6 +1399,7 @@ function setModule(m, opts = {}) {
   if (m === "help" && typeof helpShow === "function") helpShow();                // #158
   if (m === "prep" && typeof prepShow === "function") prepShow();                // #109
   if (m !== "prep" && typeof discStop === "function") discStop();                // #120 Vorhören beenden
+  if (typeof firstStepsShow === "function") firstStepsShow(m);                   // #170
   if (typeof plRender === "function") plRender();
 }
 
