@@ -32,6 +32,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - App-Fenster merkt sich **Grösse, Position und „maximiert“** und öffnet beim nächsten Start wieder so; liegt die
   Position auf einem nicht mehr angeschlossenen Bildschirm, erscheint es mittig auf dem Hauptbildschirm (#125).
 
+### Geändert
+- **Python 3.12 oder neuer** nötig für die Quellcode-Variante (vorher 3.9; 3.9 und 3.10 bekommen keine Updates
+  mehr). Der Installer bringt weiterhin sein eigenes Python 3.12 mit. Tests laufen mit 3.12 und 3.15 auf Windows,
+  macOS und Linux; der Installer-Workflow kann von Hand mit einer anderen Python-Version bauen (Probe-Build) (#135).
+
 ### Behoben
 - Update: die alte Instanz blieb offen und die neue startete ohne die gespeicherten Einstellungen. Es läuft jetzt nur
   noch **eine Instanz** (ein zweiter Start meldet „TagStudio läuft bereits“); der Installer erkennt ein offenes

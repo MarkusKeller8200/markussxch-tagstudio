@@ -24,7 +24,7 @@ python tagstudio.py                # klassische Oberfläche (tkinter, eingefrore
 python -m unittest discover -s tests -v
 ```
 
-- **Python 3.9 oder neuer.** Der Kern nutzt **nur die Standardbibliothek** – bitte keine neuen Pflicht-Abhängigkeiten.
+- **Python 3.12 oder neuer.** Der Kern nutzt **nur die Standardbibliothek** – bitte keine neuen Pflicht-Abhängigkeiten.
   Optionale Pakete (pywebview, Pillow) dürfen nur Komfort bringen; ohne sie muss alles weiter funktionieren.
 - Schwere Pakete (z. B. PyTorch für Stems) gehören in ein **Plugin** mit eigener Umgebung – siehe [PLUGINS.md](PLUGINS.md).
 - Die Oberfläche (`web/`) ist reines HTML/CSS/JavaScript ohne Build-Schritt und ohne Bibliotheken aus dem Netz.

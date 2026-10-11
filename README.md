@@ -2,7 +2,7 @@
 
 Werkzeugkasten für MP3-Bibliotheken von DJs: **Tagger, Vergleich** (im Stil von Beyond Compare), **Tag-Fixer,
 Sicherungen, Camelot-Rad, Audio-Merkmale** und **Plugins** (z. B. Stems, Beatport). Für **Windows und macOS**.
-Der Kern braucht keine Zusatzpakete, nur Python 3.9 oder neuer – oder gar nichts, mit dem Installer.
+Der Kern braucht keine Zusatzpakete, nur Python 3.12 oder neuer – oder gar nichts, mit dem Installer.
 
 **Download:** [Releases](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases) ·
 **Änderungen:** [CHANGELOG.md](CHANGELOG.md) · **Plugins:** [PLUGINS.md](PLUGINS.md) ·
@@ -471,7 +471,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   discover -s tests -p "test_browser_ui.py" -v` – Menü und Einstellungen, Player (Live-Vorschau, Doppelklick,
   Bewertung, Überblenden mit Tempo, Player B, Abdocken). Ohne die Variable werden sie übersprungen.
 - **GitHub Actions:**
-  - `tests.yml` – bei jedem Push die Tests auf Windows, macOS und Linux (Python 3.9–3.13), dazu ein Smoke-Test
+  - `tests.yml` – bei jedem Push die Tests auf Windows, macOS und Linux (Python 3.12 und 3.15), dazu ein Smoke-Test
     der klassischen Oberfläche.
   - `installer.yml` – baut und testet die Installer (Selbsttest der gebauten und der installierten App) und
     veröffentlicht bei neuer Versionsnummer das Release (siehe unten).

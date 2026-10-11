@@ -26,6 +26,11 @@ from urllib.parse import urlparse, quote
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+MIN_PYTHON = (3, 12)          # #135 – gleiche Version wie Installer und Stems-Umgebung
+if sys.version_info < MIN_PYTHON:   # pragma: no cover – verständliche Meldung statt Folgefehlern
+    sys.exit(f"TagStudio braucht Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]} oder neuer (gefunden: {sys.version.split()[0]}).\n"
+             "Neues Python: https://www.python.org/downloads/ – oder den Installer verwenden (bringt Python mit).")
+
 from session import Session  # noqa: E402
 import applog  # noqa: E402
 import instance  # noqa: E402
@@ -878,6 +883,7 @@ def selftest(out=None) -> int:
         from session import Session
         return Session().settings()["version"]
 
+    check("Python", lambda: f"{sys.version.split()[0]} ({'gepackt' if getattr(sys, 'frozen', False) else 'Quellcode'})")
     check("Oberfläche", web)
     check("Sitzung", session)
     check("Plugins", plugin_list)

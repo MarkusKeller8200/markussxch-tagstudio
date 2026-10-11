@@ -4,18 +4,26 @@ name: Installer
 # - Neue Versionsnummer in version.py auf main (python packaging/release.py X.Y.Z + Push): bauen, testen, dann
 #   legt der Workflow selbst Tag vX.Y.Z und Release „TagStudio X.Y.Z“ an (Text aus dem CHANGELOG).
 # - Von Hand gesetzter Versions-Tag (vX.Y.Z): ebenso, Release wird angelegt bzw. ergänzt.
-# - Von Hand: Actions → Installer → „Run workflow“ (Dateien dann unter „Artifacts“ des Laufs).
+# - Von Hand: Actions → Installer → „Run workflow“ (Dateien dann unter „Artifacts“ des Laufs, kein Release).
+#   Dabei lässt sich die Python-Version wählen, z. B. 3.15 für einen Probe-Build (#135).
 on:
   push:
     tags: ["v*"]
     branches: [main]
     paths: ["version.py", "packaging/**", ".github/workflows/installer.yml"]
   workflow_dispatch:
+    inputs:
+      python:
+        description: "Python-Version für den Build (Probe-Build, z. B. 3.15)"
+        required: false
+        default: "3.12"
 
 permissions:
   contents: write
 
 env:
+  # Python des Installers; Releases immer mit dieser Version, von Hand wählbar für Probe-Builds (#135)
+  TS_PYTHON: ${{ inputs.python || '3.12' }}
   PYTHONUTF8: "1"
   PYTHONIOENCODING: "utf-8"
 
@@ -58,7 +66,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: ${{ env.TS_PYTHON }}
       - name: Versionierung prüfen
         shell: bash
         run: |
@@ -119,7 +127,7 @@ jobs:
           if ($q.ExitCode -ne 0) { exit 1 }
       - uses: actions/upload-artifact@v6
         with:
-          name: TagStudio-Windows
+          name: TagStudio-Windows-Python${{ env.TS_PYTHON }}
           path: dist/TagStudio-*-Windows-Setup.exe
 
   macos:
@@ -129,7 +137,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: ${{ env.TS_PYTHON }}
       - name: Versionierung prüfen
         shell: bash
         run: |
@@ -163,7 +171,7 @@ jobs:
         run: bash packaging/make_dmg.sh "$TS_VERSION"
       - uses: actions/upload-artifact@v6
         with:
-          name: TagStudio-macOS
+          name: TagStudio-macOS-Python${{ env.TS_PYTHON }}
           path: dist/TagStudio-*.dmg
 
   release:
