@@ -171,6 +171,13 @@ class Api:
             return {"ok": False, "cancelled": True}
         return self._s.tag_export_file(list(idx or []), fmt, dest)
 
+    def snap_journal_export(self, fmt, rows, name="Journal"):
+        """#59: sichtbares Änderungsjournal als Excel/CSV speichern (rows: Zeilen ohne Kopf)."""
+        dest = self.save_dialog(self._s.snap_journal_export_name(fmt, name))
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        return self._s.snap_journal_write(fmt, dest, rows)
+
     def dj_export(self, fmt, opts=None):
         """#4: DJ-Set als M3U8, Rekordbox-XML oder CSV speichern."""
         dest = self.save_dialog(self._s.dj_export_name(fmt))

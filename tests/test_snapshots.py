@@ -287,6 +287,27 @@ class TestSessionSnapshots(Base):
         self.assertEqual(j["programs"]["mik"], {"name": "Mixed In Key", "rows": 1, "fields": 2})
         self.assertEqual(j["programs"][""]["name"], "unbekannt")
 
+    def test_journal_export(self):
+        """#59: Journal als CSV und Excel."""
+        import zipfile
+        rows = [["Album/01 Titel.mp3", "geändert", "", "Mixed In Key", "Tonart", "TKEY", "8A", "9A", ""],
+                ["Album/02 Titel.mp3", "umbenannt", "", "", "", "", "", "", "Alt/02.mp3"], ["kurz"]]
+        self.assertEqual(self.s.snap_journal_export_name("xlsx", 'Journal A: "x" - Jetzt'), "Journal A x - Jetzt.xlsx")
+        csvp = os.path.join(self.dir, "j.csv")
+        r = self.s.snap_journal_write("csv", csvp, rows)
+        self.assertEqual(r["count"], 3)
+        with open(csvp, encoding="utf-8-sig") as fh:
+            lines = fh.read().splitlines()
+        self.assertTrue(lines[0].startswith("Datei;Status;Audio geändert;Vermutlich von;Feld"))
+        self.assertIn("Tonart;TKEY;8A;9A", lines[1])
+        self.assertEqual(lines[3].count(";"), 8)                        # kurze Zeile aufgefüllt
+        xp = os.path.join(self.dir, "j.xlsx")
+        self.s.snap_journal_write("xlsx", xp, rows)
+        with zipfile.ZipFile(xp) as z:
+            self.assertIn("Mixed In Key", z.read("xl/worksheets/sheet1.xml").decode("utf-8")
+                          + z.read("xl/sharedStrings.xml").decode("utf-8") if "xl/sharedStrings.xml" in z.namelist()
+                          else z.read("xl/worksheets/sheet1.xml").decode("utf-8"))
+
     def test_watch(self):
         """#58: Abfrage meldet fremde Änderungen, nicht die eigenen."""
         s, lid = self.s, self.libd["id"]

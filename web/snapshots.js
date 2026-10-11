@@ -83,7 +83,8 @@ function snRender() {
   $("#snFilter").innerHTML = keys.filter((k) => c[k]).map((k) => `<button class="sn-chip${SN.filter.has(k) ? " on" : ""}" data-f="${k}">${SN_STATUS[k]} ${fmtN(c[k])}</button>`).join("")
     + snProgFieldSelects()
     + `<input id="snQ" placeholder="Titel, Feld oder Wert suchen …" value="${esc(SN.q)}" aria-label="Journal durchsuchen">`
-    + `<button class="ghost sm" id="snSelVis" title="In allen sichtbaren Titeln die (gefilterten) Felder zum Zurücksetzen auswählen">Sichtbare auswählen</button>`;
+    + `<button class="ghost sm" id="snSelVis" title="In allen sichtbaren Titeln die (gefilterten) Felder zum Zurücksetzen auswählen">Sichtbare auswählen</button>`
+    + `<button class="ghost sm" id="snExport" aria-haspopup="menu" title="Sichtbare Einträge (mit Filter) als Excel oder CSV speichern">Exportieren ▾</button>`;
   const rows = snVisible();
   const total = j.rows.length;
   $("#snJournal").innerHTML = !total ? `<div class="tg-empty">Keine Änderungen zwischen „${esc(j.a.label)}“ und „${esc(j.b.label)}“. 🎉</div>`
@@ -105,6 +106,30 @@ function snRender() {
       </div>`;
     }).join("") + (rows.length > 1500 ? `<div class="tg-empty">… ${fmtN(rows.length - 1500)} weitere – Filter benutzen.</div>` : "");
   snSelInfo();
+}
+
+/** #59: sichtbare Journal-Zeilen für den Export – je geändertem Feld eine Zeile (Feld-Filter wird beachtet). */
+function snExportRows() {
+  const progs = SN.j.programs || {};
+  const out = [];
+  snVisible().forEach((r) => {
+    const who = r.guess ? (progs[r.guess] ? progs[r.guess].name : r.guess) : r.guess === "" ? "unbekannt" : "";
+    const base = [r.p, SN_STATUS[r.status] || r.status, r.audio ? "ja" : ""];
+    const fs = r.fields.filter((f) => !SN.fkey || f.key === SN.fkey);
+    if (!fs.length) out.push([...base, who, "", "", "", "", r.p_old || ""]);
+    fs.forEach((f) => out.push([...base, who, f.label, f.key, f.state === "added" ? "" : f.old, f.state === "removed" ? "" : f.new, r.p_old || ""]));
+  });
+  return out;
+}
+
+async function snExport(fmt) {
+  const rows = snExportRows();
+  if (!rows.length) { toast("Nichts zu exportieren."); return; }
+  const name = `Journal ${SN.j.a.label || snTime(SN.j.a.created)} - ${SN.j.b.label || snTime(SN.j.b.created)}`.replace(/[:]/g, ".");
+  try {
+    const r = await call("snap_journal_export", fmt, rows, name);
+    if (r && r.ok) status(r.message, "info");
+  } catch (e) { toast(String(e.message || e)); }
 }
 
 /** #57: vermutliches Programm je Titel */
@@ -505,7 +530,14 @@ async function initSnapshots() {
     if (e.target.id === "snProg") { SN.prog = e.target.value; snRender(); }
     else if (e.target.id === "snFkey") { SN.fkey = e.target.value; snRender(); }
   });
-  $("#snFilter").addEventListener("click", (e) => { if (e.target.id === "snSelVis") snSelectVisible(); });
+  $("#snFilter").addEventListener("click", (e) => {
+    if (e.target.id === "snSelVis") snSelectVisible();
+    if (e.target.id === "snExport") {                                            // #59
+      e.stopPropagation();
+      const b = e.target.getBoundingClientRect();
+      showMenu(b.left, b.bottom + 6, [{ label: "Excel (.xlsx) …", run: () => snExport("xlsx") }, { label: "CSV für Excel …", run: () => snExport("csv") }]);
+    }
+  });
   $("#snFilter").addEventListener("input", (e) => { if (e.target.id === "snQ") { SN.q = e.target.value; const pos = e.target.selectionStart; snRender(); const q = $("#snQ"); q.focus(); q.setSelectionRange(pos, pos); } });
   $("#snJournal").addEventListener("click", (e) => {
     const row = e.target.closest(".sn-row"); if (!row) return;

@@ -415,6 +415,25 @@ class SnapshotMixin:
                     "a": {k: a.get(k) for k in ("id", "label", "created")}, "b": b_meta}
         return self._run("journal", "Änderungsjournal berechnen", job)
 
+    # #59: Journal exportieren
+    JOURNAL_HEAD = ["Datei", "Status", "Audio geändert", "Vermutlich von", "Feld", "Schlüssel", "Vorher", "Nachher",
+                    "Früherer Pfad"]
+
+    @staticmethod
+    def snap_journal_export_name(fmt, name="Journal"):
+        base = "".join(c for c in str(name or "Journal") if c not in '<>:"/\\|?*').strip()[:120] or "Journal"
+        return f"{base}.{'xlsx' if fmt == 'xlsx' else 'csv'}"
+
+    def snap_journal_write(self, fmt, dest, rows) -> dict:
+        """Zeilen (wie in der Oberfläche gefiltert) als Excel oder CSV schreiben."""
+        import tagger
+        n = len(self.JOURNAL_HEAD)
+        clean = [[("" if v is None else str(v)) for v in list(r)[:n]] + [""] * max(0, n - len(r))
+                 for r in rows or [] if isinstance(r, (list, tuple))]
+        (tagger.write_xlsx if fmt == "xlsx" else tagger.write_csv)(dest, self.JOURNAL_HEAD, clean)
+        return {"ok": True, "path": dest, "count": len(clean),
+                "message": f"{len(clean)} Zeile(n) exportiert: {os.path.basename(dest)}"}
+
     def snap_revert(self, items, mode="undo", force_audio=False) -> dict:
         """Snapshot-Stand (A) auf die Live-Dateien zurück: items = [{"p", "p_old", "keys": [..]|None}].
         mode „undo“: Werte in die Dateien übernehmen (Rückgängig, Speichern nötig); „bytes“: Tag-Bytes exakt
