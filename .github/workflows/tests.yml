@@ -15,7 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        # Linux ist derzeit nicht als Plattform vorgesehen (Entscheid 2026-10-11) – bei Bedarf „ubuntu-latest“ wieder
+        # ergänzen; der Schritt mit virtuellem Bildschirm (xvfb) unten ist dafür noch vorhanden.
+        os: [windows-latest, macos-latest]
         # 3.12 = Mindestversion und Python des Installers, 3.15 = neueste Version (Frühwarnung) – #135
         python: ["3.12", "3.15"]
     steps:
