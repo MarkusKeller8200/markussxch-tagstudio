@@ -27,6 +27,31 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - Neue Python-Module in `packaging/build.py` unter `HIDDEN`; Session-Methoden in `_PASS` (`tagstudio_web.py`).
 - Projekt-Doku doppelt führen: Claude-Projekt (`claude/…`) und `docs/` im Repo.
 
+## Konzepte je Bereich
+
+Jede Funktion hat ein Konzept in `docs/`. **Wird an einer Funktion weitergearbeitet, das zugehörige Konzept im selben
+Zug nachführen.**
+
+| Bereich | Konzept |
+|---|---|
+| Vorbereiten, Entdecken | [KONZEPT-VORBEREITEN.md](KONZEPT-VORBEREITEN.md) |
+| Tagger | [KONZEPT-TAGGER.md](KONZEPT-TAGGER.md) |
+| Tag-Fixer | [KONZEPT-TAGFIXER.md](KONZEPT-TAGFIXER.md) |
+| Vergleich | [KONZEPT-VERGLEICH.md](KONZEPT-VERGLEICH.md) |
+| DJ-Set | [KONZEPT-DJSET.md](KONZEPT-DJSET.md) |
+| Snapshots | [KONZEPT-SNAPSHOTS.md](KONZEPT-SNAPSHOTS.md) |
+| Player | [KONZEPT-PLAYER.md](KONZEPT-PLAYER.md) |
+| Plugins | [KONZEPT-PLUGINS.md](KONZEPT-PLUGINS.md) |
+| Einstellungen | [KONZEPT-EINSTELLUNGEN.md](KONZEPT-EINSTELLUNGEN.md) |
+| Profile, Einrichtungsassistent | [KONZEPT-EINRICHTUNG.md](KONZEPT-EINRICHTUNG.md) |
+| Speicherorte, Ordnerstruktur | [KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md) |
+| Hilfe | [KONZEPT-HILFE.md](KONZEPT-HILFE.md) |
+| Update, Versionen, Release | [KONZEPT-UPDATE.md](KONZEPT-UPDATE.md) |
+| App und Oberfläche | [KONZEPT-APP-GUI.md](KONZEPT-APP-GUI.md) |
+| WAV (geplant) | [KONZEPT-WAV.md](KONZEPT-WAV.md) |
+| Mehrsprachigkeit (geplant) | [KONZEPT-MEHRSPRACHIG.md](KONZEPT-MEHRSPRACHIG.md) |
+| ID3-Felder (Nachschlagen) | [ID3-FELDER.md](ID3-FELDER.md) |
+
 ## Regeln des Users
 
 - **Löschen** (Dateien, Branches, Tags, Labels) nur nach Rückfrage.

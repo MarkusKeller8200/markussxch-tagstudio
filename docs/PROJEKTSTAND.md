@@ -102,6 +102,7 @@
 - Dieses Dokument nach jedem Release aktualisieren; Altes ins Archiv.
 - Ablage doppelt: Claude-Projekt (`claude/projektstand.md`, `claude/projektstand-archiv.md`, `claude/speicherkonzept.md`) **und** Repo (`docs/PROJEKTSTAND.md`, `docs/PROJEKTSTAND-ARCHIV.md`, `docs/KONZEPT-SPEICHER.md`). Beide Fassungen gleich halten.
 - Übergabe an einen neuen Chat: `docs/UEBERGABE.md` nachführen (Einstieg, Arbeitsweise kurz, offene Punkte).
+- Jede Funktion hat ein Konzept `docs/KONZEPT-*.md` (Übersicht in `docs/UEBERGABE.md`). Wird an einer Funktion weitergearbeitet, das Konzept im selben Zug nachführen (Entscheid User 2026-10-11).
 
 ## Entscheide
 

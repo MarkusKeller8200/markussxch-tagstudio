@@ -1,0 +1,53 @@
+# Konzept: Player (Vorschau-Player und externe Player)
+
+Stand: 2026-10-11 (4.4.0-beta.4) · Status: **umgesetzt** (3.2.0, ausgebaut 3.4.0, 4.1.0, 4.2.0) · nachträglich erstellt
+
+> **Pflege:** Dieses Dokument wurde nachträglich aus Code und Handbuch zusammengestellt. Wird am Player
+> weitergearbeitet, ist es im selben Zug anzupassen (Funktionen, Umsetzung, Entscheide, Offen).
+
+## 1. Ziel
+
+Titel direkt in TagStudio vorhören – schnell durch viele Titel, mit DJ-Informationen (Wellenform, Cues, Beatgrid,
+Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe Player für alles Weitere.
+
+## 2. Funktionen
+
+| Bereich | Inhalt |
+|---|---|
+| Wiedergabe | Leertaste/▶/Doppelklick, ⏮/⏭, folgt ↑/↓ und spielt am Ende den nächsten, Live-Vorschau (Klick spielt), Startpunkt (Start, 30 %, 1:00, erster Cue), Shift+←/→ ±10 s, stumm (M) |
+| Anzeige | Wellenform (einmal berechnet, Cache), Cue- und Loop-Marken (Serato, Mixed In Key), Beatgrid-Raster, Tonart in drei Schreibweisen, BPM, Lauf-/Restzeit (rot blinkend in den letzten 30 s) |
+| Steuerung | Cue-Sprünge (Alt+Bild↑/↓), Loop als Schleife, Titel wiederholen (R), A–B-Schleife (L), Stem-Spur wechseln (S) an derselben Stelle, A/B im Vergleich (L/R) |
+| Bewertung | Sterne 0–5 (POPM, `TXXX:FMPS_Rating`) und Like (`TXXX:TAGSTUDIO`), mit Undo |
+| Überblenden | 2–12 s, gleiche Leistung, früh überblenden zum Durchhören, Tempo angleichen (±10 %, Rückkehr einstellbar), im Takt / auf Taktgrenze, Tonhöhe beibehalten |
+| Player B | zweiter, gleich aufgebauter Player (nur mit „Player oben“), eigenes Ausgabegerät, Sync zu A, Ziel A/B per Klick/Taste B, Titel per Ziehen laden |
+| Layout | unten in der Fusszeile oder oben mit voller Breite (einklappbar, Shift+P), abdocken in ein eigenes Fenster (zweiter Bildschirm) |
+| Fortsetzen | zuletzt gehörter Titel (A und B) an derselben Stelle; nach Neustart Pause, Autoplay oder wie beim Schliessen |
+| Warteschlange | „Als Nächstes spielen“ / „Zur Warteschlange“ (#138), Vorrang vor Tagger-/Set-Reihenfolge |
+| Externe Player | foobar2000, VLC, Rekordbox … mit Platzhaltern `{files}` `{file}` `{folder}` `{m3u}`, Strg/Cmd+P |
+
+## 3. Umsetzung
+
+- **Kern:** `media.py` (lokaler Range-Server nur auf 127.0.0.1, nur freigegebene Dateien, Token, max. 300 Dateien),
+  `waveform.py` (Cache `cache/wave`), `cues.py`, `serato.py` (Beatgrid), `ratings.py`, `players.py`.
+- **Session:** `session_player.py` (`PlayerMixin`: `player_prefs`, `set_player_pref`, `player_defaults`,
+  `player_resume*`, `media_info`, `media_cover`, `media_extra`, `wave_save`, Bus `bus_*` für das abgedockte Fenster,
+  `player_window_size`, `players`, `play_external`); `tag_set_rating`, `player_mark` in `session.py`.
+- **Oberfläche:** `web/player.js` (Player A, Wellenform, Analyse), `web/player2.js` (Überblenden, Player oben,
+  Player B, Abdocken), `web/player-window.html` + `web/playerwin.js` (Fernanzeige), `web/queue.js`.
+- **Einstellungen:** `player` (Werte aus `PLAYER_PREFS` mit Bereichen), `player_defaults`, `player_window`,
+  `player_resume`, `players`.
+
+## 4. Entscheide
+
+- Beim Abdocken läuft die Wiedergabe weiter im Hauptfenster; das Fenster ist eine Fernanzeige (Session-Bus).
+- Player B nur mit Layout „oben“.
+- Beatgrid-Reihenfolge: Serato → eigene Audio-Analyse (Cache) → Schätzung aus BPM-Feld.
+
+## 5. Offen / Ideen
+
+- Keine offenen Issues. Mögliche Ausbauten: Stems einzeln stummschalten, Beatgrid von weiteren Programmen lesen.
+
+## 6. Tests
+
+`tests/test_player.py`, `test_cues_wave.py`, `test_serato.py`, `test_ratings.py`, `test_stemsview.py`,
+Oberflächen-Tests in `tests/test_browser_ui.py`.

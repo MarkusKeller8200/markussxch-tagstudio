@@ -35,6 +35,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   [docs/KONZEPT-SPEICHER.md](docs/KONZEPT-SPEICHER.md).
 - **Projektstand und Übergabe** im Repo: [docs/PROJEKTSTAND.md](docs/PROJEKTSTAND.md),
   [docs/UEBERGABE.md](docs/UEBERGABE.md), [docs/PROJEKTSTAND-ARCHIV.md](docs/PROJEKTSTAND-ARCHIV.md).
+- **Konzepte nachgetragen** für Tagger, Tag-Fixer, Vergleich, DJ-Set, Plugins, Einstellungen, Hilfe, Update, Player und
+  App/Oberfläche (`docs/KONZEPT-*.md`) – werden bei jeder Weiterarbeit an der Funktion nachgeführt.
 - **Seitenleiste:** Menüpunkte lassen sich ausblenden (Einstellungen › Darstellung) (#169).
 - **„Erste Schritte“** – kurze Hinweise beim ersten Besuch jeder Seite (neu startbar über Hilfe) – und **„Neu in
   dieser Version“** nach einem Update (#170).
