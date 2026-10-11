@@ -40,6 +40,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Schnellerer Start:** Der zuletzt geladene Tagger-Ordner wird beim Start im Hintergrund eingelesen – ohne
   Fortschrittsfenster, die App ist sofort bedienbar (Fortschritt in der Tagger-Liste und der Fusszeile). „Einlesen“ von
   Hand bricht das ab und lädt neu. Das App-Protokoll zeigt, wie lange Einlesen und Snapshot-Prüfung dauern (#137).
+- **Listen-Cache schneller:** grosse Frames (Cover …) liegen jetzt in einer einzigen Packdatei statt in Tausenden
+  Einzeldateien – unter Windows war das Öffnen dieser Dateien der Hauptteil der Wartezeit beim Einlesen aus dem
+  Cache. Der alte Cache wird beim ersten Einlesen übernommen; das App-Protokoll zeigt die Zeiten je Schritt (#137).
 
 ### Behoben
 - Doppelklick auf einen Titel (Tagger, Vergleich, DJ-Set) spielt ihn wieder zuverlässig ab; seit die Zeilen

@@ -46,8 +46,10 @@ class TestListCache(unittest.TestCase):
         files, st = self.load()
         self.assertEqual(len(st["cached"]), 0)                     # erstes Mal: von der Platte
         self.assertTrue(os.path.isfile(st["caches"][0].path))
-        objs = [f for _r, _d, fs in os.walk(os.path.join(listcache.DIR, "objects")) for f in fs]
-        self.assertEqual(len(objs), 2)                             # Cover (für alle gleich) + Serato-Daten
+        listcache.PACK._load()
+        self.assertEqual(len(listcache.PACK.index), 2)             # Cover (für alle gleich) + Serato-Daten, #137: in einer Packdatei
+        self.assertFalse(os.path.isdir(os.path.join(listcache.DIR, "objects")))
+        self.assertTrue(os.path.isfile(os.path.join(listcache.DIR, "objects.idx.json")))
         files2, st2 = self.load()
         self.assertEqual(len(st2["cached"]), 3)                    # zweites Mal: ohne die Dateien zu öffnen
         for a, b in zip(files, files2):
@@ -67,6 +69,25 @@ class TestListCache(unittest.TestCase):
         os.remove(self.p(3))
         self.load()
         self.assertEqual(sorted(listcache.ListCache(self.lib).entries), ["01.mp3", "02.mp3"])
+
+    def test_pack_migrates_old_objects(self):
+        """#137: Objekte im alten Format (je Datei) werden beim Lesen in die Packdatei übernommen."""
+        self.load()
+        listcache.PACK._load()
+        for h, (off, n) in listcache.PACK.index.items():
+            with open(os.path.join(listcache.DIR, "objects.pack"), "rb") as fh:
+                fh.seek(off)
+                data = fh.read(n)
+            old = listcache._obj_path(h)
+            os.makedirs(os.path.dirname(old), exist_ok=True)
+            with open(old, "wb") as fh:
+                fh.write(data)
+        listcache.PACK.reset()
+        os.remove(os.path.join(listcache.DIR, "objects.idx.json"))        # Index weg → wie altes Format
+        files, st = self.load()
+        self.assertEqual(len(st["cached"]), 3)
+        self.assertIn(h, listcache.PACK.index)
+        self.assertIn("load", st["times"])
 
     def test_session_verify_detects_hidden_change(self):
         """Programm ändert Tags und stellt die Änderungszeit zurück → Hash-Prüfung findet es."""

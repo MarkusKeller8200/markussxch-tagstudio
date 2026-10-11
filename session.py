@@ -408,6 +408,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
             import listcache
             import shutil
             n, _size = listcache.cache_size()
+            listcache.PACK.reset()
             shutil.rmtree(listcache.DIR, ignore_errors=True)
             info = self.cache_info()
             info["removed"] = n
@@ -1376,8 +1377,10 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
             files, errors = core.load_files(path, bool(recursive), cancel, progress, self.reg, self._list_cache_on(), stats)
             try:                                       # #137: Dauer fürs App-Protokoll (Wartezeit beim Start eingrenzen)
                 import applog
+                tm = stats.get("times") or {}
                 applog.info(f"Tagger eingelesen: {len(files)} Datei(en), {len(stats.get('cached') or [])} aus dem Cache, "
-                            f"{time.time() - t0:.1f} s – {path}")
+                            f"{time.time() - t0:.1f} s (Ordner durchsuchen {tm.get('scan', 0):.1f} s, Cache öffnen "
+                            f"{tm.get('cache', 0):.1f} s, Dateien laden {tm.get('load', 0):.1f} s) – {path}")
             except Exception:  # noqa: BLE001
                 pass
             with self.lock:

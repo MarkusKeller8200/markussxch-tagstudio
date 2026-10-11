@@ -387,14 +387,19 @@ def load_files(path, recursive, cancel=None, progress=None, registry=None, use_c
     """Ordner/Datei für den Tagger einlesen → (files, errors). progress wie bei load_pairs.
     use_cache: Listen-Cache (#70); stats (dict) erhält "cached" (aus dem Cache geladene Dateien) und "caches"."""
     import listcache
+    import time
     progress = progress or (lambda m: None)
+    t0 = time.time()
     paths = scan(path, recursive, cancel, lambda n: progress(("count", n)))
     progress(("total", len(paths)))
+    t1 = time.time()
     cache = listcache.ListCache(path) if use_cache and paths and os.path.isdir(path) else None   # einzelne Datei: immer frisch
+    t2 = time.time()
     cached = []
     files, errors = _load_list(paths, cache, registry, cancel, progress, cached=cached)
-    if stats is not None:
-        stats.update(cached=cached, caches=[cache] if cache else [])
+    if stats is not None:                      # #137: Zeiten fürs App-Protokoll
+        stats.update(cached=cached, caches=[cache] if cache else [],
+                     times={"scan": t1 - t0, "cache": t2 - t1, "load": time.time() - t2})
     return files, errors
 
 

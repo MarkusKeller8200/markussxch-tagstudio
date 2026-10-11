@@ -37,6 +37,101 @@ def _b64(b: bytes) -> str:
     return base64.b64encode(b).decode("ascii")
 
 
+class _Pack:
+    """#137: grosse Frames (Cover …) in EINER Datei lists/objects.pack mit Index – statt je Objekt eine eigene
+    Datei. Beim Einlesen aus dem Cache wird so nur noch eine Datei geöffnet (unter Windows war das Öffnen von
+    Tausenden kleinen Dateien der Hauptteil der Wartezeit). Alte Einzeldateien werden beim Lesen übernommen."""
+
+    def __init__(self):
+        self.lock = threading.RLock()
+        self.index: dict | None = None
+        self.fh = None
+        self.dirty = False
+
+    @property
+    def pack(self):
+        return os.path.join(DIR, "objects.pack")
+
+    @property
+    def idx(self):
+        return os.path.join(DIR, "objects.idx.json")
+
+    def _load(self):
+        if getattr(self, "_dir", None) != DIR:          # anderer Cache-Ordner (z. B. in Tests) → neu laden
+            self.close()
+            self.index, self.dirty, self._dir = None, False, DIR
+        if self.index is None:
+            try:
+                with open(self.idx, encoding="utf-8") as fh:
+                    self.index = json.load(fh)
+                size = os.path.getsize(self.pack)
+                self.index = {h: v for h, v in self.index.items() if v[0] + v[1] <= size}   # abgeschnittenes Ende
+            except (OSError, ValueError):
+                self.index = {}
+
+    def has(self, h: str) -> bool:
+        with self.lock:
+            self._load()
+            return h in self.index or os.path.exists(_obj_path(h))
+
+    def get(self, h: str) -> bytes:
+        with self.lock:
+            self._load()
+            v = self.index.get(h)
+            if v is not None:
+                if self.fh is None:
+                    self.fh = open(self.pack, "rb")
+                self.fh.seek(v[0])
+                data = self.fh.read(v[1])
+                if len(data) == v[1]:
+                    return data
+            with open(_obj_path(h), "rb") as fh:                 # altes Format → in die Packdatei übernehmen
+                data = fh.read()
+            self.put(h, data)
+            return data
+
+    def put(self, h: str, data: bytes):
+        with self.lock:
+            self._load()
+            if h in self.index:
+                return
+            os.makedirs(DIR, exist_ok=True)
+            self.close()
+            with open(self.pack, "ab") as fh:
+                off = fh.seek(0, os.SEEK_END)
+                fh.write(data)
+            self.index[h] = [off, len(data)]
+            self.dirty = True
+
+    def save(self):
+        with self.lock:
+            if not self.dirty or self.index is None:
+                return
+            try:
+                tmp = self.idx + ".tmp"
+                with open(tmp, "w", encoding="utf-8") as fh:
+                    json.dump(self.index, fh, separators=(",", ":"))
+                os.replace(tmp, self.idx)
+                self.dirty = False
+            except OSError:
+                pass
+
+    def close(self):
+        with self.lock:
+            if self.fh is not None:
+                self.fh.close()
+                self.fh = None
+
+    def reset(self):
+        """Nach dem Leeren des Caches: alles vergessen."""
+        with self.lock:
+            self.close()
+            self.index, self.dirty = None, False
+
+
+PACK = _Pack()
+
+
 def tag_sig(path: str) -> tuple[str, int, int]:
     """Hash der Tag-Bytes direkt von der Platte (wie MP3File.disk_sig) → (hash, size, mtime_ns).
     Liest nur den ID3v2-Bereich und die letzten 128 Byte."""
@@ -82,8 +177,7 @@ class ListCache:
                 if isinstance(p, str):
                     parts.append(base64.b64decode(p))
                 else:
-                    with open(_obj_path(p["o"]), "rb") as fh:
-                        parts.append(fh.read())
+                    parts.append(PACK.get(p["o"]))
             tag = b"".join(parts)
         except (OSError, KeyError, ValueError, TypeError):
             self.misses += 1
@@ -104,16 +198,10 @@ class ListCache:
         for p in snapshots.split_tag(head + body):
             if len(p) > INLINE_MAX:
                 h = hashlib.sha256(p).hexdigest()
-                op = _obj_path(h)
-                if not os.path.exists(op):
-                    try:
-                        os.makedirs(os.path.dirname(op), exist_ok=True)
-                        tmp = op + ".tmp"
-                        with open(tmp, "wb") as fh:
-                            fh.write(p)
-                        os.replace(tmp, op)
-                    except OSError:
-                        return
+                try:
+                    PACK.put(h, p)
+                except OSError:
+                    return
                 parts.append({"o": h})
             else:
                 parts.append(_b64(p))
@@ -134,6 +222,7 @@ class ListCache:
             for r in gone:
                 del self.entries[r]
             self.dirty |= bool(gone)
+        PACK.save()
         if not self.dirty:
             return
         try:
@@ -181,7 +270,7 @@ def cache_size() -> tuple[int, int]:
     n = size = 0
     for root, _dirs, files in os.walk(DIR) if os.path.isdir(DIR) else []:
         for fn in files:
-            if fn.endswith((".json.gz", ".bin")):
+            if fn.endswith((".json.gz", ".bin", ".pack")):
                 try:
                     size += os.path.getsize(os.path.join(root, fn))
                     n += 1
