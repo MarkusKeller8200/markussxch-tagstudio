@@ -42,12 +42,12 @@ Alle Werkzeuge zeigen zuerst eine **Vorschau** und laufen über den gemeinsamen 
 ## 4. Entscheide
 
 - Tagger **nur in der Web-Oberfläche** (klassische tkinter-Oberfläche eingefroren, #106).
+- Tag-Rezept „Beatport-Download aufbereiten“: Wortliste `Dj, Feat, Mc, Vs` ist so gewollt (Entscheid User 2026-10-12, #111).
 - Camelot wird immer zweistellig geschrieben (`01A`); intern bleiben Codes wie `8A`.
 - Änderungen an DJ-Daten (Serato, Mixed In Key) nur so weit, wie sie verlustfrei zurückgeschrieben werden können.
 
 ## 5. Offen / Ideen
 
-- #111 Wortliste der Tag-Rezepte („Dj, Feat, Mc, Vs“) – Frage an den User offen.
 - WAV-Unterstützung: [KONZEPT-WAV.md](KONZEPT-WAV.md) (#156).
 
 ## 6. Tests

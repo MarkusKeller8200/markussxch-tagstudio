@@ -66,6 +66,5 @@ Zug nachführen.**
 - #176: erstes Issue „Fremdkomponenten: Änderungen prüfen“ durchsehen, Lizenzangaben in `docs/third-party.json`
   abgleichen, Stände mit `python .github/scripts/third_party_check.py --apply datei.json` übernehmen.
 - Danach 4.4.0 final (nur auf Wunsch) – der User will diese Version an andere freigeben.
-- Offene Frage an den User: #111 Wortliste („Dj, Feat, Mc, Vs“).
 - Meilenstein „Später“: #9, #14, #107, #108, #156 WAV, #157 Mehrsprachigkeit.
 - Neue Fremdkomponenten immer in `docs/third-party.json` eintragen.
