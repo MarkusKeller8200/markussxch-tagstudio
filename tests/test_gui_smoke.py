@@ -8,15 +8,23 @@ import unittest
 
 from helpers import write_mp3, text
 
-try:
-    import tkinter as tk
-    _root = tk.Tk()
-    _root.destroy()
-    HAVE_TK = True
-except Exception:  # noqa: BLE001 – kein tkinter oder kein Display
-    HAVE_TK = False
+import sys
+
+# #135: Python 3.15 + Tk 9 stürzt auf dem macOS-Runner in der klassischen (eingefrorenen) Oberfläche ab
+# (Speicherzugriffsfehler, Exit 139). Bis das geklärt ist, dort überspringen – die Web-Oberfläche braucht Tk nicht.
+MAC_TK_CRASH = sys.platform == "darwin" and sys.version_info >= (3, 15)
+HAVE_TK = False
+if not MAC_TK_CRASH:
+    try:
+        import tkinter as tk
+        _root = tk.Tk()
+        _root.destroy()
+        HAVE_TK = True
+    except Exception:  # noqa: BLE001 – kein tkinter oder kein Display
+        HAVE_TK = False
 
 
+@unittest.skipIf(MAC_TK_CRASH, "macOS + Python 3.15: Tk-Absturz auf dem Runner (#135)")
 @unittest.skipUnless(HAVE_TK, "kein tkinter/Display verfügbar")
 class TestGuiSmoke(unittest.TestCase):
     def setUp(self):
