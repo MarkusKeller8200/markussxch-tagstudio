@@ -1779,13 +1779,14 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         with self.lock:
             for i, f in enumerate(self.tag_files):
                 if norm(f.path) == want:
-                    return {"index": i, "parent": self.tag_parent.get(i), "folder": os.path.dirname(want),
+                    return {"index": i, "parent": self.tag_parent.get(i), "folder": os.path.dirname(f.path),
                             "loaded": True}
             for i, lst in self.tag_stems.items():
                 if any(norm(s.get("path")) == want for s in lst):
                     return {"index": i, "stem": True, "folder": os.path.dirname(self.tag_files[i].path),
                             "loaded": True}
-            return {"index": None, "folder": os.path.dirname(want), "loaded": bool(self.tag_files)}
+            return {"index": None, "folder": os.path.dirname(os.path.abspath(str(path or ""))),   # Schreibweise behalten
+                    "loaded": bool(self.tag_files)}
 
     def _tsel(self, idx):
         return [self.tag_files[i] for i in idx if isinstance(i, int) and 0 <= i < len(self.tag_files)]
