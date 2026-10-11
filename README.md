@@ -369,6 +369,7 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   geschrieben) als Audio-Merkmale. **Lexicon übernehmen:** Tanzbarkeit, Energie, Fröhlichkeit und Mood-Tags über die
   Lexicon Local API (Zuordnung über Pfad bzw. Künstler + Titel). Beide mit **Abgleich**: Wurde ein Wert in der Datei
   seit dem letzten Übernehmen geändert, ist der Vorschlag nicht angehakt – TagStudio fragt.
+- **Lautheit messen:** LUFS, True Peak, Lautheitsbereich (EBU R128, FFmpeg) als Felder, optional angeglichene Kopie.
 - **Eigene Plugins** in `~/TagStudio/Plugins` – Anleitung in [PLUGINS.md](PLUGINS.md).
 
 ### Update, Layout, Tastatur
