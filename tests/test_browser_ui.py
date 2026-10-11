@@ -450,6 +450,35 @@ class UiTest(unittest.TestCase):
         pg.click("#mBtns .primary")
         pg.wait_for_function("TG.detail && TG.detail.common.TIT2.value === 'Ton 220 Mix'")
 
+    def test_prepare_page(self):
+        """#109: Vorbereiten – Workflow, Rezept-Schritt ausführen, Zelle als erledigt markieren, Bearbeiten-Dialog."""
+        pg = self.pg
+        inbox = os.path.join(self.dir, "Neu", "_01_Original")
+        lib = os.path.join(self.dir, "Bib")
+        shutil.copytree(self.lib, inbox)
+        os.makedirs(lib)
+        pg.click('.nav[data-module="prep"]')
+        pg.wait_for_function("PREP.d && PREP.d.workflow")
+        w = pg.evaluate("PREP.d.workflow")
+        w.update(inbox=inbox, library=lib)
+        pg.evaluate(f"call('prep_workflow_save', {json.dumps(w)}).then(prepApply)")
+        pg.wait_for_function("PREP.d.rows.length === 3")
+        self.assertEqual(pg.locator("#prepTable td.pc.s-open").count(), 3)
+        pg.click('#prepSteps [data-run="s02"]')
+        pg.wait_for_function("PREP.d.counts.s02.done === 3")
+        self.assertTrue(os.path.isfile(os.path.join(self.dir, "Neu", "_02_MP3Tag", "01 Ton 220.mp3")))
+        pg.click('#prepTable tr[data-name="01 Ton 220.mp3"] td.pc[data-step="1"]')
+        pg.click("#menu button >> text=Als erledigt markieren")
+        pg.wait_for_function("PREP.d.counts.s03.done === 1")
+        self.assertEqual(pg.inner_text("#prepCount").strip(), "3")                # noch nicht übernommen
+        pg.click("#prepEdit")
+        pg.wait_for_selector("#pwSteps .rc-act")
+        pg.click('#pwSteps .rc-act[data-k="1"] [data-ps="edit"]')
+        pg.fill("#psLabel", "03 Lautheit")
+        pg.click('#pwEdit [data-pse="ok"]')
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("PREP.d.workflow.steps[1].label === '03 Lautheit'")
+
     def test_snapshot_baseline(self):
         """Neue Baseline: aus dem aktuellen Stand, ältere Snapshots löschen (angeheftete nur auf Wunsch)."""
         pg = self.pg

@@ -1,6 +1,8 @@
 # Konzept: Tracks vorbereiten
 
-Status: **Entwurf** (2026-10-10) – Übersicht #121, Teil-Issues #109–#120 (Label `vorbereiten`, Meilenstein „Tracks vorbereiten (Konzept)“).
+Status: **Phase 1 umgesetzt in 4.3.0-beta.2** (2026-10-11): Seite „Vorbereiten“, Workflow-Vorlagen, Tag-Rezepte, ID3v1
+schreiben, externe Schritte, Schutzregel, Übernahme, nachgelagerte Programme. Noch offen: Phase 2 (#117–#119), Phase 3
+(#120). Entwurf vom 2026-10-10 – Übersicht #121, Teil-Issues #109–#120 (Label `vorbereiten`, Meilenstein „Tracks vorbereiten (Konzept)“).
 
 ## Ziel
 

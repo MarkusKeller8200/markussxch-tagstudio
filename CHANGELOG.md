@@ -10,6 +10,14 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Vergleich:** Binärfelder (GEOB/PRIV, z. B. Serato, Mixed In Key) lassen sich wie im Tagger im **Binärfeld-Editor**
   ansehen und bearbeiten (Doppelklick oder Rechtsklick › „Binärfeld-Editor“), mit Serato-Ansicht, JSON-Baum und Hex-
   Ansicht; JSON in Textfeldern öffnet den **JSON-Baum** (#13).
+- **Tracks vorbereiten** (neue Seite „Vorbereiten“, Phase 1): neue Titel laufen vom **Eingangsordner** über frei
+  zusammenstellbare **Schritte** in die **Bibliothek** – Tag-Rezept (automatisch, auf einer Kopie im Stufen-Ordner),
+  **externe Programme** (öffnen mit Ordner/Dateien, Abschluss an der Herkunft erkennen, z. B. Platinum Notes,
+  MusicBrainz, oder von Hand bestätigen), **Übernahme** mit Duplikatprüfung (Dateiname, Künstler + Titel, Audio) und
+  Snapshot der Bibliothek, **nachgelagerte Programme** als Status (Mixed In Key, beaTunes, Lexicon erkannt; Engine DJ,
+  Mixo von Hand). **Schutzregel „nur ergänzen“** je Schritt (Variante A/B/C, nur melden oder automatisch zurücksetzen,
+  „Feld künftig erlauben“). Workflow-Vorlage „DJ-Workflow (Beatport → Bibliothek)“, Export/Import ohne persönliche
+  Pfade, Stufen-Kopien nach der Übernahme auf Wunsch löschen (#109–#116).
 - **Tag-Rezepte** (Tagger › „Tag-Rezepte …“): Aktionslisten wie in Mp3tag – Ersetzen, Schreibweise einzelner Wörter,
   Gross-/Kleinschreibung, Leerzeichen bereinigen, doppelte Werte/Felder entfernen, nur ersten Wert behalten, Felder
   entfernen oder setzen (%FELD%), ID3-Version und ID3v1 beim Speichern. Vorschau, Anwenden mit Rückgängig; mitgeliefert
