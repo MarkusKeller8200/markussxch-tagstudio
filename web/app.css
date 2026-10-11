@@ -1215,6 +1215,8 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .help-t .n{text-align:right;white-space:nowrap;position:relative;min-width:64px}
 .help-n{border:0;background:var(--acc-soft);color:var(--fg);border-radius:99px;padding:1px 9px;cursor:pointer;font:inherit;font-variant-numeric:tabular-nums}
 .help-n:hover{background:var(--acc);color:var(--acc-fg)}
+.help-n.miss{background:transparent;box-shadow:inset 0 0 0 1px var(--line);color:var(--dim)}
+.help-n.miss:hover{background:var(--warn-soft,var(--acc-soft));color:var(--fg)}
 .help-bar-n{height:3px;border-radius:2px;background:var(--acc);opacity:.5;margin:3px 0 0 auto}
 .help-doc{max-width:980px;line-height:1.55}
 .md h2{font-size:20px;margin:22px 0 8px}.md h3{font-size:17px;margin:18px 0 6px}.md h4,.md h5{font-size:15px;margin:14px 0 4px}

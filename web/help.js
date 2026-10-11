@@ -39,10 +39,19 @@ function helpRowMatch(r) {
     || (r.src && (srcInfo(r.src)?.name || r.src).toLowerCase().includes(q));
 }
 
+/** „Ohne“: Titel der gescannten Bibliothek, die das Feld nicht haben → Klick filtert im Tagger auf „fehlt“ */
+function helpMissing(r) {
+  const total = HELP.data && HELP.data.scan ? HELP.data.scan.files : 0;
+  if (r.count === null || r.count === undefined || !total) return '<span class="muted">–</span>';
+  const n = Math.max(0, total - r.count);
+  if (!n) return '<span class="muted">0</span>';
+  return `<button class="help-n miss" data-filter="${esc(r.key)}" data-mode="miss" data-label="${esc(r.name || r.key)}" title="Im Tagger die Titel ohne dieses Feld zeigen – zum Vervollständigen">${fmtN(n)}</button>`;
+}
+
 function helpCount(r) {
   if (r.count === null || r.count === undefined) return '<span class="muted">–</span>';
   if (!r.count) return '<span class="muted">0</span>';
-  return `<button class="help-n" data-filter="${esc(r.key)}" data-label="${esc(r.name || r.key)}" title="Im Tagger die Titel mit diesem Feld zeigen (dort umschaltbar auf „fehlt“)">${fmtN(r.count)}</button>`;
+  return `<button class="help-n" data-filter="${esc(r.key)}" data-label="${esc(r.name || r.key)}" title="Im Tagger die Titel mit diesem Feld zeigen">${fmtN(r.count)}</button>`;
 }
 
 function helpRender() {
@@ -59,13 +68,13 @@ function helpRender() {
     const open = HELP.open.has(ch.id) || !!HELP.q;
     let body;
     if (ch.kind === "analysis") {
-      body = `<table class="help-t"><thead><tr><th>DJ-Parameter</th><th>Eigener ID3v2.4-Frame?</th><th>Empfohlene Ablage</th><th>In TagStudio</th><th>Herkunft</th><th class="n">Titel</th></tr></thead><tbody>
-        ${rows.map((r) => `<tr><td>${esc(r.param)}</td><td>${esc(r.own)}</td><td><code>${esc(r.where)}</code></td><td>${esc(r.tagstudio)}</td><td>${r.src ? srcBadge(r.src) : ""}</td><td class="n">${r.key ? helpCount(r) : ""}</td></tr>`).join("")}</tbody></table>`;
+      body = `<table class="help-t"><thead><tr><th>DJ-Parameter</th><th>Eigener ID3v2.4-Frame?</th><th>Empfohlene Ablage</th><th>In TagStudio</th><th>Herkunft</th><th class="n" title="Titel mit diesem Feld">Mit</th><th class="n" title="Titel ohne dieses Feld">Ohne</th></tr></thead><tbody>
+        ${rows.map((r) => `<tr><td>${esc(r.param)}</td><td>${esc(r.own)}</td><td><code>${esc(r.where)}</code></td><td>${esc(r.tagstudio)}</td><td>${r.src ? srcBadge(r.src) : ""}</td><td class="n">${r.key ? helpCount(r) : ""}</td><td class="n">${r.key ? helpMissing(r) : ""}</td></tr>`).join("")}</tbody></table>`;
     } else {
-      body = rows.length ? `<table class="help-t"><thead><tr><th>Frame / Tag</th><th>Mp3tag</th><th>Bedeutung</th><th title="für DJs wichtig">DJ</th><th>Herkunft</th><th class="n" title="Titel in der gescannten Bibliothek">Titel</th></tr></thead><tbody>
+      body = rows.length ? `<table class="help-t"><thead><tr><th>Frame / Tag</th><th>Mp3tag</th><th>Bedeutung</th><th title="für DJs wichtig">DJ</th><th>Herkunft</th><th class="n" title="Titel der gescannten Bibliothek mit diesem Feld">Mit</th><th class="n" title="Titel der gescannten Bibliothek ohne dieses Feld">Ohne</th></tr></thead><tbody>
         ${rows.map((r) => `<tr><td><code>${esc(r.key)}</code>${r.ver ? ` <span class="muted sm">${esc(r.ver)}</span>` : ""}</td><td>${esc(r.name || "")}</td>
           <td>${esc(r.meaning || r.label || "")}${r.help && r.help !== r.meaning ? `<div class="muted sm">${esc(r.help)}</div>` : ""}</td>
-          <td>${r.dj ? "✓" : ""}</td><td>${r.src ? srcBadge(r.src) : ""}</td><td class="n">${helpCount(r)}${total && r.count ? `<div class="help-bar-n" style="width:${Math.max(2, Math.round(100 * r.count / total))}%"></div>` : ""}</td></tr>`).join("")}</tbody></table>`
+          <td>${r.dj ? "✓" : ""}</td><td>${r.src ? srcBadge(r.src) : ""}</td><td class="n">${helpCount(r)}${total && r.count ? `<div class="help-bar-n" style="width:${Math.max(2, Math.round(100 * r.count / total))}%"></div>` : ""}</td><td class="n">${helpMissing(r)}</td></tr>`).join("")}</tbody></table>`
         : ch.id === "custom" && !d.scan ? "" : '<div class="muted sm">Keine Einträge.</div>';
     }
     return `<details class="help-ch" data-ch="${esc(ch.id)}" ${open ? "open" : ""}><summary><b>${esc(ch.title)}</b> <span class="muted sm">${rows.length}</span></summary>
@@ -85,7 +94,7 @@ async function helpScan() {
 }
 
 /** Klick auf eine Anzahl: Tagger mit der Bibliothek öffnen und nach dem Feld filtern. */
-async function helpFilter(key, label) {
+async function helpFilter(key, label, mode = "has") {
   const root = HELP.data && HELP.data.root;
   setModule("tagger");
   const loaded = TG.loaded && TG.root && root && TG.root.replace(/[\\/]+$/, "").toLowerCase() === root.replace(/[\\/]+$/, "").toLowerCase();
@@ -94,8 +103,10 @@ async function helpFilter(key, label) {
     $("#tgRec").checked = true;
     await taggerLoad();
   }
-  await tgSetFieldFilter(key, "has", label);
-  toast(`Filter „${label}“: ${fmtN(TG.fieldFilter ? TG.fieldFilter.n : 0)} Titel – oben auf „fehlt“ umschalten, um zu vervollständigen.`);
+  await tgSetFieldFilter(key, mode, label);
+  const f = TG.fieldFilter, total = TG.rows.filter((r) => r.parent === undefined).length;
+  toast(mode === "miss" ? `Filter „${label}“ fehlt: ${fmtN(f ? Math.max(0, total - f.n) : 0)} Titel ohne dieses Feld.`
+    : `Filter „${label}“: ${fmtN(f ? f.n : 0)} Titel – oben auf „fehlt“ umschalten, um zu vervollständigen.`);
 }
 
 // ---------------------------------------------------------------------- Markdown (einfach, für README & Co.)
@@ -184,7 +195,7 @@ function mdToHtml(md) {
   $("#helpOpenAll").addEventListener("click", () => { $$("#helpChapters details").forEach((d) => { d.open = true; HELP.open.add(d.dataset.ch); }); });
   $("#helpCloseAll").addEventListener("click", () => { $$("#helpChapters details").forEach((d) => { d.open = false; }); HELP.open.clear(); });
   $("#helpChapters").addEventListener("toggle", (e) => { const d = e.target; if (d.dataset && d.dataset.ch && !HELP.q) { if (d.open) HELP.open.add(d.dataset.ch); else HELP.open.delete(d.dataset.ch); } }, true);
-  $("#helpChapters").addEventListener("click", (e) => { const b = e.target.closest("[data-filter]"); if (b) helpFilter(b.dataset.filter, b.dataset.label); });
+  $("#helpChapters").addEventListener("click", (e) => { const b = e.target.closest("[data-filter]"); if (b) helpFilter(b.dataset.filter, b.dataset.label, b.dataset.mode || "has"); });
   $("#helpDoc").addEventListener("click", (e) => {
     const a = e.target.closest("a[data-url]"); if (a) { e.preventDefault(); call("open_url", a.dataset.url); return; }
     const t = e.target.closest("a[data-htab-link]"); if (t) { e.preventDefault(); helpTab(t.dataset.htabLink); }

@@ -7,6 +7,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Hilfe › Tag-Übersicht:** neben „Mit“ jetzt die Spalte **„Ohne“** – wie viele Titel der gescannten Bibliothek ein
+  Feld nicht haben; ein Klick öffnet den Tagger direkt mit Filter „fehlt“ zum Vervollständigen (#158).
 - **Entdecken** (Vorbereiten › Reiter „Entdecken“, Phase 3): neue Titel von **gefolgten Künstlern, Labels und
   Genres** vorschlagen – über **Deezer** (ohne Anmeldung, 30-s-Vorhören) und **Beatport** (Anmeldung des Plugins,
   Vorhör-Ausschnitt, Genre-Charts Top 100, BPM/Tonart). **Vorhören** direkt in der Liste, **Merken**, als gekauft
