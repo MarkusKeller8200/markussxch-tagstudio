@@ -77,7 +77,78 @@ class Api:
         st = self._s.settings()
         st["start_paths"] = self._start
         st["native"] = self._window is not None
+        st["profile"] = self.profile_info()
         return st
+
+    # ---------- Profile (#164, #165)
+    def profile_info(self):
+        import paths
+        reg = paths.load_registry()
+        return {"name": paths.profile_label(), "default": paths.profile() is None, "list": paths.list_profiles(),
+                "ask": paths.should_ask() and not getattr(self, "_profile_asked", False), "ask_setting": reg["ask"],
+                "dir": paths.data_dir(), "config": paths.config_file()}
+
+    def profile_choose(self, name, ask=True):
+        """Startauswahl bzw. Wechsel: anderes Profil → Neustart mit --profil NAME. → {"restart": bool}"""
+        import paths
+        n = paths.clean_name(name)
+        if n is not None and n not in paths.list_profiles():
+            raise ValueError(f"Profil „{name}“ gibt es nicht.")
+        reg = paths.load_registry()
+        reg["ask"] = bool(ask)
+        reg["last"] = n or paths.DEFAULT
+        paths.save_registry(reg)
+        self._profile_asked = True
+        if n == paths.profile():
+            return {"restart": False}
+        self._argv = [a for i, a in enumerate(self._argv)
+                      if a not in ("--profil", "--profile") and not (i and self._argv[i - 1] in ("--profil", "--profile"))
+                      and not a.startswith(("--profil=", "--profile="))]
+        if n:
+            self._argv += [f"--profil={n}"]
+        self.restart()
+        return {"restart": True}
+
+    def profile_set_ask(self, ask):
+        import paths
+        reg = paths.load_registry()
+        reg["ask"] = bool(ask)
+        paths.save_registry(reg)
+        return self.profile_info()
+
+    def profile_create(self, name, copy_settings=False):
+        import paths
+        n = paths.create_profile(name, paths.profile_label() if copy_settings else None)
+        info = self.profile_info()
+        info["created"] = n
+        return info
+
+    def profile_shortcut(self, name):
+        """Verknüpfung „TagStudio (Profil)“ auf dem Desktop (Windows: .lnk über PowerShell, sonst Startskript)."""
+        import paths
+        n = paths.clean_name(name)
+        label = f"TagStudio ({n or paths.DEFAULT})"
+        desk = os.path.join(paths.home(), "Desktop")
+        os.makedirs(desk, exist_ok=True)
+        target = sys.executable if getattr(sys, "frozen", False) else sys.executable
+        args = [] if getattr(sys, "frozen", False) else [os.path.join(HERE, "tagstudio_web.py")]
+        if n:
+            args.append(f"--profil={n}")
+        if sys.platform.startswith("win"):
+            lnk = os.path.join(desk, label + ".lnk")
+            argstr = " ".join(f'"{a}"' for a in args).replace("'", "''")
+            ps = ("$s=(New-Object -ComObject WScript.Shell).CreateShortcut('" + lnk.replace("'", "''") + "');"
+                  "$s.TargetPath='" + target.replace("'", "''") + "';$s.Arguments='" + argstr + "';"
+                  "$s.WorkingDirectory='" + os.path.dirname(target).replace("'", "''") + "';"
+                  "$s.IconLocation='" + target.replace("'", "''") + "';$s.Save()")
+            subprocess.run(["powershell", "-NoProfile", "-Command", ps], check=True, capture_output=True,
+                           creationflags=0x08000000)
+            return {"ok": True, "path": lnk}
+        path = os.path.join(desk, label + (".command" if sys.platform == "darwin" else ".sh"))
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("#!/bin/sh\n" + " ".join(f'"{a}"' for a in [target, *args]) + ' "$@"\n')
+        os.chmod(path, 0o755)
+        return {"ok": True, "path": path}
 
     def set_option(self, name, value):
         return self._s.set_option(name, value)
@@ -545,7 +616,7 @@ class Api:
             else [sys.executable, os.path.join(HERE, "tagstudio_web.py"), *args]
         if l or r:
             cmd += [l, r] if r else [l]
-        env = dict(os.environ, TAGSTUDIO_RESTART="1")     # neue Instanz wartet, bis diese beendet ist
+        env = dict(os.environ, TAGSTUDIO_RESTART="1", TAGSTUDIO_NOASK="1")   # wartet auf diese Instanz; keine Profilwahl
         if self._server is not None:
             srv, token = self._server
             cmd += ["--browser", "--no-open", "--port", str(srv.server_address[1])]
@@ -793,9 +864,9 @@ def run_window(api: Api):
     geom = {"w": kw["width"], "h": kw["height"], "x": kw.get("x"), "y": kw.get("y"), "max": kw["maximized"]}
     common = dict(url=os.path.join(WEB, "index.html"), js_api=api, min_size=api._s.WIN_MIN, background_color="#121419")
     try:
-        win = webview.create_window(APP, **common, **kw)
+        win = webview.create_window(_title(), **common, **kw)
     except TypeError:                                                    # ältere pywebview: ohne x/y/maximized
-        win = webview.create_window(APP, **common, width=kw["width"], height=kw["height"])
+        win = webview.create_window(_title(), **common, width=kw["width"], height=kw["height"])
     api._window = win
     api._geom = geom
 
@@ -923,6 +994,11 @@ def selftest(out=None) -> int:
     else:
         print(text)
     return 0 if ok else 1
+
+
+def _title() -> str:
+    import paths
+    return APP + (f" · {paths.profile()}" if paths.profile() else "")
 
 
 def main(argv=None):

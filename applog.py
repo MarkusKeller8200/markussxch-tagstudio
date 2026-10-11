@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import datetime
 import os
+import paths
 import sys
 import threading
 import traceback
@@ -18,7 +19,7 @@ _SECRET_WORDS = ("token", "password", "passwort", "secret", "api_key", "apikey")
 
 
 def log_dir() -> str:
-    d = os.path.join(os.path.expanduser("~"), "TagStudio", "Logs")
+    d = paths.sub("Logs")
     try:
         os.makedirs(d, exist_ok=True)
     except OSError:

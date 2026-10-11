@@ -1,6 +1,6 @@
 # Konzept: Profile (zweite unabhängige Installation) und Einrichtungsassistent
 
-Status: **Entwurf 2026-10-11** – zur Prüfung durch den User. Issues im Meilenstein „4.4.0 – Beatport-Download,
+Status: **Entschieden 2026-10-11 (20:55)** – siehe „Entscheide des Users“ am Ende. Issues im Meilenstein „4.4.0 – Beatport-Download,
 Profile, Einrichtungsassistent“ (Label `idee` – zur Prüfung), Reihenfolge und Umfang legt der User fest.
 
 Issues: #163 zentrale Pfade · #164 Start mit Profil · #165 Profil-Verwaltung · #166 zweite Installation (optional) ·
@@ -110,3 +110,13 @@ Alles ist später unter Einstellungen änderbar; der Assistent lässt sich jeder
 3. Soll ein neues Profil die **Plugins** (z. B. Stems mit grossen Modellen) mitbenutzen oder komplett leer starten?
 4. Assistent: sollen nicht gewählte Module **ausgeblendet** werden oder nur „empfohlen“ markiert?
 5. „Erste Schritte“-Hinweise und „Neu in dieser Version“: gewünscht oder zu viel?
+
+## Entscheide des Users (2026-10-11)
+
+1. **Zweites Profil reicht** – keine zweite Installation (A3/#166 entfällt).
+2. **Profilwahl beim Start** mit Häkchen „künftig nicht mehr anzeigen“; danach nur noch in den Einstellungen umstellbar.
+3. **Plugins gemeinsam nutzen**, sofern dort keine Einstellungen gespeichert werden: Plugin-Programme und grosse
+   Daten (Stems-Umgebung, Modelle, FFmpeg) werden geteilt; Einstellungen, Tokens/Anmeldungen, Protokolle und
+   Ergebnis-Dateien liegen je Profil.
+4. Assistent: nicht gewählte Module werden **als „empfohlen“ markiert**, nicht ausgeblendet.
+5. **„Erste Schritte“-Hinweise und „Neu in dieser Version“** gewünscht; der Erste-Schritte-Prozess lässt sich neu starten.

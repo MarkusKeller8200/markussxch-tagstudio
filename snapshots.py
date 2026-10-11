@@ -23,6 +23,7 @@ import gzip
 import hashlib
 import json
 import os
+import paths
 import shutil
 import struct
 import tempfile
@@ -41,7 +42,7 @@ STORE_DIRNAME = ".tagstudio-snapshots"   # Name, wenn der Speicher in einem Bibl
 
 
 def default_dir() -> str:
-    return os.path.join(os.path.expanduser("~"), "TagStudio", "Snapshots")
+    return paths.sub("Snapshots")
 
 
 class StoreError(Exception):

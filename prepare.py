@@ -24,6 +24,7 @@ import copy
 import fnmatch
 import json
 import os
+import paths
 import re
 import shutil
 import subprocess
@@ -145,7 +146,7 @@ def clean_sources(sources) -> list[dict]:
 
 # =========================================================================== Zustand
 def state_dir() -> str:
-    return os.path.join(os.path.expanduser("~"), "TagStudio", "Vorbereiten")
+    return paths.sub("Vorbereiten")
 
 
 def state_path(wid: str) -> str:

@@ -11,14 +11,15 @@ import difflib
 import json
 import threading
 import os
+import paths
 import re
 
 from id3tags import MP3File, key_label, sort_key, FIELDSETS, MV
 from compare import scan, pair_files, diff, all_keys, Cancelled
 import backup
 
-CONFIG = os.path.join(os.path.expanduser("~"), ".tagstudio.json")
-CONFIG_OLD = os.path.join(os.path.expanduser("~"), ".mp3tagcompare.json")  # Version ≤ 2.8 (MP3 Tag Compare)
+CONFIG = paths.config_file()
+CONFIG_OLD = os.path.join(os.path.expanduser("~"), ".mp3tagcompare.json") if not paths.profile() else CONFIG  # Version ≤ 2.8
 
 URL_RE = re.compile(r"(?:https?://|www\.)[^\s|¦<>\"]+", re.I)
 FILTER_OPS = ["enthält", "enthält nicht", "ist", "ist nicht", "beginnt mit", "fehlt / leer", "vorhanden",

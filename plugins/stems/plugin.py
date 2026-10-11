@@ -109,7 +109,7 @@ def run(action, ctx, files, opts):
     os.makedirs(work, exist_ok=True)
     job = {"files": [f.path for f in todo], "work": work, "format": opts.get("format", "FLAC"),
            "model": opts.get("model", "htdemucs_ft.yaml"), "stem": opts.get("stem") or "",
-           "model_dir": os.path.join(ctx.data_dir, "modelle"), "data_dir": ctx.data_dir,
+           "model_dir": os.path.join(ctx.shared_dir, "modelle"), "data_dir": ctx.shared_dir,
            "directml": ctx.env_info.get("variant") == "dml"}
     job_path = os.path.join(work, "auftrag.json")
     with open(job_path, "w", encoding="utf-8") as fh:

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import os
+import paths
 import re
 import time
 import unicodedata
@@ -31,7 +32,7 @@ MAX_ITEMS = 5000             # ältere ausgeblendete/neue Einträge fallen weg, 
 
 # =========================================================================== Zustand
 def state_path() -> str:
-    return os.path.join(os.path.expanduser("~"), "TagStudio", "Entdecken", "entdecken.json")
+    return paths.sub("Entdecken", "entdecken.json")
 
 
 def load() -> dict:

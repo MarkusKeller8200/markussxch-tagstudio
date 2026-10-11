@@ -39,7 +39,7 @@ def find_ffmpeg(ctx=None) -> str:
     cands = []
     try:
         import plugins
-        cands.append(os.path.join(plugins.data_root(), "stems", "ffmpeg", "ffmpeg.exe" if os.name == "nt" else "ffmpeg"))
+        cands.append(os.path.join(plugins.shared_root(), "stems", "ffmpeg", "ffmpeg.exe" if os.name == "nt" else "ffmpeg"))
     except Exception:  # noqa: BLE001
         pass
     for c in cands:

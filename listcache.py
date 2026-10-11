@@ -17,10 +17,11 @@ import gzip
 import hashlib
 import json
 import os
+import paths
 import threading
 
 FORMAT = 1
-DIR = os.path.join(os.path.expanduser("~"), "TagStudio", "cache", "lists")
+DIR = paths.sub("cache", "lists")
 INLINE_MAX = 4096          # grössere Frames (Cover, Wellenform-Daten) als Objekt
 _lock = threading.Lock()
 

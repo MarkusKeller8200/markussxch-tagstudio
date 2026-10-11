@@ -17,6 +17,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import paths
 import shutil
 import tempfile
 import time
@@ -28,7 +29,9 @@ MANIFEST = "manifest.json"
 
 def default_dir() -> str:
     home = os.path.expanduser("~")
-    new = os.path.join(home, "TagStudio", "Sicherungen")
+    new = paths.sub("Sicherungen")
+    if paths.profile():
+        return new
     old = os.path.join(home, "MP3TagCompare", "Sicherungen")  # Version ≤ 2.8
     return old if os.path.isdir(old) and not os.path.isdir(new) else new
 

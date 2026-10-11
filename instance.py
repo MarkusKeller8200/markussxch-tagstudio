@@ -14,8 +14,10 @@ import os
 import sys
 import time
 
-MUTEX = "MarKusSXCH-TagStudio"
-LOCKFILE = os.path.join(os.path.expanduser("~"), ".tagstudio.lock")
+import paths
+
+MUTEX = paths.mutex_name()
+LOCKFILE = paths.lock_file()
 
 
 class Instance:

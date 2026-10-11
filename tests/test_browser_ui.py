@@ -552,6 +552,26 @@ class UiTest(unittest.TestCase):
         pg.click('#prepTabs [data-ptab="wf"]')
         self.assertTrue(pg.locator("#discPane").is_hidden())
 
+    def test_profiles(self):
+        """#164/#165: Profil anlegen in den Einstellungen, Profilwahl beim Start (gleiches Profil → kein Neustart)."""
+        pg = self.pg
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stProfiles .prof-row")
+        self.assertIn("Standard", pg.inner_text("#stProfiles"))
+        pg.fill("#profNew", "Frisch")
+        pg.click("#profAdd")
+        pg.wait_for_function("document.querySelectorAll('#stProfiles .prof-row').length === 2")
+        self.assertTrue(os.path.isdir(os.path.join(self.home, "TagStudio-Profile", "Frisch")))
+        pg.uncheck("#profAsk")
+        time.sleep(0.3)
+        with open(os.path.join(self.home, "TagStudio", "profile.json"), encoding="utf-8") as fh:
+            self.assertFalse(json.load(fh)["ask"])
+        # Startauswahl: Dialog zeigt beide Profile, „Standard“ bleibt → kein Neustart
+        pg.evaluate("() => { window.__pp = profilePick({name: 'Standard', list: ['Standard', 'Frisch']}); }")
+        pg.wait_for_selector('#modal input[name="profPick"][value="Frisch"]')
+        pg.click("#mBtns .primary")
+        self.assertFalse(pg.evaluate("window.__pp"))
+
     def test_snapshot_baseline(self):
         """Neue Baseline: aus dem aktuellen Stand, ältere Snapshots löschen (angeheftete nur auf Wunsch)."""
         pg = self.pg

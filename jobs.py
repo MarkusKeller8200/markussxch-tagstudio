@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import paths
 import threading
 import time
 import uuid
@@ -22,7 +23,7 @@ ACTIVE = ("waiting", "running")
 class JobManager:
     def __init__(self, runner, state_file: str | None = None):
         self.runner = runner
-        self.state_file = state_file or STATE_FILE or os.path.join(os.path.expanduser("~"), "TagStudio", "Auftraege.json")
+        self.state_file = state_file or STATE_FILE or paths.sub("Auftraege.json")
         self.jobs: list[dict] = []
         self.cancels: dict[str, threading.Event] = {}
         self.lock = threading.RLock()

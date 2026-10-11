@@ -16,6 +16,7 @@ import importlib
 import importlib.util
 import json
 import os
+import paths
 import re
 import shutil
 import subprocess
@@ -36,15 +37,22 @@ class Cancelled(Exception):
 
 
 def user_dir() -> str:
-    return os.path.join(os.path.expanduser("~"), "TagStudio", "Plugins")
+    """Eigene Plugins (Programmcode) – gemeinsam für alle Profile."""
+    return os.path.join(paths.base_dir(), "Plugins")
 
 
 def data_root() -> str:
-    return os.path.join(os.path.expanduser("~"), "TagStudio", "Plugin-Daten")
+    """Plugin-Daten des Profils (Anmeldungen, Ergebnisse …)."""
+    return paths.sub("Plugin-Daten")
+
+
+def shared_root() -> str:
+    """Gemeinsame, grosse Plugin-Daten (Umgebung, Modelle, FFmpeg) – für alle Profile gleich."""
+    return paths.shared_plugin_data()
 
 
 def log_dir() -> str:
-    d = os.path.join(os.path.expanduser("~"), "TagStudio", "Logs")
+    d = paths.sub("Logs")
     os.makedirs(d, exist_ok=True)
     return d
 
@@ -170,6 +178,13 @@ class Context:
     def data_dir(self) -> str:
         """Eigener Ordner für Modelle, Caches usw. (wird angelegt)."""
         d = os.path.join(data_root(), self.id)
+        os.makedirs(d, exist_ok=True)
+        return d
+
+    @property
+    def shared_dir(self) -> str:
+        """Gemeinsamer Ordner für grosse Daten (Modelle, FFmpeg) – für alle Profile gleich (wird angelegt)."""
+        d = os.path.join(shared_root(), self.id)
         os.makedirs(d, exist_ok=True)
         return d
 
@@ -333,12 +348,12 @@ class Plugin:
 
     @property
     def env_dir(self) -> str:
-        return os.path.join(data_root(), self.id, "env")
+        return os.path.join(shared_root(), self.id, "env")
 
     def env_info(self) -> dict:
         """Inhalt der Markierungsdatei nach erfolgreicher Installation (oder {})."""
         try:
-            with open(os.path.join(data_root(), self.id, "env.json"), encoding="utf-8") as fh:
+            with open(os.path.join(shared_root(), self.id, "env.json"), encoding="utf-8") as fh:
                 d = json.load(fh)
             return d if isinstance(d, dict) else {}
         except (OSError, ValueError):
@@ -686,7 +701,7 @@ def env_install(plugin, variant: dict, cancel=None, progress=None) -> dict:
             return {"ok": False, "error": f"{title} fehlgeschlagen (Code {rc}).", "log": log[-40:], "logfile": path}
         return None
 
-    base = os.path.join(data_root(), plugin.id)
+    base = os.path.join(shared_root(), plugin.id)
     os.makedirs(base, exist_ok=True)
     try:
         say("Suche uv (Umgebungs-Verwaltung) …")

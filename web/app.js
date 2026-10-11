@@ -571,7 +571,8 @@ async function init() {
   applyLayout();
   applyTheme();
   initTips();                       // #72
-  $("#ver").innerHTML = `Version ${esc(st.version)}${/-/.test(st.version) ? ' <span class="beta-b" title="Vorabversion zum Testen">Beta</span>' : ""}${st.native ? "" : " · Browser"}`;
+  $("#ver").innerHTML = `Version ${esc(st.version)}${/-/.test(st.version) ? ' <span class="beta-b" title="Vorabversion zum Testen">Beta</span>' : ""}${st.native ? "" : " · Browser"}${st.profile && !st.profile.default ? ` <span class="beta-b prof-b" title="Profil: eigene Einstellungen und Daten (${esc(st.profile.dir)})">${esc(st.profile.name)}</span>` : ""}`;
+  if (st.profile && !st.profile.default) document.title = `MarKusSXCH TagStudio · ${st.profile.name}`;
   $("#mode").innerHTML = st.modes.map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("");
   $("#mode").value = st.mode;
   $("#recursive").checked = !!st.recursive;
@@ -603,6 +604,8 @@ async function init() {
   syncOptions();
   renderPairs();
   showView(null);
+  // #164: Profilwahl beim Start (vor dem automatischen Einlesen)
+  if (st.profile && st.profile.ask && typeof profilePick === "function" && await profilePick(st.profile)) return;
   // #88: Startseite – mit Pfaden auf der Befehlszeile der Vergleich, sonst die zuletzt benutzte Seite (zuerst: Tagger)
   const last = st.ui && st.ui.module;
   setModule(st.start_paths.length ? "compare" : (last && last in MODULE_IDS ? last : "tagger"), { start: true });

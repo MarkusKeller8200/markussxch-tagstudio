@@ -13,12 +13,13 @@ from __future__ import annotations
 import hashlib
 import io
 import os
+import paths
 import shutil
 import subprocess
 import sys
 import tempfile
 
-CACHE_DIR = os.path.join(os.path.expanduser("~"), "TagStudio", "cache")
+CACHE_DIR = paths.sub("cache")
 IS_WIN = sys.platform.startswith("win")
 IS_MAC = sys.platform == "darwin"
 

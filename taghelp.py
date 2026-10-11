@@ -11,6 +11,7 @@ import fnmatch
 import hashlib
 import json
 import os
+import paths
 import time
 
 import id3frames
@@ -222,7 +223,7 @@ def _pattern_count(pat: str, r: dict) -> int:
 
 # =========================================================================== Scan
 def cache_dir() -> str:
-    return os.path.join(os.path.expanduser("~"), "TagStudio", "cache", "tagscan")
+    return paths.sub("cache", "tagscan")
 
 
 def _cache_path(root: str) -> str:

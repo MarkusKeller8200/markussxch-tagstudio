@@ -11,9 +11,10 @@ import base64
 import hashlib
 import json
 import os
+import paths
 import time
 
-DIR = os.path.join(os.path.expanduser("~"), "TagStudio", "cache", "wave")
+DIR = paths.sub("cache", "wave")
 MAX_FILES = 20000
 SAMPLE = 64 * 1024
 

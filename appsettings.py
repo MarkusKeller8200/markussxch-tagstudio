@@ -10,6 +10,7 @@ from __future__ import annotations
 import datetime
 import json
 import os
+import paths
 import re
 import sys
 
@@ -38,7 +39,7 @@ GROUP_IDS = [g[0] for g in GROUPS]
 MACHINE_GROUPS = ("history", "saving", "player", "snapshots")
 HIDDEN_KEYS = re.compile(r"token|passw|secret|cookie|session|credential|api[_-]?key|auth", re.I)
 FORMAT = "tagstudio-settings"
-BACKUP_DIR = os.path.join(os.path.expanduser("~"), "TagStudio", "Einstellungen")
+BACKUP_DIR = paths.sub("Einstellungen")
 KEEP_BACKUPS = 20
 
 

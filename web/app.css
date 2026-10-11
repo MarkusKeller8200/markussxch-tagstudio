@@ -1309,3 +1309,10 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .help-keys{max-width:760px;margin-bottom:6px}
 .help-keys td:first-child{width:42%;white-space:nowrap}
 .help-keys kbd,.md kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line2,var(--line));border-bottom-width:2px;border-radius:5px;padding:1px 6px;background:var(--raise,transparent)}
+/* Profile (#164/#165) */
+.prof-b{background:var(--acc-soft);color:var(--acc)}
+.prof-list{display:flex;flex-direction:column;gap:6px}
+.prof-it{padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.prof-rows{display:flex;flex-direction:column;gap:4px}
+.prof-row{display:flex;align-items:center;gap:8px;justify-content:space-between;max-width:520px}
+.prof-acts{display:flex;gap:6px}
