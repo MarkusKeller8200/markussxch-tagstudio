@@ -471,7 +471,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   discover -s tests -p "test_browser_ui.py" -v` – Menü und Einstellungen, Player (Live-Vorschau, Doppelklick,
   Bewertung, Überblenden mit Tempo, Player B, Abdocken). Ohne die Variable werden sie übersprungen.
 - **GitHub Actions:**
-  - `tests.yml` – bei jedem Push die Tests auf Windows und macOS (Python 3.12 und 3.15; Linux derzeit nicht vorgesehen), dazu ein Smoke-Test
+  - `tests.yml` – bei jedem Push die Tests mit Python 3.12 und 3.15 auf Windows, bei finalen Versionen zusätzlich macOS (Linux derzeit nicht vorgesehen), dazu ein Smoke-Test
     der klassischen Oberfläche.
   - `installer.yml` – baut und testet die Installer (Selbsttest der gebauten und der installierten App) und
     veröffentlicht bei neuer Versionsnummer das Release (siehe unten).
@@ -505,7 +505,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
    mit dem Text aus dem CHANGELOG an. Ein von Hand gesetzter Tag (*Releases → Draft a new release*, Titel
    „TagStudio X.Y.Z“, Beschreibung leer) funktioniert weiterhin; der Workflow prüft dann, dass Tag und
    `version.py` übereinstimmen. Tags mit Zusatz (`v3.2.0-beta.1`) werden als **Vorabversion** veröffentlicht.
-   Betas werden **nur für Windows** gebaut (macOS nur bei finalen Versionen oder beim Start von Hand mit „Auch
+   Betas werden **nur für Windows** gebaut und getestet (macOS nur bei finalen Versionen oder beim Start von Hand mit „Auch
    macOS bauen“).
 4. **Dringender Fehler:** sofort eine PATCH-Version auf demselben Weg.
 

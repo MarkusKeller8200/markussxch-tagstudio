@@ -9,16 +9,34 @@ permissions:
   contents: read
 
 jobs:
+  plan:
+    # Betriebssysteme: Betas nur Windows (der User testet ausschliesslich dort), finale Versionen Windows + macOS.
+    # Linux ist derzeit nicht als Plattform vorgesehen (Entscheid 2026-10-11) – bei Bedarf „ubuntu-latest“ wieder
+    # ergänzen; der Schritt mit virtuellem Bildschirm (xvfb) unten ist dafür noch vorhanden.
+    runs-on: ubuntu-latest
+    outputs:
+      os: ${{ steps.p.outputs.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: p
+        run: |
+          ver="$(python3 -c 'import version; print(version.VERSION)')"
+          if [[ "$ver" == *-* ]]; then
+            echo 'os=["windows-latest"]' >> "$GITHUB_OUTPUT"
+            echo "::notice title=Nur Windows::Beta $ver – macOS-Tests übersprungen."
+          else
+            echo 'os=["windows-latest", "macos-latest"]' >> "$GITHUB_OUTPUT"
+          fi
+
   test:
+    needs: plan
     name: ${{ matrix.os }} · Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        # Linux ist derzeit nicht als Plattform vorgesehen (Entscheid 2026-10-11) – bei Bedarf „ubuntu-latest“ wieder
-        # ergänzen; der Schritt mit virtuellem Bildschirm (xvfb) unten ist dafür noch vorhanden.
-        os: [windows-latest, macos-latest]
-        # 3.12 = Mindestversion und Python des Installers, 3.15 = neueste Version (Frühwarnung) – #135
+        os: ${{ fromJSON(needs.plan.outputs.os) }}
+        # 3.12 = Mindestversion, 3.15 = Python des Installers (#135)
         python: ["3.12", "3.15"]
     steps:
       - uses: actions/checkout@v7
