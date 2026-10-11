@@ -21,13 +21,13 @@ Status: **Entwurf** (2026-10-11) – Issue #157.
 
 | Flagge | Sprache | Inhalt |
 |---|---|---|
-| 🇨🇭 | Deutsch (Schweiz) | heutiger Text, einheitlich mit „ss“ – **Ausgangssprache** |
-| 🇩🇪 | Deutsch (Deutschland) | automatisch aus der Schweizer Fassung (ss → ß nach Wortliste) plus wenige eigene Begriffe |
+| 🇩🇪 | Deutsch | heutiger Text (Hochdeutsch), Schreibweise vereinheitlicht – **Ausgangssprache** |
+| 🇨🇭 | Schweizerdeutsch (Mundart) | eigener Katalog in Mundart, z. B. „Spichere“, „Abbräche“, „Iilääse“ |
 | 🇬🇧 | English | vollständige Übersetzung |
 
-**Offene Frage:** Ist mit „Schweizerdeutsch“ wirklich Mundart gemeint (z. B. „Spichere“, „Abbräche“) oder
-Schweizer Hochdeutsch? Mundart ist möglich (eigener Katalog), aber für eine Oberfläche unüblich; der Vorschlag
-oben geht von Schweizer Hochdeutsch aus.
+**Entscheid des Users (2026-10-11): Schweizerdeutsch = Mundart.** Mundart hat keine feste Rechtschreibung; der
+Katalog folgt einer Schreibweise (Vorschlag: Zürichdeutsch nach Dieth, ohne Sonderzeichen ausser ä/ö/ü) und wird vom
+User durchgesehen. Fehlt ein Mundart-Text, gilt Hochdeutsch.
 
 ## Technik
 
@@ -67,6 +67,6 @@ danach. Bis Phase 2 abgeschlossen ist, bleiben einzelne Texte deutsch – das is
 
 ## Offene Fragen an den User
 
-- Mundart oder Schweizer Hochdeutsch (siehe oben)?
+- Welche Mundart bzw. Schreibweise (Zürich, Bern, Basel …)?
 - Soll die Sprache der Oberfläche auch die Sprache der geschriebenen Tags beeinflussen (z. B. Genre-Namen)?
   Vorschlag: nein – Tags bleiben, wie sie sind.

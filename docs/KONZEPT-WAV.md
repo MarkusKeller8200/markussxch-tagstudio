@@ -29,6 +29,8 @@ Wichtig:
 
 ## Unterstützung in DJ-Programmen (zu prüfen)
 
+**Entscheid des Users (2026-10-11): Die Tags müssen in Engine DJ, Serato, Rekordbox und VirtualDJ lesbar sein.**
+
 Was die Programme bei WAV tatsächlich lesen und schreiben, ist je Version verschieden und nicht verlässlich
 dokumentiert. Deshalb **messen statt annehmen**: mit `tools/wavcheck.py` je eine WAV-Datei prüfen, die von
 Rekordbox, Serato, Traktor, Engine DJ, Lexicon und Mp3tag getaggt wurde (welcher Chunk, welche ID3-Version, welche
@@ -61,5 +63,4 @@ und die Kopie in den DJ-Programmen öffnen (Felder sichtbar? Cues/Beatgrid erhal
 
 ## Offene Fragen an den User
 
-- Welche Programme sollen die WAV-Tags sicher lesen (Reihenfolge der Prüfung)?
 - Sollen WAV-Dateien in der Bibliothek liegen (nicht nur Stems)?
