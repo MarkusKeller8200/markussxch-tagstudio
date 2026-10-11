@@ -74,7 +74,7 @@ class FakeOnline:
                 return js({"recordings": [MB_REC] if "nordlicht" in q["query"].lower() else []})
             if p == "/ws/2/release/rel-1":
                 return js(MB_REL)
-        if h == "coverartarchive.org" or h.endswith("dzcdn.net") or h.endswith("mzstatic.com") or h == "i.discogs.com":
+        if h == "coverartarchive.org" or h.endswith(".dzcdn.net") or h.endswith(".mzstatic.com") or h == "i.discogs.com":
             return 200, {}, JPEG
         if h == "api.deezer.com":
             if p.startswith("/track/isrc:"):
@@ -260,7 +260,7 @@ class TestOnlinePlugin(Base):
         self.assertEqual(by["ITUNES_TRACK_ID (iTunes)"]["new"], "77")
         it = [c for c in self.fake.calls if c[0] == "itunes.apple.com"][0]
         self.assertEqual(it[2]["country"], "DE")
-        cov = [c for c in self.fake.calls if c[0].endswith("mzstatic.com")][0]
+        cov = [c for c in self.fake.calls if c[0].endswith(".mzstatic.com")][0]
         self.assertIn("1400x1400bb", cov[1])
         # keine Quelle → verständlicher Fehler
         st = self.act("fetch", [0], mb=False, deezer=False, itunes=False, discogs=False, lastfm=False)
@@ -285,7 +285,7 @@ class TestOnlinePlugin(Base):
         fp = os.path.join(self.dir, "fpcalc")
         with open(fp, "w") as fh:
             fh.write(f"#!{sys.executable}\nimport json; print(json.dumps({{'duration': 372.4, 'fingerprint': 'AQADtEmUaEkS'}}))\n")
-        os.chmod(fp, 0o755)
+        os.chmod(fp, 0o700)
         self.act("keys", discogs="", lastfm="", acoustid="AKEY", fpcalc=fp, clear="")
         self.assertIn("fpcalc gefunden", {p["id"]: p for p in self.s.plugins_list()["plugins"]}["online"]["status_text"])
         res = self.fetch(["u.mp3"], deezer=False, acoustid=True, names=True)
