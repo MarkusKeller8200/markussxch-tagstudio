@@ -1,6 +1,6 @@
 # Speicherkonzept – wo TagStudio was ablegt
 
-Stand: **4.4.0-beta.3** (2026-10-11). Dieses Dokument wird bei Gelegenheit nachgeführt, wenn sich Ablageorte ändern.
+Stand: **4.4.0-beta.4** (2026-10-11). Dieses Dokument wird bei Gelegenheit nachgeführt, wenn sich Ablageorte ändern.
 `~` steht für den Benutzerordner (Windows: `C:\Users\<Name>`).
 
 Es gibt zwei Arten von Ordnern:
@@ -64,7 +64,7 @@ Die empfohlene Struktur (Namen im Assistenten änderbar; vorhandene Ordner bleib
 |---|---|---|
 | `00_New` | Neue Musik, Rohdaten – bleiben unverändert | Eingangsordner „Vorbereiten“ |
 | `01_Library` | Endgültige Bibliothek | Tagger-Standardordner, Bibliothek im Workflow (Ziel der Übernahme), mit Snapshots überwacht |
-| `02_Archiv` | Aussortierte Titel | Archiv (Aktion „Aussortieren“, #173) |
+| `02_Archiv` | Aussortierte Titel – Unterordner bleiben erhalten; Vermerk `_aussortiert.csv` (Datum, Von, Nach) zum Zurückholen | Archiv (Aktion „Aussortieren“ im Tagger und in „Vorbereiten“, #173) |
 | `90_Download` | Temporäre Downloads (Browser, Beatport, ZIP) | Quelle „Downloads“ im Workflow („Abholen“ kopiert nach `00_New`), Ziel des Beatport-Downloads |
 | `91_Work` | Arbeitsordner für TagStudio und andere Programme | Arbeitsordner im Workflow; darin die Stufen-Ordner `_02_MP3Tag`, `_03_PlatinumNotes` … |
 | `99_Sicherung\Tags` | Tag-Sicherungen vor jedem Speichern | Sicherungs-Ordner |

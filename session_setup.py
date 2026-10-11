@@ -167,6 +167,7 @@ class FoldersMixin:
                 ("Sicherungen", self._backup_folder()), ("Snapshot-Speicher", self.snap_store.root)]
         rows += [(f"Quelle: {q['name']}", q["folder"]) for q in w.get("sources") or []]
         return {"base": self.base_dir(), "suggest": suggest_base(drives), "drives": drives,
+                "archive": str(self.cfg.get("archive_dir") or ""),
                 "home_base": os.path.join(os.path.expanduser("~"), "Music", "TagStudio"),
                 "structure": [{"id": k, "name": n, "desc": d} for k, n, d in STRUCTURE],
                 "rows": [{"label": lab, "path": p, "exists": bool(p) and os.path.isdir(p)} for lab, p in rows]}
@@ -216,3 +217,92 @@ class FoldersMixin:
         po["dest"] = p["download"]
         core.save_config({"plugin_options": self.cfg["plugin_options"]})
         return {"paths": p, "created": created, "overview": self.folders_overview()}
+
+
+class ArchiveMixin:
+    """Aussortieren ins Archiv (#173) – im Tagger und in „Vorbereiten“, mit Vermerk und Zurückholen."""
+
+    def _archive_dir(self) -> str:
+        d = str(self.cfg.get("archive_dir") or "")
+        if not d:
+            raise ValueError("Kein Archiv-Ordner festgelegt – Einstellungen › Speicherort und Ordner.")
+        os.makedirs(d, exist_ok=True)
+        return d
+
+    def set_archive_dir(self, path) -> dict:
+        p = os.path.abspath(os.path.expanduser(str(path).strip())) if str(path or "").strip() else ""
+        self.cfg["archive_dir"] = p
+        core.save_config({"archive_dir": p})
+        return self.folders_overview()
+
+    def tag_archive(self, idx, apply=False) -> dict:
+        """Markierte Titel des Taggers ins Archiv verschieben (Unterordner relativ zum geladenen Ordner bleiben)."""
+        import archive
+        d = self._archive_dir()
+        with self.lock:
+            files = self._tsel(idx)
+            dirty = {os.path.abspath(f.path) for f in files if f.is_modified()}
+            pl = archive.plan([f.path for f in files], getattr(self, "tag_root", None), d)
+            for e in pl:
+                if not e["problem"] and e["src"] in dirty:
+                    e["problem"] = "ungespeicherte Änderungen – zuerst speichern"
+            rows = [{"src": e["src"], "dst": e["dst"], "stems": bool(e["stems_src"]), "problem": e["problem"]} for e in pl]
+            if not apply:
+                return {"rows": rows, "archive": d, "ok": sum(1 for e in pl if not e["problem"])}
+            res = archive.move(pl, d, "Tagger")
+        return {"moved": len(res["moved"]), "errors": res["errors"], "archive": d,
+                "message": f"{len(res['moved'])} Titel ins Archiv verschoben." + (f" {len(res['errors'])} Fehler." if res["errors"] else "")}
+
+    def prep_archive(self, wid, names, apply=False, drop_copies=True) -> dict:
+        """Titel aus dem Eingang von „Vorbereiten“ aussortieren: Original ins Archiv, Stufen-Kopien entfernen (nach Rückfrage
+        in der Oberfläche), Titel aus dem Workflow-Status nehmen."""
+        import archive
+        import prepare
+        d = self._archive_dir()
+        w = self._prep_get(wid)
+        st = prepare.load_state(w["id"])
+        srcs = [os.path.join(w["inbox"], n) for n in names or []]
+        pl = archive.plan(srcs, w["inbox"], d)
+        copies = {}
+        for n in names or []:
+            for s in w["steps"]:
+                if s.get("folder"):
+                    p = os.path.join(prepare.work_dir(w), s["folder"], n)
+                    if os.path.isfile(p):
+                        copies.setdefault(n, []).append(p)
+        rows = [{"src": e["src"], "dst": e["dst"], "problem": e["problem"]} for e in pl]
+        if not apply:
+            return {"rows": rows, "copies": [c for v in copies.values() for c in v], "archive": d,
+                    "ok": sum(1 for e in pl if not e["problem"])}
+        res = archive.move(pl, d, "Vorbereiten")
+        moved = {os.path.normcase(e["src"]) for e in res["moved"]}
+        removed = 0
+        for n in names or []:
+            if os.path.normcase(os.path.abspath(os.path.join(w["inbox"], n))) not in moved:
+                continue
+            st["tracks"].pop(n, None)
+            if drop_copies:
+                for c in copies.get(n, []):
+                    try:
+                        os.remove(c)
+                        removed += 1
+                    except OSError:
+                        pass
+        prepare.save_state(w["id"], st)
+        d2 = self.prep_overview(w["id"])
+        d2["message"] = f"{len(res['moved'])} Titel aussortiert" + (f", {removed} Stufen-Kopie(n) entfernt" if removed else "") + "."
+        d2["errors"] = res["errors"]
+        return d2
+
+    def archive_list(self) -> dict:
+        import archive
+        d = str(self.cfg.get("archive_dir") or "")
+        return {"archive": d, "entries": archive.entries(d) if d else []}
+
+    def archive_restore(self, ids) -> dict:
+        import archive
+        res = archive.restore(self._archive_dir(), [int(i) for i in ids or []])
+        out = self.archive_list()
+        out.update(restored=len(res["restored"]), errors=res["errors"],
+                   message=f"{len(res['restored'])} Titel zurückgeholt." + (f" {len(res['errors'])} Hinweis(e)." if res["errors"] else ""))
+        return out

@@ -106,6 +106,7 @@ function prepCellMenu(e, name, i) {
   if (s.type === "verify" && c.state === "error") items.push({ label: `Erneut prüfen${n}`, run: () => prepRun(s.id, names) });
   if (s.type !== "check" && c.state === "open") items.push({ label: s.type === "external" ? `Öffnen${n}` : `Ausführen${n}`, run: () => prepRun(s.id, names) });
   if (s.type === "import" && c.state === "error") items.push({ label: `Trotzdem übernehmen${n}`, run: () => prepRun(s.id, names, true) });
+  items.push({ label: `Aussortieren${n} …`, run: () => archivePrepDialog(names) });                                  // #173
   if (["open", "waiting", "error", "blocked"].includes(c.state)) items.push({ label: `Als erledigt markieren${n}`, run: async () => prepApply(await call("prep_mark", d.workflow.id, s.id, names, "done")) });
   if (c.state !== "skipped") items.push({ label: `Überspringen${n}`, run: async () => prepApply(await call("prep_mark", d.workflow.id, s.id, names, "skipped")) });
   if (!["open", "blocked"].includes(c.state)) items.push({ label: `Zurück auf offen${n}`, run: async () => prepApply(await call("prep_mark", d.workflow.id, s.id, names, "open")) });

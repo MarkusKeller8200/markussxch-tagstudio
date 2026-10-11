@@ -27,6 +27,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Bibliothek, Vorbereiten (Eingang, Arbeitsordner, Quelle Downloads), Sicherungen, Snapshot-Speicher und das
   Beatport-Download-Ziel darauf ein; vorhandene Ordner bleiben, nichts wird verschoben. Einstellungen › Speicherort und
   Ordner zeigt alle Arbeitsordner (#172).
+- **Aussortieren** ins Archiv (z. B. `02_Archiv`): im Tagger („Aussortieren …“) und in „Vorbereiten“ (Zelle ›
+  „Aussortieren“). Unterordner bleiben erhalten, ein Stems-Ordner wandert mit; in „Vorbereiten“ kommt das Original aus
+  dem Eingang ins Archiv, Stufen-Kopien werden auf Wunsch gelöscht. Jede Bewegung steht im Vermerk
+  `_aussortiert.csv`; Einstellungen › Speicherort und Ordner › „Aussortierte …“ holt Titel zurück (#173).
+- **Speicherkonzept** – alle Ablageorte und die empfohlene Ordnerstruktur:
+  [docs/KONZEPT-SPEICHER.md](docs/KONZEPT-SPEICHER.md).
 - **Seitenleiste:** Menüpunkte lassen sich ausblenden (Einstellungen › Darstellung) (#169).
 - **„Erste Schritte“** – kurze Hinweise beim ersten Besuch jeder Seite (neu startbar über Hilfe) – und **„Neu in
   dieser Version“** nach einem Update (#170).

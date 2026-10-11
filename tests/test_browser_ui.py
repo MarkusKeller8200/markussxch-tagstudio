@@ -629,6 +629,30 @@ class UiTest(unittest.TestCase):
         pg.uncheck('[data-navshow="djset"]')
         pg.wait_for_function("document.querySelector('.nav[data-module=\"djset\"]').hidden")
 
+    def test_archive_tagger(self):
+        """#173: Aussortieren im Tagger – Vorschau, verschieben, Liste neu geladen, zurückholen."""
+        pg = self.pg
+        arch = os.path.join(self.dir, "Archiv")
+        pg.evaluate(f"call('set_archive_dir', {json.dumps(arch)})")
+        self.load_tagger()
+        n = pg.evaluate("TG.order.length")
+        pg.click('.tg-row[data-i="0"] .nm')
+        pg.click("#tgArchive")
+        pg.wait_for_selector("#modal .fx-table")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function(f"TG.order.length === {n - 1}")
+        self.assertEqual(len([f for _d, _s, fs in os.walk(arch) for f in fs if f.endswith(".mp3")]), 1)
+        pg.click('.nav[data-module="settings"]')
+        pg.click('[data-stbase="archlist"]')
+        pg.wait_for_selector("#modal [data-arid]")
+        pg.check("#modal [data-arid]")
+        pg.click("#mBtns .primary")
+        for _ in range(50):
+            if not [f for _d, _s, fs in os.walk(arch) for f in fs if f.endswith(".mp3")]:
+                break
+            time.sleep(0.1)
+        self.assertEqual([f for _d, _s, fs in os.walk(arch) for f in fs if f.endswith(".mp3")], [])
+
     def test_snapshot_baseline(self):
         """Neue Baseline: aus dem aktuellen Stand, ältere Snapshots löschen (angeheftete nur auf Wunsch)."""
         pg = self.pg

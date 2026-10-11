@@ -272,6 +272,8 @@ async function stFoldersRender() {
         <div class="muted sm">Jede Ordnerauswahl in TagStudio beginnt hier (z. B. ${esc(f.suggest)}).</div></div>
       <span>Ordnerstruktur</span><div><button class="ghost sm" data-stbase="struct" ${f.base ? "" : "disabled"}>Struktur im Basisordner anlegen …</button>
         <div class="muted sm">${esc(f.structure.map((x) => x.name).join(" · "))} – vorhandene Ordner bleiben; Bibliothek, Vorbereiten, Sicherungen und Downloads werden darauf eingestellt.</div></div>
+      <label for="stArch">Archiv</label><div><div class="pl-folder"><input id="stArch" value="${esc(f.archive || "")}" placeholder="z. B. ${esc((f.base || f.suggest) + "\\02_Archiv")}" spellcheck="false"><button class="ghost sm" data-stbase="archpick">Wählen …</button><button class="ghost sm" data-stbase="archsave">Übernehmen</button><button class="ghost sm" data-stbase="archlist">Aussortierte …</button></div>
+        <div class="muted sm">Ziel von „Aussortieren“ im Tagger und in „Vorbereiten“.</div></div>
       <span>Arbeitsordner</span><div class="fold-rows">${f.rows.map((r) => `<div class="fold-row"><span>${esc(r.label)}</span><span class="${r.path && !r.exists ? "st-missing" : "muted"}" title="${esc(r.path)}">${esc(r.path || "–")}${r.path && !r.exists ? " (fehlt)" : ""}</span></div>`).join("")}</div>
     </div>`;
 }
@@ -281,6 +283,9 @@ async function stFoldersRender() {
     const b = e.target.closest("[data-stbase]"); if (!b) return;
     const inp = $("#stBase");
     if (b.dataset.stbase === "pick") { const p = await call("pick_path", "", true, inp.value.trim()); if (p) inp.value = p; return; }
+    if (b.dataset.stbase === "archpick") { const a = $("#stArch"); const p = await call("pick_path", "", true, a.value.trim()); if (p) a.value = p; return; }
+    if (b.dataset.stbase === "archsave") { await call("set_archive_dir", $("#stArch").value.trim()); toast("Archiv-Ordner gespeichert."); stFoldersRender(); return; }
+    if (b.dataset.stbase === "archlist") { archiveRestoreDialog(); return; }
     if (b.dataset.stbase === "save") { try { await call("set_base_dir", inp.value.trim(), true); toast("Basisordner gespeichert."); } catch (x) { toast(String(x.message || x)); } stFoldersRender(); return; }
     if (b.dataset.stbase === "struct") {
       const f = await call("folders_overview");
@@ -290,3 +295,52 @@ async function stFoldersRender() {
     }
   });
 })();
+
+// ---------------------------------------------------------------------- Aussortieren (#173)
+const archRows = (rows) => `<div class="fx-table" style="max-height:38vh"><table><thead><tr><th>Titel</th><th>Ziel im Archiv</th></tr></thead><tbody>${rows.map((r) => `<tr class="${r.problem ? "gone" : ""}"><td title="${esc(r.src)}">${esc(r.src.split(/[\\/]/).pop())}${r.stems ? ' <span class="muted sm">+ Stems</span>' : ""}</td><td>${r.problem ? `<span class="st-missing">${esc(r.problem)}</span>` : `<span class="muted sm" title="${esc(r.dst)}">${esc(r.dst)}</span>`}</td></tr>`).join("")}</tbody></table></div>`;
+
+async function archiveTaggerDialog(idx) {
+  if (!idx.length) { toast("Bitte zuerst Titel markieren."); return; }
+  let p;
+  try { p = await call("tag_archive", idx, false); } catch (e) { toast(String(e.message || e)); return; }
+  const ok = await modal({ title: `Aussortieren (${idx.length})`, wide: true,
+    html: `<p style="margin:0 0 8px">Die Titel werden nach <b>${esc(p.archive)}</b> verschoben – Unterordner bleiben erhalten, ein Stems-Ordner wandert mit. Jede Bewegung steht im Vermerk <code>_aussortiert.csv</code>; zurückholen unter Einstellungen › Speicherort und Ordner.</p>${archRows(p.rows)}`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: `${fmtN(p.ok)} Titel aussortieren`, value: true, primary: true }] });
+  if (!ok || !p.ok) return;
+  const r = await call("tag_archive", idx, true);
+  status(r.message, r.errors.length ? "warn" : "info");
+  if (r.errors.length) await info("Hinweise", r.errors.join("\n"));
+  if (typeof taggerLoad === "function") taggerLoad();
+}
+
+async function archivePrepDialog(names) {
+  const wid = PREP.d.workflow.id;
+  let p;
+  try { p = await call("prep_archive", wid, names, false, true); } catch (e) { toast(String(e.message || e)); return; }
+  const res = await modal({ title: `Aussortieren (${names.length})`, wide: true,
+    html: `<p style="margin:0 0 8px">Das Original aus dem Eingang kommt nach <b>${esc(p.archive)}</b> (Unterordner bleiben), der Titel verschwindet aus dem Workflow.</p>${archRows(p.rows)}
+      ${p.copies.length ? `<label class="check" style="margin-top:8px"><input type="checkbox" id="arCopies" checked> ${fmtN(p.copies.length)} Stufen-Kopie(n) in den Arbeitsordnern löschen</label>` : ""}`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: `${fmtN(p.ok)} Titel aussortieren`, value: true, primary: true }],
+    collect: (b) => ({ copies: !!(b.querySelector("#arCopies") || {}).checked }) });
+  if (!res || !p.ok) return;
+  const d = await call("prep_archive", wid, names, true, res.copies);
+  if (d.errors && d.errors.length) await info("Hinweise", d.errors.join("\n"));
+  PREP.sel.clear();
+  prepApply(d);
+  status(d.message, "info");
+}
+
+async function archiveRestoreDialog() {
+  const a = await call("archive_list");
+  const can = (e) => !e.restored && e.in_archive && e.src_free && !/Stems/.test(e.area);
+  const ids = await modal({ title: "Aussortierte Titel", wide: true,
+    html: a.entries.length ? `<p class="muted sm" style="margin:0 0 8px">Archiv: ${esc(a.archive)} · zurückholen geht, wenn der Titel noch im Archiv liegt und der alte Platz frei ist.</p>
+      <div class="fx-table" style="max-height:50vh"><table><thead><tr><th></th><th>Datum</th><th>Titel</th><th>Von</th><th>Bereich</th></tr></thead><tbody>${a.entries.map((e) => `<tr class="${can(e) ? "" : "gone"}"><td>${can(e) ? `<input type="checkbox" data-arid="${e.id}">` : ""}</td><td class="sm">${esc(e.at)}</td><td title="${esc(e.dst)}">${esc(e.dst.split(/[\\/]/).pop())}</td><td class="sm muted" title="${esc(e.src)}">${esc(e.src)}</td><td class="sm">${esc(e.area)}${e.restored ? " · zurückgeholt" : !e.in_archive ? " · nicht mehr im Archiv" : ""}</td></tr>`).join("")}</tbody></table></div>`
+      : `<p class="muted">Noch nichts aussortiert${a.archive ? "" : " – kein Archiv-Ordner festgelegt"}.</p>`,
+    buttons: [{ label: "Schliessen", value: null }, ...(a.entries.some(can) ? [{ label: "Ausgewählte zurückholen", value: true, primary: true }] : [])],
+    collect: (b) => [...b.querySelectorAll("[data-arid]:checked")].map((x) => +x.dataset.arid) });
+  if (!ids || !ids.length) return;
+  const r = await call("archive_restore", ids);
+  status(r.message, r.errors.length ? "warn" : "info");
+  if (r.errors.length) await info("Hinweise", r.errors.join("\n"));
+}

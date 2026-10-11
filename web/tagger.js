@@ -742,6 +742,7 @@ function renderTgEditor() {
       <button class="ghost" id="tgFolderCover">Cover aus Ordner …</button>
       <button class="ghost" id="tgExport">Liste exportieren …</button>
       <button class="ghost" id="tgOrigin">Felder nach Herkunft …</button>
+      <button class="ghost" id="tgArchive" title="Markierte Titel in den Archiv-Ordner verschieben (#173)">Aussortieren …</button>
       ${tgSelected().some((i) => TG.rows[i] && (TG.rows[i].stems || TG.rows[i].parent !== undefined)) ? '<button class="ghost" id="tgStemTags" title="Tags der Originale auf ihre MP3-Stems übertragen">Stems: Tags vom Original …</button>' : ""}
       ${one ? '<button class="ghost" id="tgReveal">' + (IS_MAC ? "Im Finder zeigen" : "Im Explorer zeigen") + "</button>" : ""}
     </div>
@@ -1491,6 +1492,7 @@ async function tgOriginDialog(preset = "") {
     else if (id === "tgReveal") call("reveal", TG.detail.file.path);
     else if (id === "tgCase") tgCaseDialog();
     else if (id === "tgReplace") tgReplaceDialog();
+    else if (id === "tgArchive") archiveTaggerDialog(idx);                                                                   // #173
     else if (id === "tgRecipe") tgRecipeDialog();                                                                            // #111
     else if (id === "tgFolderCover") tgFolderCoverDialog();
     else if (id === "tgExport") tgExportDialog();
