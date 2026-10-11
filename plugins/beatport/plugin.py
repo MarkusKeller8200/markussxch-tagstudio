@@ -72,11 +72,23 @@ ACTIONS = [
     {"id": "purchases", "label": "Gekaufte Titel abgleichen …", "where": "page", "run_label": "Abgleichen",
      "needs_selection": False,
      "description": "Liest die gekauften Titel deines Beatport-Kontos und prüft, welche in deinen Ordnern "
-                    "schon vorhanden sind (Ergebnis als CSV-Liste) und markiert sie in „Entdecken“ als gekauft. Heruntergeladen wird noch nichts.",
+                    "schon vorhanden sind (Ergebnis als CSV-Liste) und markiert sie in „Entdecken“ als gekauft. Laden: „Fehlende Käufe herunterladen …“.",
      "options": [
          {"key": "folders", "type": "folders", "label": "Ordner zum Abgleich (z. B. Bibliothek und Eingang)"},
          {"key": "max", "type": "number", "label": "Höchstens so viele Käufe lesen", "default": 2000},
          {"type": "info", "label": "Abgleich über Beatport-ID (TXXX:BEATPORT_TRACK_ID), ISRC oder Künstler + Titel + Mix."},
+     ]},
+    {"id": "download", "label": "Fehlende Käufe herunterladen …", "where": "page", "run_label": "Herunterladen",
+     "needs_selection": False,
+     "description": "Lädt gekaufte Titel, die in deinen Ordnern noch fehlen, unverändert in den Zielordner (z. B. den "
+                    "Eingangsordner von „Vorbereiten“). Beatport hat dafür keine offizielle Schnittstelle – der Weg wird "
+                    "vorsichtig ermittelt und protokolliert. Zuerst mit 1 Titel testen.",
+     "options": [
+         {"key": "dest", "type": "folder", "label": "Zielordner (z. B. Eingangsordner)"},
+         {"key": "folders", "type": "folders", "label": "Ordner zum Abgleich (vorhandene werden nicht geladen)"},
+         {"key": "count", "type": "number", "label": "Höchstens so viele Titel laden", "default": 1},
+         {"type": "info", "label": "Geladen wird im gekauften Format (audio_format). Bereits geladene Titel merkt sich "
+                                  "TagStudio und lädt sie nicht doppelt. Details im Protokoll (Plugins › Protokolle › beatport.log)."},
      ]},
 ]
 
@@ -590,6 +602,8 @@ def run(action, ctx, files, opts):
         return {"message": f"Verbindung in Ordnung – angemeldet als {acc.get('username', '?')}."}
     if action == "purchases":
         return run_purchases(ctx, opts)
+    if action == "download":
+        return run_download(ctx, opts)
     if action != "fetch":
         raise ValueError(f"Unbekannte Aktion: {action}")
 
@@ -758,3 +772,238 @@ def _present(t):
         if ok:
             out.append(lab)
     return out or ["nichts"]
+
+
+# =========================================================================== Download gekaufter Titel (#117)
+from plugins import Cancelled  # noqa: E402 – Abbruch wie bei ctx.check_cancel()
+EXT = {"mp3": ".mp3", "aiff": ".aiff", "aif": ".aiff", "wav": ".wav", "flac": ".flac", "aac": ".m4a", "m4a": ".m4a"}
+AUDIO_TYPES = ("audio/", "application/octet-stream", "application/zip", "application/x-zip", "binary/octet-stream")
+
+
+_SKIP_KEYS = ("sample", "image", "preview", "artist", "release", "label", "genre", "key", "remixer")
+
+
+def _usable(u) -> bool:
+    """Kandidat für eine Download-Adresse? Keine API-Links, Vorhör-Ausschnitte, Bilder oder Webseiten von Titeln."""
+    if not isinstance(u, str) or not u.startswith("https://"):
+        return False
+    low = u.lower()
+    return "/v4/" not in low and not any(x in low for x in ("sample", "image", "/track/", "/release/", "/artist/"))
+
+
+def _find_url(obj, depth=0):
+    """Download-Adresse in einer JSON-Antwort (Schlüssel wie location/download_url/url), ohne Vorhör-Ausschnitte."""
+    if depth > 4:
+        return ""
+    if isinstance(obj, str):
+        return obj if _usable(obj) else ""
+    if isinstance(obj, dict):
+        for k in ("location", "download_url", "download", "url", "link", "href"):
+            if _usable(obj.get(k)):
+                return obj[k]
+        for k, v in obj.items():
+            if any(x in str(k).lower() for x in _SKIP_KEYS):
+                continue
+            u = _find_url(v, depth + 1)
+            if u:
+                return u
+    if isinstance(obj, list):
+        for v in obj[:5]:
+            u = _find_url(v, depth + 1)
+            if u:
+                return u
+    return ""
+
+
+def _fmt_key(t) -> str:
+    af = t.get("audio_format")
+    if isinstance(af, dict):
+        af = af.get("name") or af.get("format") or af.get("id") or ""
+    return str(af or "mp3").lower()
+
+
+def download_candidates(t) -> list[tuple[str, dict]]:
+    """Mögliche Wege zur Download-Adresse (inoffiziell, Reihenfolge = Wahrscheinlichkeit)."""
+    odid, tid, fmt = t.get("order_item_download_id"), t.get("id"), _fmt_key(t)
+    out = []
+    if odid:
+        out += [(f"/my/downloads/{odid}/", {}), (f"/my/downloads/{odid}/download/", {})]
+    if tid:
+        out += [(f"/catalog/tracks/{tid}/download/", {"quality": fmt})]
+    return out
+
+
+def resolve_download(client, t, log) -> str:
+    """Download-Adresse ermitteln; jeder Versuch wird mit Status und Feldnamen protokolliert (ohne Token)."""
+    for path, params in download_candidates(t):
+        url = API + path + ("?" + urllib.parse.urlencode(params) if params else "")
+        st, h, body = request("GET", url, headers={"Authorization": f"Bearer {client.tok['access_token']}"}, follow=False)
+        if st in (301, 302, 303, 307, 308) and h.get("Location", h.get("location", "")).startswith("https://"):
+            log(f"{path}: HTTP {st} → Weiterleitung")
+            return h.get("Location") or h.get("location")
+        ctype = (h.get("Content-Type") or h.get("content-type") or "").lower()
+        data = None
+        if st == 200 and ("json" in ctype or (body or b"").lstrip()[:1] in (b"{", b"[")):
+            try:
+                data = json.loads(body or b"null")
+            except ValueError:
+                data = None
+        if st == 200 and data is not None:
+            u = _find_url(data)
+            keys = ", ".join(sorted(data.keys())) if isinstance(data, dict) else type(data).__name__
+            log(f"{path}: HTTP 200, Felder: {keys}" + (" → Adresse gefunden" if u else ""))
+            if u:
+                return u
+        else:
+            log(f"{path}: HTTP {st}{' ' + ctype if ctype else ''}")
+    return ""
+
+
+def _safe(s):
+    return re.sub(r'[<>:"/\\|?*\x00-\x1f]', "", str(s or "")).strip().rstrip(".")[:150]
+
+
+def target_name(t, ext) -> str:
+    title = t.get("name") or "Titel"
+    mix = t.get("mix_name")
+    return _safe(f"{', '.join(artists_of(t)) or 'Unbekannt'} - {title}{f' ({mix})' if mix else ''}") + ext
+
+
+def fetch_file(url, dest_dir, t, client, cancel=None) -> list[str]:
+    """Datei laden (signierte Adresse ohne Anmeldung; bei 401/403 mit Token nur für beatport.com) und unverändert
+    ablegen. ZIP: enthaltene Audiodateien entpacken. → abgelegte Pfade"""
+    import shutil
+    import tempfile
+    import zipfile
+    host = urllib.parse.urlparse(url).hostname or ""
+
+    def open_url(auth):
+        h = {"User-Agent": USER_AGENT}
+        if auth and (host == "beatport.com" or host.endswith(".beatport.com")):
+            h["Authorization"] = f"Bearer {client.tok['access_token']}"
+        return _urlopen(urllib.request.Request(url, headers=h), 120)
+
+    try:
+        r = open_url(False)
+    except urllib.error.HTTPError as e:
+        if e.code not in (401, 403):
+            raise HttpError(e.code, f"Download: HTTP {e.code}") from e
+        r = open_url(True)
+    ctype = (r.headers.get("Content-Type") or "").lower()
+    if not any(ctype.startswith(a) for a in AUDIO_TYPES):
+        r.close()
+        raise HttpError(0, f"Download liefert keine Audiodatei ({ctype or 'ohne Typ'}).")
+    cd = r.headers.get("Content-Disposition") or ""
+    m = re.search(r'filename\*?=(?:UTF-8\'\')?"?([^";]+)', cd)
+    name = _safe(urllib.parse.unquote(m.group(1))) if m else ""
+    os.makedirs(dest_dir, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(suffix=".part", dir=dest_dir)
+    try:
+        with os.fdopen(fd, "wb") as out, r:
+            while True:
+                if cancel is not None and cancel():
+                    raise Cancelled()
+                chunk = r.read(1 << 16)
+                if not chunk:
+                    break
+                out.write(chunk)
+        if zipfile.is_zipfile(tmp):
+            got = []
+            with zipfile.ZipFile(tmp) as z:
+                for zi in z.infolist():
+                    base = os.path.basename(zi.filename)
+                    if zi.is_dir() or base.startswith(".") or os.path.splitext(base)[1].lower() not in EXT.values():
+                        continue
+                    dst = _unique(os.path.join(dest_dir, _safe(base)))
+                    with z.open(zi) as src, open(dst, "wb") as fh:
+                        shutil.copyfileobj(src, fh)
+                    got.append(dst)
+            return got
+        ext = os.path.splitext(name)[1].lower() if name else ""
+        if ext not in EXT.values():
+            ext = EXT.get(_fmt_key(t).split("-")[0].split(" ")[0], ".mp3")
+        dst = _unique(os.path.join(dest_dir, name if name and name.lower().endswith(ext) else target_name(t, ext)))
+        os.replace(tmp, dst)
+        tmp = ""
+        return [dst]
+    finally:
+        if tmp and os.path.exists(tmp):
+            os.remove(tmp)
+
+
+def _urlopen(req, timeout):
+    """Datei-Download (in Tests ersetzbar)."""
+    return urllib.request.urlopen(req, timeout=timeout)  # noqa: S310 – Adresse stammt von Beatport
+
+
+def _unique(path):
+    stem, ext = os.path.splitext(path)
+    k, cand = 1, path
+    while os.path.exists(cand):
+        k += 1
+        cand = f"{stem} ({k}){ext}"
+    return cand
+
+
+def _done_path(ctx):
+    return os.path.join(ctx.data_dir, "geladen.json")
+
+
+def run_download(ctx, opts):
+    dest = str(opts.get("dest") or "").strip()
+    if not dest or not os.path.isdir(dest):
+        raise RuntimeError("Bitte einen vorhandenen Zielordner wählen (z. B. den Eingangsordner von „Vorbereiten“).")
+    client = Client(ctx)
+    ctx.status("Lese gekaufte Titel …")
+    path, items = purchases(client, 5000, ctx.log)
+    if not items:
+        return {"message": "Keine gekauften Titel gefunden – Details im Protokoll."}
+    try:
+        with open(_done_path(ctx), encoding="utf-8") as fh:
+            done = json.load(fh)
+    except (OSError, ValueError):
+        done = {}
+    folders = [x.strip() for x in str(opts.get("folders") or "").splitlines() if x.strip()] + [dest]
+    by_id, by_isrc, by_name, _n = _local_index(folders, ctx)
+    todo = []
+    for t in items:
+        tid = str(t.get("id"))
+        if tid in done or t.get("pre_order") or t.get("enabled") is False:
+            continue
+        artist, mix = ", ".join(artists_of(t)), t.get("mix_name") or ""
+        if by_id.get(tid) or by_isrc.get(str(t.get("isrc") or "").upper()) \
+                or by_name.get((norm(artist), norm(t.get("name", "")), norm(mix))):
+            continue
+        todo.append(t)
+    limit = max(1, int(opts.get("count") or 1))
+    ctx.log(f"Download: {len(items)} Käufe, {len(todo)} fehlen, lade höchstens {limit}.")
+    got, failed = [], []
+    for k, t in enumerate(todo[:limit]):
+        ctx.check_cancel()
+        label = f"{', '.join(artists_of(t))} – {t.get('name', '')}"
+        ctx.progress(k, min(limit, len(todo)), label)
+        try:
+            url = resolve_download(client, t, ctx.log)
+            if not url:
+                failed.append(f"{label}: keine Download-Adresse gefunden")
+                continue
+            paths = fetch_file(url, dest, t, client, ctx.cancelled)
+            for p in paths:
+                ctx.output(p)
+            got += paths
+            done[str(t.get("id"))] = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "files": [os.path.basename(p) for p in paths]}
+            with open(_done_path(ctx), "w", encoding="utf-8") as fh:
+                json.dump(done, fh, ensure_ascii=False, indent=1)
+        except Cancelled:
+            raise
+        except Exception as ex:  # noqa: BLE001
+            failed.append(f"{label}: {ex}")
+    for f in failed:
+        ctx.log(f)
+    msg = f"{len(got)} Datei(en) geladen nach {dest}; {max(0, len(todo) - limit)} weitere fehlen noch." if got else \
+        "Nichts geladen."
+    if failed:
+        msg += f" {len(failed)} Fehler – Details im Protokoll (bitte an Claude weitergeben, #117)."
+    if not todo:
+        msg = "Alle gekauften Titel sind schon vorhanden – nichts zu laden."
+    return {"message": msg}

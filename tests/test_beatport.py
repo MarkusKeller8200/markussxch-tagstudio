@@ -81,6 +81,14 @@ class FakeBeatport:
         if p.startswith("/v4/catalog/tracks/") and p.rstrip("/").split("/")[-1].isdigit():
             t = TRACKS.get(int(p.rstrip("/").split("/")[-1]))
             return (200, {}, json.dumps(t).encode()) if t else (404, {}, b"{}")
+        if p == "/v4/my/downloads/" and not q.get("track_id"):
+            return 200, {}, json.dumps({"results": [
+                dict(TRACKS[1001], order_item_download_id=501, audio_format={"name": "mp3"}),
+                {"id": 2001, "name": "Frisch gekauft", "mix_name": "Extended Mix", "artists": [{"name": "Mara Lind"}],
+                 "order_item_download_id": 502, "audio_format": {"name": "mp3"}},
+                {"id": 2002, "name": "Vorbestellt", "artists": [{"name": "X"}], "pre_order": True, "order_item_download_id": 503}]}).encode()
+        if p == "/v4/my/downloads/502/":
+            return 200, {}, json.dumps({"id": 502, "download_url": "https://dl.beatport.com/sig/abc.mp3"}).encode()
         if p == "/v4/catalog/tracks/":
             hits = [t for t in TRACKS.values() if t.get("isrc") == q.get("isrc")]
             return 200, {}, json.dumps({"results": hits}).encode()
@@ -134,7 +142,7 @@ class TestBeatport(Base):
         info = {p["id"]: p for p in self.s.plugins_list()["plugins"]}["beatport"]
         self.assertEqual(info["state"], "ready")
         self.assertEqual(info["status_text"], "Nicht angemeldet.")
-        self.assertEqual(sorted(a["id"] for a in info["actions"] if a["where"] == "page"), ["login", "logout", "purchases", "test"])
+        self.assertEqual(sorted(a["id"] for a in info["actions"] if a["where"] == "page"), ["download", "login", "logout", "purchases", "test"])
         # ohne Login: Abruf scheitert verständlich
         st = self.act("fetch", [0])
         self.assertIn("Nicht bei Beatport angemeldet", st["error"])
@@ -153,6 +161,49 @@ class TestBeatport(Base):
         self.assertIn("marku", info["status_text"])
         self.assertIn("marku", self.act("test")["result"]["message"])
         self.assertIn("Abgemeldet", self.act("logout")["result"]["message"])
+
+    def test_download(self):
+        """#117: fehlende Käufe laden – Adresse aus /my/downloads/{id}/, Datei unverändert, nicht doppelt."""
+        self.login()
+        audio = b"ID3\x03\x00\x00\x00\x00\x00\x00" + b"\xff\xfb" * 500
+
+        class Resp:
+            headers = {"Content-Type": "audio/mpeg", "Content-Disposition": 'attachment; filename="Mara Lind - Frisch gekauft (Extended Mix).mp3"'}
+
+            def __init__(self):
+                self.left = audio
+
+            def read(self, n=-1):
+                out, self.left = self.left[:n], self.left[n:]
+                return out
+
+            def close(self):
+                pass
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+        seen = []
+        orig = self.mod._urlopen
+        self.mod._urlopen = lambda req, timeout: (seen.append((req.full_url, req.headers)), Resp())[1]
+        try:
+            inbox = os.path.join(self.dir, "Eingang")
+            os.makedirs(inbox)
+            st = self.act("download", dest=inbox, folders=self.B, count=5)
+            self.assertIsNone(st["error"], st)
+            self.assertIn("1 Datei(en) geladen", st["result"]["message"], st["result"].get("log"))
+            f = os.path.join(inbox, "Mara Lind - Frisch gekauft (Extended Mix).mp3")
+            with open(f, "rb") as fh:
+                self.assertEqual(fh.read(), audio)                                     # unverändert
+            self.assertEqual(seen[0][0], "https://dl.beatport.com/sig/abc.mp3")
+            self.assertNotIn("Authorization", seen[0][1])                              # signierte Adresse ohne Token
+            st = self.act("download", dest=inbox, folders=self.B, count=5)
+            self.assertIn("nichts zu laden", st["result"]["message"])                  # nicht doppelt
+            self.assertEqual(len(seen), 1)
+        finally:
+            self.mod._urlopen = orig
 
     def test_token_paste_and_refresh(self):
         self.fake.valid.add("PASTED")

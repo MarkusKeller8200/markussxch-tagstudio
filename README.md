@@ -36,7 +36,7 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.12 oder neuer – oder gar nic
 - **Herkunft der Tags:** Kennzeichen, welche Anwendung ein Feld geschrieben hat; Felder einer Anwendung filtern
   oder entfernen.
 - **Plugins:** Stems (Gesang, Schlagzeug, Bass … trennen – im Hintergrund, Spuren aufklappbar unter dem Titel) und
-  Beatport (Metadaten mit eigenem Login), eigene Plugins möglich.
+  Beatport (Metadaten mit eigenem Login, Käufe abgleichen und fehlende herunterladen), eigene Plugins möglich.
 - **Einstellungen** an einem Ort – mit Vorgaben für den Start –, exportieren/importieren (z. B. Windows ↔ Mac) und
   zurücksetzen; Updates wahlweise nur offizielle oder auch Beta-Versionen, Versionshinweise direkt in der App.
 
@@ -581,8 +581,8 @@ Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markuss
   (Aufbau, LIST/INFO, ID3-Chunk; Schreibtest an einer Kopie).
 - **Mehrsprachigkeit** (Konzept, [docs/KONZEPT-MEHRSPRACHIG.md](docs/KONZEPT-MEHRSPRACHIG.md)): Englisch, Deutsch
   (Schweiz/Deutschland), Export/Import der Texte für die Übersetzung.
-- **Tracks vorbereiten – Ausbau** ([docs/KONZEPT-VORBEREITEN.md](docs/KONZEPT-VORBEREITEN.md)): automatischer
-  Download gekaufter Beatport-Titel in den Eingangsordner.
+- **Profile und Einrichtungsassistent** ([docs/KONZEPT-EINRICHTUNG.md](docs/KONZEPT-EINRICHTUNG.md)): zweite,
+  unabhängige TagStudio-Instanz mit getrennten Einstellungen; geführte Einrichtung für neue Benutzer.
 - **Später:** Beatgrid und Beatmatching im Player, Symbol-Werkzeugleiste im Vergleich, Plugin-Ideen (Liedtexte,
   Duplikate, Qualitätsprüfung, Import aus Rekordbox/Traktor/Serato), Analyse-Modelle, signierte
   Installer, Datenbank-Modul für die Bibliothek.
