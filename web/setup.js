@@ -68,13 +68,17 @@ async function wizardRun() {
   const prep = await call("prep_overview", null).catch(() => null);
   const plist = await call("plugins_list").catch(() => ({ plugins: [] }));
   const pl = Object.fromEntries((plist.plugins || []).map((p) => [p.id, p]));
+  const fo = await call("folders_overview").catch(() => ({ drives: [], structure: [], suggest: "", base: "" }));
   const W = {
+    base: fo.base || fo.suggest || "", mode: "struct", names: Object.fromEntries((fo.structure || []).map((x) => [x.id, x.name])),
     step: 0, goals: new Set(["tags"]), lib: (S.settings.defaults && S.settings.defaults.tagger) || "", inbox: prep ? prep.workflow.inbox : "",
     backup: true, backupDir: "", snap: true, programs: new Set(), adapt: true,
     online: new Set(Object.keys(pl).filter((k) => pl[k].enabled && WIZ_ONLINE.some(([id]) => id === k))),
     theme: S.opts.theme || "dark", notation: pg.key_notation || "", notations: pg.notations || [], layout: (pg.player && pg.player.layout) || "bottom", firstSteps: true,
   };
-  const steps = ["Willkommen", "Deine Musik", "Sicherheit", "Deine Programme", "Online-Dienste", "Darstellung", "Fertig"];
+  const steps = ["Willkommen", "Speicherort", "Deine Musik", "Sicherheit", "Deine Programme", "Online-Dienste", "Darstellung", "Fertig"];
+  const gb = (n) => (n >= 1e12 ? (n / 1e12).toFixed(1) + " TB" : Math.round(n / 1e9) + " GB");
+  const baseFor = (root) => (/^[A-Za-z]:\\$/.test(root) && !/^C:/i.test(root) ? root + "TagStudio" : /^C:/i.test(root) ? fo.home_base : root.replace(/[\\/]$/, "") + (root.includes("\\") ? "\\" : "/") + "TagStudio");
   const ov = $("#wizard");
   const pathIn = (id, v, ph) => `<div class="pl-folder"><input id="${id}" value="${esc(v)}" placeholder="${esc(ph)}" spellcheck="false"><button class="ghost sm" data-wpick="${id}">Wählen …</button></div>`;
   const chk = (name, val, on, title, sub = "") => `<label class="wiz-opt"><input type="checkbox" data-w="${name}" value="${esc(val)}" ${on ? "checked" : ""}><span><b>${esc(title)}</b>${sub ? `<span class="muted sm">${esc(sub)}</span>` : ""}</span></label>`;
@@ -82,38 +86,52 @@ async function wizardRun() {
     const v = (id) => ($("#" + id, ov) ? $("#" + id, ov).value.trim() : null);
     const set = (name) => new Set([...ov.querySelectorAll(`[data-w="${name}"]:checked`)].map((x) => x.value));
     if (W.step === 0) W.goals = set("goal");
-    if (W.step === 1) { W.lib = v("wLib") ?? W.lib; W.inbox = v("wInbox") ?? W.inbox; }
-    if (W.step === 2) { W.backup = !!$("#wBackup", ov).checked; W.backupDir = v("wBackupDir") ?? ""; W.snap = !!($("#wSnap", ov) || {}).checked; }
-    if (W.step === 3) { W.programs = set("prog"); W.adapt = !!($("#wAdapt", ov) || {}).checked; }
-    if (W.step === 4) W.online = set("online");
-    if (W.step === 5) { W.theme = ($(".wiz-theme .on", ov) || {}).dataset?.v || W.theme; W.notation = v("wNot") || W.notation; W.layout = v("wLayout") || W.layout; }
-    if (W.step === 6) W.firstSteps = !!$("#wFirst", ov).checked;
+    if (W.step === 1) { W.base = v("wBase") ?? W.base; W.mode = (ov.querySelector('input[name="wMode"]:checked') || {}).value || W.mode; }
+    if (W.step === 2 && W.mode === "struct") ov.querySelectorAll("[data-wname]").forEach((x) => { W.names[x.dataset.wname] = x.value.trim() || W.names[x.dataset.wname]; });
+    if (W.step === 2 && W.mode !== "struct") { W.lib = v("wLib") ?? W.lib; W.inbox = v("wInbox") ?? W.inbox; }
+    if (W.step === 3) { W.backup = !!$("#wBackup", ov).checked; W.backupDir = v("wBackupDir") ?? ""; W.snap = !!($("#wSnap", ov) || {}).checked; }
+    if (W.step === 4) { W.programs = set("prog"); W.adapt = !!($("#wAdapt", ov) || {}).checked; }
+    if (W.step === 5) W.online = set("online");
+    if (W.step === 6) { W.theme = ($(".wiz-theme .on", ov) || {}).dataset?.v || W.theme; W.notation = v("wNot") || W.notation; W.layout = v("wLayout") || W.layout; }
+    if (W.step === 7) W.firstSteps = !!$("#wFirst", ov).checked;
   };
   const body = () => {
     switch (W.step) {
       case 0: return `<h2>Willkommen bei TagStudio</h2><p class="muted">In ein paar Schritten richtest du TagStudio für deine Arbeit ein. Alles lässt sich später unter Einstellungen ändern – jeder Schritt kann übersprungen werden.</p>
         <h4>Was willst du vor allem tun?</h4><div class="wiz-opts">${WIZ_GOALS.map(([id, t, sub]) => chk("goal", id, W.goals.has(id), t, sub)).join("")}</div>
         <p class="muted sm">Die passenden Menüpunkte werden als <span class="rec-dot">★</span> empfohlen markiert – die anderen bleiben erreichbar.</p>`;
-      case 1: return `<h2>Deine Musik</h2><p class="muted">Der <b>Bibliotheksordner</b> öffnet sich beim Start im Tagger. Der <b>Eingangsordner</b> ist der Ordner, in dem neue Downloads landen (für „Vorbereiten“).</p>
-        <div class="frm"><label for="wLib">Bibliothek</label>${pathIn("wLib", W.lib, "z. B. S:\\_MP3\\01_Library")}
-        <label for="wInbox">Eingangsordner (optional)</label>${pathIn("wInbox", W.inbox, "z. B. S:\\_MP3\\00_Neu\\_01_Original")}</div>`;
-      case 2: return `<h2>Sicherheit</h2><p class="muted">TagStudio verändert nur Tags, nie das Audio. Trotzdem lohnt sich ein Netz:</p>
+      case 1: return `<h2>Speicherort</h2><p class="muted">Auf welchem Laufwerk soll deine Musik liegen? Der <b>Basisordner</b> wird gemerkt: Jede Ordnerauswahl in TagStudio beginnt dort, damit du dich nicht jedes Mal durchklicken musst.</p>
+        <div class="wiz-drives">${(fo.drives || []).map((d) => `<button class="wiz-drive ${W.base.toLowerCase().startsWith(d.root.toLowerCase()) ? "on" : ""}" data-wdrive="${esc(d.root)}"><b>${esc(d.root)}</b><span>${esc(d.label || d.kind || "")}</span><span class="muted sm">${gb(d.free)} frei von ${gb(d.total)}</span></button>`).join("")}</div>
+        <div class="frm"><label for="wBase">Basisordner</label>${pathIn("wBase", W.base, fo.suggest || "")}</div>
+        <h4>Wie möchtest du starten?</h4><div class="wiz-opts">
+          <label class="wiz-opt"><input type="radio" name="wMode" value="struct" ${W.mode === "struct" ? "checked" : ""}><span><b>Empfohlene Ordnerstruktur anlegen</b><span class="muted sm">Neue Musik, Bibliothek, Archiv, Downloads, Arbeitsordner und Sicherung als Unterordner – TagStudio stellt alles passend ein. Vorhandene Ordner bleiben, es wird nichts verschoben.</span></span></label>
+          <label class="wiz-opt"><input type="radio" name="wMode" value="own" ${W.mode !== "struct" ? "checked" : ""}><span><b>Bestehende Ordner wählen</b><span class="muted sm">Deine Musik liegt schon irgendwo – du wählst Bibliothek und Eingangsordner selbst (Auswahl beginnt im Basisordner).</span></span></label></div>`;
+      case 2: return W.mode === "struct"
+        ? `<h2>Ordnerstruktur</h2><p class="muted">Unter <b>${esc(W.base)}</b> werden diese Ordner angelegt (Namen änderbar):</p>
+          <div class="wiz-struct">${(fo.structure || []).map((x) => `<input data-wname="${esc(x.id)}" value="${esc(W.names[x.id] || x.name)}" spellcheck="false" aria-label="${esc(x.desc)}"><span class="muted sm">${esc(x.desc)}</span>`).join("")}</div>
+          <p class="muted sm">TagStudio sichert nur die Tags (wenige MB). Gegen den Verlust des Laufwerks sichere die Musik zusätzlich auf ein anderes Laufwerk oder in die Cloud.</p>`
+        : `<h2>Deine Musik</h2><p class="muted">Der <b>Bibliotheksordner</b> öffnet sich beim Start im Tagger. Der <b>Eingangsordner</b> ist der Ordner, in dem neue Musik landet (für „Vorbereiten“).</p>
+        <div class="frm"><label for="wLib">Bibliothek</label>${pathIn("wLib", W.lib, "z. B. " + (W.base || "S:\\Musik") + "\\01_Library")}
+        <label for="wInbox">Eingangsordner (optional)</label>${pathIn("wInbox", W.inbox, "z. B. " + (W.base || "S:\\Musik") + "\\00_New")}</div>`;
+      case 3: return `<h2>Sicherheit</h2><p class="muted">TagStudio verändert nur Tags, nie das Audio. Trotzdem lohnt sich ein Netz:</p>
         <div class="wiz-opts"><label class="wiz-opt"><input type="checkbox" id="wBackup" ${W.backup ? "checked" : ""}><span><b>Vor jedem Speichern sichern</b><span class="muted sm">Die Tags der betroffenen Titel werden vorher abgelegt und lassen sich wiederherstellen.</span></span></label>
-        ${W.lib ? `<label class="wiz-opt"><input type="checkbox" id="wSnap" ${W.snap ? "checked" : ""}><span><b>Bibliothek mit Snapshots überwachen</b><span class="muted sm">Merkt sich den Tag-Stand aller Titel; das Journal zeigt später jede Änderung – auch von anderen Programmen.</span></span></label>` : ""}</div>
-        <div class="frm"><label for="wBackupDir">Ordner für Sicherungen</label>${pathIn("wBackupDir", W.backupDir, pg.backup_dir ? `leer = wie bisher (${pg.backup_dir})` : "leer = Standard")}</div>`;
-      case 3: return `<h2>Deine Programme</h2><p class="muted">Welche Programme nutzt du? TagStudio erkennt deren Tags (Herkunft), schaltet passende Plugins ein und stellt den Vorbereiten-Ablauf darauf ein.</p>
+        ${W.lib || W.mode === "struct" ? `<label class="wiz-opt"><input type="checkbox" id="wSnap" ${W.snap ? "checked" : ""}><span><b>Bibliothek mit Snapshots überwachen</b><span class="muted sm">Merkt sich den Tag-Stand aller Titel; das Journal zeigt später jede Änderung – auch von anderen Programmen.</span></span></label>` : ""}</div>
+        ${W.mode === "struct" ? `<p class="muted sm">Sicherungen und Snapshots kommen in ${esc(W.base)}\\${esc(W.names.backup || "99_Sicherung")}.</p>` : `<div class="frm"><label for="wBackupDir">Ordner für Sicherungen</label>${pathIn("wBackupDir", W.backupDir, pg.backup_dir ? `leer = wie bisher (${pg.backup_dir})` : "leer = Standard")}</div>`}`;
+      case 4: return `<h2>Deine Programme</h2><p class="muted">Welche Programme nutzt du? TagStudio erkennt deren Tags (Herkunft), schaltet passende Plugins ein und stellt den Vorbereiten-Ablauf darauf ein.</p>
         <div class="wiz-opts cols">${WIZ_PROGRAMS.map(([id, t, plug]) => chk("prog", id, W.programs.has(id), t, plug ? "Plugin zum Übernehmen der Analysewerte" : "")).join("")}</div>
         ${W.goals.has("prep") && prep ? `<label class="check"><input type="checkbox" id="wAdapt" ${W.adapt ? "checked" : ""}> Vorbereiten-Workflow anpassen: Schritte für nicht genutzte Programme entfernen</label>` : ""}`;
-      case 4: return `<h2>Online-Dienste <span class="muted sm">(optional)</span></h2><p class="muted">Plugins, die Daten aus dem Internet holen oder mehr Speicher brauchen. Anmeldungen und Schlüssel gibst du später selbst unter Plugins ein.</p>
+      case 5: return `<h2>Online-Dienste <span class="muted sm">(optional)</span></h2><p class="muted">Plugins, die Daten aus dem Internet holen oder mehr Speicher brauchen. Anmeldungen und Schlüssel gibst du später selbst unter Plugins ein.</p>
         <div class="wiz-opts">${WIZ_ONLINE.filter(([id]) => pl[id]).map(([id, t, sub]) => chk("online", id, W.online.has(id), t, sub)).join("")}</div>`;
-      case 5: return `<h2>Darstellung</h2><div class="frm"><span>Design</span><div class="seg wiz-theme"><button data-v="dark" class="${W.theme !== "light" ? "on" : ""}">Dunkel</button><button data-v="light" class="${W.theme === "light" ? "on" : ""}">Hell</button></div>
+      case 6: return `<h2>Darstellung</h2><div class="frm"><span>Design</span><div class="seg wiz-theme"><button data-v="dark" class="${W.theme !== "light" ? "on" : ""}">Dunkel</button><button data-v="light" class="${W.theme === "light" ? "on" : ""}">Hell</button></div>
         ${W.notations.length ? `<label for="wNot">Tonart-Schreibweise</label><select id="wNot" class="inp">${W.notations.map(([k, v]) => `<option value="${esc(k)}" ${k === W.notation ? "selected" : ""}>${esc(v)}</option>`).join("")}</select>` : ""}
         <label for="wLayout">Player</label><select id="wLayout" class="inp"><option value="bottom" ${W.layout !== "top" ? "selected" : ""}>unten in der Aktionsleiste</option><option value="top" ${W.layout === "top" ? "selected" : ""}>oben als eigene Leiste</option></select></div>`;
       default: {
         const rec = [...new Set(WIZ_GOALS.filter(([id]) => W.goals.has(id)).flatMap((g) => g[3]))].map((m) => NAV_NAMES[m]);
         return `<h2>Fertig</h2><p class="muted">Das wird eingestellt:</p><ul class="wiz-sum">
-          <li>Empfohlen: ${esc(rec.join(", ") || "—")}</li>${W.lib ? `<li>Bibliothek: ${esc(W.lib)}</li>` : ""}${W.inbox ? `<li>Eingangsordner: ${esc(W.inbox)}</li>` : ""}
-          <li>Sicherungen vor dem Speichern: ${W.backup ? "ja" : "nein"}${W.lib && W.snap ? " · Snapshots der Bibliothek" : ""}</li>
+          <li>Empfohlen: ${esc(rec.join(", ") || "—")}</li>${W.base ? `<li>Basisordner: ${esc(W.base)}</li>` : ""}
+          ${W.mode === "struct" ? `<li>Ordnerstruktur: ${esc(Object.values(W.names).join(", "))}</li>` : ""}
+          ${W.mode !== "struct" && W.lib ? `<li>Bibliothek: ${esc(W.lib)}</li>` : ""}${W.mode !== "struct" && W.inbox ? `<li>Eingangsordner: ${esc(W.inbox)}</li>` : ""}
+          <li>Sicherungen vor dem Speichern: ${W.backup ? "ja" : "nein"}${(W.lib || W.mode === "struct") && W.snap ? " · Snapshots der Bibliothek" : ""}</li>
           ${W.programs.size ? `<li>Programme: ${esc(WIZ_PROGRAMS.filter(([id]) => W.programs.has(id)).map((p) => p[1]).join(", "))}</li>` : ""}
           ${W.online.size ? `<li>Plugins: ${esc(WIZ_ONLINE.filter(([id]) => W.online.has(id)).map((p) => p[1]).join(", "))}</li>` : ""}</ul>
           <label class="check"><input type="checkbox" id="wFirst" ${W.firstSteps ? "checked" : ""}> „Erste Schritte“-Hinweise auf jeder Seite zeigen</label>
@@ -144,6 +162,8 @@ async function wizardRun() {
     ov.onclick = async (e) => {
       const pk = e.target.closest("[data-wpick]");
       if (pk) { const inp = $("#" + pk.dataset.wpick, ov); const p = await call("pick_path", "", true, inp.value.trim()); if (p) inp.value = p; return; }
+      const dv = e.target.closest("[data-wdrive]");
+      if (dv) { W.base = baseFor(dv.dataset.wdrive); $("#wBase", ov).value = W.base; $$(".wiz-drive", ov).forEach((x) => x.classList.toggle("on", x === dv)); return; }
       const th = e.target.closest(".wiz-theme button");
       if (th) { $$(".wiz-theme button", ov).forEach((b) => b.classList.toggle("on", b === th)); S.opts.theme = th.dataset.v; applyTheme(); return; }
       const b = e.target.closest("[data-wiz]"); if (!b) return;
@@ -151,15 +171,21 @@ async function wizardRun() {
       if (b.dataset.wiz === "skip") return done(false);
       if (b.dataset.wiz === "back") { W.step--; return render(); }
       if (W.step === steps.length - 1) return done(true);
+      if (W.step === 1 && W.mode === "struct" && !W.base) { toast("Bitte einen Basisordner wählen."); return; }
       W.step++; render();
     };
   });
 }
 
-async function wizardApply(W, prep, pl) {
+async function wizardApply(W, prep, pl) {  // eslint-disable-line no-param-reassign
   const rec = [...new Set(WIZ_GOALS.filter(([id]) => W.goals.has(id)).flatMap((g) => g[3]))];
+  if (W.mode === "struct" && W.base) {                               // #171: Struktur anlegen, alles darauf einstellen
+    const r = await call("setup_structure", W.base, W.names);
+    W.lib = r.paths.library; W.inbox = "";
+    prep = await call("prep_overview", null).catch(() => prep);
+  } else if (W.base) await call("set_base_dir", W.base, true);
   if (W.lib) await call("set_default_dir", "tagger", W.lib);
-  await call("set_backup", W.backup, W.backupDir || null, true);
+  await call("set_backup", W.backup, W.mode === "struct" ? null : (W.backupDir || null), true);
   if (W.lib && W.snap) await call("snap_add_library", W.lib).catch(() => {});
   for (const [id, , plug] of WIZ_PROGRAMS) if (plug && pl[plug]) await call("plugin_enable", plug, W.programs.has(id)).catch(() => {});
   for (const [id] of WIZ_ONLINE) if (pl[id]) await call("plugin_enable", id, W.online.has(id)).catch(() => {});
@@ -236,3 +262,31 @@ function setupSettingsHtml() {
   return `<h4 class="st-sub">Seitenleiste</h4><div class="st-row"><span>Menüpunkte</span><div class="nav-pick">${s.modules.filter((m) => !["settings", "help"].includes(m)).map((m) => `<label class="check"><input type="checkbox" data-navshow="${m}" ${s.hidden.includes(m) ? "" : "checked"}> ${esc(NAV_NAMES[m])}${s.recommended.includes(m) ? ' <span class="rec-dot" title="empfohlen">★</span>' : ""}</label>`).join("")}</div>
     <span>Einrichtung</span><div class="st-path"><button class="ghost sm" data-setup="wizard">Einrichtungsassistent starten</button><button class="ghost sm" data-setup="firststeps">„Erste Schritte“ neu starten</button></div></div>`;
 }
+
+/** Einstellungen › Speicherort und Ordner (#171) */
+async function stFoldersRender() {
+  const box = $("#stFolders"); if (!box) return;
+  const f = await call("folders_overview");
+  box.innerHTML = `<div class="st-row">
+      <label for="stBase">Basisordner</label><div><div class="pl-folder"><input id="stBase" value="${esc(f.base)}" placeholder="${esc(f.suggest)}" spellcheck="false"><button class="ghost sm" data-stbase="pick">Wählen …</button><button class="ghost sm" data-stbase="save">Übernehmen</button></div>
+        <div class="muted sm">Jede Ordnerauswahl in TagStudio beginnt hier (z. B. ${esc(f.suggest)}).</div></div>
+      <span>Ordnerstruktur</span><div><button class="ghost sm" data-stbase="struct" ${f.base ? "" : "disabled"}>Struktur im Basisordner anlegen …</button>
+        <div class="muted sm">${esc(f.structure.map((x) => x.name).join(" · "))} – vorhandene Ordner bleiben; Bibliothek, Vorbereiten, Sicherungen und Downloads werden darauf eingestellt.</div></div>
+      <span>Arbeitsordner</span><div class="fold-rows">${f.rows.map((r) => `<div class="fold-row"><span>${esc(r.label)}</span><span class="${r.path && !r.exists ? "st-missing" : "muted"}" title="${esc(r.path)}">${esc(r.path || "–")}${r.path && !r.exists ? " (fehlt)" : ""}</span></div>`).join("")}</div>
+    </div>`;
+}
+
+(function bindFolders() {
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-stbase]"); if (!b) return;
+    const inp = $("#stBase");
+    if (b.dataset.stbase === "pick") { const p = await call("pick_path", "", true, inp.value.trim()); if (p) inp.value = p; return; }
+    if (b.dataset.stbase === "save") { try { await call("set_base_dir", inp.value.trim(), true); toast("Basisordner gespeichert."); } catch (x) { toast(String(x.message || x)); } stFoldersRender(); return; }
+    if (b.dataset.stbase === "struct") {
+      const f = await call("folders_overview");
+      if (!(await dialog({ title: "Ordnerstruktur anlegen", text: `In ${f.base} werden ${f.structure.map((x) => x.name).join(", ")} angelegt (vorhandene bleiben). Danach zeigen Tagger-Bibliothek, Vorbereiten (Eingang, Arbeitsordner, Bibliothek, Quelle Downloads), Archiv, Sicherungen und Beatport-Download auf diese Ordner. Weiter?`, buttons: [{ label: "Abbrechen", value: null }, { label: "Anlegen", value: true, primary: true }] }))) return;
+      try { const r = await call("setup_structure", f.base, {}); toast(`${r.created.length} Ordner angelegt, Einstellungen angepasst.`); } catch (x) { toast(String(x.message || x)); }
+      settingsShow();
+    }
+  });
+})();

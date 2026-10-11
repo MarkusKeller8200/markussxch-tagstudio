@@ -21,6 +21,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Snapshots, genutzte Programme (Plugins und Vorbereiten-Workflow passend), Online-Dienste, Darstellung. Gewählte
   Bereiche werden in der Seitenleiste mit ★ empfohlen. Jederzeit erneut über Hilfe oder Einstellungen › Darstellung
   (#167, #168).
+- **Speicherort und Ordnerstruktur:** Basislaufwerk und Basisordner werden gespeichert – jede Ordnerauswahl beginnt
+  dort. Im Assistenten nach der Laufwerkswahl entweder bestehende Ordner wählen oder die empfohlene Struktur anlegen
+  (`00_New`, `01_Library`, `02_Archiv`, `90_Download`, `91_Work`, `99_Sicherung`; Namen änderbar). TagStudio stellt
+  Bibliothek, Vorbereiten (Eingang, Arbeitsordner, Quelle Downloads), Sicherungen, Snapshot-Speicher und das
+  Beatport-Download-Ziel darauf ein; vorhandene Ordner bleiben, nichts wird verschoben. Einstellungen › Speicherort und
+  Ordner zeigt alle Arbeitsordner (#172).
 - **Seitenleiste:** Menüpunkte lassen sich ausblenden (Einstellungen › Darstellung) (#169).
 - **„Erste Schritte“** – kurze Hinweise beim ersten Besuch jeder Seite (neu startbar über Hilfe) – und **„Neu in
   dieser Version“** nach einem Update (#170).

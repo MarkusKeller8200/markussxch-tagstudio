@@ -46,6 +46,30 @@ class TestSetup(Base):
             s.whats_new_seen()
             self.assertFalse(s.whats_new()["show"])
 
+    def test_structure(self):
+        import os
+        s = self.session({})
+        base = os.path.join(self.dir, "Musik")
+        os.makedirs(os.path.join(base, "01_Library"))                  # vorhandener Ordner bleibt
+        r = s.setup_structure(base, {"new": "00_Neu"})
+        self.assertTrue(all(os.path.isdir(p) for p in r["paths"].values()))
+        self.assertEqual(os.path.basename(r["paths"]["new"]), "00_Neu")
+        self.assertEqual(len(r["created"]), 5)
+        self.assertEqual(s.cfg["base_dir"], base)
+        self.assertEqual(s.cfg["default_tagger"], r["paths"]["library"])
+        self.assertEqual(s.cfg["archive_dir"], r["paths"]["archive"])
+        self.assertEqual(s.snap_store.root, os.path.join(r["paths"]["backup"], "Snapshots"))
+        w = s._prep_get()
+        self.assertEqual((w["inbox"], w["work"], w["library"]), (r["paths"]["new"], r["paths"]["work"], r["paths"]["library"]))
+        self.assertEqual(w["sources"][0]["folder"], r["paths"]["download"])
+        self.assertEqual(s.cfg["plugin_options"]["beatport"]["download"]["dest"], r["paths"]["download"])
+        s.setup_structure(base)                                         # nochmals: keine doppelte Quelle
+        self.assertEqual(len(s._prep_get()["sources"]), 1)
+        ov = s.folders_overview()
+        self.assertTrue(all(x["exists"] for x in ov["rows"] if x["path"]))
+        with self.assertRaises(ValueError):
+            s.setup_structure("")
+
 
 if __name__ == "__main__":
     unittest.main()

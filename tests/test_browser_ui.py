@@ -582,8 +582,13 @@ class UiTest(unittest.TestCase):
         pg.wait_for_selector("#wizard .wiz-box")
         self.assertIn("Willkommen", pg.inner_text("#wizard"))
         pg.check('#wizard [data-w="goal"][value="prep"]')
-        pg.click('#wizard [data-wiz="next"]')
-        pg.fill("#wLib", self.lib)
+        pg.click('#wizard [data-wiz="next"]')                       # Speicherort: Laufwerke, Basisordner, Art
+        self.assertTrue(pg.locator("#wizard .wiz-drive").count() >= 1)
+        base = os.path.join(self.dir, "Musik")
+        pg.fill("#wBase", base)
+        pg.check('#wizard input[name="wMode"][value="struct"]')
+        pg.click('#wizard [data-wiz="next"]')                       # Ordnerstruktur (Namen änderbar)
+        pg.fill('#wizard [data-wname="new"]', "00_Neu")
         pg.click('#wizard [data-wiz="next"]')                       # Sicherheit
         pg.click('#wizard [data-wiz="next"]')                       # Programme
         pg.check('#wizard [data-w="prog"][value="mik"]')
@@ -591,11 +596,14 @@ class UiTest(unittest.TestCase):
         pg.click('#wizard [data-wiz="next"]')                       # Darstellung
         pg.click('#wizard .wiz-theme [data-v="light"]')
         pg.click('#wizard [data-wiz="next"]')                       # Fertig
-        self.assertIn(self.lib, pg.inner_text("#wizard"))
+        self.assertIn(base, pg.inner_text("#wizard"))
         pg.click('#wizard [data-wiz="next"]')                       # Einrichten
         pg.wait_for_function("document.querySelector('#wizard').hidden")
         cfg = self.cfg()
-        self.assertEqual(cfg["default_tagger"], self.lib)
+        self.assertEqual(cfg["base_dir"], base)
+        self.assertEqual(cfg["default_tagger"], os.path.join(base, "01_Library"))
+        self.assertTrue(os.path.isdir(os.path.join(base, "00_Neu")))
+        self.assertTrue(os.path.isdir(os.path.join(base, "99_Sicherung", "Snapshots")))
         self.assertEqual(cfg["web_theme"], "light")
         self.assertIn("prep", cfg["nav_recommended"])
         self.assertTrue(cfg["setup_done"])
@@ -604,8 +612,12 @@ class UiTest(unittest.TestCase):
         self.assertIn("Mixed In Key", labels)
         self.assertNotIn("beaTunes", labels)                        # nicht gewählt → aus dem Workflow entfernt
         self.assertTrue(pg.locator('.nav[data-module="prep"] .rec-dot').count())
-        # Erste Schritte auf der Startseite, „Verstanden“ blendet aus
+        # Erste Schritte auf der Startseite, „Verstanden“ blendet aus (Hinweise nach dem Assistenten zuerst schliessen)
         pg.wait_for_selector("#firstSteps:not([hidden])")
+        for _ in range(20):
+            time.sleep(0.2)
+            if pg.locator("#modal").is_visible():
+                pg.click("#mBtns button >> nth=0")
         pg.click('#firstSteps [data-fs="ok"]')
         pg.wait_for_selector("#firstSteps", state="hidden")
         # Menüpunkt ausblenden in den Einstellungen (Hinweise, die nach dem Assistenten kommen, schliessen)

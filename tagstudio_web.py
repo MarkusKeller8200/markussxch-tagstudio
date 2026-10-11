@@ -55,7 +55,7 @@ _PASS = {
     "dj_lists", "dj_save_as", "dj_load", "dj_new", "dj_list_delete", "dj_list_rename",
     "pq_state", "pq_add", "pq_set", "pq_take", "pq_to_djset",
     "help_docs", "help_tags", "start_tag_scan", "tag_field_filter",
-    "setup_state", "setup_finish", "set_nav_hidden", "first_steps_seen", "first_steps_restart", "set_first_steps", "whats_new", "whats_new_seen",
+    "setup_state", "setup_finish", "set_nav_hidden", "first_steps_seen", "first_steps_restart", "set_first_steps", "whats_new", "whats_new_seen", "folders_overview", "set_base_dir", "setup_structure",
     "disc_overview", "disc_follow_save", "disc_set", "disc_genres", "disc_auto", "disc_auto_status", "start_disc_suggest", "start_disc_run",
     "prep_overview", "prep_pending", "start_prep_fetch", "prep_workflow_save", "prep_workflow_new", "prep_workflow_delete", "prep_export", "prep_import", "start_prep_run", "prep_refresh", "prep_mark", "prep_revert", "prep_allow", "prep_cleanup",
     "plugins_list", "plugin_enable", "plugin_actions", "plugin_form", "start_plugin_action", "start_plugin_install", "plugin_apply",
@@ -411,7 +411,11 @@ class Api:
 
     def pick_path(self, side, folder=True, start="", kind="mp3"):
         """Ordner- bzw. Dateiauswahl des Betriebssystems. Liefert den Pfad oder ''.
-        kind (nur Dateien): "mp3" oder "program" (Programme, z. B. für externe Schritte im Workflow)."""
+        kind (nur Dateien): "mp3" oder "program" (Programme, z. B. für externe Schritte im Workflow).
+        Ohne Startpfad beginnt die Auswahl im Basisordner (#171), sonst im Benutzerordner."""
+        if not start and kind != "program":
+            base = self._s.base_dir()
+            start = base if base and os.path.isdir(base) else ""
         start = start if start and os.path.isdir(start) else (os.path.dirname(start) if start else os.path.expanduser("~"))
         if start and not os.path.isdir(start):
             start = os.path.expanduser("~")
