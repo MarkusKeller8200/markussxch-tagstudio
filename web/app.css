@@ -1151,3 +1151,6 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 
 /* #140/#151: Feldname wie in Mp3tag */
 .fname{font:10.5px/1 ui-monospace,Consolas,monospace;color:var(--faint);letter-spacing:.02em;margin-left:4px;white-space:nowrap}
+.menu .menu-chk{display:flex;align-items:center;gap:8px}
+.menu .chk{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid var(--faint);border-radius:4px;font-size:11px;flex:none}
+.menu .chk.on{background:var(--acc);border-color:var(--acc);color:#fff}

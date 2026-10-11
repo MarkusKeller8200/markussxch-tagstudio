@@ -495,6 +495,14 @@ class UiTest(unittest.TestCase):
         pg.click("#tgFeatCols")
         pg.locator("#menu button", has_text="Energy – ").click()
         pg.wait_for_selector('#tgHead [data-sort="f:ENERGY"]')
+        # #149: Häkchen, Menü bleibt offen – zweites Merkmal an und wieder aus
+        self.assertTrue(pg.locator("#menu").is_visible())
+        self.assertEqual(pg.locator("#menu button", has_text="Energy – ").get_attribute("aria-checked"), "true")
+        pg.locator("#menu .menu-chk >> nth=1").click()
+        self.assertEqual(pg.evaluate("LAYOUT.tg_feat_cols.length"), 2)
+        pg.locator("#menu .menu-chk >> nth=1").click()
+        self.assertEqual(pg.evaluate("LAYOUT.tg_feat_cols"), ["ENERGY"])
+        pg.keyboard.press("Escape")
         self.assertEqual(pg.locator("#tgInner .ft-c").count(), 2)
         self.assertEqual(self.cfg_until(lambda c: "tg_feat_cols" in c.get("web_ui", {}))["web_ui"]["tg_feat_cols"], ["ENERGY"])
         # Sortieren nach Energy: 40 vor 80, leere ans Ende

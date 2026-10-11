@@ -1071,6 +1071,16 @@ function showMenu(x, y, items) {
   items.forEach((it) => {
     if (it === "-") { m.appendChild(document.createElement("hr")); return; }
     const b = document.createElement("button");
+    if (typeof it.check === "boolean") {          // #149: Häkchen-Eintrag – Menü bleibt offen
+      b.setAttribute("role", "menuitemcheckbox");
+      b.className = "menu-chk";
+      const paint = (on) => { b.setAttribute("aria-checked", String(on)); b.innerHTML = `<span class="chk${on ? " on" : ""}" aria-hidden="true">${on ? "✓" : ""}</span>` + esc(it.label); };
+      let on = it.check;
+      paint(on);
+      b.addEventListener("click", (e) => { e.stopPropagation(); on = !on; paint(on); it.run(on); });
+      m.appendChild(b);
+      return;
+    }
     b.setAttribute("role", "menuitem");
     b.innerHTML = (it.icon || "") + esc(it.label);
     b.addEventListener("click", () => { hideMenu(); it.run(); });

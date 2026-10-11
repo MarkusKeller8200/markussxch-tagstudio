@@ -14,6 +14,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   (#140, #151).
 - Tagger: „Weitere Felder“ wahlweise nach Herkunft sortiert – TagStudio zuerst, dann alphabetisch (#141).
 - Tagger: Cover-Knöpfe untereinander, neu „Cover im Internet suchen“ (Bildersuche mit Künstler und Album) (#150).
+- Tagger: Auswahl der Merkmal-Spalten mit Häkchen; das Menü bleibt offen, mehrere Merkmale nacheinander (#149).
 
 ### Geändert
 - Beatport: neue Option „Nur noch nicht vorhandene Felder“ – ist Standard; vorhandene Felder werden dann weder

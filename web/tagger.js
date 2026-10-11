@@ -303,7 +303,7 @@ function tgFeatMenu(btn) {
   };
   const r = btn.getBoundingClientRect();
   showMenu(r.left, r.bottom + 6, [
-    ...list.map(([n, label, desc]) => ({ label: `${on.has(n) ? "✓ " : "    "}${label} – ${desc}`, run: () => toggle(n) })),
+    ...list.map(([n, label, desc]) => ({ label: `${label} – ${desc}`, check: on.has(n), run: () => toggle(n) })),   // #149
     "-",
     { label: "Alle Merkmal-Spalten ausblenden", run: () => { LAYOUT.tg_feat_cols = []; saveUi("tg_feat_cols"); renderTgHead(); drawTgList(); } },
     { label: "Filter-Beispiel einsetzen: energy>=70", run: () => { $("#tgQuery").value = "energy>=70"; tgApplyOrder(); $("#tgQuery").focus(); } },
