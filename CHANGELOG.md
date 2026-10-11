@@ -33,6 +33,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   `_aussortiert.csv`; Einstellungen › Speicherort und Ordner › „Aussortierte …“ holt Titel zurück (#173).
 - **Speicherkonzept** – alle Ablageorte und die empfohlene Ordnerstruktur:
   [docs/KONZEPT-SPEICHER.md](docs/KONZEPT-SPEICHER.md).
+- **Projektstand und Übergabe** im Repo: [docs/PROJEKTSTAND.md](docs/PROJEKTSTAND.md),
+  [docs/UEBERGABE.md](docs/UEBERGABE.md), [docs/PROJEKTSTAND-ARCHIV.md](docs/PROJEKTSTAND-ARCHIV.md).
 - **Seitenleiste:** Menüpunkte lassen sich ausblenden (Einstellungen › Darstellung) (#169).
 - **„Erste Schritte“** – kurze Hinweise beim ersten Besuch jeder Seite (neu startbar über Hilfe) – und **„Neu in
   dieser Version“** nach einem Update (#170).

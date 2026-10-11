@@ -514,6 +514,9 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 
 ## Entwicklung
 
+- **Projektstand und Übergabe:** [docs/PROJEKTSTAND.md](docs/PROJEKTSTAND.md) (aktueller Stand, Arbeitsweise),
+  [docs/UEBERGABE.md](docs/UEBERGABE.md) (Einstieg für eine neue Sitzung),
+  [docs/PROJEKTSTAND-ARCHIV.md](docs/PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0).
 - **Tests:** `python -m unittest discover -s tests -v` – ID3-Lesen/-Schreiben (v2.3/v2.4, Mehrfachwerte, BOM,
   GEOB, Datumsumwandlung), Vergleich, Tag-Fixer, Sicherung/Wiederherstellung, Sitzung der neuen Oberfläche,
   Tagger-Werkzeuge, Tonarten, Audio-Merkmale, XML und Binärfelder, Versionierung, Updater und Plugins (Stems und

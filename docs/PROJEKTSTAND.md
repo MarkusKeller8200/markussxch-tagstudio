@@ -1,0 +1,152 @@
+# MarKusSXCH TagStudio – Projektstand
+
+> Stand 2026-10-11 ~23:00: **4.3.0 final**; **4.4.0-beta.4** (Meilenstein #10 „4.4.0 – Beatport-Download, Profile, Einrichtungsassistent“): #117 Beatport-Download (beta.1), #163–#165 Profile (`paths.py`: data_dir/config_file/lock_file/mutex_name/shared_plugin_data, Profilwahl `profilePick`, Registry `~/TagStudio/profile.json`, Profile unter `~/TagStudio-Profile/<Name>/`, `ctx.shared_dir` für Stems-Modelle/FFmpeg, Restart setzt TAGSTUDIO_NOASK), #167–#170 Einrichtung (`session_setup.py`, `web/setup.js`: Assistent 7 Schritte, `nav_recommended` ★, `nav_hidden`, Erste-Schritte-Karte `#firstSteps`, `whats_new` ab `seen_version`; bestehende Installationen über USED_KEYS migriert, first_steps aus; `modal()` wartet, solange `#wizard` offen). Alle `_3 Beta-Test`. #166 nicht nötig (Entscheid). UI-Tests schreiben `.tagstudio.json` mit setup_done, ausser Tests mit „wizard“ im Namen. beta.3: #172 Basisordner (`base_dir`, Start jeder Ordnerauswahl, `FoldersMixin` in session_setup.py: folders_overview/set_base_dir/setup_structure, STRUCTURE 00_New…99_Sicherung, Wizard-Schritt „Speicherort“ mit Laufwerken, Einstellungen-Karte `#stFolders`); beta.4: #173 Aussortieren (`archive.py` plan/move/entries/restore, Vermerk `_aussortiert.csv` im Archiv, `ArchiveMixin` in session_setup.py: tag_archive/prep_archive/archive_list/archive_restore, Knopf `tgArchive`, Zellen-Menü in Vorbereiten, Unterordner bleiben, Stems wandern mit) – `_3 Beta-Test`. Speicherkonzept: `docs/KONZEPT-SPEICHER.md` (im Projekt als `claude/speicherkonzept.md`), bei Änderungen nachführen.
+
+## Aktueller Stand (nach 4.1.0)
+
+- **4.1.0 ist abgeschlossen:** Release v4.1.0 (Windows + macOS, Python 3.15 im Installer), Beta-Releases automatisch entfernt, Meilenstein #3 geschlossen (15 Issues: #6, #7, #8, #125–#136 inkl. CodeQL #128–#130).
+- **User startet TagStudio normalerweise aus `S:\_Claude\markussxch-tagstudio` (Quellcode, sein Python 3.14)**; installiert war nur der 3.15-Probe-Build. Er testet **ausschliesslich auf Windows**.
+- **CI-Entscheide 2026-10-11:** Linux nicht mehr getestet (Wiedereinschalten in `tests.yml`); **Betas: Tests und Installer nur Windows**, finale Versionen zusätzlich macOS (Installer-Workflow: Eingabe „Auch macOS bauen“ für Ausnahmen). Erst die nächste Beta zeigt, ob das Release ohne macOS-Datei sauber angelegt wird.
+- **Auftrag des Users 2026-10-11 03:18:** Ideen als Issues erfassen (#138–#157, Meilenstein „Später“, Label `idee`), neuen Meilenstein planen (#76 muss dabei sein) und selbständig umsetzen – ohne Rückfragen, keine Extra-Kredits. User schaut ab Sonntag 09:00.
+- **4.2.0 ist final** (Entscheid User 12:54: „alles in 4.2.0“): Meilenstein #11 umbenannt in „4.2.0 – Player, Tagger-Komfort, Importer & Playlist“, enthält jetzt auch #12, #138, #145, #146; Meilenstein #12 (4.3.0) leer und geschlossen. Alle Issues getestet und geschlossen.
+  - #76 Serato lesbar + Beatgrid (Serato, sonst Audio-Analyse `beatAnalyse`, gespeichert im Wellenform-Cache), Überblenden im Takt/auf Taktgrenze, Sync B, Option `xfade_pitch`.
+  - #137 Start im Hintergrund + Listen-Cache als Pack (`listcache._Pack`), gemessen 15.9 s → 3.0 s.
+  - #139–#155 Tagger/Player-Komfort (Doppelklick, Feldnamen, Herkunft-Sortierung offizielle Felder zuerst, Spalten, Sortierstufen, Ansicht, Cover-Bereich links Länge/Bewertung rechts Info+Knöpfe, Vorschau „Nur fehlende“/„Vorauswahl“).
+  - #147 MIK-Plugin, #145 beaTunes-Plugin, #146 Lexicon-Plugin (Local API `/v1/tracks` limit ≤ 1000, `/v1/tags`; Werte 0–10, 0 = nicht analysiert), gemeinsamer Abgleich `importsync.py` (TXXX:TAGSTUDIO `sync`).
+  - #138 DJ-Set-Listen (cfg `djset_saved`, `djset_name`) + Warteschlange (cfg `player_queue`, `web/queue.js`).
+  - #12 Stimmung `moods.py` (v2.4 TMOO, v2.3 TXXX:MOOD), Chips im Tagger, eigene Liste cfg `mood_list`.
+- **Meilenstein #13 „4.3.0 – Hilfe, ID3, Snapshots, Tracks vorbereiten (Phase 1)“** (Auftrag User 13:06 + 13:23/13:25, „alles in diese Beta“), alle `_3 Beta-Test`, Testlisten in den Issues:
+  - #13 Binärfeld-Editor/JSON-Baum im Vergleich (`cmp_blob/cmp_blob_set`, `blobEditor(src,key)`, `jsonEditDialog`).
+  - #98 `id3frames.py` (SPEC aller Frames, `describe()` für Binär-Frames, V22_TO_V23, IPLS↔TIPL), `tools/id3_frames_doc.py` → `docs/ID3-FELDER.md` (Test prüft Aktualität).
+  - #59 Journal-Export (Excel/CSV, `snap_journal_write`), Sicherungen im Snapshot-Speicher (`backup.StoreBackupWriter`, `make_writer`, Manifeste `<store>/backups/*.json`, `snapshots.PINNED`, cfg `backup_store`, Standard an).
+  - #158 Hilfe-Seite (`taghelp.py`, `session_help.py`, `web/help.js`): Kapitel nach dem PDF des Users „DJ Software vergleichen“ (ID3v2.4 nach Funktion 1–10, 11 DJ-Analysewerte, DJ-Software-Vergleich, Programm-Daten aus Herkunft, CUSTOM-Tags aus Scan), Scan-Cache `~/TagStudio/cache/tagscan/<hash>.json`, Zähler → Tagger-Feld-Filter (`tag_field_filter`, Chip „vorhanden/fehlt“), Handbuch/ID3/Plugins als Markdown.
+  - #112 ID3v1 schreiben (`MP3File.v1_mode`, cfg `save_v1`). #111 Tag-Rezepte (`recipes.py`, `web/recipes.js`, cfg `recipes`, Vorlage „Beatport-Download aufbereiten“ – Wortliste Dj/Feat/Mc/Vs beim User nachgefragt).
+  - #109/#110/#113–#116 Vorbereiten (`prepare.py`, `session_prepare.py`, `web/prepare.js`): cfg `prep_workflows`/`prep_current`, Zustand `~/TagStudio/Vorbereiten/<wid>.json`, Schritte recipe/external/import/check + (beta.4) **plugin** (Plugin-Aktion auf Stufen-Kopie, `prepare.PLUGIN_MODES` fill/checked/none, Optionen aus cfg `plugin_options`, `_prep_plugin`) und **verify** (Pflichtfelder, `VERIFY_DEFAULT`, `missing_fields`), Seitenleisten-Zahl per `prep_pending` alle 2 min, Schutzregel A/B/C, Erkennung über Herkunft, Duplikatprüfung, Snapshot nach Übernahme, Stufen-Kopien löschen nach Rückfrage.
+  - #119 Plugin `plugins/loudness` (EBU R128 via FFmpeg aus Stems-Daten/imageio/PATH; Felder LUFS_I/TRUE_PEAK/LOUDNESS_RANGE, ReplayGain; angeglichene Kopie loudnorm 2-pass, 320k, Tags byte-genau).
+  - #118 Quellen (beta.5): Workflow-Feld `sources` [{id,name,folder,pattern,sub,zip}], `prepare.source_candidates/fetch_source` (MP3 + ZIP-Mitglieder, Schlüssel Pfad|Grösse|mtime in Zustand `fetched`, Track `source`/`origin_file`), `start_prep_fetch`, Knopf „Abholen“, Seitenleiste „↓n“. #119 ergänzt um Clipping (volumedetect `histogram_0db`/`n_samples`, ab 0,01 %, Option TXXX:CLIPPING; adeclip bewusst nicht).
+  - #120 Entdecken (beta.6): `discover.py` (Deezer öffentlich: search/artist, artist/albums, album, search label:"…"; Beatport über Plugin-Client: catalog/search artists|labels, catalog/tracks?artist_id|label_id&order_by=-publish_date, catalog/genres/{id}/top/100/), `session_discover.py` (DiscoverMixin), `web/discover.js`, Reiter im Vorbereiten-Kopf (`#prepTabs`), Zustand `~/TagStudio/Entdecken/entdecken.json`. Nur mit Mocks getestet (keine Netzverbindung zu Deezer/Beatport).
+  - Meilenstein #13 umbenannt in „… (Phase 1–3)“, #118 und #120 dorthin verschoben.
+  - #117 Spike: Beatport-Aktion „purchases“ (probiert `/my/downloads/`, `/my/library/tracks/`, `/my/library/`, loggt Feldnamen, CSV vorhanden/fehlt) – Download erst nach Testergebnis des Users.
+  - Offen aus Vorbereiten: #118 weitere Plattformen, #120 Entdecken, #121 Übersicht (Kommentar mit Stand).
+  - Offene Rückfrage an den User: Wortliste im Rezept „Dj, Feat, Mc, Vs“ (aus Konzept) wirklich so?
+- **Konzepte (#156, #157):** `docs/KONZEPT-WAV.md` + `tools/wavcheck.py`; `docs/KONZEPT-MEHRSPRACHIG.md`. Entscheide des Users: Schweizerdeutsch = **Mundart**; WAV-Tags müssen in **Engine DJ, Serato, Rekordbox, VirtualDJ** lesbar sein. Noch Konzept (Meilenstein „Später“).
+- **Nächste Schritte:** Testergebnisse 4.3.0-beta.4 auswerten (Testlisten beta.4 in #109/#110 als Zusatz-Kommentar); danach Phase 2 Vorbereiten oder #156 WAV Schritt 1; Tracks vorbereiten (Meilenstein #10, #109–#121) wartet auf `_1 bereit`.
+- **Erster Schritt im neuen Chat:** dieses Dokument lesen, Repo per `add_repo` anhängen und flach klonen, offene Issues per `gh api` holen, mit dem User den nächsten Umfang klären.
+- **Lokal beim User (offen von 3.5.0):** `~/MP3TagCompare` (nur `cache`) kann weg; im lokalen Klon `git fetch --prune`.
+
+## Was in 4.1.0 steckt
+
+- **#6–#8 Plugin „Online-Metadaten“** (`plugins/online`, Modul `onlinematch.py`): MusicBrainz (ISRC oder Lucene-Suche, Release-Wahl offiziell/keine Kompilation/Album-Single-EP/frühestes, CAA-Cover, MB-IDs), AcoustID (fpcalc), Deezer (erweiterte Suche, Ersatz einfache Suche), iTunes (Land, 1400 px), Discogs (Token), Last.fm (Tags, nie vorausgewählt). Vorschau je Feld, erste Quelle vorausgewählt, andere „Alternative“. Drosselung je Dienst, 429/503-Wiederholung. Schlüssel in `ctx.data_dir/keys.bin` (DPAPI unter Windows). Formular „Schlüssel …“ mit Anleitung und Links (Plugin-Optionen `info` können jetzt `title` und `links` haben). Workflow **Online-Test** (`tests/test_online_live.py`, wöchentlich + bei Änderungen) prüft echte Antworten; Felder stehen als Anmerkungen.
+- **#125 Fenster:** Grösse/Position/maximiert (`window_start`, `set_window_geometry`), unsichtbare Position → mittig.
+- **#126 Wiedergabe fortsetzen:** cfg `player_resume` {A/B: path, pos, playing}; Einstellung „Nach dem Neustart“ `resume_play` = pause/play/was.
+- **#127 Tagger-Zustand:** cfg `tagger_state`, Start „zuletzt/Standard/nichts“.
+- **#131 Nur eine Instanz** (`instance.py`): Sperrdatei `~/.tagstudio.lock` (msvcrt/fcntl) + Windows-Mutex `MarKusSXCH-TagStudio`; Inno `AppMutex`; zweiter Start → Hinweis (MessageBox nur im App-Modus), Neustart setzt `TAGSTUDIO_RESTART=1` (neue Instanz wartet bis 25 s). `restart()` beendet per `os._exit` ohne `destroy()`.
+- **#132 Beenden mit Hinweis:** Fenster-X → `on_closing` gibt False zurück und ruft im Faden `appQuit()` auf (Rückfragen in der App, „Einstellungen werden gespeichert …“, `appFlushState`, `quit()`); zweites X innerhalb 15 s schliesst auf dem alten Weg. `close_cancelled()` setzt zurück.
+- **#133 Einstellungen › Expert:** `applog.py` (`~/TagStudio/Logs/app.log`, 1 MB → `.1`, Hooks, Aufruffehler ohne Argumente, JS-Fehler über `client_log`), Api `expert_info/expert_config` (Token/Passwort maskiert)/`expert_logs`/`expert_log`, Betrachter mit Suche.
+- **#134 Seitenleiste unten:** Vollbild (F11), Fenstermodus, Neustart, Beenden (`window_mode`, `appWindow`, `appRestart`, `appQuit`).
+- **#135 Python:** Mindestversion 3.12 (`MIN_PYTHON` in `tagstudio_web.py`), Tests 3.12 + 3.15 auf allen drei Systemen, Installer-Workflow mit Eingabe `python` (Probe-Build, nur Artifacts). Probe-Build 3.15.0 vom User getestet → **Installer ab beta.3 mit Python 3.15**. Tk-Test der klassischen Oberfläche stürzt auf macOS/3.15 ab (übersprungen). Plugin-Umgebung: fehlendes Basis-Python (uv-Trampolin) wird erkannt (`plugins.env_broken/env_runs`), „Neu installieren“ legt dann neu an.
+- **#136 Versionshinweise:** `updater.changelog_versions`, `release_notes()['older']`, Abschnitt „Weitere Versionen“ (aufklappbar, Inhalt beim Öffnen).
+- **Behoben:** `save_config` mit Lock + atomarem Schreiben.
+
+## Lehren
+
+- Installer startet nur bei Änderungen an `version.py`/`packaging/`; ein Start von Hand (workflow_dispatch) legt **kein** Release an. Nach gescheitertem Build `version.py` anfassen.
+- Tests mit Unterprozessen: `PYTHONUNBUFFERED=1` setzen, sonst hängt `readline()` in der CI (lokal ist die Variable gesetzt). Keine Meldungsfenster in Tests/Browser-Modus.
+- `evaluate_js` nie synchron im `closing`-Ereignis (kann hängen) – im Faden mit Zeitlimit.
+- Windows-Uhr ±16 ms: Zeitprüfungen in Tests grosszügig.
+- Live-APIs (MusicBrainz, Deezer, iTunes) sind aus der Sitzung nicht erreichbar → über den Workflow Online-Test prüfen.
+
+## Arbeitsweise (mit User vereinbart)
+
+**Repo und Arbeitsorte**
+- Repo `MarkusKeller8200/markussxch-tagstudio` (**öffentlich** – keine privaten Daten, Zugangsdaten oder MP3 ins Repo). Gearbeitet wird nur auf `main`, gepusht nur auf `origin main`.
+- Cloud-Klon: `/home/claude/markussxch-tagstudio` (in neuer Sitzung per `add_repo` + flachem Klon neu anlegen).
+- Lokaler Klon des Users: `S:\_Claude\markussxch-tagstudio`, erreichbar über die Desktop-App-Brücke, falls verbunden.
+
+**Pro Issue**
+- Code, Unit-Tests und ein Browser-Test mit Playwright.
+- Commits auf Deutsch mit „Refs #n“ bzw. „Fixes #n“ und dem Trailer `Co-Authored-By` / `Claude-Session`.
+- Rückmeldungen des Users während der Beta: neue Punkte als eigenes Issue (Meilenstein der laufenden Version), Erweiterungen bestehender Issues dort ergänzen.
+
+**Tests**
+- Unit: `python3 -m unittest discover -s tests -q` (ca. 324 Tests, einige übersprungen). Mindestversion Python 3.12; CI 3.12 + 3.15 auf Windows und macOS.
+- Oberfläche: `TAGSTUDIO_UI_TESTS=1 python3 -m unittest discover -s tests -p "test_browser_ui.py"` (ca. 33 Tests, ca. 220 s; `setUp` schreibt `.tagstudio.json` mit `setup_done`, ausser Tests mit „wizard“ im Namen). Hilfen `until(js)`, `cfg_until(test)`, `restart()`.
+- Testserver: `tagstudio_web.py --browser --no-open --port 0` mit eigenem HOME. Das Start-Hinweis-Modal zuerst schliessen.
+- Pfad-Tests plattformneutral schreiben.
+
+**Release**
+1. `python3 packaging/release.py X.Y.Z-beta.N` (final: `X.Y.Z`; verschiebt „Unveröffentlicht“ im CHANGELOG).
+2. Committen und pushen; Workflow „Installer“ legt Tag und Release an (Beta = Pre-Release).
+3. Bei finaler Version entfernt `cleanup_betas.py` die Beta-Releases (Tags bleiben).
+- CI prüfen (Fehlertexte als Anmerkungen der Check-Runs, Logs nicht lesbar).
+- Finale Version nur auf ausdrücklichen Wunsch des Users.
+- Neue Python-Module in `packaging/build.py` unter `HIDDEN` eintragen.
+
+**Test-Ablauf mit dem User**
+- Nach dem Beta-Release je Issue ein Kommentar mit der Testliste.
+- User meldet „getestet ok“ → Issue schliessen, Status-Label entfernen.
+
+**Labels und Meilensteine**
+- `_1 bereit` (setzt der User) → `_2 in Arbeit` → `_3 Beta-Test` → schliessen und Label entfernen.
+- `idee` = noch nicht eingeplant (Meilenstein „Später“). `enhancement` = Funktion/Verbesserung, `bug` = Fehler.
+- Plugin-Ideen in #108.
+
+**GitHub-Zugriff**
+- Nur per REST (`gh api repos/...`). Gesperrt: GraphQL, Projekte, Repo-Einstellungen, Releases schreiben, Zweige/Tags löschen.
+
+**Sicherheit**
+- Löschen (Dateien, Branches, Tags, Labels) nur nach Rückfrage.
+- Keine Zugangsdaten anfassen: Passwörter, Tokens und Schlüssel gibt der User selbst ein; nie speichern (ausser verschlüsselt im Plugin), nie protokollieren oder exportieren.
+
+**Projekt-Doku**
+- Dieses Dokument nach jedem Release aktualisieren; Altes ins Archiv.
+- Ablage doppelt: Claude-Projekt (`claude/projektstand.md`, `claude/projektstand-archiv.md`, `claude/speicherkonzept.md`) **und** Repo (`docs/PROJEKTSTAND.md`, `docs/PROJEKTSTAND-ARCHIV.md`, `docs/KONZEPT-SPEICHER.md`). Beide Fassungen gleich halten.
+- Übergabe an einen neuen Chat: `docs/UEBERGABE.md` nachführen (Einstieg, Arbeitsweise kurz, offene Punkte).
+
+## Entscheide
+
+- **Klassische tkinter-Oberfläche** eingefroren (#106).
+- **Abgelehnt/aufgeschoben:** #15 macOS Intel; #14 Installer signieren offen.
+- **Zusammengelegt:** #10 in #9; #104 in #76.
+- **Update-Kanal** (cfg `update_channel`): `stable` / `beta`.
+- **DJ-Set exakt nur bis 15 Titel.**
+- **App-Erweiterungen #125–#127** in 4.1.0 (nicht im Datenbank-Modul).
+- **Tracks vorbereiten:** Entscheide 1–5 vom 2026-10-10 im Konzept (Stufen-Ordner optional löschen, Kopie nach `_03_PlatinumNotes`, Picard/AudioRanger/OneTagger vorerst extern, Schutzregel konfigurierbar mit Vorgabe C + „nur melden“, inoffizieller Beatport-Zugriff akzeptiert).
+
+## Architektur (Kurzüberblick)
+
+**Kern (Python, nur stdlib)**
+- `core.py` (Laden, Speichern, `save_config` mit Lock), `id3tags.py`, `compare.py`, `tagger.py`, `keys.py`, `ratings.py`, `features.py`.
+- `setplan.py`, `setexport.py`, `origins.py`, `cues.py`, `waveform.py`, `media.py`, `thumbs.py`.
+- `snapshots.py`, `backup.py`, `undo.py`, `listcache.py`, `jobs.py`.
+- `plugins.py` + `plugins/` (stems, beatport, online, mik, beatunes, lexicon), `onlinematch.py`, `importsync.py`, `serato.py`, `updater.py`, `appsettings.py`, `version.py`.
+- Neu 4.1.0: `instance.py` (eine Instanz), `applog.py` (App-Protokoll).
+
+**Session (`session.py`)**
+- `class Session(SnapshotMixin, PlayerMixin, DjSetMixin)`; Mixins in `session_player.py`, `session_snapshots.py`, `session_djset.py`.
+
+**Oberfläche**
+- `tagstudio_web.py`: Api (pywebview/Browser), `_PASS`-Weiterleitungen (mit Fehlerprotokoll), direkte Methoden u. a. `restart`, `quit`, `window_mode`, `expert_*`, `client_log`.
+- `web/`: `index.html`, `app.js` (appQuit/appRestart/appWindow/appFlushState), `app.css`, `modules.js`, `settings.js` (Expert-Kachel), `tagger.js`, `snapshots.js`, `djset.js`, `plugins.js`, `keywheel.js`, `xmleditor.js`, `jsontree.js`, `features.js`, `jobs.js`, `player.js`, `player2.js`, `player-window.html`, `playerwin.js`.
+- Menü: Vorbereiten · Tagger · Tag-Fixer · Vergleich · DJ-Set · Snapshots · Sicherungen · Plugins · Einstellungen · Datenbank; unten Update, Versionshinweise, Einklappen, Design, Fenster-Symbole.
+
+**Paketierung**
+- `packaging/build.py`, `windows.iss` (mit `AppMutex`), `make_dmg.sh`, `release.py`.
+- Workflows: Tests (Betas Windows, final + macOS), CodeQL, Installer (Eingaben `python`, Standard 3.15, und `macos`; Betas nur Windows), Online-Test, Stems-Test, Releases aufräumen.
+
+**Konfiguration**
+- `~/.tagstudio.json` (neu: `tagger_state`, `player_resume`, `window`, `player.resume_play`), `~/.tagstudio.lock`.
+- `~/TagStudio`: Sicherungen, cache, Plugins, Plugin-Daten, Logs (`app.log`).
+
+## Offene Meilensteine und Issues
+
+- **#10 „4.4.0 – Beatport-Download, Profile, Einrichtungsassistent“:** #117, #163–#165, #167–#170, #172, #173 in `_3 Beta-Test`; #171 CodeQL (Dateirechte `tagstudio_web.py:150`) offen.
+- **#4 „Später“:** #9, #14, #107, #108, #156 (WAV), #157 (Mehrsprachigkeit).
+- Offene Frage an den User: #111 Wortliste („Dj, Feat, Mc, Vs“).
+
+## Versionen (Kurz)
+
+- **4.2.0 – Player, Tagger-Komfort, Importer & Playlist:** Beatgrid/Serato, schneller Start, Tagger-Spalten und Sortierung, Plugins MIK/beaTunes/Lexicon mit Abgleich, DJ-Set-Listen, Warteschlange, Stimmung.
+- **4.1.0 – Online-Metadaten & App:** Plugin Online-Metadaten, Fenstergrösse, Wiedergabe fortsetzen/Autoplay, Tagger-Zustand, eine Instanz, Beenden mit Hinweis, Expert-Einstellungen, Fenster-Symbole.
+- **4.0.0 – DJ-Set:** Set-Optimierung, Seite DJ-Set, Exporte, Merkmal-Spalten/-Filter, Ziehen auf Player, Snapshot-Baseline.
+- **3.5.0 – App allgemein & Aufräumen**, **3.4.0 – Wiedergabe & Bewertung**, ältere: Archiv und CHANGELOG.md.
