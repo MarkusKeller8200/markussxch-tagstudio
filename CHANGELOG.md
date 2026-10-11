@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.1.0] – 2026-10-11
+
 ### Neu
 - **Versionshinweise:** neuer Abschnitt „Weitere Versionen“ zeigt die Hinweise aller älteren Versionen direkt in
   der App (aufklappbar, auch ohne Internet) (#136).

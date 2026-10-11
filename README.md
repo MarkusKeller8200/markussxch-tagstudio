@@ -530,13 +530,13 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 ## Ausblick
 
-Zuletzt erschienen: **4.0.0 – DJ-Set** (Set-Optimierung und -Bewertung, Seite DJ-Set, Exporte M3U8/Rekordbox/CSV,
-Merkmal-Spalten und -Filter, Ziehen auf die Player, Snapshot-Baseline). Davor **3.5.0 – App allgemein & Aufräumen**.
+Zuletzt erschienen: **4.1.0 – Online-Metadaten & App** (Plugin Online-Metadaten mit MusicBrainz/AcoustID, Deezer,
+iTunes, Discogs, Last.fm; Fenster, Tagger-Zustand und Wiedergabe werden gemerkt; nur eine Instanz; Beenden mit
+Speicher-Hinweis; Einstellungen › Expert; Fenster-Symbole; ältere Versionshinweise in der App; Installer mit
+Python 3.15). Davor **4.0.0 – DJ-Set**.
 
 Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
-- **4.1.0 – Online-Metadaten & App-Zustand** (in Beta): Plugin Online-Metadaten, Fenstergrösse, Wiedergabe
-  fortsetzen, Tagger-Zustand.
 - **Tracks vorbereiten** (Konzept, [docs/KONZEPT-VORBEREITEN.md](docs/KONZEPT-VORBEREITEN.md)): Workflow vom
   Eingangsordner über Tag-Rezepte und externe Programme bis in die Bibliothek, Schutz bestehender Tags, später
   Download gekaufter Titel und Vorschläge mit Vorhören.
