@@ -1135,3 +1135,8 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 
 /* Snapshot-Baseline */
 .sn-base{display:inline-block;margin-left:6px;padding:0 6px;border-radius:5px;font-size:11px;font-weight:700;background:var(--acc-soft);color:var(--acc);vertical-align:1px}
+
+/* #136: Versionshinweise älterer Versionen */
+.rn-older details.rn-ver{border-top:1px solid var(--line);padding:6px 0}
+.rn-older summary{cursor:pointer;list-style-position:inside}
+.rn-older .rn-body{padding:4px 0 2px 16px}

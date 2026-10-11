@@ -364,7 +364,7 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   „Einstellungen werden gespeichert …“; ungespeicherte Änderungen und laufende Aufträge werden vorher abgefragt.
   Es läuft immer nur **eine Instanz**; ein zweiter Start meldet „TagStudio läuft bereits“.
 - **Versionshinweise:** unter dem Update-Knopf – was in der installierten Version neu ist und, falls vorhanden,
-  in der neuesten; mit Link zu GitHub.
+  in der neuesten; darunter „Weitere Versionen“ mit allen älteren Versionen zum Aufklappen; mit Link zu GitHub.
 - **Splitter:** Seitenleiste, Paarliste, Tabellenspalten, Bearbeitungsbereich und Feldnamen-Spalte lassen sich
   ziehen (oder mit ←/→ auf dem Griff); Doppelklick setzt zurück, alles wird gemerkt. Die Seitenleiste lässt sich
   einklappen.
@@ -471,7 +471,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   discover -s tests -p "test_browser_ui.py" -v` – Menü und Einstellungen, Player (Live-Vorschau, Doppelklick,
   Bewertung, Überblenden mit Tempo, Player B, Abdocken). Ohne die Variable werden sie übersprungen.
 - **GitHub Actions:**
-  - `tests.yml` – bei jedem Push die Tests auf Windows, macOS und Linux (Python 3.12 und 3.15), dazu ein Smoke-Test
+  - `tests.yml` – bei jedem Push die Tests auf Windows und macOS (Python 3.12 und 3.15; Linux derzeit nicht vorgesehen), dazu ein Smoke-Test
     der klassischen Oberfläche.
   - `installer.yml` – baut und testet die Installer (Selbsttest der gebauten und der installierten App) und
     veröffentlicht bei neuer Versionsnummer das Release (siehe unten).

@@ -162,6 +162,15 @@ class TestReleases(unittest.TestCase):
         self.assertEqual(updater.changelog_section(log, "9.9.9"), "")
         self.assertIn("## [", updater.local_changelog())
 
+    def test_changelog_versions(self):
+        """#136: ältere Versionen für die Versionshinweise in der App."""
+        log = ("# C\n\n## [Unveröffentlicht]\n- neu\n\n## [3.4.0] – 2026-10-10\n### Neu\n- Player\n\n"
+               "## [3.3.1]\n- x\n\n## Frühere Versionen (1.0 – 2.8)\n- alt\n")
+        v = updater.changelog_versions(log, "3.4.0")
+        self.assertEqual([x["version"] for x in v], ["3.3.1", "Frühere Versionen (1.0 – 2.8)"])
+        self.assertEqual(updater.changelog_versions(log)[0], {"version": "3.4.0", "date": "2026-10-10", "notes": "### Neu\n- Player"})
+        self.assertEqual(v[1]["notes"], "- alt")
+
 
 if __name__ == "__main__":
     unittest.main()

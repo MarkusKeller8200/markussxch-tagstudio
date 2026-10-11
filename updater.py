@@ -187,6 +187,21 @@ def changelog_section(text: str, ver: str) -> str:
     return m.group(1).strip() if m else ""
 
 
+def changelog_versions(text: str, skip: str = "") -> list:
+    """Alle veröffentlichten Versionen aus dem CHANGELOG (neueste zuerst): [{version, date, notes}].
+    „Unveröffentlicht“ und die Version `skip` (die installierte) werden ausgelassen."""
+    out = []
+    for m in _re.finditer(r"^## ([^\n]+)\n(.*?)(?=^## |\Z)", text, _re.S | _re.M):
+        head, body = m.group(1).strip(), m.group(2).strip()
+        b = _re.match(r"\[([^\]]+)\](.*)$", head)
+        ver, rest = (b.group(1).strip(), b.group(2)) if b else (head, "")   # z. B. „Frühere Versionen als …“
+        if ver.lower().startswith("unver") or ver == skip:
+            continue
+        d = _re.search(r"\d{4}-\d{2}-\d{2}", rest)
+        out.append({"version": ver, "date": d.group(0) if d else "", "notes": body})
+    return out
+
+
 def local_changelog() -> str:
     for base in (HERE, getattr(sys, "_MEIPASS", HERE)):
         p = os.path.join(base, "CHANGELOG.md")

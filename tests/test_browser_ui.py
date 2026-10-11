@@ -421,6 +421,18 @@ class UiTest(unittest.TestCase):
         self.assertIn("Start ", pg.input_value("#xText"))
         pg.click("#mBtns .primary")
 
+    def test_release_notes_older(self):
+        """#136: Versionshinweise zeigen ältere Versionen aufklappbar (aus dem mitgelieferten CHANGELOG)."""
+        pg = self.pg
+        pg.click("#notesBtn")
+        pg.wait_for_selector(".rn-older details.rn-ver", timeout=30000)
+        self.assertGreaterEqual(pg.locator(".rn-older details.rn-ver").count(), 10)
+        first = pg.locator(".rn-older details.rn-ver >> nth=0")
+        self.assertEqual(first.locator(".rn-body").inner_html(), "")
+        first.locator("summary").click()
+        self.assertTrue(self.until("document.querySelector('.rn-older .rn-body').textContent.length > 20"))
+        pg.click("#mBtns .primary")
+
     def test_tagger_feature_columns(self):
         """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""
         pg = self.pg

@@ -349,6 +349,7 @@ class Api:
         ch = self._s.update_channel()
         out = {"version": VERSION, "beta": updater.is_beta(VERSION), "channel": ch, "releases_url": updater.RELEASES_URL,
                "current": updater.changelog_section(updater.local_changelog(), VERSION)}
+        out["older"] = updater.changelog_versions(updater.local_changelog(), VERSION)     # #136: ältere Versionen
         rc = updater.release_check(VERSION, ch)
         out.update(online=rc.get("ok", False), error=rc.get("error"), newer=rc.get("newer", False), note=rc.get("note"))
         lt = rc.get("latest")

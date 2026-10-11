@@ -282,10 +282,21 @@ async function showReleaseNotes() {
     <section><h3>Installiert: ${esc(r.version)}${r.beta ? ' <span class="beta-b">Beta</span>' : ""}</h3>
       ${r.current ? mdLite(r.current) : '<p class="muted">Keine Versionshinweise gefunden.</p>'}
       <p><a href="#" data-url="${esc(r.current_url || r.releases_url)}">Auf GitHub ansehen</a> · <a href="#" data-url="${esc(r.releases_url)}">Alle Versionen</a></p></section>
+    ${(r.older || []).length ? `<section class="rn-older"><h3>Weitere Versionen <span class="muted sm">${r.older.length}</span></h3>
+      ${r.older.map((v, k) => `<details class="rn-ver" data-k="${k}"><summary><b>${esc(v.version)}</b>${/-/.test(v.version) ? ' <span class="beta-b">Beta</span>' : ""}<span class="muted sm"> ${esc(v.date)}</span></summary><div class="rn-body"></div></details>`).join("")}</section>` : ""}
     ${!r.online ? `<p class="muted sm">Neuere Versionen konnten nicht geprüft werden – keine Verbindung zu GitHub.</p>` : r.note ? `<p class="muted sm">${esc(r.note)}</p>` : !nw ? `<p class="muted sm">Das ist die neueste ${r.channel === "beta" ? "Version (inkl. Beta)" : "offizielle Version"}.</p>` : ""}
   </div>`;
   await modal({ title: "Versionshinweise", wide: true, html, buttons: [{ label: "Schliessen", value: null, primary: true }],
-    onMount: (b) => { b.onclick = (e) => { const a = e.target.closest(".rn [data-url]"); if (a) { e.preventDefault(); call("open_url", a.dataset.url); } }; } });
+    onMount: (b) => {
+      b.onclick = (e) => { const a = e.target.closest(".rn [data-url]"); if (a) { e.preventDefault(); call("open_url", a.dataset.url); } };
+      // #136: ältere Versionen erst beim Aufklappen darstellen
+      b.addEventListener("toggle", (e) => {
+        const d = e.target;
+        if (!d.classList || !d.classList.contains("rn-ver") || !d.open) return;
+        const body = $(".rn-body", d);
+        if (!body.innerHTML) body.innerHTML = mdLite(r.older[+d.dataset.k].notes) || '<p class="muted">Keine Hinweise.</p>';
+      }, true);
+    } });
 }
 
 async function checkUpdateQuietly() {
