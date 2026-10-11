@@ -284,7 +284,7 @@ function djInit() {
     if (del) { djCall("dj_remove", [djRowAt(+del.dataset.del).path]); return; }
     const row = e.target.closest(".dj-row"); if (!row) return;
     list.focus({ preventScroll: true });
-    if (e.detail === 2) { djSelect(+row.dataset.k); const t = djTarget(); if (t) plLoad(t, true); else toast("Titel ist im Tagger nicht geladen."); return; }
+    if (isDoubleClick(e, "dj:" + row.dataset.k)) { djSelect(+row.dataset.k); const t = djTarget(); if (t) plLoad(t, true); else toast("Titel ist im Tagger nicht geladen."); return; }
     djSelect(+row.dataset.k, "click");
   });
   list.addEventListener("contextmenu", (e) => {

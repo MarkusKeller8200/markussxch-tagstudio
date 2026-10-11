@@ -1126,7 +1126,7 @@ async function tgOriginDialog(preset = "") {
     const r = e.target.closest(".tg-row");
     if (!r) return;
     // #92: Doppelklick spielt den Titel (über e.detail – die Zeile wird beim ersten Klick neu gezeichnet)
-    const dbl = e.detail === 2 && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.target.closest("button");
+    const dbl = !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.target.closest("button") && isDoubleClick(e, "tg:" + r.dataset.i);   // #139
     tgSelect(+r.dataset.i, e).then(() => { if (dbl && typeof plPlayRow === "function") plPlayRow(); });
   });
   $("#tgCoverCol").addEventListener("click", () => { LAYOUT.tg_cover_col = !LAYOUT.tg_cover_col; saveUi("tg_cover_col"); renderTgHead(); drawTgList(); });

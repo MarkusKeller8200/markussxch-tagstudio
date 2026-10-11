@@ -11,6 +11,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Fortschrittsfenster, die App ist sofort bedienbar (Fortschritt in der Tagger-Liste und der Fusszeile). „Einlesen“ von
   Hand bricht das ab und lädt neu. Das App-Protokoll zeigt, wie lange Einlesen und Snapshot-Prüfung dauern (#137).
 
+### Behoben
+- Doppelklick auf einen Titel (Tagger, Vergleich, DJ-Set) spielt ihn wieder zuverlässig ab; seit die Zeilen
+  ziehbar sind, wurde der zweite Klick teils als neuer Einzelklick gezählt (#139).
+
 ## [4.1.0] – 2026-10-11
 
 ### Neu

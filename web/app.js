@@ -30,6 +30,18 @@ async function callNow(name, ...args) {
 }
 
 // ====================================================================== Hilfsfunktionen
+/** #139: Doppelklick sicher erkennen. e.detail allein reicht nicht: ziehbare Zeilen (draggable, #105) werden beim
+    ersten Klick neu gezeichnet; je nach Browser zählt der zweite Klick dann wieder als erster. Deshalb zusätzlich
+    selbst messen: zweiter Klick auf dasselbe Ziel (key) innerhalb von 500 ms. */
+const DBL = { key: null, t: 0, x: 0, y: 0 };
+function isDoubleClick(e, key) {
+  const now = performance.now();
+  const near = Math.abs(e.clientX - DBL.x) < 8 && Math.abs(e.clientY - DBL.y) < 8;
+  const dbl = e.detail === 2 || (DBL.key === key && now - DBL.t < 500 && near);
+  if (dbl) DBL.key = null;
+  else Object.assign(DBL, { key, t: now, x: e.clientX, y: e.clientY });
+  return dbl;
+}
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -1158,7 +1170,7 @@ function bind() {
     } else {
       S.pairSel.clear();
       S.pairAnchor = i;
-      const dbl = e.detail === 2;     // #92: Doppelklick spielt das Paar (Zeile wird beim ersten Klick neu gezeichnet)
+      const dbl = isDoubleClick(e, "pair:" + i);     // #92/#139: Doppelklick spielt das Paar
       Promise.resolve(selectPair(i, "click")).then(() => { if (dbl && typeof plPlayRow === "function") plPlayRow(); });
     }
     renderBulkBar();
