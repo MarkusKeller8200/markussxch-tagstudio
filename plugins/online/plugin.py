@@ -442,6 +442,7 @@ def propose_file(ctx, cl, f, hits, opts, group, stats, auth=None):
         sure = s >= SURE
         note = f"{SOURCE_NAME[src]}: {', '.join(c.get('artists') or [])} – {c.get('title', '')}" + \
                (f" ({c['mix']})" if c.get("mix") else "") + f" · {round(s * 100)} %" + ("" if sure else " · unsicher")
+        lk = {"link": c.get("url") or "", "link_label": SOURCE_NAME[src]}      # #144: Treffer auf der Plattform
         for key, val, label, wanted in _field_values(c, opts):
             val = (val or "").strip()
             if not val:
@@ -451,24 +452,24 @@ def propose_file(ctx, cl, f, hits, opts, group, stats, auth=None):
             if cur == val:
                 if key not in taken:
                     stats["same"] += 1
-                    ctx.propose(f, key, val, lab, note=note, checked=False, group=group, hint="gleich", show_same=True)
+                    ctx.propose(f, key, val, lab, note=note, checked=False, group=group, **lk, hint="gleich", show_same=True)
                 taken.add(key)
                 continue
             first = key not in taken
             taken.add(key)
             if not first:
-                ctx.propose(f, key, val, lab, note=note, checked=False, group=group, hint="Alternative – bei Bedarf anhaken")
+                ctx.propose(f, key, val, lab, note=note, checked=False, group=group, **lk, hint="Alternative – bei Bedarf anhaken")
             elif not wanted:
                 stats["off"] += 1
-                ctx.propose(f, key, val, lab, note=note, checked=False, group=group, hint="in den Optionen abgewählt")
+                ctx.propose(f, key, val, lab, note=note, checked=False, group=group, **lk, hint="in den Optionen abgewählt")
             elif cur and _same(key, cur, val):
                 stats["same"] += 1
-                ctx.propose(f, key, val, lab, note=note, checked=False, group=group, hint="gleicher Wert, andere Schreibweise")
+                ctx.propose(f, key, val, lab, note=note, checked=False, group=group, **lk, hint="gleicher Wert, andere Schreibweise")
             elif cur and empty_only:
                 stats["filled"] += 1
-                ctx.propose(f, key, val, lab, note=note, checked=False, group=group, hint="schon gefüllt – nur ergänzen")
+                ctx.propose(f, key, val, lab, note=note, checked=False, group=group, **lk, hint="schon gefüllt – nur ergänzen")
             else:
-                ctx.propose(f, key, val, lab, note=note, checked=sure, group=group)
+                ctx.propose(f, key, val, lab, note=note, checked=sure, group=group, **lk)
     # Cover: aus der ersten Quelle, die eins hat
     cov = opts.get("cover", "missing")
     has = f.get("APIC:3") is not None

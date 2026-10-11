@@ -6,7 +6,14 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+- Vorschau der Plugins **Online-Metadaten** und **Beatport**: Links zum Treffer auf der Plattform (je Datei und je
+  Feld), um z. B. eine andere Version eines Titels zu erkennen, bevor man übernimmt (#144).
+
 ### Geändert
+- Beatport: neue Option „Nur noch nicht vorhandene Felder“ – ist Standard; vorhandene Felder werden dann weder
+  geändert noch in der Vorschau gezeigt (#142).
+- Herkunft: `TXXX:CATALOGNUMBER` wird Beatport zugeordnet (#143).
 - **Schnellerer Start:** Der zuletzt geladene Tagger-Ordner wird beim Start im Hintergrund eingelesen – ohne
   Fortschrittsfenster, die App ist sofort bedienbar (Fortschritt in der Tagger-Liste und der Fusszeile). „Einlesen“ von
   Hand bricht das ab und lädt neu. Das App-Protokoll zeigt, wie lange Einlesen und Snapshot-Prüfung dauern (#137).

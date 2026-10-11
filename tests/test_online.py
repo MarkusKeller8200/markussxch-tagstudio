@@ -27,7 +27,7 @@ MB_REL = {"id": "rel-1", "title": "Nachtfahrt EP", "date": "2021-05-14",
           "cover-art-archive": {"front": True},
           "media": [{"position": 1, "track-count": 3,
                      "tracks": [{"id": "trk-9", "position": 2, "number": "2", "recording": {"id": "rec-1"}}]}]}
-DZ_SEARCH = {"data": [{"id": 3001, "title": "Kaltes Glas (Original Mix)", "title_short": "Kaltes Glas",
+DZ_SEARCH = {"data": [{"id": 3001, "link": "https://www.deezer.com/track/3001", "title": "Kaltes Glas (Original Mix)", "title_short": "Kaltes Glas",
                        "title_version": "(Original Mix)", "duration": 0, "artist": {"name": "Mara Lind"},
                        "album": {"id": 501, "title": "Nachtfahrt EP", "cover_xl": "https://e-cdns-images.dzcdn.net/x/1000x1000.jpg"}}],
              "total": 1}
@@ -214,6 +214,10 @@ class TestOnlinePlugin(Base):
         self.assertEqual(by[("k.mp3", "Label (Deezer)")]["new"], "Polar Records")
         self.assertEqual(by[("k.mp3", "ISRC (Deezer)")]["new"], "CHA012100002")
         self.assertEqual(by[("k.mp3", "DEEZER_TRACK_ID (Deezer)")]["new"], "3001")
+        # #144: Link zum Treffer auf der Plattform
+        self.assertEqual(by[("n.mp3", "Album (MusicBrainz)")]["link"], "https://musicbrainz.org/recording/rec-1")
+        self.assertEqual(by[("n.mp3", "Album (MusicBrainz)")]["link_label"], "MusicBrainz")
+        self.assertTrue(alb["link"].startswith("https://www.deezer.com/"), alb["link"])
         self.assertNotIn(("n.mp3", "Genre (MusicBrainz)"), by)               # vorhandenes Genre bleibt unberührt
         # MusicBrainz-Anfragen mit eigenem User-Agent
         ua = [c[3].get("User-Agent", "") for c in self.fake.calls if c[0] == "musicbrainz.org"]

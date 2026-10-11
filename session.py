@@ -2061,7 +2061,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                                      "folder": os.path.basename(os.path.dirname(p["file"].path)),
                                      "label": p["label"], "old": p["old"].replace(MV, MV_SHOW), "new": p["new"].replace(MV, MV_SHOW),
                                      "note": p["note"], "checked": p["checked"], "kind": p["kind"], "hint": p.get("hint", ""),
-                                     "same": bool(p.get("same"))}
+                                     "same": bool(p.get("same")), "link": p.get("link", ""), "link_label": p.get("link_label", "")}
                                     for n, p in enumerate(props)]
             res["unsaved"] = self.unsaved()
             return res

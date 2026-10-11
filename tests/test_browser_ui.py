@@ -447,6 +447,21 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("document.querySelector('.rn-older .rn-body').textContent.length > 20"))
         pg.click("#mBtns .primary")
 
+    def test_preview_links(self):
+        """#144: Vorschau von Plugins zeigt Links zum Treffer auf der Plattform (je Datei und je Feld)."""
+        pg = self.pg
+        pg.evaluate("""void pluginPreview({label: 'Online-Metadaten holen …'}, {proposals: [
+            {id: 0, name: 'a.mp3', group: 'a.mp3', gkey: 'a', label: 'Album (MusicBrainz)', old: '', new: 'Y', note: 'MB',
+             checked: true, kind: 'text', hint: '', same: false, link: 'https://musicbrainz.org/recording/x', link_label: 'MusicBrainz'},
+            {id: 1, name: 'a.mp3', group: 'a.mp3', gkey: 'a', label: 'Album (Deezer)', old: '', new: 'Z', note: 'MB',
+             checked: false, kind: 'text', hint: 'Alternative', same: false, link: 'https://www.deezer.com/track/1', link_label: 'Deezer'}],
+            log: []})""")
+        pg.wait_for_selector("#modal .pv-links")
+        self.assertIn("MusicBrainz ↗", pg.inner_text("#modal .pv-links"))
+        self.assertIn("Deezer ↗", pg.inner_text("#modal .pv-links"))
+        self.assertEqual(pg.locator("#modal tr:not(.pv-file) .pl-link").count(), 2)
+        pg.click("#mBtns button >> nth=0")
+
     def test_tagger_feature_columns(self):
         """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""
         pg = self.pg

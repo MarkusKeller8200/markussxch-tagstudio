@@ -33,8 +33,10 @@ ACTIONS = [
         "description": "Sucht die markierten Titel auf Beatport und schlägt Änderungen vor. Du bestätigst danach jede Änderung.",
         "options": [
             {"key": "mode", "type": "select", "label": "Vorhandene Werte",
-             "choices": [["empty", "Nur leere Felder füllen"], ["overwrite", "Überschreiben (Vorschau zeigt alt → neu)"]],
-             "default": "empty"},
+             "choices": [["missing", "Nur noch nicht vorhandene Felder (vorhandene ausblenden)"],
+                         ["empty", "Nur leere Felder füllen (vorhandene zum Vergleich zeigen)"],
+                         ["overwrite", "Überschreiben (Vorschau zeigt alt → neu)"]],
+             "default": "missing"},                                                        # #142
             {"key": "bpm", "type": "check", "label": "BPM", "default": True},
             {"key": "key", "type": "check", "label": "Tonart (in deiner Schreibweise: Camelot / Am / Open Key)", "default": True},
             {"key": "genre", "type": "check", "label": "Genre", "default": True},
@@ -458,7 +460,11 @@ def same_value(key, old, new):
 def proposals_for(ctx, f, t, opts, note, checked, notation, group, stats):
     """Alle Felder, die Beatport liefert, in die Vorschau – auch gleiche und abgewählte.
     Angehakt wird nur, was nach den Optionen übernommen werden soll."""
-    empty_only = opts.get("mode", "empty") == "empty"
+    mode = opts.get("mode", "missing")
+    empty_only = mode in ("empty", "missing")
+    hide_existing = mode == "missing"                    # #142: vorhandene Felder gar nicht erst zeigen
+    lk = {"link": f"https://www.beatport.com/track/{t.get('slug') or 'track'}/{t['id']}" if t.get("id") else "",
+          "link_label": "Beatport"}                      # #144: Treffer auf Beatport ansehen
 
     def prop(key, val, label, wanted=True):
         val = "" if val is None else str(val).strip()
@@ -466,26 +472,29 @@ def proposals_for(ctx, f, t, opts, note, checked, notation, group, stats):
             stats["missing"].add(label)
             return
         cur = f.text(key).strip()
+        if cur and hide_existing:                        # #142: schon vorhanden → nicht anfassen, nicht zeigen
+            stats["same" if cur == val else "filled"] += 1
+            return
         if cur == val:                                   # identisch: nur anzeigen
             stats["same"] += 1
-            ctx.propose(f, key, val, label, note=note, checked=False, group=group, hint="gleich", show_same=True)
+            ctx.propose(f, key, val, label, note=note, checked=False, group=group, **lk, hint="gleich", show_same=True)
             return
         if not wanted:                                   # in den Optionen abgewählt: zeigen, nicht anhaken
             stats["off"] += 1
-            ctx.propose(f, key, val, label, note=note, checked=False, group=group,
+            ctx.propose(f, key, val, label, note=note, checked=False, group=group, **lk,
                         hint="in den Optionen abgewählt – bei Bedarf anhaken")
             return
         if cur and same_value(key, cur, val):            # gleicher Wert, andere Schreibweise
             stats["same"] += 1
-            ctx.propose(f, key, val, label, note=note, checked=False, group=group,
+            ctx.propose(f, key, val, label, note=note, checked=False, group=group, **lk,
                         hint="gleicher Wert, andere Schreibweise")
             return
         if cur and empty_only:      # gefüllt: zeigen, aber nicht vorauswählen
             stats["filled"] += 1
-            ctx.propose(f, key, val, label, note=note, checked=False, group=group,
+            ctx.propose(f, key, val, label, note=note, checked=False, group=group, **lk,
                         hint="schon gefüllt – nur bei Bedarf anhaken")
             return
-        ctx.propose(f, key, val, label, note=note, checked=checked, group=group)
+        ctx.propose(f, key, val, label, note=note, checked=checked, group=group, **lk)
 
     if t.get("bpm"):
         prop("TBPM", int(round(float(t["bpm"]))), "BPM", opts.get("bpm"))
@@ -620,10 +629,12 @@ def run(action, ctx, files, opts):
     n = sum(1 for p in ctx.proposals if p["checked"])
     m = sum(1 for p in ctx.proposals if not p["same"])
     extra = ""
+    hidden = opts.get("mode", "missing") == "missing"
     if tot_same:
-        extra += f" {tot_same} Feld(er) stimmen bereits überein (grau)."
+        extra += f" {tot_same} Feld(er) stimmen bereits überein" + ("." if hidden else " (grau).")
     if tot_filled:
-        extra += f" {tot_filled} schon gefüllte Feld(er) mit anderem Wert sind gelistet, aber nicht angehakt."
+        extra += (f" {tot_filled} schon vorhandene Feld(er) bleiben unverändert (ausgeblendet)." if hidden else
+                  f" {tot_filled} schon gefüllte Feld(er) mit anderem Wert sind gelistet, aber nicht angehakt.")
     if tot_off:
         extra += f" {tot_off} in den Optionen abgewählte Feld(er) sind gelistet, aber nicht angehakt."
     if not ctx.proposals:

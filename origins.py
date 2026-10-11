@@ -42,7 +42,7 @@ BUILTIN = [
     # Beatport-Downloads (#100): Shop-Daten als TXXX ohne Präfix
     ("TXXX:FILEOWNER", "beatport"), ("TXXX:LABEL", "beatport"), ("TXXX:LABEL_URL", "beatport"),
     ("TXXX:RELEASE_TIME", "beatport"), ("TXXX:TRACK_URL", "beatport"), ("TXXX:WWWAUDIOFILE", "beatport"),
-    ("TXXX:BPM", "beatport"), ("TXXX:COMMENT", "beatport"), ("TXXX:FILETYPE", "beatport"),
+    ("TXXX:BPM", "beatport"), ("TXXX:COMMENT", "beatport"), ("TXXX:CATALOGNUMBER", "beatport"), ("TXXX:FILETYPE", "beatport"),  # CATALOGNUMBER: #143
     ("TXXX:INITIAL_KEY", "beatport"), ("TXXX:ISRC", "beatport"),
     ("TXXX:ORGANIZATION", "beatport"), ("TXXX:YEAR", "beatport"),
     ("PRIV:TRAKTOR*", "traktor"), ("TXXX:TRAKTOR*", "traktor"), ("GEOB:TRAKTOR*", "traktor"),

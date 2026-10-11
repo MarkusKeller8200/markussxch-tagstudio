@@ -168,7 +168,8 @@ async function pluginPreview(f, res) {
   for (const r of rows) {
     const key = r.gkey || r.group;
     let g = groups.find((x) => x.key === key);
-    if (!g) groups.push(g = { key, idx: groups.length, name: r.group, folder: r.folder || "", note: r.note, rows: [] });
+    if (!g) groups.push(g = { key, idx: groups.length, name: r.group, folder: r.folder || "", note: r.note, rows: [], links: new Map() });
+    if (r.link && !g.links.has(r.link)) g.links.set(r.link, r.link_label || "Treffer");
     g.rows.push(r);
   }
   const dup = (g) => groups.some((x) => x !== g && x.name === g.name);
@@ -176,9 +177,9 @@ async function pluginPreview(f, res) {
     <div class="pl-prev-tools"><button class="ghost sm" data-pv="all">Alle wählen</button><button class="ghost sm" data-pv="none">Keine</button><button class="ghost sm" data-pv="default">Vorschlag</button>
       <span class="muted sm" id="pvCount"></span></div>
     <div class="fx-table pl-prev"><table><thead><tr><th style="width:28px"></th><th>Feld</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody>
-    ${groups.map((g) => `<tr class="pv-file"><td>${g.rows.some((r) => !r.same) ? `<input type="checkbox" data-pvg="${g.idx}" aria-label="${esc(g.name)} alle">` : ""}</td><td colspan="3"><b>${esc(g.name)}</b>${dup(g) && g.folder ? ` <span class="muted sm">(${esc(g.folder)})</span>` : ""} <span class="muted sm">${esc(g.note || "")}</span></td></tr>
+    ${groups.map((g) => `<tr class="pv-file"><td>${g.rows.some((r) => !r.same) ? `<input type="checkbox" data-pvg="${g.idx}" aria-label="${esc(g.name)} alle">` : ""}</td><td colspan="3"><b>${esc(g.name)}</b>${dup(g) && g.folder ? ` <span class="muted sm">(${esc(g.folder)})</span>` : ""} <span class="muted sm">${esc(g.note || "")}</span>${g.links.size ? `<div class="pv-links sm">Treffer ansehen: ${[...g.links].map(([u, l]) => `<a href="#" class="pl-link" data-url="${esc(u)}" title="${esc(u)}">${esc(l)} ↗</a>`).join(" · ")}</div>` : ""}</td></tr>
       ${g.rows.map((r) => `<tr class="${r.same ? "pv-same" : r.note.includes("unsicher") ? "pv-unsure" : ""}"><td>${r.same ? '<span class="pv-eq" title="Wert ist bereits gleich">=</span>' : `<input type="checkbox" data-pvi="${r.id}" data-pvgroup="${g.idx}" data-default="${r.checked ? 1 : 0}" ${r.checked ? "checked" : ""}>`}</td>
-        <td>${esc(r.label)}</td><td class="old">${esc(r.old) || "–"}</td><td class="new">${esc(r.new)}${r.hint ? `<div class="hint">${esc(r.hint)}</div>` : ""}</td></tr>`).join("")}`).join("")}
+        <td>${esc(r.label)}${r.link ? ` <a href="#" class="pl-link" data-url="${esc(r.link)}" title="Datensatz auf ${esc(r.link_label || "der Plattform")} ansehen">↗</a>` : ""}</td><td class="old">${esc(r.old) || "–"}</td><td class="new">${esc(r.new)}${r.hint ? `<div class="hint">${esc(r.hint)}</div>` : ""}</td></tr>`).join("")}`).join("")}
     </tbody></table></div>
     ${(res.log || []).length ? `<details class="sm"><summary class="muted">Protokoll (${res.log.length})</summary><pre class="pl-log">${esc(res.log.slice(-60).join("\n"))}</pre></details>` : ""}`;
   const ids = await modal({
@@ -202,6 +203,8 @@ async function pluginPreview(f, res) {
         upd();
       });
       b.addEventListener("click", (e) => {
+        const l = e.target.closest(".pl-link[data-url]");
+        if (l) { e.preventDefault(); call("open_url", l.dataset.url); return; }   // #144
         const t = e.target.closest("[data-pv]"); if (!t) return;
         boxes().forEach((c) => { c.checked = t.dataset.pv === "all" ? true : t.dataset.pv === "none" ? false : c.dataset.default === "1"; });
         upd();

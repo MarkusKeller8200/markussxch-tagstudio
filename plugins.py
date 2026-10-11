@@ -220,11 +220,12 @@ class Context:
 
     # ---- Vorschläge (werden nach dem Lauf als Vorschau mit Häkchen gezeigt)
     def propose(self, f, key, new, label=None, note="", checked=True, kind="text", data=None, group=None, hint="",
-                show_same=False):
+                show_same=False, link="", link_label=""):
         """Änderung vorschlagen statt sie direkt auszuführen. kind="text" (key/new) oder "cover" (data=Bytes).
         note: Hinweis zur Datei (z. B. Treffer und Sicherheit), group: Überschrift je Datei,
         hint: Hinweis zu genau diesem Feld (z. B. „schon gefüllt“).
-        show_same=True: auch einen unveränderten Wert als (nicht wählbare) Zeile „gleich“ zeigen."""
+        show_same=True: auch einen unveränderten Wert als (nicht wählbare) Zeile „gleich“ zeigen.
+        link/link_label: Adresse des Treffers auf der Plattform (nur https), z. B. zum Vergleichen der Version (#144)."""
         same = False
         if kind == "text":
             it = f.get(key)
@@ -238,7 +239,8 @@ class Context:
             same = data is None    # nur Info (z. B. Cover vorhanden, nicht geladen)
         self.proposals.append({"file": f, "key": key, "new": "" if new is None else str(new), "old": old,
                                "label": label or key, "note": note, "checked": bool(checked) and not same, "kind": kind,
-                               "data": data, "group": group, "hint": hint, "same": same})
+                               "data": data, "group": group, "hint": hint, "same": same,
+                               "link": link if str(link or "").startswith("https://") else "", "link_label": link_label or ""})
         return True
 
     # ---- Tags ändern (mit Rückgängig, noch nicht gespeichert)

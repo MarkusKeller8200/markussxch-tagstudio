@@ -261,6 +261,16 @@ class TestBeatport(Base):
         self.assertFalse(by["Tonart"]["checked"])  # Am = 8A
         self.assertFalse([r for r in by.values() if r["checked"]])
         self.assertIn("4 Feld(er) stimmen bereits überein", st["result"]["message"])   # BPM, Tonart, Titel, Künstler
+        # #142: Standard „nur noch nicht vorhandene“ – vorhandene Felder werden gar nicht gezeigt
+        f.set_text("TBPM", "122")
+        st = self.act("fetch", [self.idx["n.mp3"]], bpm=True, key=True, genre=True, genre_mode="sub", label=False,
+                      date="no", isrc=False, remixer=False, names=False, cover="no", ids=False)
+        labels = {r["label"] for r in st["result"]["proposals"]}
+        self.assertNotIn("BPM", labels)                # 122 vorhanden, Beatport 124 → unverändert, ausgeblendet
+        self.assertNotIn("Tonart", labels)
+        self.assertIn("ISRC", labels)                 # fehlt in der Datei → gezeigt (abgewählt)
+        self.assertIn("ausgeblendet", st["result"]["message"])
+        self.assertEqual(self.mod.ACTIONS[0]["options"][0]["default"], "missing")
 
     def test_matching_helpers(self):
         m = self.mod
