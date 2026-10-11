@@ -540,7 +540,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin):
         import appsettings
         c = self.cfg
         return {"file": appsettings.overview(), "trivial": list(self.rules.trivial), "trivial_default": list(DEFAULT_TRIVIAL),
-                "save_version": c.get("save_version", 0), "key_notation": c.get("key_notation", "camelot"),
+                "save_version": c.get("save_version", 0), "save_v1": c.get("save_v1", 0), "key_notation": c.get("key_notation", "camelot"),
                 "notations": [[k, v] for k, v in keys.NOTATIONS.items()], "theme": self.opts["theme"],
                 "backup_enabled": c.get("backup_enabled", True), "backup_dir": self._backup_folder(),
                 "backup_store": self._backup_in_store(),
@@ -577,6 +577,14 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin):
         self.cfg["save_version"] = ver
         core.save_config({"save_version": ver})
         return ver
+
+    def set_save_v1(self, mode):
+        """#112: ID3v1 beim Speichern: 0 = wie vorhanden, 1 = immer mitschreiben, 2 = entfernen."""
+        if mode not in (0, 1, 2):
+            raise ValueError("0, 1 oder 2 erwartet")
+        self.cfg["save_v1"] = mode
+        core.save_config({"save_v1": mode})
+        return mode
 
     def settings_export_text(self) -> str:
         import appsettings
@@ -1088,6 +1096,10 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin):
         if ver in (3, 4):                 # Einstellung „ID3-Version beim Speichern“
             for f in files:
                 f.set_version(ver)
+        v1 = {1: "write", 2: "remove"}.get(self.cfg.get("save_v1", 0))   # #112
+        if v1:
+            for f in files:
+                f.v1_mode = v1
 
         def job(cancel, progress):
             with self.lock:

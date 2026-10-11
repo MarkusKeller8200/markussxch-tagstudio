@@ -708,6 +708,8 @@ class MP3File:
         self.tag_space = 0
         self.has_footer = False
         self.v1_genre = 255
+        if not hasattr(self, "v1_mode"):
+            self.v1_mode = None        # #112: None = wie vorhanden, "write" = ID3v1 schreiben/anlegen, "remove" = entfernen
         if cached is not None:
             head, body, v1, mpeg_head = cached["head"], cached["body"], cached["v1"], None
             self.size, self.mtime = cached["size"], cached["mtime"]
@@ -1047,8 +1049,12 @@ class MP3File:
         else:
             self.items[key] = Item.new_text(key, text)
 
+    def v1_pending(self) -> bool:
+        """#112: ID3v1 soll angelegt bzw. entfernt werden."""
+        return (self.v1_mode == "write" and not self.had_v1) or (self.v1_mode == "remove" and self.had_v1)
+
     def is_modified(self) -> bool:
-        if self.version != self._orig_version:
+        if self.version != self._orig_version or self.v1_pending():
             return True
         if self.items.keys() != self._orig.keys():
             return True
@@ -1108,11 +1114,17 @@ class MP3File:
                 if os.path.exists(tmp):
                     os.remove(tmp)
                 raise
-        if self.had_v1:
-            self._write_v1()
+        if self.v1_mode == "remove":
+            if self.had_v1:
+                with open(self.path, "r+b") as f:
+                    f.seek(0, os.SEEK_END)
+                    f.truncate(f.tell() - 128)
+        elif self.had_v1 or self.v1_mode == "write":
+            self._write_v1(append=not self.had_v1)
+        self.v1_mode = None
         self.load()
 
-    def _write_v1(self):
+    def _write_v1(self, append=False):
         def fit(s, n):
             return s.encode("latin-1", "replace")[:n].ljust(n, b"\x00")
         t = self.text
@@ -1127,5 +1139,5 @@ class MP3File:
         tag = (b"TAG" + fit(t("TIT2"), 30) + fit(t("TPE1"), 30) + fit(t("TALB"), 30)
                + fit(t("TDRC")[:4], 4) + fit(t("COMM:"), 28) + b"\x00" + bytes([track, genre]))
         with open(self.path, "r+b") as f:
-            f.seek(-128, os.SEEK_END)
+            f.seek(0 if append else -128, os.SEEK_END)
             f.write(tag)
