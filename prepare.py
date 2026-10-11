@@ -10,6 +10,7 @@ Schritte:
             optional mit Schutzregel „nur ergänzen“ (#114)
   import    in die Bibliothek kopieren mit Duplikatprüfung (#115)
   check     nachgelagertes Programm als Status (Mixed In Key, beaTunes, Engine DJ, Lexicon, Mixo – #116)
+  verify    Pflichtfelder prüfen (z. B. vor der Übernahme: Tonart, BPM, Cover) – automatisch, ändert nichts
   plugin    Plugin-Aktion (Lautheit, Online-Metadaten …) auf eine Kopie im Stufen-Ordner; Vorschläge werden je nach
             Modus übernommen (nur leere Felder füllen · alle vorgeschlagenen · nur messen) und gespeichert
 Nur Standardbibliothek. Gelöscht wird nur auf ausdrücklichen Wunsch (Stufen-Kopien nach der Übernahme).
@@ -28,7 +29,9 @@ import time
 import uuid
 
 STEP_TYPES = {"recipe": "Tag-Rezept", "external": "Externes Programm", "import": "Übernahme in die Bibliothek",
-              "check": "Nachgelagertes Programm (Status)", "plugin": "Plugin"}
+              "check": "Nachgelagertes Programm (Status)", "plugin": "Plugin",
+              "verify": "Pflichtfelder prüfen"}
+VERIFY_DEFAULT = ["TIT2", "TPE1", "TKEY", "TBPM", "APIC*"]
 PLUGIN_MODES = {"fill": "nur leere Felder füllen", "checked": "alle vorausgewählten Vorschläge übernehmen",
                 "none": "nichts übernehmen (nur ausführen, z. B. messen oder Kopie erzeugen)"}
 STATES = {"open": "offen", "waiting": "wartet", "done": "erledigt", "warn": "erledigt mit Warnung", "error": "Fehler",
@@ -108,6 +111,9 @@ def clean_workflow(w: dict) -> dict:
         elif s["type"] == "check":
             st.update(detect=str(s.get("detect") or ""), protect=bool(s.get("protect")),
                       allow=[str(x) for x in s.get("allow") or [] if str(x).strip()])
+        elif s["type"] == "verify":
+            fl = [str(x).strip() for x in (s.get("fields") if s.get("fields") is not None else VERIFY_DEFAULT) if str(x).strip()]
+            st.update(fields=fl)
         elif s["type"] == "plugin":
             st.update(plugin=str(s.get("plugin") or ""), action=str(s.get("action") or ""), folder=folder or f"_{sid}",
                       mode=s.get("mode") if s.get("mode") in PLUGIN_MODES else "fill", protect=bool(s.get("protect")),
@@ -248,6 +254,14 @@ def revert_values(path: str, rows: list[dict]) -> int:
     if n:
         f.save()
     return n
+
+
+def missing_fields(path: str, pats) -> list[str]:
+    """Pflichtfelder (Muster wie „APIC*“, „TXXX:ENERGY“), die fehlen oder leer sind."""
+    from id3tags import MP3File
+    f = MP3File(path)
+    have = [k for k, it in f.items.items() if it.kind in ("picture", "raw") or (it.text or "").strip()]
+    return [p for p in pats or [] if not any(_match(k, [p]) for k in have)]
 
 
 # =========================================================================== Plugin-Schritt

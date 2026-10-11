@@ -105,6 +105,28 @@ class TestPrepare(Base):
         self.assertEqual(self.s.prep_cleanup(self.wid, None, True)["removed"], 4)
         self.assertTrue(os.path.isfile(os.path.join(self.inbox, "a.mp3")))   # Rohdaten bleiben
 
+    def test_verify_step(self):
+        w = dict(self.w)
+        w["steps"] = [{"id": "v1", "type": "verify", "label": "Pflichtfelder", "fields": ["TIT2", "TKEY"]}]
+        self.s.prep_workflow_save(w)
+        self.s.start_prep_run(self.wid, "v1")
+        r = self.wait()
+        self.assertEqual(r["done"], 0)
+        c = self.cells(self.s.prep_overview(self.wid), "a.mp3")["v1"]
+        self.assertEqual((c["state"], c["note"]), ("error", "fehlt: TKEY"))
+        f = MP3File(os.path.join(self.inbox, "a.mp3"))
+        f.set_text("TKEY", "8A")
+        f.save()
+        self.s.start_prep_run(self.wid, "v1", ["a.mp3"])
+        self.assertEqual(self.wait()["done"], 1)
+        self.assertEqual(self.cells(self.s.prep_overview(self.wid), "a.mp3")["v1"]["state"], "done")
+        self.assertEqual(prepare.clean_workflow({"steps": [{"type": "verify"}]})["steps"][0]["fields"], prepare.VERIFY_DEFAULT)
+
+    def test_pending(self):
+        self.assertEqual(self.s.prep_pending(), {"count": 2, "new": 2})
+        self.s.prep_mark(self.wid, "s02", ["a.mp3"], "skipped")
+        self.assertEqual(self.s.prep_pending(), {"count": 2, "new": 1})
+
     def test_export_import(self):
         txt = self.s.prep_export(self.wid)
         self.assertNotIn(self.inbox.replace("\\", "\\\\"), txt)

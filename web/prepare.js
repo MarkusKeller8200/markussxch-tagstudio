@@ -36,10 +36,10 @@ function prepRenderSteps() {
   const d = PREP.d, w = d.workflow;
   $("#prepSteps").innerHTML = w.steps.map((s, i) => {
     const c = d.counts[s.id] || {};
-    const ready = c.open || 0, wait = c.waiting || 0, done = (c.done || 0) + (c.warn || 0) + (c.skipped || 0);
+    const ready = (c.open || 0) + (s.type === "verify" ? c.error || 0 : 0), wait = c.waiting || 0, done = (c.done || 0) + (c.warn || 0) + (c.skipped || 0);
     const btn = s.type === "check" ? "" : s.type === "external"
       ? `<button class="ghost sm" data-run="${esc(s.id)}" ${ready ? "" : "disabled"} title="${s.copy ? "In den Stufen-Ordner kopieren und " : ""}Programm öffnen">Öffnen${ready ? ` (${ready})` : ""}</button>`
-      : `<button class="${s.type === "import" ? "primary" : "ghost"} sm" data-run="${esc(s.id)}" ${ready ? "" : "disabled"}>${s.type === "import" ? "Übernehmen" : "Ausführen"}${ready ? ` (${ready})` : ""}</button>`;
+      : `<button class="${s.type === "import" ? "primary" : "ghost"} sm" data-run="${esc(s.id)}" ${ready ? "" : "disabled"}>${s.type === "import" ? "Übernehmen" : s.type === "verify" ? "Prüfen" : "Ausführen"}${ready ? ` (${ready})` : ""}</button>`;
     const det = s.detect ? `<span class="muted sm" title="Abschluss wird an der Herkunft erkannt">erkennt: ${esc((d.origins || {})[s.detect] || s.detect)}</span>` : "";
     return `<div class="prep-step t-${s.type}"><div class="h">${/^\d/.test(s.label) ? "" : `<span class="n">${prepShort(s, i)}</span>`}<b title="${esc(d.types[s.type])}">${esc(s.label)}</b>${s.protect ? ' <span class="prep-lock" title="Schutzregel „nur ergänzen“">🔒</span>' : ""}</div>
       <div class="c"><span title="erledigt">✓ ${done}</span>${wait ? ` <span title="wartet">⏳ ${wait}</span>` : ""}${c.error ? ` <span class="st-missing" title="Fehler">✕ ${c.error}</span>` : ""}${(c.warn || 0) ? ` <span title="Warnungen der Schutzregel">⚠ ${c.warn}</span>` : ""}</div>
@@ -86,6 +86,7 @@ function prepCellMenu(e, name, i) {
     items.push({ label: `Geänderte Felder ansehen (${c.viol.length}) …`, run: () => prepViolations(name, i) });
     items.push({ label: "Geänderte Felder zurücksetzen", run: async () => prepApply(await call("prep_revert", d.workflow.id, s.id, name)) }, "-");
   }
+  if (s.type === "verify" && c.state === "error") items.push({ label: `Erneut prüfen${n}`, run: () => prepRun(s.id, names) });
   if (s.type !== "check" && c.state === "open") items.push({ label: s.type === "external" ? `Öffnen${n}` : `Ausführen${n}`, run: () => prepRun(s.id, names) });
   if (s.type === "import" && c.state === "error") items.push({ label: `Trotzdem übernehmen${n}`, run: () => prepRun(s.id, names, true) });
   if (["open", "waiting", "error", "blocked"].includes(c.state)) items.push({ label: `Als erledigt markieren${n}`, run: async () => prepApply(await call("prep_mark", d.workflow.id, s.id, names, "done")) });
@@ -129,6 +130,8 @@ function prepStepForm(s, recipesList, origins, pluginActs = []) {
       + inp("psFolder", "Stufen-Ordner", s.folder, "_04_Lautheit")
       + chk("psProtect", "Schutzregel „nur ergänzen“", s.protect) + inp("psAllow", "Erlaubte Felder", (s.allow || []).join(", "), "z. B. TBPM, TKEY");
   }
+  if (s.type === "verify") f += inp("psFields", "Pflichtfelder", (s.fields || []).join(", "), "z. B. TIT2, TPE1, TKEY, TBPM, APIC*, TXXX:ENERGY")
+    + `<span></span><span class="muted sm">Fehlt ein Feld oder ist es leer, wird der Titel als Fehler markiert. Nach dem Ergänzen erneut prüfen.</span>`;
   if (s.type === "import") f += chk("psDup", "Auf Duplikate prüfen (Dateiname, Künstler + Titel, Audio)", s.dup !== false);
   if (s.type === "check") f += det + chk("psProtect", "Schutzregel „nur ergänzen“ (Vergleich mit dem Stand bei der Übernahme)", s.protect) + inp("psAllow", "Erlaubte Felder", (s.allow || []).join(", "));
   return f;
@@ -140,6 +143,7 @@ function prepReadStep(b, s) {
   if (s.type === "recipe") Object.assign(out, { recipe: v("psRecipe"), folder: v("psFolder") });
   if (s.type === "external") Object.assign(out, { program: v("psProgram"), args: v("psArgs"), folder: v("psFolder"), copy: c("psCopy"), detect: v("psDetect"), protect: c("psProtect"), allow: (v("psAllow") || "").split(/\s*,\s*/).filter(Boolean) });
   if (s.type === "import") Object.assign(out, { dup: c("psDup") });
+  if (s.type === "verify") Object.assign(out, { fields: (v("psFields") || "").split(/\s*,\s*/).filter(Boolean) });
   if (s.type === "plugin") { const [plugin, action] = (v("psPlugin") || "|").split("|"); Object.assign(out, { plugin, action, mode: v("psMode"), folder: v("psFolder"), protect: c("psProtect"), allow: (v("psAllow") || "").split(/\s*,\s*/).filter(Boolean) }); }
   if (s.type === "check") Object.assign(out, { detect: v("psDetect"), protect: c("psProtect"), allow: (v("psAllow") || "").split(/\s*,\s*/).filter(Boolean) });
   return out;
@@ -152,7 +156,7 @@ async function prepEditWorkflow() {
   try { pluginActs = await call("plugin_actions", "tagger"); } catch (e) { pluginActs = []; }
   const origins = PREP.d.origins || {};
   const render = (b) => {
-    $("#pwSteps", b).innerHTML = w.steps.map((s, i) => `<div class="rc-act" data-k="${i}"><span class="rc-n">${i + 1}</span><span class="rc-t"><b>${esc(s.label)}</b> <span class="muted sm">${esc(PREP.d.types[s.type])}${s.folder ? " · " + esc(s.folder) : ""}${s.protect ? " · 🔒" : ""}${s.type === "external" && !s.program ? " · kein Programm" : ""}${s.type === "plugin" ? " · " + esc(s.plugin ? `${s.plugin}/${s.action}` : "kein Plugin") : ""}</span></span>
+    $("#pwSteps", b).innerHTML = w.steps.map((s, i) => `<div class="rc-act" data-k="${i}"><span class="rc-n">${i + 1}</span><span class="rc-t"><b>${esc(s.label)}</b> <span class="muted sm">${esc(PREP.d.types[s.type])}${s.folder ? " · " + esc(s.folder) : ""}${s.protect ? " · 🔒" : ""}${s.type === "external" && !s.program ? " · kein Programm" : ""}${s.type === "verify" ? " · " + esc((s.fields || []).join(", ")) : ""}${s.type === "plugin" ? " · " + esc(s.plugin ? `${s.plugin}/${s.action}` : "kein Plugin") : ""}</span></span>
       <button class="icon-btn" data-ps="edit" title="Bearbeiten">✎</button><button class="icon-btn" data-ps="up" ${i ? "" : "disabled"}>↑</button><button class="icon-btn" data-ps="down" ${i < w.steps.length - 1 ? "" : "disabled"}>↓</button><button class="icon-btn" data-ps="del" title="Entfernen">✕</button></div>`).join("");
   };
   const edit = (b, i) => {
@@ -181,7 +185,7 @@ async function prepEditWorkflow() {
       render(b);
       b.addEventListener("click", (e) => {
         const t = e.target.closest("button"); if (!t || t.closest("#pwEdit")) return;
-        if (t.id === "pwAdd") { const type = $("#pwType", b).value; w.steps.push({ id: "", type, label: PREP.d.types[type], folder: ["recipe", "plugin"].includes(type) ? "_neu" : "", mode: "fill" }); render(b); edit(b, w.steps.length - 1); return; }
+        if (t.id === "pwAdd") { const type = $("#pwType", b).value; w.steps.push({ id: "", type, label: PREP.d.types[type], folder: ["recipe", "plugin"].includes(type) ? "_neu" : "", mode: "fill", ...(type === "verify" ? { fields: ["TIT2", "TPE1", "TKEY", "TBPM", "APIC*"] } : {}) }); render(b); edit(b, w.steps.length - 1); return; }
         const k = t.closest(".rc-act") ? +t.closest(".rc-act").dataset.k : -1;
         if (k < 0) return;
         if (t.dataset.ps === "edit") return edit(b, k);
@@ -226,7 +230,21 @@ async function prepCleanup() {
   prepShow();
 }
 
+/** Seitenleiste: offene Titel im Eingang, auch ohne die Seite zu öffnen (alle 2 Minuten, liest keine Tags) */
+async function prepPendingTick() {
+  if (typeof S !== "undefined" && S.module === "prep") return;
+  try {
+    const r = await call("prep_pending");
+    const el = $("#prepCount"); if (!el) return;
+    el.textContent = r.count ? String(r.count) : "";
+    el.title = "Titel im Eingang, die noch nicht übernommen sind" + (r.new ? ` – davon ${r.new} neu` : "");
+    el.classList.toggle("new", !!r.new);
+  } catch (e) { /* noch nicht bereit */ }
+}
+
 (function bindPrep() {
+  setTimeout(prepPendingTick, 4000);
+  setInterval(prepPendingTick, 120000);
   $("#prepRefresh").addEventListener("click", prepShow);
   $("#prepEdit").addEventListener("click", prepEditWorkflow);
   $("#prepMore").addEventListener("click", (e) => { e.stopPropagation(); prepMoreMenu(); });

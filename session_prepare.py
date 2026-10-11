@@ -79,6 +79,22 @@ class PrepareMixin:
         d["id"] = prepare.template()["id"]
         return self.prep_workflow_save(d)
 
+    def prep_pending(self) -> dict:
+        """Für die Seitenleiste: Titel im Eingang, die noch nicht übernommen sind (alle Workflows, ohne Tags zu lesen)."""
+        total, new = 0, 0
+        for w in self._prep_workflows():
+            if not w.get("inbox"):
+                continue
+            st = prepare.load_state(w["id"])
+            imp = next((s["id"] for s in w["steps"] if s["type"] == "import"), None)
+            for n in prepare.list_inbox(w):
+                t = st["tracks"].get(n)
+                if t is None:
+                    new += 1
+                if not imp or (((t or {}).get("steps") or {}).get(imp) or {}).get("state") not in ("done", "warn"):
+                    total += 1
+        return {"count": total, "new": new}
+
     # ------------------------------------------------------------------ Übersicht
     def prep_overview(self, wid=None) -> dict:
         w = self._prep_get(wid)
@@ -197,6 +213,13 @@ class PrepareMixin:
                         prepare.copy_file(src, dst)
                         t["lib_baseline"] = prepare.tag_values(dst)
                         rec.update(state="done", at=prepare.now(), file=dst, note="übernommen" + (" (trotz Hinweis)" if dups else ""))
+                    elif s["type"] == "verify":
+                        miss = prepare.missing_fields(src, s.get("fields"))
+                        if miss:
+                            rec.update(state="error", at=prepare.now(), file=src, note="fehlt: " + ", ".join(miss))
+                            errors.append(f"{n}: fehlt {', '.join(miss)}")
+                            continue
+                        rec.update(state="done", at=prepare.now(), file=src, note="vollständig")
                     elif s["type"] == "plugin":
                         from id3tags import MP3File
                         dst = os.path.join(prepare.work_dir(w), s["folder"], n)

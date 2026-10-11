@@ -827,6 +827,7 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 
 /* Snapshots (#53) */
 .nav-sub{margin-left:auto;font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums}
+.nav-sub.new{color:var(--acc);font-weight:600}
 .sn-grid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);gap:16px}
 .sn-left,.sn-right{min-height:0}
 .sn-libs{display:flex;flex-direction:column;gap:6px}
