@@ -395,6 +395,39 @@ class UiTest(unittest.TestCase):
         rows = pg.evaluate("snExportRows()")
         self.assertEqual([(r[5], r[6], r[7]) for r in rows], [("TKEY", "", "8A")])
 
+    def test_help_page(self):
+        """#158: Hilfe – Kapitel aufklappen, Bibliothek scannen, Zähler filtert im Tagger, Handbuch als Markdown."""
+        from id3tags import MP3File
+        f = MP3File(os.path.join(self.lib, "01 Ton 220.mp3"))
+        f.set_text("TXXX:MEINFELD", "1")
+        f.save()
+        pg = self.pg
+        pg.evaluate(f"call('set_default_dir', 'tagger', {json.dumps(self.lib)})")
+        pg.click('.nav[data-module="help"]')
+        pg.wait_for_selector('#helpChapters details[data-ch="ident"][open]')
+        self.assertIn("TIT2", pg.inner_text("#helpChapters"))
+        self.assertTrue(pg.locator('#helpChapters details[data-ch="software"]').count())
+        pg.click("#helpScan")
+        pg.wait_for_selector('#helpChapters details[data-ch="custom"] [data-filter="TXXX:MEINFELD"]')
+        self.assertIn("3 Titel", pg.inner_text("#helpScanInfo"))
+        pg.fill("#helpQ", "meinfeld")
+        self.assertEqual(pg.locator("#helpChapters details").count(), 1)
+        pg.fill("#helpQ", "")
+        pg.click('#helpChapters details[data-ch="custom"] [data-filter="TXXX:MEINFELD"]')
+        pg.wait_for_function("S.module === 'tagger' && TG.fieldFilter && TG.order.length === 1")
+        self.assertIn("MEINFELD", pg.inner_text("#tgFieldFilter"))
+        pg.click('#tgFieldFilter [data-ffm="miss"]')
+        pg.wait_for_function("TG.order.length === 2")
+        pg.click("#tgFieldFilter [data-ffx]")
+        pg.wait_for_function("TG.order.length === 3 && !TG.fieldFilter")
+        # Handbuch
+        pg.click('.nav[data-module="help"]')
+        pg.click('#helpTabs [data-htab="readme"]')
+        pg.wait_for_selector("#helpDoc h2")
+        self.assertTrue(pg.locator("#helpDoc table").count() >= 0)
+        pg.click('#helpTabs [data-htab="id3"]')
+        pg.wait_for_selector("#helpDoc table.help-t")
+
     def test_snapshot_baseline(self):
         """Neue Baseline: aus dem aktuellen Stand, ältere Snapshots löschen (angeheftete nur auf Wunsch)."""
         pg = self.pg

@@ -207,6 +207,7 @@ async function tgAdopt(tr, path, recursive) {
   await tgLoadDetail();
   if (typeof djAfterTaggerLoad === "function") djAfterTaggerLoad();     // DJ-Set: Titel sind jetzt geladen
   if (typeof pqAfterTaggerLoad === "function") pqAfterTaggerLoad();
+  if (TG.fieldFilter) { const ff = TG.fieldFilter; tgSetFieldFilter(ff.key, ff.mode, ff.label); }   // #158: Indizes neu
   TG.moodSuggest = null;                                                    // #12: Vorschläge neu sammeln     // #138 Warteschlange
 }
 
@@ -248,6 +249,8 @@ function tgApplyOrder() {
   let idx = TG.rows.filter((r) => r.parent === undefined).map((r) => r.i);   // Stems hängen unter dem Original
   const bpmNum = (v) => { const n = parseFloat(String(v || "").replace(",", ".")); return isFinite(n) ? n : Infinity; };
   const { text, nums } = tgParseQuery(q);                                    // #11: Zahlenfilter wie energy>=70
+  const ff = TG.fieldFilter;                                                 // #158: Feld vorhanden / fehlt
+  if (ff) idx = idx.filter((i) => ff.has.has(i) === (ff.mode === "has"));
   if (text) idx = idx.filter((i) => { const r = TG.rows[i]; return [r.rel, r.TIT2, r.TPE1, r.TALB, r.TCON, r.TPE2].some((v) => (v || "").toLowerCase().includes(text)); });
   if (nums.length) idx = idx.filter((i) => { const r = TG.rows[i];
     return nums.every((f) => { const v = f.field === "bpm" ? bpmNum(r.TBPM) : r.feat ? r.feat[f.field] : null;
@@ -294,6 +297,26 @@ const TG_FEAT_ALIAS = { energie: "ENERGY", tanz: "DANCEABILITY", dance: "DANCEAB
   aggress: "AGGRESSIVENESS", tempo: "bpm" };
 
 /** Suchtext in Text und Zahlenfilter zerlegen: „energy>=70 bpm:120-128 house“ → {text: "house", nums: [...]} */
+// ---------------------------------------------------------------------- #158 Filter nach Feld (aus der Hilfe)
+async function tgSetFieldFilter(key, mode = "has", label = "") {
+  if (!key) { TG.fieldFilter = null; tgFieldFilterChip(); tgApplyOrder(); return; }
+  const r = await call("tag_field_filter", key);
+  TG.fieldFilter = { key, mode, label: label || key, has: new Set(r.has), n: r.has.length };
+  tgFieldFilterChip();
+  tgApplyOrder();
+}
+
+function tgFieldFilterChip() {
+  const el = $("#tgFieldFilter"), f = TG.fieldFilter;
+  if (!el) return;
+  el.hidden = !f;
+  if (!f) { el.innerHTML = ""; return; }
+  const total = TG.rows.filter((r) => r.parent === undefined).length;
+  el.innerHTML = `<span class="chip" title="${esc(f.key)}">Feld <b>${esc(f.label)}</b></span>
+    <span class="seg sm"><button data-ffm="has" class="${f.mode === "has" ? "on" : ""}" title="Titel mit diesem Feld">vorhanden ${fmtN(f.n)}</button><button data-ffm="miss" class="${f.mode === "miss" ? "on" : ""}" title="Titel ohne dieses Feld – zum Vervollständigen">fehlt ${fmtN(Math.max(0, total - f.n))}</button></span>
+    <button class="x" data-ffx title="Feld-Filter aufheben" aria-label="Feld-Filter aufheben">✕</button>`;
+}
+
 function tgParseQuery(q) {
   const names = ((TG.settings && TG.settings.features) || []).map(([n]) => n);
   const field = (w) => {
@@ -1362,6 +1385,11 @@ async function tgOriginDialog(preset = "") {
   }));
   let qt = null;
   $("#tgQuery").addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(tgApplyOrder, 150); });
+  $("#tgFieldFilter").addEventListener("click", (e) => {                        // #158
+    const m = e.target.closest("[data-ffm]");
+    if (m && TG.fieldFilter) { TG.fieldFilter.mode = m.dataset.ffm; tgFieldFilterChip(); tgApplyOrder(); return; }
+    if (e.target.closest("[data-ffx]")) tgSetFieldFilter(null);
+  });
   $("#tgHead").addEventListener("click", (e) => {
     const b = e.target.closest("[data-sort]"); if (!b) return;
     const col = b.dataset.sort, n = TG.sorts.findIndex((s) => s.col === col);

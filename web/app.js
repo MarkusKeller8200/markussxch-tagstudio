@@ -1375,7 +1375,7 @@ async function undoRedo(redo) {
   if (S.module === "fixer") fixerPreview();
 }
 
-const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups", plugins: "modulePlugins", settings: "moduleSettings", snapshots: "moduleSnapshots", djset: "moduleDjset" };
+const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups", plugins: "modulePlugins", settings: "moduleSettings", snapshots: "moduleSnapshots", djset: "moduleDjset", help: "moduleHelp" };
 function setModule(m, opts = {}) {
   S.module = m;
   if (!opts.start && m in MODULE_IDS) call("set_ui", "module", m).catch(() => {});      // #88: zuletzt benutzte Seite
@@ -1391,6 +1391,7 @@ function setModule(m, opts = {}) {
   if (m === "settings" && typeof settingsShow === "function") settingsShow();
   if (m === "snapshots" && typeof snapShow === "function") snapShow();
   if (m === "djset" && typeof djsetShow === "function") djsetShow();
+  if (m === "help" && typeof helpShow === "function") helpShow();                // #158
   if (typeof plRender === "function") plRender();
 }
 

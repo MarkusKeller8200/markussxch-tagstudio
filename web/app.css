@@ -1191,3 +1191,34 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .mood-chip.part{background:transparent;border:1px dashed var(--line2);cursor:pointer;padding-right:8px;font:inherit;font-size:12.5px}
 .mood-chip.part:hover{border-color:var(--acc)}
 .tg-form .mood-box input{height:28px;border:0;background:transparent;padding:0 2px;width:auto}
+/* #158 Feld-Filter im Tagger */
+.tg-ffilter{display:inline-flex;align-items:center;gap:6px}
+.tg-ffilter .chip b{font-weight:600}
+/* #158 Hilfe */
+.help-page{gap:12px}
+.help-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
+.help-bar #helpRoot{max-width:520px}
+.help-bar .search input{width:260px}
+.help-chapters{display:flex;flex-direction:column;gap:8px}
+.help-ch{border:1px solid var(--line);border-radius:10px;background:var(--surf)}
+.help-ch>summary{cursor:pointer;padding:10px 14px;list-style:none;display:flex;align-items:baseline;gap:8px}
+.help-ch>summary::-webkit-details-marker{display:none}
+.help-ch>summary::before{content:"▸";color:var(--dim);width:12px;display:inline-block;transition:transform .15s}
+.help-ch[open]>summary::before{transform:rotate(90deg)}
+.help-body{padding:0 14px 12px;overflow-x:auto}
+.help-body>p{margin:0 0 8px}
+.help-t{border-collapse:collapse;width:100%;font-size:13px}
+.help-t th{text-align:left;font-weight:600;color:var(--dim);border-bottom:1px solid var(--line);padding:5px 8px;white-space:nowrap}
+.help-t td{border-bottom:1px solid var(--line);padding:5px 8px;vertical-align:top}
+.help-t td code,.md code{font-family:var(--mono);font-size:12px}
+.help-t .n{text-align:right;white-space:nowrap;position:relative;min-width:64px}
+.help-n{border:0;background:var(--acc-soft);color:var(--fg);border-radius:99px;padding:1px 9px;cursor:pointer;font:inherit;font-variant-numeric:tabular-nums}
+.help-n:hover{background:var(--acc);color:var(--acc-fg)}
+.help-bar-n{height:3px;border-radius:2px;background:var(--acc);opacity:.5;margin:3px 0 0 auto}
+.help-doc{max-width:980px;line-height:1.55}
+.md h2{font-size:20px;margin:22px 0 8px}.md h3{font-size:17px;margin:18px 0 6px}.md h4,.md h5{font-size:15px;margin:14px 0 4px}
+.md pre{background:var(--raise);border-radius:8px;padding:10px 12px;overflow:auto}
+.md blockquote{border-left:3px solid var(--acc);margin:8px 0;padding:4px 12px;color:var(--dim)}
+.md ul,.md ol{padding-left:22px}
+.md li{margin:2px 0}
+.md hr{border:0;border-top:1px solid var(--line);margin:18px 0}

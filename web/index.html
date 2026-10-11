@@ -32,6 +32,8 @@
       <svg class="i" viewBox="0 0 24 24"><path d="M9 3h6v3a2 2 0 1 0 4 0V3h2v6h-3a2 2 0 1 0 0 4h3v8h-6v-3a2 2 0 1 0-4 0v3H3v-8h3a2 2 0 1 0 0-4H3V3h6Z"/></svg><span class="nt">Plugins</span></button>
     <button class="nav" data-module="settings" title="Einstellungen">
       <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><span class="nt">Einstellungen</span></button>
+    <button class="nav" data-module="help" title="Hilfe: Tag-Übersicht, Handbuch, ID3-Felder">
+      <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5h.01"/></svg><span class="nt">Hilfe</span></button>
     <button class="nav dim" data-module="db" title="Datenbank (bald)">
       <svg class="i" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span class="nt">Datenbank</span><span class="soon nt">bald</span></button>
     <div class="grow"></div>
@@ -176,6 +178,7 @@
           <section class="tg-list" aria-label="Dateien">
             <div class="tg-listhead">
               <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="tgQuery" placeholder="Filtern: Name, Titel, Künstler … oder energy>=70, bpm:120-128" aria-label="Dateien filtern" title="Text sucht in Datei, Titel, Künstler, Album, Genre. Zahlenfilter: bpm, Tonart nicht; Audio-Merkmale wie energy>=70, dance<40, energie:60-80 (auch ≥ ≤ = &lt; &gt;). Mehrere Filter mit Leerzeichen."></label>
+              <span class="tg-ffilter" id="tgFieldFilter" hidden></span>
               <span class="muted sm" id="tgCount"></span>
               <button class="ghost sm tg-cover-col" id="tgSortReset" hidden title="Sortierung auf den Standard zurücksetzen (#153)">↺ Sortierung</button><button class="ghost sm tg-cover-col" id="tgColsBtn" aria-haspopup="menu" title="Spalten wählen, anordnen (in der Kopfzeile ziehen), Breite, Standard-Sortierung, bevorzugte Ansicht">Spalten ▾</button><button class="ghost sm tg-cover-col" id="tgCoverCol" title="Cover-Spalte ein-/ausblenden">Cover</button><button class="ghost sm tg-cover-col" id="tgFeatCols" aria-haspopup="menu" title="Spalten mit Audio-Merkmalen (Energy, Danceability …) ein-/ausblenden">Merkmale ▾</button><span class="tg-stem-btns" id="tgStemBtns" hidden><button class="ghost sm" id="tgStemOpen" title="Alle Stems aufklappen">Stems ▾</button><button class="ghost sm" id="tgStemClose" title="Alle Stems zuklappen">Stems ▸</button></span>
             </div>
@@ -356,6 +359,31 @@
       </div>
     </div>
 
+    <div class="work module" id="moduleHelp" hidden>
+      <div class="mod-page help-page">
+        <header class="mod-head">
+          <div><h2>Hilfe</h2>
+          <p class="muted">Übersicht aller Tags mit Bedeutung und Herkunft, Handbuch und technische Details. Der Scan zeigt, welche Felder in deiner Bibliothek vorkommen – ein Klick auf die Anzahl filtert die Titel im Tagger.</p></div>
+          <div class="seg" id="helpTabs" role="tablist" aria-label="Hilfe-Bereiche">
+            <button data-htab="tags" role="tab" class="on">Tag-Übersicht</button><button data-htab="readme" role="tab">Handbuch</button><button data-htab="id3" role="tab">ID3-Felder</button><button data-htab="plugins" role="tab">Plugins</button>
+          </div>
+        </header>
+        <div id="helpTags">
+          <div class="help-bar">
+            <label class="muted sm" for="helpRoot">Bibliothek</label><select id="helpRoot" class="inp"></select>
+            <button class="ghost" id="helpScan" title="Alle MP3 im Ordner einlesen (mit Listen-Cache) und zählen, welche Felder vorkommen">Bibliothek scannen</button>
+            <span class="muted sm" id="helpScanInfo"></span>
+            <div class="grow"></div>
+            <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="helpQ" placeholder="Tag suchen, z. B. TPE1, ENERGY, Serato …" aria-label="Tags durchsuchen"></label>
+            <label class="check sm"><input type="checkbox" id="helpDj"> nur DJ-relevante</label>
+            <button class="ghost sm" id="helpOpenAll">Alle aufklappen</button><button class="ghost sm" id="helpCloseAll">Alle zuklappen</button>
+          </div>
+          <div id="helpChapters" class="help-chapters"></div>
+        </div>
+        <div id="helpDoc" class="help-doc md" hidden></div>
+      </div>
+    </div>
+
     <div class="work placeholder" id="modulePlaceholder" hidden>
       <div class="empty-state">
         <svg class="i xl" viewBox="0 0 24 24"><path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg>
@@ -506,5 +534,6 @@
 <script src="snapshots.js"></script>
 <script src="djset.js"></script>
 <script src="queue.js"></script>
+<script src="help.js"></script>
 </body>
 </html>

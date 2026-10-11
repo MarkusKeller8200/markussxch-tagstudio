@@ -10,6 +10,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Vergleich:** Binärfelder (GEOB/PRIV, z. B. Serato, Mixed In Key) lassen sich wie im Tagger im **Binärfeld-Editor**
   ansehen und bearbeiten (Doppelklick oder Rechtsklick › „Binärfeld-Editor“), mit Serato-Ansicht, JSON-Baum und Hex-
   Ansicht; JSON in Textfeldern öffnet den **JSON-Baum** (#13).
+- **Hilfe** (neuer Menüpunkt): **Tag-Übersicht** in aufklappbaren Kapiteln (offizielle ID3v2.4-Frames nach Funktion,
+  DJ-Analysewerte ohne eigenen Frame, Programm-Daten nach Herkunft, eigene Tags, weitere Frames) mit Bedeutung,
+  Mp3tag-Name, DJ-Relevanz und **konfigurierter Herkunft**, dazu der Vergleich der DJ-Software. **Bibliothek scannen**
+  zählt je Tag, wie viele Titel ihn haben (Ergebnis im Cache) und listet alle **eigenen (CUSTOM) Tags** der Bibliothek;
+  ein Klick auf die Anzahl öffnet den Tagger mit Filter „Feld vorhanden / fehlt“ zum Vervollständigen. Dazu Handbuch,
+  ID3-Felder und Plugin-Anleitung direkt in der App (#158).
 - **Snapshots:** Änderungsjournal als **Excel oder CSV exportieren** – genau die sichtbaren Einträge (Status,
   Programm, Feld, Suche), je geändertem Feld eine Zeile mit Vorher/Nachher (#59).
 - **Sicherungen im Snapshot-Speicher:** Neue Sicherungen legen die Tag-Bytes im gemeinsamen Speicher ab – gleiche Tags

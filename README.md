@@ -463,6 +463,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `undo.py` – Rückgängig/Wiederholen
 - `media.py` – lokaler Audio-Server für den Player (Range-Anfragen, Token); `players.py` – externe Player
 - `ratings.py` – Bewertung (POPM, FMPS_Rating) und Like (TXXX:TAGSTUDIO)
+- `taghelp.py`, `session_help.py` – Hilfe: Tag-Übersicht, Bibliotheks-Scan mit Zählern (Cache), Feld-Filter
 - `id3frames.py` – Katalog aller ID3-Frames, lesbare Binär-Frames; Übersicht [docs/ID3-FELDER.md](docs/ID3-FELDER.md)
 - `moods.py` – Stimmung (TMOO bzw. TXXX:MOOD) mit Mehrfachwerten und Vorschlägen
 - `importsync.py` – Abgleich für Importer (beaTunes, Lexicon): zuletzt übernommene Werte in TXXX:TAGSTUDIO

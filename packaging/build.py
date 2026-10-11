@@ -26,7 +26,7 @@ HIDDEN = [
     # eigene Module (werden teils erst bei Bedarf importiert)
     "session", "core", "keys", "features", "plugins", "updater", "xmltools", "tagger", "backup", "compare",
     "id3tags", "thumbs", "undo", "version", "blobs", "media", "cues", "waveform", "appsettings", "origins", "jobs", "stemsview", "snapshots", "players",
-    "session_player", "session_snapshots", "ratings", "listcache", "setplan", "session_djset", "setexport", "onlinematch", "instance", "applog", "serato", "importsync", "moods", "id3frames",
+    "session_player", "session_snapshots", "ratings", "listcache", "setplan", "session_djset", "setexport", "onlinematch", "instance", "applog", "serato", "importsync", "moods", "id3frames", "taghelp", "session_help",
     # Standardbibliothek für Plugins
     "http.cookiejar", "urllib.request", "urllib.parse", "urllib.error", "difflib", "unicodedata", "ctypes",
     "ctypes.wintypes", "uuid", "csv", "zipfile", "logging", "base64", "hashlib", "html", "html.parser",
@@ -74,6 +74,9 @@ def main():
             "--add-data", f"{os.path.join(ROOT, 'web')}{sep}web",
             "--add-data", f"{stage_plugins()}{sep}plugins",
             "--add-data", f"{os.path.join(ROOT, 'CHANGELOG.md')}{sep}.",          # Versionshinweise in der App (#90)
+            "--add-data", f"{os.path.join(ROOT, 'README.md')}{sep}.",             # Hilfe (#158)
+            "--add-data", f"{os.path.join(ROOT, 'PLUGINS.md')}{sep}.",
+            "--add-data", f"{os.path.join(ROOT, 'docs', 'ID3-FELDER.md')}{sep}docs",
             "--add-binary", f"{uv_binary()}{sep}.",
             "--paths", ROOT]
     for h in HIDDEN:
