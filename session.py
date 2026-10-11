@@ -819,6 +819,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                         "links": [[a, b, u] for a, b, u in core.link_spans(text)],
                         "mod": bool(f is not None and f.field_modified(k)),
                         "editable": core.can_edit_text(f, k),
+                        "blob": blobs.is_blob(it),                                     # #13: Binärfeld-Editor
                         "multiline": bool(it is not None and ("\n" in it.text or k.startswith("USLT"))),
                         "edit": core.edit_text(it) if it is not None and it.kind != "picture" and xml is None else "",
                     } if f is not None else None
@@ -866,6 +867,35 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                 return {"ok": False, "error": "Dieses Feld enthält kein XML."}
             return {"ok": True, "text": x[0], "editable": x[1], "label": key_label(key),
                     "file": os.path.basename(f.path), "side": side, "key": key, "blob": xmltools.blob_info(it)}
+
+    # ================================================================== Binärfelder im Vergleich (#13)
+    def cmp_blob(self, side, key):
+        """Binärfeld (GEOB/PRIV) einer Seite des Vergleichs für den Binärfeld-Editor."""
+        with self.lock:
+            f = self._file(side)
+            it = f.get(key) if f else None
+            if not blobs.is_blob(it):
+                return {"ok": False, "error": "Kein Binärfeld."}
+            d = blobs.view(it)
+            d.update(ok=True, key=key, label=key_label(key), file=os.path.basename(f.path), side=side,
+                     readonly=self._ro(f))
+            return d
+
+    def cmp_blob_set(self, side, key, text=None, mime=None, filename=None):
+        """Binärfeld einer Seite ändern (Inhalt als Text und/oder GEOB-Kopf). Mit Rückgängig, noch nicht gespeichert."""
+        with self.lock:
+            f = self._file(side)
+            it = f.get(key) if f else None
+            if not blobs.is_blob(it):
+                raise ValueError("Kein Binärfeld.")
+            if self._ro(f):
+                return self.state(self._RO, "warn")
+            new = blobs.update(it, text, mime, filename)
+            if new is it:
+                return self.state()
+            self.undo.checkpoint(f"„{key_label(key)}“ bearbeitet", [f])
+            f.set(key, new)
+            return self._done(f"„{key_label(key)}“ geändert – noch nicht gespeichert.")
 
     @staticmethod
     def xml_tool(action, text):

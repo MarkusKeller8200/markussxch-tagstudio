@@ -1084,10 +1084,14 @@ function jsonExpert(v) {
 }
 const EXPERT_HTML = `<label class="check jexp" title="Expertenmodus: Einträge hinzufügen, duplizieren und entfernen (z. B. neue Cue-Punkte)"><input type="checkbox" class="jexp-cb"> Expertenmodus</label>`;
 
-/** Binärfeld-Editor (GEOB/PRIV): Kopf (MIME, Dateiname) und – wenn lesbar – Inhalt als Text; sonst Hex-Ansicht. */
-async function tgBlobEditor(key) {
-  const i = tgSelected()[0];
-  const r = await call("tag_blob", i, key);
+/** Binärfeld-Editor (GEOB/PRIV) im Tagger. */
+function tgBlobEditor(key) { return blobEditor({ tag: tgSelected()[0] }, key); }
+
+/** Binärfeld-Editor (GEOB/PRIV): Kopf (MIME, Dateiname) und – wenn lesbar – Inhalt als Text; sonst Hex-Ansicht.
+    src: {tag: Index} für den Tagger oder {side: "L"|"R"} für den Vergleich (#13). */
+async function blobEditor(src, key) {
+  const i = src.tag ?? null, side = src.side || null;
+  const r = i !== null ? await call("tag_blob", i, key) : await call("cmp_blob", side, key);
   if (!r.ok) { toast(r.error); return; }
   const geob = r.fid === "GEOB";
   const head = geob
@@ -1112,7 +1116,7 @@ async function tgBlobEditor(key) {
       ${sr.bars ? `<svg class="bf-ov" viewBox="0 0 ${sr.bars.length} 40" preserveAspectRatio="none" aria-label="Wellenform-Übersicht">${sr.bars.map((h, k) => `<rect x="${k}" y="${(20 - h * 20).toFixed(2)}" width="1" height="${(h * 40).toFixed(2)}"/>`).join("")}</svg>` : ""}
       ${(sr.rows || []).length ? `<table class="bf-srt"><tbody>${sr.rows.map(([a, v]) => `<tr><td>${esc(a)}</td><td>${/^#[0-9A-F]{6}/.test(v) ? `<span class="sw" style="background:${esc(v.slice(0, 7))}"></span>` : ""}${esc(v)}</td></tr>`).join("")}</tbody></table>` : ""}</div>` : "";
   const res = await modal({
-    title: `${r.label} – ${r.file}`, wide: true,
+    title: `${r.label} – ${r.file}${side ? (side === "L" ? " (links)" : " (rechts)") : ""}`, wide: true,
     html: `<div class="frm bf-head">${head}</div>${srHtml}
       <div class="bf-info"><span class="chip">${esc(r.fid)}</span><span>${esc(r.kind_label)}${r.codec ? " · " + esc(r.codec) : ""} · ${fmtN(r.size)} Bytes</span>
         <span class="bf-tools">${tools}</span></div>
@@ -1122,7 +1126,7 @@ async function tgBlobEditor(key) {
         ? (r.kind === "base64" ? "Bearbeitet wird der entschlüsselte Text; beim Übernehmen wird er wieder Base64-kodiert." : "Beim Übernehmen wird nur dieser Inhalt ersetzt, alle übrigen Bytes bleiben erhalten.")
         : "Unbekanntes Binärformat – nur ansehen. MIME-Typ und Dateiname lassen sich trotzdem ändern."}
         Programme, die das Feld geschrieben haben (z. B. Serato, Mixed In Key), erwarten ihr eigenes Format – Änderungen auf eigene Gefahr.</div>`,
-    buttons: [{ label: "Abbrechen", value: null }, { label: "Feld entfernen", value: "del" }, { label: "Übernehmen", value: true, primary: true }],
+    buttons: r.readonly ? [{ label: "Schliessen", value: null, primary: true }] : [{ label: "Abbrechen", value: null }, { label: "Feld entfernen", value: "del" }, { label: "Übernehmen", value: true, primary: true }],
     onMount: (b) => {
       const bs = { mode: json ? "tree" : "text", tree: null };
       const text = () => (bs.mode === "tree" && bs.tree ? bs.tree.text() : $("#bfText", b).value);
@@ -1150,7 +1154,7 @@ async function tgBlobEditor(key) {
       }));
       $("#bfOpenAll", b)?.addEventListener("click", () => bs.tree && bs.tree.expandAll(true));
       $("#bfCloseAll", b)?.addEventListener("click", () => bs.tree && bs.tree.expandAll(false));
-      $("#bfXml", b)?.addEventListener("click", () => { $("#mBtns .ghost").click(); setTimeout(() => openXml(null, key, { tag: i }), 50); });
+      $("#bfXml", b)?.addEventListener("click", () => { $("#mBtns .ghost").click(); setTimeout(() => (i !== null ? openXml(null, key, { tag: i }) : openXml(side, key)), 50); });
       $("#bfJson", b)?.addEventListener("click", async () => {
         const p = await call("blob_pretty", $("#bfText", b).value, "json");
         if (p.ok) $("#bfText", b).value = p.text; else toast(p.error);
@@ -1163,9 +1167,14 @@ async function tgBlobEditor(key) {
     },
   });
   if (!res) return;
-  if (res.action === "del") { taggerApplyDetail(await call("tag_remove", [i], [key])); return; }
+  if (res.action === "del") {
+    if (i !== null) taggerApplyDetail(await call("tag_remove", [i], [key]));
+    else applyState(await call("remove", side, [key]));
+    return;
+  }
   try {
-    taggerApplyDetail(await call("tag_blob_set", i, key, res.text, res.mime, res.filename));
+    if (i !== null) taggerApplyDetail(await call("tag_blob_set", i, key, res.text, res.mime, res.filename));
+    else applyState(await call("cmp_blob_set", side, key, res.text, res.mime, res.filename));
   } catch (e) { await info("Nicht übernommen", String(e.message || e)); }
 }
 

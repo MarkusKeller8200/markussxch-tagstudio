@@ -947,6 +947,8 @@ function startEdit(tr, side) {
   const r = visRows()[+tr.dataset.n];
   const cell = r[side];
   if (cell && cell.xml) return openXml(side, r.key);
+  if (cell && cell.blob) return blobEditor({ side }, r.key);                      // #13
+  if (cell && cell.editable && typeof isJsonDoc === "function" && isJsonDoc(cell.edit)) return jsonEditDialog(r, side, cell.edit);   // #13
   if (!cell || !cell.editable) {
     if (r.key.startsWith("APIC") && cell && cell.present) return openCover(side, r.key);
     if (cell && cell.present) toast(`„${r.label}“ ist ein Binärfeld und kann nur kopiert oder entfernt werden.`);
@@ -983,6 +985,47 @@ function startEdit(tr, side) {
     e.stopPropagation();
   });
   input.addEventListener("blur", () => finish(true));
+}
+
+/** #13: JSON in einem Textfeld des Vergleichs als Baum bearbeiten (wie im Tagger), umschaltbar auf Text. */
+async function jsonEditDialog(r, side, text) {
+  const st = { mode: "tree", tree: null };
+  const cur = (b) => (st.mode === "tree" && st.tree ? st.tree.text() : $("#jeText", b).value);
+  const v = await modal({
+    title: `${r.label} – ${side === "L" ? "links" : "rechts"}`, wide: true,
+    html: `<div class="fe-modes"><div class="seg"><button data-jmode="tree" class="on">Baum</button><button data-jmode="text">Text</button></div>
+        <span class="bf-tools">${EXPERT_HTML}<button class="ghost sm" id="jeOpenAll">Alle aufklappen</button><button class="ghost sm" id="jeCloseAll">Alle zuklappen</button></span></div>
+      <div id="jeTree" class="xml-tree fe-tree"></div><textarea id="jeText" class="fe-val bf-text" rows="14" spellcheck="false" hidden></textarea>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
+    onMount: (b) => {
+      $("#jeText", b).value = text;
+      st.tree = jsonTreeEditor($("#jeTree", b), text, () => {}, { expert: jsonExpert() });
+      const ecb = $(".jexp-cb", b);
+      ecb.checked = jsonExpert();
+      ecb.addEventListener("change", () => { if (st.tree && !st.tree.setExpert(ecb.checked)) { ecb.checked = !ecb.checked; toast("Erst die rot markierten Zahlen korrigieren."); return; } jsonExpert(ecb.checked); });
+      b.querySelectorAll("[data-jmode]").forEach((btn) => btn.addEventListener("click", () => {
+        const m = btn.dataset.jmode;
+        if (m === st.mode) return;
+        if (st.mode === "tree" && !st.tree.valid()) { toast("Erst die rot markierten Zahlen korrigieren."); return; }
+        const t = cur(b);
+        if (m === "tree" && !isJsonDoc(t)) { toast("Der Text ist kein gültiges JSON."); return; }
+        st.mode = m;
+        $("#jeText", b).value = t;
+        if (m === "tree") st.tree = jsonTreeEditor($("#jeTree", b), t, () => {}, { expert: jsonExpert() });
+        b.querySelectorAll("[data-jmode]").forEach((x) => x.classList.toggle("on", x.dataset.jmode === m));
+        $("#jeTree", b).hidden = m !== "tree";
+        $("#jeText", b).hidden = m !== "text";
+        $("#jeOpenAll", b).hidden = $("#jeCloseAll", b).hidden = $(".jexp", b).hidden = m !== "tree";
+      }));
+      $("#jeOpenAll", b).addEventListener("click", () => st.tree && st.tree.expandAll(true));
+      $("#jeCloseAll", b).addEventListener("click", () => st.tree && st.tree.expandAll(false));
+    },
+    collect: (b, val) => {
+      if (val === true && st.mode === "tree" && st.tree && !st.tree.valid()) { toast("Erst die rot markierten Zahlen korrigieren."); return false; }
+      return val === true ? cur(b) : null;
+    },
+  });
+  if (v !== null && v !== undefined && v !== text) applyState(await call("set_value", side, r.key, v));
 }
 
 async function editDialog(r, side, text) {
@@ -1112,6 +1155,7 @@ function rowMenu(e, tr) {
     const cell = r[sd];
     const name = sd === "L" ? "links" : "rechts";
     if (cell && cell.xml) items.push({ label: `XML-Editor (${name})`, icon: ICON.edit, run: () => openXml(sd, r.key) });
+    else if (cell && cell.blob) items.push({ label: `Binärfeld-Editor (${name})`, icon: ICON.edit, run: () => blobEditor({ side: sd }, r.key) });   // #13
     else if (cell && cell.editable) items.push({ label: `Bearbeiten (${name})`, icon: ICON.edit, run: () => startEdit(tr, sd) });
     if (cell && keys.some((k) => { const rr = S.view.rows.find((x) => x.key === k); return rr && rr[sd] && rr[sd].present; }))
       items.push({ label: `Markierte ${name} entfernen`, icon: ICON.trash, run: async () => applyState(await call("remove", sd, keys)) });

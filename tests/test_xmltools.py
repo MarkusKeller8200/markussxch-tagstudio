@@ -147,3 +147,40 @@ class TestBlobXml(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCompareBlob(unittest.TestCase):
+    """#13: Binärfeld-Editor im Vergleich (cmp_blob / cmp_blob_set)."""
+
+    def test_cmp_blob(self):
+        import time
+        import core
+        from session import Session
+        d = tempfile.mkdtemp(prefix="tagstudio_cblob_")
+        old = (core.CONFIG, core.CONFIG_OLD)
+        core.CONFIG = core.CONFIG_OLD = os.path.join(d, "cfg.json")
+        try:
+            p = os.path.join(d, "x.mp3")
+            write_mp3(p, [text("TIT2", "X"), frame("GEOB", b"\x00application/json\x00\x00Probe\x00" + b'{"bpm": 124}')])
+            s = Session()
+            s.start_load(p, "", False, "filename")
+            while not s.task_status()["done"]:
+                time.sleep(0.02)
+            rows = {r["key"]: r for r in s.view()["rows"]}
+            self.assertTrue(rows["GEOB:Probe"]["L"]["blob"])
+            self.assertFalse(rows["TIT2"]["L"]["blob"])
+            b = s.cmp_blob("L", "GEOB:Probe")
+            self.assertTrue(b["ok"] and b["editable"])
+            self.assertEqual((b["inner"], b["side"]), ("json", "L"))
+            self.assertFalse(s.cmp_blob("L", "TIT2")["ok"])
+            st = s.cmp_blob_set("L", "GEOB:Probe", '{"bpm": 126}', "application/json", "cues.json")
+            self.assertEqual(st["meta"]["unsaved"], 1)
+            b = s.cmp_blob("L", "GEOB:Probe")
+            self.assertEqual((b["text"], b["filename"]), ('{"bpm": 126}', "cues.json"))
+            s.do_undo()
+            self.assertEqual(s.cmp_blob("L", "GEOB:Probe")["text"], '{"bpm": 124}')
+            with self.assertRaises(ValueError):
+                s.cmp_blob_set("L", "TIT2", "x")
+        finally:
+            core.CONFIG, core.CONFIG_OLD = old
+            shutil.rmtree(d, ignore_errors=True)

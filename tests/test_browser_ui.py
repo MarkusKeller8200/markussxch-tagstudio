@@ -331,6 +331,42 @@ class UiTest(unittest.TestCase):
         pg.click('#menu button:has-text("Rechts in Player A laden")')
         self.assertTrue(self.until("PLAYER.kind === 'side' && PLAYER.ref === 'R' && S.cur === 0 && !PLAYER.audio.paused"))
 
+    def test_compare_blob_and_json(self):
+        """#13: Binärfeld-Editor und JSON-Baum auch im Vergleich."""
+        from helpers import geob, text, txxx, write_mp3
+        pg = self.pg
+        a, b = os.path.join(self.dir, "A"), os.path.join(self.dir, "B")
+        os.makedirs(a); os.makedirs(b)
+        js = '{"cues": [{"name": "Drop", "pos": 32.5}], "bpm": 124}'
+        write_mp3(os.path.join(a, "x.mp3"), [text("TIT2", "X"), geob("Probe JSON", js.encode(), "application/json"),
+                                            txxx("DATA", js)])
+        write_mp3(os.path.join(b, "x.mp3"), [text("TIT2", "X")])
+        pg.click('.nav[data-module="compare"]')
+        pg.fill("#pathL", a)
+        pg.fill("#pathR", b)
+        pg.evaluate("void compare(true)")
+        self.assertTrue(self.until("S.pairs.length === 1 && S.view && S.view.rows.length > 1", 10))
+        pg.evaluate("void selectPair(0)")
+        self.assertTrue(self.until("S.view.rows.some(r => r.key === 'GEOB:Probe JSON' && r.L && r.L.blob)"))
+        pg.dblclick('.tr[data-key="GEOB:Probe JSON"] .v[data-side="L"]')
+        pg.wait_for_selector("#modal #bfTree")
+        self.assertIn("(links)", pg.inner_text("#mTitle"))
+        pg.click('#modal [data-bmode="text"]')
+        pg.fill("#bfText", js.replace("124", "126"))
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("S.view.rows.find(r => r.key === 'GEOB:Probe JSON').L.mod"))
+        # Rechtsklick bietet den Binärfeld-Editor an
+        pg.click('.tr[data-key="GEOB:Probe JSON"] .v[data-side="L"]', button="right")
+        self.assertTrue(pg.locator("#menu button", has_text="Binärfeld-Editor (links)").is_visible())
+        pg.evaluate("hideMenu()")
+        # JSON in einem Textfeld → Baum
+        pg.dblclick('.tr[data-key="TXXX:DATA"] .v[data-side="L"]')
+        pg.wait_for_selector("#modal #jeTree")
+        pg.click('#modal [data-jmode="text"]')
+        pg.fill("#jeText", js.replace("Drop", "Break"))
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("S.view.rows.find(r => r.key === 'TXXX:DATA').L.text.includes('Break')"))
+
     def test_snapshot_baseline(self):
         """Neue Baseline: aus dem aktuellen Stand, ältere Snapshots löschen (angeheftete nur auf Wunsch)."""
         pg = self.pg
