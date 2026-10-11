@@ -77,6 +77,7 @@ async function plLoad(target, autoplay = true, keepTime = null, startMode = null
   try { info = await call("media_url", target.kind, target.ref); } catch (e) { if (seq === PLAYER.loadSeq) PLAYER.loading = false; toast(String(e.message || e)); return; }
   if (seq !== PLAYER.loadSeq) return;       // inzwischen ein anderer Titel gewünscht
   PLAYER.info = info; PLAYER.kind = target.kind; PLAYER.ref = target.ref;
+  if (target.kind === "tag" && typeof pqTaken === "function") pqTaken(target.ref);   // #138: aus der Warteschlange
   const a = PLAYER.audio;
   const keepAB = keepTime !== null && PLAYER.ab && PLAYER.ab.b !== undefined && plInGroupOf(target) ;   // #79: bei Stems/A-B gleiche Stelle → Schleife behalten
   if (!keepAB) { PLAYER.ab = null; plLoopSet(null); }
@@ -251,6 +252,7 @@ function plStemSwitch(k) {
 
 /** Voriger/nächster Titel. play=false: nur die Markierung bewegen (läuft der Player, folgt er ohnehin). */
 async function plStep(dir, play = true) {
+  if (dir > 0 && play && typeof pqPlayNext === "function" && pqPlayNext()) return;   // #138: Warteschlange zuerst
   if (S.module === "djset" && typeof djStep === "function") return djStep(dir, play);   // #3
   if (S.module === "tagger" && TG.order.length) {
     const k = Math.max(0, Math.min(TG.order.length - 1, TG.order.indexOf(TG.anchor) + dir));
@@ -654,6 +656,7 @@ function plBindAudio(el) {
   el.addEventListener("ended", act(() => {
     const a = PLAYER.audio;
     if (PLAYER.repeat) { a.currentTime = 0; a.play().catch(() => {}); return; }      // #79
+    if (PLAYER.follow && typeof pqHead === "function" && pqHead() !== null && PLAYER.kind === "tag") { pqPlayNext(); return; }   // #138
     if (PLAYER.follow && (S.module === "tagger" || S.module === "djset")) plStep(1);
   }));
   el.addEventListener("error", act(() => { if (PLAYER.audio.src) toast("Datei kann nicht abgespielt werden."); }));

@@ -1168,3 +1168,12 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .bf-srt td{padding:2px 12px 2px 0;vertical-align:top}
 .bf-srt td:first-child{color:var(--dim);white-space:nowrap}
 .bf-srt .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid var(--line)}
+/* #138 Warteschlange */
+.pl-queue{position:relative}
+.pl-queue-n{position:absolute;right:-2px;top:-3px;font-size:10px;line-height:1;font-weight:700;color:var(--acc)}
+.pq-list{display:flex;flex-direction:column;gap:2px;max-height:55vh;overflow:auto}
+.pq-row{display:grid;grid-template-columns:28px minmax(0,1fr) repeat(4,30px);align-items:center;gap:4px;padding:3px 6px;border-radius:6px}
+.pq-row:hover{background:var(--raise)}
+.pq-row.missing .pq-t{opacity:.55}
+.pq-n{color:var(--dim);text-align:right;font-variant-numeric:tabular-nums}
+.pq-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

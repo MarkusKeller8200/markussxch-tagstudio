@@ -645,6 +645,49 @@ class UiTest(unittest.TestCase):
         self.assertEqual(self.cfg_until(lambda c: c.get("feat_scale") == 10).get("feat_scale"), 10)
         pg.select_option("#stFeatScale", "100")
 
+    def test_queue_and_saved_lists(self):
+        """#138: Warteschlange (Als Nächstes spielen, ⏭, Dialog) und gespeicherte DJ-Set-Listen."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="1"]', button="right")
+        pg.click("#menu button >> text=Als Nächstes spielen")
+        pg.wait_for_function("PQ.items.length === 1")
+        pg.click('.tg-row[data-i="2"]', button="right")
+        pg.click("#menu button >> text=Zur Warteschlange hinzufügen")
+        pg.wait_for_function("PQ.items.length === 2 && PQ.items[1].i === 2")
+        self.assertEqual(pg.inner_text("#plQueueN").strip(), "2")
+        pg.evaluate("plLoad({kind: 'tag', ref: 0}, true)")
+        self.assertTrue(self.until("PLAYER.ref === 0 && !PLAYER.audio.paused"))
+        pg.click("#plNext")                                     # Warteschlange vor Tagger-Reihenfolge
+        self.assertTrue(self.until("PLAYER.ref === 1 && PQ.items.length === 1 && PQ.items[0].i === 2"))
+        self.assertEqual(self.cfg_until(lambda c: len(c.get("player_queue", [])) == 1)["player_queue"][0].endswith(".mp3"), True)
+        pg.click("#plQueue")
+        pg.wait_for_selector("#pqList .pq-row")
+        self.assertEqual(pg.locator("#pqList .pq-row").count(), 1)
+        pg.click("#mBtns button >> text=Als DJ-Set übernehmen")
+        pg.wait_for_function("DJ.st && DJ.st.items.length === 1")
+        pg.keyboard.press("Space")
+        # DJ-Set als Liste speichern, neue Liste, wieder laden
+        pg.click('.nav[data-module="djset"]')
+        pg.wait_for_function("DJ.st && DJ.st.items.length === 1")
+        pg.click("#djListBtn")
+        pg.click("#menu button >> text=Speichern unter")
+        pg.fill("#djNameIn", "Probe")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("DJ.st.name === 'Probe' && !DJ.st.dirty")
+        self.assertIn("Probe", pg.inner_text("#djListName"))
+        pg.click("#djAllTagger")
+        pg.wait_for_function("DJ.st.items.length === 3 && DJ.st.dirty")
+        pg.click("#djListBtn")
+        pg.click("#menu button >> text=Neue, leere Liste")
+        pg.wait_for_selector("#mBtns button >> text=Verwerfen")
+        pg.click("#mBtns button >> text=Verwerfen")
+        pg.wait_for_function("DJ.st.items.length === 0 && DJ.st.name === ''")
+        pg.click("#djListBtn")
+        pg.click("#menu button >> text=Probe (1)")
+        pg.wait_for_function("DJ.st.items.length === 1 && DJ.st.name === 'Probe'")
+        self.assertEqual(list(self.cfg_until(lambda c: "Probe" in c.get("djset_saved", {}))["djset_saved"]), ["Probe"])
+
     def test_djset_page(self):
         """#3 DJ-Set: aus dem Tagger übernehmen, optimieren, sperren, ziehen, Tasten, Wiedergabe, gemerkte Optionen."""
         pg = self.pg

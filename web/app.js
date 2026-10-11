@@ -587,6 +587,7 @@ async function init() {
   bind();
   bindLayout();
   if (typeof initPlayer === "function") initPlayer();
+  if (typeof pqInit === "function") pqInit();          // #138 Warteschlange
   if (typeof initJobs === "function") initJobs();
   if (typeof initSnapshots === "function") setTimeout(initSnapshots, 1200);
   $("#updateBtn").addEventListener("click", runUpdate);

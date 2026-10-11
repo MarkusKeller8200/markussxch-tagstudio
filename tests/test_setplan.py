@@ -367,6 +367,37 @@ class TestSession(unittest.TestCase):
         self.assertEqual(len(s2.dj_clear(missing_only=True)["items"]), 5)
         self.assertEqual(s2.dj_clear()["items"], [])
 
+    def test_saved_lists(self):
+        """#138: mehrere benannte Listen speichern, laden, umbenennen, entfernen."""
+        s = self.session()
+        self.assertEqual((s.dj_state()["name"], s.dj_state()["dirty"]), ("", False))
+        s.dj_add([0, 1])
+        self.assertTrue(s.dj_state()["dirty"])
+        st = s.dj_save_as("  Warm   up ")
+        self.assertEqual((st["name"], st["dirty"]), ("Warm up", False))
+        self.assertEqual(s.dj_export_name("m3u8"), "Warm up.m3u8")
+        s.dj_add([2])
+        self.assertTrue(s.dj_state()["dirty"])
+        self.assertEqual(s.dj_new()["items"], [])
+        s.dj_add([3, 4])
+        self.assertTrue(s.dj_save_as("Warm up")["exists"])       # nicht ungefragt überschreiben
+        s.dj_save_as("Peak")
+        st = s.dj_load("Warm up")
+        self.assertEqual(self.names(st), ["a.mp3", "b.mp3"])
+        self.assertTrue(st["can_revert"])
+        self.assertEqual([(l["name"], l["count"], l["current"]) for l in st["lists"]], [("Peak", 2, False), ("Warm up", 2, True)])
+        from session import Session
+        s2 = Session()                                             # bleibt nach Neustart
+        self.assertEqual(s2.dj_state()["name"], "Warm up")
+        st = s2.dj_list_rename("Warm up", "Opening")
+        self.assertEqual(st["name"], "Opening")
+        with self.assertRaises(ValueError):
+            s2.dj_list_rename("Opening", "Peak")
+        st = s2.dj_list_delete("Opening")
+        self.assertEqual(([l["name"] for l in st["lists"]], st["name"], len(st["items"])), (["Peak"], "", 2))
+        with self.assertRaises(ValueError):
+            s2.dj_save_as("  ")
+
 
 class TestFromFile(unittest.TestCase):
     def test_track_from_file(self):

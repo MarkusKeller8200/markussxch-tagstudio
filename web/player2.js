@@ -64,14 +64,15 @@ function plXfadeCheck() {
   if (!x || PLAYER.fade || PLAYER.loading || a.paused || !a.src || PLAYER.repeat || PLAYER.loop || PLAYER.ab || !PLAYER.follow) return;
   if (PLAYER.kind !== "tag") return;
   const dj = S.module === "djset" && typeof djNextTag === "function";
-  if (!dj && (S.module !== "tagger" || !TG.order.length)) return;
+  const qn = typeof pqHead === "function" ? pqHead() : null;                     // #138: Warteschlange zuerst
+  if (qn === null && !dj && (S.module !== "tagger" || !TG.order.length)) return;
   const dur = a.duration;
   if (!isFinite(dur) || dur < x + 2) return;
   let at = dur - x;
   if (PLAYER.xfadeAfter > 0) at = Math.min(at, (PLAYER.playFrom || 0) + PLAYER.xfadeAfter);   // Durchhören: nach x Sekunden
   if (a.currentTime < at || a.currentTime > dur - 0.3) return;
-  let next = null;
-  if (dj) next = djNextTag();                                                // #3: Set-Reihenfolge
+  let next = qn;
+  if (next !== null) { /* Warteschlange */ } else if (dj) next = djNextTag();                                                // #3: Set-Reihenfolge
   else { const k = TG.order.indexOf(TG.anchor); if (k >= 0 && k < TG.order.length - 1) next = TG.order[k + 1]; }
   if (next === null || next === undefined) return;
   // #76: auf Taktgrenze (4/8/16 Schläge) warten, wenn ein Beatgrid da ist
@@ -608,6 +609,10 @@ function plRowMenu(e, t, label) {
   if (t.kind === "tag" && typeof djAddFromTagger === "function" && S.module === "tagger") {
     const n = typeof tgSelected === "function" ? tgSelected().length : 1;
     items.push("-", { label: `Zum DJ-Set hinzufügen${n > 1 ? ` (${n})` : ""}`, run: () => djAddFromTagger(false) });
+  }
+  if (t.kind === "tag" && typeof pqMenuItems === "function") {                   // #138
+    const idx = S.module === "tagger" && typeof tgSelected === "function" && tgSelected().length ? tgSelected() : [t.ref];
+    items.push("-", ...pqMenuItems(idx));
   }
   showMenu(e.clientX, e.clientY, items);
 }

@@ -104,7 +104,18 @@ class DjSetMixin:
             return {"items": items, "opts": opts, "score": ev["score"], "energy_fit": ev["energy_fit"],
                     "before": d["before"], "method": d["method"], "ms": d["ms"], "can_revert": d["prev"] is not None,
                     "profiles": setplan.PROFILES, "key_kinds": setplan.KEY_KINDS, "exact_max": setplan.EXACT_MAX,
-                    "tagger": len(self.tag_files), "duration": sum(r["duration"] for r in items if not r["missing"])}
+                    "tagger": len(self.tag_files), "duration": sum(r["duration"] for r in items if not r["missing"]),
+                    "name": self.cfg.get("djset_name") or "", "lists": self.dj_lists(), "dirty": self._dj_dirty()}
+
+    def _dj_dirty(self) -> bool:
+        """Weicht das aktuelle Set von der gleichnamigen gespeicherten Liste ab?"""
+        name = self.cfg.get("djset_name") or ""
+        v = self._dj_saved().get(name) if name else None
+        if v is None:
+            return bool(self._dj()["items"])
+        a = [(x["path"], bool(x["lock"])) for x in self._dj()["items"]]
+        b = [(x.get("path"), bool(x.get("lock"))) for x in v.get("items") or [] if isinstance(x, dict)]
+        return a != b
 
     # ------------------------------------------------------------------ Ändern
     def dj_add(self, idx=None) -> dict:
@@ -220,6 +231,174 @@ class DjSetMixin:
             self._dj_save()
             return self.dj_state()
 
+    # ------------------------------------------------------------------ Gespeicherte Listen (#138)
+    def _dj_saved(self) -> dict:
+        raw = self.cfg.get("djset_saved")
+        return {k: v for k, v in raw.items() if isinstance(k, str) and isinstance(v, dict)} if isinstance(raw, dict) else {}
+
+    def _dj_saved_write(self, saved: dict):
+        self.cfg["djset_saved"] = saved
+        core.save_config({"djset_saved": saved})
+
+    def dj_lists(self) -> list:
+        """Gespeicherte Listen: [{name, count, saved, current}] nach Name."""
+        cur = self.cfg.get("djset_name") or ""
+        return [{"name": n, "count": len(v.get("items") or []), "saved": v.get("saved", 0), "current": n == cur}
+                for n, v in sorted(self._dj_saved().items(), key=lambda kv: kv[0].lower())]
+
+    def dj_save_as(self, name, overwrite=False) -> dict:
+        """Aktuelles Set (Titel, Sperren, Optionen) unter einem Namen speichern."""
+        name = " ".join(str(name or "").split())[:80]
+        if not name:
+            raise ValueError("Bitte einen Namen für die Liste eingeben.")
+        with self.lock:
+            saved = self._dj_saved()
+            if name in saved and not overwrite and name != (self.cfg.get("djset_name") or ""):
+                return {"ok": False, "exists": True, "error": f"Eine Liste „{name}“ gibt es schon."}
+            items = [{"path": x["path"], **({"lock": True} if x["lock"] else {})} for x in self._dj()["items"]]
+            saved[name] = {"items": items, "opts": self._dj_opts(), "saved": int(time.time())}
+            self._dj_saved_write(saved)
+            self.cfg["djset_name"] = name
+            core.save_config({"djset_name": name})
+            st = self.dj_state()
+            st["ok"] = True
+            st["message"] = f"Liste „{name}“ gespeichert ({len(items)} Titel)."
+            return st
+
+    def dj_load(self, name) -> dict:
+        """Gespeicherte Liste laden (ersetzt das aktuelle Set; „Rückgängig“ holt das vorige zurück)."""
+        with self.lock:
+            v = self._dj_saved().get(name)
+            if v is None:
+                raise ValueError(f"Liste „{name}“ nicht gefunden.")
+            d = self._dj()
+            d["prev"] = [dict(x) for x in d["items"]]
+            d["items"] = [{"path": x["path"], "lock": bool(x.get("lock"))} for x in v.get("items") or []
+                          if isinstance(x, dict) and isinstance(x.get("path"), str)]
+            d["before"] = None
+            if isinstance(v.get("opts"), dict):
+                self.cfg["djset_opts"] = v["opts"]
+                self.cfg["djset_opts"] = self._dj_opts()
+                core.save_config({"djset_opts": self.cfg["djset_opts"]})
+            self.cfg["djset_name"] = name
+            core.save_config({"djset_name": name})
+            self._dj_save()
+            st = self.dj_state()
+            st["message"] = f"Liste „{name}“ geladen ({len(d['items'])} Titel)."
+            return st
+
+    def dj_new(self) -> dict:
+        """Neues, leeres Set (das bisherige bleibt als gespeicherte Liste erhalten, falls gespeichert)."""
+        with self.lock:
+            d = self._dj()
+            d["prev"] = [dict(x) for x in d["items"]]
+            d["items"], d["before"] = [], None
+            self.cfg["djset_name"] = ""
+            core.save_config({"djset_name": ""})
+            self._dj_save()
+            return self.dj_state()
+
+    def dj_list_delete(self, name) -> dict:
+        """Gespeicherte Liste entfernen (das aktuelle Set bleibt unverändert). Die Oberfläche fragt vorher."""
+        with self.lock:
+            saved = self._dj_saved()
+            if saved.pop(name, None) is None:
+                raise ValueError(f"Liste „{name}“ nicht gefunden.")
+            self._dj_saved_write(saved)
+            if self.cfg.get("djset_name") == name:
+                self.cfg["djset_name"] = ""
+                core.save_config({"djset_name": ""})
+            st = self.dj_state()
+            st["message"] = f"Liste „{name}“ entfernt."
+            return st
+
+    def dj_list_rename(self, name, new) -> dict:
+        new = " ".join(str(new or "").split())[:80]
+        with self.lock:
+            saved = self._dj_saved()
+            if name not in saved:
+                raise ValueError(f"Liste „{name}“ nicht gefunden.")
+            if not new or (new in saved and new != name):
+                raise ValueError("Bitte einen neuen, noch nicht vergebenen Namen eingeben.")
+            saved = {(new if k == name else k): v for k, v in saved.items()}
+            self._dj_saved_write(saved)
+            if self.cfg.get("djset_name") == name:
+                self.cfg["djset_name"] = new
+                core.save_config({"djset_name": new})
+            return self.dj_state()
+
+    # ------------------------------------------------------------------ Warteschlange des Players (#138)
+    def _pq(self) -> list:
+        q = self.cfg.get("player_queue")
+        return [p for p in q if isinstance(p, str)] if isinstance(q, list) else []
+
+    def _pq_write(self, q):
+        self.cfg["player_queue"] = q
+        core.save_config({"player_queue": q})
+
+    def pq_state(self) -> dict:
+        """Warteschlange: [{path, i (Tagger-Index oder None), name, title, artist}]"""
+        with self.lock:
+            where = self._dj_index()
+            items = []
+            for p in self._pq():
+                i = where.get(_nk(p))
+                f = self.tag_files[i] if i is not None else None
+                items.append({"path": p, "i": i, "name": os.path.basename(p),
+                              "title": f.text("TIT2") if f else "", "artist": f.text("TPE1").replace(MV, ", ") if f else ""})
+            return {"items": items}
+
+    def pq_add(self, idx, front=False) -> dict:
+        """Tagger-Titel anhängen bzw. (front) als Nächstes einreihen; schon vorhandene werden verschoben."""
+        with self.lock:
+            paths = [self.tag_files[i].path for i in (idx or []) if isinstance(i, int) and 0 <= i < len(self.tag_files)
+                     and i not in self.tag_parent]
+            keys = {_nk(p) for p in paths}
+            rest = [p for p in self._pq() if _nk(p) not in keys]
+            self._pq_write(paths + rest if front else rest + paths)
+        st = self.pq_state()
+        n = len(paths)
+        st["message"] = (f"{n} Titel als Nächstes eingereiht." if front else f"{n} Titel zur Warteschlange hinzugefügt.") if n else "Keine Titel gewählt."
+        return st
+
+    def pq_set(self, paths) -> dict:
+        """Neue Reihenfolge bzw. Titel entfernen (nur bekannte Pfade)."""
+        with self.lock:
+            have = {_nk(p): p for p in self._pq()}
+            out, seen = [], set()
+            for p in paths or []:
+                k = _nk(p) if isinstance(p, str) else None
+                if k in have and k not in seen:
+                    out.append(have[k])
+                    seen.add(k)
+            self._pq_write(out)
+        return self.pq_state()
+
+    def pq_take(self, i) -> dict:
+        """Titel i wird gespielt → aus der Warteschlange nehmen."""
+        with self.lock:
+            if not isinstance(i, int) or not 0 <= i < len(self.tag_files):
+                return self.pq_state()
+            k = _nk(self.tag_files[i].path)
+            q = self._pq()
+            if any(_nk(p) == k for p in q):
+                self._pq_write([p for p in q if _nk(p) != k])
+        return self.pq_state()
+
+    def pq_to_djset(self) -> dict:
+        """Warteschlange als neues DJ-Set übernehmen (bisheriges Set über „Vorher/Nachher“ zurückholbar)."""
+        with self.lock:
+            d = self._dj()
+            d["prev"] = [dict(x) for x in d["items"]]
+            d["items"] = [{"path": p, "lock": False} for p in self._pq()]
+            d["before"] = None
+            self.cfg["djset_name"] = ""
+            core.save_config({"djset_name": ""})
+            self._dj_save()
+            st = self.dj_state()
+            st["message"] = f"{len(d['items'])} Titel als DJ-Set übernommen."
+            return st
+
     def dj_tag_indices(self) -> list:
         """Tagger-Indizes der Set-Titel in Set-Reihenfolge (für Markieren im Tagger, Exporte)."""
         with self.lock:
@@ -242,7 +421,8 @@ class DjSetMixin:
 
     def dj_export_name(self, fmt) -> str:
         ext = {"m3u8": "m3u8", "xml": "xml", "csv": "csv"}.get(fmt, "txt")
-        return f"DJ-Set {time.strftime('%Y-%m-%d')}.{ext}"
+        name = "".join(c for c in (self.cfg.get("djset_name") or "") if c not in '<>:"/\\|?*').strip()
+        return f"{name}.{ext}" if name else f"DJ-Set {time.strftime('%Y-%m-%d')}.{ext}"
 
     def dj_export_file(self, fmt, dest, opts=None) -> dict:
         from version import VERSION

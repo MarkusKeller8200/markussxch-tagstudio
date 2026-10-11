@@ -28,6 +28,7 @@ function djSideCount(st) {
 function djApply(st) {
   DJ.st = st;
   djSideCount(st);
+  djListLabel(st);
   if (st.message) toast(st.message);
   if (DJ.sel && !st.items.some((r) => r.path === DJ.sel)) DJ.sel = null;
   djOpts();
@@ -264,6 +265,7 @@ function djInit() {
     try { await djCall("dj_optimize"); } finally { if (DJ.st) djRender(); }
   });
   $("#djExport").addEventListener("click", (e) => { e.stopPropagation(); djExportMenu(); });
+  $("#djListBtn").addEventListener("click", (e) => { e.stopPropagation(); djListMenu(); });
   $("#djRevert").addEventListener("click", () => djCall("dj_revert"));
   $("#djClear").addEventListener("click", async () => {
     const missing = DJ.st.items.some((r) => r.missing);
@@ -297,6 +299,7 @@ function djInit() {
       items.push({ label: "In Player A abspielen", run: () => plLoad({ kind: "tag", ref: r.i }, true) });
       if (typeof PL2 !== "undefined" && PL2.layout === "top") items.push({ label: "In Player B laden", run: () => dbLoad({ kind: "tag", ref: r.i }, true) });
       items.push({ label: "Im Tagger zeigen", run: () => djShowInTagger(r.i) }, "-");
+      if (typeof pqMenuItems === "function") items.push(...pqMenuItems([r.i]), "-");      // #138
     }
     items.push({ label: r.lock ? "Entsperren" : "Sperren (Position halten)", run: () => djCall("dj_lock", r.path, !r.lock) },
       { label: "Nach oben", run: () => djMove(k, -1) }, { label: "Nach unten", run: () => djMove(k, 1) }, "-",
@@ -338,6 +341,81 @@ function djInit() {
 }
 
 // ---------------------------------------------------------------- Exporte (#4)
+// ---------------------------------------------------------------- Gespeicherte Listen (#138)
+function djListLabel(st) {
+  const el = $("#djListName"); if (!el || !st) return;
+  el.textContent = (st.name || "(ohne Namen)") + (st.dirty && st.name ? " •" : "");
+  $("#djListBtn").title = st.name ? `Liste „${st.name}“${st.dirty ? " – nicht gespeicherte Änderungen" : ""}` : "Aktuelles Set ist noch nicht gespeichert";
+}
+
+function djListMenu() {
+  const b = $("#djListBtn").getBoundingClientRect(), st = DJ.st || { lists: [] };
+  const items = [
+    { label: "Neue, leere Liste", run: djListNew },
+    ...(st.name ? [{ label: `Speichern („${st.name}“)`, run: () => djCall("dj_save_as", st.name, true) }] : []),
+    { label: "Speichern unter …", run: djListSaveAs },
+  ];
+  if (st.lists.length) {
+    items.push("-");
+    for (const l of st.lists) items.push({ label: `${l.current ? "● " : ""}${l.name} (${l.count})`, run: () => djListLoad(l.name) });
+    items.push("-", { label: "Umbenennen …", run: djListRename }, { label: "Gespeicherte Liste entfernen …", run: djListDelete });
+  }
+  showMenu(b.left, b.bottom + 6, items);
+}
+
+async function djUnsavedOk(what) {
+  const st = DJ.st;
+  if (!st || !st.dirty || !st.items.length) return true;
+  const r = await modal({ title: what, html: `<p style="margin:0">Das aktuelle Set${st.name ? ` („${esc(st.name)}“)` : ""} hat nicht gespeicherte Änderungen.</p>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Verwerfen", value: "drop" }, { label: "Zuerst speichern …", value: "save", primary: true }] });
+  if (!r) return false;
+  if (r === "save") return st.name ? (await djCall("dj_save_as", st.name, true), true) : djListSaveAs();
+  return true;
+}
+
+async function djListNew() { if (await djUnsavedOk("Neue Liste")) djCall("dj_new"); }
+async function djListLoad(name) { if (await djUnsavedOk(`Liste „${name}“ laden`)) djCall("dj_load", name); }
+
+async function djAskName(title, value, label) {
+  return modal({ title, html: `<label class="muted sm" for="djNameIn">${esc(label)}</label><input class="inp" id="djNameIn" maxlength="80" style="width:100%" value="${esc(value || "")}" autofocus>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "OK", value: "ok", primary: true }],
+    collect: (body) => { const v = body.querySelector("#djNameIn").value.trim(); if (!v) { toast("Bitte einen Namen eingeben."); return false; } return v; } });
+}
+
+async function djListSaveAs() {
+  const name = await djAskName("Liste speichern unter", DJ.st && DJ.st.name, "Name der Liste");
+  if (!name) return false;
+  let r = await call("dj_save_as", name, false).catch((e) => { toast(String(e.message || e)); return null; });
+  if (r && r.exists) {
+    const ok = await modal({ title: "Liste ersetzen", html: `<p style="margin:0">${esc(r.error)} Ersetzen?</p>`,
+      buttons: [{ label: "Abbrechen", value: null }, { label: "Ersetzen", value: true, primary: true }] });
+    if (!ok) return false;
+    r = await call("dj_save_as", name, true).catch((e) => { toast(String(e.message || e)); return null; });
+  }
+  if (r && r.ok) { djApply(r); return true; }
+  return false;
+}
+
+async function djListPick(title, btn) {
+  const lists = (DJ.st && DJ.st.lists) || [];
+  return modal({ title, html: `<select class="inp" id="djPick" style="width:100%">${lists.map((l) => `<option value="${esc(l.name)}"${l.current ? " selected" : ""}>${esc(l.name)} (${l.count} Titel)</option>`).join("")}</select>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: btn, value: "ok", primary: true }],
+    collect: (body) => body.querySelector("#djPick").value });
+}
+
+async function djListRename() {
+  const old = await djListPick("Liste umbenennen", "Weiter"); if (!old) return;
+  const neu = await djAskName("Liste umbenennen", old, `Neuer Name für „${old}“`);
+  if (neu && neu !== old) djCall("dj_list_rename", old, neu);
+}
+
+async function djListDelete() {
+  const name = await djListPick("Gespeicherte Liste entfernen", "Entfernen …"); if (!name) return;
+  const ok = await modal({ title: "Liste entfernen", html: `<p style="margin:0">Die gespeicherte Liste „${esc(name)}“ entfernen? Die Musikdateien bleiben unverändert; das aktuelle Set bleibt, wie es ist.</p>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Entfernen", value: true, primary: true }] });
+  if (ok) djCall("dj_list_delete", name);
+}
+
 function djExportMenu() {
   const b = $("#djExport").getBoundingClientRect();
   showMenu(b.left, b.bottom + 6, [

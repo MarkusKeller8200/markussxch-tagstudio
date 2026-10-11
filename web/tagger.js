@@ -206,6 +206,7 @@ async function tgAdopt(tr, path, recursive) {
   tgStateSave();
   await tgLoadDetail();
   if (typeof djAfterTaggerLoad === "function") djAfterTaggerLoad();     // DJ-Set: Titel sind jetzt geladen
+  if (typeof pqAfterTaggerLoad === "function") pqAfterTaggerLoad();     // #138 Warteschlange
 }
 
 /** Nach Änderungen anderswo (Vergleich, Undo, Speichern …) */
