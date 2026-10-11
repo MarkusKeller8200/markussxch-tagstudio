@@ -59,6 +59,7 @@ async function settingsShow() {
       <div class="st-row">
         <label for="stSaveVer">ID3-Version beim Speichern</label>${stSel("stSaveVer", [[0, "beibehalten (wie die Datei)"], [3, "immer ID3v2.3 (am verträglichsten)"], [4, "immer ID3v2.4"]], d.save_version)}
         <span>Sicherung</span>${stCheck("stBackup", d.backup_enabled, "Vor dem Speichern die bisherigen Tags sichern")}
+        <span>Ablage</span>${stCheck("stBackupStore", d.backup_store, "Im Snapshot-Speicher ablegen (gleiche Tags nur einmal – spart Platz; sonst ZIP im Sicherungsordner)")}
         <span>Sicherungsordner</span><div class="st-path"><code title="${esc(d.backup_dir)}">${esc(d.backup_dir)}</code><button class="ghost sm" id="stBkFolder">Ändern …</button><button class="ghost sm" id="stBkOpen">Öffnen</button></div>
       </div></section>
     <section class="card" id="stPlayerCard"><h3>Player</h3>
@@ -548,6 +549,7 @@ function initSettings() {
       if (typeof TG !== "undefined" && TG.settings && TG.settings.keys) { TG.settings.keys.notation = t.value; }
       toast("Tonart-Schreibweise gespeichert.");
     } else if (t.id === "stSaveVer") { await call("set_save_version", +t.value); toast(+t.value ? `Beim Speichern immer ID3v2.${t.value}.` : "ID3-Version bleibt wie in der Datei."); }
+    else if (t.id === "stBackupStore") { await call("set_backup", null, null, t.checked); toast(t.checked ? "Neue Sicherungen kommen in den Snapshot-Speicher." : "Neue Sicherungen kommen als ZIP in den Sicherungsordner."); }   // #59
     else if (t.id === "stBackup") { await call("set_backup", t.checked, null); if (!t.checked) toast("Achtung: Vor dem Speichern wird nicht mehr gesichert."); }
     else if (t.id === "stStemsFlat") { await call("set_stems_flat", t.checked); if (TG.loaded) { TG.open = new Set(); await taggerRefresh(); } toast(t.checked ? "Stems erscheinen als eigene Titel." : "Stems erscheinen aufklappbar unter dem Original."); }
     else if (t.id === "stFeatScale") {                                           // #11

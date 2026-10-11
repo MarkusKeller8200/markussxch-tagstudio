@@ -10,6 +10,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Vergleich:** Binärfelder (GEOB/PRIV, z. B. Serato, Mixed In Key) lassen sich wie im Tagger im **Binärfeld-Editor**
   ansehen und bearbeiten (Doppelklick oder Rechtsklick › „Binärfeld-Editor“), mit Serato-Ansicht, JSON-Baum und Hex-
   Ansicht; JSON in Textfeldern öffnet den **JSON-Baum** (#13).
+- **Snapshots:** Änderungsjournal als **Excel oder CSV exportieren** – genau die sichtbaren Einträge (Status,
+  Programm, Feld, Suche), je geändertem Feld eine Zeile mit Vorher/Nachher (#59).
+- **Sicherungen im Snapshot-Speicher:** Neue Sicherungen legen die Tag-Bytes im gemeinsamen Speicher ab – gleiche Tags
+  (auch aus Snapshots) nur einmal, das spart viel Platz. Ältere ZIP-Sicherungen bleiben lesbar und wiederherstellbar;
+  Einstellungen › Sicherungen › „Im Snapshot-Speicher ablegen“ (abschaltbar, dann wieder ZIP). Das Aufräumen der
+  Snapshots lässt Tags von Sicherungen immer stehen; beim Löschen einer Sicherung wird der Platz freigegeben (#59).
 - **Alle ID3-Frames** (#98): Katalog aller Frames aus ID3v2.2, v2.3 und v2.4 (inkl. Kapitel CHAP/CTOC und iTunes-
   Frames) mit Übersicht in `docs/ID3-FELDER.md`. Binär-Frames werden lesbar angezeigt statt nur mit Grösse und
   Prüfsumme – z. B. synchronisierter Liedtext (SYLT), Ereignisse (ETCO), Lautstärke (RVA2/RVAD), Equalizer, Kapitel,

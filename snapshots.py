@@ -36,6 +36,7 @@ DEFAULT_KEEP = 20              # automatische Snapshots, die immer bleiben
 DEFAULT_WEEKS = 12             # danach je einer pro Woche für so viele Wochen
 
 
+PINNED: set[str] = set()       # Objekte laufender Sicherungen (noch ohne Manifest) – das Aufräumen lässt sie stehen
 STORE_DIRNAME = ".tagstudio-snapshots"   # Name, wenn der Speicher in einem Bibliotheksordner liegt (#60)
 
 
@@ -353,8 +354,8 @@ class Store:
             self.gc()
         return gone
 
-    def _all_refs(self) -> dict[str, list]:
-        """Objekt → [(lib, snap)…] über alle Manifeste."""
+    def _all_refs(self, strict: bool = True) -> dict[str, list]:
+        """Objekt → [(lib, snap)…] über alle Manifeste – auch Sicherungen im Speicher (#59: ("backup", Name))."""
         refs: dict[str, list] = {}
         for lib in self.libraries():
             for s in self.snapshots(lib["id"]):
@@ -362,7 +363,26 @@ class Store:
                 for e in m["files"]:
                     for h in (e.get("tag") or []) + ([e["v1"]] if e.get("v1") else []):
                         refs.setdefault(h, []).append((lib["id"], s["id"]))
+        for name, m in self.backup_manifests(strict):
+            for e in m.get("files", []):
+                for h in (e.get("tag") or []) + ([e["v1"]] if e.get("v1") else []):
+                    refs.setdefault(h, []).append(("backup", name))
         return refs
+
+    def backup_manifests(self, strict: bool = True):
+        """(Name, Manifest) aller Sicherungen im Speicher. Unlesbare Manifeste brechen das Aufräumen ab, damit nie
+        Objekte einer Sicherung gelöscht werden."""
+        d = os.path.join(self.root, "backups")
+        out = []
+        for n in sorted(os.listdir(d)) if os.path.isdir(d) else []:
+            if n.endswith(".json"):
+                try:
+                    with open(os.path.join(d, n), encoding="utf-8") as fh:
+                        out.append((n[:-5], json.load(fh)))
+                except (OSError, ValueError) as ex:
+                    if strict:
+                        raise StoreError(f"Sicherung {n} im Snapshot-Speicher nicht lesbar: {ex}") from ex
+        return out
 
     def gc(self) -> int:
         """Nicht mehr benutzte Objekte entfernen → freigegebene Bytes."""
@@ -375,6 +395,8 @@ class Store:
             for n in files:
                 if n.endswith(".z") and n[:-2] not in used:
                     p = os.path.join(d, n)
+                    if n[:-2] in PINNED:              # gehört zu einer laufenden Sicherung (#59)
+                        continue
                     try:
                         freed += os.path.getsize(p)
                         os.remove(p)
@@ -398,7 +420,7 @@ class Store:
                 return json.load(fh)
         except (OSError, ValueError):
             pass
-        refs = self._all_refs()
+        refs = self._all_refs(strict=False)
         objsize = {}
         total = 0
         for d, _dirs, files in os.walk(os.path.join(self.root, "objects")):
@@ -415,7 +437,7 @@ class Store:
             if len(snaps) == 1:
                 k = "%s/%s" % next(iter(snaps))
                 own[k] = own.get(k, 0) + s
-            for lid in {w[0] for w in where}:
+            for lid in {w[0] for w in where} - {"backup"}:
                 libs[lid] = libs.get(lid, 0) + s
         for lib in self.libraries():
             for s in self.snapshots(lib["id"]):

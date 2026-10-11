@@ -454,8 +454,8 @@ class SnapshotMixin:
                 continue
             plan.append((p, live, ea, it.get("keys")))
         if mode == "bytes":
-            bw = backup.BackupWriter(self._backup_folder(), label=f"Vor Snapshot-Wiederherstellung ({len(plan)} Datei(en))") \
-                if plan else None
+            bw = backup.make_writer(self._backup_folder(), f"Vor Snapshot-Wiederherstellung ({len(plan)} Datei(en))",
+                                    self._backup_store()) if plan else None
             for p, live, ea, _keys in plan:
                 info = snapshots.read_tags(live)
                 if snapshots.audio_key(live, info) != ea["audio"] and not force_audio:

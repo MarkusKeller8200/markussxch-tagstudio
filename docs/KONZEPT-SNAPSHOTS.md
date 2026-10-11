@@ -226,9 +226,11 @@ v2.3 → v2.4 umschreiben), Journal-Status prüfen, Feld- und Byte-Rückgängig,
 7. „Vermutlich geändert von …“ (Herkunft) mit Filter und Sammel-Rückgängig je Programm.
 8. Überwachung während der Laufzeit (Abfrage) mit Hinweis in der Fussleiste.
 
-**Phase 3 – Ausbau**
-9. Journal exportieren (CSV/Excel).
-10. Sicherungen im selben Objekt-Speicher (spart Platz, einheitlicher Änderungs-Viewer).
+**Phase 3 – Ausbau (4.3.0, #59)**
+9. Journal exportieren (CSV/Excel) – umgesetzt: sichtbare Einträge samt Filter.
+10. Sicherungen im selben Objekt-Speicher – umgesetzt: Manifeste `backups/<Zeit>.json` im Speicher, Objekte wie bei
+    Snapshots (Frames einzeln); Aufräumen zählt die Sicherungen mit, laufende Sicherungen sind geschützt (`PINNED`);
+    ZIP-Sicherungen bleiben lesbar; abschaltbar (`backup_store`).
 ~~11. Audio-Sicherung~~ – entfallen (Audio-Änderungen werden nur gemeldet).
 
 ## 8. Entscheidungen (2026-10-09)

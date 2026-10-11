@@ -454,7 +454,7 @@ class BackupUnavailable(Exception):
     """Sicherungsordner nicht verfügbar – es wurde nichts gespeichert."""
 
 
-def save_files(files, backup_on=True, folder=None, cancel=None, progress=None, force=False) -> dict:
+def save_files(files, backup_on=True, folder=None, cancel=None, progress=None, force=False, store=None) -> dict:
     """Speichert Dateien; vorher werden die bisherigen Tags gesichert (eine ZIP pro Vorgang).
     Schlägt die Sicherung einer Datei fehl, wird diese Datei nicht gespeichert.
     → {"saved": n, "errors": [...], "backup": pfad|None, "cancelled": bool}"""
@@ -463,7 +463,7 @@ def save_files(files, backup_on=True, folder=None, cancel=None, progress=None, f
     errors, saved, bpath, bw = [], 0, None, None
     if backup_on:
         try:
-            bw = backup.BackupWriter(folder, label=f"Vor dem Speichern ({len(files)} Datei(en))")
+            bw = backup.make_writer(folder, f"Vor dem Speichern ({len(files)} Datei(en))", store)   # #59
         except OSError as ex:
             raise BackupUnavailable(f"Der Sicherungsordner ist nicht verfügbar:\n{folder}\n\n{ex}\n\n"
                                     "Es wurde nichts gespeichert.") from ex

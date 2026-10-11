@@ -264,9 +264,9 @@ async function backupsShow() {
   const d = BK.data;
   $("#bkEnabled").checked = d.enabled;
   const mb = (b) => (b < 1048576 ? `${Math.round(b / 1024)} KB` : `${(b / 1048576).toFixed(1).replace(".", ",")} MB`);
-  $("#bkPath").textContent = `Ordner: ${d.folder} · ${d.list.length} Sicherung(en), ${mb(d.total)}`;
+  $("#bkPath").textContent = `${d.in_store ? `Neue Sicherungen im Snapshot-Speicher (${d.store}) · ältere ZIPs: ${d.folder}` : `Ordner: ${d.folder}`} · ${d.list.length} Sicherung(en), ${mb(d.total)}`;
   $("#bkList").innerHTML = d.list.length
-    ? d.list.map((b, n) => `<button class="bk-item${BK.cur && BK.cur.path === b.path ? " cur" : ""}" data-n="${n}"><span class="t">${esc(b.created)}</span><span class="s">${esc(b.label)} · ${b.count} Datei(en) · ${mb(b.bytes)}</span></button>`).join("")
+    ? d.list.map((b, n) => `<button class="bk-item${BK.cur && BK.cur.path === b.path ? " cur" : ""}" data-n="${n}"><span class="t">${esc(b.created)}</span><span class="s">${esc(b.label)} · ${b.count} Datei(en) · ${mb(b.bytes)}${b.where === "store" ? ' · <span title="im Snapshot-Speicher – gleiche Tags werden geteilt">Speicher</span>' : " · ZIP"}</span></button>`).join("")
     : '<div class="tg-empty">Noch keine Sicherungen. Sie entstehen automatisch beim Speichern.</div>';
   if (BK.cur && !d.list.some((b) => b.path === BK.cur.path)) BK.cur = null;
   if (!BK.cur) { $("#bkFiles").innerHTML = '<div class="tg-empty">Links eine Sicherung wählen.</div>'; $("#bkTitle").textContent = "Dateien"; $("#bkInfo").textContent = ""; }

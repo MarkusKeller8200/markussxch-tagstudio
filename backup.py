@@ -6,6 +6,10 @@ Es enthält für jede Datei die exakten Tag-Bytes (ID3v2-Bereich inkl. Padding, 
 mit Pfad, Größe, Zeitstempel und einem Fingerabdruck der Audiodaten. Audio wird NICHT gesichert – deshalb
 sind Sicherungen klein, und beim Wiederherstellen wird geprüft, ob die Audiodaten noch dieselben sind.
 
+Seit 4.3.0 (#59) können Sicherungen auch im **Snapshot-Speicher** liegen: dann stehen die Tag-Bytes als Objekte im
+gemeinsamen Speicher (gleiche Tags nur einmal, auch über Snapshots hinweg) und nur ein kleines Manifest
+`backups/<Zeit>.json` kommt dazu. ZIP-Sicherungen bleiben lesbar und wiederherstellbar.
+
 Nur Standardbibliothek. Keine Datei wird automatisch gelöscht.
 """
 from __future__ import annotations
@@ -107,12 +111,146 @@ class BackupWriter:
             pass
 
 
+class StoreBackupWriter:
+    """Wie BackupWriter, aber die Tag-Bytes gehen in den Snapshot-Speicher (#59)."""
+
+    def __init__(self, store, label: str = "Vor dem Speichern"):
+        store._init()
+        self.store = store
+        folder = os.path.join(store.root, "backups")
+        os.makedirs(folder, exist_ok=True)
+        stamp = time.strftime("%Y-%m-%d_%H%M%S")
+        name, n = f"{stamp}.json", 1
+        while os.path.exists(os.path.join(folder, name)):
+            n += 1
+            name = f"{stamp}_{n}.json"
+        self.path = os.path.join(folder, name)
+        self.entries = []
+        self.label = label
+        self.created = time.time()
+        self._pins: set[str] = set()
+
+    def _unpin(self):
+        import snapshots
+        snapshots.PINNED.difference_update(self._pins)
+        self._pins = set()
+
+    def add(self, path: str):
+        import snapshots
+        lay = read_layout(path)
+        with open(path, "rb") as f:
+            tag = f.read(lay["audio_start"])
+            v1 = b""
+            if lay["has_v1"]:
+                f.seek(-128, os.SEEK_END)
+                v1 = f.read(128)
+        parts = [self.store.put(p) for p in snapshots.split_tag(tag)]
+        hv1 = self.store.put(v1) if v1 else None
+        self._pins.update(parts + ([hv1] if hv1 else []))
+        snapshots.PINNED.update(self._pins)
+        st = os.stat(path)
+        self.entries.append({
+            "id": len(self.entries), "path": os.path.abspath(path), "name": os.path.basename(path),
+            "mtime": st.st_mtime, "tag_md5": hashlib.md5(tag).hexdigest(), **lay, "tag": parts, "v1": hv1})
+
+    def close(self) -> str | None:
+        try:
+            if not self.entries:
+                return None
+            man = {"format": 2, "kind": "store", "created": self.created, "label": self.label, "files": self.entries}
+            tmp = self.path + ".part"
+            with open(tmp, "w", encoding="utf-8") as fh:
+                json.dump(man, fh, ensure_ascii=False, indent=1)
+            os.replace(tmp, self.path)
+            self.store._stats_dirty()
+            return self.path
+        finally:
+            self._unpin()
+
+    def abort(self):
+        self.entries = []        # Objekte ohne Manifest räumt das nächste Aufräumen des Speichers weg
+        self._unpin()
+
+
+def make_writer(folder: str | None, label: str, store=None):
+    """Sicherung im Snapshot-Speicher (wenn angegeben und beschreibbar), sonst als ZIP im Sicherungsordner."""
+    if store is not None and not getattr(store, "readonly", False):
+        try:
+            return StoreBackupWriter(store, label)
+        except OSError:
+            pass                  # Speicher nicht erreichbar → klassische ZIP-Sicherung
+    return BackupWriter(folder, label)
+
+
+def is_store_backup(path: str) -> bool:
+    return path.endswith(".json") and os.path.basename(os.path.dirname(path)) == "backups"
+
+
+def _store_of(path: str):
+    import snapshots
+    return snapshots.Store(os.path.dirname(os.path.dirname(os.path.abspath(path))))
+
+
+def _manifest(path: str) -> dict:
+    if is_store_backup(path):
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+    with zipfile.ZipFile(path) as z:
+        return json.loads(z.read(MANIFEST))
+
+
+def _entry_bytes(path: str, entry: dict, z=None, store=None) -> tuple[bytes, bytes]:
+    """Gesicherte Tag-Bytes und ID3v1 einer Datei (ZIP oder Snapshot-Speicher)."""
+    if is_store_backup(path):
+        return (store or _store_of(path)).tag_bytes(entry)
+    own = z is None
+    z = z or zipfile.ZipFile(path)
+    try:
+        tag = z.read(f"{entry['id']:05d}.tag")
+        name = f"{entry['id']:05d}.v1"
+        v1 = z.read(name) if name in z.namelist() else b""
+        return tag, v1
+    finally:
+        if own:
+            z.close()
+
+
+def store_backup_bytes(store, man: dict) -> int:
+    """Belegter Platz einer Speicher-Sicherung: Manifest + benutzte Objekte (geteilte Objekte voll gezählt)."""
+    seen, total = set(), 0
+    for e in man.get("files", []):
+        for h in (e.get("tag") or []) + ([e["v1"]] if e.get("v1") else []):
+            if h not in seen:
+                seen.add(h)
+                try:
+                    total += os.path.getsize(store._obj(h))
+                except OSError:
+                    pass
+    return total
+
+
 # --------------------------------------------------------------------------- Auflisten
-def list_backups(folder: str | None = None) -> list[dict]:
+def list_backups(folder: str | None = None, store=None) -> list[dict]:
+    """ZIP-Sicherungen im Ordner und (falls angegeben) Sicherungen im Snapshot-Speicher, neueste zuerst."""
     folder = folder or default_dir()
     out = []
+    if store is not None:
+        bdir = os.path.join(store.root, "backups")
+        for name in (os.listdir(bdir) if os.path.isdir(bdir) else []):
+            if not name.endswith(".json"):
+                continue
+            p = os.path.join(bdir, name)
+            try:
+                with open(p, encoding="utf-8") as fh:
+                    man = json.load(fh)
+                out.append({"path": p, "name": name[:-5], "created": man.get("created", os.path.getmtime(p)),
+                            "label": man.get("label", ""), "count": len(man.get("files", [])), "where": "store",
+                            "bytes": os.path.getsize(p) + store_backup_bytes(store, man), "files": man.get("files", [])})
+            except (OSError, ValueError):
+                out.append({"path": p, "name": name[:-5], "created": os.path.getmtime(p), "label": "(beschädigt)",
+                            "count": 0, "bytes": os.path.getsize(p), "files": [], "broken": True, "where": "store"})
     if not os.path.isdir(folder):
-        return out
+        return sorted(out, key=lambda b: b["created"], reverse=True)
     for name in sorted(os.listdir(folder), reverse=True):
         if not name.endswith(".zip"):
             continue
@@ -121,12 +259,12 @@ def list_backups(folder: str | None = None) -> list[dict]:
             with zipfile.ZipFile(p) as z:
                 man = json.loads(z.read(MANIFEST))
             out.append({"path": p, "name": name, "created": man.get("created", os.path.getmtime(p)),
-                        "label": man.get("label", ""), "count": len(man.get("files", [])),
+                        "label": man.get("label", ""), "count": len(man.get("files", [])), "where": "zip",
                         "bytes": os.path.getsize(p), "files": man.get("files", [])})
         except (OSError, KeyError, ValueError, zipfile.BadZipFile):
             out.append({"path": p, "name": name, "created": os.path.getmtime(p), "label": "(beschädigt)",
-                        "count": 0, "bytes": os.path.getsize(p), "files": [], "broken": True})
-    return out
+                        "count": 0, "bytes": os.path.getsize(p), "files": [], "broken": True, "where": "zip"})
+    return sorted(out, key=lambda b: b["created"], reverse=True)
 
 
 def check_entry(entry: dict) -> tuple[str, str]:
@@ -152,10 +290,7 @@ def read_backup_tags(zip_path: str, entry: dict):
     """Die gesicherten Tags einer Datei als MP3File (über eine kleine Hilfsdatei: Tag + Stille + ID3v1)."""
     import tempfile
     from id3tags import MP3File
-    with zipfile.ZipFile(zip_path) as z:
-        tag = z.read(f"{entry['id']:05d}.tag")
-        names = set(z.namelist())
-        v1 = z.read(f"{entry['id']:05d}.v1") if f"{entry['id']:05d}.v1" in names else b""
+    tag, v1 = _entry_bytes(zip_path, entry)
     fd, tmp = tempfile.mkstemp(suffix=".mp3", prefix="tagstudio_bk_")
     try:
         with os.fdopen(fd, "wb") as fh:
@@ -196,11 +331,13 @@ def _disp(it) -> str:
 
 # --------------------------------------------------------------------------- Wiederherstellen
 def restore(zip_path: str, ids: list[int] | None = None, safety_folder: str | None = None,
-            force_audio: bool = False, on_progress=None, cancel=None) -> list[tuple[str, str, str]]:
-    """Schreibt die gesicherten Tags zurück. Vorher wird der aktuelle Zustand selbst gesichert.
-    Liefert [(pfad, status, text)]; status: 'restored'|'skipped'|'error'."""
-    with zipfile.ZipFile(zip_path) as z:
-        man = json.loads(z.read(MANIFEST))
+            force_audio: bool = False, on_progress=None, cancel=None, store=None) -> list[tuple[str, str, str]]:
+    """Schreibt die gesicherten Tags zurück. Vorher wird der aktuelle Zustand selbst gesichert (im Snapshot-Speicher,
+    wenn `store` angegeben, sonst als ZIP). Liefert [(pfad, status, text)]; status: 'restored'|'skipped'|'error'."""
+    src_store = _store_of(zip_path) if is_store_backup(zip_path) else None
+    import contextlib
+    with (contextlib.nullcontext() if src_store else zipfile.ZipFile(zip_path)) as z:
+        man = _manifest(zip_path)
         entries = [e for e in man["files"] if ids is None or e["id"] in ids]
         todo, results = [], []
         for e in entries:
@@ -212,8 +349,8 @@ def restore(zip_path: str, ids: list[int] | None = None, safety_folder: str | No
         if not todo:
             return results
         # Sicherheitsnetz: aktuellen Zustand vor dem Zurückschreiben sichern
-        safety = BackupWriter(safety_folder or os.path.dirname(zip_path),
-                              label=f"Vor Wiederherstellung von {os.path.basename(zip_path)}")
+        safety = make_writer(safety_folder or os.path.dirname(zip_path),
+                             f"Vor Wiederherstellung von {os.path.basename(zip_path)}", store)
         for e in todo:
             try:
                 safety.add(e["path"])
@@ -227,8 +364,7 @@ def restore(zip_path: str, ids: list[int] | None = None, safety_folder: str | No
             if on_progress:
                 on_progress(n, len(todo), e["path"])
             try:
-                tag = z.read(f"{e['id']:05d}.tag")
-                v1 = z.read(f"{e['id']:05d}.v1") if e["has_v1"] else b""
+                tag, v1 = _entry_bytes(zip_path, e, z, src_store)
                 _write_tags(e["path"], tag, v1)
                 results.append((e["path"], "restored", "wiederhergestellt"))
             except Exception as ex:  # noqa: BLE001

@@ -542,6 +542,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                 "save_version": c.get("save_version", 0), "key_notation": c.get("key_notation", "camelot"),
                 "notations": [[k, v] for k, v in keys.NOTATIONS.items()], "theme": self.opts["theme"],
                 "backup_enabled": c.get("backup_enabled", True), "backup_dir": self._backup_folder(),
+                "backup_store": self._backup_in_store(),
                 "player": self.player_prefs(), "players": len(c.get("players") or []),
                 "stems_flat": bool(c.get("tagger_stems_flat")),
                 "mood_list": c.get("mood_list") if isinstance(c.get("mood_list"), list) else [],
@@ -1089,7 +1090,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
 
         def job(cancel, progress):
             with self.lock:
-                return core.save_files(files, backup_on, folder, cancel, progress, force=bool(force))
+                return core.save_files(files, backup_on, folder, cancel, progress, force=bool(force),
+                                       store=self._backup_store())
         return self._run("save", f"{len(files)} Datei(en) speichern", job)
 
     # ================================================================== Feld hinzufügen
@@ -1295,16 +1297,35 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
     def _backup_folder(self):
         return self.cfg.get("backup_dir") or backup.default_dir()
 
+    def _backup_in_store(self) -> bool:
+        return self.cfg.get("backup_store", True) is not False
+
+    def _backup_store(self, for_list=False):
+        """#59: Snapshot-Speicher für Sicherungen (None = ZIP im Sicherungsordner). Zum Auflisten immer, sobald
+        der Speicher existiert – auch wenn neue Sicherungen wieder als ZIP entstehen."""
+        try:
+            st = self.snap_store
+        except Exception:  # noqa: BLE001 – Speicher unlesbar → klassische Sicherung
+            return None
+        if for_list:
+            return st if os.path.isdir(os.path.join(st.root, "backups")) else None
+        return st if self._backup_in_store() and not st.readonly else None
+
     def backups(self) -> dict:
         folder = self._backup_folder()
-        items = backup.list_backups(folder)
+        store = self._backup_store(for_list=True)
+        items = backup.list_backups(folder, store)
         return {"enabled": self.cfg.get("backup_enabled", True), "folder": folder,
+                "in_store": self._backup_in_store(), "store": self.snap_store.root if store or self._backup_in_store() else "",
                 "total": sum(b["bytes"] for b in items),
                 "list": [{"path": b["path"], "name": b["name"], "label": b["label"], "count": b["count"],
-                          "bytes": b["bytes"], "broken": bool(b.get("broken")),
+                          "bytes": b["bytes"], "broken": bool(b.get("broken")), "where": b.get("where", "zip"),
                           "created": time.strftime("%d.%m.%Y %H:%M:%S", time.localtime(b["created"]))} for b in items]}
 
-    def set_backup(self, enabled=None, folder=None):
+    def set_backup(self, enabled=None, folder=None, in_store=None):
+        if in_store is not None:                                                 # #59
+            self.cfg["backup_store"] = bool(in_store)
+            core.save_config({"backup_store": bool(in_store)})
         if enabled is not None:
             self.cfg["backup_enabled"] = bool(enabled)
             core.save_config({"backup_enabled": bool(enabled)})
@@ -1316,9 +1337,12 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
     def _backup_entry(self, path):
         folder = os.path.normcase(os.path.abspath(self._backup_folder()))
         p = os.path.normcase(os.path.abspath(path))
-        if os.path.dirname(p) != folder or not p.endswith(".zip"):
+        store = self._backup_store(for_list=True)
+        in_store = store is not None and backup.is_store_backup(p) and \
+            os.path.dirname(p) == os.path.normcase(os.path.join(store.root, "backups"))
+        if not in_store and (os.path.dirname(p) != folder or not p.endswith(".zip")):
             raise ValueError("Diese Sicherung liegt nicht im Sicherungsordner.")
-        for b in backup.list_backups(self._backup_folder()):
+        for b in backup.list_backups(self._backup_folder(), store):
             if os.path.normcase(os.path.abspath(b["path"])) == p:
                 return b
         raise ValueError("Sicherung nicht gefunden.")
@@ -1378,7 +1402,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
 
         def job(cancel, progress):
             res = backup.restore(b["path"], ids, self._backup_folder(), bool(force_audio),
-                                 on_progress=lambda i, n, p: progress(("progress", i, n, p)), cancel=cancel)
+                                 on_progress=lambda i, n, p: progress(("progress", i, n, p)), cancel=cancel,
+                                 store=self._backup_store())
             ok = {os.path.normcase(os.path.abspath(p)) for p, code, _ in res if code == "restored"}
             with self.lock:
                 for k in ok:
@@ -1394,6 +1419,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
         try:
             b = self._backup_entry(path)
             os.remove(b["path"])
+            if b.get("where") == "store":            # #59: nicht mehr benutzte Tag-Objekte freigeben
+                self.snap_store.gc()
         except (ValueError, OSError) as ex:
             return {"ok": False, "error": str(ex)}
         return {"ok": True, "backups": self.backups()}
