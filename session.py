@@ -24,7 +24,7 @@ import xmltools
 import blobs
 from compare import (PAIR_MODES, Rules, DEFAULT_TRIVIAL, Cancelled, diff, copy_tags, all_keys, MULTI_FIELDS,
                      INPUT_SEPARATORS, plan_multi_fix)
-from id3tags import key_label, sort_key, TEXT_LABELS, STANDARD_KEYS, MV, MV_SHOW, Cover, Item
+from id3tags import key_label, field_name, field_help, sort_key, TEXT_LABELS, STANDARD_KEYS, MV, MV_SHOW, Cover, Item
 from undo import UndoStack
 from version import VERSION  # einzige Versionsquelle
 from session_player import PlayerMixin
@@ -37,7 +37,8 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
            "col_name": (int, float), "col_ratio": (int, float), "tg_edit_w": (int, float),
            "tg_more_k": (int, float), "tg_col_name": (int, float), "tg_cover_col": bool,
            "module": str,                                    # #88: zuletzt benutzte Seite
-           "tg_feat_cols": list}                             # #11: Spalten mit Audio-Merkmalen im Tagger
+           "tg_feat_cols": list,                             # #11: Spalten mit Audio-Merkmalen im Tagger
+           "tg_more_sort": str}                              # #141: Weitere Felder nach Feld oder Herkunft
 
 
 class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
@@ -1503,7 +1504,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                 "defaults": td, "start": self.tagger_start(),
                 "state": {**self.tag_state(), "exists": bool(self.tag_state().get("root")) and os.path.exists(self.tag_state()["root"])},
                 "default": str(self.cfg.get("default_tagger") or ""),
-                "fields": [[k, label, ph] for k, label, ph in tagger.FIELDS],
+                "fields": [[k, label, ph, field_name(k), field_help(k)] for k, label, ph in tagger.FIELDS],   # #151
                 "features": [[n, label, desc] for n, label, desc in features.FEATURES],
                 "features_open": self.cfg.get("features_open", True),
                 "keys": {"wheel": keys.wheel(), "notations": [[k, v] for k, v in keys.NOTATIONS.items()],
@@ -1697,7 +1698,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                         continue
                     it = f.get(k)
                     xml = xmltools.xml_of_item(it)
-                    fields.append({"key": k, "label": key_label(k), "text": core.disp(it), "src": self._src(k, f), "ver": self._ver(k, f),
+                    fields.append({"key": k, "label": key_label(k), "name": field_name(k), "help": field_help(k),
+                                   "text": core.disp(it), "src": self._src(k, f), "ver": self._ver(k, f),
                                    "editable": core.can_edit_text(f, k) and xml is None,
                                    "multiline": "\n" in (it.text or "") or k.startswith(("COMM", "USLT")),
                                    "blob": blobs.is_blob(it),

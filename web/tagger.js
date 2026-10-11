@@ -463,39 +463,46 @@ function renderTgEditor() {
     : `<div><h3>${d.count} Dateien gewählt</h3><div class="hint">Felder mit „verschieden“ bleiben unverändert, solange du nichts einträgst.</div></div>`;
   const c = d.cover;
   const coverImg = c.state === "same" && c.src ? `<img src="${c.src}" alt="">` : c.state === "mixed" ? '<span class="hint">verschieden</span>' : ICON.note;
-  const form = TG.settings.fields.map(([k, label]) => {
+  const form = TG.settings.fields.map(([k, label0, _ph, fname, fhelp]) => {
     const v = d.common[k];
+    // #151: Feldname (wie in Mp3tag) am Ende, Erklärung beim Darüberfahren
+    const lab = `<label for="tgf-${k}" title="${esc([fhelp, `ID3: ${k.replace(/:$/, "")}${fname ? ` · Mp3tag: ${fname}` : ""}`].filter(Boolean).join("\n"))}">${esc(label0)}${fname ? ` <span class="fname">${esc(fname)}</span>` : ""}</label>`;
     const inp = `<input id="tgf-${k}" data-key="${k}" value="${esc(v.value)}" ${v.mixed ? 'placeholder="‹verschieden›"' : ""} spellcheck="false">`;
-    if (k === "TKEY") return `<label for="tgf-${k}">${esc(label)}</label><div class="key-inp">${inp}<button class="key-btn${KW.open ? " on" : ""}" id="tgKeyBtn" title="Camelot-Rad öffnen" aria-label="Camelot-Rad öffnen">${v.camelot ? keyBadge(v.camelot) : '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v4.5M12 16.5V21M3 12h4.5M16.5 12H21"/></svg>'}</button></div>`;
+    if (k === "TKEY") return `${lab}<div class="key-inp">${inp}<button class="key-btn${KW.open ? " on" : ""}" id="tgKeyBtn" title="Camelot-Rad öffnen" aria-label="Camelot-Rad öffnen">${v.camelot ? keyBadge(v.camelot) : '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v4.5M12 16.5V21M3 12h4.5M16.5 12H21"/></svg>'}</button></div>`;
     const u = !v.mixed && firstUrl(v.value);
-    if (u) return `<label for="tgf-${k}">${esc(label)}</label><div class="url-inp">${inp}<a class="url-btn" data-url="${esc(u)}" title="${esc(u)} öffnen" aria-label="Link öffnen"><svg class="i" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></a></div>`;
-    return `<label for="tgf-${k}">${esc(label)}</label>${inp}`;
+    if (u) return `${lab}<div class="url-inp">${inp}<a class="url-btn" data-url="${esc(u)}" title="${esc(u)} öffnen" aria-label="Link öffnen"><svg class="i" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></a></div>`;
+    return `${lab}${inp}`;
   }).join("");
   const PEN = '<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
   const DEL = '<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
   const srcs = {};
   (one ? d.fields : []).forEach((f) => { const k = f.src || ""; srcs[k] = (srcs[k] || 0) + 1; });
   if (TG.srcFilter && !(TG.srcFilter in srcs)) TG.srcFilter = "";
-  const shownFields = one ? d.fields.filter((f) => !TG.srcFilter || (f.src || "") === (TG.srcFilter === "-" ? "" : TG.srcFilter)) : [];
+  const shownFields = one ? tgMoreSorted(d.fields.filter((f) => !TG.srcFilter || (f.src || "") === (TG.srcFilter === "-" ? "" : TG.srcFilter))) : [];
   const srcOpts = Object.keys(srcs).filter(Boolean).sort((a, b) => (srcInfo(a)?.name || a).localeCompare(srcInfo(b)?.name || b));
   const srcSel = srcOpts.length ? `<select id="tgSrcF" class="inp" title="Weitere Felder nach Herkunft filtern" aria-label="Nach Herkunft filtern">
       <option value="">Alle Herkünfte</option>${srcOpts.map((k) => `<option value="${esc(k)}"${TG.srcFilter === k ? " selected" : ""}>${esc(srcInfo(k)?.name || k)} (${srcs[k]})</option>`).join("")}
       ${srcs[""] ? `<option value="-"${TG.srcFilter === "-" ? " selected" : ""}>ohne bekannte Herkunft (${srcs[""]})</option>` : ""}</select>
       ${TG.srcFilter && TG.srcFilter !== "-" && srcInfo(TG.srcFilter)?.kind !== "id3" ? `<button class="ghost sm" id="tgSrcDel" data-src="${esc(TG.srcFilter)}">Alle entfernen …</button>` : ""}` : "";
-  const more = one && d.fields.length ? `<div class="tg-more-tools"><h4>Weitere Felder <span class="muted sm" style="font-weight:400">${shownFields.length === d.fields.length ? d.fields.length : `${shownFields.length} von ${d.fields.length}`}</span></h4>${srcSel}</div>
+  const more = one && d.fields.length ? `<div class="tg-more-tools"><h4>Weitere Felder <span class="muted sm" style="font-weight:400">${shownFields.length === d.fields.length ? d.fields.length : `${shownFields.length} von ${d.fields.length}`}</span></h4>${srcSel}
+      <button class="ghost sm" id="tgMoreSort" title="Weitere Felder sortieren: nach Feld oder nach Herkunft (TagStudio zuerst, dann alphabetisch)">${LAYOUT.tg_more_sort === "src" ? "Sortiert: Herkunft" : "Sortiert: Feld"}</button></div>
     <div class="tg-more">
       <div class="tg-more-head"><span class="k">Feld<span class="col-grip" id="tgMoreGrip" role="separator" aria-orientation="vertical" aria-label="Breite der Feldnamen" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: Standardbreite"></span></span><span>Wert</span><span></span></div>
       ${shownFields.map((f) => {
         const full = f.edit || f.text, ml = f.multiline;
         const shown = ml ? full : (f.text.length > 160 ? f.text.slice(0, 160) + " …" : f.text);
-        return `<div class="tg-f" data-key="${esc(f.key)}"><span class="k" title="${esc(f.label + "\n" + f.key)}">${srcBadge(f.ver)}${f.src ? `<span class="src-click" data-srcf="${esc(f.src)}" title="Klick: nur Felder dieser Herkunft zeigen (erneut: alle)">${srcBadge(f.src)}</span>` : ""}${f.mod ? '<span class="m" style="display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:6px"></span>' : ""}${esc(f.label)}</span>
+        const nm = tgFieldNames(f);
+        return `<div class="tg-f" data-key="${esc(f.key)}"><span class="k" title="${esc([f.label, f.key, f.help].filter(Boolean).join("\n"))}">${srcBadge(f.ver)}${f.src ? `<span class="src-click" data-srcf="${esc(f.src)}" title="Klick: nur Felder dieser Herkunft zeigen (erneut: alle)">${srcBadge(f.src)}</span>` : ""}${f.mod ? '<span class="m" style="display:inline-block;width:7px;height:7px;border-radius:99px;background:var(--acc);margin-right:6px"></span>' : ""}${esc(nm.main)}${nm.sub ? ` <span class="fname">${esc(nm.sub)}</span>` : ""}</span>
       <span class="v${f.editable ? "" : " noedit"}${ml ? " ml" : ""}" title="${f.editable ? "Doppelklick: bearbeiten" : ""}">${f.xml ? `<button class="xml-badge${f.xml === "view" ? " view" : ""}" data-txml="1">XML</button>` : ""}${COLOR_KEY_RE.test(f.key) ? colorSwatch(full) : ""}${linkify(shown)}</span>
       <span class="b">${f.editable || f.xml || f.blob ? `<button class="x" data-tedit="1" title="${f.blob ? "Binärfeld ansehen/bearbeiten" : "Im Editor bearbeiten"}" aria-label="${esc(f.label)} bearbeiten">${PEN}</button>` : ""}<button class="x del" data-tdel="1" title="Feld entfernen" aria-label="${esc(f.label)} entfernen">${DEL}</button></span></div>`;
       }).join("")}</div>` : "";
   const act = document.activeElement && box.contains(document.activeElement) ? document.activeElement.id : null;
   box.innerHTML = `${head}
     <div class="tg-cover"><button class="cover" id="tgCoverBig" title="${esc(c.desc || (c.state === "mixed" ? "unterschiedliche Cover" : "kein Cover"))}">${coverImg}</button>
-      <div class="tg-cover-btns"><div class="row"><button class="ghost sm" id="tgCoverSet">Cover wählen …</button><button class="ghost sm" id="tgCoverDel" ${c.state === "none" ? "disabled" : ""}>Cover entfernen</button></div>
+      <div class="tg-cover-btns"><div class="col">
+        <button class="ghost sm" id="tgCoverSet">Cover wählen …</button>
+        <button class="ghost sm" id="tgCoverDel" ${c.state === "none" ? "disabled" : ""}>Cover entfernen</button>
+        <button class="ghost sm" id="tgCoverWeb" title="Bildersuche im Browser mit Künstler, Titel bzw. Album – gefundenes Bild speichern und mit „Cover wählen …“ setzen">Cover im Internet suchen ↗</button></div>
       <span class="hint" title="${esc(c.desc || "")}">${esc(c.desc || (c.state === "mixed" ? "unterschiedlich" : "kein Cover"))}</span><div class="tg-lenrate">${tgLength(d)}${d.rating ? rateHtml(d.rating.value, d.rating.like, { cls: "tg-rate", keys: true }) : ""}</div></div></div>
     <div class="tg-form">${form}
       <label for="tgVer">ID3-Version</label><select id="tgVer" class="inp" style="height:36px"><option value="3">ID3v2.3 (verbreitet)</option><option value="4">ID3v2.4 (Mehrfachwerte)</option>${d.version ? "" : '<option value="" selected>verschieden</option>'}</select>
@@ -531,6 +538,38 @@ function renderTgEditor() {
       onKey: (dd) => { setK(LAYOUT.tg_more_k + dd); saveUi("tg_more_k"); },
     });
   }
+}
+
+/** #150: Bildersuche im Browser – Künstler + Album (sonst Titel) + „cover“ */
+function tgCoverWeb() {
+  const c = (TG.detail && TG.detail.common) || {};
+  const val = (k) => (c[k] && !c[k].mixed ? String(c[k].value || "").replace(/[¦]/g, " ").trim() : "");
+  const q = [val("TPE1"), val("TALB") || val("TIT2"), "cover"].filter(Boolean).join(" ");
+  if (q === "cover") { toast("Für die Suche fehlen Künstler und Titel bzw. Album."); return; }
+  call("open_url", "https://www.google.com/search?tbm=isch&q=" + encodeURIComponent(q));
+}
+
+/** #140: Anzeige „Weitere Felder“ – bei Benutzerfeldern der Feldname vorne (CATALOGNUMBER · Benutzertext),
+    sonst der deutsche Name mit dem Feldnamen wie in Mp3tag dahinter (Untertitel · SUBTITLE). */
+function tgFieldNames(f) {
+  const name = f.name || "", lab = f.label || f.key;
+  if (name && lab.includes(`(${name})`)) return { main: name, sub: lab.replace(` (${name})`, "") };
+  if (name && name.toLowerCase() !== lab.toLowerCase()) return { main: lab, sub: name };
+  return { main: lab, sub: "" };
+}
+/** #141: optional nach Herkunft sortieren – TagStudio (eigene Plugins) zuerst, dann alphabetisch, ohne Herkunft zuletzt */
+function tgMoreSorted(fields) {
+  if (LAYOUT.tg_more_sort !== "src") return fields;
+  const rank = (f) => {
+    if (!f.src) return [2, ""];
+    const o = srcInfo(f.src);
+    if (f.src === "tagstudio" || (o && o.kind === "plugin")) return [0, ""];
+    if (f.src === "unknown") return [2, ""];
+    return [1, ((o && o.name) || f.src).toLowerCase()];
+  };
+  return fields.map((f, k) => ({ f, k, r: rank(f), n: tgFieldNames(f).main.toLowerCase() }))
+    .sort((a, b) => a.r[0] - b.r[0] || a.r[1].localeCompare(b.r[1]) || a.n.localeCompare(b.n) || a.k - b.k)
+    .map((x) => x.f);
 }
 
 async function tgRenderPlugins() {
@@ -1193,6 +1232,8 @@ async function tgOriginDialog(preset = "") {
     else if (id === "tgOrigin") tgOriginDialog();
     else if (id === "tgStemTags") tgStemTagsDialog();
     else if (id === "tgSrcDel") tgOriginDialog(e.target.closest("button").dataset.src);
+    else if (id === "tgMoreSort") { LAYOUT.tg_more_sort = LAYOUT.tg_more_sort === "src" ? "key" : "src"; saveUi("tg_more_sort"); renderTgEditor(); }   // #141
+    else if (id === "tgCoverWeb") tgCoverWeb();                                                                             // #150
     else if (id === "tgKeyBtn") keyWheelOpen();
     const pb = e.target.closest("[data-plugin]");
     if (pb) pluginRun(pb.dataset.plugin, pb.dataset.action);

@@ -9,6 +9,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ### Neu
 - Vorschau der Plugins **Online-Metadaten** und **Beatport**: Links zum Treffer auf der Plattform (je Datei und je
   Feld), um z. B. eine andere Version eines Titels zu erkennen, bevor man übernimmt (#144).
+- Tagger: Feldnamen wie in Mp3tag (z. B. TITLE, INITIALKEY, CATALOGNUMBER) bei den wichtigen Feldern am Ende und bei
+  „Weitere Felder“; Benutzerfelder zeigen ihren Namen vorne. Beim Darüberfahren eine kurze Erklärung des Felds
+  (#140, #151).
+- Tagger: „Weitere Felder“ wahlweise nach Herkunft sortiert – TagStudio zuerst, dann alphabetisch (#141).
+- Tagger: Cover-Knöpfe untereinander, neu „Cover im Internet suchen“ (Bildersuche mit Künstler und Album) (#150).
 
 ### Geändert
 - Beatport: neue Option „Nur noch nicht vorhandene Felder“ – ist Standard; vorhandene Felder werden dann weder

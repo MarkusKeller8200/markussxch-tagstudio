@@ -139,6 +139,70 @@ def key_label(key: str) -> str:
     return lbl
 
 
+# #140/#151: Feldname wie in Mp3tag (bekannt aus der Praxis) und kurze Erklärung je ID3-Frame
+FIELD_NAMES = {
+    "TIT1": "CONTENTGROUP", "TIT2": "TITLE", "TIT3": "SUBTITLE", "TALB": "ALBUM", "TOAL": "ORIGALBUM",
+    "TRCK": "TRACK", "TPOS": "DISCNUMBER", "TSST": "SETSUBTITLE", "TSRC": "ISRC", "TPE1": "ARTIST",
+    "TPE2": "ALBUMARTIST", "TPE3": "CONDUCTOR", "TPE4": "MIXARTIST", "TOPE": "ORIGARTIST", "TEXT": "LYRICIST",
+    "TOLY": "ORIGLYRICIST", "TCOM": "COMPOSER", "TMCL": "MUSICIANCREDITS", "TIPL": "INVOLVEDPEOPLE",
+    "TENC": "ENCODEDBY", "TBPM": "BPM", "TLEN": "LENGTH", "TKEY": "INITIALKEY", "TLAN": "LANGUAGE",
+    "TCON": "GENRE", "TFLT": "FILETYPE", "TMED": "MEDIATYPE", "TMOO": "MOOD", "TCOP": "COPYRIGHT",
+    "TPRO": "PRODUCEDNOTICE", "TPUB": "PUBLISHER", "TOWN": "FILEOWNER", "TOFN": "ORIGFILENAME",
+    "TDOR": "ORIGYEAR", "TDRC": "YEAR", "TDRL": "RELEASETIME", "TDTG": "TAGGINGTIME", "TSSE": "ENCODERSETTINGS",
+    "TSOA": "ALBUMSORT", "TSOP": "ARTISTSORT", "TSOT": "TITLESORT", "TSO2": "ALBUMARTISTSORT",
+    "TSOC": "COMPOSERSORT", "TCMP": "COMPILATION", "GRP1": "GROUPING", "MVNM": "MOVEMENTNAME",
+    "MVIN": "MOVEMENT", "COMM": "COMMENT", "USLT": "UNSYNCEDLYRICS", "APIC": "PICTURE", "POPM": "RATING",
+    "WCOM": "WWWCOMMERCIALINFO", "WOAR": "WWWARTIST", "WOAF": "WWWAUDIOFILE", "WOAS": "WWWAUDIOSOURCE",
+    "WPUB": "WWWPUBLISHER", "WCOP": "WWWCOPYRIGHT", "WPAY": "WWWPAYMENT", "UFID": "UNIQUEFILEID",
+}
+FIELD_HELP = {
+    "TIT2": "Titel des Stücks, bei DJ-Titeln oft mit Mix-Name in Klammern.",
+    "TPE1": "Hauptkünstler; mehrere mit ¦ trennen (ID3v2.4) bzw. „, “/„ & “.",
+    "TALB": "Album bzw. Release (Single, EP, Compilation).",
+    "TPE2": "Künstler des ganzen Albums (für Sortierung und Gruppierung in Player-Software).",
+    "TDRC": "Erscheinungsjahr oder -datum (JJJJ bzw. JJJJ-MM-TT).",
+    "TRCK": "Spurnummer, optional mit Gesamtzahl (z. B. 3/12).",
+    "TPOS": "Disk-/CD-Nummer, optional mit Gesamtzahl (z. B. 1/2).",
+    "TCON": "Genre (Text); mehrere mit ¦ trennen.",
+    "TCOM": "Komponist bzw. Songwriter.",
+    "TBPM": "Tempo in Schlägen pro Minute (ganze Zahl, manche Programme schreiben Nachkommastellen).",
+    "TKEY": "Tonart (z. B. 8A, Am, 1m) – TagStudio schreibt sie in der gewählten Schreibweise.",
+    "COMM": "Kommentar; manche Programme nutzen ihn für Tonart/Energie (z. B. Mixed In Key).",
+    "TPUB": "Label bzw. Herausgeber.",
+    "TSRC": "International Standard Recording Code – eindeutige Kennung der Aufnahme.",
+    "TPE4": "Remixer bzw. Bearbeiter.",
+    "TXXX": "Benutzertext: freies Feld mit eigenem Namen (z. B. CATALOGNUMBER, ENERGY).",
+    "WXXX": "Benutzer-URL: Link mit eigener Beschreibung.",
+    "GEOB": "Eingebettete Daten (binär), z. B. Serato-Cues oder Beatgrid.",
+    "PRIV": "Private Daten eines Programms (binär).",
+    "APIC": "Bild (Cover) im Tag.",
+    "POPM": "Bewertung (Popularimeter), z. B. von Windows oder Mp3tag.",
+    "UFID": "Eindeutige Datei-ID eines Dienstes (z. B. MusicBrainz).",
+    "USLT": "Liedtext (ungetaktet).",
+    "TMOO": "Stimmung (Mood).",
+    "TLEN": "Länge in Millisekunden.",
+    "TENC": "Wer bzw. womit die Datei kodiert wurde.",
+    "TSSE": "Einstellungen des Kodierers (z. B. LAME).",
+}
+
+
+def field_name(key: str) -> str:
+    """Feldname wie in Mp3tag: TXXX:CATALOGNUMBER → CATALOGNUMBER, TIT2 → TITLE, sonst die Frame-ID."""
+    base = key.split("#")[0]
+    fid, _, desc = base.partition(":")
+    if fid in ("TXXX", "WXXX") and desc:
+        return desc.upper() if fid == "TXXX" else f"WWW {desc}"
+    if fid in ("GEOB", "PRIV") and desc:
+        return desc
+    return FIELD_NAMES.get(fid, fid)
+
+
+def field_help(key: str) -> str:
+    """Kurze Erklärung zum Feld (für den Hinweis beim Darüberfahren)."""
+    fid = key.split("#")[0].partition(":")[0]
+    return FIELD_HELP.get(fid, "")
+
+
 def sort_key(key: str):
     fid = key.split(":")[0].split("#")[0]
     for i, k in enumerate(ORDER):

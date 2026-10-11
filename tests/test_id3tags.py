@@ -183,5 +183,19 @@ class TestWrite(Base):
         self.assertEqual(c.text("TIT2"), "A")
 
 
+
+class TestFieldNames(unittest.TestCase):
+    def test_names_and_help(self):
+        """#140/#151: Feldnamen wie in Mp3tag und Erklärungen."""
+        from id3tags import field_name, field_help
+        self.assertEqual(field_name("TXXX:CatalogNumber"), "CATALOGNUMBER")
+        self.assertEqual(field_name("TIT2"), "TITLE")
+        self.assertEqual(field_name("TKEY"), "INITIALKEY")
+        self.assertEqual(field_name("COMM:eng:"), "COMMENT")
+        self.assertEqual(field_name("GEOB:Serato Markers2"), "Serato Markers2")
+        self.assertEqual(field_name("ZZZZ"), "ZZZZ")
+        self.assertIn("Tonart", field_help("TKEY"))
+        self.assertEqual(field_help("ZZZZ"), "")
+
 if __name__ == "__main__":
     unittest.main()

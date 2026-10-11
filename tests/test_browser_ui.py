@@ -462,6 +462,29 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.locator("#modal tr:not(.pv-file) .pl-link").count(), 2)
         pg.click("#mBtns button >> nth=0")
 
+    def test_tagger_field_names_sort_cover(self):
+        """#140/#151 Feldnamen wie in Mp3tag mit Erklärung, #141 Weitere Felder nach Herkunft, #150 Cover-Knöpfe."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="0"] .nm')
+        pg.evaluate("call('tag_add_field', [0], 'TXXX', 'CATALOGNUMBER', 'POL042', false).then(taggerApplyDetail)")
+        pg.evaluate("call('tag_add_field', [0], 'TXXX', 'MYFIELD', 'x', false).then(taggerApplyDetail)")
+        pg.wait_for_selector('.tg-f[data-key="TXXX:CATALOGNUMBER"]')
+        k = pg.inner_text('.tg-f[data-key="TXXX:CATALOGNUMBER"] .k')
+        self.assertIn("CATALOGNUMBER Benutzertext", " ".join(k.split()))      # Feldname vorne, Art dahinter
+        lab = pg.locator('label[for="tgf-TIT2"]')
+        self.assertIn("TITLE", lab.inner_text())
+        self.assertIn("Mix-Name", lab.get_attribute("title"))
+        # Sortierung nach Herkunft: Beatport (CATALOGNUMBER) vor Feldern ohne bekannte Herkunft (MYFIELD)
+        pg.click("#tgMoreSort")
+        self.assertIn("Herkunft", pg.inner_text("#tgMoreSort"))
+        keys = pg.evaluate("[...document.querySelectorAll('.tg-f')].map(e => e.dataset.key)")
+        self.assertLess(keys.index("TXXX:CATALOGNUMBER"), keys.index("TXXX:MYFIELD"))
+        self.assertEqual(self.cfg_until(lambda c: c.get("web_ui", {}).get("tg_more_sort") == "src").get("web_ui", {}).get("tg_more_sort"), "src")
+        # Cover-Knöpfe untereinander
+        ys = pg.evaluate("['#tgCoverSet', '#tgCoverDel', '#tgCoverWeb'].map(s => document.querySelector(s).getBoundingClientRect().top)")
+        self.assertTrue(ys[0] < ys[1] < ys[2], ys)
+
     def test_tagger_feature_columns(self):
         """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""
         pg = self.pg
