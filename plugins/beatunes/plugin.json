@@ -1,0 +1,9 @@
+{
+  "id": "beatunes",
+  "name": "beaTunes übernehmen",
+  "version": "1.0",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Übernimmt die Stimmungs- und Klangwerte, die beaTunes in die Dateien schreibt (TXXX:MOOD_DANCEABILITY, MOOD_ACOUSTIC, MOOD_HAPPY, MOOD_AGGRESSIVE …), als Audio-Merkmale. Mit Abgleich: Haben sich die beaTunes-Werte seit dem letzten Übernehmen geändert und die Datei wurde inzwischen anders bearbeitet, fragt die Vorschau.",
+  "notes": "Keine Zusatzpakete nötig. beaTunes selbst wird nicht benötigt – gelesen werden nur die Tags."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "lexicon",
+  "name": "Lexicon übernehmen",
+  "version": "1.0",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Liest Tanzbarkeit, Energie und Fröhlichkeit (und auf Wunsch die Mood-Tags) aus Lexicon DJ über dessen Local API und schlägt sie als Audio-Merkmale DANCEABILITY, ENERGY und HAPPINESS vor. Mit Abgleich: Werte, die du in der Datei seit dem letzten Übernehmen geändert hast, werden nicht ungefragt überschrieben.",
+  "notes": "Keine Zusatzpakete nötig. Lexicon muss laufen, die Local API muss eingeschaltet sein (Settings › Integrations). Lexicon wird nur gelesen."
+}

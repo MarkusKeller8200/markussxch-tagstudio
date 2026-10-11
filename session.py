@@ -17,6 +17,7 @@ import backup
 import core
 import features
 import keys
+import importsync
 import plugins
 import ratings
 import serato
@@ -2192,6 +2193,11 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                             n += 1
                     elif core.apply_value(p["file"], p["key"], p["new"]):
                         n += 1
+                    if p.get("sync"):            # Abgleich merken (#145/#146)
+                        importsync.remember(p["file"], *p["sync"])
+                for f in files:
+                    for sync in next((p.get("sync_same") or [] for p in chosen if p["file"] is f), []):
+                        importsync.remember(f, *sync)
             finally:   # auch bei Fehler abschliessen, sonst landen Teiländerungen im nächsten Undo-Schritt
                 self.undo.commit()
         return {"ok": True, "count": n, "files": len(files), "unsaved": self.unsaved(),

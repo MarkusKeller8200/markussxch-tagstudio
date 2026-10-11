@@ -162,6 +162,7 @@ class Context:
         self.log_lines: list[str] = []
         self.outputs: list[str] = []
         self.proposals: list[dict] = []
+        self.same_syncs: dict[int, list] = {}   # Abgleich (#145/#146): schon gleiche Werte je Datei
         self.changed = False
 
     # ---- Ordner / Einstellungen
@@ -220,12 +221,13 @@ class Context:
 
     # ---- Vorschläge (werden nach dem Lauf als Vorschau mit Häkchen gezeigt)
     def propose(self, f, key, new, label=None, note="", checked=True, kind="text", data=None, group=None, hint="",
-                show_same=False, link="", link_label=""):
+                show_same=False, link="", link_label="", sync=None):
         """Änderung vorschlagen statt sie direkt auszuführen. kind="text" (key/new) oder "cover" (data=Bytes).
         note: Hinweis zur Datei (z. B. Treffer und Sicherheit), group: Überschrift je Datei,
         hint: Hinweis zu genau diesem Feld (z. B. „schon gefüllt“).
         show_same=True: auch einen unveränderten Wert als (nicht wählbare) Zeile „gleich“ zeigen.
-        link/link_label: Adresse des Treffers auf der Plattform (nur https), z. B. zum Vergleichen der Version (#144)."""
+        link/link_label: Adresse des Treffers auf der Plattform (nur https), z. B. zum Vergleichen der Version (#144).
+        sync: (Quelle, Merkmal, Wert) – beim Übernehmen in TXXX:TAGSTUDIO merken (siehe importsync)."""
         same = False
         if kind == "text":
             it = f.get(key)
@@ -240,8 +242,13 @@ class Context:
         self.proposals.append({"file": f, "key": key, "new": "" if new is None else str(new), "old": old,
                                "label": label or key, "note": note, "checked": bool(checked) and not same, "kind": kind,
                                "data": data, "group": group, "hint": hint, "same": same,
-                               "link": link if str(link or "").startswith("https://") else "", "link_label": link_label or ""})
+                               "link": link if str(link or "").startswith("https://") else "", "link_label": link_label or "",
+                               "sync": tuple(sync) if sync else None})
         return True
+
+    def remember_sync(self, f, sync):
+        """Abgleich für einen schon gleichen Wert merken – wird gespeichert, wenn für diese Datei etwas übernommen wird."""
+        self.same_syncs.setdefault(id(f), []).append(tuple(sync))
 
     # ---- Tags ändern (mit Rückgängig, noch nicht gespeichert)
     def edit_tags(self, files, fn, label=None):
@@ -597,6 +604,8 @@ class Manager:
         res["log"] = ctx.log_lines + list(res.get("log", []))
         res["outputs"] = ctx.outputs + [o for o in res.get("outputs", []) if o not in ctx.outputs]
         res["changed"] = bool(res.get("changed") or ctx.changed)
+        for prop in ctx.proposals:
+            prop["sync_same"] = ctx.same_syncs.get(id(prop["file"]), [])
         res["proposals"] = ctx.proposals
         return res
 

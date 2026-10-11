@@ -365,6 +365,10 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
 - **Mixed In Key übernehmen:** Tonart, BPM und Energie aus den Stellen, an die Mixed In Key sie geschrieben hat
   (Kommentar „10A - Energy 7“, Titel- oder Künstler-Präfix, Gruppierung, Label, TXXX:EnergyLevel) in TKEY, TBPM und
   ENERGY übernehmen; Präfixe auf Wunsch entfernen.
+- **beaTunes übernehmen:** MOOD_DANCEABILITY, MOOD_ACOUSTIC, MOOD_HAPPY, MOOD_AGGRESSIVE (von beaTunes in die Dateien
+  geschrieben) als Audio-Merkmale. **Lexicon übernehmen:** Tanzbarkeit, Energie, Fröhlichkeit und Mood-Tags über die
+  Lexicon Local API (Zuordnung über Pfad bzw. Künstler + Titel). Beide mit **Abgleich**: Wurde ein Wert in der Datei
+  seit dem letzten Übernehmen geändert, ist der Vorschlag nicht angehakt – TagStudio fragt.
 - **Eigene Plugins** in `~/TagStudio/Plugins` – Anleitung in [PLUGINS.md](PLUGINS.md).
 
 ### Update, Layout, Tastatur
@@ -459,6 +463,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `undo.py` – Rückgängig/Wiederholen
 - `media.py` – lokaler Audio-Server für den Player (Range-Anfragen, Token); `players.py` – externe Player
 - `ratings.py` – Bewertung (POPM, FMPS_Rating) und Like (TXXX:TAGSTUDIO)
+- `importsync.py` – Abgleich für Importer (beaTunes, Lexicon): zuletzt übernommene Werte in TXXX:TAGSTUDIO
 - `cues.py` – Cue-Punkte aus Serato/Mixed In Key lesen; `waveform.py` – Wellenform-Cache
 - `origins.py` – Herkunft der Tags (Kennungsliste); `appsettings.py` – Einstellungen exportieren/importieren/zurücksetzen
 - `jobs.py` – Warteschlange für Hintergrund-Aufträge; `stemsview.py` – Stems einem Original zuordnen
