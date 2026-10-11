@@ -7,84 +7,59 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
-- **Hilfe › Tastatur:** alle Tastenkombinationen auf einer Seite (Allgemein, Player, Tagger, Vergleich, DJ-Set,
-  Editor, Player-Fenster) (#159).
-- **Vorbereiten** steht jetzt als **erster Menüpunkt** in der Seitenleiste (#160).
-- **Vorbereiten › Workflow bearbeiten:** überall **„Wählen …“** für den Dateibrowser – Eingangsordner, Arbeitsordner,
-  Bibliothek, Download-Ordner der Quellen und Programmpfade externer Schritte (#161).
-- **Entdecken:** auf Wunsch **täglich beim Start automatisch suchen** (im Hintergrund, Meldung mit Anzahl neuer
-  Vorschläge), **Merkliste als Excel/CSV exportieren**, und der Beatport-Abgleich „Gekaufte Titel“ markiert gekaufte
-  Titel in „Entdecken“ als **gekauft** (#162).
+**Tracks vorbereiten** (neue Seite „Vorbereiten“, erster Menüpunkt – #109–#118, #160, #161)
+- Neue Titel laufen vom **Eingangsordner** über frei zusammenstellbare **Schritte** in die **Bibliothek**; jede Stufe
+  arbeitet auf einer Kopie, die Rohdaten bleiben unverändert. Workflow-Vorlage „DJ-Workflow (Beatport → Bibliothek)“,
+  Export/Import ohne persönliche Pfade, „Wählen …“ (Dateibrowser) für alle Ordner und Programme.
+- Schritt-Typen: **Tag-Rezept** (automatisch), **externes Programm** (Platinum Notes, Picard … öffnen, Abschluss an der
+  Herkunft erkennen oder bestätigen), **Plugin** (z. B. Lautheit, Online-Metadaten – nur leere Felder füllen, alle
+  vorausgewählten oder nur ausführen), **Pflichtfelder prüfen**, **Übernahme** mit Duplikatprüfung (Dateiname,
+  Künstler + Titel, Audio) und Snapshot der Bibliothek, **nachgelagerte Programme** als Status (Mixed In Key,
+  beaTunes, Lexicon erkannt; Engine DJ, Mixo von Hand).
+- **Schutzregel „nur ergänzen“** je Schritt (Variante A/B/C, nur melden oder automatisch zurücksetzen, „Feld künftig
+  erlauben“).
+- **Quellen (Download-Ordner)** je Kaufplattform (Beatport, Bandcamp, Traxsource, Juno …): „Abholen“ kopiert neue MP3 –
+  auch aus ZIP-Archiven – in den Eingang, ohne Doppelte; die Quelle steht in der Tabelle.
+- Seitenleiste zeigt offene Titel im Eingang und neue Downloads (alle 2 Minuten aktualisiert); Stufen-Kopien
+  übernommener Titel auf Wunsch löschen.
 
-- **Entdecken:** kompakte, einzeilige Tabelle (eigene Spalten Künstler, Titel, Label, Datum, BPM · Tonart, Quelle),
-  kleines Cover mit **Vergrösserung beim Darüberfahren**, Knöpfe nebeneinander (#120).
-- Beatport › „Gekaufte Titel abgleichen“: Ordner zum Abgleich per **„+ Ordner …“** auswählen (Dateiauswahl, je Zeile
-  ein Ordner); neuer Optionstyp `folders` für Plugins (#117).
-- **Hilfe › Tag-Übersicht als eine Tabelle:** statt einzelner Abschnitte eine durchgehende Tabelle mit
-  **Gruppenzeilen zum Auf- und Zuklappen** (wie Stems im Tagger), **Filter nach Gruppen** (Mehrfachauswahl) und
-  **Sortieren** nach Tag, Mp3tag-Name, „Mit“ oder „Ohne“ (innerhalb der Gruppen); Kopfzeile bleibt beim Blättern
-  stehen (#158).
-- **Hilfe › Tag-Übersicht:** neben „Mit“ jetzt die Spalte **„Ohne“** – wie viele Titel der gescannten Bibliothek ein
-  Feld nicht haben; ein Klick öffnet den Tagger direkt mit Filter „fehlt“ zum Vervollständigen (#158).
-- **Entdecken** (Vorbereiten › Reiter „Entdecken“, Phase 3): neue Titel von **gefolgten Künstlern, Labels und
-  Genres** vorschlagen – über **Deezer** (ohne Anmeldung, 30-s-Vorhören) und **Beatport** (Anmeldung des Plugins,
-  Vorhör-Ausschnitt, Genre-Charts Top 100, BPM/Tonart). **Vorhören** direkt in der Liste, **Merken**, als gekauft
-  markieren, ausblenden; Titel, die schon in der Bibliothek sind, werden erkannt und auf Wunsch ausgeblendet.
-  „Aus der Bibliothek vorschlagen“ schlägt die häufigsten Künstler und Labels zum Folgen vor. Gekauft wird nie
-  automatisch – „Öffnen“ führt zur Seite des Titels (#120).
-- **Vorbereiten: Schritt-Typ „Plugin“** – eine Plugin-Aktion (z. B. Lautheit messen, Online-Metadaten, Lexicon,
-  beaTunes) läuft automatisch auf einer Kopie im Stufen-Ordner. Die Vorschläge werden je nach Einstellung übernommen:
-  **nur leere Felder füllen** (Vorgabe), alle vorausgewählten oder keine (nur ausführen); danach wird gespeichert.
-  Es gelten die zuletzt im Tagger gewählten Optionen der Aktion, die Schutzregel „nur ergänzen“ ist wählbar (#110).
-- **Vorbereiten: Quellen (Download-Ordner)** – je Workflow Download-Ordner für Kaufplattformen festlegen (Beatport,
-  Bandcamp, Traxsource, Juno …, mit Dateifilter und optionalem Unterordner). **„Abholen“** kopiert neue MP3 – auch
-  aus ZIP-Archiven – in den Eingangsordner; die Quelle steht in der Tabelle, die Downloads bleiben unverändert und
-  werden nicht doppelt geholt. Neue Downloads zeigt die Seitenleiste mit „↓n“ an (#118).
-- **Vorbereiten: Schritt-Typ „Pflichtfelder prüfen“** – z. B. vor der Übernahme: fehlen Tonart, BPM, Cover oder andere
-  Felder (Muster wie `APIC*`, `TXXX:ENERGY`), wird der Titel mit der Liste markiert; nach dem Ergänzen „Erneut prüfen“.
-- **Vorbereiten in der Seitenleiste:** die Anzahl offener Titel im Eingang wird alle 2 Minuten aktualisiert, auch ohne
-  die Seite zu öffnen; neue Titel heben die Zahl hervor (#109).
-- **Vergleich:** Binärfelder (GEOB/PRIV, z. B. Serato, Mixed In Key) lassen sich wie im Tagger im **Binärfeld-Editor**
-  ansehen und bearbeiten (Doppelklick oder Rechtsklick › „Binärfeld-Editor“), mit Serato-Ansicht, JSON-Baum und Hex-
-  Ansicht; JSON in Textfeldern öffnet den **JSON-Baum** (#13).
-- Beatport-Plugin: **„Gekaufte Titel abgleichen (Test)“** (Plugins › Beatport) – liest die Käufe deines Kontos und
-  prüft, welche in deinen Ordnern schon liegen (Beatport-ID, ISRC, Künstler + Titel + Mix); Ergebnis als CSV. Noch
-  ohne Download – erst klären, ob Beatport die Käufe zuverlässig liefert (#117).
-- Neues Plugin **Lautheit messen**: integrierte Lautheit (LUFS), True Peak und Lautheitsbereich nach EBU R128 mit
-  FFmpeg (aus dem Stems-Plugin oder dem Suchpfad) als Felder TXXX:LUFS_I, TXXX:TRUE_PEAK, TXXX:LOUDNESS_RANGE, auf
-  Wunsch ReplayGain; optional eine angeglichene Kopie (z. B. −10,5 LUFS, 320 kbit/s) in einem eigenen Ordner – das
-  Original bleibt unverändert. **Clipping:** zählt übersteuerte Samples (auf Vollaussteuerung), meldet übersteuerte
-  Titel und schlägt auf Wunsch TXXX:CLIPPING (Anteil in %) vor (#119).
-- **Tracks vorbereiten** (neue Seite „Vorbereiten“, Phase 1): neue Titel laufen vom **Eingangsordner** über frei
-  zusammenstellbare **Schritte** in die **Bibliothek** – Tag-Rezept (automatisch, auf einer Kopie im Stufen-Ordner),
-  **externe Programme** (öffnen mit Ordner/Dateien, Abschluss an der Herkunft erkennen, z. B. Platinum Notes,
-  MusicBrainz, oder von Hand bestätigen), **Übernahme** mit Duplikatprüfung (Dateiname, Künstler + Titel, Audio) und
-  Snapshot der Bibliothek, **nachgelagerte Programme** als Status (Mixed In Key, beaTunes, Lexicon erkannt; Engine DJ,
-  Mixo von Hand). **Schutzregel „nur ergänzen“** je Schritt (Variante A/B/C, nur melden oder automatisch zurücksetzen,
-  „Feld künftig erlauben“). Workflow-Vorlage „DJ-Workflow (Beatport → Bibliothek)“, Export/Import ohne persönliche
-  Pfade, Stufen-Kopien nach der Übernahme auf Wunsch löschen (#109–#116).
-- **Tag-Rezepte** (Tagger › „Tag-Rezepte …“): Aktionslisten wie in Mp3tag – Ersetzen, Schreibweise einzelner Wörter,
+**Entdecken** (Reiter auf der Seite „Vorbereiten“ – #120, #162)
+- Neue Titel von **gefolgten Künstlern, Labels und Genres** über **Deezer** (ohne Anmeldung) und **Beatport**
+  (Anmeldung des Plugins, Genre-Charts Top 100, BPM/Tonart); „Aus der Bibliothek vorschlagen“ schlägt die häufigsten
+  Künstler und Labels vor.
+- Kompakte Liste mit **Vorhören**, Merken, gekauft, ausblenden, Cover-Vergrösserung beim Darüberfahren; Titel aus der
+  Bibliothek werden als „vorhanden“ erkannt. Gekauft wird nie automatisch – „Öffnen“ führt zur Seite des Titels.
+- Auf Wunsch **täglich beim Start automatisch suchen**, **Merkliste als Excel/CSV exportieren**; der Beatport-Abgleich
+  markiert gekaufte Titel als „gekauft“.
+
+**Tag-Rezepte, ID3** (#111, #112, #98, #13)
+- **Tag-Rezepte** (Tagger › „Tag-Rezepte …“): Aktionslisten wie in Mp3tag – Ersetzen, Schreibweise von Wörtern,
   Gross-/Kleinschreibung, Leerzeichen bereinigen, doppelte Werte/Felder entfernen, nur ersten Wert behalten, Felder
-  entfernen oder setzen (%FELD%), ID3-Version und ID3v1 beim Speichern. Vorschau, Anwenden mit Rückgängig; mitgeliefert
-  ist die Vorlage „Beatport-Download aufbereiten“ (#111).
-- **ID3v1 schreiben:** Einstellungen › Sicherungen und Speichern › „ID3v1 (Dateiende)“: wie vorhanden, immer
-  mitschreiben oder entfernen; auch als Rezept-Aktion (#112).
-- **Hilfe** (neuer Menüpunkt): **Tag-Übersicht** in aufklappbaren Kapiteln (offizielle ID3v2.4-Frames nach Funktion,
-  DJ-Analysewerte ohne eigenen Frame, Programm-Daten nach Herkunft, eigene Tags, weitere Frames) mit Bedeutung,
-  Mp3tag-Name, DJ-Relevanz und **konfigurierter Herkunft**, dazu der Vergleich der DJ-Software. **Bibliothek scannen**
-  zählt je Tag, wie viele Titel ihn haben (Ergebnis im Cache) und listet alle **eigenen (CUSTOM) Tags** der Bibliothek;
-  ein Klick auf die Anzahl öffnet den Tagger mit Filter „Feld vorhanden / fehlt“ zum Vervollständigen. Dazu Handbuch,
-  ID3-Felder und Plugin-Anleitung direkt in der App (#158).
-- **Snapshots:** Änderungsjournal als **Excel oder CSV exportieren** – genau die sichtbaren Einträge (Status,
-  Programm, Feld, Suche), je geändertem Feld eine Zeile mit Vorher/Nachher (#59).
-- **Sicherungen im Snapshot-Speicher:** Neue Sicherungen legen die Tag-Bytes im gemeinsamen Speicher ab – gleiche Tags
-  (auch aus Snapshots) nur einmal, das spart viel Platz. Ältere ZIP-Sicherungen bleiben lesbar und wiederherstellbar;
-  Einstellungen › Sicherungen › „Im Snapshot-Speicher ablegen“ (abschaltbar, dann wieder ZIP). Das Aufräumen der
-  Snapshots lässt Tags von Sicherungen immer stehen; beim Löschen einer Sicherung wird der Platz freigegeben (#59).
-- **Alle ID3-Frames** (#98): Katalog aller Frames aus ID3v2.2, v2.3 und v2.4 (inkl. Kapitel CHAP/CTOC und iTunes-
-  Frames) mit Übersicht in `docs/ID3-FELDER.md`. Binär-Frames werden lesbar angezeigt statt nur mit Grösse und
-  Prüfsumme – z. B. synchronisierter Liedtext (SYLT), Ereignisse (ETCO), Lautstärke (RVA2/RVAD), Equalizer, Kapitel,
-  Wiedergabezähler, Besitzer/Kauf (OWNE/COMR), Verknüpfungen (LINK).
+  entfernen oder setzen (%FELD%), ID3-Version und ID3v1. Vorschau und Rückgängig; Vorlage „Beatport-Download aufbereiten“.
+- **ID3v1 schreiben** (Einstellungen › Sicherungen und Speichern › „ID3v1 (Dateiende)“; auch als Rezept-Aktion).
+- **Alle ID3-Frames**: Katalog aller Frames aus ID3v2.2, v2.3 und v2.4 (inkl. Kapitel und iTunes-Frames) in
+  `docs/ID3-FELDER.md`; Binär-Frames lesbar (SYLT, ETCO, RVA2/RVAD, Equalizer, Kapitel, Zähler, OWNE/COMR, LINK …).
+- **Vergleich:** Binärfeld-Editor (Serato-Ansicht, JSON-Baum, Hex) und JSON-Baum wie im Tagger.
+
+**Hilfe** (neuer Menüpunkt – #158, #159)
+- **Tag-Übersicht** als eine Tabelle mit aufklappbaren Gruppen (offizielle ID3v2.4-Frames nach Funktion,
+  DJ-Analysewerte, Programm-Daten nach Herkunft, eigene Tags, weitere Frames), Gruppenfilter und Sortierung; Bedeutung,
+  Mp3tag-Name, DJ-Relevanz, konfigurierte Herkunft und der Vergleich der DJ-Software.
+- **Bibliothek scannen** zählt je Tag die Titel **mit** und **ohne** das Feld (Ergebnis im Cache); ein Klick öffnet
+  den Tagger mit Filter „vorhanden“ bzw. „fehlt“ zum Vervollständigen.
+- Handbuch, ID3-Felder, Plugin-Anleitung und **alle Tastenkombinationen** direkt in der App.
+
+**Snapshots und Sicherungen** (#59)
+- Änderungsjournal als **Excel oder CSV exportieren** (genau die sichtbaren Einträge).
+- **Sicherungen im Snapshot-Speicher**: gleiche Tag-Bytes nur einmal abgelegt, spart viel Platz; ältere
+  ZIP-Sicherungen bleiben lesbar und wiederherstellbar (abschaltbar).
+
+**Plugins** (#117, #119)
+- Neues Plugin **Lautheit messen**: LUFS, True Peak, Lautheitsbereich (EBU R128, FFmpeg), ReplayGain, Clipping-Zählung
+  (TXXX:CLIPPING); optional eine angeglichene Kopie in eigenem Ordner – das Original bleibt unverändert.
+- Beatport: **„Gekaufte Titel abgleichen“** – Käufe des Kontos mit deinen Ordnern vergleichen (Beatport-ID, ISRC,
+  Künstler + Titel + Mix), Ergebnis als CSV; der automatische Download folgt in einer späteren Version.
+- Neuer Optionstyp `folders` (mehrere Ordner mit Dateibrowser) für Plugins.
 
 ### Behoben
 - Dialoge: Klick-Handler früherer Dialoge liefen weiter mit (z. B. legte „+ Quelle“ nach dem zweiten Öffnen zwei

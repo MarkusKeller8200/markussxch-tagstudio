@@ -69,10 +69,10 @@ ACTIONS = [
      "description": "Gespeicherten Token löschen.", "options": []},
     {"id": "test", "label": "Verbindung testen", "where": "page", "run_label": "Testen", "needs_selection": False,
      "description": "Prüft die Anmeldung bei Beatport.", "options": []},
-    {"id": "purchases", "label": "Gekaufte Titel abgleichen (Test) …", "where": "page", "run_label": "Abgleichen",
+    {"id": "purchases", "label": "Gekaufte Titel abgleichen …", "where": "page", "run_label": "Abgleichen",
      "needs_selection": False,
-     "description": "#117 (Machbarkeit): liest die gekauften Titel deines Beatport-Kontos und prüft, welche in deinen Ordnern "
-                    "schon vorhanden sind. Es wird noch nichts heruntergeladen – Ergebnis als CSV-Liste.",
+     "description": "Liest die gekauften Titel deines Beatport-Kontos und prüft, welche in deinen Ordnern "
+                    "schon vorhanden sind (Ergebnis als CSV-Liste) und markiert sie in „Entdecken“ als gekauft. Heruntergeladen wird noch nichts.",
      "options": [
          {"key": "folders", "type": "folders", "label": "Ordner zum Abgleich (z. B. Bibliothek und Eingang)"},
          {"key": "max", "type": "number", "label": "Höchstens so viele Käufe lesen", "default": 2000},

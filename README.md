@@ -569,10 +569,11 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 ## Ausblick
 
-Zuletzt erschienen: **4.1.0 – Online-Metadaten & App** (Plugin Online-Metadaten mit MusicBrainz/AcoustID, Deezer,
-iTunes, Discogs, Last.fm; Fenster, Tagger-Zustand und Wiedergabe werden gemerkt; nur eine Instanz; Beenden mit
-Speicher-Hinweis; Einstellungen › Expert; Fenster-Symbole; ältere Versionshinweise in der App; Installer mit
-Python 3.15). Davor **4.0.0 – DJ-Set**.
+Zuletzt erschienen: **4.3.0 – Tracks vorbereiten, Entdecken, Hilfe** (Seite „Vorbereiten“ mit Workflow vom
+Eingangsordner bis in die Bibliothek, Quellen, Schutzregel; Entdecken mit Vorhören und Merkliste; Tag-Rezepte;
+ID3v1 schreiben; alle ID3-Frames; Hilfe mit Tag-Übersicht, Bibliotheks-Scan und Tastenkombinationen; Sicherungen im
+Snapshot-Speicher; Plugin Lautheit). Davor **4.2.0 – Player, Tagger-Komfort, Importer & Playlist** und
+**4.1.0 – Online-Metadaten & App**.
 
 Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
@@ -580,11 +581,10 @@ Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markuss
   (Aufbau, LIST/INFO, ID3-Chunk; Schreibtest an einer Kopie).
 - **Mehrsprachigkeit** (Konzept, [docs/KONZEPT-MEHRSPRACHIG.md](docs/KONZEPT-MEHRSPRACHIG.md)): Englisch, Deutsch
   (Schweiz/Deutschland), Export/Import der Texte für die Übersetzung.
-- **Tracks vorbereiten** (Konzept, [docs/KONZEPT-VORBEREITEN.md](docs/KONZEPT-VORBEREITEN.md)): Workflow vom
-  Eingangsordner über Tag-Rezepte und externe Programme bis in die Bibliothek, Schutz bestehender Tags, später
-  Download gekaufter Titel und Vorschläge mit Vorhören.
+- **Tracks vorbereiten – Ausbau** ([docs/KONZEPT-VORBEREITEN.md](docs/KONZEPT-VORBEREITEN.md)): automatischer
+  Download gekaufter Beatport-Titel in den Eingangsordner.
 - **Später:** Beatgrid und Beatmatching im Player, Symbol-Werkzeugleiste im Vergleich, Plugin-Ideen (Liedtexte,
-  Lautheit, Duplikate, Qualitätsprüfung, Import aus Rekordbox/Traktor/Serato), Analyse-Modelle, signierte
+  Duplikate, Qualitätsprüfung, Import aus Rekordbox/Traktor/Serato), Analyse-Modelle, signierte
   Installer, Datenbank-Modul für die Bibliothek.
 
 Verworfen: Umstieg auf Qt (PySide6) – bringt gegenüber der neuen Oberfläche keinen Vorteil; Intel-Mac-Build (kein

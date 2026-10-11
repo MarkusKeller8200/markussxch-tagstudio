@@ -1,11 +1,10 @@
 # Konzept: Tracks vorbereiten
 
-Status: **Phase 1 umgesetzt in 4.3.0-beta.2** (2026-10-11): Seite „Vorbereiten“, Workflow-Vorlagen, Tag-Rezepte, ID3v1
-schreiben, externe Schritte, Schutzregel, Übernahme, nachgelagerte Programme. **Phase 2 in 4.3.0-beta.5:** Quellen
-(Download-Ordner inkl. ZIP, #118), Lautheit mit Clipping-Zählung (#119), Plugin- und Pflichtfeld-Schritte; offen nur
-der automatische Beatport-Download (#117, wartet auf das Ergebnis des Abgleich-Tests). **Phase 3 in 4.3.0-beta.6:**
-Reiter „Entdecken“ (Deezer + Beatport, Vorhören, Merkliste, `discover.py`). Ursprünglich: Phase 3
-(#120). Entwurf vom 2026-10-10 – Übersicht #121, Teil-Issues #109–#120 (Label `vorbereiten`, Meilenstein „Tracks vorbereiten (Konzept)“).
+Status: **Umgesetzt in 4.3.0** (2026-10-11) – Phase 1 (Seite „Vorbereiten“, Workflow-Vorlagen, Tag-Rezepte, ID3v1
+schreiben, externe Schritte, Schutzregel, Übernahme, nachgelagerte Programme), Phase 2 (Quellen/Download-Ordner inkl.
+ZIP #118, Lautheit mit Clipping #119, Plugin- und Pflichtfeld-Schritte) und Phase 3 (Reiter „Entdecken“, #120/#162).
+Offen: automatischer Beatport-Download (#117 – Abgleich funktioniert, Schlüssel `order_item_download_id`).
+Entwurf vom 2026-10-10 – Übersicht #121, Teil-Issues #109–#120 (Label `vorbereiten`, Meilenstein „Tracks vorbereiten (Konzept)“).
 
 ## Ziel
 
