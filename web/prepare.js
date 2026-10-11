@@ -30,6 +30,7 @@ function prepSideCount(d) {
   const imp = d.workflow.steps.findIndex((s) => s.type === "import");
   const n = imp < 0 ? d.rows.length : d.rows.filter((r) => !["done", "warn"].includes(r.cells[imp].state)).length;
   el.textContent = n ? String(n) : "";
+  el.classList.remove("new");
 }
 
 function prepRenderSteps() {
