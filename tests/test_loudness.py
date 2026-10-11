@@ -54,6 +54,32 @@ class TestLoudness(Base):
         self.assertAlmostEqual(i, -14, delta=1.0)
         self.assertEqual(MP3File(self.p).text("TIT2"), "Ton")             # Original unverändert
 
+    def test_clipping(self):
+        p = os.path.join(self.B, "laut.mp3")
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "lavfi", "-i", "sine=frequency=440:duration=4",
+                        "-af", "volume=30dB,aformat=sample_fmts=s16", "-b:a", "320k", p], check=True)
+        self.s.start_tag_load(self.B, False)
+        self.wait()
+        names = [os.path.basename(f.path) for f in self.s.tag_files]
+        r = self.s.start_plugin_action("loudness", "measure", [names.index("laut.mp3"), names.index("ton.mp3")],
+                                       {"lufs": False, "peak": False, "clip": True})
+        self.assertTrue(r["ok"], r)
+        res = self.wait()["result"]
+        self.assertIn("1 übersteuert", res["message"])
+        clip = [p for p in res["proposals"] if p["label"] == "CLIPPING"]
+        self.assertEqual(len(clip), 1)
+        self.assertGreater(float(clip[0]["new"]), 10)
+        self.assertEqual(clip[0]["name"], "laut.mp3")
+
+    def test_parse_clip(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("ld", os.path.join(os.path.dirname(__file__), "..", "plugins", "loudness", "plugin.py"))
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        d = m.parse("n_samples: 1000\nhistogram_0db: 5\n  I:  -9.0 LUFS\n")
+        self.assertAlmostEqual(d["clip_pct"], 0.5)
+        self.assertEqual(d["I"], -9.0)
+
 
 if __name__ == "__main__":
     unittest.main()

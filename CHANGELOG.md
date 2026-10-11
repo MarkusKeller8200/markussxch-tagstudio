@@ -24,7 +24,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - Neues Plugin **Lautheit messen**: integrierte Lautheit (LUFS), True Peak und Lautheitsbereich nach EBU R128 mit
   FFmpeg (aus dem Stems-Plugin oder dem Suchpfad) als Felder TXXX:LUFS_I, TXXX:TRUE_PEAK, TXXX:LOUDNESS_RANGE, auf
   Wunsch ReplayGain; optional eine angeglichene Kopie (z. B. −10,5 LUFS, 320 kbit/s) in einem eigenen Ordner – das
-  Original bleibt unverändert (#119).
+  Original bleibt unverändert. **Clipping:** zählt übersteuerte Samples (auf Vollaussteuerung), meldet übersteuerte
+  Titel und schlägt auf Wunsch TXXX:CLIPPING (Anteil in %) vor (#119).
 - **Tracks vorbereiten** (neue Seite „Vorbereiten“, Phase 1): neue Titel laufen vom **Eingangsordner** über frei
   zusammenstellbare **Schritte** in die **Bibliothek** – Tag-Rezept (automatisch, auf einer Kopie im Stufen-Ordner),
   **externe Programme** (öffnen mit Ordner/Dateien, Abschluss an der Herkunft erkennen, z. B. Platinum Notes,

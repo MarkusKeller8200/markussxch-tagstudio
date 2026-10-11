@@ -1,7 +1,9 @@
 """Lautheit messen (#119): EBU R128 mit FFmpeg, Werte als Felder vorschlagen; optional angeglichene Kopie.
 
 FFmpeg wird gesucht: 1. Kopie des Stems-Plugins (Plugin-Daten/stems/ffmpeg), 2. imageio-ffmpeg, 3. PATH.
-Messung: ffmpeg -af ebur128=peak=true → „I: -9.4 LUFS“, „LRA: 5.1 LU“, „Peak: -0.3 dBFS“.
+Messung: ffmpeg -af volumedetect,ebur128=peak=true → „I: -9.4 LUFS“, „LRA: 5.1 LU“, „Peak: -0.3 dBFS“;
+Clipping: volumedetect zählt Samples auf Vollaussteuerung („histogram_0db“ von „n_samples“). Reparieren (adeclip)
+wird bewusst nicht angeboten: bei MP3 erkennt es nach dem Dekodieren kaum etwas und ist sehr langsam.
 Angleichen (nur auf Wunsch): zwei Durchgänge loudnorm, neu kodiert mit libmp3lame 320 kbit/s in einen eigenen Ordner;
 die Tags werden byte-genau aus dem Original übernommen. Das Original wird nie verändert.
 """
@@ -17,6 +19,7 @@ ACTIONS = [{
         {"key": "lufs", "type": "check", "label": "TXXX:LUFS_I (integrierte Lautheit)", "default": True},
         {"key": "peak", "type": "check", "label": "TXXX:TRUE_PEAK (dBTP)", "default": True},
         {"key": "lra", "type": "check", "label": "TXXX:LOUDNESS_RANGE (LU)", "default": False},
+        {"key": "clip", "type": "check", "label": "TXXX:CLIPPING (Anteil übersteuerter Samples in %, nur wenn vorhanden)", "default": False},
         {"key": "rg", "type": "check", "label": "ReplayGain (TXXX:REPLAYGAIN_TRACK_GAIN/PEAK, Referenz −18 LUFS)", "default": False},
         {"key": "normalize", "type": "check", "label": "Zusätzlich angeglichene Kopie erzeugen (neu kodiert, 320 kbit/s)", "default": False},
         {"key": "target", "type": "number", "label": "Ziel-Lautheit (LUFS) für die Kopie", "default": -10.5},
@@ -27,7 +30,9 @@ ACTIONS = [{
 }]
 
 RX = {"I": re.compile(r"^\s*I:\s*(-?[\d.]+|-inf)\s*LUFS", re.M), "LRA": re.compile(r"^\s*LRA:\s*([\d.]+)\s*LU", re.M),
-      "Peak": re.compile(r"^\s*Peak:\s*(-?[\d.]+|-inf)\s*dBFS", re.M)}
+      "Peak": re.compile(r"^\s*Peak:\s*(-?[\d.]+|-inf)\s*dBFS", re.M),
+      "n": re.compile(r"n_samples:\s*(\d+)"), "clip": re.compile(r"histogram_0db:\s*(\d+)")}
+CLIP_WARN = 0.01          # ab 0,01 % Samples auf Vollaussteuerung gilt ein Titel als übersteuert
 
 
 def find_ffmpeg(ctx=None) -> str:
@@ -66,11 +71,13 @@ def parse(text: str) -> dict:
         if m:
             v = m[-1]
             out[k] = None if v == "-inf" else float(v)
+    if out.get("n"):
+        out["clip_pct"] = 100.0 * (out.get("clip") or 0) / out["n"]
     return out
 
 
 def measure(ff: str, path: str) -> dict:
-    rc, err = _run([ff, "-hide_banner", "-nostats", "-i", path, "-map", "0:a:0", "-af", "ebur128=peak=true",
+    rc, err = _run([ff, "-hide_banner", "-nostats", "-i", path, "-map", "0:a:0", "-af", "volumedetect,ebur128=peak=true",
                     "-f", "null", "-"])
     if rc != 0:
         raise RuntimeError((err.strip().splitlines() or ["FFmpeg-Fehler"])[-1])
@@ -112,7 +119,7 @@ def run(action, ctx, files, opts):
         raise ValueError(f"Unbekannte Aktion: {action}")
     ff = find_ffmpeg(ctx)
     ctx.log(f"FFmpeg: {ff}")
-    done, copies, errors = 0, 0, []
+    done, copies, clipped, errors = 0, 0, 0, []
     for n, f in enumerate(files):
         ctx.check_cancel()
         name = os.path.basename(f.path)
@@ -124,6 +131,13 @@ def run(action, ctx, files, opts):
             continue
         done += 1
         note = f"{m['I']:.1f} LUFS · True Peak {m['Peak']:.1f} dBTP" if m.get("Peak") is not None else f"{m['I']:.1f} LUFS"
+        cp = m.get("clip_pct")
+        if cp is not None and cp >= CLIP_WARN:
+            note += f" · übersteuert: {cp:.2f} % der Samples"
+            clipped += 1
+        if opts.get("clip") and cp is not None and cp >= CLIP_WARN:
+            ctx.propose(f, "TXXX:CLIPPING", f"{cp:.2f}", "CLIPPING", note=note, group=name,
+                        hint="Anteil der Samples auf Vollaussteuerung")
         if opts.get("lufs"):
             ctx.propose(f, "TXXX:LUFS_I", f"{m['I']:.1f}", "LUFS_I", note=note, group=name)
         if opts.get("peak") and m.get("Peak") is not None:
@@ -146,7 +160,8 @@ def run(action, ctx, files, opts):
             except Exception as ex:  # noqa: BLE001
                 errors.append(f"{name} (Angleichen): {ex}")
     ctx.progress(len(files), len(files), "fertig")
-    msg = f"{done} von {len(files)} Titel(n) gemessen" + (f", {copies} angeglichene Kopie(n)" if copies else "")
+    msg = f"{done} von {len(files)} Titel(n) gemessen" + (f", {clipped} übersteuert" if clipped else "") \
+        + (f", {copies} angeglichene Kopie(n)" if copies else "")
     if errors:
         ctx.log("\n".join(errors))
         msg += f", {len(errors)} Fehler (siehe Protokoll)"
