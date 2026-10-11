@@ -47,7 +47,7 @@ Vorlage mitgeliefert.
   - **Kopieren/Verschieben** (in Stufe oder Bibliothek),
   - **Prüfen** (Schutzregel, Pflichtfelder, Duplikate),
   - **Checkliste** (nur Status, z. B. Engine DJ, Lexicon).
-- Speicherung als JSON; Export/Import zum Weitergeben. Mitgeliefert: Vorlage „DJ-Workflow (Beatport → Bibliothek)“
+- Speicherung als JSON; Export/Import zum Weitergeben. **Plugin-Schritt umgesetzt in 4.3.0-beta.4** (Modus „nur leere Felder füllen“ / „alle vorausgewählten“ / „nur ausführen“). Mitgeliefert: Vorlage „DJ-Workflow (Beatport → Bibliothek)“
   nach dem Muster des Users, ohne seine persönlichen Pfade.
 
 ### 3. Tag-Rezepte (ersetzt Schritt 02)

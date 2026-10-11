@@ -114,6 +114,53 @@ class TestPrepare(Base):
         with self.assertRaises(ValueError):
             self.s.prep_import("{kaputt")
 
+    def test_plugin_step(self):
+        """Plugin-Schritt: Kopie im Stufen-Ordner, Vorschläge je Modus übernehmen, Schutzregel."""
+        import plugins
+        from test_plugins import make_plugin
+        code = (
+            "ACTIONS = [{'id': 'go', 'label': 'Go', 'where': 'tagger', 'options': []}]\n"
+            "def run(action, ctx, files, opts):\n"
+            "    for f in files:\n"
+            "        ctx.propose(f, 'TXXX:LUFS_I', '-9.1')\n"
+            "        ctx.propose(f, 'TIT2', 'Anders', checked=False)\n"
+            "        ctx.propose(f, 'TPE1', 'Neu', checked=True)\n"
+            "    return {'message': 'ok'}\n")
+        make_plugin(plugins.user_dir(), "fake", code=code)
+        self.s.plugins.scan()
+        w = dict(self.w)
+        w["steps"] = [{"id": "p1", "type": "plugin", "label": "01 Messen", "plugin": "fake", "action": "go"},
+                      {"id": "p2", "type": "plugin", "label": "02 Alles", "plugin": "fake", "action": "go",
+                       "mode": "checked", "protect": True}]
+        self.s.prep_workflow_save(w)
+        self.assertEqual(self.s._prep_get(self.wid)["steps"][0]["folder"], "_p1")
+        self.assertTrue(self.s.start_prep_run(self.wid, "p1")["ok"])
+        r = self.wait()
+        self.assertEqual(r["done"], 2, r)
+        f = MP3File(os.path.join(self.dir, "Neu", "_p1", "a.mp3"))
+        self.assertEqual(f.text("TXXX:LUFS_I"), "-9.1")       # leeres Feld gefüllt
+        self.assertEqual(f.text("TPE1"), "Mara Lind")          # gefülltes Feld bleibt
+        self.assertIsNone(MP3File(os.path.join(self.inbox, "a.mp3")).get("TXXX:LUFS_I"))
+        c = self.cells(self.s.prep_overview(self.wid), "a.mp3")["p1"]
+        self.assertEqual(c["state"], "done")
+        self.assertIn("1 Feld", c["note"])
+        # Modus „alle vorausgewählten“ mit Schutzregel: TPE1 geändert → Warnung, TIT2 nicht (nicht vorausgewählt)
+        self.s.start_prep_run(self.wid, "p2")
+        self.wait()
+        f = MP3File(os.path.join(self.dir, "Neu", "_p2", "a.mp3"))
+        self.assertEqual(f.text("TPE1"), "Neu")
+        self.assertEqual(f.text("TIT2"), "Golden_Hour")
+        c = self.cells(self.s.prep_overview(self.wid), "a.mp3")["p2"]
+        self.assertEqual(c["state"], "warn")
+        self.assertEqual([v["key"] for v in c["viol"]], ["TPE1"])
+
+    def test_pick_proposals(self):
+        props = [{"old": "", "checked": False, "kind": "text"}, {"old": "x", "checked": True, "kind": "text"},
+                 {"old": "", "checked": True, "kind": "text", "same": True}, {"old": "", "kind": "cover", "data": None, "checked": True}]
+        self.assertEqual(prepare.pick_proposals(props, "fill"), [props[0]])
+        self.assertEqual(prepare.pick_proposals(props, "checked"), [props[1], props[3]])
+        self.assertEqual(prepare.pick_proposals(props, "none"), [])
+
 
 if __name__ == "__main__":
     import unittest

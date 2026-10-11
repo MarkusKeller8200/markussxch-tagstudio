@@ -8,6 +8,11 @@ import core
 import prepare
 
 
+def plugins_write_log(name, text):
+    import plugins
+    return plugins.write_log(name, text)
+
+
 class PrepareMixin:
     # ------------------------------------------------------------------ Workflows
     def _prep_workflows(self) -> list:
@@ -98,6 +103,7 @@ class PrepareMixin:
                          "missing_inbox": not os.path.isfile(os.path.join(w["inbox"], n)) if w["inbox"] else True})
         return {"workflow": w, "workflows": [{"id": x["id"], "name": x["name"]} for x in self._prep_workflows()],
                 "rows": rows, "counts": counts, "types": prepare.STEP_TYPES, "states": prepare.STATES,
+                "plugin_modes": prepare.PLUGIN_MODES,
                 "work": prepare.work_dir(w), "origins": {k: v.get("name") for k, v in self.origin_catalog().items()}}
 
     # ------------------------------------------------------------------ Schritte
@@ -153,7 +159,13 @@ class PrepareMixin:
                 recipe = next((r for r in self.recipes()["recipes"] if r["id"] == s.get("recipe")), None)
                 if recipe is None:
                     raise RuntimeError(f"Rezept „{s.get('recipe')}“ nicht gefunden (Tagger › Tag-Rezepte).")
+            if s["type"] == "plugin":
+                try:
+                    self.plugins.action(s.get("plugin"), s.get("action"))
+                except (KeyError, ValueError) as ex:
+                    raise RuntimeError(f"Plugin-Schritt „{s['label']}“: {ex.args[0] if ex.args else ex} (Workflow bearbeiten bzw. Plugin-Seite).") from ex
             ext_files, ext_folder = [], ""
+            plug = []        # (Name, Datei-Objekt, Zustand) für den Plugin-Lauf nach dem Kopieren
             for k, n in enumerate(todo, 1):
                 if cancel.is_set():
                     break
@@ -185,6 +197,15 @@ class PrepareMixin:
                         prepare.copy_file(src, dst)
                         t["lib_baseline"] = prepare.tag_values(dst)
                         rec.update(state="done", at=prepare.now(), file=dst, note="übernommen" + (" (trotz Hinweis)" if dups else ""))
+                    elif s["type"] == "plugin":
+                        from id3tags import MP3File
+                        dst = os.path.join(prepare.work_dir(w), s["folder"], n)
+                        prepare.copy_file(src, dst)
+                        if s.get("protect"):
+                            rec["before"] = prepare.tag_values(dst)
+                        rec.update(state="waiting", at=prepare.now(), file=dst)
+                        plug.append((n, MP3File(dst), rec))
+                        continue
                     else:   # external
                         path = src
                         if s.get("copy") and s.get("folder"):
@@ -199,6 +220,12 @@ class PrepareMixin:
                 except Exception as ex:  # noqa: BLE001
                     rec.update(state="error", at=prepare.now(), note=str(ex))
                     errors.append(f"{n}: {ex}")
+            if plug and not cancel.is_set():
+                done += self._prep_plugin(w, s, plug, errors, cancel, progress)
+            for _n, _f, rec in plug:              # abgebrochen oder Fehler im Lauf → wieder offen
+                if rec.get("state") == "waiting":
+                    rec.pop("before", None)
+                    rec.update(state="error", note=rec.get("note") or "abgebrochen")
             prepare.save_state(w["id"], st)
             if s["type"] == "external" and ext_files:
                 if s.get("program"):
@@ -217,6 +244,63 @@ class PrepareMixin:
             return {"done": done, "errors": errors[:50], "launched": launched, "folder": ext_folder, "snapshot": snap,
                     "step": s["label"]}
         return self._run("prep", f"Vorbereiten: {s['label']}", job)
+
+    def _prep_plugin(self, w, s, plug, errors, cancel, progress) -> int:
+        """Plugin-Aktion auf die Stufen-Kopien anwenden, Vorschläge je nach Modus übernehmen und speichern."""
+        import importsync
+        import tagger
+        pid, aid = s["plugin"], s["action"]
+        opts = self.cfg.get("plugin_options", {}).get(pid, {}).get(aid, {})
+        files = [f for _n, f, _r in plug]
+        progress(("text", f"{s['label']}: Plugin läuft …"))
+        try:
+            res = self.plugins.run(pid, aid, files, opts, None, cancel, progress)
+        except Exception as ex:  # noqa: BLE001
+            import traceback
+            path = plugins_write_log(f"{pid}.log", traceback.format_exc())
+            for _n, _f, rec in plug:
+                rec.update(state="error", note=str(ex) or type(ex).__name__)
+            errors.append(f"{s['label']}: {ex} (Protokoll: {path})")
+            return 0
+        if res.get("cancelled"):
+            return 0
+        if res.get("log"):
+            plugins_write_log(f"{pid}.log", "\n".join(res["log"]))
+        chosen = prepare.pick_proposals(res.get("proposals") or [], s.get("mode", "fill"))
+        by_file: dict[int, list] = {}
+        for p in chosen:
+            by_file.setdefault(id(p["file"]), []).append(p)
+        props_all: dict[int, int] = {}
+        for p in res.get("proposals") or []:
+            if not p.get("same"):
+                props_all[id(p["file"])] = props_all.get(id(p["file"]), 0) + 1
+        done = 0
+        for n, f, rec in plug:
+            mine = by_file.get(id(f), [])
+            try:
+                k = 0
+                for p in mine:
+                    if p["kind"] == "cover":
+                        if p["data"]:
+                            tagger.set_cover([f], p["data"])
+                            k += 1
+                    elif core.apply_value(f, p["key"], p["new"]):
+                        k += 1
+                    if p.get("sync"):
+                        importsync.remember(f, *p["sync"])
+                if mine:
+                    for sync in mine[0].get("sync_same") or []:
+                        importsync.remember(f, *sync)
+                f.save()          # speichert nur bei Änderungen
+                rest = props_all.get(id(f), 0) - len(mine)
+                rec["note"] = f"{k} Feld(er) übernommen" + (f", {rest} Vorschlag/Vorschläge nicht übernommen" if rest > 0 else "")
+                self._prep_finish(w, s, rec, rec["file"])
+                done += 1
+            except Exception as ex:  # noqa: BLE001
+                rec.pop("before", None)
+                rec.update(state="error", at=prepare.now(), note=str(ex))
+                errors.append(f"{n}: {ex}")
+        return done
 
     def _snap_store_ok(self) -> bool:
         try:

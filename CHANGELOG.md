@@ -7,6 +7,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Vorbereiten: Schritt-Typ „Plugin“** – eine Plugin-Aktion (z. B. Lautheit messen, Online-Metadaten, Lexicon,
+  beaTunes) läuft automatisch auf einer Kopie im Stufen-Ordner. Die Vorschläge werden je nach Einstellung übernommen:
+  **nur leere Felder füllen** (Vorgabe), alle vorausgewählten oder keine (nur ausführen); danach wird gespeichert.
+  Es gelten die zuletzt im Tagger gewählten Optionen der Aktion, die Schutzregel „nur ergänzen“ ist wählbar (#110).
 - **Vergleich:** Binärfelder (GEOB/PRIV, z. B. Serato, Mixed In Key) lassen sich wie im Tagger im **Binärfeld-Editor**
   ansehen und bearbeiten (Doppelklick oder Rechtsklick › „Binärfeld-Editor“), mit Serato-Ansicht, JSON-Baum und Hex-
   Ansicht; JSON in Textfeldern öffnet den **JSON-Baum** (#13).

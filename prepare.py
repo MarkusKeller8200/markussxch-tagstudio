@@ -10,6 +10,8 @@ Schritte:
             optional mit Schutzregel „nur ergänzen“ (#114)
   import    in die Bibliothek kopieren mit Duplikatprüfung (#115)
   check     nachgelagertes Programm als Status (Mixed In Key, beaTunes, Engine DJ, Lexicon, Mixo – #116)
+  plugin    Plugin-Aktion (Lautheit, Online-Metadaten …) auf eine Kopie im Stufen-Ordner; Vorschläge werden je nach
+            Modus übernommen (nur leere Felder füllen · alle vorgeschlagenen · nur messen) und gespeichert
 Nur Standardbibliothek. Gelöscht wird nur auf ausdrücklichen Wunsch (Stufen-Kopien nach der Übernahme).
 """
 from __future__ import annotations
@@ -26,7 +28,9 @@ import time
 import uuid
 
 STEP_TYPES = {"recipe": "Tag-Rezept", "external": "Externes Programm", "import": "Übernahme in die Bibliothek",
-              "check": "Nachgelagertes Programm (Status)"}
+              "check": "Nachgelagertes Programm (Status)", "plugin": "Plugin"}
+PLUGIN_MODES = {"fill": "nur leere Felder füllen", "checked": "alle vorausgewählten Vorschläge übernehmen",
+                "none": "nichts übernehmen (nur ausführen, z. B. messen oder Kopie erzeugen)"}
 STATES = {"open": "offen", "waiting": "wartet", "done": "erledigt", "warn": "erledigt mit Warnung", "error": "Fehler",
           "skipped": "übersprungen"}
 
@@ -103,6 +107,10 @@ def clean_workflow(w: dict) -> dict:
             st.update(dup=s.get("dup", True) is not False)
         elif s["type"] == "check":
             st.update(detect=str(s.get("detect") or ""), protect=bool(s.get("protect")),
+                      allow=[str(x) for x in s.get("allow") or [] if str(x).strip()])
+        elif s["type"] == "plugin":
+            st.update(plugin=str(s.get("plugin") or ""), action=str(s.get("action") or ""), folder=folder or f"_{sid}",
+                      mode=s.get("mode") if s.get("mode") in PLUGIN_MODES else "fill", protect=bool(s.get("protect")),
                       allow=[str(x) for x in s.get("allow") or [] if str(x).strip()])
         steps.append(st)
     out["steps"] = steps
@@ -240,6 +248,26 @@ def revert_values(path: str, rows: list[dict]) -> int:
     if n:
         f.save()
     return n
+
+
+# =========================================================================== Plugin-Schritt
+def pick_proposals(props: list[dict], mode: str) -> list[dict]:
+    """Welche Plugin-Vorschläge ein Plugin-Schritt übernimmt.
+    fill: nur Felder, die bisher leer sind (Cover nur, wenn keins da ist) · checked: alle vorausgewählten · none: keine."""
+    if mode == "none":
+        return []
+    out = []
+    for p in props:
+        if p.get("same"):
+            continue
+        if mode == "fill" and (p.get("old") or "").strip():
+            continue
+        if mode == "fill" and p.get("kind") == "cover" and not p.get("data"):
+            continue
+        if mode == "checked" and not p.get("checked"):
+            continue
+        out.append(p)
+    return out
 
 
 # =========================================================================== Programme

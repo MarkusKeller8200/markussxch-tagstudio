@@ -108,7 +108,7 @@ async function prepViolations(name, i) {
 }
 
 // ---------------------------------------------------------------------- Workflow bearbeiten
-function prepStepForm(s, recipesList, origins) {
+function prepStepForm(s, recipesList, origins, pluginActs = []) {
   const inp = (id, label, v, ph = "") => `<label for="${id}">${esc(label)}</label><input id="${id}" value="${esc(v ?? "")}" placeholder="${esc(ph)}" spellcheck="false">`;
   const sel = (id, label, v, opts) => `<label for="${id}">${esc(label)}</label><select id="${id}" class="inp">${opts.map(([k, t]) => `<option value="${esc(k)}" ${k === v ? "selected" : ""}>${esc(t)}</option>`).join("")}</select>`;
   const chk = (id, label, v) => `<span></span><label class="check"><input type="checkbox" id="${id}" ${v ? "checked" : ""}> ${esc(label)}</label>`;
@@ -119,6 +119,16 @@ function prepStepForm(s, recipesList, origins) {
     + inp("psArgs", "Argumente", s.args, "{folder} oder {files}") + inp("psFolder", "Stufen-Ordner", s.folder, "leer = im bisherigen Ordner arbeiten")
     + chk("psCopy", "In den Stufen-Ordner kopieren (Programm ersetzt dort die Dateien)", s.copy) + det
     + chk("psProtect", "Schutzregel „nur ergänzen“", s.protect) + inp("psAllow", "Erlaubte Felder", (s.allow || []).join(", "), "z. B. TKEY, TBPM, GEOB:*");
+  if (s.type === "plugin") {
+    const cur = `${s.plugin || ""}|${s.action || ""}`;
+    const acts = pluginActs.map((a) => [`${a.plugin}|${a.id}`, `${a.plugin_name}: ${a.label.replace(/\s*…$/, "")}`]);
+    if (s.plugin && !acts.some(([k]) => k === cur)) acts.unshift([cur, `${s.plugin}: ${s.action} (nicht verfügbar)`]);
+    f += sel("psPlugin", "Plugin-Aktion", cur, acts.length ? acts : [["|", "kein Plugin bereit"]])
+      + `<span></span><span class="muted sm">Es gelten die zuletzt im Tagger gewählten Optionen der Aktion.</span>`
+      + sel("psMode", "Vorschläge", s.mode || "fill", Object.entries(PREP.d.plugin_modes || {}))
+      + inp("psFolder", "Stufen-Ordner", s.folder, "_04_Lautheit")
+      + chk("psProtect", "Schutzregel „nur ergänzen“", s.protect) + inp("psAllow", "Erlaubte Felder", (s.allow || []).join(", "), "z. B. TBPM, TKEY");
+  }
   if (s.type === "import") f += chk("psDup", "Auf Duplikate prüfen (Dateiname, Künstler + Titel, Audio)", s.dup !== false);
   if (s.type === "check") f += det + chk("psProtect", "Schutzregel „nur ergänzen“ (Vergleich mit dem Stand bei der Übernahme)", s.protect) + inp("psAllow", "Erlaubte Felder", (s.allow || []).join(", "));
   return f;
@@ -130,6 +140,7 @@ function prepReadStep(b, s) {
   if (s.type === "recipe") Object.assign(out, { recipe: v("psRecipe"), folder: v("psFolder") });
   if (s.type === "external") Object.assign(out, { program: v("psProgram"), args: v("psArgs"), folder: v("psFolder"), copy: c("psCopy"), detect: v("psDetect"), protect: c("psProtect"), allow: (v("psAllow") || "").split(/\s*,\s*/).filter(Boolean) });
   if (s.type === "import") Object.assign(out, { dup: c("psDup") });
+  if (s.type === "plugin") { const [plugin, action] = (v("psPlugin") || "|").split("|"); Object.assign(out, { plugin, action, mode: v("psMode"), folder: v("psFolder"), protect: c("psProtect"), allow: (v("psAllow") || "").split(/\s*,\s*/).filter(Boolean) }); }
   if (s.type === "check") Object.assign(out, { detect: v("psDetect"), protect: c("psProtect"), allow: (v("psAllow") || "").split(/\s*,\s*/).filter(Boolean) });
   return out;
 }
@@ -137,16 +148,18 @@ function prepReadStep(b, s) {
 async function prepEditWorkflow() {
   const w = JSON.parse(JSON.stringify(PREP.d.workflow));
   const recipesList = (await call("recipes")).recipes;
+  let pluginActs = [];
+  try { pluginActs = await call("plugin_actions", "tagger"); } catch (e) { pluginActs = []; }
   const origins = PREP.d.origins || {};
   const render = (b) => {
-    $("#pwSteps", b).innerHTML = w.steps.map((s, i) => `<div class="rc-act" data-k="${i}"><span class="rc-n">${i + 1}</span><span class="rc-t"><b>${esc(s.label)}</b> <span class="muted sm">${esc(PREP.d.types[s.type])}${s.folder ? " · " + esc(s.folder) : ""}${s.protect ? " · 🔒" : ""}${s.type === "external" && !s.program ? " · kein Programm" : ""}</span></span>
+    $("#pwSteps", b).innerHTML = w.steps.map((s, i) => `<div class="rc-act" data-k="${i}"><span class="rc-n">${i + 1}</span><span class="rc-t"><b>${esc(s.label)}</b> <span class="muted sm">${esc(PREP.d.types[s.type])}${s.folder ? " · " + esc(s.folder) : ""}${s.protect ? " · 🔒" : ""}${s.type === "external" && !s.program ? " · kein Programm" : ""}${s.type === "plugin" ? " · " + esc(s.plugin ? `${s.plugin}/${s.action}` : "kein Plugin") : ""}</span></span>
       <button class="icon-btn" data-ps="edit" title="Bearbeiten">✎</button><button class="icon-btn" data-ps="up" ${i ? "" : "disabled"}>↑</button><button class="icon-btn" data-ps="down" ${i < w.steps.length - 1 ? "" : "disabled"}>↓</button><button class="icon-btn" data-ps="del" title="Entfernen">✕</button></div>`).join("");
   };
   const edit = (b, i) => {
     const s = w.steps[i];
     const box = $("#pwEdit", b);
     box.hidden = false;
-    box.innerHTML = `<div class="frm">${prepStepForm(s, recipesList, origins)}</div><div class="rc-edit-b"><button class="ghost sm" data-pse="cancel">Abbrechen</button><button class="ghost sm" data-pse="ok"><b>Übernehmen</b></button></div>`;
+    box.innerHTML = `<div class="frm">${prepStepForm(s, recipesList, origins, pluginActs)}</div><div class="rc-edit-b"><button class="ghost sm" data-pse="cancel">Abbrechen</button><button class="ghost sm" data-pse="ok"><b>Übernehmen</b></button></div>`;
     box.onclick = (e) => { const t = e.target.closest("[data-pse]"); if (!t) return; e.stopPropagation(); if (t.dataset.pse === "ok") w.steps[i] = prepReadStep(box, s); box.hidden = true; box.innerHTML = ""; render(b); };
   };
   const p = w.protect;
@@ -168,7 +181,7 @@ async function prepEditWorkflow() {
       render(b);
       b.addEventListener("click", (e) => {
         const t = e.target.closest("button"); if (!t || t.closest("#pwEdit")) return;
-        if (t.id === "pwAdd") { const type = $("#pwType", b).value; w.steps.push({ id: "", type, label: PREP.d.types[type], folder: type === "recipe" ? "_neu" : "" }); render(b); edit(b, w.steps.length - 1); return; }
+        if (t.id === "pwAdd") { const type = $("#pwType", b).value; w.steps.push({ id: "", type, label: PREP.d.types[type], folder: ["recipe", "plugin"].includes(type) ? "_neu" : "", mode: "fill" }); render(b); edit(b, w.steps.length - 1); return; }
         const k = t.closest(".rc-act") ? +t.closest(".rc-act").dataset.k : -1;
         if (k < 0) return;
         if (t.dataset.ps === "edit") return edit(b, k);
