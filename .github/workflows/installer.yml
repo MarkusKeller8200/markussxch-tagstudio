@@ -16,14 +16,14 @@ on:
       python:
         description: "Python-Version für den Build (Probe-Build, z. B. 3.15)"
         required: false
-        default: "3.12"
+        default: "3.15"
 
 permissions:
   contents: write
 
 env:
-  # Python des Installers; Releases immer mit dieser Version, von Hand wählbar für Probe-Builds (#135)
-  TS_PYTHON: ${{ inputs.python || '3.12' }}
+  # Python des Installers; Releases mit 3.15 (Probe-Build getestet), von Hand wählbar (#135)
+  TS_PYTHON: ${{ inputs.python || '3.15' }}
   PYTHONUTF8: "1"
   PYTHONIOENCODING: "utf-8"
 

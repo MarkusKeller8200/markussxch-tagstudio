@@ -34,7 +34,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Geändert
 - **Python 3.12 oder neuer** nötig für die Quellcode-Variante (vorher 3.9; 3.9 und 3.10 bekommen keine Updates
-  mehr). Der Installer bringt weiterhin sein eigenes Python 3.12 mit. Tests laufen mit 3.12 und 3.15 auf Windows,
+  mehr). Der Installer bringt jetzt **Python 3.15** mit (vorher 3.12; Stems-Umgebung bleibt 3.12). Tests laufen mit 3.12 und 3.15 auf Windows,
   macOS und Linux; der Installer-Workflow kann von Hand mit einer anderen Python-Version bauen (Probe-Build) (#135).
 
 ### Behoben
