@@ -1,0 +1,9 @@
+{
+  "id": "mik",
+  "name": "Mixed In Key übernehmen",
+  "version": "1.0",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Liest Tonart, BPM und Energie, die Mixed In Key in die Dateien geschrieben hat – auch aus Kommentar, Titel, Künstler, Gruppierung oder Label („10A - Energy 7“) – und schlägt sie für die richtigen Felder vor (Tonart in deiner Schreibweise, BPM, Energie 0–100). Auf Wunsch werden die Präfixe aus Titel, Künstler und Kommentar entfernt. Mit Vorschau, nichts wird ohne Bestätigung geändert.",
+  "notes": "Keine Zusatzpakete nötig. Mixed In Key selbst wird nicht benötigt – gelesen werden nur die Tags."
+}

@@ -360,6 +360,9 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   AcoustID-Fingerabdruck), Deezer, iTunes, Discogs und Last.fm. Standard: nur leere Felder ergänzen; je Feld ist die
   erste Quelle vorausgewählt, andere erscheinen als Alternative. Discogs-Token, Last.fm- und AcoustID-Schlüssel unter
   Plugins › Online-Metadaten › „Schlüssel …“ (verschlüsselt gespeichert); „Verbindungen testen“ prüft die Dienste.
+- **Mixed In Key übernehmen:** Tonart, BPM und Energie aus den Stellen, an die Mixed In Key sie geschrieben hat
+  (Kommentar „10A - Energy 7“, Titel- oder Künstler-Präfix, Gruppierung, Label, TXXX:EnergyLevel) in TKEY, TBPM und
+  ENERGY übernehmen; Präfixe auf Wunsch entfernen.
 - **Eigene Plugins** in `~/TagStudio/Plugins` – Anleitung in [PLUGINS.md](PLUGINS.md).
 
 ### Update, Layout, Tastatur

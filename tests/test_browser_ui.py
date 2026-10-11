@@ -447,6 +447,17 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("document.querySelector('.rn-older .rn-body').textContent.length > 20"))
         pg.click("#mBtns .primary")
 
+    def test_mik_plugin_form(self):
+        """#147: Plugin „Mixed In Key übernehmen“ steht im Tagger bereit und öffnet sein Formular."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="0"] .nm')
+        pg.click('#tgPlugins [data-plugin="mik"][data-action="import"]')
+        pg.wait_for_selector('#modal [data-ok="key"]')
+        self.assertTrue(pg.locator('#modal [data-ok="key"]').is_checked())
+        self.assertFalse(pg.locator('#modal [data-ok="clean_title"]').is_checked())
+        pg.click("#mBtns button >> nth=0")
+
     def test_preview_links(self):
         """#144: Vorschau von Plugins zeigt Links zum Treffer auf der Plattform (je Datei und je Feld)."""
         pg = self.pg

@@ -7,6 +7,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- Neues Plugin **Mixed In Key übernehmen**: liest Tonart, BPM und Energie, die Mixed In Key in Kommentar, Titel,
+  Künstler, Gruppierung, Label oder TXXX:EnergyLevel geschrieben hat, und schlägt TKEY (in deiner Schreibweise),
+  gerundetes BPM und das Merkmal ENERGY (1–10 → 10–100) vor; auf Wunsch werden die Präfixe wieder entfernt (#147).
+- Werkzeug `tools/wavcheck.py` und Konzepte für **WAV-Unterstützung** und **Mehrsprachigkeit** (#156, #157).
 - **Serato-Daten lesbar** (nur Ansicht): Markers2 (Cues, Loops, Farben, Namen, Track-Farbe, BPM-Sperre), Autotags
   (BPM, Auto-Gain, Gain), BeatGrid (Marker, BPM, erster Schlag), Overview (kleine Wellenform), Analyse-Version – als
   Kurzfassung bei „Weitere Felder“ und ausführlich im Binärfeld-Editor; kaputte Daten werden verständlich gemeldet (#76).
