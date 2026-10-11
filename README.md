@@ -547,6 +547,10 @@ Python 3.15). Davor **4.0.0 – DJ-Set**.
 
 Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
+- **WAV-Unterstützung** (Konzept, [docs/KONZEPT-WAV.md](docs/KONZEPT-WAV.md)) mit Testroutine `tools/wavcheck.py`
+  (Aufbau, LIST/INFO, ID3-Chunk; Schreibtest an einer Kopie).
+- **Mehrsprachigkeit** (Konzept, [docs/KONZEPT-MEHRSPRACHIG.md](docs/KONZEPT-MEHRSPRACHIG.md)): Englisch, Deutsch
+  (Schweiz/Deutschland), Export/Import der Texte für die Übersetzung.
 - **Tracks vorbereiten** (Konzept, [docs/KONZEPT-VORBEREITEN.md](docs/KONZEPT-VORBEREITEN.md)): Workflow vom
   Eingangsordner über Tag-Rezepte und externe Programme bis in die Bibliothek, Schutz bestehender Tags, später
   Download gekaufter Titel und Vorschläge mit Vorhören.
