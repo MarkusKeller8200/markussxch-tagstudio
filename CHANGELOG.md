@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.3.0] – 2026-10-11
+
 ### Neu
 **Tracks vorbereiten** (neue Seite „Vorbereiten“, erster Menüpunkt – #109–#118, #160, #161)
 - Neue Titel laufen vom **Eingangsordner** über frei zusammenstellbare **Schritte** in die **Bibliothek**; jede Stufe
