@@ -25,14 +25,27 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - Tagger: Feldnamen wie in Mp3tag (z. B. TITLE, INITIALKEY, CATALOGNUMBER) bei den wichtigen Feldern am Ende und bei
   „Weitere Felder“; Benutzerfelder zeigen ihren Namen vorne. Beim Darüberfahren eine kurze Erklärung des Felds
   (#140, #151).
-- Tagger: „Weitere Felder“ wahlweise nach Herkunft sortiert – TagStudio zuerst, dann alphabetisch (#141).
-- Tagger: Cover-Knöpfe untereinander, neu „Cover im Internet suchen“ (Bildersuche mit Künstler und Album) (#150).
+- Tagger: „Weitere Felder“ wahlweise nach Herkunft sortiert – offizielle ID3v2.4-Felder zuerst, dann TagStudio, dann
+  die Herkünfte alphabetisch (#141).
+- Tagger: Cover-Bereich aufgeteilt – links Länge und Bewertung, rechts Bild-Info und die Knöpfe untereinander, neu
+  „Im Web suchen“ (Bildersuche mit Künstler und Album) (#150).
 - Tagger: Auswahl der Merkmal-Spalten mit Häkchen; das Menü bleibt offen, mehrere Merkmale nacheinander (#149).
 - Tagger-Liste: **Spalten ▾** – weitere Spalten (u. a. Album-Künstler, Kommentar, Länge, kbit/s, Bewertung, Label,
   Katalognummer, Remixer, ISRC) und **beliebige Felder** als Spalte (#154); Reihenfolge per Ziehen in der Kopfzeile
   (#152); „An Fenster anpassen“ oder „Optimale Breite“ mit waagrechtem Blättern, die Kopfzeile läuft mit (#148).
 - Tagger-Liste: **Sortierung in bis zu drei Stufen** (Shift+Klick), Knopf „↺ Sortierung“ setzt auf den Standard
   zurück, „Aktuelle Sortierung als Standard“ (#153).
+- **DJ-Set: mehrere gespeicherte Listen** – Knopf „Liste ▾“: neu, speichern, speichern unter, laden, umbenennen,
+  entfernen; Hinweis bei nicht gespeicherten Änderungen; der Export heisst wie die Liste (#138).
+- **Warteschlange im Player:** Rechtsklick auf Titel im Tagger oder DJ-Set › „Als Nächstes spielen“ / „Zur
+  Warteschlange hinzufügen“. Hat Vorrang bei ⏭, Titelende und Überblenden; Knopf neben ⏭ öffnet die Liste
+  (umsortieren, entfernen, leeren, als DJ-Set übernehmen) (#138).
+- Neue Plugins **beaTunes übernehmen** (TXXX:MOOD_DANCEABILITY, MOOD_ACOUSTIC, MOOD_HAPPY, MOOD_AGGRESSIVE → Merkmale)
+  und **Lexicon übernehmen** (Tanzbarkeit, Energie, Fröhlichkeit und Mood-Tags über die Lexicon Local API) – beide mit
+  **Abgleich**: Wurde ein Wert in der Datei seit dem letzten Übernehmen geändert, ist der Vorschlag nicht angehakt (#145,
+  #146).
+- Plugin-Vorschau: Knopf **„Nur fehlende“** wählt nur Felder, die in der Datei noch leer sind; „Vorschlag“ heisst
+  jetzt „Vorauswahl“ (#142).
 - **Bevorzugte Ansicht** (Spalten, Breite, Sortierung, Merkmale) speichern und wieder laden – im Spalten-Menü und
   unter Einstellungen › Tagger (#155).
 
