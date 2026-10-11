@@ -2097,6 +2097,65 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin):
         d["message"] = msg
         return d
 
+    # ------------------------------------------------------------------ #111 Tag-Rezepte
+    def recipes(self) -> dict:
+        import recipes
+        own = recipes.clean(self.cfg.get("recipes")) if isinstance(self.cfg.get("recipes"), list) else recipes.defaults()
+        return {"recipes": [{**r, "lines": [recipes.describe(a) for a in r["actions"]]} for r in own],
+                "types": recipes.ACTION_TYPES, "case_modes": tagger.CASE_MODES}
+
+    def recipes_save(self, items) -> dict:
+        import recipes
+        self.cfg["recipes"] = recipes.clean(items)
+        core.save_config({"recipes": self.cfg["recipes"]})
+        return self.recipes()
+
+    def recipes_reset(self) -> dict:
+        import recipes
+        self.cfg["recipes"] = recipes.defaults()
+        core.save_config({"recipes": self.cfg["recipes"]})
+        return self.recipes()
+
+    def _recipe(self, rid_or_recipe):
+        import recipes
+        if isinstance(rid_or_recipe, dict):
+            return recipes.clean([rid_or_recipe])[0]
+        r = next((x for x in self.recipes()["recipes"] if x["id"] == rid_or_recipe), None)
+        if r is None:
+            raise ValueError("Rezept nicht gefunden.")
+        return r
+
+    def tag_recipe(self, idx, recipe, apply=False):
+        """Rezept auf die markierten Titel: Vorschau bzw. anwenden (mit Rückgängig, noch nicht gespeichert)."""
+        import recipes
+        with self.lock:
+            files = [f for f in self._tsel(idx) if not self._ro(f)]
+            r = self._recipe(recipe)
+            try:
+                p = recipes.plan(files, r)
+            except ValueError as ex:
+                return {"error": str(ex), "rows": [], "count": 0, "files": 0}
+            if not apply:
+                rows = []
+                for e in p:
+                    name = os.path.basename(e["file"].path)
+                    for k, old, new in e["changes"][:200]:
+                        rows.append({"name": name, "label": key_label(k), "old": (old or "").replace(MV, MV_SHOW),
+                                     "new": "– entfernen –" if new is None else new.replace(MV, MV_SHOW)})
+                    if e["version"] or e["v1"]:
+                        rows.append({"name": name, "label": "ID3", "old": f"v2.{e['file'].version}" + (" + v1" if e["file"].had_v1 else ""),
+                                     "new": f"v2.{e['version'] or e['file'].version}" + (" + v1" if (e["v1"] or e["v1_keep"]) == "write" or (e["file"].had_v1 and e["v1"] != "remove") else "")})
+                return {"rows": rows[:3000], "count": sum(len(e["changes"]) + bool(e["version"] or e["v1"]) for e in p),
+                        "files": len(p), "name": r["name"]}
+            self.undo.checkpoint(f"Rezept „{r['name']}“", [e["file"] for e in p])
+            try:
+                n = recipes.apply(p)
+            finally:
+                self.undo.commit()
+            d = self.tag_detail(idx)
+            d["message"] = f"Rezept „{r['name']}“: {n} Datei(en) geändert – noch nicht gespeichert."
+            return d
+
     def tag_case_modes(self):
         return [[k, v] for k, v in tagger.CASE_MODES.items()]
 

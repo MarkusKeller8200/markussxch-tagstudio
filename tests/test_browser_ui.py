@@ -428,6 +428,28 @@ class UiTest(unittest.TestCase):
         pg.click('#helpTabs [data-htab="id3"]')
         pg.wait_for_selector("#helpDoc table.help-t")
 
+    def test_recipe_dialog(self):
+        """#111: Tag-Rezepte – Vorlage, Aktion hinzufügen, Vorschau, Anwenden."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("call('tag_set', [0], 'TIT2', 'Ton_220%20Mix')")
+        pg.click('.tg-row[data-i="0"] .nm')
+        pg.click("#tgRecipe")
+        pg.wait_for_selector("#rcActs .rc-act")
+        self.assertIn("Beatport", pg.inner_text("#rcSel"))
+        pg.wait_for_function("document.querySelector('#tdPrev table') !== null")
+        self.assertIn("Ton 220 Mix", pg.inner_text("#tdPrev"))
+        n = pg.locator("#rcActs .rc-act").count()
+        pg.select_option("#rcType", "set")
+        pg.click("#rcAdd")
+        pg.fill("#raField", "TXXX:QUELLE")
+        pg.fill("#raValue", "Rezept")
+        pg.click('#rcEdit [data-rce="ok"]')
+        self.assertTrue(self.until(f"document.querySelectorAll('#rcActs .rc-act').length === {n + 1}"))
+        self.assertTrue(self.until("document.querySelector('#tdPrev').textContent.includes('Rezept')"))
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("TG.detail && TG.detail.common.TIT2.value === 'Ton 220 Mix'")
+
     def test_snapshot_baseline(self):
         """Neue Baseline: aus dem aktuellen Stand, ältere Snapshots löschen (angeheftete nur auf Wunsch)."""
         pg = self.pg

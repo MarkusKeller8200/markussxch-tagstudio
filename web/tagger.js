@@ -738,6 +738,7 @@ function renderTgEditor() {
       <button class="ghost" id="tgFixer">Tag-Fixer …</button>
       <button class="ghost" id="tgCase">Groß-/Kleinschreibung …</button>
       <button class="ghost" id="tgReplace">Suchen &amp; Ersetzen …</button>
+      <button class="ghost" id="tgRecipe" title="Aktionslisten wie in Mp3tag (#111)">Tag-Rezepte …</button>
       <button class="ghost" id="tgFolderCover">Cover aus Ordner …</button>
       <button class="ghost" id="tgExport">Liste exportieren …</button>
       <button class="ghost" id="tgOrigin">Felder nach Herkunft …</button>
@@ -1490,6 +1491,7 @@ async function tgOriginDialog(preset = "") {
     else if (id === "tgReveal") call("reveal", TG.detail.file.path);
     else if (id === "tgCase") tgCaseDialog();
     else if (id === "tgReplace") tgReplaceDialog();
+    else if (id === "tgRecipe") tgRecipeDialog();                                                                            // #111
     else if (id === "tgFolderCover") tgFolderCoverDialog();
     else if (id === "tgExport") tgExportDialog();
     else if (id === "tgOrigin") tgOriginDialog();

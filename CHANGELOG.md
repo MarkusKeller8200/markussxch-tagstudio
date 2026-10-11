@@ -10,6 +10,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Vergleich:** Binärfelder (GEOB/PRIV, z. B. Serato, Mixed In Key) lassen sich wie im Tagger im **Binärfeld-Editor**
   ansehen und bearbeiten (Doppelklick oder Rechtsklick › „Binärfeld-Editor“), mit Serato-Ansicht, JSON-Baum und Hex-
   Ansicht; JSON in Textfeldern öffnet den **JSON-Baum** (#13).
+- **Tag-Rezepte** (Tagger › „Tag-Rezepte …“): Aktionslisten wie in Mp3tag – Ersetzen, Schreibweise einzelner Wörter,
+  Gross-/Kleinschreibung, Leerzeichen bereinigen, doppelte Werte/Felder entfernen, nur ersten Wert behalten, Felder
+  entfernen oder setzen (%FELD%), ID3-Version und ID3v1 beim Speichern. Vorschau, Anwenden mit Rückgängig; mitgeliefert
+  ist die Vorlage „Beatport-Download aufbereiten“ (#111).
+- **ID3v1 schreiben:** Einstellungen › Sicherungen und Speichern › „ID3v1 (Dateiende)“: wie vorhanden, immer
+  mitschreiben oder entfernen; auch als Rezept-Aktion (#112).
 - **Hilfe** (neuer Menüpunkt): **Tag-Übersicht** in aufklappbaren Kapiteln (offizielle ID3v2.4-Frames nach Funktion,
   DJ-Analysewerte ohne eigenen Frame, Programm-Daten nach Herkunft, eigene Tags, weitere Frames) mit Bedeutung,
   Mp3tag-Name, DJ-Relevanz und **konfigurierter Herkunft**, dazu der Vergleich der DJ-Software. **Bibliothek scannen**

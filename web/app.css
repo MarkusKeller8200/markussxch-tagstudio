@@ -1222,3 +1222,11 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .md ul,.md ol{padding-left:22px}
 .md li{margin:2px 0}
 .md hr{border:0;border-top:1px solid var(--line);margin:18px 0}
+/* #111 Tag-Rezepte */
+.rc-head,.rc-add{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px}
+.rc-acts{display:flex;flex-direction:column;gap:2px;margin:6px 0 8px;max-height:28vh;overflow:auto}
+.rc-act{display:grid;grid-template-columns:24px minmax(0,1fr) repeat(4,28px);align-items:center;gap:4px;padding:3px 6px;border-radius:6px;background:var(--raise)}
+.rc-n{color:var(--dim);text-align:right;font-variant-numeric:tabular-nums}
+.rc-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-edit{border:1px solid var(--acc);border-radius:8px;padding:8px 10px;margin:0 0 8px}
+.rc-edit-h{margin-bottom:6px}.rc-edit-b{display:flex;justify-content:flex-end;gap:6px;margin-top:6px}
