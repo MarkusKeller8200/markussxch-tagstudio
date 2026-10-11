@@ -131,7 +131,7 @@ class UiTest(unittest.TestCase):
         """#88 Menü-Reihenfolge und Startseite, #87 Einstellungskacheln, #85/#86 Vorgaben, #89 Kanal."""
         pg = self.pg
         navs = pg.evaluate("[...document.querySelectorAll('.nav[data-module]')].map(b=>b.dataset.module)")
-        self.assertEqual(navs, ["tagger", "fixer", "compare", "djset", "snapshots", "backups", "plugins", "settings", "db"])
+        self.assertEqual(navs, ["tagger", "fixer", "prep", "compare", "djset", "snapshots", "backups", "plugins", "settings", "help", "db"])
         self.assertEqual(pg.evaluate("S.module"), "tagger")
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stUpdateCard")
