@@ -17,6 +17,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Beatgrid im Player** (aus Serato, sonst aus BPM und erstem Cue geschätzt): Rasterlinien in der Wellenform,
   Überblenden **im Takt** (nächster Titel in der Phase des laufenden) und wahlweise **auf Taktgrenze** (4/8/16 Schläge),
   **Sync**-Knopf in Player B (Tempo und Takt von Player A) (#76).
+- Beatgrid ohne Serato: TagStudio **ermittelt den Schlag aus dem Audio** (Tempo fein um das BPM-Feld, Lage des
+  ersten Schlags) zusammen mit der Wellenform und merkt ihn im Cache; vor dem Überblenden wird der neue Titel bei
+  Bedarf zuerst analysiert. Neue Option **Tonhöhe beim Angleichen beibehalten** (aus = wie beim Plattenspieler) (#76).
 - Vorschau der Plugins **Online-Metadaten** und **Beatport**: Links zum Treffer auf der Plattform (je Datei und je
   Feld), um z. B. eine andere Version eines Titels zu erkennen, bevor man übernimmt (#144).
 - Tagger: Feldnamen wie in Mp3tag (z. B. TITLE, INITIALKEY, CATALOGNUMBER) bei den wichtigen Feldern am Ende und bei

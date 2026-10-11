@@ -582,8 +582,33 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("PLAYER.info && PLAYER.info.grid && DECKB.info && DECKB.info.grid"))
         self.assertEqual(pg.evaluate("[PLAYER.info.grid.bpm, PLAYER.info.grid.exact, DECKB.info.grid.bpm]"), [124, False, 120])
         pg.click("#dbSync")
-        self.assertTrue(self.until("Math.abs(DECKB.audio.playbackRate - 124 / 120) < 0.001"))
+        self.assertTrue(self.until("Math.abs(DECKB.audio.playbackRate - 124 / 120) < 0.001"), pg.evaluate("JSON.stringify([DECKB.audio.playbackRate, PLAYER.info.grid, DECKB.info.grid, PLAYER.info.wave && PLAYER.info.wave.beat])"))
         self.assertTrue(pg.evaluate("document.querySelector('#dbSync').classList.contains('on')"))
+
+    def test_beat_analysis(self):
+        """#76: Schlag aus dem Audio – 124 BPM, erster Schlag bei 0,3 s – wird erkannt und als Beatgrid genutzt."""
+        P = 60 / 124
+        expr = f"0.9*sin(2*PI*55*t)*exp(-25*mod(t-0.3+{20 * P},{P}))"
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "lavfi", "-i", f"aevalsrc='{expr}':s=22050:d=40",
+                        "-b:a", "128k", "-id3v2_version", "3", "-metadata", "title=Beat", "-metadata", "TBPM=124",
+                        os.path.join(self.lib, "04 Beat.mp3")], check=True)
+        pg = self.pg
+        pg.click('.nav[data-module="tagger"]')
+        pg.fill("#tgPath", self.lib)
+        pg.click("#tgLoad")
+        pg.wait_for_function("TG.loaded && TG.rows.length === 4")
+        i = pg.evaluate("TG.rows.find(r => r.name.startsWith('04')).i")
+        pg.evaluate(f"plLoad({{kind: 'tag', ref: {i}}}, false)")
+        self.assertTrue(self.until("PLAYER.info && PLAYER.ref === " + str(i)))
+        beat = pg.evaluate("plWaveCompute(PLAYER.info).then(w => w && w.beat)")
+        self.assertIsNotNone(beat)
+        self.assertAlmostEqual(beat["bpm"], 124, delta=0.3)
+        ph = (beat["first"] - 0.3) % P
+        self.assertLess(min(ph, P - ph), 0.02, beat)                      # Versatz auf ±20 ms genau
+        self.assertEqual(pg.evaluate("PLAYER.info.grid.source"), "Analyse")
+        # gespeichert: beim nächsten Laden kommt das Beatgrid aus dem Cache
+        pg.evaluate(f"plLoad({{kind: 'tag', ref: {i}}}, false)")
+        self.assertTrue(self.until("PLAYER.info && PLAYER.info.grid && PLAYER.info.grid.source === 'Analyse'"))
 
     def test_tagger_feature_columns(self):
         """#11: Spalten mit Audio-Merkmalen, Sortierung und Zahlenfilter im Suchfeld."""

@@ -26,7 +26,7 @@ class PlayerMixin:
                     "sink_b": (str, ""), "start_b": (str, "0"), "repeat_b": (bool, False),
                     "startmode": (str, "last"),                                                          # #93
                     "resume": (bool, True), "resume_play": (str, "pause"),                               # #126
-                    "xfade_phase": (bool, True), "xfade_bars": (int, 0)}                                 # #76
+                    "xfade_phase": (bool, True), "xfade_bars": (int, 0), "xfade_pitch": (bool, True)}   # #76
     PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "resume_play": ("pause", "play", "was"), "xfade_bars": (0, 4, 8, 16), "layout": ("bottom", "top"), "startmode": ("last", "default"),
                       "xfade_start": ("start", "0", "cue"), "deck_target": ("A", "B"),
                       "start_b": ("0", "30", "60", "cue")}
@@ -298,6 +298,10 @@ class PlayerMixin:
             out["wave"] = waveform.load(out["wave_key"])
         except (OSError, ValueError):
             pass
+        beat = (out.get("wave") or {}).get("beat")
+        if beat and not (out.get("grid") or {}).get("exact"):    # #76: Analyse vor Schätzung aus dem BPM-Tag
+            out["grid"] = {"bpm": beat["bpm"], "first": beat["first"], "source": "Analyse", "exact": False,
+                           "analysed": True, "markers": [{"pos": beat["first"], "bpm": beat["bpm"]}]}
         return out
 
     @staticmethod
@@ -325,11 +329,11 @@ class PlayerMixin:
         return {"bpm": round(bpm, 3), "first": round(first, 4), "source": "BPM-Tag" + (" + Cue" if first else ""),
                 "exact": False, "markers": [{"pos": round(first, 4), "bpm": round(bpm, 3)}]}
 
-    def wave_save(self, key, peaks, rms) -> dict:
-        """Von der Oberfläche berechnete Wellenform im Cache ablegen."""
+    def wave_save(self, key, peaks, rms, beat=None) -> dict:
+        """Von der Oberfläche berechnete Wellenform (und #76 Schlag-Analyse) im Cache ablegen."""
         import waveform
         try:
-            waveform.save(str(key), peaks, rms)
+            waveform.save(str(key), peaks, rms, beat)
         except (OSError, ValueError) as ex:
             return {"ok": False, "error": str(ex)}
         return {"ok": True}

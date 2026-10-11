@@ -122,7 +122,7 @@ function plTempoStop(reset = true) {
 
 async function plCrossfade(i, opt = {}) {
   const old = PLAYER.audio, nu = PLAYER.spare, D = PLAYER.xfade * 1000;
-  const bpmFrom = bpmOf(PLAYER.info) * (old.playbackRate || 1);
+  const bpmFrom = (gridOf(PLAYER.info) ? gridOf(PLAYER.info).bpm : bpmOf(PLAYER.info)) * (old.playbackRate || 1);
   const gOld = gridOf(PLAYER.info);
   PLAYER.fade = { old, timer: 0 };
   PLAYER.spare = old;
@@ -138,11 +138,18 @@ async function plCrossfade(i, opt = {}) {
   await plLoad({ kind: "tag", ref: i }, true, null, PLAYER.xfadeStart === "start" ? null : PLAYER.xfadeStart, true);
   const f = PLAYER.fade;
   if (!f || f.old !== old) return;
-  const ratio = PLAYER.xfadeSync ? plTempoRatio(bpmFrom, bpmOf(PLAYER.info)) : 1;
-  if (ratio !== 1) { nu.preservesPitch = true; nu.playbackRate = ratio; }      // Tonhöhe bleibt
+  const newInfo = PLAYER.info;
+  if (PLAYER.xfadePhase && gOld && plWaveNeeded(newInfo)) {                    // #76: Schlag des neuen Titels ermitteln
+    await Promise.race([plWaveCompute(newInfo), new Promise((ok) => setTimeout(ok, 4000))]);
+    if (PLAYER.fade !== f) return;
+  }
+  const gNewBpm = gridOf(newInfo) ? gridOf(newInfo).bpm : bpmOf(newInfo);
+  const ratio = PLAYER.xfadeSync ? plTempoRatio(bpmFrom, gNewBpm) : 1;
+  nu.preservesPitch = PLAYER.xfadePitch !== false;                            // #76: Tonhöhe beibehalten (Option)
+  if (ratio !== 1) nu.playbackRate = ratio;
   f.ratio = ratio;
   // #76: neuen Titel im Takt starten – gleiche Phase wie der laufende (Schlag bzw. Taktgrenze)
-  const gNew = gridOf(PLAYER.info);
+  const gNew = gridOf(newInfo);
   const sameTempo = ratio !== 1 || (gNew && bpmFrom && Math.abs(bpmFrom - gNew.bpm) / bpmFrom < 0.02);
   if (PLAYER.xfadePhase && gOld && gNew && sameTempo) {
     const bar = opt.bar || 1;
@@ -241,7 +248,7 @@ async function dbLoad(t, autoplay = true, keepTime = null) {
   const start = keepTime !== null ? keepTime : sm === "30" ? dur * 0.3 : sm === "60" ? Math.min(60, dur * 0.5) : sm === "cue" ? (firstCue ? firstCue.pos : 0) : 0;
   a.src = info.url;
   a.addEventListener("loadedmetadata", () => { try { if (start > 0) a.currentTime = Math.min(start, (a.duration || dur) - 1); } catch (e) { /* egal */ } }, { once: true });
-  if (PLAYER.wave && !info.wave) plWaveCompute(info);
+  if ((PLAYER.wave && !info.wave) || plWaveNeeded(info)) plWaveCompute(info);                    // #76: Schlag für Sync
   dbCues();
   dbRender();
   if (autoplay) { try { await a.play(); } catch (e) { if (e.name !== "AbortError") toast("Wiedergabe nicht möglich: " + (e.message || e)); } }
@@ -431,7 +438,7 @@ function dbSync() {
   let r = bpmA / bpmB;
   if (r > 1.5) r /= 2; else if (r < 0.75) r *= 2;
   if (r < 0.84 || r > 1.16) { toast(`Tempo zu verschieden (${Math.round(bpmA)} / ${Math.round(bpmB)} BPM).`); return; }
-  b.preservesPitch = true;
+  b.preservesPitch = PLAYER.xfadePitch !== false;
   b.playbackRate = r;
   if (ga && gb) {
     try { b.currentTime = gridAlign(gb, b.currentTime || 0, gridPhase(ga, a.currentTime)); } catch (e) { /* egal */ }

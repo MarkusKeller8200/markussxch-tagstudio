@@ -32,6 +32,7 @@ function plSetPref(k, v) {
   else if (k === "xfade_return") PLAYER.xfadeReturn = +v || 0;
   else if (k === "xfade_phase") PLAYER.xfadePhase = !!v;                     // #76
   else if (k === "xfade_bars") PLAYER.xfadeBars = +v || 0;
+  else if (k === "xfade_pitch") PLAYER.xfadePitch = !!v;
   else if (k === "layout" || k === "top_collapsed" || k === "deck2" || k === "deck_target" || k === "sink_b" || k === "vol_b" || k === "start_b" || k === "repeat_b") {
     if (typeof pl2Pref === "function") pl2Pref(k, v);
     if (k === "vol_b") { clearTimeout(plVolTimer); plVolTimer = setTimeout(() => call("set_player_pref", "vol_b", v).catch(() => {}), 400); return; }
@@ -90,7 +91,7 @@ async function plLoad(target, autoplay = true, keepTime = null, startMode = null
   a.addEventListener("loadedmetadata", seek, { once: true });
   plCues();
   plRender();
-  if (PLAYER.wave && !info.wave) plWaveCompute(info);
+  if ((PLAYER.wave && !info.wave) || (PLAYER.xfade && PLAYER.xfadePhase && plWaveNeeded(info))) plWaveCompute(info);   // #76: auch für den Takt
   if (autoplay) {
     try { await a.play(); } catch (e) {
       // AbortError: schneller Titelwechsel – der neue Titel lädt bereits, kein Fehler
@@ -371,8 +372,72 @@ function plSeekBy(sec) {
 
 // ---------------------------------------------------------------------- Wellenform & Cue-Marken
 /** Wellenform einmal berechnen (Web Audio, niedrige Abtastrate spart Speicher) und im Cache ablegen. */
-async function plWaveCompute(info) {
-  if (!info.wave_key || PLAYER.waveBusy === info.wave_key) return;
+/** #76: Schlag aus dem Audio ermitteln – Tempo fein um das BPM-Feld herum (ohne BPM: 70–180) und die Lage des
+    ersten Schlags. Energie eines tiefpassgefilterten Signals (Bass/Kick) je 5 ms, Anstiege als „Onsets“; gesucht
+    wird das Raster (Tempo, Versatz), auf dem die Onsets am stärksten sind. → {bpm, first, conf} oder null */
+function beatAnalyse(audio, bpmHint) {
+  const sr = audio.sampleRate, fps = 200, hop = Math.max(1, Math.round(sr / fps));
+  const chs = audio.numberOfChannels, data = [...Array(chs).keys()].map((c) => audio.getChannelData(c));
+  const n = Math.floor(data[0].length / hop);
+  if (n < fps * 15) return null;                                   // kürzer als 15 s: nicht verlässlich
+  const env = new Float32Array(n), a = Math.exp((-2 * Math.PI * 150) / sr);
+  let lp = 0;
+  for (let i = 0; i < n; i++) {
+    let s = 0;
+    for (let k = i * hop, e = k + hop; k < e; k++) {
+      let v = 0;
+      for (let c = 0; c < chs; c++) v += data[c][k];
+      lp = a * lp + (1 - a) * (v / chs);
+      s += lp * lp;
+    }
+    env[i] = Math.log(1e-10 + s / hop);
+  }
+  const on = new Float32Array(n);
+  for (let i = 2; i < n; i++) on[i] = Math.max(0, env[i] - (env[i - 1] + env[i - 2]) / 2);
+  const score = (bpm, ph) => {
+    const P = (60 * fps) / bpm;
+    let s = 0, c = 0;
+    for (let x = ph; x < n - 1; x += P) { const i = Math.round(x); s += on[i] + 0.5 * ((on[i - 1] || 0) + (on[i + 1] || 0)); c++; }
+    return c ? s / c : 0;
+  };
+  const best = (bpms) => {
+    let top = { s: -1, bpm: 0, ph: 0, mean: 0 };
+    for (const bpm of bpms) {
+      const P = (60 * fps) / bpm;
+      let sum = 0, k = 0, bs = -1, bp = 0;
+      for (let ph = 0; ph < P; ph += 1) { const s = score(bpm, ph); sum += s; k++; if (s > bs) { bs = s; bp = ph; } }
+      if (bs > top.s) top = { s: bs, bpm, ph: bp, mean: sum / k };
+    }
+    return top;
+  };
+  let cand = [];
+  const hint = bpmHint > 40 && bpmHint < 300 ? bpmHint : 0;
+  if (hint) for (let b = hint * 0.985; b <= hint * 1.015; b += 0.02) cand.push(b);
+  else { const coarse = best(Array.from({ length: 111 }, (_, k) => 70 + k)); for (let b = coarse.bpm - 1; b <= coarse.bpm + 1; b += 0.02) cand.push(b); }
+  const r = best(cand);
+  if (r.s <= 0) return null;
+  const conf = Math.max(0, Math.min(1, (r.s / Math.max(1e-9, r.mean) - 1) / 2));
+  if (!(conf >= 0.2)) return null;                                      // kein klarer Schlag (z. B. Ambient, Sprache)
+  return { bpm: Math.round(r.bpm * 100) / 100, first: Math.round((r.ph / fps) * 10000) / 10000, conf: Math.round(conf * 1000) / 1000 };
+}
+/** Analyse-Ergebnis als Beatgrid übernehmen (Serato-Grids bleiben) */
+function gridFromBeat(info, beat) {
+  if (!info || !beat || (info.grid && info.grid.exact)) return;
+  info.grid = { bpm: beat.bpm, first: beat.first, source: "Analyse", exact: false, analysed: true, markers: [{ pos: beat.first, bpm: beat.bpm }] };
+}
+
+const WAVE_JOBS = new Map();          // laufende Berechnungen je wave_key (gemeinsames Versprechen)
+const WAVE_NOBEAT = new Set();        // Titel ohne verwertbaren Schlag – nicht immer wieder rechnen
+function plWaveCompute(info) {
+  if (!info || !info.wave_key) return Promise.resolve(null);
+  if (!WAVE_JOBS.has(info.wave_key)) WAVE_JOBS.set(info.wave_key, plWaveComputeRun(info).finally(() => WAVE_JOBS.delete(info.wave_key)));
+  return WAVE_JOBS.get(info.wave_key);
+}
+/** Braucht dieser Titel noch eine Berechnung (Wellenform fehlt bzw. Schlag noch nicht analysiert)? */
+function plWaveNeeded(info) {
+  return !!info && !!info.wave_key && (!info.wave || (!info.wave.beat && !WAVE_NOBEAT.has(info.wave_key) && !(info.grid && info.grid.exact)));
+}
+async function plWaveComputeRun(info) {
   PLAYER.waveBusy = info.wave_key;
   try {
     const res = await fetch(info.url);
@@ -394,11 +459,18 @@ async function plWaveCompute(info) {
       peaks.push(Math.min(255, Math.round(pk * 255)));
       rms.push(Math.min(255, Math.round(Math.sqrt(sq / Math.max(1, n)) * 255)));
     }
-    const wave = { peaks, rms };
-    call("wave_save", info.wave_key, peaks, rms).catch(() => {});
-    if (PLAYER.info && PLAYER.info.wave_key === info.wave_key) { PLAYER.info.wave = wave; plRender(); }
-    if (typeof DECKB !== "undefined" && DECKB.info && DECKB.info.wave_key === info.wave_key) { DECKB.info.wave = wave; dbRender(); }
-  } catch (e) { /* ohne Wellenform weiter – Wiedergabe ist wichtiger */ }
+    let beat = null;
+    try { beat = beatAnalyse(audio, bpmOf(info)); } catch (e) { beat = null; }     // #76
+    if (!beat) WAVE_NOBEAT.add(info.wave_key);
+    const wave = { peaks, rms, ...(beat ? { beat } : {}) };
+    call("wave_save", info.wave_key, peaks, rms, beat).catch(() => {});
+    for (const x of [info, PLAYER.info, typeof DECKB !== "undefined" ? DECKB.info : null]) {
+      if (x && x.wave_key === info.wave_key) { x.wave = wave; gridFromBeat(x, beat); }
+    }
+    plRender();
+    if (typeof dbRender === "function") dbRender();
+    return wave;
+  } catch (e) { return null; /* ohne Wellenform weiter – Wiedergabe ist wichtiger */ }
   finally { if (PLAYER.waveBusy === info.wave_key) PLAYER.waveBusy = null; }
 }
 
@@ -566,6 +638,7 @@ function plApplyPrefs(pp) {
   PLAYER.xfade = +pp.xfade || 0; PLAYER.xfadeStart = pp.xfade_start || "start"; PLAYER.xfadeAfter = +pp.xfade_after || 0;
   PLAYER.xfadeSync = pp.xfade_sync !== false; PLAYER.xfadeReturn = pp.xfade_return ?? 8;
   PLAYER.xfadePhase = pp.xfade_phase !== false; PLAYER.xfadeBars = +pp.xfade_bars || 0;     // #76
+  PLAYER.xfadePitch = pp.xfade_pitch !== false;
   if (typeof pl2Apply === "function") pl2Apply(pp);
   if ($("#plStart")) plStartSync();
   plRender();

@@ -52,7 +52,10 @@ def load(key: str) -> dict | None:
         peaks, rms = base64.b64decode(d["peaks"]), base64.b64decode(d["rms"])
         if len(peaks) != len(rms) or not peaks:
             return None
-        return {"peaks": list(peaks), "rms": list(rms)}
+        out = {"peaks": list(peaks), "rms": list(rms)}
+        if isinstance(d.get("beat"), dict):            # #76: aus dem Audio ermittelter Schlag (BPM, erster Schlag)
+            out["beat"] = d["beat"]
+        return out
     except (OSError, ValueError, KeyError, TypeError):
         return None
 
@@ -65,16 +68,30 @@ def _bytes(vals, name) -> bytes:
     return bytes(vals)
 
 
-def save(key: str, peaks, rms) -> None:
+def _beat(b):
+    """#76: Analyse-Ergebnis prüfen → {"bpm", "first", "conf"} oder None."""
+    if not isinstance(b, dict):
+        return None
+    try:
+        bpm, first, conf = float(b["bpm"]), float(b["first"]), float(b.get("conf", 0))
+    except (KeyError, TypeError, ValueError):
+        raise ValueError("beat: bpm und first erwartet") from None
+    if not (40 <= bpm <= 300 and 0 <= first < 60 and 0 <= conf <= 1):
+        raise ValueError("beat: Werte ausserhalb des Bereichs")
+    return {"bpm": round(bpm, 3), "first": round(first, 4), "conf": round(conf, 3)}
+
+
+def save(key: str, peaks, rms, beat=None) -> None:
     p, r = _bytes(peaks, "peaks"), _bytes(rms, "rms")
     if len(p) != len(r):
         raise ValueError("peaks und rms unterschiedlich lang")
+    beat = _beat(beat)
     fn = _file(key)
     os.makedirs(os.path.dirname(fn), exist_ok=True)
     tmp = fn + ".tmp"
     with open(tmp, "w", encoding="utf-8") as fh:
         json.dump({"v": 1, "n": len(p), "peaks": base64.b64encode(p).decode(), "rms": base64.b64encode(r).decode(),
-                   "t": int(time.time())}, fh)
+                   "t": int(time.time()), **({"beat": beat} if beat else {})}, fh)
     os.replace(tmp, fn)
     if int(key[2:4], 16) == 0:         # ab und zu (1/256) aufräumen
         prune()

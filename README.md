@@ -273,7 +273,9 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   danach in der eingestellten Zeit (sofort … 1 Minute) auf sein eigenes BPM zurück.
   **Im Takt** (Standard an): mit Beatgrid startet der nächste Titel im Schlag des laufenden; „Überblenden auf
   Taktgrenze“ wartet auf den nächsten Takt (4), 8 Schläge oder die nächste Phrase (16).
-- **Beatgrid:** aus Serato (`GEOB:Serato BeatGrid`), sonst geschätzt aus dem BPM-Feld mit dem ersten Cue als Schlag.
+- **Beatgrid:** aus Serato (`GEOB:Serato BeatGrid`), sonst aus dem Audio ermittelt (mit der Wellenform, im Cache
+  gemerkt), notfalls geschätzt aus dem BPM-Feld mit dem ersten Cue als Schlag. „Tonhöhe beibehalten“ (Einstellungen ›
+  Player) lässt sich ausschalten – dann ändert sich die Tonhöhe mit dem Tempo wie beim Plattenspieler.
   Die Wellenform zeigt Rasterlinien (Takt/Phrase kräftiger, geschätzte blasser). **Sync** in Player B bringt ihn ins
   Tempo und – mit Beatgrid – in den Takt von Player A.
 - **Player oben** (Einstellungen → Player → Position oder Regler-Menü): eigene Leiste über der Seite mit voller Breite
