@@ -465,12 +465,18 @@ class UiTest(unittest.TestCase):
             {id: 0, name: 'a.mp3', group: 'a.mp3', gkey: 'a', label: 'Album (MusicBrainz)', old: '', new: 'Y', note: 'MB',
              checked: true, kind: 'text', hint: '', same: false, link: 'https://musicbrainz.org/recording/x', link_label: 'MusicBrainz'},
             {id: 1, name: 'a.mp3', group: 'a.mp3', gkey: 'a', label: 'Album (Deezer)', old: '', new: 'Z', note: 'MB',
-             checked: false, kind: 'text', hint: 'Alternative', same: false, link: 'https://www.deezer.com/track/1', link_label: 'Deezer'}],
+             checked: false, kind: 'text', hint: 'Alternative', same: false, link: 'https://www.deezer.com/track/1', link_label: 'Deezer'},
+            {id: 2, name: 'a.mp3', group: 'a.mp3', gkey: 'a', label: 'Label', old: 'Alt', new: 'Neu', note: 'MB',
+             checked: true, kind: 'text', hint: '', same: false, link: '', link_label: ''}],
             log: []})""")
         pg.wait_for_selector("#modal .pv-links")
         self.assertIn("MusicBrainz ↗", pg.inner_text("#modal .pv-links"))
         self.assertIn("Deezer ↗", pg.inner_text("#modal .pv-links"))
         self.assertEqual(pg.locator("#modal tr:not(.pv-file) .pl-link").count(), 2)
+        pg.click('#modal [data-pv="empty"]')                                   # #142: nur fehlende Felder
+        self.assertEqual(pg.evaluate("[...document.querySelectorAll('#modal [data-pvi]')].map(c => c.checked)"), [True, True, False])
+        pg.click('#modal [data-pv="default"]')
+        self.assertEqual(pg.evaluate("[...document.querySelectorAll('#modal [data-pvi]')].map(c => c.checked)"), [True, False, True])
         pg.click("#mBtns button >> nth=0")
 
     def test_tagger_field_names_sort_cover(self):
@@ -480,7 +486,9 @@ class UiTest(unittest.TestCase):
         pg.click('.tg-row[data-i="0"] .nm')
         pg.evaluate("call('tag_add_field', [0], 'TXXX', 'CATALOGNUMBER', 'POL042', false).then(taggerApplyDetail)")
         pg.evaluate("call('tag_add_field', [0], 'TXXX', 'MYFIELD', 'x', false).then(taggerApplyDetail)")
+        pg.evaluate("call('tag_add_field', [0], 'TSST', '', 'Teil 1', false).then(taggerApplyDetail)")
         pg.wait_for_selector('.tg-f[data-key="TXXX:CATALOGNUMBER"]')
+        pg.wait_for_selector('.tg-f[data-key="TSST"]')
         k = pg.inner_text('.tg-f[data-key="TXXX:CATALOGNUMBER"] .k')
         self.assertIn("CATALOGNUMBER Benutzertext", " ".join(k.split()))      # Feldname vorne, Art dahinter
         lab = pg.locator('label[for="tgf-TIT2"]')
@@ -491,10 +499,16 @@ class UiTest(unittest.TestCase):
         self.assertIn("Herkunft", pg.inner_text("#tgMoreSort"))
         keys = pg.evaluate("[...document.querySelectorAll('.tg-f')].map(e => e.dataset.key)")
         self.assertLess(keys.index("TXXX:CATALOGNUMBER"), keys.index("TXXX:MYFIELD"))
+        self.assertEqual(keys[0], "TSST")                                      # offizielle ID3v2.4-Felder zuerst
         self.assertEqual(self.cfg_until(lambda c: c.get("web_ui", {}).get("tg_more_sort") == "src").get("web_ui", {}).get("tg_more_sort"), "src")
         # Cover-Knöpfe untereinander
         ys = pg.evaluate("['#tgCoverSet', '#tgCoverDel', '#tgCoverWeb'].map(s => document.querySelector(s).getBoundingClientRect().top)")
         self.assertTrue(ys[0] < ys[1] < ys[2], ys)
+        # #150: links Länge/Bewertung, rechts Bild-Info über den Knöpfen
+        g = pg.evaluate("""(() => { const r = (s) => document.querySelector(s).getBoundingClientRect();
+          return {len: r('.tg-cover-side .tg-lenrate').left, btn: r('#tgCoverSet').left, hint: r('.tg-cover-btns .hint').top, set: r('#tgCoverSet').top}; })()""")
+        self.assertLess(g["len"], g["btn"], g)
+        self.assertLess(g["hint"], g["set"], g)
 
     def test_tagger_columns_sort_view(self):
         """#152 Spalten anordnen, #154 weitere Spalten, #148 waagrecht blättern, #153 Sortierstufen, #155 Ansicht."""

@@ -1741,7 +1741,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
                         if dec is not None:
                             shown = "Serato " + dec["name"] + ": " + (dec.get("error") or dec["summary"])
                     fields.append({"key": k, "label": key_label(k), "name": field_name(k), "help": field_help(k),
-                                   "text": shown, "src": self._src(k, f), "ver": self._ver(k, f),
+                                   "text": shown, "src": self._src(k, f), "ver": self._ver(k, f), "official": self._official(k),
                                    "editable": core.can_edit_text(f, k) and xml is None,
                                    "multiline": "\n" in (it.text or "") or k.startswith(("COMM", "USLT")),
                                    "blob": blobs.is_blob(it),

@@ -667,11 +667,12 @@ function renderTgEditor() {
   const act = document.activeElement && box.contains(document.activeElement) ? document.activeElement.id : null;
   box.innerHTML = `${head}
     <div class="tg-cover"><button class="cover" id="tgCoverBig" title="${esc(c.desc || (c.state === "mixed" ? "unterschiedliche Cover" : "kein Cover"))}">${coverImg}</button>
-      <div class="tg-cover-btns"><div class="col">
-        <button class="ghost sm" id="tgCoverSet">Cover wählen …</button>
-        <button class="ghost sm" id="tgCoverDel" ${c.state === "none" ? "disabled" : ""}>Cover entfernen</button>
-        <button class="ghost sm" id="tgCoverWeb" title="Bildersuche im Browser mit Künstler, Titel bzw. Album – gefundenes Bild speichern und mit „Cover wählen …“ setzen">Cover im Internet suchen ↗</button></div>
-      <span class="hint" title="${esc(c.desc || "")}">${esc(c.desc || (c.state === "mixed" ? "unterschiedlich" : "kein Cover"))}</span><div class="tg-lenrate">${tgLength(d)}${d.rating ? rateHtml(d.rating.value, d.rating.like, { cls: "tg-rate", keys: true }) : ""}</div></div></div>
+      <div class="tg-cover-side">
+        <div class="tg-lenrate">${tgLength(d)}${d.rating ? rateHtml(d.rating.value, d.rating.like, { cls: "tg-rate", keys: true }) : ""}</div>
+        <div class="tg-cover-btns"><span class="hint" title="${esc(c.desc || "")}"><b>Cover</b> · ${esc(c.desc || (c.state === "mixed" ? "unterschiedlich" : "keines"))}</span><div class="col">
+        <button class="ghost sm" id="tgCoverSet" title="Cover aus einer Bilddatei setzen">Wählen …</button>
+        <button class="ghost sm" id="tgCoverDel" title="Cover entfernen" ${c.state === "none" ? "disabled" : ""}>Entfernen</button>
+        <button class="ghost sm" id="tgCoverWeb" title="Cover im Internet suchen: Bildersuche im Browser mit Künstler, Titel bzw. Album – gefundenes Bild speichern und mit „Wählen …“ setzen">Im Web suchen ↗</button></div></div></div></div>
     <div class="tg-form">${form}
       <label for="tgVer">ID3-Version</label><select id="tgVer" class="inp" style="height:36px"><option value="3">ID3v2.3 (verbreitet)</option><option value="4">ID3v2.4 (Mehrfachwerte)</option>${d.version ? "" : '<option value="" selected>verschieden</option>'}</select>
     </div>
@@ -728,12 +729,14 @@ function tgFieldNames(f) {
 /** #141: optional nach Herkunft sortieren – TagStudio (eigene Plugins) zuerst, dann alphabetisch, ohne Herkunft zuletzt */
 function tgMoreSorted(fields) {
   if (LAYOUT.tg_more_sort !== "src") return fields;
+  // #141: offizielle ID3v2.4-Felder, dann TagStudio/Plugins, dann Herkünfte alphabetisch, ohne Herkunft zuletzt
   const rank = (f) => {
-    if (!f.src) return [2, ""];
+    if (f.official) return [0, ""];
+    if (!f.src) return [3, ""];
     const o = srcInfo(f.src);
-    if (f.src === "tagstudio" || (o && o.kind === "plugin")) return [0, ""];
-    if (f.src === "unknown") return [2, ""];
-    return [1, ((o && o.name) || f.src).toLowerCase()];
+    if (f.src === "tagstudio" || (o && o.kind === "plugin")) return [1, ""];
+    if (f.src === "unknown") return [3, ""];
+    return [2, ((o && o.name) || f.src).toLowerCase()];
   };
   return fields.map((f, k) => ({ f, k, r: rank(f), n: tgFieldNames(f).main.toLowerCase() }))
     .sort((a, b) => a.r[0] - b.r[0] || a.r[1].localeCompare(b.r[1]) || a.n.localeCompare(b.n) || a.k - b.k)
@@ -842,7 +845,7 @@ function tgEditMore(row) {
   const i = tgSelected()[0];
   if (f.xml) return openXml(null, key, { tag: i });
   if (f.blob) return tgBlobEditor(key);
-  if (!f.editable) { toast(key.startsWith("APIC") ? "Bilder über „Cover wählen …“ ändern." : "Dieses Feld kann nicht als Text bearbeitet werden."); return; }
+  if (!f.editable) { toast(key.startsWith("APIC") ? "Bilder über Cover › „Wählen …“ ändern." : "Dieses Feld kann nicht als Text bearbeitet werden."); return; }
   if (f.multiline || mvDetect(f.edit, key) || isJsonDoc(f.edit) || (COLOR_KEY_RE.test(key) && colorInfo(f.edit))) return tgFieldEditor(key);    // mehrzeilig oder Mehrfachwerte → Editor
   const v = row.querySelector(".v");
   const inp = document.createElement("input");
