@@ -1342,7 +1342,14 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin):
 
         def job(cancel, progress):
             stats = {}
+            t0 = time.time()
             files, errors = core.load_files(path, bool(recursive), cancel, progress, self.reg, self._list_cache_on(), stats)
+            try:                                       # #137: Dauer fürs App-Protokoll (Wartezeit beim Start eingrenzen)
+                import applog
+                applog.info(f"Tagger eingelesen: {len(files)} Datei(en), {len(stats.get('cached') or [])} aus dem Cache, "
+                            f"{time.time() - t0:.1f} s – {path}")
+            except Exception:  # noqa: BLE001
+                pass
             with self.lock:
                 self.tag_files = files
                 self.tag_root = path if os.path.isdir(path) else os.path.dirname(path)

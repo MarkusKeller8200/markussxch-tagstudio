@@ -48,10 +48,45 @@ async function tgAutoStartRun() {
     if (!st.exists) { status(`Zuletzt geladener Tagger-Ordner nicht gefunden: ${st.root}`, "warn"); return; }
     $("#tgPath").value = st.root; $("#tgRec").checked = !!st.recursive;
     TG.restore = st;
-    await taggerLoad();
+    await tgLoadBackground();
   } else if (start === "default" && $("#tgPath").value) {
-    await taggerLoad();
+    await tgLoadBackground();
   }
+}
+
+/** #137: Ordner beim Start ohne Fortschrittsfenster einlesen – die App ist sofort bedienbar, Fortschritt in der
+    Liste und in der Fusszeile. Andere Vorgänge warten (BG in app.js); „Einlesen“ von Hand bricht es ab. */
+async function tgLoadBackground() {
+  const path = $("#tgPath").value.trim(), rec = $("#tgRec").checked;
+  if (typeof homeSync === "function") homeSync();
+  const r = await callNow("start_tag_load", path, rec);
+  if (!r.ok) { status(r.error, "warn"); return; }
+  let done;
+  BG.kind = "tagload";
+  BG.p = new Promise((res) => { done = res; });
+  TG.bg = { text: "Tagger-Ordner wird eingelesen …" };
+  drawTgList();
+  let res = null;
+  try {
+    for (;;) {
+      const t = await callNow("task_status");
+      const txt = t.total ? `Tagger-Ordner wird eingelesen … ${fmtN(t.i)} von ${fmtN(t.total)}` : (t.text || "Tagger-Ordner wird eingelesen …");
+      if (TG.bg) { TG.bg.text = txt; const el = $("#tgBgText"); if (el) el.textContent = txt; }
+      status(txt);
+      if (t.done) {
+        if (t.error) status("Einlesen fehlgeschlagen: " + t.error, "warn"); else res = t.result;
+        break;
+      }
+      await new Promise((ok) => setTimeout(ok, 150));
+    }
+  } finally {
+    TG.bg = null;
+    BG.p = null; BG.kind = "";
+    done();
+  }
+  if (!res) { drawTgList(); return; }
+  if (res.cancelled) { status("Einlesen abgebrochen.", "warn"); drawTgList(); return; }
+  await tgAfterLoad(res, path, rec);
 }
 
 async function taggerShow() {
@@ -108,16 +143,25 @@ function tgStateApply(st) {
 }
 
 async function taggerLoad() {
+  if (BG.p && BG.kind === "tagload") {        // #137: Einlesen beim Start läuft noch → abbrechen, neu einlesen
+    TG.restore = null;
+    await callNow("cancel_task").catch(() => {});
+    await BG.p.catch(() => {});
+  }
   if (!(await confirmDiscard())) return;
   const path = $("#tgPath").value.trim();
   if (typeof homeSync === "function") homeSync();
   const res = await runTask(call("start_tag_load", path, $("#tgRec").checked), "Dateien einlesen");
   if (!res) return;
   if (res.cancelled) { status("Einlesen abgebrochen.", "warn"); return; }
+  await tgAfterLoad(res, path, $("#tgRec").checked);
+}
+
+async function tgAfterLoad(res, path, rec) {
   TG.settings = await call("tagger_settings");
   $("#histTg").innerHTML = TG.settings.hist.map((h) => `<option value="${esc(h)}"></option>`).join("");
   if (typeof plForget === "function") plForget("tag");     // Indizes gelten nur für die vorige Liste
-  await tgAdopt(await call("tag_rows"), path, $("#tgRec").checked);
+  await tgAdopt(await call("tag_rows"), path, rec);
   if (S.pairs.length) await refreshAll();  // gemeinsames Register: Vergleich frisch halten
   status(`${fmtN(res.files)} Datei(en) im Tagger${res.stems ? ` · ${fmtN(res.stems)} mit Stems (▸ aufklappen)` : ""}.`, res.files ? "ok" : "warn");
   if (typeof verifyWatch === "function") verifyWatch(res, `${fmtN(res.files)} Datei(en) im Tagger`);
@@ -293,6 +337,7 @@ function renderTgHead() {
 
 function drawTgList() {
   const sc = $("#tgScroll"), inner = $("#tgInner");
+  if (!TG.loaded && TG.bg) { inner.innerHTML = `<div class="tg-empty tg-bg"><span class="spin"></span> <span id="tgBgText">${esc(TG.bg.text)}</span><div class="muted sm">Du kannst schon weiterarbeiten – „Einlesen“ bricht ab und lädt neu.</div></div>`; inner.style.height = ""; return; }
   if (!TG.loaded) { inner.innerHTML = '<div class="tg-empty">Oben einen Ordner oder eine MP3-Datei wählen und auf <b>Einlesen</b> klicken.</div>'; inner.style.height = ""; return; }
   if (!TG.view.length) { inner.innerHTML = `<div class="tg-empty">${TG.rows.length ? "Keine Datei passt zum Filter." : "Keine MP3-Dateien gefunden."}</div>`; return; }
   const first = Math.max(0, Math.floor(sc.scrollTop / TG_ROW) - 6);

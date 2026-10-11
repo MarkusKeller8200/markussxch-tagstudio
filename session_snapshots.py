@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import time
 
 
 import core
@@ -221,6 +222,7 @@ class SnapshotMixin:
         st = self.snap_store
         today = datetime.date.today().isoformat()
         out = []
+        t0 = time.time()
         libs = st.libraries() if os.path.isdir(st.root) else []
         labels = self._lib_labels(libs)
         for lib in libs:
@@ -235,6 +237,13 @@ class SnapshotMixin:
                                           "age": snapshots.fmt_age(last["created"])},
                         "due": lib.get("auto", True) and (not last or not any(s["created"][:10] == today and s.get("auto")
                                                                            for s in st.snapshots(lib["id"])))})
+        if libs:
+            try:                                       # #137: Dauer fürs App-Protokoll
+                import applog
+                applog.info(f"Snapshots-Startprüfung: {len(libs)} Ordner, {sum(x.get('total', 0) for x in out)} Datei(en), "
+                            f"{time.time() - t0:.1f} s")
+            except Exception:  # noqa: BLE001
+                pass
         return {"libs": out, "ask": bool(self._snap_cfg("snap_ask")), "daily": bool(self._snap_cfg("snap_daily")),
                 "hint": bool(self._snap_cfg("snap_hint"))}
 

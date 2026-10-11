@@ -85,7 +85,8 @@ und darüber installieren – Einstellungen, Sicherungen und Plugin-Daten liegen
 
 Seitenleiste mit **Tagger, Tag-Fixer, Vergleich, DJ-Set, Snapshots, Sicherungen, Plugins, Einstellungen**, unten
 „Nach Update suchen“, Versionshinweise, Einklappen und Hell/Dunkel. Beim Start öffnet die zuletzt benutzte Seite
-(beim ersten Start der Tagger). Der Tagger lädt beim Start den zuletzt geladenen Ordner und stellt Markierung,
+(beim ersten Start der Tagger). Der Tagger lädt beim Start den zuletzt geladenen Ordner im Hintergrund (die App ist
+sofort bedienbar) und stellt Markierung,
 Sortierung, Filter und Bildlauf wieder her (Einstellungen › Tagger › „Beim Start laden“: zuletzt geladen, Standardordner
 oder nichts). Vergleich und Tagger arbeiten mit denselben Dateien – Änderungen sind in beiden sichtbar, werden
 zusammen gespeichert (Strg/Cmd+S) und lassen sich gemeinsam rückgängig machen.

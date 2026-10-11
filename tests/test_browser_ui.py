@@ -228,9 +228,14 @@ class UiTest(unittest.TestCase):
         self.assertEqual((st["sort"], st["query"], st["root"]), ({"col": "TIT2", "dir": -1}, "Ton", self.lib))
         pg.click('.nav[data-module="djset"]')
         time.sleep(0.5)
-        # App neu starten (neuer Server, gleiches Benutzerverzeichnis)
+        # App neu starten (neuer Server, gleiches Benutzerverzeichnis); #137: ohne Fortschrittsfenster einlesen
+        self.ctx.add_init_script("""document.addEventListener('DOMContentLoaded', () => {
+            window.__prog = 0; const el = document.getElementById('progress');
+            new MutationObserver(() => { if (!el.hidden) window.__prog++; }).observe(el, {attributes: true}); });""")
         pg = self.restart()
         self.assertTrue(self.until("TG.loaded && TG.rows.length === 3", 15))
+        self.assertEqual(pg.evaluate("window.__prog"), 0, "Fortschrittsfenster beim Start")
+        self.assertIn("im Tagger", pg.inner_text("#statusText"))
         self.assertEqual(pg.evaluate("S.module"), "djset")
         self.assertEqual(pg.evaluate("[TG.sort.col, TG.sort.dir, document.querySelector('#tgQuery').value]"), ["TIT2", -1, "Ton"])
         self.assertEqual(sorted(pg.evaluate("[...TG.sel].map(i => TG.rows[i].rel)")), sorted(st["sel"]))

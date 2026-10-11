@@ -10,7 +10,16 @@ const pywebviewReady = new Promise((resolve) => {
   window.addEventListener("pywebviewready", () => resolve(true));
 });
 
+// #137: Einlesen im Hintergrund beim Start – andere Vorgänge (start_*) warten, bis es fertig ist
+const BG = { p: null, kind: "" };
 async function call(name, ...args) {
+  if (BG.p && /^start_/.test(name)) {
+    if (typeof toast === "function") toast("Einen Moment – der Tagger-Ordner wird noch eingelesen …");
+    await BG.p.catch(() => {});
+  }
+  return callNow(name, ...args);
+}
+async function callNow(name, ...args) {
   if (await pywebviewReady) return window.pywebview.api[name](...args);
   const res = await fetch("/api/" + name, {
     method: "POST", headers: { "Content-Type": "application/json", "X-Token": TOKEN }, body: JSON.stringify(args),
