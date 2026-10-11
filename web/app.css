@@ -499,6 +499,8 @@ span.xml-treeonly{display:contents}
 .pl-path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pl-folder{display:flex;gap:8px;min-width:0}
 .pl-folder input{flex:1}
+.pl-folders{display:flex;flex-direction:column;gap:6px;min-width:0}
+.pl-folders button{align-self:flex-start}
 .pl-log{margin:10px 0 0;max-height:40vh;overflow:auto;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--line);font-size:12px;white-space:pre-wrap}
 .tg-plugins h4{margin:4px 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
 .switch{position:relative;width:40px;height:22px;flex:none;cursor:pointer}

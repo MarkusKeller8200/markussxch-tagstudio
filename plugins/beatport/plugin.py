@@ -74,7 +74,7 @@ ACTIONS = [
      "description": "#117 (Machbarkeit): liest die gekauften Titel deines Beatport-Kontos und prüft, welche in deinen Ordnern "
                     "schon vorhanden sind. Es wird noch nichts heruntergeladen – Ergebnis als CSV-Liste.",
      "options": [
-         {"key": "folders", "type": "textarea", "label": "Ordner zum Abgleich (je Zeile einer, z. B. Bibliothek und Eingang)"},
+         {"key": "folders", "type": "folders", "label": "Ordner zum Abgleich (z. B. Bibliothek und Eingang)"},
          {"key": "max", "type": "number", "label": "Höchstens so viele Käufe lesen", "default": 2000},
          {"type": "info", "label": "Abgleich über Beatport-ID (TXXX:BEATPORT_TRACK_ID), ISRC oder Künstler + Titel + Mix."},
      ]},

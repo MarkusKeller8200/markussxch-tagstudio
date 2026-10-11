@@ -7,6 +7,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- Beatport › „Gekaufte Titel abgleichen“: Ordner zum Abgleich per **„+ Ordner …“** auswählen (Dateiauswahl, je Zeile
+  ein Ordner); neuer Optionstyp `folders` für Plugins (#117).
 - **Hilfe › Tag-Übersicht als eine Tabelle:** statt einzelner Abschnitte eine durchgehende Tabelle mit
   **Gruppenzeilen zum Auf- und Zuklappen** (wie Stems im Tagger), **Filter nach Gruppen** (Mehrfachauswahl) und
   **Sortieren** nach Tag, Mp3tag-Name, „Mit“ oder „Ohne“ (innerhalb der Gruppen); Kopfzeile bleibt beim Blättern

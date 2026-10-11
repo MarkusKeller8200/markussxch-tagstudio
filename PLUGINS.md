@@ -109,7 +109,7 @@ def run(action, ctx, files, options):
 Weitere Angaben je Aktion:
 
 - `"where": "page"` – Knopf auf der Plugin-Karte statt im Tagger (z. B. Anmelden); dann meist `"needs_selection": false`.
-- Optionstypen zusätzlich `password` (wird nie gespeichert), `textarea`; `"secret": true` verhindert das Merken
+- Optionstypen zusätzlich `password` (wird nie gespeichert), `textarea`, `folders` (mehrere Ordner, je Zeile einer, mit Auswahl-Knopf „+ Ordner …“); `"secret": true` verhindert das Merken
   bei jedem Typ. `"show_if": {"method": "login"}` zeigt ein Feld nur, wenn ein anderes Feld diesen Wert hat.
 - Eine Funktion `status(ctx)` im Plugin liefert einen Statustext für die Karte (z. B. „Angemeldet als …“).
 

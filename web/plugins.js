@@ -98,6 +98,7 @@ function pluginOptionInner(o, id) {
   if (o.type === "textarea") return lab + `<textarea id="${id}" class="inp pl-ta" data-ok="${esc(o.key)}" spellcheck="false" rows="4">${esc(o.value)}</textarea>`;
   if (o.type === "check") return `<span></span><label class="check"><input type="checkbox" id="${id}" data-ok="${esc(o.key)}" ${o.value ? "checked" : ""}> ${esc(o.label || o.key)}</label>`;
   if (o.type === "select") return lab + `<select id="${id}" class="inp" data-ok="${esc(o.key)}">${(o.choices || []).map((c) => { const [v, l] = Array.isArray(c) ? c : [c, c]; return `<option value="${esc(v)}" ${String(v) === String(o.value) ? "selected" : ""}>${esc(l)}</option>`; }).join("")}</select>`;
+  if (o.type === "folders") return lab + `<div class="pl-folders"><textarea id="${id}" class="inp pl-ta" data-ok="${esc(o.key)}" spellcheck="false" rows="3" placeholder="Je Zeile ein Ordner">${esc(o.value)}</textarea><button class="ghost sm" data-plpick="${id}" data-add="1" title="Ordner auswählen und als neue Zeile anfügen">+ Ordner …</button></div>`;
   if (o.type === "folder") return lab + `<div class="pl-folder"><input id="${id}" data-ok="${esc(o.key)}" value="${esc(o.value)}" spellcheck="false" placeholder="Ordner …"><button class="ghost sm" data-plpick="${id}">Wählen …</button></div>`;
   return lab + `<input id="${id}" data-ok="${esc(o.key)}" ${o.type === "number" ? 'type="number" step="any"' : ""} value="${esc(o.value)}" spellcheck="false">`;
 }
@@ -120,8 +121,10 @@ async function pluginRun(pid, aid) {
       });
       b.querySelectorAll("[data-plpick]").forEach((btn) => btn.addEventListener("click", async () => {
         const inp = $("#" + btn.dataset.plpick, b);
-        const p = await call("pick_path", "", true, inp.value.trim());
-        if (p) inp.value = p; else if (!S.settings.native) toast("Pfad bitte direkt ins Feld eintippen.");
+        const add = !!btn.dataset.add, lines = inp.value.split("\n").map((x) => x.trim()).filter(Boolean);
+        const p = await call("pick_path", "", true, add ? (lines[lines.length - 1] || "") : inp.value.trim());
+        if (p) inp.value = add ? [...lines.filter((x) => x.toLowerCase() !== p.toLowerCase()), p].join("\n") : p;
+        else if (!S.settings.native) toast("Pfad bitte direkt ins Feld eintippen.");
       }));
       const sync = () => b.querySelectorAll("[data-showif]").forEach((el) => {
         const cond = JSON.parse(el.dataset.showif);
