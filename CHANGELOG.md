@@ -35,6 +35,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   [docs/KONZEPT-SPEICHER.md](docs/KONZEPT-SPEICHER.md).
 - **Projektstand und Übergabe** im Repo: [docs/PROJEKTSTAND.md](docs/PROJEKTSTAND.md),
   [docs/UEBERGABE.md](docs/UEBERGABE.md), [docs/PROJEKTSTAND-ARCHIV.md](docs/PROJEKTSTAND-ARCHIV.md).
+- **Übersicht Tag-Programme und Musik-Plattformen** mit Kurzbeschreib, Link und Kosten (Stand Oktober 2026):
+  [Word](docs/Tag-Programme-und-Musik-Plattformen.docx), [PDF](docs/Tag-Programme-und-Musik-Plattformen.pdf).
 - **Konzepte nachgetragen** für Tagger, Tag-Fixer, Vergleich, DJ-Set, Plugins, Einstellungen, Hilfe, Update, Player und
   App/Oberfläche (`docs/KONZEPT-*.md`) – werden bei jeder Weiterarbeit an der Funktion nachgeführt.
 - **Seitenleiste:** Menüpunkte lassen sich ausblenden (Einstellungen › Darstellung) (#169).

@@ -51,6 +51,7 @@ Zug nachführen.**
 | WAV (geplant) | [KONZEPT-WAV.md](KONZEPT-WAV.md) |
 | Mehrsprachigkeit (geplant) | [KONZEPT-MEHRSPRACHIG.md](KONZEPT-MEHRSPRACHIG.md) |
 | ID3-Felder (Nachschlagen) | [ID3-FELDER.md](ID3-FELDER.md) |
+| Programme und Plattformen (Kosten, Stand 10/2026) | [Word](Tag-Programme-und-Musik-Plattformen.docx), [PDF](Tag-Programme-und-Musik-Plattformen.pdf) – Original als Claude-Doc |
 
 ## Regeln des Users
 
