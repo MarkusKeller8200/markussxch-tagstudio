@@ -367,6 +367,34 @@ class UiTest(unittest.TestCase):
         pg.click("#mBtns .primary")
         self.assertTrue(self.until("S.view.rows.find(r => r.key === 'TXXX:DATA').L.text.includes('Break')"))
 
+    def test_journal_export_rows(self):
+        """#59: Journal berechnen, Export-Menü, Zeilen je Feld mit Filter."""
+        pg = self.pg
+        lid = pg.evaluate(f"call('snap_add_library', {json.dumps(self.lib)}).then(r => r.library.id)")
+        pg.evaluate(f"call('snap_create', '{lid}', 'Vorher', false, false)")
+        self.assertTrue(self.until(f"call('snap_list', '{lid}').then(r => r.snapshots.length === 1)"))
+        from id3tags import MP3File
+        f = MP3File(os.path.join(self.lib, "01 Ton 220.mp3"))
+        f.set_text("TKEY", "8A")
+        f.set_text("TIT2", "Neu")
+        f.save()
+        t = time.time() + 5
+        os.utime(f.path, (t, t))
+        pg.click('.nav[data-module="snapshots"]')
+        pg.wait_for_selector("#snRun")
+        pg.wait_for_function("SN.lid && SN.a")
+        pg.click("#snRun")
+        pg.wait_for_function("SN.j && SN.j.rows.length === 1")
+        pg.click("#snExport")
+        self.assertTrue(pg.locator("#menu button", has_text="Excel (.xlsx)").is_visible())
+        pg.evaluate("hideMenu()")
+        rows = pg.evaluate("snExportRows()")
+        self.assertEqual(sorted(r[5] for r in rows), ["TIT2", "TKEY"])
+        self.assertEqual(rows[0][0], "01 Ton 220.mp3")
+        pg.select_option("#snFkey", "TKEY")
+        rows = pg.evaluate("snExportRows()")
+        self.assertEqual([(r[5], r[6], r[7]) for r in rows], [("TKEY", "", "8A")])
+
     def test_snapshot_baseline(self):
         """Neue Baseline: aus dem aktuellen Stand, ältere Snapshots löschen (angeheftete nur auf Wunsch)."""
         pg = self.pg
