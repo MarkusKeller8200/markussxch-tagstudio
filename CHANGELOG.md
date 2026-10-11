@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.2.0] – 2026-10-11
+
 ### Neu
 - Neues Plugin **Mixed In Key übernehmen**: liest Tonart, BPM und Energie, die Mixed In Key in Kommentar, Titel,
   Künstler, Gruppierung, Label oder TXXX:EnergyLevel geschrieben hat, und schlägt TKEY (in deiner Schreibweise),
