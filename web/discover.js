@@ -43,18 +43,20 @@ function discRender() {
     return;
   }
   const src = { deezer: "Deezer", beatport: "Beatport" };
-  $("#discList").innerHTML = `<table class="disc-t"><thead><tr><th></th><th></th><th>Titel</th><th>Label · Release</th><th>Datum</th><th>Quelle</th><th></th></tr></thead><tbody>
+  $("#discList").innerHTML = `<table class="disc-t"><thead><tr><th></th><th></th><th>Künstler</th><th>Titel</th><th>Label</th><th>Datum</th><th>BPM · Tonart</th><th>Quelle</th><th></th></tr></thead><tbody>
     ${rows.map((e) => `<tr data-k="${esc(e.key)}" class="st-${e.status}${e.owned ? " owned" : ""}">
       <td><button class="icon-btn play ${DISC.playing === e.key ? "on" : ""}" data-a="play" ${e.preview ? "" : "disabled"} title="${e.preview ? "Vorhören (Ausschnitt)" : "kein Vorhör-Ausschnitt"}" aria-label="Vorhören">${DISC.playing === e.key ? "❚❚" : "▶"}</button></td>
-      <td>${e.cover ? `<img src="${esc(e.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}</td>
-      <td class="nm"><b>${esc(e.title)}</b>${e.mix ? ` <span class="muted">(${esc(e.mix)})</span>` : ""}${e.status === "new" && DISC.filter !== "new" ? '<span class="disc-badge">neu</span>' : ""}${e.owned ? '<span class="disc-badge" title="Gleicher Künstler und Titel ist schon in der Bibliothek">vorhanden</span>' : ""}<br><span class="muted sm">${esc(e.artist)}</span></td>
-      <td class="sm">${esc(e.label || "")}${e.release ? `<br><span class="muted">${esc(e.release)}</span>` : ""}</td>
-      <td class="sm">${esc((e.date || "").slice(0, 10))}${e.bpm || e.key_name ? `<br><span class="muted">${esc([e.bpm ? e.bpm + " BPM" : "", e.key_name].filter(Boolean).join(" · "))}</span>` : ""}</td>
-      <td class="sm" title="${esc(e.seed || "")}">${esc(src[e.src] || e.src)}${e.genre ? `<br><span class="muted">${esc(e.genre)}</span>` : ""}</td>
-      <td class="d-acts"><button class="ghost sm" data-a="open" title="Auf ${esc(src[e.src] || e.src)} öffnen (Kauf nur dort)">Öffnen</button>
+      <td class="cv">${e.cover ? `<img src="${esc(e.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer"><img class="big" src="${esc(e.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}</td>
+      <td class="ell" title="${esc(e.artist)}">${esc(e.artist)}</td>
+      <td class="ell nm" title="${esc(e.title + (e.mix ? ` (${e.mix})` : ""))}"><b>${esc(e.title)}</b>${e.mix ? ` <span class="muted">(${esc(e.mix)})</span>` : ""}${e.status === "new" && DISC.filter !== "new" ? '<span class="disc-badge">neu</span>' : ""}${e.owned ? '<span class="disc-badge" title="Gleicher Künstler und Titel ist schon in der Bibliothek">vorhanden</span>' : ""}</td>
+      <td class="ell sm" title="${esc([e.label, e.release].filter(Boolean).join(" – "))}">${esc(e.label || "")}</td>
+      <td class="sm nw">${esc((e.date || "").slice(0, 10))}</td>
+      <td class="sm nw muted">${esc([e.bpm ? e.bpm : "", e.key_name].filter(Boolean).join(" · "))}</td>
+      <td class="sm nw" title="${esc([e.seed, e.genre].filter(Boolean).join(" · "))}">${esc(src[e.src] || e.src)}</td>
+      <td class="d-acts"><div class="d-row"><button class="ghost sm" data-a="open" title="Auf ${esc(src[e.src] || e.src)} öffnen (Kauf nur dort)">Öffnen</button>
         ${e.status !== "saved" ? '<button class="icon-btn" data-a="saved" title="Merken">☆</button>' : '<button class="icon-btn" data-a="new" title="Nicht mehr merken">★</button>'}
         ${e.status !== "bought" ? '<button class="icon-btn" data-a="bought" title="Als gekauft markieren">✓</button>' : ""}
-        ${e.status !== "hidden" ? '<button class="icon-btn" data-a="hidden" title="Ausblenden">✕</button>' : '<button class="icon-btn" data-a="new" title="Wieder anzeigen">↺</button>'}</td></tr>`).join("")}
+        ${e.status !== "hidden" ? '<button class="icon-btn" data-a="hidden" title="Ausblenden">✕</button>' : '<button class="icon-btn" data-a="new" title="Wieder anzeigen">↺</button>'}</div></td></tr>`).join("")}
     </tbody></table>${discRows().length > 1000 ? '<div class="muted sm" style="padding:8px">Die ersten 1000 Einträge – Suche oder Filter einschränken.</div>' : ""}`;
 }
 

@@ -1285,12 +1285,19 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .disc-acts{margin-left:auto;display:flex;gap:8px}
 .disc-t{border-collapse:collapse;width:100%;font-size:13px}
 .disc-t th{text-align:left;font-weight:600;color:var(--dim);font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surf)}
-.disc-t td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.disc-t td{padding:2px 8px;border-bottom:1px solid var(--line);vertical-align:middle;height:34px}
+.disc-t td.ell{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.disc-t td.nw{white-space:nowrap}
+.disc-t td.cv{position:relative;width:30px}
+.disc-t td.cv img.big{display:none;position:absolute;left:34px;top:50%;transform:translateY(-50%);width:180px;height:180px;z-index:5;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.disc-t td.cv:hover img.big{display:block}
+.disc-t .d-row{display:flex;gap:2px;align-items:center;justify-content:flex-end;flex-wrap:nowrap}
 .disc-t tr.owned td{opacity:.55}
 .disc-t tr.st-saved .nm b{color:var(--acc)}
-.disc-t img{width:36px;height:36px;border-radius:4px;object-fit:cover;display:block;background:var(--line)}
+.disc-t img{width:26px;height:26px;border-radius:3px;object-fit:cover;display:block;background:var(--line)}
 .disc-t .d-acts{white-space:nowrap;text-align:right}
-.disc-t .play{width:30px;height:30px;border-radius:50%}
+.disc-t .play{width:26px;height:26px;border-radius:50%}
+.disc-t .icon-btn{width:26px;height:26px}
 .disc-t .play.on{background:var(--acc-soft);color:var(--acc)}
 .disc-badge{font-size:10.5px;padding:0 5px;border-radius:8px;background:var(--acc-soft);color:var(--acc);margin-left:4px}
 .disc-f textarea{width:100%;min-height:110px;resize:vertical}

@@ -7,6 +7,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Entdecken:** kompakte, einzeilige Tabelle (eigene Spalten Künstler, Titel, Label, Datum, BPM · Tonart, Quelle),
+  kleines Cover mit **Vergrösserung beim Darüberfahren**, Knöpfe nebeneinander (#120).
 - Beatport › „Gekaufte Titel abgleichen“: Ordner zum Abgleich per **„+ Ordner …“** auswählen (Dateiauswahl, je Zeile
   ein Ordner); neuer Optionstyp `folders` für Plugins (#117).
 - **Hilfe › Tag-Übersicht als eine Tabelle:** statt einzelner Abschnitte eine durchgehende Tabelle mit
