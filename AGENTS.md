@@ -12,6 +12,10 @@ Vor Architekturentscheidungen, neuen Modulen oder grösseren Codeänderungen unb
 - [`docs/PROJEKTSTAND.md`](docs/PROJEKTSTAND.md) – tatsächlicher Implementierungsstand
 - passende `docs/KONZEPT-*.md`-Datei für den zu bearbeitenden Funktionsbereich
 
+## Aktuelle Iterationsplanung
+
+**4.4.1:** [Planungs-Issue #188](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/188) für #181 und #182; beide mit `_1 bereit` genehmigt. **4.5.0:** [Planungs-Issue #189](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/189) für #183–#185, weiterhin `idee` (keine Implementierungsfreigabe). **Später:** #186 und #187; Nutzer-Issues aus GitHub-Feedback nur nach Owner-Freigabe. Meilensteine sind noch in GitHub anzulegen.
+
 ## Verbindliche Leitplanken
 
 - TagStudio bleibt eine Anwendung für Musikverwaltung, Tagging, Analyse und DJ-Set-Planung; keine vollwertige DJ-Mixing-Software oder DAW entwickeln.

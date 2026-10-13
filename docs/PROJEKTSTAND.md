@@ -139,6 +139,15 @@
 - `~/.tagstudio.json` (neu: `tagger_state`, `player_resume`, `window`, `player.resume_play`), `~/.tagstudio.lock`.
 - `~/TagStudio`: Sicherungen, cache, Plugins, Plugin-Daten, Logs (`app.log`).
 
+## Geplante Iterationen 4.4.1 und 4.5.0 (Entscheid 2026-10-14)
+
+**Planung freigegeben, Implementierung noch nicht abgeschlossen.** Details und Abnahmekriterien: [Releaseplanung 4.4.1 (#188)](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/188), [Releaseplanung 4.5.0 (#189)](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/189).
+
+- **4.4.1 – Player-Stabilität zuerst:** [#181 Offbeat-Übergänge korrigieren](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/181) und [#182 Takt-/Cue-Sprünge](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/182); beide explizit mit `_1 bereit` für die Entwicklung freigegeben. Tests und Vorschauqualität haben Vorrang; kein ungefragter JUCE-/GUI-Umbau.
+- **4.5.0 – Tagger & Metadaten danach:** [#184 Bibliotheksaufnahme](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/184), [#185 Letzte Bearbeitung](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/185), [#183 LRCLIB-Lyrics](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/183). Diese Issues sind **weiterhin `idee`** und noch nicht zur Umsetzung freigegeben.
+- **Später / Konzeptphase:** [#186 Neues Modul IDEE](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/186), [#187 GitHub-Meldeformular mit Eigentümerfreigabe](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/187), [#180 1001Tracklists](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/180) und die grössere Analyse-/Audio-Architektur.
+- **Meilensteinpflege:** Das Release [v4.4.0](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/tag/v4.4.0) ist veröffentlicht und **alle 17 zugehörigen Issues sind geschlossen**. Der GitHub-Meilenstein [#10](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/10) steht aber noch auf `open` und muss in GitHub separat geschlossen werden. GitHub-Meilensteine `4.4.1` und `4.5.0` sind **noch nicht angelegt**; bis dahin dienen #188/#189 als Planungsübersicht. Die vorhandene GitHub-Anbindung kann Issues pflegen, aber keine Meilensteine erstellen/schliessen.
+
 ## Offene Meilensteine und Issues
 
 - **#10 „4.4.0 – …“:** abgeschlossen mit 4.4.0 final (2026-10-12).
