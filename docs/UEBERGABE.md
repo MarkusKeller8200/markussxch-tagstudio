@@ -70,7 +70,7 @@ Zug nachführen.**
 - **4.4.1 – Player-Stabilität zuerst:** [#181 Offbeat-Übergänge korrigieren](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/181) und [#182 Takt-/Cue-Sprünge](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/182); beide explizit mit `_1 bereit` für die Entwicklung freigegeben. Tests und Vorschauqualität haben Vorrang; kein ungefragter JUCE-/GUI-Umbau.
 - **4.5.0 – Tagger & Metadaten danach:** [#184 Bibliotheksaufnahme](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/184), [#185 Letzte Bearbeitung](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/185), [#183 LRCLIB-Lyrics](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/183). Diese Issues sind **weiterhin `idee`** und noch nicht zur Umsetzung freigegeben.
 - **Später / Konzeptphase:** [#186 Neues Modul IDEE](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/186), [#187 GitHub-Meldeformular mit Eigentümerfreigabe](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/187), [#180 1001Tracklists](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/180) und die grössere Analyse-/Audio-Architektur.
-- **Meilensteinpflege:** Das Release [v4.4.0](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/tag/v4.4.0) ist veröffentlicht und **alle 17 zugehörigen Issues sind geschlossen**. Der GitHub-Meilenstein [#10](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/10) steht aber noch auf `open` und muss in GitHub separat geschlossen werden. GitHub-Meilensteine `4.4.1` und `4.5.0` sind **noch nicht angelegt**; bis dahin dienen #188/#189 als Planungsübersicht. Die vorhandene GitHub-Anbindung kann Issues pflegen, aber keine Meilensteine erstellen/schliessen.
+- **Meilensteinpflege (am 14.10.2026 geprüft):** Das Release [v4.4.0](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/tag/v4.4.0) ist veröffentlicht; der GitHub-Meilenstein [#10](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/10) ist **geschlossen** (17 von 17 Issues erledigt). Die neu angelegten Meilensteine [#14 – 4.4.1 Player-Stabilität](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/14) enthalten #181, #182 und Planungs-Issue #188; [#15 – 4.5.0 Tagger & Metadaten](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/15) enthalten #183–#185 und Planungs-Issue #189. Alle übrigen neun offenen Ideen sind [#4 – Idee (Später)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/4) zugeordnet. **Kein offenes Issue ohne Meilenstein** (16 von 16). Aktuell kein weiteres ungeplantes BugFixes-Issue.
 
 ## Offen (Stand 4.4.0 final)
 
@@ -78,7 +78,7 @@ Zug nachführen.**
 
 
 - 4.4.0 ist final (2026-10-12), Meilenstein #10 geschlossen; alle Issues getestet und geschlossen.
-- Nächster Meilenstein noch nicht geplant – „Später“: #9, #14, #107, #108, #156 WAV, #157 Mehrsprachigkeit.
+- Nächste Iterationen: #14 «4.4.1» und #15 «4.5.0» wie oben; «Idee (Später)» (#4): #9, #14, #107, #108, #156, #157, #180, #186 und #187.
 - Monatlich: Issue „Fremdkomponenten: Änderungen prüfen“ durchsehen, Stände mit
   `python .github/scripts/third_party_check.py --apply datei.json` übernehmen.
 - Neue Fremdkomponenten immer in `docs/third-party.json` eintragen.

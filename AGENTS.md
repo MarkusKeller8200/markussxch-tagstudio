@@ -14,7 +14,7 @@ Vor Architekturentscheidungen, neuen Modulen oder grösseren Codeänderungen unb
 
 ## Aktuelle Iterationsplanung
 
-**4.4.1:** [Planungs-Issue #188](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/188) für #181 und #182; beide mit `_1 bereit` genehmigt. **4.5.0:** [Planungs-Issue #189](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/189) für #183–#185, weiterhin `idee` (keine Implementierungsfreigabe). **Später:** #186 und #187; Nutzer-Issues aus GitHub-Feedback nur nach Owner-Freigabe. Meilensteine sind noch in GitHub anzulegen.
+**4.4.1:** [Planungs-Issue #188](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/188) für #181 und #182; beide mit `_1 bereit` genehmigt. **4.5.0:** [Planungs-Issue #189](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/189) für #183–#185, weiterhin `idee` (keine Implementierungsfreigabe). **Später:** #186 und #187; Nutzer-Issues aus GitHub-Feedback nur nach Owner-Freigabe. Die GitHub-Meilensteine [#14 (4.4.1)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/14) und [#15 (4.5.0)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/15) sind angelegt; alle 16 offenen Issues sind entweder diesen oder [#4 – Idee (Später)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/4) zugewiesen. Noch keine weiteren ungeplanten Fehler für «BugFixes».
 
 ## Verbindliche Leitplanken
 
