@@ -6,6 +6,7 @@ Vor Architekturentscheidungen, neuen Modulen oder grösseren Codeänderungen unb
 
 - [`docs/KONZEPT-PRODUKT-ARCHITEKTUR.md`](docs/KONZEPT-PRODUKT-ARCHITEKTUR.md) – übergeordnetes Produkt- und Architekturkonzept v0.1
 - [`docs/KONZEPT-MUSIKANALYSIEREN.md`](docs/KONZEPT-MUSIKANALYSIEREN.md) – bei Musik- und KI-Analyse, Ähnlichkeitssuche und DJ-Übergangsempfehlungen lesen (Technologien noch zu evaluieren)
+- [`docs/KONZEPT_DJPLATTFORMEN.md`](docs/KONZEPT_DJPLATTFORMEN.md) – bei Plattformrecherche, Metadaten-APIs, Bezugsquellen und Downloadverwaltung lesen; Angaben und Berechtigungen vor Implementierung verifizieren
 - [`docs/UEBERGABE.md`](docs/UEBERGABE.md) – bisherige Projektübergabe und Entwicklungsregeln
 - [`docs/PROJEKTSTAND.md`](docs/PROJEKTSTAND.md) – tatsächlicher Implementierungsstand
 - passende `docs/KONZEPT-*.md`-Datei für den zu bearbeitenden Funktionsbereich
