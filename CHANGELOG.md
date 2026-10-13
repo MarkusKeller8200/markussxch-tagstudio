@@ -6,6 +6,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Geändert (geplant für 4.4.1, noch nicht final getestet)
+- **Player #181:** Bei automatischen Übergängen neuen Titel erst stumm laden und vorbereiten, Phase unmittelbar nach dem tatsächlichen Wiedergabestart angleichen und erst danach einblenden. Beat-Alignment am Titelanfang und Tempo-Reset verbessert. Die hörbare Synchronität muss noch praktisch bestätigt werden.
+- **Player #182:** **←/→** verschiebt um einen Takt (4 Beats mit variablem Beatgrid, sonst BPM-Näherung), **Shift+←/→** wechselt zum vorigen/nächsten Cue-Punkt; Player A/B und separates Player-Fenster. Tagger-Listennavigation bleibt vorrangig. Tastatur-Hilfe aktualisiert.
+- **Tests:** Node-basierte Logik-Regressionstests und Browser-Testfälle für Beatgrid, verzögerten Start und Tastaturbelegung ergänzt. Windows-/macOS-Praxistest ausstehend.
+
 ## [4.4.0] – 2026-10-12
 
 ### Neu
