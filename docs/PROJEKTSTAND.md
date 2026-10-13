@@ -139,6 +139,10 @@
 - `~/.tagstudio.json` (neu: `tagger_state`, `player_resume`, `window`, `player.resume_play`), `~/.tagstudio.lock`.
 - `~/TagStudio`: Sicherungen, cache, Plugins, Plugin-Daten, Logs (`app.log`).
 
+## GitHub-Meilensteinverwaltung
+
+Meilensteine können über den **gesicherten [Administrationskanal #190](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/190)** verwaltet werden. Das Issue ist bewusst **geschlossen**, aber für Eigentümer-Kommentare nutzbar. Der Workflow `.github/workflows/milestone-admin.yml` akzeptiert ausschliesslich einzeilige Kommentare vom Repository-Eigentümer auf #190, beispielsweise `/milestone list`, `/milestone create 4.6.0 – Titel`, `/milestone close 14` oder `/milestone reopen 14`. GitHub Actions verwendet dafür den Repository-Token mit `issues: write`. Ergebnisse im Issue-Thread überprüfen. Keine anderen Issues als Steuerkanal verwenden. Siehe [technische Anleitung](../.github/scripts/MILESTONE-ADMIN.md).
+
 ## Geplante Iterationen 4.4.1 und 4.5.0 (Entscheid 2026-10-14)
 
 **Planung freigegeben, Implementierung noch nicht abgeschlossen.** Details und Abnahmekriterien: [Releaseplanung 4.4.1 (#188)](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/188), [Releaseplanung 4.5.0 (#189)](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/189).

@@ -4,6 +4,8 @@ Die ChatGPT-GitHub-Integration kann Issues Meilensteinen zuweisen, aber keine Me
 
 **Steuerungs-Issue:** [#190 – Administrationskanal: GitHub-Meilensteine verwalten](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/190). Nur Kommentare des GitHub-Repository-Eigentümers und nur auf diesem einen Issue dürfen Aktionen auslösen.
 
+**Funktionstest:** Am 14. Oktober 2026 erfolgreich ausgeführt: [Actions-Run 38485688746](https://github.com/MarkusKeller8200/markussxch-tagstudio/actions/runs/38485688746) für `/milestone list`. Auch nach dem Schliessen des Verwaltungs-Issues wurde ein lesender Testbefehl erfolgreich verarbeitet. Schreiboperationen sind bewusst noch nicht an produktiven Meilensteinen getestet worden.
+
 ## Erlaubte Befehle
 
 Je Kommentar **genau eine** Zeile eingeben:

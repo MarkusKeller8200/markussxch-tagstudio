@@ -4,6 +4,10 @@ Stand: **2026-10-12, 4.4.0 final**. Kurzfassung für den Einstieg in einer neuen
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
+## GitHub-Meilensteinverwaltung
+
+Meilensteine können über den **gesicherten [Administrationskanal #190](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/190)** verwaltet werden. Das Issue ist bewusst **geschlossen**, aber für Eigentümer-Kommentare nutzbar. Der Workflow `.github/workflows/milestone-admin.yml` akzeptiert ausschliesslich einzeilige Kommentare vom Repository-Eigentümer auf #190, beispielsweise `/milestone list`, `/milestone create 4.6.0 – Titel`, `/milestone close 14` oder `/milestone reopen 14`. GitHub Actions verwendet dafür den Repository-Token mit `issues: write`. Ergebnisse im Issue-Thread überprüfen. Keine anderen Issues als Steuerkanal verwenden. Siehe [technische Anleitung](../.github/scripts/MILESTONE-ADMIN.md).
+
 ## Einstieg
 
 1. Sprache mit dem User: **Deutsch**.

@@ -16,6 +16,10 @@ Vor Architekturentscheidungen, neuen Modulen oder grösseren Codeänderungen unb
 
 **4.4.1:** [Planungs-Issue #188](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/188) für #181 und #182; beide mit `_1 bereit` genehmigt. **4.5.0:** [Planungs-Issue #189](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/189) für #183–#185, weiterhin `idee` (keine Implementierungsfreigabe). **Später:** #186 und #187; Nutzer-Issues aus GitHub-Feedback nur nach Owner-Freigabe. Die GitHub-Meilensteine [#14 (4.4.1)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/14) und [#15 (4.5.0)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/15) sind angelegt; alle 16 offenen Issues sind entweder diesen oder [#4 – Idee (Später)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/4) zugewiesen. Noch keine weiteren ungeplanten Fehler für «BugFixes».
 
+## GitHub-Meilensteinverwaltung
+
+Meilensteine können über den **gesicherten [Administrationskanal #190](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/190)** verwaltet werden. Das Issue ist bewusst **geschlossen**, aber für Eigentümer-Kommentare nutzbar. Der Workflow `.github/workflows/milestone-admin.yml` akzeptiert ausschliesslich einzeilige Kommentare vom Repository-Eigentümer auf #190, beispielsweise `/milestone list`, `/milestone create 4.6.0 – Titel`, `/milestone close 14` oder `/milestone reopen 14`. GitHub Actions verwendet dafür den Repository-Token mit `issues: write`. Ergebnisse im Issue-Thread überprüfen. Keine anderen Issues als Steuerkanal verwenden. Siehe [technische Anleitung](.github/scripts/MILESTONE-ADMIN.md).
+
 ## Verbindliche Leitplanken
 
 - TagStudio bleibt eine Anwendung für Musikverwaltung, Tagging, Analyse und DJ-Set-Planung; keine vollwertige DJ-Mixing-Software oder DAW entwickeln.
