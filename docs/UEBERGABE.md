@@ -35,6 +35,7 @@ Zug nachführen.**
 | Bereich | Konzept |
 |---|---|
 | Übergreifendes Produkt- und Architekturkonzept | [KONZEPT-PRODUKT-ARCHITEKTUR.md](KONZEPT-PRODUKT-ARCHITEKTUR.md) |
+| Musikanalyse und MusicAnalyzer (geplant) | [KONZEPT-MUSIKANALYSIEREN.md](KONZEPT-MUSIKANALYSIEREN.md) |
 | Vorbereiten, Entdecken | [KONZEPT-VORBEREITEN.md](KONZEPT-VORBEREITEN.md) |
 | Tagger | [KONZEPT-TAGGER.md](KONZEPT-TAGGER.md) |
 | Tag-Fixer | [KONZEPT-TAGFIXER.md](KONZEPT-TAGFIXER.md) |
