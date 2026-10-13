@@ -258,7 +258,7 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   vorherigen/nächsten Titel; beim Abspielen folgt der Player ↑/↓ und spielt am Titelende den nächsten.
   **Live-Vorschau** (Knopf mit den Funkwellen): ein einfacher Klick auf einen Titel spielt ihn sofort; ohne
   Live-Vorschau wechselt ein Klick den laufenden Titel nicht. **↑/↓** wechseln den Titel, egal wo der Fokus gerade ist
-  (außer in mehrzeiligen, Auswahl- und Zahlenfeldern). **Shift+←/→** spult 10 s, Klick in die Leiste springt.
+  (außer in mehrzeiligen, Auswahl- und Zahlenfeldern). **←/→** springt taktweise (vier Schläge, mit Beatgrid oder BPM-Näherung), **Shift+←/→** zum vorherigen/nächsten Cue; Klick in die Leiste springt.
 - **Tempo von Hand:** Klick auf die BPM-Anzeige → neues Tempo eingeben (50–200 %), **Reset** = Original-Tempo; gilt
   nur für den laufenden Titel, an der Datei ändert sich nichts. Der Knopf neben dem Titel (**Im Tagger zeigen**)
   wechselt zum Tagger und markiert den laufenden Titel.
@@ -267,7 +267,7 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
 - **Wellenform:** wird beim ersten Abspielen einmal berechnet und im Cache abgelegt (`~/TagStudio/cache/wave`,
   bleibt beim Bearbeiten der Tags und Umbenennen gültig); im Menü ⋯ bzw. in den Einstellungen abschaltbar.
 - **Cue-Marken** aus Serato (Cues und Loops mit Farbe und Name) und Mixed In Key über der Leiste: Klick springt
-  hin, **Alt+Bild↑/↓** zum vorigen/nächsten Cue. Ein Klick auf eine **Loop-Marke** spielt den Loop als Schleife
+  hin, **Shift+←/→** oder **Alt+Bild↑/↓** zum vorigen/nächsten Cue. Ein Klick auf eine **Loop-Marke** spielt den Loop als Schleife
   (erneuter Klick beendet sie); beim Überfahren der Leiste stehen Zeit und Cue-Name.
 - Zwischen Wellenform und Startpunkt: **Tonart** (Camelot-Kennzeichen plus musikalisch und Open Key), **BPM**,
   Laufzeit, **Restlaufzeit** (blinkt in den letzten 30 Sekunden rot) und Länge. Taste **M** schaltet stumm.
@@ -287,8 +287,10 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   **Tempo angleichen** (Standard an): der nächste Titel läuft während des Überblendens im BPM des laufenden
   (Tonhöhe bleibt, höchstens ±10 %, halbes/doppeltes Tempo wird erkannt; ohne BPM-Feld kein Angleichen) und gleitet
   danach in der eingestellten Zeit (sofort … 1 Minute) auf sein eigenes BPM zurück.
-  **Im Takt** (Standard an): mit Beatgrid startet der nächste Titel im Schlag des laufenden; „Überblenden auf
-  Taktgrenze“ wartet auf den nächsten Takt (4), 8 Schläge oder die nächste Phrase (16).
+  **Im Takt** (Standard an): bei brauchbarem Beatgrid wird die Phase beim tatsächlichen Start des neuen
+  (anfangs stummen) Titels an den laufenden Titel angepasst. „Überblenden auf Taktgrenze“ plant zunächst
+  den nächsten Takt (4), 8 Schläge oder die nächste Phrase (16); Lade- und Decoderverzögerungen
+  können den tatsächlichen Beginn jedoch verschieben. Ohne verlässliches Beatgrid ist nur Tempo-Sync möglich.
 - **Beatgrid:** aus Serato (`GEOB:Serato BeatGrid`), sonst aus dem Audio ermittelt (mit der Wellenform, im Cache
   gemerkt), notfalls geschätzt aus dem BPM-Feld mit dem ersten Cue als Schlag. „Tonhöhe beibehalten“ (Einstellungen ›
   Player) lässt sich ausschalten – dann ändert sich die Tonhöhe mit dem Tempo wie beim Plattenspieler.

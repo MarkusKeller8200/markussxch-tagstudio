@@ -994,6 +994,50 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("Math.abs(DECKB.audio.playbackRate - 124 / 120) < 0.001"), pg.evaluate("JSON.stringify([DECKB.audio.playbackRate, PLAYER.info.grid, DECKB.info.grid, PLAYER.info.wave && PLAYER.info.wave.beat])"))
         self.assertTrue(pg.evaluate("document.querySelector('#dbSync').classList.contains('on')"))
 
+    def test_player_phase_alignment_and_bar_navigation(self):
+        """#181/#182: Beatgrid auch am Anfang phasentreu ausrichten; Taktwege bei variablem Tempo."""
+        pg = self.pg
+        result = pg.evaluate("""(() => {
+          const g = {bpm: 120, markers: [{pos: 0.5, bpm: 120}, {pos: 32.5, bpm: 128}]};
+          const s = {bpm: 120, markers: [{pos: 0.3, bpm: 120}]};
+          const targetPhase = 0.75;
+          const align = gridAlign(s, 0, targetPhase, 1);
+          const phase = gridPhase(s, align);
+          const t0 = 30.5;
+          const t1 = gridTimeOfBeat(g, gridBeatAt(g, t0) + 4);
+          return { align, phase, targetPhase, t0, t1, beatDelta: gridBeatAt(g, t1) - gridBeatAt(g, t0) };
+        })()""")
+        self.assertGreaterEqual(result["align"], 0)
+        self.assertAlmostEqual(result["phase"], result["targetPhase"], delta=1e-6)
+        self.assertAlmostEqual(result["beatDelta"], 4, delta=1e-6)
+        self.assertGreater(result["t1"], result["t0"])
+
+    def test_player_bar_and_cue_keyboard(self):
+        """#182: Navigation auf A/B sowie unbekanntes BPM und Cue-Sortierung."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("plSetPref('layout','top'); plSetPref('deck2',true)")
+        pg.evaluate("plLoad({kind:'tag',ref:0},false)")
+        self.assertTrue(self.until("PLAYER.info && PLAYER.audio.readyState >= 1 && PLAYER.audio.duration > 1"))
+        pg.evaluate("PLAYER.info.grid={bpm:120,markers:[{pos:0,bpm:120}]}; PLAYER.audio.currentTime=10")
+        pg.keyboard.press("ArrowRight")
+        self.assertAlmostEqual(pg.evaluate("PLAYER.audio.currentTime"), 12, delta=0.35)
+        pg.keyboard.press("ArrowLeft")
+        self.assertAlmostEqual(pg.evaluate("PLAYER.audio.currentTime"), 10, delta=0.35)
+        pg.evaluate("""PLAYER.info.cues=[{pos:22,kind:'cue'},{pos:8,kind:'cue'},{pos:12,kind:'loop',end:14}]; PLAYER.audio.currentTime=10""")
+        pg.keyboard.press("Shift+ArrowRight")
+        self.assertAlmostEqual(pg.evaluate("PLAYER.audio.currentTime"), 22, delta=0.35)
+        pg.keyboard.press("Shift+ArrowLeft")
+        self.assertAlmostEqual(pg.evaluate("PLAYER.audio.currentTime"), 8, delta=0.35)
+        pg.evaluate("dbLoad({kind:'tag',ref:1},false)")
+        self.assertTrue(self.until("DECKB.info && DECKB.audio.readyState >= 1 && DECKB.audio.duration > 1"))
+        pg.evaluate("DECKB.info.grid={bpm:120,markers:[{pos:0,bpm:120}]}; DECKB.audio.currentTime=10; dbTargetSet('B')")
+        pg.keyboard.press("ArrowRight")
+        self.assertAlmostEqual(pg.evaluate("DECKB.audio.currentTime"), 12, delta=0.35)
+        pg.evaluate("DECKB.info.cues=[{pos:3,kind:'cue'},{pos:21,kind:'cue'}]; DECKB.audio.currentTime=10")
+        pg.keyboard.press("Shift+ArrowRight")
+        self.assertAlmostEqual(pg.evaluate("DECKB.audio.currentTime"), 21, delta=0.35)
+
     def test_beat_analysis(self):
         """#76: Schlag aus dem Audio – 124 BPM, erster Schlag bei 0,3 s – wird erkannt und als Beatgrid genutzt."""
         P = 60 / 124

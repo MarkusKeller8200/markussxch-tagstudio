@@ -54,7 +54,24 @@ function gridAlign(g, t0, ph, bar = 1) {
   const b0 = gridBeatAt(g, t0) / bar;
   let b = Math.floor(b0) + ph;
   if (b - b0 > 0.5) b -= 1; else if (b0 - b > 0.5) b += 1;
-  return Math.max(0, gridTimeOfBeat(g, b * bar));
+  // #181: nicht einfach auf 0 kappen – das würde die Zielphase am Titelanfang verlieren.
+  let t = gridTimeOfBeat(g, b * bar);
+  for (let k = 0; t < 0 && k < 256; k++) { b += 1; t = gridTimeOfBeat(g, b * bar); }
+  return Math.max(0, t);
+}
+
+/** #182: um genau vier Schläge springen; stückweises Beatgrid behält die Schlagphase. */
+function plBarSeek(audio, info, dir) {
+  if (!audio || !audio.src || !info) return false;
+  const g = gridOf(info), bpm = g ? g.bpm : bpmOf(info);
+  if (!bpm) { toast("Takt-Sprung nicht möglich: BPM/Beatgrid fehlt."); return false; }
+  const t0 = audio.currentTime, next = g
+    ? gridTimeOfBeat(g, gridBeatAt(g, t0) + 4 * (dir > 0 ? 1 : -1))
+    : t0 + 240 / bpm * (dir > 0 ? 1 : -1);
+  const duration = Number.isFinite(audio.duration) ? audio.duration : info.duration;
+  const limit = Number.isFinite(duration) ? Math.max(0, duration - 0.05) : Infinity;
+  audio.currentTime = Math.max(0, Math.min(limit, next));
+  return true;
 }
 
 // ====================================================================== #94 Überblenden
@@ -127,6 +144,7 @@ async function plCrossfade(i, opt = {}) {
   const old = PLAYER.audio, nu = PLAYER.spare, D = PLAYER.xfade * 1000;
   const bpmFrom = (gridOf(PLAYER.info) ? gridOf(PLAYER.info).bpm : bpmOf(PLAYER.info)) * (old.playbackRate || 1);
   const gOld = gridOf(PLAYER.info);
+  const oldInfo = PLAYER.info, oldKind = PLAYER.kind, oldRef = PLAYER.ref;
   PLAYER.fade = { old, timer: 0 };
   PLAYER.spare = old;
   PLAYER.audio = nu;
@@ -138,7 +156,8 @@ async function plCrossfade(i, opt = {}) {
     TG.anchor = i;
     tgScrollTo(i);
   }
-  await plLoad({ kind: "tag", ref: i }, true, null, PLAYER.xfadeStart === "start" ? null : PLAYER.xfadeStart, true);
+  // #181: während des Ladens STUMM bleiben. Erst nach Analyse/Tempo/Metadaten starten.
+  await plLoad({ kind: "tag", ref: i }, false, null, PLAYER.xfadeStart === "start" ? null : PLAYER.xfadeStart, true);
   const f = PLAYER.fade;
   if (!f || f.old !== old) return;
   const newInfo = PLAYER.info;
@@ -149,15 +168,32 @@ async function plCrossfade(i, opt = {}) {
   const gNewBpm = gridOf(newInfo) ? gridOf(newInfo).bpm : bpmOf(newInfo);
   const ratio = PLAYER.xfadeSync ? plTempoRatio(bpmFrom, gNewBpm) : 1;
   nu.preservesPitch = PLAYER.xfadePitch !== false;                            // #76: Tonhöhe beibehalten (Option)
-  if (ratio !== 1) nu.playbackRate = ratio;
+  nu.playbackRate = ratio;                       // #181: keine Tempo-Reste früherer Überblendungen übernehmen
   f.ratio = ratio;
-  // #76: neuen Titel im Takt starten – gleiche Phase wie der laufende (Schlag bzw. Taktgrenze)
+  // Erst beim wirklichen Wiedergabestart synchronisieren: zwischen media_url, Analyse,
+  // Decoderstart und play() können Sekunden verstreichen. Vorheriges Alignment wäre offbeat.
+  try {
+    await nu.play();
+  } catch (e) {
+    if (PLAYER.fade === f && PLAYER.audio === nu) {
+      PLAYER.fade = null;
+      nu.pause(); nu.removeAttribute("src"); nu.load();
+      PLAYER.audio = old; PLAYER.spare = nu;
+      PLAYER.info = oldInfo; PLAYER.kind = oldKind; PLAYER.ref = oldRef;
+      old.volume = PLAYER.vol; plRender();
+      toast("Überblenden nicht möglich: " + (e.message || e));
+    }
+    return;
+  }
+  if (PLAYER.fade !== f || PLAYER.audio !== nu) return;
+  // #181: Die Stummschaltung (volume=0) verhindert beim Phasensprung hörbare Artefakte.
   const gNew = gridOf(newInfo);
   const sameTempo = ratio !== 1 || (gNew && bpmFrom && Math.abs(bpmFrom - gNew.bpm) / bpmFrom < 0.02);
   if (PLAYER.xfadePhase && gOld && gNew && sameTempo) {
     const bar = opt.bar || 1;
-    const ph = opt.bar ? 0 : gridPhase(gOld, old.currentTime);
-    try { nu.currentTime = gridAlign(gNew, nu.currentTime || 0, ph, bar); f.phase = true; } catch (e) { /* egal */ }
+    const ph = gridPhase(gOld, old.currentTime, bar);
+    try { nu.currentTime = gridAlign(gNew, nu.currentTime || 0, ph, bar); f.phase = true; }
+    catch (e) { f.phase = false; }
   }
   const t0 = performance.now();
   f.timer = setInterval(() => {
@@ -316,12 +352,14 @@ function dbSeekBy(sec) {
   a.currentTime = Math.max(0, Math.min((a.duration || 0) - 0.5, a.currentTime + sec));
   dbRender();
 }
-
+function dbBarJump(dir) {
+  if (plBarSeek(DECKB.audio, DECKB.info, dir)) dbRender();
+}
 function dbCueJump(dir) {
-  const cues = (DECKB.info && DECKB.info.cues) || [], a = DECKB.audio, t = a.currentTime;
-  if (!cues.length || !a.src) return;
-  const c = dir > 0 ? cues.find((x) => x.pos > t + 0.3) : [...cues].reverse().find((x) => x.pos < t - 1);
-  a.currentTime = c ? c.pos : dir > 0 ? t : 0;
+  const a = DECKB.audio, cues = (DECKB.info && DECKB.info.cues) || [], t = a.currentTime;
+  if (!a.src || !cues.some((c) => c.kind !== "loop")) return;
+  const pos = plCueTarget(cues, t, dir);
+  a.currentTime = pos === undefined ? (dir > 0 ? t : 0) : pos;
   dbRender();
 }
 
@@ -570,6 +608,7 @@ async function detCmd(m) {
     case "next": await plStep(1); break;
     case "seek": if (a.src && isFinite(m.t)) { a.currentTime = Math.max(0, m.t); plRender(); } break;
     case "seekby": plSeekBy(+m.s || 0); break;
+    case "bar": plBarJump(m.dir > 0 ? 1 : -1); break;
     case "vol": PLAYER.vol = Math.max(0, Math.min(1, +m.v)); if (!PLAYER.fade) a.volume = PLAYER.vol; $("#plVol").value = String(Math.round(PLAYER.vol * 100)); plSetPref("vol", PLAYER.vol); break;
     case "mute": a.muted = !a.muted; plRender(); break;
     case "rate": if (r) await plMarkTarget(r, +m.n, null); break;
@@ -592,6 +631,7 @@ async function detCmdB(m) {
     case "next": await dbStep(1); break;
     case "seek": if (a.src && isFinite(m.t)) { a.currentTime = Math.max(0, m.t); dbRender(); } break;
     case "seekby": dbSeekBy(+m.s || 0); break;
+    case "bar": dbBarJump(m.dir > 0 ? 1 : -1); break;
     case "vol": { const v = Math.max(0, Math.min(1, +m.v)); $("#dbVol").value = String(Math.round(v * 100)); plSetPref("vol_b", v); break; }
     case "mute": a.muted = !a.muted; dbRender(); break;
     case "rate": if (r) await plMarkTarget(r, +m.n, null); break;
@@ -661,7 +701,10 @@ function pl2Key(e) {
 function dbKey(e) {
   if (PLAYER.target !== "B" || !pl2B()) return false;
   const a = DECKB.audio, plain = !e.ctrlKey && !e.metaKey && !e.altKey, k = e.key;
-  if (e.shiftKey && (k === "ArrowRight" || k === "ArrowLeft") && a.src) dbSeekBy(k === "ArrowRight" ? 10 : -10);
+  if (plain && (k === "ArrowRight" || k === "ArrowLeft") && a.src) {
+    if (e.shiftKey) dbCueJump(k === "ArrowRight" ? 1 : -1);
+    else dbBarJump(k === "ArrowRight" ? 1 : -1);
+  }
   else if (plain && (k === "l" || k === "L") && a.src) dbABStep();
   else if (plain && (k === "r" || k === "R")) $("#dbRepeat").click();
   else if (k === "Escape" && DECKB.ab) dbABClear();

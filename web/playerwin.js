@@ -225,12 +225,16 @@ function init() {
     clearTimeout(vt); vt = setTimeout(() => send("vol", { deck: sec.dataset.deck, v: (+e.target.value) / 100 }), 60);
   });
   document.addEventListener("keydown", (e) => {
-    if (e.ctrlKey || e.metaKey) return;
+    const el = document.activeElement;
+    if (e.ctrlKey || e.metaKey || e.altKey && e.key !== "PageDown" && e.key !== "PageUp" ||
+        /INPUT|TEXTAREA|SELECT/.test(el?.tagName || "") && el?.type !== "range" || el?.isContentEditable) return;
     const k = e.key, deck = tgt(), s = PW.st[deck] || {};
     let c = null;
     if (k === " ") c = ["toggle"];
     else if (k === "ArrowDown" || k === "ArrowUp") c = [k === "ArrowDown" ? "down" : "up"];
-    else if (e.shiftKey && (k === "ArrowRight" || k === "ArrowLeft")) c = ["seekby", { s: k === "ArrowRight" ? 10 : -10 }];
+    else if (k === "ArrowRight" || k === "ArrowLeft") c = e.shiftKey
+      ? ["cue", { dir: k === "ArrowRight" ? 1 : -1 }]
+      : ["bar", { dir: k === "ArrowRight" ? 1 : -1 }];
     else if (e.altKey && (k === "PageDown" || k === "PageUp")) c = ["cue", { dir: k === "PageDown" ? 1 : -1 }];
     else if (/^[0-5]$/.test(k)) c = ["rate", { n: +k === s.rating ? 0 : +k }];
     else if (k === "f" || k === "F") c = ["like"];

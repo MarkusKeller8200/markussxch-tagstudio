@@ -18,7 +18,7 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
 | Anzeige | Wellenform (einmal berechnet, Cache), Cue- und Loop-Marken (Serato, Mixed In Key), Beatgrid-Raster, Tonart in drei Schreibweisen, BPM, Lauf-/Restzeit (rot blinkend in den letzten 30 s) |
 | Tempo | Klick auf BPM → Tempo von Hand (50–200 %, Tonhöhe nach Einstellung), Reset = Original; nur für den laufenden Titel (#174) |
 | Tagger | Knopf „Im Tagger zeigen“ neben dem Titel: wechselt zum Tagger, markiert den laufenden Titel, hebt Filter auf, lädt bei Bedarf dessen Ordner (#175) |
-| Steuerung | Cue-Sprünge (Alt+Bild↑/↓), Loop als Schleife, Titel wiederholen (R), A–B-Schleife (L), Stem-Spur wechseln (S) an derselben Stelle, A/B im Vergleich (L/R) |
+| Steuerung | Taktweise springen (←/→), nächster/voriger Cue (Shift+←/→ oder Alt+Bild↑/↓), Loop als Schleife, Titel wiederholen (R), A–B-Schleife (L), Stem-Spur wechseln (S) an derselben Stelle, A/B im Vergleich (L/R) |
 | Bewertung | Sterne 0–5 (POPM, `TXXX:FMPS_Rating`) und Like (`TXXX:TAGSTUDIO`), mit Undo |
 | Überblenden | 2–12 s, gleiche Leistung, früh überblenden zum Durchhören, Tempo angleichen (±10 %, Rückkehr einstellbar), im Takt / auf Taktgrenze, Tonhöhe beibehalten |
 | Player B | zweiter, gleich aufgebauter Player (nur mit „Player oben“), eigenes Ausgabegerät, Sync zu A, Ziel A/B per Klick/Taste B, Titel per Ziehen laden |
@@ -49,7 +49,10 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
 
 ## 5. Offen / Ideen
 
-- Keine offenen Issues. Mögliche Ausbauten: Stems einzeln stummschalten, Beatgrid von weiteren Programmen lesen.
+- **4.4.1 – #181 (Offbeat) und #182 (Takt-/Cue-Tasten):** Implementierung und automatisierte Tests im Gange; vor Abschluss ist der Hörtest des Projektverantwortlichen erforderlich.
+- **#181:** Das neue Audio-Element während Lade- und Analysephase stumm halten, erst nach erfolgreichem `play()` im aktuellen Takt des alten Players ausrichten und dann einblenden. Negative Zielzeiten nicht pauschal auf 0 kappen; Tempo des neuen Audio-Elements jedes Mal explizit setzen. Dies verbessert die Synchronisation, ersetzt aber keinen samplegenauen DJ-Audio-Mixer.
+- **#182:** Ein Sprung entspricht vier Beats mit optional variablem Grid; ohne Grid nur BPM-Näherung, ohne BPM kein Sprung. Shift+←/→ springt zu Cue-Punkten (ohne Loops); Listennavigation im Tagger behält Vorrang. Gilt für A, B und das abgedockte Fenster.
+- Weitere Ideen: Stems einzeln stummschalten, Beatgrid von weiteren Programmen lesen.
 
 ## 6. Tests
 

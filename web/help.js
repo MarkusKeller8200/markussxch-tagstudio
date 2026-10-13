@@ -17,7 +17,7 @@ const HELP_KEYS = [
     ["Enter", "Im Dialog: Hauptknopf (z. B. Speichern, Übernehmen)"], ["←/→ auf einem Trenngriff", "Splitter verschieben (Doppelklick setzt zurück)"]]],
   ["Player", "Tagger, Vergleich und DJ-Set – nicht während der Eingabe in ein Feld", [
     ["Leertaste", "Abspielen / Pause"], ["↑ / ↓", "Vorheriger / nächster Titel (überall, ausser in Listen mit eigener Auswahl)"],
-    ["Shift+← / Shift+→", "10 Sekunden zurück / vor"], ["Alt+Bild↑ / Alt+Bild↓", "Vorheriger / nächster Cue-Punkt"],
+    ["← / →", "Einen Takt zurück / vor (vier Schläge, bei bekanntem BPM)"], ["Shift+← / Shift+→", "Vorheriger / nächster Cue-Punkt"], ["Alt+Bild↑ / Alt+Bild↓", "Vorheriger / nächster Cue-Punkt"],
     ["0–5", "Bewertung setzen (0 = keine)"], ["F", "Like ein/aus"], ["R", "Wiederholen ein/aus"], ["L", "A–B-Schleife setzen (dreimal: aufheben)"],
     ["Esc", "A–B-Schleife aufheben"], ["M", "Stumm ein/aus"], ["S / Shift+S", "Nächste / vorherige Stem-Spur"],
     ["B", "Tasten wirken auf Player A bzw. B (bei zwei Playern)"], ["Shift+P", "Player-Leiste oben ein-/ausklappen"],
@@ -36,7 +36,8 @@ const HELP_KEYS = [
   ["Text- und XML-Editor", "", [
     [`${MODK}+Enter · ${MODK}+S`, "Übernehmen und schliessen"], ["Esc", "Schliessen ohne Übernehmen"], ["Tab", "Einrücken (Text-Ansicht)"]]],
   ["Player-Fenster (separat)", "", [
-    ["Leertaste", "Abspielen / Pause"], ["↑ / ↓", "Vorheriger / nächster Titel"], ["Shift+← / Shift+→", "±10 Sekunden"],
+    ["Leertaste", "Abspielen / Pause"], ["↑ / ↓", "Vorheriger / nächster Titel"],
+    ["← / →", "Einen Takt zurück / vor"], ["Shift+← / Shift+→", "Vorheriger / nächster Cue-Punkt"],
     ["Alt+Bild↑ / Alt+Bild↓", "Cue-Punkte"], ["0–5 · F · R · L · M", "Bewertung, Like, Wiederholen, A–B, Stumm"], ["B", "Ziel Player A / B"]]],
 ];
 

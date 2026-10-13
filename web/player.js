@@ -1,5 +1,5 @@
 /* MarKusSXCH TagStudio – Vorschau-Player (unten in der Aktionsleiste) und externe Player.
-   Leertaste: markierten Titel abspielen/pausieren · Shift+←/→: ±10 s · Alt+Bild↑/↓: voriger/nächster Cue ·
+   Leertaste: markierten Titel abspielen/pausieren · ←/→: taktweise · Shift+←/→: voriger/nächster Cue ·
    S/Shift+S: nächste/vorige Stem-Spur · Strg/Cmd+P: im externen Player öffnen. Wellenform: einmal per Web Audio berechnet, im Cache (waveform.py);
    Cue-Marken aus Serato/Mixed In Key (cues.py).
    Im Tagger spielt der Player beim Wechsel der Markierung (↑/↓, Klick) automatisch weiter („Durchhören“).
@@ -373,6 +373,11 @@ function plSeekBy(sec) {
   plRender();
 }
 
+/** #182: taktweise Vor-/Rückwärtsnavigation; Grid/variable Tempi in player2.js. */
+function plBarJump(dir) {
+  if (typeof plBarSeek === "function" && plBarSeek(PLAYER.audio, PLAYER.info, dir)) plRender();
+}
+
 // ---------------------------------------------------------------------- Wellenform & Cue-Marken
 /** Wellenform einmal berechnen (Web Audio, niedrige Abtastrate spart Speicher) und im Cache ablegen. */
 /** #76: Schlag aus dem Audio ermitteln – Tempo fein um das BPM-Feld herum (ohne BPM: 70–180) und die Lage des
@@ -542,12 +547,20 @@ function plHover(e) {
   tip.style.left = Math.max(0, Math.min(r.width - tip.offsetWidth, f * r.width - tip.offsetWidth / 2)) + "px";
 }
 
-/** Zum nächsten/vorigen Cue springen (Shift+↑/↓ bzw. Alt+←/→ im Player). */
+/** #182: Cue-Ziel nach Position statt Quellreihenfolge; Loops sind keine Cue-Punkte. */
+function plCueTarget(cues, time, dir) {
+  const positions = (cues || []).filter((c) => c.kind !== "loop" && Number.isFinite(+c.pos) && +c.pos >= 0)
+    .map((c) => +c.pos).sort((a, b) => a - b);
+  return dir > 0 ? positions.find((p) => p > time + 0.15)
+    : positions.reverse().find((p) => p < time - 0.15);
+}
+/** Zum nächsten/vorigen Cue springen (Shift+←/→ bzw. Alt+Bild↑/↓). */
 function plCueJump(dir) {
-  const cues = (PLAYER.info && PLAYER.info.cues) || [], t = PLAYER.audio.currentTime;
-  if (!cues.length || !PLAYER.audio.src) return false;
-  const c = dir > 0 ? cues.find((x) => x.pos > t + 0.3) : [...cues].reverse().find((x) => x.pos < t - 1);
-  PLAYER.audio.currentTime = c ? c.pos : dir > 0 ? t : 0;
+  if (!PLAYER.audio.src || !PLAYER.info) return false;
+  const t = PLAYER.audio.currentTime, cues = PLAYER.info.cues || [];
+  if (!cues.some((c) => c.kind !== "loop")) return false;
+  const pos = plCueTarget(cues, t, dir);
+  PLAYER.audio.currentTime = pos === undefined ? (dir > 0 ? t : 0) : pos;
   plRender();
   return true;
 }
@@ -720,11 +733,16 @@ function initPlayer() {
 function plKeydown(e) {
     const ae = document.activeElement;
     const inField = /INPUT|TEXTAREA|SELECT/.test(ae?.tagName || "") && ae?.type !== "range";
-    if (inField || !$("#modal").hidden || !$("#dialog").hidden || !$("#xmlEd").hidden) return;
+    if (e.defaultPrevented || inField || !$("#modal").hidden || !$("#dialog").hidden || !$("#xmlEd").hidden || !$("#menu").hidden) return;
     if (S.module !== "tagger" && S.module !== "compare" && S.module !== "djset") return;
     if (typeof dbKey === "function" && dbKey(e)) return;          // #67: Ziel Player B
     if (e.key === " " && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plToggle(); }
-    else if (e.shiftKey && (e.key === "ArrowRight" || e.key === "ArrowLeft") && PLAYER.audio.src) { e.preventDefault(); plSeekBy(e.key === "ArrowRight" ? 10 : -10); }
+    else if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "ArrowRight" || e.key === "ArrowLeft")
+      && PLAYER.audio.src && !ae?.closest("#tgTable, #pairsScroll, #table")) {
+      e.preventDefault(); e.stopPropagation();                        // #182: Tasten nicht an Listennavigation weiterreichen
+      if (e.shiftKey) plCueJump(e.key === "ArrowRight" ? 1 : -1);
+      else plBarJump(e.key === "ArrowRight" ? 1 : -1);
+    }
     else if ((e.key === "s" || e.key === "S") && !e.ctrlKey && !e.metaKey && !e.altKey && PLAYER.audio.src && plStemCycle(e.shiftKey ? -1 : 1)) e.preventDefault();   // #66
     else if ((e.key === "l" || e.key === "L") && !e.ctrlKey && !e.metaKey && !e.altKey && PLAYER.audio.src) { e.preventDefault(); plABStep(); }   // #79
     else if ((e.key === "r" || e.key === "R") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); $("#plRepeat").click(); }
