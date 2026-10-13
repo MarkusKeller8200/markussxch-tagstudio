@@ -50,6 +50,18 @@ Dazu die Knöpfe **Einrichtungsassistent** und **Erste Schritte** (erneut starte
 - **Neue Fremdkomponenten** (Bibliothek, Plugin-Paket, übernommene Vorlage, Online-Dienst) immer in `docs/third-party.json`
   eintragen – ein Test prüft die Pakete des Stems-Plugins.
 
+## 5.1 Geplante Erweiterung: Rückmeldungen aus TagStudio (TODO)
+
+**Noch nicht umgesetzt; offene Idee [#187](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/187), keine Implementierungsfreigabe.**
+
+- Aus **HILFE** und direkt aus **TAGGER** «Fehler melden» und «Funktion vorschlagen» anbieten.
+- Vor dem Versand eine Vorschau mit ausdrücklich bestätigter **Veröffentlichung als GitHub-Issue** zeigen; sensible Pfade, Logs, Musikdateien und Zugangsdaten nicht automatisch mitsenden.
+- Anbindung über offizielle GitHub Issue Forms mit vorausgefüllten Angaben oder eine sicher authentifizierte Integration evaluieren. Keine Repository-Schreibtokens im ausgelieferten Client ablegen.
+- Neu angelegte Meldungen bleiben **ungeprüft und nicht für Entwicklung freigegeben**. Nur eine ausdrückliche Bestätigung durch den Projektverantwortlichen darf sie in den bestehenden Freigabeprozess (z. B. manuelles Label `_1 bereit`) übernehmen. Das gilt ebenso für Claude, ChatGPT und Automationen.
+- Bei der Umsetzung Rechteprüfung, Schutz gegen Spam/Missbrauch, Duplikate und UI-/Integrationstests vorsehen.
+
+**Quelle:** Nutzeranforderung 14.10.2026; Issue #187.
+
 ## 6. Tests
 
 `tests/test_taghelp.py`, `tests/test_id3frames.py`, `tests/test_third_party.py`, Oberflächen-Tests in `tests/test_browser_ui.py` (Hilfe).
