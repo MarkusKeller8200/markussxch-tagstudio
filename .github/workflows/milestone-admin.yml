@@ -1,0 +1,25 @@
+name: Milestone administration
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  milestone-admin:
+    if: >-
+      ${{ github.event.issue.number == 190 &&
+          github.event.comment.user.login == github.repository_owner &&
+          startsWith(github.event.comment.body, '/milestone ') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Execute validated milestone command
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ADMIN_ISSUE_NUMBER: "190"
+        run: python3 .github/scripts/milestone_admin.py
