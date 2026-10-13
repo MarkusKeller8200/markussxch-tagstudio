@@ -143,6 +143,7 @@
 
 - **#10 „4.4.0 – …“:** abgeschlossen mit 4.4.0 final (2026-10-12).
 - **#4 „Später“:** #9, #14, #107, #108, #156 (WAV), #157 (Mehrsprachigkeit).
+- **#180 „1001Tracklists: Set-Import, Library-Abgleich und DJ-Intelligence“:** `idee`, Meilenstein „Später“; **ausschliesslich geplant, noch nicht implementiert**. Anforderungen in `docs/KONZEPT-DJSET.md` (Import/Discovery) und `docs/KONZEPT-MUSIKANALYSIEREN.md` (Set-Intelligence/Score) aufgenommen. Vor Automatisierung Datenzugang und Nutzungsrechte klären.
 
 ## Versionen (Kurz)
 

@@ -243,3 +243,60 @@ Das Ausgangsdokument beschreibt eine **Konzeptgrundlage**, noch keine vollständ
 - Integration der Resultate in TagStudio, ohne bestehende manuelle Korrekturen zu verlieren.
 
 **Dokumentstatus:** Inhaltlich aus dem bereitgestellten PDF als GitHub-Markdown-Detailkonzept übertragen und für die bestehende Dokumentationsstruktur gegliedert. Die erwähnten Technologien, Leistungswerte und offenen Fragen wurden **nicht zusätzlich extern validiert**.
+
+## 12. Geplant: Set-Intelligence aus externen DJ-Tracklisten
+
+**Status: TODO / Konzeptidee – NICHT implementiert.** [GitHub-Issue #180](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/180) dokumentiert die offene Entwicklung; weder ein 1001Tracklists-Provider noch diese Set-Intelligence-Analysen sind als bestehende TagStudio-Funktionen zu verstehen.
+
+**Quelle:** `2026_10_13_Konzept_DJSET_1001-Tracklist_abgleichen(1).pdf`, insbesondere Seiten 1–5. Das Detailkonzept zum Import, zu Discovery und zum Library-Abgleich steht unter [DJ-Set, Abschnitt 5.1](KONZEPT-DJSET.md#51-geplante-erweiterung-1001tracklists-als-set-datenquelle).
+
+### 12.1 Ziel und Abgrenzung
+
+Die vorhandene bzw. geplante **lokale Musikanalyse** (BPM, Camelot/Tonart, Energy, Danceability, Mood, Audio-Ähnlichkeit, Songstruktur) wird um eine **eigenständige, beobachtungsbasierte Datenquelle** ergänzt: Welche Tracks erscheinen in importierten DJ-Sets gemeinsam oder direkt nacheinander? Ziel sind transparente Track- und Übergangsempfehlungen, keine automatische Entscheidung und kein Live-Mixing.
+
+Die PDF-Zahlen (z. B. **18 Sets** mit einer Abfolge oder **5'000 importierte Sets**) sind **illustrative Beispiele**, keine gemessenen Datenbestände.
+
+### 12.2 Geplantes Übergangsnetzwerk (TODO)
+
+- **Knoten:** eindeutig normalisierte Track-Referenzen inklusive exakter Version (Original, Remix, Edit). ISRC allein ist für alle Mix-Versionen keine hinreichende Identität.
+- **Gerichtete Kanten:** Track A steht unmittelbar vor Track B; umgekehrte Reihenfolge separat zählen.
+- **Weitere Beziehungen:** gemeinsam im selben Set, innerhalb eines bestimmten Zeitfensters, durch mehrere unabhängige DJs kombiniert.
+- **Belege:** Anzahl importierter Sets, Anzahl unterschiedlicher DJs, Quelle/Set/Datum, Zeitmarken soweit vorhanden, Zuordnungskonfidenz und Importstand speichern.
+- **Qualitätsgrenzen:** Wiederholte oder kopierte Tracklisten deduplizieren; fehlende Zeitangaben, Tracklist-Lücken und nicht identifizierte IDs nicht als sicheren Übergang auswerten.
+
+Eine Nachbarschaft in einer Trackliste **beweist weder einen tatsächlichen Mix noch einen harmonisch gelungenen Übergang**. Diese Beobachtung ist ein Hinweis, dessen Eignung mit Audioanalyse und Vorhören geprüft werden muss.
+
+### 12.3 DJ Compatibility Score: separate Set-Evidenz (TODO)
+
+Ein erweiterter, erklärbarer Score sollte zwei **getrennt sichtbare** Bewertungsdimensionen enthalten:
+
+1. **Audio-Kompatibilität:** BPM- und Key-Distanz, Energy, Danceability, Mood, Ähnlichkeit, Struktur, Drop-/Outro-/Intro-Timing; nur vorhandene, hinreichend verlässliche Messwerte verwenden.
+2. **Set-Evidenz:** Wie oft A→B in importierten Sets vorkommt, wie viele unterschiedliche DJs/Quellen beteiligt sind, Aktualität sowie Qualität und Umfang der Datenbasis.
+
+Die Gewichtung, Kalibrierung und Aggregationsformel sind **noch offen**. Ein häufig gespieltes Paar darf eine schlechte musikalische Passung nicht verdecken; Set-Nutzung darf keine angeblich objektive Kompatibilität suggerieren. Vorschläge erhalten eine nachvollziehbare Erklärung, beispielsweise: «A→B in X importierten Sets beobachtet; BPM- und Key-Passung separat bewertet».
+
+### 12.4 Datenfluss und vorgeschlagene Komponenten (TODO)
+
+```text
+1001Tracklists / manuell übernommene Tracklisten (nur bei zulässigem Zugang)
+  -> Provider-Adapter / manueller Import
+  -> Set-/Track-Normalisierung (mit Herkunft und Konfidenz)
+  -> Library Matching / deduplizierte Track-IDs
+  -> Set-Daten und gerichtete Übergangsbeziehungen
+  -> Set-Intelligence + unabhängige lokale Audioanalyse
+  -> Erklärbare Empfehlungen, Discovery, DJ-Set-Planer
+```
+
+Die im PDF vorgeschlagenen Komponenten (z. B. `dj_intelligence/providers/tracklists_1001.py`, `matching/track_matcher.py`, `analysis/transition_graph.py`, `analysis/dj_support.py`, `recommendations/compatibility_score.py`) sind **mögliche Modulgrenzen, keine implementierten Dateien**. Insbesondere soll die Matching-Logik unabhängig von einem einzelnen Datenanbieter funktionieren.
+
+### 12.5 Phasen, Prüfaufträge und Abnahmekriterien
+
+| Phase | Gegenstand | Status |
+|---|---|---|
+| 1 | Manueller, erlaubter Tracklist-Import und Library-Abgleich | **TODO / nicht umgesetzt** |
+| 2 | Übergangsgraph, DJ-Support, transparente Kombination mit lokalem Audio-Score | **TODO / nicht umgesetzt** |
+| 3 | Beobachtung neuer DJ-Sets, Trends und automatische Discovery bei zulässigem Datenzugang | **Optional / TODO / nicht umgesetzt** |
+
+**Vor der Implementierung zu klären:** Rechte an Datenabruf, Speicherung und Weiterverwendung; eine eventuelle API-/Partnervereinbarung; Anbieter- und Versionserkennung; Quelldatenmodell; Umgang mit Unsicherheit und Duplikaten; Benchmark für Matching und Empfehlungen; Testfälle mit synthetischen Sets und absichtlich fehlerhaften/fehlenden Track-IDs.
+
+Die im PDF genannten Scraper und Drittanbieter (u. a. CrateDigger, 1001-tracklists-api, Parse API) sind **lediglich Evaluationskandidaten**. Ihre technische Verfügbarkeit oder Nutzungserlaubnis ist nicht als verifiziert anzusehen.

@@ -42,8 +42,44 @@ optimiert, von Hand anpassbar und als Playlist für DJ-Programme exportierbar. E
 
 ## 5. Offen / Ideen
 
-- Keine offenen Issues. Mögliche Ausbauten: weitere Exportformate (Serato-Crate, Engine DJ), Energie aus
+- Weitere mögliche Ausbauten: weitere Exportformate (Serato-Crate, Engine DJ), Energie aus
   Audio-Analyse (#9).
+
+### 5.1 Geplante Erweiterung: 1001Tracklists als Set-Datenquelle
+
+**Status: TODO / geplant – NICHT implementiert.** Siehe [GitHub-Issue #180](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/180) (Label `idee`, Meilenstein «Später»).
+**Quelle:** `2026_10_13_Konzept_DJSET_1001-Tracklist_abgleichen(1).pdf`, insbesondere Seiten 1, 3 und 4–5.
+**Abgrenzung:** 1001Tracklists dient der Track-Discovery und Set-Planung, nicht dem Musikdownload oder Live-Mixing. Die datenbasierte Kompatibilitätsbewertung ist im [Musikanalyse-Konzept, Abschnitt 12](KONZEPT-MUSIKANALYSIEREN.md#12-geplant-set-intelligence-aus-externen-dj-tracklisten) dokumentiert.
+
+**Geplante Funktionen:**
+
+| Funktion | Nutzen | Priorität laut Ausgangskonzept |
+|---|---|---|
+| Tracklisten importieren | Bekannte DJ-Sets als externe Planungsgrundlage übernehmen | Hoch |
+| Track Discovery | Neue Titel aus Sets bekannter DJs entdecken | Hoch |
+| Library Matching | Eigene Tracks als vorhanden/fehlend/ungeklärt erkennen | Hoch |
+| Track-Reihenfolge | Vorgänger-/Nachfolger-Beziehungen aus Sets zugänglich machen | Hoch |
+| Track-Kombinationen | Häufig gemeinsam gespielte Titel für die Set-Planung nutzen | Hoch |
+| Einkaufsliste / Bezugsquellen | Fehlende Tracks zur Recherche und für Shoplinks vormerken | Hoch |
+| DJ-Support | Kennzeichnen, welche DJs einen Track spielen | Mittel |
+| Trends / Beliebtheit | Veränderungen der Set-Verwendung untersuchen | Mittel |
+| Set-Verlauf | BPM, Camelot/Tonart und Energy im Set visualisieren, sofern Daten vorliegen | Mittel |
+| Unbekannte Tracks | Nicht identifizierte IDs zur manuellen Klärung sammeln | Mittel |
+
+**Vorgeschlagener, noch zu spezifizierender Workflow:**
+
+1. **Phase 1 – Manueller Import und Bibliotheksabgleich (TODO):** Eine vom Nutzer bereitgestellte bzw. exportierte Trackliste erfassen; ein URL-basierter Import ist nur vorzusehen, wenn ein zulässiger Abrufweg geklärt ist. DJ, Set, Veranstaltung, Trackposition, allfällige Zeitmarken und Quellenverweis erhalten.
+2. **Normalisierung (TODO):** Artist, Titel, Mix-/Remix-Version, ISRC (falls verfügbar) und Laufzeit normalisieren. Unsichere Zuordnungen sichtbar machen und manuelle Bestätigung anbieten, damit Radio Edit und Extended Mix nicht fälschlich zusammenfallen.
+3. **Library Matching (TODO):** Importierte Trackeinträge mit vorhandenen Dateien vergleichen; «vorhanden», «fehlt» und «unklar» unterscheiden. Nicht automatisch Tags oder fremde DJ-Bibliotheken ändern.
+4. **Discovery und Einkaufslisten (TODO):** Fehlende Titel als Such-/Einkaufskandidaten vormerken; legale Bezugsquellen nur über erlaubte Schnittstellen bzw. offizielle Shoplinks ermitteln. Siehe [Konzept DJ-Plattformen](KONZEPT_DJPLATTFORMEN.md).
+5. **Phase 2 – Datenbasierte Übergangsvorschläge (TODO):** Set-Reihenfolgen, Set-Verläufe und DJ-Support zusammen mit Ergebnissen der Musikanalyse als **erklärbare Vorschläge** im DJ-Set-Planer darstellen.
+6. **Phase 3 – Wiederkehrende Discovery (optional / TODO):** Neue Sets ausgewählter DJs und Trends nur bei belegtem erlaubtem automatischem Zugang prüfen.
+
+**Schnittstelle:** Ein separat austauschbarer Tracklist-Provider liefert normalisierte Set- und Trackreferenzen an den bestehenden DJ-Set-Planer; der Player bleibt ein nichtdestruktives Vorhörwerkzeug. Der im PDF vorgeschlagene Verzeichnisbaum `dj_intelligence/` ist **eine Architekturidee**, kein bestehender Code.
+
+**Vorbedingungen:** Das Ausgangsdokument nennt **keine allgemein dokumentierte öffentliche Entwickler-API** für 1001Tracklists. Manuelle Importe sind als erste Machbarkeitsstufe vorgesehen; Partnerschaften und im PDF erwähnte Drittanbieter-/Scraping-Lösungen (z. B. CrateDigger, 1001-tracklists-api, Parse API) müssen auf Funktion, Aktualität, Vertrags- und Nutzungsrechte geprüft werden. Technische Abrufbarkeit allein bedeutet keine Erlaubnis.
+
+**Umsetzung:** Ausdrücklich **nicht vorhanden**. Die Details zu Speicherformat, Rechteprüfung, UI und Akzeptanztests sind offen und werden vor Programmierung über #180 konkretisiert.
 
 ## 6. Tests
 
