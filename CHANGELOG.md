@@ -6,6 +6,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### 4.4.1 – Erweiterung für die nächste Beta
+- **Player #181:** Zuschaltbares Beatgrid-Metronom ♩ (Player A/B und abgedocktes Fenster) für die akustische Prüfung der vorhandenen Serato-/Analyse-/BPM-Raster; Klicks nach WebAudio-Zeitbasis, bei Pause/Seek/Tempoänderungen neu ausgerichtet. Vierer-Akzent ist kein verifizierter Downbeat. Offbeat-Übergänge bleiben bis zum Hörtest offen.
+
 ### Geändert (geplant für 4.4.1, noch nicht final getestet)
 - **Player #181:** Bei automatischen Übergängen neuen Titel erst stumm laden und vorbereiten, Phase unmittelbar nach dem tatsächlichen Wiedergabestart angleichen und erst danach einblenden. Beat-Alignment am Titelanfang und Tempo-Reset verbessert. Die hörbare Synchronität muss noch praktisch bestätigt werden.
 - **Player #182:** **←/→** verschiebt um einen Takt (4 Beats mit variablem Beatgrid, sonst BPM-Näherung), **Shift+←/→** wechselt zum vorigen/nächsten Cue-Punkt; Player A/B und separates Player-Fenster. Tagger-Listennavigation bleibt vorrangig. Tastatur-Hilfe aktualisiert.

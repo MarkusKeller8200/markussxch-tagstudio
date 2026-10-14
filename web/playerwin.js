@@ -46,6 +46,7 @@ function deckHtml(d) {
         ${d === "A" ? `<button class="icon-btn pl-tog pw-live" data-cmd="live" title="Live-Vorschau" aria-label="Live-Vorschau"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4"/><path d="M5 5a10 10 0 0 0 0 14"/><path d="M19 5a10 10 0 0 1 0 14"/></svg></button>` : '<span class="icon-btn pl-ph" aria-hidden="true"></span>'}
         <button class="icon-btn pl-tog pw-repeat" data-cmd="repeat" title="Titel wiederholen (R)" aria-label="Titel wiederholen"><svg class="i" viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></button>
         <button class="icon-btn pl-tog pl-ab-btn pw-ab" data-cmd="ab" title="A–B-Schleife (L)" aria-label="A–B-Schleife">A–B</button>
+        <button class="icon-btn pl-tog pw-metro" data-cmd="metro" title="Beatgrid-Metronom" aria-label="Beatgrid-Metronom" aria-pressed="false">♩</button>
         <div class="pw-time"><span class="pw-el">0:00</span><span class="pw-rem pl-remain">−0:00</span><span class="pw-len muted">0:00</span></div>
         <div class="grow"></div>
         <div class="seg sm pl-start pw-start" title="Startpunkt beim Abspielen"><button data-v="0">Start</button><button data-v="30">30 %</button><button data-v="60">1:00</button><button data-v="cue">Cue</button></div>
@@ -82,6 +83,8 @@ function renderDeck(d) {
   const box = $(`.pw[data-deck="${d}"]`), s = PW.st[d] || {}, P = PW.deck[d] || (PW.deck[d] = {});
   if (!box) return;
   box.classList.toggle("on", !!s.on);
+  const metro = $(".pw-metro", box);
+  if (metro) { metro.classList.toggle("on", !!s.metro); metro.setAttribute("aria-pressed", String(!!s.metro)); metro.disabled = !s.on; }
   box.classList.toggle("target", PW.st.two && PW.st.target === d);
   $(".pl-tag", box).classList.toggle("on", PW.st.two && PW.st.target === d);
   $(".pw-t", box).textContent = s.on ? (s.title ? `${s.artist ? s.artist + " – " : ""}${s.title}` : s.name) : (d === "A" ? "Kein Titel – im Hauptfenster markieren und Leertaste" : "Player B: Titel im Hauptfenster per Rechtsklick laden");

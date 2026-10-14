@@ -27,7 +27,7 @@ const ctx = vm.createContext({
   S: {module:'tagger'}, TG: {order:[], anchor:0},
   $:()=>({hidden:true})
 });
-for (const name of ['player.js', 'player2.js']) {
+for (const name of ['player.js', 'player2.js', 'metronome.js']) {
   vm.runInContext(fs.readFileSync('web/' + name,'utf8'), ctx, {filename:name});
 }
 const run = (code) => vm.runInContext(code,ctx);
@@ -52,6 +52,16 @@ const old = run("PLAYER.audio.currentTime");
 assert.equal(run("plBarSeek(PLAYER.audio,{bpm:0},1)"),false);
 approx(run("PLAYER.audio.currentTime"),old);
 
+// #181: Diagnose-Metronom prüft Grid-Position, PlaybackRate und Markerwechsel.
+const metro = run("plMetroBeat({bpm:120,markers:[{pos:0.3,bpm:120}]},0.3,1,1)");
+approx(metro.delay,0.5); assert.equal(metro.accent,false);
+const strong = run("plMetroBeat({bpm:120,markers:[{pos:0.3,bpm:120}]},7.8,1,16)");
+approx(strong.delay,0.5); assert.equal(strong.accent,true);
+const faster = run("plMetroBeat({bpm:120,markers:[{pos:0.3,bpm:120}]},0.3,2,1)");
+approx(faster.delay,0.25);
+const variable = run("plMetroBeat({bpm:120,markers:[{pos:0.5,bpm:120},{pos:32.5,bpm:128}]},32.5,1,65)");
+approx(variable.delay,60/128);
+assert.equal(run("plMetroBeat(null,10,1,1)"),null);
 // Eventrouting: Pfeiltasten in der normalen Oberfläche und auf Deck B.
 function key(k,shift=false) {
   const event={key:k,shiftKey:shift,ctrlKey:false,metaKey:false,altKey:false,

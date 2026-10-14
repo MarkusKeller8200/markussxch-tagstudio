@@ -322,6 +322,7 @@ function plRender() {
   if (!seek.matches(":active")) { seek.max = String(Math.max(1, Math.round(dur * 10))); seek.value = String(Math.round(a.currentTime * 10)); }
   seek.disabled = !i;
   plDrawWave();
+  if (typeof plMetroUi === "function") plMetroUi("A");
   $("#plAB").hidden = S.module !== "compare";
   $("#plLive").classList.toggle("on", !!PLAYER.live); $("#plLive").setAttribute("aria-pressed", String(!!PLAYER.live));
   $("#plRepeat").classList.toggle("on", PLAYER.repeat); $("#plRepeat").setAttribute("aria-pressed", String(PLAYER.repeat));
@@ -590,6 +591,7 @@ async function plMenu(btn) {
     "-",
     { label: "Player einrichten …", run: () => plSetup() },
     { label: (PLAYER.wave ? "✓ " : "    ") + "Wellenform anzeigen", run: () => plSetPref("wave", !PLAYER.wave) },
+    { label: (PL_METRO.deck === "A" ? "✓ " : "    ") + "Beatgrid-Metronom A", run: () => plMetroToggle("A") },
     ...(PL2.layout === "top" ? [{ label: (PL2.deck2 ? "✓ " : "    ") + "Player B anzeigen", run: () => plSetPref("deck2", !PL2.deck2) }] : []),
     { label: (PL2.layout === "top" ? "✓ " : "    ") + "Player oben anordnen", run: () => plSetPref("layout", PL2.layout === "top" ? "bottom" : "top") },
     { label: (PLAYER.xfade ? `✓ Überblenden (${PLAYER.xfade} s)` : "    Überblenden"), run: () => plSetPref("xfade", PLAYER.xfade ? 0 : 6) },
@@ -717,6 +719,7 @@ function initPlayer() {
   $("#plMore").addEventListener("click", (e) => plMenu(e.currentTarget));
   $("#plRepeat").addEventListener("click", () => { plSetPref("repeat", !PLAYER.repeat); toast(PLAYER.repeat ? "Titel wird wiederholt." : "Titel nicht mehr wiederholen."); });
   $("#plAB2").addEventListener("click", plABStep);
+  $("#plMetro").addEventListener("click", () => plMetroToggle("A"));
   $("#plLive").addEventListener("click", () => plLiveSet(!PLAYER.live));
   $("#plRate").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;

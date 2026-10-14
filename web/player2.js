@@ -447,6 +447,7 @@ function dbRender() {
   $("#dbVol").classList.toggle("muted", a.muted);
   plTagSync();
   drawWaveInto($("#dbWave"), $("#dbCanvas"), PLAYER.wave && i && i.wave, dur ? t / dur : 0, i, dur);
+  if (typeof plMetroUi === "function") plMetroUi("B");
   const sb = $("#dbSync"); if (sb) { sb.disabled = !i || !PLAYER.info; sb.classList.toggle("on", Math.abs((a.playbackRate || 1) - 1) > 0.0005); }
 }
 
@@ -513,6 +514,7 @@ async function dbMenu(btn) {
     items.push({ label: (DECKB.sink ? "    " : "✓ ") + "Ausgabe: Standard des Systems", run: () => dbSinkSet("") });
     sinks.forEach((s) => items.push({ label: (DECKB.sink === s.id ? "✓ " : "    ") + "Ausgabe: " + s.label, run: () => dbSinkSet(s.id) }));
   }
+  items.push("-", { label: (PL_METRO.deck === "B" ? "✓ " : "    ") + "Beatgrid-Metronom B", run: () => plMetroToggle("B") });
   items.push("-", { label: "Player B ausblenden", run: () => plSetPref("deck2", false) });
   showMenu(r.left - 200, r.bottom + 6, items);
 }
@@ -552,7 +554,8 @@ function plDock() {
 function detDeck(d, a, i, x) {
   const st = { on: !!(a.src && i), paused: a.paused, t: Math.round(a.currentTime * 10) / 10, dur: a.duration || (i && i.duration) || 0,
     vol: x.vol, muted: a.muted, repeat: x.repeat, start: x.start, ab: x.ab ? (x.ab.b === undefined ? "half" : "on") : "",
-    rate: Math.round((a.playbackRate || 1) * 1000) / 1000, live: x.live };
+    rate: Math.round((a.playbackRate || 1) * 1000) / 1000, live: x.live,
+    metro: PL_METRO.deck === d };
   if (i) {
     Object.assign(st, { title: i.title || "", artist: i.artist || "", name: i.name, path: i.path, key: i.key || "", key_alt: i.key_alt || {},
       bpm: i.bpm || "", rating: i.rating, like: i.like, markable: i.markable !== false && i.rating !== undefined,
@@ -609,6 +612,7 @@ async function detCmd(m) {
     case "seek": if (a.src && isFinite(m.t)) { a.currentTime = Math.max(0, m.t); plRender(); } break;
     case "seekby": plSeekBy(+m.s || 0); break;
     case "bar": plBarJump(m.dir > 0 ? 1 : -1); break;
+    case "metro": plMetroToggle("A"); break;
     case "vol": PLAYER.vol = Math.max(0, Math.min(1, +m.v)); if (!PLAYER.fade) a.volume = PLAYER.vol; $("#plVol").value = String(Math.round(PLAYER.vol * 100)); plSetPref("vol", PLAYER.vol); break;
     case "mute": a.muted = !a.muted; plRender(); break;
     case "rate": if (r) await plMarkTarget(r, +m.n, null); break;
@@ -632,6 +636,7 @@ async function detCmdB(m) {
     case "seek": if (a.src && isFinite(m.t)) { a.currentTime = Math.max(0, m.t); dbRender(); } break;
     case "seekby": dbSeekBy(+m.s || 0); break;
     case "bar": dbBarJump(m.dir > 0 ? 1 : -1); break;
+    case "metro": plMetroToggle("B"); break;
     case "vol": { const v = Math.max(0, Math.min(1, +m.v)); $("#dbVol").value = String(Math.round(v * 100)); plSetPref("vol_b", v); break; }
     case "mute": a.muted = !a.muted; dbRender(); break;
     case "rate": if (r) await plMarkTarget(r, +m.n, null); break;
@@ -742,6 +747,7 @@ function initPlayer2(pp) {
   $("#dbCueNext").addEventListener("click", () => dbCueJump(1));
   $("#dbRepeat").addEventListener("click", () => { plSetPref("repeat_b", !DECKB.repeat); toast(DECKB.repeat ? "Player B wiederholt den Titel." : "Player B: nicht mehr wiederholen."); });
   $("#dbAB2").addEventListener("click", dbABStep);
+  $("#dbMetro").addEventListener("click", () => plMetroToggle("B"));
   $("#dbSync").addEventListener("click", dbSync);                     // #76
   [["#plMeta", "A"], ["#dbMeta", "B"]].forEach(([id, dk]) => $(id).addEventListener("click", (e) => {      // #174
     if (e.target.closest(".pl-bpm")) plTempoDialog(dk);

@@ -50,6 +50,7 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
 ## 5. Offen / Ideen
 
 - **4.4.1 – #181 (Offbeat) und #182 (Takt-/Cue-Tasten):** Implementierung und automatisierte Tests im Gange; vor Abschluss ist der Hörtest des Projektverantwortlichen erforderlich.
+- **#181, Metronom-Diagnose für den nächsten Beta-Test:** Serato-`GEOB:Serato BeatGrid` wird bislang als `exact: true` eingelesen, ist aber nicht musikalisch verifiziert. Per ♩ lässt sich das benutzte Raster für A/B oder abgedocktes Fenster hörbar machen (Web Audio, Tempo- und Marker-Anpassung, pausiert beim Anhalten/Spulen). Der betonte Beat im Vierer-Raster ist **keine erkannte Downbeat-Position**. Konstante Abweichung deutet auf Grid-Offset, zunehmende Abweichung auf BPM-/Temposchwankung oder Wiedergabe-Timing. Ein Metronom ist kein samplegenauer Audiotest.
 - **#181:** Das neue Audio-Element während Lade- und Analysephase stumm halten, erst nach erfolgreichem `play()` im aktuellen Takt des alten Players ausrichten und dann einblenden. Negative Zielzeiten nicht pauschal auf 0 kappen; Tempo des neuen Audio-Elements jedes Mal explizit setzen. Dies verbessert die Synchronisation, ersetzt aber keinen samplegenauen DJ-Audio-Mixer.
 - **#182:** Ein Sprung entspricht vier Beats mit optional variablem Grid; ohne Grid nur BPM-Näherung, ohne BPM kein Sprung. Shift+←/→ springt zu Cue-Punkten (ohne Loops); Listennavigation im Tagger behält Vorrang. Gilt für A, B und das abgedockte Fenster.
 - Weitere Ideen: Stems einzeln stummschalten, Beatgrid von weiteren Programmen lesen.
