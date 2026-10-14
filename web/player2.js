@@ -11,6 +11,41 @@ const DET = { on: false, timer: 0, seq: 0, popup: null, t0: 0, waveKey: { A: nul
 // ====================================================================== #76 Beatgrid
 /** Beatgrid eines Titels (aus media_extra: Serato oder geschätzt aus BPM) oder null */
 function gridOf(info) { const g = info && info.grid; return g && g.bpm > 0 && g.markers && g.markers.length ? g : null; }
+
+/** #181: Herkunft klar kennzeichnen. Ein BPM-Fallback ist KEIN aus Audio geprüftes Beatgrid. */
+function plGridStatus(info) {
+  if (!info) return { label: "", state: "empty", hint: "" };
+  const g = gridOf(info);
+  if (g && (g.source === "Serato" || g.exact)) return {
+    label: "Serato-Grid", state: "external",
+    hint: "Aus Serato eingelesen · " + g.bpm + " BPM. Nicht musikalisch auf Korrektheit geprüft."
+  };
+  if (g && (g.source === "Analyse" || g.analysed)) return {
+    label: "Audioanalyse", state: "analysed",
+    hint: "TagStudio hat Tempo und Beat-Offset aus dem Audio geschätzt (" + g.bpm + " BPM). Kein verifizierter Downbeat."
+  };
+  const running = !!(info.wave_key && typeof PLAYER !== "undefined" && PLAYER.waveBusy === info.wave_key);
+  if (g) return {
+    label: "Nur BPM-Schätzung", state: "estimate",
+    hint: "Kein Serato-Beatgrid oder verifiziertes Audio-Raster. Aus BPM-Tag"
+      + (g.source && g.source.includes("Cue") ? " und Cue" : "")
+      + " erzeugt (" + g.bpm + " BPM)." + (running ? " Audioanalyse läuft." : "")
+  };
+  return {
+    label: running ? "Beatgrid-Analyse läuft" : "Kein Beatgrid",
+    state: running ? "pending" : "missing",
+    hint: running ? "Weder Serato-Raster noch verwertbarer BPM-Fallback; Audioanalyse läuft."
+      : "Kein aktuell verwendbares Beatgrid. Die Audioanalyse kann bei schwachem Rhythmus ohne Ergebnis bleiben."
+  };
+}
+function plGridRender(deck, info) {
+  const el = document.getElementById(deck === "B" ? "dbGridStatus" : "plGridStatus");
+  if (!el) return;
+  const st = plGridStatus(info);
+  el.textContent = st.label; el.title = st.hint;
+  el.hidden = !st.label;
+  el.dataset.status = st.state;
+}
 /** Schlagnummer (mit Nachkommastelle) zur Zeit t – stückweise linear über die Marker */
 function gridBeatAt(g, t) {
   const m = g.markers;
@@ -287,7 +322,10 @@ async function dbLoad(t, autoplay = true, keepTime = null) {
   const start = keepTime !== null ? keepTime : sm === "30" ? dur * 0.3 : sm === "60" ? Math.min(60, dur * 0.5) : sm === "cue" ? (firstCue ? firstCue.pos : 0) : 0;
   a.src = info.url;
   a.addEventListener("loadedmetadata", () => { try { if (start > 0) a.currentTime = Math.min(start, (a.duration || dur) - 1); } catch (e) { /* egal */ } }, { once: true });
-  if ((PLAYER.wave && !info.wave) || plWaveNeeded(info)) plWaveCompute(info);                    // #76: Schlag für Sync
+  if ((PLAYER.wave && !info.wave) || (!(info.grid && info.grid.exact) && plWaveNeeded(info))) {
+    plWaveCompute(info);
+    dbRender();
+  }
   dbCues();
   dbRender();
   if (autoplay) { try { await a.play(); } catch (e) { if (e.name !== "AbortError") toast("Wiedergabe nicht möglich: " + (e.message || e)); } }
@@ -447,6 +485,7 @@ function dbRender() {
   $("#dbVol").classList.toggle("muted", a.muted);
   plTagSync();
   drawWaveInto($("#dbWave"), $("#dbCanvas"), PLAYER.wave && i && i.wave, dur ? t / dur : 0, i, dur);
+  plGridRender("B", i);
   if (typeof plMetroUi === "function") plMetroUi("B");
   const sb = $("#dbSync"); if (sb) { sb.disabled = !i || !PLAYER.info; sb.classList.toggle("on", Math.abs((a.playbackRate || 1) - 1) > 0.0005); }
 }
@@ -558,6 +597,7 @@ function detDeck(d, a, i, x) {
     metro: PL_METRO.deck === d };
   if (i) {
     Object.assign(st, { title: i.title || "", artist: i.artist || "", name: i.name, path: i.path, key: i.key || "", key_alt: i.key_alt || {},
+      gridStatus: plGridStatus(i).label, gridHint: plGridStatus(i).hint,
       bpm: i.bpm || "", rating: i.rating, like: i.like, markable: i.markable !== false && i.rating !== undefined,
       kind: x.kind, ref: x.kind === "side" ? i.ref : x.ref,
       cues: (i.cues || []).map((c) => ({ pos: c.pos, end: c.end, kind: c.kind, index: c.index, name: c.name, color: c.color })),

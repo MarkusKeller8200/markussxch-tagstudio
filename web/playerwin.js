@@ -88,7 +88,8 @@ function renderDeck(d) {
   box.classList.toggle("target", PW.st.two && PW.st.target === d);
   $(".pl-tag", box).classList.toggle("on", PW.st.two && PW.st.target === d);
   $(".pw-t", box).textContent = s.on ? (s.title ? `${s.artist ? s.artist + " – " : ""}${s.title}` : s.name) : (d === "A" ? "Kein Titel – im Hauptfenster markieren und Leertaste" : "Player B: Titel im Hauptfenster per Rechtsklick laden");
-  $(".pw-sub", box).textContent = s.on ? `${s.name || ""}${s.stem ? " · " + s.stem : ""}` : "";
+  $(".pw-sub", box).textContent = s.on ? `${s.name || ""}${s.stem ? " · " + s.stem : ""}${s.gridStatus ? " · " + s.gridStatus : ""}` : "";
+  $(".pw-sub", box).title = s.gridHint || "";
   $(".pw-t", box).title = s.path || "";
   const alt = s.key_alt ? [s.key_alt.musical, s.key_alt.openkey].filter(Boolean) : [];
   setHtml($(".pw-meta", box), s.on ? `${keyBadge(s.key)}${alt.length ? `<span class="pl-key-alt">${esc(alt.join(" · "))}</span>` : ""}${s.bpm ? `<span class="pl-bpm">${bpmText(s)}</span>` : ""}` : "");

@@ -443,7 +443,7 @@
       <button class="icon-btn pl-tog pl-ab-btn" id="dbSync" title="Sync: Player B ins Tempo und in den Takt von Player A bringen (Beatgrid aus Serato, sonst nur Tempo)" aria-label="Player B mit Player A synchronisieren">Sync</button>
       <button class="icon-btn" id="dbNext" title="Nächster Titel in Player B" aria-label="Nächster Titel in Player B"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14"/><path d="M5 5l10 7-10 7Z"/></svg></button>
       <div class="pl-mid">
-        <div class="pl-line"><span class="pl-title" id="dbTitle"></span><button class="pl-goto" id="dbGoto" title="Im Tagger zeigen: zum Tagger wechseln und den laufenden Titel markieren" aria-label="Im Tagger zeigen"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 12h7"/><path d="M4 18h10"/><path d="m15 9 4 3-4 3"/></svg></button><span class="pl-rate" id="dbRate"></span></div>
+        <div class="pl-line"><span class="pl-title" id="dbTitle"></span><span class="pl-grid-status" id="dbGridStatus" hidden aria-label="Beatgrid-Status"></span><button class="pl-goto" id="dbGoto" title="Im Tagger zeigen: zum Tagger wechseln und den laufenden Titel markieren" aria-label="Im Tagger zeigen"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 12h7"/><path d="M4 18h10"/><path d="m15 9 4 3-4 3"/></svg></button><span class="pl-rate" id="dbRate"></span></div>
         <div class="pl-wave" id="dbWave"><canvas id="dbCanvas" aria-hidden="true"></canvas><input type="range" id="dbSeek" min="0" max="1" value="0" step="1" aria-label="Position Player B"><div class="pl-cues" id="dbCues"></div></div>
       </div>
       <div class="pl-info" aria-live="off">
@@ -478,7 +478,7 @@
         <button class="icon-btn pl-tog" id="plMetro" title="Beatgrid-Metronom Player A" aria-label="Beatgrid-Metronom A" aria-pressed="false">♩</button>
         <button class="icon-btn" id="plNext" title="Nächster Titel" aria-label="Nächster Titel"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14"/><path d="M5 5l10 7-10 7Z"/></svg></button>
         <div class="pl-mid">
-          <div class="pl-line"><span class="pl-title" id="plTitle"></span><button class="pl-goto" id="plGoto" title="Im Tagger zeigen: zum Tagger wechseln und den laufenden Titel markieren" aria-label="Im Tagger zeigen"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 12h7"/><path d="M4 18h10"/><path d="m15 9 4 3-4 3"/></svg></button><button class="pl-stems" id="plStems" hidden aria-haspopup="menu" title="Original oder Stem-Spur an derselben Stelle hören (S: nächste Spur)"></button><span class="pl-rate" id="plRate"></span></div>
+          <div class="pl-line"><span class="pl-title" id="plTitle"></span><span class="pl-grid-status" id="plGridStatus" hidden aria-label="Beatgrid-Status"></span><button class="pl-goto" id="plGoto" title="Im Tagger zeigen: zum Tagger wechseln und den laufenden Titel markieren" aria-label="Im Tagger zeigen"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 12h7"/><path d="M4 18h10"/><path d="m15 9 4 3-4 3"/></svg></button><button class="pl-stems" id="plStems" hidden aria-haspopup="menu" title="Original oder Stem-Spur an derselben Stelle hören (S: nächste Spur)"></button><span class="pl-rate" id="plRate"></span></div>
           <div class="pl-wave" id="plWave"><canvas id="plCanvas" aria-hidden="true"></canvas><input type="range" id="plSeek" min="0" max="1" value="0" step="1" aria-label="Position"><div class="pl-cues" id="plCues"></div></div>
         </div>
         <div class="pl-info" id="plInfo" aria-live="off">

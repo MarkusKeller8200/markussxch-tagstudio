@@ -92,7 +92,12 @@ async function plLoad(target, autoplay = true, keepTime = null, startMode = null
   a.addEventListener("loadedmetadata", seek, { once: true });
   plCues();
   plRender();
-  if ((PLAYER.wave && !info.wave) || (PLAYER.xfade && PLAYER.xfadePhase && plWaveNeeded(info))) plWaveCompute(info);   // #76: auch für den Takt
+  // #181: fehlende Serato-Raster beim Abspielen selbst untersuchen – nicht erst bei
+  // eingeschalteter Wellenform oder Crossfade. Niemals die Serato-Daten überschreiben.
+  if ((PLAYER.wave && !info.wave) || (!(info.grid && info.grid.exact) && plWaveNeeded(info))) {
+    plWaveCompute(info);
+    plRender();                                  // Kennzeichnung «Analyse läuft» sofort sichtbar
+  }
   if (autoplay) {
     try { await a.play(); } catch (e) {
       // AbortError: schneller Titelwechsel – der neue Titel lädt bereits, kein Fehler
@@ -322,6 +327,7 @@ function plRender() {
   if (!seek.matches(":active")) { seek.max = String(Math.max(1, Math.round(dur * 10))); seek.value = String(Math.round(a.currentTime * 10)); }
   seek.disabled = !i;
   plDrawWave();
+  if (typeof plGridRender === "function") plGridRender("A", i);
   if (typeof plMetroUi === "function") plMetroUi("A");
   $("#plAB").hidden = S.module !== "compare";
   $("#plLive").classList.toggle("on", !!PLAYER.live); $("#plLive").setAttribute("aria-pressed", String(!!PLAYER.live));

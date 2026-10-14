@@ -6,6 +6,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### 4.4.1 – Nachbesserung für die nächste Beta
+- **#181 Beatgrid-Status:** Player A/B kennzeichnen die aktuelle Quelle direkt neben dem Track (`Serato-Grid`, `Audioanalyse`, `Nur BPM-Schätzung`, `Kein Beatgrid`); abgedockter Player zeigt den Status ebenfalls.
+- **Eigene Analyse:** Für Tracks ohne Serato-Beatgrid startet die bereits vorhandene Onset-/BPM-Analyse beim Vorhören automatisch, statt nur bei eingeschalteter Wellenform oder Crossfade.
+- **Metronom:** Klicklautstärke deutlich erhöht (normale und betonte Zählzeiten).
+- **Unverändert:** Trotz subjektiv passend klingendem Metronom sind die Übergänge noch offbeat; Issue #181 bleibt offen und benötigt eine gesonderte Timing-Analyse.
+
+
 ### 4.4.1 – Erweiterung für die nächste Beta
 - **Player #182:** Shift+← ignoriert den zuletzt angesprungenen Cue bis vier Takte weitergespielt wurden; veraltete ALT+Bild↑/↓-Cue-Belegung entfernt und Hilfe bereinigt.
 - **Player #181:** Zuschaltbares Beatgrid-Metronom ♩ (Player A/B und abgedocktes Fenster) für die akustische Prüfung der vorhandenen Serato-/Analyse-/BPM-Raster; Klicks nach WebAudio-Zeitbasis, bei Pause/Seek/Tempoänderungen neu ausgerichtet. Vierer-Akzent ist kein verifizierter Downbeat. Offbeat-Übergänge bleiben bis zum Hörtest offen.

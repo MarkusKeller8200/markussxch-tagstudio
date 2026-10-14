@@ -44,7 +44,9 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
 
 - Beim Abdocken läuft die Wiedergabe weiter im Hauptfenster; das Fenster ist eine Fernanzeige (Session-Bus).
 - Player B nur mit Layout „oben“.
-- Beatgrid-Reihenfolge: Serato → eigene Audio-Analyse (Cache) → Schätzung aus BPM-Feld.
+- Beatgrid-Reihenfolge: Serato → eigene Audio-Analyse (Cache) → Schätzung aus BPM-Feld. **Nur das Serato-Raster wird aus einem Track-Tag eingelesen.** `beatAnalyse()` im Browser schätzt aus dem Kick-/Bass-Onset-Signal BPM und Offset; es ist noch keine vollständige Variable-Tempo-/Downbeat-Analyse. Ein BPM-Tag allein ist kein Beatgrid.
+- **Kennzeichnung #181:** In Player A/B sowie im abgedockten Fenster wird die Rasterquelle beim Track markiert: `Serato-Grid`, `Audioanalyse`, `Nur BPM-Schätzung` oder `Kein Beatgrid`/`Beatgrid-Analyse läuft`. Bei nicht vorhandenem Serato-Grid wird die Analyse beim Laden zum Vorhören gestartet; Ergebnisse liegen im bestehenden Wellenformcache. Die Anzeige sagt nichts über eine musikalische Verifikation aus.
+- **Metronom #181:** Tick-Lautstärke gegenüber beta.2 auf 0.20/0.30 (normal/betont) angehoben; beide Pegel bleiben unter 1.0. Klicktest ist subjektiv on beat, Crossfade bleibt trotzdem offbeat. Nach dem Hörtest daher gezielt Player-/Seek-/Decoder-Latenz und Takt-/Phrasenphase prüfen.
 - Tempo von Hand wird nicht gespeichert und gilt nur für den Titel; ein neuer Titel startet im eigenen Tempo (#174).
 
 ## 5. Offen / Ideen

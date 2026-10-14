@@ -75,6 +75,14 @@ approx(faster.delay,0.25);
 const variable = run("plMetroBeat({bpm:120,markers:[{pos:0.5,bpm:120},{pos:32.5,bpm:128}]},32.5,1,65)");
 approx(variable.delay,60/128);
 assert.equal(run("plMetroBeat(null,10,1,1)"),null);
+// #181: tatsächliche Rasterquelle vs. blosses BPM, fehlende Grids und Analysephase.
+const statuses = [
+  run("plGridStatus({grid:{bpm:124,source:'Serato',exact:true,markers:[{pos:0,bpm:124}]}}).state"),
+  run("plGridStatus({grid:{bpm:120,source:'Analyse',analysed:true,markers:[{pos:0,bpm:120}]}}).state"),
+  run("plGridStatus({grid:{bpm:122,source:'BPM-Tag',exact:false,markers:[{pos:0,bpm:122}]}}).state"),
+  run("plGridStatus({grid:null,wave_key:'x'}).state"),
+];
+assert.deepEqual(Array.from(statuses), ['external','analysed','estimate','missing']);
 // Eventrouting: Pfeiltasten in der normalen Oberfläche und auf Deck B.
 function key(k,shift=false) {
   const event={key:k,shiftKey:shift,ctrlKey:false,metaKey:false,altKey:false,

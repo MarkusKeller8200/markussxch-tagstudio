@@ -20,7 +20,7 @@ function plMetroUi(deck) {
   const active = PL_METRO.deck === deck;
   b.disabled = !g; b.classList.toggle("on", active);
   b.setAttribute("aria-pressed", String(active));
-  b.title = `Beatgrid-Metronom Player ${deck}: ${g ? (g.source + " · " + g.bpm + " BPM") : "kein Beatgrid"} – Vierer-Akzent ist kein geprüfter Downbeat`;
+  b.title = `Beatgrid-Metronom Player ${deck}: ${g ? (g.source + " · " + g.bpm + " BPM") : "kein Beatgrid"} – lauterer Klick; Vierer-Akzent ist kein geprüfter Downbeat`;
 }
 function plMetroStop() {
   const m = PL_METRO;
@@ -36,7 +36,8 @@ function plMetroClick(when, accent) {
   o.type = "sine";
   o.frequency.setValueAtTime(accent ? 1320 : 880, when);
   gain.gain.setValueAtTime(0.0001, when);
-  gain.gain.exponentialRampToValueAtTime(accent ? 0.12 : 0.07, when + 0.003);
+  // #181: kräftigerer, aber nicht übersteuernder Klick (früher 0.12 / 0.07).
+  gain.gain.exponentialRampToValueAtTime(accent ? 0.30 : 0.20, when + 0.003);
   gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.045);
   o.connect(gain); gain.connect(ctx.destination);
   PL_METRO.nodes.add(o);
