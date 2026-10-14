@@ -6,10 +6,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
-### Player – weitere Verbesserungen für 4.4.1 (ohne Beta-Build)
+### 4.4.1-beta.5 – Überblenddauer und Metronom-Trackwechsel
 - **Überblenddauer:** Einstellungen → Player: 0–30 Sekunden, in ganzen Sekunden frei einstellbar statt Dropdown bis 12 Sekunden. Die Python-Seite erlaubte bisher bereits 30 Sekunden.
 - **Metronom über Übergänge:** Metronom bleibt während der gesamten Überblendung auf dem Beatgrid des auslaufenden Tracks und schaltet erst beim vollständigen Ausblenden auf das Raster des neuen um. Die Einstellung bleibt dabei eingeschaltet; bei noch fehlendem neuem Grid pausieren nur die Klicks bis zur Analyse. Player B bleibt unabhängig.
-- **Tests:** Neue Regressionstests für den Grid-Wechsel, fehlende Grids und die 30-Sekunden-Einstellung. Kein Beta-Build ohne erneute Freigabe.
+- **Tests:** Neue Regressionstests für den Grid-Wechsel, fehlende Grids und die 30-Sekunden-Einstellung. Beta-Build 4.4.1-beta.5 nach ausdrücklicher Freigabe gestartet.
 
 
 ### 4.4.1-beta.4 – Player-Kalibrierung und Tooltip-Darstellung
