@@ -34,6 +34,15 @@ const run = (code) => vm.runInContext(code,ctx);
 run('plRender = () => {}; dbRender = () => {};');
 function approx(a,b,delta=0.00001){assert(Math.abs(a-b)<=delta, a+' != '+b);}
 
+// #181: signierte Verzögerung kalibriert die Mediaposition (bei 0 ms exakt unverändert).
+const g120 = run("({bpm:120,markers:[{pos:0,bpm:120}]})"); ctx.g120 = g120;
+approx(run("plXfadeCalibratedTime(g120,10,0,1)"),10);
+approx(run("plXfadeCalibratedTime(g120,10,100,1)"),9.9); // +100 ms: Folgetrack später
+approx(run("plXfadeCalibratedTime(g120,10,-100,1)"),10.1); // -100 ms: früher
+approx(run("plXfadeCalibratedTime(g120,10,100,1.05)"),9.895); // Tempoänderung
+approx(run("plXfadeCalibratedTime(g120,0,100,1,1)"),0.4); // negative Seek-Zeit vermeiden
+approx(run("plXfadeCalibratedTime(g120,0,100,1,4)"),1.9); // Taktphase bewahren
+approx(run("plXfadeCalibratedTime(g120,10,2000,1)"),9.5); // Eingabe auf ±500 begrenzen
 // Beat-/Taktrechnung: Am Titelanfang darf das Alignment nicht auf Position null
 // gekappt werden, sonst stimmt die Phase bei verzögertem erstem Beat nicht.
 const aligned = run("gridAlign({bpm:120,markers:[{pos:0.3,bpm:120}]},0,0.75)");

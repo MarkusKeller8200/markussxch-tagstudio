@@ -78,6 +78,10 @@ async function settingsShow() {
         <span>Tonhöhe</span><div class="st-path">${stCheck("stPlXfPitch", p.xfade_pitch !== false, "Beim Angleichen des Tempos die Tonhöhe beibehalten (aus: Tonhöhe ändert sich mit dem Tempo wie beim Plattenspieler – klingt natürlicher, aber höher/tiefer)")}</div>
         <span>Im Takt</span><div class="st-path">${stCheck("stPlXfPhase", p.xfade_phase !== false, "Nächsten Titel im Schlag des laufenden starten (Beatgrid aus Serato, sonst aus BPM geschätzt)")}</div>
         <label for="stPlXfBars">Überblenden auf Taktgrenze</label>${stSel("stPlXfBars", [[0, "sofort"], [4, "nächster Takt (4 Schläge)"], [8, "nach 8 Schlägen"], [16, "nächste Phrase (16 Schläge)"]], p.xfade_bars || 0)}
+        <label for="stPlXfLatency">Folgetrack-Korrektur (ms)</label><div class="st-path">
+          <input type="number" id="stPlXfLatency" min="-500" max="500" step="10" style="width:95px"
+            value="${p.xfade_latency_ms ?? 0}" title="Positive ms: Folgetrack-Beats später, negative ms: früher">
+          <span class="muted sm">−500 bis +500 ms · + später / − früher · 0 = aus · nur mit Beatgrid und „Im Takt“</span></div>
         <label for="stPlXfRet">Zurück auf eigenes BPM</label>${stSel("stPlXfRet", [[0, "sofort nach dem Überblenden"], [4, "in 4 s"], [8, "in 8 s"], [16, "in 16 s"], [30, "in 30 s"], [60, "in 1 Minute"]], p.xfade_return)}
         <span></span><span class="muted sm">Überblenden wirkt im Tagger mit „Durchhören“, nicht bei „Titel wiederholen“ oder einer Schleife.</span>
         <label for="stPlLayout">Position</label>${stSel("stPlLayout", [["bottom", "unten in der Aktionsleiste"], ["top", "oben als eigene Leiste (einklappbar, Shift+P)"]], p.layout)}
@@ -605,6 +609,16 @@ function initSettings() {
     else if (t.id === "stPlXfPhase") plSetPref("xfade_phase", t.checked);
     else if (t.id === "stPlXfPitch") plSetPref("xfade_pitch", t.checked);
     else if (t.id === "stPlXfBars") plSetPref("xfade_bars", +t.value);
+    else if (t.id === "stPlXfLatency") {
+      const raw = t.value.trim(), ms = Number(raw);
+      if (!raw || !Number.isInteger(ms) || ms < -500 || ms > 500) {
+        t.value = String(PLAYER.xfadeLatencyMs || 0);
+        toast("Bitte einen ganzzahligen Wert von −500 bis +500 ms eingeben.");
+      } else {
+        plSetPref("xfade_latency_ms", ms);
+        toast(`Folgetrack-Korrektur ${ms > 0 ? "+" : ""}${ms} ms gespeichert.`);
+      }
+    }
     else if (t.id === "stPlXfRet") plSetPref("xfade_return", +t.value);
     else if (t.dataset.vd) await stVdSet(t);
     else if (t.id === "stUpdCh") { await call("set_update_channel", t.value); toast(t.value === "beta" ? "Updates: auch Beta-Versionen." : "Updates: nur offizielle Versionen."); settingsShow(); checkUpdateQuietly(); }

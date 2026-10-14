@@ -32,6 +32,7 @@ function plSetPref(k, v) {
   else if (k === "xfade_return") PLAYER.xfadeReturn = +v || 0;
   else if (k === "xfade_phase") PLAYER.xfadePhase = !!v;                     // #76
   else if (k === "xfade_bars") PLAYER.xfadeBars = +v || 0;
+  else if (k === "xfade_latency_ms") PLAYER.xfadeLatencyMs = Math.max(-500, Math.min(500, Math.round(+v || 0)));
   else if (k === "xfade_pitch") PLAYER.xfadePitch = !!v;
   else if (k === "layout" || k === "top_collapsed" || k === "deck2" || k === "deck_target" || k === "sink_b" || k === "vol_b" || k === "start_b" || k === "repeat_b") {
     if (typeof pl2Pref === "function") pl2Pref(k, v);
@@ -606,10 +607,40 @@ async function plMenu(btn) {
     ...(PL2.layout === "top" ? [{ label: (PL2.deck2 ? "✓ " : "    ") + "Player B anzeigen", run: () => plSetPref("deck2", !PL2.deck2) }] : []),
     { label: (PL2.layout === "top" ? "✓ " : "    ") + "Player oben anordnen", run: () => plSetPref("layout", PL2.layout === "top" ? "bottom" : "top") },
     { label: (PLAYER.xfade ? `✓ Überblenden (${PLAYER.xfade} s)` : "    Überblenden"), run: () => plSetPref("xfade", PLAYER.xfade ? 0 : 6) },
+    { label: `Latenzkorrektur: ${PLAYER.xfadeLatencyMs || 0} ms …`, run: () => plXfadeLatencyDialog() },
     { label: "Player abdocken (eigenes Fenster)", run: () => plDetach() },
     "-",
     { label: "Alle Player-Einstellungen …", run: () => setModule("settings") },
   ]);
+}
+
+/** #181: schnelle Kalibrierung im Player, ohne jedes Mal zu Einstellungen zu wechseln. */
+async function plXfadeLatencyDialog() {
+  const ms = Math.round(PLAYER.xfadeLatencyMs || 0);
+  const value = await modal({
+    title: "Latenzkorrektur beim Überblenden",
+    html: `<label class="field">Korrektur in Millisekunden
+      <input id="plLatencyMs" type="number" min="-500" max="500" step="10" value="${ms}" autofocus>
+    </label>
+    <p class="muted sm">0 ms = keine Korrektur. Positiv (+) lässt die Beats des Folgetracks später,
+      negativ (−) früher hören. Funktioniert mit aktivem „Im Takt“ und Beatgrid für beide Titel.
+      Das ist ein manueller Phasenversatz, keine automatische Laufzeitmessung. Wert wird für
+      alle folgenden Übergänge gespeichert; Dateien bleiben unverändert.</p>`,
+    buttons: [{ label: "Auf 0 ms", value: "reset" }, { label: "Abbrechen", value: null },
+      { label: "Übernehmen", value: "save", primary: true }],
+    collect: (body, action) => {
+      if (action === "reset") return { ms: 0 };
+      const input = $("#plLatencyMs", body), raw = input.value.trim(), n = Number(raw);
+      if (!raw || !Number.isInteger(n) || n < -500 || n > 500) {
+        toast("Latenzkorrektur: ganze Millisekunden von −500 bis +500 eingeben.");
+        return false;
+      }
+      return { ms: n };
+    },
+  });
+  if (!value || typeof value.ms !== "number") return;
+  plSetPref("xfade_latency_ms", value.ms);
+  toast(`Latenzkorrektur ${value.ms > 0 ? "+" : ""}${value.ms} ms gespeichert – gilt für folgende Übergänge.`);
 }
 
 async function plSetup() {
@@ -667,6 +698,7 @@ function plApplyPrefs(pp) {
   PLAYER.xfade = +pp.xfade || 0; PLAYER.xfadeStart = pp.xfade_start || "start"; PLAYER.xfadeAfter = +pp.xfade_after || 0;
   PLAYER.xfadeSync = pp.xfade_sync !== false; PLAYER.xfadeReturn = pp.xfade_return ?? 8;
   PLAYER.xfadePhase = pp.xfade_phase !== false; PLAYER.xfadeBars = +pp.xfade_bars || 0;     // #76
+  PLAYER.xfadeLatencyMs = Math.max(-500, Math.min(500, Math.round(+pp.xfade_latency_ms || 0))); // #181
   PLAYER.xfadePitch = pp.xfade_pitch !== false;
   if (typeof pl2Apply === "function") pl2Apply(pp);
   if ($("#plStart")) plStartSync();

@@ -6,6 +6,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Geplante Nachbesserung in 4.4.1 (Beta nur nach Rückfrage)
+- **#181:** Einstellbare, dauerhafte Folgetrack-Latenzkorrektur von −500 bis +500 ms in Einstellungen → Player und im Player-Menü. Positive Werte verschieben die Folgetrack-Beats nach hinten, negative nach vorne. Die bestehende Beat-Phasenausrichtung wird dazu um einen playbackRate-korrigierten Wert verschoben, ohne Tags zu ändern. Getestet wird, ob ein einziger Kalibrierwert mehrere Übergänge verbessert; die tatsächliche Audio-Latenz wird dadurch nicht automatisch gemessen.
+- **#182:** Takt-/Cue-Sprung laut Projektverantwortlichem im Praxistest korrekt bestätigt. Kein neues Release ohne ausdrückliche Freigabe.
+
+
 ### 4.4.1 – Nachbesserung für die nächste Beta
 - **#181 Beatgrid-Status:** Player A/B kennzeichnen die aktuelle Quelle direkt neben dem Track (`Serato-Grid`, `Audioanalyse`, `Nur BPM-Schätzung`, `Kein Beatgrid`); abgedockter Player zeigt den Status ebenfalls.
 - **Eigene Analyse:** Für Tracks ohne Serato-Beatgrid startet die bereits vorhandene Onset-/BPM-Analyse beim Vorhören automatisch, statt nur bei eingeschalteter Wellenform oder Crossfade.

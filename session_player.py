@@ -26,11 +26,13 @@ class PlayerMixin:
                     "sink_b": (str, ""), "start_b": (str, "0"), "repeat_b": (bool, False),
                     "startmode": (str, "last"),                                                          # #93
                     "resume": (bool, True), "resume_play": (str, "pause"),                               # #126
-                    "xfade_phase": (bool, True), "xfade_bars": (int, 0), "xfade_pitch": (bool, True)}   # #76
+                    "xfade_phase": (bool, True), "xfade_bars": (int, 0), "xfade_pitch": (bool, True),
+                    "xfade_latency_ms": (int, 0)}   # #181: manuelle Phasen-/Latenzkorrektur
     PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "resume_play": ("pause", "play", "was"), "xfade_bars": (0, 4, 8, 16), "layout": ("bottom", "top"), "startmode": ("last", "default"),
                       "xfade_start": ("start", "0", "cue"), "deck_target": ("A", "B"),
                       "start_b": ("0", "30", "60", "cue")}
-    PLAYER_RANGES = {"vol": (0.0, 1.0), "vol_b": (0.0, 1.0), "xfade": (0, 30), "xfade_after": (0, 600), "xfade_return": (0, 120)}
+    PLAYER_RANGES = {"vol": (0.0, 1.0), "vol_b": (0.0, 1.0), "xfade": (0, 30), "xfade_after": (0, 600), "xfade_return": (0, 120),
+                     "xfade_latency_ms": (-500, 500)}
 
     def _player_clean(self, p) -> dict:
         p = p if isinstance(p, dict) else {}

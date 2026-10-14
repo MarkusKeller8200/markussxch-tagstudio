@@ -287,6 +287,11 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   **Tempo angleichen** (Standard an): der nächste Titel läuft während des Überblendens im BPM des laufenden
   (Tonhöhe bleibt, höchstens ±10 %, halbes/doppeltes Tempo wird erkannt; ohne BPM-Feld kein Angleichen) und gleitet
   danach in der eingestellten Zeit (sofort … 1 Minute) auf sein eigenes BPM zurück.
+  **Latenz-/Phasenkorrektur (Testfunktion):** Einstellungen → Player → „Folgetrack-Korrektur (ms)“ oder
+  ⋯ → „Latenzkorrektur“: −500 bis +500 ms, 0 = aus. **Plus** verschiebt die Beats des folgenden
+  Titels später, **Minus** früher. Die Einstellung wird gespeichert und bei allen automatischen Übergängen
+  mit aktivem „Im Takt“ und kompatiblen Beatgrids angewendet. Dies ist ein Phasenversatz, kein
+  tatsächliches Pausieren des Folgetracks und kein Beweis für eine konstante Decoder-Latenz.
   **Im Takt** (Standard an): bei brauchbarem Beatgrid wird die Phase beim tatsächlichen Start des neuen
   (anfangs stummen) Titels an den laufenden Titel angepasst. „Überblenden auf Taktgrenze“ plant zunächst
   den nächsten Takt (4), 8 Schläge oder die nächste Phrase (16); Lade- und Decoderverzögerungen

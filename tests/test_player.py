@@ -186,6 +186,17 @@ class TestPlayerDefaults(unittest.TestCase):
             self.assertEqual((p["xfade_sync"], p["xfade_return"]), (True, 8))      # #102
             s.set_player_pref("xfade_return", 500)
             self.assertEqual(s.player_prefs()["xfade_return"], 120)
+            # #181: Kalibrierung bleibt gespeichert, ist signiert und begrenzt.
+            self.assertEqual(s.player_prefs()["xfade_latency_ms"], 0)
+            s.set_player_pref("xfade_latency_ms", 125)
+            self.assertEqual(Session().player_prefs()["xfade_latency_ms"], 125)
+            s.set_player_pref("xfade_latency_ms", -999)
+            self.assertEqual(s.player_prefs()["xfade_latency_ms"], -500)
+            s.set_player_pref("xfade_latency_ms", 900)
+            self.assertEqual(s.player_prefs()["xfade_latency_ms"], 500)
+            with self.assertRaises(ValueError):
+                s.set_player_pref("xfade_latency_ms", 25.5)
+            s.set_player_pref("xfade_latency_ms", 0)
             self.assertEqual(s.media_cover("tag", 0), {"src": ""})                  # #101: nichts geladen
         finally:
             core.CONFIG, core.CONFIG_OLD = old

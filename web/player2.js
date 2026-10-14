@@ -109,6 +109,28 @@ function plBarSeek(audio, info, dir) {
   return true;
 }
 
+/** #181: Einmalige, gespeicherte Phasenkorrektur für alle automatischen Übergänge.
+ * +ms = Folgetrack-Beats später (seine Wiedergabeposition zurückversetzen),
+ * -ms = Folgetrack-Beats früher (Wiedergabeposition vorversetzen).
+ * Die Position wird in MEDIA-Sekunden berechnet (ms * playbackRate);
+ * bei negativem Ziel springen wir genau ein/mehrere Beat- bzw. Taktzyklen vor.
+ * Es wird NICHT die gesamte Fade-Kurve verzögert: das würde die Beat-Phase
+ * nicht zuverlässig korrigieren. Ohne zwei Grids greift die Einstellung nicht.
+ */
+function plXfadeCalibratedTime(grid, aligned, correctionMs = 0, playbackRate = 1, bar = 1) {
+  if (!grid || !Number.isFinite(aligned) || !Number.isFinite(correctionMs) || !correctionMs) return aligned;
+  const ms = Math.max(-500, Math.min(500, Math.round(correctionMs)));
+  const rate = Number.isFinite(playbackRate) && playbackRate > 0 ? playbackRate : 1;
+  const beats = Number.isFinite(bar) && bar >= 1 ? Math.round(bar) : 1;
+  const mediaOffset = ms / 1000 * rate;
+  let dest = aligned - mediaOffset, beat = gridBeatAt(grid, aligned);
+  for (let step = 0; dest < 0 && step < 64; step++) {
+    beat += beats;                                       // Phase im Raster beibehalten
+    dest = gridTimeOfBeat(grid, beat) - mediaOffset;
+  }
+  return Math.max(0, dest);
+}
+
 // ====================================================================== #94 Überblenden
 /** Beim Abspielen prüfen, ob es Zeit zum Überblenden ist (aus dem timeupdate des aktiven Elements). */
 function plXfadeCheck() {
@@ -180,7 +202,7 @@ async function plCrossfade(i, opt = {}) {
   const bpmFrom = (gridOf(PLAYER.info) ? gridOf(PLAYER.info).bpm : bpmOf(PLAYER.info)) * (old.playbackRate || 1);
   const gOld = gridOf(PLAYER.info);
   const oldInfo = PLAYER.info, oldKind = PLAYER.kind, oldRef = PLAYER.ref;
-  PLAYER.fade = { old, timer: 0 };
+  PLAYER.fade = { old, timer: 0, latencyMs: Math.max(-500, Math.min(500, Math.round(PLAYER.xfadeLatencyMs || 0))) };
   PLAYER.spare = old;
   PLAYER.audio = nu;
   nu.muted = old.muted;
@@ -227,7 +249,11 @@ async function plCrossfade(i, opt = {}) {
   if (PLAYER.xfadePhase && gOld && gNew && sameTempo) {
     const bar = opt.bar || 1;
     const ph = gridPhase(gOld, old.currentTime, bar);
-    try { nu.currentTime = gridAlign(gNew, nu.currentTime || 0, ph, bar); f.phase = true; }
+    try {
+      const aligned = gridAlign(gNew, nu.currentTime || 0, ph, bar);
+      nu.currentTime = plXfadeCalibratedTime(gNew, aligned, f.latencyMs, ratio, bar);
+      f.phase = true;
+    }
     catch (e) { f.phase = false; }
   }
   const t0 = performance.now();
