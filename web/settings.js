@@ -71,6 +71,11 @@ async function settingsShow() {
         <span>Wiederholen</span>${stCheck("stPlRepeat", p.repeat, "Titel wiederholen (R)")}
         <span>Live-Vorschau</span>${stCheck("stPlLive", p.live, "Klick auf einen Titel spielt ihn sofort (aus: Doppelklick spielt)")}
         <label for="stPlVol">Lautstärke</label><div class="st-path"><input type="range" id="stPlVol" min="0" max="100" value="${Math.round(p.vol * 100)}" style="width:160px"><span class="muted sm" id="stPlVolV">${Math.round(p.vol * 100)} %</span></div>
+        <label for="stPlMetroVol">Metronom-Lautstärke</label><div class="st-path">
+          <input type="range" id="stPlMetroVol" min="0" max="100" step="5"
+            value="${p.metro_volume ?? 80}" style="width:160px" aria-label="Metronom-Lautstärke in Prozent">
+          <span class="muted sm" id="stPlMetroVolV">${p.metro_volume ?? 80} %</span>
+          <span class="muted sm">Gemeinsam für Player A/B · unabhängig von der Musik</span></div>
         <label for="stPlXf">Überblenden</label><div class="st-path">${stSel("stPlXf", [[0, "aus"], [2, "2 s"], [4, "4 s"], [6, "6 s"], [8, "8 s"], [10, "10 s"], [12, "12 s"]], p.xfade)}
           ${stSel("stPlXfStart", [["start", "nächster Titel ab Startpunkt"], ["0", "nächster Titel ab Anfang"], ["cue", "nächster Titel ab 1. Cue"]], p.xfade_start)}</div>
         <label for="stPlXfAfter">Überblenden wann</label>${stSel("stPlXfAfter", [[0, "am Titelende"], [15, "nach 15 s (Durchhören)"], [30, "nach 30 s"], [45, "nach 45 s"], [60, "nach 1 Minute"], [90, "nach 1:30"], [120, "nach 2 Minuten"]], p.xfade_after)}
@@ -602,6 +607,7 @@ function initSettings() {
     else if (t.id === "stPlRepeat") plSetPref("repeat", t.checked);
     else if (t.id === "stPlLive") plSetPref("live", t.checked);
     else if (t.id === "stPlVol") { PLAYER.vol = (+t.value) / 100; if (!PLAYER.fade) PLAYER.audio.volume = PLAYER.vol; $("#plVol").value = t.value; plSetPref("vol", PLAYER.vol); }
+    else if (t.id === "stPlMetroVol") plSetPref("metro_volume", +t.value);
     else if (t.id === "stPlXf") plSetPref("xfade", +t.value);
     else if (t.id === "stPlXfStart") plSetPref("xfade_start", t.value);
     else if (t.id === "stPlXfAfter") plSetPref("xfade_after", +t.value);
@@ -628,7 +634,12 @@ function initSettings() {
     else if (t.id === "stPlResumePlay") { await call("set_player_pref", "resume_play", t.value); toast(t.value === "pause" ? "Titel wird in Pause geladen." : "Titel wird nach dem Start abgespielt."); }
     else if (t.id === "stPlStartmode") plSetPref("startmode", t.value);
   });
-  grid.addEventListener("input", (e) => { if (e.target.id === "stPlVol") $("#stPlVolV").textContent = e.target.value + " %"; });
+  grid.addEventListener("input", (e) => {
+    if (e.target.id === "stPlVol") $("#stPlVolV").textContent = e.target.value + " %";
+    else if (e.target.id === "stPlMetroVol") {
+      $("#stPlMetroVolV").textContent = plMetroSetVolume(+e.target.value) + " %";
+    }
+  });
 }
 
 initSettings();

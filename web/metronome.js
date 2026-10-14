@@ -1,7 +1,21 @@
 /* #181: Beatgrid-Diagnose. Vierer-Akzent = Rasterzählung, kein geprüfter Downbeat. */
 "use strict";
 const PL_METRO = {deck:null, ctx:null, timer:null, nodes:new Set(), generation:0,
-  audio:null, info:null, next:null, media:null, clock:null, rate:1};
+  audio:null, info:null, next:null, media:null, clock:null, rate:1, volume:80};
+
+/** #181: gemeinsamer Metronompegel (0–100 %), unabhängig von der Track-Lautstärke. */
+function plMetroVolume(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : 80;
+}
+function plMetroPeak(accent, volume = PL_METRO.volume) {
+  return (accent ? 0.78 : 0.68) * plMetroVolume(volume) / 100;
+}
+function plMetroSetVolume(value) {
+  PL_METRO.volume = plMetroVolume(value);
+  plMetroUi("A"); plMetroUi("B");
+  return PL_METRO.volume;
+}
 
 function plMetroBeat(grid, time, rate, beat) {
   if (!grid || !Number.isFinite(time) || !(rate > 0)) return null;
@@ -20,7 +34,7 @@ function plMetroUi(deck) {
   const active = PL_METRO.deck === deck;
   b.disabled = !g; b.classList.toggle("on", active);
   b.setAttribute("aria-pressed", String(active));
-  b.title = `Beatgrid-Metronom Player ${deck}: ${g ? (g.source + " · " + g.bpm + " BPM") : "kein Beatgrid"} – lauterer Klick; Vierer-Akzent ist kein geprüfter Downbeat`;
+  b.title = `Beatgrid-Metronom Player ${deck}: ${g ? (g.source + " · " + g.bpm + " BPM") : "kein Beatgrid"} · Lautstärke ${PL_METRO.volume}% (im Player-Menü einstellbar). Vierer-Akzent ist kein geprüfter Downbeat.`;
 }
 function plMetroStop() {
   const m = PL_METRO;
@@ -32,17 +46,20 @@ function plMetroStop() {
   plMetroUi("A"); plMetroUi("B");
 }
 function plMetroClick(when, accent) {
-  const ctx = PL_METRO.ctx, o = ctx.createOscillator(), gain = ctx.createGain();
-  o.type = "sine";
-  o.frequency.setValueAtTime(accent ? 1320 : 880, when);
+  const ctx = PL_METRO.ctx, peak = plMetroPeak(accent);
+  if (!ctx || !peak) return;                        // 0 % = wirklich stumm
+  const o = ctx.createOscillator(), gain = ctx.createGain();
+  // Rechteck mit Obertönen statt kurzem Sinuston: in lauter Musik klarer hörbar.
+  // Max. Amplitude unter 1; bei Kopfhörern zunächst mit kleiner Lautstärke beginnen.
+  o.type = "square";
+  o.frequency.setValueAtTime(accent ? 2100 : 1600, when);
   gain.gain.setValueAtTime(0.0001, when);
-  // #181: kräftigerer, aber nicht übersteuernder Klick (früher 0.12 / 0.07).
-  gain.gain.exponentialRampToValueAtTime(accent ? 0.30 : 0.20, when + 0.003);
-  gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.045);
+  gain.gain.exponentialRampToValueAtTime(peak, when + 0.002);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.065);
   o.connect(gain); gain.connect(ctx.destination);
   PL_METRO.nodes.add(o);
   o.onended = () => { PL_METRO.nodes.delete(o); o.disconnect(); gain.disconnect(); };
-  o.start(when); o.stop(when + 0.05);
+  o.start(when); o.stop(when + 0.07);
 }
 function plMetroTick() {
   const m = PL_METRO;
@@ -68,6 +85,34 @@ function plMetroTick() {
   }
   m.next = next; m.media = t; m.clock = now; m.rate = rate;
 }
+/** Pegel sofort probehören und erst bei Übernehmen dauerhaft speichern. */
+async function plMetroVolumeDialog() {
+  const before = PL_METRO.volume;
+  const result = await modal({
+    title: "Metronom-Lautstärke",
+    html: `<label class="field">Lautstärke: <strong id="plMetroVolText">${before} %</strong>
+      <input id="plMetroVolRange" type="range" min="0" max="100" step="5"
+        value="${before}" style="width:100%" aria-label="Metronom-Lautstärke in Prozent">
+    </label>
+    <p class="muted sm">Wirkt sofort während das Metronom läuft – gemeinsam für Player A und B.
+      0 % ist stumm, 100 % der höchste Pegel. Bitte bei Kopfhörern leise beginnen.
+      Dieser Regler beeinflusst die Track-Lautstärke nicht.</p>`,
+    buttons: [{label: "Abbrechen", value: null}, {label: "Speichern", value: "save", primary: true}],
+    onMount: (body) => {
+      const input = $("#plMetroVolRange", body);
+      input.addEventListener("input", () => {
+        const value = plMetroSetVolume(+input.value);
+        $("#plMetroVolText", body).textContent = value + " %";
+      });
+    },
+    collect: (body, action) => action === "save"
+      ? {volume: +$("#plMetroVolRange", body).value} : null,
+  });
+  if (!result) { plMetroSetVolume(before); return; }
+  plSetPref("metro_volume", result.volume);
+  toast(`Metronom-Lautstärke ${result.volume}% gespeichert.`);
+}
+
 async function plMetroToggle(deck = "A") {
   if (PL_METRO.deck === deck) { plMetroStop(); return; }
   const info = deck === "B" ? DECKB.info : PLAYER.info, g = gridOf(info);

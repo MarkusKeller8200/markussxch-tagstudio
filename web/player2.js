@@ -579,7 +579,8 @@ async function dbMenu(btn) {
     items.push({ label: (DECKB.sink ? "    " : "✓ ") + "Ausgabe: Standard des Systems", run: () => dbSinkSet("") });
     sinks.forEach((s) => items.push({ label: (DECKB.sink === s.id ? "✓ " : "    ") + "Ausgabe: " + s.label, run: () => dbSinkSet(s.id) }));
   }
-  items.push("-", { label: (PL_METRO.deck === "B" ? "✓ " : "    ") + "Beatgrid-Metronom B", run: () => plMetroToggle("B") });
+  items.push("-", { label: (PL_METRO.deck === "B" ? "✓ " : "    ") + "Beatgrid-Metronom B", run: () => plMetroToggle("B") },
+    { label: `Metronom-Lautstärke: ${PL_METRO.volume}% …`, run: () => plMetroVolumeDialog() });
   items.push("-", { label: "Player B ausblenden", run: () => plSetPref("deck2", false) });
   showMenu(r.left - 200, r.bottom + 6, items);
 }

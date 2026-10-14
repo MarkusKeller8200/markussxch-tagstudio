@@ -7,6 +7,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Geplante Nachbesserung in 4.4.1 (Beta nur nach Rückfrage)
+- **#181 Metronom:** Neu einstellbare, dauerhaft gespeicherte Lautstärke 0–100 % (Standard 80 %) gemeinsam für Player A/B. Regler in Einstellungen → Player und Vorschau-Dialog in den Player-Menüs. Neuer, kräftigerer Rechteck-Klick mit höherer Präsenz in lauter Musik; 0 % bleibt stumm. Kein Beta-Build ohne Freigabe.
 - **#181:** Einstellbare, dauerhafte Folgetrack-Latenzkorrektur von −500 bis +500 ms in Einstellungen → Player und im Player-Menü. Positive Werte verschieben die Folgetrack-Beats nach hinten, negative nach vorne. Die bestehende Beat-Phasenausrichtung wird dazu um einen playbackRate-korrigierten Wert verschoben, ohne Tags zu ändern. Getestet wird, ob ein einziger Kalibrierwert mehrere Übergänge verbessert; die tatsächliche Audio-Latenz wird dadurch nicht automatisch gemessen.
 - **#182:** Takt-/Cue-Sprung laut Projektverantwortlichem im Praxistest korrekt bestätigt. Kein neues Release ohne ausdrückliche Freigabe.
 

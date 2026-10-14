@@ -301,6 +301,10 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   Player) lässt sich ausschalten – dann ändert sich die Tonhöhe mit dem Tempo wie beim Plattenspieler.
   Die Wellenform zeigt Rasterlinien (Takt/Phrase kräftiger, geschätzte blasser). **Sync** in Player B bringt ihn ins
   Tempo und – mit Beatgrid – in den Takt von Player A.
+  **Metronom-Lautstärke (ab nächster Beta):** Einstellungen → Player → Metronom-Lautstärke (0–100 %,
+  Standard 80 %) oder über das Player-Menü für A/B. Der Klick ist obertonreicher und besser hörbar;
+  Änderungen wirken während des Abspielens sofort. Gemeinsam für beide Player, unabhängig von der
+  Track-Lautstärke. Bei Kopfhörern am besten niedrig beginnen; noch kein neues Beta-Release freigegeben.
 - **Player oben** (Einstellungen → Player → Position oder Regler-Menü): eigene Leiste über der Seite mit voller Breite
   und grösserer Wellenform; Knopf ˄ bzw. **Shift+P** klappt sie ein (je Player eine Zeile mit ▶/⏸, Titel und
   Restlaufzeit).

@@ -22,7 +22,7 @@ const assert = require('assert').strict;
 const { performance } = require('perf_hooks');
 const ctx = vm.createContext({
   console, performance, setTimeout, clearTimeout, setInterval, clearInterval,
-  document: {activeElement: {tagName:'BODY', closest:()=>null}},
+  document: {activeElement: {tagName:'BODY', closest:()=>null}, getElementById:()=>null},
   window: {}, navigator: {}, toast:()=>{},
   S: {module:'tagger'}, TG: {order:[], anchor:0},
   $:()=>({hidden:true})
@@ -74,6 +74,36 @@ const old = run("PLAYER.audio.currentTime");
 assert.equal(run("plBarSeek(PLAYER.audio,{bpm:0},1)"),false);
 approx(run("PLAYER.audio.currentTime"),old);
 
+// #181: Pegelregler, Begrenzung, Stummstellung und neuer obertonreicher Klick.
+assert.equal(run("plMetroVolume(150)"), 100);
+assert.equal(run("plMetroVolume(-3)"), 0);
+assert.equal(run("plMetroVolume(60.7)"), 61);
+approx(run("plMetroPeak(false,80)"), 0.544);
+approx(run("plMetroPeak(true,80)"), 0.624);
+assert.equal(run("plMetroPeak(false,0)"), 0);
+assert(run("plMetroPeak(false,80)") > 0.20);
+const gains = [], freqs = [], waves = [], started = [];
+ctx.fakeCtx = {
+  createOscillator(){
+    const osc={type:"sine",frequency:{setValueAtTime:v=>freqs.push(v)},
+      connect(){}, disconnect(){}, start(){started.push(true)}, stop(){}};
+    waves.push(osc); return osc;
+  },
+  createGain(){
+    return {gain:{setValueAtTime:v=>gains.push(v),
+      exponentialRampToValueAtTime:v=>gains.push(v)},
+      connect(){}, disconnect(){}};
+  },
+  destination:{}
+};
+run("PL_METRO.ctx=fakeCtx;plMetroSetVolume(80);plMetroClick(1,false)");
+assert(waves[0].type === 'square'); // mehr Obertöne als Sinuston
+approx(gains[1], 0.544);
+assert.equal(freqs[0],1600);
+const tickCount=started.length;
+run("plMetroSetVolume(0);plMetroClick(2,false)");
+assert.equal(started.length,tickCount); // bei 0 % kein weiterer Ton
+run("plMetroSetVolume(80);PL_METRO.ctx=null;PL_METRO.nodes.clear()");
 // #181: Diagnose-Metronom prüft Grid-Position, PlaybackRate und Markerwechsel.
 const metro = run("plMetroBeat({bpm:120,markers:[{pos:0.3,bpm:120}]},0.3,1,1)");
 approx(metro.delay,0.5); assert.equal(metro.accent,false);

@@ -197,6 +197,17 @@ class TestPlayerDefaults(unittest.TestCase):
             with self.assertRaises(ValueError):
                 s.set_player_pref("xfade_latency_ms", 25.5)
             s.set_player_pref("xfade_latency_ms", 0)
+            # #181: Metronom-Lautstärke systemübergreifend und persistent.
+            self.assertEqual(s.player_prefs()["metro_volume"], 80)
+            s.set_player_pref("metro_volume", 45)
+            self.assertEqual(Session().player_prefs()["metro_volume"], 45)
+            s.set_player_pref("metro_volume", 999)
+            self.assertEqual(s.player_prefs()["metro_volume"], 100)
+            s.set_player_pref("metro_volume", -20)
+            self.assertEqual(s.player_prefs()["metro_volume"], 0)
+            with self.assertRaises(ValueError):
+                s.set_player_pref("metro_volume", 25.5)
+            s.set_player_pref("metro_volume", 80)
             self.assertEqual(s.media_cover("tag", 0), {"src": ""})                  # #101: nichts geladen
         finally:
             core.CONFIG, core.CONFIG_OLD = old

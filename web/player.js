@@ -33,6 +33,7 @@ function plSetPref(k, v) {
   else if (k === "xfade_phase") PLAYER.xfadePhase = !!v;                     // #76
   else if (k === "xfade_bars") PLAYER.xfadeBars = +v || 0;
   else if (k === "xfade_latency_ms") PLAYER.xfadeLatencyMs = Math.max(-500, Math.min(500, Math.round(+v || 0)));
+  else if (k === "metro_volume") v = plMetroSetVolume(v);
   else if (k === "xfade_pitch") PLAYER.xfadePitch = !!v;
   else if (k === "layout" || k === "top_collapsed" || k === "deck2" || k === "deck_target" || k === "sink_b" || k === "vol_b" || k === "start_b" || k === "repeat_b") {
     if (typeof pl2Pref === "function") pl2Pref(k, v);
@@ -604,6 +605,7 @@ async function plMenu(btn) {
     { label: "Player einrichten …", run: () => plSetup() },
     { label: (PLAYER.wave ? "✓ " : "    ") + "Wellenform anzeigen", run: () => plSetPref("wave", !PLAYER.wave) },
     { label: (PL_METRO.deck === "A" ? "✓ " : "    ") + "Beatgrid-Metronom A", run: () => plMetroToggle("A") },
+    { label: `Metronom-Lautstärke: ${PL_METRO.volume}% …`, run: () => plMetroVolumeDialog() },
     ...(PL2.layout === "top" ? [{ label: (PL2.deck2 ? "✓ " : "    ") + "Player B anzeigen", run: () => plSetPref("deck2", !PL2.deck2) }] : []),
     { label: (PL2.layout === "top" ? "✓ " : "    ") + "Player oben anordnen", run: () => plSetPref("layout", PL2.layout === "top" ? "bottom" : "top") },
     { label: (PLAYER.xfade ? `✓ Überblenden (${PLAYER.xfade} s)` : "    Überblenden"), run: () => plSetPref("xfade", PLAYER.xfade ? 0 : 6) },
@@ -699,6 +701,7 @@ function plApplyPrefs(pp) {
   PLAYER.xfadeSync = pp.xfade_sync !== false; PLAYER.xfadeReturn = pp.xfade_return ?? 8;
   PLAYER.xfadePhase = pp.xfade_phase !== false; PLAYER.xfadeBars = +pp.xfade_bars || 0;     // #76
   PLAYER.xfadeLatencyMs = Math.max(-500, Math.min(500, Math.round(+pp.xfade_latency_ms || 0))); // #181
+  if (typeof plMetroSetVolume === "function") plMetroSetVolume(pp.metro_volume ?? 80);
   PLAYER.xfadePitch = pp.xfade_pitch !== false;
   if (typeof pl2Apply === "function") pl2Apply(pp);
   if ($("#plStart")) plStartSync();
