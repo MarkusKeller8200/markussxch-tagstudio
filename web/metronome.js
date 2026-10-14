@@ -22,6 +22,18 @@ function plMetroBeat(grid, time, rate, beat) {
   const pos = gridTimeOfBeat(grid, beat);
   return Number.isFinite(pos) ? {beat, delay:(pos-time)/rate, accent:beat % 4 === 0} : null;
 }
+/** Quelle der Klicks: beim Crossfade bis zu dessen Ende alter Track,
+ * obwohl PLAYER.audio/info schon während der Ladephase auf den neuen zeigen.
+ * Player B bleibt eine separate, unabhängige Metronom-Quelle.
+ */
+function plMetroSource(deck) {
+  if (deck === "B") return { audio: DECKB.audio, info: DECKB.info };
+  const fading = PLAYER.fade;
+  return fading && fading.old
+    ? { audio: fading.old, info: fading.oldInfo }
+    : { audio: PLAYER.audio, info: PLAYER.info };
+}
+
 function plMetroClear() {
   for (const osc of PL_METRO.nodes) try { osc.stop(); } catch (_) { /* bereits gestoppt */ }
   PL_METRO.nodes.clear();
@@ -30,11 +42,15 @@ function plMetroClear() {
 function plMetroUi(deck) {
   const b = document.getElementById(deck === "B" ? "dbMetro" : "plMetro");
   if (!b) return;
-  const info = deck === "B" ? DECKB.info : PLAYER.info, g = gridOf(info);
+  const { info } = plMetroSource(deck), g = gridOf(info);
   const active = PL_METRO.deck === deck;
-  b.disabled = !g; b.classList.toggle("on", active);
+  // Eingeschaltet auch ohne Grid bedienbar halten (Analyse/Trackwechsel).
+  b.disabled = !g && !active;
+  b.classList.toggle("on", active);
   b.setAttribute("aria-pressed", String(active));
-  b.title = `Beatgrid-Metronom Player ${deck}: ${g ? (g.source + " · " + g.bpm + " BPM") : "kein Beatgrid"} · Lautstärke ${PL_METRO.volume}% (im Player-Menü einstellbar). Vierer-Akzent ist kein geprüfter Downbeat.`;
+  const fadeHint = deck === "A" && PLAYER.fade && PLAYER.fade.old
+    ? " · Überblendung: Raster des auslaufenden Tracks" : "";
+  b.title = `Beatgrid-Metronom Player ${deck}: ${g ? (g.source + " · " + g.bpm + " BPM") : "Beatgrid noch nicht verfügbar"}${fadeHint} · Lautstärke ${PL_METRO.volume}% (im Player-Menü einstellbar). Vierer-Akzent ist kein geprüfter Downbeat.`;
 }
 function plMetroStop() {
   const m = PL_METRO;
@@ -64,9 +80,15 @@ function plMetroClick(when, accent) {
 function plMetroTick() {
   const m = PL_METRO;
   if (!m.ctx || !m.deck) return;
-  const a = m.deck === "B" ? DECKB.audio : PLAYER.audio;
-  const info = m.deck === "B" ? DECKB.info : PLAYER.info, g = gridOf(info);
-  if (!a || !a.src || !g) { plMetroStop(); return; }
+  const { audio: a, info } = plMetroSource(m.deck), g = gridOf(info);
+  // Kein Raster beim neuen Track: weiter EINgeschaltet bleiben und auf
+  // Analyse warten, ohne noch Klicks des vorherigen Titels auszugeben.
+  if (!a || !a.src || !g) {
+    plMetroClear();
+    m.audio = a || null; m.info = info || null;
+    plMetroUi(m.deck);
+    return;
+  }
   if (a !== m.audio || info !== m.info) {
     plMetroClear(); m.audio = a; m.info = info; plMetroUi(m.deck);
   }
@@ -115,7 +137,7 @@ async function plMetroVolumeDialog() {
 
 async function plMetroToggle(deck = "A") {
   if (PL_METRO.deck === deck) { plMetroStop(); return; }
-  const info = deck === "B" ? DECKB.info : PLAYER.info, g = gridOf(info);
+  const { info } = plMetroSource(deck), g = gridOf(info);
   if (!g) { toast("Kein Beatgrid vorhanden – Metronom nicht verfügbar."); return; }
   const Ctx = window.AudioContext || window.webkitAudioContext;
   if (!Ctx) { toast("Web Audio ist für das Metronom nicht verfügbar."); return; }

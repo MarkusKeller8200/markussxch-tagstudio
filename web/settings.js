@@ -76,7 +76,10 @@ async function settingsShow() {
             value="${p.metro_volume ?? 80}" style="width:160px" aria-label="Metronom-Lautstärke in Prozent">
           <span class="muted sm" id="stPlMetroVolV">${p.metro_volume ?? 80} %</span>
           <span class="muted sm">Gemeinsam für Player A/B · unabhängig von der Musik</span></div>
-        <label for="stPlXf">Überblenden</label><div class="st-path">${stSel("stPlXf", [[0, "aus"], [2, "2 s"], [4, "4 s"], [6, "6 s"], [8, "8 s"], [10, "10 s"], [12, "12 s"]], p.xfade)}
+        <label for="stPlXf">Überblenden</label><div class="st-path">
+          <input type="number" id="stPlXf" min="0" max="30" step="1" value="${p.xfade ?? 0}" style="width:72px"
+            aria-label="Überblenddauer in Sekunden (0 bis 30)">
+          <span class="muted sm">Sekunden · 0 = aus · 1–30 s</span>
           ${stSel("stPlXfStart", [["start", "nächster Titel ab Startpunkt"], ["0", "nächster Titel ab Anfang"], ["cue", "nächster Titel ab 1. Cue"]], p.xfade_start)}</div>
         <label for="stPlXfAfter">Überblenden wann</label>${stSel("stPlXfAfter", [[0, "am Titelende"], [15, "nach 15 s (Durchhören)"], [30, "nach 30 s"], [45, "nach 45 s"], [60, "nach 1 Minute"], [90, "nach 1:30"], [120, "nach 2 Minuten"]], p.xfade_after)}
         <span>Tempo angleichen</span><div class="st-path">${stCheck("stPlXfSync", p.xfade_sync, "Nächsten Titel beim Überblenden im BPM des laufenden spielen (Tonhöhe bleibt, max. ±10 %)")}</div>
@@ -608,7 +611,13 @@ function initSettings() {
     else if (t.id === "stPlLive") plSetPref("live", t.checked);
     else if (t.id === "stPlVol") { PLAYER.vol = (+t.value) / 100; if (!PLAYER.fade) PLAYER.audio.volume = PLAYER.vol; $("#plVol").value = t.value; plSetPref("vol", PLAYER.vol); }
     else if (t.id === "stPlMetroVol") plSetPref("metro_volume", +t.value);
-    else if (t.id === "stPlXf") plSetPref("xfade", +t.value);
+    else if (t.id === "stPlXf") {
+      const raw = t.value.trim(), seconds = Number(raw);
+      if (!raw || !Number.isInteger(seconds) || seconds < 0 || seconds > 30) {
+        t.value = String(PLAYER.xfade || 0);
+        toast("Überblenddauer: ganze Sekunden zwischen 0 und 30 eingeben.");
+      } else plSetPref("xfade", seconds);
+    }
     else if (t.id === "stPlXfStart") plSetPref("xfade_start", t.value);
     else if (t.id === "stPlXfAfter") plSetPref("xfade_after", +t.value);
     else if (t.id === "stPlXfSync") plSetPref("xfade_sync", t.checked);

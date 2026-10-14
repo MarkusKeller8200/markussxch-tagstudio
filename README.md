@@ -282,7 +282,7 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   `{"like":true}` in `TXXX:TAGSTUDIO`. Im Tagger stehen die Sterne neben der Länge (auch für mehrere markierte Titel)
   und klein in der Liste. Änderungen lassen sich rückgängig machen und werden mit „Speichern“ geschrieben.
 - **Überblenden** (Einstellungen → Player oder ⋯): am Titelende gleichmässig (gleiche Leistung) in den nächsten
-  Titel überblenden, 2–12 s; der nächste Titel startet ab Startpunkt, Anfang oder erstem Cue; wahlweise schon nach
+  Titel überblenden, **1–30 s in 1-Sekunden-Schritten** (0 = aus); der nächste Titel startet ab Startpunkt, Anfang oder erstem Cue; wahlweise schon nach
   15 s … 2 Minuten (zum schnellen Durchhören). Nicht bei „Titel wiederholen“ oder einer Schleife.
   **Tempo angleichen** (Standard an): der nächste Titel läuft während des Überblendens im BPM des laufenden
   (Tonhöhe bleibt, höchstens ±10 %, halbes/doppeltes Tempo wird erkannt; ohne BPM-Feld kein Angleichen) und gleitet
@@ -301,6 +301,11 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   Player) lässt sich ausschalten – dann ändert sich die Tonhöhe mit dem Tempo wie beim Plattenspieler.
   Die Wellenform zeigt Rasterlinien (Takt/Phrase kräftiger, geschätzte blasser). **Sync** in Player B bringt ihn ins
   Tempo und – mit Beatgrid – in den Takt von Player A.
+  **Metronom bei Übergängen:** Ist das Metronom für A aktiviert, bleibt es beim
+  automatischen Crossfade bis zum vollständigen Ausblenden mit dem Beatgrid des alten
+  Titels verbunden; anschliessend wechselt es automatisch auf das neue Raster. Es
+  bleibt auch aktiv, wenn das neue Raster erst durch die Audioanalyse verfügbar wird.
+  Player B bleibt unabhängig.
   **Metronom-Lautstärke (ab nächster Beta):** Einstellungen → Player → Metronom-Lautstärke (0–100 %,
   Standard 80 %) oder über das Player-Menü für A/B. Der Klick ist obertonreicher und besser hörbar;
   Änderungen wirken während des Abspielens sofort. Gemeinsam für beide Player, unabhängig von der

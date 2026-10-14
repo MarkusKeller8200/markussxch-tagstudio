@@ -153,6 +153,13 @@ class TestPlayerDefaults(unittest.TestCase):
             s.set_player_pref("live", True)
             s.set_player_pref("xfade", 99)
             self.assertEqual(s.player_prefs()["xfade"], 30)
+            s.set_player_pref("xfade", 25)
+            self.assertEqual(Session().player_prefs()["xfade"], 25)
+            s.set_player_pref("xfade", 30)
+            self.assertEqual(s.player_prefs()["xfade"], 30)
+            with open(os.path.join(os.path.dirname(__file__), "..", "web", "settings.js"), encoding="utf-8") as src:
+                settings_source = src.read()
+            self.assertIn('id="stPlXf" min="0" max="30" step="1"', settings_source)
             with self.assertRaises(ValueError):
                 s.set_player_pref("layout", "links")
             r = s.player_defaults("save")

@@ -25,7 +25,7 @@ function plSetPref(k, v) {
   else if (k === "follow") PLAYER.follow = !!v;
   else if (k === "repeat") { PLAYER.repeat = !!v; plRender(); }
   else if (k === "live") { PLAYER.live = !!v; plRender(); }
-  else if (k === "xfade") PLAYER.xfade = +v || 0;
+  else if (k === "xfade") PLAYER.xfade = Math.max(0, Math.min(30, Math.round(+v || 0)));
   else if (k === "xfade_start") PLAYER.xfadeStart = v;
   else if (k === "xfade_after") PLAYER.xfadeAfter = +v || 0;
   else if (k === "xfade_sync") PLAYER.xfadeSync = !!v;
@@ -697,7 +697,7 @@ function plApplyPrefs(pp) {
   PLAYER.wave = pp.wave;
   PLAYER.repeat = !!pp.repeat;
   PLAYER.live = !!pp.live;
-  PLAYER.xfade = +pp.xfade || 0; PLAYER.xfadeStart = pp.xfade_start || "start"; PLAYER.xfadeAfter = +pp.xfade_after || 0;
+  PLAYER.xfade = Math.max(0, Math.min(30, Math.round(+pp.xfade || 0))); PLAYER.xfadeStart = pp.xfade_start || "start"; PLAYER.xfadeAfter = +pp.xfade_after || 0;
   PLAYER.xfadeSync = pp.xfade_sync !== false; PLAYER.xfadeReturn = pp.xfade_return ?? 8;
   PLAYER.xfadePhase = pp.xfade_phase !== false; PLAYER.xfadeBars = +pp.xfade_bars || 0;     // #76
   PLAYER.xfadeLatencyMs = Math.max(-500, Math.min(500, Math.round(+pp.xfade_latency_ms || 0))); // #181

@@ -159,10 +159,32 @@ assert(key('ArrowRight',true));approx(run("DECKB.audio.currentTime"),21);
   ctx.older=older;ctx.newer=newer;
   run("PLAYER.audio=older; PLAYER.spare=newer; PLAYER.fade=null;");
   run("plLoad=async function(){ PLAYER.info={bpm:120,grid:{bpm:120,markers:[{pos:0.3,bpm:120}]}}; newer.src='new'; }");
+  // Noch während des Ladens: A ist aktiv auf altem Grid. Die spätere
+  // Crossfade-Vorschau darf nicht schon das neue Raster verwenden.
+  run("PL_METRO.deck='A';PL_METRO.ctx=fakeCtx;PL_METRO.volume=0");
   await run("plCrossfade(1)");
   approx(run("gridPhase(gridOf(PLAYER.info),newer.currentTime)"),run("gridPhase({bpm:120,markers:[{pos:0,bpm:120}]},older.currentTime)"));
   assert.equal(newer.volume,0,'Fade must start silent');
-  run("clearInterval(PLAYER.fade.timer); PLAYER.fade=null;");
+  assert.equal(run("PLAYER.fade.oldInfo !== PLAYER.info"),true);
+  assert.equal(run("plMetroSource('A').audio === older"),true);
+  assert.equal(run("plMetroSource('A').info === PLAYER.fade.oldInfo"),true);
+  assert.equal(run("plMetroSource('B').audio === DECKB.audio"),true);
+  run("older.readyState=4;newer.readyState=4;plMetroTick()");
+  assert.equal(run("PL_METRO.audio === older"),true,'During 30s fade use old audio');
+  assert.equal(run("PL_METRO.deck"),'A');
+  // Das Crossfade-Finish übernimmt NACH dem Stoppen des alten Decks.
+  run("plFadeStop()");
+  assert.equal(run("PL_METRO.deck"),'A','Metronome remains enabled');
+  assert.equal(run("PL_METRO.audio === newer"),true,'New audio only after fade end');
+  assert.equal(run("PL_METRO.info === PLAYER.info"),true);
+  // Fehlendes Beatgrid beim Folgetrack: Metronom soll nicht abgeschaltet werden.
+  run("PLAYER.info={grid:null,bpm:0};plMetroTick()");
+  assert.equal(run("PL_METRO.deck"),'A');
+  assert.equal(run("PL_METRO.ctx !== null"),true);
+  run("PLAYER.info={grid:{bpm:120,markers:[{pos:0.3,bpm:120}]}};plMetroTick()");
+  assert.equal(run("PL_METRO.audio === newer"),true);
+  assert.equal(run("PL_METRO.info === PLAYER.info"),true);
+  run("PL_METRO.ctx=null;PL_METRO.deck=null;PL_METRO.audio=null");
   console.log('player 4.4.1 JS regression checks passed');
 })().catch((e)=>{console.error(e);process.exitCode=1});
 """

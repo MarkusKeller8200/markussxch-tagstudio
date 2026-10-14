@@ -6,6 +6,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Player – weitere Verbesserungen für 4.4.1 (ohne Beta-Build)
+- **Überblenddauer:** Einstellungen → Player: 0–30 Sekunden, in ganzen Sekunden frei einstellbar statt Dropdown bis 12 Sekunden. Die Python-Seite erlaubte bisher bereits 30 Sekunden.
+- **Metronom über Übergänge:** Metronom bleibt während der gesamten Überblendung auf dem Beatgrid des auslaufenden Tracks und schaltet erst beim vollständigen Ausblenden auf das Raster des neuen um. Die Einstellung bleibt dabei eingeschaltet; bei noch fehlendem neuem Grid pausieren nur die Klicks bis zur Analyse. Player B bleibt unabhängig.
+- **Tests:** Neue Regressionstests für den Grid-Wechsel, fehlende Grids und die 30-Sekunden-Einstellung. Kein Beta-Build ohne erneute Freigabe.
+
+
 ### 4.4.1-beta.4 – Player-Kalibrierung und Tooltip-Darstellung
 - **Tooltips #192:** Standard-Browser-Tooltips beseitigt: gemeinsamer Tooltip-Code und App-Design in Hauptfenster und abgedocktem Player; auch dynamische Buttons (Metronom, Cue, Vor-/Zurückspringen, Play/Pause, Cover/Status) werden einheitlich dargestellt. Regressionstests für Hauptfenster und abgedockten Player ergänzt.
 - **#181 Metronom:** Neu einstellbare, dauerhaft gespeicherte Lautstärke 0–100 % (Standard 80 %) gemeinsam für Player A/B. Regler in Einstellungen → Player und Vorschau-Dialog in den Player-Menüs. Neuer, kräftigerer Rechteck-Klick mit höherer Präsenz in lauter Musik; 0 % bleibt stumm. Beta-Release 4.4.1-beta.4 nach ausdrücklicher Freigabe.

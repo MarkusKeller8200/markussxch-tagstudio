@@ -202,7 +202,10 @@ async function plCrossfade(i, opt = {}) {
   const bpmFrom = (gridOf(PLAYER.info) ? gridOf(PLAYER.info).bpm : bpmOf(PLAYER.info)) * (old.playbackRate || 1);
   const gOld = gridOf(PLAYER.info);
   const oldInfo = PLAYER.info, oldKind = PLAYER.kind, oldRef = PLAYER.ref;
-  PLAYER.fade = { old, timer: 0, latencyMs: Math.max(-500, Math.min(500, Math.round(PLAYER.xfadeLatencyMs || 0))) };
+  // #181: Metronom bleibt bis zum letzten hörbaren Moment auf dem alten Raster.
+  // PLAYER.info / PLAYER.audio zeigen ab hier bereits auf den nächsten Track.
+  PLAYER.fade = { old, oldInfo, timer: 0,
+    latencyMs: Math.max(-500, Math.min(500, Math.round(PLAYER.xfadeLatencyMs || 0))) };
   PLAYER.spare = old;
   PLAYER.audio = nu;
   nu.muted = old.muted;
@@ -238,6 +241,7 @@ async function plCrossfade(i, opt = {}) {
       PLAYER.audio = old; PLAYER.spare = nu;
       PLAYER.info = oldInfo; PLAYER.kind = oldKind; PLAYER.ref = oldRef;
       old.volume = PLAYER.vol; plRender();
+      if (typeof plMetroTick === "function") plMetroTick();
       toast("Überblenden nicht möglich: " + (e.message || e));
     }
     return;
@@ -278,6 +282,8 @@ function plFadeStop() {
   f.old.volume = PLAYER.vol;
   PLAYER.audio.volume = PLAYER.vol;
   plRender();
+  // #181: erst nach dem vollständigen Ausblenden von altem auf neues Grid wechseln.
+  if (typeof plMetroTick === "function") plMetroTick();
 }
 
 // ====================================================================== #68 Player oben
