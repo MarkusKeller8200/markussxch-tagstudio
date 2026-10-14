@@ -203,6 +203,7 @@ function saveGeom() {
 const tgt = () => (PW.st.two && PW.st.target === "B" ? "B" : "A");
 
 function init() {
+  initTips(); // identisches Tooltip-Design wie Hauptfenster
   render();
   (function loop() { ["A", "B"].forEach(tick); requestAnimationFrame(loop); })();
   send("hello");
