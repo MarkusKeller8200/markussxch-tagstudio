@@ -7,6 +7,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### 4.4.1 – Erweiterung für die nächste Beta
+- **Player #182:** Shift+← ignoriert den zuletzt angesprungenen Cue bis vier Takte weitergespielt wurden; veraltete ALT+Bild↑/↓-Cue-Belegung entfernt und Hilfe bereinigt.
 - **Player #181:** Zuschaltbares Beatgrid-Metronom ♩ (Player A/B und abgedocktes Fenster) für die akustische Prüfung der vorhandenen Serato-/Analyse-/BPM-Raster; Klicks nach WebAudio-Zeitbasis, bei Pause/Seek/Tempoänderungen neu ausgerichtet. Vierer-Akzent ist kein verifizierter Downbeat. Offbeat-Übergänge bleiben bis zum Hörtest offen.
 
 ### Geändert (geplant für 4.4.1, noch nicht final getestet)

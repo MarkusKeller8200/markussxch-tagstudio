@@ -549,18 +549,23 @@ function plHover(e) {
 }
 
 /** #182: Cue-Ziel nach Position statt Quellreihenfolge; Loops sind keine Cue-Punkte. */
-function plCueTarget(cues, time, dir) {
+function plCueTarget(cues, time, dir, grid = null, bpm = 0) {
   const positions = (cues || []).filter((c) => c.kind !== "loop" && Number.isFinite(+c.pos) && +c.pos >= 0)
     .map((c) => +c.pos).sort((a, b) => a - b);
-  return dir > 0 ? positions.find((p) => p > time + 0.15)
-    : positions.reverse().find((p) => p < time - 0.15);
+  if (dir > 0) return positions.find((p) => p > time + 0.15);
+  // #182: Gerade angesprungene Cues während vier Takten (16 Beats) überspringen,
+  // statt bei jedem Rücksprung sofort wieder auf demselben Cue zu landen.
+  const prev = positions.reverse().filter((p) => p < time - 0.15);
+  const beatsSince = (p) => grid ? gridBeatAt(grid, time) - gridBeatAt(grid, p)
+    : (time - p) * (bpm > 0 ? bpm : 120) / 60;
+  return prev.find((p) => beatsSince(p) >= 16 - 0.0001);
 }
-/** Zum nächsten/vorigen Cue springen (Shift+←/→ bzw. Alt+Bild↑/↓). */
+/** Zum nächsten/vorigen Cue springen (Shift+←/→; rückwärts erst nach vier Takten wieder auf denselben Cue). */
 function plCueJump(dir) {
   if (!PLAYER.audio.src || !PLAYER.info) return false;
   const t = PLAYER.audio.currentTime, cues = PLAYER.info.cues || [];
   if (!cues.some((c) => c.kind !== "loop")) return false;
-  const pos = plCueTarget(cues, t, dir);
+  const pos = plCueTarget(cues, t, dir, gridOf(PLAYER.info), bpmOf(PLAYER.info));
   PLAYER.audio.currentTime = pos === undefined ? (dir > 0 ? t : 0) : pos;
   plRender();
   return true;
@@ -753,7 +758,6 @@ function plKeydown(e) {
     else if (/^[0-5]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plMark(+e.key, null); }   // #96
     else if ((e.key === "f" || e.key === "F") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); plMark(null, "toggle"); }   // #95
     else if ((e.key === "m" || e.key === "M") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); PLAYER.audio.muted = !PLAYER.audio.muted; if (PLAYER.fade) PLAYER.fade.old.muted = PLAYER.audio.muted; plRender(); toast(PLAYER.audio.muted ? "Stumm (M)" : "Ton an"); }   // #49
-    else if (e.altKey && (e.key === "PageDown" || e.key === "PageUp") && PLAYER.audio.src) { e.preventDefault(); plCueJump(e.key === "PageDown" ? 1 : -1); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); call("players").then((l) => plExternal(l.length ? 0 : null)); }
     else if (typeof pl2Key === "function") pl2Key(e);
 }

@@ -229,7 +229,7 @@ function init() {
   });
   document.addEventListener("keydown", (e) => {
     const el = document.activeElement;
-    if (e.ctrlKey || e.metaKey || e.altKey && e.key !== "PageDown" && e.key !== "PageUp" ||
+    if (e.ctrlKey || e.metaKey || e.altKey ||
         /INPUT|TEXTAREA|SELECT/.test(el?.tagName || "") && el?.type !== "range" || el?.isContentEditable) return;
     const k = e.key, deck = tgt(), s = PW.st[deck] || {};
     let c = null;
@@ -238,7 +238,6 @@ function init() {
     else if (k === "ArrowRight" || k === "ArrowLeft") c = e.shiftKey
       ? ["cue", { dir: k === "ArrowRight" ? 1 : -1 }]
       : ["bar", { dir: k === "ArrowRight" ? 1 : -1 }];
-    else if (e.altKey && (k === "PageDown" || k === "PageUp")) c = ["cue", { dir: k === "PageDown" ? 1 : -1 }];
     else if (/^[0-5]$/.test(k)) c = ["rate", { n: +k === s.rating ? 0 : +k }];
     else if (k === "f" || k === "F") c = ["like"];
     else if (k === "r" || k === "R") c = ["repeat"];

@@ -267,7 +267,7 @@ Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
 - **Wellenform:** wird beim ersten Abspielen einmal berechnet und im Cache abgelegt (`~/TagStudio/cache/wave`,
   bleibt beim Bearbeiten der Tags und Umbenennen gültig); im Menü ⋯ bzw. in den Einstellungen abschaltbar.
 - **Cue-Marken** aus Serato (Cues und Loops mit Farbe und Name) und Mixed In Key über der Leiste: Klick springt
-  hin, **Shift+←/→** oder **Alt+Bild↑/↓** zum vorigen/nächsten Cue. Ein Klick auf eine **Loop-Marke** spielt den Loop als Schleife
+  hin, **Shift+←/→** zum vorigen/nächsten Cue (Rücksprung ignoriert Cues innerhalb der letzten vier Takte). Ein Klick auf eine **Loop-Marke** spielt den Loop als Schleife
   (erneuter Klick beendet sie); beim Überfahren der Leiste stehen Zeit und Cue-Name.
 - Zwischen Wellenform und Startpunkt: **Tonart** (Camelot-Kennzeichen plus musikalisch und Open Key), **BPM**,
   Laufzeit, **Restlaufzeit** (blinkt in den letzten 30 Sekunden rot) und Länge. Taste **M** schaltet stumm.

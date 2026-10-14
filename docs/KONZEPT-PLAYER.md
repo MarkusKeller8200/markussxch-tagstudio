@@ -14,11 +14,11 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
 
 | Bereich | Inhalt |
 |---|---|
-| Wiedergabe | Leertaste/▶/Doppelklick, ⏮/⏭, folgt ↑/↓ und spielt am Ende den nächsten, Live-Vorschau (Klick spielt), Startpunkt (Start, 30 %, 1:00, erster Cue), Shift+←/→ ±10 s, stumm (M) |
+| Wiedergabe | Leertaste/▶/Doppelklick, ⏮/⏭, folgt ↑/↓ und spielt am Ende den nächsten, Live-Vorschau (Klick spielt), Startpunkt (Start, 30 %, 1:00, erster Cue), ←/→ vier Beats, Shift+←/→ Cue-Sprünge, stumm (M) |
 | Anzeige | Wellenform (einmal berechnet, Cache), Cue- und Loop-Marken (Serato, Mixed In Key), Beatgrid-Raster, Tonart in drei Schreibweisen, BPM, Lauf-/Restzeit (rot blinkend in den letzten 30 s) |
 | Tempo | Klick auf BPM → Tempo von Hand (50–200 %, Tonhöhe nach Einstellung), Reset = Original; nur für den laufenden Titel (#174) |
 | Tagger | Knopf „Im Tagger zeigen“ neben dem Titel: wechselt zum Tagger, markiert den laufenden Titel, hebt Filter auf, lädt bei Bedarf dessen Ordner (#175) |
-| Steuerung | Taktweise springen (←/→), nächster/voriger Cue (Shift+←/→ oder Alt+Bild↑/↓), Loop als Schleife, Titel wiederholen (R), A–B-Schleife (L), Stem-Spur wechseln (S) an derselben Stelle, A/B im Vergleich (L/R) |
+| Steuerung | Taktweise springen (←/→), nächster/voriger Cue (Shift+←/→, rückwärts mit 4-Takt-Toleranz), Loop als Schleife, Titel wiederholen (R), A–B-Schleife (L), Stem-Spur wechseln (S) an derselben Stelle, A/B im Vergleich (L/R) |
 | Bewertung | Sterne 0–5 (POPM, `TXXX:FMPS_Rating`) und Like (`TXXX:TAGSTUDIO`), mit Undo |
 | Überblenden | 2–12 s, gleiche Leistung, früh überblenden zum Durchhören, Tempo angleichen (±10 %, Rückkehr einstellbar), im Takt / auf Taktgrenze, Tonhöhe beibehalten |
 | Player B | zweiter, gleich aufgebauter Player (nur mit „Player oben“), eigenes Ausgabegerät, Sync zu A, Ziel A/B per Klick/Taste B, Titel per Ziehen laden |

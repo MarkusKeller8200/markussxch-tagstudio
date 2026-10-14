@@ -358,7 +358,7 @@ function dbBarJump(dir) {
 function dbCueJump(dir) {
   const a = DECKB.audio, cues = (DECKB.info && DECKB.info.cues) || [], t = a.currentTime;
   if (!a.src || !cues.some((c) => c.kind !== "loop")) return;
-  const pos = plCueTarget(cues, t, dir);
+  const pos = plCueTarget(cues, t, dir, gridOf(DECKB.info), bpmOf(DECKB.info));
   a.currentTime = pos === undefined ? (dir > 0 ? t : 0) : pos;
   dbRender();
 }
@@ -714,7 +714,6 @@ function dbKey(e) {
   else if (plain && (k === "r" || k === "R")) $("#dbRepeat").click();
   else if (k === "Escape" && DECKB.ab) dbABClear();
   else if (plain && (k === "m" || k === "M")) { a.muted = !a.muted; dbRender(); toast(a.muted ? "Player B stumm (M)" : "Player B: Ton an"); }
-  else if (e.altKey && (k === "PageDown" || k === "PageUp") && a.src) dbCueJump(k === "PageDown" ? 1 : -1);
   else return false;
   e.preventDefault();
   return true;

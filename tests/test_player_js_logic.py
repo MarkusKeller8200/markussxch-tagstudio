@@ -48,6 +48,19 @@ run("plBarJump(1)");approx(run("PLAYER.audio.currentTime"),12);
 run("plBarJump(-1)");approx(run("PLAYER.audio.currentTime"),10);
 run("plCueJump(1)");approx(run("PLAYER.audio.currentTime"),22);
 run("plCueJump(-1)");approx(run("PLAYER.audio.currentTime"),8);
+// Direkt nach dem Anspringen eines Cue zeigt Shift+← auf den davor liegenden Cue.
+run("PLAYER.info.cues=[{pos:2,kind:'cue'},{pos:10,kind:'cue'},{pos:40,kind:'cue'}]; PLAYER.audio.currentTime=11");
+run("plCueJump(-1)");approx(run("PLAYER.audio.currentTime"),2);
+run("PLAYER.audio.currentTime=19");
+run("plCueJump(-1)");approx(run("PLAYER.audio.currentTime"),10);
+run("PLAYER.audio.currentTime=11");
+run("plCueJump(1)");approx(run("PLAYER.audio.currentTime"),40);
+// Bei variablem Grid bestimmt die Beatanzahl statt einer festen Sekundenanzahl das Fenster.
+const gVar = run("({bpm:120,markers:[{pos:0,bpm:120},{pos:20,bpm:128}]})");
+ctx.testGrid = gVar;
+const cueVar = run("plCueTarget([{pos:5,kind:'cue'},{pos:25,kind:'cue'}],27,-1,testGrid,120)");
+assert.equal(cueVar,5);
+run("PLAYER.info.cues=[{pos:22,kind:'cue'},{pos:8,kind:'cue'},{pos:12,kind:'loop'}]; PLAYER.audio.currentTime=8");
 const old = run("PLAYER.audio.currentTime");
 assert.equal(run("plBarSeek(PLAYER.audio,{bpm:0},1)"),false);
 approx(run("PLAYER.audio.currentTime"),old);
