@@ -6,7 +6,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
-Version 4.4.1 – Player-Stabilität (Betas 4.4.1-beta.1 bis beta.6). Offen bis zum Praxistest: #181 Offbeat-Übergänge.
+## [4.4.1] – 2026-10-16
+
+Version 4.4.1 – Player-Stabilität: Übergänge im Takt (messen und nachführen), Beatgrid-Metronom, Takt- und Cue-Sprünge,
+Tempo per Doppelklick/Mausrad, schneller Start des Players, Herkunfts-Auswahl mit Kennzeichen (Betas 4.4.1-beta.1 bis beta.6).
 
 ### Neu
 - **Takt- und Cue-Sprünge (#182):** **←/→** springt im Player einen Takt (vier Schläge, mit Beatgrid oder BPM-Näherung),
