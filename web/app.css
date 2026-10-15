@@ -934,8 +934,16 @@ details.or-all summary{cursor:pointer;color:var(--dim);font-size:13px}
 .pl-abmark.open{border-right:0;background:transparent;width:2px!important}
 
 /* #99: Herkunfts-Filter im Vergleich */
-.cmp-src{height:34px;width:auto;max-width:190px;font-size:12.5px}
-.cmp-src.on{border-color:var(--acc);color:var(--acc)}
+.cmp-src{height:34px;width:auto;max-width:260px;font-size:12.5px}
+/* #198: Herkunfts-Auswahl als Knopf mit Kennzeichen */
+.src-pick{display:inline-flex;align-items:center;gap:3px;min-width:0;max-width:260px;overflow:hidden;cursor:pointer;
+  text-align:left;white-space:nowrap;padding-right:6px}
+.src-pick .src-b{margin:0}
+.src-pick-all{color:var(--dim)}
+.src-pick-c{margin-left:auto;padding-left:6px;color:var(--dim);font-size:10px}
+.src-pick.on{border-color:var(--acc)}
+.menu .menu-chk .src-b{margin-right:0}
+.menu .menu-chk .src-pick-n{flex:1;min-width:0}
 .f-id .src-b{cursor:pointer}
 
 /* Bewertung & Like (#95/#96/#97) */

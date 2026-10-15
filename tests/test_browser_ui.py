@@ -446,6 +446,45 @@ class UiTest(unittest.TestCase):
         self.assertFalse(pg.evaluate("TG.loaded"))                    # Tagger liest noch ein
         self.assertTrue(self.until("TG.loaded && PLAYER.kind === 'tag' && PLAYER.ref === 1 && TG.sel.has(1)", 20))
 
+    def test_tagger_origin_multiselect(self):
+        """#198 Herkunfts-Auswahl mit Kennzeichen und Mehrfachauswahl, #199 „ohne bekannte Herkunft“ filtert,
+        #197 Kontextmenü „Dateiordner öffnen“."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="0"] .nm')
+        pg.wait_for_function("TG.detail && TG.detail.fields")
+        for fid, desc, val in (("TXXX", "Meter", "4/4"), ("TXXX", "Eigenes Feld", "x"), ("TXXX", "Noch eins", "y")):
+            pg.evaluate(f"call('tag_add_field', [0], '{fid}', '{desc}', '{val}').then(taggerApplyDetail)")
+        self.assertTrue(self.until("TG.srcCounts && TG.srcCounts.unknown === 2 && TG.srcCounts.beatunes >= 1"),
+                        pg.evaluate("JSON.stringify(TG.srcCounts)"))
+        # Felder ganz ohne Herkunft (src leer) – so erscheint „ohne bekannte Herkunft (n)“ in der Auswahl
+        pg.evaluate("TG.detail.fields.filter((f) => f.src === 'unknown').forEach((f) => { f.src = ''; }); renderTgEditor()")
+        self.assertTrue(self.until("TG.srcCounts['-'] === 2"), pg.evaluate("JSON.stringify(TG.srcCounts)"))
+        total = pg.evaluate("TG.detail.fields.length")
+        # #199: nur „ohne bekannte Herkunft“
+        pg.click("#tgSrcF")
+        pg.click("#menu .menu-chk >> text=ohne bekannte Herkunft")
+        self.assertTrue(self.until("TG.srcSel.size === 1 && TG.srcSel.has('-') && document.querySelectorAll('.tg-more .tg-f').length === 2"),
+                        pg.evaluate("[...TG.srcSel].join() + ' ' + document.querySelectorAll('.tg-more .tg-f').length"))
+        self.assertTrue(pg.locator("#menu").is_visible())                       # Menü bleibt offen
+        # #198: zweite Herkunft dazu (beaTunes über TXXX:Meter) – Kennzeichen im Menü und im Knopf
+        self.assertGreater(pg.locator("#menu .menu-chk .src-b").count(), 1)
+        n_bt = pg.evaluate("TG.srcCounts['beatunes'] || 0")
+        self.assertGreater(n_bt, 0)
+        pg.click("#menu .menu-chk >> text=beaTunes")
+        self.assertTrue(self.until(f"TG.srcSel.size === 2 && document.querySelectorAll('.tg-more .tg-f').length === {2 + n_bt}"))
+        self.assertEqual(pg.locator("#tgSrcF .src-b").count(), 2)
+        pg.keyboard.press("Escape")
+        pg.click("#tgSrcF")
+        pg.click("#menu button >> text=Alle Herkünfte zeigen")
+        self.assertTrue(self.until(f"TG.srcSel.size === 0 && document.querySelectorAll('.tg-more .tg-f').length === {total}"))
+        # #197: Kontextmenü im Tagger hat „Dateiordner öffnen“
+        pg.click('.tg-row[data-i="1"] .nm', button="right")
+        pg.wait_for_selector("#menu button >> text=Dateiordner öffnen")
+        pg.keyboard.press("Escape")
+        self.assertTrue(pg.evaluate("call('reveal_tag', 99)") is False)
+        self.assertEqual(self.errors, [])
+
     def test_drag_to_player(self):
         """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""
         pg = self.pg
@@ -517,6 +556,46 @@ class UiTest(unittest.TestCase):
         pg.fill("#jeText", js.replace("Drop", "Break"))
         pg.click("#mBtns .primary")
         self.assertTrue(self.until("S.view.rows.find(r => r.key === 'TXXX:DATA').L.text.includes('Break')"))
+
+    def test_compare_origin_multiselect(self):
+        """#198 Herkunfts-Auswahl im Vergleich (Mehrfachauswahl, Kennzeichen-Klick), #197 Dateiordner im Kontextmenü."""
+        from helpers import text, txxx, write_mp3
+        pg = self.pg
+        a, b = os.path.join(self.dir, "A"), os.path.join(self.dir, "B")
+        os.makedirs(a); os.makedirs(b)
+        tags = [text("TIT2", "X"), txxx("Meter", "4/4"), txxx("Eigenes", "1"), txxx("CATALOGNUMBER", "C1")]
+        write_mp3(os.path.join(a, "x.mp3"), tags)
+        write_mp3(os.path.join(b, "x.mp3"), [text("TIT2", "Y")])
+        pg.click('.nav[data-module="compare"]')
+        pg.fill("#pathL", a)
+        pg.fill("#pathR", b)
+        pg.evaluate("void compare(true)")
+        self.assertTrue(self.until("S.pairs.length === 1 && S.view && S.view.rows.length > 2", 10))
+        counts = pg.evaluate("S.srcCounts")
+        keys = [k for k in counts if k not in ("id3v3", "id3v4")][:2]
+        self.assertEqual(len(keys), 2, counts)
+        pg.click("#cmpSrc")
+        for k in keys:
+            pg.click(f'#menu .menu-chk:has(.src-b[data-sid="{k}"])')
+        want = pg.evaluate(f"S.view.rows.filter(r => cmpSrcOf(r).some(k => {keys!r}.includes(k))).length")
+        self.assertTrue(self.until(f"S.srcSel.size === 2 && document.querySelectorAll('#tbody .tr').length === {want}"))
+        self.assertEqual(pg.locator("#cmpSrc .src-b").count(), 2)
+        pg.keyboard.press("Escape"); pg.evaluate("hideMenu()")
+        # Klick auf ein Kennzeichen in der Liste: nur diese Herkunft, nochmals: alle
+        pg.click(f'#tbody .f-id .src-b[data-sid="{keys[0]}"] >> nth=0')
+        self.assertTrue(self.until(f"S.srcSel.size === 1 && S.srcSel.has('{keys[0]}')"))
+        pg.click(f'#tbody .f-id .src-b[data-sid="{keys[0]}"] >> nth=0')
+        self.assertTrue(self.until("S.srcSel.size === 0"))
+        # #197
+        pg.click('.tr[data-key="TIT2"] .v[data-side="L"]', button="right")
+        self.assertTrue(pg.locator("#menu button", has_text="Dateiordner öffnen").is_visible())
+        pg.evaluate("hideMenu()")
+        pg.evaluate("""document.querySelector('.pair[data-i="0"]').dispatchEvent(new MouseEvent('contextmenu',
+            {bubbles: true, cancelable: true, clientX: 50, clientY: 50}))""")
+        pg.wait_for_selector("#menu button >> text=Dateiordner öffnen (links)")
+        self.assertTrue(pg.locator("#menu button", has_text="Dateiordner öffnen (links)").is_visible())
+        pg.evaluate("hideMenu()")
+        self.assertEqual(self.errors, [])
 
     def test_journal_export_rows(self):
         """#59: Journal berechnen, Export-Menü, Zeilen je Feld mit Filter."""

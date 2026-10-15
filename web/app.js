@@ -473,6 +473,35 @@ function srcBadge(sid) {
 /** #74: ID3-Version (offizielle Felder) + Herkunft */
 function srcBadges(ver, src) { return srcBadge(ver) + srcBadge(src); }
 
+// ---------------------------------------------------------------------- #198: Herkunfts-Auswahl (Mehrfachauswahl)
+/** „-“ = Felder ohne bekannte Herkunft (nur Tagger). */
+function srcPickName(k) { return k === "-" ? "ohne bekannte Herkunft" : (srcInfo(k)?.name || k); }
+function srcPickBadge(k) { return k === "-" ? '<span class="src-b unk">ohne</span>' : srcBadge(k) || `<span class="src-b">${esc(k)}</span>`; }
+/** Inhalt des Auswahl-Knopfs: die gewählten Kennzeichen oder „Alle Herkünfte“ */
+function srcPickInner(sel) {
+  return (sel.size ? [...sel].map(srcPickBadge).join("") : '<span class="src-pick-all">Alle Herkünfte</span>')
+    + '<span class="src-pick-c" aria-hidden="true">▾</span>';
+}
+function srcPickLabel(sel) { return "Nach Herkunft filtern" + (sel.size ? ": " + [...sel].map(srcPickName).join(", ") : " (alle)"); }
+/** Reihenfolge: Programme alphabetisch, dann ID3-Versionen, zuletzt „ohne Herkunft“ */
+function srcPickKeys(counts) {
+  const rank = (k) => (k === "-" ? 2 : srcInfo(k)?.kind === "id3" ? 1 : 0);
+  return Object.keys(counts).sort((a, b) => rank(a) - rank(b) || srcPickName(a).localeCompare(srcPickName(b)));
+}
+/** Menü mit Häkchen: Kennzeichen, Name, Anzahl. Bleibt offen; onChange(neue Auswahl) nach jedem Häkchen. */
+function srcPickMenu(btn, counts, sel, onChange) {
+  const cur = new Set(sel), r = btn.getBoundingClientRect();
+  showMenu(r.left, r.bottom + 6, [
+    { label: "Alle Herkünfte zeigen", run: () => onChange(new Set()) },
+    "-",
+    ...srcPickKeys(counts).map((k) => ({
+      check: cur.has(k), label: `${srcPickName(k)} (${counts[k]})`,
+      html: `${srcPickBadge(k)}<span class="src-pick-n">${esc(srcPickName(k))}</span><span class="muted sm">${counts[k]}</span>`,
+      run: (on) => { if (on) cur.add(k); else cur.delete(k); onChange(new Set(cur)); },
+    })),
+  ]);
+}
+
 // Hover-Infos (#72) sind in tooltips.js gemeinsam für Hauptfenster und abgedockten Player implementiert.
 
 // ====================================================================== Listen-Cache: Prüfung im Hintergrund (#70)
@@ -858,18 +887,21 @@ function valueHtml(cell, state) {
 }
 
 /** #99: Filter nach Herkunft im Vergleich – Auswahl aus den Herkünften des aktuellen Paars */
-function visRows() { const r = (S.view && S.view.rows) || []; return S.srcFilter ? r.filter((x) => cmpSrcOf(x).includes(S.srcFilter)) : r; }
+function visRows() {
+  const r = (S.view && S.view.rows) || [], sel = S.srcSel || new Set();
+  return sel.size ? r.filter((x) => cmpSrcOf(x).some((k) => sel.has(k))) : r;      // #198: Mehrfachauswahl
+}
 function cmpSrcOf(r) { return [r.src || "", r.ver || ""].filter(Boolean); }
 function cmpSrcSync(rows) {
   const n = {};
   rows.forEach((r) => cmpSrcOf(r).forEach((s) => { n[s] = (n[s] || 0) + 1; }));
-  if (S.srcFilter && !(S.srcFilter in n)) n[S.srcFilter] = 0;          // gewählte Herkunft bleibt wählbar
-  const keys = Object.keys(n).sort((x, y) => (srcInfo(x)?.kind === "id3") - (srcInfo(y)?.kind === "id3") || (srcInfo(x)?.name || x).localeCompare(srcInfo(y)?.name || y));
-  const html = '<option value="">Alle Herkünfte</option>' + keys.map((k) => `<option value="${esc(k)}">${esc(srcInfo(k)?.name || k)} (${n[k]})</option>`).join("");
-  const sel = $("#cmpSrc");
-  if (sel.dataset.v !== html) { sel.innerHTML = html; sel.dataset.v = html; }
-  sel.value = S.srcFilter || "";
-  sel.classList.toggle("on", !!S.srcFilter);
+  const sel = S.srcSel || (S.srcSel = new Set());
+  sel.forEach((k) => { if (!(k in n)) n[k] = 0; });                    // gewählte Herkunft bleibt wählbar
+  S.srcCounts = n;
+  const btn = $("#cmpSrc"), html = srcPickInner(sel);
+  if (btn.dataset.v !== html) { btn.innerHTML = html; btn.dataset.v = html; }
+  btn.setAttribute("aria-label", srcPickLabel(sel));
+  btn.classList.toggle("on", sel.size > 0);
 }
 
 function renderRows() {
@@ -878,7 +910,7 @@ function renderRows() {
   cmpSrcSync(v.rows);
   const rows = visRows();
   if (!rows.length) {
-    body.innerHTML = `<div class="table-empty">${S.srcFilter ? `Keine Felder mit Herkunft „${esc(srcInfo(S.srcFilter)?.name || S.srcFilter)}“.` : S.opts.filter === "diff" ? "Keine Unterschiede." : "Keine Felder."}</div>`;
+    body.innerHTML = `<div class="table-empty">${S.srcSel && S.srcSel.size ? `Keine Felder mit Herkunft ${esc([...S.srcSel].map((k) => "„" + srcPickName(k) + "“").join(" oder "))}.` : S.opts.filter === "diff" ? "Keine Unterschiede." : "Keine Felder."}</div>`;
     return;
   }
   body.innerHTML = rows.map((r, n) => {
@@ -1078,7 +1110,8 @@ function showMenu(x, y, items) {
     if (typeof it.check === "boolean") {          // #149: Häkchen-Eintrag – Menü bleibt offen
       b.setAttribute("role", "menuitemcheckbox");
       b.className = "menu-chk";
-      const paint = (on) => { b.setAttribute("aria-checked", String(on)); b.innerHTML = `<span class="chk${on ? " on" : ""}" aria-hidden="true">${on ? "✓" : ""}</span>` + esc(it.label); };
+      const paint = (on) => { b.setAttribute("aria-checked", String(on)); b.innerHTML = `<span class="chk${on ? " on" : ""}" aria-hidden="true">${on ? "✓" : ""}</span>` + (it.html || esc(it.label)); };
+      if (it.html) b.setAttribute("aria-label", it.label);
       let on = it.check;
       paint(on);
       b.addEventListener("click", (e) => { e.stopPropagation(); on = !on; paint(on); it.run(on); });
@@ -1129,8 +1162,11 @@ function rowMenu(e, tr) {
       items.push({ label: "Bild ersetzen …", icon: ICON.edit, run: () => coverReplace(side, r.key) });
       items.push({ label: "Bild exportieren …", icon: ICON.copy, run: () => coverExport(side, r.key) });
     }
-    const h = side === "L" ? S.view.left : S.view.right;
-    if (h) items.push({ label: IS_MAC ? "Im Finder zeigen" : "Im Explorer zeigen", icon: ICON.folder, run: () => call("reveal", h.path) });
+  }
+  // #197: Dateiordner der angeklickten Seite (bzw. beider Seiten) öffnen – unabhängig davon, ob das Feld einen Wert hat
+  for (const sd of side ? [side] : ["L", "R"]) {
+    const h = sd === "L" ? S.view.left : S.view.right;
+    if (h && h.path && !h.snapshot) items.push({ label: `Dateiordner öffnen${side ? "" : sd === "L" ? " (links)" : " (rechts)"}`, icon: ICON.folder, run: () => call("reveal", h.path) });
   }
   items.push("-");
   items.push({ label: "Feld hinzufügen …", icon: ICON.edit, run: () => addFieldCompare(side) });
@@ -1223,14 +1259,18 @@ function bind() {
   $("#fieldQuery").addEventListener("input", (e) => { clearTimeout(fq); fq = setTimeout(async () => applyState(await call("set_option", "query", e.target.value)), 200); });
   $$("[data-copyall]").forEach((b) => b.addEventListener("click", () => copyAll(b.dataset.copyall)));
   $("#pairReloadBtn").addEventListener("click", reloadPair);
-  $("#cmpSrc").addEventListener("change", (e) => { S.srcFilter = e.target.value; renderRows(); });      // #99
+  $("#cmpSrc").addEventListener("click", (e) => {                          // #99, #198
+    e.stopPropagation();
+    srcPickMenu(e.currentTarget, S.srcCounts || {}, S.srcSel || new Set(), (sel) => { S.srcSel = sel; renderRows(); });
+  });
   $("#tbody").addEventListener("click", (e) => {
     const b = e.target.closest(".f-id .src-b"); if (!b) return;
     e.stopPropagation();
     const k = b.dataset.sid;
-    S.srcFilter = S.srcFilter === k ? "" : k;
+    const only = S.srcSel && S.srcSel.size === 1 && S.srcSel.has(k);
+    S.srcSel = only ? new Set() : new Set([k]);
     renderRows();
-    toast(S.srcFilter ? `Nur Felder mit Herkunft „${srcInfo(k)?.name || k}“ – erneut klicken zeigt alle.` : "Alle Herkünfte.");
+    toast(!only ? `Nur Felder mit Herkunft „${srcPickName(k)}“ – erneut klicken zeigt alle.` : "Alle Herkünfte.");
   }, true);
   $$("[data-home]").forEach((b) => b.addEventListener("click", () => {     // #84
     const d = S.settings.defaults || {}, k = b.dataset.home;

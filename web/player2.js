@@ -746,6 +746,7 @@ function plRowMenu(e, t, label) {
     const idx = S.module === "tagger" && typeof tgSelected === "function" && tgSelected().length ? tgSelected() : [t.ref];
     items.push("-", ...pqMenuItems(idx));
   }
+  if (t.kind === "tag") items.push("-", { label: "Dateiordner öffnen", icon: ICON.folder, run: () => call("reveal_tag", t.ref) });   // #197
   showMenu(e.clientX, e.clientY, items);
 }
 
@@ -889,6 +890,9 @@ function initPlayer2(pp) {
     if (PL2.layout === "top") items.push("-",
       { label: "Links in Player B laden", run: () => dbLoad({ kind: "side", ref: "L" }) },
       { label: "Rechts in Player B laden", run: () => dbLoad({ kind: "side", ref: "R" }) });
+    items.push("-",                                                           // #197
+      { label: "Dateiordner öffnen (links)", icon: ICON.folder, run: () => call("reveal_side", "L") },
+      { label: "Dateiordner öffnen (rechts)", icon: ICON.folder, run: () => call("reveal_side", "R") });
     showMenu(e.clientX, e.clientY, items);
   });
   pl2DragInit();

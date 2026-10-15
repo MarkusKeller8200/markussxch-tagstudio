@@ -42,7 +42,7 @@ function tgInitOnce() {
     $("#tgRec").checked = !!TG.settings.recursive;
     const td = TG.settings.defaults || {};                                    // #86: Vorgaben beim Start
     tgSetSorts(tgDefaultSorts(td));
-    if (td.src_filter) TG.srcFilter = td.src_filter;
+    if (td.src_filter) TG.srcSel = new Set([td.src_filter]);           // #198: Vorgabe = eine Herkunft
     renderTgHead();
     renderTgEditor();
   })();
@@ -696,15 +696,18 @@ function renderTgEditor() {
   }).join("");
   const PEN = '<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
   const DEL = '<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+  // #198/#199: Herkunft je Feld; „-“ = ohne bekannte Herkunft (gleicher Schlüssel beim Zählen und Filtern)
+  const srcOf = (f) => f.src || "-";
   const srcs = {};
-  (one ? d.fields : []).forEach((f) => { const k = f.src || ""; srcs[k] = (srcs[k] || 0) + 1; });
-  if (TG.srcFilter && !(TG.srcFilter in srcs)) TG.srcFilter = "";
-  const shownFields = one ? tgMoreSorted(d.fields.filter((f) => !TG.srcFilter || (f.src || "") === (TG.srcFilter === "-" ? "" : TG.srcFilter))) : [];
-  const srcOpts = Object.keys(srcs).filter(Boolean).sort((a, b) => (srcInfo(a)?.name || a).localeCompare(srcInfo(b)?.name || b));
-  const srcSel = srcOpts.length ? `<select id="tgSrcF" class="inp" title="Weitere Felder nach Herkunft filtern" aria-label="Nach Herkunft filtern">
-      <option value="">Alle Herkünfte</option>${srcOpts.map((k) => `<option value="${esc(k)}"${TG.srcFilter === k ? " selected" : ""}>${esc(srcInfo(k)?.name || k)} (${srcs[k]})</option>`).join("")}
-      ${srcs[""] ? `<option value="-"${TG.srcFilter === "-" ? " selected" : ""}>ohne bekannte Herkunft (${srcs[""]})</option>` : ""}</select>
-      ${TG.srcFilter && TG.srcFilter !== "-" && srcInfo(TG.srcFilter)?.kind !== "id3" ? `<button class="ghost sm" id="tgSrcDel" data-src="${esc(TG.srcFilter)}">Alle entfernen …</button>` : ""}` : "";
+  (one ? d.fields : []).forEach((f) => { const k = srcOf(f); srcs[k] = (srcs[k] || 0) + 1; });
+  const sel = TG.srcSel || (TG.srcSel = new Set());
+  sel.forEach((k) => { if (!(k in srcs)) srcs[k] = 0; });             // gewählt bleibt wählbar (auch bei 0)
+  TG.srcCounts = srcs;
+  const shownFields = one ? tgMoreSorted(d.fields.filter((f) => !sel.size || sel.has(srcOf(f)))) : [];
+  const one1 = sel.size === 1 ? [...sel][0] : "";
+  const srcSel = Object.keys(srcs).length ? `<button type="button" id="tgSrcF" class="inp src-pick${sel.size ? " on" : ""}" aria-haspopup="menu"
+      aria-label="${esc(srcPickLabel(sel))}" title="Weitere Felder nach Herkunft filtern – mehrere möglich">${srcPickInner(sel)}</button>
+      ${one1 && one1 !== "-" && srcInfo(one1)?.kind !== "id3" ? `<button class="ghost sm" id="tgSrcDel" data-src="${esc(one1)}">Alle entfernen …</button>` : ""}` : "";
   const more = one && d.fields.length ? `<div class="tg-more-tools"><h4>Weitere Felder <span class="muted sm" style="font-weight:400">${shownFields.length === d.fields.length ? d.fields.length : `${shownFields.length} von ${d.fields.length}`}</span></h4>${srcSel}
       <button class="ghost sm" id="tgMoreSort" title="Weitere Felder sortieren: nach Feld oder nach Herkunft (TagStudio zuerst, dann alphabetisch)">${LAYOUT.tg_more_sort === "src" ? "Sortiert: Herkunft" : "Sortiert: Feld"}</button></div>
     <div class="tg-more">
@@ -1479,7 +1482,7 @@ async function tgOriginDialog(preset = "") {
   ed.addEventListener("focusout", (e) => { const inp = e.target.closest(".tg-form input[data-key]"); if (inp) tgCommit(inp); });
   ed.addEventListener("change", async (e) => {
     if (e.target.id === "tgVer" && e.target.value) taggerApplyDetail(await call("tag_version", tgSelected(), +e.target.value));
-    else if (e.target.id === "tgSrcF") { TG.srcFilter = e.target.value; renderTgEditor(); }
+
   });
   ed.addEventListener("click", async (e) => {
     const md = e.target.closest("[data-mood-del]"), ma = e.target.closest("[data-mood-add]");   // #12
@@ -1513,13 +1516,20 @@ async function tgOriginDialog(preset = "") {
     else if (id === "tgOrigin") tgOriginDialog();
     else if (id === "tgStemTags") tgStemTagsDialog();
     else if (id === "tgSrcDel") tgOriginDialog(e.target.closest("button").dataset.src);
+    else if (id === "tgSrcF") {                                    // #198: Mehrfachauswahl mit Kennzeichen
+      e.stopPropagation();
+      srcPickMenu(e.target.closest("button"), TG.srcCounts || {}, TG.srcSel || new Set(), (sel) => { TG.srcSel = sel; renderTgEditor(); });
+    }
     else if (id === "tgMoreSort") { LAYOUT.tg_more_sort = LAYOUT.tg_more_sort === "src" ? "key" : "src"; saveUi("tg_more_sort"); renderTgEditor(); }   // #141
     else if (id === "tgCoverWeb") tgCoverWeb();                                                                             // #150
     else if (id === "tgKeyBtn") keyWheelOpen();
     const pb = e.target.closest("[data-plugin]");
     if (pb) pluginRun(pb.dataset.plugin, pb.dataset.action);
     const sf = e.target.closest("[data-srcf]");                 // #50: Klick auf Kennzeichen filtert
-    if (sf) { TG.srcFilter = TG.srcFilter === sf.dataset.srcf ? "" : sf.dataset.srcf; renderTgEditor(); return; }
+    if (sf) {                                                    // #198: Klick auf Kennzeichen = nur diese Herkunft
+      const k = sf.dataset.srcf, only = TG.srcSel && TG.srcSel.size === 1 && TG.srcSel.has(k);
+      TG.srcSel = only ? new Set() : new Set([k]); renderTgEditor(); return;
+    }
     const row = e.target.closest(".tg-f");
     if (row && e.target.closest("[data-tdel]")) taggerApplyDetail(await call("tag_remove", [idx[0]], [row.dataset.key]));
     else if (row && e.target.closest("[data-txml]")) openXml(null, row.dataset.key, { tag: idx[0] });

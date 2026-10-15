@@ -681,6 +681,20 @@ class Api:
             subprocess.Popen(["xdg-open", os.path.dirname(path)])
         return True
 
+    def reveal_tag(self, i):
+        """#197: Dateiordner eines Tagger-Titels öffnen (Datei markiert)."""
+        s = self._s
+        with s.lock:
+            f = s.tag_files[i] if isinstance(i, int) and 0 <= i < len(s.tag_files) else None
+        return self.reveal(f.path) if f is not None else False
+
+    def reveal_side(self, side):
+        """#197: Dateiordner der linken/rechten Datei des aktuellen Vergleichspaars öffnen."""
+        s = self._s
+        with s.lock:
+            f = s._file(side) if side in ("L", "R") else None
+        return self.reveal(f.path) if f is not None else False
+
 
 def _passthrough(name):
     def method(self, *args):
