@@ -539,6 +539,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - **Konzepte:** je Bereich ein Dokument `docs/KONZEPT-*.md` (Tagger, Tag-Fixer, Vergleich, DJ-Set, Player, Plugins,
   Einstellungen, Hilfe, Update, App/Oberfläche, Vorbereiten, Snapshots, Einrichtung, Speicher …) – Übersicht in
   [docs/UEBERGABE.md](docs/UEBERGABE.md).
+- **Präsentation zur Version 4.4** (Projektgeschichte und Highlights): [docs/TagStudio-Praesentation-4.4.pptx](docs/TagStudio-Praesentation-4.4.pptx).
 - **Lizenzen und Fremdkomponenten:** [docs/third-party.json](docs/third-party.json) (Anzeige unter Hilfe › Lizenzen);
   der Workflow „Fremdkomponenten prüfen“ meldet monatlich neue Versionen und geänderte Lizenzen als Issue. Neue
   Bibliotheken, Plugin-Pakete oder übernommene Vorlagen dort eintragen.

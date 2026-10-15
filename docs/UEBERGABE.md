@@ -62,6 +62,7 @@ Zug nachführen.**
 | Mehrsprachigkeit (geplant) | [KONZEPT-MEHRSPRACHIG.md](KONZEPT-MEHRSPRACHIG.md) |
 | ID3-Felder (Nachschlagen) | [ID3-FELDER.md](ID3-FELDER.md) |
 | Programme und Plattformen (Kosten, Stand 10/2026) | [Word](Tag-Programme-und-Musik-Plattformen.docx), [PDF](Tag-Programme-und-Musik-Plattformen.pdf) – Original als Claude-Doc |
+| Präsentation zur Version 4.4 (Projektgeschichte, Highlights) | [PowerPoint](TagStudio-Praesentation-4.4.pptx) |
 
 ## Regeln des Users
 
