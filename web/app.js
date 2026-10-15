@@ -441,12 +441,14 @@ async function appRestartNow(title, text) {
   appBusy(title, text);
   S.meta.unsaved = 0;
   await appFlushState().catch(() => {});        // Zustände speichern, bevor die neue Instanz sie liest
+  const before = S.settings.native ? "" : await callNow("instance_id").catch(() => "");
   await call("restart");
   if (!S.settings.native) {
-    // Browser-Modus: der neue Server übernimmt Adresse und Schlüssel → Seite neu laden, sobald er antwortet
-    for (let k = 0; k < 60; k++) {
+    // Browser-Modus: der neue Server übernimmt Adresse und Schlüssel → Seite neu laden, sobald die NEUE Instanz
+    // antwortet (#193: nicht die alte, noch nicht ganz beendete – sonst lädt die Seite ins Leere)
+    for (let k = 0; k < 120; k++) {
       await new Promise((r) => setTimeout(r, 500));
-      try { const r = await fetch("index.html", { cache: "no-store" }); if (r.ok && k > 1) { location.reload(); return; } } catch (e) { /* noch nicht da */ }
+      try { const id = await callNow("instance_id"); if (id && id !== before) { location.reload(); return; } } catch (e) { /* noch nicht da */ }
     }
     $("#progTitle").textContent = "Bitte TagStudio neu starten.";
   }

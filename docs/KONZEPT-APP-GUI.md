@@ -1,6 +1,6 @@
 # Konzept: App und Oberfläche (GUI)
 
-Stand: 2026-10-11 (4.4.0-beta.4) · Status: **umgesetzt** (Web-Oberfläche seit 3.0, laufend erweitert) · nachträglich erstellt
+Stand: 2026-10-15 (4.4.1-beta.6) · Status: **umgesetzt** (Web-Oberfläche seit 3.0, laufend erweitert) · nachträglich erstellt
 
 > **Pflege:** Dieses Dokument wurde nachträglich aus Code und Handbuch zusammengestellt. Wird am App-Rahmen
 > (Fenster, Seitenleiste, Dialoge, Design, Start/Beenden, Protokoll) weitergearbeitet, ist es im selben Zug anzupassen.
@@ -24,6 +24,8 @@ Grösse, Layout und Zustand merkt und Fehler nachvollziehbar protokolliert – o
 - **Gemeinsame Bausteine:** `modal()` (Dialoge; frischer Inhalt je Dialog, wartet bei offenem Assistenten), `toast()`,
   Tooltips (`initTips`, farbige Hover-Infos), Fortschritts-Overlay, Aufträge-Chip in der Fusszeile, Statuszeile,
   Splitter (ziehen, ←/→, Doppelklick = Standard, gemerkt), Dateibrowser `pick_path` (startet im Basisordner).
+- **Tooltips** (#192): `web/tooltips.js` übernimmt `title` in `data-tip-title` und zeigt alle Hinweise im App-Design, auch im abgedockten Player. Tests prüfen `data-tip-title`, nicht `title`.
+- **Neustart im Browser-Modus** (#193): `appRestartNow` merkt sich `instance_id` (PID + Startzeit) und lädt die Seite erst neu, wenn eine andere Instanz antwortet.
 - **Ordner und Pfade** werden einheitlich grün dargestellt (Klasse `.path-dir`, Farbe `--ok`; #177, #178).
 - **Speichern und Undo:** global für Tagger und Vergleich (Strg/Cmd+S, Strg/Cmd+Z/Y), Konfliktschutz.
 - **Beenden:** „Einstellungen werden gespeichert …“, Abfrage ungespeicherter Änderungen und laufender Aufträge;

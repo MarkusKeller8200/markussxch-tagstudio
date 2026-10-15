@@ -1,12 +1,12 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-12, 4.4.0 final**. Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
+Stand: **2026-10-15, 4.4.1-beta.6** (letzte finale Version: 4.4.0). Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
 ## Release-Freigabe (Entscheid 14.10.2026)
 
-**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.4.1-beta.3**; spätere Änderungen liegen vorerst ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
+**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.4.1-beta.6** (Bugfix-Beta, freigegeben am 15.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
 
 ## GitHub-Meilensteinverwaltung
 
@@ -77,14 +77,15 @@ Zug nachführen.**
 - **4.4.1 – Player-Stabilität:** [#182 Takt-/Cue-Sprünge](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/182) vom User am 14.10.2026 als korrekt bestätigt, Issue **geschlossen**. [#181 Offbeat-Übergänge](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/181) weiterhin **offen**; auf `main` existiert eine noch nicht veröffentlichte manuelle Latenz-/Phasenkorrektur (−500 bis +500 ms, Default 0; Einstellung für alle automatischen Übergänge), Code- und CI-Tests erfolgreich. Neues Beta nur auf ausdrückliche Freigabe. Kein ungefragter JUCE-/GUI-Umbau.
 - **4.5.0 – Tagger & Metadaten danach:** [#184 Bibliotheksaufnahme](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/184), [#185 Letzte Bearbeitung](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/185), [#183 LRCLIB-Lyrics](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/183). Diese Issues sind **weiterhin `idee`** und noch nicht zur Umsetzung freigegeben.
 - **Später / Konzeptphase:** [#186 Neues Modul IDEE](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/186), [#187 GitHub-Meldeformular mit Eigentümerfreigabe](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/187), [#180 1001Tracklists](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/180) und die grössere Analyse-/Audio-Architektur.
-- **Meilensteinpflege (am 14.10.2026 geprüft):** Das Release [v4.4.0](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/tag/v4.4.0) ist veröffentlicht; der GitHub-Meilenstein [#10](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/10) ist **geschlossen** (17 von 17 Issues erledigt). Die neu angelegten Meilensteine [#14 – 4.4.1 Player-Stabilität](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/14) enthalten #181, #182 und Planungs-Issue #188; [#15 – 4.5.0 Tagger & Metadaten](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/15) enthalten #183–#185 und Planungs-Issue #189. Alle übrigen neun offenen Ideen sind [#4 – Idee (Später)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/4) zugeordnet. **Kein offenes Issue ohne Meilenstein** (16 von 16). Aktuell kein weiteres ungeplantes BugFixes-Issue.
+- **Meilensteinpflege (am 14.10.2026 geprüft):** Das Release [v4.4.0](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/tag/v4.4.0) ist veröffentlicht; der GitHub-Meilenstein [#10](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/10) ist **geschlossen** (17 von 17 Issues erledigt). Die neu angelegten Meilensteine [#14 – 4.4.1 Player-Stabilität](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/14) enthalten #181, #182 und Planungs-Issue #188; [#15 – 4.5.0 Tagger & Metadaten](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/15) enthalten #183–#185 und Planungs-Issue #189. Alle übrigen neun offenen Ideen sind [#4 – Idee (Später)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/4) zugeordnet. **Kein offenes Issue ohne Meilenstein** (Stand 14.10.2026). Am 15.10.2026 kam #193 (BugFixes) in #14 dazu.
 
-## Offen (Stand 4.4.0 final)
+## Offen (Stand 4.4.1-beta.6)
 
 - **NEUE KONZEPTIDEE #180 (14.10.2026):** 1001Tracklists-basierter Tracklist-Import, Discovery und datenbasierte DJ-Set-Analyse – **noch nicht implementiert**. Siehe `docs/KONZEPT-DJSET.md` (Abschnitt 5.1) und `docs/KONZEPT-MUSIKANALYSIEREN.md` (Abschnitt 12); Label `idee`, Meilenstein „Später“. Keine Scraping-/API-Implementierung ohne vorangehende Rechteprüfung.
 
 
-- 4.4.0 ist final (2026-10-12), Meilenstein #10 geschlossen; alle Issues getestet und geschlossen.
+- 4.4.0 ist final (2026-10-12). Seither 4.4.1-beta.1 bis beta.6 (Player-Stabilität). Offen in #14 «4.4.1»: #181 Offbeat-Übergänge (Praxistest), #192 Tooltips und #193 BugFixes im Beta-Test.
+- Oberflächen-Tests laufen **nicht** in der CI – vor jedem Release lokal ausführen (`TAGSTUDIO_UI_TESTS=1 …`).
 - Nächste Iterationen: #14 «4.4.1» und #15 «4.5.0» wie oben; «Idee (Später)» (#4): #9, #14, #107, #108, #156, #157, #180, #186 und #187.
 - Monatlich: Issue „Fremdkomponenten: Änderungen prüfen“ durchsehen, Stände mit
   `python .github/scripts/third_party_check.py --apply datei.json` übernehmen.

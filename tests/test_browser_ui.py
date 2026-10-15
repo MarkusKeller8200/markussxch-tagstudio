@@ -765,7 +765,11 @@ class UiTest(unittest.TestCase):
         pg.evaluate("window.__alt = 1")
         pg.click("#winRestart")
         pg.wait_for_function("/startet neu/.test(document.querySelector('#progTitle').textContent)")
-        pg.wait_for_function("!window.__alt && typeof TG !== 'undefined' && TG.loaded && TG.rows.length === 3", timeout=30000)
+        try:
+            pg.wait_for_function("!window.__alt && typeof TG !== 'undefined' && TG.loaded && TG.rows.length === 3", timeout=30000)
+        except Exception:                                          # #193: Zustand für die Fehlersuche ausgeben
+            self.fail("Neustart nicht abgeschlossen: " + pg.evaluate(
+                "JSON.stringify({url: location.href, alt: !!window.__alt, prog: (document.querySelector('#progTitle') || {}).textContent, tg: typeof TG !== 'undefined' && TG.loaded})"))
         self.assertEqual(pg.evaluate("tgSelected()"), [2])
         lock = os.path.join(self.home, ".tagstudio.lock")
         with open(lock, encoding="utf-8") as fh:
@@ -862,7 +866,8 @@ class UiTest(unittest.TestCase):
         self.assertIn("CATALOGNUMBER Benutzertext", " ".join(k.split()))      # Feldname vorne, Art dahinter
         lab = pg.locator('label[for="tgf-TIT2"]')
         self.assertIn("TITLE", lab.inner_text())
-        self.assertIn("Mix-Name", lab.get_attribute("title"))
+        # #192: native title wird in den App-Tooltip (data-tip-title) übernommen
+        self.assertIn("Mix-Name", lab.get_attribute("data-tip-title") or lab.get_attribute("title") or "")
         # Sortierung nach Herkunft: Beatport (CATALOGNUMBER) vor Feldern ohne bekannte Herkunft (MYFIELD)
         pg.click("#tgMoreSort")
         self.assertIn("Herkunft", pg.inner_text("#tgMoreSort"))

@@ -421,7 +421,7 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   ziehen (oder mit ←/→ auf dem Griff); Doppelklick setzt zurück, alles wird gemerkt. Die Seitenleiste lässt sich
   einklappen.
 - **Tastatur** (vollständige Liste: Hilfe › Tastatur): Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte
-  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · Doppelklick abspielen · 0–5 Bewertung · F Like · B Player A/B · Shift+P Player-Leiste ein/aus · ↑/↓ Titel wechseln (überall) · S Stem-Spur · R wiederholen · L A–B-Schleife · Shift+←/→ ±10 s · Shift+F5 Paar neu einlesen · Alt+Bild↑/↓ Cue · Strg/Cmd+P externer Player · →/← Stems auf-/zuklappen · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
+  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · Doppelklick abspielen · 0–5 Bewertung · F Like · B Player A/B · Shift+P Player-Leiste ein/aus · ↑/↓ Titel wechseln (überall) · S Stem-Spur · R wiederholen · L A–B-Schleife · ←/→ einen Takt (Player) · Shift+←/→ voriger/nächster Cue · Shift+F5 Paar neu einlesen · Strg/Cmd+P externer Player · →/← Stems auf-/zuklappen (Tagger-Liste) · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
 
 ## Einstellungen und Datenablage
 

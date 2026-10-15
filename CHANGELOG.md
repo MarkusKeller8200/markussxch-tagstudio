@@ -6,34 +6,42 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
-### 4.4.1-beta.5 – Überblenddauer und Metronom-Trackwechsel
-- **Überblenddauer:** Einstellungen → Player: 0–30 Sekunden, in ganzen Sekunden frei einstellbar statt Dropdown bis 12 Sekunden. Die Python-Seite erlaubte bisher bereits 30 Sekunden.
-- **Metronom über Übergänge:** Metronom bleibt während der gesamten Überblendung auf dem Beatgrid des auslaufenden Tracks und schaltet erst beim vollständigen Ausblenden auf das Raster des neuen um. Die Einstellung bleibt dabei eingeschaltet; bei noch fehlendem neuem Grid pausieren nur die Klicks bis zur Analyse. Player B bleibt unabhängig.
-- **Tests:** Neue Regressionstests für den Grid-Wechsel, fehlende Grids und die 30-Sekunden-Einstellung. Beta-Build 4.4.1-beta.5 nach ausdrücklicher Freigabe gestartet.
+Version 4.4.1 – Player-Stabilität (Betas 4.4.1-beta.1 bis beta.6). Offen bis zum Praxistest: #181 Offbeat-Übergänge.
 
+### Neu
+- **Takt- und Cue-Sprünge (#182):** **←/→** springt im Player einen Takt (vier Schläge, mit Beatgrid oder BPM-Näherung),
+  **Shift+←/→** zum vorigen/nächsten Cue; rückwärts wird der zuletzt angesprungene Cue ignoriert, bis vier Takte
+  weitergespielt wurden. Gilt für Player A/B und das abgedockte Fenster; die Tagger-Liste behält ←/→ für die Stems.
+  Die alte Belegung Alt+Bild↑/↓ und Shift+←/→ ±10 s entfällt.
+- **Beatgrid-Metronom ♩ (#181):** zuschaltbar in Player A/B und im abgedockten Fenster, zum Hören, ob das Raster sitzt;
+  Klicks nach WebAudio-Zeitbasis, nach Pause/Sprung/Tempoänderung neu ausgerichtet. Lautstärke 0–100 % (Standard 80 %)
+  für A und B gemeinsam, kräftiger Rechteck-Klick. Während des Überblendens folgt es dem auslaufenden Titel und wechselt
+  erst nach dem Ausblenden. Der Vierer-Akzent ist kein geprüfter Downbeat.
+- **Beatgrid-Herkunft (#181):** neben dem Titel steht, woher das Raster kommt (`Serato-Grid`, `Audioanalyse`,
+  `Nur BPM-Schätzung`, `Kein Beatgrid`); ohne Serato-Grid startet die eigene Analyse beim Vorhören automatisch.
+- **Latenzkorrektur für Übergänge (#181):** Einstellungen › Player bzw. Player-Menü, −500 bis +500 ms, gespeichert;
+  verschiebt die Beat-Phase des Folgetitels (positiv = später). Keine automatische Messung.
 
-### 4.4.1-beta.4 – Player-Kalibrierung und Tooltip-Darstellung
-- **Tooltips #192:** Standard-Browser-Tooltips beseitigt: gemeinsamer Tooltip-Code und App-Design in Hauptfenster und abgedocktem Player; auch dynamische Buttons (Metronom, Cue, Vor-/Zurückspringen, Play/Pause, Cover/Status) werden einheitlich dargestellt. Regressionstests für Hauptfenster und abgedockten Player ergänzt.
-- **#181 Metronom:** Neu einstellbare, dauerhaft gespeicherte Lautstärke 0–100 % (Standard 80 %) gemeinsam für Player A/B. Regler in Einstellungen → Player und Vorschau-Dialog in den Player-Menüs. Neuer, kräftigerer Rechteck-Klick mit höherer Präsenz in lauter Musik; 0 % bleibt stumm. Beta-Release 4.4.1-beta.4 nach ausdrücklicher Freigabe.
-- **#181:** Einstellbare, dauerhafte Folgetrack-Latenzkorrektur von −500 bis +500 ms in Einstellungen → Player und im Player-Menü. Positive Werte verschieben die Folgetrack-Beats nach hinten, negative nach vorne. Die bestehende Beat-Phasenausrichtung wird dazu um einen playbackRate-korrigierten Wert verschoben, ohne Tags zu ändern. Getestet wird, ob ein einziger Kalibrierwert mehrere Übergänge verbessert; die tatsächliche Audio-Latenz wird dadurch nicht automatisch gemessen.
-- **#182:** Takt-/Cue-Sprung laut Projektverantwortlichem im Praxistest korrekt bestätigt. Beta-Release auf ausdrückliche Freigabe erstellt.
+### Geändert
+- **Übergänge (#181):** der neue Titel wird stumm geladen, die Phase direkt nach dem tatsächlichen Start angeglichen und
+  erst dann eingeblendet; Beat-Ausrichtung am Titelanfang und Tempo-Rücksetzung verbessert.
+- **Überblenddauer:** 0 (aus) bis 30 Sekunden in ganzen Sekunden (bisher Auswahl bis 12 s).
+- **Tooltips (#192):** einheitlich im TagStudio-Design im Hauptfenster und im abgedockten Player, auch für Knöpfe mit
+  wechselndem Text; keine Standard-Browser-Tooltips mehr.
 
+### Behoben
+- **Neustart im Browser-Modus (#193):** die Seite lädt erst neu, wenn die neue Instanz antwortet – vorher konnte sie
+  gelegentlich die alte, gerade beendete Instanz erwischen und leer bleiben.
+- **Oberflächen-Tests (#193):** Feldnamen-Test an die neuen Tooltips angepasst.
+- **Dokumentation (#193):** Tastaturübersicht im README, Stand-Angaben in Übergabe, Projektstand und AGENTS.md
+  nachgeführt; Meilenstein-Workflow nutzt `actions/checkout@v7` wie alle anderen.
 
-### 4.4.1 – Nachbesserung für die nächste Beta
-- **#181 Beatgrid-Status:** Player A/B kennzeichnen die aktuelle Quelle direkt neben dem Track (`Serato-Grid`, `Audioanalyse`, `Nur BPM-Schätzung`, `Kein Beatgrid`); abgedockter Player zeigt den Status ebenfalls.
-- **Eigene Analyse:** Für Tracks ohne Serato-Beatgrid startet die bereits vorhandene Onset-/BPM-Analyse beim Vorhören automatisch, statt nur bei eingeschalteter Wellenform oder Crossfade.
-- **Metronom:** Klicklautstärke deutlich erhöht (normale und betonte Zählzeiten).
-- **Unverändert:** Trotz subjektiv passend klingendem Metronom sind die Übergänge noch offbeat; Issue #181 bleibt offen und benötigt eine gesonderte Timing-Analyse.
-
-
-### 4.4.1 – Erweiterung für die nächste Beta
-- **Player #182:** Shift+← ignoriert den zuletzt angesprungenen Cue bis vier Takte weitergespielt wurden; veraltete ALT+Bild↑/↓-Cue-Belegung entfernt und Hilfe bereinigt.
-- **Player #181:** Zuschaltbares Beatgrid-Metronom ♩ (Player A/B und abgedocktes Fenster) für die akustische Prüfung der vorhandenen Serato-/Analyse-/BPM-Raster; Klicks nach WebAudio-Zeitbasis, bei Pause/Seek/Tempoänderungen neu ausgerichtet. Vierer-Akzent ist kein verifizierter Downbeat. Offbeat-Übergänge bleiben bis zum Hörtest offen.
-
-### Geändert (geplant für 4.4.1, noch nicht final getestet)
-- **Player #181:** Bei automatischen Übergängen neuen Titel erst stumm laden und vorbereiten, Phase unmittelbar nach dem tatsächlichen Wiedergabestart angleichen und erst danach einblenden. Beat-Alignment am Titelanfang und Tempo-Reset verbessert. Die hörbare Synchronität muss noch praktisch bestätigt werden.
-- **Player #182:** **←/→** verschiebt um einen Takt (4 Beats mit variablem Beatgrid, sonst BPM-Näherung), **Shift+←/→** wechselt zum vorigen/nächsten Cue-Punkt; Player A/B und separates Player-Fenster. Tagger-Listennavigation bleibt vorrangig. Tastatur-Hilfe aktualisiert.
-- **Tests:** Node-basierte Logik-Regressionstests und Browser-Testfälle für Beatgrid, verzögerten Start und Tastaturbelegung ergänzt. Windows-/macOS-Praxistest ausstehend.
+### Intern
+- Regeln für KI-Agenten (`AGENTS.md`, `CLAUDE.md`): Releases nur nach ausdrücklicher Freigabe, App-Meldungen sind keine
+  Entwicklungsaufträge, fremde Bibliotheken und Datenbanken werden nie verändert.
+- Meilensteine über Eigentümer-Kommentare in #190 verwalten (`.github/workflows/milestone-admin.yml`).
+- Neue Konzepte: Produkt- und Architekturkonzept v0.1, Musikanalyse, DJ-Plattformen; 1001Tracklists als Idee (#180).
+- Tests: Node-basierte Logiktests für Beatphase, Tastatur und Metronom, Tooltip-Tests.
 
 ## [4.4.0] – 2026-10-12
 

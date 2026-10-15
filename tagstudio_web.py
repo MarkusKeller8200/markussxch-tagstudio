@@ -614,6 +614,10 @@ class Api:
         self._fs = fs
         return {"ok": True, "fullscreen": fs}
 
+    def instance_id(self):
+        """#193: Kennung dieser Instanz – der Browser lädt nach einem Neustart erst neu, wenn die NEUE Instanz antwortet."""
+        return f"{os.getpid()}-{_STARTED:.3f}"
+
     def restart(self):
         """Programm mit dem neuen Stand neu starten (gleiche Pfade, im Browser-Modus gleiche Adresse)."""
         l, r = self._s.left_root, self._s.right_root
