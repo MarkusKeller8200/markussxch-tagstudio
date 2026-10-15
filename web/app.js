@@ -32,12 +32,14 @@ async function callNow(name, ...args) {
 // ====================================================================== Hilfsfunktionen
 /** #139: Doppelklick sicher erkennen. e.detail allein reicht nicht: ziehbare Zeilen (draggable, #105) werden beim
     ersten Klick neu gezeichnet; je nach Browser zählt der zweite Klick dann wieder als erster. Deshalb zusätzlich
-    selbst messen: zweiter Klick auf dasselbe Ziel (key) innerhalb von 500 ms. */
-const DBL = { key: null, t: 0, x: 0, y: 0 };
+    selbst messen: zweiter Klick auf dasselbe Ziel (key) innerhalb von 600 ms (#196). */
+const DBL = { key: null, t: 0, x: 0, y: 0, win: 600 };
 function isDoubleClick(e, key) {
-  const now = performance.now();
+  // #196: Zeitpunkt des Klicks (e.timeStamp), nicht der Verarbeitung – ist die Seite kurz beschäftigt (Laden der
+  // Titel-Details, Analyse), kommt der zweite Klick sonst „zu spät“ an. Fenster wie die Windows-Doppelklickzeit.
+  const now = Number.isFinite(e.timeStamp) && e.timeStamp > 0 ? e.timeStamp : performance.now();
   const near = Math.abs(e.clientX - DBL.x) < 8 && Math.abs(e.clientY - DBL.y) < 8;
-  const dbl = e.detail === 2 || (DBL.key === key && now - DBL.t < 500 && near);
+  const dbl = e.detail === 2 || (DBL.key === key && now - DBL.t < DBL.win && near);
   if (dbl) DBL.key = null;
   else Object.assign(DBL, { key, t: now, x: e.clientX, y: e.clientY });
   return dbl;

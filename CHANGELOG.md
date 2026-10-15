@@ -28,6 +28,8 @@ Version 4.4.1 – Player-Stabilität (Betas 4.4.1-beta.1 bis beta.6). Offen bis 
   zeigt die letzten Übergänge; jeder Übergang steht zusätzlich im App-Protokoll (Zeilen „Übergang“). Im Browser-Test setzte
   der Folgetitel ohne Nachführen rund 90 ms zu spät ein (Seek-Verzögerung) – das war die Ursache der Offbeat-Übergänge.
 
+- **BPM-Anzeige im Player (#194):** Doppelklick setzt das Originaltempo, Mausrad über der Anzeige ändert das Tempo um
+  ±0,1 BPM (mit Shift ±1 BPM, rastet am Original ein); Einzelklick öffnet wie bisher den Tempo-Dialog. Player A und B.
 ### Geändert
 - **Übergänge (#181):** der neue Titel wird stumm geladen, die Phase direkt nach dem tatsächlichen Start angeglichen und
   erst dann eingeblendet; Beat-Ausrichtung am Titelanfang und Tempo-Rücksetzung verbessert.
@@ -36,6 +38,10 @@ Version 4.4.1 – Player-Stabilität (Betas 4.4.1-beta.1 bis beta.6). Offen bis 
   wechselndem Text; keine Standard-Browser-Tooltips mehr.
 
 ### Behoben
+- **Fortsetzen nach dem Neustart (#195):** der zuletzt gespielte Titel ist jetzt auch im Tagger markiert und sichtbar
+  (bisher blieb die Liste auf der alten Auswahl stehen).
+- **Doppelklick zum Abspielen (#196):** startet sofort, ohne auf die Titel-Details zu warten; das Zeitfenster für den
+  zweiten Klick wird ab dem Klick gemessen (600 ms) statt ab der Verarbeitung – auch wenn die Seite kurz beschäftigt ist.
 - **Neustart im Browser-Modus (#193):** die Seite lädt erst neu, wenn die neue Instanz antwortet – vorher konnte sie
   gelegentlich die alte, gerade beendete Instanz erwischen und leer bleiben.
 - **Oberflächen-Tests (#193):** Feldnamen-Test an die neuen Tooltips angepasst.

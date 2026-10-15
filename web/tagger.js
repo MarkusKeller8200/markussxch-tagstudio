@@ -1420,7 +1420,10 @@ async function tgOriginDialog(preset = "") {
     if (!r) return;
     // #92: Doppelklick spielt den Titel (über e.detail – die Zeile wird beim ersten Klick neu gezeichnet)
     const dbl = !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.target.closest("button") && isDoubleClick(e, "tg:" + r.dataset.i);   // #139
-    tgSelect(+r.dataset.i, e).then(() => { if (dbl && typeof plPlayRow === "function") plPlayRow(); });
+    // #196: Auswahl ist sofort gesetzt – nicht auf die Titel-Details warten (langsam oder fehlerhaft → kein Abspielen)
+    const done = tgSelect(+r.dataset.i, e);
+    if (dbl && typeof plPlayRow === "function") plPlayRow();
+    done.catch((err) => toast(String(err && err.message || err)));
   });
   $("#tgCoverCol").addEventListener("click", () => { LAYOUT.tg_cover_col = !LAYOUT.tg_cover_col; saveUi("tg_cover_col"); renderTgHead(); drawTgList(); });
   $("#tgFeatCols").addEventListener("click", (e) => { e.stopPropagation(); tgFeatMenu(e.currentTarget); });

@@ -186,6 +186,35 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("PLAYER.info.like === true"))
         self.assertIn("★★★★", pg.inner_text(".tg-row[data-i='0'] .rate-mini"))
 
+    def test_player_bpm_doubleclick_and_wheel(self):
+        """#194: Mausrad über BPM ändert das Tempo (±0,1, Shift ±1), Doppelklick setzt das Originaltempo."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="1"] .nm')
+        pg.keyboard.press(" ")
+        self.assertTrue(self.until("PLAYER.ref === 1 && !PLAYER.audio.paused && !!document.querySelector('#plMeta .pl-bpm')"))
+        orig = pg.evaluate("bpmOf(PLAYER.info)")
+        pg.hover("#plMeta .pl-bpm")
+        for _ in range(3):
+            pg.mouse.wheel(0, -100)                                   # 3 Rasten nach oben = +0,3 BPM
+        self.assertTrue(self.until(f"Math.abs(PLAYER.audio.playbackRate * {orig} - {orig + 0.3}) < 0.02"),
+                        pg.evaluate("PLAYER.audio.playbackRate"))
+        pg.keyboard.down("Shift"); pg.mouse.wheel(0, 100); pg.keyboard.up("Shift")   # −1 BPM
+        self.assertTrue(self.until(f"Math.abs(PLAYER.audio.playbackRate * {orig} - {orig - 0.7}) < 0.02"))
+        pg.wait_for_selector("#plMeta .pl-bpm.manual")
+        pg.dblclick("#plMeta .pl-bpm")
+        self.assertTrue(self.until("PLAYER.audio.playbackRate === 1 && !document.querySelector('#plMeta .pl-bpm.manual')"))
+        time.sleep(0.5)
+        self.assertFalse(pg.locator("#modal").is_visible())          # Doppelklick öffnet keinen Dialog
+        pg.click("#plMeta .pl-bpm")                                   # Einzelklick: Dialog (kurz verzögert)
+        pg.wait_for_selector("#tpBpm")
+        pg.click("#mBtns button >> text=Abbrechen")
+        # Mausrad zurück auf das Original rastet ein
+        pg.hover("#plMeta .pl-bpm")
+        pg.mouse.wheel(0, -100); pg.mouse.wheel(0, 100)
+        self.assertTrue(self.until("PLAYER.audio.playbackRate === 1 && !PLAYER.tempoManual"))
+        pg.evaluate("PLAYER.audio.pause()")
+
     def test_player_manual_tempo_and_goto_tagger(self):
         """#174 Tempo von Hand (Klick auf BPM, Reset), #175 laufenden Titel im Tagger zeigen."""
         pg = self.pg
@@ -358,6 +387,27 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("TG.loaded", 15))
         time.sleep(1)
         self.assertFalse(pg.evaluate("!!PLAYER.info"))
+
+    def test_resume_selects_row_and_doubleclick(self):
+        """#195: nach dem Neustart steht der Tagger auf dem fortgesetzten Titel; #196: Doppelklick spielt danach."""
+        pg = self.pg
+        self.load_tagger()
+        pg.dblclick('.tg-row[data-i="2"] .nm')
+        self.assertTrue(self.until("PLAYER.ref === 2 && !PLAYER.audio.paused"))
+        pg.evaluate("PLAYER.audio.currentTime = 8; PLAYER.audio.pause()")
+        pg.click('.tg-row[data-i="0"] .nm')                      # Tagger steht woanders als der Player
+        time.sleep(0.4)
+        pg.evaluate("plResumeSave(true)")
+        self.cfg_until(lambda c: (c.get("player_resume", {}).get("A") or {}).get("pos", 0) >= 7)
+        pg = self.restart()
+        self.assertTrue(self.until("PLAYER.ref === 2 && RESUME.done", 15))
+        sel = pg.evaluate("[...TG.sel]")
+        self.assertTrue(self.until("TG.sel.size === 1 && TG.sel.has(2) && TG.anchor === 2", 4), sel)
+        self.assertTrue(pg.evaluate("PLAYER.audio.paused"))           # Auswahl darf nicht abspielen
+        pg.dblclick('.tg-row[data-i="1"] .nm')
+        ok = self.until("PLAYER.ref === 1 && !PLAYER.audio.paused", 5)
+        self.assertTrue(ok, pg.evaluate("JSON.stringify({ref: PLAYER.ref, paused: PLAYER.audio.paused, target: PLAYER.target, sel: [...TG.sel], mod: S.module, live: PLAYER.live, follow: PLAYER.follow})"))
+        pg.evaluate("PLAYER.audio.pause()")
 
     def test_drag_to_player(self):
         """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""

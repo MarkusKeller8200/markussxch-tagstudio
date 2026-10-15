@@ -507,7 +507,7 @@ function dbRender() {
   const rateB = a.playbackRate || 1, bpmNB = bpmOf(i), offB = Math.abs(rateB - 1) > 0.0005;
   const bpm = i && i.bpm ? (offB && bpmNB ? (bpmNB * rateB).toFixed(1) : String(Math.round(parseFloat(String(i.bpm).replace(",", ".")) || 0) || i.bpm)) : "";
   const alt = i && i.key_alt ? [i.key_alt.musical, i.key_alt.openkey].filter(Boolean) : [];
-  const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${alt.length ? `<span class="pl-key-alt" title="Musikalisch · Open Key">${esc(alt.join(" · "))}</span>` : ""}${bpm ? `<span class="pl-bpm${offB ? " synced" : ""}${DECKB.tempoManual ? " manual" : ""}" role="button" tabindex="0" title="${offB ? `${DECKB.tempoManual ? "Tempo von Hand" : "Tempo angeglichen"} (${rateB > 1 ? "+" : ""}${((rateB - 1) * 100).toFixed(1)} %, Original ${Math.round(bpmNB)} BPM) – klicken: ändern oder Reset` : "Tempo – klicken: Tempo ändern"}">${esc(bpm)} BPM</span>` : ""}` : "";
+  const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${alt.length ? `<span class="pl-key-alt" title="Musikalisch · Open Key">${esc(alt.join(" · "))}</span>` : ""}${bpm ? `<span class="pl-bpm${offB ? " synced" : ""}${DECKB.tempoManual ? " manual" : ""}" role="button" tabindex="0" title="${offB ? `${DECKB.tempoManual ? "Tempo von Hand" : "Tempo angeglichen"} (${rateB > 1 ? "+" : ""}${((rateB - 1) * 100).toFixed(1)} %, Original ${Math.round(bpmNB)} BPM) – klicken: ändern · Doppelklick: Original · Mausrad: ±0,1 BPM (Shift ±1)` : "Tempo – klicken: ändern · Mausrad: ±0,1 BPM (Shift ±1)"}">${esc(bpm)} BPM</span>` : ""}` : "";
   if ($("#dbMeta").dataset.v !== meta) { $("#dbMeta").innerHTML = meta; $("#dbMeta").dataset.v = meta; }
   const dur = a.duration || (i && i.duration) || 0, t = i ? a.currentTime : 0;
   $("#dbElapsed").textContent = fmtTime(t);
@@ -831,9 +831,20 @@ function initPlayer2(pp) {
   $("#dbAB2").addEventListener("click", dbABStep);
   $("#dbMetro").addEventListener("click", () => plMetroToggle("B"));
   $("#dbSync").addEventListener("click", dbSync);                     // #76
-  [["#plMeta", "A"], ["#dbMeta", "B"]].forEach(([id, dk]) => $(id).addEventListener("click", (e) => {      // #174
-    if (e.target.closest(".pl-bpm")) plTempoDialog(dk);
-  }));
+  [["#plMeta", "A"], ["#dbMeta", "B"]].forEach(([id, dk]) => {      // #174, #194
+    const box = $(id);
+    box.addEventListener("click", (e) => { if (e.target.closest(".pl-bpm")) plBpmClick(dk, e); });
+    box.addEventListener("wheel", (e) => {
+      if (!e.target.closest(".pl-bpm")) return;
+      e.preventDefault();
+      plTempoNudge(dk, e.deltaY < 0 ? 1 : -1, e.shiftKey);
+    }, { passive: false });
+    box.addEventListener("keydown", (e) => {
+      if (!e.target.closest(".pl-bpm")) return;
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); plTempoDialog(dk); }
+      else if (e.key === "Backspace" || e.key === "Delete" || e.key === "0") { e.preventDefault(); plTempoOriginal(dk); }
+    });
+  });
   $("#plGoto").addEventListener("click", () => plShowInTagger("A"));  // #175
   $("#dbGoto").addEventListener("click", () => plShowInTagger("B"));
   $("#dbAB").addEventListener("click", (e) => { const t = e.target.closest("[data-side]"); if (t) dbSide(t.dataset.side); });
@@ -955,6 +966,17 @@ function plResumeSave(force = false) {
   RESUME.last = sig;
   call("player_resume_save", st).catch(() => {});
 }
+/** #195: den fortgesetzten Titel im Tagger markieren und sichtbar machen – ohne den Player umzuschalten
+    und ohne Filter zu verändern (ausgefilterte Titel bleiben unsichtbar). */
+async function plResumeSelect(i) {
+  if (typeof TG === "undefined" || !TG.loaded || S.module !== "tagger" || !TG.order.includes(i)) return false;
+  TG.sel = new Set([i]); TG.anchor = i;
+  tgApplyOrder();
+  tgScrollTo(i);
+  try { await tgLoadDetail(); } catch (e) { /* Details folgen beim nächsten Klick */ }
+  if (typeof tgStateSave === "function") tgStateSave();
+  return true;
+}
 /** Beim Start (nach dem Tagger): Titel in Pause an der gemerkten Stelle laden */
 async function plResume() {
   try {
@@ -962,7 +984,10 @@ async function plResume() {
     if (r.on) {
       // Nach dem Start abspielen: „pause“ (Standard), „play“ (Player A immer, B wenn er lief), „was“ (wie beim Schliessen)
       const play = (d, main) => r.play === "play" ? (main || !!d.playing) : r.play === "was" ? !!d.playing : false;
-      if (r.A && r.A.i !== null && r.A.i !== undefined && r.A.exists) await plLoad({ kind: "tag", ref: r.A.i }, play(r.A, true), r.A.pos);
+      if (r.A && r.A.i !== null && r.A.i !== undefined && r.A.exists) {
+        await plLoad({ kind: "tag", ref: r.A.i }, play(r.A, true), r.A.pos);
+        await plResumeSelect(r.A.i);                                  // #195: Tagger auf den fortgesetzten Titel
+      }
       if (r.B && r.B.i !== null && r.B.i !== undefined && r.B.exists && PL2.layout === "top" && PL2.deck2) await dbLoad({ kind: "tag", ref: r.B.i }, play(r.B, false), r.B.pos);
     }
   } catch (e) { /* egal – dann eben leer */ }
@@ -994,6 +1019,37 @@ function plTempoSet(deck, bpm) {
   d.st.tempoManual = Math.abs(r - 1) > 0.0005;
   if (deck === "B") dbRender(); else plRender();
   return true;
+}
+
+/** #194: Einzelklick öffnet den Tempo-Dialog – aber erst, wenn kein zweiter Klick folgt (Doppelklick = Originaltempo). */
+const PL_BPM_CLICK = { timer: 0, wait: 320 };
+function plBpmClick(deck, e) {
+  if (isDoubleClick(e, "bpm:" + deck)) {
+    clearTimeout(PL_BPM_CLICK.timer); PL_BPM_CLICK.timer = 0;
+    plTempoOriginal(deck);
+    return;
+  }
+  clearTimeout(PL_BPM_CLICK.timer);
+  PL_BPM_CLICK.timer = setTimeout(() => { PL_BPM_CLICK.timer = 0; plTempoDialog(deck); }, PL_BPM_CLICK.wait);
+}
+/** #194: zurück auf das Originaltempo des Titels */
+function plTempoOriginal(deck) {
+  const d = plDeck(deck), orig = bpmOf(d.info);
+  if (!d.info || !orig) return false;
+  const was = Math.abs((d.a.playbackRate || 1) - 1) > 0.0005;
+  plTempoSet(deck, 0);
+  toast(was ? `Originaltempo (${orig.toFixed(1).replace(/\.0$/, "")} BPM).` : `Läuft bereits im Originaltempo (${orig.toFixed(1).replace(/\.0$/, "")} BPM).`);
+  return true;
+}
+/** #194: Mausrad über der BPM-Anzeige – je Raste ±0,1 BPM, mit Shift ±1 BPM; nahe am Original rastet es ein. */
+function plTempoNudge(deck, dir, coarse = false) {
+  const d = plDeck(deck), orig = bpmOf(d.info);
+  if (!d.a || !d.info || !orig) return false;
+  const step = coarse ? 1 : 0.1;
+  let bpm = Math.round((orig * (d.a.playbackRate || 1) + dir * step) * 10) / 10;
+  bpm = Math.min(orig * 2, Math.max(orig / 2, bpm));
+  if (Math.abs(bpm - orig) < 0.05) bpm = 0;                           // Original wieder erreicht
+  return plTempoSet(deck, bpm);
 }
 
 async function plTempoDialog(deck) {

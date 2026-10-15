@@ -55,6 +55,12 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
   PlaybackRate. Abweichung > 40 ms (Seek, Stillstand beim Anlaufen) → Uhr zurücksetzen und geplante Klicks verwerfen;
   geklickt wird erst wieder nach ≥ 4 Proben über ≥ 150 ms mit Restfehler < 25 ms. Grund: nach einem Klick in den Titel
   steht `currentTime` kurz still bzw. springt; die früheren Klicks lagen dann versetzt.
+- **BPM-Anzeige #194:** Einzelklick öffnet den Tempo-Dialog (#174) erst nach 320 ms, damit ein Doppelklick ihn ersetzen
+  kann; Doppelklick (bzw. Entf/Rückschritt/0 bei Fokus) = Originaltempo (`plTempoOriginal`). Mausrad = ±0,1 BPM, mit
+  Shift ±1 BPM (`plTempoNudge`), begrenzt auf 50–200 %, rastet bei < 0,05 BPM Abstand auf dem Original ein. Player A
+  und B; das abgedockte Fenster zeigt die Anzeige nur.
+- **Fortsetzen #195:** `plResume` markiert den fortgesetzten Titel A im Tagger (`plResumeSelect`: Auswahl, Scrollen,
+  Details) ohne den Player umzuschalten; Filter bleiben unverändert.
 - **Übergänge im Takt halten #181 (nach beta.6, `web/xfadesync.js`):** Ursache der Offbeat-Übergänge: Die Phase wird
   einmal berechnet und per Seek gesetzt; während der Seek-/Decoder-Anlaufzeit läuft der alte Titel weiter, der neue liegt
   danach um diese Zeit zurück (Browser-Test: ≈ 90 ms). Ein zweiter Seek hätte dieselbe Verzögerung. Lösung wie am
