@@ -86,11 +86,13 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
           TAGSTUDIO_UI_TESTS: "1"
+          PYTHONFAULTHANDLER: "1"
         run: |
           set -o pipefail
-          timeout 900 python -m unittest discover -s tests -p "test_browser_ui.py" -v 2>&1 | tee test-output.txt
+          # hängt ein Test, beendet SIGABRT den Lauf und faulthandler schreibt alle Stacks in die Ausgabe
+          timeout -s ABRT 900 python -m unittest discover -s tests -p "test_browser_ui.py" -v 2>&1 | tee test-output.txt
       - name: Fehlgeschlagene Tests als Anmerkung
         if: failure()
         run: |
           python .github/scripts/test_annotations.py test-output.txt || true
-          python packaging/ci_note.py error "Oberflächen-Tests – letzte Ausgabe" test-output.txt 40
+          python packaging/ci_note.py error "Oberflächen-Tests – letzte Ausgabe" test-output.txt 80
