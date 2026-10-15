@@ -195,6 +195,10 @@ class TestExpert(TempHome):
         names = [x["name"] for x in api.expert_logs()]
         self.assertIn("app.log", names)
         self.assertIn("Hallo", api.expert_log("app.log")["text"])
+        # #181: Messwerte eines Übergangs landen als eine Zeile im App-Protokoll
+        self.assertTrue(api.player_log({"from": "a.mp3", "to": "b.mp3", "start_err_ms": -74, "end_err_ms": 0}))
+        self.assertFalse(api.player_log("kein Objekt"))
+        self.assertIn('Übergang: {"from": "a.mp3", "to": "b.mp3", "start_err_ms": -74', api.expert_log("app.log")["text"])
         with self.assertRaises(ValueError):
             api.expert_log("../.tagstudio.json")
         inf = api.expert_info()

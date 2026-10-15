@@ -35,7 +35,7 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
   `player_resume*`, `media_info`, `media_cover`, `media_extra`, `wave_save`, Bus `bus_*` für das abgedockte Fenster,
   `player_window_size`, `players`, `play_external`); `tag_set_rating`, `player_mark`, `tag_locate` (#175) in `session.py`.
 - **Tempo von Hand:** `plTempoDialog`/`plTempoSet` in `web/player2.js` (setzt `playbackRate`, Kennzeichen `tempoManual`).
-- **Oberfläche:** `web/player.js` (Player A, Wellenform, Analyse), `web/player2.js` (Überblenden, Player oben,
+- **Oberfläche:** `web/player.js` (Player A, Wellenform, Analyse), `web/xfadesync.js` (Übergänge messen/nachführen, #181), `web/player2.js` (Überblenden, Player oben,
   Player B, Abdocken), `web/player-window.html` + `web/playerwin.js` (Fernanzeige), `web/queue.js`.
 - **Einstellungen:** `player` (Werte aus `PLAYER_PREFS` mit Bereichen), `player_defaults`, `player_window`,
   `player_resume`, `players`.
@@ -55,6 +55,25 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
   PlaybackRate. Abweichung > 40 ms (Seek, Stillstand beim Anlaufen) → Uhr zurücksetzen und geplante Klicks verwerfen;
   geklickt wird erst wieder nach ≥ 4 Proben über ≥ 150 ms mit Restfehler < 25 ms. Grund: nach einem Klick in den Titel
   steht `currentTime` kurz still bzw. springt; die früheren Klicks lagen dann versetzt.
+- **Übergänge im Takt halten #181 (nach beta.6, `web/xfadesync.js`):** Ursache der Offbeat-Übergänge: Die Phase wird
+  einmal berechnet und per Seek gesetzt; während der Seek-/Decoder-Anlaufzeit läuft der alte Titel weiter, der neue liegt
+  danach um diese Zeit zurück (Browser-Test: ≈ 90 ms). Ein zweiter Seek hätte dieselbe Verzögerung. Lösung wie am
+  Jogwheel:
+  1. Messen: Beide Medienuhren mit der geglätteten Uhr (oben) zum selben Zeitpunkt schätzen, Beat-Versatz
+     `plXsyncError` in ms (Wanduhr, + = Folgetitel zu früh, gewickelt auf ±½ Schlag). Beide Elemente spielen über
+     dieselbe Ausgabe, ihre `currentTime` sind vergleichbar.
+  2. Nachführen: `plXsyncNudge` – Tempo-Korrektur des Folgetitels, Fehler/1 s, Totband 4 ms, höchstens ±4 %; nach jeder
+     Änderung die Uhr des Folgetitels neu einschwingen. Am Ende des Überblendens wird die Korrektur zurückgenommen.
+  3. Lernen: Der erste eingeschwungene Versatz geht zu 70 % in `xfade_seek_ms` (±500 ms) ein und wird beim nächsten Seek
+     vorgehalten (`plXfadeCalibratedTime(…, latency − pre)`). Nur bei abgeschlossenem Übergang mit Nachführen.
+  4. Protokoll: je Übergang Dateinamen, BPM, Rasterquellen, Taktgrenze, Korrektur/Vorhalt, Versatz Start/Ende, maximale
+     Korrektur, Verlauf alle 0,5 s → `Api.player_log` → `app.log` („Übergang: {…}“); die letzten 20 auch im Dialog
+     Einstellungen › Player › „Messwerte …“.
+  Einstellung `xfade_lock` (Standard an) schaltet 2 und 3 ab; gemessen und protokolliert wird trotzdem. Die
+  Folgetrack-Korrektur `xfade_latency_ms` bleibt als Zielversatz. Gilt nur für Player A mit „Im Takt“ und zwei Rastern.
+  Offen: Hörtest; bei grossem Startversatz klingt die Korrektur (bis 4 %) während des Einblendens evtl. leicht – der
+  gelernte Vorhalt soll das ab dem zweiten Übergang verringern. Weitere Stufen (gemeinsame Web-Audio-Uhr,
+  sample-genauer Start über `AudioBufferSourceNode`) erst, wenn die Messwerte das verlangen.
 - Tempo von Hand wird nicht gespeichert und gilt nur für den Titel; ein neuer Titel startet im eigenen Tempo (#174).
 
 ## 5. Offen / Ideen

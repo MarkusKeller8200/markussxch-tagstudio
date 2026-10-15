@@ -27,7 +27,7 @@ const ctx = vm.createContext({
   S: {module:'tagger'}, TG: {order:[], anchor:0},
   $:()=>({hidden:true})
 });
-for (const name of ['player.js', 'player2.js', 'metronome.js']) {
+for (const name of ['player.js', 'player2.js', 'metronome.js', 'xfadesync.js']) {
   vm.runInContext(fs.readFileSync('web/' + name,'utf8'), ctx, {filename:name});
 }
 const run = (code) => vm.runInContext(code,ctx);
@@ -123,6 +123,54 @@ approx(run("plClockEstimate(CK,2525,1)"), 60.175, 0.002);
 run("CK={samples:[]}");
 for (let k=0;k<8;k++) run(`plClockSample(CK,${k*25},${5+k*0.025*1.05},1.05)`);
 approx(run("plClockEstimate(CK,200,1.05)"), 5.21, 0.002);
+// #181: Übergang im Takt halten. Versatz in ms: + = neuer Titel voraus, − = zurück; auf ±½ Schlag gewickelt.
+ctx.gA = run("({bpm:120,markers:[{pos:0,bpm:120}]})"); ctx.gB = run("({bpm:120,markers:[{pos:0.3,bpm:120}]})");
+approx(run("plXsyncError(gA,10,gB,10.3,1)"), 0, 0.001);
+approx(run("plXsyncError(gA,10,gB,10.22,1)"), -80, 0.001);       // 80 ms zu spät
+approx(run("plXsyncError(gA,10,gB,10.35,1)"), 50, 0.001);        // 50 ms zu früh
+approx(run("plXsyncError(gA,10,gB,10.3+4*0.5+0.02,1)"), 20, 0.001); // ganze Schläge zählen nicht
+approx(run("plXsyncError(gA,10,gB,10.22,1.05)"), -80/1.05, 0.001);  // Wanduhr bei angeglichenem Tempo
+assert.equal(run("plXsyncError(null,10,gB,10,1)"), null);
+assert.equal(run("plXsyncNudge(3)"), 0);                           // Totband
+approx(run("plXsyncNudge(-20)"), 0.02, 1e-9);                      // zurück → schneller
+approx(run("plXsyncNudge(30)"), -0.03, 1e-9);                      // voraus → langsamer
+approx(run("plXsyncNudge(-400)"), 0.04, 1e-9);                     // begrenzt
+assert.equal(run("plXsyncLearn(0,-80)"), 56);                      // nächstes Mal 56 ms vorhalten
+assert.equal(run("plXsyncLearn(56,-20)"), 70);
+assert.equal(run("plXsyncLearn(0,-9000)"), 500);
+// Simulation: neuer Titel setzt nach dem Seek 80 ms zu spät ein; currentTime läuft in groben 10-ms-Schritten.
+{
+  const sim = (lock) => run(`(() => {
+    const oldEl={currentTime:20,playbackRate:1}, newEl={currentTime:20.3-0.08,playbackRate:1};
+    let ot=20, nt=20.3-0.08;
+    const f={}; PLAYER.xfadeLog=[]; PLAYER.xfadeSeekMs=0;
+    plXsyncStart(f,{gOld:gA,gNew:gB,ratio:1,lock:${lock},manualMs:0,
+      info:{from:'a.mp3',to:'b.mp3',bpmOld:120,bpmNew:120,srcOld:'Serato',srcNew:'Analyse',bar:1,manualMs:0,preMs:0}});
+    for (let k=0;k<200;k++) {                     // 8 s Überblenden, Takt 40 ms
+      const now=10000+k*40;
+      oldEl.currentTime=Math.floor(ot*100)/100; newEl.currentTime=Math.floor(nt*100)/100;
+      plXsyncTick(f,oldEl,newEl,now);
+      ot+=0.04*oldEl.playbackRate; nt+=0.04*newEl.playbackRate;
+    }
+    const e=plXsyncStop(f,newEl,'fertig');
+    return {e, rate:newEl.playbackRate, pre:PLAYER.xfadeSeekMs, log:PLAYER.xfadeLog.length};
+  })()`);
+  const on = sim(true);
+  assert(Math.abs(on.e.start_err_ms + 80) <= 12, 'Startversatz gemessen: ' + on.e.start_err_ms);
+  assert(Math.abs(on.e.end_err_ms) <= 10, 'eingeregelt: ' + on.e.end_err_ms);
+  assert(on.e.max_nudge_pct > 0 && on.e.max_nudge_pct <= 4);
+  assert.equal(on.rate, 1, 'Korrektur am Ende zurückgenommen');
+  assert(on.pre > 40 && on.pre < 70, 'gelernt: ' + on.pre);
+  assert.equal(on.log, 1);
+  assert.equal(on.e.trace.length >= 10, true);
+  assert(on.e.settled_after_ms < 400, 'eingeschwungen nach ' + on.e.settled_after_ms + ' ms');
+  const off = sim(false);                                            // nur messen
+  assert(Math.abs(off.e.end_err_ms + 80) <= 12, 'ohne Nachführen bleibt der Versatz: ' + off.e.end_err_ms);
+  assert.equal(off.e.max_nudge_pct, 0);
+  assert.equal(off.pre, 0, 'ohne Nachführen nichts lernen');
+}
+// Mit gelerntem Vorhalt springt der Seek entsprechend weiter (56 ms vor).
+approx(run("plXfadeCalibratedTime(gB,10.3,0-56,1,1)"), 10.356, 1e-9);
 // #181: Diagnose-Metronom prüft Grid-Position, PlaybackRate und Markerwechsel.
 const metro = run("plMetroBeat({bpm:120,markers:[{pos:0.3,bpm:120}]},0.3,1,1)");
 approx(metro.delay,0.5); assert.equal(metro.accent,false);

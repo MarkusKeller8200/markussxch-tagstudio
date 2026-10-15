@@ -554,6 +554,13 @@ class Api:
             raise ValueError("Protokoll nicht gefunden")
         return {"path": fp, "text": applog.tail(fp)}
 
+    def player_log(self, entry):
+        """#181: Messwerte eines automatischen Übergangs ins App-Protokoll (nur Dateinamen, keine Pfade)."""
+        if not isinstance(entry, dict):
+            return False
+        applog.info("Übergang: " + json.dumps(entry, ensure_ascii=False)[:4000])
+        return True
+
     def client_log(self, level, msg):
         """Fehler aus der Oberfläche (JavaScript) ins App-Protokoll."""
         applog.write("WARN" if level != "error" else "ERROR", "Oberfläche: " + str(msg)[:2000])

@@ -204,6 +204,17 @@ class TestPlayerDefaults(unittest.TestCase):
             with self.assertRaises(ValueError):
                 s.set_player_pref("xfade_latency_ms", 25.5)
             s.set_player_pref("xfade_latency_ms", 0)
+            # #181: Nachführen (Standard an) und gelernte Startverzögerung, gespeichert und begrenzt.
+            p = s.player_prefs()
+            self.assertEqual((p["xfade_lock"], p["xfade_seek_ms"]), (True, 0))
+            s.set_player_pref("xfade_lock", False)
+            s.set_player_pref("xfade_seek_ms", 56)
+            p = Session().player_prefs()
+            self.assertEqual((p["xfade_lock"], p["xfade_seek_ms"]), (False, 56))
+            s.set_player_pref("xfade_seek_ms", -2000)
+            self.assertEqual(s.player_prefs()["xfade_seek_ms"], -500)
+            s.set_player_pref("xfade_seek_ms", 0)
+            s.set_player_pref("xfade_lock", True)
             # #181: Metronom-Lautstärke systemübergreifend und persistent.
             self.assertEqual(s.player_prefs()["metro_volume"], 80)
             s.set_player_pref("metro_volume", 45)

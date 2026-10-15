@@ -35,6 +35,8 @@ function plSetPref(k, v) {
   else if (k === "xfade_latency_ms") PLAYER.xfadeLatencyMs = Math.max(-500, Math.min(500, Math.round(+v || 0)));
   else if (k === "metro_volume") v = plMetroSetVolume(v);
   else if (k === "xfade_pitch") PLAYER.xfadePitch = !!v;
+  else if (k === "xfade_lock") PLAYER.xfadeLock = !!v;                       // #181: im Takt nachführen
+  else if (k === "xfade_seek_ms") PLAYER.xfadeSeekMs = Math.max(-500, Math.min(500, Math.round(+v || 0)));
   else if (k === "layout" || k === "top_collapsed" || k === "deck2" || k === "deck_target" || k === "sink_b" || k === "vol_b" || k === "start_b" || k === "repeat_b") {
     if (typeof pl2Pref === "function") pl2Pref(k, v);
     if (k === "vol_b") { clearTimeout(plVolTimer); plVolTimer = setTimeout(() => call("set_player_pref", "vol_b", v).catch(() => {}), 400); return; }
@@ -67,7 +69,7 @@ function plTarget() {
 }
 
 async function plLoad(target, autoplay = true, keepTime = null, startMode = null, fromFade = false) {
-  if (PLAYER.fade && !fromFade && typeof plFadeStop === "function") plFadeStop();
+  if (PLAYER.fade && !fromFade && typeof plFadeStop === "function") plFadeStop(true);
   if (PLAYER.xfadeWait && !fromFade) { clearTimeout(PLAYER.xfadeWait); PLAYER.xfadeWait = 0; }      // #76
   if (!fromFade && typeof plTempoStop === "function") plTempoStop();
   if (!target) { toast(S.module === "compare" ? "Erst ein Dateipaar wählen." : "Erst einen Titel markieren."); return; }
@@ -113,7 +115,7 @@ async function plLoad(target, autoplay = true, keepTime = null, startMode = null
 function plForget(kind) {
   if (typeof DECKB !== "undefined" && DECKB.kind === kind) dbForget();
   if (!PLAYER.audio || PLAYER.kind !== kind) return;
-  if (PLAYER.fade) plFadeStop();
+  if (PLAYER.fade) plFadeStop(true);
   PLAYER.audio.pause();
   PLAYER.audio.removeAttribute("src"); PLAYER.audio.load();
   plLoopSet(null);
@@ -703,6 +705,8 @@ function plApplyPrefs(pp) {
   PLAYER.xfadeLatencyMs = Math.max(-500, Math.min(500, Math.round(+pp.xfade_latency_ms || 0))); // #181
   if (typeof plMetroSetVolume === "function") plMetroSetVolume(pp.metro_volume ?? 80);
   PLAYER.xfadePitch = pp.xfade_pitch !== false;
+  PLAYER.xfadeLock = pp.xfade_lock !== false;                                                  // #181
+  PLAYER.xfadeSeekMs = Math.max(-500, Math.min(500, Math.round(+pp.xfade_seek_ms || 0)));
   if (typeof pl2Apply === "function") pl2Apply(pp);
   if ($("#plStart")) plStartSync();
   plRender();

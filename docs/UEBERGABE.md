@@ -91,7 +91,11 @@ Zug nachführen.**
 
 - 4.4.0 ist final (2026-10-12). Seither 4.4.1-beta.1 bis beta.6 (Player-Stabilität). Offen in #14 «4.4.1»: #181 Offbeat-Übergänge, #192 Tooltips und #193 BugFixes im Beta-Test.
 - **Auf `main`, noch nicht als Beta gebaut (Stand 15.10.2026, Commit 97f7a54):** Metronom mit geglätteter Medienuhr (#181), nur noch TagStudio-Tooltips inkl. SVG (#192), Plattformliste in `KONZEPT-DJPLATTFORMEN.md` zusammengeführt. Beta 4.4.1-beta.7 nur nach Freigabe.
-- **Nächstes Thema #181:** gemeint sind die automatischen Übergänge in **Player A** beim Abspielen einer Liste (`plCrossfade`). Ideen im Issue-Kommentar vom 15.10.: zuerst Übergangs-Protokoll (Messwerte), dann Folgetitel sample-genau starten bzw. gemeinsame Audio-Uhr.
+- **#181 Stand 16.10.2026 (auf `main`, noch keine Beta):** Übergänge in Player A werden gemessen und im Takt nachgeführt
+  (`web/xfadesync.js`): Beat-Versatz beider Titel über die geglättete Uhr, Ausgleich per Tempo-Korrektur ≤ ±4 %, gelernte
+  Startverzögerung `xfade_seek_ms`, Protokoll „Übergang“ in `app.log` und Dialog „Messwerte …“. Browser-Test zeigt die
+  Ursache: Folgetitel ohne Nachführen ≈ 90 ms zu spät (Seek). Als Nächstes: Hörtest des Users mit den Messwerten; erst
+  danach über gemeinsame Web-Audio-Uhr bzw. sample-genauen Start entscheiden.
 - Oberflächen-Tests laufen seit 15.10.2026 auch in der CI (Job „Oberflächen-Tests“).
 - Nächste Iterationen: #14 «4.4.1» und #15 «4.5.0» wie oben; «Idee (Später)» (#4): #9, #14, #107, #108, #156, #157, #180, #186 und #187.
 - Monatlich: Issue „Fremdkomponenten: Änderungen prüfen“ durchsehen, Stände mit

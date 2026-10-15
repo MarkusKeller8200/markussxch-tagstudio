@@ -1017,6 +1017,46 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("Math.abs(DECKB.audio.playbackRate - 124 / 120) < 0.001"), pg.evaluate("JSON.stringify([DECKB.audio.playbackRate, PLAYER.info.grid, DECKB.info.grid, PLAYER.info.wave && PLAYER.info.wave.beat])"))
         self.assertTrue(pg.evaluate("document.querySelector('#dbSync').classList.contains('on')"))
 
+    def test_crossfade_phase_lock_and_log(self):
+        """#181: Übergang in Player A wird gemessen, im Takt nachgeführt und protokolliert."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("plSetPref('xfade', 4); plSetPref('xfade_return', 0); plSetPref('xfade_phase', true);"
+                    "plSetPref('xfade_lock', true); plSetPref('xfade_seek_ms', 0); PLAYER.xfadeLog = []")
+        pg.click(".tg-row >> nth=0")
+        pg.keyboard.press(" ")
+        self.assertTrue(self.until("!PLAYER.audio.paused && PLAYER.audio.duration > 0"))
+        self.assertTrue(self.until("!!gridOf(PLAYER.info)", 6))
+        pg.evaluate("PLAYER.audio.currentTime = PLAYER.audio.duration - 6")
+        self.assertTrue(self.until("!!PLAYER.fade && PLAYER.ref === 1", 6))
+        self.assertTrue(self.until("!PLAYER.fade && (PLAYER.xfadeLog || []).length === 1", 10))
+        e = pg.evaluate("PLAYER.xfadeLog[0]")
+        print("\n  Übergang:", {k: e[k] for k in ("start_err_ms", "settled_after_ms", "end_err_ms", "max_nudge_pct",
+                                               "learned_pre_ms") if k in e}, flush=True)
+        self.assertEqual(e["reason"], "fertig")
+        self.assertTrue(e["lock"])
+        self.assertIsNotNone(e["start_err_ms"], e)
+        self.assertLessEqual(abs(e["end_err_ms"]), 20, e)
+        self.assertGreaterEqual(len(e["trace"]), 3, e)
+        # Tempo-Korrektur zurückgenommen, gelernter Vorhalt gespeichert
+        self.assertTrue(self.until("Math.abs(PLAYER.audio.playbackRate - 1) < 0.0005", 3))
+        want = e.get("learned_pre_ms", 0)
+        c = self.cfg_until(lambda c: c.get("player", {}).get("xfade_seek_ms", 0) == want)
+        self.assertEqual(c.get("player", {}).get("xfade_seek_ms", 0), want)
+        # Messwerte-Dialog in den Einstellungen
+        pg.evaluate("PLAYER.audio.pause()")
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stPlXfLock")
+        self.assertTrue(pg.is_checked("#stPlXfLock"))
+        self.assertIn(f"gelernt: {want} ms", pg.inner_text("#stPlXfSeek"))
+        pg.click("#stPlXfLog")
+        pg.wait_for_selector("#mBody .help-t")
+        self.assertIn(e["to"], pg.inner_text("#mBody"))
+        pg.keyboard.press("Escape")
+        pg.click("#stPlXfSeekReset")
+        c = self.cfg_until(lambda c: c.get("player", {}).get("xfade_seek_ms", 0) == 0)
+        self.assertEqual(c["player"]["xfade_seek_ms"], 0)
+
     def test_player_phase_alignment_and_bar_navigation(self):
         """#181/#182: Beatgrid auch am Anfang phasentreu ausrichten; Taktwege bei variablem Tempo."""
         pg = self.pg

@@ -253,10 +253,17 @@ async function plCrossfade(i, opt = {}) {
   if (PLAYER.xfadePhase && gOld && gNew && sameTempo) {
     const bar = opt.bar || 1;
     const ph = gridPhase(gOld, old.currentTime, bar);
+    // #181: gelernte Startverzögerung (Seek/Decoder) schon beim Seek vorhalten – nur mit Nachführen.
+    const pre = PLAYER.xfadeLock !== false ? Math.round(PLAYER.xfadeSeekMs || 0) : 0;
     try {
       const aligned = gridAlign(gNew, nu.currentTime || 0, ph, bar);
-      nu.currentTime = plXfadeCalibratedTime(gNew, aligned, f.latencyMs, ratio, bar);
+      nu.currentTime = plXfadeCalibratedTime(gNew, aligned, f.latencyMs - pre, ratio, bar);
       f.phase = true;
+      if (typeof plXsyncStart === "function") plXsyncStart(f, {
+        gOld, gNew, ratio, lock: PLAYER.xfadeLock !== false, manualMs: f.latencyMs,
+        info: { from: plXsyncName(oldInfo), to: plXsyncName(newInfo), bpmOld: gOld.bpm, bpmNew: gNew.bpm,
+                srcOld: plXsyncSrc(oldInfo), srcNew: plXsyncSrc(newInfo), bar, manualMs: f.latencyMs, preMs: pre }
+      });
     }
     catch (e) { f.phase = false; }
   }
@@ -266,16 +273,19 @@ async function plCrossfade(i, opt = {}) {
     const g = Math.min(1, (performance.now() - t0) / D), v = PLAYER.vol;
     PLAYER.audio.volume = v * Math.sin((g * Math.PI) / 2);
     old.volume = v * Math.cos((g * Math.PI) / 2);
+    if (f.sync) plXsyncTick(f, old, PLAYER.audio);                  // #181: im Takt halten + messen
     if (g >= 1) { plFadeStop(); if (f.ratio !== 1) plTempoReturn(PLAYER.xfadeReturn); }
   }, 40);
 }
 
 /** Überblenden beenden (fertig oder abgebrochen durch einen anderen Titel): altes Element stoppen. */
-function plFadeStop() {
+function plFadeStop(aborted = false) {
   const f = PLAYER.fade;
   if (!f) return;
   clearInterval(f.timer);
   PLAYER.fade = null;
+  // #181: Tempo-Korrektur zurücknehmen und Messwerte protokollieren (abgebrochen = anderer Titel gewählt)
+  if (f.sync && typeof plXsyncStop === "function") plXsyncStop(f, PLAYER.audio, aborted ? "abgebrochen" : "fertig");
   f.old.pause();
   f.old.removeAttribute("src");
   f.old.load();

@@ -90,6 +90,10 @@ async function settingsShow() {
           <input type="number" id="stPlXfLatency" min="-500" max="500" step="10" style="width:95px"
             value="${p.xfade_latency_ms ?? 0}" title="Positive ms: Folgetrack-Beats später, negative ms: früher">
           <span class="muted sm">−500 bis +500 ms · + später / − früher · 0 = aus · nur mit Beatgrid und „Im Takt“</span></div>
+        <span>Im Takt halten</span><div class="st-path">${stCheck("stPlXfLock", p.xfade_lock !== false, "Während des Überblendens den Beat-Versatz messen und mit kleiner Tempo-Korrektur (max. ±4 %) ausgleichen; die Startverzögerung wird gelernt und beim nächsten Übergang vorgehalten")}
+          <span class="muted sm" id="stPlXfSeek">gelernt: ${p.xfade_seek_ms ?? 0} ms</span>
+          <button class="ghost sm" id="stPlXfSeekReset" title="Gelernte Startverzögerung auf 0 setzen">Zurücksetzen</button>
+          <button class="ghost sm" id="stPlXfLog" title="Messwerte der letzten Übergänge (auch im App-Protokoll unter „Übergang“)">Messwerte …</button></div>
         <label for="stPlXfRet">Zurück auf eigenes BPM</label>${stSel("stPlXfRet", [[0, "sofort nach dem Überblenden"], [4, "in 4 s"], [8, "in 8 s"], [16, "in 16 s"], [30, "in 30 s"], [60, "in 1 Minute"]], p.xfade_return)}
         <span></span><span class="muted sm">Überblenden wirkt im Tagger mit „Durchhören“, nicht bei „Titel wiederholen“ oder einer Schleife.</span>
         <label for="stPlLayout">Position</label>${stSel("stPlLayout", [["bottom", "unten in der Aktionsleiste"], ["top", "oben als eigene Leiste (einklappbar, Shift+P)"]], p.layout)}
@@ -504,6 +508,8 @@ function initSettings() {
     } else if (t.id === "stBkFolder") { const d = await call("backup_pick_folder"); if (d) settingsShow(); else if (!S.settings.native) toast("Im Browser-Modus ist kein Ordnerdialog verfügbar."); }
     else if (t.id === "stBkOpen") call("open_folder", ST.data.backup_dir);
     else if (t.id === "stPlayers") { await plSetup(); settingsShow(); }
+    else if (t.id === "stPlXfSeekReset") { plSetPref("xfade_seek_ms", 0); const e = $("#stPlXfSeek"); if (e) e.textContent = "gelernt: 0 ms"; toast("Gelernte Startverzögerung zurückgesetzt."); }
+    else if (t.id === "stPlXfLog") plXsyncLogDialog();
     else if (t.id === "stPlDefSave") { await call("player_defaults", "save"); toast("Player-Einstellungen als Standard gespeichert."); settingsShow(); }
     else if (t.id === "stPlDefApply") { const pp = await call("player_defaults", "apply"); plApplyPrefs(pp); toast("Player auf Standard zurückgesetzt."); settingsShow(); }
     else if (t.id === "stPlDefDel") { await call("player_defaults", "reset"); toast("Standard gelöscht."); settingsShow(); }
@@ -623,6 +629,7 @@ function initSettings() {
     else if (t.id === "stPlXfSync") plSetPref("xfade_sync", t.checked);
     else if (t.id === "stPlXfPhase") plSetPref("xfade_phase", t.checked);
     else if (t.id === "stPlXfPitch") plSetPref("xfade_pitch", t.checked);
+    else if (t.id === "stPlXfLock") plSetPref("xfade_lock", t.checked);
     else if (t.id === "stPlXfBars") plSetPref("xfade_bars", +t.value);
     else if (t.id === "stPlXfLatency") {
       const raw = t.value.trim(), ms = Number(raw);

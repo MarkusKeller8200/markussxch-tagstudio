@@ -21,6 +21,12 @@ Version 4.4.1 – Player-Stabilität (Betas 4.4.1-beta.1 bis beta.6). Offen bis 
   `Nur BPM-Schätzung`, `Kein Beatgrid`); ohne Serato-Grid startet die eigene Analyse beim Vorhören automatisch.
 - **Latenzkorrektur für Übergänge (#181):** Einstellungen › Player bzw. Player-Menü, −500 bis +500 ms, gespeichert;
   verschiebt die Beat-Phase des Folgetitels (positiv = später). Keine automatische Messung.
+- **Übergänge im Takt halten (#181):** beim automatischen Überblenden in Player A misst TagStudio laufend den
+  Beat-Versatz zwischen auslaufendem und neuem Titel und gleicht ihn mit einer kleinen Tempo-Korrektur des neuen Titels
+  aus (höchstens ±4 %, ohne Sprung). Die beim Start gemessene Verzögerung wird gelernt und beim nächsten Übergang schon
+  vorgehalten. Einstellungen › Player › „Im Takt halten“ (Standard an), gelernter Wert mit „Zurücksetzen“, „Messwerte …“
+  zeigt die letzten Übergänge; jeder Übergang steht zusätzlich im App-Protokoll (Zeilen „Übergang“). Im Browser-Test setzte
+  der Folgetitel ohne Nachführen rund 90 ms zu spät ein (Seek-Verzögerung) – das war die Ursache der Offbeat-Übergänge.
 
 ### Geändert
 - **Übergänge (#181):** der neue Titel wird stumm geladen, die Phase direkt nach dem tatsächlichen Start angeglichen und
