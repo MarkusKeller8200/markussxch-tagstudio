@@ -819,7 +819,7 @@ def run_browser(api: Api, port=0, open_browser=True):
     srv, token = make_server(api, port)
     api._server = (srv, token)
     url = f"http://127.0.0.1:{srv.server_address[1]}/index.html#token={quote(token)}"
-    print(f"{APP} läuft im Browser: {url}\n(Fenster offen lassen; Beenden mit Strg+C)")
+    print(f"{APP} läuft im Browser: {url}\n(Fenster offen lassen; Beenden mit Strg+C)", flush=True)   # auch über eine Pipe sofort sichtbar
     if open_browser:
         webbrowser.open(url)
     try:

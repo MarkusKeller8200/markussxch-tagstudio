@@ -76,7 +76,7 @@ class UiTest(unittest.TestCase):
     # ---------------------------------------------------------------- Hilfen
     def start_server(self):
         p = subprocess.Popen([sys.executable, os.path.join(ROOT, "tagstudio_web.py"), "--browser", "--no-open", "--port", "0"],
-                             env=dict(os.environ, HOME=self.home, USERPROFILE=self.home),
+                             env=dict(os.environ, HOME=self.home, USERPROFILE=self.home, PYTHONUNBUFFERED="1"),
                              stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
         for _ in range(200):
             m = re.search(r"(http://\S+)", p.stdout.readline() or "")
