@@ -44,6 +44,8 @@ Version 4.4.1 – Player-Stabilität (Betas 4.4.1-beta.1 bis beta.6). Offen bis 
 - **Schneller Doppelklick zum Abspielen (#196):** wurde verschluckt, wenn die Liste zwischen Drücken und Loslassen des
   zweiten Klicks neu gezeichnet wurde (Titel-Details des ersten Klicks kamen gerade an). Der Doppelklick wird jetzt beim
   zweiten Drücken erkannt und spielt sofort; das Zeitfenster zählt ab dem Klick (600 ms).
+- **Snapshots:** Die Snapshot-Liste brach mit „Snapshot nicht lesbar“ ab, wenn gleichzeitig ein Snapshot gelöscht wurde
+  (z. B. bei „Neue Baseline“). Gelöschte werden jetzt übersprungen; beschädigte stoppen das Aufräumen weiterhin.
 - **Neustart im Browser-Modus (#193):** die Seite lädt erst neu, wenn die neue Instanz antwortet – vorher konnte sie
   gelegentlich die alte, gerade beendete Instanz erwischen und leer bleiben.
 - **Oberflächen-Tests (#193):** Feldnamen-Test an die neuen Tooltips angepasst.

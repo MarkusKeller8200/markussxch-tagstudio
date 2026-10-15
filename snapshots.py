@@ -360,7 +360,14 @@ class Store:
         refs: dict[str, list] = {}
         for lib in self.libraries():
             for s in self.snapshots(lib["id"]):
-                m = self.manifest(lib["id"], s["id"])
+                try:
+                    m = self.manifest(lib["id"], s["id"])
+                except StoreError:
+                    # Inzwischen gelöscht (z. B. neue Baseline läuft gleichzeitig): seine Objekte braucht niemand mehr.
+                    # Beschädigt (Datei noch da): beim Aufräumen abbrechen, damit kein benötigtes Objekt verschwindet.
+                    if strict and os.path.exists(self._snap_path(lib["id"], s["id"])):
+                        raise
+                    continue
                 for e in m["files"]:
                     for h in (e.get("tag") or []) + ([e["v1"]] if e.get("v1") else []):
                         refs.setdefault(h, []).append((lib["id"], s["id"]))
@@ -443,7 +450,10 @@ class Store:
         for lib in self.libraries():
             for s in self.snapshots(lib["id"]):
                 p = self._snap_path(lib["id"], s["id"])
-                ms = os.path.getsize(p)
+                try:
+                    ms = os.path.getsize(p)
+                except OSError:                     # gleichzeitig gelöscht
+                    continue
                 k = f"{lib['id']}/{s['id']}"
                 own[k] = own.get(k, 0) + ms
                 libs[lib["id"]] = libs.get(lib["id"], 0) + ms

@@ -1,6 +1,7 @@
 """Tests für Snapshots und Änderungsjournal (snapshots.py, #52)."""
 import datetime
 import json
+import gzip
 import os
 import shutil
 import sys
@@ -71,6 +72,29 @@ class TestSnapshots(Base):
         self.assertEqual(objs, objs2)
         self.assertEqual(len(self.store.snapshots(self.libd["id"])), 2)
         self.assertLess(self.store.sizes()["snaps"][f"{self.libd['id']}/{s2['id']}"], 4000)   # nur Manifest
+
+    def test_snapshot_deleted_while_listing(self):
+        """Ein gleichzeitig gelöschter Snapshot (z. B. neue Baseline) darf Liste/Grössen nicht abbrechen;
+        ein beschädigter bleibt beim Aufräumen ein Fehler (sonst würden benötigte Objekte gelöscht)."""
+        lid = self.libd["id"]
+        s1 = sn.create(self.store, lid, "Eins")
+        s2 = sn.create(self.store, lid, "Zwei")
+        real = self.store.snapshots
+        listed = real(lid)
+        self.store.delete_snapshot(lid, s1["id"])
+        self.store.snapshots = lambda _lid: listed           # Liste stammt von „vor dem Löschen“
+        try:
+            os.remove(os.path.join(self.store.root, "stats.json")) if os.path.exists(os.path.join(self.store.root, "stats.json")) else None
+            sizes = self.store.sizes()
+            self.assertIn(f"{lid}/{s2['id']}", sizes["snaps"])
+            self.assertTrue(self.store._all_refs(strict=True))
+            with gzip.open(self.store._snap_path(lid, s2["id"]), "wb") as fh:
+                fh.write(b"kaputt")
+            with self.assertRaises(sn.StoreError):
+                self.store._all_refs(strict=True)
+            self.store._all_refs(strict=False)
+        finally:
+            self.store.snapshots = real
 
     def test_journal_detects_external_changes(self):
         lid = self.libd["id"]
