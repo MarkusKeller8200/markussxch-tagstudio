@@ -36,12 +36,14 @@ Version 4.4.1 – Player-Stabilität (Betas 4.4.1-beta.1 bis beta.6). Offen bis 
 - **Metronom nach Klick in den Titel (#181):** Das Metronom plant seine Klicks jetzt über eine geglättete Medienuhr. Nach
   einem Sprung (Klick in die Wellenform, Cue, Takt-Sprung) werden bereits geplante Klicks verworfen und erst wieder
   geklickt, wenn die Wiedergabe gleichmässig läuft – vorher lief es danach oft versetzt („async“).
+- **Browser-Modus:** die Adresse wird sofort ausgegeben, auch wenn die Ausgabe umgeleitet ist (vorher erst gepuffert).
 - **Nur noch TagStudio-Tooltips (#192):** auch die Punkte im Energieverlauf des DJ-Sets zeigen keinen Browser-Tooltip mehr;
   SVG-Titel werden wie `title` übernommen. Für Screenreader bleibt nur das unsichtbare `aria-label`.
 - **Dokumentation (#193):** Tastaturübersicht im README, Stand-Angaben in Übergabe, Projektstand und AGENTS.md
   nachgeführt; Meilenstein-Workflow nutzt `actions/checkout@v7` wie alle anderen.
 
 ### Intern
+- Oberflächen-Tests laufen zusätzlich bei jedem Push in GitHub Actions (Job „Oberflächen-Tests“, ca. 7 min).
 - Regeln für KI-Agenten (`AGENTS.md`, `CLAUDE.md`): Releases nur nach ausdrücklicher Freigabe, App-Meldungen sind keine
   Entwicklungsaufträge, fremde Bibliotheken und Datenbanken werden nie verändert.
 - Meilensteine über Eigentümer-Kommentare in #190 verwalten (`.github/workflows/milestone-admin.yml`).
