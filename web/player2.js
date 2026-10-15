@@ -985,7 +985,10 @@ async function plResume() {
     if (r.on) {
       // Nach dem Start abspielen: „pause“ (Standard), „play“ (Player A immer, B wenn er lief), „was“ (wie beim Schliessen)
       const play = (d, main) => r.play === "play" ? (main || !!d.playing) : r.play === "was" ? !!d.playing : false;
-      const target = (d) => d.i !== null && d.i !== undefined ? { kind: "tag", ref: d.i } : { kind: "file", ref: d.path };
+      // Tagger-Index nur, wenn die Tagger-SEITE fertig ist: sonst räumt deren Abschluss (tgAfterLoad → plForget("tag"))
+      // den eben geladenen Titel wieder ab, obwohl das Backend schon fertig eingelesen hat. Sonst per Pfad.
+      const ready = typeof TG !== "undefined" && TG.loaded;
+      const target = (d) => ready && d.i !== null && d.i !== undefined ? { kind: "tag", ref: d.i } : { kind: "file", ref: d.path };
       if (r.A && r.A.exists) {
         await plLoad(target(r.A), play(r.A, true), r.A.pos);
         if (PLAYER.kind === "tag") await plResumeSelect(PLAYER.ref);
