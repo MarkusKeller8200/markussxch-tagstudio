@@ -43,7 +43,7 @@ Zug nachführen.**
 |---|---|
 | Übergreifendes Produkt- und Architekturkonzept | [KONZEPT-PRODUKT-ARCHITEKTUR.md](KONZEPT-PRODUKT-ARCHITEKTUR.md) |
 | Musikanalyse und MusicAnalyzer (geplant) | [KONZEPT-MUSIKANALYSIEREN.md](KONZEPT-MUSIKANALYSIEREN.md) |
-| DJ-Musikplattformen, API und Kauf-/Download-Workflow (geplant) | [KONZEPT_DJPLATTFORMEN.md](KONZEPT_DJPLATTFORMEN.md) |
+| DJ-Musikplattformen, Programme mit Kosten, API und Kauf-/Download-Workflow (geplant) | [KONZEPT-DJPLATTFORMEN.md](KONZEPT-DJPLATTFORMEN.md) – Kostenübersicht auch als [Word](Tag-Programme-und-Musik-Plattformen.docx)/[PDF](Tag-Programme-und-Musik-Plattformen.pdf) (Stand 12.10.2026) |
 | Vorbereiten, Entdecken | [KONZEPT-VORBEREITEN.md](KONZEPT-VORBEREITEN.md) |
 | Tagger | [KONZEPT-TAGGER.md](KONZEPT-TAGGER.md) |
 | Tag-Fixer | [KONZEPT-TAGFIXER.md](KONZEPT-TAGFIXER.md) |
@@ -61,7 +61,6 @@ Zug nachführen.**
 | WAV (geplant) | [KONZEPT-WAV.md](KONZEPT-WAV.md) |
 | Mehrsprachigkeit (geplant) | [KONZEPT-MEHRSPRACHIG.md](KONZEPT-MEHRSPRACHIG.md) |
 | ID3-Felder (Nachschlagen) | [ID3-FELDER.md](ID3-FELDER.md) |
-| Programme und Plattformen (Kosten, Stand 10/2026) | [Word](Tag-Programme-und-Musik-Plattformen.docx), [PDF](Tag-Programme-und-Musik-Plattformen.pdf) – Original als Claude-Doc |
 | Präsentation zur Version 4.4 (Projektgeschichte, Highlights) | [PowerPoint](TagStudio-Praesentation-4.4.pptx) |
 
 ## Regeln des Users

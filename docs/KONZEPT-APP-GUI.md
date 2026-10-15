@@ -24,7 +24,7 @@ Grösse, Layout und Zustand merkt und Fehler nachvollziehbar protokolliert – o
 - **Gemeinsame Bausteine:** `modal()` (Dialoge; frischer Inhalt je Dialog, wartet bei offenem Assistenten), `toast()`,
   Tooltips (`initTips`, farbige Hover-Infos), Fortschritts-Overlay, Aufträge-Chip in der Fusszeile, Statuszeile,
   Splitter (ziehen, ←/→, Doppelklick = Standard, gemerkt), Dateibrowser `pick_path` (startet im Basisordner).
-- **Tooltips** (#192): `web/tooltips.js` übernimmt `title` in `data-tip-title` und zeigt alle Hinweise im App-Design, auch im abgedockten Player. Tests prüfen `data-tip-title`, nicht `title`.
+- **Tooltips** (#192): nur eine sichtbare Art – `web/tooltips.js` übernimmt `title` und SVG-`<title>` in `data-tip-title` und zeigt alle Hinweise im App-Design, auch im abgedockten Player. Tests prüfen `data-tip-title`, nicht `title`.
 - **Neustart im Browser-Modus** (#193): `appRestartNow` merkt sich `instance_id` (PID + Startzeit) und lädt die Seite erst neu, wenn eine andere Instanz antwortet.
 - **Ordner und Pfade** werden einheitlich grün dargestellt (Klasse `.path-dir`, Farbe `--ok`; #177, #178).
 - **Speichern und Undo:** global für Tagger und Vergleich (Strg/Cmd+S, Strg/Cmd+Z/Y), Konfliktschutz.

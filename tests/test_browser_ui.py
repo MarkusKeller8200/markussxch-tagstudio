@@ -217,6 +217,24 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.evaluate("PLAYER.ref"), 1)
         self.assertTrue(pg.evaluate("!PLAYER.audio.paused"))
 
+    def test_metronome_resyncs_after_seek(self):
+        """#181: Metronom plant nach einem Klick in den Titel erst wieder, wenn die Medienuhr eingeschwungen ist."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="0"] .nm')
+        pg.keyboard.press(" ")
+        self.assertTrue(self.until("!PLAYER.audio.paused && PLAYER.audio.currentTime > 0.5"))
+        # Raster vorgeben (die Testtöne haben kein Serato-Grid), dann Metronom einschalten
+        pg.evaluate("PLAYER.info.grid = {bpm: 124, markers: [{pos: 0, bpm: 124}], source: 'Test'}; plMetroToggle('A')")
+        self.assertTrue(self.until("PL_METRO.deck === 'A' && PL_METRO.next !== null", 4))
+        est = "plClockEstimate(PL_METRO.clk, performance.now(), PLAYER.audio.playbackRate || 1)"
+        self.assertTrue(self.until(f"Math.abs({est} - PLAYER.audio.currentTime) < 0.06", 3))
+        pg.evaluate("PLAYER.audio.currentTime = Math.min(PLAYER.audio.duration - 5, PLAYER.audio.currentTime + 7.3)")
+        # unmittelbar nach dem Sprung: keine Klicks aus der alten Position, Uhr neu eingeschwungen
+        self.assertTrue(self.until("PL_METRO.next === null || PL_METRO.clk.samples.length < 4", 1))
+        self.assertTrue(self.until(f"PL_METRO.next !== null && Math.abs({est} - PLAYER.audio.currentTime) < 0.06", 4))
+        pg.evaluate("plMetroStop(); PLAYER.audio.pause()")
+
     def test_help_licenses(self):
         """#176: Hilfe › Lizenzen listet die Fremdkomponenten mit Lizenz und Quelle."""
         pg = self.pg
@@ -1172,6 +1190,9 @@ class UiTest(unittest.TestCase):
         self.assertGreaterEqual(pg.evaluate("DJ.st.score"), before)
         self.assertEqual(pg.locator("#djWheel .wk.on").count(), 3)
         self.assertEqual(pg.locator("#djCurve svg").count(), 1)
+        # #192: nur TagStudio-Tooltips – keine title-Attribute und keine SVG-<title> (Browser-Tooltips) im Dokument
+        self.assertEqual(pg.evaluate("document.querySelectorAll('[title], svg title').length"), 0)
+        self.assertGreater(pg.locator("#djCurve circle[data-tip-title]").count(), 0)
         # Vorher/Nachher
         pg.click("#djRevert")
         pg.wait_for_function("DJ.st.items[0].key === '10A' && DJ.st.items[1].key === '8A'")

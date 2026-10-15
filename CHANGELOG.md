@@ -33,6 +33,11 @@ Version 4.4.1 – Player-Stabilität (Betas 4.4.1-beta.1 bis beta.6). Offen bis 
 - **Neustart im Browser-Modus (#193):** die Seite lädt erst neu, wenn die neue Instanz antwortet – vorher konnte sie
   gelegentlich die alte, gerade beendete Instanz erwischen und leer bleiben.
 - **Oberflächen-Tests (#193):** Feldnamen-Test an die neuen Tooltips angepasst.
+- **Metronom nach Klick in den Titel (#181):** Das Metronom plant seine Klicks jetzt über eine geglättete Medienuhr. Nach
+  einem Sprung (Klick in die Wellenform, Cue, Takt-Sprung) werden bereits geplante Klicks verworfen und erst wieder
+  geklickt, wenn die Wiedergabe gleichmässig läuft – vorher lief es danach oft versetzt („async“).
+- **Nur noch TagStudio-Tooltips (#192):** auch die Punkte im Energieverlauf des DJ-Sets zeigen keinen Browser-Tooltip mehr;
+  SVG-Titel werden wie `title` übernommen. Für Screenreader bleibt nur das unsichtbare `aria-label`.
 - **Dokumentation (#193):** Tastaturübersicht im README, Stand-Angaben in Übergabe, Projektstand und AGENTS.md
   nachgeführt; Meilenstein-Workflow nutzt `actions/checkout@v7` wie alle anderen.
 

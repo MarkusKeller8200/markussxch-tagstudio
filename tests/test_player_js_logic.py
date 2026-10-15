@@ -104,6 +104,25 @@ const tickCount=started.length;
 run("plMetroSetVolume(0);plMetroClick(2,false)");
 assert.equal(started.length,tickCount); // bei 0 % kein weiterer Ton
 run("plMetroSetVolume(80);PL_METRO.ctx=null;PL_METRO.nodes.clear()");
+// #181: geglättete Medienuhr – nach einem Sprung erst wieder planen, wenn die Wiedergabe gleichmässig läuft.
+run("var CK={samples:[]}");
+for (let k=0;k<8;k++) assert.equal(run(`plClockSample(CK,${1000+k*25},${10+k*0.025},1)`), false);
+approx(run("plClockEstimate(CK,1200,1)"), 10.2, 0.002);
+// grob gerasterte currentTime (Sprünge um 10 ms) wird geglättet, nicht als Sprung gewertet
+run("CK={samples:[]}");
+for (let k=0;k<10;k++) { const m=Math.floor((k*0.025)*100)/100; assert.equal(run(`plClockSample(CK,${2000+k*25},${30+m},1)`), false); }
+approx(run("plClockEstimate(CK,2250,1)"), 30.25, 0.012);
+// Klick in die Wellenform: Sprung → Reset, danach steht die Zeit beim Anlaufen still → kein Schätzwert
+assert.equal(run("plClockSample(CK,2275,60,1)"), true);
+assert.equal(run("plClockEstimate(CK,2275,1)"), null);
+assert.equal(run("plClockSample(CK,2300,60,1)"), false);
+assert.equal(run("plClockSample(CK,2350,60,1)"), true);   // Stillstand 50 ms > Toleranz → erneut zurückgesetzt
+for (let k=1;k<=7;k++) run(`plClockSample(CK,${2350+k*25},${60+k*0.025},1)`);
+approx(run("plClockEstimate(CK,2525,1)"), 60.175, 0.002);
+// Tempo angeglichen (rate 1.05): Steigung = rate
+run("CK={samples:[]}");
+for (let k=0;k<8;k++) run(`plClockSample(CK,${k*25},${5+k*0.025*1.05},1.05)`);
+approx(run("plClockEstimate(CK,200,1.05)"), 5.21, 0.002);
 // #181: Diagnose-Metronom prüft Grid-Position, PlaybackRate und Markerwechsel.
 const metro = run("plMetroBeat({bpm:120,markers:[{pos:0.3,bpm:120}]},0.3,1,1)");
 approx(metro.delay,0.5); assert.equal(metro.accent,false);

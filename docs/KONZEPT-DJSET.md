@@ -71,7 +71,7 @@ optimiert, von Hand anpassbar und als Playlist für DJ-Programme exportierbar. E
 1. **Phase 1 – Manueller Import und Bibliotheksabgleich (TODO):** Eine vom Nutzer bereitgestellte bzw. exportierte Trackliste erfassen; ein URL-basierter Import ist nur vorzusehen, wenn ein zulässiger Abrufweg geklärt ist. DJ, Set, Veranstaltung, Trackposition, allfällige Zeitmarken und Quellenverweis erhalten.
 2. **Normalisierung (TODO):** Artist, Titel, Mix-/Remix-Version, ISRC (falls verfügbar) und Laufzeit normalisieren. Unsichere Zuordnungen sichtbar machen und manuelle Bestätigung anbieten, damit Radio Edit und Extended Mix nicht fälschlich zusammenfallen.
 3. **Library Matching (TODO):** Importierte Trackeinträge mit vorhandenen Dateien vergleichen; «vorhanden», «fehlt» und «unklar» unterscheiden. Nicht automatisch Tags oder fremde DJ-Bibliotheken ändern.
-4. **Discovery und Einkaufslisten (TODO):** Fehlende Titel als Such-/Einkaufskandidaten vormerken; legale Bezugsquellen nur über erlaubte Schnittstellen bzw. offizielle Shoplinks ermitteln. Siehe [Konzept DJ-Plattformen](KONZEPT_DJPLATTFORMEN.md).
+4. **Discovery und Einkaufslisten (TODO):** Fehlende Titel als Such-/Einkaufskandidaten vormerken; legale Bezugsquellen nur über erlaubte Schnittstellen bzw. offizielle Shoplinks ermitteln. Siehe [Konzept DJ-Plattformen](KONZEPT-DJPLATTFORMEN.md).
 5. **Phase 2 – Datenbasierte Übergangsvorschläge (TODO):** Set-Reihenfolgen, Set-Verläufe und DJ-Support zusammen mit Ergebnissen der Musikanalyse als **erklärbare Vorschläge** im DJ-Set-Planer darstellen.
 6. **Phase 3 – Wiederkehrende Discovery (optional / TODO):** Neue Sets ausgewählter DJs und Trends nur bei belegtem erlaubtem automatischem Zugang prüfen.
 

@@ -160,7 +160,7 @@ function djCurveSvg(rows) {
   for (const v of [0, 50, 100]) grid += `<line x1="${L}" x2="${W - Rr}" y1="${ye(v)}" y2="${ye(v)}" class="gl"/><text x="${L - 4}" y="${ye(v) + 4}" class="ax e">${v}</text>`;
   grid += `<text x="${W - Rr + 4}" y="${yb(bHi) + 4}" class="ax b l">${bHi}</text><text x="${W - Rr + 4}" y="${yb(bLo) + 4}" class="ax b l">${bLo}</text>`;
   const tgt = rows.some((r) => r.target !== undefined) ? `<path d="${line(rows.map((r) => r.target), ye)}" class="tgt"/>` : "";
-  const dots = rows.map((r, i) => r.energy === null ? "" : `<circle cx="${x(i).toFixed(1)}" cy="${ye(r.energy).toFixed(1)}" r="2.6" class="${r.energy_est ? "est" : ""}"><title>${i + 1}. Energie ${r.energy}${r.energy_est ? " (geschätzt)" : ""}${r.bpm ? ` · ${r.bpm} BPM` : ""}</title></circle>`).join("");
+  const dots = rows.map((r, i) => r.energy === null ? "" : `<circle cx="${x(i).toFixed(1)}" cy="${ye(r.energy).toFixed(1)}" r="2.6" class="${r.energy_est ? "est" : ""}" data-tip-title="${esc(`${i + 1}. Energie ${r.energy}${r.energy_est ? " (geschätzt)" : ""}${r.bpm ? ` · ${r.bpm} BPM` : ""}`)}"></circle>`).join("");
   return `<svg viewBox="0 0 ${W} ${H}" class="dj-curve" role="img" aria-label="Energie- und BPM-Verlauf">${grid}${tgt}
     <path d="${line(rows.map((r) => r.bpm || null), yb)}" class="bpm"/>
     <path d="${line(rows.map((r) => r.energy), ye)}" class="en"/><g class="dots">${dots}</g>

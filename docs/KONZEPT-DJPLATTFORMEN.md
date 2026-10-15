@@ -1,9 +1,9 @@
 # Konzept: DJ-Musikplattformen – Vergleich, API und Workflow
 
-**Stand:** Oktober 2026  
+**Stand:** 15.10.2026 (zusammengeführt mit der Übersicht „Tag-Programme und Musik-Plattformen“ vom 12.10.2026)  
 **Dokumenttyp:** Detailkonzept für TagStudio  
 **Status:** Konzept / Evaluationsgrundlage; API-Zugänge, Downloadrechte, Verfügbarkeit und Preise vor Implementierung prüfen  
-**Quelle:** `2026_10_13_Konzept_IDEE_DJ_Plattformen_Vergleich.pdf` (6 Seiten)  
+**Quellen:** `2026_10_13_Konzept_IDEE_DJ_Plattformen_Vergleich.pdf` (6 Seiten) sowie die recherchierte Übersicht mit Kosten (Abschnitt 2.1 und Anhang A; Export als [Word](Tag-Programme-und-Musik-Plattformen.docx) / [PDF](Tag-Programme-und-Musik-Plattformen.pdf))  
 **Übergeordnetes Konzept:** [KONZEPT-PRODUKT-ARCHITEKTUR.md](KONZEPT-PRODUKT-ARCHITEKTUR.md)  
 **Verwandte Konzepte:** [KONZEPT-VORBEREITEN.md](KONZEPT-VORBEREITEN.md), [KONZEPT-MUSIKANALYSIEREN.md](KONZEPT-MUSIKANALYSIEREN.md), [KONZEPT-PLUGINS.md](KONZEPT-PLUGINS.md)
 
@@ -44,6 +44,32 @@ Die Angaben in dieser Tabelle stammen aus Abschnitt 1 des PDF (Seiten 1–2); si
 | DJcity | Pool-Abo | Ja | Vorschau | DJ-Edits |
 | BPM Supreme | Pool-Abo | Ja | Vorschau | Remixe, DJ-Edits |
 | ZIPDJ | Pool-Abo | Ja | Vorschau | Electronic, House |
+| Beatsource | Ja | Ja | Ja | Open Format (Hip-Hop, Latin, Pop) |
+| Juno Download | – | nur Re-Download | Nein | **seit 1. Juni 2026 geschlossen** |
+
+### 2.1 Kosten und Kurzbeschreib (recherchiert am 12.10.2026)
+
+Preise von Hersteller- oder Testseiten, in der Währung der Quelle; ändern sich oft und je nach Land. Plattformen aus der
+Tabelle oben ohne Eintrag hier (Qobuz, Volumo, Mixupload, 7digital, DJcity, ZIPDJ) sind noch **nicht preisgeprüft**.
+
+| Plattform | Kurzbeschreib | Kosten |
+|---|---|---|
+| [Beatport](https://www.beatport.com) | Grösster Shop für elektronische Musik; TagStudio-Plugin für Metadaten, Käufe, Download | Kauf je Titel; Streaming [Essential 10,99 / Advanced 15,99 / Professional 29,99 USD pro Monat](https://thedjmixtape.com/beatport-streaming-review/) – erst ab Advanced in DJ-Programmen |
+| [Beatsource](https://www.beatsource.com) | Schwester-Shop von Beatport für Open Format | Kauf je Titel; Streaming [Standard 12,99, Pro+ 34,99 USD/Monat](https://www.digitaldjtips.com/best-music-streaming-services/) |
+| [Traxsource](https://www.traxsource.com/) | House, Soulful, Deep House, Techno | Kauf je Titel, meist 1,99 USD (teils 2,49); kein Abo |
+| [Juno Download](https://www.digitaldjtips.com/juno-download-shuts-down-after-20-years/) | ehemaliger britischer Shop – **seit 1. Juni 2026 geschlossen** | – |
+| [Bandcamp](https://bandcamp.com) | Künstler und Labels verkaufen direkt | Preis legt der Künstler fest, teils „Name your price“ |
+| [BPM Supreme](https://bpmmusic.io/supreme) | Record Pool mit DJ-Edits (Open Format, Latin, Hip-Hop) | Abo; Preise nur nach Anmeldung sichtbar |
+| [Spotify](https://www.spotify.com/ch-de/premium/) | Streaming; in Serato, rekordbox, djay | Free mit Werbung; Premium 15,95 CHF/Monat (Duo 21,95, Family 26,95, Student 8,95) |
+| [Deezer](https://www.deezer.com) | Streaming; Quelle für „Online-Metadaten“ und „Entdecken“ | Premium ca. 11,99 USD/Monat; API kostenlos |
+| [Apple Music](https://www.apple.com/apple-music/) | Streaming; in djay, Serato, rekordbox, Engine | ca. 10,99 USD/Monat |
+| [Amazon Music](https://music.amazon.com) | Streaming; in Denon-/Numark-Geräten | Unlimited ca. 10,99 USD/Monat (Prime) |
+| [TIDAL](https://tidal.com) | Streaming in hoher Qualität mit DJ-Erweiterung | 10,99 + 9 USD DJ-Erweiterung = 19,99 USD/Monat |
+| [SoundCloud](https://soundcloud.com) | Streaming und Künstlerplattform | Go 4,99 (ohne DJ-Nutzung), Go+ 10,99, DJ 19,99 USD/Monat |
+| [MusicBrainz](https://musicbrainz.org) | Offene Musikdatenbank; Quelle für Picard und das TagStudio-Plugin | kostenlos |
+| [AcoustID](https://acoustid.org/webservice) | Erkennung per Audio-Fingerabdruck | kostenlos für nichtkommerzielle Nutzung |
+| [Discogs](https://www.discogs.com) | Datenbank und Marktplatz (Labels, Katalognummern) | Datenbank/API kostenlos (eigenes Token) |
+| [Last.fm](https://www.last.fm/pro) | Statistik und Genre-Tags | Free; Pro 4,99 USD/Monat oder 49,99 USD/Jahr |
 
 **Wichtig:** Bei einer Downloadfreigabe ist zusätzlich zu klären, ob eine Datei ausschliesslich über die offizielle Website oder auch über eine dokumentierte API bezogen werden darf.
 
@@ -219,6 +245,29 @@ Diese Leitplanken sind die aus dem PDF und dem übergeordneten TagStudio-Konzept
 
 **Empfohlene Reihenfolge:** Zuerst die vorhandenen Integrationen inventarisieren und die API-Zugänge validieren. Danach Multi-Plattform-Suche und Matching prototypisch ergänzen. Downloadverwaltung erst entwickeln, wenn ein zulässiger Downloadweg je Anbieter konkret nachgewiesen wurde.
 
+## Anhang A: Tag-Programme, DJ-Software und Player (recherchiert am 12.10.2026)
+
+Programme, die in TagStudio als Herkunft von Tags, Workflow-Schritt, Plugin-Quelle oder Vorbild vorkommen.
+
+| Programm | Kurzbeschreib | Kosten |
+|---|---|---|
+| [Mp3tag](https://www.mp3tag.de/en/) | Tag-Editor für viele Dateien, Online-Abfragen, Umbenennen | Windows kostenlos (Spende); Mac [24,99 € im App Store](https://apps.apple.com/de/app/mp3tag/id1532597159?mt=12) |
+| [MusicBrainz Picard](https://picard.musicbrainz.org/) | Erkennung per AcoustID, Tags nach MusicBrainz (Open Source, GPL) | kostenlos |
+| [OneTagger](https://onetagger.github.io/) | DJ-Tagger mit Beatport, Traxsource, Discogs, Spotify u. a. | kostenlos (Spenden) |
+| [AudioRanger](https://www.audioranger.com/) | Automatisches Erkennen und Taggen, Duplikate, Ordner ordnen | Gratisversion; Pro mit Lifetime-Lizenz (Preis erst im Kaufprozess) |
+| [Mixed In Key 11](https://mixedinkey.com/) | Tonart- und Energie-Analyse, Cue-Punkte | ca. 58 USD / 60 EUR einmalig; Pro ca. 99 EUR ([Testbericht](https://vibesdj.io/learn/gear/mixed-in-key-11)) |
+| [Platinum Notes 10](https://mixedinkey.com/platinum-notes) | Lautheit angleichen, Clipping beheben | 98 USD einmalig, Upgrade 49 USD ([Testbericht](https://vibesdj.io/learn/gear/platinum-notes-10)) |
+| [beaTunes 5](https://www.beatunes.com/en/index.html) | BPM, Tonart, Stimmung; Tag-Prüfung | [34,95 € einmalig](https://www.beatunes.com/en/beatunes-buy.html), Upgrade 11,95 € |
+| [Lexicon DJ](https://www.lexicondj.com/pricing) | Zentrale DJ-Bibliothek, Konvertierung zwischen DJ-Programmen | Free; Essential ab 10,49 USD/Monat oder 249 USD Lifetime; Ultimate ab 20,99 USD/Monat oder 499 USD Lifetime |
+| [Mixo](https://mixo.dj/pricing) | DJ-Bibliothek synchron über Programme und Geräte | Free; Gold 7 USD/Monat |
+| [rekordbox](https://rekordbox.com/en/plan/) | DJ-Software von AlphaTheta/Pioneer | Free; Core 12, Creative 18, Professional 36 USD/Monat (Jahresabo günstiger) |
+| [Serato DJ](https://serato.com/dj/pro/buy) | DJ-Software; schreibt Cues, Loops, Beatgrid in die Tags | Lite kostenlos; Pro 9,99/Monat; Suite 14,99/Monat |
+| [Traktor Pro 4](https://www.native-instruments.com/en/products/traktor/dj-software/traktor-pro-4/) | DJ-Software von Native Instruments | 149 USD einmalig |
+| [VirtualDJ](https://virtualdj.com/products/virtualdj/price.html) | DJ-Software mit breiter Controller-Unterstützung, Stems, Video | Free (privat, ohne Controller); Home 4, Pro 19, Business 99 USD/Monat |
+| [Engine DJ](https://enginedj.com/software/enginedj-desktop) | Bibliothek für Denon-DJ- und Numark-Geräte | kostenlos |
+| [foobar2000](https://www.foobar2000.org/), [VLC](https://www.videolan.org/vlc/), [MusicBee](https://www.getmusicbee.com/) | Player (externe Player in TagStudio) | kostenlos |
+| [Beyond Compare](https://www.scootersoftware.com/shop) | Vergleichsprogramm – Vorbild für den TagStudio-Vergleich | Standard 35 USD, Pro 70 USD einmalig |
+
 ---
 
-*Redaktioneller Hinweis:* Die Tabellen, Beschreibungen, API-Prioritäten und der sechsstufige Workflow sind aus dem genannten PDF übertragen und für eine versionskontrollierte Projektdokumentation neu formatiert. Die zusätzliche Verknüpfung zu TagStudio-Konzepten, die Entscheidungsstatus und die Prüfaufträge dienen der späteren Umsetzung. Eine erneute Recherche zur faktischen Aktualität der Plattformangebote und Schnittstellen war **nicht** Teil dieser Übertragung.
+*Redaktioneller Hinweis:* Abschnitt 2.1 und Anhang A stammen aus der am 12.10.2026 recherchierten Übersicht (Quellen dort verlinkt); die übrigen Tabellen, Beschreibungen, API-Prioritäten und der sechsstufige Workflow sind aus dem genannten PDF übertragen und für eine versionskontrollierte Projektdokumentation neu formatiert. Die zusätzliche Verknüpfung zu TagStudio-Konzepten, die Entscheidungsstatus und die Prüfaufträge dienen der späteren Umsetzung. Eine erneute Recherche zur faktischen Aktualität der Plattformangebote und Schnittstellen war **nicht** Teil dieser Übertragung.

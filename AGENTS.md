@@ -7,7 +7,7 @@ Vor Architekturentscheidungen, neuen Modulen oder grösseren Codeänderungen unb
 - [`docs/KONZEPT-PRODUKT-ARCHITEKTUR.md`](docs/KONZEPT-PRODUKT-ARCHITEKTUR.md) – übergeordnetes Produkt- und Architekturkonzept v0.1
 - [`docs/KONZEPT-MUSIKANALYSIEREN.md`](docs/KONZEPT-MUSIKANALYSIEREN.md) – bei Musik- und KI-Analyse, Ähnlichkeitssuche und DJ-Übergangsempfehlungen lesen (Technologien noch zu evaluieren)
 - Bei 1001Tracklists-/Set-Intelligence-Vorhaben auch `docs/KONZEPT-DJSET.md` Abschnitt 5.1 und `docs/KONZEPT-MUSIKANALYSIEREN.md` Abschnitt 12 beachten; [#180](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/180) ist **nur eine offene Idee, noch keine Implementierungsfreigabe**.
-- [`docs/KONZEPT_DJPLATTFORMEN.md`](docs/KONZEPT_DJPLATTFORMEN.md) – bei Plattformrecherche, Metadaten-APIs, Bezugsquellen und Downloadverwaltung lesen; Angaben und Berechtigungen vor Implementierung verifizieren
+- [`docs/KONZEPT-DJPLATTFORMEN.md`](docs/KONZEPT-DJPLATTFORMEN.md) – bei Plattformrecherche, Metadaten-APIs, Bezugsquellen und Downloadverwaltung lesen; Angaben und Berechtigungen vor Implementierung verifizieren
 - [`docs/UEBERGABE.md`](docs/UEBERGABE.md) – bisherige Projektübergabe und Entwicklungsregeln
 - [`docs/PROJEKTSTAND.md`](docs/PROJEKTSTAND.md) – tatsächlicher Implementierungsstand
 - passende `docs/KONZEPT-*.md`-Datei für den zu bearbeitenden Funktionsbereich

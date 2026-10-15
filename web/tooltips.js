@@ -1,6 +1,7 @@
-/* Einheitliche TagStudio-Hover-Infos (#72): Hauptfenster und abgedockter Player.
- * Browser-title wird direkt in data-tip-title verschoben, auch bei dynamischen
- * Titeln/neuen Knoten. Damit erscheinen nicht beide Tooltips gleichzeitig.
+/* Einheitliche TagStudio-Hover-Infos (#72, #192): Hauptfenster und abgedockter Player.
+ * Es gibt nur EINE sichtbare Art von Tooltip – die von TagStudio. Ein title-Attribut (auch dynamisch gesetzt)
+ * wird sofort in data-tip-title verschoben, SVG-<title>-Elemente ebenso; der Browser zeigt keinen eigenen Tooltip.
+ * Für Screenreader bleibt bei Symbol-Knöpfen nur ein unsichtbares aria-label (kein zweiter Tooltip).
  */
 "use strict";
 const TIP = {el:null, target:null, timer:0, observer:null};
@@ -36,10 +37,20 @@ function tipNormalize(el) {
   el.removeAttribute("title");                // Browser-Tooltip auch nach mehreren Sekunden verhindern
   if (TIP.target === el && TIP.el && !TIP.el.hidden) tipShow(el);
 }
+/** SVG-<title> erzeugt ebenfalls einen Browser-Tooltip → in data-tip-title des Elternelements übernehmen. */
+function tipSvgTitle(el) {
+  const host = el.parentNode;
+  if (host && host.nodeType === 1 && !host.dataset.tipTitle && el.textContent.trim()) host.dataset.tipTitle = el.textContent.trim();
+  el.remove();
+}
 function tipNormalizeTree(node) {
   if (!node || node.nodeType !== 1) return;
+  if (node.namespaceURI === "http://www.w3.org/2000/svg" && node.localName === "title") { tipSvgTitle(node); return; }
   tipNormalize(node);
-  if (node.querySelectorAll) node.querySelectorAll("[title]").forEach(tipNormalize);
+  if (node.querySelectorAll) {
+    node.querySelectorAll("[title]").forEach(tipNormalize);
+    node.querySelectorAll("svg title").forEach(tipSvgTitle);
+  }
 }
 function tipShow(el) {
   if (!TIP.el || !el || !el.isConnected) return;

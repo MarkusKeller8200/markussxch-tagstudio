@@ -1,7 +1,36 @@
 /* #181: Beatgrid-Diagnose. Vierer-Akzent = Rasterzählung, kein geprüfter Downbeat. */
 "use strict";
 const PL_METRO = {deck:null, ctx:null, timer:null, nodes:new Set(), generation:0,
-  audio:null, info:null, next:null, media:null, clock:null, rate:1, volume:80};
+  audio:null, info:null, next:null, media:null, clock:null, rate:1, volume:80,
+  clk:{samples:[]}};
+
+/* #181: geglättete Medienuhr. audio.currentTime springt nach einem Klick in die Wellenform (Seek) und steht beim
+ * Wiederanlaufen kurz still bzw. läuft in groben Schritten. Darauf direkt Klicks zu planen, macht das Metronom nach
+ * jedem Sprung „async“. Deshalb: Proben (Zeitpunkt, Medienzeit) sammeln, Sprünge/Stillstand erkennen (→ neu
+ * einschwingen, geplante Klicks verwerfen) und erst planen, wenn die Uhr gleichmässig im Tempo läuft. */
+const PL_CLOCK = {window:800, jump:0.04, minSpan:150, minN:4, maxResid:0.025};
+function plClockReset(c) { c.samples = []; }
+/** Probe aufnehmen; true = Sprung oder Stillstand erkannt (Uhr wurde zurückgesetzt). */
+function plClockSample(c, perf, media, rate) {
+  const s = c.samples, last = s[s.length - 1];
+  if (last) {
+    const expect = last.media + (perf - last.perf) / 1000 * rate;
+    if (Math.abs(media - expect) > PL_CLOCK.jump) { c.samples = [{perf, media}]; return true; }
+  }
+  s.push({perf, media});
+  while (s.length > 2 && perf - s[0].perf > PL_CLOCK.window) s.shift();
+  return false;
+}
+/** Medienzeit zum Zeitpunkt perf (Mittelwert über das Fenster, Steigung = Tempo) – null, solange nicht eingeschwungen. */
+function plClockEstimate(c, perf, rate) {
+  const s = c.samples;
+  if (s.length < PL_CLOCK.minN || s[s.length - 1].perf - s[0].perf < PL_CLOCK.minSpan) return null;
+  let off = 0;
+  for (const p of s) off += p.media - p.perf / 1000 * rate;
+  off /= s.length;
+  for (const p of s) if (Math.abs(p.media - (off + p.perf / 1000 * rate)) > PL_CLOCK.maxResid) return null;
+  return off + perf / 1000 * rate;
+}
 
 /** #181: gemeinsamer Metronompegel (0–100 %), unabhängig von der Track-Lautstärke. */
 function plMetroVolume(value) {
@@ -90,11 +119,14 @@ function plMetroTick() {
     return;
   }
   if (a !== m.audio || info !== m.info) {
-    plMetroClear(); m.audio = a; m.info = info; plMetroUi(m.deck);
+    plMetroClear(); plClockReset(m.clk); m.audio = a; m.info = info; plMetroUi(m.deck);
   }
-  if (a.paused || a.seeking || a.readyState < 2) { plMetroClear(); return; }
-  const t = a.currentTime, now = performance.now(), rate = a.playbackRate || 1;
-  if (m.clock !== null && Math.abs(t - (m.media + (now - m.clock) * m.rate / 1000)) > 0.25) plMetroClear();
+  if (a.paused || a.seeking || a.readyState < 3) { plMetroClear(); plClockReset(m.clk); return; }
+  const now = performance.now(), rate = a.playbackRate || 1;
+  // Sprung/Stillstand: bereits geplante Klicks gehören zur alten Position → verwerfen und neu einschwingen
+  if (plClockSample(m.clk, now, a.currentTime, rate)) { plMetroClear(); return; }
+  const t = plClockEstimate(m.clk, now, rate);
+  if (t === null) return;                                // noch nicht gleichmässig angelaufen: keine Klicks
   const beat = gridBeatAt(g, t);
   if (!Number.isFinite(beat)) { plMetroStop(); return; }
   let next = m.next === null ? Math.ceil(beat + 0.0001) : m.next;
