@@ -65,3 +65,30 @@ jobs:
         if: failure()
         shell: bash
         run: python .github/scripts/test_annotations.py test-output.txt
+
+  ui:
+    # Oberflächen-Tests (Playwright/Chromium, ca. 4–6 min) laufen nebenher auf Linux – dort ist der Browser am
+    # schnellsten eingerichtet. Lokal genügen bei Änderungen die Tests des betroffenen Bereichs (docs/UEBERGABE.md).
+    name: Oberflächen-Tests (Chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Playwright, Chromium und ffmpeg installieren
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          python -m pip install -q playwright
+          python -m playwright install --with-deps chromium > /dev/null
+      - name: Oberflächen-Tests
+        env:
+          PYTHONIOENCODING: utf-8
+          TAGSTUDIO_UI_TESTS: "1"
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -p "test_browser_ui.py" -v 2>&1 | tee test-output.txt
+      - name: Fehlgeschlagene Tests als Anmerkung
+        if: failure()
+        run: python .github/scripts/test_annotations.py test-output.txt

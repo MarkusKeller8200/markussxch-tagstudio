@@ -26,8 +26,13 @@ Meilensteine können über den **gesicherten [Administrationskanal #190](https:/
 
 - Je Issue: Code, Unit-Tests, Oberflächen-Test (Playwright). Commits auf Deutsch mit „Refs #n“ und den Trailern
   `Co-Authored-By` / `Claude-Session`.
-- Tests: `python3 -m unittest discover -s tests -q` und
-  `TAGSTUDIO_UI_TESTS=1 python3 -m unittest discover -s tests -p "test_browser_ui.py"`.
+- **Tests in drei Stufen (Entscheid 15.10.2026):**
+  1. Jede Änderung: `python3 -m unittest discover -s tests -q` (ca. 30 s) plus nur die Oberflächen-Tests des betroffenen
+     Bereichs, z. B. `cd tests && TAGSTUDIO_UI_TESTS=1 python3 -m unittest test_browser_ui.UiTest.test_player_…`.
+  2. Vor einer Beta: alle Oberflächen-Tests `TAGSTUDIO_UI_TESTS=1 python3 -m unittest discover -s tests -p "test_browser_ui.py"` (ca. 4 min).
+  3. Zusätzlich laufen alle Oberflächen-Tests bei jedem Push in GitHub Actions (Workflow „Tests“, Job „Oberflächen-Tests“) –
+     Ergebnis dort prüfen statt lokal zu warten.
+- Chat-Länge: Sehr lange Chats werden langsam. Bei grösseren Themen einen neuen Chat mit dieser Übergabe beginnen.
 - Release (nur nach **ausdrücklicher erneuter Bestätigung des Users, auch für Beta!**): `python3 packaging/release.py X.Y.Z-beta.N`, committen „Version …“, pushen – der Workflow „Installer“ legt Tag und Release an. **Ohne Freigabe keine Versionsänderung, keine Tags und kein manuelles Auslösen von Installer/Release.** Änderungen sofort im CHANGELOG unter „Unveröffentlicht“.
 - Labels: `_1 bereit` (User) → `_2 in Arbeit` → `_3 Beta-Test` (mit Kommentar „Zum Testen in X abhaken:“ und
   Checkboxen) → nach „getestet ok“ schliessen und Label entfernen. `idee` = noch nicht eingeplant.
@@ -84,8 +89,10 @@ Zug nachführen.**
 - **NEUE KONZEPTIDEE #180 (14.10.2026):** 1001Tracklists-basierter Tracklist-Import, Discovery und datenbasierte DJ-Set-Analyse – **noch nicht implementiert**. Siehe `docs/KONZEPT-DJSET.md` (Abschnitt 5.1) und `docs/KONZEPT-MUSIKANALYSIEREN.md` (Abschnitt 12); Label `idee`, Meilenstein „Später“. Keine Scraping-/API-Implementierung ohne vorangehende Rechteprüfung.
 
 
-- 4.4.0 ist final (2026-10-12). Seither 4.4.1-beta.1 bis beta.6 (Player-Stabilität). Offen in #14 «4.4.1»: #181 Offbeat-Übergänge (Praxistest), #192 Tooltips und #193 BugFixes im Beta-Test.
-- Oberflächen-Tests laufen **nicht** in der CI – vor jedem Release lokal ausführen (`TAGSTUDIO_UI_TESTS=1 …`).
+- 4.4.0 ist final (2026-10-12). Seither 4.4.1-beta.1 bis beta.6 (Player-Stabilität). Offen in #14 «4.4.1»: #181 Offbeat-Übergänge, #192 Tooltips und #193 BugFixes im Beta-Test.
+- **Auf `main`, noch nicht als Beta gebaut (Stand 15.10.2026, Commit 97f7a54):** Metronom mit geglätteter Medienuhr (#181), nur noch TagStudio-Tooltips inkl. SVG (#192), Plattformliste in `KONZEPT-DJPLATTFORMEN.md` zusammengeführt. Beta 4.4.1-beta.7 nur nach Freigabe.
+- **Nächstes Thema #181:** gemeint sind die automatischen Übergänge in **Player A** beim Abspielen einer Liste (`plCrossfade`). Ideen im Issue-Kommentar vom 15.10.: zuerst Übergangs-Protokoll (Messwerte), dann Folgetitel sample-genau starten bzw. gemeinsame Audio-Uhr.
+- Oberflächen-Tests laufen seit 15.10.2026 auch in der CI (Job „Oberflächen-Tests“).
 - Nächste Iterationen: #14 «4.4.1» und #15 «4.5.0» wie oben; «Idee (Später)» (#4): #9, #14, #107, #108, #156, #157, #180, #186 und #187.
 - Monatlich: Issue „Fremdkomponenten: Änderungen prüfen“ durchsehen, Stände mit
   `python .github/scripts/third_party_check.py --apply datei.json` übernehmen.
