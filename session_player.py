@@ -9,7 +9,7 @@ import time
 import core
 import keys
 import ratings
-from id3tags import MV
+from id3tags import MV, MP3File
 
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 
@@ -199,6 +199,10 @@ class PlayerMixin:
         """Datei für den Player: kind „tag“ (ref = Index im Tagger), „side“ (ref = „L“/„R“ im Vergleich) oder
         „stem“ (ref = Pfad einer nicht als MP3 geladenen Spur). Mit `stems` (#66): Original und Spuren derselben
         Gruppe, damit der Player an derselben Stelle umschalten kann."""
+        if kind == "file":                       # #195: gemerkter Titel beim Start, bevor der Tagger geladen ist
+            f = self._resume_file(ref)
+            with self.lock:
+                return self._media_out(f, kind, ref)
         with self.lock:
             if kind == "tag" and isinstance(ref, int) and 0 <= ref < len(self.tag_files):
                 f = self.tag_files[ref]
@@ -221,22 +225,49 @@ class PlayerMixin:
                 f = None
             if f is None:
                 raise ValueError("Keine Datei zum Abspielen gewählt.")
-            title, artist = f.text("TIT2"), f.text("TPE1").replace(MV, ", ")
-            out = {"path": f.path, "name": os.path.basename(f.path), "title": title, "artist": artist,
-                   "duration": float(getattr(f, "duration", 0) or 0), "kind": kind, "ref": ref,
-                   **self._key_info(f), "bpm": f.text("TBPM"), "stems": [],
-                   "rating": ratings.get_rating(f), "like": ratings.get_like(f), "markable": not self._ro(f)}
-            if kind == "tag":
-                parent = self.tag_parent.get(ref, ref if ref in self.tag_stems else None)
-                out["stems"] = self._stem_group(parent)
-                if parent is not None and parent != ref:
-                    out["stem"] = next((s["name"] for s in self.tag_stems.get(parent, []) if s["i"] == ref), "")
-                    pf = self.tag_files[parent]
-                    for k, fid in (("title", "TIT2"), ("bpm", "TBPM")):
-                        out[k] = out[k] or pf.text(fid)
-                    if not out["key"]:
-                        out.update(self._key_info(pf))
-            return out
+            return self._media_out(f, kind, ref)
+
+    def _media_out(self, f, kind, ref) -> dict:
+        """Titelinfos einer geladenen Datei für den Player (mit self.lock aufrufen)."""
+        title, artist = f.text("TIT2"), f.text("TPE1").replace(MV, ", ")
+        out = {"path": f.path, "name": os.path.basename(f.path), "title": title, "artist": artist,
+               "duration": float(getattr(f, "duration", 0) or 0), "kind": kind, "ref": ref,
+               **self._key_info(f), "bpm": f.text("TBPM"), "stems": [],
+               "rating": ratings.get_rating(f), "like": ratings.get_like(f), "markable": not self._ro(f)}
+        if kind == "tag":
+            parent = self.tag_parent.get(ref, ref if ref in self.tag_stems else None)
+            out["stems"] = self._stem_group(parent)
+            if parent is not None and parent != ref:
+                out["stem"] = next((s["name"] for s in self.tag_stems.get(parent, []) if s["i"] == ref), "")
+                pf = self.tag_files[parent]
+                for k, fid in (("title", "TIT2"), ("bpm", "TBPM")):
+                    out[k] = out[k] or pf.text(fid)
+                if not out["key"]:
+                    out.update(self._key_info(pf))
+        return out
+
+    def _resume_file(self, path):
+        """#195: Datei des gemerkten Player-Stands direkt öffnen (Art „file“), damit der Player beim Start nicht auf
+        das Einlesen des Tagger-Ordners warten muss. Nur Pfade aus `player_resume` – kein beliebiger Dateizugriff."""
+        st = self.cfg.get("player_resume") if isinstance(self.cfg.get("player_resume"), dict) else {}
+        known = {os.path.normcase(os.path.abspath(d["path"])) for d in st.values()
+                 if isinstance(d, dict) and isinstance(d.get("path"), str) and d["path"]}
+        if not isinstance(path, str) or os.path.normcase(os.path.abspath(path)) not in known:
+            raise ValueError("Diese Datei gehört nicht zum gemerkten Player-Stand.")
+        if not os.path.isfile(path):
+            raise ValueError("Die zuletzt gespielte Datei gibt es nicht mehr.")
+        k = os.path.normcase(os.path.abspath(path))
+        with self.lock:
+            f = self.reg.get(k)
+        if f is not None:
+            return f
+        sig = (k, os.path.getmtime(path), os.path.getsize(path))
+        c = getattr(self, "_resume_cache", None)
+        if c and c[0] == sig:                      # media_info und media_extra direkt nacheinander: nur einmal lesen
+            return c[1]
+        f = MP3File(path)                          # nur lesen, nicht ins Register (das bleibt dem Tagger)
+        self._resume_cache = (sig, f)
+        return f
 
     @staticmethod
     def _key_info(f) -> dict:
@@ -289,8 +320,9 @@ class PlayerMixin:
             except (OSError, ValueError):
                 pass
             return out
+        rf = self._resume_file(ref) if kind == "file" else None              # #195
         with self.lock:
-            f = self.tag_files[ref] if kind == "tag" and isinstance(ref, int) and 0 <= ref < len(self.tag_files) \
+            f = rf if rf is not None else self.tag_files[ref] if kind == "tag" and isinstance(ref, int) and 0 <= ref < len(self.tag_files) \
                 else self._file(ref) if kind == "side" and ref in ("L", "R") else None
             if f is None:
                 raise ValueError("Keine Datei zum Abspielen gewählt.")

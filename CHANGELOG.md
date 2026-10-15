@@ -38,10 +38,12 @@ Version 4.4.1 – Player-Stabilität (Betas 4.4.1-beta.1 bis beta.6). Offen bis 
   wechselndem Text; keine Standard-Browser-Tooltips mehr.
 
 ### Behoben
-- **Fortsetzen nach dem Neustart (#195):** der zuletzt gespielte Titel ist jetzt auch im Tagger markiert und sichtbar
-  (bisher blieb die Liste auf der alten Auswahl stehen).
-- **Doppelklick zum Abspielen (#196):** startet sofort, ohne auf die Titel-Details zu warten; das Zeitfenster für den
-  zweiten Klick wird ab dem Klick gemessen (600 ms) statt ab der Verarbeitung – auch wenn die Seite kurz beschäftigt ist.
+- **Fortsetzen nach dem Neustart (#195):** der Player lädt den zuletzt gespielten Titel sofort über den Dateipfad –
+  parallel zum Einlesen des Tagger-Ordners statt danach. Sobald der Tagger fertig ist, ist der Titel dort markiert und
+  sichtbar (bisher blieb die Liste auf der alten Auswahl stehen).
+- **Schneller Doppelklick zum Abspielen (#196):** wurde verschluckt, wenn die Liste zwischen Drücken und Loslassen des
+  zweiten Klicks neu gezeichnet wurde (Titel-Details des ersten Klicks kamen gerade an). Der Doppelklick wird jetzt beim
+  zweiten Drücken erkannt und spielt sofort; das Zeitfenster zählt ab dem Klick (600 ms).
 - **Neustart im Browser-Modus (#193):** die Seite lädt erst neu, wenn die neue Instanz antwortet – vorher konnte sie
   gelegentlich die alte, gerade beendete Instanz erwischen und leer bleiben.
 - **Oberflächen-Tests (#193):** Feldnamen-Test an die neuen Tooltips angepasst.

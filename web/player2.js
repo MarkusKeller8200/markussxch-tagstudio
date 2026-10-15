@@ -977,18 +977,20 @@ async function plResumeSelect(i) {
   if (typeof tgStateSave === "function") tgStateSave();
   return true;
 }
-/** Beim Start (nach dem Tagger): Titel in Pause an der gemerkten Stelle laden */
+/** Beim Start: Titel an der gemerkten Stelle laden – #195: SOFORT über den Dateipfad (Art „file“), ohne auf das
+    Einlesen des Tagger-Ordners zu warten; danach auf die Tagger-Zeile umstellen und sie markieren. */
 async function plResume() {
   try {
     const r = await call("player_resume");
     if (r.on) {
       // Nach dem Start abspielen: „pause“ (Standard), „play“ (Player A immer, B wenn er lief), „was“ (wie beim Schliessen)
       const play = (d, main) => r.play === "play" ? (main || !!d.playing) : r.play === "was" ? !!d.playing : false;
-      if (r.A && r.A.i !== null && r.A.i !== undefined && r.A.exists) {
-        await plLoad({ kind: "tag", ref: r.A.i }, play(r.A, true), r.A.pos);
-        await plResumeSelect(r.A.i);                                  // #195: Tagger auf den fortgesetzten Titel
+      const target = (d) => d.i !== null && d.i !== undefined ? { kind: "tag", ref: d.i } : { kind: "file", ref: d.path };
+      if (r.A && r.A.exists) {
+        await plLoad(target(r.A), play(r.A, true), r.A.pos);
+        if (PLAYER.kind === "tag") await plResumeSelect(PLAYER.ref);
       }
-      if (r.B && r.B.i !== null && r.B.i !== undefined && r.B.exists && PL2.layout === "top" && PL2.deck2) await dbLoad({ kind: "tag", ref: r.B.i }, play(r.B, false), r.B.pos);
+      if (r.B && r.B.exists && PL2.layout === "top" && PL2.deck2) await dbLoad(target(r.B), play(r.B, false), r.B.pos);
     }
   } catch (e) { /* egal – dann eben leer */ }
   RESUME.done = true;
@@ -1001,6 +1003,20 @@ async function plResume() {
     if (a) a.addEventListener("pause", () => { if (PLAYER.info || (typeof DECKB !== "undefined" && DECKB.info)) plResumeSave(true); });
   }
   window.addEventListener("pagehide", () => plResumeSave(true));
+  // #195: sobald der Tagger eingelesen ist, die per Pfad geladenen Titel auf ihre Tagger-Zeile umstellen
+  if (typeof TG !== "undefined" && TG.autoP) TG.autoP.catch(() => {}).then(plResumeAdopt);
+}
+/** #195: Player-Titel der Art „file“ auf die Tagger-Zeile umstellen (Überblenden, Bewerten, Folgen brauchen sie) */
+async function plResumeAdopt() {
+  for (const deck of ["A", "B"]) {
+    const st = deck === "B" ? DECKB : PLAYER;
+    if (!st || st.kind !== "file" || !st.info || !st.info.path) continue;
+    let r;
+    try { r = await call("tag_locate", st.info.path); } catch (e) { continue; }
+    if (st.kind !== "file" || r.index === null || r.index === undefined || r.stem) continue;   // inzwischen anderer Titel
+    st.kind = "tag"; st.ref = r.index; st.info.kind = "tag"; st.info.ref = r.index;
+    if (deck === "B") dbRender(); else { plRender(); await plResumeSelect(r.index); }
+  }
 }
 
 

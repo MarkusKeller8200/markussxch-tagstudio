@@ -562,7 +562,11 @@ async function init() {
   const last = st.ui && st.ui.module;
   setModule(st.start_paths.length ? "compare" : (last && last in MODULE_IDS ? last : "tagger"), { start: true });
   if (st.start_paths.length) compare(true);
-  else if (typeof taggerAutoStart === "function") setTimeout(() => taggerAutoStart().catch(() => {}).then(() => typeof plResume === "function" && plResume()), 50);   // #127, #126
+  // #127, #126, #195: Tagger im Hintergrund einlesen und den Player gleichzeitig fortsetzen – der Player hat Vorrang
+  else if (typeof taggerAutoStart === "function") setTimeout(() => {
+    taggerAutoStart().catch(() => {});
+    if (typeof plResume === "function") plResume();
+  }, 50);
   if (st.start_paths.length && typeof plResume === "function") plResume();
 }
 

@@ -59,8 +59,14 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
   kann; Doppelklick (bzw. Entf/Rückschritt/0 bei Fokus) = Originaltempo (`plTempoOriginal`). Mausrad = ±0,1 BPM, mit
   Shift ±1 BPM (`plTempoNudge`), begrenzt auf 50–200 %, rastet bei < 0,05 BPM Abstand auf dem Original ein. Player A
   und B; das abgedockte Fenster zeigt die Anzeige nur.
-- **Fortsetzen #195:** `plResume` markiert den fortgesetzten Titel A im Tagger (`plResumeSelect`: Auswahl, Scrollen,
-  Details) ohne den Player umzuschalten; Filter bleiben unverändert.
+- **Fortsetzen #195:** Beim Start laufen Tagger-Einlesen und `plResume` gleichzeitig (der Player hat Vorrang).
+  Ist der Titel noch nicht im Tagger, lädt der Player ihn über die Art `file` (ref = Pfad; `Session._resume_file`
+  erlaubt nur Pfade aus `player_resume`, liest die Datei ohne sie ins Register zu legen). Nach dem Einlesen stellt
+  `plResumeAdopt` A und B per `tag_locate` auf `tag`/Index um und markiert den Titel A im Tagger (`plResumeSelect`:
+  Auswahl, Scrollen, Details, ohne den Player umzuschalten; Filter bleiben). Bewerten aus dem Player geht erst danach.
+- **Doppelklick #196:** im Tagger beim zweiten `mousedown` erkannt (nicht `click`): Kommen die Details des ersten Klicks
+  zwischen Drücken und Loslassen an, zeichnet die Liste neu und der Browser verwirft den `click`. Abspielen sofort,
+  ohne auf `tag_detail` zu warten. `isDoubleClick` misst ab `e.timeStamp`, Fenster 600 ms.
 - **Übergänge im Takt halten #181 (nach beta.6, `web/xfadesync.js`):** Ursache der Offbeat-Übergänge: Die Phase wird
   einmal berechnet und per Seek gesetzt; während der Seek-/Decoder-Anlaufzeit läuft der alte Titel weiter, der neue liegt
   danach um diese Zeit zurück (Browser-Test: ≈ 90 ms). Ein zweiter Seek hätte dieselbe Verzögerung. Lösung wie am

@@ -3,7 +3,7 @@
 "use strict";
 
 const TG = { settings: null, loaded: false, rows: [], order: [], sel: new Set(), anchor: null,
-  sort: { col: "name", dir: 1 }, sorts: [{ col: "name", dir: 1 }], detail: null, editing: false,
+  sort: { col: "name", dir: 1 }, sorts: [{ col: "name", dir: 1 }], detail: null, editing: false, dblDown: -1e9, dblRow: null,
   view: [], open: new Set(), flat: false };     // view: angezeigte Zeilen inkl. aufgeklappter Stems (#31)
 // #148/#152/#154: Spalten der Dateiliste – Reihenfolge und Auswahl in LAYOUT.tg_cols, Zusatzfelder als „fld:SCHLÜSSEL“
 const TG_DEFAULT_COLS = ["name", "TIT2", "TPE1", "TALB", "TRCK", "TDRC", "TCON", "TBPM", "camelot"];
@@ -1418,11 +1418,22 @@ async function tgOriginDialog(preset = "") {
     }
     const r = e.target.closest(".tg-row");
     if (!r) return;
-    // #92: Doppelklick spielt den Titel (über e.detail – die Zeile wird beim ersten Klick neu gezeichnet)
-    const dbl = !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.target.closest("button") && isDoubleClick(e, "tg:" + r.dataset.i);   // #139
-    // #196: Auswahl ist sofort gesetzt – nicht auf die Titel-Details warten (langsam oder fehlerhaft → kein Abspielen)
-    const done = tgSelect(+r.dataset.i, e);
-    if (dbl && typeof plPlayRow === "function") plPlayRow();
+    if (performance.now() - TG.dblDown < 700 && TG.dblRow === +r.dataset.i) return;   // #196: schon beim Drücken erledigt
+    tgSelect(+r.dataset.i, e).catch((err) => toast(String(err && err.message || err)));
+  });
+  // #92/#196: Doppelklick schon beim zweiten DRÜCKEN erkennen. Kommen die Titel-Details des ersten Klicks zwischen
+  // Drücken und Loslassen an, wird die Liste neu gezeichnet – der Browser verwirft dann den zweiten „click“
+  // (bei schnellem Doppelklick fast immer). mousedown kommt dagegen sicher an.
+  $("#tgInner").addEventListener("mousedown", (e) => {
+    if (e.button !== 0 || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.closest("button, [data-tw], .stem-x, input, select, textarea")) return;
+    const r = e.target.closest(".tg-row");
+    if (!r || !isDoubleClick(e, "tgdown:" + r.dataset.i)) return;      // #139: e.detail oder eigene Zeitmessung
+    const i = +r.dataset.i;
+    TG.dblDown = performance.now(); TG.dblRow = i;
+    // Auswahl ist sofort gesetzt – nicht auf die Titel-Details warten (langsam oder fehlerhaft → kein Abspielen)
+    const done = TG.sel.size === 1 && TG.sel.has(i) ? Promise.resolve() : tgSelect(i, { type: "click" });
+    if (typeof plPlayRow === "function") plPlayRow();
     done.catch((err) => toast(String(err && err.message || err)));
   });
   $("#tgCoverCol").addEventListener("click", () => { LAYOUT.tg_cover_col = !LAYOUT.tg_cover_col; saveUi("tg_cover_col"); renderTgHead(); drawTgList(); });

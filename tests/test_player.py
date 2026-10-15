@@ -290,6 +290,16 @@ class TestPlayerResume(unittest.TestCase):
         self.assertFalse(s.player_resume_save({"A": {"path": self.f, "pos": 12.345}}))     # unverändert
         r = s.player_resume()
         self.assertEqual((r["on"], r["A"]["pos"], r["A"]["exists"], r["A"]["i"], "B" in r), (True, 12.3, True, None, False))
+        # #195: vor dem Tagger direkt über den Pfad abspielbar – aber nur der gemerkte Pfad
+        info = s.media_info("file", self.f)
+        self.assertEqual((info["path"], info["kind"], info["ref"]), (self.f, "file", self.f))
+        self.assertIn("grid", s.media_extra("file", self.f))
+        other = os.path.join(self.dir, "andere.mp3")
+        shutil.copy(self.f, other)
+        with self.assertRaises(ValueError):
+            s.media_info("file", other)
+        with self.assertRaises(ValueError):
+            s.media_extra("file", 5)
         s.start_tag_load(self.dir, False)
         while not s.task_status()["done"]:
             time.sleep(0.02)

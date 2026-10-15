@@ -85,8 +85,10 @@ class UiTest(unittest.TestCase):
         p.terminate()
         raise RuntimeError("Server startet nicht")
 
-    def page(self):
+    def page(self, init=None):
         pg = self.ctx.new_page()
+        if init:
+            pg.add_init_script(init)
         pg.set_default_timeout(8000)
         pg.on("pageerror", lambda e: self.errors.append(str(e)))
         pg.goto(self.url)
@@ -358,6 +360,15 @@ class UiTest(unittest.TestCase):
         self.pg = self.page()
         return self.pg
 
+    def restart_with_init(self, script):
+        """Wie restart(), aber script läuft vor den Seitenskripten (z. B. um Antworten zu verzögern)."""
+        self.pg.evaluate("appFlushState()")
+        self.server.terminate(); self.server.wait(10)
+        self.pg.close()
+        self.server, self.url = self.start_server()
+        self.pg = self.page(init=script)
+        return self.pg
+
     def test_player_resume(self):
         """#126: Titel und Position je Player beim Schliessen merken, beim Start in Pause dort laden."""
         pg = self.pg
@@ -400,14 +411,40 @@ class UiTest(unittest.TestCase):
         pg.evaluate("plResumeSave(true)")
         self.cfg_until(lambda c: (c.get("player_resume", {}).get("A") or {}).get("pos", 0) >= 7)
         pg = self.restart()
-        self.assertTrue(self.until("PLAYER.ref === 2 && RESUME.done", 15))
+        self.assertTrue(self.until("PLAYER.ref === 2 && PLAYER.kind === 'tag' && RESUME.done", 15),
+                        pg.evaluate("JSON.stringify({kind: PLAYER.kind, ref: PLAYER.ref, loaded: TG.loaded})"))
         sel = pg.evaluate("[...TG.sel]")
         self.assertTrue(self.until("TG.sel.size === 1 && TG.sel.has(2) && TG.anchor === 2", 4), sel)
         self.assertTrue(pg.evaluate("PLAYER.audio.paused"))           # Auswahl darf nicht abspielen
-        pg.dblclick('.tg-row[data-i="1"] .nm')
+        # #196: schneller Doppelklick – Liste wird zwischen zweitem Drücken und Loslassen neu gezeichnet
+        box = pg.locator('.tg-row[data-i="1"] .nm').bounding_box()
+        pg.mouse.move(box["x"] + 20, box["y"] + 5)
+        pg.mouse.down(); pg.mouse.up()
+        pg.mouse.down(click_count=2)
+        pg.evaluate("tgApplyOrder()")
+        pg.mouse.up(click_count=2)
         ok = self.until("PLAYER.ref === 1 && !PLAYER.audio.paused", 5)
         self.assertTrue(ok, pg.evaluate("JSON.stringify({ref: PLAYER.ref, paused: PLAYER.audio.paused, target: PLAYER.target, sel: [...TG.sel], mod: S.module, live: PLAYER.live, follow: PLAYER.follow})"))
         pg.evaluate("PLAYER.audio.pause()")
+
+    def test_resume_player_before_tagger(self):
+        """#195: Nach dem Neustart lädt der Player sofort über den Pfad, auch während der Tagger noch einliest;
+        danach wird auf die Tagger-Zeile umgestellt."""
+        pg = self.pg
+        self.load_tagger()
+        pg.dblclick('.tg-row[data-i="1"] .nm')
+        self.assertTrue(self.until("PLAYER.ref === 1 && !PLAYER.audio.paused"))
+        pg.evaluate("PLAYER.audio.currentTime = 6; PLAYER.audio.pause(); plResumeSave(true)")
+        self.cfg_until(lambda c: (c.get("player_resume", {}).get("A") or {}).get("pos", 0) >= 5)
+        # Tagger-Einlesen beim nächsten Start künstlich aufhalten: tag_rows antwortet erst nach 9 s
+        pg = self.restart_with_init("""(() => { const wait = () => { if (typeof call !== 'function') return setTimeout(wait, 5);
+            const orig = call; window.call = async (n, ...a) => {
+              if (n === 'tag_rows' || n === 'start_tag_load') await new Promise(r => setTimeout(r, 9000));
+              return orig(n, ...a); }; }; wait(); })()""")
+        self.assertTrue(self.until("PLAYER.kind === 'file' && !!PLAYER.info && Math.abs(PLAYER.audio.currentTime - 6) < 1", 3),
+                        pg.evaluate("JSON.stringify({kind: PLAYER.kind, loaded: TG.loaded})"))
+        self.assertFalse(pg.evaluate("TG.loaded"))                    # Tagger liest noch ein
+        self.assertTrue(self.until("TG.loaded && PLAYER.kind === 'tag' && PLAYER.ref === 1 && TG.sel.has(1)", 20))
 
     def test_drag_to_player(self):
         """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""
