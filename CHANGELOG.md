@@ -30,6 +30,9 @@ Version 4.4.1 – Player-Stabilität (Betas 4.4.1-beta.1 bis beta.6). Offen bis 
 
 - **BPM-Anzeige im Player (#194):** Doppelklick setzt das Originaltempo, Mausrad über der Anzeige ändert das Tempo um
   ±0,1 BPM (mit Shift ±1 BPM, rastet am Original ein); Einzelklick öffnet wie bisher den Tempo-Dialog. Player A und B.
+- **Herkunfts-Auswahl mit Kennzeichen (#198):** Tagger (Weitere Felder) und Vergleich: mehrere Herkünfte gleichzeitig
+  wählbar; Knopf und Liste zeigen die farbigen Herkunfts-Kennzeichen mit Anzahl.
+- **Dateiordner öffnen (#197):** im Kontextmenü von Tagger-Titeln, Vergleichsfeldern und Dateipaaren.
 ### Geändert
 - **Übergänge (#181):** der neue Titel wird stumm geladen, die Phase direkt nach dem tatsächlichen Start angeglichen und
   erst dann eingeblendet; Beat-Ausrichtung am Titelanfang und Tempo-Rücksetzung verbessert.
@@ -44,6 +47,7 @@ Version 4.4.1 – Player-Stabilität (Betas 4.4.1-beta.1 bis beta.6). Offen bis 
 - **Schneller Doppelklick zum Abspielen (#196):** wurde verschluckt, wenn die Liste zwischen Drücken und Loslassen des
   zweiten Klicks neu gezeichnet wurde (Titel-Details des ersten Klicks kamen gerade an). Der Doppelklick wird jetzt beim
   zweiten Drücken erkannt und spielt sofort; das Zeitfenster zählt ab dem Klick (600 ms).
+- **„ohne bekannte Herkunft“ (#199):** filtert im Tagger jetzt; vorher sprang die Auswahl auf „Alle Herkünfte“ zurück.
 - **Snapshots:** Die Snapshot-Liste brach mit „Snapshot nicht lesbar“ ab, wenn gleichzeitig ein Snapshot gelöscht wurde
   (z. B. bei „Neue Baseline“). Gelöschte werden jetzt übersprungen; beschädigte stoppen das Aufräumen weiterhin.
 - **Neustart im Browser-Modus (#193):** die Seite lädt erst neu, wenn die neue Instanz antwortet – vorher konnte sie

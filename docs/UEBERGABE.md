@@ -26,6 +26,9 @@ Meilensteine können über den **gesicherten [Administrationskanal #190](https:/
 
 - Je Issue: Code, Unit-Tests, Oberflächen-Test (Playwright). Commits auf Deutsch mit „Refs #n“ und den Trailern
   `Co-Authored-By` / `Claude-Session`.
+- **Erst pushen, dann testen (Wunsch des Users 16.10.2026):** Änderung mit Unit-Tests und den Oberflächen-Tests des
+  Bereichs sofort auf `main` pushen, damit der User per Update-Knopf parallel testen kann; die volle Oberflächen-Suite
+  läuft in der CI – nicht vorher lokal darauf warten. CI-Fehler danach beheben.
 - **Tests in drei Stufen (Entscheid 15.10.2026):**
   1. Jede Änderung: `python3 -m unittest discover -s tests -q` (ca. 30 s) plus nur die Oberflächen-Tests des betroffenen
      Bereichs, z. B. `cd tests && TAGSTUDIO_UI_TESTS=1 python3 -m unittest test_browser_ui.UiTest.test_player_…`.
