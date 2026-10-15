@@ -1199,8 +1199,11 @@ class UiTest(unittest.TestCase):
         pg.click("#djRevert")
         pg.wait_for_function(f"DJ.st.items[0].key === '{keys[0]}'")
         # Sperren per Knopf, dann Ziehen: erste Zeile ans Ende
-        pg.click('#djList .dj-row[data-k="0"] [data-lock]')
-        pg.wait_for_function("DJ.st.items[0].lock")
+        for _ in range(3):         # CI ist langsamer: die Liste kann nach „Vorher/Nachher“ gerade neu gezeichnet werden
+            pg.click('#djList .dj-row[data-k="0"] [data-lock]')
+            if self.until("DJ.st.items[0].lock", 3):
+                break
+        self.assertTrue(pg.evaluate("DJ.st.items[0].lock"))
         self.assertEqual(pg.locator("#djList .dj-row.locked").count(), 1)
         first = pg.evaluate("DJ.st.items[0].path")
         box = pg.locator('#djList .dj-row[data-k="2"]').bounding_box()
