@@ -11,15 +11,17 @@ import urllib.error
 import urllib.request
 
 ROUTER = "https://router.huggingface.co/v1/chat/completions"
+PUBLICAI = "https://api.publicai.co/v1"          # direkt bei Public AI (eigener Schlüssel, Startguthaben)
+UA = "TagStudio-i18n-probe/1.0 (+https://github.com/MarkusKeller8200/markussxch-tagstudio)"
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-def ask(prompt: str, model: str, token: str) -> tuple[str, dict]:
+def ask(prompt: str, model: str, token: str, url: str = ROUTER) -> tuple[str, dict]:
     body = json.dumps({"model": model, "messages": [{"role": "user", "content": prompt}],
                        "temperature": 0.2, "max_tokens": 8000}).encode()
     for attempt in range(4):
-        req = urllib.request.Request(ROUTER, data=body, headers={"Authorization": f"Bearer {token}",
-                                                                 "Content-Type": "application/json"})
+        req = urllib.request.Request(url, data=body, headers={"Authorization": f"Bearer {token}", "User-Agent": UA,
+                                                              "Content-Type": "application/json"})
         try:
             with urllib.request.urlopen(req, timeout=300) as r:
                 d = json.loads(r.read().decode("utf-8"))
@@ -37,7 +39,8 @@ def ask(prompt: str, model: str, token: str) -> tuple[str, dict]:
 
 def fail(msg: str):
     """Fehlergrund als GitHub-Anmerkung und Kommentar – der Token steht nie darin."""
-    msg = msg.replace(os.environ.get("HF_TOKEN", "") or "\0", "•••")
+    for k in ("HF_TOKEN", "PUBLICAI_TOKEN"):
+        msg = msg.replace(os.environ.get(k, "") or "\0", "•••")
     print(f"::error title=Probeübersetzung::{msg.replace(chr(10), ' ')}", flush=True)
     with open(os.path.join(HERE, "report.md"), "w", encoding="utf-8") as fh:
         fh.write(f"**Probeübersetzung fehlgeschlagen:** {msg}")
@@ -85,17 +88,40 @@ def pick_model(model: str, token: str) -> str:
     fail("Kein Anbieter für Apertus erreichbar – in Hugging Face › Settings › Inference Providers prüfen, ob Anbieter eingeschaltet sind.")
 
 
+def publicai_model(token: str) -> str:
+    """Grösstes verfügbares Apertus-Modell bei Public AI (GET /v1/models)."""
+    try:
+        req = urllib.request.Request(PUBLICAI + "/models", headers={"Authorization": f"Bearer {token}", "User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            d = json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as ex:
+        fail(f"Public AI: HTTP {ex.code} {ex.read()[:300].decode('utf-8', 'replace')}")
+    except (urllib.error.URLError, OSError, ValueError) as ex:
+        fail(f"Public AI: {type(ex).__name__}: {ex}")
+    ids = [m.get("id", "") for m in d.get("data") or [] if "apertus" in m.get("id", "").lower()]
+    print(f"::notice title=Public AI Modelle::{', '.join(ids) or 'kein Apertus'}", flush=True)
+    if not ids:
+        fail("Public AI bietet kein Apertus-Modell an.")
+    size = lambda i: int(next((x[:-1] for x in i.replace("_", "-").split("-") if x.endswith("b") and x[:-1].isdigit()), 0))  # noqa: E731
+    return max(ids, key=lambda i: (size(i), "v1.5" in i))
+
+
 def main():
-    token = os.environ.get("HF_TOKEN", "")
-    if not token:
-        fail("Secret HF_TOKEN fehlt oder ist leer (Repository › Settings › Secrets and variables › Actions).")
-    model = pick_model(os.environ.get("MODEL") or "swiss-ai/Apertus-v1.5-70B:auto", token)
-    report = [f"**Probeübersetzung mit `{model}`** (Workflow „Probeübersetzung“, #157)", ""]
+    pa = os.environ.get("PUBLICAI_TOKEN", "")
+    if pa:                                            # bevorzugt: direkt bei Public AI
+        token, url = pa, PUBLICAI + "/chat/completions"
+        model = publicai_model(pa)
+    else:
+        token, url = os.environ.get("HF_TOKEN", ""), ROUTER
+        if not token:
+            fail("Weder PUBLICAI_TOKEN noch HF_TOKEN als Secret hinterlegt (Repository › Settings › Secrets and variables › Actions).")
+        model = pick_model(os.environ.get("MODEL") or "swiss-ai/Apertus-v1.5-70B:auto", token)
+    report = [f"**Probeübersetzung mit `{model}`** über {'Public AI' if pa else 'Hugging Face'} (Workflow „Probeübersetzung“, #157)", ""]
     for lang in ("en", "gsw"):
         with open(os.path.join(HERE, f"prompt-{lang}.txt"), encoding="utf-8") as fh:
             prompt = fh.read()
         t0 = time.time()
-        text, usage = ask(prompt, model, token)
+        text, usage = ask(prompt, model, token, url)
         data = parse(text)
         with open(os.path.join(HERE, f"out-{lang}.json"), "w", encoding="utf-8") as fh:
             json.dump({"model": model, "lang": lang, "usage": usage, "raw": text, "items": data}, fh, ensure_ascii=False, indent=1)

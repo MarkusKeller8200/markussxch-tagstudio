@@ -1,7 +1,7 @@
 name: Probeübersetzung
 
 # #157: einmalige Probe – 50 TagStudio-Texte mit Apertus (Hugging Face) nach Englisch und Zürichdeutsch übersetzen.
-# Nur von Hand starten. Der Token liegt als Repository-Secret HF_TOKEN (vom Projektverantwortlichen eingetragen).
+# Nur von Hand starten. Schlüssel als Repository-Secret PUBLICAI_TOKEN (bevorzugt) oder HF_TOKEN – vom Projektverantwortlichen eingetragen.
 on:
   workflow_dispatch:
     inputs:
@@ -25,6 +25,7 @@ jobs:
       - name: Übersetzen
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          PUBLICAI_TOKEN: ${{ secrets.PUBLICAI_TOKEN }}
           MODEL: ${{ inputs.model }}
         run: python tools/i18n_probe/run.py
       - name: Ergebnis in #157
