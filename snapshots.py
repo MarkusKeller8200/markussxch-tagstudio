@@ -26,7 +26,6 @@ import os
 import paths
 import shutil
 import struct
-import tempfile
 import time
 import uuid
 import zlib
@@ -727,19 +726,19 @@ def create(store: Store, lid: str, label: str = "", auto=False, pinned=False, th
 
 
 # =========================================================================== Journal
-def _mp3(tag: bytes, v1: bytes):
-    """Tags als MP3File (über eine kleine Hilfsdatei, wie bei den Sicherungen)."""
-    from id3tags import MP3File
-    fd, tmp = tempfile.mkstemp(suffix=".mp3", prefix="tagstudio_snap_")
-    try:
-        with os.fdopen(fd, "wb") as fh:
-            fh.write(tag + b"\x00" * 1024 + v1)
-        return MP3File(tmp)
-    finally:
-        try:
-            os.remove(tmp)
-        except OSError:
-            pass
+def _mp3(tag: bytes, v1: bytes, cls=None):
+    """Tags als MP3File – direkt aus den Bytes, ohne Hilfsdatei (#201: bei 1500 Titeln waren das 3000 Temp-Dateien,
+    unter Windows mit Virenschutz minutenlang). Nur zum Lesen/Vergleichen; Pfad ist ein Platzhalter."""
+    from id3tags import MP3File, _syncsafe
+    f = (cls or MP3File).__new__(cls or MP3File)
+    f.path = "<snapshot>"
+    head = tag[:10]
+    ok = len(head) == 10 and head[:3] == b"ID3" and head[3] in (2, 3, 4)
+    body = tag[10:10 + _syncsafe(head[6:10])] if ok else b""
+    v1 = v1 if v1[:3] == b"TAG" and len(v1) == 128 else b""
+    f.load(cached={"head": head if ok else b"", "body": body, "v1": v1, "mpeg": {},
+                   "size": len(tag) + 1024 + len(v1), "mtime": 0})
+    return f
 
 
 class ReadOnly(ValueError):
@@ -799,16 +798,7 @@ def snap_file(store, entry: dict, root: str, label: str):
     """Snapshot-Eintrag als schreibgeschützte MP3File (Pfad = Ort der Datei im überwachten Ordner)."""
     SnapFile = _snapfile_class()
     tag, v1 = store.tag_bytes(entry)
-    fd, tmp = tempfile.mkstemp(suffix=".mp3", prefix="tagstudio_snap_")
-    try:
-        with os.fdopen(fd, "wb") as fh:
-            fh.write(tag + b"\x00" * 1024 + v1)
-        f = SnapFile(tmp)
-    finally:
-        try:
-            os.remove(tmp)
-        except OSError:
-            pass
+    f = _mp3(tag, v1, SnapFile)                     # #201: ohne Hilfsdatei
     f.path = os.path.join(root, *entry["p"].split("/"))
     f.audio_key = entry.get("audio") or ""
     f.snap_label = label
@@ -871,9 +861,11 @@ def diff_items(old: dict, new: dict) -> list[dict]:
     return rows
 
 
-def journal(a: dict, b_files: list, src_a, src_b, detail_limit=5000) -> dict:
+def journal(a: dict, b_files: list, src_a, src_b, detail_limit=5000, cancel=None, progress=None) -> dict:
     """Unterschied Zustand A (Manifest) → B (Einträge). src_*: woher die Objekte kommen (Store/MemStore).
+    cancel/progress (#201): Abbrechen auch während des Feldvergleichs, Fortschritt je Titel.
     → {"rows": [{"p", "p_old", "status", "fields": […], "ver": [a, b]}…], "counts": {…}}"""
+    progress = progress or (lambda m: None)
     A = {e["p"]: e for e in a.get("files", [])}
     B = {e["p"]: e for e in b_files}
     rows = []
@@ -892,7 +884,14 @@ def journal(a: dict, b_files: list, src_a, src_b, detail_limit=5000) -> dict:
             pairs.append((q, p))
             renamed.add(p)
     matched_a = {q for q, _p in pairs}
-    for q, p in pairs:
+    todo = [(q, p) for q, p in pairs if A[q]["th"] != B[p]["th"] or A[q]["audio"] != B[p]["audio"] or p in renamed]
+    progress(("total", len(todo)))
+    for n, (q, p) in enumerate(todo):
+        if cancel is not None and cancel.is_set():
+            from compare import Cancelled
+            raise Cancelled()
+        if n % 25 == 0:
+            progress(("progress", n, len(todo), p))
         ea, eb = A[q], B[p]
         audio = ea["audio"] != eb["audio"]
         tags = ea["th"] != eb["th"]

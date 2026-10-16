@@ -73,6 +73,37 @@ class TestSnapshots(Base):
         self.assertEqual(len(self.store.snapshots(self.libd["id"])), 2)
         self.assertLess(self.store.sizes()["snaps"][f"{self.libd['id']}/{s2['id']}"], 4000)   # nur Manifest
 
+    def test_journal_in_memory_cancel_progress(self):
+        """#201: Tags ohne Hilfsdatei lesen (gleiche Werte wie aus der Datei), Fortschritt je Titel, Abbrechen."""
+        import threading
+        from compare import Cancelled
+        from id3tags import MP3File
+        lid = self.libd["id"]
+        s1 = sn.create(self.store, lid, "Vorher")
+        for n in range(1, 5):
+            f = MP3File(self.path(n))
+            f.set_text("TALB", f"Album {n}")
+            f.save()
+        s2 = sn.create(self.store, lid, "Nachher")
+        a, b = self.store.manifest(lid, s1["id"]), self.store.manifest(lid, s2["id"])
+        e = next(x for x in b["files"] if x["p"].endswith("01 Titel.mp3"))
+        mem = sn._mp3(*self.store.tag_bytes(e))
+        disk = MP3File(self.path(1))
+        self.assertEqual({k: v.display() for k, v in mem.items.items()}, {k: v.display() for k, v in disk.items.items()})
+        self.assertEqual(mem.version, disk.version)
+        seen = []
+        j = sn.journal(a, b["files"], self.store, self.store, progress=seen.append)
+        self.assertEqual(j["counts"], {"changed": 4})
+        self.assertIn(("total", 4), seen)
+        self.assertTrue(all(any(fl["key"] == "TALB" for fl in r["fields"]) for r in j["rows"]))
+        stop = threading.Event()
+        stop.set()
+        with self.assertRaises(Cancelled):
+            sn.journal(a, b["files"], self.store, self.store, cancel=stop)
+        before = set(os.listdir(tempfile.gettempdir()))
+        sn.journal(a, b["files"], self.store, self.store)
+        self.assertFalse({n for n in set(os.listdir(tempfile.gettempdir())) - before if n.startswith("tagstudio_snap_")})
+
     def test_snapshot_deleted_while_listing(self):
         """Ein gleichzeitig gelöschter Snapshot (z. B. neue Baseline) darf Liste/Grössen nicht abbrechen;
         ein beschädigter bleibt beim Aufräumen ein Fehler (sonst würden benötigte Objekte gelöscht)."""

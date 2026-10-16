@@ -125,9 +125,17 @@ async function runTask(startPromise, title) {
   bar.classList.add("indet");
   bar.style.width = "";
   const showTimer = setTimeout(() => (ov.hidden = false), 250);
-  $("#progCancel").onclick = () => call("cancel_task");
+  const cbtn = $("#progCancel");
+  cbtn.disabled = false;
+  let stopping = false;
+  cbtn.onclick = () => {                          // #201: sichtbar quittieren, bis der Auftrag wirklich steht
+    stopping = true; cbtn.disabled = true;
+    $("#progText").textContent = "Wird abgebrochen …";
+    call("cancel_task");
+  };
   for (;;) {
     const t = await call("task_status");
+    if (stopping && !t.done) { await new Promise((res) => setTimeout(res, 120)); continue; }
     if (t.total) {
       bar.classList.remove("indet");
       const frac = t.frac || 0;   // Anteil des laufenden Elements (z. B. Stems eines Titels)
@@ -141,6 +149,7 @@ async function runTask(startPromise, title) {
     if (t.done) {
       clearTimeout(showTimer);
       ov.hidden = true;
+      cbtn.disabled = false;
       if (t.error) { await info("Fehler", t.error); return null; }
       return t.result;
     }

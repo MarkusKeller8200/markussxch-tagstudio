@@ -404,7 +404,7 @@ class SnapshotMixin:
                 src_b, b_files, errors = st, bm["files"], []
                 b_meta = {k: bm.get(k) for k in ("id", "label", "created")}
             progress(("text", "Vergleiche …"))
-            j = snapshots.journal(a, b_files, st, src_b)
+            j = snapshots.journal(a, b_files, st, src_b, cancel=cancel, progress=progress)
             for r in j["rows"]:
                 for fld in r["fields"]:
                     fld["src"] = self._src(fld["key"], None)

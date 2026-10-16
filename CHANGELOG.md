@@ -21,6 +21,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   oder Speichern ohne Änderung; Rückgängig/Wiederherstellen zählt als Bearbeitung. Abschaltbar unter Einstellungen ›
   Speichern; im Tagger als Spalte „Bearbeitet“ wählbar, im Vergleich standardmässig „unwichtig“.
 
+### Behoben
+- **Änderungsjournal bei grossen Listen (#201):** Snapshots vergleichen lädt jetzt auch bei 1500 geänderten Titeln
+  zügig: Tags werden im Speicher gelesen statt über je zwei Hilfsdateien (unter Windows bremste der Virenschutz jede
+  davon). Fortschritt „x von y“ auch im Vergleichsschritt; **Abbrechen** greift sofort und zeigt „Wird abgebrochen …“.
+  Gilt ebenso für Snapshot-Seiten im Vergleich.
+- **„ohne bekannte Herkunft“ (#199):**
+
 ## [4.4.1] – 2026-10-16
 
 Version 4.4.1 – Player-Stabilität: Übergänge im Takt (messen und nachführen), Beatgrid-Metronom, Takt- und Cue-Sprünge,
