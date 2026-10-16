@@ -238,8 +238,8 @@ def _dz_track(t: dict, album: dict, seed: str) -> dict | None:
             "cover": album.get("cover_medium") or "", "seed": seed}
 
 
-def _dz_album_tracks(aid, seed: str) -> list[dict]:
-    a = _dz(f"/album/{aid}")
+def _dz_album_tracks(aid, seed: str, dz=None) -> list[dict]:
+    a = (dz or _dz)(f"/album/{aid}")
     if not isinstance(a, dict):
         return []
     out = []
@@ -250,23 +250,26 @@ def _dz_album_tracks(aid, seed: str) -> list[dict]:
     return out
 
 
-def deezer_artist(name: str, days: int, log=None) -> list[dict]:
-    res = _dz("/search/artist", q=name, limit=5).get("data") or []
+def deezer_artist(name: str, days: int, log=None, dz=None) -> list[dict]:
+    """dz: Abruf über das Plugin Deezer (#204); ohne – eigener Abruf (Tests)."""
+    dz = dz or _dz
+    res = dz("/search/artist", q=name, limit=5).get("data") or []
     hit = next((a for a in res if norm(a.get("name")) == norm(name)), None)
     if not hit:
         if log:
             log(f"Deezer: Künstler „{name}“ nicht gefunden")
         return []
-    albums = _dz(f"/artist/{hit['id']}/albums", limit=25).get("data") or []
+    albums = dz(f"/artist/{hit['id']}/albums", limit=25).get("data") or []
     out = []
     for al in sorted(albums, key=lambda x: x.get("release_date") or "", reverse=True)[:8]:
         if _recent(al.get("release_date") or "", days):
-            out += [e for e in _dz_album_tracks(al["id"], f"Künstler {name}") if norm(name) in norm(e["artist"])]
+            out += [e for e in _dz_album_tracks(al["id"], f"Künstler {name}", dz) if norm(name) in norm(e["artist"])]
     return out
 
 
-def deezer_label(name: str, days: int, log=None) -> list[dict]:
-    res = _dz("/search", q=f'label:"{name}"', limit=50).get("data") or []
+def deezer_label(name: str, days: int, log=None, dz=None) -> list[dict]:
+    dz = dz or _dz
+    res = dz("/search", q=f'label:"{name}"', limit=50).get("data") or []
     albums = []
     for t in res:
         aid = (t.get("album") or {}).get("id")
@@ -274,7 +277,7 @@ def deezer_label(name: str, days: int, log=None) -> list[dict]:
             albums.append(aid)
     out = []
     for aid in albums[:10]:
-        tr = _dz_album_tracks(aid, f"Label {name}")
+        tr = _dz_album_tracks(aid, f"Label {name}", dz)
         if tr and norm(tr[0].get("label")) == norm(name) and _recent(tr[0].get("date") or "", days):
             out += tr
     if not out and log:
@@ -282,12 +285,13 @@ def deezer_label(name: str, days: int, log=None) -> list[dict]:
     return out
 
 
-def deezer_related(name: str, n=8) -> list[str]:
-    res = _dz("/search/artist", q=name, limit=5).get("data") or []
+def deezer_related(name: str, n=8, dz=None) -> list[str]:
+    dz = dz or _dz
+    res = dz("/search/artist", q=name, limit=5).get("data") or []
     hit = next((a for a in res if norm(a.get("name")) == norm(name)), None)
     if not hit:
         return []
-    return [a.get("name", "") for a in (_dz(f"/artist/{hit['id']}/related", limit=n).get("data") or []) if a.get("name")]
+    return [a.get("name", "") for a in (dz(f"/artist/{hit['id']}/related", limit=n).get("data") or []) if a.get("name")]
 
 
 # =========================================================================== Beatport (über den Client des Plugins)
@@ -351,14 +355,15 @@ def beatport_genres(client) -> list[dict]:
 
 
 # =========================================================================== Lauf
-def run(d: dict, bp_client=None, log=None, progress=None, cancel=None) -> list[dict]:
-    """Alle Quellen für alle gefolgten Künstler/Labels/Genres abfragen. Fehler einzelner Abfragen landen im Log."""
+def run(d: dict, bp_client=None, log=None, progress=None, cancel=None, dz=_dz) -> list[dict]:
+    """Alle Quellen für alle gefolgten Künstler/Labels/Genres abfragen. Fehler einzelner Abfragen landen im Log.
+    dz: Deezer-Abruf (Plugin Deezer, #204); None = Deezer überspringen."""
     f = d["follow"]
     days = f.get("days") or 60
     jobs = []
-    if "deezer" in f["sources"]:
-        jobs += [("Deezer", a, lambda a=a: deezer_artist(a, days, log)) for a in f["artists"]]
-        jobs += [("Deezer", lab, lambda lab=lab: deezer_label(lab, days, log)) for lab in f["labels"]]
+    if "deezer" in f["sources"] and dz is not None:
+        jobs += [("Deezer", a, lambda a=a: deezer_artist(a, days, log, dz)) for a in f["artists"]]
+        jobs += [("Deezer", lab, lambda lab=lab: deezer_label(lab, days, log, dz)) for lab in f["labels"]]
     if "beatport" in f["sources"] and bp_client is not None:
         jobs += [("Beatport", a, lambda a=a: beatport_artist(bp_client, a, days, log)) for a in f["artists"]]
         jobs += [("Beatport", lab, lambda lab=lab: beatport_label(bp_client, lab, days, log)) for lab in f["labels"]]

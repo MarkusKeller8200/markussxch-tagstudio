@@ -8,6 +8,8 @@ from helpers import write_mp3, text
 from test_tagger_tools import Base
 
 import discover
+import json
+import onlinematch
 
 RECENT = time.strftime("%Y-%m-%d", time.localtime(time.time() - 5 * 86400))
 OLD = "2001-01-01"
@@ -34,6 +36,12 @@ def fake_fetch(url, timeout=20):
     return DZ[path]
 
 
+def fake_http(url, headers=None):
+    """#204: Abruf des Plugins Deezer (über onlinematch)."""
+    d = fake_fetch(url)
+    return 200, {}, json.dumps(d).encode()
+
+
 class FakeBP:
     def __init__(self):
         self.calls = []
@@ -58,6 +66,8 @@ class FakeBP:
 
 @mock.patch.object(discover, "fetch_json", fake_fetch)
 @mock.patch.object(discover, "_throttle", lambda: None)
+@mock.patch.object(onlinematch, "http_get", fake_http)
+@mock.patch.dict(onlinematch.INTERVALS, {"api.deezer.com": 0})
 class TestDiscover(Base):
     def test_deezer_artist_and_label(self):
         e = discover.deezer_artist("Mara Lind", 60)
@@ -120,6 +130,16 @@ class TestDiscover(Base):
         self.assertEqual(ov["counts"]["saved"], 1)
         with self.assertRaises(ValueError):
             s.disc_set(["deezer:702"], "egal")
+        # #204: Deezer läuft über das Plugin – ausgeschaltet → übersprungen mit Hinweis
+        s.plugin_enable("deezer", False)
+        self.assertTrue(s.start_disc_run()["ok"])
+        for _ in range(500):
+            st = s.task_status()
+            if st.get("done"):
+                break
+            time.sleep(0.02)
+        self.assertEqual(st["result"]["found"], 0, st)
+        self.assertTrue(any("Plugin „Deezer“ ist ausgeschaltet" in ln for ln in st["result"]["log"]), st)
 
     def test_auto_export_bought(self):
         """#162: tägliche Suche im Hintergrund, Merkliste exportieren, Beatport-Käufe als gekauft."""

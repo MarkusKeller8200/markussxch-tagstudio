@@ -25,6 +25,30 @@ class DiscoverMixin:
                 log(f"Beatport nicht verfügbar: {ex}")
             return None
 
+    def _disc_deezer(self, log=None):
+        """#204: Deezer-Abruf über das Plugin Deezer (gemeinsame Drosselung) – None, wenn das Plugin aus ist."""
+        try:
+            import plugins
+            p = self.plugins.plugins.get("deezer")
+            mod = p.load() if p is not None and p.enabled and p.state() == "ready" else None
+            if mod is None:
+                if log:
+                    log("Deezer übersprungen: Plugin „Deezer“ ist ausgeschaltet.")
+                return None
+            cl = mod.client(plugins.Context(p, None))
+
+            def get(path, **params):
+                d = cl.json(mod.API + path + ("?" + discover.urllib.parse.urlencode(params) if params else "")) or {}
+                if isinstance(d, dict) and d.get("error"):
+                    err = d["error"]
+                    raise RuntimeError(f"Deezer: {err.get('message') if isinstance(err, dict) else err}")
+                return d
+            return get
+        except Exception as ex:  # noqa: BLE001
+            if log:
+                log(f"Deezer nicht verfügbar: {ex}")
+            return None
+
     def _disc_library(self) -> str:
         try:
             lib = self._prep_get().get("library") or ""
@@ -107,7 +131,8 @@ class DiscoverMixin:
                 log = []
                 f = d["follow"]
                 bp = self._disc_beatport(log.append) if "beatport" in f["sources"] else None
-                found = discover.run(d, bp, log.append)
+                dz = self._disc_deezer(log.append) if "deezer" in f["sources"] else None
+                found = discover.run(d, bp, log.append, dz=dz)
                 idx = None
                 if self._disc_library():
                     try:
@@ -152,7 +177,8 @@ class DiscoverMixin:
             bp = self._disc_beatport(log.append) if "beatport" in f["sources"] else None
             if "beatport" in f["sources"] and bp is None and not log:
                 log.append("Beatport übersprungen: nicht angemeldet oder Plugin aus.")
-            found = discover.run(d0, bp, log.append, progress, cancel)
+            dz = self._disc_deezer(log.append) if "deezer" in f["sources"] else None
+            found = discover.run(d0, bp, log.append, progress, cancel, dz=dz)
             idx = discover.owned_index(self._disc_lib_files(cancel, progress)) if self._disc_library() else None
             d = discover.load()
             new = discover.merge(d, found, idx)

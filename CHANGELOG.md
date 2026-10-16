@@ -19,6 +19,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   eingeschalteten Dienst-Plugins – ausgeschaltete Dienste erscheinen im Dialog als Hinweis. Schlüssel (Discogs-Token,
   Last.fm, AcoustID + fpcalc) trägt man im jeweiligen Plugin ein; bereits gespeicherte werden beim ersten Start
   einmalig und verschlüsselt übernommen. Eine gemeinsame Drosselung je Dienst gilt für alle Plugins.
+  „Entdecken“ fragt Deezer jetzt ebenfalls über das Plugin Deezer ab (Beatport schon bisher über sein Plugin); ist
+  ein Plugin ausgeschaltet, wird die Quelle mit Hinweis im Protokoll übersprungen.
 - **Filter je Spalte im Tagger (#202):** Filterzeile unter den Spaltenköpfen – je Spalte ein Suchfeld (mehrere Wörter,
   Reihenfolge egal), Zahlenspalten auch mit `>120`, `<=5` oder `120-128`; wirkt zusammen mit dem Suchfeld oben.
   **Esc** leert ein Feld, **×** alle, Knopf „Filter“ blendet die Zeile aus.
