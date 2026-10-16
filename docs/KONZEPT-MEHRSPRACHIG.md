@@ -78,6 +78,12 @@ User durchgesehen. Fehlt ein Mundart-Text, gilt Hochdeutsch.
   | OpenAI / Anthropic / andere LLM-API | online, eigener Schlüssel | auch Mundart, Glossar und Kontext im Prompt |
   | Ollama / LM Studio (lokales Modell) | lokal, kostenlos, nichts verlässt den PC | Qualität je Modell, langsamer |
   | Argos Translate | lokal, Open Source (MIT), Offline-Modelle | einfach, Qualität mittel, keine Mundart |
+- **Kandidat lokales Modell: [Apertus](https://huggingface.co/swiss-ai/Apertus-v1.5-8B)** (Swiss AI, ETH/EPFL/CSCS;
+  Apache-2.0, offen trainiert, sehr viele Sprachen – laut Projekt auch Schweizerdeutsch und Rätoromanisch). 8B passt
+  quantisiert (GGUF, Ollama/LM Studio) auf einen normalen PC; Zugang auf Hugging Face erst nach Zustimmung zur
+  Nutzungsrichtlinie. TagStudio bindet es nicht direkt ein, sondern über die OpenAI-kompatible Schnittstelle von
+  Ollama/LM Studio – das Modell ist dort frei wählbar. Vor dem Entscheid: Probeübersetzung von ~50 echten TagStudio-
+  Texten DE→EN und DE→Mundart, verglichen mit DeepL und einem grossen Modell (Entscheid User offen, Hinweis 16.10.2026).
 - Übersetzt werden nur fehlende oder veraltete Einträge, in Paketen (z. B. 50 Texte) mit **Kontext** (Seite, Knopf
   oder Tooltip) und **Glossar**: feste Begriffe (TagStudio, Tagger, Cue, BPM, Camelot …) und Feldnamen/ID3-Schlüssel
   bleiben unverändert, Platzhalter `{n}` werden geschützt und danach geprüft.
@@ -132,5 +138,5 @@ deutsch – das ist gewollt (Fallback). Empfehlung: Phase 1 + 5 zusammen beginne
 - Sollen Übersetzer in der Hilfe namentlich genannt werden (nur auf Wunsch)?
 
 - Welche Mundart bzw. Schreibweise (Zürich, Bern, Basel …)?
-- Soll die Sprache der Oberfläche auch die Sprache der geschriebenen Tags beeinflussen (z. B. Genre-Namen)?
-  Vorschlag: nein – Tags bleiben, wie sie sind.
+- ~~Soll die Sprache der Oberfläche auch die Tags beeinflussen?~~ **Entschieden 16.10.2026: nein** – übersetzt werden
+  nur die Texte der Oberfläche, MP3-Tags bleiben, wie sie sind.
