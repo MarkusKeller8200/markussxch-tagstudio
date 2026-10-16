@@ -20,6 +20,10 @@ function plGridStatus(info) {
     label: "Serato-Grid", state: "external",
     hint: "Aus Serato eingelesen · " + g.bpm + " BPM. Nicht musikalisch auf Korrektheit geprüft."
   };
+  if (g && g.from_tag) return {                                       // #221: im MP3 gespeichert
+    label: "Audioanalyse (Tag)", state: "analysed",
+    hint: "Eigene Analyse, gespeichert in TXXX:TAGSTUDIO_BEATGRID (" + g.bpm + " BPM). Kein verifizierter Downbeat."
+  };
   if (g && (g.source === "Analyse" || g.analysed)) return {
     label: "Audioanalyse", state: "analysed",
     hint: "TagStudio hat Tempo und Beat-Offset aus dem Audio geschätzt (" + g.bpm + " BPM). Kein verifizierter Downbeat."
@@ -748,7 +752,8 @@ function plRowMenu(e, t, label) {
   }
   if (t.kind === "tag" && S.module === "tagger" && typeof tgGridAnalyse === "function") {           // #191
     const idx = typeof tgSelected === "function" && tgSelected().length ? tgSelected() : [t.ref];
-    items.push("-", { label: `Beatgrid analysieren …${idx.length > 1 ? ` (${idx.length})` : ""}`, run: () => tgGridAnalyse(idx) });
+    items.push("-", { label: `Beatgrid analysieren …${idx.length > 1 ? ` (${idx.length})` : ""}`, run: () => tgGridAnalyse(idx) },
+      { label: `Beatgrid in Tag speichern …${idx.length > 1 ? ` (${idx.length})` : ""}`, run: () => tgBeatTagDialog(idx) });     // #221
   }
   if (t.kind === "tag") items.push("-", { label: "Dateiordner öffnen", icon: ICON.folder, run: () => call("reveal_tag", t.ref) });   // #197
   showMenu(e.clientX, e.clientY, items);

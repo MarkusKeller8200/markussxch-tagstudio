@@ -111,7 +111,8 @@ GENRES = [
 
 
 TXXX_LABELS = {"TAGSTUDIO_EDITED": "Letzte Bearbeitung (TagStudio)",
-               "TAGSTUDIO_ADDED": "In Bibliothek aufgenommen (TagStudio)"}
+               "TAGSTUDIO_ADDED": "In Bibliothek aufgenommen (TagStudio)",
+               "TAGSTUDIO_BEATGRID": "Beatgrid der Analyse (TagStudio)"}                       # #221
 
 
 def key_label(key: str) -> str:

@@ -2,6 +2,7 @@
 
 Quellen, in dieser Reihenfolge:
 - ``serato``  Raster aus Serato (GEOB „Serato BeatGrid“) – übernommen, nicht automatisch musikalisch geprüft
+- ``tag``     eigene Analyse, dauerhaft im MP3 gespeichert (TXXX:TAGSTUDIO_BEATGRID, #221)
 - ``analyse`` eigene Audioanalyse im Wellenform-Cache (BPM + erster Schlag, konstantes Tempo)
 - ``bpm``     nur BPM-Tag (TBPM) – daraus geschätzt, **kein** Raster
 - ``nobeat``  Audio wurde analysiert, aber kein Schlag gefunden (und kein BPM-Tag)
@@ -12,8 +13,8 @@ from __future__ import annotations
 
 import os
 
-CODES = ("serato", "analyse", "bpm", "nobeat", "none")
-LABEL = {"serato": "Serato", "analyse": "Analyse", "bpm": "nur BPM", "nobeat": "ohne Ergebnis", "none": "keins"}
+CODES = ("serato", "tag", "analyse", "bpm", "nobeat", "none")
+LABEL = {"serato": "Serato", "tag": "Analyse (Tag)", "analyse": "Analyse", "bpm": "nur BPM", "nobeat": "ohne Ergebnis", "none": "keins"}
 
 
 def status(f) -> str:
@@ -26,6 +27,9 @@ def status(f) -> str:
         bg = None
     if bg and not bg.get("error") and bg.get("bpm") and bg.get("markers"):
         return "serato"
+    import beattag
+    if beattag.of_file(f):
+        return "tag"
     wave = None
     try:
         key = waveform.key_for(f)

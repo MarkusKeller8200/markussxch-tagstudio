@@ -348,7 +348,7 @@ class PlayerMixin:
                 except (ValueError, IndexError, KeyError):
                     out["wave"] = None
         beat = (out.get("wave") or {}).get("beat")
-        if beat and not (out.get("grid") or {}).get("exact"):    # #76: Analyse vor Schätzung aus dem BPM-Tag
+        if beat and not (out.get("grid") or {}).get("exact") and not (out.get("grid") or {}).get("from_tag"):    # #76: Analyse vor Schätzung aus dem BPM-Tag
             out["grid"] = {"bpm": beat["bpm"], "first": beat["first"], "source": "Analyse", "exact": False,
                            "analysed": True, "markers": [{"pos": beat["first"], "bpm": beat["bpm"]}]}
         return out
@@ -389,6 +389,11 @@ class PlayerMixin:
         if bg and not bg.get("error") and bg.get("bpm") and bg.get("markers"):
             return {"bpm": bg["bpm"], "first": bg["first"], "source": "Serato", "exact": True,
                     "markers": [{"pos": m["pos"], "bpm": m["bpm"]} for m in bg["markers"]]}
+        import beattag
+        bt = beattag.of_file(f)                                  # #221: eigene Analyse, im MP3 gespeichert
+        if bt:
+            return {"bpm": round(bt["bpm"], 3), "first": round(bt["first"], 4), "source": "Analyse (Tag)", "exact": False,
+                    "analysed": True, "from_tag": True, "markers": [{"pos": round(bt["first"], 4), "bpm": round(bt["bpm"], 3)}]}
         import tagger
         try:
             bpm = float(tagger.text_of(f, "TBPM").replace(",", ".") or 0)

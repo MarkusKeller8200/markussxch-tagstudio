@@ -74,6 +74,12 @@ Werte im Hintergrund in Paketen à 150 (Chip in der Fusszeile, Klick bricht ab).
 (markierte Titel ohne Serato/Analyse): dieselbe Analyse wie im Player (`plWaveCompute`), fortlaufend, abbrechbar,
 Ergebnis nur im Cache – nie im MP3. Filter: in der Filterzeile eine Auswahl mit den vorkommenden Zuständen und ihrer
 Anzahl (z. B. „nur BPM (12)“), Sortierung nach Güte.
+**Raster im MP3 (#221):** `TXXX:TAGSTUDIO_BEATGRID` (Modul `beattag.py`), Wert z. B. `bpm=124.998; first=0.1234;
+conf=0.87; src=analyse; date=2026-10-17` – nur das Raster, nicht die Wellenform. Kontextmenü „Beatgrid in Tag speichern …“
+(`Session.tag_beatgrid`, Vorschau → Übernehmen mit Rückgängig, gespeichert wie üblich); übersprungen werden Titel mit
+Serato-Raster (Vorrang) und ohne Analyse, vorhandene Werte nur mit „ersetzen“. Lesen: Status `tag` („Analyse (Tag)“) vor
+`analyse`; Player-Raster aus dem Tag (`from_tag`, Kennzeichnung „Audioanalyse (Tag)“), auch ohne Cache. Kein Verstoss
+gegen die Schutzregel in „Vorbereiten“. Idee: Wellenform als GEOB „TagStudio Overview“ (#222, später).
 Offen: Qualität von `beatAnalyse()` (Taktanfang, Tempowechsel) und Vergleich Serato ↔ eigene Analyse – siehe
 KONZEPT-MUSIKANALYSIEREN.
 

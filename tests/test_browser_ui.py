@@ -727,6 +727,23 @@ class UiTest(unittest.TestCase):
         self.assertFalse(pg.evaluate("TG.rows.some((r) => r.modified)"))                 # nichts am MP3 geändert
         self.assertEqual(self.errors, [])
 
+    def test_beatgrid_to_tag(self):
+        """#221: Raster der eigenen Analyse ins MP3 übernehmen – Vorschau, Übernehmen (geändert, nicht gespeichert), Status."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("""(async () => { const i = TG.view[0].i; const info = await call('media_url', 'tag', i);
+          await call('wave_save', info.wave_key, Array(100).fill(9), Array(100).fill(9), { bpm: 123.4, first: 0.25, conf: 0.8 }); })()""")
+        pg.evaluate("tgSetCols([...tgCols().filter((c) => c !== 'grid'), 'grid'], true)")
+        pg.click(".tg-row >> nth=0")
+        pg.click(".tg-row >> nth=0", button="right")
+        pg.click('.menu button:has-text("Beatgrid in Tag speichern")')
+        pg.wait_for_selector("#modal table")
+        self.assertIn("bpm=123.400; first=0.2500", pg.inner_text("#modal table"))
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("TG.rows[TG.view[0].i].grid === 'tag' && TG.rows[TG.view[0].i].modified"))
+        self.assertIn("Analyse (Tag)", pg.inner_text(".tg-row >> nth=0"))
+        self.assertEqual(self.errors, [])
+
     def test_drag_to_player(self):
         """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""
         pg = self.pg

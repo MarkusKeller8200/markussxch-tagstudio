@@ -455,7 +455,8 @@ function plWaveCompute(info) {
 }
 /** Braucht dieser Titel noch eine Berechnung (Wellenform fehlt bzw. Schlag noch nicht analysiert)? */
 function plWaveNeeded(info) {
-  return !!info && !!info.wave_key && (!info.wave || (!info.wave.beat && !WAVE_NOBEAT.has(info.wave_key) && !(info.grid && info.grid.exact)));
+  return !!info && !!info.wave_key && (!info.wave || info.wave.source === "serato"
+    || (!info.wave.beat && !WAVE_NOBEAT.has(info.wave_key) && !(info.grid && (info.grid.exact || info.grid.from_tag))));   // #220/#221
 }
 async function plWaveComputeRun(info) {
   PLAYER.waveBusy = info.wave_key;

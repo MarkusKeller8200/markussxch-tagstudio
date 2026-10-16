@@ -6,9 +6,10 @@
 "use strict";
 
 const TGG = { scan: false, run: false, stop: false, busy: new Set() };
-const TGG_ORDER = ["serato", "analyse", "bpm", "nobeat", "none"];
+const TGG_ORDER = ["serato", "tag", "analyse", "bpm", "nobeat", "none"];
 const TGG_INFO = {
   serato: ["Serato", "Raster aus Serato übernommen (GEOB „Serato BeatGrid“) – nicht automatisch musikalisch geprüft"],
+  tag: ["Analyse (Tag)", "Eigene Analyse, dauerhaft im MP3 gespeichert (TXXX:TAGSTUDIO_BEATGRID) – reist mit der Datei"],
   analyse: ["Analyse", "Eigene Audioanalyse: BPM und erster Schlag bei gleichbleibendem Tempo – Taktanfang und Tempowechsel werden nicht erkannt"],
   bpm: ["nur BPM", "Nur der BPM-Tag – daraus geschätzt, kein Beatgrid. Rechtsklick › „Beatgrid analysieren …“"],
   nobeat: ["ohne Ergebnis", "Audio wurde analysiert, aber kein gleichmässiger Schlag gefunden"],
@@ -49,7 +50,7 @@ async function tgGridMaybeScan() {
 /** Markierte Titel ohne Raster analysieren (wie im Player) – fortlaufend, abbrechbar, nur Cache. */
 async function tgGridAnalyse(idx) {
   if (TGG.run || (typeof WAVEBG !== "undefined" && WAVEBG.run)) { toast("Es läuft bereits eine Analyse."); return; }
-  const list = (idx || []).filter((i) => TG.rows[i] && !["serato", "analyse"].includes(TG.rows[i].grid));
+  const list = (idx || []).filter((i) => TG.rows[i] && !["serato", "tag", "analyse"].includes(TG.rows[i].grid));
   if (!list.length) { toast("Die markierten Titel haben schon ein Serato-Raster oder eine Analyse."); return; }
   const chip = $("#waveChip");
   TGG.run = true; TGG.stop = false;
@@ -69,7 +70,7 @@ async function tgGridAnalyse(idx) {
         const st = await call("tag_grid_status", [i], true);
         const code = (st.status || {})[i];
         if (row && code) row.grid = code;
-        if (code === "analyse" || code === "serato") found++;
+        if (["analyse", "serato", "tag"].includes(code)) found++;
       } catch (e) { /* Datei nicht lesbar – weiter mit der nächsten */ }
       TGG.busy.delete(i); done++;
       drawTgList();
@@ -85,4 +86,30 @@ async function tgGridAnalyse(idx) {
 function tgGridFilterRefresh() {
   if (document.activeElement && document.activeElement.matches('#tgHeadF [data-cf="grid"]')) return;
   if ($('#tgHeadF [data-cf="grid"]') && typeof renderTgHead === "function") renderTgHead();
+}
+
+/** #221: Raster der eigenen Analyse ins MP3 übernehmen (TXXX:TAGSTUDIO_BEATGRID) – Vorschau, Rückgängig, Speichern wie üblich */
+async function tgBeatTagDialog(idx) {
+  idx = idx && idx.length ? idx : tgSelected();
+  await toolDialog({
+    title: `Beatgrid in Tag speichern (${idx.length} Datei(en))`,
+    form: `<div class="hint">Übernimmt das Raster der eigenen Analyse (BPM, erster Schlag, Sicherheit) in <code>TXXX:TAGSTUDIO_BEATGRID</code> –
+      dann reist es mit der Datei und übersteht das Leeren des Caches. Die Wellenform bleibt im Cache. Titel mit Serato-Raster
+      werden übersprungen (Serato hat Vorrang). Geschrieben wird erst beim Speichern.</div>
+      <label class="check"><input type="checkbox" id="btOver"> Bereits gespeicherte Raster ersetzen</label>`,
+    columns: [["Datei", "name"], ["Bisher", "old", "old"], ["Neu", "new", "new"], ["Hinweis", "source"]],
+    preview: async (b) => {
+      try {
+        const r = await call("tag_beatgrid", idx, $("#btOver", b).checked, false);
+        r.summary = `${fmtN(r.count)} Titel bekommen das Raster${r.skipped ? ` · ${fmtN(r.skipped)} übersprungen` : ""}.`;
+        return r;
+      } catch (e) { return { error: String(e.message || e), rows: [], count: 0 }; }
+    },
+    apply: async (b) => {
+      const r = await call("tag_beatgrid", idx, $("#btOver", b).checked, true);
+      const st = await call("tag_grid_status", idx, true).catch(() => null);
+      for (const [i, code] of Object.entries((st && st.status) || {})) if (TG.rows[+i]) TG.rows[+i].grid = code;
+      return r;
+    },
+  });
 }

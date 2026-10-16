@@ -8,6 +8,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Beatgrid im MP3 speichern (#221):** Rechtsklick › „Beatgrid in Tag speichern …“ übernimmt das Raster der eigenen
+  Analyse (BPM, erster Schlag, Sicherheit) in `TXXX:TAGSTUDIO_BEATGRID` – mit Vorschau und Rückgängig, geschrieben beim
+  Speichern. Damit reist es mit der Datei; Player und Spalte „Beatgrid“ („Analyse (Tag)“) lesen es auch ohne Cache.
+  Serato-Raster haben Vorrang und bleiben unberührt.
 - **Serato-Wellenform im Player (#220):** Hat ein Titel noch keine eigene Wellenform, zeigt der Player sofort die
   Wellenform-Übersicht, die Serato im MP3 ablegt („Serato Overview“) – ohne die Datei zu dekodieren. Die eigene ersetzt
   sie, sobald sie berechnet ist. Serato-Daten werden nur gelesen.

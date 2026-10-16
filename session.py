@@ -2295,6 +2295,46 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return self._apply_plan(idx, plan, "In Bibliothek aufgenommen",
                                     f"„In Bibliothek aufgenommen“ für {len(plan)} Titel gesetzt – noch nicht gespeichert.")
 
+    def tag_beatgrid(self, idx, overwrite=False, apply=False):
+        """#221: Raster der eigenen Analyse (Wellenform-Cache) in TXXX:TAGSTUDIO_BEATGRID übernehmen. Titel mit
+        Serato-Raster werden übersprungen (Serato hat Vorrang), vorhandene Werte nur mit overwrite. Vorschau → Übernehmen
+        mit Rückgängig; gespeichert wird wie üblich."""
+        import beattag
+        import gridstatus
+        import waveform
+        with self.lock:
+            files = [(i, self.tag_files[i]) for i in idx if isinstance(i, int) and 0 <= i < len(self.tag_files)]
+        plan, rows, skipped = [], [], 0
+        for _i, f in files:
+            name, old = os.path.basename(f.path), f.text(beattag.KEY)
+            if gridstatus.status(f) == "serato":
+                rows.append({"name": name, "old": old, "new": "", "source": "Serato-Raster vorhanden – hat Vorrang"})
+                skipped += 1
+                continue
+            if old and not overwrite:
+                rows.append({"name": name, "old": old, "new": "", "source": "schon gespeichert"})
+                skipped += 1
+                continue
+            try:
+                beat = (waveform.load(waveform.key_for(f)) or {}).get("beat")
+            except (OSError, ValueError):
+                beat = None
+            if not beat:
+                rows.append({"name": name, "old": old, "new": "", "source": "keine Analyse – zuerst „Beatgrid analysieren …“"})
+                skipped += 1
+                continue
+            new = beattag.fmt(beat)
+            if beattag.parse(old) and beattag.parse(old)["bpm"] == beattag.parse(new)["bpm"] \
+                    and beattag.parse(old)["first"] == beattag.parse(new)["first"]:
+                continue
+            plan.append((f, beattag.KEY, old, new))
+            rows.append({"name": name, "old": old, "new": new, "source": f"Analyse ({beat['bpm']:.1f} BPM)"})
+        if not apply:
+            return {"rows": rows[:2000], "count": len(plan), "files": len(files), "skipped": skipped}
+        with self.lock:
+            return self._apply_plan(idx, plan, "Beatgrid in Tag",
+                                    f"Beatgrid für {len(plan)} Titel in TXXX:TAGSTUDIO_BEATGRID übernommen – noch nicht gespeichert.")
+
     def tag_folder_cover(self, idx, only_missing=True, apply=False):
         with self.lock:
             files = self._tsel(idx)
