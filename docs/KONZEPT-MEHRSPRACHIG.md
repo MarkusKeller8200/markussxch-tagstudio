@@ -84,6 +84,11 @@ User durchgesehen. Fehlt ein Mundart-Text, gilt Hochdeutsch.
   Nutzungsrichtlinie. TagStudio bindet es nicht direkt ein, sondern über die OpenAI-kompatible Schnittstelle von
   Ollama/LM Studio – das Modell ist dort frei wählbar. Vor dem Entscheid: Probeübersetzung von ~50 echten TagStudio-
   Texten DE→EN und DE→Mundart, verglichen mit DeepL und einem grossen Modell (Entscheid User offen, Hinweis 16.10.2026).
+- **Bevorzugt (Hinweis User 16.10.2026): Apertus über Hugging Face** – grosses Modell `swiss-ai/Apertus-v1.5-70B`
+  über Hugging Face Inference Providers (Anbieter Public AI, laut Ankündigung derzeit kostenlos; OpenAI-kompatibel:
+  `https://router.huggingface.co/v1`, Modell `swiss-ai/Apertus-v1.5-70B:publicai`, eigener HF-Token verschlüsselt im
+  Plugin). Kosten: Erstübersetzung grob einige 100 000 Tokens (< 1 $ bei üblichen Preisen), danach je Release nur neue
+  oder geänderte Texte. Lokale Variante (Ollama/LM Studio, 8B) bleibt für ohne Internet.
 - Übersetzt werden nur fehlende oder veraltete Einträge, in Paketen (z. B. 50 Texte) mit **Kontext** (Seite, Knopf
   oder Tooltip) und **Glossar**: feste Begriffe (TagStudio, Tagger, Cue, BPM, Camelot …) und Feldnamen/ID3-Schlüssel
   bleiben unverändert, Platzhalter `{n}` werden geschützt und danach geprüft.
