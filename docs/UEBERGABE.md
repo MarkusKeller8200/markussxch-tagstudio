@@ -1,12 +1,12 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-16, 4.5.0 final** (veröffentlicht 16.10.2026 abends, ohne Beta, Meilenstein #15 geschlossen; danach Developer Releases auf `main`). Bisher: in Arbeit 4.5.0 (Meilenstein #15, #183–#185 im Beta-Test) und 4.6.0 (Meilenstein #17, #204 Online-Dienste als Plugins: Dienst-Plugins mit `"service"` in `plugin.json`, `services.py`, `servicekit.py`, `web/services.js` – siehe `docs/KONZEPT-PLUGINS.md`). Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
+Stand: **2026-10-17, 4.6.0 in Arbeit** (5 Issues im Beta-Test); zuvor **4.5.0 final** (veröffentlicht 16.10.2026 abends, ohne Beta, Meilenstein #15 geschlossen; danach Developer Releases auf `main`). Bisher: in Arbeit 4.5.0 (Meilenstein #15, #183–#185 im Beta-Test) und 4.6.0 (Meilenstein #17, #204 Online-Dienste als Plugins: Dienst-Plugins mit `"service"` in `plugin.json`, `services.py`, `servicekit.py`, `web/services.js` – siehe `docs/KONZEPT-PLUGINS.md`). Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
 ## Roadmap (Entscheid 17.10.2026)
 
-- **4.6.0 – Beatgrid & Lyric Sync** (#17): #215 Liedtext im Player (`lyricsync.py`, `web/pllyrics.js`) und #191 Beatgrid-Status im Tagger (`gridstatus.py`, `web/gridscan.js`) – beide auf `main`, `_3 Beta-Test` (17.10.2026).
+- **4.6.0 – Beatgrid & Lyric Sync** (#17): #215 Liedtext im Player (`lyricsync.py`, `web/pllyrics.js`), #191 Beatgrid-Status im Tagger (`gridstatus.py`, `web/gridscan.js`), #220 Serato-Wellenform im Player (`serato.overview_wave`), #221 Beatgrid im MP3 (`beattag.py`, `TXXX:TAGSTUDIO_BEATGRID`), #223 Vergleich Serato ↔ eigene Analyse (`gridstatus.compare`, `plGridCompare`, Codes `serato_ok`/`serato_diff`) – alle auf `main`, `_3 Beta-Test` (17.10.2026). #222 Wellenform als GEOB = Idee (später).
 - **4.7.0 – Mehrsprachigkeit** (#18): #157 Grundlage, Sprachwahl, alle Module in `de-CH`, `en`, `gsw-u-sd-chzh`; Claude übersetzt bei der Entwicklung mit (keine KI-Anbindung in TagStudio).
 - **4.8.0 – Mehrsprachigkeit: Plugins, Doku, eigene Anpassungen** (#19): #219 inkl. Export/Import mit Überlagerung in den Benutzereinstellungen.
 
