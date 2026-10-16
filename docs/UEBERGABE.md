@@ -1,12 +1,12 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-15, 4.4.1-beta.6** (letzte finale Version: 4.4.0). Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
+Stand: **2026-10-16, 4.4.1 final**; in Arbeit 4.5.0 (Meilenstein #15). Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
 ## Release-Freigabe (Entscheid 14.10.2026)
 
-**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.4.1-beta.6** (Bugfix-Beta, freigegeben am 15.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
+**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.4.1** (final, freigegeben am 16.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
 
 ## GitHub-Meilensteinverwaltung
 
@@ -87,18 +87,16 @@ Zug nachführen.**
 - **Später / Konzeptphase:** [#186 Neues Modul IDEE](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/186), [#187 GitHub-Meldeformular mit Eigentümerfreigabe](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/187), [#180 1001Tracklists](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/180) und die grössere Analyse-/Audio-Architektur.
 - **Meilensteinpflege (am 14.10.2026 geprüft):** Das Release [v4.4.0](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/tag/v4.4.0) ist veröffentlicht; der GitHub-Meilenstein [#10](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/10) ist **geschlossen** (17 von 17 Issues erledigt). Die neu angelegten Meilensteine [#14 – 4.4.1 Player-Stabilität](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/14) enthalten #181, #182 und Planungs-Issue #188; [#15 – 4.5.0 Tagger & Metadaten](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/15) enthalten #183–#185 und Planungs-Issue #189. Alle übrigen neun offenen Ideen sind [#4 – Idee (Später)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/4) zugeordnet. **Kein offenes Issue ohne Meilenstein** (Stand 14.10.2026). Am 15.10.2026 kam #193 (BugFixes) in #14 dazu.
 
-## Offen (Stand 4.4.1-beta.6)
+## Offen (Stand 4.4.1, 16.10.2026)
 
-- **NEUE KONZEPTIDEE #180 (14.10.2026):** 1001Tracklists-basierter Tracklist-Import, Discovery und datenbasierte DJ-Set-Analyse – **noch nicht implementiert**. Siehe `docs/KONZEPT-DJSET.md` (Abschnitt 5.1) und `docs/KONZEPT-MUSIKANALYSIEREN.md` (Abschnitt 12); Label `idee`, Meilenstein „Später“. Keine Scraping-/API-Implementierung ohne vorangehende Rechteprüfung.
-
-
-- 4.4.0 ist final (2026-10-12). Seither 4.4.1-beta.1 bis beta.6 (Player-Stabilität). Offen in #14 «4.4.1»: #181 Offbeat-Übergänge, #192 Tooltips und #193 BugFixes im Beta-Test.
-- **Auf `main`, noch nicht als Beta gebaut (Stand 15.10.2026, Commit 97f7a54):** Metronom mit geglätteter Medienuhr (#181), nur noch TagStudio-Tooltips inkl. SVG (#192), Plattformliste in `KONZEPT-DJPLATTFORMEN.md` zusammengeführt. Beta 4.4.1-beta.7 nur nach Freigabe.
-- **#181 Stand 16.10.2026 (auf `main`, noch keine Beta):** Übergänge in Player A werden gemessen und im Takt nachgeführt
-  (`web/xfadesync.js`): Beat-Versatz beider Titel über die geglättete Uhr, Ausgleich per Tempo-Korrektur ≤ ±4 %, gelernte
-  Startverzögerung `xfade_seek_ms`, Protokoll „Übergang“ in `app.log` und Dialog „Messwerte …“. Browser-Test zeigt die
-  Ursache: Folgetitel ohne Nachführen ≈ 90 ms zu spät (Seek). Als Nächstes: Hörtest des Users mit den Messwerten; erst
-  danach über gemeinsame Web-Audio-Uhr bzw. sample-genauen Start entscheiden.
+- **4.4.1 ist final** (16.10.2026, Windows + macOS), Meilenstein #14 geschlossen.
+- **4.5.0 – Tagger & Metadaten** (Meilenstein #15) vom User freigegeben, Entscheide in den Issue-Kommentaren vom 16.10.:
+  - #185 „Letzte Bearbeitung“: `TXXX:TAGSTUDIO_EDITED`, ISO 8601 mit Zeitzone, nur bei geänderten Tags, Undo = neue Zeit,
+    cfg `stamp_edited` – **auf main, Beta-Test**.
+  - #184 „In Bibliothek aufgenommen“: `TXXX:TAGSTUDIO_ADDED`, gesetzt bei Übernahme aus „Vorbereiten“, nie automatisch
+    geändert; Nachtragen aus erstem Snapshot oder von Hand, mit Vorschau, kein Dateidatum – **als Nächstes**.
+  - #183 Liedtexte (LRCLIB): Plugin, `USLT` + `SYLT`, `.lrc` nur wenn in den Plugin-Einstellungen eingeschaltet.
+- **NEUE KONZEPTIDEE #180:** 1001Tracklists – noch nicht implementiert, vorher Rechte klären.
 - Oberflächen-Tests laufen seit 15.10.2026 auch in der CI (Job „Oberflächen-Tests“).
 - Nächste Iterationen: #14 «4.4.1» und #15 «4.5.0» wie oben; «Idee (Später)» (#4): #9, #14, #107, #108, #156, #157, #180, #186 und #187.
 - Monatlich: Issue „Fremdkomponenten: Änderungen prüfen“ durchsehen, Stände mit

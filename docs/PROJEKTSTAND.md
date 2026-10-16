@@ -1,6 +1,6 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-15: **4.4.1-beta.6** (Bugfix-Beta, #193) – letzte finale Version **4.4.0** (2026-10-12). Seit 4.4.0 (13.–14.10., anderes KI-Werkzeug): Player 4.4.1 (#181 Übergänge/Metronom/Latenzkorrektur, #182 Takt-/Cue-Sprünge – bestätigt), #192 Tooltips (`web/tooltips.js`), Meilenstein-Verwaltung #190, Regeln `AGENTS.md`/`CLAUDE.md`, Konzepte Produkt-Architektur, Musikanalyse, DJ-Plattformen. beta.6 (#193): Neustart im Browser-Modus lädt erst bei Antwort der neuen Instanz (`instance_id`), Oberflächen-Test an Tooltips angepasst, README-Tastatur, Stand-Angaben, CHANGELOG zusammengefasst, `checkout@v7`. **Offen:** #181 (Praxistest Übergänge).
+> Stand 2026-10-16: **4.4.1 final** (veröffentlicht 16.10.2026, Windows + macOS; Meilenstein #14 geschlossen). Inhalt: Übergänge im Takt messen/nachführen (#181, `web/xfadesync.js`), Beatgrid-Metronom, Takt-/Cue-Sprünge (#182), Tooltips (#192), BPM per Doppelklick/Mausrad (#194), Player startet vor dem Tagger (#195), schneller Doppelklick (#196), Dateiordner im Kontextmenü (#197), Herkunfts-Auswahl mit Kennzeichen (#198/#199). **In Arbeit: 4.5.0 – Tagger & Metadaten** (Meilenstein #15, freigegeben 16.10.): #185 Letzte Bearbeitung (`TXXX:TAGSTUDIO_EDITED`, `tsmeta.py`, auf main, Beta-Test), #184 In Bibliothek aufgenommen (`TXXX:TAGSTUDIO_ADDED`), #183 Liedtexte (Plugin, USLT + SYLT, `.lrc` optional). Entscheide siehe Issue-Kommentare vom 16.10.
 
 ## Aktueller Stand (nach 4.1.0)
 
@@ -145,7 +145,7 @@ Meilensteine können über den **gesicherten [Administrationskanal #190](https:/
 
 ## Release-Freigabe (Entscheid 14.10.2026)
 
-**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.4.1-beta.6** (Bugfix-Beta, freigegeben am 15.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
+**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.4.1** (final, freigegeben am 16.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
 
 ## Geplante Iterationen 4.4.1 und 4.5.0 (Entscheid 2026-10-14)
 
