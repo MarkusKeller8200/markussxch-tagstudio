@@ -43,7 +43,7 @@ class Probe(unittest.TestCase):
     def test_mb(self):
         import time
         time.sleep(3)
-        d = self.j("https://musicbrainz.org/ws/2/isrc/GBDUW0000053?inc=artists+releases+release-groups&fmt=json")
+        d = self.j("https://musicbrainz.org/ws/2/isrc/GBDUW0000053?inc=artists+releases+work-rels&fmt=json")
         for r in (d.get("recordings") or [])[:3]:
             note("mb rec", f"{r.get('id')} {r.get('title')} {r.get('length')} " +
                  " ; ".join(f"{x.get('id')} {x.get('title')} {x.get('status')} {x.get('date')} rg={(x.get('release-group') or {}).get('id')}"
@@ -53,7 +53,14 @@ class Probe(unittest.TestCase):
         for r in d.get("releases") or []:
             note("mb release", f"{r.get('id')} {r.get('date')} {r.get('country')} rg={(r.get('release-group') or {}).get('id')} "
                  f"labels={[(li.get('label') or {}).get('id') for li in r.get('label-info') or []]}")
-        d = self.j("https://musicbrainz.org/ws/2/work?query=" + urllib.parse.quote('work:"One More Time" AND artist:"Daft Punk"') + "&limit=3&fmt=json")
+        d = self.j("https://musicbrainz.org/ws/2/recording?query=" + urllib.parse.quote('isrc:GBDUW0000053') + "&limit=3&fmt=json")
+        for r in d.get("recordings") or []:
+            note("mb rec-search", f"{r.get('id')} {r.get('title')} {r.get('length')}")
+        rid = ((d.get("recordings") or [{}])[0]).get("id")
+        if rid:
+            rr = self.j(f"https://musicbrainz.org/ws/2/recording/{rid}?inc=work-rels&fmt=json")
+            note("mb work-rel", [(x.get("work") or {}).get("id") for x in rr.get("relations") or []])
+        d = self.j("https://musicbrainz.org/ws/2/work?query=" + urllib.parse.quote('work:"One More Time" AND arid:056e4f3e-d505-4dad-8ec1-d04f521cbb56') + "&limit=3&fmt=json")
         for w in d.get("works") or []:
             note("mb work", f"{w.get('id')} {w.get('title')}")
         d = self.j("https://musicbrainz.org/ws/2/discid/I5l9cCSFccLKFEKS.7wqSZAorPU-?fmt=json")
