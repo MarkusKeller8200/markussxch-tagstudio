@@ -22,7 +22,7 @@ def note(k, v):
 
 def flush(name):
     """GitHub zeigt höchstens 10 Hinweise je Schritt – je Dienst einer, Zeilen mit „ | “ getrennt."""
-    print(f"::notice title=probe {name}::{' | '.join(LINES)[:3800]}", flush=True)
+    print(f"\n::notice title=probe {name}::{' | '.join(LINES)[:3800]}", flush=True)
     LINES.clear()
 
 
