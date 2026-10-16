@@ -137,6 +137,21 @@ def overview(data: bytes) -> dict:
             "rows": [["Blöcke", str(len(bars))]]}
 
 
+def overview_wave(data: bytes) -> dict | None:
+    """#220: „Serato Overview“ als Wellenform für den Player → {"peaks", "rms", "source": "serato"} (je 0–255) oder
+    None. Je Block: Spitze = grösster der 16 Werte, Pegel = Mittelwert. Nur lesen."""
+    if not data or data[:2] != b"\x01\x05":
+        return None
+    body = data[2:]
+    blocks = [body[k:k + 16] for k in range(0, len(body) - 15, 16)]
+    if len(blocks) < 16:
+        return None
+    top = max(max(b) for b in blocks) or 1
+    peaks = [min(255, round(max(b) / top * 255)) for b in blocks]
+    rms = [min(255, round(sum(b) / 16 / top * 255)) for b in blocks]
+    return {"peaks": peaks, "rms": rms, "source": "serato"}
+
+
 DECODERS = {"Serato Analysis": analysis, "Serato Autotags": autotags, "Serato BeatGrid": beatgrid,
             "Serato Markers2": markers2, "Serato Overview": overview}
 

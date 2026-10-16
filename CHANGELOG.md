@@ -8,6 +8,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Serato-Wellenform im Player (#220):** Hat ein Titel noch keine eigene Wellenform, zeigt der Player sofort die
+  Wellenform-Übersicht, die Serato im MP3 ablegt („Serato Overview“) – ohne die Datei zu dekodieren. Die eigene ersetzt
+  sie, sobald sie berechnet ist. Serato-Daten werden nur gelesen.
 - **Beatgrid-Status im Tagger (#191):** Neue Spalte „Beatgrid“ zeigt für die ganze Bibliothek, ob ein Titel ein
   Serato-Raster, eine eigene Analyse, nur einen BPM-Tag oder gar nichts hat – filter- und sortierbar, ermittelt aus Tags
   und Cache ohne die Dateien zu dekodieren. Rechtsklick › „Beatgrid analysieren …“ analysiert markierte Titel nach

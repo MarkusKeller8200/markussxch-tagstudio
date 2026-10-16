@@ -48,3 +48,39 @@ class TestGridStatus(Base):
         rows = {r["name"]: r["grid"] for r in s.tag_rows()["rows"]}
         self.assertEqual((rows["a.mp3"], rows["s.mp3"]), ("analyse", "serato"))      # in den Zeilen mitgeliefert
         self.assertFalse(any(f.is_modified() for f in s.tag_files))                   # nur lesen
+
+
+class TestSeratoOverview(Base):
+    """#220: Serato-Übersicht als Wellenform im Player, wenn keine eigene im Cache liegt."""
+    def test_overview_wave(self):
+        import serato
+        from test_serato import OVERVIEW
+        w = serato.overview_wave(OVERVIEW)
+        self.assertEqual((len(w["peaks"]), len(w["rms"]), w["source"]), (240, 240, "serato"))
+        self.assertEqual(max(w["peaks"]), 255)
+        self.assertTrue(all(0 <= r <= p for p, r in zip(w["peaks"], w["rms"])))
+        self.assertIsNone(serato.overview_wave(b"\x01\x04" + OVERVIEW[2:]))
+        self.assertIsNone(serato.overview_wave(b"\x01\x05" + b"\x00" * 32))          # zu wenige Blöcke
+
+    def test_media_extra_uses_overview(self):
+        from unittest import mock
+        import waveform
+        from test_serato import OVERVIEW
+        p = mock.patch.object(waveform, "DIR", os.path.join(self.dir, "wave"))
+        p.start()
+        self.addCleanup(p.stop)
+        write_mp3(os.path.join(self.B, "o.mp3"), [text("TIT2", "Overview"), geob("Serato Overview", OVERVIEW)], audio_seed=7)
+        from session import Session
+        s = Session()
+        s.start_tag_load(self.B, False)
+        for _ in range(500):
+            if s.task_status().get("done"):
+                break
+            time.sleep(0.02)
+        i = next(k for k, f in enumerate(s.tag_files) if f.path.endswith("o.mp3"))
+        ex = s.media_extra("tag", i)
+        self.assertEqual((ex["wave"]["source"], len(ex["wave"]["peaks"])), ("serato", 240))
+        s.wave_save(ex["wave_key"], [9] * 100, [9] * 100, None)                     # eigene Wellenform hat Vorrang
+        ex = s.media_extra("tag", i)
+        self.assertEqual((len(ex["wave"]["peaks"]), ex["wave"].get("source")), (100, None))
+        self.assertFalse(s.tag_files[i].is_modified())

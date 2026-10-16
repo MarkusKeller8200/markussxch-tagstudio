@@ -338,6 +338,15 @@ class PlayerMixin:
             out["wave"] = waveform.load(out["wave_key"])
         except (OSError, ValueError):
             pass
+        if not out.get("wave"):                                              # #220: Serato-Übersicht statt nichts
+            it = f.get("GEOB:Serato Overview")
+            if it is not None and getattr(it, "payload", None):
+                import blobs
+                import serato
+                try:
+                    out["wave"] = serato.overview_wave(blobs.split(it)["data"])
+                except (ValueError, IndexError, KeyError):
+                    out["wave"] = None
         beat = (out.get("wave") or {}).get("beat")
         if beat and not (out.get("grid") or {}).get("exact"):    # #76: Analyse vor Schätzung aus dem BPM-Tag
             out["grid"] = {"bpm": beat["bpm"], "first": beat["first"], "source": "Analyse", "exact": False,

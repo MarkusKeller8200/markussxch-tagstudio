@@ -498,6 +498,8 @@ function plDrawWave() {
   const box = $("#plWave"), cv = $("#plCanvas");
   const w = PLAYER.wave && PLAYER.info && PLAYER.info.wave;
   box.classList.toggle("wave", !!w);
+  const src = w && w.source === "serato" ? "Wellenform aus Serato (Übersicht im MP3) – die eigene ersetzt sie, sobald berechnet" : "";
+  if (box.title !== src) box.title = src;                                   // #220
   if (!w) return;
   const dpr = window.devicePixelRatio || 1, W = Math.max(1, Math.round(cv.clientWidth * dpr)), H = Math.max(1, Math.round(cv.clientHeight * dpr));
   if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }

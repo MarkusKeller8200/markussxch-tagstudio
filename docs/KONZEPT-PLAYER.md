@@ -26,6 +26,7 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
 | Fortsetzen | zuletzt gehörter Titel (A und B) an derselben Stelle; nach Neustart Pause, Autoplay oder wie beim Schliessen |
 | Warteschlange | „Als Nächstes spielen“ / „Zur Warteschlange“ (#138), Vorrang vor Tagger-/Set-Reihenfolge |
 | Externe Player | foobar2000, VLC, Rekordbox … mit Platzhaltern `{files}` `{file}` `{folder}` `{m3u}`, Strg/Cmd+P |
+| Serato-Wellenform (#220) | ohne eigene Wellenform im Cache zeigt der Player „Serato Overview“ (GEOB, meist 240 Blöcke à 16 Bytes: Spitze = Maximum, Pegel = Mittel; `serato.overview_wave`), Tooltip nennt die Quelle; eigene Berechnung ersetzt sie und wird wie bisher gecacht; nur lesen |
 | Liedtext (#215) | Knopf im Player A bzw. Menü: Fenster mit synchronisiertem Liedtext (SYLT im MP3, sonst `.lrc` daneben) – aktuelle Zeile hervorgehoben und mittig mitlaufend, Klick springt dorthin; sonst normaler Text (USLT) mit Hinweis. Stems zeigen den Text des Originals. Nur lesen (`lyricsync.py`, `media_lyrics`, `web/pllyrics.js`), Einstellung `lyrics` |
 
 ## 3. Umsetzung
