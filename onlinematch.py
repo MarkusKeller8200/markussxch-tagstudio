@@ -22,6 +22,14 @@ import urllib.request
 from id3tags import MV
 
 SURE, MAYBE = 0.80, 0.62     # Trefferschwellen wie beim Beatport-Plugin
+
+# #204: Mindestabstand je Host (Sekunden) – gemeinsam für alle Dienst-Plugins (Tests setzen alle auf 0)
+INTERVALS = {"musicbrainz.org": 1.05,          # MusicBrainz: im Mittel 1 Anfrage/s
+             "coverartarchive.org": 0.25, "api.acoustid.org": 0.34,
+             "api.deezer.com": 0.15,           # vorsichtig (Grenze nicht verlässlich dokumentiert)
+             "itunes.apple.com": 3.1,          # iTunes Search: ca. 20 Anfragen/min
+             "api.discogs.com": 1.05,          # Discogs mit Token: 60/min
+             "ws.audioscrobbler.com": 0.25}
 TIMEOUT = 30
 
 _MIX_RE = re.compile(r"\s*[\(\[]([^\)\]]*(mix|edit|remix|version|dub|rework|bootleg|vip|remaster(?:ed)?)[^\)\]]*)[\)\]]\s*$", re.I)
@@ -153,7 +161,7 @@ class Throttle:
     """Mindestabstand je Dienst (z. B. MusicBrainz 1/s) – thread-sicher."""
 
     def __init__(self, intervals: dict):
-        self.intervals = dict(intervals)
+        self.intervals = intervals            # nicht kopieren: Änderungen (z. B. in Tests) gelten sofort
         self.last: dict = {}
         self.lock = threading.Lock()
 
@@ -170,8 +178,8 @@ class Throttle:
 class Client:
     """JSON-Abfragen mit Drosselung, Wiederholung bei 429/503 und verständlichen Fehlern."""
 
-    def __init__(self, user_agent: str, intervals: dict, get=None, cancel=None):
-        self.ua, self.th = user_agent, Throttle(intervals)
+    def __init__(self, user_agent: str, intervals: dict, get=None, cancel=None, throttle=None):
+        self.ua, self.th = user_agent, throttle or Throttle(intervals)
         self.get_fn = get or http_get
         self.cancel = cancel or (lambda: None)
 
@@ -200,3 +208,6 @@ class Client:
             return json.loads(data.decode("utf-8"))
         except (UnicodeDecodeError, ValueError) as ex:
             raise HttpError(-1, f"{urllib.parse.urlparse(url).netloc}: unerwartete Antwort") from ex
+
+
+SHARED = Throttle(INTERVALS)      # #204: eine Drosselung je Host für alle Dienst-Plugins

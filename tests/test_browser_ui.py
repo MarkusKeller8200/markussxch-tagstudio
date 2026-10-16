@@ -1098,25 +1098,27 @@ class UiTest(unittest.TestCase):
             srv.shutdown()
 
     def test_online_plugin(self):
-        """#6–#8: Plugin Online-Metadaten – Schlüssel speichern (nie in der Konfiguration), Formular im Tagger."""
+        """#6–#8, #204: Schlüssel im Dienst-Plugin Discogs speichern (nie in der Konfiguration), Formular im Tagger."""
         pg = self.pg
         pg.click('.nav[data-module="plugins"]')
-        card = '.pl-card[data-pid="online"]'
-        pg.wait_for_selector(card)
-        if not pg.locator(card + " [data-enable]").is_checked():
-            pg.click(card + " .switch")
-            pg.wait_for_selector(card + ' [data-paction="keys"]')
-        self.assertIn("Schlüssel: keine", pg.inner_text(card))
+        for pid in ("online", "discogs"):
+            c = f'.pl-card[data-pid="{pid}"]'
+            pg.wait_for_selector(c)
+            if not pg.locator(c + " [data-enable]").is_checked():
+                pg.click(c + " .switch")
+        card = '.pl-card[data-pid="discogs"]'
+        pg.wait_for_selector(card + ' [data-paction="keys"]')
+        self.assertIn("kein Token", pg.inner_text(card))
+        self.assertIn("Integration", pg.inner_text(card))                       # #204: Dienstbeschreibung
         pg.click(card + ' [data-paction="keys"]')
         pg.wait_for_selector("#modal .pl-link")
-        self.assertEqual(pg.locator("#modal .pl-link").count(), 6)              # Anleitung mit Links (#8)
         self.assertIn("discogs.com/settings/developers", pg.get_attribute("#modal .pl-link >> nth=0", "data-url"))
         pg.fill('#modal [data-ok="discogs"]', "geheim-123")
         pg.click("#mBtns .primary")
         pg.wait_for_selector("#modal .pl-log, #modal p")
-        self.assertTrue(self.until("document.querySelector('#modal').textContent.includes('Schlüssel: Discogs')"))
+        self.assertTrue(self.until("document.querySelector('#modal').textContent.includes('Token gespeichert')"))
         pg.click("#mBtns button >> nth=0")
-        pg.wait_for_function(f"document.querySelector('{card}').textContent.includes('Schlüssel: Discogs')")
+        pg.wait_for_function(f"document.querySelector('{card}').textContent.includes('Token gespeichert')")
         with open(os.path.join(self.home, ".tagstudio.json"), encoding="utf-8") as fh:
             self.assertNotIn("geheim-123", fh.read())
         # Formular im Tagger (ohne Netzabfrage abbrechen)

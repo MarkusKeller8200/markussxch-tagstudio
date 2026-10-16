@@ -1,0 +1,82 @@
+{
+  "id": "itunes",
+  "name": "iTunes",
+  "version": "1.0",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "iTunes Search API von Apple ohne Anmeldung: Titel, Album, Datum, Genre, Spur und Cover in hoher Auflösung. Langsam (etwa 20 Abfragen pro Minute). Wird von „Online-Metadaten“ genutzt.",
+  "notes": "Keine Zusatzpakete nötig.",
+  "fields": [
+    "TXXX:ITUNES_TRACK_ID"
+  ],
+  "service": {
+    "name": "iTunes Search API",
+    "kind": "online",
+    "home": "https://www.apple.com/apple-music/",
+    "docs": "https://performance-partners.apple.com/search-api",
+    "base": "https://itunes.apple.com",
+    "auth": "none",
+    "limits": "etwa 20 Abfragen pro Minute",
+    "terms": "https://www.apple.com/legal/internet-services/itunes/",
+    "endpoints": [
+      {
+        "id": "search",
+        "method": "GET",
+        "path": "/search",
+        "label": "Suche",
+        "status": "partial",
+        "use": "Online-Metadaten: Suche Künstler + Titel",
+        "note": "genutzt: term, media=music, entity=song, country",
+        "params": [
+          {
+            "name": "term",
+            "default": "Mara Lind Kaltes Glas",
+            "required": true
+          },
+          {
+            "name": "media",
+            "default": "music"
+          },
+          {
+            "name": "entity",
+            "default": "song"
+          },
+          {
+            "name": "limit",
+            "default": "10"
+          },
+          {
+            "name": "country",
+            "default": "CH"
+          }
+        ]
+      },
+      {
+        "id": "lookup",
+        "method": "GET",
+        "path": "/lookup",
+        "label": "Nachschlagen über ID, UPC oder ISRC",
+        "status": "none",
+        "note": "z. B. id=…, upc=…, isrc=…",
+        "params": [
+          {
+            "name": "id",
+            "default": ""
+          },
+          {
+            "name": "isrc",
+            "default": ""
+          },
+          {
+            "name": "upc",
+            "default": ""
+          },
+          {
+            "name": "entity",
+            "default": "song"
+          }
+        ]
+      }
+    ]
+  }
+}

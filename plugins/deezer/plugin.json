@@ -1,0 +1,216 @@
+{
+  "id": "deezer",
+  "name": "Deezer",
+  "version": "1.0",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Öffentliche Deezer-API ohne Anmeldung: Titel über ISRC oder Suche, Album mit Label und Genre, BPM, Cover. Wird von „Online-Metadaten“ und „Entdecken“ (neue Veröffentlichungen, ähnliche Künstler, 30-s-Vorhören) genutzt.",
+  "notes": "Keine Zusatzpakete nötig.",
+  "fields": [
+    "TXXX:DEEZER_TRACK_ID"
+  ],
+  "service": {
+    "name": "Deezer API",
+    "kind": "online",
+    "home": "https://www.deezer.com",
+    "docs": "https://developers.deezer.com/api",
+    "base": "https://api.deezer.com",
+    "auth": "none",
+    "limits": "Grenze nicht verlässlich dokumentiert – TagStudio fragt höchstens etwa 6-mal pro Sekunde",
+    "terms": "https://developers.deezer.com/termsofuse",
+    "endpoints": [
+      {
+        "id": "track-isrc",
+        "method": "GET",
+        "path": "/track/isrc:{isrc}",
+        "label": "Titel über ISRC",
+        "status": "full",
+        "use": "Online-Metadaten: Suche über ISRC",
+        "params": [
+          {
+            "name": "isrc",
+            "default": "CHA012100002",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "search-track",
+        "method": "GET",
+        "path": "/search/track",
+        "label": "Titel suchen (erweiterte Suche)",
+        "status": "full",
+        "use": "Online-Metadaten: Suche",
+        "note": "q mit track:\"…\" artist:\"…\"",
+        "params": [
+          {
+            "name": "q",
+            "default": "track:\"Kaltes Glas\" artist:\"Mara Lind\"",
+            "required": true
+          },
+          {
+            "name": "limit",
+            "default": "10"
+          }
+        ]
+      },
+      {
+        "id": "search",
+        "method": "GET",
+        "path": "/search",
+        "label": "Freie Suche",
+        "status": "partial",
+        "use": "Online-Metadaten (Ersatz), Entdecken: Label-Suche",
+        "note": "genutzt: q, auch label:\"…\"",
+        "params": [
+          {
+            "name": "q",
+            "default": "Mara Lind Kaltes Glas",
+            "required": true
+          },
+          {
+            "name": "limit",
+            "default": "10"
+          }
+        ]
+      },
+      {
+        "id": "search-artist",
+        "method": "GET",
+        "path": "/search/artist",
+        "label": "Künstler suchen",
+        "status": "full",
+        "use": "Entdecken: gefolgte Künstler",
+        "params": [
+          {
+            "name": "q",
+            "default": "Mara Lind",
+            "required": true
+          },
+          {
+            "name": "limit",
+            "default": "5"
+          }
+        ]
+      },
+      {
+        "id": "search-album",
+        "method": "GET",
+        "path": "/search/album",
+        "label": "Alben suchen",
+        "status": "none",
+        "params": [
+          {
+            "name": "q",
+            "default": "Nachtfahrt",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "track",
+        "method": "GET",
+        "path": "/track/{id}",
+        "label": "Ein Titel",
+        "status": "full",
+        "use": "Online-Metadaten: Details (BPM, Spur, Datum)"
+      },
+      {
+        "id": "album",
+        "method": "GET",
+        "path": "/album/{id}",
+        "label": "Ein Album",
+        "status": "partial",
+        "use": "Details: Label, Genre, Datum; Entdecken: Titel eines Albums",
+        "note": "genutzt: label, genres, release_date, tracks"
+      },
+      {
+        "id": "album-upc",
+        "method": "GET",
+        "path": "/album/upc:{upc}",
+        "label": "Album über UPC/EAN",
+        "status": "none"
+      },
+      {
+        "id": "artist",
+        "method": "GET",
+        "path": "/artist/{id}",
+        "label": "Ein Künstler",
+        "status": "none"
+      },
+      {
+        "id": "artist-albums",
+        "method": "GET",
+        "path": "/artist/{id}/albums",
+        "label": "Alben eines Künstlers",
+        "status": "full",
+        "use": "Entdecken: neue Veröffentlichungen",
+        "params": [
+          {
+            "name": "id",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "limit",
+            "default": "25"
+          }
+        ]
+      },
+      {
+        "id": "artist-related",
+        "method": "GET",
+        "path": "/artist/{id}/related",
+        "label": "Ähnliche Künstler",
+        "status": "full",
+        "use": "Entdecken: Vorschläge",
+        "params": [
+          {
+            "name": "id",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "limit",
+            "default": "10"
+          }
+        ]
+      },
+      {
+        "id": "artist-top",
+        "method": "GET",
+        "path": "/artist/{id}/top",
+        "label": "Beliebteste Titel eines Künstlers",
+        "status": "none"
+      },
+      {
+        "id": "chart",
+        "method": "GET",
+        "path": "/chart",
+        "label": "Charts",
+        "status": "none"
+      },
+      {
+        "id": "genre",
+        "method": "GET",
+        "path": "/genre",
+        "label": "Genres",
+        "status": "none"
+      },
+      {
+        "id": "editorial",
+        "method": "GET",
+        "path": "/editorial",
+        "label": "Redaktionelle Auswahl",
+        "status": "none"
+      },
+      {
+        "id": "playlist",
+        "method": "GET",
+        "path": "/playlist/{id}",
+        "label": "Eine Playlist",
+        "status": "none"
+      }
+    ]
+  }
+}

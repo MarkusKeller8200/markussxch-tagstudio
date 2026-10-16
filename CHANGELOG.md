@@ -14,6 +14,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   aber nie angezeigt; nur lesende Endpunkte). Plugins › „Integrationen …“ zeigt alle Dienste und Endpunkte auf einen
   Blick, inklusive der Update-Prüfung im Kern. Zuerst für LRCLIB, Beatport und Lexicon (27 Endpunkte laut offizieller
   OpenAPI-Beschreibung).
+- **Eigene Plugins für MusicBrainz, AcoustID, Deezer, iTunes, Discogs und Last.fm (#204, Teil 2):** jedes mit
+  API-Link, Endpunkt-Tabelle, Testabfrage und API-Tester. „Online-Metadaten“ ist jetzt die gemeinsame Suche über die
+  eingeschalteten Dienst-Plugins – ausgeschaltete Dienste erscheinen im Dialog als Hinweis. Schlüssel (Discogs-Token,
+  Last.fm, AcoustID + fpcalc) trägt man im jeweiligen Plugin ein; bereits gespeicherte werden beim ersten Start
+  einmalig und verschlüsselt übernommen. Eine gemeinsame Drosselung je Dienst gilt für alle Plugins.
 - **Filter je Spalte im Tagger (#202):** Filterzeile unter den Spaltenköpfen – je Spalte ein Suchfeld (mehrere Wörter,
   Reihenfolge egal), Zahlenspalten auch mit `>120`, `<=5` oder `120-128`; wirkt zusammen mit dem Suchfeld oben.
   **Esc** leert ein Feld, **×** alle, Knopf „Filter“ blendet die Zeile aus.

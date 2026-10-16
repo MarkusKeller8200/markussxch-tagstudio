@@ -1,10 +1,9 @@
 {
   "id": "online",
   "name": "Online-Metadaten",
-  "version": "1.0",
+  "version": "2.0",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
-  "description": "Ergänzt Tags aus MusicBrainz (optional mit AcoustID-Fingerabdruck), Deezer, iTunes, Discogs und Last.fm – mit Vorschau, nichts wird ohne Bestätigung geändert. Standard: nur leere Felder füllen. MusicBrainz, Deezer und iTunes brauchen keinen Schlüssel; Discogs, Last.fm und AcoustID mit deinem eigenen Schlüssel (verschlüsselt gespeichert) – Anleitung mit Links unter „Schlüssel …“.",
-  "notes": "Keine Zusatzpakete nötig. AcoustID braucht zusätzlich das Programm fpcalc (Chromaprint).",
-  "fields": ["TXXX:DEEZER_TRACK_ID", "TXXX:ITUNES_TRACK_ID", "TXXX:DISCOGS_RELEASE_ID", "TXXX:LASTFM_TAGS"]
+  "description": "Gemeinsame Suche über die Dienst-Plugins MusicBrainz (optional mit AcoustID-Fingerabdruck), Discogs, Deezer, iTunes und Last.fm – mit Vorschau, nichts wird ohne Bestätigung geändert. Standard: nur leere Felder füllen. Welche Dienste zur Wahl stehen, bestimmen die eingeschalteten Dienst-Plugins; Schlüssel trägst du dort unter „Schlüssel …“ ein.",
+  "notes": "Keine Zusatzpakete nötig. Die Dienste sind eigene Plugins (seit 4.6)."
 }

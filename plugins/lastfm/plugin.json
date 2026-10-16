@@ -1,0 +1,311 @@
+{
+  "id": "lastfm",
+  "name": "Last.fm",
+  "version": "1.0",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Last.fm-Tags als Vorschlag für Genre und Stimmung (nie vorausgewählt). Eigener, kostenloser API-Schlüssel – Anleitung unter „Schlüssel …“. Wird von „Online-Metadaten“ genutzt.",
+  "notes": "Keine Zusatzpakete nötig.",
+  "fields": [
+    "TXXX:LASTFM_TAGS"
+  ],
+  "service": {
+    "name": "Last.fm API",
+    "kind": "online",
+    "home": "https://www.last.fm",
+    "docs": "https://www.last.fm/api",
+    "base": "https://ws.audioscrobbler.com/2.0",
+    "auth": "key",
+    "auth_note": "Eigener API-Schlüssel (last.fm › API-Konto erstellen); verschlüsselt gespeichert.",
+    "terms": "https://www.last.fm/api/tos",
+    "note": "Die Last.fm-API hat eine einzige Adresse; die Methode steht im Parameter method.",
+    "endpoints": [
+      {
+        "id": "track-toptags",
+        "method": "GET",
+        "path": "/",
+        "label": "Beliebteste Tags eines Titels",
+        "status": "full",
+        "use": "Online-Metadaten: Tags als Vorschlag",
+        "note": "Tags mit mindestens 10 Stimmen, höchstens 5",
+        "params": [
+          {
+            "name": "method",
+            "default": "track.getTopTags",
+            "required": true
+          },
+          {
+            "name": "artist",
+            "default": "Mara Lind",
+            "required": true
+          },
+          {
+            "name": "track",
+            "default": "Nordlicht",
+            "required": true
+          },
+          {
+            "name": "autocorrect",
+            "default": "1"
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "tag-info",
+        "method": "GET",
+        "path": "/",
+        "label": "Ein Tag",
+        "status": "full",
+        "use": "Verbindung testen (Schlüssel prüfen)",
+        "params": [
+          {
+            "name": "method",
+            "default": "tag.getInfo",
+            "required": true
+          },
+          {
+            "name": "tag",
+            "default": "house",
+            "required": true
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "track-info",
+        "method": "GET",
+        "path": "/",
+        "label": "Titel-Informationen",
+        "status": "partial",
+        "use": "Testabfrage",
+        "note": "nur in der Testabfrage",
+        "params": [
+          {
+            "name": "method",
+            "default": "track.getInfo",
+            "required": true
+          },
+          {
+            "name": "artist",
+            "default": "Mara Lind",
+            "required": true
+          },
+          {
+            "name": "track",
+            "default": "Nordlicht",
+            "required": true
+          },
+          {
+            "name": "autocorrect",
+            "default": "1"
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "track-search",
+        "method": "GET",
+        "path": "/",
+        "label": "Titel suchen",
+        "status": "none",
+        "params": [
+          {
+            "name": "method",
+            "default": "track.search",
+            "required": true
+          },
+          {
+            "name": "track",
+            "default": "Nordlicht",
+            "required": true
+          },
+          {
+            "name": "artist",
+            "default": ""
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "track-similar",
+        "method": "GET",
+        "path": "/",
+        "label": "Ähnliche Titel",
+        "status": "none",
+        "params": [
+          {
+            "name": "method",
+            "default": "track.getSimilar",
+            "required": true
+          },
+          {
+            "name": "artist",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "track",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "artist-info",
+        "method": "GET",
+        "path": "/",
+        "label": "Künstler-Informationen",
+        "status": "none",
+        "params": [
+          {
+            "name": "method",
+            "default": "artist.getInfo",
+            "required": true
+          },
+          {
+            "name": "artist",
+            "default": "Mara Lind",
+            "required": true
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "artist-toptags",
+        "method": "GET",
+        "path": "/",
+        "label": "Tags eines Künstlers",
+        "status": "none",
+        "params": [
+          {
+            "name": "method",
+            "default": "artist.getTopTags",
+            "required": true
+          },
+          {
+            "name": "artist",
+            "default": "Mara Lind",
+            "required": true
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "artist-similar",
+        "method": "GET",
+        "path": "/",
+        "label": "Ähnliche Künstler",
+        "status": "none",
+        "params": [
+          {
+            "name": "method",
+            "default": "artist.getSimilar",
+            "required": true
+          },
+          {
+            "name": "artist",
+            "default": "Mara Lind",
+            "required": true
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "album-info",
+        "method": "GET",
+        "path": "/",
+        "label": "Album-Informationen",
+        "status": "none",
+        "params": [
+          {
+            "name": "method",
+            "default": "album.getInfo",
+            "required": true
+          },
+          {
+            "name": "artist",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "album",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "tag-toptracks",
+        "method": "GET",
+        "path": "/",
+        "label": "Beliebteste Titel eines Tags",
+        "status": "none",
+        "params": [
+          {
+            "name": "method",
+            "default": "tag.getTopTracks",
+            "required": true
+          },
+          {
+            "name": "tag",
+            "default": "house",
+            "required": true
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "scrobble",
+        "method": "POST",
+        "path": "/",
+        "label": "Wiedergabe melden (Scrobbeln)",
+        "status": "none",
+        "note": "braucht Anmeldung; TagStudio meldet nichts",
+        "params": [
+          {
+            "name": "method",
+            "default": "track.scrobble",
+            "required": true
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      }
+    ]
+  }
+}

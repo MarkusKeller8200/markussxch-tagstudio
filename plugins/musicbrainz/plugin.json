@@ -1,0 +1,283 @@
+{
+  "id": "musicbrainz",
+  "name": "MusicBrainz",
+  "version": "1.0",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Freie Musik-Datenbank: Aufnahmen über ISRC oder Titel/Künstler, Veröffentlichung mit Label, Katalognummer, Datum, Spur und MusicBrainz-IDs; Cover aus dem Cover Art Archive. Ohne Schlüssel. Wird von „Online-Metadaten“ und AcoustID genutzt.",
+  "notes": "Keine Zusatzpakete nötig.",
+  "service": {
+    "name": "MusicBrainz",
+    "kind": "online",
+    "home": "https://musicbrainz.org",
+    "docs": "https://musicbrainz.org/doc/MusicBrainz_API",
+    "base": "https://musicbrainz.org/ws/2",
+    "auth": "none",
+    "limits": "im Mittel 1 Anfrage/s, eigener User-Agent (Pflicht)",
+    "terms": "https://musicbrainz.org/doc/About/Data_License",
+    "note": "Cover kommen vom Cover Art Archive (coverartarchive.org, eigene Adresse).",
+    "endpoints": [
+      {
+        "id": "isrc",
+        "method": "GET",
+        "path": "/isrc/{isrc}",
+        "label": "Aufnahmen zu einer ISRC",
+        "status": "full",
+        "use": "Online-Metadaten: Suche über ISRC",
+        "params": [
+          {
+            "name": "isrc",
+            "default": "CHA012100001",
+            "required": true
+          },
+          {
+            "name": "inc",
+            "default": "artists+releases+isrcs"
+          },
+          {
+            "name": "fmt",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "recording-search",
+        "method": "GET",
+        "path": "/recording",
+        "label": "Aufnahmen suchen (Lucene)",
+        "status": "partial",
+        "use": "Online-Metadaten: Suche Titel + Künstler",
+        "note": "genutzt: recording, artist",
+        "params": [
+          {
+            "name": "query",
+            "default": "recording:\"Nordlicht\" AND artist:\"Mara Lind\"",
+            "required": true
+          },
+          {
+            "name": "limit",
+            "default": "10"
+          },
+          {
+            "name": "fmt",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "recording",
+        "method": "GET",
+        "path": "/recording/{mbid}",
+        "label": "Eine Aufnahme",
+        "status": "full",
+        "use": "AcoustID: Aufnahme zum Fingerabdruck",
+        "params": [
+          {
+            "name": "mbid",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "inc",
+            "default": "artists+releases+isrcs"
+          },
+          {
+            "name": "fmt",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "release",
+        "method": "GET",
+        "path": "/release/{mbid}",
+        "label": "Eine Veröffentlichung",
+        "status": "partial",
+        "use": "Details: Label, Katalognummer, Datum, Spur/CD, IDs",
+        "note": "genutzt: labels, recordings, release-groups, artist-credits",
+        "params": [
+          {
+            "name": "mbid",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "inc",
+            "default": "labels+recordings+release-groups+artist-credits"
+          },
+          {
+            "name": "fmt",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "release-search",
+        "method": "GET",
+        "path": "/release",
+        "label": "Veröffentlichungen suchen",
+        "status": "none",
+        "params": [
+          {
+            "name": "query",
+            "default": "release:\"Nachtfahrt EP\"",
+            "required": true
+          },
+          {
+            "name": "fmt",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "release-group",
+        "method": "GET",
+        "path": "/release-group/{mbid}",
+        "label": "Veröffentlichungsgruppe",
+        "status": "none",
+        "params": [
+          {
+            "name": "mbid",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "fmt",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "artist",
+        "method": "GET",
+        "path": "/artist/{mbid}",
+        "label": "Künstler",
+        "status": "none",
+        "params": [
+          {
+            "name": "mbid",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "fmt",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "artist-search",
+        "method": "GET",
+        "path": "/artist",
+        "label": "Künstler suchen",
+        "status": "none",
+        "params": [
+          {
+            "name": "query",
+            "default": "artist:\"Mara Lind\"",
+            "required": true
+          },
+          {
+            "name": "fmt",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "label",
+        "method": "GET",
+        "path": "/label/{mbid}",
+        "label": "Label",
+        "status": "none",
+        "params": [
+          {
+            "name": "mbid",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "fmt",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "work",
+        "method": "GET",
+        "path": "/work/{mbid}",
+        "label": "Werk (Komposition)",
+        "status": "none",
+        "params": [
+          {
+            "name": "mbid",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "fmt",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "browse-recording",
+        "method": "GET",
+        "path": "/recording",
+        "label": "Aufnahmen eines Künstlers/Release durchblättern",
+        "status": "none",
+        "note": "browse mit artist=/release=",
+        "params": [
+          {
+            "name": "artist",
+            "default": ""
+          },
+          {
+            "name": "release",
+            "default": ""
+          },
+          {
+            "name": "fmt",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "discid",
+        "method": "GET",
+        "path": "/discid/{discid}",
+        "label": "CD über Disc-ID",
+        "status": "none",
+        "params": [
+          {
+            "name": "discid",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "fmt",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "caa-release",
+        "method": "GET",
+        "path": "/release/{mbid}/front-1200",
+        "label": "Cover Art Archive: Frontcover (1200 px)",
+        "status": "full",
+        "use": "Online-Metadaten: Cover",
+        "note": "Adresse coverartarchive.org",
+        "test": false
+      },
+      {
+        "id": "caa-index",
+        "method": "GET",
+        "path": "/release/{mbid}",
+        "label": "Cover Art Archive: alle Bilder einer Veröffentlichung",
+        "status": "none",
+        "note": "Adresse coverartarchive.org",
+        "test": false
+      }
+    ]
+  }
+}

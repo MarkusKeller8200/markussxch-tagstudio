@@ -1,0 +1,92 @@
+{
+  "id": "acoustid",
+  "name": "AcoustID",
+  "version": "1.0",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Erkennt Titel ohne brauchbare Tags am Klang (Fingerabdruck mit fpcalc/Chromaprint) und findet die passende MusicBrainz-Aufnahme. Eigener, kostenloser Anwendungs-Schlüssel nötig – Anleitung unter „Schlüssel …“. Wird von „Online-Metadaten“ genutzt (braucht das Plugin MusicBrainz).",
+  "notes": "Braucht das Programm fpcalc (Chromaprint).",
+  "service": {
+    "name": "AcoustID",
+    "kind": "online",
+    "home": "https://acoustid.org",
+    "docs": "https://acoustid.org/webservice",
+    "base": "https://api.acoustid.org/v2",
+    "auth": "key",
+    "auth_note": "Eigener Anwendungs-Schlüssel (acoustid.org › Anwendung registrieren); verschlüsselt gespeichert.",
+    "limits": "höchstens 3 Anfragen/s",
+    "terms": "https://acoustid.org/webservice",
+    "note": "Testabfrage ohne Track gibt es hier nicht – AcoustID braucht den Fingerabdruck einer Datei. Im API-Tester lässt sich eine AcoustID-Kennung nachschlagen.",
+    "endpoints": [
+      {
+        "id": "lookup",
+        "method": "GET",
+        "path": "/lookup",
+        "label": "Titel über Fingerabdruck finden",
+        "status": "partial",
+        "use": "Online-Metadaten: Titel ohne brauchbare Tags",
+        "note": "genutzt: fingerprint + duration, meta=recordings",
+        "params": [
+          {
+            "name": "trackid",
+            "default": "",
+            "required": "",
+            "label": "trackid (AcoustID-Kennung)"
+          },
+          {
+            "name": "meta",
+            "default": "recordings"
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "list-by-mbid",
+        "method": "GET",
+        "path": "/track/list_by_mbid",
+        "label": "AcoustID-Kennungen zu einer MusicBrainz-Aufnahme",
+        "status": "none",
+        "params": [
+          {
+            "name": "mbid",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      },
+      {
+        "id": "submit",
+        "method": "POST",
+        "path": "/submit",
+        "label": "Fingerabdruck beitragen",
+        "status": "none",
+        "note": "TagStudio lädt nichts hoch"
+      },
+      {
+        "id": "submission-status",
+        "method": "GET",
+        "path": "/submission_status",
+        "label": "Stand eines Beitrags",
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "format",
+            "default": "json"
+          }
+        ]
+      }
+    ]
+  }
+}

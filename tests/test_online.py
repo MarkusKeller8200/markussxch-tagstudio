@@ -1,4 +1,4 @@
-"""Tests für das Plugin „Online-Metadaten“ (#6–#8) mit nachgebauten Diensten (kein Netz nötig).
+"""Tests für „Online-Metadaten“ (#6–#8) und die Dienst-Plugins (#204) mit nachgebauten Diensten (kein Netz nötig).
 Die Antworten folgen den dokumentierten Formaten von MusicBrainz, Cover Art Archive, Deezer, iTunes, Discogs, Last.fm."""
 import json
 import os
@@ -155,18 +155,17 @@ class TestOnlinePlugin(Base):
         self.fake = FakeOnline()
         p = self.s.plugins.get("online")
         self.assertIsNotNone(p, "Plugin fehlt")
-        mod = p.load()
-        self.assertIsNotNone(mod, p.error)
-        self.mod, self._orig = mod, mod.http_get
-        mod.http_get = self.fake
-        self._iv = dict(mod.INTERVALS)
-        for k in mod.INTERVALS:
-            mod.INTERVALS[k] = 0
+        self.assertIsNotNone(p.load(), p.error)
+        self._orig = onlinematch.http_get                      # alle Dienst-Plugins rufen über onlinematch ab
+        onlinematch.http_get = self.fake
+        self._iv = dict(onlinematch.INTERVALS)
+        for k in onlinematch.INTERVALS:
+            onlinematch.INTERVALS[k] = 0
         self.idx = {os.path.basename(f.path): i for i, f in enumerate(self.s.tag_files)}
 
     def tearDown(self):
-        self.mod.http_get = self._orig
-        self.mod.INTERVALS.update(self._iv)
+        onlinematch.http_get = self._orig
+        onlinematch.INTERVALS.update(self._iv)
         super().tearDown()
 
     def wait(self):
@@ -177,8 +176,8 @@ class TestOnlinePlugin(Base):
             time.sleep(0.02)
         self.fail("hängt")
 
-    def act(self, aid, idx=None, **opts):
-        r = self.s.start_plugin_action("online", aid, idx or [], opts)
+    def act(self, aid, idx=None, pid="online", **opts):
+        r = self.s.start_plugin_action(pid, aid, idx or [], opts)
         self.assertTrue(r["ok"], r)
         return self.wait()
 
@@ -231,7 +230,8 @@ class TestOnlinePlugin(Base):
 
     def test_priority_and_alternatives(self):
         # Nordlicht: MusicBrainz und Discogs liefern Label – nur MusicBrainz (Vorrang) vorausgewählt
-        self.act("keys", discogs="DTOK", lastfm="LKEY", acoustid="", fpcalc="", clear="")
+        self.act("keys", pid="discogs", discogs="DTOK")
+        self.act("keys", pid="lastfm", lastfm="LKEY")
         res = self.fetch(["n.mp3"], discogs=True, deezer=False, lastfm=True, genre=True)
         by = {(r["label"]): r for r in res["proposals"]}
         self.assertTrue(by["Label (MusicBrainz)"]["checked"])
@@ -254,7 +254,7 @@ class TestOnlinePlugin(Base):
     def test_keys_status_test_and_missing(self):
         info = {p["id"]: p for p in self.s.plugins_list()["plugins"]}["online"]
         self.assertEqual(info["state"], "ready")
-        self.assertIn("Schlüssel: keine", info["status_text"])
+        self.assertIn("ohne Schlüssel/fpcalc: Discogs, AcoustID, Last.fm", info["status_text"])
         # Discogs/Last.fm ohne Schlüssel: übersprungen mit Hinweis, kein Fehler
         res = self.fetch(["k.mp3"], mb=False, deezer=False, itunes=True, discogs=True, lastfm=True, cover="replace",
                          itunes_country="de")
@@ -269,19 +269,57 @@ class TestOnlinePlugin(Base):
         # keine Quelle → verständlicher Fehler
         st = self.act("fetch", [0], mb=False, deezer=False, itunes=False, discogs=False, lastfm=False)
         self.assertIn("Keine Quelle", st["error"])
-        # Schlüssel speichern, Status, Test, Löschen
-        self.act("keys", discogs="DTOK", lastfm="", acoustid="", fpcalc="", clear="")
-        info = {p["id"]: p for p in self.s.plugins_list()["plugins"]}["online"]
-        self.assertIn("Discogs", info["status_text"])
-        with open(os.path.join(plugins.data_root(), "online", "keys.bin"), "rb") as fh:
+        # Schlüssel im Dienst-Plugin speichern, Status, Test, Löschen
+        self.act("keys", pid="discogs", discogs="DTOK")
+        info = {p["id"]: p for p in self.s.plugins_list()["plugins"]}
+        self.assertIn("Token gespeichert", info["discogs"]["status_text"])
+        self.assertIn("ohne Schlüssel/fpcalc: AcoustID, Last.fm", info["online"]["status_text"])
+        with open(os.path.join(plugins.data_root(), "discogs", "keys.bin"), "rb") as fh:
             raw = fh.read()
         if os.name == "nt":
             self.assertNotIn(b"DTOK", raw)                       # Windows: DPAPI-verschlüsselt
         msg = self.act("test")["result"]["message"]
-        self.assertIn("4 von 4", msg)
-        self.act("keys", discogs="", lastfm="", acoustid="", fpcalc="", clear="all")
-        self.assertIn("Schlüssel: keine", {p["id"]: p for p in self.s.plugins_list()["plugins"]}["online"]["status_text"])
+        self.assertIn("Discogs: in Ordnung", msg)
+        self.assertIn("MusicBrainz: in Ordnung", msg)
+        self.act("keys", pid="discogs", clear=True)
+        self.assertIn("kein Token", {p["id"]: p for p in self.s.plugins_list()["plugins"]}["discogs"]["status_text"])
+        # ausgeschaltetes Dienst-Plugin: keine Quelle zur Wahl, Hinweis, beim Holen übersprungen
+        self.s.plugin_enable("deezer", False)
+        opts = [o for o in self.s.plugins.get("online").actions()[0]["options"]]
+        self.assertNotIn("deezer", [o.get("key") for o in opts])
+        self.assertTrue(any("Deezer" in o.get("label", "") and o["type"] == "info" for o in opts))
+        self.fake.calls.clear()
+        self.fetch(["k.mp3"], mb=False, itunes=True)
+        self.assertFalse([c for c in self.fake.calls if c[0] == "api.deezer.com"])
 
+    def test_key_migration_from_online(self):
+        """Bis 4.5 lagen alle Schlüssel bei „Online-Metadaten“ – die Dienst-Plugins übernehmen sie einmalig."""
+        import servicekit
+        d = os.path.join(plugins.data_root(), "online")
+        os.makedirs(d, exist_ok=True)
+        class C:                                                  # noqa: E306
+            data_dir = d
+            def log(self, *a):
+                pass
+        servicekit.save_keys(C(), {"discogs": "DTOK", "lastfm": "LKEY"})
+        info = {p["id"]: p for p in self.s.plugins_list()["plugins"]}
+        self.assertIn("Token gespeichert", info["discogs"]["status_text"])
+        self.assertIn("Schlüssel gespeichert", info["lastfm"]["status_text"])
+        self.assertTrue(os.path.exists(os.path.join(plugins.data_root(), "discogs", "keys.bin")))
+
+    def test_service_test_query(self):
+        """#204: Testabfrage ohne Track im Integrationsfenster."""
+        r = self.s.start_service_test("musicbrainz", {"isrc": "CHA012100001"})
+        self.assertTrue(r["ok"], r)
+        res = self.wait()["result"]
+        self.assertEqual(res["rows"][0]["title"], "Nordlicht")
+        self.assertTrue(res["rows"][0]["sure"])
+        self.s.start_service_test("deezer", {"artist": "Mara Lind", "title": "Kaltes Glas"})
+        st = self.wait()
+        self.assertIsNone(st["error"], st)
+        self.assertEqual(st["result"]["rows"][0]["id"], "3001")
+        self.s.start_service_test("discogs", {"artist": "Mara Lind", "title": "Nordlicht"})
+        self.assertIn("Token", self.wait()["error"])
 
     @unittest.skipIf(os.name == "nt", "nachgebautes fpcalc als Shell-Skript")
     def test_acoustid_for_untagged(self):
@@ -290,8 +328,8 @@ class TestOnlinePlugin(Base):
         with open(fp, "w") as fh:
             fh.write(f"#!{sys.executable}\nimport json; print(json.dumps({{'duration': 372.4, 'fingerprint': 'AQADtEmUaEkS'}}))\n")
         os.chmod(fp, 0o700)
-        self.act("keys", discogs="", lastfm="", acoustid="AKEY", fpcalc=fp, clear="")
-        self.assertIn("fpcalc gefunden", {p["id"]: p for p in self.s.plugins_list()["plugins"]}["online"]["status_text"])
+        self.act("keys", pid="acoustid", acoustid="AKEY", fpcalc=fp)
+        self.assertIn("fpcalc gefunden", {p["id"]: p for p in self.s.plugins_list()["plugins"]}["acoustid"]["status_text"])
         res = self.fetch(["u.mp3"], deezer=False, acoustid=True, names=True)
         by = {r["label"]: r for r in res["proposals"]}
         self.assertEqual(by["Titel (MusicBrainz)"]["new"], "Nordlicht")       # über den Fingerabdruck gefunden
@@ -299,7 +337,7 @@ class TestOnlinePlugin(Base):
         self.assertTrue(by["Album (MusicBrainz)"]["checked"])
         self.assertNotIn("AKEY", json.dumps(res))
         # ohne fpcalc: verständlich übersprungen
-        self.act("keys", discogs="", lastfm="", acoustid="AKEY", fpcalc="/gibt/es/nicht", clear="")
+        self.act("keys", pid="acoustid", acoustid="", fpcalc="/gibt/es/nicht")
         old = os.environ.get("PATH", "")
         os.environ["PATH"] = ""
         try:

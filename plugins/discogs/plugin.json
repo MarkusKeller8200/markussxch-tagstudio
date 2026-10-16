@@ -1,0 +1,135 @@
+{
+  "id": "discogs",
+  "name": "Discogs",
+  "version": "1.0",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Discogs-Datenbank mit eigenem, kostenlosem Token: Veröffentlichung mit Label, Katalognummer, Stil, Datum, Trackliste und Cover. Anleitung unter „Schlüssel …“. Wird von „Online-Metadaten“ genutzt.",
+  "notes": "Keine Zusatzpakete nötig.",
+  "fields": [
+    "TXXX:DISCOGS_RELEASE_ID"
+  ],
+  "service": {
+    "name": "Discogs API",
+    "kind": "online",
+    "home": "https://www.discogs.com",
+    "docs": "https://www.discogs.com/developers",
+    "base": "https://api.discogs.com",
+    "auth": "token",
+    "auth_note": "Persönlicher Token (discogs.com › Einstellungen › Entwickler); verschlüsselt gespeichert.",
+    "limits": "mit Token 60 Anfragen/min",
+    "terms": "https://support.discogs.com/hc/articles/360009334593",
+    "endpoints": [
+      {
+        "id": "search",
+        "method": "GET",
+        "path": "/database/search",
+        "label": "Datenbank durchsuchen",
+        "status": "partial",
+        "use": "Online-Metadaten: Veröffentlichungen zu Titel + Künstler",
+        "note": "genutzt: type=release, track, artist",
+        "params": [
+          {
+            "name": "type",
+            "default": "release"
+          },
+          {
+            "name": "track",
+            "default": "Nordlicht"
+          },
+          {
+            "name": "artist",
+            "default": "Mara Lind"
+          },
+          {
+            "name": "q",
+            "default": ""
+          },
+          {
+            "name": "per_page",
+            "default": "5"
+          }
+        ]
+      },
+      {
+        "id": "release",
+        "method": "GET",
+        "path": "/releases/{id}",
+        "label": "Eine Veröffentlichung",
+        "status": "full",
+        "use": "Details: Label, Katalognummer, Stil, Datum, Trackliste, Cover"
+      },
+      {
+        "id": "master",
+        "method": "GET",
+        "path": "/masters/{id}",
+        "label": "Master-Veröffentlichung",
+        "status": "none"
+      },
+      {
+        "id": "master-versions",
+        "method": "GET",
+        "path": "/masters/{id}/versions",
+        "label": "Alle Fassungen eines Masters",
+        "status": "none"
+      },
+      {
+        "id": "artist",
+        "method": "GET",
+        "path": "/artists/{id}",
+        "label": "Künstler",
+        "status": "none"
+      },
+      {
+        "id": "artist-releases",
+        "method": "GET",
+        "path": "/artists/{id}/releases",
+        "label": "Veröffentlichungen eines Künstlers",
+        "status": "none"
+      },
+      {
+        "id": "label",
+        "method": "GET",
+        "path": "/labels/{id}",
+        "label": "Label",
+        "status": "none"
+      },
+      {
+        "id": "label-releases",
+        "method": "GET",
+        "path": "/labels/{id}/releases",
+        "label": "Veröffentlichungen eines Labels",
+        "status": "none"
+      },
+      {
+        "id": "identity",
+        "method": "GET",
+        "path": "/oauth/identity",
+        "label": "Eigene Identität (Token prüfen)",
+        "status": "full",
+        "use": "Verbindung testen"
+      },
+      {
+        "id": "collection",
+        "method": "GET",
+        "path": "/users/{username}/collection/folders/0/releases",
+        "label": "Eigene Sammlung",
+        "status": "none"
+      },
+      {
+        "id": "wantlist",
+        "method": "GET",
+        "path": "/users/{username}/wants",
+        "label": "Eigene Wunschliste",
+        "status": "none"
+      },
+      {
+        "id": "marketplace",
+        "method": "GET",
+        "path": "/marketplace/stats/{release_id}",
+        "label": "Marktplatz-Statistik",
+        "status": "none"
+      }
+    ]
+  }
+}
