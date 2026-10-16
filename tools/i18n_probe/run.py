@@ -29,8 +29,19 @@ def ask(prompt: str, model: str, token: str) -> tuple[str, dict]:
                 time.sleep(20 * (attempt + 1))
                 continue
             # nur Status und Antworttext des Dienstes – nie den Token
-            raise SystemExit(f"Hugging Face: HTTP {ex.code} {ex.read()[:300].decode('utf-8', 'replace')}")
+            fail(f"Hugging Face: HTTP {ex.code} {ex.read()[:300].decode('utf-8', 'replace')}")
+        except (urllib.error.URLError, OSError, ValueError, KeyError) as ex:
+            fail(f"Hugging Face: {type(ex).__name__}: {ex}")
     raise SystemExit("Hugging Face: keine Antwort")
+
+
+def fail(msg: str):
+    """Fehlergrund als GitHub-Anmerkung und Kommentar – der Token steht nie darin."""
+    msg = msg.replace(os.environ.get("HF_TOKEN", "") or "\0", "•••")
+    print(f"::error title=Probeübersetzung::{msg.replace(chr(10), ' ')}", flush=True)
+    with open(os.path.join(HERE, "report.md"), "w", encoding="utf-8") as fh:
+        fh.write(f"**Probeübersetzung fehlgeschlagen:** {msg}")
+    raise SystemExit(1)
 
 
 def parse(text: str):
@@ -48,7 +59,7 @@ def parse(text: str):
 def main():
     token = os.environ.get("HF_TOKEN", "")
     if not token:
-        raise SystemExit("Secret HF_TOKEN fehlt (Repository › Settings › Secrets and variables › Actions).")
+        fail("Secret HF_TOKEN fehlt oder ist leer (Repository › Settings › Secrets and variables › Actions).")
     model = os.environ.get("MODEL") or "swiss-ai/Apertus-v1.5-70B:publicai"
     report = [f"**Probeübersetzung mit `{model}`** (Workflow „Probeübersetzung“, #157)", ""]
     for lang in ("en", "gsw"):

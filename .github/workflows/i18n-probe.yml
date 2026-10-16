@@ -28,6 +28,7 @@ jobs:
           MODEL: ${{ inputs.model }}
         run: python tools/i18n_probe/run.py
       - name: Ergebnis in #157
+        if: always() && hashFiles('tools/i18n_probe/report.md') != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh issue comment 157 --repo "$GITHUB_REPOSITORY" --body-file tools/i18n_probe/report.md
