@@ -945,6 +945,47 @@ class UiTest(unittest.TestCase):
         self.assertEqual(sorted(snaps), [["Baseline", True], ["Wichtig", False]])
         pg.wait_for_selector("#snSnaps .sn-base")
 
+    def test_lyrics_plugin(self):
+        """#183: Plugin Liedtexte – Einstellungen (.lrc, Sprache) auf der Plugin-Seite, Formular im Tagger,
+        mehrzeilige Werte in der Vorschau. Die LRCLIB-Abfrage selbst prüft tests/test_lyrics.py (ohne Netz)."""
+        pg = self.pg
+        pg.click('.nav[data-module="plugins"]')
+        card = '.pl-card[data-pid="lyrics"]'
+        pg.wait_for_selector(card)
+        if not pg.locator(card + " [data-enable]").is_checked():
+            pg.click(card + " .switch")
+            pg.wait_for_selector(card + ' [data-paction="settings"]')
+        self.assertIn(".lrc-Datei: nein", pg.inner_text(card))
+        pg.click(card + ' [data-paction="settings"]')
+        pg.wait_for_selector('#modal [data-ok="lrc"]')
+        self.assertFalse(pg.locator('#modal [data-ok="lrc"]').is_checked())
+        pg.check('#modal [data-ok="lrc"]')
+        pg.fill('#modal [data-ok="lang"]', "deu")
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("document.querySelector('#modal').textContent.includes('.lrc-Datei ja')"))
+        pg.click("#mBtns button >> nth=0")
+        pg.wait_for_function(f"document.querySelector('{card}').textContent.includes('.lrc-Datei: ja · Sprache: deu')")
+        # Formular im Tagger: Auswahl USLT/SYLT, Hinweis auf die Einstellungen (ohne Netzabfrage abbrechen)
+        self.load_tagger()
+        pg.click(".tg-row >> nth=0")
+        pg.click('#tgPlugins [data-plugin="lyrics"][data-action="fetch"]')
+        pg.wait_for_selector('#modal [data-ok="what"]')
+        self.assertEqual(pg.locator('#modal [data-ok="what"]').input_value(), "both")
+        self.assertIn("Einstellungen", pg.inner_text("#modal"))
+        self.assertEqual(pg.locator('#modal [data-ok="lrc"]').count(), 0)        # .lrc nur in den Einstellungen
+        pg.click("#mBtns button >> text=Abbrechen")
+        # Vorschau: mehrzeiliger Liedtext mit Umbrüchen, begrenzte Höhe
+        pg.evaluate("""void pluginPreview({label: 'Liedtexte suchen (LRCLIB) …'}, {message: 'Test', proposals: [
+            {id: 0, name: 'a.mp3', group: 'a.mp3', gkey: 'a', folder: '', label: 'Liedtext (USLT)', old: '',
+             new: ['Zeile 1', 'Zeile 2', 'Zeile 3'].join(String.fromCharCode(10)), note: '', checked: true, kind: 'text', hint: '', same: false}]})""")
+        pg.wait_for_selector("#modal .pv-val")
+        style = pg.evaluate("getComputedStyle(document.querySelector('#modal td.new .pv-val')).whiteSpace")
+        self.assertEqual(style, "pre-line")
+        self.assertGreater(pg.evaluate("document.querySelector('#modal td.new .pv-val').getClientRects().length && "
+                                       "document.querySelector('#modal td.new .pv-val').offsetHeight"), 30)
+        pg.click("#mBtns button >> text=Abbrechen")
+        self.assertEqual(self.errors, [])
+
     def test_online_plugin(self):
         """#6–#8: Plugin Online-Metadaten – Schlüssel speichern (nie in der Konfiguration), Formular im Tagger."""
         pg = self.pg

@@ -36,6 +36,7 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 | `beatunes` | beaTunes-Stimmungswerte als Audio-Merkmale |
 | `lexicon` | Werte über die Lexicon Local API |
 | `loudness` | LUFS, True Peak, Lautheitsbereich, Clipping; angeglichene Kopie |
+| `lyrics` | Liedtexte von LRCLIB (#183): `USLT`, `SYLT`, optional `.lrc` neben dem MP3 |
 
 ## 4. Umsetzung
 
@@ -46,6 +47,22 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 - **Oberfläche:** `web/plugins.js` (Seite, Formulare, Ergebnisdialog), `web/jobs.js` (Aufträge in der Fusszeile).
 - **Einstellungen:** `plugins_enabled`, `plugin_options`, `plugin_settings`; Daten unter `Plugin-Daten/<id>` (siehe
   [KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md)).
+
+### Liedtexte (`plugins/lyrics`, #183, Entscheide 16.10.2026)
+
+- LRCLIB ohne Schlüssel; User-Agent mit Projektadresse, höchstens 2 Anfragen/s, nacheinander; 429/503 mit
+  `Retry-After` über `onlinematch.Client`.
+- Abfrage: `/api/get` (Künstler, Titel inkl. Mix, Album, Dauer) nur mit Album und Dauer; 400/404 → `/api/search`
+  (Titel, erster Künstler). Bewertung `version_score` = `onlinematch.score`, abweichende Fassung (Remix, Live,
+  Acoustic …; Extended Mix/Radio Edit gelten als Original) −0,15 und höchstens „unsicher“.
+- Vorschläge (Vorschau mit Häkchen): normaler Text → `USLT:` (Text aus LRC abgeleitet, falls nur dieser vorliegt),
+  synchronisiert → `SYLT` (Rohframe: UTF-16 mit BOM, Zeitformat ms, Inhalt Liedtext), `TXXX:LRCLIB_ID`. Vorhandener
+  Liedtext/SYLT/.lrc: nie vorausgewählt, Hinweis „nur mit Häkchen ersetzen“. Instrumental: kein Vorschlag.
+- `.lrc`-Datei nur, wenn in Plugins › Liedtexte › „Einstellungen …“ eingeschaltet (`settings.json` im Datenordner,
+  zusammen mit der Sprache ISO-639-2). Geschrieben beim Übernehmen (nicht beim Speichern), nur neben dem eigenen MP3
+  mit gleichem Namen (`Session._sidecar_ok`). Neue Vorschlagsarten in `Context.propose`: `frame` und `file`.
+- Liedtexte sind geschützt: nur eigener Gebrauch, nie ins Repository; Tests nutzen erfundene Texte und einen
+  nachgebauten Dienst (`tests/test_lyrics.py`).
 
 ## 5. Entscheide
 
