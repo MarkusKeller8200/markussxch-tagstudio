@@ -91,6 +91,10 @@ In der Meldung zusätzlich „Feld künftig erlauben“ (übernimmt das Feld in 
 - Kopieren in den Zielordner (Namensschema wählbar), Prüfung auf Duplikate (gleicher Titel/Künstler/Mix oder
   gleicher Audio-Inhalt), Konflikte melden statt überschreiben.
 - Danach Snapshot der Bibliothek, damit spätere Änderungen anderer Programme im Journal erscheinen.
+- Die Kopie in der Bibliothek bekommt „In Bibliothek aufgenommen“ (`TXXX:TAGSTUDIO_ADDED`, #184; ein vorhandener Wert
+  bleibt, abschaltbar mit cfg `stamp_added`), die Datei im Eingang bleibt unverändert. Geänderte Tags bekommen beim
+  Speichern „Letzte Bearbeitung“ (`TXXX:TAGSTUDIO_EDITED`, #185). Beide Zeitstempel zählen nie als Verstoss gegen die
+  Schutzregel (`prepare.violations` überspringt `tsmeta.KEYS`). Details: [KONZEPT-TAGGER.md](KONZEPT-TAGGER.md) 5a.
 
 ### 7. Download gekaufter Titel (Beatport, später weitere)
 - Abgleich „gekauft“ ↔ „schon vorhanden“ und Download der fehlenden in den Eingangsordner.
