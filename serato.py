@@ -152,8 +152,34 @@ def overview_wave(data: bytes) -> dict | None:
     return {"peaks": peaks, "rms": rms, "source": "serato"}
 
 
+def tempomap(data: bytes) -> dict:
+    """„Serato Tempo Map“ (neuere Serato-Versionen, ersetzt „Serato BeatGrid“) – nicht öffentlich dokumentiert,
+    aus Beispielen erschlossen (#223). Big-Endian: Kopf 02 00, uint16 Ankerzahl, je Anker double Sekunden, …,
+    ab Byte 24 double BPM, danach double Notenwert (0,25 = Viertel). Gelesen wird nur das gleichbleibende Raster:
+    Anker + BPM; „first“ = frühester Schlag ≥ 0 (das Raster läuft vom Anker in beide Richtungen)."""
+    if len(data) < 40 or data[0] != 0x02:
+        raise ValueError("unbekannter Kopf")
+    anchors = struct.unpack(">H", data[2:4])[0]
+    anchor = struct.unpack(">d", data[4:12])[0]
+    bpm = struct.unpack(">d", data[24:32])[0]
+    if not anchors or not (20 <= bpm <= 400) or not (0 <= anchor < 36000):
+        raise ValueError("Werte unplausibel")
+    period = 60 / bpm
+    first = anchor % period
+    simple = len(data) == 49 and anchors == 1
+    markers = [{"pos": round(first, 4), "beats": None, "bpm": round(bpm, 3)}]
+    rows = [["Anker", f"{_mmss(anchor)} ({anchor:.3f} s)"], ["Tempo", f"{bpm:.3f} BPM"],
+            ["Erster Schlag", f"{_mmss(first)} ({first:.3f} s)"]]
+    if not simple:
+        rows.append(["Hinweis", "Aufbau weicht vom bekannten Beispiel ab (evtl. Tempowechsel) – nur der Anfang gelesen"])
+    return {"name": "BeatGrid", "tempo_map": True, "markers": markers, "bpm": round(bpm, 3), "first": round(first, 4),
+            "anchor": round(anchor, 4), "partial": not simple,
+            "summary": f"Tempo Map: {round(bpm, 2)} BPM, Anker {_mmss(anchor)}, erster Schlag {_mmss(first)}"
+                       + ("" if simple else " (nur Anfang gelesen)"), "rows": rows}
+
+
 DECODERS = {"Serato Analysis": analysis, "Serato Autotags": autotags, "Serato BeatGrid": beatgrid,
-            "Serato Markers2": markers2, "Serato Overview": overview}
+            "Serato Markers2": markers2, "Serato Overview": overview, "Serato Tempo Map": tempomap}
 
 
 def decode(desc: str, data: bytes) -> dict | None:
@@ -186,5 +212,10 @@ def of_file(f) -> dict:
                 continue
             d = decode(g.get("desc") or it.desc, g["data"])
             if d is not None:
+                if d["name"] == "BeatGrid" and "BeatGrid" in out:       # klassisches BeatGrid vor Tempo Map
+                    if d.get("tempo_map") or not out["BeatGrid"].get("tempo_map"):
+                        out["TempoMap"] = d
+                        continue
+                    out["TempoMap"] = out["BeatGrid"]
                 out[d["name"]] = d
     return out

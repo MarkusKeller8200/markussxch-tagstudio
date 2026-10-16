@@ -89,6 +89,12 @@ Tempo in Serato“, Tempo-Abweichung > 0,1 % → „Tempo weicht ab“, sonst Ab
 „Serato ≠ Analyse“. Kontextmenü „Beatgrid analysieren (auch Serato, zum Vergleich) …“. Die eigene Analyse kennt nur
 konstantes Tempo und keinen Taktanfang – eine Abweichung ist ein Hinweis zum Nachschauen, kein Fehlerbefund. Serato-Daten
 werden nie geschrieben; „Beatgrid in Tag speichern“ überspringt Serato-Titel weiterhin.
+**Serato Tempo Map (#223):** Neuere Serato-Versionen schreiben GEOB „Serato Tempo Map“ statt „Serato BeatGrid“.
+`serato.tempomap` (aus Beispielen erschlossen, Big-Endian): Byte 0 = 0x02, Byte 2–3 uint16 Ankerzahl, Byte 4–11 double
+Anker in Sekunden, Byte 24–31 double BPM, Byte 32–39 double Notenwert (0,25). Ergebnis wie ein BeatGrid mit einem Marker
+(`first` = Anker modulo Schlaglänge, `tempo_map`, `anchor`, `partial` bei anderer Länge als 49 Bytes oder mehreren
+Ankern). Ein klassisches „Serato BeatGrid“ hat Vorrang. Unklar: Bedeutung von Byte 12–23 und 40–48, Aufbau bei
+Tempowechseln – weitere Beispiele nötig.
 Offen: Qualität von `beatAnalyse()` (Taktanfang, Tempowechsel) und Vergleich Serato ↔ eigene Analyse – siehe
 KONZEPT-MUSIKANALYSIEREN.
 

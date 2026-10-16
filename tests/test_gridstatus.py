@@ -144,3 +144,40 @@ class TestSeratoCompare(Base):
         self.assertIn("doppeltes Tempo", row["grid_note"])
         self.assertFalse(s.media_extra("tag", i)["grid"]["check"]["ok"])
         self.assertFalse(s.tag_files[i].is_modified())                               # Serato nur gelesen
+
+
+TEMPO_MAP = bytes.fromhex("020000014031bd7a96b7ef5d00000001000000000000000040613fe4c52e8a3c3fd00000000000000001000000000000"
+                          "00")                                  # Beispiel aus Serato (138 BPM, Anker 17,74 s)
+
+
+class TestSeratoTempoMap(Base):
+    """#223: neueres Serato-Format „Serato Tempo Map“ statt „Serato BeatGrid“."""
+    def test_decode(self):
+        import serato
+        d = serato.decode("Serato Tempo Map", TEMPO_MAP)
+        self.assertEqual((d["name"], d["bpm"], d["anchor"], d["partial"]), ("BeatGrid", 137.997, 17.7402, False))
+        self.assertAlmostEqual(d["first"], 17.74015 % (60 / 137.99668), places=3)
+        self.assertIn("Tempo Map", d["summary"])
+        self.assertIn("error", serato.decode("Serato Tempo Map", b"\x01" + TEMPO_MAP[1:]))
+
+    def test_status_and_player(self):
+        from unittest import mock
+        import waveform
+        p = mock.patch.object(waveform, "DIR", os.path.join(self.dir, "wave"))
+        p.start()
+        self.addCleanup(p.stop)
+        write_mp3(os.path.join(self.B, "t.mp3"), [text("TIT2", "Tempo Map"), text("TBPM", "138"),
+                                                  geob("Serato Tempo Map", TEMPO_MAP)], audio_seed=3)
+        from session import Session
+        s = Session()
+        s.start_tag_load(self.B, False)
+        for _ in range(500):
+            if s.task_status().get("done"):
+                break
+            time.sleep(0.02)
+        i = next(k for k, f in enumerate(s.tag_files) if f.path.endswith("t.mp3"))
+        self.assertEqual(s.tag_grid_status([i])["status"][i], "serato")
+        g = s.media_extra("tag", i)["grid"]
+        self.assertEqual((g["source"], g["exact"], g["bpm"]), ("Serato", True, 137.997))
+        s.wave_save(waveform.key_for(s.tag_files[i]), [1] * 100, [1] * 100, {"bpm": 138.0, "first": 0.35})
+        self.assertEqual(s.tag_grid_status([i], fresh=True)["status"][i], "serato_ok")
