@@ -96,6 +96,7 @@ async function plLoad(target, autoplay = true, keepTime = null, startMode = null
   a.addEventListener("loadedmetadata", seek, { once: true });
   plCues();
   plRender();
+  if (typeof plLyricsOnLoad === "function") plLyricsOnLoad();                 // #215
   // #181: fehlende Serato-Raster beim Abspielen selbst untersuchen – nicht erst bei
   // eingeschalteter Wellenform oder Crossfade. Niemals die Serato-Daten überschreiben.
   if ((PLAYER.wave && !info.wave) || (!(info.grid && info.grid.exact) && plWaveNeeded(info))) {
@@ -608,6 +609,7 @@ async function plMenu(btn) {
     { label: (PLAYER.wave ? "✓ " : "    ") + "Wellenform anzeigen", run: () => plSetPref("wave", !PLAYER.wave) },
     { label: (PL_METRO.deck === "A" ? "✓ " : "    ") + "Beatgrid-Metronom A", run: () => plMetroToggle("A") },
     { label: `Metronom-Lautstärke: ${PL_METRO.volume}% …`, run: () => plMetroVolumeDialog() },
+    { label: (typeof PL_LY !== "undefined" && PL_LY.on ? "✓ " : "    ") + "Liedtext anzeigen", run: () => plLyricsToggle() },
     ...(PL2.layout === "top" ? [{ label: (PL2.deck2 ? "✓ " : "    ") + "Player B anzeigen", run: () => plSetPref("deck2", !PL2.deck2) }] : []),
     { label: (PL2.layout === "top" ? "✓ " : "    ") + "Player oben anordnen", run: () => plSetPref("layout", PL2.layout === "top" ? "bottom" : "top") },
     { label: (PLAYER.xfade ? `✓ Überblenden (${PLAYER.xfade} s)` : "    Überblenden"), run: () => plSetPref("xfade", PLAYER.xfade ? 0 : 6) },
@@ -699,6 +701,7 @@ function plApplyPrefs(pp) {
   PLAYER.wave = pp.wave;
   PLAYER.repeat = !!pp.repeat;
   PLAYER.live = !!pp.live;
+  if (typeof plLyricsToggle === "function") setTimeout(() => plLyricsToggle(!!pp.lyrics, false), 0);   // #215
   PLAYER.xfade = Math.max(0, Math.min(30, Math.round(+pp.xfade || 0))); PLAYER.xfadeStart = pp.xfade_start || "start"; PLAYER.xfadeAfter = +pp.xfade_after || 0;
   PLAYER.xfadeSync = pp.xfade_sync !== false; PLAYER.xfadeReturn = pp.xfade_return ?? 8;
   PLAYER.xfadePhase = pp.xfade_phase !== false; PLAYER.xfadeBars = +pp.xfade_bars || 0;     // #76

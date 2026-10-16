@@ -8,6 +8,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Liedtext im Player (#215):** Neuer Knopf im Player A öffnet den Liedtext. Synchronisierte Texte (SYLT im MP3 oder
+  die `.lrc`-Datei daneben) laufen mit – die aktuelle Zeile ist hervorgehoben, ein Klick springt an die Stelle. Ohne
+  Zeitstempel erscheint der normale Text. Bleibt eingeschaltet, bis man es schliesst.
 - **„Developer Release“:** Läuft TagStudio aus dem Quellcode mit Änderungen nach der letzten Version (eingecheckt,
   aber weder Beta noch Release), steht neben der Versionsnummer „Developer Release“ (Tooltip: Anzahl Änderungen, Stand).
 

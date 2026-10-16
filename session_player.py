@@ -14,6 +14,10 @@ from id3tags import MV, MP3File
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 
 
+def _has_lyrics(f) -> bool:
+    return any(k.startswith(("SYLT", "USLT")) for k in f.keys())
+
+
 class PlayerMixin:
     """Teil der Klasse Session (session.py) – nutzt deren Zustand (self.cfg, self.lock, …)."""
 
@@ -28,7 +32,8 @@ class PlayerMixin:
                     "resume": (bool, True), "resume_play": (str, "pause"),                               # #126
                     "xfade_phase": (bool, True), "xfade_bars": (int, 0), "xfade_pitch": (bool, True),
                     "xfade_latency_ms": (int, 0), "metro_volume": (int, 80),   # #181: Latenz + Metronompegel
-                    "xfade_lock": (bool, True), "xfade_seek_ms": (int, 0)}     # #181: nachführen, gelernte Startverzögerung
+                    "xfade_lock": (bool, True), "xfade_seek_ms": (int, 0),
+                    "lyrics": (bool, False)}                                    # #215: Liedtext-Fenster     # #181: nachführen, gelernte Startverzögerung
     PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "resume_play": ("pause", "play", "was"), "xfade_bars": (0, 4, 8, 16), "layout": ("bottom", "top"), "startmode": ("last", "default"),
                       "xfade_start": ("start", "0", "cue"), "deck_target": ("A", "B"),
                       "start_b": ("0", "30", "60", "cue")}
@@ -338,6 +343,30 @@ class PlayerMixin:
             out["grid"] = {"bpm": beat["bpm"], "first": beat["first"], "source": "Analyse", "exact": False,
                            "analysed": True, "markers": [{"pos": beat["first"], "bpm": beat["bpm"]}]}
         return out
+
+    def media_lyrics(self, kind, ref) -> dict:
+        """#215: Liedtext des Titels im Player – synchronisiert (SYLT oder .lrc) bzw. normaler Text (USLT).
+        Spuren (Stems) zeigen den Text des Originals."""
+        import lyricsync
+        if kind == "stem":
+            parent = next((p for p, lst in self.tag_stems.items() for s in lst if s["path"] == ref), None)
+            if parent is None:
+                return {"source": "", "synced": [], "plain": ""}
+            kind, ref = "tag", parent
+        rf = self._resume_file(ref) if kind == "file" else None
+        with self.lock:
+            if rf is not None:
+                f = rf
+            elif kind == "tag" and isinstance(ref, int) and 0 <= ref < len(self.tag_files):
+                parent = self.tag_parent.get(ref)
+                f = self.tag_files[parent if parent is not None and parent != ref and not _has_lyrics(self.tag_files[ref]) else ref]
+            elif kind == "side" and ref in ("L", "R"):
+                f = self._file(ref)
+            else:
+                f = None
+            if f is None:
+                raise ValueError("Keine Datei zum Abspielen gewählt.")
+            return lyricsync.for_file(f, f.path)
 
     @staticmethod
     def _beat_grid(f, cue_list) -> dict | None:

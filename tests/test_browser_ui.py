@@ -670,6 +670,37 @@ class UiTest(unittest.TestCase):
         pg.click("#mBtns button")
         self.assertEqual(self.errors, [])
 
+    def test_player_lyrics(self):
+        """#215: Liedtext im Player – synchronisiert mit hervorgehobener Zeile, Klick springt, gemerkt; normaler Text."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("""(() => { const orig = call; window.__lyCalls = 0;
+          window.call = (n, ...a) => n === "media_lyrics"
+            ? (window.__lyCalls++, Promise.resolve(a[1] === 0 ? { source: "SYLT", synced: [[500, "Erste Zeile"], [1500, "Zweite Zeile"], [3000, ""]], plain: "" }
+                                                         : { source: "USLT", synced: [], plain: "Nur Text ohne Zeit" }))
+            : orig(n, ...a); })()""")
+        pg.evaluate("plLoad({kind: 'tag', ref: 0}, false)")
+        self.assertTrue(self.until("PLAYER.info && PLAYER.audio.src"))
+        pg.click("#plLyricsBtn")
+        pg.wait_for_selector("#plLyrics .ly-l")
+        self.assertEqual(pg.locator("#plLyrics .ly-l").count(), 3)
+        self.assertIn("SYLT", pg.inner_text("#plLyrics .ly-src"))
+        pg.evaluate("PLAYER.audio.currentTime = 1.6; plLyricsRender()")
+        self.assertTrue(self.until("document.querySelector('#plLyrics .ly-l.on')?.textContent === 'Zweite Zeile'"))
+        pg.click('#plLyrics .ly-l[data-k="0"]')                              # Klick springt
+        self.assertTrue(self.until("Math.abs(PLAYER.audio.currentTime - 0.5) < 0.3"))
+        c = self.cfg_until(lambda c: (c.get("player") or {}).get("lyrics") is True)
+        self.assertTrue((c.get("player") or {}).get("lyrics"))
+        # anderer Titel: normaler Text mit Hinweis
+        pg.evaluate("plLoad({kind: 'tag', ref: 1}, false)")
+        pg.wait_for_selector("#plLyrics .ly-plain")
+        self.assertIn("ohne Zeit", pg.inner_text("#plLyrics .ly-plain"))
+        self.assertIn("Nicht synchronisiert", pg.inner_text("#plLyrics"))
+        pg.click("#plLyrics .ly-x")                                          # schliessen
+        self.assertTrue(pg.locator("#plLyrics").is_hidden())
+        self.assertEqual(pg.get_attribute("#plLyricsBtn", "aria-pressed"), "false")
+        self.assertEqual(self.errors, [])
+
     def test_drag_to_player(self):
         """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""
         pg = self.pg

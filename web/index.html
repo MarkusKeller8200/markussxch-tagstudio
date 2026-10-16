@@ -478,6 +478,7 @@
         <button class="icon-btn pl-tog" id="plRepeat" title="Titel wiederholen (R)" aria-label="Titel wiederholen" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></button>
         <button class="icon-btn pl-tog pl-ab-btn" id="plAB2" title="A–B-Schleife: 1. Klick setzt A, 2. Klick setzt B, 3. Klick hebt auf (L)" aria-label="A–B-Schleife">A–B</button>
         <button class="icon-btn pl-tog" id="plMetro" title="Beatgrid-Metronom Player A" aria-label="Beatgrid-Metronom A" aria-pressed="false">♩</button>
+        <button class="icon-btn pl-tog" id="plLyricsBtn" title="Liedtext anzeigen (synchronisiert mitlaufend, falls vorhanden)" aria-label="Liedtext anzeigen" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 11h10"/><path d="M4 16h6"/><path d="M17 17V5l4-1"/><circle cx="15" cy="17" r="2"/></svg></button>
         <button class="icon-btn" id="plNext" title="Nächster Titel" aria-label="Nächster Titel"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14"/><path d="M5 5l10 7-10 7Z"/></svg></button>
         <div class="pl-mid">
           <div class="pl-line"><span class="pl-title" id="plTitle"></span><span class="pl-grid-status" id="plGridStatus" hidden aria-label="Beatgrid-Status"></span><button class="pl-goto" id="plGoto" title="Im Tagger zeigen: zum Tagger wechseln und den laufenden Titel markieren" aria-label="Im Tagger zeigen"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 12h7"/><path d="M4 18h10"/><path d="m15 9 4 3-4 3"/></svg></button><button class="pl-stems" id="plStems" hidden aria-haspopup="menu" title="Original oder Stem-Spur an derselben Stelle hören (S: nächste Spur)"></button><span class="pl-rate" id="plRate"></span></div>
@@ -572,6 +573,7 @@
 <script src="services.js"></script>
 <script src="player.js"></script>
 <script src="player2.js"></script>
+<script src="pllyrics.js"></script>
 <script src="metronome.js"></script>
 <script src="xfadesync.js"></script>
 <script src="settings.js"></script>
