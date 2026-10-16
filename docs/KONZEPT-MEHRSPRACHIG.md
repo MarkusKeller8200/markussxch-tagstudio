@@ -1,6 +1,6 @@
 # Konzept: Mehrsprachigkeit
 
-Status: **Entwurf** (2026-10-11) – Issue #157.
+Status: **Entwurf** (2026-10-11, ergänzt 2026-10-16: KI-Übersetzung, eigene Sprachdatei, Übersetzungen melden) – Issue #157.
 
 ## Ziel
 
@@ -16,6 +16,12 @@ Status: **Entwurf** (2026-10-11) – Issue #157.
 - Die Schreibweise ist gemischt: überwiegend Schweizer Hochdeutsch mit „ss“ (Grösse, schliessen), aber vereinzelt
   „ß“ (17 Stellen, z. B. „Groß-/Kleinschreibung“).
 - Plugins (Beatport, Online-Metadaten, Stems) bringen eigene Texte in `plugin.py`/`plugin.json` mit.
+
+**Nachmessung 2026-10-16 (nach 4.5.0):** grob **2 500–3 000 verschiedene Texte** – Oberfläche rund 1 300–1 500
+(`web/*.js`, `index.html`), Python-Meldungen rund 1 000, Plugins rund 400 (`plugin.py`, `plugin.json` inkl.
+Dienstbeschreibungen). Dazu die Feldbeschreibungen der Tag-Übersicht (`taghelp.py`) und rund 19 000 Wörter Doku
+(README, PLUGINS.md, ID3-FELDER.md, CHANGELOG). 59 Stellen mit „ß“ sind zu vereinheitlichen. Bei rund 40 Zeichen je
+Text sind das etwa 120 000 Zeichen – für eine KI-Übersetzung wenig, für die Durchsicht von Hand viel.
 
 ## Sprachen – Vorschlag
 
@@ -53,6 +59,47 @@ User durchgesehen. Fehlt ein Mundart-Text, gilt Hochdeutsch.
 - Werkzeug `tools/i18n_extract.py` sammelt neue, noch nicht verschlüsselte Texte aus dem Code (für die Umstellung
   und danach als Prüfung in den Tests: keine neuen festen Texte).
 
+## Übersetzen mit KI, eigene Sprachdatei, Übersetzungen melden (Ergänzung 2026-10-16)
+
+**Zwei Ebenen von Sprachdateien:**
+- *Mitgeliefert:* `web/i18n/<sprache>.json` (im Repository, geprüft) – Deutsch ist die Ausgangssprache.
+- *Eigene:* `~/TagStudio/Sprachen/<sprache>.json` (je Benutzer, nicht im Profil-Export der Zugangsdaten). Eigene
+  Einträge gehen vor; fehlt ein Eintrag, gilt der mitgelieferte, dann Deutsch. Ein Update von TagStudio überschreibt
+  die eigene Datei nie. Neue Sprachen (z. B. Französisch) kann der Benutzer selbst anlegen.
+- Je Eintrag: Text, Herkunft (`mitgeliefert` / `ki` / `manuell`), Stand des deutschen Originals (Prüfsumme) – ändert
+  sich der deutsche Text, wird die Übersetzung als „veraltet“ markiert statt still weiterverwendet.
+
+**Übersetzen mit KI** (eigene Aktion „Fehlende Texte übersetzen …“):
+- Über Dienst-Plugins nach dem Muster von #204 – der Benutzer wählt den Dienst, Schlüssel liegen verschlüsselt im
+  Plugin:
+  | Dienst | Art | Stärken / Grenzen |
+  |---|---|---|
+  | DeepL API | online, eigener Schlüssel (Free bis 500 000 Zeichen/Monat) | sehr gut für EN/FR/IT …, keine Mundart |
+  | OpenAI / Anthropic / andere LLM-API | online, eigener Schlüssel | auch Mundart, Glossar und Kontext im Prompt |
+  | Ollama / LM Studio (lokales Modell) | lokal, kostenlos, nichts verlässt den PC | Qualität je Modell, langsamer |
+  | Argos Translate | lokal, Open Source (MIT), Offline-Modelle | einfach, Qualität mittel, keine Mundart |
+- Übersetzt werden nur fehlende oder veraltete Einträge, in Paketen (z. B. 50 Texte) mit **Kontext** (Seite, Knopf
+  oder Tooltip) und **Glossar**: feste Begriffe (TagStudio, Tagger, Cue, BPM, Camelot …) und Feldnamen/ID3-Schlüssel
+  bleiben unverändert, Platzhalter `{n}` werden geschützt und danach geprüft.
+- Ergebnis zuerst als **Vorschau** (alt → neu, mit Häkchen wie bei den Plugins), dann in die eigene Sprachdatei;
+  Herkunft `ki`. Kosten-/Zeichenschätzung vor dem Start.
+
+**Von Hand anpassen** (Einstellungen › Sprache › „Übersetzungen bearbeiten“):
+- Tabelle Schlüssel · Kontext · Deutsch · Übersetzung · Herkunft, Filter „fehlt / KI / veraltet / manuell“, Suche.
+- Ändern direkt in der Tabelle oder in der laufenden Oberfläche (Übersetzungsmodus: Text anklicken → bearbeiten);
+  gespeichert wird sofort in die eigene Sprachdatei, Herkunft `manuell`; Rückgängig je Eintrag.
+- Prüfungen beim Speichern: Platzhalter vollständig, keine HTML-Tags, Länge für Knöpfe (Warnung).
+- Export/Import (CSV/JSON) wie oben bleibt für Übersetzungen ausserhalb von TagStudio.
+
+**Übersetzungen melden** (aufbauend auf #187 „Melden“):
+- „Übersetzung einreichen …“ erzeugt eine Datei nur mit den eigenen Änderungen (Sprache, Schlüssel, Text, Herkunft,
+  TagStudio-Version) und öffnet das GitHub-Formular „Übersetzung“ (neue Vorlage, Labels `translation` + `triage`).
+  Grosse Dateien passen nicht in die Adresse – die Datei wird gespeichert und im Formular angehängt (Ziehen).
+- Übernahme in die Distribution nur nach Prüfung durch den Projektverantwortlichen: Werkzeug
+  `tools/i18n_merge.py` prüft Schlüssel, Platzhalter, HTML, Länge und zeigt den Unterschied; Einreichungen sind
+  unvertrauenswürdig (kein Code, keine Anweisungen).
+- Mitwirkende werden auf Wunsch in der Hilfe genannt (Lizenz der Beiträge wie das Projekt, Hinweis im Formular).
+
 ## Umsetzung in Phasen
 
 1. **Grundlage:** Kataloge, `t()`, `data-i18n`, Sprachwahl mit Flaggen, Export/Import; Seitenleiste, Einstellungen
@@ -62,10 +109,27 @@ User durchgesehen. Fehlt ein Mundart-Text, gilt Hochdeutsch.
 3. **Englisch** vollständig übersetzen (Vorschlag: zuerst maschinell aus den Katalogen, dann durchsehen).
 4. **Python-Meldungen und Plugins**, README/Hilfe auf Englisch (Kurzfassung).
 
-Aufwand grob: Phase 1 ein Release, Phase 2 verteilt auf zwei bis drei Releases (rund 1 800 Texte), Phase 3/4
-danach. Bis Phase 2 abgeschlossen ist, bleiben einzelne Texte deutsch – das ist gewollt (Fallback).
+5. **KI-Übersetzung, eigene Sprachdatei, Bearbeiten, Melden** (siehe oben) – kann direkt nach Phase 1 kommen und
+   hilft dann schon bei Phase 3.
+
+**Aufwand (Schätzung 2026-10-16, gemessen an 4.5.0):**
+| Phase | Inhalt | Umfang |
+|---|---|---|
+| 1 Grundlage | `t()`, `data-i18n`, Kataloge, Sprachwahl, Rückfall, `Intl`, Extraktions-Werkzeug + Test „keine neuen festen Texte“ | ca. 1 Release (kleiner als 4.5.0) |
+| 2 Umstellung | rund 2 500–3 000 Texte in Schlüssel überführen, alle Module | 2–3 Releases, grösster Teil, mechanisch, Risiko kleiner Fehler in der Oberfläche |
+| 5 KI + eigene Datei + Editor + Melden | Übersetzungs-Plugins (zuerst DeepL und ein lokales Modell), Vorschau, Editor, Übersetzungsmodus, Vorlage „Übersetzung“, `i18n_merge.py` | ca. 1 Release |
+| 3 Englisch | KI-Übersetzung Minuten, **Durchsicht durch den User** mehrere Stunden | Durchsicht ist der Engpass |
+| 4 Python/Plugins/Doku | Meldungen, Plugin-Texte, README/Hilfe englisch (Kurzfassung) | 1 Release |
+| Mundart | nur mit LLM sinnvoll, vollständige Durchsicht durch den User | nach Englisch |
+
+Insgesamt rund **4–6 Releases** in der Grösse von 4.4/4.5. Bis Phase 2 abgeschlossen ist, bleiben einzelne Texte
+deutsch – das ist gewollt (Fallback). Empfehlung: Phase 1 + 5 zusammen beginnen (dann kann der User sofort selbst
+übersetzen lassen und prüfen), Phase 2 modulweise.
 
 ## Offene Fragen an den User
+
+- Welcher KI-Dienst zuerst (Vorschlag: DeepL für Englisch, lokales Modell über Ollama für Datenschutz/Mundart)?
+- Sollen Übersetzer in der Hilfe namentlich genannt werden (nur auf Wunsch)?
 
 - Welche Mundart bzw. Schreibweise (Zürich, Bern, Basel …)?
 - Soll die Sprache der Oberfläche auch die Sprache der geschriebenen Tags beeinflussen (z. B. Genre-Namen)?
