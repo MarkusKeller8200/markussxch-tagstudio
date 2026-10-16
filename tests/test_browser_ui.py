@@ -485,6 +485,43 @@ class UiTest(unittest.TestCase):
         self.assertTrue(pg.evaluate("call('reveal_tag', 99)") is False)
         self.assertEqual(self.errors, [])
 
+    def test_tagger_timestamps(self):
+        """#185 Letzte Bearbeitung beim Speichern, #184 Aufnahmedatum nachtragen (Dialog), Spalten und Einstellungen."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="0"] .nm')
+        pg.wait_for_function("TG.detail && TG.detail.common")
+        # #184: nachtragen – kein Snapshot vorhanden, also Datum von Hand
+        pg.click("#tgAdded")
+        pg.wait_for_selector("#adDate")
+        pg.fill("#adDate", "2026-03-04")
+        self.assertTrue(self.until("/1 Titel bekommen/.test(document.querySelector('#tdSum').textContent)"),
+                        pg.inner_text("#tdSum"))
+        self.assertIn("von Hand", pg.inner_text("#tdPrev"))
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("TG.detail.fields.some(f => f.key === 'TXXX:TAGSTUDIO_ADDED')"))
+        # speichern → #185 „Letzte Bearbeitung“
+        pg.evaluate("void call('start_save')")
+        for _ in range(60):
+            if pg.evaluate("call('tag_detail', [0]).then(d => d.fields.some(f => f.key === 'TXXX:TAGSTUDIO_EDITED'))"):
+                break
+            time.sleep(0.1)
+        d = pg.evaluate("call('tag_detail', [0]).then(d => d.fields.filter(f => f.key.startsWith('TXXX:TAGSTUDIO_')).map(f => [f.key, f.label || '']))")
+        keys = [k for k, _l in d]
+        self.assertIn("TXXX:TAGSTUDIO_EDITED", keys, d)
+        self.assertIn("TXXX:TAGSTUDIO_ADDED", keys, d)
+        # Spalten „Aufgenommen“ und „Bearbeitet“ zeigen ein kurzes Datum
+        self.assertTrue(pg.evaluate("tsTime('2026-03-04T00:00:00+01:00') === '04.03.2026 00:00'"))
+        # Einstellungen: beide Schalter vorhanden und an
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stStampEdited")
+        self.assertTrue(pg.is_checked("#stStampEdited"))
+        self.assertTrue(pg.is_checked("#stStampAdded"))
+        pg.click("#stStampAdded")
+        c = self.cfg_until(lambda c: c.get("stamp_added") is False)
+        self.assertFalse(c.get("stamp_added"))
+        self.assertEqual(self.errors, [])
+
     def test_drag_to_player(self):
         """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""
         pg = self.pg

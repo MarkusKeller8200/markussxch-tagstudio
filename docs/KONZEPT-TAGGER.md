@@ -50,7 +50,26 @@ Alle Werkzeuge zeigen zuerst eine **Vorschau** und laufen über den gemeinsamen 
 
 - WAV-Unterstützung: [KONZEPT-WAV.md](KONZEPT-WAV.md) (#156).
 
+## 5a. TagStudio-Zeitstempel (#184, #185 – 4.5.0, Entscheide vom 16.10.2026)
+
+Modul `tsmeta.py`. Eigene TXXX-Felder (in Mp3tag, Lexicon usw. sichtbar), Wert ISO 8601 mit Zeitzone, sekundengenau
+(`2026-10-16T01:55:00+02:00`); im Tagger als Spalten „Aufgenommen“ / „Bearbeitet“ (Anzeige `16.10.2026 01:55`).
+
+| Feld | Bedeutung | Gesetzt | Nie |
+|---|---|---|---|
+| `TXXX:TAGSTUDIO_EDITED` „Letzte Bearbeitung“ | letztes erfolgreiches Speichern **geänderter** Tags durch TagStudio | `core.save_files` (vor `f.save()`) und Speicherstellen in „Vorbereiten“; Rückgängig + Speichern = neue Zeit; cfg `stamp_edited` | Anzeigen, Einlesen, Vorhören, Speichern ohne Änderung |
+| `TXXX:TAGSTUDIO_ADDED` „In Bibliothek aufgenommen“ | erste Übernahme in die Bibliothek | Übernahme-Schritt in „Vorbereiten“ (`session_prepare`, cfg `stamp_added`); Nachtragen von Hand | automatisch überschreiben; Dateidatum (mtime/ctime) |
+
+**Nachtragen** (Tagger › „Aufnahmedatum nachtragen …“, `Session.tag_added(idx, mode, value, overwrite, apply)`):
+Vorschlag aus dem frühesten Snapshot, der den Titel enthält (`snapshots.first_seen`: Audio-Schlüssel, sonst relativer
+Pfad – überlebt Umbenennen/Verschieben), sonst Ersatzdatum von Hand; Modus „date“ setzt ein Datum für alle. Vorschau mit
+Quelle je Titel, Übernehmen mit Rückgängig, geschrieben wird beim normalen Speichern. Vorhandene Werte nur mit
+„überschreiben“.
+
+`TXXX:TAGSTUDIO_EDITED` steht in den Standard-„unwichtigen Feldern“ (Vergleich, Journal), damit es nicht nach jedem
+Speichern als Unterschied auffällt.
+
 ## 6. Tests
 
 `tests/test_tagger.py`, `test_tagger_tools.py`, `test_keys.py`, `test_features.py`, `test_moods.py`, `test_recipes.py`, `test_blobs.py`, `test_ratings.py`,
-`test_listcache.py`, `test_archive.py` sowie Oberflächen-Tests in `tests/test_browser_ui.py`.
+`test_listcache.py`, `test_archive.py`, `test_tsmeta.py` sowie Oberflächen-Tests in `tests/test_browser_ui.py`.
