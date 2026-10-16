@@ -97,6 +97,7 @@ function plZoomOwn(info) {
   const b = info && info.wave && info.wave.beat;
   if (b && b.bpm > 0) return { bpm: +b.bpm, first: +b.first || 0 };
   const g = info && info.grid;
+  if (g && g.check && g.check.own && g.check.own.bpm > 0) return { bpm: +g.check.own.bpm, first: +g.check.own.first || 0 };   // z. B. aus dem Tag
   if (g && g.analysed && g.bpm > 0) return { bpm: +g.bpm, first: +g.first || 0 };
   return null;
 }

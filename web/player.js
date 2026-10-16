@@ -445,7 +445,7 @@ function beatAnalyse(audio, bpmHint) {
 /** Analyse-Ergebnis als Beatgrid übernehmen (Serato-Grids bleiben) */
 function gridFromBeat(info, beat) {
   if (info && beat && info.grid && info.grid.exact && typeof plGridCompare === "function") {          // #223
-    info.grid.check = { ...plGridCompare(info.grid, beat), from: "cache" }; return;
+    info.grid.check = { ...plGridCompare(info.grid, beat), from: "cache", own: { bpm: beat.bpm, first: beat.first || 0 } }; return;
   }
   if (!info || !beat || (info.grid && info.grid.exact)) return;
   info.grid = { bpm: beat.bpm, first: beat.first, source: "Analyse", exact: false, analysed: true, markers: [{ pos: beat.first, bpm: beat.bpm }] };
@@ -461,7 +461,7 @@ function plWaveCompute(info) {
 /** Braucht dieser Titel noch eine Berechnung (Wellenform fehlt bzw. Schlag noch nicht analysiert)? */
 function plWaveNeeded(info) {
   return !!info && !!info.wave_key && (!info.wave || info.wave.source === "serato"
-    || (!info.wave.beat && !WAVE_NOBEAT.has(info.wave_key) && !(info.grid && info.grid.from_tag)));   // #220/#221; #223: auch Serato (Vergleich)
+    || (!info.wave.beat && !WAVE_NOBEAT.has(info.wave_key) && !(info.grid && (info.grid.from_tag || (info.grid.check && info.grid.check.from === "tag")))));   // #220/#221; #223: auch Serato (Vergleich)
 }
 async function plWaveComputeRun(info) {
   PLAYER.waveBusy = info.wave_key;

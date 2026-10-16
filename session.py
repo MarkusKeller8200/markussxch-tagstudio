@@ -2301,9 +2301,10 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return self._apply_plan(idx, plan, "In Bibliothek aufgenommen",
                                     f"„In Bibliothek aufgenommen“ für {len(plan)} Titel gesetzt – noch nicht gespeichert.")
 
-    def tag_beatgrid(self, idx, overwrite=False, apply=False):
+    def tag_beatgrid(self, idx, overwrite=False, apply=False, serato=False):
         """#221: Raster der eigenen Analyse (Wellenform-Cache) in TXXX:TAGSTUDIO_BEATGRID übernehmen. Titel mit
-        Serato-Raster werden übersprungen (Serato hat Vorrang), vorhandene Werte nur mit overwrite. Vorschau → Übernehmen
+        Serato-Raster werden übersprungen (Serato hat Vorrang) – ausser mit serato=True (#223: nur zum Vergleich,
+        Serato-Daten bleiben unberührt und massgebend). Vorhandene Werte nur mit overwrite. Vorschau → Übernehmen
         mit Rückgängig; gespeichert wird wie üblich."""
         import beattag
         import gridstatus
@@ -2313,7 +2314,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         plan, rows, skipped = [], [], 0
         for _i, f in files:
             name, old = os.path.basename(f.path), f.text(beattag.KEY)
-            if gridstatus.status(f).startswith("serato"):
+            has_serato = gridstatus.serato_grid(f) is not None
+            if has_serato and not serato:
                 rows.append({"name": name, "old": old, "new": "", "source": "Serato-Raster vorhanden – hat Vorrang"})
                 skipped += 1
                 continue
@@ -2334,7 +2336,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                     and beattag.parse(old)["first"] == beattag.parse(new)["first"]:
                 continue
             plan.append((f, beattag.KEY, old, new))
-            rows.append({"name": name, "old": old, "new": new, "source": f"Analyse ({beat['bpm']:.1f} BPM)"})
+            rows.append({"name": name, "old": old, "new": new, "source": f"Analyse ({beat['bpm']:.1f} BPM)"
+                         + (" – zum Vergleich, Serato bleibt massgebend" if has_serato else "")})
         if not apply:
             return {"rows": rows[:2000], "count": len(plan), "files": len(files), "skipped": skipped}
         with self.lock:

@@ -813,6 +813,9 @@ class UiTest(unittest.TestCase):
         pg.click('.menu button:has-text("Beatgrid in Tag speichern")')
         pg.wait_for_selector("#modal table")
         self.assertIn("bpm=123.400; first=0.2500", pg.inner_text("#modal table"))
+        self.assertIn("nur zum Vergleich", pg.inner_text("#modal"))                  # #223: Option für Serato-Titel
+        pg.check("#btSerato")
+        self.assertTrue(self.until("document.querySelector('#modal table')?.textContent.includes('bpm=123.400')"))
         pg.click("#mBtns .primary")
         self.assertTrue(self.until("TG.rows[TG.view[0].i].grid === 'tag' && TG.rows[TG.view[0].i].modified"))
         self.assertIn("Analyse (Tag)", pg.inner_text(".tg-row >> nth=0"))

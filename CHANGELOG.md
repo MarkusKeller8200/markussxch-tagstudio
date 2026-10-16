@@ -23,6 +23,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   sondern in „Serato Tempo Map“. TagStudio liest jetzt auch dieses Format (Tempo und Anker, gleichbleibendes Tempo) –
   Spalte „Beatgrid“, Player-Raster und Vergleich funktionieren damit auch für diese Titel. Das Format ist nicht
   öffentlich dokumentiert und wurde aus Beispielen erschlossen; bei abweichendem Aufbau wird nur der Anfang gelesen.
+- **Eigenes Raster auch bei Serato-Titeln speichern (#223):** „Beatgrid in Tag speichern …“ hat das Häkchen „Auch Titel
+  mit Serato-Raster (nur zum Vergleich)“. Dann reist die eigene Analyse in `TXXX:TAGSTUDIO_BEATGRID` mit der Datei, und
+  der Vergleich „Serato ✓ / ≠ Analyse“ bleibt auch ohne Cache erhalten. Serato-Daten bleiben unberührt und massgebend.
 - **Beatgrid im MP3 speichern (#221):** Rechtsklick › „Beatgrid in Tag speichern …“ übernimmt das Raster der eigenen
   Analyse (BPM, erster Schlag, Sicherheit) in `TXXX:TAGSTUDIO_BEATGRID` – mit Vorschau und Rückgängig, geschrieben beim
   Speichern. Damit reist es mit der Datei; Player und Spalte „Beatgrid“ („Analyse (Tag)“) lesen es auch ohne Cache.

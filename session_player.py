@@ -352,7 +352,8 @@ class PlayerMixin:
             own = gridstatus.own_beat(f)
             if own and own.get("bpm"):
                 ok, note = gridstatus.compare(out["grid"], own)
-                out["grid"]["check"] = {"ok": ok, "note": note, "from": own.get("from")}
+                out["grid"]["check"] = {"ok": ok, "note": note, "from": own.get("from"),
+                                        "own": {"bpm": own["bpm"], "first": own.get("first") or 0}}
         beat = (out.get("wave") or {}).get("beat")
         if beat and not (out.get("grid") or {}).get("exact") and not (out.get("grid") or {}).get("from_tag"):    # #76: Analyse vor Schätzung aus dem BPM-Tag
             out["grid"] = {"bpm": beat["bpm"], "first": beat["first"], "source": "Analyse", "exact": False,

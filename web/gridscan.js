@@ -98,18 +98,20 @@ async function tgBeatTagDialog(idx) {
     title: `Beatgrid in Tag speichern (${idx.length} Datei(en))`,
     form: `<div class="hint">Übernimmt das Raster der eigenen Analyse (BPM, erster Schlag, Sicherheit) in <code>TXXX:TAGSTUDIO_BEATGRID</code> –
       dann reist es mit der Datei und übersteht das Leeren des Caches. Die Wellenform bleibt im Cache. Titel mit Serato-Raster
-      werden übersprungen (Serato hat Vorrang). Geschrieben wird erst beim Speichern.</div>
-      <label class="check"><input type="checkbox" id="btOver"> Bereits gespeicherte Raster ersetzen</label>`,
+      werden übersprungen (Serato hat Vorrang) – ausser mit dem Häkchen unten: dann wird das eigene Raster nur zum Vergleich
+      gespeichert, Serato-Daten bleiben unberührt und massgebend. Geschrieben wird erst beim Speichern.</div>
+      <label class="check"><input type="checkbox" id="btOver"> Bereits gespeicherte Raster ersetzen</label>
+      <label class="check"><input type="checkbox" id="btSerato"> Auch Titel mit Serato-Raster (nur zum Vergleich)</label>`,
     columns: [["Datei", "name"], ["Bisher", "old", "old"], ["Neu", "new", "new"], ["Hinweis", "source"]],
     preview: async (b) => {
       try {
-        const r = await call("tag_beatgrid", idx, $("#btOver", b).checked, false);
+        const r = await call("tag_beatgrid", idx, $("#btOver", b).checked, false, $("#btSerato", b).checked);
         r.summary = `${fmtN(r.count)} Titel bekommen das Raster${r.skipped ? ` · ${fmtN(r.skipped)} übersprungen` : ""}.`;
         return r;
       } catch (e) { return { error: String(e.message || e), rows: [], count: 0 }; }
     },
     apply: async (b) => {
-      const r = await call("tag_beatgrid", idx, $("#btOver", b).checked, true);
+      const r = await call("tag_beatgrid", idx, $("#btOver", b).checked, true, $("#btSerato", b).checked);
       const st = await call("tag_grid_status", idx, true).catch(() => null);
       for (const [i, code] of Object.entries((st && st.status) || {})) if (TG.rows[+i]) { TG.rows[+i].grid = code; TG.rows[+i].grid_note = ((st && st.notes) || {})[i] || ""; }
       return r;

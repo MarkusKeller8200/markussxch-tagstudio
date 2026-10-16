@@ -60,3 +60,17 @@ class TestBeatTag(Base):
         self.assertEqual(s.tag_grid_status([sr], fresh=True)["status"][sr], "serato_diff")   # #223: Cache weicht ab
         # nochmals: schon gespeichert → übersprungen, ausser „ersetzen“
         self.assertEqual(s.tag_beatgrid([a])["count"], 0)
+        # #223: mit „auch Serato“ wird das eigene Raster zum Vergleich gespeichert – Serato bleibt unberührt und massgebend
+        import serato
+        before = serato.of_file(s.tag_files[sr]).get("BeatGrid")
+        pre = s.tag_beatgrid([sr], serato=True)
+        self.assertEqual(pre["count"], 1)
+        self.assertIn("zum Vergleich", pre["rows"][0]["source"])
+        s.tag_beatgrid([sr], apply=True, serato=True)
+        fs = s.tag_files[sr]
+        self.assertTrue(fs.text(beattag.KEY).startswith("bpm=124.500"))
+        self.assertEqual(serato.of_file(fs).get("BeatGrid"), before)
+        os.remove(waveform._file(waveform.key_for(fs)))                              # nur noch der Tag
+        self.assertEqual(s.tag_grid_status([sr], fresh=True)["status"][sr], "serato_diff")
+        g = s.media_extra("tag", sr)["grid"]
+        self.assertEqual((g["source"], g["check"]["from"], g["check"]["own"]["bpm"]), ("Serato", "tag", 124.5))

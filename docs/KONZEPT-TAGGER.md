@@ -95,6 +95,11 @@ Anker in Sekunden, Byte 24–31 double BPM, Byte 32–39 double Notenwert (0,25)
 (`first` = Anker modulo Schlaglänge, `tempo_map`, `anchor`, `partial` bei anderer Länge als 49 Bytes oder mehreren
 Ankern). Ein klassisches „Serato BeatGrid“ hat Vorrang. Unklar: Bedeutung von Byte 12–23 und 40–48, Aufbau bei
 Tempowechseln – weitere Beispiele nötig.
+**Eigenes Raster bei Serato-Titeln (#223):** `tag_beatgrid(idx, overwrite, apply, serato=False)` – mit `serato=True`
+(Häkchen „Auch Titel mit Serato-Raster (nur zum Vergleich)“) wird `TXXX:TAGSTUDIO_BEATGRID` auch bei Serato-Titeln
+geschrieben. Für Player und Status bleibt Serato massgebend; das Tag-Raster ist dann die „eigene Analyse“ für den
+Vergleich (`own_beat`: Tag vor Cache, `grid.check.from = "tag"`, `grid.check.own` für die Lupe). Der Player rechnet bei
+solchen Titeln beim Laden keine Analyse mehr.
 Offen: Qualität von `beatAnalyse()` (Taktanfang, Tempowechsel) und Vergleich Serato ↔ eigene Analyse – siehe
 KONZEPT-MUSIKANALYSIEREN.
 
