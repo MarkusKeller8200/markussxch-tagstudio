@@ -40,6 +40,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **„Developer Release“:** Läuft TagStudio aus dem Quellcode mit Änderungen nach der letzten Version (eingecheckt,
   aber weder Beta noch Release), steht neben der Versionsnummer „Developer Release“ (Tooltip: Anzahl Änderungen, Stand).
 
+### Behoben
+
+- **Tagger-Spalten bündig:** Nimmt die Bildlaufleiste der Liste Platz ein (Windows), waren Überschriften und
+  Filterzeile gegenüber den Zeilen verschoben – je weiter rechts, desto mehr. Kopf und Filter rücken jetzt um ihre Breite ein.
+
 ## [4.5.0] – 2026-10-16
 
 ### Neu

@@ -1582,6 +1582,11 @@ async function tgOriginDialog(preset = "") {
   $("#tgColsBtn").addEventListener("click", (e) => { e.stopPropagation(); tgColsMenu(e.currentTarget); });
   $("#tgSortReset").addEventListener("click", tgSortReset);
   $("#tgScroll").addEventListener("scroll", () => { requestAnimationFrame(drawTgList); tgHeadScrollSync(); tgStateSave(); });
+  // Kopf und Filterzeile um die Breite der senkrechten Bildlaufleiste der Liste einrücken – sonst laufen die
+  // flexiblen Spalten auseinander (Windows: Bildlaufleiste nimmt Platz ein)
+  const sbw = () => { const sc = $("#tgScroll"); $("#tgTable").style.setProperty("--tg-sbw", `${Math.max(0, sc.offsetWidth - sc.clientWidth)}px`); };
+  if (window.ResizeObserver) { const ro = new ResizeObserver(sbw); ro.observe($("#tgScroll")); ro.observe($("#tgInner")); }
+  sbw();
   $("#tgInner").addEventListener("click", (e) => {
     const tw = e.target.closest("[data-tw]");
     if (tw) { e.stopPropagation(); tgToggleStems(+tw.dataset.tw); return; }

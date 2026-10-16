@@ -731,6 +731,25 @@ class UiTest(unittest.TestCase):
         self.assertTrue(pg.locator("#plZoom").is_hidden())
         self.assertEqual(self.errors, [])
 
+    def test_tagger_columns_aligned(self):
+        """Kopf, Filterzeile und Liste bleiben bündig – auch mit senkrechter Bildlaufleiste in der Liste."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("tgSetCols([...tgCols().filter((c) => c !== 'grid'), 'grid'], true)")
+        pg.add_style_tag(content="#tgScroll{border-right:17px solid transparent}")   # wirkt wie eine Windows-Bildlaufleiste (headless: überlagert)
+        pg.set_viewport_size({"width": 2400, "height": 300})                       # wenig Höhe → Bildlaufleiste
+        self.assertTrue(self.until("(() => { const s = document.querySelector('#tgScroll'); return s.scrollHeight > s.clientHeight; })()"))
+        d = pg.evaluate("""(() => {
+          const head = [...document.querySelectorAll('#tgHead > *')], filt = [...document.querySelectorAll('#tgHeadF > *')];
+          const row = [...document.querySelector('.tg-row').children];
+          const L = (e) => e.getBoundingClientRect().left;
+          return { sb: document.querySelector('#tgScroll').offsetWidth - document.querySelector('#tgScroll').clientWidth,
+                   head: L(head[head.length - 1]), filt: L(filt[filt.length - 1]), row: L(row[row.length - 1]) }; })()""")
+        self.assertGreater(d["sb"], 0, d)
+        self.assertLessEqual(abs(d["head"] - d["row"]), 1.5, d)
+        self.assertLessEqual(abs(d["filt"] - d["row"]), 1.5, d)
+        self.assertEqual(self.errors, [])
+
     def test_tagger_grid_status(self):
         """#191: Spalte „Beatgrid“ – Status im Hintergrund, Filter, Analyse über das Kontextmenü (nur Cache)."""
         pg = self.pg
