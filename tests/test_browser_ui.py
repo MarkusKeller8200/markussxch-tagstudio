@@ -282,6 +282,7 @@ class UiTest(unittest.TestCase):
         pg.click('.nav[data-module="help"]')
         pg.click('#helpTabs [data-htab="licenses"]')
         pg.wait_for_selector("#helpDoc .help-lic")
+        self.assertTrue(pg.evaluate("document.querySelector('#helpDoc').classList.contains('wide')"))   # #206: ganze Breite
         txt = pg.inner_text("#helpDoc")
         for s in ("Lizenzen und Quellen", "GPL-3.0-or-later", "pywebview", "BSD-3-Clause", "serato-tags", "Im Programm enthalten"):
             self.assertIn(s, txt)
@@ -295,9 +296,12 @@ class UiTest(unittest.TestCase):
         self.assertTrue(pg.locator('#helpDoc [data-licmark="pywebview"][data-key="checked"]').is_checked())
         pg.click('#helpDoc [data-licthanks="pywebview"]')
         pg.wait_for_selector("#licThanksTxt")
-        txt = pg.input_value("#licThanksTxt")
+        txt = pg.input_value("#licThanksTxt")                             # Englisch zuerst (internationale Projekte)
         self.assertIn("TagStudio", txt)
         self.assertIn("pywebview", txt)
+        self.assertIn("removed from this project", txt)
+        pg.check('#modal input[name="licLang"][value="de"]')
+        self.assertIn("aus diesem Projekt entfernt", pg.input_value("#licThanksTxt"))
         pg.click("#mBtns button >> nth=0")
         self.assertEqual(self.errors, [])
 

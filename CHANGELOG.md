@@ -26,7 +26,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   einsetzen“. Der wöchentliche Online-Test prüft, dass die Beispiele weiterhin Treffer bringen.
 - **Lizenzen mit GitHub-Repositories (#206):** Hilfe › Lizenzen zeigt bei allen Komponenten von GitHub einen Link zum
   Repository und zum Entwickler, dazu Sterne und letzte Änderung (archivierte oder lange stille Projekte markiert).
-  Eigene Häkchen „geprüft / gefolgt / bedankt“ und ein vorbereiteter Danke-Text („Danke …“) zum Kopieren. Neu in der
+  Eigene Häkchen „geprüft / gefolgt / bedankt“ und ein vorbereiteter Danke-Text („Danke …“, Englisch oder Deutsch, mit
+  der Bitte um Rückmeldung, falls die Nutzung nicht erwünscht ist) zum Kopieren. Die Tabelle nutzt die ganze Breite. Neu in der
   Liste: python-build-standalone und die einzelnen GitHub Actions.
 - **API-Tester mit Drosselung (#212):** Der Tester hält dieselben Abstände je Dienst ein wie die Suche und wiederholt
   bei „ausgelastet“ (HTTP 429/503) automatisch; die Antwort zeigt die Zahl der Wiederholungen.

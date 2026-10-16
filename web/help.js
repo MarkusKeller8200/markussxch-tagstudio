@@ -86,10 +86,22 @@ function helpLicensesHtml(d) {
         it.checked ? esc(`${it.checked.version || ""}${it.checked.date ? " · " + it.checked.date : ""}`) : it.check ? "ausstehend" : "–"}</td></tr>`).join("")}</tbody></table>`).join("");
 }
 
-function licThanksText(it) {
-  return `Hallo ${it.repo.split("/")[0]},\n\nich möchte mich bedanken: Mein Open-Source-Projekt MarKusSXCH TagStudio (MP3-Tagger und DJ-Werkzeug, GPL-3.0) `
-    + `verwendet ${it.name}${it.use ? ` – ${it.use}` : ""}.\n\nProjekt: https://github.com/MarkusKeller8200/markussxch-tagstudio\n`
-    + `Lizenzangabe und Quelle stehen in der Hilfe unter „Lizenzen“ (docs/third-party.json).\n\nVielen Dank für eure Arbeit!`;
+/** #206: Danke-Text auf Deutsch oder Englisch – mit der Bitte um Rückmeldung, falls die Nutzung nicht passt */
+function licThanksText(it, lang) {
+  const who = it.repo.split("/")[0], proj = "https://github.com/MarkusKeller8200/markussxch-tagstudio";
+  const lic = it.license ? (lang === "en" ? ` (${it.license})` : ` (${it.license})`) : "";
+  if (lang === "en") {
+    return `Hi ${who},\n\nI'd like to say thank you: my open-source project MarKusSXCH TagStudio (MP3 tagger and DJ tool, GPL-3.0) `
+      + `uses ${it.name}${lic}${it.use ? ` – ${it.use}` : ""}.\n\nProject: ${proj}\n`
+      + `License and source are credited in the app under Help › Licenses (docs/third-party.json).\n\n`
+      + `If this use conflicts with your license or your wishes, or if you would like your code removed from this project, `
+      + `please let me know so that I can comply accordingly.\n\nThank you very much for your work!`;
+  }
+  return `Hallo ${who},\n\nich möchte mich bedanken: Mein Open-Source-Projekt MarKusSXCH TagStudio (MP3-Tagger und DJ-Werkzeug, GPL-3.0) `
+    + `verwendet ${it.name}${lic}${it.use ? ` – ${it.use}` : ""}.\n\nProjekt: ${proj}\n`
+    + `Lizenzangabe und Quelle stehen in der Hilfe unter „Lizenzen“ (docs/third-party.json).\n\n`
+    + `Sollte die Nutzung des Codes Ihrer Lizenz oder Ihren Wünschen widersprechen oder soll er aus diesem Projekt entfernt werden, `
+    + `bitte ich um eine entsprechende Rückmeldung, damit ich dem Folge leisten kann.\n\nVielen Dank für Ihre Arbeit!`;
 }
 async function licThanks(id) {
   const it = (HELP.lic?.items || []).find((x) => x.id === id);
@@ -103,7 +115,13 @@ async function licThanks(id) {
     html: `<p class="muted sm">Text anpassen, kopieren und auf GitHub einfügen. TagStudio sendet nichts selbst.
       ${ri.discussions ? "Das Projekt hat Diskussionen – dort ist ein Danke am besten aufgehoben (Kategorie „Show and tell“, falls vorhanden)."
         : "Das Projekt hat keine Diskussionen – du kannst ein Issue eröffnen oder dem Entwickler über sein Profil schreiben (manche nennen dort E-Mail oder Mastodon)."}</p>
-      <textarea id="licThanksTxt" class="inp" rows="9" style="width:100%">${esc(licThanksText(it))}</textarea>`,
+      <div class="lic-lang" role="radiogroup" aria-label="Sprache">
+        <label><input type="radio" name="licLang" value="en" checked> Englisch</label>
+        <label><input type="radio" name="licLang" value="de"> Deutsch</label></div>
+      <textarea id="licThanksTxt" class="inp" rows="12" style="width:100%">${esc(licThanksText(it, "en"))}</textarea>`,
+    onMount: (b) => b.addEventListener("change", (e) => {
+      if (e.target.name === "licLang") $("#licThanksTxt", b).value = licThanksText(it, e.target.value);
+    }),
     buttons: [{ label: "Abbrechen", value: null }, { label: "Kopieren", value: "copy" },
       { label: ri.discussions ? "Kopieren + Diskussion öffnen" : "Kopieren + Issue öffnen", value: "open", primary: true }],
     collect: async (b, v) => {                       // kopieren noch im Klick (Zwischenablage braucht die Benutzeraktion)
@@ -122,6 +140,7 @@ async function helpTab(tab) {
   $("#helpDoc").hidden = tab === "tags";
   if (tab === "tags") return helpLoadTags();
   if (tab === "keys") { $("#helpDoc").innerHTML = helpKeysHtml(); $("#helpDoc").scrollTop = 0; return; }
+  $("#helpDoc").classList.toggle("wide", tab === "licenses");          // #206: Tabelle nutzt die ganze Breite
   if (tab === "licenses") { $("#helpDoc").innerHTML = helpLicensesHtml(await call("help_licenses")); $("#helpDoc").scrollTop = 0; return; }
   if (!HELP.docs) HELP.docs = await call("help_docs");
   const d = HELP.docs[tab];

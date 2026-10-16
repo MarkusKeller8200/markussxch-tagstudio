@@ -1428,3 +1428,5 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 /* #213: IDs in der API-Antwort */
 .svc-body a.svc-id{color:var(--acc);text-decoration:underline dotted;cursor:pointer}
 .svc-idbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
+.help-doc.wide{max-width:none}
+.lic-lang{display:flex;gap:14px;margin:6px 0;font-size:13px}
