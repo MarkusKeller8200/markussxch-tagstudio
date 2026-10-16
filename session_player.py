@@ -33,7 +33,7 @@ class PlayerMixin:
                     "xfade_phase": (bool, True), "xfade_bars": (int, 0), "xfade_pitch": (bool, True),
                     "xfade_latency_ms": (int, 0), "metro_volume": (int, 80),   # #181: Latenz + Metronompegel
                     "xfade_lock": (bool, True), "xfade_seek_ms": (int, 0),
-                    "lyrics": (bool, False)}                                    # #215: Liedtext-Fenster     # #181: nachführen, gelernte Startverzögerung
+                    "lyrics": (bool, False), "zoom": (bool, False)}                                    # #215: Liedtext-Fenster     # #181: nachführen, gelernte Startverzögerung
     PLAYER_CHOICES = {"start": ("0", "30", "60", "cue"), "resume_play": ("pause", "play", "was"), "xfade_bars": (0, 4, 8, 16), "layout": ("bottom", "top"), "startmode": ("last", "default"),
                       "xfade_start": ("start", "0", "cue"), "deck_target": ("A", "B"),
                       "start_b": ("0", "30", "60", "cue")}

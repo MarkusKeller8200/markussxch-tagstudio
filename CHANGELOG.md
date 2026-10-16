@@ -8,6 +8,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Lupe im Player (#224):** Neuer Knopf „Lupe“ in Player A zeigt einen vergrösserten, mitlaufenden Ausschnitt der
+  Wellenform um die Abspielposition (1–32 s, −/+ oder Mausrad), in hoher Auflösung direkt aus dem Audio. Serato-Raster
+  (oben) und eigene Analyse (unten, orange) werden getrennt eingezeichnet – so lässt sich prüfen, ob das Beatgrid auf
+  den Schlägen liegt. Klick springt an die Stelle. Nichts wird gespeichert.
 - **Serato-Raster mit eigener Analyse vergleichen (#223):** Liegt für einen Titel mit Serato-Raster auch eine eigene
   Analyse vor, zeigt die Spalte „Beatgrid“ „Serato ✓“ (stimmt überein) oder „Serato ≠ Analyse“ mit dem Unterschied im
   Tooltip (halbes/doppeltes Tempo, Tempo weicht ab, erster Schlag versetzt) – auch als Filter. Der Player zeigt denselben

@@ -701,6 +701,36 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.get_attribute("#plLyricsBtn", "aria-pressed"), "false")
         self.assertEqual(self.errors, [])
 
+    def test_player_zoom(self):
+        """#224: Lupe – hochaufgelöster Ausschnitt um die Position, Serato oben/Analyse unten, Zoom, Klick springt, gemerkt."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("plLoad({kind: 'tag', ref: 0}, false)")
+        self.assertTrue(self.until("PLAYER.info && PLAYER.audio.src"))
+        pg.click("#plZoomBtn")
+        pg.wait_for_selector("#plZoom canvas")
+        self.assertTrue(self.until("PL_ZOOM.data && PL_ZOOM.data.length > 1000", 20))   # Audio dekodiert
+        self.assertEqual(pg.inner_text("#zmSpan"), "4 s")
+        pg.click('#plZoom [data-z="1"]')
+        self.assertEqual(pg.inner_text("#zmSpan"), "2 s")
+        pg.dispatch_event("#zmCanvas", "wheel", {"deltaY": 100})
+        self.assertEqual(pg.inner_text("#zmSpan"), "4 s")
+        # Serato-Raster und eigene Analyse → beide in der Legende
+        pg.evaluate("""PLAYER.info.grid = {bpm: 120, first: 0.1, source: 'Serato', exact: true, markers: [{pos: 0.1, bpm: 120}]};
+                       PLAYER.info.wave = {peaks: [], rms: [], beat: {bpm: 120.5, first: 0.12}}; plZoomDraw()""")
+        leg = pg.inner_text("#zmLeg")
+        self.assertIn("Serato 120.00 BPM", leg)
+        self.assertIn("Analyse 120.50 BPM", leg)
+        pg.evaluate("PLAYER.audio.currentTime = 2; plZoomDraw()")
+        box = pg.locator("#zmCanvas").bounding_box()
+        pg.mouse.click(box["x"] + box["width"] * 0.75, box["y"] + box["height"] / 2)   # +1 s bei 4 s Ausschnitt
+        self.assertTrue(self.until("Math.abs(PLAYER.audio.currentTime - 3) < 0.3"))
+        c = self.cfg_until(lambda c: (c.get("player") or {}).get("zoom") is True)
+        self.assertTrue((c.get("player") or {}).get("zoom"))
+        pg.click("#plZoom .zm-x")
+        self.assertTrue(pg.locator("#plZoom").is_hidden())
+        self.assertEqual(self.errors, [])
+
     def test_tagger_grid_status(self):
         """#191: Spalte „Beatgrid“ – Status im Hintergrund, Filter, Analyse über das Kontextmenü (nur Cache)."""
         pg = self.pg

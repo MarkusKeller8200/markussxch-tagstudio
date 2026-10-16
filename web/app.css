@@ -1474,3 +1474,17 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .tg-grid.g-serato_diff{background:#F5A62333;color:#B26B00;font-weight:600}
 .tg-grid.g-tag{background:#3B82F626;color:#1D5FD1;font-weight:600}
 [data-theme="dark"] .tg-grid.g-serato_ok{color:#5FD39C}[data-theme="dark"] .tg-grid.g-serato_diff{color:#F5B54A}[data-theme="dark"] .tg-grid.g-tag{color:#8AB4F8}
+/* #224 Lupe im Player */
+.pl-zoom{position:fixed;left:16px;width:min(760px,calc(100vw - 32px));display:flex;flex-direction:column;
+  background:var(--panel,var(--bg));border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px #0006;z-index:60}
+.pl-zoom .zm-head{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line);font-size:13px}
+.pl-zoom .zm-t{font-weight:600}
+.pl-zoom .zm-leg{flex:1;display:flex;gap:10px;font-size:12px;color:var(--dim);overflow:hidden;white-space:nowrap}
+.pl-zoom .zl-s::before,.pl-zoom .zl-o::before{content:"";display:inline-block;width:10px;height:3px;margin-right:4px;vertical-align:middle;background:var(--acc)}
+.pl-zoom .zl-o::before{background:#F5A623}
+.pl-zoom .zm-b{border:1px solid var(--line);background:none;color:var(--fg);border-radius:6px;width:26px;height:24px;cursor:pointer;font-size:15px;line-height:1}
+.pl-zoom .zm-span{min-width:34px;text-align:center;font-variant-numeric:tabular-nums;color:var(--dim);font-size:12px}
+.pl-zoom .zm-x{border:0;background:none;color:var(--dim);font-size:18px;line-height:1;cursor:pointer;padding:0 4px}
+.pl-zoom canvas{width:100%;height:130px;display:block;cursor:pointer}
+.pl-zoom .zm-msg{position:absolute;left:0;right:0;bottom:52px;text-align:center;font-size:12px;color:var(--dim);pointer-events:none}
+.pl-zoom .zm-msg:empty{display:none}
