@@ -6,7 +6,7 @@ Sonderzeichen, gleiche Wörter immer gleich schreiben (z. B. „Spichere“, „
 Fachbegriffe der Software bleiben, wie sie sind (siehe Glossar). Wo es in Mundart kein übliches Wort gibt, das Hochdeutsche nehmen.
 
 Regeln:
-1. Platzhalter in geschweiften Klammern wie {n}, {total}, {label} unverändert und vollständig übernehmen.
+1. Platzhalter in geschweiften Klammern wie {n}, {total}, {label} unverändert und vollständig übernehmen – mit EINFACHEN Klammern, nie verdoppeln ({n}, nicht {{n}}).
 2. Zeichen wie „ “, –, …, ▾, →, · und Tastenkürzel (L), (Shift+F5) beibehalten.
 3. Kontext beachten: „Knopf“ = sehr kurz (möglichst nicht länger als das Original), „Tooltip“/„Hinweis“ = ganzer Satz erlaubt,
    „Meldung“ = kurze Rückmeldung an den Benutzer, „Feldname“ = Bezeichnung einer Spalte bzw. eines Feldes.
