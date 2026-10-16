@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.5.0] – 2026-10-16
+
 ### Neu
 - **Online-Dienste als Plugins (#204, Teil 1):** Dienst-Plugins zeigen auf ihrer Karte einen anklickbaren Link zur
   API-Dokumentation und „Integration …“: alle API-Endpunkte mit Stand (vollständig / teilweise / nicht implementiert),
