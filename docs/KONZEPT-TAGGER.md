@@ -50,6 +50,15 @@ Alle Werkzeuge zeigen zuerst eine **Vorschau** und laufen über den gemeinsamen 
 
 - WAV-Unterstützung: [KONZEPT-WAV.md](KONZEPT-WAV.md) (#156).
 
+## 5b. Filter je Spalte (#202)
+
+Filterzeile `#tgHeadF` unter den Spaltenköpfen, gleiches Raster wie Kopf und Zeilen (`--tg-grid`), scrollt waagrecht mit.
+Je sichtbare Spalte ein Feld (`TG.colQ[spalte]`), auch für Merkmal-Spalten. Text: alle Wörter müssen vorkommen
+(Reihenfolge egal, ohne Gross/klein). Zahlenspalten (BPM, Länge in s, kbit/s, Bewertung, Spur, ID3, Merkmale):
+`>`, `>=`, `<`, `<=`, `=` und Bereich `a-b`; Länge auch als `m:ss`. Verknüpft mit UND und mit dem Suchfeld oben.
+Tasten im Feld gehen nicht an die Liste (keine Bewertung/Wiedergabe), Strg/Cmd-Kürzel schon; Esc leert, Enter/↓ zur
+Liste. Ein-/ausblenden über „Filter“ (`LAYOUT.tg_colfilter`, gemerkt); Filterwerte selbst werden nicht gespeichert.
+
 ## 5a. TagStudio-Zeitstempel (#184, #185 – 4.5.0, Entscheide vom 16.10.2026)
 
 Modul `tsmeta.py`. Eigene TXXX-Felder (in Mp3tag, Lexicon usw. sichtbar), Wert ISO 8601 mit Zeitzone, sekundengenau

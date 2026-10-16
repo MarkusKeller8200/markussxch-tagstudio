@@ -522,6 +522,48 @@ class UiTest(unittest.TestCase):
         self.assertFalse(c.get("stamp_added"))
         self.assertEqual(self.errors, [])
 
+    def test_tagger_column_filter(self):
+        """#202: Filter je Spalte (Text, mehrere Spalten, BPM-Bereich), Esc leert, Tasten bewerten nicht, Ausblenden."""
+        pg = self.pg
+        self.load_tagger()
+        pg.wait_for_selector('#tgHeadF input[data-cf="TIT2"]')
+        n = lambda: pg.evaluate("TG.view.length")                       # noqa: E731
+        pg.fill('#tgHeadF input[data-cf="TIT2"]', "330")
+        self.assertTrue(self.until("TG.view.length === 1 && TG.rows[TG.view[0].i].TIT2 === 'Ton 330'"))
+        self.assertIn("1 von 3", pg.inner_text("#tgCount"))
+        pg.fill('#tgHeadF input[data-cf="TIT2"]', "ton")                # alle drei
+        pg.fill('#tgHeadF input[data-cf="TPE1"]', "test")
+        self.assertTrue(self.until("TG.view.length === 3"))
+        # Ziffern im Feld setzen keine Bewertung, Leertaste spielt nicht
+        pg.click('#tgHeadF input[data-cf="TPE1"]')
+        pg.keyboard.type(" 5")
+        self.assertTrue(self.until("TG.view.length === 0"))               # „test 5“: kein Treffer
+        self.assertEqual(pg.evaluate("TG.rows.every(r => !r.rating)"), True)
+        self.assertTrue(pg.evaluate("!PLAYER.audio.src || PLAYER.audio.paused"))
+        pg.keyboard.press("Escape")                                       # leert dieses Feld
+        self.assertEqual(pg.input_value('#tgHeadF input[data-cf="TPE1"]'), "")
+        self.assertTrue(self.until("TG.view.length === 3"))
+        # Zahlen: BPM-Bereich und Vergleich (BPM 124 und 120, dritter ohne)
+        pg.fill('#tgHeadF input[data-cf="TBPM"]', "121-130")
+        self.assertTrue(self.until("TG.view.length === 1 && TG.rows[TG.view[0].i].TBPM === '124'"))
+        pg.fill('#tgHeadF input[data-cf="TBPM"]', "<=122")
+        self.assertTrue(self.until("TG.view.length === 1 && TG.rows[TG.view[0].i].TBPM === '120'"))
+        # zusammen mit dem Suchfeld oben
+        pg.fill("#tgQuery", "440")
+        self.assertTrue(self.until("TG.view.length === 0"))
+        pg.fill("#tgQuery", "")
+        # × leert alle Filter
+        pg.click("#tgColFilterClear")
+        self.assertTrue(self.until("TG.view.length === 3 && !tgColFilterActive()"))
+        # Ausblenden merken
+        pg.click("#tgColFilterBtn")
+        self.assertTrue(pg.locator("#tgHeadF").is_hidden())
+        c = self.cfg_until(lambda c: (c.get("ui") or {}).get("tg_colfilter") is False)
+        self.assertFalse((c.get("ui") or {}).get("tg_colfilter"))
+        pg.click("#tgColFilterBtn")
+        self.assertTrue(pg.locator("#tgHeadF").is_visible())
+        self.assertEqual(self.errors, [])
+
     def test_drag_to_player(self):
         """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""
         pg = self.pg

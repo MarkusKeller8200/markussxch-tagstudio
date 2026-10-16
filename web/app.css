@@ -368,7 +368,7 @@ span.xml-treeonly{display:contents}
 .tg-listhead{display:flex;align-items:center;gap:12px;padding-right:8px}
 .tg-listhead .search{flex:1;max-width:520px}
 .tg-table{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;background:var(--surf);overflow:hidden;outline:0}
-.tg-thead,.tg-row{display:grid;grid-template-columns:var(--tg-grid,22px var(--tg-name,minmax(130px,1.5fr)) minmax(80px,1fr) minmax(80px,1fr) minmax(80px,1fr) 52px 48px minmax(64px,.8fr) 50px 64px);gap:0 10px;align-items:center;padding:0 12px}
+.tg-thead,.tg-row,.tg-tfilter{display:grid;grid-template-columns:var(--tg-grid,22px var(--tg-name,minmax(130px,1.5fr)) minmax(80px,1fr) minmax(80px,1fr) minmax(80px,1fr) 52px 48px minmax(64px,.8fr) 50px 64px);gap:0 10px;align-items:center;padding:0 12px}
 .tg-thead{height:38px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
 .tg-thead button{border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;padding:0;display:flex;align-items:center;gap:4px;min-width:0}
 .tg-thead button:hover{color:var(--fg)}
@@ -1183,7 +1183,17 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .menu .chk{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border:1.5px solid var(--faint);border-radius:4px;font-size:11px;flex:none}
 .menu .chk.on{background:var(--acc);border-color:var(--acc);color:#fff}
 /* #148: optimale Spaltenbreite mit horizontalem Bildlauf; Kopfzeile läuft mit */
-.tg-table.feat .tg-thead,.tg-table.feat .tg-row{gap:0 8px}
+.tg-table.feat .tg-thead,.tg-table.feat .tg-row,.tg-table.feat .tg-tfilter{gap:0 8px}
+/* #202: Filter je Spalte */
+.tg-tfilter{height:32px;border-bottom:1px solid var(--line);background:var(--raise)}
+.tg-tfilter[hidden]{display:none}
+.tg-tfilter input{width:100%;min-width:0;height:24px;padding:0 6px;border:1px solid var(--line);border-radius:6px;
+  background:var(--bg);color:var(--fg);font:12px var(--font)}
+.tg-tfilter input::placeholder{color:var(--faint)}
+.tg-tfilter input.on{border-color:var(--acc)}
+.tg-tfilter .tf-x{border:0;background:none;color:var(--dim);font-size:15px;line-height:1;padding:0;cursor:pointer}
+.tg-tfilter .tf-x:disabled{opacity:.3;cursor:default}
+.tg-table.hscroll .tg-tfilter{width:max-content;min-width:100%}
 .tg-table.hscroll .tg-thead{width:max-content;min-width:100%;will-change:transform}
 .tg-table.hscroll .tg-row{right:auto;width:max-content;min-width:100%}
 .tg-table.hscroll .tg-scroll{overflow-x:auto}

@@ -47,7 +47,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
            "tg_feat_cols": list,                             # #11: Spalten mit Audio-Merkmalen im Tagger
            "tg_more_sort": str,                              # #141: Weitere Felder nach Feld oder Herkunft
            "tg_cols": list,                                  # #152/#154: sichtbare Spalten und Reihenfolge
-           "tg_fit": str,                                    # #148: „fit“ an Fenster anpassen, „scroll“ optimale Breite
+           "tg_fit": str, "tg_colfilter": bool,                 # #202: Filterzeile unter den Spaltenköpfen                                    # #148: „fit“ an Fenster anpassen, „scroll“ optimale Breite
            "tg_sort_default": list,                          # #153: Standard-Sortierung (bis 3 Stufen)
            "tg_view_default": dict}                          # #155: bevorzugte Ansicht
 

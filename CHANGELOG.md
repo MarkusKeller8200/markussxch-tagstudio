@@ -7,6 +7,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Filter je Spalte im Tagger (#202):** Filterzeile unter den Spaltenköpfen – je Spalte ein Suchfeld (mehrere Wörter,
+  Reihenfolge egal), Zahlenspalten auch mit `>120`, `<=5` oder `120-128`; wirkt zusammen mit dem Suchfeld oben.
+  **Esc** leert ein Feld, **×** alle, Knopf „Filter“ blendet die Zeile aus.
 - **Plugin „Liedtexte“ (#183):** Tagger › Plugins › „Liedtexte suchen (LRCLIB) …“ – frei, ohne Schlüssel. Genaue
   Abfrage mit Künstler, Titel, Album und Dauer, sonst Suche; Original, Remix und Live werden nicht gleichgesetzt
   (andere Fassung höchstens „unsicher“). Vorschau mit Häkchen: normaler Text in `USLT`, synchronisierter in `SYLT`;
