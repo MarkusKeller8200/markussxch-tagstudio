@@ -76,8 +76,8 @@ User durchgesehen. Fehlt ein Mundart-Text, gilt Hochdeutsch.
 **Ergebnis der Probe (16./17.10.2026):** 50 echte TagStudio-Texte, übersetzt von Apertus v1.5-70B (über Hugging Face)
 und von Claude, bewertet vom User. Apertus: Englisch brauchbar mit Fehlern („Stufen“ → „Levels“, Sinnfehler bei
 „nach links“), Mundart in keiner Variante (Zürich, Zürich mit Wortliste, Bern, Basel, allgemein) brauchbar, Platzhalter
-teils verdoppelt. **Claude-Übersetzung am besten** (Englisch und Zürichdeutsch). Probe-Material:
-`tools/i18n_probe/`, Workflow „Probeübersetzung“, Ergebnisse in #157.
+teils verdoppelt. **Claude-Übersetzung am besten** (Englisch und Zürichdeutsch). Ergebnisse als Kommentare in #157
+(Probe-Workflow nach dem Entscheid entfernt).
 
 **Entscheid:**
 - **Keine KI-Anbindung in TagStudio.** Die mitgelieferten Sprachen (`de-CH`, `en`, `gsw-u-sd-chzh`) übersetzt Claude
