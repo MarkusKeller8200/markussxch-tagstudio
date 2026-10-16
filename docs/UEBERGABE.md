@@ -100,6 +100,7 @@ Zug nachführen.**
     Original/Remix/Live nicht gleichgesetzt – **auf main, Beta-Test**.
   - TagStudio-Zeitstempel zählen nie als Verstoss gegen die Schutzregel in „Vorbereiten“ (`prepare.violations`).
   - Danach: Release 4.5.0 nur nach ausdrücklicher Freigabe.
+- **Nachtrag 16.10. abends:** #183–#185, #201–#204 getestet und geschlossen, #204 nach 4.5.0 verschoben (Meilenstein #17 leer). Neu in 4.5.0, im Beta-Test: #205 Integrationsfenster mit echten Beispielwerten (Daft Punk – One More Time, wöchentlich im Online-Test geprüft), „Felder löschen“/„Beispiel einsetzen“; #206 Lizenzen mit GitHub-Repository, Vertrauenssignalen (`repo_info` über den Workflow „Fremdkomponenten prüfen“) und eigenen Häkchen geprüft/gefolgt/bedankt. Danach Release 4.5.0 nur nach Freigabe.
 - **4.6.0** (Meilenstein #17): #204 Online-Dienste als Plugins – je Dienst ein Plugin (MusicBrainz, AcoustID, Deezer,
   iTunes, Discogs, Last.fm, LRCLIB, Beatport, Lexicon) mit API-Link, Integrationsfenster (Endpunkte, Testabfrage ohne
   Track, API-Tester nur lesend) und Plugins › „Integrationen …“; „Online-Metadaten“ = gemeinsame Suche, Entdecken über
