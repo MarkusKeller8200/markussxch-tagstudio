@@ -48,7 +48,7 @@
             "name": "q",
             "default": "",
             "required": true,
-            "example": "track:\"One More Time\" artist:\"Daft Punk\""
+            "example": "Daft Punk One More Time"
           },
           {
             "name": "limit",

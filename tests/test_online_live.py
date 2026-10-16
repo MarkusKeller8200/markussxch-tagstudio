@@ -5,6 +5,7 @@ noch zu den Feldzuordnungen des Plugins passen. Ohne Netz bzw. ohne die Variable
 """
 import os
 import sys
+import time
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -100,6 +101,8 @@ class TestExamples(unittest.TestCase):
                 if any(p["required"] and not params[p["name"]] for p in ep["params"]):
                     bad.append(f"{pid}/{ep['id']}: kein Beispiel für Pflichtfeld")
                     continue
+                if pid == "musicbrainz":
+                    time.sleep(1.2)                         # 1 Anfrage/s (API-Tester drosselt nicht)
                 try:
                     r = self.m.api_call(pid, ep["id"], params)
                 except Exception as ex:  # noqa: BLE001
@@ -108,6 +111,9 @@ class TestExamples(unittest.TestCase):
                 body = r.get("body") or ""
                 empty = body.strip() in ("", "[]", "{}") or '"error"' in body[:200] or '"count": 0' in body[:200] \
                     or '"resultCount": 0' in body[:200] or '"data": []' in body[:200]
+                if r["status"] in (429, 502, 503):           # Dienst überlastet – nicht das Beispiel
+                    print(f"\n::notice title=Beispiel nicht abgefragt::{pid}/{ep['id']}: HTTP {r['status']}", flush=True)
+                    continue
                 if r["status"] != 200 or empty:
                     bad.append(f"{pid}/{ep['id']}: HTTP {r['status']} {body[:160]!r}")
         for b in bad:

@@ -118,7 +118,7 @@
           {
             "name": "album_name",
             "default": "",
-            "example": "Discovery"
+            "example": "Eurotrip"
           },
           {
             "name": "duration",
