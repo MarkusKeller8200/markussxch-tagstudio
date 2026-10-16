@@ -7,6 +7,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Online-Dienste als Plugins (#204, Teil 1):** Dienst-Plugins zeigen auf ihrer Karte einen anklickbaren Link zur
+  API-Dokumentation und „Integration …“: alle API-Endpunkte mit Stand (vollständig / teilweise / nicht implementiert),
+  **Testabfrage ohne Track** (Künstler, Titel, Mix, Album, ISRC, Dauer – gleiche Suche und Bewertung wie im Tagger) und
+  **API-Tester** (Endpunkt wählen, Parameter eintragen, Antwort mit Status, Dauer und JSON; Schlüssel werden eingesetzt,
+  aber nie angezeigt; nur lesende Endpunkte). Plugins › „Integrationen …“ zeigt alle Dienste und Endpunkte auf einen
+  Blick, inklusive der Update-Prüfung im Kern. Zuerst für LRCLIB, Beatport und Lexicon (27 Endpunkte laut offizieller
+  OpenAPI-Beschreibung).
 - **Filter je Spalte im Tagger (#202):** Filterzeile unter den Spaltenköpfen – je Spalte ein Suchfeld (mehrere Wörter,
   Reihenfolge egal), Zahlenspalten auch mit `>120`, `<=5` oder `120-128`; wirkt zusammen mit dem Suchfeld oben.
   **Esc** leert ein Feld, **×** alle, Knopf „Filter“ blendet die Zeile aus.

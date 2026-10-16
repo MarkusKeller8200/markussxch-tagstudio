@@ -5,5 +5,248 @@
   "api": 1,
   "author": "MarKusSXCH TagStudio",
   "description": "Liest Tanzbarkeit, Energie und Fröhlichkeit (und auf Wunsch die Mood-Tags) aus Lexicon DJ über dessen Local API und schlägt sie als Audio-Merkmale DANCEABILITY, ENERGY und HAPPINESS vor. Mit Abgleich: Werte, die du in der Datei seit dem letzten Übernehmen geändert hast, werden nicht ungefragt überschrieben.",
-  "notes": "Keine Zusatzpakete nötig. Lexicon muss laufen, die Local API muss eingeschaltet sein (Settings › Integrations). Lexicon wird nur gelesen."
+  "notes": "Keine Zusatzpakete nötig. Lexicon muss laufen, die Local API muss eingeschaltet sein (Settings › Integrations). Lexicon wird nur gelesen.",
+  "service": {
+    "name": "Lexicon Local API",
+    "kind": "local",
+    "home": "https://www.lexicondj.com",
+    "docs": "https://www.lexicondj.com/docs/developers/api",
+    "base": "http://localhost:48624/v1",
+    "auth": "local",
+    "auth_note": "Ohne Anmeldung; in Lexicon unter Settings › Integrations › Local API einschalten. Die Adresse im Tester ist die zuletzt im Plugin benutzte.",
+    "note": "Endpunkte laut offizieller OpenAPI-Beschreibung (Lexicon Local API 1.0.0). TagStudio greift nur lesend zu.",
+    "endpoints": [
+      {
+        "id": "tracks",
+        "method": "GET",
+        "path": "/tracks",
+        "label": "Alle Titel (seitenweise)",
+        "status": "partial",
+        "use": "Lexicon übernehmen: Tanzbarkeit, Energie, Fröhlichkeit, Mood-Tags",
+        "note": "nur die Felder für die Audio-Merkmale",
+        "params": [
+          {
+            "name": "limit",
+            "default": "10"
+          },
+          {
+            "name": "offset",
+            "default": "0"
+          }
+        ]
+      },
+      {
+        "id": "tags",
+        "method": "GET",
+        "path": "/tags",
+        "label": "Custom Tags und Kategorien",
+        "status": "partial",
+        "use": "Lexicon übernehmen: Mood-Tags",
+        "note": "nur Kategorie „Mood“"
+      },
+      {
+        "id": "track",
+        "method": "GET",
+        "path": "/track",
+        "label": "Einen Titel",
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "default": "",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "search-tracks",
+        "method": "GET",
+        "path": "/search/tracks",
+        "label": "Titel suchen",
+        "status": "none",
+        "note": "z. B. filter[artist]=…&filter[title]=…",
+        "params": [
+          {
+            "name": "filter[artist]",
+            "default": "",
+            "label": "filter[artist]"
+          },
+          {
+            "name": "filter[title]",
+            "default": "",
+            "label": "filter[title]"
+          }
+        ]
+      },
+      {
+        "id": "tracks-selected",
+        "method": "GET",
+        "path": "/tracks/selected",
+        "label": "In Lexicon markierte Titel",
+        "status": "none"
+      },
+      {
+        "id": "playlists",
+        "method": "GET",
+        "path": "/playlists",
+        "label": "Alle Playlists (Baum)",
+        "status": "none"
+      },
+      {
+        "id": "playlist",
+        "method": "GET",
+        "path": "/playlist",
+        "label": "Eine Playlist (ID)",
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "default": "",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "playlist-by-path",
+        "method": "GET",
+        "path": "/playlist-by-path",
+        "label": "Eine Playlist (Pfad)",
+        "status": "none"
+      },
+      {
+        "id": "playlists-selected",
+        "method": "GET",
+        "path": "/playlists/selected",
+        "label": "In Lexicon markierte Playlists",
+        "status": "none"
+      },
+      {
+        "id": "playing",
+        "method": "GET",
+        "path": "/playing",
+        "label": "Aktuell gespielter Titel",
+        "status": "none"
+      },
+      {
+        "id": "queue",
+        "method": "GET",
+        "path": "/queue",
+        "label": "Warteschlange",
+        "status": "none"
+      },
+      {
+        "id": "track-update",
+        "method": "PATCH",
+        "path": "/track",
+        "label": "Titel ändern",
+        "status": "none",
+        "note": "TagStudio ändert nichts in Lexicon"
+      },
+      {
+        "id": "track-location",
+        "method": "PATCH",
+        "path": "/track/location",
+        "label": "Speicherort eines Titels ändern",
+        "status": "none"
+      },
+      {
+        "id": "tracks-add",
+        "method": "POST",
+        "path": "/tracks",
+        "label": "Titel hinzufügen",
+        "status": "none"
+      },
+      {
+        "id": "tracks-delete",
+        "method": "DELETE",
+        "path": "/tracks",
+        "label": "Titel löschen",
+        "status": "none"
+      },
+      {
+        "id": "playlist-create",
+        "method": "POST",
+        "path": "/playlist",
+        "label": "Playlist anlegen",
+        "status": "none"
+      },
+      {
+        "id": "playlist-update",
+        "method": "PATCH",
+        "path": "/playlist",
+        "label": "Playlist ändern",
+        "status": "none"
+      },
+      {
+        "id": "playlist-tracks-add",
+        "method": "PATCH",
+        "path": "/playlist-tracks",
+        "label": "Titel zu Playlist hinzufügen",
+        "status": "none"
+      },
+      {
+        "id": "playlist-tracks-remove",
+        "method": "DELETE",
+        "path": "/playlist-tracks",
+        "label": "Titel aus Playlist entfernen",
+        "status": "none"
+      },
+      {
+        "id": "playlists-delete",
+        "method": "DELETE",
+        "path": "/playlists",
+        "label": "Playlists löschen",
+        "status": "none"
+      },
+      {
+        "id": "tag-create",
+        "method": "POST",
+        "path": "/tag",
+        "label": "Custom Tag anlegen",
+        "status": "none"
+      },
+      {
+        "id": "tag-update",
+        "method": "PATCH",
+        "path": "/tag",
+        "label": "Custom Tag ändern",
+        "status": "none"
+      },
+      {
+        "id": "tag-delete",
+        "method": "DELETE",
+        "path": "/tag",
+        "label": "Custom Tag löschen",
+        "status": "none"
+      },
+      {
+        "id": "tag-category-create",
+        "method": "POST",
+        "path": "/tag-category",
+        "label": "Tag-Kategorie anlegen",
+        "status": "none"
+      },
+      {
+        "id": "tag-category-update",
+        "method": "PATCH",
+        "path": "/tag-category",
+        "label": "Tag-Kategorie ändern",
+        "status": "none"
+      },
+      {
+        "id": "tag-category-delete",
+        "method": "DELETE",
+        "path": "/tag-category",
+        "label": "Tag-Kategorie löschen",
+        "status": "none"
+      },
+      {
+        "id": "control",
+        "method": "POST",
+        "path": "/control",
+        "label": "Lexicon-Befehle ausführen",
+        "status": "none"
+      }
+    ]
+  }
 }

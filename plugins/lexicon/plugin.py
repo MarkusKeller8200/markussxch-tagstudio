@@ -124,6 +124,56 @@ def _level(v):
     return int(round(n * 10)) if 0 < n <= 10 else None
 
 
+# =========================================================================== #204: Integration
+def _base(ctx) -> str:
+    """Zuletzt im Plugin benutzte Adresse der Local API (Optionen der Aktion), sonst der Standard."""
+    try:
+        url = ctx._session.cfg["plugin_options"]["lexicon"]["import"]["url"]
+    except (AttributeError, KeyError, TypeError):
+        url = ""
+    return (url or "http://localhost:48624").strip().rstrip("/")
+
+
+def api_request(ctx, ep, params):
+    """API-Tester: GET an die Local API – ohne Proxy, Adresse aus den Plugin-Optionen."""
+    import services
+    svc = {"base": _base(ctx) + "/v1"}
+    url = services.build_url(svc, ep, params)
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    try:
+        with opener.open(urllib.request.Request(url, headers={"Accept": "application/json"}), timeout=20) as r:
+            return r.status, dict(r.headers), r.read(), url
+    except urllib.error.HTTPError as ex:
+        return ex.code, dict(ex.headers or {}), ex.read(), url
+    except (urllib.error.URLError, OSError) as ex:
+        raise LexiconError(f"Keine Verbindung zu Lexicon unter {_base(ctx)} – läuft Lexicon und ist die Local API "
+                           f"eingeschaltet (Settings › Integrations)? ({getattr(ex, 'reason', ex)})") from ex
+
+
+def test_query(ctx, info):
+    """Testabfrage ohne Track: Titel in der Lexicon-Bibliothek über Künstler und Titel finden."""
+    base = _base(ctx)
+    tracks = load_tracks(base, ctx)
+    ctx.log(f"Lexicon unter {base}: {len(tracks)} Titel gelesen")
+    want_a, want_t = _norm_name(info.get("artist"), "").strip("\x00 "), _norm_name("", info.get("title")).strip("\x00 ")
+    out = []
+    for t in tracks:
+        if t.get("archived"):
+            continue
+        a, ti = _norm_name(t.get("artist"), "").strip("\x00 "), _norm_name("", t.get("title")).strip("\x00 ")
+        if (want_t and want_t not in ti) or (want_a and want_a not in a):
+            continue
+        vals = [f"{lab} {_level(t.get(k)) or '–'}" for k, lab in (("energy", "Energie"), ("danceability", "Tanzbarkeit"),
+                                                                    ("happiness", "Fröhlichkeit"))]
+        out.append({"source_name": "Lexicon", "id": t.get("id"), "title": t.get("title") or "", "artists": [t.get("artist") or ""],
+                    "album": t.get("albumTitle") or t.get("album") or "", "length": t.get("duration") or None,
+                    "extra": " · ".join(vals) + (f" · {t.get('location')}" if t.get("location") else "")})
+        if len(out) >= 200:
+            break
+    ctx.log(f"{len(out)} passende Titel")
+    return out
+
+
 def run(action, ctx, files, opts):
     if action != "import":
         raise ValueError(f"Unbekannte Aktion: {action}")

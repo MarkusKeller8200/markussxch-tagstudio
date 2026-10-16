@@ -428,6 +428,50 @@ def best_match(client, info):
     return t, s, ""
 
 
+# =========================================================================== #204: Integration
+def api_request(ctx, ep, params):
+    """API-Tester: GET mit dem eigenen Token (bei Bedarf erneuert). Der Token wird in der Anzeige geschwärzt."""
+    import services
+    cl = Client(ctx)
+    if cl.tok["expires_at"] - 30 < time.time():
+        cl.tok = refresh(ctx, cl.tok) or cl._expired()
+    url = services.build_url({"base": API}, ep, params)
+    st, h, body = request("GET", url, headers={"Authorization": f"Bearer {cl.tok['access_token']}"})
+    if st == 401:
+        cl.tok = refresh(ctx, cl.tok) or cl._expired()
+        st, h, body = request("GET", url, headers={"Authorization": f"Bearer {cl.tok['access_token']}"})
+    ctx.secrets = [cl.tok.get("access_token"), cl.tok.get("refresh_token")]
+    return st, h, body, url
+
+
+def test_query(ctx, info):
+    """Testabfrage ohne Track: wie „Beatport-Daten holen“ – zuerst ISRC, sonst Suche Künstler + Titel + Mix."""
+    cl = Client(ctx)
+    cands = cl.by_isrc(info["isrc"]) if info.get("isrc") else []
+    ctx.log(f"ISRC {info['isrc']}: {len(cands)} Treffer" if info.get("isrc") else "ohne ISRC")
+    if not cands:
+        q = " ".join(x for x in (_FEAT_RE.sub("", info["artist"]).split(",")[0], info["title"], info["mix"]) if x)
+        cands = cl.search_tracks(q, n=10)
+        ctx.log(f"Suche „{q}“: {len(cands)} Treffer")
+    out = []
+    for t in cands:
+        rel = t.get("release") or {}
+        out.append({"_raw": t, "source_name": "Beatport", "id": t.get("id"), "title": t.get("name") or "",
+                    "mix": t.get("mix_name") or "", "artists": artists_of(t), "album": rel.get("name") or "",
+                    "label": (rel.get("label") or {}).get("name") or "", "isrc": t.get("isrc") or "",
+                    "date": t.get("publish_date") or t.get("new_release_date") or "",
+                    "length": (t.get("length_ms") or 0) / 1000 or None,
+                    "url": f"https://www.beatport.com/track/{t.get('slug') or 'x'}/{t.get('id')}" if t.get("id") else "",
+                    "extra": " · ".join(x for x in (f"{t['bpm']} BPM" if t.get("bpm") else "",
+                                                    (t.get("key") or {}).get("name") or "",
+                                                    (t.get("genre") or {}).get("name") or "") if x)})
+    return out
+
+
+def test_score(info, c):
+    return score({**info, "bpid": ""}, c["_raw"])
+
+
 # =========================================================================== Felder
 def key_text(t, notation):
     import keys

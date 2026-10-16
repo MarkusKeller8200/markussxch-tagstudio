@@ -6,5 +6,220 @@
   "author": "MarKusSXCH TagStudio",
   "description": "Holt BPM, Tonart, Genre/Subgenre, Label, Katalognummer, Datum, ISRC, Remixer und Cover von Beatport – mit Vorschau, nichts wird ohne Bestätigung geändert. Nutzt die Beatport-API v4 mit deinem eigenen Beatport-Login (wie das beets-Plugin „beatport4“). Inoffiziell: Beatport kann den Zugang jederzeit ändern. Nur für Metadaten deiner eigenen Titel verwenden.",
   "notes": "Keine Zusatzpakete nötig.",
-  "fields": ["TXXX:BEATPORT_TRACK_ID"]
+  "fields": [
+    "TXXX:BEATPORT_TRACK_ID"
+  ],
+  "service": {
+    "name": "Beatport API v4",
+    "kind": "online",
+    "home": "https://www.beatport.com",
+    "docs": "https://api.beatport.com/v4/docs/",
+    "base": "https://api.beatport.com/v4",
+    "auth": "oauth",
+    "auth_note": "Eigenes Beatport-Konto (Plugin › Anmelden …); Token verschlüsselt gespeichert, wird automatisch erneuert. Inoffizielle Nutzung mit eigenem Login (Entscheid).",
+    "limits": "Bei HTTP 429 wird gewartet (Retry-After)",
+    "note": "Es sind nur die Endpunkte aufgeführt, die TagStudio nutzt oder die für Metadaten naheliegen; die API ist deutlich grösser (siehe Dokumentation).",
+    "endpoints": [
+      {
+        "id": "search",
+        "method": "GET",
+        "path": "/catalog/search/",
+        "label": "Katalog durchsuchen",
+        "status": "full",
+        "use": "Beatport-Daten holen, Entdecken (Künstler/Labels)",
+        "params": [
+          {
+            "name": "q",
+            "default": "Mara Lind Nordlicht",
+            "required": true
+          },
+          {
+            "name": "type",
+            "default": "tracks"
+          },
+          {
+            "name": "per_page",
+            "default": "5"
+          }
+        ]
+      },
+      {
+        "id": "tracks",
+        "method": "GET",
+        "path": "/catalog/tracks/",
+        "label": "Titel filtern (ISRC, Künstler, Label)",
+        "status": "partial",
+        "use": "ISRC-Suche, Entdecken (neue Titel)",
+        "note": "genutzt: isrc, artist_id, label_id, order_by",
+        "params": [
+          {
+            "name": "isrc",
+            "default": ""
+          },
+          {
+            "name": "artist_id",
+            "default": ""
+          },
+          {
+            "name": "label_id",
+            "default": ""
+          },
+          {
+            "name": "order_by",
+            "default": "-publish_date"
+          },
+          {
+            "name": "per_page",
+            "default": "5"
+          }
+        ]
+      },
+      {
+        "id": "track",
+        "method": "GET",
+        "path": "/catalog/tracks/{id}/",
+        "label": "Ein Titel",
+        "status": "full",
+        "use": "Vollständiger Datensatz nach der Suche, gespeicherte Beatport-ID"
+      },
+      {
+        "id": "track-download",
+        "method": "GET",
+        "path": "/catalog/tracks/{id}/download/",
+        "label": "Download-Adresse eines gekauften Titels",
+        "status": "partial",
+        "use": "Fehlende Käufe herunterladen",
+        "note": "Download-Endpunkt gegen die echte API noch ungetestet (#117)",
+        "test": false
+      },
+      {
+        "id": "releases",
+        "method": "GET",
+        "path": "/catalog/releases/{id}/",
+        "label": "Eine Veröffentlichung",
+        "status": "none",
+        "note": "Label und Katalognummer kommen aus dem Titel-Datensatz"
+      },
+      {
+        "id": "artists",
+        "method": "GET",
+        "path": "/catalog/artists/{id}/",
+        "label": "Ein Künstler",
+        "status": "none"
+      },
+      {
+        "id": "labels",
+        "method": "GET",
+        "path": "/catalog/labels/{id}/",
+        "label": "Ein Label",
+        "status": "none"
+      },
+      {
+        "id": "genres",
+        "method": "GET",
+        "path": "/catalog/genres/",
+        "label": "Genres",
+        "status": "partial",
+        "use": "Entdecken: Genre-Auswahl",
+        "params": [
+          {
+            "name": "per_page",
+            "default": "100"
+          }
+        ]
+      },
+      {
+        "id": "genre-top",
+        "method": "GET",
+        "path": "/catalog/genres/{id}/top/100/",
+        "label": "Top 100 eines Genres",
+        "status": "full",
+        "use": "Entdecken: Genre-Charts"
+      },
+      {
+        "id": "charts",
+        "method": "GET",
+        "path": "/catalog/charts/",
+        "label": "DJ-Charts",
+        "status": "none"
+      },
+      {
+        "id": "my-account",
+        "method": "GET",
+        "path": "/my/account/",
+        "label": "Eigenes Konto",
+        "status": "partial",
+        "use": "Anmeldung prüfen, Verbindung testen"
+      },
+      {
+        "id": "my-downloads",
+        "method": "GET",
+        "path": "/my/downloads/",
+        "label": "Eigene Downloads/Käufe",
+        "status": "partial",
+        "use": "Gekaufte Titel abgleichen",
+        "note": "einer von mehreren probierten Pfaden",
+        "params": [
+          {
+            "name": "per_page",
+            "default": "10"
+          }
+        ]
+      },
+      {
+        "id": "my-library",
+        "method": "GET",
+        "path": "/my/library/",
+        "label": "Eigene Bibliothek",
+        "status": "partial",
+        "use": "Gekaufte Titel abgleichen (Ersatzpfad)",
+        "params": [
+          {
+            "name": "per_page",
+            "default": "10"
+          }
+        ]
+      },
+      {
+        "id": "my-library-tracks",
+        "method": "GET",
+        "path": "/my/library/tracks/",
+        "label": "Titel der eigenen Bibliothek",
+        "status": "partial",
+        "use": "Gekaufte Titel abgleichen (Ersatzpfad)",
+        "params": [
+          {
+            "name": "per_page",
+            "default": "10"
+          }
+        ]
+      },
+      {
+        "id": "my-download",
+        "method": "GET",
+        "path": "/my/downloads/{id}/download/",
+        "label": "Download eines Kaufs",
+        "status": "partial",
+        "use": "Fehlende Käufe herunterladen",
+        "test": false
+      },
+      {
+        "id": "auth-authorize",
+        "method": "GET",
+        "path": "/auth/o/authorize/",
+        "label": "Anmeldung (OAuth: Code holen)",
+        "status": "full",
+        "use": "Anmelden …",
+        "test": false
+      },
+      {
+        "id": "auth-token",
+        "method": "POST",
+        "path": "/auth/o/token/",
+        "label": "Token holen/erneuern",
+        "status": "full",
+        "use": "Anmelden, automatische Erneuerung"
+      }
+    ]
+  }
 }

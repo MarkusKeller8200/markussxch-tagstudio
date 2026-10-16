@@ -269,6 +269,24 @@ def _why(status: int) -> str:
     return " (Dienst überlastet oder in Wartung)" if status >= 500 else ""
 
 
+def test_query(ctx, info):
+    """#204: Testabfrage ohne Track – gleiche Stufen wie bei der Liedtext-Suche; Bewertung über score()."""
+    trail = []
+    cands = candidates(_client(ctx), info, trail)
+    for t in trail:
+        ctx.log(t)
+    for c in cands:
+        c["source_name"] = "LRCLIB"
+        c["url"] = ""
+        kinds = (["synchronisiert"] if c.get("synced", "").strip() else []) + (["Text"] if c.get("plain", "").strip() else [])
+        c["extra"] = "instrumental" if c.get("instrumental") else (" + ".join(kinds) or "ohne Text")
+    return cands
+
+
+def score(info, c):
+    return version_score(info, c)
+
+
 def status(ctx):
     st = load_settings(ctx)
     return f"LRCLIB: frei, ohne Schlüssel · .lrc-Datei: {'ja' if st['lrc'] else 'nein'} · Sprache: {st['lang']}"

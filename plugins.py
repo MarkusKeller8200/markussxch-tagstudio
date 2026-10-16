@@ -36,6 +36,9 @@ class Cancelled(Exception):
     """Abbruch durch den Benutzer."""
 
 
+MANAGER = None          # #204: zuletzt angelegter Manager – damit Plugins andere Dienst-Plugins nutzen können
+
+
 def user_dir() -> str:
     """Eigene Plugins (Programmcode) – gemeinsam für alle Profile."""
     return os.path.join(paths.base_dir(), "Plugins")
@@ -191,6 +194,27 @@ class Context:
     def setting(self, key, default=None):
         return self.plugin.settings.get(key, default)
 
+    # ---- andere Dienst-Plugins (#204)
+    def service(self, pid):
+        """Modul eines eingeschalteten, bereiten Dienst-Plugins (z. B. „deezer“) – sonst None."""
+        m = MANAGER
+        if m is None:
+            return None
+        p = m.plugins.get(pid)
+        if p is None or not p.enabled or p.state() != "ready":
+            return None
+        return p.load()
+
+    def service_ctx(self, pid):
+        """Context für ein anderes Dienst-Plugin (eigener Datenordner, Schlüssel …), mit gleichem Abbruch/Fortschritt."""
+        m = MANAGER
+        p = m.plugins.get(pid) if m is not None else None
+        if p is None:
+            return None
+        c = Context(p, self._session, self._cancel, self._progress, self.background)
+        c.log_lines = self.log_lines          # gemeinsames Protokoll
+        return c
+
     # ---- eigene Python-Umgebung (plugin.json "env")
     @property
     def env_python(self) -> str:
@@ -345,6 +369,14 @@ class Plugin:
     def name(self) -> str:
         return str(self.manifest.get("name") or self.id)
 
+    @property
+    def service(self):
+        """#204: bereinigte Dienstbeschreibung aus plugin.json („service“) oder None."""
+        if not hasattr(self, "_service"):
+            import services
+            self._service = services.clean(self.manifest.get("service"))
+        return self._service
+
     # ---- eigene Umgebung
     @property
     def env_spec(self):
@@ -454,6 +486,9 @@ class Plugin:
                           "hint": v.get("hint", "")} for v in m.get("install", []) if v.get("packages")],
              "notes": m.get("notes", ""), "env": bool(self.env_spec),
              "env_variant": self.env_info().get("label", "") if self.env_spec else ""}
+        if self.service:                                   # #204: API-Link und Endpunkt-Zahlen
+            import services
+            d["service"] = services.summary(self.service, self.module if st == "ready" and self.enabled else None)
         if st == "ready" and self.enabled:
             d["actions"] = [{"id": a["id"], "label": a["label"], "where": a["where"],
                              "description": a.get("description", "")} for a in self.actions()]
@@ -473,10 +508,12 @@ class Plugin:
 # =========================================================================== Verwaltung
 class Manager:
     def __init__(self, cfg: dict, dirs=None):
+        global MANAGER
         self.cfg = cfg
         self.dirs = dirs or [(BUILTIN_DIR, True), (user_dir(), False)]
         self.plugins: dict[str, Plugin] = {}
         self.scan()
+        MANAGER = self
 
     def scan(self):
         importlib.invalidate_caches()
@@ -515,6 +552,65 @@ class Manager:
                             "error": p.error, "missing": [], "external": [], "install": [], "notes": "",
                             "env": False, "env_variant": ""})
         return out
+
+    # ---- #204: Dienste
+    def services(self) -> list[dict]:
+        """Alle Dienst-Plugins mit Endpunkten (für die Gesamtübersicht) plus die Kern-Dienste."""
+        import services
+        out = []
+        for p in sorted(self.plugins.values(), key=lambda p: p.name.lower()):
+            svc = p.service
+            if not svc:
+                continue
+            ready = p.enabled and p.state() == "ready"
+            out.append({"id": p.id, "plugin": p.id, "plugin_name": p.name, "enabled": p.enabled, "ready": ready,
+                        **{k: svc[k] for k in ("name", "kind", "home", "docs", "auth", "note", "limits", "auth_note")},
+                        "auth_text": services.AUTH[svc["auth"]], "counts": services.counts(svc),
+                        "endpoints": svc["endpoints"],
+                        "test_query": bool(ready and callable(getattr(p.load(), "test_query", None)))})
+        for c in services.CORE:
+            out.append({**c, "plugin_name": "Kern", "enabled": True, "ready": True,
+                        "counts": services.counts(c), "test_query": False, "limits": "", "auth_note": ""})
+        return out
+
+    def service_plugin(self, pid) -> Plugin:
+        p = self.get(pid)
+        if not p.service:
+            raise ValueError(f"„{p.name}“ ist kein Dienst-Plugin.")
+        if not p.enabled:
+            raise ValueError(f"Plugin „{p.name}“ ist ausgeschaltet – zuerst einschalten.")
+        if p.state() != "ready" or p.load() is None:
+            raise ValueError(f"Plugin „{p.name}“ ist nicht bereit: {p.error or 'Pakete fehlen'}.")
+        return p
+
+    def api_call(self, pid, eid, params, session=None, cancel=None, progress=None) -> dict:
+        import services
+        from version import VERSION
+        p = self.service_plugin(pid)
+        ctx = Context(p, session, cancel, progress)
+        ua = f"TagStudio/{VERSION} ( https://github.com/MarkusKeller8200/markussxch-tagstudio )"
+        res = services.api_call(p, ctx, eid, params or {}, ua)
+        res["log"] = ctx.log_lines
+        return res
+
+    def test_query(self, pid, raw, session=None, cancel=None, progress=None) -> dict:
+        """Testabfrage ohne Track: gleiche Suche und Bewertung wie mit einem Titel, ohne Tags zu ändern."""
+        import services
+        p = self.service_plugin(pid)
+        mod = p.load()
+        fn = getattr(mod, "test_query", None)
+        if not callable(fn):
+            raise ValueError(f"„{p.name}“ bietet keine Testabfrage.")
+        info = services.query_info(raw)
+        if not (info["title"] or info["artist"] or info["isrc"]):
+            raise ValueError("Bitte mindestens Titel, Künstler oder ISRC angeben.")
+        ctx = Context(p, session, cancel, progress)
+        try:
+            cands = fn(ctx, info) or []
+        except Cancelled:
+            return {"cancelled": True, "rows": [], "log": ctx.log_lines, "info": info}
+        rows = services.result_rows(mod, info, cands)
+        return {"rows": rows, "log": ctx.log_lines, "info": info, "count": len(cands)}
 
     def get(self, pid) -> Plugin:
         p = self.plugins.get(pid)

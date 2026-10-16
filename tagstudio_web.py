@@ -46,6 +46,7 @@ _STARTED = time.time()
 
 _PASS = {
     "tag_locate",                                                   # #175
+    "services_overview", "service_detail", "start_service_api", "start_service_test",   # #204
     "add_field_choices", "add_field", "bulk_keys", "bulk_apply", "cover_remove",
     "fixer_settings", "fixer_preview", "fixer_apply",
     "backups", "set_backup", "start_backup_check", "start_restore", "backup_diff", "delete_backup",

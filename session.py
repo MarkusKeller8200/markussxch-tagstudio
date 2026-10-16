@@ -2298,6 +2298,49 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         return {"plugins": lst, "user_dir": plugins.user_dir(), "log_dir": plugins.log_dir(),
                 "frozen": bool(getattr(sys, "frozen", False))}
 
+    # ---- #204: Dienst-Plugins – Integrationsfenster, Übersicht, Tester
+    def services_overview(self) -> dict:
+        return {"services": self.plugins.services()}
+
+    def service_detail(self, pid) -> dict:
+        """Dienstbeschreibung eines Plugins für das Integrationsfenster (auch wenn ausgeschaltet)."""
+        import services
+        p = self.plugins.get(pid)
+        svc = p.service
+        if not svc:
+            raise ValueError(f"„{p.name}“ ist kein Dienst-Plugin.")
+        ready = p.enabled and p.state() == "ready"
+        mod = p.load() if ready else None
+        return {"id": p.id, "plugin_name": p.name, "enabled": p.enabled, "ready": ready, **svc,
+                "auth_text": services.AUTH[svc["auth"]], "counts": services.counts(svc),
+                "test_query": bool(mod is not None and callable(getattr(mod, "test_query", None))),
+                "status_labels": services.STATUS}
+
+    def start_service_api(self, pid, eid, params):
+        """API-Tester: einen Endpunkt aufrufen (nur lesend). Läuft als Auftrag, damit Abbrechen möglich ist."""
+        try:
+            self.plugins.service_plugin(pid)
+        except (KeyError, ValueError) as ex:
+            return {"ok": False, "error": str(ex)}
+        params = {str(k): str(v) for k, v in (params or {}).items()} if isinstance(params, dict) else {}
+
+        def job(cancel, progress):
+            progress(("text", "Abfrage läuft …"))
+            return self.plugins.api_call(pid, str(eid), params, self, cancel, progress)
+        return self._run("service_api", "API-Abfrage", job)
+
+    def start_service_test(self, pid, raw):
+        """Testabfrage ohne Track (Künstler, Titel, Mix, Album, ISRC, Dauer von Hand)."""
+        try:
+            self.plugins.service_plugin(pid)
+        except (KeyError, ValueError) as ex:
+            return {"ok": False, "error": str(ex)}
+
+        def job(cancel, progress):
+            progress(("text", "Suche läuft …"))
+            return self.plugins.test_query(pid, raw if isinstance(raw, dict) else {}, self, cancel, progress)
+        return self._run("service_test", "Testabfrage", job)
+
     def plugin_enable(self, pid, on):
         core.save_config(self.plugins.set_enabled(pid, on))
         return self.plugins_list()

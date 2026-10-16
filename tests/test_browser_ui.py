@@ -1028,6 +1028,75 @@ class UiTest(unittest.TestCase):
         pg.click("#mBtns button >> text=Abbrechen")
         self.assertEqual(self.errors, [])
 
+    def test_service_integration(self):
+        """#204: Dienst-Plugins – API-Link auf der Karte, Integrationsfenster (Endpunkte, Testabfrage, API-Tester),
+        Gesamtübersicht. Lexicon gegen einen lokalen Nachbau, damit kein Internet nötig ist."""
+        import http.server
+        import threading
+        from test_services import FakeLexicon
+        srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), FakeLexicon)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            pg = self.pg
+            path = os.path.join(self.home, ".tagstudio.json")
+            pg.evaluate("appFlushState()")
+            with open(path, encoding="utf-8") as fh:
+                cfg = json.load(fh)
+            cfg.setdefault("plugin_options", {})["lexicon"] = {"import": {"url": f"http://127.0.0.1:{srv.server_address[1]}"}}
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump(cfg, fh)
+            pg = self.restart()
+            pg.click('.nav[data-module="plugins"]')
+            card = '.pl-card[data-pid="lexicon"]'
+            pg.wait_for_selector(card)
+            if not pg.locator(card + " [data-enable]").is_checked():
+                pg.click(card + " .switch")
+                pg.wait_for_selector(card + " [data-svcopen]")
+            link = pg.locator(card + " .pl-svc .pl-link")
+            self.assertIn("lexicondj.com/docs/developers/api", link.get_attribute("data-url"))
+            self.assertIn("27 Endpunkte", pg.inner_text(card + " .pl-svc"))
+            # Integrationsfenster: Endpunkte mit Status, Filter
+            pg.click(card + " [data-svcopen]")
+            pg.wait_for_selector("#svcBody .svc-table")
+            self.assertIn("Integration – Lexicon Local API", pg.inner_text("#mTitle"))
+            self.assertEqual(pg.locator("#svcBody tbody tr").count(), 27)
+            pg.click('#svcBody [data-svcf="partial"]')
+            self.assertEqual(pg.locator("#svcBody tbody tr").count(), 2)
+            # Testabfrage ohne Track
+            pg.click('[data-svctab="tq"]')
+            pg.fill('[data-tq="artist"]', "mara")
+            pg.fill('[data-tq="title"]', "nordlicht")
+            pg.click("#svcTqRun")
+            pg.wait_for_selector("#svcTqOut table")
+            self.assertIn("Nordlicht", pg.inner_text("#svcTqOut table"))
+            self.assertIn("Energie 70", pg.inner_text("#svcTqOut table"))
+            # API-Tester: über „Testen“ in der Endpunkt-Tabelle
+            pg.click('[data-svctab="ep"]')
+            pg.click('#svcBody [data-svctest="tracks"]')
+            pg.wait_for_selector('#svcApi [data-ap="limit"]')
+            pg.fill('#svcApi [data-ap="limit"]', "1")
+            pg.click("#svcApiRun")
+            pg.wait_for_selector("#svcApiOut .svc-http")
+            self.assertEqual(pg.inner_text("#svcApiOut .svc-http"), "HTTP 200")
+            self.assertIn('"Nordlicht"', pg.inner_text("#svcApiBody"))
+            self.assertNotIn("Kaltes Glas", pg.inner_text("#svcApiBody"))       # limit=1
+            pg.click("#mBtns .primary")
+            # Gesamtübersicht: alle Dienste inkl. Kern
+            pg.click("#plServices")
+            pg.wait_for_selector("#svcOvBody")
+            txt = pg.inner_text("#svcOvBody")
+            for name in ("LRCLIB", "Lexicon Local API", "Beatport API v4", "GitHub Releases (Updates)"):
+                self.assertIn(name, txt)
+            pg.click('[data-ovf="full"]')
+            self.assertEqual(pg.locator("#svcOvBody .svc-st.svc-none").count()
+                             - pg.locator("#svcOvBody .svc-grp .svc-st.svc-none").count(), 0)
+            pg.click('#svcOvBody [data-svcopen="lyrics"]')
+            pg.wait_for_function("document.querySelector('#mTitle').textContent.includes('LRCLIB')")
+            pg.click("#mBtns .primary")
+            self.assertEqual(self.errors, [])
+        finally:
+            srv.shutdown()
+
     def test_online_plugin(self):
         """#6–#8: Plugin Online-Metadaten – Schlüssel speichern (nie in der Konfiguration), Formular im Tagger."""
         pg = self.pg

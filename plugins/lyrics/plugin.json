@@ -6,5 +6,127 @@
   "author": "MarKusSXCH TagStudio",
   "description": "Lädt Liedtexte von LRCLIB (lrclib.net, frei, ohne Schlüssel) – normaler Text in USLT, synchronisierter Text in SYLT, auf Wunsch zusätzlich als .lrc-Datei neben dem MP3. Mit Vorschau; vorhandene Liedtexte werden nie ohne dein Häkchen ersetzt.",
   "notes": "Keine Zusatzpakete nötig. Liedtexte sind urheberrechtlich geschützt – nur für den eigenen Gebrauch.",
-  "fields": ["TXXX:LRCLIB_ID"]
+  "fields": [
+    "TXXX:LRCLIB_ID"
+  ],
+  "service": {
+    "name": "LRCLIB",
+    "kind": "online",
+    "home": "https://lrclib.net",
+    "docs": "https://lrclib.net/docs",
+    "base": "https://lrclib.net/api",
+    "auth": "none",
+    "limits": "höflich: höchstens 2 Anfragen/s, nacheinander",
+    "note": "Liedtexte von Nutzern beigetragen; keine ISRC-Suche. Liedtexte sind urheberrechtlich geschützt – nur eigener Gebrauch.",
+    "endpoints": [
+      {
+        "id": "get",
+        "method": "GET",
+        "path": "/get",
+        "label": "Liedtext genau abfragen (Künstler, Titel, Album, Dauer)",
+        "status": "full",
+        "use": "Liedtexte: Stufe 1",
+        "params": [
+          {
+            "name": "artist_name",
+            "default": "Mara Lind",
+            "required": true
+          },
+          {
+            "name": "track_name",
+            "default": "Nordlicht",
+            "required": true
+          },
+          {
+            "name": "album_name",
+            "default": "",
+            "required": true
+          },
+          {
+            "name": "duration",
+            "default": "",
+            "required": true,
+            "label": "duration (Sekunden)"
+          }
+        ]
+      },
+      {
+        "id": "search",
+        "method": "GET",
+        "path": "/search",
+        "label": "Liedtexte suchen (Titel/Künstler oder Freitext)",
+        "status": "full",
+        "use": "Liedtexte: Stufe 2 und 3",
+        "params": [
+          {
+            "name": "q",
+            "default": "",
+            "label": "q (Freitext)"
+          },
+          {
+            "name": "track_name",
+            "default": "Nordlicht"
+          },
+          {
+            "name": "artist_name",
+            "default": "Mara Lind"
+          },
+          {
+            "name": "album_name",
+            "default": ""
+          }
+        ]
+      },
+      {
+        "id": "get-id",
+        "method": "GET",
+        "path": "/get/{id}",
+        "label": "Liedtext über die LRCLIB-ID",
+        "status": "none",
+        "use": "",
+        "note": "ID wird als TXXX:LRCLIB_ID gespeichert, aber noch nicht wieder abgefragt"
+      },
+      {
+        "id": "get-cached",
+        "method": "GET",
+        "path": "/get-cached",
+        "label": "Nur aus dem Zwischenspeicher (ohne externe Quellen)",
+        "status": "none",
+        "params": [
+          {
+            "name": "artist_name",
+            "default": ""
+          },
+          {
+            "name": "track_name",
+            "default": ""
+          },
+          {
+            "name": "album_name",
+            "default": ""
+          },
+          {
+            "name": "duration",
+            "default": ""
+          }
+        ]
+      },
+      {
+        "id": "request-challenge",
+        "method": "POST",
+        "path": "/request-challenge",
+        "label": "Herausforderung für das Veröffentlichen holen",
+        "status": "none",
+        "note": "nur zum Beitragen eigener Liedtexte"
+      },
+      {
+        "id": "publish",
+        "method": "POST",
+        "path": "/publish",
+        "label": "Liedtext veröffentlichen",
+        "status": "none",
+        "note": "TagStudio lädt nichts hoch"
+      }
+    ]
+  }
 }

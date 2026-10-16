@@ -44,6 +44,9 @@ function renderPlugins() {
         <label class="switch" title="${p.enabled ? "Ausschalten" : "Einschalten"}"><input type="checkbox" data-enable ${p.enabled ? "checked" : ""} aria-label="${esc(p.name)} ein/aus"><span></span></label>
       </div>
       <p class="pl-desc">${esc(p.description)}</p>
+      ${p.service ? `<div class="pl-svc sm">${p.service.docs ? `<a href="#" class="pl-link" data-url="${esc(p.service.docs)}" title="${esc(p.service.docs)}">API: ${esc(p.service.name)} ↗</a>` : `<span>${esc(p.service.name)}</span>`}
+        <span class="muted">· ${esc(p.service.auth_text)} · ${p.service.endpoints} Endpunkte</span>
+        <button class="ghost sm" data-svcopen title="Endpunkte mit Umsetzungsstand${p.service.test_query ? ", Testabfrage ohne Track" : ""}${p.service.testable ? ", API-Tester" : ""}">Integration …</button></div>` : ""}
       ${p.enabled ? err + missing + ext + page + acts + envOk : ""}
       <div class="hint pl-path" title="${esc(p.path)}">${esc(p.path)}</div>
     </section>`;
@@ -226,6 +229,7 @@ async function pluginPreview(f, res) {
 
 // ---------------------------------------------------------------------- Ereignisse
 (function bindPlugins() {
+  $("#plServices").addEventListener("click", () => svcOverview());     // #204
   $("#plRescan").addEventListener("click", async () => { PL.actionsCache = null; await pluginsShow(true); toast("Plugins neu eingelesen."); if (typeof renderTgEditor === "function") renderTgEditor(); });
   $("#plLogs").addEventListener("click", async () => { if (!(await call("open_folder", PL.logDir))) toast("Ordner konnte nicht geöffnet werden."); });
   $("#plOpen").addEventListener("click", async () => { if (!(await call("open_folder", PL.userDir))) toast("Ordner konnte nicht geöffnet werden."); });
@@ -237,6 +241,10 @@ async function pluginPreview(f, res) {
     if (typeof renderTgEditor === "function") renderTgEditor();
   });
   $("#plList").addEventListener("click", (e) => {
+    const lk = e.target.closest(".pl-link[data-url]");                 // #204: API-Dokumentation
+    if (lk) { e.preventDefault(); call("open_url", lk.dataset.url); return; }
+    const so = e.target.closest("[data-svcopen]");
+    if (so) { svcOpen(so.closest("[data-pid]").dataset.pid); return; }
     const pa = e.target.closest("[data-paction]");
     if (pa) { pluginRun(pa.closest("[data-pid]").dataset.pid, pa.dataset.paction); return; }
     const b = e.target.closest("[data-install]"); if (!b) return;

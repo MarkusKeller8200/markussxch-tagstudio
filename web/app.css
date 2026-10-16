@@ -551,6 +551,39 @@ span.xml-treeonly{display:contents}
 .pl-ta{height:auto;min-height:84px;padding:8px 10px;font:12px/1.4 ui-monospace,Consolas,monospace;resize:vertical}
 .pl-page{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .pl-stat{flex:1 1 100%;color:var(--fg)}
+/* #204: Online-Dienste */
+.pl-svc{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:-2px 0 8px}
+.pl-svc .ghost{margin-left:auto}
+.svc-head{display:grid;gap:4px;margin-bottom:10px}
+.svc-links .pl-link{white-space:nowrap}
+.svc-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.svc-tabs button{border:0;background:none;color:var(--dim);font:inherit;padding:6px 10px;border-bottom:2px solid transparent;cursor:pointer}
+.svc-tabs button[aria-selected=true]{color:var(--fg);border-bottom-color:var(--acc)}
+.svc-tabs button:disabled{opacity:.4;cursor:default}
+.svc-filter{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.svc-table{max-height:52vh}
+.svc-table td{vertical-align:top}
+.svc-table code{font-size:11.5px;white-space:nowrap}
+.svc-st{display:inline-block;padding:0 6px;border-radius:5px;font:600 10.5px/17px var(--font);white-space:nowrap}
+.svc-full{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.svc-part{background:color-mix(in srgb,var(--svc-amber) 20%,transparent);color:var(--svc-amber)}
+:root{--svc-amber:#B7790B}
+[data-theme=dark]{--svc-amber:#E3B341}
+.svc-none{background:color-mix(in srgb,var(--faint,#888) 16%,transparent);color:var(--dim)}
+.svc-grp td{background:var(--raise);border-top:1px solid var(--line)}
+.svc-grp .ghost{margin-left:8px}
+.svc-tq,.svc-api{grid-template-columns:120px minmax(0,1fr);margin:8px 0}
+.svc-run{display:flex;align-items:center;gap:8px;padding:8px 0}
+.svc-sum{margin:6px 0}
+.svc-pct{display:inline-block;min-width:44px;text-align:right;font-weight:650}
+.svc-pct.sure{color:var(--ok)}.svc-pct.maybe{color:var(--svc-amber)}.svc-pct.low{color:var(--faint)}
+.svc-resp{display:flex;align-items:center;gap:10px;margin:8px 0 4px}
+.svc-resp .ghost{margin-left:auto}
+.svc-http{font-weight:700;padding:1px 8px;border-radius:6px}
+.svc-http.ok{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.svc-http.bad{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.svc-url code{word-break:break-all}
+.svc-body{max-height:40vh;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;font:12px/1.45 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
 .pl-prev{max-height:52vh}
 .pl-prev td{vertical-align:top}
 .pl-prev .pv-val{white-space:pre-line;max-height:9.5em;overflow:auto}   /* #183: mehrzeilige Werte (Liedtexte) */
