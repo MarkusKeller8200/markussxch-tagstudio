@@ -164,7 +164,7 @@ async function svcApiRun(b) {
   if (!r) return;
   const hd = Object.entries(r.headers || {}).map(([k, v]) => `${k}: ${v}`).join("\n");
   const html = `<div class="svc-resp"><span class="svc-http ${r.ok ? "ok" : "bad"}">HTTP ${r.status}</span>
-      <span class="muted sm">${fmtN(r.ms)} ms · ${fmtN(r.bytes)} Bytes${r.content_type ? " · " + esc(r.content_type) : ""}</span>
+      <span class="muted sm">${fmtN(r.ms)} ms · ${fmtN(r.bytes)} Bytes${r.content_type ? " · " + esc(r.content_type) : ""}${r.retries ? ` · ${r.retries} Wiederholung${r.retries > 1 ? "en" : ""} (Dienst ausgelastet)` : ""}</span>
       <button class="ghost sm" id="svcApiCopy">Antwort kopieren</button></div>
     <div class="sm svc-url"><code>${esc(r.url)}</code></div>
     ${hd ? `<details class="sm"><summary class="muted">Kopfzeilen</summary><pre class="pl-log">${esc(hd)}</pre></details>` : ""}

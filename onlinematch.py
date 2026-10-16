@@ -211,3 +211,25 @@ class Client:
 
 
 SHARED = Throttle(INTERVALS)      # #204: eine Drosselung je Host für alle Dienst-Plugins
+
+
+def get_retry(url: str, headers: dict, tries: int = 3, throttle: Throttle | None = None, cancel=None, log=None,
+              max_wait: float = 10.0):
+    """#212: GET mit Drosselung und Wiederholung bei 429/503 – liefert (Status, Kopfzeilen, Daten, Wiederholungen),
+    auch Fehlerantworten (für den API-Tester). Abruf über http_get (in Tests ersetzbar)."""
+    host = urllib.parse.urlparse(url).netloc
+    th = throttle or SHARED
+    st, hd, data = 0, {}, b""
+    for n in range(tries):
+        if cancel:
+            cancel()
+        th.wait(host)
+        st, hd, data = http_get(url, headers)
+        if st in (429, 503) and n < tries - 1:
+            wait = min(max_wait, retry_after({k.lower(): v for k, v in (hd or {}).items()}.get("retry-after", 2)))
+            if log:
+                log(f"{host}: HTTP {st} – neuer Versuch in {wait:g} s")
+            time.sleep(wait)
+            continue
+        return st, hd, data, n
+    return st, hd, data, tries - 1

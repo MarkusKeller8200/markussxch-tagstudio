@@ -161,6 +161,36 @@ class TestServicePlugins(Base):
         self.s.plugin_enable("lexicon", False)
         self.assertFalse(self.s.start_service_api("lexicon", "tracks", {})["ok"])
 
+    def test_api_tester_retry(self):
+        """#212: API-Tester mit gemeinsamer Drosselung – HTTP 503 wird wiederholt, nicht sofort angezeigt."""
+        import onlinematch as om
+        calls = []
+
+        def fake(url, headers=None):
+            calls.append(url)
+            if len(calls) == 1:
+                return 503, {"Retry-After": "0"}, b""
+            return 200, {"Content-Type": "application/json"}, b'[{"id": 1, "trackName": "One More Time"}]'
+        orig, iv = om.http_get, dict(om.INTERVALS)
+        om.http_get = fake
+        om.INTERVALS["lrclib.net"] = 0.3
+        try:
+            self.s.start_service_api("lyrics", "search", {"track_name": "One More Time"})
+            st = self.wait()
+            self.s.start_service_api("lyrics", "search", {"track_name": "One More Time"})
+            t0 = __import__("time").monotonic()
+            self.wait()
+            gap = __import__("time").monotonic() - t0
+        finally:
+            om.http_get = orig
+            om.INTERVALS.clear()
+            om.INTERVALS.update(iv)
+        res = st["result"]
+        self.assertEqual((res["status"], res["retries"]), (200, 1), res)
+        self.assertTrue(any("HTTP 503 – neuer Versuch" in ln for ln in res["log"]), res["log"])
+        self.assertEqual(len(calls), 3)
+        self.assertGreaterEqual(gap, 0.2)                                         # Abstand je Dienst eingehalten
+
     def test_test_query_without_track(self):
         self.s.cfg.setdefault("plugin_options", {}).setdefault("lexicon", {})["import"] = {"url": self.url}
         self.s.start_service_test("lexicon", {"artist": "mara", "title": "nordlicht"})

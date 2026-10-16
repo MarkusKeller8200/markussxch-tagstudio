@@ -96,7 +96,7 @@ class TestExamples(unittest.TestCase):
         cls.m = plugins.Manager({})
 
     def test_endpoint_examples(self):
-        bad = []
+        bad, busy = [], []
         for pid, only in NOAUTH.items():
             svc = self.m.get(pid).service
             for ep in svc["endpoints"]:
@@ -117,14 +117,13 @@ class TestExamples(unittest.TestCase):
                 empty = body.strip() in ("", "[]", "{}") or '"error"' in body[:200] or '"count": 0' in body[:200] \
                     or '"resultCount": 0' in body[:200] or '"data": []' in body[:200]
                 if r["status"] in (429, 502, 503):           # Dienst überlastet – nicht das Beispiel
-                    print(f"\n::notice title=Beispiel nicht abgefragt::{pid}/{ep['id']}: HTTP {r['status']}", flush=True)
+                    busy.append(f"{pid}/{ep['id']}")
                     continue
                 if r["status"] != 200 or empty:
                     # nur Status und Art – keine Antwortdaten ins Protokoll (könnten Zugangsdaten enthalten, CodeQL #207/#209)
                     bad.append(f"{pid}/{ep['id']}: HTTP {r['status']}" + (" ohne Treffer" if empty else ""))
-        for b in bad:
-            print(f"\n::warning title=Beispiel ohne Resultat::{b}", flush=True)
-        self.assertEqual(bad, [])
+        # keine Ausgabe mit print (CodeQL #210/#211) – Befunde stehen in der Meldung des Tests
+        self.assertEqual(bad, [], f"Beispiele ohne Resultat; ausgelastet, nicht abgefragt: {busy}")
 
     def test_query_examples(self):
         for pid in ("musicbrainz", "deezer", "itunes", "lyrics"):
@@ -134,8 +133,7 @@ class TestExamples(unittest.TestCase):
                 r = self.m.test_query(pid, ex)
             except om.HttpError as e:
                 if e.status in (429, 502, 503):
-                    print(f"\n::notice title=Beispiel nicht abgefragt::{pid}: {e}", flush=True)
-                    continue
+                    continue                                  # Dienst ausgelastet
                 raise
             self.assertTrue(r["rows"], f"{pid}: keine Kandidaten für {ex}")
             self.assertTrue(r["rows"][0]["sure"], f"{pid}: bester Treffer nicht sicher: {r['rows'][0]}")

@@ -240,9 +240,13 @@ def api_call(plugin, ctx, eid: str, params: dict, user_agent: str) -> dict:
         secrets += list(getattr(ctx, "secrets", []) or [])
     else:
         url = build_url(svc, ep, params or {}, a.get("params"))
-        status, headers, body = om.http_get(url, {"User-Agent": user_agent, "Accept": "application/json",
-                                                   **(a.get("headers") or {})})
-    return format_response(status, headers, body, url, (time.monotonic() - t0) * 1000, secrets)
+        # #212: dieselbe Drosselung und Wiederholung wie die Suche (schnelles Senden → sonst HTTP 503)
+        status, headers, body, retries = om.get_retry(
+            url, {"User-Agent": user_agent, "Accept": "application/json", **(a.get("headers") or {})},
+            cancel=getattr(ctx, "check_cancel", None), log=getattr(ctx, "log", None))
+    res = format_response(status, headers, body, url, (time.monotonic() - t0) * 1000, secrets)
+    res["retries"] = 0 if callable(custom) else retries
+    return res
 
 
 # =========================================================================== Kern (kein Plugin)

@@ -28,6 +28,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Repository und zum Entwickler, dazu Sterne und letzte Änderung (archivierte oder lange stille Projekte markiert).
   Eigene Häkchen „geprüft / gefolgt / bedankt“ und ein vorbereiteter Danke-Text („Danke …“) zum Kopieren. Neu in der
   Liste: python-build-standalone und die einzelnen GitHub Actions.
+- **API-Tester mit Drosselung (#212):** Der Tester hält dieselben Abstände je Dienst ein wie die Suche und wiederholt
+  bei „ausgelastet“ (HTTP 429/503) automatisch; die Antwort zeigt die Zahl der Wiederholungen.
 - **Filter je Spalte im Tagger (#202):** Filterzeile unter den Spaltenköpfen – je Spalte ein Suchfeld (mehrere Wörter,
   Reihenfolge egal), Zahlenspalten auch mit `>120`, `<=5` oder `120-128`; wirkt zusammen mit dem Suchfeld oben.
   **Esc** leert ein Feld, **×** alle, Knopf „Filter“ blendet die Zeile aus.
