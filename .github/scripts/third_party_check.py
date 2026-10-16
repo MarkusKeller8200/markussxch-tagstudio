@@ -238,6 +238,10 @@ def main(argv):
     changes = compare(data["items"])
     infos = collect_repo_info(data["items"], today=today) if TOKEN else {}
     warns = repo_warnings(data["items"], infos, today)
+    # schon bekannte Hinweise (aus den gespeicherten repo_info) lösen kein neues Issue aus
+    known = {(it["id"], w) for it, w in repo_warnings(data["items"], {i["id"]: i["repo_info"] for i in data["items"]
+                                                                       if i.get("repo_info")}, today)}
+    new_warns = [(it, w) for it, w in warns if (it["id"], w) not in known]
     text = report(changes, today, infos, warns)
     print(text)
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
@@ -245,7 +249,7 @@ def main(argv):
         with open(summary, "a", encoding="utf-8") as fh:
             fh.write(re.sub(re.escape(MARK), "", text) + "\n")
     if "--dry-run" not in argv and REPO and TOKEN:
-        publish(text, bool(changes or warns or infos))
+        publish(text, bool(changes or new_warns))
     return 0
 
 

@@ -102,6 +102,8 @@ class TestThirdParty(unittest.TestCase):
         self.assertEqual(sorted(infos), ["a", "b", "c"])
         w = m.repo_warnings(items, infos, "2026-11-01")
         self.assertEqual([(it["id"], x.split(" ")[0]) for it, x in w], [("b", "archiviert"), ("b", "seit"), ("c", "Repository")])
+        known = m.repo_warnings(items, {"b": info["o/b"]}, "2026-11-01")       # gespeicherter Stand: b schon bekannt
+        self.assertEqual([it["id"] for it, _w in w if (it["id"], _w) not in {(i["id"], x) for i, x in known}], ["c"])
         text = m.report([], "2026-11-01", infos, w)
         self.assertIn("Keine Änderungen", text)
         self.assertIn("archiviert", text)
