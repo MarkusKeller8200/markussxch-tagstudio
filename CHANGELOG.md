@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.6.0] – 2026-10-17
+
 ### Neu
 
 - **Lupe im Player (#224):** Neuer Knopf „Lupe“ in Player A zeigt einen vergrösserten, mitlaufenden Ausschnitt der
