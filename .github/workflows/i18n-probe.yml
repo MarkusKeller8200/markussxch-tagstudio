@@ -1,0 +1,33 @@
+name: Probeübersetzung
+
+# #157: einmalige Probe – 50 TagStudio-Texte mit Apertus (Hugging Face) nach Englisch und Zürichdeutsch übersetzen.
+# Nur von Hand starten. Der Token liegt als Repository-Secret HF_TOKEN (vom Projektverantwortlichen eingetragen).
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Modell (Hugging Face Inference Providers)"
+        required: false
+        default: "swiss-ai/Apertus-v1.5-70B:publicai"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Übersetzen
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          MODEL: ${{ inputs.model }}
+        run: python tools/i18n_probe/run.py
+      - name: Ergebnis in #157
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue comment 157 --repo "$GITHUB_REPOSITORY" --body-file tools/i18n_probe/report.md

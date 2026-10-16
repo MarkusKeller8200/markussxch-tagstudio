@@ -1,0 +1,270 @@
+Du bist Übersetzer für die Oberfläche der Desktop-App „TagStudio“ (MP3-Tagger und DJ-Werkzeug).
+Übersetze die folgenden Texte von Schweizer Hochdeutsch (de-CH) ins Englische (en), wie es in Software-Oberflächen üblich ist.
+
+Regeln:
+1. Platzhalter in geschweiften Klammern wie {n}, {total}, {label} unverändert und vollständig übernehmen.
+2. Zeichen wie „ “, –, …, ▾, →, · und Tastenkürzel (L), (Shift+F5) beibehalten.
+3. Kontext beachten: „Knopf“ = sehr kurz (möglichst nicht länger als das Original), „Tooltip“/„Hinweis“ = ganzer Satz erlaubt,
+   „Meldung“ = kurze Rückmeldung an den Benutzer, „Feldname“ = Bezeichnung einer Spalte bzw. eines Feldes.
+4. Den Benutzer mit Du ansprechen (keine Höflichkeitsform), freundlich und knapp.
+5. Antwort AUSSCHLIESSLICH als JSON-Liste im gleichen Format, mit zusätzlichem Feld "en" je Eintrag – kein Text davor oder danach.
+   Beispiel: [{"key": "btn.save", "en": "…"}]
+
+Glossar – diese Begriffe NICHT übersetzen, genau so übernehmen:
+TagStudio, Tagger, Tag-Fixer (EN: Tag Fixer), Snapshot, Cue, BPM, Beatgrid, Camelot, DJ-Set (EN: DJ set), Plugin,
+LRCLIB, Lexicon, MusicBrainz, Deezer, iTunes, Discogs, Last.fm, Beatport, GitHub, JSON, ID3, MP3, Shift, Strg, Esc, F5, F11,
+Feldnamen wie TXXX:…, TKEY, TBPM sowie alles in geschweiften Klammern.
+
+Texte:
+[
+ {
+  "key": "nav.tagger",
+  "context": "Menü",
+  "de": "Tagger"
+ },
+ {
+  "key": "nav.help.tip",
+  "context": "Tooltip",
+  "de": "Hilfe: Tag-Übersicht, Handbuch, ID3-Felder"
+ },
+ {
+  "key": "nav.update.tip",
+  "context": "Tooltip",
+  "de": "Nach neuer Version suchen"
+ },
+ {
+  "key": "nav.restart.tip",
+  "context": "Tooltip",
+  "de": "Neu starten (Zustände werden gespeichert)"
+ },
+ {
+  "key": "nav.quit.tip",
+  "context": "Tooltip",
+  "de": "Beenden (Einstellungen werden gespeichert)"
+ },
+ {
+  "key": "nav.collapse.tip",
+  "context": "Tooltip",
+  "de": "Seitenleiste einklappen"
+ },
+ {
+  "key": "btn.save",
+  "context": "Knopf",
+  "de": "Speichern"
+ },
+ {
+  "key": "btn.undo",
+  "context": "Knopf",
+  "de": "Rückgängig"
+ },
+ {
+  "key": "btn.load",
+  "context": "Knopf",
+  "de": "Einlesen"
+ },
+ {
+  "key": "btn.cancel",
+  "context": "Knopf",
+  "de": "Abbrechen"
+ },
+ {
+  "key": "btn.apply",
+  "context": "Knopf",
+  "de": "Übernehmen"
+ },
+ {
+  "key": "btn.columns",
+  "context": "Knopf",
+  "de": "Spalten ▾"
+ },
+ {
+  "key": "btn.filter",
+  "context": "Knopf",
+  "de": "Filter"
+ },
+ {
+  "key": "btn.report",
+  "context": "Knopf",
+  "de": "Melden …"
+ },
+ {
+  "key": "btn.clear_fields",
+  "context": "Knopf",
+  "de": "Felder löschen"
+ },
+ {
+  "key": "btn.example",
+  "context": "Knopf",
+  "de": "Beispiel einsetzen"
+ },
+ {
+  "key": "tagger.count",
+  "context": "Statuszeile",
+  "de": "{n} von {total} Titeln"
+ },
+ {
+  "key": "tagger.colfilter.tip",
+  "context": "Tooltip",
+  "de": "Filterzeile unter den Spaltenköpfen ein-/ausblenden"
+ },
+ {
+  "key": "tagger.date.placeholder",
+  "context": "Platzhalter im Feld",
+  "de": "z. B. <30d, 2026-10"
+ },
+ {
+  "key": "tagger.loading",
+  "context": "Meldung",
+  "de": "Einen Moment – der Tagger-Ordner wird noch eingelesen …"
+ },
+ {
+  "key": "tagger.select_first",
+  "context": "Meldung",
+  "de": "Im Tagger zuerst Titel markieren."
+ },
+ {
+  "key": "tagger.field.added",
+  "context": "Feldname",
+  "de": "In Bibliothek aufgenommen"
+ },
+ {
+  "key": "tagger.field.edited",
+  "context": "Feldname",
+  "de": "Letzte Bearbeitung"
+ },
+ {
+  "key": "tagger.binary",
+  "context": "Meldung",
+  "de": "„{label}“ ist ein Binärfeld und kann nur kopiert oder entfernt werden."
+ },
+ {
+  "key": "compare.first_pair",
+  "context": "Meldung",
+  "de": "Erst ein Dateipaar wählen."
+ },
+ {
+  "key": "compare.all_left.tip",
+  "context": "Tooltip",
+  "de": "Alle Unterschiede nach links"
+ },
+ {
+  "key": "compare.reload_pair.tip",
+  "context": "Tooltip",
+  "de": "Nur dieses Paar neu von der Platte lesen (Shift+F5) – die übrige Liste bleibt"
+ },
+ {
+  "key": "compare.origin.tip",
+  "context": "Tooltip",
+  "de": "Nur Felder der gewählten Herkünfte zeigen – mehrere möglich"
+ },
+ {
+  "key": "player.ab_set",
+  "context": "Meldung",
+  "de": "A gesetzt bei {time} – nochmals für B."
+ },
+ {
+  "key": "player.ab_order",
+  "context": "Meldung",
+  "de": "B muss nach A liegen."
+ },
+ {
+  "key": "player.loop",
+  "context": "Meldung",
+  "de": "Schleife {from}–{to} – nochmals (L) oder Esc zum Aufheben."
+ },
+ {
+  "key": "player.metronome_vol",
+  "context": "Meldung",
+  "de": "Metronom-Lautstärke {volume}% gespeichert."
+ },
+ {
+  "key": "player.no_beatgrid",
+  "context": "Meldung",
+  "de": "Kein Beatgrid vorhanden – Metronom nicht verfügbar."
+ },
+ {
+  "key": "player.bpm.tip",
+  "context": "Tooltip",
+  "de": "Doppelklick: Originaltempo · Mausrad: BPM in kleinen Schritten ändern"
+ },
+ {
+  "key": "djset.desc",
+  "context": "Tooltip",
+  "de": "DJ-Set: Reihenfolge nach Tonart, BPM und Energie"
+ },
+ {
+  "key": "djset.empty",
+  "context": "Meldung",
+  "de": "Das Set ist leer."
+ },
+ {
+  "key": "snap.title",
+  "context": "Tooltip",
+  "de": "Snapshots und Änderungsjournal"
+ },
+ {
+  "key": "prep.title",
+  "context": "Tooltip",
+  "de": "Tracks vorbereiten: Eingang → Stufen → Bibliothek"
+ },
+ {
+  "key": "jobs.resumed",
+  "context": "Meldung",
+  "de": "{n} Auftrag/Aufträge fortgesetzt."
+ },
+ {
+  "key": "discover.new",
+  "context": "Meldung",
+  "de": "Entdecken: {n} neue(r) Vorschlag/Vorschläge."
+ },
+ {
+  "key": "plugins.integration",
+  "context": "Knopf",
+  "de": "Integration …"
+ },
+ {
+  "key": "plugins.status.full",
+  "context": "Tabellenwert",
+  "de": "vollständig"
+ },
+ {
+  "key": "plugins.status.partial",
+  "context": "Tabellenwert",
+  "de": "teilweise"
+ },
+ {
+  "key": "plugins.status.none",
+  "context": "Tabellenwert",
+  "de": "nicht implementiert"
+ },
+ {
+  "key": "plugins.keys.hint",
+  "context": "Hinweis",
+  "de": "Leer lassen = unverändert. Wird verschlüsselt gespeichert und nie angezeigt."
+ },
+ {
+  "key": "online.found",
+  "context": "Ergebnis",
+  "de": "{sure} sicher gefunden, {unsure} unsicher (nicht vorausgewählt), {missing} nicht gefunden"
+ },
+ {
+  "key": "lyrics.skipped",
+  "context": "Protokoll",
+  "de": "LRCLIB nicht erreichbar (HTTP {status}) – als „nicht abgefragt“ gezählt."
+ },
+ {
+  "key": "report.public",
+  "context": "Hinweis",
+  "de": "Die Meldung erscheint öffentlich auf GitHub. Bitte keine MP3s, Liedtexte, Zugangsdaten oder persönlichen Angaben eintragen."
+ },
+ {
+  "key": "browser.no_dialog",
+  "context": "Meldung",
+  "de": "Im Browser-Modus ist kein Dateidialog verfügbar – bitte das App-Fenster verwenden."
+ },
+ {
+  "key": "copy.failed",
+  "context": "Meldung",
+  "de": "Kopieren nicht möglich – Text bitte markieren."
+ }
+]
