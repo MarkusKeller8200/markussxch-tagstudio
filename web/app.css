@@ -1418,3 +1418,4 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .fold-rows{display:flex;flex-direction:column;gap:3px;font-size:12.5px}
 .fold-row{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:8px}
 .fold-row span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.svc-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }

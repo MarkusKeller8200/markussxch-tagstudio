@@ -38,7 +38,8 @@ async function svcTask(startPromise, box) {
 async function svcOpen(pid, tab = "ep", eid = "") {
   let d;
   try { d = await call("service_detail", pid); } catch (e) { toast(String(e.message || e)); return; }
-  SVC.detail = d; SVC.tab = tab; SVC.filter = ""; SVC.lastEp = eid || SVC.lastEp;
+  SVC.detail = d; SVC.tab = tab; SVC.filter = ""; SVC.lastEp = eid || SVC.lastEp; SVC.tqOut = ""; SVC.apiOut = {};
+  SVC.tqv = SVC.tqv || {}; SVC.apiVals = SVC.apiVals || {};
   await modal({
     title: `Integration – ${d.name}`, wide: true,
     html: `<div class="svc-head">
@@ -66,6 +67,10 @@ async function svcOpen(pid, tab = "ep", eid = "") {
         const te = e.target.closest("[data-svctest]");
         if (te) { SVC.tab = "api"; SVC.lastEp = te.dataset.svctest; svcRender(b); return; }
         if (e.target.closest("#svcTqRun")) svcTestQuery(b);
+        if (e.target.closest("#svcTqClear")) { SVC.tqv[SVC.detail.id] = {}; SVC.tqOut = ""; svcRender(b); $("#svcTq-artist", b)?.focus(); }
+        if (e.target.closest("#svcTqEx")) { delete SVC.tqv[SVC.detail.id]; svcRender(b); }
+        if (e.target.closest("#svcApiClear")) { svcApiClear(b, true); }
+        if (e.target.closest("#svcApiEx")) { svcApiClear(b, false); }
         if (e.target.closest("#svcApiRun")) svcApiRun(b);
         if (e.target.closest("#svcApiCopy")) { const pre = $("#svcApiBody", b); if (pre) navigator.clipboard?.writeText(pre.textContent).then(() => toast("Antwort kopiert.")); }
       });
@@ -98,19 +103,22 @@ function svcRender(b) {
 
 // ---------------------------------------------------------------------- Testabfrage ohne Track
 function svcTqHtml() {
-  const v = SVC.tq || {};
+  const d = SVC.detail, ex = d.example || {};
+  const v = SVC.tqv[d.id] || ex;                      // #205: ohne eigene Eingaben das Beispiel des Dienstes
   const f = (k, l, ph, w = "") => `<label for="svcTq-${k}">${l}</label><input id="svcTq-${k}" data-tq="${k}" value="${esc(v[k] || "")}" placeholder="${esc(ph)}" spellcheck="false" ${w}>`;
   return `<div id="svcTq"><div class="hint">Sucht wie mit einem Titel aus der Liste – mit denselben Stufen und derselben Bewertung –, aber ohne Track und ohne Tags zu ändern.</div>
     <div class="frm svc-tq">${f("artist", "Künstler", "z. B. Mara Lind")}${f("title", "Titel", "z. B. Nordlicht (Extended Mix)")}${f("mix", "Mix", "leer = aus dem Titel")}
       ${f("album", "Album", "optional")}${f("isrc", "ISRC", "optional")}${f("duration", "Dauer", "z. B. 6:12 oder 372")}
-      <span></span><div><button class="primary sm" id="svcTqRun">Suchen</button></div></div>
+      <span></span><div class="svc-btns"><button class="primary sm" id="svcTqRun">Suchen</button>
+        <button class="ghost sm" id="svcTqClear" title="Alle Eingaben leeren">Felder löschen</button>
+        ${Object.keys(ex).length ? `<button class="ghost sm" id="svcTqEx" title="Beispiel, das bei ${esc(d.name)} einen Treffer liefert">Beispiel einsetzen</button>` : ""}</div></div>
     <div id="svcTqOut">${SVC.tqOut || ""}</div></div>`;
 }
 
 async function svcTestQuery(b) {
   const raw = {};
   b.querySelectorAll("[data-tq]").forEach((i) => { raw[i.dataset.tq] = i.value.trim(); });
-  SVC.tq = raw;
+  SVC.tqv[SVC.detail.id] = raw;
   const out = $("#svcTqOut", b);
   const r = await svcTask(call("start_service_test", SVC.detail.id, raw), out);
   if (!r) return;
@@ -132,22 +140,25 @@ function svcApiHtml(d) {
   if (!eps.length) return '<div class="muted">Dieser Dienst hat keine lesenden Endpunkte zum Testen.</div>';
   const ep = eps.find((e) => e.id === SVC.lastEp) || eps[0];
   SVC.lastEp = ep.id;
-  const vals = (SVC.apiVals || {})[ep.id] || {};
+  const vals = SVC.apiVals[d.id + "/" + ep.id] || {};
+  const hasEx = ep.params.some((p) => p.example);
   return `<div id="svcApi"><div class="hint">Ruft den Endpunkt direkt auf (nur lesend). Schlüssel und Token setzt das Plugin ein – sie werden nie angezeigt.</div>
     <div class="frm svc-api">
       <label for="svcApiEp">Endpunkt</label><select id="svcApiEp" class="inp">${["full", "partial", "none"].map((st) => {
         const g = eps.filter((e) => e.status === st); if (!g.length) return "";
         return `<optgroup label="${SVC_ST[st][0]}">${g.map((e) => `<option value="${esc(e.id)}" ${e.id === ep.id ? "selected" : ""}>${esc(e.method)} ${esc(e.path)} – ${esc(e.label)}</option>`).join("")}</optgroup>`; }).join("")}</select>
       ${ep.params.map((p) => `<label for="svcP-${esc(p.name)}">${esc(p.label)}${p.required ? " *" : ""}${p.in === "path" ? ' <span class="faint">(Pfad)</span>' : ""}</label>
-        <input id="svcP-${esc(p.name)}" data-ap="${esc(p.name)}" value="${esc(vals[p.name] ?? p.default)}" spellcheck="false">`).join("")}
-      <span></span><div><button class="primary sm" id="svcApiRun">Senden</button></div></div>
+        <input id="svcP-${esc(p.name)}" data-ap="${esc(p.name)}" value="${esc(vals[p.name] ?? (p.example || p.default))}" placeholder="${esc(p.example || "")}" spellcheck="false">`).join("")}
+      <span></span><div class="svc-btns"><button class="primary sm" id="svcApiRun">Senden</button>
+        ${ep.params.length ? '<button class="ghost sm" id="svcApiClear" title="Eingaben leeren – feste Vorgaben wie fmt=json bleiben">Felder löschen</button>' : ""}
+        ${hasEx ? '<button class="ghost sm" id="svcApiEx" title="Beispielwerte, die ein Resultat liefern">Beispiel einsetzen</button>' : ""}</div></div>
     <div id="svcApiOut">${(SVC.apiOut || {})[ep.id] || ""}</div></div>`;
 }
 
 async function svcApiRun(b) {
   const eid = $("#svcApiEp", b).value, params = {};
   b.querySelectorAll("[data-ap]").forEach((i) => { params[i.dataset.ap] = i.value; });
-  SVC.apiVals = { ...(SVC.apiVals || {}), [eid]: params };
+  SVC.apiVals[SVC.detail.id + "/" + eid] = params;
   const out = $("#svcApiOut", b);
   const r = await svcTask(call("start_service_api", SVC.detail.id, eid, params), out);
   if (!r) return;
@@ -160,6 +171,16 @@ async function svcApiRun(b) {
     <pre class="svc-body" id="svcApiBody">${esc(r.body || "(leer)")}</pre>`;
   SVC.apiOut = { ...(SVC.apiOut || {}), [eid]: html };
   out.innerHTML = html;
+}
+
+function svcApiClear(b, clear) {
+  const d = SVC.detail, ep = d.endpoints.find((e) => e.id === $("#svcApiEp", b).value);
+  if (!ep) return;
+  const key = d.id + "/" + ep.id;
+  if (clear) SVC.apiVals[key] = Object.fromEntries(ep.params.map((p) => [p.name, p.default]));
+  else delete SVC.apiVals[key];
+  if (SVC.apiOut) delete SVC.apiOut[ep.id];
+  svcRender(b);
 }
 
 // ---------------------------------------------------------------------- Gesamtübersicht

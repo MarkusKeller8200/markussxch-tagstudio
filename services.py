@@ -49,6 +49,9 @@ def _url_ok(u, local=False) -> str:
     return ""
 
 
+QUERY_KEYS = ("artist", "title", "mix", "album", "isrc", "duration")
+
+
 def clean(raw) -> dict | None:
     """Dienstbeschreibung aus plugin.json prüfen und bereinigen (fehlerhafte Einträge fallen weg)."""
     if not isinstance(raw, dict) or not raw.get("name"):
@@ -60,7 +63,10 @@ def clean(raw) -> dict | None:
            "base": _url_ok(raw.get("base"), local), "terms": _url_ok(raw.get("terms")),
            "auth": raw.get("auth") if raw.get("auth") in AUTH else ("local" if local else "none"),
            "auth_note": str(raw.get("auth_note") or "")[:300], "limits": str(raw.get("limits") or "")[:200],
-           "note": str(raw.get("note") or "")[:400], "endpoints": []}
+           "note": str(raw.get("note") or "")[:400], "endpoints": [],
+           # #205: Beispiel für die Testabfrage, das beim Dienst tatsächlich einen Treffer liefert
+           "example": {k: str(v)[:200] for k, v in (raw.get("example") or {}).items()
+                       if k in QUERY_KEYS and isinstance(v, (str, int, float))} if isinstance(raw.get("example"), dict) else {}}
     seen = set()
     for e in raw.get("endpoints") or []:
         if not isinstance(e, dict):
@@ -74,11 +80,12 @@ def clean(raw) -> dict | None:
             if isinstance(p, dict) and re.match(r"^[A-Za-z_][A-Za-z0-9_.\[\]-]{0,40}$", str(p.get("name") or "")):
                 params.append({"name": p["name"], "label": str(p.get("label") or p["name"])[:80],
                                "default": "" if p.get("default") is None else str(p.get("default"))[:300],
+                               "example": "" if p.get("example") is None else str(p.get("example"))[:300],
                                "required": bool(p.get("required")),
                                "in": "path" if "{" + p["name"] + "}" in path else "query"})
         for name in re.findall(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", path):      # Pfadparameter immer abfragen
             if not any(p["name"] == name for p in params):
-                params.append({"name": name, "label": name, "default": "", "required": True, "in": "path"})
+                params.append({"name": name, "label": name, "default": "", "example": "", "required": True, "in": "path"})
         status = e.get("status") if e.get("status") in STATUS else "none"
         out["endpoints"].append({
             "id": eid, "method": method, "path": path, "label": str(e.get("label") or path)[:120],
