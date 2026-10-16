@@ -7,6 +7,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **Plugin „Liedtexte“ (#183):** Tagger › Plugins › „Liedtexte suchen (LRCLIB) …“ – frei, ohne Schlüssel. Genaue
+  Abfrage mit Künstler, Titel, Album und Dauer, sonst Suche; Original, Remix und Live werden nicht gleichgesetzt
+  (andere Fassung höchstens „unsicher“). Vorschau mit Häkchen: normaler Text in `USLT`, synchronisierter in `SYLT`;
+  vorhandene Liedtexte werden nur mit Häkchen ersetzt. Zusätzlich eine `.lrc`-Datei neben dem MP3, wenn unter
+  Plugins › Liedtexte › „Einstellungen …“ eingeschaltet (dort auch die Sprache). Instrumentals werden erkannt.
 - **In Bibliothek aufgenommen (#184):** die Übernahme aus „Vorbereiten“ schreibt den Zeitpunkt in
   `TXXX:TAGSTUDIO_ADDED` (ein vorhandener Wert bleibt). Für bestehende Titel: Tagger › „Aufnahmedatum nachtragen …“ mit
   Vorschau – Vorschlag aus dem frühesten Snapshot, der den Titel enthält (am Audio erkannt, auch nach Umbenennen), sonst

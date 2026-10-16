@@ -2430,6 +2430,18 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                         if p["data"]:
                             tagger.set_cover([p["file"]], p["data"])
                             n += 1
+                    elif p["kind"] == "frame":                  # #183: Binär-Frame (z. B. SYLT)
+                        if p["data"]:
+                            from id3tags import Item
+                            p["file"].set(p["key"], Item(p["key"].split(":")[0].split("#")[0], p["key"], payload=p["data"]))
+                            n += 1
+                    elif p["kind"] == "file":                   # #183: Begleitdatei (.lrc) neben dem MP3
+                        if p["data"] and self._sidecar_ok(p["file"].path, p["key"]):
+                            tmp = p["key"] + ".tstmp"
+                            with open(tmp, "wb") as fh:
+                                fh.write(p["data"])
+                            os.replace(tmp, p["key"])
+                            n += 1
                     elif core.apply_value(p["file"], p["key"], p["new"]):
                         n += 1
                     if p.get("sync"):            # Abgleich merken (#145/#146)
@@ -2441,6 +2453,13 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 self.undo.commit()
         return {"ok": True, "count": n, "files": len(files), "unsaved": self.unsaved(),
                 "message": f"{n} Änderung(en) in {len(files)} Datei(en) übernommen – noch nicht gespeichert."}
+
+    @staticmethod
+    def _sidecar_ok(mp3, path) -> bool:
+        """Begleitdatei nur im selben Ordner wie das MP3, mit dessen Namen und erlaubter Endung (.lrc)."""
+        a, b = os.path.normcase(os.path.abspath(mp3)), os.path.normcase(os.path.abspath(path))
+        return (os.path.dirname(a) == os.path.dirname(b) and os.path.splitext(b)[1] == ".lrc"
+                and os.path.splitext(os.path.basename(a))[0] == os.path.splitext(os.path.basename(b))[0])
 
     def start_plugin_install(self, pid, variant=None):
         try:

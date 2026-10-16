@@ -553,6 +553,7 @@ span.xml-treeonly{display:contents}
 .pl-stat{flex:1 1 100%;color:var(--fg)}
 .pl-prev{max-height:52vh}
 .pl-prev td{vertical-align:top}
+.pl-prev .pv-val{white-space:pre-line;max-height:9.5em;overflow:auto}   /* #183: mehrzeilige Werte (Liedtexte) */
 .pl-prev .pv-file td{background:var(--raise);border-top:1px solid var(--line)}
 .pl-prev .pv-unsure td{opacity:.75}
 .pl-prev .pv-same td{color:var(--faint)}

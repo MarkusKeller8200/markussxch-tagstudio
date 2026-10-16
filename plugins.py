@@ -237,7 +237,9 @@ class Context:
     # ---- Vorschläge (werden nach dem Lauf als Vorschau mit Häkchen gezeigt)
     def propose(self, f, key, new, label=None, note="", checked=True, kind="text", data=None, group=None, hint="",
                 show_same=False, link="", link_label="", sync=None):
-        """Änderung vorschlagen statt sie direkt auszuführen. kind="text" (key/new) oder "cover" (data=Bytes).
+        """Änderung vorschlagen statt sie direkt auszuführen. kind="text" (key/new), "cover" (data=Bildbytes),
+        "frame" (key = Frame-Schlüssel wie „SYLT“, data = Frame-Rumpf, new = Beschreibung für die Vorschau) oder
+        "file" (key = Pfad einer Begleitdatei neben dem MP3, data = Inhalt; geschrieben beim Übernehmen, #183).
         note: Hinweis zur Datei (z. B. Treffer und Sicherheit), group: Überschrift je Datei,
         hint: Hinweis zu genau diesem Feld (z. B. „schon gefüllt“).
         show_same=True: auch einen unveränderten Wert als (nicht wählbare) Zeile „gleich“ zeigen.
@@ -251,6 +253,9 @@ class Context:
                 if not show_same:
                     return False
                 same = True
+        elif kind == "file":
+            old = "vorhanden" if os.path.exists(key) else ""
+            same = data is None
         else:
             old = "vorhanden" if f.get(key) is not None else ""
             same = data is None    # nur Info (z. B. Cover vorhanden, nicht geladen)
