@@ -1420,7 +1420,9 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .fold-row span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .svc-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 /* #206: Lizenzen – GitHub-Spalte */
-.help-lic .lic-gh{min-width:220px}
+.help-lic{table-layout:fixed}            /* #206: Spalten aller Gruppen untereinander */
+.help-lic td{overflow-wrap:anywhere}
+.help-lic .c-name{width:17%}.help-lic .c-use{width:31%}.help-lic .c-lic{width:17%}.help-lic .c-gh{width:23%}.help-lic .c-chk{width:12%}
 .lic-acts{margin-top:2px}
 .lic-marks{display:flex;gap:10px;flex-wrap:wrap;margin-top:3px;font-size:12px;color:var(--dim)}
 .lic-marks label{display:inline-flex;gap:3px;align-items:center;cursor:pointer}

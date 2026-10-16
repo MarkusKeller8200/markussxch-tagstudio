@@ -283,6 +283,8 @@ class UiTest(unittest.TestCase):
         pg.click('#helpTabs [data-htab="licenses"]')
         pg.wait_for_selector("#helpDoc .help-lic")
         self.assertTrue(pg.evaluate("document.querySelector('#helpDoc').classList.contains('wide')"))   # #206: ganze Breite
+        lefts = pg.evaluate("[...document.querySelectorAll('#helpDoc .help-lic')].map(t => [...t.querySelectorAll('th')].map(th => Math.round(th.getBoundingClientRect().left)).join(','))")
+        self.assertEqual(len(set(lefts)), 1, lefts)                          # Spalten aller Tabellen untereinander
         txt = pg.inner_text("#helpDoc")
         for s in ("Lizenzen und Quellen", "GPL-3.0-or-later", "pywebview", "BSD-3-Clause", "serato-tags", "Im Programm enthalten"):
             self.assertIn(s, txt)
@@ -301,7 +303,10 @@ class UiTest(unittest.TestCase):
         self.assertIn("pywebview", txt)
         self.assertIn("removed from this project", txt)
         pg.check('#modal input[name="licLang"][value="de"]')
-        self.assertIn("aus diesem Projekt entfernt", pg.input_value("#licThanksTxt"))
+        de = pg.input_value("#licThanksTxt")
+        self.assertIn("aus diesem Projekt entfernt", de)
+        self.assertIn("bitte ich dich", de)                                  # r0x0r ist eine Person → Du-Form
+        self.assertNotIn(" Ihr", de)
         pg.click("#mBtns button >> nth=0")
         self.assertEqual(self.errors, [])
 

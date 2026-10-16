@@ -81,7 +81,7 @@ function helpLicensesHtml(d) {
     Versionen und geänderte Lizenzen geprüft; „Geprüft“ zeigt den zuletzt durchgesehenen Stand.</p>
     <p class="muted sm">GitHub: ${repos.length} Projekte · von dir geprüft ${done("checked")}, gefolgt ${done("followed")}, bedankt ${done("thanked")}.
     Sterne und letzte Änderung helfen bei der Einschätzung – archivierte oder lange stille Projekte sind markiert. Deine Häkchen bleiben nur auf diesem Gerät.</p>`
-    + groups.map((g) => `<h3>${esc(d.groups[g])}</h3><table class="help-t help-lic"><thead><tr><th>Komponente</th><th>Verwendung</th><th>Lizenz</th><th>GitHub</th><th>Geprüft</th></tr></thead><tbody>${
+    + groups.map((g) => `<h3>${esc(d.groups[g])}</h3><table class="help-t help-lic"><colgroup><col class="c-name"><col class="c-use"><col class="c-lic"><col class="c-gh"><col class="c-chk"></colgroup><thead><tr><th>Komponente</th><th>Verwendung</th><th>Lizenz</th><th>GitHub</th><th>Geprüft</th></tr></thead><tbody>${
       d.items.filter((it) => it.group === g).map((it) => `<tr><td>${link(it.url, it.name)}</td><td>${esc(it.use || "")}</td><td>${link(it.license_url, it.license || "–")}</td><td class="lic-gh">${it.group === "app" ? (it.repo ? link("https://github.com/" + it.repo, it.repo) : "–") : licRepoCell(it, review)}</td><td class="muted sm">${
         it.checked ? esc(`${it.checked.version || ""}${it.checked.date ? " · " + it.checked.date : ""}`) : it.check ? "ausstehend" : "–"}</td></tr>`).join("")}</tbody></table>`).join("");
 }
@@ -97,11 +97,14 @@ function licThanksText(it, lang) {
       + `If this use conflicts with your license or your wishes, or if you would like your code removed from this project, `
       + `please let me know so that I can comply accordingly.\n\nThank you very much for your work!`;
   }
-  return `Hallo ${who},\n\nich möchte mich bedanken: Mein Open-Source-Projekt MarKusSXCH TagStudio (MP3-Tagger und DJ-Werkzeug, GPL-3.0) `
+  // Du-Form für Einzelpersonen, Ihr-Form für Organisationen (Teams) – nie „Sie“
+  const org = (it.repo_info || {}).owner_type === "Organization";
+  const [dich, deiner, deinen, deine] = org ? ["euch", "eurer", "euren", "eure"] : ["dich", "deiner", "deinen", "deine"];
+  return `Hallo ${who},\n\nich möchte mich bei ${dich} bedanken: Mein Open-Source-Projekt MarKusSXCH TagStudio (MP3-Tagger und DJ-Werkzeug, GPL-3.0) `
     + `verwendet ${it.name}${lic}${it.use ? ` – ${it.use}` : ""}.\n\nProjekt: ${proj}\n`
     + `Lizenzangabe und Quelle stehen in der Hilfe unter „Lizenzen“ (docs/third-party.json).\n\n`
-    + `Sollte die Nutzung des Codes Ihrer Lizenz oder Ihren Wünschen widersprechen oder soll er aus diesem Projekt entfernt werden, `
-    + `bitte ich um eine entsprechende Rückmeldung, damit ich dem Folge leisten kann.\n\nVielen Dank für Ihre Arbeit!`;
+    + `Sollte die Nutzung des Codes ${deiner} Lizenz oder ${deinen} Wünschen widersprechen oder soll er aus diesem Projekt entfernt werden, `
+    + `bitte ich ${dich} um eine entsprechende Rückmeldung, damit ich dem Folge leisten kann.\n\nVielen Dank für ${deine} Arbeit!`;
 }
 async function licThanks(id) {
   const it = (HELP.lic?.items || []).find((x) => x.id === id);
