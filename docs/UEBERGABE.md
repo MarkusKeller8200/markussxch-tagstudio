@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-16, 4.4.1 final**; in Arbeit 4.5.0 (Meilenstein #15). Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
+Stand: **2026-10-16, 4.4.1 final**; in Arbeit 4.5.0 (Meilenstein #15, #183–#185 im Beta-Test) und 4.6.0 (Meilenstein #17, #204 Online-Dienste als Plugins: Dienst-Plugins mit `"service"` in `plugin.json`, `services.py`, `servicekit.py`, `web/services.js` – siehe `docs/KONZEPT-PLUGINS.md`). Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
