@@ -79,7 +79,7 @@ class TestLive(unittest.TestCase):
 
 
 # #205: Beispielwerte im Integrationsfenster müssen beim echten Dienst ein Resultat liefern
-NOAUTH = {"musicbrainz": None, "deezer": None, "itunes": None, "lyrics": None,
+NOAUTH = {"musicbrainz": None, "deezer": None, "itunes": None, "lyrics": {"get", "search", "get-id"},  # get-cached: nur Zwischenspeicher
           "discogs": {"release", "master", "master-versions", "artist", "artist-releases", "label", "label-releases"}}
 
 

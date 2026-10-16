@@ -118,14 +118,15 @@
           {
             "name": "album_name",
             "default": "",
-            "example": "Eurotrip"
+            "example": "Discovery"
           },
           {
             "name": "duration",
             "default": "",
             "example": "320"
           }
-        ]
+        ],
+        "note": "Antwortet nur für Titel, die LRCLIB bereits zwischengespeichert hat – „nicht gefunden“ (404) ist hier normal."
       },
       {
         "id": "request-challenge",
