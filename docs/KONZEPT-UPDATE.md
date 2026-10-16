@@ -33,6 +33,12 @@ bleiben bei jedem Update erhalten.
   und Release an (Beta = Pre-Release). Nach einer finalen Version entfernt `cleanup_betas.py` die Beta-Releases
   (Tags bleiben). Finale Versionen nur auf ausdrücklichen Wunsch des Users.
 
+**Developer Release (Entscheid 16.10.2026):** Läuft TagStudio aus dem Quellcode (Git) und liegen nach dem Tag der
+laufenden Version `v<VERSION>` weitere Commits – oder fehlt dieser Tag noch –, zeigt die Seitenleiste „Version X ·
+Developer Release“ (Tooltip: Anzahl Änderungen, Stand, Basisversion). `updater.dev_info()` per `git describe --tags
+--long --match v[0-9]*`, einmal je Start zwischengespeichert. Die installierte App ist nie ein Developer Release.
+Betas sind nicht nötig, wenn alles auf `main` getestet ist (4.5.0 erschien direkt final).
+
 ## 4. Umsetzung
 
 - **Kern:** `updater.py` (`status`, `pull`, `fetch_releases`, `release_check`, `parse_version`, `is_beta`,

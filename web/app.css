@@ -1442,3 +1442,5 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .fb-prev pre{white-space:pre-wrap;margin:0;font-family:inherit}
 .fb-consent{display:flex;gap:6px;align-items:center;margin:10px 0}
 .fb-env{display:flex;gap:6px;align-items:center;font-size:13px}
+.dev-b{background:#3B82F633;color:#1D5FD1}
+[data-theme="dark"] .dev-b{color:#8AB4F8}

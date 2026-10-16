@@ -559,7 +559,9 @@ async function init() {
   applyLayout();
   applyTheme();
   initTips();                       // #72
-  $("#ver").innerHTML = `Version ${esc(st.version)}${/-/.test(st.version) ? ' <span class="beta-b" title="Vorabversion zum Testen">Beta</span>' : ""}${st.native ? "" : " · Browser"}${st.profile && !st.profile.default ? ` <span class="beta-b prof-b" title="Profil: eigene Einstellungen und Daten (${esc(st.profile.dir)})">${esc(st.profile.name)}</span>` : ""}`;
+  const dv = st.dev || {};                                  // Entscheid 16.10.2026: eingecheckt, weder Beta noch Release
+  const devB = dv.dev ? ` <span class="beta-b dev-b" title="${esc(`Developer Release: Quellcode mit ${dv.commits} Änderung(en) nach Version ${dv.base}${dv.sha ? " · Stand " + dv.sha : ""} – noch nicht als Beta oder Release veröffentlicht`)}">Developer Release</span>` : "";
+  $("#ver").innerHTML = `Version ${esc(st.version)}${/-/.test(st.version) && !dv.dev ? ' <span class="beta-b" title="Vorabversion zum Testen">Beta</span>' : ""}${devB}${st.native ? "" : " · Browser"}${st.profile && !st.profile.default ? ` <span class="beta-b prof-b" title="Profil: eigene Einstellungen und Daten (${esc(st.profile.dir)})">${esc(st.profile.name)}</span>` : ""}`;
   if (st.profile && !st.profile.default) document.title = `MarKusSXCH TagStudio · ${st.profile.name}`;
   $("#mode").innerHTML = st.modes.map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("");
   $("#mode").value = st.mode;

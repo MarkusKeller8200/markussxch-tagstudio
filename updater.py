@@ -7,6 +7,7 @@ Es wird nur „vorgespult“ (--ff-only): lokale Änderungen werden nie übersch
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -44,6 +45,28 @@ def available(cwd=HERE) -> str | None:
     if code != 0 or out != "true":
         return "Der Programmordner ist kein Git-Repository."
     return None
+
+
+_DEV: dict = {}
+
+
+def dev_info(version: str, cwd=HERE) -> dict:
+    """Developer Release (Entscheid 16.10.2026): Quellcode mit Änderungen nach dem Tag der laufenden Version
+    (v<VERSION>), also eingecheckt, aber weder Beta noch Release. → {"dev", "commits", "sha", "base"}.
+    Installierte App, kein Git oder kein passender Tag → nicht als Developer Release kennzeichnen, ausser der Tag der
+    eigenen Version fehlt noch (Stand vor dem Release) – dann zählt die Nähe zum letzten Versions-Tag."""
+    key = (version, str(cwd))
+    if key in _DEV:
+        return _DEV[key]
+    out = {"dev": False, "commits": 0, "sha": "", "base": ""}
+    if not frozen() and available(cwd) is None:
+        code, desc, _ = _git(["describe", "--tags", "--long", "--match", "v[0-9]*"], cwd, timeout=10)
+        m = re.match(r"^(v.+)-(\d+)-g([0-9a-f]+)$", desc) if code == 0 else None
+        if m:
+            base, n, sha = m.group(1), int(m.group(2)), m.group(3)
+            out = {"dev": n > 0 or base != f"v{version}", "commits": n, "sha": sha, "base": base[1:]}
+    _DEV[key] = out
+    return out
 
 
 def status(fetch: bool = True, cwd=HERE, channel: str = "beta") -> dict:

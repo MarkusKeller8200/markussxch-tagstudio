@@ -6,6 +6,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **„Developer Release“:** Läuft TagStudio aus dem Quellcode mit Änderungen nach der letzten Version (eingecheckt,
+  aber weder Beta noch Release), steht neben der Versionsnummer „Developer Release“ (Tooltip: Anzahl Änderungen, Stand).
+
 ## [4.5.0] – 2026-10-16
 
 ### Neu

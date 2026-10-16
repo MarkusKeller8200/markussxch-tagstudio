@@ -1,12 +1,19 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-16, 4.4.1 final**; in Arbeit 4.5.0 (Meilenstein #15, #183–#185 im Beta-Test) und 4.6.0 (Meilenstein #17, #204 Online-Dienste als Plugins: Dienst-Plugins mit `"service"` in `plugin.json`, `services.py`, `servicekit.py`, `web/services.js` – siehe `docs/KONZEPT-PLUGINS.md`). Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
+Stand: **2026-10-16, 4.5.0 final** (veröffentlicht 16.10.2026 abends, ohne Beta, Meilenstein #15 geschlossen; danach Developer Releases auf `main`). Bisher: in Arbeit 4.5.0 (Meilenstein #15, #183–#185 im Beta-Test) und 4.6.0 (Meilenstein #17, #204 Online-Dienste als Plugins: Dienst-Plugins mit `"service"` in `plugin.json`, `services.py`, `servicekit.py`, `web/services.js` – siehe `docs/KONZEPT-PLUGINS.md`). Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
+## Arbeitsregeln vom 16.10.2026
+
+- **Meilensteine ohne Planungs-Issue (Entscheid 16.10.2026):** Beim Anlegen eines Meilensteins kein eigenes Issue mit
+  der Meilenstein-Beschreibung (wie früher #188/#189) – die einzelnen Issues im Meilenstein genügen.
+- **Developer Release (Entscheid 16.10.2026):** Eingecheckter Stand ohne Beta/Release zeigt neben der Version das
+  Kennzeichen „Developer Release“ (`updater.dev_info`: Commits nach dem Tag `v<VERSION>`; installierte App nie).
+
 ## Release-Freigabe (Entscheid 14.10.2026)
 
-**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.4.1** (final, freigegeben am 16.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
+**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.5.0** (final, freigegeben am 16.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
 
 ## GitHub-Meilensteinverwaltung
 

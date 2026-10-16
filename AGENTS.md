@@ -14,15 +14,22 @@ Vor Architekturentscheidungen, neuen Modulen oder grösseren Codeänderungen unb
 
 ## Aktuelle Iterationsplanung
 
-**4.4.1:** [Planungs-Issue #188](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/188): #182 nach bestätigtem Praxistest **geschlossen**, #181 Offbeat-Korrektur **weiter offen**. Latenz-/Phasenkorrektur ±500 ms, Metronom und Tooltips (#192) sind seit 4.4.1-beta.4/5 veröffentlicht; 4.4.1-beta.6 ist die Bugfix-Beta #193. **4.5.0:** [Planungs-Issue #189](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/189) für #183–#185, weiterhin `idee` (keine Implementierungsfreigabe). **Später:** #186 und #187; Nutzer-Issues aus GitHub-Feedback nur nach Owner-Freigabe. Die GitHub-Meilensteine [#14 (4.4.1)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/14) und [#15 (4.5.0)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/15) sind angelegt; alle 16 offenen Issues sind entweder diesen oder [#4 – Idee (Später)](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestone/4) zugewiesen. Noch keine weiteren ungeplanten Fehler für «BugFixes».
+**Stand 16.10.2026:** **v4.5.0 final** veröffentlicht (ohne Beta, nach Test aller Issues), Meilenstein #15 geschlossen. Nächster Meilenstein #17 (4.6.0): #215 Liedtexte im Player, #191 Beatgrid-Status. Nutzer-Issues aus GitHub-Feedback (Label `triage`) nur nach Owner-Freigabe.
 
 ## GitHub-Meilensteinverwaltung
 
 Meilensteine können über den **gesicherten [Administrationskanal #190](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/190)** verwaltet werden. Das Issue ist bewusst **geschlossen**, aber für Eigentümer-Kommentare nutzbar. Der Workflow `.github/workflows/milestone-admin.yml` akzeptiert ausschliesslich einzeilige Kommentare vom Repository-Eigentümer auf #190, beispielsweise `/milestone list`, `/milestone create 4.6.0 – Titel`, `/milestone close 14` oder `/milestone reopen 14`. GitHub Actions verwendet dafür den Repository-Token mit `issues: write`. Ergebnisse im Issue-Thread überprüfen. Keine anderen Issues als Steuerkanal verwenden. Siehe [technische Anleitung](.github/scripts/MILESTONE-ADMIN.md).
 
+## Arbeitsregeln vom 16.10.2026
+
+- **Meilensteine ohne Planungs-Issue (Entscheid 16.10.2026):** Beim Anlegen eines Meilensteins kein eigenes Issue mit
+  der Meilenstein-Beschreibung (wie früher #188/#189) – die einzelnen Issues im Meilenstein genügen.
+- **Developer Release (Entscheid 16.10.2026):** Eingecheckter Stand ohne Beta/Release zeigt neben der Version das
+  Kennzeichen „Developer Release“ (`updater.dev_info`: Commits nach dem Tag `v<VERSION>`; installierte App nie).
+
 ## Release-Freigabe (Entscheid 14.10.2026)
 
-**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.4.1-beta.6** (Bugfix-Beta, freigegeben am 15.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
+**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.5.0** (final, freigegeben am 16.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
 
 ## Verbindliche Leitplanken
 

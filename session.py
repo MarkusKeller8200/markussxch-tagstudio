@@ -109,8 +109,13 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
     # ================================================================== Einstellungen
     def settings(self) -> dict:
         c = self.cfg
+        try:
+            import updater
+            dev = updater.dev_info(VERSION)                       # „Developer Release“ (eingecheckt, kein Release)
+        except Exception:  # noqa: BLE001
+            dev = {"dev": False}
         return {
-            "version": VERSION,
+            "version": VERSION, "dev": dev,
             "hist_left": c.get("hist_left", []), "hist_right": c.get("hist_right", []),
             "mode": self.view_defaults()["compare"].get("mode", c.get("mode", "filename")), "modes": [[k, v] for k, v in PAIR_MODES.items()],
             "recursive": self.view_defaults()["compare"].get("recursive", c.get("recursive", False)),
