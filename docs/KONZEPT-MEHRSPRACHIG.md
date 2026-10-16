@@ -27,9 +27,21 @@ Text sind das etwa 120 000 Zeichen – für eine KI-Übersetzung wenig, für die
 
 | Flagge | Sprache | Inhalt |
 |---|---|---|
-| 🇩🇪 | Deutsch | heutiger Text (Hochdeutsch), Schreibweise vereinheitlicht – **Ausgangssprache** |
+| 🇨🇭 | Hochdeutsch (Schweiz, `de-CH`) | heutiger Text, Schreibweise vereinheitlicht – **Ausgangssprache** |
+| 🇩🇪 | Deutsch (`de-DE`) | optional, mit „ß“ |
 | 🇨🇭 | Schweizerdeutsch (Mundart) | eigener Katalog in Mundart, z. B. „Spichere“, „Abbräche“, „Iilääse“ |
 | 🇬🇧 | English | vollständige Übersetzung |
+
+**Sprachcodes (BCP 47, Entscheid 16.10.2026: Zürichdeutsch):**
+| Code | Sprache | Rolle |
+|---|---|---|
+| `de-CH` | Schweizer Hochdeutsch (mit „ss“) | **Ausgangssprache** – so ist TagStudio heute geschrieben |
+| `de-DE` | Deutsch (Deutschland, mit „ß“) | optional, weitgehend automatisch aus `de-CH` (ss → ß nach Wörterliste) |
+| `gsw-u-sd-chzh` | Zürichdeutsch (Mundart) | `gsw` = Schweizerdeutsch, `sd-chzh` = Kanton Zürich |
+| `en` | Englisch | erste Übersetzung |
+
+Damit sind mehrere Mundarten nebeneinander möglich (z. B. `gsw-u-sd-chbe` Berndeutsch, `gsw-u-sd-chbs` Baseldeutsch);
+fehlt ein Mundart-Text, gilt `gsw`, dann `de-CH`. Zahlen/Daten über `Intl` mit `de-CH` (1'234).
 
 **Entscheid des Users (2026-10-11): Schweizerdeutsch = Mundart.** Mundart hat keine feste Rechtschreibung; der
 Katalog folgt einer Schreibweise (Vorschlag: Zürichdeutsch nach Dieth, ohne Sonderzeichen ausser ä/ö/ü) und wird vom
@@ -142,6 +154,6 @@ deutsch – das ist gewollt (Fallback). Empfehlung: Phase 1 + 5 zusammen beginne
 - Welcher KI-Dienst zuerst (Vorschlag: DeepL für Englisch, lokales Modell über Ollama für Datenschutz/Mundart)?
 - Sollen Übersetzer in der Hilfe namentlich genannt werden (nur auf Wunsch)?
 
-- Welche Mundart bzw. Schreibweise (Zürich, Bern, Basel …)?
+- ~~Welche Mundart?~~ **Entschieden 16.10.2026: Zürichdeutsch** (`gsw-u-sd-chzh`).
 - ~~Soll die Sprache der Oberfläche auch die Tags beeinflussen?~~ **Entschieden 16.10.2026: nein** – übersetzt werden
   nur die Texte der Oberfläche, MP3-Tags bleiben, wie sie sind.
