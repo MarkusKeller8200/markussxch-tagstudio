@@ -90,6 +90,9 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
   `fmt=json`. Im Fenster „Felder löschen“ (feste Vorgaben bleiben) und „Beispiel einsetzen“. Der Online-Test
   (`TestExamples` in `tests/test_online_live.py`) prüft wöchentlich, dass alle Beispiele der frei nutzbaren Dienste
   ein Resultat liefern. Ausnahmen: Beatport (IDs nur angemeldet ermittelbar), Lexicon (eigene Bibliothek).
+- API-Tester: generischer Abruf über `onlinematch.get_retry` (gemeinsame Drosselung `SHARED`, Wiederholung bei 429/503,
+  Anzahl in `retries`, #212). IDs in der Antwort (Schlüssel `id`, `mbid`, `…_id`, `isrc`, `upc`, `discid`) sind
+  anklickbar; vorgeschlagen werden Endpunkte mit passendem ID-Feld, sortiert nach dem umgebenden Objektnamen (#213).
 - Die Update-Prüfung (GitHub Releases) bleibt im Kern.
 
 ## 5. Entscheide

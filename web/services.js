@@ -69,6 +69,8 @@ async function svcOpen(pid, tab = "ep", eid = "") {
         if (e.target.closest("#svcTqRun")) svcTestQuery(b);
         if (e.target.closest("#svcTqClear")) { SVC.tqv[SVC.detail.id] = {}; SVC.tqOut = ""; svcRender(b); $("#svcTq-artist", b)?.focus(); }
         if (e.target.closest("#svcTqEx")) { delete SVC.tqv[SVC.detail.id]; svcRender(b); }
+        const idl = e.target.closest("a.svc-id"); if (idl) { e.preventDefault(); svcIdPick(b, idl); return; }
+        const idt = e.target.closest("[data-idto]"); if (idt) { svcIdUse(b, idt); return; }
         if (e.target.closest("#svcApiClear")) { svcApiClear(b, true); }
         if (e.target.closest("#svcApiEx")) { svcApiClear(b, false); }
         if (e.target.closest("#svcApiRun")) svcApiRun(b);
@@ -168,9 +170,72 @@ async function svcApiRun(b) {
       <button class="ghost sm" id="svcApiCopy">Antwort kopieren</button></div>
     <div class="sm svc-url"><code>${esc(r.url)}</code></div>
     ${hd ? `<details class="sm"><summary class="muted">Kopfzeilen</summary><pre class="pl-log">${esc(hd)}</pre></details>` : ""}
-    <pre class="svc-body" id="svcApiBody">${esc(r.body || "(leer)")}</pre>`;
+    <div id="svcIdBar" class="svc-idbar sm" hidden></div>
+    <pre class="svc-body" id="svcApiBody">${svcBodyHtml(r.body)}</pre>`;
   SVC.apiOut = { ...(SVC.apiOut || {}), [eid]: html };
   out.innerHTML = html;
+}
+
+// #213: IDs in der Antwort anklickbar – damit den nächsten Endpunkt füllen
+const SVC_IDKEY = /^(id|mbid|.*_id|isrc|upc|discid|code)$/i;
+function svcIdOk(k, v) {
+  if (!SVC_IDKEY.test(k)) return false;
+  if (typeof v === "number") return Number.isInteger(v) && v > 0;
+  return typeof v === "string" && /^[A-Za-z0-9._-]{2,64}$/.test(v) && v !== "•••";
+}
+/** JSON hübsch ausgeben; IDs als Links mit dem Namen des umgebenden Objekts als Hinweis (release, artist …) */
+function svcJsonHtml(v, ind, parent) {
+  const pad = "  ".repeat(ind);
+  if (Array.isArray(v)) {
+    if (!v.length) return "[]";
+    return "[\n" + v.map((x) => pad + "  " + svcJsonHtml(x, ind + 1, parent)).join(",\n") + "\n" + pad + "]";
+  }
+  if (v && typeof v === "object") {
+    const ks = Object.keys(v);
+    if (!ks.length) return "{}";
+    return "{\n" + ks.map((k) => {
+      const x = v[k];
+      const val = svcIdOk(k, x)
+        ? `<a href="#" class="svc-id" data-idv="${esc(String(x))}" data-idk="${esc(k)}" data-idp="${esc(parent || "")}" title="Diese ID in einen anderen Endpunkt einsetzen">${esc(JSON.stringify(x))}</a>`
+        : svcJsonHtml(x, ind + 1, x && typeof x === "object" ? k : parent);
+      return `${pad}  ${esc(JSON.stringify(k))}: ${val}`;
+    }).join(",\n") + "\n" + pad + "}";
+  }
+  return esc(JSON.stringify(v));
+}
+function svcBodyHtml(body) {
+  if (!body) return "(leer)";
+  try { return svcJsonHtml(JSON.parse(body), 0, ""); } catch { return esc(body); }
+}
+/** Endpunkte mit ID-Feld, passendster zuerst (Objektname bzw. Schlüssel im Pfad oder in der ID des Endpunkts) */
+function svcIdTargets(key, parent) {
+  const d = SVC.detail, words = [parent, key.replace(/_?id$/i, "")].filter(Boolean).map((w) => w.toLowerCase().replace(/s$/, ""));
+  const out = [];
+  d.endpoints.filter((e) => e.test).forEach((e) => {
+    const p = e.params.find((x) => (x.in === "path" && SVC_IDKEY.test(x.name)) || (x.in === "query" && x.name.toLowerCase() === key.toLowerCase()));
+    if (!p) return;
+    const hay = (e.id + " " + e.path).toLowerCase();
+    const score = words.reduce((n, w) => n + (w && hay.includes(w) ? 2 : 0), 0) + (p.name.toLowerCase() === key.toLowerCase() ? 1 : 0);
+    out.push({ e, p, score });
+  });
+  return out.sort((a, b) => b.score - a.score);
+}
+function svcIdPick(b, a) {
+  const bar = $("#svcIdBar", b), v = a.dataset.idv, t = svcIdTargets(a.dataset.idk, a.dataset.idp);
+  bar.hidden = false;
+  bar.innerHTML = t.length
+    ? `ID <code>${esc(v)}</code>${a.dataset.idp ? ` <span class="muted">(${esc(a.dataset.idp)})</span>` : ""} einsetzen in: ${t.slice(0, 8).map(({ e, p }) =>
+        `<button class="ghost sm" data-idto="${esc(e.id)}" data-idparam="${esc(p.name)}" data-idv="${esc(v)}">${esc(e.label)}</button>`).join(" ")}`
+    : `Kein Endpunkt mit passendem ID-Feld für <code>${esc(v)}</code>.`;
+}
+function svcIdUse(b, btn) {
+  const d = SVC.detail, ep = d.endpoints.find((e) => e.id === btn.dataset.idto);
+  if (!ep) return;
+  const key = d.id + "/" + ep.id;
+  SVC.apiVals[key] = { ...Object.fromEntries(ep.params.map((p) => [p.name, p.example || p.default])), [btn.dataset.idparam]: btn.dataset.idv };
+  SVC.lastEp = ep.id;
+  svcRender(b);
+  $("#svcApiRun", b)?.focus();
 }
 
 function svcApiClear(b, clear) {

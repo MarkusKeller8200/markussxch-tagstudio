@@ -1425,3 +1425,6 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .lic-marks{display:flex;gap:10px;flex-wrap:wrap;margin-top:3px;font-size:12px;color:var(--dim)}
 .lic-marks label{display:inline-flex;gap:3px;align-items:center;cursor:pointer}
 .lic-warn{color:var(--warn);font-weight:600;margin-left:4px}
+/* #213: IDs in der API-Antwort */
+.svc-body a.svc-id{color:var(--acc);text-decoration:underline dotted;cursor:pointer}
+.svc-idbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0;padding:6px 8px;border:1px solid var(--line);border-radius:6px}

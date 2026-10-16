@@ -1094,6 +1094,13 @@ class UiTest(unittest.TestCase):
             self.assertEqual(pg.inner_text("#svcApiOut .svc-http"), "HTTP 200")
             self.assertIn('"Nordlicht"', pg.inner_text("#svcApiBody"))
             self.assertNotIn("Kaltes Glas", pg.inner_text("#svcApiBody"))       # limit=1
+            # #213: ID in der Antwort anklicken → passenden Endpunkt füllen
+            pg.click('#svcApiBody a.svc-id[data-idk="id"]')
+            pg.wait_for_selector('#svcIdBar [data-idto="track"]')
+            pg.click('#svcIdBar [data-idto="track"]')
+            pg.wait_for_selector('#svcApi [data-ap="id"]')
+            self.assertEqual(pg.input_value("#svcApiEp"), "track")
+            self.assertEqual(pg.input_value('#svcApi [data-ap="id"]'), "1")
             pg.click("#mBtns .primary")
             # Gesamtübersicht: alle Dienste inkl. Kern
             pg.click("#plServices")
