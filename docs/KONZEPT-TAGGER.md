@@ -59,6 +59,10 @@ Je sichtbare Spalte ein Feld (`TG.colQ[spalte]`), auch für Merkmal-Spalten. Tex
 Tasten im Feld gehen nicht an die Liste (keine Bewertung/Wiedergabe), Strg/Cmd-Kürzel schon; Esc leert, Enter/↓ zur
 Liste. Ein-/ausblenden über „Filter“ (`LAYOUT.tg_colfilter`, gemerkt); Filterwerte selbst werden nicht gespeichert.
 
+Datumsspalten „Aufgenommen“ / „Bearbeitet“ (#214, `tgDateTest`): `<30d` bzw. `30d` = jünger als, `>1y` = älter als
+(Einheiten h, d/t, w, m, y/j), `heute`, `gestern`, `2026`, `2026-10`, `2026-10-16`, Bereich `2026-09-01..2026-10-16`,
+`leer`/`-` = ohne Wert, `*` = mit Wert. Sortiert wird nach dem Zeitpunkt (Zeitzonen beachtet), leere Werte am Ende.
+
 ## 5a. TagStudio-Zeitstempel (#184, #185 – 4.5.0, Entscheide vom 16.10.2026)
 
 Modul `tsmeta.py`. Eigene TXXX-Felder (in Mp3tag, Lexicon usw. sichtbar), Wert ISO 8601 mit Zeitzone, sekundengenau

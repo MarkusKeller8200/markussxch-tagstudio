@@ -578,6 +578,37 @@ class UiTest(unittest.TestCase):
         self.assertTrue(pg.locator("#tgHeadF").is_visible())
         self.assertEqual(self.errors, [])
 
+    def test_tagger_date_filter(self):
+        """#214: Spalte „Aufgenommen“ – Zeitraum-Filter (<30d, >1y, Monat, Bereich, leer) und Sortierung nach Zeitpunkt."""
+        pg = self.pg
+        self.load_tagger()
+        col = "fld:TXXX:TAGSTUDIO_ADDED"
+        pg.evaluate(f"""(async () => {{
+          await tgSetCols([...tgCols().filter((c) => c !== "{col}"), "{col}"], true);   // lädt die Zeilen neu
+          const d = (days) => new Date(Date.now() - days * 864e5).toISOString();
+          const vals = [d(3), d(400), ""];
+          TG.rows.forEach((r, i) => {{ r.x = r.x || {{}}; r.x["TXXX:TAGSTUDIO_ADDED"] = vals[i]; }});
+        }})()""")
+        sel = f'#tgHeadF input[data-cf="{col}"]'
+        pg.wait_for_selector(sel)
+        self.assertIn("30d", pg.get_attribute(sel, "placeholder"))
+        ix = "TG.view.map(v => v.i).join(',')"
+        pg.fill(sel, "<30d")
+        self.assertTrue(self.until(f"{ix} === '0'"))
+        pg.fill(sel, ">1y")
+        self.assertTrue(self.until(f"{ix} === '1'"))
+        pg.fill(sel, "leer")
+        self.assertTrue(self.until(f"{ix} === '2'"))
+        y = pg.evaluate("new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 7)")
+        pg.fill(sel, y)
+        self.assertTrue(self.until(f"{ix} === '0'"))
+        pg.fill(sel, "2000-01-01..2099-12-31")
+        self.assertTrue(self.until("TG.view.length === 2"))
+        pg.fill(sel, "")
+        pg.evaluate(f"tgSetSorts([{{col: '{col}', dir: -1}}]); tgApplyOrder()")   # neueste zuerst, leer am Ende
+        self.assertTrue(self.until(f"{ix} === '0,1,2'"))
+        self.assertEqual(self.errors, [])
+
     def test_drag_to_player(self):
         """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""
         pg = self.pg

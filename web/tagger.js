@@ -265,7 +265,7 @@ function tgApplyOrder() {
   const key = (r, col) => (col === "name" ? r.rel : col === "camelot" ? keySortValue(r.camelot) : col === "TRCK" ? (r.TPOS ? trackNum(r.TPOS) : 0) * 10000 + trackNum(r.TRCK)
     : col === "TBPM" ? bpmNum(r.TBPM) : col.startsWith("f:") ? (r.feat && r.feat[col.slice(2)] !== null && r.feat[col.slice(2)] !== undefined ? r.feat[col.slice(2)] : Infinity)
     : col === "len" ? (r.len || Infinity) : col === "kbps" ? (r.kbps || Infinity) : col === "rating" ? (r.rating ? -r.rating : Infinity)
-    : col === "ver" ? (r.version || Infinity) : col.startsWith("fld:") ? ((r.x && r.x[col.slice(4)]) || "") : (r[col] || ""));
+    : col === "ver" ? (r.version || Infinity) : tgIsDateCol(col) ? (tgTs(r.x && r.x[col.slice(4)]) ?? "") : col.startsWith("fld:") ? ((r.x && r.x[col.slice(4)]) || "") : (r[col] || ""));
   const cmp1 = (a, b, { col, dir }) => {                   // #153: bis zu drei Sortierstufen
     const x = key(TG.rows[a], col), y = key(TG.rows[b], col);
     const ex = x === "" || x === Infinity || x === 999, ey = y === "" || y === Infinity || y === 999;
@@ -495,10 +495,47 @@ function tgCellValue(r, col) {
   if (col.startsWith("fld:")) return (r.x && r.x[col.slice(4)]) || "";
   return r[col] || "";
 }
+/** #214: Datumsspalten (TagStudio-Zeitstempel) */
+const TG_DATE_COL = /^fld:TXXX:TAGSTUDIO_(ADDED|EDITED)$/;
+const tgIsDateCol = (col) => TG_DATE_COL.test(col);
+function tgTs(v) { const t = Date.parse(String(v || "").trim()); return isFinite(t) ? t : null; }
+/** Zeitraum-Filter: <30d / 30d (jünger), >30d (älter), Einheiten h d w m y; heute, gestern; 2026, 2026-10, 2026-10-16;
+    Bereich 2026-09-01..2026-10-16; „leer“ bzw. „-“ = ohne Wert, „*“ = mit Wert */
+function tgDateTest(q) {
+  const s = q.toLowerCase().replace(/\s+/g, "");
+  if (s === "leer" || s === "-" || s === "ohne") return (v) => tgTs(v) === null;
+  if (s === "*" || s === "mit") return (v) => tgTs(v) !== null;
+  const day0 = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime(); };
+  if (s === "heute") { const a = day0(Date.now()); return (v) => { const t = tgTs(v); return t !== null && t >= a; }; }
+  if (s === "gestern") { const b = day0(Date.now()), a = b - 864e5; return (v) => { const t = tgTs(v); return t !== null && t >= a && t < b; }; }
+  let m = /^(<|>)?(\d+)(h|d|t|w|m|y|j)$/.exec(s);
+  if (m) {
+    const ms = { h: 36e5, d: 864e5, t: 864e5, w: 6048e5, m: 30 * 864e5, y: 365 * 864e5, j: 365 * 864e5 }[m[3]] * +m[2];
+    const lim = Date.now() - ms, older = m[1] === ">";
+    return (v) => { const t = tgTs(v); return t !== null && (older ? t < lim : t >= lim); };
+  }
+  const span = (p) => {                                      // „2026“, „2026-10“, „2026-10-16“ → [Anfang, Ende)
+    const k = /^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$/.exec(p);
+    if (!k) return null;
+    const y = +k[1], mo = k[2] ? +k[2] - 1 : 0, d = k[3] ? +k[3] : 1;
+    const a = new Date(y, mo, d).getTime();
+    const b = k[3] ? new Date(y, mo, d + 1).getTime() : k[2] ? new Date(y, mo + 1, 1).getTime() : new Date(y + 1, 0, 1).getTime();
+    return [a, b];
+  };
+  m = /^(.+?)(?:\.\.|–)(.+)$/.exec(s);
+  if (m) {
+    const a = span(m[1]), b = span(m[2]);
+    if (a && b) return (v) => { const t = tgTs(v); return t !== null && t >= a[0] && t < b[1]; };
+  }
+  const one = span(s);
+  if (one) return (v) => { const t = tgTs(v); return t !== null && t >= one[0] && t < one[1]; };
+  return null;
+}
 /** Prüffunktion für einen Filtertext; null = kein Filter */
 function tgColTest(col, q) {
   q = String(q || "").trim();
   if (!q) return null;
+  if (tgIsDateCol(col)) { const f = tgDateTest(q); if (f) return f; }
   if (tgColNum(col)) {
     const num = (s) => parseFloat(String(s).replace(",", "."));
     let m = /^(<=|>=|<|>|=)\s*(-?\d+(?:[.,]\d+)?)$/.exec(q);
@@ -522,9 +559,10 @@ function tgColFilterRender(cols, fcols) {
   if (btn) { btn.classList.toggle("on", tgColFilterActive()); btn.setAttribute("aria-pressed", String(on)); }
   if (!on) return;
   const keep = document.activeElement && box.contains(document.activeElement) ? document.activeElement.dataset.cf : null;
-  const ph = (k) => (tgColNum(k) ? (k === "TBPM" ? "z. B. 120-128" : k === "len" ? "z. B. >300" : "z. B. >=4") : "filtern …");
+  const ph = (k) => (tgIsDateCol(k) ? "z. B. <30d, 2026-10" : tgColNum(k) ? (k === "TBPM" ? "z. B. 120-128" : k === "len" ? "z. B. >300" : "z. B. >=4") : "filtern …");
+  const tip = (k) => (tgIsDateCol(k) ? ' title="<30d = letzte 30 Tage, >1y = älter als ein Jahr (h, d, w, m, y), heute, gestern, 2026-10, 2026-09-01..2026-10-16, leer = ohne Datum"' : "");
   const inp = (k, label) => `<input type="search" data-cf="${esc(k)}" value="${esc(TG.colQ[k] || "")}" placeholder="${esc(ph(k))}"
-      aria-label="${esc(label)} filtern" spellcheck="false" autocomplete="off" class="${TG.colQ[k] ? "on" : ""}">`;
+      aria-label="${esc(label)} filtern" spellcheck="false" autocomplete="off" class="${TG.colQ[k] ? "on" : ""}"${tip(k)}>`;
   box.innerHTML = `<button class="tf-x" id="tgColFilterClear" title="Alle Spaltenfilter leeren" aria-label="Alle Spaltenfilter leeren" ${tgColFilterActive() ? "" : "disabled"}>×</button>`
     + cols.map((k) => (k === "cover" ? "<span></span>" : inp(k, tgColDef(k).l))).join("")
     + fcols.map(([n, label]) => inp("f:" + n, label)).join("");
