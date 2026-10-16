@@ -85,7 +85,8 @@ class TestThirdParty(unittest.TestCase):
         for it in self.data["items"]:
             if it.get("repo"):
                 self.assertRegex(it["repo"], r"^[\w.-]+/[\w.-]+$", it["id"])
-        gh = {it["id"] for it in self.data["items"] if "github.com/" in it["url"]}
+        import urllib.parse
+        gh = {it["id"] for it in self.data["items"] if urllib.parse.urlparse(it["url"]).hostname == "github.com"}  # CodeQL #208
         self.assertEqual({i for i in gh if not any(x["id"] == i and x.get("repo") for x in self.data["items"])}, set(),
                          "GitHub-Komponenten ohne „repo“")
         items = [{"id": "a", "name": "A", "repo": "o/a"}, {"id": "b", "name": "B", "repo": "o/b"},

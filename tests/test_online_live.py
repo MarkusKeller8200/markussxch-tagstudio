@@ -111,7 +111,7 @@ class TestExamples(unittest.TestCase):
                 try:
                     r = self.m.api_call(pid, ep["id"], params)
                 except Exception as ex:  # noqa: BLE001
-                    bad.append(f"{pid}/{ep['id']}: {ex}")
+                    bad.append(f"{pid}/{ep['id']}: {type(ex).__name__}")
                     continue
                 body = r.get("body") or ""
                 empty = body.strip() in ("", "[]", "{}") or '"error"' in body[:200] or '"count": 0' in body[:200] \
@@ -120,7 +120,8 @@ class TestExamples(unittest.TestCase):
                     print(f"\n::notice title=Beispiel nicht abgefragt::{pid}/{ep['id']}: HTTP {r['status']}", flush=True)
                     continue
                 if r["status"] != 200 or empty:
-                    bad.append(f"{pid}/{ep['id']}: HTTP {r['status']} {body[:160]!r}")
+                    # nur Status und Art – keine Antwortdaten ins Protokoll (könnten Zugangsdaten enthalten, CodeQL #207/#209)
+                    bad.append(f"{pid}/{ep['id']}: HTTP {r['status']}" + (" ohne Treffer" if empty else ""))
         for b in bad:
             print(f"\n::warning title=Beispiel ohne Resultat::{b}", flush=True)
         self.assertEqual(bad, [])
