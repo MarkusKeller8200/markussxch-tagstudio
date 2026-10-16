@@ -4,6 +4,12 @@ Stand: **2026-10-16, 4.5.0 final** (veröffentlicht 16.10.2026 abends, ohne Beta
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
+## Roadmap (Entscheid 17.10.2026)
+
+- **4.6.0 – Beatgrid & Lyric Sync** (#17): #215 Liedtexte im Player, #191 Beatgrid-Status.
+- **4.7.0 – Mehrsprachigkeit** (#18): #157 Grundlage, Sprachwahl, alle Module in `de-CH`, `en`, `gsw-u-sd-chzh`; Claude übersetzt bei der Entwicklung mit (keine KI-Anbindung in TagStudio).
+- **4.8.0 – Mehrsprachigkeit: Plugins, Doku, eigene Anpassungen** (#19): #219 inkl. Export/Import mit Überlagerung in den Benutzereinstellungen.
+
 ## Arbeitsregeln vom 16.10.2026
 
 - **Meilensteine ohne Planungs-Issue (Entscheid 16.10.2026):** Beim Anlegen eines Meilensteins kein eigenes Issue mit

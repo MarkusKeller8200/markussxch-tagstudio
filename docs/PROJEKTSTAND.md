@@ -143,6 +143,12 @@
 
 Meilensteine können über den **gesicherten [Administrationskanal #190](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/190)** verwaltet werden. Das Issue ist bewusst **geschlossen**, aber für Eigentümer-Kommentare nutzbar. Der Workflow `.github/workflows/milestone-admin.yml` akzeptiert ausschliesslich einzeilige Kommentare vom Repository-Eigentümer auf #190, beispielsweise `/milestone list`, `/milestone create 4.6.0 – Titel`, `/milestone close 14` oder `/milestone reopen 14`. GitHub Actions verwendet dafür den Repository-Token mit `issues: write`. Ergebnisse im Issue-Thread überprüfen. Keine anderen Issues als Steuerkanal verwenden. Siehe [technische Anleitung](../.github/scripts/MILESTONE-ADMIN.md).
 
+## Roadmap (Entscheid 17.10.2026)
+
+- **4.6.0 – Beatgrid & Lyric Sync** (#17): #215 Liedtexte im Player, #191 Beatgrid-Status.
+- **4.7.0 – Mehrsprachigkeit** (#18): #157 Grundlage, Sprachwahl, alle Module in `de-CH`, `en`, `gsw-u-sd-chzh`; Claude übersetzt bei der Entwicklung mit (keine KI-Anbindung in TagStudio).
+- **4.8.0 – Mehrsprachigkeit: Plugins, Doku, eigene Anpassungen** (#19): #219 inkl. Export/Import mit Überlagerung in den Benutzereinstellungen.
+
 ## Arbeitsregeln vom 16.10.2026
 
 - **Meilensteine ohne Planungs-Issue (Entscheid 16.10.2026):** Beim Anlegen eines Meilensteins kein eigenes Issue mit
