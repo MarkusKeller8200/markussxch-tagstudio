@@ -43,7 +43,7 @@ async function tgGridMaybeScan() {
       drawTgList();
     }
   } catch (e) { /* Status ist eine Zusatzinfo – Fehler nicht aufdrängen */ }
-  finally { TGG.scan = false; if (own) chip.hidden = true; }
+  finally { TGG.scan = false; if (own) chip.hidden = true; tgGridFilterRefresh(); }
 }
 
 /** Markierte Titel ohne Raster analysieren (wie im Player) – fortlaufend, abbrechbar, nur Cache. */
@@ -75,8 +75,14 @@ async function tgGridAnalyse(idx) {
       drawTgList();
     }
   } finally {
-    TGG.busy.clear(); TGG.run = false; chip.hidden = true; drawTgList();
+    TGG.busy.clear(); TGG.run = false; chip.hidden = true; drawTgList(); tgGridFilterRefresh();
   }
   const msg = `Beatgrid-Analyse: ${found} von ${done} Titel(n) mit Ergebnis${TGG.stop ? " (abgebrochen)" : ""}. Gespeichert im Cache, nicht im MP3.`;
   status(msg, TGG.stop ? "warn" : "ok"); toast(msg);
+}
+
+/** Auswahl in der Filterzeile mit aktuellen Anzahlen neu aufbauen (nach Prüfung bzw. Analyse) */
+function tgGridFilterRefresh() {
+  if (document.activeElement && document.activeElement.matches('#tgHeadF [data-cf="grid"]')) return;
+  if ($('#tgHeadF [data-cf="grid"]') && typeof renderTgHead === "function") renderTgHead();
 }

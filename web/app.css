@@ -1468,3 +1468,5 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .tg-grid.run{font-style:italic}
 [data-theme="dark"] .tg-grid.g-serato{color:#5FD39C}[data-theme="dark"] .tg-grid.g-analyse{color:#8AB4F8}
 [data-theme="dark"] .tg-grid.g-bpm{color:#F5B54A}[data-theme="dark"] .tg-grid.g-nobeat,[data-theme="dark"] .tg-grid.g-none{color:#FF8A8E}
+.tg-tfilter select{width:100%;min-width:0;height:24px;padding:0 4px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:12px var(--font)}
+.tg-tfilter select.on{border-color:var(--acc)}

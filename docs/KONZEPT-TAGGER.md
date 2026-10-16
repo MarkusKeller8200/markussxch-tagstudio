@@ -72,7 +72,8 @@ Spalte „Beatgrid“ (Spalten ▾): `serato` (GEOB „Serato BeatGrid“, über
 zwischengespeichert und in `tag_rows` als `grid` mitgeliefert. Ist die Spalte sichtbar, holt `web/gridscan.js` fehlende
 Werte im Hintergrund in Paketen à 150 (Chip in der Fusszeile, Klick bricht ab). Kontextmenü „Beatgrid analysieren …“
 (markierte Titel ohne Serato/Analyse): dieselbe Analyse wie im Player (`plWaveCompute`), fortlaufend, abbrechbar,
-Ergebnis nur im Cache – nie im MP3. Filter über die Bezeichnung (z. B. „nur BPM“, „keins“), Sortierung nach Güte.
+Ergebnis nur im Cache – nie im MP3. Filter: in der Filterzeile eine Auswahl mit den vorkommenden Zuständen und ihrer
+Anzahl (z. B. „nur BPM (12)“), Sortierung nach Güte.
 Offen: Qualität von `beatAnalyse()` (Taktanfang, Tempowechsel) und Vergleich Serato ↔ eigene Analyse – siehe
 KONZEPT-MUSIKANALYSIEREN.
 

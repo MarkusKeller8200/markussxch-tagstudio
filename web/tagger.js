@@ -540,6 +540,7 @@ function tgColTest(col, q) {
   q = String(q || "").trim();
   if (!q) return null;
   if (tgIsDateCol(col)) { const f = tgDateTest(q); if (f) return f; }
+  if (col === "grid") return (x) => x === q;                          // #191: genau dieser Zustand
   if (tgColNum(col)) {
     const num = (s) => parseFloat(String(s).replace(",", "."));
     let m = /^(<=|>=|<|>|=)\s*(-?\d+(?:[.,]\d+)?)$/.exec(q);
@@ -565,10 +566,16 @@ function tgColFilterRender(cols, fcols) {
   const keep = document.activeElement && box.contains(document.activeElement) ? document.activeElement.dataset.cf : null;
   const ph = (k) => (tgIsDateCol(k) ? "z. B. <30d, 2026-10" : tgColNum(k) ? (k === "TBPM" ? "z. B. 120-128" : k === "len" ? "z. B. >300" : "z. B. >=4") : "filtern …");
   const tip = (k) => (tgIsDateCol(k) ? ' title="<30d = letzte 30 Tage, >1y = älter als ein Jahr (h, d, w, m, y), heute, gestern, 2026-10, 2026-09-01..2026-10-16, leer = ohne Datum"' : "");
+  const gridSel = () => {                                             // #191: Zustände direkt zur Auswahl
+    const cnt = {}; TG.rows.forEach((r) => { const t = tgGridText(r); cnt[t] = (cnt[t] || 0) + 1; });
+    const opts = [...TGG_ORDER.map((c) => TGG_INFO[c][0]), "nicht geprüft"].filter((l) => cnt[l] || TG.colQ.grid === l);
+    return `<select data-cf="grid" aria-label="Beatgrid filtern" class="${TG.colQ.grid ? "on" : ""}" title="Nach Beatgrid-Status filtern">
+      <option value="">alle</option>${opts.map((l) => `<option value="${esc(l)}" ${TG.colQ.grid === l ? "selected" : ""}>${esc(l)} (${fmtN(cnt[l] || 0)})</option>`).join("")}</select>`;
+  };
   const inp = (k, label) => `<input type="search" data-cf="${esc(k)}" value="${esc(TG.colQ[k] || "")}" placeholder="${esc(ph(k))}"
       aria-label="${esc(label)} filtern" spellcheck="false" autocomplete="off" class="${TG.colQ[k] ? "on" : ""}"${tip(k)}>`;
   box.innerHTML = `<button class="tf-x" id="tgColFilterClear" title="Alle Spaltenfilter leeren" aria-label="Alle Spaltenfilter leeren" ${tgColFilterActive() ? "" : "disabled"}>×</button>`
-    + cols.map((k) => (k === "cover" ? "<span></span>" : inp(k, tgColDef(k).l))).join("")
+    + cols.map((k) => (k === "cover" ? "<span></span>" : k === "grid" && typeof tgGridText === "function" ? gridSel() : inp(k, tgColDef(k).l))).join("")
     + fcols.map(([n, label]) => inp("f:" + n, label)).join("");
   if (keep) { const el = box.querySelector(`[data-cf="${CSS.escape(keep)}"]`); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
 }
