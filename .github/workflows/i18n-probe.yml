@@ -9,6 +9,10 @@ on:
         description: "Modell:Anbieter (Hugging Face Inference Providers; :auto = ersten verfügbaren Anbieter nehmen)"
         required: false
         default: "swiss-ai/Apertus-v1.5-70B:auto"
+      langs:
+        description: "Sprachen, durch Komma getrennt: en, gsw (Zürich), zh-wortliste, be, bs, ch"
+        required: false
+        default: "en,gsw"
 
 permissions:
   contents: read
@@ -27,6 +31,7 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           PUBLICAI_TOKEN: ${{ secrets.PUBLICAI_TOKEN }}
           MODEL: ${{ inputs.model }}
+          LANGS: ${{ inputs.langs }}
         run: python tools/i18n_probe/run.py
       - name: Ergebnis in #157
         if: always() && hashFiles('tools/i18n_probe/report.md') != ''

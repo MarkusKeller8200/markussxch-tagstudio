@@ -106,6 +106,41 @@ def publicai_model(token: str) -> str:
     return max(ids, key=lambda i: (size(i), "v1.5" in i))
 
 
+# Mundart-Varianten (#157): Prompt wird aus prompt-gsw.txt gebaut, nur die Anweisung zur Schreibweise wechselt
+DIALECTS = {
+    "gsw": None,                                                   # Zürichdeutsch wie im ersten Lauf
+    "zh-wortliste": ("Zürichdeutsche (Mundart, gsw-u-sd-chzh)",
+                     "Schreibe konsequent Zürichdeutsch, NICHT Bern- oder Baseldeutsch. Verbindliche Zürcher Formen: "
+                     "nöd (nicht), isch (ist), chasch (kannst), mer (wir/man), öppis (etwas), nüt (nichts), zerscht (zuerst), "
+                     "nomal (nochmals), au (auch), gsi (gewesen), vo (von), uf (auf), zrugg (zurück), "
+                     "Verben im Infinitiv auf -e: speichere → „spichere“, abbrechen → „abbräche“, einlesen → „iiläse“, "
+                     "übernehmen → „übernäh“, auswählen → „uswähle“, löschen → „lösche“, anzeigen → „aazeige“, "
+                     "Einstellungen → „Iistellige“, Ordner bleibt „Ordner“, Datei bleibt „Datei“, Titel bleibt „Titel“. "
+                     "Übersetze jeden Text vollständig in Mundart – keine hochdeutschen Sätze stehen lassen."),
+    "be": ("Berndeutsche (Mundart, gsw-u-sd-chbe)",
+           "Schreibe konsequent Berndeutsch (z. B. nid, isch, chasch, mir, öppis, nüt, zersch, o, gsy, Iistellige, "
+           "Verben auf -e). Übersetze jeden Text vollständig in Mundart."),
+    "bs": ("Baseldeutsche (Mundart, gsw-u-sd-chbs)",
+           "Schreibe konsequent Baseldeutsch (z. B. nit, isch, kasch, mir, ebbis, nyt, zerscht, au, gsi, Yystellige, "
+           "Verben auf -e). Übersetze jeden Text vollständig in Mundart."),
+    "ch": ("Schweizerdeutsche (Mundart, gsw, ohne bestimmte Region)",
+           "Schreibe ein gut verständliches, regional neutrales Schweizerdeutsch, wie es in Apps und Werbung in der "
+           "Deutschschweiz verwendet wird. Übersetze jeden Text vollständig in Mundart."),
+}
+
+
+def dialect_prompt(code: str) -> str:
+    with open(os.path.join(HERE, "prompt-gsw.txt"), encoding="utf-8") as fh:
+        base = fh.read()
+    if DIALECTS.get(code) is None:
+        return base
+    name, rule = DIALECTS[code]
+    head, rest = base.split("Schreibweise:", 1)
+    rest = rest.split("\n\n", 1)[1]                                # alte Schreibweisen-Regel ersetzen
+    head = head.replace("Zürichdeutsche (Mundart, Sprachcode gsw-u-sd-chzh)", name)
+    return head + "Schreibweise: " + rule + "\n\n" + rest
+
+
 def main():
     pa = os.environ.get("PUBLICAI_TOKEN", "")
     if pa:                                            # bevorzugt: direkt bei Public AI
@@ -117,16 +152,24 @@ def main():
             fail("Weder PUBLICAI_TOKEN noch HF_TOKEN als Secret hinterlegt (Repository › Settings › Secrets and variables › Actions).")
         model = pick_model(os.environ.get("MODEL") or "swiss-ai/Apertus-v1.5-70B:auto", token)
     report = [f"**Probeübersetzung mit `{model}`** über {'Public AI' if pa else 'Hugging Face'} (Workflow „Probeübersetzung“, #157)", ""]
-    for lang in ("en", "gsw"):
-        with open(os.path.join(HERE, f"prompt-{lang}.txt"), encoding="utf-8") as fh:
-            prompt = fh.read()
+    langs = [x.strip() for x in (os.environ.get("LANGS") or "en,gsw").split(",") if x.strip()]
+    names = {"en": "Englisch", "gsw": "Zürichdeutsch", "zh-wortliste": "Zürichdeutsch mit Wortliste",
+             "be": "Berndeutsch", "bs": "Baseldeutsch", "ch": "Schweizerdeutsch (allgemein)"}
+    for lang in langs:
+        if lang == "en":
+            with open(os.path.join(HERE, "prompt-en.txt"), encoding="utf-8") as fh:
+                prompt = fh.read()
+        elif lang in DIALECTS:
+            prompt = dialect_prompt(lang)
+        else:
+            fail(f"Unbekannte Sprache „{lang}“ (möglich: en, {', '.join(DIALECTS)}).")
         t0 = time.time()
         text, usage = ask(prompt, model, token, url)
         data = parse(text)
         with open(os.path.join(HERE, f"out-{lang}.json"), "w", encoding="utf-8") as fh:
             json.dump({"model": model, "lang": lang, "usage": usage, "raw": text, "items": data}, fh, ensure_ascii=False, indent=1)
         ok = isinstance(data, list)
-        report += [f"### {'Englisch' if lang == 'en' else 'Zürichdeutsch'}",
+        report += [f"### {names.get(lang, lang)} (`{lang}`)",
                    f"{len(data) if ok else 0} Einträge, gültiges JSON: {'ja' if ok else 'nein'}, "
                    f"{round(time.time() - t0)} s, Tokens: {usage.get('total_tokens', '?')}", "",
                    "<details><summary>Antwort</summary>", "", "```json",
