@@ -6,7 +6,7 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 
 ## Roadmap (Entscheid 17.10.2026)
 
-- **4.6.0 – Beatgrid & Lyric Sync** (#17): #215 Liedtexte im Player, #191 Beatgrid-Status.
+- **4.6.0 – Beatgrid & Lyric Sync** (#17): #215 Liedtext im Player (`lyricsync.py`, `web/pllyrics.js`) und #191 Beatgrid-Status im Tagger (`gridstatus.py`, `web/gridscan.js`) – beide auf `main`, `_3 Beta-Test` (17.10.2026).
 - **4.7.0 – Mehrsprachigkeit** (#18): #157 Grundlage, Sprachwahl, alle Module in `de-CH`, `en`, `gsw-u-sd-chzh`; Claude übersetzt bei der Entwicklung mit (keine KI-Anbindung in TagStudio).
 - **4.8.0 – Mehrsprachigkeit: Plugins, Doku, eigene Anpassungen** (#19): #219 inkl. Export/Import mit Überlagerung in den Benutzereinstellungen.
 
