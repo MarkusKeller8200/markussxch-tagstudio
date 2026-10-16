@@ -28,6 +28,11 @@ function tgColDef(id) {
   const key = id.slice(4), ex = ((TG.settings && TG.settings.extra_cols) || []).find(([k]) => k === key);
   return { l: ex ? ex[1] : key.replace(/^TXXX:/, ""), fit: "minmax(80px,1fr)", px: 160, key };
 }
+/** #184/#185: ISO-Zeitstempel kurz anzeigen (16.10.2026 01:55); Sortierung bleibt über den ISO-Text korrekt */
+function tsTime(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(String(iso || ""));
+  return m ? `${m[3]}.${m[2]}.${m[1]}${m[4] ? ` ${m[4]}:${m[5]}` : ""}` : String(iso || "");
+}
 const tgMmss = (s) => (s ? `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}` : "");
 const TG_ROW = 40;
 
@@ -442,6 +447,7 @@ function tgCell(r, c, v, name, fit) {
     case "ver": return `<span>${r.version ? "v2." + r.version : ""}</span>`;
     default: {
       const val = c.startsWith("fld:") ? (r.x && r.x[c.slice(4)]) || "" : r[c] || "";
+      if (/^fld:TXXX:TAGSTUDIO_(ADDED|EDITED)$/.test(c)) return `<span class="num" title="${esc(val)}">${esc(tsTime(val))}</span>`;   // #184/#185
       return `<span title="${esc(val)}">${esc(val)}</span>`;
     }
   }

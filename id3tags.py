@@ -110,11 +110,17 @@ GENRES = [
 ]
 
 
+TXXX_LABELS = {"TAGSTUDIO_EDITED": "Letzte Bearbeitung (TagStudio)",
+               "TAGSTUDIO_ADDED": "In Bibliothek aufgenommen (TagStudio)"}
+
+
 def key_label(key: str) -> str:
     """Deutscher Anzeigename eines Schlüssels."""
     base = key.split("#")[0]
     fid, _, desc = base.partition(":")
     if fid == "TXXX":
+        if desc.upper() in TXXX_LABELS:                 # #184/#185: TagStudio-Zeitstempel
+            return TXXX_LABELS[desc.upper()]
         return f"Benutzertext ({desc})"
     if fid == "WXXX":
         return f"Benutzer-URL ({desc})" if desc else "Benutzer-URL"

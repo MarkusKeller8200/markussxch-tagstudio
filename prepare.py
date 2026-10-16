@@ -27,6 +27,7 @@ import os
 import paths
 import re
 import shutil
+import tsmeta
 import subprocess
 import sys
 import time
@@ -273,6 +274,7 @@ def revert_values(path: str, rows: list[dict]) -> int:
         f.set_text(r["key"], r["old"])
         n += 1
     if n:
+        tsmeta.stamp_edited(f)                          # #185
         f.save()
     return n
 

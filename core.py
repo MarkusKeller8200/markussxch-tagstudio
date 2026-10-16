@@ -17,6 +17,7 @@ import re
 from id3tags import MP3File, key_label, sort_key, FIELDSETS, MV
 from compare import scan, pair_files, diff, all_keys, Cancelled
 import backup
+import tsmeta
 
 CONFIG = paths.config_file()
 CONFIG_OLD = os.path.join(os.path.expanduser("~"), ".mp3tagcompare.json") if not paths.profile() else CONFIG  # Version ≤ 2.8
@@ -455,7 +456,8 @@ class BackupUnavailable(Exception):
     """Sicherungsordner nicht verfügbar – es wurde nichts gespeichert."""
 
 
-def save_files(files, backup_on=True, folder=None, cancel=None, progress=None, force=False, store=None) -> dict:
+def save_files(files, backup_on=True, folder=None, cancel=None, progress=None, force=False, store=None,
+               stamp=True) -> dict:
     """Speichert Dateien; vorher werden die bisherigen Tags gesichert (eine ZIP pro Vorgang).
     Schlägt die Sicherung einer Datei fehl, wird diese Datei nicht gespeichert.
     → {"saved": n, "errors": [...], "backup": pfad|None, "cancelled": bool}"""
@@ -485,6 +487,8 @@ def save_files(files, backup_on=True, folder=None, cancel=None, progress=None, f
             progress(("progress", i, len(files), f.path))
             continue
         try:
+            if stamp:
+                tsmeta.stamp_edited(f)                 # #185: „Letzte Bearbeitung“ – nur bei geänderten Tags
             f.save()
             saved += 1
         except Exception as ex:  # noqa: BLE001

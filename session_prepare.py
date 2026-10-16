@@ -6,6 +6,7 @@ import os
 
 import core
 import prepare
+import tsmeta
 
 
 def plugins_write_log(name, text):
@@ -206,6 +207,8 @@ class PrepareMixin:
                         f = MP3File(dst)
                         p = recipes.plan([f], recipe)
                         recipes.apply(p)
+                        if self.cfg.get("stamp_edited", True):
+                            tsmeta.stamp_edited(f)          # #185
                         f.save()
                         rec.update(state="done", at=prepare.now(), file=dst,
                                    note=f"{sum(len(e['changes']) for e in p)} Änderung(en)")
@@ -346,6 +349,8 @@ class PrepareMixin:
                 if mine:
                     for sync in mine[0].get("sync_same") or []:
                         importsync.remember(f, *sync)
+                if self.cfg.get("stamp_edited", True):
+                    tsmeta.stamp_edited(f)          # #185 (nur bei Änderungen)
                 f.save()          # speichert nur bei Änderungen
                 rest = props_all.get(id(f), 0) - len(mine)
                 rec["note"] = f"{k} Feld(er) übernommen" + (f", {rest} Vorschlag/Vorschläge nicht übernommen" if rest > 0 else "")

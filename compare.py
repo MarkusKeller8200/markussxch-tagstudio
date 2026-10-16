@@ -26,6 +26,7 @@ DEFAULT_TRIVIAL = [
     # DJ-/Analyse-Daten (gehören zum einzelnen Track, unterscheiden sich praktisch immer)
     "GEOB:*", "ETCO", "PCNT", "TXXX:beaTunes*", "TXXX:*Algorithm", "TXXX:Segments", "TXXX:Similarities",
     "TXXX:fBPM*", "TXXX:time_reference", "TXXX:umid", "TXXX:originator_reference",
+    "TXXX:TAGSTUDIO_EDITED",     # #185: „Letzte Bearbeitung“ unterscheidet sich nach fast jedem Speichern
 ]
 
 

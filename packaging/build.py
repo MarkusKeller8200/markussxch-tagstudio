@@ -23,6 +23,7 @@ BUNDLE_ID = "ch.markussxch.tagstudio"
 
 # Module, die nur von Plugins (zur Laufzeit geladene .py-Dateien) gebraucht werden – PyInstaller sieht sie sonst nicht
 HIDDEN = [
+    "tsmeta",
     # eigene Module (werden teils erst bei Bedarf importiert)
     "session", "core", "keys", "features", "plugins", "updater", "xmltools", "tagger", "backup", "compare",
     "id3tags", "thumbs", "undo", "version", "blobs", "media", "cues", "waveform", "appsettings", "origins", "jobs", "stemsview", "snapshots", "players",

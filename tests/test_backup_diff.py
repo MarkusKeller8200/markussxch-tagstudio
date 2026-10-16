@@ -62,8 +62,8 @@ class TestBackupDiff(Base):
             time.sleep(0.02)
         files = s.task_status()["result"]["files"]
         row = next(x for x in files if x["name"] == "d.mp3")
-        self.assertEqual(row["changes"], 2)
-        self.assertEqual(len(row["fields"]), 2)
+        self.assertEqual(row["changes"], 3)                          # + „Letzte Bearbeitung“ (#185)
+        self.assertEqual(len(row["fields"]), 3)
         self.assertEqual(row["more"], 0)
         d = s.backup_diff(bk["path"], row["id"])
         by = {r["key"]: r for r in d["rows"]}
