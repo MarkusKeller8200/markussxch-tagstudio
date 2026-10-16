@@ -94,8 +94,12 @@ Zug nachführen.**
   - #185 „Letzte Bearbeitung“: `TXXX:TAGSTUDIO_EDITED`, ISO 8601 mit Zeitzone, nur bei geänderten Tags, Undo = neue Zeit,
     cfg `stamp_edited` – **auf main, Beta-Test**.
   - #184 „In Bibliothek aufgenommen“: `TXXX:TAGSTUDIO_ADDED`, gesetzt bei Übernahme aus „Vorbereiten“, nie automatisch
-    geändert; Nachtragen aus erstem Snapshot oder von Hand, mit Vorschau, kein Dateidatum – **als Nächstes**.
-  - #183 Liedtexte (LRCLIB): Plugin, `USLT` + `SYLT`, `.lrc` nur wenn in den Plugin-Einstellungen eingeschaltet.
+    geändert; Nachtragen (Tagger › „Aufnahmedatum nachtragen …“) aus dem frühesten Snapshot (`snapshots.first_seen`)
+    oder von Hand, kein Dateidatum – **auf main, Beta-Test**.
+  - #183 Liedtexte (`plugins/lyrics`, LRCLIB): `USLT` + `SYLT`, `.lrc` nur über Plugins › Liedtexte › „Einstellungen …“;
+    Original/Remix/Live nicht gleichgesetzt – **auf main, Beta-Test**.
+  - TagStudio-Zeitstempel zählen nie als Verstoss gegen die Schutzregel in „Vorbereiten“ (`prepare.violations`).
+  - Danach: Release 4.5.0 nur nach ausdrücklicher Freigabe.
 - **NEUE KONZEPTIDEE #180:** 1001Tracklists – noch nicht implementiert, vorher Rechte klären.
 - Oberflächen-Tests laufen seit 15.10.2026 auch in der CI (Job „Oberflächen-Tests“).
 - Nächste Iterationen: #14 «4.4.1» und #15 «4.5.0» wie oben; «Idee (Später)» (#4): #9, #14, #107, #108, #156, #157, #180, #186 und #187.
