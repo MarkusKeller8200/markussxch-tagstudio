@@ -8,6 +8,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Beatgrid-Status im Tagger (#191):** Neue Spalte „Beatgrid“ zeigt für die ganze Bibliothek, ob ein Titel ein
+  Serato-Raster, eine eigene Analyse, nur einen BPM-Tag oder gar nichts hat – filter- und sortierbar, ermittelt aus Tags
+  und Cache ohne die Dateien zu dekodieren. Rechtsklick › „Beatgrid analysieren …“ analysiert markierte Titel nach
+  (wie im Player, abbrechbar); das Ergebnis liegt im Cache, die MP3s bleiben unverändert.
 - **Liedtext im Player (#215):** Neuer Knopf im Player A öffnet den Liedtext. Synchronisierte Texte (SYLT im MP3 oder
   die `.lrc`-Datei daneben) laufen mit – die aktuelle Zeile ist hervorgehoben, ein Klick springt an die Stelle. Ohne
   Zeitstempel erscheint der normale Text. Bleibt eingeschaltet, bis man es schliesst.

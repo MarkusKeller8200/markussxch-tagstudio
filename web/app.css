@@ -1459,3 +1459,12 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .pl-lyrics .ly-plain{white-space:pre-wrap;overflow-y:auto;padding:10px 12px;font-size:14px;line-height:1.5}
 .pl-lyrics .ly-note,.pl-lyrics .ly-empty{padding:8px 12px;font-size:12px;color:var(--dim)}
 @media (prefers-reduced-motion: reduce){.pl-lyrics .ly-l{transition:none}}
+/* #191: Beatgrid-Status im Tagger */
+.tg-grid{display:inline-block;font-size:11.5px;padding:0 7px;border-radius:99px;color:var(--dim);white-space:nowrap}
+.tg-grid.g-serato{background:#2E9E6B26;color:#1F7A50}
+.tg-grid.g-analyse{background:#3B82F626;color:#1D5FD1}
+.tg-grid.g-bpm{background:#F5A62333;color:#B26B00}
+.tg-grid.g-nobeat,.tg-grid.g-none{background:#E5484D1F;color:#C2353A}
+.tg-grid.run{font-style:italic}
+[data-theme="dark"] .tg-grid.g-serato{color:#5FD39C}[data-theme="dark"] .tg-grid.g-analyse{color:#8AB4F8}
+[data-theme="dark"] .tg-grid.g-bpm{color:#F5B54A}[data-theme="dark"] .tg-grid.g-nobeat,[data-theme="dark"] .tg-grid.g-none{color:#FF8A8E}

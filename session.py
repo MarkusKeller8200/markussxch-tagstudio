@@ -543,6 +543,36 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 out.append({"path": f.path, "key": k, "name": os.path.basename(f.path)})
         return out
 
+    # ---- #191: Beatgrid-Status für die ganze Bibliothek
+    def _grid_cached(self, f) -> str:
+        c = getattr(self, "_grid_cache", {}).get(f.path)
+        try:
+            return c[1] if c and c[0] == os.path.getmtime(f.path) else ""
+        except OSError:
+            return ""
+
+    def tag_grid_status(self, indices=None, fresh=False) -> dict:
+        """Beatgrid-Status für Tagger-Zeilen ({i: Code}); ohne indices alle. Liest nur Tags und den Wellenform-Cache
+        (kein Dekodieren). fresh: Zwischenspeicher übergehen (nach einer Analyse)."""
+        import gridstatus
+        cache = self.__dict__.setdefault("_grid_cache", {})
+        with self.lock:
+            files = list(enumerate(self.tag_files))
+        want = None if indices is None else {int(i) for i in indices if isinstance(i, int) or str(i).isdigit()}
+        out = {}
+        for i, f in files:
+            if want is not None and i not in want:
+                continue
+            code = "" if fresh else self._grid_cached(f)
+            if not code:
+                code = gridstatus.status(f)
+                try:
+                    cache[f.path] = (os.path.getmtime(f.path), code)
+                except OSError:
+                    pass
+            out[i] = code
+        return {"status": out, "labels": gridstatus.LABEL}
+
     # ================================================================== Einstellungsseite (#21)
     def settings_page(self) -> dict:
         import appsettings
@@ -1753,7 +1783,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 "camelot": keys.parse_key(tagger.text_of(f, "TKEY")), "feat": features.values(f),
                 "rating": ratings.get_rating(f), "like": ratings.get_like(f),
                 "x": {k: (moods.text(f) if k == "TMOO" else tagger.text_of(f, k)) for k in self._tg_extra_keys()},   # #154 (#12: Stimmung aus TMOO/TXXX:MOOD)
-                "len": round(float(getattr(f, "duration", 0) or 0)), "kbps": int(getattr(f, "bitrate", 0) or 0)}
+                "len": round(float(getattr(f, "duration", 0) or 0)), "kbps": int(getattr(f, "bitrate", 0) or 0),
+                "grid": self._grid_cached(f)}                                                            # #191
 
     @staticmethod
     def _front_cover(f):

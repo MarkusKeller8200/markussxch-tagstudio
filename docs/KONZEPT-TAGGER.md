@@ -63,6 +63,19 @@ Datumsspalten „Aufgenommen“ / „Bearbeitet“ (#214, `tgDateTest`): `<30d` 
 (Einheiten h, d/t, w, m, y/j), `heute`, `gestern`, `2026`, `2026-10`, `2026-10-16`, Bereich `2026-09-01..2026-10-16`,
 `leer`/`-` = ohne Wert, `*` = mit Wert. Sortiert wird nach dem Zeitpunkt (Zeitzonen beachtet), leere Werte am Ende.
 
+## 5c. Beatgrid-Status (#191)
+
+Spalte „Beatgrid“ (Spalten ▾): `serato` (GEOB „Serato BeatGrid“, übernommen – nicht automatisch musikalisch geprüft),
+`analyse` (eigene Audioanalyse im Wellenform-Cache: BPM + erster Schlag, konstantes Tempo), `bpm` (nur TBPM – Schätzung,
+**kein** Raster), `nobeat` (analysiert, kein Schlag gefunden), `none`; „–“ = noch nicht geprüft. Modul `gridstatus.py`,
+`Session.tag_grid_status(indices, fresh)` liest nur Tags und Cache (kein Dekodieren), Ergebnis je Pfad+mtime
+zwischengespeichert und in `tag_rows` als `grid` mitgeliefert. Ist die Spalte sichtbar, holt `web/gridscan.js` fehlende
+Werte im Hintergrund in Paketen à 150 (Chip in der Fusszeile, Klick bricht ab). Kontextmenü „Beatgrid analysieren …“
+(markierte Titel ohne Serato/Analyse): dieselbe Analyse wie im Player (`plWaveCompute`), fortlaufend, abbrechbar,
+Ergebnis nur im Cache – nie im MP3. Filter über die Bezeichnung (z. B. „nur BPM“, „keins“), Sortierung nach Güte.
+Offen: Qualität von `beatAnalyse()` (Taktanfang, Tempowechsel) und Vergleich Serato ↔ eigene Analyse – siehe
+KONZEPT-MUSIKANALYSIEREN.
+
 ## 5a. TagStudio-Zeitstempel (#184, #185 – 4.5.0, Entscheide vom 16.10.2026)
 
 Modul `tsmeta.py`. Eigene TXXX-Felder (in Mp3tag, Lexicon usw. sichtbar), Wert ISO 8601 mit Zeitzone, sekundengenau

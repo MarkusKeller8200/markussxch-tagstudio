@@ -701,6 +701,28 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.get_attribute("#plLyricsBtn", "aria-pressed"), "false")
         self.assertEqual(self.errors, [])
 
+    def test_tagger_grid_status(self):
+        """#191: Spalte „Beatgrid“ – Status im Hintergrund, Filter, Analyse über das Kontextmenü (nur Cache)."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("tgSetCols([...tgCols().filter((c) => c !== 'grid'), 'grid'], true)")
+        self.assertTrue(self.until("TG.rows.every((r) => r.grid)", 10))                  # Status nachgeholt
+        codes = pg.evaluate("TG.rows.map((r) => r.grid)")
+        self.assertTrue(all(c in ("bpm", "none", "analyse", "nobeat", "serato") for c in codes), codes)
+        self.assertTrue(pg.locator("#tgInner .tg-grid").count() >= 3)
+        pg.wait_for_selector('#tgHeadF input[data-cf="grid"]')
+        label = pg.evaluate("tgGridText(TG.rows[0])")
+        pg.fill('#tgHeadF input[data-cf="grid"]', label)                                 # Filter nach Bezeichnung
+        self.assertTrue(self.until(f"TG.view.every((v) => tgGridText(TG.rows[v.i]) === {json.dumps(label)})"))
+        pg.fill('#tgHeadF input[data-cf="grid"]', "")
+        # Analyse über das Kontextmenü (dieselbe wie im Player, Ergebnis nur im Cache)
+        pg.click(".tg-row >> nth=0", button="right")
+        pg.click('.menu button:has-text("Beatgrid analysieren")')
+        self.assertTrue(self.until("!TGG.run && /Beatgrid-Analyse/.test(document.querySelector('#toast')?.textContent || '')", 30))
+        self.assertIn(pg.evaluate("TG.rows[TG.view[0].i].grid"), ("analyse", "nobeat", "bpm"))
+        self.assertFalse(pg.evaluate("TG.rows.some((r) => r.modified)"))                 # nichts am MP3 geändert
+        self.assertEqual(self.errors, [])
+
     def test_drag_to_player(self):
         """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""
         pg = self.pg

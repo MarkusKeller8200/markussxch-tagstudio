@@ -17,8 +17,9 @@ const TG_COLDEF = {
   TCOM: { l: "Komponist", fit: "minmax(80px,1fr)", px: 160 }, "COMM:": { l: "Kommentar", fit: "minmax(80px,1fr)", px: 220 },
   len: { l: "Länge", fit: "56px", px: 60, num: true }, kbps: { l: "kbit/s", fit: "56px", px: 60, num: true },
   rating: { l: "Bewertung", fit: "86px", px: 90 }, ver: { l: "ID3", fit: "44px", px: 48 },
+  grid: { l: "Beatgrid", fit: "92px", px: 100 },                                            // #191
 };
-const TG_BASE_EXTRA = ["TPE2", "TPOS", "TCOM", "COMM:", "len", "kbps", "rating", "ver"];
+const TG_BASE_EXTRA = ["TPE2", "TPOS", "TCOM", "COMM:", "len", "kbps", "rating", "ver", "grid"];
 function tgCols() {
   const c = (LAYOUT.tg_cols || []).filter((id) => TG_COLDEF[id] || id.startsWith("fld:"));
   return c.length ? c : TG_DEFAULT_COLS;
@@ -265,7 +266,7 @@ function tgApplyOrder() {
   const key = (r, col) => (col === "name" ? r.rel : col === "camelot" ? keySortValue(r.camelot) : col === "TRCK" ? (r.TPOS ? trackNum(r.TPOS) : 0) * 10000 + trackNum(r.TRCK)
     : col === "TBPM" ? bpmNum(r.TBPM) : col.startsWith("f:") ? (r.feat && r.feat[col.slice(2)] !== null && r.feat[col.slice(2)] !== undefined ? r.feat[col.slice(2)] : Infinity)
     : col === "len" ? (r.len || Infinity) : col === "kbps" ? (r.kbps || Infinity) : col === "rating" ? (r.rating ? -r.rating : Infinity)
-    : col === "ver" ? (r.version || Infinity) : tgIsDateCol(col) ? (tgTs(r.x && r.x[col.slice(4)]) ?? "") : col.startsWith("fld:") ? ((r.x && r.x[col.slice(4)]) || "") : (r[col] || ""));
+    : col === "ver" ? (r.version || Infinity) : col === "grid" ? (typeof tgGridOrder === "function" ? tgGridOrder(r) : Infinity) : tgIsDateCol(col) ? (tgTs(r.x && r.x[col.slice(4)]) ?? "") : col.startsWith("fld:") ? ((r.x && r.x[col.slice(4)]) || "") : (r[col] || ""));
   const cmp1 = (a, b, { col, dir }) => {                   // #153: bis zu drei Sortierstufen
     const x = key(TG.rows[a], col), y = key(TG.rows[b], col);
     const ex = x === "" || x === Infinity || x === 999, ey = y === "" || y === Infinity || y === 999;
@@ -405,6 +406,7 @@ function renderTgHead() {
 }
 
 function drawTgList() {
+  if (typeof TGG !== "undefined" && !TGG.scan) { clearTimeout(TGG.t); TGG.t = setTimeout(tgGridMaybeScan, 400); }   // #191
   const sc = $("#tgScroll"), inner = $("#tgInner");
   if (!TG.loaded && TG.bg) { inner.innerHTML = `<div class="tg-empty tg-bg"><span class="spin"></span> <span id="tgBgText">${esc(TG.bg.text)}</span><div class="muted sm">Du kannst schon weiterarbeiten – „Einlesen“ bricht ab und lädt neu.</div></div>`; inner.style.height = ""; return; }
   if (!TG.loaded) { inner.innerHTML = '<div class="tg-empty">Oben einen Ordner oder eine MP3-Datei wählen und auf <b>Einlesen</b> klicken.</div>'; inner.style.height = ""; return; }
@@ -448,6 +450,7 @@ function tgCell(r, c, v, name, fit) {
     case "kbps": return `<span class="num">${r.kbps || ""}</span>`;
     case "rating": return `<span>${r.rating ? "★".repeat(r.rating) : ""}${r.like ? " ♥" : ""}</span>`;
     case "ver": return `<span>${r.version ? "v2." + r.version : ""}</span>`;
+    case "grid": return typeof tgGridCell === "function" ? tgGridCell(r) : "";               // #191
     default: {
       const val = c.startsWith("fld:") ? (r.x && r.x[c.slice(4)]) || "" : r[c] || "";
       if (/^fld:TXXX:TAGSTUDIO_(ADDED|EDITED)$/.test(c)) return `<span class="num" title="${esc(val)}">${esc(tsTime(val))}</span>`;   // #184/#185
@@ -489,6 +492,7 @@ function tgCellValue(r, col) {
   if (col === "kbps") return r.kbps || null;
   if (col === "rating") return r.rating || 0;
   if (col === "ver") return r.version || null;
+  if (col === "grid") return typeof tgGridText === "function" ? tgGridText(r) : r.grid || "";   // #191: Filter nach Bezeichnung
   if (col === "TRCK") { const n = parseInt(r.TRCK, 10); return isFinite(n) ? n : null; }
   if (col === "TBPM") { const n = parseFloat(String(r.TBPM || "").replace(",", ".")); return isFinite(n) ? n : null; }
   if (col.startsWith("f:")) { const v = r.feat && r.feat[col.slice(2)]; return v === undefined ? null : v; }

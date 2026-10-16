@@ -746,6 +746,10 @@ function plRowMenu(e, t, label) {
     const idx = S.module === "tagger" && typeof tgSelected === "function" && tgSelected().length ? tgSelected() : [t.ref];
     items.push("-", ...pqMenuItems(idx));
   }
+  if (t.kind === "tag" && S.module === "tagger" && typeof tgGridAnalyse === "function") {           // #191
+    const idx = typeof tgSelected === "function" && tgSelected().length ? tgSelected() : [t.ref];
+    items.push("-", { label: `Beatgrid analysieren …${idx.length > 1 ? ` (${idx.length})` : ""}`, run: () => tgGridAnalyse(idx) });
+  }
   if (t.kind === "tag") items.push("-", { label: "Dateiordner öffnen", icon: ICON.folder, run: () => call("reveal_tag", t.ref) });   // #197
   showMenu(e.clientX, e.clientY, items);
 }
