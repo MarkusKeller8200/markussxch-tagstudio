@@ -276,6 +276,20 @@ class UiTest(unittest.TestCase):
         for s in ("Lizenzen und Quellen", "GPL-3.0-or-later", "pywebview", "BSD-3-Clause", "serato-tags", "Im Programm enthalten"):
             self.assertIn(s, txt)
         self.assertGreater(pg.locator("#helpDoc a[data-url]").count(), 20)
+        # #206: GitHub-Repository, Entwickler, eigene Durchsicht, Danke-Text
+        self.assertTrue(pg.locator('#helpDoc .lic-gh a[data-url="https://github.com/r0x0r/pywebview"]').count())
+        self.assertTrue(pg.locator('#helpDoc .lic-gh a[data-url="https://github.com/r0x0r"]').count())
+        pg.check('#helpDoc [data-licmark="pywebview"][data-key="checked"]')
+        self.assertTrue(self.cfg_until(lambda c: "checked" in (c.get("lic_review") or {}).get("pywebview", {})))
+        pg.wait_for_function("document.querySelector('#helpDoc').textContent.includes('geprüft 1')")      # nach Neuaufbau
+        self.assertTrue(pg.locator('#helpDoc [data-licmark="pywebview"][data-key="checked"]').is_checked())
+        pg.click('#helpDoc [data-licthanks="pywebview"]')
+        pg.wait_for_selector("#licThanksTxt")
+        txt = pg.input_value("#licThanksTxt")
+        self.assertIn("TagStudio", txt)
+        self.assertIn("pywebview", txt)
+        pg.click("#mBtns button >> nth=0")
+        self.assertEqual(self.errors, [])
 
     def test_crossfade_with_tempo(self):
         """#94 Überblenden, #102 Tempo angleichen (124 → 120 BPM)."""
@@ -1092,6 +1106,21 @@ class UiTest(unittest.TestCase):
                              - pg.locator("#svcOvBody .svc-grp .svc-st.svc-none").count(), 0)
             pg.click('#svcOvBody [data-svcopen="lyrics"]')
             pg.wait_for_function("document.querySelector('#mTitle').textContent.includes('LRCLIB')")
+            # #205: Beispielwerte vorbelegt, „Felder löschen“, „Beispiel einsetzen“
+            pg.click('[data-svctab="tq"]')
+            self.assertEqual(pg.input_value('[data-tq="artist"]'), "Daft Punk")
+            self.assertEqual(pg.input_value('[data-tq="title"]'), "One More Time")
+            pg.click("#svcTqClear")
+            self.assertEqual([pg.input_value(f'[data-tq="{k}"]') for k in ("artist", "title", "duration")], ["", "", ""])
+            pg.click("#svcTqEx")
+            self.assertEqual(pg.input_value('[data-tq="title"]'), "One More Time")
+            pg.click('[data-svctab="api"]')
+            pg.select_option("#svcApiEp", "get")
+            self.assertEqual(pg.input_value('#svcApi [data-ap="artist_name"]'), "Daft Punk")
+            pg.click("#svcApiClear")
+            self.assertEqual(pg.input_value('#svcApi [data-ap="artist_name"]'), "")
+            pg.click("#svcApiEx")
+            self.assertEqual(pg.input_value('#svcApi [data-ap="track_name"]'), "One More Time")
             pg.click("#mBtns .primary")
             self.assertEqual(self.errors, [])
         finally:

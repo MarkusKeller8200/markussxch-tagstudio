@@ -30,8 +30,9 @@
         "params": [
           {
             "name": "q",
-            "default": "Mara Lind Nordlicht",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "Daft Punk One More Time"
           },
           {
             "name": "type",
@@ -54,7 +55,8 @@
         "params": [
           {
             "name": "isrc",
-            "default": ""
+            "default": "",
+            "example": "GBDUW0000053"
           },
           {
             "name": "artist_id",
@@ -80,7 +82,9 @@
         "path": "/catalog/tracks/{id}/",
         "label": "Ein Titel",
         "status": "full",
-        "use": "Vollständiger Datensatz nach der Suche, gespeicherte Beatport-ID"
+        "use": "Vollständiger Datensatz nach der Suche, gespeicherte Beatport-ID",
+        "params": [],
+        "note": "Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen."
       },
       {
         "id": "track-download",
@@ -90,7 +94,8 @@
         "status": "partial",
         "use": "Fehlende Käufe herunterladen",
         "note": "Download-Endpunkt gegen die echte API noch ungetestet (#117)",
-        "test": false
+        "test": false,
+        "params": []
       },
       {
         "id": "releases",
@@ -98,21 +103,26 @@
         "path": "/catalog/releases/{id}/",
         "label": "Eine Veröffentlichung",
         "status": "none",
-        "note": "Label und Katalognummer kommen aus dem Titel-Datensatz"
+        "note": "Label und Katalognummer kommen aus dem Titel-Datensatz Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen.",
+        "params": []
       },
       {
         "id": "artists",
         "method": "GET",
         "path": "/catalog/artists/{id}/",
         "label": "Ein Künstler",
-        "status": "none"
+        "status": "none",
+        "params": [],
+        "note": "Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen."
       },
       {
         "id": "labels",
         "method": "GET",
         "path": "/catalog/labels/{id}/",
         "label": "Ein Label",
-        "status": "none"
+        "status": "none",
+        "params": [],
+        "note": "Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen."
       },
       {
         "id": "genres",
@@ -134,14 +144,21 @@
         "path": "/catalog/genres/{id}/top/100/",
         "label": "Top 100 eines Genres",
         "status": "full",
-        "use": "Entdecken: Genre-Charts"
+        "use": "Entdecken: Genre-Charts",
+        "params": [
+          {
+            "name": "id",
+            "example": "6"
+          }
+        ]
       },
       {
         "id": "charts",
         "method": "GET",
         "path": "/catalog/charts/",
         "label": "DJ-Charts",
-        "status": "none"
+        "status": "none",
+        "params": []
       },
       {
         "id": "my-account",
@@ -149,7 +166,8 @@
         "path": "/my/account/",
         "label": "Eigenes Konto",
         "status": "partial",
-        "use": "Anmeldung prüfen, Verbindung testen"
+        "use": "Anmeldung prüfen, Verbindung testen",
+        "params": []
       },
       {
         "id": "my-downloads",
@@ -201,7 +219,8 @@
         "label": "Download eines Kaufs",
         "status": "partial",
         "use": "Fehlende Käufe herunterladen",
-        "test": false
+        "test": false,
+        "params": []
       },
       {
         "id": "auth-authorize",
@@ -210,7 +229,8 @@
         "label": "Anmeldung (OAuth: Code holen)",
         "status": "full",
         "use": "Anmelden …",
-        "test": false
+        "test": false,
+        "params": []
       },
       {
         "id": "auth-token",
@@ -218,8 +238,14 @@
         "path": "/auth/o/token/",
         "label": "Token holen/erneuern",
         "status": "full",
-        "use": "Anmelden, automatische Erneuerung"
+        "use": "Anmelden, automatische Erneuerung",
+        "params": []
       }
-    ]
+    ],
+    "example": {
+      "artist": "Daft Punk",
+      "title": "One More Time",
+      "isrc": "GBDUW0000053"
+    }
   }
 }

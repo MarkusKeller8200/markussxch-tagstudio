@@ -85,6 +85,11 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 - Nutzer der Dienste: `online` (Quellen-Häkchen nur für eingeschaltete Dienst-Plugins, sonst Hinweis; Optionsschlüssel
   wie bis 4.5), Entdecken (Deezer über `plugins/deezer`, Beatport über `plugins/beatport`; ausgeschaltet → Hinweis im
   Protokoll). Andere Plugins erreichen Dienste über `ctx.service(pid)` / `ctx.service_ctx(pid)`.
+- Beispielwerte (#205): `service.example` (Testabfrage) und je Parameter `example` – echte Werte, die beim Dienst ein
+  Resultat liefern (Daft Punk – One More Time, ISRC GBDUW0000053, passende IDs); `default` nur für feste Vorgaben wie
+  `fmt=json`. Im Fenster „Felder löschen“ (feste Vorgaben bleiben) und „Beispiel einsetzen“. Der Online-Test
+  (`TestExamples` in `tests/test_online_live.py`) prüft wöchentlich, dass alle Beispiele der frei nutzbaren Dienste
+  ein Resultat liefern. Ausnahmen: Beatport (IDs nur angemeldet ermittelbar), Lexicon (eigene Bibliothek).
 - Die Update-Prüfung (GitHub Releases) bleibt im Kern.
 
 ## 5. Entscheide

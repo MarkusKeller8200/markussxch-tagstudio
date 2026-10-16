@@ -31,6 +31,12 @@ Dazu die Knöpfe **Einrichtungsassistent** und **Erste Schritte** (erneut starte
   `checked`); `help_licenses` liest sie, `helpLicensesHtml` zeigt sie. Workflow „Fremdkomponenten prüfen“
   (`.github/workflows/third-party.yml`, `.github/scripts/third_party_check.py`) vergleicht monatlich mit PyPI/GitHub und
   führt ein Issue mit den Änderungen; nach der Durchsicht `--apply` und committen.
+- **GitHub-Repositories (#206):** Feld `repo` (owner/name) bei allen Komponenten von GitHub; der Workflow holt dazu
+  `repo_info` (Sterne, letzter Push, archiviert, Diskussionen, Organisation) und meldet archivierte, über zwei Jahre
+  stille, umbenannte oder nicht abrufbare Projekte im Issue (JSON-Schlüssel `_repo_info`, mit `--apply` übernehmen).
+  Anzeige: Spalte „GitHub“ mit Link zum Repository und zum Entwickler-Profil, „Danke …“ (vorbereiteter Text, kopieren
+  und als Diskussion bzw. Issue öffnen – TagStudio sendet nichts selbst) und eigene Häkchen „geprüft / gefolgt /
+  bedankt“ (cfg `lic_review`, nur lokal, `help_lic_mark`).
 - **Session:** `session_help.py` (`help_docs` mit `DOCS` = README, `docs/ID3-FELDER.md`, `PLUGINS.md`; `help_licenses`; `help_tags`,
   `start_tag_scan`, `tag_field_filter`).
 - **Oberfläche:** `web/help.js` (`helpTab`, Tabelle, `helpGroups`, `HELP.sort`, `helpMissing`, `HELP_KEYS`).

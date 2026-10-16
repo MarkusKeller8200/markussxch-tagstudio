@@ -42,7 +42,30 @@ class HelpMixin:
         order = list(groups)
         items.sort(key=lambda it: (order.index(it.get("group")) if it.get("group") in order else len(order),
                                    it.get("group") != "app", str(it.get("name")).lower()))
-        return {"groups": groups, "items": items, "found": bool(items)}
+        review = (getattr(self, "cfg", None) or {}).get("lic_review") or {}
+        return {"groups": groups, "items": items, "found": bool(items),
+                "review": review if isinstance(review, dict) else {}}
+
+    REVIEW_KEYS = ("checked", "followed", "thanked")
+
+    def help_lic_mark(self, cid: str, key: str, on: bool) -> dict:
+        """#206: eigene Durchsicht je Komponente merken – geprüft, Entwickler gefolgt, bedankt (nur lokal)."""
+        import core
+        if key not in self.REVIEW_KEYS or not isinstance(cid, str) or not cid:
+            raise ValueError("Unbekannte Markierung.")
+        rv = dict(self.cfg.get("lic_review") or {})
+        cur = {k: v for k, v in (rv.get(cid) or {}).items() if k in self.REVIEW_KEYS and v}
+        if on:
+            cur[key] = __import__("time").strftime("%Y-%m-%d")
+        else:
+            cur.pop(key, None)
+        if cur:
+            rv[cid] = cur
+        else:
+            rv.pop(cid, None)
+        self.cfg["lic_review"] = rv
+        core.save_config({"lic_review": rv})
+        return {"ok": True, "review": rv}
 
     # ------------------------------------------------------------------ Tag-Übersicht
     def _help_roots(self) -> list[dict]:

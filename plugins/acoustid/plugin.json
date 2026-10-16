@@ -53,7 +53,8 @@
           {
             "name": "mbid",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "60fa767a-d85d-4991-82bc-4294e0b11ae7"
           },
           {
             "name": "format",
@@ -67,7 +68,8 @@
         "path": "/submit",
         "label": "Fingerabdruck beitragen",
         "status": "none",
-        "note": "TagStudio lädt nichts hoch"
+        "note": "TagStudio lädt nichts hoch",
+        "params": []
       },
       {
         "id": "submission-status",

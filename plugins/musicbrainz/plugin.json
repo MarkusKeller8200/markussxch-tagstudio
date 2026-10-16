@@ -27,8 +27,9 @@
         "params": [
           {
             "name": "isrc",
-            "default": "CHA012100001",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "GBDUW0000053"
           },
           {
             "name": "inc",
@@ -51,8 +52,9 @@
         "params": [
           {
             "name": "query",
-            "default": "recording:\"Nordlicht\" AND artist:\"Mara Lind\"",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "recording:\"One More Time\" AND artist:\"Daft Punk\""
           },
           {
             "name": "limit",
@@ -75,7 +77,8 @@
           {
             "name": "mbid",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "60fa767a-d85d-4991-82bc-4294e0b11ae7"
           },
           {
             "name": "inc",
@@ -99,7 +102,8 @@
           {
             "name": "mbid",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "44e85a85-77d7-3e2e-8416-65a27d2aef68"
           },
           {
             "name": "inc",
@@ -120,8 +124,9 @@
         "params": [
           {
             "name": "query",
-            "default": "release:\"Nachtfahrt EP\"",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "release:\"Discovery\" AND artist:\"Daft Punk\""
           },
           {
             "name": "fmt",
@@ -139,7 +144,8 @@
           {
             "name": "mbid",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "48117b90-a16e-34ca-a514-19c702df1158"
           },
           {
             "name": "fmt",
@@ -157,7 +163,8 @@
           {
             "name": "mbid",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "056e4f3e-d505-4dad-8ec1-d04f521cbb56"
           },
           {
             "name": "fmt",
@@ -174,8 +181,9 @@
         "params": [
           {
             "name": "query",
-            "default": "artist:\"Mara Lind\"",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "artist:\"Daft Punk\""
           },
           {
             "name": "fmt",
@@ -193,7 +201,8 @@
           {
             "name": "mbid",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "49b58bdb-3d74-40c6-956a-4c4b46115c9c"
           },
           {
             "name": "fmt",
@@ -211,7 +220,8 @@
           {
             "name": "mbid",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "4bb47ffc-9006-32cf-8aa9-e213334550dc"
           },
           {
             "name": "fmt",
@@ -233,7 +243,8 @@
           },
           {
             "name": "release",
-            "default": ""
+            "default": "",
+            "example": "44e85a85-77d7-3e2e-8416-65a27d2aef68"
           },
           {
             "name": "fmt",
@@ -251,7 +262,8 @@
           {
             "name": "discid",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "I5l9cCSFccLKFEKS.7wqSZAorPU-"
           },
           {
             "name": "fmt",
@@ -267,7 +279,13 @@
         "status": "full",
         "use": "Online-Metadaten: Cover",
         "note": "Adresse coverartarchive.org",
-        "test": false
+        "test": false,
+        "params": [
+          {
+            "name": "mbid",
+            "example": "44e85a85-77d7-3e2e-8416-65a27d2aef68"
+          }
+        ]
       },
       {
         "id": "caa-index",
@@ -276,8 +294,20 @@
         "label": "Cover Art Archive: alle Bilder einer Veröffentlichung",
         "status": "none",
         "note": "Adresse coverartarchive.org",
-        "test": false
+        "test": false,
+        "params": [
+          {
+            "name": "mbid",
+            "example": "44e85a85-77d7-3e2e-8416-65a27d2aef68"
+          }
+        ]
       }
-    ]
+    ],
+    "example": {
+      "artist": "Daft Punk",
+      "title": "One More Time",
+      "isrc": "GBDUW0000053",
+      "duration": "5:20"
+    }
   }
 }

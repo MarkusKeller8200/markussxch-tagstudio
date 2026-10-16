@@ -36,13 +36,15 @@
           },
           {
             "name": "artist",
-            "default": "Mara Lind",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "Daft Punk"
           },
           {
             "name": "track",
-            "default": "Nordlicht",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "One More Time"
           },
           {
             "name": "autocorrect",
@@ -70,7 +72,8 @@
           {
             "name": "tag",
             "default": "house",
-            "required": true
+            "required": true,
+            "example": "house"
           },
           {
             "name": "format",
@@ -94,13 +97,15 @@
           },
           {
             "name": "artist",
-            "default": "Mara Lind",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "Daft Punk"
           },
           {
             "name": "track",
-            "default": "Nordlicht",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "One More Time"
           },
           {
             "name": "autocorrect",
@@ -126,12 +131,14 @@
           },
           {
             "name": "track",
-            "default": "Nordlicht",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "One More Time"
           },
           {
             "name": "artist",
-            "default": ""
+            "default": "",
+            "example": "Daft Punk"
           },
           {
             "name": "format",
@@ -154,12 +161,14 @@
           {
             "name": "artist",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "Daft Punk"
           },
           {
             "name": "track",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "One More Time"
           },
           {
             "name": "format",
@@ -181,8 +190,9 @@
           },
           {
             "name": "artist",
-            "default": "Mara Lind",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "Daft Punk"
           },
           {
             "name": "format",
@@ -204,8 +214,9 @@
           },
           {
             "name": "artist",
-            "default": "Mara Lind",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "Daft Punk"
           },
           {
             "name": "format",
@@ -227,8 +238,9 @@
           },
           {
             "name": "artist",
-            "default": "Mara Lind",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "Daft Punk"
           },
           {
             "name": "format",
@@ -251,12 +263,14 @@
           {
             "name": "artist",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "Daft Punk"
           },
           {
             "name": "album",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "Discovery"
           },
           {
             "name": "format",
@@ -279,7 +293,8 @@
           {
             "name": "tag",
             "default": "house",
-            "required": true
+            "required": true,
+            "example": "house"
           },
           {
             "name": "format",
@@ -306,6 +321,10 @@
           }
         ]
       }
-    ]
+    ],
+    "example": {
+      "artist": "Daft Punk",
+      "title": "One More Time"
+    }
   }
 }

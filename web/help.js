@@ -46,18 +46,73 @@ function helpKeysHtml() {
     + HELP_KEYS.map(([t, d, rows]) => `<h3>${esc(t)}</h3>${d ? `<p class="muted sm">${esc(d)}</p>` : ""}<table class="help-t help-keys"><tbody>${rows.map(([k, w]) => `<tr><td>${k.split(" · ").map((x) => x.split(" / ").map((y) => `<kbd>${esc(y)}</kbd>`).join(" / ")).join(" · ")}</td><td>${esc(w)}</td></tr>`).join("")}</tbody></table>`).join("");
 }
 
-/** #176: Lizenzen und Quellen aller fremden Bestandteile, gruppiert */
+/** #176: Lizenzen und Quellen aller fremden Bestandteile, gruppiert; #206: GitHub-Repository, Vertrauenssignale, eigene Durchsicht */
+const LIC_MARKS = [["checked", "geprüft", "Code/Projekt angesehen und als vertrauenswürdig eingestuft"],
+  ["followed", "gefolgt", "Dem Projekt bzw. Entwickler auf GitHub gefolgt (Stern/Folgen)"],
+  ["thanked", "bedankt", "Mitteilung gesendet, dass TagStudio den Code verwendet"]];
+function licAge(d) {
+  if (!d) return "";
+  const days = Math.round((Date.now() - new Date(d + "T00:00:00").getTime()) / 864e5);
+  return days < 0 ? d : days < 60 ? `vor ${days} Tagen` : days < 730 ? `vor ${Math.round(days / 30)} Monaten` : `vor ${Math.round(days / 365)} Jahren`;
+}
+function licStars(n) { return n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(".", ",") + " k" : String(n); }
+function licRepoCell(it, review) {
+  if (!it.repo) return '<span class="muted">–</span>';
+  const [owner] = it.repo.split("/"), ri = it.repo_info || {}, rv = review[it.id] || {};
+  const warn = ri.archived ? '<span class="lic-warn" title="Das Repository ist archiviert und wird nicht mehr gepflegt">archiviert</span>'
+    : ri.pushed && (Date.now() - new Date(ri.pushed).getTime()) > 730 * 864e5 ? '<span class="lic-warn" title="Seit über zwei Jahren keine Änderungen">still</span>' : "";
+  const sig = ri.pushed ? `<div class="muted sm">★ ${licStars(ri.stars || 0)} · zuletzt ${esc(licAge(ri.pushed))}${ri.owner_type === "Organization" ? " · Organisation" : ""} ${warn}</div>`
+    : '<div class="faint sm">Signale nach der nächsten Prüfung</div>';
+  return `<a href="#" data-url="https://github.com/${esc(it.repo)}">${esc(it.repo)} ↗</a>${sig}
+    <div class="lic-acts sm"><a href="#" data-url="https://github.com/${esc(owner)}" title="Profil von ${esc(owner)} – dort „Follow“">Entwickler ↗</a>
+      · <a href="#" data-licthanks="${esc(it.id)}" title="Vorbereitete Mitteilung, dass TagStudio diesen Code verwendet">Danke …</a></div>
+    <div class="lic-marks">${LIC_MARKS.map(([k, l, t]) => `<label title="${esc(t)}${rv[k] ? " – " + esc(rv[k]) : ""}"><input type="checkbox" data-licmark="${esc(it.id)}" data-key="${k}" ${rv[k] ? "checked" : ""}> ${l}</label>`).join("")}</div>`;
+}
 function helpLicensesHtml(d) {
   if (!d.found) return '<div class="tg-empty">Liste der Fremdkomponenten nicht gefunden (docs/third-party.json).</div>';
+  HELP.lic = d;
   const link = (url, txt) => (url && /^https?:/.test(url) ? `<a href="#" data-url="${esc(url)}">${esc(txt)} ↗</a>` : esc(txt));
   const groups = Object.keys(d.groups).filter((g) => d.items.some((it) => it.group === g));
+  const review = d.review || {}, repos = d.items.filter((it) => it.repo && it.group !== "app");
+  const done = (k) => repos.filter((it) => (review[it.id] || {})[k]).length;
   return `<h2>Lizenzen und Quellen</h2>
     <p class="muted">TagStudio ist freie Software unter der GNU General Public License v3 (oder neuer). Hier stehen alle fremden
     Bibliotheken, Werkzeuge, Online-Dienste und Vorlagen mit Lizenz und Quelle. Die Liste wird monatlich automatisch auf neue
-    Versionen und geänderte Lizenzen geprüft; „Geprüft“ zeigt den zuletzt durchgesehenen Stand.</p>`
-    + groups.map((g) => `<h3>${esc(d.groups[g])}</h3><table class="help-t help-lic"><thead><tr><th>Komponente</th><th>Verwendung</th><th>Lizenz</th><th>Geprüft</th></tr></thead><tbody>${
-      d.items.filter((it) => it.group === g).map((it) => `<tr><td>${link(it.url, it.name)}</td><td>${esc(it.use || "")}</td><td>${link(it.license_url, it.license || "–")}</td><td class="muted sm">${
+    Versionen und geänderte Lizenzen geprüft; „Geprüft“ zeigt den zuletzt durchgesehenen Stand.</p>
+    <p class="muted sm">GitHub: ${repos.length} Projekte · von dir geprüft ${done("checked")}, gefolgt ${done("followed")}, bedankt ${done("thanked")}.
+    Sterne und letzte Änderung helfen bei der Einschätzung – archivierte oder lange stille Projekte sind markiert. Deine Häkchen bleiben nur auf diesem Gerät.</p>`
+    + groups.map((g) => `<h3>${esc(d.groups[g])}</h3><table class="help-t help-lic"><thead><tr><th>Komponente</th><th>Verwendung</th><th>Lizenz</th><th>GitHub</th><th>Geprüft</th></tr></thead><tbody>${
+      d.items.filter((it) => it.group === g).map((it) => `<tr><td>${link(it.url, it.name)}</td><td>${esc(it.use || "")}</td><td>${link(it.license_url, it.license || "–")}</td><td class="lic-gh">${it.group === "app" ? (it.repo ? link("https://github.com/" + it.repo, it.repo) : "–") : licRepoCell(it, review)}</td><td class="muted sm">${
         it.checked ? esc(`${it.checked.version || ""}${it.checked.date ? " · " + it.checked.date : ""}`) : it.check ? "ausstehend" : "–"}</td></tr>`).join("")}</tbody></table>`).join("");
+}
+
+function licThanksText(it) {
+  return `Hallo ${it.repo.split("/")[0]},\n\nich möchte mich bedanken: Mein Open-Source-Projekt MarKusSXCH TagStudio (MP3-Tagger und DJ-Werkzeug, GPL-3.0) `
+    + `verwendet ${it.name}${it.use ? ` – ${it.use}` : ""}.\n\nProjekt: https://github.com/MarkusKeller8200/markussxch-tagstudio\n`
+    + `Lizenzangabe und Quelle stehen in der Hilfe unter „Lizenzen“ (docs/third-party.json).\n\nVielen Dank für eure Arbeit!`;
+}
+async function licThanks(id) {
+  const it = (HELP.lic?.items || []).find((x) => x.id === id);
+  if (!it || !it.repo) return;
+  const ri = it.repo_info || {}, base = `https://github.com/${it.repo}`;
+  const title = `Danke – ${it.name} wird in TagStudio verwendet`;
+  const where = ri.discussions ? `${base}/discussions/new?category=show-and-tell&title=${encodeURIComponent(title)}`
+    : `${base}/issues/new?title=${encodeURIComponent(title)}`;
+  const r = await modal({
+    title: `Danke an ${it.repo}`,
+    html: `<p class="muted sm">Text anpassen, kopieren und auf GitHub einfügen. TagStudio sendet nichts selbst.
+      ${ri.discussions ? "Das Projekt hat Diskussionen – dort ist ein Danke am besten aufgehoben (Kategorie „Show and tell“, falls vorhanden)."
+        : "Das Projekt hat keine Diskussionen – du kannst ein Issue eröffnen oder dem Entwickler über sein Profil schreiben (manche nennen dort E-Mail oder Mastodon)."}</p>
+      <textarea id="licThanksTxt" class="inp" rows="9" style="width:100%">${esc(licThanksText(it))}</textarea>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Kopieren", value: "copy" },
+      { label: ri.discussions ? "Kopieren + Diskussion öffnen" : "Kopieren + Issue öffnen", value: "open", primary: true }],
+    collect: async (b, v) => {                       // kopieren noch im Klick (Zwischenablage braucht die Benutzeraktion)
+      const text = $("#licThanksTxt", b).value;
+      try { await navigator.clipboard.writeText(text); toast("Text kopiert."); } catch { toast("Kopieren nicht möglich – Text bitte markieren."); return false; }
+      return v;
+    },
+  });
+  if (r === "open") call("open_url", where);
 }
 
 async function helpTab(tab) {
@@ -289,8 +344,17 @@ function mdToHtml(md) {
     const g = e.target.closest("tr.help-grp");
     if (g && !e.target.closest("a,button:not(.tw)")) { const id = g.dataset.ch; if (HELP.open.has(id)) HELP.open.delete(id); else HELP.open.add(id); helpRender(); }
   });
+  $("#helpDoc").addEventListener("change", async (e) => {
+    const c = e.target.closest("[data-licmark]"); if (!c) return;
+    try {
+      const r = await call("help_lic_mark", c.dataset.licmark, c.dataset.key, c.checked);
+      HELP.lic.review = r.review; const top = $("#helpDoc").scrollTop;
+      $("#helpDoc").innerHTML = helpLicensesHtml(HELP.lic); $("#helpDoc").scrollTop = top;
+    } catch (ex) { c.checked = !c.checked; toast(String(ex.message || ex)); }
+  });
   $("#helpDoc").addEventListener("click", (e) => {
     const a = e.target.closest("a[data-url]"); if (a) { e.preventDefault(); call("open_url", a.dataset.url); return; }
+    const th = e.target.closest("a[data-licthanks]"); if (th) { e.preventDefault(); licThanks(th.dataset.licthanks); return; }
     const t = e.target.closest("a[data-htab-link]"); if (t) { e.preventDefault(); helpTab(t.dataset.htabLink); }
   });
 })();

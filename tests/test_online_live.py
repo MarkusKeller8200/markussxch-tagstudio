@@ -77,5 +77,51 @@ class TestLive(unittest.TestCase):
         self.assertTrue(c.get("genre"))
 
 
+# #205: Beispielwerte im Integrationsfenster müssen beim echten Dienst ein Resultat liefern
+NOAUTH = {"musicbrainz": None, "deezer": None, "itunes": None, "lyrics": None,
+          "discogs": {"release", "master", "master-versions", "artist", "artist-releases", "label", "label-releases"}}
+
+
+@unittest.skipUnless(LIVE, "nur mit ONLINE_TESTS=1 (Netz nötig)")
+class TestExamples(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import plugins
+        cls.m = plugins.Manager({})
+
+    def test_endpoint_examples(self):
+        bad = []
+        for pid, only in NOAUTH.items():
+            svc = self.m.get(pid).service
+            for ep in svc["endpoints"]:
+                if not ep["test"] or (only is not None and ep["id"] not in only):
+                    continue
+                params = {p["name"]: p["example"] or p["default"] for p in ep["params"]}
+                if any(p["required"] and not params[p["name"]] for p in ep["params"]):
+                    bad.append(f"{pid}/{ep['id']}: kein Beispiel für Pflichtfeld")
+                    continue
+                try:
+                    r = self.m.api_call(pid, ep["id"], params)
+                except Exception as ex:  # noqa: BLE001
+                    bad.append(f"{pid}/{ep['id']}: {ex}")
+                    continue
+                body = r.get("body") or ""
+                empty = body.strip() in ("", "[]", "{}") or '"error"' in body[:200] or '"count": 0' in body[:200] \
+                    or '"resultCount": 0' in body[:200] or '"data": []' in body[:200]
+                if r["status"] != 200 or empty:
+                    bad.append(f"{pid}/{ep['id']}: HTTP {r['status']} {body[:160]!r}")
+        for b in bad:
+            print(f"\n::warning title=Beispiel ohne Resultat::{b}", flush=True)
+        self.assertEqual(bad, [])
+
+    def test_query_examples(self):
+        for pid in ("musicbrainz", "deezer", "itunes", "lyrics"):
+            ex = self.m.get(pid).service["example"]
+            self.assertTrue(ex.get("artist") and ex.get("title"), pid)
+            r = self.m.test_query(pid, ex)
+            self.assertTrue(r["rows"], f"{pid}: keine Kandidaten für {ex}")
+            self.assertTrue(r["rows"][0]["sure"], f"{pid}: bester Treffer nicht sicher: {r['rows'][0]}")
+
+
 if __name__ == "__main__":
     unittest.main()

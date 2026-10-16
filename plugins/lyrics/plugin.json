@@ -29,24 +29,28 @@
         "params": [
           {
             "name": "artist_name",
-            "default": "Mara Lind",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "Daft Punk"
           },
           {
             "name": "track_name",
-            "default": "Nordlicht",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "One More Time"
           },
           {
             "name": "album_name",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "Discovery"
           },
           {
             "name": "duration",
             "default": "",
             "required": true,
-            "label": "duration (Sekunden)"
+            "label": "duration (Sekunden)",
+            "example": "320"
           }
         ]
       },
@@ -65,11 +69,13 @@
           },
           {
             "name": "track_name",
-            "default": "Nordlicht"
+            "default": "",
+            "example": "One More Time"
           },
           {
             "name": "artist_name",
-            "default": "Mara Lind"
+            "default": "",
+            "example": "Daft Punk"
           },
           {
             "name": "album_name",
@@ -84,7 +90,13 @@
         "label": "Liedtext über die LRCLIB-ID",
         "status": "none",
         "use": "",
-        "note": "ID wird als TXXX:LRCLIB_ID gespeichert, aber noch nicht wieder abgefragt"
+        "note": "ID wird als TXXX:LRCLIB_ID gespeichert, aber noch nicht wieder abgefragt",
+        "params": [
+          {
+            "name": "id",
+            "example": "36988937"
+          }
+        ]
       },
       {
         "id": "get-cached",
@@ -95,19 +107,23 @@
         "params": [
           {
             "name": "artist_name",
-            "default": ""
+            "default": "",
+            "example": "Daft Punk"
           },
           {
             "name": "track_name",
-            "default": ""
+            "default": "",
+            "example": "One More Time"
           },
           {
             "name": "album_name",
-            "default": ""
+            "default": "",
+            "example": "Discovery"
           },
           {
             "name": "duration",
-            "default": ""
+            "default": "",
+            "example": "320"
           }
         ]
       },
@@ -117,7 +133,8 @@
         "path": "/request-challenge",
         "label": "Herausforderung für das Veröffentlichen holen",
         "status": "none",
-        "note": "nur zum Beitragen eigener Liedtexte"
+        "note": "nur zum Beitragen eigener Liedtexte",
+        "params": []
       },
       {
         "id": "publish",
@@ -125,8 +142,14 @@
         "path": "/publish",
         "label": "Liedtext veröffentlichen",
         "status": "none",
-        "note": "TagStudio lädt nichts hoch"
+        "note": "TagStudio lädt nichts hoch",
+        "params": []
       }
-    ]
+    ],
+    "example": {
+      "artist": "Daft Punk",
+      "title": "One More Time",
+      "duration": "5:20"
+    }
   }
 }

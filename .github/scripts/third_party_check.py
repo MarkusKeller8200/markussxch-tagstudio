@@ -7,7 +7,8 @@
 Für jeden Eintrag mit „check“ in docs/third-party.json wird der aktuelle Stand geholt:
 - pypi:   neueste Version und Lizenzangabe (PyPI-JSON-API)
 - github: neueste Release-Version (sonst letzter Push) und erkannte Lizenz (GitHub-API)
-und mit „checked“ verglichen. Abweichungen (neue Version, Lizenzwechsel, noch nie geprüft) kommen als ein Issue
+und mit „checked“ verglichen. Für Einträge mit „repo“ (GitHub) kommen zusätzlich Vertrauenssignale dazu (#206): Sterne,
+letzter Push, archiviert, Diskussionen – gespeichert als „repo_info“, angezeigt in Hilfe › Lizenzen. Abweichungen (neue Version, Lizenzwechsel, noch nie geprüft) kommen als ein Issue
 „Fremdkomponenten: Änderungen prüfen“ (Marker im Text, wird aktualisiert statt doppelt angelegt). Im Issue steht ein
 JSON-Block mit den neuen Ständen; nach der Durchsicht mit --apply übernehmen und committen.
 Nur Standardbibliothek.
@@ -72,6 +73,52 @@ def current(check) -> dict:
     return {"error": f"unbekannte Prüfart {check.get('type')}"}
 
 
+def repo_info(repo, today="") -> dict:
+    """#206: Vertrauenssignale eines GitHub-Repositorys."""
+    j = _get(f"{API}/repos/{repo}", gh=True)
+    return {"stars": j.get("stargazers_count") or 0, "archived": bool(j.get("archived")),
+            "pushed": (j.get("pushed_at") or "")[:10], "discussions": bool(j.get("has_discussions")),
+            "owner_type": (j.get("owner") or {}).get("type") or "", "full_name": j.get("full_name") or repo,
+            "license": ((j.get("license") or {}).get("spdx_id") or "").replace("NOASSERTION", "eigene"),
+            "date": today or datetime.date.today().isoformat()}
+
+
+def collect_repo_info(items, fetch=repo_info, today="") -> dict:
+    """{id: repo_info} für alle Einträge mit „repo“; Fehler → {"error"}."""
+    out = {}
+    for it in items:
+        if it.get("repo"):
+            try:
+                out[it["id"]] = fetch(it["repo"], today)
+            except Exception as ex:  # noqa: BLE001
+                out[it["id"]] = {"error": f"{type(ex).__name__}: {ex}"}
+    return out
+
+
+def repo_warnings(items, infos, today) -> list:
+    """Hinweise zur Vertrauenswürdigkeit: archiviert, seit über 2 Jahren still, umbenannt, nicht erreichbar."""
+    out = []
+    t = datetime.date.fromisoformat(today)
+    for it in items:
+        inf = infos.get(it["id"])
+        if not inf:
+            continue
+        if inf.get("error"):
+            out.append((it, "Repository nicht abrufbar: " + inf["error"]))
+            continue
+        if inf.get("archived"):
+            out.append((it, "archiviert (wird nicht mehr gepflegt)"))
+        if inf.get("pushed"):
+            try:
+                if (t - datetime.date.fromisoformat(inf["pushed"])).days > 730:
+                    out.append((it, f"seit {inf['pushed']} keine Änderungen"))
+            except ValueError:
+                pass
+        if inf.get("full_name") and inf["full_name"].lower() != it["repo"].lower():
+            out.append((it, f"umbenannt/verschoben nach {inf['full_name']}"))
+    return out
+
+
 def compare(items, fetch=current) -> list:
     """→ [{"id", "name", "old", "new", "what"}] für alle Einträge mit Änderungen oder Fehlern."""
     out = []
@@ -98,10 +145,17 @@ def compare(items, fetch=current) -> list:
     return out
 
 
-def report(changes, today) -> str:
+def report(changes, today, infos=None, warnings=()) -> str:
     lines = [MARK, f"Monatliche Prüfung der Fremdkomponenten vom {today} (Liste: `docs/third-party.json`, Anzeige: Hilfe › Lizenzen).", ""]
+    if warnings:
+        lines += ["**Repositories – bitte ansehen (#206):**", ""] + \
+                 [f"- [{it['name']}](https://github.com/{it['repo']}): {w}" for it, w in warnings] + [""]
+    good = {k: v for k, v in (infos or {}).items() if not v.get("error")}
     if not changes:
         lines.append("Keine Änderungen.")
+        if good:
+            lines += ["", "<details><summary>Vertrauenssignale der Repositories (JSON, mit --apply übernehmen)</summary>", "",
+                      "```json", json.dumps({"_repo_info": good}, ensure_ascii=False, indent=1), "```", "</details>"]
         return "\n".join(lines)
     lines += ["Bitte prüfen: Passt die Lizenz weiterhin (auch für die Weitergabe im Installer)? Gibt es "
               "sicherheitsrelevante Änderungen? Muss die Anzeige in der Hilfe angepasst werden?", "",
@@ -110,6 +164,8 @@ def report(changes, today) -> str:
         lines.append(f"| [{c['name']}]({c['url']}) | {'; '.join(c['what'])} | {c['license']} |")
     upd = {c["id"]: {"version": c["new"].get("version", ""), "license": c["new"].get("license", ""), "date": today}
            for c in changes if not c["new"].get("error")}
+    if good:
+        upd["_repo_info"] = good
     lines += ["", "- [ ] Änderungen geprüft, Lizenzangaben in `docs/third-party.json` bei Bedarf angepasst",
               "- [ ] Neue Stände übernommen: JSON unten speichern und "
               "`python .github/scripts/third_party_check.py --apply datei.json` ausführen, committen", "",
@@ -125,9 +181,13 @@ def apply(path_new, data_path=DATA) -> int:
         text = fh.read()
     data = json.loads(text)
     n = 0
+    infos = upd.pop("_repo_info", {}) or {}
     for it in data["items"]:
         if it["id"] in upd:
             it["checked"] = upd[it["id"]]
+            n += 1
+        if it["id"] in infos and not infos[it["id"]].get("error"):
+            it["repo_info"] = infos[it["id"]]
             n += 1
     with open(data_path, "w", encoding="utf-8") as fh:
         fh.write(dump(data))
@@ -176,14 +236,16 @@ def main(argv):
         data = json.load(fh)
     today = datetime.date.today().isoformat()
     changes = compare(data["items"])
-    text = report(changes, today)
+    infos = collect_repo_info(data["items"], today=today) if TOKEN else {}
+    warns = repo_warnings(data["items"], infos, today)
+    text = report(changes, today, infos, warns)
     print(text)
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with open(summary, "a", encoding="utf-8") as fh:
             fh.write(re.sub(re.escape(MARK), "", text) + "\n")
     if "--dry-run" not in argv and REPO and TOKEN:
-        publish(text, bool(changes))
+        publish(text, bool(changes or warns or infos))
     return 0
 
 

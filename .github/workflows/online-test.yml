@@ -27,7 +27,7 @@ jobs:
           PYTHONIOENCODING: utf-8
         run: |
           set -o pipefail
-          python -m unittest tests.test_online_live tests.test_service_probe -v 2>&1 | tee test-output.txt
+          python -m unittest tests.test_online_live -v 2>&1 | tee test-output.txt
       - name: Fehlgeschlagene Tests als Anmerkung
         if: failure()
         run: python .github/scripts/test_annotations.py test-output.txt

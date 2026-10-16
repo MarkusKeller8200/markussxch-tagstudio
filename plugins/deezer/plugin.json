@@ -29,8 +29,9 @@
         "params": [
           {
             "name": "isrc",
-            "default": "CHA012100002",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "GBDUW0000053"
           }
         ]
       },
@@ -45,8 +46,9 @@
         "params": [
           {
             "name": "q",
-            "default": "track:\"Kaltes Glas\" artist:\"Mara Lind\"",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "track:\"One More Time\" artist:\"Daft Punk\""
           },
           {
             "name": "limit",
@@ -65,8 +67,9 @@
         "params": [
           {
             "name": "q",
-            "default": "Mara Lind Kaltes Glas",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "Daft Punk One More Time"
           },
           {
             "name": "limit",
@@ -84,8 +87,9 @@
         "params": [
           {
             "name": "q",
-            "default": "Mara Lind",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "Daft Punk"
           },
           {
             "name": "limit",
@@ -102,8 +106,9 @@
         "params": [
           {
             "name": "q",
-            "default": "Nachtfahrt",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "Daft Punk Discovery"
           }
         ]
       },
@@ -113,7 +118,13 @@
         "path": "/track/{id}",
         "label": "Ein Titel",
         "status": "full",
-        "use": "Online-Metadaten: Details (BPM, Spur, Datum)"
+        "use": "Online-Metadaten: Details (BPM, Spur, Datum)",
+        "params": [
+          {
+            "name": "id",
+            "example": "3135553"
+          }
+        ]
       },
       {
         "id": "album",
@@ -122,21 +133,39 @@
         "label": "Ein Album",
         "status": "partial",
         "use": "Details: Label, Genre, Datum; Entdecken: Titel eines Albums",
-        "note": "genutzt: label, genres, release_date, tracks"
+        "note": "genutzt: label, genres, release_date, tracks",
+        "params": [
+          {
+            "name": "id",
+            "example": "302127"
+          }
+        ]
       },
       {
         "id": "album-upc",
         "method": "GET",
         "path": "/album/upc:{upc}",
         "label": "Album über UPC/EAN",
-        "status": "none"
+        "status": "none",
+        "params": [
+          {
+            "name": "upc",
+            "example": "724384960650"
+          }
+        ]
       },
       {
         "id": "artist",
         "method": "GET",
         "path": "/artist/{id}",
         "label": "Ein Künstler",
-        "status": "none"
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "27"
+          }
+        ]
       },
       {
         "id": "artist-albums",
@@ -149,7 +178,8 @@
           {
             "name": "id",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "27"
           },
           {
             "name": "limit",
@@ -168,7 +198,8 @@
           {
             "name": "id",
             "default": "",
-            "required": true
+            "required": true,
+            "example": "27"
           },
           {
             "name": "limit",
@@ -181,36 +212,57 @@
         "method": "GET",
         "path": "/artist/{id}/top",
         "label": "Beliebteste Titel eines Künstlers",
-        "status": "none"
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "27"
+          }
+        ]
       },
       {
         "id": "chart",
         "method": "GET",
         "path": "/chart",
         "label": "Charts",
-        "status": "none"
+        "status": "none",
+        "params": []
       },
       {
         "id": "genre",
         "method": "GET",
         "path": "/genre",
         "label": "Genres",
-        "status": "none"
+        "status": "none",
+        "params": []
       },
       {
         "id": "editorial",
         "method": "GET",
         "path": "/editorial",
         "label": "Redaktionelle Auswahl",
-        "status": "none"
+        "status": "none",
+        "params": []
       },
       {
         "id": "playlist",
         "method": "GET",
         "path": "/playlist/{id}",
         "label": "Eine Playlist",
-        "status": "none"
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "6399367984"
+          }
+        ]
       }
-    ]
+    ],
+    "example": {
+      "artist": "Daft Punk",
+      "title": "One More Time",
+      "isrc": "GBDUW0000053",
+      "duration": "5:20"
+    }
   }
 }

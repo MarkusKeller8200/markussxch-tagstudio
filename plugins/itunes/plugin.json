@@ -30,8 +30,9 @@
         "params": [
           {
             "name": "term",
-            "default": "Mara Lind Kaltes Glas",
-            "required": true
+            "default": "",
+            "required": true,
+            "example": "Daft Punk One More Time"
           },
           {
             "name": "media",
@@ -61,7 +62,8 @@
         "params": [
           {
             "name": "id",
-            "default": ""
+            "default": "",
+            "example": "697195462"
           },
           {
             "name": "isrc",
@@ -77,6 +79,11 @@
           }
         ]
       }
-    ]
+    ],
+    "example": {
+      "artist": "Daft Punk",
+      "title": "One More Time",
+      "duration": "5:20"
+    }
   }
 }

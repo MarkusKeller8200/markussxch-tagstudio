@@ -35,11 +35,13 @@
           },
           {
             "name": "track",
-            "default": "Nordlicht"
+            "default": "",
+            "example": "One More Time"
           },
           {
             "name": "artist",
-            "default": "Mara Lind"
+            "default": "",
+            "example": "Daft Punk"
           },
           {
             "name": "q",
@@ -57,49 +59,91 @@
         "path": "/releases/{id}",
         "label": "Eine Veröffentlichung",
         "status": "full",
-        "use": "Details: Label, Katalognummer, Stil, Datum, Trackliste, Cover"
+        "use": "Details: Label, Katalognummer, Stil, Datum, Trackliste, Cover",
+        "params": [
+          {
+            "name": "id",
+            "example": "2879"
+          }
+        ]
       },
       {
         "id": "master",
         "method": "GET",
         "path": "/masters/{id}",
         "label": "Master-Veröffentlichung",
-        "status": "none"
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "26647"
+          }
+        ]
       },
       {
         "id": "master-versions",
         "method": "GET",
         "path": "/masters/{id}/versions",
         "label": "Alle Fassungen eines Masters",
-        "status": "none"
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "26647"
+          }
+        ]
       },
       {
         "id": "artist",
         "method": "GET",
         "path": "/artists/{id}",
         "label": "Künstler",
-        "status": "none"
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "1289"
+          }
+        ]
       },
       {
         "id": "artist-releases",
         "method": "GET",
         "path": "/artists/{id}/releases",
         "label": "Veröffentlichungen eines Künstlers",
-        "status": "none"
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "1289"
+          }
+        ]
       },
       {
         "id": "label",
         "method": "GET",
         "path": "/labels/{id}",
         "label": "Label",
-        "status": "none"
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "750"
+          }
+        ]
       },
       {
         "id": "label-releases",
         "method": "GET",
         "path": "/labels/{id}/releases",
         "label": "Veröffentlichungen eines Labels",
-        "status": "none"
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "750"
+          }
+        ]
       },
       {
         "id": "identity",
@@ -107,29 +151,45 @@
         "path": "/oauth/identity",
         "label": "Eigene Identität (Token prüfen)",
         "status": "full",
-        "use": "Verbindung testen"
+        "use": "Verbindung testen",
+        "params": []
       },
       {
         "id": "collection",
         "method": "GET",
         "path": "/users/{username}/collection/folders/0/releases",
         "label": "Eigene Sammlung",
-        "status": "none"
+        "status": "none",
+        "params": [],
+        "note": "username: dein Discogs-Name – steht in der Antwort von „identity“."
       },
       {
         "id": "wantlist",
         "method": "GET",
         "path": "/users/{username}/wants",
         "label": "Eigene Wunschliste",
-        "status": "none"
+        "status": "none",
+        "params": [],
+        "note": "username: dein Discogs-Name – steht in der Antwort von „identity“."
       },
       {
         "id": "marketplace",
         "method": "GET",
         "path": "/marketplace/stats/{release_id}",
         "label": "Marktplatz-Statistik",
-        "status": "none"
+        "status": "none",
+        "params": [
+          {
+            "name": "release_id",
+            "example": "2879"
+          }
+        ]
       }
-    ]
+    ],
+    "example": {
+      "artist": "Daft Punk",
+      "title": "One More Time",
+      "album": "Discovery"
+    }
   }
 }

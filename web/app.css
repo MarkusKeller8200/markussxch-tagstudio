@@ -1419,3 +1419,9 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .fold-row{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:8px}
 .fold-row span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .svc-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+/* #206: Lizenzen – GitHub-Spalte */
+.help-lic .lic-gh{min-width:220px}
+.lic-acts{margin-top:2px}
+.lic-marks{display:flex;gap:10px;flex-wrap:wrap;margin-top:3px;font-size:12px;color:var(--dim)}
+.lic-marks label{display:inline-flex;gap:3px;align-items:center;cursor:pointer}
+.lic-warn{color:var(--warn);font-weight:600;margin-left:4px}

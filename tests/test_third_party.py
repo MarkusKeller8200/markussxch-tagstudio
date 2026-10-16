@@ -79,6 +79,43 @@ class TestThirdParty(unittest.TestCase):
             with open(data_p, encoding="utf-8") as fh:
                 self.assertEqual(json.load(fh)["items"][1]["checked"]["version"], "2.1")
 
+    def test_repo_info_report_apply(self):
+        """#206: GitHub-Repositories mit Vertrauenssignalen."""
+        m = checker()
+        for it in self.data["items"]:
+            if it.get("repo"):
+                self.assertRegex(it["repo"], r"^[\w.-]+/[\w.-]+$", it["id"])
+        gh = {it["id"] for it in self.data["items"] if "github.com/" in it["url"]}
+        self.assertEqual({i for i in gh if not any(x["id"] == i and x.get("repo") for x in self.data["items"])}, set(),
+                         "GitHub-Komponenten ohne „repo“")
+        items = [{"id": "a", "name": "A", "repo": "o/a"}, {"id": "b", "name": "B", "repo": "o/b"},
+                 {"id": "c", "name": "C", "repo": "o/c"}, {"id": "d", "name": "D"}]
+        info = {"o/a": {"stars": 5, "archived": False, "pushed": "2026-10-01", "full_name": "o/a"},
+                "o/b": {"stars": 1, "archived": True, "pushed": "2020-01-01", "full_name": "o/b"}}
+
+        def fetch(repo, today):
+            if repo not in info:
+                raise OSError("404")
+            return info[repo]
+        infos = m.collect_repo_info(items, fetch, "2026-11-01")
+        self.assertEqual(sorted(infos), ["a", "b", "c"])
+        w = m.repo_warnings(items, infos, "2026-11-01")
+        self.assertEqual([(it["id"], x.split(" ")[0]) for it, x in w], [("b", "archiviert"), ("b", "seit"), ("c", "Repository")])
+        text = m.report([], "2026-11-01", infos, w)
+        self.assertIn("Keine Änderungen", text)
+        self.assertIn("archiviert", text)
+        upd = json.loads(text.split("```json")[1].split("```")[0])
+        self.assertEqual(sorted(upd["_repo_info"]), ["a", "b"])
+        with tempfile.TemporaryDirectory() as d:
+            data_p, new_p = os.path.join(d, "tp.json"), os.path.join(d, "neu.json")
+            with open(data_p, "w", encoding="utf-8") as fh:
+                fh.write(m.dump({"format": 1, "groups": {}, "items": items}))
+            with open(new_p, "w", encoding="utf-8") as fh:
+                json.dump(upd, fh)
+            self.assertEqual(m.apply(new_p, data_p), 2)
+            with open(data_p, encoding="utf-8") as fh:
+                self.assertEqual(json.load(fh)["items"][0]["repo_info"]["stars"], 5)
+
     def test_help_licenses(self):
         from session_help import HelpMixin
         d = HelpMixin().help_licenses()                  # liest nur die mitgelieferte Liste, keine Einstellungen

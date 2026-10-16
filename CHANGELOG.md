@@ -21,6 +21,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   einmalig und verschlüsselt übernommen. Eine gemeinsame Drosselung je Dienst gilt für alle Plugins.
   „Entdecken“ fragt Deezer jetzt ebenfalls über das Plugin Deezer ab (Beatport schon bisher über sein Plugin); ist
   ein Plugin ausgeschaltet, wird die Quelle mit Hinweis im Protokoll übersprungen.
+- **Integrationsfenster mit Beispielen, die ein Resultat liefern (#205):** Testabfrage und API-Tester sind je Dienst mit
+  echten Werten vorbelegt (z. B. Daft Punk – One More Time mit passenden IDs); neu „Felder löschen“ und „Beispiel
+  einsetzen“. Der wöchentliche Online-Test prüft, dass die Beispiele weiterhin Treffer bringen.
+- **Lizenzen mit GitHub-Repositories (#206):** Hilfe › Lizenzen zeigt bei allen Komponenten von GitHub einen Link zum
+  Repository und zum Entwickler, dazu Sterne und letzte Änderung (archivierte oder lange stille Projekte markiert).
+  Eigene Häkchen „geprüft / gefolgt / bedankt“ und ein vorbereiteter Danke-Text („Danke …“) zum Kopieren. Neu in der
+  Liste: python-build-standalone und die einzelnen GitHub Actions.
 - **Filter je Spalte im Tagger (#202):** Filterzeile unter den Spaltenköpfen – je Spalte ein Suchfeld (mehrere Wörter,
   Reihenfolge egal), Zahlenspalten auch mit `>120`, `<=5` oder `120-128`; wirkt zusammen mit dem Suchfeld oben.
   **Esc** leert ein Feld, **×** alle, Knopf „Filter“ blendet die Zeile aus.

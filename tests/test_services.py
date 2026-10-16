@@ -63,6 +63,27 @@ class TestClean(unittest.TestCase):
         loc = services.clean({"name": "L", "kind": "local", "base": "http://localhost:1/v1", "docs": "http://localhost:1/docs"})
         self.assertEqual((loc["base"], loc["auth"]), ("http://localhost:1/v1", "local"))
 
+    def test_examples(self):
+        """#205: Beispielwerte – Testabfrage und Endpunkt-Parameter, keine erfundenen Namen mehr."""
+        svc = services.clean({"name": "X", "example": {"artist": "A", "title": "T", "evil": "x", "isrc": ["no"]},
+                              "endpoints": [{"id": "a", "path": "/t/{id}", "params": [{"name": "id", "example": 42},
+                                                                                     {"name": "fmt", "default": "json"}]}]})
+        self.assertEqual(svc["example"], {"artist": "A", "title": "T"})
+        self.assertEqual([(p["name"], p["example"], p["default"]) for p in svc["endpoints"][0]["params"]],
+                         [("id", "42", ""), ("fmt", "", "json")])
+        import plugins
+        m = plugins.Manager({})
+        for pid in ("musicbrainz", "deezer", "itunes", "discogs", "lastfm", "lyrics", "beatport"):
+            sv = m.get(pid).service
+            self.assertTrue(sv["example"].get("artist"), pid)
+            blob = json.dumps(sv)
+            self.assertNotIn("Mara Lind", blob, pid)
+            for ep in sv["endpoints"]:                 # jedes Pflichtfeld im Tester hat ein Beispiel
+                if ep["test"] and pid != "beatport" and not (pid == "discogs" and ep["id"] in ("collection", "wantlist")):
+                    for p in ep["params"]:
+                        if p["required"]:
+                            self.assertTrue(p["example"] or p["default"], f"{pid}/{ep['id']}/{p['name']}")
+
     def test_redact_and_format(self):
         r = services.format_response(200, {"Content-Type": "application/json", "Set-Cookie": "x"},
                                      b'{"token":"S3CR3TVALUE","n":1}', "https://h/x?api_key=S3CR3TVALUE", 12.4,
