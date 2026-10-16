@@ -220,6 +220,15 @@ class TestPrepare(Base):
         self.assertEqual(c["state"], "warn")
         self.assertEqual([v["key"] for v in c["viol"]], ["TPE1"])
 
+    def test_own_timestamps_never_violate(self):
+        """#184/#185: Ändert sich nur TagStudios Zeitstempel (z. B. zwei Schritte in verschiedenen Sekunden), ist das kein
+        Verstoss gegen die Schutzregel – auch wenn das Feld vorher schon da war."""
+        import tsmeta
+        w = {"protect": {"variant": "A", "fields": [], "free": []}}
+        before = {tsmeta.EDITED: "2026-10-16T01:00:00+02:00", tsmeta.ADDED: "2026-01-01T00:00:00+01:00", "TPE1": "A"}
+        after = {tsmeta.EDITED: "2026-10-16T01:00:01+02:00", tsmeta.ADDED: "2026-01-02T00:00:00+01:00", "TPE1": "B"}
+        self.assertEqual([v["key"] for v in prepare.violations(w, {}, before, after)], ["TPE1"])
+
     def test_pick_proposals(self):
         props = [{"old": "", "checked": False, "kind": "text"}, {"old": "x", "checked": True, "kind": "text"},
                  {"old": "", "checked": True, "kind": "text", "same": True}, {"old": "", "kind": "cover", "data": None, "checked": True}]

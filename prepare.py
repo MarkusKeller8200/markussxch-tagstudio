@@ -251,6 +251,8 @@ def violations(w: dict, step: dict, before: dict, after: dict) -> list[dict]:
         new = after.get(k)
         if new == old:
             continue
+        if k in tsmeta.KEYS:                 # #184/#185: TagStudios eigene Zeitstempel sind nie ein Verstoss
+            continue
         if p["variant"] == "B" and not _match(k, p["fields"]):
             continue
         if p["variant"] == "C" and _match(k, p["free"]):
