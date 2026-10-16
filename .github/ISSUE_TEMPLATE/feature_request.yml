@@ -1,8 +1,13 @@
 name: Funktion vorschlagen
 description: Idee für eine neue Funktion oder eine Verbesserung.
 title: "Idee: "
-labels: ["enhancement"]
+labels: ["enhancement", "triage"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        **Ablauf:** Neue Meldungen erhalten das Label `triage` und werden vom Projektverantwortlichen geprüft. Erst seine
+        ausdrückliche Freigabe (`_1 bereit`) macht daraus einen Entwicklungsauftrag.
   - type: markdown
     attributes:
       value: Bitte vorher in den Issues und Milestones schauen, ob die Idee schon geplant ist.

@@ -46,6 +46,29 @@ class HelpMixin:
         return {"groups": groups, "items": items, "found": bool(items),
                 "review": review if isinstance(review, dict) else {}}
 
+    # ------------------------------------------------------------------ #187 Fehler melden / Funktion vorschlagen
+    def feedback_info(self, window: bool = False) -> dict:
+        """Version, Betriebssystem, Variante für das Formular; Bereiche je Art."""
+        import sys
+        import feedback
+        from version import VERSION
+        return {"env": feedback.env_info(VERSION, bool(getattr(sys, "frozen", False)), bool(window)),
+                "areas": feedback.AREAS, "fields": feedback.FIELDS, "required": feedback.REQUIRED,
+                "mine": feedback.MINE}
+
+    def feedback_search(self, query: str) -> dict:
+        """Ähnliche vorhandene Issues (öffentliche Suche, nur lesend)."""
+        import feedback
+        try:
+            return {"ok": True, "items": feedback.search(query)}
+        except RuntimeError as ex:
+            return {"ok": False, "items": [], "error": str(ex)}
+
+    def feedback_prepare(self, kind: str, fields: dict) -> dict:
+        """Vorschau (geschwärzt) und Adresse des vorausgefüllten GitHub-Formulars – gesendet wird erst im Browser."""
+        import feedback
+        return feedback.prepare(kind, fields)
+
     REVIEW_KEYS = ("checked", "followed", "thanked")
 
     def help_lic_mark(self, cid: str, key: str, on: bool) -> dict:

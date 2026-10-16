@@ -141,6 +141,17 @@ async function helpTab(tab) {
   if (tab === "tags") return helpLoadTags();
   if (tab === "keys") { $("#helpDoc").innerHTML = helpKeysHtml(); $("#helpDoc").scrollTop = 0; return; }
   $("#helpDoc").classList.toggle("wide", tab === "licenses");          // #206: Tabelle nutzt die ganze Breite
+  if (tab === "report") {                                            // #187
+    $("#helpDoc").innerHTML = `<h2>Fehler melden oder Funktion vorschlagen</h2>
+      <p class="muted">Meldungen landen als Issue im öffentlichen GitHub-Projekt. TagStudio füllt das Formular vor (Version, System,
+      Bereich), sucht nach ähnlichen Meldungen und schwärzt private Angaben; abgeschickt wird im Browser mit deinem GitHub-Konto.
+      TagStudio speichert keine Zugangsdaten.</p>
+      <p class="muted">Jede neue Meldung bekommt das Label <code>triage</code> und wird vom Projektverantwortlichen geprüft. Erst seine
+      ausdrückliche Freigabe macht daraus einen Entwicklungsauftrag – eine Meldung allein ist keine Zusage.</p>
+      <div class="svc-btns"><button class="primary" data-fbopen="bug">Fehler melden …</button><button class="ghost" data-fbopen="feature">Funktion vorschlagen …</button>
+      <a href="#" data-url="https://github.com/MarkusKeller8200/markussxch-tagstudio/issues">Alle Meldungen ansehen ↗</a></div>`;
+    $("#helpDoc").scrollTop = 0; return;
+  }
   if (tab === "licenses") { $("#helpDoc").innerHTML = helpLicensesHtml(await call("help_licenses")); $("#helpDoc").scrollTop = 0; return; }
   if (!HELP.docs) HELP.docs = await call("help_docs");
   const d = HELP.docs[tab];
@@ -373,6 +384,7 @@ function mdToHtml(md) {
   });
   $("#helpDoc").addEventListener("click", (e) => {
     const a = e.target.closest("a[data-url]"); if (a) { e.preventDefault(); call("open_url", a.dataset.url); return; }
+    const fo = e.target.closest("[data-fbopen]"); if (fo) { fbOpen(fo.dataset.fbopen); return; }
     const th = e.target.closest("a[data-licthanks]"); if (th) { e.preventDefault(); licThanks(th.dataset.licthanks); return; }
     const t = e.target.closest("a[data-htab-link]"); if (t) { e.preventDefault(); helpTab(t.dataset.htabLink); }
   });

@@ -590,6 +590,7 @@ function tgColFilterInit() {
   box.addEventListener("click", (e) => {
     if (e.target.closest("#tgColFilterClear")) { TG.colQ = {}; renderTgHead(); tgApplyOrder(); }
   });
+  $("#tgReport").addEventListener("click", () => fbOpen("bug", "Tagger"));        // #187
   $("#tgColFilterBtn").addEventListener("click", () => {
     if (tgColFilterActive() && LAYOUT.tg_colfilter !== false) { TG.colQ = {}; tgApplyOrder(); }   // ausblenden = leeren
     LAYOUT.tg_colfilter = !(LAYOUT.tg_colfilter !== false); saveUi("tg_colfilter"); renderTgHead();

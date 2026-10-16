@@ -33,6 +33,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   bei „ausgelastet“ (HTTP 429/503) automatisch; die Antwort zeigt die Zahl der Wiederholungen.
 - **IDs aus der Antwort übernehmen (#213):** IDs in der Antwort des API-Testers sind anklickbar; TagStudio schlägt die
   passenden Endpunkte vor (z. B. Beatport: Suche → Titel/Release/Künstler/Label) und füllt das ID-Feld.
+- **Fehler melden und Funktionen vorschlagen (#187):** Hilfe › „Melden“ und „Melden …“ im Tagger. TagStudio füllt das
+  GitHub-Formular vor (Bereich, Version, System), zeigt ähnliche Meldungen, schwärzt private Angaben (Benutzerordner,
+  E-Mail-Adressen, Schlüssel) und öffnet es nach Vorschau und Zustimmung im Browser – abgeschickt wird mit dem eigenen
+  GitHub-Konto, TagStudio speichert keine Zugangsdaten. Neue Meldungen erhalten das Label `triage` und werden erst nach
+  Prüfung durch den Projektverantwortlichen umgesetzt.
 - **Zeitraum-Filter für „Aufgenommen“ und „Bearbeitet“ (#214):** In der Filterzeile des Taggers z. B. `<30d` (letzte
   30 Tage), `>1y` (älter als ein Jahr), `heute`, `2026-10`, `2026-09-01..2026-10-16` oder `leer`; sortiert wird nach dem
   echten Zeitpunkt.

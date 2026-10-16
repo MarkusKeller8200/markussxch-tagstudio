@@ -1,7 +1,7 @@
 name: Plugin-Idee
 description: Erweiterung, die als Plugin umgesetzt werden könnte (siehe PLUGINS.md).
 title: "Plugin-Idee: "
-labels: ["enhancement", "plugin"]
+labels: ["enhancement", "plugin", "triage"]
 body:
   - type: textarea
     id: what

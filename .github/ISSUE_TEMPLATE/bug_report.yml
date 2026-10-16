@@ -1,8 +1,13 @@
 name: Fehler melden
 description: Etwas funktioniert nicht wie erwartet.
 title: "Fehler: "
-labels: ["bug"]
+labels: ["bug", "triage"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        **Ablauf:** Neue Meldungen erhalten das Label `triage` und werden vom Projektverantwortlichen geprüft. Erst seine
+        ausdrückliche Freigabe (`_1 bereit`) macht daraus einen Entwicklungsauftrag.
   - type: markdown
     attributes:
       value: |

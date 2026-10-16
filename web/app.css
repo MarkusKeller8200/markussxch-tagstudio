@@ -1430,3 +1430,13 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .svc-idbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
 .help-doc.wide{max-width:none}
 .lic-lang{display:flex;gap:14px;margin:6px 0;font-size:13px}
+/* #187: Melden */
+.fb-kind{display:flex;gap:6px;margin-bottom:8px}
+.fb-frm{grid-template-columns:150px 1fr}
+.fb-frm textarea{width:100%;resize:vertical}
+.fb-dup ul{margin:4px 0 0 18px;padding:0}
+.fb-warn{border:1px solid var(--warn);border-radius:6px;padding:6px 8px;margin:6px 0;font-size:13px}
+.fb-prev th{width:170px;vertical-align:top}
+.fb-prev pre{white-space:pre-wrap;margin:0;font-family:inherit}
+.fb-consent{display:flex;gap:6px;align-items:center;margin:10px 0}
+.fb-env{display:flex;gap:6px;align-items:center;font-size:13px}

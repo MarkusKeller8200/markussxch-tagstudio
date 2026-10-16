@@ -623,6 +623,48 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until(f"{ix} === '0,1,2'"))
         self.assertEqual(self.errors, [])
 
+    def test_feedback_report(self):
+        """#187: Melden aus dem Tagger – Bereich vorgewählt, Duplikate, Pflichtfelder, Vorschau geschwärzt, Zustimmung."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("""(() => { const orig = call; window.__opened = null;
+          window.call = (n, ...a) => n === "feedback_search"
+            ? Promise.resolve({ ok: true, items: [{ number: 187, title: "Melden aus der App", state: "open", url: "https://github.com/x/187" }] })
+            : n === "open_url" ? (window.__opened = a[0], Promise.resolve({})) : orig(n, ...a); })()""")
+        pg.click("#tgReport")
+        pg.wait_for_selector("#fbTitle")
+        self.assertEqual(pg.input_value("#fbArea"), "Tagger")
+        pg.fill("#fbTitle", "Speichern bricht ab")
+        pg.click("#fbSearch")
+        pg.wait_for_selector("#fbDup a[data-url]")
+        self.assertIn("#187", pg.inner_text("#fbDup"))
+        pg.click("#fbPreview")                                              # Pflichtfelder fehlen
+        self.assertTrue(self.until("document.querySelector('#toast') && /ausfüllen/.test(document.querySelector('#toast').textContent)"))
+        pg.fill("#fb-what", r"Fehler bei C:\Users\Markus\Music\a.mp3")
+        pg.fill("#fb-steps", "1. speichern")
+        pg.click("#fbPreview")
+        pg.wait_for_selector("#fbConsent")
+        txt = pg.inner_text("#fbBody")
+        self.assertIn("Geschwärzt: Benutzerordner", txt)
+        self.assertNotIn("Markus", pg.inner_text("#fbBody .fb-prev"))
+        self.assertIn("triage", txt)
+        self.assertTrue(pg.locator("#fbGo").is_disabled())                 # erst nach Zustimmung
+        pg.check("#fbConsent")
+        pg.click("#fbGo")
+        url = pg.evaluate("window.__opened")
+        self.assertTrue(url.startswith("https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/new?template=bug_report.yml"), url)
+        self.assertIn("area=Tagger", url)
+        self.assertIn("wartet auf Prüfung", pg.inner_text("#fbBody"))
+        pg.click("#mBtns button")
+        # Hilfe › Melden
+        pg.click('.nav[data-module="help"]')
+        pg.click('#helpTabs [data-htab="report"]')
+        pg.click('#helpDoc [data-fbopen="feature"]')
+        pg.wait_for_selector('[data-fbkind="feature"][aria-checked="true"]')
+        self.assertTrue(pg.locator("#fb-solution").count())
+        pg.click("#mBtns button")
+        self.assertEqual(self.errors, [])
+
     def test_drag_to_player(self):
         """#105: Titel aus Tagger und Vergleich auf Player A/B ziehen; Ziel wird hervorgehoben."""
         pg = self.pg
