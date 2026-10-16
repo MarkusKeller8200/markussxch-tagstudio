@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       model:
-        description: "Modell (Hugging Face Inference Providers)"
+        description: "Modell:Anbieter (Hugging Face Inference Providers; :auto = ersten verfügbaren Anbieter nehmen)"
         required: false
-        default: "swiss-ai/Apertus-v1.5-70B:publicai"
+        default: "swiss-ai/Apertus-v1.5-70B:auto"
 
 permissions:
   contents: read

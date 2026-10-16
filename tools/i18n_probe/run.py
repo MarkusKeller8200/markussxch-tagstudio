@@ -56,11 +56,40 @@ def parse(text: str):
         return None
 
 
+def providers(model_id: str, token: str) -> list[str]:
+    """Anbieter, die das Modell laut Hugging Face gerade bedienen (öffentliche Modell-Info)."""
+    url = f"https://huggingface.co/api/models/{model_id}?expand[]=inferenceProviderMapping"
+    try:
+        req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            d = json.loads(r.read().decode("utf-8"))
+    except (urllib.error.URLError, OSError, ValueError) as ex:
+        print(f"::warning title=Probeübersetzung::Anbieterliste für {model_id} nicht lesbar: {type(ex).__name__}", flush=True)
+        return []
+    m = d.get("inferenceProviderMapping") or {}
+    items = m.items() if isinstance(m, dict) else [(x.get("provider"), x) for x in m if isinstance(x, dict)]
+    out = [p for p, v in items if p and (not isinstance(v, dict) or v.get("status", "live") == "live")]
+    print(f"::notice title=Anbieter {model_id}::{', '.join(out) or 'keine'}", flush=True)
+    return out
+
+
+def pick_model(model: str, token: str) -> str:
+    """Gewünschtes Modell; ist der Anbieter nicht verfügbar, einen anderen Anbieter bzw. eine andere Apertus-Version."""
+    if ":" in model and model.split(":")[1] != "auto":
+        return model
+    for mid in [model.split(":")[0], "swiss-ai/Apertus-v1.5-70B", "swiss-ai/Apertus-70B-Instruct-2509", "swiss-ai/Apertus-v1.5-8B",
+                "swiss-ai/Apertus-8B-Instruct-2509"]:
+        prov = providers(mid, token)
+        if prov:
+            return f"{mid}:{prov[0]}"
+    fail("Kein Anbieter für Apertus erreichbar – in Hugging Face › Settings › Inference Providers prüfen, ob Anbieter eingeschaltet sind.")
+
+
 def main():
     token = os.environ.get("HF_TOKEN", "")
     if not token:
         fail("Secret HF_TOKEN fehlt oder ist leer (Repository › Settings › Secrets and variables › Actions).")
-    model = os.environ.get("MODEL") or "swiss-ai/Apertus-v1.5-70B:publicai"
+    model = pick_model(os.environ.get("MODEL") or "swiss-ai/Apertus-v1.5-70B:auto", token)
     report = [f"**Probeübersetzung mit `{model}`** (Workflow „Probeübersetzung“, #157)", ""]
     for lang in ("en", "gsw"):
         with open(os.path.join(HERE, f"prompt-{lang}.txt"), encoding="utf-8") as fh:
