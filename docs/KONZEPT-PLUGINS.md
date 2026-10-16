@@ -31,7 +31,8 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 |---|---|
 | `stems` | Spuren trennen (audio-separator, CPU/DirectML/NVIDIA), im Hintergrund, Spuren unter dem Original |
 | `beatport` | Metadaten mit eigenem Login (Token verschlüsselt), Käufe abgleichen, fehlende Käufe herunterladen (#117) |
-| `online` | Online-Metadaten: MusicBrainz/AcoustID, Deezer, iTunes, Discogs, Last.fm |
+| `online` | Online-Metadaten: gemeinsame Suche über die eingeschalteten Dienst-Plugins (Vorschau, Vorrang, Alternativen) |
+| `musicbrainz`, `acoustid`, `deezer`, `itunes`, `discogs`, `lastfm` | Dienst-Plugins (#204): je ein Online-Dienst mit Kandidatensuche, Details, Verbindungstest, Testabfrage; Schlüssel (Discogs, Last.fm, AcoustID + fpcalc) verschlüsselt im eigenen Datenordner |
 | `mik` | Werte aus Mixed-In-Key-Stellen übernehmen (Tonart, BPM, Energie) |
 | `beatunes` | beaTunes-Stimmungswerte als Audio-Merkmale |
 | `lexicon` | Werte über die Lexicon Local API |
@@ -68,6 +69,24 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 - Liedtexte sind geschützt: nur eigener Gebrauch, nie ins Repository; Tests nutzen erfundene Texte und einen
   nachgebauten Dienst (`tests/test_lyrics.py`).
 
+### Online-Dienste als Plugins (#204, Meilenstein 4.6.0)
+
+- Jeder Online-Dienst (auch lokal über HTTP wie Lexicon) ist ein eigenes Plugin mit Abschnitt `"service"` in
+  `plugin.json`: name, kind (online/local), home, docs, base, auth (none/key/token/oauth/local), auth_note, limits,
+  terms, note und `endpoints` (id, method, path, label, status full/partial/none, use, note, params, test).
+  `services.clean` prüft das (nur http(s)-Links, eindeutige IDs, ändernde Methoden nie im Tester).
+- Karte: anklickbarer Link zur API-Doku, „Integration …“ (Endpunkt-Tabelle, Testabfrage ohne Track, API-Tester).
+  Plugins › „Integrationen …“: alle Dienste inkl. Update-Prüfung im Kern (`services.CORE`).
+- Hooks im Plugin: `test_query(ctx, info)` → Kandidaten, Bewertung über `test_score`/`score`/`onlinematch.score`;
+  `api_request(ctx, ep, params)` für eigene Anmeldung (Beatport-OAuth, Lexicon-Adresse), sonst `auth(ctx)` →
+  Header/Parameter. Schlüssel werden eingesetzt, in URL und Antwort aber als „•••“ angezeigt.
+- Gemeinsam: `servicekit.py` (Client mit `onlinematch.INTERVALS` und gemeinsamer Drosselung `onlinematch.SHARED`,
+  Schlüsselablage je Plugin mit DPAPI, einmalige Übernahme aus `Plugin-Daten/online/keys.bin`).
+- Nutzer der Dienste: `online` (Quellen-Häkchen nur für eingeschaltete Dienst-Plugins, sonst Hinweis; Optionsschlüssel
+  wie bis 4.5), Entdecken (Deezer über `plugins/deezer`, Beatport über `plugins/beatport`; ausgeschaltet → Hinweis im
+  Protokoll). Andere Plugins erreichen Dienste über `ctx.service(pid)` / `ctx.service_ctx(pid)`.
+- Die Update-Prüfung (GitHub Releases) bleibt im Kern.
+
 ## 5. Entscheide
 
 - Zugangsdaten nie im Klartext: Passwörter werden nicht gespeichert, Tokens/Schlüssel nur verschlüsselt, nie
@@ -83,6 +102,6 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 
 ## 7. Tests
 
-`tests/test_plugins.py`, `test_jobs.py`, `test_beatport.py`, `test_beatport_purchases.py`, `test_online.py`
+`tests/test_plugins.py`, `test_services.py`, `test_jobs.py`, `test_beatport.py`, `test_beatport_purchases.py`, `test_online.py`
 (`test_online_live.py` nur im Workflow), `test_mik.py`, `test_importers.py`, `test_loudness.py`, `test_serato.py`;
 Stems-Test im Workflow „Stems-Test“.

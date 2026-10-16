@@ -5,7 +5,7 @@ name: Online-Test
 on:
   push:
     branches: [main]
-    paths: ["plugins/online/**", "onlinematch.py", "tests/test_online_live.py", ".github/workflows/online-test.yml"]
+    paths: ["plugins/online/**", "plugins/musicbrainz/**", "plugins/deezer/**", "plugins/itunes/**", "servicekit.py", "onlinematch.py", "tests/test_online_live.py", ".github/workflows/online-test.yml"]
   schedule:
     - cron: "17 5 * * 1"
   workflow_dispatch:
