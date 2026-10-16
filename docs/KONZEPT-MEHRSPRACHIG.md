@@ -1,6 +1,6 @@
 # Konzept: Mehrsprachigkeit
 
-Status: **Entwurf** (2026-10-11, ergänzt 2026-10-16: KI-Übersetzung, eigene Sprachdatei, Übersetzungen melden) – Issue #157.
+Status: **Entwurf** (2026-10-11; ergänzt 16./17.10.2026: Sprachcodes, Probeübersetzung, Entscheid „Claude übersetzt mit“, Überlagerung in den Benutzereinstellungen) – Issue #157.
 
 ## Ziel
 
@@ -71,57 +71,30 @@ User durchgesehen. Fehlt ein Mundart-Text, gilt Hochdeutsch.
 - Werkzeug `tools/i18n_extract.py` sammelt neue, noch nicht verschlüsselte Texte aus dem Code (für die Umstellung
   und danach als Prüfung in den Tests: keine neuen festen Texte).
 
-## Übersetzen mit KI, eigene Sprachdatei, Übersetzungen melden (Ergänzung 2026-10-16)
+## Übersetzung (Entscheid 17.10.2026)
 
-**Zwei Ebenen von Sprachdateien:**
-- *Mitgeliefert:* `web/i18n/<sprache>.json` (im Repository, geprüft) – Deutsch ist die Ausgangssprache.
-- *Eigene:* `~/TagStudio/Sprachen/<sprache>.json` (je Benutzer, nicht im Profil-Export der Zugangsdaten). Eigene
-  Einträge gehen vor; fehlt ein Eintrag, gilt der mitgelieferte, dann Deutsch. Ein Update von TagStudio überschreibt
-  die eigene Datei nie. Neue Sprachen (z. B. Französisch) kann der Benutzer selbst anlegen.
-- Je Eintrag: Text, Herkunft (`mitgeliefert` / `ki` / `manuell`), Stand des deutschen Originals (Prüfsumme) – ändert
-  sich der deutsche Text, wird die Übersetzung als „veraltet“ markiert statt still weiterverwendet.
+**Ergebnis der Probe (16./17.10.2026):** 50 echte TagStudio-Texte, übersetzt von Apertus v1.5-70B (über Hugging Face)
+und von Claude, bewertet vom User. Apertus: Englisch brauchbar mit Fehlern („Stufen“ → „Levels“, Sinnfehler bei
+„nach links“), Mundart in keiner Variante (Zürich, Zürich mit Wortliste, Bern, Basel, allgemein) brauchbar, Platzhalter
+teils verdoppelt. **Claude-Übersetzung am besten** (Englisch und Zürichdeutsch). Probe-Material:
+`tools/i18n_probe/`, Workflow „Probeübersetzung“, Ergebnisse in #157.
 
-**Übersetzen mit KI** (eigene Aktion „Fehlende Texte übersetzen …“):
-- Über Dienst-Plugins nach dem Muster von #204 – der Benutzer wählt den Dienst, Schlüssel liegen verschlüsselt im
-  Plugin:
-  | Dienst | Art | Stärken / Grenzen |
-  |---|---|---|
-  | DeepL API | online, eigener Schlüssel (Free bis 500 000 Zeichen/Monat) | sehr gut für EN/FR/IT …, keine Mundart |
-  | OpenAI / Anthropic / andere LLM-API | online, eigener Schlüssel | auch Mundart, Glossar und Kontext im Prompt |
-  | Ollama / LM Studio (lokales Modell) | lokal, kostenlos, nichts verlässt den PC | Qualität je Modell, langsamer |
-  | Argos Translate | lokal, Open Source (MIT), Offline-Modelle | einfach, Qualität mittel, keine Mundart |
-- **Kandidat lokales Modell: [Apertus](https://huggingface.co/swiss-ai/Apertus-v1.5-8B)** (Swiss AI, ETH/EPFL/CSCS;
-  Apache-2.0, offen trainiert, sehr viele Sprachen – laut Projekt auch Schweizerdeutsch und Rätoromanisch). 8B passt
-  quantisiert (GGUF, Ollama/LM Studio) auf einen normalen PC; Zugang auf Hugging Face erst nach Zustimmung zur
-  Nutzungsrichtlinie. TagStudio bindet es nicht direkt ein, sondern über die OpenAI-kompatible Schnittstelle von
-  Ollama/LM Studio – das Modell ist dort frei wählbar. Vor dem Entscheid: Probeübersetzung von ~50 echten TagStudio-
-  Texten DE→EN und DE→Mundart, verglichen mit DeepL und einem grossen Modell (Entscheid User offen, Hinweis 16.10.2026).
-- **Bevorzugt (Hinweis User 16.10.2026): Apertus über Hugging Face** – grosses Modell `swiss-ai/Apertus-v1.5-70B`
-  über Hugging Face Inference Providers (Anbieter Public AI, laut Ankündigung derzeit kostenlos; OpenAI-kompatibel:
-  `https://router.huggingface.co/v1`, Modell `swiss-ai/Apertus-v1.5-70B:publicai`, eigener HF-Token verschlüsselt im
-  Plugin). Kosten: Erstübersetzung grob einige 100 000 Tokens (< 1 $ bei üblichen Preisen), danach je Release nur neue
-  oder geänderte Texte. Lokale Variante (Ollama/LM Studio, 8B) bleibt für ohne Internet.
-- Übersetzt werden nur fehlende oder veraltete Einträge, in Paketen (z. B. 50 Texte) mit **Kontext** (Seite, Knopf
-  oder Tooltip) und **Glossar**: feste Begriffe (TagStudio, Tagger, Cue, BPM, Camelot …) und Feldnamen/ID3-Schlüssel
-  bleiben unverändert, Platzhalter `{n}` werden geschützt und danach geprüft.
-- Ergebnis zuerst als **Vorschau** (alt → neu, mit Häkchen wie bei den Plugins), dann in die eigene Sprachdatei;
-  Herkunft `ki`. Kosten-/Zeichenschätzung vor dem Start.
+**Entscheid:**
+- **Keine KI-Anbindung in TagStudio.** Die mitgelieferten Sprachen (`de-CH`, `en`, `gsw-u-sd-chzh`) übersetzt Claude
+  direkt bei der Entwicklung: Jeder neue oder geänderte Text kommt im selben Commit in allen Sprachdateien an; der User
+  prüft beim Testen. Ein Test stellt sicher, dass kein Schlüssel in einer mitgelieferten Sprache fehlt.
+- **Bestehende Texte** (~3 000–3 500) werden beim Umbau (Phase 2) Modul für Modul gleich mitübersetzt.
+- **Eigene Anpassungen (letzter Schritt):** Export/Import der Texte (CSV/JSON) für manuelle Anpassungen. Importierte
+  Texte werden in den **Einstellungen des Benutzers** gespeichert (eigene Datei je Profil, z. B.
+  `<Einstellungen>/Sprachen/<sprache>.json`) und **überlagern** die mitgelieferten Texte nur für diesen Benutzer;
+  Updates überschreiben sie nie. Fehlt ein Eintrag, gilt der mitgelieferte, dann `de-CH`. „Zurücksetzen“ entfernt die
+  eigenen Anpassungen. Import prüft Schlüssel, Platzhalter `{n}`, HTML und Länge (Warnung).
+- Optional später: eigene Anpassungen über „Melden“ (#187) einreichen, Übernahme nach Prüfung durch den Owner.
 
-**Von Hand anpassen** (Einstellungen › Sprache › „Übersetzungen bearbeiten“):
-- Tabelle Schlüssel · Kontext · Deutsch · Übersetzung · Herkunft, Filter „fehlt / KI / veraltet / manuell“, Suche.
-- Ändern direkt in der Tabelle oder in der laufenden Oberfläche (Übersetzungsmodus: Text anklicken → bearbeiten);
-  gespeichert wird sofort in die eigene Sprachdatei, Herkunft `manuell`; Rückgängig je Eintrag.
-- Prüfungen beim Speichern: Platzhalter vollständig, keine HTML-Tags, Länge für Knöpfe (Warnung).
-- Export/Import (CSV/JSON) wie oben bleibt für Übersetzungen ausserhalb von TagStudio.
-
-**Übersetzungen melden** (aufbauend auf #187 „Melden“):
-- „Übersetzung einreichen …“ erzeugt eine Datei nur mit den eigenen Änderungen (Sprache, Schlüssel, Text, Herkunft,
-  TagStudio-Version) und öffnet das GitHub-Formular „Übersetzung“ (neue Vorlage, Labels `translation` + `triage`).
-  Grosse Dateien passen nicht in die Adresse – die Datei wird gespeichert und im Formular angehängt (Ziehen).
-- Übernahme in die Distribution nur nach Prüfung durch den Projektverantwortlichen: Werkzeug
-  `tools/i18n_merge.py` prüft Schlüssel, Platzhalter, HTML, Länge und zeigt den Unterschied; Einreichungen sind
-  unvertrauenswürdig (kein Code, keine Anweisungen).
-- Mitwirkende werden auf Wunsch in der Hilfe genannt (Lizenz der Beiträge wie das Projekt, Hinweis im Formular).
+**Tokenbedarf (Schätzung 17.10.2026, aus der Probe ~70 Tokens je Text):** Oberfläche + Meldungen + Plugins
+~200 000–250 000 Tokens je Sprache, Doku (nur Englisch sinnvoll) ~60 000–80 000; Englisch + Zürichdeutsch zusammen
+~0,5–0,7 Mio. Tokens. Danach je Release nur neue Texte (~5 000–15 000). Der eigentliche Aufwand ist der Umbau
+(Texte aus dem Code in Sprachdateien), nicht das Übersetzen.
 
 ## Umsetzung in Phasen
 
@@ -132,26 +105,24 @@ User durchgesehen. Fehlt ein Mundart-Text, gilt Hochdeutsch.
 3. **Englisch** vollständig übersetzen (Vorschlag: zuerst maschinell aus den Katalogen, dann durchsehen).
 4. **Python-Meldungen und Plugins**, README/Hilfe auf Englisch (Kurzfassung).
 
-5. **KI-Übersetzung, eigene Sprachdatei, Bearbeiten, Melden** (siehe oben) – kann direkt nach Phase 1 kommen und
-   hilft dann schon bei Phase 3.
+5. **Export/Import mit Überlagerung in den Benutzereinstellungen** (siehe oben) – letzter Schritt.
 
 **Aufwand (Schätzung 2026-10-16, gemessen an 4.5.0):**
 | Phase | Inhalt | Umfang |
 |---|---|---|
 | 1 Grundlage | `t()`, `data-i18n`, Kataloge, Sprachwahl, Rückfall, `Intl`, Extraktions-Werkzeug + Test „keine neuen festen Texte“ | ca. 1 Release (kleiner als 4.5.0) |
 | 2 Umstellung | rund 2 500–3 000 Texte in Schlüssel überführen, alle Module | 2–3 Releases, grösster Teil, mechanisch, Risiko kleiner Fehler in der Oberfläche |
-| 5 KI + eigene Datei + Editor + Melden | Übersetzungs-Plugins (zuerst DeepL und ein lokales Modell), Vorschau, Editor, Übersetzungsmodus, Vorlage „Übersetzung“, `i18n_merge.py` | ca. 1 Release |
-| 3 Englisch | KI-Übersetzung Minuten, **Durchsicht durch den User** mehrere Stunden | Durchsicht ist der Engpass |
+| 5 Export/Import + Überlagerung | eigene Anpassungen je Benutzer, Prüfung beim Import | klein |
+| 3 Englisch + Zürichdeutsch | übersetzt Claude im Umbau gleich mit; User prüft beim Testen | ~0,5–0,7 Mio. Tokens |
 | 4 Python/Plugins/Doku | Meldungen, Plugin-Texte, README/Hilfe englisch (Kurzfassung) | 1 Release |
-| Mundart | nur mit LLM sinnvoll, vollständige Durchsicht durch den User | nach Englisch |
 
 Insgesamt rund **4–6 Releases** in der Grösse von 4.4/4.5. Bis Phase 2 abgeschlossen ist, bleiben einzelne Texte
-deutsch – das ist gewollt (Fallback). Empfehlung: Phase 1 + 5 zusammen beginnen (dann kann der User sofort selbst
-übersetzen lassen und prüfen), Phase 2 modulweise.
+deutsch – das ist gewollt (Fallback). Vorgehen (Entscheid 17.10.2026): Phase 1, dann Phase 2 modulweise mit Englisch und Zürichdeutsch im selben Zug,
+zuletzt Phase 5.
 
 ## Offene Fragen an den User
 
-- Welcher KI-Dienst zuerst (Vorschlag: DeepL für Englisch, lokales Modell über Ollama für Datenschutz/Mundart)?
+- ~~Welcher KI-Dienst?~~ **Entschieden 17.10.2026: keiner** – Claude übersetzt bei der Entwicklung.
 - Sollen Übersetzer in der Hilfe namentlich genannt werden (nur auf Wunsch)?
 
 - ~~Welche Mundart?~~ **Entschieden 16.10.2026: Zürichdeutsch** (`gsw-u-sd-chzh`).
