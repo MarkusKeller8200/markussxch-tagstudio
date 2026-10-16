@@ -247,7 +247,7 @@ async function plCrossfade(i, opt = {}) {
   const f = PLAYER.fade;
   if (!f || f.old !== old) return;
   const newInfo = PLAYER.info;
-  if (PLAYER.xfadePhase && gOld && plWaveNeeded(newInfo)) {                    // #76: Schlag des neuen Titels ermitteln
+  if (PLAYER.xfadePhase && gOld && !(newInfo.grid && newInfo.grid.exact) && plWaveNeeded(newInfo)) {   // Serato: nicht warten                    // #76: Schlag des neuen Titels ermitteln
     await Promise.race([plWaveCompute(newInfo), new Promise((ok) => setTimeout(ok, 4000))]);
     if (PLAYER.fade !== f) return;
   }
@@ -390,7 +390,7 @@ async function dbLoad(t, autoplay = true, keepTime = null) {
   const start = keepTime !== null ? keepTime : sm === "30" ? dur * 0.3 : sm === "60" ? Math.min(60, dur * 0.5) : sm === "cue" ? (firstCue ? firstCue.pos : 0) : 0;
   a.src = info.url;
   a.addEventListener("loadedmetadata", () => { try { if (start > 0) a.currentTime = Math.min(start, (a.duration || dur) - 1); } catch (e) { /* egal */ } }, { once: true });
-  if ((PLAYER.wave && !info.wave) || (!(info.grid && info.grid.exact) && plWaveNeeded(info))) {
+  if ((PLAYER.wave && !info.wave) || plWaveNeeded(info)) {                  // #223: auch Serato (Vergleich, nur Cache)
     plWaveCompute(info);
     dbRender();
   }

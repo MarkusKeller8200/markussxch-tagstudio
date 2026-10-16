@@ -99,7 +99,8 @@ async function plLoad(target, autoplay = true, keepTime = null, startMode = null
   if (typeof plLyricsOnLoad === "function") plLyricsOnLoad();                 // #215
   // #181: fehlende Serato-Raster beim Abspielen selbst untersuchen – nicht erst bei
   // eingeschalteter Wellenform oder Crossfade. Niemals die Serato-Daten überschreiben.
-  if ((PLAYER.wave && !info.wave) || (!(info.grid && info.grid.exact) && plWaveNeeded(info))) {
+  // #223: auch bei Serato-Raster rechnen – nur zum Vergleich, Ergebnis im Cache, Serato bleibt massgebend
+  if ((PLAYER.wave && !info.wave) || plWaveNeeded(info)) {
     plWaveCompute(info);
     plRender();                                  // Kennzeichnung «Analyse läuft» sofort sichtbar
   }
@@ -459,7 +460,7 @@ function plWaveCompute(info) {
 /** Braucht dieser Titel noch eine Berechnung (Wellenform fehlt bzw. Schlag noch nicht analysiert)? */
 function plWaveNeeded(info) {
   return !!info && !!info.wave_key && (!info.wave || info.wave.source === "serato"
-    || (!info.wave.beat && !WAVE_NOBEAT.has(info.wave_key) && !(info.grid && (info.grid.exact || info.grid.from_tag))));   // #220/#221
+    || (!info.wave.beat && !WAVE_NOBEAT.has(info.wave_key) && !(info.grid && info.grid.from_tag)));   // #220/#221; #223: auch Serato (Vergleich)
 }
 async function plWaveComputeRun(info) {
   PLAYER.waveBusy = info.wave_key;
