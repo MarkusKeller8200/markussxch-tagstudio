@@ -28,7 +28,12 @@ class Svc:
         self.cl = self.mod.client(self.ctx)
 
     def best(self, info, **opts):
-        return om.best(info, self.mod.candidates(self.ctx, self.cl, info, opts))
+        try:
+            return om.best(info, self.mod.candidates(self.ctx, self.cl, info, opts))
+        except om.HttpError as ex:
+            if ex.status in (429, 502, 503):              # Dienst überlastet (GitHub-Server teilen sich die IP)
+                raise unittest.SkipTest(f"{self.p.name}: {ex}") from ex
+            raise
 
     def details(self, c):
         return self.mod.details(self.ctx, self.cl, c)
@@ -124,7 +129,13 @@ class TestExamples(unittest.TestCase):
         for pid in ("musicbrainz", "deezer", "itunes", "lyrics"):
             ex = self.m.get(pid).service["example"]
             self.assertTrue(ex.get("artist") and ex.get("title"), pid)
-            r = self.m.test_query(pid, ex)
+            try:
+                r = self.m.test_query(pid, ex)
+            except om.HttpError as e:
+                if e.status in (429, 502, 503):
+                    print(f"\n::notice title=Beispiel nicht abgefragt::{pid}: {e}", flush=True)
+                    continue
+                raise
             self.assertTrue(r["rows"], f"{pid}: keine Kandidaten für {ex}")
             self.assertTrue(r["rows"][0]["sure"], f"{pid}: bester Treffer nicht sicher: {r['rows'][0]}")
 
