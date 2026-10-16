@@ -22,6 +22,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Speichern; im Tagger als Spalte „Bearbeitet“ wählbar, im Vergleich standardmässig „unwichtig“.
 
 ### Behoben
+- **Liedtexte: Fehlersuche (#203):** War LRCLIB nicht erreichbar (z. B. HTTP 503), stand bisher nur „nicht gefunden“.
+  Jetzt eigene Meldung „nicht abgefragt – LRCLIB war nicht erreichbar“; nach drei Ausfällen in Folge wird nicht weiter
+  angefragt. Das Protokoll zeigt je Titel, wonach gesucht wurde (genau / Titel + Künstler / Freitext), wie viele Treffer
+  kamen und den besten Kandidaten mit Prozent. Neue dritte Stufe: Freitextsuche „Künstler Titel“. LRCLIB kennt keine ISRC.
 - **Änderungsjournal bei grossen Listen (#201):** Snapshots vergleichen lädt jetzt auch bei 1500 geänderten Titeln
   zügig: Tags werden im Speicher gelesen statt über je zwei Hilfsdateien (unter Windows bremste der Virenschutz jede
   davon). Fortschritt „x von y“ auch im Vergleichsschritt; **Abbrechen** greift sofort und zeigt „Wird abgebrochen …“.

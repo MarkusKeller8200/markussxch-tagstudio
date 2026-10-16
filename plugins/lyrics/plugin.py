@@ -157,27 +157,42 @@ def _cand(d: dict) -> dict:
             "label_text": f"{d.get('artistName') or ''} – {d.get('trackName') or ''}"}
 
 
-def candidates(cl, info: dict) -> list:
-    """Genaue Abfrage (Dauer ±2 s auf LRCLIB-Seite), sonst Suche nach Titel und Künstler."""
-    full_title = f"{info['title']} ({info['mix']})" if info.get("mix") else info["title"]
-    artist = info["artist"]
+def candidates(cl, info: dict, trail: list | None = None) -> list:
+    """Kandidaten in drei Stufen, jede nur, wenn die vorige nichts lieferte (#203):
+    1. genau – /api/get mit Künstler, Titel (mit und ohne Mix), Album und Dauer (nur mit Album: sonst HTTP 400);
+    2. Suche nach Titel und erstem Künstler;
+    3. Freitext „Künstler Titel“ (findet auch abweichende Schreibweisen).
+    LRCLIB kennt KEINE ISRC – gesucht wird nur über Namen, Album und Dauer. `trail` sammelt, was gefragt wurde."""
+    trail = trail if trail is not None else []
+    artist, first = info["artist"], om.first_artist(info)
     out = []
-    if info.get("duration") and info.get("album"):          # /api/get verlangt Album und Dauer, sonst HTTP 400
-        q = {"artist_name": artist, "track_name": full_title, "album_name": info["album"],
-             "duration": int(round(info["duration"]))}
-        try:
-            d = cl.json(f"{API}/get?" + urllib.parse.urlencode(q))
-        except HttpError as ex:
-            if ex.status not in (400, 404):                  # nur „unpassende Anfrage“ → weiter mit der Suche
-                raise
-            d = None
-        if isinstance(d, dict) and d.get("id"):
-            out.append(_cand(d))
-    if not out:
-        q = {"track_name": info["title"], "artist_name": om.first_artist(info)}
+    if info.get("duration") and info.get("album"):
+        titles = [f"{info['title']} ({info['mix']})", info["title"]] if info.get("mix") else [info["title"]]
+        for t in titles:
+            q = {"artist_name": artist, "track_name": t, "album_name": info["album"], "duration": int(round(info["duration"]))}
+            try:
+                d = cl.json(f"{API}/get?" + urllib.parse.urlencode(q))
+            except HttpError as ex:
+                if ex.status not in (400, 404):              # nur „unpassende Anfrage“ → weiter mit der nächsten Stufe
+                    raise
+                d = None
+            hit = isinstance(d, dict) and d.get("id")
+            trail.append(f"genau „{artist} – {t}“, Album „{info['album']}“, {q['duration']} s: {'Treffer' if hit else 'kein Treffer'}")
+            if hit:
+                out.append(_cand(d))
+                return out
+    else:
+        trail.append("genaue Abfrage übersprungen (" + ("Album fehlt" if not info.get("album") else "Dauer unbekannt") + ")")
+    for label, q in (("Suche Titel + Künstler", {"track_name": info["title"], "artist_name": first}),
+                     ("Freitext", {"q": f"{first} {info['title']}".strip()})):
+        if label == "Suche Titel + Künstler" and not first:
+            continue
         d = cl.json(f"{API}/search?" + urllib.parse.urlencode(q))
-        if isinstance(d, list):
-            out.extend(_cand(x) for x in d[:20] if isinstance(x, dict))
+        found = [x for x in d[:20] if isinstance(x, dict)] if isinstance(d, list) else []
+        trail.append(f"{label} „{' · '.join(str(v) for v in q.values())}“: {len(found)} Treffer")
+        out.extend(_cand(x) for x in found)
+        if out:
+            break
     return out
 
 
@@ -246,6 +261,14 @@ def propose_file(ctx, f, c: dict, s: float, opts: dict, group: str) -> int:
     return n
 
 
+def _why(status: int) -> str:
+    if status == 429:
+        return " (zu viele Anfragen)"
+    if status == 0:
+        return " (keine Verbindung – Internet/Firewall prüfen)"
+    return " (Dienst überlastet oder in Wartung)" if status >= 500 else ""
+
+
 def status(ctx):
     st = load_settings(ctx)
     return f"LRCLIB: frei, ohne Schlüssel · .lrc-Datei: {'ja' if st['lrc'] else 'nein'} · Sprache: {st['lang']}"
@@ -260,16 +283,17 @@ def run(action, ctx, files, opts):
     cl = _client(ctx)
     if action == "test":
         try:
-            cl.json(f"{API}/search?" + urllib.parse.urlencode({"q": "test"}))
-            msg = "LRCLIB ist erreichbar."
+            d = cl.json(f"{API}/search?" + urllib.parse.urlencode({"q": "test"}))
+            msg = f"LRCLIB ist erreichbar ({len(d) if isinstance(d, list) else 0} Treffer für „test“)."
         except HttpError as ex:
-            msg = f"LRCLIB: {ex}"
+            msg = f"LRCLIB nicht erreichbar: {ex}{_why(ex.status)}"
         ctx.log(msg)
         return {"message": msg}
     if action != "fetch":
         raise ValueError(f"Unbekannte Aktion: {action}")
     opts = {**opts, **load_settings(ctx)}             # .lrc und Sprache aus den Plugin-Einstellungen
-    found = unsure = missing = instrumental = 0
+    found = unsure = missing = instrumental = offline = 0
+    down = 0                                             # Ausfälle in Folge
     for i, f in enumerate(files):
         name = os.path.basename(f.path)
         ctx.progress(i, len(files), f"Suche {name}")
@@ -278,16 +302,27 @@ def run(action, ctx, files, opts):
             ctx.log(f"{name}: kein Titel – übersprungen")
             missing += 1
             continue
+        if down >= 3:                                    # Dienst nicht erreichbar: nicht weiter anfragen
+            offline += 1
+            continue
+        trail = []
         try:
-            c, s = best(info, candidates(cl, info))
+            c, s = best(info, candidates(cl, info, trail))
+            down = 0
         except HttpError as ex:
-            if ex.status in (0, 429):
-                raise RuntimeError(str(ex)) from ex
+            if ex.status in (0, 429) or ex.status >= 500:
+                down += 1
+                offline += 1
+                ctx.log(f"{name}: LRCLIB nicht erreichbar – {ex}" + _why(ex.status))
+                continue
             ctx.log(f"{name}: {ex}")
             missing += 1
             continue
+        how = "; ".join(trail)
         if not c or s < MAYBE:
-            ctx.log(f"{name}: nicht gefunden" + (f" (bester Kandidat {c['label_text']}, {round(s * 100)} %)" if c else ""))
+            ctx.log(f"{name}: nicht gefunden – gesucht: {how}"
+                    + (f" · bester Kandidat {c['label_text']}"
+                       + (f" [{c['mix']}]" if c.get("mix") else "") + f", {round(s * 100)} %" if c else ""))
             missing += 1
             continue
         if c["instrumental"] or not (c["plain"].strip() or c["synced"].strip()):
@@ -295,7 +330,7 @@ def run(action, ctx, files, opts):
             instrumental += 1
             continue
         ctx.log(f"{name}: {c['label_text']} ({round(s * 100)} %)"
-                + (" · synchronisiert" if c["synced"].strip() else " · nur Text"))
+                + (" · synchronisiert" if c["synced"].strip() else " · nur Text") + f" – gesucht: {how}")
         propose_file(ctx, f, c, s, opts, name)
         found += s >= SURE
         unsure += s < SURE
@@ -303,6 +338,10 @@ def run(action, ctx, files, opts):
     msg = f"{found} gefunden" + (f", {unsure} unsicher (nicht vorausgewählt)" if unsure else "") + \
           (f", {instrumental} ohne Text (instrumental)" if instrumental else "") + \
           (f", {missing} nicht gefunden" if missing else "")
+    if offline:
+        msg += f", {offline} nicht abgefragt – LRCLIB war nicht erreichbar (Dienst überlastet oder in Wartung, später nochmals versuchen)"
+    if missing or offline:
+        msg += ". Was genau gesucht wurde, steht im Protokoll unten"
     if not ctx.proposals:
         return {"message": f"{msg}. Nichts zu übernehmen."}
     n = sum(1 for p in ctx.proposals if p["checked"])

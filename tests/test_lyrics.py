@@ -24,6 +24,7 @@ REC_INSTR = {"id": 900, "trackName": "Kaltes Glas", "artistName": "Mara Lind", "
 class FakeLrclib:
     def __init__(self):
         self.calls = []
+        self.down = False                      # LRCLIB antwortet mit 503 (überlastet/Wartung)
 
     def __call__(self, url, headers=None):
         u = urllib.parse.urlparse(url)
@@ -32,6 +33,10 @@ class FakeLrclib:
         js = lambda d, st=200: (st, {}, json.dumps(d).encode())        # noqa: E731
         if u.netloc != "lrclib.net":
             return 404, {}, b""
+        if self.down:
+            return 503, {"Retry-After": "0"}, b"Service Unavailable"
+        if u.path == "/api/search" and q.get("q", "").lower() == "mara lind morgenrot":   # nur per Freitext auffindbar
+            return js([dict(REC, id=5000, trackName="Morgenrot", syncedLyrics="[00:01.00]Morgen")])
         if u.path == "/api/get":
             if not q.get("album_name"):
                 return js({"code": 400, "name": "QueryValidationFailed"}, 400)
@@ -133,6 +138,32 @@ class TestLyricsPlugin(Base):
         # Suche: Original statt Remix gewählt (Länge/Titel)
         self.assertEqual(by[("o.mp3", "LRCLIB-ID")]["new"], "4711")
         self.assertNotIn("k.mp3", {r["name"] for r in res["proposals"]})
+
+    def test_trail_freetext_and_outage(self):
+        write_mp3(os.path.join(self.B, "m.mp3"), [text("TIT2", "Morgenrot"), text("TPE1", "Mara Lind")], audio_seed=21)
+        self.s.start_tag_load(self.B, False)
+        self.wait()
+        self.idx = {os.path.basename(f.path): i for i, f in enumerate(self.s.tag_files)}
+        res = self.act("fetch", ["m.mp3", "u.mp3"], what="both", id=True)
+        log = "\n".join(res["log"])
+        self.assertIn("Freitext „Mara Lind Morgenrot“: 1 Treffer", log)            # 3. Stufe gefunden
+        self.assertIn("genaue Abfrage übersprungen (Album fehlt)", log)
+        self.assertIn("u.mp3: nicht gefunden – gesucht:", log)                     # nachvollziehbar
+        self.assertIn("Suche Titel + Künstler „Gibt es nicht · Niemand“: 0 Treffer", log)
+        self.assertIn("steht im Protokoll", res["message"])
+        self.assertEqual({r["name"] for r in res["proposals"]}, {"m.mp3"})
+        # Ausfall: klar gemeldet, nach drei Ausfällen in Folge nicht weiter anfragen
+        self.fake.down = True
+        names = ["n.mp3", "o.mp3", "k.mp3", "u.mp3", "m.mp3"]
+        res = self.act("fetch", names, what="both", id=True)
+        self.assertIn("5 nicht abgefragt – LRCLIB war nicht erreichbar", res["message"])
+        self.assertNotIn("nicht gefunden", res["message"])
+        self.assertIn("LRCLIB nicht erreichbar – lrclib.net: HTTP 503 (Dienst überlastet oder in Wartung)", "\n".join(res["log"]))
+        n_before = len(self.fake.calls)
+        self.act("fetch", names, what="both", id=True)
+        self.assertLessEqual(len(self.fake.calls) - n_before, 3 * 3)              # höchstens 3 Titel × 3 Versuche
+        res = self.act("test")
+        self.assertIn("LRCLIB nicht erreichbar", res["message"])
 
     def test_versions(self):
         m = self.mod

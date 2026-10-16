@@ -52,8 +52,12 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 
 - LRCLIB ohne Schlüssel; User-Agent mit Projektadresse, höchstens 2 Anfragen/s, nacheinander; 429/503 mit
   `Retry-After` über `onlinematch.Client`.
-- Abfrage: `/api/get` (Künstler, Titel inkl. Mix, Album, Dauer) nur mit Album und Dauer; 400/404 → `/api/search`
-  (Titel, erster Künstler). Bewertung `version_score` = `onlinematch.score`, abweichende Fassung (Remix, Live,
+- Abfrage in drei Stufen, jede nur ohne Ergebnis der vorigen (#203): `/api/get` (Künstler, Titel mit und ohne Mix,
+  Album, Dauer) nur mit Album und Dauer, 400/404 → weiter; `/api/search` mit Titel + erstem Künstler; Freitext
+  `q = "Künstler Titel"`. LRCLIB kennt keine ISRC. Jede Stufe steht mit Trefferzahl im Protokoll, bei „nicht
+  gefunden“ zusätzlich der beste Kandidat mit Prozent.
+- Ausfälle (keine Verbindung, 429, 5xx nach den Wiederholungen von `onlinematch.Client`) zählen als „nicht abgefragt“,
+  nicht als „nicht gefunden“; nach drei Ausfällen in Folge wird der Rest nicht mehr angefragt. Bewertung `version_score` = `onlinematch.score`, abweichende Fassung (Remix, Live,
   Acoustic …; Extended Mix/Radio Edit gelten als Original) −0,15 und höchstens „unsicher“.
 - Vorschläge (Vorschau mit Häkchen): normaler Text → `USLT:` (Text aus LRC abgeleitet, falls nur dieser vorliegt),
   synchronisiert → `SYLT` (Rohframe: UTF-16 mit BOM, Zeitformat ms, Inhalt Liedtext), `TXXX:LRCLIB_ID`. Vorhandener
