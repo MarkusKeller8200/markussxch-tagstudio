@@ -100,6 +100,10 @@ Zug nachführen.**
     Original/Remix/Live nicht gleichgesetzt – **auf main, Beta-Test**.
   - TagStudio-Zeitstempel zählen nie als Verstoss gegen die Schutzregel in „Vorbereiten“ (`prepare.violations`).
   - Danach: Release 4.5.0 nur nach ausdrücklicher Freigabe.
+- **4.6.0** (Meilenstein #17): #204 Online-Dienste als Plugins – je Dienst ein Plugin (MusicBrainz, AcoustID, Deezer,
+  iTunes, Discogs, Last.fm, LRCLIB, Beatport, Lexicon) mit API-Link, Integrationsfenster (Endpunkte, Testabfrage ohne
+  Track, API-Tester nur lesend) und Plugins › „Integrationen …“; „Online-Metadaten“ = gemeinsame Suche, Entdecken über
+  das Plugin Deezer, Schlüssel je Plugin (einmalige Übernahme aus `online/keys.bin`) – **auf main, Beta-Test**.
 - **NEUE KONZEPTIDEE #180:** 1001Tracklists – noch nicht implementiert, vorher Rechte klären.
 - Oberflächen-Tests laufen seit 15.10.2026 auch in der CI (Job „Oberflächen-Tests“).
 - Nächste Iterationen: #14 «4.4.1» und #15 «4.5.0» wie oben; «Idee (Später)» (#4): #9, #14, #107, #108, #156, #157, #180, #186 und #187.
