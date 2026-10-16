@@ -80,7 +80,9 @@ def detail(f) -> tuple[str, str]:
         if own and own.get("bpm"):
             ok, note = compare(sg, own)
             return ("serato_ok" if ok else "serato_diff"), note
-        return "serato", ""
+        if own and own.get("nobeat"):
+            return "serato", "Eigene Analyse ohne Ergebnis (kein gleichmässiger Schlag gefunden) – kein Vergleich möglich"
+        return "serato", "Noch keine eigene Analyse zum Vergleich"
     if own and own.get("bpm"):
         return ("tag" if own.get("from") == "tag" else "analyse"), ""
     try:

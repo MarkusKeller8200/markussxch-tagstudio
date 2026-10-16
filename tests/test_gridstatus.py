@@ -126,6 +126,10 @@ class TestSeratoCompare(Base):
         i = next(k for k, f in enumerate(s.tag_files) if f.path.endswith("s.mp3"))
         self.assertNotIn("check", s.media_extra("tag", i)["grid"])                  # noch keine eigene Analyse
         key = waveform.key_for(s.tag_files[i])
+        self.assertIn("Noch keine eigene Analyse", s.tag_grid_status([i])["notes"][i])
+        s.wave_save(key, [1] * 100, [1] * 100, None)                                 # analysiert, kein Schlag
+        r = s.tag_grid_status([i], fresh=True)
+        self.assertEqual((r["status"][i], "ohne Ergebnis" in r["notes"][i]), ("serato", True))
         s.wave_save(key, [1] * 100, [1] * 100, {"bpm": 126.0, "first": 0.25 + 60 / 126})
         r = s.tag_grid_status([i], fresh=True)
         self.assertEqual(r["status"][i], "serato_ok")

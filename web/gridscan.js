@@ -73,7 +73,7 @@ async function tgGridAnalyse(idx, withSerato = false) {
         const st = await call("tag_grid_status", [i], true);
         const code = (st.status || {})[i];
         if (row && code) { row.grid = code; row.grid_note = (st.notes || {})[i] || ""; }
-        if (["analyse", "serato", "tag", "serato_ok", "serato_diff"].includes(code)) found++;
+        if (withSerato ? ["serato_ok", "serato_diff"].includes(code) : ["analyse", "serato", "tag", "serato_ok", "serato_diff"].includes(code)) found++;
       } catch (e) { /* Datei nicht lesbar – weiter mit der nächsten */ }
       TGG.busy.delete(i); done++;
       drawTgList();
@@ -81,7 +81,7 @@ async function tgGridAnalyse(idx, withSerato = false) {
   } finally {
     TGG.busy.clear(); TGG.run = false; chip.hidden = true; drawTgList(); tgGridFilterRefresh();
   }
-  const msg = `Beatgrid-Analyse: ${found} von ${done} Titel(n) mit Ergebnis${TGG.stop ? " (abgebrochen)" : ""}. Gespeichert im Cache, nicht im MP3.`;
+  const msg = `Beatgrid-Analyse: ${found} von ${done} Titel(n) ${withSerato ? "mit Serato verglichen" : "mit Ergebnis"}${TGG.stop ? " (abgebrochen)" : ""}. Gespeichert im Cache, nicht im MP3.`;
   status(msg, TGG.stop ? "warn" : "ok"); toast(msg);
 }
 

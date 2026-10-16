@@ -12,7 +12,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Analyse vor, zeigt die Spalte „Beatgrid“ „Serato ✓“ (stimmt überein) oder „Serato ≠ Analyse“ mit dem Unterschied im
   Tooltip (halbes/doppeltes Tempo, Tempo weicht ab, erster Schlag versetzt) – auch als Filter. Der Player zeigt denselben
   Hinweis neben „Serato-Grid“. Rechtsklick › „Beatgrid analysieren (auch Serato, zum Vergleich) …“ rechnet die Analyse
-  auch für Serato-Titel. Serato-Daten werden nur gelesen, nie geändert.
+  auch für Serato-Titel. Serato-Daten werden nur gelesen, nie geändert. Korrektur: Nach einer Analyse wurde der Status
+  teils gelesen, bevor das Ergebnis gespeichert war – die Spalte zeigte dann weiter nur „Serato“.
 - **Beatgrid im MP3 speichern (#221):** Rechtsklick › „Beatgrid in Tag speichern …“ übernimmt das Raster der eigenen
   Analyse (BPM, erster Schlag, Sicherheit) in `TXXX:TAGSTUDIO_BEATGRID` – mit Vorschau und Rückgängig, geschrieben beim
   Speichern. Damit reist es mit der Datei; Player und Spalte „Beatgrid“ („Analyse (Tag)“) lesen es auch ohne Cache.

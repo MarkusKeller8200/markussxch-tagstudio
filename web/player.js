@@ -487,7 +487,7 @@ async function plWaveComputeRun(info) {
     try { beat = beatAnalyse(audio, bpmOf(info)); } catch (e) { beat = null; }     // #76
     if (!beat) WAVE_NOBEAT.add(info.wave_key);
     const wave = { peaks, rms, ...(beat ? { beat } : {}) };
-    call("wave_save", info.wave_key, peaks, rms, beat).catch(() => {});
+    await call("wave_save", info.wave_key, peaks, rms, beat).catch(() => {});   // #223: erst speichern, dann Status lesen
     for (const x of [info, PLAYER.info, typeof DECKB !== "undefined" ? DECKB.info : null]) {
       if (x && x.wave_key === info.wave_key) { x.wave = wave; gridFromBeat(x, beat); }
     }
