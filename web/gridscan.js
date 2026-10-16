@@ -6,8 +6,10 @@
 "use strict";
 
 const TGG = { scan: false, run: false, stop: false, busy: new Set() };
-const TGG_ORDER = ["serato", "tag", "analyse", "bpm", "nobeat", "none"];
+const TGG_ORDER = ["serato_ok", "serato", "serato_diff", "tag", "analyse", "bpm", "nobeat", "none"];
 const TGG_INFO = {
+  serato_ok: ["Serato ✓", "Serato-Raster und eigene Analyse stimmen überein"],
+  serato_diff: ["Serato ≠ Analyse", "Serato-Raster und eigene Analyse weichen ab – zum Nachschauen (die eigene Analyse kennt nur gleichbleibendes Tempo)"],
   serato: ["Serato", "Raster aus Serato übernommen (GEOB „Serato BeatGrid“) – nicht automatisch musikalisch geprüft"],
   tag: ["Analyse (Tag)", "Eigene Analyse, dauerhaft im MP3 gespeichert (TXXX:TAGSTUDIO_BEATGRID) – reist mit der Datei"],
   analyse: ["Analyse", "Eigene Audioanalyse: BPM und erster Schlag bei gleichbleibendem Tempo – Taktanfang und Tempowechsel werden nicht erkannt"],
@@ -25,7 +27,7 @@ function tgGridCell(r) {
   if (TGG.busy.has(r.i)) return '<span class="tg-grid run" title="Beatgrid-Analyse läuft">läuft …</span>';
   if (!r.grid) return '<span class="tg-grid" title="Noch nicht geprüft">–</span>';
   const [l, t] = TGG_INFO[r.grid] || [r.grid, ""];
-  return `<span class="tg-grid g-${esc(r.grid)}" title="${esc(t)}">${esc(l)}</span>`;
+  return `<span class="tg-grid g-${esc(r.grid)}" title="${esc(r.grid_note ? `${r.grid_note}\n${t}` : t)}">${esc(l)}</span>`;
 }
 
 /** Spalte sichtbar und Titel ohne Status → im Hintergrund in Paketen nachholen (abbrechbar über den Chip). */
@@ -40,7 +42,7 @@ async function tgGridMaybeScan() {
     for (let k = 0; k < todo.length && !TGG.stop; k += 150) {
       if (own) { $("#wcText").textContent = `Beatgrid prüfen ${Math.min(k + 150, todo.length)} / ${todo.length}`; chip.title = "Beatgrid-Status aus Tags und Cache · Klick: abbrechen"; $(".jc-ring", chip).style.setProperty("--p", Math.round(k / todo.length * 100)); }
       const r = await call("tag_grid_status", todo.slice(k, k + 150), false);
-      for (const [i, code] of Object.entries(r.status || {})) { const row = TG.rows[+i]; if (row) row.grid = code; }
+      for (const [i, code] of Object.entries(r.status || {})) { const row = TG.rows[+i]; if (row) { row.grid = code; row.grid_note = (r.notes || {})[i] || ""; } }
       drawTgList();
     }
   } catch (e) { /* Status ist eine Zusatzinfo – Fehler nicht aufdrängen */ }
@@ -48,10 +50,11 @@ async function tgGridMaybeScan() {
 }
 
 /** Markierte Titel ohne Raster analysieren (wie im Player) – fortlaufend, abbrechbar, nur Cache. */
-async function tgGridAnalyse(idx) {
+async function tgGridAnalyse(idx, withSerato = false) {
   if (TGG.run || (typeof WAVEBG !== "undefined" && WAVEBG.run)) { toast("Es läuft bereits eine Analyse."); return; }
-  const list = (idx || []).filter((i) => TG.rows[i] && !["serato", "tag", "analyse"].includes(TG.rows[i].grid));
-  if (!list.length) { toast("Die markierten Titel haben schon ein Serato-Raster oder eine Analyse."); return; }
+  const skip = withSerato ? ["tag", "analyse", "serato_ok", "serato_diff"] : ["serato", "tag", "analyse", "serato_ok", "serato_diff"];
+  const list = (idx || []).filter((i) => TG.rows[i] && !skip.includes(TG.rows[i].grid));
+  if (!list.length) { toast(withSerato ? "Die markierten Titel haben schon eine eigene Analyse." : "Die markierten Titel haben schon ein Serato-Raster oder eine Analyse."); return; }
   const chip = $("#waveChip");
   TGG.run = true; TGG.stop = false;
   chip.hidden = false; chip.onclick = () => { TGG.stop = true; chip.title = "wird abgebrochen …"; };
@@ -66,11 +69,11 @@ async function tgGridAnalyse(idx) {
       TGG.busy.add(i); drawTgList();
       try {
         const info = await call("media_url", "tag", i);
-        if (!(info.grid && info.grid.exact)) await plWaveCompute(info);
+        if (withSerato || !(info.grid && info.grid.exact)) await plWaveCompute(info);   // #223: auch Serato zum Vergleich
         const st = await call("tag_grid_status", [i], true);
         const code = (st.status || {})[i];
-        if (row && code) row.grid = code;
-        if (["analyse", "serato", "tag"].includes(code)) found++;
+        if (row && code) { row.grid = code; row.grid_note = (st.notes || {})[i] || ""; }
+        if (["analyse", "serato", "tag", "serato_ok", "serato_diff"].includes(code)) found++;
       } catch (e) { /* Datei nicht lesbar – weiter mit der nächsten */ }
       TGG.busy.delete(i); done++;
       drawTgList();
@@ -108,7 +111,7 @@ async function tgBeatTagDialog(idx) {
     apply: async (b) => {
       const r = await call("tag_beatgrid", idx, $("#btOver", b).checked, true);
       const st = await call("tag_grid_status", idx, true).catch(() => null);
-      for (const [i, code] of Object.entries((st && st.status) || {})) if (TG.rows[+i]) TG.rows[+i].grid = code;
+      for (const [i, code] of Object.entries((st && st.status) || {})) if (TG.rows[+i]) { TG.rows[+i].grid = code; TG.rows[+i].grid_note = ((st && st.notes) || {})[i] || ""; }
       return r;
     },
   });

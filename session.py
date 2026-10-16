@@ -544,12 +544,15 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         return out
 
     # ---- #191: Beatgrid-Status für die ganze Bibliothek
-    def _grid_cached(self, f) -> str:
+    def _grid_cached(self, f, note=False):
         c = getattr(self, "_grid_cache", {}).get(f.path)
         try:
-            return c[1] if c and c[0] == os.path.getmtime(f.path) else ""
+            hit = c if c and c[0] == os.path.getmtime(f.path) else None
         except OSError:
-            return ""
+            hit = None
+        if note:
+            return hit[2] if hit and len(hit) > 2 else ""
+        return hit[1] if hit else ""
 
     def tag_grid_status(self, indices=None, fresh=False) -> dict:
         """Beatgrid-Status für Tagger-Zeilen ({i: Code}); ohne indices alle. Liest nur Tags und den Wellenform-Cache
@@ -559,19 +562,22 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         with self.lock:
             files = list(enumerate(self.tag_files))
         want = None if indices is None else {int(i) for i in indices if isinstance(i, int) or str(i).isdigit()}
-        out = {}
+        out, notes = {}, {}
         for i, f in files:
             if want is not None and i not in want:
                 continue
             code = "" if fresh else self._grid_cached(f)
+            note = self._grid_cached(f, note=True) if code else ""
             if not code:
-                code = gridstatus.status(f)
+                code, note = gridstatus.detail(f)
                 try:
-                    cache[f.path] = (os.path.getmtime(f.path), code)
+                    cache[f.path] = (os.path.getmtime(f.path), code, note)
                 except OSError:
                     pass
             out[i] = code
-        return {"status": out, "labels": gridstatus.LABEL}
+            if note:
+                notes[i] = note                                                  # #223: Vergleich Serato ↔ Analyse
+        return {"status": out, "notes": notes, "labels": gridstatus.LABEL}
 
     # ================================================================== Einstellungsseite (#21)
     def settings_page(self) -> dict:
@@ -1784,7 +1790,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 "rating": ratings.get_rating(f), "like": ratings.get_like(f),
                 "x": {k: (moods.text(f) if k == "TMOO" else tagger.text_of(f, k)) for k in self._tg_extra_keys()},   # #154 (#12: Stimmung aus TMOO/TXXX:MOOD)
                 "len": round(float(getattr(f, "duration", 0) or 0)), "kbps": int(getattr(f, "bitrate", 0) or 0),
-                "grid": self._grid_cached(f)}                                                            # #191
+                "grid": self._grid_cached(f), "grid_note": self._grid_cached(f, note=True)}             # #191/#223
 
     @staticmethod
     def _front_cover(f):
@@ -2307,7 +2313,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         plan, rows, skipped = [], [], 0
         for _i, f in files:
             name, old = os.path.basename(f.path), f.text(beattag.KEY)
-            if gridstatus.status(f) == "serato":
+            if gridstatus.status(f).startswith("serato"):
                 rows.append({"name": name, "old": old, "new": "", "source": "Serato-Raster vorhanden – hat Vorrang"})
                 skipped += 1
                 continue

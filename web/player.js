@@ -442,6 +442,9 @@ function beatAnalyse(audio, bpmHint) {
 }
 /** Analyse-Ergebnis als Beatgrid übernehmen (Serato-Grids bleiben) */
 function gridFromBeat(info, beat) {
+  if (info && beat && info.grid && info.grid.exact && typeof plGridCompare === "function") {          // #223
+    info.grid.check = { ...plGridCompare(info.grid, beat), from: "cache" }; return;
+  }
   if (!info || !beat || (info.grid && info.grid.exact)) return;
   info.grid = { bpm: beat.bpm, first: beat.first, source: "Analyse", exact: false, analysed: true, markers: [{ pos: beat.first, bpm: beat.bpm }] };
 }

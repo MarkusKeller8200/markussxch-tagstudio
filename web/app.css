@@ -1470,3 +1470,7 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 [data-theme="dark"] .tg-grid.g-bpm{color:#F5B54A}[data-theme="dark"] .tg-grid.g-nobeat,[data-theme="dark"] .tg-grid.g-none{color:#FF8A8E}
 .tg-tfilter select{width:100%;min-width:0;height:24px;padding:0 4px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:12px var(--font)}
 .tg-tfilter select.on{border-color:var(--acc)}
+.tg-grid.g-serato_ok{background:#2E9E6B26;color:#1F7A50}
+.tg-grid.g-serato_diff{background:#F5A62333;color:#B26B00;font-weight:600}
+.tg-grid.g-tag{background:#3B82F626;color:#1D5FD1;font-weight:600}
+[data-theme="dark"] .tg-grid.g-serato_ok{color:#5FD39C}[data-theme="dark"] .tg-grid.g-serato_diff{color:#F5B54A}[data-theme="dark"] .tg-grid.g-tag{color:#8AB4F8}

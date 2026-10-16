@@ -57,6 +57,6 @@ class TestBeatTag(Base):
         os.remove(waveform._file(waveform.key_for(fa)))
         g = s.media_extra("tag", a)["grid"]
         self.assertEqual((g["source"], g["bpm"], g["from_tag"]), ("Analyse (Tag)", 124.5, True))
-        self.assertEqual(s.tag_grid_status([sr], fresh=True)["status"][sr], "serato")
+        self.assertEqual(s.tag_grid_status([sr], fresh=True)["status"][sr], "serato_diff")   # #223: Cache weicht ab
         # nochmals: schon gespeichert → übersprungen, ausser „ersetzen“
         self.assertEqual(s.tag_beatgrid([a])["count"], 0)

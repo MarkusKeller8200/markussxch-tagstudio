@@ -12,14 +12,36 @@ const DET = { on: false, timer: 0, seq: 0, popup: null, t0: 0, waveKey: { A: nul
 /** Beatgrid eines Titels (aus media_extra: Serato oder geschätzt aus BPM) oder null */
 function gridOf(info) { const g = info && info.grid; return g && g.bpm > 0 && g.markers && g.markers.length ? g : null; }
 
+/** #223: Serato-Raster mit eigener Analyse vergleichen – gleiche Regeln wie gridstatus.compare (Python). */
+function plGridCompare(sg, own) {
+  const de = (x, n = 1) => x.toFixed(n).replace(".", ",");
+  const sb = +sg.bpm, sf = +sg.first || 0, ob = +own.bpm, of = +own.first || 0;
+  if (!(sb > 0 && ob > 0)) return { ok: false, note: "kein Vergleich möglich" };
+  const tail = (sg.markers || []).length > 1 ? " (Serato mit Tempowechsel – nur der Anfang verglichen)" : "";
+  const r = ob / sb;
+  if (Math.abs(r - 2) <= 0.002 || Math.abs(r - 0.5) <= 0.0005)
+    return { ok: false, note: `Serato ${de(sb)} BPM, Analyse ${de(ob)} BPM – ${r > 1 ? "halbes" : "doppeltes"} Tempo in Serato${tail}` };
+  if (Math.abs(r - 1) > 0.001) return { ok: false, note: `Tempo weicht ab: Serato ${de(sb, 2)} BPM, Analyse ${de(ob, 2)} BPM${tail}` };
+  const p = 60 / sb; let d = ((of - sf) % p + p) % p; d = Math.min(d, p - d);
+  if (d > 0.020) return { ok: false, note: `Tempo gleich (${de(sb, 2)} BPM), erster Schlag ${Math.round(d * 1000)} ms versetzt${tail}` };
+  return { ok: true, note: `Serato und Analyse stimmen überein (${de(sb, 2)} BPM, Abstand ${Math.round(d * 1000)} ms)${tail}` };
+}
+
 /** #181: Herkunft klar kennzeichnen. Ein BPM-Fallback ist KEIN aus Audio geprüftes Beatgrid. */
 function plGridStatus(info) {
   if (!info) return { label: "", state: "empty", hint: "" };
   const g = gridOf(info);
-  if (g && (g.source === "Serato" || g.exact)) return {
-    label: "Serato-Grid", state: "external",
-    hint: "Aus Serato eingelesen · " + g.bpm + " BPM. Nicht musikalisch auf Korrektheit geprüft."
-  };
+  if (g && (g.source === "Serato" || g.exact)) {
+    const c = g.check;                                                  // #223: Vergleich mit der eigenen Analyse
+    if (c) return {
+      label: c.ok ? "Serato-Grid ✓" : "Serato ≠ Analyse", state: c.ok ? "external" : "estimate",
+      hint: "Aus Serato eingelesen · " + g.bpm + " BPM. " + c.note + (c.ok ? "." : ". Hinweis zum Nachschauen – die eigene Analyse erkennt nur gleichbleibendes Tempo, keinen Taktanfang.")
+    };
+    return {
+      label: "Serato-Grid", state: "external",
+      hint: "Aus Serato eingelesen · " + g.bpm + " BPM. Nicht musikalisch auf Korrektheit geprüft (noch keine eigene Analyse zum Vergleich)."
+    };
+  }
   if (g && g.from_tag) return {                                       // #221: im MP3 gespeichert
     label: "Audioanalyse (Tag)", state: "analysed",
     hint: "Eigene Analyse, gespeichert in TXXX:TAGSTUDIO_BEATGRID (" + g.bpm + " BPM). Kein verifizierter Downbeat."
@@ -753,6 +775,7 @@ function plRowMenu(e, t, label) {
   if (t.kind === "tag" && S.module === "tagger" && typeof tgGridAnalyse === "function") {           // #191
     const idx = typeof tgSelected === "function" && tgSelected().length ? tgSelected() : [t.ref];
     items.push("-", { label: `Beatgrid analysieren …${idx.length > 1 ? ` (${idx.length})` : ""}`, run: () => tgGridAnalyse(idx) },
+      { label: "Beatgrid analysieren (auch Serato, zum Vergleich) …", run: () => tgGridAnalyse(idx, true) },             // #223
       { label: `Beatgrid in Tag speichern …${idx.length > 1 ? ` (${idx.length})` : ""}`, run: () => tgBeatTagDialog(idx) });     // #221
   }
   if (t.kind === "tag") items.push("-", { label: "Dateiordner öffnen", icon: ICON.folder, run: () => call("reveal_tag", t.ref) });   // #197

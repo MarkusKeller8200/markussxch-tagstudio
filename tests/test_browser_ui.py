@@ -708,7 +708,7 @@ class UiTest(unittest.TestCase):
         pg.evaluate("tgSetCols([...tgCols().filter((c) => c !== 'grid'), 'grid'], true)")
         self.assertTrue(self.until("TG.rows.every((r) => r.grid)", 10))                  # Status nachgeholt
         codes = pg.evaluate("TG.rows.map((r) => r.grid)")
-        self.assertTrue(all(c in ("bpm", "none", "analyse", "nobeat", "serato") for c in codes), codes)
+        self.assertTrue(all(c in ("bpm", "none", "analyse", "nobeat", "serato", "serato_ok", "serato_diff", "tag") for c in codes), codes)
         self.assertTrue(pg.locator("#tgInner .tg-grid").count() >= 3)
         sel = '#tgHeadF select[data-cf="grid"]'                                         # Auswahl mit den Zuständen
         pg.wait_for_selector(sel)
@@ -725,6 +725,31 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("!TGG.run && /Beatgrid-Analyse/.test(document.querySelector('#toast')?.textContent || '')", 30))
         self.assertIn(pg.evaluate("TG.rows[TG.view[0].i].grid"), ("analyse", "nobeat", "bpm"))
         self.assertFalse(pg.evaluate("TG.rows.some((r) => r.modified)"))                 # nichts am MP3 geändert
+        self.assertEqual(self.errors, [])
+
+    def test_serato_compare(self):
+        """#223: Serato-Raster gegen eigene Analyse – Spalte mit Hinweis, Filterauswahl, Player-Status, Menüeintrag."""
+        pg = self.pg
+        self.load_tagger()
+        r = pg.evaluate("""[plGridCompare({bpm: 126, first: 0.25}, {bpm: 63, first: 0.25}),
+                            plGridCompare({bpm: 126, first: 0.25}, {bpm: 126, first: 0.25 + 60 / 126})]""")
+        self.assertEqual([x["ok"] for x in r], [False, True])
+        self.assertIn("doppeltes Tempo in Serato", r[0]["note"])
+        st = pg.evaluate("""[plGridStatus({grid: {source: 'Serato', exact: true, bpm: 126, markers: [{pos: 0.25, bpm: 126}], check: {ok: false, note: 'Tempo weicht ab'}}}),
+                             plGridStatus({grid: {source: 'Serato', exact: true, bpm: 126, markers: [{pos: 0.25, bpm: 126}]}})]""")
+        self.assertEqual((st[0]["label"], st[1]["label"]), ("Serato ≠ Analyse", "Serato-Grid"))
+        self.assertIn("Tempo weicht ab", st[0]["hint"])
+        pg.evaluate("tgSetCols([...tgCols().filter((c) => c !== 'grid'), 'grid'], true)")
+        self.assertTrue(self.until("TG.rows.every((r) => r.grid)", 10))
+        pg.evaluate("""TG.rows[TG.view[0].i].grid = 'serato_diff'; TG.rows[TG.view[0].i].grid_note = 'Serato 126,0 BPM, Analyse 63,0 BPM';
+                       drawTgList(); tgGridFilterRefresh()""")
+        cell = pg.locator(".tg-row >> nth=0").locator(".tg-grid")
+        self.assertEqual(cell.inner_text(), "Serato ≠ Analyse")
+        self.assertIn("Analyse 63,0 BPM", cell.evaluate("(e) => e.outerHTML"))   # Hinweis im Tooltip
+        self.assertIn("Serato ≠ Analyse (1)", pg.inner_text('#tgHeadF select[data-cf="grid"]'))
+        pg.click(".tg-row >> nth=0", button="right")
+        self.assertEqual(pg.locator('.menu button:has-text("auch Serato, zum Vergleich")').count(), 1)
+        pg.keyboard.press("Escape")
         self.assertEqual(self.errors, [])
 
     def test_beatgrid_to_tag(self):

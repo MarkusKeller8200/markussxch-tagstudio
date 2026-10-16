@@ -84,3 +84,59 @@ class TestSeratoOverview(Base):
         ex = s.media_extra("tag", i)
         self.assertEqual((len(ex["wave"]["peaks"]), ex["wave"].get("source")), (100, None))
         self.assertFalse(s.tag_files[i].is_modified())
+
+
+class TestSeratoCompare(Base):
+    """#223: Serato-Raster mit der eigenen Analyse vergleichen (nur lesen)."""
+    def test_compare_rules(self):
+        import gridstatus as gs
+        sg = {"bpm": 126.0, "first": 0.25, "markers": [1]}
+        ok, note = gs.compare(sg, {"bpm": 126.05, "first": 0.25 + 60 / 126 * 4 + 0.01})
+        self.assertTrue(ok, note)
+        self.assertIn("stimmen überein", note)
+        ok, note = gs.compare(sg, {"bpm": 63.0, "first": 0.25})
+        self.assertFalse(ok)
+        self.assertIn("doppeltes Tempo in Serato", note)
+        ok, note = gs.compare(sg, {"bpm": 252.0, "first": 0.25})
+        self.assertIn("halbes Tempo in Serato", note)
+        ok, note = gs.compare(sg, {"bpm": 124.0, "first": 0.25})
+        self.assertIn("Tempo weicht ab", note)
+        ok, note = gs.compare(sg, {"bpm": 126.0, "first": 0.30})
+        self.assertFalse(ok)
+        self.assertIn("50 ms versetzt", note)
+        ok, note = gs.compare({"bpm": 126.0, "first": 0.25, "markers": [1, 2]}, {"bpm": 126.0, "first": 0.25})
+        self.assertTrue(ok)
+        self.assertIn("Tempowechsel", note)
+
+    def test_status_and_player_check(self):
+        from unittest import mock
+        import waveform
+        p = mock.patch.object(waveform, "DIR", os.path.join(self.dir, "wave"))
+        p.start()
+        self.addCleanup(p.stop)
+        write_mp3(os.path.join(self.B, "s.mp3"), [text("TIT2", "Serato"),
+                                                  geob("Serato BeatGrid", grid([], 0.25, 126.0))], audio_seed=1)
+        from session import Session
+        s = Session()
+        s.start_tag_load(self.B, False)
+        for _ in range(500):
+            if s.task_status().get("done"):
+                break
+            time.sleep(0.02)
+        i = next(k for k, f in enumerate(s.tag_files) if f.path.endswith("s.mp3"))
+        self.assertNotIn("check", s.media_extra("tag", i)["grid"])                  # noch keine eigene Analyse
+        key = waveform.key_for(s.tag_files[i])
+        s.wave_save(key, [1] * 100, [1] * 100, {"bpm": 126.0, "first": 0.25 + 60 / 126})
+        r = s.tag_grid_status([i], fresh=True)
+        self.assertEqual(r["status"][i], "serato_ok")
+        self.assertIn("stimmen überein", r["notes"][i])
+        self.assertEqual(r["labels"]["serato_diff"], "Serato ≠ Analyse")
+        c = s.media_extra("tag", i)["grid"]["check"]
+        self.assertEqual((c["ok"], c["from"]), (True, "cache"))
+        s.wave_save(key, [1] * 100, [1] * 100, {"bpm": 63.0, "first": 0.25})
+        r = s.tag_grid_status([i], fresh=True)
+        self.assertEqual(r["status"][i], "serato_diff")
+        row = next(x for x in s.tag_rows()["rows"] if x["name"] == "s.mp3")
+        self.assertIn("doppeltes Tempo", row["grid_note"])
+        self.assertFalse(s.media_extra("tag", i)["grid"]["check"]["ok"])
+        self.assertFalse(s.tag_files[i].is_modified())                               # Serato nur gelesen

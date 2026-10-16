@@ -80,6 +80,15 @@ conf=0.87; src=analyse; date=2026-10-17` – nur das Raster, nicht die Wellenfor
 Serato-Raster (Vorrang) und ohne Analyse, vorhandene Werte nur mit „ersetzen“. Lesen: Status `tag` („Analyse (Tag)“) vor
 `analyse`; Player-Raster aus dem Tag (`from_tag`, Kennzeichnung „Audioanalyse (Tag)“), auch ohne Cache. Kein Verstoss
 gegen die Schutzregel in „Vorbereiten“. Idee: Wellenform als GEOB „TagStudio Overview“ (#222, später).
+**Vergleich Serato ↔ eigene Analyse (#223):** Hat ein Serato-Titel auch eine eigene Analyse (Tag oder Cache), vergleicht
+`gridstatus.compare` (Python) bzw. `plGridCompare` (JS, gleiche Regeln): Tempoverhältnis 2 bzw. ½ → „halbes/doppeltes
+Tempo in Serato“, Tempo-Abweichung > 0,1 % → „Tempo weicht ab“, sonst Abstand des ersten Schlags modulo Schlaglänge
+> 20 ms → „erster Schlag N ms versetzt“; bei mehreren Serato-Markern nur der Anfang (Hinweis „Tempowechsel“). Codes
+`serato_ok` („Serato ✓“) und `serato_diff` („Serato ≠ Analyse“), Hinweis als `grid_note` in den Zeilen bzw. `notes` von
+`tag_grid_status` (Tooltip). Player: `media_extra` liefert `grid.check = {ok, note, from}`, Anzeige „Serato-Grid ✓“ /
+„Serato ≠ Analyse“. Kontextmenü „Beatgrid analysieren (auch Serato, zum Vergleich) …“. Die eigene Analyse kennt nur
+konstantes Tempo und keinen Taktanfang – eine Abweichung ist ein Hinweis zum Nachschauen, kein Fehlerbefund. Serato-Daten
+werden nie geschrieben; „Beatgrid in Tag speichern“ überspringt Serato-Titel weiterhin.
 Offen: Qualität von `beatAnalyse()` (Taktanfang, Tempowechsel) und Vergleich Serato ↔ eigene Analyse – siehe
 KONZEPT-MUSIKANALYSIEREN.
 
