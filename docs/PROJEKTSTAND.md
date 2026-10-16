@@ -160,8 +160,8 @@ Meilensteine können über den **gesicherten [Administrationskanal #190](https:/
 
 - **#10 „4.4.0 – …“:** abgeschlossen mit 4.4.0 final (2026-10-12).
 - **#14 „4.4.1 – Player-Stabilität“:** #181 (offen, Praxistest), #188 (Planung), #192 und #193 in `_3 Beta-Test` (beta.6).
-- **#15 „4.5.0“:** #183–#185, #201–#204 geschlossen (16.10.); #205 Beispielwerte im Integrationsfenster und #206 Lizenzen mit GitHub-Repositories in `_3 Beta-Test`; #189 Planung offen bis zum Release.
-- **#17 „4.6.0“:** leer (#204 nach 4.5.0 verschoben).
+- **#15 „4.5.0“:** #183–#185, #201–#204 geschlossen (16.10.); #205 Beispielwerte im Integrationsfenster, #206 Lizenzen mit GitHub-Repositories, #212 API-Tester-Drosselung, #213 IDs übernehmen, #214 Zeitraum-Filter in `_3 Beta-Test`; #207–#211 (CodeQL) geschlossen; #200 Durchsicht vorbereitet; #189 Planung offen bis zum Release.
+- **#17 „4.6.0“:** #215 Liedtexte im Player, #191 Beatgrid-Status (#204 nach 4.5.0 verschoben; Titel des Meilensteins noch „Online-Dienste als Plugins“).
 - **#4 „Idee (Später)“:** #9, #14, #107, #108, #156 (WAV), #157 (Mehrsprachigkeit), #180 (1001Tracklists), #186 (Modul IDEE), #187 (Feedback-Freigabe).
 - **#180 „1001Tracklists: Set-Import, Library-Abgleich und DJ-Intelligence“:** `idee`, Meilenstein „Später“; **ausschliesslich geplant, noch nicht implementiert**. Anforderungen in `docs/KONZEPT-DJSET.md` (Import/Discovery) und `docs/KONZEPT-MUSIKANALYSIEREN.md` (Set-Intelligence/Score) aufgenommen. Vor Automatisierung Datenzugang und Nutzungsrechte klären.
 

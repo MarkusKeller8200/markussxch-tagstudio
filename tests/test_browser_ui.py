@@ -125,11 +125,21 @@ class UiTest(unittest.TestCase):
             time.sleep(0.1)
 
     def until(self, js, timeout=6.0):
-        t0 = time.time()
+        """Warten, bis js wahr ist. Ein abgelehnter Aufruf (z. B. Snapshot wird gerade geschrieben) zählt als „noch
+        nicht“ – erst nach Ablauf der Zeit wird der letzte Fehler gemeldet."""
+        t0, err = time.time(), None
         while time.time() - t0 < timeout:
-            if self.pg.evaluate(js):
-                return True
+            try:
+                if self.pg.evaluate(js):
+                    return True
+                err = None
+            except Exception as ex:  # noqa: BLE001 – Playwright meldet abgelehnte Promises als Error
+                if "Target" in type(ex).__name__ or "closed" in str(ex):
+                    raise
+                err = ex
             time.sleep(0.1)
+        if err is not None:
+            raise err
         return False
 
     # ---------------------------------------------------------------- Tests
@@ -1012,10 +1022,7 @@ class UiTest(unittest.TestCase):
         lid = pg.evaluate(f"call('snap_add_library', {json.dumps(self.lib)}).then(r => r.library.id)")
         for label, pin in (("Alt", False), ("Wichtig", True)):
             pg.evaluate(f"call('snap_create', '{lid}', '{label}', false, {str(pin).lower()})")
-            for _ in range(100):
-                if pg.evaluate(f"call('snap_list', '{lid}').then(r => r.snapshots.length)") >= (1 if label == "Alt" else 2):
-                    break
-                time.sleep(0.1)
+            self.until(f"call('snap_list', '{lid}').then(r => r.snapshots.length >= {1 if label == 'Alt' else 2})", 10)
         pg.click('.nav[data-module="snapshots"]')
         pg.wait_for_selector("#snSnaps [data-base]")
         self.assertEqual(pg.locator("#snLibs .sn-lib .r.path-dir").count(), 1)          # #178: Verzeichnis grün
