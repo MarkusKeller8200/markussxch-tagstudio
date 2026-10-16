@@ -220,6 +220,11 @@ class PrepareMixin:
                             errors.append(f"{n}: {dups[0]}")
                             continue
                         prepare.copy_file(src, dst)
+                        if self.cfg.get("stamp_added", True):             # #184: Zeitpunkt der Aufnahme, nie überschreiben
+                            from id3tags import MP3File
+                            fa = MP3File(dst)
+                            if tsmeta.set_added(fa):
+                                fa.save()
                         t["lib_baseline"] = prepare.tag_values(dst)
                         rec.update(state="done", at=prepare.now(), file=dst, note="übernommen" + (" (trotz Hinweis)" if dups else ""))
                     elif s["type"] == "verify":

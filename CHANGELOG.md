@@ -7,6 +7,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ## [Unveröffentlicht]
 
 ### Neu
+- **In Bibliothek aufgenommen (#184):** die Übernahme aus „Vorbereiten“ schreibt den Zeitpunkt in
+  `TXXX:TAGSTUDIO_ADDED` (ein vorhandener Wert bleibt). Für bestehende Titel: Tagger › „Aufnahmedatum nachtragen …“ mit
+  Vorschau – Vorschlag aus dem frühesten Snapshot, der den Titel enthält (am Audio erkannt, auch nach Umbenennen), sonst
+  ein Datum von Hand; nie das Dateidatum. Tagger-Spalte „Aufgenommen“, abschaltbar unter Einstellungen › Speichern.
 - **Letzte Bearbeitung (#185):** beim Speichern geänderter Tags schreibt TagStudio den Zeitpunkt in
   `TXXX:TAGSTUDIO_EDITED` (ISO 8601 mit Zeitzone, z. B. `2026-10-16T01:55:00+02:00`) – nicht beim Anzeigen, Einlesen
   oder Speichern ohne Änderung; Rückgängig/Wiederherstellen zählt als Bearbeitung. Abschaltbar unter Einstellungen ›

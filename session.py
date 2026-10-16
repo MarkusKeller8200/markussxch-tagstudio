@@ -544,7 +544,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         c = self.cfg
         return {"file": appsettings.overview(), "trivial": list(self.rules.trivial), "trivial_default": list(DEFAULT_TRIVIAL),
                 "save_version": c.get("save_version", 0), "save_v1": c.get("save_v1", 0),
-                "stamp_edited": c.get("stamp_edited", True), "key_notation": c.get("key_notation", "camelot"),
+                "stamp_edited": c.get("stamp_edited", True), "stamp_added": c.get("stamp_added", True), "key_notation": c.get("key_notation", "camelot"),
                 "notations": [[k, v] for k, v in keys.NOTATIONS.items()], "theme": self.opts["theme"],
                 "backup_enabled": c.get("backup_enabled", True), "backup_dir": self._backup_folder(),
                 "backup_store": self._backup_in_store(),
@@ -596,6 +596,14 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             raise ValueError("Ja/Nein erwartet")
         self.cfg["stamp_edited"] = on
         core.save_config({"stamp_edited": on})
+        return on
+
+    def set_stamp_added(self, on):
+        """#184: bei der Übernahme aus „Vorbereiten“ „In Bibliothek aufgenommen“ (TXXX:TAGSTUDIO_ADDED) setzen."""
+        if not isinstance(on, bool):
+            raise ValueError("Ja/Nein erwartet")
+        self.cfg["stamp_added"] = on
+        core.save_config({"stamp_added": on})
         return on
 
     def settings_export_text(self) -> str:
@@ -2207,6 +2215,49 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 return {"rows": self._plan_rows(plan), "count": len(plan), "files": len({id(f) for f, *_ in plan})}
             return self._apply_plan(idx, plan, "Suchen & Ersetzen",
                                     f"{len(plan)} Feld(er) ersetzt – noch nicht gespeichert.")
+
+    def tag_added(self, idx, mode="snapshot", value="", overwrite=False, apply=False):
+        """#184: „In Bibliothek aufgenommen“ nachtragen – mode „snapshot“ (frühester Snapshot mit diesem Audio bzw. Pfad,
+        sonst `value` als Ersatz) oder „date“ (`value` für alle). Vorhandene Werte nur mit overwrite. Nie das Dateidatum.
+        Vorschau-Zeilen zeigen die Quelle; Übernehmen mit Rückgängig, gespeichert wird wie üblich."""
+        import snapshots
+        import tsmeta
+        if mode not in ("snapshot", "date"):
+            raise ValueError("snapshot oder date erwartet")
+        fallback = ""
+        if str(value or "").strip():
+            fallback = tsmeta.normalize(value)            # ValueError bei ungültigem Datum
+        elif mode == "date":
+            raise ValueError("Bitte ein Datum angeben (z. B. 2026-10-16).")
+        with self.lock:
+            files = [(i, self.tag_files[i]) for i in idx if isinstance(i, int) and 0 <= i < len(self.tag_files)]
+        todo = [(i, f) for i, f in files if overwrite or not f.text(tsmeta.ADDED)]
+        seen = {}
+        if mode == "snapshot" and todo and self._snap_store_ok():
+            try:
+                seen = snapshots.first_seen(self.snap_store, [f.path for _i, f in todo])
+            except (OSError, snapshots.StoreError):
+                seen = {}
+        plan, rows, skipped = [], [], len(files) - len(todo)
+        for _i, f in todo:
+            hit = seen.get(f.path)
+            if hit:
+                new, src = tsmeta.normalize(hit["created"]), f"Snapshot „{hit['label'] or hit['created']}“ ({hit['library']})"
+            elif fallback:
+                new, src = fallback, "von Hand"
+            else:
+                rows.append({"name": os.path.basename(f.path), "old": f.text(tsmeta.ADDED), "new": "", "source": "kein Snapshot gefunden"})
+                continue
+            old = f.text(tsmeta.ADDED)
+            if old == new:
+                continue
+            plan.append((f, tsmeta.ADDED, old, new))
+            rows.append({"name": os.path.basename(f.path), "old": old, "new": new, "source": src})
+        if not apply:
+            return {"rows": rows[:2000], "count": len(plan), "files": len(files), "skipped": skipped}
+        with self.lock:
+            return self._apply_plan(idx, plan, "In Bibliothek aufgenommen",
+                                    f"„In Bibliothek aufgenommen“ für {len(plan)} Titel gesetzt – noch nicht gespeichert.")
 
     def tag_folder_cover(self, idx, only_missing=True, apply=False):
         with self.lock:

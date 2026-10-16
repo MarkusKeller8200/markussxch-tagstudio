@@ -60,6 +60,7 @@ async function settingsShow() {
         <label for="stSaveVer">ID3-Version beim Speichern</label>${stSel("stSaveVer", [[0, "beibehalten (wie die Datei)"], [3, "immer ID3v2.3 (am verträglichsten)"], [4, "immer ID3v2.4"]], d.save_version)}
         <label for="stSaveV1">ID3v1 (Dateiende)</label>${stSel("stSaveV1", [[0, "wie vorhanden"], [1, "immer mitschreiben (Titel, Künstler, Album, Jahr, Kommentar, Spur, Genre)"], [2, "entfernen"]], d.save_v1 || 0)}
         <span>Letzte Bearbeitung</span><div class="st-path">${stCheck("stStampEdited", d.stamp_edited !== false, "Beim Speichern geänderter Tags den Zeitpunkt in TXXX:TAGSTUDIO_EDITED schreiben (auch in Mp3tag, Lexicon usw. sichtbar)")}</div>
+        <span>In Bibliothek aufgenommen</span><div class="st-path">${stCheck("stStampAdded", d.stamp_added !== false, "Bei der Übernahme aus „Vorbereiten“ den Zeitpunkt in TXXX:TAGSTUDIO_ADDED schreiben (ein vorhandener Wert bleibt)")}</div>
         <span>Sicherung</span>${stCheck("stBackup", d.backup_enabled, "Vor dem Speichern die bisherigen Tags sichern")}
         <span>Ablage</span>${stCheck("stBackupStore", d.backup_store, "Im Snapshot-Speicher ablegen (gleiche Tags nur einmal – spart Platz; sonst ZIP im Sicherungsordner)")}
         <span>Sicherungsordner</span><div class="st-path"><code title="${esc(d.backup_dir)}">${esc(d.backup_dir)}</code><button class="ghost sm" id="stBkFolder">Ändern …</button><button class="ghost sm" id="stBkOpen">Öffnen</button></div>
@@ -572,7 +573,8 @@ function initSettings() {
       await call("tag_key_notation", t.value);
       if (typeof TG !== "undefined" && TG.settings && TG.settings.keys) { TG.settings.keys.notation = t.value; }
       toast("Tonart-Schreibweise gespeichert.");
-    } else if (t.id === "stStampEdited") { await call("set_stamp_edited", t.checked); toast(t.checked ? "„Letzte Bearbeitung“ wird beim Speichern gesetzt." : "„Letzte Bearbeitung“ wird nicht mehr gesetzt."); }   // #185
+    } else if (t.id === "stStampAdded") { await call("set_stamp_added", t.checked); toast(t.checked ? "„In Bibliothek aufgenommen“ wird bei der Übernahme gesetzt." : "„In Bibliothek aufgenommen“ wird nicht mehr gesetzt."); }   // #184
+    else if (t.id === "stStampEdited") { await call("set_stamp_edited", t.checked); toast(t.checked ? "„Letzte Bearbeitung“ wird beim Speichern gesetzt." : "„Letzte Bearbeitung“ wird nicht mehr gesetzt."); }   // #185
     else if (t.id === "stSaveV1") { await call("set_save_v1", +t.value); toast(["ID3v1 bleibt wie in der Datei.", "ID3v1 wird beim Speichern mitgeschrieben.", "ID3v1 wird beim Speichern entfernt."][+t.value]); }   // #112
     else if (t.id === "stSaveVer") { await call("set_save_version", +t.value); toast(+t.value ? `Beim Speichern immer ID3v2.${t.value}.` : "ID3-Version bleibt wie in der Datei."); }
     else if (t.id === "stBackupStore") { await call("set_backup", null, null, t.checked); toast(t.checked ? "Neue Sicherungen kommen in den Snapshot-Speicher." : "Neue Sicherungen kommen als ZIP in den Sicherungsordner."); }   // #59

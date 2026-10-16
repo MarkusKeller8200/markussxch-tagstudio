@@ -749,6 +749,7 @@ function renderTgEditor() {
       <button class="ghost" id="tgReplace">Suchen &amp; Ersetzen …</button>
       <button class="ghost" id="tgRecipe" title="Aktionslisten wie in Mp3tag (#111)">Tag-Rezepte …</button>
       <button class="ghost" id="tgFolderCover">Cover aus Ordner …</button>
+      <button class="ghost" id="tgAdded" title="„In Bibliothek aufgenommen“ für Titel ohne Wert nachtragen (#184)">Aufnahmedatum nachtragen …</button>
       <button class="ghost" id="tgExport">Liste exportieren …</button>
       <button class="ghost" id="tgOrigin">Felder nach Herkunft …</button>
       <button class="ghost" id="tgArchive" title="Markierte Titel in den Archiv-Ordner verschieben (#173)">Aussortieren …</button>
@@ -1313,6 +1314,34 @@ async function tgFolderCoverDialog() {
   });
 }
 
+/** #184: „In Bibliothek aufgenommen“ nachtragen – Vorschlag aus dem frühesten Snapshot, sonst Datum von Hand.
+    Nie aus dem Dateidatum. Vorhandene Werte nur auf ausdrücklichen Wunsch. */
+async function tgAddedDialog() {
+  const idx = tgSelected();
+  const today = new Date().toISOString().slice(0, 10);
+  const val = (b) => ({ mode: b.querySelector('input[name="ad-m"]:checked').value, date: $("#adDate", b).value, over: $("#adOver", b).checked });
+  await toolDialog({
+    title: `In Bibliothek aufgenommen nachtragen (${idx.length} Datei(en))`,
+    form: `<div class="hint">Gespeichert in <code>TXXX:TAGSTUDIO_ADDED</code>. Das Dateidatum wird bewusst nicht verwendet – es ändert
+      sich beim Kopieren und Bearbeiten.</div>
+      <div class="frm"><label>Quelle</label><div class="radios">
+        <label><input type="radio" name="ad-m" value="snapshot" checked> Frühester Snapshot mit diesem Titel, sonst das Datum unten</label>
+        <label><input type="radio" name="ad-m" value="date"> Für alle das Datum unten</label></div>
+      <label for="adDate">Datum</label><div><input type="date" id="adDate" class="inp" value="${today}"></div>
+      <span></span><label class="check"><input type="checkbox" id="adOver"> Vorhandene Werte überschreiben</label></div>`,
+    columns: [["Datei", "name"], ["Bisher", "old", "old"], ["Neu", "new", "new"], ["Quelle", "source"]],
+    preview: async (b) => {
+      const v = val(b);
+      try {
+        const r = await call("tag_added", idx, v.mode, v.date, v.over, false);
+        r.summary = `${fmtN(r.count)} Titel bekommen ein Aufnahmedatum${r.skipped ? ` · ${fmtN(r.skipped)} haben schon eins` : ""}.`;
+        return r;
+      } catch (e) { return { error: String(e.message || e), rows: [], count: 0 }; }
+    },
+    apply: (b) => { const v = val(b); return call("tag_added", idx, v.mode, v.date, v.over, true); },
+  });
+}
+
 async function tgExportDialog() {
   const idx = tgSelected();
   const res = await modal({
@@ -1518,6 +1547,7 @@ async function tgOriginDialog(preset = "") {
     else if (id === "tgArchive") archiveTaggerDialog(idx);                                                                   // #173
     else if (id === "tgRecipe") tgRecipeDialog();                                                                            // #111
     else if (id === "tgFolderCover") tgFolderCoverDialog();
+    else if (id === "tgAdded") tgAddedDialog();
     else if (id === "tgExport") tgExportDialog();
     else if (id === "tgOrigin") tgOriginDialog();
     else if (id === "tgStemTags") tgStemTagsDialog();

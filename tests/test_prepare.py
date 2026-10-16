@@ -91,6 +91,10 @@ class TestPrepare(Base):
         self.assertFalse(os.path.isfile(os.path.join(self.lib, "b.mp3")))
         self.s.start_prep_run(self.wid, "s07", ["b.mp3"], True)       # trotzdem übernehmen
         self.assertEqual(self.wait()["done"], 1)
+        # #184: Übernahme setzt „In Bibliothek aufgenommen“, die Rohdaten im Eingang bleiben ohne
+        import tsmeta
+        self.assertTrue(tsmeta.parse(MP3File(os.path.join(self.lib, "a.mp3")).text(tsmeta.ADDED)))
+        self.assertEqual(MP3File(os.path.join(self.inbox, "a.mp3")).text(tsmeta.ADDED), "")
         # Status: Mixed In Key erkannt (EnergyLevel) – erlaubte Felder
         f = MP3File(os.path.join(self.lib, "a.mp3"))
         f.set_text("TXXX:EnergyLevel", "7")

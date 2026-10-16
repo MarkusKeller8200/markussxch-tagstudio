@@ -601,6 +601,46 @@ def rel(root: str, path: str) -> str:
     return os.path.relpath(path, root).replace(os.sep, "/")
 
 
+def first_seen(store, paths) -> dict:
+    """#184: Für jede Datei der früheste Snapshot, in dem sie vorkommt – erkannt am Audio-Inhalt (überlebt Umbenennen
+    und Verschieben) oder am relativen Pfad. → {path: {"created", "label", "library"}}; nicht gefunden = fehlt."""
+    want = {}
+    for p in paths:
+        try:
+            want[p] = audio_key(p, read_tags(p))
+        except (OSError, ValueError):
+            want[p] = None
+    out = {}
+    for lib in store.libraries():
+        root = lib.get("root") or ""
+        rels = {}
+        for p in want:
+            try:
+                r = rel(root, p) if root else None
+            except ValueError:                       # anderes Laufwerk
+                r = None
+            if r and not r.startswith(".."):
+                rels[r] = p
+        by_audio = {}
+        for p, a in want.items():
+            if a:
+                by_audio.setdefault(a, []).append(p)
+        for s in sorted(store.snapshots(lib["id"]), key=lambda x: (x["created"], x["id"])):
+            if len(out) == len(want):
+                return out
+            try:
+                m = store.manifest(lib["id"], s["id"])
+            except StoreError:
+                continue
+            for e in m.get("files", []):
+                hit = list(by_audio.get(e.get("audio"), [])) + ([rels[e["p"]]] if e.get("p") in rels else [])
+                for p in hit:
+                    old = out.get(p)
+                    if old is None or s["created"] < old["created"]:
+                        out[p] = {"created": s["created"], "label": s.get("label") or "", "library": lib.get("name") or ""}
+    return out
+
+
 def entry_for(path: str, root: str, sink, st=None) -> dict:
     """Datei lesen und Eintrag bilden; Objekte gehen in `sink` (Store oder MemStore)."""
     st = st or os.stat(path)
