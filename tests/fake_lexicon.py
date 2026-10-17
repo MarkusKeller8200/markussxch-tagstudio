@@ -86,6 +86,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, {"data": {"total": len(pool), "limit": lim, "offset": off,
                                              "tracks": pool[off:off + min(lim, 2)]}})       # kleine Seiten testen
         if u.path == "/v1/search/tracks":
+            for bad in ("limit", "offset"):                  # wie das echte Lexicon (Rückmeldung 17.10.2026)
+                if bad in q:
+                    return self._err(5, f"'{bad}' is not allowed, value: {q[bad][0]}")
             res = pool
             for k, v in filt.items():
                 if k == "id":
@@ -95,8 +98,7 @@ class Handler(BaseHTTPRequestHandler):
                     res = [t for t in res if _norm(v) in _norm(t.get("location"))]
                 else:
                     res = [t for t in res if str(v).lower() in str(t.get(k) or "").lower()]
-            lim = int((q.get("limit") or [1000])[0])
-            return self._send(200, {"data": {"total": len(res), "tracks": res[:lim]}})
+            return self._send(200, {"data": {"total": len(res), "tracks": res}})
         if u.path == "/v1/track":
             t = s.by_id((q.get("id") or ["0"])[0])
             return self._send(200, {"data": {"track": t}}) if t else self._err(100, "Track does not exist")

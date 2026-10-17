@@ -47,6 +47,17 @@ class TestClient(unittest.TestCase):
             lexapi.Client(self.url, sleep=lambda s: None, retries=2).patch_track(1, {"title": "C"})
         self.assertEqual(cm.exception.code, 2)
 
+    def test_drops_unknown_parameter(self):
+        """Lexicon lehnt unbekannte Parameter mit Fehler 5 ab („'x' is not allowed“) – ohne ihn nochmals fragen."""
+        c = lexapi.Client(self.url)
+        r = c.get("/search/tracks", {"filter": {"location": "a.mp3"}, "limit": 20})
+        self.assertEqual(len(r["tracks"]), 1)
+        self.assertEqual(c.dropped, {"/search/tracks": {"limit"}})
+        n = len(self.st.calls)
+        c.get("/search/tracks", {"filter": {"location": "a.mp3"}, "limit": 20})
+        self.assertEqual(len(self.st.calls), n + 1)                            # gemerkt: gleich ohne „limit“
+        self.assertNotIn("limit", self.st.calls[-1][2])
+
     def test_flatten(self):
         tree = [{"id": 1, "name": "ROOT", "type": "1", "playlists": [{"id": 2, "name": "Sets", "type": "1",
                                                                        "playlists": [{"id": 3, "name": "Fr", "type": "2"}]}]}]

@@ -74,6 +74,7 @@ class Client:
         self.base, self.timeout, self.retries, self._sleep = base, timeout, retries, sleep
         self._opener = opener or urllib.request.build_opener(urllib.request.ProxyHandler({})).open   # nie über einen Proxy
         self.calls: list[tuple] = []          # (Methode, Pfad) – fürs Protokoll
+        self.dropped: dict[str, set] = {}     # Pfad → Parameter, die diese Lexicon-Version ablehnt (Fehler 5)
 
     @property
     def local(self) -> bool:
@@ -82,13 +83,14 @@ class Client:
     # ------------------------------------------------------------------ Grundlage
     def request(self, method: str, path: str, params: dict | None = None):
         method = method.upper()
+        params = {k: v for k, v in (params or {}).items() if k not in self.dropped.get(path, ())}
         url = f"{self.base}/v1{path}"
         data = None
         if method == "GET":
-            q = encode_query(params or {})
+            q = encode_query(params)
             url += ("?" + q) if q else ""
         else:
-            data = json.dumps(params or {}).encode("utf-8")
+            data = json.dumps(params).encode("utf-8")
         for attempt in range(self.retries + 1):
             req = urllib.request.Request(url, data=data, method=method,
                                          headers={"Accept": "application/json", "Content-Type": "application/json"})
@@ -107,6 +109,12 @@ class Client:
                 if code == BUSY and attempt < self.retries:
                     self._sleep(0.3 * (attempt + 1))          # Lexicon beschäftigt: kurz warten
                     continue
+                m = re.match(r"'([\w\[\]]+)' is not allowed", msg)
+                if code == 5 and method == "GET" and m and m.group(1) in params:
+                    # Diese Lexicon-Version kennt einen (optionalen) Parameter nicht, z. B. „limit“ bei /search/tracks:
+                    # merken und ohne ihn nochmals fragen (Rückmeldung User 17.10.2026)
+                    self.dropped.setdefault(path, set()).add(m.group(1))
+                    return self.request(method, path, params)
                 raise LexiconError(f"Lexicon meldet Fehler {code if code is not None else ex.code}"
                                    f"{': ' + msg if msg else ''} ({method} {path})", code, ex.code) from ex
             except (urllib.error.URLError, OSError, ValueError) as ex:
@@ -137,8 +145,9 @@ class Client:
         return int(self.get("/tracks", {"limit": 1, "offset": 0, "fields": ["id"]}).get("total") or 0)
 
     def search(self, filt: dict, fields=None, source="non-archived", limit=50) -> list:
-        d = self.get("/search/tracks", {"filter": filt, "fields": fields, "source": source, "limit": limit})
-        return d.get("tracks") or []
+        """Suche – „limit“ kennt /search/tracks nicht (Lexicon meldet Fehler 5), darum hier gekürzt."""
+        d = self.get("/search/tracks", {"filter": filt, "fields": fields, "source": source})
+        return (d.get("tracks") or [])[:limit] if limit else (d.get("tracks") or [])
 
     def track(self, tid):
         return self.get("/track", {"id": tid}).get("track")
