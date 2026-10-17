@@ -203,6 +203,10 @@ function saveGeom() {
 const tgt = () => (PW.st.two && PW.st.target === "B" ? "B" : "A");
 
 function init() {
+  try {                                                         // #157: Sprache wie im Hauptfenster
+    const lang = localStorage.getItem("ts_lang");
+    if (lang && lang !== "de-CH" && typeof i18nLoad === "function") i18nLoad(lang);
+  } catch (e) { /* ohne Übersetzung weiter */ }
   initTips(); // identisches Tooltip-Design wie Hauptfenster
   render();
   (function loop() { ["A", "B"].forEach(tick); requestAnimationFrame(loop); })();

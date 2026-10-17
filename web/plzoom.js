@@ -39,7 +39,7 @@ async function plZoomLoad() {
     for (let c = 0; c < ch; c++) { const d = audio.getChannelData(c); for (let k = 0; k < n; k++) mono[k] += d[k] / ch; }
     PL_ZOOM.data = mono; PL_ZOOM.rate = audio.sampleRate;
   } catch (e) {
-    if (seq === PL_ZOOM.seq) PL_ZOOM.err = "Audio für die Lupe nicht lesbar (" + String(e.message || e) + ")";
+    if (seq === PL_ZOOM.seq) PL_ZOOM.err = "Audio für die Lupe nicht lesbar: " + String(e.message || e);
   } finally {
     if (seq === PL_ZOOM.seq) { PL_ZOOM.busy = false; plZoomDraw(); }
   }
