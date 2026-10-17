@@ -86,6 +86,45 @@ def check(root=ROOT) -> list:
     return probs
 
 
+def last_tag(root=ROOT) -> str:
+    r = subprocess.run(["git", "describe", "--tags", "--abbrev=0", "--match", "v*"], cwd=root,
+                       capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else ""
+
+
+def plugin_bumps(root=ROOT, ref=None) -> list:
+    """#235: Plugins, die seit dem letzten Release geändert wurden, ohne dass ihre Version steigt.
+    Ohne höhere Version bietet der Plugin-Katalog die Änderung nicht als Update an. Erst ab 4.8.0 (erster Katalog)."""
+    ref = ref if ref is not None else last_tag(root)
+    try:
+        k = key(ref.lstrip("v")) if ref else None
+    except ValueError:
+        k = None
+    if not k or k[:3] < (4, 8, 0):
+        return []
+    out = []
+    base = os.path.join(root, "plugins")
+    for name in sorted(os.listdir(base)):
+        mf = os.path.join(base, name, "plugin.json")
+        if not os.path.isfile(mf):
+            continue
+        if subprocess.run(["git", "diff", "--quiet", ref, "--", f"plugins/{name}"], cwd=root).returncode == 0:
+            continue
+        old = subprocess.run(["git", "show", f"{ref}:plugins/{name}/plugin.json"], cwd=root, capture_output=True, text=True)
+        if old.returncode != 0:
+            continue                                  # neues Plugin
+        import json
+        with open(mf, encoding="utf-8") as fh:
+            now = str(json.load(fh).get("version", ""))
+        try:
+            was = str(json.loads(old.stdout).get("version", ""))
+        except ValueError:
+            continue
+        if now == was:
+            out.append(f"Plugin „{name}“ wurde seit {ref} geändert, Version {now} aber nicht erhöht (plugin.json).")
+    return out
+
+
 def release(new: str, today=None, root=ROOT) -> str:
     if not SEMVER.match(new):
         raise ValueError(f"„{new}“ ist keine gültige Version – Schema MAJOR.MINOR.PATCH, z. B. 3.1.0 oder 3.1.0-beta.1.")
@@ -156,6 +195,8 @@ def main(argv):
     if "--check" in argv:
         probs = check()
         print("\n".join(probs) if probs else f"Versionierung in Ordnung ({current_version()}).")
+        for w in plugin_bumps():
+            print("Hinweis: " + w)
         return 1 if probs else 0
     args = [a for a in argv if not a.startswith("--")]
     if len(args) != 1:

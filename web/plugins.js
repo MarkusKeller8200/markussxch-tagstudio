@@ -48,6 +48,9 @@ function plMore(p) {                                   // Funktionen für „Wei
   const acts = (p.actions || []).filter((a) => a.where === "page" && !fixed.includes(a.id))
     .map((a) => ({ kind: "action", id: a.id, label: a.label, desc: a.description }));
   if (p.service) acts.push({ kind: "svc", label: "Integration …", desc: "Endpunkte mit Umsetzungsstand, Testabfrage ohne Track und API-Tester (nur lesend)" });
+  if (p.store) acts.push(p.builtin_version
+    ? { kind: "revert", label: `Zurück auf eingebaute Version ${p.builtin_version}`, desc: `Entfernt die nachgeladene Version ${p.version} aus dem Plugin-Ordner.` }
+    : { kind: "revert", label: "Nachgeladenes Plugin entfernen", desc: "Entfernt das Plugin aus dem Plugin-Ordner." });
   if (p.path) acts.push({ kind: "dir", label: "Ordner dieses Plugins öffnen", desc: p.path });
   if (p.env && p.state === "ready" && p.install.length) p.install.forEach((v) => acts.push({ kind: "install", id: v.id, label: `Neu installieren: ${v.label.replace(/^Installieren\s*\(?|\)$/g, "") || v.label}`, desc: (v.hint || "") }));
   return acts;
@@ -93,7 +96,7 @@ function renderPlugins() {
     if (on && p.status_text) notes.push(`<span class="pl-stat">${esc(p.status_text)}</span>`);
     if (p.service && PL_AUTH_NOTE[p.service.auth]) notes.push(esc(PL_AUTH_NOTE[p.service.auth]));
     if (p.env && p.state === "ready") notes.push(`Umgebung: ${esc((p.env_variant || "installiert").replace(/^Installieren\s*\(?|\)$/g, ""))}`);
-    const hints = `<div class="pl-hints sm">${notes.map((n) => `<div>${n}</div>`).join("")}${p.enabled ? err + missing + ext : ""}</div>`;
+    const hints = `<div class="pl-hints sm">${plStoreBox(p)}${notes.map((n) => `<div>${n}</div>`).join("")}${p.enabled ? err + missing + ext : ""}</div>`;
     // 6. Funktionsknöpfe
     // vier gleich breite Knöpfe mit Symbol und kurzer Beschriftung; der volle Name steht im Tooltip
     const slot = (a, label, icon, dis) => a && on
@@ -109,7 +112,7 @@ function renderPlugins() {
     return `<section class="card pl-card${p.enabled ? "" : " off"}" data-pid="${esc(p.id)}">
       <div class="pl-head">
         <div class="pl-ico cat-${esc(p.category || "other")}" aria-hidden="true">${PL_CAT_ICON[p.category] || PL_CAT_ICON.other}</div>
-        <div class="pl-t"><h3 title="${esc(p.name)}\n${esc(p.path)}"><span class="pl-name">${esc(p.name)}</span><span class="muted sm">${esc(p.version)}</span>${p.builtin ? '<span class="plg-tag">eingebaut</span>' : '<span class="plg-tag own">eigenes</span>'}</h3>
+        <div class="pl-t"><h3 title="${esc(p.name)}\n${esc(p.path)}"><span class="pl-name">${esc(p.name)}</span><span class="muted sm">${esc(p.version)}</span>${p.builtin ? '<span class="plg-tag">eingebaut</span>' : p.store ? `<span class="plg-tag store" title="Aus Release ${esc(p.store.tag)} nachgeladen">nachgeladen</span>` : '<span class="plg-tag own">eigenes</span>'}</h3>
           <div class="pl-cat"><span class="plg-tag cat cat-${esc(p.category || "other")}">${esc(p.category_label || "Sonstiges")}</span></div></div>
         <div class="pl-sw"><div class="sm ${stCls} pl-st">● ${stTxt}</div>
           <label class="switch" title="${p.enabled ? "Ausschalten" : "Einschalten"}"><input type="checkbox" data-enable ${p.enabled ? "checked" : ""} aria-label="${esc(p.name)} ein/aus"><span></span></label></div>
@@ -122,6 +125,89 @@ function renderPlugins() {
     </section>`;
   }).join("");
   plDescFit();
+}
+
+// ---------------------------------------------------------------------- #235: Plugins aus den Releases nachladen
+/** Hinweis auf der Karte, wenn der Katalog eine neuere Version hat */
+function plStoreBox(p) {
+  const r = PL.store && PL.store.rows.find((x) => x.id === p.id);
+  if (!r) return "";
+  if (r.state === "update") return `<div class="pl-box upd"><span><b>Update verfügbar:</b> Version ${esc(r.version)}</span><button class="sm" data-plupd>Aktualisieren</button></div>`;
+  if (r.state === "too_new") return `<div class="pl-box warn">Neuere Version ${esc(r.version)} braucht TagStudio ${esc(r.min_app)} oder neuer.</div>`;
+  return "";
+}
+
+/** „Plugin-Updates …“: Katalog des neuesten Releases im gewählten Kanal laden und Updates/neue Plugins zeigen */
+async function pluginStoreCheck() {
+  const res = await runTask(call("start_plugin_catalog"), "Plugin-Katalog laden");
+  if (!res || res.cancelled) return;
+  if (!res.release) { await info("Plugin-Updates", "Im gewählten Update-Kanal gibt es noch keinen Plugin-Katalog. Er erscheint mit dem nächsten Release."); return; }
+  PL.store = res;
+  renderPlugins();
+  pluginStoreList();
+}
+
+function plStoreRow(r) {
+  const btn = r.state === "update" ? `<button class="sm" data-stinst="${esc(r.id)}">Aktualisieren</button>`
+    : r.state === "new" ? `<button class="sm" data-stinst="${esc(r.id)}">Installieren</button>`
+    : `<button class="ghost sm" disabled>${r.state === "too_new" ? "Nicht verträglich" : r.state === "own" ? "Eigenes Plugin" : "Aktuell"}</button>`;
+  const ver = r.installed && r.state === "update" ? `${esc(r.installed)} → ${esc(r.version)}` : esc(r.version);
+  const note = r.state === "too_new" ? `Braucht TagStudio ${esc(r.min_app)} oder neuer.`
+    : r.state === "own" ? "Im Plugin-Ordner liegt ein eigenes Plugin mit gleicher ID – es wird nicht überschrieben."
+    : r.requires && PL.frozen ? "Braucht zusätzliche Python-Pakete – in der installierten App nicht nachinstallierbar." : "";
+  return `<div class="pl-more-row st-row"><span class="st-btn">${btn}</span><div><b>${esc(r.name)}</b> <span class="muted sm">${ver}</span>
+    <div class="muted sm">${esc(r.description)}</div>${note ? `<div class="hint">${note}</div>` : ""}</div></div>`;
+}
+
+/** Übersicht: Updates, neue Plugins und nicht verträgliche – aktuelle Plugins nur gezählt */
+async function pluginStoreList() {
+  const st = PL.store; if (!st) return;
+  const order = { update: 0, new: 1, too_new: 2, own: 3 };
+  const rows = st.rows.filter((r) => r.state in order).sort((a, b) => order[a.state] - order[b.state] || a.name.localeCompare(b.name));
+  const cur = st.rows.length - rows.length;
+  let pick = null;
+  await modal({
+    title: "Plugin-Updates",
+    html: `<div class="muted sm">Katalog aus Release ${esc(st.release.version)}${st.release.beta ? " (Beta)" : ""} · ${cur} Plugin(s) aktuell</div>
+      ${rows.length ? `<div class="pl-more st-list">${rows.map(plStoreRow).join("")}</div>` : '<div class="empty">Alle Plugins sind aktuell.</div>'}
+      <div class="hint" style="margin-top:12px">Plugins sind Python-Code. TagStudio lädt sie nur aus den offiziellen Releases und prüft die Prüfsumme. Nachgeladene Plugins liegen im Ordner „Eigene Plugins“ und ersetzen die eingebaute Version; unter „Mehr …“ geht es zurück.</div>`,
+    buttons: [{ label: "Schliessen", value: null }],
+    onMount: (b) => b.addEventListener("click", (e) => {
+      const m = e.target.closest("[data-stinst]"); if (!m) return;
+      pick = m.dataset.stinst;
+      $("#mBtns button").click();
+    }),
+  });
+  if (pick) pluginStoreInstall(pick);
+}
+
+async function pluginStoreInstall(pid) {
+  const r = PL.store && PL.store.rows.find((x) => x.id === pid); if (!r) return;
+  const res = await runTask(call("start_plugin_store_install", pid), `${r.name}: Plugin laden`);
+  if (!res || res.cancelled) return;
+  r.state = "current"; r.installed = r.version;
+  PL.actionsCache = null;
+  await pluginsShow(true);
+  if (typeof renderTgEditor === "function") renderTgEditor();
+  const p = PL.list.find((x) => x.id === pid);
+  toast(p && p.state !== "ready" ? `${r.name} ${r.version} installiert – noch nicht bereit, siehe Karte.` : `${r.name} ${r.version} installiert.`);
+}
+
+async function pluginStoreRevert(pid) {
+  const p = PL.list.find((x) => x.id === pid); if (!p) return;
+  const ok = await dialog({ title: p.builtin_version ? "Zurück auf eingebaute Version?" : "Plugin entfernen?",
+    text: p.builtin_version
+      ? `Die nachgeladene Version ${p.version} von „${p.name}“ wird aus dem Plugin-Ordner gelöscht. Danach gilt wieder die eingebaute Version ${p.builtin_version}.`
+      : `„${p.name}“ ${p.version} wird aus dem Plugin-Ordner gelöscht. Einstellungen und Anmeldungen des Plugins bleiben erhalten.`,
+    buttons: [{ label: "Abbrechen", value: false }, { label: p.builtin_version ? "Zurücksetzen" : "Entfernen", value: true, primary: true }] });
+  if (!ok) return;
+  const r = await call("plugin_store_revert", pid);
+  if (!r.ok) { info("Hinweis", r.error); return; }
+  PL.list = r.plugins; PL.actionsCache = null;
+  if (PL.store) PL.store = null;                       // Vergleich ist veraltet → bei Bedarf neu suchen
+  renderPlugins();
+  if (typeof renderTgEditor === "function") renderTgEditor();
+  toast(p.builtin_version ? `${p.name}: eingebaute Version ${p.builtin_version} aktiv.` : `${p.name} entfernt.`);
 }
 
 /** Beschreibung mit fester Höhe: „mehr“ nur, wenn der Text nicht hineinpasst; aufgeklappt liegt er über der Karte */
@@ -178,6 +264,7 @@ async function pluginMore(pid) {
   if (pick.kind === "action") pluginRun(pid, pick.id);
   else if (pick.kind === "svc") svcOpen(pid);
   else if (pick.kind === "install") pluginInstall(pid, pick.id);
+  else if (pick.kind === "revert") pluginStoreRevert(pid);
   else if (pick.kind === "dir" && !(await call("open_folder", p.path))) toast("Ordner konnte nicht geöffnet werden.");
 }
 
@@ -364,6 +451,7 @@ async function pluginPreview(f, res) {
     renderPlugins();
   });
   $("#plServices").addEventListener("click", () => svcOverview());     // #204
+  $("#plStore").addEventListener("click", () => pluginStoreCheck());   // #235
   $("#plRescan").addEventListener("click", async () => { PL.actionsCache = null; await pluginsShow(true); toast("Plugins neu eingelesen."); if (typeof renderTgEditor === "function") renderTgEditor(); });
   $("#plLogs").addEventListener("click", async () => { if (!(await call("open_folder", PL.logDir))) toast("Ordner konnte nicht geöffnet werden."); });
   // „Plugin-Ordner öffnen“: eigene Plugins (Benutzerordner) oder eingebaute (Programmordner) – Wunsch User 17.10.2026
@@ -387,6 +475,8 @@ async function pluginPreview(f, res) {
     if (lk) { e.preventDefault(); call("open_url", lk.dataset.url); return; }
     const so = e.target.closest("[data-svcopen]");
     if (so) { e.preventDefault(); svcOpen(so.closest("[data-pid]").dataset.pid); return; }
+    const up = e.target.closest("[data-plupd]");                       // #235
+    if (up) { pluginStoreInstall(up.closest("[data-pid]").dataset.pid); return; }
     const pi = e.target.closest("[data-plinstall]");
     if (pi) { pluginInstallPick(pi.closest("[data-pid]").dataset.pid); return; }
     if (!e.target.closest(".pl-desc.open")) $$("#plList .pl-desc.open").forEach(plDescClose);   // Klick daneben schliesst

@@ -657,6 +657,52 @@ class UiTest(unittest.TestCase):
         self.assertLess(calls.index("start_app_update"), calls.index("app_update_install"))
         self.assertIn("wird installiert", pg.inner_text("#progTitle"))
 
+    def test_plugin_store(self):
+        """#235: Plugin-Updates – Katalog, Hinweis auf der Karte, neues Plugin installieren, zurück auf eingebaute Version."""
+        pg = self.pg
+        self.calm()
+        pg.click('.nav[data-module="plugins"]')
+        pg.wait_for_selector('.pl-card[data-pid="lexicon"] .pl-btns')
+        pg.evaluate("""(() => { const orig = call; window.__calls = []; window.__res = null;
+          const row = (id, state, extra) => ({ id, name: id, version: "9.0", installed: "", min_app: "4.8.0", description: "Text " + id,
+            category: "other", env: false, requires: false, file: `plugin-${id}-9.0.zip`, sha256: "a".repeat(64), state, ...extra });
+          const cat = { ok: true, release: { tag: "v4.8.1", version: "4.8.1", beta: false, url: "u" }, channel: "stable", version: "4.8.0",
+            rows: [row("lexicon", "update", { installed: "1.0", builtin: true }), row("neu", "new"), row("zukunft", "too_new", { min_app: "9.9.0" }),
+                   row("mik", "current", { installed: "9.0", builtin: true })] };
+          window.call = (n, ...a) => { window.__calls.push([n, ...a]);
+            if (n === "start_plugin_catalog") { window.__res = cat; return Promise.resolve({ ok: true }); }
+            if (n === "start_plugin_store_install") { window.__res = { ok: true, id: a[0], name: a[0], version: "9.0", state: "ready" }; return Promise.resolve({ ok: true }); }
+            if (n === "task_status") return Promise.resolve({ done: true, running: false, result: window.__res });
+            if (n === "plugin_store_revert") return orig("plugins_list").then((r) => ({ ok: true, ...r }));
+            if (n === "plugins_list") return orig(n, ...a).then((r) => { if (window.__stored) { const p = r.plugins.find((x) => x.id === "lexicon");
+              Object.assign(p, { builtin: false, store: { version: "9.0", tag: "v4.8.1" }, builtin_version: "1.0", version: "9.0" }); } return r; });
+            return orig(n, ...a); }; })()""")
+        pg.click("#plStore")
+        pg.wait_for_selector("#mBody .st-row")
+        rows = pg.evaluate("[...document.querySelectorAll('#mBody .st-row')].map((r) => [r.querySelector('b').textContent, r.querySelector('button').textContent, r.querySelector('button').disabled])")
+        self.assertEqual(rows, [["lexicon", "Aktualisieren", False], ["neu", "Installieren", False], ["zukunft", "Nicht verträglich", True]])
+        self.assertIn("1 Plugin(s) aktuell", pg.inner_text("#mBody"))
+        self.assertIn("TagStudio 9.9.0", pg.inner_text("#mBody"))
+        self.assertIn("Update verfügbar", pg.inner_text('.pl-card[data-pid="lexicon"] .pl-box.upd'))
+        pg.click('#mBody [data-stinst="neu"]')
+        self.assertTrue(self.until("window.__calls.some((c) => c[0] === 'start_plugin_store_install' && c[1] === 'neu')"))
+        self.assertTrue(self.until("document.querySelector('#toast') && /neu 9.0 installiert/.test(document.querySelector('#toast').textContent)"))
+        # Update direkt auf der Karte
+        pg.evaluate("window.__stored = true")
+        pg.click('.pl-card[data-pid="lexicon"] [data-plupd]')
+        self.assertTrue(self.until("window.__calls.some((c) => c[0] === 'start_plugin_store_install' && c[1] === 'lexicon')"))
+        pg.wait_for_selector('.pl-card[data-pid="lexicon"] .plg-tag.store')
+        self.assertEqual(pg.locator('.pl-card[data-pid="lexicon"] .pl-box.upd').count(), 0)    # kein Update mehr angezeigt
+        # Zurück auf eingebaute Version – mit Rückfrage
+        pg.click('.pl-card[data-pid="lexicon"] [data-plmore]')
+        pg.click('#mBody button:has-text("Zurück auf eingebaute Version 1.0")')
+        pg.wait_for_selector('#dlgBtns button:has-text("Zurücksetzen")')
+        self.assertIn("gelöscht", pg.inner_text("#dlgText"))
+        pg.evaluate("window.__stored = false")
+        pg.click('#dlgBtns button:has-text("Zurücksetzen")')
+        self.assertTrue(self.until("window.__calls.some((c) => c[0] === 'plugin_store_revert' && c[1] === 'lexicon')"))
+        pg.wait_for_selector('.pl-card[data-pid="lexicon"] .plg-tag:not(.cat):has-text("eingebaut")')
+
     def test_feedback_report(self):
         """#187: Melden aus dem Tagger – Bereich vorgewählt, Duplikate, Pflichtfelder, Vorschau geschwärzt, Zustimmung."""
         pg = self.pg

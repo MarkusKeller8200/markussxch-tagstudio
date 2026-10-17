@@ -489,6 +489,13 @@ class Plugin:
                           "hint": v.get("hint", "")} for v in m.get("install", []) if v.get("packages")],
              "notes": m.get("notes", ""), "env": bool(self.env_spec),
              "env_variant": self.env_info().get("label", "") if self.env_spec else ""}
+        if not self.builtin:                               # #235: aus einem Release nachgeladen?
+            import plugin_store
+            mk = plugin_store.store_info(self.path)
+            if mk:
+                d["store"] = {"version": str(mk.get("version", "")), "tag": str(mk.get("tag", ""))}
+            d["builtin_version"] = getattr(self, "builtin_version", None)
+        d["min_app"] = str(m.get("min_app", ""))
         cat = m.get("category") if m.get("category") in CATEGORIES else ("online" if self.service else "other")
         d["category"], d["category_label"] = cat, CATEGORIES[cat]
         if self.service:                                   # #204: API-Link und Endpunkt-Zahlen
@@ -539,6 +546,8 @@ class Manager:
                 if pl.id in found:   # Benutzer-Plugin mit gleicher id ersetzt das eingebaute
                     if builtin:
                         continue
+                    if found[pl.id].builtin:                     # #235: für „Zurück auf eingebaute Version“
+                        pl.builtin_version = str(found[pl.id].manifest.get("version", ""))
                 pl.enabled = bool(enabled.get(pl.id, True))
                 pl.settings = dict(settings.get(pl.id, {}))
                 found[pl.id] = pl

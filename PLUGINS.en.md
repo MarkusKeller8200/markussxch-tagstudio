@@ -19,6 +19,15 @@ missing packages with a button.
 Your own plugin with the same `id` as a built-in one replaces it. After copying it in, click **Reload** on the plugin
 page.
 
+### Downloading and updating plugins
+
+**Plugin updates …** (top of the plugin page) loads the plugin catalog of the newest release in the selected update
+channel (“official versions only” or “including beta versions”) and shows newer versions of built-in plugins and new
+plugins. Cards with a newer version show **Update available → Update**. TagStudio only downloads from the official
+releases of this project and checks the checksum. The downloaded plugin is then stored in the “Own plugins” folder
+(badge “downloaded”) and replaces the built-in version; **More … → Back to built-in version** removes it again. Your
+own plugins are never overwritten.
+
 ## Structure
 
 ```
@@ -35,6 +44,7 @@ Plugins/
   "id": "my-plugin",
   "name": "My plugin",
   "version": "1.0",
+  "min_app": "4.8.0",
   "category": "online",
   "api": 1,
   "description": "What it does – shown on the plugin page.",
@@ -48,6 +58,8 @@ Plugins/
 }
 ```
 
+- `min_app`: oldest TagStudio version the plugin works with. The plugin catalog only offers the plugin there. When you
+  change a plugin, increase its `version`, otherwise no update appears.
 - `id`: lower-case letters, digits, `-`, `_`.
 - `category`: badge on the plugin card – `online` (online API), `local_api` (local API), `import` (takeover from
   tags), `audio` (audio processing) or `other` (default).

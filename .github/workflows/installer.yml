@@ -200,6 +200,9 @@ jobs:
         with:
           path: assets
           merge-multiple: true
+      - name: Plugin-Katalog und Plugin-ZIPs (#235)
+        # je Plugin ein ZIP plus plugins.json (ID, Version, Prüfsumme, Mindestversion) – die App lädt daraus einzelne Plugins
+        run: python3 -c "import sys, plugin_store; plugin_store.build('plugins', 'assets', sys.argv[1])" "${TAG#v}"
       - name: Release-Text aus dem CHANGELOG
         run: |
           ver="${TAG#v}"

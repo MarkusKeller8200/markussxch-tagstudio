@@ -19,6 +19,15 @@ Plugins erweitern die neue Oberfläche um eigene Funktionen. Ihre Aktionen ersch
 Ein eigenes Plugin mit derselben `id` wie ein eingebautes ersetzt dieses. Nach dem Hineinkopieren auf der
 Plugin-Seite **Neu einlesen** klicken.
 
+### Plugins nachladen und aktualisieren
+
+**Plugin-Updates …** (Plugin-Seite oben) lädt den Plugin-Katalog des neuesten Releases im gewählten Update-Kanal
+(„nur offizielle Versionen“ bzw. „auch Beta-Versionen“) und zeigt neuere Versionen eingebauter Plugins und neue
+Plugins. Karten mit neuerer Version zeigen **Update verfügbar → Aktualisieren**. TagStudio lädt nur aus den offiziellen
+Releases dieses Projekts und prüft die Prüfsumme. Das geladene Plugin liegt danach im Ordner „Eigene Plugins“
+(Abzeichen „nachgeladen“) und ersetzt die eingebaute Version; **Mehr … → Zurück auf eingebaute Version** entfernt es
+wieder. Eigene Plugins werden dabei nie überschrieben.
+
 ## Aufbau
 
 ```
@@ -35,6 +44,7 @@ Plugins/
   "id": "mein-plugin",
   "name": "Mein Plugin",
   "version": "1.0",
+  "min_app": "4.8.0",
   "category": "online",
   "api": 1,
   "description": "Was es tut – erscheint auf der Plugin-Seite.",
@@ -48,6 +58,8 @@ Plugins/
 }
 ```
 
+- `min_app`: älteste TagStudio-Version, mit der das Plugin läuft. Der Plugin-Katalog bietet das Plugin nur dort an.
+  Bei Änderungen an einem Plugin die `version` erhöhen, sonst erscheint kein Update.
 - `id`: Kleinbuchstaben, Ziffern, `-`, `_`.
 - `category`: Kennzeichen auf der Plugin-Karte – `online` (Online-API), `local_api` (Lokale API), `import`
   (Übernahme aus Tags), `audio` (Audio-Verarbeitung) oder `other` (Sonstiges, Standard).

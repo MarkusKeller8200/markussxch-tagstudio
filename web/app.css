@@ -518,6 +518,7 @@ span.xml-treeonly{display:contents}
 .pl-t h3{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .plg-tag{display:inline-flex;align-items:center;white-space:nowrap;line-height:1.5;font-size:11px;font-weight:600;padding:0 8px;border-radius:99px;background:var(--raise);color:var(--dim)}
 .plg-tag.own{background:var(--acc-soft);color:var(--acc)}
+.plg-tag.store{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
 /* Beschreibung: feste Höhe (4 Zeilen), „mehr“ klappt sie über der Karte auf – die Zeilen darunter bleiben bündig */
 .pl-desc{position:relative;margin:0;color:var(--dim);font-size:13.5px;line-height:1.45;height:5.8em;overflow:hidden;flex:none}
 .pl-desc>span{display:block}
@@ -527,6 +528,10 @@ span.xml-treeonly{display:contents}
 .pl-desc.open .pl-dmore{right:10px;bottom:6px;background:none;padding:0}
 .pl-box{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;font-size:13px}
 .pl-box.warn{border-color:color-mix(in srgb,var(--warn) 45%,var(--line));background:color-mix(in srgb,var(--warn) 7%,transparent)}
+.pl-box.upd{flex-direction:row;align-items:center;justify-content:space-between;border-color:color-mix(in srgb,var(--acc) 50%,var(--line));background:var(--acc-soft)}
+.st-list{max-height:min(60vh,520px);overflow:auto}
+.st-row{grid-template-columns:140px 1fr;align-items:start}
+.st-row .st-btn button{width:100%}
 .pl-box.err{border-color:color-mix(in srgb,#E5484D 50%,var(--line));color:#E5484D;white-space:pre-wrap}
 .pl-inst{display:flex;flex-wrap:wrap;gap:8px}
 .pl-acts{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;height:26px;overflow:hidden;flex:none}

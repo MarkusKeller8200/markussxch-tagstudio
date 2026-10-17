@@ -2660,6 +2660,65 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return res
         return self._run("install", f"{p.name}: Pakete installieren", job)
 
+    # ---- #235: Plugins einzeln nachladen und aktualisieren (Katalog aus den GitHub-Releases)
+    def start_plugin_catalog(self):
+        """Katalog des neuesten Releases im gewählten Kanal laden und mit den installierten Plugins vergleichen."""
+        import paths
+        import plugin_store
+        ch = self.update_channel()
+        if ch not in ("stable", "beta"):
+            return {"ok": False, "error": "Im Entwicklungsstand kommen die Plugins mit dem Quellcode (git). Plugins aus "
+                                          "den Releases gibt es mit der Einstellung „Updates anbieten“: „nur offizielle Versionen“ oder „auch Beta-Versionen“."}
+
+        def job(cancel, progress):
+            progress(("text", "Plugin-Katalog wird geladen …"))
+            cat = plugin_store.fetch_catalog(ch, paths.sub("Updates", "Plugins"))
+            self._plugin_catalog = cat
+            rows = plugin_store.compare(self.plugins.list(), cat["plugins"], VERSION) if cat["release"] else []
+            return {"ok": True, "release": cat["release"], "rows": rows, "channel": ch, "version": VERSION}
+        return self._run("plugin_catalog", "Plugin-Katalog", job)
+
+    def start_plugin_store_install(self, pid):
+        """Plugin aus dem zuletzt geladenen Katalog installieren oder aktualisieren (Prüfsumme wird geprüft)."""
+        import paths
+        import plugin_store
+        cat = getattr(self, "_plugin_catalog", None) or {}
+        e = next((x for x in cat.get("plugins", []) if x["id"] == pid), None)
+        if e is None:
+            return {"ok": False, "error": "Plugin nicht im Katalog – bitte zuerst nach Plugin-Updates suchen."}
+        row = next(iter(plugin_store.compare(self.plugins.list(), [e], VERSION)))
+        if row["state"] == "too_new":
+            return {"ok": False, "error": f"„{e['name']}“ braucht TagStudio {e['min_app']} oder neuer."}
+        if row["state"] == "own":
+            return {"ok": False, "error": f"Im Plugin-Ordner liegt ein eigenes Plugin „{pid}“ – es wird nicht überschrieben."}
+
+        def job(cancel, progress):
+            progress(("text", f"Lade {e['file']} …"))
+
+            def prog(done, total):
+                if total:
+                    progress(("progress", round(done / 1024), max(1, round(total / 1024)), f"{e['file']} (KB)"))
+            path = plugin_store.install(e, cat.get("assets", []), plugins.user_dir(), paths.sub("Updates", "Plugins"),
+                                        (cat.get("release") or {}).get("tag", ""), prog, cancel.is_set)
+            self._origins = None
+            self.plugins.scan()
+            import applog
+            applog.info(f"Plugin {pid} {e['version']} aus {(cat.get('release') or {}).get('tag', '?')} installiert: {path}")
+            return {"ok": True, "id": pid, "name": e["name"], "version": e["version"], "state": self.plugins.get(pid).state(),
+                    "enabled": self.plugins.get(pid).enabled}
+        return self._run("plugin_store", f"{e['name']}: Plugin laden", job)
+
+    def plugin_store_revert(self, pid):
+        """Nachgeladenes Plugin entfernen – danach gilt wieder die eingebaute Version (bzw. es ist weg)."""
+        import plugin_store
+        try:
+            plugin_store.remove(str(pid), plugins.user_dir())
+        except (ValueError, OSError) as ex:
+            return {"ok": False, "error": str(ex)}
+        import applog
+        applog.info(f"Plugin {pid}: nachgeladene Version entfernt")
+        return {"ok": True, **self.plugins_list(rescan=True)}
+
     # ------------------------------------------------------------------ Audio-Merkmale
     def tag_feature_set(self, idx, name, value):
         if name not in features.KEYS:

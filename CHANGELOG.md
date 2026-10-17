@@ -11,6 +11,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Update auf Knopfdruck (#234, Windows):** Die installierte App lädt die neue Version direkt von GitHub, prüft die
   Prüfsumme, schliesst sich, installiert still und startet neu – Einstellungen und Daten bleiben erhalten. Nur
   veröffentlichte Versionen im gewählten Kanal; macOS folgt.
+- **Plugins einzeln nachladen und aktualisieren (#235):** „Plugin-Updates …“ auf der Plugin-Seite zeigt neuere
+  Versionen und neue Plugins aus dem neuesten Release im gewählten Kanal; „Aktualisieren“ bzw. „Installieren“ lädt nur
+  dieses Plugin (mit Prüfsumme) – ohne ganzes App-Update. „Mehr … → Zurück auf eingebaute Version“ macht es rückgängig.
+  Jedes Release enthält dafür je Plugin ein ZIP und den Katalog `plugins.json`; `plugin.json` kennt neu `min_app`.
 
 ### Geändert
 

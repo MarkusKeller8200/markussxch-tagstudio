@@ -24,6 +24,7 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 - **Umgebungen:** Plugins mit `env` bekommen eine eigene uv-Python-Umgebung (z. B. Stems mit Python 3.12).
 - **Hintergrund:** Aktionen mit `"background": true` laufen als Auftrag (`jobs.py`, Warteschlange, Fortsetzen nach
   Neustart).
+- **Nachladen und Aktualisieren (#235):** siehe Abschnitt „Plugins aus den Releases“ unten.
 
 ## 3. Eingebaute Plugins
 
@@ -113,6 +114,36 @@ Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
   anklickbar; vorgeschlagen werden Endpunkte mit passendem ID-Feld, sortiert nach dem umgebenden Objektnamen (#213).
 - Die Update-Prüfung (GitHub Releases) bleibt im Kern.
 
+### Plugins aus den Releases (#235, Entscheid User 17.10.2026)
+
+Ziel: ein einzelnes Plugin aktualisieren (z. B. wenn ein Dienst seine Schnittstelle ändert) oder neue Plugins
+installieren – ohne ganzes App-Release.
+
+- **Katalog:** Der Release-Workflow (`installer.yml`, Job `release`) ruft `plugin_store.build` auf und legt je Plugin
+  `plugin-<id>-<version>.zip` (Inhalt `<id>/…`, ohne Caches, reproduzierbar) und `plugins.json` (Format 1: id, name,
+  version, category, description, `min_app`, env, requires, file, sha256, size) als Release-Assets ab.
+- **Mindestversion:** `plugin.json` → `"min_app": "4.8.0"` (älteste TagStudio-Version, mit der das Plugin läuft; Betas
+  zählen wie ihre Version). Ohne Angabe gilt die Version des Releases. Alle eingebauten Plugins tragen sie.
+- **Plugin-Version erhöhen**, wenn sich ein Plugin ändert – sonst bietet der Katalog die Änderung nicht als Update an.
+  `packaging/release.py --check` weist darauf hin (ab dem ersten Katalog-Release 4.8.0).
+- **Kanal:** neuestes Release im gewählten Update-Kanal mit `plugins.json` („nur offizielle“ bzw. „auch Beta“), nie
+  Entwicklungsstand; im Quellcode mit Kanal „Entwicklung“ kommen Plugins mit git.
+- **Oberfläche:** Kopfzeile „Plugin-Updates …“ lädt den Katalog (Auftrag mit Fortschritt) und zeigt Updates, neue und
+  nicht verträgliche Plugins; Karten mit neuerer Version zeigen „Update verfügbar“ mit „Aktualisieren“. Nachgeladene
+  Plugins tragen das Abzeichen „nachgeladen“; unter „Mehr …“ „Zurück auf eingebaute Version“ bzw. „Nachgeladenes
+  Plugin entfernen“ – mit Rückfrage.
+- **Installation:** nach `~/TagStudio/Plugins/<id>` mit Markierung `.tagstudio-store.json` (Version, Prüfsumme, Tag);
+  überlagert das eingebaute Plugin gleicher ID. Eigene Plugins (ohne Markierung) werden nie überschrieben oder
+  entfernt. Einstellungen und Anmeldungen (`Plugin-Daten`) bleiben beim Aktualisieren und Zurücksetzen erhalten.
+- **Sicherheit:** nur Adressen aus den Releases dieses Repos (HTTPS), SHA-256 aus dem Katalog muss mit dem
+  GitHub-`digest` übereinstimmen und wird beim Laden geprüft (`updater.download_asset`), ZIP-Inhalt wird vor dem
+  Entpacken geprüft (nur `<id>/…`, keine `..`, keine Links), `plugin.json` muss die erwartete ID haben; Austausch über
+  Umbenennen (alte Version erst danach gelöscht).
+- **Grenzen:** Die installierte App kann keine Python-Pakete nachinstallieren → Plugins mit `requires` werden mit Hinweis
+  angezeigt; Plugins mit eigener Umgebung (`env`, wie Stems) funktionieren.
+- **Umsetzung:** `plugin_store.py`; Session `start_plugin_catalog`, `start_plugin_store_install`, `plugin_store_revert`;
+  `Plugin.info()` liefert `store`, `builtin_version`, `min_app`; `web/plugins.js` (`pluginStore*`, `plStoreBox`).
+
 ## 5. Entscheide
 
 - Zugangsdaten nie im Klartext: Passwörter werden nicht gespeichert, Tokens/Schlüssel nur verschlüsselt, nie
@@ -128,6 +159,6 @@ Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
 
 ## 7. Tests
 
-`tests/test_plugins.py`, `test_services.py`, `test_jobs.py`, `test_beatport.py`, `test_beatport_purchases.py`, `test_online.py`
+`tests/test_plugins.py`, `test_plugin_store.py` (#235), `test_services.py`, `test_jobs.py`, `test_beatport.py`, `test_beatport_purchases.py`, `test_online.py`
 (`test_online_live.py` nur im Workflow), `test_mik.py`, `test_importers.py`, `test_loudness.py`, `test_serato.py`;
 Stems-Test im Workflow „Stems-Test“.

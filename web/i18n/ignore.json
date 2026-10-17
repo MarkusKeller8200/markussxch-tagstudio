@@ -410,5 +410,7 @@
 "funktion",
 "fehler",
 "Start-Process -FilePath {x}",
-"Hidden"
+"Hidden",
+"Plugin {x}: nachgeladene Version entfernt",
+"Plugin {x} {x} aus {x} installiert: {x}"
 ]
