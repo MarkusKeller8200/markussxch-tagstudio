@@ -26,6 +26,14 @@ const PL_ICON = {
   set: '<svg class="i" viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>',
   more: '<svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>',
 };
+// Symbol je Kategorie (gleicher Linienstil wie die übrigen Symbole)
+const PL_CAT_ICON = {
+  online: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
+  local_api: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6"/></svg>',
+  import: '<svg class="i" viewBox="0 0 24 24"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/><path d="M12 3v12M7 10l5 5 5-5"/></svg>',
+  audio: '<svg class="i" viewBox="0 0 24 24"><path d="M3 12h2M7 8v8M11 4v16M15 7v10M19 10v4M21 12h0"/></svg>',
+  other: '<svg class="i" viewBox="0 0 24 24"><path d="M9 3h6v3a2 2 0 1 0 4 0V3h2v6h-3a2 2 0 1 0 0 4h3v8h-6v-3a2 2 0 1 0-4 0v3H3v-8h3a2 2 0 1 0 0-4H3V3h6Z"/></svg>',
+};
 const PL_SLOT_TEST = ["test"], PL_SLOT_KEY = ["keys", "login"], PL_SLOT_SET = ["settings"];
 const PL_AUTH_NOTE = {
   none: "Ohne Anmeldung – es wird nichts gespeichert.",
@@ -85,7 +93,7 @@ function renderPlugins() {
         <button class="ghost sm" data-plmore ${more.length && p.enabled ? "" : "disabled"} title="${more.length ? "Weitere Funktionen dieses Plugins" : "Keine weiteren Funktionen"}">${PL_ICON.more}<span>Mehr …</span></button></div>`;
     return `<section class="card pl-card${p.enabled ? "" : " off"}" data-pid="${esc(p.id)}">
       <div class="pl-head">
-        <div class="pl-ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 3h6v3a2 2 0 1 0 4 0V3h2v6h-3a2 2 0 1 0 0 4h3v8h-6v-3a2 2 0 1 0-4 0v3H3v-8h3a2 2 0 1 0 0-4H3V3h6Z"/></svg></div>
+        <div class="pl-ico cat-${esc(p.category || "other")}" aria-hidden="true">${PL_CAT_ICON[p.category] || PL_CAT_ICON.other}</div>
         <div class="pl-t"><h3 title="${esc(p.name)} ${esc(p.version)} – ${esc(p.path)}"><span class="pl-name">${esc(p.name)}</span><span class="muted sm">${esc(p.version)}</span>${p.builtin ? '<span class="plg-tag">eingebaut</span>' : '<span class="plg-tag own">eigenes</span>'}</h3>
           <div class="pl-cat"><span class="plg-tag cat cat-${esc(p.category || "other")}">${esc(p.category_label || "Sonstiges")}</span></div></div>
         <div class="pl-sw"><div class="sm ${stCls} pl-st">● ${stTxt}</div>

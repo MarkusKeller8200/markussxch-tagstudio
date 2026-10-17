@@ -1476,6 +1476,11 @@ class UiTest(unittest.TestCase):
           const st = c.querySelector('.pl-st').getBoundingClientRect(), sw = c.querySelector('.switch').getBoundingClientRect(),
                 h = c.querySelector('h3').getBoundingClientRect(), cat = c.querySelector('.plg-tag.cat').getBoundingClientRect();
           return st.bottom <= sw.top + 1 && cat.top >= h.bottom - 1; })()"""))
+        # Symbol je Kategorie, so hoch wie Titel + Kategorie
+        g = pg.evaluate("""(() => { const c = document.querySelector('.pl-card[data-pid="acoustid"]'); const r = (q) => c.querySelector(q).getBoundingClientRect();
+          return [r('.pl-ico').top - r('h3').top, r('.pl-ico').bottom - r('.pl-cat').bottom]; })()""")
+        self.assertTrue(all(abs(x) <= 2 for x in g), g)
+        self.assertTrue(pg.locator('.pl-card[data-pid="loudness"] .pl-ico.cat-audio').count())
         # lange Beschreibung: „mehr“ klappt sie über der Karte auf, die Karte selbst bleibt gleich hoch
         card = '.pl-card[data-pid="beatport"]'
         self.assertTrue(pg.locator(card + " [data-dmore]").is_visible())

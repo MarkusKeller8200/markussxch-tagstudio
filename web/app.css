@@ -502,7 +502,12 @@ span.xml-treeonly{display:contents}
 .pl-cat{margin-top:4px;display:flex}
 .pl-sw{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex:none}
 .pl-st{white-space:nowrap}
-.pl-ico{width:38px;height:38px;border-radius:10px;background:var(--acc-soft);color:var(--acc);display:flex;align-items:center;justify-content:center;flex:none}
+.pl-ico{width:44px;height:44px;border-radius:11px;background:var(--acc-soft);color:var(--acc);display:flex;align-items:center;justify-content:center;flex:none}
+.pl-card .pl-ico{align-self:stretch;height:auto;min-height:44px;width:auto;aspect-ratio:1}
+.pl-ico .i{width:24px;height:24px}
+.pl-ico.cat-local_api{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.pl-ico.cat-import{background:color-mix(in srgb,var(--only) 14%,transparent);color:var(--only)}
+.pl-ico.cat-audio{background:color-mix(in srgb,var(--diff) 14%,transparent);color:var(--diff)}
 .pl-t{flex:1;min-width:0}
 .pl-t h3{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .plg-tag{display:inline-flex;align-items:center;white-space:nowrap;line-height:1.5;font-size:11px;font-weight:600;padding:0 8px;border-radius:99px;background:var(--raise);color:var(--dim)}
