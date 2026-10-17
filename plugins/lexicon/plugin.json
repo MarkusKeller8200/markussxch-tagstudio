@@ -8,9 +8,6 @@
   "author": "MarKusSXCH TagStudio",
   "description": "Verbindet TagStudio mit Lexicon DJ über dessen Local API: übernimmt Tanzbarkeit, Energie, Fröhlichkeit und auf Wunsch Bewertung, Popularität, Farbe und Custom Tags (mit Abgleich), vergleicht Beatgrid und Cue-Punkte, öffnet in Lexicon markierte Titel oder Playlists im Tagger bzw. DJ-Set und kann – wenn eingeschaltet – Pfade nachführen, neue Titel aufnehmen und geänderte Tags mit Vorschau zurückschreiben.",
   "notes": "Keine Zusatzpakete nötig. Lexicon muss laufen, die Local API muss eingeschaltet sein (Settings › Integrations). Zurückschreiben ist standardmässig aus, geht nur an Lexicon auf diesem Rechner und löscht nie etwas.",
-  "fields": [
-    "TXXX:LEXICON_*"
-  ],
   "service": {
     "name": "Lexicon Local API",
     "kind": "local",

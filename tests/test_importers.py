@@ -152,24 +152,28 @@ class TestLexicon(_Run):
         self.assertIn("nicht erreichbar", r["message"])
 
     def test_import(self):
-        res = self.run_plugin("lexicon", url=self.url, happiness=True, mood=True)
+        """#240: Lexicon-Werte ohne offizielles MP3-Feld in eigene Felder TXXX:LEXICON_… (wie in Lexicon, 1–10)."""
+        res = self.run_plugin("lexicon", url=self.url, danceability=True, energy=True, happiness=True, mood=True)
         self.assertRegex(res["message"], r"^2 von \d+ Titel\(n\) in Lexicon gefunden; ")
         by = self.by(res)
-        self.assertEqual(by[("p.mp3", "Danceability (DANCEABILITY)")]["new"], "70")
-        self.assertEqual(by[("p.mp3", "Energy (ENERGY)")]["new"], "60")
-        self.assertNotIn(("p.mp3", "Happiness (HAPPINESS)"), by)              # 0 = nicht analysiert
-        self.assertEqual(by[("p.mp3", "Stimmung (MOOD)")]["new"], "Dark ¦ Driving")
-        self.assertIn("über Pfad", by[("p.mp3", "Danceability (DANCEABILITY)")]["note"])
-        self.assertNotIn(("n.mp3", "Energy (ENERGY)"), by)                     # schon gleich
-        self.assertIn("Künstler + Titel", by[("n.mp3", "Happiness (HAPPINESS)")]["note"])
+        self.assertEqual(by[("p.mp3", "Lexicon: Tanzbarkeit (LEXICON_DANCEABILITY)")]["new"], "7")
+        self.assertEqual(by[("p.mp3", "Lexicon: Energie (LEXICON_ENERGY)")]["new"], "6")
+        self.assertNotIn(("p.mp3", "Lexicon: Fröhlichkeit (LEXICON_HAPPINESS)"), by)   # 0 = nicht analysiert
+        import moods
+        mk = "TMOO" if moods.key_for(self.f("p.mp3")) == "TMOO" else "LEXICON_MOOD"   # TMOO nur in ID3v2.4 offiziell
+        self.assertEqual(by[("p.mp3", f"Lexicon: Stimmung ({mk})")]["new"], "Dark ¦ Driving")
+        self.assertIn("über Pfad", by[("p.mp3", "Lexicon: Energie (LEXICON_ENERGY)")]["note"])
+        self.assertEqual(by[("n.mp3", "Lexicon: Energie (LEXICON_ENERGY)")]["new"], "6")   # TagStudio-Feld zählt nicht
+        self.assertIn("Künstler + Titel", by[("n.mp3", "Lexicon: Fröhlichkeit (LEXICON_HAPPINESS)")]["note"])
         self.assertFalse([k for k in by if k[0] == "x.mp3"])                  # archiviert
+        self.assertFalse([k for k in by if "(ENERGY)" in k[1] or "(DANCEABILITY)" in k[1]])    # eigene Felder unangetastet
         # #237: gezielt gesucht statt ganze Bibliothek
         self.assertFalse([c for c in self.lex.calls if c[1] == "/v1/tracks"])
         self.assertTrue([c for c in self.lex.calls if c[1] == "/v1/search/tracks"])
         self.apply_checked(res)
         n = self.f("n.mp3")
-        # gleicher Wert (ENERGY) wird beim Übernehmen mitgemerkt
-        self.assertEqual(json.loads(n.text("TXXX:TAGSTUDIO"))["sync"]["lexicon"], {"ENERGY": 60, "HAPPINESS": 30})
+        self.assertEqual((n.text("TXXX:LEXICON_ENERGY"), n.text("TXXX:ENERGY")), ("6", "60"))
+        self.assertEqual(self.s.origins.of("TXXX:LEXICON_ENERGY"), "lexicon")  # Herkunft „Lexicon“
 
     def test_no_connection(self):
         self.srv.shutdown()

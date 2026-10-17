@@ -162,9 +162,11 @@ nie über einen Proxy, `is_local`).
   (`POST /tracks`, Playlist, `AudioAnalyzer_Analyze`), Tags (`PATCH /track`), Mood-Tags (`POST /tag`), DJ-Set als
   Playlist. Journal `Plugin-Daten/lexicon/journal.json`; „Rückgängig“ setzt Werte und Pfade zurück. **Nie** löschen
   (keine DELETE-Endpunkte), keine Oberflächen-/Player-Steuerung über `/control`.
-- **#240 Felder:** eigene Felder einheitlich `TXXX:LEXICON_*` (POPULARITY, COLOR, TAGS), in `plugin.json` als `fields`
-  gemeldet → Herkunft „TagStudio · Lexicon“; allgemeine Felder (ENERGY, DANCEABILITY, HAPPINESS, MOOD, POPM, TIT1,
-  COMM) bleiben, die Lexicon-Herkunft steht im Abgleich (`TXXX:TAGSTUDIO`).
+- **#240 Felder (Entscheid User 17.10.2026):** Alles aus Lexicon ohne offizielles MP3-Feld kommt in eigene Felder
+  `TXXX:LEXICON_*` (DANCEABILITY, ENERGY, HAPPINESS, POPULARITY, COLOR, TAGS, MOOD bei ID3v2.3), Werte wie in Lexicon
+  (1–10). Herkunft „Lexicon“ über die vorhandene Regel `TXXX:Lexicon*` (kein `fields` in plugin.json). Offizielle
+  Felder: POPM, TMOO (v2.4), TIT1/COMM auf Wunsch. Die TagStudio-Felder (ENERGY usw.) fasst „Lexicon übernehmen“
+  nicht an – optionale Übernahme in eigene Felder folgt als eigene Funktion.
 - Offen: „Läuft gerade“/Warteschlange (`/playing`, `/queue`) – im Endpunkt-Stand als „geplant“.
 
 ## 5. Entscheide

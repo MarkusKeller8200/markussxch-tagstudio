@@ -20,8 +20,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   mit der Datei verglichen. Neu „Aus Lexicon öffnen …“: markierte Titel oder eine Playlist in Tagger oder DJ-Set laden;
   Vorbereiten erkennt den Schritt „Lexicon“. Zurückschreiben (standardmässig aus, nur auf diesem Rechner): Pfade
   nachführen, neue Bibliothekstitel aufnehmen (Playlist, Analyse), Tags mit Vorschau übertragen, DJ-Set als Playlist,
-  „Letzte Änderung rückgängig“. TagStudio löscht nie etwas in Lexicon. Eigene Felder heissen einheitlich
-  `TXXX:LEXICON_…` (Popularität, Farbe, Tags) und zeigen die Herkunft „TagStudio · Lexicon“ (#240).
+  „Letzte Änderung rückgängig“. TagStudio löscht nie etwas in Lexicon. Werte aus Lexicon ohne offizielles
+  MP3-Feld kommen in eigene Felder `TXXX:LEXICON_…` mit Herkunft „Lexicon“ (Energie, Tanzbarkeit, Fröhlichkeit,
+  Popularität, Farbe, Tags, Stimmung bei ID3v2.3), so wie Lexicon sie liefert; die TagStudio-Felder bleiben
+  unverändert (#240).
 - **Eigene Übersetzungen einreichen (#232):** Hilfe › Melden › „Übersetzung einreichen“ (oder „Eigene Texte einreichen …“
   in den Spracheinstellungen) füllt die selbst angepassten Texte einer Sprache ins GitHub-Formular – nur Texte, die von
   der mitgelieferten Fassung abweichen. Nach Prüfung kommen sie in die mitgelieferten Übersetzungen.

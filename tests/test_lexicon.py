@@ -120,8 +120,8 @@ class TestImportMore(_LexRun):
         res = st["result"]
         by = self.by(res)
         self.assertEqual(by[("p.mp3", "Bewertung (Sterne)")]["new"], "4")
-        self.assertEqual(by[("p.mp3", "Popularität (LEXICON_POPULARITY)")]["new"], "70")
-        self.assertEqual(by[("p.mp3", "Farbe (LEXICON_COLOR)")]["new"], "red")
+        self.assertEqual(by[("p.mp3", "Lexicon: Popularität (LEXICON_POPULARITY)")]["new"], "7")
+        self.assertEqual(by[("p.mp3", "Lexicon: Farbe (LEXICON_COLOR)")]["new"], "red")
         self.assertEqual(by[("p.mp3", "Lexicon-Tags → TXXX:LEXICON_TAGS")]["new"], "Genre: House")
         note = by[("p.mp3", "Bewertung (Sterne)")]["note"]
         self.assertIn("Incoming", note)
@@ -131,11 +131,11 @@ class TestImportMore(_LexRun):
         import ratings
         f = self.f("p.mp3")
         self.assertEqual(ratings.get_rating(f), 4)
-        self.assertEqual(f.text("TXXX:LEXICON_POPULARITY"), "70")
-        # #240: eigene Felder des Plugins → Herkunft „TagStudio · Lexicon“
-        sid = self.s.origins.of("TXXX:LEXICON_POPULARITY")
-        self.assertEqual(self.s.origins.catalog()[sid]["name"], "TagStudio · Lexicon")
-        self.assertEqual(self.s.origins.of("TXXX:LEXICON_COLOR"), sid)
+        self.assertEqual(f.text("TXXX:LEXICON_POPULARITY"), "7")
+        # #240: alles ohne offizielles MP3-Feld → Herkunft „Lexicon“
+        for k in ("TXXX:LEXICON_POPULARITY", "TXXX:LEXICON_COLOR", "TXXX:LEXICON_TAGS"):
+            self.assertEqual(self.s.origins.of(k), "lexicon", k)
+        self.assertEqual(self.s.origins.catalog()["lexicon"]["name"], "Lexicon")
 
 
 class TestOpen(_LexRun):

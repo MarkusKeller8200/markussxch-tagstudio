@@ -221,9 +221,10 @@ Matching: first via a stored Beatport ID (`TXXX:BEATPORT_TRACK_ID`), then ISRC, 
 Connects TagStudio with [Lexicon DJ](https://www.lexicondj.com) through its Local API (in Lexicon: Settings ›
 Integrations › switch on Local API; default `http://localhost:48624`).
 
-- **Take over from Lexicon …** (tagger): danceability, energy, happiness (1–10 → 10–100) with matching; optionally
-  rating (POPM), popularity (`TXXX:LEXICON_POPULARITY`), color (`TXXX:LEXICON_COLOR`), mood tags (mood) and tags of the other
-  categories (grouping, comment or `TXXX:LEXICON_TAGS`). Matched directly by path, otherwise by artist + title. Beatgrid
+- **Take over from Lexicon …** (tagger): values without an official MP3 field go into **own fields with the origin
+  “Lexicon”**, unchanged as in Lexicon (1–10): `TXXX:LEXICON_DANCEABILITY`, `…_ENERGY`, `…_HAPPINESS`, `…_POPULARITY`,
+  `…_COLOR`, `…_TAGS` (other tag categories, optionally grouping or comment) and `TXXX:LEXICON_MOOD` (officially `TMOO`
+  in ID3v2.4). Rating in `POPM`. The TagStudio fields (ENERGY etc.) stay unchanged. Matched directly by path, otherwise by artist + title. Beatgrid
   and cue points from Lexicon are compared with the file (note in the preview).
 - **Open from Lexicon …** (tagger, no selection needed): load the tracks selected in Lexicon, the selected playlist or a
   playlist by its name (`Sets/Friday`) into the tagger or take them over as a DJ set. Folders and smartlists work too.

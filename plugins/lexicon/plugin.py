@@ -2,9 +2,10 @@
 eingeschaltet – Änderungen nach Lexicon zurückschreiben. Über die Local API von Lexicon
 (Lexicon › Settings › Integrations › Local API einschalten; Standard http://localhost:48624).
 
-- Übernehmen: Tanzbarkeit, Energie, Fröhlichkeit (1–10 → 10–100), Bewertung, Popularität, Farbe, Custom Tags;
-  Zuordnung gezielt über den Dateipfad (/search/tracks), sonst über Künstler + Titel. Abgleich wie bei beaTunes
-  (importsync). Beatgrid und Cue-Punkte von Lexicon werden nur verglichen, nie in die Datei geschrieben.
+- Übernehmen: Tanzbarkeit, Energie, Fröhlichkeit, Popularität, Farbe, Custom Tags in eigene Felder TXXX:LEXICON_…
+  (Herkunft „Lexicon“, Werte wie in Lexicon), Bewertung in POPM; Stimmung in TMOO (ID3v2.4) bzw. TXXX:LEXICON_MOOD.
+  Zuordnung gezielt über den Dateipfad (/search/tracks), sonst über Künstler + Titel. Beatgrid und Cue-Punkte von
+  Lexicon werden nur verglichen, nie in die Datei geschrieben.
 - Öffnen: in Lexicon markierte Titel bzw. eine Playlist → Tagger oder DJ-Set.
 - Zurückschreiben (Einstellungen, standardmässig aus): Pfade nachführen, neue Bibliothekstitel aufnehmen (Playlist,
   Analyse), geänderte Tags mit Vorschau senden, DJ-Set als Playlist; jede Änderung kommt ins Journal (Rückgängig).
@@ -17,7 +18,6 @@ import os
 import re
 import time
 
-import importsync
 import moods
 from id3tags import MV
 
@@ -43,19 +43,22 @@ ACTIONS = [{
                    "wurden, sind nicht angehakt – du entscheidest.",
     "options": [
         {"key": "url", "type": "text", "label": "Adresse der Lexicon Local API", "default": DEFAULT_URL},
-        {"key": "danceability", "type": "check", "label": "Tanzbarkeit → DANCEABILITY", "default": True},
-        {"key": "energy", "type": "check", "label": "Energie → ENERGY", "default": True},
-        {"key": "happiness", "type": "check", "label": "Fröhlichkeit → HAPPINESS", "default": False},
+        {"key": "danceability", "type": "check", "label": "Tanzbarkeit → TXXX:LEXICON_DANCEABILITY", "default": True},
+        {"key": "energy", "type": "check", "label": "Energie → TXXX:LEXICON_ENERGY", "default": True},
+        {"key": "happiness", "type": "check", "label": "Fröhlichkeit → TXXX:LEXICON_HAPPINESS", "default": False},
         {"key": "rating", "type": "check", "label": "Bewertung (0–5 Sterne) → POPM", "default": False},
-        {"key": "popularity", "type": "check", "label": "Popularität → TXXX:LEXICON_POPULARITY (10–100)", "default": False},
+        {"key": "popularity", "type": "check", "label": "Popularität → TXXX:LEXICON_POPULARITY", "default": False},
         {"key": "color", "type": "check", "label": "Farbe → TXXX:LEXICON_COLOR", "default": False},
-        {"key": "mood", "type": "check", "label": "Lexicon-Tags der Kategorie „Mood“ → Stimmung (MOOD)", "default": False},
+        {"key": "mood", "type": "check", "label": "Lexicon-Tags der Kategorie „Mood“ → TMOO (ID3v2.4) bzw. TXXX:LEXICON_MOOD",
+         "default": False},
         {"key": "tags_to", "type": "select", "label": "Tags der übrigen Kategorien", "choices": TARGETS, "default": ""},
         {"key": "grid", "type": "check", "label": "Beatgrid und Cue-Punkte mit der Datei vergleichen (nur Hinweis)",
          "default": True},
         {"key": "by_name", "type": "check", "label": "Titel ohne Pfad-Treffer über Künstler + Titel zuordnen", "default": True},
         {"type": "info", "label": "Lexicon muss laufen und die Local API eingeschaltet sein (Settings › Integrations). "
-                                  "Lexicon-Werte 1–10 werden zu 10–100; 0 heisst „nicht analysiert“ und wird übergangen."},
+                                  "Werte ohne offizielles MP3-Feld kommen in eigene Felder TXXX:LEXICON_… (Herkunft "
+                                  "„Lexicon“) und bleiben so, wie Lexicon sie liefert (1–10); 0 heisst „nicht analysiert“ und "
+                                  "wird übergangen. Die TagStudio-Felder (ENERGY usw.) bleiben unverändert."},
     ],
 }, {
     "id": "open", "label": "Aus Lexicon öffnen …", "where": "tagger", "run_label": "Öffnen", "needs_selection": False,
@@ -254,6 +257,18 @@ class Matcher:
         return None, ""
 
 
+LABELS = {"danceability": "Tanzbarkeit", "energy": "Energie", "happiness": "Fröhlichkeit"}
+
+
+def _native(v):
+    """Lexicon-Wert 1–10 unverändert als Text („7“, „6.5“); 0 bzw. leer = nicht analysiert → None."""
+    try:
+        n = float(v)
+    except (TypeError, ValueError):
+        return None
+    return f"{n:g}" if 0 < n <= 10 else None
+
+
 def _level(v):
     try:
         n = float(v)
@@ -333,7 +348,7 @@ def run_import(ctx, files, opts):
     ctx.status("Verbinde mit Lexicon …")
     m = Matcher(c, ctx, len(files))
     tags, _cats = tag_names(c) if (opts.get("mood") or opts.get("tags_to")) else ({}, {})
-    found = changed = asks = 0
+    found = changed = 0
     missing = []
     for n, f in enumerate(files):
         group = f.path.replace("\\", "/").rsplit("/", 1)[-1]
@@ -348,31 +363,34 @@ def run_import(ctx, files, opts):
         if extra:
             ctx.log(f"{group}: " + " · ".join(extra))
         any_ = False
+        # #240 (Entscheid User 17.10.2026): Lexicon-Werte ohne offizielles MP3-Feld in eigene Felder TXXX:LEXICON_…,
+        # unverändert wie in Lexicon (1–10) – die TagStudio-Felder (ENERGY usw.) fasst „Lexicon übernehmen“ nicht an
         for field, name in FIELDS:
-            v = _level(t.get(field))
-            if v is None:
+            v = _native(t.get(field))
+            if v is None or not opts.get(field):
                 continue
-            st = importsync.propose(ctx, f, SOURCE, SOURCE_NAME, name, v, enabled=bool(opts.get(field)),
-                                    group=group, note=note)
-            any_ |= st != "same"
-            asks += st == "conflict"
+            any_ |= ctx.propose(f, f"TXXX:LEXICON_{name}", v, f"Lexicon: {LABELS[field]} (LEXICON_{name})", note=note,
+                                group=group, hint="Wert aus Lexicon (1–10)")
         r = t.get("rating")
         if opts.get("rating") and isinstance(r, (int, float)) and 0 < r <= 5:
             any_ |= ctx.propose(f, "POPM", str(int(r)), "Bewertung (Sterne)", kind="rating", note=note, group=group,
                                 hint="aus Lexicon")
-        pop = _level(t.get("popularity"))
+        pop = _native(t.get("popularity"))
         if opts.get("popularity") and pop is not None:
-            any_ |= ctx.propose(f, "TXXX:LEXICON_POPULARITY", str(pop), "Popularität (LEXICON_POPULARITY)", note=note, group=group,
-                                hint="aus Lexicon (1–10 → 10–100)")
+            any_ |= ctx.propose(f, "TXXX:LEXICON_POPULARITY", pop, "Lexicon: Popularität (LEXICON_POPULARITY)", note=note,
+                                group=group, hint="Wert aus Lexicon (1–10)")
         if opts.get("color") and t.get("color"):
-            any_ |= ctx.propose(f, "TXXX:LEXICON_COLOR", str(t["color"]), "Farbe (LEXICON_COLOR)", note=note, group=group)
+            any_ |= ctx.propose(f, "TXXX:LEXICON_COLOR", str(t["color"]), "Lexicon: Farbe (LEXICON_COLOR)", note=note, group=group)
         named = [tags[i] for i in t.get("tags") or [] if i in tags]
         if opts.get("mood"):
             names = [nm for cat, nm in named if _is_mood(cat)]
-            cur = moods.values(f)
+            # TMOO ist nur in ID3v2.4 ein offizielles Feld – sonst eigenes Lexicon-Feld (#240)
+            key = "TMOO" if moods.key_for(f) == "TMOO" else "TXXX:LEXICON_MOOD"
+            it = f.get(key)
+            cur = [x for x in (it.text if it is not None else "").split(MV) if x]
             if names and [x.lower() for x in names] != [x.lower() for x in cur]:
-                key = moods.key_for(f)                                  # #12: TMOO (v2.4) bzw. TXXX:MOOD (v2.3)
-                any_ |= ctx.propose(f, key, MV.join(names), "Stimmung (MOOD)", note=note, checked=not cur, group=group,
+                any_ |= ctx.propose(f, key, MV.join(names), f"Lexicon: Stimmung ({key.split(':')[-1]})", note=note,
+                                    checked=not cur or key != "TMOO", group=group,
                                     hint="aus Lexicon-Tags" + (f" · Datei hat {', '.join(cur)}" if cur else ""))
         target = opts.get("tags_to") or ""
         if target:
@@ -391,8 +409,6 @@ def run_import(ctx, files, opts):
     msg = f"{found} von {len(files)} Titel(n) in Lexicon gefunden"
     msg += f" ({m.total} Titel in Lexicon)" if m.total is not None else ""
     msg += f"; {changed} mit Änderungen (Vorschau)"
-    if asks:
-        msg += f", {asks} Wert(e) zum Prüfen (nicht angehakt)"
     if missing:
         ctx.log("Nicht in Lexicon gefunden:\n" + "\n".join(missing))
     return {"message": msg + "."}

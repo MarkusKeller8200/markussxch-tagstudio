@@ -133,5 +133,19 @@
 "Fehlende Mood-Tags anlegen": ["Create missing mood tags", "Fählendi Mood-Tags aalege"],
 "Analyse neuer Titel (AudioAnalyzer_Analyze)": ["Analysis of new tracks (AudioAnalyzer_Analyze)", "Analyse vo neue Titel (AudioAnalyzer_Analyze)"],
 "nur Analyse – keine Oberflächen- oder Player-Steuerung": ["analysis only – no interface or player control", "nur Analyse – kei Oberflächi- oder Player-Stüürig"],
-"Prüft, ob die Lexicon Local API unter der eingestellten Adresse erreichbar ist (Standard http://localhost:{n}).": ["Checks whether the Lexicon Local API is reachable at the configured address (default http://localhost:{n}).", "Prüeft, ob d Lexicon Local API under de iigstellte Adrässe erreichbar isch (Standard http://localhost:{n})."]
+"Prüft, ob die Lexicon Local API unter der eingestellten Adresse erreichbar ist (Standard http://localhost:{n}).": ["Checks whether the Lexicon Local API is reachable at the configured address (default http://localhost:{n}).", "Prüeft, ob d Lexicon Local API under de iigstellte Adrässe erreichbar isch (Standard http://localhost:{n})."],
+"Tanzbarkeit → TXXX:LEXICON_DANCEABILITY": ["Danceability → TXXX:LEXICON_DANCEABILITY", "Tanzbarkeit → TXXX:LEXICON_DANCEABILITY"],
+"Energie → TXXX:LEXICON_ENERGY": ["Energy → TXXX:LEXICON_ENERGY", "Energie → TXXX:LEXICON_ENERGY"],
+"Fröhlichkeit → TXXX:LEXICON_HAPPINESS": ["Happiness → TXXX:LEXICON_HAPPINESS", "Fröhlichkeit → TXXX:LEXICON_HAPPINESS"],
+"Popularität → TXXX:LEXICON_POPULARITY": ["Popularity → TXXX:LEXICON_POPULARITY", "Popularität → TXXX:LEXICON_POPULARITY"],
+"Lexicon-Tags der Kategorie {q} → TMOO (ID3v2.{n}) bzw. TXXX:LEXICON_MOOD": ["Lexicon tags of the category {q} → TMOO (ID3v2.{n}) or TXXX:LEXICON_MOOD", "Lexicon-Tags vo de Kategorie {q} → TMOO (ID3v2.{n}) bzw. TXXX:LEXICON_MOOD"],
+"Lexicon muss laufen und die Local API eingeschaltet sein (Settings › Integrations). Werte ohne offizielles MP3-Feld kommen in eigene Felder TXXX:LEXICON_… (Herkunft {q}) und bleiben so, wie Lexicon sie liefert ({n}–{n}); {n} heisst {q} und wird übergangen. Die TagStudio-Felder (ENERGY usw.) bleiben unverändert.": ["Lexicon must be running with the Local API switched on (Settings › Integrations). Values without an official MP3 field go into own fields TXXX:LEXICON_… (origin {q}) and stay as Lexicon delivers them ({n}–{n}); {n} means {q} and is skipped. The TagStudio fields (ENERGY etc.) stay unchanged.", "Lexicon mues laufe und d Local API mues iigschaltet sii (Settings › Integrations). Wärt ohni offizielles MP3-Fäld chömed i eigeti Fälder TXXX:LEXICON_… (Herkunft {q}) und bliibed so, wie Lexicon si lifert ({n}–{n}); {n} heisst {q} und wird übergange. D TagStudio-Fälder (ENERGY usw.) bliibed unveränderet."],
+"Lexicon: Popularität (LEXICON_POPULARITY)": ["Lexicon: popularity (LEXICON_POPULARITY)", "Lexicon: Popularität (LEXICON_POPULARITY)"],
+"Lexicon: Farbe (LEXICON_COLOR)": ["Lexicon: color (LEXICON_COLOR)", "Lexicon: Farb (LEXICON_COLOR)"],
+"Lexicon: Tanzbarkeit (LEXICON_DANCEABILITY)": ["Lexicon: danceability (LEXICON_DANCEABILITY)", "Lexicon: Tanzbarkeit (LEXICON_DANCEABILITY)"],
+"Lexicon: Energie (LEXICON_ENERGY)": ["Lexicon: energy (LEXICON_ENERGY)", "Lexicon: Energie (LEXICON_ENERGY)"],
+"Lexicon: Fröhlichkeit (LEXICON_HAPPINESS)": ["Lexicon: happiness (LEXICON_HAPPINESS)", "Lexicon: Fröhlichkeit (LEXICON_HAPPINESS)"],
+"Lexicon: Stimmung (TMOO)": ["Lexicon: mood (TMOO)", "Lexicon: Stimmig (TMOO)"],
+"Lexicon: Stimmung (LEXICON_MOOD)": ["Lexicon: mood (LEXICON_MOOD)", "Lexicon: Stimmig (LEXICON_MOOD)"],
+"Wert aus Lexicon ({n}–{n})": ["value from Lexicon ({n}–{n})", "Wärt us Lexicon ({n}–{n})"]
 }

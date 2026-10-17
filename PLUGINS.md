@@ -223,9 +223,11 @@ Künstler + Titel + Mix-Name; bewertet werden Titel, Künstler, Länge und Mix-N
 Verbindet TagStudio mit [Lexicon DJ](https://www.lexicondj.com) über dessen Local API (in Lexicon: Settings ›
 Integrations › Local API einschalten; Standard `http://localhost:48624`).
 
-- **Lexicon übernehmen …** (Tagger): Tanzbarkeit, Energie, Fröhlichkeit (1–10 → 10–100) mit Abgleich; auf Wunsch
-  Bewertung (POPM), Popularität (`TXXX:LEXICON_POPULARITY`), Farbe (`TXXX:LEXICON_COLOR`), Mood-Tags (Stimmung) und Tags der
-  übrigen Kategorien (Grouping, Kommentar oder `TXXX:LEXICON_TAGS`). Zuordnung gezielt über den Pfad, sonst über
+- **Lexicon übernehmen …** (Tagger): Werte ohne offizielles MP3-Feld kommen in **eigene Felder mit Herkunft
+  „Lexicon“**, unverändert wie in Lexicon (1–10): `TXXX:LEXICON_DANCEABILITY`, `…_ENERGY`, `…_HAPPINESS`,
+  `…_POPULARITY`, `…_COLOR`, `…_TAGS` (übrige Tag-Kategorien, wahlweise auch Grouping oder Kommentar) und
+  `TXXX:LEXICON_MOOD` (in ID3v2.4 offiziell `TMOO`). Bewertung in `POPM`. Die TagStudio-Felder (ENERGY usw.) bleiben
+  unverändert. Zuordnung gezielt über den Pfad, sonst über
   Künstler + Titel. Beatgrid und Cue-Punkte aus Lexicon werden mit der Datei verglichen (Hinweis in der Vorschau).
 - **Aus Lexicon öffnen …** (Tagger, ohne Auswahl): die in Lexicon markierten Titel, die markierte Playlist oder eine
   Playlist über ihren Namen (`Sets/Freitag`) in den Tagger laden oder als DJ-Set übernehmen. Ordner und Smartlists
