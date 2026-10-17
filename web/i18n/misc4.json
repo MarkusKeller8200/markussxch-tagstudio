@@ -209,5 +209,9 @@
 "Übernahme aus Tags": ["Takeover from tags", "Übernahm us Tags"],
 "Audio-Verarbeitung": ["Audio processing", "Audio-Verarbeitig"],
 "Installieren …": ["Install …", "Installiere …"],
-"{x} – installieren": ["{x} – install", "{x} – installiere"]
+"{x} – installieren": ["{x} – install", "{x} – installiere"],
+"Optionen": ["Settings", "Optione"],
+"Mehr …": ["More …", "Meh …"],
+"mehr": ["more", "meh"],
+"weniger": ["less", "weniger"]
 }

@@ -24,8 +24,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 - **Plugin-Seite neu geordnet:** Alle Kacheln gleich gross mit festem Aufbau – Titel mit Kategorie (Online-API, Lokale
   API, Übernahme aus Tags, Audio-Verarbeitung), Beschreibung, Aktionen im Tagger, API-Zeile, Hinweise (z. B. wie
-  Schlüssel gespeichert werden) und unten immer dieselben Knöpfe „Verbindung testen“, „Schlüssel …“/„Anmelden …“,
-  „Einstellungen …“, „Weitere Funktionen …“ (nicht vorhandene ausgegraut). Fehlende Pakete: ein Knopf „Installieren …“
+  Schlüssel gespeichert werden) und unten immer dieselben vier Knöpfe mit Symbol „Testen“, „Schlüssel“/„Anmelden“,
+  „Optionen“, „Mehr …“ (nicht vorhandene ausgegraut). Lange Beschreibungen klappen mit „mehr“ auf; Status steht über
+  dem Schalter, die Kategorie unter dem Titel. Fehlende Pakete: ein Knopf „Installieren …“
   mit den Varianten im Fenster.
 
 ### Geändert

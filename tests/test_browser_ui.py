@@ -1464,9 +1464,28 @@ class UiTest(unittest.TestCase):
         order = pg.evaluate("""[...document.querySelector('.pl-card[data-pid="acoustid"]').children].map((e) => e.className.split(' ')[0])""")
         self.assertEqual(order, ["pl-head", "pl-desc", "pl-acts", "pl-svc", "pl-hints", "pl-btns"])
         btns = lambda pid: pg.evaluate(f"""[...document.querySelectorAll('.pl-card[data-pid="{pid}"] .pl-btns button')].map((b) => [b.textContent.trim(), b.disabled])""")
-        self.assertEqual(btns("acoustid"), [["Verbindung testen", False], ["Schlüssel …", False], ["Einstellungen …", True], ["Weitere Funktionen …", False]])
-        self.assertEqual(btns("mik"), [["Verbindung testen", True], ["Schlüssel …", True], ["Einstellungen …", True], ["Weitere Funktionen …", True]])
-        self.assertEqual(btns("beatport")[1], ["Anmelden …", False])
+        self.assertEqual(btns("acoustid"), [["Testen", False], ["Schlüssel", False], ["Optionen", True], ["Mehr …", False]])
+        self.assertEqual(btns("mik"), [["Testen", True], ["Schlüssel", True], ["Optionen", True], ["Mehr …", True]])
+        self.assertEqual(btns("beatport")[1], ["Anmelden", False])
+        # Zeilen bündig: Aktionen, API und Hinweise beginnen in jeder Karte an derselben Stelle (relativ zur Karte)
+        rel = pg.evaluate("""[...document.querySelectorAll('.pl-card')].map((c) => { const t = c.getBoundingClientRect().top;
+          return ['.pl-desc', '.pl-acts', '.pl-svc', '.pl-hints', '.pl-btns'].map((q) => Math.round(c.querySelector(q).getBoundingClientRect().top - t)); })""")
+        self.assertEqual(len({tuple(r) for r in rel}), 1, rel)
+        # Status über dem Schalter, Kategorie unter dem Titel
+        self.assertTrue(pg.evaluate("""(() => { const c = document.querySelector('.pl-card[data-pid="acoustid"]');
+          const st = c.querySelector('.pl-st').getBoundingClientRect(), sw = c.querySelector('.switch').getBoundingClientRect(),
+                h = c.querySelector('h3').getBoundingClientRect(), cat = c.querySelector('.plg-tag.cat').getBoundingClientRect();
+          return st.bottom <= sw.top + 1 && cat.top >= h.bottom - 1; })()"""))
+        # lange Beschreibung: „mehr“ klappt sie über der Karte auf, die Karte selbst bleibt gleich hoch
+        card = '.pl-card[data-pid="beatport"]'
+        self.assertTrue(pg.locator(card + " [data-dmore]").is_visible())
+        h0 = pg.evaluate(f"document.querySelector('{card}').getBoundingClientRect().height")
+        pg.click(card + " [data-dmore]")
+        self.assertIn("weniger", pg.inner_text(card + " .pl-desc"))
+        self.assertIn("Metadaten deiner eigenen Titel", pg.inner_text(card + " .pl-desc"))
+        self.assertEqual(h0, pg.evaluate(f"document.querySelector('{card}').getBoundingClientRect().height"))
+        pg.click(card + " [data-dmore]")
+        self.assertFalse(pg.locator(card + " .pl-desc.open").count())
         self.assertIn("verschlüsselt", pg.inner_text('.pl-card[data-pid="acoustid"] .pl-hints'))
         # Weitere Funktionen: Beatport hat Abmelden, Käufe abgleichen, Download und Integration
         pg.click('.pl-card[data-pid="beatport"] [data-plmore]')

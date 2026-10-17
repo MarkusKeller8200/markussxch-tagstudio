@@ -482,8 +482,10 @@ span.xml-treeonly{display:contents}
 .st-err{color:#E5484D}
 .pl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:14px;grid-auto-rows:1fr;align-items:stretch}
 .pl-card{display:flex;flex-direction:column;gap:10px}
-.pl-btns{display:flex;flex-wrap:nowrap;gap:6px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
-.pl-btns button{padding:0 10px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-btns{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
+.pl-btns button{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 6px;min-width:0;white-space:nowrap}
+.pl-btns button span{overflow:hidden;text-overflow:ellipsis}
+.pl-btns .i{width:15px;height:15px;flex:none}
 .pl-hints{display:flex;flex-direction:column;gap:6px;color:var(--dim)}
 .pl-hints .pl-stat{color:var(--fg)}
 .plg-tag.cat{background:transparent;border:1px solid var(--line2);color:var(--dim)}
@@ -494,18 +496,29 @@ span.xml-treeonly{display:contents}
 .pl-more{display:flex;flex-direction:column;gap:10px}
 .pl-more-row{display:grid;grid-template-columns:minmax(220px,auto) 1fr;gap:12px;align-items:center}
 .pl-card.off{opacity:.72}
-.pl-head{display:flex;align-items:center;gap:12px}
+.pl-head{display:flex;align-items:flex-start;gap:12px;min-height:44px}
+.pl-t h3{flex-wrap:nowrap;min-width:0}
+.pl-t h3 .pl-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pl-cat{margin-top:4px;display:flex}
+.pl-sw{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex:none}
+.pl-st{white-space:nowrap}
 .pl-ico{width:38px;height:38px;border-radius:10px;background:var(--acc-soft);color:var(--acc);display:flex;align-items:center;justify-content:center;flex:none}
 .pl-t{flex:1;min-width:0}
 .pl-t h3{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .plg-tag{display:inline-flex;align-items:center;white-space:nowrap;line-height:1.5;font-size:11px;font-weight:600;padding:0 8px;border-radius:99px;background:var(--raise);color:var(--dim)}
 .plg-tag.own{background:var(--acc-soft);color:var(--acc)}
-.pl-desc{margin:0;color:var(--dim);font-size:13.5px}
+/* Beschreibung: feste Höhe (4 Zeilen), „mehr“ klappt sie über der Karte auf – die Zeilen darunter bleiben bündig */
+.pl-desc{position:relative;margin:0;color:var(--dim);font-size:13.5px;line-height:1.45;height:5.8em;overflow:hidden;flex:none}
+.pl-desc>span{display:block}
+.pl-dmore{position:absolute;right:0;bottom:0;border:0;padding:0 2px 0 28px;font:inherit;font-size:12.5px;color:var(--acc);cursor:pointer;background:linear-gradient(90deg,transparent,var(--surf) 26px)}
+.pl-desc.open{overflow:visible;z-index:5}
+.pl-desc.open>span{position:absolute;left:-10px;right:-10px;top:-8px;padding:8px 10px 28px;background:var(--raise);border:1px solid var(--line2);border-radius:10px;box-shadow:var(--shadow);color:var(--fg)}
+.pl-desc.open .pl-dmore{right:10px;bottom:6px;background:none;padding:0}
 .pl-box{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;font-size:13px}
 .pl-box.warn{border-color:color-mix(in srgb,var(--warn) 45%,var(--line));background:color-mix(in srgb,var(--warn) 7%,transparent)}
 .pl-box.err{border-color:color-mix(in srgb,#E5484D 50%,var(--line));color:#E5484D;white-space:pre-wrap}
 .pl-inst{display:flex;flex-wrap:wrap;gap:8px}
-.pl-acts{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.pl-acts{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;height:26px;overflow:hidden;flex:none}
 .pl-act{font-size:12.5px;padding:3px 9px;border-radius:7px;background:var(--raise)}
 .pl-act .faint{color:var(--faint)}
 .pl-path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -564,7 +577,7 @@ span.xml-treeonly{display:contents}
 .pl-page{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .pl-stat{flex:1 1 100%;color:var(--fg)}
 /* #204: Online-Dienste */
-.pl-svc{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.pl-svc{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;height:20px;overflow:hidden;white-space:nowrap;flex:none}
 .svc-head{display:grid;gap:4px;margin-bottom:10px}
 .svc-links .pl-link{white-space:nowrap}
 .svc-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:10px}

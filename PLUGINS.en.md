@@ -51,8 +51,8 @@ Plugins/
 - `id`: lower-case letters, digits, `-`, `_`.
 - `category`: badge on the plugin card – `online` (online API), `local_api` (local API), `import` (takeover from
   tags), `audio` (audio processing) or `other` (default).
-- Page actions with the IDs `test`, `keys` or `login` and `settings` appear as fixed buttons “Test connection”,
-  “Key …”/“Sign in …” and “Settings …”; all others under “More functions …”.
+- Page actions with the IDs `test`, `keys` or `login` and `settings` appear as fixed buttons “Test”, “Key”/“Sign in”
+  and “Settings”; all others under “More …”.
 - `requires`: Python modules that must be present. If they are missing, the plugin shows “Packages missing” and
   offers the `install` variants as buttons (`pip install …` with TagStudio's Python).
 - `external`: programs that should be on the search path (hint only, does not block).

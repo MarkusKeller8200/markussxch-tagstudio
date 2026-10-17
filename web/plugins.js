@@ -19,6 +19,13 @@ async function pluginsShow(rescan = false) {
 
 // Feste Funktionsknöpfe je Karte (von links): Verbindung testen, Schlüssel/Anmelden, Einstellungen, Weitere Funktionen.
 // Was ein Plugin nicht hat, bleibt ausgegraut sichtbar – so sehen alle Karten gleich aus.
+const PL_ICON = {
+  test: '<svg class="i" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+  key: '<svg class="i" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/></svg>',
+  login: '<svg class="i" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>',
+  set: '<svg class="i" viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>',
+  more: '<svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>',
+};
 const PL_SLOT_TEST = ["test"], PL_SLOT_KEY = ["keys", "login"], PL_SLOT_SET = ["settings"];
 const PL_AUTH_NOTE = {
   none: "Ohne Anmeldung – es wird nichts gespeichert.",
@@ -65,29 +72,48 @@ function renderPlugins() {
     if (p.env && p.state === "ready") notes.push(`Umgebung: ${esc((p.env_variant || "installiert").replace(/^Installieren\s*\(?|\)$/g, ""))}`);
     const hints = `<div class="pl-hints sm">${notes.map((n) => `<div>${n}</div>`).join("")}${p.enabled ? err + missing + ext : ""}</div>`;
     // 6. Funktionsknöpfe
-    const slot = (a, fallback, dis) => a && on
-      ? `<button class="ghost sm" data-paction="${esc(a.id)}" title="${esc(a.description)}">${esc(a.label)}</button>`
-      : `<button class="ghost sm" disabled title="${esc(dis)}">${esc(fallback)}</button>`;
+    // vier gleich breite Knöpfe mit Symbol und kurzer Beschriftung; der volle Name steht im Tooltip
+    const slot = (a, label, icon, dis) => a && on
+      ? `<button class="ghost sm" data-paction="${esc(a.id)}" title="${esc(a.label.replace(/\s*…$/, ""))}${a.description ? " – " + esc(a.description) : ""}">${PL_ICON[icon]}<span>${label}</span></button>`
+      : `<button class="ghost sm" disabled title="${esc(dis)}">${PL_ICON[icon]}<span>${label}</span></button>`;
     const key = find(PL_SLOT_KEY), more = plMore(p);
+    const login = key && key.id === "login";
     const btns = `<div class="pl-btns">
-        ${slot(find(PL_SLOT_TEST), "Verbindung testen", "Dieses Plugin hat keine Verbindung zum Testen")}
-        ${slot(key, "Schlüssel …", "Kein Schlüssel und keine Anmeldung nötig")}
-        ${slot(find(PL_SLOT_SET), "Einstellungen …", "Dieses Plugin hat keine eigenen Einstellungen")}
-        <button class="ghost sm" data-plmore ${more.length && p.enabled ? "" : "disabled"} title="${more.length ? "Weitere Funktionen dieses Plugins" : "Keine weiteren Funktionen"}">Weitere Funktionen …</button></div>`;
+        ${slot(find(PL_SLOT_TEST), "Testen", "test", "Dieses Plugin hat keine Verbindung zum Testen")}
+        ${slot(key, login ? "Anmelden" : "Schlüssel", login ? "login" : "key", "Kein Schlüssel und keine Anmeldung nötig")}
+        ${slot(find(PL_SLOT_SET), "Optionen", "set", "Dieses Plugin hat keine eigenen Einstellungen")}
+        <button class="ghost sm" data-plmore ${more.length && p.enabled ? "" : "disabled"} title="${more.length ? "Weitere Funktionen dieses Plugins" : "Keine weiteren Funktionen"}">${PL_ICON.more}<span>Mehr …</span></button></div>`;
     return `<section class="card pl-card${p.enabled ? "" : " off"}" data-pid="${esc(p.id)}">
       <div class="pl-head">
         <div class="pl-ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 3h6v3a2 2 0 1 0 4 0V3h2v6h-3a2 2 0 1 0 0 4h3v8h-6v-3a2 2 0 1 0-4 0v3H3v-8h3a2 2 0 1 0 0-4H3V3h6Z"/></svg></div>
-        <div class="pl-t"><h3 title="${esc(p.path)}"><span class="pl-name">${esc(p.name)}</span> <span class="muted sm">${esc(p.version)}</span>${p.builtin ? ' <span class="plg-tag">eingebaut</span>' : ' <span class="plg-tag own">eigenes</span>'}<span class="plg-tag cat cat-${esc(p.category || "other")}">${esc(p.category_label || "Sonstiges")}</span></h3>
-          <div class="sm ${stCls}">● ${stTxt}</div></div>
-        <label class="switch" title="${p.enabled ? "Ausschalten" : "Einschalten"}"><input type="checkbox" data-enable ${p.enabled ? "checked" : ""} aria-label="${esc(p.name)} ein/aus"><span></span></label>
+        <div class="pl-t"><h3 title="${esc(p.name)} ${esc(p.version)} – ${esc(p.path)}"><span class="pl-name">${esc(p.name)}</span><span class="muted sm">${esc(p.version)}</span>${p.builtin ? '<span class="plg-tag">eingebaut</span>' : '<span class="plg-tag own">eigenes</span>'}</h3>
+          <div class="pl-cat"><span class="plg-tag cat cat-${esc(p.category || "other")}">${esc(p.category_label || "Sonstiges")}</span></div></div>
+        <div class="pl-sw"><div class="sm ${stCls} pl-st">● ${stTxt}</div>
+          <label class="switch" title="${p.enabled ? "Ausschalten" : "Einschalten"}"><input type="checkbox" data-enable ${p.enabled ? "checked" : ""} aria-label="${esc(p.name)} ein/aus"><span></span></label></div>
       </div>
-      <p class="pl-desc">${esc(p.description)}</p>
+      <div class="pl-desc"><span>${esc(p.description)}</span><button class="pl-dmore" data-dmore hidden>mehr</button></div>
       ${actsHtml}
       ${api}
       ${hints}
       ${btns}
     </section>`;
   }).join("");
+  plDescFit();
+}
+
+/** Beschreibung mit fester Höhe: „mehr“ nur, wenn der Text nicht hineinpasst; aufgeklappt liegt er über der Karte */
+function plDescFit() {
+  $$("#plList .pl-desc").forEach((d) => {
+    const t = d.querySelector("span"), b = d.querySelector("[data-dmore]");
+    d.classList.remove("open");
+    b.hidden = t.scrollHeight <= d.clientHeight + 1;
+    b.textContent = "mehr";
+  });
+}
+
+function plDescClose(d) {
+  const b = d.querySelector("[data-dmore]");
+  d.classList.remove("open"); d.appendChild(b); b.textContent = "mehr";
 }
 
 /** „Installieren …“: Varianten mit Hinweisen zur Auswahl (eine Variante → direkt) */
@@ -325,6 +351,14 @@ async function pluginPreview(f, res) {
     if (so) { e.preventDefault(); svcOpen(so.closest("[data-pid]").dataset.pid); return; }
     const pi = e.target.closest("[data-plinstall]");
     if (pi) { pluginInstallPick(pi.closest("[data-pid]").dataset.pid); return; }
+    if (!e.target.closest(".pl-desc.open")) $$("#plList .pl-desc.open").forEach(plDescClose);   // Klick daneben schliesst
+    const dm = e.target.closest("[data-dmore]");
+    if (dm) {
+      const d = dm.closest(".pl-desc"), open = !d.classList.contains("open");
+      $$("#plList .pl-desc.open").forEach(plDescClose);
+      if (open) { d.classList.add("open"); d.querySelector("span").appendChild(dm); dm.textContent = "weniger"; }
+      return;
+    }
     const mo = e.target.closest("[data-plmore]");
     if (mo) { pluginMore(mo.closest("[data-pid]").dataset.pid); return; }
     const pa = e.target.closest("[data-paction]");

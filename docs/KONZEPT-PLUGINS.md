@@ -81,17 +81,18 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 ### Plugin-Karte (Entscheid User 17.10.2026)
 
 Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
-1. Titel, Version, „eingebaut“/„eigenes“ und **Kategorie** (`plugin.json` `"category"`: `online` Online-API,
+1. Titel, Version, „eingebaut“/„eigenes“; darunter die **Kategorie** (`plugin.json` `"category"`: `online` Online-API,
    `local_api` Lokale API, `import` Übernahme aus Tags, `audio` Audio-Verarbeitung, sonst `other` Sonstiges;
-   ohne Angabe: Online-API bei Dienst-Plugins, sonst Sonstiges), Status, Schalter.
-2. Beschreibung.
+   ohne Angabe: Online-API bei Dienst-Plugins, sonst Sonstiges); rechts der Status über dem Schalter (Kopf springt nicht).
+2. Beschreibung mit fester Höhe (4 Zeilen); passt sie nicht, klappt „mehr“ sie über der Karte auf – so liegen
+   Aktionen, API-Zeile und Hinweise in allen Karten auf derselben Höhe.
 3. Aktionen (erscheinen im Tagger).
 4. API-Zeile (Link zur Doku · Anmeldung · Endpunkte) bzw. „API: keine – arbeitet lokal“.
 5. Hinweise: Status des Plugins, wie Schlüssel/Token gespeichert werden, Umgebung, Warnungen (fehlende Pakete mit
    einem Knopf „Installieren …“ – Varianten und Hinweise im Fenster).
-6. Funktionsknöpfe in einer Zeile, immer dieselben: **Verbindung testen** (Aktion `test`), **Schlüssel …** bzw.
-   **Anmelden …** (`keys`/`login`), **Einstellungen …** (`settings`), **Weitere Funktionen …** (übrige Seiten-Aktionen,
-   Integration, Neu installieren). Was fehlt, bleibt ausgegraut sichtbar.
+6. Vier gleich breite Funktionsknöpfe in einer Zeile, mit Symbol und kurzer Beschriftung (voller Name im Tooltip):
+   **Testen** (Aktion `test`), **Schlüssel** bzw. **Anmelden** (`keys`/`login`), **Optionen** (`settings`),
+   **Mehr …** (übrige Seiten-Aktionen, Integration, Neu installieren). Was fehlt, bleibt ausgegraut sichtbar.
   Plugins › „Integrationen …“: alle Dienste inkl. Update-Prüfung im Kern (`services.CORE`).
 - Hooks im Plugin: `test_query(ctx, info)` → Kandidaten, Bewertung über `test_score`/`score`/`onlinematch.score`;
   `api_request(ctx, ep, params)` für eigene Anmeldung (Beatport-OAuth, Lexicon-Adresse), sonst `auth(ctx)` →
