@@ -380,7 +380,7 @@ class Api:
         if not p:
             return None
         if os.path.getsize(p) > 4_000_000:
-            return {"error": "Datei ist zu groß für eine Einstellungsdatei."}
+            return {"error": "Datei ist zu gross für eine Einstellungsdatei."}
         with open(p, encoding="utf-8", errors="replace") as fh:
             return {"name": os.path.basename(p), "text": fh.read()}
 

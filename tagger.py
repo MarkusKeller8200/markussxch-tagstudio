@@ -186,7 +186,7 @@ def do_rename(plan) -> list[dict]:
             continue
         dst = os.path.join(os.path.dirname(f.path), p["new"])
         try:
-            if os.path.normcase(f.path) == os.path.normcase(dst):  # nur Groß-/Kleinschreibung (Windows/macOS)
+            if os.path.normcase(f.path) == os.path.normcase(dst):  # nur Gross-/Kleinschreibung (Windows/macOS)
                 tmp = dst + ".tagstudio_tmp"
                 os.rename(f.path, tmp)
                 os.rename(tmp, dst)
@@ -211,10 +211,10 @@ def plan_numbering(files, with_total: bool = True, start: int = 1) -> list[tuple
     return out
 
 
-# =========================================================================== Groß-/Kleinschreibung
+# =========================================================================== Gross-/Kleinschreibung
 CASE_MODES = {
-    "title": "Jedes Wort groß („Golden Hour“)",
-    "sentence": "Nur erster Buchstabe groß („Golden hour“)",
+    "title": "Jedes Wort gross („Golden Hour“)",
+    "sentence": "Nur erster Buchstabe gross („Golden hour“)",
     "upper": "ALLES GROSS",
     "lower": "alles klein",
 }
@@ -226,7 +226,7 @@ _WORD = re.compile(r"[^\W\d_]+(?:['’][^\W\d_]+)*")
 
 def change_case(text: str, mode: str, keep_upper: bool = True, small_words: bool = False) -> str:
     """Schreibweise ändern; Mehrfachwerte werden einzeln behandelt.
-    keep_upper: Abkürzungen in Großbuchstaben (DJ, AC/DC, II) bleiben. small_words: and/of/the/feat. … klein (Titel)."""
+    keep_upper: Abkürzungen in Grossbuchstaben (DJ, AC/DC, II) bleiben. small_words: and/of/the/feat. … klein (Titel)."""
     if mode not in CASE_MODES:
         raise ValueError(f"Unbekannte Schreibweise: {mode}")
     out = []
@@ -307,7 +307,7 @@ IMAGE_EXT = (".jpg", ".jpeg", ".png", ".gif")
 
 
 def find_folder_image(folder: str, cache: dict | None = None):
-    """Bestes Bild im Ordner: bekannte Namen (cover/folder/front …), sonst das größte Bild. None, wenn keins."""
+    """Bestes Bild im Ordner: bekannte Namen (cover/folder/front …), sonst das grösste Bild. None, wenn keins."""
     if cache is not None and folder in cache:
         return cache[folder]
     best = None
@@ -348,7 +348,7 @@ def export_table(files, root: str = "") -> tuple[list[str], list[list]]:
     import keys
     head = ["Datei", "Ordner"] + [label for _k, label, _p in FIELDS] + ["Camelot"] \
         + [label for _n, label, _d in features.FEATURES] + ["Dauer", "Bitrate (kbps)", "ID3", "Cover",
-                                                                       "Größe (Bytes)"]
+                                                                       "Grösse (Bytes)"]
     rows = []
     for f in files:
         dur = getattr(f, "duration", 0) or 0

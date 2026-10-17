@@ -10,12 +10,12 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.12 oder neuer – oder gar nic
 **Mitmachen:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Sicherheit:** [SECURITY.md](SECURITY.md) ·
 **Lizenz:** [GNU GPL v3](LICENSE)
 
-> Bis Version 2.8 hieß das Programm „MP3 Tag Compare“. Einstellungen und Sicherungen von damals werden automatisch übernommen.
+> Bis Version 2.8 hiess das Programm „MP3 Tag Compare“. Einstellungen und Sicherungen von damals werden automatisch übernommen.
 
 ## Funktionen im Überblick
 
 - **Tagger:** viele Dateien gemeinsam bearbeiten, Cover, Tags aus Dateiname, Umbenennen, Spurnummern,
-  Groß-/Kleinschreibung, Suchen & Ersetzen, Export nach Excel/CSV.
+  Gross-/Kleinschreibung, Suchen & Ersetzen, Export nach Excel/CSV.
 - **Editoren für jedes Feld:** mehrzeiliger Feld-Editor, Mehrfachwerte als Einzelwerte, JSON als Baum,
   XML-Editor, Binärfeld-Editor für DJ-Daten (GEOB/PRIV), Farbwähler für Hex-Farben, anklickbare Links.
 - **Tonart:** Camelot-Rad mit harmonisch passenden Tonarten; Schreibweise Camelot (`08A`), musikalisch (`Am`)
@@ -111,9 +111,9 @@ Das App-Fenster öffnet in der Grösse und Position vom letzten Mal (auch maximi
   - **Dateien umbenennen** – aus Tags; ungültige Zeichen → `_`, Kollisionen werden erkannt (sofort, nicht über
     „Speichern“).
   - **Spurnummern** – in Listenreihenfolge, optional mit Gesamtzahl (3/12).
-  - **Groß-/Kleinschreibung** – Titel-Schreibweise, Satzanfang, GROSS, klein; Abkürzungen wie DJ/AC/DC bleiben.
+  - **Gross-/Kleinschreibung** – Titel-Schreibweise, Satzanfang, GROSS, klein; Abkürzungen wie DJ/AC/DC bleiben.
   - **Suchen & Ersetzen** – über alle markierten Dateien, wählbare Felder, ganze Wörter, reguläre Ausdrücke.
-  - **Cover aus Ordner** – `cover/folder/front/album.jpg|png` im Ordner der Datei, sonst das größte Bild.
+  - **Cover aus Ordner** – `cover/folder/front/album.jpg|png` im Ordner der Datei, sonst das grösste Bild.
   - **Liste exportieren** – Excel (.xlsx) oder CSV mit Semikolon, inkl. Camelot- und Audio-Merkmal-Spalten.
   - **Feld hinzufügen**, **Tag-Fixer**, **Im Explorer/Finder zeigen**.
 
@@ -124,12 +124,12 @@ ziehen (Doppelklick = Standard, Breite wird gemerkt). Links sind anklickbar, Hex
 Namen, z. B. `#CC0000`, `0xFFCC0000`) erscheinen als Farbfeld. **Stift-Knopf** oder **Doppelklick** öffnet den
 passenden Editor, ✕ entfernt das Feld.
 
-- **Feld-Editor:** großes, mehrzeiliges Textfeld (Kommentare, Liedtexte), Zeichen-/Zeilenzähler, mit ‹ › bzw.
+- **Feld-Editor:** grosses, mehrzeiliges Textfeld (Kommentare, Liedtexte), Zeichen-/Zeilenzähler, mit ‹ › bzw.
   Alt+↑/↓ zum vorigen/nächsten Feld blättern (speichert dabei), Strg/Cmd+Enter übernimmt.
   - **Einzelwerte:** Mehrfachwerte (getrennt durch NULL-Zeichen/ID3v2.4, Semikolon oder Komma) als Liste –
     Wert hinzufügen (auch Enter), entfernen, umsortieren; Trennung umstellbar, z. B. „House; Techno“ in echte
     ID3v2.4-Mehrfachwerte umwandeln.
-  - **Farbwähler** bei Hex-Farben – die Schreibweise (Präfix, Groß-/Kleinschreibung, Alpha) bleibt erhalten.
+  - **Farbwähler** bei Hex-Farben – die Schreibweise (Präfix, Gross-/Kleinschreibung, Alpha) bleibt erhalten.
 - **JSON-Baum** (für JSON in Textfeldern und DJ-Daten, z. B. Mixed In Key): Schlüssel/Wert-Paare wie im XML-Editor,
   aufklappbar. Bearbeitet werden nur die Werte – Text, Zahlen (mit Prüfung), Ja/Nein als Häkchen; nur die
   geänderten Werte werden im Originaltext ersetzt, Format und Einrückung bleiben exakt.
@@ -156,7 +156,7 @@ passenden Editor, ✕ entfernt das Feld.
 
 #### Tonart und Camelot-Rad
 
-Knopf neben dem Feld „Tonart“ öffnet das Rad (außen Dur, innen Moll). Klick setzt die Tonart der markierten
+Knopf neben dem Feld „Tonart“ öffnet das Rad (aussen Dur, innen Moll). Klick setzt die Tonart der markierten
 Dateien; die aktuelle und die harmonisch passenden Tonarten (±1, Paralleltonart) sind hervorgehoben. Geschrieben
 wird wahlweise als **Camelot** (immer zweistellig: `08A`, `01B`), **musikalisch** (`Am`) oder **Open Key** (`1m`);
 erkannt werden auch Schreibweisen wie `8A`, `A minor`, `F♯m`, `a-Moll` oder `Es-Dur`. „Schreibweise
@@ -246,19 +246,19 @@ oder Reihenfolge, Unterordner.
   und Werten, erweiterter Filter nach Feld/Bedingung/Seite, Mehrfachauswahl und **Sammelkopie**.
 - **Tabelle** mit zeichengenauen Markierungen, Pfeil-Knöpfen pro Feld, Alles/Fehlende nach links/rechts,
   Bearbeiten per Doppelklick (Tab = nächstes Feld, Mehrfachwerte mit `¦`), Kontextmenü (kopieren, bearbeiten,
-  entfernen, Link öffnen, im Explorer/Finder zeigen), klickbare Links, Cover-Vorschau mit Großansicht,
+  entfernen, Link öffnen, im Explorer/Finder zeigen), klickbare Links, Cover-Vorschau mit Grossansicht,
   Filter Alle/Unterschiede/Gleiche, Unwichtige, leere Felder, Feldsuche, **+ Feld**.
 - **Bilder:** Rechtsklick auf ein Cover: anzeigen, ersetzen, exportieren, entfernen; Klick auf den leeren
   Cover-Platz fügt eines hinzu. (Dateidialoge im App-Fenster; im Browser-Modus nur unter Windows/Linux.)
 
 ### Vorschau-Player und externe Player
 
-Unten in der Fußleiste (oder oben, siehe unten) – in Tagger und Vergleich:
+Unten in der Fussleiste (oder oben, siehe unten) – in Tagger und Vergleich:
 - **Abspielen** des markierten Titels (Leertaste, ▶ oder **Doppelklick** auf die Zeile), ⏮/⏭ springt zum
   vorherigen/nächsten Titel; beim Abspielen folgt der Player ↑/↓ und spielt am Titelende den nächsten.
   **Live-Vorschau** (Knopf mit den Funkwellen): ein einfacher Klick auf einen Titel spielt ihn sofort; ohne
   Live-Vorschau wechselt ein Klick den laufenden Titel nicht. **↑/↓** wechseln den Titel, egal wo der Fokus gerade ist
-  (außer in mehrzeiligen, Auswahl- und Zahlenfeldern). **←/→** springt taktweise (vier Schläge, mit Beatgrid oder BPM-Näherung), **Shift+←/→** zum vorherigen/nächsten Cue; Klick in die Leiste springt.
+  (ausser in mehrzeiligen, Auswahl- und Zahlenfeldern). **←/→** springt taktweise (vier Schläge, mit Beatgrid oder BPM-Näherung), **Shift+←/→** zum vorherigen/nächsten Cue; Klick in die Leiste springt.
 - **Tempo von Hand:** Klick auf die BPM-Anzeige → neues Tempo eingeben (50–200 %), **Reset** = Original-Tempo; gilt
   nur für den laufenden Titel, an der Datei ändert sich nichts. Der Knopf neben dem Titel (**Im Tagger zeigen**)
   wechselt zum Tagger und markiert den laufenden Titel.
@@ -356,7 +356,7 @@ Für Bibliotheken, die auch andere Programme bearbeiten (Mp3tag, beaTunes, Mixed
   setzen und dabei ältere Snapshots löschen; angeheftete nur, wenn ausdrücklich gewählt. Die Baseline ist
   gekennzeichnet und wird beim Aufräumen nie gelöscht.
 - **Überwachung während TagStudio läuft:** alle 5 Minuten (einstellbar) ein sparsamer Blick auf Grösse und
-  Änderungszeit; „n Titel extern geändert“ in der Fußleiste öffnet das Journal. Eigene Speicherungen zählen nicht.
+  Änderungszeit; „n Titel extern geändert“ in der Fussleiste öffnet das Journal. Eigene Speicherungen zählen nicht.
 - **Im Vergleich:** links oder rechts einen **Snapshot** wählen (📷 neben dem Pfad) – schreibgeschützt, Werte gehen nur
   in Richtung der echten Dateien. Zuordnung **„Audio-Inhalt“** findet auch umbenannte und verschobene Titel.
 - **Speicherort ändern:** Der ganze Speicher wird kopiert, geprüft und erst dann am alten Ort entfernt – z. B. in den
@@ -372,7 +372,7 @@ Konzept: [docs/KONZEPT-SNAPSHOTS.md](docs/KONZEPT-SNAPSHOTS.md).
 
 Alle Sicherungen mit Dateien, Status (wiederherstellbar/gleich/fehlt/Audio geändert) und **geänderten Feldern**.
 Klick öffnet den **Änderungs-Viewer**: jedes Feld „Vorher (Sicherung)“ und „Jetzt“, geändert/neu/entfernt markiert,
-abweichende Zeichen hervorgehoben; mit ‹ › blättern und einzelne Dateien direkt wiederherstellen. Außerdem
+abweichende Zeichen hervorgehoben; mit ‹ › blättern und einzelne Dateien direkt wiederherstellen. Ausserdem
 markierte oder alle wiederherstellen (vorher wird der aktuelle Stand selbst gesichert), Sicherung löschen,
 automatische Sicherung ein/aus, Ordner ändern/öffnen.
 
@@ -382,7 +382,7 @@ Seite „Plugins“: Erweiterungen ein-/ausschalten, fehlende Pakete per Knopf i
 Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen erst als **Vorschau mit Häkchen**.
 
 - **Stems:** trennt Titel in Gesang, Schlagzeug, Bass, Instrumental … (audio-separator, eigene Python-Umgebung,
-  Varianten CPU/DirectML/NVIDIA). Läuft **im Hintergrund**: der Dialog schliesst sofort, unten in der Fußleiste
+  Varianten CPU/DirectML/NVIDIA). Läuft **im Hintergrund**: der Dialog schliesst sofort, unten in der Fussleiste
   steht der Fortschritt („Stems: 2 von 7 · 45 %“), ein Klick zeigt alle Aufträge (Abbrechen, Ordner, Protokoll).
   Weitere Aufträge werden hinten angestellt, beim Beenden wird nachgefragt und die Warteschlange beim nächsten
   Start zum Fortsetzen angeboten. Im Tagger hängen die Spuren **aufklappbar unter dem Original** (▸, →/←,
@@ -421,7 +421,7 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   ziehen (oder mit ←/→ auf dem Griff); Doppelklick setzt zurück, alles wird gemerkt. Die Seitenleiste lässt sich
   einklappen.
 - **Tastatur** (vollständige Liste: Hilfe › Tastatur): Strg/Cmd+S speichern · Strg/Cmd+Z / Strg+Y rückgängig/wiederholen · Alt+← / Alt+→ Markierte
-  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · Doppelklick abspielen · 0–5 Bewertung · F Like · B Player A/B · Shift+P Player-Leiste ein/aus · ↑/↓ Titel wechseln (überall) · S Stem-Spur · R wiederholen · L A–B-Schleife · ←/→ einen Takt (Player) · Shift+←/→ voriger/nächster Cue · Shift+F5 Paar neu einlesen · Strg/Cmd+P externer Player · →/← Stems auf-/zuklappen (Tagger-Liste) · F5 neu einlesen · ↑/↓ in Listen · Esc schließt Dialoge.
+  kopieren · Strg/Cmd+A alles markieren · Leertaste abspielen · Doppelklick abspielen · 0–5 Bewertung · F Like · B Player A/B · Shift+P Player-Leiste ein/aus · ↑/↓ Titel wechseln (überall) · S Stem-Spur · R wiederholen · L A–B-Schleife · ←/→ einen Takt (Player) · Shift+←/→ voriger/nächster Cue · Shift+F5 Paar neu einlesen · Strg/Cmd+P externer Player · →/← Stems auf-/zuklappen (Tagger-Liste) · F5 neu einlesen · ↑/↓ in Listen · Esc schliesst Dialoge.
 
 ## Einstellungen und Datenablage
 
@@ -480,7 +480,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   ID3v2.4-Mehrfachwerte werden in v2.3 mit „ / “ verbunden.
 - **DJ-Daten** (GEOB-Objekte wie *Serato Markers2*, Mixed-In-Key *Key/Energy/CuePoints*, *PlatinumNotes*) werden
   nach ihrer Beschreibung zugeordnet, lesbar angezeigt und unverändert erhalten, solange man sie nicht bewusst
-  bearbeitet. Im Vergleich gelten sie standardmäßig als „unwichtig“, da Cue-Punkte/Beatgrids zu genau einem Track
+  bearbeitet. Im Vergleich gelten sie standardmässig als „unwichtig“, da Cue-Punkte/Beatgrids zu genau einem Track
   gehören.
 - Tipp: Vor dem ersten Einsatz an einer Kopie der Musik ausprobieren.
 
@@ -498,7 +498,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `tagger.py` – Tagger-Logik: gemeinsame Felder, Tags aus Dateiname, Umbenennen, Spurnummern, Cover,
-  Groß-/Kleinschreibung, Suchen & Ersetzen, Cover aus Ordner, Export (CSV/Excel ohne Zusatzpakete)
+  Gross-/Kleinschreibung, Suchen & Ersetzen, Cover aus Ordner, Export (CSV/Excel ohne Zusatzpakete)
 - `keys.py` – Tonarten: erkennen, umschreiben (Camelot, musikalisch, Open Key), passende Tonarten
 - `features.py` – Audio-Merkmale (TXXX, 0–100; Dateien wahlweise 0–10)
 - `setplan.py` – DJ-Set: Übergänge bewerten, Reihenfolge optimieren (Held-Karp bzw. Greedy + 2-opt);
@@ -561,7 +561,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   - **Dependabot** hält die verwendeten Actions aktuell (monatlicher Pull Request).
 - **Planung:** offene Punkte als [Issues](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues), geplante
   Versionen als [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones). Commits mit
-  „Fixes #n“ schließen das Issue automatisch.
+  „Fixes #n“ schliessen das Issue automatisch.
 
 ## Versionen & Releases
 
@@ -597,7 +597,7 @@ zusammenpassen (läuft auch in den Tests).
 einer Version werden automatisch von der Releases-Seite entfernt, sobald die finale Version erscheint (ihre Git-Tags
 bleiben). Ein Git-Klon mit „auch Beta“ folgt `main` und bekommt jede Änderung sofort.
 
-**Zweige:** `main` ist immer lauffähig (die CI prüft jeden Commit). Größere Vorhaben entstehen in kurzlebigen
+**Zweige:** `main` ist immer lauffähig (die CI prüft jeden Commit). Grössere Vorhaben entstehen in kurzlebigen
 Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind.
 
 ## Fehler melden, Ideen, Sicherheit

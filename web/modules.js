@@ -49,7 +49,7 @@ function modal({ title, html, buttons, wide = false, onMount, collect }) {
   });
 }
 
-/** Nach Änderungen außerhalb der Vergleichsansicht: Paarliste, Ansicht und Tagger auffrischen. */
+/** Nach Änderungen ausserhalb der Vergleichsansicht: Paarliste, Ansicht und Tagger auffrischen. */
 async function refreshAll(stateFromCall) {
   if (S.pairs.length) await loadPairs();
   applyState(stateFromCall && stateFromCall.view ? stateFromCall : await call("state"));

@@ -74,7 +74,7 @@ class TestTools(Base):
         self.assertEqual(sorted((k, n) for _f, k, _o, n in plan),
                          [("TIT2", "Golden Hour"), ("TIT2", "Nordlicht"), ("TIT2", "X"), ("TPE1", "Mara Lind")])
         plan = tagger.plan_replace(fs, None, "mara lind", "Mara Lind feat. X")
-        self.assertEqual(len(plan), 3)  # TPE1 ×2 + TXXX (ohne Groß/klein)
+        self.assertEqual(len(plan), 3)  # TPE1 ×2 + TXXX (ohne Gross/klein)
         self.assertEqual(len(tagger.plan_replace(fs, None, "mara lind", "Y", case=True)), 1)
         self.assertEqual(len(tagger.plan_replace(fs, ["TPE1"], "Lind", "L", case=True, word=True)), 1)
         plan = tagger.plan_replace(fs, ["TIT2"], r"(\w+) (\w+)", r"\2 \1", regex=True)
@@ -91,7 +91,7 @@ class TestTools(Base):
         plan = tagger.plan_folder_cover(fs)
         self.assertEqual([p["action"] for p in plan], ["set", "set", "skip"])
         os.remove(os.path.join(self.A, "Folder.JPG"))
-        self.assertTrue(tagger.find_folder_image(self.A).endswith("other.png"))  # sonst größtes Bild
+        self.assertTrue(tagger.find_folder_image(self.A).endswith("other.png"))  # sonst grösstes Bild
 
     def test_export(self):
         fs = self.files()

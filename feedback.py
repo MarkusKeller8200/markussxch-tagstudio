@@ -146,7 +146,7 @@ def fetch_json(url: str, timeout: float = 8.0):
 
 def search(query: str, n: int = 6) -> list[dict]:
     """Ähnliche Issues (offen und geschlossen) – Wörter ab 3 Zeichen aus dem Titel."""
-    words = [w for w in re.findall(r"[\wäöüÄÖÜß-]{3,}", str(query or ""))][:8]
+    words = [w for w in re.findall(r"[\wäöüÄÖÜss-]{3,}", str(query or ""))][:8]
     if not words:
         return []
     q = f"repo:{REPO} is:issue " + " ".join(words)

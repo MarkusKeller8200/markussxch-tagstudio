@@ -38,7 +38,7 @@ TEXT_LABELS = {
     "TCMP": "Zusammenstellung", "GRP1": "Gruppierung", "MVNM": "Satzname",
     "MVIN": "Satznummer", "TCAT": "Podcast-Kategorie", "TDES": "Podcast-Beschreibung",
     "TGID": "Podcast-ID", "TKWD": "Podcast-Schlüsselwörter", "TIME": "Uhrzeit",
-    "TRDA": "Aufnahmedaten", "TSIZ": "Größe",
+    "TRDA": "Aufnahmedaten", "TSIZ": "Grösse",
     "WCOM": "Kauf-Internetseite", "WCOP": "Copyright-Internetseite",
     "WOAF": "Audiodatei Internetseite", "WOAR": "Künstler Internetseiten",
     "WOAS": "Audioquelle Internetseite", "WORS": "Internetradio Internetseite",
@@ -59,7 +59,7 @@ RAW_LABELS = {
     "USER": "Nutzungsbedingungen", "OWNE": "Besitzer", "COMR": "Kommerziell", "ETCO": "Ereignis-Timing",
     "CHAP": "Kapitel", "CTOC": "Inhaltsverzeichnis", "SEEK": "Suchmarke", "ASPI": "Audio-Suchindex",
     "LINK": "Verknüpfung", "AENC": "Audio-Verschlüsselung", "ENCR": "Verschlüsselung",
-    "GRID": "Gruppen-ID", "SIGN": "Signatur", "RBUF": "Puffergröße", "MLLT": "MPEG-Lookup",
+    "GRID": "Gruppen-ID", "SIGN": "Signatur", "RBUF": "Puffergrösse", "MLLT": "MPEG-Lookup",
     "SYTC": "Tempo-Code", "POSS": "Position", "PCST": "Podcast",
 }
 
@@ -547,7 +547,7 @@ class Item:
             out.append(("MIME", mime or "–"))
             if fname:
                 out.append(("Dateiname", fname))
-            out.append(("Größe", f"{fmt_bytes(len(data))} Bytes"))
+            out.append(("Grösse", f"{fmt_bytes(len(data))} Bytes"))
             if desc.lower().startswith("serato"):
                 out.append(("", "Serato-DJ-Daten (Cue-Punkte/Beatgrid) – gehören zu genau diesem Track"))
         elif self.kind == "raw" and self.desc:

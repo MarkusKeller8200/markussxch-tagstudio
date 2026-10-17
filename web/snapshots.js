@@ -58,7 +58,7 @@ async function snRun() {
   if (!SN.lid || !SN.a) return;
   const res = await runTask(call("start_snap_journal", SN.lid, SN.a, SN.b), "Änderungsjournal berechnen");
   if (!res) return;
-  if (SN.b === "live") {                    // #58: gesehen → Hinweis in der Fußleiste zurücksetzen
+  if (SN.b === "live") {                    // #58: gesehen → Hinweis in der Fussleiste zurücksetzen
     call("snap_watch_ack", SN.lid).catch(() => {});
     if (SNW.res) { SNW.res.libs = SNW.res.libs.filter((l) => l.id !== SN.lid); SNW.res.total = SNW.res.libs.reduce((n, l) => n + l.count, 0); snWatchChip(); }
   }

@@ -115,7 +115,7 @@ async function pluginRun(pid, aid) {
     wide: true,
     html: `${f.description ? `<p class="muted" style="margin:0">${esc(f.description)}</p>` : ""}
       <div class="frm">${f.options.map(pluginOptionHtml).join("")}</div>
-      <div class="hint">Plugin: ${esc(f.plugin_name)}${f.background ? " · läuft im Hintergrund – du kannst währenddessen weiterarbeiten (Fortschritt unten in der Fußleiste)" : ""}</div>`,
+      <div class="hint">Plugin: ${esc(f.plugin_name)}${f.background ? " · läuft im Hintergrund – du kannst währenddessen weiterarbeiten (Fortschritt unten in der Fussleiste)" : ""}</div>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: f.run_label, value: true, primary: true }],
     onMount: (b) => {
       b.addEventListener("click", (e) => {

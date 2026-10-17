@@ -3,7 +3,7 @@
 Eine Kennungsliste ordnet Feldschlüssel (z. B. „TXXX:MusicBrainz Album Id“, „GEOB:Serato Markers2“,
 „PRIV:TRAKTOR4“) per Muster einer Quelle zu. Reihenfolge der Prüfung: eigene Zuordnungen aus den Einstellungen
 („tag_origins“), dann Felder, die TagStudio-Plugins in plugin.json angeben („fields“), dann die eingebaute Liste.
-Groß-/Kleinschreibung spielt keine Rolle; „*“ und „?“ wie bei Dateinamen. Nur Standardbibliothek.
+Gross-/Kleinschreibung spielt keine Rolle; „*“ und „?“ wie bei Dateinamen. Nur Standardbibliothek.
 """
 from __future__ import annotations
 

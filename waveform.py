@@ -35,7 +35,7 @@ def audio_key(path: str, audio_start: int = 0, audio_end: int | None = None) -> 
 
 
 def key_for(f) -> str:
-    """Schlüssel für eine geladene MP3File (Tag am Ende – ID3v1 – bleibt außen vor)."""
+    """Schlüssel für eine geladene MP3File (Tag am Ende – ID3v1 – bleibt aussen vor)."""
     end = f.size - (128 if getattr(f, "had_v1", False) else 0)
     return audio_key(f.path, getattr(f, "audio_start", 0), end)
 

@@ -34,7 +34,7 @@ class TestXmlTools(unittest.TestCase):
         lines = f["text"].split("\n")
         self.assertEqual(lines[0], '<?xml version="1.0" encoding="ISO-8859-1"?>')
         self.assertIn('  <item id="x">Wert &lt;5</item>', lines)
-        self.assertIn("  <p>Hallo <b>Welt</b> und mehr</p>", lines)  # Fließtext bleibt unverändert
+        self.assertIn("  <p>Hallo <b>Welt</b> und mehr</p>", lines)  # Fliesstext bleibt unverändert
         self.assertIn("  <c><![CDATA[a<b]]></c>", lines)
         c = x.format_xml(f["text"], compact=True)
         self.assertNotIn("\n", c["text"])
@@ -43,8 +43,8 @@ class TestXmlTools(unittest.TestCase):
         self.assertFalse(x.format_xml("<a><b></a>")["ok"])
 
     def test_unicode(self):
-        r = x.format_xml("<a><b>Grüße – 東京</b></a>")
-        self.assertEqual(r["text"], "<a>\n  <b>Grüße – 東京</b>\n</a>")
+        r = x.format_xml("<a><b>Grüsse – 東京</b></a>")
+        self.assertEqual(r["text"], "<a>\n  <b>Grüsse – 東京</b>\n</a>")
 
 
 class TestXmlFields(unittest.TestCase):
@@ -110,7 +110,7 @@ class TestBlobXml(unittest.TestCase):
         self.assertEqual((h["codec"], h["start"], h["text"][-4:], h["valid"]), ("utf-8", 4, "</m>", True))
 
     def test_utf16_and_replace_keeps_other_bytes(self):
-        xml = "<daten><wert>Grüße</wert></daten>"
+        xml = "<daten><wert>Grüsse</wert></daten>"
         data = b"HDR\x00" + b"\xff\xfe" + xml.encode("utf-16-le") + b"\x00\x00TAIL"
         it = self.item("PRIV", b"owner@example\x00" + data)
         hit = x.blob_xml(it)

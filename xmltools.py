@@ -70,7 +70,7 @@ def _serialize(node, indent: str | None, level: int, out: list):
             return
         mixed = any(c.nodeType == Node.TEXT_NODE and c.data.strip() for c in kids) and \
             any(c.nodeType == Node.ELEMENT_NODE for c in kids)
-        if mixed and indent is not None:  # Fließtext mit Elementen: Inhalt unverändert in einer Zeile lassen
+        if mixed and indent is not None:  # Fliesstext mit Elementen: Inhalt unverändert in einer Zeile lassen
             inline: list[str] = []
             _serialize(node, None, 0, inline)
             out.append(f"{pad}{''.join(inline)}{nl}")

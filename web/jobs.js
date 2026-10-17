@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Hintergrund-Aufträge (#29): Anzeige in der Fußleiste, Liste mit Abbrechen/Ordner,
+/* MarKusSXCH TagStudio – Hintergrund-Aufträge (#29): Anzeige in der Fussleiste, Liste mit Abbrechen/Ordner,
    Meldung bei Fertigstellung, Fortsetzen der Warteschlange nach einem Neustart. Logik in jobs.py. */
 "use strict";
 

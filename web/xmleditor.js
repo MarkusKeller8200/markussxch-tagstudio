@@ -6,7 +6,7 @@ const XE = { side: null, key: null, editable: false, original: "", text: "", dec
 
 const xmlDeclOf = (s) => (s.match(/^\s*(<\?xml\b[^>]*\?>)/) || [, ""])[1];
 
-// ---------------------------------------------------------------------- öffnen / schließen
+// ---------------------------------------------------------------------- öffnen / schliessen
 /** opts.tag: Index einer Tagger-Datei (sonst Seite L/R im Vergleich) */
 async function openXml(side, key, opts = {}) {
   const tag = opts.tag ?? null;
@@ -16,7 +16,7 @@ async function openXml(side, key, opts = {}) {
     dirty: false, err: null, valid: true });
   $("#xmlTitle").textContent = `XML-Editor – ${r.label}`;
   $("#xmlSub").textContent = `${r.file}${tag !== null ? "" : side === "L" ? " · links" : " · rechts"}${r.blob ? ` · Binärfeld (${r.blob}) – nur der XML-Teil wird ersetzt` : ""}${r.editable ? "" : " · nur ansehen"}`;
-  $("#xmlOk").textContent = r.editable ? "Übernehmen" : "Schließen";
+  $("#xmlOk").textContent = r.editable ? "Übernehmen" : "Schliessen";
   $("#xmlCancel").hidden = !r.editable;
   $("#xmlFormat").disabled = $("#xmlCompact").disabled = !r.editable;
   $("#xmlText").readOnly = !r.editable;
@@ -230,7 +230,7 @@ function hlAttrs(s) {
 
 function highlight() {
   const s = XE.text;
-  if (s.length > 300000) { $("#xmlHl").textContent = s + "\n"; gutter(); return; } // sehr groß: ohne Farben
+  if (s.length > 300000) { $("#xmlHl").textContent = s + "\n"; gutter(); return; } // sehr gross: ohne Farben
   let out = "", last = 0, m;
   XML_TOKEN.lastIndex = 0;
   while ((m = XML_TOKEN.exec(s))) {

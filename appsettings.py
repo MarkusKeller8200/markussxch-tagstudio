@@ -110,7 +110,7 @@ def export_text(version: str) -> str:
 
 def _load_export(text: str) -> dict:
     if len(text) > 4_000_000:
-        raise ValueError("Datei ist zu groß für eine Einstellungsdatei.")
+        raise ValueError("Datei ist zu gross für eine Einstellungsdatei.")
     try:
         data = json.loads(text)
     except ValueError as ex:

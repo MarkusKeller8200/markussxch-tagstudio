@@ -3,7 +3,7 @@ backup.py – automatische Sicherung der Tags vor dem Speichern und Wiederherste
 
 Pro Speichervorgang entsteht ein ZIP-Archiv im Sicherungsordner (Standard: ~/TagStudio/Sicherungen).
 Es enthält für jede Datei die exakten Tag-Bytes (ID3v2-Bereich inkl. Padding, ggf. ID3v1) und ein Manifest
-mit Pfad, Größe, Zeitstempel und einem Fingerabdruck der Audiodaten. Audio wird NICHT gesichert – deshalb
+mit Pfad, Grösse, Zeitstempel und einem Fingerabdruck der Audiodaten. Audio wird NICHT gesichert – deshalb
 sind Sicherungen klein, und beim Wiederherstellen wird geprüft, ob die Audiodaten noch dieselben sind.
 
 Seit 4.3.0 (#59) können Sicherungen auch im **Snapshot-Speicher** liegen: dann stehen die Tag-Bytes als Objekte im
@@ -379,7 +379,7 @@ def _write_tags(path: str, tag: bytes, v1: bytes):
     """Ersetzt Tag-Bereich und ID3v1 einer Datei; Audio bleibt byte-identisch (über temporäre Datei)."""
     lay = read_layout(path)
     if len(tag) == lay["audio_start"] and bool(v1) == lay["has_v1"]:
-        # gleiche Größe → direkt an Ort und Stelle (schnell, auch bei großen Dateien)
+        # gleiche Grösse → direkt an Ort und Stelle (schnell, auch bei grossen Dateien)
         with open(path, "r+b") as f:
             f.write(tag)
             if v1:

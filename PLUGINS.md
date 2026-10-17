@@ -88,7 +88,7 @@ ACTIONS = [{
     "run_label": "Ausführen",        # Text des Startknopfs
     "options": [                     # daraus entsteht das Formular automatisch
         {"key": "text",  "type": "text",   "label": "Text", "default": "hallo"},
-        {"key": "loud",  "type": "check",  "label": "Groß schreiben"},
+        {"key": "loud",  "type": "check",  "label": "Gross schreiben"},
         {"key": "n",     "type": "number", "label": "Zahl", "default": 2},
         {"key": "mode",  "type": "select", "label": "Modus", "choices": [["a", "Variante A"], ["b", "B"]], "default": "a"},
         {"key": "ziel",  "type": "folder", "label": "Ordner"},

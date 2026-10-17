@@ -881,7 +881,7 @@ function renderTgEditor() {
       <button class="ghost" id="tgNumber" ${d.count > 1 ? "" : "disabled"}>Spurnummern …</button>
       <button class="ghost" id="tgAddField">Feld hinzufügen …</button>
       <button class="ghost" id="tgFixer">Tag-Fixer …</button>
-      <button class="ghost" id="tgCase">Groß-/Kleinschreibung …</button>
+      <button class="ghost" id="tgCase">Gross-/Kleinschreibung …</button>
       <button class="ghost" id="tgReplace">Suchen &amp; Ersetzen …</button>
       <button class="ghost" id="tgRecipe" title="Aktionslisten wie in Mp3tag (#111)">Tag-Rezepte …</button>
       <button class="ghost" id="tgFolderCover">Cover aus Ordner …</button>
@@ -1407,7 +1407,7 @@ async function tgCaseDialog() {
   const idx = tgSelected();
   TG.caseModes = TG.caseModes || (await call("tag_case_modes"));
   await toolDialog({
-    title: `Groß-/Kleinschreibung (${idx.length} Datei(en))`,
+    title: `Gross-/Kleinschreibung (${idx.length} Datei(en))`,
     form: `<div class="radios" style="flex-wrap:wrap">${TG.caseModes.map(([k, l], n) => `<label><input type="radio" name="cm" value="${k}" ${n === 0 ? "checked" : ""}> ${esc(l)}</label>`).join("")}</div>
       <div class="quick"><label class="check"><input type="checkbox" id="cmKeep" checked> Abkürzungen in GROSSBUCHSTABEN behalten (DJ, AC/DC, II)</label>
       <label class="check"><input type="checkbox" id="cmSmall"> Kleine Wörter klein (and, of, the, feat., und, von …)</label></div>
@@ -1426,7 +1426,7 @@ async function tgReplaceDialog() {
     title: `Suchen & Ersetzen (${idx.length} Datei(en))`,
     form: `<div class="frm"><label for="rpFind">Suchen</label><input id="rpFind" autofocus spellcheck="false">
       <label for="rpRepl">Ersetzen durch</label><input id="rpRepl" spellcheck="false" placeholder="leer = entfernen"></div>
-      <div class="quick"><label class="check"><input type="checkbox" id="rpCase"> Groß-/Kleinschreibung beachten</label>
+      <div class="quick"><label class="check"><input type="checkbox" id="rpCase"> Gross-/Kleinschreibung beachten</label>
       <label class="check"><input type="checkbox" id="rpWord"> Nur ganze Wörter</label>
       <label class="check"><input type="checkbox" id="rpRegex"> Regulärer Ausdruck (\\1 im Ersatz)</label></div>
       ${fieldsPicker(["TIT2", "TPE1", "TALB", "TPE2", "TCON", "TCOM"], true)}`,
@@ -1442,7 +1442,7 @@ async function tgFolderCoverDialog() {
   const idx = tgSelected();
   await toolDialog({
     title: `Cover aus Bild im Ordner (${idx.length} Datei(en))`,
-    form: `<div class="hint">Gesucht wird pro Ordner nach cover / folder / front / album (.jpg, .png, .gif), sonst wird das größte Bild genommen.</div>
+    form: `<div class="hint">Gesucht wird pro Ordner nach cover / folder / front / album (.jpg, .png, .gif), sonst wird das grösste Bild genommen.</div>
       <label class="check"><input type="checkbox" id="fcMissing" checked> Nur Dateien ohne Cover</label>`,
     columns: [["Datei", "name"], ["Bild", "image"], ["Aktion", "reason", (x) => (x.action === "set" ? "new" : "old")]],
     preview: async (b) => { const r = await call("tag_folder_cover", idx, $("#fcMissing", b).checked, false); r.summary = `${fmtN(r.count)} von ${fmtN(r.rows.length)} Datei(en) bekommen ein Cover.`; return r; },
@@ -1484,7 +1484,7 @@ async function tgExportDialog() {
     title: "Liste exportieren",
     html: `<div class="frm"><label>Dateien</label><div class="radios"><label><input type="radio" name="ex-s" value="sel" ${idx.length > 1 ? "checked" : ""}> Markierte (${idx.length})</label><label><input type="radio" name="ex-s" value="all" ${idx.length > 1 ? "" : "checked"}> Alle (${fmtN(TG.rows.length)})</label></div>
       <label>Format</label><div class="radios"><label><input type="radio" name="ex-f" value="xlsx" checked> Excel (.xlsx)</label><label><input type="radio" name="ex-f" value="csv"> CSV (Semikolon, für Excel)</label></div></div>
-      <div class="hint">Spalten: Datei, Ordner, alle Standardfelder, Dauer, Bitrate, ID3-Version, Cover ja/nein, Größe.</div>`,
+      <div class="hint">Spalten: Datei, Ordner, alle Standardfelder, Dauer, Bitrate, ID3-Version, Cover ja/nein, Grösse.</div>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Speichern unter …", value: true, primary: true }],
     collect: (b) => ({ sel: b.querySelector('input[name="ex-s"]:checked').value === "sel", fmt: b.querySelector('input[name="ex-f"]:checked').value }),
   });

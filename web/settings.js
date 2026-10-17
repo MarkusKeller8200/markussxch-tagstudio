@@ -217,7 +217,7 @@ async function stCacheBuild(k) {
   if (r && !r.cancelled) status(r.message, r.tone || "ok");
 }
 
-/** Wellenformen im Browser berechnen (Web Audio). bg: ohne Fenster – Fortschritt in der Fußleiste, Klick bricht ab. */
+/** Wellenformen im Browser berechnen (Web Audio). bg: ohne Fenster – Fortschritt in der Fussleiste, Klick bricht ab. */
 const WAVEBG = { run: false, stop: false };
 async function waveBuildAll(bg = false) {
   if (WAVEBG.run) { toast("Wellenformen werden bereits erstellt."); return; }

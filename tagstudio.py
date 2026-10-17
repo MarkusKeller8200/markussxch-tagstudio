@@ -1498,7 +1498,7 @@ class App(tk.Tk):
                 tk.Label(box, text=cap, bg=th["panel"], fg=th["chg"] if differ else th["dim"],
                          font=self.f_small).pack()
                 lab.bind("<Button-1>", lambda e, s=side, kk=k: self.cover_window(s, kk))
-                Tooltip(lab, f"{key_label(k)} · {it.cover.describe()}\nKlick: große Ansicht", self)
+                Tooltip(lab, f"{key_label(k)} · {it.cover.describe()}\nKlick: grosse Ansicht", self)
         if l is not None and r is not None and same is not None:
             self.cover_mid.configure(text="=" if same else "≠", fg=th["g_save"] if same else th["chg"])
         else:
@@ -1521,7 +1521,7 @@ class App(tk.Tk):
         ttk.Label(w, text=it.cover.describe(), style="Dim.TLabel").pack()
         bf = ttk.Frame(w, padding=10)
         bf.pack(fill="x")
-        ttk.Button(bf, text="Schließen", command=w.destroy).pack(side="right")
+        ttk.Button(bf, text="Schliessen", command=w.destroy).pack(side="right")
         ttk.Button(bf, text="Speichern unter …", command=lambda: self.export_cover(side, key)).pack(side="right", padx=6)
         ttk.Button(bf, text="Im Bildbetrachter öffnen", command=lambda: self.show_cover(side, key)).pack(side="right")
         w.bind("<Escape>", lambda e: w.destroy())
@@ -2002,7 +2002,7 @@ class App(tk.Tk):
         b2 = ttk.Button(tools, text="Kompakt", command=lambda: tool("compact"))
         b1.pack(side="left")
         b2.pack(side="left", padx=6)
-        ttk.Label(tools, text="Strg/Cmd+Enter übernimmt · Esc schließt", style="Dim.TLabel").pack(side="right")
+        ttk.Label(tools, text="Strg/Cmd+Enter übernimmt · Esc schliesst", style="Dim.TLabel").pack(side="right")
 
         def close(commit):
             new = content()
@@ -2018,7 +2018,7 @@ class App(tk.Tk):
 
         bf = ttk.Frame(d, padding=10)
         bf.pack(fill="x")
-        ttk.Button(bf, text="Übernehmen" if editable else "Schließen", command=lambda: close(True)).pack(side="right")
+        ttk.Button(bf, text="Übernehmen" if editable else "Schliessen", command=lambda: close(True)).pack(side="right")
         if editable:
             ttk.Button(bf, text="Abbrechen", command=lambda: close(False)).pack(side="right", padx=6)
         else:
@@ -2592,7 +2592,7 @@ class App(tk.Tk):
         panes.add(lf, weight=2)
         panes.add(rf, weight=3)
         bl = ttk.Treeview(lf, columns=("date", "label", "n", "size"), show="headings", selectmode="browse")
-        for c, t, w in (("date", "Datum", 150), ("label", "Anlass", 220), ("n", "Dateien", 70), ("size", "Größe", 80)):
+        for c, t, w in (("date", "Datum", 150), ("label", "Anlass", 220), ("n", "Dateien", 70), ("size", "Grösse", 80)):
             bl.heading(c, text=t, anchor="w")
             bl.column(c, width=w, anchor="w", stretch=c == "label")
         bl.pack(fill="both", expand=True)
@@ -2613,7 +2613,7 @@ class App(tk.Tk):
         bf.pack(fill="x", pady=(10, 0))
         info = ttk.Label(bf, text="", style="Dim.TLabel")
         info.pack(side="left")
-        ttk.Button(bf, text="Schließen", command=d.destroy).pack(side="right")
+        ttk.Button(bf, text="Schliessen", command=d.destroy).pack(side="right")
         b_all = ttk.Button(bf, text="Alle wiederherstellen")
         b_all.pack(side="right", padx=6)
         b_sel = ttk.Button(bf, text="Markierte wiederherstellen")

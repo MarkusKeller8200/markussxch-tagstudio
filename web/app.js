@@ -80,7 +80,7 @@ function toast(msg) {
 function status(msg, tone = "info") {
   if (!msg) return;
   $("#statusText").textContent = msg;
-  $("#statusText").title = msg;            // in der Fußleiste ggf. gekürzt (Platz für den Player)
+  $("#statusText").title = msg;            // in der Fussleiste ggf. gekürzt (Platz für den Player)
   $("#pendingDot").className = "dot " + ({ ok: "ok", warn: "warn" }[tone] || (S.meta.unsaved ? "pending" : ""));
 }
 
@@ -867,7 +867,7 @@ function renderHead(el, h, side) {
   const covers = h.covers.length
     ? `<div class="covers">${h.covers.slice(0, 2).map((c) => `<button class="cover${c.differs ? " diff" : ""}" data-cover="${side}|${esc(c.key)}" title="${esc(c.label + " · " + c.desc + (c.differs ? " · unterscheidet sich" : ""))}" aria-label="${esc(c.label)} anzeigen">${c.src ? `<img src="${c.src}" alt="">` : ICON.image}</button>`).join("")}</div>`
     : S.opts.show_covers ? `<div class="covers"><button class="cover add" data-addcover="${side}" title="Kein Cover – klicken zum Hinzufügen" aria-label="Cover hinzufügen">${ICON.note}</button></div>` : "";
-  // Datum/Größe nur im Tooltip; als Etiketten: ID3-Version, Dauer, Bitrate, Abtastrate, Kanäle
+  // Datum/Grösse nur im Tooltip; als Etiketten: ID3-Version, Dauer, Bitrate, Abtastrate, Kanäle
   const parts = h.info.split(/\s{2,}/).filter(Boolean).slice(2);
   el.classList.toggle("ro", !!h.readonly);
   el.innerHTML = `${covers}<div class="head-t">${h.readonly ? `<div class="head-snap" title="Snapshot – schreibgeschützt; übernehmen nur in Richtung der echten Dateien">📸 ${esc(h.snapshot)} · schreibgeschützt</div>` : ""}<div class="head-n" title="${esc(h.path + "\n" + h.info.split(/\s{2,}/).join(" · "))}">${esc(h.name)}${h.modified ? '<span class="m" title="ungespeicherte Änderungen"></span>' : ""}</div>

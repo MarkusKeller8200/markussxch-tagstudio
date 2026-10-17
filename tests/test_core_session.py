@@ -76,7 +76,7 @@ class TestCore(TempHome):
         self.assertEqual((st["symbol"], st["tag"], st["n_imp"]), ("≠", "diff", 3))
         self.assertEqual(core.pair_status(None, pairs[2][1], rules)["tag"], "single")
         # Paarfilter
-        flt = core.make_pair_filter("", "TBPM", "größer als", "100", "rechts")
+        flt = core.make_pair_filter("", "TBPM", "grösser als", "100", "rechts")
         self.assertEqual(sum(1 for p in pairs if flt(p)), 2)
         flt = core.make_pair_filter("nur rechts")
         self.assertEqual([p[1].text("TIT2") for p in pairs if flt(p)], ["Nur rechts"])

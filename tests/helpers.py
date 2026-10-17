@@ -65,7 +65,7 @@ def id3v1(title="", artist="", album="", year="", comment="", track=0, genre=255
 
 
 def png(width: int = 300, height: int = 200, extra: bytes = b"") -> bytes:
-    """Minimaler PNG-Kopf (reicht für Format- und Größenerkennung)."""
+    """Minimaler PNG-Kopf (reicht für Format- und Grössenerkennung)."""
     ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
     return b"\x89PNG\r\n\x1a\n" + struct.pack(">I", 13) + b"IHDR" + ihdr + b"\x00\x00\x00\x00" + extra
 

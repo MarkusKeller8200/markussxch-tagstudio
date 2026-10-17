@@ -1,0 +1,562 @@
+{
+"Einen Moment – der Tagger-Ordner wird noch eingelesen …": [
+"One moment – the tagger folder is still loading …",
+"En Momänt – de Tagger-Ordner wird no iiglaase …"
+],
+"Hinweis": [
+"Note",
+"Hiiwiis"
+],
+"Wird abgebrochen …": [
+"Cancelling …",
+"Wird abbroche …"
+],
+"{x} von {x} · {x}": [
+"{x} of {x} · {x}",
+"{x} vo {x} · {x}"
+],
+"Seitenleiste ausklappen": [
+"Expand sidebar",
+"Siiteleischte uusklappe"
+],
+"Update: {x}": [
+"Update: {x}",
+"Update: {x}"
+],
+"Update verfügbar": [
+"Update available",
+"Update verfüegbar"
+],
+"(Beta)": [
+"(beta)",
+"(Beta)"
+],
+"Neue Version {x}{x} auf GitHub": [
+"New version {x}{x} on GitHub",
+"Neui Version {x}{x} uf GitHub"
+],
+"auch Beta-Versionen": [
+"beta versions too",
+"au Beta-Versione"
+],
+"Neu in {x}{x}": [
+"New in {x}{x}",
+"Neu in {x}{x}"
+],
+"Auf GitHub ansehen und herunterladen": [
+"View and download on GitHub",
+"Uf GitHub aaluege und abelade"
+],
+"Keine Versionshinweise gefunden.": [
+"No release notes found.",
+"Kei Versionshiiwiis gfunde."
+],
+"Weitere Versionen": [
+"More versions",
+"Wiiteri Versione"
+],
+"Neuere Versionen konnten nicht geprüft werden – keine Verbindung zu GitHub.": [
+"Newer versions could not be checked – no connection to GitHub.",
+"Neueri Versione händ nöd chöne prüeft werde – kei Verbindig zu GitHub."
+],
+"Version (inkl. Beta)": [
+"version (incl. beta)",
+"Version (inkl. Beta)"
+],
+"offizielle Version": [
+"official version",
+"offizielli Version"
+],
+"Das ist die neueste {x}.": [
+"This is the latest {x}.",
+"Das isch di neuscht {x}."
+],
+"Installiert: {x}{x}": [
+"Installed: {x}{x}",
+"Installiert: {x}{x}"
+],
+"Auf GitHub ansehen": [
+"View on GitHub",
+"Uf GitHub aaluege"
+],
+"Alle Versionen": [
+"All versions",
+"Alli Versione"
+],
+"Keine Hinweise.": [
+"No notes.",
+"Kei Hiiwiis."
+],
+"Suche …": [
+"Searching …",
+"Sueche …"
+],
+"GitHub ist nicht erreichbar.": [
+"GitHub cannot be reached.",
+"GitHub isch nöd erreichbar."
+],
+"Bitte später nochmals versuchen.": [
+"Please try again later.",
+"Bitte spöter nomal probiere."
+],
+"Version": [
+"Version",
+"Version"
+],
+"Neue Version {x}{x}": [
+"New version {x}{x}",
+"Neui Version {x}{x}"
+],
+"Installiert:": [
+"Installed:",
+"Installiert:"
+],
+"· neu:": [
+"· new:",
+"· neu:"
+],
+"Herunterladen, TagStudio schliessen und den Installer ausführen – Einstellungen bleiben erhalten.": [
+"Download, close TagStudio and run the installer – settings are kept.",
+"Abelade, TagStudio zuemache und de Installer uusfüere – d Iistellige bliibed erhalte."
+],
+"Später": [
+"Later",
+"Spöter"
+],
+"Installer herunterladen": [
+"Download installer",
+"Installer abelade"
+],
+"Releases auf GitHub öffnen": [
+"Open releases on GitHub",
+"Releases uf GitHub uftue"
+],
+"Update nicht möglich": [
+"Update not possible",
+"Update nöd mögli"
+],
+"Du hast die neueste {x} ({x}, {x}).": [
+"You have the latest {x} ({x}, {x}).",
+"Du häsch di neuscht {x} ({x}, {x})."
+],
+"Der Zweig {q} wurde nach {q} verschoben – TagStudio wechselt auf {q} (gleicher Stand).": [
+"The branch {q} was moved to {q} – TagStudio switches to {q} (same state).",
+"De Zwiig {q} isch uf {q} verschobe worde – TagStudio wächslet uf {q} (gliiche Stand)."
+],
+"Zweig {q}: {x} Änderung(en)": [
+"Branch {q}: {x} change(s)",
+"Zwiig {q}: {x} Änderig(e)"
+],
+"Neue Version verfügbar": [
+"New version available",
+"Neui Version verfüegbar"
+],
+"Jetzt laden? TagStudio startet danach neu – die gewählten Ordner werden wieder eingelesen.": [
+"Load now? TagStudio then restarts – the chosen folders are loaded again.",
+"Jetzt lade? TagStudio startet nachher neu – di gwäälte Ordner werded wider iiglaase."
+],
+"Laden und neu starten": [
+"Load and restart",
+"Lade und neu starte"
+],
+"Neue Version geladen – TagStudio startet neu …": [
+"New version loaded – TagStudio is restarting …",
+"Neui Version glaade – TagStudio startet neu …"
+],
+"Hintergrund-Aufträge laufen": [
+"Background jobs are running",
+"Hintergrund-Ufträg lauffed"
+],
+"{x} Auftrag/Aufträge (z. B. Stems) laufen noch.": [
+"{x} job(s) (e.g. stems) are still running.",
+"{x} Uftrag/Ufträg (z. B. Stems) lauffed no."
+],
+"{x} und abbrechen? Die Warteschlange wird beim nächsten Start zum Fortsetzen angeboten.": [
+"{x} and cancel? The queue is offered for resuming at the next start.",
+"{x} und abbräche? D Warteschlange wird bim nöchschte Start zum Wiitermache aabote."
+],
+"TagStudio wird beendet …": [
+"TagStudio is quitting …",
+"TagStudio wird beändet …"
+],
+"Einstellungen werden gespeichert (Fenster, Tagger, Player) …": [
+"Saving settings (window, tagger, player) …",
+"Iistellige werded gspicheret (Fänschter, Tagger, Player) …"
+],
+"Gespeichert.": [
+"Saved.",
+"Gspicheret."
+],
+"TagStudio wurde beendet.": [
+"TagStudio has been closed.",
+"TagStudio isch beändet."
+],
+"Dieses Browserfenster kann geschlossen werden.": [
+"This browser window can be closed.",
+"Das Browserfänschter cha zuegmacht werde."
+],
+"Diese Fensterfunktion wird hier nicht unterstützt.": [
+"This window function is not supported here.",
+"Die Fänschterfunktion wird da nöd unterstützt."
+],
+"Vollbild ist hier nicht möglich.": [
+"Full screen is not possible here.",
+"Vollbild isch da nöd mögli."
+],
+"TagStudio startet neu …": [
+"TagStudio is restarting …",
+"TagStudio startet neu …"
+],
+"Einstellungen werden gespeichert …": [
+"Saving settings …",
+"Iistellige werded gspicheret …"
+],
+"Bitte TagStudio neu starten.": [
+"Please restart TagStudio.",
+"Bitte TagStudio neu starte."
+],
+"ohne bekannte Herkunft": [
+"without known origin",
+"ohni bekannti Herkunft"
+],
+"Nach Herkunft filtern": [
+"Filter by origin",
+"Nach Herkunft filtere"
+],
+"(alle)": [
+"(all)",
+"(alli)"
+],
+"Alle Herkünfte zeigen": [
+"Show all origins",
+"Alli Herkünft zeige"
+],
+"{x} · aus dem Cache – prüfe {x} / {x} …": [
+"{x} · from the cache – checking {x} / {x} …",
+"{x} · us em Cache – prüefe {x} / {x} …"
+],
+"{x} Titel ausserhalb geändert – neu gelesen": [
+"{x} tracks changed outside – re-read",
+"{x} Titel usserhalb gänderet – neu gläse"
+],
+"(fehlt)": [
+"(missing)",
+"(fäält)"
+],
+"{x} · geprüft, alles aktuell (aus dem Cache)": [
+"{x} · checked, all up to date (from the cache)",
+"{x} · prüeft, alles aktuell (us em Cache)"
+],
+"· Stand": [
+"· state",
+"· Stand"
+],
+"Developer Release: Quellcode mit {x} Änderung(en) nach Version {x}{x} – noch nicht als Beta oder Release veröffentlicht": [
+"Developer release: source code with {x} change(s) after version {x}{x} – not yet published as beta or release",
+"Developer Release: Quällcode mit {x} Änderig(e) nach Version {x}{x} – nonig als Beta oder Release veröffentlicht"
+],
+"· Browser": [
+"· browser",
+"· Browser"
+],
+"Dunkles Design": [
+"Dark theme",
+"Dunkels Design"
+],
+"Vergleich auf die Vorgaben zurücksetzen (Einstellungen › Vergleich) – abweichend: {x}": [
+"Reset comparison to the defaults (Settings › Compare) – different: {x}",
+"Vergliich uf d Vorgabe zrugsetze (Iistellige › Vergliich) – abwiichend: {x}"
+],
+"Ungespeicherte Änderungen": [
+"Unsaved changes",
+"Ungspicherti Änderige"
+],
+"{x} Datei(en) haben ungespeicherte Änderungen.": [
+"{x} file(s) have unsaved changes.",
+"{x} Datei(e) händ ungspicherti Änderige."
+],
+"Verwerfen": [
+"Discard",
+"Verwärfe"
+],
+"Einlesen abgebrochen – bisherige Ansicht bleibt erhalten.": [
+"Loading cancelled – the previous view is kept.",
+"Iiläse abbroche – di bisherig Aasicht bliibt."
+],
+"Alle Paare": [
+"All pairs",
+"Alli Päärli"
+],
+"Mit Unterschieden": [
+"With differences",
+"Mit Unterschiid"
+],
+"Nur unwichtige Unterschiede": [
+"Only unimportant differences",
+"Nur unwichtigi Unterschiid"
+],
+"Gleich": [
+"Equal",
+"Gliich"
+],
+"Nur eine Seite vorhanden": [
+"Only one side present",
+"Nur ei Siite vorhande"
+],
+"{x} Paare": [
+"{x} pairs",
+"{x} Päärli"
+],
+"Keine Paare passen zum Filter.": [
+"No pairs match the filter.",
+"Kei Päärli passed zum Filter."
+],
+"links {x}, rechts {x}": [
+"left {x}, right {x}",
+"links {x}, rächts {x}"
+],
+"Standardordner wieder eintragen:": [
+"Restore default folder:",
+"Standardordner wider iiträge:"
+],
+"Erst ein Dateipaar wählen.": [
+"Choose a file pair first.",
+"Zerscht es Dateipäärli wääle."
+],
+"Ungespeicherte Änderungen verwerfen?": [
+"Discard unsaved changes?",
+"Ungspicherti Änderige verwärfe?"
+],
+"{x} hat ungespeicherte Änderungen. Beim Neu-Einlesen gehen sie verloren.": [
+"{x} has unsaved changes. They will be lost when reloading.",
+"{x} hät ungspicherti Änderige. Bim Neu-Iiläse gönd s verlore."
+],
+"Rückgängig: {x}": [
+"Undo: {x}",
+"Rückgängig: {x}"
+],
+"Wiederholen: {x}": [
+"Redo: {x}",
+"Widerhole: {x}"
+],
+"Keine ungespeicherten Änderungen.": [
+"No unsaved changes.",
+"Kei ungspicherti Änderige."
+],
+"{x} wichtig · {x} nur eine Seite · {x} unwichtig": [
+"{x} important · {x} one side only · {x} unimportant",
+"{x} wichtig · {x} nur ei Siite · {x} unwichtig"
+],
+"Nur eine Seite – Tags können bearbeitet werden": [
+"One side only – tags can be edited",
+"Nur ei Siite – Tags chönd bearbeitet werde"
+],
+"— keine Datei —": [
+"— no file —",
+"— kei Datei —"
+],
+"· unterscheidet sich": [
+"· differs",
+"· isch andersch"
+],
+"📸 {x} · schreibgeschützt": [
+"📸 {x} · read-only",
+"📸 {x} · schriibgschützt"
+],
+"– unterscheidet sich von der anderen Seite": [
+"– differs from the other side",
+"– isch andersch als di ander Siite"
+],
+"— fehlt —": [
+"— missing —",
+"— fäält —"
+],
+"XML ansehen (Binärfeld)": [
+"View XML (binary field)",
+"XML aaluege (Binärfäld)"
+],
+"Im XML-Editor bearbeiten": [
+"Edit in XML editor",
+"Im XML-Editor bearbeite"
+],
+"Keine Felder mit Herkunft {x}.": [
+"No fields with origin {x}.",
+"Kei Fälder mit Herkunft {x}."
+],
+"Keine Unterschiede.": [
+"No differences.",
+"Kei Unterschiid."
+],
+"Keine Felder.": [
+"No fields.",
+"Kei Fälder."
+],
+"{q} ist ein Binärfeld und kann nur kopiert oder entfernt werden.": [
+"{q} is a binary field and can only be copied or removed.",
+"{q} isch es Binärfäld und cha nur kopiert oder entfärnt werde."
+],
+"Der Text ist kein gültiges JSON.": [
+"The text is not valid JSON.",
+"De Text isch kän gültigs JSON."
+],
+"Bitte zuerst Felder markieren (Klick, Shift/Strg-Klick).": [
+"Please mark fields first (click, Shift/Ctrl-click).",
+"Bitte zerscht Fälder markiere (Klick, Shift/Strg-Klick)."
+],
+"Felder nur im Ziel": [
+"Fields only in the target",
+"Fälder nur im Ziil"
+],
+"… und {x} weitere": [
+"… and {x} more",
+"… und {x} wiiteri"
+],
+"{x} Feld(er) gibt es nur im Ziel:": [
+"{x} field(s) only exist in the target:",
+"{x} Fäld(er) gits nur im Ziil:"
+],
+"Sollen diese im Ziel entfernt werden, damit beide Seiten gleich sind?": [
+"Should they be removed in the target so that both sides are equal?",
+"Söled die im Ziil entfärnt werde, dass beidi Siite gliich sind?"
+],
+"Behalten": [
+"Keep",
+"Bhalte"
+],
+"· Sicherung: {x}": [
+"· backup: {x}",
+"· Sicherig: {x}"
+],
+"{x} gespeichert, {x} Fehler.{x}": [
+"{x} saved, {x} errors.{x}",
+"{x} gspicheret, {x} Fähler.{x}"
+],
+"Fehler beim Speichern": [
+"Error while saving",
+"Fähler bim Spichere"
+],
+"Abgebrochen – {x} Datei(en) gespeichert.{x}": [
+"Cancelled – {x} file(s) saved.{x}",
+"Abbroche – {x} Datei(e) gspicheret.{x}"
+],
+"{x} Datei(en) gespeichert.{x}": [
+"{x} file(s) saved.{x}",
+"{x} Datei(e) gspicheret.{x}"
+],
+"auch von dir geändert": [
+"also changed by you",
+"au vo dir gänderet"
+],
+"… {x} weitere": [
+"… {x} more",
+"… {x} wiiteri"
+],
+"{x} Datei(en) wurden von einem anderen Programm geändert": [
+"{x} file(s) were changed by another program",
+"{x} Datei(e) sind vo eme andere Programm gänderet worde"
+],
+"(bei Feldern, die beide geändert haben, gewinnt deine Änderung)": [
+"(for fields both changed, your change wins)",
+"(bi Fälder, wo beidi gänderet händ, gwinnt dini Änderig)"
+],
+"Seit TagStudio die Dateien eingelesen hat, hat z. B. Mp3tag, Mixed In Key oder beaTunes diese Felder geändert. Beim Speichern würden diese Änderungen sonst überschrieben.": [
+"Since TagStudio loaded the files, e.g. Mp3tag, Mixed In Key or beaTunes changed these fields. Otherwise saving would overwrite these changes.",
+"Sit TagStudio d Dateie iiglaase hät, hät z. B. Mp3tag, Mixed In Key oder beaTunes die Fälder gänderet. Bim Spichere würded die Änderige susch überschribe."
+],
+"Übernehmen und speichern": [
+"Take over and save",
+"Übernää und spichere"
+],
+"liest die Dateien neu ein, behält deine eigenen Änderungen{x} und speichert danach.": [
+"re-reads the files, keeps your own changes{x} and saves afterwards.",
+"liest d Dateie neu ii, bhaltet dini eigete Änderige{x} und spicheret nachher."
+],
+"Trotzdem überschreiben": [
+"Overwrite anyway",
+"Trotzdem überschriibe"
+],
+"Für dieses Bild gibt es keine Vorschau.": [
+"There is no preview for this image.",
+"Für das Bild gits kei Vorschau."
+],
+"Markierte {x} entfernen": [
+"Remove marked {x}",
+"Markierti {x} entfärne"
+],
+"Wert kopieren": [
+"Copy value",
+"Wärt kopiere"
+],
+"Wert kopiert.": [
+"Value copied.",
+"Wärt kopiert."
+],
+"Link öffnen: {x}": [
+"Open link: {x}",
+"Link uftue: {x}"
+],
+"Bild anzeigen": [
+"Show image",
+"Bild aazeige"
+],
+"Bild ersetzen …": [
+"Replace image …",
+"Bild ersetze …"
+],
+"Bild exportieren …": [
+"Export image …",
+"Bild exportiere …"
+],
+"Dateiordner öffnen{x}": [
+"Open file folder{x}",
+"Dateiordner uftue{x}"
+],
+"Änderungen an diesem Paar verwerfen": [
+"Discard changes to this pair",
+"Änderige a dem Päärli verwärfe"
+],
+"Erweiterten Filter ausblenden": [
+"Hide advanced filter",
+"Erwiiterete Filter uusblände"
+],
+"Nur Felder mit Herkunft {q} – erneut klicken zeigt alle.": [
+"Only fields with origin {q} – click again to show all.",
+"Nur Fälder mit Herkunft {q} – nomal klicke zeigt alli."
+],
+"Alle Herkünfte.": [
+"All origins.",
+"Alli Herkünft."
+],
+"Standardordner eingetragen – „": [
+"Default folder entered – “",
+"Standardordner iitrait – „"
+],
+"“ lädt ihn.": [
+"” loads it.",
+"“ ladt en."
+],
+"Das Datenbank-Modul ist geplant: die ganze Bibliothek durchsuchen, Statistiken, Duplikate finden.": [
+"The database module is planned: search the whole library, statistics, find duplicates.",
+"S Datebank-Modul isch plant: di ganz Bibliothek dursueche, Statistike, Duplikat finde."
+],
+"Start fehlgeschlagen": [
+"Start failed",
+"Start fählgschlage"
+],
+"{n} Paar eingelesen.": [
+"{n} pair loaded.",
+"{n} Päärli iiglaase."
+],
+"{n} Paare eingelesen.": [
+"{n} pairs loaded.",
+"{n} Päärli iiglaase."
+],
+"{n} Paar eingelesen": [
+"{n} pair loaded",
+"{n} Päärli iiglaase"
+],
+"{n} Paare eingelesen": [
+"{n} pairs loaded",
+"{n} Päärli iiglaase"
+]
+}

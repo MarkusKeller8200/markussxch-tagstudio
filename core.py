@@ -24,7 +24,7 @@ CONFIG_OLD = os.path.join(os.path.expanduser("~"), ".mp3tagcompare.json") if not
 
 URL_RE = re.compile(r"(?:https?://|www\.)[^\s|¦<>\"]+", re.I)
 FILTER_OPS = ["enthält", "enthält nicht", "ist", "ist nicht", "beginnt mit", "fehlt / leer", "vorhanden",
-              "größer als", "kleiner als", "Regex"]
+              "grösser als", "kleiner als", "Regex"]
 FILTER_SIDES = ["links oder rechts", "links", "rechts", "beide Seiten"]
 EMPTY_SETS = {"off": "Leere Felder", "v1": "Leere: v1", "v23": "Leere: v2.3", "v24": "Leere: v2.4", "all": "Leere: alle"}
 
@@ -259,6 +259,7 @@ def make_pair_filter(query="", key=None, op="enthält", val="", side="links oder
     cond = None
     if key and (val or not needs_val):
         vl = val.lower()
+        op = (op or "").replace("\u00df", "ss")       # #157: ältere Einstellungen mit „größer als“
         rx = None
         if op == "Regex":
             try:
@@ -291,12 +292,12 @@ def make_pair_filter(query="", key=None, op="enthält", val="", side="links oder
                 return not any(v.strip() == vl for v in low)
             if op == "beginnt mit":
                 return any(v.startswith(vl) for v in low)
-            if op in ("größer als", "kleiner als"):
+            if op in ("grösser als", "kleiner als"):
                 ref = _num(val)
                 nums = [n for n in (_num(v) for v in vals) if n is not None]
                 if ref is None or not nums:
                     return False
-                return any(n > ref for n in nums) if op == "größer als" else any(n < ref for n in nums)
+                return any(n > ref for n in nums) if op == "grösser als" else any(n < ref for n in nums)
             if op == "Regex":
                 return rx is not None and any(rx.search(v) for v in vals)
             return True

@@ -14,7 +14,7 @@ import setexport
 
 def entries(base):
     return [
-        {"path": os.path.join(base, "Ä Ordner", "01 Grüße & Küsse.mp3"), "artist": "Mära", "title": "Grüße <live>",
+        {"path": os.path.join(base, "Ä Ordner", "01 Grüsse & Küsse.mp3"), "artist": "Mära", "title": "Grüsse <live>",
          "album": "A&B", "genre": "House", "key": "8A", "bpm": 124.0, "energy": 70, "duration": 312.4,
          "to_next": {"key": "adjacent", "bpm_pct": 0.8, "score": 91}},
         {"path": os.path.join(base, "Ä Ordner", "sub dir", "02 #1 50%.mp3"), "artist": "", "title": "",
@@ -33,15 +33,15 @@ class TestFormats(unittest.TestCase):
         es = entries(self.dir)
         txt = setexport.m3u8(es, name="Freitag")
         lines = txt.splitlines()
-        self.assertEqual(lines[:3], ["#EXTM3U", "#PLAYLIST:Freitag", "#EXTINF:312,Mära - Grüße <live>"])
+        self.assertEqual(lines[:3], ["#EXTM3U", "#PLAYLIST:Freitag", "#EXTINF:312,Mära - Grüsse <live>"])
         self.assertEqual(lines[3], es[0]["path"])
         self.assertEqual(lines[4], "#EXTINF:-1,02 #1 50%")
         rel = setexport.m3u8(es, os.path.join(self.dir, "Ä Ordner"), relative=True).splitlines()
-        self.assertEqual(rel[2], "01 Grüße & Küsse.mp3")
+        self.assertEqual(rel[2], "01 Grüsse & Küsse.mp3")
         self.assertEqual(rel[4], os.path.join("sub dir", "02 #1 50%.mp3"))
 
     def test_location_roundtrip(self):
-        for p in (os.path.abspath(os.path.join(self.dir, "Musik", "Grüße & Küsse #1 50%.mp3")),
+        for p in (os.path.abspath(os.path.join(self.dir, "Musik", "Grüsse & Küsse #1 50%.mp3")),
                   os.path.abspath(os.path.join(os.sep, "a b", "c.mp3"))):          # Windows: mit Laufwerk
             loc = setexport.location(p)
             self.assertTrue(loc.startswith("file://localhost/"))
@@ -58,7 +58,7 @@ class TestFormats(unittest.TestCase):
         self.assertNotIn("Comments", xml)
         back = setexport.read_rekordbox(xml)
         self.assertEqual(back["playlists"]["Set 1"], [e["path"] for e in es])
-        self.assertEqual(back["tracks"]["1"]["Name"], "Grüße <live>")
+        self.assertEqual(back["tracks"]["1"]["Name"], "Grüsse <live>")
         self.assertEqual(back["tracks"]["2"]["Name"], "02 #1 50%")
         self.assertIn('Tonality="08A"', setexport.rekordbox_xml(es, notation="camelot"))  # zweistellig wie überall
 
@@ -71,7 +71,7 @@ class TestFormats(unittest.TestCase):
         with open(os.path.join(self.dir, "Set ä.csv"), encoding="utf-8-sig", newline="") as fh:
             rows = list(csv.reader(fh, delimiter=";"))
         self.assertEqual(rows[0], setexport.CSV_HEAD)
-        self.assertEqual(rows[1][:11], ["1", "Mära", "Grüße <live>", "Am", "08A", "124", "70", "5:12", "±1 auf dem Rad", "0,8", "91"])
+        self.assertEqual(rows[1][:11], ["1", "Mära", "Grüsse <live>", "Am", "08A", "124", "70", "5:12", "±1 auf dem Rad", "0,8", "91"])
         self.assertEqual(rows[2][8:11], ["", "", ""])
         with self.assertRaises(ValueError):
             setexport.write("pdf", os.path.join(self.dir, "x"), es)

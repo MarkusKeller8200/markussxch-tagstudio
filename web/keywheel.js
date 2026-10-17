@@ -62,7 +62,7 @@ function keyWheelRender() {
   const raw = !k.mixed && k.value && !cur ? `<div class="hint st-missing">„${esc(k.value)}“ ist keine erkannte Tonart.</div>` : "";
   const near = cur ? keyCompat(cur).slice(1).map((c) => `${keyBadge(c)} <span class="muted sm">${esc(keyInfo(c).musical)}</span>`).join(" ") : "";
   pop.innerHTML = `<div class="kp-head"><b>Tonart</b><span class="muted sm">${TG.detail.count > 1 ? TG.detail.count + " Dateien" : ""}</span>
-      <button class="kp-x" data-kw="close" title="Schließen" aria-label="Schließen"><svg class="i" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+      <button class="kp-x" data-kw="close" title="Schliessen" aria-label="Schliessen"><svg class="i" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
     ${wheelSvg(cur)}${raw}
     <div class="kp-near">${cur ? `<span class="muted sm">Passt zu</span> ${near}` : '<span class="muted sm">Klick auf ein Feld setzt die Tonart. Aussen Dur, innen Moll.</span>'}</div>
     <div class="kp-row"><span class="muted sm">Schreiben als</span><div class="kn-seg">${set.notations.map(([v, l]) => `<button data-kn="${v}" class="${set.notation === v ? "on" : ""}" title="${esc(l)}">${esc(l.replace(/\s*\(.*/, ""))}</button>`).join("")}</div></div>
