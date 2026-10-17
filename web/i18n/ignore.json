@@ -408,5 +408,7 @@
 "modelle",
 "verbesserung",
 "funktion",
-"fehler"
+"fehler",
+"Start-Process -FilePath {x}",
+"Hidden"
 ]

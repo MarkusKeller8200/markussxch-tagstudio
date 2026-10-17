@@ -410,7 +410,8 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
 
 - **Update:** „Nach Update suchen“ unten in der Seitenleiste; TagStudio prüft beim Start selbst (Punkt am Knopf).
   Unter Einstellungen › Updates: **nur offizielle Versionen** oder **auch Beta-Versionen**. Die installierte App
-  zeigt die neue Version mit ihren Hinweisen und lädt den passenden Installer herunter. In der Quellcode-Variante
+  zeigt die neue Version mit ihren Hinweisen; unter Windows lädt **„Jetzt aktualisieren“** den Installer, prüft ihn,
+  installiert still und startet TagStudio neu (macOS: Installer herunterladen). In der Quellcode-Variante
   lädt ein Klick die neue Version (`git`, nur Vorspulen, nur ohne eigene Änderungen im Programmordner; bis zur
   neuesten offiziellen bzw. Beta-Version) und startet neu; ungespeicherte Änderungen werden vorher abgefragt. Nur im
   Quellcode gibt es zusätzlich den Kanal **Entwicklung** (jede Änderung auf `main`, angezeigt als „Developer Release“

@@ -6,6 +6,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Update auf Knopfdruck (#234, Windows):** Die installierte App lädt die neue Version direkt von GitHub, prüft die
+  Prüfsumme, schliesst sich, installiert still und startet neu – Einstellungen und Daten bleiben erhalten. Nur
+  veröffentlichte Versionen im gewählten Kanal; macOS folgt.
+
 ### Geändert
 
 - **Versionsanzeige und Update-Kanäle (#233):** Der Entwicklungsstand im Quellcode heisst „Developer Release“ und zeigt

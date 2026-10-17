@@ -462,7 +462,8 @@ class Api:
         ch = self._s.update_channel()
         if updater.frozen():
             st = updater.release_check(VERSION, ch) if fetch else {"ok": False, "error": None}
-            st.update(kind="release", frozen=True, channel=ch, version=VERSION, behind=1 if st.get("newer") else 0)
+            st.update(kind="release", frozen=True, channel=ch, version=VERSION, behind=1 if st.get("newer") else 0,
+                      auto=updater.auto_update_supported())                       # #234: Update auf Knopfdruck
         else:
             st = updater.status(bool(fetch), channel=ch)
             st.update(kind="git", version=VERSION)
@@ -492,6 +493,50 @@ class Api:
 
     def set_update_channel(self, channel):
         return self._s.set_update_channel(channel)
+
+    # ---------- #234: Update auf Knopfdruck (installierte App, zuerst Windows)
+    def start_app_update(self):
+        """Installer der neuesten Version im gewählten Kanal laden und prüfen (Hintergrund-Vorgang mit Fortschritt)."""
+        if not updater.auto_update_supported():
+            return {"ok": False, "error": "Update auf Knopfdruck gibt es derzeit nur in der installierten App unter Windows."}
+        import paths
+        ch = self._s.update_channel()
+        dest = paths.sub("Updates")
+
+        def job(cancel, progress):
+            rc = updater.release_check(VERSION, ch)
+            if not rc.get("ok"):
+                raise RuntimeError(rc.get("error") or "GitHub ist nicht erreichbar.")
+            if not rc.get("newer"):
+                return {"ok": False, "message": f"Du hast bereits die neueste Version ({VERSION})."}
+            lt = rc["latest"]
+            asset = updater.platform_asset(lt)
+            if not asset:
+                raise RuntimeError(f"Im Release {lt['version']} gibt es keinen Installer für dieses System.")
+            progress(("text", f"Lade {asset['name']} …"))
+
+            def prog(done, total):
+                mb = lambda n: round(n / 1048576)                       # noqa: E731
+                if total:
+                    progress(("progress", mb(done), max(1, mb(total)), f"{asset['name']} (MB)"))
+            path = updater.download_asset(asset, dest, prog, cancel.is_set)
+            applog.info(f"Update {VERSION} → {lt['version']}: {asset['name']} geladen und geprüft")
+            return {"ok": True, "path": path, "version": lt["version"], "beta": lt.get("beta", False)}
+        return self._s._run("update", "Update wird geladen", job)
+
+    def app_update_install(self, path):
+        """Geladenen Installer still ausführen: TagStudio beendet sich, installiert und startet neu (#234)."""
+        if not updater.auto_update_supported():
+            return {"ok": False, "message": "Nur in der installierten App unter Windows."}
+        import paths
+        dest = os.path.normcase(os.path.abspath(paths.sub("Updates")))
+        p = os.path.abspath(str(path or ""))
+        if os.path.normcase(os.path.dirname(p)) != dest or not p.lower().endswith(".exe") or not os.path.isfile(p):
+            return {"ok": False, "message": "Installer nicht gefunden – bitte das Update nochmals starten."}
+        log = updater.launch_windows_update(p, os.path.dirname(p))
+        applog.info(f"Update: Installer gestartet ({os.path.basename(p)}), Protokoll {log}")
+        self.quit(stop_jobs=True)
+        return {"ok": True, "log": log}
 
     def apply_update(self):
         """Neue Version holen (git pull, nur Vorspulen). Danach restart() aufrufen."""

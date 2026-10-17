@@ -349,9 +349,14 @@ async function runUpdate() {
     const go = await modal({ title: `Neue Version ${lt.version}${lt.beta ? " (Beta)" : ""}`, wide: true,
       html: `<div class="rn"><p>Installiert: <b>${esc(st.version)}</b> · neu: <b>${esc(lt.version)}</b>${lt.date ? ` vom ${esc(lt.date)}` : ""}</p>
         ${mdLite(lt.notes.replace(/^\*\*Download:\*\*.*$/m, "").replace(/^Die Installer sind nicht signiert.*$/m, ""))}
-        <p class="muted sm">Herunterladen, TagStudio schliessen und den Installer ausführen – Einstellungen bleiben erhalten.</p></div>`,
-      buttons: [{ label: "Später", value: null }, { label: "Auf GitHub ansehen", value: "page" }, ...(asset ? [{ label: "Installer herunterladen", value: "dl", primary: true }] : [])] });
+        <p class="muted sm">${st.auto && asset
+          ? "„Jetzt aktualisieren“ lädt den Installer, prüft ihn, schliesst TagStudio, installiert die neue Version und startet sie – Einstellungen und Daten bleiben erhalten."
+          : "Herunterladen, TagStudio schliessen und den Installer ausführen – Einstellungen bleiben erhalten."}</p></div>`,
+      buttons: [{ label: "Später", value: null }, { label: "Auf GitHub ansehen", value: "page" },
+        ...(asset && st.auto ? [{ label: "Installer herunterladen", value: "dl" }, { label: "Jetzt aktualisieren", value: "auto", primary: true }]
+          : asset ? [{ label: "Installer herunterladen", value: "dl", primary: true }] : [])] });
     if (go === "dl") call("open_url", asset.url); else if (go === "page") call("open_url", lt.url);
+    else if (go === "auto") await appUpdateAuto();
     return;
   }
   if (!st.ok && st.frozen) {
@@ -377,6 +382,19 @@ async function runUpdate() {
   const res = await call("apply_update");
   if (!res.ok) { await info("Update nicht möglich", res.message); return; }
   await appRestartNow("Neue Version geladen – TagStudio startet neu …", res.message);
+}
+
+/** #234: Update auf Knopfdruck – laden und prüfen (mit Fortschritt), dann speichern, beenden und still installieren */
+async function appUpdateAuto() {
+  if (!(await appCloseChecks("Aktualisieren"))) return;
+  const res = await runTask(call("start_app_update"), "Update wird geladen");
+  if (!res) return;
+  if (res.cancelled) { status("Update abgebrochen.", "warn"); return; }
+  if (!res.ok) { toast(res.message || "Kein Update nötig."); return; }
+  appBusy(`TagStudio ${res.version} wird installiert …`, "Einstellungen werden gespeichert – TagStudio schliesst sich und startet nach der Installation neu.");
+  await appFlushState().catch(() => {});
+  const r = await call("app_update_install", res.path);
+  if (!r.ok) { $("#progress").hidden = true; await info("Update nicht möglich", r.message); }
 }
 
 // ====================================================================== Beenden, Neustart, Fenster (#132, #134)

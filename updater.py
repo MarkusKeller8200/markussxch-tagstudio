@@ -195,7 +195,8 @@ def fetch_releases(timeout: float = 8.0) -> list:
         out.append({"tag": tag, "version": tag.lstrip("v"), "beta": bool(x.get("prerelease")) or is_beta(tag),
                     "url": x.get("html_url") or RELEASES_URL, "notes": str(x.get("body") or ""),
                     "date": str(x.get("published_at") or "")[:10],
-                    "assets": [{"name": a.get("name"), "url": a.get("browser_download_url")} for a in x.get("assets") or []]})
+                    "assets": [{"name": a.get("name"), "url": a.get("browser_download_url"), "size": a.get("size") or 0,
+                                "digest": str(a.get("digest") or "")} for a in x.get("assets") or []]})
     return out
 
 
@@ -259,3 +260,94 @@ def final_tag_target(cwd=HERE, include_beta: bool = False) -> str | None:
     code, out, _ = _git(["tag", "-l", "v*"], cwd)
     tags = [t for t in out.splitlines() if parse_version(t) and (include_beta or not is_beta(t))] if code == 0 else []
     return max(tags, key=parse_version, default=None)
+
+
+# =========================================================================== #234: Update auf Knopfdruck (installierte App)
+ASSET_HOST = "https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/download/"
+
+
+def platform_asset(release: dict, platform: str | None = None):
+    """Installer des Releases für dieses System: Windows .exe, macOS .dmg. → Asset-Dict oder None."""
+    plat = platform or sys.platform
+    pat = r"\.exe$" if plat.startswith("win") else r"\.dmg$" if plat == "darwin" else None
+    if not pat:
+        return None
+    return next((a for a in release.get("assets") or [] if _re.search(pat, a.get("name") or "", _re.I)), None)
+
+
+def auto_update_supported(platform: str | None = None) -> bool:
+    """Update auf Knopfdruck: zuerst nur Windows (macOS folgt, #234)."""
+    return frozen() and (platform or sys.platform).startswith("win")
+
+
+def download_asset(asset: dict, dest_dir: str, progress=None, cancelled=None, opener=None) -> str:
+    """Installer laden und die SHA-256-Prüfsumme von GitHub („digest“) prüfen. → Pfad der Datei.
+    Nur Adressen aus den Releases dieses Repos; ohne Prüfsumme oder bei Abweichung: ValueError (nichts installieren)."""
+    import hashlib
+    import urllib.request
+    url, name = str(asset.get("url") or ""), os.path.basename(str(asset.get("name") or ""))
+    if not url.startswith(ASSET_HOST) or not name or name in (".", ".."):
+        raise ValueError("Unerwartete Download-Adresse – Update abgebrochen.")
+    want = str(asset.get("digest") or "")
+    if not want.lower().startswith("sha256:"):
+        raise ValueError("GitHub liefert für diese Datei keine Prüfsumme – bitte den Installer von Hand laden.")
+    os.makedirs(dest_dir, exist_ok=True)
+    path = os.path.join(dest_dir, name)
+    part = path + ".part"
+    h, done, total = hashlib.sha256(), 0, int(asset.get("size") or 0)
+    req = urllib.request.Request(url, headers={"User-Agent": "MarKusSXCH-TagStudio"})
+    op = opener or urllib.request.urlopen
+    with op(req, timeout=30) as r, open(part, "wb") as fh:
+        total = total or int(r.headers.get("Content-Length") or 0)
+        while True:
+            if cancelled and cancelled():
+                raise InterruptedError("Abgebrochen.")
+            chunk = r.read(256 * 1024)
+            if not chunk:
+                break
+            fh.write(chunk)
+            h.update(chunk)
+            done += len(chunk)
+            if progress:
+                progress(done, total)
+    got = "sha256:" + h.hexdigest()
+    if got.lower() != want.lower():
+        os.remove(part)
+        raise ValueError("Prüfsumme stimmt nicht – die Datei ist unvollständig oder verändert. Nichts installiert.")
+    os.replace(part, path)
+    return path
+
+
+def windows_update_script(installer: str, pid: int, exe: str, log: str, all_users: bool) -> str:
+    """PowerShell: wartet, bis TagStudio beendet ist, installiert still und startet TagStudio neu.
+    PowerShell statt Batch, weil Pfade mit Umlauten (Benutzername) sonst an der Codepage scheitern."""
+    q = lambda s: "'" + str(s).replace("'", "''") + "'"   # noqa: E731 – PowerShell-Zeichenkette
+    mode = "/ALLUSERS" if all_users else "/CURRENTUSER"
+    args = ", ".join(q(x) for x in ("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CLOSEAPPLICATIONS", "/SP-", mode,
+                                    f'/LOG="{log}"'))
+    return "\n".join([
+        "# TagStudio - Update auf Knopfdruck (#234)",
+        f"$p = {int(pid)}",
+        "while (Get-Process -Id $p -ErrorAction SilentlyContinue) { Start-Sleep -Milliseconds 500 }",
+        f"$r = Start-Process -FilePath {q(installer)} -ArgumentList {args} -Wait -PassThru",
+        f"Start-Process -FilePath {q(exe)}",
+        "exit $r.ExitCode",
+    ])
+
+
+def launch_windows_update(installer: str, data_dir: str) -> str:
+    """Skript unabhängig vom laufenden Prozess starten (verborgen). → Pfad des Installer-Protokolls."""
+    import base64
+    import subprocess
+    exe = sys.executable
+    local = os.environ.get("LOCALAPPDATA", "")
+    all_users = not (local and os.path.normcase(os.path.abspath(exe)).startswith(os.path.normcase(os.path.abspath(local))))
+    log = os.path.join(data_dir, "update-installer.log")
+    script = windows_update_script(installer, os.getpid(), exe, log, all_users)
+    with open(os.path.join(data_dir, "update.ps1"), "w", encoding="utf-8") as fh:     # nur zur Nachvollziehbarkeit
+        fh.write(script)
+    enc = base64.b64encode(script.encode("utf-16-le")).decode("ascii")
+    flags = 0x00000008 | 0x00000200 | 0x08000000      # DETACHED | NEW_PROCESS_GROUP | NO_WINDOW
+    subprocess.Popen(["powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden",
+                      "-EncodedCommand", enc], cwd=data_dir, close_fds=True, creationflags=flags)
+    return log

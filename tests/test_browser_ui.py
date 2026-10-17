@@ -634,6 +634,29 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until(f"{ix} === '0,1,2'"))
         self.assertEqual(self.errors, [])
 
+    def test_app_update_button(self):
+        """#234: installierte App unter Windows – „Jetzt aktualisieren“ lädt, prüft und installiert (Aufrufe simuliert)."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("""(() => { const orig = call; window.__calls = [];
+          const rel = { version: "9.9.0", beta: false, date: "2026-12-01", url: "https://github.com/x", notes: "Neu",
+            assets: [{ name: "TagStudio-9.9.0-Windows-Setup.exe", url: "https://github.com/x.exe" }, { name: "TagStudio-9.9.0-macOS-Apple-Chip.dmg", url: "u" }] };
+          window.call = (n, ...a) => { window.__calls.push(n);
+            if (n === "update_status") return Promise.resolve({ ok: true, kind: "release", frozen: true, newer: true, channel: "stable", version: "4.7.0", auto: true, latest: rel, behind: 1 });
+            if (n === "start_app_update") return Promise.resolve({ ok: true });
+            if (n === "task_status") return Promise.resolve({ done: true, running: false, result: { ok: true, path: "C:/x/TagStudio-9.9.0-Windows-Setup.exe", version: "9.9.0" } });
+            if (n === "app_update_install") { window.__inst = a[0]; return Promise.resolve({ ok: true }); }
+            return orig(n, ...a); }; })()""")
+        pg.evaluate("Object.defineProperty(navigator, 'platform', { get: () => 'Win32' })")
+        pg.click("#updateBtn")
+        pg.wait_for_selector('#mBtns button:has-text("Jetzt aktualisieren")')
+        self.assertIn("schliesst TagStudio", pg.inner_text("#mBody"))
+        pg.click('#mBtns button:has-text("Jetzt aktualisieren")')
+        self.assertTrue(self.until("window.__inst === 'C:/x/TagStudio-9.9.0-Windows-Setup.exe'"))
+        calls = pg.evaluate("window.__calls")
+        self.assertLess(calls.index("start_app_update"), calls.index("app_update_install"))
+        self.assertIn("wird installiert", pg.inner_text("#progTitle"))
+
     def test_feedback_report(self):
         """#187: Melden aus dem Tagger – Bereich vorgewählt, Duplikate, Pflichtfelder, Vorschau geschwärzt, Zustimmung."""
         pg = self.pg

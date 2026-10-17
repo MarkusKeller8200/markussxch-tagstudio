@@ -24,6 +24,13 @@ bleiben bei jedem Update erhalten.
   `packaging/release.py` leert `NEXT`, sobald die Version erreicht ist.
 - **Installierte App:** fragt die GitHub-Releases ab, zeigt die neue Version mit Hinweisen und lädt den passenden
   Installer herunter; installiert wird darüber (Einstellungen bleiben).
+- **Update auf Knopfdruck (#234, Windows):** „Jetzt aktualisieren“ lädt den Installer aus dem Release nach
+  `~\TagStudio\Updates`, prüft die SHA-256-Prüfsumme von GitHub (`digest` des Release-Assets; ohne Prüfsumme oder bei
+  Abweichung wird nichts installiert, nur Adressen der Releases dieses Repos), fragt ungespeicherte Änderungen und
+  laufende Aufträge ab, speichert den Zustand und beendet TagStudio. Ein verborgenes PowerShell-Skript (`update.ps1`,
+  Pfade mit Umlauten sicher) wartet aufs Ende, führt den Inno-Setup-Installer still aus (`/VERYSILENT … /CURRENTUSER`
+  bzw. `/ALLUSERS` bei Installation in „Programme“, Protokoll `update-installer.log`) und startet TagStudio neu.
+  macOS folgt (DMG, sinnvoll mit signierter App #14) – dort bleibt vorerst „Installer herunterladen“.
 - **Quellcode (Git-Klon):** `git fetch` + `pull --ff-only` (nur Vorspulen, nur ohne eigene Änderungen); bei `stable`
   bis zum neuesten offiziellen Versions-Tag, bei `beta` bis zum neuesten Tag (auch Beta), bei `dev` bis `main`. Vorher Abfrage ungespeicherter Änderungen und laufender Aufträge, danach Neustart.
   Alte Zweige werden umgestellt (`MOVED = {"web-ui": "main"}`).
