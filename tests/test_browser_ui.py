@@ -811,7 +811,7 @@ class UiTest(unittest.TestCase):
                 left |= set(pg.evaluate(scan))
         if os.environ.get("TAGSTUDIO_I18N_REPORT"):
             print("\nI18N-REST", json.dumps(sorted(left), ensure_ascii=False, indent=0))
-        self.assertLessEqual(len(left), int(os.environ.get("TAGSTUDIO_I18N_MAXREST", "40")), sorted(left)[:60])
+        self.assertLessEqual(len(left), int(os.environ.get("TAGSTUDIO_I18N_MAXREST", "3")), sorted(left)[:60])
         self.assertEqual(self.errors, [])
 
     def test_player_zoom(self):
