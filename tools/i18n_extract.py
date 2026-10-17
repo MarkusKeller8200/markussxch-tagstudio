@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import ast
 import json
+from html.parser import HTMLParser
 import os
 import re
 import sys
@@ -206,11 +207,46 @@ def _template(src: str, i: int, out: list):
     return "".join(buf), i
 
 
+class _HtmlTexts(HTMLParser):
+    """Texte und beschriftende Attribute einer HTML-Datei – ohne <script>, <style> und Kommentare."""
+    ATTRS = ("title", "placeholder", "aria-label", "alt", "data-tip-title")
+
+    def __init__(self):
+        super().__init__(convert_charrefs=False)
+        self.out, self.skip = [], 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ("script", "style"):
+            self.skip += 1
+        self.out.append("")                                   # Tag trennt Texte wie bisher
+        for k, v in attrs:
+            if k in self.ATTRS and v:
+                self.out.extend([v, ""])
+
+    def handle_endtag(self, tag):
+        if tag in ("script", "style") and self.skip:
+            self.skip -= 1
+        self.out.append("")
+
+    def handle_data(self, data):
+        if not self.skip:
+            self.out.append(data)
+
+    def handle_entityref(self, name):
+        if not self.skip:
+            self.out.append(f"&{name};")
+
+    def handle_charref(self, name):
+        if not self.skip:
+            self.out.append(f"&#{name};")
+
+
 def html_texts(src: str):
-    src = re.sub(r"<script\b.*?</script>|<style\b.*?</style>|<!--.*?-->", " ", src, flags=re.S)
-    out = [m.group(1) for m in re.finditer(r'\s(?:title|placeholder|aria-label|alt|data-tip-title)="([^"]*)"', src)]
-    out += [t for t in re.split(r"<[^<>]*>", src)]
-    return out
+    p = _HtmlTexts()
+    p.feed(src)
+    p.close()
+    # benachbarte Textstücke (Text, Entität, Text) wieder zusammensetzen; Tags trennen
+    return "\x02".join(p.out).replace("\x02\x02", "\x00").replace("\x02", "").split("\x00")
 
 
 # ---------------------------------------------------------------- Python
