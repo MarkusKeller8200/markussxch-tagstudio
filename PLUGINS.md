@@ -178,6 +178,14 @@ Weitere Funktionen, die ein Plugin anbieten kann (alle optional):
 - `playlists(ctx)` → `[{id, name, path, depth, type}]` und `playlist_files(ctx, id)` → `{name, files, missing}` –
   das DJ-Set bietet dann „Aus <Plugin> …“: Playlists auswählen und als Listen laden (Beispiel: Lexicon).
 
+## Werkzeug: API-Rekorder (für Entwickler)
+
+`python tools/api_recorder.py https://… [--host api.…]` öffnet die Seite in Chromium (Playwright), liest beim
+Durchklicken die JSON-Aufrufe der Seite mit und schreibt nach dem Schliessen `recording.json` und `service.json` –
+einen Entwurf des Abschnitts `"service"` mit Endpunkten wie `/tracks/{track_id}`, Parametern und Antwortfeldern
+(Ordner `~/TagStudio/API-Aufnahmen/<host>`). Cookies, Anmeldung, Tokens, Passwörter und E-Mail-Adressen werden nie
+gespeichert. Nur für Schnittstellen verwenden, die du nutzen darfst.
+
 ## Eingebaut: Stems
 
 Trennt Titel in Einzelspuren mit [audio-separator](https://github.com/nomadkaraoke/python-audio-separator)

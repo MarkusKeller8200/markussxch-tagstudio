@@ -27,6 +27,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **DJ-Set: Playlists aus Lexicon (#242):** „Aus Lexicon …“ holt alle Playlists (und die Warteschlange), zeigt sie mit
   Häkchen und Filter; gewählte werden als Listen „Lexicon: …“ gespeichert, die erste geladen. Dazu „Lexicon-Werte in
   TagStudio-Felder …“ (#241): Werte aus den Lexicon-Feldern auf Wunsch in ENERGY usw. und die Stimmung übernehmen.
+- **API-Rekorder für Entwickler (#243):** `tools/api_recorder.py` zeichnet die Schnittstellen-Aufrufe einer Website
+  auf (Playwright) und erzeugt einen Entwurf für ein Dienst-Plugin – ohne Zugangsdaten.
 - **Eigene Übersetzungen einreichen (#232):** Hilfe › Melden › „Übersetzung einreichen“ (oder „Eigene Texte einreichen …“
   in den Spracheinstellungen) füllt die selbst angepassten Texte einer Sprache ins GitHub-Formular – nur Texte, die von
   der mitgelieferten Fassung abweichen. Nach Prüfung kommen sie in die mitgelieferten Übersetzungen.

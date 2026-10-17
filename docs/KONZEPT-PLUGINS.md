@@ -173,6 +173,13 @@ nie über einen Proxy, `is_local`).
   Session `dj_sources`, `start_dj_source_list`, `start_dj_source_import` (Listen „<Quelle>: <Name>“, erste geladen);
   Pseudo-Playlist „Warteschlange“ aus `/playing` + `/queue` (#238 Punkt 4).
 
+### API-Rekorder (#243, Entscheid User 17.10.2026)
+
+Entwicklerwerkzeug `tools/api_recorder.py` (Playwright, nicht in der App): liest beim Durchklicken einer Website die
+JSON-Aufrufe passiv mit (keine eigenen Anfragen), schwärzt Zugangsdaten und persönliche Angaben, erzeugt
+`recording.json` und einen `"service"`-Entwurf (Pfadmuster, Parameter, Antwortfelder), der direkt in `services.clean`
+passt. Einsatz nur für erlaubte Schnittstellen; für MixID zuerst Anfrage (#218).
+
 ## 5. Entscheide
 
 - Zugangsdaten nie im Klartext: Passwörter werden nicht gespeichert, Tokens/Schlüssel nur verschlüsselt, nie
