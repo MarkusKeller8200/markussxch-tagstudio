@@ -162,5 +162,10 @@
 "Titel der eigenen Bibliothek": ["Tracks of your own library", "Titel vo de eigete Bibliothek"],
 "Download eines Kaufs": ["Download of a purchase", "Download vo eme Chauf"],
 "Anmeldung (OAuth: Code holen)": ["Sign-in (OAuth: get code)", "Aamäldig (OAuth: Code hole)"],
-"Token holen/erneuern": ["Get/renew token", "Token hole/erneuere"]
+"Token holen/erneuern": ["Get/renew token", "Token hole/erneuere"],
+"Verbinde mit Lexicon unter {x} …": ["Connecting to Lexicon at {x} …", "Verbinde mit Lexicon under {x} …"],
+"GET {x}/v1/tracks?limit={n} → OK, {x} Titel": ["GET {x}/v1/tracks?limit={n} → OK, {x} tracks", "GET {x}/v1/tracks?limit={n} → OK, {x} Titel"],
+"Lexicon ist erreichbar unter {x} – {x} Titel in der Bibliothek.": ["Lexicon is reachable at {x} – {x} tracks in the library.", "Lexicon isch erreichbar under {x} – {x} Titel i de Bibliothek."],
+"Lexicon nicht erreichbar: {x}": ["Lexicon not reachable: {x}", "Lexicon nöd erreichbar: {x}"],
+"Prüft, ob die Lexicon Local API unter der eingestellten Adresse erreichbar ist (Adresse wie unter {q}, Standard http://localhost:{n}).": ["Checks whether the Lexicon Local API is reachable at the configured address (address as in {q}, default http://localhost:{n}).", "Prüeft, öb d Lexicon Local API under de iigstellte Adrässe erreichbar isch (Adrässe wie under {q}, Standard http://localhost:{n})."]
 }

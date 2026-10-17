@@ -36,6 +36,11 @@ ACTIONS = [{
         {"type": "info", "label": "Lexicon muss laufen und die Local API eingeschaltet sein (Settings › Integrations). "
                                   "Lexicon-Werte 1–10 werden zu 10–100; 0 heisst „nicht analysiert“ und wird übergangen."},
     ],
+}, {
+    "id": "test", "label": "Verbindung testen", "where": "page", "run_label": "Testen", "needs_selection": False,
+    "description": "Prüft, ob die Lexicon Local API unter der eingestellten Adresse erreichbar ist (Adresse wie unter "
+                   "„Lexicon übernehmen …“, Standard http://localhost:48624).",
+    "options": [],
 }]
 
 
@@ -174,7 +179,23 @@ def test_query(ctx, info):
     return out
 
 
+def test_connection(ctx) -> dict:
+    """Verbindung testen: ein Titel aus /v1/tracks – zeigt, ob Lexicon läuft und die Local API eingeschaltet ist."""
+    base = _base(ctx)
+    ctx.status(f"Verbinde mit Lexicon unter {base} …")
+    try:
+        d = _get(base, "/v1/tracks?limit=1&offset=0", timeout=5)
+    except LexiconError as ex:
+        ctx.log(str(ex))
+        return {"message": f"Lexicon nicht erreichbar: {ex}"}
+    total = int(d.get("total") or 0)
+    ctx.log(f"GET {base}/v1/tracks?limit=1 → OK, {total} Titel")
+    return {"message": f"Lexicon ist erreichbar unter {base} – {total} Titel in der Bibliothek."}
+
+
 def run(action, ctx, files, opts):
+    if action == "test":
+        return test_connection(ctx)
     if action != "import":
         raise ValueError(f"Unbekannte Aktion: {action}")
     base = (opts.get("url") or "http://localhost:48624").strip()

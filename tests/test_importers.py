@@ -158,6 +158,27 @@ class TestLexicon(_Run):
             self.srv.server_close()
         super().tearDown()
 
+    def test_connection(self):
+        """Verbindung testen: Adresse aus den Optionen von „Lexicon übernehmen“; nicht erreichbar → Hinweis statt Fehler."""
+        import plugins
+        mod = plugins.Manager({}).get("lexicon").module
+
+        class Ctx:
+            def __init__(self, url):
+                self._session = type("S", (), {"cfg": {"plugin_options": {"lexicon": {"import": {"url": url}}}}})()
+                self.lines = []
+
+            def status(self, t):
+                pass
+
+            def log(self, t):
+                self.lines.append(t)
+        r = mod.run("test", Ctx(self.url), [], {})
+        self.assertIn("erreichbar unter", r["message"])
+        self.assertIn("3 Titel", r["message"])
+        r = mod.run("test", Ctx("http://127.0.0.1:9"), [], {})                # Port ohne Dienst
+        self.assertIn("nicht erreichbar", r["message"])
+
     def test_import(self):
         res = self.run_plugin("lexicon", url=self.url, happiness=True, mood=True)
         self.assertRegex(res["message"], r"^2 von \d+ Titel\(n\) in Lexicon gefunden \(3 Titel")
