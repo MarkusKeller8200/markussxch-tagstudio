@@ -47,7 +47,7 @@ function isDoubleClick(e, key) {
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const fmtN = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+const fmtN = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, typeof I18N !== "undefined" && I18N.lang === "en" ? "," : "'");
 const IS_MAC = /Mac/.test(navigator.platform);
 const ICON = {
   left: '<svg class="i" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>',
@@ -159,7 +159,7 @@ async function runTask(startPromise, title) {
 
 
 // ====================================================================== Splitter & Layout
-const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5, tg_edit_w: 430, tg_more_k: 130, tg_col_name: 0, tg_cover_col: false, tg_feat_cols: [], tg_more_sort: "key", tg_cols: [], tg_fit: "fit", tg_sort_default: [], tg_view_default: {}, tg_colfilter: true };
+const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5, tg_edit_w: 430, tg_more_k: 130, tg_col_name: 0, tg_cover_col: false, tg_feat_cols: [], tg_more_sort: "key", tg_cols: [], tg_fit: "fit", tg_sort_default: [], tg_view_default: {}, tg_colfilter: true, lang: "" };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 let uiSaveTimers = {};
 function saveUi(key) {
@@ -556,6 +556,11 @@ async function init() {
   S.settings = st;
   S.opts = st.options;
   for (const k of Object.keys(LAYOUT)) if (st.ui && st.ui[k] !== undefined) LAYOUT[k] = st.ui[k];
+  if (typeof i18nLoad === "function") {                    // #157: Sprache der Oberfläche
+    // ohne gespeicherte Wahl: beim allerersten Start nach der Systemsprache, sonst wie bisher Deutsch (Schweiz)
+    const first = st.ui && st.ui.lang ? false : await call("setup_state").then((x) => !!x.first).catch(() => false);
+    await i18nLoad(i18nStartLang(st.ui, first));
+  }
   applyLayout();
   applyTheme();
   initTips();                       // #72

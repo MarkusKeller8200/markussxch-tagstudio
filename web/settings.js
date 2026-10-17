@@ -18,6 +18,7 @@ async function settingsShow() {
       <div class="st-row"><span>Design</span>
         <div class="seg" id="stTheme"><button data-v="dark"${d.theme !== "light" ? ' class="on"' : ""}>Dunkel</button><button data-v="light"${d.theme === "light" ? ' class="on"' : ""}>Hell</button></div>
         <label for="stNotation">Tonart-Schreibweise</label>${stSel("stNotation", d.notations, d.key_notation)}
+        <span>Sprache</span><div>${typeof i18nPickerHtml === "function" ? i18nPickerHtml() : ""}<div class="muted sm">Sprache der Oberfläche. Tags in den MP3-Dateien werden nie übersetzt.</div></div>
       </div>${typeof setupSettingsHtml === "function" ? setupSettingsHtml() : ""}</section>
     <section class="card" id="stTaggerCard"><h3>Tagger</h3>
       <div class="st-row">${stDefRow("tagger", "Standardordner")}
@@ -504,6 +505,7 @@ function initSettings() {
   const grid = $("#stGrid");
   grid.addEventListener("click", async (e) => {
     const t = e.target.closest("button"); if (!t) return;
+    if (t.closest("#stLang")) return;                                       // #157: i18n.js übernimmt
     if (t.closest("#stTheme")) {
       S.opts.theme = t.dataset.v; applyTheme(); await call("set_option", "theme", S.opts.theme);
       $$("#stTheme button").forEach((b) => b.classList.toggle("on", b === t));

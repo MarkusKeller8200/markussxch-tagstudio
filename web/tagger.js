@@ -423,14 +423,14 @@ function drawTgList() {
     if (v.stem) {         // FLAC/WAV-Spur: nur anhören / zeigen
       const x = v.stem;
       h += `<div class="tg-row stem-x child" style="top:${k * TG_ROW}px" data-stem="${esc(x.path)}" title="${esc(x.path)}">
-        <span></span><span class="fn"><span class="tw-ind">└</span><span class="nm"><b>${esc(x.name)}</b></span><span class="sx">${esc(x.ext)} · ${mb(x.size)}</span></span>
+        <span></span><span class="fn"><span class="tw-ind">└</span><span class="nm" translate="no"><b>${esc(x.name)}</b></span><span class="sx">${esc(x.ext)} · ${mb(x.size)}</span></span>
         <span class="stem-acts"><button class="ghost sm" data-splay="1" title="Spur anhören">▶ Anhören</button><button class="ghost sm" data-sreveal="1">${IS_MAC ? "Im Finder" : "Im Explorer"}</button></span></div>`;
       continue;
     }
     const r = TG.rows[v.i];
     const tw = r.stems ? `<button class="tw" data-tw="${r.i}" aria-expanded="${TG.open.has(r.i)}" title="Stems ${TG.open.has(r.i) ? "zuklappen" : "aufklappen"}">${TG.open.has(r.i) ? "▾" : "▸"}</button>` : "";
-    const name = v.child !== undefined ? `<span class="tw-ind">└</span><span class="nm"><b>${esc(r.stem || r.name)}</b></span><span class="sx">MP3</span>`
-      : `${tw}<span class="nm">${esc(r.rel)}</span>${r.stems ? `<span class="stem-b" title="${esc(r.stems.map((x) => x.name + " (" + x.ext + ")").join(", "))}">${r.stems.length} Stems</span>` : ""}`;
+    const name = v.child !== undefined ? `<span class="tw-ind">└</span><span class="nm" translate="no"><b>${esc(r.stem || r.name)}</b></span><span class="sx">MP3</span>`
+      : `${tw}<span class="nm" translate="no">${esc(r.rel)}</span>${r.stems ? `<span class="stem-b" title="${esc(r.stems.map((x) => x.name + " (" + x.ext + ")").join(", "))}">${r.stems.length} Stems</span>` : ""}`;
     h += `<div class="tg-row${TG.sel.has(r.i) ? " sel" : ""}${v.child !== undefined ? " child" : ""}" style="top:${k * TG_ROW}px" data-i="${r.i}" title="${esc(r.rel)}" draggable="true">
       <span>${r.modified ? '<span class="m" title="ungespeichert"></span>' : ""}</span>
       ${cols.map((c) => tgCell(r, c, v, name, fit)).join("")}${fcols.map(([n]) => { const v = r.feat ? r.feat[n] : null;
@@ -445,7 +445,7 @@ function tgCell(r, c, v, name, fit) {
   switch (c) {
     case "name": return `<span class="fn">${LAYOUT.tg_cover_col && v.child === undefined ? `<span class="tg-thumb${r.ch ? "" : " none"}"${r.ch ? ` data-ch="${r.ch}"` : ""}>${r.ch && TG_THUMBS.get(r.ch) ? `<img src="${TG_THUMBS.get(r.ch)}" alt="">` : ""}</span>` : ""}${name}${rateMini(r.rating, r.like)}</span>`;
     case "TBPM": return `<span class="num">${esc(r.TBPM)}</span>`;
-    case "camelot": return `<span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx">${esc(r.TKEY)}</span>`}</span>`;
+    case "camelot": return `<span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx" translate="no">${esc(r.TKEY)}</span>`}</span>`;
     case "len": return `<span class="num">${tgMmss(r.len)}</span>`;
     case "kbps": return `<span class="num">${r.kbps || ""}</span>`;
     case "rating": return `<span>${r.rating ? "★".repeat(r.rating) : ""}${r.like ? " ♥" : ""}</span>`;
@@ -454,7 +454,7 @@ function tgCell(r, c, v, name, fit) {
     default: {
       const val = c.startsWith("fld:") ? (r.x && r.x[c.slice(4)]) || "" : r[c] || "";
       if (/^fld:TXXX:TAGSTUDIO_(ADDED|EDITED)$/.test(c)) return `<span class="num" title="${esc(val)}">${esc(tsTime(val))}</span>`;   // #184/#185
-      return `<span title="${esc(val)}">${esc(val)}</span>`;
+      return `<span title="${esc(val)}" translate="no">${esc(val)}</span>`;
     }
   }
 }

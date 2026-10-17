@@ -701,6 +701,44 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.get_attribute("#plLyricsBtn", "aria-pressed"), "false")
         self.assertEqual(self.errors, [])
 
+    def test_i18n_language(self):
+        """#157: Sprache wählen – Oberfläche auf Englisch/Zürichdeutsch, Platzhalter, Tooltips, gemerkt; zurück auf Deutsch."""
+        pg = self.pg
+        self.assertEqual(pg.evaluate("I18N.lang"), "de-CH")                          # bestehende Installation: Deutsch
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stLang")
+        self.assertEqual(pg.locator("#stLang button").count(), 3)
+        pg.click('#stLang [data-lang="en"]')
+        self.assertTrue(self.until("I18N.lang === 'en' && document.documentElement.lang === 'en'"))
+        c = self.cfg_until(lambda c: (c.get("web_ui") or {}).get("lang") == "en")
+        self.assertEqual(c["web_ui"]["lang"], "en")
+        self.assertIn("Settings", pg.inner_text(".nav[data-module=settings]"))
+        self.assertEqual(pg.evaluate("tr('Einlesen')"), "Load")
+        self.assertEqual(pg.evaluate("tr('Sortierung auf den Standard zurücksetzen (#153)')"), "Reset sorting to default (#153)")
+        self.assertEqual(pg.evaluate("tr('Die Hinweise „Erste Schritte“ wieder auf jeder Seite zeigen')"),
+                         "Show the “First steps” hints on every page again")           # {q} mitübersetzt
+        self.assertEqual(pg.evaluate("tr('Unbekannter Text bleibt')"), "Unbekannter Text bleibt")
+        # neu eingefügte Elemente und Tooltips werden übersetzt, Daten mit translate=no nicht
+        pg.evaluate("""document.body.insertAdjacentHTML('beforeend', '<div id="i18nT"><button title="Ordner wählen">Abbrechen</button><span translate="no">Abbrechen</span></div>')""")
+        self.assertTrue(self.until("document.querySelector('#i18nT button').textContent === 'Cancel'"))
+        self.assertEqual(pg.evaluate("document.querySelector('#i18nT button').dataset.tipTitle || document.querySelector('#i18nT button').title"), "Choose folder")
+        self.assertEqual(pg.inner_text("#i18nT span"), "Abbrechen")
+        # nach Neustart wieder Englisch, ohne deutsches Aufblitzen
+        pg.reload()
+        pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'en'")
+        self.assertFalse(pg.evaluate("document.documentElement.classList.contains('i18n-wait')"))
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stLang")
+        pg.click('#stLang [data-lang="gsw-u-sd-chzh"]')
+        pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'gsw-u-sd-chzh'")
+        self.assertEqual(pg.evaluate("tr('Einlesen')"), "Iiläse")
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stLang")
+        pg.click('#stLang [data-lang="de-CH"]')
+        pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'de-CH'")
+        self.assertIn("Einstellungen", pg.inner_text(".nav[data-module=settings]"))
+        self.assertEqual(self.errors, [])
+
     def test_player_zoom(self):
         """#224: Lupe – hochaufgelöster Ausschnitt um die Position, Serato oben/Analyse unten, Zoom, Klick springt, gemerkt."""
         pg = self.pg

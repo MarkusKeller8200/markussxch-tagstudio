@@ -1490,3 +1490,9 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .pl-zoom .zm-msg:empty{display:none}
 /* Kopf/Filter bündig mit der Liste, auch wenn deren Bildlaufleiste Platz einnimmt */
 .tg-thead,.tg-tfilter{padding-right:calc(12px + var(--tg-sbw,0px))}
+/* #157: bis die Sprache geladen ist, nichts Deutsches aufblitzen lassen */
+html.i18n-wait body{visibility:hidden}
+.lang-seg button{display:inline-flex;align-items:center;gap:6px}
+.lang-seg .flag{width:18px;height:13px;border-radius:2px;flex:none}
+.lang-seg svg.flag[viewBox="0 0 32 32"]{width:14px;height:14px}
+.wiz-lang{margin:4px 0 12px}

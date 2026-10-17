@@ -97,7 +97,7 @@ async function wizardRun() {
   };
   const body = () => {
     switch (W.step) {
-      case 0: return `<h2>Willkommen bei TagStudio</h2><p class="muted">In ein paar Schritten richtest du TagStudio für deine Arbeit ein. Alles lässt sich später unter Einstellungen ändern – jeder Schritt kann übersprungen werden.</p>
+      case 0: return `<h2>Willkommen bei TagStudio</h2>${typeof i18nPickerHtml === "function" ? `<div class="wiz-lang">${i18nPickerHtml()}</div>` : ""}<p class="muted">In ein paar Schritten richtest du TagStudio für deine Arbeit ein. Alles lässt sich später unter Einstellungen ändern – jeder Schritt kann übersprungen werden.</p>
         <h4>Was willst du vor allem tun?</h4><div class="wiz-opts">${WIZ_GOALS.map(([id, t, sub]) => chk("goal", id, W.goals.has(id), t, sub)).join("")}</div>
         <p class="muted sm">Die passenden Menüpunkte werden als <span class="rec-dot">★</span> empfohlen markiert – die anderen bleiben erreichbar.</p>`;
       case 1: return `<h2>Speicherort</h2><p class="muted">Auf welchem Laufwerk soll deine Musik liegen? Der <b>Basisordner</b> wird gemerkt: Jede Ordnerauswahl in TagStudio beginnt dort, damit du dich nicht jedes Mal durchklicken musst.</p>
