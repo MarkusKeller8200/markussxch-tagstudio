@@ -2,7 +2,9 @@ name: Tests
 
 on:
   push:
+    paths-ignore: ["**.md", "docs/**", "LICENSE", ".github/ISSUE_TEMPLATE/**"]   # reine Doku: keine Tests (Entscheid 17.10.2026)
   pull_request:
+    paths-ignore: ["**.md", "docs/**", "LICENSE", ".github/ISSUE_TEMPLATE/**"]   # reine Doku: keine Tests (Entscheid 17.10.2026)
   workflow_dispatch:
 
 permissions:

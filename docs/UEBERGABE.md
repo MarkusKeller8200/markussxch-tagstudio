@@ -19,6 +19,10 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - Hilfe › Melden kennt drei Arten: Fehler melden, Verbesserung vorschlagen (`improvement.yml`), Neue Funktion
   vorschlagen (`feature_request.yml`).
 - Keine offenen Punkte im Release-Meilenstein mehr → Release abschliessen und Version erstellen (vorher kurz ankündigen).
+- **Actions schlank (Entscheid 17.10.2026):** Tests und CodeQL laufen nicht bei reinen Doku-Änderungen (`*.md`,
+  `docs/`); „Meilenstein nach Art“ nur beim Anlegen; „Milestone administration“ (#190) ist **abgeschaltet** – Claude
+  verwaltet Meilensteine direkt über die API. Der Workflow „Actions-Verlauf aufräumen“ löscht sonntags Durchläufe, die
+  älter als 30 Tage sind (neuester je Workflow bleibt).
 
 ## Mehrsprachigkeit – Regeln für jede Änderung (ab 17.10.2026)
 

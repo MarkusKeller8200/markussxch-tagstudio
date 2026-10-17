@@ -1,0 +1,29 @@
+name: Actions-Verlauf aufräumen
+
+# Löscht abgeschlossene Workflow-Durchläufe, die älter als 30 Tage sind (Entscheid User 17.10.2026); der jeweils
+# neueste Durchlauf jedes Workflows bleibt. Code, Releases und Tags sind davon nicht betroffen.
+on:
+  schedule:
+    - cron: "41 3 * * 0"   # sonntags
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Durchläufe löschen, die älter sind als … Tage (0 = alle ausser dem neuesten je Workflow)"
+        default: "30"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Alte Durchläufe löschen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DAYS: ${{ github.event.inputs.days || '30' }}
+        run: python3 .github/scripts/cleanup_runs.py

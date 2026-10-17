@@ -8,8 +8,10 @@ name: CodeQL
 on:
   push:
     branches: [main]
+    paths-ignore: ["**.md", "docs/**", "LICENSE", ".github/ISSUE_TEMPLATE/**"]   # reine Doku: keine Tests (Entscheid 17.10.2026)
   pull_request:
     branches: [main]
+    paths-ignore: ["**.md", "docs/**", "LICENSE", ".github/ISSUE_TEMPLATE/**"]   # reine Doku: keine Tests (Entscheid 17.10.2026)
   schedule:
     - cron: "17 4 * * 1"   # montags, findet neu bekannte Muster auch ohne Änderung
   workflow_dispatch:

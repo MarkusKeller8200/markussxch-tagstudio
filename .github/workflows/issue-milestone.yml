@@ -1,10 +1,10 @@
 name: Meilenstein nach Art
-# Neue Meldungen (und neu gesetzte Labels) ohne Meilenstein der passenden Sammlung zuordnen (Entscheid User 17.10.2026):
+# Neue Meldungen ohne Meilenstein der passenden Sammlung zuordnen (Entscheid User 17.10.2026):
 #   fehler → „Fehler“, verbesserung → „Verbesserungen“, funktion → „Funktionen“ (Labels und Meilensteine auf Deutsch).
 # Nur Labels werden gelesen – kein Text aus dem Issue; bestehende Meilensteine (z. B. Release, CodeQL) bleiben.
 on:
   issues:
-    types: [opened, labeled]
+    types: [opened]          # nur beim Anlegen – nicht bei jedem Label-Wechsel (weniger Durchläufe)
 
 permissions:
   contents: read
