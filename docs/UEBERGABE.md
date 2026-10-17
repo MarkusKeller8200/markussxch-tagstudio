@@ -1,14 +1,25 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-17, 4.6.0 final** (ohne Beta; Meilenstein #17: #191, #215, #220, #221, #223, #224); zuvor **4.5.0 final** (veröffentlicht 16.10.2026 abends, ohne Beta, Meilenstein #15 geschlossen; danach Developer Releases auf `main`). Bisher: in Arbeit 4.5.0 (Meilenstein #15, #183–#185 im Beta-Test) und 4.6.0 (Meilenstein #17, #204 Online-Dienste als Plugins: Dienst-Plugins mit `"service"` in `plugin.json`, `services.py`, `servicekit.py`, `web/services.js` – siehe `docs/KONZEPT-PLUGINS.md`). Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
+Stand: **2026-10-17 früh: 4.7.0 Mehrsprachigkeit als Developer Release auf `main`** (#157 und #219 im Beta-Test, #219 aus 4.8.0 nach 4.7.0 verschoben, Meilenstein #19 leer; kein Release). Davor **4.6.0 final** (ohne Beta; Meilenstein #17: #191, #215, #220, #221, #223, #224); zuvor **4.5.0 final** (veröffentlicht 16.10.2026 abends, ohne Beta, Meilenstein #15 geschlossen; danach Developer Releases auf `main`). Bisher: in Arbeit 4.5.0 (Meilenstein #15, #183–#185 im Beta-Test) und 4.6.0 (Meilenstein #17, #204 Online-Dienste als Plugins: Dienst-Plugins mit `"service"` in `plugin.json`, `services.py`, `servicekit.py`, `web/services.js` – siehe `docs/KONZEPT-PLUGINS.md`). Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
 ## Roadmap (Entscheid 17.10.2026)
 
 - **4.6.0 – Beatgrid & Lyric Sync** (#17): #215 Liedtext im Player (`lyricsync.py`, `web/pllyrics.js`), #191 Beatgrid-Status im Tagger (`gridstatus.py`, `web/gridscan.js`), #220 Serato-Wellenform im Player (`serato.overview_wave`), #221 Beatgrid im MP3 (`beattag.py`, `TXXX:TAGSTUDIO_BEATGRID`), #223 Vergleich Serato ↔ eigene Analyse (`gridstatus.compare`, `plGridCompare`, Codes `serato_ok`/`serato_diff`; liest auch das neuere GEOB „Serato Tempo Map“ – Format aus einem Beispiel erschlossen, `serato.tempomap`), #224 Lupe im Player (`web/plzoom.js`) – getestet, als **4.6.0 final** veröffentlicht (17.10.2026). #222 Wellenform als GEOB = Idee (später).
-- **4.7.0 – Mehrsprachigkeit** (#18): #157 Grundlage, Sprachwahl, alle Module in `de-CH`, `en`, `gsw-u-sd-chzh`; Claude übersetzt bei der Entwicklung mit (keine KI-Anbindung in TagStudio).
-- **4.8.0 – Mehrsprachigkeit: Plugins, Doku, eigene Anpassungen** (#19): #219 inkl. Export/Import mit Überlagerung in den Benutzereinstellungen.
+- **4.7.0 – Mehrsprachigkeit** (#18): #157 Grundlage, Sprachwahl, alle Module in `de-CH`, `en`, `gsw-u-sd-chzh`; Claude übersetzt bei der Entwicklung mit (keine KI-Anbindung in TagStudio). Dazu #219 (Plugins, englische Doku, eigene Texte mit Überlagerung) – vom User am 17.10. nach 4.7.0 verschoben. Beides auf `main`, Beta-Test.
+- **4.8.0** (#19): derzeit leer.
+
+## Mehrsprachigkeit – Regeln für jede Änderung (ab 17.10.2026)
+
+- **Neue oder geänderte Oberflächentexte** (JS, HTML, Python-Meldungen, Plugins) bekommen im selben Commit ihre
+  Übersetzung in `web/i18n/<bereich>.json`: `"Deutscher Text": ["English", "Züritüütsch"]`. Schlüssel in Laufzeitform
+  (Zahlen `{n}`, Anführungszeichen `{q}`, eingesetzte Teile `{x}`). Marken/Code-Texte in `web/i18n/ignore.json`.
+- Prüfen: `python3 tools/i18n_extract.py --plugins` (muss „0 fehlen“ melden), `tests/test_i18n.py`, Oberflächentest
+  `test_i18n_pages_english` (meldet deutsche Reste, auch über `I18N.miss`).
+- Daten (Dateinamen, Tag-Werte, Pfade) mit `translate="no"` schützen. Hilfe-Dokumente: `README.en.md`,
+  `PLUGINS.en.md`, `docs/ID3-FELDER.en.md` (erzeugt von `tools/id3_frames_doc.py`) bei Änderungen nachführen.
+- Details: `docs/KONZEPT-MEHRSPRACHIG.md` (Abschnitt „Umsetzung“).
 
 ## Arbeitsregeln vom 16.10.2026
 
@@ -19,7 +30,7 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 
 ## Release-Freigabe (Entscheid 14.10.2026)
 
-**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.5.0** (final, freigegeben am 16.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
+**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.6.0** (final, freigegeben am 17.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
 
 ## GitHub-Meilensteinverwaltung
 
@@ -80,7 +91,7 @@ Zug nachführen.**
 | Update, Versionen, Release | [KONZEPT-UPDATE.md](KONZEPT-UPDATE.md) |
 | App und Oberfläche | [KONZEPT-APP-GUI.md](KONZEPT-APP-GUI.md) |
 | WAV (geplant) | [KONZEPT-WAV.md](KONZEPT-WAV.md) |
-| Mehrsprachigkeit (geplant) | [KONZEPT-MEHRSPRACHIG.md](KONZEPT-MEHRSPRACHIG.md) |
+| Mehrsprachigkeit (umgesetzt in 4.7.0) | [KONZEPT-MEHRSPRACHIG.md](KONZEPT-MEHRSPRACHIG.md) |
 | ID3-Felder (Nachschlagen) | [ID3-FELDER.md](ID3-FELDER.md) |
 | Präsentation zur Version 4.4 (Projektgeschichte, Highlights) | [PowerPoint](TagStudio-Praesentation-4.4.pptx) |
 
