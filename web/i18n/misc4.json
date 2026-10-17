@@ -214,5 +214,8 @@
 "Mehr …": ["More …", "Meh …"],
 "mehr": ["more", "meh"],
 "weniger": ["less", "weniger"],
-"Plugins nach Art filtern": ["Filter plugins by type", "Plugins nach Art filtere"]
+"Plugins nach Art filtern": ["Filter plugins by type", "Plugins nach Art filtere"],
+"Ordner dieses Plugins öffnen": ["Open this plugin's folder", "Ordner vo dem Plugin öffne"],
+"Eigene Plugins – {x}": ["Own plugins – {x}", "Eigeni Plugins – {x}"],
+"Eingebaute Plugins (Programmordner) – {x}": ["Built-in plugins (program folder) – {x}", "Iibauti Plugins (Programmordner) – {x}"]
 }

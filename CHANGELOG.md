@@ -27,7 +27,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Schlüssel gespeichert werden) und unten immer dieselben vier Knöpfe mit Symbol „Testen“, „Schlüssel“/„Anmelden“,
   „Optionen“, „Mehr …“ (nicht vorhandene ausgegraut). Lange Beschreibungen klappen mit „mehr“ auf; Status steht über
   dem Schalter, die Kategorie unter dem Titel. Oben filtert eine Leiste nach Art (Alle, Online-API, Lokale API, Übernahme aus
-  Tags, Audio-Verarbeitung – mit Anzahl); die Wahl wird gemerkt. Fehlende Pakete: ein Knopf „Installieren …“
+  Tags, Audio-Verarbeitung – mit Anzahl); die Wahl wird gemerkt. „Plugin-Ordner öffnen“ bietet eigene und eingebaute Plugins
+  (Programmordner) an; unter „Mehr …“ öffnet jede Karte ihren eigenen Ordner.
+- **Lexicon: Verbindung testen:** prüft, ob die Lexicon Local API unter der eingestellten Adresse antwortet. Fehlende Pakete: ein Knopf „Installieren …“
   mit den Varianten im Fenster.
 
 ### Geändert

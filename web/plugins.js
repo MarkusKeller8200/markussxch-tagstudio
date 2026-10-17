@@ -13,7 +13,7 @@ const PL_STATE = {
 
 async function pluginsShow(rescan = false) {
   const r = await call("plugins_list", rescan);
-  PL.list = r.plugins; PL.userDir = r.user_dir; PL.logDir = r.log_dir; PL.frozen = r.frozen;
+  PL.list = r.plugins; PL.userDir = r.user_dir; PL.builtinDir = r.builtin_dir || ""; PL.logDir = r.log_dir; PL.frozen = r.frozen;
   $("#plDir").textContent = "Eigene Plugins: " + r.user_dir;
   renderPlugins();
 }
@@ -48,6 +48,7 @@ function plMore(p) {                                   // Funktionen für „Wei
   const acts = (p.actions || []).filter((a) => a.where === "page" && !fixed.includes(a.id))
     .map((a) => ({ kind: "action", id: a.id, label: a.label, desc: a.description }));
   if (p.service) acts.push({ kind: "svc", label: "Integration …", desc: "Endpunkte mit Umsetzungsstand, Testabfrage ohne Track und API-Tester (nur lesend)" });
+  if (p.path) acts.push({ kind: "dir", label: "Ordner dieses Plugins öffnen", desc: p.path });
   if (p.env && p.state === "ready" && p.install.length) p.install.forEach((v) => acts.push({ kind: "install", id: v.id, label: `Neu installieren: ${v.label.replace(/^Installieren\s*\(?|\)$/g, "") || v.label}`, desc: (v.hint || "") }));
   return acts;
 }
@@ -104,7 +105,7 @@ function renderPlugins() {
         ${slot(find(PL_SLOT_TEST), "Testen", "test", "Dieses Plugin hat keine Verbindung zum Testen")}
         ${slot(key, login ? "Anmelden" : "Schlüssel", login ? "login" : "key", "Kein Schlüssel und keine Anmeldung nötig")}
         ${slot(find(PL_SLOT_SET), "Optionen", "set", "Dieses Plugin hat keine eigenen Einstellungen")}
-        <button class="ghost sm" data-plmore ${more.length && p.enabled ? "" : "disabled"} title="${more.length ? "Weitere Funktionen dieses Plugins" : "Keine weiteren Funktionen"}">${PL_ICON.more}<span>Mehr …</span></button></div>`;
+        <button class="ghost sm" data-plmore ${more.length ? "" : "disabled"} title="${more.length ? "Weitere Funktionen dieses Plugins" : "Keine weiteren Funktionen"}">${PL_ICON.more}<span>Mehr …</span></button></div>`;
     return `<section class="card pl-card${p.enabled ? "" : " off"}" data-pid="${esc(p.id)}">
       <div class="pl-head">
         <div class="pl-ico cat-${esc(p.category || "other")}" aria-hidden="true">${PL_CAT_ICON[p.category] || PL_CAT_ICON.other}</div>
@@ -165,7 +166,7 @@ async function pluginMore(pid) {
   await modal({
     title: `${p.name} – weitere Funktionen`,
     html: `<div class="pl-more">${items.map((it, i) => `<div class="pl-more-row"><button class="ghost sm" data-more="${i}">${esc(it.label)}</button><span class="muted sm">${esc(it.desc || "")}</span></div>`).join("")}</div>
-      <div class="hint pl-path" title="${esc(p.path)}">Ordner: ${esc(p.path)}</div>`,
+`,
     buttons: [{ label: "Schliessen", value: null }],
     onMount: (b) => b.addEventListener("click", (e) => {
       const m = e.target.closest("[data-more]"); if (!m) return;
@@ -177,6 +178,7 @@ async function pluginMore(pid) {
   if (pick.kind === "action") pluginRun(pid, pick.id);
   else if (pick.kind === "svc") svcOpen(pid);
   else if (pick.kind === "install") pluginInstall(pid, pick.id);
+  else if (pick.kind === "dir" && !(await call("open_folder", p.path))) toast("Ordner konnte nicht geöffnet werden.");
 }
 
 async function pluginInstall(pid, variant) {
@@ -364,7 +366,15 @@ async function pluginPreview(f, res) {
   $("#plServices").addEventListener("click", () => svcOverview());     // #204
   $("#plRescan").addEventListener("click", async () => { PL.actionsCache = null; await pluginsShow(true); toast("Plugins neu eingelesen."); if (typeof renderTgEditor === "function") renderTgEditor(); });
   $("#plLogs").addEventListener("click", async () => { if (!(await call("open_folder", PL.logDir))) toast("Ordner konnte nicht geöffnet werden."); });
-  $("#plOpen").addEventListener("click", async () => { if (!(await call("open_folder", PL.userDir))) toast("Ordner konnte nicht geöffnet werden."); });
+  // „Plugin-Ordner öffnen“: eigene Plugins (Benutzerordner) oder eingebaute (Programmordner) – Wunsch User 17.10.2026
+  const openDir = async (d) => { if (!(await call("open_folder", d))) toast("Ordner konnte nicht geöffnet werden."); };
+  $("#plOpen").addEventListener("click", (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    showMenu(r.left, r.bottom + 4, [
+      { label: `Eigene Plugins – ${PL.userDir}`, run: () => openDir(PL.userDir) },
+      ...(PL.builtinDir ? [{ label: `Eingebaute Plugins (Programmordner) – ${PL.builtinDir}`, run: () => openDir(PL.builtinDir) }] : []),
+    ]);
+  });
   $("#plList").addEventListener("change", async (e) => {
     const cb = e.target.closest("[data-enable]"); if (!cb) return;
     const pid = cb.closest("[data-pid]").dataset.pid;

@@ -2416,7 +2416,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         if rescan:
             self._origins = None
         lst = self.plugins.scan() if rescan else self.plugins.list()
-        return {"plugins": lst, "user_dir": plugins.user_dir(), "log_dir": plugins.log_dir(),
+        return {"plugins": lst, "user_dir": plugins.user_dir(), "builtin_dir": plugins.BUILTIN_DIR, "log_dir": plugins.log_dir(),
                 "frozen": bool(getattr(sys, "frozen", False))}
 
     # ---- #204: Dienst-Plugins – Integrationsfenster, Übersicht, Tester

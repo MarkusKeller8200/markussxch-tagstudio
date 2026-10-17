@@ -1465,7 +1465,7 @@ class UiTest(unittest.TestCase):
         self.assertEqual(order, ["pl-head", "pl-desc", "pl-acts", "pl-svc", "pl-hints", "pl-btns"])
         btns = lambda pid: pg.evaluate(f"""[...document.querySelectorAll('.pl-card[data-pid="{pid}"] .pl-btns button')].map((b) => [b.textContent.trim(), b.disabled])""")
         self.assertEqual(btns("acoustid"), [["Testen", False], ["Schlüssel", False], ["Optionen", True], ["Mehr …", False]])
-        self.assertEqual(btns("mik"), [["Testen", True], ["Schlüssel", True], ["Optionen", True], ["Mehr …", True]])
+        self.assertEqual(btns("mik"), [["Testen", True], ["Schlüssel", True], ["Optionen", True], ["Mehr …", False]])   # Mehr: Ordner öffnen
         self.assertEqual(btns("beatport")[1], ["Anmelden", False])
         # Zeilen bündig: Aktionen, API und Hinweise beginnen in jeder Karte an derselben Stelle (relativ zur Karte)
         rel = pg.evaluate("""[...document.querySelectorAll('.pl-card')].map((c) => { const t = c.getBoundingClientRect().top;
@@ -1492,6 +1492,13 @@ class UiTest(unittest.TestCase):
         pg.click(card + " [data-dmore]")
         self.assertFalse(pg.locator(card + " .pl-desc.open").count())
         self.assertIn("verschlüsselt", pg.inner_text('.pl-card[data-pid="acoustid"] .pl-hints'))
+        # Plugin-Ordner öffnen: Menü mit eigenen und eingebauten Plugins
+        pg.click("#plOpen")
+        menu = pg.inner_text("#menu")
+        self.assertIn("Eigene Plugins", menu)
+        self.assertIn("Eingebaute Plugins", menu)
+        pg.keyboard.press("Escape")
+        pg.mouse.click(5, 5)
         # Weitere Funktionen: Beatport hat Abmelden, Käufe abgleichen, Download und Integration
         pg.click('.pl-card[data-pid="beatport"] [data-plmore]')
         pg.wait_for_selector("#mBody .pl-more")
