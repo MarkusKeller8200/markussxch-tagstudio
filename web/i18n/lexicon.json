@@ -132,5 +132,6 @@
 "bewusst nicht": ["deliberately not", "bewusst nöd"],
 "Fehlende Mood-Tags anlegen": ["Create missing mood tags", "Fählendi Mood-Tags aalege"],
 "Analyse neuer Titel (AudioAnalyzer_Analyze)": ["Analysis of new tracks (AudioAnalyzer_Analyze)", "Analyse vo neue Titel (AudioAnalyzer_Analyze)"],
-"nur Analyse – keine Oberflächen- oder Player-Steuerung": ["analysis only – no interface or player control", "nur Analyse – kei Oberflächi- oder Player-Stüürig"]
+"nur Analyse – keine Oberflächen- oder Player-Steuerung": ["analysis only – no interface or player control", "nur Analyse – kei Oberflächi- oder Player-Stüürig"],
+"Prüft, ob die Lexicon Local API unter der eingestellten Adresse erreichbar ist (Standard http://localhost:{n}).": ["Checks whether the Lexicon Local API is reachable at the configured address (default http://localhost:{n}).", "Prüeft, ob d Lexicon Local API under de iigstellte Adrässe erreichbar isch (Standard http://localhost:{n})."]
 }

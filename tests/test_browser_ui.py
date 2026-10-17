@@ -1767,7 +1767,7 @@ class UiTest(unittest.TestCase):
             self.assertIn("Integration – Lexicon Local API", pg.inner_text("#mTitle"))
             self.assertEqual(pg.locator("#svcBody tbody tr").count(), 27)
             pg.click('#svcBody [data-svcf="partial"]')
-            self.assertEqual(pg.locator("#svcBody tbody tr").count(), 2)
+            self.assertEqual(pg.locator("#svcBody tbody tr").count(), 6)          # #237–#239: Stand der Endpunkte
             # Testabfrage ohne Track
             pg.click('[data-svctab="tq"]')
             pg.fill('[data-tq="artist"]', "mara")
