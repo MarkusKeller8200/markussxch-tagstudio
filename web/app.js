@@ -1437,4 +1437,8 @@ function setModule(m, opts = {}) {
   if (typeof plRender === "function") plRender();
 }
 
-init().catch((e) => { console.error(e); info("Start fehlgeschlagen", String(e && e.message ? e.message : e)); });
+// #230: erst starten, wenn alle Skripte geladen sind – sonst fehlen bei langsamem Laden z. B. der Einrichtungsassistent
+// (setup.js), die Warteschlange und die Aufträge (init prüft sie mit „typeof … === function“ und überspringt sie)
+function initStart() { init().catch((e) => { console.error(e); info("Start fehlgeschlagen", String(e && e.message ? e.message : e)); }); }
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initStart, { once: true });
+else initStart();

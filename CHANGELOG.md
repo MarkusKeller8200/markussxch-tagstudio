@@ -23,6 +23,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   „auch Beta-Versionen“ bieten nur veröffentlichte Versionen an. Der neue Kanal „Entwicklung“ (jede Änderung auf
   `main`) ist nur im Quellcode wählbar; bisherige Quellcode-Einstellungen „auch Beta“ werden einmalig dorthin umgestellt.
 
+### Behoben
+
+- **Start bei langsamem Laden (#230):** Die Oberfläche startete manchmal, bevor alle ihre Teile geladen waren – dann
+  fehlte z. B. der Einrichtungsassistent nach dem Sprachwechsel, oder Warteschlange und Aufträge blieben leer. Der
+  Start wartet jetzt, bis alles geladen ist.
+
 ## [4.7.0] – 2026-10-17
 
 ### Neu

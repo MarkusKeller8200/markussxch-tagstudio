@@ -1432,7 +1432,7 @@ class UiTest(unittest.TestCase):
         if pg.evaluate("I18N.lang") != "de-CH":                     # Rest des Tests auf Deutsch
             with pg.expect_navigation():                             # zurück auf Deutsch lädt die Seite neu
                 self.lang_pick("#wizard", "de-CH")
-            pg.wait_for_selector("#wizard .wiz-box", timeout=25000)   # Neustart der Seite: Server beantwortet noch Aufrufe
+            pg.wait_for_selector("#wizard .wiz-box")                  # #230: init startet erst nach allen Skripten
             self.assertFalse(pg.locator('#wizard .lang-menu [data-lang="auto"].on').count())
         self.assertIn("Willkommen", pg.inner_text("#wizard"))
         pg.check('#wizard [data-w="goal"][value="prep"]')
