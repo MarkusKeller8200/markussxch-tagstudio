@@ -224,7 +224,7 @@ Verbindet TagStudio mit [Lexicon DJ](https://www.lexicondj.com) über dessen Loc
 Integrations › Local API einschalten; Standard `http://localhost:48624`).
 
 - **Lexicon übernehmen …** (Tagger): Tanzbarkeit, Energie, Fröhlichkeit (1–10 → 10–100) mit Abgleich; auf Wunsch
-  Bewertung (POPM), Popularität (`TXXX:POPULARITY`), Farbe (`TXXX:LEXICON_COLOR`), Mood-Tags (Stimmung) und Tags der
+  Bewertung (POPM), Popularität (`TXXX:LEXICON_POPULARITY`), Farbe (`TXXX:LEXICON_COLOR`), Mood-Tags (Stimmung) und Tags der
   übrigen Kategorien (Grouping, Kommentar oder `TXXX:LEXICON_TAGS`). Zuordnung gezielt über den Pfad, sonst über
   Künstler + Titel. Beatgrid und Cue-Punkte aus Lexicon werden mit der Datei verglichen (Hinweis in der Vorschau).
 - **Aus Lexicon öffnen …** (Tagger, ohne Auswahl): die in Lexicon markierten Titel, die markierte Playlist oder eine

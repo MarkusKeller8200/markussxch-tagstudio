@@ -47,7 +47,7 @@ ACTIONS = [{
         {"key": "energy", "type": "check", "label": "Energie → ENERGY", "default": True},
         {"key": "happiness", "type": "check", "label": "Fröhlichkeit → HAPPINESS", "default": False},
         {"key": "rating", "type": "check", "label": "Bewertung (0–5 Sterne) → POPM", "default": False},
-        {"key": "popularity", "type": "check", "label": "Popularität → TXXX:POPULARITY (10–100)", "default": False},
+        {"key": "popularity", "type": "check", "label": "Popularität → TXXX:LEXICON_POPULARITY (10–100)", "default": False},
         {"key": "color", "type": "check", "label": "Farbe → TXXX:LEXICON_COLOR", "default": False},
         {"key": "mood", "type": "check", "label": "Lexicon-Tags der Kategorie „Mood“ → Stimmung (MOOD)", "default": False},
         {"key": "tags_to", "type": "select", "label": "Tags der übrigen Kategorien", "choices": TARGETS, "default": ""},
@@ -362,7 +362,7 @@ def run_import(ctx, files, opts):
                                 hint="aus Lexicon")
         pop = _level(t.get("popularity"))
         if opts.get("popularity") and pop is not None:
-            any_ |= ctx.propose(f, "TXXX:POPULARITY", str(pop), "Popularität (POPULARITY)", note=note, group=group,
+            any_ |= ctx.propose(f, "TXXX:LEXICON_POPULARITY", str(pop), "Popularität (LEXICON_POPULARITY)", note=note, group=group,
                                 hint="aus Lexicon (1–10 → 10–100)")
         if opts.get("color") and t.get("color"):
             any_ |= ctx.propose(f, "TXXX:LEXICON_COLOR", str(t["color"]), "Farbe (LEXICON_COLOR)", note=note, group=group)

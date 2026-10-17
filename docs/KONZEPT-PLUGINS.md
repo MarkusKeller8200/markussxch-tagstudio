@@ -162,6 +162,9 @@ nie über einen Proxy, `is_local`).
   (`POST /tracks`, Playlist, `AudioAnalyzer_Analyze`), Tags (`PATCH /track`), Mood-Tags (`POST /tag`), DJ-Set als
   Playlist. Journal `Plugin-Daten/lexicon/journal.json`; „Rückgängig“ setzt Werte und Pfade zurück. **Nie** löschen
   (keine DELETE-Endpunkte), keine Oberflächen-/Player-Steuerung über `/control`.
+- **#240 Felder:** eigene Felder einheitlich `TXXX:LEXICON_*` (POPULARITY, COLOR, TAGS), in `plugin.json` als `fields`
+  gemeldet → Herkunft „TagStudio · Lexicon“; allgemeine Felder (ENERGY, DANCEABILITY, HAPPINESS, MOOD, POPM, TIT1,
+  COMM) bleiben, die Lexicon-Herkunft steht im Abgleich (`TXXX:TAGSTUDIO`).
 - Offen: „Läuft gerade“/Warteschlange (`/playing`, `/queue`) – im Endpunkt-Stand als „geplant“.
 
 ## 5. Entscheide

@@ -222,7 +222,7 @@ Connects TagStudio with [Lexicon DJ](https://www.lexicondj.com) through its Loca
 Integrations › switch on Local API; default `http://localhost:48624`).
 
 - **Take over from Lexicon …** (tagger): danceability, energy, happiness (1–10 → 10–100) with matching; optionally
-  rating (POPM), popularity (`TXXX:POPULARITY`), color (`TXXX:LEXICON_COLOR`), mood tags (mood) and tags of the other
+  rating (POPM), popularity (`TXXX:LEXICON_POPULARITY`), color (`TXXX:LEXICON_COLOR`), mood tags (mood) and tags of the other
   categories (grouping, comment or `TXXX:LEXICON_TAGS`). Matched directly by path, otherwise by artist + title. Beatgrid
   and cue points from Lexicon are compared with the file (note in the preview).
 - **Open from Lexicon …** (tagger, no selection needed): load the tracks selected in Lexicon, the selected playlist or a
