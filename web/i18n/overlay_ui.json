@@ -1,0 +1,110 @@
+{
+ "Alle Texte mit den mitgelieferten Übersetzungen als CSV (für Excel) – in der letzten Spalte eigene Texte eintragen": [
+  "All texts with the supplied translations as CSV (for Excel) – enter your own texts in the last column",
+  "Alli Text mit de mitglifirete Übersetzige als CSV (für Excel) – i de letschte Spalte eigeti Text iiträge"
+ ],
+ "Texte der gewählten Sprache als JSON": [
+  "Texts of the chosen language as JSON",
+  "Text vo de gwäälte Sprach als JSON"
+ ],
+ "Bearbeitete CSV- oder JSON-Datei einlesen – mit Prüfung und Vorschau": [
+  "Read an edited CSV or JSON file – with check and preview",
+  "Bearbeiteti CSV- oder JSON-Datei iiläse – mit Prüefig und Vorschau"
+ ],
+ "Eigene Texte der gewählten Sprache entfernen – es gelten wieder die mitgelieferten": [
+  "Remove your own texts of the chosen language – the supplied ones apply again",
+  "Eigeti Text vo de gwäälte Sprach entfärne – es gälted wider di mitglifirete"
+ ],
+ "Texte exportieren (CSV) …": [
+  "Export texts (CSV) …",
+  "Text exportiere (CSV) …"
+ ],
+ "Texte importieren …": [
+  "Import texts …",
+  "Text importiere …"
+ ],
+ "Eigene Texte zurücksetzen …": [
+  "Reset own texts …",
+  "Eigeti Text zrugsetze …"
+ ],
+ "Texte als Download gespeichert.": [
+  "Texts saved as download.",
+  "Text als Download gspicheret."
+ ],
+ "Original": [
+  "Original",
+  "Original"
+ ],
+ "{n} eigene Text(e) gespeichert – die Oberfläche lädt neu.": [
+  "{n} own text(s) saved – the interface reloads.",
+  "{n} eigeti Text gspicheret – d Oberflächi ladt neu."
+ ],
+ "Eigene Texte zurücksetzen": [
+  "Reset own texts",
+  "Eigeti Text zrugsetze"
+ ],
+ "Eigene Texte entfernt – die Oberfläche lädt neu.": [
+  "Own texts removed – the interface reloads.",
+  "Eigeti Text entfärnt – d Oberflächi ladt neu."
+ ],
+ "Die Datei ist leer.": [
+  "The file is empty.",
+  "D Datei isch läär."
+ ],
+ "CSV: Spalte {q} fehlt (Datei aus {q} verwenden).": [
+  "CSV: column {q} is missing (use a file from {q}).",
+  "CSV: Spalte {q} fäält (Datei us {q} bruuche)."
+ ],
+ "JSON: erwartet wird ein Objekt mit Texten.": [
+  "JSON: an object with texts is expected.",
+  "JSON: erwartet wird es Objekt mit Text."
+ ],
+ "Platzhalter {n}/{q}/{x} stimmen nicht überein": [
+  "Placeholders {n}/{q}/{x} do not match",
+  "Platzhalter {n}/{q}/{x} stimmed nöd überii"
+ ],
+ "HTML ist nicht erlaubt": [
+  "HTML is not allowed",
+  "HTML isch nöd erlaubt"
+ ],
+ "unverändert": [
+  "unchanged",
+  "unveränderet"
+ ],
+ "deutlich länger als das Original – passt evtl. nicht auf Knöpfe": [
+  "much longer than the original – may not fit on buttons",
+  "dütlich länger als s Original – passt evtl. nöd uf Chnöpf"
+ ],
+ "Sprache oder Format unbekannt": [
+  "Language or format unknown",
+  "Sprach oder Format unbekannt"
+ ],
+ "Datei ist zu gross.": [
+  "File is too large.",
+  "D Datei isch z gross."
+ ],
+ "Eigene Texte für {name}: {n} – gespeichert in {dir}": [
+  "Own texts for {name}: {n} – stored in {dir}",
+  "Eigeti Text für {name}: {n} – gspicheret in {dir}"
+ ],
+ "Keine eigenen Texte für {name}.": [
+  "No own texts for {name}.",
+  "Kei eigete Text für {name}."
+ ],
+ "Texte exportiert: {p}": [
+  "Texts exported: {p}",
+  "Text exportiert: {p}"
+ ],
+ "Texte importieren ({name})": [
+  "Import texts ({name})",
+  "Text importiere ({name})"
+ ],
+ "{n} Text(e) werden übernommen · {w} mit Hinweis · {e} abgelehnt · {u} unverändert. Eigene Texte überlagern die mitgelieferten nur für dich; Updates überschreiben sie nicht.": [
+  "{n} text(s) will be taken over · {w} with a note · {e} rejected · {u} unchanged. Own texts overlay the supplied ones only for you; updates do not overwrite them.",
+  "{n} Text werded übernaa · {w} mit Hiiwiis · {e} abglehnt · {u} unveränderet. Eigeti Text überlagered di mitglifirete nur für dich; Updates überschriibed si nöd."
+ ],
+ "Alle eigenen Texte für {name} werden entfernt – danach gelten wieder die mitgelieferten Übersetzungen.": [
+  "All own texts for {name} are removed – afterwards the supplied translations apply again.",
+  "Alli eigete Text für {name} werded entfärnt – dänn gälted wider di mitglifirete Übersetzige."
+ ]
+}

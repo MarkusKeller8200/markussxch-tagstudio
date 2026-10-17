@@ -1496,3 +1496,9 @@ html.i18n-wait body{visibility:hidden}
 .lang-seg .flag{width:18px;height:13px;border-radius:2px;flex:none}
 .lang-seg svg.flag[viewBox="0 0 32 32"]{width:14px;height:14px}
 .wiz-lang{margin:4px 0 12px}
+/* #219: eigene Texte */
+.lang-tools{margin-top:8px;flex-wrap:wrap}
+.i18n-imp{max-height:50vh;overflow:auto;margin-top:8px}
+.i18n-imp td{vertical-align:top;font-size:12px}
+.i18n-imp tr.i18n-error td{color:var(--bad,#d9534f)}
+.i18n-imp tr.i18n-warn td:first-child{color:#B26B00}

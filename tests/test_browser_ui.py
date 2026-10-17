@@ -739,6 +739,44 @@ class UiTest(unittest.TestCase):
         self.assertIn("Einstellungen", pg.inner_text(".nav[data-module=settings]"))
         self.assertEqual(self.errors, [])
 
+    def test_i18n_own_texts(self):
+        """#219: Texte exportieren (CSV) und eigene Texte importieren – Vorschau, Überlagerung, Zurücksetzen."""
+        pg = self.pg
+
+        def calm():                                        # Hinweise beim Start (Snapshots …) schliessen
+            for _ in range(15):
+                time.sleep(0.15)
+                if pg.locator("#modal").is_visible() and not pg.locator("#modal .i18n-imp").count():
+                    pg.click("#mBtns button >> nth=0")
+        pg.evaluate("call('set_ui', 'lang', 'en')")
+        pg.reload()
+        pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'en'")
+        calm()
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stLangTools")
+        self.assertTrue(self.until("/No own texts/.test(document.querySelector('#stLangInfo').textContent)"))
+        with pg.expect_download() as dl:
+            pg.click('[data-i18n-x="csv"]')
+        self.assertEqual(dl.value.suggested_filename, "TagStudio-Texte-en.csv")
+        src = os.path.join(self.dir, "eigene.json")
+        with open(src, "w", encoding="utf-8") as fh:
+            json.dump({"texts": {"Einlesen": "Read in", "Gibt es nicht": "x"}}, fh)
+        with pg.expect_file_chooser() as fc:
+            pg.click("[data-i18n-imp]")
+        fc.value.set_files(src)
+        pg.wait_for_selector("#modal .i18n-imp")
+        self.assertIn("1 text(s) will be taken over", pg.inner_text("#modal"))
+        self.assertIn("1 rejected", pg.inner_text("#modal"))
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'en' && tr('Einlesen') === 'Read in'", timeout=15000)
+        calm()
+        pg.click('.nav[data-module="settings"]')
+        self.assertTrue(self.until("/Own texts for English: 1/.test(document.querySelector('#stLangInfo')?.textContent || '')"))
+        pg.click("[data-i18n-reset]")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'en' && tr('Einlesen') === 'Load'", timeout=15000)
+        self.assertEqual(self.errors, [])
+
     def test_i18n_pages_english(self):
         """#157: alle Seiten auf Englisch – keine deutschen Reste in der sichtbaren Oberfläche (ausser Daten)."""
         pg = self.pg

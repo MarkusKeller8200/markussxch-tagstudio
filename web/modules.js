@@ -31,6 +31,7 @@ function modal({ title, html, buttons, wide = false, onMount, collect }) {
       const el = document.createElement("button");
       el.className = b.primary ? "primary" : "ghost";
       el.textContent = b.label;
+      if (b.disabled) el.disabled = true;
       el.addEventListener("click", () => finish(b.value));
       box.appendChild(el);
     });

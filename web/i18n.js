@@ -17,7 +17,7 @@ const I18N_NUM = /(?<![\w{])[-+]?\d+(?:['’.,]\d+)*(?![\w}])/g;
 const I18N_QUOTE = /„[^„“”\n]*[“”]|"[^"\n]*"|«[^«»\n]*»|“[^“”\n]*”/g;
 const I18N_SKIP = "script,style,textarea,code,pre,.cm-editor,[contenteditable=''],[contenteditable='true'],.no-i18n";
 
-function i18nActive() { return I18N.lang !== "de-CH" && (I18N.exact.size > 0 || I18N.pats.length > 0); }
+function i18nActive() { return I18N.exact.size > 0 || I18N.pats.length > 0; }   // auch de-CH mit eigenen Texten
 
 /** Katalog übernehmen: Einträge ohne {x} direkt (in Laufzeitform), mit {x} als Muster */
 function i18nSetCatalog(lang, cat) {
@@ -110,7 +110,7 @@ function i18nLine(s) {
 
 /** Text übersetzen (mehrzeilig, Rand-Leerraum bleibt) – Zwischenspeicher je Text */
 function tr(s) {
-  if (typeof s !== "string" || !s || I18N.lang === "de-CH") return s;
+  if (typeof s !== "string" || !s || (!I18N.exact.size && !I18N.pats.length)) return s;
   const hit = I18N.memo.get(s);
   if (hit !== undefined) return hit;
   // erst als Ganzes (Zeilenumbrüche aus dem Quelltext sind nur Leerraum), sonst zeilenweise (Tooltips mit \n)
@@ -227,6 +227,90 @@ function i18nPickerHtml() {
   return `<div class="seg lang-seg" id="stLang" translate="no">${list.map((l) =>
     `<button data-lang="${l.code}"${l.code === I18N.lang ? ' class="on"' : ""} title="${l.de} (${l.code})">${i18nFlag(l.code)}${l.name}</button>`).join("")}</div>`;
 }
+/** #219: eigene Texte exportieren/importieren – überlagern die mitgelieferten, nur für diesen Benutzer bzw. dieses Profil */
+function i18nToolsHtml() {
+  return `<div class="st-path lang-tools" id="stLangTools">
+      <button class="ghost sm" data-i18n-x="csv" title="Alle Texte mit den mitgelieferten Übersetzungen als CSV (für Excel) – in der letzten Spalte eigene Texte eintragen">Texte exportieren (CSV) …</button>
+      <button class="ghost sm" data-i18n-x="json" title="Texte der gewählten Sprache als JSON">JSON …</button>
+      <button class="ghost sm" data-i18n-imp title="Bearbeitete CSV- oder JSON-Datei einlesen – mit Prüfung und Vorschau">Texte importieren …</button>
+      <button class="ghost sm" data-i18n-reset disabled title="Eigene Texte der gewählten Sprache entfernen – es gelten wieder die mitgelieferten">Eigene Texte zurücksetzen …</button></div>
+    <div class="muted sm" id="stLangInfo"></div>`;
+}
+async function i18nToolsRefresh() {
+  const el = document.getElementById("stLangInfo");
+  if (!el) return;
+  let r;
+  try { r = await call("i18n_overlay_info", I18N.lang); } catch (e) { return; }
+  const n = (r.counts || {})[I18N.lang] || 0;
+  const name = (I18N.langs.find((l) => l.code === I18N.lang) || {}).name || I18N.lang;
+  el.textContent = n ? t("Eigene Texte für {name}: {n} – gespeichert in {dir}", { name, n, dir: r.dir }) : t("Keine eigenen Texte für {name}.", { name });
+  const b = document.querySelector("[data-i18n-reset]"); if (b) b.disabled = !n;
+}
+async function i18nExport(fmt) {
+  if (S.settings && S.settings.native) {
+    const r = await call("i18n_export", I18N.lang, fmt);
+    if (r.ok) toast(t("Texte exportiert: {p}", { p: r.path })); else if (!r.cancelled) info(t("Export fehlgeschlagen"), r.error);
+    return;
+  }
+  const r = await call("i18n_export_text", I18N.lang, fmt);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([r.text], { type: fmt === "json" ? "application/json" : "text/csv" }));
+  a.download = r.name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast(t("Texte als Download gespeichert."));
+}
+async function i18nImport() {
+  let text = "", name = "";
+  if (S.settings && S.settings.native) {
+    const r = await call("i18n_import_pick");
+    if (!r) return;
+    if (r.error) return info(t("Import nicht möglich"), r.error);
+    text = r.text; name = r.name;
+  } else {
+    const inp = document.createElement("input");
+    inp.type = "file"; inp.accept = ".csv,.json,text/csv,application/json";
+    const f = await new Promise((ok) => { inp.onchange = () => ok(inp.files[0]); inp.click(); });
+    if (!f) return;
+    text = await f.text(); name = f.name;
+  }
+  let pv;
+  try { pv = await call("i18n_import_preview", I18N.lang, text); } catch (e) { return info(t("Import nicht möglich"), String(e.message || e)); }
+  const st = { ok: "✓", warn: "⚠", error: "✕" };
+  const rows = pv.rows.slice(0, 300).map((r) => `<tr class="i18n-${r.status}"><td>${st[r.status] || ""}</td><td translate="no">${esc(r.key)}</td>
+      <td translate="no">${esc(r.old || "")}</td><td translate="no"><b>${esc(r.new)}</b></td><td>${esc(r.note || "")}</td></tr>`).join("");
+  const go = await modal({
+    title: t("Texte importieren ({name})", { name }),
+    html: `<div class="hint">${esc(t("{n} Text(e) werden übernommen · {w} mit Hinweis · {e} abgelehnt · {u} unverändert. Eigene Texte überlagern die mitgelieferten nur für dich; Updates überschreiben sie nicht.",
+      { n: pv.count, w: pv.warnings, e: pv.errors, u: pv.unchanged }))}</div>
+      <div class="i18n-imp"><table class="tbl"><thead><tr><th></th><th>${esc(t("Original"))}</th><th>${esc(t("Bisher"))}</th><th>${esc(t("Neu"))}</th><th>${esc(t("Hinweis"))}</th></tr></thead><tbody>${rows}</tbody></table></div>`,
+    buttons: [{ label: t("Abbrechen"), value: null }, { label: t("Übernehmen"), value: true, primary: true, disabled: !pv.count }],
+  });
+  if (!go || !pv.count) return;
+  const r = await call("i18n_import_apply", I18N.lang, text);
+  toast(t("{n} eigene Text(e) gespeichert – die Oberfläche lädt neu.", { n: r.count }));
+  setTimeout(() => location.reload(), 700);
+}
+async function i18nResetOwn() {
+  const name = (I18N.langs.find((l) => l.code === I18N.lang) || {}).name || I18N.lang;
+  const go = await modal({
+    title: t("Eigene Texte zurücksetzen"),
+    html: `<div class="hint">${esc(t("Alle eigenen Texte für {name} werden entfernt – danach gelten wieder die mitgelieferten Übersetzungen.", { name }))}</div>`,
+    buttons: [{ label: t("Abbrechen"), value: null }, { label: t("Zurücksetzen"), value: true, primary: true }],
+  });
+  if (!go) return;
+  await call("i18n_overlay_reset", I18N.lang);
+  toast(t("Eigene Texte entfernt – die Oberfläche lädt neu."));
+  setTimeout(() => location.reload(), 700);
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest("[data-i18n-x],[data-i18n-imp],[data-i18n-reset]");
+  if (!b) return;
+  e.preventDefault();
+  if (b.dataset.i18nX) i18nExport(b.dataset.i18nX);
+  else if (b.hasAttribute("data-i18n-imp")) i18nImport();
+  else i18nResetOwn();
+});
+
 async function i18nPick(code) {
   if (!code || code === I18N.lang) return;
   LAYOUT.lang = code;

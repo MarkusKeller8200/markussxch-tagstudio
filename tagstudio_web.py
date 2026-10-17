@@ -51,7 +51,7 @@ _PASS = {
     "fixer_settings", "fixer_preview", "fixer_apply",
     "backups", "set_backup", "start_backup_check", "start_restore", "backup_diff", "delete_backup",
     "start_tag_load", "tagger_settings", "tag_state_save", "tag_rows", "tag_detail", "tag_set", "tag_set_rating", "player_mark", "tag_remove", "tag_add_field",
-    "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml", "tag_blob", "tag_blob_set", "cmp_blob", "cmp_blob_set", "blob_pretty", "players", "set_players", "play_external", "wave_save", "settings_page", "set_trivial", "set_save_version", "set_save_v1", "set_stamp_edited", "set_stamp_added", "tag_added", "set_player_pref", "player_defaults", "player_resume_save", "player_resume", "set_player_window", "bus_post", "bus_poll", "bus_peer", "bus_reset", "bus_sync", "media_cover", "media_lyrics", "tag_grid_status", "tag_beatgrid", "i18n_catalog", "settings_export_text", "settings_import_preview", "settings_import", "settings_reset", "tag_origins", "set_tag_origins", "tag_origin_remove", "jobs_status", "job_cancel", "jobs_cancel_all", "jobs_clear", "jobs_resume", "tag_attach_stems", "set_stems_flat", "set_feat_scale", "tag_stem_tags", "set_origin_std_badge", "set_origin_ver_badge", "set_origin_label", "cache_info", "cache_clear", "set_list_cache", "verify_status", "tag_cover_thumb", "reload_pair", "set_default_dir", "set_view_default", "cmp_defaults_apply", "start_cache_build", "compare_origin_remove", "save_conflicts", "save_merge_external", "snap_overview", "snap_list", "snap_add_library", "snap_remove_library", "snap_update_library", "snap_update", "snap_delete", "snap_prune", "snap_create", "snap_baseline_info", "snap_set_baseline", "snap_startup", "snap_set", "start_snap_journal", "snap_revert", "start_snap_move", "snap_detect", "snap_use", "snap_ignore", "snap_watch", "snap_watch_ack",
+    "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml", "tag_blob", "tag_blob_set", "cmp_blob", "cmp_blob_set", "blob_pretty", "players", "set_players", "play_external", "wave_save", "settings_page", "set_trivial", "set_save_version", "set_save_v1", "set_stamp_edited", "set_stamp_added", "tag_added", "set_player_pref", "player_defaults", "player_resume_save", "player_resume", "set_player_window", "bus_post", "bus_poll", "bus_peer", "bus_reset", "bus_sync", "media_cover", "media_lyrics", "tag_grid_status", "tag_beatgrid", "i18n_catalog", "i18n_overlay_info", "i18n_export_text", "i18n_import_preview", "i18n_import_apply", "i18n_overlay_reset", "settings_export_text", "settings_import_preview", "settings_import", "settings_reset", "tag_origins", "set_tag_origins", "tag_origin_remove", "jobs_status", "job_cancel", "jobs_cancel_all", "jobs_clear", "jobs_resume", "tag_attach_stems", "set_stems_flat", "set_feat_scale", "tag_stem_tags", "set_origin_std_badge", "set_origin_ver_badge", "set_origin_label", "cache_info", "cache_clear", "set_list_cache", "verify_status", "tag_cover_thumb", "reload_pair", "set_default_dir", "set_view_default", "cmp_defaults_apply", "start_cache_build", "compare_origin_remove", "save_conflicts", "save_merge_external", "snap_overview", "snap_list", "snap_add_library", "snap_remove_library", "snap_update_library", "snap_update", "snap_delete", "snap_prune", "snap_create", "snap_baseline_info", "snap_set_baseline", "snap_startup", "snap_set", "start_snap_journal", "snap_revert", "start_snap_move", "snap_detect", "snap_use", "snap_ignore", "snap_watch", "snap_watch_ack",
     "tag_case_modes", "tag_case", "recipes", "recipes_save", "recipes_reset", "tag_recipe", "tag_replace", "tag_folder_cover", "tag_key_notation", "tag_key_set", "tag_key_convert", "tag_feature_set", "tag_features_open", "tag_mood", "tag_mood_suggest", "set_mood_list",
     "dj_state", "dj_add", "dj_remove", "dj_clear", "dj_order", "dj_lock", "dj_set_opt", "dj_optimize", "dj_revert", "dj_tag_indices",
     "dj_lists", "dj_save_as", "dj_load", "dj_new", "dj_list_delete", "dj_list_rename",
@@ -374,6 +374,29 @@ class Api:
             return {"ok": False, "error": str(ex)}
         return {"ok": True, "path": dest}
 
+    def i18n_export(self, lang, fmt="csv"):
+        """#219: Texte einer Sprache in eine Datei schreiben (Speichern-Dialog)."""
+        r = self._s.i18n_export_text(lang, fmt)
+        dest = self.save_dialog(r["name"])
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        try:
+            with open(dest, "w", encoding="utf-8", newline="") as fh:
+                fh.write(r["text"])
+        except OSError as ex:
+            return {"ok": False, "error": str(ex)}
+        return {"ok": True, "path": dest}
+
+    def i18n_import_pick(self):
+        """#219: Textdatei (CSV/JSON) wählen → Inhalt."""
+        p = self.pick_file("texts", "")
+        if not p:
+            return None
+        if os.path.getsize(p) > 8_000_000:
+            return {"error": "Datei ist zu gross."}
+        with open(p, encoding="utf-8-sig", errors="replace") as fh:
+            return {"name": os.path.basename(p), "text": fh.read()}
+
     def settings_import_pick(self):
         """Einstellungsdatei wählen → Inhalt (für Vorschau und Import)."""
         p = self.pick_file("json", "")
@@ -391,7 +414,8 @@ class Api:
         types = {"image": ("Bilder (*.jpg;*.jpeg;*.png;*.gif)", "Alle Dateien (*.*)"),
                  "mp3": ("MP3-Dateien (*.mp3;*.MP3)", "Alle Dateien (*.*)"),
                  "program": ("Programme (*.exe;*.app;*.bat;*.cmd)", "Alle Dateien (*.*)"),
-                 "json": ("Einstellungen (*.json)", "Alle Dateien (*.*)")}[kind]
+                 "json": ("Einstellungen (*.json)", "Alle Dateien (*.*)"),
+                 "texts": ("Texte (*.csv;*.json)", "Alle Dateien (*.*)")}[kind]
         if self._window is not None:
             import webview
             res = self._window.create_file_dialog(webview.OPEN_DIALOG, directory=start, file_types=types)
@@ -734,7 +758,8 @@ def _tk_dialog(kind, start, extra=""):
             else:
                 ft = {"image": [("Bilder", "*.jpg *.jpeg *.png *.gif *.JPG *.JPEG *.PNG")],
                       "program": [("Programme", "*.exe *.bat *.cmd")],
-                      "json": [("Einstellungen", "*.json")]}.get(extra, [("MP3-Dateien", "*.mp3 *.MP3")])
+                      "json": [("Einstellungen", "*.json")],
+                      "texts": [("Texte", "*.csv *.json")]}.get(extra, [("MP3-Dateien", "*.mp3 *.MP3")])
                 p = filedialog.askopenfilename(initialdir=start, parent=root, filetypes=ft + [("Alle Dateien", "*")])
             root.destroy()
             result["p"] = os.path.normpath(p) if p else ""

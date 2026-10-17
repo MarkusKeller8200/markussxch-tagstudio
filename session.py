@@ -224,6 +224,31 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         core.save_config({"update_channel": channel})
         return channel
 
+    def i18n_overlay_info(self, lang: str) -> dict:
+        """#219: Anzahl eigener Texte je Sprache und Ablageort."""
+        import i18n
+        return {"counts": {c: len(i18n.overlay(c)) for c in i18n.CODES}, "dir": i18n.overlay_dir()}
+
+    def i18n_export_text(self, lang: str, fmt: str = "csv") -> dict:
+        import i18n
+        if lang not in i18n.CODES or fmt not in ("csv", "json"):
+            raise ValueError("Sprache oder Format unbekannt")
+        return {"name": f"TagStudio-Texte-{lang}.{fmt}", "text": i18n.export_text(lang, fmt)}
+
+    def i18n_import_preview(self, lang: str, text: str) -> dict:
+        import i18n
+        r = i18n.import_preview(lang, str(text or ""))
+        r.pop("texts", None)
+        return r
+
+    def i18n_import_apply(self, lang: str, text: str) -> dict:
+        import i18n
+        return i18n.import_apply(lang, str(text or ""))
+
+    def i18n_overlay_reset(self, lang: str) -> dict:
+        import i18n
+        return {"removed": i18n.overlay_reset(lang)}
+
     def i18n_catalog(self, lang: str) -> dict:
         """#157: Sprachen und Katalog für die Oberfläche (Ausgangssprache de-CH → leerer Katalog)."""
         import i18n
