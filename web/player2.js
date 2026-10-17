@@ -35,27 +35,27 @@ function plGridStatus(info) {
     const c = g.check;                                                  // #223: Vergleich mit der eigenen Analyse
     if (c) return {
       label: c.ok ? "Serato-Grid ✓" : "Serato ≠ Analyse", state: c.ok ? "external" : "estimate",
-      hint: "Aus Serato eingelesen · " + g.bpm + " BPM. " + c.note + (c.ok ? "." : ". Hinweis zum Nachschauen – die eigene Analyse erkennt nur gleichbleibendes Tempo, keinen Taktanfang.")
+      hint: `Aus Serato eingelesen · ${g.bpm} BPM\n${c.note}` + (c.ok ? "" : "\nHinweis zum Nachschauen – die eigene Analyse erkennt nur gleichbleibendes Tempo, keinen Taktanfang.")
     };
     return {
       label: "Serato-Grid", state: "external",
-      hint: "Aus Serato eingelesen · " + g.bpm + " BPM. Nicht musikalisch auf Korrektheit geprüft (noch keine eigene Analyse zum Vergleich)."
+      hint: `Aus Serato eingelesen · ${g.bpm} BPM\nNicht musikalisch auf Korrektheit geprüft (noch keine eigene Analyse zum Vergleich).`
     };
   }
   if (g && g.from_tag) return {                                       // #221: im MP3 gespeichert
     label: "Audioanalyse (Tag)", state: "analysed",
-    hint: "Eigene Analyse, gespeichert in TXXX:TAGSTUDIO_BEATGRID (" + g.bpm + " BPM). Kein verifizierter Downbeat."
+    hint: `Eigene Analyse, gespeichert in TXXX:TAGSTUDIO_BEATGRID (${g.bpm} BPM)\nKein verifizierter Downbeat.`
   };
   if (g && (g.source === "Analyse" || g.analysed)) return {
     label: "Audioanalyse", state: "analysed",
-    hint: "TagStudio hat Tempo und Beat-Offset aus dem Audio geschätzt (" + g.bpm + " BPM). Kein verifizierter Downbeat."
+    hint: `TagStudio hat Tempo und Beat-Offset aus dem Audio geschätzt (${g.bpm} BPM)\nKein verifizierter Downbeat.`
   };
   const running = !!(info.wave_key && typeof PLAYER !== "undefined" && PLAYER.waveBusy === info.wave_key);
   if (g) return {
     label: "Nur BPM-Schätzung", state: "estimate",
-    hint: "Kein Serato-Beatgrid oder verifiziertes Audio-Raster. Aus BPM-Tag"
-      + (g.source && g.source.includes("Cue") ? " und Cue" : "")
-      + " erzeugt (" + g.bpm + " BPM)." + (running ? " Audioanalyse läuft." : "")
+    hint: "Kein Serato-Beatgrid oder verifiziertes Audio-Raster.\n"
+      + (g.source && g.source.includes("Cue") ? `Aus BPM-Tag und Cue erzeugt (${g.bpm} BPM).` : `Aus BPM-Tag erzeugt (${g.bpm} BPM).`)
+      + (running ? "\nAudioanalyse läuft." : "")
   };
   return {
     label: running ? "Beatgrid-Analyse läuft" : "Kein Beatgrid",

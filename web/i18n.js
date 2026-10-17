@@ -23,12 +23,13 @@ function i18nActive() { return I18N.lang !== "de-CH" && (I18N.exact.size > 0 || 
 function i18nSetCatalog(lang, cat) {
   I18N.lang = lang || "de-CH";
   I18N.exact = new Map(); I18N.pats = []; I18N.memo = new Map();
-  for (const [k0, v] of Object.entries(cat || {})) {
-    const k = i18nSkel(k0).key;
+  for (let [k0, v] of Object.entries(cat || {})) {
+    const k = i18nSkel(k0).key.replace(/^·\s*|\s*·$/g, "");          // „· …“/„… ·“ wie ohne Punkt
+    v = v.replace(/^·\s*|\s*·$/g, "");
     if (!k.includes("{x}")) { I18N.exact.set(k, v); continue; }
     const lits = k.split(/\{[nqx]\}/).map((s) => s.trim()).filter(Boolean).sort((a, b) => b.length - a.length);
     const re = new RegExp("^" + k.split(/(\{[nqx]\})/).map((p) =>
-      p === "{n}" ? "([-+]?\\d+(?:['’.,]\\d+)*)" : p === "{q}" ? "(„[^„“”\\n]*[“”]|\"[^\"\\n]*\"|«[^«»\\n]*»|“[^“”\\n]*”)" : p === "{x}" ? "(.+?)"
+      p === "{n}" ? "([-+]?\\d+(?:['’.,]\\d+)*)" : p === "{q}" ? "(„[^„“”\\n]*[“”]|\"[^\"\\n]*\"|«[^«»\\n]*»|“[^“”\\n]*”)" : p === "{x}" ? "(.*?)"
         : p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("") + "$", "s");
     I18N.pats.push({ re, kinds: (k.match(/\{[nqx]\}/g) || []), v, lit: lits[0] || "" });
   }
@@ -78,6 +79,16 @@ function i18nLine(s) {
     if (p.lit && !s.includes(p.lit)) continue;
     const m = p.re.exec(s);
     if (m) return i18nFill(p.v, p.kinds.map((k, i) => [k.slice(1, 2), m[i + 1]]));
+  }
+  const pre = /^([^:\n]{2,80}:)\s+([\s\S]+)$/.exec(s);                // „Wiedergabe nicht möglich: …“
+  if (pre && I18N.exact.has(pre[1])) return I18N.exact.get(pre[1]) + " " + i18nLine(pre[2]);
+  const lead = /^([·•–—]\s+)([\s\S]+)$/.exec(s);                     // „· 3 markiert“
+  if (lead) { const r = i18nLine(lead[2]); if (r !== lead[2]) return lead[1] + r; }
+  // zusammengesetzte Texte: Teile zwischen „ · “ einzeln übersetzen
+  if (s.includes(" · ")) {
+    const parts = s.split(" · ");
+    const out = parts.map((x) => i18nLine(x.trim()));
+    if (out.some((x, k) => x !== parts[k].trim())) return out.join(" · ");
   }
   return s;
 }

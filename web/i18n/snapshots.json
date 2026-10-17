@@ -1,0 +1,442 @@
+{
+ "· NUR LESEN (aus neuerer TagStudio-Version)": [
+  "· READ ONLY (from a newer TagStudio version)",
+  "· NUR LÄSE (us ere neuere TagStudio-Version)"
+ ],
+ "Speicher:": [
+  "Storage:",
+  "Spicher:"
+ ],
+ "· gesamt {x}{x}": [
+  "· total {x}{x}",
+  "· gsamt {x}{x}"
+ ],
+ "{x} überwachte(r) Ordner": [
+  "{x} watched folder(s)",
+  "{x} überwachti Ordner"
+ ],
+ "nicht erreichbar:": [
+  "not reachable:",
+  "nöd erreichbar:"
+ ],
+ "· zuletzt": [
+  "· last",
+  "· zletscht"
+ ],
+ "{x} Snapshot(s){x}": [
+  "{x} snapshot(s){x}",
+  "{x} Snapshot(s){x}"
+ ],
+ "täglich": [
+  "daily",
+  "täglich"
+ ],
+ "Noch kein Ordner überwacht. Oben {q} wählen – z. B. deine MP3-Bibliothek.": [
+  "No folder watched yet. Choose {q} at the top – e.g. your MP3 library.",
+  "Nonig en Ordner überwacht. Obe {q} wääle – z. B. dini MP3-Bibliothek."
+ ],
+ "Baseline": [
+  "Baseline",
+  "Baseline"
+ ],
+ "Nicht mehr anheften": [
+  "Unpin",
+  "Nüme aahefte"
+ ],
+ "Anheften (wird nie aufgeräumt)": [
+  "Pin (never cleaned up)",
+  "Aahefte (wird nie ufgruumt)"
+ ],
+ "· automatisch": [
+  "· automatic",
+  "· automatisch"
+ ],
+ "{x} · {x} Titel · {x}{x}": [
+  "{x} · {x} tracks · {x}{x}",
+  "{x} · {x} Titel · {x}{x}"
+ ],
+ "Noch kein Snapshot. {q} hält den jetzigen Stand fest.": [
+  "No snapshot yet. {q} records the current state.",
+  "Nonig en Snapshot. {q} haltet de jetzig Stand fescht."
+ ],
+ "Jetzt (aktueller Stand)": [
+  "Now (current state)",
+  "Jetzt (aktuelle Stand)"
+ ],
+ "Änderungsjournal berechnen": [
+  "Compute change journal",
+  "Änderigsjournal berächne"
+ ],
+ "{x} Datei(en) nicht lesbar.": [
+  "{x} file(s) not readable.",
+  "{x} Datei(e) nöd läsbar."
+ ],
+ "Sichtbare auswählen": [
+  "Select visible",
+  "Sichtbari uswääle"
+ ],
+ "Keine Änderungen zwischen {q} und {q}. 🎉": [
+  "No changes between {q} and {q}. 🎉",
+  "Kei Änderige zwüsche {q} und {q}. 🎉"
+ ],
+ "Nichts passt zum Filter.": [
+  "Nothing matches the filter.",
+  "Nüüt passt zum Filter."
+ ],
+ "nur anders gespeichert (gleiche Werte)": [
+  "only saved differently (same values)",
+  "nur andersch gspicheret (gliichi Wärt)"
+ ],
+ "· Audio": [
+  "· audio",
+  "· Audio"
+ ],
+ "– fehlte –": [
+  "– was missing –",
+  "– hät gfäält –"
+ ],
+ "– entfernt –": [
+  "– removed –",
+  "– entfärnt –"
+ ],
+ "… {x} weitere – Filter benutzen.": [
+  "… {x} more – use the filter.",
+  "… {x} wiiteri – Filter bruuche."
+ ],
+ "Nichts zu exportieren.": [
+  "Nothing to export.",
+  "Nüüt zum Exportiere."
+ ],
+ "Programm unbekannt": [
+  "Program unknown",
+  "Programm unbekannt"
+ ],
+ "Alle Programme": [
+  "All programs",
+  "Alli Programm"
+ ],
+ "Alle Felder": [
+  "All fields",
+  "Alli Fälder"
+ ],
+ "{x} Feld(er) ausgewählt – {q} übernimmt den Snapshot-Stand.": [
+  "{x} field(s) selected – {q} takes over the snapshot state.",
+  "{x} Fäld(er) uusgwäält – {q} übernimmt de Snapshot-Stand."
+ ],
+ "Nichts zum Auswählen.": [
+  "Nothing to select.",
+  "Nüüt zum Uswääle."
+ ],
+ "{x} Feld(er) in {x} Titel(n) ausgewählt": [
+  "{x} field(s) in {x} track(s) selected",
+  "{x} Fäld(er) i {x} Titel uusgwäält"
+ ],
+ "Titel oder einzelne Felder ankreuzen, um sie auf den Snapshot-Stand zurückzusetzen.": [
+  "Tick tracks or single fields to reset them to the snapshot state.",
+  "Titel oder einzelni Fälder aachrüüzle, zum si uf de Snapshot-Stand zrugsetze."
+ ],
+ "Byte-genau zurückschreiben?": [
+  "Write back byte-exact?",
+  "Byte-gnau zruggschriibe?"
+ ],
+ "Zurückschreiben": [
+  "Write back",
+  "Zruggschriibe"
+ ],
+ "Zurücksetzen nicht möglich": [
+  "Reset not possible",
+  "Zrugsetze nöd mögli"
+ ],
+ "Nicht alles zurückgesetzt": [
+  "Not everything reset",
+  "Nöd alles zruggsetzt"
+ ],
+ "Speicherort ändern": [
+  "Change storage location",
+  "Spicherort ändere"
+ ],
+ "Neuer Ort": [
+  "New location",
+  "Neue Ort"
+ ],
+ "Snapshot-Speicher verschieben?": [
+  "Move snapshot storage?",
+  "Snapshot-Spicher verschiebe?"
+ ],
+ "Der Speicher wird zurück in den TagStudio-Ordner verschoben.": [
+  "The storage is moved back into the TagStudio folder.",
+  "De Spicher wird zrugg in TagStudio-Ordner verschobe."
+ ],
+ "Ziel: {x}": [
+  "Target: {x}",
+  "Ziil: {x}"
+ ],
+ "Ist der Ordner nicht leer (z. B. dein MP3-Ordner), legt TagStudio darin den Unterordner {q} an. Der Speicher wird kopiert, geprüft und erst danach am alten Ort entfernt.": [
+  "If the folder is not empty (e.g. your MP3 folder), TagStudio creates the subfolder {q} in it. The storage is copied, checked and only then removed from the old location.",
+  "Isch de Ordner nöd läär (z. B. din MP3-Ordner), leit TagStudio drin de Underordner {q} aa. De Spicher wird kopiert, prüeft und erscht nachher am alte Ort entfärnt."
+ ],
+ "Verschieben": [
+  "Move",
+  "Verschiebe"
+ ],
+ "Snapshot-Speicher verschieben": [
+  "Move snapshot storage",
+  "Snapshot-Spicher verschiebe"
+ ],
+ "(Ordner nicht gefunden)": [
+  "(folder not found)",
+  "(Ordner nöd gfunde)"
+ ],
+ "• {x} – {x} Snapshot(s){x}": [
+  "• {x} – {x} snapshot(s){x}",
+  "• {x} – {x} Snapshot(s){x}"
+ ],
+ "Snapshot-Speicher gefunden": [
+  "Snapshot storage found",
+  "Snapshot-Spicher gfunde"
+ ],
+ "(noch ohne überwachte Ordner)": [
+  "(no watched folders yet)",
+  "(nonig mit überwachte Ordner)"
+ ],
+ "In diesem Ordner liegt ein Snapshot-Speicher:": [
+  "This folder contains a snapshot storage:",
+  "I dem Ordner liit en Snapshot-Spicher:"
+ ],
+ "Statt des bisherigen verwenden? Der bisherige Speicher bleibt unverändert erhalten.": [
+  "Use it instead of the previous one? The previous storage stays unchanged.",
+  "Statt em bisherige bruuche? De bisherig Spicher bliibt unveränderet erhalte."
+ ],
+ "Nicht mehr fragen": [
+  "Don't ask again",
+  "Nüme fröge"
+ ],
+ "Verwenden": [
+  "Use",
+  "Bruuche"
+ ],
+ "Snapshot-Speicher gewechselt.": [
+  "Snapshot storage switched.",
+  "Snapshot-Spicher gwächslet."
+ ],
+ "Keine Snapshots": [
+  "No snapshots",
+  "Kei Snapshots"
+ ],
+ "Noch kein Ordner überwacht – auf der Seite {q} einen Ordner hinzufügen und einen Snapshot erstellen.": [
+  "No folder watched yet – add a folder and create a snapshot on the {q} page.",
+  "Nonig en Ordner überwacht – uf de Siite {q} en Ordner dezuetue und en Snapshot erstelle."
+ ],
+ "{x} · {x} Titel": [
+  "{x} · {x} tracks",
+  "{x} · {x} Titel"
+ ],
+ "noch kein Snapshot": [
+  "no snapshot yet",
+  "nonig en Snapshot"
+ ],
+ "Snapshot {x}": [
+  "Snapshot {x}",
+  "Snapshot {x}"
+ ],
+ "Die Snapshot-Seite ist schreibgeschützt: Werte lassen sich nur in Richtung der echten Dateien übernehmen. Tipp: Zuordnung {q} findet auch umbenannte Titel.": [
+  "The snapshot side is read-only: values can only be taken over towards the real files. Tip: matching {q} also finds renamed tracks.",
+  "D Snapshot-Siite isch schriibgschützt: Wärt chönd nur Richtig vo de ächte Dateie übernaa werde. Tipp: Zueordnig {q} findet au umbenännti Titel."
+ ],
+ "Snapshot gewählt – {q} startet.": [
+  "Snapshot chosen – {q} starts.",
+  "Snapshot gwäält – {q} startet."
+ ],
+ "Ordner überwachen": [
+  "Watch folder",
+  "Ordner überwache"
+ ],
+ "Überwachen": [
+  "Watch",
+  "Überwache"
+ ],
+ "Ordner nicht möglich": [
+  "Folder not possible",
+  "Ordner nöd mögli"
+ ],
+ "Ersten Snapshot erstellen?": [
+  "Create the first snapshot?",
+  "Erschte Snapshot erstelle?"
+ ],
+ "{q} wird überwacht. Soll der jetzige Stand gleich festgehalten werden? (läuft im Hintergrund)": [
+  "{q} is being watched. Should the current state be recorded right away? (runs in the background)",
+  "{q} wird überwacht. Söll de jetzig Stand grad feschtghalte werde? (lauft im Hintergrund)"
+ ],
+ "Erster Snapshot": [
+  "First snapshot",
+  "Erschte Snapshot"
+ ],
+ "Erst einen Ordner überwachen.": [
+  "Watch a folder first.",
+  "Zerscht en Ordner überwache."
+ ],
+ "Bezeichnung": [
+  "Label",
+  "Bezeichnig"
+ ],
+ "anheften (wird beim Aufräumen nie gelöscht)": [
+  "pin (never deleted when cleaning up)",
+  "aahefte (wird bim Ufrume nie glöscht)"
+ ],
+ "Snapshot nicht möglich": [
+  "Snapshot not possible",
+  "Snapshot nöd mögli"
+ ],
+ "Es wird nichts gelöscht.": [
+  "Nothing will be deleted.",
+  "Es wird nüüt glöscht."
+ ],
+ "{x} angeheftete(r) bleiben.": [
+  "{x} pinned stay.",
+  "{x} aagheftet(i) bliibed."
+ ],
+ "Es werden": [
+  "Deleting",
+  "Es werded"
+ ],
+ "ältere(r) Snapshot(s) gelöscht (ca. {x}).{x}": [
+  "older snapshot(s) (approx. {x}).{x}",
+  "älteri Snapshot(s) glöscht (ca. {x}).{x}"
+ ],
+ "Keine älteren Snapshots zum Löschen.": [
+  "No older snapshots to delete.",
+  "Kei älteri Snapshots zum Lösche."
+ ],
+ "Neue Baseline setzen": [
+  "Set new baseline",
+  "Neui Baseline setze"
+ ],
+ "Snapshot {q} vom {x}": [
+  "Snapshot {q} of {x}",
+  "Snapshot {q} vom {x}"
+ ],
+ "Jetzt – ein neuer Snapshot des aktuellen Stands": [
+  "Now – a new snapshot of the current state",
+  "Jetzt – en neue Snapshot vom aktuelle Stand"
+ ],
+ "Die Baseline ist der neue Ausgangspunkt: Das Journal vergleicht ab hier, ältere Stände werden nicht mehr gebraucht. Die Baseline selbst wird beim Aufräumen nie gelöscht.": [
+  "The baseline is the new starting point: the journal compares from here, older states are no longer needed. The baseline itself is never deleted when cleaning up.",
+  "D Baseline isch de neu Uusgangspunkt: S Journal vergliicht ab da, älteri Ständ bruucht s nüme. D Baseline sälber wird bim Ufrume nie glöscht."
+ ],
+ "ältere Snapshots löschen und Platz freigeben": [
+  "delete older snapshots and free up space",
+  "älteri Snapshots lösche und Platz freigää"
+ ],
+ "auch angeheftete 📌 löschen": [
+  "also delete pinned 📌",
+  "au aaghefteti 📌 lösche"
+ ],
+ "Baseline setzen": [
+  "Set baseline",
+  "Baseline setze"
+ ],
+ "{x} Titel extern geändert": [
+  "{x} tracks changed externally",
+  "{x} Titel extern gänderet"
+ ],
+ "Klick: Journal letzter Snapshot ↔ jetzt": [
+  "Click: journal last snapshot ↔ now",
+  "Klick: Journal letschte Snapshot ↔ jetzt"
+ ],
+ "Noch kein Snapshot – erst einen erstellen.": [
+  "No snapshot yet – create one first.",
+  "Nonig en Snapshot – zerscht eine erstelle."
+ ],
+ "Snapshots einrichten?": [
+  "Set up snapshots?",
+  "Snapshots iirichte?"
+ ],
+ "Es wird noch kein Ordner überwacht. Mit einem überwachten Ordner hält TagStudio den Tag-Zustand deiner Bibliothek fest und zeigt später, was andere Programme (Mixed In Key, beaTunes, Mp3tag …) geändert haben – einzeln rückgängig machbar.": [
+  "No folder is watched yet. With a watched folder, TagStudio records the tag state of your library and later shows what other programs (Mixed In Key, beaTunes, Mp3tag …) changed – undoable one by one.",
+  "Es wird nonig en Ordner überwacht. Mit eme überwachte Ordner haltet TagStudio de Tag-Zuestand vo dinere Bibliothek fescht und zeigt spöter, was anderi Programm (Mixed In Key, beaTunes, Mp3tag …) gänderet händ – einzeln rückgängig machbar."
+ ],
+ "Nicht mehr fragen (in den Einstellungen wieder einschaltbar)": [
+  "Don't ask again (can be switched on again in the settings)",
+  "Nüme fröge (i de Iistellige wider iischaltbar)"
+ ],
+ "Ordner wählen …": [
+  "Choose folder …",
+  "Ordner wääle …"
+ ],
+ "Der tägliche automatische Snapshot läuft unabhängig davon im Hintergrund.": [
+  "The daily automatic snapshot runs independently in the background.",
+  "De täglich automatisch Snapshot lauft unabhängig devo im Hintergrund."
+ ],
+ "Änderungen stammen von anderen Programmen oder Speichern ausserhalb von TagStudio.{x}": [
+  "Changes come from other programs or saving outside of TagStudio.{x}",
+  "Änderige chömed vo andere Programm oder Spichere usserhalb vo TagStudio.{x}"
+ ],
+ "Beim Start nicht mehr fragen (in den Einstellungen wieder einschaltbar)": [
+  "Don't ask at start anymore (can be switched on again in the settings)",
+  "Bim Start nüme fröge (i de Iistellige wider iischaltbar)"
+ ],
+ "Journal ansehen": [
+  "View journal",
+  "Journal aaluege"
+ ],
+ "{x} automatische(r) Snapshot(s) entfernt – {x} frei.": [
+  "{x} automatic snapshot(s) removed – {x} freed.",
+  "{x} automatischi Snapshot(s) entfärnt – {x} frei."
+ ],
+ "Nichts aufzuräumen.": [
+  "Nothing to clean up.",
+  "Nüüt zum Ufrume."
+ ],
+ "Täglicher Snapshot an.": [
+  "Daily snapshot on.",
+  "Tägliche Snapshot aa."
+ ],
+ "Für diesen Ordner kein täglicher Snapshot.": [
+  "No daily snapshot for this folder.",
+  "Für dä Ordner kän tägliche Snapshot."
+ ],
+ "Anzeigename": [
+  "Display name",
+  "Aazeigname"
+ ],
+ "Name": [
+  "Name",
+  "Name"
+ ],
+ "Ordner ändern": [
+  "Change folder",
+  "Ordner ändere"
+ ],
+ "Neuer Ordner": [
+  "New folder",
+  "Neue Ordner"
+ ],
+ "{q} nicht mehr überwachen?": [
+  "Stop watching {q}?",
+  "{q} nüme überwache?"
+ ],
+ "Snapshot umbenennen": [
+  "Rename snapshot",
+  "Snapshot umbenänne"
+ ],
+ "Snapshot löschen?": [
+  "Delete snapshot?",
+  "Snapshot lösche?"
+ ],
+ "{q} vom {x} wird gelöscht.": [
+  "{q} of {x} will be deleted.",
+  "{q} vom {x} wird glöscht."
+ ],
+ "Gelöscht – {x} frei.": [
+  "Deleted – {x} freed.",
+  "Glöscht – {x} frei."
+ ],
+ "Excel (.xlsx) …": [
+  "Excel (.xlsx) …",
+  "Excel (.xlsx) …"
+ ],
+ "CSV für Excel …": [
+  "CSV for Excel …",
+  "CSV für Excel …"
+ ]
+}
