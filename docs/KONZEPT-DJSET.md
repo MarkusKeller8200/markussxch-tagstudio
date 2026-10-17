@@ -84,3 +84,11 @@ optimiert, von Hand anpassbar und als Playlist für DJ-Programme exportierbar. E
 ## 6. Tests
 
 `tests/test_setplan.py`, `tests/test_setexport.py`, Oberflächen-Tests in `tests/test_browser_ui.py`.
+
+## Playlists aus Plugins (#242, Entscheid User 17.10.2026)
+
+„Aus Lexicon …“ in der Kopfzeile (nur wenn ein bereites Plugin `playlists(ctx)` anbietet): alle Playlists holen und
+mit Häkchen (eingerückt nach Ordnern, Filter über den Pfad) wählen. Jede gewählte Playlist wird als gespeicherte Liste
+„<Quelle>: <Name>“ abgelegt (gleichnamige werden aktualisiert, Reihenfolge wie in der Quelle), die erste geladen und
+ihre Titel in den Tagger eingelesen. Titel, die nicht auf diesem Rechner sind, werden gezählt und gemeldet.
+Lexicon liefert zusätzlich die Pseudo-Playlist „Warteschlange“ (läuft gerade + nächste).

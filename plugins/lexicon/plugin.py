@@ -55,6 +55,8 @@ ACTIONS = [{
         {"key": "grid", "type": "check", "label": "Beatgrid und Cue-Punkte mit der Datei vergleichen (nur Hinweis)",
          "default": True},
         {"key": "by_name", "type": "check", "label": "Titel ohne Pfad-Treffer über Künstler + Titel zuordnen", "default": True},
+        {"key": "to_ts", "type": "check", "label": "Zusätzlich in die TagStudio-Felder übernehmen (ENERGY, DANCEABILITY, "
+                                                    "HAPPINESS, Stimmung – mit Abgleich)", "default": False},
         {"type": "info", "label": "Lexicon muss laufen und die Local API eingeschaltet sein (Settings › Integrations). "
                                   "Werte ohne offizielles MP3-Feld kommen in eigene Felder TXXX:LEXICON_… (Herkunft "
                                   "„Lexicon“) und bleiben so, wie Lexicon sie liefert (1–10); 0 heisst „nicht analysiert“ und "
@@ -72,6 +74,17 @@ ACTIONS = [{
         {"key": "target", "type": "select", "label": "Wohin", "default": "tagger",
          "choices": [["tagger", "In den Tagger laden"], ["djset", "Als neues DJ-Set"], ["djadd", "Zum DJ-Set hinzufügen"]]},
         {"type": "info", "label": "Ordner und Smartlists gehen auch: Lexicon liefert die Titel aller enthaltenen Playlists."},
+    ],
+}, {
+    "id": "to_ts", "label": "Lexicon-Werte in TagStudio-Felder …", "where": "tagger", "run_label": "Vorschau",
+    "description": "Übernimmt die Werte aus den Lexicon-Feldern der Dateien (TXXX:LEXICON_ENERGY usw., 1–10) in die "
+                   "TagStudio-Felder (ENERGY usw., 10–100) und die Stimmung – mit Vorschau und Abgleich. Lexicon muss "
+                   "dafür nicht laufen.",
+    "options": [
+        {"key": "danceability", "type": "check", "label": "LEXICON_DANCEABILITY → DANCEABILITY", "default": True},
+        {"key": "energy", "type": "check", "label": "LEXICON_ENERGY → ENERGY", "default": True},
+        {"key": "happiness", "type": "check", "label": "LEXICON_HAPPINESS → HAPPINESS", "default": True},
+        {"key": "mood", "type": "check", "label": "LEXICON_MOOD → Stimmung", "default": False},
     ],
 }, {
     "id": "send", "label": "Nach Lexicon übertragen …", "where": "tagger", "run_label": "Vergleichen",
@@ -404,6 +417,10 @@ def run_import(ctx, files, opts):
                 cur = f.text(key) if f.get(key) is not None else ""
                 any_ |= ctx.propose(f, key, text, f"Lexicon-Tags → {target}", note=note, group=group,
                                     checked=not cur, hint="schon gefüllt – bitte prüfen" if cur else "aus Lexicon-Tags")
+        if opts.get("to_ts"):                                           # #241: auf Wunsch auch in TagStudio-Felder
+            vals = {name: _native(t.get(field)) for field, name in FIELDS if opts.get(field)}
+            mood_names = [nm for cat, nm in named if _is_mood(cat)] if opts.get("mood") else []
+            any_ |= propose_ts(ctx, f, vals, mood_names, group, note)
         changed += bool(any_)
     ctx.progress(len(files), len(files), "fertig")
     msg = f"{found} von {len(files)} Titel(n) in Lexicon gefunden"
@@ -412,6 +429,79 @@ def run_import(ctx, files, opts):
     if missing:
         ctx.log("Nicht in Lexicon gefunden:\n" + "\n".join(missing))
     return {"message": msg + "."}
+
+
+# =========================================================================== In TagStudio-Felder übernehmen (#241)
+def propose_ts(ctx, f, vals: dict, mood_names, group, note="") -> bool:
+    """Lexicon-Werte (1–10, Text) als TagStudio-Merkmale (10–100) mit Abgleich vorschlagen, Stimmung ins Stimmungsfeld."""
+    import importsync
+    any_ = False
+    for name, raw in vals.items():
+        try:
+            v = int(round(float(str(raw).replace(",", ".")) * 10))
+        except (TypeError, ValueError):
+            continue
+        if 0 < v <= 100:
+            st = importsync.propose(ctx, f, SOURCE, SOURCE_NAME, name, v, group=group, note=note)
+            any_ |= st != "same"
+    if mood_names:
+        cur = moods.values(f)
+        if [x.lower() for x in mood_names] != [x.lower() for x in cur]:
+            any_ |= ctx.propose(f, moods.key_for(f), MV.join(mood_names), "Stimmung (MOOD)", note=note, checked=not cur,
+                                group=group, hint="aus Lexicon" + (f" · Datei hat {', '.join(cur)}" if cur else ""))
+    return any_
+
+
+def run_to_ts(ctx, files, opts):
+    """Werte aus den Lexicon-Feldern der Dateien in die TagStudio-Felder übernehmen (ohne Verbindung zu Lexicon)."""
+    n_with = changed = 0
+    for n, f in enumerate(files):
+        group = os.path.basename(f.path)
+        ctx.progress(n, len(files), group)
+        vals = {name: f.text(f"TXXX:LEXICON_{name}") for field, name in FIELDS
+                if opts.get(field) and f.get(f"TXXX:LEXICON_{name}") is not None}
+        mood_names = []
+        if opts.get("mood") and f.get("TXXX:LEXICON_MOOD") is not None:
+            mood_names = [x for x in f.text("TXXX:LEXICON_MOOD").split(MV) if x]
+        if not vals and not mood_names:
+            continue
+        n_with += 1
+        changed += bool(propose_ts(ctx, f, vals, mood_names, group, "aus den Lexicon-Feldern der Datei"))
+    ctx.progress(len(files), len(files), "fertig")
+    if not n_with:
+        return {"message": "Keine der Dateien hat Lexicon-Felder – zuerst „Lexicon übernehmen …“."}
+    return {"message": f"{n_with} Datei(en) mit Lexicon-Feldern; {changed} mit Änderungen (Vorschau)."}
+
+
+# =========================================================================== DJ-Set: Playlists aus Lexicon (#242)
+QUEUE_ID = "queue"
+
+
+def playlists(ctx) -> list:
+    """Alle Playlists für die Auswahl im DJ-Set: [{id, name, path, depth, type}] (+ Warteschlange, #238)."""
+    c = client(ctx, timeout=10)
+    flat = [p for p in lexapi.flatten(c.playlists())]
+    root = [p for p in flat if p["depth"] == 0 and p["type"] == "1"]
+    if len(root) == 1:                                     # Wurzelordner nicht zeigen
+        flat = [dict(p, depth=p["depth"] - 1, path=p["path"][1:]) for p in flat if p is not root[0]]
+    return [{"id": QUEUE_ID, "name": "Warteschlange in Lexicon (läuft gerade + nächste)", "path": [], "depth": 0,
+             "type": "queue"}] + flat
+
+
+def playlist_files(ctx, pid) -> dict:
+    """Dateien einer Playlist (auch Ordner/Smartlist) in Lexicon-Reihenfolge → {name, files, missing}."""
+    c = client(ctx, timeout=20)
+    if pid == QUEUE_ID:
+        now = c.playing() or {}
+        tracks = ([now["track"]] if now.get("track") else []) + c.queue()
+        name, locs = "Warteschlange", [t.get("location") for t in tracks if isinstance(t, dict)]
+    else:
+        pl = c.playlist(int(pid)) or {}
+        name = pl.get("name") or f"Playlist {pid}"
+        locs = [t.get("location") for t in c.tracks_by_ids(pl.get("trackIds") or [], ["id", "location"])]
+    locs = [x for x in locs if x]
+    here = [x for x in locs if os.path.isfile(x)]
+    return {"name": name, "files": here, "missing": len(locs) - len(here)}
 
 
 # =========================================================================== Öffnen (#238)
@@ -834,4 +924,6 @@ def run(action, ctx, files, opts):
         return run_djset(ctx, opts)
     if action == "undo":
         return run_undo(ctx)
+    if action == "to_ts":
+        return run_to_ts(ctx, files, opts)
     raise ValueError(f"Unbekannte Aktion: {action}")

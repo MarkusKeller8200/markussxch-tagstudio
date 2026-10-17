@@ -9,6 +9,56 @@ const DJ_KIND_SHORT = { same: "gleich", adjacent: "±1", parallel: "parallel", b
 
 async function djsetShow() {
   try { djApply(await call("dj_state")); } catch (e) { toast(String(e.message || e)); }
+  djSourcesRefresh();
+}
+
+// ---------------------------------------------------------------- #242: Playlists aus Lexicon (bzw. anderen Plugins)
+async function djSourcesRefresh() {
+  let r;
+  try { r = await call("dj_sources"); } catch (e) { return; }
+  DJ.sources = r.sources || [];
+  const b = $("#djSource"); if (!b) return;
+  b.hidden = !DJ.sources.length;
+  if (DJ.sources.length === 1) b.textContent = `Aus ${DJ.sources[0].name} …`;
+}
+
+async function djSourcePick() {
+  const src = (DJ.sources || [])[0]; if (!src) return;
+  const res = await runTask(call("start_dj_source_list", src.id), `${src.name}: Playlists holen`);
+  if (!res || res.cancelled) return;
+  const pls = res.playlists || [];
+  if (!pls.length) { info(src.name, "Keine Playlists gefunden."); return; }
+  const icon = { "1": "📁", "2": "♫", "3": "⚙", queue: "▶" };
+  const ids = await modal({
+    title: `Playlists aus ${src.name}`, wide: true,
+    html: `<div class="hint">Häkchen setzen und „Laden“ – jede Playlist wird als Liste „${esc(src.name)}: …“ gespeichert (gleichnamige werden aktualisiert), die erste wird geladen. Ordner und Smartlists liefern alle enthaltenen Titel.</div>
+      <div class="pl-filter" style="margin:10px 0"><input class="inp" id="djsFind" placeholder="Filtern …" style="flex:1"><button class="ghost sm" data-djs="none">Keine</button></div>
+      <div class="djs-list">${pls.map((p, k) => `<label class="djs-row" data-name="${esc((p.path || []).join(" / ").toLowerCase() || p.name.toLowerCase())}" style="padding-left:${8 + 18 * Math.max(0, p.depth)}px">
+        <input type="checkbox" data-djsi="${k}"> <span class="djs-ico" title="${p.type === "1" ? "Ordner" : p.type === "3" ? "Smartlist" : p.type === "queue" ? "Warteschlange" : "Playlist"}">${icon[p.type] || "♫"}</span> ${esc(p.name)}</label>`).join("")}</div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Laden", value: true, primary: true }],
+    onMount: (b) => {
+      const upd = () => { const n = b.querySelectorAll("[data-djsi]:checked").length; const btn = $("#mBtns .primary"); if (btn) { btn.disabled = !n; btn.textContent = n ? `Laden (${n})` : "Laden"; } };
+      b.addEventListener("change", upd);
+      b.addEventListener("input", (e) => {
+        if (e.target.id !== "djsFind") return;
+        const q = e.target.value.trim().toLowerCase();
+        b.querySelectorAll(".djs-row").forEach((r) => { r.hidden = !!q && !r.dataset.name.includes(q); });
+      });
+      b.addEventListener("click", (e) => { if (e.target.closest('[data-djs="none"]')) { b.querySelectorAll("[data-djsi]").forEach((c) => (c.checked = false)); upd(); } });
+      upd();
+    },
+    collect: (b) => [...b.querySelectorAll("[data-djsi]:checked")].map((c) => pls[+c.dataset.djsi].id),
+  });
+  if (!ids || !ids.length) return;
+  const r = await runTask(call("start_dj_source_import", src.id, ids), `${src.name}: Playlists laden`);
+  if (!r || r.cancelled) return;
+  if (r.files && r.files.length) {                                     // Titel der geladenen Liste in den Tagger
+    const t = await runTask(call("start_tag_load_files", r.files, r.first), "Dateien einlesen");
+    if (t && !t.cancelled && typeof tgAfterLoad === "function") await tgAfterLoad(t, "", false);
+  }
+  await djsetShow();
+  const msg = `${r.lists.length} Liste(n) gespeichert, „${r.first}“ geladen` + (r.missing ? ` · ${r.missing} Titel nicht auf diesem Rechner` : "") + ".";
+  toast(msg); status(msg, r.missing ? "warn" : "ok");
 }
 
 /** #127: Tagger wurde (neu) geladen → Set-Titel neu auflösen */
@@ -258,6 +308,7 @@ function djSetOpt(k, v, delay = 0) {
 function djInit() {
   $("#djFromTagger").addEventListener("click", () => djAddFromTagger(false));
   $("#djAllTagger").addEventListener("click", () => djAddFromTagger(true));
+  $("#djSource").addEventListener("click", () => djSourcePick());       // #242
   $("#djOpt").addEventListener("click", async () => {
     const b = $("#djOpt"), n = DJ.st ? DJ.st.items.filter((r) => !r.missing).length : 0;
     b.disabled = true; b.textContent = "Optimiere …";

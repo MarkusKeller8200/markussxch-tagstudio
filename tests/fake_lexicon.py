@@ -115,6 +115,11 @@ class Handler(BaseHTTPRequestHandler):
                 return self._err(101, "Playlist does not exist")
             return self._send(200, {"data": {"playlist": {**{k: v for k, v in p.items() if k != "trackIds"},
                                                            "trackIds": s.playlist_tracks(pid)}}})
+        if u.path == "/v1/playing":
+            t = s.by_id(s.playing) if getattr(s, "playing", None) else None
+            return self._send(200, {"data": {"track": t, "progress": 0.5 if t else None, "currentTime": 60 if t else None}})
+        if u.path == "/v1/queue":
+            return self._send(200, {"data": {"tracks": [s.by_id(i) for i in getattr(s, "queue", [])]}})
         if u.path == "/v1/tags":
             return self._send(200, {"data": s.tags})
         return self._send(400, {"message": f"Endpoint {u.path} does not exist", "errorCode": 4})

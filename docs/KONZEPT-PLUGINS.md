@@ -167,7 +167,11 @@ nie über einen Proxy, `is_local`).
   (1–10). Herkunft „Lexicon“ über die vorhandene Regel `TXXX:Lexicon*` (kein `fields` in plugin.json). Offizielle
   Felder: POPM, TMOO (v2.4), TIT1/COMM auf Wunsch. Die TagStudio-Felder (ENERGY usw.) fasst „Lexicon übernehmen“
   nicht an – optionale Übernahme in eigene Felder folgt als eigene Funktion.
-- Offen: „Läuft gerade“/Warteschlange (`/playing`, `/queue`) – im Endpunkt-Stand als „geplant“.
+- **#241 In TagStudio-Felder:** Aktion „Lexicon-Werte in TagStudio-Felder …“ (offline aus `TXXX:LEXICON_*`, ×10,
+  `importsync`-Abgleich, Stimmung) bzw. Option `to_ts` bei „Lexicon übernehmen“.
+- **#242 DJ-Set:** Rahmen `Manager.playlist_sources/call_playlist` (Plugin-Funktionen `playlists`, `playlist_files`),
+  Session `dj_sources`, `start_dj_source_list`, `start_dj_source_import` (Listen „<Quelle>: <Name>“, erste geladen);
+  Pseudo-Playlist „Warteschlange“ aus `/playing` + `/queue` (#238 Punkt 4).
 
 ## 5. Entscheide
 

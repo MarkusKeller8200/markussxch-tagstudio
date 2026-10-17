@@ -142,6 +142,48 @@ class DjSetMixin:
             st["message"] = f"{added} Titel hinzugefügt." if added else "Keine neuen Titel (schon im Set)."
             return st
 
+    # ------------------------------------------------------------------ #242: Playlists aus Plugins (z. B. Lexicon)
+    def dj_sources(self) -> dict:
+        return {"sources": self.plugins.playlist_sources()}
+
+    def start_dj_source_list(self, pid):
+        """Alle Playlists eines Plugins holen (zur Auswahl mit Häkchen)."""
+        def job(cancel, progress):
+            progress(("text", "Playlists werden geholt …"))
+            return {"ok": True, "playlists": self.plugins.call_playlist(pid, "playlists", session=self, cancel=cancel,
+                                                                        progress=progress)}
+        return self._run("dj_source", "Playlists holen", job)
+
+    def start_dj_source_import(self, pid, ids, prefix=""):
+        """Gewählte Playlists als gespeicherte Listen „<Quelle>: <Name>“ ablegen (gleichnamige werden ersetzt);
+        die erste wird geladen. → {lists, first, files (der ersten), missing}"""
+        ids = [i for i in (ids or []) if isinstance(i, (str, int))]
+        if not ids:
+            return {"ok": False, "error": "Bitte mindestens eine Playlist wählen."}
+        src = self.plugins.get(pid).name
+
+        def job(cancel, progress):
+            out, missing = [], 0
+            for k, i in enumerate(ids):
+                if cancel.is_set():
+                    break
+                progress(("progress", k, len(ids), str(i)))
+                r = self.plugins.call_playlist(pid, "playlist_files", i, session=self, cancel=cancel, progress=progress)
+                name = " ".join(f"{prefix or src}: {r['name']}".split())[:80]
+                with self.lock:
+                    saved = self._dj_saved()
+                    saved[name] = {"items": [{"path": p} for p in r["files"]], "opts": self._dj_opts(),
+                                   "saved": int(time.time()), "source": pid}
+                    self._dj_saved_write(saved)
+                missing += r.get("missing", 0)
+                out.append({"name": name, "count": len(r["files"]), "missing": r.get("missing", 0), "files": r["files"]})
+            first = out[0] if out else None
+            if first:
+                self.dj_load(first["name"])
+            return {"ok": True, "lists": [{k: v for k, v in x.items() if k != "files"} for x in out],
+                    "first": first["name"] if first else "", "files": first["files"] if first else [], "missing": missing}
+        return self._run("dj_source", "Playlists laden", job)
+
     def dj_add_paths(self, paths, new=False, name="") -> dict:
         """#238: Titel über ihre Pfade hinzufügen (Reihenfolge bleibt), z. B. aus einer Lexicon-Playlist.
         new=True: zuerst ein neues, leeres Set (das bisherige lässt sich mit „Rückgängig“ zurückholen)."""

@@ -170,6 +170,60 @@ class TestOpen(_LexRun):
         self.assertEqual(self.s.plugins.detect("beatunes", [self.p], self.s), set())
 
 
+class TestToTagStudio(_LexRun):
+    def test_to_ts_from_file_fields(self):
+        """#241: Werte aus den LEXICON-Feldern der Datei in die TagStudio-Felder (×10, mit Abgleich)."""
+        import moods
+        f = self.f("q.mp3")
+        f.set_text("TXXX:LEXICON_ENERGY", "7")
+        f.set_text("TXXX:LEXICON_DANCEABILITY", "6.5")
+        f.set_text("TXXX:LEXICON_MOOD", "Dark\x00Happy")
+        res = self.act("to_ts", [self.idx["q.mp3"], self.idx["p.mp3"]], danceability=True, energy=True, happiness=True,
+                       mood=True)["result"]
+        by = self.by(res)
+        self.assertEqual(by[("q.mp3", "Energy (ENERGY)")]["new"], "70")
+        self.assertEqual(by[("q.mp3", "Danceability (DANCEABILITY)")]["new"], "65")
+        self.assertEqual(by[("q.mp3", "Stimmung (MOOD)")]["new"], "Dark ¦ Happy")
+        self.assertFalse([k for k in by if k[0] == "p.mp3"])                  # ohne Lexicon-Felder
+        self.apply_checked(res)
+        self.assertEqual(moods.values(f), ["Dark", "Happy"])
+        self.assertEqual(json.loads(f.text("TXXX:TAGSTUDIO"))["sync"]["lexicon"]["ENERGY"], 70)
+        self.assertEqual(self.lex.calls, [c for c in self.lex.calls if c[0] == "GET"])   # keine Schreibzugriffe
+        st = self.act("to_ts", [self.idx["p.mp3"]], energy=True)
+        self.assertIn("Keine der Dateien", st["result"]["message"])
+
+    def test_import_with_to_ts(self):
+        res = self.act("import", [self.idx["p.mp3"]], url=self.url, energy=True, to_ts=True)["result"]
+        by = self.by(res)
+        self.assertEqual(by[("p.mp3", "Lexicon: Energie (LEXICON_ENERGY)")]["new"], "6")
+        self.assertIn(("p.mp3", "Energy (ENERGY)"), by)                        # Datei hat 80 → Abgleich
+
+
+class TestDjSource(_LexRun):
+    def test_list_and_import(self):
+        self.assertEqual([x["id"] for x in self.s.dj_sources()["sources"]], ["lexicon"])
+        self.assertTrue(self.s.start_dj_source_list("lexicon")["ok"])
+        pls = self.wait()["result"]["playlists"]
+        self.assertEqual(pls[0]["id"], "queue")
+        self.assertEqual([(p["name"], p["depth"]) for p in pls[1:]], [("Sets", 0), ("Freitag", 1)])   # ohne Wurzel
+        self.assertTrue(self.s.start_dj_source_import("lexicon", [12, 11])["ok"])
+        r = self.wait()["result"]
+        self.assertEqual([x["name"] for x in r["lists"]], ["Lexicon: Freitag", "Lexicon: Sets"])
+        self.assertEqual((r["first"], r["files"], r["missing"]), ("Lexicon: Freitag", [self.q, self.p], 2))
+        self.assertEqual([x["path"] for x in self.s._dj()["items"]], [self.q, self.p])
+        self.assertEqual(self.s.cfg["djset_name"], "Lexicon: Freitag")
+        self.lex.playlists[2]["trackIds"] = [1]                                 # erneut laden → aktualisiert
+        self.s.start_dj_source_import("lexicon", [12])
+        self.wait()
+        self.assertEqual(len(self.s._dj_saved()["Lexicon: Freitag"]["items"]), 1)
+        self.assertFalse(self.s.start_dj_source_import("lexicon", [])["ok"])
+        # #238 Punkt 4: läuft gerade + Warteschlange
+        self.lex.playing, self.lex.queue = 2, [1, 3]
+        self.s.start_dj_source_import("lexicon", ["queue"])
+        r = self.wait()["result"]
+        self.assertEqual((r["first"], r["files"], r["missing"]), ("Lexicon: Warteschlange", [self.q, self.p], 1))
+
+
 class TestWriteBack(_LexRun):
     def test_send_needs_switch_and_local(self):
         st = self.act("send", basic=True)

@@ -24,6 +24,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   MP3-Feld kommen in eigene Felder `TXXX:LEXICON_…` mit Herkunft „Lexicon“ (Energie, Tanzbarkeit, Fröhlichkeit,
   Popularität, Farbe, Tags, Stimmung bei ID3v2.3), so wie Lexicon sie liefert; die TagStudio-Felder bleiben
   unverändert (#240).
+- **DJ-Set: Playlists aus Lexicon (#242):** „Aus Lexicon …“ holt alle Playlists (und die Warteschlange), zeigt sie mit
+  Häkchen und Filter; gewählte werden als Listen „Lexicon: …“ gespeichert, die erste geladen. Dazu „Lexicon-Werte in
+  TagStudio-Felder …“ (#241): Werte aus den Lexicon-Feldern auf Wunsch in ENERGY usw. und die Stimmung übernehmen.
 - **Eigene Übersetzungen einreichen (#232):** Hilfe › Melden › „Übersetzung einreichen“ (oder „Eigene Texte einreichen …“
   in den Spracheinstellungen) füllt die selbst angepassten Texte einer Sprache ins GitHub-Formular – nur Texte, die von
   der mitgelieferten Fassung abweichen. Nach Prüfung kommen sie in die mitgelieferten Übersetzungen.

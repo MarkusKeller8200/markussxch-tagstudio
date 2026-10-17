@@ -175,6 +175,8 @@ Weitere Funktionen, die ein Plugin anbieten kann (alle optional):
 - `detect_files(ctx, paths)` – Vorbereiten: Status-Schritt mit „Erkennung“ = Plugin-ID erkennt diese Dateien als
   erledigt (Beispiel: Lexicon – Datei ist in Lexicon).
 - `apply_remote(ctx, items)` – siehe `kind="remote"` oben.
+- `playlists(ctx)` → `[{id, name, path, depth, type}]` und `playlist_files(ctx, id)` → `{name, files, missing}` –
+  das DJ-Set bietet dann „Aus <Plugin> …“: Playlists auswählen und als Listen laden (Beispiel: Lexicon).
 
 ## Eingebaut: Stems
 
@@ -232,6 +234,11 @@ Integrations › Local API einschalten; Standard `http://localhost:48624`).
 - **Aus Lexicon öffnen …** (Tagger, ohne Auswahl): die in Lexicon markierten Titel, die markierte Playlist oder eine
   Playlist über ihren Namen (`Sets/Freitag`) in den Tagger laden oder als DJ-Set übernehmen. Ordner und Smartlists
   gehen auch.
+- **Lexicon-Werte in TagStudio-Felder …** (Tagger): übernimmt die Werte aus den `LEXICON_`-Feldern der Dateien in
+  ENERGY, DANCEABILITY, HAPPINESS (×10) und die Stimmung – mit Vorschau und Abgleich, ohne Verbindung zu Lexicon.
+  Beim Übernehmen aus Lexicon geht das auch gleich mit („Zusätzlich in die TagStudio-Felder übernehmen“).
+- **DJ-Set › Aus Lexicon …:** alle Playlists (und die Warteschlange) holen, mit Häkchen wählen; jede wird als Liste
+  „Lexicon: …“ gespeichert, die erste geladen.
 - **Vorbereiten:** Der Status-Schritt „Lexicon“ erkennt Titel, die in Lexicon vorhanden sind.
 - **Zurückschreiben** (Plugins › Lexicon › Optionen, standardmässig aus):
   - Pfade nachführen, wenn TagStudio Dateien umbenennt, archiviert oder zurückholt.

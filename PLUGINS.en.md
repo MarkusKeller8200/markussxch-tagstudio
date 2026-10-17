@@ -176,6 +176,8 @@ More functions a plugin can offer (all optional):
 - `detect_files(ctx, paths)` – Prepare: a status step whose “detection” is the plugin id treats these files as done
   (example: Lexicon – the file is in Lexicon).
 - `apply_remote(ctx, items)` – see `kind="remote"` above.
+- `playlists(ctx)` → `[{id, name, path, depth, type}]` and `playlist_files(ctx, id)` → `{name, files, missing}` – the
+  DJ set then offers “From <plugin> …”: select playlists and load them as lists (example: Lexicon).
 
 ## Built in: Stems
 
@@ -228,6 +230,11 @@ Integrations › switch on Local API; default `http://localhost:48624`).
   and cue points from Lexicon are compared with the file (note in the preview).
 - **Open from Lexicon …** (tagger, no selection needed): load the tracks selected in Lexicon, the selected playlist or a
   playlist by its name (`Sets/Friday`) into the tagger or take them over as a DJ set. Folders and smartlists work too.
+- **Lexicon values into TagStudio fields …** (tagger): takes the values from the files' `LEXICON_` fields into ENERGY,
+  DANCEABILITY, HAPPINESS (×10) and the mood – with preview and matching, without a connection to Lexicon. Taking over
+  from Lexicon can do this right away (“Also take over into the TagStudio fields”).
+- **DJ set › From Lexicon …:** fetch all playlists (and the queue), tick them; each is saved as a list “Lexicon: …”, the
+  first one is loaded.
 - **Prepare:** the status step “Lexicon” detects tracks that are in Lexicon.
 - **Writing back** (Plugins › Lexicon › Settings, off by default):
   - Update paths when TagStudio renames, archives or restores files.

@@ -1566,3 +1566,9 @@ html.i18n-wait body{visibility:hidden}
 .i18n-imp td{vertical-align:top;font-size:12px}
 .i18n-imp tr.i18n-error td{color:var(--bad,#d9534f)}
 .i18n-imp tr.i18n-warn td:first-child{color:#B26B00}
+
+/* #242: Playlists aus Lexicon im DJ-Set */
+.djs-list{max-height:min(55vh,480px);overflow:auto;border:1px solid var(--line);border-radius:10px;padding:4px 0}
+.djs-row{display:flex;align-items:center;gap:8px;padding:5px 10px;cursor:pointer}
+.djs-row:hover{background:var(--acc-soft)}
+.djs-ico{width:18px;text-align:center;opacity:.8}

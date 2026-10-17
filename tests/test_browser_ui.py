@@ -748,6 +748,42 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("window.__applied && window.__applied[0] === 't1'"))
         pg.wait_for_selector("#dlgText:has-text('Track does not exist')")
 
+    def test_dj_lexicon_playlists(self):
+        """#242: DJ-Set › „Aus Lexicon …“ – alle Playlists holen, mit Häkchen wählen, als Listen laden."""
+        pg = self.pg
+        self.calm()
+        a, b = os.path.join(self.lib, "02 Ton 330.mp3"), os.path.join(self.lib, "01 Ton 220.mp3")
+        pg.evaluate("""([a, b]) => { const orig = call; window.__fake = null; window.__imp = null;
+          window.call = (n, ...args) => {
+            if (n === "dj_sources") return Promise.resolve({ sources: [{ id: "lexicon", name: "Lexicon" }] });
+            if (n === "start_dj_source_list") { window.__fake = { ok: true, playlists: [
+                { id: "queue", name: "Warteschlange in Lexicon (läuft gerade + nächste)", depth: 0, type: "queue", path: [] },
+                { id: 11, name: "Sets", depth: 0, type: "1", path: ["Sets"] }, { id: 12, name: "Freitag", depth: 1, type: "2", path: ["Sets", "Freitag"] },
+                { id: 13, name: "Samstag", depth: 1, type: "3", path: ["Sets", "Samstag"] }] }; return Promise.resolve({ ok: true }); }
+            if (n === "start_dj_source_import") { window.__imp = args[1];
+              return orig("dj_add_paths", [a, b], true, "Freitag").then(() => { window.__fake = { ok: true, lists: [{ name: "Lexicon: Freitag" }, { name: "Lexicon: Samstag" }],
+                first: "Lexicon: Freitag", files: [a, b], missing: 1 }; return { ok: true }; }); }
+            if (n === "task_status" && window.__fake) { const r = window.__fake; window.__fake = null; return Promise.resolve({ done: true, running: false, result: r }); }
+            return orig(n, ...args); }; }""", [a, b])
+        pg.click('.nav[data-module="djset"]')
+        pg.wait_for_selector("#djSource:not([hidden])")
+        self.assertEqual(pg.inner_text("#djSource"), "Aus Lexicon …")
+        pg.click("#djSource")
+        pg.wait_for_selector("#mBody .djs-row")
+        self.assertEqual(pg.locator("#mBody .djs-row").count(), 4)
+        self.assertTrue(pg.locator("#mBtns .primary").is_disabled())                    # nichts gewählt
+        pg.fill("#djsFind", "sets / f")                                                 # Filter über den Pfad
+        self.assertEqual(pg.locator("#mBody .djs-row:not([hidden])").count(), 1)
+        pg.fill("#djsFind", "")
+        pg.check('[data-djsi="2"]')
+        pg.check('[data-djsi="3"]')
+        self.assertEqual(pg.inner_text("#mBtns .primary"), "Laden (2)")
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("window.__imp && window.__imp.join(',') === '12,13'"))
+        self.assertTrue(self.until("DJ.st && DJ.st.items.length === 2 && !DJ.st.items.some((r) => r.missing)"))
+        self.assertEqual(pg.evaluate("DJ.st.items.map((r) => r.path)"), [a, b])
+        self.assertTrue(self.until("document.querySelector('#toast') && /2 Liste\\(n\\) gespeichert/.test(document.querySelector('#toast').textContent)"))
+
     def test_feedback_translation(self):
         """#232: eigene Übersetzungen einreichen – Texte eingefüllt, Sprache wählbar, Vorschau, zu viele Texte → Kopieren."""
         pg = self.pg

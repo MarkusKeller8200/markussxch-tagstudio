@@ -95,7 +95,7 @@
         "path": "/playlists",
         "label": "Alle Playlists (Baum)",
         "status": "full",
-        "use": "Aus Lexicon öffnen: Playlist über Namen/Pfad; Playlist „TagStudio Neu“ finden"
+        "use": "Aus Lexicon öffnen, DJ-Set › Aus Lexicon …: alle Playlists zur Auswahl; Playlist „TagStudio Neu“ finden"
       },
       {
         "id": "playlist",
@@ -110,7 +110,7 @@
             "required": true
           }
         ],
-        "use": "Aus Lexicon öffnen: Titel einer Playlist (auch Ordner, Smartlist)"
+        "use": "Aus Lexicon öffnen, DJ-Set › Aus Lexicon …: Titel einer Playlist (auch Ordner, Smartlist)"
       },
       {
         "id": "playlist-by-path",
@@ -133,16 +133,16 @@
         "method": "GET",
         "path": "/playing",
         "label": "Aktuell gespielter Titel",
-        "status": "none",
-        "note": "geplant"
+        "status": "full",
+        "use": "DJ-Set › Aus Lexicon …: Warteschlange (läuft gerade + nächste)"
       },
       {
         "id": "queue",
         "method": "GET",
         "path": "/queue",
         "label": "Warteschlange",
-        "status": "none",
-        "note": "geplant"
+        "status": "full",
+        "use": "DJ-Set › Aus Lexicon …: Warteschlange (läuft gerade + nächste)"
       },
       {
         "id": "track-update",

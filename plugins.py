@@ -696,6 +696,24 @@ class Manager:
             write_log(f"{p.id}.log", f"Erkennung fehlgeschlagen: {ex}")
             return set()
 
+    # ---- #242: Playlists anderer Programme fürs DJ-Set (playlists(ctx), playlist_files(ctx, id))
+    PLAYLIST_FNS = ("playlists", "playlist_files")
+
+    def playlist_sources(self) -> list[dict]:
+        """Bereite, eingeschaltete Plugins mit playlists(ctx) – z. B. Lexicon."""
+        return [{"id": p.id, "name": p.name} for p, _fn in self._ready_with("playlists")]
+
+    def call_playlist(self, pid, fn_name, *args, session=None, cancel=None, progress=None):
+        if fn_name not in self.PLAYLIST_FNS:
+            raise ValueError("Unbekannte Funktion.")
+        p = self.get(pid)
+        if not p.enabled or p.state() != "ready":
+            raise ValueError(f"Plugin „{p.name}“ ist nicht bereit.")
+        fn = getattr(p.load(), fn_name, None)
+        if not callable(fn):
+            raise ValueError(f"„{p.name}“ bietet keine Playlists.")
+        return fn(Context(p, session, cancel, progress), *args)
+
     def apply_remote(self, pid, items, session=None) -> dict:
         """#239: übernommene Vorschläge kind="remote" an das Plugin (apply_remote(ctx, items))."""
         p = self.get(pid)
