@@ -88,7 +88,7 @@ Umgesetzt wurde eine **Übersetzungsschicht über dem DOM** statt Schlüsseln im
   auf Englisch diese Fassungen, sonst die deutschen. Zürichdeutsch nutzt die deutschen Dokumente.
 - **Schreibweise:** „ß“ in der Oberfläche durch „ss“ ersetzt (Filter versteht weiter „größer als“).
 - **Nicht umgesetzt / offen:** Zahlen und Daten über `Intl` (nur Tausendertrenner im Englischen angepasst),
-  Einreichen eigener Texte über „Melden“ (#187), englische Fassung der Konzept- und Projektdokumente (bleiben deutsch).
+  englische Fassung der Konzept- und Projektdokumente (bleiben deutsch).
 
 ## Technik (Entwurf 2026-10-11, ersetzt durch „Umsetzung“)
 
@@ -132,7 +132,9 @@ teils verdoppelt. **Claude-Übersetzung am besten** (Englisch und Zürichdeutsch
   `<Einstellungen>/Sprachen/<sprache>.json`) und **überlagern** die mitgelieferten Texte nur für diesen Benutzer;
   Updates überschreiben sie nie. Fehlt ein Eintrag, gilt der mitgelieferte, dann `de-CH`. „Zurücksetzen“ entfernt die
   eigenen Anpassungen. Import prüft Schlüssel, Platzhalter `{n}`, HTML und Länge (Warnung).
-- Optional später: eigene Anpassungen über „Melden“ (#187) einreichen, Übernahme nach Prüfung durch den Owner.
+- **Einreichen (#232):** „Eigene Texte einreichen …“ bzw. Hilfe › Melden › „Übersetzung einreichen“ füllt die vom
+  mitgelieferten Text abweichenden eigenen Texte (JSON) ins GitHub-Formular `translation.yml`; Übernahme nach Prüfung
+  durch den Owner (siehe [KONZEPT-HILFE.md](KONZEPT-HILFE.md)).
 
 **Tokenbedarf (Schätzung 17.10.2026, aus der Probe ~70 Tokens je Text):** Oberfläche + Meldungen + Plugins
 ~200 000–250 000 Tokens je Sprache, Doku (nur Englisch sinnvoll) ~60 000–80 000; Englisch + Zürichdeutsch zusammen

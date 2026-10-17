@@ -1,5 +1,6 @@
 """#187: Fehler melden / Funktion vorschlagen – vorausgefülltes GitHub-Formular, Schwärzen, Duplikatsuche (ohne Netz)."""
 import io
+import json
 import os
 import sys
 import unittest
@@ -57,6 +58,38 @@ class TestFeedback(unittest.TestCase):
         self.assertTrue(long["truncated"])
         self.assertLessEqual(len(long["url"]), feedback.MAX_URL)
 
+    def test_translation(self):
+        """#232: eigene Übersetzungen einreichen – nur geänderte Texte, Sprache aus der Vorlage, viele Texte → Kopie."""
+        import tempfile
+        import i18n
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(i18n, "overlay_dir", lambda: d):
+            some = next(iter(i18n.shipped("en").items()))
+            with open(os.path.join(d, "en.json"), "w", encoding="utf-8") as fh:
+                json.dump({"texts": {some[0]: some[1], "Speichern": "Store", "Neu": "Fresh"}}, fh)
+            r = feedback.own_texts("en")
+            self.assertEqual(r["language"], "Englisch")
+            self.assertNotIn(some[0], r["texts"])                               # unverändert → nicht eingereicht
+            self.assertEqual(r["texts"].get("Speichern"), "Store")
+            self.assertEqual(r["count"], len(r["texts"]))
+            with self.assertRaises(ValueError):
+                feedback.own_texts("xx")
+        p = feedback.prepare("translation", {"title": "Englisch", "language": "Englisch", "texts": r["json"], "note": "von /Users/markus"})
+        q = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(p["url"]).query))
+        self.assertEqual((q["template"], q["title"], q["language"]), ("translation.yml", "Übersetzung: Englisch", "Englisch"))
+        self.assertIn('"Speichern": "Store"', q["texts"])
+        self.assertNotIn("markus", q["note"])
+        self.assertEqual((p["labels"], p["milestone"]), (["funktion", "triage"], "Funktionen"))
+        self.assertNotIn("full", p)
+        with self.assertRaisesRegex(ValueError, "Sprache"):
+            feedback.prepare("translation", {"title": "Klingonisch", "language": "Klingonisch", "texts": "{}"})
+        with self.assertRaisesRegex(ValueError, "Bitte ausfüllen"):
+            feedback.prepare("translation", {"title": "Leer", "language": "Englisch"})
+        big = "{" + ",".join(f'"Text {i}": "Text number {i}"' for i in range(800)) + "}"
+        p = feedback.prepare("translation", {"title": "Viele", "language": "Englisch", "texts": big})
+        self.assertTrue(p["truncated"])
+        self.assertLessEqual(len(p["url"]), feedback.MAX_URL)
+        self.assertEqual(p["full"], big)                                       # vollständig zum Einfügen
+
     def test_search(self):
         data = {"items": [{"number": 187, "title": "Melden", "state": "open", "html_url": "https://github.com/x/187",
                            "labels": [{"name": "idee"}]},
@@ -77,7 +110,7 @@ class TestFeedback(unittest.TestCase):
 
     def test_templates_have_triage(self):
         root = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".github", "ISSUE_TEMPLATE")
-        for name in ("bug_report.yml", "improvement.yml", "feature_request.yml", "plugin_idea.yml"):
+        for name in ("bug_report.yml", "improvement.yml", "feature_request.yml", "plugin_idea.yml", "translation.yml"):
             with open(os.path.join(root, name), encoding="utf-8") as fh:
                 head = fh.read()
             labels = head.split("body:")[0]

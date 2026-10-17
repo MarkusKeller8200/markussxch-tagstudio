@@ -153,8 +153,9 @@ async function helpTab(tab) {
       <p class="muted">Jede neue Meldung bekommt das Label <code>triage</code> und wird vom Projektverantwortlichen geprüft. Erst seine
       ausdrückliche Freigabe macht daraus einen Entwicklungsauftrag – eine Meldung allein ist keine Zusage.</p>
       <p class="muted">Je nach Art kommt die Meldung in einen eigenen Meilenstein: Fehler → Fehler, Verbesserung
-      (bestehende Funktion besser machen) → Verbesserungen, neue Funktion → Funktionen.</p>
-      <div class="svc-btns"><button class="primary" data-fbopen="bug">Fehler melden …</button><button class="ghost" data-fbopen="improvement">Verbesserung vorschlagen …</button><button class="ghost" data-fbopen="feature">Neue Funktion vorschlagen …</button>
+      (bestehende Funktion besser machen) → Verbesserungen, neue Funktion → Funktionen. Eigene Übersetzungen (Einstellungen ›
+      Darstellung › Sprache) lassen sich als Vorschlag einreichen – sie kommen nach Prüfung in die mitgelieferten Texte.</p>
+      <div class="svc-btns"><button class="primary" data-fbopen="bug">Fehler melden …</button><button class="ghost" data-fbopen="improvement">Verbesserung vorschlagen …</button><button class="ghost" data-fbopen="feature">Neue Funktion vorschlagen …</button><button class="ghost" data-fbopen="translation">Übersetzung einreichen …</button>
       <a href="#" data-url="https://github.com/MarkusKeller8200/markussxch-tagstudio/issues">Alle Meldungen ansehen ↗</a></div>`;
     $("#helpDoc").scrollTop = 0; return;
   }

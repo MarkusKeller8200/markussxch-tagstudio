@@ -1,0 +1,20 @@
+{
+"Wird aus deinen eigenen Texten der gewählten Sprache eingefüllt (Einstellungen › Darstellung › Sprache).": ["Filled in from your own texts of the selected language (Settings › Appearance › Language).", "Wird us dine eigete Text vo de gwählte Sprach iigfüllt (Iistellige › Darstellig › Sprach)."],
+"Begründung, Fachbegriffe, Dialekt-Varianten …": ["Reasoning, technical terms, dialect variants …", "Begründig, Fachbegriff, Dialäkt-Variante …"],
+"Übersetzung einreichen": ["Submit translation", "Übersetzig iireiche"],
+"Übersetzung einreichen …": ["Submit translation …", "Übersetzig iireiche …"],
+"z. B. Englisch – Begriffe im Tagger": ["e.g. English – terms in the tagger", "z. B. Änglisch – Begriff im Tagger"],
+"Texte kopiert – im Formular bei {q} einfügen.": ["Texts copied – paste them into {q} in the form.", "Text kopiert – im Formular bi {q} iifüege."],
+"{x} – {x} eigene Texte": ["{x} – {x} own texts", "{x} – {x} eigeti Text"],
+"{x} eigene Texte weichen von der mitgelieferten Fassung ab und werden eingereicht. Platzhalter wie {n}, {q}, {x} bitte beibehalten.": ["{x} own texts differ from the shipped version and will be submitted. Please keep placeholders such as {n}, {q}, {x}.", "{x} eigeti Text wiiched vo de mitgliferete Fassig ab und werded iigreicht. Platzhalter wie {n}, {q}, {x} bitte bhalte."],
+"Für diese Sprache gibt es keine eigenen Texte. Zuerst unter Einstellungen › Darstellung › Sprache exportieren, bearbeiten und importieren.": ["There are no own texts for this language. First export, edit and import them under Settings › Appearance › Language.", "Für die Sprach gits kei eigeti Text. Zerscht under Iistellige › Darstellig › Sprach exportiere, bearbeite und importiere."],
+"Sprache *": ["Language *", "Sprach *"],
+"Es sind zu viele Texte für die Adresse – im Formular steht nur ein Teil. Bitte alle Texte kopieren und im Formular das Feld {q} damit ersetzen.": ["There are too many texts for the address – the form only contains part of them. Please copy all texts and replace the field {q} in the form with them.", "Es sind z vill Text für d Adrässe – im Formular staht nur en Teil. Bitte alli Text kopiere und im Formular s Fäld {q} dämit ersetze."],
+"Alle Texte kopieren": ["Copy all texts", "Alli Text kopiere"],
+"Je nach Art kommt die Meldung in einen eigenen Meilenstein: Fehler → Fehler, Verbesserung (bestehende Funktion besser machen) → Verbesserungen, neue Funktion → Funktionen. Eigene Übersetzungen (Einstellungen › Darstellung › Sprache) lassen sich als Vorschlag einreichen – sie kommen nach Prüfung in die mitgelieferten Texte.": ["Depending on the type, the report goes into its own milestone: bug → Fehler, improvement (make an existing function better) → Verbesserungen, new function → Funktionen. Your own translations (Settings › Appearance › Language) can be submitted as a suggestion – after review they become part of the shipped texts.", "Je nach Art chunnt d Mäldig in en eigete Meilestei: Fehler → Fehler, Verbesserig (bestehendi Funktion besser mache) → Verbesserige, neui Funktion → Funktione. Eigeti Übersetzige (Iistellige › Darstellig › Sprach) chasch als Vorschlag iireiche – nach de Prüefig chömed si i di mitgliferete Text."],
+"Eigene Texte als Vorschlag für die mitgelieferten Übersetzungen auf GitHub einreichen (Hilfe › Melden)": ["Submit your own texts on GitHub as a suggestion for the shipped translations (Help › Report)", "Eigeti Text als Vorschlag für di mitgliferete Übersetzige uf GitHub iireiche (Hilf › Mälde)"],
+"Eigene Texte einreichen …": ["Submit own texts …", "Eigeti Text iireiche …"],
+"Übersetzung:": ["Translation:", "Übersetzig:"],
+"Eigene Texte (JSON: Ausgangstext → eigene Fassung)": ["Own texts (JSON: source text → own version)", "Eigeti Text (JSON: Usgangstext → eigeti Fassig)"],
+"Unbekannte Sprache.": ["Unknown language.", "Unbekannti Sprach."]
+}

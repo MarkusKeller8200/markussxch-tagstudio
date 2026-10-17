@@ -620,7 +620,10 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 - **Fehler und Wünsche:** als [Issue](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/new/choose) –
   die Vorlagen „Fehler melden“, „Funktion vorschlagen“ und „Plugin-Idee“ fragen Version, Betriebssystem, Schritte
-  und Protokoll (`~/TagStudio/Logs`) gleich mit ab.
+  und Protokoll (`~/TagStudio/Logs`) gleich mit ab. Oder direkt in der App unter Hilfe › Melden.
+- **Übersetzungen verbessern:** Einstellungen › Darstellung › Sprache → Texte exportieren, bearbeiten, importieren;
+  dann „Eigene Texte einreichen …“ (oder Hilfe › Melden › „Übersetzung einreichen“) – die geänderten Texte werden ins
+  GitHub-Formular eingefüllt und nach Prüfung mitgeliefert.
 - **Mitmachen:** Entwicklungsumgebung, Richtlinien und Ablauf für Pull Requests in [CONTRIBUTING.md](CONTRIBUTING.md);
   es gilt der [Verhaltenskodex](CODE_OF_CONDUCT.md).
 - **Sicherheitslücken** bitte nicht öffentlich, sondern privat melden – siehe [SECURITY.md](SECURITY.md).

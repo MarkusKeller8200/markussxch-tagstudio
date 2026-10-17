@@ -1,0 +1,35 @@
+name: Übersetzung einreichen
+description: Eigene Texte (Englisch, Zürichdeutsch oder Deutsch) als Vorschlag für die mitgelieferten Übersetzungen (Meilenstein „Funktionen“).
+title: "Übersetzung: "
+labels: ["funktion", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Ablauf:** Neue Meldungen erhalten das Label `triage` und werden vom Projektverantwortlichen geprüft. Erst nach
+        der Prüfung kommen die Texte in die mitgelieferten Übersetzungen (`web/i18n/*.json`).
+        Am einfachsten aus TagStudio: Einstellungen › Darstellung › Sprache → eigene Texte bearbeiten, dann
+        Hilfe › Melden › „Übersetzung einreichen“ – die geänderten Texte werden dann automatisch eingefüllt.
+  - type: dropdown
+    id: language
+    attributes:
+      label: Sprache
+      options:
+        - Englisch
+        - Zürichdeutsch
+        - Deutsch
+    validations:
+      required: true
+  - type: textarea
+    id: texts
+    attributes:
+      label: Eigene Texte (JSON: Ausgangstext → eigene Fassung)
+      description: 'Je Zeile "Deutscher Ausgangstext": "eigene Fassung". Platzhalter wie {n}, {q}, {x} bitte beibehalten.'
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: note
+    attributes:
+      label: Hinweise
+      description: Begründung, Fachbegriffe, Dialekt-Varianten …

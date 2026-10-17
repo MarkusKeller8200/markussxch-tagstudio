@@ -26,10 +26,13 @@ MAX_URL = 7000            # GitHub/Browser vertragen etwa 8 KB – darüber wird
 
 # Drei Arten (Entscheid User 17.10.2026): Fehler → Meilenstein „Fehler“, Verbesserung → „Verbesserungen“,
 # neue Funktion → „Funktionen“ (zugeordnet über das Label, Workflow .github/workflows/issue-milestone.yml)
-TEMPLATES = {"bug": "bug_report.yml", "improvement": "improvement.yml", "feature": "feature_request.yml"}
-TITLE_PREFIX = {"bug": "Fehler: ", "improvement": "Verbesserung: ", "feature": "Funktion: "}
-LABELS = {"bug": ["fehler", "triage"], "improvement": ["verbesserung", "triage"], "feature": ["funktion", "triage"]}
-MILESTONE = {"bug": "Fehler", "improvement": "Verbesserungen", "feature": "Funktionen"}
+# #232: vierte Art – eigene Übersetzungen einreichen (Meilenstein „Funktionen“, Übernahme erst nach Prüfung)
+TEMPLATES = {"bug": "bug_report.yml", "improvement": "improvement.yml", "feature": "feature_request.yml",
+             "translation": "translation.yml"}
+TITLE_PREFIX = {"bug": "Fehler: ", "improvement": "Verbesserung: ", "feature": "Funktion: ", "translation": "Übersetzung: "}
+LABELS = {"bug": ["fehler", "triage"], "improvement": ["verbesserung", "triage"], "feature": ["funktion", "triage"],
+          "translation": ["funktion", "triage"]}
+MILESTONE = {"bug": "Fehler", "improvement": "Verbesserungen", "feature": "Funktionen", "translation": "Funktionen"}
 # Feld-IDs der Vorlagen (Reihenfolge = Vorschau)
 FIELDS = {
     "bug": [("version", "TagStudio-Version"), ("os", "Betriebssystem"), ("variant", "Variante"), ("area", "Bereich"),
@@ -38,7 +41,11 @@ FIELDS = {
                     ("alternatives", "Beispiele / Bildschirmfotos")],
     "feature": [("problem", "Worum geht es?"), ("solution", "Vorschlag"), ("area", "Bereich"),
                 ("alternatives", "Alternativen / Beispiele")],
+    "translation": [("language", "Sprache"), ("texts", "Eigene Texte (JSON: Ausgangstext → eigene Fassung)"),
+                    ("note", "Hinweise")],
 }
+# Sprachen für Übersetzungen (Wert = Auswahl in translation.yml)
+TRANSLATION_LANGS = {"en": "Englisch", "gsw-u-sd-chzh": "Zürichdeutsch", "de-CH": "Deutsch"}
 AREAS = {
     "bug": ["Tagger", "Tag-Fixer", "Vergleich", "Vorschau-Player / externe Player", "Snapshots / Änderungsjournal",
             "Sicherungen", "Einstellungen", "Plugin Stems", "Plugin Beatport", "anderes Plugin", "Installation / Update",
@@ -47,7 +54,9 @@ AREAS = {
                 "Einstellungen", "Plugins", "DJ-Set", "Online-Metadaten", "anderes"],
 }
 AREAS["improvement"] = AREAS["feature"]
-REQUIRED = {"bug": ("what", "steps"), "improvement": ("current", "solution"), "feature": ("problem", "solution")}
+AREAS["translation"] = []
+REQUIRED = {"bug": ("what", "steps"), "improvement": ("current", "solution"), "feature": ("problem", "solution"),
+            "translation": ("language", "texts")}
 
 
 # =========================================================================== Umgebung
@@ -105,7 +114,22 @@ def clean_fields(kind: str, fields: dict) -> dict:
         out[k] = str(f.get(k) or "").strip()[:6000]
     if out.get("area") and out["area"] not in AREAS[kind]:
         out["area"] = "anderes"
+    if kind == "translation":
+        out["texts"] = str(f.get("texts") or "").strip()[:200000]       # wird für die Adresse ggf. gekürzt (Kopie bleibt)
+        if out["language"] and out["language"] not in TRANSLATION_LANGS.values():
+            raise ValueError("Unbekannte Sprache.")
     return out
+
+
+def own_texts(lang: str) -> dict:
+    """#232: eigene Texte einer Sprache, die von der mitgelieferten Fassung abweichen. → {"texts": {...}, "language"}"""
+    import i18n
+    if lang not in TRANSLATION_LANGS:
+        raise ValueError(f"Unbekannte Sprache: {lang}")
+    base = {} if lang == i18n.SOURCE else i18n.shipped(lang)
+    own = {k: v for k, v in sorted(i18n.overlay(lang).items()) if v != base.get(k, k if lang == i18n.SOURCE else None)}
+    return {"texts": own, "count": len(own), "language": TRANSLATION_LANGS[lang],
+            "json": json.dumps(own, ensure_ascii=False, indent=1) if own else ""}
 
 
 def prepare(kind: str, fields: dict) -> dict:
@@ -125,8 +149,11 @@ def prepare(kind: str, fields: dict) -> dict:
     params.update({k: f[k] for k, _l in FIELDS[kind] if f[k]})
     url, cut = _url(params)
     preview = [("Titel", title)] + [(lbl, f[k]) for k, lbl in FIELDS[kind] if f[k]]
-    return {"url": url, "truncated": cut, "preview": preview, "redacted": hits, "mine": MINE,
-            "labels": LABELS[kind], "milestone": MILESTONE[kind]}
+    out = {"url": url, "truncated": cut, "preview": preview, "redacted": hits, "mine": MINE,
+           "labels": LABELS[kind], "milestone": MILESTONE[kind]}
+    if kind == "translation" and cut:            # #232: viele Texte → vollständig (geschwärzt) zum Einfügen ins Formular
+        out["full"] = f["texts"]
+    return out
 
 
 def _url(params: dict) -> tuple[str, bool]:

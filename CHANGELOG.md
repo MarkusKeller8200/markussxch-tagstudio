@@ -15,6 +15,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Versionen und neue Plugins aus dem neuesten Release im gewählten Kanal; „Aktualisieren“ bzw. „Installieren“ lädt nur
   dieses Plugin (mit Prüfsumme) – ohne ganzes App-Update. „Mehr … → Zurück auf eingebaute Version“ macht es rückgängig.
   Jedes Release enthält dafür je Plugin ein ZIP und den Katalog `plugins.json`; `plugin.json` kennt neu `min_app`.
+- **Eigene Übersetzungen einreichen (#232):** Hilfe › Melden › „Übersetzung einreichen“ (oder „Eigene Texte einreichen …“
+  in den Spracheinstellungen) füllt die selbst angepassten Texte einer Sprache ins GitHub-Formular – nur Texte, die von
+  der mitgelieferten Fassung abweichen. Nach Prüfung kommen sie in die mitgelieferten Übersetzungen.
 
 ### Geändert
 

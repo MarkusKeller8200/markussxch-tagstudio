@@ -412,5 +412,7 @@
 "Start-Process -FilePath {x}",
 "Hidden",
 "Plugin {x}: nachgeladene Version entfernt",
-"Plugin {x} {x} aus {x} installiert: {x}"
+"Plugin {x} {x} aus {x} installiert: {x}",
+"DOMContentLoaded",
+"spellcheck={q} translate={q}"
 ]

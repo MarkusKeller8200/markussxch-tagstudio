@@ -529,6 +529,9 @@ the installers for Windows and macOS (betas Windows only).
 
 - **Bugs and wishes:** as an [issue](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/new/choose) or
   directly in the app under Help › Report.
+- **Improving translations:** Settings › Appearance › Language → export, edit and import texts; then “Submit own
+  texts …” (or Help › Report › “Submit translation”) – the changed texts are filled into the GitHub form and shipped
+  after review.
 - **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md); the [code of conduct](CODE_OF_CONDUCT.md) applies.
 - **Security vulnerabilities** please report privately, not publicly – see [SECURITY.md](SECURITY.md).
 

@@ -298,7 +298,8 @@ function i18nToolsHtml() {
       <button class="ghost sm" data-i18n-x="csv" title="Alle Texte mit den mitgelieferten Übersetzungen als CSV (für Excel) – in der letzten Spalte eigene Texte eintragen">Texte exportieren (CSV) …</button>
       <button class="ghost sm" data-i18n-x="json" title="Texte der gewählten Sprache als JSON">JSON …</button>
       <button class="ghost sm" data-i18n-imp title="Bearbeitete CSV- oder JSON-Datei einlesen – mit Prüfung und Vorschau">Texte importieren …</button>
-      <button class="ghost sm" data-i18n-reset disabled title="Eigene Texte der gewählten Sprache entfernen – es gelten wieder die mitgelieferten">Eigene Texte zurücksetzen …</button></div>
+      <button class="ghost sm" data-i18n-reset disabled title="Eigene Texte der gewählten Sprache entfernen – es gelten wieder die mitgelieferten">Eigene Texte zurücksetzen …</button>
+      <button class="ghost sm" data-i18n-send disabled title="Eigene Texte als Vorschlag für die mitgelieferten Übersetzungen auf GitHub einreichen (Hilfe › Melden)">Eigene Texte einreichen …</button></div>
     <div class="muted sm" id="stLangInfo"></div>`;
 }
 async function i18nToolsRefresh() {
@@ -310,6 +311,7 @@ async function i18nToolsRefresh() {
   const name = (I18N.langs.find((l) => l.code === I18N.lang) || {}).name || I18N.lang;
   el.textContent = n ? t("Eigene Texte für {name}: {n} – gespeichert in {dir}", { name, n, dir: r.dir }) : t("Keine eigenen Texte für {name}.", { name });
   const b = document.querySelector("[data-i18n-reset]"); if (b) b.disabled = !n;
+  const sd = document.querySelector("[data-i18n-send]"); if (sd) sd.disabled = !n;          // #232
 }
 async function i18nExport(fmt) {
   if (S.settings && S.settings.native) {
@@ -368,10 +370,11 @@ async function i18nResetOwn() {
   setTimeout(() => location.reload(), 700);
 }
 document.addEventListener("click", (e) => {
-  const b = e.target.closest && e.target.closest("[data-i18n-x],[data-i18n-imp],[data-i18n-reset]");
+  const b = e.target.closest && e.target.closest("[data-i18n-x],[data-i18n-imp],[data-i18n-reset],[data-i18n-send]");
   if (!b) return;
   e.preventDefault();
-  if (b.dataset.i18nX) i18nExport(b.dataset.i18nX);
+  if (b.hasAttribute("data-i18n-send")) { if (typeof fbOpen === "function") fbOpen("translation", I18N.lang); }   // #232
+  else if (b.dataset.i18nX) i18nExport(b.dataset.i18nX);
   else if (b.hasAttribute("data-i18n-imp")) i18nImport();
   else i18nResetOwn();
 });

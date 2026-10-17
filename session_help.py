@@ -63,7 +63,12 @@ class HelpMixin:
         from version import VERSION
         return {"env": feedback.env_info(VERSION, bool(getattr(sys, "frozen", False)), bool(window)),
                 "areas": feedback.AREAS, "fields": feedback.FIELDS, "required": feedback.REQUIRED,
-                "mine": feedback.MINE, "milestones": feedback.MILESTONE}
+                "mine": feedback.MINE, "milestones": feedback.MILESTONE, "languages": feedback.TRANSLATION_LANGS}
+
+    def feedback_translation(self, lang: str) -> dict:
+        """#232: eigene Texte einer Sprache (nur von der mitgelieferten Fassung abweichende) zum Einreichen."""
+        import feedback
+        return feedback.own_texts(str(lang))
 
     def feedback_search(self, query: str) -> dict:
         """Ähnliche vorhandene Issues (öffentliche Suche, nur lesend)."""

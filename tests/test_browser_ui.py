@@ -703,6 +703,40 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("window.__calls.some((c) => c[0] === 'plugin_store_revert' && c[1] === 'lexicon')"))
         pg.wait_for_selector('.pl-card[data-pid="lexicon"] .plg-tag:not(.cat):has-text("eingebaut")')
 
+    def test_feedback_translation(self):
+        """#232: eigene Übersetzungen einreichen – Texte eingefüllt, Sprache wählbar, Vorschau, zu viele Texte → Kopieren."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("""(() => { const orig = call; window.__opened = null; window.__langs = [];
+          window.call = (n, ...a) => {
+            if (n === "feedback_translation") { window.__langs.push(a[0]); const many = a[0] === "gsw-u-sd-chzh";
+              const texts = many ? Object.fromEntries([...Array(900)].map((_, i) => [`Text ${i}`, `Täxt ${i}`])) : { "Speichern": "Store" };
+              return Promise.resolve({ texts, count: Object.keys(texts).length, language: a[0] === "en" ? "Englisch" : "Zürichdeutsch", json: JSON.stringify(texts, null, 1) }); }
+            if (n === "open_url") { window.__opened = a[0]; return Promise.resolve({}); }
+            return orig(n, ...a); }; })()""")
+        pg.evaluate("() => { fbOpen('translation', 'en'); }")
+        pg.wait_for_selector("#fb-texts")
+        self.assertTrue(self.until("document.querySelector('#fb-texts').value.includes('Store')"))
+        self.assertEqual(pg.input_value("#fbTitle"), "Englisch – 1 eigene Texte")
+        self.assertEqual(pg.locator("#fbArea").count(), 0)                    # kein Bereich bei Übersetzungen
+        self.assertIn("1 eigene Texte", pg.inner_text("#fbBody"))
+        pg.click("#fbPreview")
+        pg.wait_for_selector("#fbConsent")
+        self.assertIn("Übersetzung: Englisch", pg.inner_text("#fbBody"))
+        self.assertIn("funktion", pg.inner_text("#fbBody"))
+        self.assertEqual(pg.locator("#fbCopy").count(), 0)
+        pg.check("#fbConsent")
+        pg.click("#fbGo")
+        self.assertTrue(self.until("window.__opened && window.__opened.includes('template=translation.yml')"))
+        url = pg.evaluate("window.__opened")
+        self.assertIn("language=Englisch", url)
+        # andere Sprache mit sehr vielen Texten: Titel folgt, Kopieren-Knopf erscheint
+        pg.click("#fbBack")
+        pg.select_option("#fbLang", "Zürichdeutsch")
+        self.assertTrue(self.until("document.querySelector('#fbTitle').value === 'Zürichdeutsch – 900 eigene Texte'"))
+        pg.click("#fbPreview")
+        pg.wait_for_selector("#fbCopy")
+
     def test_feedback_report(self):
         """#187: Melden aus dem Tagger – Bereich vorgewählt, Duplikate, Pflichtfelder, Vorschau geschwärzt, Zustimmung."""
         pg = self.pg

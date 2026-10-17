@@ -13,16 +13,21 @@ const FB_HELP = {
   solution: "Wo in der Oberfläche, welche Felder, welches Verhalten?",
   alternatives: "Andere Programme, die das schon können (Mp3tag, Rekordbox …)",
   current: "Wie funktioniert es heute, was stört daran?",
+  texts: "Wird aus deinen eigenen Texten der gewählten Sprache eingefüllt (Einstellungen › Darstellung › Sprache).",
+  note: "Begründung, Fachbegriffe, Dialekt-Varianten …",
 };
 // Drei Arten: Fehler, Verbesserung (bestehende Funktion), neue Funktion – je eigener Meilenstein auf GitHub
-const FB_KINDS = [["bug", "Fehler melden"], ["improvement", "Verbesserung vorschlagen"], ["feature", "Neue Funktion vorschlagen"]];
-const FB_PH = { bug: "z. B. Speichern bricht bei Cover über 5 MB ab", improvement: "z. B. Spalte „Länge“ auch im Vergleich", feature: "z. B. Liedtexte im Player anzeigen" };
+// #232: vierte Art – eigene Übersetzungen einreichen (nur Texte, die von der mitgelieferten Fassung abweichen)
+const FB_KINDS = [["bug", "Fehler melden"], ["improvement", "Verbesserung vorschlagen"], ["feature", "Neue Funktion vorschlagen"], ["translation", "Übersetzung einreichen"]];
+const FB_PH = { bug: "z. B. Speichern bricht bei Cover über 5 MB ab", improvement: "z. B. Spalte „Länge“ auch im Vergleich", feature: "z. B. Liedtexte im Player anzeigen", translation: "z. B. Englisch – Begriffe im Tagger" };
 
-/** Dialog öffnen. kind: "bug" | "improvement" | "feature"; area: vorgewählter Bereich (z. B. „Tagger“). */
+/** Dialog öffnen. kind: "bug" | "improvement" | "feature" | "translation"; area: vorgewählter Bereich (z. B. „Tagger“),
+    bei „translation“ der Sprachcode (z. B. "en"). */
 async function fbOpen(kind = "bug", area = "") {
   try { FB.info = FB.info || await call("feedback_info", !!window.pywebview); } catch (e) { toast(String(e.message || e)); return; }
   FB.kind = kind; FB.step = "form"; FB.prep = null; FB.dup = null; FB.dupQ = "";
-  FB.vals = { area: area || "", sendEnv: true };
+  FB.vals = kind === "translation" ? { sendEnv: true } : { area: area || "", sendEnv: true };
+  FB.lang = kind === "translation" ? area : (FB.lang || "");
   await modal({
     title: "Fehler melden / Funktion vorschlagen", wide: true,
     html: '<div id="fbBody"></div>',
@@ -30,17 +35,37 @@ async function fbOpen(kind = "bug", area = "") {
     onMount: (b) => {
       b.addEventListener("click", (e) => {
         const a = e.target.closest("a[data-url]"); if (a) { e.preventDefault(); call("open_url", a.dataset.url); return; }
-        const k = e.target.closest("[data-fbkind]"); if (k) { fbCollect(b); FB.kind = k.dataset.fbkind; fbRender(b); return; }
+        const k = e.target.closest("[data-fbkind]"); if (k) { fbCollect(b); FB.kind = k.dataset.fbkind; fbRender(b); if (FB.kind === "translation") fbLangLoad(b); return; }
+        if (e.target.closest("#fbCopy")) { navigator.clipboard?.writeText(FB.prep.full).then(() => toast("Texte kopiert – im Formular bei „Eigene Texte“ einfügen."), () => toast("Kopieren nicht möglich.")); return; }
         if (e.target.closest("#fbPreview")) fbPreview(b);
         if (e.target.closest("#fbBack")) { FB.step = "form"; fbRender(b); }
         if (e.target.closest("#fbSearch")) fbSearch(b, true);
         if (e.target.closest("#fbGo")) fbGo(b);
       });
-      b.addEventListener("change", (e) => { if (e.target.id === "fbConsent") $("#fbGo", b).disabled = !e.target.checked; });
+      b.addEventListener("change", (e) => {
+        if (e.target.id === "fbConsent") $("#fbGo", b).disabled = !e.target.checked;
+        if (e.target.id === "fbLang") { fbCollect(b); FB.lang = e.target.selectedOptions[0].dataset.code; fbLangLoad(b, true); }
+      });
       b.addEventListener("focusout", (e) => { if (e.target.id === "fbTitle") { fbCollect(b); fbSearch(b, false); } });
       fbRender(b);
+      if (FB.kind === "translation") fbLangLoad(b);
     },
   });
+}
+
+/** #232: eigene Texte der gewählten Sprache holen und ins Formular einfüllen (Titel nur, solange er nicht selbst geändert ist) */
+async function fbLangLoad(b, force = false) {
+  const langs = FB.info.languages || {};
+  if (!FB.lang || !langs[FB.lang]) FB.lang = Object.keys(langs).find((c) => c !== "de-CH" && I18N.lang === c) || "en";
+  let r;
+  try { r = await call("feedback_translation", FB.lang); } catch (e) { toast(String(e.message || e)); return; }
+  FB.tr = r;
+  if (force || !FB.vals.texts) FB.vals.texts = r.json;
+  FB.vals.language = r.language;
+  const auto = !FB.vals.title || FB.vals.title === FB.autoTitle;
+  FB.autoTitle = r.count ? `${r.language} – ${r.count} eigene Texte` : "";
+  if (auto) FB.vals.title = FB.autoTitle;
+  if (FB.kind === "translation" && FB.step === "form") fbRender(b);
 }
 
 function fbCollect(b) {
@@ -52,7 +77,12 @@ function fbRender(b) {
   if (FB.step === "preview") return fbRenderPreview(box);
   if (FB.step === "done") return fbRenderDone(box);
   const req = new Set(d.required[k]);
-  const fields = d.fields[k].filter(([id]) => !["version", "os", "variant", "area"].includes(id));
+  const fields = d.fields[k].filter(([id]) => !["version", "os", "variant", "area", "language"].includes(id));
+  const isTr = k === "translation";
+  const langs = d.languages || {};
+  const trInfo = !isTr || !FB.tr ? "" : FB.tr.count
+    ? `<div class="hint">${FB.tr.count} eigene Texte weichen von der mitgelieferten Fassung ab und werden eingereicht. Platzhalter wie {n}, {q}, {x} bitte beibehalten.</div>`
+    : '<div class="fb-warn">Für diese Sprache gibt es keine eigenen Texte. Zuerst unter Einstellungen › Darstellung › Sprache exportieren, bearbeiten und importieren.</div>';
   box.innerHTML = `
     <div class="fb-kind" role="radiogroup" aria-label="Art der Meldung">
       ${FB_KINDS.map(([id, lab]) => `<button class="sn-chip${k === id ? " on" : ""}" data-fbkind="${id}" role="radio" aria-checked="${k === id}">${lab}</button>`).join("")}
@@ -66,11 +96,14 @@ function fbRender(b) {
       <div><input id="fbTitle" data-fb="title" value="${esc(v.title || "")}" placeholder="${FB_PH[k] || ""}" spellcheck="true">
         <div class="sm"><button class="ghost sm" id="fbSearch" title="Vorhandene Meldungen mit ähnlichem Titel suchen">Ähnliche Meldungen suchen</button></div>
         <div id="fbDup" class="sm">${fbDupHtml()}</div></div>
-      <label for="fbArea">Bereich</label>
+      ${isTr ? `<label for="fbLang">Sprache *</label>
+      <div><select id="fbLang" data-fb="language" class="inp">${Object.entries(langs).map(([c, n]) =>
+        `<option value="${esc(n)}" data-code="${esc(c)}" ${c === FB.lang ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>${trInfo}</div>`
+      : `<label for="fbArea">Bereich</label>
       <select id="fbArea" data-fb="area" class="inp"><option value="">(bitte wählen)</option>${d.areas[k].map((a) =>
-        `<option ${a === v.area ? "selected" : ""}>${esc(a)}</option>`).join("")}</select>
+        `<option ${a === v.area ? "selected" : ""}>${esc(a)}</option>`).join("")}</select>`}
       ${fields.map(([id, label]) => `<label for="fb-${id}">${esc(label)}${req.has(id) ? " *" : ""}</label>
-        <textarea id="fb-${id}" data-fb="${id}" class="inp" rows="${id === "extra" || id === "alternatives" ? 3 : 4}" placeholder="${esc(FB_HELP[id] || "")}">${esc(v[id] || "")}</textarea>`).join("")}
+        <textarea id="fb-${id}" data-fb="${id}" class="inp${id === "texts" ? " mono" : ""}" ${id === "texts" ? 'spellcheck="false" translate="no"' : ""} rows="${id === "texts" ? 10 : id === "extra" || id === "alternatives" || id === "note" ? 3 : 4}" placeholder="${esc(FB_HELP[id] || "")}">${esc(v[id] || "")}</textarea>`).join("")}
       ${k === "bug" ? `<span></span><label class="fb-env"><input type="checkbox" data-fb="sendEnv" ${v.sendEnv !== false ? "checked" : ""}>
         Version und System mitsenden: <b>${esc(d.env.version)}</b> · ${esc(d.env.os)} · ${esc(d.env.variant)}</label>` : ""}
       <span></span><div class="svc-btns"><button class="primary sm" id="fbPreview">Vorschau …</button></div>
@@ -112,7 +145,8 @@ function fbRenderPreview(box) {
       mit deinem GitHub-Konto an und klickst „Submit new issue“. Die Meldung erhält die Labels ${p.labels.map((l) => `<code>${esc(l)}</code>`).join(" ")}
       und wartet auf die Prüfung durch den Projektverantwortlichen.</p>
     ${p.redacted.length ? `<div class="fb-warn">Geschwärzt: ${p.redacted.map(esc).join(", ")}. Bitte die Vorschau prüfen.</div>` : ""}
-    ${p.truncated ? '<div class="fb-warn">Der Text ist sehr lang und wurde gekürzt – den Rest bitte im Formular ergänzen.</div>' : ""}
+    ${p.truncated && p.full ? '<div class="fb-warn"><span>Es sind zu viele Texte für die Adresse – im Formular steht nur ein Teil. Bitte alle Texte kopieren und im Formular das Feld „Eigene Texte“ damit ersetzen.</span> <button class="ghost sm" id="fbCopy">Alle Texte kopieren</button></div>'
+      : p.truncated ? '<div class="fb-warn">Der Text ist sehr lang und wurde gekürzt – den Rest bitte im Formular ergänzen.</div>' : ""}
     <table class="help-t fb-prev"><tbody>${p.preview.map(([k, v]) => `<tr><th>${esc(k)}</th><td><pre>${esc(v)}</pre></td></tr>`).join("")}</tbody></table>
     <div id="fbDup" class="sm">${fbDupHtml()}</div>
     <label class="fb-consent"><input type="checkbox" id="fbConsent"> Ich bin einverstanden, dass diese Meldung <b>öffentlich</b> auf GitHub erscheint.</label>
