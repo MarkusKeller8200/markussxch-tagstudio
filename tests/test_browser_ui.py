@@ -749,6 +749,43 @@ class UiTest(unittest.TestCase):
         self.assertIn("Einstellungen", pg.inner_text(".nav[data-module=settings]"))
         self.assertEqual(self.errors, [])
 
+    def test_i18n_side_and_system(self):
+        """Sprachwahl in der Seitenleiste (unter „Einklappen“), Deutsch mit geteilter Flagge, Option Betriebssystem-Sprache."""
+        pg = self.pg
+        self.calm()
+        sel = "#sideLangSel"
+        self.assertEqual(pg.input_value(sel), "de-CH")
+        opts = pg.evaluate("[...document.querySelectorAll('#sideLangSel option')].map((o) => [o.value, o.textContent])")
+        self.assertEqual([o[0] for o in opts], ["auto", "de-CH", "en", "gsw-u-sd-chzh"])
+        self.assertEqual(opts[1][1], "Deutsch")
+        self.assertIn("Betriebssystem", opts[0][1])
+        self.assertTrue(pg.locator('#sideLang .side-flag svg[viewBox="0 0 30 20"]').count())    # DE/CH diagonal
+        # die Seitenleiste liegt unter „Einklappen“
+        self.assertTrue(pg.evaluate("document.querySelector('#collapseBtn').compareDocumentPosition(document.querySelector('#sideLang')) & 4"))
+        pg.select_option(sel, "en")
+        self.assertTrue(self.until("I18N.lang === 'en'"))
+        self.assertEqual(self.cfg_until(lambda c: (c.get("web_ui") or {}).get("lang") == "en")["web_ui"]["lang"], "en")
+        self.assertIn("Settings", pg.inner_text(".nav[data-module=settings]"))
+        # Option „Sprache des Betriebssystems verwenden“ (Testbrowser: Englisch)
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("[data-lang-sys]")
+        self.assertFalse(pg.is_checked("[data-lang-sys]"))
+        pg.check("[data-lang-sys]")
+        c = self.cfg_until(lambda c: (c.get("web_ui") or {}).get("lang") == "auto")
+        self.assertEqual(c["web_ui"]["lang"], "auto")
+        self.assertEqual(pg.evaluate("I18N.lang"), pg.evaluate("i18nSysLang()"))
+        self.assertTrue(self.until("document.querySelector('#sideLangSel').value === 'auto'"))
+        # Knopf wählt wieder fest eine Sprache und nimmt die Option zurück
+        pg.click('#stLang [data-lang="gsw-u-sd-chzh"]')
+        pg.wait_for_function("I18N.lang === 'gsw-u-sd-chzh'")
+        self.assertFalse(pg.is_checked("[data-lang-sys]"))
+        self.assertEqual(pg.input_value(sel), "gsw-u-sd-chzh")
+        # eingeklappte Seitenleiste: Flagge bleibt sichtbar
+        pg.click("#collapseBtn")
+        self.assertTrue(pg.locator("#sideLang .side-flag").is_visible())
+        pg.click("#collapseBtn")
+        self.assertEqual(self.errors, [])
+
     def test_i18n_own_texts(self):
         """#219: Texte exportieren (CSV) und eigene Texte importieren – Vorschau, Überlagerung, Zurücksetzen."""
         pg = self.pg
@@ -1292,6 +1329,14 @@ class UiTest(unittest.TestCase):
         """#167–#170: frisches Profil → Assistent; Einstellungen übernehmen; Empfehlung; Erste Schritte."""
         pg = self.pg
         pg.wait_for_selector("#wizard .wiz-box")
+        self.assertIn(pg.evaluate("I18N.lang"), (pg.evaluate("i18nSysLang()"),))     # erster Start: Betriebssystem-Sprache
+        self.assertTrue(pg.is_checked("#wizard [data-lang-sys]"))
+        self.assertEqual(self.cfg_until(lambda c: (c.get("web_ui") or {}).get("lang") == "auto")["web_ui"]["lang"], "auto")
+        if pg.evaluate("I18N.lang") != "de-CH":                     # Rest des Tests auf Deutsch
+            with pg.expect_navigation():                             # zurück auf Deutsch lädt die Seite neu
+                pg.click('#wizard [data-lang="de-CH"]')
+            pg.wait_for_selector("#wizard .wiz-box")
+            self.assertFalse(pg.is_checked("#wizard [data-lang-sys]"))
         self.assertIn("Willkommen", pg.inner_text("#wizard"))
         pg.check('#wizard [data-w="goal"][value="prep"]')
         pg.click('#wizard [data-wiz="next"]')                       # Speicherort: Laufwerke, Basisordner, Art

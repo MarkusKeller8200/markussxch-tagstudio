@@ -559,6 +559,11 @@ async function init() {
   if (typeof i18nLoad === "function") {                    // #157: Sprache der Oberfläche
     // ohne gespeicherte Wahl: beim allerersten Start nach der Systemsprache, sonst wie bisher Deutsch (Schweiz)
     const first = st.ui && st.ui.lang ? false : await call("setup_state").then((x) => !!x.first).catch(() => false);
+    I18N.pref = i18nPref(st.ui, first);
+    if (first && !(st.ui && st.ui.lang)) {                   // erster Start: „Sprache des Betriebssystems“ ist aktiv
+      LAYOUT.lang = "auto";
+      call("set_ui", "lang", "auto").catch(() => {});
+    }
     await i18nLoad(i18nStartLang(st.ui, first));
   }
   applyLayout();

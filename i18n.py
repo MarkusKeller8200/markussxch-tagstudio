@@ -17,11 +17,12 @@ DIR = os.path.join(WEB, "i18n")
 SOURCE = "de-CH"
 # (Code nach BCP 47, Name in der eigenen Sprache, Flagge, Name auf Deutsch)
 LANGS = [
-    ("de-CH", "Deutsch (Schweiz)", "🇨🇭", "Hochdeutsch (Schweiz)"),
+    ("de-CH", "Deutsch", "🇩🇪🇨🇭", "Deutsch"),           # für Deutschland und die Schweiz gleich (Entscheid 17.10.2026)
     ("en", "English", "🇬🇧", "Englisch"),
     ("gsw-u-sd-chzh", "Züritüütsch", "🦁", "Zürichdeutsch"),
 ]
 CODES = tuple(c for c, *_ in LANGS)
+AUTO = "auto"                                # gespeicherte Wahl „Sprache des Betriebssystems“
 COLUMNS = ("en", "gsw-u-sd-chzh")            # Spalten in den Katalogdateien
 _lock = threading.Lock()
 _cache: dict[str, tuple[tuple, dict]] = {}

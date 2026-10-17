@@ -39,7 +39,7 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.12 oder neuer – oder gar nic
   Beatport (Metadaten mit eigenem Login, Käufe abgleichen und fehlende herunterladen), eigene Plugins möglich.
 - **Einstellungen** an einem Ort – mit Vorgaben für den Start –, exportieren/importieren (z. B. Windows ↔ Mac) und
   zurücksetzen; Updates wahlweise nur offizielle oder auch Beta-Versionen, Versionshinweise direkt in der App.
-- **Sprachen:** Schweizer Hochdeutsch, Englisch und Zürichdeutsch; eigene Texte exportieren, anpassen und wieder
+- **Sprachen:** Deutsch, Englisch und Zürichdeutsch; eigene Texte exportieren, anpassen und wieder
   importieren (Einstellungen › Darstellung › Sprache).
 
 ## Programmstart
@@ -451,8 +451,9 @@ speichert alles als Datei (ohne Zugangsdaten), **Importieren** übernimmt gewäh
 Systems sind nicht vorgewählt –, **Zurücksetzen** geht für einzelne Bereiche oder alles. Vor Import und
 Zurücksetzen wird die alte Datei nach `~/TagStudio/Einstellungen` gesichert.
 
-**Sprache:** Einstellungen › Darstellung › Sprache wechselt zwischen Schweizer Hochdeutsch, Englisch und
-Zürichdeutsch (beim allerersten Start nach der Systemsprache). Tags in den MP3-Dateien werden nie übersetzt. „Texte
+**Sprache:** Einstellungen › Darstellung › Sprache oder die Auswahlliste unten in der Seitenleiste (unter „Einklappen“)
+wechselt zwischen Deutsch, Englisch und Zürichdeutsch; „Sprache des Betriebssystems verwenden“ folgt der Sprache von
+Windows bzw. macOS und ist beim allerersten Start aktiv. Tags in den MP3-Dateien werden nie übersetzt. „Texte
 exportieren“ speichert alle Texte als CSV oder JSON für eigene Übersetzungen oder Korrekturen; „Texte importieren …“
 prüft die Datei (unbekannte Texte, Platzhalter, HTML) und legt sie als eigene Texte in
 `~/TagStudio/Sprachen/<sprache>.json` ab; „Eigene Texte zurücksetzen“ entfernt sie wieder. Die Hilfe zeigt auf Englisch

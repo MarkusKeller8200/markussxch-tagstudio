@@ -1493,6 +1493,15 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 /* #157: bis die Sprache geladen ist, nichts Deutsches aufblitzen lassen */
 html.i18n-wait body{visibility:hidden}
 .lang-seg button{display:inline-flex;align-items:center;gap:6px}
+.lang-sys{margin-top:6px}
+/* Sprachwahl in der Seitenleiste unter „Einklappen“ (eingeklappt: nur die Flagge, Liste liegt unsichtbar darüber) */
+.side-lang{position:relative;height:36px;cursor:pointer}
+.side-lang .side-flag{display:inline-flex;width:20px;justify-content:center;flex:none}
+.side-lang .side-flag .flag{width:20px;height:14px;border-radius:2px}
+.side-lang .side-flag svg.flag[viewBox="0 0 32 32"]{width:15px;height:15px}
+.side-lang select{flex:1;min-width:0;background:transparent;border:0;color:inherit;font:inherit;padding:0;cursor:pointer}
+.side-lang select option{background:var(--surf);color:var(--fg)}
+.side.collapsed .side-lang select{display:block!important;position:absolute;inset:0;opacity:0}
 .lang-seg .flag{width:18px;height:13px;border-radius:2px;flex:none}
 .lang-seg svg.flag[viewBox="0 0 32 32"]{width:14px;height:14px}
 .wiz-lang{margin:4px 0 12px}

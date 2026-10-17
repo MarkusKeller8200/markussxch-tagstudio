@@ -35,6 +35,15 @@ class TestSetup(Base):
         self.assertFalse(st["first_steps"])                       # bestehende Benutzer: keine Hinweise aufdrängen
         self.assertEqual(s.cfg["seen_version"], "4.3.0")
 
+    def test_first_start_survives_language_and_reload(self):
+        """Sprachwahl („auto“) und Werte des Assistenten machen den Erststart nicht zur bestehenden Installation."""
+        s = self.session({"web_ui": {"lang": "auto"}})
+        self.assertTrue(s.setup_state()["first"])
+        s.cfg.update({"web_ui": {"lang": "de-CH"}, "prep_workflows": [{"id": "x"}]})   # Assistent hat schon Werte gesetzt
+        self.assertTrue(s.setup_state()["first"])                 # z. B. Neuladen nach Sprachwechsel
+        self.assertFalse(s.setup_finish([], True)["first"])
+        self.assertFalse(s.cfg["setup_started"])
+
     def test_whats_new(self):
         import session_setup
         s = self.session({"setup_done": "x", "seen_version": "4.2.0"})

@@ -9,10 +9,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 ### Neu
 
 - **Mehrsprachig: Englisch und Zürichdeutsch (#157):** Einstellungen › Darstellung › Sprache (und der
-  Einrichtungsassistent) wechseln mit Flaggen zwischen Schweizer Hochdeutsch, Englisch und Zürichdeutsch. Übersetzt
+  Einrichtungsassistent) wechseln mit Flaggen zwischen Deutsch (für Deutschland und die Schweiz gleich, Flagge diagonal
+  geteilt), Englisch und Zürichdeutsch – zusätzlich als Auswahlliste unten in der Seitenleiste unter „Einklappen“. Übersetzt
   werden alle Seiten, Dialoge, Tooltips, Meldungen aus dem Python-Teil und die Texte der eingebauten Plugins; Tags in
-  den MP3-Dateien bleiben unverändert. Beim allerersten Start gilt die Systemsprache, bestehende Installationen bleiben
-  auf Deutsch. Im Englischen werden Tausender mit Komma getrennt (641,243).
+  den MP3-Dateien bleiben unverändert. Die Option „Sprache des Betriebssystems verwenden“ ist beim allerersten Start
+  aktiv; bestehende Installationen bleiben auf Deutsch. Im Englischen werden Tausender mit Komma getrennt (641,243).
 - **Eigene Texte exportieren und importieren (#219):** Unter Sprache lassen sich alle Texte als CSV (für Excel) oder
   JSON exportieren, anpassen und wieder importieren. Der Import zeigt eine Vorschau und prüft unbekannte Texte,
   Platzhalter, HTML und Länge; eigene Texte liegen in `~/TagStudio/Sprachen/<sprache>.json`, überlagern die

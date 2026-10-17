@@ -66,9 +66,13 @@ Umgesetzt wurde eine **Übersetzungsschicht über dem DOM** statt Schlüsseln im
   Teile zwischen „ · “ → Spaltenkopf mit Sortierzeichen → Aktionsname ohne „ …“. `translate="no"` schützt Daten
   (Dateinamen, Tag-Werte, Hilfe-Dokumente). `alert/confirm/prompt` werden übersetzt. `html.i18n-wait` verdeckt die
   Seite, bis die Sprache geladen ist (kein Aufblitzen).
-- **Sprache:** UI-Schlüssel `lang` in der Einstellungsdatei; beim allerersten Start aus der Systemsprache, bei
-  bestehenden Installationen `de-CH`. Auswahl mit SVG-Flaggen (Schweiz, Grossbritannien, Zürich) unter Einstellungen ›
-  Darstellung und im Einrichtungsassistenten. Wechsel zurück auf Deutsch lädt die Seite neu.
+- **Sprache:** UI-Schlüssel `lang` in der Einstellungsdatei: Sprachcode oder `auto` = „Sprache des Betriebssystems
+  verwenden“ (beim allerersten Start gesetzt; bestehende Installationen ohne Wahl bleiben `de-CH`). Auswahl mit
+  SVG-Flaggen unter Einstellungen › Darstellung, im Einrichtungsassistenten und als Auswahlliste unten in der
+  Seitenleiste unter „Einklappen“ (eingeklappt nur die Flagge). Wechsel zurück auf Deutsch lädt die Seite neu.
+- **Deutsch (Entscheid User 17.10.2026):** eine Sprache „Deutsch“ für Deutschland und die Schweiz (Code `de-CH`,
+  Schreibweise mit „ss“), Flagge Deutschland/Schweiz diagonal geteilt. Systemsprache `de-*` → Deutsch. Ein eigenes
+  `de-DE` ist damit nicht vorgesehen.
 - **Python und Plugins:** Meldungen bleiben deutsch im Code und werden in der Oberfläche übersetzt. Plugins können in
   `plugin.json` `"i18n": {"en": {"Deutsch": "English"}}` mitbringen; die eingebauten stehen im Katalog.
 - **Prüfung:** `tools/i18n_extract.py` sammelt Texte aus JS, HTML, Python (inkl. `label=`, Frame-Tabellen) und Plugins;
@@ -83,7 +87,7 @@ Umgesetzt wurde eine **Übersetzungsschicht über dem DOM** statt Schlüsseln im
 - **Dokumente:** `README.en.md`, `PLUGINS.en.md`, `docs/ID3-FELDER.en.md` (aus dem Katalog erzeugt); die Hilfe zeigt
   auf Englisch diese Fassungen, sonst die deutschen. Zürichdeutsch nutzt die deutschen Dokumente.
 - **Schreibweise:** „ß“ in der Oberfläche durch „ss“ ersetzt (Filter versteht weiter „größer als“).
-- **Nicht umgesetzt / offen:** `de-DE`, Zahlen und Daten über `Intl` (nur Tausendertrenner im Englischen angepasst),
+- **Nicht umgesetzt / offen:** Zahlen und Daten über `Intl` (nur Tausendertrenner im Englischen angepasst),
   Einreichen eigener Texte über „Melden“ (#187), englische Fassung der Konzept- und Projektdokumente (bleiben deutsch).
 
 ## Technik (Entwurf 2026-10-11, ersetzt durch „Umsetzung“)

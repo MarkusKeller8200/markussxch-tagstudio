@@ -52,6 +52,24 @@ class TestCatalog(unittest.TestCase):
         self.assertEqual(i18n.detect("en-US"), "en")
         self.assertEqual(i18n.detect("de-DE"), "de-CH")
         self.assertEqual(i18n.detect("gsw"), "gsw-u-sd-chzh")
+        self.assertEqual(r["langs"][0]["name"], "Deutsch")                     # Deutschland und Schweiz gleich
+
+    def test_lang_auto(self):
+        """„Sprache des Betriebssystems“ wird als "auto" gespeichert; unbekannte Codes werden abgelehnt."""
+        import tempfile
+        import core
+        from session import Session
+        old = (core.CONFIG, core.CONFIG_OLD)
+        with tempfile.TemporaryDirectory() as d:
+            core.CONFIG = core.CONFIG_OLD = os.path.join(d, "cfg.json")         # nicht die echte Einstellungsdatei
+            try:
+                s = Session()
+                s.set_ui("lang", "auto")
+                self.assertEqual(core.load_config()["web_ui"]["lang"], "auto")
+                with self.assertRaises(ValueError):
+                    s.set_ui("lang", "xx")
+            finally:
+                core.CONFIG, core.CONFIG_OLD = old
 
     def test_extract(self):
         lit = ex.js_literals('const a = `<b>${n}</b> Datei(en) im Tagger\\nKlick: abbrechen`; x = /a"b/; y = "Titel";')

@@ -18,7 +18,11 @@ class SetupMixin:
     def _setup_migrate(self):
         """Bestehende Installation ohne Assistent-Stand: nicht als Erststart behandeln."""
         c = self.cfg
-        if not c.get("setup_done") and any(k in c for k in USED_KEYS):
+        if c.get("setup_started"):                        # Assistent läuft schon (z. B. Neuladen nach Sprachwechsel)
+            return
+        # die Sprachwahl allein (web_ui.lang, auch beim ersten Start gesetzt) macht noch keine bestehende Installation
+        used = any(k in c for k in USED_KEYS if k != "web_ui") or bool(set(c.get("web_ui") or {}) - {"lang"})
+        if not c.get("setup_done") and used:
             self._setup_set(setup_done="bestehend", seen_version=c.get("seen_version") or INTRODUCED,
                             first_steps=c.get("first_steps", False))
 
@@ -26,6 +30,8 @@ class SetupMixin:
         self._setup_migrate()
         c = self.cfg
         first = not c.get("setup_done")
+        if first and not c.get("setup_started"):           # Erststart merken: Werte, die der Assistent schon setzt
+            self._setup_set(setup_started=True)           # (Sprache, Workflow), machen ihn nicht zur „bestehenden“
         return {"done": c.get("setup_done") or "", "first": first, "version": VERSION,
                 "recommended": [m for m in c.get("nav_recommended") or [] if m in MODULES],
                 "hidden": [m for m in c.get("nav_hidden") or [] if m in MODULES and m not in ALWAYS],
@@ -41,7 +47,7 @@ class SetupMixin:
         """Assistent abgeschlossen (oder übersprungen): Empfehlungen und „Erste Schritte“ merken."""
         rec = [m for m in recommended or [] if m in MODULES]
         self._setup_set(setup_done=VERSION, nav_recommended=rec, first_steps=bool(first_steps),
-                        first_steps_seen=[], seen_version=VERSION)
+                        first_steps_seen=[], seen_version=VERSION, setup_started=False)
         return self.setup_state()
 
     def set_nav_hidden(self, hidden) -> dict:

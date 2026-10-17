@@ -170,7 +170,7 @@ def create_profile(name, copy_settings_from: str | None = None) -> str:
         if os.path.isfile(src):
             with open(src, encoding="utf-8") as fh:
                 cfg = json.load(fh)
-            for k in ("setup_done", "window", "ui"):          # neues Profil startet frisch (Assistent, Fenster)
+            for k in ("setup_done", "setup_started", "window", "ui"):          # neues Profil startet frisch (Assistent, Fenster)
                 cfg.pop(k, None)
             with open(config_file(n), "w", encoding="utf-8") as fh:
                 json.dump(cfg, fh, ensure_ascii=False, indent=1)

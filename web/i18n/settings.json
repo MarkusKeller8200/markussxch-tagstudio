@@ -273,5 +273,7 @@
 "Wiedergabe wird beim Start fortgesetzt.": ["Playback resumes at start.", "Wiedergaab wird bim Start fortgsetzt."],
 "Player startet leer.": ["Player starts empty.", "Player startet läär."],
 "Titel wird in Pause geladen.": ["Track is loaded paused.", "Titel wird i de Pause glaade."],
-"Titel wird nach dem Start abgespielt.": ["Track is played after start.", "Titel wird nach em Start abgspilt."]
+"Titel wird nach dem Start abgespielt.": ["Track is played after start.", "Titel wird nach em Start abgspilt."],
+"Sprache des Betriebssystems verwenden": ["Use the operating system language", "Sprach vom Betriibssyschtem bruuche"],
+"Sprache der Oberfläche": ["Interface language", "Sprach vo de Oberflächi"]
 }

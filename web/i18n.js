@@ -9,7 +9,7 @@
 "use strict";
 
 const I18N = {
-  lang: "de-CH", langs: [], exact: new Map(), pats: [], memo: new Map(), obs: null,
+  lang: "de-CH", pref: "de-CH", langs: [], exact: new Map(), pats: [], memo: new Map(), obs: null,
   miss: (() => { try { return localStorage.getItem("ts_i18n_miss") ? new Set() : null; } catch (e) { return null; } })(),
   done: new WeakMap(),                  // Knoten → zuletzt gesetzte Übersetzung (nicht doppelt übersetzen)
   attrs: ["title", "data-tip-title", "placeholder", "aria-label", "alt"],
@@ -222,32 +222,59 @@ async function i18nLoad(lang) {
   I18N.langs = r.langs || [];
   i18nSetCatalog(r.lang, r.catalog);
   i18nApply();
+  i18nSideRefresh();
   document.documentElement.classList.remove("i18n-wait");
 }
 
-/** Sprache beim Start: gespeichert; beim ersten Start aus der Systemsprache; sonst de-CH */
-function i18nStartLang(ui, first) {
-  if (ui && ui.lang) return ui.lang;
-  if (!first) return "de-CH";                                   // bestehende Installation: wie bisher
+/** Sprache des Betriebssystems (bzw. des Browsers): Deutsch – ob Deutschland oder Schweiz – wird de-CH */
+function i18nSysLang() {
   const nav = (navigator.languages && navigator.languages[0]) || navigator.language || "de-CH";
   const a = nav.toLowerCase();
   return a.startsWith("gsw") ? "gsw-u-sd-chzh" : a.startsWith("de") ? "de-CH" : "en";
 }
 
+/** Gespeicherte Wahl: Sprachcode oder "auto" (Betriebssystem); beim allerersten Start "auto", sonst wie bisher Deutsch */
+function i18nPref(ui, first) { return (ui && ui.lang) || (first ? "auto" : "de-CH"); }
+
+/** Sprache beim Start (aufgelöst) */
+function i18nStartLang(ui, first) {
+  const p = i18nPref(ui, first);
+  return p === "auto" ? i18nSysLang() : p;
+}
+
 /** Flaggen als SVG (Windows zeigt Flaggen-Emojis nur als Buchstaben) */
 const I18N_FLAGS = {
-  "de-CH": '<svg viewBox="0 0 32 32" class="flag" aria-hidden="true"><rect width="32" height="32" rx="3" fill="#D52B1E"/><path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/></svg>',
+  // Deutsch: Deutschland und Schweiz diagonal geteilt (oben links Deutschland, unten rechts Schweiz)
+  "de-CH": '<svg viewBox="0 0 30 20" class="flag" aria-hidden="true"><path d="M0 0h30L20 6.67H0z" fill="#000"/><path d="M0 6.67h20l-10 6.66H0z" fill="#DD0000"/><path d="M0 13.33h10L0 20z" fill="#FFCE00"/><path d="M30 0v20H0z" fill="#D52B1E"/><path d="M19.8 9h2.4v3.1h3v2.4h-3v3.1h-2.4v-3.1h-3v-2.4h3z" fill="#fff"/></svg>',
   en: '<svg viewBox="0 0 60 30" class="flag" aria-hidden="true"><clipPath id="i18nUk"><path d="M0 0v30h60V0z"/></clipPath><clipPath id="i18nUk2"><path d="M30 15h30v15zv15H0zH0V0zV0h30z"/></clipPath><g clip-path="url(#i18nUk)"><path d="M0 0v30h60V0z" fill="#012169"/><path d="M0 0l60 30m0-30L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30m0-30L0 30" clip-path="url(#i18nUk2)" stroke="#C8102E" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></g></svg>',
   "gsw-u-sd-chzh": '<svg viewBox="0 0 32 32" class="flag" aria-hidden="true"><rect width="32" height="32" rx="3" fill="#fff" stroke="#c9d4e2"/><path d="M32 0v29a3 3 0 0 1-3 3H0z" fill="#0F5BA7"/></svg>',
 };
 function i18nFlag(code) { return I18N_FLAGS[code] || ""; }
 
-/** Sprachwahl (Einstellungen › Darstellung): Knöpfe mit Flagge, Namen in der eigenen Sprache (nicht übersetzt) */
-function i18nPickerHtml() {
-  const list = I18N.langs.length ? I18N.langs : [{ code: "de-CH", name: "Deutsch (Schweiz)", de: "Hochdeutsch (Schweiz)" }];
-  return `<div class="seg lang-seg" id="stLang" translate="no">${list.map((l) =>
-    `<button data-lang="${l.code}"${l.code === I18N.lang ? ' class="on"' : ""} title="${l.de} (${l.code})">${i18nFlag(l.code)}${l.name}</button>`).join("")}</div>`;
+/** Sprachwahl (Einstellungen › Darstellung, Einrichtungsassistent): Knöpfe mit Flagge, Namen in der eigenen Sprache
+ *  (nicht übersetzt), darunter die Option „Sprache des Betriebssystems verwenden“ (beim ersten Start aktiv) */
+function i18nLangList() {
+  return I18N.langs.length ? I18N.langs : [{ code: "de-CH", name: "Deutsch", de: "Deutsch" }];
 }
+function i18nPickerHtml() {
+  const auto = I18N.pref === "auto";
+  return `<div class="seg lang-seg" id="stLang" translate="no">${i18nLangList().map((l) =>
+    `<button data-lang="${l.code}"${l.code === I18N.lang ? ' class="on"' : ""} title="${l.de} (${l.code})">${i18nFlag(l.code)}${l.name}</button>`).join("")}</div>
+    <label class="check lang-sys"><input type="checkbox" data-lang-sys${auto ? " checked" : ""}> Sprache des Betriebssystems verwenden</label>`;
+}
+/** Sprachwahl unten in der Seitenleiste (unter „Einklappen“): Flagge + Auswahlliste; eingeklappt nur die Flagge */
+function i18nSideRefresh() {
+  const box = document.getElementById("sideLang");
+  if (!box) return;
+  const sel = box.querySelector("select"), flag = box.querySelector(".side-flag");
+  const opts = [`<option value="auto">${esc0(tr("Betriebssystem"))} (${esc0((i18nLangList().find((l) => l.code === i18nSysLang()) || {}).name || "")})</option>`]
+    .concat(i18nLangList().map((l) => `<option value="${l.code}">${esc0(l.name)}</option>`));
+  sel.innerHTML = opts.join("");
+  sel.value = I18N.pref === "auto" ? "auto" : I18N.lang;
+  if (flag) flag.innerHTML = i18nFlag(I18N.lang);
+  box.title = tr("Sprache der Oberfläche");
+}
+function esc0(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 /** #219: eigene Texte exportieren/importieren – überlagern die mitgelieferten, nur für diesen Benutzer bzw. dieses Profil */
 function i18nToolsHtml() {
   return `<div class="st-path lang-tools" id="stLangTools">
@@ -332,19 +359,33 @@ document.addEventListener("click", (e) => {
   else i18nResetOwn();
 });
 
-async function i18nPick(code) {
-  if (!code || code === I18N.lang) return;
-  LAYOUT.lang = code;
-  try { await call("set_ui", "lang", code); } catch (e) { /* trotzdem anwenden */ }
+/** Sprache wählen: Code oder "auto" (Sprache des Betriebssystems) */
+async function i18nPick(choice) {
+  if (!choice || choice === I18N.pref) return;
+  const code = choice === "auto" ? i18nSysLang() : choice;
+  I18N.pref = choice;
+  LAYOUT.lang = choice;
+  try { await call("set_ui", "lang", choice); } catch (e) { /* trotzdem anwenden */ }
+  if (code === I18N.lang) { i18nPickRefresh(); return; }
   if (code === "de-CH") { try { localStorage.setItem("ts_lang", code); } catch (e) { /* egal */ } location.reload(); return; }
   await i18nLoad(code);
-  document.querySelectorAll("#stLang button").forEach((b) => b.classList.toggle("on", b.dataset.lang === code));
+  i18nPickRefresh();
+}
+function i18nPickRefresh() {
+  document.querySelectorAll(".lang-seg [data-lang]").forEach((b) => b.classList.toggle("on", b.dataset.lang === I18N.lang));
+  document.querySelectorAll("[data-lang-sys]").forEach((c) => { c.checked = I18N.pref === "auto"; });
+  i18nSideRefresh();
 }
 
 document.addEventListener("click", (e) => {
-  const b = e.target.closest && e.target.closest("#stLang [data-lang]");
+  const b = e.target.closest && e.target.closest(".lang-seg [data-lang]");
   if (b) { e.preventDefault(); i18nPick(b.dataset.lang); }
 });
+document.addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.matches && t.matches("[data-lang-sys]")) { e.stopPropagation(); i18nPick(t.checked ? "auto" : I18N.lang); }
+  else if (t.id === "sideLangSel") i18nPick(t.value);
+}, true);
 
 // Browser-Dialoge ebenfalls übersetzen
 (function i18nDialogs() {

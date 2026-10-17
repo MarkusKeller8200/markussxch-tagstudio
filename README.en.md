@@ -40,7 +40,7 @@ The core needs no extra packages, only Python 3.12 or newer – or nothing at al
   Beatport (metadata with your own login, match purchases and download missing ones); your own plugins are possible.
 - **Settings** in one place – with defaults for the start –, export/import (e.g. Windows ↔ Mac) and reset; updates
   either official versions only or beta versions too, release notes right in the app.
-- **Languages:** Swiss Standard German, English and Zurich German; your own texts can be exported, edited and
+- **Languages:** German, English and Zurich German; your own texts can be exported, edited and
   imported (Settings › Appearance › Language).
 
 ## Starting the program
@@ -439,8 +439,9 @@ credentials hidden). Every “on start” default can also stay “as last used�
 (without credentials), **Import** takes over chosen areas – paths of another system are not preselected –, **Reset**
 works for single areas or everything. Before import and reset the old file is backed up to `~/TagStudio/Einstellungen`.
 
-**Language:** Settings › Appearance › Language switches between Swiss Standard German, English and Zurich German (on
-the very first start the system language is used). Tags in the MP3 files are never translated. “Export texts” saves
+**Language:** Settings › Appearance › Language or the drop-down at the bottom of the sidebar (below “Collapse”)
+switches between German, English and Zurich German; “Use the operating system language” follows the language of
+Windows or macOS and is active on the very first start. Tags in the MP3 files are never translated. “Export texts” saves
 all texts as CSV or JSON for your own translation or corrections; “Import texts …” checks the file (unknown texts,
 placeholders, HTML) and stores it as your own texts in `~/TagStudio/Sprachen/<language>.json`; “Reset own texts”
 removes them again.

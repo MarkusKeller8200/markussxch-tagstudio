@@ -265,7 +265,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             value = [x for x in dict.fromkeys(value) if isinstance(x, str) and 0 < len(x) <= 80][:40]
         elif name == "lang":
             import i18n
-            if value and value not in i18n.CODES:                # "" = nach Systemsprache
+            if value and value not in i18n.CODES and value != i18n.AUTO:   # "auto" = Sprache des Betriebssystems
                 raise ValueError(f"Unbekannte Sprache: {value}")
         elif name == "tg_fit" and value not in ("fit", "scroll"):
             raise ValueError("tg_fit: fit oder scroll")
