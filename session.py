@@ -1575,6 +1575,29 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return {"files": n_orig, "stems": len(with_stems), "errors": errors, **self._verify_start(stats, "tagger")}
         return self._run("tagload", "Dateien einlesen", job)
 
+    def start_tag_load_files(self, paths, label=""):
+        """#238: bestimmte Dateien (z. B. aus einer Lexicon-Playlist) in den Tagger laden – Reihenfolge bleibt."""
+        want = [p for p in dict.fromkeys(str(x) for x in (paths or []) if isinstance(x, str)) if os.path.isfile(p)]
+        missing = len([x for x in (paths or []) if isinstance(x, str)]) - len(want)
+        if not want:
+            return {"ok": False, "error": "Keine der Dateien ist auf diesem Rechner vorhanden."}
+
+        def job(cancel, progress):
+            progress(("total", len(want)))
+            files, errors = core._load_list(want, None, self.reg, cancel, progress)
+            with self.lock:
+                self.tag_files = files
+                roots = {os.path.dirname(f.path) for f in files}
+                try:                                   # verschiedene Laufwerke (Windows) → kein gemeinsamer Ordner
+                    self.tag_root = os.path.commonpath(list(roots)) if len(roots) > 1 else (roots.pop() if roots else "")
+                except ValueError:
+                    self.tag_root = os.path.dirname(files[0].path) if files else ""
+                with_stems = self._attach_stems()
+                n_orig = len(self.tag_files) - len(self.tag_parent)
+            return {"files": n_orig, "stems": len(with_stems), "errors": errors, "missing": missing,
+                    "label": str(label or "")[:120]}
+        return self._run("tagload", "Dateien einlesen", job)
+
     # ------------------------------------------------------------------ Listen-Cache und Prüfung (#70)
     def _list_cache_on(self) -> bool:
         return bool(getattr(self, "cfg", {}).get("list_cache", True))
@@ -2128,7 +2151,10 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                         "problems": sum(1 for p in plan if p["problem"])}
             self._save_pattern("rename", pattern)
             old_keys = {id(p["file"]): os.path.normcase(os.path.abspath(p["file"].path)) for p in plan}
+            old_keys_raw = {id(p["file"]): p["file"].path for p in plan}
             res = tagger.do_rename(plan)
+            moves = [{"old": old_keys_raw[id(p["file"])], "new": p["file"].path} for p in plan
+                     if old_keys_raw[id(p["file"])] != p["file"].path]
             for p in plan:  # Register auf neue Pfade umstellen
                 f = p["file"]
                 old = old_keys[id(f)]
@@ -2142,7 +2168,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             d["message"] = f"{len(ok)} Datei(en) umbenannt." + (f" {len(bad)} Fehler." if bad else "")
             d["errors"] = [f"{r['old']}: {r['error']}" for r in bad]
             d["renamed"] = True
-            return d
+        self._emit("files_moved", moves)                              # #239: z. B. Lexicon-Pfade nachführen
+        return d
 
     def tag_number(self, idx, with_total=True, apply=False):
         with self.lock:
@@ -2424,6 +2451,14 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             self._plugins = plugins.Manager(self.cfg)
         return self._plugins
 
+    def _emit(self, event, data):
+        """#239: Ereignis an die Plugins (z. B. Lexicon-Pfade nachführen) – nie ein Fehler für die eigentliche Arbeit."""
+        try:
+            if data:
+                self.plugins.emit(event, data, self, wait=bool(getattr(self, "_emit_wait", False)))
+        except Exception:  # noqa: BLE001
+            pass
+
     def plugins_list(self, rescan=False):
         if rescan:
             self._origins = None
@@ -2595,6 +2630,19 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         self._pending = None
         if not chosen:
             return {"ok": True, "count": 0, "message": "Nichts übernommen."}
+        remote = [p for p in chosen if p["kind"] == "remote"]          # #239: Änderungen ausserhalb der Dateien
+        chosen = [p for p in chosen if p["kind"] != "remote"]
+        rres = None
+        if remote:
+            items = [{"path": p["file"].path, "key": p["key"], "new": p["new"], "old": p["old"], "label": p["label"],
+                      "data": p["data"]} for p in remote]
+            try:
+                rres = self.plugins.apply_remote(pend["plugin"], items, self)
+            except Exception as ex:  # noqa: BLE001
+                rres = {"count": 0, "errors": [str(ex) or type(ex).__name__], "message": f"Nicht übernommen: {ex}"}
+        if not chosen:
+            return {"ok": True, "count": 0, "remote": rres, "unsaved": self.unsaved(),
+                    "message": (rres or {}).get("message") or "Nichts übernommen.", "errors": (rres or {}).get("errors", [])}
         with self.lock:
             files = list({id(p["file"]): p["file"] for p in chosen}.values())
             name = self.plugins.get(pend["plugin"]).name if pend["plugin"] in self.plugins.plugins else pend["plugin"]
@@ -2610,6 +2658,10 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                         if p["data"]:
                             from id3tags import Item
                             p["file"].set(p["key"], Item(p["key"].split(":")[0].split("#")[0], p["key"], payload=p["data"]))
+                            n += 1
+                    elif p["kind"] == "rating":                 # #237: Bewertung (POPM)
+                        import ratings
+                        if ratings.set_rating(p["file"], int(p["new"] or 0)):
                             n += 1
                     elif p["kind"] == "file":                   # #183: Begleitdatei (.lrc) neben dem MP3
                         if p["data"] and self._sidecar_ok(p["file"].path, p["key"]):
@@ -2627,8 +2679,11 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                         importsync.remember(f, *sync)
             finally:   # auch bei Fehler abschliessen, sonst landen Teiländerungen im nächsten Undo-Schritt
                 self.undo.commit()
-        return {"ok": True, "count": n, "files": len(files), "unsaved": self.unsaved(),
-                "message": f"{n} Änderung(en) in {len(files)} Datei(en) übernommen – noch nicht gespeichert."}
+        msg = f"{n} Änderung(en) in {len(files)} Datei(en) übernommen – noch nicht gespeichert."
+        if rres:
+            msg += " " + (rres.get("message") or "")
+        return {"ok": True, "count": n, "files": len(files), "unsaved": self.unsaved(), "remote": rres,
+                "message": msg, "errors": (rres or {}).get("errors", [])}
 
     @staticmethod
     def _sidecar_ok(mp3, path) -> bool:

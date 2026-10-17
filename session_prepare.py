@@ -188,6 +188,7 @@ class PrepareMixin:
                 except (KeyError, ValueError) as ex:
                     raise RuntimeError(f"Plugin-Schritt „{s['label']}“: {ex.args[0] if ex.args else ex} (Workflow bearbeiten bzw. Plugin-Seite).") from ex
             ext_files, ext_folder = [], ""
+            added = []       # #239: neu in die Bibliothek übernommene Dateien
             plug = []        # (Name, Datei-Objekt, Zustand) für den Plugin-Lauf nach dem Kopieren
             for k, n in enumerate(todo, 1):
                 if cancel.is_set():
@@ -220,6 +221,7 @@ class PrepareMixin:
                             errors.append(f"{n}: {dups[0]}")
                             continue
                         prepare.copy_file(src, dst)
+                        added.append(dst)                                  # #239: z. B. in Lexicon aufnehmen
                         if self.cfg.get("stamp_added", True):             # #184: Zeitpunkt der Aufnahme, nie überschreiben
                             from id3tags import MP3File
                             fa = MP3File(dst)
@@ -271,6 +273,7 @@ class PrepareMixin:
                     except (ValueError, OSError) as ex:
                         errors.append(str(ex))
             snap = ""
+            self._emit("files_added", added)                       # #239: z. B. in Lexicon aufnehmen
             if s["type"] == "import" and done:
                 lib = next((l for l in self.snap_store.libraries()
                             if os.path.normcase(os.path.abspath(l.get("root") or "")) == os.path.normcase(os.path.abspath(w["library"]))), None) \
@@ -379,6 +382,7 @@ class PrepareMixin:
         st = prepare.load_state(w["id"])
         found = 0
         names = set(prepare.list_inbox(w)) | set(st["tracks"])
+        plug_hits = self._prep_plugin_detect(w, st, names)       # #238: z. B. „in Lexicon vorhanden“
         for n in names:
             t = st["tracks"].setdefault(n, {"added": prepare.now(), "steps": {}})
             for i, s in enumerate(w["steps"]):
@@ -391,7 +395,7 @@ class PrepareMixin:
                 elif s["type"] == "check" and rec.get("state") in (None, "open") and s.get("detect") \
                         and prepare.step_ready(w, st, n, i):
                     path = prepare.track_path(w, st, n)
-                    if prepare.detect(path, s["detect"], self.origins.of):
+                    if prepare.detect(path, s["detect"], self.origins.of) or path in plug_hits.get(s["detect"], ()):
                         rec = t["steps"].setdefault(s["id"], {})
                         if s.get("protect") and t.get("lib_baseline") is not None:
                             rec["before"] = t["lib_baseline"]
@@ -403,6 +407,24 @@ class PrepareMixin:
         d = self.prep_overview(w["id"])
         d["message"] = f"{found} Schritt(e) erkannt." if found else ""
         return d
+
+    def _prep_plugin_detect(self, w, st, names) -> dict:
+        """#238: Status-Schritte, deren Kennung ein Plugin mit detect_files ist (z. B. „lexicon“) – gesammelt je Plugin."""
+        out = {}
+        for i, s in enumerate(w["steps"]):
+            sid = s.get("detect")
+            if s["type"] != "check" or not sid or sid in out:
+                continue
+            paths = []
+            for n in names:
+                rec = ((st["tracks"].get(n) or {}).get("steps") or {}).get(s["id"]) or {}
+                if rec.get("state") in (None, "open") and prepare.step_ready(w, st, n, i):
+                    paths.append(prepare.track_path(w, st, n))
+            try:
+                out[sid] = self.plugins.detect(sid, paths, self) if paths else set()
+            except Exception:  # noqa: BLE001
+                out[sid] = set()
+        return out
 
     def prep_mark(self, wid, sid, names, state="done") -> dict:
         """Von Hand: erledigt (mit Schutzregel), übersprungen oder wieder offen."""

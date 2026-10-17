@@ -261,9 +261,18 @@ class Context:
         """Erzeugte Datei/Ordner melden (wird im Ergebnis angezeigt)."""
         self.outputs.append(path)
 
+    # ---- #238: Zustand der Oberfläche (nur lesend)
+    def djset(self) -> dict:
+        """Aktuelles DJ-Set: {"name", "paths"} (leer ohne Sitzung)."""
+        s = self._session
+        if s is None or not hasattr(s, "_dj"):
+            return {"name": "", "paths": []}
+        with s.lock:
+            return {"name": s.cfg.get("djset_name") or "", "paths": [x["path"] for x in s._dj()["items"]]}
+
     # ---- Vorschläge (werden nach dem Lauf als Vorschau mit Häkchen gezeigt)
     def propose(self, f, key, new, label=None, note="", checked=True, kind="text", data=None, group=None, hint="",
-                show_same=False, link="", link_label="", sync=None):
+                show_same=False, link="", link_label="", sync=None, old=None):
         """Änderung vorschlagen statt sie direkt auszuführen. kind="text" (key/new), "cover" (data=Bildbytes),
         "frame" (key = Frame-Schlüssel wie „SYLT“, data = Frame-Rumpf, new = Beschreibung für die Vorschau) oder
         "file" (key = Pfad einer Begleitdatei neben dem MP3, data = Inhalt; geschrieben beim Übernehmen, #183).
@@ -271,9 +280,23 @@ class Context:
         hint: Hinweis zu genau diesem Feld (z. B. „schon gefüllt“).
         show_same=True: auch einen unveränderten Wert als (nicht wählbare) Zeile „gleich“ zeigen.
         link/link_label: Adresse des Treffers auf der Plattform (nur https), z. B. zum Vergleichen der Version (#144).
-        sync: (Quelle, Merkmal, Wert) – beim Übernehmen in TXXX:TAGSTUDIO merken (siehe importsync)."""
+        sync: (Quelle, Merkmal, Wert) – beim Übernehmen in TXXX:TAGSTUDIO merken (siehe importsync).
+        #237: kind="rating" – Bewertung 0–5 Sterne (POPM, new = Anzahl Sterne).
+        #239: kind="remote" – Änderung ausserhalb der Datei (z. B. in Lexicon): old = bisheriger Wert dort, data =
+        beliebige Angaben für das Plugin; beim Übernehmen ruft TagStudio apply_remote(ctx, items) des Plugins auf."""
         same = False
-        if kind == "text":
+        if kind == "remote":
+            old = "" if old is None else str(old)
+            same = str(new or "") == old
+            if same and not show_same:
+                return False
+        elif kind == "rating":
+            import ratings
+            old = str(ratings.get_rating(f) or "")
+            same = str(new or "") == old
+            if same and not show_same:
+                return False
+        elif kind == "text":
             it = f.get(key)
             old = it.text if it is not None and it.kind not in ("picture", "raw") else ""
             if (new or "") == old:
@@ -625,6 +648,66 @@ class Manager:
             return {"cancelled": True, "rows": [], "log": ctx.log_lines, "info": info}
         rows = services.result_rows(mod, info, cands)
         return {"rows": rows, "log": ctx.log_lines, "info": info, "count": len(cands)}
+
+    # ---- #238/#239: Ereignisse und Erkennung für Plugins
+    def _ready_with(self, fn_name):
+        for p in self.plugins.values():
+            if p.enabled and p.state() == "ready":
+                mod = p.load()
+                fn = getattr(mod, fn_name, None)
+                if callable(fn):
+                    yield p, fn
+
+    def emit(self, event: str, data, session=None, wait=False):
+        """Ereignis an Plugins mit on_event(ctx, event, data) melden – im Hintergrund, Fehler nur ins Protokoll.
+        Ereignisse: "files_moved" [{"old", "new"}], "files_added" [Pfad]. wait=True (Tests): auf das Ende warten."""
+        if not data:
+            return []
+        threads = []
+        for p, fn in list(self._ready_with("on_event")):
+            def work(p=p, fn=fn):
+                ctx = Context(p, session)
+                try:
+                    fn(ctx, event, data)
+                except Exception:  # noqa: BLE001 – ein Plugin darf die Arbeit nie stören
+                    ctx.log(f"Fehler bei „{event}“:\n{traceback.format_exc()}")
+                if ctx.log_lines:
+                    write_log(f"{p.id}.log", f"Ereignis {event}\n" + "\n".join(ctx.log_lines))
+            t = threading.Thread(target=work, daemon=True, name=f"plugin-{p.id}-{event}")
+            t.start()
+            threads.append(t)
+        if wait:
+            for t in threads:
+                t.join(30)
+        return [p.id for p, _fn in self._ready_with("on_event")]
+
+    def detect(self, sid: str, paths, session=None) -> set:
+        """Vorbereiten (#238): Plugin mit id sid und detect_files(ctx, paths) → Menge erkannter Pfade."""
+        p = self.plugins.get(sid)
+        if p is None or not p.enabled or p.state() != "ready" or not paths:
+            return set()
+        fn = getattr(p.load(), "detect_files", None)
+        if not callable(fn):
+            return set()
+        ctx = Context(p, session)
+        try:
+            return {x for x in (fn(ctx, list(paths)) or []) if isinstance(x, str)}
+        except Exception as ex:  # noqa: BLE001
+            write_log(f"{p.id}.log", f"Erkennung fehlgeschlagen: {ex}")
+            return set()
+
+    def apply_remote(self, pid, items, session=None) -> dict:
+        """#239: übernommene Vorschläge kind="remote" an das Plugin (apply_remote(ctx, items))."""
+        p = self.get(pid)
+        fn = getattr(p.load(), "apply_remote", None)
+        if not callable(fn):
+            raise ValueError(f"„{p.name}“ kann keine Änderungen übernehmen.")
+        ctx = Context(p, session)
+        res = fn(ctx, items) or {}
+        res["log"] = ctx.log_lines + list(res.get("log", []))
+        if res["log"]:
+            res["logfile"] = write_log(f"{p.id}.log", "\n".join(res["log"]))
+        return res
 
     def get(self, pid) -> Plugin:
         p = self.plugins.get(pid)

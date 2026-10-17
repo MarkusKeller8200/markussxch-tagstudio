@@ -256,6 +256,7 @@ class ArchiveMixin:
             if not apply:
                 return {"rows": rows, "archive": d, "ok": sum(1 for e in pl if not e["problem"])}
             res = archive.move(pl, d, "Tagger")
+        self._emit("files_moved", [{"old": e["src"], "new": e["dst"]} for e in res["moved"]])      # #239
         return {"moved": len(res["moved"]), "errors": res["errors"], "archive": d,
                 "message": f"{len(res['moved'])} Titel ins Archiv verschoben." + (f" {len(res['errors'])} Fehler." if res["errors"] else "")}
 
@@ -281,6 +282,7 @@ class ArchiveMixin:
             return {"rows": rows, "copies": [c for v in copies.values() for c in v], "archive": d,
                     "ok": sum(1 for e in pl if not e["problem"])}
         res = archive.move(pl, d, "Vorbereiten")
+        self._emit("files_moved", [{"old": e["src"], "new": e["dst"]} for e in res["moved"]])      # #239
         moved = {os.path.normcase(e["src"]) for e in res["moved"]}
         removed = 0
         for n in names or []:
@@ -308,6 +310,7 @@ class ArchiveMixin:
     def archive_restore(self, ids) -> dict:
         import archive
         res = archive.restore(self._archive_dir(), [int(i) for i in ids or []])
+        self._emit("files_moved", res.get("moved", []))                                           # #239
         out = self.archive_list()
         out.update(restored=len(res["restored"]), errors=res["errors"],
                    message=f"{len(res['restored'])} Titel zurückgeholt." + (f" {len(res['errors'])} Hinweis(e)." if res["errors"] else ""))

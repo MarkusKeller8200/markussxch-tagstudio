@@ -386,6 +386,7 @@ async function pluginRun(pid, aid) {
   if (S.module === "plugins") pluginsShow();
   if (!res) return;
   if (res.proposals && res.proposals.length) { await pluginPreview(f, res); return; }
+  if (res.open && res.open.files && res.open.files.length) { await pluginOpenFiles(res.open, res); return; }   // #238
   if (res.changed && typeof taggerRefresh === "function") await taggerRefresh();
   if (res.cancelled) { status("Abgebrochen.", "warn"); if (!res.log.length) return; }
   const log = (res.log || []).slice(-40).join("\n");
@@ -399,6 +400,24 @@ async function pluginRun(pid, aid) {
   });
   if (what === "reveal") call("reveal", outs[0]);
   if (res.message) status(res.message, "info");
+}
+
+/** #238: Ergebnis „öffnen“ eines Plugins – Dateien in den Tagger laden, auf Wunsch ins DJ-Set (Reihenfolge bleibt) */
+async function pluginOpenFiles(o, res) {
+  if (typeof confirmDiscard === "function" && !(await confirmDiscard())) return;
+  const r = await runTask(call("start_tag_load_files", o.files, o.label || ""), "Dateien einlesen");
+  if (!r || r.cancelled) return;
+  if (o.target === "djset" || o.target === "djadd") {
+    const st = await call("dj_add_paths", o.files, o.target === "djset", o.label || "");
+    setModule("djset");
+    if (typeof djApply === "function") djApply(st);
+    if (typeof tgAfterLoad === "function") await tgAfterLoad(r, "", false);
+  } else {
+    setModule("tagger");
+    if (typeof tgAfterLoad === "function") await tgAfterLoad(r, "", false);
+  }
+  status(res.message || "", "info");
+  if ((res.log || []).length) toast(`${res.log.length} Hinweis(e) – siehe Plugin-Protokoll.`);
 }
 
 // ---------------------------------------------------------------------- Vorschläge bestätigen
@@ -460,6 +479,7 @@ async function pluginPreview(f, res) {
   if (!r.ok) { info("Hinweis", r.error); return; }
   if (typeof taggerRefresh === "function") await taggerRefresh();
   status(r.message, "info");
+  if ((r.errors || []).length) info("Hinweis", `${r.message}\n\n${r.errors.slice(0, 20).join("\n")}`);   // #239: z. B. Lexicon
 }
 
 // ---------------------------------------------------------------------- Ereignisse

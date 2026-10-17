@@ -1,13 +1,13 @@
 {
   "id": "lexicon",
-  "name": "Lexicon übernehmen",
-  "version": "1.0",
+  "name": "Lexicon",
+  "version": "2.0",
   "min_app": "4.8.0",
   "category": "local_api",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
-  "description": "Liest Tanzbarkeit, Energie und Fröhlichkeit (und auf Wunsch die Mood-Tags) aus Lexicon DJ über dessen Local API und schlägt sie als Audio-Merkmale DANCEABILITY, ENERGY und HAPPINESS vor. Mit Abgleich: Werte, die du in der Datei seit dem letzten Übernehmen geändert hast, werden nicht ungefragt überschrieben.",
-  "notes": "Keine Zusatzpakete nötig. Lexicon muss laufen, die Local API muss eingeschaltet sein (Settings › Integrations). Lexicon wird nur gelesen.",
+  "description": "Verbindet TagStudio mit Lexicon DJ über dessen Local API: übernimmt Tanzbarkeit, Energie, Fröhlichkeit und auf Wunsch Bewertung, Popularität, Farbe und Custom Tags (mit Abgleich), vergleicht Beatgrid und Cue-Punkte, öffnet in Lexicon markierte Titel oder Playlists im Tagger bzw. DJ-Set und kann – wenn eingeschaltet – Pfade nachführen, neue Titel aufnehmen und geänderte Tags mit Vorschau zurückschreiben.",
+  "notes": "Keine Zusatzpakete nötig. Lexicon muss laufen, die Local API muss eingeschaltet sein (Settings › Integrations). Zurückschreiben ist standardmässig aus, geht nur an Lexicon auf diesem Rechner und löscht nie etwas.",
   "service": {
     "name": "Lexicon Local API",
     "kind": "local",
@@ -16,7 +16,7 @@
     "base": "http://localhost:48624/v1",
     "auth": "local",
     "auth_note": "Ohne Anmeldung; in Lexicon unter Settings › Integrations › Local API einschalten. Die Adresse im Tester ist die zuletzt im Plugin benutzte.",
-    "note": "Endpunkte laut offizieller OpenAPI-Beschreibung (Lexicon Local API 1.0.0). TagStudio greift nur lesend zu.",
+    "note": "Endpunkte laut offizieller OpenAPI-Beschreibung (Lexicon Local API 1.0.0). Lesen immer; Schreiben nur mit Hauptschalter (Einstellungen), nur an localhost, mit Journal und Rückgängig. Löschen nie.",
     "endpoints": [
       {
         "id": "tracks",
@@ -24,8 +24,8 @@
         "path": "/tracks",
         "label": "Alle Titel (seitenweise)",
         "status": "partial",
-        "use": "Lexicon übernehmen: Tanzbarkeit, Energie, Fröhlichkeit, Mood-Tags",
-        "note": "nur die Felder für die Audio-Merkmale",
+        "use": "Lexicon übernehmen (grosse Auswahl), Verbindung testen",
+        "note": "nur für mehr als 150 Dateien – sonst gezielte Suche",
         "params": [
           {
             "name": "limit",
@@ -42,31 +42,31 @@
         "method": "GET",
         "path": "/tags",
         "label": "Custom Tags und Kategorien",
-        "status": "partial",
-        "use": "Lexicon übernehmen: Mood-Tags",
-        "note": "nur Kategorie „Mood“"
+        "status": "full",
+        "use": "Mood-Tags und Tags aller Kategorien übernehmen; Stimmung zurückschreiben"
       },
       {
         "id": "track",
         "method": "GET",
         "path": "/track",
         "label": "Einen Titel",
-        "status": "none",
+        "status": "partial",
         "params": [
           {
             "name": "id",
             "default": "",
             "required": true
           }
-        ]
+        ],
+        "use": "Nach Lexicon übertragen: Werte vor der Änderung fürs Journal"
       },
       {
         "id": "search-tracks",
         "method": "GET",
         "path": "/search/tracks",
         "label": "Titel suchen",
-        "status": "none",
-        "note": "z. B. filter[artist]=…&filter[title]=…",
+        "status": "full",
+        "note": "filter[location], filter[artist], filter[title], filter[id]",
         "params": [
           {
             "name": "filter[artist]",
@@ -78,99 +78,115 @@
             "default": "",
             "label": "filter[title]"
           }
-        ]
+        ],
+        "use": "Zuordnung über Pfad bzw. Künstler + Titel, Titel zu IDs, Testabfrage, Vorbereiten-Erkennung"
       },
       {
         "id": "tracks-selected",
         "method": "GET",
         "path": "/tracks/selected",
         "label": "In Lexicon markierte Titel",
-        "status": "none"
+        "status": "full",
+        "use": "Aus Lexicon öffnen: markierte Titel"
       },
       {
         "id": "playlists",
         "method": "GET",
         "path": "/playlists",
         "label": "Alle Playlists (Baum)",
-        "status": "none"
+        "status": "full",
+        "use": "Aus Lexicon öffnen: Playlist über Namen/Pfad; Playlist „TagStudio Neu“ finden"
       },
       {
         "id": "playlist",
         "method": "GET",
         "path": "/playlist",
         "label": "Eine Playlist (ID)",
-        "status": "none",
+        "status": "full",
         "params": [
           {
             "name": "id",
             "default": "",
             "required": true
           }
-        ]
+        ],
+        "use": "Aus Lexicon öffnen: Titel einer Playlist (auch Ordner, Smartlist)"
       },
       {
         "id": "playlist-by-path",
         "method": "GET",
         "path": "/playlist-by-path",
         "label": "Eine Playlist (Pfad)",
-        "status": "none"
+        "status": "none",
+        "note": "Pfadsuche erledigt TagStudio über den Baum aus /playlists"
       },
       {
         "id": "playlists-selected",
         "method": "GET",
         "path": "/playlists/selected",
         "label": "In Lexicon markierte Playlists",
-        "status": "none"
+        "status": "full",
+        "use": "Aus Lexicon öffnen: markierte Playlist"
       },
       {
         "id": "playing",
         "method": "GET",
         "path": "/playing",
         "label": "Aktuell gespielter Titel",
-        "status": "none"
+        "status": "none",
+        "note": "geplant"
       },
       {
         "id": "queue",
         "method": "GET",
         "path": "/queue",
         "label": "Warteschlange",
-        "status": "none"
+        "status": "none",
+        "note": "geplant"
       },
       {
         "id": "track-update",
         "method": "PATCH",
         "path": "/track",
         "label": "Titel ändern",
-        "status": "none",
-        "note": "TagStudio ändert nichts in Lexicon"
+        "status": "partial",
+        "note": "nur mit Hauptschalter",
+        "use": "Nach Lexicon übertragen: Titel, Künstler, Album, Genre, BPM, Tonart, Bewertung, Energie, Tanzbarkeit, Fröhlichkeit, Mood-Tags; Rückgängig"
       },
       {
         "id": "track-location",
         "method": "PATCH",
         "path": "/track/location",
         "label": "Speicherort eines Titels ändern",
-        "status": "none"
+        "status": "full",
+        "use": "Pfade nachführen nach Umbenennen, Archivieren, Zurückholen; Rückgängig",
+        "note": "nur mit Hauptschalter"
       },
       {
         "id": "tracks-add",
         "method": "POST",
         "path": "/tracks",
         "label": "Titel hinzufügen",
-        "status": "none"
+        "status": "full",
+        "use": "Neue Bibliothekstitel (Vorbereiten) aufnehmen",
+        "note": "nur mit Hauptschalter"
       },
       {
         "id": "tracks-delete",
         "method": "DELETE",
         "path": "/tracks",
         "label": "Titel löschen",
-        "status": "none"
+        "status": "none",
+        "note": "bewusst nicht – TagStudio löscht nichts in Lexicon"
       },
       {
         "id": "playlist-create",
         "method": "POST",
         "path": "/playlist",
         "label": "Playlist anlegen",
-        "status": "none"
+        "status": "partial",
+        "use": "DJ-Set als Playlist, Playlist für neue Titel",
+        "note": "nur normale Playlists"
       },
       {
         "id": "playlist-update",
@@ -184,28 +200,32 @@
         "method": "PATCH",
         "path": "/playlist-tracks",
         "label": "Titel zu Playlist hinzufügen",
-        "status": "none"
+        "status": "full",
+        "use": "DJ-Set als Playlist, neue Titel in Playlist"
       },
       {
         "id": "playlist-tracks-remove",
         "method": "DELETE",
         "path": "/playlist-tracks",
         "label": "Titel aus Playlist entfernen",
-        "status": "none"
+        "status": "none",
+        "note": "bewusst nicht"
       },
       {
         "id": "playlists-delete",
         "method": "DELETE",
         "path": "/playlists",
         "label": "Playlists löschen",
-        "status": "none"
+        "status": "none",
+        "note": "bewusst nicht"
       },
       {
         "id": "tag-create",
         "method": "POST",
         "path": "/tag",
         "label": "Custom Tag anlegen",
-        "status": "none"
+        "status": "partial",
+        "use": "Fehlende Mood-Tags anlegen"
       },
       {
         "id": "tag-update",
@@ -219,7 +239,8 @@
         "method": "DELETE",
         "path": "/tag",
         "label": "Custom Tag löschen",
-        "status": "none"
+        "status": "none",
+        "note": "bewusst nicht"
       },
       {
         "id": "tag-category-create",
@@ -240,14 +261,17 @@
         "method": "DELETE",
         "path": "/tag-category",
         "label": "Tag-Kategorie löschen",
-        "status": "none"
+        "status": "none",
+        "note": "bewusst nicht"
       },
       {
         "id": "control",
         "method": "POST",
         "path": "/control",
         "label": "Lexicon-Befehle ausführen",
-        "status": "none"
+        "status": "partial",
+        "use": "Analyse neuer Titel (AudioAnalyzer_Analyze)",
+        "note": "nur Analyse – keine Oberflächen- oder Player-Steuerung"
       }
     ]
   }

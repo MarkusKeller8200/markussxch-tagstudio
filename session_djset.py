@@ -142,6 +142,33 @@ class DjSetMixin:
             st["message"] = f"{added} Titel hinzugefügt." if added else "Keine neuen Titel (schon im Set)."
             return st
 
+    def dj_add_paths(self, paths, new=False, name="") -> dict:
+        """#238: Titel über ihre Pfade hinzufügen (Reihenfolge bleibt), z. B. aus einer Lexicon-Playlist.
+        new=True: zuerst ein neues, leeres Set (das bisherige lässt sich mit „Rückgängig“ zurückholen)."""
+        with self.lock:
+            d = self._dj()
+            if new:
+                d["prev"] = [dict(x) for x in d["items"]]
+                d["items"], d["before"] = [], None
+                self.cfg["djset_name"] = ""
+                core.save_config({"djset_name": ""})
+            have = {_nk(x["path"]) for x in d["items"]}
+            added = 0
+            for p in paths or []:
+                if not isinstance(p, str) or not p or _nk(p) in have:
+                    continue
+                have.add(_nk(p))
+                d["items"].append({"path": p, "lock": False})
+                added += 1
+            if added and not new:
+                d["prev"] = None
+                d["before"] = None
+            self._dj_save()
+            st = self.dj_state()
+            st["message"] = (f"{added} Titel" + (f" aus „{name}“" if name else "") + " ins DJ-Set übernommen.") if added \
+                else "Keine neuen Titel (schon im Set)."
+            return st
+
     def dj_remove(self, paths) -> dict:
         with self.lock:
             d = self._dj()

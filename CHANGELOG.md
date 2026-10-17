@@ -15,6 +15,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Plugins aus dem neuesten Release im gewählten Kanal – Updates, neue und installierte, mit Kategoriefilter (#236); „Aktualisieren“ bzw. „Installieren“ lädt nur
   dieses Plugin (mit Prüfsumme) – ohne ganzes App-Update. „Mehr … → Zurück auf eingebaute Version“ macht es rückgängig.
   Jedes Release enthält dafür je Plugin ein ZIP und den Katalog `plugins.json`; `plugin.json` kennt neu `min_app`.
+- **Lexicon ausgebaut (#237–#239):** „Lexicon übernehmen“ sucht gezielt (schneller bei grossen Bibliotheken) und
+  übernimmt auf Wunsch auch Bewertung, Popularität, Farbe und Tags aller Kategorien; Beatgrid und Cue-Punkte werden
+  mit der Datei verglichen. Neu „Aus Lexicon öffnen …“: markierte Titel oder eine Playlist in Tagger oder DJ-Set laden;
+  Vorbereiten erkennt den Schritt „Lexicon“. Zurückschreiben (standardmässig aus, nur auf diesem Rechner): Pfade
+  nachführen, neue Bibliothekstitel aufnehmen (Playlist, Analyse), Tags mit Vorschau übertragen, DJ-Set als Playlist,
+  „Letzte Änderung rückgängig“. TagStudio löscht nie etwas in Lexicon.
 - **Eigene Übersetzungen einreichen (#232):** Hilfe › Melden › „Übersetzung einreichen“ (oder „Eigene Texte einreichen …“
   in den Spracheinstellungen) füllt die selbst angepassten Texte einer Sprache ins GitHub-Formular – nur Texte, die von
   der mitgelieferten Fassung abweichen. Nach Prüfung kommen sie in die mitgelieferten Übersetzungen.

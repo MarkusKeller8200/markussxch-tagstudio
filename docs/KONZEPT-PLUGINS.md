@@ -36,7 +36,7 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 | `musicbrainz`, `acoustid`, `deezer`, `itunes`, `discogs`, `lastfm` | Dienst-Plugins (#204): je ein Online-Dienst mit Kandidatensuche, Details, Verbindungstest, Testabfrage; Schlüssel (Discogs, Last.fm, AcoustID + fpcalc) verschlüsselt im eigenen Datenordner |
 | `mik` | Werte aus Mixed-In-Key-Stellen übernehmen (Tonart, BPM, Energie) |
 | `beatunes` | beaTunes-Stimmungswerte als Audio-Merkmale |
-| `lexicon` | Werte über die Lexicon Local API |
+| `lexicon` | Lexicon Local API: übernehmen, öffnen, zurückschreiben (#146, #237–#239) |
 | `loudness` | LUFS, True Peak, Lautheitsbereich, Clipping; angeglichene Kopie |
 | `lyrics` | Liedtexte von LRCLIB (#183): `USLT`, `SYLT`, optional `.lrc` neben dem MP3 |
 
@@ -144,6 +144,26 @@ installieren – ohne ganzes App-Release.
 - **Umsetzung:** `plugin_store.py`; Session `start_plugin_catalog`, `start_plugin_store_install`, `plugin_store_revert`;
   `Plugin.info()` liefert `store`, `builtin_version`, `min_app`; `web/plugins.js` (`pluginStore*`, `plStoreBox`).
 
+### Lexicon-Ausbau (#237–#239, Entscheid User 17.10.2026: alle drei in 4.8.0)
+
+Grundlage: offizielle OpenAPI-Beschreibung der Lexicon Local API 1.0.0 (27 Endpunkte). Client
+`plugins/lexicon/lexapi.py` (Abfrage-Kodierung wie in der Beschreibung, Fehlercode 2 → kurz warten und wiederholen,
+nie über einen Proxy, `is_local`).
+
+- **#237 Übernehmen:** bis 150 Dateien gezielt `/search/tracks` mit `filter[location]` (sonst einmal die Bibliothek mit
+  `fields`), neu Bewertung (`kind="rating"`), Popularität, Farbe, Tags aller Kategorien; Beatgrid (`tempomarkers`) über
+  `gridstatus.compare(…, "Lexicon", "Serato"|"Analyse")` und Cue-Punkte nur als Hinweis; Status Incoming/analysiert.
+- **#238 Öffnen:** markierte Titel (`/tracks/selected`), markierte Playlist bzw. Name/Pfad (Baum aus `/playlists`,
+  Inhalt `/playlist` – Ordner und Smartlists liefert Lexicon mit) → Ergebnis `open` → `start_tag_load_files` bzw.
+  `dj_add_paths`. Vorbereiten: `detect_files` für Status-Schritte (Rahmen `Manager.detect`).
+- **#239 Zurückschreiben:** Hauptschalter + Unterschalter in den Einstellungen (Standard aus), nur an localhost.
+  Rahmen `Manager.emit` mit `on_event` (`files_moved` aus Umbenennen/Archiv/Zurückholen, `files_added` aus
+  Vorbereiten › Übernahme), Vorschau `kind="remote"` → `apply_remote`. Pfade (`PATCH /track/location`), neue Titel
+  (`POST /tracks`, Playlist, `AudioAnalyzer_Analyze`), Tags (`PATCH /track`), Mood-Tags (`POST /tag`), DJ-Set als
+  Playlist. Journal `Plugin-Daten/lexicon/journal.json`; „Rückgängig“ setzt Werte und Pfade zurück. **Nie** löschen
+  (keine DELETE-Endpunkte), keine Oberflächen-/Player-Steuerung über `/control`.
+- Offen: „Läuft gerade“/Warteschlange (`/playing`, `/queue`) – im Endpunkt-Stand als „geplant“.
+
 ## 5. Entscheide
 
 - Zugangsdaten nie im Klartext: Passwörter werden nicht gespeichert, Tokens/Schlüssel nur verschlüsselt, nie
@@ -159,6 +179,6 @@ installieren – ohne ganzes App-Release.
 
 ## 7. Tests
 
-`tests/test_plugins.py`, `test_plugin_store.py` (#235), `test_services.py`, `test_jobs.py`, `test_beatport.py`, `test_beatport_purchases.py`, `test_online.py`
+`tests/test_plugins.py`, `test_plugin_store.py` (#235), `test_lexicon.py` + `fake_lexicon.py` (#237–#239), `test_services.py`, `test_jobs.py`, `test_beatport.py`, `test_beatport_purchases.py`, `test_online.py`
 (`test_online_live.py` nur im Workflow), `test_mik.py`, `test_importers.py`, `test_loudness.py`, `test_serato.py`;
 Stems-Test im Workflow „Stems-Test“.

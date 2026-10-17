@@ -1,10 +1,7 @@
 """Importer mit Abgleich: beaTunes (#145) und Lexicon (#146), gemeinsamer Abgleich in importsync."""
 import json
 import os
-import threading
 import time
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse, parse_qs
 
 from helpers import write_mp3, text, txxx
 from test_tagger_tools import Base
@@ -100,35 +97,9 @@ class TestBeatunes(_Run):
         self.assertTrue(ratings.get_like(a))
 
 
-class _Lexicon(BaseHTTPRequestHandler):
-    tracks = []
-    tags = {"categories": [{"id": 1, "label": "Genre"}, {"id": 2, "label": "Mood"}],
-            "tags": [{"id": 1, "categoryId": 1, "label": "House"}, {"id": 5, "categoryId": 2, "label": "Dark"},
-                     {"id": 6, "categoryId": 2, "label": "Driving"}]}
-
-    def log_message(self, *a):
-        pass
-
-    def do_GET(self):
-        u = urlparse(self.path)
-        q = parse_qs(u.query)
-        if u.path == "/v1/tracks":
-            lim, off = int(q.get("limit", ["100"])[0]), int(q.get("offset", ["0"])[0])
-            if lim > 1000:
-                body, code = {"message": "'limit' must be less than or equal to 1000", "errorCode": 5}, 400
-            else:
-                body, code = {"data": {"total": len(self.tracks), "limit": lim, "offset": off,
-                                       "tracks": self.tracks[off:off + min(lim, 2)]}}, 200   # kleine Seiten testen
-        elif u.path == "/v1/tags":
-            body, code = {"data": self.tags}, 200
-        else:
-            body, code = {"message": f"Endpoint {u.path} does not exist", "errorCode": 4}, 400
-        raw = json.dumps(body).encode()
-        self.send_response(code)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(raw)))
-        self.end_headers()
-        self.wfile.write(raw)
+TAGS = {"categories": [{"id": 1, "label": "Genre"}, {"id": 2, "label": "Mood"}],
+        "tags": [{"id": 1, "categoryId": 1, "label": "House"}, {"id": 5, "categoryId": 2, "label": "Dark"},
+                 {"id": 6, "categoryId": 2, "label": "Driving"}]}
 
 
 class TestLexicon(_Run):
@@ -139,18 +110,17 @@ class TestLexicon(_Run):
                                                   txxx("ENERGY", "60")], audio_seed=42)
         write_mp3(os.path.join(self.B, "x.mp3"), [text("TIT2", "Fehlt"), text("TPE1", "Niemand")], audio_seed=43)
         self.load()
+        import fake_lexicon
         p = self.f("p.mp3").path
-        _Lexicon.tracks = [
-            {"id": 1, "location": p.replace("\\", "/"), "locationUnique": p.replace("\\", "/").lower(), "artist": "Mara Lind",
+        self.lex = fake_lexicon.State([
+            {"id": 1, "location": p, "locationUnique": p.replace("\\", "/").lower(), "artist": "Mara Lind",
              "title": "Pfad", "danceability": 7, "energy": 6, "happiness": 0, "tags": [1, 5, 6], "archived": 0},
             {"id": 2, "location": "Z:/anderswo/n.mp3", "locationUnique": "z:/anderswo/n.mp3", "artist": "Kai Ost",
              "title": "Über Namen", "danceability": 0, "energy": 6, "happiness": 3, "tags": [], "archived": 0},
             {"id": 3, "location": "Z:/archiv/x.mp3", "locationUnique": "z:/archiv/x.mp3", "artist": "Niemand",
              "title": "Fehlt", "danceability": 5, "energy": 5, "happiness": 5, "tags": [], "archived": 1},
-        ]
-        self.srv = ThreadingHTTPServer(("127.0.0.1", 0), _Lexicon)
-        threading.Thread(target=self.srv.serve_forever, daemon=True).start()
-        self.url = f"http://127.0.0.1:{self.srv.server_address[1]}"
+        ], TAGS)
+        self.srv, self.url = fake_lexicon.start(self.lex)
 
     def tearDown(self):
         if self.srv:
@@ -164,6 +134,8 @@ class TestLexicon(_Run):
         mod = plugins.Manager({}).get("lexicon").module
 
         class Ctx:
+            data_dir = self.B
+
             def __init__(self, url):
                 self._session = type("S", (), {"cfg": {"plugin_options": {"lexicon": {"import": {"url": url}}}}})()
                 self.lines = []
@@ -175,13 +147,13 @@ class TestLexicon(_Run):
                 self.lines.append(t)
         r = mod.run("test", Ctx(self.url), [], {})
         self.assertIn("erreichbar unter", r["message"])
-        self.assertIn("3 Titel", r["message"])
+        self.assertIn("2 Titel", r["message"])                                # ohne archivierte
         r = mod.run("test", Ctx("http://127.0.0.1:9"), [], {})                # Port ohne Dienst
         self.assertIn("nicht erreichbar", r["message"])
 
     def test_import(self):
         res = self.run_plugin("lexicon", url=self.url, happiness=True, mood=True)
-        self.assertRegex(res["message"], r"^2 von \d+ Titel\(n\) in Lexicon gefunden \(3 Titel")
+        self.assertRegex(res["message"], r"^2 von \d+ Titel\(n\) in Lexicon gefunden; ")
         by = self.by(res)
         self.assertEqual(by[("p.mp3", "Danceability (DANCEABILITY)")]["new"], "70")
         self.assertEqual(by[("p.mp3", "Energy (ENERGY)")]["new"], "60")
@@ -191,6 +163,9 @@ class TestLexicon(_Run):
         self.assertNotIn(("n.mp3", "Energy (ENERGY)"), by)                     # schon gleich
         self.assertIn("Künstler + Titel", by[("n.mp3", "Happiness (HAPPINESS)")]["note"])
         self.assertFalse([k for k in by if k[0] == "x.mp3"])                  # archiviert
+        # #237: gezielt gesucht statt ganze Bibliothek
+        self.assertFalse([c for c in self.lex.calls if c[1] == "/v1/tracks"])
+        self.assertTrue([c for c in self.lex.calls if c[1] == "/v1/search/tracks"])
         self.apply_checked(res)
         n = self.f("n.mp3")
         # gleicher Wert (ENERGY) wird beim Übernehmen mitgemerkt

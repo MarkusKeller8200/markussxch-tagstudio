@@ -151,6 +151,9 @@ TagStudio remembers the last used values per action.
 | `ctx.edit_tags(files, fn, label)` | change tags – with undo, saved as usual with “Save” |
 | `ctx.propose(f, key, new, label, note=, checked=)` | **suggest** a change: after the run a preview with tick boxes appears, nothing is taken over before confirmation (with undo). `kind="cover", data=bytes` for covers (without `data` = info row only). `hint=` hint for the field, `show_same=True` also shows unchanged values (grey, not selectable) |
 | `importsync.propose(ctx, f, source, name, feature, value)` | suggest an audio feature (0–100) from another source **with matching**: empty field or file unchanged since the last takeover → ticked, otherwise unticked (“ask”). The taken-over value is remembered in `TXXX:TAGSTUDIO`. Examples: plugins *beaTunes* and *Lexicon* |
+| `ctx.propose(…, kind="rating")` | suggest a rating of 0–5 stars (`new` = number of stars, POPM) |
+| `ctx.propose(…, kind="remote", old=…, data=…)` | suggest a change **outside the file** (e.g. in Lexicon): `old` = current value there, `data` = details for the plugin. After confirmation TagStudio calls the plugin's `apply_remote(ctx, items)` (returns `{"message", "errors"}`) |
+| `ctx.djset()` | current DJ set: `{"name", "paths"}` (read only) |
 | `ctx.data_dir` | the plugin's own data folder in the current profile (sign-ins, results) |
 | `ctx.shared_dir` | shared folder for large data (models, programs) – the same for all profiles |
 | `ctx.run_env(args, on_line)` | start the Python of the own environment (only with `env`) |
@@ -160,8 +163,19 @@ Logs (installation, errors with details) are in `~/TagStudio/Logs` – “Logs�
 `files` are the loaded `MP3File` objects (`f.path`, `f.text("TIT2")`, `f.set_text(key, value)`, `f.items`). Only
 change tags via `ctx.edit_tags` – then undo, display and saving work.
 
-Return value of `run`: a dict with `message` (required), optionally `log` (list) and `outputs` (list). Exceptions are
-shown as an error message.
+Return value of `run`: a dict with `message` (required), optionally `log` (list) and `outputs` (list). With
+`"open": {"target": "tagger" | "djset" | "djadd", "files": [paths], "label": "…"}` TagStudio loads the files into the
+tagger and optionally as a new DJ set or additionally into the DJ set (order kept). Exceptions are shown as an error
+message.
+
+More functions a plugin can offer (all optional):
+
+- `on_event(ctx, event, data)` – TagStudio reports `"files_moved"` (`[{"old", "new"}]`: renamed, archived, restored)
+  and `"files_added"` (`[path]`: newly taken into the library, Prepare). Runs in the background, errors only go to the
+  log.
+- `detect_files(ctx, paths)` – Prepare: a status step whose “detection” is the plugin id treats these files as done
+  (example: Lexicon – the file is in Lexicon).
+- `apply_remote(ctx, items)` – see `kind="remote"` above.
 
 ## Built in: Stems
 
@@ -201,3 +215,27 @@ way as the beets plugin “beatport4”. Unofficial: Beatport can change access 
 
 Matching: first via a stored Beatport ID (`TXXX:BEATPORT_TRACK_ID`), then ISRC, otherwise a search for artist + title
 + mix name; title, artist, length and mix name are rated. At most ~3 requests per second.
+
+## Built in: Lexicon
+
+Connects TagStudio with [Lexicon DJ](https://www.lexicondj.com) through its Local API (in Lexicon: Settings ›
+Integrations › switch on Local API; default `http://localhost:48624`).
+
+- **Take over from Lexicon …** (tagger): danceability, energy, happiness (1–10 → 10–100) with matching; optionally
+  rating (POPM), popularity (`TXXX:POPULARITY`), color (`TXXX:LEXICON_COLOR`), mood tags (mood) and tags of the other
+  categories (grouping, comment or `TXXX:LEXICON_TAGS`). Matched directly by path, otherwise by artist + title. Beatgrid
+  and cue points from Lexicon are compared with the file (note in the preview).
+- **Open from Lexicon …** (tagger, no selection needed): load the tracks selected in Lexicon, the selected playlist or a
+  playlist by its name (`Sets/Friday`) into the tagger or take them over as a DJ set. Folders and smartlists work too.
+- **Prepare:** the status step “Lexicon” detects tracks that are in Lexicon.
+- **Writing back** (Plugins › Lexicon › Settings, off by default):
+  - Update paths when TagStudio renames, archives or restores files.
+  - Add tracks newly taken into the library, put them into a playlist (default “TagStudio Neu”) and have Lexicon
+    analyse them.
+  - **Send to Lexicon …** (tagger): title, artist, album, genre, BPM, key, rating, energy etc. and mood as mood tags –
+    with a preview, only Lexicon is changed.
+  - **DJ set as Lexicon playlist …** (More …).
+  - **Undo last change in Lexicon …** restores values and paths.
+
+  The Lexicon API has no sign-in: TagStudio only writes to Lexicon on this computer (localhost) and never deletes
+  anything. Every change is recorded in the journal (`Plugin-Daten/lexicon/journal.json`).

@@ -115,7 +115,7 @@ def restore(archive_dir, ids) -> dict:
     log = os.path.join(archive_dir, LOG)
     with open(log, encoding="utf-8-sig", newline="") as fh:
         rows = list(csv.reader(fh, delimiter=";"))
-    done, errors = [], []
+    done, errors, moved = [], [], []
     for i in ids:
         if not isinstance(i, int) or not 0 <= i < len(rows) - 1:
             continue
@@ -134,6 +134,7 @@ def restore(archive_dir, ids) -> dict:
             r[4] = time.strftime("%Y-%m-%d %H:%M:%S")
             rows[i + 1] = r
             done.append(r[1])
+            moved.append({"old": r[2], "new": r[1]})
         except OSError as ex:
             errors.append(f"{os.path.basename(r[2])}: {ex}")
     if done:
@@ -141,4 +142,4 @@ def restore(archive_dir, ids) -> dict:
         with open(tmp, "w", encoding="utf-8-sig", newline="") as fh:
             csv.writer(fh, delimiter=";").writerows(rows)
         os.replace(tmp, log)
-    return {"restored": done, "errors": errors}
+    return {"restored": done, "errors": errors, "moved": moved}

@@ -24,26 +24,27 @@ def _de(x: float, nd: int = 1) -> str:
     return f"{x:.{nd}f}".replace(".", ",")
 
 
-def compare(serato_grid: dict, own: dict) -> tuple[bool, str]:
+def compare(serato_grid: dict, own: dict, a: str = "Serato", b: str = "Analyse") -> tuple[bool, str]:
     """#223: Serato-Raster mit eigener Analyse vergleichen → (stimmt überein, Hinweis). Nur der erste Serato-Marker;
-    bei Tempowechseln mit Hinweis. Die eigene Analyse kennt nur konstantes Tempo und keinen Taktanfang."""
+    bei Tempowechseln mit Hinweis. Die eigene Analyse kennt nur konstantes Tempo und keinen Taktanfang.
+    a/b: Namen der beiden Quellen im Hinweis (#237: z. B. „Lexicon“ und „Serato“)."""
     s_bpm, s_first = float(serato_grid["bpm"]), float(serato_grid.get("first") or 0)
     o_bpm, o_first = float(own["bpm"]), float(own.get("first") or 0)
     if s_bpm <= 0 or o_bpm <= 0:
         return False, "kein Vergleich möglich"
     multi = len(serato_grid.get("markers") or []) > 1
-    tail = " (Serato mit Tempowechsel – nur der Anfang verglichen)" if multi else ""
+    tail = f" ({a} mit Tempowechsel – nur der Anfang verglichen)" if multi else ""
     r = o_bpm / s_bpm
     if abs(r - 2) <= 2 * TEMPO_TOL or abs(r - 0.5) <= 0.5 * TEMPO_TOL:
-        return False, f"Serato {_de(s_bpm)} BPM, Analyse {_de(o_bpm)} BPM – {'halbes' if r > 1 else 'doppeltes'} Tempo in Serato{tail}"
+        return False, f"{a} {_de(s_bpm)} BPM, {b} {_de(o_bpm)} BPM – {'halbes' if r > 1 else 'doppeltes'} Tempo in {a}{tail}"
     if abs(r - 1) > TEMPO_TOL:
-        return False, f"Tempo weicht ab: Serato {_de(s_bpm, 2)} BPM, Analyse {_de(o_bpm, 2)} BPM{tail}"
+        return False, f"Tempo weicht ab: {a} {_de(s_bpm, 2)} BPM, {b} {_de(o_bpm, 2)} BPM{tail}"
     period = 60.0 / s_bpm
     d = (o_first - s_first) % period
     d = min(d, period - d)
     if d > OFFSET_TOL:
         return False, f"Tempo gleich ({_de(s_bpm, 2)} BPM), erster Schlag {round(d * 1000)} ms versetzt{tail}"
-    return True, f"Serato und Analyse stimmen überein ({_de(s_bpm, 2)} BPM, Abstand {round(d * 1000)} ms){tail}"
+    return True, f"{a} und {b} stimmen überein ({_de(s_bpm, 2)} BPM, Abstand {round(d * 1000)} ms){tail}"
 
 
 def own_beat(f) -> dict | None:

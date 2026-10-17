@@ -711,6 +711,43 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("window.__calls.some((c) => c[0] === 'plugin_store_revert' && c[1] === 'lexicon')"))
         pg.wait_for_selector('.pl-card[data-pid="lexicon"] .plg-tag:not(.cat):has-text("eingebaut")')
 
+    def test_lexicon_open_and_remote(self):
+        """#238/#239: Ergebnis „öffnen“ lädt die Dateien und legt sie als DJ-Set an; Vorschau zeigt Änderungen in Lexicon."""
+        pg = self.pg
+        self.calm()
+        a, b = os.path.join(self.lib, "03 Ton 440.mp3"), os.path.join(self.lib, "01 Ton 220.mp3")
+        pg.evaluate("""([a, b]) => { const orig = call; window.__fake = null; window.__applied = null;
+          window.call = (n, ...args) => {
+            if (n === "start_plugin_action" && args[1] === "open") { window.__fake = { message: "„Freitag“: 2 Titel.", log: [], outputs: [],
+                open: { target: "djset", files: [a, b], label: "Freitag" } }; return Promise.resolve({ ok: true }); }
+            if (n === "start_plugin_action" && args[1] === "send") { window.__fake = { message: "1 Wert weicht ab.", log: [], outputs: [],
+                proposals_token: "t1", proposals: [{ id: 0, name: "x.mp3", group: "x.mp3", gkey: "x", folder: "", label: "Lexicon: Genre",
+                  old: "Techno", new: "House", note: "geändert wird in Lexicon", checked: true, kind: "remote", hint: "wird in Lexicon geändert", same: false }] };
+              return Promise.resolve({ ok: true }); }
+            if (n === "task_status" && window.__fake) { const r = window.__fake; window.__fake = null; return Promise.resolve({ done: true, running: false, result: r }); }
+            if (n === "plugin_apply") { window.__applied = args; return Promise.resolve({ ok: true, message: "1 Titel in Lexicon geändert. 1 Fehler.", errors: ["Titel 2: Track does not exist"] }); }
+            return orig(n, ...args); }; }""", [a, b])
+        pg.evaluate("() => { pluginRun('lexicon', 'open'); }")
+        pg.wait_for_selector('#mBtns button:has-text("Öffnen")')
+        self.assertIn("Lexicon", pg.inner_text("#mBody"))
+        pg.click('#mBtns button:has-text("Öffnen")')
+        pg.wait_for_selector("#moduleDjset:not([hidden])")
+        self.assertTrue(self.until("DJ.st && DJ.st.items.length === 2"))
+        self.assertEqual(pg.evaluate("DJ.st.items.map((r) => r.path)"), [a, b])          # Reihenfolge der Playlist
+        self.assertTrue(self.until("TG.rows && TG.rows.length === 2"))                    # Tagger hat genau diese Dateien
+        # Vorschau mit Änderung in Lexicon (nicht in der Datei)
+        pg.evaluate("() => { pluginRun('lexicon', 'send'); }")
+        pg.wait_for_selector('#mBtns button:has-text("Vergleichen")')
+        pg.click('#mBtns button:has-text("Vergleichen")')
+        pg.wait_for_selector(".pl-prev")
+        txt = pg.inner_text(".pl-prev")
+        self.assertIn("Lexicon: Genre", txt)
+        self.assertIn("Techno", txt)
+        self.assertIn("wird in Lexicon geändert", txt)
+        pg.click('#mBtns button.primary')
+        self.assertTrue(self.until("window.__applied && window.__applied[0] === 't1'"))
+        pg.wait_for_selector("#dlgText:has-text('Track does not exist')")
+
     def test_feedback_translation(self):
         """#232: eigene Übersetzungen einreichen – Texte eingefüllt, Sprache wählbar, Vorschau, zu viele Texte → Kopieren."""
         pg = self.pg

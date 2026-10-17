@@ -19,9 +19,14 @@ class FakeLexicon(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         u = urllib.parse.urlparse(self.path)
         q = dict(urllib.parse.parse_qsl(u.query))
-        if u.path == "/v1/tracks":
-            tracks = [{"id": 1, "artist": "Mara Lind", "title": "Nordlicht", "energy": 7, "danceability": 8, "location": "C:/M/n.mp3"},
-                      {"id": 2, "artist": "Other", "title": "Kaltes Glas", "energy": 0, "danceability": 3}]
+        tracks = [{"id": 1, "artist": "Mara Lind", "title": "Nordlicht", "energy": 7, "danceability": 8, "location": "C:/M/n.mp3"},
+                  {"id": 2, "artist": "Other", "title": "Kaltes Glas", "energy": 0, "danceability": 3}]
+        if u.path == "/v1/search/tracks":                    # #237: Testabfrage sucht gezielt (filter[artist], filter[title])
+            filt = {k[7:-1]: v.lower() for k, v in q.items() if k.startswith("filter[")}
+            hits = [t for t in tracks if all(v in str(t.get(k, "")).lower() for k, v in filt.items())]
+            body = json.dumps({"data": {"tracks": hits, "total": len(hits)}}).encode()
+            self.send_response(200)
+        elif u.path == "/v1/tracks":
             off, lim = int(q.get("offset", 0)), int(q.get("limit", 1000))
             body = json.dumps({"data": {"tracks": tracks[off:off + lim], "total": len(tracks)}}).encode()
             self.send_response(200)
@@ -129,7 +134,9 @@ class TestServicePlugins(Base):
         for name in ("LRCLIB", "Lexicon Local API", "Beatport API v4", "GitHub Releases (Updates)"):
             self.assertIn(name, by)
             self.assertTrue(by[name]["docs"].startswith("https://"), name)
-        self.assertEqual(by["Lexicon Local API"]["counts"]["none"] + by["Lexicon Local API"]["counts"]["partial"], 27)
+        c = by["Lexicon Local API"]["counts"]
+        self.assertEqual(sum(c[k] for k in ("full", "partial", "none")), 27)       # alle Endpunkte der Local API 1.0.0
+        self.assertGreaterEqual(c["full"], 9)                                      # #237–#239
         self.assertIsNone(by["GitHub Releases (Updates)"]["plugin"])               # Kern, kein Plugin
         info = {p["id"]: p for p in self.s.plugins_list()["plugins"]}
         self.assertEqual(info["lyrics"]["service"]["docs"], "https://lrclib.net/docs")
@@ -197,7 +204,7 @@ class TestServicePlugins(Base):
         res = self.wait()["result"]
         self.assertEqual([r["title"] for r in res["rows"]], ["Nordlicht"])
         self.assertIn("Energie 70", res["rows"][0]["extra"])
-        self.assertTrue(any("2 Titel gelesen" in ln for ln in res["log"]))
+        self.assertTrue(any("1 Treffer" in ln for ln in res["log"]), res["log"])
         self.s.start_service_test("lexicon", {})
         self.assertIn("mindestens", self.wait()["error"])
         # LRCLIB mit nachgebautem Dienst: gleiche Bewertung wie im Tagger (Remix höchstens unsicher)
