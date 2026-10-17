@@ -31,8 +31,12 @@ python -m unittest discover -s tests -v
 
 ## Richtlinien für Code
 
-- **Sprache:** Oberfläche, Meldungen, Kommentare und Dokumentation auf **Deutsch** (Schweizer Schreibweise ist ok).
+- **Sprache:** Oberfläche, Meldungen, Kommentare und Dokumentation auf **Deutsch** (Schweizer Schreibweise mit „ss“).
   Bezeichner im Code englisch.
+- **Übersetzungen:** TagStudio wird auf Deutsch, Englisch und Zürichdeutsch ausgeliefert. Neue oder geänderte
+  Oberflächentexte bekommen im selben Pull Request ihre Übersetzung in `web/i18n/<bereich>.json`
+  (`"Deutscher Text": ["English", "Züritüütsch"]`); `python3 tools/i18n_extract.py --plugins` zeigt fehlende Texte,
+  `tests/test_i18n.py` prüft es. Daten (Dateinamen, Tag-Werte) mit `translate="no"` kennzeichnen.
 - **Byte-genau:** TagStudio ändert nur, was der Benutzer ändert. Unbekannte Frames, Binärfelder und die
   Audiodaten bleiben unverändert – bitte mit einem Test absichern.
 - **Rückgängig:** Jede Änderung an Tags läuft über die Undo-Funktion der Sitzung (`undo.checkpoint` … `commit`)
