@@ -472,7 +472,7 @@ function srcHue(sid) { let h = 0; for (const c of String(sid)) h = (h * 31 + c.c
 function srcBadge(sid) {
   const o = srcInfo(sid);
   if (!o) return "";
-  const short = o.short || (o.kind === "plugin" ? "TagStudio" : o.name.length > 12 ? o.name.slice(0, 11) + "…" : o.name);
+  const short = o.short || (o.kind === "plugin" ? "TagStudio" : (typeof tr === "function" ? tr(o.name) : o.name).length > 12 ? (typeof tr === "function" ? tr(o.name) : o.name).slice(0, 11) + "…" : o.name);
   const own = o.hue !== null && o.hue !== undefined;         // #75: eigene Farbe
   const cls = own ? "" : o.kind === "plugin" ? " own" : o.kind === "id3" ? " id3" : o.kind === "unknown" ? " unk" : "";
   const what = o.kind === "id3" ? "ID3-Version" : "Herkunft";

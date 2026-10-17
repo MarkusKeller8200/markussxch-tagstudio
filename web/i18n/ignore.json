@@ -10,8 +10,10 @@
 "%track%",
 "%track% - %artist% - %title%",
 "%year%",
+"(Fenster offen lassen; Beenden mit Strg+C)",
 "(prefers-reduced-motion: reduce)",
 "99_Sicherung",
+"={n}, bpm:{n}-{n}{q}Dateien filtern{q}Text sucht in Datei, Titel, Künstler, Album, Genre. Zahlenfilter: bpm, Tonart nicht; Audio-Merkmale wie energy>={n}, dance",
 "APIC*",
 "AbortError",
 "AcoustID",
@@ -151,6 +153,7 @@
 "TagStudio",
 "TagStudio braucht Python {x}.{x} oder neuer (gefunden: {x}).",
 "TagStudio {x}",
+"Text sucht in Datei, Titel, Künstler, Album, Genre. Zahlenfilter: bpm, Tonart nicht; Audio-Merkmale wie energy>={n}, dance<{n}, energie:{n}-{n} (auch ≥ ≤ =",
 "Thank you very much for your work!",
 "Traktor",
 "Traktor Pro",
@@ -227,6 +230,8 @@
 "{x} von {x} · {x}",
 "{x}+Enter · {x}+S",
 "{x}+Y · {x}+Shift+Z",
+"{x}/discussions/new?category=show-and-tell&title={x}",
+"{x}/issues/new?title={x}",
 "· ZIP",
 "Übergang:"
 ]

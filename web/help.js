@@ -197,7 +197,7 @@ function helpCount(r) {
 }
 
 /** Kurzname einer Gruppe für die Filter-Chips („1. Titel, Album …“ → „1. Titel, Album …“ gekürzt) */
-function helpGroupShort(t) { return t.length > 34 ? t.slice(0, 32).replace(/[\s,]+\S*$/, "") + " …" : t; }
+function helpGroupShort(t) { t = typeof tr === "function" ? tr(t) : t; return t.length > 34 ? t.slice(0, 32).replace(/[\s,]+\S*$/, "") + " …" : t; }   // #157: erst übersetzen, dann kürzen
 
 /** Einheitliche Zeile für alle Gruppen (Analysewerte: Ablage als Tag, Parameter als Name). */
 function helpRowNorm(ch, r) {

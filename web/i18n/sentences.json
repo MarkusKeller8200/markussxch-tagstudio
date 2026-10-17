@@ -1,0 +1,462 @@
+{
+ "Update verfügbar ({x})": [
+  "Update available ({x})",
+  "Update verfüegbar ({x})"
+ ],
+ "Neue Version auf GitHub ({x}): {x} Änderung(en)": [
+  "New version on GitHub ({x}): {x} change(s)",
+  "Neui Version uf GitHub ({x}): {x} Änderig(e)"
+ ],
+ "Nach neuer Version suchen ({x})": [
+  "Check for a new version ({x})",
+  "Nach ere neue Version sueche ({x})"
+ ],
+ "Du hast die neueste {x} ({x}).": [
+  "You have the latest {x} ({x}).",
+  "Du häsch di neuscht {x} ({x})."
+ ],
+ "Profil: eigene Einstellungen und Daten ({x})": [
+  "Profile: own settings and data ({x})",
+  "Profil: eigeti Iistellige und Date ({x})"
+ ],
+ "Snapshot – schreibgeschützt; übernehmen nur in Richtung der echten Dateien": [
+  "Snapshot – read-only; take over only towards the real files",
+  "Snapshot – schriibgschützt; übernää nur Richtig vo de ächte Dateie"
+ ],
+ "Markierte nach rechts ({x})": [
+  "Marked to the right ({x})",
+  "Markierti nach rächts ({x})"
+ ],
+ "Markierte nach links ({x})": [
+  "Marked to the left ({x})",
+  "Markierti nach links ({x})"
+ ],
+ "XML-Editor ({x})": [
+  "XML editor ({x})",
+  "XML-Editor ({x})"
+ ],
+ "Binärfeld-Editor ({x})": [
+  "Binary field editor ({x})",
+  "Binärfäld-Editor ({x})"
+ ],
+ "Bearbeiten ({x})": [
+  "Edit ({x})",
+  "Bearbeite ({x})"
+ ],
+ "{q} fragt für alles hier neue Veröffentlichungen ab. Deezer braucht keine Anmeldung; Beatport nutzt die Anmeldung des Beatport-Plugins. Es wird nie etwas gekauft – nur gemerkt und verlinkt.": [
+  "{q} queries new releases for everything here. Deezer needs no sign-in; Beatport uses the sign-in of the Beatport plugin. Nothing is ever bought – only remembered and linked.",
+  "{q} fröget für alles da neui Veröffentlichige ab. Deezer bruucht kei Aamäldig; Beatport bruucht d Aamäldig vom Beatport-Plugin. Es wird nie öppis kauft – nur gmerkt und verlinkt."
+ ],
+ "Merkliste als Excel ({x})": [
+  "Watch list as Excel ({x})",
+  "Merklischte als Excel ({x})"
+ ],
+ "Gekaufte als Excel ({x})": [
+  "Bought as Excel ({x})",
+  "Kaufti als Excel ({x})"
+ ],
+ "{x}. Energie {x}{x}{x}": [
+  "{x}. Energy {x}{x}{x}",
+  "{x}. Energii {x}{x}{x}"
+ ],
+ "Die gespeicherte Liste {q} entfernen? Die Musikdateien bleiben unverändert; das aktuelle Set bleibt, wie es ist.": [
+  "Remove the saved list {q}? The music files stay unchanged; the current set stays as it is.",
+  "Di gspicheret Lischte {q} entfärne? D Musigdateie bliibed unveränderet; s aktuell Set bliibt, wie s isch."
+ ],
+ "Schreibt das Feld {q} (TRCK) in der Reihenfolge des Sets. Nicht geladene Titel werden übersprungen. Rückgängig mit Strg+Z; gespeichert wird wie gewohnt mit {q}.": [
+  "Writes the field {q} (TRCK) in the order of the set. Tracks not loaded are skipped. Undo with Ctrl+Z; saved as usual with {q}.",
+  "Schriibt s Fäld {q} (TRCK) i de Reiefolg vom Set. Nöd glaadeni Titel werded übersprunge. Rückgängig mit Strg+Z; gspicheret wird wie gwohnt mit {q}."
+ ],
+ "TagStudio ist freie Software unter der GNU General Public License v3 (oder neuer). Hier stehen alle fremden Bibliotheken, Werkzeuge, Online-Dienste und Vorlagen mit Lizenz und Quelle. Die Liste wird monatlich automatisch auf neue Versionen und geänderte Lizenzen geprüft; {q} zeigt den zuletzt durchgesehenen Stand.": [
+  "TagStudio is free software under the GNU General Public License v3 (or later). Listed here are all third-party libraries, tools, online services and templates with license and source. The list is checked monthly for new versions and changed licenses; {q} shows the last reviewed state.",
+  "TagStudio isch freii Software under de GNU General Public License v3 (oder neuer). Da stönd alli frömde Bibliotheke, Wärchzüüg, Online-Dienscht und Vorlage mit Lizänz und Quälle. D Lischte wird monetlich automatisch uf neui Versione und gänderti Lizänze prüeft; {q} zeigt de zletscht duregluegete Stand."
+ ],
+ "Meldungen landen als Issue im öffentlichen GitHub-Projekt. TagStudio füllt das Formular vor (Version, System, Bereich), sucht nach ähnlichen Meldungen und schwärzt private Angaben; abgeschickt wird im Browser mit deinem GitHub-Konto. TagStudio speichert keine Zugangsdaten.": [
+  "Reports end up as an issue in the public GitHub project. TagStudio prefills the form (version, system, area), searches for similar reports and blacks out private details; it is submitted in the browser with your GitHub account. TagStudio stores no credentials.",
+  "Meldige landed als Issue im öffentliche GitHub-Projekt. TagStudio füllt s Formular vor (Version, System, Beriich), suecht nach äänliche Meldige und schwärzt privati Aagabe; abgschickt wird im Browser mit dim GitHub-Konto. TagStudio spicheret kei Zuegangsdate."
+ ],
+ "Künstler, Genres & Co. mit gemischten Trennzeichen ({q}, {q}, {q}) einheitlich schreiben – als Trennzeichen oder als echte ID3v2.{n}-Mehrfachwerte.": [
+  "Write artists, genres & co. with mixed separators ({q}, {q}, {q}) consistently – as a separator or as real ID3v2.{n} multiple values.",
+  "Künschtler, Genres & Co. mit gmischte Tränzeiche ({q}, {q}, {q}) eiheitlich schriibe – als Tränzeiche oder als ächti ID3v2.{n}-Mehrfachwärt."
+ ],
+ "Ordnet Titel so, dass die Übergänge passen: Tonart auf dem Camelot-Rad, BPM (auch Halb-/Doppeltempo) und Energie. Titel kommen aus dem Tagger; gesperrte 🔒 bleiben beim Optimieren an ihrem Platz. Ziehen sortiert um, Doppelklick spielt.": [
+  "Orders tracks so that the transitions fit: key on the Camelot wheel, BPM (also half/double tempo) and energy. Tracks come from the tagger; locked 🔒 ones stay in place when optimizing. Dragging reorders, double-click plays.",
+  "Ordnet Titel so, dass d Übergäng passed: Tonart uf em Camelot-Rad, BPM (au Halb-/Doppeltempo) und Energii. D Titel chömed us em Tagger; gsperrti 🔒 bliibed bim Optimiere a ihrem Platz. Zie sortiert um, Doppelklick spilt."
+ ],
+ "Hält den Tag-Zustand überwachter Ordner fest – ohne Audio, platzsparend. Das Journal zeigt, was andere Programme (Mp3tag, beaTunes, Mixed In Key, Platinum Notes …) seitdem geändert haben; einzelne Felder oder ganze Titel lassen sich zurücksetzen.": [
+  "Records the tag state of watched folders – without audio, space-saving. The journal shows what other programs (Mp3tag, beaTunes, Mixed In Key, Platinum Notes …) have changed since; single fields or whole tracks can be reset.",
+  "Haltet de Tag-Zuestand vo überwachte Ordner fescht – ohni Audio, platzspared. S Journal zeigt, was anderi Programm (Mp3tag, beaTunes, Mixed In Key, Platinum Notes …) sithär gänderet händ; einzelni Fälder oder ganzi Titel chönd zruggsetzt werde."
+ ],
+ "{x}: {x} von {x} · {x} %{x}": [
+  "{x}: {x} of {x} · {x} %{x}",
+  "{x}: {x} vo {x} · {x} %{x}"
+ ],
+ "Lange Plugin-Aktionen (z. B. Stems) laufen hier nacheinander, während du weiterarbeitest. Ergebnis-Dateien entstehen in eigenen Ordnern; die Originale bleiben unverändert.": [
+  "Long plugin actions (e.g. stems) run here one after another while you keep working. Result files are created in their own folders; the originals stay unchanged.",
+  "Langi Plugin-Aktione (z. B. Stems) lauffed da nachenand, während du wiiterschaffsch. Ergäbnis-Dateie entstönd i eigete Ordner; d Original bliibed unveränderet."
+ ],
+ "markierte ({x})": [
+  "marked ({x})",
+  "markierti ({x})"
+ ],
+ "alle ({x})": [
+  "all ({x})",
+  "alli ({x})"
+ ],
+ "Markierte Paare ({x})": [
+  "Marked pairs ({x})",
+  "Markierti Päärli ({x})"
+ ],
+ "Alle Dateien im Vergleich ({x})": [
+  "All files in compare ({x})",
+  "Alli Dateie im Vergliich ({x})"
+ ],
+ "Tagger: markierte Dateien ({x})": [
+  "Tagger: marked files ({x})",
+  "Tagger: markierti Dateie ({x})"
+ ],
+ "Tagger: alle Dateien ({x})": [
+  "Tagger: all files ({x})",
+  "Tagger: alli Dateie ({x})"
+ ],
+ "Anwenden ({x})": [
+  "Apply ({x})",
+  "Aawände ({x})"
+ ],
+ "Neue Sicherungen im Snapshot-Speicher ({x}) · ältere ZIPs: {x}": [
+  "New backups in the snapshot storage ({x}) · older ZIPs: {x}",
+  "Neui Sicherige im Snapshot-Spicher ({x}) · älteri ZIPs: {x}"
+ ],
+ "Markierte wiederherstellen ({x})": [
+  "Restore marked ({x})",
+  "Markierti widerherstelle ({x})"
+ ],
+ "{n} ms = keine Korrektur. Positiv (+) lässt die Beats des Folgetracks später, negativ (−) früher hören. Funktioniert mit aktivem {q} und Beatgrid für beide Titel. Das ist ein manueller Phasenversatz, keine automatische Laufzeitmessung. Wert wird für alle folgenden Übergänge gespeichert; Dateien bleiben unverändert.": [
+  "{n} ms = no correction. Positive (+) makes the beats of the next track sound later, negative (−) earlier. Works with {q} active and a beatgrid for both tracks. This is a manual phase offset, not an automatic latency measurement. The value is saved for all following transitions; files stay unchanged.",
+  "{n} ms = kei Korrektur. Positiv (+) lat d Beats vom Folgetrack spöter, negativ (−) früener ghöre. Funktioniert mit aktivem {q} und Beatgrid für beidi Titel. Das isch en manuelle Phasenversatz, kei automatischi Louffziitmässig. De Wärt wird für alli folgende Übergäng gspicheret; d Dateie bliibed unveränderet."
+ ],
+ "Original: {x} BPM · möglich {x}–{x} BPM · {x}. Gilt nur für diesen Titel; ein neuer Titel startet im eigenen Tempo. In der Datei wird nichts geändert.": [
+  "Original: {x} BPM · possible {x}–{x} BPM · {x}. Applies only to this track; a new track starts at its own tempo. Nothing is changed in the file.",
+  "Original: {x} BPM · mögli {x}–{x} BPM · {x}. Gilt nur für dä Titel; en neue Titel startet im eigete Tempo. I de Datei wird nüüt gänderet."
+ ],
+ "{x}: Pakete installieren": [
+  "{x}: install packages",
+  "{x}: Päckli installiere"
+ ],
+ "Protokoll ({x})": [
+  "Log ({x})",
+  "Protokoll ({x})"
+ ],
+ "Übernehmen ({x})": [
+  "Apply ({x})",
+  "Übernää ({x})"
+ ],
+ "Abholen ({x})": [
+  "Fetch ({x})",
+  "Abhole ({x})"
+ ],
+ "{x}: {x} neu": [
+  "{x}: {x} new",
+  "{x}: {x} neu"
+ ],
+ "{x}: {x} Titel": [
+  "{x}: {x} tracks",
+  "{x}: {x} Titel"
+ ],
+ "Geänderte Felder ansehen ({x}) …": [
+  "View changed fields ({x}) …",
+  "Gänderti Fälder aaluege ({x}) …"
+ ],
+ "{x}: geänderte Felder – {x}": [
+  "{x}: changed fields – {x}",
+  "{x}: gänderti Fälder – {x}"
+ ],
+ "{x}: {x} (nicht verfügbar)": [
+  "{x}: {x} (not available)",
+  "{x}: {x} (nöd verfüegbar)"
+ ],
+ "Verknüpfung {q} auf dem Desktop anlegen": [
+  "Create shortcut {q} on the desktop",
+  "Verchnüpfig {q} uf em Desktop aalegge"
+ ],
+ "Ein neues, leeres Profil startet wie eine frische Installation – mit Einrichtungsassistent. Plugins, die Stems-Umgebung und Modelle werden mitbenutzt; Einstellungen, Anmeldungen und Protokolle sind je Profil getrennt.": [
+  "A new, empty profile starts like a fresh installation – with the setup wizard. Plugins, the stems environment and models are shared; settings, sign-ins and logs are separate per profile.",
+  "Es neus, lääres Profil startet wie e frischi Installation – mit em Iirichtigsassistänt. Plugins, d Stems-Umgäbig und Modäll werded mitbruucht; Iistellige, Aamäldige und Protokoll sind pro Profil trännt."
+ ],
+ "leer = entfernen; %TIT2% setzt einen Feldwert ein": [
+  "empty = remove; %TIT2% inserts a field value",
+  "läär = entfärne; %TIT2% setzt en Fäldwärt ii"
+ ],
+ "Wörter so schreiben: {x} ({x})": [
+  "Write words like this: {x} ({x})",
+  "Wörter so schriibe: {x} ({x})"
+ ],
+ "Die Aktionen laufen der Reihe nach; die Vorschau zeigt das Ergebnis für die markierten Titel.": [
+  "The actions run in order; the preview shows the result for the marked tracks.",
+  "D Aktione lauffed dä Reie nach; d Vorschau zeigt s Ergäbnis für di markierte Titel."
+ ],
+ "Endpunkte ({x})": [
+  "Endpoints ({x})",
+  "Ändpünkt ({x})"
+ ],
+ "Im Snapshot-Speicher ablegen (gleiche Tags nur einmal – spart Platz; sonst ZIP im Sicherungsordner)": [
+  "Store in the snapshot storage (identical tags only once – saves space; otherwise ZIP in the backup folder)",
+  "Im Snapshot-Spicher ablegge (gliichi Tags nur eimal – spart Platz; susch ZIP im Sicherigsordner)"
+ ],
+ "Während des Überblendens den Beat-Versatz messen und mit kleiner Tempo-Korrektur (max. ±{n} %) ausgleichen; die Startverzögerung wird gelernt und beim nächsten Übergang vorgehalten": [
+  "Measure the beat offset during the crossfade and compensate with a small tempo correction (max. ±{n} %); the start delay is learned and applied in advance at the next transition",
+  "Während em Überblände de Beat-Versatz mässe und mit chliiner Tempo-Korrektur (max. ±{n} %) uusgliiche; d Startverzögerig wird glernt und bim nöchschte Übergang vorghalte"
+ ],
+ "Standardordner stehen beim Start in den Pfadfeldern; weicht ein Feld ab (z. B. nach einem Snapshot-Vergleich), trägt ⌂ den Standard wieder ein.": [
+  "Default folders are in the path fields at start; if a field differs (e.g. after a snapshot comparison), ⌂ enters the default again.",
+  "Standardordner stönd bim Start i de Pfadfälder; wiicht es Fäld ab (z. B. nach eme Snapshot-Vergliich), trait ⌂ de Standard wider ii."
+ ],
+ "{x}: läuft als Hintergrund-Auftrag (Fortschritt unten links).": [
+  "{x}: runs as a background job (progress at the bottom left).",
+  "{x}: lauft als Hintergrund-Uftrag (Fortschritt une links)."
+ ],
+ "Nur lesen. Werte von Zugangsdaten (Token, Passwort) werden ausgeblendet; Schlüssel der Plugins liegen ohnehin nicht in dieser Datei.": [
+  "Read only. Values of credentials (token, password) are hidden; plugin keys are not in this file anyway.",
+  "Nur läse. Wärt vo Zuegangsdate (Token, Passwort) werded uusbländet; Schlüssel vo de Plugins ligged sowiso nöd i dere Datei."
+ ],
+ "ID3-Version (v2.{n}/v2.{n}) bei offiziellen Feldern zeigen – zusammen mit der Herkunft; benutzerdefinierte Felder (TXXX, GEOB, PRIV …) ohne bekannte Herkunft heissen {q}": [
+  "Show the ID3 version (v2.{n}/v2.{n}) for official fields – together with the origin; user-defined fields (TXXX, GEOB, PRIV …) without known origin are called {q}",
+  "ID3-Version (v2.{n}/v2.{n}) bi offizielle Fälder zeige – zäme mit de Herkunft; benutzerdefinierti Fälder (TXXX, GEOB, PRIV …) ohni bekannti Herkunft heissed {q}"
+ ],
+ "Kennzeichen und bekannte Herkünfte ({x}){x}": [
+  "Badges and known origins ({x}){x}",
+  "Kännzeiche und bekannti Herkünft ({x}){x}"
+ ],
+ "Text und Farbe jedes Kennzeichens lassen sich anpassen (#{n}); ↺ setzt auf den Standard zurück. {x}": [
+  "Text and color of every badge can be adjusted (#{n}); ↺ resets to the default. {x}",
+  "Text und Farb vo jedem Kännzeiche chönd aapasst werde (#{n}); ↺ setzt uf de Standard zrugg. {x}"
+ ],
+ "{x}: Felder gelten jetzt als unwichtig.": [
+  "{x}: fields are now considered unimportant.",
+  "{x}: Fälder gälted jetzt als unwichtig."
+ ],
+ "Titel markieren und rechts bearbeiten; Strg+S speichert (vorher wird gesichert).": [
+  "Mark tracks and edit on the right; Ctrl+S saves (a backup is made first).",
+  "Titel markiere und rächts bearbeite; Strg+S spicheret (vorher wird gsicheret)."
+ ],
+ "Leertaste spielt ab, {n}–{n} bewertet; alle Tasten unter Hilfe › Tastatur.": [
+  "Space bar plays, {n}–{n} rates; all keys under Help › Keyboard.",
+  "Läärtaschte spilt ab, {n}–{n} bewertet; alli Taschte under Hilf › Taschtatur."
+ ],
+ "Paare links auswählen; Unterschiede sind markiert.": [
+  "Select pairs on the left; differences are marked.",
+  "Päärli links uswääle; Unterschiid sind markiert."
+ ],
+ "{q} ordnet nach Tonart, BPM und Energie; G fixiert einen Titel.": [
+  "{q} orders by key, BPM and energy; G fixes a track.",
+  "{q} ordnet nach Tonart, BPM und Energii; G fixiert en Titel."
+ ],
+ "Snapshots täglich oder von Hand; das Journal zeigt jede Änderung.": [
+  "Snapshots daily or by hand; the journal shows every change.",
+  "Snapshots täglich oder vo Hand; s Journal zeigt jedi Änderig."
+ ],
+ "Mit dem Schalter ein-/ausschalten; manche brauchen eine Installation.": [
+  "Switch on/off with the switch; some need an installation.",
+  "Mit em Schalter ii-/uusschalte; es paar bruuched e Installation."
+ ],
+ "Merkt sich den Tag-Stand aller Titel; das Journal zeigt später jede Änderung – auch von anderen Programmen.": [
+  "Remembers the tag state of all tracks; the journal later shows every change – also from other programs.",
+  "Merkt sich de Tag-Stand vo allne Titel; s Journal zeigt spöter jedi Änderig – au vo andere Programm."
+ ],
+ "leer = wie bisher ({x})": [
+  "empty = as before ({x})",
+  "läär = wie bisher ({x})"
+ ],
+ "{x} – vorhandene Ordner bleiben; Bibliothek, Vorbereiten, Sicherungen und Downloads werden darauf eingestellt.": [
+  "{x} – existing folders stay; library, prepare, backups and downloads are set to them.",
+  "{x} – vorhandeni Ordner bliibed; Bibliothek, Vorbereite, Sicherige und Downloads werded druf iigstellt."
+ ],
+ "Aussortieren ({x})": [
+  "Sort out ({x})",
+  "Ussortiere ({x})"
+ ],
+ "; zurückholen unter Einstellungen › Speicherort und Ordner.": [
+  "; bring back under Settings › Storage location and folders.",
+  "; zruggholle under Iistellige › Spicherort und Ordner."
+ ],
+ "{x} Titel bekommen exakt die Tags aus dem Snapshot – auch Binärfelder (Serato, Cue-Punkte). Spätere Änderungen an diesen Titeln gehen verloren; vorher wird eine Sicherung angelegt. Titel mit geändertem Audio werden übersprungen.": [
+  "{x} tracks get exactly the tags from the snapshot – including binary fields (Serato, cue points). Later changes to these tracks are lost; a backup is created first. Tracks with changed audio are skipped.",
+  "{x} Titel überchömed exakt d Tags us em Snapshot – au Binärfälder (Serato, Cue-Pünkt). Spöteri Änderige a dene Titel gönd verlore; vorher wird e Sicherig aagleit. Titel mit gänderetem Audio werded übersprunge."
+ ],
+ "seit {q} ({x})": [
+  "since {q} ({x})",
+  "sit {q} ({x})"
+ ],
+ "unverändert seit {q} ({x})": [
+  "unchanged since {q} ({x})",
+  "unveränderet sit {q} ({x})"
+ ],
+ "Die Snapshots bleiben erhalten; Pfade sind relativ zum Ordner gespeichert.": [
+  "The snapshots are kept; paths are stored relative to the folder.",
+  "D Snapshots bliibed erhalte; Pfäd sind relativ zum Ordner gspicheret."
+ ],
+ "Alle {x} Snapshot(s) dieses Ordners werden gelöscht ({x}). Die MP3-Dateien bleiben unverändert.": [
+  "All {x} snapshot(s) of this folder will be deleted ({x}). The MP3 files stay unchanged.",
+  "Alli {x} Snapshot(s) vo dem Ordner werded glöscht ({x}). D MP3-Dateie bliibed unveränderet."
+ ],
+ "Merkmale ({x}) ▾": [
+  "Features ({x}) ▾",
+  "Merkmal ({x}) ▾"
+ ],
+ "Dateien umbenennen ({x})": [
+  "Rename files ({x})",
+  "Dateie umbenänne ({x})"
+ ],
+ "Tags aus Dateiname ({x})": [
+  "Tags from file name ({x})",
+  "Tags us em Dateiname ({x})"
+ ],
+ "Farbe {x} – Schreibweise bleibt ({x})": [
+  "Color {x} – spelling stays ({x})",
+  "Farb {x} – Schriibwiis bliibt ({x})"
+ ],
+ "Bearbeitet wird der entschlüsselte Text; beim Übernehmen wird er wieder Base64-kodiert.": [
+  "The decoded text is edited; when applying it is Base64-encoded again.",
+  "Bearbeitet wird de entschlüsselt Text; bim Übernää wird er wider Base64-kodiert."
+ ],
+ "Markierte ({x})": [
+  "Marked ({x})",
+  "Markierti ({x})"
+ ],
+ "Alle ({x})": [
+  "All ({x})",
+  "Alli ({x})"
+ ],
+ "Alle Felder (ausser DJ-Analysen wie Serato-/Traktor-Daten) von {x} Original(en) auf {x} MP3-Stem(s) übertragen; der Titel bekommt die Spur in Klammern, z. B. {q}. Rückgängig ist möglich.": [
+  "Transfer all fields (except DJ analyses like Serato/Traktor data) from {x} original(s) to {x} MP3 stem(s); the title gets the track in brackets, e.g. {q}. Undo is possible.",
+  "Alli Fälder (usser DJ-Analyse wie Serato-/Traktor-Date) vo {x} Original(e) uf {x} MP3-Stem(s) übertrage; de Titel überchunt d Spur i Chlammere, z. B. {q}. Rückgängig isch mögli."
+ ],
+ "· Binärfeld ({x}) – nur der XML-Teil wird ersetzt": [
+  "· binary field ({x}) – only the XML part is replaced",
+  "· Binärfäld ({x}) – nur de XML-Teil wird ersetzt"
+ ],
+ "{x}: nicht mehr im Archiv": [
+  "{x}: no longer in the archive",
+  "{x}: nüme im Archiv"
+ ],
+ "{x}: am alten Platz liegt schon etwas": [
+  "{x}: something is already at the old place",
+  "{x}: am alte Platz liit scho öppis"
+ ],
+ "{x}: Der Pfad existiert nicht.": [
+  "{x}: the path does not exist.",
+  "{x}: De Pfad gits nöd."
+ ],
+ "{x}: wurde von einem anderen Programm geändert – NICHT gespeichert": [
+  "{x}: was changed by another program – NOT saved",
+  "{x}: isch vo eme andere Programm gänderet worde – NÖD gspicheret"
+ ],
+ "{x}: Sicherung fehlgeschlagen – NICHT gespeichert ({x})": [
+  "{x}: backup failed – NOT saved ({x})",
+  "{x}: Sicherig fählgschlage – NÖD gspicheret ({x})"
+ ],
+ "GitHub nicht erreichbar ({x}) – offline? Die Meldung kann trotzdem vorbereitet werden.": [
+  "GitHub not reachable ({x}) – offline? The report can still be prepared.",
+  "GitHub nöd erreichbar ({x}) – offline? D Meldig cha trotzdem vorbereitet werde."
+ ],
+ "{x}: {x} Eintrag/Einträge{x}": [
+  "{x}: {x} entry/entries{x}",
+  "{x}: {x} Iitrag/Iiträg{x}"
+ ],
+ "Benutzertext ({x})": [
+  "User text ({x})",
+  "Benutzertext ({x})"
+ ],
+ "Bild ({x})": [
+  "Image ({x})",
+  "Bild ({x})"
+ ],
+ "Kommentar ({x})": [
+  "Comment ({x})",
+  "Kommentar ({x})"
+ ],
+ "Liedtext ({x})": [
+  "Lyrics ({x})",
+  "Liedtext ({x})"
+ ],
+ "Hauptkünstler; mehrere mit ¦ trennen (ID3v2.{n}) bzw. {q}/{q}.": [
+  "Lead artist; separate several with ¦ (ID3v2.{n}) or {q}/{q}.",
+  "Hauptkünschtler; mehreri mit ¦ tränne (ID3v2.{n}) bzw. {q}/{q}."
+ ],
+ "Genre (Text); mehrere mit ¦ trennen.": [
+  "Genre (text); separate several with ¦.",
+  "Genre (Text); mehreri mit ¦ tränne."
+ ],
+ "Kommentar; manche Programme nutzen ihn für Tonart/Energie (z. B. Mixed In Key).": [
+  "Comment; some programs use it for key/energy (e.g. Mixed In Key).",
+  "Kommentar; es paar Programm bruuched en für Tonart/Energii (z. B. Mixed In Key)."
+ ],
+ "{x}: zu viele Anfragen – später nochmals versuchen": [
+  "{x}: too many requests – try again later",
+  "{x}: z vill Aafroge – spöter nomal probiere"
+ ],
+ "Serato-Daten nicht lesbar ({x}) – Rohdaten unten": [
+  "Serato data not readable ({x}) – raw data below",
+  "Serato-Date nöd läsbar ({x}) – Rohdate une"
+ ],
+ "{x}: {x} Änderung(en)": [
+  "{x}: {x} change(s)",
+  "{x}: {x} Änderig(e)"
+ ],
+ "Snapshot {q} ({x})": [
+  "Snapshot {q} ({x})",
+  "Snapshot {q} ({x})"
+ ],
+ "{x}: Plugin läuft …": [
+  "{x}: plugin running …",
+  "{x}: Plugin lauft …"
+ ],
+ "{x}: Ordner nicht erreichbar ({x})": [
+  "{x}: folder not reachable ({x})",
+  "{x}: Ordner nöd erreichbar ({x})"
+ ],
+ "{x}: nicht im Snapshot oder nicht mehr vorhanden": [
+  "{x}: not in the snapshot or no longer present",
+  "{x}: nöd im Snapshot oder nüme vorhande"
+ ],
+ "{x}: Audio hat sich geändert – übersprungen": [
+  "{x}: audio has changed – skipped",
+  "{x}: Audio hät sich gänderet – übersprunge"
+ ],
+ "{x}: hat ungespeicherte Änderungen in TagStudio – übersprungen": [
+  "{x}: has unsaved changes in TagStudio – skipped",
+  "{x}: hät ungspicherti Änderige in TagStudio – übersprunge"
+ ],
+ "TBPM ist laut Spezifikation eine ganze Zahl; genaue BPM in einem eigenen Feld. TKEY erwartet eine Tonart wie {q} oder {q} – Camelot ({q}) ist verbreitet, aber nicht vorgesehen (Schreibweise unter Einstellungen › Tonart).": [
+  "According to the specification TBPM is a whole number; exact BPM in a separate field. TKEY expects a key like {q} or {q} – Camelot ({q}) is common but not intended (notation under Settings › Key).",
+  "TBPM isch laut Spezifikation e ganzi Zaal; gnaui BPM i eme eigete Fäld. TKEY erwartet e Tonart wie {q} oder {q} – Camelot ({q}) isch verbreitet, aber nöd vorgseh (Schriibwiis under Iistellige › Tonart)."
+ ],
+ "SYTC beschreibt Tempoänderungen, ist aber kein DJ-Beatgrid; ETCO und ASPI sind keine Hot-Cue-Formate.": [
+  "SYTC describes tempo changes but is not a DJ beatgrid; ETCO and ASPI are not hot cue formats.",
+  "SYTC beschriibt Tempoänderige, isch aber kes DJ-Beatgrid; ETCO und ASPI sind kei Hot-Cue-Formät."
+ ],
+ "GitHub ist nicht erreichbar ({x}).": [
+  "GitHub cannot be reached ({x}).",
+  "GitHub isch nöd erreichbar ({x})."
+ ],
+ "{x}: {n}–{n} Werte erwartet": [
+  "{x}: {n}–{n} values expected",
+  "{x}: {n}–{n} Wärt erwartet"
+ ],
+ "{x}: nur ganze Zahlen {n}–{n}": [
+  "{x}: whole numbers {n}–{n} only",
+  "{x}: nur ganzi Zaale {n}–{n}"
+ ],
+ "Text sucht in Datei, Titel, Künstler, Album, Genre. Zahlenfilter: bpm, Tonart nicht; Audio-Merkmale wie energy>={n}, dance<{n}, energie:{n}-{n} (auch ≥ ≤ = < >). Mehrere Filter mit Leerzeichen.": [
+  "Text searches in file, title, artist, album, genre. Number filters: bpm, key not; audio features like energy>={n}, dance<{n}, energie:{n}-{n} (also ≥ ≤ = < >). Separate several filters with spaces.",
+  "Text suecht i Datei, Titel, Künschtler, Album, Genre. Zaalefilter: bpm, Tonart nöd; Audio-Merkmal wie energy>={n}, dance<{n}, energie:{n}-{n} (au ≥ ≤ = < >). Mehreri Filter mit Läärschlag."
+ ],
+ "unbekannt": [
+  "unknown",
+  "unbekannt"
+ ],
+ "{x} filtern": [
+  "Filter {x}",
+  "{x} filtere"
+ ]
+}

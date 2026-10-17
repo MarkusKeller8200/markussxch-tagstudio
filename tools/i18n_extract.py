@@ -33,7 +33,7 @@ _QUOTE = re.compile(r"„[^„“”\n]*[“”]|\"[^\"\n]*\"|«[^«»\n]*»")
 _PH = re.compile(r"\{(?:n|q|x)\}")
 _WORD = re.compile(r"[A-Za-zÄÖÜäöüéèàß]{2,}")
 _SVG = re.compile(r"^[MLHVCSQTAZmlhvcsqtaz0-9 .,\-]+$")
-_CODEISH = re.compile(r"[{};$\\]|=>|\(\)|^[.#\[:@/]|^[\w.]+\([^)]*\)$|^\w+[.:]\w+$|https?://|^\S+\.(?:js|css|py|json|html|mp3|png)$")
+_CODEISH = re.compile(r"[{}$\\]|;(?!\s)|=>|\(\)|^[.#\[:@/]|^[\w.]+\([^)]*\)$|^\w+[.:]\w+$|https?://|^\S+\.(?:js|css|py|json|html|mp3|png)$")
 
 
 def skeleton(text: str) -> str:
@@ -52,7 +52,7 @@ def is_ui(s: str) -> bool:
     s = s.strip()
     if len(s) < 2 or not _WORD.search(s):
         return False
-    if _SVG.match(s) or _CODEISH.search(_PH.sub("", s)):
+    if _SVG.match(s) or _CODEISH.search(_PH.sub("\u2026", s)):
         return False
     letters = re.sub(r"\{[nqx]\}", "", s)
     if not re.search(r"[A-Za-zÄÖÜäöü]", letters):

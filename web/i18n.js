@@ -28,10 +28,13 @@ function i18nSetCatalog(lang, cat) {
     v = v.replace(/^·\s*|\s*·$/g, "");
     if (!k.includes("{x}")) { I18N.exact.set(k, v); continue; }
     const lits = k.split(/\{[nqx]\}/).map((s) => s.trim()).filter(Boolean).sort((a, b) => b.length - a.length);
-    const re = new RegExp("^" + k.split(/(\{[nqx]\})/).map((p) =>
+    const re = new RegExp("^" + k.split(/(\{[nqx]\})/).map((p, i, arr) =>
       p === "{n}" ? "([-+]?\\d+(?:['’.,]\\d+)*)" : p === "{q}" ? "(„[^„“”\\n]*[“”]|\"[^\"\\n]*\"|«[^«»\\n]*»|“[^“”\\n]*”)" : p === "{x}" ? "(.*?)"
-        : p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("") + "$", "s");
-    I18N.pats.push({ re, kinds: (k.match(/\{[nqx]\}/g) || []), v, lit: lits[0] || "" });
+        : p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+            .replace(/\s+$/, arr[i + 1] === "{x}" ? "\\s*" : "\\s+").replace(/^\s+/, arr[i - 1] === "{x}" ? "\\s*" : "\\s+")
+            .replace(/(?<!\\s)\s+(?![*+])/g, "\\s+")).join("") + "$", "s");
+    const litLen = lits.reduce((n, x) => n + x.length, 0);
+    I18N.pats.push({ re, kinds: (k.match(/\{[nqx]\}/g) || []), v, lit: lits[0] || "", litLen, segs: lits.length });
   }
   I18N.pats.sort((a, b) => b.lit.length - a.lit.length);   // spezifischere Muster zuerst
   document.documentElement.lang = I18N.lang;
@@ -67,6 +70,14 @@ function i18nFill(tpl, vals) {
   return tpl.replace(/\{[nqx]\}/g, (m) => (k < vals.length ? i18nVal(vals[k][0], vals[k++][1]) : m));
 }
 
+/** nur exakte Treffer (auch in Laufzeitform) – für mehrzeilige Texte als Ganzes */
+function i18nExact(s) {
+  const hit = I18N.exact.get(s);
+  if (hit !== undefined) return hit;
+  const sk = i18nSkel(s), v = I18N.exact.get(sk.key);
+  return v !== undefined ? i18nFill(v, sk.vals) : s;
+}
+
 /** eine Zeile übersetzen (ohne Rand-Leerraum); unbekannt → unverändert */
 function i18nLine(s) {
   if (!s) return s;
@@ -77,8 +88,12 @@ function i18nLine(s) {
   if (v !== undefined) return i18nFill(v, sk.vals);
   for (const p of I18N.pats) {
     if (p.lit && !s.includes(p.lit)) continue;
+    // Muster mit nur einem festen Teil (z. B. „Künstler {x}“): nicht, wenn {x} unübersetzten deutschen Fliesstext
+    // fängt – sonst würde „Künstler des ganzen Albums …“ fälschlich zu „Artist des ganzen Albums …“
     const m = p.re.exec(s);
-    if (m) return i18nFill(p.v, p.kinds.map((k, i) => [k.slice(1, 2), m[i + 1]]));
+    if (m && p.segs < 2 && p.kinds.some((k, i) => k === "{x}" && /(^|[\s(])[a-zäöüß]{3,}(?=[\s.,;:)…]|$)/.test(m[i + 1] || "")
+        && i18nLine((m[i + 1] || "").trim()) === (m[i + 1] || "").trim())) continue;
+    if (m) return i18nFill(p.v, p.kinds.map((k, i) => [k.slice(1, 2), m[i + 1]])).replace(/\s+$/, "").replace(/\s+([.,;:])$/, "$1");
   }
   const pre = /^([^:\n]{2,80}:)\s+([\s\S]+)$/.exec(s);                // „Wiedergabe nicht möglich: …“
   if (pre && I18N.exact.has(pre[1])) return I18N.exact.get(pre[1]) + " " + i18nLine(pre[2]);
@@ -100,7 +115,7 @@ function tr(s) {
   if (hit !== undefined) return hit;
   // erst als Ganzes (Zeilenumbrüche aus dem Quelltext sind nur Leerraum), sonst zeilenweise (Tooltips mit \n)
   const w = /^(\s*)([\s\S]*?)(\s*)$/.exec(s), whole = w[2].replace(/\s+/g, " ");
-  const tw = whole && /[A-Za-zÄÖÜäöü]/.test(whole) ? i18nLine(whole) : whole;
+  const tw = whole && /[A-Za-zÄÖÜäöü]/.test(whole) ? (s.includes("\n") ? i18nExact(whole) : i18nLine(whole)) : whole;
   if (tw !== whole || !s.includes("\n")) {
     const res = tw !== whole ? w[1] + tw + w[3] : s;
     if (I18N.memo.size > 30000) I18N.memo.clear();
@@ -181,10 +196,10 @@ async function i18nLoad(lang) {
   let r;
   try { r = await call("i18n_catalog", lang); } catch (e) { r = { lang: "de-CH", langs: [], catalog: {} }; }
   const was = I18N.lang;
+  try { localStorage.setItem("ts_lang", r.lang || "de-CH"); } catch (e) { /* egal */ }
+  if (was !== "de-CH" && r.lang !== was) { location.reload(); return; }   // bereits übersetzte Texte zurückholen
   I18N.langs = r.langs || [];
   i18nSetCatalog(r.lang, r.catalog);
-  try { localStorage.setItem("ts_lang", I18N.lang); } catch (e) { /* egal */ }
-  if (was !== "de-CH" && I18N.lang !== was) { location.reload(); return; }   // bereits übersetzte Texte zurückholen
   i18nApply();
   document.documentElement.classList.remove("i18n-wait");
 }
