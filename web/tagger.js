@@ -1585,7 +1585,10 @@ async function tgOriginDialog(preset = "") {
   // Kopf und Filterzeile um die Breite der senkrechten Bildlaufleiste der Liste einrücken – sonst laufen die
   // flexiblen Spalten auseinander (Windows: Bildlaufleiste nimmt Platz ein)
   const sbw = () => { const sc = $("#tgScroll"); $("#tgTable").style.setProperty("--tg-sbw", `${Math.max(0, sc.offsetWidth - sc.clientWidth)}px`); };
-  if (window.ResizeObserver) { const ro = new ResizeObserver(sbw); ro.observe($("#tgScroll")); ro.observe($("#tgInner")); }
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(sbw); ro.observe($("#tgScroll")); ro.observe($("#tgInner"));
+    new ResizeObserver(sbw).observe($("#tgScroll"), { box: "border-box" });   // auch wenn nur Rand/Bildlaufleiste wechselt
+  }
   sbw();
   $("#tgInner").addEventListener("click", (e) => {
     const tw = e.target.closest("[data-tw]");

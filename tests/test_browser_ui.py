@@ -701,6 +701,14 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.get_attribute("#plLyricsBtn", "aria-pressed"), "false")
         self.assertEqual(self.errors, [])
 
+    def calm(self):
+        """Hinweise beim Start (Snapshots …) schliessen – sie erscheinen verzögert und fangen sonst Klicks ab."""
+        pg = self.pg
+        for _ in range(15):
+            time.sleep(0.15)
+            if pg.locator("#modal").is_visible() and not pg.locator("#modal .i18n-imp").count():
+                pg.click("#mBtns button >> nth=0")
+
     def test_i18n_language(self):
         """#157: Sprache wählen – Oberfläche auf Englisch/Zürichdeutsch, Platzhalter, Tooltips, gemerkt; zurück auf Deutsch."""
         pg = self.pg
@@ -727,11 +735,13 @@ class UiTest(unittest.TestCase):
         pg.reload()
         pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'en'")
         self.assertFalse(pg.evaluate("document.documentElement.classList.contains('i18n-wait')"))
+        self.calm()
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stLang")
         pg.click('#stLang [data-lang="gsw-u-sd-chzh"]')
         pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'gsw-u-sd-chzh'")
         self.assertEqual(pg.evaluate("tr('Einlesen')"), "Iiläse")
+        self.calm()
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stLang")
         pg.click('#stLang [data-lang="de-CH"]')
@@ -743,11 +753,7 @@ class UiTest(unittest.TestCase):
         """#219: Texte exportieren (CSV) und eigene Texte importieren – Vorschau, Überlagerung, Zurücksetzen."""
         pg = self.pg
 
-        def calm():                                        # Hinweise beim Start (Snapshots …) schliessen
-            for _ in range(15):
-                time.sleep(0.15)
-                if pg.locator("#modal").is_visible() and not pg.locator("#modal .i18n-imp").count():
-                    pg.click("#mBtns button >> nth=0")
+        calm = self.calm
         pg.evaluate("call('set_ui', 'lang', 'en')")
         pg.reload()
         pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'en'")
@@ -829,8 +835,7 @@ class UiTest(unittest.TestCase):
         pg.evaluate("call('set_ui', 'lang', 'en')")
         pg.reload()
         pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'en'")
-        if pg.locator("#modal").is_visible():
-            pg.click("#mBtns button >> nth=0")
+        self.calm()
         pg.click('.nav[data-module="help"]')
         pg.click('#helpTabs [data-htab="readme"]')
         pg.wait_for_function("document.querySelector('#helpDoc').innerText.includes('Features at a glance')")
@@ -879,6 +884,8 @@ class UiTest(unittest.TestCase):
         pg.add_style_tag(content="#tgScroll{border-right:17px solid transparent}")   # wirkt wie eine Windows-Bildlaufleiste (headless: überlagert)
         pg.set_viewport_size({"width": 2400, "height": 300})                       # wenig Höhe → Bildlaufleiste
         self.assertTrue(self.until("(() => { const s = document.querySelector('#tgScroll'); return s.scrollHeight > s.clientHeight; })()"))
+        self.until("""(() => { const h = [...document.querySelectorAll('#tgHead > *')].pop(), r = [...document.querySelector('.tg-row').children].pop();
+          return Math.abs(h.getBoundingClientRect().left - r.getBoundingClientRect().left) <= 1.5; })()""")   # Beobachter läuft verzögert
         d = pg.evaluate("""(() => {
           const head = [...document.querySelectorAll('#tgHead > *')], filt = [...document.querySelectorAll('#tgHeadF > *')];
           const row = [...document.querySelector('.tg-row').children];
