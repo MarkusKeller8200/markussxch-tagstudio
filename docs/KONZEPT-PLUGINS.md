@@ -80,6 +80,7 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 
 ### Plugin-Karte (Entscheid User 17.10.2026)
 
+Über den Karten filtert eine Leiste nach Kategorie (Alle + je Kategorie mit Symbol und Anzahl, im Browser gemerkt).
 Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
 1. Titel, Version, „eingebaut“/„eigenes“; darunter die **Kategorie** (`plugin.json` `"category"`: `online` Online-API,
    `local_api` Lokale API, `import` Übernahme aus Tags, `audio` Audio-Verarbeitung, sonst `other` Sonstiges;

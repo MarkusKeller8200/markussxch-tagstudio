@@ -213,5 +213,6 @@
 "Optionen": ["Settings", "Optione"],
 "Mehr …": ["More …", "Meh …"],
 "mehr": ["more", "meh"],
-"weniger": ["less", "weniger"]
+"weniger": ["less", "weniger"],
+"Plugins nach Art filtern": ["Filter plugins by type", "Plugins nach Art filtere"]
 }

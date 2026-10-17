@@ -494,6 +494,12 @@ span.xml-treeonly{display:contents}
 .plg-tag.cat-import{border-color:color-mix(in srgb,var(--only) 45%,var(--line));color:var(--only)}
 .plg-tag.cat-audio{border-color:color-mix(in srgb,var(--diff) 45%,var(--line));color:var(--diff)}
 .pl-more{display:flex;flex-direction:column;gap:10px}
+.pl-filter{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.pl-filter .chip{cursor:pointer}
+.pl-filter .chip .i{width:14px;height:14px}
+.pl-filter .chip .n{color:var(--faint);font-weight:500}
+.pl-filter .chip.on{background:var(--acc-soft);border-color:var(--acc);color:var(--acc)}
+.pl-filter .chip.on .n{color:inherit}
 .pl-more-row{display:grid;grid-template-columns:minmax(220px,auto) 1fr;gap:12px;align-items:center}
 .pl-card.off{opacity:.72}
 .pl-head{display:flex;align-items:flex-start;gap:12px;min-height:44px}

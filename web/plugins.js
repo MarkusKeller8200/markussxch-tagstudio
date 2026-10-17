@@ -2,7 +2,8 @@
    Formulare werden aus den Optionen des Plugins erzeugt – Plugins brauchen kein eigenes JavaScript. */
 "use strict";
 
-const PL = { list: [], userDir: "", logDir: "", frozen: false };
+const PL = { list: [], userDir: "", logDir: "", frozen: false, cat: (() => { try { return localStorage.getItem("ts_pl_cat") || ""; } catch (e) { return ""; } })() };
+const PL_CAT_ORDER = ["online", "local_api", "import", "audio", "other"];
 
 const PL_STATE = {
   ready: ["Bereit", "st-ok"],
@@ -51,10 +52,23 @@ function plMore(p) {                                   // Funktionen für „Wei
   return acts;
 }
 
+/** Filter oben: Alle + je Kategorie (mit Symbol und Anzahl); die Wahl wird gemerkt */
+function renderPluginFilter() {
+  const box = $("#plFilter"); if (!box) return;
+  const n = {}, label = {};
+  PL.list.forEach((p) => { const c = p.category || "other"; n[c] = (n[c] || 0) + 1; label[c] = p.category_label || "Sonstiges"; });
+  if (PL.cat && !n[PL.cat]) PL.cat = "";
+  const cats = PL_CAT_ORDER.filter((c) => n[c]);
+  box.innerHTML = `<button class="chip${PL.cat ? "" : " on"}" data-plcat="">Alle <span class="n">${PL.list.length}</span></button>`
+    + cats.map((c) => `<button class="chip cat-${c}${PL.cat === c ? " on" : ""}" data-plcat="${c}">${PL_CAT_ICON[c] || PL_CAT_ICON.other}${esc(label[c])} <span class="n">${n[c]}</span></button>`).join("");
+}
+
 function renderPlugins() {
   const box = $("#plList");
+  renderPluginFilter();
   if (!PL.list.length) { box.innerHTML = '<div class="empty">Keine Plugins gefunden.</div>'; return; }
-  box.innerHTML = PL.list.map((p) => {
+  const shown = PL.list.filter((p) => !PL.cat || (p.category || "other") === PL.cat);
+  box.innerHTML = shown.map((p) => {
     const [stTxt, stCls] = p.enabled ? PL_STATE[p.state] : ["Ausgeschaltet", "st-same"];
     const on = p.enabled && p.state === "ready";
     const acts = p.actions || [];
@@ -341,6 +355,12 @@ async function pluginPreview(f, res) {
 
 // ---------------------------------------------------------------------- Ereignisse
 (function bindPlugins() {
+  $("#plFilter").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-plcat]"); if (!b) return;
+    PL.cat = b.dataset.plcat;
+    try { localStorage.setItem("ts_pl_cat", PL.cat); } catch (err) { /* egal */ }
+    renderPlugins();
+  });
   $("#plServices").addEventListener("click", () => svcOverview());     // #204
   $("#plRescan").addEventListener("click", async () => { PL.actionsCache = null; await pluginsShow(true); toast("Plugins neu eingelesen."); if (typeof renderTgEditor === "function") renderTgEditor(); });
   $("#plLogs").addEventListener("click", async () => { if (!(await call("open_folder", PL.logDir))) toast("Ordner konnte nicht geöffnet werden."); });
