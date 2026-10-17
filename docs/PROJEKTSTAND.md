@@ -148,7 +148,7 @@ Meilensteine können über den **gesicherten [Administrationskanal #190](https:/
 - **4.6.0 – Beatgrid & Lyric Sync** (#17): #215 Liedtext im Player (`lyricsync.py`, `web/pllyrics.js`), #191 Beatgrid-Status im Tagger (`gridstatus.py`, `web/gridscan.js`), #220 Serato-Wellenform im Player (`serato.overview_wave`), #221 Beatgrid im MP3 (`beattag.py`, `TXXX:TAGSTUDIO_BEATGRID`), #223 Vergleich Serato ↔ eigene Analyse (`gridstatus.compare`, `plGridCompare`, Codes `serato_ok`/`serato_diff`; liest auch das neuere GEOB „Serato Tempo Map“ – Format aus einem Beispiel erschlossen, `serato.tempomap`), #224 Lupe im Player (`web/plzoom.js`) – getestet, als **4.6.0 final** veröffentlicht (17.10.2026). #222 Wellenform als GEOB = Idee (später).
 - **4.7.0 – Mehrsprachigkeit** (#18): #157 Grundlage, Sprachwahl, alle Module in `de-CH`, `en`, `gsw-u-sd-chzh`; Claude übersetzt bei der Entwicklung mit (keine KI-Anbindung in TagStudio).
 - **4.7.0** enthält zusätzlich #219 (Plugins, englische Doku, eigene Texte) – final veröffentlicht 17.10.2026.
-- **4.8.0 – Updates: App und Plugins** (#22): #233 Versionsanzeige und Update-Kanäle (erledigt), #234 Update auf Knopfdruck (Windows), #235 Plugins einzeln nachladen und aktualisieren (Katalog `plugins.json` aus den Releases, `plugin_store.py`) – beide im Beta-Test.
+- **4.8.0 – Updates: App und Plugins** (#22): #233 Versionsanzeige und Update-Kanäle (erledigt), #234 Update auf Knopfdruck (Windows), #235 Plugins einzeln nachladen und aktualisieren (Katalog `plugins.json` aus den Releases, `plugin_store.py`), #236 Liste aller verfügbaren Plugins – im Beta-Test. Dazu #230 (Fehler: Start erst nach allen Skripten), #232 (Übersetzungen über Melden einreichen).
 
 ## Arbeitsregeln vom 16.10.2026
 

@@ -531,6 +531,10 @@ span.xml-treeonly{display:contents}
 .pl-box.upd{flex-direction:row;align-items:center;justify-content:space-between;border-color:color-mix(in srgb,var(--acc) 50%,var(--line));background:var(--acc-soft)}
 .st-list{max-height:min(60vh,520px);overflow:auto}
 .st-row{grid-template-columns:140px 1fr;align-items:start}
+.st-group h4{margin:14px 0 6px;font-size:13px}
+.st-group:first-child h4{margin-top:4px}
+.st-row .plg-tag.cat{margin-left:6px;vertical-align:1px}
+.st-filter{margin:10px 0 4px}
 .st-row .st-btn button{width:100%}
 .pl-box.err{border-color:color-mix(in srgb,#E5484D 50%,var(--line));color:#E5484D;white-space:pre-wrap}
 .pl-inst{display:flex;flex-wrap:wrap;gap:8px}

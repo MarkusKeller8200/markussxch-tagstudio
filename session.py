@@ -2685,7 +2685,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         cat = getattr(self, "_plugin_catalog", None) or {}
         e = next((x for x in cat.get("plugins", []) if x["id"] == pid), None)
         if e is None:
-            return {"ok": False, "error": "Plugin nicht im Katalog – bitte zuerst nach Plugin-Updates suchen."}
+            return {"ok": False, "error": "Plugin nicht im Katalog – bitte zuerst „Verfügbare Plugins …“ öffnen."}
         row = next(iter(plugin_store.compare(self.plugins.list(), [e], VERSION)))
         if row["state"] == "too_new":
             return {"ok": False, "error": f"„{e['name']}“ braucht TagStudio {e['min_app']} oder neuer."}

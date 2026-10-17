@@ -137,15 +137,19 @@ function plStoreBox(p) {
   return "";
 }
 
-/** „Plugin-Updates …“: Katalog des neuesten Releases im gewählten Kanal laden und Updates/neue Plugins zeigen */
+/** „Verfügbare Plugins …“ (#235/#236): Katalog des neuesten Releases im gewählten Kanal laden und Updates/neue Plugins zeigen */
 async function pluginStoreCheck() {
   const res = await runTask(call("start_plugin_catalog"), "Plugin-Katalog laden");
   if (!res || res.cancelled) return;
-  if (!res.release) { await info("Plugin-Updates", "Im gewählten Update-Kanal gibt es noch keinen Plugin-Katalog. Er erscheint mit dem nächsten Release."); return; }
+  if (!res.release) { await info("Verfügbare Plugins", "Im gewählten Update-Kanal gibt es noch keinen Plugin-Katalog. Er erscheint mit dem nächsten Release."); return; }
   PL.store = res;
   renderPlugins();
   pluginStoreList();
 }
+
+const PL_CAT_LABEL = { online: "Online-API", local_api: "Lokale API", import: "Übernahme aus Tags", audio: "Audio-Verarbeitung", other: "Sonstiges" };
+// #236: Gruppen der Liste „Verfügbare Plugins“
+const PL_ST_GROUPS = [["update", "Updates"], ["new", "Neu – noch nicht installiert"], ["current", "Installiert"], ["too_new", "Nicht verträglich"], ["own", "Eigenes Plugin mit gleicher ID"]];
 
 function plStoreRow(r) {
   const btn = r.state === "update" ? `<button class="sm" data-stinst="${esc(r.id)}">Aktualisieren</button>`
@@ -155,24 +159,40 @@ function plStoreRow(r) {
   const note = r.state === "too_new" ? `Braucht TagStudio ${esc(r.min_app)} oder neuer.`
     : r.state === "own" ? "Im Plugin-Ordner liegt ein eigenes Plugin mit gleicher ID – es wird nicht überschrieben."
     : r.requires && PL.frozen ? "Braucht zusätzliche Python-Pakete – in der installierten App nicht nachinstallierbar." : "";
-  return `<div class="pl-more-row st-row"><span class="st-btn">${btn}</span><div><b>${esc(r.name)}</b> <span class="muted sm">${ver}</span>
+  const c = PL_CAT_ICON[r.category] ? r.category : "other";
+  return `<div class="pl-more-row st-row" data-strow="${esc(r.id)}"><span class="st-btn">${btn}</span><div><b>${esc(r.name)}</b> <span class="muted sm">${ver}</span>
+    <span class="plg-tag cat cat-${c}">${esc(PL_CAT_LABEL[c])}</span>
     <div class="muted sm">${esc(r.description)}</div>${note ? `<div class="hint">${note}</div>` : ""}</div></div>`;
 }
 
-/** Übersicht: Updates, neue Plugins und nicht verträgliche – aktuelle Plugins nur gezählt */
+/** Liste nach Gruppen (Updates, Neu, Installiert, …), optional nach Kategorie gefiltert */
+function plStoreListHtml(rows, cat) {
+  const shown = rows.filter((r) => !cat || (PL_CAT_ICON[r.category] ? r.category : "other") === cat);
+  if (!shown.length) return '<div class="empty">Keine Plugins in dieser Kategorie.</div>';
+  return PL_ST_GROUPS.map(([g, label]) => {
+    const rs = shown.filter((r) => r.state === g).sort((a, b) => a.name.localeCompare(b.name));
+    return rs.length ? `<div class="st-group"><h4>${esc(label)} <span class="muted sm">${rs.length}</span></h4>${rs.map(plStoreRow).join("")}</div>` : "";
+  }).join("");
+}
+
+/** #236: alle Plugins des Katalogs – Updates und neue zuerst, dann installierte und nicht verträgliche */
 async function pluginStoreList() {
   const st = PL.store; if (!st) return;
-  const order = { update: 0, new: 1, too_new: 2, own: 3 };
-  const rows = st.rows.filter((r) => r.state in order).sort((a, b) => order[a.state] - order[b.state] || a.name.localeCompare(b.name));
-  const cur = st.rows.length - rows.length;
-  let pick = null;
+  const n = (s) => st.rows.filter((r) => r.state === s).length;
+  const cats = PL_CAT_ORDER.filter((c) => st.rows.some((r) => (PL_CAT_ICON[r.category] ? r.category : "other") === c));
+  let pick = null, cat = "";
+  const chips = () => `<button class="chip${cat ? "" : " on"}" data-stcat="">Alle <span class="n">${st.rows.length}</span></button>`
+    + cats.map((c) => `<button class="chip cat-${c}${cat === c ? " on" : ""}" data-stcat="${c}">${PL_CAT_ICON[c]}${esc(PL_CAT_LABEL[c])}</button>`).join("");
   await modal({
-    title: "Plugin-Updates",
-    html: `<div class="muted sm">Katalog aus Release ${esc(st.release.version)}${st.release.beta ? " (Beta)" : ""} · ${cur} Plugin(s) aktuell</div>
-      ${rows.length ? `<div class="pl-more st-list">${rows.map(plStoreRow).join("")}</div>` : '<div class="empty">Alle Plugins sind aktuell.</div>'}
+    title: "Verfügbare Plugins", wide: true,
+    html: `<div class="muted sm">Katalog aus Release ${esc(st.release.version)}${st.release.beta ? " (Beta)" : ""} · ${st.rows.length} Plugins · ${n("update")} Update(s) · ${n("new")} neu</div>
+      <div class="pl-filter st-filter" role="toolbar" aria-label="Plugins nach Art filtern">${chips()}</div>
+      <div class="pl-more st-list">${plStoreListHtml(st.rows, cat)}</div>
       <div class="hint" style="margin-top:12px">Plugins sind Python-Code. TagStudio lädt sie nur aus den offiziellen Releases und prüft die Prüfsumme. Nachgeladene Plugins liegen im Ordner „Eigene Plugins“ und ersetzen die eingebaute Version; unter „Mehr …“ geht es zurück.</div>`,
     buttons: [{ label: "Schliessen", value: null }],
     onMount: (b) => b.addEventListener("click", (e) => {
+      const ch = e.target.closest("[data-stcat]");
+      if (ch) { cat = ch.dataset.stcat; $(".st-filter", b).innerHTML = chips(); $(".st-list", b).innerHTML = plStoreListHtml(st.rows, cat); return; }
       const m = e.target.closest("[data-stinst]"); if (!m) return;
       pick = m.dataset.stinst;
       $("#mBtns button").click();

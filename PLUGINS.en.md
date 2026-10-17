@@ -21,9 +21,9 @@ page.
 
 ### Downloading and updating plugins
 
-**Plugin updates …** (top of the plugin page) loads the plugin catalog of the newest release in the selected update
-channel (“official versions only” or “including beta versions”) and shows newer versions of built-in plugins and new
-plugins. Cards with a newer version show **Update available → Update**. TagStudio only downloads from the official
+**Available plugins …** (top of the plugin page) loads the plugin catalog of the newest release in the selected update
+channel (“official versions only” or “including beta versions”) and lists all plugins – grouped into updates, new,
+installed and incompatible ones, with a category filter. Cards with a newer version show **Update available → Update**. TagStudio only downloads from the official
 releases of this project and checks the checksum. The downloaded plugin is then stored in the “Own plugins” folder
 (badge “downloaded”) and replaces the built-in version; **More … → Back to built-in version** removes it again. Your
 own plugins are never overwritten.

@@ -658,7 +658,7 @@ class UiTest(unittest.TestCase):
         self.assertIn("wird installiert", pg.inner_text("#progTitle"))
 
     def test_plugin_store(self):
-        """#235: Plugin-Updates – Katalog, Hinweis auf der Karte, neues Plugin installieren, zurück auf eingebaute Version."""
+        """#235/#236: Verfügbare Plugins – Katalog, Hinweis auf der Karte, neues Plugin installieren, zurück auf eingebaute Version."""
         pg = self.pg
         self.calm()
         pg.click('.nav[data-module="plugins"]')
@@ -680,8 +680,16 @@ class UiTest(unittest.TestCase):
         pg.click("#plStore")
         pg.wait_for_selector("#mBody .st-row")
         rows = pg.evaluate("[...document.querySelectorAll('#mBody .st-row')].map((r) => [r.querySelector('b').textContent, r.querySelector('button').textContent, r.querySelector('button').disabled])")
-        self.assertEqual(rows, [["lexicon", "Aktualisieren", False], ["neu", "Installieren", False], ["zukunft", "Nicht verträglich", True]])
-        self.assertIn("1 Plugin(s) aktuell", pg.inner_text("#mBody"))
+        self.assertEqual(rows, [["lexicon", "Aktualisieren", False], ["neu", "Installieren", False], ["mik", "Aktuell", True],
+                                ["zukunft", "Nicht verträglich", True]])
+        heads = pg.evaluate("[...document.querySelectorAll('#mBody .st-group h4')].map((h) => h.firstChild.textContent.trim())")
+        self.assertEqual(heads, ["Updates", "Neu – noch nicht installiert", "Installiert", "Nicht verträglich"])   # #236
+        self.assertIn("4 Plugins · 1 Update(s) · 1 neu", pg.inner_text("#mBody"))
+        self.assertIn("Sonstiges", pg.inner_text('#mBody [data-strow="neu"]'))
+        self.assertEqual(pg.locator("#mBody [data-stcat]").count(), 2)        # Alle + Sonstiges
+        pg.click('#mBody [data-stcat="other"]')
+        self.assertEqual(pg.locator("#mBody .st-row").count(), 4)
+        pg.click('#mBody [data-stcat=""]')
         self.assertIn("TagStudio 9.9.0", pg.inner_text("#mBody"))
         self.assertIn("Update verfügbar", pg.inner_text('.pl-card[data-pid="lexicon"] .pl-box.upd'))
         pg.click('#mBody [data-stinst="neu"]')
@@ -777,8 +785,8 @@ class UiTest(unittest.TestCase):
         pg.wait_for_selector('[data-fbkind="feature"][aria-checked="true"]')
         self.assertTrue(pg.locator("#fb-solution").count())
         pg.click("#mBtns button")
-        # drei Arten: Verbesserung mit eigenem Formular und Meilenstein (Entscheid 17.10.2026)
-        self.assertEqual(pg.locator('#helpDoc [data-fbopen]').count(), 3)
+        # vier Arten: Verbesserung mit eigenem Formular und Meilenstein (Entscheid 17.10.2026), Übersetzung (#232)
+        self.assertEqual(pg.locator('#helpDoc [data-fbopen]').count(), 4)
         pg.click('#helpDoc [data-fbopen="improvement"]')
         pg.wait_for_selector('[data-fbkind="improvement"][aria-checked="true"]')
         self.assertTrue(pg.locator("#fb-current").count())

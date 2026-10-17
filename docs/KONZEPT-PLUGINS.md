@@ -128,8 +128,8 @@ installieren – ohne ganzes App-Release.
   `packaging/release.py --check` weist darauf hin (ab dem ersten Katalog-Release 4.8.0).
 - **Kanal:** neuestes Release im gewählten Update-Kanal mit `plugins.json` („nur offizielle“ bzw. „auch Beta“), nie
   Entwicklungsstand; im Quellcode mit Kanal „Entwicklung“ kommen Plugins mit git.
-- **Oberfläche:** Kopfzeile „Plugin-Updates …“ lädt den Katalog (Auftrag mit Fortschritt) und zeigt Updates, neue und
-  nicht verträgliche Plugins; Karten mit neuerer Version zeigen „Update verfügbar“ mit „Aktualisieren“. Nachgeladene
+- **Oberfläche:** Kopfzeile „Verfügbare Plugins …“ lädt den Katalog (Auftrag mit Fortschritt) und listet alle Plugins
+  gruppiert (Updates, neu, installiert, nicht verträglich, eigenes) mit Kategoriefilter (#236); Karten mit neuerer Version zeigen „Update verfügbar“ mit „Aktualisieren“. Nachgeladene
   Plugins tragen das Abzeichen „nachgeladen“; unter „Mehr …“ „Zurück auf eingebaute Version“ bzw. „Nachgeladenes
   Plugin entfernen“ – mit Rückfrage.
 - **Installation:** nach `~/TagStudio/Plugins/<id>` mit Markierung `.tagstudio-store.json` (Version, Prüfsumme, Tag);

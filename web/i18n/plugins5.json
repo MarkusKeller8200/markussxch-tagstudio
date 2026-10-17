@@ -1,7 +1,4 @@
 {
-"Neuere Plugins und neue Plugins aus den offiziellen Releases (gewählter Update-Kanal)": ["Newer and new plugins from the official releases (selected update channel)", "Neueri und neui Plugins us de offizielle Releases (gwählte Update-Kanal)"],
-"Plugin-Updates …": ["Plugin updates …", "Plugin-Updates …"],
-"Plugin-Updates": ["Plugin updates", "Plugin-Updates"],
 "Zurück auf eingebaute Version {x}": ["Back to built-in version {x}", "Zrugg uf di iibaut Version {x}"],
 "Entfernt die nachgeladene Version {x} aus dem Plugin-Ordner.": ["Removes the downloaded version {x} from the plugin folder.", "Entfernt di naagladeni Version {x} us em Plugin-Ordner."],
 "Nachgeladenes Plugin entfernen": ["Remove downloaded plugin", "Naagladnigs Plugin entferne"],
@@ -19,8 +16,6 @@
 "Braucht TagStudio {x} oder neuer.": ["Needs TagStudio {x} or later.", "Bruucht TagStudio {x} oder neuer."],
 "Im Plugin-Ordner liegt ein eigenes Plugin mit gleicher ID – es wird nicht überschrieben.": ["There is an own plugin with the same ID in the plugin folder – it will not be overwritten.", "Im Plugin-Ordner liit es eigets Plugin mit glicher ID – das wird nöd überschribe."],
 "Braucht zusätzliche Python-Pakete – in der installierten App nicht nachinstallierbar.": ["Needs additional Python packages – they cannot be installed in the installed app.", "Bruucht zuesätzlichi Python-Pakete – i de installierte App nöd naainstallierbar."],
-"Alle Plugins sind aktuell.": ["All plugins are up to date.", "Alli Plugins sind aktuell."],
-"Katalog aus Release {x}{x} · {x} Plugin(s) aktuell": ["Catalog from release {x}{x} · {x} plugin(s) up to date", "Katalog us em Release {x}{x} · {x} Plugin(s) aktuell"],
 "Plugins sind Python-Code. TagStudio lädt sie nur aus den offiziellen Releases und prüft die Prüfsumme. Nachgeladene Plugins liegen im Ordner {q} und ersetzen die eingebaute Version; unter {q} geht es zurück.": ["Plugins are Python code. TagStudio only loads them from the official releases and checks the checksum. Downloaded plugins are stored in the folder {q} and replace the built-in version; {q} takes you back.", "Plugins sind Python-Code. TagStudio ladt si nur us de offizielle Releases und prüeft d Prüefsumme. Naagladni Plugins lieged im Ordner {q} und ersetzed di iibaut Version; under {q} gahts zrugg."],
 "{x}: Plugin laden": ["{x}: load plugin", "{x}: Plugin lade"],
 "{x} {x} installiert – noch nicht bereit, siehe Karte.": ["{x} {x} installed – not ready yet, see card.", "{x} {x} installiert – no nöd parat, lueg d Charte aa."],
@@ -45,6 +40,13 @@
 "{q} braucht TagStudio {x} oder neuer.": ["{q} needs TagStudio {x} or later.", "{q} bruucht TagStudio {x} oder neuer."],
 "Plugin-Katalog": ["Plugin catalog", "Plugin-Katalog"],
 "Im Entwicklungsstand kommen die Plugins mit dem Quellcode (git). Plugins aus den Releases gibt es mit der Einstellung {q}: {q} oder {q}.": ["In the development version the plugins come with the source code (git). Plugins from the releases are available with the setting {q}: {q} or {q}.", "Im Entwickligsstand chömed d Plugins mit em Quellcode (git). Plugins us de Releases gits mit de Iistellig {q}: {q} oder {q}."],
-"Plugin nicht im Katalog – bitte zuerst nach Plugin-Updates suchen.": ["Plugin not in the catalog – please check for plugin updates first.", "Plugin nöd im Katalog – bitte zerscht nach Plugin-Updates sueche."],
-"Plugin-Katalog wird geladen …": ["Loading plugin catalog …", "Plugin-Katalog wird glade …"]
+"Plugin nicht im Katalog – bitte zuerst {q} öffnen.": ["Plugin not in the catalog – please open {q} first.", "Plugin nöd im Katalog – bitte zerscht {q} öffne."],
+"Plugin-Katalog wird geladen …": ["Loading plugin catalog …", "Plugin-Katalog wird glade …"],
+"Alle Plugins aus den offiziellen Releases (gewählter Update-Kanal): Updates, neue und installierte": ["All plugins from the official releases (selected update channel): updates, new and installed", "Alli Plugins us de offizielle Releases (gwählte Update-Kanal): Updates, neui und installierti"],
+"Verfügbare Plugins …": ["Available plugins …", "Verfüegbari Plugins …"],
+"Verfügbare Plugins": ["Available plugins", "Verfüegbari Plugins"],
+"Neu – noch nicht installiert": ["New – not installed yet", "Neu – no nöd installiert"],
+"Eigenes Plugin mit gleicher ID": ["Own plugin with the same ID", "Eigets Plugin mit glicher ID"],
+"Keine Plugins in dieser Kategorie.": ["No plugins in this category.", "Kei Plugins i dere Kategorie."],
+"Katalog aus Release {x}{x} · {x} Plugins · {x} Update(s) · {x} neu": ["Catalog from release {x}{x} · {x} plugins · {x} update(s) · {x} new", "Katalog us em Release {x}{x} · {x} Plugins · {x} Update(s) · {x} neu"]
 }
