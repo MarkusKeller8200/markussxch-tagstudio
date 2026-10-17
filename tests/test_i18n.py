@@ -62,7 +62,7 @@ class TestCatalog(unittest.TestCase):
         self.assertFalse(ex.is_ui("TXXX:TAGSTUDIO_EDITED"))
         self.assertTrue(ex.is_ui("nicht geprüft"))
 
-    @unittest.skipUnless(os.environ.get("TAGSTUDIO_I18N_STRICT", "0") == "1", "Abdeckung abgeschaltet")
+    @unittest.skipUnless(os.environ.get("TAGSTUDIO_I18N_STRICT", "1") == "1", "Abdeckung abgeschaltet")
     def test_all_texts_translated(self):
         """Jeder Oberflächentext ist in allen mitgelieferten Sprachen vorhanden (neue Texte im selben Commit übersetzen)."""
         texts = ex.collect()
