@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.7.0] – 2026-10-17
+
 ### Neu
 
 - **Mehrsprachig: Englisch und Zürichdeutsch (#157):** Einstellungen › Darstellung › Sprache (und der
