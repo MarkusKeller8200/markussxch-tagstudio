@@ -10,6 +10,7 @@
 
 const I18N = {
   lang: "de-CH", langs: [], exact: new Map(), pats: [], memo: new Map(), obs: null,
+  miss: (() => { try { return localStorage.getItem("ts_i18n_miss") ? new Set() : null; } catch (e) { return null; } })(),
   done: new WeakMap(),                  // Knoten → zuletzt gesetzte Übersetzung (nicht doppelt übersetzen)
   attrs: ["title", "data-tip-title", "placeholder", "aria-label", "alt"],
 };
@@ -23,9 +24,11 @@ function i18nActive() { return I18N.exact.size > 0 || I18N.pats.length > 0; }   
 function i18nSetCatalog(lang, cat) {
   I18N.lang = lang || "de-CH";
   I18N.exact = new Map(); I18N.pats = []; I18N.memo = new Map();
-  for (let [k0, v] of Object.entries(cat || {})) {
-    const k = i18nSkel(k0).key.replace(/^·\s*|\s*·$/g, "");          // „· …“/„… ·“ wie ohne Punkt
-    v = v.replace(/^·\s*|\s*·$/g, "");
+  // „· …“/„… ·“ wie ohne Punkt – aber ein eigener Eintrag ohne Punkt hat Vorrang („· Tagger“ ≠ „Tagger“)
+  const ents = Object.entries(cat || {}).map(([k0, v]) => [i18nSkel(k0).key, v]);
+  const dot = /^·\s*|\s*·$/g, plain = new Set(ents.filter(([k]) => !k.match(dot)).map(([k]) => k));
+  for (let [k, v] of ents) {
+    if (k.match(dot)) { const kk = k.replace(dot, ""); if (plain.has(kk)) continue; k = kk; v = v.replace(dot, ""); }
     if (!k.includes("{x}")) { I18N.exact.set(k, v); continue; }
     const lits = k.split(/\{[nqx]\}/).map((s) => s.trim()).filter(Boolean).sort((a, b) => b.length - a.length);
     const re = new RegExp("^" + k.split(/(\{[nqx]\})/).map((p, i, arr) =>
@@ -62,8 +65,18 @@ function i18nVal(kind, v) {
     if (I18N.lang === "en" && open === "„") return `“${tt}”`;
     return open + tt + close;
   }
-  if (kind === "x") return i18nLine(v.trim()) === v.trim() ? v : v.replace(v.trim(), i18nLine(v.trim()));
+  if (kind === "x") return i18nX(v);
+  if (I18N.lang === "en" && /^\d{1,3}(['’]\d{3})+$/.test(v)) return v.replace(/['’]/g, ",");   // 641'243 → 641,243
   return v;
+}
+/** eingesetzter Teil: als Ganzes, sonst Zusätze „, …“ einzeln („, Testabfrage ohne Track, API-Tester“) */
+function i18nX(v) {
+  const t = v.trim(), r = i18nLine(t);
+  if (r !== t) return v.replace(t, r);
+  const parts = t.split(/(?=, )/);
+  if (parts.length < 2) return v;
+  const out = parts.map((p) => i18nLine(p));
+  return out.some((x, k) => x !== parts[k]) ? v.replace(t, out.join("")) : v;
 }
 function i18nFill(tpl, vals) {
   let k = 0;
@@ -92,13 +105,19 @@ function i18nLine(s) {
     // fängt – sonst würde „Künstler des ganzen Albums …“ fälschlich zu „Artist des ganzen Albums …“
     const m = p.re.exec(s);
     if (m && p.segs < 2 && p.kinds.some((k, i) => k === "{x}" && /(^|[\s(])[a-zäöüß]{3,}(?=[\s.,;:)…]|$)/.test(m[i + 1] || "")
-        && i18nLine((m[i + 1] || "").trim()) === (m[i + 1] || "").trim())) continue;
+        && i18nX(m[i + 1] || "") === (m[i + 1] || ""))) continue;
     if (m) return i18nFill(p.v, p.kinds.map((k, i) => [k.slice(1, 2), m[i + 1]])).replace(/\s+$/, "").replace(/\s+([.,;:])$/, "$1");
   }
   const pre = /^([^:\n]{2,80}:)\s+([\s\S]+)$/.exec(s);                // „Wiedergabe nicht möglich: …“
   if (pre && I18N.exact.has(pre[1])) return I18N.exact.get(pre[1]) + " " + i18nLine(pre[2]);
+  const sort = /^([\s\S]*\S)(\s*[▴▾▸▲▼↑↓][¹²³⁴⁵⁶⁷⁸⁹]*)$/.exec(s);       // Spaltenkopf mit Sortierzeichen
+  if (sort) { const r = i18nLine(sort[1]); if (r !== sort[1]) return r + sort[2]; }
   const lead = /^([·•–—]\s+)([\s\S]+)$/.exec(s);                     // „· 3 markiert“
   if (lead) { const r = i18nLine(lead[2]); if (r !== lead[2]) return lead[1] + r; }
+  if (!/…$/.test(s)) {                                                // Aktionsname ohne „ …“ (Plugin-Menüs)
+    const ell = I18N.exact.get(s + " …");
+    if (ell !== undefined) return ell.replace(/\s*…$/, "");
+  }
   // zusammengesetzte Texte: Teile zwischen „ · “ einzeln übersetzen
   if (s.includes(" · ")) {
     const parts = s.split(" · ");
@@ -116,6 +135,7 @@ function tr(s) {
   // erst als Ganzes (Zeilenumbrüche aus dem Quelltext sind nur Leerraum), sonst zeilenweise (Tooltips mit \n)
   const w = /^(\s*)([\s\S]*?)(\s*)$/.exec(s), whole = w[2].replace(/\s+/g, " ");
   const tw = whole && /[A-Za-zÄÖÜäöü]/.test(whole) ? (s.includes("\n") ? i18nExact(whole) : i18nLine(whole)) : whole;
+  if (I18N.miss && tw === whole && !s.includes("\n") && /[A-Za-zÄÖÜäöü]{2}/.test(whole)) I18N.miss.add(whole);   // Prüfhilfe (Tests)
   if (tw !== whole || !s.includes("\n")) {
     const res = tw !== whole ? w[1] + tw + w[3] : s;
     if (I18N.memo.size > 30000) I18N.memo.clear();
@@ -127,6 +147,7 @@ function tr(s) {
     if (!m[2] || !/[A-Za-zÄÖÜäöü]/.test(m[2])) return line;
     const norm = m[2].replace(/\s+/g, " ");
     const t = i18nLine(norm);
+    if (I18N.miss && t === norm) I18N.miss.add(norm);
     return t === norm ? line : m[1] + t + m[3];
   }).join("\n");
   if (I18N.memo.size > 30000) I18N.memo.clear();

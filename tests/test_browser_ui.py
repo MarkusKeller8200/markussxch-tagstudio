@@ -780,7 +780,7 @@ class UiTest(unittest.TestCase):
     def test_i18n_pages_english(self):
         """#157: alle Seiten auf Englisch – keine deutschen Reste in der sichtbaren Oberfläche (ausser Daten)."""
         pg = self.pg
-        pg.evaluate("call('set_ui', 'lang', 'en')")
+        pg.evaluate("localStorage.setItem('ts_i18n_miss', '1'); call('set_ui', 'lang', 'en')")   # Fehlliste der Übersetzung
         pg.reload()
         pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'en'")
         self.load_tagger()
@@ -799,6 +799,9 @@ class UiTest(unittest.TestCase):
             for (const a of ['data-tip-title', 'placeholder', 'aria-label']) { const t = el.getAttribute(a); if (t && de.test(t)) out.add('@' + a + ': ' + t.slice(0, 120)); }
           }
           return [...out]; })()"""
+        shots = os.environ.get("TAGSTUDIO_I18N_SHOTS")              # Bildschirmfotos zur Sichtprüfung
+        if shots:
+            pg.screenshot(path=os.path.join(shots, "en_tagger.png"))
         left = set(pg.evaluate(scan))
         for mod in ("compare", "djset", "snapshots", "backups", "plugins", "settings", "prepare", "help"):
             loc = pg.locator(f'.nav[data-module="{mod}"]')
@@ -808,7 +811,13 @@ class UiTest(unittest.TestCase):
             if loc.count() and loc.is_visible():
                 loc.click()
                 time.sleep(0.6)
+                if shots:
+                    pg.screenshot(path=os.path.join(shots, f"en_{mod}.png"))
                 left |= set(pg.evaluate(scan))
+        # Texte, die die Übersetzung gesehen, aber nicht gefunden hat – deutsche davon (Daten wie Pfade ausgenommen)
+        miss = pg.evaluate("""[...I18N.miss].filter((t) => !/^[\\/]|\\.mp3$|^https?:/.test(t)
+          && /[äöüÄÖÜ]|\\b(der|die|das|und|nicht|ohne|mit|für|von|oder|holen|suchen|Daten|wählen|leer|alle|keine?|nur|wird)\\b/.test(t))""")
+        left |= {"miss: " + t[:120] for t in miss}
         if os.environ.get("TAGSTUDIO_I18N_REPORT"):
             print("\nI18N-REST", json.dumps(sorted(left), ensure_ascii=False, indent=0))
         self.assertLessEqual(len(left), int(os.environ.get("TAGSTUDIO_I18N_MAXREST", "3")), sorted(left)[:60])

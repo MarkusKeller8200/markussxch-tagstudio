@@ -72,7 +72,7 @@ async function settingsShow() {
         <label for="stPlStart">Startpunkt</label>${stSel("stPlStart", [["0", "ab Anfang"], ["30", "ab 30 %"], ["60", "ab 1:00"], ["cue", "ab 1. Cue"]], p.start)}
         <span>Anzeige</span>${stCheck("stPlWave", p.wave, "Wellenform anzeigen (einmal berechnet, im Cache)")}
         <span>Durchhören</span>${stCheck("stPlFollow", p.follow, "Beim Wechsel der Markierung weiterspielen, am Titelende nächster Titel")}
-        <span>Wiederholen</span>${stCheck("stPlRepeat", p.repeat, "Titel wiederholen (R)")}
+        <span>Wiederholung</span>${stCheck("stPlRepeat", p.repeat, "Titel wiederholen (R)")}
         <span>Live-Vorschau</span>${stCheck("stPlLive", p.live, "Klick auf einen Titel spielt ihn sofort (aus: Doppelklick spielt)")}
         <label for="stPlVol">Lautstärke</label><div class="st-path"><input type="range" id="stPlVol" min="0" max="100" value="${Math.round(p.vol * 100)}" style="width:160px"><span class="muted sm" id="stPlVolV">${Math.round(p.vol * 100)} %</span></div>
         <label for="stPlMetroVol">Metronom-Lautstärke</label><div class="st-path">

@@ -57,15 +57,44 @@ def is_ui(s: str) -> bool:
     letters = re.sub(r"\{[nqx]\}", "", s)
     if not re.search(r"[A-Za-zÄÖÜäöü]", letters):
         return False
-    if re.fullmatch(r"[a-z0-9_\-\s:,.*+>~=|!?'\"]+", letters) and ("-" in letters or "_" in letters or " " not in letters.strip()):
-        return False                                          # Klassen, Schlüssel, Bezeichner
+    german = _german(letters)
+    if re.fullmatch(r"[a-z0-9_\-\s:,.*+>~=|!?'\"]+", letters) and ("-" in letters or "_" in letters or " " not in letters.strip()) \
+            and not (german and "_" not in letters and not re.search(r"[a-z]-[a-z]", letters)):
+        return False                                          # Klassen, Schlüssel, Bezeichner (deutsche Wörter ausgenommen)
     if re.fullmatch(r"[A-Z0-9_:\-#/. ]+", letters):
         return False                                          # FELDNAMEN, Frame-IDs
     if re.fullmatch(r"[a-z]+[A-Z]\w*", letters.strip()):
         return False                                          # camelCase
-    if re.fullmatch(r"(?:[a-z]+(?:-[a-z]+)*)(?:\s+[a-z]+(?:-[a-z]+)*)+", letters.strip()) and not re.search(r"[äöü]", letters):
+    if re.fullmatch(r"(?:[a-z]+(?:-[a-z]+)*)(?:\s+[a-z]+(?:-[a-z]+)*)+", letters.strip()) and not re.search(r"[äöü]", letters) \
+            and not german:
         return False                                          # "icon-btn pl-tog", "click keydown"
     return True
+
+
+# Deutsche Wörter, an denen kleingeschriebene Texte als Oberflächentext erkannt werden („noch nicht gescannt“,
+# „{x} entfernen“) – Funktionswörter plus der Wortschatz der deutschen Katalogschlüssel ohne englische Wörter
+_DE_HINT = set("""der die das den dem des ein eine einen einem einer und oder nicht kein keine keinen nichts noch nur
+mit ohne für von vom zum zur bei aus auf nach vor über unter bis als wie wird werden ist sind war hat haben kann
+alle alles beide jetzt schon immer nie mehr weniger gleich ja nein bitte egal links rechts oben unten
+entfernen anzeigen ausblenden einbeziehen eingebaut eigenes erledigt fallend steigend kleiner grösser beginnt endet enthält
+leer fehlt gesetzt gescannt geladen gespeichert geändert gelöscht übernommen""".split())
+_DE_VOCAB: set | None = None
+
+
+def _german(letters: str) -> bool:
+    global _DE_VOCAB
+    if _DE_VOCAB is None:
+        de, en = set(), set()
+        try:
+            for fn in os.listdir(I18N):
+                if fn.endswith(".json") and fn != "ignore.json":
+                    for k, v in json.load(open(os.path.join(I18N, fn), encoding="utf-8")).items():
+                        de.update(w.lower() for w in re.findall(r"[A-Za-zÄÖÜäöüß]{4,}", k))
+                        en.update(w.lower() for w in re.findall(r"[A-Za-z]{3,}", v[0]))
+        except (OSError, ValueError):
+            pass
+        _DE_VOCAB = (de - en - {"tagstudio", "serato", "beatport", "rekordbox", "traktor"}) | _DE_HINT
+    return any(w in _DE_VOCAB for w in re.findall(r"[a-zäöüß]{2,}", letters))
 
 
 def chunks(text: str):
@@ -214,11 +243,41 @@ def py_literals(src: str):
     return [s for s in out if s not in docs and not s.startswith("\n")]
 
 
+_UI_KEYS = {"label", "run_label", "title", "name", "desc", "description", "hint", "help", "text", "tip", "placeholder",
+            "msg", "message", "short", "info", "note", "caption", "status_text"}
+_FRAME_KEY = re.compile(r"^(?:[A-Z][A-Z0-9]{3}|[A-Z][A-Z0-9]{3}:.*)$")
+
+
+def py_ui_values(src: str) -> set[str]:
+    """Python: Werte, die sicher Beschriftungen sind – {"label": "…"}, label="…" und Tabellen Frame-ID → Text."""
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        return set()
+    out = set()
+
+    def s_of(v):
+        return v.value if isinstance(v, ast.Constant) and isinstance(v.value, str) else None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Dict):
+            keys = [s_of(k) if k is not None else None for k in node.keys]
+            frames = len(keys) >= 3 and all(k and _FRAME_KEY.match(k) for k in keys)
+            for k, v in zip(keys, node.values):
+                t = s_of(v)
+                if t and (frames or k in _UI_KEYS):
+                    out.add(t)
+        elif isinstance(node, ast.keyword) and node.arg in _UI_KEYS and s_of(node.value):
+            out.add(s_of(node.value))
+    return out
+
+
 def _py_ui(s: str) -> bool:
     """Python: Texte, die als Meldung/Beschriftung in die Oberfläche gehen – deutsche Wörter, Sätze oder
     Bezeichnungen aus mehreren Wörtern; keine Bezeichner, Pfade, Formate (Genre-Namen siehe ignore/_genres)."""
     if s in _GENRES:
         return False
+    if _german(s) or re.fullmatch(r"[A-ZÄÖÜ][a-zäöüß]+(?:[- ][A-Za-zÄÖÜäöüß]+)*(?::|[ (].*)?", s.strip()):
+        return True                                           # deutsche Wörter; Beschriftungen wie „Teilweise“, „Leere: v1“
     if re.search(r"^[A-ZÄÖÜ][a-zäöüß]+\s+\S", s.strip()) or re.search(r"[a-zäöü]{3,}\s+[a-zäöü]{3,}", s):
         return True
     if not re.search(r"[äöüÄÖÜ]|\b(der|die|das|und|nicht|kein|keine|mit|für|von|im|zum|zur|bitte|wird|werden|ist|sind|Datei|Dateien|Titel|Ordner|bereits|noch|nur|oder|aus|auf|alle|neu|Fehler)\b", s):
@@ -258,7 +317,9 @@ def collect(include_py=True, plugins=False) -> dict[str, list[str]]:
     if include_py:
         for fn in sorted(os.listdir(ROOT)):
             if fn.endswith(".py") and fn not in PY_SKIP:
-                texts = [t.replace("\n", "\x01") for t in py_literals(open(os.path.join(ROOT, fn), encoding="utf-8").read()) if _py_ui(t)]
+                src = open(os.path.join(ROOT, fn), encoding="utf-8").read()
+                uiv = py_ui_values(src)
+                texts = [t.replace("\n", "\x01") for t in py_literals(src) if _py_ui(t) or t in uiv]
                 add(fn, texts)
     if plugins:
         pdir = os.path.join(ROOT, "plugins")
@@ -269,7 +330,9 @@ def collect(include_py=True, plugins=False) -> dict[str, list[str]]:
                 if not os.path.isfile(p):
                     continue
                 if fn.endswith(".py"):
-                    texts = [t for t in py_literals(open(p, encoding="utf-8").read()) if _py_ui(t)]
+                    src = open(p, encoding="utf-8").read()
+                    uiv = py_ui_values(src)
+                    texts = [t for t in py_literals(src) if _py_ui(t) or t in uiv]
                 else:
                     texts = []
 
