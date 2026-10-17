@@ -262,7 +262,7 @@ class TestPlayerJavaScript(unittest.TestCase):
     def test_browser_player_logic_without_browser(self):
         result = subprocess.run(
             [NODE, "-e", CHECK], cwd=ROOT, capture_output=True,
-            text=True, encoding="utf-8", timeout=30,
+            text=True, encoding="utf-8", timeout=120,                       # Windows-Runner sind gelegentlich langsam
         )
         self.assertEqual(result.returncode, 0, result.stdout + "\n" + result.stderr)
 
