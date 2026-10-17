@@ -709,14 +709,20 @@ class UiTest(unittest.TestCase):
             if pg.locator("#modal").is_visible() and not pg.locator("#modal .i18n-imp").count():
                 pg.click("#mBtns button >> nth=0")
 
+    def lang_pick(self, drop, code):
+        """Sprache über die Auswahlliste mit Flaggen wählen (Einstellungen #stLang, Seitenleiste #sideLang, Assistent)."""
+        self.pg.click(f"{drop} .lang-cur")
+        self.pg.click(f'{drop} .lang-menu [data-lang="{code}"]')
+
     def test_i18n_language(self):
         """#157: Sprache wählen – Oberfläche auf Englisch/Zürichdeutsch, Platzhalter, Tooltips, gemerkt; zurück auf Deutsch."""
         pg = self.pg
         self.assertEqual(pg.evaluate("I18N.lang"), "de-CH")                          # bestehende Installation: Deutsch
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stLang")
-        self.assertEqual(pg.locator("#stLang button").count(), 3)
-        pg.click('#stLang [data-lang="en"]')
+        self.assertEqual(pg.locator("#stLang .lang-menu [data-lang]").count(), 4)           # Betriebssystem + 3 Sprachen
+        self.assertTrue(pg.locator("#stLang .lang-menu").is_hidden())
+        self.lang_pick("#stLang", "en")
         self.assertTrue(self.until("I18N.lang === 'en' && document.documentElement.lang === 'en'"))
         c = self.cfg_until(lambda c: (c.get("web_ui") or {}).get("lang") == "en")
         self.assertEqual(c["web_ui"]["lang"], "en")
@@ -738,51 +744,58 @@ class UiTest(unittest.TestCase):
         self.calm()
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stLang")
-        pg.click('#stLang [data-lang="gsw-u-sd-chzh"]')
+        self.lang_pick("#stLang", "gsw-u-sd-chzh")
         pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'gsw-u-sd-chzh'")
         self.assertEqual(pg.evaluate("tr('Einlesen')"), "Iiläse")
         self.calm()
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stLang")
-        pg.click('#stLang [data-lang="de-CH"]')
+        self.lang_pick("#stLang", "de-CH")
         pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'de-CH'")
         self.assertIn("Einstellungen", pg.inner_text(".nav[data-module=settings]"))
         self.assertEqual(self.errors, [])
 
     def test_i18n_side_and_system(self):
-        """Sprachwahl in der Seitenleiste (unter „Einklappen“), Deutsch mit geteilter Flagge, Option Betriebssystem-Sprache."""
+        """Sprachwahl als Auswahlliste mit Flaggen (Seitenleiste unter „Einklappen“, Einstellungen), Deutsch mit
+        geteilter Flagge, Eintrag „Sprache des Betriebssystems“."""
         pg = self.pg
         self.calm()
-        sel = "#sideLangSel"
-        self.assertEqual(pg.input_value(sel), "de-CH")
-        opts = pg.evaluate("[...document.querySelectorAll('#sideLangSel option')].map((o) => [o.value, o.textContent])")
-        self.assertEqual([o[0] for o in opts], ["auto", "de-CH", "en", "gsw-u-sd-chzh"])
-        self.assertEqual(opts[1][1], "Deutsch")
-        self.assertIn("Betriebssystem", opts[0][1])
-        self.assertTrue(pg.locator('#sideLang .side-flag svg[viewBox="0 0 30 20"]').count())    # DE/CH diagonal
-        # die Seitenleiste liegt unter „Einklappen“
+        side = "#sideLang"
+        self.assertIn("Deutsch", pg.inner_text(f"{side} .lang-cur"))
+        self.assertTrue(pg.locator(f'{side} .lang-cur svg.flag[viewBox="0 0 30 20"]').count())   # DE/CH diagonal
         self.assertTrue(pg.evaluate("document.querySelector('#collapseBtn').compareDocumentPosition(document.querySelector('#sideLang')) & 4"))
-        pg.select_option(sel, "en")
+        pg.click(f"{side} .lang-cur")
+        items = pg.evaluate("[...document.querySelectorAll('#sideLang .lang-menu [data-lang]')].map((b) => [b.dataset.lang, b.textContent.trim(), !!b.querySelector('svg')])")
+        self.assertEqual([i[0] for i in items], ["auto", "de-CH", "en", "gsw-u-sd-chzh"])
+        self.assertTrue(all(i[2] for i in items))                               # jede Zeile mit Flagge bzw. Symbol
+        self.assertIn("Betriebssystem", items[0][1])
+        pg.click(f'{side} .lang-menu [data-lang="en"]')
         self.assertTrue(self.until("I18N.lang === 'en'"))
+        self.assertTrue(pg.locator(f"{side} .lang-menu").is_hidden())
         self.assertEqual(self.cfg_until(lambda c: (c.get("web_ui") or {}).get("lang") == "en")["web_ui"]["lang"], "en")
         self.assertIn("Settings", pg.inner_text(".nav[data-module=settings]"))
-        # Option „Sprache des Betriebssystems verwenden“ (Testbrowser: Englisch)
+        # Einstellungen: dieselbe Auswahlliste, Beschriftung auf Höhe der Liste
         pg.click('.nav[data-module="settings"]')
-        pg.wait_for_selector("[data-lang-sys]")
-        self.assertFalse(pg.is_checked("[data-lang-sys]"))
-        pg.check("[data-lang-sys]")
+        pg.wait_for_selector("#stLang .lang-cur")
+        top = pg.evaluate("""(() => { const l = [...document.querySelectorAll('#stLookCard .st-top')].pop().getBoundingClientRect(),
+          d = document.querySelector('#stLang .lang-cur').getBoundingClientRect(); return Math.abs((l.top + l.height / 2) - (d.top + d.height / 2)); })()""")
+        self.assertLess(top, 4)
+        self.lang_pick("#stLang", "auto")
         c = self.cfg_until(lambda c: (c.get("web_ui") or {}).get("lang") == "auto")
         self.assertEqual(c["web_ui"]["lang"], "auto")
         self.assertEqual(pg.evaluate("I18N.lang"), pg.evaluate("i18nSysLang()"))
-        self.assertTrue(self.until("document.querySelector('#sideLangSel').value === 'auto'"))
-        # Knopf wählt wieder fest eine Sprache und nimmt die Option zurück
-        pg.click('#stLang [data-lang="gsw-u-sd-chzh"]')
+        self.assertTrue(self.until("document.querySelector('#sideLang .lang-menu [data-lang=auto]').classList.contains('on')"))
+        # feste Sprache wählen nimmt „Betriebssystem“ zurück
+        self.lang_pick("#stLang", "gsw-u-sd-chzh")
         pg.wait_for_function("I18N.lang === 'gsw-u-sd-chzh'")
-        self.assertFalse(pg.is_checked("[data-lang-sys]"))
-        self.assertEqual(pg.input_value(sel), "gsw-u-sd-chzh")
-        # eingeklappte Seitenleiste: Flagge bleibt sichtbar
+        self.assertTrue(self.until("document.querySelector('#sideLang .lang-menu [data-lang=\"gsw-u-sd-chzh\"]').classList.contains('on')"))
+        # eingeklappte Seitenleiste: Flagge bleibt, Liste öffnet sich
         pg.click("#collapseBtn")
-        self.assertTrue(pg.locator("#sideLang .side-flag").is_visible())
+        self.assertTrue(pg.locator(f"{side} .lang-flag").is_visible())
+        pg.click(f"{side} .lang-cur")
+        self.assertTrue(pg.locator(f"{side} .lang-menu").is_visible())
+        pg.keyboard.press("Escape")
+        self.assertTrue(pg.locator(f"{side} .lang-menu").is_hidden())
         pg.click("#collapseBtn")
         self.assertEqual(self.errors, [])
 
@@ -1330,13 +1343,13 @@ class UiTest(unittest.TestCase):
         pg = self.pg
         pg.wait_for_selector("#wizard .wiz-box")
         self.assertIn(pg.evaluate("I18N.lang"), (pg.evaluate("i18nSysLang()"),))     # erster Start: Betriebssystem-Sprache
-        self.assertTrue(pg.is_checked("#wizard [data-lang-sys]"))
+        self.assertTrue(pg.locator('#wizard .lang-menu [data-lang="auto"].on').count())
         self.assertEqual(self.cfg_until(lambda c: (c.get("web_ui") or {}).get("lang") == "auto")["web_ui"]["lang"], "auto")
         if pg.evaluate("I18N.lang") != "de-CH":                     # Rest des Tests auf Deutsch
             with pg.expect_navigation():                             # zurück auf Deutsch lädt die Seite neu
-                pg.click('#wizard [data-lang="de-CH"]')
-            pg.wait_for_selector("#wizard .wiz-box")
-            self.assertFalse(pg.is_checked("#wizard [data-lang-sys]"))
+                self.lang_pick("#wizard", "de-CH")
+            pg.wait_for_selector("#wizard .wiz-box", timeout=25000)   # Neustart der Seite: Server beantwortet noch Aufrufe
+            self.assertFalse(pg.locator('#wizard .lang-menu [data-lang="auto"].on').count())
         self.assertIn("Willkommen", pg.inner_text("#wizard"))
         pg.check('#wizard [data-w="goal"][value="prep"]')
         pg.click('#wizard [data-wiz="next"]')                       # Speicherort: Laufwerke, Basisordner, Art
@@ -1433,6 +1446,49 @@ class UiTest(unittest.TestCase):
         self.assertEqual(sorted(snaps), [["Baseline", True], ["Wichtig", False]])
         pg.wait_for_selector("#snSnaps .sn-base")
 
+    def test_plugin_cards(self):
+        """Plugin-Karten: gleich gross, Kategorie, Abschnitte, feste Funktionsknöpfe (ausgegraut, wenn nicht vorhanden),
+        „Weitere Funktionen …“ mit den übrigen Funktionen."""
+        pg = self.pg
+        self.calm()
+        pg.click('.nav[data-module="plugins"]')
+        pg.wait_for_selector('.pl-card[data-pid="beatport"] .pl-btns')
+        hs = pg.evaluate("[...document.querySelectorAll('.pl-card')].map((c) => Math.round(c.getBoundingClientRect().height))")
+        self.assertGreater(len(hs), 5)
+        self.assertEqual(len(set(hs)), 1, hs)                                   # alle Kacheln gleich gross
+        cat = lambda pid: pg.inner_text(f'.pl-card[data-pid="{pid}"] .plg-tag.cat')
+        self.assertEqual(cat("beatport"), "Online-API")
+        self.assertEqual(cat("lexicon"), "Lokale API")
+        self.assertEqual(cat("mik"), "Übernahme aus Tags")
+        self.assertEqual(cat("loudness"), "Audio-Verarbeitung")
+        order = pg.evaluate("""[...document.querySelector('.pl-card[data-pid="acoustid"]').children].map((e) => e.className.split(' ')[0])""")
+        self.assertEqual(order, ["pl-head", "pl-desc", "pl-acts", "pl-svc", "pl-hints", "pl-btns"])
+        btns = lambda pid: pg.evaluate(f"""[...document.querySelectorAll('.pl-card[data-pid="{pid}"] .pl-btns button')].map((b) => [b.textContent.trim(), b.disabled])""")
+        self.assertEqual(btns("acoustid"), [["Verbindung testen", False], ["Schlüssel …", False], ["Einstellungen …", True], ["Weitere Funktionen …", False]])
+        self.assertEqual(btns("mik"), [["Verbindung testen", True], ["Schlüssel …", True], ["Einstellungen …", True], ["Weitere Funktionen …", True]])
+        self.assertEqual(btns("beatport")[1], ["Anmelden …", False])
+        self.assertIn("verschlüsselt", pg.inner_text('.pl-card[data-pid="acoustid"] .pl-hints'))
+        # Weitere Funktionen: Beatport hat Abmelden, Käufe abgleichen, Download und Integration
+        pg.click('.pl-card[data-pid="beatport"] [data-plmore]')
+        pg.wait_for_selector("#mBody .pl-more")
+        more = pg.inner_text("#mBody .pl-more")
+        for t in ("Abmelden", "Integration", "herunterladen"):
+            self.assertIn(t, more)
+        pg.click('#mBody [data-more]:has-text("Integration")')
+        pg.wait_for_selector("#svcBody, #modal .svc-tab, #modal table")
+        self.assertIn("Beatport", pg.inner_text("#mTitle"))
+        pg.keyboard.press("Escape")
+        # fehlende Pakete: ein Knopf, Varianten im Fenster
+        if pg.locator('.pl-card[data-pid="stems"] [data-plinstall]').count():
+            pg.click('.pl-card[data-pid="stems"] [data-plinstall]')
+            pg.wait_for_selector("#mBody .pl-more [data-more]")
+            self.assertGreaterEqual(pg.locator("#mBody .pl-more [data-more]").count(), 2)
+            pg.keyboard.press("Escape")
+        # eingebaut: eine Zeile, auch übersetzt
+        h = pg.evaluate("""(() => { const t = document.querySelector('.pl-card[data-pid="beatunes"] .plg-tag'); return [t.getClientRects().length, getComputedStyle(t).whiteSpace]; })()""")
+        self.assertEqual(h, [1, "nowrap"])
+        self.assertEqual(self.errors, [])
+
     def test_lyrics_plugin(self):
         """#183: Plugin Liedtexte – Einstellungen (.lrc, Sprache) auf der Plugin-Seite, Formular im Tagger,
         mehrzeilige Werte in der Vorschau. Die LRCLIB-Abfrage selbst prüft tests/test_lyrics.py (ohne Netz)."""
@@ -1498,7 +1554,7 @@ class UiTest(unittest.TestCase):
             if not pg.locator(card + " [data-enable]").is_checked():
                 pg.click(card + " .switch")
                 pg.wait_for_selector(card + " [data-svcopen]")
-            link = pg.locator(card + " .pl-svc .pl-link")
+            link = pg.locator(card + " .pl-svc .pl-link[data-url]")
             self.assertIn("lexicondj.com/docs/developers/api", link.get_attribute("data-url"))
             self.assertIn("27 Endpunkte", pg.inner_text(card + " .pl-svc"))
             # Integrationsfenster: Endpunkte mit Status, Filter
@@ -1577,7 +1633,7 @@ class UiTest(unittest.TestCase):
         card = '.pl-card[data-pid="discogs"]'
         pg.wait_for_selector(card + ' [data-paction="keys"]')
         self.assertIn("kein Token", pg.inner_text(card))
-        self.assertIn("Integration", pg.inner_text(card))                       # #204: Dienstbeschreibung
+        self.assertIn("Endpunkte", pg.inner_text(card + " .pl-svc"))            # #204: Dienstbeschreibung (Integration über die Zahl)
         pg.click(card + ' [data-paction="keys"]')
         pg.wait_for_selector("#modal .pl-link")
         self.assertIn("discogs.com/settings/developers", pg.get_attribute("#modal .pl-link >> nth=0", "data-url"))

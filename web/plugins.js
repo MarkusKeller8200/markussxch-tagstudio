@@ -17,40 +17,118 @@ async function pluginsShow(rescan = false) {
   renderPlugins();
 }
 
+// Feste Funktionsknöpfe je Karte (von links): Verbindung testen, Schlüssel/Anmelden, Einstellungen, Weitere Funktionen.
+// Was ein Plugin nicht hat, bleibt ausgegraut sichtbar – so sehen alle Karten gleich aus.
+const PL_SLOT_TEST = ["test"], PL_SLOT_KEY = ["keys", "login"], PL_SLOT_SET = ["settings"];
+const PL_AUTH_NOTE = {
+  none: "Ohne Anmeldung – es wird nichts gespeichert.",
+  key: "Eigener Schlüssel – verschlüsselt im Datenordner des Plugins gespeichert, nie exportiert.",
+  token: "Eigener Token – verschlüsselt im Datenordner des Plugins gespeichert, nie exportiert.",
+  oauth: "Anmeldung: gespeichert wird nur der Token (verschlüsselt), nie das Passwort.",
+};
+
+function plMore(p) {                                   // Funktionen für „Weitere Funktionen …“
+  const fixed = [...PL_SLOT_TEST, ...PL_SLOT_KEY, ...PL_SLOT_SET];
+  const acts = (p.actions || []).filter((a) => a.where === "page" && !fixed.includes(a.id))
+    .map((a) => ({ kind: "action", id: a.id, label: a.label, desc: a.description }));
+  if (p.service) acts.push({ kind: "svc", label: "Integration …", desc: "Endpunkte mit Umsetzungsstand, Testabfrage ohne Track und API-Tester (nur lesend)" });
+  if (p.env && p.state === "ready" && p.install.length) p.install.forEach((v) => acts.push({ kind: "install", id: v.id, label: `Neu installieren: ${v.label.replace(/^Installieren\s*\(?|\)$/g, "") || v.label}`, desc: (v.hint || "") }));
+  return acts;
+}
+
 function renderPlugins() {
   const box = $("#plList");
   if (!PL.list.length) { box.innerHTML = '<div class="empty">Keine Plugins gefunden.</div>'; return; }
   box.innerHTML = PL.list.map((p) => {
     const [stTxt, stCls] = p.enabled ? PL_STATE[p.state] : ["Ausgeschaltet", "st-same"];
-    const missing = p.state === "missing" ? `<div class="pl-box warn">
+    const on = p.enabled && p.state === "ready";
+    const acts = p.actions || [];
+    const find = (ids) => acts.find((a) => a.where === "page" && ids.includes(a.id));
+    // fehlende Pakete: kurz mit einem Knopf – Varianten und Hinweise im Fenster „Installieren …“ (Karten bleiben gleich gross)
+    const missing = p.state === "missing" ? `<div class="pl-box warn pl-miss">
         <div><b>${p.env ? "Noch nicht installiert:" : "Fehlende Python-Pakete:"}</b> ${p.missing.map((m) => esc(m.label)).join(", ")}</div>
         ${PL.frozen && !p.env ? '<div class="hint">In der gepackten App können keine Pakete nachinstalliert werden.</div>'
-          : `<div class="pl-inst">${p.install.map((v) => `<button class="ghost sm" data-install="${esc(v.id)}" title="pip install ${esc(v.packages.join(" "))}">${esc(v.label)}</button>`).join("")}</div>
-             ${p.install.map((v) => v.hint ? `<div class="hint">${esc(v.label.replace(/^Installieren\s*\(?|\)$/g, ""))}: ${esc(v.hint)}</div>` : "").join("")}`}
-        ${p.notes ? `<div class="hint">${esc(p.notes)}</div>` : ""}</div>` : "";
+          : p.install.length ? `<div><button class="ghost sm" data-plinstall>Installieren …</button></div>` : ""}</div>` : "";
     const ext = p.external.length ? `<div class="pl-box warn"><b>Zusätzlich nötig:</b> ${p.external.map((e) => `${esc(e.label)}${e.hint ? ` <span class="hint">– ${esc(e.hint)}</span>` : ""}`).join("<br>")}</div>` : "";
     const err = p.state === "error" ? `<div class="pl-box err">${esc(p.error)}</div>` : "";
-    const envOk = p.env && p.state === "ready" && p.install.length ? `<div class="pl-env"><span class="muted sm">Umgebung: ${esc((p.env_variant || "installiert").replace(/^Installieren\s*\(?|\)$/g, ""))}</span>
-        <details><summary class="sm">Neu installieren / andere Variante …</summary><div class="pl-inst">${p.install.map((v) => `<button class="ghost sm" data-install="${esc(v.id)}">${esc(v.label)}</button>`).join("")}</div></details></div>` : "";
-    const pageActs = p.actions.filter((a) => a.where === "page");
-    const page = p.enabled && p.state === "ready" && (pageActs.length || p.status_text) ? `<div class="pl-page">${p.status_text ? `<span class="sm pl-stat">${esc(p.status_text)}</span>` : ""}
-      ${pageActs.map((a) => `<button class="ghost sm" data-paction="${esc(a.id)}" title="${esc(a.description)}">${esc(a.label)}</button>`).join("")}</div>` : "";
-    const acts = p.actions.filter((a) => a.where !== "page").length ? `<div class="pl-acts"><span class="muted sm">Aktionen:</span> ${p.actions.filter((a) => a.where !== "page").map((a) => `<span class="pl-act" title="${esc(a.description)}">${esc(a.label.replace(/\s*…$/, ""))}${a.where === "tagger" ? ' <span class="faint">· Tagger</span>' : ""}</span>`).join("")}</div>` : "";
+    // 3. Aktionen (erscheinen im Tagger)
+    const tagActs = acts.filter((a) => a.where !== "page");
+    const actsHtml = `<div class="pl-acts"><span class="muted sm">Aktionen:</span> ${tagActs.length ? tagActs.map((a) => `<span class="pl-act" title="${esc(a.description)}">${esc(a.label.replace(/\s*…$/, ""))}${a.where === "tagger" ? ' <span class="faint">· Tagger</span>' : ""}</span>`).join("") : `<span class="muted sm">${p.enabled ? "keine" : "– (ausgeschaltet)"}</span>`}</div>`;
+    // 4. API-Zeile
+    const api = p.service ? `<div class="pl-svc sm">${p.service.docs ? `<a href="#" class="pl-link" data-url="${esc(p.service.docs)}" title="${esc(p.service.docs)}">API: ${esc(p.service.name)} ↗</a>` : `<span>API: ${esc(p.service.name)}</span>`}
+        <span class="muted">· ${esc(p.service.auth_text)} ·</span> <a href="#" class="pl-link" data-svcopen title="Endpunkte mit Umsetzungsstand${p.service.test_query ? ", Testabfrage ohne Track" : ""}${p.service.testable ? ", API-Tester" : ""}">${p.service.endpoints} Endpunkte</a></div>`
+      : `<div class="pl-svc sm muted">API: keine – arbeitet lokal</div>`;
+    // 5. Hinweise (Status, Speicherung von Schlüsseln, Umgebung)
+    const notes = [];
+    if (on && p.status_text) notes.push(`<span class="pl-stat">${esc(p.status_text)}</span>`);
+    if (p.service && PL_AUTH_NOTE[p.service.auth]) notes.push(esc(PL_AUTH_NOTE[p.service.auth]));
+    if (p.env && p.state === "ready") notes.push(`Umgebung: ${esc((p.env_variant || "installiert").replace(/^Installieren\s*\(?|\)$/g, ""))}`);
+    const hints = `<div class="pl-hints sm">${notes.map((n) => `<div>${n}</div>`).join("")}${p.enabled ? err + missing + ext : ""}</div>`;
+    // 6. Funktionsknöpfe
+    const slot = (a, fallback, dis) => a && on
+      ? `<button class="ghost sm" data-paction="${esc(a.id)}" title="${esc(a.description)}">${esc(a.label)}</button>`
+      : `<button class="ghost sm" disabled title="${esc(dis)}">${esc(fallback)}</button>`;
+    const key = find(PL_SLOT_KEY), more = plMore(p);
+    const btns = `<div class="pl-btns">
+        ${slot(find(PL_SLOT_TEST), "Verbindung testen", "Dieses Plugin hat keine Verbindung zum Testen")}
+        ${slot(key, "Schlüssel …", "Kein Schlüssel und keine Anmeldung nötig")}
+        ${slot(find(PL_SLOT_SET), "Einstellungen …", "Dieses Plugin hat keine eigenen Einstellungen")}
+        <button class="ghost sm" data-plmore ${more.length && p.enabled ? "" : "disabled"} title="${more.length ? "Weitere Funktionen dieses Plugins" : "Keine weiteren Funktionen"}">Weitere Funktionen …</button></div>`;
     return `<section class="card pl-card${p.enabled ? "" : " off"}" data-pid="${esc(p.id)}">
       <div class="pl-head">
         <div class="pl-ico"><svg class="i" viewBox="0 0 24 24"><path d="M9 3h6v3a2 2 0 1 0 4 0V3h2v6h-3a2 2 0 1 0 0 4h3v8h-6v-3a2 2 0 1 0-4 0v3H3v-8h3a2 2 0 1 0 0-4H3V3h6Z"/></svg></div>
-        <div class="pl-t"><h3>${esc(p.name)} <span class="muted sm">${esc(p.version)}</span>${p.builtin ? ' <span class="pl-tag">eingebaut</span>' : ' <span class="pl-tag own">eigenes</span>'}</h3>
+        <div class="pl-t"><h3 title="${esc(p.path)}"><span class="pl-name">${esc(p.name)}</span> <span class="muted sm">${esc(p.version)}</span>${p.builtin ? ' <span class="plg-tag">eingebaut</span>' : ' <span class="plg-tag own">eigenes</span>'}<span class="plg-tag cat cat-${esc(p.category || "other")}">${esc(p.category_label || "Sonstiges")}</span></h3>
           <div class="sm ${stCls}">● ${stTxt}</div></div>
         <label class="switch" title="${p.enabled ? "Ausschalten" : "Einschalten"}"><input type="checkbox" data-enable ${p.enabled ? "checked" : ""} aria-label="${esc(p.name)} ein/aus"><span></span></label>
       </div>
       <p class="pl-desc">${esc(p.description)}</p>
-      ${p.service ? `<div class="pl-svc sm">${p.service.docs ? `<a href="#" class="pl-link" data-url="${esc(p.service.docs)}" title="${esc(p.service.docs)}">API: ${esc(p.service.name)} ↗</a>` : `<span>${esc(p.service.name)}</span>`}
-        <span class="muted">· ${esc(p.service.auth_text)} · ${p.service.endpoints} Endpunkte</span>
-        <button class="ghost sm" data-svcopen title="Endpunkte mit Umsetzungsstand${p.service.test_query ? ", Testabfrage ohne Track" : ""}${p.service.testable ? ", API-Tester" : ""}">Integration …</button></div>` : ""}
-      ${p.enabled ? err + missing + ext + page + acts + envOk : ""}
-      <div class="hint pl-path" title="${esc(p.path)}">${esc(p.path)}</div>
+      ${actsHtml}
+      ${api}
+      ${hints}
+      ${btns}
     </section>`;
   }).join("");
+}
+
+/** „Installieren …“: Varianten mit Hinweisen zur Auswahl (eine Variante → direkt) */
+async function pluginInstallPick(pid) {
+  const p = PL.list.find((x) => x.id === pid); if (!p) return;
+  if (p.install.length === 1) { pluginInstall(pid, p.install[0].id); return; }
+  let pick = null;
+  await modal({
+    title: `${p.name} – installieren`,
+    html: `<div class="pl-more">${p.install.map((v, i) => `<div class="pl-more-row"><button class="ghost sm" data-more="${i}" title="pip install ${esc(v.packages.join(" "))}">${esc(v.label)}</button><span class="muted sm">${esc(v.hint || "")}</span></div>`).join("")}</div>
+      ${p.notes ? `<div class="hint" style="margin-top:12px">${esc(p.notes)}</div>` : ""}`,
+    buttons: [{ label: "Abbrechen", value: null }],
+    onMount: (b) => b.addEventListener("click", (e) => {
+      const m = e.target.closest("[data-more]"); if (!m) return;
+      pick = p.install[+m.dataset.more];
+      $("#mBtns button").click();
+    }),
+  });
+  if (pick) pluginInstall(pid, pick.id);
+}
+
+/** „Weitere Funktionen …“: alle übrigen Funktionen eines Plugins in einem Fenster */
+async function pluginMore(pid) {
+  const p = PL.list.find((x) => x.id === pid); if (!p) return;
+  const items = plMore(p);
+  let pick = null;
+  await modal({
+    title: `${p.name} – weitere Funktionen`,
+    html: `<div class="pl-more">${items.map((it, i) => `<div class="pl-more-row"><button class="ghost sm" data-more="${i}">${esc(it.label)}</button><span class="muted sm">${esc(it.desc || "")}</span></div>`).join("")}</div>
+      <div class="hint pl-path" title="${esc(p.path)}">Ordner: ${esc(p.path)}</div>`,
+    buttons: [{ label: "Schliessen", value: null }],
+    onMount: (b) => b.addEventListener("click", (e) => {
+      const m = e.target.closest("[data-more]"); if (!m) return;
+      pick = items[+m.dataset.more];
+      $("#mBtns button").click();
+    }),
+  });
+  if (!pick) return;
+  if (pick.kind === "action") pluginRun(pid, pick.id);
+  else if (pick.kind === "svc") svcOpen(pid);
+  else if (pick.kind === "install") pluginInstall(pid, pick.id);
 }
 
 async function pluginInstall(pid, variant) {
@@ -244,7 +322,11 @@ async function pluginPreview(f, res) {
     const lk = e.target.closest(".pl-link[data-url]");                 // #204: API-Dokumentation
     if (lk) { e.preventDefault(); call("open_url", lk.dataset.url); return; }
     const so = e.target.closest("[data-svcopen]");
-    if (so) { svcOpen(so.closest("[data-pid]").dataset.pid); return; }
+    if (so) { e.preventDefault(); svcOpen(so.closest("[data-pid]").dataset.pid); return; }
+    const pi = e.target.closest("[data-plinstall]");
+    if (pi) { pluginInstallPick(pi.closest("[data-pid]").dataset.pid); return; }
+    const mo = e.target.closest("[data-plmore]");
+    if (mo) { pluginMore(mo.closest("[data-pid]").dataset.pid); return; }
     const pa = e.target.closest("[data-paction]");
     if (pa) { pluginRun(pa.closest("[data-pid]").dataset.pid, pa.dataset.paction); return; }
     const b = e.target.closest("[data-install]"); if (!b) return;

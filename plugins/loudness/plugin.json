@@ -2,6 +2,7 @@
   "id": "loudness",
   "name": "Lautheit messen",
   "version": "1.0",
+  "category": "audio",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
   "description": "Misst mit FFmpeg die Lautheit nach EBU R128 (integrierte Lautheit in LUFS, True Peak, Lautheitsbereich) und schlägt die Werte als Felder TXXX:LUFS_I, TXXX:TRUE_PEAK, TXXX:LOUDNESS_RANGE und auf Wunsch ReplayGain vor. Die Audiodaten bleiben unverändert. Optional: angeglichene Kopie (z. B. −10,5 LUFS) in einem eigenen Ordner erzeugen – das Original bleibt.",

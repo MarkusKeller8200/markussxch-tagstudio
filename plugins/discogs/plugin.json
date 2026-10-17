@@ -2,6 +2,7 @@
   "id": "discogs",
   "name": "Discogs",
   "version": "1.0",
+  "category": "online",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
   "description": "Discogs-Datenbank mit eigenem, kostenlosem Token: Veröffentlichung mit Label, Katalognummer, Stil, Datum, Trackliste und Cover. Anleitung unter „Schlüssel …“. Wird von „Online-Metadaten“ genutzt.",

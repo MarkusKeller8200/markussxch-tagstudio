@@ -377,7 +377,7 @@ def collect(include_py=True, plugins=False) -> dict[str, list[str]]:
                             texts.append(o)
                         elif isinstance(o, dict):
                             for k, v in o.items():
-                                if k not in ("id", "url", "api", "version", "entry", "key", "type", "i18n"):
+                                if k not in ("id", "url", "api", "version", "entry", "key", "type", "i18n", "category"):
                                     walk(v)
                         elif isinstance(o, list):
                             for v in o:

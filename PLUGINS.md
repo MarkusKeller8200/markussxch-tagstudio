@@ -35,6 +35,7 @@ Plugins/
   "id": "mein-plugin",
   "name": "Mein Plugin",
   "version": "1.0",
+  "category": "online",
   "api": 1,
   "description": "Was es tut – erscheint auf der Plugin-Seite.",
   "author": "Name",
@@ -48,6 +49,10 @@ Plugins/
 ```
 
 - `id`: Kleinbuchstaben, Ziffern, `-`, `_`.
+- `category`: Kennzeichen auf der Plugin-Karte – `online` (Online-API), `local_api` (Lokale API), `import`
+  (Übernahme aus Tags), `audio` (Audio-Verarbeitung) oder `other` (Sonstiges, Standard).
+- Seiten-Aktionen mit den IDs `test`, `keys` bzw. `login` und `settings` erscheinen als feste Knöpfe „Verbindung
+  testen“, „Schlüssel …“/„Anmelden …“ und „Einstellungen …“; alle übrigen unter „Weitere Funktionen …“.
 - `requires`: Python-Module, die vorhanden sein müssen. Fehlen sie, steht das Plugin auf „Pakete fehlen“
   und bietet die `install`-Varianten als Knöpfe an (`pip install …` mit dem Python von TagStudio).
 - `external`: Programme, die im Suchpfad liegen sollten (nur Hinweis, blockiert nicht).

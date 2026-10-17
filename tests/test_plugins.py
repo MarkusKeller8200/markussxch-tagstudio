@@ -100,6 +100,9 @@ class TestManager(PluginBase):
         self.assertEqual(info["future"]["state"], "error")
         self.assertEqual(info["nocode"]["state"], "error")
         self.assertNotIn("leer", info)
+        self.assertEqual(info["stems"]["category"], "audio")                    # Kategorie aus plugin.json
+        self.assertEqual(info["demo"]["category"], "other")                     # ohne Angabe: Sonstiges
+        self.assertEqual(info["demo"]["category_label"], "Sonstiges")
         acts = m.actions("tagger")
         self.assertIn(("demo", "mark"), [(a["plugin"], a["id"]) for a in acts])
         self.assertNotIn("needs", [a["plugin"] for a in acts])

@@ -75,7 +75,23 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
   `plugin.json`: name, kind (online/local), home, docs, base, auth (none/key/token/oauth/local), auth_note, limits,
   terms, note und `endpoints` (id, method, path, label, status full/partial/none, use, note, params, test).
   `services.clean` prüft das (nur http(s)-Links, eindeutige IDs, ändernde Methoden nie im Tester).
-- Karte: anklickbarer Link zur API-Doku, „Integration …“ (Endpunkt-Tabelle, Testabfrage ohne Track, API-Tester).
+- Karte: anklickbarer Link zur API-Doku; die Zahl der Endpunkte öffnet „Integration …“ (Endpunkt-Tabelle, Testabfrage
+  ohne Track, API-Tester), ebenso „Weitere Funktionen …“.
+
+### Plugin-Karte (Entscheid User 17.10.2026)
+
+Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
+1. Titel, Version, „eingebaut“/„eigenes“ und **Kategorie** (`plugin.json` `"category"`: `online` Online-API,
+   `local_api` Lokale API, `import` Übernahme aus Tags, `audio` Audio-Verarbeitung, sonst `other` Sonstiges;
+   ohne Angabe: Online-API bei Dienst-Plugins, sonst Sonstiges), Status, Schalter.
+2. Beschreibung.
+3. Aktionen (erscheinen im Tagger).
+4. API-Zeile (Link zur Doku · Anmeldung · Endpunkte) bzw. „API: keine – arbeitet lokal“.
+5. Hinweise: Status des Plugins, wie Schlüssel/Token gespeichert werden, Umgebung, Warnungen (fehlende Pakete mit
+   einem Knopf „Installieren …“ – Varianten und Hinweise im Fenster).
+6. Funktionsknöpfe in einer Zeile, immer dieselben: **Verbindung testen** (Aktion `test`), **Schlüssel …** bzw.
+   **Anmelden …** (`keys`/`login`), **Einstellungen …** (`settings`), **Weitere Funktionen …** (übrige Seiten-Aktionen,
+   Integration, Neu installieren). Was fehlt, bleibt ausgegraut sichtbar.
   Plugins › „Integrationen …“: alle Dienste inkl. Update-Prüfung im Kern (`services.CORE`).
 - Hooks im Plugin: `test_query(ctx, info)` → Kandidaten, Bewertung über `test_score`/`score`/`onlinematch.score`;
   `api_request(ctx, ep, params)` für eigene Anmeldung (Beatport-OAuth, Lexicon-Adresse), sonst `auth(ctx)` →

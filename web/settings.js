@@ -18,7 +18,7 @@ async function settingsShow() {
       <div class="st-row"><span>Design</span>
         <div class="seg" id="stTheme"><button data-v="dark"${d.theme !== "light" ? ' class="on"' : ""}>Dunkel</button><button data-v="light"${d.theme === "light" ? ' class="on"' : ""}>Hell</button></div>
         <label for="stNotation">Tonart-Schreibweise</label>${stSel("stNotation", d.notations, d.key_notation)}
-        <span>Sprache</span><div>${typeof i18nPickerHtml === "function" ? i18nPickerHtml() : ""}<div class="muted sm">Sprache der Oberfläche. Tags in den MP3-Dateien werden nie übersetzt.</div>
+        <span class="st-top">Sprache</span><div>${typeof i18nPickerHtml === "function" ? i18nPickerHtml() : ""}<div class="muted sm">Sprache der Oberfläche. Tags in den MP3-Dateien werden nie übersetzt.</div>
           ${typeof i18nToolsHtml === "function" ? i18nToolsHtml() : ""}</div>
       </div>${typeof setupSettingsHtml === "function" ? setupSettingsHtml() : ""}</section>
     <section class="card" id="stTaggerCard"><h3>Tagger</h3>

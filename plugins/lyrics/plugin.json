@@ -2,6 +2,7 @@
   "id": "lyrics",
   "name": "Liedtexte",
   "version": "1.0",
+  "category": "online",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
   "description": "Lädt Liedtexte von LRCLIB (lrclib.net, frei, ohne Schlüssel) – normaler Text in USLT, synchronisierter Text in SYLT, auf Wunsch zusätzlich als .lrc-Datei neben dem MP3. Mit Vorschau; vorhandene Liedtexte werden nie ohne dein Häkchen ersetzt.",

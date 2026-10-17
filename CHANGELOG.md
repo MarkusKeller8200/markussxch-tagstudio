@@ -22,8 +22,17 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Englische Hilfe (#219):** Handbuch (`README.en.md`), Plugin-Anleitung (`PLUGINS.en.md`) und ID3-Felder
   (`docs/ID3-FELDER.en.md`) gibt es auf Englisch; die Hilfe zeigt sie, wenn Englisch gewählt ist.
 
+- **Plugin-Seite neu geordnet:** Alle Kacheln gleich gross mit festem Aufbau – Titel mit Kategorie (Online-API, Lokale
+  API, Übernahme aus Tags, Audio-Verarbeitung), Beschreibung, Aktionen im Tagger, API-Zeile, Hinweise (z. B. wie
+  Schlüssel gespeichert werden) und unten immer dieselben Knöpfe „Verbindung testen“, „Schlüssel …“/„Anmelden …“,
+  „Einstellungen …“, „Weitere Funktionen …“ (nicht vorhandene ausgegraut). Fehlende Pakete: ein Knopf „Installieren …“
+  mit den Varianten im Fenster.
+
 ### Geändert
 
+- Sprachwahl als Auswahlliste mit Flaggen (Einstellungen, Assistent, Seitenleiste); erste Zeile „Betriebssystem“.
+- Kennzeichen „eingebaut“ auf den Plugin-Karten wird nicht mehr abgeschnitten (kollidierte mit dem A/B-Kennzeichen des
+  Players).
 - Schreibweise vereinheitlicht: „ss“ statt „ß“ in der ganzen Oberfläche (der Filter versteht weiter „größer als“).
 - Einstellungen › Player: die Zeile heisst „Wiederholung“ statt „Wiederholen“.
 

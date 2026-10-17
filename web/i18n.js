@@ -251,28 +251,45 @@ const I18N_FLAGS = {
 };
 function i18nFlag(code) { return I18N_FLAGS[code] || ""; }
 
-/** Sprachwahl (Einstellungen › Darstellung, Einrichtungsassistent): Knöpfe mit Flagge, Namen in der eigenen Sprache
- *  (nicht übersetzt), darunter die Option „Sprache des Betriebssystems verwenden“ (beim ersten Start aktiv) */
+/** Sprachwahl als Auswahlliste mit Flaggen – in den Einstellungen, im Einrichtungsassistenten und unten in der
+ *  Seitenleiste. Erste Zeile „Betriebssystem“ = Sprache des Betriebssystems verwenden (beim ersten Start aktiv).
+ *  Namen der Sprachen stehen in der eigenen Sprache (nicht übersetzt). */
 function i18nLangList() {
   return I18N.langs.length ? I18N.langs : [{ code: "de-CH", name: "Deutsch", de: "Deutsch" }];
 }
-function i18nPickerHtml() {
+const I18N_SYS_ICON = '<svg class="i lang-sysi" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>';
+function i18nLangName(code) { return (i18nLangList().find((l) => l.code === code) || {}).name || code; }
+function i18nCurHtml() {
   const auto = I18N.pref === "auto";
-  return `<div class="seg lang-seg" id="stLang" translate="no">${i18nLangList().map((l) =>
-    `<button data-lang="${l.code}"${l.code === I18N.lang ? ' class="on"' : ""} title="${l.de} (${l.code})">${i18nFlag(l.code)}${l.name}</button>`).join("")}</div>
-    <label class="check lang-sys"><input type="checkbox" data-lang-sys${auto ? " checked" : ""}> Sprache des Betriebssystems verwenden</label>`;
+  return `<span class="lang-flag">${i18nFlag(I18N.lang)}</span><span class="lang-nm nt">${esc0(i18nLangName(I18N.lang))}${auto
+    ? ` <span class="lang-auto">· ${esc0(tr("Betriebssystem"))}</span>` : ""}</span><svg class="i lang-caret nt" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
 }
-/** Sprachwahl unten in der Seitenleiste (unter „Einklappen“): Flagge + Auswahlliste; eingeklappt nur die Flagge */
+function i18nMenuHtml() {
+  const auto = I18N.pref === "auto";
+  return `<button type="button" role="option" data-lang="auto" class="${auto ? "on" : ""}" aria-selected="${auto}">${I18N_SYS_ICON}<span>${esc0(tr("Betriebssystem"))} <span class="muted">(${esc0(i18nLangName(i18nSysLang()))})</span></span></button>`
+    + i18nLangList().map((l) => { const on = !auto && l.code === I18N.lang;
+      return `<button type="button" role="option" data-lang="${l.code}" class="${on ? "on" : ""}" aria-selected="${on}" title="${esc0(l.de)} (${l.code})">${i18nFlag(l.code)}<span>${esc0(l.name)}</span></button>`; }).join("");
+}
+function i18nDropHtml(where, id = "") {
+  return `<div class="lang-drop lang-${where}"${id ? ` id="${id}"` : ""} data-langdrop translate="no">
+    <button type="button" class="lang-cur" aria-haspopup="listbox" aria-expanded="false"${where === "side" ? ` title="${esc0(tr("Sprache der Oberfläche"))}"` : ""}>${i18nCurHtml()}</button>
+    <div class="lang-menu" role="listbox" hidden>${i18nMenuHtml()}</div></div>`;
+}
+function i18nPickerHtml() { return i18nDropHtml("st", "stLang"); }
 function i18nSideRefresh() {
   const box = document.getElementById("sideLang");
-  if (!box) return;
-  const sel = box.querySelector("select"), flag = box.querySelector(".side-flag");
-  const opts = [`<option value="auto">${esc0(tr("Betriebssystem"))} (${esc0((i18nLangList().find((l) => l.code === i18nSysLang()) || {}).name || "")})</option>`]
-    .concat(i18nLangList().map((l) => `<option value="${l.code}">${esc0(l.name)}</option>`));
-  sel.innerHTML = opts.join("");
-  sel.value = I18N.pref === "auto" ? "auto" : I18N.lang;
-  if (flag) flag.innerHTML = i18nFlag(I18N.lang);
-  box.title = tr("Sprache der Oberfläche");
+  if (box && !box.querySelector("[data-langdrop]")) box.innerHTML = i18nDropHtml("side");
+  document.querySelectorAll("[data-langdrop]").forEach((d) => {
+    d.querySelector(".lang-cur").innerHTML = i18nCurHtml();
+    if (d.classList.contains("lang-side")) d.querySelector(".lang-cur").title = tr("Sprache der Oberfläche");
+    d.querySelector(".lang-menu").innerHTML = i18nMenuHtml();
+  });
+}
+function i18nMenuClose(except) {
+  document.querySelectorAll("[data-langdrop] .lang-menu").forEach((m) => {
+    if (m === except) return;
+    m.hidden = true; m.parentElement.querySelector(".lang-cur").setAttribute("aria-expanded", "false");
+  });
 }
 function esc0(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 /** #219: eigene Texte exportieren/importieren – überlagern die mitgelieferten, nur für diesen Benutzer bzw. dieses Profil */
@@ -371,20 +388,29 @@ async function i18nPick(choice) {
   await i18nLoad(code);
   i18nPickRefresh();
 }
-function i18nPickRefresh() {
-  document.querySelectorAll(".lang-seg [data-lang]").forEach((b) => b.classList.toggle("on", b.dataset.lang === I18N.lang));
-  document.querySelectorAll("[data-lang-sys]").forEach((c) => { c.checked = I18N.pref === "auto"; });
-  i18nSideRefresh();
-}
+function i18nPickRefresh() { i18nSideRefresh(); }
 
 document.addEventListener("click", (e) => {
-  const b = e.target.closest && e.target.closest(".lang-seg [data-lang]");
-  if (b) { e.preventDefault(); i18nPick(b.dataset.lang); }
-});
-document.addEventListener("change", (e) => {
-  const t = e.target;
-  if (t.matches && t.matches("[data-lang-sys]")) { e.stopPropagation(); i18nPick(t.checked ? "auto" : I18N.lang); }
-  else if (t.id === "sideLangSel") i18nPick(t.value);
+  const t = e.target.closest ? e.target : null; if (!t) return;
+  const cur = t.closest("[data-langdrop] .lang-cur");
+  if (cur) {
+    e.preventDefault(); e.stopPropagation();
+    const m = cur.parentElement.querySelector(".lang-menu");
+    i18nMenuClose(m);
+    m.hidden = !m.hidden; cur.setAttribute("aria-expanded", String(!m.hidden));
+    if (!m.hidden && cur.closest(".side-lang")) {             // Seitenleiste: über der Leiste schweben (nicht abschneiden)
+      const r = cur.getBoundingClientRect();
+      m.classList.add("fixed");
+      m.style.left = `${r.left}px`; m.style.bottom = `${window.innerHeight - r.top + 4}px`;
+    }
+    return;
+  }
+  const opt = t.closest("[data-langdrop] .lang-menu [data-lang]");
+  if (opt) { e.preventDefault(); e.stopPropagation(); i18nMenuClose(); i18nPick(opt.dataset.lang); return; }
+  if (!t.closest("[data-langdrop]")) i18nMenuClose();
+}, true);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && document.querySelector("[data-langdrop] .lang-menu:not([hidden])")) { e.stopPropagation(); i18nMenuClose(); }
 }, true);
 
 // Browser-Dialoge ebenfalls übersetzen

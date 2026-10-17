@@ -2,6 +2,7 @@
   "id": "musicbrainz",
   "name": "MusicBrainz",
   "version": "1.0",
+  "category": "online",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
   "description": "Freie Musik-Datenbank: Aufnahmen über ISRC oder Titel/Künstler, Veröffentlichung mit Label, Katalognummer, Datum, Spur und MusicBrainz-IDs; Cover aus dem Cover Art Archive. Ohne Schlüssel. Wird von „Online-Metadaten“ und AcoustID genutzt.",
