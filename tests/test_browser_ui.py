@@ -1449,7 +1449,7 @@ class UiTest(unittest.TestCase):
         pg.click("#mBtns .primary")
         for _ in range(100):
             snaps = pg.evaluate(f"call('snap_list', '{lid}').then(r => r.snapshots.map(s => [s.label, !!s.baseline]))")
-            if any(b for _l, b in snaps):
+            if sorted(snaps) == [["Baseline", True], ["Wichtig", False]]:   # Baseline da und ältere gelöscht
                 break
             time.sleep(0.1)
         self.assertEqual(sorted(snaps), [["Baseline", True], ["Wichtig", False]])

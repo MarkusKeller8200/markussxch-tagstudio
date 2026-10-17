@@ -97,7 +97,7 @@ function renderPlugins() {
     // 6. Funktionsknöpfe
     // vier gleich breite Knöpfe mit Symbol und kurzer Beschriftung; der volle Name steht im Tooltip
     const slot = (a, label, icon, dis) => a && on
-      ? `<button class="ghost sm" data-paction="${esc(a.id)}" title="${esc(a.label.replace(/\s*…$/, ""))}${a.description ? " – " + esc(a.description) : ""}">${PL_ICON[icon]}<span>${label}</span></button>`
+      ? `<button class="ghost sm" data-paction="${esc(a.id)}" title="${esc(a.label.replace(/\s*…$/, ""))}${a.description ? "\n" + esc(a.description) : ""}">${PL_ICON[icon]}<span>${label}</span></button>`
       : `<button class="ghost sm" disabled title="${esc(dis)}">${PL_ICON[icon]}<span>${label}</span></button>`;
     const key = find(PL_SLOT_KEY), more = plMore(p);
     const login = key && key.id === "login";
@@ -109,7 +109,7 @@ function renderPlugins() {
     return `<section class="card pl-card${p.enabled ? "" : " off"}" data-pid="${esc(p.id)}">
       <div class="pl-head">
         <div class="pl-ico cat-${esc(p.category || "other")}" aria-hidden="true">${PL_CAT_ICON[p.category] || PL_CAT_ICON.other}</div>
-        <div class="pl-t"><h3 title="${esc(p.name)} ${esc(p.version)} – ${esc(p.path)}"><span class="pl-name">${esc(p.name)}</span><span class="muted sm">${esc(p.version)}</span>${p.builtin ? '<span class="plg-tag">eingebaut</span>' : '<span class="plg-tag own">eigenes</span>'}</h3>
+        <div class="pl-t"><h3 title="${esc(p.name)}\n${esc(p.path)}"><span class="pl-name">${esc(p.name)}</span><span class="muted sm">${esc(p.version)}</span>${p.builtin ? '<span class="plg-tag">eingebaut</span>' : '<span class="plg-tag own">eigenes</span>'}</h3>
           <div class="pl-cat"><span class="plg-tag cat cat-${esc(p.category || "other")}">${esc(p.category_label || "Sonstiges")}</span></div></div>
         <div class="pl-sw"><div class="sm ${stCls} pl-st">● ${stTxt}</div>
           <label class="switch" title="${p.enabled ? "Ausschalten" : "Einschalten"}"><input type="checkbox" data-enable ${p.enabled ? "checked" : ""} aria-label="${esc(p.name)} ein/aus"><span></span></label></div>
