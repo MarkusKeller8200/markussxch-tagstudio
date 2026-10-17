@@ -24,12 +24,12 @@ NEW = f"https://github.com/{REPO}/issues/new"
 MINE = f"https://github.com/{REPO}/issues?q=is%3Aissue+author%3A%40me"
 MAX_URL = 7000            # GitHub/Browser vertragen etwa 8 KB – darüber wird gekürzt
 
-# Drei Arten (Entscheid User 17.10.2026): Fehler → Meilenstein „BugFixes“, Verbesserung → „Verbesserungen“,
+# Drei Arten (Entscheid User 17.10.2026): Fehler → Meilenstein „Fehler“, Verbesserung → „Verbesserungen“,
 # neue Funktion → „Funktionen“ (zugeordnet über das Label, Workflow .github/workflows/issue-milestone.yml)
 TEMPLATES = {"bug": "bug_report.yml", "improvement": "improvement.yml", "feature": "feature_request.yml"}
 TITLE_PREFIX = {"bug": "Fehler: ", "improvement": "Verbesserung: ", "feature": "Funktion: "}
-LABELS = {"bug": ["bug", "triage"], "improvement": ["verbesserung", "triage"], "feature": ["enhancement", "triage"]}
-MILESTONE = {"bug": "BugFixes", "improvement": "Verbesserungen", "feature": "Funktionen"}
+LABELS = {"bug": ["fehler", "triage"], "improvement": ["verbesserung", "triage"], "feature": ["funktion", "triage"]}
+MILESTONE = {"bug": "Fehler", "improvement": "Verbesserungen", "feature": "Funktionen"}
 # Feld-IDs der Vorlagen (Reihenfolge = Vorschau)
 FIELDS = {
     "bug": [("version", "TagStudio-Version"), ("os", "Betriebssystem"), ("variant", "Variante"), ("area", "Bereich"),

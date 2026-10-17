@@ -88,7 +88,7 @@
 
 **Labels und Meilensteine**
 - `_1 bereit` (setzt der User) → `_2 in Arbeit` → `_3 Beta-Test` → schliessen und Label entfernen.
-- `idee` = noch nicht eingeplant (Meilenstein „Später“). `enhancement` = Funktion/Verbesserung, `bug` = Fehler.
+- `idee` = noch nicht eingeplant (Meilenstein „Später“). `funktion` = neue Funktion, `verbesserung` = Verbesserung, `fehler` = Fehler (Labels seit 17.10.2026 deutsch).
 - Plugin-Ideen in #108.
 
 **GitHub-Zugriff**

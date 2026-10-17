@@ -1,6 +1,6 @@
 name: Meilenstein nach Art
 # Neue Meldungen (und neu gesetzte Labels) ohne Meilenstein der passenden Sammlung zuordnen (Entscheid User 17.10.2026):
-#   bug → „BugFixes“, verbesserung → „Verbesserungen“, enhancement → „Funktionen“.
+#   fehler → „Fehler“, verbesserung → „Verbesserungen“, funktion → „Funktionen“ (Labels und Meilensteine auf Deutsch).
 # Nur Labels werden gelesen – kein Text aus dem Issue; bestehende Meilensteine (z. B. Release, CodeQL) bleiben.
 on:
   issues:
@@ -24,9 +24,9 @@ jobs:
         run: |
           labels="$(jq -r '[.issue.labels[].name] | join(",")' "$GITHUB_EVENT_PATH")"
           case ",$labels," in
-            *,bug,*) ms="BugFixes" ;;
+            *,fehler,*) ms="Fehler" ;;
             *,verbesserung,*) ms="Verbesserungen" ;;
-            *,enhancement,*) ms="Funktionen" ;;
+            *,funktion,*) ms="Funktionen" ;;
             *) echo "Keine passende Art ($labels)"; exit 0 ;;
           esac
           num="$(gh api "repos/$REPO/milestones?state=open&per_page=100" --jq ".[] | select(.title == \"$ms\") | .number" | head -n1)"

@@ -1,7 +1,7 @@
 name: Neue Funktion vorschlagen
 description: Idee für eine neue Funktion (Meilenstein „Funktionen“). Bestehendes verbessern → „Verbesserung vorschlagen“.
 title: "Funktion: "
-labels: ["enhancement", "triage"]
+labels: ["funktion", "triage"]
 body:
   - type: markdown
     attributes:

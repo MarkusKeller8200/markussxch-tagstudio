@@ -13,8 +13,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 ## GitHub-Pflege (Entscheid User 17.10.2026)
 
 - Alles, was im Chat besprochen wird (Funktion, Verbesserung, Fehler – auch Teilpunkte), kommt als Issue mit Testliste
-  nach GitHub. Labels `bug` / `verbesserung` / `enhancement`; Meilenstein = laufender Release, sonst die Sammlungen
-  **BugFixes** (#16), **Verbesserungen** (#20), **Funktionen** (#21). Der Workflow `.github/workflows/issue-milestone.yml`
+  nach GitHub. Labels `fehler` / `verbesserung` / `funktion` (alles Deutsch; weitere: `sicherheit`, `dokumentation`,
+  `oberfläche`); Meilenstein = laufender Release, sonst die Sammlungen **Fehler** (#16), **Verbesserungen** (#20), **Funktionen** (#21). Der Workflow `.github/workflows/issue-milestone.yml`
   ordnet neue Issues ohne Meilenstein nach Label zu (auch Meldungen aus der App). „Idee (Später)“ (#4) ist leer.
 - Hilfe › Melden kennt drei Arten: Fehler melden, Verbesserung vorschlagen (`improvement.yml`), Neue Funktion
   vorschlagen (`feature_request.yml`).

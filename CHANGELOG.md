@@ -30,7 +30,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Tags, Audio-Verarbeitung – mit Anzahl); die Wahl wird gemerkt. „Plugin-Ordner öffnen“ bietet eigene und eingebaute Plugins
   (Programmordner) an; unter „Mehr …“ öffnet jede Karte ihren eigenen Ordner.
 - **Melden mit drei Arten:** Hilfe › Melden unterscheidet „Fehler melden“, „Verbesserung vorschlagen“ und „Neue
-  Funktion vorschlagen“; auf GitHub landet jede Art in ihrem Meilenstein (BugFixes, Verbesserungen, Funktionen).
+  Funktion vorschlagen“; auf GitHub landet jede Art in ihrem Meilenstein (Fehler, Verbesserungen, Funktionen); Labels und Meilensteine auf GitHub sind deutsch.
 - **Lexicon: Verbindung testen:** prüft, ob die Lexicon Local API unter der eingestellten Adresse antwortet. Fehlende Pakete: ein Knopf „Installieren …“
   mit den Varianten im Fenster.
 

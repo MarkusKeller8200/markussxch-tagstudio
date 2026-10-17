@@ -675,7 +675,7 @@ class UiTest(unittest.TestCase):
         self.assertTrue(pg.locator("#fb-current").count())
         self.assertIn("Verbesserungen", pg.inner_text("#fbBody .fb-ms"))
         pg.click('[data-fbkind="bug"]')
-        self.assertIn("BugFixes", pg.inner_text("#fbBody .fb-ms"))
+        self.assertIn("Fehler", pg.inner_text("#fbBody .fb-ms"))
         pg.click("#mBtns button")
         self.assertEqual(self.errors, [])
 

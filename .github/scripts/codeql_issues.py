@@ -118,7 +118,7 @@ def main(sarif_dir, lang):
                 + "Wird automatisch geschlossen, sobald der Fund nach einem Push auf `main` nicht mehr auftaucht.\n"
                 + f"Details: Security → Code scanning.\n\n<!-- codeql:{fp} lang:{lang} -->")
         data = {"title": f"CodeQL: {r['name']} – {r['file']}:{r['line']}"[:240], "body": body,
-                "labels": ["bug", "security", "codeql"]}
+                "labels": ["fehler", "sicherheit", "codeql"]}
         if ms:
             data["milestone"] = ms
         it = gh("POST", f"/repos/{REPO}/issues", data)

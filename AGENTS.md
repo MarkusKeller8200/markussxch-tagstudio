@@ -43,9 +43,9 @@ Meilensteine können über den **gesicherten [Administrationskanal #190](https:/
 - Bei betroffenen Änderungen Tests und die relevanten Dokumente nachführen.
 - **Alles aus dem Chat in GitHub (Entscheid User 17.10.2026):** Jede besprochene neue Funktion, Verbesserung oder
   jeder Fehler wird als Issue angelegt – auch Teilpunkte eines grösseren Vorhabens –, mit Testliste zum Abhaken
-  („Zum Testen abhaken:“). Art per Label: `bug` (Fehler), `verbesserung` (bestehende Funktion besser), `enhancement`
-  (neue Funktion). Meilenstein: der laufende Release-Meilenstein, wenn es dort umgesetzt wird; sonst die Sammlungen
-  **BugFixes**, **Verbesserungen**, **Funktionen** (der Workflow `issue-milestone.yml` ordnet neue Issues ohne
+  („Zum Testen abhaken:“). Art per Label (alles Deutsch, Entscheid 17.10.2026): `fehler`, `verbesserung` (bestehende Funktion
+  besser), `funktion` (neue Funktion). Meilenstein: der laufende Release-Meilenstein, wenn es dort umgesetzt wird; sonst die Sammlungen
+  **Fehler**, **Verbesserungen**, **Funktionen** (der Workflow `issue-milestone.yml` ordnet neue Issues ohne
   Meilenstein nach Label zu). „Idee (Später)“ wird nicht mehr verwendet.
 - **Release abschliessen (Entscheid User 17.10.2026):** Sind im Release-Meilenstein keine offenen Punkte mehr (alle
   Testlisten abgehakt, Issues geschlossen), wird das Release abgeschlossen und die Version erstellt – vorher im Chat

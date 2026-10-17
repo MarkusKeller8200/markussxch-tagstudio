@@ -38,7 +38,7 @@ Dazu die Knöpfe **Einrichtungsassistent** und **Erste Schritte** (erneut starte
   mit der eigenen GitHub-Anmeldung. Vorher werden Benutzerordner in Pfaden, E-Mail-Adressen und lange Schlüssel/Token
   geschwärzt; Version/System nur mit Häkchen; keine Protokolle, Dateien oder Liedtexte. Duplikatsuche über die
   öffentliche GitHub-Suche (nur lesend, ohne Anmeldung, 10/min; Fehler offline/Rate-Limit verständlich). Die Vorlagen
-  setzen `bug`/`enhancement` + **`triage`** (nicht freigegeben); Freigabe nur durch den Owner (`_1 bereit`, AGENTS.md).
+  setzen `fehler`/`verbesserung`/`funktion` + **`triage`** (nicht freigegeben); Freigabe nur durch den Owner (`_1 bereit`, AGENTS.md).
   Grenzen des sicheren Starts: Den Link des neuen Issues kennt TagStudio nicht (Absenden im Browser) – angeboten wird
   „Meine Meldungen“ (`author:@me`). Eine integrierte Meldemaske mit OAuth bleibt eine spätere Option.
 - **GitHub-Repositories (#206):** Feld `repo` (owner/name) bei allen Komponenten von GitHub; der Workflow holt dazu

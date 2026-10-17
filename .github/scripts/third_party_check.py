@@ -224,7 +224,7 @@ def publish(text, changed: bool):
             gh("POST", f"/repos/{REPO}/issues/{cur['number']}/comments", {"body": "Neue Prüfung – Liste oben aktualisiert."})
         print(f"Issue #{cur['number']} aktualisiert.")
     elif changed:
-        r = gh("POST", f"/repos/{REPO}/issues", {"title": TITLE, "body": text, "labels": ["documentation"]})
+        r = gh("POST", f"/repos/{REPO}/issues", {"title": TITLE, "body": text, "labels": ["dokumentation"]})
         print(f"Issue #{r and r.get('number')} angelegt.")
 
 

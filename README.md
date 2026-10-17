@@ -570,7 +570,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   - `installer.yml` – baut und testet die Installer (Selbsttest der gebauten und der installierten App) und
     veröffentlicht bei neuer Versionsnummer das Release (siehe unten).
   - `codeql.yml` – Code-Scanning (Python, JavaScript, Workflows). Neue Funde werden automatisch als Issue mit den
-    Labels `bug`, `security`, `codeql` im nächsten Patch-Milestone angelegt und nach der Behebung geschlossen.
+    Labels `fehler`, `sicherheit`, `codeql` im nächsten Patch-Milestone angelegt und nach der Behebung geschlossen.
   - **Dependabot** hält die verwendeten Actions aktuell (monatlicher Pull Request).
 - **Planung:** offene Punkte als [Issues](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues), geplante
   Versionen als [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones). Commits mit
