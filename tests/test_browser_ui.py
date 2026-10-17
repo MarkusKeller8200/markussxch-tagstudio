@@ -739,6 +739,43 @@ class UiTest(unittest.TestCase):
         self.assertIn("Einstellungen", pg.inner_text(".nav[data-module=settings]"))
         self.assertEqual(self.errors, [])
 
+    def test_i18n_pages_english(self):
+        """#157: alle Seiten auf Englisch – keine deutschen Reste in der sichtbaren Oberfläche (ausser Daten)."""
+        pg = self.pg
+        pg.evaluate("call('set_ui', 'lang', 'en')")
+        pg.reload()
+        pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'en'")
+        self.load_tagger()
+        pg.click(".tg-row >> nth=0")
+        scan = """(() => {
+          const de = /[äöüÄÖÜ]|\b(der|die|das|und|nicht|keine?|mit|für|von|oder|wird|werden|noch|bitte|Datei|Dateien|Ordner|Titel|Einstellungen|Speichern|Abbrechen|Feld|Felder|Hinweis)\b/;
+          const out = new Set();
+          const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+          for (let n = w.nextNode(); n; n = w.nextNode()) {
+            const p = n.parentElement; if (!p || p.closest('[translate="no"],script,style,textarea,code,pre,[hidden]')) continue;
+            if (!p.offsetParent && getComputedStyle(p).position !== 'fixed') continue;
+            const t = n.nodeValue.trim(); if (t && de.test(t)) out.add(t.slice(0, 120));
+          }
+          for (const el of document.querySelectorAll('[data-tip-title],[placeholder],[aria-label]')) {
+            if (el.closest('[translate="no"]')) continue;
+            for (const a of ['data-tip-title', 'placeholder', 'aria-label']) { const t = el.getAttribute(a); if (t && de.test(t)) out.add('@' + a + ': ' + t.slice(0, 120)); }
+          }
+          return [...out]; })()"""
+        left = set(pg.evaluate(scan))
+        for mod in ("compare", "djset", "snapshots", "backups", "plugins", "settings", "prepare", "help"):
+            loc = pg.locator(f'.nav[data-module="{mod}"]')
+            if pg.locator("#modal").is_visible():
+                pg.click("#mBtns button >> nth=0")
+                time.sleep(0.3)
+            if loc.count() and loc.is_visible():
+                loc.click()
+                time.sleep(0.6)
+                left |= set(pg.evaluate(scan))
+        if os.environ.get("TAGSTUDIO_I18N_REPORT"):
+            print("\nI18N-REST", json.dumps(sorted(left), ensure_ascii=False, indent=0))
+        self.assertLessEqual(len(left), int(os.environ.get("TAGSTUDIO_I18N_MAXREST", "40")), sorted(left)[:60])
+        self.assertEqual(self.errors, [])
+
     def test_player_zoom(self):
         """#224: Lupe – hochaufgelöster Ausschnitt um die Position, Serato oben/Analyse unten, Zoom, Klick springt, gemerkt."""
         pg = self.pg

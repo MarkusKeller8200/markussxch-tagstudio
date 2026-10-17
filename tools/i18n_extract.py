@@ -26,6 +26,7 @@ LANGS = ("en", "gsw-u-sd-chzh")
 PY_SKIP = {"version.py", "tagstudio.py", "applog.py", "instance.py", "paths.py"}
 
 _TAG = re.compile(r"<[^<>]*>")
+_ATTR = re.compile(r"""\s(title|placeholder|aria-label|alt|data-tip-title)=(?:"([^"]*)"|'([^']*)')""")
 _ENT = re.compile(r"&(nbsp|amp|lt|gt|quot|#\d+|#x[0-9a-f]+);", re.I)
 _NUM = re.compile(r"(?<![\w{])[-+]?\d+(?:['’.,]\d+)*(?![\w}])")
 _QUOTE = re.compile(r"„[^„“”\n]*[“”]|\"[^\"\n]*\"|«[^«»\n]*»")
@@ -70,7 +71,8 @@ def is_ui(s: str) -> bool:
 def chunks(text: str):
     """Literal → einzelne Texte (HTML-Tags und Zeilen trennen)."""
     text = _ENT.sub(lambda m: {"nbsp": " ", "amp": "&", "lt": "<", "gt": ">", "quot": '"'}.get(m.group(1).lower(), " "), text)
-    for part in _TAG.split(text):
+    attrs = [m.group(2) for m in _ATTR.finditer(text)]
+    for part in attrs + _TAG.split(text):
         for line in part.replace("\n", " ").split("\x01"):
             line = re.sub(r"\s+", " ", line).strip()
             line = line.strip("·•|–—:,;").strip() if re.fullmatch(r"[·•|–—:,;\s]+.*|.*[·•|–—:,;\s]+", line) and len(line) < 3 else line
