@@ -1,96 +1,382 @@
 {
-"Unbekannte Aktion: {x}": ["Unknown action: {x}", "Unbekannti Aktion: {x}"],
-"AcoustID nicht erreichbar: {x}": ["AcoustID not reachable: {x}", "AcoustID nöd erreichbar: {x}"],
-"Schlüssel …": ["Key …", "Schlüssel …"],
-"Anwendungs-Schlüssel für AcoustID und Pfad zu fpcalc. Leer lassen = unverändert. Der Schlüssel wird verschlüsselt gespeichert und nie angezeigt.": ["Application key for AcoustID and path to fpcalc. Leave empty = unchanged. The key is stored encrypted and never shown.", "Aawändigs-Schlüssel für AcoustID und Pfad zu fpcalc. Läär lah = unveränderet. De Schlüssel wird verschlüsselt gspicheret und nie aazeigt."],
-"Verbindung testen": ["Test connection", "Verbindig teschte"],
-"Prüft Schlüssel und fpcalc.": ["Checks key and fpcalc.", "Prüeft Schlüssel und fpcalc."],
-"kein Schlüssel": ["no key", "kän Schlüssel"],
-"Schlüssel gespeichert": ["Key saved", "Schlüssel gspicheret"],
-"· fpcalc gefunden": ["· fpcalc found", "· fpcalc gfunde"],
-"· fpcalc nicht gefunden": ["· fpcalc not found", "· fpcalc nöd gfunde"],
-"Nur für den Fingerabdruck (Titel ohne brauchbare Tags). {n}. Bei acoustid.org anmelden. {n}. {q}: Name TagStudio, Version, Website (z. B. die GitHub-Seite). {n}. Den {q} der Anwendung kopieren und unten einfügen. {n}. Zusätzlich das Programm fpcalc (Chromaprint) herunterladen, entpacken und den Pfad zu fpcalc(.exe) unten eintragen.": ["Only for the fingerprint (tracks without usable tags). {n}. Sign in at acoustid.org. {n}. {q}: name TagStudio, version, website (e.g. the GitHub page). {n}. Copy the {q} of the application and paste it below. {n}. Additionally download the program fpcalc (Chromaprint), unpack it and enter the path to fpcalc(.exe) below.", "Nur für de Fingerabdruck (Titel ohni bruuchbari Tags). {n}. Bi acoustid.org aamälde. {n}. {q}: Name TagStudio, Version, Website (z. B. d GitHub-Siite). {n}. De {q} vo de Aawändig kopiere und une iifüege. {n}. Zuesätzlich s Programm fpcalc (Chromaprint) abelade, uuspacke und de Pfad zu fpcalc(.exe) une iiträge."],
-"AcoustID: Anwendungs-Schlüssel": ["AcoustID: application key", "AcoustID: Aawändigs-Schlüssel"],
-"Pfad zu fpcalc (leer = im Suchpfad suchen)": ["Path to fpcalc (empty = search in the search path)", "Pfad zu fpcalc (läär = im Suechpfad sueche)"],
-"Gespeicherten Schlüssel und Pfad löschen": ["Delete saved key and path", "Gspicherete Schlüssel und Pfad lösche"],
-"AcoustID: Anwendung registrieren": ["AcoustID: register application", "AcoustID: Aawändig registriere"],
-"Schlüssel ungültig": ["Key invalid", "Schlüssel ungültig"],
-"Erkennt Titel ohne brauchbare Tags am Klang (Fingerabdruck mit fpcalc/Chromaprint) und findet die passende MusicBrainz-Aufnahme. Eigener, kostenloser Anwendungs-Schlüssel nötig – Anleitung unter {q}. Wird von {q} genutzt (braucht das Plugin MusicBrainz).": ["Recognizes tracks without usable tags by their sound (fingerprint with fpcalc/Chromaprint) and finds the matching MusicBrainz recording. Own free application key needed – instructions under {q}. Used by {q} (needs the MusicBrainz plugin).", "Erchännt Titel ohni bruuchbari Tags am Klang (Fingerabdruck mit fpcalc/Chromaprint) und findet di passend MusicBrainz-Ufnaam. Eigete, gratis Aawändigs-Schlüssel nötig – Aaleitig under {q}. Wird vo {q} bruucht (bruucht s Plugin MusicBrainz)."],
-"Braucht das Programm fpcalc (Chromaprint).": ["Needs the program fpcalc (Chromaprint).", "Bruucht s Programm fpcalc (Chromaprint)."],
-"Eigener Anwendungs-Schlüssel (acoustid.org › Anwendung registrieren); verschlüsselt gespeichert.": ["Own application key (acoustid.org › register application); stored encrypted.", "Eigete Aawändigs-Schlüssel (acoustid.org › Aawändig registriere); verschlüsselt gspicheret."],
-"höchstens {n} Anfragen/s": ["at most {n} requests/s", "höchschtens {n} Aafroge/s"],
-"Testabfrage ohne Track gibt es hier nicht – AcoustID braucht den Fingerabdruck einer Datei. Im API-Tester lässt sich eine AcoustID-Kennung nachschlagen.": ["There is no test query without a track here – AcoustID needs the fingerprint of a file. An AcoustID identifier can be looked up in the API tester.", "E Testabfroog ohni Track gits da nöd – AcoustID bruucht de Fingerabdruck vo ere Datei. Im API-Tester cha mer e AcoustID-Kännig naaluege."],
-"Titel über Fingerabdruck finden": ["Find track by fingerprint", "Titel über Fingerabdruck finde"],
-"Online-Metadaten: Titel ohne brauchbare Tags": ["Online metadata: tracks without usable tags", "Online-Metadate: Titel ohni bruuchbari Tags"],
-"AcoustID-Kennungen zu einer MusicBrainz-Aufnahme": ["AcoustID identifiers for a MusicBrainz recording", "AcoustID-Kännige zu ere MusicBrainz-Ufnaam"],
-"Fingerabdruck beitragen": ["Contribute fingerprint", "Fingerabdruck biiträge"],
-"TagStudio lädt nichts hoch": ["TagStudio uploads nothing", "TagStudio ladt nüüt ufe"],
-"Stand eines Beitrags": ["Status of a contribution", "Stand vo eme Biitrag"],
-"{x} von {x} Titel(n) mit beaTunes-Werten; {x} mit Änderungen (Vorschau)": ["{x} of {x} track(s) with beaTunes values; {x} with changes (preview)", "{x} vo {x} Titel mit beaTunes-Wärt; {x} mit Änderige (Vorschau)"],
-", {x} Wert(e) zum Prüfen (nicht angehakt)": [", {x} value(s) to check (not ticked)", ", {x} Wärt zum Prüefe (nöd aaghäklet)"],
-"beaTunes übernehmen …": ["Take over beaTunes …", "beaTunes übernää …"],
-"Liest die Werte, die beaTunes in die Dateien geschrieben hat (MOOD_DANCEABILITY, MOOD_ACOUSTIC …), und schlägt sie als Audio-Merkmale vor. Wurde ein Wert in der Datei seit dem letzten Abgleich geändert, ist er nicht angehakt – du entscheidest.": ["Reads the values that beaTunes wrote into the files (MOOD_DANCEABILITY, MOOD_ACOUSTIC …) and suggests them as audio features. If a value in the file was changed since the last match, it is not ticked – you decide.", "Liest d Wärt, wo beaTunes i d Dateie gschribe hät (MOOD_DANCEABILITY, MOOD_ACOUSTIC …), und schlaat si als Audio-Merkmal vor. Isch en Wärt i de Datei sit em letschte Abgliich gänderet worde, isch er nöd aaghäklet – du entscheidisch."],
-"Werte ohne passendes Merkmal (z. B. MOOD_ELECTRONIC, MOOD_PARTY) werden als Hinweis gezeigt, aber nicht übernommen.": ["Values without a matching feature (e.g. MOOD_ELECTRONIC, MOOD_PARTY) are shown as a note but not taken over.", "Wärt ohni passends Merkmal (z. B. MOOD_ELECTRONIC, MOOD_PARTY) werded als Hiiwiis zeigt, aber nöd übernaa."],
-"beaTunes übernehmen": ["Take over beaTunes", "beaTunes übernää"],
-"Übernimmt die Stimmungs- und Klangwerte, die beaTunes in die Dateien schreibt (TXXX:MOOD_DANCEABILITY, MOOD_ACOUSTIC, MOOD_HAPPY, MOOD_AGGRESSIVE …), als Audio-Merkmale. Mit Abgleich: Haben sich die beaTunes-Werte seit dem letzten Übernehmen geändert und die Datei wurde inzwischen anders bearbeitet, fragt die Vorschau.": ["Takes over the mood and sound values that beaTunes writes into the files (TXXX:MOOD_DANCEABILITY, MOOD_ACOUSTIC, MOOD_HAPPY, MOOD_AGGRESSIVE …) as audio features. With matching: if the beaTunes values changed since the last takeover and the file was edited differently meanwhile, the preview asks.", "Übernimmt d Stimmigs- und Klangwärt, wo beaTunes i d Dateie schriibt (TXXX:MOOD_DANCEABILITY, MOOD_ACOUSTIC, MOOD_HAPPY, MOOD_AGGRESSIVE …), als Audio-Merkmal. Mit Abgliich: Händ sich d beaTunes-Wärt sit em letschte Übernää gänderet und d Datei isch inzwüsche andersch bearbeitet worde, fröget d Vorschau."],
-"Keine Zusatzpakete nötig. beaTunes selbst wird nicht benötigt – gelesen werden nur die Tags.": ["No additional packages needed. beaTunes itself is not needed – only the tags are read.", "Kei Zuesatzpäckli nötig. beaTunes sälber bruucht s nöd – gläse werded nur d Tags."],
-"Suche (Land CH): {x} Titel": ["Search (country CH): {x} tracks", "Suechi (Land CH): {x} Titel"],
-"iTunes nicht erreichbar: {x}": ["iTunes not reachable: {x}", "iTunes nöd erreichbar: {x}"],
-"Ohne Schlüssel · etwa {n} Abfragen pro Minute.": ["No key · about {n} queries per minute.", "Ohni Schlüssel · öppe {n} Abfroge pro Minute."],
-"Prüft, ob iTunes erreichbar ist.": ["Checks whether iTunes is reachable.", "Prüeft, öb iTunes erreichbar isch."],
-"iTunes ist erreichbar.": ["iTunes is reachable.", "iTunes isch erreichbar."],
-"iTunes Search API von Apple ohne Anmeldung: Titel, Album, Datum, Genre, Spur und Cover in hoher Auflösung. Langsam (etwa {n} Abfragen pro Minute). Wird von {q} genutzt.": ["Apple's iTunes Search API without sign-in: title, album, date, genre, track and cover in high resolution. Slow (about {n} queries per minute). Used by {q}.", "iTunes Search API vo Apple ohni Aamäldig: Titel, Album, Datum, Genre, Spur und Cover i hoher Uuflösig. Langsam (öppe {n} Abfroge pro Minute). Wird vo {q} bruucht."],
-"Keine Zusatzpakete nötig.": ["No additional packages needed.", "Kei Zuesatzpäckli nötig."],
-"etwa {n} Abfragen pro Minute": ["about {n} queries per minute", "öppe {n} Abfroge pro Minute"],
-"Online-Metadaten: Suche Künstler + Titel": ["Online metadata: search artist + title", "Online-Metadate: Suechi Künschtler + Titel"],
-"Nachschlagen über ID, UPC oder ISRC": ["Look up by ID, UPC or ISRC", "Naaluege über ID, UPC oder ISRC"],
-"Suche: {x} Titel": ["Search: {x} tracks", "Suechi: {x} Titel"],
-"Deezer nicht erreichbar: {x}": ["Deezer not reachable: {x}", "Deezer nöd erreichbar: {x}"],
-"Ohne Schlüssel.": ["No key.", "Ohni Schlüssel."],
-"Prüft, ob Deezer erreichbar ist.": ["Checks whether Deezer is reachable.", "Prüeft, öb Deezer erreichbar isch."],
-"Deezer ist erreichbar.": ["Deezer is reachable.", "Deezer isch erreichbar."],
-"Öffentliche Deezer-API ohne Anmeldung: Titel über ISRC oder Suche, Album mit Label und Genre, BPM, Cover. Wird von {q} und {q} (neue Veröffentlichungen, ähnliche Künstler, {n}-s-Vorhören) genutzt.": ["Public Deezer API without sign-in: track via ISRC or search, album with label and genre, BPM, cover. Used by {q} and {q} (new releases, similar artists, {n}-s previews).", "Öffentlichi Deezer-API ohni Aamäldig: Titel über ISRC oder Suechi, Album mit Label und Genre, BPM, Cover. Wird vo {q} und {q} bruucht (neui Veröffentlichige, äänlichi Künschtler, {n}-s-Vorlose)."],
-"Grenze nicht verlässlich dokumentiert – TagStudio fragt höchstens etwa {n}-mal pro Sekunde": ["Limit not reliably documented – TagStudio asks at most about {n} times per second", "Gränze nöd verlässlich dokumentiert – TagStudio fröget höchschtens öppe {n}-mal pro Sekunde"],
-"Titel über ISRC": ["Track via ISRC", "Titel über ISRC"],
-"Online-Metadaten: Suche über ISRC": ["Online metadata: search via ISRC", "Online-Metadate: Suechi über ISRC"],
-"Titel suchen (erweiterte Suche)": ["Search tracks (advanced search)", "Titel sueche (erwiiteri Suechi)"],
-"Freie Suche": ["Free search", "Freii Suechi"],
-"genutzt: q, auch label:{q}": ["used: q, also label:{q}", "bruucht: q, au label:{q}"],
-"Künstler suchen": ["Search artists", "Künschtler sueche"],
-"Entdecken: gefolgte Künstler": ["Discover: followed artists", "Entdecke: gfolgti Künschtler"],
-"Alben suchen": ["Search albums", "Albe sueche"],
-"Ein Titel": ["A track", "En Titel"],
-"Ein Album": ["An album", "Es Album"],
-"Details: Label, Genre, Datum; Entdecken: Titel eines Albums": ["Details: label, genre, date; discover: tracks of an album", "Details: Label, Genre, Datum; Entdecke: Titel vo eme Album"],
-"Album über UPC/EAN": ["Album via UPC/EAN", "Album über UPC/EAN"],
-"Ein Künstler": ["An artist", "En Künschtler"],
-"Alben eines Künstlers": ["Albums of an artist", "Albe vo eme Künschtler"],
-"Entdecken: neue Veröffentlichungen": ["Discover: new releases", "Entdecke: neui Veröffentlichige"],
-"Ähnliche Künstler": ["Similar artists", "Äänlichi Künschtler"],
-"Entdecken: Vorschläge": ["Discover: suggestions", "Entdecke: Vorschleg"],
-"Beliebteste Titel eines Künstlers": ["Most popular tracks of an artist", "Beliebtischti Titel vo eme Künschtler"],
-"Redaktionelle Auswahl": ["Editorial selection", "Redaktionelli Uswaal"],
-"Eine Playlist": ["A playlist", "E Playlist"],
-"Suche Titel + Künstler: {x} Aufnahmen": ["Search title + artist: {x} recordings", "Suechi Titel + Künschtler: {x} Ufnaame"],
-"MusicBrainz nicht erreichbar: {x}": ["MusicBrainz not reachable: {x}", "MusicBrainz nöd erreichbar: {x}"],
-"Ohne Schlüssel · höchstens etwa {n} Anfrage/s.": ["No key · at most about {n} request/s.", "Ohni Schlüssel · höchschtens öppe {n} Aafroog/s."],
-"Prüft, ob MusicBrainz erreichbar ist.": ["Checks whether MusicBrainz is reachable.", "Prüeft, öb MusicBrainz erreichbar isch."],
-"MusicBrainz ist erreichbar.": ["MusicBrainz is reachable.", "MusicBrainz isch erreichbar."],
-"Cover vorhanden": ["Cover available", "Cover vorhande"],
-"Freie Musik-Datenbank: Aufnahmen über ISRC oder Titel/Künstler, Veröffentlichung mit Label, Katalognummer, Datum, Spur und MusicBrainz-IDs; Cover aus dem Cover Art Archive. Ohne Schlüssel. Wird von {q} und AcoustID genutzt.": ["Free music database: recordings via ISRC or title/artist, release with label, catalog number, date, track and MusicBrainz IDs; cover from the Cover Art Archive. No key. Used by {q} and AcoustID.", "Freii Musig-Datebank: Ufnaame über ISRC oder Titel/Künschtler, Veröffentlichig mit Label, Katalognummer, Datum, Spur und MusicBrainz-IDs; Cover us em Cover Art Archive. Ohni Schlüssel. Wird vo {q} und AcoustID bruucht."],
-"im Mittel {n} Anfrage/s, eigener User-Agent (Pflicht)": ["on average {n} request/s, own user agent (required)", "im Mittel {n} Aafroog/s, eigete User-Agent (Pflicht)"],
-"Cover kommen vom Cover Art Archive (coverartarchive.org, eigene Adresse).": ["Covers come from the Cover Art Archive (coverartarchive.org, own address).", "Cover chömed vom Cover Art Archive (coverartarchive.org, eigeti Adrässe)."],
-"Aufnahmen zu einer ISRC": ["Recordings for an ISRC", "Ufnaame zu ere ISRC"],
-"Aufnahmen suchen (Lucene)": ["Search recordings (Lucene)", "Ufnaame sueche (Lucene)"],
-"Eine Aufnahme": ["A recording", "E Ufnaam"],
-"AcoustID: Aufnahme zum Fingerabdruck": ["AcoustID: recording for the fingerprint", "AcoustID: Ufnaam zum Fingerabdruck"],
-"Eine Veröffentlichung": ["A release", "E Veröffentlichig"],
-"Veröffentlichungen suchen": ["Search releases", "Veröffentlichige sueche"],
-"Veröffentlichungsgruppe": ["Release group", "Veröffentlichigsgruppe"],
-"Werk (Komposition)": ["Work (composition)", "Wärch (Komposition)"],
-"Aufnahmen eines Künstlers/Release durchblättern": ["Browse recordings of an artist/release", "Ufnaame vo eme Künschtler/Release dureblättere"],
-"CD über Disc-ID": ["CD via disc ID", "CD über Disc-ID"],
-"Cover Art Archive: Frontcover ({n} px)": ["Cover Art Archive: front cover ({n} px)", "Cover Art Archive: Frontcover ({n} px)"],
-"Adresse coverartarchive.org": ["Address coverartarchive.org", "Adrässe coverartarchive.org"],
-"Cover Art Archive: alle Bilder einer Veröffentlichung": ["Cover Art Archive: all images of a release", "Cover Art Archive: alli Bilder vo ere Veröffentlichig"]
+ "Unbekannte Aktion: {x}": [
+  "Unknown action: {x}",
+  "Unbekannti Aktion: {x}"
+ ],
+ "AcoustID nicht erreichbar: {x}": [
+  "AcoustID not reachable: {x}",
+  "AcoustID nöd erreichbar: {x}"
+ ],
+ "Schlüssel …": [
+  "Key …",
+  "Schlüssel …"
+ ],
+ "Anwendungs-Schlüssel für AcoustID und Pfad zu fpcalc. Leer lassen = unverändert. Der Schlüssel wird verschlüsselt gespeichert und nie angezeigt.": [
+  "Application key for AcoustID and path to fpcalc. Leave empty = unchanged. The key is stored encrypted and never shown.",
+  "Aawändigs-Schlüssel für AcoustID und Pfad zu fpcalc. Läär lah = unveränderet. De Schlüssel wird verschlüsselt gspicheret und nie aazeigt."
+ ],
+ "Verbindung testen": [
+  "Test connection",
+  "Verbindig teschte"
+ ],
+ "Prüft Schlüssel und fpcalc.": [
+  "Checks key and fpcalc.",
+  "Prüeft Schlüssel und fpcalc."
+ ],
+ "kein Schlüssel": [
+  "no key",
+  "kän Schlüssel"
+ ],
+ "Schlüssel gespeichert": [
+  "Key saved",
+  "Schlüssel gspicheret"
+ ],
+ "· fpcalc gefunden": [
+  "· fpcalc found",
+  "· fpcalc gfunde"
+ ],
+ "· fpcalc nicht gefunden": [
+  "· fpcalc not found",
+  "· fpcalc nöd gfunde"
+ ],
+ "Nur für den Fingerabdruck (Titel ohne brauchbare Tags). {n}. Bei acoustid.org anmelden. {n}. {q}: Name TagStudio, Version, Website (z. B. die GitHub-Seite). {n}. Den {q} der Anwendung kopieren und unten einfügen. {n}. Zusätzlich das Programm fpcalc (Chromaprint) herunterladen, entpacken und den Pfad zu fpcalc(.exe) unten eintragen.": [
+  "Only for the fingerprint (tracks without usable tags). {n}. Sign in at acoustid.org. {n}. {q}: name TagStudio, version, website (e.g. the GitHub page). {n}. Copy the {q} of the application and paste it below. {n}. Additionally download the program fpcalc (Chromaprint), unpack it and enter the path to fpcalc(.exe) below.",
+  "Nur für de Fingerabdruck (Titel ohni bruuchbari Tags). {n}. Bi acoustid.org aamälde. {n}. {q}: Name TagStudio, Version, Website (z. B. d GitHub-Siite). {n}. De {q} vo de Aawändig kopiere und une iifüege. {n}. Zuesätzlich s Programm fpcalc (Chromaprint) abelade, uuspacke und de Pfad zu fpcalc(.exe) une iiträge."
+ ],
+ "AcoustID: Anwendungs-Schlüssel": [
+  "AcoustID: application key",
+  "AcoustID: Aawändigs-Schlüssel"
+ ],
+ "Pfad zu fpcalc (leer = im Suchpfad suchen)": [
+  "Path to fpcalc (empty = search in the search path)",
+  "Pfad zu fpcalc (läär = im Suechpfad sueche)"
+ ],
+ "Gespeicherten Schlüssel und Pfad löschen": [
+  "Delete saved key and path",
+  "Gspicherete Schlüssel und Pfad lösche"
+ ],
+ "AcoustID: Anwendung registrieren": [
+  "AcoustID: register application",
+  "AcoustID: Aawändig registriere"
+ ],
+ "Schlüssel ungültig": [
+  "Key invalid",
+  "Schlüssel ungültig"
+ ],
+ "Erkennt Titel ohne brauchbare Tags am Klang (Fingerabdruck mit fpcalc/Chromaprint) und findet die passende MusicBrainz-Aufnahme. Eigener, kostenloser Anwendungs-Schlüssel nötig – Anleitung unter {q}. Wird von {q} genutzt (braucht das Plugin MusicBrainz).": [
+  "Recognizes tracks without usable tags by their sound (fingerprint with fpcalc/Chromaprint) and finds the matching MusicBrainz recording. Own free application key needed – instructions under {q}. Used by {q} (needs the MusicBrainz plugin).",
+  "Erchännt Titel ohni bruuchbari Tags am Klang (Fingerabdruck mit fpcalc/Chromaprint) und findet di passend MusicBrainz-Ufnaam. Eigete, gratis Aawändigs-Schlüssel nötig – Aaleitig under {q}. Wird vo {q} bruucht (bruucht s Plugin MusicBrainz)."
+ ],
+ "Braucht das Programm fpcalc (Chromaprint).": [
+  "Needs the program fpcalc (Chromaprint).",
+  "Bruucht s Programm fpcalc (Chromaprint)."
+ ],
+ "Eigener Anwendungs-Schlüssel (acoustid.org › Anwendung registrieren); verschlüsselt gespeichert.": [
+  "Own application key (acoustid.org › register application); stored encrypted.",
+  "Eigete Aawändigs-Schlüssel (acoustid.org › Aawändig registriere); verschlüsselt gspicheret."
+ ],
+ "höchstens {n} Anfragen/s": [
+  "at most {n} requests/s",
+  "höchschtens {n} Aafroge/s"
+ ],
+ "Testabfrage ohne Track gibt es hier nicht – AcoustID braucht den Fingerabdruck einer Datei. Im API-Tester lässt sich eine AcoustID-Kennung nachschlagen.": [
+  "There is no test query without a track here – AcoustID needs the fingerprint of a file. An AcoustID identifier can be looked up in the API tester.",
+  "E Testabfroog ohni Track gits da nöd – AcoustID bruucht de Fingerabdruck vo ere Datei. Im API-Tester cha mer e AcoustID-Kännig naaluege."
+ ],
+ "Titel über Fingerabdruck finden": [
+  "Find track by fingerprint",
+  "Titel über Fingerabdruck finde"
+ ],
+ "Online-Metadaten: Titel ohne brauchbare Tags": [
+  "Online metadata: tracks without usable tags",
+  "Online-Metadate: Titel ohni bruuchbari Tags"
+ ],
+ "AcoustID-Kennungen zu einer MusicBrainz-Aufnahme": [
+  "AcoustID identifiers for a MusicBrainz recording",
+  "AcoustID-Kännige zu ere MusicBrainz-Ufnaam"
+ ],
+ "Fingerabdruck beitragen": [
+  "Contribute fingerprint",
+  "Fingerabdruck biiträge"
+ ],
+ "TagStudio lädt nichts hoch": [
+  "TagStudio uploads nothing",
+  "TagStudio ladt nüüt ufe"
+ ],
+ "Stand eines Beitrags": [
+  "Status of a contribution",
+  "Stand vo eme Biitrag"
+ ],
+ "{x} von {x} Titel(n) mit beaTunes-Werten; {x} mit Änderungen (Vorschau)": [
+  "{x} of {x} track(s) with beaTunes values; {x} with changes (preview)",
+  "{x} vo {x} Titel mit beaTunes-Wärt; {x} mit Änderige (Vorschau)"
+ ],
+ ", {x} Wert(e) zum Prüfen (nicht angehakt)": [
+  ", {x} value(s) to check (not ticked)",
+  ", {x} Wärt zum Prüefe (nöd aaghäklet)"
+ ],
+ "beaTunes übernehmen …": [
+  "Take over beaTunes …",
+  "beaTunes übernää …"
+ ],
+ "Liest die Werte, die beaTunes in die Dateien geschrieben hat (MOOD_DANCEABILITY, MOOD_ACOUSTIC …), und schlägt sie als Audio-Merkmale vor. Wurde ein Wert in der Datei seit dem letzten Abgleich geändert, ist er nicht angehakt – du entscheidest.": [
+  "Reads the values that beaTunes wrote into the files (MOOD_DANCEABILITY, MOOD_ACOUSTIC …) and suggests them as audio features. If a value in the file was changed since the last match, it is not ticked – you decide.",
+  "Liest d Wärt, wo beaTunes i d Dateie gschribe hät (MOOD_DANCEABILITY, MOOD_ACOUSTIC …), und schlaat si als Audio-Merkmal vor. Isch en Wärt i de Datei sit em letschte Abgliich gänderet worde, isch er nöd aaghäklet – du entscheidisch."
+ ],
+ "Werte ohne passendes Merkmal (z. B. MOOD_ELECTRONIC, MOOD_PARTY) werden als Hinweis gezeigt, aber nicht übernommen.": [
+  "Values without a matching feature (e.g. MOOD_ELECTRONIC, MOOD_PARTY) are shown as a note but not taken over.",
+  "Wärt ohni passends Merkmal (z. B. MOOD_ELECTRONIC, MOOD_PARTY) werded als Hiiwiis zeigt, aber nöd übernaa."
+ ],
+ "beaTunes übernehmen": [
+  "Take over beaTunes",
+  "beaTunes übernää"
+ ],
+ "Übernimmt die Stimmungs- und Klangwerte, die beaTunes in die Dateien schreibt (TXXX:MOOD_DANCEABILITY, MOOD_ACOUSTIC, MOOD_HAPPY, MOOD_AGGRESSIVE …), als Audio-Merkmale. Mit Abgleich: Haben sich die beaTunes-Werte seit dem letzten Übernehmen geändert und die Datei wurde inzwischen anders bearbeitet, fragt die Vorschau.": [
+  "Takes over the mood and sound values that beaTunes writes into the files (TXXX:MOOD_DANCEABILITY, MOOD_ACOUSTIC, MOOD_HAPPY, MOOD_AGGRESSIVE …) as audio features. With matching: if the beaTunes values changed since the last takeover and the file was edited differently meanwhile, the preview asks.",
+  "Übernimmt d Stimmigs- und Klangwärt, wo beaTunes i d Dateie schriibt (TXXX:MOOD_DANCEABILITY, MOOD_ACOUSTIC, MOOD_HAPPY, MOOD_AGGRESSIVE …), als Audio-Merkmal. Mit Abgliich: Händ sich d beaTunes-Wärt sit em letschte Übernää gänderet und d Datei isch inzwüsche andersch bearbeitet worde, fröget d Vorschau."
+ ],
+ "Keine Zusatzpakete nötig. beaTunes selbst wird nicht benötigt – gelesen werden nur die Tags.": [
+  "No additional packages needed. beaTunes itself is not needed – only the tags are read.",
+  "Kei Zuesatzpäckli nötig. beaTunes sälber bruucht s nöd – gläse werded nur d Tags."
+ ],
+ "Suche (Land CH): {x} Titel": [
+  "Search (country CH): {x} tracks",
+  "Suechi (Land CH): {x} Titel"
+ ],
+ "iTunes nicht erreichbar: {x}": [
+  "iTunes not reachable: {x}",
+  "iTunes nöd erreichbar: {x}"
+ ],
+ "Ohne Schlüssel · etwa {n} Abfragen pro Minute.": [
+  "No key · about {n} queries per minute.",
+  "Ohni Schlüssel · öppe {n} Abfroge pro Minute."
+ ],
+ "Prüft, ob iTunes erreichbar ist.": [
+  "Checks whether iTunes is reachable.",
+  "Prüeft, öb iTunes erreichbar isch."
+ ],
+ "iTunes ist erreichbar.": [
+  "iTunes is reachable.",
+  "iTunes isch erreichbar."
+ ],
+ "iTunes Search API von Apple ohne Anmeldung: Titel, Album, Datum, Genre, Spur und Cover in hoher Auflösung. Langsam (etwa {n} Abfragen pro Minute). Wird von {q} genutzt.": [
+  "Apple's iTunes Search API without sign-in: title, album, date, genre, track and cover in high resolution. Slow (about {n} queries per minute). Used by {q}.",
+  "iTunes Search API vo Apple ohni Aamäldig: Titel, Album, Datum, Genre, Spur und Cover i hoher Uuflösig. Langsam (öppe {n} Abfroge pro Minute). Wird vo {q} bruucht."
+ ],
+ "Keine Zusatzpakete nötig.": [
+  "No additional packages needed.",
+  "Kei Zuesatzpäckli nötig."
+ ],
+ "etwa {n} Abfragen pro Minute": [
+  "about {n} queries per minute",
+  "öppe {n} Abfroge pro Minute"
+ ],
+ "Online-Metadaten: Suche Künstler + Titel": [
+  "Online metadata: search artist + title",
+  "Online-Metadate: Suechi Künschtler + Titel"
+ ],
+ "Nachschlagen über ID, UPC oder ISRC": [
+  "Look up by ID, UPC or ISRC",
+  "Naaluege über ID, UPC oder ISRC"
+ ],
+ "Suche: {x} Titel": [
+  "Search: {x} tracks",
+  "Suechi: {x} Titel"
+ ],
+ "Deezer nicht erreichbar: {x}": [
+  "Deezer not reachable: {x}",
+  "Deezer nöd erreichbar: {x}"
+ ],
+ "Ohne Schlüssel.": [
+  "No key.",
+  "Ohni Schlüssel."
+ ],
+ "Prüft, ob Deezer erreichbar ist.": [
+  "Checks whether Deezer is reachable.",
+  "Prüeft, öb Deezer erreichbar isch."
+ ],
+ "Deezer ist erreichbar.": [
+  "Deezer is reachable.",
+  "Deezer isch erreichbar."
+ ],
+ "Öffentliche Deezer-API ohne Anmeldung: Titel über ISRC oder Suche, Album mit Label und Genre, BPM, Cover. Wird von {q} und {q} (neue Veröffentlichungen, ähnliche Künstler, {n}-s-Vorhören) genutzt.": [
+  "Public Deezer API without sign-in: track via ISRC or search, album with label and genre, BPM, cover. Used by {q} and {q} (new releases, similar artists, {n}-s previews).",
+  "Öffentlichi Deezer-API ohni Aamäldig: Titel über ISRC oder Suechi, Album mit Label und Genre, BPM, Cover. Wird vo {q} und {q} bruucht (neui Veröffentlichige, äänlichi Künschtler, {n}-s-Vorlose)."
+ ],
+ "Grenze nicht verlässlich dokumentiert – TagStudio fragt höchstens etwa {n}-mal pro Sekunde": [
+  "Limit not reliably documented – TagStudio asks at most about {n} times per second",
+  "Gränze nöd verlässlich dokumentiert – TagStudio fröget höchschtens öppe {n}-mal pro Sekunde"
+ ],
+ "Titel über ISRC": [
+  "Track via ISRC",
+  "Titel über ISRC"
+ ],
+ "Online-Metadaten: Suche über ISRC": [
+  "Online metadata: search via ISRC",
+  "Online-Metadate: Suechi über ISRC"
+ ],
+ "Titel suchen (erweiterte Suche)": [
+  "Search tracks (advanced search)",
+  "Titel sueche (erwiiteri Suechi)"
+ ],
+ "Freie Suche": [
+  "Free search",
+  "Freii Suechi"
+ ],
+ "genutzt: q, auch label:{q}": [
+  "used: q, also label:{q}",
+  "bruucht: q, au label:{q}"
+ ],
+ "Künstler suchen": [
+  "Search artists",
+  "Künschtler sueche"
+ ],
+ "Entdecken: gefolgte Künstler": [
+  "Discover: followed artists",
+  "Entdecke: gfolgti Künschtler"
+ ],
+ "Alben suchen": [
+  "Search albums",
+  "Albe sueche"
+ ],
+ "Ein Titel": [
+  "A track",
+  "En Titel"
+ ],
+ "Ein Album": [
+  "An album",
+  "Es Album"
+ ],
+ "Details: Label, Genre, Datum; Entdecken: Titel eines Albums": [
+  "Details: label, genre, date; discover: tracks of an album",
+  "Details: Label, Genre, Datum; Entdecke: Titel vo eme Album"
+ ],
+ "Album über UPC/EAN": [
+  "Album via UPC/EAN",
+  "Album über UPC/EAN"
+ ],
+ "Ein Künstler": [
+  "An artist",
+  "En Künschtler"
+ ],
+ "Alben eines Künstlers": [
+  "Albums of an artist",
+  "Albe vo eme Künschtler"
+ ],
+ "Entdecken: neue Veröffentlichungen": [
+  "Discover: new releases",
+  "Entdecke: neui Veröffentlichige"
+ ],
+ "Ähnliche Künstler": [
+  "Similar artists",
+  "Äänlichi Künschtler"
+ ],
+ "Entdecken: Vorschläge": [
+  "Discover: suggestions",
+  "Entdecke: Vorschleg"
+ ],
+ "Beliebteste Titel eines Künstlers": [
+  "Most popular tracks of an artist",
+  "Beliebtischti Titel vo eme Künschtler"
+ ],
+ "Redaktionelle Auswahl": [
+  "Editorial selection",
+  "Redaktionelli Uswaal"
+ ],
+ "Eine Playlist": [
+  "A playlist",
+  "E Playlist"
+ ],
+ "Suche Titel + Künstler: {x} Aufnahmen": [
+  "Search title + artist: {x} recordings",
+  "Suechi Titel + Künschtler: {x} Ufnaame"
+ ],
+ "MusicBrainz nicht erreichbar: {x}": [
+  "MusicBrainz not reachable: {x}",
+  "MusicBrainz nöd erreichbar: {x}"
+ ],
+ "Ohne Schlüssel · höchstens etwa {n} Anfrage/s.": [
+  "No key · at most about {n} request/s.",
+  "Ohni Schlüssel · höchschtens öppe {n} Aafroog/s."
+ ],
+ "Prüft, ob MusicBrainz erreichbar ist.": [
+  "Checks whether MusicBrainz is reachable.",
+  "Prüeft, öb MusicBrainz erreichbar isch."
+ ],
+ "MusicBrainz ist erreichbar.": [
+  "MusicBrainz is reachable.",
+  "MusicBrainz isch erreichbar."
+ ],
+ "Cover vorhanden": [
+  "Cover available",
+  "Cover vorhande"
+ ],
+ "Freie Musik-Datenbank: Aufnahmen über ISRC oder Titel/Künstler, Veröffentlichung mit Label, Katalognummer, Datum, Spur und MusicBrainz-IDs; Cover aus dem Cover Art Archive. Ohne Schlüssel. Wird von {q} und AcoustID genutzt.": [
+  "Free music database: recordings via ISRC or title/artist, release with label, catalog number, date, track and MusicBrainz IDs; cover from the Cover Art Archive. No key. Used by {q} and AcoustID.",
+  "Freii Musig-Datebank: Ufnaame über ISRC oder Titel/Künschtler, Veröffentlichig mit Label, Katalognummer, Datum, Spur und MusicBrainz-IDs; Cover us em Cover Art Archive. Ohni Schlüssel. Wird vo {q} und AcoustID bruucht."
+ ],
+ "im Mittel {n} Anfrage/s, eigener User-Agent (Pflicht)": [
+  "on average {n} request/s, own user agent (required)",
+  "im Mittel {n} Aafroog/s, eigete User-Agent (Pflicht)"
+ ],
+ "Cover kommen vom Cover Art Archive (coverartarchive.org, eigene Adresse).": [
+  "Covers come from the Cover Art Archive (coverartarchive.org, own address).",
+  "Cover chömed vom Cover Art Archive (coverartarchive.org, eigeti Adrässe)."
+ ],
+ "Aufnahmen zu einer ISRC": [
+  "Recordings for an ISRC",
+  "Ufnaame zu ere ISRC"
+ ],
+ "Aufnahmen suchen (Lucene)": [
+  "Search recordings (Lucene)",
+  "Ufnaame sueche (Lucene)"
+ ],
+ "Eine Aufnahme": [
+  "A recording",
+  "E Ufnaam"
+ ],
+ "AcoustID: Aufnahme zum Fingerabdruck": [
+  "AcoustID: recording for the fingerprint",
+  "AcoustID: Ufnaam zum Fingerabdruck"
+ ],
+ "Eine Veröffentlichung": [
+  "A release",
+  "E Veröffentlichig"
+ ],
+ "Veröffentlichungen suchen": [
+  "Search releases",
+  "Veröffentlichige sueche"
+ ],
+ "Veröffentlichungsgruppe": [
+  "Release group",
+  "Veröffentlichigsgruppe"
+ ],
+ "Werk (Komposition)": [
+  "Work (composition)",
+  "Wärch (Komposition)"
+ ],
+ "Aufnahmen eines Künstlers/Release durchblättern": [
+  "Browse recordings of an artist/release",
+  "Ufnaame vo eme Künschtler/Release dureblättere"
+ ],
+ "CD über Disc-ID": [
+  "CD via disc ID",
+  "CD über Disc-ID"
+ ],
+ "Cover Art Archive: Frontcover ({n} px)": [
+  "Cover Art Archive: front cover ({n} px)",
+  "Cover Art Archive: Frontcover ({n} px)"
+ ],
+ "Adresse coverartarchive.org": [
+  "Address coverartarchive.org",
+  "Adrässe coverartarchive.org"
+ ],
+ "Cover Art Archive: alle Bilder einer Veröffentlichung": [
+  "Cover Art Archive: all images of a release",
+  "Cover Art Archive: alli Bilder vo ere Veröffentlichig"
+ ],
+ "Online-Metadaten: Suche Titel + Künstler": [
+  "Online metadata: search title + artist",
+  "Online-Metadate: Suechi Titel + Künschtler"
+ ]
 }

@@ -65,12 +65,12 @@ class TestCatalog(unittest.TestCase):
     @unittest.skipUnless(os.environ.get("TAGSTUDIO_I18N_STRICT", "1") == "1", "Abdeckung abgeschaltet")
     def test_all_texts_translated(self):
         """Jeder Oberflächentext ist in allen mitgelieferten Sprachen vorhanden (neue Texte im selben Commit übersetzen)."""
-        texts = ex.collect()
+        texts = ex.collect(plugins=True)                                  # #219: auch die mitgelieferten Plugins
         for lang in i18n.COLUMNS:
             m = ex.missing(lang, texts)
             n = sum(len(v) for v in m.values())
             self.assertEqual(n, 0, f"{lang}: {n} Texte fehlen, z. B. {json.dumps(dict(list(m.items())[:3]), ensure_ascii=False)[:600]}"
-                             " – python3 tools/i18n_extract.py --missing " + lang)
+                             " – python3 tools/i18n_extract.py --plugins --missing " + lang)
 
 
 if __name__ == "__main__":
