@@ -215,10 +215,27 @@ def py_literals(src: str):
 
 
 def _py_ui(s: str) -> bool:
-    """Python: nur Texte mit deutschem Inhalt (Meldungen), keine Bezeichner, Pfade, Formate."""
+    """Python: Texte, die als Meldung/Beschriftung in die Oberfläche gehen – deutsche Wörter, Sätze oder
+    Bezeichnungen aus mehreren Wörtern; keine Bezeichner, Pfade, Formate (Genre-Namen siehe ignore/_genres)."""
+    if s in _GENRES:
+        return False
+    if re.search(r"^[A-ZÄÖÜ][a-zäöüß]+\s+\S", s.strip()) or re.search(r"[a-zäöü]{3,}\s+[a-zäöü]{3,}", s):
+        return True
     if not re.search(r"[äöüÄÖÜ]|\b(der|die|das|und|nicht|kein|keine|mit|für|von|im|zum|zur|bitte|wird|werden|ist|sind|Datei|Dateien|Titel|Ordner|bereits|noch|nur|oder|aus|auf|alle|neu|Fehler)\b", s):
         return False
     return True
+
+
+def _genre_list() -> set[str]:
+    try:
+        sys.path.insert(0, ROOT)
+        import id3tags
+        return set(id3tags.GENRES)
+    except Exception:  # noqa: BLE001
+        return set()
+
+
+_GENRES = _genre_list()
 
 
 def collect(include_py=True, plugins=False) -> dict[str, list[str]]:
