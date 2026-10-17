@@ -24,12 +24,18 @@ NEW = f"https://github.com/{REPO}/issues/new"
 MINE = f"https://github.com/{REPO}/issues?q=is%3Aissue+author%3A%40me"
 MAX_URL = 7000            # GitHub/Browser vertragen etwa 8 KB – darüber wird gekürzt
 
-TEMPLATES = {"bug": "bug_report.yml", "feature": "feature_request.yml"}
-TITLE_PREFIX = {"bug": "Fehler: ", "feature": "Idee: "}
+# Drei Arten (Entscheid User 17.10.2026): Fehler → Meilenstein „BugFixes“, Verbesserung → „Verbesserungen“,
+# neue Funktion → „Funktionen“ (zugeordnet über das Label, Workflow .github/workflows/issue-milestone.yml)
+TEMPLATES = {"bug": "bug_report.yml", "improvement": "improvement.yml", "feature": "feature_request.yml"}
+TITLE_PREFIX = {"bug": "Fehler: ", "improvement": "Verbesserung: ", "feature": "Funktion: "}
+LABELS = {"bug": ["bug", "triage"], "improvement": ["verbesserung", "triage"], "feature": ["enhancement", "triage"]}
+MILESTONE = {"bug": "BugFixes", "improvement": "Verbesserungen", "feature": "Funktionen"}
 # Feld-IDs der Vorlagen (Reihenfolge = Vorschau)
 FIELDS = {
     "bug": [("version", "TagStudio-Version"), ("os", "Betriebssystem"), ("variant", "Variante"), ("area", "Bereich"),
             ("what", "Was ist passiert?"), ("steps", "Schritte zum Nachstellen"), ("extra", "Weitere Hinweise")],
+    "improvement": [("current", "Was gibt es heute?"), ("solution", "Was soll besser werden?"), ("area", "Bereich"),
+                    ("alternatives", "Beispiele / Bildschirmfotos")],
     "feature": [("problem", "Worum geht es?"), ("solution", "Vorschlag"), ("area", "Bereich"),
                 ("alternatives", "Alternativen / Beispiele")],
 }
@@ -40,7 +46,8 @@ AREAS = {
     "feature": ["Tagger", "Tag-Fixer", "Vergleich", "Vorschau-Player", "Snapshots / Änderungsjournal", "Herkunft der Tags",
                 "Einstellungen", "Plugins", "DJ-Set", "Online-Metadaten", "anderes"],
 }
-REQUIRED = {"bug": ("what", "steps"), "feature": ("problem", "solution")}
+AREAS["improvement"] = AREAS["feature"]
+REQUIRED = {"bug": ("what", "steps"), "improvement": ("current", "solution"), "feature": ("problem", "solution")}
 
 
 # =========================================================================== Umgebung
@@ -119,7 +126,7 @@ def prepare(kind: str, fields: dict) -> dict:
     url, cut = _url(params)
     preview = [("Titel", title)] + [(lbl, f[k]) for k, lbl in FIELDS[kind] if f[k]]
     return {"url": url, "truncated": cut, "preview": preview, "redacted": hits, "mine": MINE,
-            "labels": ["bug" if kind == "bug" else "enhancement", "triage"]}
+            "labels": LABELS[kind], "milestone": MILESTONE[kind]}
 
 
 def _url(params: dict) -> tuple[str, bool]:

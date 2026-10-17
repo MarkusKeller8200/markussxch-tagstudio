@@ -12,9 +12,13 @@ const FB_HELP = {
   problem: "Welches Problem soll gelöst werden bzw. was möchtest du erreichen?",
   solution: "Wo in der Oberfläche, welche Felder, welches Verhalten?",
   alternatives: "Andere Programme, die das schon können (Mp3tag, Rekordbox …)",
+  current: "Wie funktioniert es heute, was stört daran?",
 };
+// Drei Arten: Fehler, Verbesserung (bestehende Funktion), neue Funktion – je eigener Meilenstein auf GitHub
+const FB_KINDS = [["bug", "Fehler melden"], ["improvement", "Verbesserung vorschlagen"], ["feature", "Neue Funktion vorschlagen"]];
+const FB_PH = { bug: "z. B. Speichern bricht bei Cover über 5 MB ab", improvement: "z. B. Spalte „Länge“ auch im Vergleich", feature: "z. B. Liedtexte im Player anzeigen" };
 
-/** Dialog öffnen. kind: "bug" | "feature"; area: vorgewählter Bereich (z. B. „Tagger“). */
+/** Dialog öffnen. kind: "bug" | "improvement" | "feature"; area: vorgewählter Bereich (z. B. „Tagger“). */
 async function fbOpen(kind = "bug", area = "") {
   try { FB.info = FB.info || await call("feedback_info", !!window.pywebview); } catch (e) { toast(String(e.message || e)); return; }
   FB.kind = kind; FB.step = "form"; FB.prep = null; FB.dup = null; FB.dupQ = "";
@@ -51,15 +55,15 @@ function fbRender(b) {
   const fields = d.fields[k].filter(([id]) => !["version", "os", "variant", "area"].includes(id));
   box.innerHTML = `
     <div class="fb-kind" role="radiogroup" aria-label="Art der Meldung">
-      <button class="sn-chip${k === "bug" ? " on" : ""}" data-fbkind="bug" role="radio" aria-checked="${k === "bug"}">Fehler melden</button>
-      <button class="sn-chip${k === "feature" ? " on" : ""}" data-fbkind="feature" role="radio" aria-checked="${k === "feature"}">Funktion vorschlagen</button>
+      ${FB_KINDS.map(([id, lab]) => `<button class="sn-chip${k === id ? " on" : ""}" data-fbkind="${id}" role="radio" aria-checked="${k === id}">${lab}</button>`).join("")}
     </div>
+    <p class="hint fb-ms">Meilenstein auf GitHub: ${esc((d.milestones || {})[k] || "")} – die Freigabe zur Umsetzung erteilt der Projektverantwortliche.</p>
     <p class="hint">Die Meldung erscheint <b>öffentlich</b> auf GitHub. Bitte keine MP3s, Liedtexte, Zugangsdaten oder persönlichen
       Angaben eintragen – Benutzerordner, E-Mail-Adressen und lange Schlüssel werden vor dem Öffnen automatisch geschwärzt.
       Sicherheitslücken bitte <a href="#" data-url="https://github.com/MarkusKeller8200/markussxch-tagstudio/security/advisories/new">privat melden</a>.</p>
     <div class="frm fb-frm">
       <label for="fbTitle">Titel *</label>
-      <div><input id="fbTitle" data-fb="title" value="${esc(v.title || "")}" placeholder="${k === "bug" ? "z. B. Speichern bricht bei Cover über 5 MB ab" : "z. B. Liedtexte im Player anzeigen"}" spellcheck="true">
+      <div><input id="fbTitle" data-fb="title" value="${esc(v.title || "")}" placeholder="${FB_PH[k] || ""}" spellcheck="true">
         <div class="sm"><button class="ghost sm" id="fbSearch" title="Vorhandene Meldungen mit ähnlichem Titel suchen">Ähnliche Meldungen suchen</button></div>
         <div id="fbDup" class="sm">${fbDupHtml()}</div></div>
       <label for="fbArea">Bereich</label>

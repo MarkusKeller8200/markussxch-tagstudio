@@ -146,13 +146,15 @@ async function helpTab(tab) {
   if (tab === "keys") { $("#helpDoc").innerHTML = helpKeysHtml(); $("#helpDoc").scrollTop = 0; return; }
   $("#helpDoc").classList.toggle("wide", tab === "licenses");          // #206: Tabelle nutzt die ganze Breite
   if (tab === "report") {                                            // #187
-    $("#helpDoc").innerHTML = `<h2>Fehler melden oder Funktion vorschlagen</h2>
+    $("#helpDoc").innerHTML = `<h2>Fehler melden, Verbesserung oder neue Funktion vorschlagen</h2>
       <p class="muted">Meldungen landen als Issue im öffentlichen GitHub-Projekt. TagStudio füllt das Formular vor (Version, System,
       Bereich), sucht nach ähnlichen Meldungen und schwärzt private Angaben; abgeschickt wird im Browser mit deinem GitHub-Konto.
       TagStudio speichert keine Zugangsdaten.</p>
       <p class="muted">Jede neue Meldung bekommt das Label <code>triage</code> und wird vom Projektverantwortlichen geprüft. Erst seine
       ausdrückliche Freigabe macht daraus einen Entwicklungsauftrag – eine Meldung allein ist keine Zusage.</p>
-      <div class="svc-btns"><button class="primary" data-fbopen="bug">Fehler melden …</button><button class="ghost" data-fbopen="feature">Funktion vorschlagen …</button>
+      <p class="muted">Je nach Art kommt die Meldung in einen eigenen Meilenstein: Fehler → BugFixes, Verbesserung
+      (bestehende Funktion besser machen) → Verbesserungen, neue Funktion → Funktionen.</p>
+      <div class="svc-btns"><button class="primary" data-fbopen="bug">Fehler melden …</button><button class="ghost" data-fbopen="improvement">Verbesserung vorschlagen …</button><button class="ghost" data-fbopen="feature">Neue Funktion vorschlagen …</button>
       <a href="#" data-url="https://github.com/MarkusKeller8200/markussxch-tagstudio/issues">Alle Meldungen ansehen ↗</a></div>`;
     $("#helpDoc").scrollTop = 0; return;
   }

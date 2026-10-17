@@ -668,6 +668,15 @@ class UiTest(unittest.TestCase):
         pg.wait_for_selector('[data-fbkind="feature"][aria-checked="true"]')
         self.assertTrue(pg.locator("#fb-solution").count())
         pg.click("#mBtns button")
+        # drei Arten: Verbesserung mit eigenem Formular und Meilenstein (Entscheid 17.10.2026)
+        self.assertEqual(pg.locator('#helpDoc [data-fbopen]').count(), 3)
+        pg.click('#helpDoc [data-fbopen="improvement"]')
+        pg.wait_for_selector('[data-fbkind="improvement"][aria-checked="true"]')
+        self.assertTrue(pg.locator("#fb-current").count())
+        self.assertIn("Verbesserungen", pg.inner_text("#fbBody .fb-ms"))
+        pg.click('[data-fbkind="bug"]')
+        self.assertIn("BugFixes", pg.inner_text("#fbBody .fb-ms"))
+        pg.click("#mBtns button")
         self.assertEqual(self.errors, [])
 
     def test_player_lyrics(self):

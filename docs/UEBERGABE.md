@@ -10,6 +10,16 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **4.7.0 – Mehrsprachigkeit** (#18): #157 Grundlage, Sprachwahl, alle Module in `de-CH`, `en`, `gsw-u-sd-chzh`; Claude übersetzt bei der Entwicklung mit (keine KI-Anbindung in TagStudio). Dazu #219 (Plugins, englische Doku, eigene Texte mit Überlagerung) – vom User am 17.10. nach 4.7.0 verschoben. Beides auf `main`, Beta-Test.
 - **4.8.0** (#19): derzeit leer.
 
+## GitHub-Pflege (Entscheid User 17.10.2026)
+
+- Alles, was im Chat besprochen wird (Funktion, Verbesserung, Fehler – auch Teilpunkte), kommt als Issue mit Testliste
+  nach GitHub. Labels `bug` / `verbesserung` / `enhancement`; Meilenstein = laufender Release, sonst die Sammlungen
+  **BugFixes** (#16), **Verbesserungen** (#20), **Funktionen** (#21). Der Workflow `.github/workflows/issue-milestone.yml`
+  ordnet neue Issues ohne Meilenstein nach Label zu (auch Meldungen aus der App). „Idee (Später)“ (#4) ist leer.
+- Hilfe › Melden kennt drei Arten: Fehler melden, Verbesserung vorschlagen (`improvement.yml`), Neue Funktion
+  vorschlagen (`feature_request.yml`).
+- Keine offenen Punkte im Release-Meilenstein mehr → Release abschliessen und Version erstellen (vorher kurz ankündigen).
+
 ## Mehrsprachigkeit – Regeln für jede Änderung (ab 17.10.2026)
 
 - **Neue oder geänderte Oberflächentexte** (JS, HTML, Python-Meldungen, Plugins) bekommen im selben Commit ihre

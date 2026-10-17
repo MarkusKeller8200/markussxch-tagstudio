@@ -217,5 +217,21 @@
 "Plugins nach Art filtern": ["Filter plugins by type", "Plugins nach Art filtere"],
 "Ordner dieses Plugins öffnen": ["Open this plugin's folder", "Ordner vo dem Plugin öffne"],
 "Eigene Plugins – {x}": ["Own plugins – {x}", "Eigeni Plugins – {x}"],
-"Eingebaute Plugins (Programmordner) – {x}": ["Built-in plugins (program folder) – {x}", "Iibauti Plugins (Programmordner) – {x}"]
+"Eingebaute Plugins (Programmordner) – {x}": ["Built-in plugins (program folder) – {x}", "Iibauti Plugins (Programmordner) – {x}"],
+"Wie funktioniert es heute, was stört daran?": ["How does it work today, what bothers you about it?", "Wie funktioniert s hüt, was stört dra?"],
+"Verbesserung vorschlagen": ["Suggest an improvement", "Verbesserig vorschlaa"],
+"Neue Funktion vorschlagen": ["Suggest a new feature", "Neui Funktion vorschlaa"],
+"z. B. Spalte {q} auch im Vergleich": ["e.g. column {q} in the comparison too", "z. B. Spalte {q} au im Vergliich"],
+"Meilenstein auf GitHub: {x} – die Freigabe zur Umsetzung erteilt der Projektverantwortliche.": ["Milestone on GitHub: {x} – the project owner approves implementation.", "Meilestei uf GitHub: {x} – d Freigab zur Umsetzig git de Projektverantwortlich."],
+"Fehler melden, Verbesserung oder neue Funktion vorschlagen": ["Report a bug, suggest an improvement or a new feature", "Fähler mälde, Verbesserig oder neui Funktion vorschlaa"],
+"Je nach Art kommt die Meldung in einen eigenen Meilenstein: Fehler → BugFixes, Verbesserung (bestehende Funktion besser machen) → Verbesserungen, neue Funktion → Funktionen.": ["Depending on the type, the report goes into its own milestone: bug → BugFixes, improvement (make an existing feature better) → Verbesserungen, new feature → Funktionen.", "Je nach Art chunnt d Mäldig in en eigete Meilestei: Fähler → BugFixes, Verbesserig (bestehendi Funktion besser mache) → Verbesserungen, neui Funktion → Funktionen."],
+"Verbesserung vorschlagen …": ["Suggest an improvement …", "Verbesserig vorschlaa …"],
+"Neue Funktion vorschlagen …": ["Suggest a new feature …", "Neui Funktion vorschlaa …"],
+"Verbesserung:": ["Improvement:", "Verbesserig:"],
+"Funktion:": ["Feature:", "Funktion:"],
+"Verbesserungen": ["Improvements", "Verbesserige"],
+"Funktionen": ["Features", "Funktione"],
+"Was gibt es heute?": ["What exists today?", "Was gits hüt?"],
+"Was soll besser werden?": ["What should get better?", "Was söll besser werde?"],
+"Beispiele / Bildschirmfotos": ["Examples / screenshots", "Biispiil / Bildschirmfotos"]
 }

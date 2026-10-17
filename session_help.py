@@ -63,7 +63,7 @@ class HelpMixin:
         from version import VERSION
         return {"env": feedback.env_info(VERSION, bool(getattr(sys, "frozen", False)), bool(window)),
                 "areas": feedback.AREAS, "fields": feedback.FIELDS, "required": feedback.REQUIRED,
-                "mine": feedback.MINE}
+                "mine": feedback.MINE, "milestones": feedback.MILESTONE}
 
     def feedback_search(self, query: str) -> dict:
         """Ähnliche vorhandene Issues (öffentliche Suche, nur lesend)."""

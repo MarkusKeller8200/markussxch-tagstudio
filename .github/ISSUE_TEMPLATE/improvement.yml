@@ -1,0 +1,45 @@
+name: Verbesserung vorschlagen
+description: Eine bestehende Funktion besser machen (Meilenstein „Verbesserungen“).
+title: "Verbesserung: "
+labels: ["verbesserung", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Ablauf:** Neue Meldungen erhalten das Label `triage` und werden vom Projektverantwortlichen geprüft. Erst seine
+        ausdrückliche Freigabe (`_1 bereit`) macht daraus einen Entwicklungsauftrag.
+  - type: textarea
+    id: current
+    attributes:
+      label: Was gibt es heute?
+      description: Wie funktioniert es heute, was stört daran?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Was soll besser werden?
+      description: Wo in der Oberfläche, welches Verhalten?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Bereich
+      options:
+        - Tagger
+        - Tag-Fixer
+        - Vergleich
+        - Vorschau-Player
+        - Snapshots / Änderungsjournal
+        - Herkunft der Tags
+        - Einstellungen
+        - Plugins
+        - DJ-Set
+        - Online-Metadaten
+        - anderes
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Beispiele / Bildschirmfotos
+      description: Andere Programme, die das schon besser können, Bildschirmfotos

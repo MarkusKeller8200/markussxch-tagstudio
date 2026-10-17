@@ -41,9 +41,18 @@ class TestFeedback(unittest.TestCase):
         self.assertNotIn("labels", q)                                          # Freigabe-Labels nie aus der Meldung
         self.assertEqual(r["labels"], ["bug", "triage"])
         self.assertEqual(r["redacted"], ["Benutzerordner"])
-        f = feedback.prepare("feature", {"title": "Idee: Liedtexte im Player", "problem": "p", "solution": "s", "area": "Erfunden"})
+        f = feedback.prepare("feature", {"title": "Funktion: Liedtexte im Player", "problem": "p", "solution": "s", "area": "Erfunden"})
         q = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(f["url"]).query))
-        self.assertEqual((q["title"], q["area"], q["template"]), ("Idee: Liedtexte im Player", "anderes", "feature_request.yml"))
+        self.assertEqual((q["title"], q["area"], q["template"]), ("Funktion: Liedtexte im Player", "anderes", "feature_request.yml"))
+        self.assertEqual((f["labels"], f["milestone"]), (["enhancement", "triage"], "Funktionen"))
+        # Verbesserung: eigene Vorlage, Label und Meilenstein (Entscheid 17.10.2026)
+        v = feedback.prepare("improvement", {"title": "Spalte Länge im Vergleich", "current": "fehlt", "solution": "zeigen"})
+        q = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(v["url"]).query))
+        self.assertEqual((q["title"], q["template"], q["current"]), ("Verbesserung: Spalte Länge im Vergleich", "improvement.yml", "fehlt"))
+        self.assertEqual((v["labels"], v["milestone"]), (["verbesserung", "triage"], "Verbesserungen"))
+        self.assertEqual(r["milestone"], "BugFixes")
+        with self.assertRaises(ValueError):
+            feedback.prepare("improvement", {"title": "Ohne Angaben"})
         long = feedback.prepare("bug", {"title": "Lang", "what": "x " * 6000, "steps": "s"})
         self.assertTrue(long["truncated"])
         self.assertLessEqual(len(long["url"]), feedback.MAX_URL)
@@ -68,7 +77,7 @@ class TestFeedback(unittest.TestCase):
 
     def test_templates_have_triage(self):
         root = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".github", "ISSUE_TEMPLATE")
-        for name in ("bug_report.yml", "feature_request.yml", "plugin_idea.yml"):
+        for name in ("bug_report.yml", "improvement.yml", "feature_request.yml", "plugin_idea.yml"):
             with open(os.path.join(root, name), encoding="utf-8") as fh:
                 head = fh.read()
             labels = head.split("body:")[0]
