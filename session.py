@@ -212,16 +212,28 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
 
     # ------------------------------------------------------------------ Update-Kanal (#89)
     def update_channel(self) -> str:
+        """stable = nur offizielle Versionen, beta = auch Betas (beide nur veröffentlichte Releases bzw. Tags),
+        dev = Entwicklungsstand main – nur im Quellcode, nie in der installierten App (#233)."""
+        import updater
         ch = self.cfg.get("update_channel")
-        if ch in ("stable", "beta"):
+        frozen = updater.frozen()
+        if ch == "beta" and not frozen and not self.cfg.get("update_channel_v2"):
+            # bisher folgte „auch Beta“ im Quellcode dem Hauptzweig → einmalig auf „Entwicklung“ (gleiches Verhalten)
+            ch = "dev"
+            self.cfg.update(update_channel=ch, update_channel_v2=True)
+            core.save_config({"update_channel": ch, "update_channel_v2": True})
+        if ch == "dev" and frozen:
+            return "beta"
+        if ch in updater.CHANNELS:
             return ch
         return "beta" if "-" in VERSION else "stable"
 
     def set_update_channel(self, channel) -> str:
-        if channel not in ("stable", "beta"):
-            raise ValueError("stable oder beta erwartet")
-        self.cfg["update_channel"] = channel
-        core.save_config({"update_channel": channel})
+        import updater
+        if channel not in updater.CHANNELS or (channel == "dev" and updater.frozen()):
+            raise ValueError("stable, beta oder dev (nur Quellcode) erwartet")
+        self.cfg.update(update_channel=channel, update_channel_v2=True)
+        core.save_config({"update_channel": channel, "update_channel_v2": True})
         return channel
 
     def i18n_overlay_info(self, lang: str) -> dict:
@@ -629,7 +641,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 "stems_flat": bool(c.get("tagger_stems_flat")),
                 "mood_list": c.get("mood_list") if isinstance(c.get("mood_list"), list) else [],
                 "feat_scale": features.SCALE, "feat_scales": [[k, v] for k, v in features.SCALES.items()],
-                "update_channel": self.update_channel(), "version": VERSION,
+                "update_channel": self.update_channel(), "version": VERSION, "frozen": bool(getattr(sys, "frozen", False)),
                 "view_defaults": self.view_defaults(), "modes": [[k, v] for k, v in PAIR_MODES.items()],
                 "empty_sets": [[k, v] for k, v in core.EMPTY_SETS.items()],
                 "tg_sort_cols": [["name", "Datei"], ["TIT2", "Titel"], ["TPE1", "Künstler"], ["TALB", "Album"], ["TRCK", "Spur"],

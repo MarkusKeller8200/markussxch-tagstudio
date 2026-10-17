@@ -117,7 +117,23 @@ def release(new: str, today=None, root=ROOT) -> str:
             fh.write(text)
     if not pre:
         update_security(new, root)
+        reset_next(new, root)
     return old
+
+
+def reset_next(ver: str, root=ROOT) -> bool:
+    """#233: version_next.NEXT nach einer finalen Version leeren, wenn er erreicht ist (dann wieder automatisch)."""
+    p = os.path.join(root, "version_next.py")
+    if not os.path.exists(p):
+        return False
+    with open(p, encoding="utf-8") as fh:
+        text = fh.read()
+    m = re.search(r'^NEXT = "([^"]*)"', text, re.M)
+    if not m or not m.group(1) or m.group(1) != ver:
+        return False
+    with open(p, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(text.replace(m.group(0), 'NEXT = ""', 1))
+    return True
 
 
 def update_security(ver: str, root=ROOT) -> bool:
@@ -153,7 +169,7 @@ def main(argv):
         return 1
     print(f"Version {old} → {new}: version.py, pyproject.toml" + ("" if "-" in new else ", CHANGELOG.md, SECURITY.md") + " angepasst.")
     if "--commit" in argv:
-        subprocess.run(["git", "add", "version.py", "pyproject.toml", "CHANGELOG.md", "SECURITY.md"], cwd=ROOT, check=True)
+        subprocess.run(["git", "add", "version.py", "version_next.py", "pyproject.toml", "CHANGELOG.md", "SECURITY.md"], cwd=ROOT, check=True)
         subprocess.run(["git", "commit", "-m", f"Version {new}"], cwd=ROOT, check=True)
         subprocess.run(["git", "tag", "-a", f"v{new}", "-m", f"MarKusSXCH TagStudio {new}"], cwd=ROOT, check=True)
         print(f"Commit und Tag v{new} erstellt. Jetzt: git push --follow-tags")

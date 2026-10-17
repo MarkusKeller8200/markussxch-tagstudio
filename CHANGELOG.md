@@ -6,6 +6,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Versionsanzeige und Update-Kanäle (#233):** Der Entwicklungsstand im Quellcode heisst „Developer Release“ und zeigt
+  die geplante Version (z. B. 4.8.0 statt 4.7.0); Basis und Anzahl Änderungen stehen im Tooltip. „Nur offizielle“ und
+  „auch Beta-Versionen“ bieten nur veröffentlichte Versionen an. Der neue Kanal „Entwicklung“ (jede Änderung auf
+  `main`) ist nur im Quellcode wählbar; bisherige Quellcode-Einstellungen „auch Beta“ werden einmalig dorthin umgestellt.
+
 ## [4.7.0] – 2026-10-17
 
 ### Neu

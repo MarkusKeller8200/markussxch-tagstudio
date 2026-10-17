@@ -156,6 +156,12 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.locator("#stToc .chip").count(), len(cards))
         pg.select_option("#stVd_compare_filter", label="Unterschiede")
         pg.select_option("#stVd_tagger_sort", label="BPM ↓")
+        dv = pg.evaluate("S.settings.dev || {}")                        # #233: Developer Release zeigt die geplante Version
+        if dv.get("dev"):
+            self.assertIn(f"Version {dv['planned']}", pg.inner_text("#ver"))
+            self.assertIn("Developer Release", pg.inner_text("#ver"))
+        # #233: Quellcode – drei Kanäle, „Entwicklung“ nur hier
+        self.assertEqual(pg.evaluate("[...document.querySelectorAll('#stUpdCh option')].map((o) => o.value)"), ["stable", "beta", "dev"])
         pg.select_option("#stUpdCh", "beta")
         time.sleep(0.5)
         c = self.cfg()

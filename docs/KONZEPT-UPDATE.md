@@ -14,11 +14,18 @@ bleiben bei jedem Update erhalten.
 ## 2. Funktionen
 
 - **„Nach Update suchen“** unten in der Seitenleiste; Prüfung beim Start (Punkt am Knopf).
-- **Kanal** (Einstellungen › Updates, `update_channel`): `stable` = nur offizielle Versionen, `beta` = auch Betas.
+- **Kanal** (Einstellungen › Updates, `update_channel`): `stable` = nur offizielle Versionen, `beta` = auch Betas –
+  beide nur **veröffentlichte** Versionen (Releases bzw. Versions-Tags). `dev` = Entwicklungsstand `main`, **nur im
+  Quellcode** wählbar, nie in der installierten App (#233, Entscheid User 17.10.2026). Ältere Quellcode-Einstellungen
+  „beta“ (folgten bisher `main`) werden einmalig zu `dev` (`update_channel_v2`).
+- **Versionsanzeige (#233):** Final = veröffentlichte Version; Beta = Version mit Kennzeichen „Beta“; **Developer
+  Release** (Quellcode mit Änderungen nach dem letzten Versions-Tag) zeigt die **geplante** Version: `version_next.NEXT`,
+  sonst Version der laufenden Beta ohne Zusatz, sonst nächste Minor-Version; Basis und Anzahl Änderungen im Tooltip.
+  `packaging/release.py` leert `NEXT`, sobald die Version erreicht ist.
 - **Installierte App:** fragt die GitHub-Releases ab, zeigt die neue Version mit Hinweisen und lädt den passenden
   Installer herunter; installiert wird darüber (Einstellungen bleiben).
 - **Quellcode (Git-Klon):** `git fetch` + `pull --ff-only` (nur Vorspulen, nur ohne eigene Änderungen); bei `stable`
-  bis zum neuesten Versions-Tag. Vorher Abfrage ungespeicherter Änderungen und laufender Aufträge, danach Neustart.
+  bis zum neuesten offiziellen Versions-Tag, bei `beta` bis zum neuesten Tag (auch Beta), bei `dev` bis `main`. Vorher Abfrage ungespeicherter Änderungen und laufender Aufträge, danach Neustart.
   Alte Zweige werden umgestellt (`MOVED = {"web-ui": "main"}`).
 - **Versionshinweise:** installierte Version (aus dem mitgelieferten CHANGELOG), neueste auf GitHub, „Weitere
   Versionen“ zum Aufklappen, Link zu GitHub.

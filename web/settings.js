@@ -123,8 +123,11 @@ async function settingsShow() {
     <section class="card" id="stUpdateCard"><h3>Updates</h3>
       <div class="st-row">
         <span>Installiert</span><span>Version ${esc(d.version)}${/-/.test(d.version) ? ' <span class="beta-b">Beta</span>' : ""}</span>
-        <label for="stUpdCh">Updates anbieten</label>${stSel("stUpdCh", [["stable", "nur offizielle Versionen"], ["beta", "auch Beta-Versionen (zum Testen)"]], d.update_channel)}
-        <span></span><span class="muted sm">${d.update_channel === "stable" && /-/.test(d.version) ? "Du verwendest eine Beta – die nächste offizielle Version wird angeboten, sobald sie erscheint." : "Beta-Versionen erscheinen nur, solange eine neue Version in Arbeit ist."}</span>
+        <label for="stUpdCh">Updates anbieten</label>${stSel("stUpdCh", [["stable", "nur offizielle Versionen"], ["beta", "auch Beta-Versionen (zum Testen)"]]
+          .concat(d.frozen ? [] : [["dev", "Entwicklung – jede Änderung (Developer Release, nur Quellcode)"]]), d.update_channel)}
+        <span></span><span class="muted sm">${d.update_channel === "dev" ? "Entwicklungsstand: jede Änderung auf GitHub sofort – nicht für den normalen Einsatz."
+          : d.update_channel === "stable" && /-/.test(d.version) ? "Du verwendest eine Beta – die nächste offizielle Version wird angeboten, sobald sie erscheint."
+          : "Beta-Versionen erscheinen nur, solange eine neue Version in Arbeit ist."}</span>
         <span></span><div class="st-path"><button class="ghost sm" id="stUpdCheck">Jetzt nach Updates suchen</button><button class="ghost sm" id="stUpdNotes">Versionshinweise</button></div>
       </div></section>
     <section class="card" id="stFolderCard"><h3>Speicherort und Ordner</h3><div id="stFolders"><span class="muted sm">…</span></div></section>
@@ -651,7 +654,7 @@ function initSettings() {
     }
     else if (t.id === "stPlXfRet") plSetPref("xfade_return", +t.value);
     else if (t.dataset.vd) await stVdSet(t);
-    else if (t.id === "stUpdCh") { await call("set_update_channel", t.value); toast(t.value === "beta" ? "Updates: auch Beta-Versionen." : "Updates: nur offizielle Versionen."); settingsShow(); checkUpdateQuietly(); }
+    else if (t.id === "stUpdCh") { await call("set_update_channel", t.value); toast(t.value === "dev" ? "Updates: Entwicklungsstand (jede Änderung)." : t.value === "beta" ? "Updates: auch Beta-Versionen." : "Updates: nur offizielle Versionen."); settingsShow(); checkUpdateQuietly(); }
     else if (t.id === "stPlLayout") { pl2Pref("layout", t.value); await call("set_player_pref", "layout", t.value); settingsShow(); }
     else if (t.id === "stPlDeck2") plSetPref("deck2", t.checked);
     else if (t.id === "stPlResume") { await call("set_player_pref", "resume", t.checked); toast(t.checked ? "Wiedergabe wird beim Start fortgesetzt." : "Player startet leer."); }

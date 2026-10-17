@@ -119,11 +119,30 @@ class TestUpdater(unittest.TestCase):
         self.assertTrue(updater.pull(self.app, channel="stable")["updated"])
         with open(os.path.join(self.app, "a.txt")) as fh:
             self.assertEqual(fh.read(), "2\n")
-        self.assertEqual(updater.status(True, self.app, channel="beta")["behind"], 1)
+        self._new_commit("Entwicklung", "4\n")                       # #233: Stand nach der Beta, ohne Tag
+        st = updater.status(True, self.app, channel="beta")        # „auch Beta“: nur bis zum Beta-Tag
+        self.assertEqual((st["behind"], st["upstream"]), (1, "v3.6.0-beta.1"))
         updater.pull(self.app, channel="beta")
+        with open(os.path.join(self.app, "a.txt")) as fh:
+            self.assertEqual(fh.read(), "3\n")
         st = updater.status(True, self.app, channel="stable")       # Beta weiter als offiziell → Hinweis
         self.assertEqual(st["behind"], 0)
-        self.assertIn("Beta", st["note"])
+        self.assertIn("neueren Stand", st["note"])
+        self.assertEqual(updater.status(True, self.app, channel="dev")["behind"], 1)   # Entwicklung: bis main
+        updater.pull(self.app, channel="dev")
+        with open(os.path.join(self.app, "a.txt")) as fh:
+            self.assertEqual(fh.read(), "4\n")
+
+    def test_planned_version(self):
+        """#233: Developer Release zeigt die geplante Version."""
+        from unittest import mock
+        import version_next
+        with mock.patch.object(version_next, "NEXT", ""):
+            self.assertEqual(updater.planned_version("4.7.0"), "4.8.0")
+            self.assertEqual(updater.planned_version("4.8.0-beta.2"), "4.8.0")
+        with mock.patch.object(version_next, "NEXT", "4.7.1"):
+            self.assertEqual(updater.planned_version("4.7.0"), "4.7.1")
+            self.assertEqual(updater.planned_version("4.8.0"), "4.9.0")       # NEXT schon erreicht → automatisch
 
     def test_not_a_repo(self):
         st = updater.status(False, self.dir)
@@ -174,3 +193,33 @@ class TestReleases(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestChannelSetting(unittest.TestCase):
+    """#233: Kanäle stable/beta/dev; „beta“ aus älteren Quellcode-Einstellungen wird einmalig zu „dev“."""
+
+    def setUp(self):
+        import tempfile
+        import core
+        self.core, self.old = core, (core.CONFIG, core.CONFIG_OLD)
+        self.tmp = tempfile.TemporaryDirectory()
+        core.CONFIG = core.CONFIG_OLD = os.path.join(self.tmp.name, "cfg.json")
+
+    def tearDown(self):
+        self.core.CONFIG, self.core.CONFIG_OLD = self.old
+        self.tmp.cleanup()
+
+    def test_channels(self):
+        from unittest import mock
+        from session import Session
+        s = Session()
+        s.cfg["update_channel"] = "beta"
+        with mock.patch.object(updater, "frozen", return_value=False):
+            self.assertEqual(s.update_channel(), "dev")                 # alter Quellcode-„beta“ = main
+            self.assertEqual(s.set_update_channel("beta"), "beta")
+            self.assertEqual(s.update_channel(), "beta")               # bleibt, kein zweites Umstellen
+        with mock.patch.object(updater, "frozen", return_value=True):
+            with self.assertRaises(ValueError):
+                s.set_update_channel("dev")                           # installierte App: nie Entwicklung
+            s.cfg["update_channel"] = "dev"
+            self.assertEqual(s.update_channel(), "beta")

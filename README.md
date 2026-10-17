@@ -411,8 +411,10 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
 - **Update:** „Nach Update suchen“ unten in der Seitenleiste; TagStudio prüft beim Start selbst (Punkt am Knopf).
   Unter Einstellungen › Updates: **nur offizielle Versionen** oder **auch Beta-Versionen**. Die installierte App
   zeigt die neue Version mit ihren Hinweisen und lädt den passenden Installer herunter. In der Quellcode-Variante
-  lädt ein Klick die neue Version (`git`, nur Vorspulen, nur ohne eigene Änderungen im Programmordner; bei „nur
-  offizielle“ bis zum neuesten Versions-Tag) und startet neu; ungespeicherte Änderungen werden vorher abgefragt.
+  lädt ein Klick die neue Version (`git`, nur Vorspulen, nur ohne eigene Änderungen im Programmordner; bis zur
+  neuesten offiziellen bzw. Beta-Version) und startet neu; ungespeicherte Änderungen werden vorher abgefragt. Nur im
+  Quellcode gibt es zusätzlich den Kanal **Entwicklung** (jede Änderung auf `main`, angezeigt als „Developer Release“
+  mit der geplanten Versionsnummer).
 - **Fenster und Programm:** ganz unten in der Seitenleiste Vollbild (auch F11), Fenstermodus (zurück aus Vollbild
   bzw. maximiert), Neu starten und Beenden. Beim Beenden – auch über das X des Fensters – erscheint kurz
   „Einstellungen werden gespeichert …“; ungespeicherte Änderungen und laufende Aufträge werden vorher abgefragt.
@@ -608,7 +610,7 @@ zusammenpassen (läuft auch in den Tests).
 
 **Kanäle:** In den Einstellungen wählbar – **nur offizielle Versionen** oder **auch Beta-Versionen**. Beta-Releases
 einer Version werden automatisch von der Releases-Seite entfernt, sobald die finale Version erscheint (ihre Git-Tags
-bleiben). Ein Git-Klon mit „auch Beta“ folgt `main` und bekommt jede Änderung sofort.
+bleiben). Ein Git-Klon mit dem Kanal „Entwicklung“ folgt `main` und bekommt jede Änderung sofort.
 
 **Zweige:** `main` ist immer lauffähig (die CI prüft jeden Commit). Grössere Vorhaben entstehen in kurzlebigen
 Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind.

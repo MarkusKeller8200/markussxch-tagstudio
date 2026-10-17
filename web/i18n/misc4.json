@@ -233,5 +233,11 @@
 "Funktionen": ["Features", "Funktione"],
 "Was gibt es heute?": ["What exists today?", "Was gits hüt?"],
 "Was soll besser werden?": ["What should get better?", "Was söll besser werde?"],
-"Beispiele / Bildschirmfotos": ["Examples / screenshots", "Biispiil / Bildschirmfotos"]
+"Beispiele / Bildschirmfotos": ["Examples / screenshots", "Biispiil / Bildschirmfotos"],
+"Developer Release: Entwicklungsstand für Version {x} – basiert auf {x} mit {x} Änderung(en){x}, noch nicht als Beta oder Release veröffentlicht": ["Developer release: development state for version {x} – based on {x} with {x} change(s){x}, not yet published as beta or release", "Developer Release: Entwickligsstand für Version {x} – basiert uf {x} mit {x} Änderig(e){x}, na nöd als Beta oder Release veröffentlicht"],
+"Entwicklung – jede Änderung (Developer Release, nur Quellcode)": ["Development – every change (developer release, source code only)", "Entwicklig – jedi Änderig (Developer Release, nur Quellcode)"],
+"Entwicklungsstand: jede Änderung auf GitHub sofort – nicht für den normalen Einsatz.": ["Development state: every change on GitHub immediately – not for normal use.", "Entwickligsstand: jedi Änderig uf GitHub sofort – nöd für de normali Iisatz."],
+"Updates: Entwicklungsstand (jede Änderung).": ["Updates: development state (every change).", "Updates: Entwickligsstand (jedi Änderig)."],
+"stable, beta oder dev (nur Quellcode) erwartet": ["stable, beta or dev (source code only) expected", "stable, beta oder dev (nur Quellcode) erwartet"],
+"Du bist auf einem neueren Stand als die letzte veröffentlichte Version. Die nächste Version wird angeboten, sobald sie erscheint.": ["You are on a newer state than the last published version. The next version is offered as soon as it is released.", "Du bisch uf emene neuere Stand als di letscht veröffentlicht Version. Di nächscht Version wird aabote, sobald si erschiint."]
 }

@@ -65,11 +65,30 @@ def dev_info(version: str, cwd=HERE) -> dict:
         if m:
             base, n, sha = m.group(1), int(m.group(2)), m.group(3)
             out = {"dev": n > 0 or base != f"v{version}", "commits": n, "sha": sha, "base": base[1:]}
+    out["planned"] = planned_version(version) if out["dev"] else version
     _DEV[key] = out
     return out
 
 
-def status(fetch: bool = True, cwd=HERE, channel: str = "beta") -> dict:
+def planned_version(version: str) -> str:
+    """#233: Version, auf die die Entwicklung zuläuft – für die Anzeige „Developer Release“.
+    version_next.NEXT (wenn grösser als die aktuelle), sonst laufende Beta ohne Zusatz, sonst nächste Minor-Version."""
+    try:
+        import version_next
+        nxt = str(getattr(version_next, "NEXT", "") or "").strip()
+    except ImportError:
+        nxt = ""
+    cur = parse_version(version)
+    if nxt and parse_version(nxt) and cur and parse_version(nxt) > cur:
+        return nxt
+    m = _re.match(r"^(\d+)\.(\d+)\.(\d+)(-.+)?$", version or "")
+    if not m:
+        return version
+    a, b, c, pre = m.groups()
+    return f"{a}.{b}.{c}" if pre else f"{a}.{int(b) + 1}.0"
+
+
+def status(fetch: bool = True, cwd=HERE, channel: str = "dev") -> dict:
     """Vergleicht den lokalen Stand mit GitHub.
     → {"ok", "error", "branch", "behind", "ahead", "commits": [Betreff…], "dirty": [Dateien…], "current"}"""
     err = available(cwd)
@@ -96,13 +115,14 @@ def status(fetch: bool = True, cwd=HERE, channel: str = "beta") -> dict:
                 and _git(["merge-base", "--is-ancestor", "HEAD", ref], cwd)[0] == 0:
             upstream, switch = ref, target
     note = None
-    if channel == "stable":                      # #89: nur offizielle Versionen → bis zum neuesten Versions-Tag
-        tag = final_tag_target(cwd)
+    if channel in ("stable", "beta"):            # #89/#233: nur veröffentlichte Versionen (Tags) – nie der Entwicklungsstand
+        tag = final_tag_target(cwd, include_beta=channel == "beta")
         if tag and _git(["merge-base", "--is-ancestor", "HEAD", tag], cwd)[0] == 0:
             upstream, switch = tag, None
         else:
             upstream, switch = "HEAD", None
-            note = "Du bist auf einem neueren Stand als die letzte offizielle Version (Beta). Die nächste offizielle Version wird angeboten, sobald sie erscheint."
+            note = ("Du bist auf einem neueren Stand als die letzte veröffentlichte Version. Die nächste Version wird "
+                    "angeboten, sobald sie erscheint.")
     _, counts, _ = _git(["rev-list", "--left-right", "--count", f"HEAD...{upstream}"], cwd)
     ahead, behind = (int(x) for x in (counts.split() + ["0", "0"])[:2])
     _, log, _ = _git(["log", "--format=%s", f"HEAD..{upstream}"], cwd)
@@ -113,7 +133,7 @@ def status(fetch: bool = True, cwd=HERE, channel: str = "beta") -> dict:
             "current": cur, "switch": switch, "channel": channel, "note": note}
 
 
-def pull(cwd=HERE, channel: str = "beta") -> dict:
+def pull(cwd=HERE, channel: str = "dev") -> dict:
     """Holt die neue Version (nur Vorspulen). → {"ok", "message"}"""
     st = status(fetch=True, cwd=cwd, channel=channel)
     if not st.get("ok"):
@@ -144,7 +164,7 @@ import json as _json
 import re as _re
 
 API_RELEASES = "https://api.github.com/repos/MarkusKeller8200/markussxch-tagstudio/releases?per_page=30"
-CHANNELS = ("stable", "beta")
+CHANNELS = ("stable", "beta", "dev")    # dev = Entwicklungsstand (main), nur im Quellcode (#233)
 
 
 def parse_version(v: str):
@@ -234,8 +254,8 @@ def local_changelog() -> str:
     return ""
 
 
-def final_tag_target(cwd=HERE) -> str | None:
-    """Git-Modus, Kanal „stable“: neueste offizielle Version (Tag vX.Y.Z) auf GitHub."""
+def final_tag_target(cwd=HERE, include_beta: bool = False) -> str | None:
+    """Git-Modus: neueste veröffentlichte Version (Tag vX.Y.Z; mit include_beta auch vX.Y.Z-beta.N) auf GitHub."""
     code, out, _ = _git(["tag", "-l", "v*"], cwd)
-    tags = [t for t in out.splitlines() if parse_version(t) and not is_beta(t)] if code == 0 else []
+    tags = [t for t in out.splitlines() if parse_version(t) and (include_beta or not is_beta(t))] if code == 0 else []
     return max(tags, key=parse_version, default=None)
