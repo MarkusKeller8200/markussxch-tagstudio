@@ -141,6 +141,7 @@ async function helpTab(tab) {
   $$("#helpTabs [data-htab]").forEach((b) => { b.classList.toggle("on", b.dataset.htab === tab); b.setAttribute("aria-selected", String(b.dataset.htab === tab)); });
   $("#helpTags").hidden = tab !== "tags";
   $("#helpDoc").hidden = tab === "tags";
+  $("#helpDoc").removeAttribute("translate");                       // #219: nur Dokumente bleiben unübersetzt
   if (tab === "tags") return helpLoadTags();
   if (tab === "keys") { $("#helpDoc").innerHTML = helpKeysHtml(); $("#helpDoc").scrollTop = 0; return; }
   $("#helpDoc").classList.toggle("wide", tab === "licenses");          // #206: Tabelle nutzt die ganze Breite
@@ -156,8 +157,11 @@ async function helpTab(tab) {
     $("#helpDoc").scrollTop = 0; return;
   }
   if (tab === "licenses") { $("#helpDoc").innerHTML = helpLicensesHtml(await call("help_licenses")); $("#helpDoc").scrollTop = 0; return; }
-  if (!HELP.docs) HELP.docs = await call("help_docs");
+  const lang = (typeof I18N !== "undefined" && I18N.lang) || "de-CH";
+  if (!HELP.docs || HELP.docsLang !== lang) { HELP.docs = await call("help_docs", lang); HELP.docsLang = lang; }
   const d = HELP.docs[tab];
+  // Dokumente sind ganze Texte in ihrer Sprache (englische Fassung oder Deutsch) – nicht Wort für Wort übersetzen
+  if (d && d.text) $("#helpDoc").setAttribute("translate", "no");
   $("#helpDoc").innerHTML = d && d.text ? mdToHtml(d.text) : '<div class="tg-empty">Dokument nicht gefunden.</div>';
   $("#helpDoc").scrollTop = 0;
 }

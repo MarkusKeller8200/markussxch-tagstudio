@@ -6,6 +6,26 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Mehrsprachig: Englisch und Zürichdeutsch (#157):** Einstellungen › Darstellung › Sprache (und der
+  Einrichtungsassistent) wechseln mit Flaggen zwischen Schweizer Hochdeutsch, Englisch und Zürichdeutsch. Übersetzt
+  werden alle Seiten, Dialoge, Tooltips, Meldungen aus dem Python-Teil und die Texte der eingebauten Plugins; Tags in
+  den MP3-Dateien bleiben unverändert. Beim allerersten Start gilt die Systemsprache, bestehende Installationen bleiben
+  auf Deutsch. Im Englischen werden Tausender mit Komma getrennt (641,243).
+- **Eigene Texte exportieren und importieren (#219):** Unter Sprache lassen sich alle Texte als CSV (für Excel) oder
+  JSON exportieren, anpassen und wieder importieren. Der Import zeigt eine Vorschau und prüft unbekannte Texte,
+  Platzhalter, HTML und Länge; eigene Texte liegen in `~/TagStudio/Sprachen/<sprache>.json`, überlagern die
+  mitgelieferten und überstehen Updates. „Eigene Texte zurücksetzen“ entfernt sie. Plugins können in `plugin.json`
+  eigene Übersetzungen mitbringen (`"i18n"`).
+- **Englische Hilfe (#219):** Handbuch (`README.en.md`), Plugin-Anleitung (`PLUGINS.en.md`) und ID3-Felder
+  (`docs/ID3-FELDER.en.md`) gibt es auf Englisch; die Hilfe zeigt sie, wenn Englisch gewählt ist.
+
+### Geändert
+
+- Schreibweise vereinheitlicht: „ss“ statt „ß“ in der ganzen Oberfläche (der Filter versteht weiter „größer als“).
+- Einstellungen › Player: die Zeile heisst „Wiederholung“ statt „Wiederholen“.
+
 ## [4.6.0] – 2026-10-17
 
 ### Neu

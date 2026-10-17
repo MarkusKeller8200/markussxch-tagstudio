@@ -1,5 +1,7 @@
 # Plugins für MarKusSXCH TagStudio
 
+*English: [PLUGINS.en.md](PLUGINS.en.md)*
+
 Plugins erweitern die neue Oberfläche um eigene Funktionen. Ihre Aktionen erscheinen im **Tagger** unter
 „Plugins“ und arbeiten mit den dort markierten Dateien. Verwaltet werden sie auf der Seite **Plugins**
 (Seitenleiste): Status, Ein/Aus, fehlende Pakete per Knopf installieren.
@@ -40,7 +42,8 @@ Plugins/
   "install": [{"id": "std", "label": "Installieren", "packages": ["numpy"], "hint": "optionaler Hinweis"}],
   "external": [{"cmd": "ffmpeg", "label": "FFmpeg", "hint": "So installierst du es …"}],
   "notes": "Zusätzlicher Hinweis bei fehlenden Paketen",
-  "fields": ["TXXX:MEIN_PLUGIN_*"]
+  "fields": ["TXXX:MEIN_PLUGIN_*"],
+  "i18n": {"en": {"Mein Text": "My text"}}
 }
 ```
 
@@ -55,6 +58,8 @@ Plugins/
   möglich (`"background": true` im ACTIONS-Eintrag).
 - `fields`: Felder, die das Plugin schreibt (Muster mit `*`). TagStudio zeigt bei diesen Feldern die Herkunft
   „TagStudio · Plugin-Name“ an (Tagger, Vergleich), damit eigene Felder erkennbar bleiben.
+- `i18n`: Übersetzungen der Plugin-Texte je Sprache (`en`, `gsw-u-sd-chzh`): deutscher Text → Übersetzung. Die
+  Oberfläche nutzt sie, wenn diese Sprache gewählt ist; Texte ohne Übersetzung bleiben deutsch.
 
 ### Eigene Python-Umgebung (`env`) – für schwere Pakete
 

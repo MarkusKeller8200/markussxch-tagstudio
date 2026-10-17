@@ -26,8 +26,17 @@ def _read_doc(rel: str) -> str:
 
 class HelpMixin:
     # ------------------------------------------------------------------ Dokumente
-    def help_docs(self) -> dict:
-        return {k: {"title": t, "text": _read_doc(rel)} for k, (t, rel) in DOCS.items()}
+    def help_docs(self, lang: str = "") -> dict:
+        """Handbuch, ID3-Felder, Plugins – auf Englisch die .en.md-Fassung, sonst (auch Zürichdeutsch) Deutsch (#219)."""
+        out = {}
+        for k, (t, rel) in DOCS.items():
+            text, doc_lang = "", "de"
+            if lang == "en":
+                base, ext = os.path.splitext(rel)
+                text = _read_doc(base + ".en" + ext)
+                doc_lang = "en" if text else "de"
+            out[k] = {"title": t, "text": text or _read_doc(rel), "lang": doc_lang}
+        return out
 
     def help_licenses(self) -> dict:
         """#176: verwendete Bibliotheken, Werkzeuge, Dienste und Vorlagen mit Lizenz und Quelle (docs/third-party.json)."""

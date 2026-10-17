@@ -1,6 +1,9 @@
 # Konzept: Mehrsprachigkeit
 
-Status: **Entwurf** (2026-10-11; ergänzt 16./17.10.2026: Sprachcodes, Probeübersetzung, Entscheid „Claude übersetzt mit“, Überlagerung in den Benutzereinstellungen) – Issue #157.
+Status: **umgesetzt im Developer Release für 4.7.0** (17.10.2026, #157 und #219) – Abweichungen vom Entwurf siehe
+„Umsetzung (Stand 17.10.2026)“; diese hat Claude während der autonomen Arbeit entschieden, der User prüft sie beim
+Testen. Entwurf 2026-10-11; ergänzt 16./17.10.2026: Sprachcodes, Probeübersetzung, Entscheid „Claude übersetzt mit“,
+Überlagerung in den Benutzereinstellungen.
 
 ## Ziel
 
@@ -47,7 +50,43 @@ fehlt ein Mundart-Text, gilt `gsw`, dann `de-CH`. Zahlen/Daten über `Intl` mit 
 Katalog folgt einer Schreibweise (Vorschlag: Zürichdeutsch nach Dieth, ohne Sonderzeichen ausser ä/ö/ü) und wird vom
 User durchgesehen. Fehlt ein Mundart-Text, gilt Hochdeutsch.
 
-## Technik
+## Umsetzung (Stand 17.10.2026)
+
+Umgesetzt wurde eine **Übersetzungsschicht über dem DOM** statt Schlüsseln im Code (`t("tagger.load")`). Grund: rund
+4 000 Texte in Vorlagen-Strings, Python-Meldungen und Plugins hätten einen Umbau jeder Zeile verlangt (Phase 2 mit
+2–3 Releases und hohem Fehlerrisiko); die Schicht erreicht dasselbe ohne Eingriff in die Module.
+
+- **Schlüssel = deutscher Ausgangstext** (`de-CH`). Kataloge je Bereich in `web/i18n/<bereich>.json`:
+  `{"Deutscher Text": ["English", "Züritüütsch"]}` (Spalten nach `i18n.COLUMNS`). Für `de-CH` gibt es keine Datei.
+  `web/i18n/ignore.json` listet Marken, Feldnamen und Code-Texte, die nie übersetzt werden.
+- **Laufzeitform:** Zahlen werden zu `{n}`, Text in Anführungszeichen zu `{q}` (Inhalt wird mitübersetzt, Englisch
+  mit “…”), im Code eingesetzte Teile zu `{x}` (rekursiv übersetzt). So deckt „{n} Datei(en) im Tagger“ jede Zahl ab.
+- **`web/i18n.js`:** MutationObserver über Textknoten und die Attribute `title`, `data-tip-title`, `placeholder`,
+  `aria-label`, `alt` (plus Knopf-`value`); Rückfälle: ganzer Text → zeilenweise → „Präfix: Rest“ → führendes „· “ →
+  Teile zwischen „ · “ → Spaltenkopf mit Sortierzeichen → Aktionsname ohne „ …“. `translate="no"` schützt Daten
+  (Dateinamen, Tag-Werte, Hilfe-Dokumente). `alert/confirm/prompt` werden übersetzt. `html.i18n-wait` verdeckt die
+  Seite, bis die Sprache geladen ist (kein Aufblitzen).
+- **Sprache:** UI-Schlüssel `lang` in der Einstellungsdatei; beim allerersten Start aus der Systemsprache, bei
+  bestehenden Installationen `de-CH`. Auswahl mit SVG-Flaggen (Schweiz, Grossbritannien, Zürich) unter Einstellungen ›
+  Darstellung und im Einrichtungsassistenten. Wechsel zurück auf Deutsch lädt die Seite neu.
+- **Python und Plugins:** Meldungen bleiben deutsch im Code und werden in der Oberfläche übersetzt. Plugins können in
+  `plugin.json` `"i18n": {"en": {"Deutsch": "English"}}` mitbringen; die eingebauten stehen im Katalog.
+- **Prüfung:** `tools/i18n_extract.py` sammelt Texte aus JS, HTML, Python (inkl. `label=`, Frame-Tabellen) und Plugins;
+  `tests/test_i18n.py` verlangt, dass jeder Text in `en` und `gsw-u-sd-chzh` übersetzt ist. Der Oberflächentest
+  `test_i18n_pages_english` öffnet alle Seiten auf Englisch und meldet deutsche Reste (sichtbar oder in der
+  Fehlliste `I18N.miss`).
+- **Eigene Texte (#219):** Einstellungen › Darstellung › Sprache: Export CSV (Excel, `;`, BOM) oder JSON mit Spalten
+  `de-CH`, `en`, `gsw-u-sd-chzh`, `eigene:<sprache>`; Import mit Vorschau prüft unbekannte Texte, Platzhalter, HTML,
+  Länge (Warnung) und unveränderte Texte; gespeichert in `~/TagStudio/Sprachen/<sprache>.json` (je Profil),
+  überlagert Katalog und Plugin-Texte, „Eigene Texte zurücksetzen“ entfernt die Datei. Auch `de-CH` lässt sich so
+  anpassen.
+- **Dokumente:** `README.en.md`, `PLUGINS.en.md`, `docs/ID3-FELDER.en.md` (aus dem Katalog erzeugt); die Hilfe zeigt
+  auf Englisch diese Fassungen, sonst die deutschen. Zürichdeutsch nutzt die deutschen Dokumente.
+- **Schreibweise:** „ß“ in der Oberfläche durch „ss“ ersetzt (Filter versteht weiter „größer als“).
+- **Nicht umgesetzt / offen:** `de-DE`, Zahlen und Daten über `Intl` (nur Tausendertrenner im Englischen angepasst),
+  Einreichen eigener Texte über „Melden“ (#187), englische Fassung der Konzept- und Projektdokumente (bleiben deutsch).
+
+## Technik (Entwurf 2026-10-11, ersetzt durch „Umsetzung“)
 
 - **Kataloge:** je Sprache eine JSON-Datei `web/i18n/<sprache>.json` mit Schlüssel → Text, z. B.
   `"tagger.load": "Einlesen"`. Platzhalter in geschweiften Klammern: `"{n} Datei(en) im Tagger"`.

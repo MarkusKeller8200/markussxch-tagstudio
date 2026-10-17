@@ -8,7 +8,7 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.12 oder neuer – oder gar nic
 **Änderungen:** [CHANGELOG.md](CHANGELOG.md) · **Plugins:** [PLUGINS.md](PLUGINS.md) ·
 **Fehler & Ideen:** [Issues](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues) ·
 **Mitmachen:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Sicherheit:** [SECURITY.md](SECURITY.md) ·
-**Lizenz:** [GNU GPL v3](LICENSE)
+**Lizenz:** [GNU GPL v3](LICENSE) · **English:** [README.en.md](README.en.md)
 
 > Bis Version 2.8 hiess das Programm „MP3 Tag Compare“. Einstellungen und Sicherungen von damals werden automatisch übernommen.
 
@@ -39,6 +39,8 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.12 oder neuer – oder gar nic
   Beatport (Metadaten mit eigenem Login, Käufe abgleichen und fehlende herunterladen), eigene Plugins möglich.
 - **Einstellungen** an einem Ort – mit Vorgaben für den Start –, exportieren/importieren (z. B. Windows ↔ Mac) und
   zurücksetzen; Updates wahlweise nur offizielle oder auch Beta-Versionen, Versionshinweise direkt in der App.
+- **Sprachen:** Schweizer Hochdeutsch, Englisch und Zürichdeutsch; eigene Texte exportieren, anpassen und wieder
+  importieren (Einstellungen › Darstellung › Sprache).
 
 ## Programmstart
 
@@ -449,6 +451,13 @@ speichert alles als Datei (ohne Zugangsdaten), **Importieren** übernimmt gewäh
 Systems sind nicht vorgewählt –, **Zurücksetzen** geht für einzelne Bereiche oder alles. Vor Import und
 Zurücksetzen wird die alte Datei nach `~/TagStudio/Einstellungen` gesichert.
 
+**Sprache:** Einstellungen › Darstellung › Sprache wechselt zwischen Schweizer Hochdeutsch, Englisch und
+Zürichdeutsch (beim allerersten Start nach der Systemsprache). Tags in den MP3-Dateien werden nie übersetzt. „Texte
+exportieren“ speichert alle Texte als CSV oder JSON für eigene Übersetzungen oder Korrekturen; „Texte importieren …“
+prüft die Datei (unbekannte Texte, Platzhalter, HTML) und legt sie als eigene Texte in
+`~/TagStudio/Sprachen/<sprache>.json` ab; „Eigene Texte zurücksetzen“ entfernt sie wieder. Die Hilfe zeigt auf Englisch
+die englischen Fassungen von Handbuch, ID3-Feldern und Plugin-Anleitung.
+
 Gespeichert wird in `~/.tagstudio.json`. Weitere Ordner unter `~/TagStudio`:
 
 | Ordner | Inhalt |
@@ -459,6 +468,7 @@ Gespeichert wird in `~/.tagstudio.json`. Weitere Ordner unter `~/TagStudio`:
 | `Plugins` | eigene Plugins |
 | `Plugin-Daten` | z. B. Stems-Umgebung und Modelle, Beatport-Token (unter Windows verschlüsselt) |
 | `Logs` | App-Protokoll `app.log` (Start, Ende, Fehler, Warnungen; ab 1 MB `app.log.1`), Protokolle von Plugins und Installationen |
+| `Sprachen` | eigene Texte je Sprache |
 | `Auftraege.json` | offene Hintergrund-Aufträge (zum Fortsetzen nach einem Neustart) |
 | `Snapshots` | Snapshots überwachter Ordner (Speicherort einstellbar) |
 
@@ -512,6 +522,8 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `prepare.py`, `session_prepare.py`, `web/prepare.js` – Tracks vorbereiten (Workflow, Schritte, Schutzregel, Übernahme)
 - `recipes.py`, `web/recipes.js` – Tag-Rezepte (Aktionslisten wie in Mp3tag)
 - `taghelp.py`, `session_help.py` – Hilfe: Tag-Übersicht, Bibliotheks-Scan mit Zählern (Cache), Feld-Filter
+- `i18n.py`, `web/i18n.js`, `web/i18n/` – Mehrsprachigkeit: Kataloge (Schlüssel = deutscher Text), Übersetzung der
+  Oberfläche, eigene Texte; `tools/i18n_extract.py` prüft, ob alle Texte übersetzt sind
 - `id3frames.py` – Katalog aller ID3-Frames, lesbare Binär-Frames; Übersicht [docs/ID3-FELDER.md](docs/ID3-FELDER.md)
 - `moods.py` – Stimmung (TMOO bzw. TXXX:MOOD) mit Mehrfachwerten und Vorschlägen
 - `importsync.py` – Abgleich für Importer (beaTunes, Lexicon): zuletzt übernommene Werte in TXXX:TAGSTUDIO
@@ -621,8 +633,8 @@ Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markuss
 
 - **WAV-Unterstützung** (Konzept, [docs/KONZEPT-WAV.md](docs/KONZEPT-WAV.md)) mit Testroutine `tools/wavcheck.py`
   (Aufbau, LIST/INFO, ID3-Chunk; Schreibtest an einer Kopie).
-- **Mehrsprachigkeit** (Konzept, [docs/KONZEPT-MEHRSPRACHIG.md](docs/KONZEPT-MEHRSPRACHIG.md)): Englisch, Deutsch
-  (Schweiz/Deutschland), Export/Import der Texte für die Übersetzung.
+- **Mehrsprachigkeit** ([docs/KONZEPT-MEHRSPRACHIG.md](docs/KONZEPT-MEHRSPRACHIG.md)): Englisch und Zürichdeutsch
+  sind im Developer Release für 4.7.0 umgesetzt; offen sind Deutsch (Deutschland) und Einreichen eigener Texte.
 - **Profile und Einrichtungsassistent** ([docs/KONZEPT-EINRICHTUNG.md](docs/KONZEPT-EINRICHTUNG.md)): zweite,
   unabhängige TagStudio-Instanz mit getrennten Einstellungen; geführte Einrichtung für neue Benutzer.
 - **Später:** Beatgrid und Beatmatching im Player, Symbol-Werkzeugleiste im Vergleich, Plugin-Ideen (Liedtexte,

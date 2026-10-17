@@ -82,6 +82,15 @@ class TestTagHelp(Base):
         d = self.s.help_docs()
         self.assertIn("TagStudio", d["readme"]["text"])
         self.assertIn("| Frame |", d["id3"]["text"])
+        self.assertEqual(d["readme"]["lang"], "de")
+        en = self.s.help_docs("en")                                             # #219: englische Fassungen
+        for k in ("readme", "id3", "plugins"):
+            self.assertEqual(en[k]["lang"], "en", k)
+        self.assertIn("Features at a glance", en["readme"]["text"])
+        self.assertIn("Principles", en["id3"]["text"])
+        self.assertIn("Where do plugins live?", en["plugins"]["text"])
+        gsw = self.s.help_docs("gsw-u-sd-chzh")                                 # Zürichdeutsch: deutsche Dokumente
+        self.assertEqual(gsw["readme"]["text"], d["readme"]["text"])
 
 
 if __name__ == "__main__":

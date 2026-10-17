@@ -162,6 +162,10 @@ class TestDoc(unittest.TestCase):
         spec.loader.exec_module(mod)
         with open(mod.OUT, encoding="utf-8") as fh:
             self.assertEqual(fh.read(), mod.render())
+        with open(mod.OUT_EN, encoding="utf-8") as fh:                          # #219: englische Fassung
+            text = fh.read()
+        self.assertEqual(text, mod.render("en"))
+        self.assertNotRegex(text.split("| Frame |")[1], r"einsortieren|Internetseite|lesbar")
 
 
 if __name__ == "__main__":

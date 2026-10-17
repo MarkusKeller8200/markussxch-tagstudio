@@ -823,6 +823,24 @@ class UiTest(unittest.TestCase):
         self.assertLessEqual(len(left), int(os.environ.get("TAGSTUDIO_I18N_MAXREST", "3")), sorted(left)[:60])
         self.assertEqual(self.errors, [])
 
+    def test_i18n_help_docs(self):
+        """#219: Hilfe auf Englisch zeigt die englischen Dokumente, ganz und unübersetzt (translate="no")."""
+        pg = self.pg
+        pg.evaluate("call('set_ui', 'lang', 'en')")
+        pg.reload()
+        pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'en'")
+        if pg.locator("#modal").is_visible():
+            pg.click("#mBtns button >> nth=0")
+        pg.click('.nav[data-module="help"]')
+        pg.click('#helpTabs [data-htab="readme"]')
+        pg.wait_for_function("document.querySelector('#helpDoc').innerText.includes('Features at a glance')")
+        self.assertEqual(pg.get_attribute("#helpDoc", "translate"), "no")
+        pg.click('#helpTabs [data-htab="plugins"]')
+        pg.wait_for_function("document.querySelector('#helpDoc').innerText.includes('Where do plugins live?')")
+        pg.click('#helpTabs [data-htab="keys"]')
+        self.assertIsNone(pg.get_attribute("#helpDoc", "translate"))           # eigene Seiten werden übersetzt
+        self.assertEqual(self.errors, [])
+
     def test_player_zoom(self):
         """#224: Lupe – hochaufgelöster Ausschnitt um die Position, Serato oben/Analyse unten, Zoom, Klick springt, gemerkt."""
         pg = self.pg
