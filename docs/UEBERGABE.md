@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-24 (12:55): 4.8.0-beta.2 veröffentlicht** (Pre-Release, nur Windows, 18 Assets inkl. Plugin-ZIPs). Meilenstein #22 „4.8.0 – Updates: App und Plugins“: alles getestet und geschlossen ausser **#251** (Update auf Knopfdruck macOS, erst testbar, wenn zwei Mac-Versionen mit dem neuen Code existieren – Betas bauen kein macOS). Nächster Schritt: Testrückmeldungen zur Beta 2, danach 4.8.0 final (nur nach Freigabe; finale Versionen bauen auch macOS). Neue Konzepte (nur Konzept, `idee`): SonoVault #253–#259 (`docs/KONZEPT-SONOVAULT.md`), eigener lokaler Katalog #260, lokale Mix-Erkennung #261, weitere Dateiformate #262–#266 (`docs/KONZEPT-FORMATE.md`), Playlists #267–#273 (`docs/KONZEPT-PLAYLISTS.md`): Phase 1 (#267–#269) umgesetzt, im Beta-Test für 4.8.0-beta.3; Phase 2 (#270, #271) im Meilenstein #23 „4.9.0 – Playlists“. Details: Abschnitt „Sitzung 24.10.2026“ unten.
+Stand: **2026-10-24 (Abend): 4.8.0-beta.2 veröffentlicht; auf `main` für 4.8.0 zusätzlich Playlists (#267–#271), Zurück (#274), Tagger-Filter/Stems (#275–#277) und Playlist-Import aus DJ-Programmen/Online-Quellen (#278, #279)** – alle `_3 Beta-Test`. Meilenstein #23 „4.9.0 – Playlists“ geschlossen (Inhalt in 4.8.0). Offen in 4.8.0 ausserdem **#251** (Update auf Knopfdruck macOS, erst testbar mit zwei Mac-Versionen). Nächster Schritt: Testrückmeldungen, danach 4.8.0-beta.3 oder 4.8.0 final – **nur nach Freigabe**. Konzepte (nur Konzept, `idee`): SonoVault #253–#259, lokaler Katalog #260, Mix-Erkennung #261, Dateiformate #262–#266, Playlists Phase 3 (#272 Smartlists, #273 DJ-Programme schreiben). Details: Abschnitt „Sitzung 24.10.2026“ unten.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -13,8 +13,16 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   #268 Tagger, #269 DJ-Set – im Meilenstein #22 (4.8.0), Label `_3 Beta-Test`, Testlisten in den Issues.
   Phase 2 (#270 Player/Warteschlange/Vorbereiten, #271 Quellen/Import/Export) im Meilenstein #23 „4.9.0 – Playlists“,
   Phase 3 (#272 Smartlists, #273 DJ-Programme) unter „Funktionen“.
-- **Nächster Schritt:** Testrückmeldungen; danach 4.8.0-beta.3 **nur nach Freigabe** (#251 bleibt bis zur finalen
-  Version offen).
+- **Phase 2 auf Wunsch des Users in 4.8.0** (#270 Abspielen/Warteschlange/Vorbereiten, #271 Import/Export/Abgleich/
+  Fehlende/Einkaufsliste), Meilenstein #23 danach geschlossen. Dazu #274 „← Zurück“ (`web/nav.js`), #275 Tagger
+  „↺ Filter“ + Hinweis „Nur Playlist geladen“, #276/#277 Stems als Umschalt-Knopf, Filter/Stems blau wie Cover.
+- **#278 Import aus Serato, Engine DJ, VirtualDJ** (`djlibs.py`, nur lesen – Engine-Datenbank als Kopie; Lexicon wie
+  bisher über das Plugin). Mit den echten Programmen des Users noch zu bestätigen.
+- **#279 Online-Quellen, Schritt 1:** „Trackliste einfügen …“ (Text von 1001Tracklists, MixID, Beatport) und
+  Spotify-Export-CSV – ohne Webabruf und ohne Zugangsdaten. **Schritt 2 offen (Entscheid User):** Spotify-Web-API mit
+  eigener Spotify-App, Beatport-Playlists über das Beatport-Plugin, 1001Tracklists nur mit Erlaubnis (#180), MixID (#218).
+- **Nächster Schritt:** Testrückmeldungen zu #267–#279; danach 4.8.0-beta.3 oder final **nur nach Freigabe**
+  (#251 bleibt bis zur finalen Version offen).
 
 ## Roadmap (Entscheid 17.10.2026)
 
