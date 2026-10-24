@@ -43,6 +43,7 @@ function pqPlayNext() {
     PLAYER.noFollow = true;
     tgSelect(i, {}).finally(() => { PLAYER.noFollow = false; TG.anchor = i; tgScrollTo(i); });
   } else if (S.module === "djset" && typeof djSelectTag === "function") djSelectTag(i);
+  else if (S.module === "playlists" && typeof plsSelectTag === "function") plsSelectTag(i);   // #267
   plLoad({ kind: "tag", ref: i }, true);
   return true;
 }

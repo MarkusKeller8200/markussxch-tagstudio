@@ -7,7 +7,7 @@ import re
 import core
 from version import VERSION
 
-MODULES = ["prep", "tagger", "fixer", "compare", "djset", "snapshots", "backups", "plugins", "settings", "help"]
+MODULES = ["prep", "tagger", "fixer", "compare", "djset", "playlists", "snapshots", "backups", "plugins", "settings", "help"]
 ALWAYS = {"settings", "help"}          # lassen sich nicht ausblenden
 # Schlüssel, an denen ein schon benutztes TagStudio erkennbar ist (dann kein Assistent beim Start)
 USED_KEYS = ("hist_tagger", "default_tagger", "tagger_state", "hist_left", "web_ui", "theme", "web_theme", "backup_dir", "prep_workflows")
@@ -106,6 +106,7 @@ STRUCTURE = [
     ("new", "00_New", "Neue Musik (Rohdaten, unverändert)"),
     ("library", "01_Library", "Endgültige Bibliothek"),
     ("archive", "02_Archiv", "Aussortierte Titel"),
+    ("playlists", "03_Playlists", "Playlists als M3U8 (für DJ-Programme)"),
     ("download", "90_Download", "Temporäre Downloads (Browser, Beatport, ZIP)"),
     ("work", "91_Work", "Arbeitsordner für TagStudio und andere Programme (Stufen-Ordner)"),
     ("backup", "99_Sicherung", "Sicherungen der Tags und Snapshots"),
@@ -170,10 +171,12 @@ class FoldersMixin:
         rows = [("Basisordner", self.base_dir()), ("Bibliothek (Tagger)", self.cfg.get("default_tagger") or ""),
                 ("Eingang (Vorbereiten)", w.get("inbox", "")), ("Arbeitsordner (Vorbereiten)", w.get("work", "")),
                 ("Bibliothek (Vorbereiten)", w.get("library", "")), ("Archiv", self.cfg.get("archive_dir") or ""),
-                ("Sicherungen", self._backup_folder()), ("Snapshot-Speicher", self.snap_store.root)]
+                ("Playlist-Ordner", self._pl_dirs()[0]), ("Sicherungen", self._backup_folder()),
+                ("Snapshot-Speicher", self.snap_store.root)]
         rows += [(f"Quelle: {q['name']}", q["folder"]) for q in w.get("sources") or []]
         return {"base": self.base_dir(), "suggest": suggest_base(drives), "drives": drives,
-                "archive": str(self.cfg.get("archive_dir") or ""),
+                "archive": str(self.cfg.get("archive_dir") or ""), "playlists": str(self.cfg.get("playlist_dir") or ""),
+                "playlists_auto": self._pl_dirs()[0],
                 "home_base": os.path.join(os.path.expanduser("~"), "Music", "TagStudio"),
                 "structure": [{"id": k, "name": n, "desc": d} for k, n, d in STRUCTURE],
                 "rows": [{"label": lab, "path": p, "exists": bool(p) and os.path.isdir(p)} for lab, p in rows]}
@@ -210,7 +213,8 @@ class FoldersMixin:
         self.set_base_dir(base)
         self.set_default_dir("tagger", p["library"])
         self.cfg["archive_dir"] = p["archive"]
-        core.save_config({"archive_dir": p["archive"]})
+        self.cfg["playlist_dir"] = p["playlists"]
+        core.save_config({"archive_dir": p["archive"], "playlist_dir": p["playlists"]})
         self.set_backup(True, tags, None)
         if not os.path.isdir(self.snap_store.root) or not os.listdir(self.snap_store.root):
             self._snap_dir_set(snaps)
@@ -311,6 +315,8 @@ class ArchiveMixin:
         import archive
         res = archive.restore(self._archive_dir(), [int(i) for i in ids or []])
         self._emit("files_moved", res.get("moved", []))                                           # #239
+        with self.lock:
+            self._pl_archive_restored(res.get("moved", []))                                       # #267
         out = self.archive_list()
         out.update(restored=len(res["restored"]), errors=res["errors"],
                    message=f"{len(res['restored'])} Titel zurückgeholt." + (f" {len(res['errors'])} Hinweis(e)." if res["errors"] else ""))

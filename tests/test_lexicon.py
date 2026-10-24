@@ -211,11 +211,14 @@ class TestDjSource(_LexRun):
         self.assertEqual([x["name"] for x in r["lists"]], ["Lexicon: Freitag", "Lexicon: Sets"])
         self.assertEqual((r["first"], r["files"], r["missing"]), ("Lexicon: Freitag", [self.q, self.p], 2))
         self.assertEqual([x["path"] for x in self.s._dj()["items"]], [self.q, self.p])
-        self.assertEqual(self.s.cfg["djset_name"], "Lexicon: Freitag")
+        self.assertEqual(self.s.cfg["djset_name"], "Freitag")                    # #269: Playlist im Ordner „Lexicon“
+        pl = self.s._pls().find("Freitag", "Lexicon")
+        self.assertEqual((pl["kind"], pl["source"]["id"], self.s.cfg["djset_pl"]), ("import", 12, pl["id"]))
         self.lex.playlists[2]["trackIds"] = [1]                                 # erneut laden → aktualisiert
         self.s.start_dj_source_import("lexicon", [12])
         self.wait()
-        self.assertEqual(len(self.s._dj_saved()["Lexicon: Freitag"]["items"]), 1)
+        self.assertEqual(len(self.s._pls().get(pl["id"])["items"]), 1)
+        self.assertEqual(len([p for p in self.s._pls().active() if p["folder"] == "Lexicon"]), 2)   # nicht doppelt
         self.assertFalse(self.s.start_dj_source_import("lexicon", [])["ok"])
         # #238 Punkt 4: läuft gerade + Warteschlange
         self.lex.playing, self.lex.queue = 2, [1, 3]

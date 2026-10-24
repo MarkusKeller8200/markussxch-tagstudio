@@ -8,6 +8,19 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Playlists (#267–#269):** neue Seite „Playlists“ zum Sammeln, Ordnen und Verwalten – Ordner beliebig tief,
+  „Zuletzt benutzt“, Suche, Umbenennen, Duplizieren, Verschieben (auch per Ziehen), Farbe und Notiz,
+  Zusammenführen, Rückgängig/Wiederholen. Jede Playlist liegt zusätzlich als **M3U8 im Playlist-Ordner**
+  (`03_Playlists` im Basisordner, neu in der Ordnerstruktur und unter Einstellungen › Speicherort und Ordner) – zum
+  Einlesen in Engine DJ, VirtualDJ und andere Programme; Änderungen anderer Programme dort werden gemeldet und nie
+  ungefragt überschrieben. **Archivieren statt Löschen** wie bei den Titeln (`02_Archiv/_Playlists`, Vermerk in
+  `_aussortiert.csv`, Zurückholen). Doppelte Titel sind erlaubt (mit Rückfrage).
+- **Tagger ↔ Playlists (#268):** Rechtsklick bzw. Werkzeuge › „Playlist ▾“ → „Zur Playlist hinzufügen …“,
+  **Strg+Shift+P** = zur zuletzt benutzten Playlist, „Playlist im Tagger öffnen …“ und Filter „Nur Titel aus einer
+  Playlist zeigen“.
+- **DJ-Set ↔ Playlists (#269):** Das Set wird als Playlist gespeichert (Ordner „DJ-Sets“, mit Sperren und Optionen),
+  jede Playlist lässt sich im DJ-Set öffnen; Playlists aus Lexicon landen im Ordner „Lexicon“. Die bisherigen
+  gespeicherten Listen werden beim ersten Start einmalig übernommen.
 - **Update auf Knopfdruck (#234, Windows; macOS #251):** Die installierte App lädt die neue Version direkt von GitHub, prüft die
   Prüfsumme, schliesst sich, installiert still und startet neu – Einstellungen und Daten bleiben erhalten. Nur
   veröffentlichte Versionen im gewählten Kanal. Unter macOS wird das DMG für den eigenen Prozessor geladen und die

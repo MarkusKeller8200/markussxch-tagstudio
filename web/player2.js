@@ -164,8 +164,9 @@ function plXfadeCheck() {
   if (!x || PLAYER.fade || PLAYER.loading || a.paused || !a.src || PLAYER.repeat || PLAYER.loop || PLAYER.ab || !PLAYER.follow) return;
   if (PLAYER.kind !== "tag") return;
   const dj = S.module === "djset" && typeof djNextTag === "function";
+  const pls = S.module === "playlists" && typeof plsNextTag === "function";      // #267: Playlist-Reihenfolge
   const qn = typeof pqHead === "function" ? pqHead() : null;                     // #138: Warteschlange zuerst
-  if (qn === null && !dj && (S.module !== "tagger" || !TG.order.length)) return;
+  if (qn === null && !dj && !pls && (S.module !== "tagger" || !TG.order.length)) return;
   const dur = a.duration;
   if (!isFinite(dur) || dur < x + 2) return;
   let at = dur - x;
@@ -173,6 +174,7 @@ function plXfadeCheck() {
   if (a.currentTime < at || a.currentTime > dur - 0.3) return;
   let next = qn;
   if (next !== null) { /* Warteschlange */ } else if (dj) next = djNextTag();                                                // #3: Set-Reihenfolge
+  else if (pls) next = plsNextTag();
   else { const k = TG.order.indexOf(TG.anchor); if (k >= 0 && k < TG.order.length - 1) next = TG.order[k + 1]; }
   if (next === null || next === undefined) return;
   // #76: auf Taktgrenze (4/8/16 Schläge) warten, wenn ein Beatgrid da ist
@@ -237,6 +239,7 @@ async function plCrossfade(i, opt = {}) {
   nu.muted = old.muted;
   nu.volume = 0;
   if (S.module === "djset" && typeof djSelectTag === "function") djSelectTag(i);   // #3
+  else if (S.module === "playlists" && typeof plsSelectTag === "function") plsSelectTag(i);   // #267
   else {
     await tgSelect(i, {});            // Player B / „Folgen“: nu ist noch leer → kein Laden über playerFollow
     TG.anchor = i;
@@ -767,6 +770,10 @@ function plRowMenu(e, t, label) {
   if (t.kind === "tag" && typeof djAddFromTagger === "function" && S.module === "tagger") {
     const n = typeof tgSelected === "function" ? tgSelected().length : 1;
     items.push("-", { label: `Zum DJ-Set hinzufügen${n > 1 ? ` (${n})` : ""}`, run: () => djAddFromTagger(false) });
+  }
+  if (t.kind === "tag" && typeof plsMenuItems === "function" && S.module === "tagger") {   // #268
+    const idx = typeof tgSelected === "function" && tgSelected().length ? tgSelected() : [t.ref];
+    items.push("-", ...plsMenuItems(idx));
   }
   if (t.kind === "tag" && typeof pqMenuItems === "function") {                   // #138
     const idx = S.module === "tagger" && typeof tgSelected === "function" && tgSelected().length ? tgSelected() : [t.ref];

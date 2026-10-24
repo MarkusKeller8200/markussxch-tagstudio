@@ -214,6 +214,8 @@ async function tgAdopt(tr, path, recursive) {
   if (typeof djAfterTaggerLoad === "function") djAfterTaggerLoad();     // DJ-Set: Titel sind jetzt geladen
   if (typeof pqAfterTaggerLoad === "function") pqAfterTaggerLoad();
   if (TG.fieldFilter) { const ff = TG.fieldFilter; tgSetFieldFilter(ff.key, ff.mode, ff.label); }   // #158: Indizes neu
+  if (TG.plFilter) tgSetPlFilter(TG.plFilter.id);                          // #268: Indizes neu
+  if (typeof plsAfterTaggerLoad === "function") plsAfterTaggerLoad();
   TG.moodSuggest = null;                                                    // #12: Vorschläge neu sammeln     // #138 Warteschlange
 }
 
@@ -257,6 +259,8 @@ function tgApplyOrder() {
   const { text, nums } = tgParseQuery(q);                                    // #11: Zahlenfilter wie energy>=70
   const ff = TG.fieldFilter;                                                 // #158: Feld vorhanden / fehlt
   if (ff) idx = idx.filter((i) => ff.has.has(i) === (ff.mode === "has"));
+  const pf = TG.plFilter;                                                    // #268: nur Titel einer Playlist
+  if (pf) idx = idx.filter((i) => pf.has.has(i));
   if (text) idx = idx.filter((i) => { const r = TG.rows[i]; return [r.rel, r.TIT2, r.TPE1, r.TALB, r.TCON, r.TPE2].some((v) => (v || "").toLowerCase().includes(text)); });
   const ct = Object.entries(TG.colQ || {}).map(([k, v]) => [k, tgColTest(k, v)]).filter(([, f]) => f);   // #202
   if (ct.length) idx = idx.filter((i) => { const r = TG.rows[i]; return ct.every(([k, f]) => f(tgCellValue(r, k))); });
@@ -312,6 +316,45 @@ async function tgSetFieldFilter(key, mode = "has", label = "") {
   TG.fieldFilter = { key, mode, label: label || key, has: new Set(r.has), n: r.has.length };
   tgFieldFilterChip();
   tgApplyOrder();
+}
+
+// ---------------------------------------------------------------------- #268 Playlists im Tagger
+async function tgSetPlFilter(id) {
+  if (!id) { TG.plFilter = null; tgPlFilterChip(); tgApplyOrder(); return; }
+  let r;
+  try { r = await call("pl_tag_indices", id); } catch (e) { TG.plFilter = null; tgPlFilterChip(); tgApplyOrder(); return; }
+  TG.plFilter = { id, name: r.name, has: new Set(r.indices), n: r.indices.length, count: r.count };
+  tgPlFilterChip();
+  tgApplyOrder();
+}
+
+function tgPlFilterChip() {
+  const el = $("#tgPlFilter"), f = TG.plFilter;
+  if (!el) return;
+  el.hidden = !f;
+  el.innerHTML = f ? `<span class="chip" title="Nur Titel aus dieser Playlist (${fmtN(f.n)} von ${fmtN(f.count)} geladen)">Playlist <b translate="no">${esc(f.name)}</b> · ${fmtN(f.n)}</span>
+    <button class="x" data-plfx title="Playlist-Filter aufheben" aria-label="Playlist-Filter aufheben">✕</button>` : "";
+}
+
+async function tgPlFilterPick() {
+  const p = await plsPick({ title: "Nur Titel aus einer Playlist zeigen", ok: "Filtern", allowNew: false });
+  if (p && p.id) tgSetPlFilter(p.id);
+}
+
+async function tgPlOpenPick() {
+  const p = await plsPick({ title: "Playlist im Tagger öffnen", ok: "Öffnen", allowNew: false });
+  if (p && p.id) plsOpenTagger(p.id);
+}
+
+function tgPlaylistMenu(btn, idx) {
+  const r = btn.getBoundingClientRect();
+  showMenu(r.left, r.bottom + 6, [
+    ...(typeof plsMenuItems === "function" ? plsMenuItems(idx) : []), "-",
+    { label: "Playlist im Tagger öffnen …", run: tgPlOpenPick },
+    { label: "Nur Titel aus einer Playlist zeigen …", run: tgPlFilterPick },
+    ...(TG.plFilter ? [{ label: "Playlist-Filter aufheben", run: () => tgSetPlFilter(null) }] : []),
+    { label: "Playlists verwalten", run: () => setModule("playlists") },
+  ]);
 }
 
 function tgFieldFilterChip() {
@@ -888,6 +931,7 @@ function renderTgEditor() {
       <button class="ghost" id="tgAdded" title="„In Bibliothek aufgenommen“ für Titel ohne Wert nachtragen (#184)">Aufnahmedatum nachtragen …</button>
       <button class="ghost" id="tgExport">Liste exportieren …</button>
       <button class="ghost" id="tgOrigin">Felder nach Herkunft …</button>
+      <button class="ghost" id="tgPlaylist" aria-haspopup="menu" title="Markierte Titel in eine Playlist legen, eine Playlist öffnen oder als Filter nutzen (#268)">Playlist ▾</button>
       <button class="ghost" id="tgArchive" title="Markierte Titel in den Archiv-Ordner verschieben (#173)">Aussortieren …</button>
       ${tgSelected().some((i) => TG.rows[i] && (TG.rows[i].stems || TG.rows[i].parent !== undefined)) ? '<button class="ghost" id="tgStemTags" title="Tags der Originale auf ihre MP3-Stems übertragen">Stems: Tags vom Original …</button>' : ""}
       ${one ? '<button class="ghost" id="tgReveal">' + (IS_MAC ? "Im Finder zeigen" : "Im Explorer zeigen") + "</button>" : ""}
@@ -1561,6 +1605,7 @@ async function tgOriginDialog(preset = "") {
   }));
   let qt = null;
   $("#tgQuery").addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(tgApplyOrder, 150); });
+  $("#tgPlFilter").addEventListener("click", (e) => { if (e.target.closest("[data-plfx]")) tgSetPlFilter(null); });   // #268
   $("#tgFieldFilter").addEventListener("click", (e) => {                        // #158
     const m = e.target.closest("[data-ffm]");
     if (m && TG.fieldFilter) { TG.fieldFilter.mode = m.dataset.ffm; tgFieldFilterChip(); tgApplyOrder(); return; }
@@ -1690,6 +1735,7 @@ async function tgOriginDialog(preset = "") {
     else if (id === "tgCase") tgCaseDialog();
     else if (id === "tgReplace") tgReplaceDialog();
     else if (id === "tgArchive") archiveTaggerDialog(idx);                                                                   // #173
+    else if (id === "tgPlaylist") { e.stopPropagation(); tgPlaylistMenu(e.target.closest("button"), idx); }                  // #268
     else if (id === "tgRecipe") tgRecipeDialog();                                                                            // #111
     else if (id === "tgFolderCover") tgFolderCoverDialog();
     else if (id === "tgAdded") tgAddedDialog();

@@ -27,6 +27,8 @@
       <svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/></svg><span class="nt">Vergleich</span></button>
     <button class="nav" data-module="djset" title="DJ-Set: Reihenfolge nach Tonart, BPM und Energie">
       <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M12 3v3M21 12h-3M12 21v-3M3 12h3"/></svg><span class="nt">DJ-Set</span><span class="nav-sub nt" id="djCount" title="Titel im DJ-Set"></span></button>
+    <button class="nav" data-module="playlists" title="Playlists: Titel aus Tagger und DJ-Set sammeln, ordnen und als M3U8 ablegen">
+      <svg class="i" viewBox="0 0 24 24"><path d="M3 6h12"/><path d="M3 12h12"/><path d="M3 18h7"/><circle cx="17" cy="17" r="3"/><path d="M20 17V7l2-1"/></svg><span class="nt">Playlists</span><span class="nav-sub nt" id="plsCount"></span></button>
     <button class="nav" data-module="snapshots" title="Snapshots und Änderungsjournal">
       <svg class="i" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><circle cx="12" cy="13" r="3.5"/></svg><span class="nt">Snapshots</span><span class="nav-sub nt" id="snapSize"></span></button>
     <button class="nav" data-module="backups" title="Sicherungen">
@@ -182,7 +184,7 @@
           <section class="tg-list" aria-label="Dateien">
             <div class="tg-listhead">
               <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="tgQuery" placeholder="Filtern: Name, Titel, Künstler … oder energy>=70, bpm:120-128" aria-label="Dateien filtern" title="Text sucht in Datei, Titel, Künstler, Album, Genre. Zahlenfilter: bpm, Tonart nicht; Audio-Merkmale wie energy>=70, dance<40, energie:60-80 (auch ≥ ≤ = &lt; &gt;). Mehrere Filter mit Leerzeichen."></label>
-              <span class="tg-ffilter" id="tgFieldFilter" hidden></span>
+              <span class="tg-ffilter" id="tgFieldFilter" hidden></span><span class="tg-ffilter" id="tgPlFilter" hidden></span>
               <span class="muted sm" id="tgCount"></span>
               <button class="ghost sm tg-cover-col" id="tgSortReset" hidden title="Sortierung auf den Standard zurücksetzen (#153)">↺ Sortierung</button><button class="ghost sm tg-cover-col" id="tgReport" title="Fehler melden oder Funktion vorschlagen – Bereich Tagger ist vorgewählt (#187)">Melden …</button><button class="ghost sm tg-cover-col" id="tgColFilterBtn" title="Filterzeile unter den Spaltenköpfen ein-/ausblenden (#202)">Filter</button><button class="ghost sm tg-cover-col" id="tgColsBtn" aria-haspopup="menu" title="Spalten wählen, anordnen (in der Kopfzeile ziehen), Breite, Standard-Sortierung, bevorzugte Ansicht">Spalten ▾</button><button class="ghost sm tg-cover-col" id="tgCoverCol" title="Cover-Spalte ein-/ausblenden">Cover</button><button class="ghost sm tg-cover-col" id="tgFeatCols" aria-haspopup="menu" title="Spalten mit Audio-Merkmalen (Energy, Danceability …) ein-/ausblenden">Merkmale ▾</button><span class="tg-stem-btns" id="tgStemBtns" hidden><button class="ghost sm" id="tgStemOpen" title="Alle Stems aufklappen">Stems ▾</button><button class="ghost sm" id="tgStemClose" title="Alle Stems zuklappen">Stems ▸</button></span>
             </div>
@@ -273,7 +275,7 @@
           <div><h2>DJ-Set</h2>
           <p class="muted">Ordnet Titel so, dass die Übergänge passen: Tonart auf dem Camelot-Rad, BPM (auch Halb-/Doppeltempo) und Energie. Titel kommen aus dem Tagger; gesperrte 🔒 bleiben beim Optimieren an ihrem Platz. Ziehen sortiert um, Doppelklick spielt.</p></div>
           <div class="mod-actions">
-            <button class="ghost" id="djListBtn" aria-haspopup="menu" title="Gespeicherte Listen: neu, speichern, laden (#138)">Liste: <b id="djListName">(ohne Namen)</b> ▾</button>
+            <button class="ghost" id="djListBtn" aria-haspopup="menu" title="Set als Playlist speichern oder eine Playlist öffnen (#269)">Playlist: <b id="djListName" translate="no">(ohne Namen)</b> ▾</button>
             <button class="ghost" id="djFromTagger" title="Im Tagger markierte Titel ans Ende des Sets">+ Markierte aus dem Tagger</button>
             <button class="ghost" id="djAllTagger" title="Alle im Tagger geladenen Titel">+ Ganzer Tagger-Ordner</button>
             <button class="ghost" id="djSource" hidden title="Playlists aus Lexicon holen, auswählen und als Listen laden (#242)">Aus Lexicon …</button>
@@ -306,6 +308,31 @@
             <div id="djWheel"></div>
             <h4>Energie und BPM</h4>
             <div id="djCurve"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="work module" id="modulePlaylists" hidden>
+      <div class="mod-page">
+        <header class="mod-head">
+          <div><h2>Playlists</h2>
+          <p class="muted">Titel aus Tagger und DJ-Set sammeln und ordnen. Jede Playlist liegt zusätzlich als M3U8 im Playlist-Ordner – zum Einlesen in Engine DJ, VirtualDJ und andere Programme. Archivieren statt Löschen: archivierte Playlists lassen sich zurückholen.</p></div>
+          <div class="mod-actions">
+            <button class="ghost" id="plsExt" hidden title="Ein anderes Programm hat Dateien im Playlist-Ordner geändert">Änderungen im Ordner …</button>
+            <button class="ghost" id="plsFolderBtn">Playlist-Ordner</button>
+            <button class="ghost" id="plsUndo" aria-label="Rückgängig">↶</button>
+            <button class="ghost" id="plsRedo" aria-label="Wiederholen">↷</button>
+          </div>
+        </header>
+        <div class="pls-grid">
+          <section class="card pls-side" aria-label="Playlists und Ordner">
+            <div class="pls-tools"><input class="inp" id="plsFind" placeholder="Suchen …" autocomplete="off"><button class="ghost sm" id="plsNew">+ Playlist</button><button class="ghost sm" id="plsNewFolder">+ Ordner</button></div>
+            <div class="pls-tree" id="plsTree" role="tree" aria-label="Playlists (Rechtsklick für Aktionen, auf Ordner ziehen zum Verschieben)"></div>
+          </section>
+          <section class="card pls-main" aria-label="Titel der Playlist">
+            <div id="plsHead"></div>
+            <div class="pls-list" id="plsList" tabindex="0" role="listbox" aria-multiselectable="true" aria-label="Titel (↑/↓ wählen, Alt+↑/↓ verschieben, Entf entfernen, Enter spielen)"></div>
           </section>
         </div>
       </div>
@@ -590,6 +617,7 @@
 <script src="snapshots.js"></script>
 <script src="djset.js"></script>
 <script src="queue.js"></script>
+<script src="playlists.js"></script>
 <script src="help.js"></script>
 <script src="feedback.js"></script>
 <script src="recipes.js"></script>

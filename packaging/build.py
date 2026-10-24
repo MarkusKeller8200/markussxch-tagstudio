@@ -29,7 +29,7 @@ HIDDEN = [
     # eigene Module (werden teils erst bei Bedarf importiert)
     "session", "core", "keys", "features", "plugins", "updater", "xmltools", "tagger", "backup", "compare",
     "id3tags", "thumbs", "undo", "version", "blobs", "media", "cues", "waveform", "appsettings", "origins", "jobs", "stemsview", "snapshots", "players",
-    "session_player", "session_snapshots", "ratings", "listcache", "setplan", "session_djset", "setexport", "onlinematch", "instance", "applog", "serato", "importsync", "moods", "id3frames", "taghelp", "session_help", "recipes", "prepare", "session_prepare", "discover", "session_discover", "paths", "session_setup", "archive", "plugin_store",
+    "session_player", "session_snapshots", "ratings", "listcache", "setplan", "session_djset", "setexport", "onlinematch", "instance", "applog", "serato", "importsync", "moods", "id3frames", "taghelp", "session_help", "recipes", "prepare", "session_prepare", "discover", "session_discover", "paths", "session_setup", "archive", "plugin_store", "playlists", "session_playlists",
     # Standardbibliothek für Plugins
     "http.cookiejar", "urllib.request", "urllib.parse", "urllib.error", "difflib", "unicodedata", "ctypes",
     "ctypes.wintypes", "uuid", "csv", "zipfile", "logging", "base64", "hashlib", "html", "html.parser",

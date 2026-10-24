@@ -105,16 +105,37 @@ class DjSetMixin:
                     "before": d["before"], "method": d["method"], "ms": d["ms"], "can_revert": d["prev"] is not None,
                     "profiles": setplan.PROFILES, "key_kinds": setplan.KEY_KINDS, "exact_max": setplan.EXACT_MAX,
                     "tagger": len(self.tag_files), "duration": sum(r["duration"] for r in items if not r["missing"]),
-                    "name": self.cfg.get("djset_name") or "", "lists": self.dj_lists(), "dirty": self._dj_dirty()}
+                    "name": self._dj_cur_name(), "pl": self._dj_cur_pl(), "lists": self.dj_lists(),
+                    "dirty": self._dj_dirty()}
+
+    def _dj_cur(self):
+        """Playlist, die das DJ-Set gerade bearbeitet (#269), oder None."""
+        st = self._pls()                                   # zuerst: übernimmt beim ersten Mal die alten Listen
+        pid = self.cfg.get("djset_pl") or ""
+        if pid and st.exists(pid) and not st.get(pid).get("archived"):
+            return st.get(pid)
+        return None
+
+    def _dj_cur_pl(self) -> str:
+        pl = self._dj_cur()
+        return pl["id"] if pl else ""
+
+    def _dj_cur_name(self) -> str:
+        pl = self._dj_cur()
+        return pl["name"] if pl else ""
+
+    def _dj_set_cur(self, pl):
+        self.cfg["djset_pl"] = pl["id"] if pl else ""
+        self.cfg["djset_name"] = pl["name"] if pl else ""
+        core.save_config({"djset_pl": self.cfg["djset_pl"], "djset_name": self.cfg["djset_name"]})
 
     def _dj_dirty(self) -> bool:
-        """Weicht das aktuelle Set von der gleichnamigen gespeicherten Liste ab?"""
-        name = self.cfg.get("djset_name") or ""
-        v = self._dj_saved().get(name) if name else None
-        if v is None:
+        """Weicht das aktuelle Set von seiner Playlist ab?"""
+        pl = self._dj_cur()
+        if pl is None:
             return bool(self._dj()["items"])
         a = [(x["path"], bool(x["lock"])) for x in self._dj()["items"]]
-        b = [(x.get("path"), bool(x.get("lock"))) for x in v.get("items") or [] if isinstance(x, dict)]
+        b = [(x.get("path"), bool(x.get("lock"))) for x in pl.get("items") or []]
         return a != b
 
     # ------------------------------------------------------------------ Ändern
@@ -155,8 +176,8 @@ class DjSetMixin:
         return self._run("dj_source", "Playlists holen", job)
 
     def start_dj_source_import(self, pid, ids, prefix=""):
-        """Gewählte Playlists als gespeicherte Listen „<Quelle>: <Name>“ ablegen (gleichnamige werden ersetzt);
-        die erste wird geladen. → {lists, first, files (der ersten), missing}"""
+        """Gewählte Playlists als Playlists im Ordner „<Quelle>“ ablegen (#269; dieselbe Quell-Playlist wird
+        aktualisiert); die erste wird ins DJ-Set geladen. → {lists, first, files (der ersten), missing}"""
         ids = [i for i in (ids or []) if isinstance(i, (str, int))]
         if not ids:
             return {"ok": False, "error": "Bitte mindestens eine Playlist wählen."}
@@ -169,17 +190,22 @@ class DjSetMixin:
                     break
                 progress(("progress", k, len(ids), str(i)))
                 r = self.plugins.call_playlist(pid, "playlist_files", i, session=self, cancel=cancel, progress=progress)
-                name = " ".join(f"{prefix or src}: {r['name']}".split())[:80]
+                folder = " ".join(str(prefix or src).split())[:80]
                 with self.lock:
-                    saved = self._dj_saved()
-                    saved[name] = {"items": [{"path": p} for p in r["files"]], "opts": self._dj_opts(),
-                                   "saved": int(time.time()), "source": pid}
-                    self._dj_saved_write(saved)
+                    st = self._pls()
+                    pl = st.find_source(pid, i) or st.find(r["name"], folder)
+                    items = [{"path": p} for p in r["files"]]
+                    if pl is None:
+                        pl = st.create(st.unique_name(r["name"], folder), folder, "import", items,
+                                       source={"plugin": pid, "id": i})
+                    else:
+                        pl = st.update(pl["id"], "Playlist aktualisieren", items=items, source={"plugin": pid, "id": i})
                 missing += r.get("missing", 0)
-                out.append({"name": name, "count": len(r["files"]), "missing": r.get("missing", 0), "files": r["files"]})
+                out.append({"name": f"{folder}: {pl['name']}", "id": pl["id"], "count": len(r["files"]),
+                            "missing": r.get("missing", 0), "files": r["files"]})
             first = out[0] if out else None
             if first:
-                self.dj_load(first["name"])
+                self.dj_load(first["id"])
             return {"ok": True, "lists": [{k: v for k, v in x.items() if k != "files"} for x in out],
                     "first": first["name"] if first else "", "files": first["files"] if first else [], "missing": missing}
         return self._run("dj_source", "Playlists laden", job)
@@ -192,8 +218,7 @@ class DjSetMixin:
             if new:
                 d["prev"] = [dict(x) for x in d["items"]]
                 d["items"], d["before"] = [], None
-                self.cfg["djset_name"] = ""
-                core.save_config({"djset_name": ""})
+                self._dj_set_cur(None)
             have = {_nk(x["path"]) for x in d["items"]}
             added = 0
             for p in paths or []:
@@ -300,100 +325,132 @@ class DjSetMixin:
             self._dj_save()
             return self.dj_state()
 
-    # ------------------------------------------------------------------ Gespeicherte Listen (#138)
+    # ------------------------------------------------------------------ Gespeicherte Listen = Playlists (#138, #269)
     def _dj_saved(self) -> dict:
+        """Alte Ablage der Listen (cfg „djset_saved“) – nur noch für die einmalige Übernahme in die Playlists."""
         raw = self.cfg.get("djset_saved")
         return {k: v for k, v in raw.items() if isinstance(k, str) and isinstance(v, dict)} if isinstance(raw, dict) else {}
 
-    def _dj_saved_write(self, saved: dict):
-        self.cfg["djset_saved"] = saved
-        core.save_config({"djset_saved": saved})
-
     def dj_lists(self) -> list:
-        """Gespeicherte Listen: [{name, count, saved, current}] nach Name."""
-        cur = self.cfg.get("djset_name") or ""
-        return [{"name": n, "count": len(v.get("items") or []), "saved": v.get("saved", 0), "current": n == cur}
-                for n, v in sorted(self._dj_saved().items(), key=lambda kv: kv[0].lower())]
+        """Alle aktiven Playlists (jede lässt sich im DJ-Set öffnen): [{id, name, folder, count, saved, current, kind}]."""
+        st = self._pls()
+        cur = self.cfg.get("djset_pl") or ""
+        return [{"id": p["id"], "name": p["name"], "folder": p.get("folder", ""), "count": len(p.get("items") or []),
+                 "saved": p.get("modified", 0), "current": p["id"] == cur, "kind": p.get("kind", "manual")}
+                for p in st.active()]
+
+    def _dj_find(self, ref):
+        """Playlist über id oder Namen (zuerst im Ordner DJ-Sets)."""
+        st = self._pls()
+        if st.exists(ref) and not st.get(ref).get("archived"):
+            return st.get(ref)
+        from session_playlists import DJ_FOLDER
+        return st.find(ref, DJ_FOLDER) or st.find(ref)
+
+    def _dj_items_for_pl(self) -> list:
+        infos = {_nk(f.path): f for f in self.tag_files}
+        out = []
+        for x in self._dj()["items"]:
+            it = {"path": x["path"], **({"lock": True} if x["lock"] else {})}
+            f = infos.get(_nk(x["path"]))
+            if f is not None:
+                t = self._pl_track(f)
+                it.update(artist=t["artist"], title=t["title"], dur=t["dur"])
+            out.append(it)
+        return out
 
     def dj_save_as(self, name, overwrite=False) -> dict:
-        """Aktuelles Set (Titel, Sperren, Optionen) unter einem Namen speichern."""
+        """Aktuelles Set (Titel, Sperren, Optionen) als Playlist speichern – neue im Ordner „DJ-Sets“."""
+        from session_playlists import DJ_FOLDER
         name = " ".join(str(name or "").split())[:80]
         if not name:
-            raise ValueError("Bitte einen Namen für die Liste eingeben.")
+            raise ValueError("Bitte einen Namen für die Playlist eingeben.")
         with self.lock:
-            saved = self._dj_saved()
-            if name in saved and not overwrite and name != (self.cfg.get("djset_name") or ""):
-                return {"ok": False, "exists": True, "error": f"Eine Liste „{name}“ gibt es schon."}
-            items = [{"path": x["path"], **({"lock": True} if x["lock"] else {})} for x in self._dj()["items"]]
-            saved[name] = {"items": items, "opts": self._dj_opts(), "saved": int(time.time())}
-            self._dj_saved_write(saved)
-            self.cfg["djset_name"] = name
-            core.save_config({"djset_name": name})
-            st = self.dj_state()
-            st["ok"] = True
-            st["message"] = f"Liste „{name}“ gespeichert ({len(items)} Titel)."
-            return st
+            st = self._pls()
+            cur = self._dj_cur()
+            items, djs = self._dj_items_for_pl(), {"opts": self._dj_opts()}
+            if cur is not None and cur["name"].lower() == name.lower():
+                pl = st.update(cur["id"], "DJ-Set speichern", items=items, djset=djs)
+            else:
+                other = st.find(name, DJ_FOLDER)
+                if other is not None and not overwrite:
+                    return {"ok": False, "exists": True, "error": f"Eine Playlist „{name}“ gibt es schon."}
+                pl = st.update(other["id"], "DJ-Set speichern", items=items, djset=djs) if other is not None \
+                    else st.create(name, DJ_FOLDER, "djset", items, djset=djs)
+            st.touch(pl["id"])
+            self._dj_set_cur(pl)
+            st2 = self.dj_state()
+            st2["ok"] = True
+            st2["message"] = f"Playlist „{pl['name']}“ gespeichert ({len(items)} Titel)."
+            return st2
 
     def dj_load(self, name) -> dict:
-        """Gespeicherte Liste laden (ersetzt das aktuelle Set; „Rückgängig“ holt das vorige zurück)."""
+        """Playlist ins DJ-Set laden (ersetzt das aktuelle Set; „Vorher/Nachher“ holt das vorige zurück).
+        Doppelte Titel werden ausgelassen – im DJ-Set kommt jeder Titel einmal vor."""
         with self.lock:
-            v = self._dj_saved().get(name)
-            if v is None:
-                raise ValueError(f"Liste „{name}“ nicht gefunden.")
+            pl = self._dj_find(name)
+            if pl is None:
+                raise ValueError(f"Playlist „{name}“ nicht gefunden.")
             d = self._dj()
             d["prev"] = [dict(x) for x in d["items"]]
-            d["items"] = [{"path": x["path"], "lock": bool(x.get("lock"))} for x in v.get("items") or []
-                          if isinstance(x, dict) and isinstance(x.get("path"), str)]
-            d["before"] = None
-            if isinstance(v.get("opts"), dict):
-                self.cfg["djset_opts"] = v["opts"]
+            seen, items, dup = set(), [], 0
+            for x in pl.get("items") or []:
+                p = x.get("path")
+                if not p:
+                    continue
+                if _nk(p) in seen:
+                    dup += 1
+                    continue
+                seen.add(_nk(p))
+                items.append({"path": p, "lock": bool(x.get("lock"))})
+            d["items"], d["before"] = items, None
+            opts = (pl.get("djset") or {}).get("opts")
+            if isinstance(opts, dict):
+                self.cfg["djset_opts"] = opts
                 self.cfg["djset_opts"] = self._dj_opts()
                 core.save_config({"djset_opts": self.cfg["djset_opts"]})
-            self.cfg["djset_name"] = name
-            core.save_config({"djset_name": name})
+            self._dj_set_cur(pl)
+            self._pls().touch(pl["id"])
             self._dj_save()
             st = self.dj_state()
-            st["message"] = f"Liste „{name}“ geladen ({len(d['items'])} Titel)."
+            st["message"] = (f"Playlist „{pl['name']}“ geladen ({len(items)} Titel), {dup} doppelte Titel ausgelassen – im DJ-Set "
+                             f"kommt jeder Titel einmal vor.") if dup else f"Playlist „{pl['name']}“ geladen ({len(items)} Titel)."
+            st["dupes"] = dup
             return st
 
     def dj_new(self) -> dict:
-        """Neues, leeres Set (das bisherige bleibt als gespeicherte Liste erhalten, falls gespeichert)."""
+        """Neues, leeres Set (die bisherige Playlist bleibt, wie sie gespeichert ist)."""
         with self.lock:
             d = self._dj()
             d["prev"] = [dict(x) for x in d["items"]]
             d["items"], d["before"] = [], None
-            self.cfg["djset_name"] = ""
-            core.save_config({"djset_name": ""})
+            self._dj_set_cur(None)
             self._dj_save()
             return self.dj_state()
 
     def dj_list_delete(self, name) -> dict:
-        """Gespeicherte Liste entfernen (das aktuelle Set bleibt unverändert). Die Oberfläche fragt vorher."""
+        """Playlist archivieren (das aktuelle Set bleibt unverändert). Die Oberfläche fragt vorher."""
         with self.lock:
-            saved = self._dj_saved()
-            if saved.pop(name, None) is None:
-                raise ValueError(f"Liste „{name}“ nicht gefunden.")
-            self._dj_saved_write(saved)
-            if self.cfg.get("djset_name") == name:
-                self.cfg["djset_name"] = ""
-                core.save_config({"djset_name": ""})
+            pl = self._dj_find(name)
+            if pl is None:
+                raise ValueError(f"Playlist „{name}“ nicht gefunden.")
+            self._pls().archive(pl["id"])
+            self._pl_djset_check()
             st = self.dj_state()
-            st["message"] = f"Liste „{name}“ entfernt."
+            st["message"] = f"Playlist „{pl['name']}“ archiviert."
             return st
 
     def dj_list_rename(self, name, new) -> dict:
         new = " ".join(str(new or "").split())[:80]
         with self.lock:
-            saved = self._dj_saved()
-            if name not in saved:
-                raise ValueError(f"Liste „{name}“ nicht gefunden.")
-            if not new or (new in saved and new != name):
+            pl = self._dj_find(name)
+            if pl is None:
+                raise ValueError(f"Playlist „{name}“ nicht gefunden.")
+            if not new:
                 raise ValueError("Bitte einen neuen, noch nicht vergebenen Namen eingeben.")
-            saved = {(new if k == name else k): v for k, v in saved.items()}
-            self._dj_saved_write(saved)
-            if self.cfg.get("djset_name") == name:
-                self.cfg["djset_name"] = new
-                core.save_config({"djset_name": new})
+            pl = self._pls().rename(pl["id"], new)
+            if self.cfg.get("djset_pl") == pl["id"]:
+                self._dj_set_cur(pl)
             return self.dj_state()
 
     # ------------------------------------------------------------------ Warteschlange des Players (#138)
@@ -461,8 +518,7 @@ class DjSetMixin:
             d["prev"] = [dict(x) for x in d["items"]]
             d["items"] = [{"path": p, "lock": False} for p in self._pq()]
             d["before"] = None
-            self.cfg["djset_name"] = ""
-            core.save_config({"djset_name": ""})
+            self._dj_set_cur(None)
             self._dj_save()
             st = self.dj_state()
             st["message"] = f"{len(d['items'])} Titel als DJ-Set übernommen."
@@ -490,7 +546,7 @@ class DjSetMixin:
 
     def dj_export_name(self, fmt) -> str:
         ext = {"m3u8": "m3u8", "xml": "xml", "csv": "csv"}.get(fmt, "txt")
-        name = "".join(c for c in (self.cfg.get("djset_name") or "") if c not in '<>:"/\\|?*').strip()
+        name = "".join(c for c in self._dj_cur_name() if c not in '<>:"/\\|?*').strip()
         return f"{name}.{ext}" if name else f"DJ-Set {time.strftime('%Y-%m-%d')}.{ext}"
 
     def dj_export_file(self, fmt, dest, opts=None) -> dict:

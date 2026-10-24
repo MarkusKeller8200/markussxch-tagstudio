@@ -63,8 +63,10 @@ class TestSetup(Base):
         r = s.setup_structure(base, {"new": "00_Neu"})
         self.assertTrue(all(os.path.isdir(p) for p in r["paths"].values()))
         self.assertEqual(os.path.basename(r["paths"]["new"]), "00_Neu")
-        self.assertEqual(len(r["created"]), 5)
+        self.assertEqual(len(r["created"]), 6)
         self.assertEqual(s.cfg["base_dir"], base)
+        self.assertEqual(s.cfg["playlist_dir"], r["paths"]["playlists"])             # #267
+        self.assertEqual(os.path.basename(r["paths"]["playlists"]), "03_Playlists")
         self.assertEqual(s.cfg["default_tagger"], r["paths"]["library"])
         self.assertEqual(s.cfg["archive_dir"], r["paths"]["archive"])
         self.assertEqual(s.snap_store.root, os.path.join(r["paths"]["backup"], "Snapshots"))

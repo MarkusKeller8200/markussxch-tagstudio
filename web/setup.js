@@ -3,7 +3,7 @@
 "use strict";
 
 const SETUP = { st: null };
-const NAV_NAMES = { prep: "Vorbereiten", tagger: "Tagger", fixer: "Tag-Fixer", compare: "Vergleich", djset: "DJ-Set",
+const NAV_NAMES = { prep: "Vorbereiten", tagger: "Tagger", fixer: "Tag-Fixer", compare: "Vergleich", djset: "DJ-Set", playlists: "Playlists",
   snapshots: "Snapshots", backups: "Sicherungen", plugins: "Plugins", settings: "Einstellungen", help: "Hilfe" };
 
 const WIZ_GOALS = [
@@ -33,6 +33,7 @@ const FIRST_STEPS = {
   fixer: ["Bereich wählen: markierte Titel oder ganzer Ordner.", "Mehrfachwerte, Gross-/Kleinschreibung oder Suchen & Ersetzen einstellen.", "Vorschau prüfen, dann übernehmen – Rückgängig jederzeit."],
   compare: ["Links und rechts je einen Ordner (oder Snapshot/Sicherung) wählen.", "Paare links auswählen; Unterschiede sind markiert.", "Alt+→ / Alt+← kopiert markierte Felder auf die andere Seite."],
   djset: ["Titel im Tagger markieren und „Zum DJ-Set“ hinzufügen.", "„Optimieren“ ordnet nach Tonart, BPM und Energie; G fixiert einen Titel.", "Als M3U8, Rekordbox-XML oder CSV exportieren."],
+  playlists: ["Im Tagger Titel markieren, Rechtsklick „Zur Playlist hinzufügen …“ (Strg+Shift+P: zur zuletzt benutzten).", "Hier ordnen, umbenennen und in Ordner ziehen; Doppelklick spielt ab.", "Jede Playlist liegt auch als M3U8 im Playlist-Ordner – Archivieren statt Löschen."],
   snapshots: ["Bibliothek hinzufügen – TagStudio merkt sich den Tag-Stand aller Titel.", "Snapshots täglich oder von Hand; das Journal zeigt jede Änderung.", "Einzelne Felder oder ganze Titel lassen sich zurücksetzen."],
   backups: ["Vor jedem Speichern sichert TagStudio die Tags der betroffenen Titel.", "Hier ansehen, vergleichen und wiederherstellen.", "Speicherort unter Einstellungen › Sicherungen."],
   plugins: ["Plugins erweitern TagStudio (Online-Metadaten, Beatport, Stems …).", "Mit dem Schalter ein-/ausschalten; manche brauchen eine Installation.", "Aktionen erscheinen danach im Tagger unter „Plugins“."],
@@ -274,6 +275,8 @@ async function stFoldersRender() {
         <div class="muted sm">${esc(f.structure.map((x) => x.name).join(" · "))} – vorhandene Ordner bleiben; Bibliothek, Vorbereiten, Sicherungen und Downloads werden darauf eingestellt.</div></div>
       <label for="stArch">Archiv</label><div><div class="pl-folder"><input id="stArch" value="${esc(f.archive || "")}" placeholder="z. B. ${esc((f.base || f.suggest) + "\\02_Archiv")}" spellcheck="false"><button class="ghost sm" data-stbase="archpick">Wählen …</button><button class="ghost sm" data-stbase="archsave">Übernehmen</button><button class="ghost sm" data-stbase="archlist">Aussortierte …</button></div>
         <div class="muted sm">Ziel von „Aussortieren“ im Tagger und in „Vorbereiten“.</div></div>
+      <label for="stPlDir">Playlist-Ordner</label><div><div class="pl-folder"><input id="stPlDir" value="${esc(f.playlists || "")}" placeholder="${esc(f.playlists_auto || "z. B. " + (f.base || f.suggest) + "\\03_Playlists")}" spellcheck="false"><button class="ghost sm" data-stbase="plpick">Wählen …</button><button class="ghost sm" data-stbase="plsave">Übernehmen</button></div>
+        <div class="muted sm">Alle Playlists als M3U8 – zum Einlesen in DJ-Programme. Leer: „03_Playlists“ im Basisordner.</div></div>
       <span>Arbeitsordner</span><div class="fold-rows">${f.rows.map((r) => `<div class="fold-row"><span>${esc(r.label)}</span><span class="${r.path && !r.exists ? "st-missing" : "muted"}" title="${esc(r.path)}">${esc(r.path || "–")}${r.path && !r.exists ? " (fehlt)" : ""}</span></div>`).join("")}</div>
     </div>`;
 }
@@ -286,6 +289,8 @@ async function stFoldersRender() {
     if (b.dataset.stbase === "archpick") { const a = $("#stArch"); const p = await call("pick_path", "", true, a.value.trim()); if (p) a.value = p; return; }
     if (b.dataset.stbase === "archsave") { await call("set_archive_dir", $("#stArch").value.trim()); toast("Archiv-Ordner gespeichert."); stFoldersRender(); return; }
     if (b.dataset.stbase === "archlist") { archiveRestoreDialog(); return; }
+    if (b.dataset.stbase === "plpick") { const a = $("#stPlDir"); const p = await call("pick_path", "", true, a.value.trim()); if (p) a.value = p; return; }
+    if (b.dataset.stbase === "plsave") { try { await call("set_playlist_dir", $("#stPlDir").value.trim()); toast("Playlist-Ordner gespeichert – alle Playlists wurden dorthin geschrieben."); } catch (x) { toast(String(x.message || x)); } stFoldersRender(); return; }
     if (b.dataset.stbase === "save") { try { await call("set_base_dir", inp.value.trim(), true); toast("Basisordner gespeichert."); } catch (x) { toast(String(x.message || x)); } stFoldersRender(); return; }
     if (b.dataset.stbase === "struct") {
       const f = await call("folders_overview");

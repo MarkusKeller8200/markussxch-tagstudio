@@ -31,7 +31,7 @@ async function djSourcePick() {
   const icon = { "1": "📁", "2": "♫", "3": "⚙", queue: "▶" };
   const ids = await modal({
     title: `Playlists aus ${src.name}`, wide: true,
-    html: `<div class="hint">Häkchen setzen und „Laden“ – jede Playlist wird als Liste „${esc(src.name)}: …“ gespeichert (gleichnamige werden aktualisiert), die erste wird geladen. Ordner und Smartlists liefern alle enthaltenen Titel.</div>
+    html: `<div class="hint">Häkchen setzen und „Laden“ – jede Playlist wird unter Playlists im Ordner „${esc(src.name)}“ gespeichert (schon geholte werden aktualisiert), die erste ins DJ-Set geladen. Ordner und Smartlists liefern alle enthaltenen Titel.</div>
       <div class="pl-filter" style="margin:10px 0"><input class="inp" id="djsFind" placeholder="Filtern …" style="flex:1"><button class="ghost sm" data-djs="none">Keine</button></div>
       <div class="djs-list">${pls.map((p, k) => `<label class="djs-row" data-name="${esc((p.path || []).join(" / ").toLowerCase() || p.name.toLowerCase())}" style="padding-left:${8 + 18 * Math.max(0, p.depth)}px">
         <input type="checkbox" data-djsi="${k}"> <span class="djs-ico" title="${p.type === "1" ? "Ordner" : p.type === "3" ? "Smartlist" : p.type === "queue" ? "Warteschlange" : "Playlist"}">${icon[p.type] || "♫"}</span> ${esc(p.name)}</label>`).join("")}</div>`,
@@ -57,7 +57,7 @@ async function djSourcePick() {
     if (t && !t.cancelled && typeof tgAfterLoad === "function") await tgAfterLoad(t, "", false);
   }
   await djsetShow();
-  const msg = `${r.lists.length} Liste(n) gespeichert, „${r.first}“ geladen` + (r.missing ? ` · ${r.missing} Titel nicht auf diesem Rechner` : "") + ".";
+  const msg = `${r.lists.length} Playlist(s) gespeichert, „${r.first}“ geladen` + (r.missing ? ` · ${r.missing} Titel nicht auf diesem Rechner` : "") + ".";
   toast(msg); status(msg, r.missing ? "warn" : "ok");
 }
 
@@ -352,6 +352,7 @@ function djInit() {
       items.push({ label: "Im Tagger zeigen", run: () => djShowInTagger(r.i) }, "-");
       if (typeof pqMenuItems === "function") items.push(...pqMenuItems([r.i]), "-");      // #138
     }
+    if (typeof plsAddDialog === "function") items.push({ label: "Zur Playlist hinzufügen …", run: () => plsAddDialog("paths", [r.path]) }, "-");   // #269
     items.push({ label: r.lock ? "Entsperren" : "Sperren (Position halten)", run: () => djCall("dj_lock", r.path, !r.lock) },
       { label: "Nach oben", run: () => djMove(k, -1) }, { label: "Nach unten", run: () => djMove(k, 1) }, "-",
       { label: "Aus dem Set entfernen", run: () => djCall("dj_remove", [r.path]) });
@@ -396,21 +397,26 @@ function djInit() {
 function djListLabel(st) {
   const el = $("#djListName"); if (!el || !st) return;
   el.textContent = (st.name || "(ohne Namen)") + (st.dirty && st.name ? " •" : "");
-  $("#djListBtn").title = st.name ? `Liste „${st.name}“${st.dirty ? " – nicht gespeicherte Änderungen" : ""}` : "Aktuelles Set ist noch nicht gespeichert";
+  $("#djListBtn").title = st.name ? `Playlist „${st.name}“${st.dirty ? " – nicht gespeicherte Änderungen" : ""}` : "Aktuelles Set ist noch nicht als Playlist gespeichert";
 }
 
 function djListMenu() {
   const b = $("#djListBtn").getBoundingClientRect(), st = DJ.st || { lists: [] };
+  const lab = (l) => `${l.current ? "● " : ""}${l.folder ? l.folder + " / " : ""}${l.name} (${l.count})`;
   const items = [
-    { label: "Neue, leere Liste", run: djListNew },
-    ...(st.name ? [{ label: `Speichern („${st.name}“)`, run: () => djCall("dj_save_as", st.name, true) }] : []),
-    { label: "Speichern unter …", run: djListSaveAs },
+    { label: "Neues, leeres Set", run: djListNew },
+    ...(st.name ? [{ label: `Speichern („${st.name}“)`, run: () => djCall("dj_save_as", st.name, true).then(plsRecentRefresh) }] : []),
+    { label: "Als Playlist speichern unter …", run: djListSaveAs },
   ];
-  if (st.lists.length) {
-    items.push("-");
-    for (const l of st.lists) items.push({ label: `${l.current ? "● " : ""}${l.name} (${l.count})`, run: () => djListLoad(l.name) });
-    items.push("-", { label: "Umbenennen …", run: djListRename }, { label: "Gespeicherte Liste entfernen …", run: djListDelete });
+  const lists = st.lists || [];
+  if (lists.length) {                                   // #269: aktuelle, dann DJ-Sets, dann die übrigen (höchstens 10)
+    const top = [...lists.filter((l) => l.current), ...lists.filter((l) => !l.current && l.kind === "djset"), ...lists.filter((l) => !l.current && l.kind !== "djset")].slice(0, 10);
+    items.push("-", ...top.map((l) => ({ label: lab(l), run: () => djListLoad(l.id, l.name) })));
+    items.push({ label: "Andere Playlist öffnen …", run: djListOpen });
   }
+  items.push("-");
+  if (st.name) items.push({ label: "Umbenennen …", run: djListRename });
+  items.push({ label: "Playlists verwalten", run: () => { if (typeof PLS !== "undefined" && st.pl) PLS.st = Object.assign(PLS.st || {}, { sel: st.pl }); setModule("playlists"); } });
   showMenu(b.left, b.bottom + 6, items);
 }
 
@@ -424,8 +430,13 @@ async function djUnsavedOk(what) {
   return true;
 }
 
-async function djListNew() { if (await djUnsavedOk("Neue Liste")) djCall("dj_new"); }
-async function djListLoad(name) { if (await djUnsavedOk(`Liste „${name}“ laden`)) djCall("dj_load", name); }
+async function djListNew() { if (await djUnsavedOk("Neues Set")) djCall("dj_new"); }
+async function djListLoad(id, name) { if (await djUnsavedOk(`Playlist „${name || id}“ öffnen`)) djCall("dj_load", id); }
+async function djListOpen() {
+  if (typeof plsPick !== "function") return;
+  const p = await plsPick({ title: "Playlist im DJ-Set öffnen", ok: "Öffnen", allowNew: false });
+  if (p && p.id) djListLoad(p.id);
+}
 
 async function djAskName(title, value, label) {
   return modal({ title, html: `<label class="muted sm" for="djNameIn">${esc(label)}</label><input class="inp" id="djNameIn" maxlength="80" style="width:100%" value="${esc(value || "")}" autofocus>`,
@@ -434,37 +445,23 @@ async function djAskName(title, value, label) {
 }
 
 async function djListSaveAs() {
-  const name = await djAskName("Liste speichern unter", DJ.st && DJ.st.name, "Name der Liste");
+  const name = await djAskName("Als Playlist speichern unter", DJ.st && DJ.st.name, "Name der Playlist (neue kommen in den Ordner „DJ-Sets“)");
   if (!name) return false;
   let r = await call("dj_save_as", name, false).catch((e) => { toast(String(e.message || e)); return null; });
   if (r && r.exists) {
-    const ok = await modal({ title: "Liste ersetzen", html: `<p style="margin:0">${esc(r.error)} Ersetzen?</p>`,
+    const ok = await modal({ title: "Playlist ersetzen", html: `<p style="margin:0">${esc(r.error)} Ersetzen?</p>`,
       buttons: [{ label: "Abbrechen", value: null }, { label: "Ersetzen", value: true, primary: true }] });
     if (!ok) return false;
     r = await call("dj_save_as", name, true).catch((e) => { toast(String(e.message || e)); return null; });
   }
-  if (r && r.ok) { djApply(r); return true; }
+  if (r && r.ok) { djApply(r); if (typeof plsRecentRefresh === "function") plsRecentRefresh(); return true; }
   return false;
 }
 
-async function djListPick(title, btn) {
-  const lists = (DJ.st && DJ.st.lists) || [];
-  return modal({ title, html: `<select class="inp" id="djPick" style="width:100%">${lists.map((l) => `<option value="${esc(l.name)}"${l.current ? " selected" : ""}>${esc(l.name)} (${l.count} Titel)</option>`).join("")}</select>`,
-    buttons: [{ label: "Abbrechen", value: null }, { label: btn, value: "ok", primary: true }],
-    collect: (body) => body.querySelector("#djPick").value });
-}
-
 async function djListRename() {
-  const old = await djListPick("Liste umbenennen", "Weiter"); if (!old) return;
-  const neu = await djAskName("Liste umbenennen", old, `Neuer Name für „${old}“`);
-  if (neu && neu !== old) djCall("dj_list_rename", old, neu);
-}
-
-async function djListDelete() {
-  const name = await djListPick("Gespeicherte Liste entfernen", "Entfernen …"); if (!name) return;
-  const ok = await modal({ title: "Liste entfernen", html: `<p style="margin:0">Die gespeicherte Liste „${esc(name)}“ entfernen? Die Musikdateien bleiben unverändert; das aktuelle Set bleibt, wie es ist.</p>`,
-    buttons: [{ label: "Abbrechen", value: null }, { label: "Entfernen", value: true, primary: true }] });
-  if (ok) djCall("dj_list_delete", name);
+  const st = DJ.st; if (!st || !st.name) return;
+  const neu = await djAskName("Playlist umbenennen", st.name, `Neuer Name für „${st.name}“`);
+  if (neu && neu !== st.name) djCall("dj_list_rename", st.pl, neu);
 }
 
 function djExportMenu() {

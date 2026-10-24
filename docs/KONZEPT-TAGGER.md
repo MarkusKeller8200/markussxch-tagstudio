@@ -18,7 +18,7 @@ Sicherung vor dem Speichern) und mit Blick auf DJ-Daten (Tonart, BPM, Audio-Merk
 | Bearbeiten | Standardfelder der Markierung („‹verschieden›“ bleibt unverändert), Cover, ID3-Version, Bewertung/Like, Links, Audio-Merkmale (0–100, Skala 0–10 für Lexicon), Stimmung |
 | Weitere Felder | alle übrigen Frames mit Herkunfts-Kennzeichen; Editoren: Feld-Editor (mehrzeilig, Einzelwerte), JSON-Baum (Expertenmodus), XML-Editor, Binärfeld-Editor (GEOB/PRIV), Farbwähler |
 | Tonart | Camelot-Rad, Schreibweise Camelot `08A` / musikalisch / Open Key, „Schreibweise vereinheitlichen“ |
-| Werkzeuge | Tags aus Dateiname, Umbenennen, Spurnummern, Gross-/Kleinschreibung, Suchen & Ersetzen, Cover aus Ordner, Export Excel/CSV, Feld hinzufügen, Felder nach Herkunft entfernen, Tag-Rezepte (#111), Aussortieren (#173) |
+| Werkzeuge | Tags aus Dateiname, Umbenennen, Spurnummern, Gross-/Kleinschreibung, Suchen & Ersetzen, Cover aus Ordner, Export Excel/CSV, Feld hinzufügen, Felder nach Herkunft entfernen, Tag-Rezepte (#111), Aussortieren (#173), Playlist ▾: zur Playlist hinzufügen (Strg+Shift+P = zuletzt benutzte), Playlist öffnen, Filter „Nur Titel aus einer Playlist“ (#268, [KONZEPT-PLAYLISTS.md](KONZEPT-PLAYLISTS.md)) |
 | Plugins | Aktionen der Plugins auf die Markierung, Vorschläge als Vorschau mit Häkchen |
 | Start | zuletzt geladener Ordner, Standardordner oder nichts; Markierung, Sortierung, Filter und Bildlauf werden wiederhergestellt |
 

@@ -20,7 +20,7 @@ GROUPS = [
     ("design", "Design und Tonart-Schreibweise", ("web_theme", "theme", "key_notation")),
     ("layout", "Layout (Splitter, Seitenleiste, Fenster)", ("web_ui", "geometry", "features_open", "window",
                                                            "nav_hidden", "nav_recommended")),
-    ("setup", "Einrichtung (Assistent, Erste Schritte)", ("setup_done", "first_steps", "first_steps_seen", "seen_version", "base_dir", "archive_dir")),
+    ("setup", "Einrichtung (Assistent, Erste Schritte)", ("setup_done", "first_steps", "first_steps_seen", "seen_version", "base_dir", "archive_dir", "playlist_dir")),
     ("view", "Ansicht und Filter", ("filter", "show_trivial", "empty_set", "show_covers", "mode", "recursive",
                                     "tagger_recursive", "tagger_stems_flat", "cmp_defaults", "tg_defaults", "feat_scale", "mood_list")),
     ("history", "Pfad-Verlauf, Standardordner, Muster und Tag-Fixer", ("hist_left", "hist_right", "hist_tagger",
@@ -32,7 +32,7 @@ GROUPS = [
     ("player", "Player (Vorschau und externe)", ("player", "player_defaults", "player_window", "players", "player_resume")),
     ("snapshots", "Snapshots (Automatik, Aufbewahrung, Speicherort)", ("snap_daily", "snap_ask", "snap_keep",
                                                                        "snap_weeks", "snap_thorough", "snap_dir")),
-    ("djset", "DJ-Set (Gewichtung, Energieverlauf, gespeicherte Listen)", ("djset_opts", "djset_saved")),
+    ("djset", "DJ-Set (Gewichtung, Energieverlauf)", ("djset_opts", "djset_saved")),
     ("origin", "Herkunft der Tags (eigene Zuordnungen)", ("tag_origins", "origin_std_badge", "origin_ver_badge", "origin_labels")),
     ("plugins", "Plugins (an/aus, Optionen)", ("plugins_enabled", "plugin_options", "plugin_settings")),
 ]

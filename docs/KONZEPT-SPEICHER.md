@@ -29,7 +29,7 @@ Es gibt zwei Arten von Ordnern:
 | `Plugin-Daten\<Plugin>\` | Daten der Plugins (Abschnitt 2) |
 | `Vorbereiten\<Workflow>.json` | Status je Titel in den Workflow-Schritten, abgeholte Downloads |
 | `Entdecken\entdecken.json` | Gefolgte Künstler/Labels/Genres, Vorschläge, Merkliste |
-| `Playlists\` *(geplant, #267)* | Playlist-Speicher: `index.json` + eine Datei je Playlist (massgebend, Spiegel in `03_Playlists`) |
+| `Playlists\` (#267) | Playlist-Speicher: `index.json` + eine Datei je Playlist (massgebend, Spiegel in `03_Playlists`) |
 | `Auftraege.json` | Warteschlange der Hintergrund-Aufträge (z. B. Stems) |
 | `profile.json` | Profilwahl beim Start (fragen ja/nein, zuletzt benutzt) |
 
@@ -66,7 +66,7 @@ Die empfohlene Struktur (Namen im Assistenten änderbar; vorhandene Ordner bleib
 | `00_New` | Neue Musik, Rohdaten – bleiben unverändert | Eingangsordner „Vorbereiten“ |
 | `01_Library` | Endgültige Bibliothek | Tagger-Standardordner, Bibliothek im Workflow (Ziel der Übernahme), mit Snapshots überwacht |
 | `02_Archiv` | Aussortierte Titel – Unterordner bleiben erhalten; Vermerk `_aussortiert.csv` (Datum, Von, Nach) zum Zurückholen | Archiv (Aktion „Aussortieren“ im Tagger und in „Vorbereiten“, #173) |
-| `03_Playlists` *(geplant, #267)* | Alle Playlists als M3U8 (relative Pfade), Unterordner = Ordner im Playlist-Baum; archivierte Playlists in `02_Archiv/_Playlists` | Playlist-Ordner ([KONZEPT-PLAYLISTS.md](KONZEPT-PLAYLISTS.md)) |
+| `03_Playlists` (#267) | Alle Playlists als M3U8 (relative Pfade), Unterordner = Ordner im Playlist-Baum; archivierte Playlists in `02_Archiv/_Playlists` | Playlist-Ordner ([KONZEPT-PLAYLISTS.md](KONZEPT-PLAYLISTS.md)) |
 | `90_Download` | Temporäre Downloads (Browser, Beatport, ZIP) | Quelle „Downloads“ im Workflow („Abholen“ kopiert nach `00_New`), Ziel des Beatport-Downloads |
 | `91_Work` | Arbeitsordner für TagStudio und andere Programme | Arbeitsordner im Workflow; darin die Stufen-Ordner `_02_MP3Tag`, `_03_PlatinumNotes` … |
 | `99_Sicherung\Tags` | Tag-Sicherungen vor jedem Speichern | Sicherungs-Ordner |

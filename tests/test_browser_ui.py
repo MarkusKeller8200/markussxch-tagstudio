@@ -147,7 +147,7 @@ class UiTest(unittest.TestCase):
         """#88 Menü-Reihenfolge und Startseite, #87 Einstellungskacheln, #85/#86 Vorgaben, #89 Kanal."""
         pg = self.pg
         navs = pg.evaluate("[...document.querySelectorAll('.nav[data-module]')].map(b=>b.dataset.module)")
-        self.assertEqual(navs, ["prep", "tagger", "fixer", "compare", "djset", "snapshots", "backups", "plugins", "settings", "help", "db"])
+        self.assertEqual(navs, ["prep", "tagger", "fixer", "compare", "djset", "playlists", "snapshots", "backups", "plugins", "settings", "help", "db"])
         self.assertEqual(pg.evaluate("S.module"), "tagger")
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stUpdateCard")
@@ -841,7 +841,7 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("window.__imp && window.__imp.join(',') === '12,13'"))
         self.assertTrue(self.until("DJ.st && DJ.st.items.length === 2 && !DJ.st.items.some((r) => r.missing)"))
         self.assertEqual(pg.evaluate("DJ.st.items.map((r) => r.path)"), [a, b])
-        self.assertTrue(self.until("document.querySelector('#toast') && /2 Liste\\(n\\) gespeichert/.test(document.querySelector('#toast').textContent)"))
+        self.assertTrue(self.until("document.querySelector('#toast') && /2 Playlist\\(s\\) gespeichert/.test(document.querySelector('#toast').textContent)"))
 
     def test_feedback_translation(self):
         """#232: eigene Übersetzungen einreichen – Texte eingefüllt, Sprache wählbar, Vorschau, zu viele Texte → Kopieren."""
@@ -1117,7 +1117,8 @@ class UiTest(unittest.TestCase):
         if shots:
             pg.screenshot(path=os.path.join(shots, "en_tagger.png"))
         left = set(pg.evaluate(scan))
-        for mod in ("compare", "djset", "snapshots", "backups", "plugins", "settings", "prepare", "help"):
+        pg.evaluate("call('pl_create', 'Probe', 'Sets', [0, 1])")                    # #267: Seite mit Inhalt prüfen
+        for mod in ("compare", "djset", "playlists", "snapshots", "backups", "plugins", "settings", "prepare", "help"):
             loc = pg.locator(f'.nav[data-module="{mod}"]')
             if pg.locator("#modal").is_visible():
                 pg.click("#mBtns button >> nth=0")
@@ -2367,7 +2368,7 @@ class UiTest(unittest.TestCase):
         pg.click('.nav[data-module="djset"]')
         pg.wait_for_function("DJ.st && DJ.st.items.length === 1")
         pg.click("#djListBtn")
-        pg.click("#menu button >> text=Speichern unter")
+        pg.click("#menu button >> text=Als Playlist speichern unter")
         pg.fill("#djNameIn", "Probe")
         pg.click("#mBtns .primary")
         pg.wait_for_function("DJ.st.name === 'Probe' && !DJ.st.dirty")
@@ -2375,14 +2376,96 @@ class UiTest(unittest.TestCase):
         pg.click("#djAllTagger")
         pg.wait_for_function("DJ.st.items.length === 3 && DJ.st.dirty")
         pg.click("#djListBtn")
-        pg.click("#menu button >> text=Neue, leere Liste")
+        pg.click("#menu button >> text=Neues, leeres Set")
         pg.wait_for_selector("#mBtns button >> text=Verwerfen")
         pg.click("#mBtns button >> text=Verwerfen")
         pg.wait_for_function("DJ.st.items.length === 0 && DJ.st.name === ''")
         pg.click("#djListBtn")
         pg.click("#menu button >> text=Probe (1)")
         pg.wait_for_function("DJ.st.items.length === 1 && DJ.st.name === 'Probe'")
-        self.assertEqual(list(self.cfg_until(lambda c: "Probe" in c.get("djset_saved", {}))["djset_saved"]), ["Probe"])
+        lists = pg.evaluate("call('pl_list').then(r => r.playlists.map(p => [p.folder, p.name, p.kind]))")
+        self.assertEqual(lists, [["DJ-Sets", "Probe", "djset"]])                      # #269: als Playlist gespeichert
+
+    def test_playlists_page(self):
+        """#267–#269: Titel aus dem Tagger in Playlists, Seite verwalten, Playlist-Ordner, Archiv, DJ-Set, Filter."""
+        pg = self.pg
+        base = os.path.join(self.dir, "Musik")
+        pg.evaluate(f"call('set_base_dir', {json.dumps(base)}, true)")
+        self.load_tagger()
+        # Rechtsklick → „Zur Playlist hinzufügen …“ → neue Playlist im Ordner „Sets“
+        pg.click('.tg-row[data-i="0"]', button="right")
+        pg.click("#menu button >> text=Zur Playlist hinzufügen")
+        pg.wait_for_selector("#plsPickName")
+        pg.fill("#plsPickName", "Freitag")
+        pg.fill("#plsPickFolder", "Sets")
+        pg.click("#mBtns .primary")
+        mirror = os.path.join(base, "03_Playlists", "Sets", "Freitag.m3u8")
+        self.assertTrue(self.until(f"call('pl_list').then(r => r.playlists.length === 1 && r.playlists[0].count === 1)"))
+        self.assertTrue(os.path.isfile(mirror))
+        # Strg+Shift+P: zur zuletzt benutzten; Doppelte → Rückfrage
+        pg.click('.tg-row[data-i="1"] .tg-n, .tg-row[data-i="1"]')
+        pg.wait_for_function("TG.sel.has(1) && TG.sel.size === 1")
+        self.assertTrue(self.until("PLS.recentName === 'Freitag'"))
+        pg.keyboard.press("Control+Shift+P")
+        self.assertTrue(self.until("call('pl_list').then(r => r.playlists[0].count === 2)"))
+        pg.keyboard.press("Control+Shift+P")
+        pg.wait_for_selector("#mBtns button >> text=Trotzdem hinzufügen")
+        pg.click("#mBtns button >> text=Trotzdem hinzufügen")
+        self.assertTrue(self.until("call('pl_list').then(r => r.playlists[0].count === 3)"))
+        # Seite „Playlists“
+        pg.click('.nav[data-module="playlists"]')
+        pg.wait_for_function("PLS.st && PLS.st.pl && PLS.st.pl.items.length === 3")
+        self.assertEqual(pg.inner_text("#plsCount").strip(), "1")
+        self.assertEqual(pg.locator("#plsTree .pls-fold").count(), 1)
+        self.assertEqual(pg.locator("#plsList .pls-row[data-k]").count(), 3)
+        self.assertEqual(pg.locator("#plsList .chip >> text=doppelt").count(), 2)
+        # Entf entfernt, Strg+Z holt zurück, Alt+↓ verschiebt
+        pg.click('#plsList .pls-row[data-k="2"] .t')
+        pg.keyboard.press("Delete")
+        pg.wait_for_function("PLS.st.pl.items.length === 2")
+        pg.keyboard.press("Control+z")
+        pg.wait_for_function("PLS.st.pl.items.length === 3")
+        first = pg.evaluate("PLS.st.pl.items[0].path")
+        pg.click('#plsList .pls-row[data-k="0"] .t')
+        pg.keyboard.press("Alt+ArrowDown")
+        pg.wait_for_function(f"PLS.st.pl.items[1].path === {json.dumps(first)}")
+        # Umbenennen (F2): Datei im Playlist-Ordner folgt
+        pg.keyboard.press("F2")
+        pg.fill("#plsNameIn", "Freitag Warm-up")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("PLS.st.pl.name === 'Freitag Warm-up'")
+        self.assertTrue(os.path.isfile(os.path.join(base, "03_Playlists", "Sets", "Freitag Warm-up.m3u8")))
+        self.assertFalse(os.path.exists(mirror))
+        # Im DJ-Set öffnen: Doppelte fallen weg
+        pg.click('#plsHead [data-plsa="djset"]')
+        pg.wait_for_function("S.module === 'djset' && DJ.st && DJ.st.name === 'Freitag Warm-up'")
+        self.assertEqual(pg.evaluate("DJ.st.items.length"), 2)
+        # Tagger: nur Titel der Playlist zeigen
+        pg.click('.nav[data-module="tagger"]')
+        pg.evaluate("void tgPlFilterPick()")
+        pg.wait_for_selector("#plsPickList .pls-pick-row")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("TG.plFilter && TG.order.length === 2")
+        self.assertIn("Freitag Warm-up", pg.inner_text("#tgPlFilter"))
+        pg.click("#tgPlFilter [data-plfx]")
+        pg.wait_for_function("!TG.plFilter && TG.order.length === 3")
+        # Archivieren und zurückholen
+        pg.click('.nav[data-module="playlists"]')
+        pg.wait_for_function("PLS.st && PLS.st.pl")
+        pg.click('#plsHead [data-plsa="more"]')
+        pg.click("#menu button >> text=Archivieren")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("PLS.st.archived.length === 1 && PLS.st.playlists.length === 0")
+        arch = os.path.join(base, "02_Archiv")
+        self.assertFalse(os.path.exists(os.path.join(base, "03_Playlists", "Sets", "Freitag Warm-up.m3u8")))
+        self.assertEqual(pg.evaluate("call('dj_state').then(s => [s.name, s.items.length])"), ["", 2])   # Set bleibt, ohne Playlist
+        pg.click("#plsTree [data-arch]")
+        pg.click("#plsTree .pls-pl.gone")
+        pg.wait_for_selector('#plsHead [data-plsa="restore"]')
+        pg.click('#plsHead [data-plsa="restore"]')
+        pg.wait_for_function("PLS.st.archived.length === 0 && PLS.st.playlists.length === 1")
+        self.assertTrue(os.path.isfile(os.path.join(base, "03_Playlists", "Sets", "Freitag Warm-up.m3u8")))
+        self.assertFalse(os.path.isdir(arch) and os.listdir(os.path.join(arch, "_Playlists", "Sets")) != [])
 
     def test_djset_page(self):
         """#3 DJ-Set: aus dem Tagger übernehmen, optimieren, sperren, ziehen, Tasten, Wiedergabe, gemerkte Optionen."""

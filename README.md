@@ -24,6 +24,8 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.12 oder neuer – oder gar nic
   sortier- und filterbar (`energy>=70`); Dateien wahlweise in 0–10 (Lexicon).
 - **DJ-Set:** Reihenfolge nach Tonart (Camelot), BPM und Energie optimieren, jeden Übergang bewerten, per Ziehen
   umsortieren und sperren, Weg durch das Camelot-Rad und Energiekurve; Export als M3U8, Rekordbox-XML und CSV.
+- **Playlists:** Titel aus Tagger und DJ-Set in Playlists mit Ordnern sammeln; jede Playlist liegt zusätzlich als
+  M3U8 im Playlist-Ordner (für Engine DJ, VirtualDJ & Co.); Archivieren statt Löschen.
 - **Vergleich zweier Ordner/Dateien:** Feld für Feld mit zeichengenauen Markierungen, Werte per Pfeil übernehmen.
 - **Tag-Fixer:** Mehrfachwerte (`;`, `/`, `feat.` …) vereinheitlichen oder in echte ID3v2.4-Mehrfachwerte umwandeln.
 - **Sicherheit beim Speichern:** vor jedem Speichern automatische Sicherung der Tags, Änderungs-Viewer,
@@ -85,7 +87,7 @@ und darüber installieren – Einstellungen, Sicherungen und Plugin-Daten liegen
 
 ## Bedienung
 
-Seitenleiste mit **Tagger, Tag-Fixer, Vergleich, DJ-Set, Snapshots, Sicherungen, Plugins, Einstellungen**, unten
+Seitenleiste mit **Tagger, Tag-Fixer, Vergleich, DJ-Set, Playlists, Snapshots, Sicherungen, Plugins, Einstellungen**, unten
 „Nach Update suchen“, Versionshinweise, Einklappen und Hell/Dunkel. Beim Start öffnet die zuletzt benutzte Seite
 (beim ersten Start der Tagger). Der Tagger lädt beim Start den zuletzt geladenen Ordner im Hintergrund (die App ist
 sofort bedienbar) und stellt Markierung,
@@ -234,6 +236,35 @@ Set-Reihenfolge** schreiben (Vorschau, rückgängig machbar, gespeichert wird wi
 
 Das Set und die Optionen merkt sich TagStudio; Titel aus einem anderen Ordner bleiben im Set, erscheinen aber grau,
 bis ihr Ordner wieder im Tagger geladen ist.
+
+**Playlist ▾** (oben): das Set als Playlist speichern (neue kommen in den Ordner „DJ-Sets“, mit Sperren und
+Optionen) oder eine beliebige Playlist ins Set laden. Doppelte Titel einer Playlist fallen dabei weg – im Set kommt
+jeder Titel einmal vor.
+
+### Playlists
+
+Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** in der Seitenleiste.
+
+- **Titel hinzufügen:** im Tagger Titel markieren, Rechtsklick (oder Werkzeuge › „Playlist ▾“) → „Zur Playlist
+  hinzufügen …“ – bestehende wählen oder eine neue mit Ordner anlegen. **Strg+Shift+P** legt die markierten Titel in
+  die zuletzt benutzte Playlist. Im DJ-Set geht dasselbe per Rechtsklick auf einen Titel. Ist ein Titel schon
+  enthalten, fragt TagStudio nach: überspringen oder trotzdem hinzufügen (Doppelte sind erlaubt).
+- **Verwalten:** links der Baum mit Ordnern (beliebig tief), „Zuletzt benutzt“ und Suche; Playlists auf einen Ordner
+  ziehen verschiebt sie. Rechtsklick: Umbenennen (F2), Duplizieren, Verschieben, Farbe und Notiz, mit anderen
+  zusammenführen, Archivieren. Rechts die Titel mit BPM, Tonart, Länge und Bewertung – Ziehen bzw. Alt+↑/↓
+  sortiert um, Entf entfernt (nur aus der Playlist, nie die Datei), Doppelklick spielt, Titel auf eine andere
+  Playlist im Baum ziehen kopiert sie dorthin. Strg+Z / Strg+Y machen jede Änderung rückgängig.
+- **Öffnen:** „Im Tagger öffnen“ lädt die Titel in den Tagger, „Im DJ-Set öffnen“ ins Set. Im Tagger zeigt
+  „Playlist ▾ → Nur Titel aus einer Playlist zeigen …“ nur deren Titel (Filter-Chip, ✕ hebt ihn auf).
+- **Playlist-Ordner:** jede Playlist liegt zusätzlich als M3U8 (relative Pfade) in `03_Playlists` im Basisordner,
+  Unterordner wie im Baum – zum Einlesen in Engine DJ, VirtualDJ und andere Programme. Einstellen unter
+  Einstellungen › Speicherort und Ordner. Ändert ein anderes Programm dort eine Datei oder legt eine neue an,
+  meldet die Seite das („Änderungen im Ordner …“) – übernehmen, behalten oder ignorieren; TagStudio überschreibt
+  nichts ungefragt.
+- **Archiv statt Löschen:** „Archivieren“ legt die Playlist ins Archiv (unten im Baum), ihre M3U8 wandert nach
+  `02_Archiv/_Playlists` (Vermerk in `_aussortiert.csv`). „Zurückholen“ stellt sie wieder her; endgültig löschen geht
+  nur im Archiv. Aussortierte Titel bleiben in ihren Playlists stehen und sind als „im Archiv“ markiert.
+- Die bisherigen gespeicherten DJ-Set-Listen werden beim ersten Start einmalig als Playlists übernommen.
 
 ### Tag-Fixer
 
@@ -507,10 +538,11 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
   `web/keywheel.js` Camelot-Rad, `web/features.js` Audio-Merkmale, `web/plugins.js` Plugin-Seite,
   `web/player.js` Vorschau-Player, `web/player2.js` Überblenden, Player oben, Player B, Abdocken,
   `web/player-window.html` + `web/playerwin.js` abgedocktes Player-Fenster, `web/settings.js` Einstellungen, `web/jobs.js` Hintergrund-Aufträge,
-  `web/djset.js` Seite „DJ-Set“
+  `web/djset.js` Seite „DJ-Set“, `web/playlists.js` Seite „Playlists“
 - `core.py` – gemeinsame Logik: Anzeige, Zeichen-Diff, Filter, Laden, Speichern, Einstellungen
 - `session.py` – Zustand und Befehle einer Sitzung; Teile in `session_player.py` (Player, Fenster-Nachrichten,
-  Wiedergabe), `session_snapshots.py` (Snapshots, Journal) und `session_djset.py` (DJ-Set)
+  Wiedergabe), `session_snapshots.py` (Snapshots, Journal), `session_djset.py` (DJ-Set) und `session_playlists.py`
+  (Playlists)
 - `id3tags.py` – ID3 lesen/schreiben, MPEG-Infos (ohne externe Bibliotheken)
 - `compare.py` – Zuordnung, Vergleich, Kopieren, Regeln für unwichtige Felder
 - `tagger.py` – Tagger-Logik: gemeinsame Felder, Tags aus Dateiname, Umbenennen, Spurnummern, Cover,
@@ -519,6 +551,7 @@ ohne Lesefehler, ohne Datenverlust, Audio jeweils byte-identisch.
 - `features.py` – Audio-Merkmale (TXXX, 0–100; Dateien wahlweise 0–10)
 - `setplan.py` – DJ-Set: Übergänge bewerten, Reihenfolge optimieren (Held-Karp bzw. Greedy + 2-opt);
   `setexport.py` – Exporte M3U8, Rekordbox-XML, CSV
+- `playlists.py` – Playlists: Speicher, Ordner, Rückgängig, Archiv, Playlist-Ordner (M3U8), Änderungen von aussen
 - `xmltools.py` – XML in Feldern und Binärfeldern erkennen, prüfen, formatieren, ersetzen
 - `blobs.py` – Binärfelder (GEOB/PRIV): Inhalt erkennen (XML, Text, Base64, binär) und byte-genau ändern
 - `backup.py` – Sicherung und Wiederherstellung der Tags, Vergleich Sicherung ↔ Datei (Änderungs-Viewer)

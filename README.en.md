@@ -26,6 +26,8 @@ The core needs no extra packages, only Python 3.12 or newer – or nothing at al
   sortable and filterable (`energy>=70`); files optionally in 0–10 (Lexicon).
 - **DJ set:** optimise the order by key (Camelot), BPM and energy, rate every transition, re-order and lock by
   dragging, path through the Camelot wheel and energy curve; export as M3U8, Rekordbox XML and CSV.
+- **Playlists:** collect tracks from the tagger and the DJ set in playlists with folders; every playlist is also
+  stored as M3U8 in the playlist folder (for Engine DJ, VirtualDJ & co.); archive instead of delete.
 - **Comparing two folders/files:** field by field with character-exact highlighting, take over values with an arrow.
 - **Tag fixer:** unify multiple values (`;`, `/`, `feat.` …) or convert them into real ID3v2.4 multiple values.
 - **Safe saving:** automatic backup of the tags before every save, change viewer, byte-exact restore; undo/redo
@@ -86,7 +88,7 @@ install it over the old one – settings, backups and plugin data live in the us
 
 ## Usage
 
-Sidebar with **Tagger, Tag fixer, Compare, DJ set, Snapshots, Backups, Plugins, Settings**, at the bottom
+Sidebar with **Tagger, Tag fixer, Compare, DJ set, Playlists, Snapshots, Backups, Plugins, Settings**, at the bottom
 “Check for update”, release notes, collapse and light/dark. On start the last used page opens (the tagger on first
 start). On start the tagger loads the last loaded folder in the background (the app can be used immediately) and
 restores selection, sorting, filter and scroll position (Settings › Tagger › “Load on start”: last loaded, default
@@ -230,6 +232,33 @@ saved as usual).
 
 TagStudio remembers the set and the options; tracks from another folder stay in the set but appear grey until their
 folder is loaded in the tagger again.
+
+**Playlist ▾** (top): save the set as a playlist (new ones go into the folder “DJ-Sets”, with locks and options) or
+load any playlist into the set. Duplicate tracks of a playlist are left out – in the set every track appears once.
+
+### Playlists
+
+Collect and arrange tracks and make them available to DJ programs. Page **Playlists** in the sidebar.
+
+- **Add tracks:** select tracks in the tagger, right-click (or tools › “Playlist ▾”) → “Add to playlist …” – choose
+  an existing one or create a new one with a folder. **Ctrl+Shift+P** puts the selected tracks into the most recently
+  used playlist. In the DJ set the same works by right-clicking a track. If a track is already contained, TagStudio
+  asks: skip or add anyway (duplicates are allowed).
+- **Manage:** on the left the tree with folders (any depth), “Recently used” and search; dragging playlists onto a
+  folder moves them. Right-click: rename (F2), duplicate, move, colour and note, merge with others, archive. On the
+  right the tracks with BPM, key, length and rating – dragging or Alt+↑/↓ re-orders, Del removes (only from the
+  playlist, never the file), double-click plays, dragging tracks onto another playlist in the tree copies them there.
+  Ctrl+Z / Ctrl+Y undo every change.
+- **Open:** “Open in the tagger” loads the tracks into the tagger, “Open in the DJ set” into the set. In the tagger,
+  “Playlist ▾ → Show only tracks from a playlist …” shows only its tracks (filter chip, ✕ clears it).
+- **Playlist folder:** every playlist is also stored as M3U8 (relative paths) in `03_Playlists` in the base folder,
+  subfolders as in the tree – for reading into Engine DJ, VirtualDJ and other programs. Set it under Settings ›
+  Storage and folders. If another program changes a file there or adds a new one, the page reports it (“Changes in
+  the folder …”) – take over, keep or ignore; TagStudio never overwrites anything without asking.
+- **Archive instead of delete:** “Archive” puts the playlist into the archive (at the bottom of the tree), its M3U8
+  moves to `02_Archiv/_Playlists` (note in `_aussortiert.csv`). “Bring back” restores it; deleting permanently is only
+  possible in the archive. Tracks moved to the archive stay in their playlists and are marked “in the archive”.
+- The previously saved DJ set lists are taken over once as playlists on the first start.
 
 ### Tag fixer
 

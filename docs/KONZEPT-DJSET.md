@@ -22,8 +22,11 @@ optimiert, von Hand anpassbar und als Playlist für DJ-Programme exportierbar. E
   mit Halb-/Doppeltempo, Note 0–100; Gesamtnote mit 20 % Nähe zur Soll-Kurve; fehlende Energie aus BPM geschätzt.
 - **Ansicht:** Weg durch das Camelot-Rad, Kurven für Energie, Soll und BPM.
 - **Bedienung:** Ziehen, Tasten (↑/↓, Alt+↑/↓, G, Entf, Enter), Player folgt der Set-Reihenfolge, Ziehen auf Player A/B.
-- **Listen:** Sets speichern, laden, umbenennen, löschen. Die **Warteschlange** des Players (`pq_*`) lässt sich
-  ins Set übernehmen.
+- **Playlists (#269, ab 4.8.0-beta.3):** „Playlist ▾“ speichert das Set als Playlist (neue im Ordner „DJ-Sets“, mit
+  Sperren und Optionen) bzw. lädt jede beliebige Playlist ins Set (Doppelte fallen weg); verwaltet werden die
+  Playlists auf der Seite „Playlists“ ([KONZEPT-PLAYLISTS.md](KONZEPT-PLAYLISTS.md)). Die früheren gespeicherten
+  Listen (`djset_saved`) werden einmalig übernommen. Die **Warteschlange** des Players (`pq_*`) lässt sich ins Set
+  übernehmen.
 - **Export:** M3U8 (absolute/relative Pfade), Rekordbox-XML, CSV mit Übergangsbewertung, Spurnummern in
   Set-Reihenfolge schreiben (Vorschau, Undo).
 
@@ -33,7 +36,8 @@ optimiert, von Hand anpassbar und als Playlist für DJ-Programme exportierbar. E
   `EXACT_MAX = 15`, `PROFILES`), `setexport.py` (`m3u8`, `rekordbox_xml`, `read_rekordbox`, `csv_rows`, `write`).
 - **Session:** `session_djset.py` (`DjSetMixin`: `dj_*`, `pq_*`, `dj_export_file`).
 - **Oberfläche:** `web/djset.js`, `web/queue.js`.
-- **Einstellungen:** `djset_items`, `djset_opts`, `djset_saved`.
+- **Einstellungen:** `djset_items`, `djset_opts`, `djset_pl` (bearbeitete Playlist), `djset_name`; `djset_saved` nur
+  noch für die einmalige Übernahme.
 
 ## 4. Entscheide
 
@@ -42,8 +46,7 @@ optimiert, von Hand anpassbar und als Playlist für DJ-Programme exportierbar. E
 
 ## 5. Offen / Ideen
 
-- **Playlists (#267–#273, Idee):** gespeicherte Listen und Warteschlange sollen in einen gemeinsamen Playlist-Speicher
-  mit eigener Verwaltungsseite wandern; das DJ-Set bleibt der Optimierer. Siehe [KONZEPT-PLAYLISTS.md](KONZEPT-PLAYLISTS.md).
+- **Playlists:** Phase 1 umgesetzt (#267–#269); offen: Warteschlange als Playlist (#270), Smartlists (#272).
 - Weitere mögliche Ausbauten: weitere Exportformate (Serato-Crate, Engine DJ), Energie aus
   Audio-Analyse (#9).
 
@@ -90,7 +93,7 @@ optimiert, von Hand anpassbar und als Playlist für DJ-Programme exportierbar. E
 ## Playlists aus Plugins (#242, Entscheid User 17.10.2026)
 
 „Aus Lexicon …“ in der Kopfzeile (nur wenn ein bereites Plugin `playlists(ctx)` anbietet): alle Playlists holen und
-mit Häkchen (eingerückt nach Ordnern, Filter über den Pfad) wählen. Jede gewählte Playlist wird als gespeicherte Liste
-„<Quelle>: <Name>“ abgelegt (gleichnamige werden aktualisiert, Reihenfolge wie in der Quelle), die erste geladen und
-ihre Titel in den Tagger eingelesen. Titel, die nicht auf diesem Rechner sind, werden gezählt und gemeldet.
+mit Häkchen (eingerückt nach Ordnern, Filter über den Pfad) wählen. Jede gewählte Playlist wird als Playlist im
+Ordner „<Quelle>“ abgelegt (#269; schon geholte – erkannt über `source` – werden aktualisiert, Reihenfolge wie in der
+Quelle), die erste ins Set geladen und ihre Titel in den Tagger eingelesen. Titel, die nicht auf diesem Rechner sind, werden gezählt und gemeldet.
 Lexicon liefert zusätzlich die Pseudo-Playlist „Warteschlange“ (läuft gerade + nächste).

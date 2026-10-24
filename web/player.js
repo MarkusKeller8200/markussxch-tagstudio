@@ -65,6 +65,7 @@ function plTarget() {
   }
   if (S.module === "compare" && S.cur !== null && S.cur !== undefined) return { kind: "side", ref: PLAYER.side };
   if (S.module === "djset" && typeof djTarget === "function") return djTarget();      // #3
+  if (S.module === "playlists" && typeof plsTarget === "function") return plsTarget();  // #267
   return null;
 }
 
@@ -266,6 +267,7 @@ function plStemSwitch(k) {
 async function plStep(dir, play = true) {
   if (dir > 0 && play && typeof pqPlayNext === "function" && pqPlayNext()) return;   // #138: Warteschlange zuerst
   if (S.module === "djset" && typeof djStep === "function") return djStep(dir, play);   // #3
+  if (S.module === "playlists" && typeof plsStep === "function") return plsStep(dir, play);   // #267
   if (S.module === "tagger" && TG.order.length) {
     const k = Math.max(0, Math.min(TG.order.length - 1, TG.order.indexOf(TG.anchor) + dir));
     const i = TG.order[k];
@@ -736,7 +738,7 @@ function plBindAudio(el) {
     const a = PLAYER.audio;
     if (PLAYER.repeat) { a.currentTime = 0; a.play().catch(() => {}); return; }      // #79
     if (PLAYER.follow && typeof pqHead === "function" && pqHead() !== null && PLAYER.kind === "tag") { pqPlayNext(); return; }   // #138
-    if (PLAYER.follow && (S.module === "tagger" || S.module === "djset")) plStep(1);
+    if (PLAYER.follow && (S.module === "tagger" || S.module === "djset" || S.module === "playlists")) plStep(1);
   }));
   el.addEventListener("error", act(() => { if (PLAYER.audio.src) toast("Datei kann nicht abgespielt werden."); }));
 }

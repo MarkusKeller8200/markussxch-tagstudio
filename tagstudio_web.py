@@ -56,6 +56,10 @@ _PASS = {
     "dj_state", "dj_add", "dj_add_paths", "dj_sources", "start_dj_source_list", "start_dj_source_import", "dj_remove", "dj_clear", "dj_order", "dj_lock", "dj_set_opt", "dj_optimize", "dj_revert", "dj_tag_indices",
     "dj_lists", "dj_save_as", "dj_load", "dj_new", "dj_list_delete", "dj_list_rename",
     "pq_state", "pq_add", "pq_set", "pq_take", "pq_to_djset",
+    "pl_list", "pl_state", "pl_tag_indices", "pl_files", "pl_create", "pl_rename", "pl_move", "pl_meta", "pl_duplicate",
+    "pl_merge", "pl_add_tag", "pl_add_paths", "pl_remove", "pl_order", "pl_undo", "pl_redo", "pl_folder_create",
+    "pl_folder_rename", "pl_folder_remove", "pl_folder_archive", "pl_archive", "pl_restore", "pl_delete", "pl_external",
+    "pl_external_apply", "set_playlist_dir",
     "help_docs", "help_licenses", "help_lic_mark", "feedback_info", "feedback_search", "feedback_prepare", "feedback_translation", "help_tags", "start_tag_scan", "tag_field_filter",
     "setup_state", "setup_finish", "set_nav_hidden", "first_steps_seen", "first_steps_restart", "set_first_steps", "whats_new", "whats_new_seen", "folders_overview", "set_base_dir", "setup_structure", "set_archive_dir", "tag_archive", "prep_archive", "archive_list", "archive_restore",
     "disc_overview", "disc_follow_save", "disc_set", "disc_genres", "disc_auto", "disc_auto_status", "start_disc_suggest", "start_disc_run",
@@ -771,6 +775,10 @@ class Api:
         else:
             subprocess.Popen(["open" if sys.platform == "darwin" else "xdg-open", os.path.abspath(str(path))])
         return True
+
+    def pl_reveal(self, pid):
+        """#267: M3U8 einer Playlist im Explorer/Finder zeigen (Playlist-Ordner bzw. Archiv)."""
+        return self.reveal(self._s.pl_reveal_path(pid))
 
     def reveal_tag(self, i):
         """#197: Dateiordner eines Tagger-Titels öffnen (Datei markiert)."""

@@ -1,7 +1,8 @@
 # Konzept: Playlists
 
-> Stand 24.10.2026 – Entwurf auf Wunsch des Users, **Entscheide E1–E8 getroffen** (13:03, Abschnitt 11).
-> Status **Idee**: keine Umsetzung ohne Freigabe (`_1 bereit`). Meilenstein **4.9.0 – Playlists** (Phase 1 + 2).
+> Stand 24.10.2026 – Entscheide E1–E8 des Users (13:03, Abschnitt 11). **Phase 1 umgesetzt** (#267–#269, Auftrag
+> User 13:08, kommt in **4.8.0-beta.3**, Abschnitt 14). Phase 2 (#270, #271) im Meilenstein **4.9.0 – Playlists**,
+> Phase 3 (#272, #273) Idee.
 > Issues: #267 (Grundlage) · #268 (Tagger) · #269 (DJ-Set) · #270 (Player, Warteschlange, Vorbereiten) ·
 > #271 (Import/Export, Quellen, Playlist-Ordner) · #272 (Smartlists) · #273 (Austausch mit DJ-Programmen und Plugins)
 
@@ -259,3 +260,59 @@ und macht die Playlists sofort für DJ-Programme nutzbar)? Vorschlag: ja, als Te
 - Oberfläche (Playwright): Playlist anlegen, aus dem Tagger hinzufügen, im DJ-Set öffnen, umordnen, archivieren und
   zurückholen, Export-Dialog, englische Oberfläche ohne deutsche Reste.
 - Mehrsprachigkeit: alle Texte in `web/i18n/playlists.json` (Deutsch, Englisch, Zürichdeutsch).
+
+## 14. Umsetzung Phase 1 (#267–#269, 24.10.2026)
+
+**Kern `playlists.py`** (nur Standardbibliothek), Klasse `Store(root, mirror, archive_dir)`:
+
+- Speicher `~/TagStudio/Playlists/` (je Profil): `index.json` (`folders`, `recent`, `written` = je Playlist
+  relativer Pfad + SHA-256 der zuletzt geschriebenen M3U8, `ignored` = fremde Dateien, `migrated`) und
+  `pl_<id>.json`. Einträge: `path`, `size`, `added`, `lock`, `note` und – nur für die `#EXTINF`-Zeile der M3U8 –
+  `artist`, `title`, `dur` (beim Hinzufügen aus dem Tagger gefüllt; angezeigt werden die aktuellen Tag-Werte).
+  `ref` für Einträge ohne Datei ist vorgesehen (#271).
+- Namen sind je Ordner eindeutig (Gross-/Kleinschreibung egal); `unique_name` für Kopien („Name (Kopie)“).
+- Rückgängig/Wiederholen im Speicher (`_change` merkt die betroffenen Playlists und Ordner, höchstens 50 Schritte);
+  Archivieren ist kein Rückgängig-Schritt (dafür „Zurückholen“).
+- **Playlist-Ordner** `sync(ids)`: schreibt M3U8 mit relativen Pfaden (`setexport.m3u8`), benennt beim Umbenennen
+  oder Verschieben die eigene Datei mit um, entfernt sie, wenn die Playlist wegfällt – aber nur, wenn die Datei noch
+  unverändert ist (SHA-256 wie geschrieben). Fremde oder von aussen geänderte Dateien bleiben stehen
+  (`external_changes`: `changed`, `removed`, `new`; `apply_external(rel, take|keep|archive)`; `.m3u` wird als
+  Playlist übernommen und daneben eine eigene `.m3u8` geschrieben). Dateinamen: verbotene Zeichen → `_`, reservierte
+  Windows-Namen mit `_`, Kollisionen mit „(2)“. Unterordner `_Archiv` und versteckte Ordner werden nicht gelesen.
+- **Archiv** wie `archive.py`: M3U8 nach `<Archiv>/_Playlists/<Ordner>/…` (ohne Archiv-Ordner:
+  `<Playlist-Ordner>/_Archiv`), Zeile in `_aussortiert.csv` mit Bereich „Playlists“; `restore` holt sie zurück
+  (bei belegtem Namen mit „(2)“) und vermerkt „zurückgeholt“. `delete` nur für archivierte Playlists.
+- `parse_m3u`: `#EXTINF` (Dauer, „Künstler - Titel“), relative Pfade, `file://`-Adressen, Windows-Pfade auch auf
+  macOS/Linux.
+- `migrate_djset`: übernimmt `djset_saved` einmalig (Ordner „DJ-Sets“, Art `djset`, Sperren, Optionen; „Lexicon: X“
+  → Ordner „Lexicon“, Art `import`). `djset_saved` bleibt in der Einstellungsdatei stehen (eine Version lang lesbar),
+  wird aber nicht mehr geschrieben.
+
+**Sitzung `session_playlists.py`** (`PlaylistMixin`): Playlist-Ordner = cfg `playlist_dir`, sonst
+`<base_dir>/03_Playlists`; `pl_state(sel)` liefert Baum, Archiv, Zuletzt benutzt, Rückgängig-Stand, Zahl der
+Änderungen von aussen und die Titel der gewählten Playlist mit Angaben aus dem Tagger bzw. – für nicht geladene –
+direkt aus der Datei (zwischengespeichert nach Grösse/Änderungszeit); fehlende Titel, die im Archiv-Vermerk stehen,
+sind „im Archiv“. Weitere Befehle: `pl_list`, `pl_create`, `pl_add_tag`/`pl_add_paths` (`dupes` ask/add/skip),
+`pl_remove`, `pl_order`, `pl_rename`, `pl_move`, `pl_meta`, `pl_duplicate`, `pl_merge`, `pl_folder_*`,
+`pl_archive`, `pl_restore`, `pl_delete`, `pl_undo`/`pl_redo`, `pl_tag_indices`, `pl_files`, `pl_external*`,
+`set_playlist_dir`; Api `pl_reveal`. „Zurückholen“ unter Einstellungen › Aussortierte holt auch Playlists zurück.
+
+**DJ-Set (#269):** `session_djset.py` speichert und lädt über den Playlist-Speicher (cfg `djset_pl` = id der
+bearbeiteten Playlist, `djset_name` bleibt für Plugins nachgeführt). `dj_save_as` legt neue Playlists im Ordner
+„DJ-Sets“ an (`djset.opts` = Set-Optionen), `dj_load(id|Name)` lässt Doppelte weg und meldet sie, `dj_list_delete`
+archiviert. „Aus Lexicon …“ legt Playlists im Ordner „Lexicon“ an bzw. aktualisiert sie über `source`.
+
+**Oberfläche:** `web/playlists.js` (Seite, Baum mit Ziehen, Titelliste mit Mehrfachauswahl, Tasten ↑/↓, Alt+↑/↓,
+Entf, Enter, F2, Strg+Z/Y, Strg+A; Auswahldialog `plsPick`; `plsAddDialog`, `plsQuickAdd`, `plsMenuItems`),
+Tagger-Menü „Playlist ▾“ und Filter-Chip `#tgPlFilter` (`tgSetPlFilter`), Player folgt der Playlist-Reihenfolge
+auf der Seite (`plsTarget/plsStep/plsNextTag/plsSelectTag`), Einstellungen › Speicherort und Ordner „Playlist-Ordner“,
+Ordnerstruktur `03_Playlists` (`session_setup.STRUCTURE`), Menüpunkt `playlists` (ausblendbar), Erste Schritte.
+Übersetzungen in `web/i18n/playlists.json`.
+
+**Noch nicht (Phase 2):** Warteschlange als feste Playlist und „Playlist abspielen“ mit eigener Reihenfolge ausserhalb
+der Seite (#270), Export/Import-Menü, Einträge ohne Datei, „Fehlende suchen“ (#271).
+
+**Tests:** `tests/test_playlists.py` (Speicher, Rückgängig, Ordner, Archiv, Playlist-Ordner, Änderungen von aussen,
+Übernahme, Sitzung mit Tagger/DJ-Set/Archiv/Einstellung), Oberflächentest `test_playlists_page`; angepasst
+`test_queue_and_saved_lists`, `test_dj_lexicon_playlists`, `tests/test_lexicon.py`, `tests/test_setup.py`.
+
