@@ -432,9 +432,12 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   Beatport login (the password is never stored). The preview shows **all delivered fields** – identical ones grey,
   deselected and already filled ones unticked.
 - **Online metadata:** album, date, label, catalogue number, ISRC, genre, cover and more from MusicBrainz (also via
-  AcoustID fingerprint), Deezer, iTunes, Discogs and Last.fm. Default: only complete empty fields; per field the first
+  AcoustID fingerprint), Deezer, Spotify, iTunes, SoundCloud, Discogs and Last.fm. Default: only complete empty fields; per field the first
   source is preselected, others appear as alternatives. Discogs token, Last.fm and AcoustID keys under Plugins ›
   Online metadata › “Key …” (stored encrypted); “Test connections” checks the services.
+- **Spotify and SoundCloud (read only, own app at the service):** playlists, Liked Songs or likes as playlists with
+  entries without a file (Playlists › Import ▾), track data with link for online metadata and followed artists for
+  “Discover”. Setup in [PLUGINS.en.md](PLUGINS.en.md).
 - **Take over Mixed In Key:** key, BPM and energy from the places where Mixed In Key wrote them (comment “10A - Energy
   7”, title or artist prefix, grouping, label, TXXX:EnergyLevel) into TKEY, TBPM and ENERGY; remove the prefixes if
   wanted.

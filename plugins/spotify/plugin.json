@@ -1,0 +1,345 @@
+{
+  "id": "spotify",
+  "name": "Spotify",
+  "version": "1.0",
+  "min_app": "4.8.0",
+  "category": "online",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Liest deine Spotify-Playlists und Lieblingssongs (Playlists › Importieren › „Aus Spotify …“, danach Abgleich mit der Bibliothek), Titel-Daten mit ISRC und Spotify-Link für „Online-Metadaten“ und gefolgte Künstler für „Entdecken“. Braucht eine eigene Spotify-App im Developer Dashboard (Premium nötig). Nur lesen – nichts in deinem Spotify-Konto wird geändert.",
+  "notes": "Keine Zusatzpakete nötig. Unter „Anmelden …“ die Client-ID deiner Spotify-App eintragen und anmelden.",
+  "fields": [
+    "TXXX:SPOTIFY_TRACK_ID",
+    "TXXX:SPOTIFY_URL"
+  ],
+  "service": {
+    "name": "Spotify Web API",
+    "kind": "online",
+    "home": "https://open.spotify.com",
+    "docs": "https://developer.spotify.com/documentation/web-api",
+    "base": "https://api.spotify.com/v1",
+    "auth": "oauth",
+    "auth_note": "Eigene Spotify-App (Client-ID) und Anmeldung mit PKCE; Token verschlüsselt gespeichert, wird automatisch erneuert. Entwicklungsmodus: höchstens 5 Nutzer je App, Besitzer mit Spotify Premium.",
+    "limits": "Gleitendes 30-Sekunden-Fenster (nicht veröffentlicht) – bei HTTP 429 wird gewartet (Retry-After)",
+    "terms": "https://developer.spotify.com/terms",
+    "note": "Nur Lese-Endpunkte, die für TagStudio naheliegen; Wiedergabe-, Schreib-, Podcast- und Hörbuch-Endpunkte sind weggelassen. Stand Februar 2026 (Entwicklungsmodus).",
+    "endpoints": [
+      {
+        "id": "me",
+        "method": "GET",
+        "path": "/me",
+        "label": "Eigenes Profil",
+        "status": "full",
+        "use": "Verbindung testen, Anmeldung",
+        "params": []
+      },
+      {
+        "id": "me-playlists",
+        "method": "GET",
+        "path": "/me/playlists",
+        "label": "Eigene Playlists",
+        "status": "full",
+        "use": "Playlists › Importieren › Aus Spotify",
+        "params": [
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "offset",
+            "default": "0"
+          }
+        ]
+      },
+      {
+        "id": "playlist",
+        "method": "GET",
+        "path": "/playlists/{playlist_id}",
+        "label": "Eine Playlist",
+        "status": "partial",
+        "use": "Name der Playlist",
+        "note": "Titel nur bei eigenen bzw. gemeinsamen Playlists",
+        "params": [
+          {
+            "name": "playlist_id",
+            "default": "",
+            "required": true,
+            "example": "3cEYpjA9oz9GiPac4AsH4n"
+          },
+          {
+            "name": "fields",
+            "default": "name"
+          }
+        ]
+      },
+      {
+        "id": "playlist-items",
+        "method": "GET",
+        "path": "/playlists/{playlist_id}/items",
+        "label": "Titel einer Playlist",
+        "status": "full",
+        "use": "Playlists › Importieren › Aus Spotify",
+        "note": "nur eigene bzw. gemeinsame Playlists (seit Februar 2026)",
+        "params": [
+          {
+            "name": "playlist_id",
+            "default": "",
+            "required": true,
+            "example": "3cEYpjA9oz9GiPac4AsH4n"
+          },
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "offset",
+            "default": "0"
+          }
+        ]
+      },
+      {
+        "id": "me-tracks",
+        "method": "GET",
+        "path": "/me/tracks",
+        "label": "Lieblingssongs",
+        "status": "full",
+        "use": "Playlists › Importieren › Aus Spotify (Lieblingssongs)",
+        "params": [
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "offset",
+            "default": "0"
+          }
+        ]
+      },
+      {
+        "id": "me-following",
+        "method": "GET",
+        "path": "/me/following",
+        "label": "Gefolgte Künstler",
+        "status": "full",
+        "use": "Entdecken: gefolgte Künstler übernehmen",
+        "params": [
+          {
+            "name": "type",
+            "default": "artist",
+            "required": true
+          },
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "after",
+            "default": ""
+          }
+        ]
+      },
+      {
+        "id": "me-top",
+        "method": "GET",
+        "path": "/me/top/{type}",
+        "label": "Meistgehörte Künstler oder Titel",
+        "status": "partial",
+        "use": "Entdecken (Top-Künstler, wahlweise)",
+        "note": "genutzt: type=artists",
+        "params": [
+          {
+            "name": "type",
+            "default": "artists",
+            "required": true,
+            "example": "artists"
+          },
+          {
+            "name": "time_range",
+            "default": "medium_term"
+          },
+          {
+            "name": "limit",
+            "default": "20"
+          }
+        ]
+      },
+      {
+        "id": "search",
+        "method": "GET",
+        "path": "/search",
+        "label": "Suchen",
+        "status": "full",
+        "use": "Online-Metadaten: ISRC (isrc:…) und Künstler + Titel",
+        "note": "höchstens 10 Treffer je Abfrage (seit Februar 2026)",
+        "params": [
+          {
+            "name": "q",
+            "default": "",
+            "required": true,
+            "example": "isrc:GBDUW0000053"
+          },
+          {
+            "name": "type",
+            "default": "track",
+            "required": true
+          },
+          {
+            "name": "limit",
+            "default": "10"
+          },
+          {
+            "name": "offset",
+            "default": "0"
+          }
+        ]
+      },
+      {
+        "id": "track",
+        "method": "GET",
+        "path": "/tracks/{id}",
+        "label": "Ein Titel",
+        "status": "full",
+        "use": "Online-Metadaten: Details, ISRC, Link",
+        "note": "Sammelabfrage /tracks entfällt seit 2026",
+        "params": [
+          {
+            "name": "id",
+            "default": "",
+            "required": true,
+            "example": "0DiWol3AO6WpXZgp0goxAV"
+          }
+        ]
+      },
+      {
+        "id": "artist",
+        "method": "GET",
+        "path": "/artists/{id}",
+        "label": "Ein Künstler",
+        "status": "partial",
+        "use": "Online-Metadaten: Genre",
+        "note": "genutzt: genres",
+        "params": [
+          {
+            "name": "id",
+            "default": "",
+            "required": true,
+            "example": "4tZwfgrHOc3mvqYlEYSvVi"
+          }
+        ]
+      },
+      {
+        "id": "album",
+        "method": "GET",
+        "path": "/albums/{id}",
+        "label": "Ein Album",
+        "status": "none",
+        "note": "liefert seit 2026 kein Label mehr",
+        "params": [
+          {
+            "name": "id",
+            "default": "",
+            "required": true,
+            "example": "2noRn2Aes5aoNVsU6iWThc"
+          }
+        ]
+      },
+      {
+        "id": "album-tracks",
+        "method": "GET",
+        "path": "/albums/{id}/tracks",
+        "label": "Titel eines Albums",
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "default": "",
+            "required": true,
+            "example": "2noRn2Aes5aoNVsU6iWThc"
+          },
+          {
+            "name": "limit",
+            "default": "50"
+          }
+        ]
+      },
+      {
+        "id": "artist-albums",
+        "method": "GET",
+        "path": "/artists/{id}/albums",
+        "label": "Alben eines Künstlers",
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "default": "",
+            "required": true,
+            "example": "4tZwfgrHOc3mvqYlEYSvVi"
+          },
+          {
+            "name": "include_groups",
+            "default": "album,single"
+          },
+          {
+            "name": "limit",
+            "default": "20"
+          }
+        ]
+      },
+      {
+        "id": "me-albums",
+        "method": "GET",
+        "path": "/me/albums",
+        "label": "Gespeicherte Alben",
+        "status": "none",
+        "params": [
+          {
+            "name": "limit",
+            "default": "50"
+          }
+        ]
+      },
+      {
+        "id": "recently-played",
+        "method": "GET",
+        "path": "/me/player/recently-played",
+        "label": "Zuletzt gehört",
+        "status": "none",
+        "params": [
+          {
+            "name": "limit",
+            "default": "50"
+          }
+        ]
+      },
+      {
+        "id": "currently-playing",
+        "method": "GET",
+        "path": "/me/player/currently-playing",
+        "label": "Läuft gerade",
+        "status": "none",
+        "params": []
+      },
+      {
+        "id": "library-contains",
+        "method": "GET",
+        "path": "/me/library/contains",
+        "label": "In der Bibliothek?",
+        "status": "none",
+        "params": [
+          {
+            "name": "uris",
+            "default": "",
+            "required": true,
+            "example": "spotify:track:0DiWol3AO6WpXZgp0goxAV"
+          }
+        ]
+      }
+    ],
+    "example": {
+      "artist": "Daft Punk",
+      "title": "One More Time",
+      "isrc": "GBDUW0000053",
+      "duration": "5:20"
+    }
+  }
+}

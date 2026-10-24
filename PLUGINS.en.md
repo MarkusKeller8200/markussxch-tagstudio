@@ -270,6 +270,34 @@ way as the beets plugin “beatport4”. Unofficial: Beatport can change access 
 Matching: first via a stored Beatport ID (`TXXX:BEATPORT_TRACK_ID`), then ISRC, otherwise a search for artist + title
 + mix name; title, artist, length and mix name are rated. At most ~3 requests per second.
 
+## Built in: Spotify and SoundCloud
+
+Read your playlists and track data at Spotify or SoundCloud – **read only**, nothing in your account is changed. Both
+need **your own app** at the service; TagStudio does not ship shared credentials.
+
+- **Spotify:** sign in on [developer.spotify.com](https://developer.spotify.com/dashboard) with your account (Spotify
+  Premium required), “Create app”, enter exactly `http://127.0.0.1:8765/callback` as redirect URI, choose “Web API”.
+  Paste the client ID under Plugins › Spotify › **Sign in …** (no secret needed, sign-in with PKCE). Development mode:
+  at most 5 users per app. Since February 2026 Spotify returns tracks only for own or collaborative playlists, search
+  at most 10 results per query and no label on albums.
+- **SoundCloud:** register an app in “SoundCloud for Developers” (self-registration with Artist Pro), redirect URI
+  `http://127.0.0.1:8766/callback`. Paste client ID **and** client secret under Plugins › SoundCloud › **Sign in …**
+  (OAuth 2.1 with PKCE).
+- **Sign in …** opens the sign-in page in the browser; TagStudio briefly answers the redirect to `127.0.0.1` itself.
+  If that does not work (port in use), choose “Paste address”: after agreeing, paste the address from the address bar.
+  Credentials and token are stored encrypted in the plugin's data folder and renewed automatically; “Sign out …”
+  deletes the sign-in (optionally also the credentials).
+- **Playlists › Import ▾ › “From Spotify …” / “From SoundCloud …”** (appears after signing in): Liked Songs or likes,
+  own tracks (SoundCloud) and your playlists as playlists with **entries without a file** (artist, title, mix, ISRC,
+  duration, link) in the folder “Spotify” or “SoundCloud” – then “Match with library …” and “Export shopping list …”
+  (with link). “↗” in the list opens the track at the service.
+- **Online metadata:** sources “Spotify” and “SoundCloud” (off until you tick them) – album, date, ISRC, genre, cover
+  and as fields `TXXX:SPOTIFY_TRACK_ID`/`TXXX:SPOTIFY_URL` or `TXXX:SOUNDCLOUD_TRACK_ID`/`TXXX:SOUNDCLOUD_URL`.
+- **“Add followed artists to “Discover” …”:** adds the artists (Spotify, optionally also your top 20) or accounts
+  (SoundCloud) you follow under Discover › Followed artists.
+- The card lists all read endpoints with their implementation state under “endpoints”; the API tester calls them with
+  your sign-in (token blacked out).
+
 ## Built in: Lexicon
 
 Connects TagStudio with [Lexicon DJ](https://www.lexicondj.com) through its Local API (in Lexicon: Settings ›

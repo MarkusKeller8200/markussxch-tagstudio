@@ -447,9 +447,12 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   eigenen Beatport-Login (Passwort wird nie gespeichert). Die Vorschau zeigt **alle gelieferten Felder** – gleiche
   grau, abgewählte und schon gefüllte ungehakt.
 - **Online-Metadaten:** Album, Datum, Label, Katalognummer, ISRC, Genre, Cover u. a. von MusicBrainz (auch per
-  AcoustID-Fingerabdruck), Deezer, iTunes, Discogs und Last.fm. Standard: nur leere Felder ergänzen; je Feld ist die
+  AcoustID-Fingerabdruck), Deezer, Spotify, iTunes, SoundCloud, Discogs und Last.fm. Standard: nur leere Felder ergänzen; je Feld ist die
   erste Quelle vorausgewählt, andere erscheinen als Alternative. Discogs-Token, Last.fm- und AcoustID-Schlüssel unter
   Plugins › Online-Metadaten › „Schlüssel …“ (verschlüsselt gespeichert); „Verbindungen testen“ prüft die Dienste.
+- **Spotify und SoundCloud (nur lesen, eigene App beim Dienst):** Playlists, Lieblingssongs bzw. Likes als Playlists
+  mit Einträgen ohne Datei (Playlists › Importieren ▾), Titel-Daten mit Link für die Online-Metadaten und gefolgte
+  Künstler für „Entdecken“. Einrichtung in [PLUGINS.md](PLUGINS.md).
 - **Mixed In Key übernehmen:** Tonart, BPM und Energie aus den Stellen, an die Mixed In Key sie geschrieben hat
   (Kommentar „10A - Energy 7“, Titel- oder Künstler-Präfix, Gruppierung, Label, TXXX:EnergyLevel) in TKEY, TBPM und
   ENERGY übernehmen; Präfixe auf Wunsch entfernen.

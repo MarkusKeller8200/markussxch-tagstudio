@@ -34,6 +34,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   von 1001Tracklists, MixID, Beatport u. a. als Einträge ohne Datei (Nummern, Zeitmarken, Labels und „ID - ID“
   fallen weg) – danach „Mit Bibliothek abgleichen …“; Spotify-Exporte (z. B. Exportify-CSV) über „Datei …“.
   TagStudio ruft dafür keine Webseiten ab.
+- **Plugins Spotify und SoundCloud (#280, nur lesen):** mit deiner eigenen App beim Dienst (Spotify: Client-ID,
+  Premium; SoundCloud: Client-ID und Secret, Artist Pro) und Anmeldung im Browser (OAuth mit PKCE, Token verschlüsselt,
+  automatisch erneuert). Playlists, Lieblingssongs bzw. Likes und eigene Titel kommen über Playlists › Importieren ▾
+  als Einträge ohne Datei mit Link („↗“), danach Abgleich und Einkaufsliste (mit Link); neue Quellen „Spotify“ und
+  „SoundCloud“ in den Online-Metadaten (ISRC, Link als `TXXX:SPOTIFY_URL` bzw. `TXXX:SOUNDCLOUD_URL`); gefolgte
+  Künstler lassen sich in „Entdecken“ übernehmen. Alle Lese-Endpunkte stehen mit Umsetzungsstand im API-Tester.
 - **Zurück zur vorherigen Ansicht (#274):** Nach einem Sprung aus dem Inhalt (z. B. Playlist › „Im Tagger öffnen“)
   führt „← Zurück“ oben in der Seitenleiste an dieselbe Stelle zurück – mit Auswahl, Filter und Bildlauf; „→“
   vorwärts, Rechtsklick zeigt die letzten Stationen. Auch Alt+← / Alt+→ (ausser im Vergleich) und die Maustasten

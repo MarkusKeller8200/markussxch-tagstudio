@@ -254,7 +254,7 @@ class TestOnlinePlugin(Base):
     def test_keys_status_test_and_missing(self):
         info = {p["id"]: p for p in self.s.plugins_list()["plugins"]}["online"]
         self.assertEqual(info["state"], "ready")
-        self.assertIn("ohne Schlüssel/fpcalc: Discogs, AcoustID, Last.fm", info["status_text"])
+        self.assertIn("ohne Schlüssel/fpcalc: Discogs, Spotify, SoundCloud, AcoustID, Last.fm", info["status_text"])
         # Discogs/Last.fm ohne Schlüssel: übersprungen mit Hinweis, kein Fehler
         res = self.fetch(["k.mp3"], mb=False, deezer=False, itunes=True, discogs=True, lastfm=True, cover="replace",
                          itunes_country="de")
@@ -273,7 +273,7 @@ class TestOnlinePlugin(Base):
         self.act("keys", pid="discogs", discogs="DTOK")
         info = {p["id"]: p for p in self.s.plugins_list()["plugins"]}
         self.assertIn("Token gespeichert", info["discogs"]["status_text"])
-        self.assertIn("ohne Schlüssel/fpcalc: AcoustID, Last.fm", info["online"]["status_text"])
+        self.assertIn("ohne Schlüssel/fpcalc: Spotify, SoundCloud, AcoustID, Last.fm", info["online"]["status_text"])
         with open(os.path.join(plugins.data_root(), "discogs", "keys.bin"), "rb") as fh:
             raw = fh.read()
         if os.name == "nt":

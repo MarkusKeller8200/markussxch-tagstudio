@@ -101,6 +101,11 @@ Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
   Header/Parameter. Schlüssel werden eingesetzt, in URL und Antwort aber als „•••“ angezeigt.
 - Gemeinsam: `servicekit.py` (Client mit `onlinematch.INTERVALS` und gemeinsamer Drosselung `onlinematch.SHARED`,
   Schlüsselablage je Plugin mit DPAPI, einmalige Übernahme aus `Plugin-Daten/online/keys.bin`).
+- **OAuth mit PKCE** (#280, `oauthkit.py`): für Dienste mit eigener App des Users (Spotify, SoundCloud). Anmeldeseite
+  im Browser, Rückleitung auf `http://127.0.0.1:<Port>/callback` nimmt ein kurzzeitiger lokaler Server an; sonst
+  „Adresse einfügen“. Client-ID/Secret und Token in der Schlüsselablage des Plugins, Erneuerung vor Ablauf bzw. nach
+  HTTP 401. Plugins mit `playlists(ctx)` dürfen in `playlist_files` statt Dateien `items` mit Einträgen ohne Datei
+  (`ref`) liefern; Playlist-Quellen mit `ready(ctx)` erscheinen erst, wenn das Plugin bereit (angemeldet) ist.
 - Nutzer der Dienste: `online` (Quellen-Häkchen nur für eingeschaltete Dienst-Plugins, sonst Hinweis; Optionsschlüssel
   wie bis 4.5), Entdecken (Deezer über `plugins/deezer`, Beatport über `plugins/beatport`; ausgeschaltet → Hinweis im
   Protokoll). Andere Plugins erreichen Dienste über `ctx.service(pid)` / `ctx.service_ctx(pid)`.

@@ -283,5 +283,6 @@
 "{x} unbekannte (ID) ausgelassen.": ["{x} unknown (ID) skipped.", "{x} unbekannti (ID) usgla."],
 "{x}: Bibliothek nicht lesbar ({x}).": ["{x}: library not readable ({x}).", "{x}: Bibliothek nöd läsbar ({x})."],
 "Keine Titel erkannt – je Zeile {q}.": ["No tracks recognised – one {q} per line.", "Kei Titel erkännt – pro Ziile {q}."],
-"Trackliste": ["Tracklist", "Trackliste"]
+"Trackliste": ["Tracklist", "Trackliste"],
+"Bei der Quelle öffnen ({x})": ["Open at the source ({x})", "Bi de Quälle öffne ({x})"]
 }

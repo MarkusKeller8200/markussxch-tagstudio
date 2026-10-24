@@ -442,5 +442,8 @@
 "Application Support",
 "Track",
 "SELECT id, title, parentListId, nextListId FROM Playlist",
-"artist name(s)"
+"artist name(s)",
+"Bearer",
+"SoundCloud",
+"Spotify Web API"
 ]

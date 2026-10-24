@@ -109,7 +109,7 @@ def _unique(path: str) -> str:
 
 def clean_item(x) -> dict | None:
     """Eintrag bereinigen. Ein Eintrag braucht einen Pfad oder eine Angabe „ref“ ohne Datei (#271:
-    {"artist", "title", "mix", "isrc", "dur", "source"} – z. B. aus einer CSV oder einer fremden Trackliste)."""
+    {"artist", "title", "mix", "isrc", "dur", "source", "url"} – z. B. aus einer CSV oder einer fremden Trackliste)."""
     if isinstance(x, str):
         x = {"path": x}
     if not isinstance(x, dict):
@@ -120,6 +120,9 @@ def clean_item(x) -> dict | None:
     if isinstance(out.get("ref"), dict):
         r = {k: str(out["ref"][k]).strip()[:300] for k in ("artist", "title", "mix", "isrc", "source")
              if str(out["ref"].get(k) or "").strip()}
+        u = str(out["ref"].get("url") or "").strip()
+        if u.startswith("https://") and len(u) < 400:                 # #280: Link zur Quelle (Spotify, SoundCloud …)
+            r["url"] = u
         if out["ref"].get("dur"):
             try:
                 r["dur"] = int(float(out["ref"]["dur"]))

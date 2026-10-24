@@ -194,14 +194,15 @@ class DjSetMixin:
                 with self.lock:
                     st = self._pls()
                     pl = st.find_source(pid, i) or st.find(r["name"], folder)
-                    items = [{"path": p} for p in r["files"]]
+                    # #280: Online-Quellen (Spotify, SoundCloud) liefern Einträge ohne Datei unter „items“
+                    items = r.get("items") if isinstance(r.get("items"), list) else [{"path": p} for p in r["files"]]
                     if pl is None:
                         pl = st.create(st.unique_name(r["name"], folder), folder, "import", items,
                                        source={"plugin": pid, "id": i})
                     else:
                         pl = st.update(pl["id"], "Playlist aktualisieren", items=items, source={"plugin": pid, "id": i})
                 missing += r.get("missing", 0)
-                out.append({"name": f"{folder}: {pl['name']}", "id": pl["id"], "count": len(r["files"]),
+                out.append({"name": f"{folder}: {pl['name']}", "id": pl["id"], "count": len(items),
                             "missing": r.get("missing", 0), "files": r["files"]})
             first = out[0] if out else None
             if first and load:

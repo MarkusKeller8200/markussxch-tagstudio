@@ -182,7 +182,8 @@ Bestätigung, Radio Edit ≠ Extended Mix).
 | Serato, Engine DJ, VirtualDJ (#278) | Bibliothek des Programms nur lesen (Crates, Datenbank-Kopie, Ordner/Playlists) | 4.8.0 |
 | Trackliste einfügen (#279) | kopierter Text von 1001Tracklists, MixID, Beatport … → Einträge ohne Datei → Abgleich | 4.8.0 |
 | Spotify-Export (#279) | CSV von Exportify, TuneMyMusic u. a. (Titel, Künstler, ISRC, Dauer) über „Datei …“ | 4.8.0 |
-| MixID (#218), 1001Tracklists (#180), Spotify-/Beatport-Abruf | direkter Abruf; Rechte bzw. Zugang vorher klären (#279, Schritt 2) | später |
+| Spotify, SoundCloud (#280) | Plugins mit eigener App des Users: Playlists, Lieblingssongs/Likes → Einträge ohne Datei mit Link | 4.8.0 |
+| MixID (#218), 1001Tracklists (#180), Beatport-Playlists | direkter Abruf; Rechte bzw. Zugang vorher klären (Anfrage an 1001Tracklists vom User) | später |
 | SonoVault (#258), Entdecken | Neuerscheinungen als „Merkliste“-Playlist (fehlende Titel = Einkaufsliste) | später |
 
 **Fehlende Titel** aus externen Quellen bleiben als Einträge ohne Datei in der Playlist (grau, mit Künstler/Titel).
@@ -379,8 +380,14 @@ unverändert (Test vergleicht Prüfsummen vor und nach dem Lesen).
   ausgelassen. Ergebnis: Einträge ohne Datei im Ordner der gewählten Quelle (1001Tracklists, MixID, Beatport,
   Spotify, sonst „Tracklisten“) → „Mit Bibliothek abgleichen …“.
 - **Spotify-Exporte** als CSV über „Datei …“: Spalten „Track Name“, „Artist Name(s)“, „ISRC“, „Duration (ms)“.
-- **Schritt 2 (offen, Entscheid User):** Spotify-Web-API mit eigener Spotify-App des Users; Beatport-Playlists über
-  die Anmeldung im Beatport-Plugin; 1001Tracklists nur mit Erlaubnis (#180); MixID über #218.
+- **Schritt 2:** Spotify und SoundCloud als Plugins (#280, unten); Beatport-Playlists offen; 1001Tracklists nur mit
+  Erlaubnis (#180 – Anfrage um API-Zugang vom User vorbereitet); MixID über #218.
+
+**#280 Spotify und SoundCloud** (Entscheid User 24.10.2026: Premium und eigene Spotify-App vorhanden, SoundCloud
+Artist Pro vorhanden, möglichst alle Lese-Endpunkte, in 4.8.0). `plugins/spotify`, `plugins/soundcloud`, Anmeldung
+über `oauthkit.py` (PKCE). `playlist_files` liefert `items` mit `ref` (Künstler, Titel, Mix, ISRC, Dauer, `source`,
+`url`); `start_dj_source_import` übernimmt sie unverändert. `ref.url` (nur `https://`) erscheint als „↗“ in der Liste
+und als Spalte „Link“ in der Einkaufsliste. Tests: `tests/test_spotify_soundcloud.py`, UI `test_spotify_soundcloud_plugins`.
 
 **Tests:** `tests/test_djlibs.py` (Serato, Engine, VirtualDJ, unverändert nach dem Lesen, Tracklisten, Spotify-CSV,
 Sitzung mit erneutem Import), Oberflächentest `test_playlists_dj_and_text_import`.

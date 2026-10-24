@@ -122,6 +122,7 @@ function plsRenderList() {
   list.innerHTML = head + pl.items.map((r) => {
     const t = r.artist && r.title ? `${r.artist} – ${r.title}` : (r.title || r.artist || r.name);
     const miss = r.ref ? ' <span class="chip sm" title="Nur Künstler und Titel, keine Datei – „Mit Bibliothek abgleichen …“ sucht sie">ohne Datei</span>'
+      + (r.url ? ` <a href="#" class="pls-link" data-url="${esc(r.url)}" title="Bei der Quelle öffnen (${esc(r.url.replace(/^https:\/\/(www\.|open\.)?/, "").split("/")[0])})">↗</a>` : "")
       : r.missing ? ` <span class="muted sm">${r.in_archive ? "(im Archiv)" : "(fehlt)"}</span>` : "";
     const bpm = r.bpm ? (Math.round(r.bpm * 10) / 10).toString().replace(".", ",") : "–";
     return `<div class="pls-row${PLS.sel.has(r.k) ? " sel" : ""}${r.missing ? " missing" : ""}${r.lock ? " locked" : ""}" data-k="${r.k}" draggable="${!pl.archived}" role="option" aria-selected="${PLS.sel.has(r.k)}" title="${esc(r.in_archive || r.path)}">
@@ -742,6 +743,8 @@ function plsInit() {
   });
   const list = $("#plsList");
   list.addEventListener("click", (e) => {
+    const lk = e.target.closest(".pls-link[data-url]");                       // #280: Spotify/SoundCloud-Link
+    if (lk) { e.preventDefault(); e.stopPropagation(); call("open_url", lk.dataset.url); return; }
     const row = e.target.closest(".pls-row[data-k]"); if (!row) return;
     list.focus({ preventScroll: true });
     const k = +row.dataset.k;

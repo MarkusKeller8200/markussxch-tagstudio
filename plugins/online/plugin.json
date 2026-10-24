@@ -1,7 +1,7 @@
 {
   "id": "online",
   "name": "Online-Metadaten",
-  "version": "2.0",
+  "version": "2.1",
   "min_app": "4.8.0",
   "category": "online",
   "api": 1,

@@ -23,7 +23,7 @@ BUNDLE_ID = "ch.markussxch.tagstudio"
 
 # Module, die nur von Plugins (zur Laufzeit geladene .py-Dateien) gebraucht werden – PyInstaller sieht sie sonst nicht
 HIDDEN = [
-    "services", "servicekit", "feedback", "lyricsync", "gridstatus", "beattag",   # #204: Online-Dienste als Plugins
+    "services", "servicekit", "oauthkit", "feedback", "lyricsync", "gridstatus", "beattag",   # #204: Online-Dienste als Plugins
     "keyscan",                                                     # #244/#245: Tonart mit OpenKeyScan
     "tsmeta", "i18n",                                              # #157: Mehrsprachigkeit
     # eigene Module (werden teils erst bei Bedarf importiert)

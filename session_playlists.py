@@ -168,7 +168,7 @@ class PlaylistMixin:
                          "dir": os.path.basename(os.path.dirname(x.get("path", ""))),
                          "artist": inf.get("artist") or x.get("artist", "") or ref.get("artist", ""),
                          "title": inf.get("title") or x.get("title", "") or (ref.get("title", "") + (f" ({ref['mix']})" if ref.get("mix") else "")),
-                         "ref": not x.get("path"), "bpm": inf.get("bpm"), "key": inf.get("key"),
+                         "ref": not x.get("path"), "url": ref.get("url", ""), "bpm": inf.get("bpm"), "key": inf.get("key"),
                          "dur": inf.get("dur") or x.get("dur") or ref.get("dur") or 0,
                          "rating": inf.get("rating", 0), "i": inf.get("i"), "missing": bool(inf.get("missing")),
                          "in_archive": inf.get("archived", ""), "lock": bool(x.get("lock")), "dup": count.get(k, 0) > 1,
@@ -662,10 +662,10 @@ class PlaylistMixin:
                         continue
                     rows.append([p["name"], ref.get("artist") or x.get("artist", ""), ref.get("title") or x.get("title", ""),
                                  ref.get("mix", ""), ref.get("isrc", ""), x.get("path", ""),
-                                 "Datei fehlt" if x.get("path") else "nicht in der Bibliothek"])
+                                 "Datei fehlt" if x.get("path") else "nicht in der Bibliothek", ref.get("url", "")])
             if not rows:
                 raise ValueError("Es fehlen keine Titel.")
-            tagger.write_csv(dest, ["Playlist", "Künstler", "Titel", "Mix", "ISRC", "Pfad", "Status"], rows)
+            tagger.write_csv(dest, ["Playlist", "Künstler", "Titel", "Mix", "ISRC", "Pfad", "Status", "Link"], rows)
             return {"ok": True, "path": dest, "message": f"Einkaufsliste mit {len(rows)} Titel(n) gespeichert: {os.path.basename(dest)}"}
 
     def pl_import_file(self, path, folder="") -> dict:

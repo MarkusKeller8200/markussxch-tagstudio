@@ -17,9 +17,12 @@ from onlinematch import HttpError, MAYBE, SURE
 
 # Quelle (Optionsschlüssel wie bis 4.5, damit gemerkte Einstellungen gelten) → Dienst-Plugin, in Vorrang-Reihenfolge
 SOURCES = [("mb", "musicbrainz", "MusicBrainz (frei)"), ("discogs", "discogs", "Discogs (eigener Token nötig)"),
-           ("deezer", "deezer", "Deezer (frei)"), ("itunes", "itunes", "iTunes (frei, langsam: ca. 20 Abfragen pro Minute)")]
+           ("deezer", "deezer", "Deezer (frei)"), ("spotify", "spotify", "Spotify (eigene Spotify-App und Anmeldung nötig)"),
+           ("itunes", "itunes", "iTunes (frei, langsam: ca. 20 Abfragen pro Minute)"),
+           ("soundcloud", "soundcloud", "SoundCloud (eigene SoundCloud-App und Anmeldung nötig)")]
 EXTRA = [("acoustid", "acoustid"), ("lastfm", "lastfm")]
 SOURCE_NAME = {"mb": "MusicBrainz", "discogs": "Discogs", "deezer": "Deezer", "itunes": "iTunes", "lastfm": "Last.fm",
+               "spotify": "Spotify", "soundcloud": "SoundCloud",
                "acoustid": "AcoustID"}
 DEFAULT_ON = {"mb": True, "deezer": True}
 

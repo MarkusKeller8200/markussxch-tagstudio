@@ -1640,3 +1640,4 @@ html.i18n-wait body{visibility:hidden}
 .pls-st{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--raise);white-space:nowrap}
 .pls-st.sure{color:var(--ok)} .pls-st.unclear{color:var(--diff)} .pls-st.missing{color:var(--warn)}
 .chip.on{color:var(--acc);border-color:var(--acc)}
+.pls-link { text-decoration: none; color: var(--acc); padding: 0 2px; }   /* #280 */

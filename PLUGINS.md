@@ -273,6 +273,34 @@ und optional Titel/Künstler/Album von Beatport. Nutzt die Beatport-API v4 mit *
 Treffer: zuerst über eine gespeicherte Beatport-ID (`TXXX:BEATPORT_TRACK_ID`), dann ISRC, sonst Suche nach
 Künstler + Titel + Mix-Name; bewertet werden Titel, Künstler, Länge und Mix-Name. Höchstens ~3 Anfragen pro Sekunde.
 
+## Eingebaut: Spotify und SoundCloud
+
+Lesen deine Playlists und Titel-Daten bei Spotify bzw. SoundCloud – **nur lesen**, in deinem Konto wird nichts
+geändert. Beide brauchen eine **eigene App** beim Dienst; TagStudio liefert keine gemeinsamen Zugangsdaten mit.
+
+- **Spotify:** auf [developer.spotify.com](https://developer.spotify.com/dashboard) mit deinem Konto anmelden
+  (Spotify Premium nötig), „Create app“, als Redirect URI genau `http://127.0.0.1:8765/callback` eintragen, „Web API“
+  wählen. Die Client-ID unter Plugins › Spotify › **Anmelden …** einfügen (ein Secret ist nicht nötig, Anmeldung mit
+  PKCE). Entwicklungsmodus: höchstens 5 Nutzer je App. Seit Februar 2026 liefert Spotify Titel nur für eigene bzw.
+  gemeinsame Playlists, die Suche höchstens 10 Treffer je Abfrage und beim Album kein Label mehr.
+- **SoundCloud:** App in „SoundCloud for Developers“ registrieren (Selbstregistrierung mit Artist Pro), Redirect URI
+  `http://127.0.0.1:8766/callback`. Client-ID **und** Client-Secret unter Plugins › SoundCloud › **Anmelden …**
+  einfügen (OAuth 2.1 mit PKCE).
+- **Anmelden …** öffnet die Anmeldeseite im Browser; TagStudio nimmt die Rückleitung auf `127.0.0.1` kurz selbst an.
+  Geht das nicht (Port belegt), „Adresse einfügen“ wählen: nach der Zustimmung die Adresse aus der Adresszeile
+  einfügen. Zugangsdaten und Token liegen verschlüsselt im Datenordner des Plugins und werden automatisch erneuert;
+  „Abmelden …“ löscht die Anmeldung (wahlweise auch die Zugangsdaten).
+- **Playlists › Importieren ▾ › „Aus Spotify …“ / „Aus SoundCloud …“** (erscheint nach der Anmeldung): Lieblingssongs
+  bzw. Likes, eigene Titel (SoundCloud) und deine Playlists als Playlists mit **Einträgen ohne Datei** (Künstler,
+  Titel, Mix, ISRC, Dauer, Link) im Ordner „Spotify“ bzw. „SoundCloud“ – danach „Mit Bibliothek abgleichen …“ und
+  „Einkaufsliste exportieren …“ (mit Link). „↗“ in der Liste öffnet den Titel beim Dienst.
+- **Online-Metadaten:** Quellen „Spotify“ und „SoundCloud“ (aus, bis du sie anhakst) – Album, Datum, ISRC, Genre,
+  Cover und als Felder `TXXX:SPOTIFY_TRACK_ID`/`TXXX:SPOTIFY_URL` bzw. `TXXX:SOUNDCLOUD_TRACK_ID`/`TXXX:SOUNDCLOUD_URL`.
+- **„Gefolgte Künstler in „Entdecken“ übernehmen …“:** ergänzt die Künstler (Spotify, wahlweise auch deine Top 20)
+  bzw. Konten (SoundCloud), denen du folgst, unter Entdecken › Gefolgte Künstler.
+- Die Kachel zeigt unter „Endpunkte“ alle Lese-Endpunkte mit Umsetzungsstand; der API-Tester ruft sie mit deiner
+  Anmeldung auf (Token geschwärzt).
+
 ## Eingebaut: Lexicon
 
 Verbindet TagStudio mit [Lexicon DJ](https://www.lexicondj.com) über dessen Local API (in Lexicon: Settings ›

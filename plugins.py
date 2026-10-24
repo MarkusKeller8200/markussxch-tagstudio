@@ -716,7 +716,16 @@ class Manager:
 
     def playlist_sources(self) -> list[dict]:
         """Bereite, eingeschaltete Plugins mit playlists(ctx) – z. B. Lexicon."""
-        return [{"id": p.id, "name": p.name} for p, _fn in self._ready_with("playlists")]
+        out = []
+        for p, _fn in self._ready_with("playlists"):
+            rd = getattr(p.load(), "ready", None)              # #280: Online-Dienste erst nach der Anmeldung
+            try:
+                if callable(rd) and not rd(Context(p))[0]:
+                    continue
+            except Exception:  # noqa: BLE001
+                continue
+            out.append({"id": p.id, "name": p.name})
+        return out
 
     def call_playlist(self, pid, fn_name, *args, session=None, cancel=None, progress=None):
         if fn_name not in self.PLAYLIST_FNS:

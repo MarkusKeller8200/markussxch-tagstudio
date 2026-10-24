@@ -1,0 +1,373 @@
+{
+  "id": "soundcloud",
+  "name": "SoundCloud",
+  "version": "1.0",
+  "min_app": "4.8.0",
+  "category": "online",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Liest deine SoundCloud-Playlists, Likes und eigenen Titel (Playlists › Importieren › „Aus SoundCloud …“, danach Abgleich mit der Bibliothek), Titel-Daten mit SoundCloud-Link für „Online-Metadaten“ und gefolgte Konten für „Entdecken“. Braucht eine eigene SoundCloud-App (Selbstregistrierung mit Artist Pro). Nur lesen – nichts in deinem SoundCloud-Konto wird geändert.",
+  "notes": "Keine Zusatzpakete nötig. Unter „Anmelden …“ Client-ID und Secret deiner SoundCloud-App eintragen und anmelden.",
+  "fields": [
+    "TXXX:SOUNDCLOUD_TRACK_ID",
+    "TXXX:SOUNDCLOUD_URL"
+  ],
+  "service": {
+    "name": "SoundCloud API",
+    "kind": "online",
+    "home": "https://soundcloud.com",
+    "docs": "https://developers.soundcloud.com/docs/api",
+    "base": "https://api.soundcloud.com",
+    "auth": "oauth",
+    "auth_note": "Eigene SoundCloud-App (Client-ID und Secret, Artist Pro) und Anmeldung mit OAuth 2.1 + PKCE; Token verschlüsselt gespeichert, wird automatisch erneuert (Refresh-Token nur einmal gültig).",
+    "limits": "Bei HTTP 429 wird gewartet (Retry-After); Grenzen siehe Rate Limits in der Dokumentation",
+    "note": "Nur Lese-Endpunkte; Hochladen, Kommentieren, Liken, Folgen und Streams sind weggelassen.",
+    "endpoints": [
+      {
+        "id": "me",
+        "method": "GET",
+        "path": "/me",
+        "label": "Eigenes Profil",
+        "status": "full",
+        "use": "Verbindung testen, Anmeldung",
+        "params": []
+      },
+      {
+        "id": "me-playlists",
+        "method": "GET",
+        "path": "/me/playlists",
+        "label": "Eigene Playlists",
+        "status": "full",
+        "use": "Playlists › Importieren › Aus SoundCloud",
+        "params": [
+          {
+            "name": "show_tracks",
+            "default": "false"
+          },
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "linked_partitioning",
+            "default": "true"
+          }
+        ]
+      },
+      {
+        "id": "playlist",
+        "method": "GET",
+        "path": "/playlists/{playlist_id}",
+        "label": "Eine Playlist mit Titeln",
+        "status": "full",
+        "use": "Playlists › Importieren › Aus SoundCloud",
+        "params": [
+          {
+            "name": "playlist_id",
+            "default": "",
+            "required": true,
+            "example": "soundcloud:playlists:405726"
+          },
+          {
+            "name": "show_tracks",
+            "default": "true"
+          }
+        ]
+      },
+      {
+        "id": "playlist-tracks",
+        "method": "GET",
+        "path": "/playlists/{playlist_id}/tracks",
+        "label": "Titel einer Playlist",
+        "status": "none",
+        "params": [
+          {
+            "name": "playlist_id",
+            "default": "",
+            "required": true,
+            "example": "soundcloud:playlists:405726"
+          },
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "linked_partitioning",
+            "default": "true"
+          }
+        ]
+      },
+      {
+        "id": "me-likes-tracks",
+        "method": "GET",
+        "path": "/me/likes/tracks",
+        "label": "Gelikte Titel",
+        "status": "full",
+        "use": "Playlists › Importieren › Aus SoundCloud (Likes)",
+        "params": [
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "linked_partitioning",
+            "default": "true"
+          }
+        ]
+      },
+      {
+        "id": "me-likes-playlists",
+        "method": "GET",
+        "path": "/me/likes/playlists",
+        "label": "Gelikte Playlists",
+        "status": "none",
+        "params": [
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "linked_partitioning",
+            "default": "true"
+          }
+        ]
+      },
+      {
+        "id": "me-tracks",
+        "method": "GET",
+        "path": "/me/tracks",
+        "label": "Eigene hochgeladene Titel",
+        "status": "full",
+        "use": "Playlists › Importieren › Aus SoundCloud (Eigene Titel)",
+        "params": [
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "linked_partitioning",
+            "default": "true"
+          }
+        ]
+      },
+      {
+        "id": "me-followings",
+        "method": "GET",
+        "path": "/me/followings",
+        "label": "Gefolgte Konten",
+        "status": "full",
+        "use": "Entdecken: gefolgte Künstler übernehmen",
+        "params": [
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "linked_partitioning",
+            "default": "true"
+          }
+        ]
+      },
+      {
+        "id": "me-followers",
+        "method": "GET",
+        "path": "/me/followers",
+        "label": "Follower",
+        "status": "none",
+        "params": [
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "linked_partitioning",
+            "default": "true"
+          }
+        ]
+      },
+      {
+        "id": "tracks-search",
+        "method": "GET",
+        "path": "/tracks",
+        "label": "Titel suchen",
+        "status": "full",
+        "use": "Online-Metadaten: Künstler + Titel",
+        "note": "Filter u. a. genres, bpm[from], duration[from] (ms), access",
+        "params": [
+          {
+            "name": "q",
+            "default": "",
+            "required": true,
+            "example": "Daft Punk One More Time"
+          },
+          {
+            "name": "limit",
+            "default": "10"
+          },
+          {
+            "name": "access",
+            "default": "playable,preview,blocked"
+          }
+        ]
+      },
+      {
+        "id": "track",
+        "method": "GET",
+        "path": "/tracks/{track_id}",
+        "label": "Ein Titel",
+        "status": "none",
+        "note": "Suche liefert schon den ganzen Titel",
+        "params": [
+          {
+            "name": "track_id",
+            "default": "",
+            "required": true,
+            "example": "soundcloud:tracks:293"
+          }
+        ]
+      },
+      {
+        "id": "track-related",
+        "method": "GET",
+        "path": "/tracks/{track_id}/related",
+        "label": "Ähnliche Titel",
+        "status": "none",
+        "params": [
+          {
+            "name": "track_id",
+            "default": "",
+            "required": true,
+            "example": "soundcloud:tracks:293"
+          },
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "linked_partitioning",
+            "default": "true"
+          }
+        ]
+      },
+      {
+        "id": "users-search",
+        "method": "GET",
+        "path": "/users",
+        "label": "Konten suchen",
+        "status": "none",
+        "params": [
+          {
+            "name": "q",
+            "default": "",
+            "required": true,
+            "example": "Daft Punk"
+          },
+          {
+            "name": "limit",
+            "default": "10"
+          }
+        ]
+      },
+      {
+        "id": "user",
+        "method": "GET",
+        "path": "/users/{user_id}",
+        "label": "Ein Konto",
+        "status": "none",
+        "params": [
+          {
+            "name": "user_id",
+            "default": "",
+            "required": true,
+            "example": "soundcloud:users:183"
+          }
+        ]
+      },
+      {
+        "id": "user-tracks",
+        "method": "GET",
+        "path": "/users/{user_id}/tracks",
+        "label": "Titel eines Kontos",
+        "status": "none",
+        "params": [
+          {
+            "name": "user_id",
+            "default": "",
+            "required": true,
+            "example": "soundcloud:users:183"
+          },
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "linked_partitioning",
+            "default": "true"
+          }
+        ]
+      },
+      {
+        "id": "user-playlists",
+        "method": "GET",
+        "path": "/users/{user_id}/playlists",
+        "label": "Playlists eines Kontos",
+        "status": "none",
+        "params": [
+          {
+            "name": "user_id",
+            "default": "",
+            "required": true,
+            "example": "soundcloud:users:183"
+          },
+          {
+            "name": "limit",
+            "default": "50"
+          },
+          {
+            "name": "linked_partitioning",
+            "default": "true"
+          }
+        ]
+      },
+      {
+        "id": "playlists-search",
+        "method": "GET",
+        "path": "/playlists",
+        "label": "Playlists suchen",
+        "status": "none",
+        "params": [
+          {
+            "name": "q",
+            "default": "",
+            "required": true,
+            "example": "techno"
+          },
+          {
+            "name": "limit",
+            "default": "10"
+          }
+        ]
+      },
+      {
+        "id": "resolve",
+        "method": "GET",
+        "path": "/resolve",
+        "label": "SoundCloud-Link auflösen",
+        "status": "none",
+        "params": [
+          {
+            "name": "url",
+            "default": "",
+            "required": true,
+            "example": "https://soundcloud.com/forss/flickermood"
+          }
+        ]
+      }
+    ],
+    "example": {
+      "artist": "Daft Punk",
+      "title": "One More Time",
+      "duration": "5:20"
+    }
+  }
+}

@@ -2628,6 +2628,33 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.evaluate("PLS.st.pl.folder"), "1001Tracklists")
         self.assertEqual(pg.locator("#plsList .chip >> text=ohne Datei").count(), 2)
 
+    def test_spotify_soundcloud_plugins(self):
+        """#280: Spotify und SoundCloud auf der Plugin-Seite (Anmelden mit Zugangsdaten), Link bei Einträgen ohne Datei."""
+        pg = self.pg
+        pg.click('.nav[data-module="plugins"]')
+        for pid, name in (("spotify", "Spotify Web API"), ("soundcloud", "SoundCloud API")):
+            card = f'.pl-card[data-pid="{pid}"]'
+            pg.wait_for_selector(card + " .pl-btns")
+            self.assertIn(f"API: {name}", pg.inner_text(card + " .pl-svc"))
+            self.assertIn("Anmelden", pg.inner_text(card + " .pl-btns"))
+            pg.click(card + ' [data-paction="login"]')
+            pg.wait_for_selector('#modal [data-ok="client_id"]')
+            self.assertEqual(pg.locator('#modal [data-ok="client_secret"]').count(), 1 if pid == "soundcloud" else 0)
+            self.assertIn("127.0.0.1", pg.locator('#modal [data-ok="redirect"]').input_value())
+            self.assertIn("App anlegen", pg.inner_text("#mBody"))
+            pg.keyboard.press("Escape")
+            pg.wait_for_selector("#modal", state="hidden")
+        # Eintrag ohne Datei mit Link zur Quelle: ↗ öffnet die Seite
+        pg.click('.nav[data-module="playlists"]')
+        pg.evaluate("call('pl_import_text', 'Test - Ton 330', 'Links', 'Spotify', 'spotify').then(plsApply)")
+        pg.wait_for_function("PLS.st.pl && PLS.st.pl.name === 'Links'")
+        pg.evaluate("""() => { PLS.st.pl.items[0].url = 'https://open.spotify.com/track/x'; plsRenderList();
+          const orig = call; window.__urls = [];
+          window.call = (n, ...a) => { if (n === "open_url") { window.__urls.push(a[0]); return Promise.resolve(true); } return orig(n, ...a); }; }""")
+        pg.click("#plsList .pls-link")
+        self.assertEqual(pg.evaluate("window.__urls"), ["https://open.spotify.com/track/x"])
+        self.assertEqual(self.errors, [])
+
     def test_djset_page(self):
         """#3 DJ-Set: aus dem Tagger übernehmen, optimieren, sperren, ziehen, Tasten, Wiedergabe, gemerkte Optionen."""
         pg = self.pg
