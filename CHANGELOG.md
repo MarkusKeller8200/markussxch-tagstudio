@@ -46,6 +46,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Abgleich für viele Playlists, Verknüpfungen bleiben (#282):** Bibliotheken im Abgleich einzeln an- und abwählen,
   Vorschläge ★ vorgewählt, „Ordner mit Bibliothek abgleichen …“ bzw. „Alle Playlists …“; erneutes Holen einer Playlist
   behält die Verknüpfungen und verknüpft sichere Treffer gleich.
+- **„Online suchen ›“ im Rechtsklick-Menü (#283):** im Tagger, in den Playlists und im DJ-Set – öffnet die Suche bei
+  Beatport, Spotify, SoundCloud, Apple Music oder YouTube mit Künstler, Titel und Mix.
 - **Zurück zur vorherigen Ansicht (#274):** Nach einem Sprung aus dem Inhalt (z. B. Playlist › „Im Tagger öffnen“)
   führt „← Zurück“ oben in der Seitenleiste an dieselbe Stelle zurück – mit Auswahl, Filter und Bildlauf; „→“
   vorwärts, Rechtsklick zeigt die letzten Stationen. Auch Alt+← / Alt+→ (ausser im Vergleich) und die Maustasten

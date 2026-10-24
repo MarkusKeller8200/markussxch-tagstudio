@@ -353,6 +353,10 @@ function djInit() {
       if (typeof pqMenuItems === "function") items.push(...pqMenuItems([r.i]), "-");      // #138
     }
     if (typeof plsAddDialog === "function") items.push({ label: "Zur Playlist hinzufügen …", run: () => plsAddDialog("paths", [r.path]) }, "-");   // #269
+    const tr = r.i !== null && r.i !== undefined && typeof TG !== "undefined" ? (TG.rows || []).find((x) => x.i === r.i) : null;
+    const ws = typeof webSearchItem === "function"                                                // #283
+      ? (tr ? webSearchItem(e, tr.TPE1, tr.TIT2) : webSearchItem(e, "", String(r.name || "").replace(/\.[a-z0-9]+$/i, "").replace(/_/g, " "))) : null;
+    if (ws) items.push(ws, "-");
     items.push({ label: r.lock ? "Entsperren" : "Sperren (Position halten)", run: () => djCall("dj_lock", r.path, !r.lock) },
       { label: "Nach oben", run: () => djMove(k, -1) }, { label: "Nach unten", run: () => djMove(k, 1) }, "-",
       { label: "Aus dem Set entfernen", run: () => djCall("dj_remove", [r.path]) });

@@ -656,6 +656,8 @@ function plsRowMenu(e, k) {
     items.push({ label: "Im Tagger zeigen", run: () => djShowInTagger(r.i) });
   }
   if (!r.missing) items.push({ label: "Dateiordner öffnen", icon: ICON.folder, run: () => call("reveal", r.path) });
+  const ws = typeof webSearchItem === "function" ? webSearchItem(e, r.artist, r.title) : null;      // #283
+  if (ws) items.push(ws);
   if (items.length) items.push("-");
   items.push({ label: `Zu anderer Playlist …${n > 1 ? ` (${n})` : ""}`, run: () => plsAddDialog("paths", ks.map((j) => pl.items[j].path).filter(Boolean), pl.id) });
   if (!pl.archived) items.push({ label: "Nach oben", run: () => plsMove1(k, -1) }, { label: "Nach unten", run: () => plsMove1(k, 1) }, "-",

@@ -220,5 +220,6 @@
 "Nur Playlist geladen:": ["Only playlist loaded:", "Nur Playlist glade:"],
 "({x} Titel)": ["({x} tracks)", "({x} Titel)"],
 "Ganzen Ordner laden": ["Load whole folder", "Ganze Ordner lade"],
-"Filter aufgehoben.": ["Filters cleared.", "Filter ufghobe."]
+"Filter aufgehoben.": ["Filters cleared.", "Filter ufghobe."],
+"Online suchen ›": ["Search online ›", "Online sueche ›"]
 }

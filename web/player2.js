@@ -786,6 +786,11 @@ function plRowMenu(e, t, label) {
       { label: `Beatgrid in Tag speichern …${idx.length > 1 ? ` (${idx.length})` : ""}`, run: () => tgBeatTagDialog(idx) });     // #221
   }
   if (t.kind === "tag") items.push("-", { label: "Dateiordner öffnen", icon: ICON.folder, run: () => call("reveal_tag", t.ref) });   // #197
+  if (t.kind === "tag" && typeof webSearchItem === "function" && typeof TG !== "undefined") {    // #283
+    const r = (TG.rows || []).find((x) => x.i === t.ref);
+    const ws = r ? webSearchItem(e, r.TPE1, r.TIT2) : null;
+    if (ws) items.push(ws);
+  }
   showMenu(e.clientX, e.clientY, items);
 }
 

@@ -7,6 +7,7 @@ Laufen nur auf Wunsch, weil sie Chromium, ffmpeg (für hörbare Test-Titel) und 
 Jeder Test startet TagStudio im Browser-Modus mit eigenem Benutzerordner (HOME) und eigener Bibliothek.
 """
 import json
+import urllib.parse
 import os
 import re
 import shutil
@@ -2661,6 +2662,34 @@ class UiTest(unittest.TestCase):
           window.call = (n, ...a) => { if (n === "open_url") { window.__urls.push(a[0]); return Promise.resolve(true); } return orig(n, ...a); }; }""")
         pg.click("#plsList .pls-link")
         self.assertEqual(pg.evaluate("window.__urls"), ["https://open.spotify.com/track/x"])
+        self.assertEqual(self.errors, [])
+
+    def test_web_search_menu(self):
+        """#283: Rechtsklick › „Online suchen ›“ im Tagger und in den Playlists – Reihenfolge und Adresse."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("""() => { const orig = call; window.__urls = [];
+          window.call = (n, ...a) => { if (n === "open_url") { window.__urls.push(a[0]); return Promise.resolve(true); } return orig(n, ...a); }; }""")
+        row = pg.evaluate("TG.rows[0]")
+        pg.click('.tg-row[data-i="0"] .nm', button="right")
+        pg.click("#menu button >> text=Online suchen")
+        pg.wait_for_selector("#menu:not([hidden]) button >> text=YouTube")
+        names = pg.evaluate("[...document.querySelectorAll('#menu button')].map((b) => b.textContent.trim())")
+        self.assertEqual(names, ["Beatport", "Spotify", "SoundCloud", "Apple Music", "YouTube"])
+        pg.click("#menu button >> text=Beatport")
+        url = pg.evaluate("window.__urls[0]")
+        self.assertTrue(url.startswith("https://www.beatport.com/search?q="), url)
+        self.assertIn(urllib.parse.quote(row["TIT2"]), url)
+        self.assertEqual(pg.evaluate("webSearchQuery('A; B', 'Song (Original Mix)', '')"), "A, B Song")
+        self.assertEqual(pg.evaluate("webSearchQuery('A', 'Song', 'Extended Mix')"), "A Song Extended Mix")
+        # Playlists: auch für Einträge ohne Datei
+        pg.click('.nav[data-module="playlists"]')
+        pg.evaluate("call('pl_import_text', 'Test - Ton 330 (Extended Mix)', 'Suche', '', 'text').then(plsApply)")
+        pg.wait_for_function("PLS.st.pl && PLS.st.pl.name === 'Suche' && document.querySelector('#plsList .pls-row[data-k=\"0\"]')")
+        pg.click('#plsList .pls-row[data-k="0"] .t', button="right")
+        pg.click("#menu button >> text=Online suchen")
+        pg.click("#menu:not([hidden]) button >> text=YouTube")
+        self.assertEqual(pg.evaluate("window.__urls[1]"), "https://www.youtube.com/results?search_query=" + urllib.parse.quote("Test Ton 330 (Extended Mix)", safe="()"))
         self.assertEqual(self.errors, [])
 
     def test_djset_page(self):

@@ -137,3 +137,11 @@ Speichern als Unterschied auffällt.
 - **Stems:** ein Umschalt-Knopf `#tgStemToggle` (aufgeklappt → alle zu, sonst alle auf, `aria-pressed`).
 - **Umschalt-Knöpfe einheitlich (#277):** „Cover“, „Filter“ und „Stems“ sind blau (`.tg-cover-col.on`), solange
   eingeschaltet – „Filter“ also, solange die Filterzeile sichtbar ist (aktive Filter zeigen die Eingabefelder).
+
+## Ergänzung 25.10.2026 (#283): „Online suchen ›“
+
+Rechtsklick auf einen Titel (Tagger, Playlists, DJ-Set) › „Online suchen ›“ öffnet an derselben Stelle die Dienste in
+der vom User gewünschten Reihenfolge **Beatport, Spotify, SoundCloud, Apple Music, YouTube** (`web/websearch.js`,
+`WEB_SEARCH`). Suchbegriff `webSearchQuery`: Künstler (Mehrfachwerte mit Komma) + Titel + Mix; „Original Mix“ fällt
+weg, ein Mix, der schon im Titel steht, wird nicht doppelt angehängt. Geöffnet wird über `open_url` im Browser; ohne
+Künstler und Titel (DJ-Set mit nicht geladenen Titeln) dient der Dateiname als Suchbegriff.

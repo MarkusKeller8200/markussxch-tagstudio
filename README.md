@@ -250,7 +250,9 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
 
 - **Titel hinzufügen:** im Tagger Titel markieren, Rechtsklick (oder Werkzeuge › „Playlist ▾“) → „Zur Playlist
   hinzufügen …“ – bestehende wählen oder eine neue mit Ordner anlegen. **Strg+Shift+P** legt die markierten Titel in
-  die zuletzt benutzte Playlist. Im DJ-Set geht dasselbe per Rechtsklick auf einen Titel. Ist ein Titel schon
+  die zuletzt benutzte Playlist. Im DJ-Set geht dasselbe per Rechtsklick auf einen Titel. **„Online suchen ›“** im
+  Rechtsklick-Menü (Tagger, Playlists, DJ-Set) öffnet die Suche bei Beatport, Spotify, SoundCloud, Apple Music oder
+  YouTube mit Künstler und Titel – auch für Einträge ohne Datei. Ist ein Titel schon
   enthalten, fragt TagStudio nach: überspringen oder trotzdem hinzufügen (Doppelte sind erlaubt).
 - **Verwalten:** links der Baum mit Ordnern (beliebig tief), „Zuletzt benutzt“ und Suche; Playlists auf einen Ordner
   ziehen verschiebt sie. Rechtsklick: Umbenennen (F2), Duplizieren, Verschieben, Farbe und Notiz, mit anderen

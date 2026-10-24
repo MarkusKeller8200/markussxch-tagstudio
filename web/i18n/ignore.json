@@ -446,5 +446,7 @@
 "Bearer",
 "SoundCloud",
 "Spotify Web API",
-"select[data-sug]"
+"select[data-sug]",
+"Apple Music",
+"YouTube"
 ]

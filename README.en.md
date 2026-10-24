@@ -245,7 +245,9 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
 
 - **Add tracks:** select tracks in the tagger, right-click (or tools › “Playlist ▾”) → “Add to playlist …” – choose
   an existing one or create a new one with a folder. **Ctrl+Shift+P** puts the selected tracks into the most recently
-  used playlist. In the DJ set the same works by right-clicking a track. If a track is already contained, TagStudio
+  used playlist. In the DJ set the same works by right-clicking a track. **“Search online ›”** in the right-click menu
+  (tagger, playlists, DJ set) opens the search at Beatport, Spotify, SoundCloud, Apple Music or YouTube with artist and
+  title – also for entries without a file. If a track is already contained, TagStudio
   asks: skip or add anyway (duplicates are allowed).
 - **Manage:** on the left the tree with folders (any depth), “Recently used” and search; dragging playlists onto a
   folder moves them. Right-click: rename (F2), duplicate, move, colour and note, merge with others, archive. On the
