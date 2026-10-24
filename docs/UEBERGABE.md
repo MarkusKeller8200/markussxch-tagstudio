@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-17: 4.8.0 in Arbeit** (Meilenstein #22 „Updates: App und Plugins“: #233 erledigt, #234 Update auf Knopfdruck, #235 Plugins nachladen, #236 Liste verfügbarer Plugins im Beta-Test). Ausserdem im Beta-Test: #230 Start erst nach allen Skripten (Assistent fehlte gelegentlich), #232 Übersetzungen über Melden einreichen; #231 Fremdkomponenten übernommen. Davor **4.7.0 final veröffentlicht** (Windows + macOS; Meilenstein #18 geschlossen: #157, #219, #225–#229). Offen: Sammlungen Fehler (#16, u. a. #230), Verbesserungen (#20), Funktionen (#21). Davor **4.6.0 final** (ohne Beta; Meilenstein #17: #191, #215, #220, #221, #223, #224); zuvor **4.5.0 final** (veröffentlicht 16.10.2026 abends, ohne Beta, Meilenstein #15 geschlossen; danach Developer Releases auf `main`). Bisher: in Arbeit 4.5.0 (Meilenstein #15, #183–#185 im Beta-Test) und 4.6.0 (Meilenstein #17, #204 Online-Dienste als Plugins: Dienst-Plugins mit `"service"` in `plugin.json`, `services.py`, `servicekit.py`, `web/services.js` – siehe `docs/KONZEPT-PLUGINS.md`). Kurzfassung für den Einstieg in einer neuen Claude-Sitzung. Details:
+Stand: **2026-10-24 (12:55): 4.8.0-beta.2 veröffentlicht** (Pre-Release, nur Windows, 18 Assets inkl. Plugin-ZIPs). Meilenstein #22 „4.8.0 – Updates: App und Plugins“: alles getestet und geschlossen ausser **#251** (Update auf Knopfdruck macOS, erst testbar, wenn zwei Mac-Versionen mit dem neuen Code existieren – Betas bauen kein macOS). Nächster Schritt: Testrückmeldungen zur Beta 2, danach 4.8.0 final (nur nach Freigabe; finale Versionen bauen auch macOS). Neue Konzepte (nur Konzept, `idee`): SonoVault #253–#259 (`docs/KONZEPT-SONOVAULT.md`), eigener lokaler Katalog #260, lokale Mix-Erkennung #261, weitere Dateiformate #262–#266 (`docs/KONZEPT-FORMATE.md`). Details: Abschnitt „Sitzung 24.10.2026“ unten.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -9,6 +9,32 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **4.6.0 – Beatgrid & Lyric Sync** (#17): #215 Liedtext im Player (`lyricsync.py`, `web/pllyrics.js`), #191 Beatgrid-Status im Tagger (`gridstatus.py`, `web/gridscan.js`), #220 Serato-Wellenform im Player (`serato.overview_wave`), #221 Beatgrid im MP3 (`beattag.py`, `TXXX:TAGSTUDIO_BEATGRID`), #223 Vergleich Serato ↔ eigene Analyse (`gridstatus.compare`, `plGridCompare`, Codes `serato_ok`/`serato_diff`; liest auch das neuere GEOB „Serato Tempo Map“ – Format aus einem Beispiel erschlossen, `serato.tempomap`), #224 Lupe im Player (`web/plzoom.js`) – getestet, als **4.6.0 final** veröffentlicht (17.10.2026). #222 Wellenform als GEOB = Idee (später).
 - **4.7.0 – Mehrsprachigkeit** (#18): #157 Grundlage, Sprachwahl, alle Module in `de-CH`, `en`, `gsw-u-sd-chzh`; Claude übersetzt bei der Entwicklung mit (keine KI-Anbindung in TagStudio). Dazu #219 (Plugins, englische Doku, eigene Texte mit Überlagerung) – vom User am 17.10. nach 4.7.0 verschoben. Beides auf `main`, Beta-Test.
 - **4.8.0 – Updates: App und Plugins** (#22): #233 Versionsanzeige/Kanäle (`version_next.py`, Developer Release mit geplanter Version), #234 Update auf Knopfdruck (Windows; `updater.download_asset`, `launch_windows_update`), #235 Plugins einzeln nachladen (`plugin_store.py`, Release-Assets `plugin-<id>-<version>.zip` + `plugins.json`, `min_app`), #236 „Verfügbare Plugins …“ (gruppierte Liste mit Kategoriefilter). 4.8.0-beta.1 veröffentlicht. Für die Beta 2: #237–#239 Lexicon-Ausbau (`plugins/lexicon/lexapi.py`, Rahmen `Manager.emit/detect/apply_remote`, Vorschläge `kind` rating/remote, Ergebnis `open`; Zurückschreiben standardmässig aus, nur localhost, nie löschen) – im Beta-Test. Plugin geändert → `version` erhöhen. Dazu (Auftrag User 24.10.2026) #244/#245 Tonart mit OpenKeyScan (`keyscan.py`, `plugins/keyscan` mit `env.files`, `plugins/openkeyscan`) und #240–#243 (Lexicon-Felder `TXXX:LEXICON_…`, Übernahme in TagStudio-Felder, DJ-Set-Playlists aus Lexicon, API-Rekorder) – im Beta-Test. MixID: Anfrage als Entwurf in #218 (für später). Stand 24.10. 03:55: getestet und geschlossen #237–#240, #242, #243, #247–#249; danach auch #241, #244, #245 und #217 – Meilenstein 4.8.0 ohne offene Issues, bereit für Beta 2 (nur nach Freigabe). Offene OpenKeyScan-Abklärungen: #250. Nachtrag (Entscheid User 04:04): in 4.8.0 zusätzlich #246 Fremdkomponenten, #251 Update auf Knopfdruck macOS (`updater.mac_update_script`, DMG je Prozessor), #250 Pfadteil – alle `_3 Beta-Test`. **4.8.0-beta.2 veröffentlicht (24.10.2026, nur Windows).** Erster Build scheiterte an einem Windows-Test (Pfad mit Laufwerk), Tag-Push ist aus Claude-Sitzungen gesperrt → Neuauslösung über Änderung unter `packaging/`. #251 erst mit zwei Mac-Versionen testbar.
+
+## Sitzung 24.10.2026 – was neu ist und was man wissen muss
+
+- **Erledigt und geschlossen (getestet):** #237–#243 Lexicon-Ausbau/API-Rekorder, #244/#245/#217 Tonart mit OpenKeyScan
+  (Plugins `keyscan` = eigene Analyse in eigener Umgebung, Modell per `env.files` mit SHA-256 von Commit `d5cac64` des
+  `rekordcloud/openkeyscan-analyzer`; `openkeyscan` = lokale REST-API der Desktop-App Port 58721, startet die App bei
+  Bedarf; gemeinsamer Kern `keyscan.py`, Feld `TXXX:OPENKEYSCAN_KEY`, Herkunft „OpenKeyScan“), #246 Fremdkomponenten,
+  #247 Protokoll/Log-Ordner aus Fehlermeldungen öffnen (`Api.open_log`), #248 Plugin-Karten (Aktionsfeld `short`,
+  „Im Tagger:“), #249 Download-Links unter „Mehr …“ (`plugin.json` „links“), #250 OpenKeyScan-Abklärungen/Umlaut-Pfade.
+- **Neu im Plugin-Rahmen:** `env.files` (Zusatzdateien nur von GitHub mit SHA-256), `links` in plugin.json, `short`
+  je Aktion. **Neu im Updater:** `mac_update_script`/`launch_mac_update`, `platform_asset` wählt DMG nach Prozessor.
+- **CI-Workflows neu:** „Tonart-Test“ (`packaging/ci_keyscan_test.py`, echte Installation auf Windows/macOS).
+- **Release-Lehre:** Ein roter Windows-Test stoppt den Installer-Build → kein Tag, kein Release. **Tags lassen sich aus
+  Claude-Sitzungen nicht pushen** (git und API 403). Lösung: Fehler beheben, dann eine echte Änderung unter `packaging/`
+  pushen – der Workflow baut dieselbe Version neu und legt Tag/Release an (siehe Kopf von `packaging/release.py`).
+  Unit-Tests müssen auch unter Windows laufen (Pfade mit Laufwerk, `os.path.abspath`).
+- **Entscheide des Users:** Eigener Metadaten-Katalog (#260) **nur lokal** (SQLite im Benutzerordner, Quellen
+  MusicBrainz/Discogs/Wikidata CC0 + eigene Analyse, SonoVault keine Grundlage), möglichst alle heutigen Tag-Felder,
+  Aktualisierung von Hand + Zeitplan durch den Benutzer – **noch nicht umsetzen**. Mix-Erkennung (#261) und Formate
+  (#262–#266) ebenfalls nur Konzept.
+- **SonoVault (Rekordcloud B.V., wie Lexicon/OpenKeyScan/MixID):** Terms vom 19.10.2026 erlauben Tag-Schreiben nur für
+  Titel, Künstler, Release-Titel, Label, Genre, Datum, Dauer, ISRC – **nicht** BPM, Tonart, ISWC, Plattform-IDs; Cache
+  max. 30 Tage (Free), kein Massen-Schreiben, nichts weitergeben. Datenschutz: Anfrage-Parameter ohne Ablauf
+  protokolliert, Audio-Uploads ohne feste Frist. Seite „Data Sources & Attribution“ nicht erreichbar.
+- **Netz in der Cloud-Sitzung:** PyPI nicht erreichbar (PyTorch nicht installierbar → echte Analysen nur über CI oder
+  beim User); viele Websites nur über WebFetch/WebSearch.
 
 ## GitHub-Pflege (Entscheid User 17.10.2026)
 
@@ -44,7 +70,7 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 
 ## Release-Freigabe (Entscheid 14.10.2026)
 
-**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte Stand ist **v4.7.0** (final, freigegeben am 17.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
+**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte finale Stand ist **v4.7.0** (17.10.2026), dazu Pre-Release **v4.8.0-beta.2** (24.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
 
 ## GitHub-Meilensteinverwaltung
 
