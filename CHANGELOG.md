@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.8.0] – 2026-10-25
+
 ### Neu
 
 - **Playlists (#267–#269):** neue Seite „Playlists“ zum Sammeln, Ordnen und Verwalten – Ordner beliebig tief,
