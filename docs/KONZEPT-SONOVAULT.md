@@ -33,20 +33,39 @@ Popularität sind laut Doku **nicht** Teil der öffentlichen API.
 | Bereich | Nutzen | Endpunkte | Tarif | Issue |
 |---|---|---|---|---|
 | Grundlage | Dienst-Plugin mit Schlüssel, Integrationsfenster, Kontingent | `/v1/genres` (Test), alle | Free | #253 |
-| Online-Metadaten | ISRC, ISWC, Label, Genre, Release, Katalognummer, BPM/Tonart als Vorschlag | `tracks/search`, `tracks/isrc/:isrc`, `tracks/:id`, `tracks/iswc` | Free | #254 |
-| Plattform-IDs | IDs/Links aller Plattformen, „Auf Plattform öffnen“ | `tracks/links` | Free | #255 |
-| Bibliothek abgleichen | bis 100 Titel je Anfrage, Hintergrund, Kostenvorschau | `POST tracks/resolve` | Free (Kontingent beachten) | #256 |
+| Online-Metadaten | Titel, Künstler, Release, Label, Genre, Datum, Dauer, ISRC als Vorschlag; BPM/Tonart/ISWC nur als Vergleich | `tracks/search`, `tracks/isrc/:isrc`, `tracks/:id`, `tracks/iswc` | Free | #254 |
+| Plattform-IDs | IDs nur anzeigen (nicht in Tags), „Auf Plattform öffnen“ (zu klären) | `tracks/links` | Free | #255 |
+| Bibliothek abgleichen | nur Abgleich/Anzeige in Blöcken zu 100, kein Massen-Schreiben | `POST tracks/resolve` | Free (Kontingent beachten) | #256 |
 | Audio-Erkennung | Titel ohne Tags erkennen (nach AcoustID) | `POST tracks/identify` | bezahlt | #257 |
 | Entdecken | Neuerscheinungen gefolgter Labels/Künstler | `labels/:id/releases`, `artists/:id/releases`, `releases/new`, `tracks/browse` | teils bezahlt | #258 |
 | Später | Genre-Korrektur melden, Radio-Monitoring | `tracks/:id/suggestions`, `streams` | bezahlt | #259 |
 
-## 3. Grundsätze (wie bei den anderen Diensten)
+## 3. Nutzungsbedingungen (geprüft 24.10.2026, Terms „Last updated: October 19, 2026“)
+
+[Terms](https://sonovault.now/terms), niederländisches Recht. Was das für TagStudio heisst:
+
+| Regel | Folge für TagStudio |
+|---|---|
+| **Tags schreiben (§7):** nur „title, artist, release title, label, genre, release date, duration, and ISRC“, je Aufruf durch/für den Benutzer, für Dateien in seiner eigenen Bibliothek, nicht als „bulk data delivery“. Plattform-IDs ausdrücklich nicht. | Vorschläge zum Übernehmen **nur** für TIT2, TPE1, TALB, TPUB, TCON, Datum, TLEN, TSRC. **BPM, Tonart, ISWC, Katalognummer, Plattform-IDs und eine eigene `SONOVAULT_ID` dürfen nicht in die Datei** – nur anzeigen/vergleichen. |
+| **Zwischenspeicher (§7):** nur flüchtig für eigene Anfragen, spätestens alle 30 Tage erneuern; Free-Tarif: nur dieser Zwischenspeicher. Bezahlte Tarife: Aufbewahren solange das Abo läuft (danach innert 30 Tagen löschen). | Cache im Plugin-Datenordner mit Ablaufdatum 30 Tage, nie exportieren, nicht in Snapshots/Sicherungen. Bei Abo-Ende: Cache leeren (mit Rückfrage). |
+| **Kein Weitergeben (§4):** nichts weiterverkaufen, veröffentlichen, „in whole or in any part, however small“; keine konkurrierende Datenbank. | Keine Exporte der SonoVault-Daten (CSV, Listen, Melden …); Werte nur in der Vorschau. |
+| **Schlüssel persönlich (§2, §9).** | Jeder Benutzer trägt seinen eigenen Schlüssel ein; TagStudio liefert keinen mit. |
+| **Plattform-IDs (§8):** SonoVault gibt keine Rechte, Plattformen zu verlinken/einzubetten; nur mit eigener Beziehung zur Plattform. | „Auf Plattform öffnen“ vor der Umsetzung mit Rekordcloud klären. |
+| **Audio hochladen (§5):** nur eigene bzw. berechtigte Aufnahmen; Aufbewahrung in der Datenschutzerklärung (noch zu lesen). | Audio-Erkennung nur für eigene Dateien, Hinweis im Dialog. |
+| **Quellenangabe (§4, §8):** Hinweise nicht entfernen; Quellen gemäss „Data Sources & Attribution“. | Vorschau zeigt „Quelle: SonoVault“; Attribution-Seite vor der Umsetzung lesen. |
+| **KI (§6):** Daten nicht zum Trainieren/Auswerten von KI. | Betrifft TagStudio nicht (keine KI-Anbindung). |
+
+**Folgen für die Issues:** #254 schreibt nur die erlaubten Felder, BPM/Tonart/ISWC nur als Vergleich in der Notiz.
+#255 schreibt keine IDs in Tags. #256 (Bibliothek in Blöcken) ist als Massen-Schreiben nicht erlaubt → nur als
+Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Dateien.
+
+## 4. Grundsätze (wie bei den anderen Diensten)
 
 - **Nur Vorschläge:** Alles kommt in die Vorschau mit Häkchen; nichts wird ungefragt geschrieben. Vorhandene Werte nur
   mit Bestätigung überschreiben, Abgleich über `importsync` (wie Lexicon/beaTunes).
-- **Eigene Kennung:** `TXXX:SONOVAULT_ID`, Herkunft „SonoVault“ (Builtin-Regel `TXXX:SONOVAULT*`). Offizielle Felder
-  (TSRC, TPUB, TCON, TBPM, TKEY …) bleiben offizielle Felder.
-- **Tonart/BPM:** nur leere Felder vorausgewählt; Notiz vergleicht mit vorhandener Tonart (wie OpenKeyScan, `keyscan.py`:
+- **Nur erlaubte Felder schreiben:** siehe Abschnitt 3 – keine eigene Kennung in der Datei; die Zuordnung Datei ↔ SonoVault
+  liegt höchstens im Zwischenspeicher (30 Tage).
+- **Tonart/BPM:** nie schreiben; die Notiz vergleicht mit vorhandener Tonart (wie OpenKeyScan, `keyscan.py`:
   gleich/verwandt/abweichend) – SonoVault liefert Tonarten mehrerer Quellen (`keys`).
 - **Kosten:** Kontingent aus `RateLimit-*` auf der Karte; Bulk-Abgleich und Audio-Erkennung zeigen die Kredite vorher und
   starten nur nach Bestätigung; 429 nie wiederholen, sondern melden.
@@ -54,18 +73,18 @@ Popularität sind laut Doku **nicht** Teil der öffentlichen API.
 - **Datenschutz:** Audio-Erkennung lädt Audio hoch → nur Ausschnitt (30–60 s, mono 16 kHz), nur auf Wunsch.
 - **Drosselung:** gemeinsame Drosselung `onlinematch` (Free: 20/min).
 
-## 4. Reihenfolge (Vorschlag)
+## 5. Reihenfolge (Vorschlag)
 
 1. #253 Grundlage + #254 Online-Metadaten + #255 Plattform-IDs – zusammen ein Paket, mit dem Free-Tarif nutzbar.
-2. #256 Bibliothek abgleichen – sobald klar ist, wie viel Kontingent nötig ist.
+2. #256 Bibliothek abgleichen – nur als Abgleich/Anzeige (Massen-Schreiben nicht erlaubt), Kontingent beachten.
 3. #258 Entdecken – passt zum Modul Entdecken (Deezer/Beatport).
 4. #257 Audio-Erkennung – nur mit bezahltem Tarif sinnvoll.
 5. #259 – nur bei Bedarf.
 
-## 5. Offen / vor der Umsetzung klären
+## 6. Offen / vor der Umsetzung klären
 
-- Nutzungsbedingungen: Speichern der Werte in Tags und lokales Zwischenspeichern erlaubt? (Pricing-Seite nennt keine
-  Regeln, die Terms selbst sind noch zu lesen.)
+- ~~Nutzungsbedingungen~~ → geprüft, siehe Abschnitt 3. Offen: Datenschutzerklärung (Audio), Seite „Data Sources & Attribution“,
+  Verlinken auf Plattformen.
 - Tarif des Users (Free reicht für Einzelabfragen, nicht für einen Bibliotheksabgleich).
 - Anfrage an Rekordcloud zusammen mit MixID (#218): offizieller Zugang, Kontingent für TagStudio-Nutzer.
 - Doppelte Quellen: Verhältnis zu MusicBrainz/Discogs/Beatport bei gleichen Feldern (Vorrang in „Online-Metadaten“).
