@@ -108,3 +108,11 @@ Ein eigener Dienst wie SonoVault wird **nicht** gebaut (alle drei Punkte vom Use
 Bibliothek und gefolgte Labels/Künstler, ergänzt um eigene Analysen (Tonart #245, später #9). Kein Server, keine
 SonoVault-Daten als Grundlage (Terms §4). SonoVault bleibt optionale Zusatzquelle.
 
+
+**Weitere Entscheide (User 24.10.2026, 11:16) – nur Konzept, noch keine Umsetzung:**
+- **Felder:** möglichst alle Felder, die TagStudio heute schon in die Tags schreibt (Titel, Künstler, Album/Release,
+  Label, Katalognummer, ISRC, Genre/Stil, Datum, Dauer, Plattform-IDs und -Links aus MusicBrainz/Discogs, BPM, Tonart,
+  Energie und weitere Analysewerte aus eigener Analyse) – jeweils mit Quelle und Abrufdatum im Katalog.
+- **Aktualisierung:** jederzeit **von Hand** („Katalog aktualisieren“), dazu ein **Zeitplan**, den der Benutzer selbst
+  festlegt (z. B. aus, täglich, wöchentlich, monatlich, beim Start); läuft als Hintergrund-Auftrag mit Fortschritt
+  und Abbrechen, schreibt nie ungefragt in Dateien.
