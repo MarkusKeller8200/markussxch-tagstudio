@@ -299,6 +299,7 @@ function tgApplyOrder() {
   sb.textContent = anyOpen ? "Stems ▾" : "Stems ▸";
   sb.title = anyOpen ? "Alle Stems zuklappen" : "Alle Stems aufklappen";
   sb.setAttribute("aria-pressed", String(anyOpen));
+  sb.classList.toggle("on", anyOpen);                                         // #277: blau wie „Cover“
   tgFilterResetSync();
   $("#tgInner").style.height = view.length * TG_ROW + "px";
   drawTgList();
@@ -645,7 +646,7 @@ function tgColFilterRender(cols, fcols) {
   if (!box) return;
   const on = LAYOUT.tg_colfilter !== false || tgColFilterActive();
   box.hidden = !on;
-  if (btn) { btn.classList.toggle("on", tgColFilterActive()); btn.setAttribute("aria-pressed", String(on)); }
+  if (btn) { btn.classList.toggle("on", on); btn.setAttribute("aria-pressed", String(on)); }       // #277: wie „Cover“
   if (!on) return;
   const keep = document.activeElement && box.contains(document.activeElement) ? document.activeElement.dataset.cf : null;
   const ph = (k) => (tgIsDateCol(k) ? "z. B. <30d, 2026-10" : tgColNum(k) ? (k === "TBPM" ? "z. B. 120-128" : k === "len" ? "z. B. >300" : "z. B. >=4") : "filtern …");
@@ -673,7 +674,6 @@ function tgColFilterInit() {
     clearTimeout(t); t = setTimeout(() => {
       tgApplyOrder();
       $("#tgColFilterClear").disabled = !tgColFilterActive();
-      $("#tgColFilterBtn").classList.toggle("on", tgColFilterActive());
     }, 150);
   });
   box.addEventListener("keydown", (e) => {

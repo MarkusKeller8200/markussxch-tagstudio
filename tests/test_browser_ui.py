@@ -595,8 +595,10 @@ class UiTest(unittest.TestCase):
         pg.click("#tgColFilterClear")
         self.assertTrue(self.until("TG.view.length === 3 && !tgColFilterActive()"))
         # Ausblenden merken
+        self.assertIn("on", pg.get_attribute("#tgColFilterBtn", "class"))             # #277: sichtbar = hervorgehoben
         pg.click("#tgColFilterBtn")
         self.assertTrue(pg.locator("#tgHeadF").is_hidden())
+        self.assertNotIn(" on", " " + pg.get_attribute("#tgColFilterBtn", "class"))
         c = self.cfg_until(lambda c: (c.get("ui") or {}).get("tg_colfilter") is False)
         self.assertFalse((c.get("ui") or {}).get("tg_colfilter"))
         pg.click("#tgColFilterBtn")
@@ -2522,6 +2524,7 @@ class UiTest(unittest.TestCase):
         n = pg.evaluate("TG.view.length")
         pg.click("#tgStemToggle")
         pg.wait_for_function(f"TG.view.length > {n} && document.querySelector('#tgStemToggle').textContent === 'Stems ▾'")
+        self.assertTrue(pg.evaluate("document.querySelector('#tgStemToggle').classList.contains('on')"))   # #277
         pg.click("#tgStemToggle")
         pg.wait_for_function(f"TG.view.length === {n} && document.querySelector('#tgStemToggle').textContent === 'Stems ▸'")
         # Suche → „↺ Filter“ hebt sie auf

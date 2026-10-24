@@ -135,3 +135,5 @@ Speichern als Unterschied auffällt.
   mit „Ganzen Ordner laden“ (lädt den vorher geladenen Ordner, sonst den gemeinsamen Ordner); „↺ Filter“ lädt dann
   ebenfalls den Ordner.
 - **Stems:** ein Umschalt-Knopf `#tgStemToggle` (aufgeklappt → alle zu, sonst alle auf, `aria-pressed`).
+- **Umschalt-Knöpfe einheitlich (#277):** „Cover“, „Filter“ und „Stems“ sind blau (`.tg-cover-col.on`), solange
+  eingeschaltet – „Filter“ also, solange die Filterzeile sichtbar ist (aktive Filter zeigen die Eingabefelder).
