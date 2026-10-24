@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-24 (Abend): 4.8.0-beta.2 veröffentlicht; auf `main` für 4.8.0 zusätzlich Playlists (#267–#271), Zurück (#274), Tagger-Filter/Stems (#275–#277) und Playlist-Import aus DJ-Programmen/Online-Quellen (#278, #279)** – alle `_3 Beta-Test`. Meilenstein #23 „4.9.0 – Playlists“ geschlossen (Inhalt in 4.8.0). Offen in 4.8.0 ausserdem **#251** (Update auf Knopfdruck macOS, erst testbar mit zwei Mac-Versionen). Nächster Schritt: Testrückmeldungen, danach 4.8.0-beta.3 oder 4.8.0 final – **nur nach Freigabe**. Konzepte (nur Konzept, `idee`): SonoVault #253–#259, lokaler Katalog #260, Mix-Erkennung #261, Dateiformate #262–#266, Playlists Phase 3 (#272 Smartlists, #273 DJ-Programme schreiben). Details: Abschnitt „Sitzung 24.10.2026“ unten.
+Stand: **2026-10-24 (Abend): 4.8.0-beta.2 veröffentlicht; auf `main` für 4.8.0 zusätzlich Playlists (#267–#271), Zurück (#274), Tagger-Filter/Stems (#275–#277) und Playlist-Import aus DJ-Programmen/Online-Quellen (#278, #279) sowie die Plugins Spotify und SoundCloud (#280)** – alle `_3 Beta-Test`. Meilenstein #23 „4.9.0 – Playlists“ geschlossen (Inhalt in 4.8.0). Offen in 4.8.0 ausserdem **#251** (Update auf Knopfdruck macOS, erst testbar mit zwei Mac-Versionen). Nächster Schritt: Testrückmeldungen, danach 4.8.0-beta.3 oder 4.8.0 final – **nur nach Freigabe**. Konzepte (nur Konzept, `idee`): SonoVault #253–#259, lokaler Katalog #260, Mix-Erkennung #261, Dateiformate #262–#266, Playlists Phase 3 (#272 Smartlists, #273 DJ-Programme schreiben). Details: Abschnitt „Sitzung 24.10.2026“ unten.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -21,7 +21,13 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **#279 Online-Quellen, Schritt 1:** „Trackliste einfügen …“ (Text von 1001Tracklists, MixID, Beatport) und
   Spotify-Export-CSV – ohne Webabruf und ohne Zugangsdaten. **Schritt 2 offen (Entscheid User):** Spotify-Web-API mit
   eigener Spotify-App, Beatport-Playlists über das Beatport-Plugin, 1001Tracklists nur mit Erlaubnis (#180), MixID (#218).
-- **Nächster Schritt:** Testrückmeldungen zu #267–#279; danach 4.8.0-beta.3 oder final **nur nach Freigabe**
+- **#280 Plugins Spotify und SoundCloud** (Entscheid User 23:26/23:27: Premium + eigene Spotify-App, SoundCloud Artist
+  Pro, möglichst alle Lese-Endpunkte, in 4.8.0): `oauthkit.py` (PKCE, Rückleitung 127.0.0.1:8765/8766), Playlists als
+  Einträge ohne Datei mit Link, Online-Metadaten-Quellen, gefolgte Künstler → Entdecken. Online-Metadaten-Plugin 2.1.
+- **1001Tracklists:** keine Crawler (Rechte, Projektregel #180). Anfrage um API-Zugang (Playlists mit Suche, gemerkte
+  Artists/Labels, Track-Daten mit Links) als E-Mail-Entwurf an den User; der User trägt in #180 ein, wenn sie
+  verschickt ist.
+- **Nächster Schritt:** Testrückmeldungen zu #267–#280; danach 4.8.0-beta.3 oder final **nur nach Freigabe**
   (#251 bleibt bis zur finalen Version offen).
 
 ## Roadmap (Entscheid 17.10.2026)
