@@ -2103,8 +2103,12 @@ class UiTest(unittest.TestCase):
         pg.keyboard.press("Enter")
         pg.wait_for_function("TG.detail.mood.all.length === 2")
         self.assertEqual(pg.locator("#tgMood .mood-chip").count(), 2)
-        pg.click('#tgMood [data-mood-del="Driving"]')
-        pg.wait_for_function("TG.detail.mood.all.join() === 'Dark'")
+        for _ in range(3):                                   # Chips werden nach dem Speichern neu gezeichnet
+            pg.wait_for_selector('#tgMood [data-mood-del="Driving"]')
+            pg.click('#tgMood [data-mood-del="Driving"]')
+            if self.until("TG.detail.mood.all.join() === 'Dark'", 5):
+                break
+        self.assertEqual(pg.evaluate("TG.detail.mood.all.join()"), "Dark")
         pg.click('.tg-row[data-i="1"] .nm', modifiers=["Shift"])
         pg.wait_for_function("TG.detail.count === 2")
         part = pg.locator('#tgMood [data-mood-add="Dark"]')

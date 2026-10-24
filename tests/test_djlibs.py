@@ -75,7 +75,8 @@ class TestReaders(unittest.TestCase):
     def test_serato(self):
         root = os.path.join(self.dir, "_Serato_")
         os.makedirs(os.path.join(root, "Subcrates"))
-        rel = os.path.relpath(self.music, os.path.abspath(os.sep)).replace("\\", "/")   # relativ zum Laufwerk
+        drive = os.path.splitdrive(self.music)[0]
+        rel = os.path.relpath(self.music, drive + os.sep).replace("\\", "/")         # relativ zum Laufwerk
         with open(os.path.join(root, "Subcrates", "House%%Deep.crate"), "wb") as fh:
             fh.write(crate([rel + "/b.mp3", rel + "/a.mp3"]))
         with open(os.path.join(root, "Subcrates", "House.crate"), "wb") as fh:
