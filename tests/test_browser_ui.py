@@ -2487,14 +2487,14 @@ class UiTest(unittest.TestCase):
         pg.wait_for_function("S.module === 'playlists' && PLS.anchor === 1 && PLS.sel.has(1) && PLS.sel.size === 1")
         pg.wait_for_selector("#navFwd:not([hidden])")                  # erscheint nach der Wiederherstellung
         pg.keyboard.press("Alt+ArrowRight")                            # vorwärts: Tagger mit derselben Auswahl
-        pg.wait_for_function("S.module === 'tagger' && TG.anchor === 2")
+        pg.wait_for_function("S.module === 'tagger' && TG.anchor === 2 && !NAV.busy")
         pg.evaluate("document.dispatchEvent(new MouseEvent('mouseup', {button: 3, bubbles: true}))")   # Maustaste Zurück
-        pg.wait_for_function("S.module === 'playlists'")
+        pg.wait_for_function("S.module === 'playlists' && !NAV.busy")
         pg.click('.nav[data-module="djset"]')
         pg.wait_for_function("S.module === 'djset'")
         self.assertEqual(pg.evaluate("NAV.back.length"), 0)            # Seitenleiste zeichnet nichts auf
         pg.keyboard.press("Alt+ArrowRight")
-        pg.wait_for_function("S.module === 'tagger'")
+        pg.wait_for_function("S.module === 'tagger' && !NAV.busy")
         pg.click('.nav[data-module="compare"]')                       # im Vergleich bleibt Alt+← beim Kopieren
         pg.keyboard.press("Alt+ArrowLeft")
         time.sleep(0.3)
