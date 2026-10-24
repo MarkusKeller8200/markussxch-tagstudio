@@ -6,6 +6,9 @@
     python packaging/release.py --check          # nur prüfen, ob alles zusammenpasst
 
 Danach den Tag v<Version> auf GitHub setzen (oder pushen) – GitHub baut dann die Installer und das Release.
+Ohne Tag reicht der Push von version.py auf main: der Workflow „Installer“ legt Tag und Release nach dem Build an.
+Scheitert dieser Build (z. B. ein Test nur unter Windows), entsteht kein Tag: Fehler beheben und eine Änderung unter
+packaging/ pushen (oder den Tag von Hand setzen) – der Workflow baut dann dieselbe Version neu.
 """
 import datetime
 import os
