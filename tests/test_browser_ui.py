@@ -2100,9 +2100,12 @@ class UiTest(unittest.TestCase):
         pg.click('.tg-row[data-i="0"] .nm')
         pg.wait_for_selector("#tgMoodIn")
         self.assertTrue(self.until("TG.moodSuggest && TG.moodSuggest.some(s => s.value === 'Uplifting')"))
-        pg.fill("#tgMoodIn", "Dark, Driving")
-        pg.keyboard.press("Enter")
-        pg.wait_for_function("TG.detail.mood.all.length === 2")
+        for _ in range(3):                                   # Detailbereich kann nach dem Laden nochmals neu zeichnen
+            pg.fill("#tgMoodIn", "Dark, Driving")
+            pg.press("#tgMoodIn", "Enter")
+            if self.until("TG.detail.mood.all.length === 2", 5):
+                break
+        self.assertEqual(pg.evaluate("TG.detail.mood.all.length"), 2)
         self.assertEqual(pg.locator("#tgMood .mood-chip").count(), 2)
         for _ in range(3):                                   # Chips werden nach dem Speichern neu gezeichnet
             pg.wait_for_selector('#tgMood [data-mood-del="Driving"]')
