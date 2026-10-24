@@ -149,7 +149,8 @@ def parse_m3u(text: str, base_dir: str) -> list[dict]:
         win_abs = bool(re.match(r"^[A-Za-z]:[\\/]", p)) or p.startswith("\\\\")
         if os.sep == "/" and not win_abs:
             p = p.replace("\\", "/")
-        if not win_abs and not os.path.isabs(p):
+        rooted = p.startswith(("/", "\\"))                      # unter Windows ab Python 3.13 nicht „isabs“
+        if not win_abs and not rooted and not os.path.isabs(p):
             p = os.path.normpath(os.path.join(base_dir, p))
         out.append({"path": p, "label": label, "dur": dur if dur and dur > 0 else None})
         label, dur = "", None
