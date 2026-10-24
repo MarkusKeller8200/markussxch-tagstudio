@@ -401,3 +401,23 @@ und als Spalte „Link“ in der Einkaufsliste. Tests: `tests/test_spotify_sound
 
 **Tests:** `tests/test_djlibs.py` (Serato, Engine, VirtualDJ, unverändert nach dem Lesen, Tracklisten, Spotify-CSV,
 Sitzung mit erneutem Import), Oberflächentest `test_playlists_dj_and_text_import`.
+
+## 17. Phase 3 – offene Entscheide für 4.9.0 (Vorbereitung 25.10.2026)
+
+Meilenstein #24 „4.9.0 – Playlists Phase 3“: #272 Smartlists, #273 Senden an DJ-Programme, #284 Beatport-Playlists,
+#222 Wellenform im MP3, #107 Werkzeugleiste im Vergleich. **Umfang zu Beginn mit dem User bestätigen.** Vor der
+Umsetzung zu klären (Vorschläge in Klammern):
+
+| Nr. | Frage | Vorschlag |
+|---|---|---|
+| S1 | Datenbasis der Smartlists | Bibliothek (Listen-Cache bzw. Scan der Bibliotheksordner) – wahlweise geladener Tagger-Ordner oder eine andere Playlist |
+| S2 | Regeln | Felder wie der Tagger-Filter: Genre, BPM-Bereich, Tonart (auch „passt zu 8A“), Bewertung, Like, Stimmung, Energie, Aufgenommen/Bearbeitet (Zeitraum), Herkunft, Kommentar; „alle“/„eine“ Regel erfüllt |
+| S3 | Aktualisierung | beim Öffnen und auf Knopfdruck; kein Dauerlauf im Hintergrund |
+| S4 | M3U8 im Playlist-Ordner | ja, beim Aktualisieren neu geschrieben; „Einfrieren“ macht eine normale Playlist daraus |
+| S5 | Sortierung, Höchstzahl | wählbar (z. B. BPM aufsteigend, höchstens 50) |
+| P1 | Zielprogramm für „Senden an“ zuerst | Lexicon (Local API, Plugin vorhanden; Schreiben dort schon mit Einschalter) |
+| P2 | Verhalten beim Senden | Playlist im Zielprogramm anlegen bzw. ersetzen, nie löschen; Journal und Rückgängig; Einträge ohne Datei werden ausgelassen und gemeldet |
+| P3 | Serato/Engine/VirtualDJ direkt schreiben | vorerst nein (nur lesen); Austausch über M3U8 im Playlist-Ordner – fremde DJ-Datenbanken nur nach ausdrücklicher Freigabe |
+| B1 | Beatport-Listen (#284) | eigene Playlists; Charts von Künstlern/Labels optional |
+| W1 | Wellenform im MP3 (#222) | nur auf Wunsch (Einstellung, Standard aus), eigenes GEOB „TagStudio Overview“, nie Serato-Felder überschreiben |
+
