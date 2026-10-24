@@ -18,6 +18,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   nur in Lexicon stehen, werden gemeldet). Einträge ohne Datei und Titel, die Lexicon nicht kennt, werden ausgelassen
   und gemeldet. Nur mit eingeschaltetem Zurückschreiben im Lexicon-Plugin (2.2), Journal im Plugin. Neu im
   Plugin-Rahmen: `playlist_push(ctx, playlist, options)` und `push_ready(ctx)`.
+- **Beatport-Playlists holen (#284):** Playlists › Importieren ▾ › „Aus Beatport …“ übernimmt die eigenen
+  Beatport-Playlists als Playlists mit Einträgen ohne Datei (Link zu Beatport), gleicht sichere Treffer mit der
+  Bibliothek ab und behält Verknüpfungen beim erneuten Holen. Nur lesen, über die Anmeldung im Beatport-Plugin (1.1).
 
 ## [4.8.0] – 2026-10-25
 

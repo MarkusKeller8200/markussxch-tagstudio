@@ -280,6 +280,13 @@ und optional Titel/Künstler/Album von Beatport. Nutzt die Beatport-API v4 mit *
 Treffer: zuerst über eine gespeicherte Beatport-ID (`TXXX:BEATPORT_TRACK_ID`), dann ISRC, sonst Suche nach
 Künstler + Titel + Mix-Name; bewertet werden Titel, Künstler, Länge und Mix-Name. Höchstens ~3 Anfragen pro Sekunde.
 
+**Playlists (#284, nur lesen):** Nach dem Anmelden bietet Playlists › Importieren ▾ **„Aus Beatport …“**: deine
+eigenen Beatport-Playlists wählen, sie kommen als Playlists mit Einträgen ohne Datei (Künstler, Titel, Mix, ISRC,
+Länge, Link zu Beatport) in den Ordner „Beatport“; sichere Treffer in der Bibliothek werden gleich verknüpft, der Rest
+lässt sich abgleichen oder als Einkaufsliste exportieren. Erneut holen aktualisiert die Playlist und behält
+Verknüpfungen. Auch hier inoffiziell (`/my/playlists/`): Liefert Beatport nichts, stehen die Feldnamen der Antwort im
+Protokoll (Plugins › Beatport).
+
 ## Eingebaut: Spotify und SoundCloud
 
 Lesen deine Playlists und Titel-Daten bei Spotify bzw. SoundCloud – **nur lesen**, in deinem Konto wird nichts

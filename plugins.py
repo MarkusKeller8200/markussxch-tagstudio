@@ -753,8 +753,11 @@ class Manager:
             raise ValueError(f"„{p.name}“ bietet keine Playlists.")
         ctx = Context(p, session, cancel, progress)
         res = fn(ctx, *args)
-        if fn_name == "playlist_push" and isinstance(res, dict) and ctx.log_lines:      # #273: Protokoll des Sendens
-            res["logfile"] = write_log(f"{p.id}.log", "Playlist senden\n" + "\n".join(ctx.log_lines))
+        if ctx.log_lines:                              # #273/#284: Protokoll (z. B. Feldnamen der Beatport-Antworten)
+            lf = write_log(f"{p.id}.log", {"playlists": "Playlists holen", "playlist_files": "Playlist holen"}
+                           .get(fn_name, "Playlist senden") + "\n" + "\n".join(ctx.log_lines))
+            if fn_name == "playlist_push" and isinstance(res, dict):
+                res["logfile"] = lf
         return res
 
     def apply_remote(self, pid, items, session=None) -> dict:

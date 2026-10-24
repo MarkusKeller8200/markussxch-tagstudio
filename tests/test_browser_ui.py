@@ -2471,6 +2471,33 @@ class UiTest(unittest.TestCase):
             srv.shutdown()
             srv.server_close()
 
+    def test_playlists_import_beatport(self):
+        """#284: Importieren ▾ › „Aus Beatport …“ – Playlists wählen, Einträge ohne Datei mit Link (Antworten nachgebaut)."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("""(() => { const orig = call; window.__fake = null; window.__ids = null;
+          window.call = (n, ...a) => {
+            if (n === "dj_sources") return Promise.resolve({ sources: [{ id: "beatport", name: "Beatport" }] });
+            if (n === "start_dj_source_list") { window.__fake = { ok: true, playlists: [
+                { id: "7", name: "Peak Time", depth: 0, type: "playlist", path: [] }, { id: "8", name: "Leer", depth: 0, type: "playlist", path: [] }] };
+              return Promise.resolve({ ok: true }); }
+            if (n === "start_pl_source_import") { window.__ids = a[1];
+              return orig("pl_import_text", "Mara Lind - Nordlicht (Extended Mix)", "Peak Time", "Beatport", "beatport").then((st) => {
+                window.__fake = { ok: true, lists: [{ id: st.sel, name: "Beatport: Peak Time", count: 1 }], missing: 0, kept: 0, linked: 0 };
+                return { ok: true }; }); }
+            if (n === "task_status" && window.__fake) { const r = window.__fake; window.__fake = null; return Promise.resolve({ done: true, running: false, result: r }); }
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="playlists"]')
+        pg.click("#plsImport")
+        pg.click("#menu button >> text=Aus Beatport")
+        pg.wait_for_selector("#mBody [data-plsi]")
+        self.assertEqual(pg.locator("#mBody [data-plsi]").count(), 2)
+        pg.check('[data-plsi="0"]')
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("window.__ids && window.__ids.join(',') === '7'"))
+        pg.wait_for_function("PLS.st && PLS.st.pl && PLS.st.pl.name === 'Peak Time' && PLS.st.pl.refs === 1")
+        self.assertIn("ohne Datei", pg.inner_text("#plsList"))
+
     def test_playlists_page(self):
         """#267–#269: Titel aus dem Tagger in Playlists, Seite verwalten, Playlist-Ordner, Archiv, DJ-Set, Filter."""
         pg = self.pg

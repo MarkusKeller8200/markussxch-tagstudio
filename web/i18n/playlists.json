@@ -400,5 +400,10 @@
 "Keiner der Titel ist in Lexicon – nichts gesendet.": ["None of the tracks is in Lexicon – nothing sent.", "Kein Titel isch in Lexicon – nüt gschickt."],
 "Aus Lexicon öffnen, DJ-Set › Aus Lexicon …: Titel einer Playlist (auch Ordner, Smartlist); Senden an Lexicon: vorhandene Titel": ["Open from Lexicon, DJ set › From Lexicon …: tracks of a playlist (also folder, smartlist); send to Lexicon: existing tracks", "Us Lexicon öffne, DJ-Set › Us Lexicon …: Titel vo ere Playlist (au Ordner, Smartlist); A Lexicon schicke: vorhandeni Titel"],
 "DJ-Set als Playlist, Playlist für neue Titel, Playlists › Senden an Lexicon": ["DJ set as playlist, playlist for new tracks, Playlists › Send to Lexicon", "DJ-Set als Playlist, Playlist für neui Titel, Playlists › A Lexicon schicke"],
-"DJ-Set als Playlist, neue Titel in Playlist, Playlists › Senden an Lexicon (fehlende Titel einfügen)": ["DJ set as playlist, new tracks into playlist, Playlists › Send to Lexicon (insert missing tracks)", "DJ-Set als Playlist, neui Titel i Playlist, Playlists › A Lexicon schicke (fehlendi Titel iifüege)"]
+"DJ-Set als Playlist, neue Titel in Playlist, Playlists › Senden an Lexicon (fehlende Titel einfügen)": ["DJ set as playlist, new tracks into playlist, Playlists › Send to Lexicon (insert missing tracks)", "DJ-Set als Playlist, neui Titel i Playlist, Playlists › A Lexicon schicke (fehlendi Titel iifüege)"],
+"Playlist holen": ["Fetch playlist", "Playlist hole"],
+"Beatport hat die Titel von {q} nicht geliefert – Details im Protokoll (Plugins › Beatport).": ["Beatport did not return the tracks of {q} – details in the log (Plugins › Beatport).", "Beatport hät d Titel vo {q} nöd glieferet – Details im Protokoll (Plugins › Beatport)."],
+"Beatport kennt {x} nicht": ["Beatport does not know {x}", "Beatport kennt {x} nöd"],
+"Beatport hat keine Playlists geliefert – Details im Protokoll (Plugins › Beatport).": ["Beatport did not return any playlists – details in the log (Plugins › Beatport).", "Beatport hät kei Playlists glieferet – Details im Protokoll (Plugins › Beatport)."],
+"nicht angemeldet (Plugin Beatport › {q})": ["not signed in (plugin Beatport › {q})", "nöd aagmeldet (Plugin Beatport › {q})"]
 }

@@ -444,7 +444,8 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   original …” copies the tags.
 - **Beatport (unofficial):** BPM, key, genre, label, catalogue number, ISRC, remixer, cover and more with your own
   Beatport login (the password is never stored). The preview shows **all delivered fields** – identical ones grey,
-  deselected and already filled ones unticked.
+  deselected and already filled ones unticked. Your own **Beatport playlists** are fetched via Playlists › Import ▾ ›
+  “From Beatport …” (entries without a file with a link, read only).
 - **Online metadata:** album, date, label, catalogue number, ISRC, genre, cover and more from MusicBrainz (also via
   AcoustID fingerprint), Deezer, Spotify, iTunes, SoundCloud, Discogs and Last.fm. Default: only complete empty fields; per field the first
   source is preselected, others appear as alternatives. Discogs token, Last.fm and AcoustID keys under Plugins ›

@@ -322,6 +322,106 @@ class Client:
         return [t for t in (res or []) if isinstance(t, dict)] if isinstance(res, list) else []
 
 
+# =========================================================================== #284: Beatport-Playlists (nur lesen)
+# Inoffizielle API v4 wie bei den Käufen (#117): bekannte Pfade werden probiert, die Feldnamen der ersten Antwort ins
+# Protokoll geschrieben (Plugins › Beatport › Protokoll). Entscheid B1 (25.10.2026): eigene Playlists.
+PLAYLIST_PATHS = ["/my/playlists/"]
+PLAYLIST_TRACK_PATHS = ["/my/playlists/{id}/tracks/"]
+PAGE = 100
+
+
+def ready(ctx):
+    """Für Playlists und Online-Metadaten: angemeldet?"""
+    return (True, "") if load_token(ctx) else (False, "nicht angemeldet (Plugin Beatport › „Anmelden …“)")
+
+
+def _items(res) -> list:
+    if isinstance(res, list):
+        return res
+    if isinstance(res, dict):
+        for k in ("results", "playlists", "tracks", "items"):
+            if isinstance(res.get(k), list):
+                return res[k]
+    return []
+
+
+def _pages(client, path, limit=5000, log=None):
+    """Alle Seiten einer Liste (page/per_page). log: Feldnamen der ersten Seite."""
+    out, page = [], 1
+    while len(out) < limit:
+        res = client.get(path, page=page, per_page=PAGE)
+        if res is None:
+            if page == 1:
+                raise HttpError(404, f"Beatport kennt {path} nicht")
+            break
+        items = _items(res)
+        if log and page == 1 and items and isinstance(items[0], dict):
+            log(f"{path}: Felder je Eintrag: {', '.join(sorted(items[0].keys()))}")
+        out += [x for x in items if isinstance(x, dict)]
+        if len(items) < PAGE:
+            break
+        page += 1
+    return out[:limit]
+
+
+def track_ref(t) -> dict:
+    """Beatport-Titel → Eintrag ohne Datei (Playlists, Abgleich mit der Bibliothek, Einkaufsliste mit Link)."""
+    return {"artist": ", ".join(artists_of(t)), "title": t.get("name") or "", "mix": t.get("mix_name") or "",
+            "isrc": str(t.get("isrc") or "").upper(), "dur": int((t.get("length_ms") or 0) / 1000), "source": "beatport",
+            "url": f"https://www.beatport.com/track/{t.get('slug') or 'track'}/{t['id']}" if t.get("id") else ""}
+
+
+def playlists(ctx) -> list:
+    """Eigene Beatport-Playlists: [{id, name, path, depth, type}]."""
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"Beatport: {why}.")
+    c = Client(ctx)
+    for path in PLAYLIST_PATHS:
+        try:
+            rows = _pages(c, path, 1000, ctx.log)
+        except HttpError as ex:
+            ctx.log(f"{path}: {ex}")
+            continue
+        out = []
+        for p in rows:
+            if p.get("id") is None:
+                continue
+            n = p.get("track_count") or p.get("tracks_count") or p.get("count")
+            out.append({"id": str(p["id"]), "name": p.get("name") or f"Playlist {p['id']}", "path": [], "depth": 0,
+                        "type": "playlist", **({"count": n} if isinstance(n, int) else {})})
+        return out
+    raise ValueError("Beatport hat keine Playlists geliefert – Details im Protokoll (Plugins › Beatport).")
+
+
+def playlist_files(ctx, pid) -> dict:
+    """Titel einer Beatport-Playlist als Einträge ohne Datei → {name, files: [], items, missing: 0}."""
+    c = Client(ctx)
+    name = f"Playlist {pid}"
+    meta = None
+    try:
+        meta = c.get(f"/my/playlists/{pid}/")
+    except HttpError as ex:
+        ctx.log(f"/my/playlists/{pid}/: {ex}")
+    if isinstance(meta, dict) and meta.get("name"):
+        name = meta["name"]
+    for path in PLAYLIST_TRACK_PATHS:
+        path = path.format(id=pid)
+        try:
+            rows = _pages(c, path, 5000, ctx.log)
+        except HttpError as ex:
+            ctx.log(f"{path}: {ex}")
+            continue
+        rows.sort(key=lambda r: r.get("position") if isinstance(r.get("position"), int) else 10 ** 9)
+        items = []
+        for r in rows:
+            t = r.get("track") if isinstance(r.get("track"), dict) else r
+            if t.get("name"):
+                items.append({"ref": track_ref(t)})
+        return {"name": name, "files": [], "items": items, "missing": 0}
+    raise ValueError(f"Beatport hat die Titel von „{name}“ nicht geliefert – Details im Protokoll (Plugins › Beatport).")
+
+
 # =========================================================================== Abgleich
 _MIX_RE = re.compile(r"\s*[\(\[]([^\)\]]*(mix|edit|remix|version|dub|rework|bootleg|vip)[^\)\]]*)[\)\]]\s*$", re.I)
 _FEAT_RE = re.compile(r"\s*[\(\[]?\b(feat\.?|ft\.?|featuring)\b.*$", re.I)

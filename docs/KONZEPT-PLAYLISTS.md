@@ -466,3 +466,19 @@ Meilenstein #24 „4.9.0 – Playlists Phase 3“: #272 Smartlists, #273 Senden 
 - **P3:** Serato, Engine DJ und VirtualDJ werden nicht beschrieben – Austausch über die M3U8 im Playlist-Ordner.
 - **Tests:** `tests/test_lexicon.py` (`TestPushPlaylist`, nachgebaute API mit `index`), Oberflächentest
   `test_playlists_send_lexicon`.
+
+## 20. Umsetzung Beatport-Playlists (#284, 25.10.2026)
+
+- **Entscheid B1:** eigene Beatport-Playlists; Charts von Künstlern/Labels optional – **noch nicht umgesetzt** (Pfade der
+  inoffiziellen API nicht belegt).
+- **Beatport-Plugin 1.1:** `ready(ctx)` (angemeldet?), `playlists(ctx)` und `playlist_files(ctx, id)` über die
+  inoffizielle API v4 (`/my/playlists/`, `/my/playlists/{id}/`, `/my/playlists/{id}/tracks/`, Seiten mit
+  `page`/`per_page`, Einträge mit `position` und `track`). Die Pfade sind nicht offiziell dokumentiert und konnten aus
+  der Sitzung nicht geprüft werden – wie bei den Käufen (#117) stehen die Feldnamen der ersten Antwort im Protokoll
+  (`Logs/beatport.log`), der echte Test läuft beim User. Titel → Eintrag ohne Datei (`track_ref`: Künstler, Titel,
+  Mix, ISRC, Länge, Link).
+- Der Rahmen erledigt den Rest wie bei Spotify/SoundCloud (#280): „Importieren ▾ › Aus Beatport …“, Ordner „Beatport“,
+  sichere Treffer gleich verknüpfen (#282), erneutes Holen behält Verknüpfungen. Nur lesen.
+- `Manager.call_playlist` schreibt jetzt bei allen Playlist-Funktionen das Protokoll des Plugins.
+- **Tests:** `tests/test_beatport.py` (`test_playlists_import`, nachgebaute API), Oberflächentest
+  `test_playlists_import_beatport`.

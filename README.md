@@ -461,7 +461,8 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   Umschalt-Knopf „Stems“ für alle): MP3-Spuren bearbeiten, FLAC/WAV anhören; „Stems: Tags vom Original …“ überträgt die Tags.
 - **Beatport (inoffiziell):** BPM, Tonart, Genre, Label, Katalognummer, ISRC, Remixer, Cover u. a. mit deinem
   eigenen Beatport-Login (Passwort wird nie gespeichert). Die Vorschau zeigt **alle gelieferten Felder** – gleiche
-  grau, abgewählte und schon gefüllte ungehakt.
+  grau, abgewählte und schon gefüllte ungehakt. Eigene **Beatport-Playlists** holt Playlists › Importieren ▾ › „Aus
+  Beatport …“ (Einträge ohne Datei mit Link, nur lesen).
 - **Online-Metadaten:** Album, Datum, Label, Katalognummer, ISRC, Genre, Cover u. a. von MusicBrainz (auch per
   AcoustID-Fingerabdruck), Deezer, Spotify, iTunes, SoundCloud, Discogs und Last.fm. Standard: nur leere Felder ergänzen; je Feld ist die
   erste Quelle vorausgewählt, andere erscheinen als Alternative. Discogs-Token, Last.fm- und AcoustID-Schlüssel unter

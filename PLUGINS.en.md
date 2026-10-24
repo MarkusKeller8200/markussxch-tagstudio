@@ -277,6 +277,12 @@ way as the beets plugin “beatport4”. Unofficial: Beatport can change access 
 Matching: first via a stored Beatport ID (`TXXX:BEATPORT_TRACK_ID`), then ISRC, otherwise a search for artist + title
 + mix name; title, artist, length and mix name are rated. At most ~3 requests per second.
 
+**Playlists (#284, read only):** after signing in, Playlists › Import ▾ offers **“From Beatport …”**: choose your own
+Beatport playlists; they arrive as playlists with entries without a file (artist, title, mix, ISRC, length, link to
+Beatport) in the folder “Beatport”; sure matches in the library are linked right away, the rest can be matched or
+exported as a shopping list. Fetching again updates the playlist and keeps the links. Unofficial here as well
+(`/my/playlists/`): if Beatport returns nothing, the field names of the response are in the log (Plugins › Beatport).
+
 ## Built in: Spotify and SoundCloud
 
 Read your playlists and track data at Spotify or SoundCloud – **read only**, nothing in your account is changed. Both

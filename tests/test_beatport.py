@@ -89,6 +89,14 @@ class FakeBeatport:
                 {"id": 2002, "name": "Vorbestellt", "artists": [{"name": "X"}], "pre_order": True, "order_item_download_id": 503}]}).encode()
         if p == "/v4/my/downloads/502/":
             return 200, {}, json.dumps({"id": 502, "download_url": "https://dl.beatport.com/sig/abc.mp3"}).encode()
+        if p == "/v4/my/playlists/":                       # #284: eigene Playlists (Form nach API v4, Seiten)
+            return 200, {}, json.dumps({"results": [{"id": 7, "name": "Peak Time", "track_count": 2},
+                                                    {"id": 8, "name": "Leer", "track_count": 0}]}).encode()
+        if p == "/v4/my/playlists/7/":
+            return 200, {}, json.dumps({"id": 7, "name": "Peak Time"}).encode()
+        if p == "/v4/my/playlists/7/tracks/":
+            return 200, {}, json.dumps({"results": [{"position": 2, "track": TRACKS[1003]},
+                                                    {"position": 1, "track": TRACKS[1001]}]}).encode()
         if p == "/v4/catalog/tracks/":
             hits = [t for t in TRACKS.values() if t.get("isrc") == q.get("isrc")]
             return 200, {}, json.dumps({"results": hits}).encode()
@@ -344,6 +352,32 @@ class TestBeatport(Base):
         self.assertEqual(m._retry_after("kaputt"), 5.0)
         self.assertLessEqual(m._retry_after("Wed, 21 Oct 2099 07:28:00 GMT"), 30.0)
         self.assertEqual(m.cover_url(TRACKS[1001]), "https://geo-media.beatport.com/image_size/1400x1400/abc.jpg")
+
+    def test_playlists_import(self):
+        self.assertEqual(self.s.dj_sources()["sources"], [s for s in self.s.dj_sources()["sources"] if s["id"] != "beatport"])
+        with self.assertRaises(ValueError):
+            self.mod.playlists(plugins.Context(self.s.plugins.get("beatport"), self.s))            # nicht angemeldet
+        self.login()
+        self.assertIn("beatport", [x["id"] for x in self.s.dj_sources()["sources"]])
+        r = self.s.start_dj_source_list("beatport")
+        self.assertTrue(r["ok"], r)
+        res = self.wait()["result"]
+        self.assertEqual([(p["id"], p["name"]) for p in res["playlists"]], [("7", "Peak Time"), ("8", "Leer")])
+        r = self.s.start_pl_source_import("beatport", ["7"])
+        self.assertTrue(r["ok"], r)
+        res = self.wait()["result"]
+        self.assertEqual(res["lists"][0]["count"], 2)
+        st = self.s.pl_state(self.s._pls().find_source("beatport", "7")["id"])
+        items = st["pl"]["items"]
+        self.assertEqual([x["title"].split(" (")[0] for x in items], ["Nordlicht", "Kaltes Glas"])  # Reihenfolge nach position
+        self.assertTrue(items[0]["url"].startswith("https://www.beatport.com/track/"))
+        self.assertGreaterEqual(res["linked"], 1)                                               # Nordlicht im Tagger
+        linked = [x for x in st["pl"]["items"] if x["path"]]
+        # erneut holen: Verknüpfungen bleiben
+        r = self.s.start_pl_source_import("beatport", ["7"])
+        res = self.wait()["result"]
+        self.assertGreaterEqual(res["kept"], len(linked))
+        self.assertFalse([c for c in self.fake.calls if c[0] != "GET" and "/my/playlists" in c[1]])  # nur lesen
 
 
 if __name__ == "__main__":
