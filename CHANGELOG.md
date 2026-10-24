@@ -43,6 +43,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Abgleich mit der Bibliothek toleranter (#281):** Mix-Schreibweisen („Song - Extended Mix“, „(Extended)“,
   „Remastered“, Mix in TIT3), Ähnlichkeitssuche als Rückfall, je Eintrag der Grund und ein Vorschlag ★, Option „Anderer
   Mix gilt als gefunden“ (Extended bevorzugt) und Suche in einem gewählten Ordner.
+- **Abgleich für viele Playlists, Verknüpfungen bleiben (#282):** Bibliotheken im Abgleich einzeln an- und abwählen,
+  Vorschläge ★ vorgewählt, „Ordner mit Bibliothek abgleichen …“ bzw. „Alle Playlists …“; erneutes Holen einer Playlist
+  behält die Verknüpfungen und verknüpft sichere Treffer gleich.
 - **Zurück zur vorherigen Ansicht (#274):** Nach einem Sprung aus dem Inhalt (z. B. Playlist › „Im Tagger öffnen“)
   führt „← Zurück“ oben in der Seitenleiste an dieselbe Stelle zurück – mit Auswahl, Filter und Bildlauf; „→“
   vorwärts, Rechtsklick zeigt die letzten Stationen. Auch Alt+← / Alt+→ (ausser im Vergleich) und die Maustasten

@@ -319,6 +319,43 @@ def match_ref(ref: dict, index, any_mix: bool = False) -> dict:
     return {"status": "missing", "path": "", "candidates": [], "reason": "nicht gefunden"}
 
 
+def ref_keys(ref: dict) -> list:
+    """Erkennungsmerkmale eines Eintrags ohne Datei: Link, ISRC, Künstler + Titel + Mix (#282)."""
+    out = []
+    if ref.get("url"):
+        out.append("u:" + str(ref["url"]).split("?")[0].rstrip("/").lower())
+    isrc = norm(ref.get("isrc")).replace(" ", "")
+    if isrc:
+        out.append("i:" + isrc)
+    base, mix = split_title(ref.get("title"), ref.get("mix", ""))
+    if base:
+        out.append("t:" + " ".join(sorted(artist_keys(ref.get("artist")))) + "|" + base + "|" + mix)
+    return out
+
+
+def keep_links(old_items, new_items) -> tuple[list, int]:
+    """Beim erneuten Holen einer Playlist bestehende Verknüpfungen (Eintrag ohne Datei → Datei) übernehmen (#282).
+    → (neue Einträge, Anzahl übernommener Verknüpfungen)"""
+    linked = {}
+    for x in old_items or []:
+        if isinstance(x, dict) and x.get("path") and isinstance(x.get("ref"), dict):
+            for key in ref_keys(x["ref"]):
+                linked.setdefault(key, x)
+    out, n = [], 0
+    for x in new_items or []:
+        x = dict(x) if isinstance(x, dict) else {"path": x}
+        if not x.get("path") and isinstance(x.get("ref"), dict):
+            old = next((linked[k] for k in ref_keys(x["ref"]) if k in linked), None)
+            if old is not None:
+                x["path"] = old["path"]
+                for k in ("lock", "note"):
+                    if old.get(k):
+                        x[k] = old[k]
+                n += 1
+        out.append(x)
+    return out, n
+
+
 # =========================================================================== Import und Export (#271)
 _CSV_COLS = {"path": ("pfad", "path", "location", "datei", "file", "dateipfad", "filename"),
              "artist": ("künstler", "kuenstler", "artist", "interpret", "artists", "artist name(s)", "artist name",

@@ -13,6 +13,7 @@ import time
 import core
 from id3tags import MV
 import setexport
+import playlists
 import setplan
 
 # Optionen der Seite → Typ und Grenzen
@@ -184,7 +185,7 @@ class DjSetMixin:
         src = self.plugins.get(pid).name
 
         def job(cancel, progress):
-            out, missing = [], 0
+            out, missing, kept = [], 0, 0
             for k, i in enumerate(ids):
                 if cancel.is_set():
                     break
@@ -199,16 +200,26 @@ class DjSetMixin:
                     if pl is None:
                         pl = st.create(st.unique_name(r["name"], folder), folder, "import", items,
                                        source={"plugin": pid, "id": i})
-                    else:
+                    else:                                    # #282: Verknüpfungen bleiben beim erneuten Holen
+                        items, kept_n = playlists.keep_links(pl.get("items"), items)
+                        kept += kept_n
                         pl = st.update(pl["id"], "Playlist aktualisieren", items=items, source={"plugin": pid, "id": i})
                 missing += r.get("missing", 0)
                 out.append({"name": f"{folder}: {pl['name']}", "id": pl["id"], "count": len(items),
                             "missing": r.get("missing", 0), "files": r["files"]})
             first = out[0] if out else None
+            linked = 0
+            if out and not cancel.is_set():                  # #282: sichere Treffer gleich verknüpfen
+                try:
+                    progress(("text", "Mit der Bibliothek abgleichen …"))
+                    linked = self._pl_auto_match([x["id"] for x in out], cancel, progress)
+                except Exception:  # noqa: BLE001 – Abgleich ist eine Zugabe
+                    linked = 0
             if first and load:
                 self.dj_load(first["id"])
             return {"ok": True, "lists": [{k: v for k, v in x.items() if k != "files"} for x in out],
-                    "first": first["name"] if first else "", "files": first["files"] if first else [], "missing": missing}
+                    "first": first["name"] if first else "", "files": first["files"] if first else [], "missing": missing,
+                    "kept": kept, "linked": linked}
         return self._run("dj_source", "Playlists laden", job)
 
     def dj_add_paths(self, paths, new=False, name="") -> dict:

@@ -487,13 +487,21 @@ class PlaylistMixin:
             seen |= {playlists.nk(f.path) for f in files}
         return index
 
-    def start_pl_match(self, pid, folder="", any_mix=None):
-        """Einträge ohne Datei mit der Bibliothek abgleichen → rows [{k, label, status, path, candidates, reason}].
-        folder: statt der Bibliothek in diesem Ordner suchen (#281); any_mix: anderer Mix gilt als gefunden (gemerkt)."""
-        pl = self._pls().get(pid)
-        todo = [(k, x) for k, x in enumerate(pl.get("items") or []) if not x.get("path") and x.get("ref")]
+    def start_pl_match(self, target, folder="", any_mix=None, roots=None):
+        """Einträge ohne Datei mit der Bibliothek abgleichen → rows [{pid, k, label, status, path, candidates, reason}].
+        target: Playlist-ID oder {"ids": [...]} bzw. {"folder": "Ordner"} ("" = alle, #282). roots: gewählte
+        Bibliotheksordner (None = alle bekannten); folder: zusätzlicher Ordner (#281); any_mix: anderer Mix gilt als
+        gefunden (gemerkt)."""
+        with self.lock:
+            if isinstance(target, dict):
+                pls = self._pl_pick(target.get("ids"), target.get("folder") if "folder" in target else None)
+            else:
+                pls = [self._pls().get(target)]
+            todo = [(p["id"], p["name"], k, x) for p in pls for k, x in enumerate(p.get("items") or [])
+                    if not x.get("path") and x.get("ref")]
         if not todo:
-            return {"ok": False, "error": "Diese Playlist hat keine Einträge ohne Datei."}
+            return {"ok": False, "error": "Keine Einträge ohne Datei zum Abgleichen." if len(pls) != 1
+                    else "Diese Playlist hat keine Einträge ohne Datei."}
         if any_mix is not None:
             self.cfg["pl_match_any_mix"] = bool(any_mix)
             core.save_config({"pl_match_any_mix": bool(any_mix)})
@@ -501,24 +509,67 @@ class PlaylistMixin:
         folder = str(folder or "")
         if folder and not os.path.isdir(folder):
             return {"ok": False, "error": "Ordner nicht gefunden."}
-        roots = [folder] if folder else self._pl_lib_roots()
-        if not roots and not self.tag_files:
-            return {"ok": False, "error": "Keine Bibliothek festgelegt – Einstellungen › Speicherort und Ordner."}
+        known = self._pl_lib_roots()
+        use = known if roots is None else [r for r in roots if isinstance(r, str) and os.path.isdir(r)]
+        if folder and playlists.nk(folder) not in {playlists.nk(r) for r in use}:
+            use = use + [folder]
+        if not use and not self.tag_files:
+            return {"ok": False, "error": "Keine Bibliothek gewählt – bitte mindestens einen Ordner anhaken oder wählen."}
+        multi = len(pls) > 1
 
         def job(cancel, progress):
-            index = playlists.LibIndex(self._pl_lib_index(cancel, progress, roots))
+            index = playlists.LibIndex(self._pl_lib_index(cancel, progress, use))
             progress(("text", "Abgleichen …"))
             rows = []
-            for k, x in todo:
+            for pid, name, k, x in todo:
                 r = playlists.match_ref(x["ref"], index, any_mix)
                 ref = x["ref"]
-                rows.append({"k": k, "label": " – ".join(v for v in (ref.get("artist"), ref.get("title")) if v)
-                             + (f" ({ref['mix']})" if ref.get("mix") else ""), **r})
-            return {"ok": True, "rows": rows, "roots": roots, "library": len(index), "any_mix": any_mix,
-                    "tagger": len(self.tag_files),
+                label = " – ".join(v for v in (ref.get("artist"), ref.get("title")) if v) + (f" ({ref['mix']})" if ref.get("mix") else "")
+                rows.append({"pid": pid, "playlist": name if multi else "", "k": k, "label": label, **r})
+            return {"ok": True, "rows": rows, "roots": use, "library": len(index), "any_mix": any_mix,
+                    "tagger": len(self.tag_files), "playlists": len({t[0] for t in todo}),
                     "sure": sum(r["status"] == "sure" for r in rows), "unclear": sum(r["status"] == "unclear" for r in rows),
                     "missing": sum(r["status"] == "missing" for r in rows)}
         return self._run("pl_match", "Mit der Bibliothek abgleichen", job)
+
+    def pl_relink_many(self, picks, sel="") -> dict:
+        """#282: Treffer aus einem Abgleich über mehrere Playlists übernehmen: picks [{pid, k, path}]."""
+        by = {}
+        for p in picks or []:
+            if isinstance(p, dict) and isinstance(p.get("pid"), str):
+                by.setdefault(p["pid"], []).append(p)
+        n = 0
+        with self.lock:
+            st = self._pls()
+            for pid, lst in by.items():
+                if st.exists(pid):
+                    n += st.relink(pid, lst)
+        return self._pl_after(sel or (next(iter(by)) if by else ""), f"{n} Titel verknüpft." if n else "Nichts verknüpft.")
+
+    def _pl_auto_match(self, ids, cancel, progress) -> int:
+        """#282: nach dem Holen sichere Treffer für Einträge ohne Datei gleich verknüpfen (Bibliothek wie beim Abgleich)."""
+        with self.lock:
+            st = self._pls()
+            todo = {i: [(k, x["ref"]) for k, x in enumerate(st.get(i).get("items") or []) if not x.get("path") and x.get("ref")]
+                    for i in ids if st.exists(i)}
+        todo = {i: v for i, v in todo.items() if v}
+        roots = self._pl_lib_roots()
+        if not todo or (not roots and not self.tag_files):
+            return 0
+        index = playlists.LibIndex(self._pl_lib_index(cancel, progress, roots))
+        any_mix = bool(self.cfg.get("pl_match_any_mix"))
+        n = 0
+        with self.lock:
+            st = self._pls()
+            for i, lst in todo.items():
+                picks = []
+                for k, ref in lst:
+                    r = playlists.match_ref(ref, index, any_mix)
+                    if r["status"] == "sure":
+                        picks.append({"k": k, "path": r["path"]})
+                if picks:
+                    n += st.relink(i, picks, "Neue Titel verknüpfen")
+        return n
 
     def start_pl_find_missing(self, pid, folder=""):
         """Fehlende Dateien (verschoben, umbenannt) suchen: gleicher Dateiname in den Bibliotheksordnern bzw. im

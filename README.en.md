@@ -278,7 +278,10 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
   a file (same ISRC or artist + title + mix = found; “Song - Extended Mix” and “Song (Extended)” count as equal,
   “Original Mix” and “Remastered” as no mix). A different mix such as radio edit instead of extended mix or only a
   similar title = unclear with reason and suggestion ★; “Another mix counts as found” picks it directly (extended
-  preferred). It searches the library or a chosen folder (“Other folder …”). **“Find missing …”** finds moved files by file name (same size preferred). **“Export
+  preferred). It searches the ticked libraries and, if wanted, another folder (“Other
+  folder …”); suggestions ★ are preselected. Right-clicking a folder or “More ▾ › Match all playlists with library …”
+  does this for many playlists at once. When a playlist is fetched again (Spotify, SoundCloud, Lexicon …), links are
+  kept and sure matches are linked right away. **“Find missing …”** finds moved files by file name (same size preferred). **“Export
   shopping list …”** saves everything missing as CSV.
 - **Prepare:** in the step “Take over into the library”, “Add to playlist” (e.g. `New/{Jahr}-{Monat}`) puts the
   taken-over tracks into a playlist; new tracks are also linked automatically to matching entries without a file.

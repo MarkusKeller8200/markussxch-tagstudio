@@ -203,6 +203,13 @@ class TestPlugins(Base):
                          ("Mara Lind", "Kaltes Glas", "Extended Mix", "CHA012100002", 340))
         self.assertEqual(ref["url"], "https://open.spotify.com/track/sp1")
         self.assertEqual(pl["folder"], "Spotify")
+        # #282: sicherer Treffer (ISRC) gleich verknüpft; erneutes Holen behält die Verknüpfung
+        self.assertEqual((r["linked"], pl["items"][0].get("path")), (1, os.path.join(self.B, "k.mp3")))
+        self.s.pl_relink(pl["id"], [{"k": 0, "path": os.path.join(self.B, "n.mp3")}])      # von Hand umgehängt
+        self.s.start_pl_source_import("spotify", ["pl1"])
+        r2 = self.wait()["result"]
+        self.assertEqual((r2["kept"], r2["linked"]), (1, 0))
+        self.assertEqual(self.s._pls().get(pl["id"])["items"][0]["path"], os.path.join(self.B, "n.mp3"))
         # Online-Metadaten: ISRC-Suche, Link und ID als Vorschlag
         res = self.act("online", "fetch", [self.idx["k.mp3"]], mb=False, discogs=False, deezer=False, itunes=False,
                        spotify=True, soundcloud=False, lastfm=False, acoustid=False, mode="empty", album=True, date="full",

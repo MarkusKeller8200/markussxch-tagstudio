@@ -284,7 +284,11 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
   ohne Datei den passenden Titel (gleiche ISRC bzw. Künstler + Titel + Mix = gefunden; „Song - Extended Mix“ und
   „Song (Extended)“ gelten gleich, „Original Mix“ und „Remastered“ wie ohne Angabe). Anderer Mix wie Radio Edit statt
   Extended Mix oder nur ähnlicher Titel = unklar mit Grund und Vorschlag ★; „Anderer Mix gilt als gefunden“ wählt ihn
-  direkt (Extended bevorzugt). Gesucht wird in der Bibliothek oder einem gewählten Ordner („Anderer Ordner …“). **„Fehlende suchen …“** findet verschobene Dateien über den Dateinamen
+  direkt (Extended bevorzugt). Gesucht wird in den angehakten Bibliotheken und auf Wunsch
+  in einem weiteren Ordner („Anderer Ordner …“); Vorschläge ★ sind vorgewählt. Per Rechtsklick auf einen Ordner bzw.
+  „Mehr ▾ › Alle Playlists mit Bibliothek abgleichen …“ geht das für viele Playlists auf einmal. Wird eine Playlist
+  erneut geholt (Spotify, SoundCloud, Lexicon …), bleiben Verknüpfungen erhalten, sichere Treffer werden gleich
+  verknüpft. **„Fehlende suchen …“** findet verschobene Dateien über den Dateinamen
   (gleiche Grösse bevorzugt). **„Einkaufsliste exportieren …“** speichert alles, was fehlt, als CSV.
 - **Vorbereiten:** Im Schritt „Übernahme in die Bibliothek“ legt „In Playlist aufnehmen“ (z. B. `Neu/{Jahr}-{Monat}`)
   die übernommenen Titel in eine Playlist; neue Titel werden ausserdem automatisch mit passenden Einträgen ohne Datei

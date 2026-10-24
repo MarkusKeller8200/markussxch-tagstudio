@@ -2590,6 +2590,7 @@ class UiTest(unittest.TestCase):
         pg.click("#menu button >> text=Mit Bibliothek abgleichen")
         pg.wait_for_selector("#plsAnyMix")                                    # #281: wo suchen, anderer Mix
         self.assertIn(self.lib, pg.inner_text("#mBody"))
+        self.assertTrue(pg.locator('#mBody [data-plsroot="0"]').is_checked())     # #282: Bibliothek an/ab
         pg.click("#mBtns .primary")
         pg.wait_for_selector("#mBody select[data-plsk]")
         self.assertIn("Titel, Künstler und Mix", pg.inner_text("#mBody"))
@@ -2598,6 +2599,9 @@ class UiTest(unittest.TestCase):
         pg.click("#mBtns .primary")
         pg.wait_for_function("PLS.st.pl.refs === 1 && document.querySelectorAll('#plsList .chip').length >= 1")
         self.assertEqual(pg.evaluate("PLS.st.pl.items[0].path"), files[1])
+        pg.click('#plsHead [data-plsa="more"]')                              # #282: alle Playlists abgleichen
+        self.assertTrue(pg.locator("#menu button", has_text="Alle Playlists mit Bibliothek abgleichen").is_visible())
+        pg.evaluate("hideMenu()")
         pg.click("#plsImport")
         pg.wait_for_selector("#menu:not([hidden]) button >> text=Datei (M3U, M3U8, Rekordbox-XML, CSV, Spotify-Export)")
         pg.evaluate("hideMenu()")

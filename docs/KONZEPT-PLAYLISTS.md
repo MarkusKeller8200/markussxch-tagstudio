@@ -347,6 +347,10 @@ Phase 2 siehe Abschnitt 15.
   unklare (★, vorgewählt nur mit „Vorschläge vorwählen“). Option „Anderer Mix gilt als gefunden“ (`cfg
   pl_match_any_mix`, Rangfolge `MIX_RANK`: Extended, ohne Angabe, Club …). Vorab-Dialog mit den gesuchten Ordnern und
   „Anderer Ordner …“ (`start_pl_match(pid, folder, any_mix)`).
+- **#282:** `start_pl_match(target, folder, any_mix, roots)` – `target` Playlist-ID oder `{"folder": …}` ("" = alle),
+  `roots` = angehakte Bibliotheken; Zeilen mit `pid`, Übernahme mit `pl_relink_many`. Vorschläge ★ standardmässig
+  vorgewählt. Erneutes Holen aus einer Quelle (`start_dj_source_import`): `playlists.keep_links` (Link, ISRC bzw.
+  Künstler + Titel + Mix, Sperre/Notiz bleiben), danach `_pl_auto_match` (nur sichere Treffer).
 - **Automatisch verknüpfen** (`_pl_autolink`): nach der Übernahme in „Vorbereiten“ werden sichere Treffer in allen
   Playlists eingetragen.
 - **Fehlende suchen** (`start_pl_find_missing`): gleicher Dateiname in den Bibliotheksordnern oder einem gewählten

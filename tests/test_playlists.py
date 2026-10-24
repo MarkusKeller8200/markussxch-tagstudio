@@ -285,6 +285,21 @@ class TestMatchImport(Base):
         self.assertEqual((r["status"], r["path"], r["reason"]), ("unclear", "", "anderer Künstler"))
         self.assertEqual(m({"artist": "Mara Lind", "title": "Ganz anders"}, idx)["status"], "missing")
 
+    def test_keep_links(self):
+        """#282: erneutes Holen behält Verknüpfungen (Link, ISRC oder Künstler + Titel + Mix)."""
+        old = [{"path": "/l/a.mp3", "lock": True, "ref": {"artist": "A", "title": "Song", "url": "https://open.spotify.com/track/1"}},
+               {"path": "/l/b.mp3", "ref": {"artist": "B", "title": "Zwei (Extended Mix)", "isrc": "X1"}},
+               {"path": "/l/c.mp3", "ref": {"artist": "C & D", "title": "Drei - Radio Edit"}},
+               {"ref": {"artist": "E", "title": "Offen"}}]
+        new = [{"ref": {"artist": "A", "title": "Song (neu)", "url": "https://open.spotify.com/track/1?si=x"}},
+               {"ref": {"artist": "B", "title": "Zwei", "isrc": "x1"}},
+               {"ref": {"artist": "D, C", "title": "Drei", "mix": "Radio Edit"}},
+               {"ref": {"artist": "E", "title": "Offen"}}, {"ref": {"artist": "F", "title": "Neu"}}]
+        out, n = playlists.keep_links(old, new)
+        self.assertEqual(n, 3)
+        self.assertEqual([x.get("path", "") for x in out], ["/l/a.mp3", "/l/b.mp3", "/l/c.mp3", "", ""])
+        self.assertTrue(out[0]["lock"])
+
     def test_parse_csv(self):
         items = playlists.parse_csv("Künstler;Titel;Mix;ISRC;Dauer\nA;Song;Extended Mix;X1;5:20\nB;Zwei;;;\n")
         self.assertEqual(items[0]["ref"], {"artist": "A", "title": "Song", "mix": "Extended Mix", "isrc": "X1", "dur": 320, "source": "csv"})
@@ -485,6 +500,14 @@ class TestSession(unittest.TestCase):
         res = wait()
         self.assertEqual((res["roots"], res["any_mix"]), ([self.lib], True))
         self.assertTrue(s.pl_state(cid)["match"]["any_mix"])
+        # #282: alle Playlists, nur gewählte Bibliotheken; Treffer über mehrere Playlists verknüpfen
+        self.assertEqual(s.start_pl_match({"folder": ""}, "", None, [])["ok"] is False, not s.tag_files)
+        self.assertTrue(s.start_pl_match({"folder": ""}, "", None, [self.lib])["ok"])
+        res = wait()
+        self.assertEqual(res["roots"], [self.lib])
+        self.assertTrue(all(r["pid"] for r in res["rows"]))
+        st = s.pl_relink_many([{"pid": r["pid"], "k": r["k"], "path": r["path"]} for r in res["rows"] if r["path"]], cid)
+        self.assertIn("verknüpft", st["message"])
         r = s.pl_shopping_file(os.path.join(out, "e.csv"), [cid])
         self.assertIn("1 Titel", r["message"])
         # Fehlende suchen: Datei verschoben

@@ -59,7 +59,7 @@ _PASS = {
     "pl_list", "pl_state", "pl_tag_indices", "pl_files", "pl_create", "pl_rename", "pl_move", "pl_meta", "pl_duplicate",
     "pl_merge", "pl_add_tag", "pl_add_paths", "pl_remove", "pl_order", "pl_undo", "pl_redo", "pl_folder_create",
     "pl_folder_rename", "pl_folder_remove", "pl_folder_archive", "pl_archive", "pl_restore", "pl_delete", "pl_external",
-    "pl_external_apply", "set_playlist_dir", "pl_to_queue", "start_pl_match", "start_pl_find_missing", "pl_relink",
+    "pl_external_apply", "set_playlist_dir", "pl_to_queue", "start_pl_match", "start_pl_find_missing", "pl_relink", "pl_relink_many",
     "pl_import_file", "start_pl_source_import", "pl_dj_libraries", "start_pl_dj_scan", "start_pl_dj_import",
     "pl_import_text",
     "help_docs", "help_licenses", "help_lic_mark", "feedback_info", "feedback_search", "feedback_prepare", "feedback_translation", "help_tags", "start_tag_scan", "tag_field_filter",
