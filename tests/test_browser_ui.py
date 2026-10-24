@@ -777,6 +777,27 @@ class UiTest(unittest.TestCase):
         self.assertIn("08A", txt)
         self.assertEqual(len([c for c in state.calls if c[1] == "/analyze/single"]), 3)
 
+    def test_error_dialog_opens_log(self):
+        """#247: Meldung mit Protokoll-Pfad → „Protokoll öffnen“ und „Ordner öffnen“; ohne Pfad nur OK."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("""() => { const orig = call; window.__log = [];
+          window.call = (n, ...a) => { if (n === "open_log") { window.__log.push(a); return Promise.resolve(true); } return orig(n, ...a); }; }""")
+        pg.evaluate("() => { info('Fehler', 'Keine Verbindung.\\n\\nDetails im Protokoll: C:\\\\Users\\\\m\\\\TagStudio\\\\Logs\\\\openkeyscan.log'); }")
+        pg.wait_for_selector("#dialog:not([hidden]) [data-dlglog]")
+        self.assertEqual(pg.locator("#dlgBtns button").all_inner_texts(), ["Protokoll öffnen", "Ordner öffnen", "OK"])
+        pg.click('[data-dlglog="file"]')
+        pg.click('[data-dlglog="folder"]')
+        self.assertTrue(self.until("window.__log.length === 2"))
+        self.assertEqual(pg.evaluate("window.__log"), [["C:\\Users\\m\\TagStudio\\Logs\\openkeyscan.log", False],
+                                                     ["C:\\Users\\m\\TagStudio\\Logs\\openkeyscan.log", True]])
+        self.assertFalse(pg.locator("#dialog").is_hidden())                     # Dialog bleibt offen
+        pg.click("#dlgBtns button.primary")
+        pg.evaluate("() => { info('Hinweis', 'Alles gut.'); }")
+        pg.wait_for_selector("#dialog:not([hidden])")
+        self.assertEqual(pg.locator("#dlgBtns button").all_inner_texts(), ["OK"])
+        pg.click("#dlgBtns button.primary")
+
     def test_dj_lexicon_playlists(self):
         """#242: DJ-Set › „Aus Lexicon …“ – alle Playlists holen, mit Häkchen wählen, als Listen laden."""
         pg = self.pg

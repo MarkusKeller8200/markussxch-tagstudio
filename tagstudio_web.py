@@ -752,6 +752,22 @@ class Api:
             subprocess.Popen(["xdg-open", os.path.dirname(path)])
         return True
 
+    def open_log(self, path, folder=False):
+        """#247: Protokoll aus einer Fehlermeldung öffnen – nur *.log im Log-Ordner von TagStudio.
+        folder=True: Ordner mit markierter Datei zeigen."""
+        import plugins
+        root = os.path.normcase(os.path.abspath(plugins.log_dir()))
+        p = os.path.normcase(os.path.abspath(str(path or "")))
+        if not p.endswith(".log") or os.path.dirname(p) != root or not os.path.isfile(p):
+            return False
+        if folder:
+            return self.reveal(os.path.abspath(str(path)))
+        if sys.platform.startswith("win"):
+            os.startfile(os.path.abspath(str(path)))  # type: ignore[attr-defined]
+        else:
+            subprocess.Popen(["open" if sys.platform == "darwin" else "xdg-open", os.path.abspath(str(path))])
+        return True
+
     def reveal_tag(self, i):
         """#197: Dateiordner eines Tagger-Titels öffnen (Datei markiert)."""
         s = self._s

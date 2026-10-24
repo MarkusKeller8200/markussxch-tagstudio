@@ -95,6 +95,16 @@ function dialog({ title, text = "", buttons, area = null }) {
     const box = $("#dlgBtns");
     box.innerHTML = "";
     const finish = (v) => { ov.hidden = true; document.removeEventListener("keydown", onKey, true); resolve(v); };
+    // #247: Protokoll aus der Meldung direkt öffnen
+    const logm = /(?:Details im Protokoll|Vollständiges Protokoll|Protokoll): *(\S[^\n]*?\.log)\s*$/m.exec(text || "");
+    if (logm) [["Protokoll öffnen", false], ["Ordner öffnen", true]].forEach(([label, folder]) => {
+      const el = document.createElement("button");
+      el.className = "ghost";
+      el.dataset.dlglog = folder ? "folder" : "file";
+      el.textContent = label;
+      el.addEventListener("click", () => call("open_log", logm[1], folder).then((ok) => { if (!ok) toast("Protokoll nicht gefunden."); }));
+      box.appendChild(el);
+    });
     buttons.forEach((b) => {
       const el = document.createElement("button");
       el.className = b.primary ? "primary" : "ghost";

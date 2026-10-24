@@ -259,5 +259,7 @@
 "GitHub liefert für diese Datei keine Prüfsumme – bitte den Installer von Hand laden.": ["GitHub provides no checksum for this file – please download the installer by hand.", "GitHub liferet für die Datei kei Prüefsumme – bitte de Installer vo Hand lade."],
 "Prüfsumme stimmt nicht – die Datei ist unvollständig oder verändert. Nichts installiert.": ["Checksum does not match – the file is incomplete or modified. Nothing installed.", "Prüefsumme stimmt nöd – d Datei isch unvollständig oder veränderet. Nüüt installiert."],
 "· BPM gesperrt": ["· BPM locked", "· BPM gsperrt"],
-"BPM gesperrt": ["BPM locked", "BPM gsperrt"]
+"BPM gesperrt": ["BPM locked", "BPM gsperrt"],
+"Protokoll öffnen": ["Open log", "Protokoll uftue"],
+"Protokoll nicht gefunden.": ["Log not found.", "Protokoll nöd gfunde."]
 }

@@ -41,6 +41,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Geändert
 
+- **Protokoll direkt öffnen (#247):** Nennt eine Fehlermeldung ein Protokoll („Details im Protokoll: …“), öffnen
+  „Protokoll öffnen“ bzw. „Ordner öffnen“ es direkt (nur Dateien im Log-Ordner von TagStudio).
 - **Versionsanzeige und Update-Kanäle (#233):** Der Entwicklungsstand im Quellcode heisst „Developer Release“ und zeigt
   die geplante Version (z. B. 4.8.0 statt 4.7.0); Basis und Anzahl Änderungen stehen im Tooltip. „Nur offizielle“ und
   „auch Beta-Versionen“ bieten nur veröffentlichte Versionen an. Der neue Kanal „Entwicklung“ (jede Änderung auf

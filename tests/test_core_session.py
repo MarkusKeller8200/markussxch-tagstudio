@@ -170,6 +170,28 @@ class TestSession(TempHome):
         self.assertEqual(Session().settings()["ui"], {"pairs_w": 420, "side_collapsed": True})
 
 
+class TestOpenLog(TempHome):
+    def test_only_logs_in_log_folder(self):
+        """#247: „Protokoll öffnen“ nur für *.log im Log-Ordner – nichts anderes wird geöffnet."""
+        from unittest import mock
+        import plugins
+        import tagstudio_web
+        api = tagstudio_web.Api()
+        log = plugins.write_log("x.log", "Test")
+        other = os.path.join(os.path.dirname(log), "x.txt")
+        with open(other, "w") as fh:
+            fh.write("x")
+        opened = []
+        with mock.patch.object(tagstudio_web.subprocess, "Popen", lambda cmd, *a, **k: opened.append(cmd)), \
+                mock.patch.object(tagstudio_web.os, "startfile", lambda p: opened.append(p), create=True):
+            for bad in (other, os.path.join(os.path.dirname(log), "fehlt.log"), os.path.join(self.dir, "y.log"), "", None):
+                self.assertFalse(api.open_log(bad), bad)
+            self.assertEqual(opened, [])
+            self.assertTrue(api.open_log(log))
+            self.assertTrue(api.open_log(log, True))
+        self.assertEqual(len(opened), 2)
+
+
 class TestExpert(TempHome):
     def test_applog_and_expert(self):
         """#133: App-Protokoll mit Rotation, Einstellungsdatei maskiert, Protokolle lesen."""
