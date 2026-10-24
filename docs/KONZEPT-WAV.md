@@ -1,6 +1,6 @@
 # Konzept: WAV-Unterstützung
 
-Status: **Entwurf** (2026-10-11) – Issue #156. Testroutine: `tools/wavcheck.py`, Tests `tests/test_wavcheck.py`.
+Status: **Entwurf** (2026-10-11) – Issue #156. Teil des Gesamtkonzepts [KONZEPT-FORMATE.md](KONZEPT-FORMATE.md) (AIFF, FLAC, M4A, OGG; Stand 24.10.2026). Testroutine: `tools/wavcheck.py`, Tests `tests/test_wavcheck.py`.
 
 ## Ziel
 
@@ -59,7 +59,7 @@ und die Kopie in den DJ-Programmen öffnen (Felder sichtbar? Cues/Beatgrid erhal
 2. **Schreiben:** ID3-Chunk ersetzen bzw. anhängen (Prototyp `write_id3` aus `wavcheck.py`: alle anderen Chunks
    byte-genau übernehmen, über temporäre Datei atomar ersetzen), INFO-Felder angleichen, Sicherung wie bei MP3.
 3. **Player/Stems:** WAV-Stems erhalten Tags (heute nur MP3-Stems).
-4. **Nicht im ersten Schritt:** RF64 schreiben, AIFF/FLAC (eigene Formate), Cue-Chunk schreiben.
+4. **Nicht im ersten Schritt:** RF64 schreiben, Cue-Chunk schreiben. AIFF, FLAC, M4A, OGG: siehe KONZEPT-FORMATE.md.
 
 ## Offene Fragen an den User
 

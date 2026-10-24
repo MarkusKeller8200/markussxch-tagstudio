@@ -105,7 +105,7 @@ Zug nachführen.**
 | Hilfe | [KONZEPT-HILFE.md](KONZEPT-HILFE.md) |
 | Update, Versionen, Release | [KONZEPT-UPDATE.md](KONZEPT-UPDATE.md) |
 | App und Oberfläche | [KONZEPT-APP-GUI.md](KONZEPT-APP-GUI.md) |
-| WAV (geplant) | [KONZEPT-WAV.md](KONZEPT-WAV.md) |
+| Weitere Dateiformate (geplant: WAV, AIFF, FLAC, M4A, OGG – #156, #262–#266) | [KONZEPT-FORMATE.md](KONZEPT-FORMATE.md), WAV im Detail: [KONZEPT-WAV.md](KONZEPT-WAV.md) |
 | Mehrsprachigkeit (umgesetzt in 4.7.0) | [KONZEPT-MEHRSPRACHIG.md](KONZEPT-MEHRSPRACHIG.md) |
 | ID3-Felder (Nachschlagen) | [ID3-FELDER.md](ID3-FELDER.md) |
 | Präsentation zur Version 4.4 (Projektgeschichte, Highlights) | [PowerPoint](TagStudio-Praesentation-4.4.pptx) |
