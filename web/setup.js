@@ -207,7 +207,7 @@ async function wizardApply(W, prep, pl) {  // eslint-disable-line no-param-reass
   SETUP.st = await call("setup_finish", rec, W.firstSteps);
   toast("Eingerichtet – viel Spass mit TagStudio!");
   const start = rec[0] || "tagger";
-  setModule(start);
+  setModule(start, { side: true });
   if (start === "tagger" && W.lib && typeof taggerAutoStart === "function") taggerAutoStart().catch(() => {});
 }
 

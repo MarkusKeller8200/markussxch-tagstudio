@@ -1627,3 +1627,13 @@ html.i18n-wait body{visibility:hidden}
 .pls-col input:checked+span{border-color:var(--fg)}
 .pls-col input:focus-visible+span{outline:2px solid var(--acc)}
 .nav-sub.warn{color:var(--warn)}
+
+/* ---------------------------------------------------------------- Zurück/Vorwärts (#274) */
+.nav-hist{display:flex;align-items:center;gap:4px;margin:-14px 0 8px}
+.nav-hist .nav-back{flex:1;min-width:0;height:auto;min-height:40px;padding:4px 10px;background:var(--acc-soft);color:var(--acc)}
+.nav-back-t{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+.nav-back-t span{font-weight:600;font-size:13px}
+.nav-back-t small{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-hist .nav-fwd{flex:none}
+.side.collapsed .nav-hist{flex-direction:column;margin:-10px 0 8px}
+.side.collapsed .nav-hist .nav-back{justify-content:center;padding:0}

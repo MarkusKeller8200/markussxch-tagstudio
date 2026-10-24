@@ -17,6 +17,10 @@
       <div class="logo"><svg class="i" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
       <div class="brand-t nt"><span class="brand-k">MarKusSXCH</span><span class="brand-n">TagStudio</span></div>
     </div>
+    <div class="nav-hist" id="navHist" hidden>
+      <button class="nav nav-back" id="navBack" aria-label="Zurück"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg><span class="nt nav-back-t" id="navBackLbl"><span>Zurück</span></span></button>
+      <button class="icon-btn nav-fwd" id="navFwd" hidden aria-label="Vorwärts"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+    </div>
     <button class="nav" data-module="prep" title="Tracks vorbereiten: Eingang → Stufen → Bibliothek">
       <svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 12h7"/><path d="M4 18h4"/><path d="m14 15 3 3 5-6"/></svg><span class="nt">Vorbereiten</span><span class="nav-sub nt" id="prepCount" title="Titel im Eingang, die noch nicht übernommen sind"></span></button>
     <button class="nav" data-module="tagger" title="Tagger">
@@ -618,6 +622,7 @@
 <script src="djset.js"></script>
 <script src="queue.js"></script>
 <script src="playlists.js"></script>
+<script src="nav.js"></script>
 <script src="help.js"></script>
 <script src="feedback.js"></script>
 <script src="recipes.js"></script>

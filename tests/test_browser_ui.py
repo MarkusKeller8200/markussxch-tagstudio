@@ -2467,6 +2467,46 @@ class UiTest(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(base, "03_Playlists", "Sets", "Freitag Warm-up.m3u8")))
         self.assertFalse(os.path.isdir(arch) and os.listdir(os.path.join(arch, "_Playlists", "Sets")) != [])
 
+    def test_nav_back(self):
+        """#274: Zurück/Vorwärts – nur Sprünge aus dem Inhalt, Stelle wird wiederhergestellt, Tasten und Maustasten."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("call('pl_create', 'Probe', 'Sets', [0, 1, 2])")
+        pg.click('.nav[data-module="playlists"]')                      # Seitenleiste: kein Eintrag
+        pg.wait_for_function("document.querySelectorAll('#plsList .pls-row[data-k]').length === 3")
+        self.assertTrue(pg.locator("#navHist").is_hidden())
+        pg.click('#plsList .pls-row[data-k="1"] .t')
+        pg.click('#plsHead [data-plsa="tagger"]')                     # Sprung aus dem Inhalt
+        pg.wait_for_function("S.module === 'tagger' && TG.rows.length === 3 && NAV.back.length === 1")
+        self.assertTrue(pg.locator("#navHist").is_visible())
+        self.assertIn("Probe", pg.inner_text("#navBackLbl"))
+        pg.click('.tg-row[data-i="2"]')
+        pg.click("#navBack")
+        pg.wait_for_function("S.module === 'playlists' && PLS.anchor === 1 && PLS.sel.has(1) && PLS.sel.size === 1")
+        self.assertTrue(pg.locator("#navFwd").is_visible())
+        pg.keyboard.press("Alt+ArrowRight")                            # vorwärts: Tagger mit derselben Auswahl
+        pg.wait_for_function("S.module === 'tagger' && TG.anchor === 2")
+        pg.evaluate("document.dispatchEvent(new MouseEvent('mouseup', {button: 3, bubbles: true}))")   # Maustaste Zurück
+        pg.wait_for_function("S.module === 'playlists'")
+        pg.click('.nav[data-module="djset"]')
+        pg.wait_for_function("S.module === 'djset'")
+        self.assertEqual(pg.evaluate("NAV.back.length"), 0)            # Seitenleiste zeichnet nichts auf
+        pg.keyboard.press("Alt+ArrowRight")
+        pg.wait_for_function("S.module === 'tagger'")
+        pg.click('.nav[data-module="compare"]')                       # im Vergleich bleibt Alt+← beim Kopieren
+        pg.keyboard.press("Alt+ArrowLeft")
+        time.sleep(0.3)
+        self.assertEqual(pg.evaluate("S.module"), "compare")
+        # Rechtsklick auf „Zurück“ zeigt die Stationen
+        pg.click('.nav[data-module="playlists"]')
+        pg.wait_for_function("document.querySelectorAll('#plsList .pls-row[data-k]').length === 3")
+        pg.click('#plsHead [data-plsa="djset"]')
+        pg.wait_for_function("S.module === 'djset' && NAV.back.length >= 1")
+        pg.click("#navBack", button="right")
+        self.assertGreaterEqual(pg.locator("#menu button").count(), 1)
+        pg.click("#menu button >> nth=0")
+        pg.wait_for_function("S.module === 'playlists'")
+
     def test_djset_page(self):
         """#3 DJ-Set: aus dem Tagger übernehmen, optimieren, sperren, ziehen, Tasten, Wiedergabe, gemerkte Optionen."""
         pg = self.pg

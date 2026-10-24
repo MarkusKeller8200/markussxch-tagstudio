@@ -44,6 +44,21 @@ Grösse, Layout und Zustand merkt und Fehler nachvollziehbar protokolliert – o
 - **Einstellungen:** `web_theme`, `web_ui` (Splitter, Seitenleiste), `window`, `nav_hidden`, `nav_recommended`,
   `ui`-Schlüssel je Modul.
 
+### 3.1 Zurück/Vorwärts zwischen Ansichten (#274, Entscheid User 24.10.2026)
+
+- `web/nav.js`: Verlauf (höchstens 30 Stationen, nur laufende Sitzung). `setModule` merkt vor jedem **Sprung aus dem
+  Inhalt** die bisherige Stelle (`navPush`); Klicks in der Seitenleiste (`{side: true}`), der Start und der Abschluss
+  des Assistenten zählen nicht.
+- Gemerkt je Seite (`navCapture`): Playlists (gewählte Playlist, Auswahl, Bildlauf), Tagger (Ordner, markierte Titel
+  über den relativen Pfad, Suche, Playlist-Filter, Bildlauf – nur wiederhergestellt, wenn derselbe Ordner geladen ist),
+  DJ-Set (markierter Titel), Vergleich (Paar), Hilfe (Reiter). Zurück macht **keine Aktion rückgängig** und lädt keinen
+  Tagger-Ordner neu.
+- Bedienung: Knopf „← Zurück“ oben in der Seitenleiste (Ziel als zweite Zeile und im Tooltip), „→“ nach einem
+  Zurück, Rechtsklick = Liste der Stationen; Alt+←/→ überall ausser im Vergleich (dort Felder kopieren); Maustasten
+  Zurück/Vorwärts (Taste 4/5, Browser-Navigation unterdrückt).
+- Abweichung vom ersten Vorschlag: Knopf in der Seitenleiste statt im Seitenkopf, weil die Seiten keinen gemeinsamen
+  Kopf haben; die Seitenleiste ist überall an derselben Stelle.
+
 ## 4. Entscheide
 
 - Web-Oberfläche statt Qt (PySide6 brachte optisch keinen Vorteil); die klassische tkinter-Oberfläche ist

@@ -1253,7 +1253,7 @@ function bind() {
     applyTheme();
     await call("set_option", "theme", S.opts.theme);
   });
-  $$(".nav[data-module]").forEach((b) => b.addEventListener("click", () => setModule(b.dataset.module)));
+  $$(".nav[data-module]").forEach((b) => b.addEventListener("click", () => setModule(b.dataset.module, { side: true })));
 
   // Paarliste
   $("#pairsScroll").addEventListener("scroll", () => requestAnimationFrame(drawPairWindow));
@@ -1426,6 +1426,8 @@ async function undoRedo(redo) {
 
 const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups", plugins: "modulePlugins", settings: "moduleSettings", snapshots: "moduleSnapshots", djset: "moduleDjset", playlists: "modulePlaylists", help: "moduleHelp", prep: "modulePrep" };
 function setModule(m, opts = {}) {
+  // #274: Sprung aus dem Inhalt → bisherige Stelle für „Zurück“ merken (nicht beim Start und nicht aus der Seitenleiste)
+  if (!opts.start && !opts.side && S.module && m !== S.module && typeof navPush === "function") navPush();
   S.module = m;
   if (!opts.start && m in MODULE_IDS) call("set_ui", "module", m).catch(() => {});      // #88: zuletzt benutzte Seite
   $$(".nav[data-module]").forEach((b) => { b.classList.toggle("active", b.dataset.module === m); b.toggleAttribute("aria-current", b.dataset.module === m); });

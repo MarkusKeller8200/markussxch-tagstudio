@@ -18,6 +18,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Tagger ↔ Playlists (#268):** Rechtsklick bzw. Werkzeuge › „Playlist ▾“ → „Zur Playlist hinzufügen …“,
   **Strg+Shift+P** = zur zuletzt benutzten Playlist, „Playlist im Tagger öffnen …“ und Filter „Nur Titel aus einer
   Playlist zeigen“.
+- **Zurück zur vorherigen Ansicht (#274):** Nach einem Sprung aus dem Inhalt (z. B. Playlist › „Im Tagger öffnen“)
+  führt „← Zurück“ oben in der Seitenleiste an dieselbe Stelle zurück – mit Auswahl, Filter und Bildlauf; „→“
+  vorwärts, Rechtsklick zeigt die letzten Stationen. Auch Alt+← / Alt+→ (ausser im Vergleich) und die Maustasten
+  Zurück/Vorwärts. Klicks in der Seitenleiste zählen nicht.
 - **DJ-Set ↔ Playlists (#269):** Das Set wird als Playlist gespeichert (Ordner „DJ-Sets“, mit Sperren und Optionen),
   jede Playlist lässt sich im DJ-Set öffnen; Playlists aus Lexicon landen im Ordner „Lexicon“. Die bisherigen
   gespeicherten Listen werden beim ersten Start einmalig übernommen.

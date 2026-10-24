@@ -14,7 +14,8 @@ const HELP_KEYS = [
   ["Allgemein", "", [
     [`${MODK}+S`, "Speichern"], [`${MODK}+Z`, "Rückgängig"], [`${MODK}+Y · ${MODK}+Shift+Z`, "Wiederholen"],
     ["F11", "Vollbild ein/aus (App-Fenster)"], ["Esc", "Menü, Cover-Ansicht oder Dialog schliessen"],
-    ["Enter", "Im Dialog: Hauptknopf (z. B. Speichern, Übernehmen)"], ["←/→ auf einem Trenngriff", "Splitter verschieben (Doppelklick setzt zurück)"]]],
+    ["Enter", "Im Dialog: Hauptknopf (z. B. Speichern, Übernehmen)"], ["←/→ auf einem Trenngriff", "Splitter verschieben (Doppelklick setzt zurück)"],
+    ["Alt+← / Alt+→ · Maustasten Zurück/Vorwärts", "Zur vorherigen / nächsten Ansicht (nicht im Vergleich, #274)"]]],
   ["Player", "Tagger, Vergleich und DJ-Set – nicht während der Eingabe in ein Feld", [
     ["Leertaste", "Abspielen / Pause"], ["↑ / ↓", "Vorheriger / nächster Titel (überall, ausser in Listen mit eigener Auswahl)"],
     ["← / →", "Einen Takt zurück / vor (vier Schläge, bei bekanntem BPM)"], ["Shift+← / Shift+→", "Vorheriger / nächster Cue-Punkt (zurück: 4-Takt-Toleranz)"],
@@ -25,7 +26,8 @@ const HELP_KEYS = [
   ["Tagger", "Titelliste", [
     ["↑ / ↓", "Markierung bewegen"], ["Shift+↑ / Shift+↓", "Markierung erweitern"], [`${MODK}+A`, "Alle Titel markieren"],
     ["→ / ←", "Stems auf- / zuklappen"], ["F5", "Ordner neu einlesen"], ["Enter (im Feld)", "Wert übernehmen"], ["Esc (im Feld)", "Eingabe verwerfen"],
-    ["Enter oder , (Stimmung)", "Stimmung hinzufügen"], ["Rücktaste (leeres Stimmungsfeld)", "Letzte Stimmung entfernen"]]],
+    ["Enter oder , (Stimmung)", "Stimmung hinzufügen"], ["Rücktaste (leeres Stimmungsfeld)", "Letzte Stimmung entfernen"],
+    [`${MODK}+Shift+P`, "Markierte Titel zur zuletzt benutzten Playlist"]]],
   ["Vergleich", "", [
     ["↑ / ↓", "Paar bzw. Feld wechseln"], ["Alt+→ / Alt+←", "Markierte Felder nach rechts / links kopieren"],
     [`${MODK}+A`, "Alle Felder markieren"], ["Enter oder F2", "Feld bearbeiten"], ["F5", "Neu vergleichen"], ["Shift+F5", "Aktuelles Paar neu einlesen"],

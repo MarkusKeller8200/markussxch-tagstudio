@@ -182,5 +182,11 @@
 "{x} Änderung(en) erledigt, {x} Fehler.": ["{x} change(s) done, {x} errors.", "{x} Änderig(e) erledigt, {x} Fähler."],
 "{x} Änderung(en) erledigt.": ["{x} change(s) done.", "{x} Änderig(e) erledigt."],
 "Playlists als M3U8 (für DJ-Programme)": ["Playlists as M3U8 (for DJ programs)", "Playlists als M3U8 (für DJ-Programm)"],
-"· oberste Ebene": ["· top level", "· oberschti Ebeni"]
+"· oberste Ebene": ["· top level", "· oberschti Ebeni"],
+"Alt+← / Alt+→ · Maustasten Zurück/Vorwärts": ["Alt+← / Alt+→ · mouse buttons back/forward", "Alt+← / Alt+→ · Muustaste Zrugg/Vorwärts"],
+"Zur vorherigen / nächsten Ansicht (nicht im Vergleich, #{n})": ["To the previous / next view (not in Compare, #{n})", "Zur vorherige / nächschte Aasicht (nöd im Vergliich, #{n})"],
+"Markierte Titel zur zuletzt benutzten Playlist": ["Selected tracks to the most recently used playlist", "Markierti Titel zur zletscht bruuchte Playlist"],
+"Vorwärts": ["Forward", "Vorwärts"],
+"Zurück zu {x} (Alt+←, Rechtsklick: Verlauf)": ["Back to {x} (Alt+←, right-click: history)", "Zrugg zu {x} (Alt+←, Rächtsklick: Verlauf)"],
+"Vorwärts zu {x} (Alt+→)": ["Forward to {x} (Alt+→)", "Vorwärts zu {x} (Alt+→)"]
 }

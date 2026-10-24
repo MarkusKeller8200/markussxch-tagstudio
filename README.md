@@ -88,7 +88,10 @@ und darüber installieren – Einstellungen, Sicherungen und Plugin-Daten liegen
 ## Bedienung
 
 Seitenleiste mit **Tagger, Tag-Fixer, Vergleich, DJ-Set, Playlists, Snapshots, Sicherungen, Plugins, Einstellungen**, unten
-„Nach Update suchen“, Versionshinweise, Einklappen und Hell/Dunkel. Beim Start öffnet die zuletzt benutzte Seite
+„Nach Update suchen“, Versionshinweise, Einklappen und Hell/Dunkel. **Zurück:** Nach einem Sprung aus dem Inhalt
+(z. B. Playlist › „Im Tagger öffnen“) erscheint oben in der Seitenleiste „← Zurück“ mit dem Ziel – es führt an
+dieselbe Stelle zurück (Auswahl, Filter, Bildlauf); ebenso Alt+← / Alt+→ (ausser im Vergleich) und die Maustasten
+Zurück/Vorwärts, Rechtsklick zeigt die letzten Stationen. Klicks in der Seitenleiste zählen nicht. Beim Start öffnet die zuletzt benutzte Seite
 (beim ersten Start der Tagger). Der Tagger lädt beim Start den zuletzt geladenen Ordner im Hintergrund (die App ist
 sofort bedienbar) und stellt Markierung,
 Sortierung, Filter und Bildlauf wieder her (Einstellungen › Tagger › „Beim Start laden“: zuletzt geladen, Standardordner

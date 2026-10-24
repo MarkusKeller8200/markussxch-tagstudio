@@ -89,7 +89,10 @@ install it over the old one – settings, backups and plugin data live in the us
 ## Usage
 
 Sidebar with **Tagger, Tag fixer, Compare, DJ set, Playlists, Snapshots, Backups, Plugins, Settings**, at the bottom
-“Check for update”, release notes, collapse and light/dark. On start the last used page opens (the tagger on first
+“Check for update”, release notes, collapse and light/dark. **Back:** after a jump from the content (e.g. playlist ›
+“Open in the tagger”) “← Back” appears at the top of the sidebar with the target – it returns to the same place
+(selection, filter, scroll position); likewise Alt+← / Alt+→ (except in Compare) and the mouse buttons back/forward,
+right-click shows the last stations. Clicks in the sidebar do not count. On start the last used page opens (the tagger on first
 start). On start the tagger loads the last loaded folder in the background (the app can be used immediately) and
 restores selection, sorting, filter and scroll position (Settings › Tagger › “Load on start”: last loaded, default
 folder or nothing). Compare and tagger work on the same files – changes are visible in both, are saved together
