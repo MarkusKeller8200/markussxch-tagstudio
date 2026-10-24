@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-24 (Abend): 4.8.0-beta.2 veröffentlicht; auf `main` für 4.8.0 zusätzlich Playlists (#267–#271), Zurück (#274), Tagger-Filter/Stems (#275–#277) und Playlist-Import aus DJ-Programmen/Online-Quellen (#278, #279) sowie die Plugins Spotify und SoundCloud (#280)** – alle `_3 Beta-Test`. Meilenstein #23 „4.9.0 – Playlists“ geschlossen (Inhalt in 4.8.0). Offen in 4.8.0 ausserdem **#251** (Update auf Knopfdruck macOS, erst testbar mit zwei Mac-Versionen). Nächster Schritt: Testrückmeldungen, danach 4.8.0-beta.3 oder 4.8.0 final – **nur nach Freigabe**. Konzepte (nur Konzept, `idee`): SonoVault #253–#259, lokaler Katalog #260, Mix-Erkennung #261, Dateiformate #262–#266, Playlists Phase 3 (#272 Smartlists, #273 DJ-Programme schreiben). Details: Abschnitt „Sitzung 24.10.2026“ unten.
+Stand: **2026-10-25 (01:00): 4.8.0 final freigegeben (Auftrag User 01:01) und erstellt** – Meilenstein #22 „4.8.0 – Updates: App und Plugins“ ohne offene Issues: Updates für App und Plugins (#233–#251), Lexicon-Ausbau, OpenKeyScan, **Playlists** (#267–#271, #278–#282: Verwaltung, Abspielen, Import aus Datei/Serato/Engine DJ/VirtualDJ/Lexicon/Tracklisten, Abgleich mit der Bibliothek), Zurück (#274), Tagger (#275–#277), **Plugins Spotify und SoundCloud** (#280), „Online suchen ›“ (#283). Finale Versionen bauen auch macOS – #251 (Update auf Knopfdruck macOS) ist ab der nächsten Mac-Version prüfbar. Offen ausserhalb: 1001Tracklists-Anfrage (#180, vom User), MixID (#218), Konzepte SonoVault #253–#259, Katalog #260, Mix-Erkennung #261, Formate #262–#266, Playlists Phase 3 #272/#273. Details: Abschnitt „Sitzung 24.10.2026“ unten.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -27,7 +27,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **1001Tracklists:** keine Crawler (Rechte, Projektregel #180). Anfrage um API-Zugang (Playlists mit Suche, gemerkte
   Artists/Labels, Track-Daten mit Links) als E-Mail-Entwurf an den User; der User trägt in #180 ein, wenn sie
   verschickt ist.
-- **Nächster Schritt:** Testrückmeldungen zu #267–#280; danach 4.8.0-beta.3 oder final **nur nach Freigabe**
+- **25.10.2026:** #270, #271, #278–#283 getestet und geschlossen; **4.8.0 final** auf Freigabe des Users erstellt.
+- **Nächster Schritt (alt):** Testrückmeldungen zu #267–#280; danach 4.8.0-beta.3 oder final **nur nach Freigabe**
   (#251 bleibt bis zur finalen Version offen).
 
 ## Roadmap (Entscheid 17.10.2026)
@@ -96,7 +97,7 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 
 ## Release-Freigabe (Entscheid 14.10.2026)
 
-**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte finale Stand ist **v4.7.0** (17.10.2026), dazu Pre-Release **v4.8.0-beta.2** (24.10.2026); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
+**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte finale Stand ist **v4.8.0** (25.10.2026, Freigabe des Users 01:01); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
 
 ## GitHub-Meilensteinverwaltung
 
