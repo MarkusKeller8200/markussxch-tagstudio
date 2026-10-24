@@ -74,5 +74,6 @@
 "Alle Dateien mit Status und Tonart": ["All files with status and key", "Alli Dateie mit Status und Tonart"],
 "Fortschritt und Ergebnisse der Warteschlange": ["Progress and results of the queue", "Fortschritt und Resultat vo de Warteschlange"],
 "Liste und Zwischenspeicher der App leeren": ["Clear the app's list and cache", "Lischte und Zwüschespeicher vo de App läre"],
-"bewusst nicht genutzt – löscht die Liste in der App": ["deliberately not used – clears the list in the app", "absichtlich nöd bruucht – löscht d Lischte i de App"]
+"bewusst nicht genutzt – löscht die Liste in der App": ["deliberately not used – clears the list in the app", "absichtlich nöd bruucht – löscht d Lischte i de App"],
+"Keine Verbindung zur OpenKeyScan-App – läuft die App? Versucht: {x}. Tipp: Die App muss geöffnet sein (nicht nur installiert). Im Browser {x}/health öffnen – erscheint dort eine Antwort, die Adresse in den Einstellungen des Plugins eintragen.": ["No connection to the OpenKeyScan app – is the app running? Tried: {x}. Tip: the app must be open (not just installed). Open {x}/health in the browser – if an answer appears there, enter that address in the plugin settings.", "Kei Verbindig zur OpenKeyScan-App – lauft d App? Probiert: {x}. Tipp: D App mues offe sii (nöd nume installiert). Im Browser {x}/health ufmache – chunnt det e Antwort, d Adrässe i de Iistellige vom Plugin iiträge."]
 }

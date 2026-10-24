@@ -101,6 +101,42 @@ class Client:
     def health(self):
         return self.request("GET", "/health", timeout=5)
 
+    def candidates(self) -> list[str]:
+        """Eingestellte Adresse und dieselbe mit den anderen Schreibweisen für „dieser Rechner“ (localhost,
+        127.0.0.1, [::1]) – die App lauscht je nach System nur auf IPv4 oder nur auf IPv6."""
+        u = urllib.parse.urlparse(self.base)
+        port = f":{u.port}" if u.port else ""
+        out = [self.base]
+        for host in ("127.0.0.1", "localhost", "[::1]"):
+            alt = f"{u.scheme}://{host}{port}"
+            if alt not in out:
+                out.append(alt)
+        return out
+
+    def connect(self):
+        """Server suchen und die Adresse merken, unter der er antwortet. Jede HTTP-Antwort – auch ein Fehler auf
+        /health – heisst: der Server läuft. → Antwort von /health (oder {})."""
+        tried = []
+        for base in self.candidates():
+            req = urllib.request.Request(base + "/health", headers={"Accept": "application/json"})
+            try:
+                with self._open(req, timeout=5) as r:
+                    raw = r.read().decode("utf-8", "replace")
+                self.base = base
+                try:
+                    return json.loads(raw) if raw.strip() else {}
+                except ValueError:
+                    return {"text": raw.strip()[:200]}
+            except urllib.error.HTTPError as ex:
+                self.base = base
+                return {"http": ex.code}
+            except (urllib.error.URLError, OSError) as ex:
+                tried.append(f"{base} ({getattr(ex, 'reason', ex)})")
+        tried_text, first = "; ".join(tried), self.candidates()[0]
+        raise OKSError(f"Keine Verbindung zur OpenKeyScan-App – läuft die App? Versucht: {tried_text}. Tipp: Die App "
+                       f"muss geöffnet sein (nicht nur installiert). Im Browser {first}/health öffnen – erscheint dort "
+                       f"eine Antwort, die Adresse in den Einstellungen des Plugins eintragen.")
+
     def single(self, path, timeout=180):
         return self.request("POST", "/analyze/single", {"file": path}, timeout=timeout)
 
@@ -179,10 +215,10 @@ def client(ctx, timeout=30) -> Client:
 
 def test_connection(ctx):
     c = client(ctx)
-    d = c.health()
+    d = c.connect()
     extra = ""
     if isinstance(d, dict):
-        bits = [f"{k}: {d[k]}" for k in ("status", "version", "app", "message") if d.get(k) not in (None, "")]
+        bits = [f"{k}: {d[k]}" for k in ("status", "version", "app", "message", "http", "text") if d.get(k) not in (None, "")]
         extra = f" ({', '.join(bits)})" if bits else ""
     return {"message": f"OpenKeyScan antwortet unter {c.base}{extra}."}
 
@@ -202,7 +238,7 @@ def analyse(ctx, files, store) -> dict:
     """Dateien von der App analysieren lassen. → {"done": n, "failed": [Name], "changed": [Name]}"""
     c = client(ctx)
     ctx.status("Verbinde mit der OpenKeyScan-App …")
-    c.health()
+    c.connect()
     before = _stamps(files)
     out = {"done": 0, "failed": [], "changed": []}
     n = len(files)

@@ -308,6 +308,15 @@ class TestOpenKeyScanApp(Base):
         with self.assertRaises(self.mod.OKSError):
             self.mod.Client("http://example.org:58721")
 
+    def test_finds_app_on_other_loopback_address(self):
+        """Eingestellt [::1], App lauscht nur auf 127.0.0.1 → gefunden; /health fehlt (404) → läuft trotzdem."""
+        port = self.url.rsplit(":", 1)[1]
+        self.run_action("settings", url=f"http://[::1]:{port}")
+        self.state.no_health = True
+        self.assertIn("127.0.0.1", self.run_action("test")["message"])
+        res = self.run_action("scan", cache=False)
+        self.assertIn("3 von 3", res["message"])
+
     def test_no_app_running(self):
         self.srv.shutdown()
         self.srv.server_close()
@@ -315,6 +324,7 @@ class TestOpenKeyScanApp(Base):
         self.assertTrue(r["ok"])
         st = self.wait()
         self.assertIn("läuft die App", str(st["error"]))
+        self.assertIn("/health öffnen", str(st["error"]))
 
     def test_entries_tolerant(self):
         m = self.mod

@@ -17,6 +17,7 @@ class State:
         self.results_shape = results_shape        # "list" | "dict" | "empty" (nur /analyze/result liefert)
         self.queue = {}                           # Pfad → Abfragen bis fertig
         self.calls = []
+        self.no_health = False                    # ältere App ohne /health (antwortet 404)
         self.default = None                       # Tonart für alle anderen Dateien (UI-Test)
         self.lock = threading.Lock()
 
@@ -54,7 +55,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):  # noqa: N802
         s, u = self.state, urlparse(self.path)
         s.calls.append(("GET", u.path))
-        if u.path == "/health":
+        if u.path == "/health" and not s.no_health:
             return self._send(200, {"status": "ok"})
         with s.lock:
             if u.path == "/analyze/results":
