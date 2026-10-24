@@ -1743,14 +1743,14 @@ class UiTest(unittest.TestCase):
             pg.wait_for_selector("#mBody .pl-more [data-more]")
             self.assertGreaterEqual(pg.locator("#mBody .pl-more [data-more]").count(), 2)
             pg.keyboard.press("Escape")
-        # Filter nach Art: Audio-Verarbeitung → nur Lautheit und Stems; gemerkt; „Alle“ zeigt wieder alles
+        # Filter nach Art: Audio-Verarbeitung → nur Tonart (OpenKeyScan), Lautheit und Stems; gemerkt; „Alle“ zeigt wieder alles
         n_all = pg.locator(".pl-card").count()
         pg.click('#plFilter [data-plcat="audio"]')
-        self.assertEqual(sorted(pg.evaluate("[...document.querySelectorAll('.pl-card')].map((c) => c.dataset.pid)")), ["loudness", "stems"])
-        self.assertIn("2", pg.inner_text('#plFilter [data-plcat="audio"]'))
+        self.assertEqual(sorted(pg.evaluate("[...document.querySelectorAll('.pl-card')].map((c) => c.dataset.pid)")), ["keyscan", "loudness", "stems"])
+        self.assertIn("3", pg.inner_text('#plFilter [data-plcat="audio"]'))
         pg.click('.nav[data-module="settings"]'); pg.click('.nav[data-module="plugins"]')
         pg.wait_for_selector('#plFilter [data-plcat="audio"].on')
-        self.assertEqual(pg.locator(".pl-card").count(), 2)
+        self.assertEqual(pg.locator(".pl-card").count(), 3)
         pg.click('#plFilter [data-plcat=""]')
         self.assertEqual(pg.locator(".pl-card").count(), n_all)
         # eingebaut: eine Zeile, auch übersetzt
