@@ -2414,7 +2414,7 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("call('pl_list').then(r => r.playlists[0].count === 3)"))
         # Seite „Playlists“
         pg.click('.nav[data-module="playlists"]')
-        pg.wait_for_function("PLS.st && PLS.st.pl && PLS.st.pl.items.length === 3")
+        pg.wait_for_function("document.querySelectorAll('#plsList .pls-row[data-k]').length === 3 && document.querySelector('#plsTree .pls-fold')")
         self.assertEqual(pg.inner_text("#plsCount").strip(), "1")
         self.assertEqual(pg.locator("#plsTree .pls-fold").count(), 1)
         self.assertEqual(pg.locator("#plsList .pls-row[data-k]").count(), 3)
