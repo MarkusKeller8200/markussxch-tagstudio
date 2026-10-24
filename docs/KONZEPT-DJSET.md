@@ -42,6 +42,8 @@ optimiert, von Hand anpassbar und als Playlist für DJ-Programme exportierbar. E
 
 ## 5. Offen / Ideen
 
+- **Playlists (#267–#273, Idee):** gespeicherte Listen und Warteschlange sollen in einen gemeinsamen Playlist-Speicher
+  mit eigener Verwaltungsseite wandern; das DJ-Set bleibt der Optimierer. Siehe [KONZEPT-PLAYLISTS.md](KONZEPT-PLAYLISTS.md).
 - Weitere mögliche Ausbauten: weitere Exportformate (Serato-Crate, Engine DJ), Energie aus
   Audio-Analyse (#9).
 
