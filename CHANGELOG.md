@@ -41,6 +41,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Geändert
 
+- **Plugin-Karten lesbarer (#248):** Aktionen stehen einzeilig mit Kurznamen („Im Tagger: Übernehmen · Öffnen …“),
+  zu lange Namen werden mit „…“ gekürzt (ganzer Name im Tooltip), mehr als vier als „+n“. Aktionen können dafür einen
+  Kurznamen `short` angeben.
 - **Protokoll direkt öffnen (#247):** Nennt eine Fehlermeldung ein Protokoll („Details im Protokoll: …“), öffnen
   „Protokoll öffnen“ bzw. „Ordner öffnen“ es direkt (nur Dateien im Log-Ordner von TagStudio).
 - **Versionsanzeige und Update-Kanäle (#233):** Der Entwicklungsstand im Quellcode heisst „Developer Release“ und zeigt

@@ -121,6 +121,7 @@ ACTIONS = [{
     "where": "tagger",
     "description": "Tooltip / text in the dialog",
     "run_label": "Run",              # text of the start button
+    "short": "Short name",           # optional: shorter name for the plugin card (#248)
     "options": [                     # the form is built from this automatically
         {"key": "text",  "type": "text",   "label": "Text", "default": "hello"},
         {"key": "loud",  "type": "check",  "label": "Upper case"},

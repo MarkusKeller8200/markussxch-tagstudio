@@ -261,5 +261,6 @@
 "· BPM gesperrt": ["· BPM locked", "· BPM gsperrt"],
 "BPM gesperrt": ["BPM locked", "BPM gsperrt"],
 "Protokoll öffnen": ["Open log", "Protokoll uftue"],
-"Protokoll nicht gefunden.": ["Log not found.", "Protokoll nöd gfunde."]
+"Protokoll nicht gefunden.": ["Log not found.", "Protokoll nöd gfunde."],
+"Im Tagger:": ["In the tagger:", "Im Tagger:"]
 }

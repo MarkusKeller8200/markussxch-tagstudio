@@ -122,6 +122,7 @@ ACTIONS = [{
     "where": "tagger",
     "description": "Tooltip / Text im Dialog",
     "run_label": "Ausführen",        # Text des Startknopfs
+    "short": "Kurzname",             # optional: kürzerer Name für die Plugin-Karte (#248)
     "options": [                     # daraus entsteht das Formular automatisch
         {"key": "text",  "type": "text",   "label": "Text", "default": "hallo"},
         {"key": "loud",  "type": "check",  "label": "Gross schreiben"},

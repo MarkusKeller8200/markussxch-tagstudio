@@ -86,7 +86,14 @@ function renderPlugins() {
     const err = p.state === "error" ? `<div class="pl-box err">${esc(p.error)}</div>` : "";
     // 3. Aktionen (erscheinen im Tagger)
     const tagActs = acts.filter((a) => a.where !== "page");
-    const actsHtml = `<div class="pl-acts"><span class="muted sm">Aktionen:</span> ${tagActs.length ? tagActs.map((a) => `<span class="pl-act" title="${esc(a.description)}">${esc(a.label.replace(/\s*…$/, ""))}${a.where === "tagger" ? ' <span class="faint">· Tagger</span>' : ""}</span>`).join("") : `<span class="muted sm">${p.enabled ? "keine" : "– (ausgeschaltet)"}</span>`}</div>`;
+    // #248: einzeilig – Kurzname (sonst Name ohne „…“), zu lange Namen mit „…“ gekürzt (ganzer Name im Tooltip),
+    // höchstens vier Chips + „+n“; „Im Tagger:“ statt „· Tagger“ an jedem Chip, wenn alle im Tagger sind
+    const allTagger = tagActs.length && tagActs.every((a) => a.where === "tagger");
+    const shown = tagActs.slice(0, 4), moreActs = tagActs.slice(4);
+    const chip = (a) => `<span class="pl-act" data-tip-title="${esc(a.label.replace(/\s*…$/, ""))}" title="${esc(a.description || a.label.replace(/\s*…$/, ""))}">${esc(a.short || a.label.replace(/\s*…$/, ""))}${!allTagger && a.where === "tagger" ? ' <span class="faint">· Tagger</span>' : ""}</span>`;
+    const actsHtml = `<div class="pl-acts"><span class="muted sm">${allTagger ? "Im Tagger:" : "Aktionen:"}</span> ${tagActs.length ? shown.map(chip).join("")
+      + (moreActs.length ? `<span class="pl-act pl-more-acts" title="${esc(moreActs.map((a) => a.label.replace(/\s*…$/, "")).join("\n"))}">+${moreActs.length}</span>` : "")
+      : `<span class="muted sm">${p.enabled ? "keine" : "– (ausgeschaltet)"}</span>`}</div>`;
     // 4. API-Zeile
     const api = p.service ? `<div class="pl-svc sm">${p.service.docs ? `<a href="#" class="pl-link" data-url="${esc(p.service.docs)}" title="${esc(p.service.docs)}">API: ${esc(p.service.name)} ↗</a>` : `<span>API: ${esc(p.service.name)}</span>`}
         <span class="muted">· ${esc(p.service.auth_text)} ·</span> <a href="#" class="pl-link" data-svcopen title="Endpunkte mit Umsetzungsstand${p.service.test_query ? ", Testabfrage ohne Track" : ""}${p.service.testable ? ", API-Tester" : ""}">${p.service.endpoints} Endpunkte</a></div>`

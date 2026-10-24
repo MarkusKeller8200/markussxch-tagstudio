@@ -183,5 +183,6 @@
 "Warteschlange in Lexicon (läuft gerade + nächste)": ["Queue in Lexicon (now playing + next)", "Warteschlange in Lexicon (lauft grad + nächschti)"],
 "Aus Lexicon öffnen, DJ-Set › Aus Lexicon …: alle Playlists zur Auswahl; Playlist {q} finden": ["Open from Lexicon, DJ set › From Lexicon …: all playlists for selection; find playlist {q}", "Us Lexicon öffne, DJ-Set › Us Lexicon …: alli Playlists zur Uswahl; Playlist {q} finde"],
 "Aus Lexicon öffnen, DJ-Set › Aus Lexicon …: Titel einer Playlist (auch Ordner, Smartlist)": ["Open from Lexicon, DJ set › From Lexicon …: tracks of a playlist (also folder, smartlist)", "Us Lexicon öffne, DJ-Set › Us Lexicon …: Titel vo enere Playlist (au Ordner, Smartlist)"],
-"DJ-Set › Aus Lexicon …: Warteschlange (läuft gerade + nächste)": ["DJ set › From Lexicon …: queue (now playing + next)", "DJ-Set › Us Lexicon …: Warteschlange (lauft grad + nächschti)"]
+"DJ-Set › Aus Lexicon …: Warteschlange (läuft gerade + nächste)": ["DJ set › From Lexicon …: queue (now playing + next)", "DJ-Set › Us Lexicon …: Warteschlange (lauft grad + nächschti)"],
+"In TagStudio-Felder": ["To TagStudio fields", "I TagStudio-Fälder"]
 }

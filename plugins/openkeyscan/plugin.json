@@ -1,7 +1,7 @@
 {
   "id": "openkeyscan",
   "name": "OpenKeyScan-App",
-  "version": "1.1",
+  "version": "1.2",
   "min_app": "4.8.0",
   "category": "local_api",
   "api": 1,

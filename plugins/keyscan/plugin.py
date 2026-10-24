@@ -21,10 +21,12 @@ OPTIONS = [
 ]
 
 ACTIONS = [
-    {"id": "scan", "label": "Tonart erkennen (OpenKeyScan) …", "where": "tagger", "run_label": "Tonart erkennen",
+    {"id": "scan", "label": "Tonart erkennen (OpenKeyScan) …", "short": "Tonart erkennen", "where": "tagger",
+     "run_label": "Tonart erkennen",
      "description": "Analysiert die markierten Titel und zeigt die erkannte Tonart als Vorschau mit Vergleich.",
      "options": OPTIONS},
-    {"id": "prefetch", "label": "Tonart im Hintergrund analysieren …", "where": "tagger", "run_label": "Analysieren",
+    {"id": "prefetch", "label": "Tonart im Hintergrund analysieren …", "short": "Im Hintergrund", "where": "tagger",
+     "run_label": "Analysieren",
      "background": True,
      "description": "Analysiert die markierten Titel im Hintergrund und merkt sich nur das Ergebnis – es wird nichts "
                     "geschrieben. Danach zeigt „Tonart erkennen“ die Vorschau sofort.",

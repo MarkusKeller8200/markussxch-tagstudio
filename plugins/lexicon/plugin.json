@@ -1,7 +1,7 @@
 {
   "id": "lexicon",
   "name": "Lexicon",
-  "version": "2.0",
+  "version": "2.1",
   "min_app": "4.8.0",
   "category": "local_api",
   "api": 1,

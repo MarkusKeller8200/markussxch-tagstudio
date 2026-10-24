@@ -37,7 +37,7 @@ TARGETS = [["", "nicht übernehmen"], ["TIT1", "Grouping (TIT1)"], ["COMM", "Kom
            ["TXXX:LEXICON_TAGS", "eigenes Feld TXXX:LEXICON_TAGS"]]
 
 ACTIONS = [{
-    "id": "import", "label": "Lexicon übernehmen …", "where": "tagger", "run_label": "Abgleichen",
+    "id": "import", "label": "Lexicon übernehmen …", "short": "Übernehmen", "where": "tagger", "run_label": "Abgleichen",
     "description": "Liest Tanzbarkeit, Energie, Fröhlichkeit und auf Wunsch Bewertung, Popularität, Farbe und Custom Tags "
                    "aus Lexicon (Local API) und schlägt sie vor. Werte, die in der Datei seit dem letzten Abgleich geändert "
                    "wurden, sind nicht angehakt – du entscheidest.",
@@ -63,7 +63,7 @@ ACTIONS = [{
                                   "wird übergangen. Die TagStudio-Felder (ENERGY usw.) bleiben unverändert."},
     ],
 }, {
-    "id": "open", "label": "Aus Lexicon öffnen …", "where": "tagger", "run_label": "Öffnen", "needs_selection": False,
+    "id": "open", "label": "Aus Lexicon öffnen …", "short": "Öffnen", "where": "tagger", "run_label": "Öffnen", "needs_selection": False,
     "description": "Öffnet die in Lexicon markierten Titel oder eine Lexicon-Playlist im Tagger oder im DJ-Set.",
     "options": [
         {"key": "source", "type": "select", "label": "Was", "default": "tracks",
@@ -76,7 +76,7 @@ ACTIONS = [{
         {"type": "info", "label": "Ordner und Smartlists gehen auch: Lexicon liefert die Titel aller enthaltenen Playlists."},
     ],
 }, {
-    "id": "to_ts", "label": "Lexicon-Werte in TagStudio-Felder …", "where": "tagger", "run_label": "Vorschau",
+    "id": "to_ts", "label": "Lexicon-Werte in TagStudio-Felder …", "short": "In TagStudio-Felder", "where": "tagger", "run_label": "Vorschau",
     "description": "Übernimmt die Werte aus den Lexicon-Feldern der Dateien (TXXX:LEXICON_ENERGY usw., 1–10) in die "
                    "TagStudio-Felder (ENERGY usw., 10–100) und die Stimmung – mit Vorschau und Abgleich. Lexicon muss "
                    "dafür nicht laufen.",
@@ -87,7 +87,7 @@ ACTIONS = [{
         {"key": "mood", "type": "check", "label": "LEXICON_MOOD → Stimmung", "default": False},
     ],
 }, {
-    "id": "send", "label": "Nach Lexicon übertragen …", "where": "tagger", "run_label": "Vergleichen",
+    "id": "send", "label": "Nach Lexicon übertragen …", "short": "Übertragen", "where": "tagger", "run_label": "Vergleichen",
     "description": "Vergleicht die markierten Dateien mit Lexicon und schlägt vor, abweichende Werte in Lexicon zu ändern "
                    "(Vorschau mit Häkchen, rückgängig machbar). Nur wenn das Zurückschreiben eingeschaltet ist.",
     "options": [

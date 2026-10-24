@@ -38,7 +38,8 @@ OPTIONS = [
 ]
 
 ACTIONS = [
-    {"id": "scan", "label": "Tonart mit der OpenKeyScan-App …", "where": "tagger", "run_label": "Tonart erkennen",
+    {"id": "scan", "label": "Tonart mit der OpenKeyScan-App …", "short": "Tonart erkennen", "where": "tagger",
+     "run_label": "Tonart erkennen",
      "description": "Schickt die markierten Titel an die OpenKeyScan-App und zeigt die erkannte Tonart als Vorschau.",
      "options": OPTIONS},
     {"id": "settings", "label": "Einstellungen …", "where": "page", "run_label": "Speichern", "needs_selection": False,

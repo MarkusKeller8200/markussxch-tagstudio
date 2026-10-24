@@ -536,6 +536,7 @@ class Plugin:
             d["service"] = services.summary(self.service, self.module if st == "ready" and self.enabled else None)
         if st == "ready" and self.enabled:
             d["actions"] = [{"id": a["id"], "label": a["label"], "where": a["where"],
+                             "short": str(a.get("short") or "")[:40],          # #248: Kurzname für die Karte
                              "description": a.get("description", "")} for a in self.actions()]
             st_fn = getattr(self.module, "status", None)
             if callable(st_fn):
