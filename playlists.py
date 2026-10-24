@@ -246,11 +246,13 @@ def match_ref(ref: dict, index: list) -> dict:
 
 # =========================================================================== Import und Export (#271)
 _CSV_COLS = {"path": ("pfad", "path", "location", "datei", "file", "dateipfad", "filename"),
-             "artist": ("künstler", "kuenstler", "artist", "interpret", "artists"),
-             "title": ("titel", "title", "track", "name", "track title"),
+             "artist": ("künstler", "kuenstler", "artist", "interpret", "artists", "artist name(s)", "artist name",
+                        "artist names"),
+             "title": ("titel", "title", "track", "name", "track title", "track name"),
              "mix": ("mix", "version", "remix", "mix name"),
              "isrc": ("isrc",),
-             "dur": ("dauer", "duration", "länge", "laenge", "length", "time", "zeit")}
+             "dur": ("dauer", "duration", "länge", "laenge", "length", "time", "zeit"),
+             "dur_ms": ("duration (ms)", "duration ms", "duration_ms")}       # Spotify-Exporte (Exportify u. a.)
 
 
 def _dur(v) -> int:
@@ -289,8 +291,9 @@ def parse_csv(text: str, base_dir: str = "") -> list[dict]:
                     p = os.path.normpath(os.path.join(base_dir, p))
                 out.append({"path": p, "artist": g("artist"), "title": g("title")})
             elif g("title") or g("isrc"):
+                dur = _dur(g("dur")) or _dur(g("dur_ms")) // 1000
                 out.append({"ref": {"artist": g("artist"), "title": g("title"), "mix": g("mix"), "isrc": g("isrc"),
-                                    "dur": _dur(g("dur")), "source": "csv"}})
+                                    "dur": dur, "source": "csv"}})
         return out
     for r in rows:
         c = r[0].strip()
@@ -300,6 +303,37 @@ def parse_csv(text: str, base_dir: str = "") -> list[dict]:
             a, sep, t = c.partition(" - ")
             out.append({"ref": {"artist": a.strip() if sep else "", "title": (t if sep else c).strip(), "source": "csv"}})
     return out
+
+
+_TL_TIME = re.compile(r"^\[?\(?\d{1,2}:\d{2}(?::\d{2})?\)?\]?\s*")
+_TL_NUM = re.compile(r"^(?:#?\d{1,3}[.):]?|\d{1,3}/\d{1,3})\s+")
+_TL_SEP = re.compile(r"\s+[-–—]\s+")
+_TL_TAIL = re.compile(r"\s*\[[^\]]*\]\s*$")
+
+
+def parse_tracklist(text: str, source: str = "text") -> tuple[list[dict], int]:
+    """Kopierte Trackliste (1001Tracklists, MixID, Beatport, eigene Notizen) → (Einträge ohne Datei, unbekannte).
+    Je Zeile „Künstler – Titel (Mix)“; Nummern, Zeitmarken, „w/“ und ein Label in eckigen Klammern am Ende fallen
+    weg. „ID – ID“ (unbekannter Titel) wird gezählt, aber nicht übernommen; Zeilen ohne Trennstrich zählen nicht."""
+    out, unknown = [], 0
+    for line in str(text or "").splitlines():
+        t = line.strip().strip("\u200b")
+        for _ in range(3):                                   # „01 [12:34] …“ oder „[12:34] 01. …“
+            t = _TL_NUM.sub("", _TL_TIME.sub("", t)).strip()
+        if t.lower().startswith("w/ "):
+            t = t[3:].strip()
+        t = _TL_TAIL.sub("", t)
+        parts = _TL_SEP.split(t, maxsplit=1)
+        if len(parts) != 2:
+            continue
+        artist, title = parts[0].strip(), parts[1].strip()
+        if not title or not artist:
+            continue
+        if norm(title) in ("id", "id id") or norm(artist) == "id" and norm(title).startswith("id"):
+            unknown += 1
+            continue
+        out.append({"ref": {"artist": artist, "title": title, "source": source}})
+    return out, unknown
 
 
 def read_rekordbox_tree(text: str) -> list[dict]:

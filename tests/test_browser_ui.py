@@ -1126,7 +1126,14 @@ class UiTest(unittest.TestCase):
                 pg.click("#mBtns button >> nth=0")
                 time.sleep(0.3)
             if loc.count() and loc.is_visible():
-                loc.click()
+                for _ in range(4):                       # ein Hinweis-Dialog kann verspätet aufgehen
+                    try:
+                        loc.click(timeout=2500)
+                        break
+                    except Exception:  # noqa: BLE001
+                        if pg.locator("#modal").is_visible():
+                            pg.click("#mBtns button >> nth=0")
+                            time.sleep(0.3)
                 time.sleep(0.6)
                 if shots:
                     pg.screenshot(path=os.path.join(shots, f"en_{mod}.png"))
@@ -2584,8 +2591,38 @@ class UiTest(unittest.TestCase):
         pg.wait_for_function("PLS.st.pl.refs === 1 && document.querySelectorAll('#plsList .chip').length >= 1")
         self.assertEqual(pg.evaluate("PLS.st.pl.items[0].path"), files[1])
         pg.click("#plsImport")
-        pg.wait_for_selector("#menu:not([hidden]) button >> text=Datei (M3U, M3U8, Rekordbox-XML, CSV)")
+        pg.wait_for_selector("#menu:not([hidden]) button >> text=Datei (M3U, M3U8, Rekordbox-XML, CSV, Spotify-Export)")
         pg.evaluate("hideMenu()")
+
+    def test_playlists_dj_and_text_import(self):
+        """#278: Playlists aus VirtualDJ (nur lesen); #279: kopierte Trackliste einfügen und abgleichen."""
+        pg = self.pg
+        files = sorted(os.path.join(self.lib, f) for f in os.listdir(self.lib))
+        vdj = os.path.join(self.home, "Documents", "VirtualDJ", "Folders", "Club")
+        os.makedirs(vdj)
+        with open(os.path.join(vdj, "Freitag.vdjfolder"), "w", encoding="utf-8") as fh:
+            fh.write('<?xml version="1.0"?><VirtualFolder>' + "".join(f'<song path="{f}" idx="{k}"/>' for k, f in enumerate(files[:2])) + "</VirtualFolder>")
+        pg.click('.nav[data-module="playlists"]')
+        pg.wait_for_function("PLS.st")
+        pg.click("#plsImport")
+        pg.click("#menu:not([hidden]) button >> text=Aus VirtualDJ")
+        pg.wait_for_selector("#mBody [data-plsdj]")                           # eine Bibliothek: gleich die Liste
+        self.assertIn("2 Titel", pg.inner_text("#mBody .djs-list"))
+        pg.check("#plsDjAll")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("PLS.st.pl && PLS.st.pl.name === 'Freitag' && document.querySelectorAll('#plsList .pls-row[data-k]').length === 2")
+        self.assertEqual(pg.evaluate("PLS.st.pl.folder"), "VirtualDJ/Club")
+        # Trackliste einfügen
+        pg.click("#plsImport")
+        pg.click("#menu:not([hidden]) button >> text=Trackliste einfügen")
+        pg.wait_for_selector("#plsTxt")
+        pg.fill("#plsTxtName", "Radio-Mix")
+        pg.select_option("#plsTxtSrc", "1001tracklists")
+        pg.fill("#plsTxt", "01. Test - Ton 330 [LABEL]\n02. ID - ID\n03. Test - Gibt es nicht")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("PLS.st.pl && PLS.st.pl.name === 'Radio-Mix' && PLS.st.pl.refs === 2")
+        self.assertEqual(pg.evaluate("PLS.st.pl.folder"), "1001Tracklists")
+        self.assertEqual(pg.locator("#plsList .chip >> text=ohne Datei").count(), 2)
 
     def test_djset_page(self):
         """#3 DJ-Set: aus dem Tagger übernehmen, optimieren, sperren, ziehen, Tasten, Wiedergabe, gemerkte Optionen."""

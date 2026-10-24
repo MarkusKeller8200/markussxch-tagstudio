@@ -268,7 +268,11 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
   queue” appends the tracks loaded in the tagger; in the queue, “Save as playlist …” stores it as a playlist, and in the
   player menu “Add the playing track to a playlist …” stores the current track.
 - **Import ▾:** take over M3U/M3U8, Rekordbox XML (with folder tree) or CSV – also lists without files (columns
-  artist, title, mix, ISRC, duration), e.g. tracklists of DJ sets; plus “From Lexicon …”.
+  artist, title, mix, ISRC, duration) and Spotify exports (e.g. Exportify CSV). **“From Serato …”, “From Engine
+  DJ …”, “From VirtualDJ …”** and “From Lexicon …” fetch the playlists of these programs (crates, playlists with
+  folders, virtual folders) – the library is looked for in the usual place and on external drives and **only read**;
+  fetching again updates them. **“Paste tracklist …”** takes over a copied tracklist from 1001Tracklists, MixID,
+  Beatport etc. (one “Artist - Title” per line) as entries without a file; TagStudio does not fetch any web page.
 - **More ▾:** export as M3U8 (absolute or relative paths), Rekordbox XML or CSV (whole folders as Rekordbox XML with
   folder tree by right-clicking the folder). **“Match with library …”** finds the matching track for entries without
   a file (same ISRC or artist + title + mix = found; different mix such as radio edit instead of extended mix =

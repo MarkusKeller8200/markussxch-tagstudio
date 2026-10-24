@@ -179,7 +179,10 @@ Bestätigung, Radio Edit ≠ Extended Mix).
 | Datei | M3U/M3U8, Rekordbox-XML, CSV, Playlist-Ordner `03_Playlists` | 2 |
 | Lexicon | Plugin `playlists`/`playlist_files` (#242) | 2 (Umstellung) |
 | Smartlist | Regeln über Tag-Felder (Abschnitt 9) | 3 |
-| MixID (#218), 1001Tracklists (#180) | Tracklisten von DJ-Sets → Einträge ohne Datei → Abgleich; Rechte vorher klären | später |
+| Serato, Engine DJ, VirtualDJ (#278) | Bibliothek des Programms nur lesen (Crates, Datenbank-Kopie, Ordner/Playlists) | 4.8.0 |
+| Trackliste einfügen (#279) | kopierter Text von 1001Tracklists, MixID, Beatport … → Einträge ohne Datei → Abgleich | 4.8.0 |
+| Spotify-Export (#279) | CSV von Exportify, TuneMyMusic u. a. (Titel, Künstler, ISRC, Dauer) über „Datei …“ | 4.8.0 |
+| MixID (#218), 1001Tracklists (#180), Spotify-/Beatport-Abruf | direkter Abruf; Rechte bzw. Zugang vorher klären (#279, Schritt 2) | später |
 | SonoVault (#258), Entdecken | Neuerscheinungen als „Merkliste“-Playlist (fehlende Titel = Einkaufsliste) | später |
 
 **Fehlende Titel** aus externen Quellen bleiben als Einträge ohne Datei in der Playlist (grau, mit Künstler/Titel).
@@ -219,7 +222,7 @@ Rahmen im Plugin-Manager (verallgemeinert aus #242/#239):
 - Seite Playlists: „Importieren aus ›“ und „Senden an ›“ mit den bereiten Plugins.
 
 Reihenfolge nach Nutzerpriorität (Architekturkonzept): **Engine DJ** (über Lexicon oder M3U8-Import, nie direkt in
-die Engine-Datenbank), **Serato** (Crates, erst nach Test mit Serato 4.x), **VirtualDJ** (M3U8, am Produkt testen),
+die Engine-Datenbank schreiben – **lesen** einer Kopie seit #278), **Serato** (Crates, erst nach Test mit Serato 4.x), **VirtualDJ** (M3U8, am Produkt testen),
 **Traktor** (NML), **Rekordbox** (XML, vorhanden). Jedes Format wird in einem echten Test mit dem Programm des Users
 bestätigt, bevor es als „unterstützt“ gilt.
 
@@ -350,3 +353,34 @@ Phase 2 siehe Abschnitt 15.
 **Tests:** `tests/test_playlists.py` (`TestMatchImport`, Sitzung Import/Export/Abgleich/Fehlende, Abspielen ohne Tagger,
 Warteschlange, Vorbereiten, automatisches Verknüpfen), Oberflächentest `test_playlists_play_import`.
 
+## 16. Import aus DJ-Programmen und Online-Quellen (#278, #279 – vom User am 24.10.2026 in 4.8.0 übernommen)
+
+**#278 Serato, Engine DJ, VirtualDJ, Lexicon** – `djlibs.py`, **nur lesen**, die Bibliotheken der Programme bleiben
+unverändert (Test vergleicht Prüfsummen vor und nach dem Lesen).
+- **Serato:** `_Serato_/Subcrates/*.crate` (Datensätze `otrk` › `ptrk`, UTF-16BE); „%%“ im Dateinamen = Unter-Crate.
+  Pfade sind relativ zum Laufwerk, auf dem `_Serato_` liegt (`serato_base`: `~/Music/_Serato_` → Systemlaufwerk,
+  `/Volumes/USB/_Serato_` bzw. `E:\_Serato_` → dieses Laufwerk). Smart-Crates werden (noch) nicht gelesen.
+- **Engine DJ 2.x–4.x:** `Engine Library/Database2/m.db` wird samt `-wal` in einen Arbeitsordner kopiert und dort
+  gelesen; Reihenfolge über `nextListId` bzw. `nextEntityId`, Ordner über `parentListId`, Pfade relativ zu „Engine
+  Library“. Ältere Datenbanken (Engine Prime 1.x) melden „zu alt“.
+- **VirtualDJ:** `Folders/**/*.vdjfolder` (feste virtuelle Ordner, Filter-Ordner übersprungen) und
+  `Playlists/*.m3u` mit `#EXTVDJ`-Angaben (Künstler, Titel, Länge).
+- **Lexicon:** wie bisher über das Plugin (`start_pl_source_import`).
+- Standardorte (`find_libraries`): Musik-Ordner bzw. Dokumente des Benutzers, `Library/Application Support`,
+  `%LOCALAPPDATA%`, externe Laufwerke; sonst Ordner wählen (Api `pl_dj_pick`).
+- Ablauf: `start_pl_dj_scan` (Liste mit Anzahl, fehlenden Dateien, „schon übernommen“) → Auswahl →
+  `start_pl_dj_import` legt Playlists im Ordner `<Programm>/<Ordner im Programm>` an; Quelle
+  `{"plugin": "app:<serato|engine|vdj>", "id": "<Pfad im Programm>"}` → erneuter Import aktualisiert dieselbe Playlist.
+- Noch mit den echten Programmen des Users zu bestätigen (Abschnitt 10): Serato 4.x, Engine DJ 4.x, VirtualDJ 2025.
+
+**#279 Online-Quellen, Schritt 1 (ohne Zugangsdaten, ohne Abruf fremder Seiten)**
+- **„Trackliste einfügen …“** (`playlists.parse_tracklist`, `pl_import_text`): je Zeile „Künstler - Titel (Mix)“;
+  Nummern, Zeitmarken, „w/“ und ein Label in eckigen Klammern am Ende fallen weg, „ID - ID“ wird gezählt und
+  ausgelassen. Ergebnis: Einträge ohne Datei im Ordner der gewählten Quelle (1001Tracklists, MixID, Beatport,
+  Spotify, sonst „Tracklisten“) → „Mit Bibliothek abgleichen …“.
+- **Spotify-Exporte** als CSV über „Datei …“: Spalten „Track Name“, „Artist Name(s)“, „ISRC“, „Duration (ms)“.
+- **Schritt 2 (offen, Entscheid User):** Spotify-Web-API mit eigener Spotify-App des Users; Beatport-Playlists über
+  die Anmeldung im Beatport-Plugin; 1001Tracklists nur mit Erlaubnis (#180); MixID über #218.
+
+**Tests:** `tests/test_djlibs.py` (Serato, Engine, VirtualDJ, unverändert nach dem Lesen, Tracklisten, Spotify-CSV,
+Sitzung mit erneutem Import), Oberflächentest `test_playlists_dj_and_text_import`.

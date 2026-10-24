@@ -461,9 +461,75 @@ async function plsImportMenu(btn) {
   try { src = (await call("dj_sources")).sources || []; } catch (e) { /* keine */ }
   const r = btn.getBoundingClientRect();
   showMenu(r.left, r.bottom + 6, [
-    { label: "Datei (M3U, M3U8, Rekordbox-XML, CSV) …", run: () => plsImportFile() },
+    { label: "Datei (M3U, M3U8, Rekordbox-XML, CSV, Spotify-Export) …", run: () => plsImportFile() },
+    { label: "Trackliste einfügen (1001Tracklists, MixID, Beatport …) …", run: () => plsImportText() },
+    "-",
+    { label: "Aus Serato …", run: () => plsImportApp("serato") },
+    { label: "Aus Engine DJ …", run: () => plsImportApp("engine") },
+    { label: "Aus VirtualDJ …", run: () => plsImportApp("vdj") },
     ...src.map((x) => ({ label: `Aus ${x.name} …`, run: () => plsImportSource(x) })),
   ]);
+}
+
+/** #278: Playlists aus Serato, Engine DJ oder VirtualDJ – die Bibliothek des Programms wird nur gelesen */
+async function plsImportApp(app) {
+  let lib;
+  try { lib = await call("pl_dj_libraries", app); } catch (e) { toast(String(e.message || e)); return; }
+  let path = lib.found[0] || "";
+  if (lib.found.length !== 1) {
+    const where = await modal({ title: `Playlists aus ${lib.name}`,
+      html: lib.found.length
+        ? `<p style="margin:0 0 8px">Welche Bibliothek?</p><select class="inp" id="plsDjLib" translate="no">${lib.found.map((f) => `<option value="${esc(f)}">${esc(f)}</option>`).join("")}</select>`
+        : `<p style="margin:0">Keine Bibliothek von ${esc(lib.name)} am üblichen Ort gefunden. Bitte den Ordner wählen (${esc(PLS_DJ_HINT[app])}).</p>`,
+      buttons: [{ label: "Abbrechen", value: null }, { label: "Anderer Ordner …", value: "pick" }, ...(lib.found.length ? [{ label: "Weiter", value: "ok", primary: true }] : [])],
+      collect: (b, v) => v === "ok" ? b.querySelector("#plsDjLib").value : v });
+    if (!where) return;
+    path = where;
+  }
+  if (path === "pick") {
+    const r = await call("pl_dj_pick", app);
+    if (!r || r.cancelled) return;
+    path = r.path;
+  }
+  const res = await runTask(call("start_pl_dj_scan", app, path), `${lib.name}: Playlists lesen`);
+  if (!res || res.cancelled) return;
+  if (res.ok === false) { info(lib.name, res.error); return; }
+  if (!res.lists.length) { info(lib.name, "In dieser Bibliothek gibt es keine Playlists."); return; }
+  const keys = await modal({ title: `Playlists aus ${lib.name} übernehmen`, wide: true,
+    html: `<div class="hint">Häkchen setzen und „Übernehmen“ – die Playlists kommen in den Ordner „${esc(lib.name)}“ (schon übernommene werden aktualisiert). ${esc(lib.name)} selbst bleibt unverändert.</div>
+      <div class="muted sm" translate="no" style="margin:0 0 6px">${esc(res.path)}</div>
+      <label class="djs-row"><input type="checkbox" id="plsDjAll"> <b>Alle</b></label>
+      <div class="djs-list">${res.lists.map((p, k) => `<label class="djs-row" style="padding-left:${8 + 18 * (p.folder ? p.folder.split("/").length : 0)}px"><input type="checkbox" data-plsdj="${k}"> <span translate="no">${esc(p.name)}</span>
+        <span class="muted sm">${p.missing ? `${fmtN(p.count)} Titel, davon ${fmtN(p.missing)} nicht auf diesem Rechner` : `${fmtN(p.count)} Titel`}</span>${p.known ? ' <span class="chip">schon übernommen</span>' : ""}${p.folder ? ` <span class="muted sm" translate="no">${esc(p.folder)}</span>` : ""}</label>`).join("")}</div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
+    onMount: (b) => b.querySelector("#plsDjAll").addEventListener("change", (e) => b.querySelectorAll("[data-plsdj]").forEach((c) => { c.checked = e.target.checked; })),
+    collect: (b) => [...b.querySelectorAll("[data-plsdj]:checked")].map((c) => res.lists[+c.dataset.plsdj].key) });
+  if (!keys || !keys.length) return;
+  const r = await runTask(call("start_pl_dj_import", app, res.path, keys), `${lib.name}: Playlists übernehmen`);
+  if (!r || r.cancelled) return;
+  if (r.ok === false) { toast(r.error); return; }
+  toast(r.missing ? `${r.lists.length} Playlist(s) übernommen. ${r.missing} Titel sind nicht auf diesem Rechner – „Fehlende suchen …“ hilft.`
+    : `${r.lists.length} Playlist(s) übernommen.`);
+  PLS.sel = new Set();
+  plsApply(await call("pl_state", r.lists[0] ? r.lists[0].id : ""));
+}
+const PLS_DJ_HINT = { serato: "den Ordner „_Serato_“", engine: "den Ordner „Engine Library“", vdj: "den Ordner „VirtualDJ“" };
+
+/** #279: kopierte Trackliste einfügen → Einträge ohne Datei, danach „Mit Bibliothek abgleichen …“ */
+async function plsImportText() {
+  const r = await modal({ title: "Trackliste einfügen", wide: true,
+    html: `<div class="hint">Trackliste von 1001Tracklists, MixID, einer Beatport-Chart oder aus eigenen Notizen kopieren und hier einfügen – je Zeile „Künstler - Titel (Mix)“. Nummern, Zeitmarken und Labels in eckigen Klammern fallen weg; unbekannte Titel („ID - ID“) werden ausgelassen. TagStudio ruft dafür keine Webseite ab.</div>
+      <div class="row" style="gap:8px;margin:0 0 8px"><input class="inp" id="plsTxtName" placeholder="Name der Playlist" style="flex:1">
+      <select class="inp" id="plsTxtSrc"><option value="1001tracklists">1001Tracklists</option><option value="mixid">MixID</option><option value="beatport">Beatport</option><option value="spotify">Spotify</option><option value="text" selected>andere Quelle</option></select></div>
+      <textarea class="inp" id="plsTxt" rows="14" style="width:100%;font-family:var(--mono, monospace)" translate="no" placeholder="01. Künstler - Titel (Extended Mix) [Label]"></textarea>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
+    onMount: (b) => b.querySelector("#plsTxt").focus(),
+    collect: (b) => ({ text: b.querySelector("#plsTxt").value, name: b.querySelector("#plsTxtName").value.trim(), src: b.querySelector("#plsTxtSrc").value,
+      label: b.querySelector("#plsTxtSrc").selectedOptions[0].textContent }) });
+  if (!r || !r.text.trim()) return;
+  const folder = r.src === "text" ? "Tracklisten" : r.label;
+  try { PLS.sel = new Set(); plsApply(await call("pl_import_text", r.text, r.name, folder, r.src)); }
+  catch (e) { toast(String(e.message || e)); }
 }
 async function plsImportFile() {
   try { const st = await call("pl_import", ""); if (st && !st.cancelled) { PLS.sel = new Set(); plsApply(st); } }

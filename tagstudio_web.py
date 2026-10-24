@@ -60,7 +60,8 @@ _PASS = {
     "pl_merge", "pl_add_tag", "pl_add_paths", "pl_remove", "pl_order", "pl_undo", "pl_redo", "pl_folder_create",
     "pl_folder_rename", "pl_folder_remove", "pl_folder_archive", "pl_archive", "pl_restore", "pl_delete", "pl_external",
     "pl_external_apply", "set_playlist_dir", "pl_to_queue", "start_pl_match", "start_pl_find_missing", "pl_relink",
-    "pl_import_file", "start_pl_source_import",
+    "pl_import_file", "start_pl_source_import", "pl_dj_libraries", "start_pl_dj_scan", "start_pl_dj_import",
+    "pl_import_text",
     "help_docs", "help_licenses", "help_lic_mark", "feedback_info", "feedback_search", "feedback_prepare", "feedback_translation", "help_tags", "start_tag_scan", "tag_field_filter",
     "setup_state", "setup_finish", "set_nav_hidden", "first_steps_seen", "first_steps_restart", "set_first_steps", "whats_new", "whats_new_seen", "folders_overview", "set_base_dir", "setup_structure", "set_archive_dir", "tag_archive", "prep_archive", "archive_list", "archive_restore",
     "disc_overview", "disc_follow_save", "disc_set", "disc_genres", "disc_auto", "disc_auto_status", "start_disc_suggest", "start_disc_run",
@@ -288,6 +289,11 @@ class Api:
         if not p:
             return {"cancelled": True}
         return self._s.pl_import_file(p, folder)
+
+    def pl_dj_pick(self, app):
+        """#278: Bibliotheksordner von Serato (_Serato_), Engine DJ (Engine Library) bzw. VirtualDJ wählen."""
+        p = self.pick_path("", True, os.path.expanduser("~"))
+        return {"path": p} if p else {"cancelled": True}
 
     def dj_export(self, fmt, opts=None):
         """#4: DJ-Set als M3U8, Rekordbox-XML oder CSV speichern."""

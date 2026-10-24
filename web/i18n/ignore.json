@@ -428,5 +428,19 @@
 "dauer",
 "länge",
 "Entries",
-"Count"
+"Count",
+"1001Tracklists",
+"MixID",
+"Tracklisten",
+"Serato DJ",
+"Folders",
+"Subcrates",
+"Local",
+"Engine Library",
+"Documents",
+"Library",
+"Application Support",
+"Track",
+"SELECT id, title, parentListId, nextListId FROM Playlist",
+"artist name(s)"
 ]

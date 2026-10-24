@@ -26,6 +26,14 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   CSV (auch ohne Dateien: Künstler, Titel, Mix, ISRC) und Lexicon; Export als M3U8, Rekordbox-XML (auch ganze Ordner)
   und CSV; „Mit Bibliothek abgleichen …“ (Radio Edit ≠ Extended Mix), „Fehlende suchen …“ für verschobene Dateien,
   Einkaufsliste als CSV; neu übernommene Titel werden automatisch verknüpft.
+- **Playlists aus Serato, Engine DJ und VirtualDJ (#278):** „Importieren ▾ › Aus Serato …“ (Crates mit
+  Unter-Crates), „Aus Engine DJ …“ (Playlists mit Ordnern und Reihenfolge, Engine DJ 2 und neuer) und „Aus
+  VirtualDJ …“ (virtuelle Ordner und Playlists); Lexicon wie bisher. Die Bibliotheken werden gesucht (auch auf
+  externen Laufwerken) und **nur gelesen**; erneuter Import aktualisiert die Playlists im Ordner des Programms.
+- **Tracklisten aus Online-Quellen (#279):** „Importieren ▾ › Trackliste einfügen …“ übernimmt kopierte Tracklisten
+  von 1001Tracklists, MixID, Beatport u. a. als Einträge ohne Datei (Nummern, Zeitmarken, Labels und „ID - ID“
+  fallen weg) – danach „Mit Bibliothek abgleichen …“; Spotify-Exporte (z. B. Exportify-CSV) über „Datei …“.
+  TagStudio ruft dafür keine Webseiten ab.
 - **Zurück zur vorherigen Ansicht (#274):** Nach einem Sprung aus dem Inhalt (z. B. Playlist › „Im Tagger öffnen“)
   führt „← Zurück“ oben in der Seitenleiste an dieselbe Stelle zurück – mit Auswahl, Filter und Bildlauf; „→“
   vorwärts, Rechtsklick zeigt die letzten Stationen. Auch Alt+← / Alt+→ (ausser im Vergleich) und die Maustasten
