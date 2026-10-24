@@ -98,7 +98,7 @@ Zug nachführen.**
 | Snapshots | [KONZEPT-SNAPSHOTS.md](KONZEPT-SNAPSHOTS.md) |
 | Player | [KONZEPT-PLAYER.md](KONZEPT-PLAYER.md) |
 | Plugins | [KONZEPT-PLUGINS.md](KONZEPT-PLUGINS.md) |
-| SonoVault-Integration (Idee, #253–#259) | [KONZEPT-SONOVAULT.md](KONZEPT-SONOVAULT.md) |
+| SonoVault-Integration (Idee, #253–#259) und eigener lokaler Katalog (#260, nur lokal – Entscheid 24.10.2026) | [KONZEPT-SONOVAULT.md](KONZEPT-SONOVAULT.md) |
 | Einstellungen | [KONZEPT-EINSTELLUNGEN.md](KONZEPT-EINSTELLUNGEN.md) |
 | Profile, Einrichtungsassistent | [KONZEPT-EINRICHTUNG.md](KONZEPT-EINRICHTUNG.md) |
 | Speicherorte, Ordnerstruktur | [KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md) |

@@ -100,3 +100,11 @@ Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Da
 - Tarif des Users (Free reicht für Einzelabfragen, nicht für einen Bibliotheksabgleich).
 - Anfrage an Rekordcloud zusammen mit MixID (#218): offizieller Zugang, Kontingent für TagStudio-Nutzer.
 - Doppelte Quellen: Verhältnis zu MusicBrainz/Discogs/Beatport bei gleichen Feldern (Vorrang in „Online-Metadaten“).
+
+## 7. Eigener Katalog statt Dienst (#260, Entscheid User 24.10.2026)
+
+Ein eigener Dienst wie SonoVault wird **nicht** gebaut. Geplant ist **nur lokale Ausführung**: ein Katalog in TagStudio
+(SQLite im Benutzerordner) aus freien Quellen (MusicBrainz-Kerndaten, Discogs-Dumps, Wikidata – CC0) für die eigene
+Bibliothek und gefolgte Labels/Künstler, ergänzt um eigene Analysen (Tonart #245, später #9). Kein Server, keine
+SonoVault-Daten als Grundlage (Terms §4). SonoVault bleibt optionale Zusatzquelle.
+
