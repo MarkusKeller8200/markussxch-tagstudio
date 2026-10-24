@@ -4,6 +4,19 @@ Stand: **2026-10-25 (01:00): 4.8.0 final freigegeben (Auftrag User 01:01) und er
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
+## Sitzung 25.10.2026 (Nacht) – 4.9.0 in Arbeit
+
+- **Umfang 4.9.0 (Entscheid User 01:16):** #272, #273, #284; **#222 und #107 nicht in 4.9.0** (in die Sammlungen
+  Funktionen bzw. Verbesserungen verschoben). Alle Vorschläge S1–S5, P1–P3, B1 aus `KONZEPT-PLAYLISTS.md` Abschnitt 17
+  angenommen (W1 offen bis #222 eingeplant wird).
+- **#272 Smartlists** (`smartlist.py`, `Store.smart_fill/freeze`, `pl_smart_*`, Regel-Dialog) – `_3 Beta-Test`.
+- **#273 Senden an Lexicon** (Rahmen `playlist_push`/`push_ready`, `start_pl_push`, Lexicon-Plugin 2.2: anlegen bzw.
+  fehlende Titel einfügen, nie `DELETE`) – `_3 Beta-Test`.
+- **#284 Beatport-Playlists** (Beatport-Plugin 1.1, `/my/playlists/…` inoffiziell und **ungeprüft** – Feldnamen im
+  Protokoll, echter Test beim User; Charts noch nicht) – `_3 Beta-Test`.
+- Meilenstein #24 hat damit keine Issues mehr ohne Testliste; nächster Schritt: Testrückmeldungen, danach
+  4.9.0-beta.1 oder final **nur nach Freigabe**. Konzept-Abschnitte 18–20 in `KONZEPT-PLAYLISTS.md`.
+
 ## Start 4.9.0 (vorbereitet 25.10.2026, 01:11)
 
 - **4.8.0 final veröffentlicht** (25.10.2026): Windows-Setup, macOS-DMG (Apple-Chip), 18 Plugin-ZIPs + `plugins.json`.
