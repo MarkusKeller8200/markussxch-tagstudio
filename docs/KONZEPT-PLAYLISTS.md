@@ -1,8 +1,9 @@
 # Konzept: Playlists
 
-> Stand 24.10.2026 – Entwurf auf Wunsch des Users. Status **Idee**: keine Umsetzung ohne Freigabe (`_1 bereit`).
+> Stand 24.10.2026 – Entwurf auf Wunsch des Users, **Entscheide E1–E8 getroffen** (13:03, Abschnitt 11).
+> Status **Idee**: keine Umsetzung ohne Freigabe (`_1 bereit`). Meilenstein **4.9.0 – Playlists** (Phase 1 + 2).
 > Issues: #267 (Grundlage) · #268 (Tagger) · #269 (DJ-Set) · #270 (Player, Warteschlange, Vorbereiten) ·
-> #271 (Import/Export, Ordner-Spiegel) · #272 (Smartlists) · #273 (Austausch mit DJ-Programmen und Plugins)
+> #271 (Import/Export, Quellen, Playlist-Ordner) · #272 (Smartlists) · #273 (Austausch mit DJ-Programmen und Plugins)
 
 ## 1. Ziel
 
@@ -34,9 +35,13 @@ Es gibt bereits mehrere Teile, aber keine gemeinsame Verwaltung:
 2. **Ein gemeinsamer Playlist-Speicher** für alle Bereiche. Die heutigen DJ-Set-Listen werden einmalig übernommen. Das
    DJ-Set bleibt der **Optimierer** und arbeitet auf einer Playlist („DJ-Set = Playlist mit Set-Optionen“).
 3. **„Zur Playlist hinzufügen ›“** überall, wo Titel markiert werden: Tagger, DJ-Set, Player, Warteschlange, Vorbereiten.
-4. **Export und Import** über offene Formate (M3U8, Rekordbox-XML, CSV), optional ein **Spiegel-Ordner**, in dem alle
-   Playlists automatisch als M3U8 liegen, damit DJ-Programme sie einlesen können.
-5. Später **Smartlists** (Regeln über Tag-Felder) und der Austausch mit DJ-Programmen über Plugins.
+4. **Eigener Playlist-Ordner** in der Ordnerstruktur (`03_Playlists`, wie `01_Library` für die MP3): Dort liegen alle
+   Playlists immer als M3U8, gespiegelt aus dem Playlist-Speicher (E3).
+5. **Quellen:** Playlists entstehen aus Tagger, DJ-Set, Dateien, Lexicon und später MixID oder 1001Tracklists. Alle
+   laufen über einen gemeinsamen Quellen-Rahmen (Abschnitt 7a, E4).
+6. **Archiv statt Löschen**, wie bei den Tracks (Aussortieren nach `02_Archiv`, E8).
+7. **Export und Import** über offene Formate (M3U8, Rekordbox-XML, CSV), später **Smartlists** und der Austausch mit
+   DJ-Programmen über Plugins.
 
 ## 4. Datenmodell
 
@@ -62,21 +67,37 @@ Es gibt bereits mehrere Teile, aber keine gemeinsame Verwaltung:
 - **Titel-Identität:** In erster Linie der **Pfad**. Dazu kommen Grösse und, wenn vorhanden, der **Audio-Schlüssel**
   (`akey`), wie ihn Snapshots und Wellenform-Cache bereits verwenden. Damit lassen sich verschobene Titel
   wiederfinden (Abschnitt 7, „Fehlende suchen“).
-- **Doppelte Titel:** In einer Playlist erlaubt, beim Hinzufügen gibt es aber einen Hinweis und die Wahl „trotzdem“
-  oder „überspringen“. In einer DJ-Set-Playlist gibt es keine Doppelten, wie heute.
+- **Doppelte Titel (E5):** In einer Playlist **erlaubt**. Beim Hinzufügen erscheint ein Hinweis mit der Wahl
+  „trotzdem“ oder „überspringen“. Im DJ-Set-Optimierer bleibt jeder Titel einmal, weil sich sonst keine Reihenfolge
+  berechnen lässt. Beim Öffnen im DJ-Set werden Doppelte gemeldet.
 - **Keine Tag-Werte in der Playlist.** Titel, BPM, Tonart usw. kommen beim Anzeigen aus dem Tagger bzw. aus dem
   Listen-Cache. Damit bleibt die Playlist klein und nie veraltet.
 
 ## 5. Speicher
 
-Vorschlag (Entscheid E3):
+Entscheid E3: **Programmdaten + eigener Playlist-Ordner.**
 
 ```
-~/TagStudio/Playlists/            (je Profil, wie Vorbereiten/Entdecken)
-  index.json                      Ordner, Reihenfolge, zuletzt benutzt, Spiegel-Einstellungen
+~/TagStudio/Playlists/            Playlist-Speicher (je Profil, wie Vorbereiten/Entdecken) – massgebend
+  index.json                      Ordner, Reihenfolge, zuletzt benutzt, Liste der geschriebenen M3U8
   pl_7f3c….json                   eine Datei je Playlist (atomar schreiben, wie save_config)
-  papierkorb/                     gelöschte Playlists 30 Tage (Wiederherstellen)
+
+<Basisordner>/03_Playlists/       Playlist-Ordner (neu in der Ordnerstruktur, Name änderbar)
+  Sets/2026/Freitag Warm-up.m3u8  jede Playlist als M3U8, Unterordner = Ordner im Baum
+  Neu 2026-10.m3u8
+
+<Basisordner>/02_Archiv/_Playlists/   archivierte Playlists (Abschnitt 6a)
 ```
+
+- Der **Speicher** enthält alles (Sperren, Set-Optionen, Regeln, Notizen). Der **Playlist-Ordner** enthält dieselben
+  Playlists als M3U8 mit **relativen Pfaden** zur Musik, ist für Menschen und DJ-Programme lesbar und reist mit der
+  Bibliothek mit. Er wird bei jeder Änderung nachgeführt.
+- **Änderungen von aussen:** Wird eine M3U8 im Playlist-Ordner von einem anderen Programm geändert oder neu angelegt,
+  meldet TagStudio das beim nächsten Öffnen der Seite („3 Playlists im Ordner geändert – übernehmen?“, Vorschau).
+  Es überschreibt nichts stillschweigend.
+- Der Einrichtungsassistent und Einstellungen › Speicherort und Ordner bekommen den Eintrag `playlists`
+  („03_Playlists – Playlists als M3U8“) in `session_setup.STRUCTURE`. Ohne Basisordner gibt es keinen Spiegel, nur den
+  Speicher.
 
 - Eine Datei je Playlist bedeutet kleine Schreibvorgänge und keine Konflikte bei langen Listen. Die Einstellungsdatei
   bleibt schlank.
@@ -108,7 +129,7 @@ Vorschlag (Entscheid E3):
 ⚡ Smart, ⇣ Import, ⏭ Warteschlange. „Zuletzt benutzt“ oben (fünf Einträge).
 
 **Aktionen je Playlist:** Neu, Umbenennen (F2), Duplizieren, In Ordner verschieben, Farbe/Notiz, Zusammenführen
-(mehrere → neue), **Löschen** mit Rückfrage und Papierkorb, Rückgängig/Wiederholen für alle Änderungen.
+(mehrere → neue), **Archivieren** (statt Löschen, Abschnitt 6a), Rückgängig/Wiederholen für alle Änderungen.
 
 **Titelliste:** Spalten wie im Tagger (wählbar), Sortieren, Ziehen zum Umordnen, Entf entfernt (nur aus der Playlist,
 nie die Datei), Doppelklick spielt, Kontextmenü „Im Tagger zeigen“, „Im Ordner zeigen“, „Zu anderer Playlist ›“.
@@ -117,6 +138,19 @@ nie die Datei), Doppelklick spielt, Kontextmenü „Im Tagger zeigen“, „Im O
 
 **Prüfen:** „Fehlende suchen …“ sucht verschobene Titel über Grösse + Audio-Schlüssel im Basisordner bzw. in
 gewählten Ordnern und zeigt eine Vorschau „alt → neu“. Gesucht wird nur in Ordnern, die der Benutzer freigibt.
+
+### 6a. Archiv (E8, wie bei den Tracks)
+
+Wie „Aussortieren“ bei Titeln (`archive.py`, #173): Eine Playlist wird nicht gelöscht, sondern **archiviert**.
+
+- Im Speicher bekommt sie den Vermerk `archived` (Datum) und erscheint im Baum unter **🗄 Archiv** (eingeklappt,
+  durchsuchbar, Inhalt ansehen und abspielen möglich, nicht bearbeitbar).
+- Ihre M3U8 wandert aus `03_Playlists` nach `02_Archiv/_Playlists/` (Unterordner bleiben erhalten).
+- Jede Bewegung steht im Vermerk `_aussortiert.csv` im Archiv (Datum, Von, Nach, Bereich „Playlists“), derselbe
+  Vermerk wie bei den Titeln. Daraus lässt sich die Playlist **zurückholen**.
+- Ganze Ordner lassen sich archivieren. Endgültiges Löschen gibt es nur im Archiv, einzeln, mit Rückfrage.
+- Wird ein **Titel** aussortiert, bleibt er in den Playlists stehen und wird als „im Archiv“ markiert (nicht „fehlt“).
+  „Zurückholen“ des Titels stellt den alten Pfad wieder her.
 
 ## 7. Anbindung der Bereiche
 
@@ -129,7 +163,30 @@ gewählten Ordnern und zeigt eine Vorschau „alt → neu“. Gesucht wird nur i
 | **Snapshots** | Pfad-Änderungen aus dem Journal („umbenannt“) können Playlists nachführen (Vorschau) |
 | **Plugins** | gemeinsamer Rahmen statt „Lexicon: …“-DJ-Set-Listen (Abschnitt 10) |
 
-## 8. Import und Export, Spiegel-Ordner
+### 7a. Quellen (E4)
+
+Playlists können aus verschiedenen Quellen entstehen. Alle laufen über **einen Rahmen**: Eine Quelle liefert eine
+Liste von Einträgen (Pfad, oder Künstler/Titel/Mix/ISRC/Dauer, wenn es keine Datei gibt), daraus wird eine Playlist.
+Einträge ohne Datei werden über den **Bibliotheks-Abgleich** zugeordnet (vorhanden / fehlt / unklar, mit Vorschau und
+Bestätigung, Radio Edit ≠ Extended Mix).
+
+| Quelle | Weg | Phase |
+|---|---|---|
+| Tagger | markierte oder gefilterte Titel, ganzer Ordner | 1 |
+| DJ-Set | aktuelles Set, markierte Set-Titel | 1 |
+| Warteschlange | „als Playlist speichern“ | 2 |
+| Datei | M3U/M3U8, Rekordbox-XML, CSV, Playlist-Ordner `03_Playlists` | 2 |
+| Lexicon | Plugin `playlists`/`playlist_files` (#242) | 2 (Umstellung) |
+| Smartlist | Regeln über Tag-Felder (Abschnitt 9) | 3 |
+| MixID (#218), 1001Tracklists (#180) | Tracklisten von DJ-Sets → Einträge ohne Datei → Abgleich; Rechte vorher klären | später |
+| SonoVault (#258), Entdecken | Neuerscheinungen als „Merkliste“-Playlist (fehlende Titel = Einkaufsliste) | später |
+
+**Fehlende Titel** aus externen Quellen bleiben als Einträge ohne Datei in der Playlist (grau, mit Künstler/Titel).
+Sie lassen sich als Einkaufsliste exportieren (CSV) und werden später automatisch verknüpft, wenn der Titel in die
+Bibliothek kommt (Abgleich bei der Übernahme in „Vorbereiten“). Datenmodell dafür: Eintrag mit `ref`
+(`{"artist", "title", "mix", "isrc", "duration", "source"}`) statt oder zusätzlich zu `path`.
+
+## 8. Import und Export, Playlist-Ordner
 
 **Export** (je Playlist, mehrere oder ein ganzer Ordner): M3U8 (absolute oder relative Pfade, `#EXTINF` mit Dauer,
 Künstler – Titel), Rekordbox-XML (mehrere Playlists mit Ordnerbaum in **einer** Datei), CSV/Excel (wie Tagger-Export).
@@ -138,18 +195,17 @@ Vorhanden in `setexport.py`, wird auf Playlists verallgemeinert.
 **Import:** M3U/M3U8 (auch relative Pfade, Windows-/Mac-Pfade, Umlaute), Rekordbox-XML (`read_rekordbox`, Ordner →
 Playlist-Ordner), CSV mit Pfadspalte. Titel, die nicht gefunden werden, bleiben als „fehlt“ in der Playlist.
 
-**Spiegel-Ordner (optional):** Alle oder gewählte Playlists werden bei jeder Änderung als M3U8 in einen Ordner
-geschrieben, z. B. `01_Library/_Playlists/Sets/2026/Freitag Warm-up.m3u8` mit relativen Pfaden. Vorteile: Die
-Playlists reisen mit der Bibliothek, und DJ-Programme können den Ordner einlesen. TagStudio schreibt dort nur eigene
-`.m3u8`-Dateien und löscht nur Dateien, die es selbst angelegt hat (Liste im `index.json`), nach Rückfrage.
+**Playlist-Ordner `03_Playlists`** (Abschnitt 5): immer eingeschaltet, sobald ein Basisordner gewählt ist. TagStudio
+schreibt dort nur eigene `.m3u8`-Dateien. Umbenennen und Verschieben im Baum benennen bzw. verschieben die Datei mit.
+Archivieren verschiebt sie nach `02_Archiv/_Playlists`. Fremde Dateien im Ordner werden nie gelöscht.
 
 ## 9. Smartlists (später)
 
 Regeln über die Felder, die der Tagger-Filter schon kennt: Genre, BPM-Bereich, Tonart (auch „passend zu 8A“),
 Bewertung, Like, Stimmung, Energie, Aufgenommen/Bearbeitet (Zeitraum), Herkunft, Kommentar enthält … Verknüpfung
-„alle“/„eine“, Sortierung, Höchstzahl. Datenbasis (Entscheid E4): der Listen-Cache bzw. der Bibliotheks-Scan
-(`cache/tagscan`) des Basisordners. Damit wird nichts neu eingelesen, die Liste ist aber nur so aktuell wie der letzte
-Scan. „Jetzt aktualisieren“ startet einen Hintergrund-Auftrag. Eine Smartlist lässt sich in eine normale Playlist
+„alle“/„eine“, Sortierung, Höchstzahl. **Datenbasis wählbar** (E4): Bibliothek (Listen-Cache bzw. Bibliotheks-Scan
+`cache/tagscan` des Basisordners, „Jetzt aktualisieren“ als Hintergrund-Auftrag), der geladene Tagger-Ordner, eine
+andere Playlist oder eine Quelle aus Abschnitt 7a (z. B. Lexicon). Eine Smartlist lässt sich in eine normale Playlist
 „einfrieren“.
 
 ## 10. Austausch mit DJ-Programmen und Plugins (später)
@@ -166,39 +222,40 @@ die Engine-Datenbank), **Serato** (Crates, erst nach Test mit Serato 4.x), **Vir
 **Traktor** (NML), **Rekordbox** (XML, vorhanden). Jedes Format wird in einem echten Test mit dem Programm des Users
 bestätigt, bevor es als „unterstützt“ gilt.
 
-## 11. Offene Entscheide (für den User)
+## 11. Entscheide (User 24.10.2026, 13:03)
 
-| Nr. | Frage | Vorschlag |
+| Nr. | Frage | Entscheid |
 |---|---|---|
-| E1 | Eigenes Menü-Modul „Playlists“ oder nur ein Bereich im DJ-Set? | **eigenes Modul**; DJ-Set bleibt der Optimierer |
-| E2 | Die heutigen DJ-Set-Listen in die Playlists übernehmen (ein gemeinsamer Speicher)? | **ja**, einmalig und automatisch |
-| E3 | Speicherort: Programmdaten je Profil oder im Basisordner (reist mit der Musik)? | **Programmdaten** + optionaler M3U8-Spiegel im Basisordner |
-| E4 | Smartlists: Datenbasis Bibliotheks-Scan (schnell, nicht immer aktuell) oder nur geladener Tagger-Ordner? | **Bibliotheks-Scan** mit „Jetzt aktualisieren“ |
-| E5 | Doppelte Titel in einer Playlist? | **erlaubt mit Hinweis**, im DJ-Set nicht |
-| E6 | Zugehörigkeit zusätzlich in die Tags schreiben (z. B. `TXXX:TAGSTUDIO_PLAYLISTS`)? | **nein** (Dateien bleiben unverändert, Tag-Änderung bei jeder Listenänderung wäre störend) |
-| E7 | Welches DJ-Programm zuerst? | M3U8-Spiegel (für alle) → Engine DJ über Lexicon → Serato |
-| E8 | Gelöschte Playlists: Papierkorb 30 Tage oder sofort weg (nach Rückfrage)? | **Papierkorb** |
+| E1 | Eigenes Modul oder Bereich im DJ-Set? | **Eigenes Modul** „Playlists“; DJ-Set bleibt der Optimierer |
+| E2 | DJ-Set-Listen übernehmen? | **Ja**, einmalig und automatisch |
+| E3 | Speicherort? | **Programmdaten** (massgebend) **plus eigener Ordner** `03_Playlists` in der Ordnerstruktur, alle Playlists als M3U8 (Abschnitt 5) |
+| E4 | Datenbasis / Quellen? | **Verschiedene Quellen** über einen Rahmen: Lexicon, Datei, Tagger, DJ-Set, später MixID, 1001Tracklists u. a. (Abschnitt 7a); Smartlists mit wählbarer Datenbasis |
+| E5 | Doppelte Titel? | **Erlaubt** (mit Hinweis); nur der DJ-Set-Optimierer braucht jeden Titel einmal |
+| E6 | Zugehörigkeit in Tags schreiben? | **Nein** |
+| E7 | Welches DJ-Programm zuerst? | Wie vorgeschlagen: Playlist-Ordner (M3U8) → Engine DJ über Lexicon → Serato |
+| E8 | Löschen? | **Archiv wie bei den Tracks** (Abschnitt 6a) |
 
 ## 12. Umsetzung in Schritten
 
 | Phase | Inhalt | Issue | Grösse |
 |---|---|---|---|
-| 1 | Kern `playlists.py`, Speicher, Übernahme DJ-Set-Listen/Warteschlange, Seite „Playlists“ mit Baum, Liste, Aktionen, Undo, Papierkorb | #267 | gross |
+| 1 | Kern `playlists.py`, Speicher, Übernahme DJ-Set-Listen/Warteschlange, Seite „Playlists“ mit Baum, Liste, Aktionen, Undo, Archiv | #267 | gross |
 | 1 | Tagger: „Zur Playlist ›“, „Playlist öffnen“, Filter „In Playlist“ | #268 | mittel |
 | 1 | DJ-Set auf Playlists umstellen | #269 | mittel |
 | 2 | Player, Warteschlange, Vorbereiten-Schritt | #270 | mittel |
-| 2 | Import/Export M3U8, Rekordbox-XML, CSV; Spiegel-Ordner; „Fehlende suchen“ | #271 | mittel |
+| 2 | Import/Export M3U8, Rekordbox-XML, CSV; Playlist-Ordner `03_Playlists`; Quellen-Rahmen mit Bibliotheks-Abgleich; „Fehlende suchen“ | #271 | gross |
 | 3 | Smartlists | #272 | mittel |
 | 3 | `playlist_push`, Lexicon umstellen, weitere DJ-Programme nach Test | #273 | gross |
 
-Phase 1 reicht für den Kernwunsch: Titel aus Tagger und DJ-Set in Playlists ablegen und verwalten. Vorschlag: Phase 1
-und 2 als Meilenstein **4.9.0 – Playlists**.
+Phase 1 reicht für den Kernwunsch: Titel aus Tagger und DJ-Set in Playlists ablegen und verwalten. Phase 1 und 2
+bilden den Meilenstein **4.9.0 – Playlists**. Offen: Soll der Playlist-Ordner schon in Phase 1 kommen (er ist klein
+und macht die Playlists sofort für DJ-Programme nutzbar)? Vorschlag: ja, als Teil von #267.
 
 ## 13. Tests
 
-- Unit: `tests/test_playlists.py` (Datenmodell, atomares Schreiben, Übernahme aus `djset_saved`, Doppelte, Papierkorb,
+- Unit: `tests/test_playlists.py` (Datenmodell, atomares Schreiben, Übernahme aus `djset_saved`, Doppelte, Archiv und Zurückholen, Playlist-Ordner (Umbenennen, Verschieben, Änderung von aussen), Einträge ohne Datei,
   M3U8 rund herum mit Umlauten und relativen Pfaden, Rekordbox-XML mit Ordnern, „Fehlende suchen“ mit verschobener
   Datei), Plattform-neutrale Pfade (Windows-Laufwerke).
-- Oberfläche (Playwright): Playlist anlegen, aus dem Tagger hinzufügen, im DJ-Set öffnen, umordnen, löschen und
-  wiederherstellen, Export-Dialog, englische Oberfläche ohne deutsche Reste.
+- Oberfläche (Playwright): Playlist anlegen, aus dem Tagger hinzufügen, im DJ-Set öffnen, umordnen, archivieren und
+  zurückholen, Export-Dialog, englische Oberfläche ohne deutsche Reste.
 - Mehrsprachigkeit: alle Texte in `web/i18n/playlists.json` (Deutsch, Englisch, Zürichdeutsch).
