@@ -2442,6 +2442,35 @@ class UiTest(unittest.TestCase):
         pg.wait_for_function("PLS.st.pl.kind === 'manual' && !PLS.st.pl.rules")
         self.assertEqual(pg.locator('#plsHead [data-plsa="smartrefresh"]').count(), 0)
 
+    def test_playlists_send_lexicon(self):
+        """#273: Playlists › Mehr ▾ › „An Lexicon senden …“ – gegen die nachgebaute Lexicon Local API."""
+        import fake_lexicon
+        pg = self.pg
+        a, b = os.path.join(self.lib, "01 Ton 220.mp3"), os.path.join(self.lib, "02 Ton 330.mp3")
+        lex = fake_lexicon.State([{"id": 1, "location": a, "locationUnique": a.lower(), "artist": "Test", "title": "Ton 220",
+                                   "tags": [], "archived": 0}], playlists=[])
+        srv, url = fake_lexicon.start(lex)
+        try:
+            pg.evaluate("""(url) => runTask(call('start_plugin_action', 'lexicon', 'settings', [], { url, write: true, move: true,
+                add: false, playlist: '', analyze: false }), 'Einstellungen')""", url)
+            pg.evaluate("""([a, b]) => call('pl_create', 'Freitag', '', null).then((st) => call('pl_add_paths', st.sel, [a, b], 'add'))""", [a, b])
+            pg.click('.nav[data-module="playlists"]')
+            pg.wait_for_function("PLS.st && PLS.st.pl && PLS.st.pl.count === 2 && PLS.push && PLS.push.some((t) => t.id === 'lexicon' && t.ready)")
+            pg.click('#plsHead [data-plsa="more"]')
+            pg.click("#menu button >> text=An Lexicon senden")
+            pg.wait_for_selector("#mBtns button >> text=Senden")
+            pg.click("#mBtns .primary")
+            pg.wait_for_selector("#mBody >> text=nicht in Lexicon")             # ein Titel fehlt dort → Hinweis mit Liste
+            self.assertIn("02 Ton 330.mp3", pg.inner_text("#mBody"))
+            pg.click("#mBtns button >> text=OK")
+            lp = [p for p in lex.playlists if p["name"] == "Freitag"]
+            self.assertEqual([p["trackIds"] for p in lp], [[1]])
+            self.assertTrue(self.until("/gesendet an Lexicon/.test(document.querySelector('#plsHead').textContent)"))
+            self.assertFalse([c for c in lex.calls if c[0] == "DELETE"])
+        finally:
+            srv.shutdown()
+            srv.server_close()
+
     def test_playlists_page(self):
         """#267–#269: Titel aus dem Tagger in Playlists, Seite verwalten, Playlist-Ordner, Archiv, DJ-Set, Filter."""
         pg = self.pg

@@ -177,6 +177,9 @@ nie über einen Proxy, `is_local`).
 - **#242 DJ-Set:** Rahmen `Manager.playlist_sources/call_playlist` (Plugin-Funktionen `playlists`, `playlist_files`),
   Session `dj_sources`, `start_dj_source_list`, `start_dj_source_import` (Listen „<Quelle>: <Name>“, erste geladen);
   Pseudo-Playlist „Warteschlange“ aus `/playing` + `/queue` (#238 Punkt 4).
+- **#273 Senden:** Plugin-Funktion `playlist_push(ctx, playlist, options)` und optional `push_ready(ctx)`;
+  `Manager.push_targets()`, Session `start_pl_push` (Ziel-ID je Playlist in `pushed`). Lexicon 2.2: anlegen bzw.
+  fehlende Titel einfügen, nie löschen. Details `docs/KONZEPT-PLAYLISTS.md` Abschnitt 19.
 
 ### API-Rekorder (#243, Entscheid User 17.10.2026)
 

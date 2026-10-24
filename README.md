@@ -477,7 +477,9 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   Popularität, Farbe und Custom Tags über die Lexicon Local API (Zuordnung über Pfad bzw. Künstler + Titel). Beide mit
   **Abgleich**: Wurde ein Wert in der Datei seit dem letzten Übernehmen geändert, ist der Vorschlag nicht angehakt –
   TagStudio fragt. Lexicon zusätzlich: markierte Titel und Playlists öffnen, auf Wunsch Pfade nachführen, neue Titel
-  aufnehmen und Tags zurückschreiben (siehe [PLUGINS.md](PLUGINS.md)).
+  aufnehmen, Tags zurückschreiben und **Playlists senden** (Playlists › Mehr ▾ › „An Lexicon senden …“: legt die
+  Playlist in Lexicon an, erneutes Senden fügt fehlende Titel an ihrer Stelle ein und entfernt nichts; nur mit
+  eingeschaltetem Zurückschreiben, siehe [PLUGINS.md](PLUGINS.md)).
 - **Lautheit messen:** LUFS, True Peak, Lautheitsbereich (EBU R128, FFmpeg) als Felder, optional angeglichene Kopie.
 - **Eigene Plugins** in `~/TagStudio/Plugins` – Anleitung in [PLUGINS.md](PLUGINS.md).
 

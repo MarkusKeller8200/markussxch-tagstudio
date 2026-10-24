@@ -459,8 +459,9 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   beaTunes) as audio features. **Take over Lexicon:** danceability, energy, happiness, optionally rating, popularity,
   color and custom tags via the Lexicon Local API (matched by path or artist + title). Both with **matching**: if a
   value in the file was changed since the last takeover, the suggestion is not ticked – TagStudio asks. Lexicon also:
-  open selected tracks and playlists, optionally update paths, add new tracks and write tags back (see
-  [PLUGINS.en.md](PLUGINS.en.md)).
+  open selected tracks and playlists, optionally update paths, add new tracks, write tags back and **send playlists**
+  (Playlists › More ▾ › “Send to Lexicon …”: creates the playlist in Lexicon, sending again inserts missing tracks at
+  their position and removes nothing; only with writing back switched on, see [PLUGINS.en.md](PLUGINS.en.md)).
 - **Measure loudness:** LUFS, true peak, loudness range (EBU R128, FFmpeg) as fields, optionally a levelled copy.
 - **Your own plugins** in `~/TagStudio/Plugins` – instructions in [PLUGINS.en.md](PLUGINS.en.md).
 

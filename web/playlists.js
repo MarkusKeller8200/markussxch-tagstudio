@@ -9,6 +9,7 @@ const PLS_KIND = { manual: "Playlist", djset: "DJ-Set", smart: "Smartlist", impo
 async function playlistsShow() {
   try {
     if (!PLS.smart) await plsSmartInfo().catch(() => {});                  // Feldnamen für die Regel-Zusammenfassung (#272)
+    call("pl_push_targets").then((r) => { PLS.push = r.targets || []; }).catch(() => {});   // #273: „Senden an ›“
     const st = await call("pl_state", PLS.st ? PLS.st.sel : ""); plsApply(st); plsSmartAuto(st);
   } catch (e) { toast(String(e.message || e)); }
 }
@@ -97,7 +98,8 @@ function plsRenderHead() {
   if (!pl) { el.innerHTML = `<div class="muted">Links eine Playlist wählen oder eine neue anlegen.</div>`; return; }
   const loaded = PLS.st.tagger;
   const info = [`${fmtN(pl.count)} Titel`, pl.duration ? djDur(pl.duration) : "", pl.missing ? `${fmtN(pl.missing)} fehlen` : "",
-    pl.count && pl.loaded < pl.count - pl.missing ? `${fmtN(pl.loaded)} im Tagger geladen` : ""].filter(Boolean).join(" · ");
+    pl.count && pl.loaded < pl.count - pl.missing ? `${fmtN(pl.loaded)} im Tagger geladen` : "",
+    ...Object.entries(pl.pushed || {}).map(([k, v]) => `gesendet an ${((PLS.push || []).find((t) => t.id === k) || { name: k }).name} ${new Date(v.at * 1000).toLocaleDateString()}`)].filter(Boolean).join(" · ");
   if (pl.archived) {
     el.innerHTML = `<div class="pls-h"><div class="grow"><h3 translate="no">${esc(pl.name)}</h3><div class="muted sm">${esc(pl.folder || "")}${pl.folder ? " · " : ""}${info}</div></div></div>
       <div class="hint pls-archived"><div>Archiviert am ${esc(new Date(pl.archived * 1000).toLocaleString())}.</div>${pl.file ? `<div class="muted sm">Datei im Archiv:</div><div class="sm" translate="no">${esc(pl.file)}</div>` : ""}
@@ -430,6 +432,7 @@ function plsPlMenu(x, y, id) {
     { label: "Mit anderen zusammenführen …", run: () => plsMerge(id) },
     ...(PLS.st.mirror ? [{ label: "M3U8 im Playlist-Ordner zeigen", icon: ICON.folder, run: () => call("pl_reveal", id).then((ok) => { if (!ok) toast("Datei nicht gefunden."); }) }] : []),
     "-", ...plsListItems(id),
+    ...(PLS.push && PLS.push.length ? ["-", ...PLS.push.map((t) => ({ label: `An ${t.name} senden …`, run: () => plsPush(id, t) }))] : []),
     "-", { label: "Archivieren …", run: () => plsArchive(id) },
   ]);
 }
@@ -834,6 +837,28 @@ function plsInit() {
     e.preventDefault(); e.stopImmediatePropagation();
     plsQuickAdd(typeof tgSelected === "function" ? tgSelected() : []);
   }, true);
+}
+
+// ---------------------------------------------------------------- Senden an DJ-Programme (#273)
+async function plsPush(id, t) {
+  const p = plsMeta(id); if (!p) return;
+  if (!t.ready) { info(t.name, t.why || "Senden ist im Moment nicht möglich."); return; }
+  const again = p.pushed && p.pushed[t.id];
+  const ok = await modal({ title: `An ${t.name} senden`,
+    html: `<p style="margin:0">„${esc(p.name)}“ (${fmtN(p.count)} Titel) an ${esc(t.name)} senden?</p>
+      <p class="muted sm" style="margin:8px 0 0">${again ? "Die Playlist wurde schon gesendet – fehlende Titel werden dort an ihrer Stelle eingefügt." : "Dort wird eine neue Playlist mit diesem Namen angelegt."}
+      Einträge ohne Datei und Titel, die dort fehlen, werden ausgelassen und gemeldet. TagStudio entfernt und löscht dort nichts.</p>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Senden", value: true, primary: true }] });
+  if (!ok) return;
+  const r = await runTask(call("start_pl_push", id, t.id, {}), `An ${t.name} senden`);
+  if (!r || r.cancelled) return;
+  try { plsApply(await call("pl_state", PLS.st ? PLS.st.sel : id)); } catch (e) { /* egal */ }
+  const miss = (r.missing || []).length;
+  if (r.ok && !miss) { toast(r.message); return; }
+  const btns = [{ label: "OK", value: null }];
+  if (r.logfile) btns.unshift({ label: "Protokoll öffnen", value: "log" });
+  const a = await modal({ title: t.name, html: `<p style="margin:0">${esc(r.message || "")}</p>${miss ? `<div class="muted sm" style="margin-top:8px">Nicht in ${esc(t.name)}:</div><div class="sm" translate="no" style="max-height:200px;overflow:auto">${r.missing.slice(0, 50).map((x) => esc(x.split(/[\\/]/).pop())).join("<br>")}${miss > 50 ? "<br>…" : ""}</div>` : ""}`, buttons: btns });
+  if (a === "log") call("open_log", r.logfile).catch(() => {});
 }
 
 // ---------------------------------------------------------------- Smartlists (#272)

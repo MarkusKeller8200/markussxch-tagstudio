@@ -13,6 +13,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   (auch „passt zu“), Bewertung, Like, Stimmung, Energie, Aufgenommen/Bearbeitet und Herkunft, „alle“ oder „mindestens
   eine“ erfüllt; Sortierung (auch Zufall) und Höchstzahl. Neu gebildet beim Öffnen (älter als 15 Minuten) und mit
   „↻ Aktualisieren“, M3U8 im Playlist-Ordner wird mitgeschrieben; „Einfrieren“ macht eine normale Playlist daraus.
+- **Playlists an Lexicon senden (#273):** Playlists › Mehr ▾ › „An Lexicon senden …“ legt die Playlist in Lexicon an;
+  erneutes Senden führt dieselbe Playlist nach (fehlende Titel an ihrer Stelle eingefügt, nichts entfernt – Titel, die
+  nur in Lexicon stehen, werden gemeldet). Einträge ohne Datei und Titel, die Lexicon nicht kennt, werden ausgelassen
+  und gemeldet. Nur mit eingeschaltetem Zurückschreiben im Lexicon-Plugin (2.2), Journal im Plugin. Neu im
+  Plugin-Rahmen: `playlist_push(ctx, playlist, options)` und `push_ready(ctx)`.
 
 ## [4.8.0] – 2026-10-25
 

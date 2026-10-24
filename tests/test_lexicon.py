@@ -303,5 +303,52 @@ class TestWriteBack(_LexRun):
         self.assertEqual(pl["trackIds"], [1, 2])
 
 
+class TestPushPlaylist(_LexRun):
+    """#273: Playlist aus TagStudio an Lexicon senden – anlegen, erneut senden fügt ein, nie löschen."""
+
+    def push(self, pid):
+        r = self.s.start_pl_push(pid, "lexicon", {})
+        self.assertNotEqual(r.get("ok"), False, r)
+        return self.wait()
+
+    def test_push_create_update(self):
+        pid = self.s.pl_create("Freitag", "Sets")["sel"]
+        self.s.pl_add_paths(pid, [self.q, os.path.join(self.B, "fehlt.mp3")], "add")
+        self.s._pls().add(pid, [{"ref": {"artist": "A", "title": "Nur Angabe"}}], "add")
+        t = self.s.pl_push_targets()["targets"]
+        self.assertEqual([(x["id"], x["ready"]) for x in t], [("lexicon", False)])        # Schreiben aus
+        st = self.push(pid)
+        self.assertIn("ausgeschaltet", st["error"])
+        self.settings(url=self.url, write=True)
+        self.assertTrue(self.s.pl_push_targets()["targets"][0]["ready"])
+        res = self.push(pid)["result"]
+        self.assertEqual((res["created"], res["added"], res["no_file"], len(res["missing"])), (True, 1, 1, 1))
+        lp = next(p for p in self.lex.playlists if p["name"] == "Freitag" and p["type"] == "2" and p.get("parentId") is None)
+        self.assertEqual(lp["trackIds"], [2])
+        self.assertEqual(self.s.pl_state(pid)["pl"]["pushed"]["lexicon"]["id"], lp["id"])
+        # in Lexicon von Hand ergänzt, in TagStudio einen Titel vorne eingefügt → erneut senden fügt ein, entfernt nichts
+        lp["trackIds"].append(3)
+        self.s.pl_add_paths(pid, [self.p], "add")
+        self.s.pl_order(pid, [3, 0, 1, 2])
+        res = self.push(pid)["result"]
+        self.assertEqual((res["created"], res["added"], res["extra"]), (False, 1, 1))
+        self.assertEqual(lp["trackIds"], [1, 2, 3])
+        self.assertEqual(len([p for p in self.lex.playlists if p["name"] == "Freitag" and p["type"] == "2"]), 2)  # kein neues
+        self.assertFalse([c for c in self.lex.calls if c[0] == "DELETE"])
+        res = self.push(pid)["result"]                                                      # nichts mehr zu tun
+        self.assertEqual(res["added"], 0)
+        # Ziel in Lexicon gelöscht → neu anlegen
+        self.lex.playlists.remove(lp)
+        res = self.push(pid)["result"]
+        self.assertTrue(res["created"])
+
+    def test_plan_inserts(self):
+        mod = self.s.plugins.get("lexicon").load()
+        self.assertEqual(mod.plan_inserts([], [1, 2, 3]), [(0, [1, 2, 3])])
+        self.assertEqual(mod.plan_inserts([1, 3], [1, 2, 3, 4]), [(1, [2]), (3, [4])])
+        self.assertEqual(mod.plan_inserts([3, 1], [1, 2, 3]), [(2, [2])])               # Reihenfolge bleibt, nichts doppelt
+        self.assertEqual(mod.plan_inserts([1], [1, 1, 2]), [(1, [2])])
+
+
 if __name__ == "__main__":
     unittest.main()

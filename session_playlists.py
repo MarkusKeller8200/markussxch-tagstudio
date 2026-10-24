@@ -450,6 +450,34 @@ class PlaylistMixin:
             pl = self._pls().freeze(pid)
         return self._pl_after(pid, f"„{pl['name']}“ ist jetzt eine normale Playlist ({len(pl.get('items') or [])} Titel).")
 
+    # ------------------------------------------------------------------ #273: Senden an DJ-Programme
+    def pl_push_targets(self) -> dict:
+        return {"targets": self.plugins.push_targets()}
+
+    def start_pl_push(self, pid, plugin, opts=None):
+        """Playlist an ein Plugin senden (z. B. Lexicon): dort anlegen bzw. nachführen, nie löschen. Einträge ohne
+        Datei lässt das Plugin aus. Die Ziel-ID wird gemerkt, erneutes Senden aktualisiert dieselbe Playlist."""
+        with self.lock:
+            pl = self._pls().get(pid)
+            if pl.get("archived"):
+                return {"ok": False, "error": "Archivierte Playlists lassen sich nicht senden – zuerst zurückholen."}
+            prev = ((pl.get("pushed") or {}).get(plugin) or {}).get("id")
+            payload = {"name": pl["name"], "folder": pl.get("folder", ""), "remote": prev,
+                       "items": [{k: x.get(k, "") for k in ("path", "artist", "title")} for x in pl.get("items") or []]}
+        name = self.plugins.get(plugin).name
+
+        def job(cancel, progress):
+            progress(("text", f"{name}: senden …"))
+            res = self.plugins.call_playlist(plugin, "playlist_push", payload, dict(opts or {}), session=self,
+                                             cancel=cancel, progress=progress) or {}
+            if res.get("ok") and res.get("id") is not None:
+                with self.lock:
+                    self._pls().set_pushed(pid, plugin, res)
+            res.setdefault("ok", True)
+            res["target"] = name
+            return res
+        return self._run("pl_push", f"An {name} senden", job)
+
     # ------------------------------------------------------------------ Archiv
     def _pl_djset_check(self):
         """Archivierte Playlist ist nicht mehr die Liste des DJ-Sets (das Set selbst bleibt)."""

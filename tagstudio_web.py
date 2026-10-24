@@ -57,7 +57,7 @@ _PASS = {
     "dj_lists", "dj_save_as", "dj_load", "dj_new", "dj_list_delete", "dj_list_rename",
     "pq_state", "pq_add", "pq_set", "pq_take", "pq_to_djset",
     "pl_list", "pl_state", "pl_tag_indices", "pl_files", "pl_create", "pl_rename", "pl_move", "pl_meta", "pl_duplicate",
-    "pl_merge", "pl_smart_info", "pl_smart_save", "start_pl_smart_refresh", "pl_smart_stale", "pl_smart_freeze", "pl_add_tag", "pl_add_paths", "pl_remove", "pl_order", "pl_undo", "pl_redo", "pl_folder_create",
+    "pl_merge", "pl_smart_info", "pl_smart_save", "start_pl_smart_refresh", "pl_smart_stale", "pl_smart_freeze", "pl_push_targets", "start_pl_push", "pl_add_tag", "pl_add_paths", "pl_remove", "pl_order", "pl_undo", "pl_redo", "pl_folder_create",
     "pl_folder_rename", "pl_folder_remove", "pl_folder_archive", "pl_archive", "pl_restore", "pl_delete", "pl_external",
     "pl_external_apply", "set_playlist_dir", "pl_to_queue", "start_pl_match", "start_pl_find_missing", "pl_relink", "pl_relink_many",
     "pl_import_file", "start_pl_source_import", "pl_dj_libraries", "start_pl_dj_scan", "start_pl_dj_import",

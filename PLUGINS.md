@@ -194,6 +194,13 @@ Weitere Funktionen, die ein Plugin anbieten kann (alle optional):
 - `apply_remote(ctx, items)` – siehe `kind="remote"` oben.
 - `playlists(ctx)` → `[{id, name, path, depth, type}]` und `playlist_files(ctx, id)` → `{name, files, missing}` –
   das DJ-Set bietet dann „Aus <Plugin> …“: Playlists auswählen und als Listen laden (Beispiel: Lexicon).
+- `playlist_push(ctx, playlist, options)` – Seite Playlists › Mehr ▾ › „An <Plugin> senden …“ (#273). `playlist` =
+  `{"name", "folder", "items": [{"path", "artist", "title"}], "remote"}` (`remote` = die ID, die das Plugin beim
+  letzten Senden zurückgegeben hat, sonst `None`). Rückgabe `{"ok", "id", "message", "missing": [Pfade], …}`; TagStudio
+  merkt sich `id` je Playlist, erneutes Senden soll dieselbe Playlist nachführen. Optional `push_ready(ctx)` →
+  `(bereit, Hinweis)`, z. B. wenn das Schreiben im Plugin ausgeschaltet ist. Regeln: nie etwas löschen, Einträge ohne
+  Datei auslassen und melden, Änderungen ins eigene Journal (Beispiel: Lexicon – legt an bzw. fügt fehlende Titel an
+  ihrer Stelle ein, entfernt nichts).
 
 ## Werkzeug: API-Rekorder (für Entwickler)
 

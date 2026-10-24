@@ -1,7 +1,7 @@
 {
   "id": "lexicon",
   "name": "Lexicon",
-  "version": "2.1",
+  "version": "2.2",
   "min_app": "4.8.0",
   "category": "local_api",
   "api": 1,
@@ -110,7 +110,7 @@
             "required": true
           }
         ],
-        "use": "Aus Lexicon öffnen, DJ-Set › Aus Lexicon …: Titel einer Playlist (auch Ordner, Smartlist)"
+        "use": "Aus Lexicon öffnen, DJ-Set › Aus Lexicon …: Titel einer Playlist (auch Ordner, Smartlist); Senden an Lexicon: vorhandene Titel"
       },
       {
         "id": "playlist-by-path",
@@ -185,7 +185,7 @@
         "path": "/playlist",
         "label": "Playlist anlegen",
         "status": "partial",
-        "use": "DJ-Set als Playlist, Playlist für neue Titel",
+        "use": "DJ-Set als Playlist, Playlist für neue Titel, Playlists › Senden an Lexicon",
         "note": "nur normale Playlists"
       },
       {
@@ -201,7 +201,7 @@
         "path": "/playlist-tracks",
         "label": "Titel zu Playlist hinzufügen",
         "status": "full",
-        "use": "DJ-Set als Playlist, neue Titel in Playlist"
+        "use": "DJ-Set als Playlist, neue Titel in Playlist, Playlists › Senden an Lexicon (fehlende Titel einfügen)"
       },
       {
         "id": "playlist-tracks-remove",

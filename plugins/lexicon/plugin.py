@@ -844,6 +844,109 @@ def run_undo(ctx):
                        + (" Aufgenommene Titel und Playlists bleiben (TagStudio löscht nichts in Lexicon)." if keep else "")}
 
 
+# =========================================================================== #273: Playlists an Lexicon senden
+def push_ready(ctx):
+    """Für das Menü „Senden an ›“: (bereit, Hinweis). Senden schreibt – nur mit Hauptschalter."""
+    st = load_settings(ctx)
+    if not st["write"]:
+        return False, "Zurückschreiben nach Lexicon ist ausgeschaltet (Plugins › Lexicon › Einstellungen …)."
+    return True, ""
+
+
+def plan_inserts(have, want) -> list[tuple[int, list]]:
+    """Fehlende Titel an ihre Stelle einfügen, ohne etwas zu entfernen: [(index, [ids]), …] in Ausführungsreihenfolge.
+    have: Titel der Lexicon-Playlist, want: gewünschte Reihenfolge. Titel, die schon drin sind, bleiben, wo sie sind
+    (auch wenn die Reihenfolge abweicht); doppelte Titel aus TagStudio kommen nur einmal hinein."""
+    cur, out, last, run, run_at = list(have), [], -1, [], 0
+
+    def flush():
+        if run:
+            out.append((run_at, list(run)))
+            run.clear()
+    for d in want:
+        j = cur.index(d, last + 1) if d in cur[last + 1:] else None
+        if j is not None:
+            flush()
+            last = j
+            continue
+        if d in cur:                                  # steht schon weiter vorne: bleibt dort
+            flush()
+            continue
+        if not run:
+            run_at = last + 1
+        cur.insert(last + 1, d)
+        last += 1
+        run.append(d)
+    flush()
+    return out
+
+
+def playlist_push(ctx, pl, opts=None):
+    """Playlist aus TagStudio in Lexicon anlegen bzw. nachführen (#273, Entscheide P1–P3).
+
+    pl: {"name", "folder", "items": [{"path", "artist", "title"}], "remote": ID aus dem letzten Senden oder None}.
+    Neu: normale Playlist (oberste Ebene) mit den Titeln in TagStudio-Reihenfolge. Erneut: fehlende Titel werden an
+    ihrer Stelle eingefügt; Titel, die nur in Lexicon stehen, bleiben (TagStudio entfernt nichts) und werden gemeldet.
+    Einträge ohne Datei und Dateien, die Lexicon nicht kennt, werden ausgelassen und gemeldet."""
+    c, _st = writer(ctx)
+    items = pl.get("items") or []
+    paths = [x["path"] for x in items if x.get("path")]
+    no_file = len(items) - len(paths)
+    m = Matcher(c, ctx, len(paths), ["id", "location", "locationUnique", "archived"])
+    ids, missing = [], []
+    for n, p in enumerate(paths):
+        ctx.check_cancel()
+        ctx.progress(n, len(paths), os.path.basename(p))
+        t, _how = m.find(p, by_name=False)
+        if t is None:
+            missing.append(p)
+        else:
+            ids.append(int(t["id"]))
+    name = (pl.get("name") or "TagStudio").strip()
+    remote = None
+    if pl.get("remote"):
+        try:
+            remote = c.playlist(int(pl["remote"]))
+        except (LexiconError, ValueError, TypeError):
+            remote = None
+        if remote and str(remote.get("type", "2")) != "2":
+            remote = None                                 # Ordner oder Smartlist in Lexicon: nicht beschreiben
+    added, extra, created = 0, 0, False
+    if remote is None:
+        if not ids:
+            return {"ok": False, "message": "Keiner der Titel ist in Lexicon – nichts gesendet.", "missing": missing,
+                    "no_file": no_file}
+        rid = c.playlist_create(name, "2")
+        c.playlist_add(rid, ids)
+        added, created = len(ids), True
+        journal_add(ctx, f"Playlist „{name}“ an Lexicon gesendet", [{"kind": "playlist", "id": rid, "name": name, "tracks": ids}])
+        ctx.log(f"Playlist „{name}“ in Lexicon angelegt (ID {rid}): {len(ids)} Titel")
+    else:
+        rid = int(remote.get("id") or pl["remote"])
+        have = [int(i) for i in remote.get("trackIds") or []]
+        steps = plan_inserts(have, ids)
+        journal = []
+        for at, chunk in steps:
+            c.playlist_add(rid, chunk, index=at)
+            journal.append({"kind": "playlist_tracks", "id": rid, "tracks": chunk, "index": at})
+            added += len(chunk)
+        extra = sum(1 for i in have if i not in set(ids))
+        journal_add(ctx, f"Playlist „{remote.get('name') or name}“ in Lexicon nachgeführt", journal)
+        ctx.log(f"Playlist „{remote.get('name') or name}“ (ID {rid}): {added} Titel eingefügt, {extra} nur in Lexicon")
+    for p in missing[:100]:
+        ctx.log(f"nicht in Lexicon: {p}")
+    parts = [f"„{name}“ in Lexicon angelegt: {added} Titel gesendet" if created
+             else f"„{name}“ in Lexicon nachgeführt: {added} Titel eingefügt"]
+    if missing:
+        parts.append(f"{len(missing)} nicht in Lexicon")
+    if no_file:
+        parts.append(f"{no_file} ohne Datei ausgelassen")
+    if extra:
+        parts.append(f"{extra} stehen nur in Lexicon (TagStudio entfernt nichts – dort von Hand löschen)")
+    return {"ok": True, "id": rid, "created": created, "added": added, "missing": missing, "no_file": no_file,
+            "extra": extra, "message": " · ".join(parts)}
+
+
 # =========================================================================== #204: Integration
 def api_request(ctx, ep, params):
     """API-Tester: GET an die Local API – ohne Proxy, Adresse aus den Plugin-Optionen."""

@@ -624,7 +624,7 @@ class Store:
                 "count": len(pl.get("items") or []), "modified": pl.get("modified", 0), "created": pl.get("created", 0),
                 "archived": pl.get("archived") or 0, "color": pl.get("color", ""), "note": pl.get("note", ""),
                 "source": pl.get("source") or None, "file": self.mirror_path(pl["id"]) if not pl.get("archived") else pl.get("archived_file", ""),
-                "rules": pl.get("rules") or None, "refreshed": pl.get("refreshed") or 0}
+                "rules": pl.get("rules") or None, "refreshed": pl.get("refreshed") or 0, "pushed": pl.get("pushed") or {}}
 
     def folders(self) -> list[str]:
         """Alle Ordner: angelegte und die der aktiven Playlists (mit allen Elternordnern)."""
@@ -839,6 +839,14 @@ class Store:
             x["added"] = added.get(nk(x["path"])) or now
         self.update(pid, "Smartlist aktualisieren", items=new, refreshed=now)
         return True
+
+    def set_pushed(self, pid, plugin, info: dict):
+        """#273: Ziel im anderen Programm merken (ID, Zeitpunkt) – ohne Rückgängig-Eintrag."""
+        pl = copy.deepcopy(self.get(pid))
+        pushed = pl.get("pushed") if isinstance(pl.get("pushed"), dict) else {}
+        pushed[str(plugin)] = {"id": info.get("id"), "at": int(time.time())}
+        pl["pushed"] = pushed
+        self._put(pl)
 
     def freeze(self, pid) -> dict:
         """Smartlist → normale Playlist mit den aktuellen Titeln (Regeln fallen weg)."""

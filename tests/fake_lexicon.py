@@ -165,7 +165,10 @@ class Handler(BaseHTTPRequestHandler):
                 p = next((x for x in s.playlists if x["id"] == b["id"]), None)
                 if p is None:
                     return self._err(101, "Playlist does not exist")
-                p["trackIds"] = list(p.get("trackIds") or []) + list(b["trackIds"])
+                cur = list(p.get("trackIds") or [])
+                at = b.get("index")
+                at = len(cur) if at is None else max(0, min(len(cur), int(at)))
+                p["trackIds"] = cur[:at] + list(b["trackIds"]) + cur[at:]
                 return self._send(200, {"data": {}})
             if method == "POST" and u.path == "/v1/tag":
                 s.next_id += 1

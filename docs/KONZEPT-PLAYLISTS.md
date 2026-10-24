@@ -213,7 +213,7 @@ Bewertung, Like, Stimmung, Energie, Aufgenommen/Bearbeitet (Zeitraum), Herkunft,
 andere Playlist oder eine Quelle aus Abschnitt 7a (z. B. Lexicon). Eine Smartlist lässt sich in eine normale Playlist
 „einfrieren“.
 
-## 10. Austausch mit DJ-Programmen und Plugins (später)
+## 10. Austausch mit DJ-Programmen und Plugins (Senden an Lexicon umgesetzt in #273, siehe Abschnitt 19)
 
 Rahmen im Plugin-Manager (verallgemeinert aus #242/#239):
 
@@ -444,3 +444,25 @@ Meilenstein #24 „4.9.0 – Playlists Phase 3“: #272 Smartlists, #273 Senden 
   automatischer Versuch). Smartlists erscheinen nicht als Ziel in „Zur Playlist hinzufügen …“.
 - **Nicht umgesetzt:** Quelle aus Abschnitt 7a (z. B. Lexicon) als Datenbasis – geht über Import + „Aus Playlist“.
 - **Tests:** `tests/test_smartlist.py`, Oberflächentest `test_playlists_smartlist`.
+
+## 19. Umsetzung Senden an DJ-Programme (#273, 25.10.2026)
+
+- **Rahmen** (`plugins.py`): Plugin-Funktion `playlist_push(ctx, playlist, options)` (über `Manager.call_playlist`,
+  Protokoll in `<plugin>.log`), optional `push_ready(ctx)` → `(bereit, Hinweis)`; `Manager.push_targets()` liefert die
+  eingeschalteten, bereiten Plugins mit `playlist_push`.
+- **Sitzung:** `pl_push_targets`, `start_pl_push(pid, plugin, opts)` (Hintergrund-Vorgang). Übergeben werden Name,
+  Ordner, Einträge (Pfad, Künstler, Titel) und `remote` = die beim letzten Senden zurückgegebene ID; die neue ID steht
+  danach in der Playlist unter `pushed[plugin] = {id, at}` (`Store.set_pushed`, ohne Rückgängig-Eintrag), der Kopf zeigt
+  „gesendet an … <Datum>“.
+- **Lexicon** (Plugin 2.2, Entscheide P1/P2): nur mit Hauptschalter „Zurückschreiben“ und nur an localhost
+  (`writer`). Zuordnung Datei → Lexicon-Titel nur über den Pfad (`Matcher`, ohne Künstler+Titel). Erstes Senden bzw.
+  Ziel in Lexicon nicht mehr vorhanden oder keine normale Playlist: neue Playlist (oberste Ebene, `POST /playlist`) +
+  `PATCH /playlist-tracks`. Erneutes Senden: `plan_inserts(have, want)` fügt fehlende Titel an ihrer Stelle ein
+  (`PATCH /playlist-tracks` mit `index`); Titel, die nur in Lexicon stehen, bleiben und werden gemeldet;
+  abweichende Reihenfolge wird nicht korrigiert, doppelte Titel kommen nur einmal hinein. **Nie** `DELETE` – auch nicht
+  zum Ersetzen (die Local API bietet laut OpenAPI kein Ersetzen des Inhalts; `PATCH /playlist` nicht genutzt).
+  Journal im Plugin (`playlist` bzw. `playlist_tracks`); „Letzte Änderung rückgängig …“ lässt angelegte Playlists und
+  eingefügte Titel wie bisher stehen (TagStudio löscht nichts in Lexicon).
+- **P3:** Serato, Engine DJ und VirtualDJ werden nicht beschrieben – Austausch über die M3U8 im Playlist-Ordner.
+- **Tests:** `tests/test_lexicon.py` (`TestPushPlaylist`, nachgebaute API mit `index`), Oberflächentest
+  `test_playlists_send_lexicon`.

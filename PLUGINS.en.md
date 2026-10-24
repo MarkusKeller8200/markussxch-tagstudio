@@ -195,6 +195,13 @@ More functions a plugin can offer (all optional):
 - `apply_remote(ctx, items)` – see `kind="remote"` above.
 - `playlists(ctx)` → `[{id, name, path, depth, type}]` and `playlist_files(ctx, id)` → `{name, files, missing}` – the
   DJ set then offers “From <plugin> …”: select playlists and load them as lists (example: Lexicon).
+- `playlist_push(ctx, playlist, options)` – Playlists page › More ▾ › “Send to <plugin> …” (#273). `playlist` =
+  `{"name", "folder", "items": [{"path", "artist", "title"}], "remote"}` (`remote` = the id the plugin returned the last
+  time, otherwise `None`). Return `{"ok", "id", "message", "missing": [paths], …}`; TagStudio remembers `id` per
+  playlist, sending again should update the same playlist. Optional `push_ready(ctx)` → `(ready, hint)`, e.g. when
+  writing is switched off in the plugin. Rules: never delete anything, skip and report entries without a file, record
+  changes in the plugin's own journal (example: Lexicon – creates the playlist or inserts missing tracks at their
+  position, removes nothing).
 
 ## Tool: API recorder (for developers)
 

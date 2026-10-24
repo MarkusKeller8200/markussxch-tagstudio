@@ -712,7 +712,7 @@ class Manager:
             return set()
 
     # ---- #242: Playlists anderer Programme fürs DJ-Set (playlists(ctx), playlist_files(ctx, id))
-    PLAYLIST_FNS = ("playlists", "playlist_files")
+    PLAYLIST_FNS = ("playlists", "playlist_files", "playlist_push")
 
     def playlist_sources(self) -> list[dict]:
         """Bereite, eingeschaltete Plugins mit playlists(ctx) – z. B. Lexicon."""
@@ -727,6 +727,21 @@ class Manager:
             out.append({"id": p.id, "name": p.name})
         return out
 
+    def push_targets(self) -> list[dict]:
+        """#273: eingeschaltete, bereite Plugins mit playlist_push(ctx, playlist, options) – „Senden an ›“.
+        push_ready(ctx) → (bereit, Hinweis) zeigt, ob Schreiben dort gerade erlaubt ist."""
+        out = []
+        for p, _fn in self._ready_with("playlist_push"):
+            rd = getattr(p.load(), "push_ready", None)
+            ok, why = True, ""
+            try:
+                if callable(rd):
+                    ok, why = rd(Context(p))
+            except Exception as ex:  # noqa: BLE001
+                ok, why = False, str(ex)
+            out.append({"id": p.id, "name": p.name, "ready": bool(ok), "why": why or ""})
+        return out
+
     def call_playlist(self, pid, fn_name, *args, session=None, cancel=None, progress=None):
         if fn_name not in self.PLAYLIST_FNS:
             raise ValueError("Unbekannte Funktion.")
@@ -736,7 +751,11 @@ class Manager:
         fn = getattr(p.load(), fn_name, None)
         if not callable(fn):
             raise ValueError(f"„{p.name}“ bietet keine Playlists.")
-        return fn(Context(p, session, cancel, progress), *args)
+        ctx = Context(p, session, cancel, progress)
+        res = fn(ctx, *args)
+        if fn_name == "playlist_push" and isinstance(res, dict) and ctx.log_lines:      # #273: Protokoll des Sendens
+            res["logfile"] = write_log(f"{p.id}.log", "Playlist senden\n" + "\n".join(ctx.log_lines))
+        return res
 
     def apply_remote(self, pid, items, session=None) -> dict:
         """#239: übernommene Vorschläge kind="remote" an das Plugin (apply_remote(ctx, items))."""
