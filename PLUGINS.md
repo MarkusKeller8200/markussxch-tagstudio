@@ -60,6 +60,8 @@ Plugins/
 
 - `min_app`: älteste TagStudio-Version, mit der das Plugin läuft. Der Plugin-Katalog bietet das Plugin nur dort an.
   Bei Änderungen an einem Plugin die `version` erhöhen, sonst erscheint kein Update.
+- `links` (optional): `[{"label", "url", "desc"}]` – erscheinen unter „Mehr …“ auf der Plugin-Karte, z. B. Download
+  einer Zusatz-App (nur `https://`, höchstens 8).
 - `id`: Kleinbuchstaben, Ziffern, `-`, `_`.
 - `category`: Kennzeichen auf der Plugin-Karte – `online` (Online-API), `local_api` (Lokale API), `import`
   (Übernahme aus Tags), `audio` (Audio-Verarbeitung) oder `other` (Sonstiges, Standard).
@@ -218,7 +220,7 @@ gleiche Vorschau (#217):
   **In der App „Auto-Tagging“ ausschalten** – sonst schreibt sie selbst in die Dateien. Ändert sich eine Datei während
   der Analyse, warnt TagStudio. Antwortet der Server nicht, startet TagStudio die App selbst (Option „App bei Bedarf
   selbst starten“, Programm wird gesucht oder unter Optionen eingetragen) und wartet bis 30 s; läuft die App ohne
-  Server, sagt die Meldung das.
+  Server, sagt die Meldung das. Unter **Mehr …** stehen Download-Links für Windows und Mac.
 - Beim Plugin „Tonart (OpenKeyScan)“ prüft **Testen** die Umgebung (Modell laden, Gerät melden); unter **Optionen**
   lässt sich „Immer Prozessor“ wählen.
 

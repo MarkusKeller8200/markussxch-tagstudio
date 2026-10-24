@@ -521,6 +521,10 @@ class Plugin:
              "install": [{"id": v.get("id"), "label": v.get("label", v.get("id")), "packages": v.get("packages", []),
                           "hint": v.get("hint", "")} for v in m.get("install", []) if v.get("packages")],
              "notes": m.get("notes", ""), "env": bool(self.env_spec),
+             # #249: Links unter „Mehr …“ (z. B. Download einer Zusatz-App) – nur https
+             "links": [{"label": str(l.get("label"))[:80], "url": str(l.get("url")), "desc": str(l.get("desc") or "")[:200]}
+                       for l in (m.get("links") if isinstance(m.get("links"), list) else [])
+                       if isinstance(l, dict) and l.get("label") and str(l.get("url") or "").startswith("https://")][:8],
              "env_variant": self.env_info().get("label", "") if self.env_spec else ""}
         if not self.builtin:                               # #235: aus einem Release nachgeladen?
             import plugin_store

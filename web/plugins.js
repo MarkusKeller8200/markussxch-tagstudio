@@ -51,6 +51,7 @@ function plMore(p) {                                   // Funktionen für „Wei
   if (p.store) acts.push(p.builtin_version
     ? { kind: "revert", label: `Zurück auf eingebaute Version ${p.builtin_version}`, desc: `Entfernt die nachgeladene Version ${p.version} aus dem Plugin-Ordner.` }
     : { kind: "revert", label: "Nachgeladenes Plugin entfernen", desc: "Entfernt das Plugin aus dem Plugin-Ordner." });
+  (p.links || []).forEach((l) => acts.push({ kind: "link", label: l.label, desc: l.desc || l.url, url: l.url }));   // #249
   if (p.path) acts.push({ kind: "dir", label: "Ordner dieses Plugins öffnen", desc: p.path });
   if (p.env && p.state === "ready" && p.install.length) p.install.forEach((v) => acts.push({ kind: "install", id: v.id, label: `Neu installieren: ${v.label.replace(/^Installieren\s*\(?|\)$/g, "") || v.label}`, desc: (v.hint || "") }));
   return acts;
@@ -292,6 +293,7 @@ async function pluginMore(pid) {
   else if (pick.kind === "svc") svcOpen(pid);
   else if (pick.kind === "install") pluginInstall(pid, pick.id);
   else if (pick.kind === "revert") pluginStoreRevert(pid);
+  else if (pick.kind === "link") call("open_url", pick.url);
   else if (pick.kind === "dir" && !(await call("open_folder", p.path))) toast("Ordner konnte nicht geöffnet werden.");
 }
 

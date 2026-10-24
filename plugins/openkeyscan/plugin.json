@@ -1,13 +1,19 @@
 {
   "id": "openkeyscan",
   "name": "OpenKeyScan-App",
-  "version": "1.3",
+  "version": "1.4",
   "min_app": "4.8.0",
   "category": "local_api",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
   "description": "Lässt die Tonart der markierten Titel von der OpenKeyScan-Desktop-App (Windows, macOS) über deren lokale API erkennen. Ergebnis als Vorschau: eigenes Feld OPENKEYSCAN_KEY (Camelot) und auf Wunsch TKEY in deiner Schreibweise, mit Vergleich zur vorhandenen Tonart. Ohne App: Plugin „Tonart (OpenKeyScan)“.",
   "notes": "Keine Zusatzpakete nötig. Die OpenKeyScan-App muss laufen. In der App „Auto-Tagging“ ausschalten, damit sie nicht selbst in die Dateien schreibt – TagStudio warnt, wenn sich eine Datei während der Analyse ändert.",
+  "links": [
+    {"label": "App für Windows herunterladen", "url": "https://update.rekord.cloud/releases/openkeyscan/latest/OpenKeyScan-Installer.exe",
+     "desc": "Installer für Windows 10/11 (64 bit) direkt von Rekordcloud. Nach dem Download ausführen."},
+    {"label": "App für Mac herunterladen", "url": "https://www.openkeyscan.com/download",
+     "desc": "Download-Seite: Apple-Chip (M1 …) oder Intel wählen, ab macOS 10.15."}
+  ],
   "service": {
     "name": "OpenKeyScan Local API",
     "kind": "local",

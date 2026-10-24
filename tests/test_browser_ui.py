@@ -764,6 +764,15 @@ class UiTest(unittest.TestCase):
         self.assertIn("Tonart (OpenKeyScan)", card)
         self.assertIn("Eigene Umgebung (Python 3.12 + Pakete)", card)
         self.assertIn("OpenKeyScan Local API", pg.inner_text('.pl-card[data-pid="openkeyscan"]'))
+        pg.click('.pl-card[data-pid="openkeyscan"] [data-plmore]')               # #249: Download-Links unter „Mehr …“
+        pg.wait_for_selector("#mBody .pl-more")
+        more = pg.inner_text("#mBody")
+        self.assertIn("App für Windows herunterladen", more)
+        self.assertIn("App für Mac herunterladen", more)
+        pg.evaluate("""() => { const orig = call; window.__urls = [];
+          window.call = (n, ...a) => { if (n === "open_url") { window.__urls.push(a[0]); return Promise.resolve(true); } return orig(n, ...a); }; }""")
+        pg.click('#mBody button:has-text("App für Windows herunterladen")')
+        self.assertTrue(self.until("window.__urls.length === 1 && window.__urls[0].endsWith('OpenKeyScan-Installer.exe')"))
         pg.evaluate("(u) => call('start_plugin_action', 'openkeyscan', 'settings', [], { url: u })", url)
         self.assertTrue(self.until("call('task_status').then((s) => s.done)"))
         self.load_tagger()

@@ -60,6 +60,8 @@ Plugins/
 
 - `min_app`: oldest TagStudio version the plugin works with. The plugin catalog only offers the plugin there. When you
   change a plugin, increase its `version`, otherwise no update appears.
+- `links` (optional): `[{"label", "url", "desc"}]` – shown under “More …” on the plugin card, e.g. the download
+  of an extra app (`https://` only, at most 8).
 - `id`: lower-case letters, digits, `-`, `_`.
 - `category`: badge on the plugin card – `online` (online API), `local_api` (local API), `import` (takeover from
   tags), `audio` (audio processing) or `other` (default).
@@ -219,7 +221,7 @@ preview (#217):
   **Switch off “auto-tagging” in the app** – otherwise it writes to the files itself. TagStudio warns if a file
   changes during the analysis. If the server does not respond, TagStudio starts the app itself (option “Start the app
   automatically when needed”, the program is searched for or entered under Options) and waits up to 30 s; if the app
-  runs without a server, the message says so.
+  runs without a server, the message says so. **More …** has download links for Windows and Mac.
 - For the plugin “Key (OpenKeyScan)”, **Test** checks the environment (loads the model, reports the device); under
   **Options** you can choose “Always processor”.
 
