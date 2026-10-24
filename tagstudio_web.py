@@ -499,7 +499,7 @@ class Api:
     def start_app_update(self):
         """Installer der neuesten Version im gewählten Kanal laden und prüfen (Hintergrund-Vorgang mit Fortschritt)."""
         if not updater.auto_update_supported():
-            return {"ok": False, "error": "Update auf Knopfdruck gibt es derzeit nur in der installierten App unter Windows."}
+            return {"ok": False, "error": "Update auf Knopfdruck gibt es nur in der installierten App (Windows, macOS)."}
         import paths
         ch = self._s.update_channel()
         dest = paths.sub("Updates")
@@ -526,15 +526,19 @@ class Api:
         return self._s._run("update", "Update wird geladen", job)
 
     def app_update_install(self, path):
-        """Geladenen Installer still ausführen: TagStudio beendet sich, installiert und startet neu (#234)."""
+        """Geladenen Installer still ausführen: TagStudio beendet sich, installiert und startet neu (#234, macOS #251)."""
         if not updater.auto_update_supported():
-            return {"ok": False, "message": "Nur in der installierten App unter Windows."}
+            return {"ok": False, "message": "Nur in der installierten App (Windows, macOS)."}
         import paths
         dest = os.path.normcase(os.path.abspath(paths.sub("Updates")))
         p = os.path.abspath(str(path or ""))
-        if os.path.normcase(os.path.dirname(p)) != dest or not p.lower().endswith(".exe") or not os.path.isfile(p):
+        ext = ".dmg" if sys.platform == "darwin" else ".exe"
+        if os.path.normcase(os.path.dirname(p)) != dest or not p.lower().endswith(ext) or not os.path.isfile(p):
             return {"ok": False, "message": "Installer nicht gefunden – bitte das Update nochmals starten."}
-        log = updater.launch_windows_update(p, os.path.dirname(p))
+        try:
+            log = (updater.launch_mac_update if sys.platform == "darwin" else updater.launch_windows_update)(p, os.path.dirname(p))
+        except RuntimeError as ex:
+            return {"ok": False, "message": str(ex)}
         applog.info(f"Update: Installer gestartet ({os.path.basename(p)}), Protokoll {log}")
         self.quit(stop_jobs=True)
         return {"ok": True, "log": log}

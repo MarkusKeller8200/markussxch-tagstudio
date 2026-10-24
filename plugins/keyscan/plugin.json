@@ -1,7 +1,7 @@
 {
   "id": "keyscan",
   "name": "Tonart (OpenKeyScan)",
-  "version": "1.2",
+  "version": "1.3",
   "min_app": "4.8.0",
   "category": "audio",
   "api": 1,

@@ -262,5 +262,9 @@
 "BPM gesperrt": ["BPM locked", "BPM gsperrt"],
 "Protokoll öffnen": ["Open log", "Protokoll uftue"],
 "Protokoll nicht gefunden.": ["Log not found.", "Protokoll nöd gfunde."],
-"Im Tagger:": ["In the tagger:", "Im Tagger:"]
+"Im Tagger:": ["In the tagger:", "Im Tagger:"],
+"Update auf Knopfdruck gibt es nur in der installierten App (Windows, macOS).": ["One-click update is only available in the installed app (Windows, macOS).", "Update uf Knopfdruck gits nume i de installierte App (Windows, macOS)."],
+"Nur in der installierten App (Windows, macOS).": ["Only in the installed app (Windows, macOS).", "Nume i de installierte App (Windows, macOS)."],
+"Keine Schreibrechte für {x} – bitte das DMG von Hand installieren.": ["No write permission for {x} – please install the DMG manually.", "Kei Schriibrächt für {x} – bitte s DMG vo Hand installiere."],
+"Die laufende TagStudio.app wurde nicht gefunden.": ["The running TagStudio.app was not found.", "Di laufend TagStudio.app isch nöd gfunde worde."]
 }

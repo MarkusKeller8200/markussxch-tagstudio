@@ -20,7 +20,7 @@ SR, N_BINS, HOP = 44100, 105, 8820
 
 def emit(**kw):
     sys.stderr.flush()
-    print("\n@@" + json.dumps(kw, ensure_ascii=False), flush=True)
+    print("\n@@" + json.dumps(kw), flush=True)          # nur ASCII: Umlaute in Pfaden überstehen jede Codepage (#250)
 
 
 def camelot(cls: int) -> str:

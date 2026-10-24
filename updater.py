@@ -266,18 +266,45 @@ def final_tag_target(cwd=HERE, include_beta: bool = False) -> str | None:
 ASSET_HOST = "https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/download/"
 
 
-def platform_asset(release: dict, platform: str | None = None):
-    """Installer des Releases für dieses System: Windows .exe, macOS .dmg. → Asset-Dict oder None."""
+def mac_arch_label(machine: str | None = None) -> str:
+    """Teil des DMG-Namens je Prozessor (packaging/make_dmg.sh): „Apple-Chip“ (arm64) oder „Intel“."""
+    import platform as _pf
+    m = (machine or _pf.machine() or "").lower()
+    return "Apple-Chip" if m in ("arm64", "aarch64") else "Intel"
+
+
+def platform_asset(release: dict, platform: str | None = None, machine: str | None = None):
+    """Installer des Releases für dieses System: Windows .exe, macOS .dmg passend zum Prozessor (Apple-Chip/Intel;
+    ältere Releases ohne Kennzeichen: erstes .dmg). → Asset-Dict oder None."""
     plat = platform or sys.platform
-    pat = r"\.exe$" if plat.startswith("win") else r"\.dmg$" if plat == "darwin" else None
-    if not pat:
+    assets = release.get("assets") or []
+    if plat.startswith("win"):
+        return next((a for a in assets if _re.search(r"\.exe$", a.get("name") or "", _re.I)), None)
+    if plat != "darwin":
         return None
-    return next((a for a in release.get("assets") or [] if _re.search(pat, a.get("name") or "", _re.I)), None)
+    dmgs = [a for a in assets if _re.search(r"\.dmg$", a.get("name") or "", _re.I)]
+    label = mac_arch_label(machine)
+    exact = [a for a in dmgs if label.lower() in (a.get("name") or "").lower()]
+    if exact:
+        return exact[0]
+    tagged = [a for a in dmgs if _re.search(r"apple-chip|intel", a.get("name") or "", _re.I)]
+    return None if tagged else (dmgs[0] if dmgs else None)    # nur andere Architektur vorhanden → keins
+
+
+def mac_bundle(exe: str | None = None) -> str:
+    """Pfad der laufenden TagStudio.app (aus …/TagStudio.app/Contents/MacOS/TagStudio) oder ""."""
+    p = os.path.abspath(exe or sys.executable)
+    for _ in range(4):
+        p = os.path.dirname(p)
+        if p.endswith(".app"):
+            return p
+    return ""
 
 
 def auto_update_supported(platform: str | None = None) -> bool:
-    """Update auf Knopfdruck: zuerst nur Windows (macOS folgt, #234)."""
-    return frozen() and (platform or sys.platform).startswith("win")
+    """Update auf Knopfdruck in der installierten App: Windows (#234) und macOS (#251)."""
+    plat = platform or sys.platform
+    return frozen() and (plat.startswith("win") or plat == "darwin")
 
 
 def download_asset(asset: dict, dest_dir: str, progress=None, cancelled=None, opener=None) -> str:
@@ -333,6 +360,52 @@ def windows_update_script(installer: str, pid: int, exe: str, log: str, all_user
         f"Start-Process -FilePath {q(exe)}",
         "exit $r.ExitCode",
     ])
+
+
+def mac_update_script(dmg: str, pid: int, bundle: str, log: str, backup: str) -> str:
+    """bash: wartet, bis TagStudio beendet ist, hängt das DMG ein, ersetzt die App (die alte bleibt als Sicherung, bei
+    einem Fehler wird sie zurückgelegt), entfernt die Quarantäne-Markierung und startet TagStudio neu (#251)."""
+    q = lambda s: "'" + str(s).replace("'", "'\\''") + "'"      # noqa: E731 – bash-Zeichenkette
+    return "\n".join([
+        "#!/bin/bash",
+        "# TagStudio - Update auf Knopfdruck (macOS, #251)",
+        f"DMG={q(dmg)}; APP={q(bundle)}; BAK={q(backup)}; LOG={q(log)}; PID={int(pid)}",
+        'exec >>"$LOG" 2>&1',
+        'echo "== $(date) Update aus $DMG"',
+        'for i in $(seq 1 240); do kill -0 "$PID" 2>/dev/null || break; sleep 0.5; done',
+        'MNT="$(mktemp -d "${TMPDIR:-/tmp}/tagstudio-update.XXXXXX")"',
+        'fail() { echo "FEHLER: $1"; [ -d "$BAK/TagStudio.app" ] && [ ! -d "$APP" ] && mv "$BAK/TagStudio.app" "$APP"; '
+        'hdiutil detach "$MNT" -quiet 2>/dev/null; open "$APP"; exit 1; }',
+        'hdiutil attach "$DMG" -nobrowse -readonly -noautoopen -mountpoint "$MNT" || fail "DMG nicht einhängbar"',
+        'NEW="$MNT/TagStudio.app"',
+        '[ -d "$NEW" ] || fail "TagStudio.app fehlt im DMG"',
+        'mkdir -p "$BAK" && rm -rf "$BAK/TagStudio.app"',
+        'mv "$APP" "$BAK/TagStudio.app" || fail "alte Version nicht verschiebbar (Schreibrechte?)"',
+        'ditto "$NEW" "$APP" || { rm -rf "$APP"; fail "Kopieren fehlgeschlagen"; }',
+        'hdiutil detach "$MNT" -quiet || true',
+        'xattr -dr com.apple.quarantine "$APP" 2>/dev/null || true',
+        'echo "OK – starte $APP"',
+        'open "$APP"',
+    ]) + "\n"
+
+
+def launch_mac_update(dmg: str, data_dir: str, bundle: str | None = None) -> str:
+    """Skript unabhängig vom laufenden Prozess starten. → Pfad des Protokolls."""
+    import subprocess
+    bundle = bundle or mac_bundle()
+    if not bundle:
+        raise RuntimeError("Die laufende TagStudio.app wurde nicht gefunden.")
+    if not os.access(os.path.dirname(bundle), os.W_OK):
+        raise RuntimeError(f"Keine Schreibrechte für {os.path.dirname(bundle)} – bitte das DMG von Hand installieren.")
+    log = os.path.join(data_dir, "update-installer.log")
+    script = os.path.join(data_dir, "update.sh")
+    with open(script, "w", encoding="utf-8") as fh:
+        fh.write(mac_update_script(dmg, os.getpid(), bundle, log, os.path.join(data_dir, "vorherige-Version")))
+    os.chmod(script, 0o700)
+    env = dict(os.environ, PATH="/usr/bin:/bin:/usr/sbin:/sbin:" + os.environ.get("PATH", ""))
+    subprocess.Popen(["/bin/bash", script], cwd=data_dir, close_fds=True, start_new_session=True, env=env,
+                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return log
 
 
 def launch_windows_update(installer: str, data_dir: str) -> str:

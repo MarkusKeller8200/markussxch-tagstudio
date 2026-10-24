@@ -8,9 +8,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
-- **Update auf Knopfdruck (#234, Windows):** Die installierte App lädt die neue Version direkt von GitHub, prüft die
+- **Update auf Knopfdruck (#234, Windows; macOS #251):** Die installierte App lädt die neue Version direkt von GitHub, prüft die
   Prüfsumme, schliesst sich, installiert still und startet neu – Einstellungen und Daten bleiben erhalten. Nur
-  veröffentlichte Versionen im gewählten Kanal; macOS folgt.
+  veröffentlichte Versionen im gewählten Kanal. Unter macOS wird das DMG für den eigenen Prozessor geladen und die
+  App ersetzt; die bisherige Version bleibt als Sicherung in `~/TagStudio/Updates/vorherige-Version`.
 - **Plugins einzeln nachladen und aktualisieren (#235):** „Verfügbare Plugins …“ auf der Plugin-Seite listet alle
   Plugins aus dem neuesten Release im gewählten Kanal – Updates, neue und installierte, mit Kategoriefilter (#236); „Aktualisieren“ bzw. „Installieren“ lädt nur
   dieses Plugin (mit Prüfsumme) – ohne ganzes App-Update. „Mehr … → Zurück auf eingebaute Version“ macht es rückgängig.
@@ -53,6 +54,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Behoben
 
+- **Tonart (OpenKeyScan): Pfade mit Umlauten und Netzlaufwerken (#250):** Die Analyse meldet Pfade nur noch als
+  ASCII-Zeichen zurück (übersteht jede Codepage); Umlaute, `\\NAS\…` und unterschiedliche Schrägstriche werden
+  zuverlässig zugeordnet (mit Tests abgesichert).
 - **Start bei langsamem Laden (#230):** Die Oberfläche startete manchmal, bevor alle ihre Teile geladen waren – dann
   fehlte z. B. der Einrichtungsassistent nach dem Sprachwechsel, oder Warteschlange und Aufträge blieben leer. Der
   Start wartet jetzt, bis alles geladen ist.

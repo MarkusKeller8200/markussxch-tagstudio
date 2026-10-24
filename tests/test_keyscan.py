@@ -103,6 +103,37 @@ class TestWorker(unittest.TestCase):
         self.assertEqual([w.camelot(c) for c in (0, 7, 11, 12, 19, 23)], ["1A", "8A", "12A", "1B", "8B", "12B"])
 
 
+class TestPaths(unittest.TestCase):
+    """#250: Pfade mit Umlauten und Netzlaufwerken."""
+
+    def test_worker_output_is_ascii(self):
+        import contextlib
+        w = _load("keyscan_worker_t2", "plugins/keyscan/worker.py")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            w.emit(event="done", path="\\\\NAS\\Musik\\Café – Ümlaut ß.mp3", camelot="9A")
+        line = buf.getvalue().strip()
+        self.assertTrue(line.isascii(), line)
+        self.assertEqual(json.loads(line[2:])["path"], "\\\\NAS\\Musik\\Café – Ümlaut ß.mp3")
+
+    def test_path_matching(self):
+        m = _load("oks_plugin_t", "plugins/openkeyscan/plugin.py")
+        for a, b in (("C:\\Musik\\Ä b.mp3", "C:/Musik/Ä b.mp3"), ("\\\\NAS\\Musik\\é.mp3", "//NAS/Musik/é.mp3")):
+            self.assertEqual(m._norm(a), m._norm(b))
+
+    def test_cache_with_umlauts(self):
+        import tempfile
+        import keyscan
+        d = tempfile.mkdtemp(prefix="Jürg ")
+        p = os.path.join(d, "Café – Ümlaut ß.mp3")
+        with open(p, "wb") as fh:
+            fh.write(b"x")
+        c = keyscan.Cache(os.path.join(d, "Ergebnisse ä.json"))
+        c.put(p, "9A")
+        c.save()
+        self.assertEqual(keyscan.Cache(os.path.join(d, "Ergebnisse ä.json")).get(p)["camelot"], "9A")
+
+
 class TestKeyscanPlugin(Base):
     """#245: Zustand der Umgebung, Analyse über den (nachgestellten) Worker, Vorschau, Zwischenspeicher."""
 
@@ -374,6 +405,24 @@ class TestOpenKeyScanApp(Base):
             self.assertEqual(m.find_app(), exe)
         self.assertEqual(m.find_app(exe), exe)
         self.assertEqual(m.find_app(os.path.join(d, "fehlt.exe")), "")
+
+    def test_umlaut_paths_single_and_queue(self):
+        """#250: Datei mit Umlauten in Ordner mit Umlaut – einzeln (JSON-Rumpf) und über die Warteschlange
+        (/analyze/results und Einzelabfrage mit ?file=)."""
+        sub = os.path.join(self.B, "Jürg – Café")
+        os.makedirs(sub)
+        write_mp3(os.path.join(sub, "Ümlaut ß é.mp3"), [text("TIT2", "U")], audio_seed=61)
+        self.s.start_tag_load(self.B, True)
+        self.wait()
+        self.idx = {os.path.basename(f.path): i for i, f in enumerate(self.s.tag_files)}
+        path = self.s.tag_files[self.idx["Ümlaut ß é.mp3"]].path
+        self.state.keys[path] = "Am"
+        for single, shape in ((20, "list"), (0, "list"), (0, "empty")):
+            self.mod.SINGLE_MAX, self.mod.POLL = single, 0.01
+            self.state.results_shape = shape
+            res = self.run_action("scan", cache=False)
+            self.assertIn(("Ümlaut ß é.mp3", "Tonart (OpenKeyScan)"), self.by(res), (single, shape))
+            self.assertEqual(self.by(res)[("Ümlaut ß é.mp3", "Tonart (OpenKeyScan)")]["new"], "08A")
 
     def test_entries_tolerant(self):
         m = self.mod

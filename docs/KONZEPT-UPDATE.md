@@ -30,7 +30,11 @@ bleiben bei jedem Update erhalten.
   laufende Aufträge ab, speichert den Zustand und beendet TagStudio. Ein verborgenes PowerShell-Skript (`update.ps1`,
   Pfade mit Umlauten sicher) wartet aufs Ende, führt den Inno-Setup-Installer still aus (`/VERYSILENT … /CURRENTUSER`
   bzw. `/ALLUSERS` bei Installation in „Programme“, Protokoll `update-installer.log`) und startet TagStudio neu.
-  macOS folgt (DMG, sinnvoll mit signierter App #14) – dort bleibt vorerst „Installer herunterladen“.
+  **macOS (#251, Entscheid 24.10.2026):** gleicher Ablauf mit dem DMG passend zum Prozessor (`Apple-Chip`/`Intel`,
+  `updater.platform_asset`); `update.sh` (bash) wartet aufs Ende, hängt das DMG ein (`hdiutil attach -nobrowse
+  -readonly`), verschiebt die alte App nach `~/TagStudio/Updates/vorherige-Version/` (bei Fehler zurück), kopiert die
+  neue mit `ditto` an denselben Ort, entfernt `com.apple.quarantine` und startet neu (`open`). Ohne Schreibrechte im
+  Programme-Ordner: Meldung, DMG von Hand installieren. Signierte App (#14) bleibt unabhängig davon offen.
 - **Quellcode (Git-Klon):** `git fetch` + `pull --ff-only` (nur Vorspulen, nur ohne eigene Änderungen); bei `stable`
   bis zum neuesten offiziellen Versions-Tag, bei `beta` bis zum neuesten Tag (auch Beta), bei `dev` bis `main`. Vorher Abfrage ungespeicherter Änderungen und laufender Aufträge, danach Neustart.
   Alte Zweige werden umgestellt (`MOVED = {"web-ui": "main"}`).

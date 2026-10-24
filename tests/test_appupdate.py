@@ -61,11 +61,11 @@ class TestAppUpdate(unittest.TestCase):
     def test_platform_asset(self):
         rel = {"assets": [{"name": "TagStudio-4.8.0-macOS-Apple-Chip.dmg"}, {"name": "TagStudio-4.8.0-Windows-Setup.exe"}]}
         self.assertTrue(updater.platform_asset(rel, "win32")["name"].endswith(".exe"))
-        self.assertTrue(updater.platform_asset(rel, "darwin")["name"].endswith(".dmg"))
+        self.assertTrue(updater.platform_asset(rel, "darwin", "arm64")["name"].endswith(".dmg"))
         self.assertIsNone(updater.platform_asset(rel, "linux"))
         with mock.patch.object(updater, "frozen", return_value=True):
             self.assertTrue(updater.auto_update_supported("win32"))
-            self.assertFalse(updater.auto_update_supported("darwin"))            # macOS folgt
+            self.assertTrue(updater.auto_update_supported("darwin"))             # #251
         with mock.patch.object(updater, "frozen", return_value=False):
             self.assertFalse(updater.auto_update_supported("win32"))             # Quellcode: git
 
