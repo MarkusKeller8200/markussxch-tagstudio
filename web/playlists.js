@@ -555,24 +555,40 @@ async function plsImportSource(src) {
 }
 
 /** Treffer-Dialog für Abgleich und Fehlende suchen: je Zeile Status und Auswahl → picks [{k, path}] */
-async function plsPickRows(title, hint, rows, labelOf) {
+async function plsPickRows(title, hint, rows, labelOf, suggest = false) {
   const st = { sure: "gefunden", unclear: "unklar", missing: "fehlt" };
+  const unclear = rows.filter((r) => r.status === "unclear" && r.path).length;
+  // #281: unklare Zeilen bringen einen Vorschlag mit – vorgewählt nur, wenn „Vorschläge vorwählen“ an ist
   const opt = (r) => r.candidates.length
-    ? `<select class="inp" data-plsk="${r.k}">${r.status === "sure" ? "" : '<option value="">– nicht verknüpfen –</option>'}${r.candidates.map((c) => `<option value="${esc(c)}"${c === r.path ? " selected" : ""}>${esc(c)}</option>`).join("")}</select>`
+    ? `<select class="inp" data-plsk="${r.k}" data-sug="${esc(r.status === "unclear" ? r.path || "" : "")}">${r.status === "sure" ? "" : '<option value="">– nicht verknüpfen –</option>'}${r.candidates.map((c) => `<option value="${esc(c)}"${c === r.path && (r.status !== "unclear" || suggest) ? " selected" : ""}>${c === r.path && r.status === "unclear" ? "★ " : ""}${esc(c)}</option>`).join("")}</select>`
     : '<span class="muted sm">kein Treffer</span>';
   return modal({ title, wide: true,
-    html: `<div class="hint">${esc(hint)}</div><div class="fx-table" style="max-height:55vh"><table><thead><tr><th>Eintrag</th><th>Status</th><th>Datei</th></tr></thead><tbody>${rows.map((r) => `<tr>
-      <td translate="no">${esc(labelOf(r))}</td><td><span class="pls-st ${r.status}">${st[r.status]}</span></td><td translate="no">${opt(r)}</td></tr>`).join("")}</tbody></table></div>`,
+    html: `<div class="hint">${esc(hint)}</div>${unclear ? `<label class="check" style="margin:0 0 6px"><input type="checkbox" id="plsSug"${suggest ? " checked" : ""}> Vorschläge (★) für unklare Einträge vorwählen (${fmtN(unclear)})</label>` : ""}
+      <div class="fx-table" style="max-height:55vh"><table><thead><tr><th>Eintrag</th><th>Status</th><th>Datei</th></tr></thead><tbody>${rows.map((r) => `<tr>
+      <td translate="no">${esc(labelOf(r))}</td><td><span class="pls-st ${r.status}">${st[r.status]}</span>${r.reason ? `<div class="muted sm">${esc(r.reason)}</div>` : ""}</td><td translate="no">${opt(r)}</td></tr>`).join("")}</tbody></table></div>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Verknüpfen", value: true, primary: true }],
+    onMount: (b) => b.querySelector("#plsSug")?.addEventListener("change", (e) => b.querySelectorAll("select[data-sug]").forEach((el) => {
+      if (el.dataset.sug) el.value = e.target.checked ? el.dataset.sug : ""; })),
     collect: (b) => [...b.querySelectorAll("[data-plsk]")].map((el) => ({ k: +el.dataset.plsk, path: el.value })).filter((x) => x.path) });
 }
 
 async function plsMatch(id) {
-  const r = await runTask(call("start_pl_match", id), "Mit der Bibliothek abgleichen");
+  const m = (PLS.st && PLS.st.match) || { any_mix: false, roots: [] };
+  const how = await modal({ title: "Mit der Bibliothek abgleichen",
+    html: `<p style="margin:0 0 8px">Gesucht wird in:</p>${m.roots.length ? `<ul class="sm" style="margin:0 0 8px" translate="no">${m.roots.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>` : '<p class="muted sm">Keine Bibliothek festgelegt – nur die im Tagger geladenen Titel.</p>'}
+      <p class="muted sm" style="margin:0 0 8px">Dazu die im Tagger geladenen Titel. Liegt deine Sammlung woanders: „Anderer Ordner …“.</p>
+      <label class="check"><input type="checkbox" id="plsAnyMix"${m.any_mix ? " checked" : ""}> Anderer Mix gilt als gefunden (z. B. Extended Mix statt Radio Edit; Extended wird bevorzugt)</label>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Anderer Ordner …", value: "pick" }, { label: "Abgleichen", value: "lib", primary: true }],
+    collect: (b, v) => ({ v, any: b.querySelector("#plsAnyMix").checked }) });
+  if (!how) return;
+  let folder = "";
+  if (how.v === "pick") { folder = await call("pick_path", "", true, ""); if (!folder) return; }
+  if (PLS.st && PLS.st.match) PLS.st.match.any_mix = how.any;
+  const r = await runTask(call("start_pl_match", id, folder, how.any), "Mit der Bibliothek abgleichen");
   if (!r || r.cancelled) return;
   if (r.ok === false) { toast(r.error); return; }
   const picks = await plsPickRows("Mit der Bibliothek abgleichen",
-    `${fmtN(r.library)} Titel in der Bibliothek geprüft: ${fmtN(r.sure)} gefunden, ${fmtN(r.unclear)} unklar (z. B. anderer Mix), ${fmtN(r.missing)} fehlen. Gefundene sind vorgewählt; unklare bitte selbst wählen.`,
+    `${fmtN(r.library)} Titel geprüft: ${fmtN(r.sure)} gefunden, ${fmtN(r.unclear)} unklar, ${fmtN(r.missing)} fehlen. Gefundene sind vorgewählt; bei unklaren steht der Grund, ★ ist der beste Vorschlag.`,
     r.rows, (x) => x.label);
   if (picks && picks.length) plsCall("pl_relink", id, picks);
 }

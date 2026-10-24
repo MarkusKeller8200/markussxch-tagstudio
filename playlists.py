@@ -185,11 +185,15 @@ def m3u_text(pl: dict, dest_dir: str) -> str:
     return setexport.m3u8(entries, dest_dir, True, pl.get("name", ""))
 
 
-# =========================================================================== Abgleich mit der Bibliothek (#271)
-_MIXWORDS = r"mix|edit|remix|version|dub|rework|bootleg|vip|instrumental|acapella|a cappella|extended|original|radio|club|remaster"
+# =========================================================================== Abgleich mit der Bibliothek (#271, #281)
+_MIXWORDS = r"mix|edit|remix|version|dub|rework|bootleg|vip|instrumental|acapella|a cappella|extended|original|radio|club|remaster(?:ed)?|live"
 _MIX_RE = re.compile(r"\s*[\(\[]([^\)\]]*\b(?:" + _MIXWORDS + r")\b[^\)\]]*)[\)\]]\s*$", re.I)
+_DASH_MIX_RE = re.compile(r"^(.*?\S)\s+[-–—]\s+([^-–—]*\b(?:" + _MIXWORDS + r")\b[^-–—]*)$", re.I)   # „Song - Extended Mix“
 _FEAT_RE = re.compile(r"\s*[\(\[]?\b(?:feat|ft|featuring)\b\.?\s+[^\)\]]*[\)\]]?", re.I)
 _ART_SPLIT = re.compile(r"\s*(?:,|&|;|/|\bx\b|\bvs\.?|\band\b|\bund\b|\bfeat\.?|\bft\.?|\bfeaturing\b)\s*", re.I)
+_MIX_TAIL = ("mix", "version", "edit")
+SIMILAR = 0.88                       # Titel ähnlich genug für „unklar“ mit Vorschlag (#281)
+MIX_RANK = ("extended", "", "club", "original", "dub", "instrumental")   # Vorzug bei „Anderer Mix gilt als gefunden“
 
 
 def norm(s) -> str:
@@ -199,52 +203,120 @@ def norm(s) -> str:
     return " ".join(re.sub(r"[^\w]+", " ", s).split())
 
 
+def mix_key(mix) -> str:
+    """Mix für den Vergleich: „Extended Mix“ = „Extended“ = „Extended Version“; „Original Mix“ und „Remastered 2011“
+    gelten wie keine Angabe; Remixe behalten den Namen („X Remix“)."""
+    m = norm(mix)
+    if not m or m in ("original", "original mix", "original version", "album version") or m.startswith("remaster") \
+            or re.fullmatch(r"(\d{4} )?remaster(ed)?( \d{4})?( version)?", m):
+        return ""
+    w = m.split()
+    if len(w) > 1 and w[-1] in _MIX_TAIL:
+        w = w[:-1]
+    return " ".join(w)
+
+
 def split_title(title, mix="") -> tuple[str, str]:
-    """„Song (Extended Mix)“ → ("song", "extended mix"); „Original Mix“ gilt wie keine Angabe."""
-    t = _FEAT_RE.sub(" ", str(title or ""))
+    """„Song (Extended Mix)“ bzw. „Song - Extended Mix“ → ("song", "extended"); „Original Mix“ = keine Angabe."""
+    t = _FEAT_RE.sub(" ", str(title or "")).strip()
+    found = ""
     m = _MIX_RE.search(t)
-    if m and not mix:
-        mix = m.group(1)
     if m:
-        t = t[:m.start()]
-    mx = norm(mix)
-    return norm(t), "" if mx in ("original mix", "original", "original version") else mx
+        found, t = m.group(1), t[:m.start()]
+    else:
+        m = _DASH_MIX_RE.match(t)
+        if m:
+            t, found = m.group(1), m.group(2)
+    return norm(t), mix_key(mix or found)
 
 
 def artist_keys(artist) -> set:
     return {norm(a) for a in _ART_SPLIT.split(str(artist or "")) if norm(a)}
 
 
-def lib_entry(path, artist, title, isrc="", dur=0) -> dict:
+def lib_entry(path, artist, title, isrc="", dur=0, subtitle="") -> dict:
+    """Eintrag des Bibliotheks-Index. subtitle (TIT3): Mix, wenn er nicht im Titel steht."""
     base, mix = split_title(title)
+    if not mix and subtitle and re.search(r"\b(?:" + _MIXWORDS + r")\b", subtitle, re.I):
+        mix = mix_key(subtitle)
     return {"path": path, "artist": artist, "title": title, "isrc": norm(isrc).replace(" ", ""), "dur": dur or 0,
             "akeys": artist_keys(artist), "base": base, "mix": mix}
 
 
-def match_ref(ref: dict, index: list) -> dict:
-    """Eintrag ohne Datei mit der Bibliothek abgleichen → {"status": sure|unclear|missing, "path", "candidates"}.
-    Gleiche ISRC oder gleicher Künstler + Titel + Mix = sicher; anderer Mix (Radio Edit ≠ Extended Mix) oder
-    mehrere Treffer = unklar."""
+class LibIndex:
+    """Bibliothek für den Abgleich, mit Nachschlagen über ISRC, Titel und Künstler (schnell auch bei grossen
+    Sammlungen)."""
+
+    def __init__(self, entries):
+        self.entries = list(entries)
+        self.isrc, self.base, self.artist = {}, {}, {}
+        for e in self.entries:
+            if e["isrc"]:
+                self.isrc.setdefault(e["isrc"], []).append(e)
+            self.base.setdefault(e["base"], []).append(e)
+            for a in e["akeys"]:
+                self.artist.setdefault(a, []).append(e)
+
+    def __len__(self):
+        return len(self.entries)
+
+
+def _ratio(a, b) -> float:
+    import difflib
+    return difflib.SequenceMatcher(None, a, b).ratio()
+
+
+def _mix_rank(e) -> int:
+    return MIX_RANK.index(e["mix"]) if e["mix"] in MIX_RANK else len(MIX_RANK)
+
+
+def match_ref(ref: dict, index, any_mix: bool = False) -> dict:
+    """Eintrag ohne Datei mit der Bibliothek abgleichen → {"status": sure|unclear|missing, "path" (Vorschlag),
+    "candidates", "reason"}. Gleiche ISRC oder gleicher Künstler + Titel + Mix = sicher; anderer Mix (Radio Edit ≠
+    Extended Mix) = unklar, mit any_mix sicher (Extended Mix bevorzugt); nur ähnlicher Titel = unklar mit Vorschlag."""
+    ix = index if isinstance(index, LibIndex) else LibIndex(index)
     isrc = norm(ref.get("isrc")).replace(" ", "")
     if isrc:
-        hits = [e for e in index if e["isrc"] == isrc]
+        hits = ix.isrc.get(isrc) or []
         if len(hits) == 1:
-            return {"status": "sure", "path": hits[0]["path"], "candidates": [hits[0]["path"]]}
+            return {"status": "sure", "path": hits[0]["path"], "candidates": [hits[0]["path"]], "reason": "gleiche ISRC"}
     base, mix = split_title(ref.get("title"), ref.get("mix", ""))
     ak = artist_keys(ref.get("artist"))
     if not base:
-        return {"status": "missing", "path": "", "candidates": []}
-    cand = [e for e in index if e["base"] == base and (not ak or not e["akeys"] or ak & e["akeys"])]
-    exact = [e for e in cand if e["mix"] == mix]
+        return {"status": "missing", "path": "", "candidates": [], "reason": "ohne Titel"}
     dur = int(ref.get("dur") or 0)
-    if dur:
-        exact = [e for e in exact if not e["dur"] or abs(e["dur"] - dur) <= 20] or exact
-    if len(exact) == 1 and (not dur or not exact[0]["dur"] or abs(exact[0]["dur"] - dur) <= 20):
-        return {"status": "sure", "path": exact[0]["path"], "candidates": [exact[0]["path"]]}
-    pool = exact or cand
-    if pool:
-        return {"status": "unclear", "path": "", "candidates": [e["path"] for e in pool[:12]]}
-    return {"status": "missing", "path": "", "candidates": []}
+    dur_ok = lambda e: not dur or not e["dur"] or abs(e["dur"] - dur) <= 20       # noqa: E731
+    cand = [e for e in ix.base.get(base) or [] if not ak or not e["akeys"] or ak & e["akeys"]]
+    exact = [e for e in cand if e["mix"] == mix]
+    if exact:
+        fit = [e for e in exact if dur_ok(e)]
+        if len(fit) == 1:
+            return {"status": "sure", "path": fit[0]["path"], "candidates": [e["path"] for e in exact[:12]],
+                    "reason": "Titel, Künstler und Mix"}
+        pool = fit or exact
+        return {"status": "unclear", "path": pool[0]["path"], "candidates": [e["path"] for e in pool[:12]],
+                "reason": "mehrere Treffer" if len(fit) > 1 else "Länge weicht ab"}
+    if cand:
+        cand.sort(key=_mix_rank)
+        best = cand[0]
+        why = f"anderer Mix: {best['mix'] or 'ohne Angabe'}"
+        if any_mix and (len(cand) == 1 or _mix_rank(cand[0]) < _mix_rank(cand[1])):
+            return {"status": "sure", "path": best["path"], "candidates": [e["path"] for e in cand[:12]], "reason": why}
+        return {"status": "unclear", "path": best["path"], "candidates": [e["path"] for e in cand[:12]], "reason": why}
+    # Rückfall: ähnlicher Titel bei passendem Künstler (Tippfehler, „&“/„and“, Zusätze)
+    pool = {id(e): e for a in ak for e in ix.artist.get(a, [])}.values() if ak else []
+    sims = sorted(((_ratio(base, e["base"]), e) for e in pool), key=lambda x: (-x[0], _mix_rank(x[1])))
+    sims = [(r, e) for r, e in sims if r >= SIMILAR]
+    if sims:
+        r, e = sims[0]
+        return {"status": "unclear", "path": e["path"], "candidates": [x["path"] for _r, x in sims[:12]],
+                "reason": f"Titel ähnlich ({round(r * 100)} %)"}
+    if not ak:
+        return {"status": "missing", "path": "", "candidates": [], "reason": "nicht gefunden"}
+    other = [e for e in ix.base.get(base) or []]
+    if other:
+        return {"status": "unclear", "path": "", "candidates": [e["path"] for e in other[:12]], "reason": "anderer Künstler"}
+    return {"status": "missing", "path": "", "candidates": [], "reason": "nicht gefunden"}
 
 
 # =========================================================================== Import und Export (#271)

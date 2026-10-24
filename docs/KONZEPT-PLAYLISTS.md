@@ -341,6 +341,12 @@ Phase 2 siehe Abschnitt 15.
   `<Basisordner>/01_Library` (mit Listen-Cache), dazu die im Tagger geladenen Titel. Gleiche ISRC oder gleicher
   Künstler + Titel + Mix (ohne Akzente/Satzzeichen, „feat.“ und „Original Mix“ zählen nicht) = gefunden; anderer Mix
   oder mehrere Treffer = unklar; Dauer > 20 s daneben = unklar. Auswahl im Dialog, `pl_relink` (rückgängig machbar).
+- **Toleranter Abgleich (#281):** `mix_key` (Extended Mix = Extended = Extended Version; Original Mix, Remastered =
+  ohne Angabe; Remixe behalten den Namen), Mix auch nach „ - “ und aus TIT3; `LibIndex` (Nachschlagen über ISRC, Titel,
+  Künstler); Rückfall Ähnlichkeit ≥ 88 % bei passendem Künstler; je Zeile `reason` und ein Vorschlag `path` für
+  unklare (★, vorgewählt nur mit „Vorschläge vorwählen“). Option „Anderer Mix gilt als gefunden“ (`cfg
+  pl_match_any_mix`, Rangfolge `MIX_RANK`: Extended, ohne Angabe, Club …). Vorab-Dialog mit den gesuchten Ordnern und
+  „Anderer Ordner …“ (`start_pl_match(pid, folder, any_mix)`).
 - **Automatisch verknüpfen** (`_pl_autolink`): nach der Übernahme in „Vorbereiten“ werden sichere Treffer in allen
   Playlists eingetragen.
 - **Fehlende suchen** (`start_pl_find_missing`): gleicher Dateiname in den Bibliotheksordnern oder einem gewählten

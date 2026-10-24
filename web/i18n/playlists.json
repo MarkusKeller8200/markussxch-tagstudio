@@ -284,5 +284,22 @@
 "{x}: Bibliothek nicht lesbar ({x}).": ["{x}: library not readable ({x}).", "{x}: Bibliothek nöd läsbar ({x})."],
 "Keine Titel erkannt – je Zeile {q}.": ["No tracks recognised – one {q} per line.", "Kei Titel erkännt – pro Ziile {q}."],
 "Trackliste": ["Tracklist", "Trackliste"],
-"Bei der Quelle öffnen ({x})": ["Open at the source ({x})", "Bi de Quälle öffne ({x})"]
+"Bei der Quelle öffnen ({x})": ["Open at the source ({x})", "Bi de Quälle öffne ({x})"],
+"Vorschläge (★) für unklare Einträge vorwählen ({x})": ["Preselect suggestions (★) for unclear entries ({x})", "Vorschläg (★) für unklari Iiträg vorwähle ({x})"],
+"Keine Bibliothek festgelegt – nur die im Tagger geladenen Titel.": ["No library set – only the tracks loaded in the tagger.", "Kei Bibliothek feschtgleit – nur d Titel, wo im Tagger glade sind."],
+"Gesucht wird in:": ["Searching in:", "Gsuecht wird i:"],
+"Dazu die im Tagger geladenen Titel. Liegt deine Sammlung woanders: {q}.": ["Plus the tracks loaded in the tagger. If your collection is elsewhere: {q}.", "Dezue d Titel, wo im Tagger glade sind. Wänn dini Sammlig anderswo liit: {q}."],
+"Anderer Mix gilt als gefunden (z. B. Extended Mix statt Radio Edit; Extended wird bevorzugt)": ["Another mix counts as found (e.g. extended mix instead of radio edit; extended is preferred)", "Andere Mix gilt als gfunde (z. B. Extended Mix statt Radio Edit; Extended wird bevorzugt)"],
+"{x} Titel geprüft: {x} gefunden, {x} unklar, {x} fehlen. Gefundene sind vorgewählt; bei unklaren steht der Grund, ★ ist der beste Vorschlag.": ["{x} tracks checked: {x} found, {x} unclear, {x} missing. Found ones are preselected; unclear ones show the reason, ★ is the best suggestion.", "{x} Titel prüeft: {x} gfunde, {x} unklar, {x} fähled. Gfundeni sind vorgwählt; bi unklare staht de Grund, ★ isch de bescht Vorschlag."],
+"anderer Mix: {x}": ["other mix: {x}", "andere Mix: {x}"],
+"Titel ähnlich ({x} %)": ["title similar ({x} %)", "Titel ähnlich ({x} %)"],
+"ohne Titel": ["without title", "ohni Titel"],
+"anderer Künstler": ["other artist", "andere Künschtler"],
+"gleiche ISRC": ["same ISRC", "gliichi ISRC"],
+"Titel, Künstler und Mix": ["title, artist and mix", "Titel, Künschtler und Mix"],
+"mehrere Treffer": ["several matches", "mehreri Träffer"],
+"Länge weicht ab": ["length differs", "Längi weicht ab"],
+"ohne Angabe": ["not specified", "ohni Aagab"],
+"Ordner nicht gefunden.": ["Folder not found.", "Ordner nöd gfunde."],
+"Abgleichen …": ["Matching …", "Abgliiche …"]
 }

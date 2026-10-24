@@ -40,6 +40,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   als Einträge ohne Datei mit Link („↗“), danach Abgleich und Einkaufsliste (mit Link); neue Quellen „Spotify“ und
   „SoundCloud“ in den Online-Metadaten (ISRC, Link als `TXXX:SPOTIFY_URL` bzw. `TXXX:SOUNDCLOUD_URL`); gefolgte
   Künstler lassen sich in „Entdecken“ übernehmen. Alle Lese-Endpunkte stehen mit Umsetzungsstand im API-Tester.
+- **Abgleich mit der Bibliothek toleranter (#281):** Mix-Schreibweisen („Song - Extended Mix“, „(Extended)“,
+  „Remastered“, Mix in TIT3), Ähnlichkeitssuche als Rückfall, je Eintrag der Grund und ein Vorschlag ★, Option „Anderer
+  Mix gilt als gefunden“ (Extended bevorzugt) und Suche in einem gewählten Ordner.
 - **Zurück zur vorherigen Ansicht (#274):** Nach einem Sprung aus dem Inhalt (z. B. Playlist › „Im Tagger öffnen“)
   führt „← Zurück“ oben in der Seitenleiste an dieselbe Stelle zurück – mit Auswahl, Filter und Bildlauf; „→“
   vorwärts, Rechtsklick zeigt die letzten Stationen. Auch Alt+← / Alt+→ (ausser im Vergleich) und die Maustasten

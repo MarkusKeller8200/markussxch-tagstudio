@@ -2588,7 +2588,11 @@ class UiTest(unittest.TestCase):
         pg.click('#plsHead [data-plsa="more"]')
         self.assertTrue(pg.locator("#menu button", has_text="Exportieren: Rekordbox-XML").is_visible())
         pg.click("#menu button >> text=Mit Bibliothek abgleichen")
+        pg.wait_for_selector("#plsAnyMix")                                    # #281: wo suchen, anderer Mix
+        self.assertIn(self.lib, pg.inner_text("#mBody"))
+        pg.click("#mBtns .primary")
         pg.wait_for_selector("#mBody select[data-plsk]")
+        self.assertIn("Titel, Künstler und Mix", pg.inner_text("#mBody"))
         self.assertEqual(pg.locator("#mBody .pls-st.sure").count(), 1)
         self.assertEqual(pg.locator("#mBody .pls-st.missing").count(), 1)
         pg.click("#mBtns .primary")

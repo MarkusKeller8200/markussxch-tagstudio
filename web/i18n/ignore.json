@@ -445,5 +445,6 @@
 "artist name(s)",
 "Bearer",
 "SoundCloud",
-"Spotify Web API"
+"Spotify Web API",
+"select[data-sug]"
 ]

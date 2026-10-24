@@ -258,6 +258,33 @@ class TestMatchImport(Base):
         self.assertEqual(m({"artist": "Nobody", "title": "Nothing"}, idx)["status"], "missing")
         self.assertEqual(m({"artist": "Other", "title": "Song", "dur": 420}, idx)["status"], "unclear")     # Dauer passt nicht
 
+    def test_match_tolerant(self):
+        """#281: Mix-Schreibweisen, anderer Mix als gefunden, ähnliche Titel, Grund je Zeile."""
+        e = playlists.lib_entry
+        self.assertEqual(playlists.split_title("Song - Extended Mix"), ("song", "extended"))
+        self.assertEqual(playlists.split_title("Song (Extended Version)"), ("song", "extended"))
+        self.assertEqual(playlists.split_title("Song - Remastered 2011"), ("song", ""))
+        self.assertEqual(playlists.split_title("Song (Original Mix)"), ("song", ""))
+        self.assertEqual(playlists.split_title("Song (Kölsch Remix)"), ("song", "kolsch remix"))
+        self.assertEqual(playlists.split_title("Long - Way - Home"), ("long way home", ""))     # Strich ohne Mix-Wort
+        self.assertEqual(e("/l/t.mp3", "A", "Song", subtitle="Extended Mix")["mix"], "extended")  # Mix in TIT3
+        idx = playlists.LibIndex([e("/l/ext.mp3", "Mara Lind", "Kaltes Glas - Extended Mix", "", 400),
+                                  e("/l/dub.mp3", "Mara Lind", "Kaltes Glas (Dub)", "", 380),
+                                  e("/l/n.mp3", "Mara Lind & Co", "Nordlicht and Stars", "", 300)])
+        m = playlists.match_ref
+        r = m({"artist": "Mara Lind", "title": "Kaltes Glas", "mix": "Extended"}, idx)
+        self.assertEqual((r["status"], r["path"], r["reason"]), ("sure", "/l/ext.mp3", "Titel, Künstler und Mix"))
+        r = m({"artist": "Mara Lind", "title": "Kaltes Glas - Radio Edit", "dur": 210}, idx)
+        self.assertEqual((r["status"], r["path"], r["reason"]), ("unclear", "/l/ext.mp3", "anderer Mix: extended"))   # Vorschlag
+        r = m({"artist": "Mara Lind", "title": "Kaltes Glas - Radio Edit"}, idx, any_mix=True)
+        self.assertEqual((r["status"], r["path"]), ("sure", "/l/ext.mp3"))                       # Extended bevorzugt
+        r = m({"artist": "Mara Lind", "title": "Nordlicht & Stars"}, idx)                        # ähnlich, nicht gleich
+        self.assertEqual((r["status"], r["path"]), ("unclear", "/l/n.mp3"))
+        self.assertTrue(r["reason"].startswith("Titel ähnlich"))
+        r = m({"artist": "Jemand", "title": "Kaltes Glas"}, idx)
+        self.assertEqual((r["status"], r["path"], r["reason"]), ("unclear", "", "anderer Künstler"))
+        self.assertEqual(m({"artist": "Mara Lind", "title": "Ganz anders"}, idx)["status"], "missing")
+
     def test_parse_csv(self):
         items = playlists.parse_csv("Künstler;Titel;Mix;ISRC;Dauer\nA;Song;Extended Mix;X1;5:20\nB;Zwei;;;\n")
         self.assertEqual(items[0]["ref"], {"artist": "A", "title": "Song", "mix": "Extended Mix", "isrc": "X1", "dur": 320, "source": "csv"})
@@ -452,6 +479,12 @@ class TestSession(unittest.TestCase):
         self.assertEqual((res["sure"], res["missing"]), (1, 1))
         s.pl_relink(cid, [{"k": r["k"], "path": r["path"]} for r in res["rows"] if r["path"]])
         self.assertEqual(s.pl_state(cid)["pl"]["refs"], 1)
+        # #281: anderer Ordner, „anderer Mix gilt als gefunden“ wird gemerkt
+        self.assertTrue(s.start_pl_match(cid, os.path.join(self.lib, "fehlt"))["ok"] is False)
+        self.assertTrue(s.start_pl_match(cid, self.lib, True)["ok"])
+        res = wait()
+        self.assertEqual((res["roots"], res["any_mix"]), ([self.lib], True))
+        self.assertTrue(s.pl_state(cid)["match"]["any_mix"])
         r = s.pl_shopping_file(os.path.join(out, "e.csv"), [cid])
         self.assertIn("1 Titel", r["message"])
         # Fehlende suchen: Datei verschoben
