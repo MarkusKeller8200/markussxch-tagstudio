@@ -7,7 +7,10 @@ const PLS_ICON = { manual: "♫", djset: "◎", smart: "⚡", import: "⇣", que
 const PLS_KIND = { manual: "Playlist", djset: "DJ-Set", smart: "Smartlist", import: "Import", queue: "Warteschlange" };
 
 async function playlistsShow() {
-  try { plsApply(await call("pl_state", PLS.st ? PLS.st.sel : "")); } catch (e) { toast(String(e.message || e)); }
+  try {
+    if (!PLS.smart) await plsSmartInfo().catch(() => {});                  // Feldnamen für die Regel-Zusammenfassung (#272)
+    const st = await call("pl_state", PLS.st ? PLS.st.sel : ""); plsApply(st); plsSmartAuto(st);
+  } catch (e) { toast(String(e.message || e)); }
 }
 
 function plsApply(st) {
@@ -40,6 +43,8 @@ function plsSideCount(st) {
 }
 
 function plsCur() { return PLS.st && PLS.st.pl; }
+/** Archivierte Playlists und Smartlists (#272) lassen sich nicht von Hand ändern */
+function plsFixed(pl) { return !!pl && (!!pl.archived || pl.kind === "smart"); }
 function plsMeta(id) { return PLS.st && (PLS.st.playlists.find((p) => p.id === id) || PLS.st.archived.find((p) => p.id === id)); }
 function plsLabel(p) { return p.folder ? `${p.folder} / ${p.name}` : p.name; }
 
@@ -100,13 +105,15 @@ function plsRenderHead() {
     return;
   }
   el.innerHTML = `<div class="pls-h"><div class="grow"><h3><span class="pls-ico"${pl.color ? ` style="color:${esc(pl.color)}"` : ""} aria-hidden="true">${PLS_ICON[pl.kind] || "♫"}</span> <span translate="no">${esc(pl.name)}</span>${pl.djset ? ' <span class="chip sm" title="Wird gerade im DJ-Set bearbeitet">im DJ-Set</span>' : ""}</h3>
-      <div class="muted sm">${pl.folder ? `<span translate="no">${esc(pl.folder)}</span> · ` : ""}${esc(PLS_KIND[pl.kind] || "")} · ${info}${pl.note ? ` · <span translate="no">${esc(pl.note)}</span>` : ""}</div></div>
+      <div class="muted sm">${pl.folder ? `<span translate="no">${esc(pl.folder)}</span> · ` : ""}${esc(PLS_KIND[pl.kind] || "")} · ${info}${pl.note ? ` · <span translate="no">${esc(pl.note)}</span>` : ""}</div>
+      ${pl.kind === "smart" ? `<div class="sm pls-rules" id="plsRules">${plsSmartSummary(pl.rules)}${pl.refreshed ? ` <span class="muted">· aktualisiert ${esc(new Date(pl.refreshed * 1000).toLocaleString())}</span>` : ""}</div>` : ""}</div>
     <div class="pls-acts">
+      ${pl.kind === "smart" ? `<button class="ghost" data-plsa="smartrefresh" title="Smartlist jetzt neu bilden (#272)">↻ Aktualisieren</button><button class="ghost" data-plsa="smartedit" title="Datenbasis, Regeln, Sortierung und Höchstzahl ändern">Regeln …</button>` : ""}
       ${PLS.play && PLS.play.id === pl.id && plsPlayActive() ? '<span class="chip sm on" title="Der Player folgt dieser Playlist (⏭, Titelende)">▶ läuft</span>' : ""}
       <button class="primary" data-plsa="play" ${pl.count > pl.missing ? "" : "disabled"} title="Ab dem markierten Titel abspielen – der Player folgt der Playlist, auch auf anderen Seiten (#270)">▶ Abspielen</button>
       <button class="ghost" data-plsa="tagger" ${pl.count ? "" : "disabled"} title="Titel der Playlist in den Tagger laden">Im Tagger öffnen</button>
       <button class="ghost" data-plsa="djset" ${pl.count ? "" : "disabled"} title="Playlist ins DJ-Set laden und dort optimieren">Im DJ-Set öffnen</button>
-      <button class="ghost" data-plsa="addtag" ${loaded ? "" : "disabled"} title="Im Tagger markierte Titel ans Ende">+ Markierte aus dem Tagger</button>
+      ${pl.kind === "smart" ? "" : `<button class="ghost" data-plsa="addtag" ${loaded ? "" : "disabled"} title="Im Tagger markierte Titel ans Ende">+ Markierte aus dem Tagger</button>`}
       <button class="ghost" data-plsa="more" aria-haspopup="menu">Mehr ▾</button></div></div>`;
 }
 
@@ -115,7 +122,9 @@ function plsRenderList() {
   const pl = plsCur(), list = $("#plsList");
   if (!pl) { list.innerHTML = ""; return; }
   if (!pl.items.length) {
-    list.innerHTML = `<div class="tg-empty">Noch keine Titel. Im Tagger Titel markieren und „+ Markierte aus dem Tagger“ wählen – oder dort per Rechtsklick „Zur Playlist hinzufügen …“.</div>`;
+    list.innerHTML = pl.kind === "smart"
+      ? `<div class="tg-empty">Keine Titel erfüllen die Regeln – „Regeln …“ anpassen oder „↻ Aktualisieren“.</div>`
+      : `<div class="tg-empty">Noch keine Titel. Im Tagger Titel markieren und „+ Markierte aus dem Tagger“ wählen – oder dort per Rechtsklick „Zur Playlist hinzufügen …“.</div>`;
     return;
   }
   const head = `<div class="pls-row pls-hd" aria-hidden="true"><span></span><span class="n">#</span><span>Titel</span><span class="r">BPM</span><span>Tonart</span><span class="r">Länge</span><span>Bewertung</span><span>Ordner</span></div>`;
@@ -126,7 +135,7 @@ function plsRenderList() {
       : r.missing ? ` <span class="muted sm">${r.in_archive ? "(im Archiv)" : "(fehlt)"}</span>` : "";
     const bpm = r.bpm ? (Math.round(r.bpm * 10) / 10).toString().replace(".", ",") : "–";
     return `<div class="pls-row${PLS.sel.has(r.k) ? " sel" : ""}${r.missing ? " missing" : ""}${r.lock ? " locked" : ""}" data-k="${r.k}" draggable="${!pl.archived}" role="option" aria-selected="${PLS.sel.has(r.k)}" title="${esc(r.in_archive || r.path)}">
-      <span class="h" aria-hidden="true">${pl.archived ? "" : "⋮⋮"}</span><span class="n">${r.k + 1}</span>
+      <span class="h" aria-hidden="true">${plsFixed(pl) ? "" : "⋮⋮"}</span><span class="n">${r.k + 1}</span>
       <span class="t ellipsis"><span translate="no">${esc(t)}</span>${r.dup ? ' <span class="chip sm" title="Titel kommt mehrmals vor">doppelt</span>' : ""}${r.lock ? ' <span title="Im DJ-Set gesperrt">🔒</span>' : ""}${miss}</span>
       <span class="bp">${bpm}</span><span class="kk">${r.key ? keyBadge(r.key) : '<span class="mx">–</span>'}</span>
       <span class="d muted sm">${r.dur ? fmtTime(r.dur) : ""}</span><span class="rt">${r.rating ? "★".repeat(r.rating) : ""}</span>
@@ -226,7 +235,7 @@ function plsPlay(k) {
 /** Playlist wählen oder neu anlegen → {id} | {name, folder} | null */
 async function plsPick({ title, ok = "OK", allowNew = true, exclude = "" } = {}) {
   const st = await call("pl_list");
-  const pls = st.playlists.filter((p) => p.id !== exclude);
+  const pls = st.playlists.filter((p) => p.id !== exclude && p.kind !== "smart");
   const order = [...st.recent.map((id) => pls.find((p) => p.id === id)).filter(Boolean), ...pls.filter((p) => !st.recent.includes(p.id))];
   const folders = st.folders;
   const html = `<input class="inp" id="plsPickFind" placeholder="Suchen …" style="width:100%" autocomplete="off">
@@ -414,6 +423,8 @@ function plsPlMenu(x, y, id) {
     { label: "Im DJ-Set öffnen", run: () => plsOpenDjset(id) }, "-",
     { label: "Umbenennen … (F2)", run: () => plsRename(id) },
     { label: "Duplizieren", run: () => plsCall("pl_duplicate", id) },
+    ...(p.kind === "smart" ? [{ label: "Regeln …", run: () => plsSmartDialog(p) }, { label: "Aktualisieren", run: () => plsSmartRefresh(id) },
+      { label: "Einfrieren (normale Playlist daraus machen)", run: () => plsSmartFreeze(id) }] : []),
     { label: "In Ordner verschieben …", run: () => plsMove(id) },
     { label: "Farbe und Notiz …", run: () => plsColorNote(id) },
     { label: "Mit anderen zusammenführen …", run: () => plsMerge(id) },
@@ -630,6 +641,7 @@ async function plsMove(id) {
 function plsFolderMenu(x, y, f) {
   showMenu(x, y, [
     { label: "Neue Playlist hier …", run: () => plsNew(f) },
+    { label: "Neue Smartlist hier …", run: () => plsSmartDialog(null, f) },
     { label: "Neuer Unterordner …", run: () => plsNewFolder(f) }, "-",
     { label: "Ordner umbenennen …", run: async () => { const n = await plsAsk("Ordner umbenennen", "Neuer Name bzw. Pfad (mit „/“)", f); if (n && n !== f) plsCall("pl_folder_rename", f, n); } },
     { label: "Leeren Ordner entfernen", run: () => plsCall("pl_folder_remove", f) }, "-",
@@ -660,7 +672,7 @@ function plsRowMenu(e, k) {
   if (ws) items.push(ws);
   if (items.length) items.push("-");
   items.push({ label: `Zu anderer Playlist …${n > 1 ? ` (${n})` : ""}`, run: () => plsAddDialog("paths", ks.map((j) => pl.items[j].path).filter(Boolean), pl.id) });
-  if (!pl.archived) items.push({ label: "Nach oben", run: () => plsMove1(k, -1) }, { label: "Nach unten", run: () => plsMove1(k, 1) }, "-",
+  if (!plsFixed(pl)) items.push({ label: "Nach oben", run: () => plsMove1(k, -1) }, { label: "Nach unten", run: () => plsMove1(k, 1) }, "-",
     { label: `Aus der Playlist entfernen${n > 1 ? ` (${n})` : ""}`, run: () => plsCall("pl_remove", pl.id, ks) });
   showMenu(e.clientX, e.clientY, items);
 }
@@ -704,9 +716,9 @@ function plsKey(e) {
   if (e.key === "ArrowDown" || e.key === "ArrowUp") {
     e.preventDefault(); e.stopPropagation();
     const dir = e.key === "ArrowDown" ? 1 : -1;
-    if (e.altKey && k >= 0 && !pl.archived) { plsMove1(k, dir); return; }
+    if (e.altKey && k >= 0 && !plsFixed(pl)) { plsMove1(k, dir); return; }
     plsSelect(k < 0 ? 0 : Math.max(0, Math.min(n - 1, k + dir)), e.shiftKey ? { shiftKey: true } : null);
-  } else if ((e.key === "Delete" || e.key === "Backspace") && PLS.sel.size && !pl.archived) {
+  } else if ((e.key === "Delete" || e.key === "Backspace") && PLS.sel.size && !plsFixed(pl)) {
     e.preventDefault(); plsCall("pl_remove", pl.id, plsSelList());
   } else if (e.key === "Enter" && k >= 0) {
     e.preventDefault(); plsPlay(k);
@@ -718,6 +730,7 @@ function plsKey(e) {
 function plsInit() {
   $("#plsNew").addEventListener("click", () => plsNew(""));
   $("#plsNewFolder").addEventListener("click", () => plsNewFolder(""));
+  $("#plsNewSmart").addEventListener("click", () => plsSmartDialog(null, ""));                 // #272
   $("#plsImport").addEventListener("click", (e) => { e.stopPropagation(); plsImportMenu(e.currentTarget); });   // #271
   $("#plsUndo").addEventListener("click", () => plsCall("pl_undo", PLS.st ? PLS.st.sel : ""));
   $("#plsRedo").addEventListener("click", () => plsCall("pl_redo", PLS.st ? PLS.st.sel : ""));
@@ -730,11 +743,11 @@ function plsInit() {
     const f = e.target.closest("[data-folder]"), p = e.target.closest("[data-pl]"), a = e.target.closest("[data-arch]");
     if (a) { PLS.archOpen = !PLS.archOpen; plsRenderTree(); return; }
     if (f) { const k = f.dataset.folder; PLS.closed.has(k) ? PLS.closed.delete(k) : PLS.closed.add(k); plsRenderTree(); return; }
-    if (p) { if (isDoubleClick(e, "pls:" + p.dataset.pl)) { plsRename(p.dataset.pl); return; } plsCall("pl_state", p.dataset.pl); }
+    if (p) { if (isDoubleClick(e, "pls:" + p.dataset.pl)) { plsRename(p.dataset.pl); return; } plsCall("pl_state", p.dataset.pl).then(plsSmartAuto); }
   });
   tree.addEventListener("contextmenu", (e) => {
     const f = e.target.closest("[data-folder]"), p = e.target.closest("[data-pl]");
-    if (!f && !p) { e.preventDefault(); showMenu(e.clientX, e.clientY, [{ label: "Neue Playlist …", run: () => plsNew("") }, { label: "Neuer Ordner …", run: () => plsNewFolder("") }]); return; }
+    if (!f && !p) { e.preventDefault(); showMenu(e.clientX, e.clientY, [{ label: "Neue Playlist …", run: () => plsNew("") }, { label: "Neue Smartlist …", run: () => plsSmartDialog(null, "") }, { label: "Neuer Ordner …", run: () => plsNewFolder("") }]); return; }
     e.preventDefault();
     if (p) plsPlMenu(e.clientX, e.clientY, p.dataset.pl); else plsFolderMenu(e.clientX, e.clientY, f.dataset.folder);
   });
@@ -750,6 +763,8 @@ function plsInit() {
       const id = PLS.dragPl; PLS.dragPl = null;
       const f = t.dataset.folder !== undefined ? t.dataset.folder : (plsMeta(t.dataset.pl) || {}).folder || "";
       const p = plsMeta(id); if (p && p.folder !== f) plsCall("pl_move", id, f);
+    } else if (PLS.drag !== null && t.dataset.pl && t.dataset.pl !== PLS.st.sel && (plsMeta(t.dataset.pl) || {}).kind === "smart") {
+      PLS.drag = null; toast("Smartlists füllen sich über ihre Regeln – zuerst „Einfrieren“, um sie von Hand zu ändern.");
     } else if (PLS.drag !== null && t.dataset.pl && t.dataset.pl !== PLS.st.sel) {   // Titel → andere Playlist (kopieren)
       const pl = plsCur(), ks = PLS.sel.has(PLS.drag) ? plsSelList() : [PLS.drag];
       PLS.drag = null;
@@ -764,6 +779,8 @@ function plsInit() {
     else if (a === "djset") plsOpenDjset(pl.id);
     else if (a === "addtag") { const idx = typeof tgSelected === "function" ? tgSelected() : []; if (!idx.length) toast("Im Tagger zuerst Titel markieren."); else plsAddTo(pl.id, "tag", idx); }
     else if (a === "play") plsPlayStart();                                       // #270
+    else if (a === "smartrefresh") plsSmartRefresh(pl.id);                       // #272
+    else if (a === "smartedit") plsSmartDialog(pl);
     else if (a === "more") { e.stopPropagation(); const r = b.getBoundingClientRect(); plsPlMenu(r.left, r.bottom + 6, pl.id); }
     else if (a === "restore") plsCall("pl_restore", pl.id);
     else if (a === "delete") plsDelete(pl.id);
@@ -800,6 +817,7 @@ function plsInit() {
   list.addEventListener("drop", (e) => {
     const row = e.target.closest(".pls-row[data-k]"), pl = plsCur(); if (PLS.drag === null || !row || !pl) return;
     e.preventDefault();
+    if (plsFixed(pl)) { PLS.drag = null; return; }
     const r = row.getBoundingClientRect(), after = e.clientY > r.top + r.height / 2;
     const perm = pl.items.map((_, i) => i), from = PLS.drag;
     let to = +row.dataset.k + (after ? 1 : 0);
@@ -816,6 +834,142 @@ function plsInit() {
     e.preventDefault(); e.stopImmediatePropagation();
     plsQuickAdd(typeof tgSelected === "function" ? tgSelected() : []);
   }, true);
+}
+
+// ---------------------------------------------------------------- Smartlists (#272)
+async function plsSmartInfo(force = false) {
+  if (!PLS.smart || force) PLS.smart = await call("pl_smart_info");
+  return PLS.smart;
+}
+const PLS_SM_SORT = { "": "keine (Reihenfolge der Datenbasis)", random: "Zufall", artist: "Künstler", title: "Titel", album: "Album", genre: "Genre",
+  year: "Jahr", bpm: "BPM", key: "Tonart", rating: "Bewertung", energy: "Energie", added: "Aufgenommen", edited: "Bearbeitet", path: "Dateipfad" };
+
+function plsSmFieldLabel(id) {
+  const f = PLS.smart && PLS.smart.fields.find((x) => x.id === id);
+  return f ? f.label : id;
+}
+function plsSmNum(x) { return x === null || x === undefined ? "" : String(Math.round(x * 100) / 100).replace(".", ","); }
+
+/** Kurzfassung der Regeln im Kopf – jeder Teil ein eigener Textknoten (Übersetzung) */
+function plsSmartSummary(r) {
+  if (!r) return "";
+  const sp = (t) => `<span>${esc(t)}</span>`, val = (t) => `<span translate="no">${esc(t)}</span>`;
+  const one = (x) => {
+    const lab = sp(plsSmFieldLabel(x.f)), op = PLS.smart ? PLS.smart.op_labels[x.op] : x.op;
+    if (x.op === "empty" || x.op === "not_empty") return `${lab} ${sp(op)}`;
+    if (x.op === "yes" || x.op === "no") return `${lab}: ${sp(op)}`;
+    if (x.op === "between") return `${lab} ${val(`${plsSmNum(x.a) || "…"}–${plsSmNum(x.b) || "…"}`)}`;
+    if (x.op === "gte" || x.op === "lte" || x.op === "eq") return `${lab} ${val(`${{ gte: "≥", lte: "≤", eq: "=" }[x.op]} ${plsSmNum(x.a)}`)}`;
+    if (x.op === "days") return `${lab}: ${sp(`letzte ${x.a} Tage`)}`;
+    if (x.f === "origin") { const o = PLS.smart && PLS.smart.origins.find((y) => y.id === x.a); return `${lab} ${sp(op)} ${val(o ? o.name : x.a)}`; }
+    const a = Array.isArray(x.a) ? x.a.join(", ") : x.a;
+    return `${lab} ${sp(op)} ${val(x.f === "key" ? a : `„${a}“`)}`;
+  };
+  const base = r.base.kind === "tagger" ? "Im Tagger geladene Titel" : r.base.kind === "playlist" ? "Aus Playlist" : "Bibliothek";
+  const bp = r.base.kind === "playlist" ? (plsMeta(r.base.pid) || {}).name || "?" : "";
+  const parts = [`⚡ ${sp(base)}${bp ? ` ${val(`„${bp}“`)}` : ""}`];
+  if (r.rules.length) parts.push((r.match === "any" && r.rules.length > 1 ? `${sp("Eine Regel erfüllt")}: ` : "") + r.rules.map(one).join(" · "));
+  else parts.push(sp("ohne Regeln (alle Titel)"));
+  if (r.sort) parts.push(`${sp("sortiert nach")} ${sp(PLS_SM_SORT[r.sort] || r.sort)}${r.desc && r.sort !== "random" ? " ↓" : ""}`);
+  if (r.limit) parts.push(`${sp("höchstens")} ${val(fmtN(r.limit))}`);
+  return parts.join(" · ");
+}
+
+/** Beim Öffnen neu bilden, wenn noch nie oder vor mehr als 15 Minuten gebildet (S3) */
+function plsSmartAuto(st) {
+  const pl = st && st.pl;
+  if (!pl || pl.kind !== "smart" || pl.archived || PLS.busy) return;
+  PLS.smartTried = PLS.smartTried || new Set();
+  if (Date.now() / 1000 - (pl.refreshed || 0) < 900 || PLS.smartTried.has(pl.id)) return;
+  PLS.smartTried.add(pl.id);
+  plsSmartRefresh(pl.id, true);
+}
+
+async function plsSmartRefresh(id, quiet = false) {
+  const r = await runTask(call("start_pl_smart_refresh", id), "Smartlist aktualisieren");
+  if (!r || r.cancelled) return;
+  try { plsApply(await call("pl_state", id)); } catch (e) { toast(String(e.message || e)); return; }
+  if (!quiet || r.changed) toast(`${fmtN(r.count)} von ${fmtN(r.scanned)} Titeln erfüllen die Regeln.`);
+}
+
+async function plsSmartFreeze(id) {
+  const p = plsMeta(id); if (!p) return;
+  const ok = await modal({ title: "Smartlist einfrieren", html: `<p style="margin:0">„${esc(p.name)}“ wird zu einer normalen Playlist mit den ${fmtN(p.count)} aktuellen Titeln. Die Regeln fallen weg (Rückgängig mit Strg+Z).</p>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Einfrieren", value: true, primary: true }] });
+  if (ok) plsCall("pl_smart_freeze", id);
+}
+
+/** Regel-Dialog: Datenbasis, alle/eine Regel, Regeln, Sortierung, Höchstzahl. pl = null → neue Smartlist */
+async function plsSmartDialog(pl, folder = "") {
+  let info;
+  try { info = await plsSmartInfo(true); } catch (e) { toast(String(e.message || e)); return; }
+  const r0 = JSON.parse(JSON.stringify(pl && pl.rules ? pl.rules : info.default));
+  const rules = r0.rules.map((x) => ({ ...x }));
+  const ftype = (f) => (info.fields.find((x) => x.id === f) || {}).type || "text";
+  const opSel = (x) => `<select class="inp sm" data-smop>${info.ops[ftype(x.f)].map((o) => `<option value="${o}"${o === x.op ? " selected" : ""}>${esc(info.op_labels[o])}</option>`).join("")}</select>`;
+  const valIn = (x) => {
+    const t = ftype(x.f), a = x.a ?? "", b = x.b ?? "";
+    if (["empty", "not_empty", "yes", "no"].includes(x.op)) return "";
+    if (t === "num" && x.op === "between") return `<input class="inp sm" type="number" step="any" data-sma value="${esc(a)}" placeholder="von" style="width:80px"> – <input class="inp sm" type="number" step="any" data-smb value="${esc(b)}" placeholder="bis" style="width:80px">`;
+    if (t === "num") return `<input class="inp sm" type="number" step="any" data-sma value="${esc(a)}" style="width:90px"${x.f === "rating" ? ' min="0" max="5"' : ""}>`;
+    if (t === "date" && x.op === "days") return `<input class="inp sm" type="number" min="1" data-sma value="${esc(a)}" style="width:80px"> <span class="muted sm">Tage</span>`;
+    if (t === "date") return `<input class="inp sm" type="date" data-sma value="${esc(a)}">`;
+    if (t === "origin") return `<select class="inp sm" data-sma>${info.origins.map((o) => `<option value="${esc(o.id)}"${o.id === a ? " selected" : ""} translate="no">${esc(o.name)}</option>`).join("")}</select>`;
+    if (t === "key") return `<input class="inp sm" data-sma value="${esc(Array.isArray(a) ? a.join(", ") : a)}" placeholder="${x.op === "fits" ? "z. B. 8A" : "z. B. 8A, 9A"}" style="width:120px">`;
+    return `<input class="inp sm" data-sma value="${esc(a)}" style="width:180px">`;
+  };
+  const rowHtml = (x, k) => `<div class="pls-sm-rule" data-smk="${k}"><select class="inp sm" data-smf>${info.fields.map((f) => `<option value="${f.id}"${f.id === x.f ? " selected" : ""}>${esc(f.label)}</option>`).join("")}</select>
+    ${opSel(x)} <span class="pls-sm-val">${valIn(x)}</span><button class="ghost sm" data-smdel title="Regel entfernen" aria-label="Regel entfernen">✕</button></div>`;
+  const base = r0.base || { kind: "library", pid: "" };
+  const html = `${pl ? "" : `<div class="pls-newrow"><input class="inp" id="plsSmName" placeholder="Name" maxlength="120" value=""><input class="inp" id="plsSmFolder" list="plsSmFolders" placeholder="Ordner (optional)" value="${esc(folder)}"><datalist id="plsSmFolders">${(PLS.st ? PLS.st.folders : []).map((f) => `<option value="${esc(f)}">`).join("")}</datalist></div>`}
+    <div class="pls-sm-sec"><b>Datenbasis</b>
+      <label class="check"><input type="radio" name="plsSmBase" value="library"${base.kind === "library" ? " checked" : ""}> Bibliothek</label>
+      <label class="check"><input type="radio" name="plsSmBase" value="tagger"${base.kind === "tagger" ? " checked" : ""}> Im Tagger geladene Titel (${fmtN(info.tagger)})</label>
+      <label class="check"><input type="radio" name="plsSmBase" value="playlist"${base.kind === "playlist" ? " checked" : ""}${info.playlists.length ? "" : " disabled"}> Aus Playlist:</label>
+      <select class="inp sm" id="plsSmPl"${info.playlists.length ? "" : " hidden"}>${info.playlists.filter((p) => !pl || p.id !== pl.id).map((p) => `<option value="${esc(p.id)}"${p.id === base.pid ? " selected" : ""} translate="no">${esc(p.label)}</option>`).join("")}</select>
+      <div class="muted sm" translate="no">${info.roots.map(esc).join(" · ")}</div></div>
+    <div class="pls-sm-sec"><b>Regeln</b>
+      <label class="check"><input type="radio" name="plsSmMatch" value="all"${r0.match !== "any" ? " checked" : ""}> alle erfüllt</label>
+      <label class="check"><input type="radio" name="plsSmMatch" value="any"${r0.match === "any" ? " checked" : ""}> mindestens eine erfüllt</label>
+      <div id="plsSmRules"></div><button class="ghost sm" id="plsSmAdd">+ Regel</button></div>
+    <div class="pls-sm-sec"><b>Sortierung</b> <select class="inp sm" id="plsSmSort">${info.sorts.map((k) => `<option value="${k}"${k === (r0.sort || "") ? " selected" : ""}>${esc(PLS_SM_SORT[k] || k)}</option>`).join("")}</select>
+      <label class="check"><input type="checkbox" id="plsSmDesc"${r0.desc ? " checked" : ""}> absteigend</label>
+      <label class="check">Höchstens <input class="inp sm" type="number" min="0" id="plsSmLimit" value="${r0.limit || ""}" placeholder="alle" style="width:80px"> Titel</label></div>`;
+  const read = (b) => {                      // Werte der Zeilen in rules übernehmen
+    b.querySelectorAll("[data-smk]").forEach((row) => {
+      const x = rules[+row.dataset.smk]; if (!x) return;
+      const a = row.querySelector("[data-sma]"), bb = row.querySelector("[data-smb]");
+      x.a = a ? a.value : undefined; x.b = bb ? bb.value : undefined;
+    });
+  };
+  const draw = (b) => { $("#plsSmRules", b).innerHTML = rules.map(rowHtml).join("") || '<div class="muted sm">Keine Regel – alle Titel der Datenbasis.</div>'; };
+  const res = await modal({ title: pl ? `Regeln: ${pl.name}` : "Neue Smartlist", wide: true, html,
+    buttons: [{ label: "Abbrechen", value: null }, { label: pl ? "Speichern und aktualisieren" : "Anlegen", value: true, primary: true }],
+    onMount: (b) => {
+      draw(b);
+      const nm = $("#plsSmName", b); if (nm) nm.focus();
+      $("#plsSmAdd", b).addEventListener("click", () => { read(b); rules.push({ f: "genre", op: "contains", a: "" }); draw(b); });
+      $("#plsSmPl", b).addEventListener("change", () => { b.querySelector('input[name="plsSmBase"][value="playlist"]').checked = true; });
+      b.addEventListener("click", (e) => { const d = e.target.closest("[data-smdel]"); if (!d) return; read(b); rules.splice(+d.closest("[data-smk]").dataset.smk, 1); draw(b); });
+      b.addEventListener("change", (e) => {
+        const row = e.target.closest("[data-smk]"); if (!row) return;
+        const x = rules[+row.dataset.smk];
+        if (e.target.matches("[data-smf]")) { x.f = e.target.value; x.op = info.ops[ftype(x.f)][0]; x.a = ""; x.b = ""; draw(b); }
+        else if (e.target.matches("[data-smop]")) { read(b); x.op = e.target.value; draw(b); }
+      });
+    },
+    collect: (b) => {
+      read(b);
+      const name = pl ? pl.name : $("#plsSmName", b).value.trim();
+      if (!name) { toast("Bitte einen Namen eingeben."); $("#plsSmName", b).focus(); return false; }
+      const kind = (b.querySelector('input[name="plsSmBase"]:checked') || {}).value || "library";
+      return { name, folder: pl ? pl.folder : $("#plsSmFolder", b).value.trim(),
+        rules: { base: { kind, pid: kind === "playlist" ? $("#plsSmPl", b).value : "" }, match: (b.querySelector('input[name="plsSmMatch"]:checked') || {}).value || "all",
+          rules, sort: $("#plsSmSort", b).value, desc: $("#plsSmDesc", b).checked, limit: +$("#plsSmLimit", b).value || 0 } };
+    } });
+  if (!res) return;
+  const st = await plsCall("pl_smart_save", pl ? pl.id : "", res.name, res.folder, res.rules);
+  if (st && st.sel) plsSmartRefresh(st.sel, true);
 }
 
 /** Tagger wurde neu geladen → Indizes der Playlist-Titel neu auflösen */

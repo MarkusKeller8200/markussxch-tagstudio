@@ -623,7 +623,8 @@ class Store:
         return {"id": pl["id"], "name": pl["name"], "folder": pl.get("folder", ""), "kind": pl.get("kind", "manual"),
                 "count": len(pl.get("items") or []), "modified": pl.get("modified", 0), "created": pl.get("created", 0),
                 "archived": pl.get("archived") or 0, "color": pl.get("color", ""), "note": pl.get("note", ""),
-                "source": pl.get("source") or None, "file": self.mirror_path(pl["id"]) if not pl.get("archived") else pl.get("archived_file", "")}
+                "source": pl.get("source") or None, "file": self.mirror_path(pl["id"]) if not pl.get("archived") else pl.get("archived_file", ""),
+                "rules": pl.get("rules") or None, "refreshed": pl.get("refreshed") or 0}
 
     def folders(self) -> list[str]:
         """Alle Ordner: angelegte und die der aktiven Playlists (mit allen Elternordnern)."""
@@ -714,7 +715,7 @@ class Store:
         now = int(time.time())
         pl = {"format": FORMAT, "id": pid, "name": name, "folder": folder, "kind": kind if kind in KINDS else "manual",
               "created": now, "items": [y for y in (clean_item(x) for x in items or []) if y]}
-        for k in ("color", "note", "source", "djset", "rules"):
+        for k in ("color", "note", "source", "djset", "rules", "refreshed"):
             if extra.get(k):
                 pl[k] = extra[k]
         self._change([pid], "Playlist anlegen", lambda: self._put(pl))
@@ -731,7 +732,7 @@ class Store:
             pl["name"], pl["folder"] = name, folder
         if "items" in fields:
             pl["items"] = [y for y in (clean_item(x) for x in fields["items"] or []) if y]
-        for k in ("color", "note", "kind", "source", "djset", "rules"):
+        for k in ("color", "note", "kind", "source", "djset", "rules", "refreshed"):
             if k in fields:
                 if fields[k] in (None, "", {}):
                     pl.pop(k, None)
@@ -759,9 +760,16 @@ class Store:
             items += copy.deepcopy(self.get(pid).get("items") or [])
         return self.create(name, folder, "manual", items)
 
+    def _hand(self, pid) -> dict:
+        """Playlist, die sich von Hand ändern lässt – Smartlists füllen sich über ihre Regeln (#272)."""
+        pl = self.get(pid)
+        if pl.get("kind") == "smart":
+            raise ValueError("Smartlists füllen sich über ihre Regeln – zuerst „Einfrieren“, um sie von Hand zu ändern.")
+        return pl
+
     def add(self, pid, items, dupes="ask") -> dict:
         """Einträge anhängen. dupes: "ask" (bei Doppelten nichts ändern, nur melden), "add", "skip"."""
-        pl = self.get(pid)
+        pl = self._hand(pid)
         new = [y for y in (clean_item(x) for x in items or []) if y]
         have = {nk(x["path"]) for x in pl.get("items") or [] if x.get("path")}
         dup = 0
@@ -791,7 +799,7 @@ class Store:
         return {"ask": False, "dupes": dup, "added": len(new)}
 
     def remove(self, pid, indices) -> int:
-        pl = self.get(pid)
+        pl = self._hand(pid)
         drop = {int(i) for i in indices or [] if isinstance(i, int)}
         items = [x for k, x in enumerate(pl.get("items") or []) if k not in drop]
         n = len(pl.get("items") or []) - len(items)
@@ -801,7 +809,7 @@ class Store:
 
     def order(self, pid, perm) -> dict:
         """Neue Reihenfolge als Liste der bisherigen Positionen (fehlende hängen hinten an)."""
-        pl = self.get(pid)
+        pl = self._hand(pid)
         items = pl.get("items") or []
         seen, out = set(), []
         for i in perm or []:
@@ -810,6 +818,34 @@ class Store:
                 seen.add(i)
         out += [x for k, x in enumerate(items) if k not in seen]
         return self.update(pid, "Reihenfolge", items=out)
+
+    # ------------------------------------------------------------------ Smartlists (#272)
+    def smart_fill(self, pid, items) -> bool:
+        """Einträge einer Smartlist neu setzen (M3U8 wird mitgeschrieben). Rückgängig nur bei echter Änderung.
+        → True, wenn sich die Titel geändert haben."""
+        pl = self.get(pid)
+        if pl.get("kind") != "smart" or pl.get("archived"):
+            raise ValueError("Keine aktive Smartlist.")
+        old = [nk(x["path"]) for x in pl.get("items") or [] if x.get("path")]
+        new = [y for y in (clean_item(x) for x in items or []) if y]
+        now = int(time.time())
+        if old == [nk(x["path"]) for x in new if x.get("path")]:
+            pl = copy.deepcopy(pl)
+            pl["refreshed"] = now
+            self._put(pl)                                    # nur Zeitpunkt – kein Rückgängig-Eintrag
+            return False
+        added = {nk(x["path"]): x.get("added") for x in pl.get("items") or [] if x.get("path")}
+        for x in new:
+            x["added"] = added.get(nk(x["path"])) or now
+        self.update(pid, "Smartlist aktualisieren", items=new, refreshed=now)
+        return True
+
+    def freeze(self, pid) -> dict:
+        """Smartlist → normale Playlist mit den aktuellen Titeln (Regeln fallen weg)."""
+        pl = self.get(pid)
+        if pl.get("kind") != "smart":
+            raise ValueError("Nur Smartlists lassen sich einfrieren.")
+        return self.update(pid, "Smartlist einfrieren", kind="manual", rules=None, refreshed=None)
 
     def relink(self, pid, picks, label="Titel verknüpfen") -> int:
         """Einträgen einen (neuen) Pfad geben: picks = [{"k": Position, "path": Datei}] – Angaben „ref“ bleiben."""

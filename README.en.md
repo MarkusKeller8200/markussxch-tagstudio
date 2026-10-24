@@ -262,6 +262,13 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
   subfolders as in the tree – for reading into Engine DJ, VirtualDJ and other programs. Set it under Settings ›
   Storage and folders. If another program changes a file there or adds a new one, the page reports it (“Changes in
   the folder …”) – take over, keep or ignore; TagStudio never overwrites anything without asking.
+- **Smartlists (⚡):** “+ Smartlist” creates a playlist that fills itself by rules – e.g. “BPM 124–128 and ★ ≥ 4”.
+  Source: the library (tagger default folder, library from “Prepare” or `01_Library`, with list cache), the tracks
+  loaded in the tagger (including unsaved changes) or another playlist. Rules on text, artist, title, album, genre,
+  label, comment, year, BPM, key (also “fits 8A”), rating, like, mood, energy, added/edited (date range or last n days)
+  and origin; “all” or “at least one” must match; sort order (also random) and limit. It is rebuilt when opened (if
+  older than 15 minutes) and with “↻ Refresh”, never in the background; the M3U8 in the playlist folder is written
+  along. A smartlist cannot be changed by hand – “More ▾ → Freeze” turns it into a normal playlist (Ctrl+Z undoes it).
 - **Archive instead of delete:** “Archive” puts the playlist into the archive (at the bottom of the tree), its M3U8
   moves to `02_Archiv/_Playlists` (note in `_aussortiert.csv`). “Bring back” restores it; deleting permanently is only
   possible in the archive. Tracks moved to the archive stay in their playlists and are marked “in the archive”.

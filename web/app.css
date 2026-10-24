@@ -1641,3 +1641,15 @@ html.i18n-wait body{visibility:hidden}
 .pls-st.sure{color:var(--ok)} .pls-st.unclear{color:var(--diff)} .pls-st.missing{color:var(--warn)}
 .chip.on{color:var(--acc);border-color:var(--acc)}
 .pls-link { text-decoration: none; color: var(--acc); padding: 0 2px; }   /* #280 */
+/* Smartlists (#272) */
+.pls-rules{margin-top:4px;line-height:1.5}
+.pls-sm-sec{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.pls-sm-sec>b{flex-basis:100%}
+.pls-sm-sec .muted.sm{flex-basis:100%}
+#plsSmRules{flex-basis:100%;display:flex;flex-direction:column;gap:6px}
+.pls-sm-rule{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.pls-sm-val{display:inline-flex;align-items:center;gap:4px}
+#mBody .pls-newrow:has(#plsSmName){padding-left:0;margin-bottom:6px}
+.pls-sm-sec select.inp,.pls-sm-sec input.inp{width:auto;flex:none;min-width:0;height:30px;padding:3px 8px}
+.pls-sm-rule select[data-smf]{min-width:170px}
+.pls-sm-sec #plsSmPl{max-width:340px}

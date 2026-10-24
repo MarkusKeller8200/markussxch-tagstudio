@@ -268,6 +268,14 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
   Einstellungen › Speicherort und Ordner. Ändert ein anderes Programm dort eine Datei oder legt eine neue an,
   meldet die Seite das („Änderungen im Ordner …“) – übernehmen, behalten oder ignorieren; TagStudio überschreibt
   nichts ungefragt.
+- **Smartlists (⚡):** „+ Smartlist“ legt eine Playlist an, die sich über Regeln selbst füllt – z. B. „BPM 124–128 und
+  ★ ≥ 4“. Datenbasis: die Bibliothek (Tagger-Standardordner, Bibliothek aus „Vorbereiten“ bzw. `01_Library`, mit
+  Listen-Cache), die im Tagger geladenen Titel (auch ungespeicherte Änderungen) oder eine andere Playlist. Regeln über
+  Text, Künstler, Titel, Album, Genre, Label, Kommentar, Jahr, BPM, Tonart (auch „passt zu 8A“), Bewertung, Like,
+  Stimmung, Energie, Aufgenommen/Bearbeitet (Zeitraum oder letzte n Tage) und Herkunft; „alle“ oder „mindestens eine“
+  erfüllt; Sortierung (auch Zufall) und Höchstzahl. Neu gebildet wird beim Öffnen (wenn älter als 15 Minuten) und mit
+  „↻ Aktualisieren“, nie im Hintergrund; die M3U8 im Playlist-Ordner wird dabei mitgeschrieben. Von Hand lässt sich
+  eine Smartlist nicht ändern – „Mehr ▾ → Einfrieren“ macht eine normale Playlist daraus (Strg+Z macht es rückgängig).
 - **Archiv statt Löschen:** „Archivieren“ legt die Playlist ins Archiv (unten im Baum), ihre M3U8 wandert nach
   `02_Archiv/_Playlists` (Vermerk in `_aussortiert.csv`). „Zurückholen“ stellt sie wieder her; endgültig löschen geht
   nur im Archiv. Aussortierte Titel bleiben in ihren Playlists stehen und sind als „im Archiv“ markiert.

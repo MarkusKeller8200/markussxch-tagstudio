@@ -6,6 +6,14 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Smartlists (#272):** Playlists, die sich über Regeln selbst füllen („+ Smartlist“, ⚡). Datenbasis Bibliothek,
+  im Tagger geladene Titel oder eine andere Playlist; Regeln über Text, Genre, Label, Kommentar, Jahr, BPM, Tonart
+  (auch „passt zu“), Bewertung, Like, Stimmung, Energie, Aufgenommen/Bearbeitet und Herkunft, „alle“ oder „mindestens
+  eine“ erfüllt; Sortierung (auch Zufall) und Höchstzahl. Neu gebildet beim Öffnen (älter als 15 Minuten) und mit
+  „↻ Aktualisieren“, M3U8 im Playlist-Ordner wird mitgeschrieben; „Einfrieren“ macht eine normale Playlist daraus.
+
 ## [4.8.0] – 2026-10-25
 
 ### Neu

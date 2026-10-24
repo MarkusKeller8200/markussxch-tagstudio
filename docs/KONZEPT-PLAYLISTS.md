@@ -204,7 +204,7 @@ Playlist-Ordner), CSV mit Pfadspalte. Titel, die nicht gefunden werden, bleiben 
 schreibt dort nur eigene `.m3u8`-Dateien. Umbenennen und Verschieben im Baum benennen bzw. verschieben die Datei mit.
 Archivieren verschiebt sie nach `02_Archiv/_Playlists`. Fremde Dateien im Ordner werden nie gelöscht.
 
-## 9. Smartlists (später)
+## 9. Smartlists (umgesetzt in #272, siehe Abschnitt 18)
 
 Regeln über die Felder, die der Tagger-Filter schon kennt: Genre, BPM-Bereich, Tonart (auch „passend zu 8A“),
 Bewertung, Like, Stimmung, Energie, Aufgenommen/Bearbeitet (Zeitraum), Herkunft, Kommentar enthält … Verknüpfung
@@ -404,9 +404,10 @@ Sitzung mit erneutem Import), Oberflächentest `test_playlists_dj_and_text_impor
 
 ## 17. Phase 3 – offene Entscheide für 4.9.0 (Vorbereitung 25.10.2026)
 
-Meilenstein #24 „4.9.0 – Playlists Phase 3“: #272 Smartlists, #273 Senden an DJ-Programme, #284 Beatport-Playlists,
-#222 Wellenform im MP3, #107 Werkzeugleiste im Vergleich. **Umfang zu Beginn mit dem User bestätigen.** Vor der
-Umsetzung zu klären (Vorschläge in Klammern):
+Meilenstein #24 „4.9.0 – Playlists Phase 3“: #272 Smartlists, #273 Senden an DJ-Programme, #284 Beatport-Playlists.
+**Entscheid User 25.10.2026, 01:16:** #222 (Wellenform im MP3) und #107 (Werkzeugleiste im Vergleich) **nicht** in
+4.9.0 (zurück in die Sammlungen Funktionen bzw. Verbesserungen); alle übrigen Vorschläge **so umsetzen** – die Spalte
+„Vorschlag“ gilt damit als beschlossen (W1 bleibt offen, bis #222 eingeplant wird).
 
 | Nr. | Frage | Vorschlag |
 |---|---|---|
@@ -421,3 +422,25 @@ Umsetzung zu klären (Vorschläge in Klammern):
 | B1 | Beatport-Listen (#284) | eigene Playlists; Charts von Künstlern/Labels optional |
 | W1 | Wellenform im MP3 (#222) | nur auf Wunsch (Einstellung, Standard aus), eigenes GEOB „TagStudio Overview“, nie Serato-Felder überschreiben |
 
+
+## 18. Umsetzung Smartlists (#272, 25.10.2026)
+
+- **Modul `smartlist.py`** (nur Standardbibliothek): `FIELDS` (Feld → Bezeichnung, Art), `OPS` je Art (Text:
+  enthält/enthält nicht/ist/leer/nicht leer; Zahl: zwischen/mindestens/höchstens/gleich; Tonart: ist (Liste)/passt zu
+  (`keys.compatible`); Ja/Nein; Liste (Stimmung); Datum: letzte n Tage/ab/vor; Herkunft: hat (keine) Felder von),
+  `clean()` prüft und vereinheitlicht die Regeln (ungültige Einzelregeln fallen weg), `values(f, origin_of)` liest alle
+  Regel-Felder einer `MP3File`, `apply()` filtert, sortiert (fehlende Werte ans Ende, „Zufall“) und kürzt.
+- **Speicher:** Playlist `kind = "smart"` mit `rules` und `refreshed`; `Store.smart_fill()` setzt die Einträge
+  (Rückgängig nur bei echter Änderung, sonst nur Zeitpunkt), `Store.freeze()` → `kind = "manual"`. `add`/`remove`/
+  `order` sind für Smartlists gesperrt (`Store._hand`). `duplicate` übernimmt die Regeln.
+- **Sitzung** (`session_playlists.py`): `pl_smart_info` (Felder, Vergleiche, Sortierungen, Herkünfte, Playlists,
+  Bibliotheksordner), `pl_smart_save`, `start_pl_smart_refresh` (Hintergrund-Vorgang mit Fortschritt),
+  `pl_smart_stale` (älter als 15 Minuten), `pl_smart_freeze`. Datenbasis „Bibliothek“ = `_pl_lib_roots()` mit
+  Listen-Cache, geladene Tagger-Titel gehen vor (ungespeicherte Änderungen zählen); keine Smartlist als Datenbasis
+  einer Smartlist. Herkunft über `Session._src` (wie die Kennzeichen im Tagger).
+- **Oberfläche:** „+ Smartlist“, Baum-/Ordnermenü „Neue Smartlist …“, Kopf mit Regel-Zusammenfassung, „↻ Aktualisieren“,
+  „Regeln …“, Mehr ▾ › „Einfrieren …“; Regel-Dialog mit Datenbasis, alle/eine, Regelzeilen (Feld, Vergleich, Wert),
+  Sortierung, absteigend, Höchstzahl. Beim Öffnen wird neu gebildet, wenn älter als 15 Minuten (je Sitzung nur ein
+  automatischer Versuch). Smartlists erscheinen nicht als Ziel in „Zur Playlist hinzufügen …“.
+- **Nicht umgesetzt:** Quelle aus Abschnitt 7a (z. B. Lexicon) als Datenbasis – geht über Import + „Aus Playlist“.
+- **Tests:** `tests/test_smartlist.py`, Oberflächentest `test_playlists_smartlist`.

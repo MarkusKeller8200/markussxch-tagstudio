@@ -2403,6 +2403,45 @@ class UiTest(unittest.TestCase):
         lists = pg.evaluate("call('pl_list').then(r => r.playlists.map(p => [p.folder, p.name, p.kind]))")
         self.assertEqual(lists, [["DJ-Sets", "Probe", "djset"]])                      # #269: als Playlist gespeichert
 
+    def test_playlists_smartlist(self):
+        """#272: Smartlist anlegen (Regel-Dialog), Aktualisieren nach Tag-Änderung, Regel hinzufügen, Einfrieren."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.nav[data-module="playlists"]')
+        pg.click("#plsNewSmart")
+        pg.wait_for_selector("#plsSmName")
+        pg.fill("#plsSmName", "Peak")
+        pg.check('input[name="plsSmBase"][value="tagger"]')
+        pg.fill('[data-smk="0"] [data-sma]', "124")
+        pg.fill('[data-smk="0"] [data-smb]', "128")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("PLS.st.pl && PLS.st.pl.kind === 'smart' && PLS.st.pl.refreshed > 0")
+        self.assertEqual(pg.locator("#plsList .pls-row[data-k]").count(), 1)
+        self.assertIn("124–128", pg.inner_text("#plsRules"))
+        self.assertEqual(pg.locator('#plsHead [data-plsa="addtag"]').count(), 0)          # von Hand gesperrt
+        # Tag ändern → Aktualisieren
+        pg.evaluate("call('tag_set', [1], 'TBPM', '126')")
+        pg.click('#plsHead [data-plsa="smartrefresh"]')
+        pg.wait_for_function("document.querySelectorAll('#plsList .pls-row[data-k]').length === 2")
+        # Regel „Bewertung mindestens 4“ ergänzen
+        pg.evaluate("call('tag_set_rating', [0], 4)")
+        pg.click('#plsHead [data-plsa="smartedit"]')
+        pg.click("#plsSmAdd")
+        pg.select_option('[data-smk="1"] [data-smf]', "rating")
+        pg.select_option('[data-smk="1"] [data-smop]', "gte")
+        pg.fill('[data-smk="1"] [data-sma]', "4")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("document.querySelectorAll('#plsList .pls-row[data-k]').length === 1 && PLS.st.pl.rules.rules.length === 2")
+        self.assertIn("Bewertung", pg.inner_text("#plsRules"))
+        m3u = os.path.join(self.home, "TagStudio", "Playlists")
+        self.assertTrue(os.path.isdir(m3u))
+        # Einfrieren
+        pg.click('#plsHead [data-plsa="more"]')
+        pg.click("#menu button >> text=Einfrieren")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("PLS.st.pl.kind === 'manual' && !PLS.st.pl.rules")
+        self.assertEqual(pg.locator('#plsHead [data-plsa="smartrefresh"]').count(), 0)
+
     def test_playlists_page(self):
         """#267–#269: Titel aus dem Tagger in Playlists, Seite verwalten, Playlist-Ordner, Archiv, DJ-Set, Filter."""
         pg = self.pg

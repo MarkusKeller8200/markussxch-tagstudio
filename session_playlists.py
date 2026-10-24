@@ -15,6 +15,7 @@ import paths
 import playlists
 import ratings
 import setplan
+import smartlist
 from id3tags import MV
 
 PLAYLIST_DIR = "03_Playlists"
@@ -317,6 +318,137 @@ class PlaylistMixin:
             n = self._pls().archive_folder(path)
             self._pl_djset_check()
         return self._pl_after("", f"{n} Playlist(s) archiviert.")
+
+    # ------------------------------------------------------------------ Smartlists (#272)
+    SMART_STALE = 15 * 60                  # beim Öffnen neu bilden, wenn älter (Sekunden)
+
+    def pl_smart_info(self) -> dict:
+        """Felder, Vergleiche, Sortierungen und Herkünfte für den Regel-Dialog."""
+        with self.lock:
+            st = self._pls()
+            pls = [{"id": p["id"], "label": (p.get("folder") + " / " if p.get("folder") else "") + p["name"]}
+                   for p in st.active() if p.get("kind") != "smart"]
+        cat = self.origin_catalog()
+        return {"fields": [{"id": k, "label": v[0], "type": v[1]} for k, v in smartlist.FIELDS.items()],
+                "ops": {k: list(v) for k, v in smartlist.OPS.items()}, "op_labels": dict(smartlist.OP_LABELS),
+                "sorts": list(smartlist.SORTS), "playlists": pls, "roots": self._pl_lib_roots(),
+                "origins": sorted(({"id": k, "name": v.get("name", k)} for k, v in cat.items() if v.get("kind") != "id3"),
+                                  key=lambda o: o["name"].lower()),
+                "default": smartlist.default_rules(), "tagger": len(self.tag_files)}
+
+    def pl_smart_save(self, pid, name, folder, rules) -> dict:
+        """Smartlist anlegen (pid leer) oder ihre Regeln ändern. Titel bildet danach start_pl_smart_refresh."""
+        rules = smartlist.clean(rules)
+        with self.lock:
+            st = self._pls()
+            if rules["base"]["kind"] == "playlist":
+                base = st.get(rules["base"]["pid"])
+                if base.get("kind") == "smart" or base["id"] == pid:
+                    raise ValueError("Eine Smartlist kann nicht eine Smartlist als Datenbasis haben.")
+            if pid:
+                pl = st.get(pid)
+                if pl.get("kind") != "smart":
+                    raise ValueError("Keine Smartlist.")
+                fields = {"rules": rules}
+                if name and name != pl["name"]:
+                    fields["name"] = name
+                st.update(pid, "Regeln ändern", **fields)
+                msg = ""
+            else:
+                pl = st.create(name, folder, "smart", [], rules=rules)
+                pid = pl["id"]
+                st.touch(pid)
+                msg = f"Smartlist „{pl['name']}“ angelegt."
+        return self._pl_after(pid, msg)
+
+    def _pl_smart_files(self, rules, cancel, progress) -> list:
+        """MP3File-Objekte der Datenbasis: geladene Tagger-Titel gehen vor (auch ungespeicherte Änderungen)."""
+        from id3tags import MP3File
+        base = rules["base"]
+        mine = {playlists.nk(f.path): f for i, f in enumerate(self.tag_files) if i not in self.tag_parent}
+        if base["kind"] == "tagger":
+            return list(mine.values())
+        if base["kind"] == "playlist":
+            with self.lock:
+                pl = self._pls().get(base["pid"])
+                want = [x["path"] for x in pl.get("items") or [] if x.get("path")]
+            out, seen = [], set()
+            for n, p in enumerate(want):
+                k = playlists.nk(p)
+                if k in seen:
+                    continue
+                seen.add(k)
+                if cancel.is_set():
+                    raise core.Cancelled()
+                progress(("progress", n + 1, len(want), p))
+                if k in mine:
+                    out.append(mine[k])
+                elif os.path.isfile(p):
+                    try:
+                        f = MP3File(p)
+                        f.load()
+                        out.append(f)
+                    except Exception:  # noqa: BLE001
+                        pass
+            return out
+        out, seen = list(mine.values()), set(mine)
+        roots = self._pl_lib_roots()
+        if not roots and not out:
+            raise ValueError("Keine Bibliothek gefunden – Basisordner oder Tagger-Standardordner einstellen.")
+        for r in roots:
+            progress(("text", f"Bibliothek lesen: {r}"))
+            files, _err = core.load_files(r, True, cancel, progress, registry=None, use_cache=self._list_cache_on())
+            for f in files:
+                if playlists.nk(f.path) not in seen:
+                    seen.add(playlists.nk(f.path))
+                    out.append(f)
+        return out
+
+    def _pl_smart_build(self, pid, cancel, progress) -> dict:
+        with self.lock:
+            pl = self._pls().get(pid)
+            rules = smartlist.clean(pl.get("rules") or {})
+        files = self._pl_smart_files(rules, cancel, progress)
+        progress(("text", "Regeln prüfen …"))
+        origin = lambda k: self._src(k, None)  # noqa: E731
+        by_path, vals = {}, []
+        for f in files:
+            v = smartlist.values(f, origin)
+            by_path[playlists.nk(f.path)] = f
+            vals.append(v)
+        hits = smartlist.apply(vals, rules)
+        items = []
+        for v in hits:
+            f = by_path[playlists.nk(v["path"])]
+            dur = getattr(f, "duration", 0)
+            try:
+                dur = dur() if callable(dur) else dur
+            except Exception:  # noqa: BLE001
+                dur = 0
+            items.append({"path": v["path"], "artist": v["artist"], "title": v["title"], "dur": int(dur or 0)})
+        with self.lock:
+            changed = self._pls().smart_fill(pid, items)
+        return {"ok": True, "id": pid, "count": len(items), "scanned": len(files), "changed": changed}
+
+    def start_pl_smart_refresh(self, pid):
+        """Smartlist neu bilden (Hintergrund-Vorgang mit Fortschritt)."""
+        with self.lock:
+            pl = self._pls().get(pid)
+            if pl.get("kind") != "smart":
+                return {"ok": False, "error": "Keine Smartlist."}
+        return self._run("pl_smart", "Smartlist aktualisieren", lambda c, p: self._pl_smart_build(pid, c, p))
+
+    def pl_smart_stale(self, pid) -> bool:
+        """Beim Öffnen neu bilden? – noch nie gebildet oder älter als SMART_STALE (S3)."""
+        import time
+        with self.lock:
+            pl = self._pls().get(pid)
+        return pl.get("kind") == "smart" and not pl.get("archived") and time.time() - int(pl.get("refreshed") or 0) > self.SMART_STALE
+
+    def pl_smart_freeze(self, pid) -> dict:
+        with self.lock:
+            pl = self._pls().freeze(pid)
+        return self._pl_after(pid, f"„{pl['name']}“ ist jetzt eine normale Playlist ({len(pl.get('items') or [])} Titel).")
 
     # ------------------------------------------------------------------ Archiv
     def _pl_djset_check(self):

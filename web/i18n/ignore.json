@@ -448,5 +448,8 @@
 "Spotify Web API",
 "select[data-sug]",
 "Apple Music",
-"YouTube"
+"YouTube",
+"min={q} max={q}",
+"input[name={q}][value={q}]",
+"dateipfad"
 ]
