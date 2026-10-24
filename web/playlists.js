@@ -2,7 +2,7 @@
    Speicher, Archiv und Playlist-Ordner (M3U8) in playlists.py / session_playlists.py. */
 "use strict";
 
-const PLS = { st: null, sel: new Set(), anchor: null, drag: null, busy: false, open: new Set(), closed: new Set(), archOpen: false, q: "" };
+const PLS = { play: null, st: null, sel: new Set(), anchor: null, drag: null, busy: false, open: new Set(), closed: new Set(), archOpen: false, q: "" };
 const PLS_ICON = { manual: "♫", djset: "◎", smart: "⚡", import: "⇣", queue: "⏭" };
 const PLS_KIND = { manual: "Playlist", djset: "DJ-Set", smart: "Smartlist", import: "Import", queue: "Warteschlange" };
 
@@ -102,6 +102,8 @@ function plsRenderHead() {
   el.innerHTML = `<div class="pls-h"><div class="grow"><h3><span class="pls-ico"${pl.color ? ` style="color:${esc(pl.color)}"` : ""} aria-hidden="true">${PLS_ICON[pl.kind] || "♫"}</span> <span translate="no">${esc(pl.name)}</span>${pl.djset ? ' <span class="chip sm" title="Wird gerade im DJ-Set bearbeitet">im DJ-Set</span>' : ""}</h3>
       <div class="muted sm">${pl.folder ? `<span translate="no">${esc(pl.folder)}</span> · ` : ""}${esc(PLS_KIND[pl.kind] || "")} · ${info}${pl.note ? ` · <span translate="no">${esc(pl.note)}</span>` : ""}</div></div>
     <div class="pls-acts">
+      ${PLS.play && PLS.play.id === pl.id && plsPlayActive() ? '<span class="chip sm on" title="Der Player folgt dieser Playlist (⏭, Titelende)">▶ läuft</span>' : ""}
+      <button class="primary" data-plsa="play" ${pl.count > pl.missing ? "" : "disabled"} title="Ab dem markierten Titel abspielen – der Player folgt der Playlist, auch auf anderen Seiten (#270)">▶ Abspielen</button>
       <button class="ghost" data-plsa="tagger" ${pl.count ? "" : "disabled"} title="Titel der Playlist in den Tagger laden">Im Tagger öffnen</button>
       <button class="ghost" data-plsa="djset" ${pl.count ? "" : "disabled"} title="Playlist ins DJ-Set laden und dort optimieren">Im DJ-Set öffnen</button>
       <button class="ghost" data-plsa="addtag" ${loaded ? "" : "disabled"} title="Im Tagger markierte Titel ans Ende">+ Markierte aus dem Tagger</button>
@@ -119,7 +121,8 @@ function plsRenderList() {
   const head = `<div class="pls-row pls-hd" aria-hidden="true"><span></span><span class="n">#</span><span>Titel</span><span class="r">BPM</span><span>Tonart</span><span class="r">Länge</span><span>Bewertung</span><span>Ordner</span></div>`;
   list.innerHTML = head + pl.items.map((r) => {
     const t = r.artist && r.title ? `${r.artist} – ${r.title}` : (r.title || r.artist || r.name);
-    const miss = r.missing ? ` <span class="muted sm">${r.in_archive ? "(im Archiv)" : "(fehlt)"}</span>` : "";
+    const miss = r.ref ? ' <span class="chip sm" title="Nur Künstler und Titel, keine Datei – „Mit Bibliothek abgleichen …“ sucht sie">ohne Datei</span>'
+      : r.missing ? ` <span class="muted sm">${r.in_archive ? "(im Archiv)" : "(fehlt)"}</span>` : "";
     const bpm = r.bpm ? (Math.round(r.bpm * 10) / 10).toString().replace(".", ",") : "–";
     return `<div class="pls-row${PLS.sel.has(r.k) ? " sel" : ""}${r.missing ? " missing" : ""}${r.lock ? " locked" : ""}" data-k="${r.k}" draggable="${!pl.archived}" role="option" aria-selected="${PLS.sel.has(r.k)}" title="${esc(r.in_archive || r.path)}">
       <span class="h" aria-hidden="true">${pl.archived ? "" : "⋮⋮"}</span><span class="n">${r.k + 1}</span>
@@ -143,15 +146,43 @@ function plsSelect(k, e, src = "key") {
   } else { PLS.sel = new Set([k]); PLS.anchor = k; }
   $$("#plsList .pls-row[data-k]").forEach((el) => { const on = PLS.sel.has(+el.dataset.k); el.classList.toggle("sel", on); el.setAttribute("aria-selected", String(on)); });
   const el = $(`#plsList .pls-row[data-k="${k}"]`); if (el) el.scrollIntoView({ block: "nearest" });
-  if (typeof playerFollow === "function") playerFollow(src);
+  if (src && typeof playerFollow === "function") playerFollow(src);
 }
 
-/** Player-Ziel auf dieser Seite: markierter Titel, wenn er im Tagger geladen ist */
-function plsTarget() {
-  const r = PLS.anchor !== null ? plsRow(PLS.anchor) : null;
-  return r && r.i !== null && r.i !== undefined ? { kind: "tag", ref: r.i } : null;
+/** Player-Ziel einer Zeile: im Tagger geladen → kind „tag“, sonst die Datei direkt (kind „file“, #270) */
+function plsRowTarget(r) {
+  if (!r || r.missing || !r.path) return null;
+  return r.i !== null && r.i !== undefined ? { kind: "tag", ref: r.i } : { kind: "file", ref: r.path };
 }
+function plsSame(a, b) { return !!a && !!b && (a === b || a.toLowerCase() === b.toLowerCase()); }
+
+/** „Playlist abspielen“ (#270): läuft gerade ein Titel der gestarteten Playlist? Dann folgt der Player ihr – auch auf
+    anderen Seiten (⏭/⏮, Titelende, Überblenden bei im Tagger geladenen Titeln). */
+function plsPlayActive() {
+  return !!(PLS.play && PLAYER.info && PLS.play.items.some((r) => plsSame(r.path, PLAYER.info.path)));
+}
+function plsPlayIndex() { return PLS.play ? PLS.play.items.findIndex((r) => plsSame(r.path, PLAYER.info && PLAYER.info.path)) : -1; }
+
+function plsPlayStart() {
+  const pl = plsCur(); if (!pl) return;
+  const items = pl.items.map((r) => ({ path: r.path, i: r.i, missing: r.missing || !r.path }));
+  let k = PLS.anchor !== null && !items[PLS.anchor].missing ? PLS.anchor : items.findIndex((r) => !r.missing);
+  if (k < 0) { toast("Keine abspielbaren Titel."); return; }
+  PLS.play = { id: pl.id, name: pl.name, items };
+  plsSelect(k, null, null);
+  plLoad(plsRowTarget(pl.items[k]), true);
+  setTimeout(plsRenderHead, 600);
+}
+
+/** Player-Ziel auf dieser Seite: markierter Titel */
+function plsTarget() { return plsRowTarget(PLS.anchor !== null ? plsRow(PLS.anchor) : null); }
+
 function plsNextTag() {
+  if (plsPlayActive()) {
+    const it = PLS.play.items;
+    for (let j = plsPlayIndex() + 1; j < it.length; j++) if (it[j].i !== null && it[j].i !== undefined && !it[j].missing) return it[j].i;
+    return null;
+  }
   const pl = plsCur(); if (!pl) return null;
   let k = pl.items.findIndex((r) => r.i === PLAYER.ref);
   if (k < 0) k = PLS.anchor === null ? -1 : PLS.anchor;
@@ -159,13 +190,24 @@ function plsNextTag() {
   return null;
 }
 function plsSelectTag(i) { const pl = plsCur(); const k = pl ? pl.items.findIndex((r) => r.i === i) : -1; if (k >= 0) plsSelect(k); }
+
 async function plsStep(dir, play = true) {
+  if (plsPlayActive()) {                                       // gestartete Playlist, egal welche Seite offen ist
+    const it = PLS.play.items;
+    let k = plsPlayIndex();
+    do { k += dir; } while (k >= 0 && k < it.length && it[k].missing);
+    if (k < 0 || k >= it.length) return;
+    const pl = plsCur();
+    if (S.module === "playlists" && pl && pl.id === PLS.play.id && pl.items[k]) plsSelect(k, null, null);
+    plLoad(plsRowTarget(it[k]), true);
+    return;
+  }
   const pl = plsCur(); if (!pl) return;
   let k = PLS.anchor === null ? -1 : PLS.anchor;
   for (let s = 0; s < pl.items.length; s++) {
     k = k < 0 ? (dir > 0 ? 0 : pl.items.length - 1) : k + dir;
     if (k < 0 || k >= pl.items.length) return;
-    if (pl.items[k].i !== null && pl.items[k].i !== undefined) break;
+    if (plsRowTarget(pl.items[k])) break;
   }
   const was = PLAYER.audio && !PLAYER.audio.paused;
   plsSelect(k);
@@ -174,8 +216,9 @@ async function plsStep(dir, play = true) {
 
 function plsPlay(k) {
   const r = plsRow(k); if (!r) return;
-  if (r.i === null || r.i === undefined) { toast(r.missing ? "Die Datei fehlt." : "Zum Abspielen die Playlist zuerst im Tagger öffnen."); return; }
-  plLoad({ kind: "tag", ref: r.i }, true);
+  const t = plsRowTarget(r);
+  if (!t) { toast(r.ref ? "Zu diesem Eintrag gibt es noch keine Datei." : "Die Datei fehlt."); return; }
+  plLoad(t, true);
 }
 
 // ---------------------------------------------------------------- Auswahl- und Namensdialoge
@@ -374,9 +417,113 @@ function plsPlMenu(x, y, id) {
     { label: "Farbe und Notiz …", run: () => plsColorNote(id) },
     { label: "Mit anderen zusammenführen …", run: () => plsMerge(id) },
     ...(PLS.st.mirror ? [{ label: "M3U8 im Playlist-Ordner zeigen", icon: ICON.folder, run: () => call("pl_reveal", id).then((ok) => { if (!ok) toast("Datei nicht gefunden."); }) }] : []),
+    "-", ...plsListItems(id),
     "-", { label: "Archivieren …", run: () => plsArchive(id) },
   ]);
 }
+
+/** #270/#271: Export, Warteschlange, Abgleich, Fehlende, Einkaufsliste */
+function plsListItems(id) {
+  const cur = plsCur(), here = cur && cur.id === id ? cur : null;
+  const refs = here ? here.refs : 0, gone = here ? here.missing - here.refs : 0;
+  return [
+    { label: "Exportieren: M3U8 (absolute Pfade) …", run: () => plsExport("m3u8", { ids: [id] }, { relative: false }) },
+    { label: "Exportieren: M3U8 (relative Pfade) …", run: () => plsExport("m3u8", { ids: [id] }, { relative: true }) },
+    { label: "Exportieren: Rekordbox-XML …", run: () => plsExport("xml", { ids: [id] }, {}) },
+    { label: "Exportieren: CSV für Excel …", run: () => plsExport("csv", { ids: [id] }, {}) },
+    { label: "In die Warteschlange (im Tagger geladene Titel)", run: () => plsToQueue(id) },
+    ...(here && refs ? [{ label: `Mit Bibliothek abgleichen … (${refs} ohne Datei)`, run: () => plsMatch(id) }] : []),
+    ...(here && gone > 0 ? [{ label: `Fehlende suchen … (${gone})`, run: () => plsFindMissing(id) }] : []),
+    ...(here && (refs || gone > 0) ? [{ label: "Einkaufsliste exportieren …", run: () => plsShopping({ ids: [id] }) }] : []),
+  ];
+}
+
+async function plsExport(fmt, sel, opts) {
+  try {
+    const r = await call("pl_export", fmt, sel.ids || null, sel.folder ?? null, opts);
+    if (r && r.ok) { toast(r.message); status(`${r.message} (${r.path})`, "info"); }
+  } catch (e) { toast(String(e.message || e)); }
+}
+async function plsShopping(sel) {
+  try {
+    const r = await call("pl_shopping", sel.ids || null, sel.folder ?? null);
+    if (r && r.ok) { toast(r.message); status(`${r.message} (${r.path})`, "info"); }
+  } catch (e) { toast(String(e.message || e)); }
+}
+async function plsToQueue(id) {
+  try { const st = await call("pl_to_queue", id); if (typeof pqApply === "function") pqApply(st); else toast(st.message); }
+  catch (e) { toast(String(e.message || e)); }
+}
+
+/** Import: Datei oder Plugin-Quelle (#271) */
+async function plsImportMenu(btn) {
+  let src = [];
+  try { src = (await call("dj_sources")).sources || []; } catch (e) { /* keine */ }
+  const r = btn.getBoundingClientRect();
+  showMenu(r.left, r.bottom + 6, [
+    { label: "Datei (M3U, M3U8, Rekordbox-XML, CSV) …", run: () => plsImportFile() },
+    ...src.map((x) => ({ label: `Aus ${x.name} …`, run: () => plsImportSource(x) })),
+  ]);
+}
+async function plsImportFile() {
+  try { const st = await call("pl_import", ""); if (st && !st.cancelled) { PLS.sel = new Set(); plsApply(st); } }
+  catch (e) { toast(String(e.message || e)); }
+}
+async function plsImportSource(src) {
+  const res = await runTask(call("start_dj_source_list", src.id), `${src.name}: Playlists holen`);
+  if (!res || res.cancelled) return;
+  const pls = res.playlists || [];
+  if (!pls.length) { info(src.name, "Keine Playlists gefunden."); return; }
+  const ids = await modal({ title: `Playlists aus ${src.name} übernehmen`, wide: true,
+    html: `<div class="hint">Häkchen setzen und „Übernehmen“ – jede Playlist kommt in den Ordner „${esc(src.name)}“ (schon geholte werden aktualisiert).</div>
+      <div class="djs-list">${pls.map((p, k) => `<label class="djs-row" style="padding-left:${8 + 18 * Math.max(0, p.depth)}px"><input type="checkbox" data-plsi="${k}"> <span translate="no">${esc(p.name)}</span></label>`).join("")}</div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
+    collect: (b) => [...b.querySelectorAll("[data-plsi]:checked")].map((c) => pls[+c.dataset.plsi].id) });
+  if (!ids || !ids.length) return;
+  const r = await runTask(call("start_pl_source_import", src.id, ids), `${src.name}: Playlists übernehmen`);
+  if (!r || r.cancelled) return;
+  toast(`${r.lists.length} Playlist(s) übernommen` + (r.missing ? ` · ${r.missing} Titel nicht auf diesem Rechner` : "") + ".");
+  const first = r.lists[0];
+  plsApply(await call("pl_state", first ? first.id : ""));
+}
+
+/** Treffer-Dialog für Abgleich und Fehlende suchen: je Zeile Status und Auswahl → picks [{k, path}] */
+async function plsPickRows(title, hint, rows, labelOf) {
+  const st = { sure: "gefunden", unclear: "unklar", missing: "fehlt" };
+  const opt = (r) => r.candidates.length
+    ? `<select class="inp" data-plsk="${r.k}">${r.status === "sure" ? "" : '<option value="">– nicht verknüpfen –</option>'}${r.candidates.map((c) => `<option value="${esc(c)}"${c === r.path ? " selected" : ""}>${esc(c)}</option>`).join("")}</select>`
+    : '<span class="muted sm">kein Treffer</span>';
+  return modal({ title, wide: true,
+    html: `<div class="hint">${esc(hint)}</div><div class="fx-table" style="max-height:55vh"><table><thead><tr><th>Eintrag</th><th>Status</th><th>Datei</th></tr></thead><tbody>${rows.map((r) => `<tr>
+      <td translate="no">${esc(labelOf(r))}</td><td><span class="pls-st ${r.status}">${st[r.status]}</span></td><td translate="no">${opt(r)}</td></tr>`).join("")}</tbody></table></div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Verknüpfen", value: true, primary: true }],
+    collect: (b) => [...b.querySelectorAll("[data-plsk]")].map((el) => ({ k: +el.dataset.plsk, path: el.value })).filter((x) => x.path) });
+}
+
+async function plsMatch(id) {
+  const r = await runTask(call("start_pl_match", id), "Mit der Bibliothek abgleichen");
+  if (!r || r.cancelled) return;
+  if (r.ok === false) { toast(r.error); return; }
+  const picks = await plsPickRows("Mit der Bibliothek abgleichen",
+    `${fmtN(r.library)} Titel in der Bibliothek geprüft: ${fmtN(r.sure)} gefunden, ${fmtN(r.unclear)} unklar (z. B. anderer Mix), ${fmtN(r.missing)} fehlen. Gefundene sind vorgewählt; unklare bitte selbst wählen.`,
+    r.rows, (x) => x.label);
+  if (picks && picks.length) plsCall("pl_relink", id, picks);
+}
+
+async function plsFindMissing(id) {
+  let folder = "";
+  const how = await modal({ title: "Fehlende suchen", html: '<p style="margin:0">Wo soll TagStudio nach den fehlenden Dateien suchen (gleicher Dateiname)?</p>',
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Anderer Ordner …", value: "pick" }, { label: "In der Bibliothek", value: "lib", primary: true }] });
+  if (!how) return;
+  if (how === "pick") { folder = await call("pick_path", "", true, ""); if (!folder) return; }
+  const r = await runTask(call("start_pl_find_missing", id, folder), "Fehlende Dateien suchen");
+  if (!r || r.cancelled) return;
+  if (r.ok === false) { toast(r.error); return; }
+  const picks = await plsPickRows("Fehlende suchen", "Neuer Ort je fehlender Datei – eindeutige Treffer (gleiche Grösse) sind vorgewählt.",
+    r.rows, (x) => x.old.split(/[\\/]/).pop());
+  if (picks && picks.length) plsCall("pl_relink", id, picks);
+}
+
 
 async function plsRename(id) {
   const p = plsMeta(id); if (!p || p.archived) return;
@@ -394,7 +541,9 @@ function plsFolderMenu(x, y, f) {
     { label: "Neue Playlist hier …", run: () => plsNew(f) },
     { label: "Neuer Unterordner …", run: () => plsNewFolder(f) }, "-",
     { label: "Ordner umbenennen …", run: async () => { const n = await plsAsk("Ordner umbenennen", "Neuer Name bzw. Pfad (mit „/“)", f); if (n && n !== f) plsCall("pl_folder_rename", f, n); } },
-    { label: "Leeren Ordner entfernen", run: () => plsCall("pl_folder_remove", f) },
+    { label: "Leeren Ordner entfernen", run: () => plsCall("pl_folder_remove", f) }, "-",
+    { label: "Ordner als Rekordbox-XML exportieren …", run: () => plsExport("xml", { folder: f }, {}) },
+    { label: "Einkaufsliste des Ordners …", run: () => plsShopping({ folder: f }) }, "-",
     { label: "Ganzen Ordner archivieren …", run: async () => {
       const n = PLS.st.playlists.filter((p) => p.folder === f || p.folder.startsWith(f + "/")).length;
       const ok = await modal({ title: "Ordner archivieren", html: `<p style="margin:0">Alle ${fmtN(n)} Playlists in „${esc(f)}“ archivieren? Sie lassen sich einzeln zurückholen.</p>`,
@@ -475,6 +624,7 @@ function plsKey(e) {
 function plsInit() {
   $("#plsNew").addEventListener("click", () => plsNew(""));
   $("#plsNewFolder").addEventListener("click", () => plsNewFolder(""));
+  $("#plsImport").addEventListener("click", (e) => { e.stopPropagation(); plsImportMenu(e.currentTarget); });   // #271
   $("#plsUndo").addEventListener("click", () => plsCall("pl_undo", PLS.st ? PLS.st.sel : ""));
   $("#plsRedo").addEventListener("click", () => plsCall("pl_redo", PLS.st ? PLS.st.sel : ""));
   $("#plsExt").addEventListener("click", plsExternal);
@@ -519,6 +669,7 @@ function plsInit() {
     if (a === "tagger") plsOpenTagger(pl.id);
     else if (a === "djset") plsOpenDjset(pl.id);
     else if (a === "addtag") { const idx = typeof tgSelected === "function" ? tgSelected() : []; if (!idx.length) toast("Im Tagger zuerst Titel markieren."); else plsAddTo(pl.id, "tag", idx); }
+    else if (a === "play") plsPlayStart();                                       // #270
     else if (a === "more") { e.stopPropagation(); const r = b.getBoundingClientRect(); plsPlMenu(r.left, r.bottom + 6, pl.id); }
     else if (a === "restore") plsCall("pl_restore", pl.id);
     else if (a === "delete") plsDelete(pl.id);

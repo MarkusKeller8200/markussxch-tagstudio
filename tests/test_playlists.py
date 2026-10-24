@@ -242,6 +242,46 @@ class TestMigrate(Base):
         self.assertFalse(self.s.undo_stack)
 
 
+class TestMatchImport(Base):
+    """#271: Abgleich ohne Datei, CSV/Rekordbox-Import, Rekordbox-Export mit Ordnern, Neu-Verknüpfen."""
+
+    def test_match_ref(self):
+        idx = [playlists.lib_entry("/l/a.mp3", "Daft Punk feat. X", "One More Time (Extended Mix)", "FR-AB1", 320),
+               playlists.lib_entry("/l/b.mp3", "Daft Punk", "One More Time", "", 240),
+               playlists.lib_entry("/l/c.mp3", "Other", "Song", "", 200)]
+        m = playlists.match_ref
+        self.assertEqual(m({"isrc": "fr-ab1"}, idx)["path"], "/l/a.mp3")
+        self.assertEqual(m({"artist": "Daft Punk", "title": "One More Time", "mix": "Extended Mix"}, idx)["path"], "/l/a.mp3")
+        self.assertEqual(m({"artist": "Daft Punk", "title": "One More Time (Original Mix)"}, idx)["path"], "/l/b.mp3")
+        r = m({"artist": "Daft Punk", "title": "One More Time (Radio Edit)"}, idx)
+        self.assertEqual((r["status"], sorted(r["candidates"])), ("unclear", ["/l/a.mp3", "/l/b.mp3"]))     # anderer Mix
+        self.assertEqual(m({"artist": "Nobody", "title": "Nothing"}, idx)["status"], "missing")
+        self.assertEqual(m({"artist": "Other", "title": "Song", "dur": 420}, idx)["status"], "unclear")     # Dauer passt nicht
+
+    def test_parse_csv(self):
+        items = playlists.parse_csv("Künstler;Titel;Mix;ISRC;Dauer\nA;Song;Extended Mix;X1;5:20\nB;Zwei;;;\n")
+        self.assertEqual(items[0]["ref"], {"artist": "A", "title": "Song", "mix": "Extended Mix", "isrc": "X1", "dur": 320, "source": "csv"})
+        items = playlists.parse_csv("Path,Artist\nsub/x.mp3,A\n", "/base")
+        self.assertEqual(os.path.normpath(items[0]["path"]), os.path.normpath("/base/sub/x.mp3"))
+        items = playlists.parse_csv("A - Song\nC:\\M\\b.mp3\n")
+        self.assertEqual((items[0]["ref"]["artist"], items[1]["path"]), ("A", "C:\\M\\b.mp3"))
+        p = self.s.create("Refs", items=[{"ref": {"artist": "A", "title": "Song"}}, {"ref": {}}, {"path": self.a}])
+        self.assertEqual(len(p["items"]), 2)                                            # leere Angabe fällt weg
+        self.assertNotIn("A - Song", self.read("Refs.m3u8"))                            # ohne Datei nicht in der M3U8
+        self.assertEqual(self.s.relink(p["id"], [{"k": 0, "path": self.b}, {"k": 9, "path": "x"}]), 1)
+        it = self.s.get(p["id"])["items"][0]
+        self.assertEqual((it["path"], it["ref"]["title"]), (self.b, "Song"))
+
+    def test_rekordbox_tree_roundtrip(self):
+        e = lambda p: {"path": p, "title": "T", "artist": "A", "duration": 60, "bpm": 124, "key": "8A"}  # noqa: E731
+        xml = playlists.rekordbox_tree([{"folder": "Sets/2026", "name": "Freitag", "entries": [e(self.a), e(self.b)]},
+                                        {"folder": "", "name": "Neu", "entries": [e(self.a)]}], "4.8.0")
+        self.assertEqual(xml.count("<TRACK TrackID"), 2)                                 # Sammlung ohne Doppelte
+        tree = playlists.read_rekordbox_tree(xml)
+        self.assertEqual([(g["folder"], g["name"], len(g["paths"])) for g in tree], [("Sets/2026", "Freitag", 2), ("", "Neu", 1)])
+        self.assertEqual(os.path.normcase(tree[0]["paths"][1]), os.path.normcase(self.b))
+
+
 class TestSession(unittest.TestCase):
     """Playlists in der Sitzung: Tagger-Titel, Doppelte, DJ-Set (#268, #269), Übernahme alter Listen, Archiv."""
 
@@ -371,6 +411,78 @@ class TestSession(unittest.TestCase):
         r = s.pl_undo(r["sel"])
         self.assertIn("Rückgängig", r["message"])
         self.assertFalse(any(p["name"] == "Neu" for p in r["playlists"]))
+
+
+    def test_import_export_match_missing(self):
+        import time
+        s = self.session({"base_dir": self.base, "default_tagger": self.lib})
+        def wait():
+            while not s.task_status()["done"]:
+                time.sleep(0.02)
+            return s.task_status()["result"]
+        out = os.path.join(self.dir, "out")
+        os.makedirs(out)
+        # M3U8-Import (relativer Pfad, Umlaut im Namen), dann Export als M3U8, CSV und Rekordbox-XML
+        m = os.path.join(out, "Gäste.m3u8")
+        with open(m, "w", encoding="utf-8") as fh:
+            fh.write("#EXTM3U\n#EXTINF:30,DJ - A\n../Musik/01_Library/a.mp3\n")
+        st = s.pl_import_file(m, "Import")
+        pid = st["sel"]
+        self.assertEqual((st["pl"]["name"], st["pl"]["folder"], st["pl"]["items"][0]["title"]), ("Gäste", "Import", "A"))
+        s.pl_export_file("m3u8", os.path.join(out, "x.m3u8"), [pid], None, {"relative": True})
+        with open(os.path.join(out, "x.m3u8"), encoding="utf-8") as fh:
+            self.assertIn(os.path.join("..", "Musik", "01_Library", "a.mp3"), fh.read())
+        s.pl_export_file("csv", os.path.join(out, "x.csv"), [pid])
+        with open(os.path.join(out, "x.csv"), encoding="utf-8-sig") as fh:
+            self.assertIn("8A", fh.read())
+        s.pl_create("Zwei", "Import/Sub", [self.idx(s, "b.mp3")])
+        r = s.pl_export_file("xml", os.path.join(out, "x.xml"), None, "Import")
+        self.assertIn("2 Playlist(s)", r["message"])
+        st = s.pl_import_file(os.path.join(out, "x.xml"), "Zurück")
+        self.assertIn("Zurück/Import/Sub", st["folders"])
+        # CSV ohne Dateien → Abgleich mit der Bibliothek, Einkaufsliste
+        c = os.path.join(out, "Liste.csv")
+        with open(c, "w", encoding="utf-8") as fh:
+            fh.write("Artist;Title\nDJ;A\nDJ;Fehlt\n")
+        st = s.pl_import_file(c)
+        cid = st["sel"]
+        self.assertEqual((st["pl"]["refs"], st["pl"]["items"][0]["ref"]), (2, True))
+        self.assertTrue(s.start_pl_match(cid)["ok"])
+        res = wait()
+        self.assertEqual((res["sure"], res["missing"]), (1, 1))
+        s.pl_relink(cid, [{"k": r["k"], "path": r["path"]} for r in res["rows"] if r["path"]])
+        self.assertEqual(s.pl_state(cid)["pl"]["refs"], 1)
+        r = s.pl_shopping_file(os.path.join(out, "e.csv"), [cid])
+        self.assertIn("1 Titel", r["message"])
+        # Fehlende suchen: Datei verschoben
+        mid = s.pl_create("Verschoben", "", [self.idx(s, "c.mp3")])["sel"]
+        os.makedirs(os.path.join(self.lib, "neu"))
+        os.replace(os.path.join(self.lib, "c.mp3"), os.path.join(self.lib, "neu", "c.mp3"))
+        self.assertTrue(s.start_pl_find_missing(mid)["ok"])
+        res = wait()
+        self.assertEqual((res["rows"][0]["status"], os.path.basename(os.path.dirname(res["rows"][0]["path"]))), ("sure", "neu"))
+        s.pl_relink(mid, [{"k": 0, "path": res["rows"][0]["path"]}])
+        self.assertFalse(s.pl_state(mid)["pl"]["missing"])
+
+    def test_play_queue_prepare(self):
+        s = self.session({"base_dir": self.base})
+        a = os.path.join(self.lib, "a.mp3")
+        pid = s.pl_create("P", "", [self.idx(s, "a.mp3")])["sel"]
+        s2 = self.session(load=False)                                       # Tagger leer: Datei direkt (kind „file“)
+        self.assertEqual(s2.media_info("file", a)["title"], "A")
+        with self.assertRaises(ValueError):
+            s2.media_info("file", os.path.join(self.lib, "b.mp3"))          # nicht in einer Playlist
+        self.assertEqual(len(s.pl_to_queue(pid)["items"]), 1)
+        with self.assertRaises(ValueError):
+            s2.pl_to_queue(pid)                                              # nichts im Tagger geladen
+        name = s._pl_prep_add("Neu/{Jahr}-{Monat}", [a, os.path.join(self.lib, "b.mp3")], "W")
+        pl = s._pls().find(name, "Neu")
+        self.assertEqual((len(pl["items"]), name[:2]), (2, "20"))
+        s._pl_prep_add("Neu/{Jahr}-{Monat}", [a])                            # schon drin: übersprungen
+        self.assertEqual(len(s._pls().get(pl["id"])["items"]), 2)
+        ref = s._pls().create("Wunsch", items=[{"ref": {"artist": "DJ", "title": "B"}}])
+        self.assertEqual(s._pl_autolink([os.path.join(self.lib, "b.mp3")]), 1)
+        self.assertTrue(s._pls().get(ref["id"])["items"][0]["path"].endswith("b.mp3"))
 
 
 if __name__ == "__main__":

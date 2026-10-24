@@ -59,7 +59,8 @@ _PASS = {
     "pl_list", "pl_state", "pl_tag_indices", "pl_files", "pl_create", "pl_rename", "pl_move", "pl_meta", "pl_duplicate",
     "pl_merge", "pl_add_tag", "pl_add_paths", "pl_remove", "pl_order", "pl_undo", "pl_redo", "pl_folder_create",
     "pl_folder_rename", "pl_folder_remove", "pl_folder_archive", "pl_archive", "pl_restore", "pl_delete", "pl_external",
-    "pl_external_apply", "set_playlist_dir",
+    "pl_external_apply", "set_playlist_dir", "pl_to_queue", "start_pl_match", "start_pl_find_missing", "pl_relink",
+    "pl_import_file", "start_pl_source_import",
     "help_docs", "help_licenses", "help_lic_mark", "feedback_info", "feedback_search", "feedback_prepare", "feedback_translation", "help_tags", "start_tag_scan", "tag_field_filter",
     "setup_state", "setup_finish", "set_nav_hidden", "first_steps_seen", "first_steps_restart", "set_first_steps", "whats_new", "whats_new_seen", "folders_overview", "set_base_dir", "setup_structure", "set_archive_dir", "tag_archive", "prep_archive", "archive_list", "archive_restore",
     "disc_overview", "disc_follow_save", "disc_set", "disc_genres", "disc_auto", "disc_auto_status", "start_disc_suggest", "start_disc_run",
@@ -267,6 +268,27 @@ class Api:
             return {"ok": False, "cancelled": True}
         return self._s.disc_export_write(fmt, dest, which)
 
+    def pl_export(self, fmt, ids=None, folder=None, opts=None):
+        """#271: Playlist(s) als M3U8, Rekordbox-XML oder CSV speichern."""
+        dest = self.save_dialog(self._s.pl_export_name(ids, fmt, folder))
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        return self._s.pl_export_file(fmt, dest, ids, folder, opts or {})
+
+    def pl_shopping(self, ids=None, folder=None):
+        """#271: Einkaufsliste (Titel ohne Datei, fehlende Dateien) als CSV speichern."""
+        dest = self.save_dialog("Einkaufsliste.csv")
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        return self._s.pl_shopping_file(dest, ids, folder)
+
+    def pl_import(self, folder=""):
+        """#271: M3U/M3U8, Rekordbox-XML oder CSV wählen und als Playlist(s) übernehmen."""
+        p = self.pick_file("playlist")
+        if not p:
+            return {"cancelled": True}
+        return self._s.pl_import_file(p, folder)
+
     def dj_export(self, fmt, opts=None):
         """#4: DJ-Set als M3U8, Rekordbox-XML oder CSV speichern."""
         dest = self.save_dialog(self._s.dj_export_name(fmt))
@@ -420,7 +442,8 @@ class Api:
                  "mp3": ("MP3-Dateien (*.mp3;*.MP3)", "Alle Dateien (*.*)"),
                  "program": ("Programme (*.exe;*.app;*.bat;*.cmd)", "Alle Dateien (*.*)"),
                  "json": ("Einstellungen (*.json)", "Alle Dateien (*.*)"),
-                 "texts": ("Texte (*.csv;*.json)", "Alle Dateien (*.*)")}[kind]
+                 "texts": ("Texte (*.csv;*.json)", "Alle Dateien (*.*)"),
+                 "playlist": ("Playlists (*.m3u;*.m3u8;*.xml;*.csv;*.txt)", "Alle Dateien (*.*)")}[kind]
         if self._window is not None:
             import webview
             res = self._window.create_file_dialog(webview.OPEN_DIALOG, directory=start, file_types=types)
@@ -833,7 +856,8 @@ def _tk_dialog(kind, start, extra=""):
                 ft = {"image": [("Bilder", "*.jpg *.jpeg *.png *.gif *.JPG *.JPEG *.PNG")],
                       "program": [("Programme", "*.exe *.bat *.cmd")],
                       "json": [("Einstellungen", "*.json")],
-                      "texts": [("Texte", "*.csv *.json")]}.get(extra, [("MP3-Dateien", "*.mp3 *.MP3")])
+                      "texts": [("Texte", "*.csv *.json")],
+                      "playlist": [("Playlists", "*.m3u *.m3u8 *.xml *.csv *.txt")]}.get(extra, [("MP3-Dateien", "*.mp3 *.MP3")])
                 p = filedialog.askopenfilename(initialdir=start, parent=root, filetypes=ft + [("Alle Dateien", "*")])
             root.destroy()
             result["p"] = os.path.normpath(p) if p else ""

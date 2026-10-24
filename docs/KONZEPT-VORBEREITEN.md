@@ -96,6 +96,10 @@ In der Meldung zusätzlich „Feld künftig erlauben“ (übernimmt das Feld in 
   Speichern „Letzte Bearbeitung“ (`TXXX:TAGSTUDIO_EDITED`, #185). Beide Zeitstempel zählen nie als Verstoss gegen die
   Schutzregel (`prepare.violations` überspringt `tsmeta.KEYS`). Details: [KONZEPT-TAGGER.md](KONZEPT-TAGGER.md) 5a.
 
+**In Playlist aufnehmen (#270):** Der Schritt „Übernahme“ kann die übernommenen Titel in eine Playlist legen (Feld
+`playlist`, z. B. `Neu/{Jahr}-{Monat}`; Platzhalter `{Jahr}`, `{Monat}`, `{Tag}`, `{Workflow}`). Danach werden
+Einträge ohne Datei in allen Playlists mit den neuen Titeln verknüpft, wenn sie sicher passen (#271).
+
 ### 7. Download gekaufter Titel (Beatport, später weitere)
 - Abgleich „gekauft“ ↔ „schon vorhanden“ und Download der fehlenden in den Eingangsordner.
 - Beatport hat keine öffentliche Download-Schnittstelle; das Beatport-Plugin nutzt heute den inoffiziellen Login.

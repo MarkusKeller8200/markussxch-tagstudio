@@ -274,6 +274,13 @@ class PrepareMixin:
                         errors.append(str(ex))
             snap = ""
             self._emit("files_added", added)                       # #239: z. B. in Lexicon aufnehmen
+            plname = linked = ""
+            if s["type"] == "import" and added:                    # #270/#271: Playlist, Einträge ohne Datei verknüpfen
+                try:
+                    plname = self._pl_prep_add(s.get("playlist"), added, w.get("name", ""))
+                    linked = self._pl_autolink(added)
+                except Exception as ex:  # noqa: BLE001
+                    errors.append(f"Playlist: {ex}")
             if s["type"] == "import" and done:
                 lib = next((l for l in self.snap_store.libraries()
                             if os.path.normcase(os.path.abspath(l.get("root") or "")) == os.path.normcase(os.path.abspath(w["library"]))), None) \
@@ -282,7 +289,7 @@ class PrepareMixin:
                     self.snap_create(lib["id"], f"Nach Übernahme ({done} Titel)")
                     snap = lib["name"]
             return {"done": done, "errors": errors[:50], "launched": launched, "folder": ext_folder, "snapshot": snap,
-                    "step": s["label"]}
+                    "step": s["label"], "playlist": plname, "linked": linked or 0}
         return self._run("prep", f"Vorbereiten: {s['label']}", job)
 
     def start_prep_fetch(self, wid, qids=None):

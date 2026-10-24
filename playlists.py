@@ -24,7 +24,9 @@ import re
 import secrets
 import shutil
 import time
+import unicodedata
 import urllib.parse
+import xml.etree.ElementTree as ET
 
 import archive
 import setexport
@@ -106,7 +108,8 @@ def _unique(path: str) -> str:
 
 
 def clean_item(x) -> dict | None:
-    """Eintrag bereinigen. Ein Eintrag braucht einen Pfad oder (später, #271) eine Angabe „ref“ ohne Datei."""
+    """Eintrag bereinigen. Ein Eintrag braucht einen Pfad oder eine Angabe „ref“ ohne Datei (#271:
+    {"artist", "title", "mix", "isrc", "dur", "source"} – z. B. aus einer CSV oder einer fremden Trackliste)."""
     if isinstance(x, str):
         x = {"path": x}
     if not isinstance(x, dict):
@@ -114,6 +117,22 @@ def clean_item(x) -> dict | None:
     out = {k: x[k] for k in ITEM_KEYS if k in x and x[k] not in (None, "")}
     if not isinstance(out.get("path", ""), str) or not (out.get("path") or isinstance(out.get("ref"), dict)):
         return None
+    if isinstance(out.get("ref"), dict):
+        r = {k: str(out["ref"][k]).strip()[:300] for k in ("artist", "title", "mix", "isrc", "source")
+             if str(out["ref"].get(k) or "").strip()}
+        if out["ref"].get("dur"):
+            try:
+                r["dur"] = int(float(out["ref"]["dur"]))
+            except (TypeError, ValueError):
+                pass
+        if r.get("artist") or r.get("title") or r.get("isrc"):
+            out["ref"] = r
+        else:
+            del out["ref"]
+            if not out.get("path"):
+                return None
+    elif "ref" in out:
+        del out["ref"]
     if "lock" in out:
         out["lock"] = bool(out["lock"])
         if not out["lock"]:
@@ -161,6 +180,198 @@ def m3u_text(pl: dict, dest_dir: str) -> str:
     entries = [{"path": it["path"], "artist": it.get("artist", ""), "title": it.get("title", ""),
                 "duration": it.get("dur") or 0} for it in pl.get("items") or [] if it.get("path")]
     return setexport.m3u8(entries, dest_dir, True, pl.get("name", ""))
+
+
+# =========================================================================== Abgleich mit der Bibliothek (#271)
+_MIXWORDS = r"mix|edit|remix|version|dub|rework|bootleg|vip|instrumental|acapella|a cappella|extended|original|radio|club|remaster"
+_MIX_RE = re.compile(r"\s*[\(\[]([^\)\]]*\b(?:" + _MIXWORDS + r")\b[^\)\]]*)[\)\]]\s*$", re.I)
+_FEAT_RE = re.compile(r"\s*[\(\[]?\b(?:feat|ft|featuring)\b\.?\s+[^\)\]]*[\)\]]?", re.I)
+_ART_SPLIT = re.compile(r"\s*(?:,|&|;|/|\bx\b|\bvs\.?|\band\b|\bund\b|\bfeat\.?|\bft\.?|\bfeaturing\b)\s*", re.I)
+
+
+def norm(s) -> str:
+    """Vergleichsform: ohne Akzente und Satzzeichen, klein, einfache Leerzeichen."""
+    s = unicodedata.normalize("NFKD", str(s or ""))
+    s = "".join(c for c in s if not unicodedata.combining(c)).casefold()
+    return " ".join(re.sub(r"[^\w]+", " ", s).split())
+
+
+def split_title(title, mix="") -> tuple[str, str]:
+    """„Song (Extended Mix)“ → ("song", "extended mix"); „Original Mix“ gilt wie keine Angabe."""
+    t = _FEAT_RE.sub(" ", str(title or ""))
+    m = _MIX_RE.search(t)
+    if m and not mix:
+        mix = m.group(1)
+    if m:
+        t = t[:m.start()]
+    mx = norm(mix)
+    return norm(t), "" if mx in ("original mix", "original", "original version") else mx
+
+
+def artist_keys(artist) -> set:
+    return {norm(a) for a in _ART_SPLIT.split(str(artist or "")) if norm(a)}
+
+
+def lib_entry(path, artist, title, isrc="", dur=0) -> dict:
+    base, mix = split_title(title)
+    return {"path": path, "artist": artist, "title": title, "isrc": norm(isrc).replace(" ", ""), "dur": dur or 0,
+            "akeys": artist_keys(artist), "base": base, "mix": mix}
+
+
+def match_ref(ref: dict, index: list) -> dict:
+    """Eintrag ohne Datei mit der Bibliothek abgleichen → {"status": sure|unclear|missing, "path", "candidates"}.
+    Gleiche ISRC oder gleicher Künstler + Titel + Mix = sicher; anderer Mix (Radio Edit ≠ Extended Mix) oder
+    mehrere Treffer = unklar."""
+    isrc = norm(ref.get("isrc")).replace(" ", "")
+    if isrc:
+        hits = [e for e in index if e["isrc"] == isrc]
+        if len(hits) == 1:
+            return {"status": "sure", "path": hits[0]["path"], "candidates": [hits[0]["path"]]}
+    base, mix = split_title(ref.get("title"), ref.get("mix", ""))
+    ak = artist_keys(ref.get("artist"))
+    if not base:
+        return {"status": "missing", "path": "", "candidates": []}
+    cand = [e for e in index if e["base"] == base and (not ak or not e["akeys"] or ak & e["akeys"])]
+    exact = [e for e in cand if e["mix"] == mix]
+    dur = int(ref.get("dur") or 0)
+    if dur:
+        exact = [e for e in exact if not e["dur"] or abs(e["dur"] - dur) <= 20] or exact
+    if len(exact) == 1 and (not dur or not exact[0]["dur"] or abs(exact[0]["dur"] - dur) <= 20):
+        return {"status": "sure", "path": exact[0]["path"], "candidates": [exact[0]["path"]]}
+    pool = exact or cand
+    if pool:
+        return {"status": "unclear", "path": "", "candidates": [e["path"] for e in pool[:12]]}
+    return {"status": "missing", "path": "", "candidates": []}
+
+
+# =========================================================================== Import und Export (#271)
+_CSV_COLS = {"path": ("pfad", "path", "location", "datei", "file", "dateipfad", "filename"),
+             "artist": ("künstler", "kuenstler", "artist", "interpret", "artists"),
+             "title": ("titel", "title", "track", "name", "track title"),
+             "mix": ("mix", "version", "remix", "mix name"),
+             "isrc": ("isrc",),
+             "dur": ("dauer", "duration", "länge", "laenge", "length", "time", "zeit")}
+
+
+def _dur(v) -> int:
+    v = str(v or "").strip()
+    try:
+        if ":" in v:
+            p = [float(x) for x in v.split(":")]
+            return int(p[-1] + 60 * p[-2] + (3600 * p[-3] if len(p) > 2 else 0))
+        return int(float(v.replace(",", "."))) if v else 0
+    except ValueError:
+        return 0
+
+
+def parse_csv(text: str, base_dir: str = "") -> list[dict]:
+    """CSV (Komma, Semikolon oder Tab) → Einträge: mit Pfadspalte Dateien, sonst Angaben ohne Datei (Künstler,
+    Titel, Mix, ISRC, Dauer). Ohne erkannte Kopfzeile: erste Spalte als Pfad bzw. „Künstler - Titel“."""
+    text = str(text or "").lstrip("\ufeff")
+    first = text.splitlines()[0] if text.strip() else ""
+    delim = max((";", ",", "\t"), key=first.count) if first else ";"
+    rows = [r for r in csv.reader(text.splitlines(), delimiter=delim) if any(c.strip() for c in r)]
+    if not rows:
+        return []
+    head = [norm(c) for c in rows[0]]
+    col = {}
+    for key, names in _CSV_COLS.items():
+        for i, h in enumerate(head):
+            if h in {norm(n) for n in names} and key not in col:
+                col[key] = i
+    out = []
+    if col:
+        for r in rows[1:]:
+            g = lambda k: r[col[k]].strip() if k in col and col[k] < len(r) else ""  # noqa: E731
+            p = g("path")
+            if p:
+                if not re.match(r"^[A-Za-z]:[\\/]", p) and not p.startswith(("/", "\\")) and base_dir:
+                    p = os.path.normpath(os.path.join(base_dir, p))
+                out.append({"path": p, "artist": g("artist"), "title": g("title")})
+            elif g("title") or g("isrc"):
+                out.append({"ref": {"artist": g("artist"), "title": g("title"), "mix": g("mix"), "isrc": g("isrc"),
+                                    "dur": _dur(g("dur")), "source": "csv"}})
+        return out
+    for r in rows:
+        c = r[0].strip()
+        if re.search(r"\.(mp3|flac|wav|aiff?|m4a|ogg)$", c, re.I):
+            out.append({"path": c if os.path.isabs(c) or not base_dir else os.path.normpath(os.path.join(base_dir, c))})
+        else:
+            a, sep, t = c.partition(" - ")
+            out.append({"ref": {"artist": a.strip() if sep else "", "title": (t if sep else c).strip(), "source": "csv"}})
+    return out
+
+
+def read_rekordbox_tree(text: str) -> list[dict]:
+    """Rekordbox-XML → [{"folder": "Sets/2026", "name": "Freitag", "paths": [...]}] mit dem Ordnerbaum."""
+    root = ET.fromstring(text)
+    tracks = {}
+    for t in root.iter("TRACK"):
+        if t.get("Location") and t.get("TrackID"):
+            tracks[t.get("TrackID")] = setexport.path_from_location(t.get("Location"))
+    out = []
+
+    def walk(node, path):
+        for n in node.findall("NODE"):
+            if n.get("Type") == "0":
+                walk(n, path + [n.get("Name") or ""])
+            elif n.get("Type") == "1":
+                by_loc = n.get("KeyType") == "1"
+                paths = [setexport.path_from_location(t.get("Key")) if by_loc else tracks.get(t.get("Key"))
+                         for t in n.findall("TRACK")]
+                out.append({"folder": "/".join(x for x in path if x), "name": n.get("Name") or "Playlist",
+                            "paths": [p for p in paths if p]})
+    pl = root.find("PLAYLISTS")
+    if pl is not None:
+        tops = pl.findall("NODE")
+        walk(tops[0] if len(tops) == 1 and tops[0].get("Type") == "0" and tops[0].get("Name") == "ROOT" else pl, [])
+    return out
+
+
+def rekordbox_tree(groups, version: str = "", notation: str = "musical") -> str:
+    """Mehrere Playlists mit Ordnerbaum als Rekordbox-XML. groups: [{"folder", "name", "entries"}], Einträge wie in
+    setexport (path, title, artist, album, genre, duration, bpm, key)."""
+    import keys
+    root = ET.Element("DJ_PLAYLISTS", Version="1.0.0")
+    ET.SubElement(root, "PRODUCT", Name="MarKusSXCH TagStudio", Version=version or "", Company="")
+    col = ET.SubElement(root, "COLLECTION")
+    ids = {}
+    for g in groups:
+        for e in g["entries"]:
+            k = nk(e["path"])
+            if k in ids:
+                continue
+            ids[k] = str(len(ids) + 1)
+            a = {"TrackID": ids[k], "Name": e.get("title") or os.path.splitext(os.path.basename(e["path"]))[0],
+                 "Artist": e.get("artist") or "", "Album": e.get("album") or "", "Genre": e.get("genre") or "",
+                 "Kind": "MP3 File", "TotalTime": str(int(round(e.get("duration") or 0))),
+                 "Location": setexport.location(e["path"])}
+            if e.get("bpm"):
+                a["AverageBpm"] = f"{float(e['bpm']):.2f}"
+            if e.get("key"):
+                a["Tonality"] = keys.format_key(e["key"], notation)
+            ET.SubElement(col, "TRACK", **a)
+    col.set("Entries", str(len(ids)))
+    pls = ET.SubElement(root, "PLAYLISTS")
+    top = ET.SubElement(pls, "NODE", Type="0", Name="ROOT")
+    nodes = {"": top}
+
+    def folder_node(path):
+        if path in nodes:
+            return nodes[path]
+        parent, _, name = path.rpartition("/")
+        n = ET.SubElement(folder_node(parent), "NODE", Type="0", Name=name)
+        nodes[path] = n
+        return n
+    for g in groups:
+        n = ET.SubElement(folder_node(g.get("folder") or ""), "NODE", Name=g["name"], Type="1", KeyType="0",
+                          Entries=str(len(g["entries"])))
+        for e in g["entries"]:
+            ET.SubElement(n, "TRACK", Key=ids[nk(e["path"])])
+    for n in nodes.values():
+        n.set("Count", str(len(n.findall("NODE"))))
+    ET.indent(root, "  ")
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(root, encoding="unicode") + "\n"
 
 
 # =========================================================================== Speicher
@@ -453,6 +664,19 @@ class Store:
                 seen.add(i)
         out += [x for k, x in enumerate(items) if k not in seen]
         return self.update(pid, "Reihenfolge", items=out)
+
+    def relink(self, pid, picks, label="Titel verknüpfen") -> int:
+        """Einträgen einen (neuen) Pfad geben: picks = [{"k": Position, "path": Datei}] – Angaben „ref“ bleiben."""
+        items = copy.deepcopy(self.get(pid).get("items") or [])
+        n = 0
+        for p in picks or []:
+            k, path = (p.get("k"), p.get("path")) if isinstance(p, dict) else (None, None)
+            if isinstance(k, int) and 0 <= k < len(items) and isinstance(path, str) and path:
+                items[k]["path"] = path
+                n += 1
+        if n:
+            self.update(pid, label, items=items)
+        return n
 
     # ------------------------------------------------------------------ Ordner
     def folder_create(self, path) -> str:

@@ -88,6 +88,8 @@ async function prepRun(sid, names = null, force = false) {
   const msg = [`${s.label}: ${fmtN(r.done)} Titel`];
   if (s.type === "external") msg.push(r.launched ? "Programm geöffnet – danach „Aktualisieren“ bzw. erledigt markieren" : s.program ? "" : "kein Programm hinterlegt – bitte selbst öffnen (Ordner: 📁)");
   if (r.snapshot) msg.push(`Snapshot der Bibliothek „${r.snapshot}“ wird erstellt`);
+  if (r.playlist) msg.push(`in Playlist „${r.playlist}“`);                                     // #270
+  if (r.linked) msg.push(`${fmtN(r.linked)} Einträge in Playlists verknüpft`);                 // #271
   status(msg.filter(Boolean).join(" · "), r.errors.length ? "warn" : "info");
   if (r.errors.length) await info("Hinweise", r.errors.join("\n"));
   prepShow();
@@ -168,7 +170,9 @@ function prepStepForm(s, recipesList, origins, pluginActs = []) {
   }
   if (s.type === "verify") f += inp("psFields", "Pflichtfelder", (s.fields || []).join(", "), "z. B. TIT2, TPE1, TKEY, TBPM, APIC*, TXXX:ENERGY")
     + `<span></span><span class="muted sm">Fehlt ein Feld oder ist es leer, wird der Titel als Fehler markiert. Nach dem Ergänzen erneut prüfen.</span>`;
-  if (s.type === "import") f += chk("psDup", "Auf Duplikate prüfen (Dateiname, Künstler + Titel, Audio)", s.dup !== false);
+  if (s.type === "import") f += chk("psDup", "Auf Duplikate prüfen (Dateiname, Künstler + Titel, Audio)", s.dup !== false)
+    + inp("psPlaylist", "In Playlist aufnehmen", s.playlist || "", "leer = keine; z. B. Neu/{Jahr}-{Monat}")
+    + `<span></span><span class="muted sm">Übernommene Titel kommen in diese Playlist (wird angelegt). Platzhalter {Jahr}, {Monat}, {Tag}, {Workflow}; Ordner mit „/“ (#270).</span>`;
   if (s.type === "check") f += det + chk("psProtect", "Schutzregel „nur ergänzen“ (Vergleich mit dem Stand bei der Übernahme)", s.protect) + inp("psAllow", "Erlaubte Felder", (s.allow || []).join(", "));
   return f;
 }
@@ -178,7 +182,7 @@ function prepReadStep(b, s) {
   const out = { ...s, label: v("psLabel") || s.label };
   if (s.type === "recipe") Object.assign(out, { recipe: v("psRecipe"), folder: v("psFolder") });
   if (s.type === "external") Object.assign(out, { program: v("psProgram"), args: v("psArgs"), folder: v("psFolder"), copy: c("psCopy"), detect: v("psDetect"), protect: c("psProtect"), allow: (v("psAllow") || "").split(/\s*,\s*/).filter(Boolean) });
-  if (s.type === "import") Object.assign(out, { dup: c("psDup") });
+  if (s.type === "import") Object.assign(out, { dup: c("psDup"), playlist: v("psPlaylist") || "" });
   if (s.type === "verify") Object.assign(out, { fields: (v("psFields") || "").split(/\s*,\s*/).filter(Boolean) });
   if (s.type === "plugin") { const [plugin, action] = (v("psPlugin") || "|").split("|"); Object.assign(out, { plugin, action, mode: v("psMode"), folder: v("psFolder"), protect: c("psProtect"), allow: (v("psAllow") || "").split(/\s*,\s*/).filter(Boolean) }); }
   if (s.type === "check") Object.assign(out, { detect: v("psDetect"), protect: c("psProtect"), allow: (v("psAllow") || "").split(/\s*,\s*/).filter(Boolean) });

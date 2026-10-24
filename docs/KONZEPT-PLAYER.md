@@ -42,6 +42,10 @@ Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe
 - **Einstellungen:** `player` (Werte aus `PLAYER_PREFS` mit Bereichen), `player_defaults`, `player_window`,
   `player_resume`, `players`.
 
+**Playlist abspielen (#270):** Startet „▶ Abspielen“ auf der Seite Playlists, folgt der Player dieser Playlist,
+solange einer ihrer Titel läuft – auch auf anderen Seiten (`plsPlayActive`, `plsStep`, `plsNextTag`). Nicht im Tagger
+geladene Titel öffnet er als Art „file“ (nur Pfade aus Playlists bzw. dem gemerkten Player-Stand).
+
 ## 4. Entscheide
 
 - Beim Abdocken läuft die Wiedergabe weiter im Hauptfenster; das Fenster ist eine Fernanzeige (Session-Bus).

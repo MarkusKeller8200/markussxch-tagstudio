@@ -175,7 +175,7 @@ class DjSetMixin:
                                                                         progress=progress)}
         return self._run("dj_source", "Playlists holen", job)
 
-    def start_dj_source_import(self, pid, ids, prefix=""):
+    def start_dj_source_import(self, pid, ids, prefix="", load=True):
         """Gewählte Playlists als Playlists im Ordner „<Quelle>“ ablegen (#269; dieselbe Quell-Playlist wird
         aktualisiert); die erste wird ins DJ-Set geladen. → {lists, first, files (der ersten), missing}"""
         ids = [i for i in (ids or []) if isinstance(i, (str, int))]
@@ -204,7 +204,7 @@ class DjSetMixin:
                 out.append({"name": f"{folder}: {pl['name']}", "id": pl["id"], "count": len(r["files"]),
                             "missing": r.get("missing", 0), "files": r["files"]})
             first = out[0] if out else None
-            if first:
+            if first and load:
                 self.dj_load(first["id"])
             return {"ok": True, "lists": [{k: v for k, v in x.items() if k != "files"} for x in out],
                     "first": first["name"] if first else "", "files": first["files"] if first else [], "missing": missing}

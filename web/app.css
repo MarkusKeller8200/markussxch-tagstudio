@@ -1637,3 +1637,6 @@ html.i18n-wait body{visibility:hidden}
 .nav-hist .nav-fwd{flex:none}
 .side.collapsed .nav-hist{flex-direction:column;margin:-10px 0 8px}
 .side.collapsed .nav-hist .nav-back{justify-content:center;padding:0}
+.pls-st{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--raise);white-space:nowrap}
+.pls-st.sure{color:var(--ok)} .pls-st.unclear{color:var(--diff)} .pls-st.missing{color:var(--warn)}
+.chip.on{color:var(--acc);border-color:var(--acc)}

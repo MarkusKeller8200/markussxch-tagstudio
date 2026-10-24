@@ -74,7 +74,7 @@ function pqRenderList() {
 async function pqDialog() {
   const r = await modal({ title: "Warteschlange", wide: true,
     html: '<p class="muted sm" style="margin:0 0 8px">Hat Vorrang vor der Reihenfolge im Tagger bzw. DJ-Set (⏭, Titelende, Überblenden). Gespielte Titel fallen heraus.</p><div id="pqList" class="pq-list"></div>',
-    buttons: [{ label: "Leeren", value: "clear" }, { label: "Als DJ-Set übernehmen", value: "dj" }, { label: "Schliessen", value: null, primary: true }],
+    buttons: [{ label: "Leeren", value: "clear" }, { label: "Als Playlist speichern …", value: "pl" }, { label: "Als DJ-Set übernehmen", value: "dj" }, { label: "Schliessen", value: null, primary: true }],
     onMount: (body) => {
       pqRenderList();
       body.addEventListener("click", (e) => {
@@ -87,6 +87,10 @@ async function pqDialog() {
       });
     } });
   if (r === "clear" && PQ.items.length) pqCall("pq_set", []);
+  if (r === "pl") {                                                                // #270
+    if (!PQ.items.length) { toast("Die Warteschlange ist leer."); return; }
+    if (typeof plsAddDialog === "function") plsAddDialog("paths", PQ.items.map((x) => x.path));
+  }
   if (r === "dj") {
     if (!PQ.items.length) { toast("Die Warteschlange ist leer."); return; }
     try {

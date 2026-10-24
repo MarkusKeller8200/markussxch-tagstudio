@@ -113,7 +113,7 @@ def clean_workflow(w: dict) -> dict:
                       detect=str(s.get("detect") or ""), protect=bool(s.get("protect")),
                       allow=[str(x) for x in s.get("allow") or [] if str(x).strip()])
         elif s["type"] == "import":
-            st.update(dup=s.get("dup", True) is not False)
+            st.update(dup=s.get("dup", True) is not False, playlist=str(s.get("playlist") or "").strip()[:120])
         elif s["type"] == "check":
             st.update(detect=str(s.get("detect") or ""), protect=bool(s.get("protect")),
                       allow=[str(x) for x in s.get("allow") or [] if str(x).strip()])

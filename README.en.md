@@ -263,6 +263,19 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
 - **Archive instead of delete:** “Archive” puts the playlist into the archive (at the bottom of the tree), its M3U8
   moves to `02_Archiv/_Playlists` (note in `_aussortiert.csv`). “Bring back” restores it; deleting permanently is only
   possible in the archive. Tracks moved to the archive stay in their playlists and are marked “in the archive”.
+- **Play:** “▶ Play” starts from the selected track – the player then follows the playlist on other pages too
+  (⏭/⏮, end of track; “▶ playing” in the header). The tracks do not need to be loaded in the tagger. “More ▾ → To the
+  queue” appends the tracks loaded in the tagger; in the queue, “Save as playlist …” stores it as a playlist, and in the
+  player menu “Add the playing track to a playlist …” stores the current track.
+- **Import ▾:** take over M3U/M3U8, Rekordbox XML (with folder tree) or CSV – also lists without files (columns
+  artist, title, mix, ISRC, duration), e.g. tracklists of DJ sets; plus “From Lexicon …”.
+- **More ▾:** export as M3U8 (absolute or relative paths), Rekordbox XML or CSV (whole folders as Rekordbox XML with
+  folder tree by right-clicking the folder). **“Match with library …”** finds the matching track for entries without
+  a file (same ISRC or artist + title + mix = found; different mix such as radio edit instead of extended mix =
+  unclear, choose yourself). **“Find missing …”** finds moved files by file name (same size preferred). **“Export
+  shopping list …”** saves everything missing as CSV.
+- **Prepare:** in the step “Take over into the library”, “Add to playlist” (e.g. `New/{Jahr}-{Monat}`) puts the
+  taken-over tracks into a playlist; new tracks are also linked automatically to matching entries without a file.
 - The previously saved DJ set lists are taken over once as playlists on the first start.
 
 ### Tag fixer

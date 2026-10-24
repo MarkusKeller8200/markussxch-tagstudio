@@ -164,7 +164,7 @@ function plXfadeCheck() {
   if (!x || PLAYER.fade || PLAYER.loading || a.paused || !a.src || PLAYER.repeat || PLAYER.loop || PLAYER.ab || !PLAYER.follow) return;
   if (PLAYER.kind !== "tag") return;
   const dj = S.module === "djset" && typeof djNextTag === "function";
-  const pls = S.module === "playlists" && typeof plsNextTag === "function";      // #267: Playlist-Reihenfolge
+  const pls = (S.module === "playlists" || (typeof plsPlayActive === "function" && plsPlayActive())) && typeof plsNextTag === "function";   // #267, #270
   const qn = typeof pqHead === "function" ? pqHead() : null;                     // #138: Warteschlange zuerst
   if (qn === null && !dj && !pls && (S.module !== "tagger" || !TG.order.length)) return;
   const dur = a.duration;

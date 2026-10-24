@@ -309,10 +309,44 @@ auf der Seite (`plsTarget/plsStep/plsNextTag/plsSelectTag`), Einstellungen › S
 Ordnerstruktur `03_Playlists` (`session_setup.STRUCTURE`), Menüpunkt `playlists` (ausblendbar), Erste Schritte.
 Übersetzungen in `web/i18n/playlists.json`.
 
-**Noch nicht (Phase 2):** Warteschlange als feste Playlist und „Playlist abspielen“ mit eigener Reihenfolge ausserhalb
-der Seite (#270), Export/Import-Menü, Einträge ohne Datei, „Fehlende suchen“ (#271).
+Phase 2 siehe Abschnitt 15.
 
 **Tests:** `tests/test_playlists.py` (Speicher, Rückgängig, Ordner, Archiv, Playlist-Ordner, Änderungen von aussen,
 Übernahme, Sitzung mit Tagger/DJ-Set/Archiv/Einstellung), Oberflächentest `test_playlists_page`; angepasst
 `test_queue_and_saved_lists`, `test_dj_lexicon_playlists`, `tests/test_lexicon.py`, `tests/test_setup.py`.
+
+## 15. Umsetzung Phase 2 (#270, #271 – vom User am 24.10.2026 in 4.8.0 übernommen)
+
+**#270 Player, Warteschlange, Vorbereiten**
+- **„▶ Abspielen“** (`plsPlayStart`): merkt die Reihenfolge der Playlist (`PLS.play`); solange ein Titel daraus läuft,
+  folgt der Player ihr auf jeder Seite (`plsPlayActive` in `plStep`, Titelende, Überblenden nur mit im Tagger geladenen
+  Titeln). Nicht geladene Titel spielt der Player direkt über die Art **„file“** – `session_player._resume_file` erlaubt
+  dafür Pfade aus `player_resume` **oder aus einer aktiven Playlist** (`_pl_has_path`), weiterhin kein beliebiger
+  Dateizugriff.
+- **Warteschlange:** bleibt eine eigene, flüchtige Liste (Entscheid bei der Umsetzung: kein Umbau zu einer festen
+  Playlist, weil sie sich beim Spielen laufend leert). Dazu „Als Playlist speichern …“ im Warteschlangen-Dialog und
+  „Mehr ▾ → In die Warteschlange“ (`pl_to_queue`, nur im Tagger geladene Titel).
+- **Player-Menü:** „Laufenden Titel zur Playlist hinzufügen …“.
+- **Vorbereiten:** Schritt „Übernahme“ hat das Feld `playlist` (Name mit Platzhaltern `{Jahr}`, `{Monat}`, `{Tag}`,
+  `{Workflow}`, Ordner mit „/“) → `_pl_prep_add` legt die Playlist bei Bedarf an und überspringt Doppelte.
+
+**#271 Quellen, Import/Export, Fehlende**
+- Einträge **ohne Datei** (`ref`: `artist`, `title`, `mix`, `isrc`, `dur`, `source`) – in der Liste „ohne Datei“,
+  nicht in der M3U8.
+- **Abgleich** (`playlists.match_ref`, `start_pl_match`): Bibliothek = Tagger-Standardordner, Bibliothek des Workflows,
+  `<Basisordner>/01_Library` (mit Listen-Cache), dazu die im Tagger geladenen Titel. Gleiche ISRC oder gleicher
+  Künstler + Titel + Mix (ohne Akzente/Satzzeichen, „feat.“ und „Original Mix“ zählen nicht) = gefunden; anderer Mix
+  oder mehrere Treffer = unklar; Dauer > 20 s daneben = unklar. Auswahl im Dialog, `pl_relink` (rückgängig machbar).
+- **Automatisch verknüpfen** (`_pl_autolink`): nach der Übernahme in „Vorbereiten“ werden sichere Treffer in allen
+  Playlists eingetragen.
+- **Fehlende suchen** (`start_pl_find_missing`): gleicher Dateiname in den Bibliotheksordnern oder einem gewählten
+  Ordner, gleiche Grösse eindeutig = vorgewählt.
+- **Import** (`pl_import_file`, Api `pl_import` mit Dateidialog): M3U/M3U8 (`parse_m3u`), Rekordbox-XML mit Ordnerbaum
+  (`read_rekordbox_tree`), CSV (`parse_csv`: `;`, `,` oder Tab; Spalten Pfad/Künstler/Titel/Mix/ISRC/Dauer, sonst
+  „Künstler - Titel“ je Zeile); Plugins über `start_pl_source_import` (wie „Aus Lexicon …“, ohne ins DJ-Set zu laden).
+- **Export** (`pl_export_file`, Api `pl_export`): M3U8 absolut/relativ, CSV, Rekordbox-XML für eine Playlist oder einen
+  ganzen Ordner mit Ordnerbaum (`rekordbox_tree`, Sammlung ohne Doppelte). **Einkaufsliste** (`pl_shopping_file`).
+
+**Tests:** `tests/test_playlists.py` (`TestMatchImport`, Sitzung Import/Export/Abgleich/Fehlende, Abspielen ohne Tagger,
+Warteschlange, Vorbereiten, automatisches Verknüpfen), Oberflächentest `test_playlists_play_import`.
 

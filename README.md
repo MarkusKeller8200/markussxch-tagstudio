@@ -269,6 +269,20 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
 - **Archiv statt Löschen:** „Archivieren“ legt die Playlist ins Archiv (unten im Baum), ihre M3U8 wandert nach
   `02_Archiv/_Playlists` (Vermerk in `_aussortiert.csv`). „Zurückholen“ stellt sie wieder her; endgültig löschen geht
   nur im Archiv. Aussortierte Titel bleiben in ihren Playlists stehen und sind als „im Archiv“ markiert.
+- **Abspielen:** „▶ Abspielen“ startet ab dem markierten Titel – der Player folgt der Playlist dann auch auf anderen
+  Seiten (⏭/⏮, Titelende; „▶ läuft“ im Kopf). Titel müssen dafür nicht im Tagger geladen sein. „Mehr ▾ → In die
+  Warteschlange“ hängt die im Tagger geladenen Titel an; in der Warteschlange speichert „Als Playlist speichern …“ sie
+  als Playlist, im Player-Menü legt „Laufenden Titel zur Playlist hinzufügen …“ den gerade gespielten Titel ab.
+- **Importieren ▾:** M3U/M3U8, Rekordbox-XML (mit Ordnerbaum) oder CSV übernehmen – auch Listen ohne Dateien (Spalten
+  Künstler, Titel, Mix, ISRC, Dauer), z. B. Tracklisten von DJ-Sets; dazu „Aus Lexicon …“.
+- **Mehr ▾:** exportieren als M3U8 (absolute oder relative Pfade), Rekordbox-XML oder CSV (ganze Ordner als
+  Rekordbox-XML mit Ordnerbaum per Rechtsklick auf den Ordner). **„Mit Bibliothek abgleichen …“** sucht zu Einträgen
+  ohne Datei den passenden Titel (gleiche ISRC bzw. Künstler + Titel + Mix = gefunden; anderer Mix wie Radio Edit statt
+  Extended Mix = unklar, selbst wählen). **„Fehlende suchen …“** findet verschobene Dateien über den Dateinamen
+  (gleiche Grösse bevorzugt). **„Einkaufsliste exportieren …“** speichert alles, was fehlt, als CSV.
+- **Vorbereiten:** Im Schritt „Übernahme in die Bibliothek“ legt „In Playlist aufnehmen“ (z. B. `Neu/{Jahr}-{Monat}`)
+  die übernommenen Titel in eine Playlist; neue Titel werden ausserdem automatisch mit passenden Einträgen ohne Datei
+  verknüpft.
 - Die bisherigen gespeicherten DJ-Set-Listen werden beim ersten Start einmalig als Playlists übernommen.
 
 ### Tag-Fixer

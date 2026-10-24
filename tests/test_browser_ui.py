@@ -2547,6 +2547,46 @@ class UiTest(unittest.TestCase):
         self.assertTrue(pg.locator("#tgListChip").is_hidden())
         self.assertTrue(pg.locator("#tgFilterReset").is_hidden())
 
+    def test_playlists_play_import(self):
+        """#270: Playlist abspielen ohne Tagger, Player folgt ihr auf anderen Seiten; #271: CSV-Import, Abgleich, Menü."""
+        pg = self.pg
+        files = sorted(os.path.join(self.lib, f) for f in os.listdir(self.lib))
+        pg.evaluate(f"call('set_default_dir', 'tagger', {json.dumps(self.lib)})")
+        pid = pg.evaluate("call('pl_create', 'Abspielen', '', null).then(s => s.sel)")
+        pg.evaluate(f"call('pl_add_paths', {json.dumps(pid)}, {json.dumps(files)}, 'add')")
+        pg.click('.nav[data-module="playlists"]')
+        pg.wait_for_function("document.querySelectorAll('#plsList .pls-row[data-k]').length === 3")
+        pg.click('#plsList .pls-row[data-k="1"] .t')
+        pg.click('#plsHead [data-plsa="play"]')                              # Tagger ist leer: Datei direkt
+        self.assertTrue(self.until(f"PLAYER.kind === 'file' && PLAYER.info && PLAYER.info.path === {json.dumps(files[1])} && !PLAYER.audio.paused", 10))
+        self.assertTrue(self.until("plsPlayActive() && document.querySelector('#plsHead .chip.on')"))
+        pg.click('.nav[data-module="snapshots"]')                            # andere Seite: Player folgt der Playlist
+        pg.click("#plNext")
+        self.assertTrue(self.until(f"PLAYER.info && PLAYER.info.path === {json.dumps(files[2])}", 10))
+        pg.click("#plPrev")
+        self.assertTrue(self.until(f"PLAYER.info && PLAYER.info.path === {json.dumps(files[1])}", 10))
+        pg.keyboard.press("Space")
+        # CSV ohne Dateien importieren, mit der Bibliothek abgleichen
+        csv_path = os.path.join(self.dir, "Wunsch.csv")
+        with open(csv_path, "w", encoding="utf-8") as fh:
+            fh.write("Künstler;Titel\nTest;Ton 330\nTest;Gibt es nicht\n")
+        pg.click('.nav[data-module="playlists"]')
+        pg.evaluate(f"call('pl_import_file', {json.dumps(csv_path)}, '').then(plsApply)")
+        pg.wait_for_function("PLS.st.pl && PLS.st.pl.name === 'Wunsch' && document.querySelectorAll('#plsList .pls-row[data-k]').length === 2")
+        self.assertEqual(pg.locator("#plsList .chip >> text=ohne Datei").count(), 2)
+        pg.click('#plsHead [data-plsa="more"]')
+        self.assertTrue(pg.locator("#menu button", has_text="Exportieren: Rekordbox-XML").is_visible())
+        pg.click("#menu button >> text=Mit Bibliothek abgleichen")
+        pg.wait_for_selector("#mBody select[data-plsk]")
+        self.assertEqual(pg.locator("#mBody .pls-st.sure").count(), 1)
+        self.assertEqual(pg.locator("#mBody .pls-st.missing").count(), 1)
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("PLS.st.pl.refs === 1 && document.querySelectorAll('#plsList .chip').length >= 1")
+        self.assertEqual(pg.evaluate("PLS.st.pl.items[0].path"), files[1])
+        pg.click("#plsImport")
+        pg.wait_for_selector("#menu:not([hidden]) button >> text=Datei (M3U, M3U8, Rekordbox-XML, CSV)")
+        pg.evaluate("hideMenu()")
+
     def test_djset_page(self):
         """#3 DJ-Set: aus dem Tagger übernehmen, optimieren, sperren, ziehen, Tasten, Wiedergabe, gemerkte Optionen."""
         pg = self.pg

@@ -18,6 +18,14 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Tagger ↔ Playlists (#268):** Rechtsklick bzw. Werkzeuge › „Playlist ▾“ → „Zur Playlist hinzufügen …“,
   **Strg+Shift+P** = zur zuletzt benutzten Playlist, „Playlist im Tagger öffnen …“ und Filter „Nur Titel aus einer
   Playlist zeigen“.
+- **Playlists abspielen, Warteschlange, Vorbereiten (#270):** „▶ Abspielen“ – der Player folgt der Playlist auch auf
+  anderen Seiten, Titel müssen nicht im Tagger geladen sein; Warteschlange „Als Playlist speichern …“ und Playlist
+  „In die Warteschlange“; Player-Menü „Laufenden Titel zur Playlist hinzufügen …“; Vorbereiten › Übernahme „In
+  Playlist aufnehmen“ (Platzhalter `{Jahr}`, `{Monat}`, `{Tag}`, `{Workflow}`).
+- **Playlists importieren, exportieren, abgleichen (#271):** Import aus M3U/M3U8, Rekordbox-XML (mit Ordnerbaum),
+  CSV (auch ohne Dateien: Künstler, Titel, Mix, ISRC) und Lexicon; Export als M3U8, Rekordbox-XML (auch ganze Ordner)
+  und CSV; „Mit Bibliothek abgleichen …“ (Radio Edit ≠ Extended Mix), „Fehlende suchen …“ für verschobene Dateien,
+  Einkaufsliste als CSV; neu übernommene Titel werden automatisch verknüpft.
 - **Zurück zur vorherigen Ansicht (#274):** Nach einem Sprung aus dem Inhalt (z. B. Playlist › „Im Tagger öffnen“)
   führt „← Zurück“ oben in der Seitenleiste an dieselbe Stelle zurück – mit Auswahl, Filter und Bildlauf; „→“
   vorwärts, Rechtsklick zeigt die letzten Stationen. Auch Alt+← / Alt+→ (ausser im Vergleich) und die Maustasten

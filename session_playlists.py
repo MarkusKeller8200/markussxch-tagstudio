@@ -156,13 +156,19 @@ class PlaylistMixin:
                         k = playlists.nk(x["path"])
                         count[k] = count.get(k, 0) + 1
                 rows, dur, missing, loaded = [], 0, 0, 0
+                refs = 0
                 for n, x in enumerate(items):
                     k = playlists.nk(x["path"]) if x.get("path") else ""
                     inf = info.get(k, {"missing": True})
+                    ref = x.get("ref") or {}
+                    if not x.get("path"):
+                        refs += 1                                # #271: nur Angabe, keine Datei
                     r = {"k": n, "path": x.get("path", ""), "name": os.path.basename(x.get("path", "")),
                          "dir": os.path.basename(os.path.dirname(x.get("path", ""))),
-                         "artist": inf.get("artist") or x.get("artist", ""), "title": inf.get("title") or x.get("title", ""),
-                         "bpm": inf.get("bpm"), "key": inf.get("key"), "dur": inf.get("dur") or x.get("dur") or 0,
+                         "artist": inf.get("artist") or x.get("artist", "") or ref.get("artist", ""),
+                         "title": inf.get("title") or x.get("title", "") or (ref.get("title", "") + (f" ({ref['mix']})" if ref.get("mix") else "")),
+                         "ref": not x.get("path"), "bpm": inf.get("bpm"), "key": inf.get("key"),
+                         "dur": inf.get("dur") or x.get("dur") or ref.get("dur") or 0,
                          "rating": inf.get("rating", 0), "i": inf.get("i"), "missing": bool(inf.get("missing")),
                          "in_archive": inf.get("archived", ""), "lock": bool(x.get("lock")), "dup": count.get(k, 0) > 1,
                          "added": x.get("added", 0)}
@@ -171,7 +177,7 @@ class PlaylistMixin:
                     loaded += r["i"] is not None
                     rows.append(r)
                 out["pl"] = {**st.meta(pl), "items": rows, "duration": dur, "missing": missing, "loaded": loaded,
-                             "djset": pl["id"] == self.cfg.get("djset_pl")}
+                             "refs": refs, "djset": pl["id"] == self.cfg.get("djset_pl")}
             return out
 
     def pl_tag_indices(self, pid) -> dict:
@@ -390,3 +396,324 @@ class PlaylistMixin:
             pl = st.get(pid)
             p = pl.get("archived_file", "") if pl.get("archived") else st.mirror_path(pid)
             return p if p and os.path.exists(p) else ""
+
+    # ------------------------------------------------------------------ #270: Abspielen ohne Tagger
+    def _pl_has_path(self, path) -> bool:
+        """Liegt die Datei in einer aktiven Playlist? (Player darf sie dann direkt öffnen – kind „file“.)"""
+        if not isinstance(path, str) or not path:
+            return False
+        k = playlists.nk(path)
+        with self.lock:
+            return any(playlists.nk(x["path"]) == k for p in self._pls().active() for x in p.get("items") or []
+                       if x.get("path"))
+
+    def pl_to_queue(self, pid) -> dict:
+        """Im Tagger geladene Titel einer Playlist an die Warteschlange hängen (#270)."""
+        with self.lock:
+            pl = self._pls().get(pid)
+            where = {playlists.nk(f.path): i for i, f in enumerate(self.tag_files)}
+            idx = [where[playlists.nk(x["path"])] for x in pl.get("items") or []
+                   if x.get("path") and playlists.nk(x["path"]) in where]
+        if not idx:
+            raise ValueError("Keiner der Titel ist im Tagger geladen – zuerst „Im Tagger öffnen“.")
+        return self.pq_add(idx, False)
+
+    # ------------------------------------------------------------------ #270: Vorbereiten › Übernahme
+    @staticmethod
+    def _pl_pattern(pattern, workflow="") -> str:
+        import time
+        t = time.localtime()
+        out = str(pattern or "")
+        for k, v in (("{Jahr}", f"{t.tm_year}"), ("{Monat}", f"{t.tm_mon:02d}"), ("{Tag}", f"{t.tm_mday:02d}"),
+                     ("{Workflow}", workflow), ("{year}", f"{t.tm_year}"), ("{month}", f"{t.tm_mon:02d}"),
+                     ("{day}", f"{t.tm_mday:02d}")):
+            out = out.replace(k, v)
+        return out.strip(" /")
+
+    def _pl_prep_add(self, pattern, files, workflow="") -> str:
+        """Übernommene Titel in eine Playlist legen (Name mit Platzhaltern, Ordner mit „/“); fehlt sie, wird sie
+        angelegt. Schon enthaltene werden übersprungen. → Name der Playlist oder ""."""
+        full = self._pl_pattern(pattern, workflow)
+        if not full or not files:
+            return ""
+        folder, _, name = full.rpartition("/")
+        with self.lock:
+            st = self._pls()
+            pl = st.find(name, folder) or st.create(name, folder, "manual")
+            st.add(pl["id"], [{"path": p} for p in files], "skip")
+            return st.get(pl["id"])["name"]
+
+    # ------------------------------------------------------------------ #271: Bibliothek, Abgleich, Fehlende
+    def _pl_lib_roots(self) -> list:
+        roots = [self.cfg.get("default_tagger") or ""]
+        try:
+            roots.append(self._prep_get().get("library") or "")
+        except Exception:  # noqa: BLE001
+            pass
+        if self.cfg.get("base_dir"):
+            roots.append(os.path.join(str(self.cfg["base_dir"]), "01_Library"))
+        out, seen = [], set()
+        for r in roots:
+            if r and os.path.isdir(r) and playlists.nk(r) not in seen:
+                seen.add(playlists.nk(r))
+                out.append(r)
+        if not out and self.cfg.get("base_dir") and os.path.isdir(str(self.cfg["base_dir"])):
+            out.append(str(self.cfg["base_dir"]))
+        return out
+
+    def _pl_index(self, files) -> list:
+        out = []
+        for f in files:
+            try:
+                dur = getattr(f, "duration", 0)
+                dur = dur() if callable(dur) else dur
+            except Exception:  # noqa: BLE001
+                dur = 0
+            out.append(playlists.lib_entry(f.path, f.text("TPE1").replace(MV, ", "), f.text("TIT2"), f.text("TSRC"),
+                                           int(dur or 0)))
+        return out
+
+    def _pl_lib_index(self, cancel, progress, roots=None) -> list:
+        """Bibliothek einlesen (mit Listen-Cache) – geladene Tagger-Titel zuerst, ohne doppelte."""
+        index, seen = [], set()
+        for f in list(self.tag_files):
+            seen.add(playlists.nk(f.path))
+            index += self._pl_index([f])
+        for r in roots if roots is not None else self._pl_lib_roots():
+            progress(("text", f"Bibliothek lesen: {r}"))
+            files, _err = core.load_files(r, True, cancel, progress, registry=None, use_cache=self._list_cache_on())
+            index += self._pl_index([f for f in files if playlists.nk(f.path) not in seen])
+            seen |= {playlists.nk(f.path) for f in files}
+        return index
+
+    def start_pl_match(self, pid):
+        """Einträge ohne Datei mit der Bibliothek abgleichen → rows [{k, label, status, path, candidates}]."""
+        pl = self._pls().get(pid)
+        todo = [(k, x) for k, x in enumerate(pl.get("items") or []) if not x.get("path") and x.get("ref")]
+        if not todo:
+            return {"ok": False, "error": "Diese Playlist hat keine Einträge ohne Datei."}
+        roots = self._pl_lib_roots()
+        if not roots and not self.tag_files:
+            return {"ok": False, "error": "Keine Bibliothek festgelegt – Einstellungen › Speicherort und Ordner."}
+
+        def job(cancel, progress):
+            index = self._pl_lib_index(cancel, progress, roots)
+            rows = []
+            for k, x in todo:
+                r = playlists.match_ref(x["ref"], index)
+                ref = x["ref"]
+                rows.append({"k": k, "label": " – ".join(v for v in (ref.get("artist"), ref.get("title")) if v)
+                             + (f" ({ref['mix']})" if ref.get("mix") else ""), **r})
+            return {"ok": True, "rows": rows, "roots": roots, "library": len(index),
+                    "sure": sum(r["status"] == "sure" for r in rows), "unclear": sum(r["status"] == "unclear" for r in rows),
+                    "missing": sum(r["status"] == "missing" for r in rows)}
+        return self._run("pl_match", "Mit der Bibliothek abgleichen", job)
+
+    def start_pl_find_missing(self, pid, folder=""):
+        """Fehlende Dateien (verschoben, umbenannt) suchen: gleicher Dateiname in den Bibliotheksordnern bzw. im
+        gewählten Ordner, gleiche Grösse bevorzugt → rows [{k, old, candidates, status}]."""
+        pl = self._pls().get(pid)
+        todo = [(k, x) for k, x in enumerate(pl.get("items") or []) if x.get("path") and not os.path.isfile(x["path"])]
+        if not todo:
+            return {"ok": False, "error": "In dieser Playlist fehlt keine Datei."}
+        roots = [folder] if folder and os.path.isdir(folder) else self._pl_lib_roots()
+        if not roots:
+            return {"ok": False, "error": "Keine Bibliothek festgelegt – bitte einen Ordner wählen."}
+
+        def job(cancel, progress):
+            want = {}
+            for k, x in todo:
+                want.setdefault(os.path.basename(x["path"]).casefold(), []).append((k, x))
+            found = {}
+            n = 0
+            for r in roots:
+                for dp, dns, fns in os.walk(r):
+                    if cancel.is_set():
+                        break
+                    dns[:] = [d for d in dns if not d.startswith(".")]
+                    for fn in fns:
+                        if fn.casefold() in want:
+                            found.setdefault(fn.casefold(), []).append(os.path.join(dp, fn))
+                    n += 1
+                    if n % 200 == 0:
+                        progress(("text", f"Suche … {dp}"))
+            rows = []
+            for name, lst in want.items():
+                cands = found.get(name, [])
+                for k, x in lst:
+                    same = [c for c in cands if x.get("size") and os.path.getsize(c) == x["size"]]
+                    pick = same[0] if len(same) == 1 else (cands[0] if len(cands) == 1 else "")
+                    rows.append({"k": k, "old": x["path"], "candidates": cands[:12], "path": pick,
+                                 "status": "sure" if pick else ("unclear" if cands else "missing")})
+            rows.sort(key=lambda r: r["k"])
+            return {"ok": True, "rows": rows, "roots": roots}
+        return self._run("pl_find", "Fehlende Dateien suchen", job)
+
+    def pl_relink(self, pid, picks) -> dict:
+        """Gewählte Treffer übernehmen (Abgleich bzw. Fehlende suchen) – rückgängig machbar."""
+        with self.lock:
+            n = self._pls().relink(pid, [p for p in picks or [] if isinstance(p, dict)])
+        return self._pl_after(pid, f"{n} Titel verknüpft." if n else "Nichts verknüpft.")
+
+    def _pl_autolink(self, files) -> int:
+        """Neu in die Bibliothek übernommene Titel mit Einträgen ohne Datei in allen Playlists verknüpfen (nur sichere
+        Treffer)."""
+        from id3tags import MP3File
+        loaded = []
+        for p in files or []:
+            try:
+                f = MP3File(p)
+                f.load()
+                loaded.append(f)
+            except Exception:  # noqa: BLE001
+                pass
+        index = self._pl_index(loaded)
+        if not index:
+            return 0
+        n = 0
+        with self.lock:
+            st = self._pls()
+            for pl in st.active():
+                picks = []
+                for k, x in enumerate(pl.get("items") or []):
+                    if not x.get("path") and x.get("ref"):
+                        r = playlists.match_ref(x["ref"], index)
+                        if r["status"] == "sure":
+                            picks.append({"k": k, "path": r["path"]})
+                if picks:
+                    n += st.relink(pl["id"], picks, "Neue Titel verknüpfen")
+        return n
+
+    # ------------------------------------------------------------------ #271: Export, Einkaufsliste, Import
+    def _pl_entries(self, pl) -> list:
+        items = [x for x in pl.get("items") or [] if x.get("path")]
+        info = self._pl_info([x["path"] for x in items])
+        out = []
+        for x in items:
+            inf = info.get(playlists.nk(x["path"]), {})
+            out.append({"path": x["path"], "artist": inf.get("artist") or x.get("artist", ""),
+                        "title": inf.get("title") or x.get("title", ""), "album": "", "genre": "",
+                        "key": inf.get("key") or "", "bpm": inf.get("bpm"), "duration": inf.get("dur") or x.get("dur") or 0,
+                        "rating": inf.get("rating", 0)})
+        return out
+
+    def _pl_pick(self, ids=None, folder=None) -> list:
+        st = self._pls()
+        if folder is not None:
+            f = playlists.clean_folder(folder)
+            return [p for p in st.active() if not f or p.get("folder", "") == f or p.get("folder", "").startswith(f + "/")]
+        return [st.get(i) for i in ids or [] if st.exists(i)]
+
+    def pl_export_name(self, ids=None, fmt="m3u8", folder=None) -> str:
+        pls = self._pl_pick(ids, folder)
+        base = (folder.split("/")[-1] if folder else (pls[0]["name"] if len(pls) == 1 else "Playlists")) or "Playlists"
+        return playlists.safe_part(base) + {"m3u8": ".m3u8", "xml": ".xml", "csv": ".csv"}.get(fmt, ".txt")
+
+    def pl_export_file(self, fmt, dest, ids=None, folder=None, opts=None) -> dict:
+        """Export: m3u8 (eine Playlist, absolute oder relative Pfade), xml (Rekordbox, mehrere mit Ordnerbaum),
+        csv (eine Playlist, mit BPM, Tonart, Länge)."""
+        from version import VERSION
+        import tagger
+        opts = opts or {}
+        with self.lock:
+            pls = self._pl_pick(ids, folder)
+            if not pls:
+                raise ValueError("Keine Playlist gewählt.")
+            if fmt == "xml":
+                base = playlists.clean_folder(folder) if folder else ""
+                groups = []
+                for p in pls:
+                    f = p.get("folder", "")
+                    if base and f.startswith(base):
+                        f = (base.split("/")[-1] + f[len(base):]).strip("/")
+                    elif not folder:
+                        f = f if len(pls) > 1 else ""
+                    groups.append({"folder": f, "name": p["name"], "entries": self._pl_entries(p)})
+                text = playlists.rekordbox_tree(groups, VERSION, opts.get("notation") or "musical")
+                with open(dest, "w", encoding="utf-8") as fh:
+                    fh.write(text)
+                n = sum(len(g["entries"]) for g in groups)
+                return {"ok": True, "path": dest, "message": f"{len(groups)} Playlist(s) mit {n} Titeln exportiert: {os.path.basename(dest)}"}
+            pl = pls[0]
+            entries = self._pl_entries(pl)
+            if fmt == "m3u8":
+                import setexport
+                n = setexport.write("m3u8", dest, entries, relative=bool(opts.get("relative")), name=pl["name"])
+            elif fmt == "csv":
+                rows = [[k + 1, e["artist"], e["title"], e["bpm"] or "", e["key"] or "",
+                         core.duration_text(e["duration"]) if e["duration"] else "", e["rating"] or "", e["path"]]
+                        for k, e in enumerate(entries)]
+                tagger.write_csv(dest, ["Nr", "Künstler", "Titel", "BPM", "Camelot", "Länge", "Bewertung", "Pfad"], rows)
+                n = len(rows)
+            else:
+                raise ValueError(f"Unbekanntes Format: {fmt}")
+            return {"ok": True, "path": dest, "message": f"{n} Titel exportiert: {os.path.basename(dest)}"}
+
+    def pl_shopping_file(self, dest, ids=None, folder=None) -> dict:
+        """Einkaufsliste: Einträge ohne Datei und fehlende Dateien aller gewählten Playlists als CSV."""
+        import tagger
+        with self.lock:
+            rows = []
+            for p in self._pl_pick(ids, folder):
+                for x in p.get("items") or []:
+                    ref = x.get("ref") or {}
+                    if x.get("path") and os.path.isfile(x["path"]):
+                        continue
+                    rows.append([p["name"], ref.get("artist") or x.get("artist", ""), ref.get("title") or x.get("title", ""),
+                                 ref.get("mix", ""), ref.get("isrc", ""), x.get("path", ""),
+                                 "Datei fehlt" if x.get("path") else "nicht in der Bibliothek"])
+            if not rows:
+                raise ValueError("Es fehlen keine Titel.")
+            tagger.write_csv(dest, ["Playlist", "Künstler", "Titel", "Mix", "ISRC", "Pfad", "Status"], rows)
+            return {"ok": True, "path": dest, "message": f"Einkaufsliste mit {len(rows)} Titel(n) gespeichert: {os.path.basename(dest)}"}
+
+    def pl_import_file(self, path, folder="") -> dict:
+        """M3U/M3U8, Rekordbox-XML oder CSV als Playlist(s) übernehmen (Ordner im Baum: folder)."""
+        path = str(path or "")
+        if not os.path.isfile(path):
+            raise ValueError("Datei nicht gefunden.")
+        ext = os.path.splitext(path)[1].lower()
+        with open(path, encoding="utf-8-sig", errors="replace") as fh:
+            text = fh.read()
+        base = os.path.dirname(path)
+        stem = os.path.splitext(os.path.basename(path))[0]
+        folder = playlists.clean_folder(folder)
+        if ext in (".m3u", ".m3u8"):
+            groups = [{"folder": folder, "name": stem, "items": [
+                {"path": e["path"], "dur": e["dur"], **playlists.Store._split_label(e["label"])} for e in playlists.parse_m3u(text, base)]}]
+        elif ext == ".xml":
+            try:
+                tree = playlists.read_rekordbox_tree(text)
+            except Exception as ex:  # noqa: BLE001
+                raise ValueError(f"Kein gültiges Rekordbox-XML: {ex}") from ex
+            groups = [{"folder": "/".join(x for x in (folder, g["folder"]) if x), "name": g["name"],
+                       "items": [{"path": p} for p in g["paths"]]} for g in tree]
+        elif ext in (".csv", ".txt"):
+            groups = [{"folder": folder, "name": stem, "items": playlists.parse_csv(text, base)}]
+        else:
+            raise ValueError("Unbekanntes Format – M3U, M3U8, Rekordbox-XML oder CSV.")
+        groups = [g for g in groups if g["items"]]
+        if not groups:
+            raise ValueError("Die Datei enthält keine Titel.")
+        first, n, refs, gone = "", 0, 0, 0
+        with self.lock:
+            st = self._pls()
+            for g in groups:
+                pl = st.create(st.unique_name(g["name"], g["folder"]), g["folder"], "import", g["items"],
+                               source={"plugin": "file", "id": path})
+                first = first or pl["id"]
+                n += len(pl["items"])
+                refs += sum(1 for x in pl["items"] if not x.get("path"))
+                gone += sum(1 for x in pl["items"] if x.get("path") and not os.path.isfile(x["path"]))
+                st.touch(pl["id"])
+        msg = f"{len(groups)} Playlist(s) mit {n} Titeln übernommen."
+        if refs:
+            msg += f" {refs} ohne Datei – „Mit Bibliothek abgleichen …“ sucht sie."
+        if gone:
+            msg += f" {gone} Datei(en) fehlen – „Fehlende suchen …“."
+        return self._pl_after(first, msg)
+
+    def start_pl_source_import(self, pid, ids):
+        """Playlists aus einem Plugin (z. B. Lexicon) nur als Playlists übernehmen – ohne sie ins DJ-Set zu laden."""
+        return self.start_dj_source_import(pid, ids, load=False)
+

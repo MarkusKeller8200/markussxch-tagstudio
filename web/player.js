@@ -266,6 +266,7 @@ function plStemSwitch(k) {
 /** Voriger/nächster Titel. play=false: nur die Markierung bewegen (läuft der Player, folgt er ohnehin). */
 async function plStep(dir, play = true) {
   if (dir > 0 && play && typeof pqPlayNext === "function" && pqPlayNext()) return;   // #138: Warteschlange zuerst
+  if (typeof plsPlayActive === "function" && plsPlayActive()) return plsStep(dir, play);   // #270: „Playlist abspielen“
   if (S.module === "djset" && typeof djStep === "function") return djStep(dir, play);   // #3
   if (S.module === "playlists" && typeof plsStep === "function") return plsStep(dir, play);   // #267
   if (S.module === "tagger" && TG.order.length) {
@@ -615,6 +616,8 @@ async function plMenu(btn) {
     ...list.map((p, k) => ({ label: `Öffnen mit ${p.name}` + (k === 0 ? "  (Strg/Cmd+P)" : ""), run: () => plExternal(k) })),
     { label: "Öffnen mit Standardprogramm" + (list.length ? "" : "  (Strg/Cmd+P)"), run: () => plExternal(null) },
     "-",
+    ...(PLAYER.info && PLAYER.info.path && typeof plsAddDialog === "function" ? [{ label: "Laufenden Titel zur Playlist hinzufügen …",   // #270
+      run: () => (PLAYER.kind === "tag" ? plsAddDialog("tag", [PLAYER.ref]) : plsAddDialog("paths", [PLAYER.info.path])) }, "-"] : []),
     { label: "Player einrichten …", run: () => plSetup() },
     { label: (PLAYER.wave ? "✓ " : "    ") + "Wellenform anzeigen", run: () => plSetPref("wave", !PLAYER.wave) },
     { label: (PL_METRO.deck === "A" ? "✓ " : "    ") + "Beatgrid-Metronom A", run: () => plMetroToggle("A") },
@@ -738,7 +741,8 @@ function plBindAudio(el) {
     const a = PLAYER.audio;
     if (PLAYER.repeat) { a.currentTime = 0; a.play().catch(() => {}); return; }      // #79
     if (PLAYER.follow && typeof pqHead === "function" && pqHead() !== null && PLAYER.kind === "tag") { pqPlayNext(); return; }   // #138
-    if (PLAYER.follow && (S.module === "tagger" || S.module === "djset" || S.module === "playlists")) plStep(1);
+    if (PLAYER.follow && (S.module === "tagger" || S.module === "djset" || S.module === "playlists"
+      || (typeof plsPlayActive === "function" && plsPlayActive()))) plStep(1);
   }));
   el.addEventListener("error", act(() => { if (PLAYER.audio.src) toast("Datei kann nicht abgespielt werden."); }));
 }
