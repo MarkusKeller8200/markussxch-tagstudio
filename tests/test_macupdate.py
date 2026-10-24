@@ -27,7 +27,7 @@ class TestMacUpdate(unittest.TestCase):
 
     def test_bundle_path(self):
         self.assertEqual(updater.mac_bundle("/Applications/TagStudio.app/Contents/MacOS/TagStudio"),
-                         "/Applications/TagStudio.app")
+                         os.path.abspath("/Applications/TagStudio.app"))          # unter Windows mit Laufwerk
         self.assertEqual(updater.mac_bundle("/usr/bin/python3"), "")
 
     @unittest.skipIf(os.name == "nt" or not shutil.which("bash"), "braucht bash")
@@ -57,7 +57,7 @@ class TestMacUpdate(unittest.TestCase):
         for name, body in tools.items():
             with open(os.path.join(stubs, name), "w") as fh:
                 fh.write("#!/bin/bash\n" + body + "\n")
-            os.chmod(os.path.join(stubs, name), 0o755)
+            os.chmod(os.path.join(stubs, name), 0o700)
         log, bak = os.path.join(upd, "update-installer.log"), os.path.join(upd, "vorherige-Version")
         script = os.path.join(upd, "update.sh")
         with open(script, "w", encoding="utf-8") as fh:
