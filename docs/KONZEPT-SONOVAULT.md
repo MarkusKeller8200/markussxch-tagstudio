@@ -55,6 +55,18 @@ Popularität sind laut Doku **nicht** Teil der öffentlichen API.
 | **Quellenangabe (§4, §8):** Hinweise nicht entfernen; Quellen gemäss „Data Sources & Attribution“. | Vorschau zeigt „Quelle: SonoVault“; Attribution-Seite vor der Umsetzung lesen. |
 | **KI (§6):** Daten nicht zum Trainieren/Auswerten von KI. | Betrifft TagStudio nicht (keine KI-Anbindung). |
 
+**Datenschutzerklärung** ([Privacy](https://sonovault.now/privacy), Stand 2.10.2026): Verantwortlich Rekordcloud B.V.
+(Niederlande), Server bei Hetzner in der EU, Zahlung über Stripe, Google Analytics nur auf der Website.
+- **Anfragen:** protokolliert werden Zeit, Endpunkt, **Parameter** (also Künstler, Titel, ISRC deiner Titel), Status und
+  gelieferte Datensätze – **ohne festes Ablaufdatum**; IP-Adressen werden nach 90 Tagen entfernt. → Hinweis in den
+  Plugin-Einstellungen: SonoVault sieht, welche Titel abgefragt werden.
+- **Hochgeladenes Audio (Erkennung):** wird mit abgeleiteten Daten (Fingerabdrücke, Treffer, Logs) aufbewahrt, „for as
+  long as reasonably necessary“ – keine feste Frist, Löschung nicht geregelt, Training nicht erwähnt. → #257 nur mit
+  deutlichem Hinweis, nur kurzer Ausschnitt, nie automatisch; zuerst AcoustID (lädt kein Audio hoch, nur Fingerabdruck).
+- **Rechte (DSGVO):** Auskunft, Berichtigung, Löschung, Export, Widerspruch innert 30 Tagen; Kontoschliessung löscht
+  Personendaten innert 30 Tagen. Kontakt support@sonovault.now, Aufsicht: Autoriteit Persoonsgegevens.
+- Seite „Data Sources & Attribution“ war nicht erreichbar → Quellenangabe vor der Umsetzung bei Rekordcloud erfragen.
+
 **Folgen für die Issues:** #254 schreibt nur die erlaubten Felder, BPM/Tonart/ISWC nur als Vergleich in der Notiz.
 #255 schreibt keine IDs in Tags. #256 (Bibliothek in Blöcken) ist als Massen-Schreiben nicht erlaubt → nur als
 Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Dateien.
@@ -83,8 +95,8 @@ Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Da
 
 ## 6. Offen / vor der Umsetzung klären
 
-- ~~Nutzungsbedingungen~~ → geprüft, siehe Abschnitt 3. Offen: Datenschutzerklärung (Audio), Seite „Data Sources & Attribution“,
-  Verlinken auf Plattformen.
+- ~~Nutzungsbedingungen~~, ~~Datenschutz~~ → geprüft, siehe Abschnitt 3. Offen: Seite „Data Sources & Attribution“ (nicht
+  erreichbar), Verlinken auf Plattformen.
 - Tarif des Users (Free reicht für Einzelabfragen, nicht für einen Bibliotheksabgleich).
 - Anfrage an Rekordcloud zusammen mit MixID (#218): offizieller Zugang, Kontingent für TagStudio-Nutzer.
 - Doppelte Quellen: Verhältnis zu MusicBrainz/Discogs/Beatport bei gleichen Feldern (Vorrang in „Online-Metadaten“).
