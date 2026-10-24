@@ -414,5 +414,6 @@
 "Plugin {x}: nachgeladene Version entfernt",
 "Plugin {x} {x} aus {x} installiert: {x}",
 "DOMContentLoaded",
-"spellcheck={q} translate={q}"
+"spellcheck={q} translate={q}",
+"Programs"
 ]

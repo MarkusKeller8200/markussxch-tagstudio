@@ -217,7 +217,11 @@ preview (#217):
   Windows and macOS). Up to 20 tracks one by one (`/analyze/single`), more via the queue (`/analyze/add`,
   `/analyze/results`). Only addresses on this computer, never via a proxy; `/analyze/clear` is never called.
   **Switch off “auto-tagging” in the app** – otherwise it writes to the files itself. TagStudio warns if a file
-  changes during the analysis.
+  changes during the analysis. If the server does not respond, TagStudio starts the app itself (option “Start the app
+  automatically when needed”, the program is searched for or entered under Options) and waits up to 30 s; if the app
+  runs without a server, the message says so.
+- For the plugin “Key (OpenKeyScan)”, **Test** checks the environment (loads the model, reports the device); under
+  **Options** you can choose “Always processor”.
 
 Preview (both): `TXXX:OPENKEYSCAN_KEY` (Camelot, e.g. `09A`, origin “OpenKeyScan”) and on request `TKEY` in the
 configured notation. TKEY is only ticked when it is empty (option “Also tick a differing key …”). The note compares

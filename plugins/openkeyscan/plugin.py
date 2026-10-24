@@ -9,9 +9,12 @@ erkennt alle. Antwortformate von /health und /analyze/results sind nicht dokumen
 Schutz: nur Adressen auf diesem Rechner, nie über einen Proxy; ändert sich eine Datei während der Analyse (Auto-Tagging
 der App), steht das als Warnung im Ergebnis. Vorschläge, Vergleich und Zwischenspeicher: keyscan.py (wie #245).
 """
+import glob
 import ipaddress
 import json
 import os
+import subprocess
+import sys
 import time
 import urllib.error
 import urllib.parse
@@ -45,6 +48,8 @@ ACTIONS = [
     {"id": "settings", "label": "Einstellungen …", "where": "page", "run_label": "Speichern", "needs_selection": False,
      "description": "Adresse der OpenKeyScan-API (Standard: dieser Rechner, Port 58721).",
      "options": [{"key": "url", "type": "text", "label": "Adresse der OpenKeyScan-API", "default": DEFAULT_URL},
+                 {"key": "autostart", "type": "check", "label": "App bei Bedarf selbst starten", "default": True},
+                 {"key": "app", "type": "text", "label": "Programm der App (leer: automatisch suchen)", "default": ""},
                  {"type": "info", "title": "Sicherheit",
                   "label": "Die API hat keine Anmeldung. TagStudio spricht sie nur auf diesem Rechner an (localhost).",
                   "links": [["OpenKeyScan: API", "https://www.openkeyscan.com/api"]]}]},
@@ -205,18 +210,100 @@ def load_settings(ctx) -> dict:
     try:
         with open(_settings_path(ctx), encoding="utf-8") as fh:
             d = json.load(fh)
-        return {"url": str(d.get("url") or "")}
+        return {"url": str(d.get("url") or ""), "autostart": d.get("autostart", True) is not False,
+                "app": str(d.get("app") or "")}
     except (OSError, ValueError, AttributeError):
-        return {"url": ""}
+        return {"url": "", "autostart": True, "app": ""}
 
 
 def client(ctx, timeout=30) -> Client:
     return Client(load_settings(ctx)["url"] or DEFAULT_URL, timeout)
 
 
+# =========================================================================== App finden und starten
+START_WAIT = 30          # Sekunden, die nach dem Start auf den Server gewartet wird
+
+
+def find_app(setting: str = "") -> str:
+    """Programm der OpenKeyScan-App: Einstellung, sonst übliche Installationsorte (Windows: Benutzer- und
+    Programmordner, macOS: Programme). → Pfad oder ""."""
+    if setting:
+        return setting if os.path.exists(setting) else ""
+    if sys.platform == "darwin":
+        for base in ("/Applications", os.path.expanduser("~/Applications")):
+            for app in glob.glob(os.path.join(base, "*[Oo]pen[Kk]ey[Ss]can*.app")):
+                return app
+        return ""
+    roots = [os.environ.get(k) for k in ("LOCALAPPDATA", "PROGRAMFILES", "PROGRAMFILES(X86)")]
+    roots += [os.path.join(os.environ["LOCALAPPDATA"], "Programs")] if os.environ.get("LOCALAPPDATA") else []
+    for root in [r for r in roots if r and os.path.isdir(r)]:
+        for d in glob.glob(os.path.join(root, "*")):
+            if "openkeyscan" not in os.path.basename(d).lower().replace(" ", "").replace("-", ""):
+                continue
+            exes = [e for e in glob.glob(os.path.join(d, "*.exe")) + glob.glob(os.path.join(d, "*", "*.exe"))
+                    if "openkey" in os.path.basename(e).lower() and "uninstall" not in e.lower()]
+            if exes:
+                return sorted(exes, key=len)[0]
+    return ""
+
+
+def app_running() -> bool | None:
+    """Läuft ein Prozess der OpenKeyScan-App? None = unbekannt."""
+    try:
+        if os.name == "nt":
+            out = subprocess.run(["tasklist", "/fo", "csv", "/nh"], capture_output=True, text=True, timeout=10,
+                                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)).stdout
+        else:
+            out = subprocess.run(["ps", "-axo", "comm"], capture_output=True, text=True, timeout=10).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return "openkeyscan" in out.lower().replace(" ", "").replace("-", "")
+
+
+def launch(app: str):
+    if sys.platform == "darwin":
+        subprocess.Popen(["open", "-a", app] if app.endswith(".app") else [app])
+    else:
+        subprocess.Popen([app], creationflags=getattr(subprocess, "DETACHED_PROCESS", 0), close_fds=True)
+
+
+def ensure_running(ctx, c: Client):
+    """Server suchen; antwortet er nicht und ist „bei Bedarf starten“ an, die App starten und warten.
+    → Antwort von /health. Fehlermeldung erklärt, was los ist (App fehlt / läuft ohne Server)."""
+    try:
+        return c.connect()
+    except OKSError as first:
+        st = load_settings(ctx)
+        running = app_running()
+        app = find_app(st["app"])
+        if st["autostart"] and app and not running:
+            ctx.status("Starte die OpenKeyScan-App …")
+            ctx.log(f"Starte {app}")
+            launch(app)
+            t0 = time.monotonic()
+            while time.monotonic() - t0 < START_WAIT:
+                ctx.check_cancel()
+                time.sleep(1)
+                try:
+                    return c.connect()
+                except OKSError:
+                    continue
+            running = app_running()
+        if running:
+            raise OKSError("Die OpenKeyScan-App läuft, aber ihr API-Server antwortet nicht (Port 58721). Vermutlich "
+                           "enthält deine App-Version die API noch nicht oder sie muss in der App eingeschaltet werden – "
+                           "App aktualisieren bzw. ihre Einstellungen prüfen. Ohne App geht es mit dem Plugin "
+                           "„Tonart (OpenKeyScan)“.") from first
+        if not app:
+            raise OKSError("Die OpenKeyScan-App wurde nicht gefunden und läuft nicht. Bitte die App starten oder unter "
+                           "Plugins › OpenKeyScan-App › Optionen den Pfad zum Programm eintragen. Ohne App geht es mit "
+                           "dem Plugin „Tonart (OpenKeyScan)“.") from first
+        raise
+
+
 def test_connection(ctx):
     c = client(ctx)
-    d = c.connect()
+    d = ensure_running(ctx, c)
     extra = ""
     if isinstance(d, dict):
         bits = [f"{k}: {d[k]}" for k in ("status", "version", "app", "message", "http", "text") if d.get(k) not in (None, "")]
@@ -239,7 +326,7 @@ def analyse(ctx, files, store) -> dict:
     """Dateien von der App analysieren lassen. → {"done": n, "failed": [Name], "changed": [Name]}"""
     c = client(ctx)
     ctx.status("Verbinde mit der OpenKeyScan-App …")
-    c.connect()
+    ensure_running(ctx, c)
     before = _stamps(files)
     out = {"done": 0, "failed": [], "changed": []}
     n = len(files)
@@ -353,8 +440,10 @@ def run_scan(ctx, files, opts):
 
 
 def status(ctx):
-    url = load_settings(ctx)["url"] or DEFAULT_URL
-    return f"Adresse: {url}"
+    st = load_settings(ctx)
+    app = find_app(st["app"])
+    return f"Adresse: {st['url'] or DEFAULT_URL} · App: " + ("gefunden" + (", startet bei Bedarf" if st["autostart"] else "")
+                                                              if app else "nicht gefunden")
 
 
 def run(action, ctx, files, opts):
@@ -364,9 +453,13 @@ def run(action, ctx, files, opts):
         url = str(opts.get("url") or "").strip().rstrip("/")
         if url and not is_local(url):
             raise OKSError("Nur Adressen auf diesem Rechner (localhost, 127.0.0.1) sind erlaubt.")
+        app = str(opts.get("app") or "").strip().strip('"')
+        if app and not os.path.exists(app):
+            raise OKSError(f"Programm nicht gefunden: {app}")
         with open(_settings_path(ctx), "w", encoding="utf-8") as fh:
-            json.dump({"url": url}, fh)
-        return {"message": f"Gespeichert. Adresse: {url or DEFAULT_URL}"}
+            json.dump({"url": url, "autostart": bool(opts.get("autostart", True)), "app": app}, fh)
+        found = find_app(app)
+        return {"message": f"Gespeichert. Adresse: {url or DEFAULT_URL}. App: {found or 'nicht gefunden'}"}
     if action == "scan":
         return run_scan(ctx, files, opts)
     raise ValueError(f"Unbekannte Aktion: {action}")

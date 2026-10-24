@@ -99,8 +99,9 @@ class Handler(BaseHTTPRequestHandler):
         self._send(200, {"success": True})
 
 
-def start(state):
+def start(state, port=0):
     h = type("H", (Handler,), {"state": state})
-    srv = ThreadingHTTPServer(("127.0.0.1", 0), h)
+    ThreadingHTTPServer.allow_reuse_address = True
+    srv = ThreadingHTTPServer(("127.0.0.1", port), h)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     return srv, f"http://127.0.0.1:{srv.server_address[1]}"

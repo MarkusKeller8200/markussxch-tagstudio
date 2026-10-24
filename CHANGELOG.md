@@ -30,7 +30,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Tonart mit OpenKeyScan (#217, #244, #245):** zwei neue Plugins mit gleicher Vorschau. „Tonart (OpenKeyScan)“
   erkennt die Tonart ohne Zusatz-App und offline mit dem quelloffenen OpenKeyScan-Modell (eigene Umgebung wie Stems;
   Modell von festem Stand, mit Prüfsumme), auch im Hintergrund vorab. „OpenKeyScan-App“ nutzt die lokale API der
-  Desktop-App und warnt, wenn die App selbst in Dateien schreibt (Auto-Tagging). Ergebnis in `TXXX:OPENKEYSCAN_KEY`
+  Desktop-App, startet sie bei Bedarf selbst und warnt, wenn die App selbst in Dateien schreibt (Auto-Tagging). Ergebnis in `TXXX:OPENKEYSCAN_KEY`
   (Herkunft „OpenKeyScan“) und auf Wunsch TKEY in deiner Schreibweise – mit Vergleich zu TKEY, Beatport und Mixed In
   Key (gleich, verwandt, abweichend). Plugins können neu Zusatzdateien mit Prüfsumme installieren (`env.files`).
 - **API-Rekorder für Entwickler (#243):** `tools/api_recorder.py` zeichnet die Schnittstellen-Aufrufe einer Website

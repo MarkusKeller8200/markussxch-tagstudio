@@ -212,6 +212,15 @@ class TestKeyscanPlugin(Base):
         self.assertEqual(calls[-1]["files"], [os.path.join(self.B, "anders.mp3")])     # nur das Fehlende neu
         self.assertIn("1 ohne Ergebnis", res["message"])
 
+    def test_test_and_settings(self):
+        self.install_fake()
+        mod = self.p.load()
+        calls = []
+        self.assertEqual(mod.run("settings", self.ctx(calls), [], {"device": "cpu"})["message"], "Gespeichert: immer Prozessor.")
+        res = mod.run("test", self.ctx(calls), [], {})
+        self.assertIn("Prozessor", res["message"])
+        self.assertEqual((calls[-1]["files"], calls[-1]["device"]), ([], "cpu"))
+
     def test_missing_model_message(self):
         self.install_fake(files=False)
         mod = self.p.load()
@@ -317,14 +326,54 @@ class TestOpenKeyScanApp(Base):
         res = self.run_action("scan", cache=False)
         self.assertIn("3 von 3", res["message"])
 
-    def test_no_app_running(self):
-        self.srv.shutdown()
-        self.srv.server_close()
+    def run_error(self):
         r = self.s.start_plugin_action("openkeyscan", "scan", sorted(self.idx.values()), {})
         self.assertTrue(r["ok"])
+        return str(self.wait()["error"])
+
+    def test_no_app_running(self):
+        """App nicht gefunden / läuft ohne Server / wird bei Bedarf gestartet."""
+        m = self.mod
+        port = int(self.url.rsplit(":", 1)[1])
+        self.srv.shutdown()
+        self.srv.server_close()
+        orig = (m.find_app, m.app_running, m.launch, m.START_WAIT)
+        self.addCleanup(lambda: setattr(m, "find_app", orig[0]) or setattr(m, "app_running", orig[1])
+                        or setattr(m, "launch", orig[2]) or setattr(m, "START_WAIT", orig[3]))
+        m.find_app, m.app_running = (lambda setting="": ""), (lambda: False)
+        self.assertIn("nicht gefunden", self.run_error())
+        m.app_running = lambda: True                                   # läuft, aber ohne Server
+        self.assertIn("API-Server antwortet nicht", self.run_error())
+        # gefunden, läuft nicht → wird gestartet; danach antwortet der Server
+        started = []
+
+        def launch(app):
+            started.append(app)
+            srv, _url = fake_openkeyscan.start(self.state, port)
+            self.addCleanup(srv.server_close)
+            self.addCleanup(srv.shutdown)
+        m.find_app, m.app_running, m.launch = (lambda setting="": "C:/Apps/OpenKeyScan.exe"), (lambda: False), launch
+        r = self.s.start_plugin_action("openkeyscan", "scan", sorted(self.idx.values()), {})
         st = self.wait()
-        self.assertIn("läuft die App", str(st["error"]))
-        self.assertIn("/health öffnen", str(st["error"]))
+        self.assertIsNone(st["error"], st)
+        self.assertEqual(started, ["C:/Apps/OpenKeyScan.exe"])
+        self.assertIn("3 von 3", st["result"]["message"])
+
+    def test_find_app(self):
+        import tempfile
+        m = self.mod
+        d = tempfile.mkdtemp()
+        exe = os.path.join(d, "Programs", "openkeyscan", "OpenKeyScan.exe")
+        os.makedirs(os.path.dirname(exe))
+        open(exe, "w").close()
+        open(os.path.join(os.path.dirname(exe), "Uninstall OpenKeyScan.exe"), "w").close()
+        old = os.environ.get("LOCALAPPDATA")
+        os.environ["LOCALAPPDATA"] = d
+        self.addCleanup(lambda: os.environ.pop("LOCALAPPDATA") if old is None else os.environ.__setitem__("LOCALAPPDATA", old))
+        if sys.platform != "darwin":
+            self.assertEqual(m.find_app(), exe)
+        self.assertEqual(m.find_app(exe), exe)
+        self.assertEqual(m.find_app(os.path.join(d, "fehlt.exe")), "")
 
     def test_entries_tolerant(self):
         m = self.mod

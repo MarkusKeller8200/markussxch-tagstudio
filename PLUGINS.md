@@ -216,7 +216,11 @@ gleiche Vorschau (#217):
   und macOS). Bis 20 Titel einzeln (`/analyze/single`), darüber über die Warteschlange (`/analyze/add`,
   `/analyze/results`). Nur Adressen auf diesem Rechner, nie über einen Proxy; `/analyze/clear` wird nie aufgerufen.
   **In der App „Auto-Tagging“ ausschalten** – sonst schreibt sie selbst in die Dateien. Ändert sich eine Datei während
-  der Analyse, warnt TagStudio.
+  der Analyse, warnt TagStudio. Antwortet der Server nicht, startet TagStudio die App selbst (Option „App bei Bedarf
+  selbst starten“, Programm wird gesucht oder unter Optionen eingetragen) und wartet bis 30 s; läuft die App ohne
+  Server, sagt die Meldung das.
+- Beim Plugin „Tonart (OpenKeyScan)“ prüft **Testen** die Umgebung (Modell laden, Gerät melden); unter **Optionen**
+  lässt sich „Immer Prozessor“ wählen.
 
 Vorschau (beide): `TXXX:OPENKEYSCAN_KEY` (Camelot, z. B. `09A`, Herkunft „OpenKeyScan“) und auf Wunsch `TKEY` in der
 eingestellten Schreibweise. TKEY ist nur angekreuzt, wenn es leer ist (Option „Abweichende … ebenfalls ankreuzen“).

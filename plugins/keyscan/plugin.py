@@ -32,7 +32,30 @@ ACTIONS = [
                     "geschrieben. Danach zeigt „Tonart erkennen“ die Vorschau sofort.",
      "options": [{"key": "hint", "type": "info",
                   "label": "Ideal für grosse Mengen: weiterarbeiten, später „Tonart erkennen (OpenKeyScan)“ wählen."}]},
+    {"id": "test", "label": "Umgebung testen", "where": "page", "run_label": "Testen", "needs_selection": False,
+     "description": "Startet die Umgebung, lädt das Modell und meldet, ob mit Grafikkarte oder Prozessor gerechnet wird.",
+     "options": []},
+    {"id": "settings", "label": "Einstellungen …", "where": "page", "run_label": "Speichern", "needs_selection": False,
+     "description": "Womit gerechnet wird.",
+     "options": [{"key": "device", "type": "select", "label": "Rechnen mit",
+                  "choices": [["auto", "Automatisch (Grafikkarte, falls vorhanden)"], ["cpu", "Immer Prozessor"]],
+                  "default": "auto"},
+                 {"type": "info", "label": "„Immer Prozessor“ hilft, wenn die Grafikkarte Fehler meldet oder für "
+                                           "anderes gebraucht wird."}]},
 ]
+
+
+def _settings_path(ctx) -> str:
+    return os.path.join(ctx.data_dir, "settings.json")
+
+
+def load_settings(ctx) -> dict:
+    try:
+        with open(_settings_path(ctx), encoding="utf-8") as fh:
+            d = json.load(fh)
+        return {"device": "cpu" if d.get("device") == "cpu" else "auto"}
+    except (OSError, ValueError, AttributeError):
+        return {"device": "auto"}
 
 
 def cache(ctx) -> keyscan.Cache:
@@ -49,11 +72,11 @@ def analyse(ctx, files, store) -> dict:
     shutil.rmtree(work, ignore_errors=True)
     os.makedirs(work, exist_ok=True)
     job = {"files": [f.path for f in files], "engine": eng, "model": model,
-           "device": "auto"}
+           "device": load_settings(ctx)["device"]}
     job_path = os.path.join(work, "auftrag.json")
     with open(job_path, "w", encoding="utf-8") as fh:
         json.dump(job, fh, ensure_ascii=False)
-    state = {"fatal": "", "failed": 0, "new": {}}
+    state = {"fatal": "", "failed": 0, "new": {}, "device": ""}
     n = len(files)
 
     def on_line(line):
@@ -68,6 +91,7 @@ def analyse(ctx, files, store) -> dict:
         if kind == "status":
             ctx.status(ev.get("msg", ""))
         elif kind == "loaded":
+            state["device"] = ev.get("device", "")
             ctx.status(f"Modell geladen ({ev.get('device', '')}) – starte Analyse …")
         elif kind == "start":
             ctx.progress(ev["i"], n, "Analysiere " + os.path.basename(ev["path"]))
@@ -95,10 +119,23 @@ def analyse(ctx, files, store) -> dict:
         raise RuntimeError(f"Tonart-Erkennung fehlgeschlagen: {state['fatal'] or f'Code {rc}'}\n\n{details[-800:]}")
     if state["failed"]:
         ctx.log(f"{state['failed']} Titel mit Fehler.")
+    analyse.device = state["device"]
     return state["new"]
 
 
+DEVICE_TEXT = {"cuda": "NVIDIA-Grafikkarte", "mps": "Apple-Grafikeinheit", "cpu": "Prozessor"}
+
+
 def run(action, ctx, files, opts):
+    if action == "settings":
+        dev = "cpu" if opts.get("device") == "cpu" else "auto"
+        with open(_settings_path(ctx), "w", encoding="utf-8") as fh:
+            json.dump({"device": dev}, fh)
+        return {"message": "Gespeichert: " + ("immer Prozessor." if dev == "cpu" else "automatisch.")}
+    if action == "test":
+        analyse(ctx, [], cache(ctx))
+        dev = DEVICE_TEXT.get(str(getattr(analyse, "device", "")).split(":")[0], getattr(analyse, "device", ""))
+        return {"message": f"Umgebung und Modell bereit – gerechnet wird mit: {dev}."}
     if action not in ("scan", "prefetch"):
         raise ValueError(f"Unbekannte Aktion: {action}")
     store = cache(ctx)
