@@ -426,12 +426,22 @@ class Plugin:
         info = self.env_info()
         return info.get("python") or _env_python(self.env_dir)
 
+    def env_files(self) -> list[dict]:
+        """#245: Dateien, die beim Installieren geladen und geprüft werden (plugin.json "env": {"files": […]})."""
+        return clean_env_files((self.env_spec or {}).get("files"))
+
+    def env_file_path(self, rel: str) -> str:
+        return os.path.join(shared_root(), self.id, *str(rel).split("/"))
+
     def missing(self) -> list[dict]:
         """Fehlende Python-Pakete (geprüft ohne Import)."""
         if self.env_spec:
             info = self.env_info()
             if not info or not os.path.exists(self.env_python()):
                 return [{"module": "env", "label": f"Eigene Umgebung (Python {self.env_spec.get('python', '3')} + Pakete)"}]
+            gone = [e for e in self.env_files() if not os.path.isfile(self.env_file_path(e["path"]))]
+            if gone:                                       # #245: Modell o. Ä. fehlt (gelöscht, neue Version)
+                return [{"module": "env", "label": "Daten: " + ", ".join(e["label"] for e in gone)}]
             return []
         out = []
         for r in self.manifest.get("requires", []):
@@ -901,6 +911,72 @@ MODULE_PACKAGES = {"yaml": "pyyaml", "sklearn": "scikit-learn", "cv2": "opencv-p
                    "soundfile": "soundfile", "samplerate": "samplerate", "ml_collections": "ml-collections"}
 
 
+# #245: Herkunft erlaubter Zusatzdateien (Modelle, Programmteile) – nur feste Stände auf GitHub, immer mit Prüfsumme
+FILE_HOSTS = ("https://raw.githubusercontent.com/", "https://github.com/", "https://media.githubusercontent.com/")
+_REL_RE = re.compile(r"^[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+){0,4}$")
+
+
+def clean_env_files(entries) -> list[dict]:
+    """plugin.json "env.files" prüfen: [{"url", "path", "sha256", "label"}] – Adresse auf GitHub (https), relativer
+    Pfad ohne „..“, SHA-256 mit 64 Hex-Zeichen. Ungültige Einträge werden weggelassen."""
+    out = []
+    for e in entries if isinstance(entries, list) else []:
+        if not isinstance(e, dict):
+            continue
+        url, rel, sha = str(e.get("url") or ""), str(e.get("path") or ""), str(e.get("sha256") or "").lower()
+        if (not url.startswith(FILE_HOSTS) or not _REL_RE.match(rel) or ".." in rel.split("/")
+                or rel.split("/")[0] in ("env", "env.json") or not re.fullmatch(r"[0-9a-f]{64}", sha)):
+            continue
+        out.append({"url": url, "path": rel, "sha256": sha, "label": str(e.get("label") or os.path.basename(rel))[:80],
+                    "size": int(e.get("size") or 0)})
+    return out
+
+
+def file_sha256(path: str) -> str:
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def fetch_file(entry: dict, dest: str, cancel=None, say=None, opener=None):
+    """Eine Zusatzdatei laden und gegen die Prüfsumme prüfen; schon vorhandene, korrekte Dateien bleiben.
+    Bei Abweichung wird nichts abgelegt (ValueError)."""
+    import hashlib
+    import urllib.request
+    if os.path.isfile(dest) and file_sha256(dest) == entry["sha256"]:
+        return False
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    part = dest + ".part"
+    h, done = hashlib.sha256(), 0
+    req = urllib.request.Request(entry["url"], headers={"User-Agent": "MarKusSXCH-TagStudio"})
+    op = opener or urllib.request.urlopen
+    try:
+        with op(req, timeout=60) as r, open(part, "wb") as fh:
+            total = int(r.headers.get("Content-Length") or 0) or entry.get("size") or 0
+            while True:
+                if cancel is not None and cancel.is_set():
+                    raise Cancelled()
+                chunk = r.read(256 * 1024)
+                if not chunk:
+                    break
+                fh.write(chunk)
+                h.update(chunk)
+                done += len(chunk)
+                if say:
+                    say(f"Lade {entry['label']} … " + (f"{round(100 * done / total)} %" if total else f"{done / 1e6:.1f} MB"))
+        if h.hexdigest() != entry["sha256"]:
+            raise ValueError(f"Prüfsumme von {entry['label']} stimmt nicht – Datei unvollständig oder verändert. "
+                             "Nichts übernommen.")
+        os.replace(part, dest)
+    finally:
+        if os.path.exists(part):
+            os.remove(part)
+    return True
+
+
 def env_install(plugin, variant: dict, cancel=None, progress=None) -> dict:
     """Eigene Umgebung für ein Plugin anlegen: uv (bei Bedarf per pip) → uv venv mit passender Python-Version
     (lädt sie selbst herunter) → uv pip install Pakete → Import prüfen → Markierung env.json schreiben."""
@@ -985,6 +1061,18 @@ def env_install(plugin, variant: dict, cancel=None, progress=None) -> dict:
             path = write_log(f"{plugin.id}-installation.log", "\n".join(log))
             return {"ok": False, "error": f"{mod} lässt sich auch nach Nachinstallieren nicht laden.",
                     "log": log[-40:], "logfile": path}
+    for entry in plugin.env_files():          # #245: Modelle/Programmteile von festem Stand, mit Prüfsumme
+        log.append(f"Datei: {entry['url']} → {entry['path']}")
+        try:
+            got = fetch_file(entry, plugin.env_file_path(entry["path"]), cancel, say)
+            log.append("  geladen und geprüft" if got else "  schon vorhanden (Prüfsumme stimmt)")
+        except Cancelled:
+            raise
+        except Exception as ex:  # noqa: BLE001 – Netzwerk, Prüfsumme
+            log.append(f"  Fehler: {ex}")
+            path = write_log(f"{plugin.id}-installation.log", "\n".join(log))
+            return {"ok": False, "error": f"{entry['label']} konnte nicht geladen werden: {ex}", "log": log[-40:],
+                    "logfile": path}
     info = {"python": py, "variant": variant.get("id"), "label": variant.get("label", ""),
             "packages": variant.get("packages", []), "python_version": pyver}
     with open(marker, "w", encoding="utf-8") as fh:

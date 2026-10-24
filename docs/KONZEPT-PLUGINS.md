@@ -180,6 +180,26 @@ JSON-Aufrufe passiv mit (keine eigenen Anfragen), schwärzt Zugangsdaten und per
 `recording.json` und einen `"service"`-Entwurf (Pfadmuster, Parameter, Antwortfelder), der direkt in `services.clean`
 passt. Einsatz nur für erlaubte Schnittstellen; für MixID zuerst Anfrage (#218).
 
+### Tonart mit OpenKeyScan (#217, #244, #245, Entscheid User 24.10.2026: wie vorgeschlagen, B vor A)
+
+Zwei Plugins, ein gemeinsamer Kern `keyscan.py` (Zwischenspeicher je Datei mit Grösse + Änderungszeit, Vergleich mit
+TKEY / `TXXX:INITIAL_KEY` / MIK-Kommentar, Vorschläge). Ergebnis nie direkt: `TXXX:OPENKEYSCAN_KEY` (Camelot `09A`,
+Herkunft „OpenKeyScan“, Builtin-Regel `TXXX:OPENKEYSCAN*`) und optional `TKEY` in der eingestellten Schreibweise –
+nur angehakt, wenn TKEY leer ist.
+
+- **`keyscan` (#245):** eigene uv-Umgebung (Python 3.12, `torch`, `librosa<1.0`, `av`), Varianten CPU (Index
+  `whl/cpu`) und NVIDIA (`whl/cu128`). Neu im Rahmen: **`env.files`** – Zusatzdateien nur von GitHub, fester Commit,
+  SHA-256 Pflicht (`plugins.clean_env_files`, `fetch_file`); fehlt eine, ist das Plugin „missing“ („Daten: …“).
+  `model.py` und `openkeyscan3.pt` von `rekordcloud/openkeyscan-analyzer@d5cac64` (nicht im Repo, nicht im Release).
+  `worker.py` rechnet wie die Engine (PyAV/librosa → CQT 105 Bänder, 24/Oktave, fmin 65, hop 8820 → KeyNet, Klasse
+  0–11 = 1A–12A, 12–23 = 1B–12B) und meldet zusätzlich die Softmax-Sicherheit. Aktionen `scan` (Vordergrund,
+  Vorschau) und `prefetch` (Hintergrund, nur Zwischenspeicher – Hintergrund-Aufträge können keine Vorschläge zeigen).
+  Echter Test in GitHub Actions: `packaging/ci_keyscan_test.py`, Workflow „Tonart-Test“ (synthetische Titel).
+- **`openkeyscan` (#244):** Dienst-Plugin (`kind: local`, Port 58721), nur localhost, ohne Proxy. ≤ 20 Titel
+  `/analyze/single`, sonst `/analyze/add` (≤ 1000 je Aufruf) und Abfragen von `/analyze/results` (alle 2 s, Abbruch
+  nach 5 min ohne Fortschritt; leer → `/analyze/result?file=`). Antwortformate tolerant gelesen (nicht dokumentiert).
+  `/analyze/clear` nie. Auto-Tagging der App wird über geänderte Änderungszeiten erkannt und gemeldet.
+
 ## 5. Entscheide
 
 - Zugangsdaten nie im Klartext: Passwörter werden nicht gespeichert, Tokens/Schlüssel nur verschlüsselt, nie

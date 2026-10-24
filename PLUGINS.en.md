@@ -98,6 +98,20 @@ rc, tail = ctx.run_env([os.path.join(os.path.dirname(__file__), "worker.py"), "j
 `on_line` receives every output line (e.g. JSON progress messages); cancelling ends the process. `ctx.env_info`
 contains the installed variant. Template: `plugins/stems/` (plugin.py + worker.py).
 
+**Extra files (`env.files`, #245):** models or program parts that do not come as a Python package are downloaded by
+the installation after the packages – only from GitHub (`https://raw.githubusercontent.com/…`, fixed commit) and
+always with a SHA-256 checksum. If the checksum does not match, nothing is stored. If a file goes missing later, the
+card shows “Data: …” and “Reinstall …” fetches it again (the environment is kept).
+
+```json
+"env": {"python": "3.12", "check": ["torch"],
+        "files": [{"label": "Model (18 MB)", "path": "engine/model.pt", "size": 18830452,
+                   "url": "https://raw.githubusercontent.com/<owner>/<repo>/<commit>/model.pt",
+                   "sha256": "<64 hex characters>"}]}
+```
+
+The files are stored under `ctx.shared_dir/<path>` (e.g. `~/TagStudio/Plugin-Daten/<id>/engine/model.pt`).
+
 ### plugin.py
 
 ```python
@@ -186,6 +200,29 @@ JSON calls while you click through it and, after closing, writes `recording.json
 `"service"` section with endpoints like `/tracks/{track_id}`, parameters and response fields (folder
 `~/TagStudio/API-Aufnahmen/<host>`). Cookies, sign-ins, tokens, passwords and e-mail addresses are never stored. Only
 use it for interfaces you are allowed to use.
+
+## Built in: Key (OpenKeyScan) and OpenKeyScan app
+
+Two ways to detect the key with [OpenKeyScan](https://www.openkeyscan.com) (Rekordcloud) – same result, same
+preview (#217):
+
+- **Key (OpenKeyScan)** (`keyscan`, #245) – no extra app, offline. Own environment with Python 3.12, PyTorch,
+  librosa and PyAV (variant **processor** or **NVIDIA**, approx. 1 GB). The network and model of the open-source engine
+  ([openkeyscan-analyzer](https://github.com/rekordcloud/openkeyscan-analyzer), MIT; model trained on the GiantSteps
+  datasets, CC BY-SA 4.0) are downloaded by the installation from a fixed commit and verified with SHA-256.
+  Actions: **Detect key (OpenKeyScan) …** (preview) and **Analyse key in the background …** (only remembers the
+  result, writes nothing – afterwards the preview appears immediately).
+- **OpenKeyScan app** (`openkeyscan`, #244) – via the local API of the desktop app (`http://localhost:58721`,
+  Windows and macOS). Up to 20 tracks one by one (`/analyze/single`), more via the queue (`/analyze/add`,
+  `/analyze/results`). Only addresses on this computer, never via a proxy; `/analyze/clear` is never called.
+  **Switch off “auto-tagging” in the app** – otherwise it writes to the files itself. TagStudio warns if a file
+  changes during the analysis.
+
+Preview (both): `TXXX:OPENKEYSCAN_KEY` (Camelot, e.g. `09A`, origin “OpenKeyScan”) and on request `TKEY` in the
+configured notation. TKEY is only ticked when it is empty (option “Also tick a differing key …”). The note compares
+with TKEY, Beatport (`TXXX:INITIAL_KEY`) and the Mixed In Key comment: same, related (±1 on the wheel or relative
+key) or different; plus the model's confidence (`keyscan` only). Results are cached per file (size + modification
+time). Usable as a step in **Prepare** (step type “Plugin”, mode “only fill empty fields”).
 
 ## Built in: Stems
 

@@ -27,6 +27,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **DJ-Set: Playlists aus Lexicon (#242):** „Aus Lexicon …“ holt alle Playlists (und die Warteschlange), zeigt sie mit
   Häkchen und Filter; gewählte werden als Listen „Lexicon: …“ gespeichert, die erste geladen. Dazu „Lexicon-Werte in
   TagStudio-Felder …“ (#241): Werte aus den Lexicon-Feldern auf Wunsch in ENERGY usw. und die Stimmung übernehmen.
+- **Tonart mit OpenKeyScan (#217, #244, #245):** zwei neue Plugins mit gleicher Vorschau. „Tonart (OpenKeyScan)“
+  erkennt die Tonart ohne Zusatz-App und offline mit dem quelloffenen OpenKeyScan-Modell (eigene Umgebung wie Stems;
+  Modell von festem Stand, mit Prüfsumme), auch im Hintergrund vorab. „OpenKeyScan-App“ nutzt die lokale API der
+  Desktop-App und warnt, wenn die App selbst in Dateien schreibt (Auto-Tagging). Ergebnis in `TXXX:OPENKEYSCAN_KEY`
+  (Herkunft „OpenKeyScan“) und auf Wunsch TKEY in deiner Schreibweise – mit Vergleich zu TKEY, Beatport und Mixed In
+  Key (gleich, verwandt, abweichend). Plugins können neu Zusatzdateien mit Prüfsumme installieren (`env.files`).
 - **API-Rekorder für Entwickler (#243):** `tools/api_recorder.py` zeichnet die Schnittstellen-Aufrufe einer Website
   auf (Playwright) und erzeugt einen Entwurf für ein Dienst-Plugin – ohne Zugangsdaten.
 - **Eigene Übersetzungen einreichen (#232):** Hilfe › Melden › „Übersetzung einreichen“ (oder „Eigene Texte einreichen …“

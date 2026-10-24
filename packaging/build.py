@@ -24,6 +24,7 @@ BUNDLE_ID = "ch.markussxch.tagstudio"
 # Module, die nur von Plugins (zur Laufzeit geladene .py-Dateien) gebraucht werden – PyInstaller sieht sie sonst nicht
 HIDDEN = [
     "services", "servicekit", "feedback", "lyricsync", "gridstatus", "beattag",   # #204: Online-Dienste als Plugins
+    "keyscan",                                                     # #244/#245: Tonart mit OpenKeyScan
     "tsmeta", "i18n",                                              # #157: Mehrsprachigkeit
     # eigene Module (werden teils erst bei Bedarf importiert)
     "session", "core", "keys", "features", "plugins", "updater", "xmltools", "tagger", "backup", "compare",
@@ -33,7 +34,7 @@ HIDDEN = [
     "http.cookiejar", "urllib.request", "urllib.parse", "urllib.error", "difflib", "unicodedata", "ctypes",
     "ctypes.wintypes", "uuid", "csv", "zipfile", "logging", "base64", "hashlib", "html", "html.parser",
     "xml.dom.minidom", "xml.etree.ElementTree", "sqlite3", "datetime", "statistics", "shlex", "tempfile",
-    "email.utils", "subprocess", "shutil", "threading",
+    "email.utils", "subprocess", "shutil", "threading", "ipaddress",
     # Dialoge
     "tkinter", "tkinter.filedialog", "tkinter.messagebox",
 ]

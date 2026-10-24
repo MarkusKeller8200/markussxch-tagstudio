@@ -748,6 +748,35 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("window.__applied && window.__applied[0] === 't1'"))
         pg.wait_for_selector("#dlgText:has-text('Track does not exist')")
 
+    def test_openkeyscan_preview(self):
+        """#244/#245: Plugin-Karten beider Wege; Tonart über die (nachgestellte) OpenKeyScan-App als Vorschau."""
+        import fake_openkeyscan
+        pg = self.pg
+        self.calm()
+        state = fake_openkeyscan.State()
+        state.default = "1m"                                   # jede Datei: a-Moll (08A) in Open-Key-Schreibweise
+        srv, url = fake_openkeyscan.start(state)
+        self.addCleanup(srv.server_close)
+        self.addCleanup(srv.shutdown)
+        pg.click('.nav[data-module="plugins"]')
+        pg.wait_for_selector('.pl-card[data-pid="keyscan"]')
+        card = pg.inner_text('.pl-card[data-pid="keyscan"]')
+        self.assertIn("Tonart (OpenKeyScan)", card)
+        self.assertIn("Eigene Umgebung (Python 3.12 + Pakete)", card)
+        self.assertIn("OpenKeyScan Local API", pg.inner_text('.pl-card[data-pid="openkeyscan"]'))
+        pg.evaluate("(u) => call('start_plugin_action', 'openkeyscan', 'settings', [], { url: u })", url)
+        self.assertTrue(self.until("call('task_status').then((s) => s.done)"))
+        self.load_tagger()
+        pg.evaluate("() => { TG.sel = new Set(TG.order); pluginRun('openkeyscan', 'scan'); }")
+        pg.wait_for_selector('#mBtns button:has-text("Tonart erkennen")')
+        self.assertIn("Auto-Tagging", pg.inner_text("#mBody"))
+        pg.click('#mBtns button:has-text("Tonart erkennen")')
+        pg.wait_for_selector(".pl-prev")
+        txt = pg.inner_text(".pl-prev")
+        self.assertIn("Tonart (OpenKeyScan)", txt)
+        self.assertIn("08A", txt)
+        self.assertEqual(len([c for c in state.calls if c[1] == "/analyze/single"]), 3)
+
     def test_dj_lexicon_playlists(self):
         """#242: DJ-Set › „Aus Lexicon …“ – alle Playlists holen, mit Häkchen wählen, als Listen laden."""
         pg = self.pg

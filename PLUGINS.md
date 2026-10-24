@@ -99,6 +99,20 @@ rc, tail = ctx.run_env([os.path.join(os.path.dirname(__file__), "worker.py"), "a
 `on_line` bekommt jede Ausgabezeile (z. B. JSON-Fortschrittsmeldungen), Abbrechen beendet den Prozess.
 `ctx.env_info` enthält die installierte Variante. Vorlage: `plugins/stems/` (plugin.py + worker.py).
 
+**Zusatzdateien (`env.files`, #245):** Modelle oder Programmteile, die nicht als Python-Paket kommen, lädt die
+Installation nach den Paketen – nur von GitHub (`https://raw.githubusercontent.com/…`, fester Commit) und immer mit
+SHA-256-Prüfsumme. Stimmt die Prüfsumme nicht, wird nichts abgelegt. Fehlt eine Datei später, zeigt die Karte
+„Daten: …“ und „Neu installieren …“ holt sie (die Umgebung bleibt).
+
+```json
+"env": {"python": "3.12", "check": ["torch"],
+        "files": [{"label": "Modell (18 MB)", "path": "engine/modell.pt", "size": 18830452,
+                   "url": "https://raw.githubusercontent.com/<owner>/<repo>/<commit>/modell.pt",
+                   "sha256": "<64 Hex-Zeichen>"}]}
+```
+
+Die Dateien liegen unter `ctx.shared_dir/<path>` (z. B. `~/TagStudio/Plugin-Daten/<id>/engine/modell.pt`).
+
 ### plugin.py
 
 ```python
@@ -185,6 +199,30 @@ Durchklicken die JSON-Aufrufe der Seite mit und schreibt nach dem Schliessen `re
 einen Entwurf des Abschnitts `"service"` mit Endpunkten wie `/tracks/{track_id}`, Parametern und Antwortfeldern
 (Ordner `~/TagStudio/API-Aufnahmen/<host>`). Cookies, Anmeldung, Tokens, Passwörter und E-Mail-Adressen werden nie
 gespeichert. Nur für Schnittstellen verwenden, die du nutzen darfst.
+
+## Eingebaut: Tonart (OpenKeyScan) und OpenKeyScan-App
+
+Zwei Wege zur Tonart-Erkennung mit [OpenKeyScan](https://www.openkeyscan.com) (Rekordcloud) – gleiches Ergebnis,
+gleiche Vorschau (#217):
+
+- **Tonart (OpenKeyScan)** (`keyscan`, #245) – ohne Zusatz-App, offline. Eigene Umgebung mit Python 3.12, PyTorch,
+  librosa und PyAV (Variante **Prozessor** oder **NVIDIA**, ca. 1 GB). Netz und Modell der quelloffenen Engine
+  ([openkeyscan-analyzer](https://github.com/rekordcloud/openkeyscan-analyzer), MIT; Modell trainiert mit den
+  GiantSteps-Datensätzen, CC BY-SA 4.0) lädt die Installation von einem festen Commit und prüft sie mit SHA-256.
+  Aktionen: **Tonart erkennen (OpenKeyScan) …** (Vorschau) und **Tonart im Hintergrund analysieren …** (merkt sich nur
+  das Ergebnis, schreibt nichts – danach ist die Vorschau sofort da).
+- **OpenKeyScan-App** (`openkeyscan`, #244) – über die lokale API der Desktop-App (`http://localhost:58721`, Windows
+  und macOS). Bis 20 Titel einzeln (`/analyze/single`), darüber über die Warteschlange (`/analyze/add`,
+  `/analyze/results`). Nur Adressen auf diesem Rechner, nie über einen Proxy; `/analyze/clear` wird nie aufgerufen.
+  **In der App „Auto-Tagging“ ausschalten** – sonst schreibt sie selbst in die Dateien. Ändert sich eine Datei während
+  der Analyse, warnt TagStudio.
+
+Vorschau (beide): `TXXX:OPENKEYSCAN_KEY` (Camelot, z. B. `09A`, Herkunft „OpenKeyScan“) und auf Wunsch `TKEY` in der
+eingestellten Schreibweise. TKEY ist nur angekreuzt, wenn es leer ist (Option „Abweichende … ebenfalls ankreuzen“).
+Die Notiz vergleicht mit TKEY, Beatport (`TXXX:INITIAL_KEY`) und dem Mixed-In-Key-Kommentar: gleich, verwandt
+(±1 auf dem Rad oder Paralleltonart) oder abweichend; dazu die Sicherheit des Modells (nur `keyscan`). Ergebnisse
+werden je Datei (Grösse + Änderungszeit) zwischengespeichert. Als Schritt in **Vorbereiten** einsetzbar (Schritt-Typ
+„Plugin“, Modus „nur leere Felder füllen“).
 
 ## Eingebaut: Stems
 

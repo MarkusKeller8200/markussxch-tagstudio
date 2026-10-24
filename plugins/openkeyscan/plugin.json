@@ -1,0 +1,36 @@
+{
+  "id": "openkeyscan",
+  "name": "OpenKeyScan-App",
+  "version": "1.0",
+  "min_app": "4.8.0",
+  "category": "local_api",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Lässt die Tonart der markierten Titel von der OpenKeyScan-Desktop-App (Windows, macOS) über deren lokale API erkennen. Ergebnis als Vorschau: eigenes Feld OPENKEYSCAN_KEY (Camelot) und auf Wunsch TKEY in deiner Schreibweise, mit Vergleich zur vorhandenen Tonart. Ohne App: Plugin „Tonart (OpenKeyScan)“.",
+  "notes": "Keine Zusatzpakete nötig. Die OpenKeyScan-App muss laufen. In der App „Auto-Tagging“ ausschalten, damit sie nicht selbst in die Dateien schreibt – TagStudio warnt, wenn sich eine Datei während der Analyse ändert.",
+  "service": {
+    "name": "OpenKeyScan Local API",
+    "kind": "local",
+    "home": "https://www.openkeyscan.com",
+    "docs": "https://www.openkeyscan.com/api",
+    "base": "http://localhost:58721",
+    "auth": "local",
+    "auth_note": "Ohne Anmeldung; die OpenKeyScan-App startet den Server selbst (Port 58721). TagStudio spricht ihn nur auf diesem Rechner an.",
+    "note": "Endpunkte laut https://www.openkeyscan.com/api. Antwortformate von /health und /analyze/results sind dort nicht beschrieben – TagStudio liest sie tolerant. /analyze/clear (leert die Liste in der App) wird nie aufgerufen.",
+    "endpoints": [
+      {"id": "health", "method": "GET", "path": "/health", "label": "Läuft der Server?", "status": "full",
+       "use": "Verbindung testen"},
+      {"id": "single", "method": "POST", "path": "/analyze/single", "label": "Eine Datei analysieren (wartet auf das Ergebnis)",
+       "status": "full", "use": "Tonart erkennen (bis 20 Titel)", "note": "Rumpf {\"file\": Pfad} → {\"success\", \"file\", \"key\"}"},
+      {"id": "add", "method": "POST", "path": "/analyze/add", "label": "Dateien in die Warteschlange (bis 1000)",
+       "status": "full", "use": "Tonart erkennen (mehr als 20 Titel)", "note": "Rumpf {\"files\": [Pfade]}"},
+      {"id": "result", "method": "GET", "path": "/analyze/result", "label": "Ergebnis einer Datei", "status": "full",
+       "use": "Ergebnisse abholen (falls /analyze/results nichts liefert)",
+       "params": [{"name": "file", "default": "", "required": true, "label": "Vollständiger Pfad"}]},
+      {"id": "results", "method": "GET", "path": "/analyze/results", "label": "Alle Dateien mit Status und Tonart",
+       "status": "full", "use": "Fortschritt und Ergebnisse der Warteschlange"},
+      {"id": "clear", "method": "DELETE", "path": "/analyze/clear", "label": "Liste und Zwischenspeicher der App leeren",
+       "status": "none", "note": "bewusst nicht genutzt – löscht die Liste in der App"}
+    ]
+  }
+}

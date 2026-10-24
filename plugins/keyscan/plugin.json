@@ -1,0 +1,40 @@
+{
+  "id": "keyscan",
+  "name": "Tonart (OpenKeyScan)",
+  "version": "1.0",
+  "min_app": "4.8.0",
+  "category": "audio",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "url": "https://github.com/rekordcloud/openkeyscan-analyzer",
+  "description": "Erkennt die Tonart der markierten Titel mit dem KI-Modell von OpenKeyScan (quelloffen, MIT-Lizenz) – ohne Zusatz-App und offline. Ergebnis als Vorschau: eigenes Feld OPENKEYSCAN_KEY (Camelot) und auf Wunsch TKEY in deiner Schreibweise, mit Vergleich zur vorhandenen Tonart (TKEY, Mixed In Key, Beatport). Nichts wird ohne Bestätigung geschrieben.",
+  "env": {
+    "python": "3.12",
+    "check": ["torch", "librosa", "av"],
+    "files": [
+      {"label": "OpenKeyScan-Netz (model.py)", "path": "engine/model.py",
+       "url": "https://raw.githubusercontent.com/rekordcloud/openkeyscan-analyzer/d5cac64bc7195826b6eb10c55b9b0c97fb3287c0/model.py",
+       "sha256": "729c7fe571be03008a59c370f9ef6caf74526413e9a7aaf6adaafd340da39641"},
+      {"label": "OpenKeyScan-Modell (18 MB)", "path": "engine/openkeyscan3.pt", "size": 18830452,
+       "url": "https://raw.githubusercontent.com/rekordcloud/openkeyscan-analyzer/d5cac64bc7195826b6eb10c55b9b0c97fb3287c0/checkpoints/openkeyscan3.pt",
+       "sha256": "5610691be2b3aa21764c5978ca0c2524fcdbf600f09dcbda6c2da937745db600"}
+    ]
+  },
+  "install": [
+    {
+      "id": "cpu",
+      "label": "Installieren (Prozessor)",
+      "packages": ["torch", "librosa<1.0", "av", "numpy"],
+      "extra_index": ["https://download.pytorch.org/whl/cpu"],
+      "hint": "Läuft auf jedem PC; ein Titel braucht wenige Sekunden. Auf Macs mit Apple-Chip wird die Grafikeinheit automatisch genutzt."
+    },
+    {
+      "id": "gpu",
+      "label": "Installieren (NVIDIA-Grafikkarte)",
+      "packages": ["torch", "librosa<1.0", "av", "numpy"],
+      "extra_index": ["https://download.pytorch.org/whl/cu128"],
+      "hint": "Nur nötig für sehr grosse Sammlungen; braucht eine NVIDIA-Karte mit aktuellem Treiber."
+    }
+  ],
+  "notes": "Die Installation legt eine eigene Umgebung an (Python 3.12 wird bei Bedarf geladen) und lädt PyTorch (ca. 1 GB, mit NVIDIA mehr) sowie das Modell von einem festen, geprüften Stand des OpenKeyScan-Repositorys. Trainiert wurde das Modell mit den GiantSteps-Datensätzen (CC BY-SA 4.0)."
+}

@@ -1,0 +1,39 @@
+name: Tonart-Test
+
+# Echter Ende-zu-Ende-Test des Plugins „Tonart (OpenKeyScan)“ (#245) mit synthetischen Testtiteln (keine echte Musik):
+# Umgebung installieren wie in der App (uv, Python 3.12, PyTorch, librosa, PyAV), Modell mit Prüfsumme laden, analysieren.
+# Läuft nur von Hand (Actions → Tonart-Test → Run workflow) und bei Änderungen am Plugin.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["plugins/keyscan/**", "keyscan.py", "packaging/ci_keyscan_test.py", ".github/workflows/keyscan-test.yml"]
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: "utf-8"
+
+jobs:
+  keyscan:
+    name: Tonart · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Werkzeuge
+        run: python -m pip install --upgrade pip uv imageio-ffmpeg
+      - name: Installieren, analysieren, prüfen
+        run: python packaging/ci_keyscan_test.py cpu
+      - name: Ergebnis anzeigen
+        if: always()
+        run: python packaging/ci_note.py notice "Tonart-Test ${{ matrix.os }}" keyscan-test.txt 40

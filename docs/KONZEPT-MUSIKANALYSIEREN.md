@@ -129,6 +129,11 @@ Die PDF führt folgende Projekte und Technologien als mögliche Grundlagen auf. 
 | MOSS-Music | Experimentelles Modul für umfassendes Musikverständnis |
 | FAISS / hnswlib | Effiziente Ähnlichkeitssuche in grossen Musikbibliotheken |
 
+**Stand 24.10.2026 (Tonart):** Erste umgesetzte Analyse ist die Tonart-Erkennung mit dem quelloffenen
+OpenKeyScan-Modell (CNN auf CQT, MIT) als Plugin `keyscan` (#245) bzw. über die OpenKeyScan-App (#244) – optional, in
+eigener Umgebung, Ergebnis nur als Vorschlag (`TXXX:OPENKEYSCAN_KEY`, optional TKEY). Details
+[KONZEPT-PLUGINS.md](KONZEPT-PLUGINS.md). Genauigkeit gegenüber MIK noch am eigenen Bestand prüfen.
+
 **Architekturvorgabe aus der Vorlage:** Nicht sämtliche Technologien werden feste Abhängigkeiten. Der **Analysekern muss auch ohne grosse KI-Modelle nutzbar** sein.
 
 ### 5.1 Kriterien für die spätere Evaluation
