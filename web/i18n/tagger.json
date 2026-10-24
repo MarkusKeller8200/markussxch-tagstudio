@@ -211,5 +211,14 @@
 "z. B. <30d, {n}-{n}": ["e.g. <30d, {n}-{n}", "z. B. <30d, {n}-{n}"],
 "z. B. {n}-{n}": ["e.g. {n}-{n}", "z. B. {n}-{n}"],
 "z. B. >{n}": ["e.g. >{n}", "z. B. >{n}"],
-"z. B. >={n}": ["e.g. >={n}", "z. B. >={n}"]
+"z. B. >={n}": ["e.g. >={n}", "z. B. >={n}"],
+"Alle Filter aufheben (Suche, Spalten, Feld, Playlist) – sind nur die Titel einer Playlist geladen, auch den ganzen Ordner wieder laden (#{n})": ["Clear all filters (search, columns, field, playlist) – if only a playlist's tracks are loaded, also load the whole folder again (#{n})", "Alli Filter ufhebe (Suechi, Spalte, Fäld, Playlist) – wänn nur d Titel vo ere Playlist glade sind, au de ganz Ordner wider lade (#{n})"],
+"↺ Filter": ["↺ Filter", "↺ Filter"],
+"Wieder laden: {x}": ["Load again: {x}", "Wider lade: {x}"],
+"Gemeinsamen Ordner der Titel laden": ["Load the common folder of the tracks", "Gmeinsame Ordner vo de Titel lade"],
+"Im Tagger sind nur die Titel dieser Playlist geladen – kein Filter": ["Only the tracks of this playlist are loaded in the tagger – not a filter", "Im Tagger sind nur d Titel vo dere Playlist glade – kän Filter"],
+"Nur Playlist geladen:": ["Only playlist loaded:", "Nur Playlist glade:"],
+"({x} Titel)": ["({x} tracks)", "({x} Titel)"],
+"Ganzen Ordner laden": ["Load whole folder", "Ganze Ordner lade"],
+"Filter aufgehoben.": ["Filters cleared.", "Filter ufghobe."]
 }

@@ -252,8 +252,10 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
   right the tracks with BPM, key, length and rating – dragging or Alt+↑/↓ re-orders, Del removes (only from the
   playlist, never the file), double-click plays, dragging tracks onto another playlist in the tree copies them there.
   Ctrl+Z / Ctrl+Y undo every change.
-- **Open:** “Open in the tagger” loads the tracks into the tagger, “Open in the DJ set” into the set. In the tagger,
-  “Playlist ▾ → Show only tracks from a playlist …” shows only its tracks (filter chip, ✕ clears it).
+- **Open:** “Open in the tagger” loads only the playlist's tracks into the tagger (note “Only playlist loaded” with
+  “Load whole folder”), “Open in the DJ set” into the set. In the tagger, “Playlist ▾ → Show only tracks from a
+  playlist …” shows only its tracks (filter chip, ✕ clears it). **“↺ Filter”** above the list clears all filters
+  (search, columns, field, playlist) and loads the whole folder again if needed.
 - **Playlist folder:** every playlist is also stored as M3U8 (relative paths) in `03_Playlists` in the base folder,
   subfolders as in the tree – for reading into Engine DJ, VirtualDJ and other programs. Set it under Settings ›
   Storage and folders. If another program changes a file there or adds a new one, the page reports it (“Changes in
@@ -407,7 +409,7 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   variants CPU/DirectML/NVIDIA). Runs **in the background**: the dialog closes immediately, the footer shows the
   progress (“Stems: 2 of 7 · 45 %”), a click shows all jobs (cancel, folder, log). Further jobs are queued; on exit
   you are asked, and the queue is offered for resuming on the next start. In the tagger the stems hang **expandable
-  below the original** (▸, →/←, “Stems ▾/▸” for all): edit MP3 stems, listen to FLAC/WAV; “Stems: tags from the
+  below the original** (▸, →/←, toggle button “Stems” for all): edit MP3 stems, listen to FLAC/WAV; “Stems: tags from the
   original …” copies the tags.
 - **Beatport (unofficial):** BPM, key, genre, label, catalogue number, ISRC, remixer, cover and more with your own
   Beatport login (the password is never stored). The preview shows **all delivered fields** – identical ones grey,

@@ -22,6 +22,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   führt „← Zurück“ oben in der Seitenleiste an dieselbe Stelle zurück – mit Auswahl, Filter und Bildlauf; „→“
   vorwärts, Rechtsklick zeigt die letzten Stationen. Auch Alt+← / Alt+→ (ausser im Vergleich) und die Maustasten
   Zurück/Vorwärts. Klicks in der Seitenleiste zählen nicht.
+- **Tagger: „↺ Filter“ (#275)** hebt Suche, Spalten-, Feld- und Playlist-Filter auf einmal auf; sind nur die Titel
+  einer Playlist geladen, zeigt ein Hinweis das an und „Ganzen Ordner laden“ holt den vorher geladenen Ordner zurück.
+- **Tagger: Stems mit einem Umschalt-Knopf (#276)** statt zwei Knöpfen zum Auf- und Zuklappen.
 - **DJ-Set ↔ Playlists (#269):** Das Set wird als Playlist gespeichert (Ordner „DJ-Sets“, mit Sperren und Optionen),
   jede Playlist lässt sich im DJ-Set öffnen; Playlists aus Lexicon landen im Ordner „Lexicon“. Die bisherigen
   gespeicherten Listen werden beim ersten Start einmalig übernommen.

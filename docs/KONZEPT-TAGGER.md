@@ -126,3 +126,12 @@ Speichern als Unterschied auffällt.
 
 `tests/test_tagger.py`, `test_tagger_tools.py`, `test_keys.py`, `test_features.py`, `test_moods.py`, `test_recipes.py`, `test_blobs.py`, `test_ratings.py`,
 `test_listcache.py`, `test_archive.py`, `test_tsmeta.py` sowie Oberflächen-Tests in `tests/test_browser_ui.py`.
+
+## Ergänzungen 24.10.2026 (#275, #276)
+
+- **„↺ Filter“** (`tgResetFilters`) neben „↺ Sortierung“, sichtbar bei aktiver Suche, Spaltenfilter, Feld-Filter
+  (Hilfe) oder Playlist-Filter: hebt alle auf.
+- **Nur Titel einer Playlist geladen** (`start_tag_load_files` mit Bezeichnung, `TG.list`): Hinweis-Chip `#tgListChip`
+  mit „Ganzen Ordner laden“ (lädt den vorher geladenen Ordner, sonst den gemeinsamen Ordner); „↺ Filter“ lädt dann
+  ebenfalls den Ordner.
+- **Stems:** ein Umschalt-Knopf `#tgStemToggle` (aufgeklappt → alle zu, sonst alle auf, `aria-pressed`).

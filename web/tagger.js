@@ -187,6 +187,9 @@ async function taggerLoad() {
 }
 
 async function tgAfterLoad(res, path, rec) {
+  // #275: nur die Titel einer Playlist geladen? (merken, welcher Ordner vorher da war)
+  const prev = TG.loaded && !TG.list ? { prev: TG.root, prevRec: TG.recursive } : (TG.list ? { prev: TG.list.prev, prevRec: TG.list.prevRec } : {});
+  TG.list = res.label && !path ? { label: res.label, n: res.files, ...prev } : null;
   TG.settings = await call("tagger_settings");
   $("#histTg").innerHTML = TG.settings.hist.map((h) => `<option value="${esc(h)}"></option>`).join("");
   if (typeof plForget === "function") plForget("tag");     // Indizes gelten nur für die vorige Liste
@@ -291,6 +294,12 @@ function tgApplyOrder() {
   const total = TG.rows.filter((r) => r.parent === undefined).length, nStem = TG.rows.filter((r) => r.stems).length;
   $("#tgCount").textContent = TG.rows.length ? (idx.length === total ? `${fmtN(idx.length)} Dateien` : `${fmtN(idx.length)} von ${fmtN(total)}`) + (TG.sel.size > 1 ? ` · ${TG.sel.size} markiert` : "") : "";
   $("#tgStemBtns").hidden = !nStem;
+  const anyOpen = TG.rows.some((r) => r.stems && TG.open.has(r.i));             // #276: ein Umschalt-Knopf
+  const sb = $("#tgStemToggle");
+  sb.textContent = anyOpen ? "Stems ▾" : "Stems ▸";
+  sb.title = anyOpen ? "Alle Stems zuklappen" : "Alle Stems aufklappen";
+  sb.setAttribute("aria-pressed", String(anyOpen));
+  tgFilterResetSync();
   $("#tgInner").style.height = view.length * TG_ROW + "px";
   drawTgList();
   tgStateSave();                                                      // #127
@@ -316,6 +325,38 @@ async function tgSetFieldFilter(key, mode = "has", label = "") {
   TG.fieldFilter = { key, mode, label: label || key, has: new Set(r.has), n: r.has.length };
   tgFieldFilterChip();
   tgApplyOrder();
+}
+
+// ---------------------------------------------------------------------- #275 Filter zurücksetzen, Playlist geladen
+function tgFilterActive() {
+  return !!(($("#tgQuery").value || "").trim() || tgColFilterActive() || TG.fieldFilter || TG.plFilter);
+}
+
+function tgFilterResetSync() {
+  const b = $("#tgFilterReset"); if (b) b.hidden = !(tgFilterActive() || TG.list);
+  const el = $("#tgListChip"); if (!el) return;
+  el.hidden = !TG.list;
+  el.innerHTML = TG.list ? `<span class="chip" title="Im Tagger sind nur die Titel dieser Playlist geladen – kein Filter">Nur Playlist geladen: <b translate="no">${esc(TG.list.label)}</b> <span>(${fmtN(TG.list.n)} Titel)</span></span>
+    <button class="ghost sm" data-tglist title="${esc(TG.list.prev ? `Wieder laden: ${TG.list.prev}` : "Gemeinsamen Ordner der Titel laden")}">Ganzen Ordner laden</button>` : "";
+}
+
+/** Den Ordner wieder laden, der vor „Playlist im Tagger öffnen“ geladen war */
+async function tgLoadFolderAgain() {
+  const l = TG.list; if (!l) return;
+  $("#tgPath").value = l.prev || TG.root || "";
+  $("#tgRec").checked = l.prev ? !!l.prevRec : $("#tgRec").checked;
+  await taggerLoad();
+}
+
+async function tgResetFilters() {
+  $("#tgQuery").value = "";
+  TG.colQ = {};
+  TG.fieldFilter = null; tgFieldFilterChip();
+  TG.plFilter = null; tgPlFilterChip();
+  renderTgHead();
+  tgApplyOrder();
+  if (TG.list) await tgLoadFolderAgain();
+  else toast("Filter aufgehoben.");
 }
 
 // ---------------------------------------------------------------------- #268 Playlists im Tagger
@@ -1668,8 +1709,12 @@ async function tgOriginDialog(preset = "") {
   $("#tgFeatCols").addEventListener("click", (e) => { e.stopPropagation(); tgFeatMenu(e.currentTarget); });
   $("#tgInner").addEventListener("mouseover", tgCoverPop);
   $("#tgInner").addEventListener("mouseout", tgCoverPop);
-  $("#tgStemOpen").addEventListener("click", () => { TG.rows.forEach((r) => { if (r.stems) TG.open.add(r.i); }); tgApplyOrder(); });
-  $("#tgStemClose").addEventListener("click", () => { [...TG.open].forEach((i) => tgToggleStems(i, false)); });
+  $("#tgStemToggle").addEventListener("click", () => {                         // #276
+    if (TG.rows.some((r) => r.stems && TG.open.has(r.i))) [...TG.open].forEach((i) => tgToggleStems(i, false));
+    else { TG.rows.forEach((r) => { if (r.stems) TG.open.add(r.i); }); tgApplyOrder(); }
+  });
+  $("#tgFilterReset").addEventListener("click", tgResetFilters);              // #275
+  $("#tgListChip").addEventListener("click", (e) => { if (e.target.closest("[data-tglist]")) tgLoadFolderAgain(); });
   $("#tgTable").addEventListener("keydown", (e) => {
     if (!TG.order.length) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") { e.preventDefault(); e.stopPropagation(); TG.sel = new Set(TG.order); tgApplyOrder(); tgLoadDetail(); return; }

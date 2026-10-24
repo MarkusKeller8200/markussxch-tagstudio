@@ -257,8 +257,10 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
   zusammenführen, Archivieren. Rechts die Titel mit BPM, Tonart, Länge und Bewertung – Ziehen bzw. Alt+↑/↓
   sortiert um, Entf entfernt (nur aus der Playlist, nie die Datei), Doppelklick spielt, Titel auf eine andere
   Playlist im Baum ziehen kopiert sie dorthin. Strg+Z / Strg+Y machen jede Änderung rückgängig.
-- **Öffnen:** „Im Tagger öffnen“ lädt die Titel in den Tagger, „Im DJ-Set öffnen“ ins Set. Im Tagger zeigt
-  „Playlist ▾ → Nur Titel aus einer Playlist zeigen …“ nur deren Titel (Filter-Chip, ✕ hebt ihn auf).
+- **Öffnen:** „Im Tagger öffnen“ lädt nur die Titel der Playlist in den Tagger (Hinweis „Nur Playlist geladen“ mit
+  „Ganzen Ordner laden“), „Im DJ-Set öffnen“ ins Set. Im Tagger zeigt „Playlist ▾ → Nur Titel aus einer Playlist
+  zeigen …“ nur deren Titel (Filter-Chip, ✕ hebt ihn auf). **„↺ Filter“** über der Liste hebt alle Filter auf
+  (Suche, Spalten, Feld, Playlist) und lädt bei Bedarf den ganzen Ordner wieder.
 - **Playlist-Ordner:** jede Playlist liegt zusätzlich als M3U8 (relative Pfade) in `03_Playlists` im Basisordner,
   Unterordner wie im Baum – zum Einlesen in Engine DJ, VirtualDJ und andere Programme. Einstellen unter
   Einstellungen › Speicherort und Ordner. Ändert ein anderes Programm dort eine Datei oder legt eine neue an,
@@ -422,7 +424,7 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   steht der Fortschritt („Stems: 2 von 7 · 45 %“), ein Klick zeigt alle Aufträge (Abbrechen, Ordner, Protokoll).
   Weitere Aufträge werden hinten angestellt, beim Beenden wird nachgefragt und die Warteschlange beim nächsten
   Start zum Fortsetzen angeboten. Im Tagger hängen die Spuren **aufklappbar unter dem Original** (▸, →/←,
-  „Stems ▾/▸“ für alle): MP3-Spuren bearbeiten, FLAC/WAV anhören; „Stems: Tags vom Original …“ überträgt die Tags.
+  Umschalt-Knopf „Stems“ für alle): MP3-Spuren bearbeiten, FLAC/WAV anhören; „Stems: Tags vom Original …“ überträgt die Tags.
 - **Beatport (inoffiziell):** BPM, Tonart, Genre, Label, Katalognummer, ISRC, Remixer, Cover u. a. mit deinem
   eigenen Beatport-Login (Passwort wird nie gespeichert). Die Vorschau zeigt **alle gelieferten Felder** – gleiche
   grau, abgewählte und schon gefüllte ungehakt.

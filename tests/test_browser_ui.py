@@ -2483,7 +2483,7 @@ class UiTest(unittest.TestCase):
         pg.click('.tg-row[data-i="2"]')
         pg.click("#navBack")
         pg.wait_for_function("S.module === 'playlists' && PLS.anchor === 1 && PLS.sel.has(1) && PLS.sel.size === 1")
-        self.assertTrue(pg.locator("#navFwd").is_visible())
+        pg.wait_for_selector("#navFwd:not([hidden])")                  # erscheint nach der Wiederherstellung
         pg.keyboard.press("Alt+ArrowRight")                            # vorwärts: Tagger mit derselben Auswahl
         pg.wait_for_function("S.module === 'tagger' && TG.anchor === 2")
         pg.evaluate("document.dispatchEvent(new MouseEvent('mouseup', {button: 3, bubbles: true}))")   # Maustaste Zurück
@@ -2506,6 +2506,43 @@ class UiTest(unittest.TestCase):
         self.assertGreaterEqual(pg.locator("#menu button").count(), 1)
         pg.click("#menu button >> nth=0")
         pg.wait_for_function("S.module === 'playlists'")
+
+    def test_tagger_filter_reset_and_stems(self):
+        """#275: „↺ Filter“ und Hinweis „Nur Playlist … geladen“; #276: Stems mit einem Umschalt-Knopf."""
+        pg = self.pg
+        st = os.path.join(self.lib, "01 Ton 220 – Stems")
+        os.makedirs(st)
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "lavfi", "-i", "sine=frequency=220:duration=2",
+                        os.path.join(st, "01 Ton 220 (Vocals).flac")], check=True)
+        self.load_tagger()
+        self.assertTrue(pg.locator("#tgFilterReset").is_hidden())
+        # #276: ein Knopf klappt auf und zu
+        self.assertEqual(pg.locator("#tgStemBtns button").count(), 1)
+        self.assertEqual(pg.inner_text("#tgStemToggle"), "Stems ▸")
+        n = pg.evaluate("TG.view.length")
+        pg.click("#tgStemToggle")
+        pg.wait_for_function(f"TG.view.length > {n} && document.querySelector('#tgStemToggle').textContent === 'Stems ▾'")
+        pg.click("#tgStemToggle")
+        pg.wait_for_function(f"TG.view.length === {n} && document.querySelector('#tgStemToggle').textContent === 'Stems ▸'")
+        # Suche → „↺ Filter“ hebt sie auf
+        pg.fill("#tgQuery", "Ton 330")
+        pg.wait_for_function("TG.order.length === 1")
+        self.assertTrue(pg.locator("#tgFilterReset").is_visible())
+        pg.click("#tgFilterReset")
+        pg.wait_for_function("TG.order.length === 3 && document.querySelector('#tgQuery').value === ''")
+        self.assertTrue(pg.locator("#tgFilterReset").is_hidden())
+        # #275: Playlist im Tagger öffnen → Hinweis, „Ganzen Ordner laden“ holt den Ordner zurück
+        pg.evaluate("call('pl_create', 'Probe', '', [0, 1])")
+        pg.click('.nav[data-module="playlists"]')
+        pg.wait_for_function("document.querySelectorAll('#plsList .pls-row[data-k]').length === 2")
+        pg.click('#plsHead [data-plsa="tagger"]')
+        pg.wait_for_function("S.module === 'tagger' && TG.rows.length === 2 && TG.list")
+        self.assertIn("Probe", pg.inner_text("#tgListChip"))
+        self.assertTrue(pg.locator("#tgFilterReset").is_visible())
+        pg.click("#tgListChip [data-tglist]")
+        pg.wait_for_function("TG.rows.length === 3 && !TG.list")
+        self.assertTrue(pg.locator("#tgListChip").is_hidden())
+        self.assertTrue(pg.locator("#tgFilterReset").is_hidden())
 
     def test_djset_page(self):
         """#3 DJ-Set: aus dem Tagger übernehmen, optimieren, sperren, ziehen, Tasten, Wiedergabe, gemerkte Optionen."""
