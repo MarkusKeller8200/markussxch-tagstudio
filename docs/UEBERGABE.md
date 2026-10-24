@@ -1,8 +1,20 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-24 (12:55): 4.8.0-beta.2 veröffentlicht** (Pre-Release, nur Windows, 18 Assets inkl. Plugin-ZIPs). Meilenstein #22 „4.8.0 – Updates: App und Plugins“: alles getestet und geschlossen ausser **#251** (Update auf Knopfdruck macOS, erst testbar, wenn zwei Mac-Versionen mit dem neuen Code existieren – Betas bauen kein macOS). Nächster Schritt: Testrückmeldungen zur Beta 2, danach 4.8.0 final (nur nach Freigabe; finale Versionen bauen auch macOS). Neue Konzepte (nur Konzept, `idee`): SonoVault #253–#259 (`docs/KONZEPT-SONOVAULT.md`), eigener lokaler Katalog #260, lokale Mix-Erkennung #261, weitere Dateiformate #262–#266 (`docs/KONZEPT-FORMATE.md`), Playlists #267–#273 (`docs/KONZEPT-PLAYLISTS.md`, Entscheide E1–E8 getroffen, Meilenstein #23 „4.9.0 – Playlists“ mit #267–#271, noch nicht freigegeben). Details: Abschnitt „Sitzung 24.10.2026“ unten.
+Stand: **2026-10-24 (12:55): 4.8.0-beta.2 veröffentlicht** (Pre-Release, nur Windows, 18 Assets inkl. Plugin-ZIPs). Meilenstein #22 „4.8.0 – Updates: App und Plugins“: alles getestet und geschlossen ausser **#251** (Update auf Knopfdruck macOS, erst testbar, wenn zwei Mac-Versionen mit dem neuen Code existieren – Betas bauen kein macOS). Nächster Schritt: Testrückmeldungen zur Beta 2, danach 4.8.0 final (nur nach Freigabe; finale Versionen bauen auch macOS). Neue Konzepte (nur Konzept, `idee`): SonoVault #253–#259 (`docs/KONZEPT-SONOVAULT.md`), eigener lokaler Katalog #260, lokale Mix-Erkennung #261, weitere Dateiformate #262–#266 (`docs/KONZEPT-FORMATE.md`), Playlists #267–#273 (`docs/KONZEPT-PLAYLISTS.md`): Phase 1 (#267–#269) umgesetzt, im Beta-Test für 4.8.0-beta.3; Phase 2 (#270, #271) im Meilenstein #23 „4.9.0 – Playlists“. Details: Abschnitt „Sitzung 24.10.2026“ unten.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Sitzung 24.10.2026 (Nachmittag) – Playlists
+
+- **Konzept** `docs/KONZEPT-PLAYLISTS.md` mit Entscheiden E1–E8 des Users (13:03): eigenes Modul, DJ-Set-Listen
+  übernehmen, Programmdaten + Playlist-Ordner `03_Playlists` (M3U8), mehrere Quellen (Tagger, DJ-Set, Datei, Lexicon,
+  später MixID/1001Tracklists), Doppelte erlaubt, nichts in die Tags, Archiv wie bei den Titeln.
+- **Phase 1 umgesetzt** (Auftrag User 13:08 „#267 ja, erste Iteration, wird 4.8.0 Beta 3“): #267 Grundlage/Seite,
+  #268 Tagger, #269 DJ-Set – im Meilenstein #22 (4.8.0), Label `_3 Beta-Test`, Testlisten in den Issues.
+  Phase 2 (#270 Player/Warteschlange/Vorbereiten, #271 Quellen/Import/Export) im Meilenstein #23 „4.9.0 – Playlists“,
+  Phase 3 (#272 Smartlists, #273 DJ-Programme) unter „Funktionen“.
+- **Nächster Schritt:** Testrückmeldungen; danach 4.8.0-beta.3 **nur nach Freigabe** (#251 bleibt bis zur finalen
+  Version offen).
 
 ## Roadmap (Entscheid 17.10.2026)
 
