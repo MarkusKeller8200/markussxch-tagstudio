@@ -248,5 +248,9 @@
 "CDATA-Abschnitt nicht geschlossen": ["CDATA section not closed", "CDATA-Abschnitt nöd gschlosse"],
 "XML-Deklaration steht nicht am Anfang": ["XML declaration is not at the beginning", "XML-Deklaration staht nöd am Aafang"],
 "Unbekanntes Namensraum-Präfix": ["Unknown namespace prefix", "Unbekannts Namensruum-Präfix"],
-"· weitere Bytes davor/danach bleiben unverändert": ["· further bytes before/after stay unchanged", "· wiiteri Bytes devor/dänoch bliibed unveränderet"]
+"· weitere Bytes davor/danach bleiben unverändert": ["· further bytes before/after stay unchanged", "· wiiteri Bytes devor/dänoch bliibed unveränderet"],
+"Schlüsselbund: {x} fehlgeschlagen (OSStatus {x})": ["Keychain: {x} failed (OSStatus {x})", "Schlüsselbund: {x} hät nöd klappet (OSStatus {x})"],
+"Schlüsselbund nicht verfügbar ({x}) – Datei nur für dich lesbar ({n}).": ["Keychain not available ({x}) – file readable only by you ({n}).", "Schlüsselbund nöd verfüegbar ({x}) – Datei nur für dich lesbar ({n})."],
+"{x} – Datei nur für dich lesbar ({n}).": ["{x} – file readable only by you ({n}).", "{x} – Datei nur für dich lesbar ({n})."],
+"Lesen": ["Reading", "Läse"]
 }

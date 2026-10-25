@@ -47,5 +47,6 @@ Nicht im Geltungsbereich:
 ## Hinweise zum Umgang mit Daten / Data handling
 
 - Zugangsdaten (z. B. Beatport) werden nicht gespeichert; Tokens liegen nur lokal im Benutzerordner,
-  unter Windows mit DPAPI verschlüsselt.
+  unter Windows mit DPAPI verschlüsselt, unter macOS im Schlüsselbund (`secretstore.py`, #287). Nur wo beides
+  nicht verfügbar ist, liegt eine Datei, die nur für den Benutzer lesbar ist (0600).
 - TagStudio sendet keine Daten an Dritte; Netzwerkzugriffe gibt es nur bei Update-Prüfung und Plugins.

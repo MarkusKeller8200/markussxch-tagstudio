@@ -6,6 +6,14 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Sicherheit
+
+- **Zugangsdaten unter macOS im Schlüsselbund (#287):** Schlüssel und Tokens der Dienst-Plugins (AcoustID, Discogs,
+  Last.fm, Spotify, SoundCloud …) und Beatport-Token/App-Daten liegen unter macOS jetzt im Schlüsselbund statt als
+  Datei; bestehende Dateien werden beim ersten Lesen übernommen. Windows wie bisher DPAPI. Neues Kernmodul
+  `secretstore.py`, Dateien werden atomar und von Anfang an nur für den Benutzer lesbar geschrieben
+  (Beatport-Plugin 1.8).
+
 ## [4.9.0] – 2026-10-25
 
 ### Neu

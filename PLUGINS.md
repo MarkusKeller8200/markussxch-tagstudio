@@ -280,7 +280,8 @@ als Download-Versuch wie auf der Webseite. „Testen“ und „Anmelden“ zeige
      Doku-Seite): Das Passwort wird nur für die Anmeldung benutzt und **nie gespeichert**.
    - *Token aus dem Browser*: auf api.beatport.com/v4/docs anmelden, Entwicklertools (F12) → Netzwerk →
      Anfrage „token“ → Antwort (JSON) kopieren und einfügen.
-   Gespeichert wird nur der Token, unter Windows mit DPAPI verschlüsselt (nur dein Benutzerkonto kann ihn lesen).
+   Gespeichert wird nur der Token – unter Windows mit DPAPI verschlüsselt, unter macOS im Schlüsselbund (nur dein
+   Benutzerkonto kann ihn lesen).
    Abgelaufene Tokens werden automatisch erneuert.
 2. Im Tagger Titel markieren → **Plugins → Beatport-Daten holen …** → Felder wählen, „Nur leere Felder füllen“
    oder „Überschreiben“.

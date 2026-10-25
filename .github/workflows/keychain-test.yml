@@ -1,0 +1,46 @@
+name: Zugangsdaten-Test
+
+# Echter Test der Ablage von Zugangsdaten (#287): macOS-Schlüsselbund (Security.framework) und Windows-DPAPI.
+# Auf macOS wird ein eigener, temporärer Schlüsselbund angelegt und als Standard gesetzt – nichts Echtes.
+# Läuft von Hand (Actions → Zugangsdaten-Test → Run workflow) und bei Änderungen an der Ablage.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["secretstore.py", "servicekit.py", "oauthkit.py", "plugins/beatport/plugin.py",
+            "tests/test_secretstore.py", ".github/workflows/keychain-test.yml"]
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: "utf-8"
+
+jobs:
+  secrets:
+    name: Zugangsdaten · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Temporärer Schlüsselbund (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          KC="$RUNNER_TEMP/tagstudio-test.keychain-db"
+          security create-keychain -p ci-test "$KC"
+          security set-keychain-settings -lut 3600 "$KC"
+          security unlock-keychain -p ci-test "$KC"
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+          security default-keychain -s "$KC"
+      - name: Ablegen, lesen, übernehmen, löschen
+        env:
+          TAGSTUDIO_REAL_SECRETS: "1"
+        run: python -m unittest -v tests.test_secretstore

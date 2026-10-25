@@ -25,6 +25,7 @@ BUNDLE_ID = "ch.markussxch.tagstudio"
 HIDDEN = [
     "services", "servicekit", "oauthkit", "feedback", "lyricsync", "gridstatus", "beattag",   # #204: Online-Dienste als Plugins
     "keyscan",                                                     # #244/#245: Tonart mit OpenKeyScan
+    "secretstore",                                                 # #287: Zugangsdaten (DPAPI / Schlüsselbund)
     "tsmeta", "i18n",                                              # #157: Mehrsprachigkeit
     # eigene Module (werden teils erst bei Bedarf importiert)
     "session", "core", "keys", "features", "plugins", "updater", "xmltools", "tagger", "backup", "compare",

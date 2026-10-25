@@ -4,7 +4,8 @@ Standard (Entscheid User 25.10.2026, #289): eigener offizieller API-Zugang (Clie
 Anmelde-Doku). Ausweichweg (inoffiziell): Login wie im beets-Plugin „beatport4“ über die öffentliche client_id der
 API-Dokumentation (OAuth authorization_code) oder Token aus dem Browser einfügen. Genutzt werden nur Endpunkte der
 offiziellen Beschreibung – ausser dem Download gekaufter Dateien (nicht dokumentiert, Variante 1 mit Hinweis auf die
-Download-Seite). Das Passwort wird nie gespeichert; Token und App-Daten liegen verschlüsselt (Windows: DPAPI).
+Download-Seite). Das Passwort wird nie gespeichert; Token und App-Daten liegen verschlüsselt (Windows: DPAPI,
+macOS: Schlüsselbund – #287).
 
 Nur Standardbibliothek. Alle Änderungen werden als Vorschläge zurückgegeben (Vorschau mit Häkchen).
 """
@@ -12,12 +13,13 @@ import difflib
 import json
 import os
 import re
-import sys
 import time
 import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
+
+import secretstore
 
 from id3tags import MV
 
@@ -112,57 +114,34 @@ ACTIONS = [
 
 
 # =========================================================================== Token sicher ablegen
-def _dpapi(data: bytes, protect: bool) -> bytes:
-    import ctypes
-    from ctypes import wintypes
-
-    class BLOB(ctypes.Structure):
-        _fields_ = [("cbData", wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_char))]
-    buf = ctypes.create_string_buffer(data, len(data))
-    blob_in = BLOB(len(data), ctypes.cast(buf, ctypes.POINTER(ctypes.c_char)))
-    blob_out = BLOB()
-    fn = ctypes.windll.crypt32.CryptProtectData if protect else ctypes.windll.crypt32.CryptUnprotectData
-    if not fn(ctypes.byref(blob_in), None, None, None, None, 0, ctypes.byref(blob_out)):
-        raise OSError("Windows-Verschlüsselung (DPAPI) fehlgeschlagen.")
-    try:
-        return ctypes.string_at(blob_out.pbData, blob_out.cbData)
-    finally:
-        ctypes.windll.kernel32.LocalFree(blob_out.pbData)
-
-
 def _token_path(ctx):
     return os.path.join(ctx.data_dir, "token.bin")
 
 
-def save_token(ctx, tok: dict):
-    raw = json.dumps(tok).encode("utf-8")
-    if sys.platform.startswith("win"):
-        raw = b"DPAPI" + _dpapi(raw, True)
-    path = _token_path(ctx)
-    with open(path, "wb") as fh:
-        fh.write(raw)
-    if not sys.platform.startswith("win"):
-        os.chmod(path, 0o600)
-
-
-def load_token(ctx):
+def _load_json(path, key):
     try:
-        with open(_token_path(ctx), "rb") as fh:
-            raw = fh.read()
-        if raw.startswith(b"DPAPI"):
-            raw = _dpapi(raw[5:], False)
-        tok = json.loads(raw.decode("utf-8"))
-        return tok if isinstance(tok, dict) and tok.get("access_token") else None
+        raw = secretstore.read(path)
+        d = json.loads(raw.decode("utf-8")) if raw else None
+        return d if isinstance(d, dict) and d.get(key) else None
     except (OSError, ValueError):
         return None
 
 
+def _save_json(ctx, path, d: dict):
+    if secretstore.write(path, json.dumps(d).encode("utf-8")) == "file" and secretstore.last_note():
+        ctx.log(secretstore.last_note())
+
+
+def save_token(ctx, tok: dict):
+    _save_json(ctx, _token_path(ctx), tok)
+
+
+def load_token(ctx):
+    return _load_json(_token_path(ctx), "access_token")
+
+
 def delete_token(ctx):
-    try:
-        os.remove(_token_path(ctx))
-        return True
-    except OSError:
-        return False
+    return secretstore.delete(_token_path(ctx))
 
 
 def _app_path(ctx):
@@ -170,34 +149,16 @@ def _app_path(ctx):
 
 
 def save_app(ctx, cid: str, secret: str):
-    """Eigener API-Zugang (Client-ID, Secret) – verschlüsselt wie der Token (Windows: DPAPI)."""
-    raw = json.dumps({"client_id": cid, "client_secret": secret}).encode("utf-8")
-    if sys.platform.startswith("win"):
-        raw = b"DPAPI" + _dpapi(raw, True)
-    with open(_app_path(ctx), "wb") as fh:
-        fh.write(raw)
-    if not sys.platform.startswith("win"):
-        os.chmod(_app_path(ctx), 0o600)
+    """Eigener API-Zugang (Client-ID, Secret) – wie der Token über secretstore (DPAPI / Schlüsselbund, #287)."""
+    _save_json(ctx, _app_path(ctx), {"client_id": cid, "client_secret": secret})
 
 
 def load_app(ctx) -> dict | None:
-    try:
-        with open(_app_path(ctx), "rb") as fh:
-            raw = fh.read()
-        if raw.startswith(b"DPAPI"):
-            raw = _dpapi(raw[5:], False)
-        d = json.loads(raw.decode("utf-8"))
-        return d if isinstance(d, dict) and d.get("client_id") else None
-    except (OSError, ValueError):
-        return None
+    return _load_json(_app_path(ctx), "client_id")
 
 
 def delete_app(ctx) -> bool:
-    try:
-        os.remove(_app_path(ctx))
-        return True
-    except OSError:
-        return False
+    return secretstore.delete(_app_path(ctx))
 
 
 def _norm_token(data) -> dict:

@@ -100,7 +100,13 @@ Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
   `api_request(ctx, ep, params)` für eigene Anmeldung (Beatport-OAuth, Lexicon-Adresse), sonst `auth(ctx)` →
   Header/Parameter. Schlüssel werden eingesetzt, in URL und Antwort aber als „•••“ angezeigt.
 - Gemeinsam: `servicekit.py` (Client mit `onlinematch.INTERVALS` und gemeinsamer Drosselung `onlinematch.SHARED`,
-  Schlüsselablage je Plugin mit DPAPI, einmalige Übernahme aus `Plugin-Daten/online/keys.bin`).
+  Schlüsselablage je Plugin über `secretstore.py`, einmalige Übernahme aus `Plugin-Daten/online/keys.bin`).
+- **Zugangsdaten ablegen** (#287, `secretstore.py`): Windows DPAPI; macOS Schlüsselbund (Security.framework über
+  ctypes, generisches Passwort, Dienst „MarKusSXCH TagStudio“, Konto = Pfad der Datei, also je Profil und Plugin
+  getrennt), in der Datei nur `KEYCHAIN:1`; ältere Klartext-Dateien werden beim ersten Lesen übernommen und
+  überschrieben; Rückfall Datei 0600 (Linux/CI, Schlüsselbund gesperrt) mit Hinweis im Protokoll. Gilt für
+  `servicekit.save_keys` (alle Dienst-Plugins, OAuth-Token von Spotify/SoundCloud) und Beatport `token.bin`/`app.bin`.
+  Echter Test im Workflow „Zugangsdaten-Test“ (temporärer Schlüsselbund auf macOS, DPAPI auf Windows).
 - **OAuth mit PKCE** (#280, `oauthkit.py`): für Dienste mit eigener App des Users (Spotify, SoundCloud). Anmeldeseite
   im Browser, Rückleitung auf `http://127.0.0.1:<Port>/callback` nimmt ein kurzzeitiger lokaler Server an; sonst
   „Adresse einfügen“. Client-ID/Secret und Token in der Schlüsselablage des Plugins, Erneuerung vor Ablauf bzw. nach

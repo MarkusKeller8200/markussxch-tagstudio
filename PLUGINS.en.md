@@ -278,8 +278,8 @@ decide which endpoints are allowed.
      password is only used for signing in and **never stored**.
    - *Token from the browser*: sign in on api.beatport.com/v4/docs, developer tools (F12) → Network → request
      “token” → copy the response (JSON) and paste it.
-   Only the token is stored, on Windows encrypted with DPAPI (only your user account can read it). Expired tokens are
-   renewed automatically.
+   Only the token is stored – on Windows encrypted with DPAPI, on macOS in the keychain (only your user account can
+   read it). Expired tokens are renewed automatically.
 2. Select tracks in the tagger → **Plugins → Fetch Beatport data …** → choose fields, “Fill empty fields only” or
    “Overwrite”.
 3. **Preview:** per file the Beatport track found with its certainty in %, below it every field old → new. Uncertain

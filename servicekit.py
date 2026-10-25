@@ -2,8 +2,8 @@
 
 - Client: JSON-Abfragen mit eigenem User-Agent, Drosselung je Host (`onlinematch.INTERVALS`), Wiederholung bei
   429/503 und Abbruch. Der eigentliche Abruf läuft über `onlinematch.http_get` – in Tests an einer Stelle ersetzbar.
-- Schlüssel: verschlüsselt im Datenordner des jeweiligen Dienst-Plugins (Windows: DPAPI, sonst Datei mit Rechten
-  0600), nie protokolliert, nie im Einstellungs-Export. Bis 4.5 lagen alle Schlüssel gemeinsam im Ordner des Plugins
+- Schlüssel: im Datenordner des jeweiligen Dienst-Plugins über `secretstore` (Windows: DPAPI, macOS: Schlüsselbund,
+  sonst Datei mit Rechten 0600, #287), nie protokolliert, nie im Einstellungs-Export. Bis 4.5 lagen alle Schlüssel gemeinsam im Ordner des Plugins
   „Online-Metadaten“; beim ersten Lesen zieht ein Dienst-Plugin seine Schlüssel von dort um (`load_keys(…, migrate=…)`).
 Nur Standardbibliothek.
 """
@@ -11,10 +11,10 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 import urllib.parse
 
 import onlinematch as om
+import secretstore as ss
 
 try:
     from version import VERSION
@@ -37,31 +37,10 @@ def q(s) -> str:
 
 
 # =========================================================================== Schlüssel sicher ablegen
-def _dpapi(data: bytes, protect: bool) -> bytes:
-    import ctypes
-    from ctypes import wintypes
-
-    class BLOB(ctypes.Structure):
-        _fields_ = [("cbData", wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_char))]
-    buf = ctypes.create_string_buffer(data, len(data))
-    blob_in = BLOB(len(data), ctypes.cast(buf, ctypes.POINTER(ctypes.c_char)))
-    blob_out = BLOB()
-    fn = ctypes.windll.crypt32.CryptProtectData if protect else ctypes.windll.crypt32.CryptUnprotectData
-    if not fn(ctypes.byref(blob_in), None, None, None, None, 0, ctypes.byref(blob_out)):
-        raise OSError("Windows-Verschlüsselung (DPAPI) fehlgeschlagen.")
-    try:
-        return ctypes.string_at(blob_out.pbData, blob_out.cbData)
-    finally:
-        ctypes.windll.kernel32.LocalFree(blob_out.pbData)
-
-
 def _read(path) -> dict:
     try:
-        with open(path, "rb") as fh:
-            raw = fh.read()
-        if raw.startswith(b"DPAPI"):
-            raw = _dpapi(raw[5:], False)
-        d = json.loads(raw.decode("utf-8"))
+        raw = ss.read(path)
+        d = json.loads(raw.decode("utf-8")) if raw else {}
         return d if isinstance(d, dict) else {}
     except (OSError, ValueError):
         return {}
@@ -92,13 +71,8 @@ def load_keys(ctx, migrate: tuple = ()) -> dict:
 
 def save_keys(ctx, keys: dict):
     raw = json.dumps({k: v for k, v in keys.items() if v}).encode("utf-8")
-    if sys.platform.startswith("win"):
-        raw = b"DPAPI" + _dpapi(raw, True)
-    path = _keys_path(ctx)
-    with open(path, "wb") as fh:
-        fh.write(raw)
-    if not sys.platform.startswith("win"):
-        os.chmod(path, 0o600)
+    if ss.write(_keys_path(ctx), raw) == "file" and ss.last_note():
+        ctx.log(ss.last_note())
 
 
 def keys_action(ctx, opts: dict, names: tuple, extra_plain: tuple = ()) -> dict:
