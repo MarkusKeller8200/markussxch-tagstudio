@@ -370,6 +370,11 @@ key** – TagStudio does not ship one (concept and terms of use: `docs/KONZEPT-S
 - **Discover (#258):** source “SonoVault” under Discover › Follow … (only selectable with a key): new releases of
   followed artists and labels (name lookup cached for 30 days, release list for 20 hours). Only with “Search”, never in
   the daily search; entries without link, removed after 30 days (even watch-listed ones) and never in the shopping list.
+- **Identify audio (SonoVault, paid) …** (tagger, #257, optional): for tracks without usable tags an excerpt from the
+  middle (30/45/60 s, mono, 16 kHz, without tags) is sent to `POST /v1/tracks/identify` – 10 credits + 1 per started MB
+  per track (30 s: 11). Credits must be bought at SonoVault; on the Free plan SonoVault declines (clear message,
+  nothing charged). Without the check mark only a cost preview. Privacy: SonoVault keeps the excerpt without a fixed
+  deadline – only your own recordings. Matches as a preview (allowed fields only). Tip: try AcoustID first.
 - **Cache:** responses are kept for at most 30 days in the plugin's data folder, never exported; “Clear cache” deletes them.
 - **Integration window:** endpoints with implementation status; the API tester and “Check access” count along and do
   not call paid endpoints (identification, browse, new releases).

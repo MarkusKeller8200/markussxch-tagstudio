@@ -2406,6 +2406,15 @@ class UiTest(unittest.TestCase):
         self.assertFalse(pg.locator('#modal [data-ok="confirm"]').is_checked())
         self.assertEqual(pg.input_value('#modal [data-ok="max"]'), "500")
         pg.click("#mBtns button >> nth=0")
+        # #257: Audio-Erkennung mit Kosten- und Datenschutz-Hinweis, ohne Häkchen nur Kostenvorschau
+        pg.click('#tgPlugins [data-plugin="sonovault"][data-action="identify"]')
+        pg.wait_for_selector('#modal [data-ok="confirm"]')
+        txt = pg.inner_text("#modal")
+        self.assertIn("Kredite gekauft", txt)
+        self.assertIn("ohne feste Frist", txt)
+        self.assertIn("~11 Kredite je Titel", pg.inner_text('#modal [data-ok="seconds"]'))
+        self.assertFalse(pg.locator('#modal [data-ok="confirm"]').is_checked())
+        pg.click("#mBtns button >> nth=0")
         self.assertEqual(self.errors, [])
 
     def test_restart_and_quit_buttons(self):

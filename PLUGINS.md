@@ -382,6 +382,12 @@ Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: 
   `…/{id}/releases?from=…`, 20 Stunden). Nur bei „Suchen“, nie bei der täglichen Suche; Einträge ohne Link, nach 30 Tagen
   entfernt (auch gemerkte) und nie in der Einkaufsliste. Neuerscheinungen allgemein und Browse brauchen einen bezahlten
   Tarif und sind nicht umgesetzt.
+- **Audio erkennen (SonoVault, kostenpflichtig) …** (Tagger, #257, optional): für Titel ohne brauchbare Tags ein
+  Ausschnitt aus der Mitte (30/45/60 s, mono, 16 kHz, ohne Tags) an `POST /v1/tracks/identify` – kostet je Titel
+  10 Kredite + 1 je angefangenes MB (bei 30 s: 11). Dafür müssen bei SonoVault Kredite gekauft werden; im Free-Tarif
+  lehnt SonoVault ab (verständliche Meldung, nichts verrechnet). Ohne Häkchen nur Kostenvorschau. Datenschutz:
+  SonoVault bewahrt den Ausschnitt ohne feste Frist auf – nur eigene Aufnahmen. Treffer als Vorschau (nur erlaubte
+  Felder, ab 80 % Sicherheit leere vorausgewählt). Tipp: zuerst AcoustID (gratis, ohne Hochladen).
 - **Zwischenspeicher:** Antworten liegen höchstens 30 Tage im Datenordner des Plugins (wiederholte Abfragen kosten
   dann nichts), werden nie exportiert und lassen sich mit „Zwischenspeicher leeren“ löschen.
 - **Integrationsfenster:** Endpunkte mit Umsetzungsstand; API-Tester und „Zugriff prüfen“ zählen mit und rufen

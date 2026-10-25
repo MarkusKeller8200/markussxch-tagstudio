@@ -133,6 +133,12 @@ Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Da
   der Lauf die übrigen SonoVault-Abfragen aus. Einträge `sonovault:rel:<id>` ohne Link; `discover.purge_sonovault`
   entfernt sie nach 30 Tagen (auch gemerkte), `export_rows` lässt sie aus. `/v1/releases/new` und `/v1/tracks/browse`
   (bezahlt) nicht umgesetzt.
+- **Audio-Erkennung (#257, SV2):** Tagger-Aktion „Audio erkennen (SonoVault, kostenpflichtig) …“ – auch im Free-Tarif
+  angeboten, mit Hinweis auf gekaufte Kredite und Kosten (10 + 1 je MB, Schätzung je Länge im Auswahlfeld) sowie
+  Datenschutz (Aufbewahrung ohne Frist). Standard: nur Titel ohne brauchbaren Titel/Künstler; ohne Häkchen nur
+  Kostenvorschau. `excerpt`: FFmpeg, Mitte des Titels, 30/45/60 s, mono 16 kHz, 48 kbit/s, **ohne Tags**
+  (`-map_metadata -1`); `identify` reserviert die Kosten, zählt bei Ablehnung (402/403/429) nichts. Treffer
+  (`matches`/`results` mit `track` und `confidence`, tolerant gelesen) → Vorschläge nur erlaubter Felder.
 - **Antwortformat:** Feldnamen nach den offiziellen SDKs von Rekordcloud (`sonovault-python`, `sonovault-mcp`);
   Release-Felder (Album, Label, `release_date`) werden tolerant gelesen – beim ersten echten Test im API-Tester prüfen.
   Laut SDK liefert die öffentliche API BPM und Tonart (`bpm`, `key_alphanumeric`, `keys`), aber keine Energie.

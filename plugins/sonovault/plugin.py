@@ -555,6 +555,115 @@ def discover_releases(ctx, kind: str, name: str, days: int) -> list:
     return [e for e in out if e]
 
 
+# =========================================================================== Audio-Erkennung (#257, SV2 – optional, kostenpflichtig)
+ID_BASE, ID_PER_MB = 10, 1                    # Kosten laut Preisliste: 10 Kredite + 1 je angefangenes MB
+ID_SECONDS = ("30", "45", "60")
+
+
+def find_ffmpeg() -> str:
+    import shutil
+    cands = []
+    try:
+        import plugins
+        cands.append(os.path.join(plugins.shared_root(), "stems", "ffmpeg", "ffmpeg.exe" if os.name == "nt" else "ffmpeg"))
+    except Exception:  # noqa: BLE001
+        pass
+    for c in cands:
+        if os.path.isfile(c):
+            return c
+    p = shutil.which("ffmpeg")
+    if p:
+        return p
+    raise RuntimeError("FFmpeg nicht gefunden – das Stems-Plugin installieren (bringt FFmpeg mit) oder FFmpeg in den "
+                       "Suchpfad legen.")
+
+
+def excerpt(ctx, path: str, seconds: int, duration: float = 0.0) -> bytes:
+    """Kurzer Ausschnitt aus der Mitte des Titels: mono, 16 kHz, MP3 48 kbit/s – so wenig Audio wie möglich."""
+    import subprocess
+    start = max(0.0, (float(duration or 0) - seconds) / 2)
+    cmd = [find_ffmpeg(), "-v", "error", "-ss", f"{start:.1f}", "-t", str(int(seconds)), "-i", path, "-vn", "-ac", "1",
+           "-ar", "16000", "-b:a", "48k", "-map_metadata", "-1", "-id3v2_version", "0", "-f", "mp3", "pipe:1"]
+    flags = 0x08000000 if os.name == "nt" else 0          # CREATE_NO_WINDOW
+    r = subprocess.run(cmd, capture_output=True, timeout=120, creationflags=flags)
+    if r.returncode != 0 or not r.stdout:
+        raise RuntimeError(f"Ausschnitt nicht möglich: {r.stderr.decode('utf-8', 'replace')[-200:].strip()}")
+    return r.stdout
+
+
+def identify_cost(nbytes: int) -> int:
+    return ID_BASE + max(1, -(-int(nbytes) // 1_000_000)) * ID_PER_MB
+
+
+def estimate_cost(seconds: int) -> int:
+    """Kosten je Titel vor dem Ausschnitt (48 kbit/s ≈ 6 KB/s → bis 60 s unter 1 MB)."""
+    return identify_cost(int(seconds) * 6000)
+
+
+def _usable(f) -> bool:
+    """Hat der Titel brauchbare Tags (Titel und Künstler, nicht „Track 01“)?"""
+    import re
+    t, a = f.text("TIT2").strip(), f.text("TPE1").strip()
+    return bool(t and a and not re.match(r"^(track|titel|audio|unknown|unbekannt)\s*\d*$", t, re.I))
+
+
+def identify(ctx, data: bytes, cost: int) -> list:
+    """POST /v1/tracks/identify mit dem Ausschnitt → [(Kandidat, Sicherheit)]. 429 nie wiederholen."""
+    key = token(ctx)
+    if not key:
+        raise HttpError(401, "SonoVault: kein Schlüssel gespeichert (Plugin SonoVault › „Schlüssel …“).")
+    _reserve(ctx, cost)
+    for host, sec in INTERVALS.items():
+        om.INTERVALS.setdefault(host, sec)
+    om.SHARED.wait(HOST)
+    st, hd, body = om.http_post(API + "/v1/tracks/identify?top_n=3",
+                                {"User-Agent": sk.USER_AGENT, "Accept": "application/json",
+                                 "Content-Type": "application/octet-stream", "x-api-key": key}, data)
+    if st >= 400 or st == 0:
+        _count(ctx, hd, 0)                       # abgelehnt: nichts verrechnet
+        raise HttpError(st, _error(st, body) + (" – Audio-Erkennung braucht gekaufte Kredite bzw. einen bezahlten Tarif"
+                                                 if st in (402, 403) else ""))
+    _count(ctx, hd, cost)
+    try:
+        d = json.loads(body.decode("utf-8")) if body else {}
+    except (UnicodeDecodeError, ValueError) as ex:
+        raise HttpError(-1, "SonoVault: unerwartete Antwort") from ex
+    out = []
+    for m in _list(d, "matches", "candidates", "tracks"):
+        t = m.get("track") if isinstance(m.get("track"), dict) else m
+        try:
+            conf = float(m.get("confidence", m.get("score", 0)) or 0)
+        except (TypeError, ValueError):
+            conf = 0.0
+        conf = conf / 100 if conf > 1 else conf
+        if t.get("title"):
+            out.append((candidate(t), conf))
+    return out
+
+
+FIELDS = (("TIT2", "Titel", "title"), ("TPE1", "Künstler", "artists"), ("TALB", "Album", "album"), ("TPUB", "Label", "label"),
+          ("TCON", "Genre", "genre"), ("TDRC", "Jahr", "date"), ("TSRC", "ISRC", "isrc"))
+
+
+def propose_identified(ctx, f, c: dict, conf: float):
+    """Treffer der Erkennung als Vorschläge – nur erlaubte Felder, nur leere vorausgewählt (ab 80 % Sicherheit)."""
+    name = os.path.basename(f.path)
+    note = f"SonoVault-Erkennung: {round(conf * 100)} %"
+    for key, label, field in FIELDS:
+        v = c.get(field)
+        if field == "title" and c.get("mix"):
+            v = f"{v} ({c['mix']})"
+        v = ", ".join(v) if isinstance(v, list) else str(v or "")
+        if field == "date":
+            v = v[:4]
+        v = v.strip()
+        if not v:
+            continue
+        cur = f.text(key).strip()
+        ctx.propose(f, key, v, f"{label} (SonoVault)", note=note, group=name, checked=conf >= 0.8 and not cur,
+                    hint="" if not cur else "schon gefüllt – nur bei Bedarf anhaken")
+
+
 def actions(ctx):
     q = quota(ctx)
     rest = max(0, q["limit"] - q["used"])
@@ -570,6 +679,21 @@ def actions(ctx):
                                       "abgeglichene kosten dann nichts)."},
              {"key": "max", "type": "text", "label": "Höchstens so viele Kredite verwenden", "default": str(min(rest, 500))},
              {"key": "confirm", "type": "check", "label": "Kredite verwenden (ohne Häkchen: nur Kosten anzeigen)",
+              "default": False}]},
+        {"id": "identify", "label": "Audio erkennen (SonoVault, kostenpflichtig) …", "where": "tagger", "run_label": "Erkennen",
+         "description": "Erkennt Titel ohne brauchbare Tags aus einem kurzen Ausschnitt (Mitte des Titels, mono, 16 kHz). "
+                        "Kostet je Titel 10 Kredite + 1 je angefangenes MB – dafür müssen bei SonoVault Kredite gekauft "
+                        "werden (im Free-Tarif lehnt SonoVault ab). Tipp: zuerst AcoustID in „Online-Metadaten“ – gratis, "
+                        "ohne Audio hochzuladen.",
+         "options": [
+             {"type": "info", "label": "Datenschutz: Der Ausschnitt wird zu SonoVault hochgeladen und dort mit den "
+                                      "Ergebnissen ohne feste Frist aufbewahrt. Nur eigene Aufnahmen bzw. solche, für die du "
+                                      f"die Rechte hast. Kontingent: {quota_text(ctx)}."},
+             {"key": "seconds", "type": "select", "label": "Länge des Ausschnitts",
+              "choices": [[s, f"{s} Sekunden (~{estimate_cost(int(s))} Kredite je Titel)"] for s in ID_SECONDS], "default": "30"},
+             {"key": "only_untagged", "type": "check", "label": "Nur Titel ohne brauchbare Tags (ohne Titel/Künstler)",
+              "default": True},
+             {"key": "confirm", "type": "check", "label": "Kosten und Hochladen bestätigen (ohne Häkchen: nur Kosten anzeigen)",
               "default": False}]}]
 
 
@@ -642,6 +766,38 @@ def run(action, ctx, files, opts):
                f"{r['missing']} nicht gefunden" + (f", {r['later']} noch offen (Kontingent) – später erneut starten"
                                                     if r["later"] else "") + f". Quelle: SonoVault, nur Anzeige. {quota_text(ctx)}.")
         return {"message": msg, "table": {"cols": ["Datei", "Feld", "In der Datei", "SonoVault"], "rows": r["rows"][:2000]}}
+    if action == "identify":
+        ok, why = ready(ctx)
+        if not ok:
+            raise ValueError(f"SonoVault: {why}.")
+        secs = int(opts.get("seconds") or 30) if str(opts.get("seconds") or "30") in ID_SECONDS else 30
+        todo = [f for f in files if not (opts.get("only_untagged", True) and _usable(f))]
+        each = estimate_cost(secs)
+        head = (f"{len(todo)} von {len(files)} Titel(n) zum Erkennen – geschätzt {len(todo) * each} Kredite "
+                f"({each} je Titel) · {quota_text(ctx)}")
+        if not todo:
+            return {"message": f"{head}. Alle markierten Titel haben schon Titel und Künstler."}
+        if not opts.get("confirm"):
+            return {"message": head + ". Nichts hochgeladen – zum Starten „Kosten und Hochladen bestätigen“ anhaken."}
+        found = 0
+        for i, f in enumerate(todo):
+            name = os.path.basename(f.path)
+            ctx.progress(i, len(todo), name)
+            data = excerpt(ctx, f.path, secs, getattr(f, "duration", 0))
+            try:
+                hits = identify(ctx, data, identify_cost(len(data)))
+            except HttpError as ex:
+                if ex.status in (0, 401, 402, 403, 429):
+                    raise RuntimeError(f"{ex} · {quota_text(ctx)}") from ex
+                ctx.log(f"{name}: {ex}")
+                continue
+            if hits:
+                c, conf = max(hits, key=lambda x: x[1])
+                propose_identified(ctx, f, c, conf)
+                found += 1
+            ctx.log(f"{name}: {'erkannt' if hits else 'nicht erkannt'}")
+        ctx.progress(len(todo), len(todo), "fertig")
+        return {"message": f"{found} von {len(todo)} Titel(n) erkannt (Quelle: SonoVault). {quota_text(ctx)}."}
     if action == "links":
         ok, why = ready(ctx)
         if not ok:

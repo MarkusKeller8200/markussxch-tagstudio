@@ -140,10 +140,11 @@
         "method": "POST",
         "path": "/v1/tracks/identify",
         "label": "Audio-Erkennung",
-        "status": "none",
+        "status": "partial",
         "note": "kostenpflichtig: 10 + 1 Kredit je MB (#257)",
         "params": [],
-        "test": false
+        "test": false,
+        "use": "Audio erkennen (optional, Ausschnitt 30–60 s)"
       },
       {
         "id": "tracks-browse",

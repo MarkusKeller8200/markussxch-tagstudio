@@ -50,9 +50,15 @@ class FakeSV:
 
 class FakePost:
     def __init__(self):
-        self.calls, self.no_credits = [], False
+        self.calls, self.no_credits, self.paid = [], False, True
 
     def __call__(self, url, headers, data):
+        u = urllib.parse.urlparse(url)
+        if u.path == "/v1/tracks/identify":
+            self.calls.append((u.path, {"bytes": len(data), "type": headers.get("Content-Type")}))
+            if self.paid is False:
+                return 403, {}, b'{"error":"paid tier required"}'
+            return 200, {}, json.dumps({"matches": [{"track": SV_TRACK, "confidence": 0.93}]}).encode()
         body = json.loads(data.decode("utf-8"))
         self.calls.append((urllib.parse.urlparse(url).path, body))
         if headers.get("x-api-key") != "svk_live_TEST":
@@ -263,3 +269,37 @@ class TestSonoVault(OnlineHarness):
         n = len(self.sv.calls)
         found = discover.run(discover.load(), None, None, dz=None)
         self.assertEqual((found, len(self.sv.calls)), ([], n))
+
+    def test_identify_costs_and_proposals(self):
+        """#257 (SV2): Audio-Erkennung – Kostenhinweis ohne Hochladen, nur Titel ohne Tags, Vorschläge nur erlaubte Felder."""
+        from helpers import write_mp3
+        self.keys()
+        write_mp3(os.path.join(self.B, "t.mp3"), [], audio_seed=21)
+        from session import Session
+        self.s = Session()
+        self.s.start_tag_load(self.B, False)
+        self.wait()
+        idx = {os.path.basename(f.path): i for i, f in enumerate(self.s.tag_files)}
+        mod = self.s.plugins.get("sonovault").load()
+        cut = []
+        orig = mod.excerpt
+        mod.excerpt = lambda ctx, path, secs, dur=0: cut.append((os.path.basename(path), secs)) or b"x" * 200_000
+        self.addCleanup(setattr, mod, "excerpt", orig)
+        sel = [idx["t.mp3"], idx["k.mp3"]]
+        r = self.act("identify", sel, pid="sonovault", seconds="30", only_untagged=True, confirm=False)["result"]
+        self.assertIn("1 von 2 Titel(n) zum Erkennen – geschätzt 11 Kredite", r["message"])
+        self.assertEqual((cut, self.post.calls), ([], []))                          # nichts hochgeladen
+        r = self.act("identify", sel, pid="sonovault", seconds="30", only_untagged=True, confirm=True)["result"]
+        self.assertEqual(cut, [("t.mp3", 30)])
+        self.assertEqual(self.post.calls[0][1]["type"], "application/octet-stream")
+        by = {p["label"]: p for p in r["proposals"]}
+        self.assertEqual(by["Titel (SonoVault)"]["new"], "Kaltes Glas (Original Mix)")
+        self.assertTrue(by["Titel (SonoVault)"]["checked"])
+        self.assertIn("93 %", by["Titel (SonoVault)"]["note"])
+        self.assertFalse(any("BPM" in k or "Tonart" in k or "Katalog" in k for k in by))
+        self.assertIn("11 von 1000 Anfragen", self.info()["status_text"])         # 10 + 1 je MB
+        # ohne bezahlten Tarif: verständliche Meldung, nichts verrechnet
+        self.post.paid = False
+        st = self.act("identify", sel, pid="sonovault", seconds="30", only_untagged=True, confirm=True)
+        self.assertIn("gekaufte Kredite", st["error"] or "")
+        self.assertIn("11 von 1000 Anfragen", self.info()["status_text"])
