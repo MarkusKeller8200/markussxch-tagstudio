@@ -8,8 +8,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 
 - **4.9.1 final freigegeben** (User 14:23 „wenn nichts mehr offen ist offiziellen Release erstellen“): alle 11 Issues
   des Meilensteins #25 getestet und geschlossen (#287, #298–#303, #305–#307, #316). `release.py 4.9.1`, Commit
-  „Version 4.9.1“, Push → Workflow „Installer“ baut Windows + macOS und legt `v4.9.1` an; danach Meilenstein #25
-  schliessen (falls im neuen Chat noch offen: Release prüfen, dann schliessen).
+  „Version 4.9.1“, Push → Workflow „Installer“. Erster Lauf hing auf macOS im Schritt „Tests“ (Schlüsselbund-
+  Freigabe) → `TAGSTUDIO_SECRETS=file` auch in `installer.yml`, Neubau über diese Änderung: **Release `v4.9.1`
+  veröffentlicht** (25.10.2026, 14:56, Windows + macOS, 21 Dateien). Meilenstein #25 geschlossen.
 - **Nächstes Release: 4.10.0 – Ordner** (Meilenstein **#26**): Konzept `docs/KONZEPT-ORDNER.md` (Entscheide O1–O6 vom
   User, Cloud-Abschnitt 9). Issues: #308 Konzept, #310 Grundlage (Rollen, Datenmodell, Übernahme, Einstellungen ›
   Ordner), #311 mehrere Bibliotheken + Module umstellen, #312 Export-Ordner `04_Export`, #313 Ordner ändern
@@ -18,7 +19,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   „Funktionen“. Alle Schritte warten auf `_1 bereit` bzw. die Freigabe des Users im neuen Chat.
 - **Neu seit 4.9.1, wichtig für die Arbeit:**
   - Zugangsdaten nur noch über `secretstore.py` (`write/read/delete`); Tests/CI mit `TAGSTUDIO_SECRETS=file`
-    (sonst wartet macOS in der CI auf eine Schlüsselbund-Freigabe). Echter Test: Workflow „Zugangsdaten-Test“.
+    (sonst wartet macOS in der CI auf eine Schlüsselbund-Freigabe) – gesetzt in `tests.yml` und `installer.yml`;
+    jeder neue Workflow mit Unit-Tests auf macOS braucht es auch. Echter Test: Workflow „Zugangsdaten-Test“.
   - Einstellungen schreiben über `core.save_config`/`core.write_config` (gemeinsame Sperre, nie leeren).
   - Snapshot-Schreiber in `snapshots.writing()` einschliessen (sonst kann das Aufräumen neue Objekte löschen).
   - Bildadressen in der Oberfläche immer mit `esc()`, Bildtyp über `id3tags.safe_mime`.
