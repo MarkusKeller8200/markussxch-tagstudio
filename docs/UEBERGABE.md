@@ -1,8 +1,20 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-25 (16:43): 4.10.0 – Ordner getestet** – alle Testlisten #310–#315 abgehakt, Issues und #308 geschlossen, Meilenstein #26 ohne offene Issues. Release 4.10.0 wartet auf die Freigabe des Users (dann `HIDDEN` in `packaging/build.py` ergänzen, `release.py 4.10.0`).
+Stand: **2026-10-25 (16:55): 4.10.0 final veröffentlicht** (Release `v4.10.0`, Windows + macOS, 21 Dateien, Beatport-Plugin 1.9; Meilenstein #26 geschlossen). **Nächstes: 4.11.0 – Cloud, SonoVault & Verbesserungen** (Meilenstein #27: #304, #107, #222, #309, #253–#258) – Entscheide offen, siehe „Start 4.11.0“.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Start 4.11.0 (vorbereitet 25.10.2026, 16:50)
+
+- **4.10.0 final** (Freigabe User 16:45 „Direkt ein Release erstellen“): `HIDDEN` ergänzt, `release.py 4.10.0`, Workflow
+  „Installer“ grün → Release `v4.10.0` (15:51 UTC). Meilenstein #26 geschlossen.
+- **Umfang 4.11.0 (Wahl User 16:46):** Kleine Verbesserungen (#304 Dateidialoge übersetzen, #107 Werkzeugleiste im
+  Vergleich, #222 eigene Wellenform im MP3), Cloud Weg 2 (#309), SonoVault-Plugin (#253–#258; #259 bleibt in
+  „Funktionen“). Meilenstein **#27**.
+- **Offene Entscheide (dem User gestellt, noch nicht beantwortet):** SonoVault – Tarif, #257 Audio-Erkennung jetzt oder
+  später, „Auf Plattform öffnen“ erst nach Rückfrage bei Rekordcloud, Vorrang in Online-Metadaten; Cloud – Anbieter
+  (alle drei oder zuerst OneDrive), was abgeglichen wird, Richtung/Konflikte, eigene App-Registrierung je Dienst;
+  #222 – Entscheid W1 (`docs/KONZEPT-PLAYLISTS.md` Abschnitt 17). Nichts umsetzen, bevor sie geklärt sind.
 
 ## Sitzung 25.10.2026 (Abend) – 4.10.0 Ordner umgesetzt
 

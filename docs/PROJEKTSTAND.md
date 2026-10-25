@@ -1,6 +1,8 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-25 (16:43): **4.10.0 – Ordner getestet**, alle Issues geschlossen, Release wartet auf Freigabe (Meilenstein #26): Ordner-Rollen #310
+> Stand 2026-10-25 (16:55): **4.10.0 final veröffentlicht** (Release `v4.10.0`, Meilenstein #26 geschlossen). Nächstes: **4.11.0 – Cloud, SonoVault & Verbesserungen** (Meilenstein #27, Entscheide offen).
+>
+> Davor 16:43: **4.10.0 – Ordner getestet** (Meilenstein #26): Ordner-Rollen #310
 > (`folders.py`, `session_folders.py`, `web/folders.js`), Export-Ordner #312, mehrere Bibliotheken #311, Unterordner je
 > Quelle + Ordner-Klappmenü #314 (Beatport-Plugin 1.9), Cloud-Sync-Ordner #315 (`cloud.py`), Ordner ändern mit
 > Verschieben/Kopieren #313 (`foldermove.py`). Kein Release ohne Freigabe.
