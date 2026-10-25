@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.11.0] – 2026-10-25
+
 ### Neu
 
 - **Plugins OneDrive, Google Drive und Dropbox (#318–#320, je 1.0):** Gegenstellen für den Abgleich über die Dienste –
