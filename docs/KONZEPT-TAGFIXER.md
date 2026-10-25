@@ -40,6 +40,16 @@ Mehrfachwerte (mehrere Künstler, Genres …) stehen je nach Programm unterschie
   rechts die Liste (bearbeiten, ✕ entfernen, von Hand hinzufügen). Bestehende Ausnahmen in den Vorschlägen
   ausgeblendet; „Bestehende Ausnahmen anzeigen“ bzw. Auge je Eintrag blendet sie ein, Zeile markiert mit „Ausnahme“.
   Gespeichert erst mit „Speichern“ (`set_fixer_exceptions`, bereinigt).
+- **Smart Fix (#339, 4.12.0):** Umschalter „Mehrfachwerte | Smart Fix“ (`web_ui.fx_mode`), `smartfix.py` +
+  `web/smartfix.js`. Rezept = `{id, name, desc, type: "multi", fields (Felder/Gruppen), seps, out, dedupe}`;
+  mitgelieferte in `smartfix.BUILTIN` (nicht änderbar, nur kopieren), eigene in cfg `smart_recipes` (Kennung `u_…`),
+  gewähltes Rezept `smart_current`. Erstes Rezept `multi_comma` „Mehrfachwerte mit Komma“: `;` und `&` → `, `, Doppelte
+  weg, Gruppen Künstler und Mitwirkende, Genre, Stimmung (TMOO/TXXX:MOOD neu). **Entscheid User 25.10.2026:** Ziel-Trenner
+  im Rezept wählbar (`smartfix.OUTPUTS`: „, “ Standard, „; “, „ / “, `v24` = Mehrfachwert, bei v2.3 „ / “ über
+  `plan_multi_fix(v23_sep=)`); bei mitgelieferten Rezepten in cfg `smart_out` gemerkt. Planung über
+  `plan_multi_fix` mit Ausnahmen (#342), Vorschau/Auswahl/Anwenden wie beim Fixer (`smart_preview`, `smart_apply` mit
+  `skip`, eine Rückgängig-Stufe). Export/Import `{format: "tagstudio-smartfix"}` (`Api.smart_export`,
+  `smart_import_pick`), Import immer als neue eigene Rezepte. Einstellungsgruppe „history“.
 - **Auswahl in der Vorschau (#341, 4.12.0):** Häkchen-Spalte (Standard an), Kopf alle/keine (halb bei Teilauswahl),
   Umschalt-Klick für Bereiche, Zähler „x von y Änderung(en) werden ausgeführt“. Jede Zeile hat die Kennung
   `Session._fixer_id` (Pfad, Feld, neuer Wert); `fixer_apply` erhält die **abgewählten** Kennungen (`skip`) – Zeilen

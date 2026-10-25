@@ -309,14 +309,14 @@ def fix_multi(text: str, seps, out_sep: str, dedupe: bool = True, exceptions=())
     return out_sep.join(parts)
 
 
-def plan_multi_fix(files, keys, seps, out_sep, dedupe=True, all_text=False, upgrade=False, exceptions=None):
-    """Liefert Liste (datei, key, vorher, nachher). out_sep == MV: v2.4-Standard.
+def plan_multi_fix(files, keys, seps, out_sep, dedupe=True, all_text=False, upgrade=False, exceptions=None, v23_sep="; "):
+    """Liefert Liste (datei, key, vorher, nachher). out_sep == MV: v2.4-Standard (v2.3 ohne Umstellung: v23_sep).
     exceptions: #342 {Feld oder Gruppe: [Namen]} – siehe exceptions_for."""
     plan = []
     for f in files:
         use_sep = out_sep
         if out_sep == MV and f.version != 4 and not upgrade:
-            use_sep = "; "  # v2.3 ohne Umstellung: kein Null-Trenner möglich
+            use_sep = v23_sep  # v2.3 ohne Umstellung: kein Null-Trenner möglich
         for k, it in list(f.items.items()):
             if it.kind not in ("text", "txxx"):
                 continue

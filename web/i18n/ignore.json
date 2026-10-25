@@ -496,5 +496,8 @@
 "image/jpeg",
 "table[data-col-tid]",
 "button[data-fxeop]",
-"input[data-fxeedit]"
+"input[data-fxeedit]",
+"input[data-rf]:checked",
+"input[data-rs]:checked",
+"rezept"
 ]

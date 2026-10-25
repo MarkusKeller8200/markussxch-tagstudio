@@ -323,7 +323,12 @@ shows how to download the tracks yourself on Beatport's download page and take t
 ### Tag fixer
 
 Unify multiple values – scope (current pair, one side, selected pairs, all files, tagger selection), fields,
-detected separators, output (separator or ID3v2.4 multiple values), live preview. **“Exceptions …”** keeps names containing a separator together
+detected separators, output (separator or ID3v2.4 multiple values), live preview. **Smart Fix** (switch at the top: “Multiple values | Smart Fix”) works with recipes: built-in ones (copy only) and your
+own (create, edit, delete, export/import as JSON). The built-in recipe **“Multiple values with comma”** joins values
+separated by `&` or `;` with `, ` and removes duplicates – in artists and contributors, genre and mood. The target
+separator can be chosen per recipe (default `, `; also ID3v2.4 multiple value, “ / ” for v2.3 files). Preview,
+selection and undo as in the multiple-value fixer; exceptions apply here too.
+**“Exceptions …”** keeps names containing a separator together
 (e.g. “Above & Beyond”, “Eli & Fur”) – per field or field group (artists and contributors, genre, mood), ignoring case
 and spaces. The editor suggests values from the loaded tracks that contain a search text (e.g. `&`), with the number of
 tracks: check them, “Take over checked”, save. Existing exceptions are hidden in the suggestions – “Show existing

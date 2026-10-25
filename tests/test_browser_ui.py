@@ -2949,6 +2949,51 @@ class UiTest(unittest.TestCase):
         self.assertIn("Noch keine Ausnahmen", pg.inner_text("#fxeList"))
         pg.click("#mBtns button >> nth=0")
 
+    def test_smart_fix(self):
+        """#339: Tag-Fixer › Smart Fix – mitgeliefertes Rezept, Ziel-Trenner wählbar, eigenes Rezept anlegen,
+        kopieren, löschen nach Rückfrage; Vorschau und Anwenden über das gewählte Rezept."""
+        pg = self.pg
+        pg.evaluate("""(() => { const orig = call; window.__sp = []; window.__sa = null;
+          window.call = (n, ...a) => {
+            if (n === "smart_preview") { window.__sp.push(a[0]); return Promise.resolve({ count: 2, files: 1, scope_files: 1, rows: [
+              { id: "x\\u001fTPE1\\u001fA, B", file: "a.mp3", key: "TPE1", label: "Künstler", old: "A & B", new: "A, B" },
+              { id: "x\\u001fTCON\\u001fHouse, Tech House", file: "a.mp3", key: "TCON", label: "Genre", old: "House; Tech House", new: "House, Tech House" }] }); }
+            if (n === "smart_apply") { window.__sa = a; return Promise.resolve({ message: "ok", tone: "ok" }); }
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="fixer"]')
+        pg.wait_for_selector('#fxMode [data-fxmode="smart"]')
+        pg.click('#fxMode [data-fxmode="smart"]')
+        pg.wait_for_selector('#fxSmart input[name="fx-rcp"][value="multi_comma"]')
+        self.assertTrue(pg.locator('#fxSmart input[value="multi_comma"]').is_checked())
+        self.assertIn("mitgeliefert", pg.inner_text("#fxSmart .fx-rcps"))
+        self.assertTrue(pg.locator("#fxRcpEdit").is_disabled())                           # nur kopierbar
+        self.assertEqual(pg.input_value("#fxSmartOut"), ", ")                              # Standard „, “
+        self.assertTrue(self.until("window.__sp.includes('multi_comma')"))
+        self.assertTrue(self.until("/Anwenden \\(2\\)/.test(document.querySelector('#fxApply').textContent)"))
+        pg.select_option("#fxSmartOut", "v24")
+        self.assertTrue(self.until("call('smart_list').then(r => r.builtin[0].out === 'v24')"))
+        pg.click("#fxRcpNew")
+        pg.fill("#rcpName", "Nur Genre")
+        pg.uncheck('#mBody input[data-rf="@artists"]')
+        pg.check('#mBody input[data-rf="TCON"]')
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("call('smart_list').then(r => r.own.length === 1 && r.own[0].fields.join() === 'TCON')"))
+        pg.wait_for_selector('#fxSmart input[name="fx-rcp"][value="u_nur_genre"]')
+        self.assertTrue(pg.locator('#fxSmart input[value="u_nur_genre"]').is_checked())
+        self.assertTrue(self.until("window.__sp.includes('u_nur_genre')"))
+        pg.click("#fxApply")
+        self.assertTrue(self.until("window.__sa && window.__sa[0] === 'u_nur_genre'"))
+        pg.click("#fxRcpCopy")
+        self.assertIn("(Kopie)", pg.input_value("#rcpName"))
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("call('smart_list').then(r => r.own.length === 2)"))
+        pg.click("#fxRcpDel")
+        pg.click("#dlgBtns .primary")
+        self.assertTrue(self.until("call('smart_list').then(r => r.own.length === 1)"))
+        pg.click('#fxMode [data-fxmode="multi"]')                                         # zurück: Mehrfachwerte
+        self.assertTrue(pg.locator("#fxSmart").is_hidden())
+        self.assertTrue(self.until("call('settings').then(r => r.ui.fx_mode === 'multi')"))
+
     def test_expert_log_clear_on_exit(self):
         """#332: Expert › Entwicklung – „Protokolle beim Beenden leeren“, Standard aus, Plugin-Protokolle nur wählbar,
         wenn eingeschaltet; Einstellung bleibt gespeichert."""

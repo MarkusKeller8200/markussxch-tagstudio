@@ -270,5 +270,16 @@
 "Gastkünstler (auch ft. und featuring)": ["Featured artist (also ft. and featuring)", "Gascht-Künschtler (au ft. und featuring)"],
 "x zwischen Namen": ["x between names", "x zwüsched Näme"],
 "Künstler und Mitwirkende": ["Artists and contributors", "Künschtler und Mitwürkendi"],
-"Unbekanntes Ziel: {x}": ["Unknown target: {x}", "Unbekannts Ziil: {x}"]
+"Unbekanntes Ziel: {x}": ["Unknown target: {x}", "Unbekannts Ziil: {x}"],
+"Rezept nicht gefunden: {x}": ["Recipe not found: {x}", "Rezäpt nöd gfunde: {x}"],
+"Unbekannter Ziel-Trenner: {x}": ["Unknown target separator: {x}", "Unbekannte Ziil-Tränner: {x}"],
+"Smart Fix: {x} ({x} Felder)": ["Smart Fix: {x} ({x} fields)", "Smart Fix: {x} ({x} Fälder)"],
+"Smart Fix {q}: {x} Feld(er) angepasst – noch nicht gespeichert.": ["Smart Fix {q}: {x} field(s) adjusted – not saved yet.", "Smart Fix {q}: {x} Fäld(er) aapasst – no nöd gspicheret."],
+"Mitgelieferte Rezepte lassen sich nicht ändern – bitte kopieren.": ["Built-in recipes cannot be changed – please copy them.", "Mitgliferti Rezäpt chame nöd ändere – bitte kopiere."],
+"Rezept braucht einen Namen, mindestens ein Feld und einen Trenner.": ["A recipe needs a name, at least one field and one separator.", "Es Rezäpt bruucht en Name, mindestens eis Fäld und en Tränner."],
+"Smart Fix: nichts zu ändern.": ["Smart Fix: nothing to change.", "Smart Fix: nüt z ändere."],
+"ID3v2.{n}-Mehrfachwert (v2.{n}-Dateien: {q})": ["ID3v2.{n} multiple value (v2.{n} files: {q})", "ID3v2.{n}-Mehrfachwärt (v2.{n}-Dateie: {q})"],
+"Mehrfachwerte mit Komma": ["Multiple values with comma", "Mehrfachwärt mit Komma"],
+"Das ist keine Smart-Fix-Datei von TagStudio.": ["This is not a Smart Fix file from TagStudio.", "Das isch kei Smart-Fix-Datei vo TagStudio."],
+"Werte, die mit {q} oder {q} getrennt sind, mit {q} verbinden und Doppelte entfernen – Künstler und Mitwirkende, Genre, Stimmung. Ausnahmen je Feld bleiben zusammen.": ["Join values separated by {q} or {q} with {q} and remove duplicates – artists and contributors, genre, mood. Exceptions per field stay together.", "Wärt, wo mit {q} oder {q} trännt sind, mit {q} verbinde und Doppleti entfärne – Künschtler und Mitwürkendi, Genre, Stimmig. Uusnahme je Fäld bliibed zäme."]
 }

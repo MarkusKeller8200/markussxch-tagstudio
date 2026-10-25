@@ -52,6 +52,7 @@ _PASS = {
     "services_overview", "service_detail", "start_service_api", "start_service_access", "start_service_test",   # #204
     "add_field_choices", "add_field", "bulk_keys", "bulk_apply", "cover_remove",
     "fixer_settings", "fixer_preview", "fixer_apply", "set_fixer_exceptions", "fixer_exception_candidates",
+    "smart_list", "smart_set_out", "smart_save", "smart_delete", "smart_select", "smart_import", "smart_preview", "smart_apply",
     "backups", "set_backup", "start_backup_check", "start_restore", "backup_diff", "delete_backup",
     "start_tag_load", "start_tag_load_files", "tagger_settings", "tag_state_save", "tag_rows", "tag_rows_preview", "tag_detail_file", "tag_cover_thumb_store", "tag_detail", "tag_set", "tag_set_rating", "player_mark", "tag_remove", "tag_add_field",
     "tag_cover", "tag_version", "tag_from_filename", "tag_rename", "tag_number", "tag_xml", "tag_blob", "tag_blob_set", "cmp_blob", "cmp_blob_set", "blob_pretty", "players", "set_players", "play_external", "wave_save", "settings_page", "set_trivial", "set_save_version", "set_save_v1", "set_stamp_edited", "set_wave_in_file", "cloud_sync_overview", "cloud_sync_set", "start_cloud_sync", "cloud_pending", "cloud_resolve", "cloud_gone", "set_stamp_added", "tag_added", "set_player_pref", "player_defaults", "player_resume_save", "player_resume", "set_player_window", "bus_post", "bus_poll", "bus_peer", "bus_reset", "bus_sync", "media_cover", "media_lyrics", "tag_grid_status", "tag_beatgrid", "i18n_catalog", "i18n_overlay_info", "i18n_export_text", "i18n_import_preview", "i18n_import_apply", "i18n_overlay_reset", "settings_export_text", "settings_import_preview", "settings_import", "settings_reset", "tag_origins", "set_tag_origins", "tag_origin_remove", "jobs_status", "job_cancel", "jobs_cancel_all", "jobs_clear", "jobs_resume", "tag_attach_stems", "set_stems_flat", "set_feat_scale", "tag_stem_tags", "set_origin_std_badge", "set_origin_ver_badge", "set_origin_label", "cache_info", "cache_clear", "set_list_cache", "verify_status", "tag_cover_thumb", "reload_pair", "set_default_dir", "set_view_default", "cmp_defaults_apply", "start_cache_build", "compare_origin_remove", "save_conflicts", "save_merge_external", "snap_overview", "snap_list", "snap_add_library", "snap_remove_library", "snap_update_library", "snap_update", "snap_delete", "snap_prune", "snap_create", "snap_baseline_info", "snap_set_baseline", "snap_startup", "snap_set", "start_snap_journal", "snap_revert", "start_snap_move", "snap_detect", "snap_use", "snap_ignore", "snap_watch", "snap_watch_ack",
@@ -510,6 +511,22 @@ class Api:
             return {"error": "Datei ist zu gross für eine Einstellungsdatei."}
         with open(p, encoding="utf-8", errors="replace") as fh:
             return {"name": os.path.basename(p), "text": fh.read()}
+
+    def smart_export(self, ids=None):
+        """#339: eigene Smart-Fix-Rezepte in eine Datei schreiben (Speichern-Dialog)."""
+        dest = self.save_dialog("TagStudio-SmartFix.json")
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        try:
+            with open(dest, "w", encoding="utf-8") as fh:
+                fh.write(self._s.smart_export_text(ids))
+        except OSError as ex:
+            return {"ok": False, "error": str(ex)}
+        return {"ok": True, "path": dest}
+
+    def smart_import_pick(self):
+        """#339: Smart-Fix-Datei wählen → Inhalt."""
+        return self.settings_import_pick()
 
     # ---------- System
     def pick_file(self, kind="image", start=""):

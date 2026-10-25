@@ -336,6 +336,11 @@ von Beatport selbst lädst und mit „Abholen“ übernimmst.
 
 Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare, alle Dateien,
 Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte), laufende Vorschau.
+**Smart Fix** (Umschalter oben: „Mehrfachwerte | Smart Fix“) arbeitet mit Rezepten: mitgelieferte (nur kopierbar)
+und eigene (anlegen, bearbeiten, löschen, als JSON exportieren/importieren). Das mitgelieferte Rezept **„Mehrfachwerte
+mit Komma“** verbindet Werte, die mit `&` oder `;` getrennt sind, mit `, ` und entfernt Doppelte – in Künstler und
+Mitwirkende, Genre und Stimmung. Der Ziel-Trenner ist je Rezept wählbar (Standard `, `; auch ID3v2.4-Mehrfachwert,
+bei v2.3-Dateien „ / “). Vorschau, Auswahl und Rückgängig wie beim Mehrfachwerte-Fixer; Ausnahmen gelten auch hier.
 **„Ausnahmen …“** hält Namen mit Trennzeichen zusammen (z. B. „Above & Beyond“, „Eli & Fur“) – je Feld oder
 Feldgruppe (Künstler und Mitwirkende, Genre, Stimmung), gross/klein und Leerzeichen egal. Der Editor schlägt Werte
 aus den geladenen Titeln vor, die einen Suchtext (z. B. `&`) enthalten, mit Anzahl Titel: anhaken, „Angehakte

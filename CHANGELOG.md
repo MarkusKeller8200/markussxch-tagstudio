@@ -8,6 +8,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Tag-Fixer: Smart Fix mit Rezepten (#339):** Umschalter „Mehrfachwerte | Smart Fix“. Mitgeliefertes Rezept
+  „Mehrfachwerte mit Komma“ (`&`/`;` → `, `, Doppelte weg, Künstler, Genre, Stimmung); Ziel-Trenner je Rezept wählbar
+  (Standard `, `). Eigene Rezepte anlegen, kopieren, bearbeiten, löschen, exportieren und importieren.
+
 - **Tag-Fixer: Ausnahmen je Feld (#342, #343):** Namen mit Trennzeichen wie „Above & Beyond“ bleiben beim Trennen
   zusammen – je Feld oder Gruppe (Künstler und Mitwirkende, Genre, Stimmung). Editor „Ausnahmen …“ mit Vorschlägen
   aus den geladenen Titeln (Suchtext, Anzahl, Häkchen, gesammelt übernehmen), bestehende Ausnahmen aus- oder markiert

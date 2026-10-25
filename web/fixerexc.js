@@ -162,8 +162,6 @@ function fxeRenderList() {
 
 /** Knopf im Tag-Fixer mit der Zahl aller Ausnahmen */
 function fixerExcButton() {
-  const b = $("#fxExc");
-  if (!b) return;
   const n = Object.values((FX.settings || {}).exceptions || {}).reduce((a, l) => a + l.length, 0);
-  b.textContent = n ? `Ausnahmen … (${fmtN(n)})` : "Ausnahmen …";
+  $$("#fxExc, #fxExc2").forEach((b) => { b.textContent = n ? `Ausnahmen … (${fmtN(n)})` : "Ausnahmen …"; });
 }

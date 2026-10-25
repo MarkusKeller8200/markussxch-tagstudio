@@ -57,6 +57,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
            "tg_fit": str, "tg_colfilter": bool,                 # #202: Filterzeile unter den Spaltenköpfen                                    # #148: „fit“ an Fenster anpassen, „scroll“ optimale Breite
            "tg_sort_default": list,                          # #153: Standard-Sortierung (bis 3 Stufen)
            "col_widths": dict,                               # #337/#340: Spaltenbreiten je Tabelle
+           "fx_mode": str,                                   # #339: Tag-Fixer „multi“ oder „smart“
            "tg_view_default": dict,                          # #155: bevorzugte Ansicht
            "lang": str,                                      # #157: Sprache der Oberfläche
            "cmp_tb_icons": bool, "tg_tb_icons": bool}                             # #107: Werkzeugleiste im Vergleich nur mit Symbolen
@@ -298,6 +299,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             raise ValueError("tg_fit: fit oder scroll")
         elif name == "tg_sort_default":
             value = self._clean_sorts(value)
+        elif name == "fx_mode" and value not in ("multi", "smart"):
+            raise ValueError("fx_mode: multi oder smart")
         elif name == "col_widths":
             value = self._clean_col_widths(value)
         elif name == "tg_view_default":
@@ -1543,6 +1546,126 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             self.cfg["fixer"] = keep
             core.save_config({"fixer": keep})
             st = self._done(f"Tag-Fixer: {len(plan)} Feld(er) angepasst – noch nicht gespeichert.")
+            st["pairs_changed"] = True
+            return st
+
+    # ---- #339: Smart Fix – Rezepte (mitgelieferte + eigene)
+    def _smart_own(self) -> list:
+        import smartfix
+        out, ids = [], set(smartfix.builtin_ids())
+        for r in self.cfg.get("smart_recipes") or []:
+            c = smartfix.clean(r, ids)
+            if c:
+                ids.add(c["id"])
+                out.append(c)
+        return out
+
+    def smart_list(self) -> dict:
+        """Rezepte für Smart Fix: mitgelieferte (mit gewähltem Ziel-Trenner) und eigene, dazu die Auswahl-Listen."""
+        import smartfix
+        outs = self.cfg.get("smart_out") or {}
+        b = [dict(r, out=outs.get(r["id"], r["out"])) for r in smartfix.builtins()]
+        return {"builtin": b, "own": self._smart_own(), "outputs": [list(o) for o in smartfix.OUTPUTS],
+                "targets": self._exc_targets(), "current": self.cfg.get("smart_current") or "multi_comma"}
+
+    def _smart_recipe(self, rid):
+        r = next((x for x in self.smart_list()["builtin"] + self._smart_own() if x["id"] == rid), None)
+        if r is None:
+            raise ValueError(f"Rezept nicht gefunden: {rid}")
+        return r
+
+    def smart_set_out(self, rid, out):
+        """Ziel-Trenner eines Rezepts wählen (Entscheid User 25.10.2026: im Rezept wählbar, Standard „, “).
+        Mitgelieferte merken die Wahl getrennt, eigene im Rezept."""
+        import smartfix
+        if out not in {o for o, _ in smartfix.OUTPUTS}:
+            raise ValueError(f"Unbekannter Ziel-Trenner: {out}")
+        if rid in smartfix.builtin_ids():
+            outs = dict(self.cfg.get("smart_out") or {}, **{rid: out})
+            self.cfg["smart_out"] = outs
+            core.save_config({"smart_out": outs})
+        else:
+            own = self._smart_own()
+            for r in own:
+                if r["id"] == rid:
+                    r["out"] = out
+            self._smart_store(own)
+        return self.smart_list()
+
+    def _smart_store(self, own):
+        self.cfg["smart_recipes"] = own
+        core.save_config({"smart_recipes": own})
+
+    def smart_save(self, recipe) -> dict:
+        """Eigenes Rezept anlegen oder ändern (mitgelieferte nicht – die lassen sich nur kopieren)."""
+        import smartfix
+        own = self._smart_own()
+        rid = str((recipe or {}).get("id") or "")
+        if rid in smartfix.builtin_ids():
+            raise ValueError("Mitgelieferte Rezepte lassen sich nicht ändern – bitte kopieren.")
+        others = [r for r in own if r["id"] != rid]
+        c = smartfix.clean(recipe, smartfix.builtin_ids() | {r["id"] for r in others})
+        if c is None:
+            raise ValueError("Rezept braucht einen Namen, mindestens ein Feld und einen Trenner.")
+        pos = next((i for i, r in enumerate(own) if r["id"] == rid), None)
+        if pos is None:
+            own.append(c)
+        else:
+            own[pos] = c
+        self._smart_store(own)
+        self.smart_select(c["id"])
+        return {"recipe": c, **self.smart_list()}
+
+    def smart_delete(self, rid) -> dict:
+        """Eigenes Rezept entfernen (die Oberfläche fragt vorher nach)."""
+        own = [r for r in self._smart_own() if r["id"] != rid]
+        self._smart_store(own)
+        if self.cfg.get("smart_current") == rid:
+            self.smart_select("multi_comma")
+        return self.smart_list()
+
+    def smart_select(self, rid):
+        self.cfg["smart_current"] = str(rid)
+        core.save_config({"smart_current": str(rid)})
+        return True
+
+    def smart_export_text(self, ids=None) -> str:
+        import smartfix
+        own = [r for r in self._smart_own() if not ids or r["id"] in ids]
+        return smartfix.export_text(own)
+
+    def smart_import(self, text) -> dict:
+        """Rezepte aus einer Datei übernehmen – immer als neue eigene Rezepte."""
+        import smartfix
+        own = self._smart_own()
+        new = smartfix.import_text(str(text or ""), smartfix.builtin_ids() | {r["id"] for r in own})
+        self._smart_store(own + new)
+        return {"added": len(new), **self.smart_list()}
+
+    def _smart_plan(self, rid, o):
+        import smartfix
+        files = [f for f in self._fixer_files(o) if not self._ro(f)]
+        return smartfix.plan(files, self._smart_recipe(rid), self._fixer_exc())
+
+    def smart_preview(self, rid, o) -> dict:
+        with self.lock:
+            plan = self._smart_plan(rid, o)
+            rows = [{"id": self._fixer_id(f, k, new), "file": os.path.basename(f.path), "key": k, "label": key_label(k),
+                     "old": old.replace(MV, MV_SHOW), "new": new.replace(MV, MV_SHOW)} for f, k, old, new in plan[:3000]]
+            return {"rows": rows, "count": len(plan), "files": len({id(f) for f, *_ in plan}),
+                    "scope_files": len(self._fixer_files(o))}
+
+    def smart_apply(self, rid, o):
+        with self.lock:
+            r = self._smart_recipe(rid)
+            skip = set(o.get("skip") or [])
+            plan = [p for p in self._smart_plan(rid, o) if self._fixer_id(p[0], p[1], p[3]) not in skip]
+            if not plan:
+                return self.state("Smart Fix: nichts zu ändern.", "ok")
+            self.undo.checkpoint(f"Smart Fix: {r['name']} ({len(plan)} Felder)", [f for f, *_ in plan])
+            for f, k, _old, new in plan:
+                f.set_text(k, new)
+            st = self._done(f"Smart Fix „{r['name']}“: {len(plan)} Feld(er) angepasst – noch nicht gespeichert.")
             st["pairs_changed"] = True
             return st
 

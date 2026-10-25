@@ -224,8 +224,13 @@ async function fixerShow(scopePreset) {
     ["tag_all", `Tagger: alle Dateien (${fmtN(c.tag_all)})`, c.tag_all > 0],
   ];
   const def = scopePreset || (scopes.find((x) => x[0] === FX.scope && x[2]) || scopes.find((x) => x[2]) || scopes[0])[0];
+  FX.mode = LAYOUT.fx_mode === "smart" ? "smart" : "multi";        // #339
+  if (FX.mode === "smart" || !FX.smart) FX.smart = await call("smart_list");
   $("#fxOpts").innerHTML = `
+    <div class="seg fx-mode" id="fxMode" role="tablist" aria-label="Art"><button data-fxmode="multi" role="tab">Mehrfachwerte</button><button data-fxmode="smart" role="tab">Smart Fix</button></div>
     <h4>Dateien</h4>${scopes.map(([v, l, en]) => `<label class="opt${en ? "" : " dim"}"><input type="radio" name="fx-scope" value="${v}" ${en ? "" : "disabled"} ${v === def ? "checked" : ""}> ${esc(l)}</label>`).join("")}
+    <div id="fxSmart"></div>
+    <div id="fxMulti">
     <h4>Felder</h4><div class="fx-fields">${st.fields.map(([k, l]) => `<label class="opt"><input type="checkbox" data-field="${k}" ${sv.fields.includes(k) ? "checked" : ""}> ${esc(l)}</label>`).join("")}</div>
     <label class="opt"><input type="checkbox" id="fxAllText" ${sv.all_text ? "checked" : ""}> Alle Textfelder (inkl. Benutzertexte)</label>
     <h4>Als Trenner erkennen</h4><div class="fx-seps">${st.separators.map(([l, sep, , codes], n) => `<label class="opt" title="${esc(l)}"><input type="checkbox" data-sep="${n}" ${sv.seps.includes(sep) ? "checked" : ""}> <span class="sep-codes">${sepCode(codes || sep, l)}</span> <span class="sep-name">${esc(l)}</span></label>`).join("")}</div>
@@ -234,9 +239,12 @@ async function fixerShow(scopePreset) {
     <label class="opt"><input type="radio" name="fx-mode" value="sep" ${sv.mode !== "v24" ? "checked" : ""}> Trennzeichen <input class="sep-in" id="fxSep" value="${esc(sv.sep)}" aria-label="Trennzeichen"> <span id="fxSepShow">${sepCode(sv.sep, "So wird getrennt (␣ = Leerzeichen)")}</span></label>
     <label class="opt"><input type="radio" name="fx-mode" value="v24" ${sv.mode === "v24" ? "checked" : ""}> ID3v2.4-Standard (echte Mehrfachwerte)</label>
     <label class="opt" style="padding-left:24px"><input type="checkbox" id="fxUpgrade" ${sv.upgrade ? "checked" : ""}> v2.3-Dateien dafür auf v2.4 umstellen</label>
-    <label class="opt"><input type="checkbox" id="fxDedupe" ${sv.dedupe ? "checked" : ""}> Doppelte Werte entfernen</label>`;
+    <label class="opt"><input type="checkbox" id="fxDedupe" ${sv.dedupe ? "checked" : ""}> Doppelte Werte entfernen</label>
+    </div>`;
   $("#fxExc").onclick = fixerExceptionsEdit;                      // #343
   fixerExcButton();
+  $("#fxMode").onclick = (e) => { const b = e.target.closest("[data-fxmode]"); if (b) fixerSetMode(b.dataset.fxmode); };
+  fixerModeUi();
   $("#fxOpts").oninput = (e) => {
     if (e.target.id === "fxSep") $("#fxSepShow").innerHTML = sepCode(e.target.value, "So wird getrennt (␣ = Leerzeichen)");   // #344
     clearTimeout(FX.timer); FX.timer = setTimeout(fixerPreview, 200);
@@ -261,7 +269,7 @@ async function fixerPreview() {
   const o = fixerOptions();
   FX.scope = o.scope;
   $("#fxUpgrade").disabled = o.mode !== "v24";
-  const r = await call("fixer_preview", o);
+  const r = FX.mode === "smart" ? await call("smart_preview", FX.smart.current, o) : await call("fixer_preview", o);
   FX.last = r;
   FX.anchor = -1;
   const ids = new Set(r.rows.map((x) => x.id));
@@ -314,7 +322,8 @@ function fixerToggle(e) {
 }
 
 async function fixerApply() {
-  const st = await call("fixer_apply", { ...fixerOptions(), skip: [...FX.skip] });   // #341: nur angehakte
+  const o = { ...fixerOptions(), skip: [...FX.skip] };                 // #341: nur angehakte
+  const st = FX.mode === "smart" ? await call("smart_apply", FX.smart.current, o) : await call("fixer_apply", o);
   FX.skip.clear();
   await refreshAll(st);
   if (st.message) status(st.message, st.tone);
