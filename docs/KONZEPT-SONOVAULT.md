@@ -126,6 +126,13 @@ Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Da
   gezählt werden die gesendeten Zeilen ausser `skipped_no_credits`. Ergebnis je Titel 30 Tage im Zwischenspeicher
   (auch „nicht gefunden“); Anzeige der Abweichungen (ISRC, Label, Genre, Album, Jahr, Tonart) als Tabelle – nie
   Massen-Schreiben (§7). POST über `onlinematch.http_post` (neu).
+- **Entdecken (#258):** `discover.run(…, sv=…)` mit `discover_releases(ctx, kind, name, days)` aus dem Plugin – Suche
+  nach dem Namen (genaue Übereinstimmung, 30 Tage zwischengespeichert), dann `…/{id}/releases?from=…&limit=50`
+  (20 Stunden). Quelle `sonovault` in `follow.sources`, standardmässig aus, nur mit Schlüssel wählbar. **Nie bei der
+  täglichen Suche** (`disc_auto` übergibt kein `sv`), damit keine Kredite unbemerkt verbraucht werden; bei 401/429 lässt
+  der Lauf die übrigen SonoVault-Abfragen aus. Einträge `sonovault:rel:<id>` ohne Link; `discover.purge_sonovault`
+  entfernt sie nach 30 Tagen (auch gemerkte), `export_rows` lässt sie aus. `/v1/releases/new` und `/v1/tracks/browse`
+  (bezahlt) nicht umgesetzt.
 - **Antwortformat:** Feldnamen nach den offiziellen SDKs von Rekordcloud (`sonovault-python`, `sonovault-mcp`);
   Release-Felder (Album, Label, `release_date`) werden tolerant gelesen – beim ersten echten Test im API-Tester prüfen.
   Laut SDK liefert die öffentliche API BPM und Tonart (`bpm`, `key_alphanumeric`, `keys`), aber keine Energie.

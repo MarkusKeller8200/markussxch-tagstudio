@@ -13,6 +13,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   nie wiederholt. Neue Quelle in „Online-Metadaten“ (2.2) nach MusicBrainz/Discogs – nur die laut Nutzungsbedingungen
   erlaubten Felder, BPM und Tonart nur als Vergleich in der Notiz. „Plattform-IDs anzeigen (SonoVault) …“ zeigt IDs
   bei Spotify, Beatport & Co. als Tabelle (nur Anzeige). Zwischenspeicher höchstens 30 Tage, nie exportiert.
+- **SonoVault in Entdecken (#258):** neue Veröffentlichungen gefolgter Künstler und Labels als weitere Quelle (aus,
+  bis gewählt) – nur bei „Suchen“, nie bei der täglichen Suche; Einträge ohne Link, nach 30 Tagen entfernt, nie
+  exportiert.
 - **SonoVault: Bibliothek abgleichen (#256):** markierte Titel in Blöcken zu 100 mit SonoVault vergleichen – zuerst
   Kostenvorschau, nie mehr Kredite als übrig, Abweichungen (ISRC, Label, Genre, Album, Jahr, Tonart) als Tabelle; nur
   Anzeige, übernommen wird pro Titel.

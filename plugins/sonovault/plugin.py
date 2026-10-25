@@ -166,13 +166,15 @@ def _cache_path(ctx, url: str) -> str:
     return os.path.join(_cache_dir(ctx), h[:2], h + ".json")
 
 
-def _cache_get(ctx, url: str):
+def _cache_get(ctx, url: str, max_age: float | None = None):
+    """Gespeicherte Antwort oder None. max_age (Sekunden) kürzer als 30 Tage: z. B. Neuerscheinungen nur 20 Stunden."""
     p = _cache_path(ctx, url)
     try:
         with open(p, encoding="utf-8") as fh:
             d = json.load(fh)
-        if time.time() - float(d["t"]) <= CACHE_DAYS * 86400:
-            return base64.b64decode(d["body"])
+        age = time.time() - float(d["t"])
+        if age <= CACHE_DAYS * 86400:
+            return base64.b64decode(d["body"]) if max_age is None or age <= max_age else None
     except (OSError, ValueError, KeyError, TypeError):
         return None
     try:
@@ -206,10 +208,10 @@ def cache_prune(ctx, everything: bool = False) -> int:
 
 
 # =========================================================================== HTTP
-def request(ctx, url: str, cache: bool = True):
+def request(ctx, url: str, cache: bool = True, max_age: float | None = None):
     """GET mit Schlüssel, Drosselung und Zähler. 429 wird nie wiederholt. → (Status, Kopfzeilen, Inhalt)."""
     if cache:
-        hit = _cache_get(ctx, url)
+        hit = _cache_get(ctx, url, max_age)
         if hit is not None:
             return 200, {}, hit
     key = token(ctx)
@@ -240,10 +242,10 @@ def _error(st: int, body: bytes) -> str:
     return f"SonoVault: {base}" + (f" ({msg[:120]})" if msg and st != 401 else "")
 
 
-def get_json(ctx, path: str, params: dict | None = None, cache: bool = True):
+def get_json(ctx, path: str, params: dict | None = None, cache: bool = True, max_age: float | None = None):
     q = {k: v for k, v in (params or {}).items() if v not in (None, "")}
     url = API + path + (("?" + urllib.parse.urlencode(q)) if q else "")
-    st, _hd, body = request(ctx, url, cache)
+    st, _hd, body = request(ctx, url, cache, max_age)
     if st == 404:
         return None
     if st >= 400 or st == 0:
@@ -506,6 +508,51 @@ def resolve_run(ctx, files, limit: int) -> dict:
         rows += d
     return {"rows": rows, "sent": len(todo), "cached": len(plan["cached"]), "later": later, "same": same,
             "missing": missing, "skip": len(plan["skip"])}
+
+
+# =========================================================================== Entdecken (#258)
+def _list(d, *keys) -> list:
+    if isinstance(d, list):
+        return [x for x in d if isinstance(x, dict)]
+    if isinstance(d, dict):
+        for k in keys + ("results", "data"):
+            if isinstance(d.get(k), list):
+                return [x for x in d[k] if isinstance(x, dict)]
+    return []
+
+
+def _find(ctx, kind: str, name: str):
+    """Künstler bzw. Label mit genau diesem Namen (Suche 30 Tage zwischengespeichert)."""
+    d = get_json(ctx, f"/v1/{kind}s/search", {"name": name, "limit": 5})
+    return next((x for x in _list(d, kind + "s") if om.norm(x.get("name")) == om.norm(name) and x.get("id") is not None), None)
+
+
+def _release_entry(r: dict, seed: str, fallback_artist: str = "") -> dict | None:
+    rid = r.get("id")
+    title = _text(r.get("title") or r.get("name"))
+    if rid is None or not title:
+        return None
+    arts = r.get("artists") or r.get("artist") or fallback_artist
+    artist = ", ".join(_text(a) for a in arts if _text(a)) if isinstance(arts, list) else _text(arts)
+    return {"key": f"sonovault:rel:{rid}", "src": "sonovault", "id": str(rid), "artist": artist, "title": title, "mix": "",
+            "label": _text(r.get("label") or r.get("labels")), "release": title,
+            "date": str(r.get("release_date") or r.get("date") or "")[:10], "preview": "", "url": "", "cover": "", "seed": seed}
+
+
+def discover_releases(ctx, kind: str, name: str, days: int) -> list:
+    """Neue Veröffentlichungen eines gefolgten Künstlers bzw. Labels (neueste zuerst, ab „days“ Tagen zurück).
+    Kosten: 1 Anfrage für die Suche (30 Tage zwischengespeichert) + 1 für die Liste (20 Stunden zwischengespeichert)."""
+    if kind not in ("artist", "label"):
+        raise ValueError("artist oder label erwartet")
+    x = _find(ctx, kind, name)
+    if not x:
+        ctx.log(f"SonoVault: {'Künstler' if kind == 'artist' else 'Label'} „{name}“ nicht gefunden")
+        return []
+    since = (datetime.date.today() - datetime.timedelta(days=max(1, int(days or 60)))).isoformat()
+    d = get_json(ctx, f"/v1/{kind}s/{x['id']}/releases", {"from": since, "limit": 50}, max_age=20 * 3600)
+    seed = f"{'Künstler' if kind == 'artist' else 'Label'} {name}"
+    out = [_release_entry(r, seed, name if kind == "artist" else "") for r in _list(d, "releases")]
+    return [e for e in out if e]
 
 
 def actions(ctx):

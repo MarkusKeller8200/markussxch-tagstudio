@@ -49,6 +49,34 @@ class DiscoverMixin:
                 log(f"Deezer nicht verfügbar: {ex}")
             return None
 
+    def _disc_sonovault(self, log=None):
+        """#258: SonoVault-Abruf über das Plugin (Schlüssel, Zähler) – None, wenn aus oder ohne Schlüssel."""
+        try:
+            import plugins
+            p = self.plugins.plugins.get("sonovault")
+            mod = p.load() if p is not None and p.enabled and p.state() == "ready" else None
+            ctx = plugins.Context(p, None) if mod is not None else None
+            if mod is None or not mod.token(ctx):
+                if log:
+                    log("SonoVault übersprungen: Plugin aus oder kein Schlüssel gespeichert.")
+                return None
+            return lambda kind, name, days: mod.discover_releases(ctx, kind, name, days)
+        except Exception as ex:  # noqa: BLE001
+            if log:
+                log(f"SonoVault nicht verfügbar: {ex}")
+            return None
+
+    def _disc_sv_info(self) -> dict:
+        try:
+            import plugins
+            p = self.plugins.plugins.get("sonovault")
+            if p is None or not p.enabled or p.state() != "ready" or p.load() is None:
+                return {"ready": False, "text": ""}
+            mod, ctx = p.load(), plugins.Context(p, None)
+            return {"ready": bool(mod.token(ctx)), "text": mod.quota_text(ctx)}
+        except Exception:  # noqa: BLE001
+            return {"ready": False, "text": ""}
+
     def _disc_library(self) -> str:
         """Namen der aktiven Bibliotheken („schon vorhanden“, #311) – "" = keine festgelegt."""
         return " · ".join(r["name"] for r in self._lib_roots()["roots"])
@@ -78,7 +106,7 @@ class DiscoverMixin:
         except KeyError:
             pass
         return {"follow": d["follow"], "items": items, "counts": counts, "status": discover.STATUS,
-                "last": d.get("last", ""), "log": d.get("log", [])[-30:], "beatport": bp, "library": self._disc_library(),
+                "last": d.get("last", ""), "log": d.get("log", [])[-30:], "beatport": bp, "sonovault": self._disc_sv_info(), "library": self._disc_library(),
                 "purchased": purchased}
 
     def disc_follow_edit(self, kind, name, add=True) -> dict:
@@ -159,7 +187,7 @@ class DiscoverMixin:
                            "genres": [{"id": g["id"], "name": str(g.get("name") or "")} for g in f.get("genres") or []
                                       if isinstance(g, dict) and g.get("id")],
                            "days": max(1, min(3650, int(f.get("days") or 60))), "auto": bool(f.get("auto")),
-                           "sources": [s for s in f.get("sources") or [] if s in ("deezer", "beatport")]}
+                           "sources": [s for s in f.get("sources") or [] if s in discover.SOURCES]}
             keep = lambda kind: [x for x in bp.get(kind, []) if discover.norm(x) in {discover.norm(y) for y in d["follow"][kind]}]  # noqa: E731
             d["follow"]["bp"] = {"artists": keep("artists"), "labels": keep("labels")}
             discover.save(d)
@@ -265,7 +293,8 @@ class DiscoverMixin:
             if "beatport" in f["sources"] and bp is None and not log:
                 log.append("Beatport übersprungen: nicht angemeldet oder Plugin aus.")
             dz = self._disc_deezer(log.append) if "deezer" in f["sources"] else None
-            found = discover.run(d0, bp, log.append, progress, cancel, dz=dz)
+            sv = self._disc_sonovault(log.append) if "sonovault" in f["sources"] else None    # #258: nur hier, nie automatisch
+            found = discover.run(d0, bp, log.append, progress, cancel, dz=dz, sv=sv)
             idx = discover.owned_index(self._disc_lib_files(cancel, progress)) if self._disc_library() else None
             with discover.LOCK:
                 d = discover.load()

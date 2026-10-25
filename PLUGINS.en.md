@@ -367,6 +367,9 @@ key** – TagStudio does not ship one (concept and terms of use: `docs/KONZEPT-S
   (`POST /v1/tracks/resolve`, 1 credit per track) and shows as a table where ISRC, label, genre, album, year or key
   differ – **display only**, apply per track via “Online metadata”. Without the “Use credits” check mark only a cost
   preview; never more than the remaining quota – the rest can be compared next month (cached tracks cost nothing).
+- **Discover (#258):** source “SonoVault” under Discover › Follow … (only selectable with a key): new releases of
+  followed artists and labels (name lookup cached for 30 days, release list for 20 hours). Only with “Search”, never in
+  the daily search; entries without link, removed after 30 days (even watch-listed ones) and never in the shopping list.
 - **Cache:** responses are kept for at most 30 days in the plugin's data folder, never exported; “Clear cache” deletes them.
 - **Integration window:** endpoints with implementation status; the API tester and “Check access” count along and do
   not call paid endpoints (identification, browse, new releases).

@@ -204,7 +204,9 @@ füllen“), Pflichtfelder prüfen, Übernahme mit Duplikatprüfung und nachgela
 der Kaufplattformen; „Abholen“ kopiert neue MP3 (auch aus ZIP) in den Eingang.
 
 **Entdecken:** Unter „Folgen …“ Künstler, Labels und Beatport-Genres festlegen (oder aus der Bibliothek vorschlagen
-lassen); „Suchen“ holt neue Veröffentlichungen von Deezer und Beatport. In der Liste vorhören (▶), merken (☆), als
+lassen); „Suchen“ holt neue Veröffentlichungen von Deezer und Beatport, auf Wunsch auch von **SonoVault** (kostet
+Kredite: je Künstler/Label 1–2 Anfragen; nie bei der täglichen Suche; Einträge ohne Link, nach 30 Tagen entfernt und
+nie exportiert). In der Liste vorhören (▶), merken (☆), als
 gekauft markieren (✓) oder ausblenden (✕); „Öffnen“ führt zur Seite des Titels. Gekauft wird nie automatisch.
 Der Bereich **Gefolgt** zeigt alle gefolgten Künstler, Labels und Genres (von Beatport übernommene mit „BP“):
 Namen direkt hinzufügen, mit × entfernen, „Von Beatport übernehmen“ und „Ähnliche Künstler …“ (Deezer). Rechtsklick

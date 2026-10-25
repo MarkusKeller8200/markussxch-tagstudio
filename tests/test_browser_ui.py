@@ -1674,6 +1674,32 @@ class UiTest(unittest.TestCase):
         pg.click('#prepTabs [data-ptab="wf"]')
         self.assertTrue(pg.locator("#discPane").is_hidden())
 
+    def test_discover_sonovault(self):
+        """#258: SonoVault in Entdecken – Quelle nur mit Schlüssel wählbar, Einträge ohne Link („Öffnen“ gesperrt)."""
+        import time as _t
+        pg = self.pg
+        d = os.path.join(self.home, "TagStudio", "Entdecken")
+        os.makedirs(d, exist_ok=True)
+        now = _t.strftime("%Y-%m-%dT%H:%M:%S")
+        items = {"sonovault:rel:7": {"key": "sonovault:rel:7", "src": "sonovault", "id": "7", "artist": "Mara Lind",
+                                     "title": "Polarlicht EP", "mix": "", "label": "Polar Records", "date": "2026-10-20",
+                                     "preview": "", "url": "", "status": "new", "owned": False, "first": now}}
+        with open(os.path.join(d, "entdecken.json"), "w", encoding="utf-8") as fh:
+            json.dump({"follow": {"artists": ["Mara Lind"], "sources": ["deezer", "sonovault"]}, "items": items}, fh)
+        pg.click('.nav[data-module="prep"]')
+        pg.wait_for_function("PREP.d && PREP.d.workflow")
+        pg.click('#prepTabs [data-ptab="disc"]')
+        pg.wait_for_function("DISC.d && DISC.d.items.length === 1")
+        row = '#discList tr[data-k="sonovault:rel:7"]'
+        self.assertIn("SonoVault", pg.inner_text(row))
+        self.assertTrue(pg.locator(row + ' [data-a="open"]').is_disabled())
+        pg.click("#discFollow")
+        pg.wait_for_selector("#dfSv")
+        self.assertTrue(pg.locator("#dfSv").is_disabled())                       # ohne Schlüssel nicht wählbar
+        self.assertIn("kein Schlüssel", pg.inner_text("#modal"))
+        pg.click("#mBtns button >> nth=0")
+        self.assertEqual(self.errors, [])
+
     def test_discover_follow_clear(self):
         """#291: Gefolgte anzeigen/bearbeiten, gekaufte markieren, Rechtsklick folgen, Leeren."""
         pg = self.pg

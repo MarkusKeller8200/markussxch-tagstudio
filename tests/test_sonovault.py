@@ -208,3 +208,58 @@ class TestSonoVault(OnlineHarness):
         self.assertIn("1 noch offen", r["message"])                                 # nur 2 Kredite übrig
         self.assertEqual(sum(len(c[1]["items"]) for c in self.post.calls), 2)
         self.assertIn("aufgebraucht", self.info()["status_text"])
+
+    def test_discover_releases(self):
+        """#258: Entdecken – neue Veröffentlichungen gefolgter Künstler/Labels, ohne Link, nie exportiert, nach 30 Tagen weg,
+        nicht bei der täglichen Suche."""
+        import discover
+        self.keys()
+        rel = {"results": [{"id": 77, "title": "Polarlicht EP", "artist": "Mara Lind", "label": {"name": "Polar Records"},
+                            "release_date": "2026-10-20"}], "next_cursor": None}
+        inner = self.sv.inner
+
+        def fake(url, headers=None):
+            u = urllib.parse.urlparse(url)
+            if u.netloc == "api.sonovault.now" and u.path == "/v1/artists/search":
+                self.sv.calls.append((u.path, {}, {}))
+                return 200, {}, json.dumps({"results": [{"id": 5, "name": "Mara Lind"}]}).encode()
+            if u.netloc == "api.sonovault.now" and u.path == "/v1/artists/5/releases":
+                q = {k: v[0] for k, v in urllib.parse.parse_qs(u.query).items()}
+                self.assertIn("from", q)
+                self.sv.calls.append((u.path, q, {}))
+                return 200, {}, json.dumps(rel).encode()
+            return self.sv(url, headers)
+        onlinematch.http_get = fake
+        with discover.LOCK:
+            d = discover.load()
+            d["follow"].update(artists=["Mara Lind"], labels=[], sources=["sonovault"])
+            discover.save(d)
+        r = self.s.disc_overview()
+        self.assertTrue(r["sonovault"]["ready"])
+        self.assertTrue(self.s.start_disc_run()["ok"])
+        st = self.wait()
+        self.assertIsNone(st["error"], st)
+        items = discover.load()["items"]
+        e = items["sonovault:rel:77"]
+        self.assertEqual((e["src"], e["title"], e["label"], e["url"]), ("sonovault", "Polarlicht EP", "Polar Records", ""))
+        self.assertEqual(len(self.sv.calls), 2)
+        # nochmals: Suche und Liste aus dem Zwischenspeicher
+        self.s.start_disc_run()
+        self.wait()
+        self.assertEqual(len(self.sv.calls), 2)
+        # nie im Export, auch gemerkt
+        with discover.LOCK:
+            d = discover.load()
+            d["items"]["sonovault:rel:77"]["status"] = "saved"
+            discover.save(d)
+        self.assertEqual(discover.export_rows(discover.load()), [])
+        # nach 30 Tagen entfernt
+        with discover.LOCK:
+            d = discover.load()
+            d["items"]["sonovault:rel:77"]["first"] = "2020-01-01T00:00:00"
+            discover.save(d)
+        self.assertNotIn("sonovault:rel:77", discover.load()["items"])
+        # tägliche Suche: SonoVault nie
+        n = len(self.sv.calls)
+        found = discover.run(discover.load(), None, None, dz=None)
+        self.assertEqual((found, len(self.sv.calls)), ([], n))

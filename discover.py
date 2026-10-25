@@ -5,6 +5,9 @@ Quellen:
             Künstler, 30-s-Vorhören
   beatport  über die Anmeldung des Beatport-Plugins – neue Titel gefolgter Künstler/Labels und Genre-Charts
             (Top 100) mit Vorhör-Ausschnitt; Kauf nur über den Link, nie automatisch
+  sonovault über das Plugin SonoVault (#258) – neue Veröffentlichungen gefolgter Künstler/Labels; kostet Kredite,
+            darum nur bei „Suchen“ (nie bei der täglichen Suche), Einträge höchstens 30 Tage (Nutzungsbedingungen),
+            ohne Link und nie im Export
 
 Zustand in ~/TagStudio/Entdecken/entdecken.json:
   {"follow": {"artists": [...], "labels": [...], "genres": [{"id", "name"}]},
@@ -30,6 +33,8 @@ DEEZER = "https://api.deezer.com"
 UA = "MarKusSXCH-TagStudio (+https://github.com/MarkusKeller8200/markussxch-tagstudio)"
 STATUS = {"new": "neu", "saved": "gemerkt", "hidden": "ausgeblendet", "bought": "gekauft"}
 MAX_ITEMS = 5000             # ältere ausgeblendete/neue Einträge fallen weg, gemerkte bleiben
+SOURCES = ("deezer", "beatport", "sonovault")
+SV_DAYS = 30                 # #258: SonoVault-Einträge höchstens 30 Tage behalten (Nutzungsbedingungen §7)
 
 
 # =========================================================================== Zustand
@@ -52,10 +57,20 @@ def load() -> dict:
     d["follow"] = {"artists": _names(f.get("artists")), "labels": _names(f.get("labels")),
                    "genres": [g for g in f.get("genres") or [] if isinstance(g, dict) and g.get("id")],
                    "days": int(f.get("days") or 60), "auto": bool(f.get("auto")), "sources": [s for s in f.get("sources") or ["deezer", "beatport"]
-                                                                if s in ("deezer", "beatport")],
+                                                                if s in SOURCES],
                    "bp": _bp_origin(f.get("bp"))}
     d["items"] = d.get("items") if isinstance(d.get("items"), dict) else {}
+    purge_sonovault(d)
     return d
+
+
+def purge_sonovault(d: dict, days: int = SV_DAYS) -> int:
+    """#258: SonoVault-Einträge nach 30 Tagen entfernen – auch gemerkte (Free-Tarif: nur flüchtig). → Anzahl."""
+    limit = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time() - days * 86400))
+    old = [k for k, e in d["items"].items() if e.get("src") == "sonovault" and (e.get("first") or "") < limit]
+    for k in old:
+        del d["items"][k]
+    return len(old)
 
 
 def save(d: dict):
@@ -265,6 +280,8 @@ def export_rows(d: dict, status=("saved",)) -> list[list[str]]:
     rows = []
     for e in sorted(d["items"].values(), key=lambda e: (e.get("artist", "").lower(), e.get("title", "").lower())):
         if status and e.get("status") not in status:
+            continue
+        if e.get("src") == "sonovault":            # #258: SonoVault-Daten nie exportieren (Nutzungsbedingungen §4)
             continue
         rows.append([STATUS.get(e.get("status"), ""), e.get("artist", ""), e.get("title", ""), e.get("mix", ""),
                      e.get("label", ""), e.get("release", ""), (e.get("date") or "")[:10], str(e.get("bpm") or ""),
@@ -476,9 +493,11 @@ def beatport_genres(client) -> list[dict]:
 
 
 # =========================================================================== Lauf
-def run(d: dict, bp_client=None, log=None, progress=None, cancel=None, dz=_dz) -> list[dict]:
+def run(d: dict, bp_client=None, log=None, progress=None, cancel=None, dz=_dz, sv=None) -> list[dict]:
     """Alle Quellen für alle gefolgten Künstler/Labels/Genres abfragen. Fehler einzelner Abfragen landen im Log.
-    dz: Deezer-Abruf (Plugin Deezer, #204); None = Deezer überspringen."""
+    dz: Deezer-Abruf (Plugin Deezer, #204); None = Deezer überspringen.
+    sv: SonoVault-Abruf sv(kind, name, days) (#258); None = überspringen. Ist das Kontingent aufgebraucht (HTTP 429),
+    werden die übrigen SonoVault-Abfragen ausgelassen."""
     f = d["follow"]
     days = f.get("days") or 60
     jobs = []
@@ -491,10 +510,15 @@ def run(d: dict, bp_client=None, log=None, progress=None, cancel=None, dz=_dz) -
         jobs += [("Beatport", g.get("name", ""), lambda g=g: beatport_genre(bp_client, g["id"], g.get("name", "")))
                  for g in f["genres"]]
         jobs.append(("Beatport", "My Beatport", lambda: beatport_feed(bp_client, days, log)))
-    found = []
+    if "sonovault" in f["sources"] and sv is not None:
+        jobs += [("SonoVault", a, lambda a=a: sv("artist", a, days)) for a in f["artists"]]
+        jobs += [("SonoVault", lab, lambda lab=lab: sv("label", lab, days)) for lab in f["labels"]]
+    found, stop = [], set()
     for i, (src, what, fn) in enumerate(jobs, 1):
         if cancel is not None and cancel.is_set():
             break
+        if src in stop:
+            continue
         if progress:
             progress(("progress", i, len(jobs), f"{src}: {what}"))
         try:
@@ -502,4 +526,6 @@ def run(d: dict, bp_client=None, log=None, progress=None, cancel=None, dz=_dz) -
         except Exception as ex:  # noqa: BLE001 – eine Quelle darf den Lauf nicht abbrechen
             if log:
                 log(f"{src} „{what}“: {ex}")
+            if getattr(ex, "status", None) in (401, 429):         # Kontingent/Schlüssel: Quelle für diesen Lauf aus
+                stop.add(src)
     return found

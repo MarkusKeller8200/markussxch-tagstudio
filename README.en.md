@@ -201,7 +201,8 @@ reverts) when a program changes existing tags. **Sources** are the download fold
 new MP3s (from ZIPs too) into the inbox.
 
 **Discover:** under “Follow …” set artists, labels and Beatport genres (or have them suggested from the library);
-“Search” fetches new releases from Deezer and Beatport. In the list, pre-listen (▶), remember (☆), mark as bought (✓)
+“Search” fetches new releases from Deezer and Beatport, optionally also from **SonoVault** (costs credits: 1–2 requests
+per artist/label; never in the daily search; entries without link, removed after 30 days and never exported). In the list, pre-listen (▶), remember (☆), mark as bought (✓)
 or hide (✕); “Open” leads to the track's page. Nothing is ever bought automatically. The section **Following**
 shows all followed artists, labels and genres (those imported from Beatport marked “BP”): add names directly, remove
 with ×, “Import from Beatport” and “Similar artists …” (Deezer). Right-click a suggestion: “Follow artist” / “Follow

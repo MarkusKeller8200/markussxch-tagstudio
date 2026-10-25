@@ -44,7 +44,7 @@ function discRender() {
     $("#discList").innerHTML = `<div class="tg-empty">${msg}</div>`;
     return;
   }
-  const src = { deezer: "Deezer", beatport: "Beatport" };
+  const src = { deezer: "Deezer", beatport: "Beatport", sonovault: "SonoVault" };
   $("#discList").innerHTML = `<table class="disc-t"><thead><tr><th></th><th></th><th>Künstler</th><th>Titel</th><th>Label</th><th>Datum</th><th>BPM · Tonart</th><th>Quelle</th><th></th></tr></thead><tbody>
     ${rows.map((e) => `<tr data-k="${esc(e.key)}" class="st-${e.status}${e.owned ? " owned" : ""}${e.purchased ? " bought-p" : ""}">
       <td><button class="icon-btn play ${DISC.playing === e.key ? "on" : ""}" data-a="play" ${e.preview ? "" : "disabled"} title="${e.preview ? "Vorhören (Ausschnitt)" : "kein Vorhör-Ausschnitt"}" aria-label="Vorhören">${DISC.playing === e.key ? "❚❚" : "▶"}</button></td>
@@ -55,7 +55,7 @@ function discRender() {
       <td class="sm nw">${esc((e.date || "").slice(0, 10))}</td>
       <td class="sm nw muted">${esc([e.bpm ? e.bpm : "", e.key_name].filter(Boolean).join(" · "))}</td>
       <td class="sm nw" title="${esc([e.seed, e.genre].filter(Boolean).join(" · "))}">${esc(src[e.src] || e.src)}</td>
-      <td class="d-acts"><div class="d-row"><button class="ghost sm" data-a="open" title="Auf ${esc(src[e.src] || e.src)} öffnen (Kauf nur dort)">Öffnen</button>
+      <td class="d-acts"><div class="d-row"><button class="ghost sm" data-a="open" ${e.url ? "" : "disabled"} title="${esc(e.url ? `Auf ${src[e.src] || e.src} öffnen (Kauf nur dort)` : "Kein Link (SonoVault: nur Anzeige, Eintrag verschwindet nach 30 Tagen)")}">Öffnen</button>
         ${e.status !== "saved" ? '<button class="icon-btn" data-a="saved" title="Merken">☆</button>' : '<button class="icon-btn" data-a="new" title="Nicht mehr merken">★</button>'}
         ${e.status !== "bought" ? '<button class="icon-btn" data-a="bought" title="Als gekauft markieren">✓</button>' : ""}
         ${e.status !== "hidden" ? '<button class="icon-btn" data-a="hidden" title="Ausblenden">✕</button>' : '<button class="icon-btn" data-a="new" title="Wieder anzeigen">↺</button>'}</div></td></tr>`).join("")}
@@ -106,7 +106,8 @@ async function discFollowDialog() {
       <label><b>Genres</b></label><div class="disc-genres" id="dfGenres"></div>
       <div class="frm" style="margin-top:10px"><label for="dfDays">Zeitraum</label><span><input id="dfDays" type="number" min="1" max="3650" value="${f.days || 60}" style="width:80px"> Tage zurück</span>
         <span></span><label class="check"><input type="checkbox" id="dfAuto" ${f.auto ? "checked" : ""}> Täglich beim Start automatisch suchen (im Hintergrund)</label>
-        <label>Quellen</label><span><label class="check"><input type="checkbox" id="dfDz" ${f.sources.includes("deezer") ? "checked" : ""}> Deezer</label> <label class="check"><input type="checkbox" id="dfBp" ${f.sources.includes("beatport") ? "checked" : ""}> Beatport${DISC.d.beatport ? "" : ' <span class="muted sm">(Plugin aus oder nicht bereit)</span>'}</label></span></div></div>`,
+        <label>Quellen</label><span><label class="check"><input type="checkbox" id="dfDz" ${f.sources.includes("deezer") ? "checked" : ""}> Deezer</label> <label class="check"><input type="checkbox" id="dfBp" ${f.sources.includes("beatport") ? "checked" : ""}> Beatport${DISC.d.beatport ? "" : ' <span class="muted sm">(Plugin aus oder nicht bereit)</span>'}</label>
+          <label class="check" title="Je Künstler bzw. Label 1–2 Anfragen pro Suche (Suche nach dem Namen 30 Tage zwischengespeichert). Nur bei „Suchen“, nie bei der täglichen Suche. Einträge ohne Link, nach 30 Tagen entfernt."><input type="checkbox" id="dfSv" ${f.sources.includes("sonovault") ? "checked" : ""} ${(DISC.d.sonovault || {}).ready ? "" : "disabled"}> <span>SonoVault</span>${(DISC.d.sonovault || {}).ready ? ` <span class="muted sm">(kostet Kredite · ${esc(DISC.d.sonovault.text)})</span>` : ' <span class="muted sm">(Plugin aus oder kein Schlüssel)</span>'}</label></span></div></div>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Speichern", value: true, primary: true }],
     onMount: (b) => {
       genreBox(b);
@@ -141,7 +142,7 @@ async function discFollowDialog() {
       const lines = (id) => $(id, b).value.split("\n").map((x) => x.trim()).filter(Boolean);
       const g = genres ? [...b.querySelectorAll("#dfGenres [data-g]:checked")].map((x) => ({ id: +x.dataset.g || x.dataset.g, name: x.dataset.n })) : f.genres;
       return { artists: lines("#dfArt"), labels: lines("#dfLab"), genres: g, days: +$("#dfDays", b).value || 60, auto: $("#dfAuto", b).checked,
-        sources: [$("#dfDz", b).checked ? "deezer" : "", $("#dfBp", b).checked ? "beatport" : ""].filter(Boolean) };
+        sources: [$("#dfDz", b).checked ? "deezer" : "", $("#dfBp", b).checked ? "beatport" : "", $("#dfSv", b).checked ? "sonovault" : ""].filter(Boolean) };
     },
   });
   if (!res) return;

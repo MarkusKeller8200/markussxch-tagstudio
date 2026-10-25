@@ -6,7 +6,7 @@
   "category": "online",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
-  "description": "Musik-Metadaten-API von Rekordcloud (über 93 Mio. Titel) mit eigenem Schlüssel (Free-Tarif: 1000 Anfragen im Monat). Liefert in „Online-Metadaten“ Titel, Künstler, Release, Label, Genre, Datum, Dauer und ISRC als Vorschlag; BPM und Tonart nur zum Vergleich. Zeigt Plattform-IDs (Spotify, Beatport, Apple Music …) an. TagStudio zählt die Anfragen je Monat und warnt vor dem Überschreiten.",
+  "description": "Musik-Metadaten-API von Rekordcloud (über 93 Mio. Titel) mit eigenem Schlüssel (Free-Tarif: 1000 Anfragen im Monat). Liefert in „Online-Metadaten“ Titel, Künstler, Release, Label, Genre, Datum, Dauer und ISRC als Vorschlag; BPM und Tonart nur zum Vergleich. Zeigt Plattform-IDs (Spotify, Beatport, Apple Music …) an, gleicht die Bibliothek ab und findet in „Entdecken“ neue Veröffentlichungen. TagStudio zählt die Anfragen je Monat und warnt vor dem Überschreiten.",
   "notes": "Keine Zusatzpakete nötig. Nutzungsbedingungen: nur Titel, Künstler, Release, Label, Genre, Datum, Dauer und ISRC dürfen in Dateien; nichts wird exportiert, der Zwischenspeicher läuft nach 30 Tagen ab.",
   "fields": [],
   "service": {
@@ -129,10 +129,11 @@
         "method": "POST",
         "path": "/v1/tracks/resolve",
         "label": "Viele Titel auf einmal (Bulk, bis 100 Zeilen)",
-        "status": "none",
+        "status": "partial",
         "note": "1 Kredit je Zeile (#256)",
         "params": [],
-        "test": false
+        "test": false,
+        "use": "Bibliothek abgleichen (nur Anzeige)"
       },
       {
         "id": "tracks-identify",
@@ -159,14 +160,15 @@
         "method": "GET",
         "path": "/v1/artists/search",
         "label": "Künstler suchen",
-        "status": "none",
-        "note": "(#258)",
+        "status": "full",
+        "note": "",
         "params": [
           {
             "name": "name",
             "example": "Daft Punk"
           }
-        ]
+        ],
+        "use": "Entdecken: gefolgten Künstler bzw. Label finden (30 Tage zwischengespeichert)"
       },
       {
         "id": "artist",
@@ -186,28 +188,30 @@
         "method": "GET",
         "path": "/v1/artists/{id}/releases",
         "label": "Veröffentlichungen eines Künstlers",
-        "status": "none",
+        "status": "partial",
         "note": "neueste zuerst (#258)",
         "params": [
           {
             "name": "id",
             "example": "1"
           }
-        ]
+        ],
+        "use": "Entdecken: neue Veröffentlichungen (from, limit)"
       },
       {
         "id": "labels-search",
         "method": "GET",
         "path": "/v1/labels/search",
         "label": "Labels suchen",
-        "status": "none",
-        "note": "(#258)",
+        "status": "full",
+        "note": "",
         "params": [
           {
             "name": "name",
             "example": "Defected"
           }
-        ]
+        ],
+        "use": "Entdecken: gefolgten Künstler bzw. Label finden (30 Tage zwischengespeichert)"
       },
       {
         "id": "label",
@@ -227,14 +231,15 @@
         "method": "GET",
         "path": "/v1/labels/{id}/releases",
         "label": "Veröffentlichungen eines Labels",
-        "status": "none",
+        "status": "partial",
         "note": "neueste zuerst (#258)",
         "params": [
           {
             "name": "id",
             "example": "1"
           }
-        ]
+        ],
+        "use": "Entdecken: neue Veröffentlichungen (from, limit)"
       },
       {
         "id": "label-artists",

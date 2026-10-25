@@ -377,6 +377,11 @@ Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: 
   abweichen – **nur Anzeige**, übernommen wird pro Titel über „Online-Metadaten“. Ohne Häkchen „Kredite verwenden“
   nur Kostenvorschau; nie mehr als das übrige Kontingent – der Rest lässt sich im nächsten Monat abgleichen (Titel im
   Zwischenspeicher kosten nichts).
+- **Entdecken (#258):** Quelle „SonoVault“ unter Entdecken › Folgen … (nur mit Schlüssel wählbar): neue
+  Veröffentlichungen gefolgter Künstler und Labels (`/v1/artists|labels/search`, 30 Tage zwischengespeichert, und
+  `…/{id}/releases?from=…`, 20 Stunden). Nur bei „Suchen“, nie bei der täglichen Suche; Einträge ohne Link, nach 30 Tagen
+  entfernt (auch gemerkte) und nie in der Einkaufsliste. Neuerscheinungen allgemein und Browse brauchen einen bezahlten
+  Tarif und sind nicht umgesetzt.
 - **Zwischenspeicher:** Antworten liegen höchstens 30 Tage im Datenordner des Plugins (wiederholte Abfragen kosten
   dann nichts), werden nie exportiert und lassen sich mit „Zwischenspeicher leeren“ löschen.
 - **Integrationsfenster:** Endpunkte mit Umsetzungsstand; API-Tester und „Zugriff prüfen“ zählen mit und rufen
