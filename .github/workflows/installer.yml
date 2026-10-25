@@ -30,6 +30,7 @@ env:
   TS_PYTHON: ${{ inputs.python || '3.15' }}
   PYTHONUTF8: "1"
   PYTHONIOENCODING: "utf-8"
+  TAGSTUDIO_SECRETS: file      # #287: Tests nie gegen den echten Schlüsselbund (macOS wartet sonst auf Freigabe)
 
 jobs:
   plan:
