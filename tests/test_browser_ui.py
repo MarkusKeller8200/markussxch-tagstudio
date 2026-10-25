@@ -505,8 +505,13 @@ class UiTest(unittest.TestCase):
         """#326: Startablauf mit Zeiten im App-Protokoll; die Snapshots-Startprüfung beginnt erst nach dem Tagger."""
         pg = self.pg
         self.load_tagger()
+        # #328: der Vergleich darf beim Start nicht kurz aufblitzen, wenn zuletzt der Tagger offen war
+        self.ctx.add_init_script("""document.addEventListener('DOMContentLoaded', () => {
+            const el = document.getElementById('moduleCompare'); window.__cmpSeen = !el.hidden;
+            new MutationObserver(() => { if (!el.hidden) window.__cmpSeen = true; }).observe(el, {attributes: true}); });""")
         pg = self.restart()
         self.assertTrue(self.until("TG.loaded && TG.rows.length === 3", 15))
+        self.assertEqual((pg.evaluate("S.module"), pg.evaluate("window.__cmpSeen")), ("tagger", False))
         logf = os.path.join(self.home, "TagStudio", "Logs", "app.log")
 
         def marks():
@@ -1922,6 +1927,81 @@ class UiTest(unittest.TestCase):
         w.wait_for_function("document.querySelector('#lwLog').textContent.includes('Beatport-Zeile')")
         self.assertNotIn("Live-Probe 327", w.inner_text("#lwLog"))
         self.assertEqual(w.inner_text("#lwTitle"), "Protokolle")
+        w.close()
+
+    def test_log_viewer_clear_copy_and_move(self):
+        """#329: Protokoll leeren (nach Rückfrage), nur die Markierung kopieren, Live-Fenster behält die Markierung;
+        #330: Dialoge am Titel verschieben, an der Ecke vergrössern, Doppelklick = zurück."""
+        pg = self.pg
+        logs = os.path.join(self.home, "TagStudio", "Logs")
+        lf = os.path.join(logs, "beatport.log")
+        with open(lf, "w", encoding="utf-8") as fh:
+            fh.write("Zeile A\nZeile B\nZeile C\n")
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector('[data-xlog="beatport.log"]')
+        pg.click('[data-xlog="beatport.log"]')
+        pg.wait_for_selector("#modal #xText")
+        # nur die Markierung kopieren
+        pg.evaluate("window.__copied = null; window.stCopyText = async (t) => { window.__copied = t; return true; }")
+        pg.evaluate("const ta = document.querySelector('#xText'); ta.setSelectionRange(ta.value.indexOf('Zeile B'), ta.value.indexOf('Zeile B') + 7)")
+        pg.click("#xCopy")
+        self.assertTrue(self.until("window.__copied === 'Zeile B'"))
+        # #330: verschieben, vergrössern, zurücksetzen
+        box = pg.locator("#modal .modal-dlg")
+        b0 = box.bounding_box()
+        t = pg.locator("#mTitle").bounding_box()
+        pg.mouse.move(t["x"] + 20, t["y"] + t["height"] / 2)
+        pg.mouse.down()
+        pg.mouse.move(t["x"] - 80, t["y"] + 60, steps=5)
+        pg.mouse.up()
+        b1 = box.bounding_box()
+        self.assertAlmostEqual(b1["x"], b0["x"] - 100, delta=3)
+        self.assertAlmostEqual(b1["y"], b0["y"] + 60 - t["height"] / 2, delta=3)
+        pg.mouse.move(b1["x"] + b1["width"] - 3, b1["y"] + b1["height"] - 3)
+        pg.mouse.down()
+        pg.mouse.move(b1["x"] + b1["width"] + 60, b1["y"] + b1["height"] + 40, steps=5)
+        pg.mouse.up()
+        b2 = box.bounding_box()
+        self.assertGreater(b2["width"], b1["width"] + 30)
+        self.assertGreater(pg.locator("#xText").bounding_box()["height"], 100)
+        pg.dblclick("#mTitle")
+        b3 = box.bounding_box()
+        self.assertAlmostEqual(b3["x"], b0["x"], delta=3)
+        self.assertAlmostEqual(b3["width"], b0["width"], delta=3)
+        # leeren nach Rückfrage
+        pg.click("#xClear")
+        pg.wait_for_function("!document.querySelector('#dialog').hidden && document.querySelector('#dlgTitle').textContent.includes('leeren')")
+        pg.click("#dlgBtns .primary")
+        self.assertTrue(self.until("document.querySelector('#xText').value === ''"))
+        self.assertEqual(os.path.getsize(lf), 0)
+        pg.click("#mBtns button >> nth=0")
+        # nächster Dialog wieder in der Mitte
+        pg.click('[data-xlog="beatport.log"]')
+        pg.wait_for_selector("#modal #xText")
+        self.assertAlmostEqual(box.bounding_box()["x"], b0["x"], delta=3)
+        pg.click("#mBtns button >> nth=0")
+        # Live-Fenster: Markierung bleibt trotz neuer Zeilen, „Leeren …“ mit Rückfrage
+        with open(lf, "w", encoding="utf-8") as fh:
+            fh.write("eins\nzwei\n")
+        with pg.expect_popup() as pop:
+            pg.click("#stXLive")
+        w = pop.value
+        w.wait_for_function("document.querySelector('#lwFile').value === 'app.log'")
+        w.select_option("#lwFile", "beatport.log")
+        w.wait_for_function("document.querySelector('#lwLog').textContent.includes('zwei')")
+        w.evaluate("const r = document.createRange(); r.selectNodeContents(document.querySelector('#lwLog')); getSelection().removeAllRanges(); getSelection().addRange(r)")
+        with open(lf, "a", encoding="utf-8") as fh:
+            fh.write("drei\n")
+        time.sleep(2.5)
+        self.assertNotIn("drei", w.inner_text("#lwLog"))                 # nicht neu gezeichnet, Markierung bleibt
+        self.assertTrue(w.evaluate("!getSelection().isCollapsed"))
+        w.evaluate("getSelection().removeAllRanges()")
+        w.wait_for_function("document.querySelector('#lwLog').textContent.includes('drei')", timeout=5000)
+        w.click("#lwClear")
+        self.assertTrue(w.is_visible("#lwAsk"))
+        w.click("#lwAskYes")
+        w.wait_for_function("!document.querySelector('#lwLog').textContent.includes('drei')", timeout=5000)
+        self.assertEqual(os.path.getsize(lf), 0)
         w.close()
 
     def test_profiles(self):

@@ -744,6 +744,13 @@ class Api:
         r.update(live=[], seq=int(seq or 0), plugin=APP_LOGS, title=i18n.tr("Protokolle"), dir=applog.log_dir())
         return r
 
+    def expert_log_clear(self, name):
+        """#329: Protokoll leeren (die Oberfläche fragt vorher nach) – App- und Plugin-Protokolle im Log-Ordner."""
+        ok = applog.clear(str(name or ""))
+        if ok and os.path.basename(str(name)) != applog.NAME:
+            applog.info(f"Protokoll geleert: {os.path.basename(str(name))}")
+        return ok
+
     def expert_log_folder(self):
         return self.open_folder(applog.log_dir())
 

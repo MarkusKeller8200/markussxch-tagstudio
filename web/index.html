@@ -74,7 +74,7 @@
       <button class="icon-btn pl-fold" id="plTopFold" title="Player-Leiste einklappen (Shift+P)" aria-label="Player-Leiste einklappen" aria-expanded="true"><svg class="i" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg></button>
     </div>
     <!-- Quellen -->
-    <header class="sources" id="srcCompare">
+    <header class="sources" id="srcCompare" hidden>
       <div class="src">
         <span class="src-k">LINKS</span>
         <input id="pathL" autocomplete="off" list="histL" placeholder="Ordner oder MP3-Datei" aria-label="Pfad links" spellcheck="false">
@@ -101,7 +101,7 @@
       </div>
     </header>
 
-    <div class="work" id="moduleCompare">
+    <div class="work" id="moduleCompare" hidden><!-- #328: erst sichtbar, wenn der Start die Seite gewählt hat -->
       <!-- Paarliste -->
       <section class="pairs" id="pairsPane" aria-label="Dateipaare">
         <div class="pairs-head">

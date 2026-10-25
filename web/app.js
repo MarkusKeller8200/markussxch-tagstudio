@@ -92,9 +92,41 @@ function dialog(opts) {
   return p;
 }
 
+// ====================================================================== #330: Dialoge verschieben und vergrössern
+/** Lage und Grösse eines Dialogs zurücksetzen (Mitte, Standardgrösse) – bei jedem neuen Dialog und Doppelklick auf den Titel */
+function dlgReset(box) {
+  if (!box) return;
+  box.style.transform = box.style.width = box.style.height = "";
+  box.dataset.dx = box.dataset.dy = "0";
+}
+(function bindDialogMove() {
+  const head = (e) => e.target.closest && e.target.closest(".overlay > .dialog > h3");
+  document.addEventListener("pointerdown", (e) => {
+    const h = head(e);
+    if (!h || e.button !== 0) return;
+    const box = h.parentElement, x0 = e.clientX, y0 = e.clientY;
+    const dx0 = Number(box.dataset.dx) || 0, dy0 = Number(box.dataset.dy) || 0, r0 = box.getBoundingClientRect();
+    e.preventDefault();
+    try { h.setPointerCapture(e.pointerId); } catch (x) { /* egal */ }
+    const move = (ev) => {
+      // Titel bleibt erreichbar: höchstens bis 80 px an den Rand, oben nie aus dem Fenster
+      const mx = Math.max(-r0.left - r0.width + 80, Math.min(innerWidth - r0.left - 80, ev.clientX - x0));
+      const my = Math.max(-r0.top, Math.min(innerHeight - r0.top - 40, ev.clientY - y0));
+      box.dataset.dx = dx0 + mx; box.dataset.dy = dy0 + my;
+      box.style.transform = `translate(${dx0 + mx}px, ${dy0 + my}px)`;
+    };
+    const up = () => { h.removeEventListener("pointermove", move); h.removeEventListener("pointerup", up); h.removeEventListener("pointercancel", up); };
+    h.addEventListener("pointermove", move);
+    h.addEventListener("pointerup", up);
+    h.addEventListener("pointercancel", up);
+  });
+  document.addEventListener("dblclick", (e) => { const h = head(e); if (h) dlgReset(h.parentElement); });
+})();
+
 function dialogNow({ title, text = "", buttons, area = null }) {
   return new Promise((resolve) => {
     const ov = $("#dialog");
+    if (ov.hidden) dlgReset($(".dialog", ov));          // #330: neuer Dialog wieder in der Mitte
     $("#dlgTitle").textContent = title;
     $("#dlgText").textContent = text;
     const ta = $("#dlgArea");

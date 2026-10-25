@@ -37,6 +37,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Verbessert
 
+- **Fenster verschieben und vergrössern (#330):** alle Dialoge lassen sich am Titel verschieben und an der Ecke unten
+  rechts in der Grösse ändern (Inhalt wächst mit); Doppelklick auf den Titel setzt zurück, jeder neue Dialog öffnet in
+  der Mitte. Rückfragen liegen immer vor dem offenen Fenster.
+- **Protokolle leeren und Teile kopieren (#329):** Protokoll-Ansicht (Einstellungen › Expert) und Live-Fenster mit
+  „Leeren …“ (nach Rückfrage, die Datei wird geleert, nicht gelöscht); „Kopieren“ nimmt nur die Markierung, ohne
+  Markierung alles. Das Live-Fenster behält eine Markierung, auch wenn neue Zeilen kommen.
 - **Protokolle live (#327):** Einstellungen › Expert › Protokolle „Live anzeigen …“ öffnet dasselbe Live-Fenster wie
   bei den Plugins – alle Protokolle im Log-Ordner zur Auswahl (Standard `app.log`), läuft mit, Filtern, Anhalten,
   Kopieren, Log-Ordner öffnen.
@@ -56,6 +62,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Behoben
 
+- **Vergleich blitzte beim Start kurz auf (#328):** die Vergleichsseite war beim Laden als einzige nicht ausgeblendet –
+  jetzt erscheint direkt die zuletzt benutzte Seite.
 - **Tagger lädt schneller, besonders von Netz- und USB-Laufwerken (#326):** Grösse und Änderungszeit jeder Datei kommen
   jetzt aus dem Durchsuchen des Ordners – Titel aus dem Zwischenspeicher werden nicht mehr einzeln abgefragt (unter
   Windows entfällt so ein Zugriff je Datei; gilt auch für Vergleich und Snapshots-Startprüfung). Die

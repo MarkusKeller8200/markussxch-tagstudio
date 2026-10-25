@@ -321,5 +321,16 @@
 "eigener API-Zugang": ["own API access", "eigete API-Zuegang"],
 "Ausweichweg": ["fallback", "Usweichwäg"],
 "Eigenes Fenster, das die Protokolle laufend nachführt – wie bei den Plugins": ["Separate window that follows the logs continuously – like for the plugins", "Eigets Fänschter, wo d Protokoll laufend nachfüert – wie bi de Plugins"],
-"Live anzeigen …": ["Show live …", "Live aazeige …"]
+"Live anzeigen …": ["Show live …", "Live aazeige …"],
+"Markierten Text kopieren (ohne Markierung: alles Angezeigte)": ["Copy selected text (without selection: everything shown)", "Markierte Text kopiere (ohni Markierig: alles Aazeigti)"],
+"Protokoll leeren (nach Rückfrage)": ["Empty the log (after confirmation)", "Protokoll leere (nach Rückfrag)"],
+"Protokoll leeren? Der bisherige Inhalt ist danach weg.": ["Empty the log? The previous content will be gone.", "Protokoll leere? De bisherig Inhalt isch dänn weg."],
+"{x} konnte nicht geleert werden.": ["{x} could not be emptied.", "{x} hät nöd chöne gleert werde."],
+"Markierten Text kopieren (ohne Markierung: alles)": ["Copy selected text (without selection: everything)", "Markierte Text kopiere (ohni Markierig: alles)"],
+"Markierung kopiert.": ["Selection copied.", "Markierig kopiert."],
+"Protokoll leeren?": ["Empty the log?", "Protokoll leere?"],
+"{x} wird geleert – der bisherige Inhalt ist danach weg.": ["{x} will be emptied – the previous content will be gone.", "{x} wird gleert – de bisherig Inhalt isch dänn weg."],
+"Protokoll geleert.": ["Log emptied.", "Protokoll gleert."],
+"Protokoll konnte nicht geleert werden.": ["The log could not be emptied.", "Protokoll hät nöd chöne gleert werde."],
+"{x} geleert.": ["{x} emptied.", "{x} gleert."]
 }

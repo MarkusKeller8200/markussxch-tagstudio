@@ -601,7 +601,9 @@ Anzeige, Unwichtige, Leere Felder, Cover – weicht der Vergleich davon ab, setz
 Snapshots · Sicherungen und Speichern (ID3-Version, Sicherung) · Player · Plugins · Herkunft der Tags · unwichtige
 Felder · Cache · Updates · **Expert** (Diagnose mit Version, System und Pfaden zum Kopieren, Einstellungsdatei und
 Protokolle ansehen und durchsuchen – Zugangsdaten ausgeblendet; „Live anzeigen …“ öffnet wie bei den Plugins ein
-eigenes Fenster, das alle Protokolle laufend nachführt). Jede Vorgabe „beim Start“ kann auch „wie zuletzt benutzt“ bleiben. **Exportieren**
+eigenes Fenster, das alle Protokolle laufend nachführt; „Leeren …“ leert ein Protokoll nach Rückfrage, „Kopieren“ nimmt
+nur die Markierung). Alle Dialoge lassen sich am Titel verschieben und an der Ecke in der Grösse ändern (Doppelklick auf
+den Titel: zurück). Jede Vorgabe „beim Start“ kann auch „wie zuletzt benutzt“ bleiben. **Exportieren**
 speichert alles als Datei (ohne Zugangsdaten), **Importieren** übernimmt gewählte Bereiche – Pfade eines anderen
 Systems sind nicht vorgewählt –, **Zurücksetzen** geht für einzelne Bereiche oder alles. Vor Import und
 Zurücksetzen wird die alte Datei nach `~/TagStudio/Einstellungen` gesichert.

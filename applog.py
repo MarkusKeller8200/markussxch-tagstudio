@@ -124,6 +124,21 @@ def read_from(name: str = "", offset: int = -1, limit: int = 200_000) -> dict:
     return res
 
 
+def clear(name: str) -> bool:
+    """#329: Protokoll im Log-Ordner leeren (nicht löschen) – nur Dateien direkt im Log-Ordner."""
+    fs = {f["name"]: f for f in files()}
+    name = os.path.basename(str(name or ""))
+    if name not in fs:
+        return False
+    with _lock:
+        try:
+            with open(fs[name]["path"], "w", encoding="utf-8"):
+                pass
+        except OSError:
+            return False
+    return True
+
+
 def tail(p: str, limit: int = 200_000) -> str:
     """Ende einer Textdatei (höchstens `limit` Bytes)."""
     try:

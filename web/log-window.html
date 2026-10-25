@@ -14,7 +14,8 @@
   <input id="lwFind" class="inp" type="search" placeholder="Filtern" aria-label="Filtern">
   <label class="check sm" title="Neue Zeilen automatisch ans Ende scrollen"><input type="checkbox" id="lwFollow" checked> mitlaufen</label>
   <label class="check sm" title="Anzeige anhalten (das Protokoll wird weiter geschrieben)"><input type="checkbox" id="lwPause"> anhalten</label>
-  <span class="lw-acts"><button class="ghost sm" id="lwCopy" title="Angezeigten Text kopieren">Kopieren</button><button class="ghost sm" id="lwFolder" title="Log-Ordner öffnen">Log-Ordner</button></span>
+  <span class="lw-acts"><button class="ghost sm" id="lwCopy" title="Markierten Text kopieren (ohne Markierung: alles Angezeigte)">Kopieren</button><button class="ghost sm" id="lwFolder" title="Log-Ordner öffnen">Log-Ordner</button><button class="ghost sm" id="lwClear" title="Protokoll leeren (nach Rückfrage)">Leeren …</button></span>
+  <span class="lw-ask" id="lwAsk" hidden><span id="lwAskText">Protokoll leeren? Der bisherige Inhalt ist danach weg.</span> <button class="ghost sm" id="lwAskNo">Abbrechen</button><button class="primary sm" id="lwAskYes">Leeren</button></span>
 </div>
 <div class="lw-info muted sm" id="lwInfo"></div>
 <pre class="lw-log" id="lwLog" tabindex="0" aria-live="polite"></pre>

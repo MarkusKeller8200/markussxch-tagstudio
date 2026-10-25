@@ -24,7 +24,15 @@ const LW = { pid: "", name: "", offset: -1, seq: 0, text: "", live: [], mtime: 0
 
 function lwTime(t) { const d = new Date(t * 1000); return d.toLocaleTimeString(); }
 
+/** #329: Markierung im Protokoll? Dann nicht neu zeichnen (sonst ginge sie verloren) */
+function lwSelecting() {
+  const s = window.getSelection();
+  return !!s && !s.isCollapsed && $("#lwLog").contains(s.anchorNode);
+}
+
 function lwRender() {
+  if (lwSelecting()) { LW.pending = true; return; }
+  LW.pending = false;
   const q = ($("#lwFind").value || "").toLowerCase().trim();
   const keep = (ln) => !q || ln.toLowerCase().includes(q);
   const lines = LW.text.split("\n").filter(keep);
@@ -77,7 +85,21 @@ function lwStart(pid) {
   $("#lwFile").addEventListener("change", (e) => { LW.name = e.target.value; LW.offset = -1; LW.text = ""; LW.first = true; lwTick(); });
   $("#lwFind").addEventListener("input", lwRender);
   $("#lwPause").addEventListener("change", lwTick);
-  $("#lwCopy").addEventListener("click", () => navigator.clipboard.writeText($("#lwLog").innerText).catch(() => {}));
+  $("#lwCopy").addEventListener("click", () => {                 // #329: nur die Markierung, sonst alles
+    const part = lwSelecting() ? window.getSelection().toString() : "";
+    navigator.clipboard.writeText(part || $("#lwLog").innerText).catch(() => {});
+  });
+  document.addEventListener("selectionchange", () => { if (LW.pending && !lwSelecting()) lwRender(); });
+  $("#lwClear").addEventListener("click", () => { $("#lwAsk").hidden = false; $("#lwClear").hidden = true; });
+  $("#lwAskNo").addEventListener("click", () => { $("#lwAsk").hidden = true; $("#lwClear").hidden = false; });
+  $("#lwAskYes").addEventListener("click", async () => {
+    $("#lwAsk").hidden = true; $("#lwClear").hidden = false;
+    const name = LW.name || $("#lwFile").value;
+    let ok = false;
+    try { ok = await call("expert_log_clear", name); } catch (e) { ok = false; }
+    $("#lwInfo").textContent = ok ? `${name} geleert.` : `${name} konnte nicht geleert werden.`;
+    if (ok) { LW.text = ""; LW.live = []; LW.offset = -1; LW.first = true; lwRender(); lwTick(); }
+  });
   $("#lwFolder").addEventListener("click", () => call(LW.pid === "@app" ? "expert_log_folder" : "plugin_log_folder", ...(LW.pid === "@app" ? [] : [LW.pid])).catch(() => {}));
   if (LW_HASH.get("pid")) lwStart(LW_HASH.get("pid"));
 })();

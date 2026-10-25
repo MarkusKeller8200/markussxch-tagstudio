@@ -308,12 +308,12 @@ async function stExpertCopy() {
   toast((await stCopyText(stExpertText())) ? "Diagnose kopiert." : "Kopieren nicht möglich.");
 }
 /** Textdatei ansehen: nur lesen, Suche mit Treffer-Zähler, kopieren, im Explorer zeigen */
-function stTextViewer(title, path, text, note) {
+function stTextViewer(title, path, text, note, logName = "") {
   return modal({
     title, wide: true,
     html: `${note ? `<p class="muted sm" style="margin:0 0 6px">${esc(note)}</p>` : ""}
       <div class="x-bar"><input class="inp" id="xFind" placeholder="Suchen …" spellcheck="false"><span class="muted sm" id="xHits"></span>
-        <button class="ghost sm" id="xCopy">Kopieren</button><button class="ghost sm" id="xShow">Im Ordner zeigen</button></div>
+        <button class="ghost sm" id="xCopy" title="Markierten Text kopieren (ohne Markierung: alles)">Kopieren</button><button class="ghost sm" id="xShow">Im Ordner zeigen</button>${logName ? '<button class="ghost sm" id="xClear" title="Protokoll leeren (nach Rückfrage)">Leeren …</button>' : ""}</div>
       <textarea class="inp x-text" id="xText" readonly spellcheck="false"></textarea>
       <div class="hint">${esc(path)}</div>`,
     buttons: [{ label: "Schliessen", value: null, primary: true }],
@@ -340,8 +340,18 @@ function stTextViewer(title, path, text, note) {
       };
       inp.addEventListener("input", () => { pos = 0; find(false); });
       inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); find(true); } });
-      $("#xCopy", b).onclick = async () => toast((await stCopyText(text)) ? "Kopiert." : "Kopieren nicht möglich.");
+      $("#xCopy", b).onclick = async () => {          // #329: nur die Markierung, sonst alles
+        const part = ta.selectionEnd > ta.selectionStart ? ta.value.slice(ta.selectionStart, ta.selectionEnd) : "";
+        toast((await stCopyText(part || text)) ? (part ? "Markierung kopiert." : "Kopiert.") : "Kopieren nicht möglich.");
+      };
       $("#xShow", b).onclick = () => call("reveal", path);
+      if (logName) $("#xClear", b).onclick = async () => {
+        const ok = await dialog({ title: "Protokoll leeren?", text: `${logName} wird geleert – der bisherige Inhalt ist danach weg.`,
+          buttons: [{ label: "Abbrechen", value: false }, { label: "Leeren", value: true, primary: true }] });
+        if (!ok) return;
+        if (await call("expert_log_clear", logName)) { text = ""; ta.value = ""; toast("Protokoll geleert."); stExpertRender(); }
+        else toast("Protokoll konnte nicht geleert werden.");
+      };
     },
   });
 }
@@ -351,7 +361,7 @@ async function stExpertConfig() {
 }
 async function stExpertLog(name) {
   const r = await call("expert_log", name);
-  stTextViewer(`Protokoll: ${name}`, r.path, r.text || "(leer)", "");
+  stTextViewer(`Protokoll: ${name}`, r.path, r.text || "(leer)", "", name);
 }
 
 function stTrivRender() {

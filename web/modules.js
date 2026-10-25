@@ -18,6 +18,7 @@ function modal({ title, html, buttons, wide = false, onMount, collect }) {
     // Hinweise beim Start (Snapshots, Update …) erst nach dem Einrichtungsassistenten zeigen (#167)
     while ($("#wizard") && !$("#wizard").hidden) await new Promise((ok) => setTimeout(ok, 400));
     const ov = $("#modal"), box = $("#mBtns");
+    if (ov.hidden && typeof dlgReset === "function") dlgReset($(".modal-dlg"));     // #330: neuer Dialog wieder in der Mitte
     // frischer Inhalt-Container je Dialog: Klick-Handler aus onMount früherer Dialoge dürfen nicht weiterlaufen
     const old = $("#mBody"), body = old.cloneNode(false);
     old.replaceWith(body);

@@ -267,6 +267,13 @@ class TestExpert(TempHome):
         self.assertNotIn("noch eine Zeile", r2["text"])
         self.assertEqual(api.expert_log_read("../.tagstudio.json", -1)["name"], "app.log")       # nie ausserhalb
         self.assertIn("x is undefined", api.expert_log_read("app.log.1", -1)["text"])        # rotierte Datei wählbar
+        # #329: Protokoll leeren – nur Dateien im Log-Ordner
+        self.assertTrue(api.expert_log_clear("app.log.1"))
+        self.assertEqual(os.path.getsize(applog.path() + ".1"), 0)
+        self.assertIn("Protokoll geleert: app.log.1", api.expert_log("app.log")["text"])
+        self.assertFalse(api.expert_log_clear("../.tagstudio.json"))
+        self.assertTrue(os.path.isfile(core.CONFIG))
+        self.assertFalse(api.expert_log_clear("fehlt.log"))
 
 
 class TestWindowMode(TempHome):
