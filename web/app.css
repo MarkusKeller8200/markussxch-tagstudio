@@ -1336,6 +1336,16 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .tg-table.hscroll .tg-thead{width:max-content;min-width:100%;will-change:transform}
 .tg-table.hscroll .tg-row{right:auto;width:max-content;min-width:100%}
 .tg-table.hscroll .tg-scroll{overflow-x:auto}
+/* #331: beim waagrechten Blättern bleibt die erste Spalte (Datei/Titel) links stehen – mit Kopf und Filterfeld */
+.tg-row{--rowbg:transparent}
+.tg-row:hover{--rowbg:var(--raise)}
+.tg-row.sel{--rowbg:var(--sel)}
+.tg-table.hscroll .tg-row>:nth-child(2){position:sticky;left:0;z-index:1;align-self:stretch;display:flex;align-items:center;
+  background:linear-gradient(var(--rowbg),var(--rowbg)),var(--surf);margin-left:-8px;padding-left:8px;box-shadow:6px 0 8px -6px rgba(0,0,0,.45)}
+.tg-table.hscroll .tg-thead>:nth-child(2),.tg-table.hscroll .tg-tfilter>:nth-child(2){position:relative;z-index:2;
+  transform:translateX(var(--tg-hx,0px));background:var(--surf);margin-left:-8px;padding-left:8px;box-shadow:6px 0 8px -6px rgba(0,0,0,.45)}
+.tg-table.hscroll .tg-thead>:nth-child(2){align-self:stretch;display:flex;align-items:center}
+.tg-table.hscroll .tg-tfilter>:nth-child(2){box-shadow:6px 0 8px -6px rgba(0,0,0,.45),0 0 0 4px var(--surf)}
 .tg-table .tg-thead{overflow:visible}
 .tg-table{overflow:hidden}
 .tg-thead button.num{justify-content:flex-end}

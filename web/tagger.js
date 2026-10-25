@@ -526,14 +526,17 @@ function tgFeatMenu(btn) {
 function renderTgHead() {
   $("#tgTable").classList.toggle("covers", !!LAYOUT.tg_cover_col);       // #73
   const cb = $("#tgCoverCol"); if (cb) cb.classList.toggle("on", !!LAYOUT.tg_cover_col);
-  const fcols = tgFeatCols(), cols = tgCols(), scroll = LAYOUT.tg_fit === "scroll";
+  const fcols = tgFeatCols(), cols = tgCols();
+  let scroll = LAYOUT.tg_fit === "scroll";
   const fb = $("#tgFeatCols"); if (fb) { fb.classList.toggle("on", fcols.length > 0); fb.textContent = fcols.length ? `Merkmale (${fcols.length}) ▾` : "Merkmale ▾"; }
   // #148: „fit“ = an Fenster anpassen, „scroll“ = optimale Breite mit horizontalem Bildlauf
   const w = (id) => { const d = tgColDef(id); return scroll ? (id === "name" ? "var(--tg-name-px,260px)" : `${d.px}px`) : d.fit; };
-  const grid = ["22px", ...cols.map(w), ...fcols.map(() => (scroll ? "60px" : "52px"))].join(" ");
   const tbl = $("#tgTable");
-  tbl.style.setProperty("--tg-grid", grid);
-  tbl.classList.toggle("hscroll", scroll);
+  const setGrid = () => {
+    tbl.style.setProperty("--tg-grid", ["22px", ...cols.map(w), ...fcols.map(() => (scroll ? "60px" : "52px"))].join(" "));
+    tbl.classList.toggle("hscroll", scroll);
+  };
+  setGrid();
   tbl.classList.toggle("feat", fcols.length > 0);
   const multi = TG.sorts.length > 1;
   const mark = (k) => { const n = TG.sorts.findIndex((s) => s.col === k); if (n < 0) return ""; return (TG.sorts[n].dir > 0 ? " ▴" : " ▾") + (multi ? `<sup>${n + 1}</sup>` : ""); };
@@ -547,6 +550,12 @@ function renderTgHead() {
     return `<button data-sort="${k}" class="ft-h ${on(k)}" title="${esc(label)} – ${esc(desc)} (0–100)">${esc(label.slice(0, 7))}${mark(k)}</button>`; }).join("");
   $("#tgSortReset").hidden = tgSortsEqual(TG.sorts, tgDefaultSorts());
   tgColFilterRender(cols, fcols);                                  // #202
+  // #331: „An Fenster anpassen“, aber die Spalten passen nicht (z. B. alle Merkmale) → automatisch optimale Breite
+  const head = $("#tgHead");
+  TG.autoScroll = false;
+  if (!scroll && head.clientWidth > 0 && head.scrollWidth > head.clientWidth + 2) {
+    scroll = true; TG.autoScroll = true; setGrid();
+  }
   tgHeadScrollSync();
   const grip = $("#tgNameGrip");     // #41: Breite der Datei-Spalte
   if (!grip) return;
@@ -630,8 +639,11 @@ const tgSortsEqual = (a, b) => JSON.stringify((a || []).map((x) => [x.col, x.dir
 function tgSortReset() { tgSetSorts(tgDefaultSorts()); renderTgHead(); tgApplyOrder(); toast("Sortierung zurückgesetzt."); }
 /** Kopfzeile beim waagrechten Bildlauf mitführen (#148) */
 function tgHeadScrollSync() {
-  const sc = $("#tgScroll"), t = LAYOUT.tg_fit === "scroll" && sc.scrollLeft ? `translateX(${-sc.scrollLeft}px)` : "";
+  const sc = $("#tgScroll"), hs = LAYOUT.tg_fit === "scroll" || TG.autoScroll, t = hs && sc.scrollLeft ? `translateX(${-sc.scrollLeft}px)` : "";
   for (const h of [$("#tgHead"), $("#tgHeadF")]) if (h) h.style.transform = t;
+  // #331: erste Spalte steht – Kopf und Filterfeld laufen mit, bis sie links anstossen, dann bleiben sie (wie die Zeilen)
+  const hd = $("#tgHead"), c2 = hd.children[1], x0 = !c2 ? 0 : c2.offsetParent === hd ? c2.offsetLeft : c2.offsetLeft - hd.offsetLeft;
+  $("#tgTable").style.setProperty("--tg-hx", `${hs ? Math.max(0, sc.scrollLeft - x0) : 0}px`);
 }
 
 // ---------------------------------------------------------------------- #202 Filter je Spalte
@@ -788,7 +800,7 @@ function tgColsMenu(btn) {
     ...all.map((id) => ({ label: tgColDef(id).l + (id.startsWith("fld:") ? ` (${tgColDef(id).key})` : ""), check: on.has(id), run: () => toggle(id) })),
     "-",
     { label: "Feld als Spalte hinzufügen …", run: tgColAddField },
-    { label: "An Fenster anpassen", check: LAYOUT.tg_fit !== "scroll", run: () => tgSetFit("fit") },
+    { label: TG.autoScroll ? "An Fenster anpassen (zu viele Spalten – automatisch optimale Breite)" : "An Fenster anpassen", check: LAYOUT.tg_fit !== "scroll", run: () => tgSetFit("fit") },
     { label: "Optimale Breite (waagrecht blättern)", check: LAYOUT.tg_fit === "scroll", run: () => tgSetFit("scroll") },
     "-",
     { label: "Aktuelle Sortierung als Standard", run: () => { LAYOUT.tg_sort_default = TG.sorts.slice(); call("set_ui", "tg_sort_default", LAYOUT.tg_sort_default); renderTgHead(); toast("Standard-Sortierung gespeichert."); } },
@@ -1787,6 +1799,16 @@ async function tgOriginDialog(preset = "") {
   tgColFilterInit();                                                     // #202
   $("#tgColsBtn").addEventListener("click", (e) => { e.stopPropagation(); tgColsMenu(e.currentTarget); });
   $("#tgSortReset").addEventListener("click", tgSortReset);
+  // #331: Breite der Liste ändert sich (Fenster, Trenner) → „angepasst“ oder automatisch optimale Breite neu prüfen
+  if (typeof ResizeObserver === "function") {
+    let rt = 0, lastW = 0;
+    new ResizeObserver((en) => {
+      const wNow = Math.round(en[0].contentRect.width);
+      if (wNow === lastW || LAYOUT.tg_fit === "scroll") { lastW = wNow; return; }
+      lastW = wNow;
+      clearTimeout(rt); rt = setTimeout(() => { renderTgHead(); drawTgList(); }, 120);
+    }).observe($("#tgTable"));
+  }
   $("#tgScroll").addEventListener("scroll", () => {
     // #326: während des Blätterns keine Cover zeichnen (ruckelt sonst) – kurz nach dem Anhalten kommen sie
     TG.scrolling = true;

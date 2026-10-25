@@ -110,7 +110,8 @@ too).
   album, track, year, genre, key – sortable with a click, filterable. Select with click, Shift, Ctrl/Cmd, Ctrl/Cmd+A.
 - **Columns ▾:** more columns (album artist, disc, composer, comment, length, kbit/s, rating, ID3 version, label,
   catalogue number, remixer, ISRC … or **any field** such as `TXXX:LABEL`), order by **dragging in the header**,
-  “Fit to window” or “Optimal width” with horizontal scrolling. **Sort** in up to three levels (Shift+click on more
+  “Fit to window” or “Optimal width” with horizontal scrolling (if the columns don't fit, the list switches to
+  horizontal scrolling by itself; the first column stays at the left). **Sort** in up to three levels (Shift+click on more
   columns), “↺ Sorting” resets to the default; “Current sorting as default” and **“Save view as preferred”** (also
   under Settings › Tagger).
 - **Editing:** on the right the standard fields of the selected files. With several files “‹mixed›” shows different

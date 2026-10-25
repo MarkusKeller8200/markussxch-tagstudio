@@ -37,6 +37,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Verbessert
 
+- **Tagger-Spalten (#331):** passen bei „An Fenster anpassen“ nicht alle Spalten ins Fenster (z. B. alle Merkmale),
+  wechselt die Liste selbst auf waagrechtes Blättern (und zurück, sobald es wieder passt); beim waagrechten Blättern
+  bleibt die erste Spalte samt Kopf und Filterfeld links stehen.
 - **Fenster verschieben und vergrössern (#330):** alle Dialoge lassen sich am Titel verschieben und an der Ecke unten
   rechts in der Grösse ändern (Inhalt wächst mit); Doppelklick auf den Titel setzt zurück, jeder neue Dialog öffnet in
   der Mitte. Rückfragen liegen immer vor dem offenen Fenster.

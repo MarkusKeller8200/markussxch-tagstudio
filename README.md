@@ -110,7 +110,8 @@ Das App-Fenster öffnet in der Grösse und Position vom letzten Mal (auch maximi
   sortierbar per Klick, filterbar. Markieren mit Klick, Shift, Strg/Cmd, Strg/Cmd+A.
 - **Spalten ▾:** weitere Spalten (Album-Künstler, Disk, Komponist, Kommentar, Länge, kbit/s, Bewertung, ID3-Version,
   Label, Katalognummer, Remixer, ISRC … oder **beliebiges Feld** wie `TXXX:LABEL`), Reihenfolge per **Ziehen in der
-  Kopfzeile**, „An Fenster anpassen“ oder „Optimale Breite“ mit waagrechtem Blättern. **Sortieren** in bis zu drei
+  Kopfzeile**, „An Fenster anpassen“ oder „Optimale Breite“ mit waagrechtem Blättern (passen die Spalten
+  nicht ins Fenster, wechselt die Liste selbst auf waagrechtes Blättern; die erste Spalte bleibt dabei links stehen). **Sortieren** in bis zu drei
   Stufen (Shift+Klick auf weitere Spalten), „↺ Sortierung“ setzt auf den Standard zurück; „Aktuelle Sortierung als
   Standard“ und **„Ansicht als bevorzugt speichern“** (auch unter Einstellungen › Tagger).
 - **Bearbeiten:** rechts die Standardfelder der markierten Dateien. Bei mehreren Dateien zeigt „‹verschieden›“

@@ -606,6 +606,31 @@ class UiTest(unittest.TestCase):
                         pg.evaluate("JSON.stringify({p: !!TG.preview, n: document.querySelectorAll('#tgInner .tg-thumb').length})"))
         self.assertTrue(self.until("TG.loaded && !TG.preview", 20))
 
+    def test_tagger_auto_scroll_and_frozen_column(self):
+        """#331: zu viele Spalten bei „An Fenster anpassen“ → automatisch optimale Breite; beim waagrechten Blättern
+        bleibt die erste Spalte samt Kopf links stehen."""
+        pg = self.pg
+        pg.set_viewport_size({"width": 1700, "height": 800})
+        self.load_tagger()
+        self.assertEqual(pg.evaluate("LAYOUT.tg_fit"), "fit")
+        self.assertFalse(pg.evaluate("document.querySelector('#tgTable').classList.contains('hscroll')"))
+        pg.evaluate("LAYOUT.tg_feat_cols = TG.settings.features.map((f) => f[0]); renderTgHead(); drawTgList()")
+        self.assertTrue(pg.evaluate("TG.autoScroll && document.querySelector('#tgTable').classList.contains('hscroll')"))
+        self.assertEqual(pg.evaluate("LAYOUT.tg_fit"), "fit")                       # gespeicherte Wahl bleibt
+        sc = "document.querySelector('#tgScroll')"
+        self.assertTrue(pg.evaluate(f"{sc}.scrollWidth > {sc}.clientWidth"))
+        x = lambda sel: pg.evaluate(f"Math.round(document.querySelector({json.dumps(sel)}).getBoundingClientRect().left)")
+        cell = ".tg-row[data-i='0'] > :nth-child(2)"
+        before = x(cell)
+        pg.evaluate(f"{sc}.scrollLeft = 400; {sc}.dispatchEvent(new Event('scroll'))")
+        time.sleep(0.3)
+        left = pg.evaluate(f"Math.round({sc}.getBoundingClientRect().left)")
+        self.assertLessEqual(abs(x(cell) - left), 2, (x(cell), left, before))           # Zeile: erste Spalte steht
+        self.assertLessEqual(abs(x("#tgHead > :nth-child(2)") - x(cell)), 2,
+                             pg.evaluate("JSON.stringify({hx: getComputedStyle(document.querySelector('#tgTable')).getPropertyValue('--tg-hx'), ht: document.querySelector('#tgHead').style.transform, c2: document.querySelector('#tgHead').children[1].offsetLeft, hd: document.querySelector('#tgHead').offsetLeft, op: document.querySelector('#tgHead').children[1].offsetParent.id, cls: document.querySelector('#tgHead').children[1].className})"))
+        pg.evaluate("LAYOUT.tg_feat_cols = []; renderTgHead(); drawTgList()")
+        self.assertFalse(pg.evaluate("TG.autoScroll || document.querySelector('#tgTable').classList.contains('hscroll')"))
+
     def test_resume_selects_row_and_doubleclick(self):
         """#195: nach dem Neustart steht der Tagger auf dem fortgesetzten Titel; #196: Doppelklick spielt danach."""
         pg = self.pg
