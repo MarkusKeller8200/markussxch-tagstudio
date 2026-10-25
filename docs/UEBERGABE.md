@@ -24,10 +24,10 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   Melden kürzen). #304 (Dateidialoge übersetzen) in „Verbesserungen“.
 - **Oberflächentest `test_beatgrid_to_tag`** lokal rot – schon am Ausgangsstand e4261ac, nicht durch die Runde;
   CI-Ergebnis beobachten.
-- **Offen (Frage an den User):** Ordner-Konzept überarbeiten – zentrale Rollen (Eingang, Bibliotheken mit „aktiv“,
-  Archiv, Playlists, Downloads, Arbeit, Sicherung, Snapshots) aus dem Basisordner, alle Module verweisen darauf.
-  Auslöser: Käufe-Abgleich liest die Bibliothek aus drei Einstellungen (`_pl_lib_roots`). Vorschlag: Konzept in
-  `KONZEPT-SPEICHER.md`, Umsetzung eher 4.10.
+- **Ordner-Konzept** `docs/KONZEPT-ORDNER.md` (Entscheide O1–O6 des Users 14:04, Cloud-Abschnitt 9). Meilenstein
+  **#26 „4.10.0 – Ordner“** mit #308 (Konzept) und #310–#315 (Schritte 1–6), Auftrag User 14:06 „Issues
+  vorbereiten“ – Umsetzung erst nach `_1 bereit`. Cloud Weg 2 (Plugins OneDrive/Google Drive/Dropbox) = #309 in
+  „Funktionen“. Auslöser: Käufe-Abgleich liest die Bibliothek aus drei Einstellungen (`_pl_lib_roots`).
 
 ## Start 4.9.1 – Bugfixes (vorbereitet 25.10.2026, 12:50)
 
