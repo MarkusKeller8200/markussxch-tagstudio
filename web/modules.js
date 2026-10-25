@@ -207,7 +207,7 @@ async function coverExport(side, key) {
 }
 
 // ====================================================================== Tag-Fixer
-const FX = { settings: null, timer: null };
+const FX = { settings: null, timer: null, skip: new Set(), last: null, anchor: -1 };   // #341: skip = abgewählte Änderungen
 
 async function fixerShow(scopePreset) {
   FX.settings = await call("fixer_settings");
@@ -259,17 +259,60 @@ async function fixerPreview() {
   FX.scope = o.scope;
   $("#fxUpgrade").disabled = o.mode !== "v24";
   const r = await call("fixer_preview", o);
-  $("#fxCount").textContent = `${fmtN(r.count)} Änderung(en) in ${fmtN(r.files)} von ${fmtN(r.scope_files)} Datei(en)`;
-  $("#fxApply").textContent = r.count ? `Anwenden (${fmtN(r.count)})` : "Anwenden";
-  $("#fxApply").disabled = !r.count;
+  FX.last = r;
+  FX.anchor = -1;
+  const ids = new Set(r.rows.map((x) => x.id));
+  FX.skip = new Set([...FX.skip].filter((id) => ids.has(id)));   // nur noch vorhandene Änderungen
   $("#fxTable").innerHTML = r.rows.length
-    ? `<table><thead><tr><th data-col="file">Datei</th><th data-col="field">Feld</th><th data-col="old">Vorher</th><th data-col="new">Nachher</th></tr></thead><tbody>${r.rows.map((x) => `<tr><td>${esc(x.file)}</td><td>${esc(x.label)}</td><td class="old">${esc(x.old)}</td><td class="new">${esc(x.new)}</td></tr>`).join("")}</tbody></table>${r.count > r.rows.length ? `<div class="empty">… und ${fmtN(r.count - r.rows.length)} weitere</div>` : ""}`
+    ? `<table><thead><tr><th data-col="sel" data-nogrip><input type="checkbox" id="fxAll" aria-label="Alle Änderungen an/aus"></th><th data-col="file">Datei</th><th data-col="field">Feld</th><th data-col="old">Vorher</th><th data-col="new">Nachher</th></tr></thead><tbody>${r.rows.map((x, i) => `<tr data-i="${i}" class="${FX.skip.has(x.id) ? "fx-off" : ""}"><td><input type="checkbox" data-fxrow="${i}" ${FX.skip.has(x.id) ? "" : "checked"} aria-label="Änderung ausführen"></td><td translate="no">${esc(x.file)}</td><td>${esc(x.label)}</td><td class="old" translate="no">${esc(x.old)}</td><td class="new" translate="no">${esc(x.new)}</td></tr>`).join("")}</tbody></table>${r.count > r.rows.length ? `<div class="empty">… und ${fmtN(r.count - r.rows.length)} weitere (werden ausgeführt)</div>` : ""}`
     : `<div class="empty">${r.scope_files ? "Nichts zu ändern – alles schon einheitlich." : "Keine Dateien im gewählten Bereich. Erst im Vergleich oder Tagger Dateien laden."}</div>`;
   colResize($("#fxTable table"), "fixer");                       // #340
+  fixerCount();
+}
+
+/** #341: Zähler und Knopf nach der Auswahl in der Vorschau */
+function fixerCount() {
+  const r = FX.last;
+  if (!r) return;
+  const on = r.count - FX.skip.size;
+  $("#fxCount").textContent = FX.skip.size
+    ? `${fmtN(on)} von ${fmtN(r.count)} Änderung(en) werden ausgeführt`
+    : `${fmtN(r.count)} Änderung(en) in ${fmtN(r.files)} von ${fmtN(r.scope_files)} Datei(en)`;
+  $("#fxApply").textContent = on ? `Anwenden (${fmtN(on)})` : "Anwenden";
+  $("#fxApply").disabled = !on;
+  const all = $("#fxAll");
+  if (all) {
+    all.checked = FX.skip.size === 0;
+    all.indeterminate = FX.skip.size > 0 && FX.skip.size < r.rows.length;
+  }
+}
+
+/** #341: Häkchen in der Vorschau – einzeln, mit Umschalt als Bereich, im Kopf alle/keine */
+function fixerToggle(e) {
+  const t = e.target;
+  if (!FX.last || t.type !== "checkbox") return;
+  const rows = FX.last.rows;
+  const set = (i, on) => {
+    if (on) FX.skip.delete(rows[i].id); else FX.skip.add(rows[i].id);
+    const tr = $(`#fxTable tr[data-i="${i}"]`);
+    if (tr) { tr.classList.toggle("fx-off", !on); tr.querySelector("input").checked = on; }
+  };
+  if (t.id === "fxAll") {
+    rows.forEach((_, i) => set(i, t.checked));
+  } else if (t.dataset.fxrow !== undefined) {
+    const i = +t.dataset.fxrow;
+    if (e.shiftKey && FX.anchor >= 0) {
+      const [a, b] = [Math.min(FX.anchor, i), Math.max(FX.anchor, i)];
+      for (let k = a; k <= b; k++) set(k, t.checked);
+    } else set(i, t.checked);
+    FX.anchor = i;
+  }
+  fixerCount();
 }
 
 async function fixerApply() {
-  const st = await call("fixer_apply", fixerOptions());
+  const st = await call("fixer_apply", { ...fixerOptions(), skip: [...FX.skip] });   // #341: nur angehakte
+  FX.skip.clear();
   await refreshAll(st);
   if (st.message) status(st.message, st.tone);
   await fixerPreview();
@@ -417,6 +460,7 @@ async function backupDelete() {
   $("#headR").addEventListener("contextmenu", coverHandler);
   ["#headL", "#headR"].forEach((s) => $(s).addEventListener("click", (e) => { const add = e.target.closest("[data-addcover]"); if (add) coverReplace(add.dataset.addcover, "APIC:3"); }));
   $("#fxApply").addEventListener("click", fixerApply);
+  $("#fxTable").addEventListener("click", fixerToggle);                // #341
   $("#bkEnabled").addEventListener("change", async (e) => { BK.data = await call("set_backup", e.target.checked, null); toast(e.target.checked ? "Automatische Sicherung ist an." : "Achtung: Vor dem Speichern wird nicht mehr gesichert."); });
   $("#bkFolder").addEventListener("click", async () => { const d = await call("backup_pick_folder"); if (d) { BK.cur = null; await backupsShow(); } else if (!S.settings.native) toast("Im Browser-Modus ist kein Ordnerdialog verfügbar."); });
   $("#bkOpen").addEventListener("click", () => call("open_folder", BK.data && BK.data.folder));

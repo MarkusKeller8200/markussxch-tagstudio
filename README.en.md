@@ -323,7 +323,8 @@ shows how to download the tracks yourself on Beatport's download page and take t
 ### Tag fixer
 
 Unify multiple values – scope (current pair, one side, selected pairs, all files, tagger selection), fields,
-detected separators, output (separator or ID3v2.4 multiple values), live preview. Separators are shown as code next to
+detected separators, output (separator or ID3v2.4 multiple values), live preview. In the preview each change can be deselected (checkbox column, Shift-click for ranges,
+header = all/none) – “Apply” only runs the checked ones, as one undo step. Separators are shown as code next to
 their description – spaces as `␣`, the null separator as `\0` –, the chosen output separator as well.
 
 ### Compare

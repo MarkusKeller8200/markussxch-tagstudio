@@ -26,6 +26,10 @@ Mehrfachwerte (mehrere Künstler, Genres …) stehen je nach Programm unterschie
   Ausnahmen-Editor (#343) und Smart Fix (#339).
 - **Spaltenbreite (#340, 4.12.0):** Vorschau-Tabelle mit Griffen wie bei den Käufen (`colResize(…, "fixer")`),
   gemerkt, bleibt bei jeder neuen Vorschau.
+- **Auswahl in der Vorschau (#341, 4.12.0):** Häkchen-Spalte (Standard an), Kopf alle/keine (halb bei Teilauswahl),
+  Umschalt-Klick für Bereiche, Zähler „x von y Änderung(en) werden ausgeführt“. Jede Zeile hat die Kennung
+  `Session._fixer_id` (Pfad, Feld, neuer Wert); `fixer_apply` erhält die **abgewählten** Kennungen (`skip`) – Zeilen
+  jenseits der ersten 3000 angezeigten werden also ausgeführt. Eine Rückgängig-Stufe für das Ausgeführte.
 - **Vorschau** je Datei und Feld (alt → neu), anwenden mit Undo; geschrieben wird mit „Speichern“.
 
 ## 3. Umsetzung

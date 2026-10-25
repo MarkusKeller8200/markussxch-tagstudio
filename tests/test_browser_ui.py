@@ -2874,6 +2874,36 @@ class UiTest(unittest.TestCase):
         pg.fill("#fxSep", " / ")
         self.assertTrue(self.until("document.querySelector('#fxSepShow').textContent === '␣/␣'"))
 
+    def test_fixer_preview_selection(self):
+        """#341: Vorschau mit Häkchen – 50 Änderungen, 3 abwählen (einzeln + Umschalt-Bereich) → nur 47 ausgeführt;
+        Kopf-Häkchen alle/keine."""
+        pg = self.pg
+        pg.evaluate("""(() => { const orig = call; window.__apply = null;
+          const rows = Array.from({ length: 50 }, (_, i) => ({ id: "/m/" + i + ".mp3\\u001fTPE1\\u001fA, B", file: i + ".mp3", key: "TPE1", label: "Künstler", old: "A; B", new: "A, B" }));
+          window.call = (n, ...a) => {
+            if (n === "fixer_preview") return Promise.resolve({ count: 50, files: 50, scope_files: 50, rows });
+            if (n === "fixer_apply") { window.__apply = a[0]; return Promise.resolve({ message: "ok", tone: "ok" }); }
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="fixer"]')
+        pg.wait_for_selector('#fxTable input[data-fxrow="49"]')
+        self.assertIn("Anwenden (50)", pg.inner_text("#fxApply"))
+        pg.click('#fxTable input[data-fxrow="3"]')
+        pg.click('#fxTable input[data-fxrow="10"]')
+        pg.click('#fxTable input[data-fxrow="11"]', modifiers=["Shift"])                 # Bereich 10–11
+        self.assertIn("47 von 50", pg.inner_text("#fxCount"))
+        self.assertIn("Anwenden (47)", pg.inner_text("#fxApply"))
+        self.assertEqual(pg.locator("#fxTable tr.fx-off").count(), 3)
+        self.assertTrue(pg.evaluate("document.querySelector('#fxAll').indeterminate"))
+        pg.click("#fxApply")
+        self.assertTrue(self.until("window.__apply && window.__apply.skip.length === 3"))
+        self.assertEqual(sorted(pg.evaluate("window.__apply.skip.map(x => parseInt(x.slice(3)))")), [3, 10, 11])
+        self.assertTrue(self.until("!document.querySelector('#fxTable tr.fx-off')"))      # neue Vorschau: wieder alle an
+        pg.click("#fxAll")                                                                # keine
+        self.assertEqual(pg.locator("#fxTable tr.fx-off").count(), 50)
+        self.assertTrue(pg.locator("#fxApply").is_disabled())
+        pg.click("#fxAll")                                                                # alle
+        self.assertIn("Anwenden (50)", pg.inner_text("#fxApply"))
+
     def test_expert_log_clear_on_exit(self):
         """#332: Expert › Entwicklung – „Protokolle beim Beenden leeren“, Standard aus, Plugin-Protokolle nur wählbar,
         wenn eingeschaltet; Einstellung bleibt gespeichert."""

@@ -170,6 +170,19 @@ class TestSessionFeatures(Base):
         self.assertEqual(s.pairs[0][0].text("TCON"), "Pop, Synth")
         self.assertEqual(s.fixer_preview(o)["count"], 0)
         s.do_undo()
+        # #341: abgewählte Änderungen werden nicht ausgeführt; Rückgängig nimmt genau die ausgeführten zurück
+        pv = s.fixer_preview(o)
+        self.assertEqual(pv["count"], 6)
+        skip = [r["id"] for r in pv["rows"][:2]]
+        before = {(r["file"], r["key"]): r["old"] for r in pv["rows"]}
+        s.fixer_apply(dict(o, skip=skip))
+        pv2 = s.fixer_preview(o)
+        self.assertEqual(sorted(r["id"] for r in pv2["rows"]), sorted(skip))      # nur die abgewählten bleiben offen
+        s.do_undo()
+        pv3 = s.fixer_preview(o)
+        self.assertEqual(pv3["count"], 6)
+        self.assertEqual({(r["file"], r["key"]): r["old"] for r in pv3["rows"]}, before)
+        self.assertEqual(s.fixer_apply(dict(o, skip=[r["id"] for r in pv3["rows"]]))["message"], "Tag-Fixer: nichts zu ändern.")
         # Sammelkopie rechts → links, nur Album
         bk = s.bulk_keys([0, 1, 2], "rl")
         self.assertIn("TXXX:Extra", [k["key"] for k in bk["keys"]])

@@ -8,6 +8,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Verbessert
 
+- **Tag-Fixer: Änderungen einzeln abwählen (#341):** Die Vorschau hat eine Häkchen-Spalte (Kopf = alle/keine,
+  Umschalt-Klick für Bereiche); „Anwenden“ führt nur die angehakten Änderungen aus – eine Rückgängig-Stufe.
+
 - **Spaltenbreite per Ziehen (#337, #340):** In den Tabellen von Käufe und Tag-Fixer lässt sich die Breite jeder
   Spalte am Rand des Kopfs ziehen – Doppelklick passt sie dem Inhalt an, ←/→ auf dem Griff verschiebt in Schritten.
   Die Breiten bleiben gespeichert; Rechtsklick auf die Kopfzeile › „Spaltenbreiten zurücksetzen“.

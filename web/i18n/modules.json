@@ -80,5 +80,9 @@
 "Sicherung vom {x} ({x} Datei(en)) endgültig löschen?": ["Permanently delete the backup of {x} ({x} file(s))?", "Sicherig vom {x} ({x} Datei(e)) endgültig lösche?"],
 "Die MP3-Dateien selbst bleiben unverändert.": ["The MP3 files themselves stay unchanged.", "D MP3-Dateie sälber bliibed unveränderet."],
 "Löschen fehlgeschlagen": ["Delete failed", "Lösche fählgschlage"],
-"Automatische Sicherung ist an.": ["Automatic backup is on.", "Automatischi Sicherig isch aa."]
+"Automatische Sicherung ist an.": ["Automatic backup is on.", "Automatischi Sicherig isch aa."],
+"Änderung ausführen": ["Apply this change", "Änderig usfüere"],
+"… und {x} weitere (werden ausgeführt)": ["… and {x} more (will be applied)", "… und {x} wiiteri (wärded usgfüert)"],
+"Alle Änderungen an/aus": ["All changes on/off", "Alli Änderige aa/uus"],
+"{x} von {x} Änderung(en) werden ausgeführt": ["{x} of {x} change(s) will be applied", "{x} vo {x} Änderig(e) wärded usgfüert"]
 }

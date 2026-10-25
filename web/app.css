@@ -356,6 +356,8 @@ body.col-dragging,body.col-dragging *{cursor:col-resize!important;user-select:no
 .fx-table td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
 .fx-table td.old{color:var(--dim)}
 .fx-table td.new{color:var(--ok)}
+.fx-table tr.fx-off td:not(:first-child){opacity:.45;text-decoration:line-through}
+.fx-table th[data-col="sel"]{width:34px}
 .fx-table tr.sel td{background:var(--sel)}
 .fx-table tr.click{cursor:pointer}
 .fx-table tr.click:hover td{background:var(--raise)}

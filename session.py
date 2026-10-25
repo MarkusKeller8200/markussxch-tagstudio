@@ -1438,10 +1438,16 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         return plan_multi_fix([f for f in self._fixer_files(o) if not self._ro(f)], o.get("fields", []), o.get("seps", []), out,
                               bool(o.get("dedupe", True)), bool(o.get("all_text")), bool(o.get("upgrade", True)))
 
+    @staticmethod
+    def _fixer_id(f, k, new) -> str:
+        """#341: Kennung einer Änderung (Datei, Feld, neuer Wert) – abgewählte Zeilen bleiben abgewählt, solange die
+        Änderung gleich bleibt; ändern die Optionen den neuen Wert, gilt sie als neue Zeile (wieder angehakt)."""
+        return f"{f.path}\x1f{k}\x1f{new}"
+
     def fixer_preview(self, o) -> dict:
         with self.lock:
             plan = self._fixer_plan(o)
-            rows = [{"file": os.path.basename(f.path), "key": k, "label": key_label(k),
+            rows = [{"id": self._fixer_id(f, k, new), "file": os.path.basename(f.path), "key": k, "label": key_label(k),
                      "old": old.replace(MV, MV_SHOW), "new": new.replace(MV, MV_SHOW)} for f, k, old, new in plan[:3000]]
             return {"rows": rows, "count": len(plan), "files": len({id(f) for f, *_ in plan}),
                     "scope_files": len(self._fixer_files(o))}
@@ -1449,6 +1455,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
     def fixer_apply(self, o):
         with self.lock:
             plan = self._fixer_plan(o)
+            skip = set(o.get("skip") or [])                          # #341: abgewählte Änderungen
+            plan = [p for p in plan if self._fixer_id(p[0], p[1], p[3]) not in skip]
             if not plan:
                 return self.state("Tag-Fixer: nichts zu ändern.", "ok")
             to_v24 = o.get("mode") == "v24" and o.get("upgrade", True)
