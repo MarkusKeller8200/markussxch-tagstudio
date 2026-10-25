@@ -173,9 +173,10 @@ class Store:
             it.update(status="missing", reason="")
         self.save()
 
-    def match(self, index, inbox: str = "") -> dict:
+    def match(self, index, inbox: str = "", strict: bool = False) -> dict:
         """Status aller Käufe neu bestimmen. index: playlists.LibIndex der Bibliothek (inkl. Eingang).
-        Dateien im Eingangsordner → „im Eingang“, sonst „in Bibliothek“. → Zähler je Status"""
+        Dateien im Eingangsordner → „im Eingang“, sonst „in Bibliothek“. strict (#338): Mix muss passen, auch bei
+        gleicher ISRC (playlists.match_ref). → Zähler je Status"""
         inbox_k = playlists.nk(inbox) + os.sep if inbox else ""
         count = {s: 0 for s in STATUSES}
         for it in self.data["items"].values():
@@ -188,8 +189,9 @@ class Store:
             it.pop("linked", None)
             ref = {k: it.get(k, "") for k in ("artist", "title", "mix", "isrc")}
             ref["dur"] = it.get("dur") or 0
-            r = playlists.match_ref(ref, index)
+            r = playlists.match_ref(ref, index, strict=strict)
             it["reason"] = r.get("reason", "")
+            it["kind"] = r.get("kind", "")
             if r["status"] == "sure" and r.get("path"):
                 it["file"] = r["path"]
                 it["status"] = "inbox" if inbox_k and playlists.nk(r["path"]).startswith(inbox_k) else "library"

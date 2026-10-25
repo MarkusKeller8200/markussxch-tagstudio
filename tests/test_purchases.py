@@ -65,3 +65,86 @@ class TestMatch(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestStrictAndCorrect(unittest.TestCase):
+    """#338: Zuweisung „streng“, Art der Unklarheit, Ähnlichkeit der Künstler, Korrekturfenster."""
+
+    def e(self, path, artist, title, isrc="", dur=300, sub=""):
+        return playlists.lib_entry(path, artist, title, isrc, dur, sub)
+
+    def test_strict_mix_isrc_artist(self):
+        ref = {"artist": "Mara Lind", "title": "Nordlicht", "mix": "Original Mix", "isrc": "CHA1", "dur": 300}
+        ix = [self.e("/a.mp3", "Mara Lind", "Nordlicht (Extended Mix)", "CHA1")]
+        self.assertEqual(playlists.match_ref(ref, ix)["kind"], "isrc")                       # bisher: ISRC genügt
+        r = playlists.match_ref(ref, ix, strict=True)
+        self.assertEqual((r["status"], r["kind"]), ("unclear", "mix"))                       # streng: anderer Mix
+        self.assertEqual(playlists.match_ref(dict(ref, mix="Extended Mix"), ix, strict=True)["status"], "sure")
+        noart = [self.e("/b.mp3", "", "Nordlicht")]
+        self.assertEqual(playlists.match_ref(dict(ref, isrc=""), noart)["status"], "sure")
+        self.assertNotEqual(playlists.match_ref(dict(ref, isrc=""), noart, strict=True)["status"], "sure")
+        two = [self.e("/c.mp3", "Mara Lind", "Nordlicht"), self.e("/d.mp3", "Mara Lind", "Nordlicht (Original Mix)")]
+        self.assertEqual(playlists.match_ref(dict(ref, isrc=""), two)["kind"], "multi")
+        other = [self.e("/e.mp3", "Oskar Vey", "Nordlicht")]
+        self.assertEqual(playlists.match_ref(dict(ref, isrc=""), other)["kind"], "artist")
+        self.assertEqual(playlists.match_ref(dict(ref, isrc="", title="Ganz anders"), other)["kind"], "missing")
+
+    def test_artist_similarity(self):
+        self.assertEqual(playlists.artist_similarity("A & B", "A, B"), 1.0)
+        self.assertEqual(playlists.artist_similarity("Mara Lind feat. Oskar", "Oskar & Mara Lind"), 1.0)
+        self.assertGreater(playlists.artist_similarity("Mara Lind", "Mara Lynd"), 0.8)
+        self.assertLess(playlists.artist_similarity("Mara Lind", "Oskar Vey"), 0.5)
+        self.assertEqual(playlists.artist_similarity("", "X"), 0.0)
+
+
+class TestCorrectSession(unittest.TestCase):
+    def setUp(self):
+        import core
+        self.home = tempfile.mkdtemp()
+        self._env = {k: os.environ.get(k) for k in ("HOME", "USERPROFILE")}
+        os.environ["HOME"] = os.environ["USERPROFILE"] = self.home
+        self._cfg = (core.CONFIG, core.CONFIG_OLD)
+        core.CONFIG = os.path.join(self.home, ".tagstudio.json")
+        core.CONFIG_OLD = os.path.join(self.home, ".mp3tagcompare.json")
+
+    def tearDown(self):
+        import core
+        core.CONFIG, core.CONFIG_OLD = self._cfg
+        for k, v in self._env.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+        shutil.rmtree(self.home, ignore_errors=True)
+
+    def test_candidates_and_fix(self):
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from helpers import write_mp3, text
+        from id3tags import MP3File
+        from session import Session
+        lib = os.path.join(self.home, "Lib")
+        os.makedirs(lib)
+        p = os.path.join(lib, "Mara Lind - Nordlicht.mp3")
+        write_mp3(p, [text("TPE1", "Mara Lind"), text("TIT2", "Nordlicht (Radio Edit)")])
+        s = Session()
+        st = s._purch()
+        st.merge("beatport", "Beatport", [{"id": 7, "title": "Nordlicht", "mix": "Extended Mix", "artist": "Mara Lind"}])
+        st.match(playlists.LibIndex([playlists.lib_entry(p, "Mara Lind", "Nordlicht (Radio Edit)")]), strict=True)
+        key = next(iter(st.data["items"]))
+        c = s.purch_candidates(key)
+        self.assertEqual((c["kind"], c["mix_key"], len(c["cands"])), ("mix", "extended", 1))
+        self.assertEqual((c["cands"][0]["mix"], c["cands"][0]["artist_sim"]), ("radio", 100))
+        s.set_purch_strict(True)
+        self.assertTrue(s.purch_state()["strict"])
+        with open(os.path.join(lib, "schon da.mp3"), "wb") as fh:
+            fh.write(b"x")
+        r = s.purch_fix_file(key, p, "Nordlicht", "Extended Mix", "schon da")             # Ziel existiert → nichts
+        self.assertFalse(r["ok"])
+        self.assertTrue(os.path.isfile(p))
+        r = s.purch_fix_file(key, p, "Nordlicht", "Extended Mix", "Mara Lind - Nordlicht (Extended Mix)")
+        self.assertTrue(r["ok"] and r["sure"])
+        self.assertTrue(r["path"].endswith("(Extended Mix).mp3") and os.path.isfile(r["path"]))
+        f = MP3File(r["path"])
+        self.assertEqual((f.text("TIT2"), f.text("TIT3")), ("Nordlicht", "Extended Mix"))
+        it = s._purch().data["items"][key]
+        self.assertEqual((it["status"], it["file"], it.get("linked")), ("library", r["path"], True))

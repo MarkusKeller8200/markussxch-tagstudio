@@ -8,6 +8,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Käufe: Zuweisung „streng“ und Korrekturfenster (#338):** Mit „Streng“ muss auch der Mix passen (auch bei gleicher
+  ISRC). „Unklare prüfen …“ zeigt je Grund die Kandidaten mit Tags, lässt bei anderem Mix Titel, Untertitel und
+  Dateinamen anpassen und erneut prüfen, zeigt bei anderem Künstler die Ähnlichkeit; „Weiter ›“ zum nächsten Kauf.
+
 - **Käufe: ZIP-Downloads automatisch entpacken (#336):** Neue ZIPs im Download-Ordner werden beim Öffnen der Seite
   und beim Abholen entpackt (nur Audio, nie überschreiben, unsichere Pfade abgelehnt); das ZIP kommt nach `_entpackt`.
   Schalter „ZIP entpacken“, Standard ein.

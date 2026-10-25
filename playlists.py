@@ -280,39 +280,48 @@ def _mix_rank(e) -> int:
     return MIX_RANK.index(e["mix"]) if e["mix"] in MIX_RANK else len(MIX_RANK)
 
 
-def match_ref(ref: dict, index, any_mix: bool = False) -> dict:
+def match_ref(ref: dict, index, any_mix: bool = False, strict: bool = False) -> dict:
     """Eintrag ohne Datei mit der Bibliothek abgleichen → {"status": sure|unclear|missing, "path" (Vorschlag),
-    "candidates", "reason"}. Gleiche ISRC oder gleicher Künstler + Titel + Mix = sicher; anderer Mix (Radio Edit ≠
-    Extended Mix) = unklar, mit any_mix sicher (Extended Mix bevorzugt); nur ähnlicher Titel = unklar mit Vorschlag."""
+    "candidates", "reason", "kind"}. Gleiche ISRC oder gleicher Künstler + Titel + Mix = sicher; anderer Mix (Radio
+    Edit ≠ Extended Mix) = unklar, mit any_mix sicher (Extended Mix bevorzugt); nur ähnlicher Titel = unklar mit
+    Vorschlag. strict (#338): auch eine gleiche ISRC braucht den gleichen Mix, die Datei braucht einen passenden
+    Künstler (ohne Künstler nicht sicher), die Länge muss passen und any_mix gilt nicht.
+    kind (für das Korrekturfenster #338): isrc | exact | multi | dur | mix | similar | artist | missing."""
     ix = index if isinstance(index, LibIndex) else LibIndex(index)
+    base, mix = split_title(ref.get("title"), ref.get("mix", ""))
     isrc = norm(ref.get("isrc")).replace(" ", "")
     if isrc:
         hits = ix.isrc.get(isrc) or []
-        if len(hits) == 1:
-            return {"status": "sure", "path": hits[0]["path"], "candidates": [hits[0]["path"]], "reason": "gleiche ISRC"}
-    base, mix = split_title(ref.get("title"), ref.get("mix", ""))
+        if len(hits) == 1 and (not strict or hits[0]["mix"] == mix):
+            return {"status": "sure", "path": hits[0]["path"], "candidates": [hits[0]["path"]], "reason": "gleiche ISRC",
+                    "kind": "isrc"}
     ak = artist_keys(ref.get("artist"))
     if not base:
-        return {"status": "missing", "path": "", "candidates": [], "reason": "ohne Titel"}
+        return {"status": "missing", "path": "", "candidates": [], "reason": "ohne Titel", "kind": "missing"}
     dur = int(ref.get("dur") or 0)
     dur_ok = lambda e: not dur or not e["dur"] or abs(e["dur"] - dur) <= 20       # noqa: E731
-    cand = [e for e in ix.base.get(base) or [] if not ak or not e["akeys"] or ak & e["akeys"]]
+    if strict:
+        cand = [e for e in ix.base.get(base) or [] if ak and ak & e["akeys"]]
+    else:
+        cand = [e for e in ix.base.get(base) or [] if not ak or not e["akeys"] or ak & e["akeys"]]
     exact = [e for e in cand if e["mix"] == mix]
     if exact:
         fit = [e for e in exact if dur_ok(e)]
         if len(fit) == 1:
             return {"status": "sure", "path": fit[0]["path"], "candidates": [e["path"] for e in exact[:12]],
-                    "reason": "Titel, Künstler und Mix"}
+                    "reason": "Titel, Künstler und Mix", "kind": "exact"}
         pool = fit or exact
         return {"status": "unclear", "path": pool[0]["path"], "candidates": [e["path"] for e in pool[:12]],
-                "reason": "mehrere Treffer" if len(fit) > 1 else "Länge weicht ab"}
+                "reason": "mehrere Treffer" if len(fit) > 1 else "Länge weicht ab", "kind": "multi" if len(fit) > 1 else "dur"}
     if cand:
         cand.sort(key=_mix_rank)
         best = cand[0]
         why = f"anderer Mix: {best['mix'] or 'ohne Angabe'}"
-        if any_mix and (len(cand) == 1 or _mix_rank(cand[0]) < _mix_rank(cand[1])):
-            return {"status": "sure", "path": best["path"], "candidates": [e["path"] for e in cand[:12]], "reason": why}
-        return {"status": "unclear", "path": best["path"], "candidates": [e["path"] for e in cand[:12]], "reason": why}
+        if any_mix and not strict and (len(cand) == 1 or _mix_rank(cand[0]) < _mix_rank(cand[1])):
+            return {"status": "sure", "path": best["path"], "candidates": [e["path"] for e in cand[:12]], "reason": why,
+                    "kind": "mix"}
+        return {"status": "unclear", "path": best["path"], "candidates": [e["path"] for e in cand[:12]], "reason": why,
+                "kind": "mix"}
     # Rückfall: ähnlicher Titel bei passendem Künstler (Tippfehler, „&“/„and“, Zusätze)
     pool = {id(e): e for a in ak for e in ix.artist.get(a, [])}.values() if ak else []
     sims = sorted(((_ratio(base, e["base"]), e) for e in pool), key=lambda x: (-x[0], _mix_rank(x[1])))
@@ -320,13 +329,24 @@ def match_ref(ref: dict, index, any_mix: bool = False) -> dict:
     if sims:
         r, e = sims[0]
         return {"status": "unclear", "path": e["path"], "candidates": [x["path"] for _r, x in sims[:12]],
-                "reason": f"Titel ähnlich ({round(r * 100)} %)"}
-    if not ak:
-        return {"status": "missing", "path": "", "candidates": [], "reason": "nicht gefunden"}
-    other = [e for e in ix.base.get(base) or []]
+                "reason": f"Titel ähnlich ({round(r * 100)} %)", "kind": "similar"}
+    other = [e for e in ix.base.get(base) or [] if not (ak & e["akeys"])] if ak or strict else []
     if other:
-        return {"status": "unclear", "path": "", "candidates": [e["path"] for e in other[:12]], "reason": "anderer Künstler"}
-    return {"status": "missing", "path": "", "candidates": [], "reason": "nicht gefunden"}
+        return {"status": "unclear", "path": "", "candidates": [e["path"] for e in other[:12]], "reason": "anderer Künstler",
+                "kind": "artist"}
+    return {"status": "missing", "path": "", "candidates": [], "reason": "nicht gefunden", "kind": "missing"}
+
+
+def artist_similarity(a, b) -> float:
+    """#338: Ähnlichkeit zweier Künstlerangaben (0–1) – Schreibweisen der Mehrfachwerte („A & B“ = „A, B“),
+    feat./x/vs. und Akzente spielen keine Rolle; sonst Zeichenähnlichkeit der sortierten Namen."""
+    ka, kb = artist_keys(a), artist_keys(b)
+    if not ka or not kb:
+        return 0.0
+    if ka == kb:
+        return 1.0
+    common = len(ka & kb) / len(ka | kb)
+    return max(common, _ratio(" ".join(sorted(ka)), " ".join(sorted(kb))))
 
 
 def ref_keys(ref: dict) -> list:

@@ -500,5 +500,6 @@
 "input[data-rf]:checked",
 "input[data-rs]:checked",
 "rezept",
-"ZIP entpackt: {x} – {x} Datei(en), {x} übersprungen"
+"ZIP entpackt: {x} – {x} Datei(en), {x} übersprungen",
+"tr[data-i]"
 ]

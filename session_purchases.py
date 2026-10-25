@@ -52,6 +52,93 @@ class PurchasesMixin:
             return self._source_dir(store) or dest
         return dest
 
+    # ---- #338: Zuweisung „streng“ und Korrekturfenster
+    def _purch_strict(self) -> bool:
+        return bool(self.cfg.get("purch_strict", False))
+
+    def set_purch_strict(self, on) -> dict:
+        """Abgleich „streng“ ein/aus (Mix muss passen, auch bei gleicher ISRC) – danach neu abgleichen."""
+        self.cfg["purch_strict"] = bool(on)
+        core.save_config({"purch_strict": bool(on)})
+        return {"strict": bool(on)}
+
+    @staticmethod
+    def _file_info(path, ref_artist="") -> dict:
+        """Angaben einer Kandidaten-Datei für das Korrekturfenster (Tags, Länge, Mix wie beim Abgleich)."""
+        from id3tags import MP3File
+        d = {"path": path, "name": os.path.basename(path), "dir": os.path.dirname(path), "artist": "", "title": "",
+             "subtitle": "", "mix": "", "dur": 0, "bpm": "", "key": "", "isrc": "", "ok": os.path.isfile(path)}
+        if not d["ok"]:
+            return d
+        try:
+            f = MP3File(path)
+            d.update(artist=f.text("TPE1"), title=f.text("TIT2"), subtitle=f.text("TIT3"), bpm=f.text("TBPM"),
+                     key=keys.parse_key(f.text("TKEY")) or f.text("TKEY"), isrc=f.text("TSRC"),
+                     dur=int(round(getattr(f, "duration", 0) or 0)))
+        except Exception as ex:  # noqa: BLE001 – unlesbare Datei trotzdem zeigen
+            d["error"] = str(ex)
+        e = playlists.lib_entry(path, d["artist"], d["title"], subtitle=d["subtitle"])
+        d["mix"] = e["mix"]
+        d["artist_sim"] = round(playlists.artist_similarity(ref_artist, d["artist"]) * 100) if ref_artist else 0
+        return d
+
+    def purch_candidates(self, key) -> dict:
+        """#338: Korrekturfenster – Kauf, Art der Unklarheit und Kandidaten mit ihren Tags."""
+        with self.lock:
+            it = dict(self._purch().data["items"].get(str(key)) or {})
+        if not it:
+            raise ValueError("Kauf nicht gefunden.")
+        row = self._purch_row(str(key), it)
+        _base, mix = playlists.split_title(it.get("title"), it.get("mix", ""))
+        paths = list(it.get("cands") or []) or ([it["file"]] if it.get("file") else [])
+        return {"row": row, "kind": it.get("kind") or ("missing" if row["status"] == "missing" else ""),
+                "mix_key": mix, "strict": self._purch_strict(),
+                "cands": [self._file_info(p, it.get("artist", "")) for p in paths[:12]]}
+
+    def purch_fix_file(self, key, path, title, subtitle, filename="") -> dict:
+        """#338: Tags einer Kandidaten-Datei anpassen (Titel, Untertitel), auf Wunsch umbenennen (nie überschreiben),
+        mit Sicherung wie beim Speichern; danach diesen Kauf erneut gegen die Datei prüfen und bei Erfolg zuordnen.
+        → {ok, path, sure, reason, state}"""
+        from id3tags import MP3File
+        path = str(path or "")
+        if not os.path.isfile(path):
+            raise ValueError("Datei nicht gefunden.")
+        f = MP3File(path)
+        changed = False
+        for k, v in (("TIT2", title), ("TIT3", subtitle)):
+            v = " ".join(str(v or "").split())
+            if v != f.text(k):
+                f.set_text(k, v) if v else f.set(k, None)
+                changed = True
+        if changed:
+            r = core.save_files([f], self.cfg.get("backup_enabled", True) is not False, self.cfg.get("backup_dir") or None,
+                                store=self._backup_store(), stamp=self.cfg.get("stamp_edited", True))
+            if r.get("errors"):
+                return {"ok": False, "error": "; ".join(r["errors"]), "path": path}
+        new = path
+        filename = os.path.basename(str(filename or "").strip())
+        if filename and filename != os.path.basename(path):
+            if not filename.lower().endswith(".mp3"):
+                filename += ".mp3"
+            new = os.path.join(os.path.dirname(path), filename)
+            if os.path.exists(new):
+                return {"ok": False, "error": f"„{filename}“ gibt es schon – nicht umbenannt.", "path": path}
+            os.rename(path, new)
+        with self.lock:
+            it = self._purch().data["items"].get(str(key))
+            if it is None:
+                raise ValueError("Kauf nicht gefunden.")
+            ref = {k: it.get(k, "") for k in ("artist", "title", "mix", "isrc")}
+            ref["dur"] = it.get("dur") or 0
+            info = self._file_info(new)
+            e = playlists.lib_entry(new, info["artist"], info["title"], info["isrc"], info["dur"], info["subtitle"])
+            m = playlists.match_ref(ref, [e], strict=self._purch_strict())
+            if m["status"] == "sure":
+                dest, _why = self._purch_dest()
+                self._purch().link(str(key), new, dest)
+        return {"ok": True, "path": new, "sure": m["status"] == "sure", "reason": m.get("reason", ""),
+                "state": self.purch_state()}
+
     # ---- #336: ZIP-Downloads automatisch entpacken
     def _unzip_on(self) -> bool:
         return self.cfg.get("unzip_auto", True) is not False
@@ -101,7 +188,7 @@ class PurchasesMixin:
                 "bought": it.get("bought", ""), "seen": it.get("first_seen") or 0, "status": it.get("status", "missing"),
                 "file": it.get("file", ""), "reason": it.get("reason", ""), "preorder": bool(it.get("preorder")),
                 "cands": list(it.get("cands") or []), "linked": bool(it.get("linked")), "received": bool(it.get("received")),
-                "downloaded": it.get("downloaded") or 0}
+                "downloaded": it.get("downloaded") or 0, "kind": it.get("kind", "")}
 
     def purch_state(self) -> dict:
         with self.lock:
@@ -116,6 +203,7 @@ class PurchasesMixin:
         return {"rows": rows, "stores": stores, "sources": self.plugins.store_sources(), "count": count,
                 "last": dict(getattr(self, "_purch_last", {}) or {}),
                 "dest": dest, "dest_from": why, "dest_ok": bool(dest) and os.path.isdir(dest), "unzip": self._unzip_on(),
+                "strict": self._purch_strict(),
                 "roots": self._pl_lib_roots(), **self._lib_info(), "sessions": self._purch_sessions()}
 
     def _purch_index(self, cancel, progress):
@@ -189,7 +277,7 @@ class PurchasesMixin:
             progress(("text", "Mit der Bibliothek abgleichen …"))
             index, dest = self._purch_index(cancel, progress)
             with self.lock:
-                count = self._purch().match(index, dest)
+                count = self._purch().match(index, dest, self._purch_strict())
             return {"ok": True, "new": new, "count": count, "errors": errors, "library": len(index),
                     "diag": self._purch_diag(index, dest)}
         return self._run("purch", "Käufe aktualisieren", job)
@@ -199,7 +287,7 @@ class PurchasesMixin:
         def job(cancel, progress):
             index, dest = self._purch_index(cancel, progress)
             with self.lock:
-                count = self._purch().match(index, dest)
+                count = self._purch().match(index, dest, self._purch_strict())
             return {"ok": True, "new": 0, "count": count, "errors": [], "library": len(index),
                     "diag": self._purch_diag(index, dest)}
         return self._run("purch", "Käufe abgleichen", job)

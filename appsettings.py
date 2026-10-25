@@ -25,7 +25,7 @@ GROUPS = [
                                     "tagger_recursive", "tagger_stems_flat", "cmp_defaults", "tg_defaults", "feat_scale", "mood_list")),
     ("history", "Pfad-Verlauf, Standardordner, Muster und Tag-Fixer", ("hist_left", "hist_right", "hist_tagger",
                                                                        "default_left", "default_right", "default_tagger",
-                                                                       "tagger_patterns", "fixer", "fixer_exceptions", "smart_recipes", "smart_out", "smart_current", "unzip_auto", "recipes", "prep_workflows", "prep_current", "djset_items", "tagger_state")),
+                                                                       "tagger_patterns", "fixer", "fixer_exceptions", "smart_recipes", "smart_out", "smart_current", "unzip_auto", "purch_strict", "recipes", "prep_workflows", "prep_current", "djset_items", "tagger_state")),
     ("trivial", "Unwichtige Felder", ("trivial", "trivial_known")),
     ("saving", "Speichern und Sicherungen", ("backup_enabled", "backup_dir", "backup_store", "save_version", "save_v1", "stamp_edited", "stamp_added", "wave_in_file")),
     ("update", "Updates (Kanal)", ("update_channel", "update_channel_v2")),

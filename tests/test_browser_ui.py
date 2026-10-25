@@ -3656,6 +3656,58 @@ class UiTest(unittest.TestCase):
         pg.check("#purUnzip")
         self.assertTrue(self.until("call('purch_state').then(r => r.unzip === true) && window.__uz >= 2"))
 
+    def test_purchases_correct(self):
+        """#338: Käufe – „Streng“ gespeichert und neu abgeglichen; Korrekturfenster: anderer Mix anpassen und prüfen,
+        „Weiter ›“ zum nächsten unklaren Kauf, mehrere Treffer → Kandidat wählen und zuordnen."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("""(() => { const orig = call; window.__fix = null; window.__link = null; window.__strict = null; window.__match = 0;
+          const row = (k, title, status, kind, extra) => Object.assign({ k, store: "beatport", id: k, title, mix: "Extended Mix", artist: "Mara Lind",
+            dur: 300, key: "8A", bpm: 124, catalog: "POL1", url: "", bought: "2026-10-2" + k.slice(-1) + " 10:00:00", seen: 1761350000, status, kind,
+            file: "", reason: kind === "mix" ? "anderer Mix: radio" : "mehrere Treffer", cands: ["/a/x.mp3"], preorder: false }, extra || {});
+          const st = { rows: [row("beatport:2", "Nordlicht", "unclear", "mix"), row("beatport:1", "Ufer", "unclear", "multi")],
+            stores: { beatport: { name: "Beatport", refreshed: 1761350000, count: 2 } }, sources: [{ id: "beatport", name: "Beatport", ready: true, why: "" }],
+            count: { library: 0, inbox: 0, unclear: 2, missing: 0 }, dest: "/musik/00_New", dest_from: "Basisordner", dest_ok: true, roots: ["/a"],
+            last: { roots: ["/a"], files: 9 }, unzip: true, strict: false };
+          const cands = { "beatport:2": { row: st.rows[0], kind: "mix", mix_key: "extended", strict: false, cands: [
+              { path: "/a/Mara Lind - Nordlicht.mp3", name: "Mara Lind - Nordlicht.mp3", artist: "Mara Lind", title: "Nordlicht (Radio Edit)", subtitle: "", mix: "radio", dur: 200, bpm: "124", key: "8A", ok: true, artist_sim: 100 }] },
+            "beatport:1": { row: st.rows[1], kind: "multi", mix_key: "extended", strict: false, cands: [
+              { path: "/a/Ufer 1.mp3", name: "Ufer 1.mp3", artist: "Mara Lind", title: "Ufer (Extended Mix)", subtitle: "", mix: "extended", dur: 300, bpm: "124", key: "8A", ok: true, artist_sim: 100 },
+              { path: "/b/Ufer 2.mp3", name: "Ufer 2.mp3", artist: "Mara Lind & Oskar", title: "Ufer (Extended Mix)", subtitle: "", mix: "extended", dur: 301, bpm: "124", key: "8A", ok: true, artist_sim: 50 }] } };
+          window.call = (n, ...a) => {
+            if (n === "purch_state") return Promise.resolve(JSON.parse(JSON.stringify(st)));
+            if (n === "purch_unzip") return Promise.resolve({ zips: [], files: 0, skipped: 0, errors: [] });
+            if (n === "set_purch_strict") { window.__strict = a[0]; st.strict = a[0]; return Promise.resolve({ strict: a[0] }); }
+            if (n === "start_purch_match") { window.__match++; return Promise.resolve({ ok: true }); }
+            if (n === "task_status") return Promise.resolve({ done: true, running: false, result: { ok: true, count: st.count } });
+            if (n === "purch_candidates") return Promise.resolve(JSON.parse(JSON.stringify(cands[a[0]])));
+            if (n === "purch_fix_file") { window.__fix = a; st.rows[0].status = "library"; return Promise.resolve({ ok: true, path: "/a/Mara Lind - Nordlicht (Extended Mix).mp3", sure: true, reason: "", state: JSON.parse(JSON.stringify(st)) }); }
+            if (n === "purch_link") { window.__link = a; return Promise.resolve(JSON.parse(JSON.stringify(st))); }
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="purchases"]')
+        pg.wait_for_selector("#purTable tbody tr")
+        self.assertIn("(2)", pg.inner_text("#purFix"))
+        pg.check("#purStrict")
+        self.assertTrue(self.until("window.__strict === true && window.__match >= 1"))
+        pg.click("#purFix")
+        pg.wait_for_selector("#pcTitle")
+        self.assertIn("Anderer Mix", pg.inner_text("#mTitle"))
+        self.assertEqual(pg.input_value("#pcTitle"), "Nordlicht (Radio Edit)")
+        pg.click("#pcSuggest")
+        self.assertEqual((pg.input_value("#pcTitle"), pg.input_value("#pcSub"), pg.input_value("#pcName")),
+                         ("Nordlicht", "Extended Mix", "Mara Lind - Nordlicht (Extended Mix)"))
+        pg.click("#pcFix")
+        self.assertTrue(self.until("window.__fix && window.__fix[3] === 'Extended Mix'"))
+        self.assertIn("Passt jetzt", pg.inner_text("#pcMsg"))
+        pg.click("#mBtns button >> text=Weiter ›")
+        pg.wait_for_selector('#mBody input[name="pcPick"][value="1"]')
+        self.assertIn("Mehrere Treffer", pg.inner_text("#mTitle"))
+        self.assertIn("50 %", pg.inner_text("#mBody .pc-table"))                          # Ähnlichkeit der Künstler
+        pg.click('#mBody .pc-table tr[data-i="1"] td:nth-child(2)')
+        pg.click("#mBtns button >> text=Zuordnen")
+        self.assertTrue(self.until("window.__link && window.__link[1] === '/b/Ufer 2.mp3'"))
+        self.assertTrue(self.until("document.querySelector('#modal').hidden || /Korrigieren/.test(document.querySelector('#mTitle').textContent)"))
+
     def test_purchases_session_login(self):
         """#295: Download abgelehnt → Sitzungs-Anmeldung (wie die Webseite), dann gleich erneut herunterladen."""
         pg = self.pg

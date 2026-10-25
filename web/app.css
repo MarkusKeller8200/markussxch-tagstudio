@@ -357,6 +357,17 @@ body.col-dragging,body.col-dragging *{cursor:col-resize!important;user-select:no
 .fx-table td.old{color:var(--dim)}
 .fx-table td.new{color:var(--ok)}
 .fx-exc{margin:6px 0 2px}
+.pc-buy{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surf)}
+.pc-why{color:var(--warn)}
+.pc-ok{color:var(--ok)}
+.pc-strict{color:var(--acc)}
+.pc-table{max-height:36vh;min-height:0}
+.pc-sim{font-size:11px;padding:0 6px;border-radius:9px;border:1px solid var(--line);color:var(--warn);margin-left:4px}
+.pc-sim.hi{color:var(--ok)}
+.pc-edit{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 12px;align-items:center;margin-top:10px}
+.pc-edit h4{grid-column:1/-1;margin:0}
+.pc-edit>label{color:var(--dim)}
+.pc-edit-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .fx-mode{width:max-content;margin-bottom:6px}
 .fx-rcps{display:flex;flex-direction:column;gap:2px}
 .fx-rcp{align-items:flex-start;border-radius:8px;padding:6px 8px}

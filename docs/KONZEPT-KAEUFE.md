@@ -100,6 +100,19 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
   (`/artist/{id}/related`), „My Beatport“-Feed über `/my/beatport/tracks/` (Antwort ohne festes Schema: Einträge
   direkt oder in `track`).
 
+## 3c. Zuweisung „streng“ und Korrekturfenster (#338, 4.12.0)
+
+- `playlists.match_ref(…, strict=True)`: gleiche ISRC nur mit gleichem Mix sicher, Kandidaten brauchen einen
+  gemeinsamen Künstler (Dateien ohne Künstler nicht sicher), `any_mix` gilt nicht. „Original Mix“ zählt weiter wie keine
+  Angabe. Ergebnis mit `kind` (isrc, exact, multi, dur, mix, similar, artist, missing) → im Kauf gespeichert.
+- cfg `purch_strict` (Standard aus), Schalter „Streng“ in der Leiste (danach neu abgleichen).
+- Korrekturfenster `web/purcorrect.js` („Unklare prüfen … (n)“, Rechtsklick „Korrigieren …“): `purch_candidates`
+  liest die Tags der Kandidaten (Künstler, Titel, Untertitel, Mix wie beim Abgleich, Länge, BPM, Tonart, Ähnlichkeit
+  der Künstler `playlists.artist_similarity`: Mehrfachwerte-Schreibweisen gleich, sonst Zeichenähnlichkeit). Je nach
+  `kind`: auswählen + „Zuordnen“ (`purch_link`), bei mix/similar/dur Dateiname/Titel/Untertitel bearbeiten
+  (`purch_fix_file`: speichern mit Sicherung wie „Speichern“, Umbenennen nie überschreibend, danach Prüfung gegen genau
+  diese Datei, bei Erfolg zuordnen), „Datei wählen …“, „Weiter ›“ zum nächsten unklaren/fehlenden Kauf (Tabellen-Reihenfolge).
+
 ## 3b. ZIP-Downloads entpacken (#336, 4.12.0)
 
 - `unzip.py`: `pending` (ZIPs direkt im Ordner, mindestens 5 s unverändert – `.crdownload`/`.part` sind keine ZIPs),

@@ -54,6 +54,10 @@ function purRenderBar() {
   $("#purStatus").innerHTML = [["", `Alle (${fmtN(all)})`], ...Object.entries(PUR_STATUS).map(([k, l]) => [k, `${l} (${fmtN(st.count[k] || 0)})`])]
     .map(([k, l]) => `<button data-purst="${k}" class="${PUR.status === k ? "on" : ""}">${esc(l)}</button>`).join("");
   $("#purUnzip").checked = st.unzip !== false;
+  $("#purStrict").checked = !!st.strict;                                            // #338
+  const open = st.rows.filter((r) => (r.status === "unclear" || r.status === "missing") && !r.preorder).length;
+  $("#purFix").textContent = open ? `Unklare prüfen … (${fmtN(open)})` : "Unklare prüfen …";
+  $("#purFix").disabled = !open;
   $("#purDest").innerHTML = st.dest ? `Ziel: <span translate="no" title="${esc(st.dest_from)}">${esc(st.dest)}</span>${st.dest_ok ? "" : " (wird angelegt)"}` : "Kein Eingangsordner";
   const sel = PUR.sel.size, miss = st.rows.filter((r) => r.status === "missing" && !r.preorder).length;
   const b = $("#purDl");
@@ -218,6 +222,7 @@ function purRowMenu(e, k) {
   if (r.file) items.push({ label: "Dateiordner öffnen", icon: ICON.folder, run: () => call("reveal", r.file) });
   const ws = typeof webSearchItem === "function" ? webSearchItem(e, r.artist, r.title + (r.mix ? ` (${r.mix})` : "")) : null;
   if (ws) items.push(ws);
+  if ((r.status === "unclear" || r.status === "missing") && !r.preorder) items.push({ label: "Korrigieren …", run: () => purCorrect(k) });   // #338
   if (r.status !== "library" || r.linked) items.push({ label: "Zuordnen …", run: () => purLinkDialog(r) });
   if (r.linked) items.push({ label: "Zuordnung aufheben", run: async () => purApply(await call("purch_link", r.k, "")) });
   if (r.status !== "library" && !r.preorder) items.push({ label: "Herunterladen …", run: () => { PUR.sel = new Set([k]); purRenderBar(); purDownload(); } });
@@ -230,6 +235,12 @@ function purInit() {
   $("#purFull").addEventListener("click", () => purRefresh(false, true));
   $("#purDl").addEventListener("click", purDownload);
   $("#purDestBtn").addEventListener("click", purPickDest);
+  $("#purFix").addEventListener("click", () => purCorrect());                   // #338
+  $("#purStrict").addEventListener("change", async (e) => {
+    await call("set_purch_strict", e.target.checked);
+    toast(e.target.checked ? "Abgleich streng: auch der Mix muss passen." : "Abgleich wie bisher.");
+    purRefresh(true);
+  });
   $("#purUnzip").addEventListener("change", async (e) => {                          // #336
     await call("set_unzip_auto", e.target.checked);
     toast(e.target.checked ? "Neue ZIP-Downloads werden entpackt." : "ZIP-Downloads werden nicht mehr entpackt.");

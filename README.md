@@ -330,7 +330,11 @@ das Herunterladen offiziell nicht an. Lehnt Beatport den gespeicherten Zugang da
 **„Anmelden für den Download“**: Anmeldung wie auf der Webseite, gültig nur solange TagStudio läuft (Passwort und
 Token werden nicht gespeichert), danach lädt TagStudio die Titel gleich erneut; „● Beatport: Sitzung …“ zeigt die
 Anmeldung, „Abmelden“ beendet sie. Klappt es auch so nicht, zeigt TagStudio, wie du die Titel auf der Download-Seite
-von Beatport selbst lädst und mit „Abholen“ übernimmst. **„ZIP entpacken“** (Standard ein): neue ZIP-Dateien im
+von Beatport selbst lädst und mit „Abholen“ übernimmst. **„Streng“** gleicht so ab, dass Künstler, Titel und Mix passen müssen – auch bei gleicher
+ISRC. **„Unklare prüfen …“** (bzw. Rechtsklick › „Korrigieren …“) öffnet ein Korrekturfenster je Grund: bei mehreren
+Treffern die Kandidaten mit ihren Tags zum Auswählen, bei anderem Mix Titel, Untertitel und Dateiname der Datei zum
+Anpassen („Wie der Kauf“, „Ändern und prüfen“ – mit Sicherung), bei anderem Künstler die Ähnlichkeit in Prozent;
+„Weiter ›“ springt zum nächsten unklaren Kauf. **„ZIP entpacken“** (Standard ein): neue ZIP-Dateien im
 Download-Ordner werden beim Öffnen der Seite und beim Abholen entpackt – nur Audiodateien, nichts wird überschrieben;
 das ZIP kommt danach in den Unterordner `_entpackt` (nie gelöscht). Unfertige Downloads und ZIPs mit unsicheren
 Pfaden bleiben unberührt.
