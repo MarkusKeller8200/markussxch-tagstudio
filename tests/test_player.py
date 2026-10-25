@@ -255,6 +255,17 @@ class TestBus(unittest.TestCase):
         self.assertEqual(s.bus_poll("x")["seq"], 0)
 
 
+class TestMediaOrigin(unittest.TestCase):
+    """4.9.1 (#305/#307): Audio-Server erlaubt das Lesen nur der eigenen Oberfläche, Wert aus festen Teilen."""
+
+    def test_allowed_origin(self):
+        import media
+        self.assertEqual(media._allowed_origin("http://127.0.0.1:8080"), "http://127.0.0.1:8080")
+        self.assertEqual(media._allowed_origin("null"), "null")
+        self.assertEqual(media._allowed_origin("https://evil.example"), "")
+        self.assertEqual(media._allowed_origin("http://127.0.0.1:80\r\nX: y"), "")
+
+
 if __name__ == "__main__":
     unittest.main()
 

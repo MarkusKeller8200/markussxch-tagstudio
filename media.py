@@ -17,7 +17,20 @@ from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 # Eigene Oberfläche: Browser-Modus (http://127.0.0.1:…) oder Desktop-Fenster mit lokaler Datei (Origin „null“)
-_LOOPBACK_ORIGIN = re.compile(r"null|http://(127\.0\.0\.1|localhost|\[::1\])(:\d+)?")
+_LOOPBACK_ORIGIN = re.compile(r"null|http://(127\.0\.0\.1|localhost|\[::1\])(?::(\d{1,5}))?")
+_LOOPBACK_HOSTS = {"127.0.0.1": "127.0.0.1", "localhost": "localhost", "[::1]": "[::1]"}
+
+
+def _allowed_origin(origin: str) -> str:
+    """Origin der eigenen Oberfläche → Wert für Access-Control-Allow-Origin, neu zusammengesetzt aus festen Teilen
+    (nie die Eingabe selbst – keine Steuerzeichen in der Antwort); sonst leer."""
+    m = _LOOPBACK_ORIGIN.fullmatch(origin)
+    if not m:
+        return ""
+    if origin == "null":
+        return "null"
+    host = _LOOPBACK_HOSTS[m.group(1)]
+    return f"http://{host}:{int(m.group(2))}" if m.group(2) else f"http://{host}"
 
 AUDIO_TYPES = {".mp3": "audio/mpeg", ".flac": "audio/flac", ".wav": "audio/wav", ".m4a": "audio/mp4",
                ".aac": "audio/aac", ".ogg": "audio/ogg", ".opus": "audio/ogg", ".aif": "audio/aiff", ".aiff": "audio/aiff"}
@@ -115,9 +128,9 @@ class MediaServer:
         h.send_header("Accept-Ranges", "bytes")
         h.send_header("Content-Length", str(length))
         h.send_header("Cache-Control", "no-store")
-        origin = h.headers.get("Origin") or ""
-        if _LOOPBACK_ORIGIN.fullmatch(origin):            # nur die eigene Oberfläche darf die Daten lesen (Wellenform)
-            h.send_header("Access-Control-Allow-Origin", origin)
+        allow = _allowed_origin(h.headers.get("Origin") or "")
+        if allow:                                          # nur die eigene Oberfläche darf die Daten lesen (Wellenform)
+            h.send_header("Access-Control-Allow-Origin", allow)
             h.send_header("Vary", "Origin")
         if status == 206:
             h.send_header("Content-Range", f"bytes {start}-{end}/{size}")
