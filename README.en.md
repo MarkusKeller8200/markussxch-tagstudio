@@ -522,7 +522,12 @@ the purchases comparison, playlist comparison, Discover (“already owned”) an
 names (click → settings), unreachable ones are skipped and named. From two active libraries on the tagger shows the
 **“Library ▾”** selection with **“All active”** (loads them all together); Prepare takes over into the main library
 unless the workflow has its own library folder. The **Snapshots** switch per library turns the daily snapshot on or off
-(existing snapshots stay). “Change …” only changes the setting – files stay where they
+(existing snapshots stay). Every folder selection (tagger, compare, workflow, purchases, default folders) opens a
+**drop-down menu** with libraries, roles, recently used folders, “Other folder …” and “New folder …”. **Subfolder per
+source:** when a store plugin (e.g. Beatport) is switched on, `90_Download\Beatport` and `00_New\Beatport` are created,
+the workflow gets the source “Beatport” (fetch: download subfolder → inbox subfolder) and purchase downloads go to
+`90_Download\Beatport`; manual downloads belong in `90_Download\_Manuell`. The workflow fields inbox, work and library
+may stay empty – they then follow the roles (inbox, work, main library). “Change …” only changes the setting – files stay where they
 are; “Create structure …” creates missing folders. On the first start after the update the previous settings are taken
 over; if the library was entered differently in different places, TagStudio shows the overview **“We found these
 folders”** to decide (nothing is silently dropped). Concept (German): [docs/KONZEPT-ORDNER.md](docs/KONZEPT-ORDNER.md).

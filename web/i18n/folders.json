@@ -98,5 +98,17 @@
 "Snapshots eingeschaltet.": ["Snapshots switched on.", "Snapshots iigschaltet."],
 "Keine täglichen Snapshots mehr – vorhandene bleiben unter Snapshots.": ["No more daily snapshots – existing ones stay under Snapshots.", "Kei tägliche Snapshots meh – vorhandeni bliibed under Snapshots."],
 "Ordner fehlt – Snapshots starten, sobald er da ist.": ["Folder missing – snapshots start as soon as it exists.", "Ordner fehlt – Snapshots fanged aa, sobald er da isch."],
-"Zuerst unter Einstellungen › Speicherort und Ordner eine Bibliothek festlegen": ["First set a library under Settings › Storage location and folders", "Zerscht under Iistellige › Spiicherort und Ordner e Bibliothek feschtlege"]
+"Zuerst unter Einstellungen › Speicherort und Ordner eine Bibliothek festlegen": ["First set a library under Settings › Storage location and folders", "Zerscht under Iistellige › Spiicherort und Ordner e Bibliothek feschtlege"],
+"{x} – folgt Einstellungen › Ordner": ["{x} – follows Settings › Folders", "{x} – folgt Iistellige › Ordner"],
+"Bibliothek {x}: {x}": ["Library {x}: {x}", "Bibliothek {x}: {x}"],
+"Zuletzt: {x}": ["Recent: {x}", "Zletscht: {x}"],
+"Diesen Ordner als {q} speichern": ["Save this folder as {q}", "De Ordner als {q} spiichere"],
+"{q} ist jetzt {x}.": ["{q} is now {x}.", "{q} isch jetzt {x}."],
+"Anlegen in": ["Create in", "Aalege i"],
+"leer = {x} aus Einstellungen › Ordner: {x}": ["empty = {x} from Settings › Folders: {x}", "leer = {x} us Iistellige › Ordner: {x}"],
+"Ordner für {q} angelegt: {x}": ["Folders for {q} created: {x}", "Ordner für {q} aagleit: {x}"],
+"Quelle {q} im Workflow eingetragen.": ["Source {q} added to the workflow.", "Quelle {q} im Workflow iitreit."],
+"Elternordner nicht gefunden.": ["Parent folder not found.", "Elterordner nöd gfunde."],
+"Downloads (Unterordner je Store)": ["Downloads (subfolder per store)", "Downloads (Underordner pro Store)"],
+"Manuell": ["Manual", "Manuell"]
 }

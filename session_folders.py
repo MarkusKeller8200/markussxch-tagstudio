@@ -209,6 +209,93 @@ class FolderRolesMixin:
                                      (os.path.basename(os.path.normpath(path)) or "Bibliothek"), "custom", path)
         self._folders_save(folders.lib_update(m, lib["id"], main=True))
 
+    # ------------------------------------------------------------------ Ordner-Klappmenü (#314)
+    def folders_menu(self) -> dict:
+        """Einträge des Klappmenüs bei jeder Ordnerauswahl: Rollen, Bibliotheken, zuletzt benutzt."""
+        m = self._folders()
+        roles = [{"id": r["id"], "label": r["label"], "path": folders.resolve_role(m, r["id"])} for r in folders.ROLES
+                 if r["id"] not in ("backup", "snapshots")]
+        libs = [{"id": x["id"], "label": x["name"], "path": folders.resolve_lib(m, x), "main": x["main"]}
+                for x in m["libraries"]]
+        recent = [p for p in self.cfg.get("folder_recent") or [] if isinstance(p, str) and os.path.isdir(p)]
+        return {"roles": [r for r in roles if r["path"]], "libraries": [x for x in libs if x["path"]],
+                "recent": recent[:8], "base": m["base"]}
+
+    def folders_recent_add(self, path) -> bool:
+        p = folders.clean_path(path)
+        if not p or not os.path.isdir(p):
+            return False
+        self.cfg["folder_recent"] = core.history(self.cfg, "folder_recent", p, 12)
+        core.save_config({"folder_recent": self.cfg["folder_recent"]})
+        return True
+
+    def folders_mkdir(self, parent, name) -> dict:
+        """„Neuer Ordner …“: Ordner name in parent anlegen (vorhandener wird benutzt). → {"path"}"""
+        par = folders.clean_path(parent)
+        sub = folders.clean_sub(name)
+        if not par or not os.path.isdir(par):
+            raise ValueError("Elternordner nicht gefunden.")
+        if not sub:
+            raise ValueError("Bitte einen Namen eingeben.")
+        p = os.path.normpath(os.path.join(par, *sub.split("/")))
+        os.makedirs(p, exist_ok=True)
+        self.folders_recent_add(p)
+        return {"path": p}
+
+    # ------------------------------------------------------------------ Unterordner je Quelle (O5, #314)
+    MANUAL = "_Manuell"
+
+    def _folders_source_setup(self, name: str, label: str = "", pid: str = "") -> dict:
+        """Downloads\\<Quelle> und Eingang\\<Quelle> anlegen (nur wenn nicht vorhanden) und im aktuellen Workflow die
+        Quelle eintragen (Download-Unterordner → Eingangs-Unterordner). Nichts wird gelöscht oder verschoben."""
+        name = folders.clean_sub(name).replace("/", "")
+        if not name:
+            return {"created": [], "source": False}
+        m = self._folders()
+        dl, ib = folders.resolve_role(m, "downloads"), folders.resolve_role(m, "inbox")
+        made = []
+        for root in (dl, ib):
+            p = os.path.join(root, name) if root else ""
+            if p and not os.path.isdir(p) and folders.reachable(p):
+                try:
+                    os.makedirs(p, exist_ok=True)
+                    made.append(p)
+                except OSError:
+                    pass
+        added = False
+        if dl:
+            folder = os.path.join(dl, name)
+            self._prep_get()                                   # legt bei Bedarf den Standard-Workflow an
+            ws = self._prep_workflows()
+            if ws:
+                cur = next((w for w in ws if w["id"] == self.cfg.get("prep_current")), ws[0])
+                if not any(folders.same_dir(q.get("folder", ""), folder) for q in cur.get("sources") or []):
+                    cur.setdefault("sources", []).append({"name": label or name.lstrip("_"), "folder": folder, "pattern": "",
+                                                          "sub": name, "zip": True})
+                    self._prep_save(ws)
+                    added = True
+        if dl and pid:                         # Download-Aktion des Plugins: Ziel bisher Downloads selbst → Unterordner
+            try:
+                has_dl = any(a.get("id") == "download" for a in self.plugins.get(pid).actions())
+            except Exception:  # noqa: BLE001
+                has_dl = False
+            po = self.cfg.setdefault("plugin_options", {}).setdefault(pid, {}).setdefault("download", {}) if has_dl else None
+            if isinstance(po, dict) and (not po.get("dest") or folders.same_dir(po["dest"], dl)):
+                po["dest"] = os.path.join(dl, name)
+                core.save_config({"plugin_options": self.cfg["plugin_options"]})
+        return {"created": made, "source": added}
+
+    def _source_dir(self, store: str) -> str:
+        """Download-Ordner einer Quelle (Käufe/Store-Downloads): Downloads\\<Quelle> – "" ohne Rolle „Downloads“."""
+        dl = folders.resolve_role(self._folders(), "downloads")
+        if not dl:
+            return ""
+        try:
+            src = self.plugins.get(store).source
+        except Exception:  # noqa: BLE001 – unbekanntes Plugin
+            src = ""
+        return os.path.join(dl, src or self.MANUAL)
+
     # ------------------------------------------------------------------ Bibliotheken zum Einlesen (#311)
     def _lib_roots(self) -> dict:
         """Aktive, erreichbare Bibliotheken – jeder Ordner nur einmal. → {"roots": [{id, name, path}], "skipped": [...]}"""

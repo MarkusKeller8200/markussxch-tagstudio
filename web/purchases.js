@@ -192,7 +192,7 @@ async function purLinkDialog(r) {
 }
 
 async function purPickDest() {
-  const p = await call("pick_path", "", true, PUR.st ? PUR.st.dest : "");
+  const p = await pickFolder($("#purDestBtn"), PUR.st ? PUR.st.dest : "", { role: "downloads" });   // #314
   if (p) purApply(await call("purch_set_dest", p));
   else if (!S.settings.native) toast("Im Browser-Modus ist kein Ordnerdialog verfügbar.");
 }

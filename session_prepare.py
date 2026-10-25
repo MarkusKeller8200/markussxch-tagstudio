@@ -37,13 +37,36 @@ class PrepareMixin:
             ws = [w]
             self._prep_save(ws)
         wid = wid or self.cfg.get("prep_current")
-        w = next((w for w in ws if w["id"] == wid), ws[0])
-        if not w.get("library") and isinstance(self.cfg.get("folders"), dict):       # #311: Übernehmen → Hauptbibliothek
-            import folders
-            w["library"] = folders.main_library(self.cfg)
+        return self._prep_resolve(json.loads(json.dumps(next((w for w in ws if w["id"] == wid), ws[0]))))
+
+    # #311/#314: leere Felder bzw. Verweise „@inbox“, „@work“, „@library“ folgen den Ordner-Rollen
+    PREP_REFS = {"inbox": "inbox", "work": "work", "library": "library"}
+
+    def _prep_ref_path(self, field, raw) -> str:
+        import folders
+        if not isinstance(self.cfg.get("folders"), dict):
+            return raw if not raw.startswith("@") else ""
+        if raw and not raw.startswith("@"):
+            return raw
+        if raw and raw[1:] not in self.PREP_REFS.values():
+            return ""
+        role = self.PREP_REFS[field]
+        return folders.main_library(self.cfg) if role == "library" else folders.role(self.cfg, role)
+
+    def _prep_resolve(self, w) -> dict:
+        """Laufzeit-Pfade des Workflows; die gespeicherten Werte stehen in w["_raw"] (für den Editor)."""
+        raw = {k: str(w.get(k) or "") for k in self.PREP_REFS}
+        for k, v in raw.items():
+            w[k] = self._prep_ref_path(k, v)
+        w["_raw"] = raw
         return w
 
     def prep_workflow_save(self, w) -> dict:
+        raw = w.get("_raw") if isinstance(w, dict) and isinstance(w.get("_raw"), dict) else {}
+        for k in self.PREP_REFS:                       # unverändert übernommene Rollen-Pfade bleiben Verweise
+            r = str(raw.get(k) or "")
+            if (not r or r.startswith("@")) and w.get(k) and w.get(k) == self._prep_ref_path(k, r):
+                w[k] = r
         w = prepare.clean_workflow(w)
         ws = [x for x in self._prep_workflows() if x["id"] != w["id"]]
         ws.append(w)
@@ -70,6 +93,7 @@ class PrepareMixin:
         """Workflow als JSON zum Weitergeben – ohne persönliche Ordner und Programmpfade."""
         w = json.loads(json.dumps(self._prep_get(wid)))
         w["inbox"] = w["work"] = w["library"] = ""
+        w.pop("_raw", None)
         for q in w.get("sources") or []:
             q["folder"] = ""
         for s in w["steps"]:
@@ -128,7 +152,8 @@ class PrepareMixin:
                          "source": t.get("source", ""), "origin_file": t.get("origin_file", ""),
                          "missing_inbox": not os.path.isfile(os.path.join(w["inbox"], n)) if w["inbox"] else True})
         waiting = {q["id"]: len(prepare.source_candidates(q, st)) for q in w.get("sources") or []}
-        return {"workflow": w, "sources_new": waiting, "workflows": [{"id": x["id"], "name": x["name"]} for x in self._prep_workflows()],
+        refs = {k: {"raw": w["_raw"][k], "role": self._prep_ref_path(k, "")} for k in self.PREP_REFS}
+        return {"workflow": w, "refs": refs, "sources_new": waiting, "workflows": [{"id": x["id"], "name": x["name"]} for x in self._prep_workflows()],
                 "rows": rows, "counts": counts, "types": prepare.STEP_TYPES, "states": prepare.STATES,
                 "plugin_modes": prepare.PLUGIN_MODES,
                 "work": prepare.work_dir(w), "origins": {k: v.get("name") for k, v in self.origin_catalog().items()}}

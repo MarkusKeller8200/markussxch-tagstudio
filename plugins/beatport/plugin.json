@@ -1,9 +1,10 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "1.8",
+  "version": "1.9",
   "min_app": "4.9.1",
   "category": "online",
+  "source": "Beatport",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
   "description": "Holt BPM, Tonart, Genre/Subgenre, Label, Katalognummer, Datum, ISRC, Remixer und Cover von Beatport – mit Vorschau, nichts wird ohne Bestätigung geändert. Dazu Beatport-Playlists und die Seite „Käufe“. Nutzt die offizielle Beatport-API v4 mit deinem eigenen API-Zugang (Client-ID und Secret); ohne ihn geht es über den inoffiziellen Ausweichweg mit deinem Beatport-Login. Nur für Metadaten deiner eigenen Titel verwenden.",

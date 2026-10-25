@@ -233,13 +233,13 @@ class FoldersMixin:
         self.set_default_dir("tagger", p["library"])
         self.set_backup(True, tags, None)
         w = self._prep_get()
-        w.update(inbox=p["new"], work=p["work"], library=p["library"])
-        if not any(os.path.normcase(q.get("folder", "")) == os.path.normcase(p["download"]) for q in w.get("sources") or []):
-            w.setdefault("sources", []).append({"name": "Downloads", "folder": p["download"], "pattern": "", "sub": "", "zip": True})
+        w.update(inbox="", work="", library="")                  # #314: Workflow folgt den Rollen (Eingang, Arbeit, Haupt)
+        w.pop("_raw", None)
         self.prep_workflow_save(w)
-        po = self.cfg.setdefault("plugin_options", {}).setdefault("beatport", {}).setdefault("download", {})
-        po["dest"] = p["download"]
-        core.save_config({"plugin_options": self.cfg["plugin_options"]})
+        self._folders_source_setup(self.MANUAL, "Manuell")      # O5: manuelle Downloads 90_Download\_Manuell → 00_New\_Manuell
+        for pl in list(self.plugins.plugins.values()):                     # eingeschaltete Store-Plugins
+            if pl.enabled and pl.source:
+                self._folders_source_setup(pl.source, pid=pl.id)
         return {"paths": p, "created": created, "overview": self.folders_overview()}
 
 

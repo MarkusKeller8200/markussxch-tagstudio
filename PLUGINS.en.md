@@ -77,6 +77,10 @@ Plugins/
   in foreground actions. Also possible per action (`"background": true` in the ACTIONS entry).
 - `fields`: fields the plugin writes (patterns with `*`). For these fields TagStudio shows the origin
   “TagStudio · plugin name” (tagger, comparison), so your own fields stay recognisable.
+- `source` (optional, from 4.10): name of the source or store, e.g. `"Beatport"`. When the plugin is **switched on**,
+  TagStudio creates `<Downloads>\<source>` and `<Inbox>\<source>` (only if missing), adds the source to the current
+  workflow (download subfolder → inbox subfolder) and points the target of the plugin action `download` to the
+  download subfolder. Purchase downloads of the store also go there. Switching off deletes nothing.
 - `i18n`: translations of the plugin's texts per language (`en`, `gsw-u-sd-chzh`): German text → translation. The
   interface uses them when that language is selected; texts without a translation stay German.
 

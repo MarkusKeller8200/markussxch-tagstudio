@@ -92,10 +92,17 @@ class TestSetup(Base):
         self.assertEqual(s.snap_store.root, os.path.join(r["paths"]["backup"], "Snapshots"))
         w = s._prep_get()
         self.assertEqual((w["inbox"], w["work"], w["library"]), (r["paths"]["new"], r["paths"]["work"], r["paths"]["library"]))
-        self.assertEqual(w["sources"][0]["folder"], r["paths"]["download"])
-        self.assertEqual(s.cfg["plugin_options"]["beatport"]["download"]["dest"], r["paths"]["download"])
+        self.assertEqual(w["_raw"], {"inbox": "", "work": "", "library": ""})        # #314: folgt den Rollen
+        n = len(w["sources"])
+        srcs = {q["name"]: q for q in w["sources"]}
+        self.assertEqual(srcs["Manuell"]["folder"], os.path.join(r["paths"]["download"], "_Manuell"))   # O5
+        self.assertEqual(srcs["Manuell"]["sub"], "_Manuell")
+        self.assertTrue(os.path.isdir(os.path.join(r["paths"]["new"], "_Manuell")))
+        if "Beatport" in srcs:                                          # eingeschaltetes Store-Plugin
+            self.assertEqual(s.cfg["plugin_options"]["beatport"]["download"]["dest"],
+                             os.path.join(r["paths"]["download"], "Beatport"))
         s.setup_structure(base)                                         # nochmals: keine doppelte Quelle
-        self.assertEqual(len(s._prep_get()["sources"]), 1)
+        self.assertEqual(len(s._prep_get()["sources"]), n)
         ov = s.folders_overview()
         self.assertTrue(all(x["exists"] for x in ov["rows"] if x["path"]))
         with self.assertRaises(ValueError):

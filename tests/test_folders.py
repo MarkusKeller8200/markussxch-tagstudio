@@ -43,6 +43,10 @@ class TestModel(Base):
             folders.set_role(m, "nix", "base")
         m = folders.set_base(m, "")                                          # ohne Basisordner: Rolle leer
         self.assertEqual(folders.resolve_role(m, "inbox"), "")
+        m2 = folders.migrate({}, [], None, [])                                # frische Installation ohne Basisordner …
+        m2 = folders.set_base(m2, base)                                       # … dann Basisordner: Standard-Struktur
+        self.assertEqual(folders.resolve_role(m2, "inbox"), J(base, "00_New"))
+        self.assertEqual(folders.main_library({"folders": m2}), J(base, "01_Library"))
 
     def test_same_dir_and_inside(self):
         self.assertTrue(folders.same_dir(self.A, self.A + os.sep))
@@ -57,7 +61,7 @@ class TestModel(Base):
         self.assertTrue(folders.same_dir(link, self.A))                     # anderer Weg zum selben Ordner
 
     def test_libraries_add_update_remove(self):
-        m = folders.set_base(folders.empty(), self.dir)
+        m = dict(folders.empty(), base=self.dir)
         m, lib = folders.lib_add(m, "Haupt", "custom", self.A)
         self.assertTrue(lib["main"])
         m, lib2 = folders.lib_add(m, "Extern", "custom", self.B, active=False)
@@ -76,7 +80,7 @@ class TestModel(Base):
         self.assertEqual([x["path"] for x in folders.libraries(cfg, active=True)], [os.path.normpath(self.A)])
 
     def test_status_hints(self):
-        m = folders.set_base(folders.empty(), self.dir)
+        m = dict(folders.empty(), base=self.dir)
         m, _ = folders.lib_add(m, "Haupt", "custom", self.A)
         m, _ = folders.lib_add(m, "Unter", "custom", J(self.A, "sub"))
         m = folders.set_role(m, "inbox", "custom", J(self.A, "neu"))
@@ -252,7 +256,7 @@ class TestLibraries(Base):
         return s
 
     def test_scan_roots(self):
-        m = folders.set_base(folders.empty(), self.dir)
+        m = dict(folders.empty(), base=self.dir)
         m, a = folders.lib_add(m, "A", "custom", self.A)
         m, sub = folders.lib_add(m, "A-Unter", "custom", J(self.A, "sub"))
         os.makedirs(J(self.A, "sub"))
@@ -315,6 +319,73 @@ class TestLibraries(Base):
         r = s.folders_lib_update(lid, {"snapshots": False})
         self.assertFalse(s.snap_store.libraries()[0]["auto"])                  # nicht gelöscht, nur nicht mehr täglich
         self.assertIn("vorhandene bleiben", r["snap_note"])
+
+
+class TestSources(Base):
+    """#314: Unterordner je Quelle, Store-Downloads, Workflow folgt den Rollen."""
+
+    def session(self, cfg):
+        from session import Session
+        s = Session()
+        s.cfg.clear()
+        s.cfg.update(cfg)
+        return s
+
+    def test_plugin_enable_creates_source_folders(self):
+        base = J(self.dir, "TS")
+        s = self.session({"base_dir": base})
+        s.folders_get()
+        self.assertEqual(s.plugins.get("beatport").source, "Beatport")
+        s.plugin_enable("beatport", False)
+        r = s.plugin_enable("beatport", True)
+        self.assertTrue(os.path.isdir(J(base, "90_Download", "Beatport")))
+        self.assertTrue(os.path.isdir(J(base, "00_New", "Beatport")))
+        self.assertIn("folders_note", r)
+        w = s._prep_get()
+        q = next(q for q in w["sources"] if q["name"] == "Beatport")
+        self.assertEqual((q["folder"], q["sub"]), (J(base, "90_Download", "Beatport"), "Beatport"))
+        self.assertEqual(s.cfg["plugin_options"]["beatport"]["download"]["dest"], J(base, "90_Download", "Beatport"))
+        s.plugin_enable("beatport", False)                                    # ausschalten löscht nichts
+        s.plugin_enable("beatport", True)                                     # keine doppelte Quelle
+        self.assertEqual(sum(q["name"] == "Beatport" for q in s._prep_get()["sources"]), 1)
+        self.assertTrue(os.path.isdir(J(base, "90_Download", "Beatport")))
+        self.assertEqual(s.plugins.get("lyrics").source, "")                  # kein Store
+
+    def test_purchase_destination_per_store(self):
+        base = J(self.dir, "TS")
+        s = self.session({"base_dir": base})
+        s.folders_get()
+        dest, why = s._purch_dest()
+        self.assertEqual(dest, J(base, "90_Download"))
+        self.assertEqual(s._purch_dest_for("beatport", dest, why), J(base, "90_Download", "Beatport"))
+        self.assertEqual(s._purch_dest_for("unbekannt", dest, why), J(base, "90_Download", "_Manuell"))
+        s.purch_set_dest(self.B)                                             # eigene Wahl bleibt, wie sie ist
+        dest, why = s._purch_dest()
+        self.assertEqual(s._purch_dest_for("beatport", dest, why), os.path.normpath(self.B))
+
+    def test_workflow_follows_roles(self):
+        base = J(self.dir, "TS")
+        s = self.session({"base_dir": base})
+        s.folders_get()
+        w = s._prep_get()
+        self.assertEqual(w["inbox"], J(base, "00_New"))                       # leer = Rolle
+        self.assertEqual(w["_raw"]["inbox"], "")
+        s.folders_set_role("inbox", "custom", self.A)
+        self.assertEqual(s._prep_get()["inbox"], os.path.normpath(self.A))
+        w = s._prep_get()
+        s.prep_workflow_save(w)                                               # unverändert gespeichert → bleibt Verweis
+        self.assertEqual(s._prep_get()["_raw"]["inbox"], "")
+        w = s._prep_get()
+        w["inbox"] = self.B
+        s.prep_workflow_save(w)
+        self.assertEqual(s._prep_get()["_raw"]["inbox"], self.B)              # eigener Pfad je Workflow
+        w = s._prep_get()
+        w["work"] = "@work"
+        s.prep_workflow_save(w)
+        self.assertEqual(s._prep_get()["work"], J(base, "91_Work"))
+        ov = s.prep_overview()
+        self.assertEqual(ov["refs"]["work"], {"raw": "@work", "role": J(base, "91_Work")})
+        self.assertNotIn("_raw", s.prep_export(w["id"]))
 
 
 class TestExport(Base):

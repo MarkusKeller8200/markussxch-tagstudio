@@ -4,7 +4,9 @@ Status: **FREIGEGEBEN** (25.10.2026, Wunsch User 13:53; Entscheide O1–O6 vom U
 Meilenstein #26 „4.10.0 – Ordner“). Umgesetzt: **Schritt 1 (#310)** – `folders.py`, `session_folders.py`,
 `web/folders.js`; **Export-Ordner (#312)** – `Api.save_dialog` startet in `Session.export_dir()`; **mehrere Bibliotheken (#311)** –
 `folders.scan_roots`, `Session._lib_roots()`/`_pl_lib_roots()`, Tagger-Kennung `@bibliotheken` (`folders.ALL_LIBS`),
-Snapshots-Schalter je Bibliothek = `auto` des überwachten Ordners im Snapshot-Speicher. Ergänzt
+Snapshots-Schalter je Bibliothek = `auto` des überwachten Ordners im Snapshot-Speicher. **Quellen und Klappmenü
+(#314)** – `plugin.json` › `source`, `Session._folders_source_setup`, `pickFolder()` in `web/folders.js`; Workflow-Felder
+leer bzw. `@inbox`/`@work`/`@library` = Verweis auf die Rolle (`_prep_resolve`). Ergänzt
 [KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md) (Programmdaten bleiben dort beschrieben) und ersetzt dessen Abschnitte 4/5,
 sobald umgesetzt.
 

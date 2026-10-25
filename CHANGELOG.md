@@ -24,6 +24,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   gemeldet) statt drei verschiedener Einstellungen – der Käufe-Abgleich liest keine Bibliothek mehr doppelt.
   „Verglichen mit“ zeigt die Namen. Tagger: Auswahl „Bibliothek ▾“ mit „Alle aktiven“. Snapshots je Bibliothek
   ein/aus. Vorbereiten übernimmt ohne eigenen Bibliotheksordner in die Hauptbibliothek.
+- **Unterordner je Quelle und Ordner-Klappmenü (#314):** Einschalten eines Store-Plugins (Plugin-Feld `source`,
+  Beatport-Plugin 1.9) legt `90_Download\<Quelle>` und `00_New\<Quelle>` an und trägt die Quelle im Workflow ein;
+  Käufe-Downloads gehen in den Unterordner des Stores; „Struktur anlegen“ legt `_Manuell` an. Workflow-Felder
+  Eingang/Arbeit/Bibliothek folgen leer den Rollen. Jede Ordnerauswahl öffnet ein Klappmenü (Bibliotheken, Rollen,
+  zuletzt benutzt, Anderer/Neuer Ordner …, „als Rolle speichern“).
 
 ## [4.9.1] – 2026-10-25
 

@@ -1879,6 +1879,43 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("call('snap_overview').then((o) => o.libs.length === 1 && o.libs[0].name === 'Zweite')"))
         self.assertEqual(self.errors, [])
 
+    def test_folder_menu_and_sources(self):
+        """#314: Klappmenü bei der Ordnerauswahl (Rollen, Neuer Ordner …), Unterordner je Quelle beim Einschalten."""
+        pg = self.pg
+        base = os.path.join(self.dir, "TS")
+        pg.evaluate(f"call('folders_set_base', {json.dumps(base)}, true)")
+        pg.evaluate("call('folders_create')")
+        pg.click('.nav[data-module="tagger"]')
+        pg.click('[data-tgpick="1"]')
+        pg.wait_for_selector("#menu:not([hidden]) button")
+        labels = pg.evaluate("[...document.querySelectorAll('#menu button')].map((b) => b.textContent)")
+        self.assertTrue(any(x.startswith("Eingang: ") for x in labels), labels)
+        self.assertIn("Neuer Ordner …", labels)
+        pg.click('#menu button:has-text("Neuer Ordner")')
+        pg.wait_for_selector("#fnName")
+        pg.fill("#fnParent", base)
+        pg.fill("#fnName", "Sets 2026")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function(f"document.querySelector('#tgPath').value === {json.dumps(os.path.join(base, 'Sets 2026'))}")
+        self.assertTrue(os.path.isdir(os.path.join(base, "Sets 2026")))
+        # Store-Plugin einschalten → 90_Download\Beatport und 00_New\Beatport
+        pg.click('.nav[data-module="plugins"]')
+        cb = '#plList [data-pid="beatport"] [data-enable]'
+        pg.wait_for_selector(cb)
+        if pg.is_checked(cb):
+            pg.uncheck(cb)
+            time.sleep(0.4)
+        pg.check(cb)
+        for _ in range(40):
+            if os.path.isdir(os.path.join(base, "90_Download", "Beatport")):
+                break
+            time.sleep(0.1)
+        self.assertTrue(os.path.isdir(os.path.join(base, "90_Download", "Beatport")))
+        self.assertTrue(os.path.isdir(os.path.join(base, "00_New", "Beatport")))
+        w = pg.evaluate("call('prep_overview', null).then((d) => d.workflow)")
+        self.assertIn("Beatport", [q["name"] for q in w["sources"]])
+        self.assertEqual(self.errors, [])
+
     def test_archive_tagger(self):
         """#173: Aussortieren im Tagger – Vorschau, verschieben, Liste neu geladen, zurückholen."""
         pg = self.pg

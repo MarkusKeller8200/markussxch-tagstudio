@@ -2583,7 +2583,14 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
 
     def plugin_enable(self, pid, on):
         core.save_config(self.plugins.set_enabled(pid, on))
-        return self.plugins_list()
+        out = self.plugins_list()
+        src = self.plugins.get(pid).source if on else ""
+        if src:                                                                  # #314: Unterordner je Quelle (O5)
+            r = self._folders_source_setup(src, pid=pid)
+            if r["created"] or r["source"]:
+                out["folders_note"] = (f"Ordner für „{src}“ angelegt: {', '.join(r['created'])}" if r["created"] else
+                                       f"Quelle „{src}“ im Workflow eingetragen.")
+        return out
 
     def plugin_actions(self, where="tagger"):
         return self.plugins.actions(where)

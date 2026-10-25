@@ -533,6 +533,7 @@ async function pluginPreview(f, res) {
     const r = await call("plugin_enable", pid, cb.checked);
     PL.list = r.plugins; PL.actionsCache = null; renderPlugins();
     if (typeof renderTgEditor === "function") renderTgEditor();
+    if (r.folders_note) toast(r.folders_note);                                  // #314: Unterordner je Quelle
   });
   $("#plList").addEventListener("click", (e) => {
     const lk = e.target.closest(".pl-link[data-url]");                 // #204: API-Dokumentation

@@ -544,7 +544,13 @@ Käufe-Abgleich, Playlist-Abgleich, Entdecken („schon vorhanden“) und Hilfe 
 (Klick → Einstellungen), nicht erreichbare werden übersprungen und genannt. Der Tagger zeigt ab zwei aktiven
 Bibliotheken die Auswahl **„Bibliothek ▾“** mit **„Alle aktiven“** (lädt alle zusammen); Vorbereiten übernimmt ohne
 eigenen Bibliotheksordner in die Hauptbibliothek. Der Schalter **Snapshots** je Bibliothek schaltet den täglichen
-Snapshot ein bzw. aus (vorhandene Snapshots bleiben). „Ändern …“ stellt nur die Einstellung um – Dateien bleiben, wo sie sind;
+Snapshot ein bzw. aus (vorhandene Snapshots bleiben). Jede Ordnerauswahl (Tagger, Vergleich, Workflow, Käufe, Standardordner)
+öffnet ein **Klappmenü** mit Bibliotheken, Rollen, zuletzt benutzten Ordnern, „Anderer Ordner …“ und „Neuer Ordner …“.
+**Unterordner je Quelle:** Wird ein Store-Plugin (z. B. Beatport) eingeschaltet, entstehen `90_Download\Beatport`
+und `00_New\Beatport`, der Workflow bekommt die Quelle „Beatport“ (Abholen: Download-Unterordner → Eingangs-
+Unterordner), Käufe-Downloads landen in `90_Download\Beatport`; manuelle Downloads gehören nach
+`90_Download\_Manuell`. Workflow-Felder Eingang, Arbeit und Bibliothek dürfen leer bleiben – dann folgen sie den
+Rollen (Eingang, Arbeit, Hauptbibliothek). „Ändern …“ stellt nur die Einstellung um – Dateien bleiben, wo sie sind;
 „Struktur anlegen …“ legt fehlende Ordner an. Beim ersten Start nach dem Update werden die bisherigen Einstellungen
 übernommen; war die Bibliothek an verschiedenen Stellen verschieden eingetragen, zeigt TagStudio die Übersicht
 **„Diese Ordner haben wir gefunden“** zur Entscheidung (nichts wird still verworfen). Konzept:

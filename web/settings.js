@@ -535,7 +535,7 @@ function initSettings() {
       }
     }
     else if (t.dataset.cbuild) { await stCacheBuild(t.dataset.cbuild); stCacheRender(); }
-    else if (t.dataset.defpick) { const v = await call("pick_path", "", true, (S.settings.defaults || {})[t.dataset.defpick] || ""); if (v) stDefSet(t.dataset.defpick, v); else if (!S.settings.native) toast("Im Browser-Modus den Pfad eintragen."); }
+    else if (t.dataset.defpick) { const v = await pickFolder(t, (S.settings.defaults || {})[t.dataset.defpick] || ""); if (v) stDefSet(t.dataset.defpick, v); else if (!S.settings.native) toast("Im Browser-Modus den Pfad eintragen."); }
     else if (t.dataset.defclear) stDefSet(t.dataset.defclear, "");
     else if (t.dataset.copen) call("open_folder", t.dataset.copen);
     else if (t.dataset.xreveal) { if (!(await call("reveal", t.dataset.xreveal))) call("open_folder", t.dataset.xreveal); }

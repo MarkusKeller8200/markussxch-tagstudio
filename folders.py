@@ -222,9 +222,19 @@ def main_library(cfg: dict) -> str:
 
 # ---------------------------------------------------------------------------- Ändern (nur Einstellung)
 def set_base(m: dict, path) -> dict:
+    """Basisordner setzen. Rollen ohne Ordner (eigener Ordner, leer) und eine fehlende Bibliothek kommen dann in den
+    Basisordner – so wird aus „kein Basisordner“ die Standard-Struktur."""
     m = normalize(m)
     m["base"] = clean_path(path)
-    return m
+    if m["base"]:
+        for r in ROLES:
+            e = m["roles"][r["id"]]
+            if e["mode"] == "custom" and not e.get("path"):
+                m["roles"][r["id"]] = {"mode": "base", "sub": e["sub"]}
+        if not m["libraries"]:
+            m["libraries"].append({"id": "main", "name": "Haupt", "mode": "base", "sub": LIB_SUB, "active": True,
+                                   "main": True, "snapshots": False})
+    return normalize(m)
 
 
 def set_role(m: dict, rid: str, mode: str, value="") -> dict:

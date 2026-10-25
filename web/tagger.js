@@ -1662,7 +1662,8 @@ async function tgOriginDialog(preset = "") {
   });
   $("#tgPath").addEventListener("keydown", (e) => { if (e.key === "Enter") taggerLoad(); });
   $$("[data-tgpick]").forEach((b) => b.addEventListener("click", async () => {
-    const p = await call("pick_path", "T", b.dataset.tgpick === "1", $("#tgPath").value.trim());
+    const p = b.dataset.tgpick === "1" ? await pickFolder(b, $("#tgPath").value.trim())      // #314: Klappmenü
+      : await call("pick_path", "T", false, $("#tgPath").value.trim());
     if (p) { $("#tgPath").value = p; taggerLoad(); } else if (!S.settings.native) toast("Pfad bitte direkt ins Feld eintippen oder einfügen.");
   }));
   let qt = null;

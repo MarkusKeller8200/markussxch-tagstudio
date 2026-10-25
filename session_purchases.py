@@ -27,10 +27,15 @@ class PurchasesMixin:
         return st
 
     def _purch_dest(self) -> tuple[str, str]:
-        """Eingangsordner für Downloads → (Pfad, Herkunft)."""
+        """Ziel für Downloads → (Pfad, Herkunft). #314: ohne eigene Wahl der Ordner „Downloads“ (je Store ein
+        Unterordner, siehe _purch_dest_for), sonst wie bisher Eingang bzw. <Basisordner>/00_New."""
         own = str(self.cfg.get("purch_dest") or "")
         if own:
             return own, "eigene Wahl"
+        import folders
+        dl = folders.resolve_role(self._folders(), "downloads")
+        if dl:
+            return dl, "Downloads (Unterordner je Store)"
         try:
             inbox = self._prep_get().get("inbox") or ""
         except Exception:  # noqa: BLE001
@@ -40,6 +45,12 @@ class PurchasesMixin:
         if self.cfg.get("base_dir"):
             return os.path.join(str(self.cfg["base_dir"]), NEW_DIR), "Basisordner"
         return "", ""
+
+    def _purch_dest_for(self, store, dest, why) -> str:
+        """Ziel eines Stores: bei der Rolle „Downloads“ deren Unterordner der Quelle (z. B. 90_Download\\Beatport)."""
+        if why.startswith("Downloads"):
+            return self._source_dir(store) or dest
+        return dest
 
     def purch_set_dest(self, path) -> dict:
         p = os.path.abspath(os.path.expanduser(str(path).strip())) if str(path or "").strip() else ""
@@ -180,7 +191,7 @@ class PurchasesMixin:
 
     def start_purch_download(self, keys_=None):
         """Gewählte (bzw. alle fehlenden) Käufe in den Eingangsordner laden. keys_: ["store:id", …]."""
-        dest, _why = self._purch_dest()
+        dest, why = self._purch_dest()
         if not dest:
             return {"ok": False, "error": "Kein Eingangsordner – Basisordner einstellen oder unter „Käufe“ einen Ordner wählen."}
         if not os.path.isdir(dest):
@@ -201,8 +212,10 @@ class PurchasesMixin:
         def job(cancel, progress):
             got, failed, manual, need = 0, [], [], []
             for store, its in by_store.items():
+                to = self._purch_dest_for(store, dest, why)
                 try:
-                    r = self.plugins.call_playlist(store, "store_download", its, dest, session=self, cancel=cancel,
+                    os.makedirs(to, exist_ok=True)
+                    r = self.plugins.call_playlist(store, "store_download", its, to, session=self, cancel=cancel,
                                                    progress=progress) or {}
                 except core.Cancelled:
                     raise

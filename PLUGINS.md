@@ -79,6 +79,11 @@ Plugins/
   möglich (`"background": true` im ACTIONS-Eintrag).
 - `fields`: Felder, die das Plugin schreibt (Muster mit `*`). TagStudio zeigt bei diesen Feldern die Herkunft
   „TagStudio · Plugin-Name“ an (Tagger, Vergleich), damit eigene Felder erkennbar bleiben.
+- `source` (optional, ab 4.10): Name der Quelle bzw. des Stores, z. B. `"Beatport"`. Beim **Einschalten** legt
+  TagStudio `<Downloads>\<source>` und `<Eingang>\<source>` an (nur wenn nicht vorhanden), trägt im aktuellen
+  Workflow die Quelle ein (Download-Unterordner → Eingangs-Unterordner) und setzt das Ziel der Plugin-Aktion
+  `download` auf den Download-Unterordner. Käufe-Downloads des Stores landen ebenfalls dort. Ausschalten löscht
+  nichts.
 - `i18n`: Übersetzungen der Plugin-Texte je Sprache (`en`, `gsw-u-sd-chzh`): deutscher Text → Übersetzung. Die
   Oberfläche nutzt sie, wenn diese Sprache gewählt ist; Texte ohne Übersetzung bleiben deutsch.
 

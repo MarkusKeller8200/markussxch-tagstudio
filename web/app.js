@@ -1250,7 +1250,8 @@ function bind() {
   ["#pathL", "#pathR"].forEach((s) => $(s).addEventListener("keydown", (e) => { if (e.key === "Enter") compare(); }));
   $$("[data-pick]").forEach((b) => b.addEventListener("click", async () => {
     const side = b.dataset.pick, inp = side === "L" ? $("#pathL") : $("#pathR");
-    const p = await call("pick_path", side, b.dataset.folder === "1", inp.value.trim());
+    const p = b.dataset.folder === "1" && typeof pickFolder === "function" ? await pickFolder(b, inp.value.trim())   // #314
+      : await call("pick_path", side, b.dataset.folder === "1", inp.value.trim());
     if (p) {
       inp.value = p;
       homeSync();

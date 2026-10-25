@@ -207,3 +207,51 @@ function libNamesHtml(roots, libs, skipped) {
 }
 
 document.addEventListener("click", (e) => { if (e.target.closest("[data-fgoto]")) { e.preventDefault(); foldersGoto(); } });
+
+// ---------------------------------------------------------------------- Ordner-Klappmenü (#314)
+const FOLDER_FOLLOW = "@folgt";        // Rückgabe: Feld leeren = folgt der Rolle (Workflow)
+
+/** Ordner wählen über ein Klappmenü am Knopf: Bibliotheken · Rollen · Zuletzt benutzt · Anderer Ordner … ·
+    Neuer Ordner … · (opts.role) aktuellen Ordner als Rolle speichern. opts.follow: Rolle, der das Feld folgen kann
+    („inbox“, „work“, „library“) – liefert dann FOLDER_FOLLOW. Ergebnis: Pfad, FOLDER_FOLLOW oder "". */
+async function pickFolder(anchor, start = "", opts = {}) {
+  let d;
+  try { d = await call("folders_menu"); } catch (e) { d = { roles: [], libraries: [], recent: [], base: "" }; }
+  const r = anchor.getBoundingClientRect();
+  return new Promise((resolve) => {
+    const done = (p) => { if (p && p !== FOLDER_FOLLOW) call("folders_recent_add", p).catch(() => {}); resolve(p || ""); };
+    const items = [];
+    if (opts.follow) {
+      const role = opts.follow === "library" ? d.libraries.find((l) => l.main) : d.roles.find((x) => x.id === opts.follow);
+      if (role) items.push({ label: `${opts.follow === "library" ? "Hauptbibliothek" : role.label} – folgt Einstellungen › Ordner`, run: () => done(FOLDER_FOLLOW) }, "-");
+    }
+    d.libraries.forEach((l) => items.push({ label: `Bibliothek ${l.label}: ${l.path}`, run: () => done(l.path) }));
+    d.roles.forEach((x) => items.push({ label: `${x.label}: ${x.path}`, run: () => done(x.path) }));
+    const recent = d.recent.filter((p) => !d.roles.some((x) => x.path === p) && !d.libraries.some((l) => l.path === p)).slice(0, 5);
+    if (recent.length) { items.push("-"); recent.forEach((p) => items.push({ label: `Zuletzt: ${p}`, run: () => done(p) })); }
+    items.push("-", { label: "Anderer Ordner …", run: async () => done(await call("pick_path", "", true, start)) },
+      { label: "Neuer Ordner …", run: async () => done(await folderNewDialog(start || d.base)) });
+    if (opts.role && start && !d.roles.some((x) => x.id === opts.role && x.path === start)) {
+      const lab = (FOLDER_ROLE_LABELS[opts.role] || opts.role);
+      items.push({ label: `Diesen Ordner als „${lab}“ speichern`, run: async () => {
+        try { await call("folders_set_role", opts.role, "custom", start); toast(`„${lab}“ ist jetzt ${start}.`); } catch (e) { toast(String(e.message || e)); }
+        resolve("");
+      } });
+    }
+    showMenu(r.left, r.bottom + 4, items);
+  });
+}
+
+const FOLDER_ROLE_LABELS = { inbox: "Eingang", archive: "Archiv", playlists: "Playlists", export: "Export", downloads: "Downloads", work: "Arbeit" };
+
+/** „Neuer Ordner …“: Elternordner und Name → angelegter Pfad (oder "") */
+async function folderNewDialog(parent) {
+  const v = await modal({ title: "Neuer Ordner",
+    html: `<div class="frm"><label for="fnParent">Anlegen in</label><div class="pl-folder"><input id="fnParent" class="inp" value="${esc(parent || "")}" spellcheck="false"><button class="ghost sm" data-fnpick>Wählen …</button></div>
+      <label for="fnName">Name</label><input id="fnName" class="inp" autofocus spellcheck="false"></div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Anlegen", value: true, primary: true }],
+    onMount: (b) => b.addEventListener("click", async (e) => { if (!e.target.closest("[data-fnpick]")) return; const i = $("#fnParent", b); const p = await call("pick_path", "", true, i.value.trim()); if (p) i.value = p; }),
+    collect: (b) => { const n = $("#fnName", b).value.trim(); if (!n) { toast("Bitte einen Namen eingeben."); return false; } return { parent: $("#fnParent", b).value.trim(), name: n }; } });
+  if (!v) return "";
+  try { return (await call("folders_mkdir", v.parent, v.name)).path; } catch (e) { toast(String(e.message || e)); return ""; }
+}

@@ -141,7 +141,9 @@ async function prepPickClick(e, root) {
   e.preventDefault(); e.stopPropagation();
   const inp = root.querySelector("#" + CSS.escape(b.dataset.pick)) || b.parentElement.querySelector("input");
   const prog = b.dataset.kind === "program";
-  const p = await call("pick_path", "", !prog, inp.value.trim(), prog ? "program" : "mp3");
+  const p = prog ? await call("pick_path", "", false, inp.value.trim(), "program")
+    : await pickFolder(b, inp.value.trim(), { follow: inp.dataset.follow || "" });          // #314: Klappmenü
+  if (p === FOLDER_FOLLOW) { inp.value = ""; inp.dispatchEvent(new Event("input", { bubbles: true })); return true; }
   if (p) { inp.value = p; inp.dispatchEvent(new Event("input", { bubbles: true })); }
   else if (!S.settings.native) toast("Pfad bitte direkt ins Feld eintippen.");
   return true;
@@ -191,6 +193,9 @@ function prepReadStep(b, s) {
 
 async function prepEditWorkflow() {
   const w = JSON.parse(JSON.stringify(PREP.d.workflow));
+  const refs = PREP.d.refs || {};
+  for (const k of ["inbox", "work", "library"]) if (refs[k]) w[k] = refs[k].raw;      // #314: leer = folgt der Rolle
+  const follows = (k, fallback) => (refs[k] && refs[k].role ? `leer = ${k === "library" ? "Hauptbibliothek" : (k === "inbox" ? "Eingang" : "Arbeit")} aus Einstellungen › Ordner: ${refs[k].role}` : fallback);
   const recipesList = (await call("recipes")).recipes;
   let pluginActs = [];
   try { pluginActs = await call("plugin_actions", "tagger"); } catch (e) { pluginActs = []; }
@@ -219,9 +224,9 @@ async function prepEditWorkflow() {
   const res = await modal({
     title: "Workflow bearbeiten", wide: true,
     html: `<div class="frm"><label for="pwName">Name</label><input id="pwName" value="${esc(w.name)}">
-        <label for="pwInbox">Eingangsordner</label>${prepPathInput("pwInbox", w.inbox, "z. B. S:\\_MP3\\00_Neu\\_01_Original")}
-        <label for="pwWork">Arbeitsordner</label>${prepPathInput("pwWork", w.work, "leer = Ordner über dem Eingang (Stufen-Ordner kommen dorthin)")}
-        <label for="pwLib">Bibliothek</label>${prepPathInput("pwLib", w.library, "z. B. S:\\_MP3\\01_Library")}</div>
+        <label for="pwInbox">Eingangsordner</label>${prepPathInput("pwInbox", w.inbox, follows("inbox", "z. B. S:\\_MP3\\00_Neu\\_01_Original"), "folder", 'data-follow="inbox"')}
+        <label for="pwWork">Arbeitsordner</label>${prepPathInput("pwWork", w.work, follows("work", "leer = Ordner über dem Eingang (Stufen-Ordner kommen dorthin)"), "folder", 'data-follow="work"')}
+        <label for="pwLib">Bibliothek</label>${prepPathInput("pwLib", w.library, follows("library", "z. B. S:\\_MP3\\01_Library"), "folder", 'data-follow="library"')}</div>
       <h4 class="st-sub">Quellen (Download-Ordner)</h4>
       <p class="muted sm" style="margin:0 0 6px">„Abholen“ kopiert neue MP3 – auch aus ZIP-Archiven (z. B. Bandcamp) – in den Eingangsordner und merkt sich die Quelle. Die Downloads bleiben unverändert und werden nicht doppelt geholt.</p>
       <div id="pwSrc"></div><button class="ghost sm" id="pwSrcAdd">+ Quelle</button>

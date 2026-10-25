@@ -461,6 +461,14 @@ class Plugin:
         return str(self.manifest.get("name") or self.id)
 
     @property
+    def source(self) -> str:
+        """#314: Quellen-/Store-Name aus plugin.json („source“) – Unterordner in Downloads und Eingang; "" = keiner."""
+        v = self.manifest.get("source")
+        if not isinstance(v, str):
+            return ""
+        return re.sub(r'[<>:"/\\|?*\x00-\x1f]', "", v).strip().strip(".")[:40]
+
+    @property
     def service(self):
         """#204: bereinigte Dienstbeschreibung aus plugin.json („service“) oder None."""
         if not hasattr(self, "_service"):
