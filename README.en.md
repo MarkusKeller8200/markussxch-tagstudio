@@ -303,7 +303,9 @@ in the sidebar: table with title, artist, mix, length, key, BPM, catalogue numbe
 provides it, otherwise “first seen”) and a link to the store. **“↻ Refresh”** fetches new purchases and matches
 everything with the library: *in library*, *in inbox*, *unclear* or *missing*. **“Download missing”** (or the selected
 ones) puts the files unchanged into the inbox folder (`00_New` or the inbox of “Prepare”, changeable under
-“Folder …”) – continue from there as usual. Pre-orders are not downloaded.
+“Folder …”) – continue from there as usual. Pre-orders are not downloaded. Beatport does not officially offer
+downloading; if it fails, TagStudio shows how to download the tracks yourself on Beatport's download page and take
+them over with “Fetch”.
 
 ### Tag fixer
 

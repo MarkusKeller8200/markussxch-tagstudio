@@ -295,6 +295,17 @@ class TestBeatport(Base):
         self.s.start_purch_refresh(None, True)                                                  # „Alle neu holen“
         self.wait()
         self.assertNotIn("purchase_date", [c[2] for c in self.fake.calls if c[1] == "/v4/my/downloads/"][-1])
+        # Variante 1 scheitert (keine Download-Adresse) → Hinweis auf die Download-Seite (Variante 2)
+        orig_rd = self.mod.resolve_download
+        self.mod.resolve_download = lambda client, t, log: ""
+        try:
+            r = self.s.start_purch_download(["beatport:2001"])
+            self.assertTrue(r["ok"], r)
+            res = self.wait()["result"]
+        finally:
+            self.mod.resolve_download = orig_rd
+        self.assertEqual((res["downloaded"], len(res["failed"])), (0, 1))
+        self.assertEqual(res["manual"], [{"store": "beatport", "name": "Beatport", "url": "https://www.beatport.com/library/downloads"}])
 
     def test_own_api_access(self):
         """Offizieller Zugang mit eigener Beatport-App: Password Grant, Refresh per Formular, Abmelden zieht zurück."""

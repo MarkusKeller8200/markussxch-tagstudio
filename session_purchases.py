@@ -159,7 +159,7 @@ class PurchasesMixin:
             by_store.setdefault(it["store"], []).append(it)
 
         def job(cancel, progress):
-            got, failed = 0, []
+            got, failed, manual = 0, [], []
             for store, its in by_store.items():
                 try:
                     r = self.plugins.call_playlist(store, "store_download", its, dest, session=self, cancel=cancel,
@@ -177,5 +177,9 @@ class PurchasesMixin:
                             got += 1
                     st.save()
                 failed += r.get("failed") or []
-            return {"ok": True, "downloaded": got, "failed": failed, "dest": dest}
+                if r.get("manual"):                         # Store lässt den Download nicht zu → selbst laden
+                    with self.lock:
+                        name = (self._purch().data["stores"].get(store) or {}).get("name") or self.plugins.get(store).name
+                    manual.append({"store": store, "name": name, "url": r["manual"]})
+            return {"ok": True, "downloaded": got, "failed": failed, "dest": dest, "manual": manual}
         return self._run("purch_dl", "Käufe herunterladen", job)

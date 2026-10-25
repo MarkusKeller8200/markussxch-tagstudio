@@ -312,7 +312,9 @@ Seitenleiste: Tabelle mit Titel, Interpret, Mix, Länge, Tonart, BPM, Katalognum
 es liefert, sonst „zuerst gesehen“) und Link zum Store. **„↻ Aktualisieren“** holt neue Käufe und gleicht alles mit
 der Bibliothek ab: *in Bibliothek*, *im Eingang*, *unklar* oder *fehlt*. **„Fehlende herunterladen“** (bzw. die
 markierten) lädt die Dateien unverändert in den Eingangsordner (`00_New` bzw. Eingang von „Vorbereiten“, unter
-„Ordner …“ änderbar) – von dort geht es wie gewohnt weiter. Vorbestellungen werden nicht geladen.
+„Ordner …“ änderbar) – von dort geht es wie gewohnt weiter. Vorbestellungen werden nicht geladen. Beatport bietet
+das Herunterladen offiziell nicht an; klappt es nicht, zeigt TagStudio, wie du die Titel auf der Download-Seite von
+Beatport selbst lädst und mit „Abholen“ übernimmst.
 
 ### Tag-Fixer
 

@@ -114,7 +114,22 @@ async function purDownload() {
   PUR.sel = new Set();
   await purchasesShow();
   toast(`${fmtN(r.downloaded || 0)} Titel geladen.`);
+  if (r.manual && r.manual.length) { await purManual(r); return; }
   if (r.failed && r.failed.length) info("Nicht geladen", r.failed.slice(0, 30).join("\n") + (r.failed.length > 30 ? "\n…" : ""));
+}
+
+/** Variante 2: Der Store lässt das Herunterladen über die Schnittstelle nicht zu → auf seiner Seite selbst laden */
+async function purManual(r) {
+  const m = r.manual[0];
+  const a = await modal({ title: "Selbst herunterladen", wide: true,
+    html: `<p style="margin:0">${fmtN(r.failed.length)} Titel konnte TagStudio nicht laden: ${esc(m.name)} gibt dafür keine Download-Adresse heraus.</p>
+      <p style="margin:8px 0 0">So geht es weiter (Variante 2):</p>
+      <ol style="margin:4px 0 0;padding-left:20px"><li>Die Download-Seite bei ${esc(m.name)} öffnen und dort anmelden.</li>
+        <li>Die fehlenden Titel in deinen Download-Ordner laden (z. B. 90_Download).</li>
+        <li>In „Vorbereiten“ mit „Abholen“ übernehmen.</li><li>Hier „Abgleichen“ – die Titel stehen dann auf „im Eingang“ bzw. „in Bibliothek“.</li></ol>
+      <details style="margin-top:8px"><summary class="muted sm">Nicht geladene Titel (${fmtN(r.failed.length)})</summary><div class="sm" translate="no" style="max-height:180px;overflow:auto">${r.failed.slice(0, 100).map(esc).join("<br>")}</div></details>`,
+    buttons: [{ label: "Schliessen", value: null }, { label: `Downloads bei ${m.name} öffnen`, value: "open", primary: true }] });
+  if (a === "open") call("open_url", m.url);
 }
 
 async function purPickDest() {

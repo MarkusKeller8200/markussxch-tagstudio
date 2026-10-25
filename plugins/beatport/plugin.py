@@ -1377,8 +1377,14 @@ def store_purchases(ctx, since="") -> dict:
     return {"name": "Beatport", "items": [store_item(t, cat.get(str(t.get("id")))) for t in items], "since": since}
 
 
+DOWNLOAD_PAGE = "https://www.beatport.com/library/downloads"
+
+
 def store_download(ctx, items, dest) -> dict:
-    """Gewählte Käufe in den Ordner dest laden → {"files": {id: [Pfade]}, "failed": [Text]}."""
+    """Gewählte Käufe in den Ordner dest laden → {"files": {id: [Pfade]}, "failed": [Text], "manual": URL|""}.
+    Die offizielle API hat keinen Download-Endpunkt (OpenAPI-Beschreibung, 25.10.2026): versucht werden die
+    undokumentierten Wege (#117, Variante 1 laut User). Ohne Adresse → „manual“ = Download-Seite bei Beatport
+    (Variante 2: dort laden, mit „Abholen“ übernehmen)."""
     if not dest or not os.path.isdir(dest):
         raise ValueError("Zielordner nicht gefunden.")
     c = Client(ctx)
@@ -1387,7 +1393,7 @@ def store_download(ctx, items, dest) -> dict:
             done = json.load(fh)
     except (OSError, ValueError):
         done = {}
-    files, failed = {}, []
+    files, failed, no_url = {}, [], 0
     for k, it in enumerate(items):
         ctx.check_cancel()
         t = it.get("dl") or {}
@@ -1397,6 +1403,7 @@ def store_download(ctx, items, dest) -> dict:
             url = resolve_download(c, t, ctx.log)
             if not url:
                 failed.append(f"{label}: keine Download-Adresse gefunden")
+                no_url += 1
                 continue
             got = fetch_file(url, dest, t, c, ctx.cancelled)
             files[str(it["id"])] = got
@@ -1409,4 +1416,6 @@ def store_download(ctx, items, dest) -> dict:
             failed.append(f"{label}: {ex}")
     for f in failed:
         ctx.log(f)
-    return {"files": files, "failed": failed}
+    if no_url:
+        ctx.log(f"{no_url} Titel ohne Download-Adresse – bitte über {DOWNLOAD_PAGE} laden (Variante 2).")
+    return {"files": files, "failed": failed, "manual": DOWNLOAD_PAGE if no_url else ""}

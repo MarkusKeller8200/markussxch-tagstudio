@@ -57,5 +57,15 @@
 "Die ganze Kaufliste neu holen – sonst holt {q} nur Käufe seit dem letzten Mal (alle {n} Tage automatisch ganz)": ["Fetch the whole purchase list again – otherwise {q} only fetches purchases since the last time (fully every {n} days automatically)", "Di ganz Chaufliste neu hole – suscht holt {q} nur Chäuf sit em letschte Mal (alli {n} Täg automatisch ganz)"],
 "Alle neu holen": ["Fetch all again", "Alli neu hole"],
 "Bei {x} schon heruntergeladen": ["Already downloaded at {x}", "Bi {x} scho abeglade"],
-"Beatport: Katalog-Angaben für {x} Titel holen …": ["Beatport: fetching catalogue details for {x} tracks …", "Beatport: Katalog-Aagabe für {x} Titel hole …"]
+"Beatport: Katalog-Angaben für {x} Titel holen …": ["Beatport: fetching catalogue details for {x} tracks …", "Beatport: Katalog-Aagabe für {x} Titel hole …"],
+"Selbst herunterladen": ["Download yourself", "Sälber abelade"],
+"{x} Titel konnte TagStudio nicht laden: {x} gibt dafür keine Download-Adresse heraus.": ["TagStudio could not download {x} tracks: {x} does not provide a download address for them.", "{x} Titel het TagStudio nöd chöne abelade: {x} git defür kei Download-Adrässe use."],
+"So geht es weiter (Variante {n}):": ["How to continue (option {n}):", "So gahts wiiter (Variante {n}):"],
+"Die Download-Seite bei {x} öffnen und dort anmelden.": ["Open the download page at {x} and sign in there.", "D Download-Siite bi {x} öffne und det aamelde."],
+"Die fehlenden Titel in deinen Download-Ordner laden (z. B. 90_Download).": ["Download the missing tracks into your download folder (e.g. 90_Download).", "Di fehlende Titel i din Download-Ordner abelade (z. B. 90_Download)."],
+"In {q} mit {q} übernehmen.": ["Take them over in {q} with {q}.", "I {q} mit {q} übernäh."],
+"Hier {q} – die Titel stehen dann auf {q} bzw. {q}.": ["Here {q} – the tracks then show {q} or {q}.", "Da {q} – d Titel staht denn uf {q} bzw. {q}."],
+"Nicht geladene Titel ({x})": ["Tracks not downloaded ({x})", "Nöd abegladeni Titel ({x})"],
+"Downloads bei {x} öffnen": ["Open downloads at {x}", "Downloads bi {x} öffne"],
+"{x} Titel ohne Download-Adresse – bitte über {x} laden (Variante {n}).": ["{x} tracks without download address – please download via {x} (option {n}).", "{x} Titel ohni Download-Adrässe – bitte über {x} abelade (Variante {n})."]
 }

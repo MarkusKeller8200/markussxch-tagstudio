@@ -2526,7 +2526,9 @@ class UiTest(unittest.TestCase):
             count: { library: 1, inbox: 0, unclear: 0, missing: 2 }, dest: "/musik/00_New", dest_from: "Basisordner", dest_ok: true, roots: [] };
           window.call = (n, ...a) => {
             if (n === "purch_state") return Promise.resolve(JSON.parse(JSON.stringify(st)));
-            if (n === "start_purch_download") { window.__dl = a[0]; window.__fake = { ok: true, downloaded: 1, failed: [], dest: st.dest }; return Promise.resolve({ ok: true }); }
+            if (n === "start_purch_download") { window.__dl = a[0]; window.__fake = { ok: true, downloaded: 0, failed: ["Mara Lind – Kaltes Glas: keine Download-Adresse gefunden"], dest: st.dest,
+              manual: [{ store: "beatport", name: "Beatport", url: "https://www.beatport.com/library/downloads" }] }; return Promise.resolve({ ok: true }); }
+            if (n === "open_url") { window.__opened = a[0]; return Promise.resolve({}); }
             if (n === "task_status" && window.__fake) { const r = window.__fake; window.__fake = null; return Promise.resolve({ done: true, running: false, result: r }); }
             return orig(n, ...a); }; })()""")
         pg.click('.nav[data-module="purchases"]')
@@ -2550,6 +2552,10 @@ class UiTest(unittest.TestCase):
         pg.click("#purDl")
         pg.click("#mBtns .primary")
         self.assertTrue(self.until("window.__dl && window.__dl.join(',') === 'beatport:2'"))
+        pg.wait_for_selector("#mBtns button >> text=Downloads bei Beatport öffnen")             # Variante 2
+        self.assertIn("keine Download-Adresse", pg.inner_text("#mBody"))
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("window.__opened === 'https://www.beatport.com/library/downloads'"))
         self.assertIn("Fehlende herunterladen", pg.inner_text("#purDl"))
         self.assertEqual(pg.inner_text("#purCount").strip(), "2")
 
