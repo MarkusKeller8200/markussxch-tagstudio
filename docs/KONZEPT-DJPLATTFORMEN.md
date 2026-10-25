@@ -148,7 +148,12 @@ Die Tabelle betrifft Integrationsmöglichkeiten **für Drittentwickler**. Intern
   Client Credentials (nur App, ohne Benutzerdaten), Refresh (`grant_type=refresh_token`), `/v4/auth/o/introspect/`,
   `/v4/auth/o/revoke/`. Fehler als JSON (`{"detail": "Not found."}` usw.).
 - TagStudio: Methode „Eigener API-Zugang“ (Password Grant) im Beatport-Plugin 1.3; der bisherige inoffizielle Weg bleibt.
-- Noch offen: Endpunkt-Liste (Käufe mit Kaufdatum, Playlists, Downloads) aus der offiziellen Doku.
+- Bereich `my` laut Doku (Screenshot User 25.10.2026): `account` (`{id}`, `facets`, `myaccount`), `beatport` („My
+  Beatport“: `artists`, `labels`, `tracks`, `playlists`, `delete`, `facets` – Folgen, keine Käufe → #288),
+  `charts`, `downloads` (Käufe), `email-preferences`, `genres`, `playlists`, `streaming-quality`. Kein `library` – die
+  Rückfall-Pfade `/my/library/…` der Käufe entfallen nach Prüfung von `downloads`. Konto jetzt zuerst über
+  `/my/account/myaccount/`.
+- Noch offen: Unterpunkte und Felder von `downloads` (Kaufdatum) und `playlists`.
 
 #### Amazon Music Web API (geprüft 25.10.2026)
 

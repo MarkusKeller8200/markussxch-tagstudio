@@ -37,6 +37,7 @@ class FakeBeatport:
         self.password = "geheim"
         self.token_n = 0
         self.valid = set()
+        self.old_account = False
 
     def _tok(self):
         self.token_n += 1
@@ -80,6 +81,8 @@ class FakeBeatport:
             return 400, {}, b"{}"
         if not auth.startswith("Bearer ") or auth[7:] not in self.valid:
             return 401, {}, b"{}"
+        if p == "/v4/my/account/myaccount/" and not self.old_account:     # offizieller Pfad (Doku)
+            return 200, {}, json.dumps({"username": "marku", "email": "m@example.org"}).encode()
         if p == "/v4/my/account/":
             return 200, {}, json.dumps({"username": "marku", "email": "m@example.org"}).encode()
         if p == "/v4/catalog/search/":
@@ -309,6 +312,14 @@ class TestBeatport(Base):
         self.assertIsNotNone(self.mod.load_app(ctx))
         self.act("logout", forget_app=True)
         self.assertIsNone(self.mod.load_app(ctx))
+
+    def test_account_paths(self):
+        """Konto: zuerst offizieller Pfad /my/account/myaccount/, sonst der bisherige /my/account/."""
+        self.login()
+        self.assertIn("/v4/my/account/myaccount/", [c[1] for c in self.fake.calls])
+        self.fake.old_account = True
+        st = self.act("test")
+        self.assertIn("marku", st["result"]["message"])
 
     def test_token_paste_and_refresh(self):
         self.fake.valid.add("PASTED")

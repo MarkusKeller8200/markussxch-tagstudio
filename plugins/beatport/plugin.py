@@ -370,6 +370,10 @@ def refresh(ctx, tok):
     return new
 
 
+def account(client) -> dict:
+    return client.account()
+
+
 class Client:
     def __init__(self, ctx):
         self.ctx = ctx
@@ -398,6 +402,17 @@ class Client:
             data = json.loads(body or b"null")
             return data.get("results", data) if isinstance(data, dict) and "results" in data else data
         raise HttpError(429, "Beatport begrenzt gerade die Anfragen – bitte später erneut versuchen.")
+
+    def account(self) -> dict:
+        """Eigenes Konto: offizieller Pfad /my/account/myaccount/ (laut Doku), sonst der bisherige /my/account/."""
+        for path in ("/my/account/myaccount/", "/my/account/"):
+            try:
+                acc = self.get(path)
+            except HttpError:
+                acc = None
+            if isinstance(acc, dict) and acc:
+                return acc
+        return {}
 
     def _expired(self):
         delete_token(self.ctx)
@@ -856,7 +871,7 @@ def run(action, ctx, files, opts):
                 raise ValueError("Bitte Benutzername und Passwort eingeben.")
             tok = login(ctx, opts["username"].strip(), opts["password"])
         save_token(ctx, tok)
-        acc = Client(ctx).get("/my/account/") or {}
+        acc = account(Client(ctx))
         tok["username"] = acc.get("username") or tok.get("username", "")
         save_token(ctx, tok)
         who = tok["username"] or "Beatport-Konto"
@@ -864,7 +879,7 @@ def run(action, ctx, files, opts):
             return {"message": f"Angemeldet als {who} über deinen eigenen API-Zugang. Das Passwort wurde nicht gespeichert."}
         return {"message": f"Angemeldet als {who}. Das Passwort wurde nicht gespeichert."}
     if action == "test":
-        acc = Client(ctx).get("/my/account/") or {}
+        acc = account(Client(ctx))
         return {"message": f"Verbindung in Ordnung – angemeldet als {acc.get('username', '?')}."}
     if action == "purchases":
         return run_purchases(ctx, opts)
