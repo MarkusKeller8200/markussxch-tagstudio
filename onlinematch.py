@@ -159,7 +159,12 @@ def http_get(url: str, headers: dict | None = None) -> tuple[int, dict, bytes]:
 
 def http_post(url: str, headers: dict | None, data: bytes) -> tuple[int, dict, bytes]:
     """Eine POST-Anfrage (z. B. SonoVault-Bulk, #256) → (Status, Kopfzeilen, Inhalt). In Tests ersetzbar."""
-    req = urllib.request.Request(url, data=data, headers=headers or {}, method="POST")
+    return http_request("POST", url, headers, data)
+
+
+def http_request(method: str, url: str, headers: dict | None, data: bytes | None = None) -> tuple[int, dict, bytes]:
+    """Beliebige Anfrage (Cloud-Plugins, #317: PUT, DELETE …) → (Status, Kopfzeilen, Inhalt). In Tests ersetzbar."""
+    req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
             return r.status, dict(r.headers), r.read()

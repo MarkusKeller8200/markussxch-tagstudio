@@ -64,6 +64,22 @@ Desktop-Client, z. B. auf einen zweiten Rechner (Windows ↔ Mac). Musik bleibt 
   Musik gleich liegt (Weg 1, relativ zum Sync-Ordner). Eine heruntergeladene M3U8 im Playlist-Ordner meldet der
   Playlists-Speicher wie jede fremde Änderung.
 
+## 4b. Umsetzung Plugins (#318–#320, 25.10.2026)
+
+Gemeinsam: `cloudkit.py` (Anfragen mit Token, einmal erneuern bei 401, **429 nie wiederholen**, verständliche Fehler,
+Aktionen „Anmelden … / Abmelden … / Verbindung testen“), `oauthkit` mit `auth_params`, `onlinematch.http_request`
+(PUT/PATCH/DELETE, in Tests ersetzbar).
+
+| Dienst | Anmeldung | Endpunkte | Grenzen (offizielle Doku) |
+|---|---|---|---|
+| OneDrive (Plugin `onedrive`) | Entra-App, öffentlicher Client, PKCE, `http://localhost/callback` (Port egal), Scopes `Files.ReadWrite User.Read offline_access` | `GET /me/drive`, `…/root:/{pfad}:/children`, `…:/content` (GET/PUT ≤ 4 MB), `…:/createUploadSession`, `DELETE …/root:/{pfad}` | Drosselung mit 429/Retry-After; einfacher Upload laut Graph bis 250 MB (TagStudio: Sitzung ab 4 MB) |
+| Google Drive (`gdrive`) | Desktop-App mit Client-ID + Secret, PKCE, `access_type=offline`, `prompt=consent`, Scope `drive.file` | `GET /about`, `GET /files?q=…`, `POST /files` (Ordner), `GET /files/{id}?alt=media`, `POST /upload/…?uploadType=multipart`, `PATCH /upload/…/{id}?uploadType=media`, `PATCH /files/{id}` (trashed) | 325 000 Einheiten/Minute/Benutzer, 1 000 000/Minute/Projekt; Liste 100, Download 200, Ändern 50 Einheiten; 403/429 |
+| Dropbox (`dropbox`) | App-Key, PKCE, `token_access_type=offline`, Redirect `http://127.0.0.1:8769/callback` | `users/get_current_account`, `users/get_space_usage`, `files/list_folder` (+`/continue`), `files/download`, `files/upload` (overwrite), `files/delete_v2` | nicht veröffentlicht, 429 |
+
+**OneDrive geschäftlich (offener Punkt aus Abschnitt 5):** `Files.ReadWrite` (delegiert) hat laut Microsoft Graph
+„AdminConsentRequired: No“. Eine Organisation kann die Zustimmung durch Benutzer aber sperren – dann meldet die Anmeldung
+das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzustimmung.
+
 ## 5. Offen (bei der Umsetzung prüfen)
 
 - Genaue Endpunkte und Kontingente (Microsoft Graph, Google Drive API v3, Dropbox API v2) aus den offiziellen

@@ -1889,6 +1889,19 @@ class UiTest(unittest.TestCase):
         self.assertIn("gelöscht wird nur nach Rückfrage", pg.inner_text("#stCloudSync"))
         # Dienste ohne Anmeldung sind in der Auswahl gesperrt
         self.assertEqual(pg.evaluate("[...document.querySelectorAll('#stCloudSync tr[data-csid=playlists] [data-csprov] option')].filter((o) => o.value && !o.disabled).length"), 0)
+        self.assertEqual(sorted(pg.evaluate("[...document.querySelectorAll('#stCloudSync tr[data-csid=playlists] [data-csprov] option')].filter((o) => o.value).map((o) => o.value)")),
+                         ["dropbox", "gdrive", "onedrive"])                     # #318–#320
+        self.assertIn("nicht angemeldet", pg.inner_text("#stCloudSync"))
+        # Plugin-Karte OneDrive: Anmelden mit Anleitung, Redirect auf localhost
+        pg.click('.nav[data-module="plugins"]')
+        card = '.pl-card[data-pid="onedrive"]'
+        pg.wait_for_selector(card + ' [data-paction="login"]')
+        self.assertIn("keine Client-ID", pg.inner_text(card))
+        pg.click(card + ' [data-paction="login"]')
+        pg.wait_for_selector("#modal .pl-link")
+        self.assertEqual(pg.input_value('#modal [data-ok="redirect"]'), "http://localhost:8767/callback")
+        self.assertIn("Administrator", pg.inner_text("#modal"))
+        pg.click("#mBtns button >> nth=0")
         self.assertEqual(self.errors, [])
 
     def test_folder_roles(self):

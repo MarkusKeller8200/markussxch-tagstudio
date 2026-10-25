@@ -1,0 +1,91 @@
+{
+  "id": "dropbox",
+  "name": "Dropbox",
+  "version": "1.0",
+  "min_app": "4.11.0",
+  "category": "online",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "fields": [],
+  "description": "Gleicht Playlists, Export und Programmdaten-Teile mit einem Ordner in deiner Dropbox ab – ohne Dropbox-App, über die Dropbox API. Braucht eine eigene App in der Dropbox App Console (App-Key; Zugriff „App folder“ empfohlen).",
+  "notes": "Keine Zusatzpakete nötig. Unter „Anmelden …“ den App-Key (Client-ID) deiner App eintragen und anmelden.",
+  "service": {
+    "name": "Dropbox API v2",
+    "kind": "online",
+    "home": "https://www.dropbox.com",
+    "docs": "https://www.dropbox.com/developers/documentation/http/documentation",
+    "base": "https://api.dropboxapi.com/2",
+    "auth": "oauth",
+    "auth_note": "Eigene App (App-Key) in der Dropbox App Console, Anmeldung mit PKCE und Offline-Token, Berechtigungen files.metadata.read, files.content.read, files.content.write, account_info.read. Token verschlüsselt.",
+    "limits": "Nicht veröffentlicht – bei HTTP 429 meldet TagStudio und wiederholt nicht",
+    "terms": "https://www.dropbox.com/developers/reference/tos",
+    "endpoints": [
+      {
+        "id": "account",
+        "method": "POST",
+        "path": "/users/get_current_account",
+        "label": "Eigenes Konto",
+        "status": "partial",
+        "use": "Verbindung testen",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "space",
+        "method": "POST",
+        "path": "/users/get_space_usage",
+        "label": "Speicherplatz",
+        "status": "partial",
+        "use": "Verbindung testen",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "list",
+        "method": "POST",
+        "path": "/files/list_folder",
+        "label": "Ordner auflisten (rekursiv)",
+        "status": "full",
+        "use": "Abgleich: Dateien auflisten",
+        "note": "mit list_folder/continue",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "download",
+        "method": "POST",
+        "path": "/files/download",
+        "label": "Datei herunterladen",
+        "status": "full",
+        "use": "Abgleich: herunterladen",
+        "note": "content.dropboxapi.com",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "upload",
+        "method": "POST",
+        "path": "/files/upload",
+        "label": "Datei hochladen (überschreiben)",
+        "status": "full",
+        "use": "Abgleich: hochladen",
+        "note": "content.dropboxapi.com, bis 150 MB",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "delete",
+        "method": "POST",
+        "path": "/files/delete_v2",
+        "label": "Datei löschen",
+        "status": "full",
+        "use": "nur nach Rückfrage",
+        "params": [],
+        "test": false
+      }
+    ],
+    "example": {
+      "title": "TagStudio"
+    }
+  }
+}

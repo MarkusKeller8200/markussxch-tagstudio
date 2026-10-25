@@ -372,7 +372,30 @@ geändert. Beide brauchen eine **eigene App** beim Dienst; TagStudio liefert kei
   unvollständig), *kein Zugriff* (401/403) usw. – nur GET, ohne Anmelde-Routen und Datei-Downloads. Ein Plugin kann mit
   `access_info(ctx)` → Text ergänzen, womit geprüft wird (Beatport: Zugang und Scope).
 
-## Eingebaut: SonoVault
+## Eingebaut: OneDrive, Google Drive und Dropbox (Abgleich über die Dienste)
+
+Gegenstellen für Einstellungen › Speicherort und Ordner › **„Abgleich über die Dienste“** (#317–#320, Konzept
+`docs/KONZEPT-CLOUD.md`) – ohne Desktop-Client, direkt über die API. Jeder Dienst braucht eine **eigene App**
+(Client-ID, C4); TagStudio liefert keine mit. Anmeldung mit OAuth 2 und PKCE, Token verschlüsselt, „Anmelden …“ mit
+Anleitung und „Adresse einfügen“ als Ausweg wie bei Spotify. TagStudio schreibt nur unter seinem Ordner (Standard
+`TagStudio/<Rolle>` bzw. `TagStudio/Programmdaten/<Teil>`). Bei Grenzen (HTTP 429, Kontingent) wird gemeldet, nicht
+wiederholt.
+
+- **OneDrive** (Microsoft Graph, privat und geschäftlich): App in Microsoft Entra registrieren (Kontotypen „beliebiges
+  Organisationsverzeichnis und persönliche Microsoft-Konten“), Plattform „Mobile Anwendungen und Desktopanwendungen“
+  mit Umleitungs-URI `http://localhost/callback` (Port egal), „Öffentliche Clientflows zulassen“, delegierte
+  Berechtigungen `Files.ReadWrite`, `User.Read`, `offline_access`. `Files.ReadWrite` braucht laut Microsoft keine
+  Administrator-Zustimmung – sperrt eine Organisation die Zustimmung durch Benutzer, nennt die Meldung den Weg über den
+  Administrator. Dateien bis 4 MB in einem Schritt, grössere über eine Upload-Sitzung; Löschen = Papierkorb.
+- **Google Drive** (Drive API v3): Projekt in der Google Cloud Console, Drive API aktivieren, OAuth-Client „Desktop-App“
+  (Client-ID und Client-Secret), Bereich `drive.file` – TagStudio sieht nur, was es selbst angelegt hat. Ordner werden
+  über Name und übergeordneten Ordner gefunden bzw. angelegt; Löschen = Papierkorb. Kontingent: 325 000 Einheiten je
+  Minute und Benutzer.
+- **Dropbox** (API v2): App in der App Console („Scoped access“, empfohlen „App folder“), Berechtigungen
+  `account_info.read`, `files.metadata.read`, `files.content.read`, `files.content.write`, Redirect URI
+  `http://127.0.0.1:8769/callback`, den App-Key als Client-ID. Offline-Token wird erneuert.
+- **Verbindung testen** zeigt Konto und freien Speicher; die Kachel zeigt die Endpunkte (Integrationsfenster).
+
 
 Musik-Metadaten-API von Rekordcloud ([sonovault.now](https://sonovault.now), über 93 Mio. Titel) mit **eigenem
 Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: `docs/KONZEPT-SONOVAULT.md`).

@@ -204,6 +204,7 @@ class App:
                   "code_challenge_method": "S256", "code_challenge": challenge, "state": state}
         if self.cfg.get("scopes"):
             params["scope"] = " ".join(self.cfg["scopes"])
+        params.update(self.cfg.get("auth_params") or {})          # z. B. Google: access_type=offline (#319)
         return self.cfg["authorize"] + "?" + urllib.parse.urlencode(params)
 
     def _pending(self) -> dict:

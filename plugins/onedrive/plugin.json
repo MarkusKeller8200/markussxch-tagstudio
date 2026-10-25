@@ -1,0 +1,114 @@
+{
+  "id": "onedrive",
+  "name": "OneDrive",
+  "version": "1.0",
+  "min_app": "4.11.0",
+  "category": "online",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "fields": [],
+  "description": "Gleicht Playlists, Export und Programmdaten-Teile mit einem Ordner in deinem OneDrive ab (privat und geschäftlich) – ohne OneDrive-App, über Microsoft Graph. Braucht eine eigene App in Microsoft Entra (Client-ID). Einrichten unter Einstellungen › Speicherort und Ordner › „Abgleich über die Dienste“.",
+  "notes": "Keine Zusatzpakete nötig. Unter „Anmelden …“ die Client-ID deiner App eintragen und anmelden.",
+  "service": {
+    "name": "Microsoft Graph (OneDrive)",
+    "kind": "online",
+    "home": "https://onedrive.live.com",
+    "docs": "https://learn.microsoft.com/graph/api/resources/onedrive",
+    "base": "https://graph.microsoft.com/v1.0",
+    "auth": "oauth",
+    "auth_note": "Eigene App in Microsoft Entra (Client-ID, öffentlicher Client), Anmeldung mit PKCE, Berechtigung Files.ReadWrite (ohne Administrator-Zustimmung, ausser die Organisation sperrt die Benutzer-Zustimmung). Token verschlüsselt.",
+    "limits": "Drosselung durch Microsoft (HTTP 429 mit Retry-After) – TagStudio meldet und wiederholt nicht",
+    "terms": "https://learn.microsoft.com/legal/microsoft-apis/terms-of-use",
+    "endpoints": [
+      {
+        "id": "drive",
+        "method": "GET",
+        "path": "/me/drive",
+        "label": "Eigenes OneDrive (Konto, Speicher)",
+        "status": "partial",
+        "use": "Verbindung testen",
+        "note": "$select=driveType,owner,quota",
+        "params": []
+      },
+      {
+        "id": "children",
+        "method": "GET",
+        "path": "/me/drive/root:/{path}:/children",
+        "label": "Inhalt eines Ordners",
+        "status": "full",
+        "use": "Abgleich: Dateien auflisten (rekursiv)",
+        "params": [
+          {
+            "name": "path",
+            "example": "TagStudio"
+          }
+        ]
+      },
+      {
+        "id": "content",
+        "method": "GET",
+        "path": "/me/drive/root:/{path}:/content",
+        "label": "Datei herunterladen",
+        "status": "full",
+        "use": "Abgleich: herunterladen",
+        "params": [
+          {
+            "name": "path",
+            "example": "TagStudio/Playlists/Set.m3u8"
+          }
+        ],
+        "test": false
+      },
+      {
+        "id": "put",
+        "method": "PUT",
+        "path": "/me/drive/root:/{path}:/content",
+        "label": "Datei hochladen (bis 4 MB)",
+        "status": "full",
+        "use": "Abgleich: hochladen",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "session",
+        "method": "POST",
+        "path": "/me/drive/root:/{path}:/createUploadSession",
+        "label": "Upload-Sitzung (grosse Dateien)",
+        "status": "full",
+        "use": "Abgleich: über 4 MB",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "delete",
+        "method": "DELETE",
+        "path": "/me/drive/root:/{path}",
+        "label": "Datei löschen (Papierkorb)",
+        "status": "full",
+        "use": "nur nach Rückfrage",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "delta",
+        "method": "GET",
+        "path": "/me/drive/root/delta",
+        "label": "Änderungen seit dem letzten Mal",
+        "status": "none",
+        "note": "Abgleich vergleicht Revisionen (cTag) – Delta nicht nötig",
+        "params": []
+      },
+      {
+        "id": "me",
+        "method": "GET",
+        "path": "/me",
+        "label": "Eigenes Profil",
+        "status": "none",
+        "params": []
+      }
+    ],
+    "example": {
+      "title": "TagStudio"
+    }
+  }
+}

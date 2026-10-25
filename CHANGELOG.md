@@ -8,6 +8,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Plugins OneDrive, Google Drive und Dropbox (#318–#320, je 1.0):** Gegenstellen für den Abgleich über die Dienste –
+  eigene App je Dienst (Client-ID), Anmeldung mit PKCE, Token verschlüsselt; OneDrive privat und geschäftlich (Upload-
+  Sitzung für grosse Dateien), Google Drive nur mit Zugriff auf eigene Dateien (`drive.file`), Dropbox mit App-Ordner.
+  Grenzen werden gemeldet, nicht wiederholt; Löschen landet im Papierkorb des Dienstes.
 - **Abgleich über die Dienste – Rahmen (#317, Cloud Weg 2):** Einstellungen › Speicherort und Ordner › „Abgleich
   über die Dienste“ – Rollen Playlists und Export sowie Programmdaten-Teile (Playlists-Speicher, Käufe, Entdecken,
   Einstellungen ohne Zugangsdaten) mit einem Ordner im Dienst abgleichen, in beiden Richtungen. Ändert sich eine Datei

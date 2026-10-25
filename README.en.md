@@ -542,7 +542,7 @@ demand”) when reading – nothing downloads unnoticed, can be switched on – 
 Snapshots, work and backup inside a sync folder get a hint (not recommended). **Sync via the services** (#317, without
 desktop client): at the bottom of the same card the roles **Playlists** and **Export** as well as parts of the program
 data (playlist store, purchases, Discover, settings without credentials) can be synced with a folder on OneDrive, Google
-Drive or Dropbox (plugins, your own app per service; default `/TagStudio/<role>`), both directions or upload/download
+Drive or Dropbox (plugins, your own app per service – setup in [PLUGINS.en.md](PLUGINS.en.md); default `/TagStudio/<role>`), both directions or upload/download
 only. **Sync now** then shows conflicts with both versions (keep this one / take from the service / keep both) and
 deleted files – deleting only after confirmation. Music, snapshots, work, cache and credentials are never synced via
 the services. “Change …” (also for the base folder) shows what lies in the

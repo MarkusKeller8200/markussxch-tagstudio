@@ -1,0 +1,126 @@
+{
+  "id": "gdrive",
+  "name": "Google Drive",
+  "version": "1.0",
+  "min_app": "4.11.0",
+  "category": "online",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "fields": [],
+  "description": "Gleicht Playlists, Export und Programmdaten-Teile mit einem Ordner in deinem Google Drive ab – ohne Drive-App, über die Drive API. Zugriff nur auf Dateien, die TagStudio selbst anlegt (drive.file). Braucht eine eigene Desktop-App in der Google Cloud Console (Client-ID und Secret).",
+  "notes": "Keine Zusatzpakete nötig. Unter „Anmelden …“ Client-ID und Client-Secret deiner Desktop-App eintragen und anmelden.",
+  "service": {
+    "name": "Google Drive API v3",
+    "kind": "online",
+    "home": "https://drive.google.com",
+    "docs": "https://developers.google.com/workspace/drive/api/reference/rest/v3",
+    "base": "https://www.googleapis.com/drive/v3",
+    "auth": "oauth",
+    "auth_note": "Eigene OAuth-App (Typ Desktop) in der Google Cloud Console, Anmeldung mit PKCE, Bereich drive.file (nur von TagStudio angelegte Dateien). Token verschlüsselt.",
+    "limits": "Kontingent in Einheiten: 325 000 je Minute und Benutzer (Liste 100, Download 200, Ändern 50) – bei 403/429 meldet TagStudio und wiederholt nicht",
+    "terms": "https://developers.google.com/terms",
+    "endpoints": [
+      {
+        "id": "about",
+        "method": "GET",
+        "path": "/about",
+        "label": "Konto und Speicher",
+        "status": "partial",
+        "use": "Verbindung testen",
+        "note": "fields=user,storageQuota",
+        "params": [
+          {
+            "name": "fields",
+            "default": "user,storageQuota"
+          }
+        ]
+      },
+      {
+        "id": "files",
+        "method": "GET",
+        "path": "/files",
+        "label": "Dateien suchen/auflisten",
+        "status": "full",
+        "use": "Abgleich: Ordner finden, Dateien auflisten",
+        "note": "q, fields, pageToken",
+        "params": [
+          {
+            "name": "q",
+            "default": "trashed=false"
+          },
+          {
+            "name": "fields",
+            "default": "files(id,name,mimeType)"
+          }
+        ]
+      },
+      {
+        "id": "get",
+        "method": "GET",
+        "path": "/files/{id}",
+        "label": "Datei herunterladen (alt=media)",
+        "status": "full",
+        "use": "Abgleich: herunterladen",
+        "params": [
+          {
+            "name": "id",
+            "example": ""
+          }
+        ],
+        "test": false
+      },
+      {
+        "id": "create",
+        "method": "POST",
+        "path": "/files",
+        "label": "Ordner anlegen",
+        "status": "full",
+        "use": "Abgleich: fehlende Ordner",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "upload",
+        "method": "POST",
+        "path": "/upload/drive/v3/files",
+        "label": "Datei hochladen (multipart)",
+        "status": "full",
+        "use": "Abgleich: neue Datei",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "update",
+        "method": "PATCH",
+        "path": "/upload/drive/v3/files/{id}",
+        "label": "Datei ersetzen",
+        "status": "full",
+        "use": "Abgleich: geänderte Datei",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "trash",
+        "method": "PATCH",
+        "path": "/files/{id}",
+        "label": "In den Papierkorb (trashed)",
+        "status": "full",
+        "use": "nur nach Rückfrage",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "changes",
+        "method": "GET",
+        "path": "/changes",
+        "label": "Änderungen",
+        "status": "none",
+        "note": "Abgleich vergleicht md5Checksum – Änderungsliste nicht nötig",
+        "params": []
+      }
+    ],
+    "example": {
+      "title": "TagStudio"
+    }
+  }
+}

@@ -568,7 +568,7 @@ Dateien** („Dateien bei Bedarf“, nichts lädt unbemerkt herunter – auf Wun
 empfohlen). **Abgleich über die Dienste** (#317, ohne Desktop-Client): Unten in derselben Karte lassen sich die
 Rollen **Playlists** und **Export** sowie Programmdaten-Teile (Playlists-Speicher, Käufe, Entdecken, Einstellungen
 ohne Zugangsdaten) mit einem Ordner bei OneDrive, Google Drive oder Dropbox abgleichen (Plugins, eigene App je
-Dienst; Standard `/TagStudio/<Rolle>`), in beiden Richtungen oder nur hoch-/herunterladen. **Jetzt abgleichen** zeigt
+Dienst – Einrichtung in [PLUGINS.md](PLUGINS.md); Standard `/TagStudio/<Rolle>`), in beiden Richtungen oder nur hoch-/herunterladen. **Jetzt abgleichen** zeigt
 danach Konflikte mit beiden Fassungen (hier behalten / aus dem Dienst / beide behalten) und gelöschte Dateien – gelöscht
 wird nur nach Rückfrage. Musik, Snapshots, Arbeit, Cache und Zugangsdaten werden nie über die Dienste abgeglichen;
 SonoVault-Einträge in „Entdecken“ bleiben auf diesem Rechner. „Ändern …“ (auch beim Basisordner) zeigt, was im bisherigen Ordner liegt (Dateien,

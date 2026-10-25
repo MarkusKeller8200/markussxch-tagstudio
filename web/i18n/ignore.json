@@ -474,5 +474,12 @@
 "SonoVault",
 "Tidal",
 "Defected",
-"TagStudio/Programmdaten/Käufe"
+"TagStudio/Programmdaten/Käufe",
+"'{x}' in parents and name = '{x}' and trashed = false and mimeType",
+"'{x}' in parents and trashed = false",
+"Dropbox-API-Arg",
+"Dropbox API v2",
+"Dropbox App Console",
+"Google Drive API v3",
+"Microsoft Graph (OneDrive)"
 ]

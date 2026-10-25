@@ -365,7 +365,24 @@ need **your own app** at the service; TagStudio does not ship shared credentials
   etc. per endpoint – GET only, without sign-in routes and file downloads. A plugin can add `access_info(ctx)` → text
   describing what is used for the check (Beatport: access type and scope).
 
-## Built in: SonoVault
+## Built in: OneDrive, Google Drive and Dropbox (sync via the services)
+
+Targets for Settings › Storage location and folders › **“Sync via the services”** (#317–#320, concept
+`docs/KONZEPT-CLOUD.md`) – without the desktop client, directly via the API. Each service needs **your own app**
+(client ID); TagStudio ships none. OAuth 2 with PKCE, token stored encrypted, “Sign in …” with instructions and
+“Paste address” as a fallback. TagStudio only writes below its folder (default `TagStudio/<role>`). Limits (HTTP 429,
+quota) are reported, not retried.
+
+- **OneDrive** (Microsoft Graph, personal and work): register an app in Microsoft Entra, platform “Mobile and desktop
+  applications” with redirect URI `http://localhost/callback` (any port), allow public client flows, delegated
+  permissions `Files.ReadWrite`, `User.Read`, `offline_access` (no admin consent needed unless the organisation blocks
+  user consent). Up to 4 MB in one request, larger files via an upload session; deleting = recycle bin.
+- **Google Drive** (Drive API v3): Google Cloud project, enable the Drive API, OAuth client “Desktop app” (client ID and
+  secret), scope `drive.file` – TagStudio only sees what it created itself; deleting = trash.
+- **Dropbox** (API v2): app in the App Console (scoped access, “App folder” recommended), permissions
+  `account_info.read`, `files.metadata.read`, `files.content.read`, `files.content.write`, redirect URI
+  `http://127.0.0.1:8769/callback`, the app key as client ID.
+
 
 Music metadata API by Rekordcloud ([sonovault.now](https://sonovault.now), over 93 million tracks) with **your own
 key** – TagStudio does not ship one (concept and terms of use: `docs/KONZEPT-SONOVAULT.md`).
