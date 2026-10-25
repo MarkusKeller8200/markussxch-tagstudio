@@ -53,8 +53,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
     zeichnet bei Markierung nicht neu. `#dialog` liegt jetzt über `#modal` (z-index 55).
   - **#330** Alle Dialoge am Titel verschiebbar, an der Ecke vergrösserbar (`dlgReset`, CSS `resize:both`).
   - **#331** Tagger: zu viele Spalten → automatisch optimale Breite (`TG.autoScroll`, ResizeObserver); erste Spalte bleibt
-    beim waagrechten Blättern stehen (sticky + `--tg-hx`). Annahme „erste Zeile“ = erste Spalte – beim User bestätigen.
-- Offen für den User: Testlisten in #107, #309, #317–#320, #323, #324, #326–#331.
+    beim waagrechten Blättern stehen (sticky + `--tg-hx`). „erste Zeile“ = erste Spalte, getestet ok → geschlossen (User 21:48).
+- #107: Punkt „dieselbe Leiste im Tagger“ war ein Versehen – nicht umgesetzt, in der Testliste gestrichen (User 21:48).
+- Offen für den User: Testlisten in #107, #309, #317–#320, #323, #324, #326–#330.
 
 ## Start 4.11.0 (vorbereitet 25.10.2026, 17:05)
 

@@ -1,7 +1,7 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-25 (20:15): **4.11.0 auf `main`** (Meilenstein #27): geschlossen #222, #253–#258, #304, #325; im Beta-Test
-> #107, #309, #317–#320, #323, #324, #326–#331 (Sofort-Liste im Tagger, Protokolle live/leeren, Dialoge verschiebbar …): #304 Dateidialoge
+> Stand 2026-10-25 (20:15): **4.11.0 auf `main`** (Meilenstein #27): geschlossen #222, #253–#258, #304, #325, #331; im Beta-Test
+> #107, #309, #317–#320, #323, #324, #326–#330 (Sofort-Liste im Tagger, Protokolle live/leeren, Dialoge verschiebbar …): #304 Dateidialoge
 > übersetzt, #107 Werkzeugleiste im Vergleich, #222 Wellenform im MP3 (`wavetag.py`), SonoVault #253–#258 (Plugin
 > `sonovault`, Online-Metadaten 2.2, Entdecken), Cloud Weg 2 #317 (`cloudsync.py`, `session_cloud.py`,
 > `web/cloudsync.js`) mit Plugins OneDrive/Google Drive/Dropbox #318–#320 (`cloudkit.py`). Kein Release ohne Freigabe;
