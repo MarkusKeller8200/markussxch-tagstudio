@@ -24,6 +24,8 @@ Mehrfachwerte (mehrere Künstler, Genres …) stehen je nach Programm unterschie
   Leerzeichen als `␣`, Null-Trenner als `\0`, Beschreibung als Tooltip; `feat.` zeigt auch `ft.`/`featuring`. Der
   Ausgabe-Trenner hat eine laufende Code-Vorschau. Gemeinsame Hilfe `sepCode()` (`web/app.js`) – auch für den
   Ausnahmen-Editor (#343) und Smart Fix (#339).
+- **Spaltenbreite (#340, 4.12.0):** Vorschau-Tabelle mit Griffen wie bei den Käufen (`colResize(…, "fixer")`),
+  gemerkt, bleibt bei jeder neuen Vorschau.
 - **Vorschau** je Datei und Feld (alt → neu), anwenden mit Undo; geschrieben wird mit „Speichern“.
 
 ## 3. Umsetzung

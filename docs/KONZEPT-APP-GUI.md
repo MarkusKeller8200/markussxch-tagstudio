@@ -44,6 +44,15 @@ Grösse, Layout und Zustand merkt und Fehler nachvollziehbar protokolliert – o
 - **Einstellungen:** `web_theme`, `web_ui` (Splitter, Seitenleiste), `window`, `nav_hidden`, `nav_recommended`,
   `ui`-Schlüssel je Modul.
 
+### 3.0 Spaltenbreite in Tabellen (#337, #340)
+
+- Gemeinsame Hilfe `web/colresize.js`: nach jedem Zeichnen `colResize(table, "<tabellen-id>")`. Spalten über
+  `th[data-col]` (sonst Nummer), `th[data-nogrip]` ohne Griff. Ziehen, Doppelklick = passend zum Inhalt (max. 600 px),
+  ←/→ (Umschalt: ×4), Rechtsklick auf die Kopfzeile › zurücksetzen. Mit gemerkten Breiten `table-layout: fixed`,
+  Breite der Tabelle = Summe (waagrecht blättern); ohne bleibt das automatische Layout.
+- Gespeichert in `web_ui.col_widths` = `{tabelle: {spalte: px}}` (36–1200 px, `Session._clean_col_widths`).
+- Im Einsatz: Käufe (`purchases`), Tag-Fixer-Vorschau (`fixer`); weitere Tabellen sollen dieselbe Hilfe nutzen.
+
 ### 3.1 Zurück/Vorwärts zwischen Ansichten (#274, Entscheid User 24.10.2026)
 
 - `web/nav.js`: Verlauf (höchstens 30 Stationen, nur laufende Sitzung). `setModule` merkt vor jedem **Sprung aus dem

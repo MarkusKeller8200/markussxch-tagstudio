@@ -168,6 +168,12 @@ class TestSession(TempHome):
         with self.assertRaises(ValueError):
             s.set_ui("unbekannt", 1)
         self.assertEqual(Session().settings()["ui"], {"pairs_w": 420, "side_collapsed": True})
+        # #337/#340: Spaltenbreiten je Tabelle – bereinigt (Grenzen, Namen, Typen)
+        self.assertTrue(s.set_ui("col_widths", {"purchases": {"title": 5000, "mix": 10, "x" * 41: 90, "bpm": True},
+                                                "": {"a": 1}, "fixer": {}, "leer": "kein dict"}))
+        self.assertEqual(Session().settings()["ui"]["col_widths"], {"purchases": {"title": 1200, "mix": 36}})
+        with self.assertRaises(ValueError):
+            s.set_ui("col_widths", [])
 
 
 class TestOpenLog(TempHome):

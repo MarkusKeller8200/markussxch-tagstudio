@@ -55,6 +55,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
            "tg_cols": list,                                  # #152/#154: sichtbare Spalten und Reihenfolge
            "tg_fit": str, "tg_colfilter": bool,                 # #202: Filterzeile unter den Spaltenköpfen                                    # #148: „fit“ an Fenster anpassen, „scroll“ optimale Breite
            "tg_sort_default": list,                          # #153: Standard-Sortierung (bis 3 Stufen)
+           "col_widths": dict,                               # #337/#340: Spaltenbreiten je Tabelle
            "tg_view_default": dict,                          # #155: bevorzugte Ansicht
            "lang": str,                                      # #157: Sprache der Oberfläche
            "cmp_tb_icons": bool, "tg_tb_icons": bool}                             # #107: Werkzeugleiste im Vergleich nur mit Symbolen
@@ -296,6 +297,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             raise ValueError("tg_fit: fit oder scroll")
         elif name == "tg_sort_default":
             value = self._clean_sorts(value)
+        elif name == "col_widths":
+            value = self._clean_col_widths(value)
         elif name == "tg_view_default":
             value = {"cols": [x for x in value.get("cols", []) if isinstance(x, str) and len(x) <= 80][:40],
                      "fit": "scroll" if value.get("fit") == "scroll" else "fit",
@@ -305,6 +308,19 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         self.cfg["web_ui"] = dict(self.ui)
         core.save_config({"web_ui": dict(self.ui)})
         return True
+
+    @staticmethod
+    def _clean_col_widths(v) -> dict:
+        """#337/#340: {Tabelle: {Spalte: Breite px}} – Namen kurz, Breiten 36–1200, höchstens 40 Tabellen à 40 Spalten."""
+        out = {}
+        for tid, cols in list(v.items())[:40] if isinstance(v, dict) else []:
+            if not (isinstance(tid, str) and 0 < len(tid) <= 40 and isinstance(cols, dict)):
+                continue
+            w = {c: int(max(36, min(1200, px))) for c, px in list(cols.items())[:40]
+                 if isinstance(c, str) and 0 < len(c) <= 40 and isinstance(px, (int, float)) and not isinstance(px, bool)}
+            if w:
+                out[tid] = w
+        return out
 
     @staticmethod
     def _clean_sorts(v) -> list:

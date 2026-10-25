@@ -493,5 +493,6 @@
 "Tagger-Liste aus dem Zwischenspeicher angezeigt ({x} Titel)",
 "Protokoll geleert: {x}",
 "image/png",
-"image/jpeg"
+"image/jpeg",
+"table[data-col-tid]"
 ]

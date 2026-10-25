@@ -109,8 +109,8 @@ function purRenderTable() {
   const all = rows.length && rows.every((r) => PUR.sel.has(r.k));
   const dg = st.last || {};
   const diag = `<div class="muted sm pur-diag">Verglichen mit: ${libNamesHtml(dg.roots || st.roots || [], st.libs, st.libs_skipped)}${dg.files ? ` · ${fmtN(dg.files)} Dateien` : ""}${dg.dupes ? ` · <span title="${esc((dg.examples || []).map((x) => x.path + "\n= " + x.same).join("\n\n"))}">${fmtN(dg.dupes)} doppelt (gleiche Datei unter anderem Pfad) zusammengefasst</span>` : ""}</div>`;
-  const head = PUR_COLS.map(([k, l]) => `<th data-pursort="${k}" class="${["dur", "bpm"].includes(k) ? "r" : ""}" aria-sort="${PUR.sort.k === k ? (PUR.sort.desc ? "descending" : "ascending") : "none"}">${esc(l)}${PUR.sort.k === k ? (PUR.sort.desc ? " ▾" : " ▴") : ""}</th>`).join("");
-  box.innerHTML = diag + `<table class="pur-t"><thead><tr><th><input type="checkbox" id="purAll" ${all ? "checked" : ""} aria-label="Alle wählen"></th>${head}<th></th></tr></thead><tbody>
+  const head = PUR_COLS.map(([k, l]) => `<th data-col="${k}" data-pursort="${k}" class="${["dur", "bpm"].includes(k) ? "r" : ""}" aria-sort="${PUR.sort.k === k ? (PUR.sort.desc ? "descending" : "ascending") : "none"}">${esc(l)}${PUR.sort.k === k ? (PUR.sort.desc ? " ▾" : " ▴") : ""}</th>`).join("");
+  box.innerHTML = diag + `<table class="pur-t"><thead><tr><th data-col="sel" data-nogrip><input type="checkbox" id="purAll" ${all ? "checked" : ""} aria-label="Alle wählen"></th>${head}<th data-col="link" data-nogrip></th></tr></thead><tbody>
     ${rows.map((r) => {
       const stc = r.preorder ? `<span class="pur-st pre">Vorbestellung</span>` : `<span class="pur-st ${r.status}" title="${esc([r.file || r.reason || "", r.received ? `Bei ${purStoreName(r.store)} schon heruntergeladen` : ""].filter(Boolean).join(" · "))}">${esc(PUR_STATUS[r.status] || r.status)}</span>`;
       const date = r.bought ? esc(r.bought.slice(0, 10)) : (r.seen ? `<span class="muted" title="Kein Kaufdatum vom Store – zuerst gesehen">${esc(new Date(r.seen * 1000).toLocaleDateString())}</span>` : "");
@@ -123,6 +123,7 @@ function purRenderTable() {
         <td class="nm sm ${r.status === "unclear" ? "pur-why" : "muted"}" title="${esc([r.file, ...(r.cands || [])].filter(Boolean).join("\n"))}"${r.status === "library" || r.status === "inbox" ? ' translate="no"' : ""}>${r.linked ? "✓ " : ""}${esc(purHint(r))}</td>
         <td>${r.url ? `<a href="#" class="pls-link" data-url="${esc(r.url)}" title="Bei ${esc(purStoreName(r.store))} öffnen">↗</a>` : ""}</td></tr>`;
     }).join("")}</tbody></table>${rows.length ? "" : '<div class="tg-empty">Keine Käufe für diesen Filter.</div>'}`;
+  colResize(box.querySelector("table.pur-t"), "purchases");      // #337
 }
 
 async function purRefresh(match = false, full = false) {

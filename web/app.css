@@ -343,6 +343,13 @@ span.xml-treeonly{display:contents}
 .fx-seps .sep-name{color:var(--dim)}
 .fx-opts .sep-in{width:70px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:0 8px;font-family:var(--mono)}
 .fx-prev{min-height:0}
+.col-grip{position:absolute;top:0;right:0;width:7px;height:100%;cursor:col-resize;z-index:2;touch-action:none}
+.col-grip::after{content:"";position:absolute;left:3px;top:22%;bottom:22%;width:1px;background:var(--line)}
+th:hover>.col-grip::after,.col-grip:focus-visible::after,body.col-dragging .col-grip::after{width:2px;left:2px;background:var(--acc)}
+.col-grip:focus-visible{outline:none}
+table.col-fixed{table-layout:fixed}
+table.col-fixed th,table.col-fixed td{overflow:hidden;text-overflow:ellipsis;max-width:none}
+body.col-dragging,body.col-dragging *{cursor:col-resize!important;user-select:none}
 .fx-table{flex:1;min-height:200px;overflow:auto;border:1px solid var(--line);border-radius:10px}
 .fx-table table{width:100%;border-collapse:collapse;font-size:13px}
 .fx-table th{position:sticky;top:0;background:var(--surf);text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);padding:8px 10px;border-bottom:1px solid var(--line)}

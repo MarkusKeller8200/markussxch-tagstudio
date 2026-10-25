@@ -309,7 +309,9 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
 
 Bought tracks from all stores in one place – **Beatport** for now (sign in to the Beatport plugin). Page **Purchases**
 in the sidebar: table with title, artist, mix, length, key, BPM, catalogue number, store, purchase date (if the store
-provides it, otherwise “first seen”) and a link to the store. **“↻ Refresh”** fetches new purchases and matches
+provides it, otherwise “first seen”) and a link to the store. Drag the edge of a column header to change its width
+(double-click: fit to content, ←/→ on the handle; right-click the header row: reset) – TagStudio remembers it, in the
+Tag fixer as well. **“↻ Refresh”** fetches new purchases and matches
 everything with the library: *in library*, *in inbox*, *unclear* or *missing*. **“Download missing”** (or the selected
 ones) puts the files unchanged into the inbox folder (`00_New` or the inbox of “Prepare”, changeable under
 “Folder …”) – continue from there as usual. Pre-orders are not downloaded. Beatport does not officially offer

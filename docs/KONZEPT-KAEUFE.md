@@ -8,6 +8,9 @@
 ## 1. Seite „Käufe“
 
 - Seitenleiste nach „Playlists“, Zahl = fehlende Titel.
+- **Spaltenbreite (#337, 4.12.0):** Griff am rechten Rand der Spaltenköpfe (`web/colresize.js`, Tabelle `purchases`),
+  Häkchen- und Link-Spalte ohne Griff; ziehen, Doppelklick = passend zum Inhalt, ←/→; gemerkt in `web_ui.col_widths`;
+  Rechtsklick auf die Kopfzeile › „Spaltenbreiten zurücksetzen“. Ein Klick auf den Griff sortiert nicht.
 - Tabelle (sortierbar per Klick auf die Spalte, fehlende Werte immer unten): Status, Titel, Interpret, Mix, Länge,
   Tonart (Camelot-Badge), BPM, Katalognummer, Store, Kaufdatum (sonst grau „zuerst gesehen“), Link ↗.
 - Filter: Suche (Titel, Interpret, Mix, Katalognr., Label, Release, ISRC), Store, Status (alle, in Bibliothek, im

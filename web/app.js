@@ -216,7 +216,7 @@ async function runTask(startPromise, title) {
 
 
 // ====================================================================== Splitter & Layout
-const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5, tg_edit_w: 430, tg_more_k: 130, tg_col_name: 0, tg_cover_col: false, tg_feat_cols: [], tg_more_sort: "key", tg_cols: [], tg_fit: "fit", tg_sort_default: [], tg_view_default: {}, tg_colfilter: true, lang: "", cmp_tb_icons: false, tg_tb_icons: false };
+const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5, tg_edit_w: 430, tg_more_k: 130, tg_col_name: 0, tg_cover_col: false, tg_feat_cols: [], tg_more_sort: "key", tg_cols: [], tg_fit: "fit", tg_sort_default: [], tg_view_default: {}, tg_colfilter: true, lang: "", cmp_tb_icons: false, tg_tb_icons: false, col_widths: {} };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 let uiSaveTimers = {};
 function saveUi(key) {

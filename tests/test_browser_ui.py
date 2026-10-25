@@ -3458,6 +3458,64 @@ class UiTest(unittest.TestCase):
         self.assertIn("Fehlende herunterladen", pg.inner_text("#purDl"))
         self.assertEqual(pg.inner_text("#purCount").strip(), "2")
 
+    def test_table_column_widths(self):
+        """#337/#340: Spaltenbreite per Ziehen (Käufe, Tag-Fixer) – gemerkt, Doppelklick automatisch, Tastatur,
+        Klick auf den Griff sortiert nicht, Rechtsklick › zurücksetzen."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("""(() => { const orig = call;
+          const row = (k, id, title) => ({ k, store: "beatport", id, title, mix: "Extended Mix", artist: "Mara Lind", dur: 300, key: "8A", bpm: 124,
+            catalog: "POL0" + id, url: "", bought: "2026-10-2" + id + " 10:00:00", seen: 1761350000, status: "missing", file: "", reason: "", preorder: false });
+          const st = { rows: [row("beatport:1", "1", "Nordlicht mit einem sehr langen Titel, der Platz braucht"), row("beatport:2", "2", "Ufer")],
+            stores: { beatport: { name: "Beatport", refreshed: 1761350000, count: 2 } }, sources: [{ id: "beatport", name: "Beatport", ready: true, why: "" }],
+            count: { library: 0, inbox: 0, unclear: 0, missing: 2 }, dest: "/musik/00_New", dest_from: "Basisordner", dest_ok: true, roots: ["/a"], last: { roots: ["/a"], files: 9 } };
+          window.call = (n, ...a) => {
+            if (n === "purch_state") return Promise.resolve(JSON.parse(JSON.stringify(st)));
+            if (n === "fixer_preview") return Promise.resolve({ count: 1, files: 1, scope_files: 1,
+              rows: [{ file: "a.mp3", label: "Künstler", old: "A; B", new: "A, B" }] });
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="purchases"]')
+        pg.wait_for_selector("#purTable .pur-t th[data-col='title'] .col-grip")
+        self.assertEqual(pg.locator("#purTable th[data-col='sel'] .col-grip").count(), 0)      # Häkchen-Spalte ohne Griff
+        first = "document.querySelector('#purTable tbody tr:first-child td:nth-child(3)').textContent"
+        before = pg.evaluate(first)
+        th = "#purTable th[data-col='title']"
+        w0 = pg.eval_on_selector(th, "e => e.getBoundingClientRect().width")
+        box = pg.locator(f"{th} .col-grip").bounding_box()
+        x, y = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+        pg.mouse.move(x, y); pg.mouse.down(); pg.mouse.move(x + 60, y, steps=4); pg.mouse.move(x + 90, y, steps=4); pg.mouse.up()
+        w1 = pg.eval_on_selector(th, "e => e.getBoundingClientRect().width")
+        self.assertAlmostEqual(w1, w0 + 90, delta=3)
+        self.assertEqual(pg.evaluate(first), before)                                     # Griff sortiert nicht
+        self.assertTrue(pg.evaluate("document.querySelector('#purTable table').classList.contains('col-fixed')"))
+        self.assertTrue(self.until("call('settings').then(r => (r.ui.col_widths || {}).purchases && r.ui.col_widths.purchases.title > 0)"))
+        pg.focus(f"{th} .col-grip"); pg.keyboard.press("ArrowRight")                      # Tastatur: +10 px
+        self.assertAlmostEqual(pg.eval_on_selector(th, "e => e.getBoundingClientRect().width"), w1 + 10, delta=2)
+        pg.click('.nav[data-module="settings"]'); pg.click('.nav[data-module="purchases"]')   # neu gezeichnet: gleiche Breite
+        pg.wait_for_selector(f"{th} .col-grip")
+        self.assertAlmostEqual(pg.eval_on_selector(th, "e => e.getBoundingClientRect().width"), w1 + 10, delta=2)
+        mix = "#purTable th[data-col='mix']"
+        pg.dblclick(f"{mix} .col-grip")                                                   # automatisch = passend zum Inhalt
+        wm = pg.eval_on_selector(mix, "e => e.getBoundingClientRect().width")
+        need = pg.evaluate("(() => { const s = document.createElement('span'); s.style.cssText = 'position:absolute;white-space:nowrap';"
+                           "s.style.font = getComputedStyle(document.querySelector('#purTable tbody td:nth-child(5)')).font;"
+                           "s.textContent = 'Extended Mix'; document.body.appendChild(s); const w = s.getBoundingClientRect().width; s.remove(); return w; })()")
+        self.assertGreaterEqual(wm, need)
+        self.assertLess(wm, need + 60)
+        pg.click("#purTable thead th[data-col='store']", button="right")
+        pg.click("#menu button >> text=Spaltenbreiten zurücksetzen")
+        self.assertFalse(pg.evaluate("document.querySelector('#purTable table').classList.contains('col-fixed')"))
+        self.assertTrue(self.until("call('settings').then(r => !(r.ui.col_widths || {}).purchases)"))
+        # Tag-Fixer: eigene Breiten, unabhängig von den Käufen
+        pg.click('.nav[data-module="fixer"]')
+        pg.wait_for_selector("#fxTable th[data-col='file'] .col-grip")
+        g = pg.locator("#fxTable th[data-col='file'] .col-grip").bounding_box()
+        x, y = g["x"] + g["width"] / 2, g["y"] + g["height"] / 2
+        pg.mouse.move(x, y); pg.mouse.down(); pg.mouse.move(x - 40, y, steps=4); pg.mouse.up()
+        self.assertTrue(self.until("call('settings').then(r => (r.ui.col_widths || {}).fixer && !r.ui.col_widths.purchases)"))
+        pg.fill("#fxSep", "; ")                                                           # neue Vorschau behält die Breite
+        self.assertTrue(self.until("document.querySelector('#fxTable table').classList.contains('col-fixed')"))
+
     def test_purchases_session_login(self):
         """#295: Download abgelehnt → Sitzungs-Anmeldung (wie die Webseite), dann gleich erneut herunterladen."""
         pg = self.pg

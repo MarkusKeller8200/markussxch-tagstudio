@@ -320,7 +320,9 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
 
 Gekaufte Titel aller Stores an einem Ort – vorerst **Beatport** (Anmeldung im Plugin Beatport). Seite **Käufe** in der
 Seitenleiste: Tabelle mit Titel, Interpret, Mix, Länge, Tonart, BPM, Katalognummer, Store, Kaufdatum (sofern der Store
-es liefert, sonst „zuerst gesehen“) und Link zum Store. **„↻ Aktualisieren“** holt neue Käufe und gleicht alles mit
+es liefert, sonst „zuerst gesehen“) und Link zum Store. Spaltenbreiten lassen sich am Rand der Spaltenköpfe ziehen
+(Doppelklick: passend zum Inhalt, ←/→ auf dem Griff; Rechtsklick auf die Kopfzeile: zurücksetzen) – TagStudio merkt
+sie sich, ebenso im Tag-Fixer. **„↻ Aktualisieren“** holt neue Käufe und gleicht alles mit
 der Bibliothek ab: *in Bibliothek*, *im Eingang*, *unklar* oder *fehlt*. **„Fehlende herunterladen“** (bzw. die
 markierten) lädt die Dateien unverändert in den Eingangsordner (`00_New` bzw. Eingang von „Vorbereiten“, unter
 „Ordner …“ änderbar) – von dort geht es wie gewohnt weiter. Vorbestellungen werden nicht geladen. Beatport bietet

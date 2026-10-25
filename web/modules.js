@@ -263,8 +263,9 @@ async function fixerPreview() {
   $("#fxApply").textContent = r.count ? `Anwenden (${fmtN(r.count)})` : "Anwenden";
   $("#fxApply").disabled = !r.count;
   $("#fxTable").innerHTML = r.rows.length
-    ? `<table><thead><tr><th>Datei</th><th>Feld</th><th>Vorher</th><th>Nachher</th></tr></thead><tbody>${r.rows.map((x) => `<tr><td>${esc(x.file)}</td><td>${esc(x.label)}</td><td class="old">${esc(x.old)}</td><td class="new">${esc(x.new)}</td></tr>`).join("")}</tbody></table>${r.count > r.rows.length ? `<div class="empty">… und ${fmtN(r.count - r.rows.length)} weitere</div>` : ""}`
+    ? `<table><thead><tr><th data-col="file">Datei</th><th data-col="field">Feld</th><th data-col="old">Vorher</th><th data-col="new">Nachher</th></tr></thead><tbody>${r.rows.map((x) => `<tr><td>${esc(x.file)}</td><td>${esc(x.label)}</td><td class="old">${esc(x.old)}</td><td class="new">${esc(x.new)}</td></tr>`).join("")}</tbody></table>${r.count > r.rows.length ? `<div class="empty">… und ${fmtN(r.count - r.rows.length)} weitere</div>` : ""}`
     : `<div class="empty">${r.scope_files ? "Nichts zu ändern – alles schon einheitlich." : "Keine Dateien im gewählten Bereich. Erst im Vergleich oder Tagger Dateien laden."}</div>`;
+  colResize($("#fxTable table"), "fixer");                       // #340
 }
 
 async function fixerApply() {
