@@ -501,6 +501,30 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("S.module === 'tagger' && TG.loaded", 20))
         self.assertEqual(pg.evaluate("S.settings.start_paths"), [])
 
+    def test_start_marks_and_snapshot_after_tagger(self):
+        """#326: Startablauf mit Zeiten im App-Protokoll; die Snapshots-Startprüfung beginnt erst nach dem Tagger."""
+        pg = self.pg
+        self.load_tagger()
+        pg = self.restart()
+        self.assertTrue(self.until("TG.loaded && TG.rows.length === 3", 15))
+        logf = os.path.join(self.home, "TagStudio", "Logs", "app.log")
+
+        def marks():
+            if not os.path.isfile(logf):
+                return []
+            with open(logf, encoding="utf-8", errors="replace") as fh:
+                return [ln.split("Startablauf: ", 1)[1].split(" – ")[0] for ln in fh if "Startablauf: " in ln]
+        t0 = time.time()
+        while "Snapshots-Startprüfung beginnt" not in marks() and time.time() - t0 < 10:
+            time.sleep(0.2)
+        m = marks()
+        for k in ("Seite geladen", "Oberfläche bereit", "Tagger-Einlesen beginnt", "Tagger-Liste angezeigt (3 Titel)",
+                  "Snapshots-Startprüfung beginnt"):
+            self.assertIn(k, m, (os.listdir(os.path.dirname(logf)) if os.path.isdir(os.path.dirname(logf)) else None, m))
+        last = len(m) - 1 - m[::-1].index("Seite geladen")                        # zweiter Start
+        m = m[last:]
+        self.assertLess(m.index("Tagger-Liste angezeigt (3 Titel)"), m.index("Snapshots-Startprüfung beginnt"))
+
     def test_resume_selects_row_and_doubleclick(self):
         """#195: nach dem Neustart steht der Tagger auf dem fortgesetzten Titel; #196: Doppelklick spielt danach."""
         pg = self.pg

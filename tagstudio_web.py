@@ -755,6 +755,15 @@ class Api:
         applog.info("Übergang: " + json.dumps(entry, ensure_ascii=False)[:4000])
         return True
 
+    def start_mark(self, label):
+        """#326: Schritte des Programmstarts mit Zeit seit dem Start ins App-Protokoll (Wartezeit eingrenzen)."""
+        n = self.__dict__.setdefault("_marks", 0)
+        if n >= 20 or time.time() - _STARTED > 300:
+            return False
+        self._marks = n + 1
+        applog.info(f"Startablauf: {str(label)[:160]} – {time.time() - _STARTED:.1f} s nach dem Start")
+        return True
+
     def client_log(self, level, msg):
         """Fehler aus der Oberfläche (JavaScript) ins App-Protokoll."""
         applog.write("WARN" if level != "error" else "ERROR", "Oberfläche: " + str(msg)[:2000])

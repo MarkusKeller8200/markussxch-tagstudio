@@ -88,6 +88,7 @@ async function tgAutoStartRun() {
 async function tgLoadBackground() {
   const path = $("#tgPath").value.trim(), rec = $("#tgRec").checked;
   if (typeof homeSync === "function") homeSync();
+  if (typeof startMark === "function") startMark("Tagger-Einlesen beginnt");
   const r = await callNow("start_tag_load", path, rec);
   if (!r.ok) { status(r.error, "warn"); return; }
   let done;
@@ -116,6 +117,7 @@ async function tgLoadBackground() {
   if (!res) { drawTgList(); return; }
   if (res.cancelled) { status("Einlesen abgebrochen.", "warn"); drawTgList(); return; }
   await tgAfterLoad(res, path, rec);
+  if (typeof startMark === "function") startMark(`Tagger-Liste angezeigt (${TG.rows.length} Titel)`);
 }
 
 async function taggerShow() {

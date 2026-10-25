@@ -397,6 +397,10 @@ async function snWatchOpen() {
 async function initSnapshots() {
   let st;
   snWatchStart();
+  // #326: Startprüfung erst nach dem Tagger – beide fragen sonst gleichzeitig dieselben Dateien ab (langsame Laufwerke)
+  for (let i = 0; i < 30 && typeof TG !== "undefined" && !TG.autoP; i++) await new Promise((ok) => setTimeout(ok, 100));
+  if (typeof TG !== "undefined" && TG.autoP) await Promise.race([TG.autoP.catch(() => {}), new Promise((ok) => setTimeout(ok, 30000))]);
+  if (typeof startMark === "function") startMark("Snapshots-Startprüfung beginnt");
   try { st = await call("snap_startup"); } catch (e) { return; }
   try { snSideSize((await call("snap_overview")).total); } catch (e) { /* egal */ }
   const libs = st.libs.filter((l) => !l.missing);

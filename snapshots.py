@@ -609,9 +609,9 @@ def move_store(src: str, dest: str, cancel=None, progress=None) -> dict:
 
 
 # =========================================================================== Scan
-def list_mp3(root: str, cancel=None) -> list[str]:
+def list_mp3(root: str, cancel=None, stats: dict | None = None) -> list[str]:
     from compare import scan
-    return scan(root, True, cancel)
+    return scan(root, True, cancel, stats=stats)
 
 
 def rel(root: str, path: str) -> str:
@@ -704,14 +704,15 @@ def quick_changes(root: str, m: dict | None) -> dict:
     """Schnelle Prüfung: Grösse/Änderungszeit; nur bei Abweichung den Tag-Bereich lesen (kein Audio)
     → {"changed", "new", "removed", "total"}."""
     known = {e["p"]: e for e in (m or {}).get("files", [])}
-    paths = list_mp3(root)
+    sts = {}                                  # #326: stat aus dem Durchsuchen (unter Windows ohne Zugriff je Datei)
+    paths = list_mp3(root, stats=sts)
     seen, changed, new = set(), 0, 0
     for p in paths:
         r = rel(root, p)
         seen.add(r)
         e = known.get(r)
         try:
-            st = os.stat(p)
+            st = sts.get(p) or os.stat(p)
         except OSError:
             continue
         if e is None:

@@ -190,7 +190,7 @@ def is_conflict(name: str, provider: str = "") -> bool:
     return False
 
 
-def filter_paths(paths: list[str], root: str) -> tuple[list[str], dict]:
+def filter_paths(paths: list[str], root: str, stats: dict | None = None) -> tuple[list[str], dict]:
     """Beim Einlesen: Nur-online-Dateien weglassen (ausser LOAD_ONLINE), Konfliktkopien merken.
     → (paths, {"provider", "online": [...], "conflicts": [...]}); ausserhalb eines Sync-Ordners unverändert."""
     loc = locate(root)
@@ -201,7 +201,7 @@ def filter_paths(paths: list[str], root: str) -> tuple[list[str], dict]:
     for p in paths:
         if is_conflict(p, loc["provider"]):
             info["conflicts"].append(p)
-        if not LOAD_ONLINE and online_only(p):
+        if not LOAD_ONLINE and online_only(p, (stats or {}).get(p)):
             info["online"].append(p)
             continue
         keep.append(p)

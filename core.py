@@ -414,8 +414,9 @@ def _open(path, registry):
     return f
 
 
-def _load_list(paths, cache, registry, cancel, progress, offset=0, total=None, cached=None):
-    """Dateien laden – mit Listen-Cache (#70) ohne die Dateien zu öffnen, wo Grösse/Änderungszeit stimmen."""
+def _load_list(paths, cache, registry, cancel, progress, offset=0, total=None, cached=None, stats=None):
+    """Dateien laden – mit Listen-Cache (#70) ohne die Dateien zu öffnen, wo Grösse/Änderungszeit stimmen.
+    stats: {Pfad: stat} aus scan() (#326), spart das einzelne os.stat je Datei."""
     import listcache
     files, errors = [], []
     total = total or len(paths)
@@ -426,7 +427,7 @@ def _load_list(paths, cache, registry, cancel, progress, offset=0, total=None, c
             if cache is None:
                 files.append(_open(p, registry))
             else:
-                f, hit = listcache.open_file(p, cache, registry)
+                f, hit = listcache.open_file(p, cache, registry, (stats or {}).get(p))
                 files.append(f)
                 if hit and cached is not None:
                     cached.append(f)
@@ -446,17 +447,18 @@ def load_files(path, recursive, cancel=None, progress=None, registry=None, use_c
     import time
     progress = progress or (lambda m: None)
     t0 = time.time()
-    paths = scan(path, recursive, cancel, lambda n: progress(("count", n)))
+    sts = {}                                   # #326: stat aus dem Durchsuchen – kein zweiter Zugriff je Datei
+    paths = scan(path, recursive, cancel, lambda n: progress(("count", n)), stats=sts)
     cinfo = {"provider": "", "online": [], "conflicts": []}
     if os.path.isdir(path):                    # #315: Nur-online-Dateien nicht unbemerkt herunterladen
         import cloud
-        paths, cinfo = cloud.filter_paths(paths, path)
+        paths, cinfo = cloud.filter_paths(paths, path, sts)
     progress(("total", len(paths)))
     t1 = time.time()
     cache = listcache.ListCache(path) if use_cache and paths and os.path.isdir(path) else None   # einzelne Datei: immer frisch
     t2 = time.time()
     cached = []
-    files, errors = _load_list(paths, cache, registry, cancel, progress, cached=cached)
+    files, errors = _load_list(paths, cache, registry, cancel, progress, cached=cached, stats=sts)
     if stats is not None:                      # #137: Zeiten fürs App-Protokoll
         stats.update(cached=cached, caches=[cache] if cache else [], cloud=cinfo,
                      times={"scan": t1 - t0, "cache": t2 - t1, "load": time.time() - t2})
@@ -484,8 +486,9 @@ def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=Non
             if snap_loader is None:
                 raise ValueError("Snapshots sind hier nicht verfügbar.")
             snap[side], roots[side], _label = snap_loader(p, cancel, progress)
-    lpaths = scan(lp, recursive, cancel, counter(0)) if lp and snap[0] is None else []
-    rpaths = scan(rp, recursive, cancel, counter(1)) if rp and snap[1] is None else []
+    sts = {}                                   # #326: stat aus dem Durchsuchen
+    lpaths = scan(lp, recursive, cancel, counter(0), stats=sts) if lp and snap[0] is None else []
+    rpaths = scan(rp, recursive, cancel, counter(1), stats=sts) if rp and snap[1] is None else []
     total = len(lpaths) + len(rpaths)
     progress(("total", total))
     import listcache
@@ -495,7 +498,7 @@ def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=Non
         if cache is not None:
             caches.append(cache)
         fs, errs = _load_list(paths, cache, registry, cancel, progress, offset=len(lpaths) if side else 0,
-                              total=total, cached=cached)
+                              total=total, cached=cached, stats=sts)
         loaded[side].extend(fs)
         errors += errs
     if stats is not None:

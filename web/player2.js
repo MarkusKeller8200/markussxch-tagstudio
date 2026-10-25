@@ -1045,6 +1045,7 @@ async function plResume() {
     }
   } catch (e) { /* egal – dann eben leer */ }
   RESUME.done = true;
+  if (typeof startMark === "function") startMark(PLAYER.info ? "Player fortgesetzt" : "Player: nichts fortzusetzen");
   // Nur echte Änderungen speichern – konnte nichts geladen werden, bleibt der gemerkte Stand erhalten
   const st0 = plResumeState();
   RESUME.last = JSON.stringify([st0.A && st0.A.path, st0.A && Math.floor(st0.A.pos / 5), st0.A && st0.A.playing, st0.B && st0.B.path, st0.B && Math.floor(st0.B.pos / 5), st0.B && st0.B.playing]);

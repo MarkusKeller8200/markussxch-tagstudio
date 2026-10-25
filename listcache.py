@@ -237,8 +237,9 @@ class ListCache:
             pass
 
 
-def open_file(path: str, cache: ListCache | None, registry=None):
-    """MP3File laden – aus dem Cache, wenn möglich. → (MP3File, aus_cache: bool)."""
+def open_file(path: str, cache: ListCache | None, registry=None, st=None):
+    """MP3File laden – aus dem Cache, wenn möglich. → (MP3File, aus_cache: bool).
+    st: stat-Ergebnis aus dem Durchsuchen des Ordners (#326) – sonst wird die Datei einzeln abgefragt."""
     from id3tags import MP3File
     k = os.path.normcase(os.path.abspath(path))
     f = registry.get(k) if registry is not None else None
@@ -248,7 +249,7 @@ def open_file(path: str, cache: ListCache | None, registry=None):
         else:
             f = MP3File(path)
         return f, False
-    st = os.stat(path)
+    st = st if st is not None else os.stat(path)
     hit = cache.lookup(path, st)
     if f is None:
         f = MP3File.__new__(MP3File)

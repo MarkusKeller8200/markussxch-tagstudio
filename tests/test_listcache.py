@@ -70,6 +70,59 @@ class TestListCache(unittest.TestCase):
         self.load()
         self.assertEqual(sorted(listcache.ListCache(self.lib).entries), ["01.mp3", "02.mp3"])
 
+    def test_scan_stats_no_second_stat(self):
+        """#326: Grösse/Änderungszeit kommen aus dem Durchsuchen des Ordners – aus dem Cache wird keine Datei mehr
+        einzeln abgefragt (unter Windows ohne Zugriff je Datei; Netz- und USB-Laufwerke)."""
+        from unittest import mock
+        self.load()                                                # Cache anlegen
+        real = os.stat
+        calls = []
+
+        def counting(path, *a, **k):
+            if str(path).endswith(".mp3"):
+                calls.append(path)
+            return real(path, *a, **k)
+        with mock.patch.object(listcache.os, "stat", counting), mock.patch.object(core.os, "stat", counting):
+            files, st = self.load()
+        self.assertEqual(len(st["cached"]), 3)
+        self.assertEqual(calls, [])
+
+    def test_scan_order_and_stats_like_walk(self):
+        """#326: scan(recursive) liefert dieselbe Reihenfolge wie bisher (os.walk) – versteckte Ordner aussen vor,
+        Verknüpfungen auf Ordner nicht verfolgt – und je Datei das stat-Ergebnis."""
+        from compare import scan
+        root = os.path.join(self.dir, "baum")
+        for d in ("b", "A/z", "A/a", ".versteckt", "c"):
+            os.makedirs(os.path.join(root, d))
+        for f in ("x.mp3", "B.MP3", "a.mp3", "A/2.mp3", "A/1.mp3", "A/z/9.mp3", "A/a/k.mp3", ".versteckt/v.mp3",
+                  "c/t.txt", "b/.h.mp3", "b/m.mp3"):
+            with open(os.path.join(root, f), "wb") as fh:
+                fh.write(b"x" * len(f))
+        try:
+            os.symlink(os.path.join(root, "A"), os.path.join(root, "link"), target_is_directory=True)
+        except (OSError, NotImplementedError):
+            pass
+
+        def old(path):
+            out = []
+            for r, dirs, files in os.walk(path):
+                dirs[:] = sorted((d for d in dirs if not d.startswith(".")), key=str.lower)
+                out += [os.path.join(r, f) for f in sorted(files, key=str.lower)
+                        if f.lower().endswith(".mp3") and not f.startswith(".")]
+            return out
+        sts = {}
+        got = scan(root, True, stats=sts)
+        self.assertEqual(got, old(root))
+        self.assertEqual([os.path.relpath(p, root).replace(os.sep, "/") for p in got],
+                         ["a.mp3", "B.MP3", "x.mp3", "A/1.mp3", "A/2.mp3", "A/a/k.mp3", "A/z/9.mp3", "b/m.mp3"])
+        self.assertEqual(sorted(sts), sorted(got))
+        for p in got:
+            self.assertEqual((sts[p].st_size, sts[p].st_mtime_ns), (os.stat(p).st_size, os.stat(p).st_mtime_ns))
+        sts1 = {}
+        self.assertEqual(scan(os.path.join(root, "A"), False, stats=sts1), [os.path.join(root, "A", "1.mp3"),
+                                                                             os.path.join(root, "A", "2.mp3")])
+        self.assertEqual(len(sts1), 2)
+
     def test_pack_migrates_old_objects(self):
         """#137: Objekte im alten Format (je Datei) werden beim Lesen in die Packdatei übernommen."""
         self.load()

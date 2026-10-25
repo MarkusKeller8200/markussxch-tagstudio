@@ -596,7 +596,11 @@ window.addEventListener("unhandledrejection", (e) => {
 });
 
 // ====================================================================== Start
+/** #326: Schritte des Starts ins App-Protokoll (mit Zeit seit dem Programmstart) */
+function startMark(label) { callNow("start_mark", label).catch(() => {}); }
+
 async function init() {
+  startMark("Seite geladen");
   const st = await call("settings");
   S.settings = st;
   S.opts = st.options;
@@ -613,6 +617,7 @@ async function init() {
   }
   applyLayout();
   applyTheme();
+  startMark("Oberfläche bereit");
   initTips();                       // #72
   const dv = st.dev || {};                                  // Entscheid 16.10.2026: eingecheckt, weder Beta noch Release
   // #233: Developer Release zeigt die geplante Version (Basis und Änderungen im Tooltip), Beta/Final die veröffentlichte

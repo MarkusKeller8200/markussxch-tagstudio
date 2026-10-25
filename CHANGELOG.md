@@ -53,6 +53,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Behoben
 
+- **Tagger lädt schneller, besonders von Netz- und USB-Laufwerken (#326):** Grösse und Änderungszeit jeder Datei kommen
+  jetzt aus dem Durchsuchen des Ordners – Titel aus dem Zwischenspeicher werden nicht mehr einzeln abgefragt (unter
+  Windows entfällt so ein Zugriff je Datei; gilt auch für Vergleich und Snapshots-Startprüfung). Die
+  Snapshots-Startprüfung beginnt erst, wenn der Tagger geladen ist, statt gleichzeitig dieselben Dateien abzufragen.
+  Das App-Protokoll zeigt den Startablauf mit Zeiten („Startablauf: … s nach dem Start“).
 - **Neustart öffnete immer den Vergleich (#325):** nach „Neu starten“ oder einem Update startete die App im Vergleich
   und las ihn neu ein, ohne den Tagger zu laden – und blieb bei jedem weiteren Neustart dort. Jetzt öffnet sie die
   zuletzt benutzte Seite, liest den Tagger im Hintergrund ein und setzt den Player an derselben Stelle fort (gemäss

@@ -43,8 +43,10 @@ class Cancelled(Exception):
     """Einlesen wurde vom Benutzer abgebrochen."""
 
 
-def scan(path: str, recursive: bool = False, cancel=None, on_found=None) -> list[str]:
-    """Liefert alle MP3-Dateien. cancel: threading.Event (optional), on_found(n): Zwischenstand."""
+def scan(path: str, recursive: bool = False, cancel=None, on_found=None, stats: dict | None = None) -> list[str]:
+    """Liefert alle MP3-Dateien. cancel: threading.Event (optional), on_found(n): Zwischenstand.
+    stats (dict, optional): erhält je Pfad das stat-Ergebnis aus dem Verzeichniseintrag (#326) – unter Windows ohne
+    weiteren Zugriff auf die Datei; das spart beim Listen-Cache das einzelne os.stat je Titel (Netz-/USB-Laufwerke)."""
     if os.path.isfile(path):
         return [path]
     result = []
@@ -56,20 +58,47 @@ def scan(path: str, recursive: bool = False, cancel=None, on_found=None) -> list
     def is_mp3(name):
         return name.lower().endswith(".mp3") and not name.startswith(".")
 
+    def keep(entry):
+        if stats is not None:
+            try:
+                stats[entry.path] = entry.stat()
+            except OSError:
+                pass
+        result.append(entry.path)
+
     if recursive:
-        for root, dirs, files in os.walk(path):
+        # wie os.walk (von oben nach unten, Ordner und Dateien alphabetisch, keine Verknüpfungen auf Ordner folgen,
+        # nicht lesbare Ordner überspringen) – aber mit den Verzeichniseinträgen statt nur den Namen
+        stack = [path]
+        while stack:
+            top = stack.pop()
             check()
-            dirs[:] = sorted((d for d in dirs if not d.startswith(".")), key=str.lower)
-            result += [os.path.join(root, f) for f in sorted(files, key=str.lower) if is_mp3(f)]
+            dirs, files = [], []
+            try:
+                with os.scandir(top) as it:
+                    for entry in it:
+                        try:
+                            is_dir = entry.is_dir()
+                        except OSError:
+                            is_dir = False
+                        (dirs if is_dir else files).append(entry)
+            except OSError:
+                continue
+            for entry in sorted(files, key=lambda e: e.name.lower()):
+                if is_mp3(entry.name):
+                    keep(entry)
             if on_found:
                 on_found(len(result))
+            for entry in sorted((d for d in dirs if not d.name.startswith(".")), key=lambda e: e.name.lower(), reverse=True):
+                if not os.path.islink(entry.path):
+                    stack.append(entry.path)
     else:
         with os.scandir(path) as it:
             for n, entry in enumerate(sorted(it, key=lambda e: e.name.lower())):
                 if n % 200 == 0:
                     check()
                 if is_mp3(entry.name) and entry.is_file():
-                    result.append(entry.path)
+                    keep(entry)
                     if on_found and len(result) % 50 == 0:
                         on_found(len(result))
         if on_found:

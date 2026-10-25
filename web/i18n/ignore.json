@@ -481,5 +481,13 @@
 "Dropbox API v2",
 "Dropbox App Console",
 "Google Drive API v3",
-"Microsoft Graph (OneDrive)"
+"Microsoft Graph (OneDrive)",
+"Seite geladen",
+"Oberfläche bereit",
+"Player fortgesetzt",
+"Player: nichts fortzusetzen",
+"Snapshots-Startprüfung beginnt",
+"Tagger-Einlesen beginnt",
+"Tagger-Liste angezeigt ({x} Titel)",
+"Startablauf: {x} – {x} s nach dem Start"
 ]
