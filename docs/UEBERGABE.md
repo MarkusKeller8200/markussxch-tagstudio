@@ -1,8 +1,29 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-26 (Nacht): 4.12.0 – alle Issues von Meilenstein #28 im Beta-Test bzw. zur Freigabe (#186 Konzept, #321 Durchsicht)** (vorher 23:10: v4.11.0 final, Meilenstein #28 angelegt, Reihenfolge freigegeben) – Neuer Chat: Abschnitt „Übergabe-Prompt 4.12.0“ (unten); Details „Start 4.12.0“.
+Stand: **2026-10-26 (früher Morgen): 4.12.0 – Meilenstein #28 umgesetzt; geschlossen nach Test: #332, #344, #337, #340–#343, #339, #336, #338, #321; im Beta-Test: #333, #334, #335, #345–#352; #186 Konzept wartet auf I1–I6** (vorher 23:10: v4.11.0 final, Meilenstein #28 angelegt, Reihenfolge freigegeben) – Neuer Chat: Abschnitt „Übergabe-Prompt 4.12.0“ (unten); Details „Start 4.12.0“.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Sitzung 26.10.2026 (00:11–01:00) – Rückmeldungen aus dem Test
+
+- User hat getestet; geschlossen (Testliste abgehakt): #332, #344, #337, #340, #341, #342, #343, #339, #336, #338.
+  #321 übernommen („#312 – können übernommen werden“ als #321 verstanden): `third_party_check.py --apply` (bf0784e), geschlossen.
+- Neue Issues aus dem Chat, umgesetzt, `_3 Beta-Test`:
+  - **#345** „Unklare“ mit Einzel-Markierung: `purOpenList` nimmt nur markierte Zeilen (`PUR.sel`), Knopf „Markierte prüfen … (n)“.
+  - **#346** Rechtsklick auf unklaren Einkauf öffnet direkt die Korrektur (`purCorrect`); mit Shift das Menü.
+  - **#347** „⇔ Best Match“ über allen Tabellen mit verschiebbaren Spalten: `colBestMatch(table, id)` in `web/colresize.js`
+    (Wasserfüll-Verteilung, `data-nogrip`-Spalten bleiben fix).
+  - **#348** „Käufe“ → „Einkäufe“ in Oberfläche, Plugins, Doku (Ordnerpfade `Programmdaten/Käufe` bleiben!).
+  - **#349** Doppelklick auf zugeordneten Einkauf spielt ab (`session_player._resume_file` akzeptiert `_purch_has_path`).
+  - **#350** API-Tester schreibend: `services` Feld `write_test`, Endpunkte `write`, `api_call` nur mit `_confirm=="yes"`,
+    Body als JSON; Beatport `api_request` loggt Methode, URL, Kopfzeilen (Token geschwärzt), Body, Antwort – Plugin **2.1**.
+  - **#351** Einstellungen klappbar: `stFoldApply/stFoldSet/stOpenCard` (settings.js), `web_ui.st_open` (Liste offener
+    Kacheln, Standard alle zu), Knöpfe „Alle ausklappen/einklappen“. UI-Tests öffnen standardmässig alle Kacheln (ausser
+    Testname enthält `settings_fold`).
+  - **#352** Plugin-Kategorie **Shop-API**: `plugins.CATEGORIES["shop"]`, `plugin.json` `"categories"` (Zusatzkategorien,
+    `d["categories"]`/`category_labels`), Katalog trägt `categories`; Beatport **2.2** `["online","shop"]`.
+- **Offen beim User:** Label „_2%20in%20Arbeit“ wurde versehentlich angelegt (URL-kodiert) – Löschen nur nach Freigabe.
+- Beim Release: Plugin-ZIP Beatport **2.2**.
 
 ## Sitzung 25.10.2026 (Nacht) – 4.12.0 in Arbeit
 

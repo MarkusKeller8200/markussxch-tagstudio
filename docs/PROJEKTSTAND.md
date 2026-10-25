@@ -1,6 +1,11 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-26 (Nacht): **4.12.0 umgesetzt, im Beta-Test** (Meilenstein #28) – auf `main`: #332 Protokolle beim Beenden
+> Stand 2026-10-26 (früher Morgen): nach dem ersten Test geschlossen #332, #344, #337, #340–#343, #339, #336, #338, #321;
+> neu umgesetzt und im Beta-Test #345 Markierte prüfen, #346 Rechtsklick → Korrektur, #347 „Best Match“ (Spalten),
+> #348 „Einkäufe“, #349 Doppelklick spielt ab, #350 API-Tester POST/DELETE (Beatport 2.1), #351 Einstellungen klappbar,
+> #352 Kategorie Shop-API (Beatport 2.2); weiterhin im Beta-Test #333, #334, #335; #186 wartet auf I1–I6.
+>
+> Davor 2026-10-26 (Nacht): **4.12.0 umgesetzt, im Beta-Test** (Meilenstein #28) – auf `main`: #332 Protokolle beim Beenden
 > leeren, #344 Trennzeichen als Code, #337/#340 Spaltenbreite (`web/colresize.js`), #341 Vorschau-Auswahl, #342/#343
 > Ausnahmen je Feld (`web/fixerexc.js`), #339 Smart Fix (`smartfix.py`), #336 ZIP entpacken (`unzip.py`), #338 Zuweisung
 > „streng“ + Korrekturfenster, #334/#335 Beatport-Playlists (Plugin 2.0, mit echtem Konto ungeprüft), #333 Entdecken als
