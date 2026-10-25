@@ -233,6 +233,7 @@ async function whatsNew() {
   let r;
   try { r = await call("whats_new"); } catch (e) { return; }
   if (!r || !r.show) return;
+  await modalIdle();                                     // nicht über einen anderen Startdialog legen
   await modal({ title: `Neu in TagStudio ${esc(S.settings.version)}`, wide: true,
     html: `<div class="md wn">${r.parts.map((p) => `<h3>${esc(p.version)}</h3>${mdLite(p.notes)}`).join("")}</div>`,
     buttons: [{ label: "Alle Versionshinweise …", value: "all" }, { label: "OK", value: true, primary: true }] }).then((v) => { if (v === "all") showReleaseNotes(); });

@@ -164,7 +164,7 @@ async function foldersReviewDialog() {
 /** Beim Start: offene Übersicht einmal zeigen */
 async function foldersStartup() {
   try { FOLDERS.data = await call("folders_get"); } catch (e) { return; }
-  if (FOLDERS.data.review.length) foldersReviewDialog();
+  if (FOLDERS.data.review.length) { await modalIdle(); foldersReviewDialog(); }
 }
 
 (function bindFolderRoles() {

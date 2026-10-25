@@ -5,6 +5,14 @@
 // ====================================================================== Formular-Dialog
 /** Dialog mit eigenem Inhalt. buttons: [{label, value, primary}]; onMount(body) vor dem Anzeigen;
     collect(body, value) liefert das Ergebnis (oder false = Dialog bleibt offen). */
+/** Hinweise beim Start (Snapshots, Ordner, Neuigkeiten) nacheinander zeigen – ein offener Dialog wird nicht ersetzt */
+async function modalIdle(maxMs = 120000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < maxMs && (($("#modal") && !$("#modal").hidden) || ($("#wizard") && !$("#wizard").hidden))) {
+    await new Promise((ok) => setTimeout(ok, 300));
+  }
+}
+
 function modal({ title, html, buttons, wide = false, onMount, collect }) {
   return new Promise(async (resolve) => {
     // Hinweise beim Start (Snapshots, Update …) erst nach dem Einrichtungsassistenten zeigen (#167)

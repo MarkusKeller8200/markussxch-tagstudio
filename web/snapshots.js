@@ -402,6 +402,7 @@ async function initSnapshots() {
   if (typeof TG !== "undefined" && TG.autoP) await Promise.race([TG.autoP.catch(() => {}), new Promise((ok) => setTimeout(ok, 30000))]);
   if (typeof startMark === "function") startMark("Snapshots-Startprüfung beginnt");
   try { st = await call("snap_startup"); } catch (e) { return; }
+  await modalIdle();                                     // #326: nicht über einen anderen Startdialog legen
   try { snSideSize((await call("snap_overview")).total); } catch (e) { /* egal */ }
   const libs = st.libs.filter((l) => !l.missing);
   if (!st.libs.length && st.hint) {                // #78: noch kein Ordner überwacht

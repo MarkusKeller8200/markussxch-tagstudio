@@ -2050,7 +2050,13 @@ class UiTest(unittest.TestCase):
             json.dump(c, fh)
         self.server, self.url = self.start_server()
         self.pg = pg = self.page()
-        pg.wait_for_function("document.querySelector('#mTitle').textContent.includes('Diese Ordner') && !document.querySelector('#modal').hidden")
+        for _ in range(40):                                     # andere Startdialoge (Snapshots …) kommen nacheinander
+            pg.wait_for_function("!document.querySelector('#modal').hidden", timeout=15000)
+            if "Diese Ordner" in pg.inner_text("#mTitle"):
+                break
+            pg.click("#mBtns button >> nth=0")
+            time.sleep(0.3)
+        self.assertIn("Diese Ordner", pg.inner_text("#mTitle"))
         pg.click("#mBtns button >> nth=0")                      # Startdialog „Diese Ordner …“ → „Später“
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stFolders [data-freview]")
