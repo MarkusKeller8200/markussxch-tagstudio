@@ -527,7 +527,11 @@ unless the workflow has its own library folder. The **Snapshots** switch per lib
 source:** when a store plugin (e.g. Beatport) is switched on, `90_Download\Beatport` and `00_New\Beatport` are created,
 the workflow gets the source “Beatport” (fetch: download subfolder → inbox subfolder) and purchase downloads go to
 `90_Download\Beatport`; manual downloads belong in `90_Download\_Manuell`. The workflow fields inbox, work and library
-may stay empty – they then follow the roles (inbox, work, main library). “Change …” only changes the setting – files stay where they
+may stay empty – they then follow the roles (inbox, work, main library). **Cloud (OneDrive, Google Drive, Dropbox):** roles and
+libraries may lie in a folder synchronised by the desktop client – TagStudio detects it (“☁ OneDrive”), additionally
+stores the path relative to the sync folder (also valid on a second computer), skips **online-only files** (“files on
+demand”) when reading – nothing downloads unnoticed, can be switched on – and reports **conflict copies** of the client.
+Snapshots, work and backup inside a sync folder get a hint (not recommended). “Change …” only changes the setting – files stay where they
 are; “Create structure …” creates missing folders. On the first start after the update the previous settings are taken
 over; if the library was entered differently in different places, TagStudio shows the overview **“We found these
 folders”** to decide (nothing is silently dropped). Concept (German): [docs/KONZEPT-ORDNER.md](docs/KONZEPT-ORDNER.md).

@@ -63,6 +63,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         self.lock = threading.RLock()
         self._bus, self._buslock = {}, threading.Lock()       # Nachrichten zwischen Fenstern (#69)
         self._load_cfg()
+        import cloud
+        cloud.LOAD_ONLINE = bool(self.cfg.get("cloud_load_online"))          # #315
         self.pairs: list = []
         self.reg: dict = {}          # gemeinsames Dateiregister (Vergleich + Tagger): Pfad → MP3File
         self.tag_files: list = []    # Tagger
@@ -1587,7 +1589,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 n_orig = len(self.tag_files) - len(self.tag_parent)
             self.cfg["hist_tagger"] = core.history(self.cfg, "hist_tagger", path)
             core.save_config({"hist_tagger": self.cfg["hist_tagger"], "tagger_recursive": bool(recursive)})
-            return {"files": n_orig, "stems": len(with_stems), "errors": errors, **self._verify_start(stats, "tagger")}
+            return {"files": n_orig, "stems": len(with_stems), "errors": errors, **self._cloud_result([stats]),
+                    **self._verify_start(stats, "tagger")}
         return self._run("tagload", "Dateien einlesen", job)
 
     def _tag_load_libs(self):
@@ -1598,9 +1601,10 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return {"ok": False, "error": "Keine aktive Bibliothek erreichbar – Einstellungen › Speicherort und Ordner."}
 
         def job(cancel, progress):
-            files, errors, stats = [], [], {"cached": [], "caches": []}
+            files, errors, stats, per = [], [], {"cached": [], "caches": []}, []
             for r in roots:
                 st = {}
+                per.append(st)
                 got, err = core.load_files(r, True, cancel, progress, self.reg, self._list_cache_on(), st)
                 files += got
                 errors += err
@@ -1619,7 +1623,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 n_orig = len(self.tag_files) - len(self.tag_parent)
             self.cfg["hist_tagger"] = core.history(self.cfg, "hist_tagger", folders.ALL_LIBS)
             core.save_config({"hist_tagger": self.cfg["hist_tagger"]})
-            return {"files": n_orig, "stems": len(with_stems), "errors": errors,
+            return {"files": n_orig, "stems": len(with_stems), "errors": errors, **self._cloud_result(per),
                     "skipped": [f"{x['name']} – {x['why']}" for x in info["skipped"]], **self._verify_start(stats, "tagger")}
         return self._run("tagload", "Dateien einlesen", job)
 

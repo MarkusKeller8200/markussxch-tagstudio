@@ -29,6 +29,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Käufe-Downloads gehen in den Unterordner des Stores; „Struktur anlegen“ legt `_Manuell` an. Workflow-Felder
   Eingang/Arbeit/Bibliothek folgen leer den Rollen. Jede Ordnerauswahl öffnet ein Klappmenü (Bibliotheken, Rollen,
   zuletzt benutzt, Anderer/Neuer Ordner …, „als Rolle speichern“).
+- **Cloud-Sync-Ordner (#315, Weg 1):** Neues Modul `cloud.py` erkennt die Sync-Ordner von OneDrive (privat und
+  geschäftlich), Google Drive und Dropbox (Windows und macOS); Einstellungen › Ordner zeigt „☁ OneDrive“, Pfade
+  werden zusätzlich relativ zum Sync-Ordner gespeichert. Nur-online-Dateien werden beim Einlesen übersprungen und
+  gemeldet (Schalter zum Herunterladen), Konfliktkopien angezeigt; Hinweis bei Snapshots/Arbeit/Sicherung in der
+  Cloud.
 
 ## [4.9.1] – 2026-10-25
 

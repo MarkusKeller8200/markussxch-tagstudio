@@ -447,6 +447,10 @@ def load_files(path, recursive, cancel=None, progress=None, registry=None, use_c
     progress = progress or (lambda m: None)
     t0 = time.time()
     paths = scan(path, recursive, cancel, lambda n: progress(("count", n)))
+    cinfo = {"provider": "", "online": [], "conflicts": []}
+    if os.path.isdir(path):                    # #315: Nur-online-Dateien nicht unbemerkt herunterladen
+        import cloud
+        paths, cinfo = cloud.filter_paths(paths, path)
     progress(("total", len(paths)))
     t1 = time.time()
     cache = listcache.ListCache(path) if use_cache and paths and os.path.isdir(path) else None   # einzelne Datei: immer frisch
@@ -454,7 +458,7 @@ def load_files(path, recursive, cancel=None, progress=None, registry=None, use_c
     cached = []
     files, errors = _load_list(paths, cache, registry, cancel, progress, cached=cached)
     if stats is not None:                      # #137: Zeiten fürs App-Protokoll
-        stats.update(cached=cached, caches=[cache] if cache else [],
+        stats.update(cached=cached, caches=[cache] if cache else [], cloud=cinfo,
                      times={"scan": t1 - t0, "cache": t2 - t1, "load": time.time() - t2})
     return files, errors
 

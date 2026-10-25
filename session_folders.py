@@ -117,6 +117,8 @@ class FolderRolesMixin:
 
     # ------------------------------------------------------------------ Oberfläche
     def folders_get(self) -> dict:
+        import cloud
+        cloud.detect(refresh=True)                                     # #315: Seite zeigt den aktuellen Stand
         m = self._folders()
         st = folders.status(m)
         roles = []
@@ -125,7 +127,11 @@ class FolderRolesMixin:
             roles.append({"id": r["id"], "label": r["label"], "desc": r["desc"], "mode": e["mode"], "sub": e["sub"],
                           "default_sub": r["sub"], "app": bool(r.get("app")), **st["roles"][r["id"]]})
         libs = [{**x, **st["libraries"][x["id"]]} for x in m["libraries"]]
-        return {"base": m["base"], "base_exists": bool(m["base"]) and os.path.isdir(m["base"]),
+        import cloud
+        base = folders._base(m)
+        loc = cloud.locate(base) if base else None
+        return {"base": base, "base_exists": bool(base) and os.path.isdir(base), "base_cloud": loc["label"] if loc else "",
+                "cloud": {"roots": cloud.detect(), "load_online": bool(self.cfg.get("cloud_load_online"))},
                 "roles": roles, "libraries": libs, "review": m.get("review") or [],
                 "structure": folders.structure(m)}
 
@@ -208,6 +214,26 @@ class FolderRolesMixin:
             m, lib = folders.lib_add(m, "Haupt" if not m["libraries"] else
                                      (os.path.basename(os.path.normpath(path)) or "Bibliothek"), "custom", path)
         self._folders_save(folders.lib_update(m, lib["id"], main=True))
+
+    # ------------------------------------------------------------------ Cloud-Sync-Ordner (#315)
+    @staticmethod
+    def _cloud_result(stats_list) -> dict:
+        """Aus den Einlese-Statistiken: übersprungene Nur-online-Dateien und Konfliktkopien für die Oberfläche."""
+        online, conflicts, prov = [], [], ""
+        for st in stats_list:
+            c = (st or {}).get("cloud") or {}
+            online += c.get("online") or []
+            conflicts += c.get("conflicts") or []
+            prov = prov or c.get("provider") or ""
+        return {"cloud": {"provider": prov, "online": len(online), "online_examples": online[:20],
+                          "conflicts": conflicts[:200]}} if (online or conflicts) else {}
+
+    def folders_cloud_online(self, on) -> dict:
+        """Einstellung „Nur-online-Dateien beim Einlesen herunterladen“."""
+        import cloud
+        self.cfg["cloud_load_online"] = cloud.LOAD_ONLINE = bool(on)
+        core.save_config({"cloud_load_online": bool(on)})
+        return self.folders_get()
 
     # ------------------------------------------------------------------ Ordner-Klappmenü (#314)
     def folders_menu(self) -> dict:

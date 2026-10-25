@@ -140,8 +140,8 @@ def normalize(m) -> dict:
         x = {"mode": mode, "sub": clean_sub(e.get("sub"), r["sub"])}
         if mode == "custom":
             x["path"] = clean_path(e.get("path"))
-        for k in ("sync",):                              # später (Cloud Weg 2) – unverändert mitführen
-            if k in e:
+        for k in ("sync", "cloud"):                      # Cloud: Weg 2 später; „cloud“ = Pfad relativ zum Sync-Ordner
+            if k in e and isinstance(e[k], dict):
                 x[k] = e[k]
         out["roles"][r["id"]] = x
     seen = set()
@@ -158,6 +158,8 @@ def normalize(m) -> dict:
                "main": bool(e.get("main")), "snapshots": bool(e.get("snapshots", e.get("main")))}
         if mode == "custom":
             lib["path"] = clean_path(e.get("path"))
+            if isinstance(e.get("cloud"), dict):
+                lib["cloud"] = e["cloud"]
         out["libraries"].append(lib)
     mains = [x for x in out["libraries"] if x["main"]]
     for x in mains[1:]:
@@ -166,6 +168,8 @@ def normalize(m) -> dict:
         out["libraries"][0]["main"] = True
     if m.get("review"):
         out["review"] = list(m["review"])
+    if isinstance(m.get("base_cloud"), dict):
+        out["base_cloud"] = m["base_cloud"]
     return out
 
 
@@ -179,17 +183,38 @@ def _app_dir(rid: str) -> str:
     return ""
 
 
+def _cloud_path(path: str, tag) -> str:
+    """#315: gespeicherter Pfad; fehlt er auf diesem Rechner, derselbe Ordner im Sync-Ordner des Anbieters."""
+    if path and tag and not os.path.isdir(path):
+        import cloud
+        return cloud.rebuild(tag) or path
+    return path
+
+
+def _base(m: dict) -> str:
+    return _cloud_path(m["base"], m.get("base_cloud"))
+
+
 def resolve_role(m: dict, rid: str) -> str:
     e = m["roles"][rid]
     if e["mode"] == "custom":
-        return e.get("path", "")
+        return _cloud_path(e.get("path", ""), e.get("cloud"))
     if e["mode"] == "app":
         return _app_dir(rid)
-    return _join(m["base"], e["sub"])
+    return _join(_base(m), e["sub"])
 
 
 def resolve_lib(m: dict, lib: dict) -> str:
-    return lib.get("path", "") if lib["mode"] == "custom" else _join(m["base"], lib["sub"])
+    return _cloud_path(lib.get("path", ""), lib.get("cloud")) if lib["mode"] == "custom" else _join(_base(m), lib["sub"])
+
+
+def cloud_tag(path: str):
+    """Lage im Sync-Ordner zum Mitspeichern ({"provider", "rel"}) – None ausserhalb."""
+    if not path:
+        return None
+    import cloud
+    loc = cloud.locate(path)
+    return {"provider": loc["provider"], "rel": loc["rel"]} if loc else None
 
 
 def model(cfg: dict) -> dict:
@@ -226,6 +251,9 @@ def set_base(m: dict, path) -> dict:
     Basisordner – so wird aus „kein Basisordner“ die Standard-Struktur."""
     m = normalize(m)
     m["base"] = clean_path(path)
+    m.pop("base_cloud", None)
+    if cloud_tag(m["base"]):
+        m["base_cloud"] = cloud_tag(m["base"])
     if m["base"]:
         for r in ROLES:
             e = m["roles"][r["id"]]
@@ -253,8 +281,12 @@ def set_role(m: dict, rid: str, mode: str, value="") -> dict:
         if not p:
             raise ValueError("Bitte einen Ordner wählen.")
         e["path"] = p
+        e.pop("cloud", None)
+        if cloud_tag(p):
+            e["cloud"] = cloud_tag(p)
     else:
         e.pop("path", None)
+        e.pop("cloud", None)
     return m
 
 
@@ -279,6 +311,8 @@ def note_path(m: dict, rid: str, path) -> dict:
         m["roles"][rid] = {"mode": "base", "sub": spec["sub"]}
     else:
         m["roles"][rid] = {"mode": "custom", "sub": e["sub"], "path": p}
+        if cloud_tag(p):
+            m["roles"][rid]["cloud"] = cloud_tag(p)
     return m
 
 
@@ -291,6 +325,8 @@ def lib_add(m: dict, name: str, mode: str, value="", active=True) -> tuple[dict,
         lib["path"] = clean_path(value)
         if not lib["path"]:
             raise ValueError("Bitte einen Ordner wählen.")
+        if cloud_tag(lib["path"]):
+            lib["cloud"] = cloud_tag(lib["path"])
     else:
         lib["sub"] = clean_sub(value, LIB_SUB)
     p = resolve_lib(m, lib)
@@ -310,10 +346,13 @@ def lib_update(m: dict, lid: str, **kw) -> dict:
         lib["name"] = str(kw["name"]).strip()[:60] or lib["name"]
     if kw.get("mode") in ("base", "custom"):
         lib["mode"] = kw["mode"]
+        lib.pop("cloud", None)
         if kw["mode"] == "custom":
             lib["path"] = clean_path(kw.get("value"))
             if not lib["path"]:
                 raise ValueError("Bitte einen Ordner wählen.")
+            if cloud_tag(lib["path"]):
+                lib["cloud"] = cloud_tag(lib["path"])
         else:
             lib["sub"] = clean_sub(kw.get("value"), lib.get("sub") or LIB_SUB)
             lib.pop("path", None)
@@ -343,8 +382,13 @@ def status(m: dict) -> dict:
     libs = [(x, resolve_lib(m, x)) for x in m["libraries"]]
     out = {"roles": {}, "libraries": {}}
 
+    import cloud
+    roots = cloud.detect()
+
     def info(p):
-        return {"path": p, "exists": bool(p) and os.path.isdir(p), "reachable": reachable(p)}
+        loc = cloud.locate(p, roots) if p else None
+        return {"path": p, "exists": bool(p) and os.path.isdir(p), "reachable": reachable(p),
+                "cloud": loc["label"] if loc else ""}
 
     for r in ROLES:
         p = resolve_role(m, r["id"])
@@ -359,6 +403,8 @@ def status(m: dict) -> dict:
         for lib, lp in libs:
             if p and lp and (same_dir(p, lp) or inside(p, lp)):
                 hints.append(f"liegt in Bibliothek „{lib['name']}“")
+        if d["cloud"] and r["id"] in cloud.NOT_IN_CLOUD:                    # #315
+            hints.append(f"liegt in {d['cloud']} – nicht empfohlen (viele Dateien, Sperren, Konflikte)")
         d["hints"] = hints
         out["roles"][r["id"]] = d
     for lib, p in libs:

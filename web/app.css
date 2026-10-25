@@ -1717,3 +1717,4 @@ html.i18n-wait body{visibility:hidden}
 .fold-review{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 10px;margin:0 0 10px;border:1px solid var(--warn);border-radius:8px}
 .wiz-opt #fSub,.wiz-opt #fPath{margin-top:4px;width:100%}
 .wiz-opt .pl-folder{margin-top:4px}
+.fold-cloud{margin-left:4px;vertical-align:1px}

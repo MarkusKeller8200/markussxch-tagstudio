@@ -1916,6 +1916,29 @@ class UiTest(unittest.TestCase):
         self.assertIn("Beatport", [q["name"] for q in w["sources"]])
         self.assertEqual(self.errors, [])
 
+    def test_cloud_folders(self):
+        """#315: Rolle in einem Sync-Ordner → „☁ OneDrive“, Snapshots dort → Hinweis, Schalter Nur-online-Dateien."""
+        pg = self.pg
+        od = os.path.join(self.home, "OneDrive")
+        os.makedirs(os.path.join(od, "Export"))
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stFolders table")
+        pg.click('#stFolders tr[data-frole="export"] [data-fchange]')
+        pg.wait_for_selector("#fPath")
+        pg.fill("#fPath", os.path.join(od, "Export"))
+        pg.click("#mBtns .primary")
+        pg.wait_for_selector('#stFolders tr[data-frole="export"] .fold-cloud')
+        self.assertIn("OneDrive", pg.inner_text('#stFolders tr[data-frole="export"] .fold-cloud'))
+        pg.click('#stFolders tr[data-frole="snapshots"] [data-fchange]')
+        pg.wait_for_selector("#fPath")
+        pg.fill("#fPath", os.path.join(od, "Snapshots"))
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("!document.querySelector('#dialog').hidden && document.querySelector('#dlgText').textContent.includes('nicht empfohlen')")
+        pg.click("#dlgBtns button")
+        pg.check("#stFolders [data-fcloudonline]")
+        self.assertTrue(self.cfg_until(lambda c: c.get("cloud_load_online")).get("cloud_load_online"))
+        self.assertEqual(self.errors, [])
+
     def test_archive_tagger(self):
         """#173: Aussortieren im Tagger – Vorschau, verschieben, Liste neu geladen, zurückholen."""
         pg = self.pg

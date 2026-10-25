@@ -11,8 +11,8 @@ function folderHints(hints) {
     : `<span class="fold-hint ${/erreichbar|Basisordner|festgelegt/.test(h) ? "st-missing" : "muted"}">${esc(h)}</span>`).join(" ");
 }
 
-function folderPathCell(path, exists) {
-  return `<code class="fold-path ${path && !exists ? "st-missing" : ""}" title="${esc(path || "")}">${esc(path || "–")}</code>`;
+function folderPathCell(path, exists, cloud = "") {
+  return `<code class="fold-path ${path && !exists ? "st-missing" : ""}" title="${esc(path || "")}">${esc(path || "–")}</code>${cloud ? ` <span class="plg-tag fold-cloud" title="Sync-Ordner von ${esc(cloud)} – Pfad gilt auch auf einem zweiten Rechner">☁ ${esc(cloud)}</span>` : ""}`;
 }
 
 /** Ganze Karte „Speicherort und Ordner“ zeichnen (Aufruf aus settings.js) */
@@ -23,17 +23,17 @@ async function stFoldersRender() {
   FOLDERS.data = f;
   const modeTxt = (x) => `${esc(FOLDER_MODES[x.mode] || x.mode)}${x.mode === "base" && x.sub !== (x.default_sub || "01_Library") ? ` (${esc(x.sub)})` : ""}`;
   const roleRow = (r) => `<tr data-frole="${esc(r.id)}"><th scope="row" title="${esc(r.desc)}">${esc(r.label)}</th>
-      <td>${folderPathCell(r.path, r.exists)} ${folderHints(r.hints)}<div class="muted sm">${esc(r.desc)}</div>
+      <td>${folderPathCell(r.path, r.exists, r.cloud)} ${folderHints(r.hints)}<div class="muted sm">${esc(r.desc)}</div>
       <div class="fold-acts"><span class="fold-mode">${modeTxt(r)}</span><button class="ghost sm" data-fchange>Ändern …</button><button class="ghost sm" data-fopen ${r.path ? "" : "disabled"}>Öffnen</button>${r.id === "archive" ? '<button class="ghost sm" data-farchlist>Aussortierte …</button>' : ""}</div></td></tr>`;
   const libRow = (l, i) => `<tr data-flib="${esc(l.id)}">${i === 0 ? `<th scope="row" rowspan="${f.libraries.length + 1}">Bibliotheken</th>` : ""}
       <td><label class="check fold-lib"><input type="checkbox" data-factive ${l.active ? "checked" : ""} ${l.main ? "disabled" : ""} title="Aktiv: wird in Abgleichen berücksichtigt"> <b>${esc(l.name)}</b></label>${l.main ? ' <span class="plg-tag">Hauptbibliothek</span>' : `<button class="link-btn sm" data-fmain>als Hauptbibliothek</button>`}
-        <div>${folderPathCell(l.path, l.exists)} ${folderHints(l.hints)}</div>
+        <div>${folderPathCell(l.path, l.exists, l.cloud)} ${folderHints(l.hints)}</div>
         <div class="fold-acts"><span class="fold-mode">${modeTxt(l)}</span><button class="ghost sm" data-flibchange>Ändern …</button><button class="ghost sm" data-fopen ${l.path ? "" : "disabled"}>Öffnen</button><button class="ghost sm" data-flibremove ${l.main && f.libraries.length > 1 ? "disabled" : ""}>Entfernen</button>
         <label class="check sm" title="Tag-Stand täglich als Snapshot festhalten (Seite Snapshots)"><input type="checkbox" data-fsnap ${l.snapshots ? "checked" : ""}> Snapshots</label></div></td></tr>`;
   const roles = f.roles;
   const inbox = roles.filter((r) => r.id === "inbox"), rest = roles.filter((r) => r.id !== "inbox");
   box.innerHTML = `${f.review.length ? `<div class="fold-review"><span>Wir haben ${fmtN(f.review.length)} verschiedene Bibliotheks-Ordner gefunden – bitte festlegen, welche bleiben und welche die Hauptbibliothek ist.</span><button class="primary sm" data-freview>Übersicht …</button></div>` : ""}
-    <div class="st-row"><span>Basisordner</span><div><div class="pl-folder">${folderPathCell(f.base, f.base_exists)}<button class="ghost sm" data-fbase>Ändern …</button><button class="ghost sm" data-fopenbase ${f.base ? "" : "disabled"}>Öffnen</button><button class="ghost sm" data-fstruct ${f.base ? "" : "disabled"}>Struktur anlegen …</button></div>
+    <div class="st-row"><span>Basisordner</span><div><div class="pl-folder">${folderPathCell(f.base, f.base_exists, f.base_cloud)}<button class="ghost sm" data-fbase>Ändern …</button><button class="ghost sm" data-fopenbase ${f.base ? "" : "disabled"}>Öffnen</button><button class="ghost sm" data-fstruct ${f.base ? "" : "disabled"}>Struktur anlegen …</button></div>
       <div class="muted sm">${f.base ? "Rollen im Modus „Basis“ liegen hier; jede Ordnerauswahl beginnt hier." : "Kein Basisordner – alle Rollen sind eigene Ordner. Leere Rollen fragen beim ersten Gebrauch nach."}</div></div></div>
     <div class="fx-table fold-table"><table><thead><tr><th>Rolle</th><th>Ordner</th></tr></thead><tbody>
       ${inbox.map(roleRow).join("")}
@@ -41,7 +41,10 @@ async function stFoldersRender() {
       <tr class="fold-add">${f.libraries.length ? "" : '<th scope="row">Bibliotheken</th>'}<td><button class="ghost sm" data-flibadd>+ Bibliothek hinzufügen …</button></td></tr>
       ${rest.map(roleRow).join("")}
     </tbody></table></div>
-    <p class="muted sm">„Ändern …“ stellt nur die Einstellung um – vorhandene Dateien bleiben, wo sie sind. Fremde DJ-Programme werden nie verändert.</p>`;
+    <p class="muted sm">„Ändern …“ stellt nur die Einstellung um – vorhandene Dateien bleiben, wo sie sind. Fremde DJ-Programme werden nie verändert.</p>
+    <div class="st-row"><span>Cloud</span><div><div class="muted sm">${f.cloud.roots.length ? "Sync-Ordner auf diesem Rechner: " + f.cloud.roots.map((c) => `<span title="${esc(c.path)}">☁ ${esc(c.label)}</span>`).join(" · ") : "Kein Sync-Ordner von OneDrive, Google Drive oder Dropbox gefunden."}</div>
+      <label class="check sm"><input type="checkbox" data-fcloudonline ${f.cloud.load_online ? "checked" : ""}> Nur-online-Dateien beim Einlesen herunterladen</label>
+      <div class="muted sm">Aus (Standard): Titel, die nur in der Cloud liegen, werden übersprungen und gemeldet – nichts lädt unbemerkt herunter.</div></div></div>`;
   if (typeof TG !== "undefined" && TG.settings && typeof tgLibSelect === "function") {     // #311: Auswahl im Tagger auffrischen
     call("tagger_settings").then((t) => { TG.settings = t; tgLibSelect(); }).catch(() => {});
   }
@@ -154,8 +157,12 @@ async function foldersStartup() {
           : role.id === "playlists" ? "Alle Playlists werden im neuen Ordner neu geschrieben." : "";
         const r = await folderChangeDialog({ title: `Ordner „${role.label}“`, mode: role.mode, sub: role.sub, path: role.mode === "custom" ? role.path : "", base: f.base, app: role.app, defaultSub: role.default_sub, note });
         if (!r) return;
-        await call("folders_set_role", role.id, r.mode, r.value);
-        toast(`Ordner „${role.label}“ geändert.`); return void stFoldersRender();
+        const res = await call("folders_set_role", role.id, r.mode, r.value);
+        const now = res.roles.find((x) => x.id === role.id) || {};
+        const warn = (now.hints || []).find((h) => /nicht empfohlen/.test(h));       // #315: Snapshots/Arbeit/Sicherung in der Cloud
+        if (warn) info(`Ordner „${role.label}“`, `${now.path}\n\n${warn}. Besser einen Ordner ausserhalb des Sync-Ordners wählen.`);
+        else toast(`Ordner „${role.label}“ geändert.`);
+        return void stFoldersRender();
       }
       if (t.dataset.flibadd !== undefined) {
         const r = await folderChangeDialog({ title: "Bibliothek hinzufügen", mode: "custom", sub: "01_Library", path: "", base: f.base, app: false, defaultSub: "01_Library", name: f.libraries.length ? "" : "Haupt" });
@@ -183,6 +190,8 @@ async function foldersStartup() {
     } catch (x) { err(x); stFoldersRender(); }
   });
   document.addEventListener("change", async (e) => {
+    const co = e.target.closest("#stFolders [data-fcloudonline]");
+    if (co) { try { await call("folders_cloud_online", co.checked); } catch (x) { err(x); } return; }
     const c = e.target.closest("#stFolders [data-factive], #stFolders [data-fsnap]"); if (!c) return;
     const ch = c.dataset.fsnap !== undefined ? { snapshots: c.checked } : { active: c.checked };
     try { const r = await call("folders_lib_update", c.closest("tr").dataset.flib, ch); if (r.snap_note) toast(r.snap_note); } catch (x) { err(x); }

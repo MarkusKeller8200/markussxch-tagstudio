@@ -550,7 +550,12 @@ Snapshot ein bzw. aus (vorhandene Snapshots bleiben). Jede Ordnerauswahl (Tagger
 und `00_New\Beatport`, der Workflow bekommt die Quelle „Beatport“ (Abholen: Download-Unterordner → Eingangs-
 Unterordner), Käufe-Downloads landen in `90_Download\Beatport`; manuelle Downloads gehören nach
 `90_Download\_Manuell`. Workflow-Felder Eingang, Arbeit und Bibliothek dürfen leer bleiben – dann folgen sie den
-Rollen (Eingang, Arbeit, Hauptbibliothek). „Ändern …“ stellt nur die Einstellung um – Dateien bleiben, wo sie sind;
+Rollen (Eingang, Arbeit, Hauptbibliothek). **Cloud (OneDrive, Google Drive, Dropbox):** Rollen und Bibliotheken dürfen in einem
+Ordner liegen, den der Desktop-Client synchronisiert – TagStudio erkennt ihn („☁ OneDrive“), speichert den Pfad
+zusätzlich relativ zum Sync-Ordner (gilt auch auf einem zweiten Rechner), überspringt beim Einlesen **Nur-online-
+Dateien** („Dateien bei Bedarf“, nichts lädt unbemerkt herunter – auf Wunsch einschaltbar) und meldet
+**Konfliktkopien** des Clients. Snapshots, Arbeit und Sicherung im Sync-Ordner bekommen einen Hinweis (nicht
+empfohlen). „Ändern …“ stellt nur die Einstellung um – Dateien bleiben, wo sie sind;
 „Struktur anlegen …“ legt fehlende Ordner an. Beim ersten Start nach dem Update werden die bisherigen Einstellungen
 übernommen; war die Bibliothek an verschiedenen Stellen verschieden eingetragen, zeigt TagStudio die Übersicht
 **„Diese Ordner haben wir gefunden“** zur Entscheidung (nichts wird still verworfen). Konzept:

@@ -110,5 +110,17 @@
 "Quelle {q} im Workflow eingetragen.": ["Source {q} added to the workflow.", "Quelle {q} im Workflow iitreit."],
 "Elternordner nicht gefunden.": ["Parent folder not found.", "Elterordner nöd gfunde."],
 "Downloads (Unterordner je Store)": ["Downloads (subfolder per store)", "Downloads (Underordner pro Store)"],
-"Manuell": ["Manual", "Manuell"]
+"Manuell": ["Manual", "Manuell"],
+"Sync-Ordner von {x} – Pfad gilt auch auf einem zweiten Rechner": ["Sync folder of {x} – the path also works on a second computer", "Sync-Ordner vo {x} – de Pfad gilt au uf emene zweite Rächner"],
+"Sync-Ordner auf diesem Rechner:": ["Sync folders on this computer:", "Sync-Ordner uf däm Rächner:"],
+"Kein Sync-Ordner von OneDrive, Google Drive oder Dropbox gefunden.": ["No sync folder of OneDrive, Google Drive or Dropbox found.", "Kein Sync-Ordner vo OneDrive, Google Drive oder Dropbox gfunde."],
+"Cloud": ["Cloud", "Cloud"],
+"Nur-online-Dateien beim Einlesen herunterladen": ["Download online-only files when reading", "Nur-online-Dateie bim Iilese abelade"],
+"Aus (Standard): Titel, die nur in der Cloud liegen, werden übersprungen und gemeldet – nichts lädt unbemerkt herunter.": ["Off (default): tracks that only exist in the cloud are skipped and reported – nothing downloads unnoticed.", "Us (Standard): Titel, wo nur i de Cloud ligged, werded übersprunge und gmäldet – nüt ladt unbemerkt abe."],
+"{x}. Besser einen Ordner ausserhalb des Sync-Ordners wählen.": ["{x}. Better choose a folder outside the sync folder.", "{x}. Besser en Ordner usserhalb vom Sync-Ordner wähle."],
+"{x} Titel liegen nur in der Cloud ({x}) und wurden nicht eingelesen – herunterladen lassen oder in Einstellungen › Speicherort und Ordner einschalten.": ["{x} tracks exist only in the cloud ({x}) and were not read – download them or switch it on in Settings › Storage location and folders.", "{x} Titel ligged nur i de Cloud ({x}) und sind nöd iiglese worde – abelade lah oder i Iistellige › Spiicherort und Ordner iischalte."],
+"{x} Konfliktkopie(n) von {x}": ["{x} conflict cop(ies) of {x}", "{x} Konfliktkopie(n) vo {x}"],
+"Der Sync-Client hat diese Dateien als Konflikt doppelt angelegt – bitte prüfen, welche gilt:": ["The sync client created these files twice as a conflict – please check which one is valid:", "De Sync-Client hät die Dateie als Konflikt doppelt aagleit – bitte prüefe, weli gilt:"],
+"OneDrive (Geschäftlich)": ["OneDrive (Business)", "OneDrive (Gschäftlich)"],
+"liegt in {x} – nicht empfohlen (viele Dateien, Sperren, Konflikte)": ["inside {x} – not recommended (many files, locks, conflicts)", "liit i {x} – nöd empfohle (vill Dateie, Sperre, Konflikt)"]
 }

@@ -6,7 +6,9 @@ Meilenstein #26 „4.10.0 – Ordner“). Umgesetzt: **Schritt 1 (#310)** – `f
 `folders.scan_roots`, `Session._lib_roots()`/`_pl_lib_roots()`, Tagger-Kennung `@bibliotheken` (`folders.ALL_LIBS`),
 Snapshots-Schalter je Bibliothek = `auto` des überwachten Ordners im Snapshot-Speicher. **Quellen und Klappmenü
 (#314)** – `plugin.json` › `source`, `Session._folders_source_setup`, `pickFolder()` in `web/folders.js`; Workflow-Felder
-leer bzw. `@inbox`/`@work`/`@library` = Verweis auf die Rolle (`_prep_resolve`). Ergänzt
+leer bzw. `@inbox`/`@work`/`@library` = Verweis auf die Rolle (`_prep_resolve`). **Cloud Weg 1 (#315)** – `cloud.py`
+(`detect`, `locate`/`rebuild`, `online_only`, `is_conflict`, `filter_paths` in `core.load_files`); Rollen/Bibliotheken
+speichern `"cloud": {"provider", "rel"}`, der Basisordner `base_cloud`; Einstellung `cloud_load_online`. Ergänzt
 [KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md) (Programmdaten bleiben dort beschrieben) und ersetzt dessen Abschnitte 4/5,
 sobald umgesetzt.
 

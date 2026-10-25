@@ -208,6 +208,8 @@ async function tgAfterLoad(res, path, rec) {
   status(`${fmtN(res.files)} Datei(en) im Tagger${res.stems ? ` · ${fmtN(res.stems)} mit Stems (▸ aufklappen)` : ""}.`, res.files ? "ok" : "warn");
   if (typeof verifyWatch === "function") verifyWatch(res, `${fmtN(res.files)} Datei(en) im Tagger`);
   if (res.skipped && res.skipped.length) status(`Übersprungen: ${res.skipped.join(", ")}`, "warn");     // #311
+  if (res.cloud && res.cloud.online) status(`${fmtN(res.cloud.online)} Titel liegen nur in der Cloud (${res.cloud.provider}) und wurden nicht eingelesen – herunterladen lassen oder in Einstellungen › Speicherort und Ordner einschalten.`, "warn");   // #315
+  if (res.cloud && res.cloud.conflicts.length) await info(`${fmtN(res.cloud.conflicts.length)} Konfliktkopie(n) von ${res.cloud.provider}`, `Der Sync-Client hat diese Dateien als Konflikt doppelt angelegt – bitte prüfen, welche gilt:\n\n${res.cloud.conflicts.slice(0, 30).join("\n")}`);
   if (res.errors.length) await info(`${res.errors.length} Datei(en) nicht lesbar`, res.errors.slice(0, 30).join("\n"));
   if (typeof snDetect === "function" && path !== TG.settings.all_libs) snDetect(path);       // #60: mitgegebenen Snapshot-Speicher anbieten
 }
