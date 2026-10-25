@@ -27,7 +27,7 @@ import xmltools
 import blobs
 from compare import (PAIR_MODES, Rules, DEFAULT_TRIVIAL, Cancelled, diff, copy_tags, all_keys, MULTI_FIELDS,
                      INPUT_SEPARATORS, plan_multi_fix)
-from id3tags import key_label, field_name, field_help, sort_key, TEXT_LABELS, STANDARD_KEYS, MV, MV_SHOW, Cover, Item
+from id3tags import key_label, field_name, field_help, sort_key, TEXT_LABELS, STANDARD_KEYS, MV, MV_SHOW, Cover, Item, safe_mime
 from undo import UndoStack
 from version import VERSION  # einzige Versionsquelle
 from session_player import PlayerMixin
@@ -897,7 +897,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             it = f.get(k)
             if not it.cover or not it.cover.data:
                 continue
-            mime = it.cover.mime or "image/jpeg"
+            mime = safe_mime(it.cover.mime, it.cover.data)
             data = it.cover.data if len(it.cover.data) <= 4_000_000 else b""
             out.append({"key": k, "label": key_label(k), "desc": it.cover.describe(),
                         "differs": other is not None and other.get(k) != it,
@@ -1896,7 +1896,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                                     "desc": c.describe()}
                     except OSError:
                         pass
-                    return {"ok": True, "src": f"data:{c.mime or 'image/jpeg'};base64,{base64.b64encode(c.data).decode('ascii')}",
+                    return {"ok": True, "src": f"data:{safe_mime(c.mime, c.data)};base64,{base64.b64encode(c.data).decode('ascii')}",
                             "desc": c.describe()}
         return {"ok": False}
 
@@ -1936,7 +1936,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             kv["camelot"] = keys.parse_key(kv.get("value")) if not kv.get("mixed") else None
             cs = tagger.cover_summary(files)
             if cs.get("data") is not None:
-                cs["src"] = f"data:{cs['mime']};base64,{base64.b64encode(cs.pop('data')).decode('ascii')}" \
+                cs["src"] = f"data:{safe_mime(cs.get('mime'), cs['data'])};base64,{base64.b64encode(cs.pop('data')).decode('ascii')}" \
                     if len(cs["data"]) <= 4_000_000 else ""
             out["cover"] = cs
             out["features"] = features.common(files)

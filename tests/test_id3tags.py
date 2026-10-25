@@ -197,5 +197,19 @@ class TestFieldNames(unittest.TestCase):
         self.assertIn("Tonart", field_help("TKEY"))
         self.assertEqual(field_help("ZZZZ"), "")
 
+
+class TestCoverMime(unittest.TestCase):
+    """4.9.1: Bildtyp aus der Datei darf nichts in die Oberfläche bringen (data:-Adresse in <img src>)."""
+
+    def test_safe_mime(self):
+        from id3tags import Cover, safe_mime
+        png = b"\x89PNG\r\n\x1a\n" + b"0" * 20
+        self.assertEqual(Cover(png, 'image/x" onerror="alert(1)').mime, "image/png")
+        self.assertEqual(Cover(b"\xff\xd8\xff", "text/html").mime, "image/jpeg")
+        self.assertEqual(Cover(b"\xff\xd8\xff", "image/jpeg").mime, "image/jpeg")
+        self.assertEqual(safe_mime("image/svg+xml"), "image/svg+xml")
+        self.assertEqual(safe_mime("image/png<script>"), "image/jpeg")
+
+
 if __name__ == "__main__":
     unittest.main()

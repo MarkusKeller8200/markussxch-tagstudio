@@ -333,10 +333,20 @@ def _geob_parts(p: bytes):
 
 
 # =========================================================================== Cover
+_MIME_RE = re.compile(r"image/[A-Za-z0-9.+-]{1,40}")
+
+
+def safe_mime(mime, data: bytes = b"") -> str:
+    """Bildtyp für data:-Adressen – nur „image/<name>“, sonst aus den Daten erraten (Bildtyp stammt aus der Datei und
+    darf nie Anführungszeichen o. Ä. in die Oberfläche bringen)."""
+    m = str(mime or "").strip()
+    return m if _MIME_RE.fullmatch(m) else Cover.guess_mime(data or b"")
+
+
 class Cover:
     def __init__(self, data: bytes, mime: str = "", ptype: int = 3, desc: str = ""):
         self.data = data
-        self.mime = mime if mime and "/" in mime else self.guess_mime(data)
+        self.mime = safe_mime(mime, data)
         self.ptype = ptype
         self.desc = desc
 

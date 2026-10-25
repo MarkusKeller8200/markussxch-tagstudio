@@ -116,7 +116,7 @@ function renderDeck(d) {
     cv.innerHTML = ICON_NOTE; cv.title = "kein Cover";
     if (ck) call("media_cover", s.kind, s.ref, 300).then((r) => {
       if (P.coverKey !== ck) return;
-      if (r && r.src) { cv.innerHTML = `<img src="${r.src}" alt="Cover">`; cv.title = r.desc || ""; }
+      if (r && r.src) { cv.innerHTML = `<img src="${esc(r.src)}" alt="Cover">`; cv.title = r.desc || ""; }
     }).catch(() => {});
   }
   cues(d, box, s);

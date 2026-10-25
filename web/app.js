@@ -899,7 +899,7 @@ function showView(v) {
 function renderHead(el, h, side) {
   if (!h) { el.innerHTML = '<div class="head-missing">— keine Datei —</div>'; return; }
   const covers = h.covers.length
-    ? `<div class="covers">${h.covers.slice(0, 2).map((c) => `<button class="cover${c.differs ? " diff" : ""}" data-cover="${side}|${esc(c.key)}" title="${esc(c.label + " · " + c.desc + (c.differs ? " · unterscheidet sich" : ""))}" aria-label="${esc(c.label)} anzeigen">${c.src ? `<img src="${c.src}" alt="">` : ICON.image}</button>`).join("")}</div>`
+    ? `<div class="covers">${h.covers.slice(0, 2).map((c) => `<button class="cover${c.differs ? " diff" : ""}" data-cover="${side}|${esc(c.key)}" title="${esc(c.label + " · " + c.desc + (c.differs ? " · unterscheidet sich" : ""))}" aria-label="${esc(c.label)} anzeigen">${c.src ? `<img src="${esc(c.src)}" alt="">` : ICON.image}</button>`).join("")}</div>`
     : S.opts.show_covers ? `<div class="covers"><button class="cover add" data-addcover="${side}" title="Kein Cover – klicken zum Hinzufügen" aria-label="Cover hinzufügen">${ICON.note}</button></div>` : "";
   // Datum/Grösse nur im Tooltip; als Etiketten: ID3-Version, Dauer, Bitrate, Abtastrate, Kanäle
   const parts = h.info.split(/\s{2,}/).filter(Boolean).slice(2);

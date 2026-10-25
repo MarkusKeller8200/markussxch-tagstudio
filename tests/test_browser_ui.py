@@ -562,6 +562,24 @@ class UiTest(unittest.TestCase):
         self.assertFalse(c.get("stamp_added"))
         self.assertEqual(self.errors, [])
 
+    def test_cover_mime_no_script(self):
+        """4.9.1: Ein präparierter Bildtyp im Cover (APIC) bringt kein Script in die Oberfläche (Tagger, Vergleich)."""
+        from helpers import write_mp3, text, apic
+        name = sorted(f for f in os.listdir(self.lib) if f.endswith(".mp3"))[0]
+        png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+        write_mp3(os.path.join(self.lib, name), [text("TIT2", "Bild"), apic(png, mime='image/x" onerror="window.__xss=1" x="')],
+                  audio_seed=7)
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="0"] .nm')
+        pg.wait_for_function("TG.detail && TG.detail.common")
+        time.sleep(0.5)
+        self.assertIsNone(pg.evaluate("window.__xss || null"))
+        self.assertEqual(pg.evaluate("document.querySelectorAll('img[onerror]').length"), 0)
+        src = pg.evaluate("(TG.detail.cover || {}).src || ''")
+        self.assertTrue(src.startswith("data:image/png;base64,"), src[:60])
+        self.assertEqual(self.errors, [])
+
     def test_tagger_column_filter(self):
         """#202: Filter je Spalte (Text, mehrere Spalten, BPM-Bereich), Esc leert, Tasten bewerten nicht, Ausblenden."""
         pg = self.pg

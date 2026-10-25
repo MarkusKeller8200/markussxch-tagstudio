@@ -528,7 +528,7 @@ function drawTgList() {
 /** Eine Zelle der Dateiliste (#152/#154) */
 function tgCell(r, c, v, name, fit) {
   switch (c) {
-    case "name": return `<span class="fn">${LAYOUT.tg_cover_col && v.child === undefined ? `<span class="tg-thumb${r.ch ? "" : " none"}"${r.ch ? ` data-ch="${r.ch}"` : ""}>${r.ch && TG_THUMBS.get(r.ch) ? `<img src="${TG_THUMBS.get(r.ch)}" alt="">` : ""}</span>` : ""}${name}${rateMini(r.rating, r.like)}</span>`;
+    case "name": return `<span class="fn">${LAYOUT.tg_cover_col && v.child === undefined ? `<span class="tg-thumb${r.ch ? "" : " none"}"${r.ch ? ` data-ch="${r.ch}"` : ""}>${r.ch && TG_THUMBS.get(r.ch) ? `<img src="${esc(TG_THUMBS.get(r.ch))}" alt="">` : ""}</span>` : ""}${name}${rateMini(r.rating, r.like)}</span>`;
     case "TBPM": return `<span class="num">${esc(r.TBPM)}</span>`;
     case "camelot": return `<span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx" translate="no">${esc(r.TKEY)}</span>`}</span>`;
     case "len": return `<span class="num">${tgMmss(r.len)}</span>`;
@@ -799,7 +799,7 @@ async function tgThumbsLoad() {
     try { const r = await call("tag_cover_thumb", h); TG_THUMBS.set(h, r.ok ? r.src : ""); } catch (e) { TG_THUMBS.set(h, ""); }
     TG_THUMB_WAIT.delete(h);
     const src = TG_THUMBS.get(h);
-    $$(`#tgInner .tg-thumb[data-ch="${h}"]`).forEach((el) => { el.innerHTML = src ? `<img src="${src}" alt="">` : ""; });
+    $$(`#tgInner .tg-thumb[data-ch="${h}"]`).forEach((el) => { el.innerHTML = src ? `<img src="${esc(src)}" alt="">` : ""; });
   }
 }
 function tgCoverPop(e) {
@@ -807,7 +807,7 @@ function tgCoverPop(e) {
   if (!th || e.type === "mouseout") { if (pop) pop.hidden = true; return; }
   const src = TG_THUMBS.get(th.dataset.ch); if (!src) return;
   const r = th.getBoundingClientRect();
-  pop.innerHTML = `<img src="${src}" alt="">`;
+  pop.innerHTML = `<img src="${esc(src)}" alt="">`;
   pop.hidden = false;
   pop.style.left = (r.right + 8) + "px";
   pop.style.top = Math.max(8, Math.min(innerHeight - 228, r.top - 90)) + "px";
@@ -909,7 +909,7 @@ function renderTgEditor() {
     ? `<div><h3>${esc(d.file.name)}</h3><div class="tags">${d.file.info.split(/\s{2,}/).filter(Boolean).slice(1).map((p) => `<span>${esc(p)}</span>`).join("")}</div></div>`
     : `<div><h3>${d.count} Dateien gewählt</h3><div class="hint">Felder mit „verschieden“ bleiben unverändert, solange du nichts einträgst.</div></div>`;
   const c = d.cover;
-  const coverImg = c.state === "same" && c.src ? `<img src="${c.src}" alt="">` : c.state === "mixed" ? '<span class="hint">verschieden</span>' : ICON.note;
+  const coverImg = c.state === "same" && c.src ? `<img src="${esc(c.src)}" alt="">` : c.state === "mixed" ? '<span class="hint">verschieden</span>' : ICON.note;
   const form = TG.settings.fields.map(([k, label0, _ph, fname, fhelp]) => {
     const v = d.common[k];
     // #151: Feldname (wie in Mp3tag) am Ende, Erklärung beim Darüberfahren

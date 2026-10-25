@@ -16,6 +16,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Behoben
 
+- **Cover-Bildtyp (#300):** Ein präparierter Bildtyp im Cover einer MP3 konnte Script in die Oberfläche bringen.
+  Bildtypen werden jetzt geprüft (nur `image/…`, sonst aus den Daten erkannt) und Bildadressen überall maskiert.
 - **Vorbereiten (#298):** „Übernehmen“ ersetzt nie mehr eine vorhandene Datei in der Bibliothek (auch nicht mit
   „trotzdem“); Stufen-Ordner „.“/„..“ werden verworfen, „Stufen-Kopien aufräumen“ löscht nur in Stufen-Ordnern;
   externe Batch-Programme (.bat/.cmd) bekommen keine Dateinamen mit Sonderzeichen wie & oder %.

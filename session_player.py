@@ -9,7 +9,7 @@ import time
 import core
 import keys
 import ratings
-from id3tags import MV, MP3File
+from id3tags import MV, MP3File, safe_mime
 
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 
@@ -312,7 +312,7 @@ class PlayerMixin:
             return {"src": "data:image/png;base64," + base64.b64encode(png).decode("ascii"), "desc": c.describe()}
         if len(c.data) > 4_000_000:
             return {"src": ""}
-        return {"src": f"data:{c.mime or 'image/jpeg'};base64,{base64.b64encode(c.data).decode('ascii')}", "desc": c.describe()}
+        return {"src": f"data:{safe_mime(c.mime, c.data)};base64,{base64.b64encode(c.data).decode('ascii')}", "desc": c.describe()}
 
     def media_extra(self, kind, ref) -> dict:
         """Cue-Punkte (Serato, Mixed In Key) und Wellenform aus dem Cache für den Player."""
