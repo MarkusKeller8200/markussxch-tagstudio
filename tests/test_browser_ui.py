@@ -595,7 +595,11 @@ class UiTest(unittest.TestCase):
         # Darüberfahren: grosse, scharfe Vorschau (440 px, JPEG) – einmal erzeugt und abgelegt
         pg.hover("#tgInner .tg-thumb >> nth=0")
         self.assertTrue(self.until("document.querySelector('#tgThumbPop img') && document.querySelector('#tgThumbPop img').src.startsWith('data:image/jpeg')", 5))
-        self.assertTrue(os.path.isfile(os.path.join(self.home, "TagStudio", "cache", f"tg_{ch}_440.jpg")))
+        big = os.path.join(self.home, "TagStudio", "cache", f"tg_{ch}_440.jpg")
+        t0 = time.time()
+        while not os.path.isfile(big) and time.time() - t0 < 5:         # wird nach dem Anzeigen abgelegt (CI langsamer)
+            time.sleep(0.1)
+        self.assertTrue(os.path.isfile(big))
         # Blättern: während des Blätterns keine Cover zeichnen, danach wieder
         pg.evaluate("document.querySelector('#tgScroll').dispatchEvent(new Event('scroll'))")
         self.assertTrue(pg.evaluate("TG.scrolling"))
