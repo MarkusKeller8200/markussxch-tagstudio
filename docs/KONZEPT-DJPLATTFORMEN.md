@@ -141,6 +141,13 @@ Die Tabelle betrifft Integrationsmöglichkeiten **für Drittentwickler**. Intern
 - Lokal erworbene Dateien, beispielsweise FLAC, können anschliessend in TagStudio eingelesen und getaggt werden.
 - Quelle aus dem PDF: [Bandcamp Developer](https://bandcamp.com/developer).
 
+#### Amazon Music Web API (geprüft 25.10.2026)
+
+- **V1** (`api.music.amazon.dev`) und **V2** (`api.music.amazon.com`, [Übersicht V2](https://developer.amazon.com/docs/music/API_web_overview_v2.html)): beide **geschlossene Beta** – nur freigegebene Entwickler, Zugang über einen Amazon-Business-Development-Kontakt.
+- Anmeldung über Login with Amazon (OAuth 2.0); V2 zusätzlich mit Header `X-Amzn-Device-Id`, Rechte je Endpunkt (z. B. `music::catalog`, `music::library:read`).
+- Inhalt: Katalog (Alben, Künstler, Titel, Playlists), Suche, mit Erlaubnis Bibliothek und Playlists des Nutzers. **Keine** Käufe, Downloads oder Analysewerte (BPM, Tonart) dokumentiert.
+- Für TagStudio vorerst nur ein Suchlink (z. B. „Online suchen ›“, Einkaufsliste); eine Anbindung erst mit Freigabe durch Amazon.
+
 #### Qobuz API
 
 - Im PDF als eingeschränkte Schnittstelle für Katalogdaten und Musikdienste beschrieben.
