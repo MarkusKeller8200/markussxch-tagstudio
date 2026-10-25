@@ -32,6 +32,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Verbessert
 
+- **Entdecken als eigene Seite (#333):** zuoberst in der Seitenleiste mit der Zahl neuer Vorschläge; „Vorbereiten“
+  ohne Umschalter `Workflow | Entdecken`. Daten und Einstellungen von Entdecken bleiben unverändert.
+
 - **Tag-Fixer: Änderungen einzeln abwählen (#341):** Die Vorschau hat eine Häkchen-Spalte (Kopf = alle/keine,
   Umschalt-Klick für Bereiche); „Anwenden“ führt nur die angehakten Änderungen aus – eine Rückgängig-Stufe.
 
