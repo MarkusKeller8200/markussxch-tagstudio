@@ -205,6 +205,11 @@ der Kaufplattformen; „Abholen“ kopiert neue MP3 (auch aus ZIP) in den Eingan
 **Entdecken:** Unter „Folgen …“ Künstler, Labels und Beatport-Genres festlegen (oder aus der Bibliothek vorschlagen
 lassen); „Suchen“ holt neue Veröffentlichungen von Deezer und Beatport. In der Liste vorhören (▶), merken (☆), als
 gekauft markieren (✓) oder ausblenden (✕); „Öffnen“ führt zur Seite des Titels. Gekauft wird nie automatisch.
+Der Bereich **Gefolgt** zeigt alle gefolgten Künstler, Labels und Genres (von Beatport übernommene mit „BP“):
+Namen direkt hinzufügen, mit × entfernen, „Von Beatport übernehmen“ und „Ähnliche Künstler …“ (Deezer). Rechtsklick
+auf einen Vorschlag: „Künstler folgen“ / „Label folgen“. **Leeren …** entfernt neue und ausgeblendete Vorschläge
+(gemerkte und gekaufte bleiben), auf Wunsch mit neuer Suche. Titel, die unter **Käufe** stehen, sind mit „gekauft“
+markiert und erscheinen im Filter „Gekauft“.
 
 ### DJ-Set
 

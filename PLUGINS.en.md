@@ -290,7 +290,9 @@ token is renewed with client ID and secret; “Sign out” revokes it at Beatpor
 
 **Followed artists and labels (#288):** “Add followed artists and labels to Discover …” reads whom you follow on
 Beatport (“My Beatport”, `/my/beatport/artists/` and `/labels/`) and adds them to the lists in “Discover”. Existing
-ones stay, nothing is changed at Beatport.
+ones stay, nothing is changed at Beatport. The same works directly in “Discover” › Following › “Import from
+Beatport” (#291); such entries are marked “BP”. With source Beatport, “Search” also fetches the new tracks from
+“My Beatport” (`/my/beatport/tracks/`).
 
 **Purchases (#285):** the page “Purchases” uses `store_purchases(ctx)` (all purchases with title, mix, key, BPM,
 catalogue number, link, purchase date) and `store_download(ctx, items, dest)` (download missing ones into the inbox).

@@ -23,6 +23,12 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   `_3 Beta-Test`. Die OpenAPI-Beschreibung (`/v4/swagger-ui/json/`, nur mit Anmeldung) wurde im Browser des Users
   gelesen; nicht ins Repo kopiert (Copyright Beatport). Download gekaufter Dateien ist offiziell nicht vorgesehen →
   Variante 1 (bisherige Wege) mit Hinweis auf Variante 2 (Beatport-Download-Seite).
+- **#290 Käufe-Abgleich** (Rückmeldung User 04:01 „viele unklar, zwei Libraries mit gleichem Inhalt“): `LibIndex`
+  fasst dieselbe Datei unter zwei Pfaden zusammen (Dateiname + Grösse), Spalte „Hinweis“, Zeile „Verglichen mit“,
+  „Zuordnen …“ von Hand – `_3 Beta-Test`. Commits nie mit „Fixes #n“ (schliesst das Issue), sondern „Refs #n“.
+- **#291 Entdecken** (Wunsch User 04:01): Bereich „Gefolgt“ (Chips, BP-Herkunft, hinzufügen/entfernen, von Beatport
+  übernehmen, ähnliche Künstler über Deezer), Rechtsklick folgen, „Leeren …“, Vorschläge mit „Käufe“ abgeglichen
+  („gekauft“), My-Beatport-Feed `/my/beatport/tracks/` – `_3 Beta-Test`. Bei Beatport wird nie gefolgt/entfolgt.
 - Meilenstein #24 hat damit keine Issues mehr ohne Testliste; nächster Schritt: Testrückmeldungen, danach
   4.9.0-beta.1 oder final **nur nach Freigabe**. Konzept-Abschnitte 18–20 in `KONZEPT-PLAYLISTS.md`.
 

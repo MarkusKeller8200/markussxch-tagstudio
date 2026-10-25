@@ -65,6 +65,19 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
   (`purchase_date`, `order_date`, `created` …, auch aus der Bestellung um den Titel); fehlt es, stehen die Feldnamen im
   Protokoll. Die Aktionen „Gekaufte Titel abgleichen …“ und „Fehlende Käufe herunterladen …“ bleiben bestehen.
 
+## 3a. Entdecken ↔ Käufe (#291)
+
+- Beim Anzeigen von „Entdecken“ werden alle Vorschläge mit `kaeufe.json` abgeglichen (`discover.mark_purchased`):
+  gleiche Beatport-ID (`beatport:<id>`) oder gleicher Künstler (einer reicht) + Titel; haben beide einen Mix, muss er
+  gleich sein („Original Mix“ = ohne Mix). Treffer bekommen `purchased` (Kaufdatum) – nur angezeigt, nicht gespeichert,
+  damit spätere Käufe sofort und ohne neue Suche markiert sind. Filter „Gekauft“ = Status gekauft oder `purchased`.
+- Der Käufe-Speicher lädt neu, wenn `kaeufe.json` von aussen geändert wurde (Änderungszeit).
+- „Gefolgt“: `follow.bp` merkt, welche Künstler/Labels von Beatport übernommen wurden (Anzeige „BP“); Entfernen in
+  TagStudio ändert bei Beatport nichts (`POST /my/beatport/` und `delete` werden nie benutzt).
+- „Leeren …“ (`discover.clear`) behält gemerkte und gekaufte Einträge. „Ähnliche Künstler“ über Deezer
+  (`/artist/{id}/related`), „My Beatport“-Feed über `/my/beatport/tracks/` (Antwort ohne festes Schema: Einträge
+  direkt oder in `track`).
+
 ## 4. Später
 
 - Weitere Stores als Plugins: iTunes Store, Amazon, Traxsource, Bandcamp, Beatsource – soweit es eine erlaubte

@@ -179,6 +179,64 @@ class TestDiscover(Base):
         self.assertEqual([x["name"] for x in r["artists"]], ["Kai Ost", "Mara Lind"])
         self.assertEqual(r["labels"], [{"name": "Nordwerk", "count": 2}])
 
+    def test_follow_clear_purchased(self):
+        """#291: direkt folgen/entfernen, leeren, gekaufte markieren, ähnliche, My Beatport."""
+        d = discover.load()
+        self.assertTrue(discover.follow_edit(d, "artists", "Mara Lind"))
+        self.assertFalse(discover.follow_edit(d, "artists", "mara lind"))           # keine Doppelten
+        self.assertTrue(discover.follow_edit(d, "labels", "Nordwerk"))
+        d["follow"]["bp"]["labels"] = ["Nordwerk"]
+        self.assertTrue(discover.follow_edit(d, "labels", "NORDWERK", add=False))
+        self.assertEqual((d["follow"]["labels"], d["follow"]["bp"]["labels"]), ([], []))
+        with self.assertRaises(ValueError):
+            discover.follow_edit(d, "genres", "x")
+        for k, st, mix in [("beatport:900", "new", "Original Mix"), ("deezer:1", "saved", ""), ("deezer:2", "hidden", ""),
+                           ("deezer:3", "bought", ""), ("deezer:4", "new", "Club Mix")]:
+            d["items"][k] = {"key": k, "artist": "Mara Lind, Kai Ost", "title": "Golden Hour" if k != "deezer:1" else "Morgenrot",
+                             "mix": mix, "status": st}
+        bought = [{"store": "beatport", "id": "900", "title": "Anders", "artist": "X", "bought": "2026-10-01T10:00:00"},
+                  {"store": "beatport", "id": "5", "title": "Golden Hour", "mix": "Extended Mix", "artist": "Kai Ost", "bought": "2026-09-01"}]
+        self.assertEqual(discover.mark_purchased(d, bought), 3)          # 900 per ID; deezer:2/3 ohne Mix; Club Mix ≠ Extended
+        self.assertEqual(d["items"]["beatport:900"]["purchased"], "2026-10-01")
+        self.assertNotIn("purchased", d["items"]["deezer:4"])
+        self.assertEqual(discover.mark_purchased(d, []), 0)
+        self.assertNotIn("purchased", d["items"]["beatport:900"])
+        self.assertEqual(discover.clear(d), 3)                           # new, hidden, new
+        self.assertEqual(sorted(d["items"]), ["deezer:1", "deezer:3"])
+        # ähnliche Künstler über Deezer, ohne gefolgte
+        dz = lambda path, **p: {"/search/artist": {"data": [{"id": 7, "name": p.get("q")}]},  # noqa: E731
+                                "/artist/7/related": {"data": [{"name": "Kai Ost"}, {"name": "Mara Lind"}]}}[path]
+        r = discover.related_artists(["Mara Lind", "Uli Berg"], dz)
+        self.assertEqual(r, [{"name": "Kai Ost", "count": 2, "because": ["Mara Lind", "Uli Berg"]}])
+        # My Beatport: Einträge mit oder ohne Hülle „track“
+        bp = FakeBP()
+        bp.get = lambda path, **p: {"results": [{"track": {"id": 1, "name": "A", "publish_date": RECENT}},
+                                                {"id": 2, "name": "B", "publish_date": OLD}]}
+        self.assertEqual([e["key"] for e in discover.beatport_feed(bp, 60)], ["beatport:1"])
+
+    def test_session_follow_edit_clear(self):
+        from session import Session
+        s = Session()
+        ov = s.disc_follow_edit("artists", "Mara Lind", True)
+        self.assertEqual(ov["follow"]["artists"], ["Mara Lind"])
+        d = discover.load()
+        d["follow"]["bp"]["artists"] = ["Mara Lind"]
+        d["items"]["beatport:9"] = {"key": "beatport:9", "artist": "Mara Lind", "title": "T", "status": "new"}
+        d["items"]["deezer:8"] = {"key": "deezer:8", "artist": "Mara Lind", "title": "U", "status": "saved"}
+        discover.save(d)
+        s._purch().merge("beatport", "Beatport", [{"id": 9, "title": "T", "artist": "Mara Lind"}])
+        ov = s.disc_overview()
+        self.assertEqual(ov["purchased"], 1)
+        self.assertEqual(ov["counts"]["bought"], 1)
+        self.assertTrue(next(e for e in ov["items"] if e["key"] == "beatport:9")["purchased"])
+        ov = s.disc_follow_save(dict(ov["follow"], artists=["Mara Lind", "Kai Ost"]))
+        self.assertEqual(ov["follow"]["bp"]["artists"], ["Mara Lind"])     # Herkunft bleibt beim Speichern
+        ov = s.disc_clear()
+        self.assertEqual((ov["removed"], [e["key"] for e in ov["items"]]), (1, ["deezer:8"]))
+        self.assertFalse(s.start_disc_bp_follow()["ok"])                   # Beatport nicht angemeldet
+        ov = s.disc_follow_edit("artists", "mara lind", False)
+        self.assertEqual((ov["follow"]["artists"], ov["follow"]["bp"]["artists"]), (["Kai Ost"], []))
+
 
 if __name__ == "__main__":
     unittest.main()

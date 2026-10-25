@@ -23,13 +23,15 @@ function discApply(d) {
   $("#discCount").textContent = c.new ? String(c.new) : "";
   $("#discFilter").innerHTML = DISC_FILTERS.map(([k, t]) => `<button data-f="${k}" role="radio" aria-checked="${k === DISC.filter}" class="${k === DISC.filter ? "on" : ""}">${t}${k !== "all" && c[k] ? ` <span class="muted">${fmtN(c[k])}</span>` : ""}</button>`).join("");
   const f = d.follow, n = f.artists.length + f.labels.length + f.genres.length;
+  discFolRender();
   $("#discInfo").textContent = n ? `${n} gefolgt · ${d.last ? "zuletzt gesucht " + d.last.replace("T", " ").slice(0, 16) : "noch nicht gesucht"}${d.library ? "" : " · keine Bibliothek (für „vorhanden“)"}` : "Noch nichts gefolgt – „Folgen …“";
   discRender();
 }
 
 function discRows() {
   const d = DISC.d, q = ($("#discSearch").value || "").toLowerCase().trim(), hide = $("#discHideOwned").checked;
-  return d.items.filter((e) => (DISC.filter === "all" ? e.status !== "hidden" : e.status === DISC.filter)
+  return d.items.filter((e) => (DISC.filter === "all" ? e.status !== "hidden"
+      : DISC.filter === "bought" ? e.status === "bought" || (e.purchased && e.status !== "hidden") : e.status === DISC.filter)
     && !(hide && e.owned && DISC.filter !== "bought")
     && (!q || `${e.artist} ${e.title} ${e.mix} ${e.label} ${e.release}`.toLowerCase().includes(q)));
 }
@@ -44,11 +46,11 @@ function discRender() {
   }
   const src = { deezer: "Deezer", beatport: "Beatport" };
   $("#discList").innerHTML = `<table class="disc-t"><thead><tr><th></th><th></th><th>Künstler</th><th>Titel</th><th>Label</th><th>Datum</th><th>BPM · Tonart</th><th>Quelle</th><th></th></tr></thead><tbody>
-    ${rows.map((e) => `<tr data-k="${esc(e.key)}" class="st-${e.status}${e.owned ? " owned" : ""}">
+    ${rows.map((e) => `<tr data-k="${esc(e.key)}" class="st-${e.status}${e.owned ? " owned" : ""}${e.purchased ? " bought-p" : ""}">
       <td><button class="icon-btn play ${DISC.playing === e.key ? "on" : ""}" data-a="play" ${e.preview ? "" : "disabled"} title="${e.preview ? "Vorhören (Ausschnitt)" : "kein Vorhör-Ausschnitt"}" aria-label="Vorhören">${DISC.playing === e.key ? "❚❚" : "▶"}</button></td>
       <td class="cv">${e.cover ? `<img src="${esc(e.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer"><img class="big" src="${esc(e.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}</td>
       <td class="ell" title="${esc(e.artist)}">${esc(e.artist)}</td>
-      <td class="ell nm" title="${esc(e.title + (e.mix ? ` (${e.mix})` : ""))}"><b>${esc(e.title)}</b>${e.mix ? ` <span class="muted">(${esc(e.mix)})</span>` : ""}${e.status === "new" && DISC.filter !== "new" ? '<span class="disc-badge">neu</span>' : ""}${e.owned ? '<span class="disc-badge" title="Gleicher Künstler und Titel ist schon in der Bibliothek">vorhanden</span>' : ""}</td>
+      <td class="ell nm" title="${esc(e.title + (e.mix ? ` (${e.mix})` : ""))}"><b>${esc(e.title)}</b>${e.mix ? ` <span class="muted">(${esc(e.mix)})</span>` : ""}${e.status === "new" && DISC.filter !== "new" ? '<span class="disc-badge">neu</span>' : ""}${e.owned ? '<span class="disc-badge" title="Gleicher Künstler und Titel ist schon in der Bibliothek">vorhanden</span>' : ""}${e.purchased ? `<span class="disc-badge buy" title="${e.purchased === "ja" ? "Steht unter „Käufe“" : "Laut „Käufe“ gekauft am " + esc(e.purchased)}">gekauft</span>` : ""}</td>
       <td class="ell sm" title="${esc([e.label, e.release].filter(Boolean).join(" – "))}">${esc(e.label || "")}</td>
       <td class="sm nw">${esc((e.date || "").slice(0, 10))}</td>
       <td class="sm nw muted">${esc([e.bpm ? e.bpm : "", e.key_name].filter(Boolean).join(" · "))}</td>
@@ -146,6 +148,86 @@ async function discFollowDialog() {
   try { discApply(await call("disc_follow_save", res)); toast("Gespeichert – „Suchen“ holt die neuen Titel."); } catch (e) { toast(String(e.message || e)); }
 }
 
+/** Gefolgt (#291): Künstler, Labels und Genres als Chips – Beatport-Herkunft markiert, × entfernt */
+function discFolRender() {
+  const f = DISC.d.follow, bp = f.bp || { artists: [], labels: [] };
+  const low = (xs) => new Set((xs || []).map((x) => x.toLowerCase()));
+  const chips = (kind, xs, from) => xs.map((x) => `<span class="disc-chip" data-kind="${kind}" data-n="${esc(String(kind === "genres" ? x.id : x))}">${esc(kind === "genres" ? x.name : x)}${from && from.has(x.toLowerCase()) ? '<span class="bp" title="Auf Beatport gefolgt">BP</span>' : ""}<button data-x title="Nicht mehr folgen" aria-label="Nicht mehr folgen">×</button></span>`).join("");
+  const grp = (t, kind, xs, from) => xs.length ? `<div class="disc-fol-grp"><span class="lbl">${t} (${fmtN(xs.length)})</span>${chips(kind, xs, from)}</div>` : "";
+  $("#discFolList").innerHTML = (grp("Künstler", "artists", f.artists, low(bp.artists)) + grp("Labels", "labels", f.labels, low(bp.labels)) + grp("Genres", "genres", f.genres, null))
+    || '<div class="muted sm">Noch nichts gefolgt – Namen eingeben oder „Von Beatport übernehmen“.</div>';
+  $("#discFolSum").textContent = `${fmtN(f.artists.length)} Künstler · ${fmtN(f.labels.length)} Labels · ${fmtN(f.genres.length)} Genres`;
+  $("#discFolBp").disabled = !DISC.d.beatport;
+}
+
+async function discFolEdit(kind, name, add) {
+  if (kind === "genres") {
+    const f = JSON.parse(JSON.stringify(DISC.d.follow));
+    f.genres = f.genres.filter((g) => String(g.id) !== String(name));
+    discApply(await call("disc_follow_save", f));
+    return;
+  }
+  discApply(await call("disc_follow_edit", kind, name, add));
+}
+
+async function discFolAdd() {
+  const inp = $("#discFolName"), v = inp.value.trim();
+  if (!v) { inp.focus(); return; }
+  const kind = $("#discFolKind").value;
+  const had = DISC.d.follow[kind].length;
+  await discFolEdit(kind, v, true);
+  if (DISC.d.follow[kind].length === had) toast(`„${v}“ ist schon in der Liste.`);
+  inp.value = "";
+}
+
+async function discFolBeatport() {
+  const r = await runTask(call("start_disc_bp_follow"), "Beatport – gefolgte Künstler und Labels");
+  if (!r) return;
+  await discShow();
+  status(`Beatport: ${fmtN(r.artists)} Künstler und ${fmtN(r.labels)} Labels gelesen, ${fmtN(r.new_artists)} Künstler und ${fmtN(r.new_labels)} Labels neu.`, "info");
+}
+
+async function discRelated() {
+  const r = await runTask(call("start_disc_related"), "Ähnliche Künstler suchen");
+  if (!r) return;
+  if (!r.artists.length) { await info("Ähnliche Künstler", "Keine weiteren ähnlichen Künstler gefunden."); return; }
+  const pick = await modal({
+    title: "Ähnliche Künstler", html: `<p class="muted sm" style="margin:0 0 8px">Zu deinen gefolgten Künstlern ähnliche (Deezer). Gewählte werden gefolgt.</p>
+      <div class="disc-rel">${r.artists.map((a) => `<label class="check"><input type="checkbox" data-n="${esc(a.name)}"> ${esc(a.name)} <span class="muted sm">· ähnlich wie ${esc(a.because.slice(0, 3).join(", "))}${a.because.length > 3 ? " …" : ""}</span></label>`).join("")}</div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Folgen", value: true, primary: true }],
+    collect: (b) => [...b.querySelectorAll("[data-n]:checked")].map((x) => x.dataset.n),
+  });
+  if (!pick || !pick.length) return;
+  for (const n of pick) DISC.d = await call("disc_follow_edit", "artists", n, true);
+  discApply(DISC.d);
+  toast(`${fmtN(pick.length)} Künstler gefolgt – „Suchen“ holt ihre neuen Titel.`);
+}
+
+async function discClear() {
+  const v = await dialog({ title: "Vorschläge leeren", text: "Neue und ausgeblendete Vorschläge entfernen? Gemerkte und gekaufte bleiben erhalten.",
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Leeren", value: "clear" }, { label: "Leeren und neu suchen", value: "run", primary: true }] });
+  if (!v) return;
+  discStop();
+  const d = await call("disc_clear");
+  discApply(d);
+  status(`${fmtN(d.removed)} Vorschlag/Vorschläge entfernt.`, "info");
+  if (v === "run") await discRun();
+}
+
+function discRowMenu(ev, e) {
+  const f = DISC.d.follow, has = (kind, n) => f[kind].some((x) => x.toLowerCase() === n.toLowerCase());
+  const items = [];
+  e.artist.split(/\s*(?:,|&)\s*/).filter(Boolean).forEach((a) => {
+    items.push(has("artists", a) ? { label: `Künstler nicht mehr folgen: ${a}`, run: () => discFolEdit("artists", a, false) }
+      : { label: `Künstler folgen: ${a}`, run: () => discFolEdit("artists", a, true) });
+  });
+  if (e.label) items.push(has("labels", e.label) ? { label: `Label nicht mehr folgen: ${e.label}`, run: () => discFolEdit("labels", e.label, false) }
+    : { label: `Label folgen: ${e.label}`, run: () => discFolEdit("labels", e.label, true) });
+  if (!items.length) return;
+  ev.preventDefault();
+  showMenu(ev.clientX, ev.clientY, items);
+}
+
 /** Merkliste exportieren (#162) */
 function discExportMenu() {
   const b = $("#discExport").getBoundingClientRect(), c = (DISC.d && DISC.d.counts) || {};
@@ -192,6 +274,20 @@ async function discBadge(n) {
   $("#discHideOwned").addEventListener("change", () => DISC.d && discRender());
   $("#discRun").addEventListener("click", discRun);
   $("#discFollow").addEventListener("click", discFollowDialog);
+  $("#discClear").addEventListener("click", discClear);
+  $("#discFolAdd").addEventListener("click", discFolAdd);
+  $("#discFolName").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); discFolAdd(); } });
+  $("#discFolBp").addEventListener("click", discFolBeatport);
+  $("#discFolRel").addEventListener("click", discRelated);
+  $("#discFolList").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-x]"); if (!b) return;
+    const c = b.closest(".disc-chip");
+    discFolEdit(c.dataset.kind, c.dataset.n, false);
+  });
+  $("#discList").addEventListener("contextmenu", (ev) => {
+    const tr = ev.target.closest("tr[data-k]"); if (!tr) return;
+    const e = DISC.d.items.find((x) => x.key === tr.dataset.k); if (e) discRowMenu(ev, e);
+  });
   $("#discAudio").addEventListener("ended", discStop);
   $("#discList").addEventListener("click", async (ev) => {
     const b = ev.target.closest("[data-a]"); if (!b) return;

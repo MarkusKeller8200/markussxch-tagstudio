@@ -1416,6 +1416,19 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .disc-t .icon-btn{width:26px;height:26px}
 .disc-t .play.on{background:var(--acc-soft);color:var(--acc)}
 .disc-badge{font-size:10.5px;padding:0 5px;border-radius:8px;background:var(--acc-soft);color:var(--acc);margin-left:4px}
+.disc-badge.buy{background:var(--ok-soft,rgba(46,160,67,.18));color:var(--ok,#2ea043)}
+.disc-t tr.bought-p .nm b{color:var(--ok,#2ea043)}
+.disc-fol{margin:6px 0;border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--surf)}
+.disc-fol summary{cursor:pointer;padding:4px 0}
+.disc-fol-add{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+.disc-fol-add #discFolName{min-width:160px;max-width:260px;flex:1}
+.disc-fol-grp{margin:4px 0 8px}
+.disc-fol-grp>.lbl{font-size:12px;color:var(--dim);margin-right:6px}
+.disc-chip{display:inline-flex;align-items:center;gap:3px;font-size:12px;padding:1px 3px 1px 8px;margin:2px;border-radius:10px;background:var(--line)}
+.disc-chip .bp{font-size:10px;font-weight:700;padding:0 4px;border-radius:6px;background:var(--acc-soft);color:var(--acc)}
+.disc-chip button{border:0;background:none;color:var(--dim);cursor:pointer;padding:0 4px;font-size:13px;line-height:1}
+.disc-chip button:hover{color:var(--err,#d33)}
+.disc-rel{display:flex;flex-direction:column;gap:2px;max-height:50vh;overflow:auto}
 .disc-f textarea{width:100%;min-height:110px;resize:vertical}
 .disc-f .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .disc-genres{max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:var(--r);padding:6px 8px;columns:2;font-size:12.5px}

@@ -56,12 +56,24 @@ class DiscoverMixin:
             lib = ""
         return lib if lib and os.path.isdir(lib) else ""
 
+    def _disc_bought(self) -> list:
+        """Einträge der Liste „Käufe“ (#285) für die Markierung „gekauft“ (#291)."""
+        try:
+            with self.lock:
+                return list(self._purch().data["items"].values())
+        except Exception:  # noqa: BLE001 – ohne Käufe einfach nichts markieren
+            return []
+
     def disc_overview(self) -> dict:
         d = discover.load()
+        purchased = discover.mark_purchased(d, self._disc_bought())
         items = sorted(d["items"].values(), key=lambda e: (e.get("date") or "", e.get("first") or ""), reverse=True)
         counts = {k: 0 for k in discover.STATUS}
         for e in items:
-            counts[e.get("status", "new")] = counts.get(e.get("status", "new"), 0) + 1
+            st = e.get("status", "new")
+            counts[st] = counts.get(st, 0) + 1
+            if e.get("purchased") and st not in ("bought", "hidden"):
+                counts["bought"] += 1
         bp = False
         try:
             p = self.plugins.get("beatport")
@@ -69,16 +81,86 @@ class DiscoverMixin:
         except KeyError:
             pass
         return {"follow": d["follow"], "items": items, "counts": counts, "status": discover.STATUS,
-                "last": d.get("last", ""), "log": d.get("log", [])[-30:], "beatport": bp, "library": self._disc_library()}
+                "last": d.get("last", ""), "log": d.get("log", [])[-30:], "beatport": bp, "library": self._disc_library(),
+                "purchased": purchased}
+
+    def disc_follow_edit(self, kind, name, add=True) -> dict:
+        """Künstler/Label direkt in „Entdecken“ folgen bzw. entfernen (#291)."""
+        d = discover.load()
+        if discover.follow_edit(d, str(kind), str(name or ""), bool(add)):
+            discover.save(d)
+        return self.disc_overview()
+
+    def disc_clear(self) -> dict:
+        """Neue und ausgeblendete Vorschläge entfernen, gemerkte und gekaufte bleiben (#291)."""
+        d = discover.load()
+        n = discover.clear(d)
+        discover.save(d)
+        r = self.disc_overview()
+        r["removed"] = n
+        return r
+
+    def _disc_bp_plugin(self):
+        import plugins
+        p = self.plugins.get("beatport")
+        if not p.enabled or p.state() != "ready":
+            return None, None
+        mod = p.load()
+        return mod, plugins.Context(p, None)
+
+    def start_disc_bp_follow(self):
+        """Auf Beatport gefolgte Künstler und Labels holen und übernehmen (#291, nur lesen)."""
+        try:
+            mod, ctx = self._disc_bp_plugin()
+        except KeyError:
+            mod = ctx = None
+        if mod is None:
+            return {"ok": False, "error": "Plugin „Beatport“ ist aus oder nicht bereit."}
+        ok, why = mod.ready(ctx)
+        if not ok:
+            return {"ok": False, "error": f"Beatport: {why}."}
+
+        def job(cancel, progress):
+            progress(("text", "Beatport: gefolgte Künstler lesen …"))
+            arts = mod.followed(ctx, "artists")
+            progress(("text", "Beatport: gefolgte Labels lesen …"))
+            labs = mod.followed(ctx, "labels")
+            d = discover.load()
+            f = d["follow"]
+            na, nl = len(f["artists"]), len(f["labels"])
+            f["artists"] = discover._names(f["artists"] + arts)
+            f["labels"] = discover._names(f["labels"] + labs)
+            f["bp"] = {"artists": discover._names(f["bp"]["artists"] + arts), "labels": discover._names(f["bp"]["labels"] + labs)}
+            discover.save(d)
+            return {"artists": len(arts), "labels": len(labs), "new_artists": len(f["artists"]) - na,
+                    "new_labels": len(f["labels"]) - nl}
+        return self._run("disc", "Beatport: Gefolgte übernehmen", job)
+
+    def start_disc_related(self):
+        """Ähnliche Künstler zu den gefolgten (Deezer, #291)."""
+        d = discover.load()
+        if not d["follow"]["artists"]:
+            return {"ok": False, "error": "Noch keinem Künstler gefolgt."}
+        log = []
+        dz = self._disc_deezer(log.append)
+        if dz is None:
+            return {"ok": False, "error": "Für ähnliche Künstler das Plugin „Deezer“ einschalten."}
+
+        def job(cancel, progress):
+            return {"artists": discover.related_artists(d["follow"]["artists"], dz, cancel=cancel, progress=progress)}
+        return self._run("disc", "Ähnliche Künstler suchen", job)
 
     def disc_follow_save(self, follow) -> dict:
         d = discover.load()
         f = follow if isinstance(follow, dict) else {}
+        bp = d["follow"].get("bp") or {"artists": [], "labels": []}
         d["follow"] = {"artists": discover._names(f.get("artists")), "labels": discover._names(f.get("labels")),
                        "genres": [{"id": g["id"], "name": str(g.get("name") or "")} for g in f.get("genres") or []
                                   if isinstance(g, dict) and g.get("id")],
                        "days": max(1, min(3650, int(f.get("days") or 60))), "auto": bool(f.get("auto")),
                        "sources": [s for s in f.get("sources") or [] if s in ("deezer", "beatport")]}
+        keep = lambda kind: [x for x in bp.get(kind, []) if discover.norm(x) in {discover.norm(y) for y in d["follow"][kind]}]  # noqa: E731
+        d["follow"]["bp"] = {"artists": keep("artists"), "labels": keep("labels")}
         discover.save(d)
         return self.disc_overview()
 

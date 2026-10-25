@@ -10,7 +10,8 @@ Zustand in ~/TagStudio/Entdecken/entdecken.json:
   {"follow": {"artists": [...], "labels": [...], "genres": [{"id", "name"}]},
    "items": {Schlüssel: Eintrag}, "last": Zeitpunkt}
 Eintrag: key, src, id, artist, title, mix, label, date, preview, url, cover, seed, status (new|saved|hidden|bought),
-         owned (schon in der Bibliothek), first (zuerst gesehen).
+         owned (schon in der Bibliothek), first (zuerst gesehen); purchased (Kaufdatum laut „Käufe“, nur angezeigt, #291).
+follow.bp: von Beatport übernommene Künstler/Labels (Herkunft, #291).
 Nur Standardbibliothek.
 """
 from __future__ import annotations
@@ -47,7 +48,8 @@ def load() -> dict:
     d["follow"] = {"artists": _names(f.get("artists")), "labels": _names(f.get("labels")),
                    "genres": [g for g in f.get("genres") or [] if isinstance(g, dict) and g.get("id")],
                    "days": int(f.get("days") or 60), "auto": bool(f.get("auto")), "sources": [s for s in f.get("sources") or ["deezer", "beatport"]
-                                                                if s in ("deezer", "beatport")]}
+                                                                if s in ("deezer", "beatport")],
+                   "bp": _bp_origin(f.get("bp"))}
     d["items"] = d.get("items") if isinstance(d.get("items"), dict) else {}
     return d
 
@@ -73,6 +75,83 @@ def _names(xs) -> list[str]:
             seen.add(norm(x))
             out.append(x[:80])
     return out
+
+
+def _bp_origin(x) -> dict:
+    """Von Beatport übernommene Namen (#291) – nur zur Anzeige der Herkunft."""
+    x = x if isinstance(x, dict) else {}
+    return {"artists": _names(x.get("artists")), "labels": _names(x.get("labels"))}
+
+
+def follow_edit(d: dict, kind: str, name: str, add: bool = True) -> bool:
+    """Einen Künstler bzw. ein Label folgen (add) oder entfernen (#291). → geändert?"""
+    if kind not in ("artists", "labels"):
+        raise ValueError("Unbekannte Art.")
+    name = str(name or "").strip()[:80]
+    if not name:
+        return False
+    lst = d["follow"][kind]
+    have = [x for x in lst if norm(x) == norm(name)]
+    if add:
+        if have:
+            return False
+        lst.append(name)
+        return True
+    if not have:
+        return False
+    d["follow"][kind] = [x for x in lst if norm(x) != norm(name)]
+    bp = d["follow"].get("bp") or {}
+    if kind in bp:
+        bp[kind] = [x for x in bp[kind] if norm(x) != norm(name)]
+    return True
+
+
+def clear(d: dict, keep=("saved", "bought")) -> int:
+    """Vorschläge leeren (#291): alles außer gemerkten und gekauften entfernen. → Anzahl entfernt."""
+    before = len(d["items"])
+    d["items"] = {k: e for k, e in d["items"].items() if e.get("status") in keep}
+    d.pop("auto_new", None)
+    return before - len(d["items"])
+
+
+def _artists(s) -> set:
+    return {norm(a) for a in re.split(r"\s*(?:,|&|\bfeat\.?|\bft\.?|\bvs\.?| / )\s*", str(s or ""), flags=re.I) if a.strip()}
+
+
+def _mix(s) -> str:
+    m = norm(s)
+    return "" if m in ("original mix", "original") else m
+
+
+def mark_purchased(d: dict, bought) -> int:
+    """Vorschläge mit der Liste „Käufe“ abgleichen (#291): gleiche Beatport-ID oder gleicher Künstler + Titel (+ Mix,
+    wenn beide einen haben) → e["purchased"] = Kaufdatum (oder "ja"). bought: Einträge aus purchases.Store. → Anzahl."""
+    ids, names = {}, {}
+    for it in bought or []:
+        if not isinstance(it, dict):
+            continue
+        when = (it.get("bought") or "")[:10] or "ja"
+        if it.get("store") == "beatport" and it.get("id"):
+            ids[f"beatport:{it['id']}"] = when
+        t = norm(it.get("title"))
+        for a in _artists(it.get("artist")):
+            names.setdefault((a, t), []).append((_mix(it.get("mix")), when))
+    n = 0
+    for e in d["items"].values():
+        when = ids.get(e["key"])
+        if not when:
+            t, mx = norm(e.get("title")), _mix(e.get("mix"))
+            for a in _artists(e.get("artist")):
+                hit = next((w for m, w in names.get((a, t), []) if not m or not mx or m == mx), None)
+                if hit:
+                    when = hit
+                    break
+        if when:
+            e["purchased"] = when
+            n += 1
+        else:
+            e.pop("purchased", None)
+    return n
 
 
 def norm(s) -> str:
@@ -294,6 +373,30 @@ def deezer_related(name: str, n=8, dz=None) -> list[str]:
     return [a.get("name", "") for a in (dz(f"/artist/{hit['id']}/related", limit=n).get("data") or []) if a.get("name")]
 
 
+def related_artists(follow: list[str], dz=None, per=8, limit=30, cancel=None, progress=None) -> list[dict]:
+    """Ähnliche Künstler zu den gefolgten (#291, Deezer) – ohne bereits gefolgte, häufigste zuerst.
+    → [{"name", "count", "because": [gefolgte Künstler]}]"""
+    have = {norm(a) for a in follow}
+    agg: dict[str, dict] = {}
+    for i, a in enumerate(follow[:40], 1):
+        if cancel is not None and cancel.is_set():
+            break
+        if progress:
+            progress(("progress", i, min(len(follow), 40), f"Deezer: ähnlich wie {a}"))
+        try:
+            rel = deezer_related(a, per, dz)
+        except Exception:  # noqa: BLE001 – einzelner Künstler darf nicht stören
+            continue
+        for r in rel:
+            k = norm(r)
+            if not k or k in have:
+                continue
+            x = agg.setdefault(k, {"name": r, "count": 0, "because": []})
+            x["count"] += 1
+            x["because"].append(a)
+    return sorted(agg.values(), key=lambda x: (-x["count"], x["name"].lower()))[:limit]
+
+
 # =========================================================================== Beatport (über den Client des Plugins)
 def _bp_entry(t: dict, seed: str) -> dict | None:
     if not isinstance(t, dict) or not t.get("id"):
@@ -344,6 +447,19 @@ def beatport_label(client, name: str, days: int, log=None) -> list[dict]:
     return [e for e in (_bp_entry(t, f"Label {name}") for t in _bp_list(res)) if e and _recent(e["date"], days)]
 
 
+def beatport_feed(client, days: int, log=None) -> list[dict]:
+    """„My Beatport“ (#291): neue Titel gefolgter Künstler/Labels – GET /my/beatport/tracks/ (nur lesen)."""
+    out = []
+    for page in (1, 2, 3):
+        res = client.get("/my/beatport/tracks/", page=page, per_page=100)
+        rows = [r.get("track") if isinstance(r.get("track"), dict) else r for r in _bp_list(res)]
+        es = [e for e in (_bp_entry(t, "My Beatport") for t in rows) if e]
+        out += [e for e in es if _recent(e["date"], days)]
+        if len(rows) < 100 or (es and not _recent(es[-1]["date"], days)):
+            break
+    return out
+
+
 def beatport_genre(client, gid, name: str) -> list[dict]:
     res = client.get(f"/catalog/genres/{gid}/top/100/")
     return [e for e in (_bp_entry(t, f"Top 100 {name}") for t in _bp_list(res)) if e]
@@ -369,6 +485,7 @@ def run(d: dict, bp_client=None, log=None, progress=None, cancel=None, dz=_dz) -
         jobs += [("Beatport", lab, lambda lab=lab: beatport_label(bp_client, lab, days, log)) for lab in f["labels"]]
         jobs += [("Beatport", g.get("name", ""), lambda g=g: beatport_genre(bp_client, g["id"], g.get("name", "")))
                  for g in f["genres"]]
+        jobs.append(("Beatport", "My Beatport", lambda: beatport_feed(bp_client, days, log)))
     found = []
     for i, (src, what, fn) in enumerate(jobs, 1):
         if cancel is not None and cancel.is_set():

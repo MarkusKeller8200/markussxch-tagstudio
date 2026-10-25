@@ -449,8 +449,18 @@
             <div class="seg sm" id="discFilter" role="radiogroup" aria-label="Anzeigen"></div>
             <input id="discSearch" class="inp" type="search" placeholder="Suchen (Künstler, Titel, Label)" aria-label="Suchen">
             <label class="check sm" title="Titel, die schon in der Bibliothek sind (gleicher Künstler und Titel), ausblenden"><input type="checkbox" id="discHideOwned" checked> vorhandene ausblenden</label>
-            <span class="disc-acts"><button class="ghost" id="discExport" aria-haspopup="menu" title="Merkliste als Excel oder CSV speichern">Exportieren ▾</button><button class="ghost" id="discFollow">Folgen …</button><button class="primary" id="discRun" title="Neue Titel bei Deezer und Beatport suchen">Suchen</button></span>
+            <span class="disc-acts"><button class="ghost" id="discExport" aria-haspopup="menu" title="Merkliste als Excel oder CSV speichern">Exportieren ▾</button><button class="ghost" id="discFollow">Folgen …</button><button class="ghost" id="discClear" title="Neue und ausgeblendete Vorschläge entfernen – gemerkte und gekaufte bleiben">Leeren …</button><button class="primary" id="discRun" title="Neue Titel bei Deezer und Beatport suchen">Suchen</button></span>
           </div>
+          <details class="disc-fol" id="discFol"><summary><b>Gefolgt</b> <span class="muted sm" id="discFolSum"></span></summary>
+            <div class="disc-fol-add">
+              <select id="discFolKind" aria-label="Art"><option value="artists">Künstler</option><option value="labels">Label</option></select>
+              <input id="discFolName" class="inp" type="text" placeholder="Name hinzufügen" aria-label="Name hinzufügen">
+              <button class="ghost sm" id="discFolAdd">Hinzufügen</button>
+              <button class="ghost sm" id="discFolBp" title="Auf Beatport gefolgte Künstler und Labels übernehmen (nur lesen)">Von Beatport übernehmen</button>
+              <button class="ghost sm" id="discFolRel" title="Zu den gefolgten Künstlern ähnliche vorschlagen (Deezer)">Ähnliche Künstler …</button>
+            </div>
+            <div id="discFolList"></div>
+          </details>
           <div class="muted sm" id="discInfo"></div>
           <div class="prep-table card" id="discList"></div>
           <audio id="discAudio" preload="none"></audio>

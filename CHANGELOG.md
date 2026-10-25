@@ -27,6 +27,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   bisherige Anmeldung bleibt als „inoffizieller Ausweichweg“. Das Integrationsfenster listet alle Endpunkte der
   offiziellen Beschreibung (catalog, my, curation) mit Status; genutzt werden nur dokumentierte Endpunkte, ausser
   beim Download gekaufter Dateien. Konto über `GET /my/account/`.
+- **Entdecken verbessert (#291):** Bereich „Gefolgt“ mit allen gefolgten Künstlern, Labels und Genres (von Beatport
+  übernommene mit „BP“) – direkt hinzufügen, mit × entfernen, „Von Beatport übernehmen“, „Ähnliche Künstler …“
+  (Deezer); Rechtsklick auf einen Vorschlag „Künstler folgen“ / „Label folgen“; „Leeren …“ (gemerkte und gekaufte
+  bleiben, wahlweise gleich neu suchen); Vorschläge, die unter „Käufe“ stehen, sind als „gekauft“ markiert; neue Titel
+  aus „My Beatport“ als Vorschläge.
 - **Käufe: Abgleich (#290):** dieselbe Datei unter zwei Pfaden zählt nur einmal (weniger „unklar“, auch bei
   Playlists), Spalte „Hinweis“ mit dem Grund, Zeile „Verglichen mit …“, „Zuordnen …“ von Hand.
 - **Käufe (#285):** neue Seite „Käufe“ – gekaufte Titel aller Stores (vorerst Beatport) in einer Tabelle mit Titel,

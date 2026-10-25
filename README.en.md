@@ -201,7 +201,11 @@ new MP3s (from ZIPs too) into the inbox.
 
 **Discover:** under “Follow …” set artists, labels and Beatport genres (or have them suggested from the library);
 “Search” fetches new releases from Deezer and Beatport. In the list, pre-listen (▶), remember (☆), mark as bought (✓)
-or hide (✕); “Open” leads to the track's page. Nothing is ever bought automatically.
+or hide (✕); “Open” leads to the track's page. Nothing is ever bought automatically. The section **Following**
+shows all followed artists, labels and genres (those imported from Beatport marked “BP”): add names directly, remove
+with ×, “Import from Beatport” and “Similar artists …” (Deezer). Right-click a suggestion: “Follow artist” / “Follow
+label”. **Clear …** removes new and hidden suggestions (watch-listed and bought ones stay), optionally searching
+again. Tracks listed under **Purchases** are marked “bought” and appear in the filter “Bought”.
 
 ### DJ set
 

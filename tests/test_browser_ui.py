@@ -1587,6 +1587,51 @@ class UiTest(unittest.TestCase):
         pg.click('#prepTabs [data-ptab="wf"]')
         self.assertTrue(pg.locator("#discPane").is_hidden())
 
+    def test_discover_follow_clear(self):
+        """#291: Gefolgte anzeigen/bearbeiten, gekaufte markieren, Rechtsklick folgen, Leeren."""
+        pg = self.pg
+        d = os.path.join(self.home, "TagStudio", "Entdecken")
+        os.makedirs(d, exist_ok=True)
+        items = {f"beatport:{i}": {"key": f"beatport:{i}", "src": "beatport", "id": str(i), "artist": "Mara Lind", "title": f"Titel {i}",
+                                   "mix": "", "label": "Nordwerk", "date": "2026-10-0%d" % i, "preview": "", "url": "https://www.beatport.com/track/x/1",
+                                   "status": "saved" if i == 3 else "new", "owned": False, "first": "2026-10-11T10:00:00"} for i in (1, 2, 3)}
+        with open(os.path.join(d, "entdecken.json"), "w", encoding="utf-8") as fh:
+            json.dump({"follow": {"artists": ["Mara Lind", "Kai Ost"], "bp": {"artists": ["Mara Lind"]}}, "items": items}, fh)
+        k = os.path.join(self.home, "TagStudio", "Käufe")
+        os.makedirs(k, exist_ok=True)
+        with open(os.path.join(k, "kaeufe.json"), "w", encoding="utf-8") as fh:
+            json.dump({"format": 1, "stores": {}, "items": {"beatport:1": {"store": "beatport", "id": "1", "title": "Titel 1",
+                       "artist": "Mara Lind", "bought": "2026-10-05T10:00:00", "status": "missing"}}}, fh)
+        pg.click('.nav[data-module="prep"]')
+        pg.wait_for_function("PREP.d && PREP.d.workflow")
+        pg.click('#prepTabs [data-ptab="disc"]')
+        pg.wait_for_function("DISC.d && DISC.d.items.length === 3")
+        pg.click("#discFol summary")
+        self.assertEqual(pg.locator('#discFolList .disc-chip[data-kind="artists"]').count(), 2)
+        self.assertEqual(pg.locator('#discFolList .disc-chip[data-n="Mara Lind"] .bp').count(), 1)    # von Beatport
+        self.assertEqual(pg.locator('#discFolList .disc-chip[data-n="Kai Ost"] .bp').count(), 0)
+        # gekaufte markiert, Filter „Gekauft“
+        self.assertIn("gekauft", pg.inner_text('#discList tr[data-k="beatport:1"]'))
+        pg.click('#discFilter [data-f="bought"]')
+        self.assertEqual(pg.locator("#discList tbody tr").count(), 1)
+        pg.click('#discFilter [data-f="new"]')
+        # Label direkt hinzufügen, Künstler mit × entfernen
+        pg.select_option("#discFolKind", "labels")
+        pg.fill("#discFolName", "Drumcode")
+        pg.press("#discFolName", "Enter")
+        pg.wait_for_function("DISC.d.follow.labels.length === 1")
+        pg.click('#discFolList .disc-chip[data-n="Kai Ost"] [data-x]')
+        pg.wait_for_function("DISC.d.follow.artists.length === 1")
+        # Rechtsklick: Label folgen
+        pg.click('#discList tr[data-k="beatport:2"]', button="right")
+        pg.click('#menu button:has-text("Label folgen: Nordwerk")')
+        pg.wait_for_function("DISC.d.follow.labels.length === 2")
+        # Leeren: neue weg, gemerkte bleibt
+        pg.click("#discClear")
+        pg.click('#dialog button:has-text("Leeren") >> nth=0')
+        pg.wait_for_function("DISC.d.items.length === 1")
+        self.assertEqual(pg.evaluate("DISC.d.items[0].key"), "beatport:3")
+
     def test_profiles(self):
         """#164/#165: Profil anlegen in den Einstellungen, Profilwahl beim Start (gleiches Profil → kein Neustart)."""
         pg = self.pg

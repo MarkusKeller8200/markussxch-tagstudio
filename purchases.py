@@ -77,10 +77,20 @@ class Store:
         self.root = root
         self.path = os.path.join(root, "kaeufe.json")
         self._data: dict | None = None
+        self._mtime = None
+
+    def _stamp(self):
+        try:
+            return os.path.getmtime(self.path)
+        except OSError:
+            return None
 
     @property
     def data(self) -> dict:
+        if self._data is not None and self._stamp() != self._mtime:     # von außen geändert (anderes Fenster, Test)
+            self._data = None
         if self._data is None:
+            self._mtime = self._stamp()
             try:
                 with open(self.path, encoding="utf-8") as fh:
                     d = json.load(fh)
@@ -100,6 +110,7 @@ class Store:
         with open(tmp, "w", encoding="utf-8") as fh:
             json.dump(self.data, fh, ensure_ascii=False, indent=1)
         os.replace(tmp, self.path)
+        self._mtime = self._stamp()
 
     def items(self) -> list[dict]:
         return list(self.data["items"].values())

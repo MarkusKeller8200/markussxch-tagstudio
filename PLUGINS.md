@@ -294,7 +294,9 @@ Passwort nie. Das Token wird mit Client-ID und Secret erneuert; „Abmelden“ z
 
 **Gefolgte Künstler und Labels (#288):** „Gefolgte Künstler und Labels in „Entdecken“ übernehmen …“ liest, wem du
 auf Beatport folgst („My Beatport“, `/my/beatport/artists/` und `/labels/`), und ergänzt die Listen in „Entdecken“.
-Vorhandene bleiben, bei Beatport wird nichts geändert.
+Vorhandene bleiben, bei Beatport wird nichts geändert. Dasselbe geht direkt in „Entdecken“ › Gefolgt › „Von Beatport
+übernehmen“ (#291); dort sind solche Einträge mit „BP“ markiert. Mit Quelle Beatport holt „Suchen“ zusätzlich die
+neuen Titel aus „My Beatport“ (`/my/beatport/tracks/`).
 
 **Käufe (#285):** Die Seite „Käufe“ nutzt `store_purchases(ctx)` (alle Käufe mit Titel, Mix, Tonart, BPM,
 Katalognummer, Link, Kaufdatum) und `store_download(ctx, items, dest)` (fehlende in den Eingangsordner laden).
