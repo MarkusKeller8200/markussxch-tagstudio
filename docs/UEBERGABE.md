@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-25 (Abend): 4.11.0 umgesetzt, alle 14 Issues im Beta-Test** – siehe „Sitzung 25.10.2026 (Abend)“. Davor (17:05): 4.10.0 final veröffentlicht; 4.11.0 vorbereitet – Meilenstein #27 „4.11.0 – Cloud, SonoVault & Verbesserungen“ mit allen Entscheiden, siehe „Start 4.11.0“ und „Übergabe-Prompt 4.11.0“.
+Stand: **2026-10-25 (Abend, 18:40): 4.11.0 umgesetzt, alle 17 Issues im Beta-Test** (dazu #323–#325 aus dem Chat 18:07) – siehe „Sitzung 25.10.2026 (Abend)“. Davor (17:05): 4.10.0 final veröffentlicht; 4.11.0 vorbereitet – Meilenstein #27 „4.11.0 – Cloud, SonoVault & Verbesserungen“ mit allen Entscheiden, siehe „Start 4.11.0“ und „Übergabe-Prompt 4.11.0“.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -26,7 +26,17 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   `packaging/build.py` › `HIDDEN` eintragen (nicht angefasst, wie bei 4.10.0).
 - Lokal nicht erreichbar: PyPI (Proxy sperrt), sonovault.now, Microsoft/Google/Dropbox – alles mit nachgebauten Diensten
   getestet. Echte Tests nur mit Schlüssel/Client-ID des Users.
-- Offen für den User: Testlisten in #107, #222, #253–#258, #304, #309, #317–#320.
+- **Nachtrag 18:07 (Chat):** drei neue Issues im Meilenstein #27, umgesetzt und im Beta-Test:
+  - **#323** Plugin-Kategorie `cloud` („Cloud-API“, Wolken-Symbol, Farbe `--triv-acc`) für OneDrive/Google Drive/
+    Dropbox (je 1.1); `plugins.CATEGORIES`, `PL_CAT_ORDER/ICON/LABEL`.
+  - **#324** Einstellungen › **Cloud** als eigene Karte (`#stCloudCard`, `stCloudCardRender` in `folders.js`):
+    Sync-Ordner, „Nur-online-Dateien“, Abgleich über die Dienste; Tabelle mit Kopfzeile Bereich · Dienst · Richtung ·
+    Ordner im Dienst, Gruppen Ordner-Rollen/Programmdaten, volle Kartenbreite. Texte „Einstellungen › Cloud“ nachgeführt.
+  - **#325 (Fehler)** Neustart/Update startete immer im Vergleich: `Api.restart` gab die Vergleichsordner als Startpfade
+    mit (→ Vergleich, kein Tagger, Player sofort per Pfad) – jetzt `_restart_cmd()` nur noch mit Pfaden, wenn
+    `web_ui.module == "compare"`; doppelte `--browser` entfernt. Oberflächentest `test_restart_keeps_last_page` mit
+    echtem Neustart.
+- Offen für den User: Testlisten in #107, #222, #253–#258, #304, #309, #317–#320, #323–#325.
 
 ## Start 4.11.0 (vorbereitet 25.10.2026, 17:05)
 
