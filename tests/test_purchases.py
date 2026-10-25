@@ -148,3 +148,33 @@ class TestCorrectSession(unittest.TestCase):
         self.assertEqual((f.text("TIT2"), f.text("TIT3")), ("Nordlicht", "Extended Mix"))
         it = s._purch().data["items"][key]
         self.assertEqual((it["status"], it["file"], it.get("linked")), ("library", r["path"], True))
+
+
+class TestBeatportPlaylistPlan(TestCorrectSession):
+    """#334/#335: Aufteilung in Playlists (je 100, je Kaufdatum) – ohne Beatport (Plugin nur nachgebildet)."""
+
+    def test_plan(self):
+        from session import Session
+        s = Session()
+        st = s._purch()
+        items = [{"id": i, "title": f"T{i}", "artist": "A", "bought": f"2026-10-{20 + i % 2} 10:00:00"} for i in range(1, 231)]
+        items.append({"id": 999, "title": "Vorab", "artist": "A", "preorder": True, "bought": "2026-10-22"})
+        st.merge("beatport", "Beatport", items)
+        for it in st.data["items"].values():
+            it["status"] = "missing"
+        calls = []
+        s.plugins.call_playlist = lambda pid, fn, *a, **kw: calls.append((fn, a)) or (
+            {"playlists_write": True, "buy_prefix": "TagStudio_BUY_"} if fn == "store_settings" else {})
+        pv = s.purch_dl_playlist_preview()
+        self.assertEqual((pv["count"], [c["count"] for c in pv["chunks"]]), (230, [100, 100, 30]))   # ohne Vorbestellung
+        self.assertTrue(pv["chunks"][2]["name"].startswith("TagStudio_DOWNLOAD_") and pv["chunks"][2]["name"].endswith("_3"))
+        keys = list(st.data["items"])[:3]
+        self.assertEqual(s.purch_dl_playlist_preview(keys)["count"], 3)
+        b = s.purch_buy_playlists_preview()
+        self.assertEqual([(r["name"], r["count"]) for r in b["rows"]],
+                         [("TagStudio_BUY_2026_10_21", 100), ("TagStudio_BUY_2026_10_21_2", 15),
+                          ("TagStudio_BUY_2026_10_20", 100), ("TagStudio_BUY_2026_10_20_2", 15)])
+        b = s.purch_buy_playlists_preview(None, "2026-10-21", "2026-10-21")
+        self.assertEqual({r["date"] for r in b["rows"]}, {"2026-10-21"})
+        s.plugins.call_playlist = lambda *a, **kw: (_ for _ in ()).throw(ValueError("Plugin aus"))
+        self.assertFalse(s.purch_bp_settings()["available"])

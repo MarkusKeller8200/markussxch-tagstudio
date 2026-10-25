@@ -113,6 +113,23 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
   (`purch_fix_file`: speichern mit Sicherung wie „Speichern“, Umbenennen nie überschreibend, danach Prüfung gegen genau
   diese Datei, bei Erfolg zuordnen), „Datei wählen …“, „Weiter ›“ zum nächsten unklaren/fehlenden Kauf (Tabellen-Reihenfolge).
 
+## 3d. Playlists in Beatport (#334, #335, 4.12.0)
+
+- **Entscheid User 25.10.2026 (23:06):** im Beatport-Plugin aktivierbar, Standard aus (Plugin 2.0: „Einstellungen …“ ›
+  `playlists_write`, `buy_prefix`; Datei `settings.json` im Plugin-Ordner).
+- **API:** Die offizielle Beschreibung listet für eigene Playlists `GET /my/playlists/` und `POST …/tracks/bulk/`;
+  Anlegen (`POST /my/playlists/`) und Löschen sind nicht sicher dokumentiert. Deshalb prüft das Plugin vor dem ersten
+  Schreiben per `OPTIONS` (Django REST: `Allow` und `actions` mit Feldnamen), was erlaubt ist – „Schreibzugriff
+  prüfen“ zeigt es; ohne Erlaubnis eine klare Meldung. Feldnamen (`name`, `track_ids`) aus den `actions`, sonst
+  Standard. **Mit dem echten Konto noch nicht geprüft** – erster Test beim User.
+- **Download Tracks:** Käufe fehlt/unklar ohne Vorbestellung (bzw. markierte) → `TagStudio_DOWNLOAD_<JJJJ-MM-TT>_<n>`
+  je 100; gleichnamige wird ersetzt (Titel entfernen, falls erlaubt), übrige vom selben Tag geleert; „Aufräumen“ löscht
+  alle `TagStudio_DOWNLOAD_…` nach Rückfrage.
+- **Je Kaufdatum:** `<Präfix><JJJJ_MM_TT>` (über 100 am Tag: `_2` …), vorhandene nur ergänzen. Präfix beginnt immer
+  mit `TagStudio_` (Schutz anderer Playlists), Zeitraum wählbar.
+- Session: `purch_bp_settings`, `purch_bp_check`, `purch_dl_playlist_preview`, `start_purch_dl_playlist`,
+  `start_purch_dl_cleanup`, `purch_buy_playlists_preview`, `start_purch_buy_playlists`; Oberfläche `web/purbpl.js`.
+
 ## 3b. ZIP-Downloads entpacken (#336, 4.12.0)
 
 - `unzip.py`: `pending` (ZIPs direkt im Ordner, mindestens 5 s unverändert – `.crdownload`/`.part` sind keine ZIPs),

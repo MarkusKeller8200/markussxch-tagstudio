@@ -139,6 +139,116 @@ class PurchasesMixin:
         return {"ok": True, "path": new, "sure": m["status"] == "sure", "reason": m.get("reason", ""),
                 "state": self.purch_state()}
 
+    # ---- #334/#335: Playlists in Beatport (Download Tracks je 100, eine Playlist je Kaufdatum)
+    BP = "beatport"
+    DL_PREFIX = "TagStudio_DOWNLOAD_"
+
+    def purch_bp_settings(self, update=None) -> dict:
+        """Einstellungen des Beatport-Plugins für die Playlist-Knöpfe → {available, playlists_write, buy_prefix}."""
+        try:
+            s = self.plugins.call_playlist(self.BP, "store_settings", update, session=self) or {}
+        except Exception as ex:  # noqa: BLE001 – Plugin aus, alt oder nicht bereit
+            return {"available": False, "playlists_write": False, "buy_prefix": "TagStudio_BUY_", "why": str(ex)}
+        return {"available": True, **s}
+
+    def purch_bp_check(self) -> dict:
+        """„Schreibzugriff prüfen“ (OPTIONS, ändert nichts)."""
+        return self.plugins.call_playlist(self.BP, "store_playlist_check", session=self)
+
+    def _bp_open_items(self, keys_=None) -> list:
+        """Beatport-Käufe ohne lokale Datei (fehlt/unklar, keine Vorbestellung) bzw. die markierten."""
+        with self.lock:
+            items = self._purch().data["items"]
+            sel = [items[k] for k in (keys_ or []) if k in items]
+            if not keys_:
+                sel = [it for it in items.values() if it.get("status") in ("missing", "unclear")]
+            return [it for it in sel if it.get("store") == self.BP and not it.get("preorder") and it.get("id")]
+
+    def purch_dl_playlist_preview(self, keys_=None) -> dict:
+        import datetime
+        items = self._bp_open_items(keys_)
+        day = datetime.date.today().isoformat()
+        chunks = [{"name": f"{self.DL_PREFIX}{day}_{n + 1}", "count": len(items[k:k + 100])}
+                  for n, k in enumerate(range(0, len(items), 100))]
+        return {"count": len(items), "chunks": chunks, **self.purch_bp_settings()}
+
+    def start_purch_dl_playlist(self, keys_=None):
+        """„Download Tracks“: Titel ohne lokale Datei in TagStudio_DOWNLOAD_<Datum>_<n> (je 100) eintragen; eine schon
+        vorhandene Playlist gleichen Namens wird ersetzt, überzählige vom selben Tag geleert – nichts häuft sich an."""
+        pv = self.purch_dl_playlist_preview(keys_)
+        if not pv["count"]:
+            return {"ok": False, "error": "Keine Beatport-Käufe ohne Datei."}
+        ids = [str(it["id"]) for it in self._bp_open_items(keys_)]
+
+        def job(cancel, progress):
+            out, notes = [], []
+            for n, ch in enumerate(pv["chunks"]):
+                progress(("text", f"Beatport: {ch['name']} …"))
+                r = self.plugins.call_playlist(self.BP, "store_playlist_put", ch["name"], ids[n * 100:(n + 1) * 100], True,
+                                               session=self, cancel=cancel, progress=progress)
+                out.append(r)
+                if r.get("note"):
+                    notes.append(r["note"])
+            day_prefix = pv["chunks"][0]["name"].rsplit("_", 1)[0] + "_"
+            names = {c["name"] for c in pv["chunks"]}
+            for p in self.plugins.call_playlist(self.BP, "store_playlist_list", day_prefix, session=self) or []:
+                if p["name"] not in names:                     # vom selben Tag übrig (früher mehr Titel) → leeren
+                    r = self.plugins.call_playlist(self.BP, "store_playlist_put", p["name"], [], True, session=self)
+                    if r.get("note"):
+                        notes.append(r["note"])
+            return {"ok": True, "playlists": out, "notes": notes, "count": len(ids)}
+        return self._run("purch", "Download-Playlists in Beatport", job)
+
+    def start_purch_dl_cleanup(self):
+        """„Aufräumen“: alle TagStudio_DOWNLOAD_…-Playlists in Beatport löschen (die Oberfläche fragt vorher)."""
+        def job(cancel, progress):
+            progress(("text", "Beatport: Download-Playlists löschen …"))
+            r = self.plugins.call_playlist(self.BP, "store_playlist_delete", self.DL_PREFIX, session=self)
+            return {"ok": True, **r}
+        return self._run("purch", "Download-Playlists aufräumen", job)
+
+    def purch_buy_playlists_preview(self, prefix=None, since="", until="") -> dict:
+        """Playlists je Kaufdatum: Datum, Name, Anzahl (Beatport-Käufe mit Kaufdatum, ohne Vorbestellungen)."""
+        s = self.purch_bp_settings()
+        prefix = prefix or s.get("buy_prefix") or "TagStudio_BUY_"
+        days: dict = {}
+        with self.lock:
+            for it in self._purch().data["items"].values():
+                d = str(it.get("bought") or "")[:10]
+                if it.get("store") != self.BP or it.get("preorder") or not it.get("id") or not d:
+                    continue
+                if (since and d < since) or (until and d > until):
+                    continue
+                days.setdefault(d, []).append(str(it["id"]))
+        rows = []
+        for d in sorted(days, reverse=True):
+            ids = list(dict.fromkeys(days[d]))
+            base = prefix + d.replace("-", "_")
+            for n, k in enumerate(range(0, len(ids), 100)):
+                rows.append({"date": d, "name": base if n == 0 else f"{base}_{n + 1}", "ids": ids[k:k + 100],
+                             "count": len(ids[k:k + 100])})
+        return {"rows": rows, "prefix": prefix, **{k: v for k, v in s.items() if k != "buy_prefix"}}
+
+    def start_purch_buy_playlists(self, prefix=None, since="", until=""):
+        """Je Kaufdatum eine Playlist PREFIX_JJJJ_MM_TT – vorhandene werden nur ergänzt, keine Doppelten."""
+        if prefix:
+            self.purch_bp_settings({"buy_prefix": str(prefix)})
+        pv = self.purch_buy_playlists_preview(None, since, until)
+        if not pv["rows"]:
+            return {"ok": False, "error": "Keine Beatport-Käufe mit Kaufdatum im gewählten Zeitraum."}
+
+        def job(cancel, progress):
+            out = []
+            for i, r in enumerate(pv["rows"]):
+                if cancel.is_set():
+                    break
+                progress(("progress", i, len(pv["rows"]), r["name"]))
+                out.append(self.plugins.call_playlist(self.BP, "store_playlist_put", r["name"], r["ids"], False,
+                                                      session=self, cancel=cancel, progress=progress))
+            return {"ok": True, "playlists": out, "added": sum(x.get("added", 0) for x in out),
+                    "created": sum(1 for x in out if x.get("created"))}
+        return self._run("purch", "Playlists je Kaufdatum in Beatport", job)
+
     # ---- #336: ZIP-Downloads automatisch entpacken
     def _unzip_on(self) -> bool:
         return self.cfg.get("unzip_auto", True) is not False

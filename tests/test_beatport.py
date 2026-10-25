@@ -181,7 +181,7 @@ class TestBeatport(Base):
         info = {p["id"]: p for p in self.s.plugins_list()["plugins"]}["beatport"]
         self.assertEqual(info["state"], "ready")
         self.assertEqual(info["status_text"], "Nicht angemeldet.")
-        self.assertEqual(sorted(a["id"] for a in info["actions"] if a["where"] == "page"), ["download", "follow", "login", "logout", "purchases", "test"])
+        self.assertEqual(sorted(a["id"] for a in info["actions"] if a["where"] == "page"), ["download", "follow", "login", "logout", "purchases", "settings", "test", "write_check"])
         # ohne Login: Abruf scheitert verständlich
         st = self.act("fetch", [0])
         self.assertIn("Nicht bei Beatport angemeldet", st["error"])

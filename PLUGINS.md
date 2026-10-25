@@ -334,6 +334,16 @@ neuen Titel aus „My Beatport“ (`/my/beatport/tracks/`).
 **Käufe (#285):** Die Seite „Käufe“ nutzt `store_purchases(ctx)` (alle Käufe mit Titel, Mix, Tonart, BPM,
 Katalognummer, Link, Kaufdatum) und `store_download(ctx, items, dest)` (fehlende in den Eingangsordner laden).
 
+**Playlists in Beatport anlegen (#334/#335, Plugin 2.0):** Nur wenn unter „Einstellungen …“ **„Playlists in Beatport
+anlegen und befüllen“** eingeschaltet ist (Standard aus) und nur auf Klick in Käufe › „Beatport-Playlists ▾“:
+**„Download Tracks …“** trägt die Käufe ohne lokale Datei in `TagStudio_DOWNLOAD_<Datum>_<n>` ein (je 100 Titel –
+mehr lädt Beatport nicht auf einmal; gleichnamige wird ersetzt, „Aufräumen“ löscht sie nach Rückfrage),
+**„Playlists je Kaufdatum …“** legt `<Präfix><JJJJ_MM_TT>` an bzw. ergänzt sie (Präfix Standard `TagStudio_BUY_`).
+TagStudio verändert nur Playlists, deren Name mit `TagStudio_` beginnt. **„Schreibzugriff prüfen“** fragt Beatport per
+`OPTIONS` (ändert nichts), ob Anlegen, Hinzufügen, Entfernen und Löschen erlaubt sind; das Ergebnis steht auch im
+Protokoll. Funktionen für die Seite: `store_settings`, `store_playlist_check`, `store_playlist_list`,
+`store_playlist_put(ctx, name, ids, replace)`, `store_playlist_delete(ctx, prefix)`.
+
 **Playlists (#284, nur lesen):** Nach dem Anmelden bietet Playlists › Importieren ▾ **„Aus Beatport …“**: deine
 eigenen Beatport-Playlists wählen, sie kommen als Playlists mit Einträgen ohne Datei (Künstler, Titel, Mix, ISRC,
 Länge, Link zu Beatport) in den Ordner „Beatport“; sichere Treffer in der Bibliothek werden gleich verknüpft, der Rest

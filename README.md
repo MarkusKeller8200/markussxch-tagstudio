@@ -330,7 +330,11 @@ das Herunterladen offiziell nicht an. Lehnt Beatport den gespeicherten Zugang da
 **„Anmelden für den Download“**: Anmeldung wie auf der Webseite, gültig nur solange TagStudio läuft (Passwort und
 Token werden nicht gespeichert), danach lädt TagStudio die Titel gleich erneut; „● Beatport: Sitzung …“ zeigt die
 Anmeldung, „Abmelden“ beendet sie. Klappt es auch so nicht, zeigt TagStudio, wie du die Titel auf der Download-Seite
-von Beatport selbst lädst und mit „Abholen“ übernimmst. **„Streng“** gleicht so ab, dass Künstler, Titel und Mix passen müssen – auch bei gleicher
+von Beatport selbst lädst und mit „Abholen“ übernimmst. **„Beatport-Playlists ▾“** (nur mit eingeschalteter Einstellung im Plugin Beatport, Standard aus):
+„Download Tracks …“ trägt die Titel ohne Datei in Playlists `TagStudio_DOWNLOAD_<Datum>_<n>` zu je 100 ein – in
+Beatport die Playlist öffnen und alle in den Download übernehmen; „Playlists je Kaufdatum …“ legt
+`TagStudio_BUY_JJJJ_MM_TT` an bzw. ergänzt sie; „Aufräumen …“ löscht die Download-Playlists nach Rückfrage. Andere
+Playlists verändert TagStudio nie. **„Streng“** gleicht so ab, dass Künstler, Titel und Mix passen müssen – auch bei gleicher
 ISRC. **„Unklare prüfen …“** (bzw. Rechtsklick › „Korrigieren …“) öffnet ein Korrekturfenster je Grund: bei mehreren
 Treffern die Kandidaten mit ihren Tags zum Auswählen, bei anderem Mix Titel, Untertitel und Dateiname der Datei zum
 Anpassen („Wie der Kauf“, „Ändern und prüfen“ – mit Sicherung), bei anderem Künstler die Ähnlichkeit in Prozent;

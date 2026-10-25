@@ -8,6 +8,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Käufe: Playlists in Beatport (#334, #335, Beatport-Plugin 2.0):** „Download Tracks …“ legt Playlists mit den
+  Titeln ohne Datei an (je 100), „Playlists je Kaufdatum …“ eine Playlist `TagStudio_BUY_JJJJ_MM_TT` je Kaufdatum;
+  „Aufräumen …“ und „Schreibzugriff prüfen“. Nur mit eingeschalteter Plugin-Einstellung (Standard aus), nur auf Klick,
+  nur Playlists `TagStudio_…`.
+
 - **Käufe: Zuweisung „streng“ und Korrekturfenster (#338):** Mit „Streng“ muss auch der Mix passen (auch bei gleicher
   ISRC). „Unklare prüfen …“ zeigt je Grund die Kandidaten mit Tags, lässt bei anderem Mix Titel, Untertitel und
   Dateinamen anpassen und erneut prüfen, zeigt bei anderem Künstler die Ähnlichkeit; „Weiter ›“ zum nächsten Kauf.

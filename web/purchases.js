@@ -236,6 +236,7 @@ function purInit() {
   $("#purDl").addEventListener("click", purDownload);
   $("#purDestBtn").addEventListener("click", purPickDest);
   $("#purFix").addEventListener("click", () => purCorrect());                   // #338
+  $("#purBpl").addEventListener("click", (e) => purBpMenu(e));                  // #334/#335
   $("#purStrict").addEventListener("change", async (e) => {
     await call("set_purch_strict", e.target.checked);
     toast(e.target.checked ? "Abgleich streng: auch der Mix muss passen." : "Abgleich wie bisher.");

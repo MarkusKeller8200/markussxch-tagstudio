@@ -328,6 +328,16 @@ Beatport” (#291); such entries are marked “BP”. With source Beatport, “S
 **Purchases (#285):** the page “Purchases” uses `store_purchases(ctx)` (all purchases with title, mix, key, BPM,
 catalogue number, link, purchase date) and `store_download(ctx, items, dest)` (download missing ones into the inbox).
 
+**Creating playlists in Beatport (#334/#335, plugin 2.0):** only when **“Create and fill playlists in Beatport”** is
+switched on under “Settings …” (off by default) and only on click in Purchases › “Beatport playlists ▾”:
+**“Download Tracks …”** puts the purchases without a local file into `TagStudio_DOWNLOAD_<date>_<n>` (100 tracks each –
+Beatport does not download more at once; one with the same name is replaced, “Clean up” deletes them after
+confirmation), **“Playlists per purchase date …”** creates or completes `<prefix><YYYY_MM_DD>` (default prefix
+`TagStudio_BUY_`). TagStudio only changes playlists whose name starts with `TagStudio_`. **“Check write access”** asks
+Beatport via `OPTIONS` (changes nothing) whether creating, adding, removing and deleting are allowed; the result is also
+in the log. Functions for the page: `store_settings`, `store_playlist_check`, `store_playlist_list`,
+`store_playlist_put(ctx, name, ids, replace)`, `store_playlist_delete(ctx, prefix)`.
+
 **Playlists (#284, read only):** after signing in, Playlists › Import ▾ offers **“From Beatport …”**: choose your own
 Beatport playlists; they arrive as playlists with entries without a file (artist, title, mix, ISRC, length, link to
 Beatport) in the folder “Beatport”; sure matches in the library are linked right away, the rest can be matched or

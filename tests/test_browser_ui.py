@@ -3708,6 +3708,62 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("window.__link && window.__link[1] === '/b/Ufer 2.mp3'"))
         self.assertTrue(self.until("document.querySelector('#modal').hidden || /Korrigieren/.test(document.querySelector('#mTitle').textContent)"))
 
+    def test_purchases_beatport_playlists(self):
+        """#334/#335: Käufe › „Beatport-Playlists ▾“ – ausgeschaltet → Hinweis; Download Tracks mit Vorschau (je 100) und
+        Ergebnis mit Link; Playlists je Kaufdatum mit Präfix und Zeitraum; Aufräumen nur nach Rückfrage."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("""(() => { const orig = call; window.__on = false; window.__runs = []; window.__fake = null;
+          window.call = (n, ...a) => {
+            if (n === "purch_bp_settings") return Promise.resolve({ available: true, playlists_write: window.__on, buy_prefix: "TagStudio_BUY_" });
+            if (n === "purch_dl_playlist_preview") return Promise.resolve({ available: true, playlists_write: window.__on, count: 230,
+              chunks: [{ name: "TagStudio_DOWNLOAD_2026-10-26_1", count: 100 }, { name: "TagStudio_DOWNLOAD_2026-10-26_2", count: 100 }, { name: "TagStudio_DOWNLOAD_2026-10-26_3", count: 30 }] });
+            if (n === "purch_buy_playlists_preview") { window.__bp = a; return Promise.resolve({ available: true, playlists_write: true, prefix: a[0] || "TagStudio_BUY_",
+              rows: [{ date: "2026-10-21", name: (a[0] || "TagStudio_BUY_") + "2026_10_21", count: 3, ids: [] }] }); }
+            if (n.startsWith("start_purch_dl") || n === "start_purch_buy_playlists") { window.__runs.push([n, ...a]);
+              window.__fake = n === "start_purch_dl_cleanup" ? { ok: true, deleted: ["a", "b"], failed: [] }
+                : { ok: true, playlists: [{ name: "TagStudio_DOWNLOAD_2026-10-26_1", url: "https://www.beatport.com/library/playlists/7", added: 100, removed: 0, total: 100, created: true }], notes: [] };
+              return Promise.resolve({ ok: true }); }
+            if (n === "task_status" && window.__fake) { const r = window.__fake; window.__fake = null; return Promise.resolve({ done: true, running: false, result: r }); }
+            if (n === "open_url") { window.__url = a[0]; return Promise.resolve({}); }
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="purchases"]')
+        pg.click("#purBpl")
+        pg.click("#menu button >> text=Download Tracks …")
+        pg.wait_for_selector("#dialog:not([hidden])")
+        self.assertIn("ausgeschaltet", pg.inner_text("#dialog"))                          # Standard aus
+        pg.click("#dlgBtns button")
+        self.assertEqual(pg.evaluate("window.__runs.length"), 0)
+        pg.evaluate("window.__on = true")
+        pg.click("#purBpl")
+        pg.click("#menu button >> text=Download Tracks …")
+        pg.wait_for_selector("#mBody .pc-list li")
+        self.assertEqual(pg.locator("#mBody .pc-list li").count(), 3)
+        pg.click("#mBtns .primary")
+        pg.wait_for_selector("#mBody [data-url]")
+        self.assertEqual(pg.evaluate("window.__runs[0][0]"), "start_purch_dl_playlist")
+        pg.click("#mBody [data-url]")
+        self.assertTrue(self.until("window.__url === 'https://www.beatport.com/library/playlists/7'"))
+        pg.click("#mBtns .primary")
+        pg.click("#purBpl")
+        pg.click("#menu button >> text=Playlists je Kaufdatum …")
+        pg.wait_for_selector("#pbPrefix")
+        pg.fill("#pbPrefix", "TagStudio_KAUF_")
+        self.assertTrue(self.until("/TagStudio_KAUF_2026_10_21/.test(document.querySelector('#pbTable').textContent)"))
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("window.__runs.some(r => r[0] === 'start_purch_buy_playlists' && r[1] === 'TagStudio_KAUF_')"))
+        pg.wait_for_selector("#mBody [data-url]")
+        pg.click("#mBtns .primary")
+        pg.click("#purBpl")
+        pg.click("#menu button >> text=Download-Playlists aufräumen …")
+        pg.wait_for_selector("#dialog:not([hidden])")
+        pg.click("#dlgBtns button >> nth=0")                                             # Abbrechen → nichts
+        self.assertFalse(pg.evaluate("window.__runs.some(r => r[0] === 'start_purch_dl_cleanup')"))
+        pg.click("#purBpl")
+        pg.click("#menu button >> text=Download-Playlists aufräumen …")
+        pg.click("#dlgBtns .primary")
+        self.assertTrue(self.until("window.__runs.some(r => r[0] === 'start_purch_dl_cleanup')"))
+
     def test_purchases_session_login(self):
         """#295: Download abgelehnt → Sitzungs-Anmeldung (wie die Webseite), dann gleich erneut herunterladen."""
         pg = self.pg

@@ -1,7 +1,7 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "1.9",
+  "version": "2.0",
   "min_app": "4.9.1",
   "category": "online",
   "source": "Beatport",
@@ -21,7 +21,7 @@
     "auth": "oauth",
     "auth_note": "Standard: eigener offizieller API-Zugang (Client-ID und Secret, Plugin › Anmelden …). Ausweichweg (inoffiziell): Anmeldung mit Benutzername und Passwort über die Kennung der Doku-Seite. Token verschlüsselt gespeichert, wird automatisch erneuert.",
     "limits": "Bei HTTP 429 wird gewartet (Retry-After)",
-    "note": "Alle Endpunkte der offiziellen Beschreibung in den Bereichen catalog, my und curation (Stand 25.10.2026), dazu die Anmeldung und die inoffiziellen Download-Wege. Schreibende Endpunkte benutzt TagStudio nie.",
+    "note": "Alle Endpunkte der offiziellen Beschreibung in den Bereichen catalog, my und curation (Stand 25.10.2026), dazu die Anmeldung und die inoffiziellen Download-Wege. Schreibende Endpunkte benutzt TagStudio nur für eigene Playlists „TagStudio_…“ (Käufe › „Download Tracks“, Playlists je Kaufdatum) – nur mit eingeschalteter Einstellung und auf Klick.",
     "endpoints": [
       {
         "id": "catalog-artists",
@@ -663,6 +663,30 @@
         "use": "Playlists › Importieren ▾ › Aus Beatport …"
       },
       {
+        "id": "my-playlists-create",
+        "method": "POST",
+        "path": "/my/playlists/",
+        "label": "Eigene Playlist anlegen",
+        "status": "partial",
+        "use": "Download Tracks / Playlists je Kaufdatum (#334/#335) – nur TagStudio_…, nur auf Klick"
+      },
+      {
+        "id": "my-playlists-delete",
+        "method": "DELETE",
+        "path": "/my/playlists/{id}/",
+        "label": "Eigene Playlist löschen",
+        "status": "partial",
+        "use": "„Aufräumen“ der TagStudio-Download-Playlists nach Rückfrage"
+      },
+      {
+        "id": "my-playlists-track-delete",
+        "method": "DELETE",
+        "path": "/my/playlists/{myplaylists_pk}/tracks/{id}/",
+        "label": "Titel aus eigener Playlist entfernen",
+        "status": "partial",
+        "use": "Download-Playlist ersetzen statt anhäufen"
+      },
+      {
         "id": "my-playlists-myplaylists_pk-tracks",
         "method": "GET",
         "path": "/my/playlists/{myplaylists_pk}/tracks/",
@@ -684,9 +708,9 @@
         "method": "POST",
         "path": "/my/playlists/{myplaylists_pk}/tracks/bulk/",
         "label": "Mehrere Titel einer Playlist ändern",
-        "status": "none",
-        "note": "schreibt – wird nie benutzt",
-        "test": false
+        "status": "partial",
+        "test": false,
+        "use": "Titel in eine eigene TagStudio-Playlist eintragen (#334/#335)"
       },
       {
         "id": "my-playlists-myplaylists_pk-tracks-ids",

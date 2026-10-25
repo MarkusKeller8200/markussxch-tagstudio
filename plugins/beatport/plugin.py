@@ -110,6 +110,18 @@ ACTIONS = [
          {"type": "info", "label": "Geladen wird im gekauften Format (audio_format). Bereits geladene Titel merkt sich "
                                   "TagStudio und lädt sie nicht doppelt. Details im Protokoll (Plugins › Protokolle › beatport.log)."},
      ]},
+    {"id": "settings", "label": "Einstellungen …", "where": "page", "run_label": "Speichern", "needs_selection": False,
+     "description": "Playlists in deinem Beatport-Konto anlegen – „Download Tracks“ (je 100 Titel) und eine Playlist je "
+                    "Kaufdatum auf der Seite „Käufe“. Ändert dein Beatport-Konto, aber nur, wenn du dort auf den Knopf klickst.",
+     "options": [
+         {"key": "playlists_write", "type": "check", "label": "Playlists in Beatport anlegen und befüllen (Käufe)", "default": False},
+         {"key": "buy_prefix", "type": "text", "label": "Präfix für Playlists je Kaufdatum", "default": "TagStudio_BUY_"},
+         {"type": "info", "label": "TagStudio verändert nur Playlists, deren Name mit „TagStudio_“ beginnt, und löscht nie "
+                                  "ohne Rückfrage. „Schreibzugriff prüfen“ fragt Beatport nur nach den erlaubten Methoden."},
+     ]},
+    {"id": "write_check", "label": "Schreibzugriff prüfen", "where": "page", "run_label": "Prüfen", "needs_selection": False,
+     "description": "Fragt Beatport (OPTIONS, ändert nichts), ob Playlists über die API angelegt und befüllt werden können.",
+     "options": []},
 ]
 
 
@@ -538,6 +550,240 @@ def playlist_files(ctx, pid) -> dict:
     raise ValueError(f"Beatport hat die Titel von „{name}“ nicht geliefert – Details im Protokoll (Plugins › Beatport).")
 
 
+# =========================================================================== #334/#335: Playlists anlegen (schreibend)
+# Nur auf Klick des Users und nur mit eingeschalteter Einstellung. Beatport v4 ist eine Django-REST-API: OPTIONS
+# liefert die erlaubten Methoden und Felder, ohne etwas zu ändern – darauf stützt sich die Prüfung, bevor geschrieben
+# wird. Verändert werden nur Playlists, deren Name mit OWN_PREFIX beginnt.
+OWN_PREFIX = "TagStudio_"
+PL_MAX = 100                       # Beatport lädt höchstens 100 Titel auf einmal herunter
+SETTINGS_DEFAULT = {"playlists_write": False, "buy_prefix": "TagStudio_BUY_"}
+
+
+def _settings_path(ctx):
+    return os.path.join(ctx.data_dir, "settings.json")
+
+
+def load_settings(ctx) -> dict:
+    out = dict(SETTINGS_DEFAULT)
+    try:
+        with open(_settings_path(ctx), encoding="utf-8") as fh:
+            d = json.load(fh)
+        if isinstance(d, dict):
+            out["playlists_write"] = bool(d.get("playlists_write", False))
+            out["buy_prefix"] = clean_prefix(d.get("buy_prefix"))
+    except (OSError, ValueError):
+        pass
+    return out
+
+
+def clean_prefix(v) -> str:
+    """Präfix für Playlists je Kaufdatum: muss mit „TagStudio_“ beginnen (sonst wird es vorangestellt)."""
+    v = re.sub(r"[^\w\-]+", "_", str(v or "").strip())[:40] or SETTINGS_DEFAULT["buy_prefix"]
+    return v if v.startswith(OWN_PREFIX) else OWN_PREFIX + v
+
+
+def save_settings(ctx, opts) -> dict:
+    cur = load_settings(ctx)
+    d = {"playlists_write": bool(opts.get("playlists_write", cur["playlists_write"])),
+         "buy_prefix": clean_prefix(opts.get("buy_prefix", cur["buy_prefix"]))}
+    tmp = _settings_path(ctx) + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(d, fh)
+    os.replace(tmp, _settings_path(ctx))
+    return d
+
+
+def store_settings(ctx, update=None) -> dict:
+    """Für die Seite „Käufe“: Einstellungen des Plugins (Schreiben an/aus, Präfix); update speichert Teile davon."""
+    return save_settings(ctx, update) if isinstance(update, dict) and update else load_settings(ctx)
+
+
+def _send(c, method, path, data=None):
+    """Schreibende bzw. OPTIONS-Anfrage mit der Anmeldung → (Status, Antwort als JSON oder None)."""
+    if c.tok["expires_at"] - 30 < time.time():
+        c.tok = c._refresh() or c._expired()
+    url = API + (path if path.startswith("/") else "/" + path)
+    for attempt in range(3):
+        st, h, body = request(method, url, headers={"Authorization": f"Bearer {c.tok['access_token']}"}, data=data)
+        if st == 401 and attempt == 0:
+            c.tok = c._refresh() or c._expired()
+            continue
+        if st == 429:
+            time.sleep(_retry_after(h.get("Retry-After")))
+            continue
+        try:
+            js = json.loads(body or b"null")
+        except ValueError:
+            js = None
+        return st, js, h
+    return 429, None, {}
+
+
+def _allowed(c, path) -> tuple[set, dict]:
+    """OPTIONS: erlaubte Methoden (Allow-Header bzw. DRF-„actions“) und Felder für POST/PUT."""
+    st, js, h = _send(c, "OPTIONS", path)
+    allow = {m.strip().upper() for m in str((h or {}).get("Allow") or (h or {}).get("allow") or "").split(",") if m.strip()}
+    acts = js.get("actions") if isinstance(js, dict) and isinstance(js.get("actions"), dict) else {}
+    allow |= {m.upper() for m in acts}
+    return (allow if st and st < 400 else set()), acts
+
+
+def _check(c, log=None) -> dict:
+    """Schreibzugriff ermitteln (nichts wird geändert)."""
+    out = {"create": False, "add": False, "remove": False, "delete": False, "name_field": "name",
+           "tracks_field": "track_ids", "probe": ""}
+    allow, acts = _allowed(c, "/my/playlists/")
+    out["create"] = "POST" in allow
+    fields = acts.get("POST") if isinstance(acts.get("POST"), dict) else {}
+    if fields and "name" not in fields:
+        out["name_field"] = next((k for k in fields if "name" in k), "name")
+    mine = []
+    try:
+        mine = _pages(c, "/my/playlists/", 200)
+    except HttpError:
+        pass
+    if mine:
+        pid = mine[0].get("id")
+        out["probe"] = str(mine[0].get("name") or pid)
+        a2, acts2 = _allowed(c, f"/my/playlists/{pid}/tracks/bulk/")
+        out["add"] = "POST" in a2
+        f2 = acts2.get("POST") if isinstance(acts2.get("POST"), dict) else {}
+        tf = next((k for k in f2 if "track" in k.lower()), "")
+        if tf:
+            out["tracks_field"] = tf
+        a3, _ = _allowed(c, f"/my/playlists/{pid}/")
+        out["delete"] = "DELETE" in a3
+        items = []
+        try:
+            items = _items(c.get(f"/my/playlists/{pid}/tracks/", per_page=1))
+        except HttpError:
+            pass
+        if items and isinstance(items[0], dict) and items[0].get("id") is not None:
+            a4, _ = _allowed(c, f"/my/playlists/{pid}/tracks/{items[0]['id']}/")
+            out["remove"] = "DELETE" in a4
+        else:
+            out["remove"] = out["add"]          # ohne Titel nicht prüfbar – wird beim Leeren erneut versucht
+    if log:
+        log(f"Schreibzugriff Playlists: {json.dumps(out, ensure_ascii=False)}")
+    return out
+
+
+def store_playlist_check(ctx) -> dict:
+    """„Schreibzugriff prüfen“: was erlaubt Beatport für eigene Playlists? → {ok, text, …}"""
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"Beatport: {why}.")
+    c = Client(ctx)
+    r = _check(c, ctx.log)
+    yes = lambda b: "ja" if b else "nein"          # noqa: E731
+    txt = (f"Playlist anlegen: {yes(r['create'])} · Titel hinzufügen: {yes(r['add'])} · Titel entfernen: "
+           f"{yes(r['remove'])} · Playlist löschen: {yes(r['delete'])}")
+    if not r["probe"]:
+        txt += " (ohne eigene Playlist sind Hinzufügen/Löschen nicht prüfbar)"
+    r.update(ok=r["create"] and (r["add"] or not r["probe"]), text=txt + ". " + scope_text(c.tok))
+    return r
+
+
+def _need_write(ctx) -> Client:
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"Beatport: {why}.")
+    if not load_settings(ctx)["playlists_write"]:
+        raise ValueError("Playlists in Beatport sind ausgeschaltet – Plugins › Beatport › „Einstellungen …“ einschalten.")
+    return Client(ctx)
+
+
+def store_playlist_list(ctx, prefix=OWN_PREFIX) -> list:
+    """Eigene Playlists, deren Name mit prefix beginnt → [{id, name, count, url}]."""
+    c = Client(ctx)
+    out = []
+    for p in _pages(c, "/my/playlists/", 2000):
+        name = str(p.get("name") or "")
+        if p.get("id") is not None and name.startswith(prefix):
+            n = p.get("track_count") or p.get("tracks_count") or p.get("count")
+            out.append({"id": str(p["id"]), "name": name, "count": n if isinstance(n, int) else None,
+                        "url": f"https://www.beatport.com/library/playlists/{p['id']}"})
+    return out
+
+
+def _track_ids(c, pid) -> dict:
+    """Titel einer eigenen Playlist → {Beatport-Track-ID: Eintrags-ID}."""
+    out = {}
+    for r in _pages(c, f"/my/playlists/{pid}/tracks/", 5000):
+        t = r.get("track") if isinstance(r.get("track"), dict) else r
+        if t.get("id") is not None:
+            out[str(t["id"])] = str(r.get("id") if isinstance(r.get("track"), dict) else t["id"])
+    return out
+
+
+def store_playlist_put(ctx, name, track_ids, replace=False) -> dict:
+    """Playlist „name“ (muss mit TagStudio_ beginnen) anlegen bzw. wiederverwenden und die Titel eintragen.
+    replace: Titel, die nicht (mehr) dazugehören, entfernen – sonst nur ergänzen. Nie mehr als PL_MAX neue auf einmal.
+    → {id, name, url, added, removed, total, created, note}"""
+    name = str(name or "")
+    if not name.startswith(OWN_PREFIX):
+        raise ValueError("TagStudio verändert nur Playlists, deren Name mit „TagStudio_“ beginnt.")
+    c = _need_write(ctx)
+    chk = getattr(ctx, "_bp_check", None) or _check(c, ctx.log)
+    ctx._bp_check = chk
+    want = [str(i) for i in dict.fromkeys(track_ids or []) if str(i).strip()]
+    have_pl = next((p for p in store_playlist_list(ctx, name) if p["name"] == name), None)
+    created = False
+    if have_pl is None:
+        if not chk["create"]:
+            raise ValueError("Beatport erlaubt das Anlegen von Playlists über die API nicht (Schreibzugriff prüfen).")
+        st, js, _h = _send(c, "POST", "/my/playlists/", {chk["name_field"]: name})
+        if st >= 400 or not isinstance(js, dict) or js.get("id") is None:
+            ctx.log(f"POST /my/playlists/: HTTP {st} {str(js)[:300]}")
+            raise ValueError(f"Beatport hat die Playlist „{name}“ nicht angelegt (HTTP {st}) – Details im Protokoll.")
+        pid, created, cur = str(js["id"]), True, {}
+    else:
+        pid = have_pl["id"]
+        cur = _track_ids(c, pid)
+    add = [i for i in want if i not in cur]
+    removed, note = 0, ""
+    if replace:
+        drop = [entry for tid, entry in cur.items() if tid not in set(want)]
+        for entry in drop:
+            st, js, _h = _send(c, "DELETE", f"/my/playlists/{pid}/tracks/{entry}/")
+            if st in (200, 202, 204):
+                removed += 1
+            else:
+                note = f"Alte Titel konnten nicht entfernt werden (HTTP {st}) – bitte in Beatport leeren."
+                ctx.log(f"DELETE /my/playlists/{pid}/tracks/{entry}/: HTTP {st}")
+                break
+    added = 0
+    for k in range(0, len(add), PL_MAX):
+        part = add[k:k + PL_MAX]
+        body = {chk["tracks_field"]: [int(x) if x.isdigit() else x for x in part]}
+        st, js, _h = _send(c, "POST", f"/my/playlists/{pid}/tracks/bulk/", body)
+        if st >= 400:
+            ctx.log(f"POST /my/playlists/{pid}/tracks/bulk/: HTTP {st} {str(js)[:300]}")
+            raise ValueError(f"Beatport hat die Titel nicht in „{name}“ eingetragen (HTTP {st}) – Details im Protokoll.")
+        added += len(part)
+    ctx.log(f"Playlist {name} ({pid}): +{added} −{removed}{' (neu)' if created else ''}")
+    return {"id": pid, "name": name, "url": f"https://www.beatport.com/library/playlists/{pid}", "added": added,
+            "removed": removed, "total": len(want) if replace else len(cur) + added, "created": created, "note": note}
+
+
+def store_playlist_delete(ctx, prefix) -> dict:
+    """Playlists löschen, deren Name mit prefix beginnt (nur TagStudio_…; die Oberfläche fragt vorher).
+    → {deleted: [Namen], failed: [Texte]}"""
+    prefix = str(prefix or "")
+    if not prefix.startswith(OWN_PREFIX):
+        raise ValueError("TagStudio löscht nur Playlists, deren Name mit „TagStudio_“ beginnt.")
+    c = _need_write(ctx)
+    deleted, failed = [], []
+    for p in store_playlist_list(ctx, prefix):
+        st, _js, _h = _send(c, "DELETE", f"/my/playlists/{p['id']}/")
+        if st in (200, 202, 204):
+            deleted.append(p["name"])
+        else:
+            failed.append(f"{p['name']}: HTTP {st}")
+            ctx.log(f"DELETE /my/playlists/{p['id']}/: HTTP {st}")
+    return {"deleted": deleted, "failed": failed}
+
+
 # =========================================================================== Abgleich
 _MIX_RE = re.compile(r"\s*[\(\[]([^\)\]]*(mix|edit|remix|version|dub|rework|bootleg|vip)[^\)\]]*)[\)\]]\s*$", re.I)
 _FEAT_RE = re.compile(r"\s*[\(\[]?\b(feat\.?|ft\.?|featuring)\b.*$", re.I)
@@ -903,6 +1149,13 @@ def run(action, ctx, files, opts):
         return run_purchases(ctx, opts)
     if action == "download":
         return run_download(ctx, opts)
+    if action == "settings":
+        s = save_settings(ctx, opts)
+        return {"message": ("Playlists in Beatport: eingeschaltet." if s["playlists_write"] else
+                            "Playlists in Beatport: ausgeschaltet.") + f" Präfix: {s['buy_prefix']}"}
+    if action == "write_check":
+        r = store_playlist_check(ctx)
+        return {"message": r["text"]}
     if action != "fetch":
         raise ValueError(f"Unbekannte Aktion: {action}")
 

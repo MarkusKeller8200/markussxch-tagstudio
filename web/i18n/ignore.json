@@ -501,5 +501,8 @@
 "input[data-rs]:checked",
 "rezept",
 "ZIP entpackt: {x} – {x} Datei(en), {x} übersprungen",
-"tr[data-i]"
+"tr[data-i]",
+"Playlist {x} ({x}): +{x} −{x}{x}",
+"Schreibzugriff Playlists: {x}",
+"Allow"
 ]

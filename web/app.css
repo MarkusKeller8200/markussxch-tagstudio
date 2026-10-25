@@ -359,6 +359,7 @@ body.col-dragging,body.col-dragging *{cursor:col-resize!important;user-select:no
 .fx-exc{margin:6px 0 2px}
 .pc-buy{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surf)}
 .pc-why{color:var(--warn)}
+.pc-list{margin:6px 0 8px;padding-left:20px}
 .pc-ok{color:var(--ok)}
 .pc-strict{color:var(--acc)}
 .pc-table{max-height:36vh;min-height:0}
