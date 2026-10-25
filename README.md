@@ -38,7 +38,7 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.12 oder neuer – oder gar nic
 - **Herkunft der Tags:** Kennzeichen, welche Anwendung ein Feld geschrieben hat; Felder einer Anwendung filtern
   oder entfernen.
 - **Plugins:** Stems (Gesang, Schlagzeug, Bass … trennen – im Hintergrund, Spuren aufklappbar unter dem Titel) und
-  Beatport (Metadaten mit eigenem Login, Käufe abgleichen und fehlende herunterladen), eigene Plugins möglich.
+  Beatport (Metadaten mit eigenem Login, Einkäufe abgleichen und fehlende herunterladen), eigene Plugins möglich.
 - **Einstellungen** an einem Ort – mit Vorgaben für den Start –, exportieren/importieren (z. B. Windows ↔ Mac) und
   zurücksetzen; Updates wahlweise nur offizielle oder auch Beta-Versionen, Versionshinweise direkt in der App.
 - **Sprachen:** Deutsch, Englisch und Zürichdeutsch; eigene Texte exportieren, anpassen und wieder
@@ -87,7 +87,7 @@ und darüber installieren – Einstellungen, Sicherungen und Plugin-Daten liegen
 
 ## Bedienung
 
-Seitenleiste mit **Käufe, Vorbereiten, Tagger, Tag-Fixer, Vergleich, DJ-Set, Playlists, Snapshots, Sicherungen, Plugins,
+Seitenleiste mit **Einkäufe, Vorbereiten, Tagger, Tag-Fixer, Vergleich, DJ-Set, Playlists, Snapshots, Sicherungen, Plugins,
 Einstellungen** (Einstellungen › Darstellung › Seitenleiste: Menüpunkte ein-/ausblenden und mit ↑/↓ eigene Reihenfolge), unten
 „Nach Update suchen“, Versionshinweise, Einklappen und Hell/Dunkel. **Zurück:** Nach einem Sprung aus dem Inhalt
 (z. B. Playlist › „Im Tagger öffnen“) erscheint oben in der Seitenleiste „← Zurück“ mit dem Ziel – es führt an
@@ -215,7 +215,7 @@ gekauft markieren (✓) oder ausblenden (✕); „Öffnen“ führt zur Seite de
 Der Bereich **Gefolgt** zeigt alle gefolgten Künstler, Labels und Genres (von Beatport übernommene mit „BP“):
 Namen direkt hinzufügen, mit × entfernen, „Von Beatport übernehmen“ und „Ähnliche Künstler …“ (Deezer). Rechtsklick
 auf einen Vorschlag: „Künstler folgen“ / „Label folgen“. **Leeren …** entfernt neue und ausgeblendete Vorschläge
-(gemerkte und gekaufte bleiben), auf Wunsch mit neuer Suche. Titel, die unter **Käufe** stehen, sind mit „gekauft“
+(gemerkte und gekaufte bleiben), auf Wunsch mit neuer Suche. Titel, die unter **Einkäufe** stehen, sind mit „gekauft“
 markiert und erscheinen im Filter „Gekauft“.
 
 ### DJ-Set
@@ -317,13 +317,15 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
   verknüpft.
 - Die bisherigen gespeicherten DJ-Set-Listen werden beim ersten Start einmalig als Playlists übernommen.
 
-### Käufe
+### Einkäufe
 
-Gekaufte Titel aller Stores an einem Ort – vorerst **Beatport** (Anmeldung im Plugin Beatport). Seite **Käufe** in der
+Gekaufte Titel aller Stores an einem Ort – vorerst **Beatport** (Anmeldung im Plugin Beatport). Seite **Einkäufe** in der
 Seitenleiste: Tabelle mit Titel, Interpret, Mix, Länge, Tonart, BPM, Katalognummer, Store, Kaufdatum (sofern der Store
 es liefert, sonst „zuerst gesehen“) und Link zum Store. Spaltenbreiten lassen sich am Rand der Spaltenköpfe ziehen
 (Doppelklick: passend zum Inhalt, ←/→ auf dem Griff; Rechtsklick auf die Kopfzeile: zurücksetzen) – TagStudio merkt
-sie sich, ebenso im Tag-Fixer. **„↻ Aktualisieren“** holt neue Käufe und gleicht alles mit
+sie sich, ebenso im Tag-Fixer. **„⇔ Best Match“** über der Tabelle verteilt die angezeigten Spalten nach Inhalt auf die
+verfügbare Breite (fixe Spalten wie das Häkchen bleiben). Doppelklick auf einen gefundenen Einkauf spielt die Datei
+ab. **„↻ Aktualisieren“** holt neue Einkäufe und gleicht alles mit
 der Bibliothek ab: *in Bibliothek*, *im Eingang*, *unklar* oder *fehlt*. **„Fehlende herunterladen“** (bzw. die
 markierten) lädt die Dateien unverändert in den Eingangsordner (`00_New` bzw. Eingang von „Vorbereiten“, unter
 „Ordner …“ änderbar) – von dort geht es wie gewohnt weiter. Vorbestellungen werden nicht geladen. Beatport bietet
@@ -336,7 +338,8 @@ von Beatport selbst lädst und mit „Abholen“ übernimmst. **„Beatport-Play
 Beatport die Playlist öffnen und alle in den Download übernehmen; „Playlists je Kaufdatum …“ legt
 `TagStudio_BUY_JJJJ_MM_TT` an bzw. ergänzt sie; „Aufräumen …“ löscht die Download-Playlists nach Rückfrage. Andere
 Playlists verändert TagStudio nie. **„Streng“** gleicht so ab, dass Künstler, Titel und Mix passen müssen – auch bei gleicher
-ISRC. **„Unklare prüfen …“** (bzw. Rechtsklick › „Korrigieren …“) öffnet ein Korrekturfenster je Grund: bei mehreren
+ISRC. **„Unklare prüfen …“** – bzw. mit markierten Zeilen „Markierte prüfen …“, ein Rechtsklick auf einen unklaren
+Einkauf (Umschalt+Rechtsklick: Kontextmenü) oder „Korrigieren …“ im Menü – öffnet ein Korrekturfenster je Grund: bei mehreren
 Treffern die Kandidaten mit ihren Tags zum Auswählen, bei anderem Mix Titel, Untertitel und Dateiname der Datei zum
 Anpassen („Wie der Kauf“, „Ändern und prüfen“ – mit Sicherung), bei anderem Künstler die Ähnlichkeit in Prozent;
 „Weiter ›“ springt zum nächsten unklaren Kauf. **„ZIP entpacken“** (Standard ein): neue ZIP-Dateien im
@@ -582,15 +585,15 @@ Unterordner je Quelle) · `91_Work` (Stufen-Ordner) · `99_Sicherung` (`Tags`, `
 und Snapshots können wie bisher in den Programmdaten bleiben. Es gibt **mehrere Bibliotheken** (je mit Name,
 aktiv/inaktiv, genau eine **Hauptbibliothek**); Überschneidungen (eine Bibliothek in einer anderen, derselbe Ordner
 über einen anderen Weg) werden angezeigt und beim Einlesen nur einmal gelesen. **Aktive** Bibliotheken nutzen
-Käufe-Abgleich, Playlist-Abgleich, Entdecken („schon vorhanden“) und Hilfe › Scan; „Verglichen mit“ zeigt ihre Namen
+Einkäufe-Abgleich, Playlist-Abgleich, Entdecken („schon vorhanden“) und Hilfe › Scan; „Verglichen mit“ zeigt ihre Namen
 (Klick → Einstellungen), nicht erreichbare werden übersprungen und genannt. Der Tagger zeigt ab zwei aktiven
 Bibliotheken die Auswahl **„Bibliothek ▾“** mit **„Alle aktiven“** (lädt alle zusammen); Vorbereiten übernimmt ohne
 eigenen Bibliotheksordner in die Hauptbibliothek. Der Schalter **Snapshots** je Bibliothek schaltet den täglichen
-Snapshot ein bzw. aus (vorhandene Snapshots bleiben). Jede Ordnerauswahl (Tagger, Vergleich, Workflow, Käufe, Standardordner)
+Snapshot ein bzw. aus (vorhandene Snapshots bleiben). Jede Ordnerauswahl (Tagger, Vergleich, Workflow, Einkäufe, Standardordner)
 öffnet ein **Klappmenü** mit Bibliotheken, Rollen, zuletzt benutzten Ordnern, „Anderer Ordner …“ und „Neuer Ordner …“.
 **Unterordner je Quelle:** Wird ein Store-Plugin (z. B. Beatport) eingeschaltet, entstehen `90_Download\Beatport`
 und `00_New\Beatport`, der Workflow bekommt die Quelle „Beatport“ (Abholen: Download-Unterordner → Eingangs-
-Unterordner), Käufe-Downloads landen in `90_Download\Beatport`; manuelle Downloads gehören nach
+Unterordner), Einkäufe-Downloads landen in `90_Download\Beatport`; manuelle Downloads gehören nach
 `90_Download\_Manuell`. Workflow-Felder Eingang, Arbeit und Bibliothek dürfen leer bleiben – dann folgen sie den
 Rollen (Eingang, Arbeit, Hauptbibliothek). **Cloud (OneDrive, Google Drive, Dropbox):** Rollen und Bibliotheken dürfen in einem
 Ordner liegen, den der Desktop-Client synchronisiert – TagStudio erkennt ihn („☁ OneDrive“), speichert den Pfad
@@ -599,7 +602,7 @@ Dateien** („Dateien bei Bedarf“, nichts lädt unbemerkt herunter – auf Wun
 **Konfliktkopien** des Clients. Snapshots, Arbeit und Sicherung im Sync-Ordner bekommen einen Hinweis (nicht
 empfohlen). Sync-Ordner und „Nur-online-Dateien“ stehen in der eigenen Karte **Einstellungen › Cloud** (#324). **Abgleich über die Dienste**
 (#317, ohne Desktop-Client): In derselben Karte lassen sich in einer Tabelle (Bereich · Dienst · Richtung · Ordner im Dienst) die
-Rollen **Playlists** und **Export** sowie Programmdaten-Teile (Playlists-Speicher, Käufe, Entdecken, Einstellungen
+Rollen **Playlists** und **Export** sowie Programmdaten-Teile (Playlists-Speicher, Einkäufe, Entdecken, Einstellungen
 ohne Zugangsdaten) mit einem Ordner bei OneDrive, Google Drive oder Dropbox abgleichen (Plugins, eigene App je
 Dienst – Einrichtung in [PLUGINS.md](PLUGINS.md); Standard `/TagStudio/<Rolle>`), in beiden Richtungen oder nur hoch-/herunterladen. **Jetzt abgleichen** zeigt
 danach Konflikte mit beiden Fassungen (hier behalten / aus dem Dienst / beide behalten) und gelöschte Dateien – gelöscht
@@ -610,7 +613,7 @@ Bibliotheken ist „Nicht übernehmen“ vorgewählt, mit Hinweis, dass Engine D
 VirtualDJ ihre Pfade danach selbst suchen müssen (TagStudio ändert keine fremden Datenbanken). Nie wird etwas
 überschrieben („Ziel behalten“ oder „Name (2)“); auf demselben Laufwerk wird umbenannt, über Laufwerke kopiert, per
 SHA-256 geprüft und erst dann das Original entfernt. Der Auftrag ist abbrechbar ohne halbe Dateien; Verweise in
-Playlists (M3U8 neu), Käufen, Snapshots, `_aussortiert.csv`, Vorbereiten, Verlauf und Warteschlange werden
+Playlists (M3U8 neu), Einkäufen, Snapshots, `_aussortiert.csv`, Vorbereiten, Verlauf und Warteschlange werden
 nachgeführt; Protokoll `Ordnerwechsel.csv` im Export-Ordner; ein leer gewordener alter Ordner wird nur auf
 Rückfrage gelöscht. „Struktur anlegen …“ legt fehlende Ordner an. Beim ersten Start nach dem Update werden die bisherigen Einstellungen
 übernommen; war die Bibliothek an verschiedenen Stellen verschieden eingetragen, zeigt TagStudio die Übersicht

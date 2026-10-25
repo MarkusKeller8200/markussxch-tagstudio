@@ -1,4 +1,4 @@
-"""Beatport – Metadaten, Playlists und Käufe über die offizielle Beatport-API v4.
+"""Beatport – Metadaten, Playlists und Einkäufe über die offizielle Beatport-API v4.
 
 Standard (Entscheid User 25.10.2026, #289): eigener offizieller API-Zugang (Client-ID + Secret, Password Grant laut
 Anmelde-Doku). Ausweichweg (inoffiziell): Login wie im beets-Plugin „beatport4“ über die öffentliche client_id der
@@ -92,13 +92,13 @@ ACTIONS = [
     {"id": "purchases", "label": "Gekaufte Titel abgleichen …", "where": "page", "run_label": "Abgleichen",
      "needs_selection": False,
      "description": "Liest die gekauften Titel deines Beatport-Kontos und prüft, welche in deinen Ordnern "
-                    "schon vorhanden sind (Ergebnis als CSV-Liste) und markiert sie in „Entdecken“ als gekauft. Laden: „Fehlende Käufe herunterladen …“.",
+                    "schon vorhanden sind (Ergebnis als CSV-Liste) und markiert sie in „Entdecken“ als gekauft. Laden: „Fehlende Einkäufe herunterladen …“.",
      "options": [
          {"key": "folders", "type": "folders", "label": "Ordner zum Abgleich (z. B. Bibliothek und Eingang)"},
-         {"key": "max", "type": "number", "label": "Höchstens so viele Käufe lesen", "default": 2000},
+         {"key": "max", "type": "number", "label": "Höchstens so viele Einkäufe lesen", "default": 2000},
          {"type": "info", "label": "Abgleich über Beatport-ID (TXXX:BEATPORT_TRACK_ID), ISRC oder Künstler + Titel + Mix."},
      ]},
-    {"id": "download", "label": "Fehlende Käufe herunterladen …", "where": "page", "run_label": "Herunterladen",
+    {"id": "download", "label": "Fehlende Einkäufe herunterladen …", "where": "page", "run_label": "Herunterladen",
      "needs_selection": False,
      "description": "Lädt gekaufte Titel, die in deinen Ordnern noch fehlen, unverändert in den Zielordner (z. B. den "
                     "Eingangsordner von „Vorbereiten“). Beatport hat dafür keine offizielle Schnittstelle – der Weg wird "
@@ -112,9 +112,9 @@ ACTIONS = [
      ]},
     {"id": "settings", "label": "Einstellungen …", "where": "page", "run_label": "Speichern", "needs_selection": False,
      "description": "Playlists in deinem Beatport-Konto anlegen – „Download Tracks“ (je 100 Titel) und eine Playlist je "
-                    "Kaufdatum auf der Seite „Käufe“. Ändert dein Beatport-Konto, aber nur, wenn du dort auf den Knopf klickst.",
+                    "Kaufdatum auf der Seite „Einkäufe“. Ändert dein Beatport-Konto, aber nur, wenn du dort auf den Knopf klickst.",
      "options": [
-         {"key": "playlists_write", "type": "check", "label": "Playlists in Beatport anlegen und befüllen (Käufe)", "default": False},
+         {"key": "playlists_write", "type": "check", "label": "Playlists in Beatport anlegen und befüllen (Einkäufe)", "default": False},
          {"key": "buy_prefix", "type": "text", "label": "Präfix für Playlists je Kaufdatum", "default": "TagStudio_BUY_"},
          {"type": "info", "label": "TagStudio verändert nur Playlists, deren Name mit „TagStudio_“ beginnt, und löscht nie "
                                   "ohne Rückfrage. „Schreibzugriff prüfen“ fragt Beatport nur nach den erlaubten Methoden."},
@@ -451,7 +451,7 @@ class Client:
 
 
 # =========================================================================== #284: Beatport-Playlists (nur lesen)
-# Inoffizielle API v4 wie bei den Käufen (#117): bekannte Pfade werden probiert, die Feldnamen der ersten Antwort ins
+# Inoffizielle API v4 wie bei den Einkäufen (#117): bekannte Pfade werden probiert, die Feldnamen der ersten Antwort ins
 # Protokoll geschrieben (Plugins › Beatport › Protokoll). Entscheid B1 (25.10.2026): eigene Playlists.
 PLAYLIST_PATHS = ["/my/playlists/"]
 PLAYLIST_TRACK_PATHS = ["/my/playlists/{id}/tracks/"]
@@ -594,7 +594,7 @@ def save_settings(ctx, opts) -> dict:
 
 
 def store_settings(ctx, update=None) -> dict:
-    """Für die Seite „Käufe“: Einstellungen des Plugins (Schreiben an/aus, Präfix); update speichert Teile davon."""
+    """Für die Seite „Einkäufe“: Einstellungen des Plugins (Schreiben an/aus, Präfix); update speichert Teile davon."""
     return save_settings(ctx, update) if isinstance(update, dict) and update else load_settings(ctx)
 
 
@@ -891,19 +891,55 @@ def best_match(client, info):
 
 
 # =========================================================================== #204: Integration
+_SECRET_HEADERS = ("authorization", "cookie", "set-cookie", "proxy-authorization", "x-csrftoken")
+
+
+def _log_headers(h) -> str:
+    """Kopfzeilen fürs Protokoll – Zugangsdaten geschwärzt (#350)."""
+    out = []
+    for k, v in (h or {}).items():
+        lk = str(k).lower()
+        if lk in _SECRET_HEADERS:
+            v = (str(v).split(" ", 1)[0] + " •••") if lk == "authorization" else "•••"
+        out.append(f"  {k}: {v}")
+    return "\n".join(out) or "  (keine)"
+
+
 def api_request(ctx, ep, params):
-    """API-Tester: GET mit dem eigenen Token (bei Bedarf erneuert). Der Token wird in der Anzeige geschwärzt."""
+    """API-Tester: Aufruf mit dem eigenen Token (bei Bedarf erneuert); #350 auch POST/PUT/PATCH/DELETE (vom Tester
+    bestätigt, Body aus `_body`). Jeder Aufruf kommt mit Methode, Adresse, Kopfzeilen, Body, Status, Antwort-Kopfzeilen
+    und Antwort ins Protokoll – Token und Cookies geschwärzt."""
     import services
     cl = Client(ctx)
     if cl.tok["expires_at"] - 30 < time.time():
         cl.tok = refresh(ctx, cl.tok) or cl._expired()
-    url = services.build_url({"base": API}, ep, params)
-    st, h, body = request("GET", url, headers={"Authorization": f"Bearer {cl.tok['access_token']}"})
+    method = str(ep.get("method") or "GET").upper()
+    url = services.build_url({"base": API}, ep, {k: v for k, v in params.items() if not str(k).startswith("_")})
+    body = None
+    raw = str(params.get("_body") or "").strip()
+    if method != "GET" and raw:
+        body = json.loads(raw)
+
+    def send():
+        hdr = {"Authorization": f"Bearer {cl.tok['access_token']}"}
+        sent = {"User-Agent": USER_AGENT, "Accept": "application/json, text/html;q=0.9, */*;q=0.5", **hdr}
+        if body is not None:
+            sent["Content-Type"] = "application/json"
+        return sent, request(method, url, headers=hdr, data=body)
+    sent, (st, h, resp) = send()
     if st == 401:
         cl.tok = refresh(ctx, cl.tok) or cl._expired()
-        st, h, body = request("GET", url, headers={"Authorization": f"Bearer {cl.tok['access_token']}"})
+        sent, (st, h, resp) = send()
     ctx.secrets = [cl.tok.get("access_token"), cl.tok.get("refresh_token")]
-    return st, h, body, url
+    text = (resp or b"")[:20000].decode("utf-8", "replace")
+    for s in ctx.secrets:
+        if s and len(str(s)) >= 8:
+            text = text.replace(str(s), "•••")
+    ctx.log(f"{method} {url}\nAnfrage-Kopfzeilen:\n{_log_headers(sent)}\nAnfrage-Body: "
+            f"{json.dumps(body, ensure_ascii=False) if body is not None else '(leer)'}\n"
+            f"Antwort: HTTP {st}\nAntwort-Kopfzeilen:\n{_log_headers(h)}\nAntwort-Body ({len(resp or b'')} Bytes):\n"
+            f"{text or '(leer)'}")
+    return st, h, resp, url
 
 
 def access_info(ctx) -> str:
@@ -1219,7 +1255,7 @@ def run(action, ctx, files, opts):
     return {"message": f"{msg}. {m} mögliche Änderung(en), {n} vorausgewählt." + extra}
 
 
-# =========================================================================== #117 Käufe abgleichen
+# =========================================================================== #117 Einkäufe abgleichen
 PURCHASE_PATHS = ["/my/downloads/"]          # offizielle Doku: /v4/my/downloads/ (kein /my/library/, #285)
 
 
@@ -1285,7 +1321,7 @@ def run_purchases(ctx, opts):
         return {"message": "Keine gekauften Titel über die bekannten Schnittstellen gefunden – Details im Protokoll "
                            "(bitte an Claude weitergeben, #117)."}
     bought = 0
-    try:                                     # #162: Käufe in „Entdecken“ als gekauft markieren
+    try:                                     # #162: Einkäufe in „Entdecken“ als gekauft markieren
         import discover
         bought = discover.mark_bought(items)
     except Exception as ex:  # noqa: BLE001
@@ -1568,7 +1604,7 @@ def _done_path(ctx):
 
 
 def _save_done(ctx, done: dict):
-    """Liste der geladenen Käufe atomar schreiben (ein Abbruch darf sie nicht leeren)."""
+    """Liste der geladenen Einkäufe atomar schreiben (ein Abbruch darf sie nicht leeren)."""
     path = _done_path(ctx)
     with open(path + ".tmp", "w", encoding="utf-8") as fh:
         json.dump(done, fh, ensure_ascii=False, indent=1)
@@ -1602,7 +1638,7 @@ def run_download(ctx, opts):
             continue
         todo.append(t)
     limit = max(1, int(opts.get("count") or 1))
-    ctx.log(f"Download: {len(items)} Käufe, {len(todo)} fehlen, lade höchstens {limit}.")
+    ctx.log(f"Download: {len(items)} Einkäufe, {len(todo)} fehlen, lade höchstens {limit}.")
     got, failed = [], []
     for k, t in enumerate(todo[:limit]):
         ctx.check_cancel()
@@ -1634,7 +1670,7 @@ def run_download(ctx, opts):
     return {"message": msg}
 
 
-# =========================================================================== #285: Seite „Käufe“ (Store-Rahmen)
+# =========================================================================== #285: Seite „Einkäufe“ (Store-Rahmen)
 _BOUGHT_KEYS = ("purchase_date", "purchased_at", "purchased", "date_purchased", "order_date", "ordered_at",
                 "order_created", "created", "date_created", "created_at")
 
@@ -1650,7 +1686,7 @@ def bought_date(t) -> str:
 
 
 def store_item(t, cat=None) -> dict:
-    """Beatport-Kauf → Eintrag für die Seite „Käufe“ (purchases.clean_item). Laut offizieller Doku hat ein Kauf
+    """Beatport-Kauf → Eintrag für die Seite „Einkäufe“ (purchases.clean_item). Laut offizieller Doku hat ein Kauf
     (TrackDownloadList) kein ISRC, keine Katalognummer und kein Label, „release“ ist nur der Name – cat: derselbe
     Titel aus /catalog/tracks/ zum Ergänzen."""
     rel = t.get("release") if isinstance(t.get("release"), dict) else {"name": t.get("release") or ""}
@@ -1691,7 +1727,7 @@ def catalog_details(c, ids, log=None) -> dict:
 
 
 def store_purchases(ctx, since="") -> dict:
-    """Käufe des Kontos für die Seite „Käufe“ → {"name", "items", "since"}. since="JJJJ-MM-TT": nur Käufe ab diesem
+    """Einkäufe des Kontos für die Seite „Einkäufe“ → {"name", "items", "since"}. since="JJJJ-MM-TT": nur Einkäufe ab diesem
     Tag (Filter purchase_date laut offizieller Doku von /v4/my/downloads/), sonst alle."""
     ok, why = ready(ctx)
     if not ok:
@@ -1704,10 +1740,10 @@ def store_purchases(ctx, since="") -> dict:
         return {"name": "Beatport", "items": [], "since": since}           # seit dem letzten Mal nichts Neues
     if not path:
         raise ValueError("Beatport hat keine gekauften Titel geliefert – Details im Protokoll (Plugins › Beatport).")
-    ctx.log(f"{len(items)} Käufe über {path}")
+    ctx.log(f"{len(items)} Einkäufe über {path}")
     if items and not any(bought_date(t) for t in items[:20]):
         ctx.log("Kein Kaufdatum gefunden – Felder: " + ", ".join(sorted(set(items[0]) | set(items[0].get("_order") or {}))))
-    try:                                                   # #162: Käufe in „Entdecken“ als gekauft markieren
+    try:                                                   # #162: Einkäufe in „Entdecken“ als gekauft markieren
         import discover
         discover.mark_bought(items)
     except Exception as ex:  # noqa: BLE001
@@ -1723,7 +1759,7 @@ DOWNLOAD_PAGE = "https://www.beatport.com/library/downloads"
 
 
 def store_download(ctx, items, dest) -> dict:
-    """Gewählte Käufe in den Ordner dest laden → {"files": {id: [Pfade]}, "failed": [Text], "manual": URL|""}.
+    """Gewählte Einkäufe in den Ordner dest laden → {"files": {id: [Pfade]}, "failed": [Text], "manual": URL|""}.
     Die offizielle API hat keinen Download-Endpunkt (OpenAPI-Beschreibung, 25.10.2026): versucht werden die
     undokumentierten Wege (#117, Variante 1 laut User). Ohne Adresse → „manual“ = Download-Seite bei Beatport
     (Variante 2: dort laden, mit „Abholen“ übernehmen)."""

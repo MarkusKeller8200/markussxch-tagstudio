@@ -107,5 +107,16 @@
 "Ergebnis": ["Result", "Ergäbnis"],
 "Zugriff prüfen:": ["Check access:", "Zuegriff prüefe:"],
 "begrenzt": ["limited", "begränzt"],
-"keine Beispiel-ID aus der Liste": ["no sample ID from the list", "kei Biispiil-ID us de Lischte"]
+"keine Beispiel-ID aus der Liste": ["no sample ID from the list", "kei Biispiil-ID us de Lischte"],
+"– schreibende (POST, PATCH, DELETE …) nur nach Rückfrage": ["– writing ones (POST, PATCH, DELETE …) only after confirmation", "– schriibendi (POST, PATCH, DELETE …) nur nach Rückfrag"],
+"(nur lesend)": ["(read only)", "(nur läsend)"],
+"Jeder Aufruf steht mit Kopfzeilen und Werten im Plugin-Protokoll (Zugangsdaten geschwärzt).": ["Every call is in the plugin log with headers and values (credentials blacked out).", "Jede Uufruef staht mit Chopfziile und Wärt im Plugin-Protokoll (Zuegangsdate gschwärzt)."],
+"Body (JSON)": ["Body (JSON)", "Body (JSON)"],
+"⚠ Schreibende Anfrage – ändert dein Konto beim Dienst. Vor dem Senden kommt eine Rückfrage.": ["⚠ Writing request – changes your account at the service. You will be asked before sending.", "⚠ Schriibendi Aafrog – änderet dis Konto bim Dienscht. Vor em Sände chunnt e Rückfrag."],
+"Ruft den Endpunkt direkt auf{x}. Schlüssel und Token setzt das Plugin ein – sie werden nie angezeigt.{x}": ["Calls the endpoint directly{x}. The plugin inserts keys and tokens – they are never shown.{x}", "Rüeft de Ändpunkt diräkt uf{x}. Schlüssel und Token setzt s Plugin ii – si wärded nie aazeigt.{x}"],
+"{x} senden?": ["Send {x}?", "{x} sände?"],
+"{x} {x} ändert dein Konto bei {x}. Wirklich senden?": ["{x} {x} changes your account at {x}. Really send?", "{x} {x} änderet dis Konto bi {x}. Würkli sände?"],
+"Body ist kein gültiges JSON: {x}": ["Body is not valid JSON: {x}", "Body isch kei gültigs JSON: {x}"],
+"Schreibende Anfrage nicht bestätigt – es wurde nichts gesendet.": ["Writing request not confirmed – nothing was sent.", "Schriibendi Aafrog nöd bestätiget – es isch nüt gsändet worde."],
+"Dieses Plugin kann schreibende Anfragen nicht testen.": ["This plugin cannot test writing requests.", "Das Plugin cha kei schriibendi Aafroge teste."]
 }

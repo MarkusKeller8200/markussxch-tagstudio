@@ -111,7 +111,7 @@ async function folderTransferFlow(kind, id, setting, title) {
         ${x.warning ? `<div class="fold-warn sm">⚠ ${esc(x.warning)}</div>` : ""}
         <div>${tr(x)}</div></div>`).join("")}
       <div class="frm"><label for="ftConflict">Gleicher Name am Ziel</label><select id="ftConflict" class="inp"><option value="keep">Ziel behalten (Datei bleibt am alten Ort)</option><option value="both">beide behalten – neue als „Name (2)“</option></select></div>
-      <label class="check sm"><input type="checkbox" id="ftRelink"> Bei „Kopieren“ Verweise auf den neuen Ordner umstellen (Playlists, Käufe, Snapshots, Verlauf)</label>
+      <label class="check sm"><input type="checkbox" id="ftRelink"> Bei „Kopieren“ Verweise auf den neuen Ordner umstellen (Playlists, Einkäufe, Snapshots, Verlauf)</label>
       <p class="muted sm">Nie wird etwas überschrieben. Ein Abbruch hinterlässt keine halben Dateien; der alte Ordner bleibt stehen. Protokoll: Ordnerwechsel.csv im Export-Ordner.</p>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Ändern", value: true, primary: true }],
     collect: (b) => {
@@ -142,7 +142,7 @@ async function foldersReviewDialog() {
   const libs = Object.fromEntries(f.libraries.map((l) => [l.id, l]));
   const main = (f.libraries.find((l) => l.main) || {}).id;
   const res = await modal({ title: "Diese Ordner haben wir gefunden", wide: true,
-    html: `<p style="margin:0 0 8px">Bisher war die Bibliothek an mehreren Stellen eingetragen. Ab jetzt gibt es eine Liste der Bibliotheken – bitte festlegen, welche bleiben, welche aktiv sind (werden in Käufe, Playlists und Entdecken abgeglichen) und welche die <b>Hauptbibliothek</b> ist (Startordner des Taggers, Ziel von Vorbereiten). Es wird nichts verschoben oder gelöscht.</p>
+    html: `<p style="margin:0 0 8px">Bisher war die Bibliothek an mehreren Stellen eingetragen. Ab jetzt gibt es eine Liste der Bibliotheken – bitte festlegen, welche bleiben, welche aktiv sind (werden in Einkäufe, Playlists und Entdecken abgeglichen) und welche die <b>Hauptbibliothek</b> ist (Startordner des Taggers, Ziel von Vorbereiten). Es wird nichts verschoben oder gelöscht.</p>
       <div class="fx-table"><table><thead><tr><th>Behalten</th><th>Aktiv</th><th>Haupt</th><th>Ordner</th><th>Eingetragen bei</th></tr></thead><tbody>
       ${f.review.map((c) => { const l = libs[c.id] || {}; return `<tr data-rid="${esc(c.id)}"><td><input type="checkbox" data-rkeep checked aria-label="Behalten"></td><td><input type="checkbox" data-ractive ${l.active !== false ? "checked" : ""} aria-label="Aktiv"></td><td><input type="radio" name="rMain" value="${esc(c.id)}" ${c.id === main ? "checked" : ""} aria-label="Hauptbibliothek"></td>
         <td>${folderPathCell(c.path, true)}</td><td class="muted sm">${esc(c.found.join(", "))}</td></tr>`; }).join("")}

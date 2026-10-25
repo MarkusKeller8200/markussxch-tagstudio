@@ -1,4 +1,4 @@
-"""Session-Teil „Käufe“ (#285): gekaufte Titel aller Stores sammeln, mit der Bibliothek abgleichen, fehlende laden.
+"""Session-Teil „Einkäufe“ (#285): gekaufte Titel aller Stores sammeln, mit der Bibliothek abgleichen, fehlende laden.
 
 Stores sind Plugins mit ``store_purchases(ctx)`` und ``store_download(ctx, items, dest)`` (zuerst Beatport). Der
 Speicher (``purchases.Store``) liegt im Datenordner des Profils. Ziel für Downloads ist der Eingangsordner: eigene
@@ -16,7 +16,7 @@ import purchases
 
 NEW_DIR = "00_New"
 FULL_EVERY = 30 * 86400             # ganze Kaufliste spätestens nach 30 Tagen wieder einmal holen
-OVERLAP_DAYS = 3                    # neue Käufe ab dem letzten Kaufdatum minus 3 Tage
+OVERLAP_DAYS = 3                    # neue Einkäufe ab dem letzten Kaufdatum minus 3 Tage
 
 
 class PurchasesMixin:
@@ -51,6 +51,13 @@ class PurchasesMixin:
         if why.startswith("Downloads"):
             return self._source_dir(store) or dest
         return dest
+
+    def _purch_has_path(self, path) -> bool:
+        """#349: gehört die Datei zu einem Einkauf (gefunden oder von Hand zugeordnet)? – für den Player."""
+        k = os.path.normcase(os.path.abspath(str(path)))
+        with self.lock:
+            return any(it.get("file") and os.path.normcase(os.path.abspath(it["file"])) == k
+                       for it in self._purch().data["items"].values())
 
     # ---- #338: Zuweisung „streng“ und Korrekturfenster
     def _purch_strict(self) -> bool:
@@ -156,7 +163,7 @@ class PurchasesMixin:
         return self.plugins.call_playlist(self.BP, "store_playlist_check", session=self)
 
     def _bp_open_items(self, keys_=None) -> list:
-        """Beatport-Käufe ohne lokale Datei (fehlt/unklar, keine Vorbestellung) bzw. die markierten."""
+        """Beatport-Einkäufe ohne lokale Datei (fehlt/unklar, keine Vorbestellung) bzw. die markierten."""
         with self.lock:
             items = self._purch().data["items"]
             sel = [items[k] for k in (keys_ or []) if k in items]
@@ -177,7 +184,7 @@ class PurchasesMixin:
         vorhandene Playlist gleichen Namens wird ersetzt, überzählige vom selben Tag geleert – nichts häuft sich an."""
         pv = self.purch_dl_playlist_preview(keys_)
         if not pv["count"]:
-            return {"ok": False, "error": "Keine Beatport-Käufe ohne Datei."}
+            return {"ok": False, "error": "Keine Beatport-Einkäufe ohne Datei."}
         ids = [str(it["id"]) for it in self._bp_open_items(keys_)]
 
         def job(cancel, progress):
@@ -208,7 +215,7 @@ class PurchasesMixin:
         return self._run("purch", "Download-Playlists aufräumen", job)
 
     def purch_buy_playlists_preview(self, prefix=None, since="", until="") -> dict:
-        """Playlists je Kaufdatum: Datum, Name, Anzahl (Beatport-Käufe mit Kaufdatum, ohne Vorbestellungen)."""
+        """Playlists je Kaufdatum: Datum, Name, Anzahl (Beatport-Einkäufe mit Kaufdatum, ohne Vorbestellungen)."""
         s = self.purch_bp_settings()
         prefix = prefix or s.get("buy_prefix") or "TagStudio_BUY_"
         days: dict = {}
@@ -235,7 +242,7 @@ class PurchasesMixin:
             self.purch_bp_settings({"buy_prefix": str(prefix)})
         pv = self.purch_buy_playlists_preview(None, since, until)
         if not pv["rows"]:
-            return {"ok": False, "error": "Keine Beatport-Käufe mit Kaufdatum im gewählten Zeitraum."}
+            return {"ok": False, "error": "Keine Beatport-Einkäufe mit Kaufdatum im gewählten Zeitraum."}
 
         def job(cancel, progress):
             out = []
@@ -259,7 +266,7 @@ class PurchasesMixin:
         return bool(on)
 
     def _purch_dl_folders(self) -> list:
-        """Download-Ordner der Käufe: eigenes Ziel bzw. je Store der Unterordner der Rolle „Downloads“ plus _Manuell."""
+        """Download-Ordner der Einkäufe: eigenes Ziel bzw. je Store der Unterordner der Rolle „Downloads“ plus _Manuell."""
         dest, why = self._purch_dest()
         if not why.startswith("Downloads"):
             return [dest] if dest else []
@@ -279,7 +286,7 @@ class PurchasesMixin:
         return r
 
     def purch_unzip(self) -> dict:
-        """#336: beim Öffnen der Seite „Käufe“ neue ZIPs in den Download-Ordnern entpacken."""
+        """#336: beim Öffnen der Seite „Einkäufe“ neue ZIPs in den Download-Ordnern entpacken."""
         return self._unzip(self._purch_dl_folders())
 
     def purch_set_dest(self, path) -> dict:
@@ -357,8 +364,8 @@ class PurchasesMixin:
         return self.purch_state()
 
     def start_purch_refresh(self, stores=None, full=False):
-        """Käufe der Stores holen (None = alle bereiten), zusammenführen, mit der Bibliothek abgleichen. Nach dem
-        ersten Mal nur neue Käufe (Filter Kaufdatum), alle FULL_EVERY Tage bzw. mit full=True die ganze Liste."""
+        """Einkäufe der Stores holen (None = alle bereiten), zusammenführen, mit der Bibliothek abgleichen. Nach dem
+        ersten Mal nur neue Einkäufe (Filter Kaufdatum), alle FULL_EVERY Tage bzw. mit full=True die ganze Liste."""
         src = [s for s in self.plugins.store_sources() if stores is None or s["id"] in stores]
         if not src:
             return {"ok": False, "error": "Kein Store eingerichtet – zuerst im Plugin „Beatport“ anmelden."}
@@ -390,7 +397,7 @@ class PurchasesMixin:
                 count = self._purch().match(index, dest, self._purch_strict())
             return {"ok": True, "new": new, "count": count, "errors": errors, "library": len(index),
                     "diag": self._purch_diag(index, dest)}
-        return self._run("purch", "Käufe aktualisieren", job)
+        return self._run("purch", "Einkäufe aktualisieren", job)
 
     def start_purch_match(self):
         """Nur neu abgleichen (z. B. nach dem Übernehmen in die Bibliothek)."""
@@ -400,7 +407,7 @@ class PurchasesMixin:
                 count = self._purch().match(index, dest, self._purch_strict())
             return {"ok": True, "new": 0, "count": count, "errors": [], "library": len(index),
                     "diag": self._purch_diag(index, dest)}
-        return self._run("purch", "Käufe abgleichen", job)
+        return self._run("purch", "Einkäufe abgleichen", job)
 
     def purch_session_login(self, store, username, password) -> dict:
         """#295: Anmeldung nur für diese Sitzung (Download wie die Webseite). Passwort wird nicht gespeichert."""
@@ -421,10 +428,10 @@ class PurchasesMixin:
         return out
 
     def start_purch_download(self, keys_=None):
-        """Gewählte (bzw. alle fehlenden) Käufe in den Eingangsordner laden. keys_: ["store:id", …]."""
+        """Gewählte (bzw. alle fehlenden) Einkäufe in den Eingangsordner laden. keys_: ["store:id", …]."""
         dest, why = self._purch_dest()
         if not dest:
-            return {"ok": False, "error": "Kein Eingangsordner – Basisordner einstellen oder unter „Käufe“ einen Ordner wählen."}
+            return {"ok": False, "error": "Kein Eingangsordner – Basisordner einstellen oder unter „Einkäufe“ einen Ordner wählen."}
         if not os.path.isdir(dest):
             if os.path.isdir(os.path.dirname(os.path.normpath(dest))):
                 os.makedirs(dest, exist_ok=True)                # 00_New im Basisordner anlegen
@@ -471,4 +478,4 @@ class PurchasesMixin:
                         name = (self._purch().data["stores"].get(store) or {}).get("name") or self.plugins.get(store).name
                     manual.append({"store": store, "name": name, "url": r["manual"]})
             return {"ok": True, "downloaded": got, "failed": failed, "dest": dest, "manual": manual, "need_login": need}
-        return self._run("purch_dl", "Käufe herunterladen", job)
+        return self._run("purch_dl", "Einkäufe herunterladen", job)

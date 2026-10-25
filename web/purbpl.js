@@ -1,5 +1,5 @@
-/* MarKusSXCH TagStudio – Käufe: Playlists in Beatport (#334, #335).
-   „Download Tracks …“ trägt die Käufe ohne lokale Datei in TagStudio_DOWNLOAD_<Datum>_<n> ein (je 100 – mehr lädt
+/* MarKusSXCH TagStudio – Einkäufe: Playlists in Beatport (#334, #335).
+   „Download Tracks …“ trägt die Einkäufe ohne lokale Datei in TagStudio_DOWNLOAD_<Datum>_<n> ein (je 100 – mehr lädt
    Beatport nicht auf einmal); „Playlists je Kaufdatum …“ legt PRÄFIX_JJJJ_MM_TT an bzw. ergänzt sie. Beides ändert
    das Beatport-Konto – nur mit eingeschalteter Plugin-Einstellung und nur auf Klick; verändert werden ausschliesslich
    Playlists, deren Name mit „TagStudio_“ beginnt. */
@@ -44,7 +44,7 @@ async function purBpDownload() {
   const keys = PUR.sel.size ? [...PUR.sel] : null;
   const pv = await call("purch_dl_playlist_preview", keys);
   if (!(await purBpReady(pv))) return;
-  if (!pv.count) return info("Download Tracks", "Keine Beatport-Käufe ohne lokale Datei.");
+  if (!pv.count) return info("Download Tracks", "Keine Beatport-Einkäufe ohne lokale Datei.");
   const ok = await modal({
     title: "Download Tracks", wide: true,
     html: `<p style="margin:0">${fmtN(pv.count)} ${keys ? "markierte" : "fehlende bzw. unklare"} Beatport-Titel → ${fmtN(pv.chunks.length)} Playlist(s) in deinem Beatport-Konto (Beatport lädt höchstens 100 Titel auf einmal):</p>
@@ -63,7 +63,7 @@ async function purBpByDate() {
   let pv = pv0;
   const table = () => (pv.rows.length
     ? `<table><thead><tr><th data-col="date">Kaufdatum</th><th data-col="name">Playlist</th><th data-col="n" class="r">Titel</th></tr></thead><tbody>${pv.rows.map((r) => `<tr><td>${esc(r.date)}</td><td translate="no">${esc(r.name)}</td><td class="r">${fmtN(r.count)}</td></tr>`).join("")}</tbody></table>`
-    : '<div class="empty">Keine Käufe mit Kaufdatum im Zeitraum.</div>');
+    : '<div class="empty">Keine Einkäufe mit Kaufdatum im Zeitraum.</div>');
   const res = await modal({
     title: "Playlists je Kaufdatum", wide: true,
     html: `<div class="pc-edit" data-keep-enter>

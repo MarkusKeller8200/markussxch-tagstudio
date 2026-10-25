@@ -41,8 +41,8 @@ function colApply(table, tid) {
   table.style.width = sum + "px";
 }
 
-/** Breite passend zum Inhalt einer Spalte messen (höchstens 600 px). */
-function colAutoWidth(table, idx) {
+/** Breite passend zum Inhalt einer Spalte messen (höchstens max px, Standard 600). */
+function colAutoWidth(table, idx, max = 600) {
   const cells = [...table.rows].map((r) => r.cells[idx]).filter(Boolean);
   let best = 0;
   const probe = document.createElement("span");
@@ -59,7 +59,42 @@ function colAutoWidth(table, idx) {
     best = Math.max(best, probe.getBoundingClientRect().width + pad + 14);   // + Platz für Sortier-Pfeil/Griff
   }
   probe.remove();
-  return clamp(Math.ceil(best), COLW.min, 600);
+  return clamp(Math.ceil(best), COLW.min, max);
+}
+
+/** #347 „Best Match“: angezeigte Spalten nach Inhalt auf die verfügbare Breite verteilen – fixe Spalten (ohne Griff)
+ *  bleiben, wie sie sind. Zu wenig Platz: Spalten mit wenig Inhalt behalten ihre Breite, die übrigen teilen sich den
+ *  Rest gleichmässig (Wasserstand); zu viel Platz: Überschuss anteilig zum Inhalt. Ergebnis gemerkt wie beim Ziehen. */
+function colBestMatch(table, tid) {
+  const ths = [...table.querySelectorAll(":scope > thead > tr:first-child > th")];
+  const box = table.parentElement;
+  if (!ths.length || !box) return;
+  const cs = getComputedStyle(box);
+  const inner = box.clientWidth - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+  const fixed = ths.map((th) => th.dataset.nogrip !== undefined);
+  const cur = ths.map((th) => Math.round(th.getBoundingClientRect().width));
+  const flex = ths.map((_, i) => i).filter((i) => !fixed[i]);
+  if (!flex.length) return;
+  const avail = Math.max(flex.length * COLW.min, inner - fixed.reduce((a, f, i) => a + (f ? cur[i] : 0), 0) - 1);
+  const need = {};
+  flex.forEach((i) => { need[i] = Math.max(COLW.min, colAutoWidth(table, i, 1200)); });
+  const out = {};
+  const total = flex.reduce((a, i) => a + need[i], 0);
+  if (total <= avail) {                                   // Platz übrig: anteilig zum Inhalt verbreitern
+    let used = 0;
+    flex.forEach((i, n) => { out[i] = n === flex.length - 1 ? avail - used : Math.floor(need[i] * avail / total); used += out[i]; });
+  } else {                                                // zu eng: kleine Spalten ganz, grosse teilen sich den Rest
+    let rest = avail, left = [...flex].sort((a, b) => need[a] - need[b]);
+    while (left.length) {
+      const share = rest / left.length;
+      if (need[left[0]] <= share) { const i = left.shift(); out[i] = need[i]; rest -= need[i]; }
+      else { left.forEach((i) => { out[i] = Math.max(COLW.min, Math.floor(share)); }); break; }
+    }
+  }
+  const w = {};
+  ths.forEach((th, i) => { w[colKey(th, i)] = fixed[i] ? cur[i] : out[i]; });
+  colWidthsSave(tid, w);
+  colApply(table, tid);
 }
 
 function colResize(table, tid) {
@@ -67,6 +102,13 @@ function colResize(table, tid) {
   const ths = [...table.querySelectorAll(":scope > thead > tr:first-child > th")];
   if (!ths.length) return;
   table.dataset.colTid = tid;
+  const prev = table.previousElementSibling;                 // #347: Knopf „Best Match“ über der Tabelle
+  if (!(prev && prev.classList.contains("col-fit-bar"))) {
+    const bar = document.createElement("div");
+    bar.className = "col-fit-bar";
+    bar.innerHTML = `<button class="ghost sm col-fit" type="button" title="Angezeigte Spalten bestmöglich auf die Breite verteilen (fixe Spalten bleiben)">⇔ Best Match</button>`;
+    table.before(bar);
+  }
   ths.forEach((th, i) => {
     if (th.dataset.nogrip !== undefined || th.querySelector(":scope > .col-grip")) return;
     const g = document.createElement("span");
@@ -119,7 +161,16 @@ document.addEventListener("pointerdown", (e) => {
   g.addEventListener("pointercancel", up, { once: true });
 }, true);
 // Klick auf den Griff sortiert nicht (Spaltenköpfe sind oft Sortier-Knöpfe)
-document.addEventListener("click", (e) => { if (e.target.closest && e.target.closest(".col-grip")) { e.preventDefault(); e.stopPropagation(); } }, true);
+document.addEventListener("click", (e) => {
+  if (!e.target.closest) return;
+  if (e.target.closest(".col-grip")) { e.preventDefault(); e.stopPropagation(); return; }
+  const fit = e.target.closest(".col-fit");                                     // #347
+  if (fit) {
+    e.preventDefault(); e.stopPropagation();
+    const table = fit.closest(".col-fit-bar").nextElementSibling;
+    if (table && table.dataset.colTid) colBestMatch(table, table.dataset.colTid);
+  }
+}, true);
 document.addEventListener("dblclick", (e) => {
   const g = e.target.closest && e.target.closest(".col-grip");
   if (!g) return;

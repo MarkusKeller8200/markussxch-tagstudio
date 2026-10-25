@@ -374,7 +374,7 @@ class FolderRolesMixin:
                     st.sync()
             except Exception as ex:  # noqa: BLE001
                 out["playlists_error"] = str(ex)
-        try:                                                                # Käufe
+        try:                                                                # Einkäufe
             ps = self._purch()
             n = 0
             for it in ps.data["items"].values():
@@ -548,7 +548,7 @@ class FolderRolesMixin:
         return {"created": made, "source": added}
 
     def _source_dir(self, store: str) -> str:
-        """Download-Ordner einer Quelle (Käufe/Store-Downloads): Downloads\\<Quelle> – "" ohne Rolle „Downloads“."""
+        """Download-Ordner einer Quelle (Einkäufe/Store-Downloads): Downloads\\<Quelle> – "" ohne Rolle „Downloads“."""
         dl = folders.resolve_role(self._folders(), "downloads")
         if not dl:
             return ""

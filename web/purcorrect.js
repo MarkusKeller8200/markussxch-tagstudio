@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Käufe: Korrekturfenster für unklare und fehlende Zuweisungen (#338).
+/* MarKusSXCH TagStudio – Einkäufe: Korrekturfenster für unklare und fehlende Zuweisungen (#338).
    Je nach Grund: mehrere Treffer → Kandidaten mit Tags vergleichen und den richtigen zuordnen; anderer Mix → Titel,
    Untertitel und Dateinamen der Datei anpassen (mit Sicherung) und erneut prüfen; anderer Künstler → Ähnlichkeit der
    Künstler je Kandidat; nicht gefunden → Datei von Hand wählen. „Weiter ›“ springt zum nächsten unklaren Kauf. */
@@ -12,8 +12,9 @@ const PUR_KIND = {
   missing: ["Nicht gefunden", "Kein passender Titel in der Bibliothek – Datei von Hand wählen oder herunterladen."],
 };
 
-/** Unklare und fehlende Käufe in der Reihenfolge der Tabelle (ohne Vorbestellungen) */
-const purOpenList = () => purVisible().filter((r) => (r.status === "unclear" || r.status === "missing") && !r.preorder);
+/** Unklare und fehlende Einkäufe in der Reihenfolge der Tabelle (ohne Vorbestellungen) */
+const purOpenList = () => purVisible().filter((r) => (r.status === "unclear" || r.status === "missing") && !r.preorder
+  && (!PUR.sel.size || PUR.sel.has(r.k)));                                       // #345: nur markierte, wenn welche markiert sind
 
 async function purCorrect(k) {
   let key = k || (purOpenList()[0] || {}).k;
@@ -22,7 +23,7 @@ async function purCorrect(k) {
     if (next !== "next") break;
     const list = purOpenList(), i = list.findIndex((r) => r.k === key);
     key = (list[i + 1] || (i < 0 ? list[0] : null) || {}).k;
-    if (!key) toast("Keine weiteren unklaren Käufe.");
+    if (!key) toast("Keine weiteren unklaren Einkäufe.");
   }
 }
 

@@ -137,3 +137,50 @@ class TestBeatportPlaylists(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestApiTesterWrite(unittest.TestCase):
+    """#350: API-Tester schreibend – nur bestätigt, alles ins Protokoll (Kopfzeilen, Body), Token geschwärzt."""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp()
+        self.bp = load_plugin()
+        self.api = FakeBeatport()
+        self.bp.request = self.api.request
+        self.bp.Client = lambda ctx: FakeClient(self.api)
+        self.ctx = Ctx(self.dir)
+
+    def tearDown(self):
+        shutil.rmtree(self.dir, ignore_errors=True)
+
+    def test_services_guard_and_log(self):
+        import services
+        raw = json.load(open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                          "plugins", "beatport", "plugin.json"), encoding="utf-8"))["service"]
+        svc = services.clean(raw)
+        ep = next(e for e in svc["endpoints"] if e["method"] == "POST" and e["path"] == "/my/playlists/")
+        self.assertTrue(ep["test"] and ep["write"])
+        self.assertFalse(services.clean(dict(raw, write_test=False))["endpoints"][[e["id"] for e in svc["endpoints"]].index(ep["id"])]["test"])
+
+        class P:                                       # nachgebautes Plugin für services.api_call
+            service = svc
+
+            def load(_s):
+                return self.bp
+        with self.assertRaises(ValueError):            # ohne Bestätigung nichts senden
+            services.api_call(P(), self.ctx, ep["id"], {"_body": '{"name": "TagStudio_T"}'}, "UA")
+        self.assertFalse([c for c in self.api.calls if c[0] == "POST"])
+        with self.assertRaises(ValueError):
+            services.api_call(P(), self.ctx, ep["id"], {"_body": "{kaputt", "_confirm": "yes"}, "UA")
+        r = services.api_call(P(), self.ctx, ep["id"], {"_body": '{"name": "TagStudio_T"}', "_confirm": "yes"}, "UA")
+        self.assertEqual(r["status"], 201)
+        self.assertEqual(self.api.calls[-1][:3], ("POST", "/my/playlists/", {"name": "TagStudio_T"}))
+        log = "\n".join(self.ctx.logs)
+        self.assertIn("POST https://api.beatport.com/v4/my/playlists/", log)
+        self.assertIn("Authorization: Bearer •••", log)
+        self.assertIn('Anfrage-Body: {"name": "TagStudio_T"}', log)
+        self.assertIn("Antwort: HTTP 201", log)
+        self.assertNotIn("Bearer x", log)
+        de = next(e for e in svc["endpoints"] if e["method"] == "DELETE" and e["path"] == "/my/playlists/{id}/")
+        services.api_call(P(), self.ctx, de["id"], {"id": "1", "_confirm": "yes"}, "UA")
+        self.assertNotIn(1, self.api.pl)

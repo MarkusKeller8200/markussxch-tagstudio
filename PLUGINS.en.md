@@ -328,6 +328,10 @@ Beatport” (#291); such entries are marked “BP”. With source Beatport, “S
 **Purchases (#285):** the page “Purchases” uses `store_purchases(ctx)` (all purchases with title, mix, key, BPM,
 catalogue number, link, purchase date) and `store_download(ctx, items, dest)` (download missing ones into the inbox).
 
+**Writing API tester (#350, plugin 2.1):** in the integration window › API tester, POST, PATCH and DELETE can be chosen
+too (marked ⚠, body as JSON). They are only sent after confirmation; every call is in the log (Plugins › Beatport) with
+method, address, headers, body, status, response headers and response – token and cookies blacked out.
+
 **Creating playlists in Beatport (#334/#335, plugin 2.0):** only when **“Create and fill playlists in Beatport”** is
 switched on under “Settings …” (off by default) and only on click in Purchases › “Beatport playlists ▾”:
 **“Download Tracks …”** puts the purchases without a local file into `TagStudio_DOWNLOAD_<date>_<n>` (100 tracks each –

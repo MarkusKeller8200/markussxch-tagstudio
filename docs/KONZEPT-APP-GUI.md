@@ -51,7 +51,11 @@ Grösse, Layout und Zustand merkt und Fehler nachvollziehbar protokolliert – o
   ←/→ (Umschalt: ×4), Rechtsklick auf die Kopfzeile › zurücksetzen. Mit gemerkten Breiten `table-layout: fixed`,
   Breite der Tabelle = Summe (waagrecht blättern); ohne bleibt das automatische Layout.
 - Gespeichert in `web_ui.col_widths` = `{tabelle: {spalte: px}}` (36–1200 px, `Session._clean_col_widths`).
-- Im Einsatz: Käufe (`purchases`), Tag-Fixer-Vorschau (`fixer`); weitere Tabellen sollen dieselbe Hilfe nutzen.
+- Im Einsatz: Einkäufe (`purchases`), Tag-Fixer-Vorschau (`fixer`), Ausnahmen (`fixer-exc`), Korrekturfenster
+  (`purch-correct`); weitere Tabellen sollen dieselbe Hilfe nutzen.
+- **„⇔ Best Match“ (#347):** Knopf über jeder Tabelle (`colBestMatch`): Inhaltsbreite je Spalte (`colAutoWidth`, bis 1200 px);
+  passt alles, wird der Überschuss anteilig verteilt, sonst behalten schmale Spalten ihre Breite und die breiten teilen
+  sich den Rest (Wasserstand); fixe Spalten (`data-nogrip`) bleiben unverändert. Ergebnis gemerkt wie beim Ziehen.
 
 ### 3.1 Zurück/Vorwärts zwischen Ansichten (#274, Entscheid User 24.10.2026)
 

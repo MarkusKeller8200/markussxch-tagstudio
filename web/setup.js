@@ -3,7 +3,7 @@
 "use strict";
 
 const SETUP = { st: null };
-const NAV_NAMES = { discover: "Entdecken", purchases: "Käufe", prep: "Vorbereiten", tagger: "Tagger", fixer: "Tag-Fixer", compare: "Vergleich", djset: "DJ-Set", playlists: "Playlists",
+const NAV_NAMES = { discover: "Entdecken", purchases: "Einkäufe", prep: "Vorbereiten", tagger: "Tagger", fixer: "Tag-Fixer", compare: "Vergleich", djset: "DJ-Set", playlists: "Playlists",
   snapshots: "Snapshots", backups: "Sicherungen", plugins: "Plugins", settings: "Einstellungen", help: "Hilfe" };
 
 const WIZ_GOALS = [
@@ -24,7 +24,7 @@ const WIZ_PROGRAMS = [
 ];
 const WIZ_ONLINE = [
   ["online", "Online-Metadaten", "MusicBrainz, Deezer, iTunes, Discogs … ergänzen fehlende Angaben (manche Dienste brauchen einen eigenen Schlüssel)"],
-  ["beatport", "Beatport", "Metadaten, Käufe abgleichen und herunterladen – Anmeldung später unter Plugins"],
+  ["beatport", "Beatport", "Metadaten, Einkäufe abgleichen und herunterladen – Anmeldung später unter Plugins"],
   ["loudness", "Lautheit messen", "LUFS, True Peak, Clipping (braucht FFmpeg, z. B. über das Stems-Plugin)"],
   ["stems", "Stems", "Gesang, Drums, Bass … trennen – grosse Installation (Umgebung und Modelle), unter Plugins installieren"],
 ];

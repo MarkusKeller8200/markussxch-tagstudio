@@ -23,8 +23,8 @@
     </div>
     <button class="nav" data-module="discover" title="Entdecken: neue Titel gefolgter Künstler, Labels und Genres vorhören und merken">
       <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg><span class="nt">Entdecken</span><span class="nav-sub nt" id="discCount" title="Neue Vorschläge"></span></button>
-    <button class="nav" data-module="purchases" title="Käufe: gekaufte Titel aller Stores (zuerst Beatport) sammeln, mit der Bibliothek abgleichen und fehlende herunterladen">
-      <svg class="i" viewBox="0 0 24 24"><path d="M5 7h14l-1.5 10.5a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg><span class="nt">Käufe</span><span class="nav-sub nt" id="purCount"></span></button>
+    <button class="nav" data-module="purchases" title="Einkäufe: gekaufte Titel aller Stores (zuerst Beatport) sammeln, mit der Bibliothek abgleichen und fehlende herunterladen">
+      <svg class="i" viewBox="0 0 24 24"><path d="M5 7h14l-1.5 10.5a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg><span class="nt">Einkäufe</span><span class="nav-sub nt" id="purCount"></span></button>
     <button class="nav" data-module="prep" title="Tracks vorbereiten: Eingang → Stufen → Bibliothek">
       <svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 12h7"/><path d="M4 18h4"/><path d="m14 15 3 3 5-6"/></svg><span class="nt">Vorbereiten</span><span class="nav-sub nt" id="prepCount" title="Titel im Eingang, die noch nicht übernommen sind"></span></button>
     <button class="nav" data-module="tagger" title="Tagger">
@@ -354,12 +354,12 @@
     <div class="work module" id="modulePurchases" hidden>
       <div class="mod-page">
         <header class="mod-head">
-          <div><h2>Käufe</h2>
-          <p class="muted">Gekaufte Titel aller Stores an einem Ort – vorerst Beatport. „Aktualisieren“ holt neue Käufe und gleicht mit der Bibliothek ab; fehlende Titel lassen sich in den Eingangsordner laden und von dort wie gewohnt vorbereiten.</p></div>
+          <div><h2>Einkäufe</h2>
+          <p class="muted">Gekaufte Titel aller Stores an einem Ort – vorerst Beatport. „Aktualisieren“ holt neue Einkäufe und gleicht mit der Bibliothek ab; fehlende Titel lassen sich in den Eingangsordner laden und von dort wie gewohnt vorbereiten.</p></div>
           <div class="mod-actions">
             <button class="ghost" id="purBpl" title="Playlists in deinem Beatport-Konto: Download Tracks (je 100), Playlists je Kaufdatum">Beatport-Playlists ▾</button>
             <button class="ghost" id="purMatch" title="Nur neu mit der Bibliothek abgleichen (ohne Store-Abfrage)">Abgleichen</button>
-            <button class="ghost" id="purFull" title="Die ganze Kaufliste neu holen – sonst holt „Aktualisieren“ nur Käufe seit dem letzten Mal (alle 30 Tage automatisch ganz)">Alle neu holen</button>
+            <button class="ghost" id="purFull" title="Die ganze Kaufliste neu holen – sonst holt „Aktualisieren“ nur Einkäufe seit dem letzten Mal (alle 30 Tage automatisch ganz)">Alle neu holen</button>
             <button class="primary" id="purRefresh">↻ Aktualisieren</button>
           </div>
         </header>
@@ -373,7 +373,7 @@
           <label class="check sm" title="Neue ZIP-Dateien im Download-Ordner beim Öffnen der Seite und beim Abholen entpacken – das ZIP kommt danach in den Unterordner _entpackt"><input type="checkbox" id="purUnzip" checked> ZIP entpacken</label>
           <span class="sm pur-sess" id="purSess"></span>
           <label class="check sm" title="Streng: Künstler, Titel und Mix müssen passen – auch bei gleicher ISRC; ohne Künstler oder bei abweichender Länge nicht sicher"><input type="checkbox" id="purStrict"> Streng</label>
-          <button class="ghost" id="purFix" title="Unklare und fehlende Käufe nacheinander prüfen und korrigieren">Unklare prüfen …</button>
+          <button class="ghost" id="purFix" title="Unklare und fehlende Einkäufe nacheinander prüfen und korrigieren">Unklare prüfen …</button>
           <button class="ghost" id="purDl" disabled>Fehlende herunterladen</button>
         </div>
         <div class="card pur-table" id="purTable"></div>

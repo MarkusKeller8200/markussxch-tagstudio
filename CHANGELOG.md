@@ -8,6 +8,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Beatport: API-Tester auch schreibend (#350, Plugin 2.1):** POST, PATCH und DELETE im Integrationsfenster testbar –
+  nur nach Rückfrage; jeder Aufruf mit Kopfzeilen und Werten im Protokoll, Zugangsdaten geschwärzt.
+- **Tabellen: „⇔ Best Match“ (#347):** verteilt die angezeigten Spalten nach Inhalt auf die Breite; fixe Spalten bleiben.
+- **Einkäufe: Doppelklick spielt ab (#349);** „Markierte prüfen …“ (#345); Rechtsklick auf einen unklaren Einkauf öffnet
+  direkt die Korrektur (#346).
+
 - **Käufe: Playlists in Beatport (#334, #335, Beatport-Plugin 2.0):** „Download Tracks …“ legt Playlists mit den
   Titeln ohne Datei an (je 100), „Playlists je Kaufdatum …“ eine Playlist `TagStudio_BUY_JJJJ_MM_TT` je Kaufdatum;
   „Aufräumen …“ und „Schreibzugriff prüfen“. Nur mit eingeschalteter Plugin-Einstellung (Standard aus), nur auf Klick,
@@ -31,6 +37,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   einblendbar, bearbeiten und entfernen. Teil des Einstellungs-Exports.
 
 ### Verbessert
+
+- **„Käufe“ heisst jetzt „Einkäufe“ (#348)** – überall in der Oberfläche; Daten unverändert.
 
 - **Entdecken als eigene Seite (#333):** zuoberst in der Seitenleiste mit der Zahl neuer Vorschläge; „Vorbereiten“
   ohne Umschalter `Workflow | Entdecken`. Daten und Einstellungen von Entdecken bleiben unverändert.

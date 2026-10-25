@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Seite „Käufe“ (#285): gekaufte Titel aller Stores, Abgleich mit der Bibliothek, Download.
+/* MarKusSXCH TagStudio – Seite „Einkäufe“ (#285): gekaufte Titel aller Stores, Abgleich mit der Bibliothek, Download.
    Speicher und Abgleich in purchases.py / session_purchases.py, Stores als Plugins (store_purchases, store_download). */
 "use strict";
 
@@ -56,8 +56,9 @@ function purRenderBar() {
   $("#purUnzip").checked = st.unzip !== false;
   $("#purStrict").checked = !!st.strict;                                            // #338
   const open = st.rows.filter((r) => (r.status === "unclear" || r.status === "missing") && !r.preorder).length;
-  $("#purFix").textContent = open ? `Unklare prüfen … (${fmtN(open)})` : "Unklare prüfen …";
-  $("#purFix").disabled = !open;
+  const selOpen = typeof purOpenList === "function" && PUR.sel.size ? purOpenList().length : 0;      // #345
+  $("#purFix").textContent = PUR.sel.size ? `Markierte prüfen … (${fmtN(selOpen)})` : open ? `Unklare prüfen … (${fmtN(open)})` : "Unklare prüfen …";
+  $("#purFix").disabled = PUR.sel.size ? !selOpen : !open;
   $("#purDest").innerHTML = st.dest ? `Ziel: <span translate="no" title="${esc(st.dest_from)}">${esc(st.dest)}</span>${st.dest_ok ? "" : " (wird angelegt)"}` : "Kein Eingangsordner";
   const sel = PUR.sel.size, miss = st.rows.filter((r) => r.status === "missing" && !r.preorder).length;
   const b = $("#purDl");
@@ -118,7 +119,7 @@ function purRenderTable() {
   const st = PUR.st, box = $("#purTable");
   if (!st.rows.length) {
     const ready = st.sources.some((s) => s.ready);
-    box.innerHTML = `<div class="tg-empty">${st.sources.length && ready ? "Noch keine Käufe geholt – „↻ Aktualisieren“ liest die gekauften Titel."
+    box.innerHTML = `<div class="tg-empty">${st.sources.length && ready ? "Noch keine Einkäufe geholt – „↻ Aktualisieren“ liest die gekauften Titel."
       : "Zuerst unter Plugins › Beatport anmelden – dann holt „↻ Aktualisieren“ die gekauften Titel."}</div>`;
     return;
   }
@@ -139,16 +140,16 @@ function purRenderTable() {
         <td translate="no">${esc(purStoreName(r.store))}</td><td>${date}</td>
         <td class="nm sm ${r.status === "unclear" ? "pur-why" : "muted"}" title="${esc([r.file, ...(r.cands || [])].filter(Boolean).join("\n"))}"${r.status === "library" || r.status === "inbox" ? ' translate="no"' : ""}>${r.linked ? "✓ " : ""}${esc(purHint(r))}</td>
         <td>${r.url ? `<a href="#" class="pls-link" data-url="${esc(r.url)}" title="Bei ${esc(purStoreName(r.store))} öffnen">↗</a>` : ""}</td></tr>`;
-    }).join("")}</tbody></table>${rows.length ? "" : '<div class="tg-empty">Keine Käufe für diesen Filter.</div>'}`;
+    }).join("")}</tbody></table>${rows.length ? "" : '<div class="tg-empty">Keine Einkäufe für diesen Filter.</div>'}`;
   colResize(box.querySelector("table.pur-t"), "purchases");      // #337
 }
 
 async function purRefresh(match = false, full = false) {
-  const r = await runTask(match ? call("start_purch_match") : call("start_purch_refresh", null, full), match ? "Käufe abgleichen" : "Käufe aktualisieren");
+  const r = await runTask(match ? call("start_purch_match") : call("start_purch_refresh", null, full), match ? "Einkäufe abgleichen" : "Einkäufe aktualisieren");
   if (!r || r.cancelled) return;
   await purchasesShow();
   const c = r.count || {};
-  toast((match ? "" : `${fmtN(r.new || 0)} neue Käufe · `) + `${fmtN(c.library || 0)} in Bibliothek · ${fmtN(c.inbox || 0)} im Eingang · ${fmtN(c.unclear || 0)} unklar · ${fmtN(c.missing || 0)} fehlen`);
+  toast((match ? "" : `${fmtN(r.new || 0)} neue Einkäufe · `) + `${fmtN(c.library || 0)} in Bibliothek · ${fmtN(c.inbox || 0)} im Eingang · ${fmtN(c.unclear || 0)} unklar · ${fmtN(c.missing || 0)} fehlen`);
   if (r.errors && r.errors.length) info("Hinweise", r.errors.join("\n"));
 }
 
@@ -156,7 +157,7 @@ async function purDownload() {
   const st = PUR.st;
   const keys = PUR.sel.size ? [...PUR.sel] : null;
   const n = keys ? keys.length : st.rows.filter((r) => r.status === "missing" && !r.preorder).length;
-  const ok = await modal({ title: "Käufe herunterladen",
+  const ok = await modal({ title: "Einkäufe herunterladen",
     html: `<p style="margin:0">${fmtN(n)} Titel in den Eingangsordner laden?</p><p class="sm" translate="no" style="margin:6px 0 0">${esc(st.dest)}</p>
       <p class="muted sm" style="margin:8px 0 0">Die Dateien kommen unverändert vom Store; danach geht es wie gewohnt mit „Vorbereiten“ weiter. Vorbestellungen werden ausgelassen.</p>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Herunterladen", value: true, primary: true }] });
@@ -165,7 +166,7 @@ async function purDownload() {
 }
 
 async function purDoDownload(keys, round) {
-  const r = await runTask(call("start_purch_download", keys), "Käufe herunterladen");
+  const r = await runTask(call("start_purch_download", keys), "Einkäufe herunterladen");
   if (!r || r.cancelled) return;
   PUR.sel = new Set();
   await purchasesShow();
@@ -222,7 +223,7 @@ function purRowMenu(e, k) {
   if (r.file) items.push({ label: "Dateiordner öffnen", icon: ICON.folder, run: () => call("reveal", r.file) });
   const ws = typeof webSearchItem === "function" ? webSearchItem(e, r.artist, r.title + (r.mix ? ` (${r.mix})` : "")) : null;
   if (ws) items.push(ws);
-  if ((r.status === "unclear" || r.status === "missing") && !r.preorder) items.push({ label: "Korrigieren …", run: () => purCorrect(k) });   // #338
+  if ((r.status === "unclear" || r.status === "missing") && !r.preorder) items.unshift({ label: "Korrigieren …", run: () => purCorrect(k) });   // #338/#346: zuoberst
   if (r.status !== "library" || r.linked) items.push({ label: "Zuordnen …", run: () => purLinkDialog(r) });
   if (r.linked) items.push({ label: "Zuordnung aufheben", run: async () => purApply(await call("purch_link", r.k, "")) });
   if (r.status !== "library" && !r.preorder) items.push({ label: "Herunterladen …", run: () => { PUR.sel = new Set([k]); purRenderBar(); purDownload(); } });
@@ -266,7 +267,20 @@ function purInit() {
     const cb = e.target.closest("[data-pursel]");
     if (cb) { const k = cb.closest("tr").dataset.k; if (cb.checked) PUR.sel.add(k); else PUR.sel.delete(k); cb.closest("tr").classList.toggle("sel", cb.checked); purRenderBar(); }
   });
-  box.addEventListener("contextmenu", (e) => { const tr = e.target.closest("tr[data-k]"); if (!tr) return; e.preventDefault(); purRowMenu(e, tr.dataset.k); });
+  box.addEventListener("contextmenu", (e) => {
+    const tr = e.target.closest("tr[data-k]"); if (!tr) return;
+    e.preventDefault();
+    const r = PUR.st.rows.find((x) => x.k === tr.dataset.k);
+    if (r && r.status === "unclear" && !r.preorder && !e.shiftKey) { purCorrect(r.k); return; }   // #346: direkt korrigieren
+    purRowMenu(e, tr.dataset.k);
+  });
+  box.addEventListener("dblclick", (e) => {                                    // #349: gefundene Titel abspielen
+    const tr = e.target.closest("tr[data-k]");
+    if (!tr || e.target.closest("input, a, .col-grip")) return;
+    const r = PUR.st.rows.find((x) => x.k === tr.dataset.k);
+    if (r && r.file && (r.status === "library" || r.status === "inbox")) plLoad({ kind: "file", ref: r.file }, true);
+    else if (r) toast("Keine Datei zugeordnet – nichts abzuspielen.");
+  });
 }
 
 purInit();

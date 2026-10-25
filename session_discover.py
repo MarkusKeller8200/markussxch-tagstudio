@@ -82,11 +82,11 @@ class DiscoverMixin:
         return " · ".join(r["name"] for r in self._lib_roots()["roots"])
 
     def _disc_bought(self) -> list:
-        """Einträge der Liste „Käufe“ (#285) für die Markierung „gekauft“ (#291)."""
+        """Einträge der Liste „Einkäufe“ (#285) für die Markierung „gekauft“ (#291)."""
         try:
             with self.lock:
                 return list(self._purch().data["items"].values())
-        except Exception:  # noqa: BLE001 – ohne Käufe einfach nichts markieren
+        except Exception:  # noqa: BLE001 – ohne Einkäufe einfach nichts markieren
             return []
 
     def disc_overview(self) -> dict:

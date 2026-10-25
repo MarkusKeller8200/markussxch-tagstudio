@@ -179,13 +179,16 @@ function svcApiHtml(d) {
   SVC.lastEp = ep.id;
   const vals = SVC.apiVals[d.id + "/" + ep.id] || {};
   const hasEx = ep.params.some((p) => p.example);
-  return `<div id="svcApi"><div class="hint">Ruft den Endpunkt direkt auf (nur lesend). Schlüssel und Token setzt das Plugin ein – sie werden nie angezeigt.</div>
+  const bodyVal = vals._body ?? "";
+  return `<div id="svcApi"><div class="hint">Ruft den Endpunkt direkt auf${d.write_test ? " – schreibende (POST, PATCH, DELETE …) nur nach Rückfrage" : " (nur lesend)"}. Schlüssel und Token setzt das Plugin ein – sie werden nie angezeigt.${d.write_test ? " Jeder Aufruf steht mit Kopfzeilen und Werten im Plugin-Protokoll (Zugangsdaten geschwärzt)." : ""}</div>
     <div class="frm svc-api">
       <label for="svcApiEp">Endpunkt</label><select id="svcApiEp" class="inp">${["full", "partial", "none"].map((st) => {
         const g = eps.filter((e) => e.status === st); if (!g.length) return "";
-        return `<optgroup label="${SVC_ST[st][0]}">${g.map((e) => `<option value="${esc(e.id)}" ${e.id === ep.id ? "selected" : ""}>${esc(e.method)} ${esc(e.path)} – ${esc(e.label)}</option>`).join("")}</optgroup>`; }).join("")}</select>
+        return `<optgroup label="${SVC_ST[st][0]}">${g.map((e) => `<option value="${esc(e.id)}" ${e.id === ep.id ? "selected" : ""}>${e.write ? "⚠ " : ""}${esc(e.method)} ${esc(e.path)} – ${esc(e.label)}</option>`).join("")}</optgroup>`; }).join("")}</select>
       ${ep.params.map((p) => `<label for="svcP-${esc(p.name)}">${esc(p.label)}${p.required ? " *" : ""}${p.in === "path" ? ' <span class="faint">(Pfad)</span>' : ""}</label>
         <input id="svcP-${esc(p.name)}" data-ap="${esc(p.name)}" value="${esc(vals[p.name] ?? (p.example || p.default))}" placeholder="${esc(p.example || "")}" spellcheck="false">`).join("")}
+      ${ep.write && ep.method !== "DELETE" ? `<label for="svcApiReq">Body (JSON)</label><textarea id="svcApiReq" data-ap="_body" class="inp mono" rows="5" spellcheck="false" placeholder="{&quot;name&quot;: &quot;TagStudio_Test&quot;}">${esc(bodyVal)}</textarea>` : ""}
+      ${ep.write ? '<span></span><div class="pc-why sm">⚠ Schreibende Anfrage – ändert dein Konto beim Dienst. Vor dem Senden kommt eine Rückfrage.</div>' : ""}
       <span></span><div class="svc-btns"><button class="primary sm" id="svcApiRun">Senden</button>
         ${ep.params.length ? '<button class="ghost sm" id="svcApiClear" title="Eingaben leeren – feste Vorgaben wie fmt=json bleiben">Felder löschen</button>' : ""}
         ${hasEx ? '<button class="ghost sm" id="svcApiEx" title="Beispielwerte, die ein Resultat liefern">Beispiel einsetzen</button>' : ""}</div></div>
@@ -195,7 +198,15 @@ function svcApiHtml(d) {
 async function svcApiRun(b) {
   const eid = $("#svcApiEp", b).value, params = {};
   b.querySelectorAll("[data-ap]").forEach((i) => { params[i.dataset.ap] = i.value; });
-  SVC.apiVals[SVC.detail.id + "/" + eid] = params;
+  SVC.apiVals[SVC.detail.id + "/" + eid] = { ...params };
+  const ep = SVC.detail.endpoints.find((e) => e.id === eid);
+  if (ep && ep.write) {                                                        // #350: nur nach ausdrücklicher Rückfrage
+    const ok = await dialog({ title: `${ep.method} senden?`,
+      text: `${ep.method} ${ep.path} ändert dein Konto bei ${SVC.detail.name}. Wirklich senden?`,
+      buttons: [{ label: "Abbrechen", value: false }, { label: "Senden", value: true, primary: true }] });
+    if (!ok) return;
+    params._confirm = "yes";
+  }
   const out = $("#svcApiOut", b);
   const r = await svcTask(call("start_service_api", SVC.detail.id, eid, params), out);
   if (!r) return;

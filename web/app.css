@@ -347,6 +347,9 @@ span.xml-treeonly{display:contents}
 .col-grip::after{content:"";position:absolute;left:3px;top:22%;bottom:22%;width:1px;background:var(--line)}
 th:hover>.col-grip::after,.col-grip:focus-visible::after,body.col-dragging .col-grip::after{width:2px;left:2px;background:var(--acc)}
 .col-grip:focus-visible{outline:none}
+.col-fit-bar{display:flex;justify-content:flex-end;padding:2px 4px}
+.col-fit{height:22px;padding:0 8px;font-size:11px;opacity:.8}
+.col-fit:hover{opacity:1}
 table.col-fixed{table-layout:fixed}
 table.col-fixed th,table.col-fixed td{overflow:hidden;text-overflow:ellipsis;max-width:none}
 body.col-dragging,body.col-dragging *{cursor:col-resize!important;user-select:none}

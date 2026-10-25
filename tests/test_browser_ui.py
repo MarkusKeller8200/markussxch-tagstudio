@@ -3766,6 +3766,83 @@ class UiTest(unittest.TestCase):
         pg.click("#dlgBtns .primary")
         self.assertTrue(self.until("window.__runs.some(r => r[0] === 'start_purch_dl_cleanup')"))
 
+    def test_purchases_feedback_345_349(self):
+        """#345 markierte prüfen, #346 Rechtsklick auf unklar → Korrektur, #347 Best Match, #349 Doppelklick spielt ab,
+        #348 „Einkäufe“."""
+        pg = self.pg
+        self.calm()
+        pg.set_viewport_size({"width": 1400, "height": 900})
+        pg.evaluate("""(() => { const orig = call; window.__cand = []; window.__play = null;
+          const row = (k, title, status, extra) => Object.assign({ k, store: "beatport", id: k, title, mix: "Extended Mix", artist: "Mara Lind mit einem langen Namen",
+            dur: 300, key: "8A", bpm: 124, catalog: "POL1", url: "", bought: "2026-10-2" + k.slice(-1) + " 10:00:00", seen: 1761350000, status, kind: "multi",
+            file: "", reason: "mehrere Treffer", cands: ["/a/x.mp3"], preorder: false }, extra || {});
+          const st = { rows: [row("beatport:3", "Nordlicht", "library", { file: "/lib/n.mp3", reason: "" }), row("beatport:2", "Ufer", "unclear"), row("beatport:1", "Kai", "missing")],
+            stores: { beatport: { name: "Beatport", refreshed: 1761350000, count: 3 } }, sources: [{ id: "beatport", name: "Beatport", ready: true, why: "" }],
+            count: { library: 1, inbox: 0, unclear: 1, missing: 1 }, dest: "/musik/00_New", dest_from: "Basisordner", dest_ok: true, roots: ["/a"],
+            last: { roots: ["/a"], files: 9 }, unzip: true, strict: false };
+          window.call = (n, ...a) => {
+            if (n === "purch_state") return Promise.resolve(JSON.parse(JSON.stringify(st)));
+            if (n === "purch_unzip") return Promise.resolve({ zips: [], files: 0, skipped: 0, errors: [] });
+            if (n === "purch_candidates") { window.__cand.push(a[0]); const r = st.rows.find((x) => x.k === a[0]);
+              return Promise.resolve({ row: r, kind: r.status === "missing" ? "missing" : "multi", mix_key: "extended", strict: false, cands: [] }); }
+            if (n === "media_url") { window.__play = a; return Promise.reject(new Error("kein Audio im Test")); }
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="purchases"]')
+        pg.wait_for_selector("#purTable tbody tr")
+        self.assertIn("Einkäufe", pg.inner_text('.nav[data-module="purchases"]'))          # #348
+        self.assertIn("Einkäufe", pg.inner_text("#modulePurchases .mod-head h2"))
+        pg.click('#purTable tr[data-k="beatport:2"] td:nth-child(3)', button="right")       # #346
+        pg.wait_for_selector("#mTitle >> text=Korrigieren")
+        self.assertEqual(pg.evaluate("window.__cand"), ["beatport:2"])
+        pg.click("#mBtns button >> nth=0")
+        pg.click('#purTable tr[data-k="beatport:2"] td:nth-child(3)', button="right", modifiers=["Shift"])
+        pg.wait_for_selector("#menu:not([hidden]) button >> text=Korrigieren …")
+        pg.keyboard.press("Escape"); pg.evaluate("hideMenu()")
+        pg.click('#purTable tr[data-k="beatport:1"] td:nth-child(3)', button="right")       # fehlt: Menü, Korrigieren zuoberst
+        self.assertEqual(pg.inner_text("#menu button >> nth=0"), "Korrigieren …")
+        pg.evaluate("hideMenu()")
+        pg.check('#purTable tr[data-k="beatport:1"] [data-pursel]')                          # #345
+        self.assertIn("Markierte prüfen … (1)", pg.inner_text("#purFix"))
+        pg.click("#purFix")
+        self.assertTrue(self.until("window.__cand.length === 2 && window.__cand[1] === 'beatport:1'"))
+        pg.click("#mBtns .primary")                                                         # „Fertig“/„Weiter“: nur Auswahl
+        self.assertTrue(self.until("document.querySelector('#modal').hidden"))
+        self.assertEqual(pg.evaluate("window.__cand.length"), 2)
+        pg.dblclick('#purTable tr[data-k="beatport:3"] td:nth-child(3)')                    # #349
+        self.assertTrue(self.until("window.__play && window.__play[0] === 'file' && window.__play[1] === '/lib/n.mp3'"))
+        pg.click("#purTable .col-fit")                                                      # #347
+        self.assertTrue(self.until("call('settings').then(r => !!(r.ui.col_widths || {}).purchases)"))
+        sw = pg.evaluate("(() => { const b = document.querySelector('#purTable'); return [b.scrollWidth, b.clientWidth]; })()")
+        self.assertLessEqual(sw[0], sw[1] + 1)                                               # keine waagrechte Bildlaufleiste
+        sel_w = pg.eval_on_selector("#purTable th[data-col='sel']", "e => e.getBoundingClientRect().width")
+        self.assertLess(sel_w, 60)                                                           # fixe Spalte unverändert schmal
+        self.errors.clear()
+
+    def test_api_tester_write(self):
+        """#350: Beatport › Integration › API-Tester – POST/DELETE wählbar (⚠), Body-Feld, Senden nur nach Rückfrage."""
+        pg = self.pg
+        pg.evaluate("""(() => { const orig = call; window.__api = [];
+          window.call = (n, ...a) => {
+            if (n === "service_detail") return orig(n, ...a).then((d) => Object.assign(d, { ready: true }));
+            if (n === "start_service_api") { window.__api.push(a); return Promise.resolve({ ok: false, error: "Test" }); }
+            return orig(n, ...a); }; })()""")
+        pg.evaluate("svcOpen('beatport', 'api', 'my-playlists-create'); 0")
+        pg.wait_for_selector("#svcApiReq")
+        self.assertIn("⚠ POST /my/playlists/", pg.inner_text("#svcApiEp"))
+        self.assertIn("Rückfrage", pg.inner_text("#svcApi"))
+        pg.fill("#svcApiReq", '{"name": "TagStudio_Test"}')
+        pg.click("#svcApiRun")
+        pg.wait_for_selector("#dialog:not([hidden])")
+        pg.click("#dlgBtns button >> nth=0")                                             # Abbrechen
+        self.assertEqual(pg.evaluate("window.__api.length"), 0)
+        pg.click("#svcApiRun")
+        pg.click("#dlgBtns .primary")
+        self.assertTrue(self.until("window.__api.length === 1 && window.__api[0][2]._confirm === 'yes' && window.__api[0][2]._body.includes('TagStudio_Test')"))
+        pg.select_option("#svcApiEp", "my-playlists-delete")
+        pg.wait_for_selector('#svcApi [data-ap="id"]')
+        self.assertEqual(pg.locator("#svcApiReq").count(), 0)                            # DELETE ohne Body
+        self.errors.clear()
+
     def test_purchases_session_login(self):
         """#295: Download abgelehnt → Sitzungs-Anmeldung (wie die Webseite), dann gleich erneut herunterladen."""
         pg = self.pg

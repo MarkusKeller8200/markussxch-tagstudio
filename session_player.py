@@ -253,13 +253,15 @@ class PlayerMixin:
 
     def _resume_file(self, path):
         """#195: Datei des gemerkten Player-Stands direkt öffnen (Art „file“), damit der Player beim Start nicht auf
-        das Einlesen des Tagger-Ordners warten muss. Nur Pfade aus `player_resume` oder aus einer Playlist (#270) –
+        das Einlesen des Tagger-Ordners warten muss. Nur Pfade aus `player_resume`, einer Playlist (#270) oder einem
+        zugeordneten Einkauf (#349) –
         kein beliebiger Dateizugriff."""
         st = self.cfg.get("player_resume") if isinstance(self.cfg.get("player_resume"), dict) else {}
         known = {os.path.normcase(os.path.abspath(d["path"])) for d in st.values()
                  if isinstance(d, dict) and isinstance(d.get("path"), str) and d["path"]}
         if not isinstance(path, str) or (os.path.normcase(os.path.abspath(path)) not in known
-                                         and not self._pl_has_path(path)):          # #270: Titel aus Playlists
+                                         and not self._pl_has_path(path)          # #270: Titel aus Playlists
+                                         and not self._purch_has_path(path)):     # #349: Dateien der Einkäufe
             raise ValueError("Diese Datei gehört weder zum gemerkten Player-Stand noch zu einer Playlist.")
         if not os.path.isfile(path):
             raise ValueError("Die zuletzt gespielte Datei gibt es nicht mehr.")

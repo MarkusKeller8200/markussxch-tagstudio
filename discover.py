@@ -13,7 +13,7 @@ Zustand in ~/TagStudio/Entdecken/entdecken.json:
   {"follow": {"artists": [...], "labels": [...], "genres": [{"id", "name"}]},
    "items": {Schlüssel: Eintrag}, "last": Zeitpunkt}
 Eintrag: key, src, id, artist, title, mix, label, date, preview, url, cover, seed, status (new|saved|hidden|bought),
-         owned (schon in der Bibliothek), first (zuerst gesehen); purchased (Kaufdatum laut „Käufe“, nur angezeigt, #291).
+         owned (schon in der Bibliothek), first (zuerst gesehen); purchased (Kaufdatum laut „Einkäufe“, nur angezeigt, #291).
 follow.bp: von Beatport übernommene Künstler/Labels (Herkunft, #291).
 Nur Standardbibliothek.
 """
@@ -144,7 +144,7 @@ def _mix(s) -> str:
 
 
 def mark_purchased(d: dict, bought) -> int:
-    """Vorschläge mit der Liste „Käufe“ abgleichen (#291): gleiche Beatport-ID oder gleicher Künstler + Titel (+ Mix,
+    """Vorschläge mit der Liste „Einkäufe“ abgleichen (#291): gleiche Beatport-ID oder gleicher Künstler + Titel (+ Mix,
     wenn beide einen haben) → e["purchased"] = Kaufdatum (oder "ja"). bought: Einträge aus purchases.Store. → Anzahl."""
     ids, names = {}, {}
     for it in bought or []:
@@ -249,7 +249,7 @@ def _recent(date: str, days: int) -> bool:
 
 
 def mark_bought(tracks, d: dict | None = None) -> int:
-    """Gekaufte Titel (Beatport-Käufe: id, name, artists) in der Liste als „gekauft“ markieren. → Anzahl."""
+    """Gekaufte Titel (Beatport-Einkäufe: id, name, artists) in der Liste als „gekauft“ markieren. → Anzahl."""
     own = d is None
     d = d or load()
     ids = {f"beatport:{t.get('id')}" for t in tracks if isinstance(t, dict) and t.get("id")}

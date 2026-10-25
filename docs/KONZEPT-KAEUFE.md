@@ -112,6 +112,12 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
   `kind`: auswählen + „Zuordnen“ (`purch_link`), bei mix/similar/dur Dateiname/Titel/Untertitel bearbeiten
   (`purch_fix_file`: speichern mit Sicherung wie „Speichern“, Umbenennen nie überschreibend, danach Prüfung gegen genau
   diese Datei, bei Erfolg zuordnen), „Datei wählen …“, „Weiter ›“ zum nächsten unklaren/fehlenden Kauf (Tabellen-Reihenfolge).
+- Ergänzungen (User 26.10.2026, 00:11): **#345** mit Markierung nur die markierten („Markierte prüfen … (n)“, `purOpenList`),
+  **#346** Rechtsklick auf *unklar* öffnet direkt die Korrektur (Umschalt+Rechtsklick = Kontextmenü; bei *fehlt*
+  „Korrigieren …“ zuoberst), **#349** Doppelklick auf einen Einkauf mit Datei spielt sie ab (`plLoad({kind: "file"})`,
+  Player erlaubt Dateien der Einkäufe über `_purch_has_path`).
+- **#348:** in der Oberfläche heisst die Seite „Einkäufe“ (Englisch „Purchases“, Züritüütsch „Iichäuf“); Datenordner
+  `~/TagStudio/Käufe` und interne Namen unverändert.
 
 ## 3d. Playlists in Beatport (#334, #335, 4.12.0)
 

@@ -17,8 +17,9 @@ Ein Dienst-Plugin beschreibt sich in `plugin.json` unter "service":
 
 Status: „full“ = vollständig genutzt, „partial“ = teilweise (nur ein Teil der Parameter/Felder), „none“ = nicht
 implementiert (nur zur Übersicht). Der API-Tester ruft nur GET-Endpunkte auf, die nicht ausdrücklich mit
-"test": false ausgeschlossen sind (z. B. Downloads). Schlüssel setzt das Plugin über `auth(ctx)` ein; in URL und
-Antwort werden sie geschwärzt.
+"test": false ausgeschlossen sind (z. B. Downloads). #350: Mit "write_test": true im Dienst sind auch POST, PUT, PATCH
+und DELETE testbar – nur über api_request des Plugins, nur mit Bestätigung (`_confirm`), Body als JSON (`_body`).
+Schlüssel setzt das Plugin über `auth(ctx)` ein; in URL und Antwort werden sie geschwärzt.
 
 Optionale Funktionen im plugin.py eines Dienstes:
     auth(ctx) -> {"headers": {...}, "params": {...}}            Schlüssel/Token für den API-Tester
@@ -63,7 +64,7 @@ def clean(raw) -> dict | None:
            "base": _url_ok(raw.get("base"), local), "terms": _url_ok(raw.get("terms")),
            "auth": raw.get("auth") if raw.get("auth") in AUTH else ("local" if local else "none"),
            "auth_note": str(raw.get("auth_note") or "")[:300], "limits": str(raw.get("limits") or "")[:200],
-           "note": str(raw.get("note") or "")[:400], "endpoints": [],
+           "note": str(raw.get("note") or "")[:400], "endpoints": [], "write_test": bool(raw.get("write_test")),
            # #205: Beispiel für die Testabfrage, das beim Dienst tatsächlich einen Treffer liefert
            "example": {k: str(v)[:200] for k, v in (raw.get("example") or {}).items()
                        if k in QUERY_KEYS and isinstance(v, (str, int, float))} if isinstance(raw.get("example"), dict) else {}}
@@ -91,7 +92,8 @@ def clean(raw) -> dict | None:
             "id": eid, "method": method, "path": path, "label": str(e.get("label") or path)[:120],
             "status": status, "use": str(e.get("use") or "")[:200], "note": str(e.get("note") or "")[:300],
             "params": params,
-            "test": method == "GET" and e.get("test", True) is not False})
+            "write": method != "GET",
+            "test": (method == "GET" or bool(raw.get("write_test"))) and e.get("test", True) is not False})
     return out
 
 
@@ -228,6 +230,17 @@ def api_call(plugin, ctx, eid: str, params: dict, user_agent: str) -> dict:
         raise ValueError("Dieser Endpunkt wird im Tester nicht aufgerufen (ändert Daten oder lädt Dateien).")
     mod = plugin.load()
     custom = getattr(mod, "api_request", None) if mod is not None else None
+    if ep.get("write"):                                         # #350: schreibend nur bestätigt und über das Plugin
+        if str((params or {}).get("_confirm") or "") != "yes":
+            raise ValueError("Schreibende Anfrage nicht bestätigt – es wurde nichts gesendet.")
+        if not callable(custom):
+            raise ValueError("Dieses Plugin kann schreibende Anfragen nicht testen.")
+        body = str((params or {}).get("_body") or "").strip()
+        if body:
+            try:
+                json.loads(body)
+            except ValueError as ex:
+                raise ValueError(f"Body ist kein gültiges JSON: {ex}") from None
     auth = getattr(mod, "auth", None) if mod is not None else None
     a = auth(ctx) if callable(auth) else {}
     a = a if isinstance(a, dict) else {}

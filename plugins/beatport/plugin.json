@@ -1,13 +1,13 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "2.0",
+  "version": "2.1",
   "min_app": "4.9.1",
   "category": "online",
   "source": "Beatport",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
-  "description": "Holt BPM, Tonart, Genre/Subgenre, Label, Katalognummer, Datum, ISRC, Remixer und Cover von Beatport – mit Vorschau, nichts wird ohne Bestätigung geändert. Dazu Beatport-Playlists und die Seite „Käufe“. Nutzt die offizielle Beatport-API v4 mit deinem eigenen API-Zugang (Client-ID und Secret); ohne ihn geht es über den inoffiziellen Ausweichweg mit deinem Beatport-Login. Nur für Metadaten deiner eigenen Titel verwenden.",
+  "description": "Holt BPM, Tonart, Genre/Subgenre, Label, Katalognummer, Datum, ISRC, Remixer und Cover von Beatport – mit Vorschau, nichts wird ohne Bestätigung geändert. Dazu Beatport-Playlists und die Seite „Einkäufe“. Nutzt die offizielle Beatport-API v4 mit deinem eigenen API-Zugang (Client-ID und Secret); ohne ihn geht es über den inoffiziellen Ausweichweg mit deinem Beatport-Login. Nur für Metadaten deiner eigenen Titel verwenden.",
   "notes": "Keine Zusatzpakete nötig.",
   "fields": [
     "TXXX:BEATPORT_TRACK_ID"
@@ -21,7 +21,7 @@
     "auth": "oauth",
     "auth_note": "Standard: eigener offizieller API-Zugang (Client-ID und Secret, Plugin › Anmelden …). Ausweichweg (inoffiziell): Anmeldung mit Benutzername und Passwort über die Kennung der Doku-Seite. Token verschlüsselt gespeichert, wird automatisch erneuert.",
     "limits": "Bei HTTP 429 wird gewartet (Retry-After)",
-    "note": "Alle Endpunkte der offiziellen Beschreibung in den Bereichen catalog, my und curation (Stand 25.10.2026), dazu die Anmeldung und die inoffiziellen Download-Wege. Schreibende Endpunkte benutzt TagStudio nur für eigene Playlists „TagStudio_…“ (Käufe › „Download Tracks“, Playlists je Kaufdatum) – nur mit eingeschalteter Einstellung und auf Klick.",
+    "note": "Alle Endpunkte der offiziellen Beschreibung in den Bereichen catalog, my und curation (Stand 25.10.2026), dazu die Anmeldung und die inoffiziellen Download-Wege. Schreibende Endpunkte benutzt TagStudio nur für eigene Playlists „TagStudio_…“ (Einkäufe › „Download Tracks“, Playlists je Kaufdatum) – nur mit eingeschalteter Einstellung und auf Klick.",
     "endpoints": [
       {
         "id": "catalog-artists",
@@ -363,7 +363,7 @@
         "path": "/catalog/tracks/",
         "label": "Titel filtern (ISRC, Künstler, Label, IDs)",
         "status": "partial",
-        "use": "ISRC-Suche, Entdecken (neue Titel), Käufe: Katalognummer, ISRC, Label",
+        "use": "ISRC-Suche, Entdecken (neue Titel), Einkäufe: Katalognummer, ISRC, Label",
         "note": "genutzt: isrc, id, artist_id, label_id, order_by",
         "params": [
           {
@@ -611,9 +611,9 @@
         "id": "my-downloads",
         "method": "GET",
         "path": "/my/downloads/",
-        "label": "Käufe (Downloads)",
+        "label": "Einkäufe (Downloads)",
         "status": "full",
-        "use": "Seite „Käufe“: gekaufte Titel mit Kaufdatum (nur neue über purchase_date)",
+        "use": "Seite „Einkäufe“: gekaufte Titel mit Kaufdatum (nur neue über purchase_date)",
         "note": "einer von mehreren probierten Pfaden",
         "params": [
           {
@@ -626,7 +626,7 @@
         "id": "my-downloads-encode-status",
         "method": "GET",
         "path": "/my/downloads/encode-status/",
-        "label": "Bereitstellung der Käufe",
+        "label": "Bereitstellung der Einkäufe",
         "status": "none"
       },
       {
@@ -758,7 +758,7 @@
         "path": "/catalog/tracks/purchase-download/",
         "label": "Download eines Kaufs wie die Beatport-Webseite (inoffiziell)",
         "status": "partial",
-        "use": "Käufe: Fehlende herunterladen (Variante 1, erster Weg) – Parameter order_item_download_id aus /my/downloads/",
+        "use": "Einkäufe: Fehlende herunterladen (Variante 1, erster Weg) – Parameter order_item_download_id aus /my/downloads/",
         "note": "nicht in der offiziellen Beschreibung, von der Beatport-Webseite benutzt – liefert eine signierte Adresse der Datei",
         "test": false
       },
@@ -768,7 +768,7 @@
         "path": "/my/downloads/{id}/",
         "label": "Download eines Kaufs (inoffiziell)",
         "status": "partial",
-        "use": "Käufe: Fehlende herunterladen (Variante 1)",
+        "use": "Einkäufe: Fehlende herunterladen (Variante 1)",
         "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2)",
         "test": false
       },
@@ -778,7 +778,7 @@
         "path": "/my/downloads/{id}/download/",
         "label": "Download eines Kaufs, 2. Weg (inoffiziell)",
         "status": "partial",
-        "use": "Käufe: Fehlende herunterladen (Variante 1)",
+        "use": "Einkäufe: Fehlende herunterladen (Variante 1)",
         "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2)",
         "test": false
       },
@@ -788,7 +788,7 @@
         "path": "/catalog/tracks/{id}/download/",
         "label": "Download über den Katalog (inoffiziell)",
         "status": "partial",
-        "use": "Käufe: Fehlende herunterladen (Variante 1)",
+        "use": "Einkäufe: Fehlende herunterladen (Variante 1)",
         "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2)",
         "test": false
       },
@@ -841,6 +841,7 @@
       "artist": "Daft Punk",
       "title": "One More Time",
       "isrc": "GBDUW0000053"
-    }
+    },
+    "write_test": true
   }
 }

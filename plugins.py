@@ -716,6 +716,8 @@ class Manager:
         ua = f"TagStudio/{VERSION} ( https://github.com/MarkusKeller8200/markussxch-tagstudio )"
         res = services.api_call(p, ctx, eid, params or {}, ua)
         res["log"] = ctx.log_lines
+        if ctx.log_lines:                              # #350: Aufrufe des API-Testers ins Plugin-Protokoll
+            res["logfile"] = write_log(f"{p.id}.log", "API-Tester\n" + "\n".join(ctx.log_lines))
         return res
 
     def access_check(self, pid, session=None, cancel=None, progress=None) -> dict:
@@ -825,7 +827,7 @@ class Manager:
         return out
 
     def store_sources(self) -> list[dict]:
-        """#285: eingeschaltete Plugins mit store_purchases(ctx) (Seite „Käufe“) – mit Hinweis, falls nicht bereit."""
+        """#285: eingeschaltete Plugins mit store_purchases(ctx) (Seite „Einkäufe“) – mit Hinweis, falls nicht bereit."""
         out = []
         for p, _fn in self._ready_with("store_purchases"):
             rd = getattr(p.load(), "ready", None)
@@ -866,7 +868,7 @@ class Manager:
         res = fn(ctx, *args)
         if ctx.log_lines:                              # #273/#284: Protokoll (z. B. Feldnamen der Beatport-Antworten)
             lf = write_log(f"{p.id}.log", {"playlists": "Playlists holen", "playlist_files": "Playlist holen",
-                                           "store_purchases": "Käufe holen", "store_download": "Käufe herunterladen",
+                                           "store_purchases": "Einkäufe holen", "store_download": "Einkäufe herunterladen",
                                            "store_login": "Sitzungs-Anmeldung", "store_logout": "Sitzung abmelden",
                                            "store_session": "Sitzung", "store_playlist_check": "Schreibzugriff prüfen",
                                            "store_playlist_put": "Playlist in Beatport befüllen",

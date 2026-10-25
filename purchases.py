@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Gekaufte Titel (#285): Käufe aller Stores sammeln, mit der Bibliothek abgleichen.
+"""MarKusSXCH TagStudio – Gekaufte Titel (#285): Einkäufe aller Stores sammeln, mit der Bibliothek abgleichen.
 
 Gespeichert im Datenordner des Profils (``~/TagStudio/Käufe/kaeufe.json``, atomar geschrieben):
 
@@ -8,8 +8,8 @@ Gespeichert im Datenordner des Profils (``~/TagStudio/Käufe/kaeufe.json``, atom
                                  "catalog", "isrc", "label", "release", "genre", "url", "bought", "dl",
                                  "first_seen", "status", "file", "downloaded"}}}
 
-Die Stores sind Plugins mit ``store_purchases(ctx)`` (Liste der Käufe) und ``store_download(ctx, items, dest)``.
-„Aktualisieren“ führt neue Käufe zu und behält bei bekannten zuerst gesehen, Datei und Download. Der Abgleich nutzt
+Die Stores sind Plugins mit ``store_purchases(ctx)`` (Liste der Einkäufe) und ``store_download(ctx, items, dest)``.
+„Aktualisieren“ führt neue Einkäufe zu und behält bei bekannten zuerst gesehen, Datei und Download. Der Abgleich nutzt
 dieselbe Zuordnung wie „Mit Bibliothek abgleichen“ bei den Playlists (ISRC bzw. Künstler + Titel + Mix).
 Nur Standardbibliothek.
 """
@@ -116,7 +116,7 @@ class Store:
         return list(self.data["items"].values())
 
     def merge(self, store: str, name: str, items, full: bool = True) -> dict:
-        """Käufe eines Stores zuführen → {"new", "total"}. Bekannte behalten first_seen, status, file, downloaded."""
+        """Einkäufe eines Stores zuführen → {"new", "total"}. Bekannte behalten first_seen, status, file, downloaded."""
         now = int(time.time())
         all_ = self.data["items"]
         new = 0
@@ -141,7 +141,7 @@ class Store:
         meta = dict(self.data["stores"].get(store) or {})
         meta.update(name=str(name), refreshed=now, count=n)
         if full:
-            meta["full_at"] = now                              # ganze Liste geholt (sonst nur neue Käufe)
+            meta["full_at"] = now                              # ganze Liste geholt (sonst nur neue Einkäufe)
         self.data["stores"][store] = meta
         self.save()
         return {"new": new, "total": n}
@@ -174,7 +174,7 @@ class Store:
         self.save()
 
     def match(self, index, inbox: str = "", strict: bool = False) -> dict:
-        """Status aller Käufe neu bestimmen. index: playlists.LibIndex der Bibliothek (inkl. Eingang).
+        """Status aller Einkäufe neu bestimmen. index: playlists.LibIndex der Bibliothek (inkl. Eingang).
         Dateien im Eingangsordner → „im Eingang“, sonst „in Bibliothek“. strict (#338): Mix muss passen, auch bei
         gleicher ISRC (playlists.match_ref). → Zähler je Status"""
         inbox_k = playlists.nk(inbox) + os.sep if inbox else ""

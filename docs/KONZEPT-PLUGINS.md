@@ -123,6 +123,11 @@ Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
 - API-Tester: generischer Abruf über `onlinematch.get_retry` (gemeinsame Drosselung `SHARED`, Wiederholung bei 429/503,
   Anzahl in `retries`, #212). IDs in der Antwort (Schlüssel `id`, `mbid`, `…_id`, `isrc`, `upc`, `discid`) sind
   anklickbar; vorgeschlagen werden Endpunkte mit passendem ID-Feld, sortiert nach dem umgebenden Objektnamen (#213).
+- **Schreibende Tests (#350):** `"write_test": true` im Dienst (Beatport 2.1) macht POST/PUT/PATCH/DELETE im Tester
+  wählbar (⚠, Body als JSON in `_body`). `services.api_call` sendet nur mit `_confirm=yes` (die Oberfläche fragt vorher)
+  und nur über `api_request` des Plugins; „Zugriff prüfen“ bleibt rein lesend. Beatport protokolliert jeden Aufruf mit
+  Methode, Adresse, Kopfzeilen, Body, Status, Antwort-Kopfzeilen und Antwort (Token/Cookies geschwärzt);
+  `Manager.api_call` schreibt die Zeilen ins Plugin-Protokoll.
 - **Zugriff prüfen (#297):** `services.access_check(plugin, ctx, ua)` ruft alle GET-Endpunkte (ohne `/auth/…` und
   `…/download/`) mit `api_request` des Plugins bzw. `get_retry` auf, Listen zuerst; die erste `id` einer Antwort füllt
   Platzhalter der Unterpfade (je Platzhalter der Pfad davor), `{num}` = 10. Einordnung 2xx Zugriff, 400/405/422

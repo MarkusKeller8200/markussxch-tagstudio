@@ -312,7 +312,8 @@ Bought tracks from all stores in one place – **Beatport** for now (sign in to 
 in the sidebar: table with title, artist, mix, length, key, BPM, catalogue number, store, purchase date (if the store
 provides it, otherwise “first seen”) and a link to the store. Drag the edge of a column header to change its width
 (double-click: fit to content, ←/→ on the handle; right-click the header row: reset) – TagStudio remembers it, in the
-Tag fixer as well. **“↻ Refresh”** fetches new purchases and matches
+Tag fixer as well. **“⇔ Best Match”** above the table spreads the visible columns over the available width by content
+(fixed columns like the checkbox stay). Double-click a found purchase to play the file. **“↻ Refresh”** fetches new purchases and matches
 everything with the library: *in library*, *in inbox*, *unclear* or *missing*. **“Download missing”** (or the selected
 ones) puts the files unchanged into the inbox folder (`00_New` or the inbox of “Prepare”, changeable under
 “Folder …”) – continue from there as usual. Pre-orders are not downloaded. Beatport does not officially offer
@@ -324,7 +325,8 @@ shows how to download the tracks yourself on Beatport's download page and take t
 “Download Tracks …” puts the tracks without a file into playlists `TagStudio_DOWNLOAD_<date>_<n>` of 100 each – open
 the playlist in Beatport and add all to the download; “Playlists per purchase date …” creates or completes
 `TagStudio_BUY_YYYY_MM_DD`; “Clean up …” deletes the download playlists after confirmation. TagStudio never changes other
-playlists. **“Strict”** matches only when artist, title and mix fit – even with the same ISRC. **“Check unclear …”** (or
+playlists. **“Strict”** matches only when artist, title and mix fit – even with the same ISRC. **“Check unclear …”** (with selected rows “Check selected …”; right-clicking an unclear purchase opens it directly,
+Shift+right-click shows the context menu; or
 right-click › “Correct …”) opens a correction window per reason: for several matches the candidates with their tags to
 choose from, for a different mix the file's title, subtitle and file name to adjust (“Like the purchase”, “Change and
 check” – with backup), for a different artist the similarity in percent; “Next ›” jumps to the next unclear purchase.

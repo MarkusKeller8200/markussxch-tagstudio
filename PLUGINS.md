@@ -83,7 +83,7 @@ Plugins/
 - `source` (optional, ab 4.10): Name der Quelle bzw. des Stores, z. B. `"Beatport"`. Beim **Einschalten** legt
   TagStudio `<Downloads>\<source>` und `<Eingang>\<source>` an (nur wenn nicht vorhanden), trägt im aktuellen
   Workflow die Quelle ein (Download-Unterordner → Eingangs-Unterordner) und setzt das Ziel der Plugin-Aktion
-  `download` auf den Download-Unterordner. Käufe-Downloads des Stores landen ebenfalls dort. Ausschalten löscht
+  `download` auf den Download-Unterordner. Einkäufe-Downloads des Stores landen ebenfalls dort. Ausschalten löscht
   nichts.
 - `i18n`: Übersetzungen der Plugin-Texte je Sprache (`en`, `gsw-u-sd-chzh`): deutscher Text → Übersetzung. Die
   Oberfläche nutzt sie, wenn diese Sprache gewählt ist; Texte ohne Übersetzung bleiben deutsch.
@@ -221,7 +221,7 @@ Weitere Funktionen, die ein Plugin anbieten kann (alle optional):
   das DJ-Set bietet dann „Aus <Plugin> …“: Playlists auswählen und als Listen laden (Beispiel: Lexicon).
 - `store_purchases(ctx)` → `{"name", "items": [{id, title, mix, artist, dur, key, bpm, catalog, isrc, label, release,
   genre, url, bought, preorder, dl}]}` und `store_download(ctx, items, dest)` → `{"files": {id: [Pfade]}, "failed"}` –
-  Seite „Käufe“ (#285): gekaufte Titel eines Stores sammeln und fehlende herunterladen (Beispiel: Beatport).
+  Seite „Einkäufe“ (#285): gekaufte Titel eines Stores sammeln und fehlende herunterladen (Beispiel: Beatport).
   Optional (#295): `store_download` liefert `"need_login": true`, wenn der Store eine Anmeldung nur für den Download
   braucht; die Seite fragt dann Benutzername und Passwort und ruft `store_login(ctx, username, password)` auf (Token
   nur im Speicher halten, nichts speichern), danach erneut `store_download`. Dazu `store_logout(ctx)` und
@@ -289,7 +289,7 @@ Bei MP3 werden Tags und Cover übernommen, der Titel bekommt den Zusatz „(Voca
 ## Eingebaut: Beatport
 
 Holt BPM, Tonart (in deiner Schreibweise), Genre/Subgenre, Label, Katalognummer, Datum, ISRC, Remixer, Cover
-und optional Titel/Künstler/Album von Beatport, dazu Beatport-Playlists und die Seite „Käufe“. Nutzt die
+und optional Titel/Künstler/Album von Beatport, dazu Beatport-Playlists und die Seite „Einkäufe“. Nutzt die
 **offizielle Beatport-API v4** – alle Endpunkte mit Status stehen unter Plugins › Beatport › „Integration …“.
 Inoffiziell sind nur noch der Ausweichweg bei der Anmeldung und der Download gekaufter Dateien (Beatport bietet ihn
 offiziell nicht an). Der Download nutzt zuerst denselben Weg wie die Beatport-Webseite
@@ -331,12 +331,17 @@ Vorhandene bleiben, bei Beatport wird nichts geändert. Dasselbe geht direkt in 
 übernehmen“ (#291); dort sind solche Einträge mit „BP“ markiert. Mit Quelle Beatport holt „Suchen“ zusätzlich die
 neuen Titel aus „My Beatport“ (`/my/beatport/tracks/`).
 
-**Käufe (#285):** Die Seite „Käufe“ nutzt `store_purchases(ctx)` (alle Käufe mit Titel, Mix, Tonart, BPM,
+**Einkäufe (#285):** Die Seite „Einkäufe“ nutzt `store_purchases(ctx)` (alle Einkäufe mit Titel, Mix, Tonart, BPM,
 Katalognummer, Link, Kaufdatum) und `store_download(ctx, items, dest)` (fehlende in den Eingangsordner laden).
 
+**API-Tester schreibend (#350, Plugin 2.1):** Im Integrationsfenster › API-Tester sind auch POST, PATCH und DELETE
+wählbar (mit ⚠ markiert, Body als JSON). Gesendet wird erst nach einer Rückfrage; jeder Aufruf steht mit Methode,
+Adresse, Kopfzeilen, Body, Status, Antwort-Kopfzeilen und Antwort im Protokoll (Plugins › Beatport) – Token und Cookies
+geschwärzt.
+
 **Playlists in Beatport anlegen (#334/#335, Plugin 2.0):** Nur wenn unter „Einstellungen …“ **„Playlists in Beatport
-anlegen und befüllen“** eingeschaltet ist (Standard aus) und nur auf Klick in Käufe › „Beatport-Playlists ▾“:
-**„Download Tracks …“** trägt die Käufe ohne lokale Datei in `TagStudio_DOWNLOAD_<Datum>_<n>` ein (je 100 Titel –
+anlegen und befüllen“** eingeschaltet ist (Standard aus) und nur auf Klick in Einkäufe › „Beatport-Playlists ▾“:
+**„Download Tracks …“** trägt die Einkäufe ohne lokale Datei in `TagStudio_DOWNLOAD_<Datum>_<n>` ein (je 100 Titel –
 mehr lädt Beatport nicht auf einmal; gleichnamige wird ersetzt, „Aufräumen“ löscht sie nach Rückfrage),
 **„Playlists je Kaufdatum …“** legt `<Präfix><JJJJ_MM_TT>` an bzw. ergänzt sie (Präfix Standard `TagStudio_BUY_`).
 TagStudio verändert nur Playlists, deren Name mit `TagStudio_` beginnt. **„Schreibzugriff prüfen“** fragt Beatport per

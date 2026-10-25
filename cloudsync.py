@@ -1,6 +1,6 @@
 """MarKusSXCH TagStudio – Abgleich über die Dienste (Cloud Weg 2, #317, docs/KONZEPT-CLOUD.md).
 
-Abgeglichen werden Ordner-Rollen (Playlists, Export) und Teile der Programmdaten (Playlists-Speicher, Käufe,
+Abgeglichen werden Ordner-Rollen (Playlists, Export) und Teile der Programmdaten (Playlists-Speicher, Einkäufe,
 Entdecken, Einstellungen ohne Zugangsdaten) mit einem Ordner bei OneDrive, Google Drive oder Dropbox – über ein
 Dienst-Plugin mit der Fähigkeit „cloud_sync“ (Funktionen ``cloud_list``, ``cloud_get``, ``cloud_put``,
 ``cloud_delete`` im plugin.py).
@@ -204,7 +204,7 @@ class SettingsPart(Part):
 
 
 # Programmdaten-Teile (C2) – Pfade im Datenordner des Profils
-APP_PARTS = [("pl_store", "Playlists-Speicher"), ("purchases", "Käufe"), ("discover", "Entdecken"),
+APP_PARTS = [("pl_store", "Playlists-Speicher"), ("purchases", "Einkäufe"), ("discover", "Entdecken"),
              ("settings", "Einstellungen (ohne Zugangsdaten)")]
 ROLE_EXTS = {"playlists": (".m3u8", ".m3u", ".xml", ".csv", ".txt", ".json"), "export": None}
 REMOTE_DEFAULT = {"playlists": "TagStudio/Playlists", "export": "TagStudio/Export", "pl_store": "TagStudio/Programmdaten/Playlists",
@@ -216,7 +216,7 @@ def app_part(pid: str) -> Part:
     if pid == "pl_store":
         return FolderPart(pid, "Playlists-Speicher", paths.sub("Playlists"), exts=(".json",))
     if pid == "purchases":
-        return FolderPart(pid, "Käufe", paths.sub("Käufe"), names=["kaeufe.json"])
+        return FolderPart(pid, "Einkäufe", paths.sub("Käufe"), names=["kaeufe.json"])
     if pid == "discover":
         return DiscoverPart(paths.sub("Entdecken"))
     if pid == "settings":
