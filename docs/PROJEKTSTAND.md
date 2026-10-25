@@ -1,8 +1,10 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-25 (23:35): **4.12.0 in Arbeit** (Meilenstein #28) – im Beta-Test auf `main`: #332 Protokolle beim Beenden
-> leeren (Entwicklung), #344 Trennzeichen als Code, #337/#340 Spaltenbreite per Ziehen (`web/colresize.js`), #341
-> Vorschau-Auswahl im Tag-Fixer, #342/#343 Ausnahmen je Feld mit Editor (`web/fixerexc.js`). Weiter mit #339 Smart Fix.
+> Stand 2026-10-26 (Nacht): **4.12.0 umgesetzt, im Beta-Test** (Meilenstein #28) – auf `main`: #332 Protokolle beim Beenden
+> leeren, #344 Trennzeichen als Code, #337/#340 Spaltenbreite (`web/colresize.js`), #341 Vorschau-Auswahl, #342/#343
+> Ausnahmen je Feld (`web/fixerexc.js`), #339 Smart Fix (`smartfix.py`), #336 ZIP entpacken (`unzip.py`), #338 Zuweisung
+> „streng“ + Korrekturfenster, #334/#335 Beatport-Playlists (Plugin 2.0, mit echtem Konto ungeprüft), #333 Entdecken als
+> eigene Seite. Offen: #186 Konzept Modul IDEE (Entscheide I1–I6), #321 Fremdkomponenten (Häkchen). Kein Release ohne Freigabe.
 >
 > Davor 22:35: **v4.11.0 final veröffentlicht** (Release `v4.11.0`, Windows + macOS, 25 Dateien; Meilenstein #27
 > „Cloud, SonoVault & Verbesserungen“ mit 23 Issues geschlossen): Dateidialoge übersetzt (#304), Werkzeugleisten im Vergleich

@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-25 (23:35): 4.12.0 in Arbeit – #332, #344, #337, #340, #341, #342, #343 im Beta-Test; weiter mit #339** (vorher 23:10: v4.11.0 final, Meilenstein #28 angelegt, Reihenfolge freigegeben) – Neuer Chat: Abschnitt „Übergabe-Prompt 4.12.0“ (unten); Details „Start 4.12.0“.
+Stand: **2026-10-26 (Nacht): 4.12.0 – alle Issues von Meilenstein #28 im Beta-Test bzw. zur Freigabe (#186 Konzept, #321 Durchsicht)** (vorher 23:10: v4.11.0 final, Meilenstein #28 angelegt, Reihenfolge freigegeben) – Neuer Chat: Abschnitt „Übergabe-Prompt 4.12.0“ (unten); Details „Start 4.12.0“.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -15,8 +15,20 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   - **#341** Vorschau mit Häkchen: `Session._fixer_id`, `fixer_apply(o.skip)`.
   - **#342 + #343** Ausnahmen je Feld/Gruppe (`compare.EXCEPTION_GROUPS`, `exceptions_for`, `split_multi(…, exceptions)`,
     cfg `fixer_exceptions`) und Editor `web/fixerexc.js` (`fixer_exception_candidates`, `set_fixer_exceptions`).
-- CI: Lauf zu 20ef6dc „Oberflächen-Tests“ rot (Protokoll per Proxy nicht lesbar), Folgelauf abd5284 grün.
-- Nächstes laut Reihenfolge: **#339 Smart Fix** (Ausnahmen aus #342 und `sepCode` wiederverwenden).
+  - **#339** Smart Fix: `smartfix.py` + `web/smartfix.js`, Umschalter `web_ui.fx_mode`, cfg `smart_recipes`/`smart_out`/
+    `smart_current`, `plan_multi_fix(v23_sep=)`.
+  - **#336** ZIP entpacken: `unzip.py`, `purch_unzip`, cfg `unzip_auto`, Hook in `start_prep_fetch`.
+  - **#338** „Streng“ + Korrekturfenster: `match_ref(strict=)`/`kind`, `artist_similarity`, `purch_candidates`,
+    `purch_fix_file`, `web/purcorrect.js`, cfg `purch_strict`.
+  - **#334/#335** Beatport-Playlists: Plugin **2.0** (Einstellung `playlists_write` Standard aus, `buy_prefix`,
+    `store_playlist_check/list/put/delete`, nur `TagStudio_…`), `web/purbpl.js`. **Mit echtem Konto ungeprüft** – User
+    soll zuerst „Schreibzugriff prüfen“ (OPTIONS) laufen lassen.
+  - **#333** Entdecken als eigene Seite (`discover` zuoberst in `MODULES`, `#moduleDiscover`).
+- **#186:** Konzept `docs/KONZEPT-IDEE.md`, Entscheide **I1–I6 warten auf Freigabe** (Kommentar im Issue) – Phase 2 erst danach.
+- **#321:** Durchsicht als Kommentar; `third_party_check.py --apply` erst nach Häkchen des Users.
+- CI: „Oberflächen-Tests“ war dreimal rot wegen `test_tagger_preview_covers` (440-px-Vorschau asynchron) → Test wartet
+  jetzt (42b3070). CI-Fehler lassen sich über `gh api …/check-runs/<job>/annotations` lesen (Protokolle sperrt der Proxy).
+- **Beim Release 4.12.0:** neue Module `smartfix`, `unzip` in `packaging/build.py` › `HIDDEN`; Plugin-ZIP Beatport 2.0.
 
 ## Start 4.12.0 (angelegt 25.10.2026, 23:00; Reihenfolge freigegeben 23:06)
 
