@@ -56,5 +56,6 @@
 "Kein Kaufdatum gefunden – Felder:": ["No purchase date found – fields:", "Kei Chaufdatum gfunde – Fälder:"],
 "Die ganze Kaufliste neu holen – sonst holt {q} nur Käufe seit dem letzten Mal (alle {n} Tage automatisch ganz)": ["Fetch the whole purchase list again – otherwise {q} only fetches purchases since the last time (fully every {n} days automatically)", "Di ganz Chaufliste neu hole – suscht holt {q} nur Chäuf sit em letschte Mal (alli {n} Täg automatisch ganz)"],
 "Alle neu holen": ["Fetch all again", "Alli neu hole"],
-"Bei {x} schon heruntergeladen": ["Already downloaded at {x}", "Bi {x} scho abeglade"]
+"Bei {x} schon heruntergeladen": ["Already downloaded at {x}", "Bi {x} scho abeglade"],
+"Beatport: Katalog-Angaben für {x} Titel holen …": ["Beatport: fetching catalogue details for {x} tracks …", "Beatport: Katalog-Aagabe für {x} Titel hole …"]
 }
