@@ -2500,6 +2500,17 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return self.plugins.api_call(pid, str(eid), params, self, cancel, progress)
         return self._run("service_api", "API-Abfrage", job)
 
+    def start_service_access(self, pid):
+        """#297: Zugriff prüfen – alle lesenden Endpunkte mit der aktuellen Anmeldung einmal aufrufen."""
+        try:
+            self.plugins.service_plugin(pid)
+        except (KeyError, ValueError) as ex:
+            return {"ok": False, "error": str(ex)}
+
+        def job(cancel, progress):
+            return self.plugins.access_check(pid, self, cancel, progress)
+        return self._run("service_access", "Zugriff prüfen", job)
+
     def start_service_test(self, pid, raw):
         """Testabfrage ohne Track (Künstler, Titel, Mix, Album, ISRC, Dauer von Hand)."""
         try:

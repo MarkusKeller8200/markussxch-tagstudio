@@ -616,6 +616,7 @@ span.xml-treeonly{display:contents}
 :root{--svc-amber:#B7790B}
 [data-theme=dark]{--svc-amber:#E3B341}
 .svc-none{background:color-mix(in srgb,var(--faint,#888) 16%,transparent);color:var(--dim)}
+.svc-deny{background:color-mix(in srgb,var(--bad,#d1453b) 18%,transparent);color:var(--bad,#d1453b)}
 .svc-grp td{background:var(--raise);border-top:1px solid var(--line)}
 .svc-grp .ghost{margin-left:8px}
 .svc-tq,.svc-api{grid-template-columns:120px minmax(0,1fr);margin:8px 0}

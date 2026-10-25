@@ -249,6 +249,125 @@ def api_call(plugin, ctx, eid: str, params: dict, user_agent: str) -> dict:
     return res
 
 
+# =========================================================================== #297: Zugriff prüfen
+ACCESS = {"ok": "Zugriff", "reach": "erreichbar", "denied": "kein Zugriff", "notfound": "nicht gefunden",
+          "limit": "begrenzt", "error": "Fehler", "skip": "übersprungen"}
+_COUNT_NAMES = ("num", "n", "count", "limit")
+
+
+def _access_class(status: int) -> str:
+    if 200 <= status < 300:
+        return "ok"
+    if status in (401, 403):
+        return "denied"
+    if status in (400, 405, 422):                  # Route erlaubt, aber Anfrage unvollständig (z. B. Pflichtparameter)
+        return "reach"
+    if status == 404:
+        return "notfound"
+    if status == 429:
+        return "limit"
+    return "error"
+
+
+def _first_id(body: bytes):
+    try:
+        data = json.loads((body or b"").decode("utf-8"))
+    except (UnicodeDecodeError, ValueError):
+        return None
+    if isinstance(data, dict):
+        data = data.get("results") if isinstance(data.get("results"), list) else data
+    if isinstance(data, list):
+        data = next((x for x in data if isinstance(x, dict) and x.get("id") is not None), None)
+    return data.get("id") if isinstance(data, dict) and data.get("id") is not None else None
+
+
+def _detail(body: bytes, secrets) -> str:
+    try:
+        data = json.loads((body or b"").decode("utf-8"))
+    except (UnicodeDecodeError, ValueError):
+        return ""
+    if not isinstance(data, dict):
+        return ""
+    d = data.get("detail") or data.get("error_description") or data.get("error") or data.get("message") or ""
+    return redact(str(d)[:200], secrets)
+
+
+def access_check(plugin, ctx, user_agent: str) -> dict:
+    """Mit der aktuellen Anmeldung jeden lesenden Endpunkt (GET) einmal aufrufen und einordnen: Zugriff, erreichbar
+    (Anfrage unvollständig), kein Zugriff (401/403), nicht gefunden … Nur GET; Anmelde-Routen und Datei-Downloads
+    werden ausgelassen. Pfad-IDs kommen aus der ersten Antwort der passenden Liste. → {"rows", "counts"}"""
+    import onlinematch as om
+    svc = plugin.service
+    if not svc:
+        raise ValueError("Dieses Plugin beschreibt keinen Dienst.")
+    mod = plugin.load()
+    custom = getattr(mod, "api_request", None) if mod is not None else None
+    auth = getattr(mod, "auth", None) if mod is not None else None
+    a = auth(ctx) if callable(auth) else {}
+    a = a if isinstance(a, dict) else {}
+    secrets = [v for v in list((a.get("headers") or {}).values()) + list((a.get("params") or {}).values()) if v]
+    eps = [e for e in svc["endpoints"] if e["method"] == "GET" and not e["path"].startswith("/auth/")
+           and not e["path"].rstrip("/").endswith("/download")]
+    eps.sort(key=lambda e: (e["path"].count("{"), e["path"]))       # Listen zuerst (liefern die Beispiel-IDs)
+    ids, rows = {}, []
+    for i, e in enumerate(eps, 1):
+        ctx.progress(i - 1, len(eps), e["path"])
+        row = {"id": e["id"], "method": e["method"], "path": e["path"], "label": e["label"], "status": 0,
+               "access": "skip", "detail": "", "ms": 0}
+        params, ep = {}, dict(e)
+        pp = [p for p in e["params"] if p["in"] == "path"]
+        if pp:
+            for p in pp:                    # je Platzhalter: ID aus der Liste davor, z. B. /my/playlists/ → {pk}
+                base = e["path"][:e["path"].index("{" + p["name"] + "}")]
+                if p["name"] in _COUNT_NAMES:
+                    params[p["name"]] = "10"
+                elif ids.get(base) is not None:
+                    params[p["name"]] = str(ids[base])
+            if len(params) < len(pp):
+                row["detail"] = "keine Beispiel-ID aus der Liste"
+                rows.append(row)
+                continue
+        for p in e["params"]:                                       # Pflichtwerte der Abfrage: Beispiel oder leer
+            if p["in"] == "query" and p["required"] and p.get("example"):
+                params[p["name"]] = p["example"]
+        if not any(p["name"] == "per_page" for p in e["params"]):
+            ep["params"] = e["params"] + [{"name": "per_page", "label": "per_page", "default": "1", "example": "",
+                                           "required": False, "in": "query"}]
+        t0 = time.monotonic()
+        try:
+            if callable(custom):
+                status, _h, body, _url = custom(ctx, ep, params)
+                secrets += list(getattr(ctx, "secrets", []) or [])
+            else:
+                url = build_url(svc, ep, params, a.get("params"))
+                status, _h, body, _r = om.get_retry(
+                    url, {"User-Agent": user_agent, "Accept": "application/json", **(a.get("headers") or {})},
+                    cancel=getattr(ctx, "check_cancel", None), log=None)
+        except ValueError as ex:                                    # fehlender Pflichtwert
+            row["detail"] = str(ex)
+            rows.append(row)
+            continue
+        except Exception as ex:  # noqa: BLE001 – ein Endpunkt darf die Prüfung nicht abbrechen
+            if type(ex).__name__ == "Cancelled":
+                raise
+            row.update(access="error", detail=redact(str(ex)[:200], secrets))
+            rows.append(row)
+            continue
+        row.update(status=int(status), access=_access_class(int(status)), ms=round((time.monotonic() - t0) * 1000))
+        if row["access"] == "ok":
+            fid = _first_id(body)
+            if fid is not None:
+                ids[e["path"]] = fid
+        elif row["access"] != "ok":
+            row["detail"] = _detail(body, secrets)
+        rows.append(row)
+    counts = {k: 0 for k in ACCESS}
+    for r in rows:
+        counts[r["access"]] += 1
+    ctx.progress(len(eps), len(eps), "fertig")
+    return {"rows": rows, "counts": counts, "labels": ACCESS}
+
+
 # =========================================================================== Kern (kein Plugin)
 CORE = [{
     "id": "core-github", "plugin": None, "name": "GitHub Releases (Updates)", "kind": "online",

@@ -39,6 +39,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **#296 Scope anzeigen** (User 11:33 „Nur mal 1“ nach dem Partnerportal-Artikel zum Identity Service): Scope bei
   Anmelden/Testen/Download, Plugin 1.6 – `_3 Beta-Test`. Zurückgestellt: eigener API-Zugang auf Authorization Code +
   PKCE (`account.beatport.com`, braucht die hinterlegte Redirect-URI des Users); Download-Scope nur über Beatport.
+- **#297 Zugriff prüfen** (Frage User 11:43): Reiter im Integrationsfenster, alle GET-Endpunkte einmal mit der
+  Anmeldung, Einordnung je Endpunkt, Scope oben, Ergebnis im Protokoll; Beatport-Plugin 1.7 – `_3 Beta-Test`.
 - CodeQL #294 (`js/user-controlled-bypass` in `web/logwin.js`): Fehlalarm, weil die Funktion `logInit` wie „logIn“
   aussah – umbenannt in `lwStart`; schliesst sich nach dem Push von selbst.
 - Meilenstein #24 hat damit keine Issues mehr ohne Testliste; nächster Schritt: Testrückmeldungen, danach

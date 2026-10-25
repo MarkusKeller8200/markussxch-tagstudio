@@ -27,6 +27,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   bisherige Anmeldung bleibt als „inoffizieller Ausweichweg“. Das Integrationsfenster listet alle Endpunkte der
   offiziellen Beschreibung (catalog, my, curation) mit Status; genutzt werden nur dokumentierte Endpunkte, ausser
   beim Download gekaufter Dateien. Konto über `GET /my/account/`.
+- **Zugriff prüfen (#297):** Integrationsfenster › „Zugriff prüfen“ ruft mit der aktuellen Anmeldung jeden lesenden
+  Endpunkt einmal auf und zeigt, worauf du Zugriff hast (Zugriff, erreichbar, kein Zugriff …), mit Zugang und Scope;
+  Ergebnis auch im Protokoll (Beatport-Plugin 1.7).
 - **Beatport: Berechtigungen anzeigen (#296):** „Testen“ und „Anmelden“ zeigen den Scope des Tokens, das Protokoll
   nennt ihn bei jedem Download (Beatport-Plugin 1.6).
 - **Beatport: Anmelden für den Download (#295):** lehnt Beatport den gespeicherten Zugang beim Herunterladen ab,

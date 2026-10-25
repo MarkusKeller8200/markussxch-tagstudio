@@ -2703,6 +2703,37 @@ class UiTest(unittest.TestCase):
         pg.click('#purSess [data-sesslogout="beatport"]')
         pg.wait_for_function("document.querySelector('#purSess').textContent.trim() === ''")
 
+    def test_service_access_tab(self):
+        """#297: Integrationsfenster › „Zugriff prüfen“ – Ergebnis je Endpunkt mit Filter (Antwort nachgebaut)."""
+        pg = self.pg
+        pg.evaluate("""(() => { const orig = call; window.__fake = null; window.__acc = 0;
+          window.call = (n, ...a) => {
+            if (n === "service_detail") return orig(n, ...a).then((d) => Object.assign(d, { ready: true }));
+            if (n === "start_service_access") { window.__acc++; window.__fake = { info: "eigener API-Zugang – Berechtigungen (Scope): app:externaltrusted user:dj",
+                labels: { ok: "Zugriff", reach: "erreichbar", denied: "kein Zugriff", notfound: "nicht gefunden", limit: "begrenzt", error: "Fehler", skip: "übersprungen" },
+                counts: { ok: 2, reach: 0, denied: 1, notfound: 0, limit: 0, error: 0, skip: 1 },
+                rows: [{ path: "/my/account/", label: "Konto", status: 200, access: "ok", detail: "" },
+                  { path: "/my/downloads/", label: "Käufe", status: 200, access: "ok", detail: "" },
+                  { path: "/catalog/tracks/purchase-download/", label: "Download", status: 403, access: "denied", detail: "You do not have permission" },
+                  { path: "/catalog/charts/{id}/", label: "Chart", status: 0, access: "skip", detail: "keine Beispiel-ID aus der Liste" }] };
+              return Promise.resolve({ ok: true }); }
+            if (n === "task_status" && window.__fake) { const r = window.__fake; window.__fake = null; return Promise.resolve({ done: true, running: false, result: r }); }
+            return orig(n, ...a); }; })()""")
+        pg.evaluate("() => { svcOpen('beatport', 'acc'); }")
+        pg.wait_for_selector("#svcAccRun")
+        self.assertEqual(pg.get_attribute('[data-svctab="acc"]', "aria-selected"), "true")
+        pg.click("#svcAccRun")
+        pg.wait_for_selector("#svcAccOut table")
+        out = pg.inner_text("#svcAccOut")
+        self.assertIn("app:externaltrusted user:dj", out)
+        self.assertIn("You do not have permission", out)
+        self.assertEqual(pg.locator("#svcAccOut tbody tr").count(), 4)
+        pg.click('#svcAccOut [data-accf="denied"]')
+        self.assertEqual(pg.locator("#svcAccOut tbody tr").count(), 1)
+        self.assertIn("purchase-download", pg.inner_text("#svcAccOut tbody"))
+        self.assertEqual(pg.inner_text("#svcAccRun"), "Erneut prüfen")
+        pg.keyboard.press("Escape")
+
     def test_playlists_page(self):
         """#267–#269: Titel aus dem Tagger in Playlists, Seite verwalten, Playlist-Ordner, Archiv, DJ-Set, Filter."""
         pg = self.pg

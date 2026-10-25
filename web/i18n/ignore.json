@@ -453,5 +453,6 @@
 "input[name={q}][value={q}]",
 "dateipfad",
 "tr[data-k]",
-"log-window.html#pid={x}&token={x}"
+"log-window.html#pid={x}&token={x}",
+"Cancelled"
 ]

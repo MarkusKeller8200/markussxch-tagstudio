@@ -263,6 +263,38 @@ class TestBeatport(Base):
         self.assertIn("Berechtigungen (Scope): app:externaltrusted user:dj", log)
         self.assertNotRegex(log, r"\bAT\d+\b")                                            # nie der Token selbst
 
+    def test_access_check(self):
+        """#297: „Zugriff prüfen“ – jeder lesende Endpunkt einmal mit der aktuellen Anmeldung, eingeordnet."""
+        self.assertFalse(self.s.start_service_access("gibtsnicht")["ok"])
+        r = self.s.start_service_access("beatport")
+        self.assertTrue(r["ok"], r)
+        st = self.wait()
+        self.assertIn("Nicht bei Beatport angemeldet", st["error"] or "")               # ohne Anmeldung: klare Meldung
+        self.act("login", method="app", client_id="MYAPP", client_secret="S3CRET", username="marku", password="geheim")
+        self.s.start_service_access("beatport")
+        st = self.wait()
+        self.assertIsNone(st["error"], st)
+        res = st["result"]
+        by = {x["path"]: x for x in res["rows"]}
+        self.assertEqual(res["info"], "eigener API-Zugang – Berechtigungen (Scope): app:externaltrusted user:dj")
+        self.assertEqual((by["/my/account/"]["access"], by["/my/account/"]["status"]), ("ok", 200))
+        self.assertEqual(by["/catalog/tracks/purchase-download/"]["access"], "denied")      # Scope reicht nicht
+        self.assertEqual(by["/catalog/tracks/purchase-download/"]["detail"], "forbidden")
+        self.assertEqual(by["/my/playlists/{myplaylists_pk}/tracks/"]["access"], "ok")     # ID aus /my/playlists/
+        self.assertEqual(by["/my/playlists/{id}/"]["access"], "ok")
+        self.assertIn(("/v4/my/playlists/7/tracks/"), [c[1] for c in self.fake.calls])
+        self.assertEqual(by["/catalog/charts/{id}/"]["access"], "skip")                    # Liste ohne Treffer
+        self.assertEqual(by["/catalog/genres/"]["access"], "notfound")
+        paths = set(by)
+        self.assertFalse(any(p.startswith("/auth/") or p.rstrip("/").endswith("/download") for p in paths))
+        self.assertFalse(any(m != "GET" for m in (x["method"] for x in res["rows"])))
+        self.assertEqual(sum(res["counts"].values()), len(res["rows"]))
+        with open(res["logfile"], encoding="utf-8") as fh:
+            log = fh.read()
+        self.assertIn("Zugriff prüfen: eigener API-Zugang", log)
+        self.assertIn("/catalog/tracks/purchase-download/: kein Zugriff (HTTP 403) – forbidden", log)
+        self.assertNotRegex(log + json.dumps(res), r"\bAT\d+\b")                        # nie der Token
+
     def test_session_login_download(self):
         """#295: eigener API-Zugang wird beim Download abgelehnt → Sitzungs-Anmeldung wie die Webseite, Token nur im
         Speicher, dann derselbe Download-Weg (purchase-download)."""

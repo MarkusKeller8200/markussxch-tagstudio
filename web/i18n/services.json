@@ -93,5 +93,19 @@
 "{x} von {x} gewählt": ["{x} of {x} selected", "{x} vo {x} gwäält"],
 "Keine Änderungen übernommen.": ["No changes applied.", "Kei Änderige übernaa."],
 "Plugins neu eingelesen.": ["Plugins reloaded.", "Plugins neu iiglaase."],
-"Ordner konnte nicht geöffnet werden.": ["Folder could not be opened.", "Ordner hät nöd chöne ufgmacht werde."]
+"Ordner konnte nicht geöffnet werden.": ["Folder could not be opened.", "Ordner hät nöd chöne ufgmacht werde."],
+"Mit der aktuellen Anmeldung alle lesenden Endpunkte einmal aufrufen und zeigen, worauf du Zugriff hast": ["Call every read endpoint once with the current sign-in and show what you have access to", "Mit de aktuelle Aamäldig alli läsende Endpünkt eimal uufrüefe und zeige, wo du Zuegriff häsch"],
+"Zugriff prüfen": ["Check access", "Zuegriff prüefe"],
+"Erneut prüfen": ["Check again", "Nomal prüefe"],
+"Ruft mit deiner aktuellen Anmeldung jeden lesenden Endpunkt (GET) einmal auf – nichts wird geändert, nichts heruntergeladen; Anmelde-Routen und Datei-Downloads sind ausgelassen. IDs im Pfad kommen aus der ersten Antwort der passenden Liste.": ["Calls every read endpoint (GET) once with your current sign-in – nothing is changed, nothing downloaded; sign-in routes and file downloads are left out. IDs in the path come from the first answer of the matching list.", "Rüeft mit dinere aktuelle Aamäldig jede läsende Endpunkt (GET) eimal uf – nüt wird gänderet, nüt abeglade; Aamälde-Route und Datei-Downloads sind usgla. IDs im Pfad chömed us de erschte Antwort vo de passende Lischte."],
+"Zugriff": ["Access", "Zuegriff"],
+"= erlaubt,": ["= allowed,", "= erlaubt,"],
+"erreichbar": ["reachable", "erreichbar"],
+"= erlaubt, aber die Anfrage war unvollständig,": ["= allowed, but the request was incomplete,", "= erlaubt, aber d Aafrag isch unvollständig gsi,"],
+"kein Zugriff": ["no access", "kein Zuegriff"],
+"= {n}/{n} (fehlende Berechtigung).": ["= {n}/{n} (missing permission).", "= {n}/{n} (fählendi Berächtigung)."],
+"Ergebnis": ["Result", "Ergäbnis"],
+"Zugriff prüfen:": ["Check access:", "Zuegriff prüefe:"],
+"begrenzt": ["limited", "begränzt"],
+"keine Beispiel-ID aus der Liste": ["no sample ID from the list", "kei Biispiil-ID us de Lischte"]
 }

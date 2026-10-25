@@ -344,6 +344,10 @@ geändert. Beide brauchen eine **eigene App** beim Dienst; TagStudio liefert kei
   bzw. Konten (SoundCloud), denen du folgst, unter Entdecken › Gefolgte Künstler.
 - Die Kachel zeigt unter „Endpunkte“ alle Lese-Endpunkte mit Umsetzungsstand; der API-Tester ruft sie mit deiner
   Anmeldung auf (Token geschwärzt).
+- **Zugriff prüfen (#297):** Im Integrationsfenster jedes Dienst-Plugins ruft der Reiter „Zugriff prüfen“ mit der
+  aktuellen Anmeldung jeden lesenden Endpunkt einmal auf und zeigt je Endpunkt *Zugriff*, *erreichbar* (Anfrage
+  unvollständig), *kein Zugriff* (401/403) usw. – nur GET, ohne Anmelde-Routen und Datei-Downloads. Ein Plugin kann mit
+  `access_info(ctx)` → Text ergänzen, womit geprüft wird (Beatport: Zugang und Scope).
 
 ## Eingebaut: Lexicon
 

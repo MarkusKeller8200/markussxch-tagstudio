@@ -38,7 +38,7 @@ async function svcTask(startPromise, box) {
 async function svcOpen(pid, tab = "ep", eid = "") {
   let d;
   try { d = await call("service_detail", pid); } catch (e) { toast(String(e.message || e)); return; }
-  SVC.detail = d; SVC.tab = tab; SVC.filter = ""; SVC.lastEp = eid || SVC.lastEp; SVC.tqOut = ""; SVC.apiOut = {};
+  SVC.detail = d; SVC.tab = tab; SVC.filter = ""; SVC.lastEp = eid || SVC.lastEp; SVC.tqOut = ""; SVC.apiOut = {}; SVC.acc = null; SVC.accF = "";
   SVC.tqv = SVC.tqv || {}; SVC.apiVals = SVC.apiVals || {};
   await modal({
     title: `Integration – ${d.name}`, wide: true,
@@ -53,6 +53,7 @@ async function svcOpen(pid, tab = "ep", eid = "") {
         <button role="tab" data-svctab="ep">Endpunkte (${d.endpoints.length})</button>
         <button role="tab" data-svctab="tq" ${d.test_query ? "" : "disabled"} title="${d.test_query ? "Suche wie mit einem Titel – ohne Track" : d.ready ? "Dieser Dienst bietet keine Testabfrage" : "Plugin zuerst einschalten"}">Testabfrage</button>
         <button role="tab" data-svctab="api" ${d.ready && d.endpoints.some((e) => e.test) ? "" : "disabled"} title="Einen Endpunkt direkt aufrufen (nur lesend)">API-Tester</button>
+        <button role="tab" data-svctab="acc" ${d.ready && d.endpoints.some((e) => e.method === "GET") ? "" : "disabled"} title="Mit der aktuellen Anmeldung alle lesenden Endpunkte einmal aufrufen und zeigen, worauf du Zugriff hast">Zugriff prüfen</button>
       </div>
       <div id="svcBody"></div>`,
     buttons: [{ label: "Schliessen", value: null, primary: true }],
@@ -74,6 +75,9 @@ async function svcOpen(pid, tab = "ep", eid = "") {
         if (e.target.closest("#svcApiClear")) { svcApiClear(b, true); }
         if (e.target.closest("#svcApiEx")) { svcApiClear(b, false); }
         if (e.target.closest("#svcApiRun")) svcApiRun(b);
+        if (e.target.closest("#svcAccRun")) svcAccRun(b);
+        const af = e.target.closest("[data-accf]");
+        if (af) { SVC.accF = SVC.accF === af.dataset.accf ? "" : af.dataset.accf; $("#svcAccOut", b).innerHTML = svcAccOut(); return; }
         if (e.target.closest("#svcApiCopy")) { const pre = $("#svcApiBody", b); if (pre) navigator.clipboard?.writeText(pre.textContent).then(() => toast("Antwort kopiert.")); }
       });
       b.addEventListener("change", (e) => { if (e.target.id === "svcApiEp") { SVC.lastEp = e.target.value; svcRender(b); } });
@@ -93,6 +97,7 @@ function svcRender(b) {
   const body = $("#svcBody", b);
   if (SVC.tab === "tq") { body.innerHTML = svcTqHtml(); return; }
   if (SVC.tab === "api") { body.innerHTML = svcApiHtml(d); return; }
+  if (SVC.tab === "acc") { body.innerHTML = svcAccHtml(); return; }
   const eps = d.endpoints.filter((e) => !SVC.filter || e.status === SVC.filter);
   body.innerHTML = `<div class="svc-filter">${["full", "partial", "none"].filter((k) => d.counts[k]).map((k) =>
       `<button class="sn-chip${SVC.filter === k ? " on" : ""}" data-svcf="${k}">${SVC_ST[k][0]} ${d.counts[k]}</button>`).join("")}</div>
@@ -134,6 +139,36 @@ async function svcTestQuery(b) {
       ${r.rows.map((x) => `<tr>${cols.map(([, fn]) => `<td>${fn(x)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>` : ""}
     ${r.log && r.log.length ? `<details class="sm" open><summary class="muted">Protokoll (${r.log.length})</summary><pre class="pl-log">${esc(r.log.join("\n"))}</pre></details>` : ""}`;
   out.innerHTML = SVC.tqOut;
+}
+
+// ---------------------------------------------------------------------- #297: Zugriff prüfen
+const SVC_ACC_CSS = { ok: "svc-full", reach: "svc-part", denied: "svc-deny", notfound: "svc-none", limit: "svc-part", error: "svc-deny", skip: "svc-none" };
+
+function svcAccHtml() {
+  return `<div id="svcAcc"><div class="hint">Ruft mit deiner aktuellen Anmeldung jeden lesenden Endpunkt (GET) einmal auf – nichts wird geändert,
+      nichts heruntergeladen; Anmelde-Routen und Datei-Downloads sind ausgelassen. IDs im Pfad kommen aus der ersten Antwort der passenden Liste.
+      <b>Zugriff</b> = erlaubt, <b>erreichbar</b> = erlaubt, aber die Anfrage war unvollständig, <b>kein Zugriff</b> = 401/403 (fehlende Berechtigung).</div>
+    <div class="svc-btns" style="margin:8px 0"><button class="primary sm" id="svcAccRun">${SVC.acc ? "Erneut prüfen" : "Prüfen"}</button></div>
+    <div id="svcAccOut">${svcAccOut()}</div></div>`;
+}
+
+function svcAccOut() {
+  const r = SVC.acc; if (!r) return "";
+  const rows = r.rows.filter((x) => !SVC.accF || x.access === SVC.accF);
+  return `${r.info ? `<div class="sm svc-sum">${esc(r.info)}</div>` : ""}
+    <div class="svc-filter">${Object.keys(r.labels).filter((k) => r.counts[k]).map((k) => `<button class="sn-chip${SVC.accF === k ? " on" : ""}" data-accf="${k}">${esc(r.labels[k])} ${r.counts[k]}</button>`).join("")}</div>
+    <div class="fx-table svc-table"><table><thead><tr><th>Ergebnis</th><th>HTTP</th><th>Pfad</th><th>Beschreibung</th><th>Hinweis</th></tr></thead><tbody>
+    ${rows.map((x) => `<tr data-acc="${esc(x.access)}"><td><span class="svc-st ${SVC_ACC_CSS[x.access] || "svc-none"}">${esc(r.labels[x.access])}</span></td><td>${x.status || ""}</td>
+      <td><code>${esc(x.path)}</code></td><td>${esc(x.label)}</td><td class="sm">${esc(x.detail)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+async function svcAccRun(b) {
+  const out = $("#svcAccOut", b);
+  const r = await svcTask(call("start_service_access", SVC.detail.id), out);
+  if (!r) return;
+  SVC.acc = r; SVC.accF = "";
+  out.innerHTML = svcAccOut();
+  const btn = $("#svcAccRun", b); if (btn) btn.textContent = "Erneut prüfen";
 }
 
 // ---------------------------------------------------------------------- API-Tester (Rohabfrage)

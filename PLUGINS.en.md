@@ -339,6 +339,10 @@ need **your own app** at the service; TagStudio does not ship shared credentials
   (SoundCloud) you follow under Discover › Followed artists.
 - The card lists all read endpoints with their implementation state under “endpoints”; the API tester calls them with
   your sign-in (token blacked out).
+- **Check access (#297):** in the integration window of every service plugin, the tab “Check access” calls each read
+  endpoint once with the current sign-in and shows *access*, *reachable* (incomplete request), *no access* (401/403)
+  etc. per endpoint – GET only, without sign-in routes and file downloads. A plugin can add `access_info(ctx)` → text
+  describing what is used for the check (Beatport: access type and scope).
 
 ## Built in: Lexicon
 

@@ -691,6 +691,12 @@ def api_request(ctx, ep, params):
     return st, h, body, url
 
 
+def access_info(ctx) -> str:
+    """#297: Text für „Zugriff prüfen“ – mit welchem Zugang und welchem Scope geprüft wird."""
+    c = Client(ctx)
+    return f"{'eigener API-Zugang' if c.tok.get('app') else 'Ausweichweg'} – {scope_text(c.tok)}"
+
+
 def test_query(ctx, info):
     """Testabfrage ohne Track: wie „Beatport-Daten holen“ – zuerst ISRC, sonst Suche Künstler + Titel + Mix."""
     cl = Client(ctx)

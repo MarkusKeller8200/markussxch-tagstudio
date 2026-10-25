@@ -117,6 +117,11 @@ Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
 - API-Tester: generischer Abruf über `onlinematch.get_retry` (gemeinsame Drosselung `SHARED`, Wiederholung bei 429/503,
   Anzahl in `retries`, #212). IDs in der Antwort (Schlüssel `id`, `mbid`, `…_id`, `isrc`, `upc`, `discid`) sind
   anklickbar; vorgeschlagen werden Endpunkte mit passendem ID-Feld, sortiert nach dem umgebenden Objektnamen (#213).
+- **Zugriff prüfen (#297):** `services.access_check(plugin, ctx, ua)` ruft alle GET-Endpunkte (ohne `/auth/…` und
+  `…/download/`) mit `api_request` des Plugins bzw. `get_retry` auf, Listen zuerst; die erste `id` einer Antwort füllt
+  Platzhalter der Unterpfade (je Platzhalter der Pfad davor), `{num}` = 10. Einordnung 2xx Zugriff, 400/405/422
+  erreichbar, 401/403 kein Zugriff (+ `detail`), 404, 429, sonst Fehler, ohne ID übersprungen. Ergebnis und
+  `access_info(ctx)` ins Plugin-Protokoll; Reiter „Zugriff prüfen“ im Integrationsfenster (`start_service_access`).
 - Die Update-Prüfung (GitHub Releases) bleibt im Kern.
 
 ### Plugins aus den Releases (#235, Entscheid User 17.10.2026)

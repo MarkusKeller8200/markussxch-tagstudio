@@ -1,7 +1,7 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "1.6",
+  "version": "1.7",
   "min_app": "4.8.0",
   "category": "online",
   "api": 1,

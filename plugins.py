@@ -708,6 +708,28 @@ class Manager:
         res["log"] = ctx.log_lines
         return res
 
+    def access_check(self, pid, session=None, cancel=None, progress=None) -> dict:
+        """#297: Welche Endpunkte erlaubt die aktuelle Anmeldung? (nur GET). Optional access_info(ctx) → Text
+        (z. B. Berechtigungen/Scope des Tokens)."""
+        import services
+        from version import VERSION
+        p = self.service_plugin(pid)
+        ctx = Context(p, session, cancel, progress)
+        ua = f"TagStudio/{VERSION} ( https://github.com/MarkusKeller8200/markussxch-tagstudio )"
+        info_fn = getattr(p.load(), "access_info", None)
+        info = str(info_fn(ctx) or "") if callable(info_fn) else ""      # nicht angemeldet → Fehler hier
+        res = services.access_check(p, ctx, ua)
+        res["info"] = info
+        c = res["counts"]
+        ctx.log("Zugriff prüfen: " + (info + " · " if info else "") + ", ".join(
+            f"{services.ACCESS[k]} {n}" for k, n in c.items() if n))
+        for r in res["rows"]:
+            if r["access"] != "ok":
+                ctx.log(f"  {r['path']}: {services.ACCESS[r['access']]}" + (f" (HTTP {r['status']})" if r["status"] else "")
+                        + (f" – {r['detail']}" if r["detail"] else ""))
+        res["logfile"] = write_log(f"{p.id}.log", "\n".join(ctx.log_lines))
+        return res
+
     def test_query(self, pid, raw, session=None, cancel=None, progress=None) -> dict:
         """Testabfrage ohne Track: gleiche Suche und Bewertung wie mit einem Titel, ohne Tags zu ändern."""
         import services
