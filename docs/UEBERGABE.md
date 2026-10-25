@@ -17,6 +17,12 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **#285 Käufe** (Wunsch User 02:26, in 4.9.0): neue Seite „Käufe“ (`purchases.py`, `session_purchases.py`,
   `web/purchases.js`, Plugin-Rahmen `store_purchases`/`store_download`, Beatport-Plugin 1.2) – `_3 Beta-Test`.
   Konzept `docs/KONZEPT-KAEUFE.md`.
+- **Beatport offiziell** (User hat einen offiziellen API-Zugang): #286 eigener API-Zugang (Password Grant, App-Daten
+  verschlüsselt), #289 Plugin „Beatport“ mit Standard = eigener Zugang, alte Anmeldung als inoffizieller Ausweichweg,
+  Integrationsfenster mit allen offiziellen Endpunkten, #288 gefolgte Künstler/Labels → Entdecken – alle in 4.9.0,
+  `_3 Beta-Test`. Die OpenAPI-Beschreibung (`/v4/swagger-ui/json/`, nur mit Anmeldung) wurde im Browser des Users
+  gelesen; nicht ins Repo kopiert (Copyright Beatport). Download gekaufter Dateien ist offiziell nicht vorgesehen →
+  Variante 1 (bisherige Wege) mit Hinweis auf Variante 2 (Beatport-Download-Seite).
 - Meilenstein #24 hat damit keine Issues mehr ohne Testliste; nächster Schritt: Testrückmeldungen, danach
   4.9.0-beta.1 oder final **nur nach Freigabe**. Konzept-Abschnitte 18–20 in `KONZEPT-PLAYLISTS.md`.
 
