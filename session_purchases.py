@@ -55,7 +55,7 @@ class PurchasesMixin:
                 "catalog": it.get("catalog", ""), "label": it.get("label", ""), "release": it.get("release", ""),
                 "genre": it.get("genre", ""), "isrc": it.get("isrc", ""), "url": it.get("url", ""),
                 "bought": it.get("bought", ""), "seen": it.get("first_seen") or 0, "status": it.get("status", "missing"),
-                "file": it.get("file", ""), "reason": it.get("reason", ""), "preorder": bool(it.get("preorder")),
+                "file": it.get("file", ""), "reason": it.get("reason", ""), "preorder": bool(it.get("preorder")), "received": bool(it.get("received")),
                 "downloaded": it.get("downloaded") or 0}
 
     def purch_state(self) -> dict:

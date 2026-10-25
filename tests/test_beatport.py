@@ -97,7 +97,8 @@ class FakeBeatport:
             return 200, {}, json.dumps({"results": [
                 dict(TRACKS[1001], order_item_download_id=501, audio_format={"name": "mp3"}, purchase_date="2026-10-20T10:00:00Z"),
                 {"id": 2001, "name": "Frisch gekauft", "mix_name": "Extended Mix", "artists": [{"name": "Mara Lind"}],
-                 "order_item_download_id": 502, "audio_format": {"name": "mp3"}},
+                 "order_item_download_id": 502, "audio_format": {"name": "mp3"}, "release": "Frisch EP",   # wie TrackDownloadList
+                 "purchase_date": "2026-10-22T09:15:00Z", "received_status": True},
                 {"id": 2002, "name": "Vorbestellt", "artists": [{"name": "X"}], "pre_order": True, "order_item_download_id": 503}]}).encode()
         if p == "/v4/my/downloads/502/":
             return 200, {}, json.dumps({"id": 502, "download_url": "https://dl.beatport.com/sig/abc.mp3"}).encode()
@@ -109,6 +110,11 @@ class FakeBeatport:
         if p == "/v4/my/playlists/7/tracks/":
             return 200, {}, json.dumps({"results": [{"position": 2, "track": TRACKS[1003]},
                                                     {"position": 1, "track": TRACKS[1001]}]}).encode()
+        if p == "/v4/catalog/tracks/" and q.get("id"):            # Katalog-Angaben für Käufe (id=1,2,…)
+            more = {2001: {"id": 2001, "name": "Frisch gekauft", "isrc": "CHA012600001", "catalog_number": "NEU001",
+                           "release": {"id": 90, "name": "Frisch EP", "label": {"name": "Polar Records"}}}}
+            hits = [x for x in (TRACKS.get(int(i)) or more.get(int(i)) for i in q["id"].split(",")) if x]
+            return 200, {}, json.dumps({"results": hits}).encode()
         if p == "/v4/catalog/tracks/":
             hits = [t for t in TRACKS.values() if t.get("isrc") == q.get("isrc")]
             return 200, {}, json.dumps({"results": hits}).encode()
@@ -244,6 +250,9 @@ class TestBeatport(Base):
         self.assertTrue(n["url"].startswith("https://www.beatport.com/track/"))
         self.assertTrue(n["file"].endswith("n.mp3"))
         self.assertTrue(rows["2002"]["preorder"])
+        f = rows["2001"]                                                                         # aus dem Katalog ergänzt
+        self.assertEqual((f["catalog"], f["isrc"], f["label"], f["release"], f["bought"], f["received"]),
+                         ("NEU001", "CHA012600001", "Polar Records", "Frisch EP", "2026-10-22 09:15:00", True))
         audio = b"ID3\x03\x00\x00\x00\x00\x00\x00" + b"\xff\xfb" * 500
 
         class Resp:
@@ -281,7 +290,7 @@ class TestBeatport(Base):
         self.assertEqual((res["new"], res["count"]["inbox"]), (0, 1))
         dl = [c[2] for c in self.fake.calls if c[1] == "/v4/my/downloads/"]
         self.assertNotIn("purchase_date", dl[0])                                                # erstes Mal: alles
-        self.assertEqual(dl[-1].get("purchase_date"), "2026-10-17:")                            # dann nur neue (−3 Tage)
+        self.assertEqual(dl[-1].get("purchase_date"), "2026-10-19:")                            # dann nur neue (letzter Kauf −3 Tage)
         self.assertNotIn("/v4/my/library/", [c[1] for c in self.fake.calls])
         self.s.start_purch_refresh(None, True)                                                  # „Alle neu holen“
         self.wait()

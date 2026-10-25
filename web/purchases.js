@@ -79,7 +79,7 @@ function purRenderTable() {
   const head = PUR_COLS.map(([k, l]) => `<th data-pursort="${k}" class="${["dur", "bpm"].includes(k) ? "r" : ""}" aria-sort="${PUR.sort.k === k ? (PUR.sort.desc ? "descending" : "ascending") : "none"}">${esc(l)}${PUR.sort.k === k ? (PUR.sort.desc ? " ▾" : " ▴") : ""}</th>`).join("");
   box.innerHTML = `<table class="pur-t"><thead><tr><th><input type="checkbox" id="purAll" ${all ? "checked" : ""} aria-label="Alle wählen"></th>${head}<th></th></tr></thead><tbody>
     ${rows.map((r) => {
-      const stc = r.preorder ? `<span class="pur-st pre">Vorbestellung</span>` : `<span class="pur-st ${r.status}" title="${esc(r.file || r.reason || "")}">${esc(PUR_STATUS[r.status] || r.status)}</span>`;
+      const stc = r.preorder ? `<span class="pur-st pre">Vorbestellung</span>` : `<span class="pur-st ${r.status}" title="${esc([r.file || r.reason || "", r.received ? `Bei ${purStoreName(r.store)} schon heruntergeladen` : ""].filter(Boolean).join(" · "))}">${esc(PUR_STATUS[r.status] || r.status)}</span>`;
       const date = r.bought ? esc(r.bought.slice(0, 10)) : (r.seen ? `<span class="muted" title="Kein Kaufdatum vom Store – zuerst gesehen">${esc(new Date(r.seen * 1000).toLocaleDateString())}</span>` : "");
       const bpm = r.bpm ? (Math.round(r.bpm * 10) / 10).toString() : "";
       return `<tr data-k="${esc(r.k)}" class="${PUR.sel.has(r.k) ? "sel" : ""}"><td><input type="checkbox" data-pursel ${PUR.sel.has(r.k) ? "checked" : ""}></td>

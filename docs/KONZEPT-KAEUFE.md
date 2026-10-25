@@ -44,7 +44,12 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
   `purchase_date` (Bereich `JJJJ-MM-TT:`), `received_status`, `isrc`, `catalog_number`; Unterpunkte nur `encode-status`
   und `facets`. TagStudio holt deshalb nach dem ersten Mal nur Käufe ab dem letzten Kaufdatum minus 3 Tage
   (`store_purchases(ctx, since)`), alle 30 Tage oder mit „Alle neu holen“ die ganze Liste (`stores[…].full_at`).
-  Für den Download gibt es unter `my/downloads` keinen Unterpunkt – zu prüfen: `catalog › tracks › {id} › download`.
+- **OpenAPI-Beschreibung gelesen (25.10.2026, 117 Endpunkte, `/v4/swagger-ui/json/`):** Ein Kauf ist
+  `TrackDownloadList` mit `purchase_date` (date-time), `order_item_download_id`, `received_status`, `pre_order`,
+  `audio_format`, `release` (nur Name), Titelangaben, **ohne** ISRC, Katalognummer, Label → TagStudio ergänzt sie
+  gesammelt über `/v4/catalog/tracks/?id=1,2,…` (je 100). **Kein Download-Endpunkt** in der offiziellen API (weder
+  `my` noch `catalog`; `audio-files` ist für Labels). Der Download nutzt weiter die undokumentierten Wege (#117) –
+  Entscheid des Users offen, ob stattdessen die Download-Seite von Beatport geöffnet wird.
 - **Beatport-Plugin 1.2**: nutzt die bestehende inoffizielle Abfrage der Käufe (`/my/downloads/` u. a., #117) und den
   Download (`resolve_download`, `fetch_file`, merkt geladene in `geladen.json`). Kaufdatum aus bekannten Feldnamen
   (`purchase_date`, `order_date`, `created` …, auch aus der Bestellung um den Titel); fehlt es, stehen die Feldnamen im

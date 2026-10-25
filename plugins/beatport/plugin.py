@@ -1307,19 +1307,45 @@ def bought_date(t) -> str:
     return ""
 
 
-def store_item(t) -> dict:
-    """Beatport-Kauf → Eintrag für die Seite „Käufe“ (purchases.clean_item)."""
-    rel = t.get("release") or {}
-    return {"id": t.get("id"), "title": t.get("name") or "", "mix": t.get("mix_name") or "",
+def store_item(t, cat=None) -> dict:
+    """Beatport-Kauf → Eintrag für die Seite „Käufe“ (purchases.clean_item). Laut offizieller Doku hat ein Kauf
+    (TrackDownloadList) kein ISRC, keine Katalognummer und kein Label, „release“ ist nur der Name – cat: derselbe
+    Titel aus /catalog/tracks/ zum Ergänzen."""
+    rel = t.get("release") if isinstance(t.get("release"), dict) else {"name": t.get("release") or ""}
+    cat = cat or {}
+    crel = cat.get("release") if isinstance(cat.get("release"), dict) else {}
+    out = {"id": t.get("id"), "title": t.get("name") or "", "mix": t.get("mix_name") or "",
             "artist": ", ".join(artists_of(t)), "dur": (t.get("length_ms") or 0) / 1000,
             "key": key_text(t, "camelot"), "bpm": t.get("bpm"),
-            "catalog": t.get("catalog_number") or rel.get("catalog_number") or "", "isrc": t.get("isrc") or "",
-            "label": (rel.get("label") or {}).get("name") or "", "release": rel.get("name") or "",
+            "catalog": t.get("catalog_number") or rel.get("catalog_number") or cat.get("catalog_number")
+            or crel.get("catalog_number") or "",
+            "isrc": t.get("isrc") or cat.get("isrc") or "",
+            "label": (rel.get("label") or {}).get("name") or (crel.get("label") or {}).get("name") or "",
+            "release": rel.get("name") or crel.get("name") or "",
             "genre": (t.get("genre") or {}).get("name") or "",
             "url": f"https://www.beatport.com/track/{t.get('slug') or 'track'}/{t['id']}" if t.get("id") else "",
             "bought": bought_date(t), "preorder": bool(t.get("pre_order")),
+            "received": bool(t.get("received_status")),
             "dl": {k: t.get(k) for k in ("id", "order_item_download_id", "audio_format", "name", "mix_name", "artists")
                    if t.get(k) is not None}}
+    return out
+
+
+def catalog_details(c, ids, log=None) -> dict:
+    """Katalog-Angaben (ISRC, Katalognummer, Label) für viele Titel: /catalog/tracks/?id=1,2,… (je 100)."""
+    out, ids = {}, [str(i) for i in dict.fromkeys(ids) if i]
+    for k in range(0, len(ids), 100):
+        part = ids[k:k + 100]
+        try:
+            res = c.get("/catalog/tracks/", id=",".join(part), per_page=100)
+        except HttpError as ex:
+            if log:
+                log(f"/catalog/tracks/?id=…: {ex}")
+            break
+        for t in _items(res):
+            if isinstance(t, dict) and t.get("id") is not None:
+                out[str(t["id"])] = t
+    return out
 
 
 def store_purchases(ctx, since="") -> dict:
@@ -1344,7 +1370,11 @@ def store_purchases(ctx, since="") -> dict:
         discover.mark_bought(items)
     except Exception as ex:  # noqa: BLE001
         ctx.log(f"Entdecken: {ex}")
-    return {"name": "Beatport", "items": [store_item(t) for t in items], "since": since}
+    need = [t.get("id") for t in items if not (t.get("isrc") and t.get("catalog_number"))]
+    if need:
+        ctx.status(f"Beatport: Katalog-Angaben für {len(need)} Titel holen …")
+    cat = catalog_details(c, need, ctx.log) if need else {}
+    return {"name": "Beatport", "items": [store_item(t, cat.get(str(t.get("id")))) for t in items], "since": since}
 
 
 def store_download(ctx, items, dest) -> dict:

@@ -63,6 +63,8 @@ def clean_item(store: str, x) -> dict | None:
         out["dl"] = x["dl"]
     if x.get("preorder"):
         out["preorder"] = True
+    if x.get("received"):
+        out["received"] = True                             # beim Store schon einmal heruntergeladen
     return out
 
 

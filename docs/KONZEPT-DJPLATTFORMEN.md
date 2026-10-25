@@ -155,7 +155,10 @@ Die Tabelle betrifft Integrationsmöglichkeiten **für Drittentwickler**. Intern
   `/my/account/myaccount/`.
 - `my › downloads`: nur Liste + `encode-status`, `facets`; Filter `purchase_date` (Bereich) bestätigt das Kaufdatum.
   `my › playlists`: `{myplaylists_pk}` (vermutlich Titel), `{id}`, `bulk`, `facets`; `my › charts` gleich aufgebaut.
-- Noch offen: Antwortfelder von `downloads`, Unterpunkte von `{myplaylists_pk}`, Download über `catalog › tracks`.
+- OpenAPI-Beschreibung (`/v4/swagger-ui/json/`, mit Anmeldung, 25.10.2026): 117 Endpunkte, Tags auxiliary, catalog,
+  curation, my. `my/downloads` → `TrackDownloadList` (mit `purchase_date`, ohne ISRC/Katalognr./Label);
+  `my/playlists` → `PlaylistProxy` (id, name, track_count, …), Titel `my/playlists/{id}/tracks/` → `PlaylistTrack`
+  (id, position, track); `my/charts/{id}/tracks/`. **Kein Endpunkt zum Herunterladen gekaufter Dateien.**
 
 #### Amazon Music Web API (geprüft 25.10.2026)
 
