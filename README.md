@@ -38,7 +38,7 @@ Der Kern braucht keine Zusatzpakete, nur Python 3.12 oder neuer – oder gar nic
 - **Herkunft der Tags:** Kennzeichen, welche Anwendung ein Feld geschrieben hat; Felder einer Anwendung filtern
   oder entfernen.
 - **Plugins:** Stems (Gesang, Schlagzeug, Bass … trennen – im Hintergrund, Spuren aufklappbar unter dem Titel) und
-  Beatport (Metadaten mit eigenem Login, Einkäufe abgleichen und fehlende herunterladen), eigene Plugins möglich.
+  Beatport (Metadaten mit eigenem Login, Einkäufe abgleichen und fehlende herunterladen), eigene Plugins möglich; Filter nach Kategorie (Online-API, Shop-API, Cloud-API …).
 - **Einstellungen** an einem Ort – mit Vorgaben für den Start –, exportieren/importieren (z. B. Windows ↔ Mac) und
   zurücksetzen; Updates wahlweise nur offizielle oder auch Beta-Versionen, Versionshinweise direkt in der App.
 - **Sprachen:** Deutsch, Englisch und Zürichdeutsch; eigene Texte exportieren, anpassen und wieder

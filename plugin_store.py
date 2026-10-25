@@ -103,6 +103,7 @@ def build(plugins_dir: str, out_dir: str, app_version: str) -> dict:
         env = isinstance(m.get("env"), dict)
         entries.append({"id": pid, "name": str(m.get("name") or pid), "version": ver,
                         "category": str(m.get("category") or "other"), "description": str(m.get("description") or ""),
+                        "categories": [str(c) for c in (m.get("categories") or []) if isinstance(c, str)][:6],
                         "min_app": str(m.get("min_app") or ".".join(map(str, app_base(app_version) or ()))),
                         "api": m.get("api", 1), "env": env, "requires": bool(m.get("requires")) and not env,
                         "file": fname, "sha256": _sha256(dst), "size": os.path.getsize(dst)})
@@ -126,6 +127,7 @@ def clean_catalog(data) -> list[dict]:
             continue
         out.append({"id": pid, "name": str(e.get("name") or pid)[:80], "version": str(e.get("version") or "")[:20],
                     "category": str(e.get("category") or "other"), "description": str(e.get("description") or "")[:1500],
+                    "categories": [str(c)[:20] for c in (e.get("categories") or []) if isinstance(c, str)][:6],
                     "min_app": str(e.get("min_app") or "")[:20], "env": bool(e.get("env")),
                     "requires": bool(e.get("requires")), "file": fn, "sha256": sha, "size": int(e.get("size") or 0)})
     return out

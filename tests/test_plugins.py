@@ -105,6 +105,12 @@ class TestManager(PluginBase):
         self.assertEqual(info["demo"]["category_label"], "Sonstiges")
         for pid in ("onedrive", "gdrive", "dropbox"):                        # #323: eigene Kategorie Cloud-API
             self.assertEqual((info[pid]["category"], info[pid]["category_label"]), ("cloud", "Cloud-API"))
+        self.assertEqual(info["stems"]["categories"], ["audio"])               # #352: ohne Zusatz nur die Hauptkategorie
+        self.assertEqual((info["beatport"]["categories"], info["beatport"]["category_labels"]),
+                         (["online", "shop"], ["Online-API", "Shop-API"]))           # Beatport zusätzlich Shop-API
+        make_plugin(self.udir, "multi", {"category": "audio", "categories": ["shop", "audio", "gibt_es_nicht"]})
+        info = {p["id"]: p for p in plugins.Manager({}).list()}
+        self.assertEqual(info["multi"]["categories"], ["audio", "shop"])          # Hauptkategorie zuerst, Unbekanntes weg
         acts = m.actions("tagger")
         self.assertIn(("demo", "mark"), [(a["plugin"], a["id"]) for a in acts])
         self.assertNotIn("needs", [a["plugin"] for a in acts])

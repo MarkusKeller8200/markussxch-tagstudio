@@ -595,6 +595,8 @@ body.col-dragging,body.col-dragging *{cursor:col-resize!important;user-select:no
 .pl-hints .pl-stat{color:var(--fg)}
 .plg-tag.cat{background:transparent;border:1px solid var(--line2);color:var(--dim)}
 .plg-tag.cat-online{border-color:color-mix(in srgb,var(--acc) 45%,var(--line));color:var(--acc)}
+.plg-tag.cat-shop{border-color:color-mix(in srgb,var(--warn) 45%,var(--line));color:var(--warn)}
+.pl-ico.cat-shop{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
 .plg-tag.cat-cloud{border-color:color-mix(in srgb,var(--triv-acc) 45%,var(--line));color:var(--triv-acc)}
 .plg-tag.cat-local_api{border-color:color-mix(in srgb,var(--ok) 45%,var(--line));color:var(--ok)}
 .plg-tag.cat-import{border-color:color-mix(in srgb,var(--only) 45%,var(--line));color:var(--only)}

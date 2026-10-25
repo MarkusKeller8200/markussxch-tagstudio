@@ -63,9 +63,12 @@ Plugins/
 - `links` (optional): `[{"label", "url", "desc"}]` – shown under “More …” on the plugin card, e.g. the download
   of an extra app (`https://` only, at most 8).
 - `id`: lower-case letters, digits, `-`, `_`.
-- `category`: badge on the plugin card – `online` (online API), `cloud` (cloud API: storage
+- `category`: badge on the plugin card – `online` (online API), `shop` (shop API: store services such as
+  Beatport), `cloud` (cloud API: storage
   services for the sync), `local_api` (local API), `import` (takeover from
   tags), `audio` (audio processing) or `other` (default).
+- `categories` (optional, #352): additional categories, e.g. `["online", "shop"]` for Beatport – the plugin
+  appears under each of these filters and shows all badges; `category` stays the main category (icon).
 - Page actions with the IDs `test`, `keys` or `login` and `settings` appear as fixed buttons “Test”, “Key”/“Sign in”
   and “Settings”; all others under “More …”. There, every plugin also has “Open log folder” and “Show log live …”
   (#293): `ctx.log(...)` appears in the live window immediately, in `Logs/<id>.log` as before at the end of the run.

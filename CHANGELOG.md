@@ -8,6 +8,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Plugins: neue Kategorie „Shop-API“ (#352):** ein Plugin kann mehreren Kategorien angehören (`plugin.json`
+  `"categories"`); Beatport (Plugin 2.2) steht unter Online-API und Shop-API, Filter und Karte zeigen beide.
 - **Beatport: API-Tester auch schreibend (#350, Plugin 2.1):** POST, PATCH und DELETE im Integrationsfenster testbar –
   nur nach Rückfrage; jeder Aufruf mit Kopfzeilen und Werten im Protokoll, Zugangsdaten geschwärzt.
 - **Tabellen: „⇔ Best Match“ (#347):** verteilt die angezeigten Spalten nach Inhalt auf die Breite; fixe Spalten bleiben.

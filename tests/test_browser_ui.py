@@ -2195,6 +2195,8 @@ class UiTest(unittest.TestCase):
             if pg.locator("#modal").is_visible():
                 pg.click("#mBtns button >> nth=0")
         pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector('[data-navshow="djset"]', state="attached")
+        pg.evaluate("stFoldSet([...document.querySelectorAll('#stGrid > .card[id]')].map((c) => c.id), true)")   # #351: Kacheln sind standardmässig eingeklappt
         pg.uncheck('[data-navshow="djset"]')
         pg.wait_for_function("document.querySelector('.nav[data-module=\"djset\"]').hidden")
 
@@ -2530,6 +2532,13 @@ class UiTest(unittest.TestCase):
         self.assertIn("3", pg.inner_text('#plFilter [data-plcat="cloud"] .n'))
         pg.click('#plFilter [data-plcat="online"]')
         self.assertFalse(set(pg.evaluate("[...document.querySelectorAll('.pl-card')].map((c) => c.dataset.pid)")) & {"onedrive", "gdrive", "dropbox"})
+        # #352: Beatport zusätzlich unter Shop-API
+        self.assertEqual(pg.evaluate("""[...document.querySelectorAll('.pl-card[data-pid="beatport"] .plg-tag.cat')].map((t) => t.textContent)"""),
+                         ["Online-API", "Shop-API"])
+        self.assertIn("beatport", pg.evaluate("[...document.querySelectorAll('.pl-card')].map((c) => c.dataset.pid)"))
+        pg.click('#plFilter [data-plcat="shop"]')
+        self.assertEqual(pg.evaluate("[...document.querySelectorAll('.pl-card')].map((c) => c.dataset.pid)"), ["beatport"])
+        self.assertTrue(pg.locator('#plFilter [data-plcat="shop"] svg').count())
         pg.click('#plFilter [data-plcat=""]')
         order = pg.evaluate("""[...document.querySelector('.pl-card[data-pid="acoustid"]').children].map((e) => e.className.split(' ')[0])""")
         self.assertEqual(order, ["pl-head", "pl-desc", "pl-acts", "pl-svc", "pl-hints", "pl-btns"])
@@ -3579,7 +3588,7 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.inner_text("#purTable tbody tr:first-child td:nth-child(3)"), "Kaltes Glas")   # neuester Kauf zuerst
         self.assertIn("450 doppelt", pg.inner_text("#purTable .pur-diag"))                                # #290: Diagnose
         self.assertIn("mehrere Treffer · 2 Kandidaten", pg.inner_text('#purTable tr[data-k="beatport:4"]'))   # Grund sichtbar
-        pg.click('#purTable tr[data-k="beatport:4"] td:nth-child(3)', button="right")
+        pg.click('#purTable tr[data-k="beatport:4"] td:nth-child(3)', button="right", modifiers=["Shift"])   # #346: Shift → Menü
         pg.click("#menu button >> text=Zuordnen …")
         pg.check('input[name="purLink"][value="1"]')
         pg.click("#mBtns .primary")

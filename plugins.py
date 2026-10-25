@@ -29,7 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 BUILTIN_DIR = os.path.join(HERE, "plugins")
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,40}$")
 # Kategorie je Plugin (plugin.json "category"), als Kennzeichen auf der Plugin-Karte
-CATEGORIES = {"online": "Online-API", "cloud": "Cloud-API", "local_api": "Lokale API", "import": "Übernahme aus Tags",
+CATEGORIES = {"online": "Online-API", "shop": "Shop-API", "cloud": "Cloud-API", "local_api": "Lokale API", "import": "Übernahme aus Tags",
               "audio": "Audio-Verarbeitung", "other": "Sonstiges"}
 OPTION_TYPES = {"select", "check", "text", "number", "folder", "folders", "info", "password", "textarea"}
 SECRET_TYPES = {"password"}   # werden nie gespeichert
@@ -608,6 +608,10 @@ class Plugin:
         d["min_app"] = str(m.get("min_app", ""))
         cat = m.get("category") if m.get("category") in CATEGORIES else ("online" if self.service else "other")
         d["category"], d["category_label"] = cat, CATEGORIES[cat]
+        # #352: weitere Kategorien (plugin.json "categories"), die Hauptkategorie immer zuerst
+        cats = [cat] + [c for c in (m.get("categories") or []) if c in CATEGORIES and c != cat]
+        d["categories"] = list(dict.fromkeys(cats))
+        d["category_labels"] = [CATEGORIES[c] for c in d["categories"]]
         if self.service:                                   # #204: API-Link und Endpunkt-Zahlen
             import services
             d["service"] = services.summary(self.service, self.module if st == "ready" and self.enabled else None)

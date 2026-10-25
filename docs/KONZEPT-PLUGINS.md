@@ -83,9 +83,10 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 
 Über den Karten filtert eine Leiste nach Kategorie (Alle + je Kategorie mit Symbol und Anzahl, im Browser gemerkt).
 Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
-1. Titel, Version, „eingebaut“/„eigenes“; darunter die **Kategorie** (`plugin.json` `"category"`: `online` Online-API,
+1. Titel, Version, „eingebaut“/„eigenes“; darunter die **Kategorie** (`plugin.json` `"category"`: `online` Online-API, `shop` Shop-API (#352),
    `cloud` Cloud-API (OneDrive, Google Drive, Dropbox – #323), `local_api` Lokale API, `import` Übernahme aus Tags, `audio` Audio-Verarbeitung, sonst `other` Sonstiges;
-   ohne Angabe: Online-API bei Dienst-Plugins, sonst Sonstiges); rechts der Status über dem Schalter (Kopf springt nicht).
+   ohne Angabe: Online-API bei Dienst-Plugins, sonst Sonstiges; zusätzliche Kategorien über `"categories"` – Beatport
+   steht unter Online-API und Shop-API, der Filter zeigt ein Plugin in jeder seiner Kategorien); rechts der Status über dem Schalter (Kopf springt nicht).
 2. Beschreibung mit fester Höhe (4 Zeilen); passt sie nicht, klappt „mehr“ sie über der Karte auf – so liegen
    Aktionen, API-Zeile und Hinweise in allen Karten auf derselben Höhe.
 3. Aktionen (erscheinen im Tagger).

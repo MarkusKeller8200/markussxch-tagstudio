@@ -1,9 +1,13 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "2.1",
+  "version": "2.2",
   "min_app": "4.9.1",
   "category": "online",
+  "categories": [
+    "online",
+    "shop"
+  ],
   "source": "Beatport",
   "api": 1,
   "author": "MarKusSXCH TagStudio",

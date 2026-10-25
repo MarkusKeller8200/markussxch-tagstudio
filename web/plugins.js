@@ -3,7 +3,9 @@
 "use strict";
 
 const PL = { list: [], userDir: "", logDir: "", frozen: false, cat: (() => { try { return localStorage.getItem("ts_pl_cat") || ""; } catch (e) { return ""; } })() };
-const PL_CAT_ORDER = ["online", "cloud", "local_api", "import", "audio", "other"];
+const PL_CAT_ORDER = ["online", "shop", "cloud", "local_api", "import", "audio", "other"];
+/** #352: alle Kategorien eines Plugins (Hauptkategorie zuerst) */
+const plCats = (p) => (p.categories && p.categories.length ? p.categories : [p.category || "other"]).map((c) => (PL_CAT_ICON[c] ? c : "other"));
 
 const PL_STATE = {
   ready: ["Bereit", "st-ok"],
@@ -30,6 +32,7 @@ const PL_ICON = {
 // Symbol je Kategorie (gleicher Linienstil wie die übrigen Symbole)
 const PL_CAT_ICON = {
   online: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
+  shop: '<svg class="i" viewBox="0 0 24 24"><path d="M5 7h14l-1.5 10.5a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>',
   cloud: '<svg class="i" viewBox="0 0 24 24"><path d="M7 18h10.5a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.5 9.2 4.5 4.5 0 0 0 7 18Z"/><path d="M12 11v5M9.5 13.5 12 11l2.5 2.5"/></svg>',
   local_api: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6"/></svg>',
   import: '<svg class="i" viewBox="0 0 24 24"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/><path d="M12 3v12M7 10l5 5 5-5"/></svg>',
@@ -64,7 +67,7 @@ function plMore(p) {                                   // Funktionen für „Wei
 function renderPluginFilter() {
   const box = $("#plFilter"); if (!box) return;
   const n = {}, label = {};
-  PL.list.forEach((p) => { const c = p.category || "other"; n[c] = (n[c] || 0) + 1; label[c] = p.category_label || "Sonstiges"; });
+  PL.list.forEach((p) => plCats(p).forEach((c) => { n[c] = (n[c] || 0) + 1; label[c] = PL_CAT_LABEL[c] || "Sonstiges"; }));
   if (PL.cat && !n[PL.cat]) PL.cat = "";
   const cats = PL_CAT_ORDER.filter((c) => n[c]);
   box.innerHTML = `<button class="chip${PL.cat ? "" : " on"}" data-plcat="">Alle <span class="n">${PL.list.length}</span></button>`
@@ -75,7 +78,7 @@ function renderPlugins() {
   const box = $("#plList");
   renderPluginFilter();
   if (!PL.list.length) { box.innerHTML = '<div class="empty">Keine Plugins gefunden.</div>'; return; }
-  const shown = PL.list.filter((p) => !PL.cat || (p.category || "other") === PL.cat);
+  const shown = PL.list.filter((p) => !PL.cat || plCats(p).includes(PL.cat));
   box.innerHTML = shown.map((p) => {
     const [stTxt, stCls] = p.enabled ? PL_STATE[p.state] : ["Ausgeschaltet", "st-same"];
     const on = p.enabled && p.state === "ready";
@@ -124,7 +127,7 @@ function renderPlugins() {
       <div class="pl-head">
         <div class="pl-ico cat-${esc(p.category || "other")}" aria-hidden="true">${PL_CAT_ICON[p.category] || PL_CAT_ICON.other}</div>
         <div class="pl-t"><h3 title="${esc(p.name)}\n${esc(p.path)}"><span class="pl-name">${esc(p.name)}</span><span class="muted sm">${esc(p.version)}</span>${p.builtin ? '<span class="plg-tag">eingebaut</span>' : p.store ? `<span class="plg-tag store" title="Aus Release ${esc(p.store.tag)} nachgeladen">nachgeladen</span>` : '<span class="plg-tag own">eigenes</span>'}</h3>
-          <div class="pl-cat"><span class="plg-tag cat cat-${esc(p.category || "other")}">${esc(p.category_label || "Sonstiges")}</span></div></div>
+          <div class="pl-cat">${plCats(p).map((c) => `<span class="plg-tag cat cat-${esc(c)}">${esc(PL_CAT_LABEL[c] || "Sonstiges")}</span>`).join(" ")}</div></div>
         <div class="pl-sw"><div class="sm ${stCls} pl-st">● ${stTxt}</div>
           <label class="switch" title="${p.enabled ? "Ausschalten" : "Einschalten"}"><input type="checkbox" data-enable ${p.enabled ? "checked" : ""} aria-label="${esc(p.name)} ein/aus"><span></span></label></div>
       </div>
@@ -158,7 +161,7 @@ async function pluginStoreCheck() {
   pluginStoreList();
 }
 
-const PL_CAT_LABEL = { online: "Online-API", cloud: "Cloud-API", local_api: "Lokale API", import: "Übernahme aus Tags", audio: "Audio-Verarbeitung", other: "Sonstiges" };
+const PL_CAT_LABEL = { online: "Online-API", shop: "Shop-API", cloud: "Cloud-API", local_api: "Lokale API", import: "Übernahme aus Tags", audio: "Audio-Verarbeitung", other: "Sonstiges" };
 // #236: Gruppen der Liste „Verfügbare Plugins“
 const PL_ST_GROUPS = [["update", "Updates"], ["new", "Neu – noch nicht installiert"], ["current", "Installiert"], ["too_new", "Nicht verträglich"], ["own", "Eigenes Plugin mit gleicher ID"]];
 
@@ -170,15 +173,14 @@ function plStoreRow(r) {
   const note = r.state === "too_new" ? `Braucht TagStudio ${esc(r.min_app)} oder neuer.`
     : r.state === "own" ? "Im Plugin-Ordner liegt ein eigenes Plugin mit gleicher ID – es wird nicht überschrieben."
     : r.requires && PL.frozen ? "Braucht zusätzliche Python-Pakete – in der installierten App nicht nachinstallierbar." : "";
-  const c = PL_CAT_ICON[r.category] ? r.category : "other";
   return `<div class="pl-more-row st-row" data-strow="${esc(r.id)}"><span class="st-btn">${btn}</span><div><b>${esc(r.name)}</b> <span class="muted sm">${ver}</span>
-    <span class="plg-tag cat cat-${c}">${esc(PL_CAT_LABEL[c])}</span>
+    ${plCats({ category: r.category, categories: [r.category, ...(r.categories || [])] }).filter((x, i, a) => a.indexOf(x) === i).map((c) => `<span class="plg-tag cat cat-${c}">${esc(PL_CAT_LABEL[c])}</span>`).join(" ")}
     <div class="muted sm">${esc(r.description)}</div>${note ? `<div class="hint">${note}</div>` : ""}</div></div>`;
 }
 
 /** Liste nach Gruppen (Updates, Neu, Installiert, …), optional nach Kategorie gefiltert */
 function plStoreListHtml(rows, cat) {
-  const shown = rows.filter((r) => !cat || (PL_CAT_ICON[r.category] ? r.category : "other") === cat);
+  const shown = rows.filter((r) => !cat || plCats({ categories: [r.category, ...(r.categories || [])] }).includes(cat));
   if (!shown.length) return '<div class="empty">Keine Plugins in dieser Kategorie.</div>';
   return PL_ST_GROUPS.map(([g, label]) => {
     const rs = shown.filter((r) => r.state === g).sort((a, b) => a.name.localeCompare(b.name));
@@ -190,7 +192,7 @@ function plStoreListHtml(rows, cat) {
 async function pluginStoreList() {
   const st = PL.store; if (!st) return;
   const n = (s) => st.rows.filter((r) => r.state === s).length;
-  const cats = PL_CAT_ORDER.filter((c) => st.rows.some((r) => (PL_CAT_ICON[r.category] ? r.category : "other") === c));
+  const cats = PL_CAT_ORDER.filter((c) => st.rows.some((r) => plCats({ categories: [r.category, ...(r.categories || [])] }).includes(c)));
   let pick = null, cat = "";
   const chips = () => `<button class="chip${cat ? "" : " on"}" data-stcat="">Alle <span class="n">${st.rows.length}</span></button>`
     + cats.map((c) => `<button class="chip cat-${c}${cat === c ? " on" : ""}" data-stcat="${c}">${PL_CAT_ICON[c]}${esc(PL_CAT_LABEL[c])}</button>`).join("");

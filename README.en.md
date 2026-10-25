@@ -39,7 +39,7 @@ The core needs no extra packages, only Python 3.12 or newer – or nothing at al
   and undo them one by one; protection against overwriting changes made elsewhere.
 - **Origin of the tags:** marks which application wrote a field; filter or remove the fields of one application.
 - **Plugins:** stems (separate vocals, drums, bass … – in the background, stems expandable below the track) and
-  Beatport (metadata with your own login, match purchases and download missing ones); your own plugins are possible.
+  Beatport (metadata with your own login, match purchases and download missing ones); your own plugins are possible; filter by category (online API, shop API, cloud API …).
 - **Settings** in one place – with defaults for the start –, export/import (e.g. Windows ↔ Mac) and reset; updates
   either official versions only or beta versions too, release notes right in the app.
 - **Languages:** German, English and Zurich German; your own texts can be exported, edited and
