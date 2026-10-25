@@ -192,6 +192,26 @@ class TestOpenLog(TempHome):
         self.assertEqual(len(opened), 2)
 
 
+class TestRestartCommand(TempHome):
+    def test_paths_only_when_compare_was_open(self):
+        """#325: Neustart übergibt die Vergleichsordner nur, wenn zuletzt der Vergleich offen war – sonst startet die
+        App auf der zuletzt benutzten Seite (Tagger einlesen, Player fortsetzen) statt immer im Vergleich."""
+        import tagstudio_web
+        api = tagstudio_web.Api(argv=["--profil=Test", "/x/links", "--no-open"])
+        api._s.left_root, api._s.right_root = "/x/links", "/x/rechts"
+        api._s.set_ui("module", "tagger")
+        cmd, env = api._restart_cmd()
+        self.assertNotIn("/x/links", cmd)
+        self.assertIn("--profil=Test", cmd)
+        self.assertNotIn("--no-open", cmd)
+        self.assertEqual((env["TAGSTUDIO_RESTART"], env["TAGSTUDIO_NOASK"]), ("1", "1"))
+        api._s.set_ui("module", "compare")
+        cmd, _ = api._restart_cmd()
+        self.assertEqual(cmd[-2:], ["/x/links", "/x/rechts"])
+        api._s.right_root = ""
+        self.assertEqual(api._restart_cmd()[0][-1], "/x/links")
+
+
 class TestExpert(TempHome):
     def test_applog_and_expert(self):
         """#133: App-Protokoll mit Rotation, Einstellungsdatei maskiert, Protokolle lesen."""

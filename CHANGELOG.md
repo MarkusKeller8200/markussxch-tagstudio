@@ -44,6 +44,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   „Alle Dateien“ …), die Titel der Dialoge im Browser-Modus und die Fenstertitel von Player und Protokollen folgen
   der gewählten Sprache (Englisch, Zürichdeutsch) – auch direkt nach einem Sprachwechsel.
 
+### Behoben
+
+- **Neustart öffnete immer den Vergleich (#325):** nach „Neu starten“ oder einem Update startete die App im Vergleich
+  und las ihn neu ein, ohne den Tagger zu laden – und blieb bei jedem weiteren Neustart dort. Jetzt öffnet sie die
+  zuletzt benutzte Seite, liest den Tagger im Hintergrund ein und setzt den Player an derselben Stelle fort (gemäss
+  Einstellung „Nach dem Neustart“); die Vergleichsordner kommen nur mit, wenn zuletzt der Vergleich offen war.
+
 ## [4.10.0] – 2026-10-25
 
 ### Neu

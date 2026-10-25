@@ -819,19 +819,27 @@ class Api:
         """#193: Kennung dieser Instanz – der Browser lädt nach einem Neustart erst neu, wenn die NEUE Instanz antwortet."""
         return f"{os.getpid()}-{_STARTED:.3f}"
 
-    def restart(self):
-        """Programm mit dem neuen Stand neu starten (gleiche Pfade, im Browser-Modus gleiche Adresse)."""
+    def _restart_cmd(self):
+        """Befehl und Umgebung für den Neustart. #325: die Vergleichsordner nur mitgeben, wenn zuletzt der Vergleich
+        offen war – Startpfade öffnen immer den Vergleich und überspringen Tagger und Fortsetzen; sonst startet die
+        App normal auf der zuletzt benutzten Seite und setzt den Player fort."""
         l, r = self._s.left_root, self._s.right_root
-        args = [a for a in self._argv if a.startswith("--") and a not in ("--port", "--no-open")]
+        skip = ("--port", "--no-open") + (("--browser",) if self._server is not None else ())   # kommen unten dazu
+        args = list(dict.fromkeys(a for a in self._argv if a.startswith("--") and a not in skip))
         cmd = [sys.executable, *args] if getattr(sys, "frozen", False) \
             else [sys.executable, os.path.join(HERE, "tagstudio_web.py"), *args]
-        if l or r:
+        if (l or r) and (self._s.ui or {}).get("module") == "compare":
             cmd += [l, r] if r else [l]
         env = dict(os.environ, TAGSTUDIO_RESTART="1", TAGSTUDIO_NOASK="1")   # wartet auf diese Instanz; keine Profilwahl
         if self._server is not None:
             srv, token = self._server
             cmd += ["--browser", "--no-open", "--port", str(srv.server_address[1])]
             env["TAGSTUDIO_TOKEN"] = token
+        return cmd, env
+
+    def restart(self):
+        """Programm mit dem neuen Stand neu starten (im Browser-Modus gleiche Adresse)."""
+        cmd, env = self._restart_cmd()
 
         applog.info("Neustart")
         self._restarting = True                # Schliessen-Ereignis nicht mehr behandeln (keine Rückfragen, kein JS)

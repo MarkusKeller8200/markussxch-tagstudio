@@ -439,6 +439,68 @@ class UiTest(unittest.TestCase):
         time.sleep(1)
         self.assertFalse(pg.evaluate("!!PLAYER.info"))
 
+    def app_restart(self):
+        """Echter Neustart über die App (Api.restart): der neue Server übernimmt die Adresse, die Seite lädt neu."""
+        pg = self.pg
+        before = pg.evaluate("window.__alt = true; callNow('instance_id')")
+        pg.evaluate("appRestartNow('Neustart', 'Test'); 0")         # nicht warten – die Seite lädt dabei neu
+        if self.server.poll() is None:
+            self.server.wait(15)                               # alte Instanz beendet sich selbst
+        pid, last = None, ""
+        for _ in range(100):
+            time.sleep(0.3)
+            try:
+                pg.wait_for_function("!window.__alt && typeof S !== 'undefined' && S.settings", timeout=1000)   # neu geladen
+                cur = pg.evaluate("callNow('instance_id')")
+            except Exception as ex:  # noqa: BLE001 – Seite lädt gerade neu
+                last = str(ex)[:200]
+                continue
+            if cur and cur != before:
+                pid = int(cur.split("-")[0])
+                break
+        self.assertIsNotNone(pid, f"neue Instanz antwortet nicht: {last}")
+        self.addCleanup(lambda: subprocess.run(["kill", str(pid)], stderr=subprocess.DEVNULL, check=False))
+        return pg
+
+    def test_restart_keeps_last_page(self):
+        """#325: Neustart (z. B. nach einem Update) öffnet die zuletzt benutzte Seite und setzt den Player in Pause an
+        derselben Stelle fort – nicht mehr immer den Vergleich mit laufendem Player."""
+        pg = self.pg
+        other = os.path.join(self.dir, "lib2")
+        shutil.copytree(self.lib, other)
+        pg.click('.nav[data-module="compare"]')                 # Vergleich benutzt: Ordner sind gesetzt
+        pg.fill("#pathL", self.lib)
+        pg.fill("#pathR", other)
+        pg.click("#compareBtn")
+        pg.wait_for_selector("#cmp:not([hidden])")
+        self.load_tagger()
+        pg.dblclick('.tg-row[data-i="1"] .nm')
+        self.assertTrue(self.until("PLAYER.ref === 1 && !PLAYER.audio.paused"))
+        pg.evaluate("PLAYER.audio.currentTime = 10; PLAYER.audio.pause()")
+        pg.evaluate("plResumeSave(true)")
+        self.cfg_until(lambda c: (c.get("player_resume", {}).get("A") or {}).get("pos", 0) >= 9)
+        pg = self.app_restart()
+        ok = self.until("S.module === 'tagger' && TG.loaded && PLAYER.ref === 1 && PLAYER.kind === 'tag' && RESUME.done", 20)
+        self.assertTrue(ok, pg.evaluate("JSON.stringify({mod: S.module, start: S.settings.start_paths, loaded: TG.loaded, ref: PLAYER.ref, kind: PLAYER.kind})"))
+        self.assertEqual(pg.evaluate("S.settings.start_paths"), [])
+        self.assertTrue(pg.evaluate("PLAYER.audio.paused && Math.abs(PLAYER.audio.currentTime - 10) < 1"))
+        # zuletzt im Vergleich (eingelesen) → Neustart öffnet ihn wieder mit denselben Ordnern
+        pg.click('.nav[data-module="compare"]')
+        pg.fill("#pathL", self.lib)
+        pg.fill("#pathR", other)
+        pg.click("#compareBtn")
+        pg.wait_for_selector("#cmp:not([hidden])")
+        # (self.server bleibt das erste Popen: dessen Ausgabe-Pipe erben die neuen Instanzen)
+        pg = self.app_restart()
+        self.assertTrue(self.until("S.module === 'compare'", 15))
+        self.assertEqual(pg.evaluate("S.settings.start_paths"), [self.lib, other])
+        # und wieder in den Tagger → nächster Neustart startet dort
+        pg.click('.nav[data-module="tagger"]')
+        time.sleep(0.4)
+        pg = self.app_restart()
+        self.assertTrue(self.until("S.module === 'tagger' && TG.loaded", 20))
+        self.assertEqual(pg.evaluate("S.settings.start_paths"), [])
+
     def test_resume_selects_row_and_doubleclick(self):
         """#195: nach dem Neustart steht der Tagger auf dem fortgesetzten Titel; #196: Doppelklick spielt danach."""
         pg = self.pg
