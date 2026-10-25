@@ -63,7 +63,8 @@ Plugins/
 - `links` (optional): `[{"label", "url", "desc"}]` – erscheinen unter „Mehr …“ auf der Plugin-Karte, z. B. Download
   einer Zusatz-App (nur `https://`, höchstens 8).
 - `id`: Kleinbuchstaben, Ziffern, `-`, `_`.
-- `category`: Kennzeichen auf der Plugin-Karte – `online` (Online-API), `local_api` (Lokale API), `import`
+- `category`: Kennzeichen auf der Plugin-Karte – `online` (Online-API), `cloud` (Cloud-API: Speicherdienste
+  für den Abgleich), `local_api` (Lokale API), `import`
   (Übernahme aus Tags), `audio` (Audio-Verarbeitung) oder `other` (Sonstiges, Standard).
 - Seiten-Aktionen mit den IDs `test`, `keys` bzw. `login` und `settings` erscheinen als feste Knöpfe „Testen“,
   „Schlüssel“/„Anmelden“ und „Optionen“; alle übrigen unter „Mehr …“. Dort stehen bei jedem Plugin zusätzlich

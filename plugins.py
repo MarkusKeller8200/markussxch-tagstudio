@@ -29,7 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 BUILTIN_DIR = os.path.join(HERE, "plugins")
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,40}$")
 # Kategorie je Plugin (plugin.json "category"), als Kennzeichen auf der Plugin-Karte
-CATEGORIES = {"online": "Online-API", "local_api": "Lokale API", "import": "Übernahme aus Tags",
+CATEGORIES = {"online": "Online-API", "cloud": "Cloud-API", "local_api": "Lokale API", "import": "Übernahme aus Tags",
               "audio": "Audio-Verarbeitung", "other": "Sonstiges"}
 OPTION_TYPES = {"select", "check", "text", "number", "folder", "folders", "info", "password", "textarea"}
 SECRET_TYPES = {"password"}   # werden nie gespeichert

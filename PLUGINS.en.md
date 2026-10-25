@@ -63,7 +63,8 @@ Plugins/
 - `links` (optional): `[{"label", "url", "desc"}]` – shown under “More …” on the plugin card, e.g. the download
   of an extra app (`https://` only, at most 8).
 - `id`: lower-case letters, digits, `-`, `_`.
-- `category`: badge on the plugin card – `online` (online API), `local_api` (local API), `import` (takeover from
+- `category`: badge on the plugin card – `online` (online API), `cloud` (cloud API: storage
+  services for the sync), `local_api` (local API), `import` (takeover from
   tags), `audio` (audio processing) or `other` (default).
 - Page actions with the IDs `test`, `keys` or `login` and `settings` appear as fixed buttons “Test”, “Key”/“Sign in”
   and “Settings”; all others under “More …”. There, every plugin also has “Open log folder” and “Show log live …”

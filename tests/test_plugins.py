@@ -103,6 +103,8 @@ class TestManager(PluginBase):
         self.assertEqual(info["stems"]["category"], "audio")                    # Kategorie aus plugin.json
         self.assertEqual(info["demo"]["category"], "other")                     # ohne Angabe: Sonstiges
         self.assertEqual(info["demo"]["category_label"], "Sonstiges")
+        for pid in ("onedrive", "gdrive", "dropbox"):                        # #323: eigene Kategorie Cloud-API
+            self.assertEqual((info[pid]["category"], info[pid]["category_label"]), ("cloud", "Cloud-API"))
         acts = m.actions("tagger")
         self.assertIn(("demo", "mark"), [(a["plugin"], a["id"]) for a in acts])
         self.assertNotIn("needs", [a["plugin"] for a in acts])

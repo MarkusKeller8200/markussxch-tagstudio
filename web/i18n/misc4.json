@@ -206,6 +206,7 @@
 "{x} – weitere Funktionen": ["{x} – more functions", "{x} – wiiteri Funktione"],
 "Online-API": ["Online API", "Online-API"],
 "Lokale API": ["Local API", "Lokali API"],
+"Cloud-API": ["Cloud API", "Cloud-API"],
 "Übernahme aus Tags": ["Takeover from tags", "Übernahm us Tags"],
 "Audio-Verarbeitung": ["Audio processing", "Audio-Verarbeitig"],
 "Installieren …": ["Install …", "Installiere …"],

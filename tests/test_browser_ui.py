@@ -2224,6 +2224,16 @@ class UiTest(unittest.TestCase):
         self.assertEqual(cat("lexicon"), "Lokale API")
         self.assertEqual(cat("mik"), "Übernahme aus Tags")
         self.assertEqual(cat("loudness"), "Audio-Verarbeitung")
+        # #323: Cloud-Plugins als eigene Kategorie mit Filter
+        self.assertEqual([cat(p) for p in ("onedrive", "gdrive", "dropbox")], ["Cloud-API"] * 3)
+        self.assertTrue(pg.locator('.pl-card[data-pid="onedrive"] .pl-ico.cat-cloud svg').count())
+        pg.click('#plFilter [data-plcat="cloud"]')
+        self.assertEqual(sorted(pg.evaluate("[...document.querySelectorAll('.pl-card')].map((c) => c.dataset.pid)")),
+                         ["dropbox", "gdrive", "onedrive"])
+        self.assertIn("3", pg.inner_text('#plFilter [data-plcat="cloud"] .n'))
+        pg.click('#plFilter [data-plcat="online"]')
+        self.assertFalse(set(pg.evaluate("[...document.querySelectorAll('.pl-card')].map((c) => c.dataset.pid)")) & {"onedrive", "gdrive", "dropbox"})
+        pg.click('#plFilter [data-plcat=""]')
         order = pg.evaluate("""[...document.querySelector('.pl-card[data-pid="acoustid"]').children].map((e) => e.className.split(' ')[0])""")
         self.assertEqual(order, ["pl-head", "pl-desc", "pl-acts", "pl-svc", "pl-hints", "pl-btns"])
         btns = lambda pid: pg.evaluate(f"""[...document.querySelectorAll('.pl-card[data-pid="{pid}"] .pl-btns button')].map((b) => [b.textContent.trim(), b.disabled])""")

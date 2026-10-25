@@ -37,6 +37,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Verbessert
 
+- **Plugin-Kategorie „Cloud-API“ (#323):** OneDrive, Google Drive und Dropbox (je 1.1) stehen auf der Seite Plugins
+  und im Katalog unter einer eigenen Kategorie mit Wolken-Symbol statt unter „Online-API“.
 - **Werkzeugleiste im Vergleich (#107):** gruppiert wie in der klassischen Oberfläche – Anzeige, Kopieren, Bearbeiten,
   Verlauf (neu: ↶/↷ direkt im Vergleich) –, je Gruppe farbige Symbole, Trenner und Tooltips; „Aa“ schaltet auf
   „nur Symbole“ um (wird gemerkt).

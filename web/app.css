@@ -504,6 +504,7 @@ span.xml-treeonly{display:contents}
 .pl-hints .pl-stat{color:var(--fg)}
 .plg-tag.cat{background:transparent;border:1px solid var(--line2);color:var(--dim)}
 .plg-tag.cat-online{border-color:color-mix(in srgb,var(--acc) 45%,var(--line));color:var(--acc)}
+.plg-tag.cat-cloud{border-color:color-mix(in srgb,var(--triv-acc) 45%,var(--line));color:var(--triv-acc)}
 .plg-tag.cat-local_api{border-color:color-mix(in srgb,var(--ok) 45%,var(--line));color:var(--ok)}
 .plg-tag.cat-import{border-color:color-mix(in srgb,var(--only) 45%,var(--line));color:var(--only)}
 .plg-tag.cat-audio{border-color:color-mix(in srgb,var(--diff) 45%,var(--line));color:var(--diff)}
@@ -525,6 +526,7 @@ span.xml-treeonly{display:contents}
 .pl-ico{width:44px;height:44px;border-radius:11px;background:var(--acc-soft);color:var(--acc);display:flex;align-items:center;justify-content:center;flex:none}
 .pl-card .pl-ico{align-self:stretch;height:auto;min-height:44px;width:auto;aspect-ratio:1}
 .pl-ico .i{width:24px;height:24px}
+.pl-ico.cat-cloud{background:color-mix(in srgb,var(--triv-acc) 14%,transparent);color:var(--triv-acc)}
 .pl-ico.cat-local_api{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
 .pl-ico.cat-import{background:color-mix(in srgb,var(--only) 14%,transparent);color:var(--only)}
 .pl-ico.cat-audio{background:color-mix(in srgb,var(--diff) 14%,transparent);color:var(--diff)}

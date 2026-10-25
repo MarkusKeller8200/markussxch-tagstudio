@@ -3,7 +3,7 @@
 "use strict";
 
 const PL = { list: [], userDir: "", logDir: "", frozen: false, cat: (() => { try { return localStorage.getItem("ts_pl_cat") || ""; } catch (e) { return ""; } })() };
-const PL_CAT_ORDER = ["online", "local_api", "import", "audio", "other"];
+const PL_CAT_ORDER = ["online", "cloud", "local_api", "import", "audio", "other"];
 
 const PL_STATE = {
   ready: ["Bereit", "st-ok"],
@@ -30,6 +30,7 @@ const PL_ICON = {
 // Symbol je Kategorie (gleicher Linienstil wie die übrigen Symbole)
 const PL_CAT_ICON = {
   online: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
+  cloud: '<svg class="i" viewBox="0 0 24 24"><path d="M7 18h10.5a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.5 9.2 4.5 4.5 0 0 0 7 18Z"/><path d="M12 11v5M9.5 13.5 12 11l2.5 2.5"/></svg>',
   local_api: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6"/></svg>',
   import: '<svg class="i" viewBox="0 0 24 24"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/><path d="M12 3v12M7 10l5 5 5-5"/></svg>',
   audio: '<svg class="i" viewBox="0 0 24 24"><path d="M3 12h2M7 8v8M11 4v16M15 7v10M19 10v4M21 12h0"/></svg>',
@@ -157,7 +158,7 @@ async function pluginStoreCheck() {
   pluginStoreList();
 }
 
-const PL_CAT_LABEL = { online: "Online-API", local_api: "Lokale API", import: "Übernahme aus Tags", audio: "Audio-Verarbeitung", other: "Sonstiges" };
+const PL_CAT_LABEL = { online: "Online-API", cloud: "Cloud-API", local_api: "Lokale API", import: "Übernahme aus Tags", audio: "Audio-Verarbeitung", other: "Sonstiges" };
 // #236: Gruppen der Liste „Verfügbare Plugins“
 const PL_ST_GROUPS = [["update", "Updates"], ["new", "Neu – noch nicht installiert"], ["current", "Installiert"], ["too_new", "Nicht verträglich"], ["own", "Eigenes Plugin mit gleicher ID"]];
 
