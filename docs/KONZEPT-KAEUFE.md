@@ -40,6 +40,11 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
 - **Plugin-Rahmen**: `store_purchases(ctx)` → `{"name", "items": [{id, title, mix, artist, dur, key, bpm, catalog,
   isrc, label, release, genre, url, bought, preorder, dl}]}` und `store_download(ctx, items, dest)` →
   `{"files": {id: [Pfade]}, "failed": [Text]}`; optional `ready(ctx)`. `Manager.store_sources()`.
+- **Offizielle Doku (User 25.10.2026):** Käufe = `GET /v4/my/downloads/` (kein `/my/library/`), Filter u. a.
+  `purchase_date` (Bereich `JJJJ-MM-TT:`), `received_status`, `isrc`, `catalog_number`; Unterpunkte nur `encode-status`
+  und `facets`. TagStudio holt deshalb nach dem ersten Mal nur Käufe ab dem letzten Kaufdatum minus 3 Tage
+  (`store_purchases(ctx, since)`), alle 30 Tage oder mit „Alle neu holen“ die ganze Liste (`stores[…].full_at`).
+  Für den Download gibt es unter `my/downloads` keinen Unterpunkt – zu prüfen: `catalog › tracks › {id} › download`.
 - **Beatport-Plugin 1.2**: nutzt die bestehende inoffizielle Abfrage der Käufe (`/my/downloads/` u. a., #117) und den
   Download (`resolve_download`, `fetch_file`, merkt geladene in `geladen.json`). Kaufdatum aus bekannten Feldnamen
   (`purchase_date`, `order_date`, `created` …, auch aus der Bestellung um den Titel); fehlt es, stehen die Feldnamen im

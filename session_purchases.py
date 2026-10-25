@@ -15,6 +15,8 @@ import playlists
 import purchases
 
 NEW_DIR = "00_New"
+FULL_EVERY = 30 * 86400             # ganze Kaufliste spätestens nach 30 Tagen wieder einmal holen
+OVERLAP_DAYS = 3                    # neue Käufe ab dem letzten Kaufdatum minus 3 Tage
 
 
 class PurchasesMixin:
@@ -78,8 +80,23 @@ class PurchasesMixin:
             roots = roots + [dest]
         return playlists.LibIndex(self._pl_lib_index(cancel, progress, roots)), dest
 
-    def start_purch_refresh(self, stores=None):
-        """Käufe der Stores holen (None = alle bereiten), zusammenführen, mit der Bibliothek abgleichen."""
+    def _purch_since(self, store, full=False) -> str:
+        """Ab welchem Tag holen? "" = alles (erstes Mal, Wunsch oder letzte volle Abfrage älter als FULL_EVERY)."""
+        import datetime
+        import time
+        st = self._purch()
+        meta = st.data["stores"].get(store) or {}
+        if full or time.time() - int(meta.get("full_at") or 0) > FULL_EVERY:
+            return ""
+        dates = [it.get("bought", "")[:10] for it in st.data["items"].values() if it.get("store") == store and it.get("bought")]
+        if not dates:
+            return ""
+        d = datetime.date.fromisoformat(max(dates)) - datetime.timedelta(days=OVERLAP_DAYS)
+        return d.isoformat()
+
+    def start_purch_refresh(self, stores=None, full=False):
+        """Käufe der Stores holen (None = alle bereiten), zusammenführen, mit der Bibliothek abgleichen. Nach dem
+        ersten Mal nur neue Käufe (Filter Kaufdatum), alle FULL_EVERY Tage bzw. mit full=True die ganze Liste."""
         src = [s for s in self.plugins.store_sources() if stores is None or s["id"] in stores]
         if not src:
             return {"ok": False, "error": "Kein Store eingerichtet – zuerst im Plugin „Beatport“ anmelden."}
@@ -91,8 +108,10 @@ class PurchasesMixin:
                     errors.append(f"{s['name']}: {s['why']}")
                     continue
                 progress(("text", f"{s['name']}: gekaufte Titel lesen …"))
+                with self.lock:
+                    since = self._purch_since(s["id"], bool(full))
                 try:
-                    r = self.plugins.call_playlist(s["id"], "store_purchases", session=self, cancel=cancel,
+                    r = self.plugins.call_playlist(s["id"], "store_purchases", since, session=self, cancel=cancel,
                                                    progress=progress) or {}
                 except core.Cancelled:
                     raise
@@ -100,7 +119,8 @@ class PurchasesMixin:
                     errors.append(f"{s['name']}: {ex}")
                     continue
                 with self.lock:
-                    m = self._purch().merge(s["id"], r.get("name") or s["name"], r.get("items") or [])
+                    m = self._purch().merge(s["id"], r.get("name") or s["name"], r.get("items") or [],
+                                            full=not r.get("since"))
                 new += m["new"]
             progress(("text", "Mit der Bibliothek abgleichen …"))
             index, dest = self._purch_index(cancel, progress)

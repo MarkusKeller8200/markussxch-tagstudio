@@ -102,7 +102,7 @@ class Store:
     def items(self) -> list[dict]:
         return list(self.data["items"].values())
 
-    def merge(self, store: str, name: str, items) -> dict:
+    def merge(self, store: str, name: str, items, full: bool = True) -> dict:
         """Käufe eines Stores zuführen → {"new", "total"}. Bekannte behalten first_seen, status, file, downloaded."""
         now = int(time.time())
         all_ = self.data["items"]
@@ -125,7 +125,11 @@ class Store:
                     it["bought"] = old["bought"]
             all_[k] = it
         n = sum(1 for v in all_.values() if v.get("store") == store)
-        self.data["stores"][store] = {"name": str(name), "refreshed": now, "count": n}
+        meta = dict(self.data["stores"].get(store) or {})
+        meta.update(name=str(name), refreshed=now, count=n)
+        if full:
+            meta["full_at"] = now                              # ganze Liste geholt (sonst nur neue Käufe)
+        self.data["stores"][store] = meta
         self.save()
         return {"new": new, "total": n}
 

@@ -949,16 +949,16 @@ def run(action, ctx, files, opts):
 
 
 # =========================================================================== #117 Käufe abgleichen
-PURCHASE_PATHS = ["/my/downloads/", "/my/library/tracks/", "/my/library/"]
+PURCHASE_PATHS = ["/my/downloads/"]          # offizielle Doku: /v4/my/downloads/ (kein /my/library/, #285)
 
 
-def purchases(client, limit=2000, log=None):
+def purchases(client, limit=2000, log=None, **filters):
     """Gekaufte Titel des Kontos (Machbarkeit: mehrere bekannte Pfade der inoffiziellen API v4 probieren)."""
     for path in PURCHASE_PATHS:
         out, page = [], 1
         try:
             while len(out) < limit:
-                res = client.get(path, page=page, per_page=100)
+                res = client.get(path, page=page, per_page=100, **filters)
                 if res is None:
                     break
                 items = res if isinstance(res, list) else (res.get("results") or res.get("tracks") or []) \
@@ -1322,14 +1322,18 @@ def store_item(t) -> dict:
                    if t.get(k) is not None}}
 
 
-def store_purchases(ctx) -> dict:
-    """Alle Käufe des Kontos für die Seite „Käufe“ → {"name", "items"} (inoffiziell, wie #117)."""
+def store_purchases(ctx, since="") -> dict:
+    """Käufe des Kontos für die Seite „Käufe“ → {"name", "items", "since"}. since="JJJJ-MM-TT": nur Käufe ab diesem
+    Tag (Filter purchase_date laut offizieller Doku von /v4/my/downloads/), sonst alle."""
     ok, why = ready(ctx)
     if not ok:
         raise ValueError(f"Beatport: {why}.")
     c = Client(ctx)
     ctx.status("Beatport: gekaufte Titel lesen …")
-    path, items = purchases(c, 20000, ctx.log)
+    since = since if re.match(r"^\d{4}-\d{2}-\d{2}$", str(since or "")) else ""
+    path, items = purchases(c, 20000, ctx.log, **({"purchase_date": since + ":"} if since else {}))
+    if not path and since:
+        return {"name": "Beatport", "items": [], "since": since}           # seit dem letzten Mal nichts Neues
     if not path:
         raise ValueError("Beatport hat keine gekauften Titel geliefert – Details im Protokoll (Plugins › Beatport).")
     ctx.log(f"{len(items)} Käufe über {path}")
@@ -1340,7 +1344,7 @@ def store_purchases(ctx) -> dict:
         discover.mark_bought(items)
     except Exception as ex:  # noqa: BLE001
         ctx.log(f"Entdecken: {ex}")
-    return {"name": "Beatport", "items": [store_item(t) for t in items]}
+    return {"name": "Beatport", "items": [store_item(t) for t in items], "since": since}
 
 
 def store_download(ctx, items, dest) -> dict:

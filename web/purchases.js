@@ -91,8 +91,8 @@ function purRenderTable() {
     }).join("")}</tbody></table>${rows.length ? "" : '<div class="tg-empty">Keine Käufe für diesen Filter.</div>'}`;
 }
 
-async function purRefresh(match = false) {
-  const r = await runTask(call(match ? "start_purch_match" : "start_purch_refresh", null), match ? "Käufe abgleichen" : "Käufe aktualisieren");
+async function purRefresh(match = false, full = false) {
+  const r = await runTask(match ? call("start_purch_match") : call("start_purch_refresh", null, full), match ? "Käufe abgleichen" : "Käufe aktualisieren");
   if (!r || r.cancelled) return;
   await purchasesShow();
   const c = r.count || {};
@@ -137,6 +137,7 @@ function purRowMenu(e, k) {
 function purInit() {
   $("#purRefresh").addEventListener("click", () => purRefresh(false));
   $("#purMatch").addEventListener("click", () => purRefresh(true));
+  $("#purFull").addEventListener("click", () => purRefresh(false, true));
   $("#purDl").addEventListener("click", purDownload);
   $("#purDestBtn").addEventListener("click", purPickDest);
   let qt = 0;

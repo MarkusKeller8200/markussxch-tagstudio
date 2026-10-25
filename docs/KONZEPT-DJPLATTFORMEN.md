@@ -153,7 +153,9 @@ Die Tabelle betrifft Integrationsmöglichkeiten **für Drittentwickler**. Intern
   `charts`, `downloads` (Käufe), `email-preferences`, `genres`, `playlists`, `streaming-quality`. Kein `library` – die
   Rückfall-Pfade `/my/library/…` der Käufe entfallen nach Prüfung von `downloads`. Konto jetzt zuerst über
   `/my/account/myaccount/`.
-- Noch offen: Unterpunkte und Felder von `downloads` (Kaufdatum) und `playlists`.
+- `my › downloads`: nur Liste + `encode-status`, `facets`; Filter `purchase_date` (Bereich) bestätigt das Kaufdatum.
+  `my › playlists`: `{myplaylists_pk}` (vermutlich Titel), `{id}`, `bulk`, `facets`; `my › charts` gleich aufgebaut.
+- Noch offen: Antwortfelder von `downloads`, Unterpunkte von `{myplaylists_pk}`, Download über `catalog › tracks`.
 
 #### Amazon Music Web API (geprüft 25.10.2026)
 

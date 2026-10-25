@@ -279,6 +279,13 @@ class TestBeatport(Base):
         self.s.start_purch_refresh()                                                            # erneut: nichts neu
         res = self.wait()["result"]
         self.assertEqual((res["new"], res["count"]["inbox"]), (0, 1))
+        dl = [c[2] for c in self.fake.calls if c[1] == "/v4/my/downloads/"]
+        self.assertNotIn("purchase_date", dl[0])                                                # erstes Mal: alles
+        self.assertEqual(dl[-1].get("purchase_date"), "2026-10-17:")                            # dann nur neue (−3 Tage)
+        self.assertNotIn("/v4/my/library/", [c[1] for c in self.fake.calls])
+        self.s.start_purch_refresh(None, True)                                                  # „Alle neu holen“
+        self.wait()
+        self.assertNotIn("purchase_date", [c[2] for c in self.fake.calls if c[1] == "/v4/my/downloads/"][-1])
 
     def test_own_api_access(self):
         """Offizieller Zugang mit eigener Beatport-App: Password Grant, Refresh per Formular, Abmelden zieht zurück."""
