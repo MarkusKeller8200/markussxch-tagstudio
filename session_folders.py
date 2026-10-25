@@ -215,6 +215,242 @@ class FolderRolesMixin:
                                      (os.path.basename(os.path.normpath(path)) or "Bibliothek"), "custom", path)
         self._folders_save(folders.lib_update(m, lib["id"], main=True))
 
+    # ------------------------------------------------------------------ Ordner ändern mit Inhalt (#313)
+    LIB_WARNING = ("Engine DJ, Lexicon, Rekordbox, Serato und VirtualDJ merken sich die Pfade der Titel. Nach dem "
+                   "Verschieben dort „Fehlende Dateien suchen“ bzw. „Relocate“ verwenden – TagStudio ändert keine "
+                   "fremden Datenbanken.")
+
+    def _change_plan(self, kind, oid, setting) -> tuple[dict, list[dict]]:
+        """Neues Modell und betroffene Ordner (alt → neu) für Rolle, Bibliothek oder Basisordner."""
+        cur = self._folders()
+        st = setting if isinstance(setting, dict) else {}
+        items = []
+        if kind == "role":
+            new = folders.set_role(cur, str(oid), str(st.get("mode") or ""), st.get("value") or "")
+            spec = folders._spec(str(oid))
+            items.append({"key": "role:" + oid, "role": oid, "label": spec["label"],
+                          "old": folders.resolve_role(cur, oid), "new": folders.resolve_role(new, oid)})
+        elif kind == "lib":
+            new = folders.lib_update(cur, str(oid), name=st.get("name"), mode=st.get("mode"), value=st.get("value"))
+            a = next(x for x in cur["libraries"] if x["id"] == oid)
+            b = next(x for x in new["libraries"] if x["id"] == oid)
+            items.append({"key": "lib:" + oid, "role": "library", "label": f"Bibliothek {b['name']}",
+                          "old": folders.resolve_lib(cur, a), "new": folders.resolve_lib(new, b)})
+        elif kind == "base":
+            new = folders.set_base(cur, st.get("value") or "")
+            for r in folders.ROLES:
+                if cur["roles"][r["id"]]["mode"] == "base":
+                    items.append({"key": "role:" + r["id"], "role": r["id"], "label": r["label"],
+                                  "old": folders.resolve_role(cur, r["id"]), "new": folders.resolve_role(new, r["id"])})
+            for a in cur["libraries"]:
+                if a["mode"] == "base":
+                    b = next((x for x in new["libraries"] if x["id"] == a["id"]), a)
+                    items.append({"key": "lib:" + a["id"], "role": "library", "label": f"Bibliothek {a['name']}",
+                                  "old": folders.resolve_lib(cur, a), "new": folders.resolve_lib(new, b)})
+        else:
+            raise ValueError("role, lib oder base erwartet")
+        items = [x for x in items if x["old"] and x["new"] and not folders.same_dir(x["old"], x["new"])]
+        return new, items
+
+    def folders_change_preview(self, kind, oid=None, setting=None) -> dict:
+        """Vorschau für „Ändern …“: je betroffenem Ordner Inhalt, Grösse, freier Platz, Konflikte, Standard-Wahl
+        (Bibliothek: nicht übernehmen, O4; sonst verschieben)."""
+        import foldermove
+        _new, items = self._change_plan(kind, oid, setting)
+        out = []
+        for x in items:
+            p = foldermove.plan(x["old"], x["new"])
+            if x["role"] == "snapshots" and p["files"] and os.path.isdir(x["new"]) and os.listdir(x["new"]):
+                p["error"] = "Snapshots ziehen nur in einen leeren Ordner um (der Speicher wird als Ganzes verschoben)."
+            lib = x["role"] == "library"
+            out.append({**x, "files": p["files"], "bytes": p["bytes"], "free": p["free"], "same_volume": p["same_volume"],
+                        "conflicts": len(p["conflicts"]), "conflict_examples": p["conflicts"][:10], "error": p["error"],
+                        "default": "none" if lib or not p["files"] else "move",
+                        "warning": self.LIB_WARNING if lib and p["files"] else ""})
+        return {"items": out}
+
+    def start_folders_change(self, kind, oid=None, setting=None, choices=None, conflict="keep", relink_copy=False):
+        """Ordner ändern: je Ordner verschieben / kopieren / nicht übernehmen (choices: key → move|copy|none), dann
+        die Einstellung umstellen und TagStudio-Verweise nachführen. Abbruch: Einstellung bleibt unverändert."""
+        import foldermove
+        new, items = self._change_plan(kind, oid, setting)
+        ch = choices if isinstance(choices, dict) else {}
+        conflict = "both" if conflict == "both" else "keep"
+        todo = []
+        for x in items:
+            tr = ch.get(x["key"], "none")
+            if tr not in ("move", "copy", "none"):
+                tr = "none"
+            if tr != "none":
+                p = foldermove.plan(x["old"], x["new"])
+                if p["error"]:
+                    return {"ok": False, "error": f"{x['label']}: {p['error']}"}
+                if x["role"] == "snapshots" and p["files"] and os.path.isdir(x["new"]) and os.listdir(x["new"]):
+                    return {"ok": False, "error": "Snapshots ziehen nur in einen leeren Ordner um."}
+            todo.append((x, tr))
+        if any(x["role"] == "snapshots" and tr != "none" for x, tr in todo) and self._jobs is not None and any(
+                j["plugin"] == "tagstudio:snapshot" and j["status"] in ("queued", "running") for j in self.jobs.status()["jobs"]):
+            return {"ok": False, "error": "Es läuft noch ein Snapshot-Auftrag – bitte warten."}
+        jpath = os.path.join(self.export_dir() or __import__("paths").base_dir(), "Ordnerwechsel.csv")
+
+        def job(cancel, progress):
+            done = []
+            for x, tr in todo:
+                if tr == "none":
+                    continue
+                progress(("text", f"{x['label']}: {'verschieben' if tr == 'move' else 'kopieren'} …"))
+                if x["role"] == "snapshots":
+                    self._snap_store = None                          # Speicher schliessen
+                    if tr == "move":
+                        import snapshots
+                        with snapshots.writing():
+                            res = foldermove.run(x["old"], x["new"], tr, conflict, cancel, progress)
+                    else:
+                        res = foldermove.run(x["old"], x["new"], tr, conflict, cancel, progress)
+                else:
+                    res = foldermove.run(x["old"], x["new"], tr, conflict, cancel, progress)
+                try:
+                    foldermove.journal(jpath, x["label"], res, tr)
+                except OSError:
+                    pass
+                done.append((x, tr, res))
+                if res["cancelled"]:
+                    break
+            cancelled = any(r["cancelled"] for _x, _t, r in done)
+            rows = [{"label": x["label"], "old": x["old"], "new": x["new"], "transfer": tr,
+                     "files": len(r["moved"]) + r["copied"], "bytes": r["bytes"], "kept": len(r["kept"]),
+                     "renamed": len(r["renamed"]), "errors": r["errors"][:50], "cancelled": r["cancelled"]}
+                    for x, tr, r in done]
+            if cancelled:
+                return {"ok": False, "cancelled_move": True, "rows": rows, "journal": jpath,
+                        "message": "Abgebrochen – bereits verschobene Dateien liegen vollständig im neuen Ordner, alle "
+                                   "anderen unverändert am alten. Die Einstellung wurde nicht geändert."}
+            self._folders_save(new)
+            relinked = {}
+            for x, tr, r in done:
+                if tr == "move" or (tr == "copy" and relink_copy):
+                    relinked[x["label"]] = self._folders_relink(x["old"], x["new"])
+            if any(x["role"] == "snapshots" for x, _t, _r in done):
+                try:
+                    self.snap_store.refresh_rel()
+                except Exception:  # noqa: BLE001
+                    pass
+            old_dirs = [x["old"] for x, tr, r in done if tr == "move" and os.path.isdir(x["old"])
+                        and not any(f for _d, _s, fs in os.walk(x["old"]) for f in fs)]
+            tagger = ""
+            root = getattr(self, "tag_root", "")
+            for x, tr, _r in done:
+                if tr == "move" and root and (folders.same_dir(root, x["old"]) or folders.inside(root, x["old"])):
+                    tagger = foldermove.rebase(root, x["old"], x["new"])
+            return {"ok": True, "rows": rows, "relinked": relinked, "empty_old": old_dirs, "journal": jpath,
+                    "tagger_root": tagger,
+                    "message": "Ordner geändert." + (f" {sum(r['files'] for r in rows)} Datei(en) übernommen." if rows else "")}
+        return self._run("folders_change", "Ordner ändern", job)
+
+    def folders_remove_empty(self, path) -> dict:
+        """Nach dem Verschieben: alten, leeren Ordner entfernen – nur auf Rückfrage in der Oberfläche; enthält er noch
+        eine Datei, wird nichts gelöscht."""
+        import foldermove
+        p = folders.clean_path(path)
+        if not p or not os.path.isdir(p):
+            return {"ok": False, "error": "Ordner nicht gefunden."}
+        if any(f for _d, _s, fs in os.walk(p) for f in fs):
+            return {"ok": False, "error": "Der Ordner enthält noch Dateien – nichts gelöscht."}
+        n = foldermove.remove_empty(p)
+        return {"ok": True, "removed": n}
+
+    def _folders_relink(self, old, new) -> dict:
+        """TagStudio-Verweise von old auf new umschreiben (nie fremde Datenbanken). → Anzahl je Bereich."""
+        import foldermove
+        rb = lambda p: foldermove.rebase(p, old, new) if isinstance(p, str) else p  # noqa: E731
+        out = {}
+        with self.lock:                                                     # Playlists (+ M3U8 neu schreiben)
+            try:
+                st = self._pls()
+                out["playlists"] = st.rebase_paths(rb)
+                if out["playlists"]:
+                    st.index["written"] = {}
+                    st.save_index()
+                    st.sync()
+            except Exception as ex:  # noqa: BLE001
+                out["playlists_error"] = str(ex)
+        try:                                                                # Käufe
+            ps = self._purch()
+            n = 0
+            for it in ps.data["items"].values():
+                for k in ("file",):
+                    if isinstance(it.get(k), str) and rb(it[k]) != it[k]:
+                        it[k] = rb(it[k])
+                        n += 1
+                if isinstance(it.get("cands"), list):
+                    it["cands"] = [rb(c) for c in it["cands"]]
+            if n:
+                ps.save()
+            out["purchases"] = n
+        except Exception as ex:  # noqa: BLE001
+            out["purchases_error"] = str(ex)
+        try:                                                                # Snapshots: überwachte Ordner
+            n = 0
+            for d in self.snap_store.libraries():
+                r = d.get("root", "")
+                if rb(r) != r:
+                    self.snap_store.update_library(d["id"], root=rb(r))
+                    n += 1
+            out["snapshots"] = n
+        except Exception as ex:  # noqa: BLE001
+            out["snapshots_error"] = str(ex)
+        try:                                                                # Archiv-Vermerk
+            import archive
+            arch = folders.role(self.cfg, "archive")
+            out["archive"] = archive.rebase_log(arch, rb) if arch else 0
+        except Exception as ex:  # noqa: BLE001
+            out["archive_error"] = str(ex)
+        upd = {}                                                            # Einstellungen mit Pfaden
+        for k in ("hist_tagger", "hist_left", "hist_right", "folder_recent", "player_queue"):
+            v = self.cfg.get(k)
+            if isinstance(v, list) and any(rb(x) != x for x in v):
+                upd[k] = [rb(x) for x in v]
+        for k in ("default_left", "default_right", "default_tagger", "help_scan_root", "purch_dest"):
+            v = self.cfg.get(k)
+            if isinstance(v, str) and rb(v) != v:
+                upd[k] = rb(v)
+        tsx = self.cfg.get("tagger_state")
+        if isinstance(tsx, dict) and isinstance(tsx.get("root"), str) and rb(tsx["root"]) != tsx["root"]:
+            upd["tagger_state"] = {**tsx, "root": rb(tsx["root"])}
+        pr = self.cfg.get("player_resume")
+        if isinstance(pr, dict):
+            pr2 = {s: ({**v, "path": rb(v.get("path"))} if isinstance(v, dict) else v) for s, v in pr.items()}
+            if pr2 != pr:
+                upd["player_resume"] = pr2
+        ws = self.cfg.get("prep_workflows")
+        if isinstance(ws, list):
+            ch = False
+            for w in ws:
+                if not isinstance(w, dict):
+                    continue
+                for k in ("inbox", "work", "library"):
+                    if isinstance(w.get(k), str) and not w[k].startswith("@") and rb(w[k]) != w[k]:
+                        w[k], ch = rb(w[k]), True
+                for q in w.get("sources") or []:
+                    if isinstance(q, dict) and rb(q.get("folder")) != q.get("folder"):
+                        q["folder"], ch = rb(q["folder"]), True
+            if ch:
+                upd["prep_workflows"] = ws
+        po = self.cfg.get("plugin_options")
+        if isinstance(po, dict):
+            ch = False
+            for opts in po.values():
+                dl = opts.get("download") if isinstance(opts, dict) else None
+                if isinstance(dl, dict) and isinstance(dl.get("dest"), str) and rb(dl["dest"]) != dl["dest"]:
+                    dl["dest"], ch = rb(dl["dest"]), True
+            if ch:
+                upd["plugin_options"] = po
+        if upd:
+            self.cfg.update(upd)
+            core.save_config(upd)
+        out["settings"] = len(upd)
+        return out
+
     # ------------------------------------------------------------------ Cloud-Sync-Ordner (#315)
     @staticmethod
     def _cloud_result(stats_list) -> dict:

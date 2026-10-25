@@ -531,8 +531,14 @@ may stay empty – they then follow the roles (inbox, work, main library). **Clo
 libraries may lie in a folder synchronised by the desktop client – TagStudio detects it (“☁ OneDrive”), additionally
 stores the path relative to the sync folder (also valid on a second computer), skips **online-only files** (“files on
 demand”) when reading – nothing downloads unnoticed, can be switched on – and reports **conflict copies** of the client.
-Snapshots, work and backup inside a sync folder get a hint (not recommended). “Change …” only changes the setting – files stay where they
-are; “Create structure …” creates missing folders. On the first start after the update the previous settings are taken
+Snapshots, work and backup inside a sync folder get a hint (not recommended). “Change …” (also for the base folder) shows what lies in the
+previous folder (files, size, free space, same names at the target) and asks **Move / Copy / Don't take over** – for
+libraries “Don't take over” is preselected, with a note that Engine DJ, Lexicon, Rekordbox, Serato and VirtualDJ have
+to look for their paths themselves afterwards (TagStudio never changes other databases). Nothing is ever overwritten
+(“keep target” or “name (2)”); on the same drive files are renamed, across drives copied, verified with SHA-256 and only
+then removed. The job can be cancelled without half files; references in playlists (M3U8 rewritten), purchases,
+snapshots, `_aussortiert.csv`, Prepare, history and queue are updated; log `Ordnerwechsel.csv` in the export folder; an
+old folder that became empty is only deleted after asking. “Create structure …” creates missing folders. On the first start after the update the previous settings are taken
 over; if the library was entered differently in different places, TagStudio shows the overview **“We found these
 folders”** to decide (nothing is silently dropped). Concept (German): [docs/KONZEPT-ORDNER.md](docs/KONZEPT-ORDNER.md).
 TagStudio only backs up tags – back up the music itself to another drive as well. All storage locations at a glance

@@ -14,7 +14,7 @@ Vor Architekturentscheidungen, neuen Modulen oder grösseren Codeänderungen unb
 
 ## Aktuelle Iterationsplanung
 
-**Stand 16.10.2026:** **v4.5.0 final** veröffentlicht (ohne Beta, nach Test aller Issues), Meilenstein #15 geschlossen. Nächster Meilenstein #17 (4.6.0): #215 Liedtexte im Player, #191 Beatgrid-Status. Nutzer-Issues aus GitHub-Feedback (Label `triage`) nur nach Owner-Freigabe.
+**Stand 25.10.2026:** **v4.9.1 final** veröffentlicht, Meilenstein #25 geschlossen. **4.10.0 – Ordner** (Meilenstein #26, `docs/KONZEPT-ORDNER.md`): #310–#315 auf `main` im Beta-Test. Ordner immer über `folders.role()`, `folders.libraries()`, `folders.main_library()` bzw. `Session._lib_roots()` holen – keine eigenen Pfad-Einstellungen mehr je Modul. Nutzer-Issues aus GitHub-Feedback (Label `triage`) nur nach Owner-Freigabe.
 
 ## GitHub-Meilensteinverwaltung
 

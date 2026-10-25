@@ -1,8 +1,39 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-25 (14:25): 4.9.1 final freigegeben, nächstes Release 4.10.0 – Ordner (Meilenstein #26), siehe „Start 4.10.0“.** Davor (01:00): **4.8.0 final freigegeben (Auftrag User 01:01) und erstellt** – Meilenstein #22 „4.8.0 – Updates: App und Plugins“ ohne offene Issues: Updates für App und Plugins (#233–#251), Lexicon-Ausbau, OpenKeyScan, **Playlists** (#267–#271, #278–#282: Verwaltung, Abspielen, Import aus Datei/Serato/Engine DJ/VirtualDJ/Lexicon/Tracklisten, Abgleich mit der Bibliothek), Zurück (#274), Tagger (#275–#277), **Plugins Spotify und SoundCloud** (#280), „Online suchen ›“ (#283). Finale Versionen bauen auch macOS – #251 (Update auf Knopfdruck macOS) ist ab der nächsten Mac-Version prüfbar. Offen ausserhalb: 1001Tracklists-Anfrage (#180, vom User), MixID (#218), Konzepte SonoVault #253–#259, Katalog #260, Mix-Erkennung #261, Formate #262–#266, Playlists Phase 3 #272/#273. Details: Abschnitt „Sitzung 24.10.2026“ unten.
+Stand: **2026-10-25 (Abend): 4.10.0 – Ordner umgesetzt, alle Schritte #310–#315 auf `main` im Beta-Test (Meilenstein #26), siehe „Sitzung 25.10.2026 (Abend)“.** Davor (14:25): 4.9.1 final veröffentlicht.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Sitzung 25.10.2026 (Abend) – 4.10.0 Ordner umgesetzt
+
+- **Freigabe User 14:57** („so vorgehen und loslegen“): Reihenfolge #310 → #312 → #311 → #314 → #315 → #313. Release
+  `v4.9.1` geprüft (21 Dateien), Meilenstein #25 geschlossen.
+- **Alle sechs Schritte auf `main`, Label `_3 Beta-Test`** (Testlisten in den Issues), je Schritt CI grün (Windows,
+  macOS, Oberflächentests):
+  - **#310 Grundlage:** `folders.py` (Rollen, Modus `base`/`custom`/`app`, `normalize`, `migrate`, `legacy`, `status`,
+    `structure_model`), `session_folders.py` (`FolderRolesMixin`: `folders_get`, `folders_set_*`, `folders_lib_*`,
+    `folders_review_apply`, `_folders_save` führt alte Schlüssel nur bei echter Änderung nach, `_folders_follow` führt
+    Workflows mit), Seite `web/folders.js` (Einstellungen › Speicherort und Ordner, Startdialog „Diese Ordner haben
+    wir gefunden“). Alte Setter (Archiv, Playlist-Ordner, Sicherung, Snapshot-Speicher) melden sich über `_folders_note`.
+  - **#312 Export:** `Api.save_dialog` startet in `Session.export_dir()`; Workflow-Export auch als Datei.
+  - **#311 Bibliotheken:** `folders.scan_roots` (jeder Ordner einmal, nicht erreichbare übersprungen), `_lib_roots`,
+    `_pl_lib_roots`/`_lib_info` für Käufe, Playlists, Entdecken, Hilfe; Tagger „Bibliothek ▾“ mit „Alle aktiven“
+    (Kennung `@bibliotheken` = `folders.ALL_LIBS`); Snapshots je Bibliothek = `auto` im Snapshot-Speicher;
+    Tagger-Standardordner setzt die Hauptbibliothek; Vorbereiten ohne Bibliothek → Hauptbibliothek.
+  - **#314 Quellen + Klappmenü:** `plugin.json` › `source` (Beatport-Plugin **1.9**), `_folders_source_setup` beim
+    Einschalten, Käufe-Downloads `90_Download\<Quelle>`, `_Manuell`; Workflow-Felder leer bzw. `@inbox`/`@work`/
+    `@library` folgen den Rollen (`_prep_resolve`, Rohwerte in `w["_raw"]`, `prep_overview` › `refs`);
+    `pickFolder()` in allen Ordner-Auswahlen.
+  - **#315 Cloud Weg 1:** `cloud.py` (Erkennen, `locate`/`rebuild`, `online_only`, `is_conflict`, `filter_paths` in
+    `core.load_files`), Pfade mit `cloud`-Kennzeichen, Einstellung `cloud_load_online`.
+  - **#313 Ordner ändern:** `foldermove.py` (`plan`, `run` mit SHA-256 über Laufwerke, `.part`, nie überschreiben,
+    `rebase`, `remove_empty`, `journal` → `Ordnerwechsel.csv`), `folders_change_preview`/`start_folders_change`/
+    `_folders_relink` (Playlists `Store.rebase_paths`, Käufe, Snapshots, `archive.rebase_log`, Einstellungen).
+    **Kein `files_moved` an Plugins** – Lexicon & Co. werden nie automatisch umgestellt.
+- **Beim Release 4.10.0 mitnehmen:** neue Module `folders`, `session_folders`, `cloud`, `foldermove` in
+  `packaging/build.py` › `HIDDEN` eintragen (jetzt nicht angefasst – eine Änderung unter `packaging/` startet den
+  Installer-Workflow). PyInstaller findet sie auch so (Importe in Funktionen werden erkannt).
+- Offen im Meilenstein: #308 (Konzept, schliessen mit dem letzten Schritt) und die Tests des Users.
 
 ## Start 4.10.0 – Ordner (vorbereitet 25.10.2026, 14:25)
 

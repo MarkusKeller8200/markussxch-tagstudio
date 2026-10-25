@@ -1,5 +1,10 @@
 # MarKusSXCH TagStudio – Projektstand
 
+> Stand 2026-10-25 (Abend): **4.10.0 – Ordner auf `main`, Beta-Test** (Meilenstein #26): Ordner-Rollen #310
+> (`folders.py`, `session_folders.py`, `web/folders.js`), Export-Ordner #312, mehrere Bibliotheken #311, Unterordner je
+> Quelle + Ordner-Klappmenü #314 (Beatport-Plugin 1.9), Cloud-Sync-Ordner #315 (`cloud.py`), Ordner ändern mit
+> Verschieben/Kopieren #313 (`foldermove.py`). Kein Release ohne Freigabe.
+>
 > Stand 2026-10-25, 14:25: **4.9.1 final freigegeben** (alle 11 Issues getestet; **Release `v4.9.1` veröffentlicht**
 > 14:56, Windows + macOS; Meilenstein #25 geschlossen). **Nächstes: 4.10.0 – Ordner** (Meilenstein #26, Konzept `docs/KONZEPT-ORDNER.md`, #308, #310–#315).
 >

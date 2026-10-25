@@ -1939,6 +1939,45 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.cfg_until(lambda c: c.get("cloud_load_online")).get("cloud_load_online"))
         self.assertEqual(self.errors, [])
 
+    def test_folder_change_move(self):
+        """#313: Ordner ändern – Vorschau, Standard je Rolle (Bibliothek: nicht übernehmen + Warnung), verschieben."""
+        pg = self.pg
+        base = os.path.join(self.dir, "TS")
+        arch = os.path.join(base, "02_Archiv")
+        os.makedirs(os.path.join(arch, "House"))
+        with open(os.path.join(arch, "House", "t.mp3"), "wb") as fh:
+            fh.write(b"ID3")
+        pg.evaluate(f"call('folders_set_base', {json.dumps(base)}, true)")
+        pg.evaluate(f"call('folders_lib_add', 'Haupt', 'custom', {json.dumps(self.lib)}, true)")
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stFolders table")
+        new = os.path.join(self.dir, "Archiv neu")
+        pg.click('#stFolders tr[data-frole="archive"] [data-fchange]')
+        pg.wait_for_selector("#fPath")
+        pg.fill("#fPath", new)
+        pg.click("#mBtns .primary")
+        pg.wait_for_selector("#modal .fold-move")
+        self.assertTrue(pg.is_checked('#modal .fold-move input[value="move"]'))      # Standard: verschieben
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("!document.querySelector('#dialog').hidden && document.querySelector('#dlgTitle').textContent === 'Ordner geändert'")
+        pg.click("#dlgBtns button")
+        pg.wait_for_function("!document.querySelector('#dialog').hidden && document.querySelector('#dlgTitle').textContent === 'Alter Ordner ist leer'")
+        pg.click('#dlgBtns button:has-text("Behalten")')                           # Löschen nur auf Rückfrage
+        self.assertTrue(os.path.isfile(os.path.join(new, "House", "t.mp3")))
+        self.assertTrue(os.path.isdir(arch))
+        # Bibliothek: Standard „Nicht übernehmen“ und Warnung zu fremden DJ-Programmen
+        pg.wait_for_selector("#stFolders tr[data-flib] [data-flibchange]")
+        pg.click("#stFolders tr[data-flib] >> nth=1 >> [data-flibchange]")
+        pg.wait_for_selector("#fPath")
+        pg.fill("#fPath", os.path.join(self.dir, "Bib neu"))
+        pg.click("#mBtns .primary")
+        pg.wait_for_selector("#modal .fold-move .fold-warn")
+        self.assertTrue(pg.is_checked('#modal .fold-move input[value="none"]'))
+        self.assertIn("Relocate", pg.inner_text("#modal .fold-warn"))
+        pg.click("#mBtns button >> nth=0")                                          # abbrechen: nichts geändert
+        self.assertTrue(os.path.isdir(self.lib))
+        self.assertEqual(self.errors, [])
+
     def test_archive_tagger(self):
         """#173: Aussortieren im Tagger – Vorschau, verschieben, Liste neu geladen, zurückholen."""
         pg = self.pg

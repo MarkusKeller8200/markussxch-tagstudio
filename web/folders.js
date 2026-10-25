@@ -41,7 +41,7 @@ async function stFoldersRender() {
       <tr class="fold-add">${f.libraries.length ? "" : '<th scope="row">Bibliotheken</th>'}<td><button class="ghost sm" data-flibadd>+ Bibliothek hinzufügen …</button></td></tr>
       ${rest.map(roleRow).join("")}
     </tbody></table></div>
-    <p class="muted sm">„Ändern …“ stellt nur die Einstellung um – vorhandene Dateien bleiben, wo sie sind. Fremde DJ-Programme werden nie verändert.</p>
+    <p class="muted sm">„Ändern …“ fragt, ob der bisherige Inhalt verschoben, kopiert oder dort gelassen wird – nie wird etwas überschrieben. Fremde DJ-Programme werden nie verändert.</p>
     <div class="st-row"><span>Cloud</span><div><div class="muted sm">${f.cloud.roots.length ? "Sync-Ordner auf diesem Rechner: " + f.cloud.roots.map((c) => `<span title="${esc(c.path)}">☁ ${esc(c.label)}</span>`).join(" · ") : "Kein Sync-Ordner von OneDrive, Google Drive oder Dropbox gefunden."}</div>
       <label class="check sm"><input type="checkbox" data-fcloudonline ${f.cloud.load_online ? "checked" : ""}> Nur-online-Dateien beim Einlesen herunterladen</label>
       <div class="muted sm">Aus (Standard): Titel, die nur in der Cloud liegen, werden übersprungen und gemeldet – nichts lädt unbemerkt herunter.</div></div></div>`;
@@ -59,15 +59,15 @@ async function folderChangeDialog({ title, mode, sub, path, base, app, defaultSu
     html: `${name !== null ? `<div class="frm"><label for="fName">Name</label><input id="fName" class="inp" value="${esc(name)}" maxlength="60"></div>` : ""}
       <div class="wiz-opts">
       ${modeIn("base", "Im Basisordner", `<span class="muted sm">${base ? esc(base) + "\\" : "Kein Basisordner festgelegt – "}</span><input id="fSub" class="inp" value="${esc(sub || defaultSub)}" spellcheck="false" aria-label="Unterordner">`)}
-      ${modeIn("custom", "Eigener Ordner", `<span class="pl-folder"><input id="fPath" class="inp" value="${esc(path || "")}" spellcheck="false" aria-label="Eigener Ordner" placeholder="z. B. E:\\Musik"><button class="ghost sm" data-fpick>Wählen …</button></span>`)}
+      ${modeIn("custom", "Eigener Ordner", `<span class="pl-folder"><input id="fPath" class="inp" value="${esc(path || "")}" spellcheck="false" aria-label="Eigener Ordner" placeholder="z. B. E:\\Musik"><button class="ghost sm" data-fpick>Wählen …</button><button class="ghost sm" data-fnew>Neuer Ordner …</button></span>`)}
       ${app ? modeIn("app", "Programmdaten von TagStudio", '<span class="muted sm">Wie vor Version 4.10 – im Benutzerordner unter TagStudio.</span>') : ""}
-      </div><p class="muted sm">Nur die Einstellung ändert sich – Dateien bleiben, wo sie sind.${note ? " " + esc(note) : ""}</p>`,
+      </div><p class="muted sm">Liegt im bisherigen Ordner etwas, fragt TagStudio danach, ob es verschoben, kopiert oder dort gelassen wird.${note ? " " + esc(note) : ""}</p>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
     onMount: (body) => {
       body.addEventListener("click", async (e) => {
-        if (!e.target.closest("[data-fpick]")) return;
+        if (!e.target.closest("[data-fpick],[data-fnew]")) return;
         const inp = $("#fPath", body);
-        const p = await call("pick_path", "", true, inp.value.trim());
+        const p = e.target.closest("[data-fnew]") ? await folderNewInline(inp.value.trim() || base) : await call("pick_path", "", true, inp.value.trim());
         if (p) { inp.value = p; $('input[name="fMode"][value="custom"]', body).checked = true; }
       });
       body.addEventListener("focusin", (e) => {
@@ -81,6 +81,50 @@ async function folderChangeDialog({ title, mode, sub, path, base, app, defaultSu
       if (m === "custom" && !value) { toast("Bitte einen Ordner wählen."); return false; }
       return { mode: m, value, name: name !== null ? $("#fName", body).value.trim() : null };
     } });
+}
+
+const fsize = (n) => (n >= 1e9 ? (n / 1e9).toFixed(1) + " GB" : n >= 1e6 ? (n / 1e6).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1e3)) + " KB");
+
+/** #313: Inhalt mitnehmen? Vorschau je betroffenem Ordner, Wahl Verschieben / Kopieren / Nicht übernehmen, dann als
+    Auftrag ausführen. → false: kein Inhalt betroffen (Aufrufer stellt nur die Einstellung um), null: abgebrochen,
+    true: erledigt. */
+async function folderTransferFlow(kind, id, setting, title) {
+  const pv = await call("folders_change_preview", kind, id, setting);
+  const items = pv.items.filter((x) => x.files || x.error);
+  if (!items.length) return false;
+  const tr = (x) => ["move", "copy", "none"].map((v) => `<label class="check sm"><input type="radio" name="ft_${esc(x.key)}" value="${v}" ${x.default === v ? "checked" : ""} ${x.error && v !== "none" ? "disabled" : ""}> ${{ move: "Verschieben", copy: "Kopieren", none: "Nicht übernehmen" }[v]}</label>`).join(" ");
+  const res = await modal({ title, wide: true,
+    html: `<p style="margin:0 0 8px">Was geschieht mit dem bisherigen Inhalt? „Nicht übernehmen“ stellt nur die Einstellung um.</p>
+      ${items.map((x) => `<div class="fold-move" data-fk="${esc(x.key)}"><b>${esc(x.label)}</b>
+        <div class="muted sm"><code>${esc(x.old)}</code> → <code>${esc(x.new)}</code></div>
+        <div class="muted sm">${fmtN(x.files)} Datei(en), ${fsize(x.bytes)} · frei am Ziel ${fsize(x.free)}${x.same_volume ? " · gleiches Laufwerk (sofort)" : " · anderes Laufwerk (kopieren, Prüfsumme, dann entfernen)"}${x.bytes > x.free ? ' · <span class="st-missing">zu wenig Platz</span>' : ""}</div>
+        ${x.conflicts ? `<div class="st-missing sm" title="${esc(x.conflict_examples.join("\n"))}">${fmtN(x.conflicts)} Datei(en) gibt es am Ziel schon</div>` : ""}
+        ${x.error ? `<div class="st-missing sm">${esc(x.error)}</div>` : ""}
+        ${x.warning ? `<div class="fold-warn sm">⚠ ${esc(x.warning)}</div>` : ""}
+        <div>${tr(x)}</div></div>`).join("")}
+      <div class="frm"><label for="ftConflict">Gleicher Name am Ziel</label><select id="ftConflict" class="inp"><option value="keep">Ziel behalten (Datei bleibt am alten Ort)</option><option value="both">beide behalten – neue als „Name (2)“</option></select></div>
+      <label class="check sm"><input type="checkbox" id="ftRelink"> Bei „Kopieren“ Verweise auf den neuen Ordner umstellen (Playlists, Käufe, Snapshots, Verlauf)</label>
+      <p class="muted sm">Nie wird etwas überschrieben. Ein Abbruch hinterlässt keine halben Dateien; der alte Ordner bleibt stehen. Protokoll: Ordnerwechsel.csv im Export-Ordner.</p>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Ändern", value: true, primary: true }],
+    collect: (b) => {
+      const choices = Object.fromEntries(items.map((x) => [x.key, ($(`input[name="ft_${CSS.escape(x.key)}"]:checked`, b) || {}).value || "none"]));
+      if (items.some((x) => choices[x.key] !== "none" && x.bytes > x.free && !x.same_volume)) { toast("Zu wenig Platz am Ziel."); return false; }
+      return { choices, conflict: $("#ftConflict", b).value, relink: $("#ftRelink", b).checked };
+    } });
+  if (!res) return null;
+  const r = await runTask(call("start_folders_change", kind, id, setting, res.choices, res.conflict, res.relink), "Ordner ändern");
+  if (!r) return null;
+  const lines = (r.rows || []).map((x) => `${x.label}: ${fmtN(x.files)} Datei(en) ${x.transfer === "move" ? "verschoben" : "kopiert"}${x.kept ? ` · ${fmtN(x.kept)} am alten Ort behalten (gleicher Name am Ziel)` : ""}${x.renamed ? ` · ${fmtN(x.renamed)} als „(2)“` : ""}${x.errors.length ? ` · ${fmtN(x.errors.length)} Fehler:\n  ${x.errors.slice(0, 8).join("\n  ")}` : ""}`);
+  await info(r.ok ? "Ordner geändert" : "Abgebrochen", [r.message, ...lines].filter(Boolean).join("\n\n"));
+  for (const d of r.empty_old || []) {
+    if (await dialog({ title: "Alter Ordner ist leer", text: `${d}\n\nDer bisherige Ordner enthält keine Dateien mehr. Leere Ordner jetzt löschen?`,
+      buttons: [{ label: "Behalten", value: null }, { label: "Löschen", value: true, primary: true }] })) {
+      const x = await call("folders_remove_empty", d);
+      toast(x.ok ? "Leere Ordner gelöscht." : x.error);
+    }
+  }
+  if (r.tagger_root && typeof TG !== "undefined" && TG.loaded) { $("#tgPath").value = r.tagger_root; toast("Tagger: bitte neu einlesen – der Ordner ist umgezogen."); }
+  return true;
 }
 
 /** Übersicht „Diese Ordner haben wir gefunden“ (einmalig nach dem Update, #310) */
@@ -138,9 +182,13 @@ async function foldersStartup() {
         if (!p) return;
         const follow = f.roles.filter((r) => r.mode === "base").map((r) => r.label);
         if (f.libraries.some((l) => l.mode === "base")) follow.push("Bibliotheken im Basisordner");
-        if (f.base && !(await dialog({ title: "Basisordner ändern", text: `Neuer Basisordner: ${p}\n\nDiese Rollen folgen: ${follow.join(", ") || "keine"}.\nNur die Einstellung ändert sich – die Dateien im bisherigen Basisordner bleiben, wo sie sind. Weiter?`,
-          buttons: [{ label: "Abbrechen", value: null }, { label: "Ändern", value: true, primary: true }] }))) return;
-        await call("folders_set_base", p, false);
+        const done = f.base ? await folderTransferFlow("base", null, { value: p }, "Basisordner ändern") : false;     // #313
+        if (done === null) return;
+        if (done === false) {
+          if (f.base && !(await dialog({ title: "Basisordner ändern", text: `Neuer Basisordner: ${p}\n\nDiese Rollen folgen: ${follow.join(", ") || "keine"}. Dort liegt noch nichts, das mitkommen müsste. Weiter?`,
+            buttons: [{ label: "Abbrechen", value: null }, { label: "Ändern", value: true, primary: true }] }))) return;
+          await call("folders_set_base", p, false);
+        }
         toast("Basisordner geändert."); return void stFoldersRender();
       }
       if (t.dataset.fstruct !== undefined) {
@@ -153,11 +201,13 @@ async function foldersStartup() {
         return void stFoldersRender();
       }
       if (t.dataset.fchange !== undefined && role) {
-        const note = role.id === "snapshots" ? "Der bisherige Snapshot-Speicher bleibt am alten Ort; am neuen Ort beginnt ein leerer Speicher (oder ein dort vorhandener wird benutzt). Mitnehmen: Snapshots › Speicherort › Verschieben."
+        const note = role.id === "snapshots" ? "Der Snapshot-Speicher zieht als Ganzes um – nur in einen leeren Ordner. „Nicht übernehmen“ beginnt dort einen leeren Speicher (oder benutzt einen vorhandenen)."
           : role.id === "playlists" ? "Alle Playlists werden im neuen Ordner neu geschrieben." : "";
         const r = await folderChangeDialog({ title: `Ordner „${role.label}“`, mode: role.mode, sub: role.sub, path: role.mode === "custom" ? role.path : "", base: f.base, app: role.app, defaultSub: role.default_sub, note });
         if (!r) return;
-        const res = await call("folders_set_role", role.id, r.mode, r.value);
+        const moved = await folderTransferFlow("role", role.id, { mode: r.mode, value: r.value }, `Ordner „${role.label}“ ändern`);   // #313
+        if (moved === null) return;
+        const res = moved ? await call("folders_get") : await call("folders_set_role", role.id, r.mode, r.value);
         const now = res.roles.find((x) => x.id === role.id) || {};
         const warn = (now.hints || []).find((h) => /nicht empfohlen/.test(h));       // #315: Snapshots/Arbeit/Sicherung in der Cloud
         if (warn) info(`Ordner „${role.label}“`, `${now.path}\n\n${warn}. Besser einen Ordner ausserhalb des Sync-Ordners wählen.`);
@@ -174,7 +224,9 @@ async function foldersStartup() {
         const r = await folderChangeDialog({ title: `Bibliothek „${lib.name}“`, mode: lib.mode, sub: lib.sub, path: lib.mode === "custom" ? lib.path : "", base: f.base, app: false, defaultSub: "01_Library", name: lib.name,
           note: lib.main ? "Engine DJ, Lexicon, Rekordbox, Serato und VirtualDJ merken sich Pfade – zeigt die Hauptbibliothek auf andere Dateien, dort „Fehlende Dateien suchen“ bzw. „Relocate“ verwenden." : "" });
         if (!r) return;
-        await call("folders_lib_update", lib.id, { name: r.name, mode: r.mode, value: r.value });
+        const moved = await folderTransferFlow("lib", lib.id, { name: r.name, mode: r.mode, value: r.value }, `Bibliothek „${lib.name}“ ändern`);   // #313
+        if (moved === null) return;
+        if (!moved) await call("folders_lib_update", lib.id, { name: r.name, mode: r.mode, value: r.value });
         toast("Bibliothek geändert."); return void stFoldersRender();
       }
       if (t.dataset.fmain !== undefined && lib) {
@@ -252,6 +304,14 @@ async function pickFolder(anchor, start = "", opts = {}) {
 }
 
 const FOLDER_ROLE_LABELS = { inbox: "Eingang", archive: "Archiv", playlists: "Playlists", export: "Export", downloads: "Downloads", work: "Arbeit" };
+
+/** „Neuer Ordner …“ innerhalb eines offenen Dialogs: nur den Namen erfragen (eigenes Dialogfenster) */
+async function folderNewInline(parent) {
+  if (!parent) { toast("Zuerst einen Ordner wählen, in dem der neue angelegt wird."); return ""; }
+  const name = await dialog({ title: "Neuer Ordner", text: `Anlegen in ${parent}`, area: "", buttons: [{ label: "Abbrechen", value: null }, { label: "Anlegen", value: true, primary: true }] });
+  if (!name || !String(name).trim()) return "";
+  try { return (await call("folders_mkdir", parent, String(name).trim())).path; } catch (e) { toast(String(e.message || e)); return ""; }
+}
 
 /** „Neuer Ordner …“: Elternordner und Name → angelegter Pfad (oder "") */
 async function folderNewDialog(parent) {

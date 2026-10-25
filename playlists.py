@@ -865,6 +865,21 @@ class Store:
             raise ValueError("Nur Smartlists lassen sich einfrieren.")
         return self.update(pid, "Smartlist einfrieren", kind="manual", rules=None, refreshed=None)
 
+    def rebase_paths(self, fn) -> int:
+        """#313: Pfade aller Playlists (auch archivierter) umschreiben, fn(pfad) → neuer Pfad. Ohne Rückgängig-Schritt
+        (die Dateien selbst wurden verschoben). → Anzahl geänderter Einträge."""
+        n = 0
+        for pl in list(self._all().values()):
+            ch = False
+            for it in pl.get("items") or []:
+                p = it.get("path")
+                if isinstance(p, str) and p and fn(p) != p:
+                    it["path"], ch = fn(p), True
+                    n += 1
+            if ch:
+                self._put(pl)
+        return n
+
     def relink(self, pid, picks, label="Titel verknüpfen") -> int:
         """Einträgen einen (neuen) Pfad geben: picks = [{"k": Position, "path": Datei}] – Angaben „ref“ bleiben."""
         items = copy.deepcopy(self.get(pid).get("items") or [])

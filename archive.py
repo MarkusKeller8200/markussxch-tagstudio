@@ -147,3 +147,26 @@ def restore(archive_dir, ids) -> dict:
             csv.writer(fh, delimiter=";").writerows(rows)
         os.replace(tmp, log)
     return {"restored": done, "errors": errors, "moved": moved}
+
+
+def rebase_log(archive_dir, fn) -> int:
+    """#313: Pfade im Vermerk umschreiben (Ordner verschoben), fn(pfad) → neuer Pfad. → Anzahl geänderter Zeilen."""
+    log = os.path.join(archive_dir or "", LOG)
+    if not archive_dir or not os.path.isfile(log):
+        return 0
+    with open(log, encoding="utf-8-sig", newline="") as fh:
+        rows = list(csv.reader(fh, delimiter=";"))
+    n = 0
+    for i, r in enumerate(rows[1:], 1):
+        r = (r + [""] * 5)[:5]
+        a, b = fn(r[1]), fn(r[2])
+        if (a, b) != (r[1], r[2]):
+            r[1], r[2] = a, b
+            rows[i] = r
+            n += 1
+    if n:
+        tmp = log + ".tmp"
+        with open(tmp, "w", encoding="utf-8-sig", newline="") as fh:
+            csv.writer(fh, delimiter=";").writerows(rows)
+        os.replace(tmp, log)
+    return n

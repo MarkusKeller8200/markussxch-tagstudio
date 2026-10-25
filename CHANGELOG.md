@@ -34,6 +34,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   werden zusätzlich relativ zum Sync-Ordner gespeichert. Nur-online-Dateien werden beim Einlesen übersprungen und
   gemeldet (Schalter zum Herunterladen), Konfliktkopien angezeigt; Hinweis bei Snapshots/Arbeit/Sicherung in der
   Cloud.
+- **Ordner ändern mit Inhalt (#313):** „Ändern …“ (Rolle, Bibliothek, Basisordner) fragt Verschieben / Kopieren /
+  Nicht übernehmen (Bibliothek: Standard „Nicht übernehmen“ mit Hinweis zu fremden DJ-Programmen), mit Vorschau
+  (Dateien, Grösse, freier Platz, Konflikte). Nie überschreiben, über Laufwerke SHA-256-Prüfung vor dem Entfernen,
+  abbrechbar ohne halbe Dateien, Journal `Ordnerwechsel.csv`; Verweise in Playlists, Käufen, Snapshots,
+  Archiv-Vermerk, Vorbereiten, Verlauf und Warteschlange werden nachgeführt. Neues Modul `foldermove.py`.
 
 ## [4.9.1] – 2026-10-25
 

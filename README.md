@@ -555,8 +555,15 @@ Ordner liegen, den der Desktop-Client synchronisiert – TagStudio erkennt ihn (
 zusätzlich relativ zum Sync-Ordner (gilt auch auf einem zweiten Rechner), überspringt beim Einlesen **Nur-online-
 Dateien** („Dateien bei Bedarf“, nichts lädt unbemerkt herunter – auf Wunsch einschaltbar) und meldet
 **Konfliktkopien** des Clients. Snapshots, Arbeit und Sicherung im Sync-Ordner bekommen einen Hinweis (nicht
-empfohlen). „Ändern …“ stellt nur die Einstellung um – Dateien bleiben, wo sie sind;
-„Struktur anlegen …“ legt fehlende Ordner an. Beim ersten Start nach dem Update werden die bisherigen Einstellungen
+empfohlen). „Ändern …“ (auch beim Basisordner) zeigt, was im bisherigen Ordner liegt (Dateien,
+Grösse, freier Platz, gleiche Namen am Ziel) und fragt **Verschieben / Kopieren / Nicht übernehmen** – bei
+Bibliotheken ist „Nicht übernehmen“ vorgewählt, mit Hinweis, dass Engine DJ, Lexicon, Rekordbox, Serato und
+VirtualDJ ihre Pfade danach selbst suchen müssen (TagStudio ändert keine fremden Datenbanken). Nie wird etwas
+überschrieben („Ziel behalten“ oder „Name (2)“); auf demselben Laufwerk wird umbenannt, über Laufwerke kopiert, per
+SHA-256 geprüft und erst dann das Original entfernt. Der Auftrag ist abbrechbar ohne halbe Dateien; Verweise in
+Playlists (M3U8 neu), Käufen, Snapshots, `_aussortiert.csv`, Vorbereiten, Verlauf und Warteschlange werden
+nachgeführt; Protokoll `Ordnerwechsel.csv` im Export-Ordner; ein leer gewordener alter Ordner wird nur auf
+Rückfrage gelöscht. „Struktur anlegen …“ legt fehlende Ordner an. Beim ersten Start nach dem Update werden die bisherigen Einstellungen
 übernommen; war die Bibliothek an verschiedenen Stellen verschieden eingetragen, zeigt TagStudio die Übersicht
 **„Diese Ordner haben wir gefunden“** zur Entscheidung (nichts wird still verworfen). Konzept:
 [docs/KONZEPT-ORDNER.md](docs/KONZEPT-ORDNER.md). TagStudio sichert nur Tags – die Musik selbst zusätzlich auf ein

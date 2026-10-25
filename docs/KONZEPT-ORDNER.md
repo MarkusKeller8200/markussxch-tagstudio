@@ -8,7 +8,11 @@ Snapshots-Schalter je Bibliothek = `auto` des überwachten Ordners im Snapshot-S
 (#314)** – `plugin.json` › `source`, `Session._folders_source_setup`, `pickFolder()` in `web/folders.js`; Workflow-Felder
 leer bzw. `@inbox`/`@work`/`@library` = Verweis auf die Rolle (`_prep_resolve`). **Cloud Weg 1 (#315)** – `cloud.py`
 (`detect`, `locate`/`rebuild`, `online_only`, `is_conflict`, `filter_paths` in `core.load_files`); Rollen/Bibliotheken
-speichern `"cloud": {"provider", "rel"}`, der Basisordner `base_cloud`; Einstellung `cloud_load_online`. Ergänzt
+speichern `"cloud": {"provider", "rel"}`, der Basisordner `base_cloud`; Einstellung `cloud_load_online`. **Ordner ändern (#313)** –
+`foldermove.py` (`plan`, `run`, `rebase`, `remove_empty`, `journal`), `Session.folders_change_preview`/
+`start_folders_change`/`_folders_relink`. Umsetzungsdetails: Der Snapshot-Speicher zieht nur in einen leeren Ordner um;
+bei einem Abbruch bleibt die Einstellung unverändert (verschobene Dateien liegen vollständig am Ziel); TagStudio meldet
+Verschiebungen **nicht** an Plugins (`files_moved`) – Lexicon & Co. werden nie automatisch umgestellt. Ergänzt
 [KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md) (Programmdaten bleiben dort beschrieben) und ersetzt dessen Abschnitte 4/5,
 sobald umgesetzt.
 
