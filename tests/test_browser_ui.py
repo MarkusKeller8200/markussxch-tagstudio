@@ -1954,6 +1954,20 @@ class UiTest(unittest.TestCase):
         self.assertEqual(sorted(pg.evaluate("[...document.querySelectorAll('#stCloudSync tr[data-csid=playlists] [data-csprov] option')].filter((o) => o.value).map((o) => o.value)")),
                          ["dropbox", "gdrive", "onedrive"])                     # #318–#320
         self.assertIn("nicht angemeldet", pg.inner_text("#stCloudSync"))
+        # #324: eigene Karte „Cloud“ nach „Speicherort und Ordner“, Tabelle mit Kopfzeile über die ganze Kartenbreite
+        cards = pg.evaluate("[...document.querySelectorAll('#stGrid > .card')].map((c) => c.id)")
+        self.assertEqual(cards[cards.index("stFolderCard") + 1], "stCloudCard")
+        self.assertTrue(pg.locator('#stToc [data-goto="stCloudCard"]').count())
+        self.assertEqual(pg.locator("#stFolders [data-fcloudonline], #stFolders #stCloudSync").count(), 0)
+        self.assertEqual(pg.locator("#stCloud [data-fcloudonline]").count(), 1)
+        self.assertEqual(pg.evaluate("[...document.querySelectorAll('#stCloudSync thead th')].map((t) => t.textContent)"),
+                         ["Bereich", "Dienst", "Richtung", "Ordner im Dienst"])
+        self.assertEqual(pg.evaluate("[...document.querySelectorAll('#stCloudSync tr.cs-grp')].map((t) => t.textContent)"),
+                         ["Ordner-Rollen", "Programmdaten"])
+        w = pg.evaluate("""(() => { const c = document.querySelector('#stCloud').getBoundingClientRect(),
+            t = document.querySelector('#stCloudSync .cs-table').getBoundingClientRect(); return [c.width, t.width]; })()""")
+        self.assertGreater(w[1], w[0] - 4, w)
+        pg.locator("#stCloudCard").screenshot(path=os.path.join(self.dir, "cloud.png"))
         # Plugin-Karte OneDrive: Anmelden mit Anleitung, Redirect auf localhost
         pg.click('.nav[data-module="plugins"]')
         card = '.pl-card[data-pid="onedrive"]'
@@ -2119,7 +2133,7 @@ class UiTest(unittest.TestCase):
         pg.click("#mBtns .primary")
         pg.wait_for_function("!document.querySelector('#dialog').hidden && document.querySelector('#dlgText').textContent.includes('nicht empfohlen')")
         pg.click("#dlgBtns button")
-        pg.check("#stFolders [data-fcloudonline]")
+        pg.check("#stCloud [data-fcloudonline]")
         self.assertTrue(self.cfg_until(lambda c: c.get("cloud_load_online")).get("cloud_load_online"))
         self.assertEqual(self.errors, [])
 

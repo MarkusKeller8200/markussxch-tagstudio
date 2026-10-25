@@ -165,7 +165,7 @@ Die zuletzt benutzten Werte merkt sich TagStudio pro Aktion.
 
 ### Cloud-Abgleich (`cloud_sync`, #317)
 
-Ein Dienst-Plugin wird zur Gegenstelle für „Abgleich über die Dienste“ (Einstellungen › Speicherort und Ordner), wenn
+Ein Dienst-Plugin wird zur Gegenstelle für „Abgleich über die Dienste“ (Einstellungen › Cloud), wenn
 sein `plugin.py` diese Funktionen anbietet (Pfade mit „/“, relativ zum Wurzelordner des Kontos):
 
 ```python
@@ -375,7 +375,7 @@ geändert. Beide brauchen eine **eigene App** beim Dienst; TagStudio liefert kei
 
 ## Eingebaut: OneDrive, Google Drive und Dropbox (Abgleich über die Dienste)
 
-Gegenstellen für Einstellungen › Speicherort und Ordner › **„Abgleich über die Dienste“** (#317–#320, Konzept
+Gegenstellen für Einstellungen › Cloud › **„Abgleich über die Dienste“** (#317–#320, Konzept
 `docs/KONZEPT-CLOUD.md`) – ohne Desktop-Client, direkt über die API. Jeder Dienst braucht eine **eigene App**
 (Client-ID, C4); TagStudio liefert keine mit. Anmeldung mit OAuth 2 und PKCE, Token verschlüsselt, „Anmelden …“ mit
 Anleitung und „Adresse einfügen“ als Ausweg wie bei Spotify. TagStudio schreibt nur unter seinem Ordner (Standard

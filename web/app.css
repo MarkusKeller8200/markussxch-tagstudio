@@ -650,9 +650,20 @@ span.xml-treeonly{display:contents}
 .pl-prev{max-height:52vh}
 .pl-res-table{max-height:52vh;margin-top:10px}   /* #255: Tabelle im Plugin-Ergebnis */
 /* #317: Abgleich über die Dienste */
+.cs-h{margin:14px 0 6px;font-size:13px;font-weight:600}
+.cs-table{min-height:0;margin:6px 0}
+.cs-table table{min-width:460px;table-layout:fixed}
+.cs-table thead th:nth-child(1){width:28%}
+.cs-table thead th:nth-child(2){width:23%}
+.cs-table thead th:nth-child(3){width:22%}
+.cs-table td{padding:6px 6px}
+.cs-table thead th:not(:first-child){padding-left:6px;padding-right:6px}
 .cs-table td{vertical-align:top}
-.cs-table select,.cs-table .cs-remote{margin:0 4px 4px 0}
-.cs-remote{width:240px;max-width:100%}
+.cs-table th[scope=row]{position:static;text-align:left;vertical-align:top;font-size:13px;letter-spacing:0;text-transform:none;color:var(--fg);font-weight:500;background:none;padding:7px 10px;border-bottom:1px solid var(--line)}
+.cs-table th[scope=row] .fold-path{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-table tr.cs-grp th{position:static;background:var(--raise);padding:5px 10px}
+.cs-table tr.cs-on th[scope=row]{color:var(--acc)}
+.cs-table select,.cs-table .cs-remote{width:100%}
 .cs-conf,.cs-gone{border:1px solid var(--line);border-radius:var(--r);padding:10px;margin-bottom:10px}
 .cs-two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}
 .cs-two pre{max-height:28vh;overflow:auto;margin:0}

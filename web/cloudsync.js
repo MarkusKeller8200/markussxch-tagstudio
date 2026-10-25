@@ -1,9 +1,9 @@
 "use strict";
-// Einstellungen › Speicherort und Ordner › „Abgleich über die Dienste“ (Cloud Weg 2, #317, docs/KONZEPT-CLOUD.md).
+// Einstellungen › Cloud › „Abgleich über die Dienste“ (Cloud Weg 2, #317/#324, docs/KONZEPT-CLOUD.md).
 // Rollen Playlists/Export und Programmdaten-Teile mit OneDrive, Google Drive oder Dropbox (Plugins) abgleichen –
 // beide Richtungen; Konflikte und gelöschte Dateien nur nach Rückfrage.
 
-const CLOUD_MODES = { both: "beide Richtungen", up: "nur hochladen", down: "nur herunterladen" };
+const CLOUD_MODES = { both: "⇅ beide", up: "↑ hochladen", down: "↓ herunterladen" };   // #324: kurz für die Tabelle
 
 function cloudLastText(l) {
   if (!l || !l.at) return "noch nie abgeglichen";
@@ -11,7 +11,7 @@ function cloudLastText(l) {
   return `zuletzt ${d} · ↑${l.up || 0} ↓${l.down || 0}${l.conflicts ? ` · ${l.conflicts} Konflikt(e)` : ""}${l.deleted ? ` · ${l.deleted} gelöscht (offen)` : ""}${l.errors ? ` · ${l.errors} Fehler` : ""}`;
 }
 
-/** Abschnitt in der Karte „Speicherort und Ordner“ zeichnen (Aufruf am Ende von stFoldersRender) */
+/** Abschnitt in der Karte „Cloud“ zeichnen (Aufruf aus stCloudCardRender) */
 async function stCloudSyncRender() {
   const box = $("#stCloudSync"); if (!box) return;
   let o;
@@ -19,18 +19,23 @@ async function stCloudSyncRender() {
   const provs = o.providers || [];
   const ready = provs.filter((p) => p.ready);
   const provSel = (r) => `<select class="inp sm" data-csprov aria-label="Dienst für ${esc(r.label)}"><option value="">aus</option>${provs.map((p) => `<option value="${esc(p.id)}" ${r.sync && r.sync.provider === p.id ? "selected" : ""} ${p.ready ? "" : "disabled"} translate="no">${esc(p.name)}${p.ready ? "" : ` ${esc(typeof tr === "function" ? tr("(nicht angemeldet)") : "(nicht angemeldet)")}`}</option>`).join("")}</select>`;
-  const modeSel = (r) => `<select class="inp sm" data-csmode aria-label="Richtung" ${r.sync ? "" : "disabled"}>${Object.entries(CLOUD_MODES).map(([k, v]) => `<option value="${k}" ${(r.sync ? r.sync.mode : "both") === k ? "selected" : ""}>${esc(v)}</option>`).join("")}</select>`;
-  const row = (r) => `<tr data-cskind="${esc(r.kind)}" data-csid="${esc(r.id)}"><th scope="row">${r.kind === "role" ? "" : '<span class="muted sm">Programmdaten · </span>'}${esc(r.label)}</th>
-      <td>${provSel(r)} ${modeSel(r)} <input class="inp sm cs-remote" data-csremote value="${esc(r.sync ? r.sync.remote : r.default_remote)}" ${r.sync ? "" : "disabled"} spellcheck="false" aria-label="Ordner im Dienst" title="Ordner im Dienst">
-      <div class="muted sm">${r.sync ? esc(cloudLastText(r.last)) : r.kind === "role" ? esc(r.path || "Rolle ohne Ordner") : ""}</div></td></tr>`;
+  const modeSel = (r) => `<select class="inp sm" data-csmode aria-label="Richtung" title="beide Richtungen, nur hochladen oder nur herunterladen" ${r.sync ? "" : "disabled"}>${Object.entries(CLOUD_MODES).map(([k, v]) => `<option value="${k}" ${(r.sync ? r.sync.mode : "both") === k ? "selected" : ""}>${esc(v)}</option>`).join("")}</select>`;
+  // #324: Tabelle wie bei den Ordnern über die ganze Breite – Bereich (mit Stand) · Dienst · Richtung · Ordner im Dienst
+  const row = (r) => `<tr data-cskind="${esc(r.kind)}" data-csid="${esc(r.id)}" class="${r.sync ? "cs-on" : ""}"><th scope="row">${esc(r.label)}
+      <div class="muted sm">${r.sync ? esc(cloudLastText(r.last)) : r.kind === "role" ? `<span class="fold-path" title="${esc(r.path || "")}">${esc(r.path || "Rolle ohne Ordner")}</span>` : "aus"}</div></th>
+      <td>${provSel(r)}</td><td>${modeSel(r)}</td>
+      <td><input class="inp sm cs-remote" data-csremote value="${esc(r.sync ? r.sync.remote : r.default_remote)}" ${r.sync ? "" : "disabled"} spellcheck="false" aria-label="Ordner im Dienst" title="${esc(r.sync ? r.sync.remote : r.default_remote)}" translate="no"></td></tr>`;
+  const grp = (label, rows) => rows.length ? `<tr class="cs-grp"><th colspan="4" scope="rowgroup">${esc(label)}</th></tr>${rows.map(row).join("")}` : "";
   const any = o.rows.some((r) => r.sync);
-  box.innerHTML = `<div class="st-row"><span>Abgleich über die Dienste</span><div>
-    ${provs.length ? "" : '<div class="muted sm">Kein Cloud-Plugin eingeschaltet – unter Plugins „OneDrive“, „Google Drive“ oder „Dropbox“ einschalten, eigene App eintragen und anmelden.</div>'}
+  box.innerHTML = `<h4 class="cs-h">Abgleich über die Dienste</h4>
+    ${provs.length ? "" : '<div class="muted sm">Kein Cloud-Plugin eingeschaltet – unter Plugins „OneDrive“, „Google Drive“ oder „Dropbox“ einschalten (Kategorie „Cloud-API“), eigene App eintragen und anmelden.</div>'}
     ${provs.length && !ready.length ? '<div class="muted sm">Cloud-Plugin eingeschaltet, aber nicht angemeldet (Plugins › … › „Anmelden …“).</div>' : ""}
-    <div class="fx-table cs-table"><table><tbody>${o.rows.map(row).join("")}</tbody></table></div>
+    <div class="fx-table cs-table"><table><thead><tr><th>Bereich</th><th>Dienst</th><th>Richtung</th><th>Ordner im Dienst</th></tr></thead><tbody>
+      ${grp("Ordner-Rollen", o.rows.filter((r) => r.kind === "role"))}${grp("Programmdaten", o.rows.filter((r) => r.kind !== "role"))}
+    </tbody></table></div>
     <div class="fold-acts"><button class="primary sm" data-cssync ${any ? "" : "disabled"}>Jetzt abgleichen</button>
       ${o.conflicts || o.gone ? `<button class="ghost sm" data-cspending>Offen: ${o.conflicts} Konflikt(e), ${o.gone} gelöscht …</button>` : ""}</div>
-    <div class="muted sm">Musik nur über den Sync-Ordner des Desktop-Clients (oben). Zugangsdaten, Snapshots, Arbeit und Cache werden nie abgeglichen. Ändert sich eine Datei hier und im Dienst, fragt TagStudio nach; gelöscht wird nur nach Rückfrage.</div></div></div>`;
+    <p class="muted sm">Musik nur über den Sync-Ordner des Desktop-Clients (oben). Zugangsdaten, Snapshots, Arbeit und Cache werden nie abgeglichen. Ändert sich eine Datei hier und im Dienst, fragt TagStudio nach; gelöscht wird nur nach Rückfrage.</p>`;
 }
 
 function cloudRowSync(tr) {

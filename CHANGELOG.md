@@ -12,8 +12,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   eigene App je Dienst (Client-ID), Anmeldung mit PKCE, Token verschlüsselt; OneDrive privat und geschäftlich (Upload-
   Sitzung für grosse Dateien), Google Drive nur mit Zugriff auf eigene Dateien (`drive.file`), Dropbox mit App-Ordner.
   Grenzen werden gemeldet, nicht wiederholt; Löschen landet im Papierkorb des Dienstes.
-- **Abgleich über die Dienste – Rahmen (#317, Cloud Weg 2):** Einstellungen › Speicherort und Ordner › „Abgleich
-  über die Dienste“ – Rollen Playlists und Export sowie Programmdaten-Teile (Playlists-Speicher, Käufe, Entdecken,
+- **Abgleich über die Dienste – Rahmen (#317, Cloud Weg 2):** Einstellungen › Cloud › „Abgleich über
+  die Dienste“ – Rollen Playlists und Export sowie Programmdaten-Teile (Playlists-Speicher, Käufe, Entdecken,
   Einstellungen ohne Zugangsdaten) mit einem Ordner im Dienst abgleichen, in beiden Richtungen. Ändert sich eine Datei
   hier und dort, zeigt TagStudio beide Fassungen und fragt; gelöschte Dateien werden nur nach Rückfrage gelöscht.
 - **SonoVault (#253–#255, Plugin 1.0):** Dienst-Plugin mit eigenem Schlüssel; zählt die Anfragen je Monat (Free:
@@ -37,6 +37,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Verbessert
 
+- **Einstellungen › Cloud (#324):** eigene Karte nach „Speicherort und Ordner“ mit den Sync-Ordnern der Desktop-
+  Clients, „Nur-online-Dateien herunterladen“ und dem Abgleich über die Dienste; dessen Tabelle hat jetzt eine
+  Kopfzeile (Bereich · Dienst · Richtung · Ordner im Dienst), ist nach Ordner-Rollen und Programmdaten gegliedert und
+  füllt die ganze Kartenbreite wie die Ordner-Tabelle.
 - **Plugin-Kategorie „Cloud-API“ (#323):** OneDrive, Google Drive und Dropbox (je 1.1) stehen auf der Seite Plugins
   und im Katalog unter einer eigenen Kategorie mit Wolken-Symbol statt unter „Online-API“.
 - **Werkzeugleiste im Vergleich (#107):** gruppiert wie in der klassischen Oberfläche – Anzeige, Kopieren, Bearbeiten,

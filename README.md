@@ -565,7 +565,8 @@ Ordner liegen, den der Desktop-Client synchronisiert – TagStudio erkennt ihn (
 zusätzlich relativ zum Sync-Ordner (gilt auch auf einem zweiten Rechner), überspringt beim Einlesen **Nur-online-
 Dateien** („Dateien bei Bedarf“, nichts lädt unbemerkt herunter – auf Wunsch einschaltbar) und meldet
 **Konfliktkopien** des Clients. Snapshots, Arbeit und Sicherung im Sync-Ordner bekommen einen Hinweis (nicht
-empfohlen). **Abgleich über die Dienste** (#317, ohne Desktop-Client): Unten in derselben Karte lassen sich die
+empfohlen). Sync-Ordner und „Nur-online-Dateien“ stehen in der eigenen Karte **Einstellungen › Cloud** (#324). **Abgleich über die Dienste**
+(#317, ohne Desktop-Client): In derselben Karte lassen sich in einer Tabelle (Bereich · Dienst · Richtung · Ordner im Dienst) die
 Rollen **Playlists** und **Export** sowie Programmdaten-Teile (Playlists-Speicher, Käufe, Entdecken, Einstellungen
 ohne Zugangsdaten) mit einem Ordner bei OneDrive, Google Drive oder Dropbox abgleichen (Plugins, eigene App je
 Dienst – Einrichtung in [PLUGINS.md](PLUGINS.md); Standard `/TagStudio/<Rolle>`), in beiden Richtungen oder nur hoch-/herunterladen. **Jetzt abgleichen** zeigt

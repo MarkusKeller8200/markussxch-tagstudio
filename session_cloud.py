@@ -156,7 +156,7 @@ class CloudSyncMixin:
         kommen in eine Liste zum Nachfragen – es wird nie still überschrieben oder gelöscht."""
         targets = [(p, s) for p, s in self._cloud_targets() if not only or p.id in set(only)]
         if not targets:
-            return {"ok": False, "error": "Kein Abgleich eingerichtet – unter Einstellungen › Speicherort und Ordner › "
+            return {"ok": False, "error": "Kein Abgleich eingerichtet – unter Einstellungen › Cloud › "
                                           "„Abgleich über die Dienste“ einen Dienst wählen."}
 
         def job(cancel, progress):

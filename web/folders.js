@@ -41,18 +41,24 @@ async function stFoldersRender() {
       <tr class="fold-add">${f.libraries.length ? "" : '<th scope="row">Bibliotheken</th>'}<td><button class="ghost sm" data-flibadd>+ Bibliothek hinzufügen …</button></td></tr>
       ${rest.map(roleRow).join("")}
     </tbody></table></div>
-    <p class="muted sm">„Ändern …“ fragt, ob der bisherige Inhalt verschoben, kopiert oder dort gelassen wird – nie wird etwas überschrieben. Fremde DJ-Programme werden nie verändert.</p>
-    <div class="st-row"><span>Cloud</span><div><div class="muted sm">${f.cloud.roots.length ? "Sync-Ordner auf diesem Rechner: " + f.cloud.roots.map((c) => `<span title="${esc(c.path)}">☁ ${esc(c.label)}</span>`).join(" · ") : "Kein Sync-Ordner von OneDrive, Google Drive oder Dropbox gefunden."}</div>
-      <label class="check sm"><input type="checkbox" data-fcloudonline ${f.cloud.load_online ? "checked" : ""}> Nur-online-Dateien beim Einlesen herunterladen</label>
-      <div class="muted sm">Aus (Standard): Titel, die nur in der Cloud liegen, werden übersprungen und gemeldet – nichts lädt unbemerkt herunter.</div></div></div>
-    <div id="stCloudSync"></div>`;
-  if (typeof stCloudSyncRender === "function") stCloudSyncRender();          // #317: Abgleich über die Dienste
+    <p class="muted sm">„Ändern …“ fragt, ob der bisherige Inhalt verschoben, kopiert oder dort gelassen wird – nie wird etwas überschrieben. Fremde DJ-Programme werden nie verändert.</p>`;
+  stCloudCardRender(f);                                                    // #324: eigene Karte „Cloud“
   if (typeof TG !== "undefined" && TG.settings && typeof tgLibSelect === "function") {     // #311: Auswahl im Tagger auffrischen
     call("tagger_settings").then((t) => { TG.settings = t; tgLibSelect(); }).catch(() => {});
   }
 }
 
 const FOLDERS = { data: null };
+
+/** #324: Karte „Cloud“ – Sync-Ordner der Desktop-Clients und Abgleich über die Dienste (#317) */
+function stCloudCardRender(f) {
+  const box = $("#stCloud"); if (!box) return;
+  box.innerHTML = `<div class="st-row"><span>Sync-Ordner</span><div><div class="muted sm">${f.cloud.roots.length ? "Auf diesem Rechner: " + f.cloud.roots.map((c) => `<span title="${esc(c.path)}">☁ ${esc(c.label)}</span>`).join(" · ") : "Kein Sync-Ordner von OneDrive, Google Drive oder Dropbox gefunden."}</div>
+      <label class="check sm"><input type="checkbox" data-fcloudonline ${f.cloud.load_online ? "checked" : ""}> Nur-online-Dateien beim Einlesen herunterladen</label>
+      <div class="muted sm">Aus (Standard): Titel, die nur in der Cloud liegen, werden übersprungen und gemeldet – nichts lädt unbemerkt herunter.</div></div></div>
+    <div id="stCloudSync"></div>`;
+  if (typeof stCloudSyncRender === "function") stCloudSyncRender();          // #317: Abgleich über die Dienste
+}
 
 /** Dialog: Rolle oder Bibliothek umstellen (Basis / eigener Ordner / Programmdaten) */
 async function folderChangeDialog({ title, mode, sub, path, base, app, defaultSub, note = "", name = null }) {
@@ -244,7 +250,7 @@ async function foldersStartup() {
     } catch (x) { err(x); stFoldersRender(); }
   });
   document.addEventListener("change", async (e) => {
-    const co = e.target.closest("#stFolders [data-fcloudonline]");
+    const co = e.target.closest("#stCloud [data-fcloudonline]");
     if (co) { try { await call("folders_cloud_online", co.checked); } catch (x) { err(x); } return; }
     const c = e.target.closest("#stFolders [data-factive], #stFolders [data-fsnap]"); if (!c) return;
     const ch = c.dataset.fsnap !== undefined ? { snapshots: c.checked } : { active: c.checked };

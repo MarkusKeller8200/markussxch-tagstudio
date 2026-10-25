@@ -57,7 +57,7 @@ Desktop-Client, z. B. auf einen zweiten Rechner (Windows ↔ Mac). Musik bleibt 
   der Oberfläche bzw. „nicht löschen“ = Stand vergessen, beim nächsten Abgleich wieder übertragen). Nach dem
   Herunterladen werden Playlists-/Käufe-Speicher und Einstellungen der Sitzung neu geladen.
 - **Gegenstelle:** Plugins mit `cloud_list/get/put/delete` (siehe PLUGINS.md, Abschnitt „Cloud-Abgleich“).
-- **Oberfläche** (`web/cloudsync.js`): Abschnitt „Abgleich über die Dienste“ in Einstellungen › Speicherort und Ordner –
+- **Oberfläche** (`web/cloudsync.js`): Abschnitt „Abgleich über die Dienste“ in der Karte Einstellungen › Cloud (#324, eigene Karte mit Sync-Ordnern; Tabelle Bereich · Dienst · Richtung · Ordner im Dienst) –
   je Zeile Dienst (nur angemeldete wählbar), Richtung, Ordner im Dienst, Stand; „Jetzt abgleichen“; Dialog „Abgleich –
   bitte entscheiden“.
 - **Grenzen:** Playlists-Speicher enthält absolute Pfade der Titel – zwischen Windows und Mac passen sie nur, wenn die

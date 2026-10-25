@@ -7,7 +7,7 @@
   "api": 1,
   "author": "MarKusSXCH TagStudio",
   "fields": [],
-  "description": "Gleicht Playlists, Export und Programmdaten-Teile mit einem Ordner in deinem OneDrive ab (privat und geschäftlich) – ohne OneDrive-App, über Microsoft Graph. Braucht eine eigene App in Microsoft Entra (Client-ID). Einrichten unter Einstellungen › Speicherort und Ordner › „Abgleich über die Dienste“.",
+  "description": "Gleicht Playlists, Export und Programmdaten-Teile mit einem Ordner in deinem OneDrive ab (privat und geschäftlich) – ohne OneDrive-App, über Microsoft Graph. Braucht eine eigene App in Microsoft Entra (Client-ID). Einrichten unter Einstellungen › Cloud › „Abgleich über die Dienste“.",
   "notes": "Keine Zusatzpakete nötig. Unter „Anmelden …“ die Client-ID deiner App eintragen und anmelden.",
   "service": {
     "name": "Microsoft Graph (OneDrive)",

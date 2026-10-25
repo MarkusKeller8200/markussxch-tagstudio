@@ -164,7 +164,7 @@ TagStudio remembers the last used values per action.
 
 ### Cloud sync (`cloud_sync`, #317)
 
-A service plugin becomes a target for “Sync via the services” (Settings › Storage location and folders) when its
+A service plugin becomes a target for “Sync via the services” (Settings › Cloud) when its
 `plugin.py` offers these functions (paths with “/”, relative to the account's root folder):
 
 ```python
@@ -368,7 +368,7 @@ need **your own app** at the service; TagStudio does not ship shared credentials
 
 ## Built in: OneDrive, Google Drive and Dropbox (sync via the services)
 
-Targets for Settings › Storage location and folders › **“Sync via the services”** (#317–#320, concept
+Targets for Settings › Cloud › **“Sync via the services”** (#317–#320, concept
 `docs/KONZEPT-CLOUD.md`) – without the desktop client, directly via the API. Each service needs **your own app**
 (client ID); TagStudio ships none. OAuth 2 with PKCE, token stored encrypted, “Sign in …” with instructions and
 “Paste address” as a fallback. TagStudio only writes below its folder (default `TagStudio/<role>`). Limits (HTTP 429,

@@ -539,8 +539,8 @@ may stay empty – they then follow the roles (inbox, work, main library). **Clo
 libraries may lie in a folder synchronised by the desktop client – TagStudio detects it (“☁ OneDrive”), additionally
 stores the path relative to the sync folder (also valid on a second computer), skips **online-only files** (“files on
 demand”) when reading – nothing downloads unnoticed, can be switched on – and reports **conflict copies** of the client.
-Snapshots, work and backup inside a sync folder get a hint (not recommended). **Sync via the services** (#317, without
-desktop client): at the bottom of the same card the roles **Playlists** and **Export** as well as parts of the program
+Snapshots, work and backup inside a sync folder get a hint (not recommended). Sync folders and “online-only files” live in their own card **Settings › Cloud** (#324). **Sync via the services**
+(#317, without desktop client): in the same card, in a table (area · service · direction · folder in the service), the roles **Playlists** and **Export** as well as parts of the program
 data (playlist store, purchases, Discover, settings without credentials) can be synced with a folder on OneDrive, Google
 Drive or Dropbox (plugins, your own app per service – setup in [PLUGINS.en.md](PLUGINS.en.md); default `/TagStudio/<role>`), both directions or upload/download
 only. **Sync now** then shows conflicts with both versions (keep this one / take from the service / keep both) and

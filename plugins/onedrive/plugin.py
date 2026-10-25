@@ -74,7 +74,7 @@ def account(ctx) -> str:
 
 def status(ctx):
     ok, why = ready(ctx)
-    return "angemeldet – Abgleich in Einstellungen › Speicherort und Ordner" if ok else why
+    return "angemeldet – Abgleich in Einstellungen › Cloud" if ok else why
 
 
 def check(ctx, cl=None):

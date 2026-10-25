@@ -132,6 +132,7 @@ async function settingsShow() {
         <span></span><div class="st-path"><button class="ghost sm" id="stUpdCheck">Jetzt nach Updates suchen</button><button class="ghost sm" id="stUpdNotes">Versionshinweise</button></div>
       </div></section>
     <section class="card" id="stFolderCard"><h3>Speicherort und Ordner</h3><div id="stFolders"><span class="muted sm">…</span></div></section>
+    <section class="card" id="stCloudCard"><h3>Cloud</h3><div id="stCloud"><span class="muted sm">…</span></div></section>
     <section class="card" id="stProfileCard"><h3>Profile</h3><div id="stProfiles"><span class="muted sm">…</span></div></section>
     <section class="card" id="stExpertCard"><h3>Expert</h3><div class="st-row" id="stExpertRows"><span class="muted sm">…</span></div></section>`;
   if (typeof stProfilesRender === "function") stProfilesRender();

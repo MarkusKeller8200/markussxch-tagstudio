@@ -100,7 +100,7 @@ function renderPlugins() {
       : `<span class="muted sm">${p.enabled ? "keine" : "– (ausgeschaltet)"}</span>`}</div>`;
     // 4. API-Zeile
     const api = p.service ? `<div class="pl-svc sm">${p.service.docs ? `<a href="#" class="pl-link" data-url="${esc(p.service.docs)}" title="${esc(p.service.docs)}">API: ${esc(p.service.name)} ↗</a>` : `<span>API: ${esc(p.service.name)}</span>`}
-        <span class="muted">· ${esc(p.service.auth_text)} ·</span> <a href="#" class="pl-link" data-svcopen title="Endpunkte mit Umsetzungsstand${p.service.test_query ? ", Testabfrage ohne Track" : ""}${p.service.testable ? ", API-Tester" : ""}">${p.service.endpoints} Endpunkte</a></div>`
+        <span class="muted">· <span>${esc(p.service.auth_text)}</span> ·</span> <a href="#" class="pl-link" data-svcopen title="Endpunkte mit Umsetzungsstand${p.service.test_query ? ", Testabfrage ohne Track" : ""}${p.service.testable ? ", API-Tester" : ""}">${p.service.endpoints} Endpunkte</a></div>`
       : `<div class="pl-svc sm muted">API: keine – arbeitet lokal</div>`;
     // 5. Hinweise (Status, Speicherung von Schlüsseln, Umgebung)
     const notes = [];
