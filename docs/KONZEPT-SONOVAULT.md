@@ -103,6 +103,27 @@ Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Da
 | SV3 | „Auf Plattform öffnen“ (#255) | IDs nur anzeigen; Verlinken erst nach Rückfrage bei Rekordcloud. |
 | SV4 | Vorrang in „Online-Metadaten“ | Nach Beatport und MusicBrainz, vor Deezer und iTunes. |
 
+## 6b. Umsetzung #253–#255 (25.10.2026)
+
+- **Plugin `plugins/sonovault`** (1.0, `min_app` 4.11.0): Schlüssel verschlüsselt (`servicekit`), Integrationsfenster mit
+  22 Endpunkten (3 vollständig, 1 teilweise), eigener Abruf `api_request` – kostenpflichtige Endpunkte (Identify,
+  Browse, Neuerscheinungen, Streams) ruft der Tester nicht auf.
+- **Anfragen-Verwaltung (SV1):** `quota.json` im Datenordner (Monat, verbraucht, Kontingent – Standard 1000, unter
+  „Schlüssel …“ änderbar, Kopfzeilen `RateLimit-*`/`*credit*` zur Info). Jede gesendete Anfrage zählt, Antworten aus dem
+  Zwischenspeicher nicht. Ab 90 % Warnung im Protokoll, bei erreichtem Kontingent kein Abruf mehr (HTTP 429 lokal).
+  Eigene Drosselung 3.05 s (20/min), **429 nie wiederholt** (nicht über `onlinematch.Client`).
+- **Zwischenspeicher:** je URL (ohne Schlüssel) im Datenordner `cache/`, höchstens 30 Tage, abgelaufene werden beim
+  Lesen bzw. vor „Plattform-IDs“ entfernt; Aktion „Zwischenspeicher leeren“ mit Häkchen.
+- **Online-Metadaten (#254, SV4):** Quelle `sonovault` nach MusicBrainz und Discogs, vor Deezer/iTunes (Online-Metadaten
+  2.2). Treffer tragen `allowed_fields` (TIT2, TPE1, TALB, TPUB, TCON, TDRC, TSRC, TLEN) – alles andere filtert
+  `_field_values`; `compare` (BPM, Tonart, Anzahl Quellen) erscheint nur in der Notiz (`compare_note`, Tonart-Vergleich
+  wie OpenKeyScan). Keine IDs, keine Katalognummer, kein Cover. Im Protokoll (Datei) stehen keine SonoVault-Werte.
+- **Plattform-IDs (#255, SV3):** Tagger-Aktion „Plattform-IDs anzeigen (SonoVault) …“ → Ergebnis-Tabelle
+  (`res["table"]`, neu im Kern: `pluginResultTable`), nicht im Protokoll, nie in Tags, keine Links.
+- **Antwortformat:** Feldnamen nach den offiziellen SDKs von Rekordcloud (`sonovault-python`, `sonovault-mcp`);
+  Release-Felder (Album, Label, `release_date`) werden tolerant gelesen – beim ersten echten Test im API-Tester prüfen.
+  Laut SDK liefert die öffentliche API BPM und Tonart (`bpm`, `key_alphanumeric`, `keys`), aber keine Energie.
+
 ## 6a. Offen / vor der Umsetzung klären
 
 - ~~Nutzungsbedingungen~~, ~~Datenschutz~~ → geprüft, siehe Abschnitt 3. Offen: Seite „Data Sources & Attribution“ (nicht

@@ -419,11 +419,19 @@ async function pluginRun(pid, aid) {
   if (outs.length) btns.push({ label: IS_MAC ? "Im Finder zeigen" : "Im Explorer zeigen", value: "reveal", primary: true });
   const what = await modal({
     title: res.cancelled ? "Abgebrochen" : f.label.replace(/\s*…$/, ""),
-    html: `<p style="margin:0">${esc(res.message || "")}</p>${log ? `<pre class="pl-log">${esc(log)}</pre>` : ""}`,
+    html: `<p style="margin:0">${esc(res.message || "")}</p>${pluginResultTable(res.table)}${log ? `<pre class="pl-log">${esc(log)}</pre>` : ""}`,
+    wide: !!(res.table && res.table.rows && res.table.rows.length),
     buttons: btns,
   });
   if (what === "reveal") call("reveal", outs[0]);
   if (res.message) status(res.message, "info");
+}
+
+/** #255: Tabelle im Ergebnis eines Plugins – nur Anzeige (nicht im Protokoll, nicht gespeichert) */
+function pluginResultTable(t) {
+  if (!t || !Array.isArray(t.cols) || !Array.isArray(t.rows) || !t.rows.length) return "";
+  return `<div class="fx-table pl-res-table"><table><thead><tr>${t.cols.map((c) => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>
+    ${t.rows.map((r) => `<tr>${r.map((v, i) => `<td${i === 0 ? ' translate="no"' : ""}>${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 
 /** #238: Ergebnis „öffnen“ eines Plugins – Dateien in den Tagger laden, auf Wunsch ins DJ-Set (Reihenfolge bleibt) */

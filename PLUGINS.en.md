@@ -348,6 +348,25 @@ need **your own app** at the service; TagStudio does not ship shared credentials
   etc. per endpoint – GET only, without sign-in routes and file downloads. A plugin can add `access_info(ctx)` → text
   describing what is used for the check (Beatport: access type and scope).
 
+## Built in: SonoVault
+
+Music metadata API by Rekordcloud ([sonovault.now](https://sonovault.now), over 93 million tracks) with **your own
+key** – TagStudio does not ship one (concept and terms of use: `docs/KONZEPT-SONOVAULT.md`).
+
+- **Key …:** create an account on sonovault.now, confirm the e-mail, create a key (`svk_live_…`; `svk_test_…` only
+  returns sample data) and paste it – stored encrypted, never shown. Privacy note: SonoVault sees which tracks you look up.
+- **Counting requests (Free plan):** the tile shows “this month x of 1000 requests (remaining y)”; from 90 % TagStudio
+  warns, once the quota is reached it stops sending requests (again from the 1st of the month). A different quota can
+  be entered under “Key …”. HTTP 429 is **never** retried.
+- **Online metadata:** source “SonoVault” (off until you tick it) after MusicBrainz and Discogs, before Deezer and
+  iTunes. ISRC first, otherwise artist + title. Per the terms of use **only** title, artist, album/release, label,
+  genre, date, duration and ISRC may go into the file – BPM and key only appear as a **comparison** in the note.
+- **Show platform IDs (SonoVault) …** (tagger): IDs on Spotify, Beatport, Apple Music, Tidal, Discogs, MusicBrainz and
+  YouTube as a table – **display only**, never written to the files, not in the log.
+- **Cache:** responses are kept for at most 30 days in the plugin's data folder, never exported; “Clear cache” deletes them.
+- **Integration window:** endpoints with implementation status; the API tester and “Check access” count along and do
+  not call paid endpoints (identification, browse, new releases).
+
 ## Built in: Lexicon
 
 Connects TagStudio with [Lexicon DJ](https://www.lexicondj.com) through its Local API (in Lexicon: Settings ›

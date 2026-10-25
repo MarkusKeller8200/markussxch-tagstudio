@@ -2343,6 +2343,37 @@ class UiTest(unittest.TestCase):
         self.assertFalse(pg.locator('#modal [data-ok="lastfm"]').is_checked())
         self.assertEqual(pg.locator('#modal [data-ok="mode"]').input_value(), "empty")
 
+    def test_sonovault_plugin(self):
+        """#253–#255: SonoVault-Plugin – Schlüssel mit Datenschutz-Hinweis, Kontingent auf der Karte, Quelle in
+        „Online-Metadaten“, Plattform-IDs als Tabelle (nur Anzeige)."""
+        pg = self.pg
+        pg.click('.nav[data-module="plugins"]')
+        card = '.pl-card[data-pid="sonovault"]'
+        pg.wait_for_selector(card + ' [data-paction="keys"]')
+        self.assertIn("kein Schlüssel", pg.inner_text(card))
+        self.assertIn("0 von 1000 Anfragen", pg.inner_text(card))
+        pg.click(card + ' [data-paction="keys"]')
+        pg.wait_for_selector("#modal .pl-link")
+        self.assertIn("SonoVault sieht, welche Titel du abfragst", pg.inner_text("#modal"))
+        pg.fill('#modal [data-ok="sonovault"]', "svk_live_geheim")
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("document.querySelector('#modal').textContent.includes('Schlüssel gespeichert')"))
+        pg.click("#mBtns button >> nth=0")
+        pg.wait_for_function(f"document.querySelector('{card}').textContent.includes('Schlüssel gespeichert')")
+        with open(os.path.join(self.home, ".tagstudio.json"), encoding="utf-8") as fh:
+            self.assertNotIn("svk_live_geheim", fh.read())
+        # Ergebnis-Tabelle (Plattform-IDs) wird angezeigt, Dateiname nicht übersetzt
+        html = pg.evaluate("pluginResultTable({cols: ['Datei', 'Plattform', 'ID'], rows: [['a.mp3', 'Spotify', 'X1']]})")
+        self.assertIn('<td translate="no">a.mp3</td>', html)
+        self.assertEqual(pg.evaluate("pluginResultTable(null)"), "")
+        # Quelle im Formular „Online-Metadaten“
+        self.load_tagger()
+        pg.click(".tg-row >> nth=0")
+        pg.click('#tgPlugins [data-plugin="online"][data-action="fetch"]')
+        pg.wait_for_selector('#modal [data-ok="sonovault"]')
+        self.assertFalse(pg.locator('#modal [data-ok="sonovault"]').is_checked())
+        self.assertEqual(self.errors, [])
+
     def test_restart_and_quit_buttons(self):
         """#134/#132: Symbole unten in der Seitenleiste – Neustart stellt den Zustand wieder her, Beenden speichert
         und beendet den Server; ein zweiter Start während die erste Instanz läuft, endet sofort (#131)."""

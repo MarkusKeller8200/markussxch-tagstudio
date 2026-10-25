@@ -1,11 +1,11 @@
 {
   "id": "online",
   "name": "Online-Metadaten",
-  "version": "2.1",
+  "version": "2.2",
   "min_app": "4.8.0",
   "category": "online",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
-  "description": "Gemeinsame Suche über die Dienst-Plugins MusicBrainz (optional mit AcoustID-Fingerabdruck), Discogs, Deezer, iTunes und Last.fm – mit Vorschau, nichts wird ohne Bestätigung geändert. Standard: nur leere Felder füllen. Welche Dienste zur Wahl stehen, bestimmen die eingeschalteten Dienst-Plugins; Schlüssel trägst du dort unter „Schlüssel …“ ein.",
+  "description": "Gemeinsame Suche über die Dienst-Plugins MusicBrainz (optional mit AcoustID-Fingerabdruck), Discogs, SonoVault, Deezer, iTunes und Last.fm – mit Vorschau, nichts wird ohne Bestätigung geändert. Standard: nur leere Felder füllen. Welche Dienste zur Wahl stehen, bestimmen die eingeschalteten Dienst-Plugins; Schlüssel trägst du dort unter „Schlüssel …“ ein.",
   "notes": "Keine Zusatzpakete nötig. Die Dienste sind eigene Plugins (seit 4.6)."
 }

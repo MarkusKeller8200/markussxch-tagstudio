@@ -491,7 +491,8 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   grau, abgewählte und schon gefüllte ungehakt. Eigene **Beatport-Playlists** holt Playlists › Importieren ▾ › „Aus
   Beatport …“ (Einträge ohne Datei mit Link, nur lesen).
 - **Online-Metadaten:** Album, Datum, Label, Katalognummer, ISRC, Genre, Cover u. a. von MusicBrainz (auch per
-  AcoustID-Fingerabdruck), Deezer, Spotify, iTunes, SoundCloud, Discogs und Last.fm. Standard: nur leere Felder ergänzen; je Feld ist die
+  AcoustID-Fingerabdruck), Deezer, Spotify, iTunes, SoundCloud, Discogs, **SonoVault** (eigener Schlüssel, Free: 1000
+  Anfragen im Monat – TagStudio zählt mit; BPM/Tonart nur zum Vergleich, Plattform-IDs nur anzeigen) und Last.fm. Standard: nur leere Felder ergänzen; je Feld ist die
   erste Quelle vorausgewählt, andere erscheinen als Alternative. Discogs-Token, Last.fm- und AcoustID-Schlüssel unter
   Plugins › Online-Metadaten › „Schlüssel …“ (verschlüsselt gespeichert); „Verbindungen testen“ prüft die Dienste.
 - **Spotify und SoundCloud (nur lesen, eigene App beim Dienst):** Playlists, Lieblingssongs bzw. Likes als Playlists

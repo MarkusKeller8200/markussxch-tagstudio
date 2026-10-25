@@ -3,7 +3,9 @@
 Die Dienste selbst sind eigene Plugins: MusicBrainz (+ AcoustID), Discogs, Deezer, iTunes und Last.fm. Dieses Plugin
 fragt die eingeschalteten nacheinander ab und legt alle Änderungen als Vorschläge vor (Vorschau mit Häkchen,
 Rückgängig). Standard ist „nur leere Felder füllen“. Je Feld ist nur der Wert der ersten Quelle (Reihenfolge
-MusicBrainz → Discogs → Deezer → iTunes) vorausgewählt, weitere erscheinen als Alternative.
+MusicBrainz → Discogs → SonoVault → Deezer → iTunes) vorausgewählt, weitere erscheinen als Alternative.
+Ein Treffer kann „allowed_fields“ mitbringen (z. B. SonoVault: nur die laut Nutzungsbedingungen erlaubten Felder) und
+„compare“ (BPM/Tonart nur zum Vergleich in der Notiz, nie als Vorschlag).
 
 Schlüssel liegen verschlüsselt im jeweiligen Dienst-Plugin (Discogs, Last.fm, AcoustID – „Schlüssel …“ dort).
 Nur Standardbibliothek.
@@ -17,11 +19,12 @@ from onlinematch import HttpError, MAYBE, SURE
 
 # Quelle (Optionsschlüssel wie bis 4.5, damit gemerkte Einstellungen gelten) → Dienst-Plugin, in Vorrang-Reihenfolge
 SOURCES = [("mb", "musicbrainz", "MusicBrainz (frei)"), ("discogs", "discogs", "Discogs (eigener Token nötig)"),
+           ("sonovault", "sonovault", "SonoVault (eigener Schlüssel nötig, Free: 1000 Anfragen im Monat)"),   # #254, SV4
            ("deezer", "deezer", "Deezer (frei)"), ("spotify", "spotify", "Spotify (eigene Spotify-App und Anmeldung nötig)"),
            ("itunes", "itunes", "iTunes (frei, langsam: ca. 20 Abfragen pro Minute)"),
            ("soundcloud", "soundcloud", "SoundCloud (eigene SoundCloud-App und Anmeldung nötig)")]
 EXTRA = [("acoustid", "acoustid"), ("lastfm", "lastfm")]
-SOURCE_NAME = {"mb": "MusicBrainz", "discogs": "Discogs", "deezer": "Deezer", "itunes": "iTunes", "lastfm": "Last.fm",
+SOURCE_NAME = {"mb": "MusicBrainz", "discogs": "Discogs", "sonovault": "SonoVault", "deezer": "Deezer", "itunes": "iTunes", "lastfm": "Last.fm",
                "spotify": "Spotify", "soundcloud": "SoundCloud",
                "acoustid": "AcoustID"}
 DEFAULT_ON = {"mb": True, "deezer": True}
@@ -104,7 +107,41 @@ def _field_values(c, opts) -> list:
     out.append(("TPOS", c.get("disc", ""), "CD", opts.get("track")))
     for k, v in (c.get("ids") or {}).items():
         out.append((k, v, k.split(":", 1)[1], opts.get("ids")))
+    allowed = c.get("allowed_fields")
+    if allowed is not None:                                  # #254: Nutzungsbedingungen der Quelle
+        out = [x for x in out if x[0] in allowed]
     return out
+
+
+def compare_note(f, c) -> str:
+    """#254: BPM/Tonart einer Quelle nur als Vergleich mit den Werten der Datei (wie OpenKeyScan)."""
+    cmp = c.get("compare") or {}
+    if not cmp:
+        return ""
+    import keys
+    import keyscan
+    parts = []
+    code = keys.parse_key(str(cmp.get("key") or "")) if cmp.get("key") else None
+    if code:
+        txt = f"Tonart {keys.format_key(code, 'camelot')}" + (f" ({cmp['sources']} Quellen)" if (cmp.get("sources") or 0) > 1 else "")
+        known = dict(keyscan.known_keys(f))
+        if known.get("TKEY"):
+            txt += f" – TKEY {keyscan.REL_TEXT[keyscan.relation(code, known['TKEY'])]}"
+        parts.append(txt)
+    try:
+        bpm = float(cmp.get("bpm") or 0)
+    except (TypeError, ValueError):
+        bpm = 0
+    if bpm:
+        txt = f"{bpm:g} BPM"
+        try:
+            cur = float(f.text("TBPM").replace(",", ".") or 0)
+        except ValueError:
+            cur = 0
+        if cur:
+            txt += " – TBPM " + ("gleich" if abs(cur - bpm) < 0.6 else f"{cur:g} (abweichend)")
+        parts.append(txt)
+    return f" · Vergleich {cmp.get('source', '')}: " + ", ".join(parts) if parts else ""
 
 
 def _same(key, old, new):
@@ -127,7 +164,8 @@ def propose_file(ctx, cl, f, hits, opts, group, stats, auth=None):
     for src, c, s in hits:
         sure = s >= SURE
         note = f"{SOURCE_NAME[src]}: {', '.join(c.get('artists') or [])} – {c.get('title', '')}" + \
-               (f" ({c['mix']})" if c.get("mix") else "") + f" · {round(s * 100)} %" + ("" if sure else " · unsicher")
+               (f" ({c['mix']})" if c.get("mix") else "") + f" · {round(s * 100)} %" + ("" if sure else " · unsicher") + \
+            compare_note(f, c)
         lk = {"link": c.get("url") or "", "link_label": SOURCE_NAME[src]}      # #144: Treffer auf der Plattform
         for key, val, label, wanted in _field_values(c, opts):
             val = (val or "").strip()
@@ -277,7 +315,10 @@ def run(action, ctx, files, opts):
                 continue
             if c and s >= MAYBE:
                 hits.append((src, c, s))
-                ctx.log(f"{name} · {SOURCE_NAME[src]}: {', '.join(c.get('artists') or [])} – {c.get('title', '')} ({round(s * 100)} %)")
+                if c.get("allowed_fields") is not None:       # #254: keine Werte dieser Quelle ins Protokoll (Datei)
+                    ctx.log(f"{name} · {SOURCE_NAME[src]}: gefunden ({round(s * 100)} %)")
+                else:
+                    ctx.log(f"{name} · {SOURCE_NAME[src]}: {', '.join(c.get('artists') or [])} – {c.get('title', '')} ({round(s * 100)} %)")
             else:
                 ctx.log(f"{name} · {SOURCE_NAME[src]}: nicht gefunden" + (f" (bester Kandidat {round(s * 100)} %)" if c else ""))
         if use_lastfm and info["title"]:

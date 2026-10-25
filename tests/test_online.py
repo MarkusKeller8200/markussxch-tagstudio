@@ -140,7 +140,9 @@ class TestMatch(unittest.TestCase):
         self.assertIsNone(cl.json("https://musicbrainz.org/ws/2/isrc/NOPE"))     # 404 → None
 
 
-class TestOnlinePlugin(Base):
+class OnlineHarness(Base):
+    """Session mit Testbibliothek und nachgebauten Diensten (ohne eigene Tests – auch für test_sonovault)."""
+
     def setUp(self):
         super().setUp()
         write_mp3(os.path.join(self.B, "n.mp3"), [text("TIT2", "Nordlicht"), text("TPE1", "Mara Lind"), text("TSRC", "CHA012100001"),
@@ -190,6 +192,8 @@ class TestOnlinePlugin(Base):
         self.assertIsNone(st["error"], st)
         return st["result"]
 
+
+class TestOnlinePlugin(OnlineHarness):
     def test_musicbrainz_and_deezer(self):
         res = self.fetch(["n.mp3", "k.mp3", "u.mp3"], bpm=True)
         self.assertIn("2 sicher gefunden", res["message"])
@@ -254,7 +258,7 @@ class TestOnlinePlugin(Base):
     def test_keys_status_test_and_missing(self):
         info = {p["id"]: p for p in self.s.plugins_list()["plugins"]}["online"]
         self.assertEqual(info["state"], "ready")
-        self.assertIn("ohne Schlüssel/fpcalc: Discogs, Spotify, SoundCloud, AcoustID, Last.fm", info["status_text"])
+        self.assertIn("ohne Schlüssel/fpcalc: Discogs, SonoVault, Spotify, SoundCloud, AcoustID, Last.fm", info["status_text"])
         # Discogs/Last.fm ohne Schlüssel: übersprungen mit Hinweis, kein Fehler
         res = self.fetch(["k.mp3"], mb=False, deezer=False, itunes=True, discogs=True, lastfm=True, cover="replace",
                          itunes_country="de")
@@ -273,7 +277,7 @@ class TestOnlinePlugin(Base):
         self.act("keys", pid="discogs", discogs="DTOK")
         info = {p["id"]: p for p in self.s.plugins_list()["plugins"]}
         self.assertIn("Token gespeichert", info["discogs"]["status_text"])
-        self.assertIn("ohne Schlüssel/fpcalc: Spotify, SoundCloud, AcoustID, Last.fm", info["online"]["status_text"])
+        self.assertIn("ohne Schlüssel/fpcalc: SonoVault, Spotify, SoundCloud, AcoustID, Last.fm", info["online"]["status_text"])
         with open(os.path.join(plugins.data_root(), "discogs", "keys.bin"), "rb") as fh:
             raw = fh.read()
         if os.name == "nt":

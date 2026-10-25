@@ -8,6 +8,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **SonoVault (#253–#255, Plugin 1.0):** Dienst-Plugin mit eigenem Schlüssel; zählt die Anfragen je Monat (Free:
+  1000), zeigt den Rest auf der Kachel, warnt ab 90 % und fragt beim erreichten Kontingent nichts mehr ab; HTTP 429 wird
+  nie wiederholt. Neue Quelle in „Online-Metadaten“ (2.2) nach MusicBrainz/Discogs – nur die laut Nutzungsbedingungen
+  erlaubten Felder, BPM und Tonart nur als Vergleich in der Notiz. „Plattform-IDs anzeigen (SonoVault) …“ zeigt IDs
+  bei Spotify, Beatport & Co. als Tabelle (nur Anzeige). Zwischenspeicher höchstens 30 Tage, nie exportiert.
 - **Wellenform im MP3 (#222, Entscheid W1):** Einstellungen › Sicherungen und Speichern › „Wellenform im MP3“
   (Standard aus) – beim Speichern kommt die eigene Wellenform als GEOB „TagStudio Overview“ (`wavetag.py`, rund
   1.6 KB) in die Datei; der Player liest sie, wenn der Cache leer ist, und legt sie wieder in den Cache. Serato-Felder

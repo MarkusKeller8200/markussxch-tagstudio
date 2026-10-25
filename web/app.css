@@ -646,6 +646,7 @@ span.xml-treeonly{display:contents}
 .svc-url code{word-break:break-all}
 .svc-body{max-height:40vh;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;font:12px/1.45 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
 .pl-prev{max-height:52vh}
+.pl-res-table{max-height:52vh;margin-top:10px}   /* #255: Tabelle im Plugin-Ergebnis */
 .pl-prev td{vertical-align:top}
 .pl-prev .pv-val{white-space:pre-line;max-height:9.5em;overflow:auto}   /* #183: mehrzeilige Werte (Liedtexte) */
 .pl-prev .pv-file td{background:var(--raise);border-top:1px solid var(--line)}

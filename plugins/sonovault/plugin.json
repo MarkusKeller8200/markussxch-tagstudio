@@ -1,0 +1,320 @@
+{
+  "id": "sonovault",
+  "name": "SonoVault",
+  "version": "1.0",
+  "min_app": "4.11.0",
+  "category": "online",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Musik-Metadaten-API von Rekordcloud (über 93 Mio. Titel) mit eigenem Schlüssel (Free-Tarif: 1000 Anfragen im Monat). Liefert in „Online-Metadaten“ Titel, Künstler, Release, Label, Genre, Datum, Dauer und ISRC als Vorschlag; BPM und Tonart nur zum Vergleich. Zeigt Plattform-IDs (Spotify, Beatport, Apple Music …) an. TagStudio zählt die Anfragen je Monat und warnt vor dem Überschreiten.",
+  "notes": "Keine Zusatzpakete nötig. Nutzungsbedingungen: nur Titel, Künstler, Release, Label, Genre, Datum, Dauer und ISRC dürfen in Dateien; nichts wird exportiert, der Zwischenspeicher läuft nach 30 Tagen ab.",
+  "fields": [],
+  "service": {
+    "name": "SonoVault API",
+    "kind": "online",
+    "home": "https://sonovault.now",
+    "docs": "https://sonovault.now/docs",
+    "base": "https://api.sonovault.now",
+    "auth": "key",
+    "auth_note": "Eigener Schlüssel (svk_live_…; svk_test_… liefert Musterdaten) im Kopf x-api-key; verschlüsselt gespeichert.",
+    "limits": "Free: 1000 Anfragen/Monat, 20 pro Minute – TagStudio zählt mit und wiederholt bei 429 nie",
+    "terms": "https://sonovault.now/terms",
+    "endpoints": [
+      {
+        "id": "genres",
+        "method": "GET",
+        "path": "/v1/genres",
+        "label": "Genre-Liste",
+        "status": "partial",
+        "use": "Verbindung testen (Schlüssel und Kontingent)",
+        "note": "1 Anfrage",
+        "params": []
+      },
+      {
+        "id": "tracks-search",
+        "method": "GET",
+        "path": "/v1/tracks/search",
+        "label": "Titel suchen (Künstler + Titel)",
+        "status": "full",
+        "use": "Online-Metadaten: Suche ohne ISRC",
+        "note": "beide Angaben nötig, keine Freitextsuche",
+        "params": [
+          {
+            "name": "artist",
+            "example": "Daft Punk",
+            "required": true
+          },
+          {
+            "name": "title",
+            "example": "One More Time",
+            "required": true
+          },
+          {
+            "name": "limit",
+            "default": "5"
+          }
+        ]
+      },
+      {
+        "id": "tracks-isrc",
+        "method": "GET",
+        "path": "/v1/tracks/isrc/{isrc}",
+        "label": "Titel über ISRC",
+        "status": "full",
+        "use": "Online-Metadaten: direkte Suche über ISRC",
+        "params": [
+          {
+            "name": "isrc",
+            "example": "GBDUW0000053"
+          }
+        ]
+      },
+      {
+        "id": "track",
+        "method": "GET",
+        "path": "/v1/tracks/{id}",
+        "label": "Ein Titel (SonoVault-ID)",
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "123"
+          }
+        ]
+      },
+      {
+        "id": "tracks-links",
+        "method": "GET",
+        "path": "/v1/tracks/links",
+        "label": "Plattform-IDs und Links",
+        "status": "full",
+        "use": "Plattform-IDs anzeigen (nur Anzeige, nie in Tags)",
+        "note": "genau ein Kennzeichen: isrc, id, spotify_id, beatport_id …",
+        "params": [
+          {
+            "name": "isrc",
+            "example": "GBDUW0000053"
+          }
+        ]
+      },
+      {
+        "id": "tracks-iswc",
+        "method": "GET",
+        "path": "/v1/tracks/iswc",
+        "label": "ISWC einer Aufnahme",
+        "status": "none",
+        "note": "nicht in Tags erlaubt",
+        "params": [
+          {
+            "name": "isrc",
+            "example": "GBDUW0000053"
+          }
+        ]
+      },
+      {
+        "id": "iswc-recordings",
+        "method": "GET",
+        "path": "/v1/tracks/iswc/{iswc}",
+        "label": "Aufnahmen eines Werks (ISWC)",
+        "status": "none",
+        "params": [
+          {
+            "name": "iswc",
+            "example": "T0710204399"
+          }
+        ]
+      },
+      {
+        "id": "tracks-resolve",
+        "method": "POST",
+        "path": "/v1/tracks/resolve",
+        "label": "Viele Titel auf einmal (Bulk, bis 100 Zeilen)",
+        "status": "none",
+        "note": "1 Kredit je Zeile (#256)",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "tracks-identify",
+        "method": "POST",
+        "path": "/v1/tracks/identify",
+        "label": "Audio-Erkennung",
+        "status": "none",
+        "note": "kostenpflichtig: 10 + 1 Kredit je MB (#257)",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "tracks-browse",
+        "method": "GET",
+        "path": "/v1/tracks/browse",
+        "label": "Katalog durchstöbern",
+        "status": "none",
+        "note": "nur bezahlte Tarife",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "artists-search",
+        "method": "GET",
+        "path": "/v1/artists/search",
+        "label": "Künstler suchen",
+        "status": "none",
+        "note": "(#258)",
+        "params": [
+          {
+            "name": "name",
+            "example": "Daft Punk"
+          }
+        ]
+      },
+      {
+        "id": "artist",
+        "method": "GET",
+        "path": "/v1/artists/{id}",
+        "label": "Künstler",
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ]
+      },
+      {
+        "id": "artist-releases",
+        "method": "GET",
+        "path": "/v1/artists/{id}/releases",
+        "label": "Veröffentlichungen eines Künstlers",
+        "status": "none",
+        "note": "neueste zuerst (#258)",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ]
+      },
+      {
+        "id": "labels-search",
+        "method": "GET",
+        "path": "/v1/labels/search",
+        "label": "Labels suchen",
+        "status": "none",
+        "note": "(#258)",
+        "params": [
+          {
+            "name": "name",
+            "example": "Defected"
+          }
+        ]
+      },
+      {
+        "id": "label",
+        "method": "GET",
+        "path": "/v1/labels/{id}",
+        "label": "Label",
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ]
+      },
+      {
+        "id": "label-releases",
+        "method": "GET",
+        "path": "/v1/labels/{id}/releases",
+        "label": "Veröffentlichungen eines Labels",
+        "status": "none",
+        "note": "neueste zuerst (#258)",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ]
+      },
+      {
+        "id": "label-artists",
+        "method": "GET",
+        "path": "/v1/labels/{id}/artists",
+        "label": "Künstler eines Labels",
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ]
+      },
+      {
+        "id": "releases-search",
+        "method": "GET",
+        "path": "/v1/releases/search",
+        "label": "Veröffentlichungen suchen",
+        "status": "none",
+        "params": [
+          {
+            "name": "title",
+            "example": "Discovery"
+          },
+          {
+            "name": "artist",
+            "example": "Daft Punk"
+          }
+        ]
+      },
+      {
+        "id": "release",
+        "method": "GET",
+        "path": "/v1/releases/{id}",
+        "label": "Eine Veröffentlichung mit Trackliste",
+        "status": "none",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ]
+      },
+      {
+        "id": "releases-new",
+        "method": "GET",
+        "path": "/v1/releases/new",
+        "label": "Neuerscheinungen",
+        "status": "none",
+        "note": "nur bezahlte Tarife",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "suggestions",
+        "method": "POST",
+        "path": "/v1/tracks/{id}/suggestions",
+        "label": "Korrektur melden",
+        "status": "none",
+        "note": "(#259)",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "streams",
+        "method": "GET",
+        "path": "/v1/streams",
+        "label": "Stream-Monitoring",
+        "status": "none",
+        "note": "kostenpflichtig je Stream (#259)",
+        "params": [],
+        "test": false
+      }
+    ],
+    "example": {
+      "artist": "Daft Punk",
+      "title": "One More Time",
+      "isrc": "GBDUW0000053",
+      "duration": "5:20"
+    }
+  }
+}

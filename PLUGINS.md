@@ -355,6 +355,28 @@ geändert. Beide brauchen eine **eigene App** beim Dienst; TagStudio liefert kei
   unvollständig), *kein Zugriff* (401/403) usw. – nur GET, ohne Anmelde-Routen und Datei-Downloads. Ein Plugin kann mit
   `access_info(ctx)` → Text ergänzen, womit geprüft wird (Beatport: Zugang und Scope).
 
+## Eingebaut: SonoVault
+
+Musik-Metadaten-API von Rekordcloud ([sonovault.now](https://sonovault.now), über 93 Mio. Titel) mit **eigenem
+Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: `docs/KONZEPT-SONOVAULT.md`).
+
+- **Schlüssel …:** Konto auf sonovault.now anlegen, E-Mail bestätigen, Schlüssel erstellen (`svk_live_…`; `svk_test_…`
+  liefert nur Musterdaten) und einfügen – verschlüsselt gespeichert, nie angezeigt. Hinweis Datenschutz: SonoVault
+  sieht, welche Titel du abfragst.
+- **Anfragen zählen (Free-Tarif):** Die Kachel zeigt „diesen Monat x von 1000 Anfragen (Rest y)“; ab 90 % warnt
+  TagStudio, beim Erreichen des Kontingents fragt es nichts mehr ab (ab dem 1. des Monats wieder). Ein anderes
+  Kontingent lässt sich unter „Schlüssel …“ eintragen. Bei HTTP 429 wird **nie** wiederholt.
+- **Online-Metadaten:** Quelle „SonoVault“ (aus, bis du sie anhakst) nach MusicBrainz und Discogs, vor Deezer und
+  iTunes. Zuerst über die ISRC, sonst Künstler + Titel. In die Datei dürfen laut Nutzungsbedingungen **nur** Titel,
+  Künstler, Album/Release, Label, Genre, Datum, Dauer und ISRC – BPM und Tonart erscheinen nur als **Vergleich** in
+  der Notiz („Vergleich SonoVault: Tonart 08A (2 Quellen) – TKEY gleich, 122 BPM – TBPM gleich“).
+- **Plattform-IDs anzeigen (SonoVault) …** (Tagger): IDs bei Spotify, Beatport, Apple Music, Tidal, Discogs,
+  MusicBrainz und YouTube als Tabelle – **nur Anzeige**, nie in die Dateien, nicht im Protokoll.
+- **Zwischenspeicher:** Antworten liegen höchstens 30 Tage im Datenordner des Plugins (wiederholte Abfragen kosten
+  dann nichts), werden nie exportiert und lassen sich mit „Zwischenspeicher leeren“ löschen.
+- **Integrationsfenster:** Endpunkte mit Umsetzungsstand; API-Tester und „Zugriff prüfen“ zählen mit und rufen
+  kostenpflichtige Endpunkte (Erkennung, Browse, Neuerscheinungen) nicht auf.
+
 ## Eingebaut: Lexicon
 
 Verbindet TagStudio mit [Lexicon DJ](https://www.lexicondj.com) über dessen Local API (in Lexicon: Settings ›

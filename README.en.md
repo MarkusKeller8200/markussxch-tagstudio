@@ -471,7 +471,8 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   deselected and already filled ones unticked. Your own **Beatport playlists** are fetched via Playlists › Import ▾ ›
   “From Beatport …” (entries without a file with a link, read only).
 - **Online metadata:** album, date, label, catalogue number, ISRC, genre, cover and more from MusicBrainz (also via
-  AcoustID fingerprint), Deezer, Spotify, iTunes, SoundCloud, Discogs and Last.fm. Default: only complete empty fields; per field the first
+  AcoustID fingerprint), Deezer, Spotify, iTunes, SoundCloud, Discogs, **SonoVault** (own key, Free: 1000 requests per
+  month – TagStudio counts along; BPM/key for comparison only, platform IDs display only) and Last.fm. Default: only complete empty fields; per field the first
   source is preselected, others appear as alternatives. Discogs token, Last.fm and AcoustID keys under Plugins ›
   Online metadata › “Key …” (stored encrypted); “Test connections” checks the services.
 - **Spotify and SoundCloud (read only, own app at the service):** playlists, Liked Songs or likes as playlists with
