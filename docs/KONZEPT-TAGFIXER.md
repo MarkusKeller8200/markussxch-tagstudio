@@ -26,6 +26,20 @@ Mehrfachwerte (mehrere Künstler, Genres …) stehen je nach Programm unterschie
   Ausnahmen-Editor (#343) und Smart Fix (#339).
 - **Spaltenbreite (#340, 4.12.0):** Vorschau-Tabelle mit Griffen wie bei den Käufen (`colResize(…, "fixer")`),
   gemerkt, bleibt bei jeder neuen Vorschau.
+- **Ausnahmen je Feld (#342, 4.12.0):** cfg `fixer_exceptions` = `{Ziel: [Namen]}`; Ziel ist eine Gruppe aus
+  `compare.EXCEPTION_GROUPS` (`@artists` Künstler und Mitwirkende, `@genre` TCON, `@mood` TMOO/TXXX:MOOD) oder ein
+  einzelnes Feld. `exceptions_for(feld)` = eigene + Gruppe. `split_multi(…, exceptions)` ersetzt Treffer (Wortgrenzen,
+  Leerzeichen beliebig, gross/klein egal, längste zuerst) vor dem Trennen durch Platzhalter und setzt sie danach
+  unverändert wieder ein – „Above & Beyond“ bleibt auch in „Above & Beyond; Zoë Johnston“ zusammen. Gilt für
+  `plan_multi_fix` und künftig Smart Fix (#339). Einstellungsgruppe „history“ (Export/Import). Keine mitgelieferte
+  Grundliste – die Namen kommen aus der eigenen Sammlung.
+- **Editor für Ausnahmen (#343, 4.12.0):** Knopf „Ausnahmen … (n)“ unter den Trennern, `web/fixerexc.js`. Feld/Gruppe,
+  Suchtexte (Standard `&` plus die aktiven Trenner, mehrere mit Leerzeichen), Vorschläge aus allen geladenen Titeln
+  (Vergleich + Tagger) über `Session.fixer_exception_candidates`: Feldwert an den übrigen aktiven Trennern zerlegt
+  (ohne die, die einen Suchtext enthalten), Teile mit Suchtext, Anzahl Titel. Häkchen + „Angehakte übernehmen (n)“,
+  rechts die Liste (bearbeiten, ✕ entfernen, von Hand hinzufügen). Bestehende Ausnahmen in den Vorschlägen
+  ausgeblendet; „Bestehende Ausnahmen anzeigen“ bzw. Auge je Eintrag blendet sie ein, Zeile markiert mit „Ausnahme“.
+  Gespeichert erst mit „Speichern“ (`set_fixer_exceptions`, bereinigt).
 - **Auswahl in der Vorschau (#341, 4.12.0):** Häkchen-Spalte (Standard an), Kopf alle/keine (halb bei Teilauswahl),
   Umschalt-Klick für Bereiche, Zähler „x von y Änderung(en) werden ausgeführt“. Jede Zeile hat die Kennung
   `Session._fixer_id` (Pfad, Feld, neuer Wert); `fixer_apply` erhält die **abgewählten** Kennungen (`skip`) – Zeilen
@@ -47,7 +61,7 @@ Mehrfachwerte (mehrere Künstler, Genres …) stehen je nach Programm unterschie
 
 ## 5. Offen / Ideen
 
-- Keine offenen Issues. Mögliche Ausbauten: eigene Trennzeichen eingeben, Ausnahmeliste für Namen mit Trennern.
+- Mögliche Ausbauten: eigene Trennzeichen eingeben; abgewählte Vorschau-Zeilen direkt als Ausnahme übernehmen (#341).
 
 ## 6. Tests
 

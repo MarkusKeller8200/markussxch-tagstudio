@@ -323,7 +323,12 @@ shows how to download the tracks yourself on Beatport's download page and take t
 ### Tag fixer
 
 Unify multiple values – scope (current pair, one side, selected pairs, all files, tagger selection), fields,
-detected separators, output (separator or ID3v2.4 multiple values), live preview. In the preview each change can be deselected (checkbox column, Shift-click for ranges,
+detected separators, output (separator or ID3v2.4 multiple values), live preview. **“Exceptions …”** keeps names containing a separator together
+(e.g. “Above & Beyond”, “Eli & Fur”) – per field or field group (artists and contributors, genre, mood), ignoring case
+and spaces. The editor suggests values from the loaded tracks that contain a search text (e.g. `&`), with the number of
+tracks: check them, “Take over checked”, save. Existing exceptions are hidden in the suggestions – “Show existing
+exceptions” or the eye (○/◉) per entry shows them again, marked. Exceptions are part of the settings export.
+In the preview each change can be deselected (checkbox column, Shift-click for ranges,
 header = all/none) – “Apply” only runs the checked ones, as one undo step. Separators are shown as code next to
 their description – spaces as `␣`, the null separator as `\0` –, the chosen output separator as well.
 

@@ -336,6 +336,11 @@ von Beatport selbst lädst und mit „Abholen“ übernimmst.
 
 Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare, alle Dateien,
 Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte), laufende Vorschau.
+**„Ausnahmen …“** hält Namen mit Trennzeichen zusammen (z. B. „Above & Beyond“, „Eli & Fur“) – je Feld oder
+Feldgruppe (Künstler und Mitwirkende, Genre, Stimmung), gross/klein und Leerzeichen egal. Der Editor schlägt Werte
+aus den geladenen Titeln vor, die einen Suchtext (z. B. `&`) enthalten, mit Anzahl Titel: anhaken, „Angehakte
+übernehmen“, speichern. Bestehende Ausnahmen sind in den Vorschlägen ausgeblendet – „Bestehende Ausnahmen anzeigen“
+oder das Auge (○/◉) je Eintrag blendet sie markiert ein. Die Ausnahmen gehören zum Einstellungs-Export.
 In der Vorschau lässt sich jede Änderung einzeln abwählen (Häkchen-Spalte, Umschalt-Klick für Bereiche, Kopf =
 alle/keine) – „Anwenden“ führt nur die angehakten aus, in einer Rückgängig-Stufe. Die Trennzeichen stehen als Code neben ihrer Beschreibung – Leerzeichen als `␣`, der Null-Trenner als `\0` –, auch
 der gewählte Ausgabe-Trenner wird so angezeigt.

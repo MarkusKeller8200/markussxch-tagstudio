@@ -90,6 +90,24 @@ class TestFixer(Base):
         self.assertEqual(fix_multi("AC/DC", self.SEPS, ", "), "AC/DC")  # "/" ohne Leerzeichen bleibt
         self.assertEqual(fix_multi("A; a; B", self.SEPS, ", ", dedupe=True), "A, B")
 
+    def test_exceptions_per_field(self):
+        """#342: Ausnahmen je Feld/Gruppe – nicht getrennt, Gross/klein und Leerzeichen egal, nur im gewählten Feld."""
+        seps = self.SEPS + ["&"]
+        self.assertEqual(fix_multi("Above & Beyond; Zoë Johnston", seps, ", "), "Above, Beyond, Zoë Johnston")
+        self.assertEqual(fix_multi("Above & Beyond; Zoë Johnston", seps, ", ", exceptions=["above  &  BEYOND"]),
+                         "Above & Beyond, Zoë Johnston")
+        self.assertEqual(fix_multi("Eli & Fur & Deli & Furry", seps, ", ", exceptions=["Eli & Fur"]), "Eli & Fur, Deli, Furry")
+        exc = {"@artists": ["Above & Beyond"], "TCON": ["Drum & Bass"]}
+        self.assertEqual(compare.exceptions_for("TPE2", exc), ["Above & Beyond"])
+        self.assertEqual(compare.exceptions_for("TCON", exc), ["Drum & Bass"])
+        p = self.make("E", "e.mp3", [text("TPE1", "Above & Beyond; Zoë Johnston"), text("TCON", "Above & Beyond"),
+                                     text("TIT2", "Drum & Bass")])
+        f = MP3File(p)
+        plan = {k: new for _, k, _old, new in plan_multi_fix([f], ["TPE1", "TCON", "TIT2"], seps, ", ", exceptions=exc)}
+        self.assertEqual(plan["TPE1"], "Above & Beyond, Zoë Johnston")
+        self.assertEqual(plan["TCON"], "Above, Beyond")                 # Ausnahme gilt nur im gewählten Feld
+        self.assertEqual(plan["TIT2"], "Drum, Bass")
+
     def test_sep_codes_visible(self):
         """#344: Trennzeichen als Code – Leerzeichen sichtbar, Null-Trenner als \\0, Beschreibung ohne Zeichen."""
         from compare import sep_code, sep_codes

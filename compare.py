@@ -226,8 +226,65 @@ def sep_codes(sep: str) -> list[str]:
     return [sep_code(sep)]
 
 
-def split_multi(text: str, seps) -> list[str]:
-    parts = [text]
+# #342: Ausnahmen je Feld bzw. Feldgruppe – Namen, die einen Trenner enthalten („Above & Beyond“), werden nicht getrennt
+EXCEPTION_GROUPS = {   # Gruppe: (Beschreibung, Felder)
+    "@artists": ("Künstler und Mitwirkende", ["TPE1", "TPE2", "TPE3", "TPE4", "TCOM", "TEXT", "TOLY", "TOPE",
+                                               "TSOP", "TSO2", "TSOC", "TMCL", "TIPL"]),
+    "@genre": ("Genre", ["TCON"]),
+    "@mood": ("Stimmung", ["TMOO", "TXXX:MOOD"]),
+}
+_PH = "\ue000{}\ue001"
+
+
+def exceptions_for(key: str, exc: dict | None) -> list[str]:
+    """#342: Ausnahmen für ein Feld – eigene des Felds plus die seiner Gruppe(n)."""
+    if not exc:
+        return []
+    up = str(key).upper()
+    out = list(exc.get(key, []))
+    for g, (_, keys) in EXCEPTION_GROUPS.items():
+        if up in (k.upper() for k in keys):
+            out += exc.get(g, [])
+    return [x for x in dict.fromkeys(out) if str(x).strip()]
+
+
+def exception_norm(name: str) -> str:
+    """#342: Vergleichsform – Gross/klein und Leerzeichen egal."""
+    return " ".join(str(name).split()).casefold()
+
+
+def _exception_re(name: str):
+    tokens = str(name).split()
+    if not tokens:
+        return None
+    return re.compile(r"(?<!\w)" + r"\s+".join(re.escape(t) for t in tokens) + r"(?!\w)", re.I)
+
+
+def _protect(text: str, exceptions) -> tuple[str, list[str]]:
+    """Ausnahmen im Text durch Platzhalter ersetzen (längste zuerst); → (Text, Originale je Platzhalter)."""
+    saved: list[str] = []
+    for name in sorted(exceptions or (), key=lambda x: -len(str(x))):
+        rx = _exception_re(name)
+        if rx is None:
+            continue
+
+        def sub(m):
+            saved.append(m.group(0))
+            return _PH.format(len(saved) - 1)
+        text = rx.sub(sub, text)
+    return text, saved
+
+
+def _restore(text: str, saved: list[str]) -> str:
+    if not saved:
+        return text
+    return re.sub("\ue000(\\d+)\ue001", lambda m: saved[int(m.group(1))], text)
+
+
+def split_multi(text: str, seps, exceptions=()) -> list[str]:
+    """Wert an den Eingangs-Trennern zerlegen. #342: Teile, die einer Ausnahme entsprechen, bleiben zusammen."""
+    masked, saved = _protect(text, exceptions)
+    parts = [masked]
     for sep in seps:
         nxt = []
         for p in parts:
@@ -236,12 +293,12 @@ def split_multi(text: str, seps) -> list[str]:
             else:
                 nxt += p.split(sep)
         parts = nxt
-    return [p.strip() for p in parts if p.strip()]
+    return [_restore(p.strip(), saved) for p in parts if p.strip()]
 
 
-def fix_multi(text: str, seps, out_sep: str, dedupe: bool = True) -> str:
+def fix_multi(text: str, seps, out_sep: str, dedupe: bool = True, exceptions=()) -> str:
     """Zerlegt text an den Eingangs-Trennern und verbindet mit out_sep (MV = v2.4-Standard)."""
-    parts = split_multi(text, seps)
+    parts = split_multi(text, seps, exceptions)
     if dedupe:
         seen, uniq = set(), []
         for p in parts:
@@ -252,8 +309,9 @@ def fix_multi(text: str, seps, out_sep: str, dedupe: bool = True) -> str:
     return out_sep.join(parts)
 
 
-def plan_multi_fix(files, keys, seps, out_sep, dedupe=True, all_text=False, upgrade=False):
-    """Liefert Liste (datei, key, vorher, nachher). out_sep == MV: v2.4-Standard."""
+def plan_multi_fix(files, keys, seps, out_sep, dedupe=True, all_text=False, upgrade=False, exceptions=None):
+    """Liefert Liste (datei, key, vorher, nachher). out_sep == MV: v2.4-Standard.
+    exceptions: #342 {Feld oder Gruppe: [Namen]} – siehe exceptions_for."""
     plan = []
     for f in files:
         use_sep = out_sep
@@ -264,7 +322,7 @@ def plan_multi_fix(files, keys, seps, out_sep, dedupe=True, all_text=False, upgr
                 continue
             if not (all_text or k in keys):
                 continue
-            new = fix_multi(it.text, seps, use_sep, dedupe)
+            new = fix_multi(it.text, seps, use_sep, dedupe, exceptions_for(k, exceptions))
             if new != it.text:
                 plan.append((f, k, it.text, new))
     return plan

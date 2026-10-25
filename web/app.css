@@ -356,11 +356,30 @@ body.col-dragging,body.col-dragging *{cursor:col-resize!important;user-select:no
 .fx-table td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
 .fx-table td.old{color:var(--dim)}
 .fx-table td.new{color:var(--ok)}
+.fx-exc{margin:6px 0 2px}
+.fxe-top{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:10px}
+.fxe-top label{display:flex;align-items:center;gap:6px}
+.fxe-top #fxeFind{width:140px;font-family:var(--mono)}
+.fxe-cols{display:grid;grid-template-columns:minmax(0,3fr) minmax(220px,2fr);gap:14px;min-height:320px}
+.fxe-left{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fxe-left .fx-table{max-height:48vh}
+.fxe-bar{display:flex;justify-content:flex-end}
+.fxe-right h4{margin:0 0 6px}
+.fxe-list{display:flex;flex-direction:column;gap:4px;max-height:44vh;overflow:auto}
+.fxe-item{display:flex;gap:4px;align-items:center}
+.fxe-item .inp{flex:1;min-width:0;height:28px}
+.fxe-item.shown .inp{border-color:var(--acc)}
+.fxe-add{display:flex;gap:6px;margin-top:8px}
+.fxe-add .inp{flex:1;min-width:0}
+.fx-table tr.fxe-known td{background:var(--acc-soft)}
+.fxe-badge{font-size:11px;padding:0 6px;border-radius:9px;background:var(--acc);color:var(--acc-fg);margin-left:6px}
+@media (max-width:700px){.fxe-cols{grid-template-columns:1fr}}
 .fx-table tr.fx-off td:not(:first-child){opacity:.45;text-decoration:line-through}
 .fx-table th[data-col="sel"]{width:34px}
 .fx-table tr.sel td{background:var(--sel)}
 .fx-table tr.click{cursor:pointer}
 .fx-table tr.click:hover td{background:var(--raise)}
+.fx-table .r{text-align:right}
 .fx-table .empty{padding:28px;text-align:center;color:var(--faint)}
 .fx-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .fx-foot p{flex:1 1 300px;margin:0}

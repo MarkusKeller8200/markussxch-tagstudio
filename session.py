@@ -28,7 +28,8 @@ import tagger
 import xmltools
 import blobs
 from compare import (PAIR_MODES, Rules, DEFAULT_TRIVIAL, Cancelled, diff, copy_tags, all_keys, MULTI_FIELDS,
-                     INPUT_SEPARATORS, plan_multi_fix, sep_codes)
+                     INPUT_SEPARATORS, plan_multi_fix, sep_codes, EXCEPTION_GROUPS,
+                     split_multi, exception_norm)
 from id3tags import key_label, field_name, field_help, sort_key, TEXT_LABELS, STANDARD_KEYS, MV, MV_SHOW, Cover, Item, safe_mime
 from undo import UndoStack
 from version import VERSION  # einzige Versionsquelle
@@ -1418,7 +1419,79 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                           "mode": fc.get("mode", "sep"), "sep": fc.get("sep", ", "),
                           "upgrade": fc.get("upgrade", True), "dedupe": fc.get("dedupe", True)},
                 "counts": {"pair": sum(1 for f in self.files() if f), "all": sum(1 for p in self.pairs for f in p if f),
-                           "tag_all": len(self.tag_files)}}
+                           "tag_all": len(self.tag_files)},
+                "exceptions": self._fixer_exc(), "exc_targets": self._exc_targets()}
+
+    # ---- #342/#343: Ausnahmen je Feld bzw. Feldgruppe
+    def _fixer_exc(self) -> dict:
+        return self._clean_exc(self.cfg.get("fixer_exceptions") or {})
+
+    @staticmethod
+    def _exc_targets() -> list:
+        """Wählbare Ziele für Ausnahmen: Gruppen zuerst, dann die einzelnen Mehrfach-Felder. → [[id, Beschriftung, Felder]]"""
+        out = [[g, lbl, keys] for g, (lbl, keys) in EXCEPTION_GROUPS.items()]
+        out += [[k, key_label(k), [k]] for k in MULTI_FIELDS + ["TMOO", "TXXX:MOOD"]]
+        return out
+
+    @classmethod
+    def _clean_exc(cls, v) -> dict:
+        """{Ziel: [Namen]} – nur bekannte Ziele, Namen getrimmt, ohne Doppelte (gross/klein, Leerzeichen egal)."""
+        ok = {t[0] for t in cls._exc_targets()}
+        out = {}
+        for k, names in (v.items() if isinstance(v, dict) else []):
+            if k not in ok or not isinstance(names, list):
+                continue
+            seen, keep = set(), []
+            for n in names:
+                n = " ".join(str(n).split())[:200] if isinstance(n, str) else ""
+                if n and exception_norm(n) not in seen:
+                    seen.add(exception_norm(n))
+                    keep.append(n)
+            if keep:
+                out[k] = keep[:2000]
+        return out
+
+    def set_fixer_exceptions(self, exc) -> dict:
+        """#342: Ausnahmen speichern (Editor #343). → bereinigte Ausnahmen"""
+        clean = self._clean_exc(exc)
+        self.cfg["fixer_exceptions"] = clean
+        core.save_config({"fixer_exceptions": clean})
+        return clean
+
+    def fixer_exception_candidates(self, target, needles, seps=None) -> dict:
+        """#343: Vorschläge aus den geladenen Titeln (Vergleich und Tagger): Werte des Ziels, die einen der Suchtexte
+        enthalten. Ein Feldwert wird dafür an den übrigen Trennern zerlegt (ohne die, die einen Suchtext enthalten),
+        damit „Above & Beyond; Zoë Johnston“ bei der Suche nach „&“ den Vorschlag „Above & Beyond“ ergibt.
+        → {rows: [{value, count, known}], files}"""
+        keys = next((t[2] for t in self._exc_targets() if t[0] == target), None)
+        if keys is None:
+            raise ValueError(f"Unbekanntes Ziel: {target}")
+        needles = [n for n in (needles or []) if isinstance(n, str) and n.strip()]
+        if not needles:
+            return {"rows": [], "files": 0}
+        low = [n.strip().casefold() for n in needles]
+        use = [s for s in (seps if seps is not None else [s for _, s, a in INPUT_SEPARATORS if a])
+               if not any(n in s.casefold() for n in low)]
+        known = {exception_norm(n) for n in self._fixer_exc().get(target, [])}
+        with self.lock:
+            files = {id(f): f for p in self.pairs for f in p if f}
+            files.update({id(f): f for f in self.tag_files if f})
+            found: dict = {}
+            upk = {k.upper() for k in keys}
+            for f in files.values():
+                hit = set()
+                for k, it in f.items.items():
+                    if k.upper() not in upk or it.kind not in ("text", "txxx"):
+                        continue
+                    for part in split_multi(it.text, use):
+                        if any(n in part.casefold() for n in low):
+                            hit.add(part)
+                for part in hit:
+                    e = found.setdefault(exception_norm(part), {"value": part, "count": 0})
+                    e["count"] += 1
+        rows = [dict(e, known=key in known) for key, e in found.items()]
+        rows.sort(key=lambda r: (-r["count"], r["value"].casefold()))
+        return {"rows": rows[:5000], "files": len(files)}
 
     def _fixer_files(self, o):
         sc = o.get("scope", "pair")
@@ -1436,7 +1509,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
     def _fixer_plan(self, o):
         out = MV if o.get("mode") == "v24" else (o.get("sep") or ", ")
         return plan_multi_fix([f for f in self._fixer_files(o) if not self._ro(f)], o.get("fields", []), o.get("seps", []), out,
-                              bool(o.get("dedupe", True)), bool(o.get("all_text")), bool(o.get("upgrade", True)))
+                              bool(o.get("dedupe", True)), bool(o.get("all_text")), bool(o.get("upgrade", True)),
+                              self._fixer_exc())
 
     @staticmethod
     def _fixer_id(f, k, new) -> str:

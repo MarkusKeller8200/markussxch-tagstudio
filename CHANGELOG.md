@@ -6,6 +6,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Tag-Fixer: Ausnahmen je Feld (#342, #343):** Namen mit Trennzeichen wie „Above & Beyond“ bleiben beim Trennen
+  zusammen – je Feld oder Gruppe (Künstler und Mitwirkende, Genre, Stimmung). Editor „Ausnahmen …“ mit Vorschlägen
+  aus den geladenen Titeln (Suchtext, Anzahl, Häkchen, gesammelt übernehmen), bestehende Ausnahmen aus- oder markiert
+  einblendbar, bearbeiten und entfernen. Teil des Einstellungs-Exports.
+
 ### Verbessert
 
 - **Tag-Fixer: Änderungen einzeln abwählen (#341):** Die Vorschau hat eine Häkchen-Spalte (Kopf = alle/keine,

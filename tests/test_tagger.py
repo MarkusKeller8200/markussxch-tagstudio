@@ -183,6 +183,23 @@ class TestSessionFeatures(Base):
         self.assertEqual(pv3["count"], 6)
         self.assertEqual({(r["file"], r["key"]): r["old"] for r in pv3["rows"]}, before)
         self.assertEqual(s.fixer_apply(dict(o, skip=[r["id"] for r in pv3["rows"]]))["message"], "Tag-Fixer: nichts zu ändern.")
+        # #342/#343: Ausnahmen speichern (bereinigt), Vorschläge aus den geladenen Titeln, Einstellungs-Export
+        for p in s.pairs:
+            p[0].set_text("TPE1", "Above & Beyond; Zoë Johnston")
+        cand = s.fixer_exception_candidates("@artists", ["&"])
+        self.assertEqual([(r["value"], r["count"], r["known"]) for r in cand["rows"]], [("Above & Beyond", 3, False)])
+        clean = s.set_fixer_exceptions({"@artists": [" Above  & Beyond ", "above & beyond", ""], "unbekannt": ["x"], "TCON": "kein"})
+        self.assertEqual(clean, {"@artists": ["Above & Beyond"]})
+        self.assertTrue(s.fixer_exception_candidates("@artists", ["&"])["rows"][0]["known"])
+        self.assertEqual(s.fixer_settings()["exceptions"], clean)
+        o2 = dict(o, seps=o["seps"] + ["&"], scope="all")
+        news = {r["new"] for r in s.fixer_preview(o2)["rows"] if r["key"] == "TPE1"}
+        self.assertEqual(news, {"Above & Beyond, Zoë Johnston"})
+        import json as _j
+        self.assertEqual(_j.loads(s.settings_export_text())["settings"]["fixer_exceptions"], clean)
+        with self.assertRaises(ValueError):
+            s.fixer_exception_candidates("XYZ", ["&"])
+        s.do_undo()
         # Sammelkopie rechts → links, nur Album
         bk = s.bulk_keys([0, 1, 2], "rl")
         self.assertIn("TXXX:Extra", [k["key"] for k in bk["keys"]])

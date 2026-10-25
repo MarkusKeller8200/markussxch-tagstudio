@@ -2904,6 +2904,51 @@ class UiTest(unittest.TestCase):
         pg.click("#fxAll")                                                                # alle
         self.assertIn("Anwenden (50)", pg.inner_text("#fxApply"))
 
+    def test_fixer_exceptions_editor(self):
+        """#342/#343: Tag-Fixer › Ausnahmen … – Vorschläge mit Anzahl, anhaken, übernehmen, speichern; bestehende
+        ausgeblendet, „Bestehende anzeigen“ bzw. Auge blendet markiert ein; bearbeiten/entfernen."""
+        pg = self.pg
+        pg.evaluate("""(() => { const orig = call; window.__cand = null;
+          window.call = (n, ...a) => {
+            if (n === "fixer_exception_candidates") { window.__cand = a; return Promise.resolve({ files: 12, rows: [
+              { value: "Above & Beyond", count: 5 }, { value: "Eli & Fur", count: 3 }, { value: "Drum & Bass Crew", count: 1 }] }); }
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="fixer"]')
+        pg.wait_for_selector("#fxExc")
+        pg.click("#fxExc")
+        pg.wait_for_selector("#fxeCand tbody tr")
+        self.assertEqual(pg.evaluate("window.__cand[0]"), "@artists")
+        self.assertIn("&", pg.evaluate("window.__cand[1]"))
+        self.assertEqual(pg.locator("#fxeCand tbody tr").count(), 3)
+        self.assertIn("5", pg.inner_text("#fxeCand tbody tr:first-child"))
+        pg.check('#fxeCand input[data-fxev="0"]')
+        pg.check('#fxeCand input[data-fxev="1"]')
+        self.assertIn("(2)", pg.inner_text("#fxeTake"))
+        pg.click("#fxeTake")
+        self.assertEqual(pg.locator("#fxeCand tbody tr").count(), 1)                     # übernommene ausgeblendet
+        self.assertEqual(pg.locator("#fxeList input[data-fxeedit]").count(), 2)
+        pg.check("#fxeAll")                                                              # bestehende anzeigen, markiert
+        self.assertEqual(pg.locator("#fxeCand tbody tr").count(), 3)
+        self.assertEqual(pg.locator("#fxeCand tr.fxe-known").count(), 2)
+        pg.uncheck("#fxeAll")
+        pg.click('#fxeList button[data-fxeop="eye"][data-i="1"]')                        # gezielt einblenden
+        self.assertEqual(pg.locator("#fxeCand tr.fxe-known").count(), 1)
+        self.assertIn("Eli & Fur", pg.inner_text("#fxeCand tr.fxe-known"))
+        pg.fill('#fxeList input[data-fxeedit="0"]', "Above  &  Beyond (Live)")             # bearbeiten
+        pg.press('#fxeList input[data-fxeedit="0"]', "Tab")
+        pg.fill("#fxeNew", "Kölsch & Co")
+        pg.press("#fxeNew", "Enter")
+        pg.click('#fxeList button[data-fxeop="del"][data-i="1"]')                        # Eli & Fur entfernen
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("call('fixer_settings').then(r => JSON.stringify(r.exceptions) === JSON.stringify({'@artists': ['Above & Beyond (Live)', 'Kölsch & Co']}))"))
+        self.assertTrue(self.until("/\\(2\\)/.test(document.querySelector('#fxExc').textContent)"))
+        pg.click("#fxExc")                                                               # Feld wechseln: eigene Liste
+        pg.wait_for_selector("#fxeCand tbody tr")
+        pg.select_option("#fxeTarget", "TCON")
+        self.assertTrue(self.until("window.__cand[0] === 'TCON'"))
+        self.assertIn("Noch keine Ausnahmen", pg.inner_text("#fxeList"))
+        pg.click("#mBtns button >> nth=0")
+
     def test_expert_log_clear_on_exit(self):
         """#332: Expert › Entwicklung – „Protokolle beim Beenden leeren“, Standard aus, Plugin-Protokolle nur wählbar,
         wenn eingeschaltet; Einstellung bleibt gespeichert."""

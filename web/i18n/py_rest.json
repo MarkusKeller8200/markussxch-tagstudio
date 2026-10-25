@@ -268,5 +268,7 @@
 "Schrägstrich ohne Leerzeichen (Achtung: AC/DC)": ["Slash without spaces (attention: AC/DC)", "Schrägstrich ohni Läärschlag (Achtig: AC/DC)"],
 "Kaufmanns-Und": ["Ampersand", "Kaufmanns-Und"],
 "Gastkünstler (auch ft. und featuring)": ["Featured artist (also ft. and featuring)", "Gascht-Künschtler (au ft. und featuring)"],
-"x zwischen Namen": ["x between names", "x zwüsched Näme"]
+"x zwischen Namen": ["x between names", "x zwüsched Näme"],
+"Künstler und Mitwirkende": ["Artists and contributors", "Künschtler und Mitwürkendi"],
+"Unbekanntes Ziel: {x}": ["Unknown target: {x}", "Unbekannts Ziil: {x}"]
 }

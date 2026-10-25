@@ -494,5 +494,7 @@
 "Protokoll geleert: {x}",
 "image/png",
 "image/jpeg",
-"table[data-col-tid]"
+"table[data-col-tid]",
+"button[data-fxeop]",
+"input[data-fxeedit]"
 ]
