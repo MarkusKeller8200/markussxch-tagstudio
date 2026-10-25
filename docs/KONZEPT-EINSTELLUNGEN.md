@@ -16,7 +16,10 @@ Alle Einstellungen an einem Ort, verständlich gruppiert, mit Vorgaben für den 
 - **Kacheln** mit Sprungmarken (`#stToc`): Darstellung (inkl. Seitenleiste ein-/ausblenden) · Tagger · Tag-Fixer ·
   Vergleich · Snapshots · Sicherungen und Speichern (ID3-Version, Sicherung) · Player · Plugins · Herkunft der Tags ·
   Unwichtige Felder · Cache · Updates · Speicherort und Ordner (Basisordner, Struktur, Archiv) · Profile · **Expert**
-  (Diagnose, Einstellungsdatei und Protokolle ansehen, Zugangsdaten ausgeblendet). Vorbereiten und DJ-Set haben ihre
+  (Diagnose, Einstellungsdatei und Protokolle ansehen, Zugangsdaten ausgeblendet; #332 *Entwicklung:* „Protokolle beim
+  Beenden leeren“, cfg `log_clear_exit`/`log_clear_plugins`, Standard aus – `Api._exit_logs()` in `quit`, `restart`
+  und nach dem Schliessen des Fensters bzw. Browser-Modus, `applog.clear_on_exit`: leeren statt löschen, `update*`-
+  Protokolle bleiben, danach Zeile „Protokoll beim letzten Beenden geleert (Entwicklermodus)“). Vorbereiten und DJ-Set haben ihre
   Einstellungen auf der eigenen Seite.
 - **Vorgaben beim Start** für Tagger und Vergleich (`tg_defaults`, `cmp_defaults`), ⌂ setzt auf den Standard zurück.
 - **Exportieren** (ohne Zugangsdaten), **Importieren** gruppenweise mit Vorschau (Pfade eines anderen Systems nicht

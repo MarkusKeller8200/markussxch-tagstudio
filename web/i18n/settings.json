@@ -278,5 +278,12 @@
 "Beim Speichern die eigene Wellenform als GEOB {q} in die Datei schreiben (rund {n} KB; übersteht das Leeren des Caches – Serato-Felder bleiben unberührt)": ["When saving, write TagStudio's own waveform into the file as GEOB {q} (about {n} KB; survives clearing the cache – Serato fields stay untouched)", "Bim Spichere di eige Wälleform als GEOB {q} i d Datei schriibe (öppe {n} KB; überstaht s Läre vom Cache – Serato-Fälder bliibed unberüert)"],
 "Wellenform im MP3": ["Waveform in the MP3", "Wälleform im MP3"],
 "Die Wellenform wird beim Speichern ins MP3 geschrieben.": ["The waveform is written into the MP3 when saving.", "D Wälleform wird bim Spichere is MP3 gschribe."],
-"Die Wellenform wird nicht mehr ins MP3 geschrieben.": ["The waveform is no longer written into the MP3.", "D Wälleform wird nümme is MP3 gschribe."]
+"Die Wellenform wird nicht mehr ins MP3 geschrieben.": ["The waveform is no longer written into the MP3.", "D Wälleform wird nümme is MP3 gschribe."],
+"Protokolle beim Beenden leeren (Entwicklung)": ["Clear logs on exit (development)", "Protokoll bim Beände läre (Entwicklig)"],
+"auch Plugin-Protokolle": ["plugin logs too", "au d Plugin-Protokoll"],
+"Entwicklung": ["Development", "Entwicklig"],
+"Fehler aus der vorigen Sitzung sind danach weg – für Fehlermeldungen ausschalten.": ["Errors from the previous session are gone afterwards – switch off when reporting a bug.", "Fähler us de letschte Sitzig sind dänn wäg – für Fählermäldige uusschalte."],
+"App- und Plugin-Protokolle werden beim Beenden geleert.": ["App and plugin logs are cleared on exit.", "App- und Plugin-Protokoll wärded bim Beände gläärt."],
+"Das App-Protokoll wird beim Beenden geleert.": ["The app log is cleared on exit.", "S App-Protokoll wird bim Beände gläärt."],
+"Protokolle bleiben beim Beenden erhalten.": ["Logs are kept on exit.", "D Protokoll bliibed bim Beände erhalte."]
 }

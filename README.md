@@ -605,7 +605,9 @@ Snapshots · Sicherungen und Speichern (ID3-Version, Sicherung) · Player · Plu
 Felder · Cache · Updates · **Expert** (Diagnose mit Version, System und Pfaden zum Kopieren, Einstellungsdatei und
 Protokolle ansehen und durchsuchen – Zugangsdaten ausgeblendet; „Live anzeigen …“ öffnet wie bei den Plugins ein
 eigenes Fenster, das alle Protokolle laufend nachführt; „Leeren …“ leert ein Protokoll nach Rückfrage, „Kopieren“ nimmt
-nur die Markierung). Alle Dialoge lassen sich am Titel verschieben und an der Ecke in der Grösse ändern (Doppelklick auf
+nur die Markierung; *Entwicklung:* „Protokolle beim Beenden leeren“ – Standard aus – leert `app.log` und `app.log.1`
+beim Beenden, Neustart und Update, auf Wunsch auch die Plugin-Protokolle; die erste Zeile danach sagt, dass geleert
+wurde. Für Fehlermeldungen wieder ausschalten). Alle Dialoge lassen sich am Titel verschieben und an der Ecke in der Grösse ändern (Doppelklick auf
 den Titel: zurück). Jede Vorgabe „beim Start“ kann auch „wie zuletzt benutzt“ bleiben. **Exportieren**
 speichert alles als Datei (ohne Zugangsdaten), **Importieren** übernimmt gewählte Bereiche – Pfade eines anderen
 Systems sind nicht vorgewählt –, **Zurücksetzen** geht für einzelne Bereiche oder alles. Vor Import und

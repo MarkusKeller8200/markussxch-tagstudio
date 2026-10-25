@@ -2859,6 +2859,24 @@ class UiTest(unittest.TestCase):
         self.assertIn("Start ", pg.input_value("#xText"))
         pg.click("#mBtns .primary")
 
+    def test_expert_log_clear_on_exit(self):
+        """#332: Expert › Entwicklung – „Protokolle beim Beenden leeren“, Standard aus, Plugin-Protokolle nur wählbar,
+        wenn eingeschaltet; Einstellung bleibt gespeichert."""
+        pg = self.pg
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stExpertRows #stXClearExit")
+        self.assertFalse(pg.locator("#stXClearExit").is_checked())
+        self.assertTrue(pg.locator("#stXClearPlugins").is_disabled())
+        self.assertIn("Fehlermeldungen", pg.inner_text("#stXClearHint"))
+        pg.click("#stXClearExit")
+        self.assertTrue(self.until("!document.querySelector('#stXClearPlugins').disabled"))
+        self.assertTrue(self.until("call('expert_info').then(r => r.dev.log_clear_exit)"))
+        pg.click("#stXClearPlugins")
+        self.assertTrue(self.until("call('expert_info').then(r => r.dev.log_clear_plugins)"))
+        pg.click("#stXClearExit")
+        self.assertTrue(self.until("call('expert_info').then(r => !r.dev.log_clear_exit && r.dev.log_clear_plugins)"))
+        self.assertTrue(pg.locator("#stXClearPlugins").is_disabled())
+
     def test_release_notes_older(self):
         """#136: Versionshinweise zeigen ältere Versionen aufklappbar (aus dem mitgelieferten CHANGELOG)."""
         pg = self.pg

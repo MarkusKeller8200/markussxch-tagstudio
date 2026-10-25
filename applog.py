@@ -139,6 +139,26 @@ def clear(name: str) -> bool:
     return True
 
 
+CLEARED_NOTE = "Protokoll beim letzten Beenden geleert (Entwicklermodus)"
+
+
+def clear_on_exit(plugins: bool = False) -> list[str]:
+    """#332 (Entwicklung): beim Beenden/Neustart app.log und app.log.1 leeren (nicht löschen), auf Wunsch auch die
+    Plugin-Protokolle. Update-Protokolle (update*) bleiben – sie schreibt der Installer nach dem Beenden weiter.
+    Danach steht als erste Zeile der Hinweis CLEARED_NOTE, damit beim nächsten Start klar ist, warum es kurz ist.
+    → Namen der geleerten Dateien"""
+    names = []
+    for f in files():
+        n = f["name"]
+        if n == NAME or n.startswith(NAME + "."):
+            names.append(n)
+        elif plugins and n.endswith(".log") and not n.lower().startswith("update"):
+            names.append(n)
+    done = [n for n in names if clear(n)]
+    write("INFO", CLEARED_NOTE)
+    return done
+
+
 def tail(p: str, limit: int = 200_000) -> str:
     """Ende einer Textdatei (höchstens `limit` Bytes)."""
     try:

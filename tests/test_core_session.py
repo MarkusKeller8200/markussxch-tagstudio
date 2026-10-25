@@ -274,6 +274,33 @@ class TestExpert(TempHome):
         self.assertFalse(api.expert_log_clear("../.tagstudio.json"))
         self.assertTrue(os.path.isfile(core.CONFIG))
         self.assertFalse(api.expert_log_clear("fehlt.log"))
+        # #332: Protokolle beim Beenden leeren (Entwicklung) – Standard aus
+        d = applog.log_dir()
+        for n in ("beatport.log", "update-installer.log"):
+            with open(os.path.join(d, n), "w", encoding="utf-8") as fh:
+                fh.write("Inhalt\n")
+        applog.info("vor dem Beenden")
+        self.assertEqual(api.expert_info()["dev"], {"log_clear_exit": False, "log_clear_plugins": False})
+        self.assertEqual(api._exit_logs(), [])                                   # aus: nichts geleert
+        self.assertIn("vor dem Beenden", api.expert_log("app.log")["text"])
+        api._logs_done = False
+        self.assertEqual(api.set_log_clear_exit(True, False), {"log_clear_exit": True, "log_clear_plugins": False})
+        self.assertTrue(core.load_config().get("log_clear_exit"))
+        self.assertEqual(sorted(api._exit_logs()), ["app.log", "app.log.1"])
+        self.assertEqual(api._exit_logs(), [])                                   # nur einmal je Prozess
+        text = api.expert_log("app.log")["text"]
+        self.assertNotIn("vor dem Beenden", text)
+        self.assertEqual(text.count("\n"), 1)
+        self.assertIn(applog.CLEARED_NOTE, text)
+        self.assertGreater(os.path.getsize(os.path.join(d, "beatport.log")), 0)   # Plugin-Protokolle nur auf Wunsch
+        api._logs_done = False
+        api.set_log_clear_exit(True, True)
+        self.assertIn("beatport.log", api._exit_logs())
+        self.assertEqual(os.path.getsize(os.path.join(d, "beatport.log")), 0)
+        self.assertTrue(os.path.isfile(os.path.join(d, "beatport.log")))          # geleert, nicht gelöscht
+        self.assertGreater(os.path.getsize(os.path.join(d, "update-installer.log")), 0)   # Update-Protokoll bleibt
+        api.set_log_clear_exit(False, True)
+        self.assertEqual(api.expert_info()["dev"], {"log_clear_exit": False, "log_clear_plugins": True})
 
 
 class TestWindowMode(TempHome):

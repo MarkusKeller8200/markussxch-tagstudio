@@ -575,7 +575,9 @@ match by, display, unimportant, empty fields, cover – if the comparison differ
 Backups and saving (ID3 version, backup) · Player · Plugins · Origin of the tags · unimportant fields · Cache ·
 Updates · **Expert** (diagnostics with version, system and paths to copy, view and search the settings file and logs –
 credentials hidden; “Show live …” opens a separate window that follows all logs continuously, like for the plugins; “Empty …” empties a log
-after confirmation, “Copy” takes only the selection). All dialogs can be moved by their title and resized at the corner
+after confirmation, “Copy” takes only the selection; *Development:* “Clear logs on exit” – off by default – empties
+`app.log` and `app.log.1` on exit, restart and update, optionally the plugin logs too; the first line afterwards says it
+was cleared. Switch it off again when reporting a bug). All dialogs can be moved by their title and resized at the corner
 (double-click the title: reset). Every “on start” default can also stay “as last used”. **Export** saves everything as a file
 (without credentials), **Import** takes over chosen areas – paths of another system are not preselected –, **Reset**
 works for single areas or everything. Before import and reset the old file is backed up to `~/TagStudio/Einstellungen`.

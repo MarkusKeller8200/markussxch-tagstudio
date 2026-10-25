@@ -287,8 +287,20 @@ async function stExpertRender() {
   box.innerHTML = inf.facts.map(([k, v]) => `<span>${esc(k)}</span><span class="x-val">${esc(v)}</span>`).join("")
     + `<span>Einstellungsdatei</span><div class="st-path"><button class="ghost sm" id="stXConfig">Anzeigen …</button><button class="ghost sm" id="stXCopy" title="Version, System und Pfade für eine Fehlermeldung kopieren">Diagnose kopieren</button></div>`
     + `<span>Protokolle</span><div class="x-logs">${logs.length ? logs.map((l) => `<button class="ghost sm" data-xlog="${esc(l.name)}" title="${esc(when(l.mtime))}">${esc(l.name)} <span class="faint">${kb(l.size)}</span></button>`).join("") : '<span class="muted sm">noch keine</span>'}<button class="ghost sm" id="stXLogs" title="Liste neu laden">↻</button><button class="ghost sm" id="stXLive" title="Eigenes Fenster, das die Protokolle laufend nachführt – wie bei den Plugins">Live anzeigen …</button></div>`
+    + `<span>Entwicklung</span><div class="st-path x-dev">${stCheck("stXClearExit", !!(inf.dev || {}).log_clear_exit, "Protokolle beim Beenden leeren (Entwicklung)")}${stCheck("stXClearPlugins", !!(inf.dev || {}).log_clear_plugins, "auch Plugin-Protokolle")}<span class="muted sm" id="stXClearHint">Fehler aus der vorigen Sitzung sind danach weg – für Fehlermeldungen ausschalten.</span></div>`
     + inf.paths.map(([k, p]) => `<span>${esc(k)}</span><div class="st-path"><code class="x-path" title="${esc(p)}">${esc(p)}</code><button class="ghost sm" data-xreveal="${esc(p)}">Zeigen</button></div>`).join("");
+  const pl = $("#stXClearPlugins", box);
+  if (pl) pl.disabled = !(inf.dev || {}).log_clear_exit;
   stToc();
+}
+/** #332: Protokolle beim Beenden leeren (Entwicklung) – Schalter speichern */
+async function stExpertDevSave() {
+  const on = $("#stXClearExit").checked, pl = $("#stXClearPlugins");
+  pl.disabled = !on;
+  const r = await call("set_log_clear_exit", on, pl.checked);
+  if (ST.expert) ST.expert.dev = r;
+  toast(on ? (r.log_clear_plugins ? "App- und Plugin-Protokolle werden beim Beenden geleert." : "Das App-Protokoll wird beim Beenden geleert.")
+    : "Protokolle bleiben beim Beenden erhalten.");
 }
 function stExpertText() {
   const inf = ST.expert || { facts: [], paths: [] };
@@ -594,6 +606,7 @@ function initSettings() {
       if (typeof TG !== "undefined" && TG.settings && TG.settings.keys) { TG.settings.keys.notation = t.value; }
       toast("Tonart-Schreibweise gespeichert.");
     } else if (t.id === "stStampAdded") { await call("set_stamp_added", t.checked); toast(t.checked ? "„In Bibliothek aufgenommen“ wird bei der Übernahme gesetzt." : "„In Bibliothek aufgenommen“ wird nicht mehr gesetzt."); }   // #184
+    else if (t.id === "stXClearExit" || t.id === "stXClearPlugins") stExpertDevSave();   // #332
     else if (t.id === "stWaveFile") { await call("set_wave_in_file", t.checked); toast(t.checked ? "Die Wellenform wird beim Speichern ins MP3 geschrieben." : "Die Wellenform wird nicht mehr ins MP3 geschrieben."); }   // #222
     else if (t.id === "stStampEdited") { await call("set_stamp_edited", t.checked); toast(t.checked ? "„Letzte Bearbeitung“ wird beim Speichern gesetzt." : "„Letzte Bearbeitung“ wird nicht mehr gesetzt."); }   // #185
     else if (t.id === "stSaveV1") { await call("set_save_v1", +t.value); toast(["ID3v1 bleibt wie in der Datei.", "ID3v1 wird beim Speichern mitgeschrieben.", "ID3v1 wird beim Speichern entfernt."][+t.value]); }   // #112

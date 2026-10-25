@@ -717,7 +717,30 @@ class Api:
                  ["Prozess", f"PID {os.getpid()} · läuft seit {time.strftime('%H:%M:%S', time.localtime(_STARTED))}"],
                  ["Einstellungsdatei", f"{os.path.getsize(cfg_path) // 1024 if os.path.isfile(cfg_path) else 0} KB"],
                  ["Laufende Aufträge", str(jobs)], ["Plugins", ", ".join(pl) or "keine"]]
-        return {"facts": facts, "paths": paths}
+        c = s.cfg or {}
+        dev = {"log_clear_exit": bool(c.get("log_clear_exit", False)), "log_clear_plugins": bool(c.get("log_clear_plugins", False))}
+        return {"facts": facts, "paths": paths, "dev": dev}
+
+    def set_log_clear_exit(self, on, plugins=False):
+        """#332 (Entwicklung): Protokolle beim Beenden/Neustart leeren – Standard aus; Plugin-Protokolle nur auf Wunsch."""
+        import core
+        on, plugins = bool(on), bool(plugins)
+        self._s.cfg.update(log_clear_exit=on, log_clear_plugins=plugins)
+        core.save_config({"log_clear_exit": on, "log_clear_plugins": plugins})
+        return {"log_clear_exit": on, "log_clear_plugins": plugins}
+
+    def _exit_logs(self):
+        """#332: beim Beenden, Neustart und Update die Protokolle leeren, wenn eingeschaltet (nur einmal je Prozess)."""
+        if getattr(self, "_logs_done", False):
+            return []
+        self._logs_done = True
+        c = getattr(self._s, "cfg", None) or {}
+        if not c.get("log_clear_exit"):
+            return []
+        try:
+            return applog.clear_on_exit(plugins=bool(c.get("log_clear_plugins")))
+        except Exception:  # noqa: BLE001 – Beenden darf daran nie scheitern
+            return []
 
     def expert_config(self) -> dict:
         """Einstellungsdatei (nur lesen); Werte unter Schlüsseln wie *token*/*password* werden ausgeblendet."""
@@ -809,6 +832,7 @@ class Api:
                     self._server[0].shutdown()
                 except Exception:  # noqa: BLE001
                     pass
+            self._exit_logs()                  # #332
             os._exit(0)
         threading.Thread(target=go, daemon=False).start()
         return True
@@ -880,6 +904,7 @@ class Api:
             if self._server is not None:
                 self._server[0].shutdown()
                 self._server[0].server_close()
+            self._exit_logs()                  # #332: vor dem Start der neuen Instanz
             kw = {"creationflags": 0x00000008 | 0x00000200} if sys.platform.startswith("win") else {"start_new_session": True}
             subprocess.Popen(cmd, cwd=HERE, env=env, close_fds=True, **kw)
             # Fenster nicht über destroy() schliessen: das löst das Schliessen-Ereignis aus und kann hängen bleiben,
@@ -1113,6 +1138,7 @@ def run_browser(api: Api, port=0, open_browser=True):
     except KeyboardInterrupt:
         pass
     api.jobs_on_close()        # laufende Aufträge abbrechen, Warteschlange für den nächsten Start vermerken
+    api._exit_logs()           # #332
     return 0
 
 
@@ -1236,6 +1262,7 @@ def run_window(api: Api):
         webview.start(icon=icon if os.path.isfile(icon) else None)     # #103: TagStudio-Symbol statt Python
     except TypeError:                                                    # ältere pywebview-Versionen
         webview.start()
+    api._exit_logs()                                                     # #332: Fenster ohne quit() geschlossen
     return 0
 
 

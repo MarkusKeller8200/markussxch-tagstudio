@@ -6,6 +6,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Verbessert
+
+- **Protokolle beim Beenden leeren (#332, Entwicklung):** Einstellungen › Expert – Schalter, Standard aus. Beim Beenden,
+  Neustart und Update werden `app.log` und `app.log.1` geleert (nicht gelöscht), auf Wunsch auch die Plugin-Protokolle;
+  die erste Zeile danach meldet „Protokoll beim letzten Beenden geleert (Entwicklermodus)“.
+
 ## [4.11.0] – 2026-10-25
 
 ### Neu
