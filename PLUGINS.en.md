@@ -280,6 +280,11 @@ way as the beets plugin “beatport4”. Unofficial: Beatport can change access 
 Matching: first via a stored Beatport ID (`TXXX:BEATPORT_TRACK_ID`), then ISRC, otherwise a search for artist + title
 + mix name; title, artist, length and mix name are rated. At most ~3 requests per second.
 
+**Own API access (#286):** if you have your own API app at Beatport, choose the method “Own API access” under
+“Sign in …” and enter client ID, client secret, user name and password (password grant as in the official docs).
+Client ID and secret are stored encrypted in the plugin (leave empty = use the stored ones), the password never. The
+token is renewed with client ID and secret; “Sign out” revokes it at Beatport.
+
 **Purchases (#285):** the page “Purchases” uses `store_purchases(ctx)` (all purchases with title, mix, key, BPM,
 catalogue number, link, purchase date) and `store_download(ctx, items, dest)` (download missing ones into the inbox).
 

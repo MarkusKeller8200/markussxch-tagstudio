@@ -18,6 +18,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   nur in Lexicon stehen, werden gemeldet). Einträge ohne Datei und Titel, die Lexicon nicht kennt, werden ausgelassen
   und gemeldet. Nur mit eingeschaltetem Zurückschreiben im Lexicon-Plugin (2.2), Journal im Plugin. Neu im
   Plugin-Rahmen: `playlist_push(ctx, playlist, options)` und `push_ready(ctx)`.
+- **Beatport: eigener API-Zugang (#286):** Anmelden mit der eigenen offiziellen Beatport-App (Client-ID und Secret,
+  verschlüsselt gespeichert), Erneuern des Tokens über die App, Abmelden zieht das Token bei Beatport zurück
+  (Beatport-Plugin 1.3).
 - **Käufe (#285):** neue Seite „Käufe“ – gekaufte Titel aller Stores (vorerst Beatport) in einer Tabelle mit Titel,
   Interpret, Mix, Länge, Tonart, BPM, Katalognummer, Store, Kaufdatum und Link; „Aktualisieren“ holt neue Käufe und
   gleicht mit der Bibliothek ab (in Bibliothek, im Eingang, unklar, fehlt), „Fehlende herunterladen“ lädt in den

@@ -141,6 +141,15 @@ Die Tabelle betrifft Integrationsmöglichkeiten **für Drittentwickler**. Intern
 - Lokal erworbene Dateien, beispielsweise FLAC, können anschliessend in TagStudio eingelesen und getaggt werden.
 - Quelle aus dem PDF: [Bandcamp Developer](https://bandcamp.com/developer).
 
+#### Beatport – offizieller Zugang (User 25.10.2026, #286)
+
+- Der User hat Zugang zur offiziellen API (eigene OAuth-App). Laut Anmelde-Doku: Authorization Code
+  (`/v4/auth/o/authorize/` → `/v4/auth/o/token/`), **Password Grant** (client_id, client_secret, username, password),
+  Client Credentials (nur App, ohne Benutzerdaten), Refresh (`grant_type=refresh_token`), `/v4/auth/o/introspect/`,
+  `/v4/auth/o/revoke/`. Fehler als JSON (`{"detail": "Not found."}` usw.).
+- TagStudio: Methode „Eigener API-Zugang“ (Password Grant) im Beatport-Plugin 1.3; der bisherige inoffizielle Weg bleibt.
+- Noch offen: Endpunkt-Liste (Käufe mit Kaufdatum, Playlists, Downloads) aus der offiziellen Doku.
+
 #### Amazon Music Web API (geprüft 25.10.2026)
 
 - **V1** (`api.music.amazon.dev`) und **V2** (`api.music.amazon.com`, [Übersicht V2](https://developer.amazon.com/docs/music/API_web_overview_v2.html)): beide **geschlossene Beta** – nur freigegebene Entwickler, Zugang über einen Amazon-Business-Development-Kontakt.

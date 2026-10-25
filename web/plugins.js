@@ -378,6 +378,7 @@ async function pluginRun(pid, aid) {
         el.hidden = !Object.entries(cond).every(([k, want]) => {
           const ctl = b.querySelector(`[data-ok="${k}"]`);
           if (!ctl) return true;
+          if (Array.isArray(want)) return want.map(String).includes(ctl.value);       // mehrere erlaubte Werte
           return ctl.type === "checkbox" ? ctl.checked === !!want : ctl.value === String(want);
         });
       });

@@ -58,15 +58,24 @@ ACTIONS = [
         "description": "Mit deinem Beatport-Konto anmelden. Das Passwort wird nur für die Anmeldung benutzt und nie gespeichert.",
         "options": [
             {"key": "method", "type": "select", "label": "Methode",
-             "choices": [["login", "Benutzername und Passwort"], ["token", "Token aus dem Browser einfügen"]], "default": "login"},
-            {"key": "username", "type": "text", "label": "Benutzername / E-Mail", "show_if": {"method": "login"}},
-            {"key": "password", "type": "password", "label": "Passwort", "show_if": {"method": "login"}},
+             "choices": [["login", "Benutzername und Passwort"], ["app", "Eigener API-Zugang (Client-ID und Secret)"],
+                         ["token", "Token aus dem Browser einfügen"]], "default": "login"},
+            {"key": "client_id", "type": "text", "label": "Client-ID deiner Beatport-App", "secret": True, "show_if": {"method": "app"}},
+            {"key": "client_secret", "type": "password", "label": "Client-Secret", "show_if": {"method": "app"}},
+            {"type": "info", "show_if": {"method": "app"},
+             "label": "Offizieller Zugang mit deiner eigenen Beatport-App (Password Grant). Client-ID und Secret werden "
+                      "verschlüsselt gespeichert – bleiben die Felder leer, gelten die schon gespeicherten. Das Passwort "
+                      "wird nur für die Anmeldung benutzt und nie gespeichert."},
+            {"key": "username", "type": "text", "label": "Benutzername / E-Mail", "show_if": {"method": ["login", "app"]}},
+            {"key": "password", "type": "password", "label": "Passwort", "show_if": {"method": ["login", "app"]}},
             {"key": "token", "type": "textarea", "label": "Token (JSON)", "secret": True, "show_if": {"method": "token"}},
             {"type": "info", "show_if": {"method": "token"}, "label": "Token-Methode: auf api.beatport.com/v4/docs anmelden, Entwicklertools (F12) → Netzwerk → Anfrage „token“ → Antwort kopieren und hier einfügen."},
         ],
     },
     {"id": "logout", "label": "Abmelden", "where": "page", "run_label": "Abmelden", "needs_selection": False,
-     "description": "Gespeicherten Token löschen.", "options": []},
+     "description": "Gespeicherten Token löschen (beim eigenen API-Zugang wird er bei Beatport auch zurückgezogen).",
+     "options": [{"key": "forget_app", "type": "check", "label": "Client-ID und Secret des eigenen API-Zugangs ebenfalls löschen",
+                  "default": False}]},
     {"id": "test", "label": "Verbindung testen", "where": "page", "run_label": "Testen", "needs_selection": False,
      "description": "Prüft die Anmeldung bei Beatport.", "options": []},
     {"id": "purchases", "label": "Gekaufte Titel abgleichen …", "where": "page", "run_label": "Abgleichen",
@@ -147,6 +156,41 @@ def delete_token(ctx):
         return False
 
 
+def _app_path(ctx):
+    return os.path.join(ctx.data_dir, "app.bin")
+
+
+def save_app(ctx, cid: str, secret: str):
+    """Eigener API-Zugang (Client-ID, Secret) – verschlüsselt wie der Token (Windows: DPAPI)."""
+    raw = json.dumps({"client_id": cid, "client_secret": secret}).encode("utf-8")
+    if sys.platform.startswith("win"):
+        raw = b"DPAPI" + _dpapi(raw, True)
+    with open(_app_path(ctx), "wb") as fh:
+        fh.write(raw)
+    if not sys.platform.startswith("win"):
+        os.chmod(_app_path(ctx), 0o600)
+
+
+def load_app(ctx) -> dict | None:
+    try:
+        with open(_app_path(ctx), "rb") as fh:
+            raw = fh.read()
+        if raw.startswith(b"DPAPI"):
+            raw = _dpapi(raw[5:], False)
+        d = json.loads(raw.decode("utf-8"))
+        return d if isinstance(d, dict) and d.get("client_id") else None
+    except (OSError, ValueError):
+        return None
+
+
+def delete_app(ctx) -> bool:
+    try:
+        os.remove(_app_path(ctx))
+        return True
+    except OSError:
+        return False
+
+
 def _norm_token(data) -> dict:
     if isinstance(data, str):
         data = json.loads(data)
@@ -154,6 +198,8 @@ def _norm_token(data) -> dict:
     tok["expires_at"] = float(data["expires_at"]) if data.get("expires_at") else time.time() + int(data.get("expires_in") or 3600)
     if data.get("username"):
         tok["username"] = data["username"]
+    if data.get("app"):
+        tok["app"] = True
     return tok
 
 
@@ -260,17 +306,66 @@ def login(ctx, username, password):
     return tok
 
 
+def _form(d: dict) -> bytes:
+    return urllib.parse.urlencode(d).encode("utf-8")
+
+
+def login_app(ctx, cid, secret, username, password):
+    """Offizieller Zugang mit eigener App (Password Grant laut Beatport-Doku): Formular an /auth/o/token/."""
+    st, _h, body = request("POST", API + "/auth/o/token/", data=_form({
+        "client_id": cid, "client_secret": secret, "username": username, "password": password, "grant_type": "password"}),
+        headers={"Content-Type": "application/x-www-form-urlencoded"})
+    try:
+        data = json.loads(body or b"{}")
+    except ValueError:
+        data = {}
+    if st >= 400 or not data.get("access_token"):
+        msg = data.get("error_description") or data.get("detail") or data.get("error") or f"HTTP {st}"
+        raise HttpError(st, f"Anmeldung mit eigenem API-Zugang abgelehnt: {msg}")
+    tok = _norm_token(data)
+    tok["app"] = True
+    tok["username"] = username
+    return tok
+
+
+def revoke(ctx, tok) -> bool:
+    """Token bei Beatport zurückziehen (nur eigener API-Zugang)."""
+    app = load_app(ctx) if tok and tok.get("app") else None
+    if not app:
+        return False
+    q = urllib.parse.urlencode({"client_id": app["client_id"], "token": tok["access_token"]})
+    try:
+        st, _h, _b = request("POST", f"{API}/auth/o/revoke/?{q}", data=b"",
+                             headers={"Content-Type": "application/x-www-form-urlencoded"})
+    except HttpError:
+        return False
+    return st < 400
+
+
 def refresh(ctx, tok):
     if not tok.get("refresh_token"):
         return None
-    q = urllib.parse.urlencode({"grant_type": "refresh_token", "refresh_token": tok["refresh_token"],
-                                "client_id": client_id(ctx)})
-    st, _h, body = request("POST", f"{API}/auth/o/token/?{q}", data=b"",
-                        headers={"Content-Type": "application/x-www-form-urlencoded"})
+    app = load_app(ctx) if tok.get("app") else None
+    if tok.get("app") and not app:
+        return None
+    if app:                                            # offizieller Weg: Formular mit Client-ID (und Secret)
+        form = {"grant_type": "refresh_token", "refresh_token": tok["refresh_token"], "client_id": app["client_id"]}
+        if app.get("client_secret"):
+            form["client_secret"] = app["client_secret"]
+        st, _h, body = request("POST", API + "/auth/o/token/", data=_form(form),
+                               headers={"Content-Type": "application/x-www-form-urlencoded",
+                                        "Authorization": f"Bearer {tok['access_token']}"})
+    else:
+        q = urllib.parse.urlencode({"grant_type": "refresh_token", "refresh_token": tok["refresh_token"],
+                                    "client_id": client_id(ctx)})
+        st, _h, body = request("POST", f"{API}/auth/o/token/?{q}", data=b"",
+                               headers={"Content-Type": "application/x-www-form-urlencoded"})
     if st >= 400:
         return None
     new = _norm_token(json.loads(body))
     new["username"] = tok.get("username", "")
+    if tok.get("app"):
+        new["app"] = True
     save_token(ctx, new)
     return new
 
@@ -709,6 +804,9 @@ def status(ctx):
         return "Nicht angemeldet."
     who = tok.get("username") or "Beatport-Konto"
     left = tok.get("expires_at", 0) - time.time()
+    if tok.get("app"):
+        return f"Angemeldet als {who} (eigener API-Zugang)." if left > 0 else \
+            f"Angemeldet als {who} (eigener API-Zugang, Token abgelaufen – wird bei Bedarf erneuert)."
     return f"Angemeldet als {who}" + ("" if left > 0 else " (Token abgelaufen – wird bei Bedarf erneuert)") + "."
 
 
@@ -722,7 +820,18 @@ def _notation():
 
 def run(action, ctx, files, opts):
     if action == "logout":
-        return {"message": "Abgemeldet – Token gelöscht." if delete_token(ctx) else "Es war kein Token gespeichert."}
+        tok = load_token(ctx)
+        revoked = revoke(ctx, tok) if tok else False
+        had = delete_token(ctx)
+        forgot = bool(opts.get("forget_app")) and delete_app(ctx)
+        if not had:
+            msg = "Es war kein Token gespeichert – Client-ID und Secret gelöscht." if forgot else "Es war kein Token gespeichert."
+        elif revoked:
+            msg = ("Abgemeldet – Token bei Beatport zurückgezogen und gelöscht, Client-ID und Secret ebenfalls gelöscht."
+                   if forgot else "Abgemeldet – Token bei Beatport zurückgezogen und gelöscht.")
+        else:
+            msg = "Abgemeldet – Token, Client-ID und Secret gelöscht." if forgot else "Abgemeldet – Token gelöscht."
+        return {"message": msg}
     if action == "login":
         ctx.status("Melde bei Beatport an …")
         if opts.get("method") == "token":
@@ -732,6 +841,16 @@ def run(action, ctx, files, opts):
                 tok = _norm_token(opts["token"].strip())
             except (ValueError, KeyError, TypeError) as ex:
                 raise ValueError("Das ist kein gültiger Token – erwartet wird die JSON-Antwort mit „access_token“.") from ex
+        elif opts.get("method") == "app":
+            app = load_app(ctx) or {}
+            cid = str(opts.get("client_id") or "").strip() or app.get("client_id", "")
+            secret = str(opts.get("client_secret") or "").strip() or app.get("client_secret", "")
+            if not cid or not secret:
+                raise ValueError("Bitte Client-ID und Client-Secret deiner Beatport-App eingeben.")
+            if not opts.get("username") or not opts.get("password"):
+                raise ValueError("Bitte Benutzername und Passwort eingeben.")
+            tok = login_app(ctx, cid, secret, opts["username"].strip(), opts["password"])
+            save_app(ctx, cid, secret)
         else:
             if not opts.get("username") or not opts.get("password"):
                 raise ValueError("Bitte Benutzername und Passwort eingeben.")
@@ -740,7 +859,10 @@ def run(action, ctx, files, opts):
         acc = Client(ctx).get("/my/account/") or {}
         tok["username"] = acc.get("username") or tok.get("username", "")
         save_token(ctx, tok)
-        return {"message": f"Angemeldet als {tok['username'] or 'Beatport-Konto'}. Das Passwort wurde nicht gespeichert."}
+        who = tok["username"] or "Beatport-Konto"
+        if tok.get("app"):
+            return {"message": f"Angemeldet als {who} über deinen eigenen API-Zugang. Das Passwort wurde nicht gespeichert."}
+        return {"message": f"Angemeldet als {who}. Das Passwort wurde nicht gespeichert."}
     if action == "test":
         acc = Client(ctx).get("/my/account/") or {}
         return {"message": f"Verbindung in Ordnung – angemeldet als {acc.get('username', '?')}."}

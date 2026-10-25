@@ -47,6 +47,8 @@ class FakeBeatport:
     def __call__(self, method, url, *, headers=None, data=None, opener=None, follow=True):
         u = urllib.parse.urlparse(url)
         q = {k: v[0] for k, v in urllib.parse.parse_qs(u.query).items()}
+        if isinstance(data, bytes) and data:                      # Formular (offizieller Weg, eigener API-Zugang)
+            q.update({k: v[0] for k, v in urllib.parse.parse_qs(data.decode()).items()})
         self.calls.append((method, u.path, q))
         auth = (headers or {}).get("Authorization", "")
         if u.netloc == "geo-media.beatport.com":
@@ -63,7 +65,14 @@ class FakeBeatport:
         if p == "/v4/auth/o/authorize/":
             assert q["client_id"] == "CID123"
             return 302, {"Location": "https://api.beatport.com/v4/auth/o/post-message/?code=CODE1"}, b""
+        if p == "/v4/auth/o/revoke/":
+            self.valid.discard(q.get("token"))
+            return 200, {}, b""
         if p == "/v4/auth/o/token/":
+            if q.get("grant_type") == "password":                  # eigene App: Client-ID + Secret + Benutzer
+                if (q.get("client_id"), q.get("client_secret"), q.get("password")) == ("MYAPP", "S3CRET", self.password):
+                    return self._tok()
+                return 401, {}, json.dumps({"error": "invalid_grant", "error_description": "Invalid credentials"}).encode()
             if q.get("grant_type") == "authorization_code" and q.get("code") == "CODE1":
                 return self._tok()
             if q.get("grant_type") == "refresh_token" and q.get("refresh_token", "").startswith("RT"):
@@ -267,6 +276,39 @@ class TestBeatport(Base):
         self.s.start_purch_refresh()                                                            # erneut: nichts neu
         res = self.wait()["result"]
         self.assertEqual((res["new"], res["count"]["inbox"]), (0, 1))
+
+    def test_own_api_access(self):
+        """Offizieller Zugang mit eigener Beatport-App: Password Grant, Refresh per Formular, Abmelden zieht zurück."""
+        st = self.act("login", method="app", client_id="MYAPP", client_secret="falsch", username="marku", password="geheim")
+        self.assertIn("abgelehnt", st["error"])
+        st = self.act("login", method="app", client_id="MYAPP", client_secret="S3CRET", username="marku", password="geheim")
+        self.assertIsNone(st["error"], st)
+        self.assertIn("eigenen API-Zugang", st["result"]["message"])
+        ctx = plugins.Context(self.s.plugins.get("beatport"), self.s)
+        tok = self.mod.load_token(ctx)
+        self.assertTrue(tok["app"])
+        self.assertEqual(self.mod.load_app(ctx)["client_id"], "MYAPP")
+        self.assertIn("eigener API-Zugang", self.mod.status(ctx))
+        cfg = json.dumps(self.s.cfg.get("plugin_options") or {})
+        self.assertNotIn("MYAPP", cfg)                                                      # nie in der Einstellungsdatei
+        self.assertNotIn("S3CRET", cfg)
+        # ohne Felder: gespeicherte Client-ID und Secret gelten
+        st = self.act("login", method="app", username="marku", password="geheim")
+        self.assertIsNone(st["error"], st)
+        # Token abgelaufen → Erneuern per Formular mit Client-ID und Secret
+        tok = self.mod.load_token(ctx)
+        tok["expires_at"] = 0
+        self.mod.save_token(ctx, tok)
+        self.assertEqual(self.mod.Client(ctx).get("/my/account/")["username"], "marku")
+        ref = [c for c in self.fake.calls if c[1] == "/v4/auth/o/token/" and c[2].get("grant_type") == "refresh_token"][-1]
+        self.assertEqual((ref[2]["client_id"], ref[2]["client_secret"]), ("MYAPP", "S3CRET"))
+        # Abmelden: zurückziehen, Token weg; App-Daten nur auf Wunsch
+        st = self.act("logout")
+        self.assertIn("zurückgezogen", st["result"]["message"])
+        self.assertIsNone(self.mod.load_token(ctx))
+        self.assertIsNotNone(self.mod.load_app(ctx))
+        self.act("logout", forget_app=True)
+        self.assertIsNone(self.mod.load_app(ctx))
 
     def test_token_paste_and_refresh(self):
         self.fake.valid.add("PASTED")

@@ -2040,6 +2040,20 @@ class UiTest(unittest.TestCase):
         self.assertFalse(pg.locator('#modal [data-ok="clean_title"]').is_checked())
         pg.click("#mBtns button >> nth=0")
 
+    def test_beatport_login_form(self):
+        """Beatport › „Anmelden …“: Methode „Eigener API-Zugang“ zeigt Client-ID/Secret und Benutzer (show_if mit Liste)."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("void pluginRun('beatport', 'login')")
+        pg.wait_for_selector('#modal [data-ok="method"]')
+        vis = lambda k: pg.locator(f'#modal [data-ok="{k}"]').is_visible()   # noqa: E731
+        self.assertEqual((vis("username"), vis("client_id")), (True, False))
+        pg.select_option('#modal [data-ok="method"]', "app")
+        self.assertEqual((vis("username"), vis("password"), vis("client_id"), vis("client_secret")), (True, True, True, True))
+        pg.select_option('#modal [data-ok="method"]', "token")
+        self.assertEqual((vis("username"), vis("client_id"), vis("token")), (False, False, True))
+        pg.click("#mBtns button >> nth=0")
+
     def test_preview_links(self):
         """#144: Vorschau von Plugins zeigt Links zum Treffer auf der Plattform (je Datei und je Feld)."""
         pg = self.pg

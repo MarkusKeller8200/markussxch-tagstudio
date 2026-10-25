@@ -283,6 +283,11 @@ und optional Titel/Künstler/Album von Beatport. Nutzt die Beatport-API v4 mit *
 Treffer: zuerst über eine gespeicherte Beatport-ID (`TXXX:BEATPORT_TRACK_ID`), dann ISRC, sonst Suche nach
 Künstler + Titel + Mix-Name; bewertet werden Titel, Künstler, Länge und Mix-Name. Höchstens ~3 Anfragen pro Sekunde.
 
+**Eigener API-Zugang (#286):** Wer bei Beatport eine eigene API-App hat, wählt unter „Anmelden …“ die Methode
+„Eigener API-Zugang“ und trägt Client-ID, Client-Secret, Benutzername und Passwort ein (Password Grant laut offizieller
+Doku). Client-ID und Secret werden verschlüsselt im Plugin gespeichert (leer lassen = gespeicherte verwenden), das
+Passwort nie. Das Token wird mit Client-ID und Secret erneuert; „Abmelden“ zieht es bei Beatport zurück.
+
 **Käufe (#285):** Die Seite „Käufe“ nutzt `store_purchases(ctx)` (alle Käufe mit Titel, Mix, Tonart, BPM,
 Katalognummer, Link, Kaufdatum) und `store_download(ctx, items, dest)` (fehlende in den Eingangsordner laden).
 
