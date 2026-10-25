@@ -582,7 +582,7 @@ function drawTgList() {
         return v === null || v === undefined ? "<span></span>" : `<span class="ft-c"><i style="width:${v}%"></i>${v}</span>`; }).join("")}</div>`;
   }
   inner.innerHTML = h;
-  if (LAYOUT.tg_cover_col && !TG.preview) tgThumbsLoad();
+  if (LAYOUT.tg_cover_col) tgThumbsLoad();
 }
 
 /** Eine Zelle der Dateiliste (#152/#154) */
@@ -856,11 +856,35 @@ async function tgThumbsLoad() {
   const need = [...new Set($$("#tgInner .tg-thumb[data-ch]").map((e) => e.dataset.ch))].filter((h) => !TG_THUMBS.has(h) && !TG_THUMB_WAIT.has(h));
   for (const h of need) {
     TG_THUMB_WAIT.add(h);
-    try { const r = await call("tag_cover_thumb", h); TG_THUMBS.set(h, r.ok ? r.src : ""); } catch (e) { TG_THUMBS.set(h, ""); }
+    try {
+      const r = await call("tag_cover_thumb", h);
+      if (r.retry) { TG_THUMB_WAIT.delete(h); continue; }          // #326: Titel noch nicht eingelesen – später nochmals
+      TG_THUMBS.set(h, r.ok ? r.src : "");
+      if (r.ok && r.store) tgThumbShrink(h, r.src);                 // #326: einmal verkleinern und ablegen
+    } catch (e) { TG_THUMBS.set(h, ""); }
     TG_THUMB_WAIT.delete(h);
     const src = TG_THUMBS.get(h);
     $$(`#tgInner .tg-thumb[data-ch="${h}"]`).forEach((el) => { el.innerHTML = src ? `<img src="${esc(src)}" alt="">` : ""; });
   }
+}
+/** #326: Cover im Browser auf höchstens 96 px verkleinern (PNG) und unter dem Listen-Hash ablegen – nächstes Mal
+    kommt es sofort, auch in der Sofort-Liste beim Start. Braucht kein Bildwerkzeug auf dem Rechner. */
+function tgThumbShrink(h, src) {
+  const img = new Image();
+  img.onload = () => {
+    try {
+      const k = Math.min(1, 96 / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+      const cv = document.createElement("canvas");
+      cv.width = Math.max(1, Math.round(img.naturalWidth * k)); cv.height = Math.max(1, Math.round(img.naturalHeight * k));
+      const g = cv.getContext("2d");
+      g.imageSmoothingQuality = "high";
+      g.drawImage(img, 0, 0, cv.width, cv.height);
+      const png = cv.toDataURL("image/png");
+      TG_THUMBS.set(h, png);
+      callNow("tag_cover_thumb_store", h, png.split(",")[1]).catch(() => {});
+    } catch (e) { /* egal – dann eben das grosse Bild */ }
+  };
+  img.src = src;
 }
 function tgCoverPop(e) {
   const th = e.target.closest && e.target.closest(".tg-thumb[data-ch]"), pop = $("#tgThumbPop");

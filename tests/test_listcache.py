@@ -197,6 +197,29 @@ class TestListCache(unittest.TestCase):
         self.assertNotEqual(s._cover_hash(f), h1)
         s.set_list_cache(False)
         self.assertEqual(s.tag_rows_preview(self.lib)["rows"], [])
+        # Vorschaubild unter dem Listen-Hash: erst aus dem Cover (store), abgelegt → auch ohne eingelesene Titel
+        import base64
+        import thumbs
+        old_dir = thumbs.CACHE_DIR
+        thumbs.CACHE_DIR = os.path.join(self.dir, "thumbs")
+        try:
+            h = rows[0]["ch"]
+            r = s.tag_cover_thumb(h)
+            self.assertTrue(r["ok"] and r["store"])
+            small = png(96, 96, b"z" * 50)
+            self.assertTrue(s.tag_cover_thumb_store(h, base64.b64encode(small).decode()))
+            self.assertFalse(s.tag_cover_thumb_store(h, base64.b64encode(b"keinPNG").decode()))
+            self.assertFalse(s.tag_cover_thumb_store("../x", base64.b64encode(small).decode()))
+            self.assertFalse(s.tag_cover_thumb_store(h, "%%%"))
+            s2 = Session()
+            self.assertEqual(s2.tag_files, [])
+            r2 = s2.tag_cover_thumb(h)
+            self.assertEqual(base64.b64decode(r2["src"].split(",")[1]), small)
+            self.assertEqual(s2.tag_cover_thumb("0" * 16), {"ok": False, "retry": True})
+            self.assertEqual(s2.tag_cover_thumb("kein-hash"), {"ok": False})
+            self.assertTrue(Session._cache_dirs()["covers"][1].match(f"tg_{h}.png"))
+        finally:
+            thumbs.CACHE_DIR = old_dir
 
     def test_single_file_always_fresh(self):
         """#81: eine einzelne Datei (z. B. aus dem Journal) kommt nie aus dem Cache."""

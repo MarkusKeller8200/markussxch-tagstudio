@@ -454,7 +454,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         import re
         import thumbs
         import waveform
-        return {"covers": (thumbs.CACHE_DIR, re.compile(r"^[0-9a-f]{32}_\d+\.png$"), False),
+        return {"covers": (thumbs.CACHE_DIR, re.compile(r"^(?:[0-9a-f]{32}_\d+|tg_[0-9a-f]{16})\.png$"), False),
                 "wave": (waveform.DIR, re.compile(r"^[0-9a-f]{32}\.json$"), True)}
 
     def cache_info(self) -> dict:
@@ -578,7 +578,14 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 h = self._cover_hash(f)
                 if h not in uniq:
                     uniq[h] = True
-                    ok += bool(thumbs.make_png(c.data, self.THUMB))
+                    png = thumbs.make_png(c.data, self.THUMB)
+                    ok += bool(png)
+                    if png and self._ch_thumb_path(h):              # #326: auch unter dem Listen-Hash
+                        try:
+                            with open(self._ch_thumb_path(h), "wb") as fh:
+                                fh.write(png)
+                        except OSError:
+                            pass
             if i % 10 == 0 or i == len(paths):
                 progress(("progress", i, len(paths), p))
         if uniq and not ok and not thumbs.backend():
@@ -1954,22 +1961,82 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             c._h, c._hlen = h, len(c.data)
         return h
 
-    def tag_cover_thumb(self, h) -> dict:
-        """Cover zu einem Hash aus tag_rows (für die Cover-Spalte, #73)."""
-        with self.lock:
+    # #326: Vorschaubild je Listen-Hash – auch ohne eingelesene Titel (Sofort-Liste beim Start)
+    @staticmethod
+    def _ch_thumb_path(h) -> str | None:
+        import re
+        import thumbs
+        if not isinstance(h, str) or not re.fullmatch(r"[0-9a-f]{16}", h):
+            return None
+        return os.path.join(thumbs.CACHE_DIR, f"tg_{h}.png")
+
+    def _cover_index(self) -> dict:
+        """{Listen-Hash: Datei} – einmal je geladener Liste statt bei jedem Vorschaubild die ganze Liste."""
+        key = (id(self.tag_files), len(self.tag_files))
+        idx = getattr(self, "_cover_idx", None)
+        if idx is None or idx[0] != key:
+            idx = (key, {})
             for f in self.tag_files:
-                if self._cover_hash(f) == h:
-                    import thumbs
-                    c = self._front_cover(f)
-                    try:                                    # kleines Vorschaubild aus dem Cache (#80), sonst das Cover
-                        with open(thumbs.cache_path(c.data, self.THUMB), "rb") as fh:
-                            return {"ok": True, "src": "data:image/png;base64," + base64.b64encode(fh.read()).decode("ascii"),
-                                    "desc": c.describe()}
-                    except OSError:
-                        pass
-                    return {"ok": True, "src": f"data:{safe_mime(c.mime, c.data)};base64,{base64.b64encode(c.data).decode('ascii')}",
-                            "desc": c.describe()}
-        return {"ok": False}
+                h = self._cover_hash(f)
+                if h and h not in idx[1]:
+                    idx[1][h] = f
+            self._cover_idx = idx
+        return idx[1]
+
+    def tag_cover_thumb(self, h) -> dict:
+        """Cover zu einem Hash aus tag_rows (für die Cover-Spalte, #73). #326: zuerst das kleine Vorschaubild unter dem
+        Listen-Hash (geht schon vor dem Einlesen); sonst aus dem Cover – store=True: die Oberfläche verkleinert es und
+        legt es mit tag_cover_thumb_store ab."""
+        p = self._ch_thumb_path(h)
+        if p is None:
+            return {"ok": False}
+        try:
+            with open(p, "rb") as fh:
+                return {"ok": True, "src": "data:image/png;base64," + base64.b64encode(fh.read()).decode("ascii"), "desc": ""}
+        except OSError:
+            pass
+        with self.lock:
+            if not self.tag_files:
+                return {"ok": False, "retry": True}                    # noch nicht eingelesen – später nochmals
+            f = self._cover_index().get(h)
+            if f is None or self._cover_hash(f) != h:                   # inzwischen geändert → Verzeichnis neu
+                self._cover_idx = None
+                f = self._cover_index().get(h)
+            if f is None:
+                return {"ok": False}
+            import shutil
+            import thumbs
+            c = self._front_cover(f)
+            try:                                    # kleines Vorschaubild aus dem Cache (#80) → auch unter dem Listen-Hash
+                src = thumbs.cache_path(c.data, self.THUMB)
+                if os.path.isfile(src):
+                    shutil.copyfile(src, p)
+                    with open(p, "rb") as fh:
+                        return {"ok": True, "src": "data:image/png;base64," + base64.b64encode(fh.read()).decode("ascii"),
+                                "desc": c.describe()}
+            except OSError:
+                pass
+            return {"ok": True, "src": f"data:{safe_mime(c.mime, c.data)};base64,{base64.b64encode(c.data).decode('ascii')}",
+                    "desc": c.describe(), "store": True}
+
+    def tag_cover_thumb_store(self, h, png_b64) -> bool:
+        """#326: von der Oberfläche verkleinertes Vorschaubild (PNG, höchstens 96 px) unter dem Listen-Hash ablegen."""
+        p = self._ch_thumb_path(h)
+        try:
+            data = base64.b64decode(str(png_b64 or ""), validate=True)
+        except ValueError:
+            return False
+        if p is None or not data.startswith(b"\x89PNG\r\n\x1a\n") or len(data) > 200_000:
+            return False
+        try:
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            tmp = p + ".tmp"
+            with open(tmp, "wb") as fh:
+                fh.write(data)
+            os.replace(tmp, p)
+        except OSError:
+            return False
+        return True
 
     def tag_rows(self) -> dict:
         with self.lock:

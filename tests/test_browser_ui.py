@@ -557,6 +557,43 @@ class UiTest(unittest.TestCase):
                         pg.inner_text("#statusText"))
         self.assertTrue(pg.evaluate("TG.rows[[...TG.sel][0]].rel === '02 Ton 330.mp3'"))
 
+    def test_tagger_preview_covers(self):
+        """#326: Cover-Vorschauen liegen unter dem Listen-Hash im Cache – in der Sofort-Liste beim Start sind sie
+        gleich da; fehlt ein kleines Bild, verkleinert die Oberfläche das Cover einmal und legt es ab."""
+        sys.path.insert(0, ROOT)
+        import tagger as tg
+        from id3tags import MP3File
+        cov = os.path.join(self.dir, "cover.png")
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "lavfi", "-i", "color=c=red:s=300x300", "-frames:v", "1", cov],
+                       check=True)
+        with open(cov, "rb") as fh:
+            data = fh.read()
+        files = [MP3File(os.path.join(self.lib, n)) for n in sorted(os.listdir(self.lib))]
+        tg.set_cover(files, data)
+        for f in files:
+            f.save()
+        pg = self.pg
+        pg.evaluate("call('set_ui', 'tg_cover_col', true).then(() => { LAYOUT.tg_cover_col = true; })")
+        self.load_tagger()
+        pg.evaluate("applyLayout && applyLayout(); drawTgList()")
+        self.assertTrue(self.until("document.querySelectorAll('#tgInner .tg-thumb img').length === 3", 10))
+        ch = pg.evaluate("TG.rows[0].ch")
+        thumb = os.path.join(self.home, "TagStudio", "cache", f"tg_{ch}.png")
+        t0 = time.time()
+        while not os.path.isfile(thumb) and time.time() - t0 < 5:
+            time.sleep(0.1)
+        self.assertTrue(os.path.isfile(thumb))
+        with open(thumb, "rb") as fh:
+            self.assertTrue(fh.read(8).startswith(b"\x89PNG"))
+        self.assertTrue(self.until("TG_THUMBS.get(TG.rows[0].ch).length < 20000"))     # verkleinert, nicht das Cover
+        pg = self.restart_with_init("""(() => { const wait = () => { if (typeof callNow !== 'function') return setTimeout(wait, 5);
+            const orig = callNow; window.callNow = async (n, ...a) => {
+              if (n === 'start_tag_load') await new Promise(r => setTimeout(r, 4000));
+              return orig(n, ...a); }; }; wait(); })()""")
+        self.assertTrue(self.until("!!TG.preview && document.querySelectorAll('#tgInner .tg-thumb img').length === 3", 5),
+                        pg.evaluate("JSON.stringify({p: !!TG.preview, n: document.querySelectorAll('#tgInner .tg-thumb').length})"))
+        self.assertTrue(self.until("TG.loaded && !TG.preview", 20))
+
     def test_resume_selects_row_and_doubleclick(self):
         """#195: nach dem Neustart steht der Tagger auf dem fortgesetzten Titel; #196: Doppelklick spielt danach."""
         pg = self.pg
