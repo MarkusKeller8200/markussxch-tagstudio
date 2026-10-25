@@ -158,6 +158,20 @@ select{height:40px;padding:0 10px;border:1px solid var(--line);border-radius:var
 .seg button.on{background:var(--acc-soft);color:var(--acc)}
 .btn-group{display:flex;gap:6px;flex-wrap:wrap}
 .btn-group .ghost{font-size:13px}
+/* #107: Werkzeugleiste im Vergleich – Gruppen mit Farbe, Trenner, nur Symbole umschaltbar */
+.cmp-tb{--g-view:var(--acc);--g-copy:var(--ok);--g-edit:#D18F1B;--g-hist:var(--only)}
+.cmp-tb .tb-grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cmp-tb .tb-s{font-size:15px;line-height:1;font-weight:700;min-width:1em;text-align:center}
+.cmp-tb [data-grp=view] .tb-s{color:var(--g-view)}
+.cmp-tb [data-grp=copy] .tb-s{color:var(--g-copy)}
+.cmp-tb [data-grp=edit] .tb-s{color:var(--g-edit)}
+.cmp-tb [data-grp=hist] .tb-s{color:var(--g-hist)}
+.cmp-tb .seg button{display:inline-flex;align-items:center;gap:6px}
+.cmp-tb button:disabled .tb-s{opacity:.45}
+.cmp-tb .tb-sep{width:1px;align-self:stretch;min-height:24px;background:var(--line);margin:0 2px}
+.cmp-tb .tb-mode .tb-s{font-size:12px;color:var(--dim)}
+.cmp-tb.icons-only .tb-t{display:none}
+.cmp-tb.icons-only .tb-mode .tb-s{color:var(--acc)}
 
 .table{margin:0 24px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surf);overflow:auto;flex:1 1 auto;min-height:280px;outline:0}
 .table{--col-name:190px;--col-l:1fr;--col-r:1fr}

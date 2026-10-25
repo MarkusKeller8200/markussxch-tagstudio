@@ -1034,6 +1034,39 @@ class UiTest(unittest.TestCase):
         self.assertIn("Einstellungen", pg.inner_text(".nav[data-module=settings]"))
         self.assertEqual(self.errors, [])
 
+    def test_compare_toolbar_groups(self):
+        """#107: Werkzeugleiste im Vergleich – Gruppen mit Symbolen und Trennern, Verlauf, „nur Symbole“ gemerkt."""
+        pg = self.pg
+        other = os.path.join(self.dir, "lib2")
+        shutil.copytree(self.lib, other)
+        pg.click('.nav[data-module="compare"]')
+        pg.fill("#pathL", self.lib)
+        pg.fill("#pathR", other)
+        pg.click("#compareBtn")
+        pg.wait_for_selector("#cmp:not([hidden])")
+        grps = pg.evaluate("[...document.querySelectorAll('#cmpToolbar .tb-grp')].map((g) => g.dataset.grp)")
+        self.assertEqual(grps, ["view", "copy", "edit", "hist"])
+        self.assertEqual(pg.locator("#cmpToolbar .tb-sep").count(), 3)
+        self.assertEqual(pg.inner_text('[data-filter="diff"] .tb-s'), "≠")
+        self.assertTrue(pg.evaluate("[...document.querySelectorAll('#cmpToolbar button')].every((b) => b.title || b.dataset.tipTitle || b.getAttribute('aria-label'))"))
+        # Farbe je Gruppe
+        cv = pg.evaluate("getComputedStyle(document.querySelector('[data-grp=copy] .tb-s')).color")
+        ce = pg.evaluate("getComputedStyle(document.querySelector('[data-grp=edit] .tb-s')).color")
+        self.assertNotEqual(cv, ce)
+        # Verlauf: ohne Änderung gesperrt (wie die Knöpfe oben)
+        self.assertTrue(pg.evaluate("document.querySelector('#cmpUndo').disabled"))
+        # nur Symbole umschalten, wird gemerkt
+        self.assertTrue(pg.locator('[data-filter="diff"] .tb-t').is_visible())
+        pg.click("#cmpTbMode")
+        self.assertTrue(pg.locator('[data-filter="diff"] .tb-t').is_hidden())
+        self.assertEqual(pg.get_attribute("#cmpTbMode", "aria-pressed"), "true")
+        c = self.cfg_until(lambda c: (c.get("web_ui") or {}).get("cmp_tb_icons") is True)
+        self.assertTrue(c["web_ui"]["cmp_tb_icons"])
+        pg.reload()
+        pg.wait_for_function("typeof S !== 'undefined' && S.settings")
+        self.assertTrue(pg.evaluate("document.querySelector('#cmpToolbar').classList.contains('icons-only')"))
+        self.assertEqual(self.errors, [])
+
     def test_i18n_dialog_language(self):
         """#304: Die Sprache der Oberfläche gilt auch für Python (Dateidialoge, Fenstertitel)."""
         pg = self.pg

@@ -340,6 +340,9 @@ oder Reihenfolge, Unterordner.
   Bearbeiten per Doppelklick (Tab = nächstes Feld, Mehrfachwerte mit `¦`), Kontextmenü (kopieren, bearbeiten,
   entfernen, Link öffnen, im Explorer/Finder zeigen), klickbare Links, Cover-Vorschau mit Grossansicht,
   Filter Alle/Unterschiede/Gleiche, Unwichtige, leere Felder, Feldsuche, **+ Feld**.
+- **Werkzeugleiste** (#107) in Gruppen wie in der klassischen Oberfläche, je Gruppe eine Farbe: Anzeige (✱ ≠ = ≈ ▣),
+  Kopieren (⇇ ⇤ ⇥ ⇉), Bearbeiten (+ Feld, ⊘ Herkunft, ⟳ Paar neu), Verlauf (↶ ↷). „Aa“ rechts schaltet zwischen
+  Symbolen mit Text und nur Symbolen um (wird gemerkt); jeder Knopf hat einen Tooltip.
 - **Bilder:** Rechtsklick auf ein Cover: anzeigen, ersetzen, exportieren, entfernen; Klick auf den leeren
   Cover-Platz fügt eines hinzu. (Dateidialoge im App-Fenster; im Browser-Modus nur unter Windows/Linux.)
 
@@ -779,7 +782,7 @@ Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markuss
   sind im Developer Release für 4.7.0 umgesetzt; offen sind Deutsch (Deutschland) und Einreichen eigener Texte.
 - **Profile und Einrichtungsassistent** ([docs/KONZEPT-EINRICHTUNG.md](docs/KONZEPT-EINRICHTUNG.md)): zweite,
   unabhängige TagStudio-Instanz mit getrennten Einstellungen; geführte Einrichtung für neue Benutzer.
-- **Später:** Beatgrid und Beatmatching im Player, Symbol-Werkzeugleiste im Vergleich, Plugin-Ideen (Liedtexte,
+- **Später:** Beatgrid und Beatmatching im Player, Plugin-Ideen (Liedtexte,
   Duplikate, Qualitätsprüfung, Import aus Rekordbox/Traktor/Serato), Analyse-Modelle, signierte
   Installer, Datenbank-Modul für die Bibliothek.
 

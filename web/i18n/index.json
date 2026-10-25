@@ -328,5 +328,12 @@
 "Quelltext": ["Source", "Quälltext"],
 "Formatieren": ["Format", "Formatiere"],
 "Kompakt": ["Compact", "Kompakt"],
-"Übernehmen": ["Apply", "Übernää"]
+"Übernehmen": ["Apply", "Übernää"],
+"Werkzeugleiste: Symbole mit Text": ["Toolbar: icons with text", "Wärchzüügliischte: Symbol mit Tegscht"],
+"Werkzeugleiste: nur Symbole": ["Toolbar: icons only", "Wärchzüügliischte: nur Symbol"],
+"Alle Felder zeigen": ["Show all fields", "Alli Fälder zeige"],
+"Nur Felder mit Unterschieden zeigen": ["Show only fields with differences", "Nur Fälder mit Unterschiid zeige"],
+"Nur gleiche Felder zeigen": ["Show only identical fields", "Nur glichi Fälder zeige"],
+"Unwichtige Felder (z. B. Kodierer, Programm-Daten) ein- oder ausblenden": ["Show or hide unimportant fields (e.g. encoder, program data)", "Unwichtigi Fälder (z. B. Kodierer, Programm-Date) iiblände oder usblände"],
+"Cover im Vergleich zeigen": ["Show covers in the comparison", "Cover im Verglich zeige"]
 }

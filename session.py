@@ -54,7 +54,8 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
            "tg_fit": str, "tg_colfilter": bool,                 # #202: Filterzeile unter den Spaltenköpfen                                    # #148: „fit“ an Fenster anpassen, „scroll“ optimale Breite
            "tg_sort_default": list,                          # #153: Standard-Sortierung (bis 3 Stufen)
            "tg_view_default": dict,                          # #155: bevorzugte Ansicht
-           "lang": str}                                      # #157: Sprache der Oberfläche
+           "lang": str,                                      # #157: Sprache der Oberfläche
+           "cmp_tb_icons": bool}                             # #107: Werkzeugleiste im Vergleich nur mit Symbolen
 
 
 class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, DiscoverMixin, SetupMixin, FoldersMixin, FolderRolesMixin, ArchiveMixin,

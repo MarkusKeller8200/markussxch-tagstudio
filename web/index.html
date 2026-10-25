@@ -139,27 +139,40 @@
             <div class="head-mid"><svg class="i" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/></svg></div>
             <div class="head" id="headR"></div>
           </div>
-          <div class="toolbar">
-            <div class="seg" role="group" aria-label="Anzeige">
-              <button data-filter="all">Alle</button><button data-filter="diff">Unterschiede</button><button data-filter="same">Gleiche</button>
+          <div class="toolbar cmp-tb" id="cmpToolbar">
+            <!-- #107: Gruppen wie in der klassischen Oberfläche – je Gruppe eine Farbe, Symbol + kurzer Text + Tooltip -->
+            <div class="tb-grp" data-grp="view" role="group" aria-label="Anzeige">
+              <div class="seg" role="group" aria-label="Filter">
+                <button data-filter="all" title="Alle Felder zeigen"><span class="tb-s" aria-hidden="true">✱</span><span class="tb-t">Alle</span></button><button data-filter="diff" title="Nur Felder mit Unterschieden zeigen"><span class="tb-s" aria-hidden="true">≠</span><span class="tb-t">Unterschiede</span></button><button data-filter="same" title="Nur gleiche Felder zeigen"><span class="tb-s" aria-hidden="true">=</span><span class="tb-t">Gleiche</span></button>
+              </div>
+              <button class="toggle" id="trivBtn" title="Unwichtige Felder (z. B. Kodierer, Programm-Daten) ein- oder ausblenden"><span class="tb-s" aria-hidden="true">≈</span><span class="tb-t">Unwichtige</span></button>
+              <button class="toggle" id="coverBtn" title="Cover im Vergleich zeigen"><span class="tb-s" aria-hidden="true">▣</span><span class="tb-t">Cover</span></button>
+              <select id="emptySet" aria-label="Leere Felder einblenden" title="Leere Felder einblenden"></select>
             </div>
-            <button class="toggle" id="trivBtn"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>Unwichtige</button>
-            <select id="emptySet" aria-label="Leere Felder einblenden"></select>
-            <button class="toggle" id="coverBtn"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Cover</button>
+            <span class="tb-sep" aria-hidden="true"></span>
             <button class="ghost sm" id="cmpHome" hidden><svg class="i" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Standard</button>
             <button type="button" id="cmpSrc" class="inp sm cmp-src src-pick" aria-haspopup="menu" aria-label="Nach Herkunft filtern (alle)" title="Nur Felder der gewählten Herkünfte zeigen – mehrere möglich (Klick auf ein Kennzeichen in der Liste geht auch)"><span class="src-pick-all">Alle Herkünfte</span><span class="src-pick-c" aria-hidden="true">▾</span></button>
             <label class="search sm"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="fieldQuery" placeholder="Felder suchen" aria-label="Felder suchen"></label>
             <span class="muted sm" id="summary"></span>
             <div class="grow"></div>
-            <div class="btn-group">
-              <button class="ghost" id="pairReloadBtn" title="Nur dieses Paar neu von der Platte lesen (Shift+F5) – die übrige Liste bleibt"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>Paar neu</button>
-              <button class="ghost" id="originBtn" title="Felder nach Herkunft entfernen (z. B. Serato-Daten nur rechts)"><svg class="i" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg>Herkunft</button>
-              <button class="ghost" id="addFieldBtn" title="Feld hinzufügen"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Feld</button>
-              <button class="ghost" data-copyall="rl" title="Alle Unterschiede nach links"><svg class="i" viewBox="0 0 24 24"><path d="M11 17 6 12l5-5"/><path d="M18 17l-5-5 5-5"/></svg>Alles</button>
-              <button class="ghost" data-missing="rl" title="Nur fehlende Felder nach links"><svg class="i" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>Fehlende</button>
-              <button class="ghost" data-missing="lr" title="Nur fehlende Felder nach rechts">Fehlende<svg class="i" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
-              <button class="ghost" data-copyall="lr" title="Alle Unterschiede nach rechts">Alles<svg class="i" viewBox="0 0 24 24"><path d="m13 17 5-5-5-5"/><path d="m6 17 5-5-5-5"/></svg></button>
+            <div class="tb-grp btn-group" data-grp="copy" role="group" aria-label="Kopieren">
+              <button class="ghost" data-copyall="rl" title="Alle Unterschiede nach links"><span class="tb-s" aria-hidden="true">⇇</span><span class="tb-t">Alles</span></button>
+              <button class="ghost" data-missing="rl" title="Nur fehlende Felder nach links"><span class="tb-s" aria-hidden="true">⇤</span><span class="tb-t">Fehlende</span></button>
+              <button class="ghost" data-missing="lr" title="Nur fehlende Felder nach rechts"><span class="tb-t">Fehlende</span><span class="tb-s" aria-hidden="true">⇥</span></button>
+              <button class="ghost" data-copyall="lr" title="Alle Unterschiede nach rechts"><span class="tb-t">Alles</span><span class="tb-s" aria-hidden="true">⇉</span></button>
             </div>
+            <span class="tb-sep" aria-hidden="true"></span>
+            <div class="tb-grp btn-group" data-grp="edit" role="group" aria-label="Bearbeiten">
+              <button class="ghost" id="addFieldBtn" title="Feld hinzufügen"><span class="tb-s" aria-hidden="true">+</span><span class="tb-t">Feld</span></button>
+              <button class="ghost" id="originBtn" title="Felder nach Herkunft entfernen (z. B. Serato-Daten nur rechts)"><span class="tb-s" aria-hidden="true">⊘</span><span class="tb-t">Herkunft</span></button>
+              <button class="ghost" id="pairReloadBtn" title="Nur dieses Paar neu von der Platte lesen (Shift+F5) – die übrige Liste bleibt"><span class="tb-s" aria-hidden="true">⟳</span><span class="tb-t">Paar neu</span></button>
+            </div>
+            <span class="tb-sep" aria-hidden="true"></span>
+            <div class="tb-grp btn-group" data-grp="hist" role="group" aria-label="Verlauf">
+              <button class="ghost" id="cmpUndo" title="Rückgängig (Strg/Cmd+Z)"><span class="tb-s" aria-hidden="true">↶</span><span class="tb-t">Rückgängig</span></button>
+              <button class="ghost" id="cmpRedo" title="Wiederholen (Strg+Y / Cmd+Shift+Z)"><span class="tb-s" aria-hidden="true">↷</span><span class="tb-t">Wiederholen</span></button>
+            </div>
+            <button class="icon-btn tb-mode" id="cmpTbMode" title="Werkzeugleiste: nur Symbole" aria-label="Werkzeugleiste: nur Symbole" aria-pressed="false"><span class="tb-s" aria-hidden="true">Aa</span></button>
           </div>
           <div class="table" id="table" tabindex="0" aria-label="Felder im Vergleich">
             <div class="thead"><span class="th">Feld<span class="col-grip" id="gripName" role="separator" aria-label="Breite der Feldspalte" tabindex="0" title="Ziehen: Breite der Feldspalte · Doppelklick: Standard"></span></span><span class="th">Links</span><span class="th c mid-grip" id="gripMid" role="separator" aria-label="Aufteilung links/rechts" tabindex="0" title="Ziehen: Aufteilung links/rechts · Doppelklick: halb/halb"><svg class="i" viewBox="0 0 24 24"><path d="M9 5v14"/><path d="M15 5v14"/></svg></span><span class="th">Rechts</span></div>

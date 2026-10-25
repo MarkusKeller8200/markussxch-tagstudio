@@ -177,12 +177,20 @@ async function runTask(startPromise, title) {
 
 
 // ====================================================================== Splitter & Layout
-const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5, tg_edit_w: 430, tg_more_k: 130, tg_col_name: 0, tg_cover_col: false, tg_feat_cols: [], tg_more_sort: "key", tg_cols: [], tg_fit: "fit", tg_sort_default: [], tg_view_default: {}, tg_colfilter: true, lang: "" };
+const LAYOUT = { side_w: 224, side_collapsed: false, pairs_w: 330, col_name: 190, col_ratio: 0.5, tg_edit_w: 430, tg_more_k: 130, tg_col_name: 0, tg_cover_col: false, tg_feat_cols: [], tg_more_sort: "key", tg_cols: [], tg_fit: "fit", tg_sort_default: [], tg_view_default: {}, tg_colfilter: true, lang: "", cmp_tb_icons: false };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 let uiSaveTimers = {};
 function saveUi(key) {
   clearTimeout(uiSaveTimers[key]);
   uiSaveTimers[key] = setTimeout(() => call("set_ui", key, LAYOUT[key]).catch(() => {}), 300);
+}
+
+/** #107: Werkzeugleiste im Vergleich – Symbole mit Text oder nur Symbole */
+function cmpToolbarMode() {
+  const on = !!LAYOUT.cmp_tb_icons, b = $("#cmpTbMode");
+  $("#cmpToolbar").classList.toggle("icons-only", on);
+  const t = on ? "Werkzeugleiste: Symbole mit Text" : "Werkzeugleiste: nur Symbole";
+  b.title = t; b.setAttribute("aria-label", t); b.setAttribute("aria-pressed", String(on));
 }
 
 function applyLayout() {
@@ -194,6 +202,7 @@ function applyLayout() {
   root.setProperty("--tg-name", LAYOUT.tg_col_name > 0 ? LAYOUT.tg_col_name + "px" : "minmax(130px,1.5fr)");   // #41
   root.setProperty("--tg-name-px", (LAYOUT.tg_col_name > 0 ? LAYOUT.tg_col_name : 260) + "px");                 // #148
   side.classList.toggle("collapsed", !!LAYOUT.side_collapsed);
+  cmpToolbarMode();
   const cb = $("#collapseBtn");
   const lbl = LAYOUT.side_collapsed ? "Seitenleiste ausklappen" : "Seitenleiste einklappen";
   cb.title = lbl; cb.setAttribute("aria-label", lbl); cb.setAttribute("aria-expanded", String(!LAYOUT.side_collapsed));
@@ -889,6 +898,8 @@ function renderMeta() {
   $("#redoBtn").disabled = !m.can_redo;
   $("#undoBtn").title = m.can_undo ? `Rückgängig: ${m.undo_label}` : "Rückgängig";
   $("#redoBtn").title = m.can_redo ? `Wiederholen: ${m.redo_label}` : "Wiederholen";
+  $("#cmpUndo").disabled = !m.can_undo; $("#cmpRedo").disabled = !m.can_redo;                       // #107
+  $("#cmpUndo").title = $("#undoBtn").title; $("#cmpRedo").title = $("#redoBtn").title;
   $("#saveLbl").textContent = m.unsaved ? `Speichern (${m.unsaved})` : "Speichern";
   $("#saveBtn").disabled = !m.unsaved;
   $("#pendingDot").className = "dot" + (m.unsaved ? " pending" : "");
@@ -1388,6 +1399,9 @@ function bind() {
   // Aktionsleiste
   $("#undoBtn").addEventListener("click", () => undoRedo(false));
   $("#redoBtn").addEventListener("click", () => undoRedo(true));
+  $("#cmpUndo").addEventListener("click", () => undoRedo(false));                                   // #107
+  $("#cmpRedo").addEventListener("click", () => undoRedo(true));
+  $("#cmpTbMode").addEventListener("click", () => { LAYOUT.cmp_tb_icons = !LAYOUT.cmp_tb_icons; cmpToolbarMode(); saveUi("cmp_tb_icons"); });
   $("#saveBtn").addEventListener("click", () => save());
 
   // Tastatur
