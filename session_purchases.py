@@ -52,6 +52,39 @@ class PurchasesMixin:
             return self._source_dir(store) or dest
         return dest
 
+    # ---- #336: ZIP-Downloads automatisch entpacken
+    def _unzip_on(self) -> bool:
+        return self.cfg.get("unzip_auto", True) is not False
+
+    def set_unzip_auto(self, on) -> bool:
+        self.cfg["unzip_auto"] = bool(on)
+        core.save_config({"unzip_auto": bool(on)})
+        return bool(on)
+
+    def _purch_dl_folders(self) -> list:
+        """Download-Ordner der Käufe: eigenes Ziel bzw. je Store der Unterordner der Rolle „Downloads“ plus _Manuell."""
+        dest, why = self._purch_dest()
+        if not why.startswith("Downloads"):
+            return [dest] if dest else []
+        out = [self._source_dir(s["id"]) for s in self.plugins.store_sources()]
+        out.append(self._source_dir(""))                     # unbekannte Quelle → Downloads\\_Manuell
+        return [p for p in dict.fromkeys(out) if p and os.path.isdir(p)]
+
+    def _unzip(self, folders_) -> dict:
+        import applog
+        import unzip
+        if not self._unzip_on():
+            return {"zips": [], "files": 0, "skipped": 0, "errors": [], "off": True}
+        r = unzip.unpack_folders(folders_)
+        for z in r["zips"]:
+            applog.info(f"ZIP entpackt: {z['zip']} – {len(z['files'])} Datei(en), {len(z['skipped'])} übersprungen"
+                        + (f", {z['error']}" if z["error"] else ""))
+        return r
+
+    def purch_unzip(self) -> dict:
+        """#336: beim Öffnen der Seite „Käufe“ neue ZIPs in den Download-Ordnern entpacken."""
+        return self._unzip(self._purch_dl_folders())
+
     def purch_set_dest(self, path) -> dict:
         p = os.path.abspath(os.path.expanduser(str(path).strip())) if str(path or "").strip() else ""
         self.cfg["purch_dest"] = p
@@ -82,7 +115,7 @@ class PurchasesMixin:
         dest, why = self._purch_dest()
         return {"rows": rows, "stores": stores, "sources": self.plugins.store_sources(), "count": count,
                 "last": dict(getattr(self, "_purch_last", {}) or {}),
-                "dest": dest, "dest_from": why, "dest_ok": bool(dest) and os.path.isdir(dest),
+                "dest": dest, "dest_from": why, "dest_ok": bool(dest) and os.path.isdir(dest), "unzip": self._unzip_on(),
                 "roots": self._pl_lib_roots(), **self._lib_info(), "sessions": self._purch_sessions()}
 
     def _purch_index(self, cancel, progress):

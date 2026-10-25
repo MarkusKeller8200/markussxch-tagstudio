@@ -9,6 +9,18 @@ const PUR_COLS = [["status", "Status"], ["title", "Titel"], ["artist", "Interpre
 
 async function purchasesShow() {
   try { purApply(await call("purch_state")); } catch (e) { toast(String(e.message || e)); }
+  purUnzip();
+}
+
+/** #336: neue ZIPs in den Download-Ordnern entpacken (Einstellung „ZIP entpacken“, Standard ein) */
+async function purUnzip() {
+  let r;
+  try { r = await call("purch_unzip"); } catch (e) { return; }
+  if (!r || r.off || !r.zips.length) return;
+  const msg = `${fmtN(r.files)} Titel aus ${fmtN(r.zips.length)} ZIP entpackt` + (r.skipped ? ` · ${fmtN(r.skipped)} übersprungen (gibt es schon)` : "");
+  if (r.errors.length || r.skipped) {
+    info("ZIP entpacken", [msg, ...r.errors, ...r.zips.flatMap((z) => z.skipped)].join("\n"));
+  } else toast(msg + " – „Abgleichen“ übernimmt sie.");
 }
 
 function purApply(st) {
@@ -41,6 +53,7 @@ function purRenderBar() {
   const all = st.rows.length;
   $("#purStatus").innerHTML = [["", `Alle (${fmtN(all)})`], ...Object.entries(PUR_STATUS).map(([k, l]) => [k, `${l} (${fmtN(st.count[k] || 0)})`])]
     .map(([k, l]) => `<button data-purst="${k}" class="${PUR.status === k ? "on" : ""}">${esc(l)}</button>`).join("");
+  $("#purUnzip").checked = st.unzip !== false;
   $("#purDest").innerHTML = st.dest ? `Ziel: <span translate="no" title="${esc(st.dest_from)}">${esc(st.dest)}</span>${st.dest_ok ? "" : " (wird angelegt)"}` : "Kein Eingangsordner";
   const sel = PUR.sel.size, miss = st.rows.filter((r) => r.status === "missing" && !r.preorder).length;
   const b = $("#purDl");
@@ -217,6 +230,11 @@ function purInit() {
   $("#purFull").addEventListener("click", () => purRefresh(false, true));
   $("#purDl").addEventListener("click", purDownload);
   $("#purDestBtn").addEventListener("click", purPickDest);
+  $("#purUnzip").addEventListener("change", async (e) => {                          // #336
+    await call("set_unzip_auto", e.target.checked);
+    toast(e.target.checked ? "Neue ZIP-Downloads werden entpackt." : "ZIP-Downloads werden nicht mehr entpackt.");
+    if (e.target.checked) purUnzip();
+  });
   $("#purSess").addEventListener("click", async (e) => {
     const b = e.target.closest("[data-sesslogout]"); if (!b) return;
     const r = await call("purch_session_logout", b.dataset.sesslogout);

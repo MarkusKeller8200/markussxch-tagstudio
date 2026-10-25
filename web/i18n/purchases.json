@@ -95,5 +95,18 @@
 "Sitzungs-Anmeldung als {x} – nur für diese Sitzung, nichts gespeichert.": ["Session sign-in as {x} – for this session only, nothing saved.", "Sitzigs-Aamäldig als {x} – nur für die Sitzig, nüt gspeicheret."],
 "Download mit Sitzungs-Anmeldung ({x})": ["Download with session sign-in ({x})", "Download mit Sitzigs-Aamäldig ({x})"],
 "Die Sitzungs-Anmeldung bei Beatport ist abgelaufen – beim Herunterladen erneut anmelden.": ["The Beatport session sign-in has expired – sign in again when downloading.", "D Sitzigs-Aamäldig bi Beatport isch abglaufe – bim Abelade nomal aamälde."],
-"Beatport lehnt den gespeicherten Token für den Download ab – Sitzungs-Anmeldung wie auf der Webseite anbieten.": ["Beatport refuses the saved token for downloading – offering a session sign-in like on the website.", "Beatport lehnt de gspeicheret Token für de Download ab – Sitzigs-Aamäldig wie uf de Websiite aabüüte."]
+"Beatport lehnt den gespeicherten Token für den Download ab – Sitzungs-Anmeldung wie auf der Webseite anbieten.": ["Beatport refuses the saved token for downloading – offering a session sign-in like on the website.", "Beatport lehnt de gspeicheret Token für de Download ab – Sitzigs-Aamäldig wie uf de Websiite aabüüte."],
+"Neue ZIP-Dateien im Download-Ordner beim Öffnen der Seite und beim Abholen entpacken – das ZIP kommt danach in den Unterordner _entpackt": ["Unpack new ZIP files in the download folder when opening the page and when fetching – the ZIP is then moved to the subfolder _entpackt", "Nöii ZIP-Dateie im Download-Ordner bim Öffne vo de Siite und bim Abhole uuspacke – s ZIP chunnt dänn in Unterordner _entpackt"],
+"ZIP entpacken": ["Unpack ZIP", "ZIP uuspacke"],
+"{x} Titel aus {x} ZIP entpackt": ["{x} tracks unpacked from {x} ZIP", "{x} Titel us {x} ZIP uuspackt"],
+"· {x} übersprungen (gibt es schon)": ["· {x} skipped (already exist)", "· {x} übersprunge (gits scho)"],
+"– {q} übernimmt sie.": ["– {q} takes them over.", "– {q} übernimmt si."],
+"Neue ZIP-Downloads werden entpackt.": ["New ZIP downloads are unpacked.", "Nöii ZIP-Downloads wärded uuspackt."],
+"ZIP-Downloads werden nicht mehr entpackt.": ["ZIP downloads are no longer unpacked.", "ZIP-Downloads wärded nümme uuspackt."],
+"nicht lesbar ({x})": ["not readable ({x})", "nöd läsbar ({x})"],
+"entpackt, aber nicht verschoben ({x})": ["unpacked, but not moved ({x})", "uuspackt, aber nöd verschobe ({x})"],
+"abgelehnt – unsicherer Pfad im ZIP ({x})": ["rejected – unsafe path in the ZIP ({x})", "abglehnt – unsichere Pfad im ZIP ({x})"],
+"{x}: gibt es schon – nicht überschrieben": ["{x}: already exists – not overwritten", "{x}: gits scho – nöd überschribe"],
+"abgelehnt – zu gross": ["rejected – too large", "abglehnt – z gross"],
+"keine Audiodateien im ZIP": ["no audio files in the ZIP", "kei Audiodateie im ZIP"]
 }

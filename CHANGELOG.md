@@ -8,6 +8,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Käufe: ZIP-Downloads automatisch entpacken (#336):** Neue ZIPs im Download-Ordner werden beim Öffnen der Seite
+  und beim Abholen entpackt (nur Audio, nie überschreiben, unsichere Pfade abgelehnt); das ZIP kommt nach `_entpackt`.
+  Schalter „ZIP entpacken“, Standard ein.
+
 - **Tag-Fixer: Smart Fix mit Rezepten (#339):** Umschalter „Mehrfachwerte | Smart Fix“. Mitgeliefertes Rezept
   „Mehrfachwerte mit Komma“ (`&`/`;` → `, `, Doppelte weg, Künstler, Genre, Stimmung); Ziel-Trenner je Rezept wählbar
   (Standard `, `). Eigene Rezepte anlegen, kopieren, bearbeiten, löschen, exportieren und importieren.

@@ -499,5 +499,6 @@
 "input[data-fxeedit]",
 "input[data-rf]:checked",
 "input[data-rs]:checked",
-"rezept"
+"rezept",
+"ZIP entpackt: {x} – {x} Datei(en), {x} übersprungen"
 ]

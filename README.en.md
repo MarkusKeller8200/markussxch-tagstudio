@@ -319,6 +319,9 @@ downloading. If Beatport refuses the saved access for it, a window **“Sign in 
 the website, valid only while TagStudio is running (password and token are not saved), then TagStudio downloads the
 tracks again right away; “● Beatport: session …” shows the sign-in, “Sign out” ends it. If that fails too, TagStudio
 shows how to download the tracks yourself on Beatport's download page and take them over with “Fetch”.
+**“Unpack ZIP”** (on by default): new ZIP files in the download folder are unpacked when the page opens and when
+fetching – audio files only, nothing is overwritten; the ZIP then moves to the subfolder `_entpackt` (never deleted).
+Unfinished downloads and ZIPs with unsafe paths are left alone.
 
 ### Tag fixer
 

@@ -3636,6 +3636,26 @@ class UiTest(unittest.TestCase):
         pg.fill("#fxSep", "; ")                                                           # neue Vorschau behält die Breite
         self.assertTrue(self.until("document.querySelector('#fxTable table').classList.contains('col-fixed')"))
 
+    def test_purchases_unzip(self):
+        """#336: Käufe – beim Öffnen werden neue ZIPs entpackt (Meldung), Schalter „ZIP entpacken“ gespeichert."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("""(() => { const orig = call; window.__uz = 0;
+          window.call = (n, ...a) => {
+            if (n === "purch_unzip") { window.__uz++; return Promise.resolve({ zips: [{ zip: "Beatport.zip", files: ["a", "b"], skipped: ["c.mp3: gibt es schon – nicht überschrieben"], error: "" }],
+              files: 2, skipped: 1, errors: [] }); }
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="purchases"]')
+        pg.wait_for_selector("#dialog:not([hidden])")
+        self.assertIn("2 Titel aus 1 ZIP entpackt", pg.inner_text("#dialog"))
+        self.assertIn("gibt es schon", pg.inner_text("#dialog"))
+        pg.click("#dlgBtns button")
+        self.assertTrue(pg.locator("#purUnzip").is_checked())                            # Standard ein
+        pg.uncheck("#purUnzip")
+        self.assertTrue(self.until("call('purch_state').then(r => r.unzip === false)"))
+        pg.check("#purUnzip")
+        self.assertTrue(self.until("call('purch_state').then(r => r.unzip === true) && window.__uz >= 2"))
+
     def test_purchases_session_login(self):
         """#295: Download abgelehnt → Sitzungs-Anmeldung (wie die Webseite), dann gleich erneut herunterladen."""
         pg = self.pg

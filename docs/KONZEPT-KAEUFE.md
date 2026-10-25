@@ -100,6 +100,17 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
   (`/artist/{id}/related`), „My Beatport“-Feed über `/my/beatport/tracks/` (Antwort ohne festes Schema: Einträge
   direkt oder in `track`).
 
+## 3b. ZIP-Downloads entpacken (#336, 4.12.0)
+
+- `unzip.py`: `pending` (ZIPs direkt im Ordner, mindestens 5 s unverändert – `.crdownload`/`.part` sind keine ZIPs),
+  `unpack` (nur Audio `AUDIO_EXT`, flach in denselben Ordner über `.part`, nie überschreiben → „gibt es schon“,
+  Zip-Slip – absoluter Pfad, Laufwerk, `..` – lehnt das ganze ZIP ab, 2 GB je Eintrag/20 GB je ZIP), danach ZIP nach
+  `_entpackt/` (eindeutiger Name, nie gelöscht).
+- Auslöser: Seite „Käufe“ öffnen (`purch_unzip` über `_purch_dl_folders`: eigenes Ziel bzw. je Store
+  `Downloads\<Quelle>` plus `_Manuell`) und „Abholen“ in Vorbereiten (je Quelle mit `zip`, vor `fetch_source`).
+- Einstellung `unzip_auto` (Standard ein), Schalter „ZIP entpacken“ in der Käufe-Leiste; Ergebnis als Meldung und im
+  App-Protokoll.
+
 ## 4. Später
 
 - Weitere Stores als Plugins: iTunes Store, Amazon, Traxsource, Bandcamp, Beatsource – soweit es eine erlaubte

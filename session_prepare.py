@@ -342,6 +342,9 @@ class PrepareMixin:
                     errors.append(f"{q['name']}: Ordner nicht erreichbar ({q['folder']})")
                     continue
                 progress(("text", f"Quelle {q['name']} …"))
+                if q.get("zip", True):                                # #336: ZIPs zuerst entpacken
+                    uz = self._unzip([q["folder"]])
+                    errors += [f"{q['name']}: {e}" for e in uz["errors"]]
                 r = prepare.fetch_source(w, q, st, cancel, progress)
                 got += r["got"]
                 same += r["same"]
