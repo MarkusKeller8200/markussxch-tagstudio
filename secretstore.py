@@ -262,7 +262,7 @@ def read(path: str) -> bytes | None:
         except OSError as e:
             _set_note(str(e))
             return None
-    if raw and _keychain() is not None and not is_windows():
+    if raw and _keychain() is not None and (backend is not None or not is_windows()):
         # Klartext aus einer früheren Version → einmalig in den Schlüsselbund übernehmen
         try:
             write(path, raw)
