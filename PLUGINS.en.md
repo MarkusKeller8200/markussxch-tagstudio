@@ -256,14 +256,17 @@ Result: folder `<title> – Stems` next to the track (or in the chosen folder) w
 tags and cover are copied and the title gets the suffix “(Vocals)”. The models end up in
 `~/TagStudio/Plugin-Daten/stems/modelle` and are downloaded only once.
 
-## Built in: Beatport (unofficial)
+## Built in: Beatport
 
 Fetches BPM, key (in your notation), genre/subgenre, label, catalogue number, date, ISRC, remixer, cover and
-optionally title/artist/album from Beatport. Uses the Beatport API v4 with **your own Beatport account** – the same
-way as the beets plugin “beatport4”. Unofficial: Beatport can change access at any time.
+optionally title/artist/album from Beatport, plus Beatport playlists and the Purchases page. Uses the **official
+Beatport API v4** – all endpoints with their status are listed under Plugins › Beatport › “Integration …”. Only the
+fallback sign-in and downloading bought files are unofficial (Beatport does not offer downloads officially).
 
 1. **Plugins** page → Beatport → **Sign in …**
-   - *User name and password*: the password is only used for signing in and **never stored**.
+   - *Own API access* (default, recommended): client ID, client secret, user name, password – see below.
+   - *User name and password* (unofficial fallback, like the beets plugin “beatport4” via the docs page's ID): the
+     password is only used for signing in and **never stored**.
    - *Token from the browser*: sign in on api.beatport.com/v4/docs, developer tools (F12) → Network → request
      “token” → copy the response (JSON) and paste it.
    Only the token is stored, on Windows encrypted with DPAPI (only your user account can read it). Expired tokens are

@@ -21,6 +21,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Beatport: eigener API-Zugang (#286):** Anmelden mit der eigenen offiziellen Beatport-App (Client-ID und Secret,
   verschlüsselt gespeichert), Erneuern des Tokens über die App, Abmelden zieht das Token bei Beatport zurück
   (Beatport-Plugin 1.3).
+- **Beatport offiziell (#289):** Plugin heisst jetzt „Beatport“; Standard-Anmeldung ist der eigene API-Zugang, die
+  bisherige Anmeldung bleibt als „inoffizieller Ausweichweg“. Das Integrationsfenster listet alle Endpunkte der
+  offiziellen Beschreibung (catalog, my, curation) mit Status; genutzt werden nur dokumentierte Endpunkte, ausser
+  beim Download gekaufter Dateien. Konto über `GET /my/account/`.
 - **Käufe (#285):** neue Seite „Käufe“ – gekaufte Titel aller Stores (vorerst Beatport) in einer Tabelle mit Titel,
   Interpret, Mix, Länge, Tonart, BPM, Katalognummer, Store, Kaufdatum und Link; „Aktualisieren“ holt neue Käufe und
   gleicht mit der Bibliothek ab (in Bibliothek, im Eingang, unklar, fehlt), „Fehlende herunterladen“ lädt in den

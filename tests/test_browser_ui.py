@@ -2047,9 +2047,10 @@ class UiTest(unittest.TestCase):
         pg.evaluate("void pluginRun('beatport', 'login')")
         pg.wait_for_selector('#modal [data-ok="method"]')
         vis = lambda k: pg.locator(f'#modal [data-ok="{k}"]').is_visible()   # noqa: E731
-        self.assertEqual((vis("username"), vis("client_id")), (True, False))
-        pg.select_option('#modal [data-ok="method"]', "app")
+        self.assertEqual(pg.input_value('#modal [data-ok="method"]'), "app")                     # Standard: eigener Zugang
         self.assertEqual((vis("username"), vis("password"), vis("client_id"), vis("client_secret")), (True, True, True, True))
+        pg.select_option('#modal [data-ok="method"]', "login")                                 # Ausweichweg (inoffiziell)
+        self.assertEqual((vis("username"), vis("client_id")), (True, False))
         pg.select_option('#modal [data-ok="method"]', "token")
         self.assertEqual((vis("username"), vis("client_id"), vis("token")), (False, False, True))
         pg.click("#mBtns button >> nth=0")

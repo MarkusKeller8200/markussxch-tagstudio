@@ -1,12 +1,12 @@
 {
   "id": "beatport",
-  "name": "Beatport (inoffiziell)",
+  "name": "Beatport",
   "version": "1.3",
   "min_app": "4.8.0",
   "category": "online",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
-  "description": "Holt BPM, Tonart, Genre/Subgenre, Label, Katalognummer, Datum, ISRC, Remixer und Cover von Beatport – mit Vorschau, nichts wird ohne Bestätigung geändert. Nutzt die Beatport-API v4 mit deinem eigenen Beatport-Login (wie das beets-Plugin „beatport4“). Inoffiziell: Beatport kann den Zugang jederzeit ändern. Nur für Metadaten deiner eigenen Titel verwenden.",
+  "description": "Holt BPM, Tonart, Genre/Subgenre, Label, Katalognummer, Datum, ISRC, Remixer und Cover von Beatport – mit Vorschau, nichts wird ohne Bestätigung geändert. Dazu Beatport-Playlists und die Seite „Käufe“. Nutzt die offizielle Beatport-API v4 mit deinem eigenen API-Zugang (Client-ID und Secret); ohne ihn geht es über den inoffiziellen Ausweichweg mit deinem Beatport-Login. Nur für Metadaten deiner eigenen Titel verwenden.",
   "notes": "Keine Zusatzpakete nötig.",
   "fields": [
     "TXXX:BEATPORT_TRACK_ID"
@@ -18,10 +18,297 @@
     "docs": "https://api.beatport.com/v4/docs/",
     "base": "https://api.beatport.com/v4",
     "auth": "oauth",
-    "auth_note": "Eigenes Beatport-Konto (Plugin › Anmelden …); Token verschlüsselt gespeichert, wird automatisch erneuert. Inoffizielle Nutzung mit eigenem Login (Entscheid).",
+    "auth_note": "Standard: eigener offizieller API-Zugang (Client-ID und Secret, Plugin › Anmelden …). Ausweichweg (inoffiziell): Anmeldung mit Benutzername und Passwort über die Kennung der Doku-Seite. Token verschlüsselt gespeichert, wird automatisch erneuert.",
     "limits": "Bei HTTP 429 wird gewartet (Retry-After)",
-    "note": "Es sind nur die Endpunkte aufgeführt, die TagStudio nutzt oder die für Metadaten naheliegen; die API ist deutlich grösser (siehe Dokumentation).",
+    "note": "Alle Endpunkte der offiziellen Beschreibung in den Bereichen catalog, my und curation (Stand 25.10.2026), dazu die Anmeldung und die inoffiziellen Download-Wege. Schreibende Endpunkte benutzt TagStudio nie.",
     "endpoints": [
+      {
+        "id": "catalog-artists",
+        "method": "GET",
+        "path": "/catalog/artists/",
+        "label": "Künstler suchen",
+        "status": "none"
+      },
+      {
+        "id": "artists",
+        "method": "GET",
+        "path": "/catalog/artists/{id}/",
+        "label": "Ein Künstler",
+        "status": "none",
+        "note": "Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen.",
+        "params": []
+      },
+      {
+        "id": "catalog-artists-id-images",
+        "method": "GET",
+        "path": "/catalog/artists/{id}/images/",
+        "label": "Bilder eines Künstlers",
+        "status": "none"
+      },
+      {
+        "id": "catalog-artists-id-top-num",
+        "method": "GET",
+        "path": "/catalog/artists/{id}/top/{num}/",
+        "label": "Top-Titel eines Künstlers",
+        "status": "none"
+      },
+      {
+        "id": "catalog-artists-id-tracks",
+        "method": "GET",
+        "path": "/catalog/artists/{id}/tracks/",
+        "label": "Titel eines Künstlers",
+        "status": "none"
+      },
+      {
+        "id": "charts",
+        "method": "GET",
+        "path": "/catalog/charts/",
+        "label": "DJ-Charts",
+        "status": "none",
+        "params": []
+      },
+      {
+        "id": "catalog-charts-id",
+        "method": "GET",
+        "path": "/catalog/charts/{id}/",
+        "label": "Ein Chart",
+        "status": "none"
+      },
+      {
+        "id": "catalog-charts-id-images",
+        "method": "GET",
+        "path": "/catalog/charts/{id}/images/",
+        "label": "Bilder eines Charts",
+        "status": "none"
+      },
+      {
+        "id": "catalog-charts-id-tracks",
+        "method": "GET",
+        "path": "/catalog/charts/{id}/tracks/",
+        "label": "Titel eines Charts",
+        "status": "none"
+      },
+      {
+        "id": "catalog-charts-id-tracks-ids",
+        "method": "GET",
+        "path": "/catalog/charts/{id}/tracks/ids/",
+        "label": "Titel-IDs eines Charts",
+        "status": "none"
+      },
+      {
+        "id": "catalog-charts-genre-overview",
+        "method": "GET",
+        "path": "/catalog/charts/genre-overview/",
+        "label": "Chart-Übersicht nach Genre",
+        "status": "none"
+      },
+      {
+        "id": "genres",
+        "method": "GET",
+        "path": "/catalog/genres/",
+        "label": "Genres",
+        "status": "partial",
+        "use": "Entdecken: Genre-Auswahl",
+        "params": [
+          {
+            "name": "per_page",
+            "default": "100"
+          }
+        ]
+      },
+      {
+        "id": "catalog-genres-id",
+        "method": "GET",
+        "path": "/catalog/genres/{id}/",
+        "label": "Ein Genre",
+        "status": "none"
+      },
+      {
+        "id": "catalog-genres-id-sub-genres",
+        "method": "GET",
+        "path": "/catalog/genres/{id}/sub-genres/",
+        "label": "Subgenres eines Genres",
+        "status": "none"
+      },
+      {
+        "id": "genre-top",
+        "method": "GET",
+        "path": "/catalog/genres/{id}/top/{num}/",
+        "label": "Top-Titel eines Genres",
+        "status": "full",
+        "use": "Entdecken: Genre-Charts",
+        "params": [
+          {
+            "name": "id",
+            "example": "6"
+          }
+        ]
+      },
+      {
+        "id": "catalog-genres-id-tracks",
+        "method": "GET",
+        "path": "/catalog/genres/{id}/tracks/",
+        "label": "Titel eines Genres",
+        "status": "none"
+      },
+      {
+        "id": "catalog-labels",
+        "method": "GET",
+        "path": "/catalog/labels/",
+        "label": "Labels suchen",
+        "status": "none"
+      },
+      {
+        "id": "labels",
+        "method": "GET",
+        "path": "/catalog/labels/{id}/",
+        "label": "Ein Label",
+        "status": "none",
+        "note": "Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen.",
+        "params": []
+      },
+      {
+        "id": "catalog-labels-id-images",
+        "method": "GET",
+        "path": "/catalog/labels/{id}/images/",
+        "label": "Bilder eines Labels",
+        "status": "none"
+      },
+      {
+        "id": "catalog-labels-id-releases",
+        "method": "GET",
+        "path": "/catalog/labels/{id}/releases/",
+        "label": "Veröffentlichungen eines Labels",
+        "status": "none"
+      },
+      {
+        "id": "catalog-labels-id-top-num",
+        "method": "GET",
+        "path": "/catalog/labels/{id}/top/{num}/",
+        "label": "Top-Titel eines Labels",
+        "status": "none"
+      },
+      {
+        "id": "catalog-playlists",
+        "method": "GET",
+        "path": "/catalog/playlists/",
+        "label": "Beatport-Playlists",
+        "status": "none"
+      },
+      {
+        "id": "catalog-playlists-id",
+        "method": "GET",
+        "path": "/catalog/playlists/{id}/",
+        "label": "Eine Beatport-Playlist",
+        "status": "none"
+      },
+      {
+        "id": "catalog-playlists-id-chart-mapping",
+        "method": "GET",
+        "path": "/catalog/playlists/{id}/chart-mapping/",
+        "label": "Chart-Zuordnung einer Playlist",
+        "status": "none"
+      },
+      {
+        "id": "catalog-playlists-id-partners",
+        "method": "GET",
+        "path": "/catalog/playlists/{id}/partners/",
+        "label": "Partner einer Playlist",
+        "status": "none"
+      },
+      {
+        "id": "catalog-playlists-playlists_pk-tracks",
+        "method": "GET",
+        "path": "/catalog/playlists/{playlists_pk}/tracks/",
+        "label": "Titel einer Beatport-Playlist",
+        "status": "none"
+      },
+      {
+        "id": "catalog-playlists-playlists_pk-tracks-ids",
+        "method": "GET",
+        "path": "/catalog/playlists/{playlists_pk}/tracks/ids/",
+        "label": "Titel-IDs einer Beatport-Playlist",
+        "status": "none"
+      },
+      {
+        "id": "catalog-releases",
+        "method": "GET",
+        "path": "/catalog/releases/",
+        "label": "Veröffentlichungen suchen",
+        "status": "none"
+      },
+      {
+        "id": "releases",
+        "method": "GET",
+        "path": "/catalog/releases/{id}/",
+        "label": "Eine Veröffentlichung",
+        "status": "none",
+        "note": "Label und Katalognummer kommen aus dem Titel-Datensatz Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen.",
+        "params": []
+      },
+      {
+        "id": "catalog-releases-id-beatbot",
+        "method": "GET",
+        "path": "/catalog/releases/{id}/beatbot/",
+        "label": "Empfehlungen zu einer Veröffentlichung",
+        "status": "none"
+      },
+      {
+        "id": "catalog-releases-id-dj-version-parent",
+        "method": "GET",
+        "path": "/catalog/releases/{id}/dj-version-parent/",
+        "label": "Original einer DJ-Version",
+        "status": "none"
+      },
+      {
+        "id": "catalog-releases-id-images",
+        "method": "GET",
+        "path": "/catalog/releases/{id}/images/",
+        "label": "Bilder einer Veröffentlichung",
+        "status": "none"
+      },
+      {
+        "id": "catalog-releases-id-uab",
+        "method": "GET",
+        "path": "/catalog/releases/{id}/uab/",
+        "label": "Andere kauften auch (Veröffentlichung)",
+        "status": "none"
+      },
+      {
+        "id": "catalog-releases-release_pk-dj-edit-tracks",
+        "method": "GET",
+        "path": "/catalog/releases/{release_pk}/dj-edit-tracks/",
+        "label": "DJ-Edits einer Veröffentlichung",
+        "status": "none"
+      },
+      {
+        "id": "catalog-releases-release_pk-tracks",
+        "method": "GET",
+        "path": "/catalog/releases/{release_pk}/tracks/",
+        "label": "Titel einer Veröffentlichung",
+        "status": "none"
+      },
+      {
+        "id": "catalog-releases-release_pk-tracks-ids",
+        "method": "GET",
+        "path": "/catalog/releases/{release_pk}/tracks/ids/",
+        "label": "Titel-IDs einer Veröffentlichung",
+        "status": "none"
+      },
+      {
+        "id": "catalog-releases-similar",
+        "method": "GET",
+        "path": "/catalog/releases/similar/",
+        "label": "Ähnliche Veröffentlichungen",
+        "status": "none"
+      },
+      {
+        "id": "catalog-releases-top-num",
+        "method": "GET",
+        "path": "/catalog/releases/top/{num}/",
+        "label": "Top-Veröffentlichungen",
+        "status": "none"
+      },
       {
         "id": "search",
         "method": "GET",
@@ -47,13 +334,34 @@
         ]
       },
       {
+        "id": "catalog-sub-genres",
+        "method": "GET",
+        "path": "/catalog/sub-genres/",
+        "label": "Subgenres",
+        "status": "none"
+      },
+      {
+        "id": "catalog-sub-genres-id",
+        "method": "GET",
+        "path": "/catalog/sub-genres/{id}/",
+        "label": "Ein Subgenre",
+        "status": "none"
+      },
+      {
+        "id": "catalog-sub-genres-id-tracks",
+        "method": "GET",
+        "path": "/catalog/sub-genres/{id}/tracks/",
+        "label": "Titel eines Subgenres",
+        "status": "none"
+      },
+      {
         "id": "tracks",
         "method": "GET",
         "path": "/catalog/tracks/",
-        "label": "Titel filtern (ISRC, Künstler, Label)",
+        "label": "Titel filtern (ISRC, Künstler, Label, IDs)",
         "status": "partial",
-        "use": "ISRC-Suche, Entdecken (neue Titel)",
-        "note": "genutzt: isrc, artist_id, label_id, order_by",
+        "use": "ISRC-Suche, Entdecken (neue Titel), Käufe: Katalognummer, ISRC, Label",
+        "note": "genutzt: isrc, id, artist_id, label_id, order_by",
         "params": [
           {
             "name": "isrc",
@@ -85,99 +393,222 @@
         "label": "Ein Titel",
         "status": "full",
         "use": "Vollständiger Datensatz nach der Suche, gespeicherte Beatport-ID",
-        "params": [],
-        "note": "Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen."
-      },
-      {
-        "id": "track-download",
-        "method": "GET",
-        "path": "/catalog/tracks/{id}/download/",
-        "label": "Download-Adresse eines gekauften Titels",
-        "status": "partial",
-        "use": "Fehlende Käufe herunterladen",
-        "note": "Download-Endpunkt gegen die echte API noch ungetestet (#117)",
-        "test": false,
+        "note": "Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen.",
         "params": []
       },
       {
-        "id": "releases",
+        "id": "catalog-tracks-id-audio-files",
         "method": "GET",
-        "path": "/catalog/releases/{id}/",
-        "label": "Eine Veröffentlichung",
-        "status": "none",
-        "note": "Label und Katalognummer kommen aus dem Titel-Datensatz Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen.",
-        "params": []
+        "path": "/catalog/tracks/{id}/audio-files/",
+        "label": "Audiodateien eines Titels (für Labels)",
+        "status": "none"
       },
       {
-        "id": "artists",
+        "id": "catalog-tracks-id-beatbot",
         "method": "GET",
-        "path": "/catalog/artists/{id}/",
-        "label": "Ein Künstler",
-        "status": "none",
-        "params": [],
-        "note": "Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen."
+        "path": "/catalog/tracks/{id}/beatbot/",
+        "label": "Empfehlungen zu einem Titel",
+        "status": "none"
       },
       {
-        "id": "labels",
+        "id": "catalog-tracks-id-images",
         "method": "GET",
-        "path": "/catalog/labels/{id}/",
-        "label": "Ein Label",
-        "status": "none",
-        "params": [],
-        "note": "Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen."
+        "path": "/catalog/tracks/{id}/images/",
+        "label": "Bilder eines Titels",
+        "status": "none"
       },
       {
-        "id": "genres",
+        "id": "catalog-tracks-id-publishers",
         "method": "GET",
-        "path": "/catalog/genres/",
-        "label": "Genres",
-        "status": "partial",
-        "use": "Entdecken: Genre-Auswahl",
-        "params": [
-          {
-            "name": "per_page",
-            "default": "100"
-          }
-        ]
+        "path": "/catalog/tracks/{id}/publishers/",
+        "label": "Verlage eines Titels",
+        "status": "none"
       },
       {
-        "id": "genre-top",
+        "id": "catalog-tracks-id-stream-sdk",
         "method": "GET",
-        "path": "/catalog/genres/{id}/top/100/",
-        "label": "Top 100 eines Genres",
-        "status": "full",
-        "use": "Entdecken: Genre-Charts",
-        "params": [
-          {
-            "name": "id",
-            "example": "6"
-          }
-        ]
+        "path": "/catalog/tracks/{id}/stream-sdk/",
+        "label": "Streaming eines Titels",
+        "status": "none"
       },
       {
-        "id": "charts",
+        "id": "catalog-tracks-id-uab",
         "method": "GET",
-        "path": "/catalog/charts/",
-        "label": "DJ-Charts",
-        "status": "none",
-        "params": []
+        "path": "/catalog/tracks/{id}/uab/",
+        "label": "Andere kauften auch (Titel)",
+        "status": "none"
+      },
+      {
+        "id": "catalog-tracks-similar",
+        "method": "GET",
+        "path": "/catalog/tracks/similar/",
+        "label": "Ähnliche Titel",
+        "status": "none"
+      },
+      {
+        "id": "catalog-tracks-store-isrc",
+        "method": "GET",
+        "path": "/catalog/tracks/store/{isrc}/",
+        "label": "Store-Adresse über ISRC",
+        "status": "none"
+      },
+      {
+        "id": "catalog-tracks-top-num",
+        "method": "GET",
+        "path": "/catalog/tracks/top/{num}/",
+        "label": "Top-Titel (gesamt)",
+        "status": "none"
+      },
+      {
+        "id": "catalog-tracks-top-openformat-num",
+        "method": "GET",
+        "path": "/catalog/tracks/top/openformat/{num}/",
+        "label": "Top-Titel Open Format",
+        "status": "none"
+      },
+      {
+        "id": "curation-playlists",
+        "method": "GET",
+        "path": "/curation/playlists/",
+        "label": "Kuratierte Playlists",
+        "status": "none"
+      },
+      {
+        "id": "curation-playlists-curatedplaylist_pk-tracks",
+        "method": "GET",
+        "path": "/curation/playlists/{curatedplaylist_pk}/tracks/",
+        "label": "Titel einer kuratierten Playlist",
+        "status": "none"
+      },
+      {
+        "id": "curation-playlists-curatedplaylist_pk-tracks-id",
+        "method": "GET",
+        "path": "/curation/playlists/{curatedplaylist_pk}/tracks/{id}/",
+        "label": "Ein Titel einer kuratierten Playlist",
+        "status": "none"
+      },
+      {
+        "id": "curation-playlists-id",
+        "method": "GET",
+        "path": "/curation/playlists/{id}/",
+        "label": "Eine kuratierte Playlist",
+        "status": "none"
       },
       {
         "id": "my-account",
         "method": "GET",
         "path": "/my/account/",
         "label": "Eigenes Konto",
-        "status": "partial",
+        "status": "full",
         "use": "Anmeldung prüfen, Verbindung testen",
         "params": []
+      },
+      {
+        "id": "my-account-id",
+        "method": "PATCH",
+        "path": "/my/account/{id}/",
+        "label": "Konto ändern",
+        "status": "none",
+        "note": "schreibt – wird nie benutzt",
+        "test": false
+      },
+      {
+        "id": "my-account-myaccount",
+        "method": "PATCH",
+        "path": "/my/account/myaccount/",
+        "label": "Eigenes Konto ändern",
+        "status": "none",
+        "note": "schreibt – wird nie benutzt",
+        "test": false
+      },
+      {
+        "id": "my-beatport",
+        "method": "GET",
+        "path": "/my/beatport/",
+        "label": "My Beatport (Folgen)",
+        "status": "none"
+      },
+      {
+        "id": "my-beatport-artists",
+        "method": "GET",
+        "path": "/my/beatport/artists/",
+        "label": "My Beatport: gefolgte Künstler",
+        "status": "none"
+      },
+      {
+        "id": "my-beatport-delete",
+        "method": "DELETE",
+        "path": "/my/beatport/delete/",
+        "label": "My Beatport: Folgen beenden",
+        "status": "none",
+        "note": "schreibt – wird nie benutzt",
+        "test": false
+      },
+      {
+        "id": "my-beatport-labels",
+        "method": "GET",
+        "path": "/my/beatport/labels/",
+        "label": "My Beatport: gefolgte Labels",
+        "status": "none"
+      },
+      {
+        "id": "my-beatport-playlists",
+        "method": "GET",
+        "path": "/my/beatport/playlists/",
+        "label": "My Beatport: gefolgte Playlists",
+        "status": "none"
+      },
+      {
+        "id": "my-beatport-tracks",
+        "method": "GET",
+        "path": "/my/beatport/tracks/",
+        "label": "My Beatport: neue Titel",
+        "status": "none"
+      },
+      {
+        "id": "my-charts",
+        "method": "GET",
+        "path": "/my/charts/",
+        "label": "Eigene Charts",
+        "status": "none"
+      },
+      {
+        "id": "my-charts-mycharts_pk-tracks",
+        "method": "GET",
+        "path": "/my/charts/{mycharts_pk}/tracks/",
+        "label": "Titel eines eigenen Charts",
+        "status": "none"
+      },
+      {
+        "id": "my-charts-mycharts_pk-tracks-id",
+        "method": "PATCH",
+        "path": "/my/charts/{mycharts_pk}/tracks/{id}/",
+        "label": "Titel eines eigenen Charts ändern",
+        "status": "none",
+        "note": "schreibt – wird nie benutzt",
+        "test": false
+      },
+      {
+        "id": "my-charts-id",
+        "method": "GET",
+        "path": "/my/charts/{id}/",
+        "label": "Ein eigenes Chart",
+        "status": "none"
+      },
+      {
+        "id": "my-charts-id-images",
+        "method": "GET",
+        "path": "/my/charts/{id}/images/",
+        "label": "Bilder eines eigenen Charts",
+        "status": "none"
       },
       {
         "id": "my-downloads",
         "method": "GET",
         "path": "/my/downloads/",
-        "label": "Eigene Downloads/Käufe",
-        "status": "partial",
-        "use": "Gekaufte Titel abgleichen",
+        "label": "Käufe (Downloads)",
+        "status": "full",
+        "use": "Seite „Käufe“: gekaufte Titel mit Kaufdatum (nur neue über purchase_date)",
         "note": "einer von mehreren probierten Pfaden",
         "params": [
           {
@@ -187,52 +618,140 @@
         ]
       },
       {
-        "id": "my-library",
+        "id": "my-downloads-encode-status",
         "method": "GET",
-        "path": "/my/library/",
-        "label": "Eigene Bibliothek",
-        "status": "partial",
-        "use": "Gekaufte Titel abgleichen (Ersatzpfad)",
-        "params": [
-          {
-            "name": "per_page",
-            "default": "10"
-          }
-        ]
+        "path": "/my/downloads/encode-status/",
+        "label": "Bereitstellung der Käufe",
+        "status": "none"
       },
       {
-        "id": "my-library-tracks",
+        "id": "my-email-preferences-id",
+        "method": "PATCH",
+        "path": "/my/email-preferences/{id}/",
+        "label": "E-Mail-Einstellungen ändern",
+        "status": "none",
+        "note": "schreibt – wird nie benutzt",
+        "test": false
+      },
+      {
+        "id": "my-genres",
         "method": "GET",
-        "path": "/my/library/tracks/",
-        "label": "Titel der eigenen Bibliothek",
+        "path": "/my/genres/",
+        "label": "Eigene Genres",
+        "status": "none"
+      },
+      {
+        "id": "my-genres-id",
+        "method": "DELETE",
+        "path": "/my/genres/{id}/",
+        "label": "Eigenes Genre entfernen",
+        "status": "none",
+        "note": "schreibt – wird nie benutzt",
+        "test": false
+      },
+      {
+        "id": "my-playlists",
+        "method": "GET",
+        "path": "/my/playlists/",
+        "label": "Eigene Playlists",
+        "status": "full",
+        "use": "Playlists › Importieren ▾ › Aus Beatport …"
+      },
+      {
+        "id": "my-playlists-myplaylists_pk-tracks",
+        "method": "GET",
+        "path": "/my/playlists/{myplaylists_pk}/tracks/",
+        "label": "Titel einer eigenen Playlist",
+        "status": "full",
+        "use": "Titel einer Playlist beim Holen"
+      },
+      {
+        "id": "my-playlists-myplaylists_pk-tracks-id",
+        "method": "PATCH",
+        "path": "/my/playlists/{myplaylists_pk}/tracks/{id}/",
+        "label": "Titel einer eigenen Playlist ändern",
+        "status": "none",
+        "note": "schreibt – wird nie benutzt",
+        "test": false
+      },
+      {
+        "id": "my-playlists-myplaylists_pk-tracks-bulk",
+        "method": "POST",
+        "path": "/my/playlists/{myplaylists_pk}/tracks/bulk/",
+        "label": "Mehrere Titel einer Playlist ändern",
+        "status": "none",
+        "note": "schreibt – wird nie benutzt",
+        "test": false
+      },
+      {
+        "id": "my-playlists-myplaylists_pk-tracks-ids",
+        "method": "GET",
+        "path": "/my/playlists/{myplaylists_pk}/tracks/ids/",
+        "label": "Titel-IDs einer eigenen Playlist",
+        "status": "none"
+      },
+      {
+        "id": "my-playlists-id",
+        "method": "GET",
+        "path": "/my/playlists/{id}/",
+        "label": "Eine eigene Playlist",
+        "status": "full",
+        "use": "Name einer Playlist beim Holen"
+      },
+      {
+        "id": "my-playlists-bulk",
+        "method": "PATCH",
+        "path": "/my/playlists/bulk/",
+        "label": "Mehrere Playlists ändern",
+        "status": "none",
+        "note": "schreibt – wird nie benutzt",
+        "test": false
+      },
+      {
+        "id": "my-streaming-quality",
+        "method": "GET",
+        "path": "/my/streaming-quality/",
+        "label": "Streaming-Qualität",
+        "status": "none"
+      },
+      {
+        "id": "my-streaming-quality-id",
+        "method": "PATCH",
+        "path": "/my/streaming-quality/{id}/",
+        "label": "Streaming-Qualität ändern",
+        "status": "none",
+        "note": "schreibt – wird nie benutzt",
+        "test": false
+      },
+      {
+        "id": "my-download-item",
+        "method": "GET",
+        "path": "/my/downloads/{id}/",
+        "label": "Download eines Kaufs (inoffiziell)",
         "status": "partial",
-        "use": "Gekaufte Titel abgleichen (Ersatzpfad)",
-        "params": [
-          {
-            "name": "per_page",
-            "default": "10"
-          }
-        ]
+        "use": "Käufe: Fehlende herunterladen (Variante 1)",
+        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2)",
+        "test": false
       },
       {
         "id": "my-download",
         "method": "GET",
         "path": "/my/downloads/{id}/download/",
-        "label": "Download eines Kaufs",
+        "label": "Download eines Kaufs, 2. Weg (inoffiziell)",
         "status": "partial",
-        "use": "Fehlende Käufe herunterladen",
-        "test": false,
-        "params": []
+        "use": "Käufe: Fehlende herunterladen (Variante 1)",
+        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2)",
+        "test": false
       },
       {
-        "id": "auth-authorize",
+        "id": "track-download",
         "method": "GET",
-        "path": "/auth/o/authorize/",
-        "label": "Anmeldung (OAuth: Code holen)",
-        "status": "full",
-        "use": "Anmelden …",
-        "test": false,
-        "params": []
+        "path": "/catalog/tracks/{id}/download/",
+        "label": "Download über den Katalog (inoffiziell)",
+        "status": "partial",
+        "use": "Käufe: Fehlende herunterladen (Variante 1)",
+        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2)",
+        "test": false
       },
       {
         "id": "auth-token",
@@ -240,8 +759,43 @@
         "path": "/auth/o/token/",
         "label": "Token holen/erneuern",
         "status": "full",
-        "use": "Anmelden, automatische Erneuerung",
-        "params": []
+        "use": "Anmelden (eigener API-Zugang: Password Grant), automatische Erneuerung",
+        "test": false
+      },
+      {
+        "id": "auth-revoke",
+        "method": "POST",
+        "path": "/auth/o/revoke/",
+        "label": "Token zurückziehen",
+        "status": "full",
+        "use": "Abmelden (eigener API-Zugang)",
+        "test": false
+      },
+      {
+        "id": "auth-introspect",
+        "method": "GET",
+        "path": "/auth/o/introspect/",
+        "label": "Angemeldeten Benutzer prüfen",
+        "status": "none"
+      },
+      {
+        "id": "auth-authorize",
+        "method": "GET",
+        "path": "/auth/o/authorize/",
+        "label": "Anmeldung (OAuth: Code holen)",
+        "status": "partial",
+        "use": "Ausweichweg: Anmeldung mit Benutzername und Passwort (inoffiziell)",
+        "test": false
+      },
+      {
+        "id": "auth-login",
+        "method": "POST",
+        "path": "/auth/login/",
+        "label": "Anmeldung über die Kennung der Doku-Seite (inoffiziell)",
+        "status": "partial",
+        "use": "Ausweichweg: Anmeldung mit Benutzername und Passwort (inoffiziell)",
+        "note": "nicht für eigene Apps gedacht – Standard ist der eigene API-Zugang",
+        "test": false
       }
     ],
     "example": {

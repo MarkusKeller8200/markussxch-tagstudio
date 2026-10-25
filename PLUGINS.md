@@ -257,14 +257,18 @@ Ergebnis: Ordner `<Titel> – Stems` neben dem Titel (oder im gewählten Ordner)
 Bei MP3 werden Tags und Cover übernommen, der Titel bekommt den Zusatz „(Vocals)“. Die Modelle landen in
 `~/TagStudio/Plugin-Daten/stems/modelle` und werden nur einmal geladen.
 
-## Eingebaut: Beatport (inoffiziell)
+## Eingebaut: Beatport
 
 Holt BPM, Tonart (in deiner Schreibweise), Genre/Subgenre, Label, Katalognummer, Datum, ISRC, Remixer, Cover
-und optional Titel/Künstler/Album von Beatport. Nutzt die Beatport-API v4 mit **deinem eigenen Beatport-Konto**
-– derselbe Weg wie das beets-Plugin „beatport4“. Inoffiziell: Beatport kann den Zugang jederzeit ändern.
+und optional Titel/Künstler/Album von Beatport, dazu Beatport-Playlists und die Seite „Käufe“. Nutzt die
+**offizielle Beatport-API v4** – alle Endpunkte mit Status stehen unter Plugins › Beatport › „Integration …“.
+Inoffiziell sind nur noch der Ausweichweg bei der Anmeldung und der Download gekaufter Dateien (Beatport bietet ihn
+offiziell nicht an).
 
 1. Seite **Plugins** → Beatport → **Anmelden …**
-   - *Benutzername und Passwort*: Das Passwort wird nur für die Anmeldung benutzt und **nie gespeichert**.
+   - *Eigener API-Zugang* (Standard, empfohlen): Client-ID, Client-Secret, Benutzername, Passwort – siehe unten.
+   - *Benutzername und Passwort* (inoffizieller Ausweichweg, wie das beets-Plugin „beatport4“ über die Kennung der
+     Doku-Seite): Das Passwort wird nur für die Anmeldung benutzt und **nie gespeichert**.
    - *Token aus dem Browser*: auf api.beatport.com/v4/docs anmelden, Entwicklertools (F12) → Netzwerk →
      Anfrage „token“ → Antwort (JSON) kopieren und einfügen.
    Gespeichert wird nur der Token, unter Windows mit DPAPI verschlüsselt (nur dein Benutzerkonto kann ihn lesen).

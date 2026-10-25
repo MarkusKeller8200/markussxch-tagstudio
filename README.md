@@ -470,8 +470,8 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   Weitere Aufträge werden hinten angestellt, beim Beenden wird nachgefragt und die Warteschlange beim nächsten
   Start zum Fortsetzen angeboten. Im Tagger hängen die Spuren **aufklappbar unter dem Original** (▸, →/←,
   Umschalt-Knopf „Stems“ für alle): MP3-Spuren bearbeiten, FLAC/WAV anhören; „Stems: Tags vom Original …“ überträgt die Tags.
-- **Beatport (inoffiziell):** BPM, Tonart, Genre, Label, Katalognummer, ISRC, Remixer, Cover u. a. mit deinem
-  eigenen Beatport-Login (Passwort wird nie gespeichert). Die Vorschau zeigt **alle gelieferten Felder** – gleiche
+- **Beatport:** BPM, Tonart, Genre, Label, Katalognummer, ISRC, Remixer, Cover u. a. über die offizielle
+  Beatport-API mit deinem eigenen API-Zugang (Ausweichweg: dein Beatport-Login; Passwort wird nie gespeichert). Die Vorschau zeigt **alle gelieferten Felder** – gleiche
   grau, abgewählte und schon gefüllte ungehakt. Eigene **Beatport-Playlists** holt Playlists › Importieren ▾ › „Aus
   Beatport …“ (Einträge ohne Datei mit Link, nur lesen).
 - **Online-Metadaten:** Album, Datum, Label, Katalognummer, ISRC, Genre, Cover u. a. von MusicBrainz (auch per

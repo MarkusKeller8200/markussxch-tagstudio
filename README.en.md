@@ -453,8 +453,8 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   you are asked, and the queue is offered for resuming on the next start. In the tagger the stems hang **expandable
   below the original** (▸, →/←, toggle button “Stems” for all): edit MP3 stems, listen to FLAC/WAV; “Stems: tags from the
   original …” copies the tags.
-- **Beatport (unofficial):** BPM, key, genre, label, catalogue number, ISRC, remixer, cover and more with your own
-  Beatport login (the password is never stored). The preview shows **all delivered fields** – identical ones grey,
+- **Beatport:** BPM, key, genre, label, catalogue number, ISRC, remixer, cover and more via the official Beatport API
+  with your own API access (fallback: your Beatport login; the password is never stored). The preview shows **all delivered fields** – identical ones grey,
   deselected and already filled ones unticked. Your own **Beatport playlists** are fetched via Playlists › Import ▾ ›
   “From Beatport …” (entries without a file with a link, read only).
 - **Online metadata:** album, date, label, catalogue number, ISRC, genre, cover and more from MusicBrainz (also via

@@ -45,11 +45,11 @@ class TestOrigins(unittest.TestCase):
     def test_custom_and_plugin_first(self):
         o = origins.Origins([{"pattern": "TXXX:VDJ*", "source": "VirtualDJ"}, {"pattern": "GEOB:Serato Autotags", "source": "serato"},
                              {"pattern": "TXXX:SERATO_X", "source": "Mixed In Key"}, {"pattern": "", "source": "x"}],
-                            [("TXXX:BEATPORT_TRACK_ID", "Beatport (inoffiziell)")])
+                            [("TXXX:BEATPORT_TRACK_ID", "Beatport")])
         self.assertEqual(o.of("TXXX:VDJ Cue"), "u:VirtualDJ")
         self.assertEqual(o.catalog()["u:VirtualDJ"]["kind"], "custom")
         self.assertEqual(o.of("TXXX:SERATO_X"), "mik")            # Name einer bekannten Quelle → deren id
-        self.assertEqual(o.of("TXXX:BEATPORT_TRACK_ID"), "p:Beatport (inoffiziell)")
+        self.assertEqual(o.of("TXXX:BEATPORT_TRACK_ID"), "p:Beatport")
         self.assertEqual(o.of("TXXX:BEATPORT_GENRE"), "beatport")
         self.assertEqual(len(origins.clean_custom([{"pattern": "A", "source": "B"}, {"pattern": "a", "source": "C"}])), 1)
 
@@ -76,7 +76,7 @@ class TestSessionOrigins(unittest.TestCase):
             self.assertEqual(src["GEOB:Serato Markers2"], "serato")
             self.assertEqual(src["PRIV:TRAKTOR4"], "traktor")
             self.assertEqual(s.settings()["origins"]["id3v4"]["name"], "v2.4")
-            self.assertEqual(src["TXXX:BEATPORT_TRACK_ID"], "p:Beatport (inoffiziell)")   # aus plugin.json „fields“
+            self.assertEqual(src["TXXX:BEATPORT_TRACK_ID"], "p:Beatport")   # aus plugin.json „fields“
             pv = s.tag_origin_remove([0, 1], "serato")
             self.assertEqual((pv["count"], pv["files"], len(pv["keys"])), (4, 2, 2))
             r = s.tag_origin_remove([0, 1], "serato", True)

@@ -1,8 +1,10 @@
-"""Beatport (inoffiziell) – Metadaten von Beatport API v4 holen.
+"""Beatport – Metadaten, Playlists und Käufe über die offizielle Beatport-API v4.
 
-Anmeldung wie im beets-Plugin „beatport4“: Login mit dem eigenen Beatport-Konto über die öffentliche client_id
-der API-Dokumentation (OAuth authorization_code) oder Token aus dem Browser einfügen. Das Passwort wird nie
-gespeichert; der Token liegt verschlüsselt (Windows: DPAPI, nur dein Benutzerkonto kann ihn lesen).
+Standard (Entscheid User 25.10.2026, #289): eigener offizieller API-Zugang (Client-ID + Secret, Password Grant laut
+Anmelde-Doku). Ausweichweg (inoffiziell): Login wie im beets-Plugin „beatport4“ über die öffentliche client_id der
+API-Dokumentation (OAuth authorization_code) oder Token aus dem Browser einfügen. Genutzt werden nur Endpunkte der
+offiziellen Beschreibung – ausser dem Download gekaufter Dateien (nicht dokumentiert, Variante 1 mit Hinweis auf die
+Download-Seite). Das Passwort wird nie gespeichert; Token und App-Daten liegen verschlüsselt (Windows: DPAPI).
 
 Nur Standardbibliothek. Alle Änderungen werden als Vorschläge zurückgegeben (Vorschau mit Häkchen).
 """
@@ -58,8 +60,9 @@ ACTIONS = [
         "description": "Mit deinem Beatport-Konto anmelden. Das Passwort wird nur für die Anmeldung benutzt und nie gespeichert.",
         "options": [
             {"key": "method", "type": "select", "label": "Methode",
-             "choices": [["login", "Benutzername und Passwort"], ["app", "Eigener API-Zugang (Client-ID und Secret)"],
-                         ["token", "Token aus dem Browser einfügen"]], "default": "login"},
+             "choices": [["app", "Eigener API-Zugang (Client-ID und Secret) – empfohlen"],
+                         ["login", "Benutzername und Passwort (inoffiziell, Ausweichweg)"],
+                         ["token", "Token aus dem Browser einfügen (inoffiziell)"]], "default": "app"},
             {"key": "client_id", "type": "text", "label": "Client-ID deiner Beatport-App", "secret": True, "show_if": {"method": "app"}},
             {"key": "client_secret", "type": "password", "label": "Client-Secret", "show_if": {"method": "app"}},
             {"type": "info", "show_if": {"method": "app"},
@@ -404,15 +407,14 @@ class Client:
         raise HttpError(429, "Beatport begrenzt gerade die Anfragen – bitte später erneut versuchen.")
 
     def account(self) -> dict:
-        """Eigenes Konto: offizieller Pfad /my/account/myaccount/ (laut Doku), sonst der bisherige /my/account/."""
-        for path in ("/my/account/myaccount/", "/my/account/"):
-            try:
-                acc = self.get(path)
-            except HttpError:
-                acc = None
-            if isinstance(acc, dict) and acc:
-                return acc
-        return {}
+        """Eigenes Konto: GET /my/account/ (laut offizieller Beschreibung; /my/account/myaccount/ ist nur PUT/PATCH)."""
+        try:
+            acc = self.get("/my/account/")
+        except HttpError:
+            acc = None
+        if isinstance(acc, list):
+            acc = acc[0] if acc and isinstance(acc[0], dict) else {}
+        return acc if isinstance(acc, dict) else {}
 
     def _expired(self):
         delete_token(self.ctx)
@@ -822,7 +824,8 @@ def status(ctx):
     if tok.get("app"):
         return f"Angemeldet als {who} (eigener API-Zugang)." if left > 0 else \
             f"Angemeldet als {who} (eigener API-Zugang, Token abgelaufen – wird bei Bedarf erneuert)."
-    return f"Angemeldet als {who}" + ("" if left > 0 else " (Token abgelaufen – wird bei Bedarf erneuert)") + "."
+    return f"Angemeldet als {who} (inoffizieller Ausweichweg)." if left > 0 else \
+        f"Angemeldet als {who} (inoffizieller Ausweichweg, Token abgelaufen – wird bei Bedarf erneuert)."
 
 
 def _notation():
