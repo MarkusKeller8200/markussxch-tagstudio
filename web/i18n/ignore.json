@@ -451,5 +451,6 @@
 "YouTube",
 "min={q} max={q}",
 "input[name={q}][value={q}]",
-"dateipfad"
+"dateipfad",
+"tr[data-k]"
 ]

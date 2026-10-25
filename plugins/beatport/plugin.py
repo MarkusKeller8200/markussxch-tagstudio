@@ -831,6 +831,8 @@ def purchases(client, limit=2000, log=None):
                 for it in items:
                     t = it.get("track") if isinstance(it, dict) and isinstance(it.get("track"), dict) else it
                     if isinstance(t, dict) and t.get("id"):
+                        if t is not it:                       # #285: Angaben der Bestellung (Kaufdatum) mitnehmen
+                            t = {**t, "_order": {k: v for k, v in it.items() if k != "track" and not isinstance(v, (dict, list))}}
                         out.append(t)
                 if log and page == 1:
                     log(f"{path}: Felder je Eintrag: {', '.join(sorted(items[0].keys())) if isinstance(items[0], dict) else type(items[0]).__name__}")
@@ -1151,3 +1153,89 @@ def run_download(ctx, opts):
     if not todo:
         msg = "Alle gekauften Titel sind schon vorhanden – nichts zu laden."
     return {"message": msg}
+
+
+# =========================================================================== #285: Seite „Käufe“ (Store-Rahmen)
+_BOUGHT_KEYS = ("purchase_date", "purchased_at", "purchased", "date_purchased", "order_date", "ordered_at",
+                "order_created", "created", "date_created", "created_at")
+
+
+def bought_date(t) -> str:
+    """Kaufdatum aus dem Titel bzw. der Bestellung (Feldname je nach Antwort) → „JJJJ-MM-TT…“ oder ""."""
+    for src in (t, t.get("_order") or {}):
+        for k in _BOUGHT_KEYS:
+            v = src.get(k)
+            if isinstance(v, str) and re.match(r"^\d{4}-\d{2}-\d{2}", v):
+                return v[:19].replace("T", " ") if "T" in v[:19] else v[:19]
+    return ""
+
+
+def store_item(t) -> dict:
+    """Beatport-Kauf → Eintrag für die Seite „Käufe“ (purchases.clean_item)."""
+    rel = t.get("release") or {}
+    return {"id": t.get("id"), "title": t.get("name") or "", "mix": t.get("mix_name") or "",
+            "artist": ", ".join(artists_of(t)), "dur": (t.get("length_ms") or 0) / 1000,
+            "key": key_text(t, "camelot"), "bpm": t.get("bpm"),
+            "catalog": t.get("catalog_number") or rel.get("catalog_number") or "", "isrc": t.get("isrc") or "",
+            "label": (rel.get("label") or {}).get("name") or "", "release": rel.get("name") or "",
+            "genre": (t.get("genre") or {}).get("name") or "",
+            "url": f"https://www.beatport.com/track/{t.get('slug') or 'track'}/{t['id']}" if t.get("id") else "",
+            "bought": bought_date(t), "preorder": bool(t.get("pre_order")),
+            "dl": {k: t.get(k) for k in ("id", "order_item_download_id", "audio_format", "name", "mix_name", "artists")
+                   if t.get(k) is not None}}
+
+
+def store_purchases(ctx) -> dict:
+    """Alle Käufe des Kontos für die Seite „Käufe“ → {"name", "items"} (inoffiziell, wie #117)."""
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"Beatport: {why}.")
+    c = Client(ctx)
+    ctx.status("Beatport: gekaufte Titel lesen …")
+    path, items = purchases(c, 20000, ctx.log)
+    if not path:
+        raise ValueError("Beatport hat keine gekauften Titel geliefert – Details im Protokoll (Plugins › Beatport).")
+    ctx.log(f"{len(items)} Käufe über {path}")
+    if items and not any(bought_date(t) for t in items[:20]):
+        ctx.log("Kein Kaufdatum gefunden – Felder: " + ", ".join(sorted(set(items[0]) | set(items[0].get("_order") or {}))))
+    try:                                                   # #162: Käufe in „Entdecken“ als gekauft markieren
+        import discover
+        discover.mark_bought(items)
+    except Exception as ex:  # noqa: BLE001
+        ctx.log(f"Entdecken: {ex}")
+    return {"name": "Beatport", "items": [store_item(t) for t in items]}
+
+
+def store_download(ctx, items, dest) -> dict:
+    """Gewählte Käufe in den Ordner dest laden → {"files": {id: [Pfade]}, "failed": [Text]}."""
+    if not dest or not os.path.isdir(dest):
+        raise ValueError("Zielordner nicht gefunden.")
+    c = Client(ctx)
+    try:
+        with open(_done_path(ctx), encoding="utf-8") as fh:
+            done = json.load(fh)
+    except (OSError, ValueError):
+        done = {}
+    files, failed = {}, []
+    for k, it in enumerate(items):
+        ctx.check_cancel()
+        t = it.get("dl") or {}
+        label = f"{it.get('artist', '')} – {it.get('title', '')}"
+        ctx.progress(k, len(items), label)
+        try:
+            url = resolve_download(c, t, ctx.log)
+            if not url:
+                failed.append(f"{label}: keine Download-Adresse gefunden")
+                continue
+            got = fetch_file(url, dest, t, c, ctx.cancelled)
+            files[str(it["id"])] = got
+            done[str(it["id"])] = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "files": [os.path.basename(p) for p in got]}
+            with open(_done_path(ctx), "w", encoding="utf-8") as fh:
+                json.dump(done, fh, ensure_ascii=False, indent=1)
+        except Cancelled:
+            raise
+        except Exception as ex:  # noqa: BLE001
+            failed.append(f"{label}: {ex}")
+    for f in failed:
+        ctx.log(f)
+    return {"files": files, "failed": failed}

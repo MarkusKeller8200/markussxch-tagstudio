@@ -33,6 +33,8 @@
       <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M12 3v3M21 12h-3M12 21v-3M3 12h3"/></svg><span class="nt">DJ-Set</span><span class="nav-sub nt" id="djCount" title="Titel im DJ-Set"></span></button>
     <button class="nav" data-module="playlists" title="Playlists: Titel aus Tagger und DJ-Set sammeln, ordnen und als M3U8 ablegen">
       <svg class="i" viewBox="0 0 24 24"><path d="M3 6h12"/><path d="M3 12h12"/><path d="M3 18h7"/><circle cx="17" cy="17" r="3"/><path d="M20 17V7l2-1"/></svg><span class="nt">Playlists</span><span class="nav-sub nt" id="plsCount"></span></button>
+    <button class="nav" data-module="purchases" title="Käufe: gekaufte Titel aller Stores (zuerst Beatport) sammeln, mit der Bibliothek abgleichen und fehlende herunterladen">
+      <svg class="i" viewBox="0 0 24 24"><path d="M5 7h14l-1.5 10.5a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg><span class="nt">Käufe</span><span class="nav-sub nt" id="purCount"></span></button>
     <button class="nav" data-module="snapshots" title="Snapshots und Änderungsjournal">
       <svg class="i" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><circle cx="12" cy="13" r="3.5"/></svg><span class="nt">Snapshots</span><span class="nav-sub nt" id="snapSize"></span></button>
     <button class="nav" data-module="backups" title="Sicherungen">
@@ -314,6 +316,29 @@
             <div id="djCurve"></div>
           </section>
         </div>
+      </div>
+    </div>
+
+    <div class="work module" id="modulePurchases" hidden>
+      <div class="mod-page">
+        <header class="mod-head">
+          <div><h2>Käufe</h2>
+          <p class="muted">Gekaufte Titel aller Stores an einem Ort – vorerst Beatport. „Aktualisieren“ holt neue Käufe und gleicht mit der Bibliothek ab; fehlende Titel lassen sich in den Eingangsordner laden und von dort wie gewohnt vorbereiten.</p></div>
+          <div class="mod-actions">
+            <button class="ghost" id="purMatch" title="Nur neu mit der Bibliothek abgleichen (ohne Store-Abfrage)">Abgleichen</button>
+            <button class="primary" id="purRefresh">↻ Aktualisieren</button>
+          </div>
+        </header>
+        <div class="card pur-bar">
+          <input class="inp" id="purFind" placeholder="Suchen …" autocomplete="off">
+          <select class="inp" id="purStore" aria-label="Store"></select>
+          <div class="seg" id="purStatus" role="group" aria-label="Status"></div>
+          <span class="grow"></span>
+          <span class="muted sm" id="purDest"></span>
+          <button class="ghost sm" id="purDestBtn">Ordner …</button>
+          <button class="ghost" id="purDl" disabled>Fehlende herunterladen</button>
+        </div>
+        <div class="card pur-table" id="purTable"></div>
       </div>
     </div>
 
@@ -623,6 +648,7 @@
 <script src="queue.js"></script>
 <script src="websearch.js"></script>
 <script src="playlists.js"></script>
+<script src="purchases.js"></script>
 <script src="nav.js"></script>
 <script src="help.js"></script>
 <script src="feedback.js"></script>

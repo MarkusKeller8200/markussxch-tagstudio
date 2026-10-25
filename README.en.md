@@ -296,6 +296,15 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
   taken-over tracks into a playlist; new tracks are also linked automatically to matching entries without a file.
 - The previously saved DJ set lists are taken over once as playlists on the first start.
 
+### Purchases
+
+Bought tracks from all stores in one place – **Beatport** for now (sign in to the Beatport plugin). Page **Purchases**
+in the sidebar: table with title, artist, mix, length, key, BPM, catalogue number, store, purchase date (if the store
+provides it, otherwise “first seen”) and a link to the store. **“↻ Refresh”** fetches new purchases and matches
+everything with the library: *in library*, *in inbox*, *unclear* or *missing*. **“Download missing”** (or the selected
+ones) puts the files unchanged into the inbox folder (`00_New` or the inbox of “Prepare”, changeable under
+“Folder …”) – continue from there as usual. Pre-orders are not downloaded.
+
 ### Tag fixer
 
 Unify multiple values – scope (current pair, one side, selected pairs, all files, tagger selection), fields,

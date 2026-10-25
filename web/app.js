@@ -1424,7 +1424,7 @@ async function undoRedo(redo) {
   if (S.module === "fixer") fixerPreview();
 }
 
-const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups", plugins: "modulePlugins", settings: "moduleSettings", snapshots: "moduleSnapshots", djset: "moduleDjset", playlists: "modulePlaylists", help: "moduleHelp", prep: "modulePrep" };
+const MODULE_IDS = { compare: "moduleCompare", tagger: "moduleTagger", fixer: "moduleFixer", backups: "moduleBackups", plugins: "modulePlugins", settings: "moduleSettings", snapshots: "moduleSnapshots", djset: "moduleDjset", playlists: "modulePlaylists", purchases: "modulePurchases", help: "moduleHelp", prep: "modulePrep" };
 function setModule(m, opts = {}) {
   // #274: Sprung aus dem Inhalt → bisherige Stelle für „Zurück“ merken (nicht beim Start und nicht aus der Seitenleiste)
   if (!opts.start && !opts.side && S.module && m !== S.module && typeof navPush === "function") navPush();
@@ -1443,6 +1443,7 @@ function setModule(m, opts = {}) {
   if (m === "snapshots" && typeof snapShow === "function") snapShow();
   if (m === "djset" && typeof djsetShow === "function") djsetShow();
   if (m === "playlists" && typeof playlistsShow === "function") playlistsShow();          // #267
+  if (m === "purchases" && typeof purchasesShow === "function") purchasesShow();        // #285
   if (m === "help" && typeof helpShow === "function") helpShow();                // #158
   if (m === "prep" && typeof prepShow === "function") prepShow();                // #109
   if (m !== "prep" && typeof discStop === "function") discStop();                // #120 Vorhören beenden

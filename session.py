@@ -39,6 +39,7 @@ from session_prepare import PrepareMixin
 from session_discover import DiscoverMixin
 from session_setup import ArchiveMixin, FoldersMixin, SetupMixin
 from session_playlists import PlaylistMixin
+from session_purchases import PurchasesMixin
 
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
@@ -55,7 +56,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
 
 
 class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, DiscoverMixin, SetupMixin, FoldersMixin, ArchiveMixin,
-              PlaylistMixin):
+              PlaylistMixin, PurchasesMixin):
     def __init__(self):
         self.lock = threading.RLock()
         self._bus, self._buslock = {}, threading.Lock()       # Nachrichten zwischen Fenstern (#69)

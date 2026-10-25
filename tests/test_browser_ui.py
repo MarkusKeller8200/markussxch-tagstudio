@@ -148,7 +148,7 @@ class UiTest(unittest.TestCase):
         """#88 Menü-Reihenfolge und Startseite, #87 Einstellungskacheln, #85/#86 Vorgaben, #89 Kanal."""
         pg = self.pg
         navs = pg.evaluate("[...document.querySelectorAll('.nav[data-module]')].map(b=>b.dataset.module)")
-        self.assertEqual(navs, ["prep", "tagger", "fixer", "compare", "djset", "playlists", "snapshots", "backups", "plugins", "settings", "help", "db"])
+        self.assertEqual(navs, ["prep", "tagger", "fixer", "compare", "djset", "playlists", "purchases", "snapshots", "backups", "plugins", "settings", "help", "db"])
         self.assertEqual(pg.evaluate("S.module"), "tagger")
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stUpdateCard")
@@ -1121,7 +1121,7 @@ class UiTest(unittest.TestCase):
             pg.screenshot(path=os.path.join(shots, "en_tagger.png"))
         left = set(pg.evaluate(scan))
         pg.evaluate("call('pl_create', 'Probe', 'Sets', [0, 1])")                    # #267: Seite mit Inhalt prüfen
-        for mod in ("compare", "djset", "playlists", "snapshots", "backups", "plugins", "settings", "prepare", "help"):
+        for mod in ("compare", "djset", "playlists", "purchases", "snapshots", "backups", "plugins", "settings", "prepare", "help"):
             loc = pg.locator(f'.nav[data-module="{mod}"]')
             if pg.locator("#modal").is_visible():
                 pg.click("#mBtns button >> nth=0")
@@ -2497,6 +2497,47 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("window.__ids && window.__ids.join(',') === '7'"))
         pg.wait_for_function("PLS.st && PLS.st.pl && PLS.st.pl.name === 'Peak Time' && PLS.st.pl.refs === 1")
         self.assertIn("ohne Datei", pg.inner_text("#plsList"))
+
+    def test_purchases_page(self):
+        """#285: Seite „Käufe“ – Tabelle, Filter, Sortierung, Auswahl, Herunterladen (Store-Antworten nachgebaut)."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("""(() => { const orig = call; window.__dl = null; window.__fake = null;
+          const row = (k, id, title, status, extra) => Object.assign({ k, store: "beatport", id, title, mix: "Extended Mix", artist: "Mara Lind",
+            dur: 300, key: "8A", bpm: 124, catalog: "POL0" + id, label: "", release: "", genre: "", isrc: "", url: "https://www.beatport.com/track/x/" + id,
+            bought: "", seen: 1761350000, status, file: "", reason: "", preorder: false, downloaded: 0 }, extra || {});
+          const st = { rows: [row("beatport:1", "1", "Nordlicht", "library", { bought: "2026-10-20 10:00:00", file: "/x/n.mp3" }),
+              row("beatport:2", "2", "Kaltes Glas", "missing", { bought: "2026-10-22 09:00:00" }), row("beatport:3", "3", "Vorab", "missing", { preorder: true })],
+            stores: { beatport: { name: "Beatport", refreshed: 1761350000, count: 3 } }, sources: [{ id: "beatport", name: "Beatport", ready: true, why: "" }],
+            count: { library: 1, inbox: 0, unclear: 0, missing: 2 }, dest: "/musik/00_New", dest_from: "Basisordner", dest_ok: true, roots: [] };
+          window.call = (n, ...a) => {
+            if (n === "purch_state") return Promise.resolve(JSON.parse(JSON.stringify(st)));
+            if (n === "start_purch_download") { window.__dl = a[0]; window.__fake = { ok: true, downloaded: 1, failed: [], dest: st.dest }; return Promise.resolve({ ok: true }); }
+            if (n === "task_status" && window.__fake) { const r = window.__fake; window.__fake = null; return Promise.resolve({ done: true, running: false, result: r }); }
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="purchases"]')
+        pg.wait_for_selector("#purTable .pur-t tbody tr")
+        self.assertEqual(pg.locator("#purTable tbody tr").count(), 3)
+        self.assertEqual(pg.inner_text("#purTable tbody tr:first-child td:nth-child(3)"), "Kaltes Glas")   # neuester Kauf zuerst
+        self.assertIn("Fehlende herunterladen (1)", pg.inner_text("#purDl"))                              # ohne Vorbestellung
+        self.assertIn("Vorbestellung", pg.inner_text("#purTable"))
+        self.assertEqual(pg.locator("#purTable .pls-link").count(), 3)
+        pg.click('#purStatus [data-purst="library"]')
+        self.assertEqual(pg.locator("#purTable tbody tr").count(), 1)
+        pg.click('#purStatus [data-purst=""]')
+        pg.fill("#purFind", "kaltes")
+        pg.wait_for_function("document.querySelectorAll('#purTable tbody tr').length === 1")
+        pg.fill("#purFind", "")
+        pg.wait_for_function("document.querySelectorAll('#purTable tbody tr').length === 3")
+        pg.click('#purTable th[data-pursort="title"]')
+        self.assertEqual(pg.inner_text("#purTable tbody tr:first-child td:nth-child(3)"), "Kaltes Glas")  # A→Z
+        pg.check('#purTable tr[data-k="beatport:2"] [data-pursel]')
+        self.assertIn("Markierte herunterladen (1)", pg.inner_text("#purDl"))
+        pg.click("#purDl")
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("window.__dl && window.__dl.join(',') === 'beatport:2'"))
+        self.assertIn("Fehlende herunterladen", pg.inner_text("#purDl"))
+        self.assertEqual(pg.inner_text("#purCount").strip(), "2")
 
     def test_playlists_page(self):
         """#267–#269: Titel aus dem Tagger in Playlists, Seite verwalten, Playlist-Ordner, Archiv, DJ-Set, Filter."""

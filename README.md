@@ -305,6 +305,15 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
   verknüpft.
 - Die bisherigen gespeicherten DJ-Set-Listen werden beim ersten Start einmalig als Playlists übernommen.
 
+### Käufe
+
+Gekaufte Titel aller Stores an einem Ort – vorerst **Beatport** (Anmeldung im Plugin Beatport). Seite **Käufe** in der
+Seitenleiste: Tabelle mit Titel, Interpret, Mix, Länge, Tonart, BPM, Katalognummer, Store, Kaufdatum (sofern der Store
+es liefert, sonst „zuerst gesehen“) und Link zum Store. **„↻ Aktualisieren“** holt neue Käufe und gleicht alles mit
+der Bibliothek ab: *in Bibliothek*, *im Eingang*, *unklar* oder *fehlt*. **„Fehlende herunterladen“** (bzw. die
+markierten) lädt die Dateien unverändert in den Eingangsordner (`00_New` bzw. Eingang von „Vorbereiten“, unter
+„Ordner …“ änderbar) – von dort geht es wie gewohnt weiter. Vorbestellungen werden nicht geladen.
+
 ### Tag-Fixer
 
 Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare, alle Dateien,

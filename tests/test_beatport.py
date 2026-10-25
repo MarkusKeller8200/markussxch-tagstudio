@@ -83,7 +83,7 @@ class FakeBeatport:
             return (200, {}, json.dumps(t).encode()) if t else (404, {}, b"{}")
         if p == "/v4/my/downloads/" and not q.get("track_id"):
             return 200, {}, json.dumps({"results": [
-                dict(TRACKS[1001], order_item_download_id=501, audio_format={"name": "mp3"}),
+                dict(TRACKS[1001], order_item_download_id=501, audio_format={"name": "mp3"}, purchase_date="2026-10-20T10:00:00Z"),
                 {"id": 2001, "name": "Frisch gekauft", "mix_name": "Extended Mix", "artists": [{"name": "Mara Lind"}],
                  "order_item_download_id": 502, "audio_format": {"name": "mp3"}},
                 {"id": 2002, "name": "Vorbestellt", "artists": [{"name": "X"}], "pre_order": True, "order_item_download_id": 503}]}).encode()
@@ -212,6 +212,61 @@ class TestBeatport(Base):
             self.assertEqual(len(seen), 1)
         finally:
             self.mod._urlopen = orig
+
+    def test_purchases_page(self):
+        """#285: Seite „Käufe“ – Käufe sammeln, mit der Bibliothek abgleichen, fehlende in den Eingang laden."""
+        src = self.s.purch_state()["sources"]
+        self.assertEqual([(x["id"], x["ready"]) for x in src], [("beatport", False)])        # nicht angemeldet
+        self.login()
+        inbox = os.path.join(self.dir, "00_New")
+        os.makedirs(inbox)
+        self.s.purch_set_dest(inbox)
+        r = self.s.start_purch_refresh()
+        self.assertTrue(r["ok"], r)
+        res = self.wait()["result"]
+        self.assertEqual((res["new"], res["count"]["library"], res["count"]["missing"], res["errors"]), (3, 1, 2, []))
+        rows = {r["id"]: r for r in self.s.purch_state()["rows"]}
+        n = rows["1001"]
+        self.assertEqual((n["status"], n["key"], n["catalog"], n["mix"], n["bought"], n["store"]),
+                         ("library", "8A", "POL042", "Extended Mix", "2026-10-20 10:00:00", "beatport"))
+        self.assertTrue(n["url"].startswith("https://www.beatport.com/track/"))
+        self.assertTrue(n["file"].endswith("n.mp3"))
+        self.assertTrue(rows["2002"]["preorder"])
+        audio = b"ID3\x03\x00\x00\x00\x00\x00\x00" + b"\xff\xfb" * 500
+
+        class Resp:
+            headers = {"Content-Type": "audio/mpeg", "Content-Disposition": 'attachment; filename="Mara Lind - Frisch gekauft (Extended Mix).mp3"'}
+
+            def __init__(self):
+                self.left = audio
+
+            def read(self, n=-1):
+                out, self.left = self.left[:n], self.left[n:]
+                return out
+
+            def close(self):
+                pass
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+        orig = self.mod._urlopen
+        self.mod._urlopen = lambda req, timeout: Resp()
+        try:
+            r = self.s.start_purch_download()
+            self.assertTrue(r["ok"], r)
+            res = self.wait()["result"]
+        finally:
+            self.mod._urlopen = orig
+        self.assertEqual(res["downloaded"], 1)                                                   # Vorbestellung nicht
+        self.assertTrue(os.path.isfile(os.path.join(inbox, "Mara Lind - Frisch gekauft (Extended Mix).mp3")))
+        rows = {r["id"]: r for r in self.s.purch_state()["rows"]}
+        self.assertEqual(rows["2001"]["status"], "inbox")
+        self.s.start_purch_refresh()                                                            # erneut: nichts neu
+        res = self.wait()["result"]
+        self.assertEqual((res["new"], res["count"]["inbox"]), (0, 1))
 
     def test_token_paste_and_refresh(self):
         self.fake.valid.add("PASTED")

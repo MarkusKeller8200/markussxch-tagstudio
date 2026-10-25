@@ -29,6 +29,7 @@ Es gibt zwei Arten von Ordnern:
 | `Plugin-Daten\<Plugin>\` | Daten der Plugins (Abschnitt 2) |
 | `Vorbereiten\<Workflow>.json` | Status je Titel in den Workflow-Schritten, abgeholte Downloads |
 | `Entdecken\entdecken.json` | Gefolgte Künstler/Labels/Genres, Vorschläge, Merkliste |
+| `Käufe\kaeufe.json` (#285) | Gekaufte Titel aller Stores mit Status (Bibliothek, Eingang, unklar, fehlt) |
 | `Playlists\` (#267) | Playlist-Speicher: `index.json` + eine Datei je Playlist (massgebend, Spiegel in `03_Playlists`) |
 | `Auftraege.json` | Warteschlange der Hintergrund-Aufträge (z. B. Stems) |
 | `profile.json` | Profilwahl beim Start (fragen ja/nein, zuletzt benutzt) |

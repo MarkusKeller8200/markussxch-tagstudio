@@ -712,7 +712,7 @@ class Manager:
             return set()
 
     # ---- #242: Playlists anderer Programme fürs DJ-Set (playlists(ctx), playlist_files(ctx, id))
-    PLAYLIST_FNS = ("playlists", "playlist_files", "playlist_push")
+    PLAYLIST_FNS = ("playlists", "playlist_files", "playlist_push", "store_purchases", "store_download")
 
     def playlist_sources(self) -> list[dict]:
         """Bereite, eingeschaltete Plugins mit playlists(ctx) – z. B. Lexicon."""
@@ -725,6 +725,20 @@ class Manager:
             except Exception:  # noqa: BLE001
                 continue
             out.append({"id": p.id, "name": p.name})
+        return out
+
+    def store_sources(self) -> list[dict]:
+        """#285: eingeschaltete Plugins mit store_purchases(ctx) (Seite „Käufe“) – mit Hinweis, falls nicht bereit."""
+        out = []
+        for p, _fn in self._ready_with("store_purchases"):
+            rd = getattr(p.load(), "ready", None)
+            ok, why = True, ""
+            try:
+                if callable(rd):
+                    ok, why = rd(Context(p))
+            except Exception as ex:  # noqa: BLE001
+                ok, why = False, str(ex)
+            out.append({"id": p.id, "name": p.name, "ready": bool(ok), "why": why or ""})
         return out
 
     def push_targets(self) -> list[dict]:
@@ -754,7 +768,8 @@ class Manager:
         ctx = Context(p, session, cancel, progress)
         res = fn(ctx, *args)
         if ctx.log_lines:                              # #273/#284: Protokoll (z. B. Feldnamen der Beatport-Antworten)
-            lf = write_log(f"{p.id}.log", {"playlists": "Playlists holen", "playlist_files": "Playlist holen"}
+            lf = write_log(f"{p.id}.log", {"playlists": "Playlists holen", "playlist_files": "Playlist holen",
+                                           "store_purchases": "Käufe holen", "store_download": "Käufe herunterladen"}
                            .get(fn_name, "Playlist senden") + "\n" + "\n".join(ctx.log_lines))
             if fn_name == "playlist_push" and isinstance(res, dict):
                 res["logfile"] = lf

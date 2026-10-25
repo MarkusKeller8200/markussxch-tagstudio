@@ -195,6 +195,9 @@ More functions a plugin can offer (all optional):
 - `apply_remote(ctx, items)` – see `kind="remote"` above.
 - `playlists(ctx)` → `[{id, name, path, depth, type}]` and `playlist_files(ctx, id)` → `{name, files, missing}` – the
   DJ set then offers “From <plugin> …”: select playlists and load them as lists (example: Lexicon).
+- `store_purchases(ctx)` → `{"name", "items": [{id, title, mix, artist, dur, key, bpm, catalog, isrc, label, release,
+  genre, url, bought, preorder, dl}]}` and `store_download(ctx, items, dest)` → `{"files": {id: [paths]}, "failed"}` –
+  page “Purchases” (#285): collect the bought tracks of a store and download missing ones (example: Beatport).
 - `playlist_push(ctx, playlist, options)` – Playlists page › More ▾ › “Send to <plugin> …” (#273). `playlist` =
   `{"name", "folder", "items": [{"path", "artist", "title"}], "remote"}` (`remote` = the id the plugin returned the last
   time, otherwise `None`). Return `{"ok", "id", "message", "missing": [paths], …}`; TagStudio remembers `id` per
@@ -276,6 +279,9 @@ way as the beets plugin “beatport4”. Unofficial: Beatport can change access 
 
 Matching: first via a stored Beatport ID (`TXXX:BEATPORT_TRACK_ID`), then ISRC, otherwise a search for artist + title
 + mix name; title, artist, length and mix name are rated. At most ~3 requests per second.
+
+**Purchases (#285):** the page “Purchases” uses `store_purchases(ctx)` (all purchases with title, mix, key, BPM,
+catalogue number, link, purchase date) and `store_download(ctx, items, dest)` (download missing ones into the inbox).
 
 **Playlists (#284, read only):** after signing in, Playlists › Import ▾ offers **“From Beatport …”**: choose your own
 Beatport playlists; they arrive as playlists with entries without a file (artist, title, mix, ISRC, length, link to

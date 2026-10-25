@@ -1653,3 +1653,20 @@ html.i18n-wait body{visibility:hidden}
 .pls-sm-sec select.inp,.pls-sm-sec input.inp{width:auto;flex:none;min-width:0;height:30px;padding:3px 8px}
 .pls-sm-rule select[data-smf]{min-width:170px}
 .pls-sm-sec #plsSmPl{max-width:340px}
+/* Käufe (#285) */
+#modulePurchases .mod-page{display:flex;flex-direction:column;gap:12px;min-height:0;height:100%}
+.pur-bar{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px;padding:10px}
+.pur-bar .inp{width:auto;flex:none}
+.pur-bar .grow{flex:1}
+.pur-bar #purFind{width:220px}
+.pur-bar #purDest{max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pur-table{overflow:auto;padding:0;flex:1;min-height:200px}
+.pur-t{border-collapse:collapse;width:100%;font-size:13px}
+.pur-t th{position:sticky;top:0;background:var(--surf);text-align:left;color:var(--dim);font-weight:600;padding:6px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;user-select:none}
+.pur-t th:first-child{cursor:default;width:28px}
+.pur-t td{border-bottom:1px solid var(--line);padding:4px 6px;white-space:nowrap}
+.pur-t .r{text-align:right}
+.pur-t td.nm{max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.pur-t tr.sel td{background:var(--acc-soft)}
+.pur-st{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;background:var(--raise);color:var(--dim)}
+.pur-st.library{color:var(--ok)}.pur-st.inbox{color:var(--acc)}.pur-st.unclear{color:var(--warn)}.pur-st.missing{color:#e5484d}.pur-st.pre{color:var(--faint)}

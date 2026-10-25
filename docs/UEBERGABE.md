@@ -14,6 +14,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   fehlende Titel einfügen, nie `DELETE`) – `_3 Beta-Test`.
 - **#284 Beatport-Playlists** (Beatport-Plugin 1.1, `/my/playlists/…` inoffiziell und **ungeprüft** – Feldnamen im
   Protokoll, echter Test beim User; Charts noch nicht) – `_3 Beta-Test`.
+- **#285 Käufe** (Wunsch User 02:26, in 4.9.0): neue Seite „Käufe“ (`purchases.py`, `session_purchases.py`,
+  `web/purchases.js`, Plugin-Rahmen `store_purchases`/`store_download`, Beatport-Plugin 1.2) – `_3 Beta-Test`.
+  Konzept `docs/KONZEPT-KAEUFE.md`.
 - Meilenstein #24 hat damit keine Issues mehr ohne Testliste; nächster Schritt: Testrückmeldungen, danach
   4.9.0-beta.1 oder final **nur nach Freigabe**. Konzept-Abschnitte 18–20 in `KONZEPT-PLAYLISTS.md`.
 
@@ -176,6 +179,7 @@ Zug nachführen.**
 | Vergleich | [KONZEPT-VERGLEICH.md](KONZEPT-VERGLEICH.md) |
 | DJ-Set | [KONZEPT-DJSET.md](KONZEPT-DJSET.md) |
 | Playlists – Verwaltung, Tagger/DJ-Set/Player, Import/Export (Idee, #267–#273) | [KONZEPT-PLAYLISTS.md](KONZEPT-PLAYLISTS.md) |
+| Käufe – gekaufte Titel aller Stores, Abgleich, Download (#285) | [KONZEPT-KAEUFE.md](KONZEPT-KAEUFE.md) |
 | Snapshots | [KONZEPT-SNAPSHOTS.md](KONZEPT-SNAPSHOTS.md) |
 | Player | [KONZEPT-PLAYER.md](KONZEPT-PLAYER.md) |
 | Plugins | [KONZEPT-PLUGINS.md](KONZEPT-PLUGINS.md) |
