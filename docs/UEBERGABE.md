@@ -435,6 +435,7 @@ Zug nachführen.**
 | Musikanalyse und MusicAnalyzer (geplant) | [KONZEPT-MUSIKANALYSIEREN.md](KONZEPT-MUSIKANALYSIEREN.md) |
 | DJ-Musikplattformen, Programme mit Kosten, API und Kauf-/Download-Workflow (geplant) | [KONZEPT-DJPLATTFORMEN.md](KONZEPT-DJPLATTFORMEN.md) – Kostenübersicht auch als [Word](Tag-Programme-und-Musik-Plattformen.docx)/[PDF](Tag-Programme-und-Musik-Plattformen.pdf) (Stand 12.10.2026) |
 | Vorbereiten, Entdecken | [KONZEPT-VORBEREITEN.md](KONZEPT-VORBEREITEN.md) |
+| Modul IDEE – Wunschlisten, Idee merken → kaufen → vorbereiten (#186, Konzept, Entscheide I1–I6 offen) | [KONZEPT-IDEE.md](KONZEPT-IDEE.md) |
 | Tagger | [KONZEPT-TAGGER.md](KONZEPT-TAGGER.md) |
 | Tag-Fixer | [KONZEPT-TAGFIXER.md](KONZEPT-TAGFIXER.md) |
 | Vergleich | [KONZEPT-VERGLEICH.md](KONZEPT-VERGLEICH.md) |

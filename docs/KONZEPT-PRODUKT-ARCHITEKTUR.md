@@ -333,6 +333,8 @@ Jeder Export erstellt einen **Preview-Diff und einen lesbaren Kompatibilitätsbe
 
 ## 14. Externe Musikquellen und Discovery – Abgrenzung
 
+> Ideen sammeln und Wunschlisten: eigenes Modul IDEE, siehe [KONZEPT-IDEE.md](KONZEPT-IDEE.md) (#186, Konzept zur Freigabe).
+
 Frühere Ideen wie Beatport/SoundCloud, 1001Tracklists und Shazam-/Fingerprint-Dienste können künftig die Discovery und Metadatenanreicherung unterstützen. Dieser Bereich ist **nicht Teil der Kern-Interoperabilität mit DJ-Programmen**. APIs, Nutzungsbedingungen, öffentliche/Partner-Zugänge und Downloadrechte sind je Anbieter gesondert zu bewerten. Ein Stream- oder Downloadrecht darf nicht aus der technischen Möglichkeit abgeleitet werden.
 
 ## 15. Lizenzierung, Sicherheit und Betrieb
