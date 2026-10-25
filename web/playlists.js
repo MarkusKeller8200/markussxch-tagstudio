@@ -594,7 +594,7 @@ async function plsMatch(id) {
   const what = typeof id === "string" ? "" : (id.folder ? `Abgeglichen werden alle Playlists in „${esc(id.folder)}“.` : "Abgeglichen werden alle Playlists.");
   const how = await modal({ title: "Mit der Bibliothek abgleichen",
     html: `${what ? `<p style="margin:0 0 8px">${what}</p>` : ""}<p style="margin:0 0 6px">Suchen in:</p>
-      ${m.roots.length ? `<div class="djs-list" style="margin:0 0 8px">${m.roots.map((r, k) => `<label class="djs-row"><input type="checkbox" data-plsroot="${k}" checked> <span translate="no">${esc(r)}</span></label>`).join("")}</div>`
+      ${m.roots.length ? `<div class="djs-list" style="margin:0 0 8px">${m.roots.map((r, k) => { const l = (m.libs || []).find((x) => x.path.toLowerCase() === r.toLowerCase()); return `<label class="djs-row"><input type="checkbox" data-plsroot="${k}" checked> ${l ? `<b translate="no">${esc(l.name)}</b> ` : ""}<span class="muted sm" translate="no">${esc(r)}</span></label>`; }).join("")}</div>${(m.libs_skipped || []).length ? `<p class="muted sm">Übersprungen: ${m.libs_skipped.map((x) => `${esc(x.name)} (${esc(x.why)})`).join(", ")}</p>` : ""}`
         : '<p class="muted sm">Keine Bibliothek festgelegt – nur die im Tagger geladenen Titel.</p>'}
       <p class="muted sm" style="margin:0 0 8px">Dazu die im Tagger geladenen Titel. „Anderer Ordner …“ sucht zusätzlich in einem Ordner deiner Wahl.</p>
       <label class="check"><input type="checkbox" id="plsAnyMix"${m.any_mix ? " checked" : ""}> Anderer Mix gilt als gefunden (z. B. Extended Mix statt Radio Edit; Extended wird bevorzugt)</label>`,
@@ -952,7 +952,7 @@ async function plsSmartDialog(pl, folder = "") {
       <label class="check"><input type="radio" name="plsSmBase" value="tagger"${base.kind === "tagger" ? " checked" : ""}> Im Tagger geladene Titel (${fmtN(info.tagger)})</label>
       <label class="check"><input type="radio" name="plsSmBase" value="playlist"${base.kind === "playlist" ? " checked" : ""}${info.playlists.length ? "" : " disabled"}> Aus Playlist:</label>
       <select class="inp sm" id="plsSmPl"${info.playlists.length ? "" : " hidden"}>${info.playlists.filter((p) => !pl || p.id !== pl.id).map((p) => `<option value="${esc(p.id)}"${p.id === base.pid ? " selected" : ""} translate="no">${esc(p.label)}</option>`).join("")}</select>
-      <div class="muted sm" translate="no">${info.roots.map(esc).join(" · ")}</div></div>
+      <div class="muted sm">${libNamesHtml(info.roots, info.libs, info.libs_skipped)}</div></div>
     <div class="pls-sm-sec"><b>Regeln</b>
       <label class="check"><input type="radio" name="plsSmMatch" value="all"${r0.match !== "any" ? " checked" : ""}> alle erfüllt</label>
       <label class="check"><input type="radio" name="plsSmMatch" value="any"${r0.match === "any" ? " checked" : ""}> mindestens eine erfüllt</label>

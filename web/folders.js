@@ -28,7 +28,8 @@ async function stFoldersRender() {
   const libRow = (l, i) => `<tr data-flib="${esc(l.id)}">${i === 0 ? `<th scope="row" rowspan="${f.libraries.length + 1}">Bibliotheken</th>` : ""}
       <td><label class="check fold-lib"><input type="checkbox" data-factive ${l.active ? "checked" : ""} ${l.main ? "disabled" : ""} title="Aktiv: wird in Abgleichen berücksichtigt"> <b>${esc(l.name)}</b></label>${l.main ? ' <span class="plg-tag">Hauptbibliothek</span>' : `<button class="link-btn sm" data-fmain>als Hauptbibliothek</button>`}
         <div>${folderPathCell(l.path, l.exists)} ${folderHints(l.hints)}</div>
-        <div class="fold-acts"><span class="fold-mode">${modeTxt(l)}</span><button class="ghost sm" data-flibchange>Ändern …</button><button class="ghost sm" data-fopen ${l.path ? "" : "disabled"}>Öffnen</button><button class="ghost sm" data-flibremove ${l.main && f.libraries.length > 1 ? "disabled" : ""}>Entfernen</button></div></td></tr>`;
+        <div class="fold-acts"><span class="fold-mode">${modeTxt(l)}</span><button class="ghost sm" data-flibchange>Ändern …</button><button class="ghost sm" data-fopen ${l.path ? "" : "disabled"}>Öffnen</button><button class="ghost sm" data-flibremove ${l.main && f.libraries.length > 1 ? "disabled" : ""}>Entfernen</button>
+        <label class="check sm" title="Tag-Stand täglich als Snapshot festhalten (Seite Snapshots)"><input type="checkbox" data-fsnap ${l.snapshots ? "checked" : ""}> Snapshots</label></div></td></tr>`;
   const roles = f.roles;
   const inbox = roles.filter((r) => r.id === "inbox"), rest = roles.filter((r) => r.id !== "inbox");
   box.innerHTML = `${f.review.length ? `<div class="fold-review"><span>Wir haben ${fmtN(f.review.length)} verschiedene Bibliotheks-Ordner gefunden – bitte festlegen, welche bleiben und welche die Hauptbibliothek ist.</span><button class="primary sm" data-freview>Übersicht …</button></div>` : ""}
@@ -41,6 +42,9 @@ async function stFoldersRender() {
       ${rest.map(roleRow).join("")}
     </tbody></table></div>
     <p class="muted sm">„Ändern …“ stellt nur die Einstellung um – vorhandene Dateien bleiben, wo sie sind. Fremde DJ-Programme werden nie verändert.</p>`;
+  if (typeof TG !== "undefined" && TG.settings && typeof tgLibSelect === "function") {     // #311: Auswahl im Tagger auffrischen
+    call("tagger_settings").then((t) => { TG.settings = t; tgLibSelect(); }).catch(() => {});
+  }
 }
 
 const FOLDERS = { data: null };
@@ -179,8 +183,27 @@ async function foldersStartup() {
     } catch (x) { err(x); stFoldersRender(); }
   });
   document.addEventListener("change", async (e) => {
-    const c = e.target.closest("#stFolders [data-factive]"); if (!c) return;
-    try { await call("folders_lib_update", c.closest("tr").dataset.flib, { active: c.checked }); } catch (x) { err(x); }
+    const c = e.target.closest("#stFolders [data-factive], #stFolders [data-fsnap]"); if (!c) return;
+    const ch = c.dataset.fsnap !== undefined ? { snapshots: c.checked } : { active: c.checked };
+    try { const r = await call("folders_lib_update", c.closest("tr").dataset.flib, ch); if (r.snap_note) toast(r.snap_note); } catch (x) { err(x); }
     stFoldersRender();
   });
 })();
+
+// ---------------------------------------------------------------------- Bibliotheken anderswo anzeigen (#311)
+/** Einstellungen › Speicherort und Ordner öffnen */
+async function foldersGoto() {
+  setModule("settings");
+  for (let i = 0; i < 40 && !$("#stFolders table"); i++) await new Promise((ok) => setTimeout(ok, 100));
+  $("#stFolderCard")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/** „Verglichen mit“: Bibliotheksnamen statt Pfade (Pfad im Tooltip), übersprungene mit Grund; Klick → Einstellungen */
+function libNamesHtml(roots, libs, skipped) {
+  const byPath = new Map((libs || []).map((l) => [String(l.path).toLowerCase(), l.name]));
+  const parts = (roots || []).map((p) => { const n = byPath.get(String(p).toLowerCase()); return `<span title="${esc(p)}" translate="no">${esc(n || p)}</span>`; });
+  const skip = (skipped || []).map((s) => `<span class="st-missing" title="${esc(s.path)}">${esc(s.name)} – ${esc(s.why)}</span>`);
+  return `<button class="link-btn sm" data-fgoto title="Einstellungen › Speicherort und Ordner">${parts.join(" · ") || "–"}</button>${skip.length ? " · " + skip.join(" · ") : ""}`;
+}
+
+document.addEventListener("click", (e) => { if (e.target.closest("[data-fgoto]")) { e.preventDefault(); foldersGoto(); } });

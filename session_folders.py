@@ -143,9 +143,12 @@ class FolderRolesMixin:
         return self.folders_get()
 
     def folders_lib_add(self, name, mode, value="", active=True) -> dict:
-        m, _lib = folders.lib_add(self._folders(), name, str(mode), value, active)
+        m, lib = folders.lib_add(self._folders(), name, str(mode), value, active)
         self._folders_save(m)
-        return self.folders_get()
+        out = self.folders_get()
+        if lib["snapshots"]:
+            out["snap_note"] = self._folders_snap_sync(lib["id"])
+        return out
 
     def folders_lib_update(self, lid, changes=None) -> dict:
         c = changes if isinstance(changes, dict) else {}
@@ -153,7 +156,64 @@ class FolderRolesMixin:
                                value=c.get("value"), active=c.get("active"), main=c.get("main"),
                                snapshots=c.get("snapshots"))
         self._folders_save(m)
-        return self.folders_get()
+        note = self._folders_snap_sync(str(lid)) if c.get("snapshots") is not None else ""
+        out = self.folders_get()
+        if note:
+            out["snap_note"] = note
+        return out
+
+    # ------------------------------------------------------------------ Snapshots je Bibliothek (O3, #311)
+    def _snap_lib_for(self, path):
+        """Überwachter Ordner im Snapshot-Speicher, der zu path gehört (oder None)."""
+        try:
+            for d in self.snap_store.libraries():
+                if folders.same_dir(d.get("root", ""), path):
+                    return d
+        except Exception:  # noqa: BLE001 – Speicher nicht lesbar
+            return None
+        return None
+
+    def _folders_snap_sync(self, lid: str) -> str:
+        """Schalter „Snapshots“ einer Bibliothek in den Snapshot-Speicher übertragen: an = überwachen und täglicher
+        Snapshot, aus = kein täglicher Snapshot mehr (vorhandene Snapshots bleiben). → Hinweis für die Oberfläche."""
+        import snapshots
+        lib = next((x for x in folders.libraries(self.cfg) if x["id"] == lid), None)
+        if lib is None or not lib["path"]:
+            return ""
+        d = self._snap_lib_for(lib["path"])
+        try:
+            if lib["snapshots"]:
+                if d is None:
+                    if not os.path.isdir(lib["path"]):
+                        return "Ordner fehlt – Snapshots starten, sobald er da ist."
+                    d = self.snap_store.add_library(lib["path"], lib["name"])
+                self.snap_store.update_library(d["id"], auto=True)
+                return "Snapshots eingeschaltet."
+            if d is not None:
+                self.snap_store.update_library(d["id"], auto=False)
+                return "Keine täglichen Snapshots mehr – vorhandene bleiben unter Snapshots."
+        except (OSError, snapshots.StoreError) as ex:
+            return f"Snapshots: {ex}"
+        return ""
+
+    def _folders_main_from_tagger(self, path):
+        """Tagger-Standardordner gesetzt (Tagger-Einstellungen, Assistent): Hauptbibliothek ist der Startordner des
+        Taggers. Ist der Ordner schon eine Bibliothek, wird sie Hauptbibliothek; sonst kommt er als neue Bibliothek
+        dazu (die bisherigen bleiben eingetragen)."""
+        m = self._folders()
+        lib = next((x for x in m["libraries"] if folders.same_dir(folders.resolve_lib(m, x), path)), None)
+        if lib is not None and lib["main"]:
+            return
+        if lib is None:
+            m, lib = folders.lib_add(m, "Haupt" if not m["libraries"] else
+                                     (os.path.basename(os.path.normpath(path)) or "Bibliothek"), "custom", path)
+        self._folders_save(folders.lib_update(m, lib["id"], main=True))
+
+    # ------------------------------------------------------------------ Bibliotheken zum Einlesen (#311)
+    def _lib_roots(self) -> dict:
+        """Aktive, erreichbare Bibliotheken – jeder Ordner nur einmal. → {"roots": [{id, name, path}], "skipped": [...]}"""
+        roots, skipped = folders.scan_roots(self._folders())
+        return {"roots": roots, "skipped": skipped}
 
     def folders_lib_remove(self, lid) -> dict:
         """Nur den Eintrag entfernen – die Dateien bleiben (Rückfrage in der Oberfläche)."""

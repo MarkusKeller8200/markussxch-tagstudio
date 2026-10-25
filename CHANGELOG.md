@@ -19,6 +19,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Export-Ordner (#312):** Jeder Speichern-Dialog für Exporte (Tagger-Liste, Playlists, Einkaufsliste, DJ-Set,
   Merkliste, Snapshot-Journal, Einstellungen, Texte, Cover) öffnet im Export-Ordner (`04_Export` bzw. eigener
   Ordner); fehlt er, wird er angelegt. Neu: „Workflow exportieren …“ kann den Workflow auch als Datei speichern.
+- **Mehrere Bibliotheken (#311):** Käufe-Abgleich, Playlist-Abgleich, Entdecken und Hilfe › Scan lesen die
+  **aktiven** Bibliotheken aus Einstellungen › Ordner (jeder Ordner nur einmal, nicht erreichbare übersprungen und
+  gemeldet) statt drei verschiedener Einstellungen – der Käufe-Abgleich liest keine Bibliothek mehr doppelt.
+  „Verglichen mit“ zeigt die Namen. Tagger: Auswahl „Bibliothek ▾“ mit „Alle aktiven“. Snapshots je Bibliothek
+  ein/aus. Vorbereiten übernimmt ohne eigenen Bibliotheksordner in die Hauptbibliothek.
 
 ## [4.9.1] – 2026-10-25
 

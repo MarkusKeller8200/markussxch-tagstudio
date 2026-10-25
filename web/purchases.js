@@ -108,7 +108,7 @@ function purRenderTable() {
   const rows = purVisible();
   const all = rows.length && rows.every((r) => PUR.sel.has(r.k));
   const dg = st.last || {};
-  const diag = `<div class="muted sm pur-diag">Verglichen mit: <span translate="no">${esc((dg.roots || st.roots || []).join(" · ") || "–")}</span>${dg.files ? ` · ${fmtN(dg.files)} Dateien` : ""}${dg.dupes ? ` · <span title="${esc((dg.examples || []).map((x) => x.path + "\n= " + x.same).join("\n\n"))}">${fmtN(dg.dupes)} doppelt (gleiche Datei unter anderem Pfad) zusammengefasst</span>` : ""}</div>`;
+  const diag = `<div class="muted sm pur-diag">Verglichen mit: ${libNamesHtml(dg.roots || st.roots || [], st.libs, st.libs_skipped)}${dg.files ? ` · ${fmtN(dg.files)} Dateien` : ""}${dg.dupes ? ` · <span title="${esc((dg.examples || []).map((x) => x.path + "\n= " + x.same).join("\n\n"))}">${fmtN(dg.dupes)} doppelt (gleiche Datei unter anderem Pfad) zusammengefasst</span>` : ""}</div>`;
   const head = PUR_COLS.map(([k, l]) => `<th data-pursort="${k}" class="${["dur", "bpm"].includes(k) ? "r" : ""}" aria-sort="${PUR.sort.k === k ? (PUR.sort.desc ? "descending" : "ascending") : "none"}">${esc(l)}${PUR.sort.k === k ? (PUR.sort.desc ? " ▾" : " ▴") : ""}</th>`).join("");
   box.innerHTML = diag + `<table class="pur-t"><thead><tr><th><input type="checkbox" id="purAll" ${all ? "checked" : ""} aria-label="Alle wählen"></th>${head}<th></th></tr></thead><tbody>
     ${rows.map((r) => {

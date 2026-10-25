@@ -72,7 +72,7 @@ class PurchasesMixin:
         return {"rows": rows, "stores": stores, "sources": self.plugins.store_sources(), "count": count,
                 "last": dict(getattr(self, "_purch_last", {}) or {}),
                 "dest": dest, "dest_from": why, "dest_ok": bool(dest) and os.path.isdir(dest),
-                "roots": self._pl_lib_roots(), "sessions": self._purch_sessions()}
+                "roots": self._pl_lib_roots(), **self._lib_info(), "sessions": self._purch_sessions()}
 
     def _purch_index(self, cancel, progress):
         """Bibliothek (wie bei den Playlists) plus Eingangsordner."""
@@ -102,7 +102,7 @@ class PurchasesMixin:
         if dest and os.path.isdir(dest) and playlists.nk(dest) not in {playlists.nk(r) for r in roots}:
             roots = roots + [dest]
         dupes = getattr(index, "dupes", [])
-        d = {"roots": roots, "files": len(index), "dupes": len(dupes),
+        d = {"roots": roots, **self._lib_info(), "files": len(index), "dupes": len(dupes),
              "examples": [{"path": a, "same": b} for a, b in dupes[:5]]}
         self._purch_last = d
         return d

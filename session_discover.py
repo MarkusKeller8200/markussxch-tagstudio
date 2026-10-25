@@ -50,11 +50,8 @@ class DiscoverMixin:
             return None
 
     def _disc_library(self) -> str:
-        try:
-            lib = self._prep_get().get("library") or ""
-        except Exception:  # noqa: BLE001
-            lib = ""
-        return lib if lib and os.path.isdir(lib) else ""
+        """Namen der aktiven Bibliotheken („schon vorhanden“, #311) – "" = keine festgelegt."""
+        return " · ".join(r["name"] for r in self._lib_roots()["roots"])
 
     def _disc_bought(self) -> list:
         """Einträge der Liste „Käufe“ (#285) für die Markierung „gekauft“ (#291)."""
@@ -189,12 +186,13 @@ class DiscoverMixin:
             return {"ok": False, "error": f"Beatport: {ex}"}
 
     def _disc_lib_files(self, cancel=None, progress=None):
-        lib = self._disc_library()
-        if not lib:
-            return []
-        if progress:
-            progress(("text", "Lese die Bibliothek …"))
-        files, _e = core.load_files(lib, True, cancel, None, None, self._list_cache_on())
+        """Titel aller aktiven Bibliotheken (#311) – jeder Ordner nur einmal."""
+        files = []
+        for r in self._lib_roots()["roots"]:
+            if progress:
+                progress(("text", f"Lese die Bibliothek {r['name']} …"))
+            got, _e = core.load_files(r["path"], True, cancel, None, None, self._list_cache_on())
+            files += got
         return files
 
     def disc_export_write(self, fmt, dest, which="saved") -> dict:

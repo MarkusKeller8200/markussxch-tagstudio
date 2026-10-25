@@ -37,7 +37,11 @@ class PrepareMixin:
             ws = [w]
             self._prep_save(ws)
         wid = wid or self.cfg.get("prep_current")
-        return next((w for w in ws if w["id"] == wid), ws[0])
+        w = next((w for w in ws if w["id"] == wid), ws[0])
+        if not w.get("library") and isinstance(self.cfg.get("folders"), dict):       # #311: Übernehmen → Hauptbibliothek
+            import folders
+            w["library"] = folders.main_library(self.cfg)
+        return w
 
     def prep_workflow_save(self, w) -> dict:
         w = prepare.clean_workflow(w)

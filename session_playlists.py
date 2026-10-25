@@ -149,7 +149,8 @@ class PlaylistMixin:
                    "mirror": st.mirror, "archive": st.archive_dir, "tagger": len(self.tag_files),
                    "can_undo": bool(st.undo_stack), "undo": st.undo_stack[-1]["label"] if st.undo_stack else "",
                    "can_redo": bool(st.redo_stack), "redo": st.redo_stack[-1]["label"] if st.redo_stack else "",
-                   "pl": None, "match": {"any_mix": bool(self.cfg.get("pl_match_any_mix")), "roots": self._pl_lib_roots()}}
+                   "pl": None, "match": {"any_mix": bool(self.cfg.get("pl_match_any_mix")), "roots": self._pl_lib_roots(),
+                                          **self._lib_info()}}
             try:
                 out["external"] = len(st.external_changes())
             except OSError:
@@ -337,7 +338,7 @@ class PlaylistMixin:
         cat = self.origin_catalog()
         return {"fields": [{"id": k, "label": v[0], "type": v[1]} for k, v in smartlist.FIELDS.items()],
                 "ops": {k: list(v) for k, v in smartlist.OPS.items()}, "op_labels": dict(smartlist.OP_LABELS),
-                "sorts": list(smartlist.SORTS), "playlists": pls, "roots": self._pl_lib_roots(),
+                "sorts": list(smartlist.SORTS), "playlists": pls, "roots": self._pl_lib_roots(), **self._lib_info(),
                 "origins": sorted(({"id": k, "name": v.get("name", k)} for k, v in cat.items() if v.get("kind") != "id3"),
                                   key=lambda o: o["name"].lower()),
                 "default": smartlist.default_rules(), "tagger": len(self.tag_files)}
@@ -612,21 +613,19 @@ class PlaylistMixin:
 
     # ------------------------------------------------------------------ #271: Bibliothek, Abgleich, Fehlende
     def _pl_lib_roots(self) -> list:
-        roots = [self.cfg.get("default_tagger") or ""]
-        try:
-            roots.append(self._prep_get().get("library") or "")
-        except Exception:  # noqa: BLE001
-            pass
-        if self.cfg.get("base_dir"):
-            roots.append(os.path.join(str(self.cfg["base_dir"]), "01_Library"))
-        out, seen = [], set()
-        for r in roots:
-            if r and os.path.isdir(r) and playlists.nk(r) not in seen:
-                seen.add(playlists.nk(r))
-                out.append(r)
-        if not out and self.cfg.get("base_dir") and os.path.isdir(str(self.cfg["base_dir"])):
+        """Ordner der aktiven Bibliotheken (#311, Einstellungen › Ordner) – jeder nur einmal, nicht erreichbare
+        übersprungen. Ohne festgelegte Bibliothek: der Basisordner (wie bisher)."""
+        info = self._lib_roots()
+        out = [r["path"] for r in info["roots"]]
+        if not out and not info["skipped"] and self.cfg.get("base_dir") and os.path.isdir(str(self.cfg["base_dir"])):
             out.append(str(self.cfg["base_dir"]))
         return out
+
+    def _lib_info(self) -> dict:
+        """Für „Verglichen mit“: Namen der Bibliotheken je Ordner und übersprungene (#311)."""
+        info = self._lib_roots()
+        return {"libs": [{"name": r["name"], "path": r["path"]} for r in info["roots"]],
+                "libs_skipped": [{"name": r["name"], "path": r["path"], "why": r["why"]} for r in info["skipped"]]}
 
     def _pl_index(self, files) -> list:
         out = []

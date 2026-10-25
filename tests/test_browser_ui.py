@@ -1789,6 +1789,7 @@ class UiTest(unittest.TestCase):
         self.server.terminate()                                  # bestehende Einstellungen mit zwei Bibliotheken
         self.server.wait(10)
         c = self.cfg()
+        c.pop("folders", None)                                  # Stand vor 4.10: noch keine Ordner-Rollen
         c.update(base_dir=os.path.join(self.dir, "TS"), default_tagger=self.lib, help_scan_root=other)
         with open(os.path.join(self.home, ".tagstudio.json"), "w", encoding="utf-8") as fh:
             json.dump(c, fh)
@@ -1849,6 +1850,33 @@ class UiTest(unittest.TestCase):
         pg.click('#mBtns button:has-text("Als Datei speichern")')
         pg.wait_for_function("__calls.length === 1")
         self.assertEqual(pg.evaluate("__calls[0][0]"), pg.evaluate("PREP.d.workflow.id"))
+        self.assertEqual(self.errors, [])
+
+    def test_tagger_all_libraries(self):
+        """#311: Tagger-Auswahl „Bibliothek ▾“ erst ab zwei aktiven Bibliotheken; „Alle aktiven“ lädt alle zusammen."""
+        pg = self.pg
+        second = os.path.join(self.dir, "zweite")
+        os.makedirs(second)
+        first = sorted(f for f in os.listdir(self.lib) if f.endswith(".mp3"))[0]
+        shutil.copy(os.path.join(self.lib, first), os.path.join(second, "kopie.mp3"))
+        pg.evaluate(f"call('folders_lib_add', 'Haupt', 'custom', {json.dumps(self.lib)}, true)")
+        pg.click('.nav[data-module="tagger"]')
+        pg.wait_for_function("TG.settings")
+        pg.evaluate("call('tagger_settings').then((t) => { TG.settings = t; tgLibSelect(); })")
+        self.assertTrue(pg.evaluate("document.querySelector('#tgLib').hidden"))       # nur eine Bibliothek
+        pg.evaluate(f"call('folders_lib_add', 'Zweite', 'custom', {json.dumps(second)}, true)")
+        pg.evaluate("call('tagger_settings').then((t) => { TG.settings = t; tgLibSelect(); })")
+        pg.wait_for_function("!document.querySelector('#tgLib').hidden")
+        self.assertEqual(pg.locator("#tgLib option").count(), 4)                    # Kopf, 2 Bibliotheken, Alle
+        pg.select_option("#tgLib", label="Alle aktiven")
+        pg.wait_for_function("TG.loaded && TG.rows.length === 4")
+        self.assertEqual(pg.evaluate("TG.root"), "@bibliotheken")
+        # Snapshots je Bibliothek in Einstellungen › Ordner
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stFolders tr[data-flib] [data-fsnap]")
+        self.assertTrue(self.until("call('snap_overview').then((o) => o.libs.length === 0)"))
+        pg.check("#stFolders tr[data-flib] >> nth=1 >> [data-fsnap]")
+        self.assertTrue(self.until("call('snap_overview').then((o) => o.libs.length === 1 && o.libs[0].name === 'Zweite')"))
         self.assertEqual(self.errors, [])
 
     def test_archive_tagger(self):

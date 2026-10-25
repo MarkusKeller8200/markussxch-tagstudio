@@ -15,6 +15,7 @@ import time
 
 import backup
 import core
+import folders
 import features
 import keys
 import importsync
@@ -68,6 +69,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         self.tag_stems: dict = {}    # Index Original → [Spuren] (#31)
         self.tag_parent: dict = {}   # Index Spur (MP3) → Index Original
         self.tag_root = ""
+        self.tag_all_libs = False                    # #311: „Alle aktiven Bibliotheken“ geladen
         self.cur: int | None = None
         self.left_root = self.right_root = ""
         self.undo = UndoStack()
@@ -147,6 +149,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return {"ok": False, "error": f"Ordner nicht gefunden: {path}"}
         self.cfg[key] = path
         core.save_config({key: path})
+        if key == "default_tagger" and path:
+            self._folders_main_from_tagger(path)                                  # #311: Startordner = Hauptbibliothek
         return {"ok": True, "defaults": self.default_dirs()}
 
     # ------------------------------------------------------------------ Vorgaben beim Start (#85, #86)
@@ -1558,6 +1562,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
     # ================================================================== Tagger
     def start_tag_load(self, path, recursive=False):
         path = (path or "").strip()
+        if path == folders.ALL_LIBS:                                             # #311: alle aktiven Bibliotheken (O2)
+            return self._tag_load_libs()
         if not path or not os.path.exists(path):
             return {"ok": False, "error": "Bitte einen vorhandenen Ordner oder eine MP3-Datei wählen."}
 
@@ -1576,11 +1582,45 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             with self.lock:
                 self.tag_files = files
                 self.tag_root = path if os.path.isdir(path) else os.path.dirname(path)
+                self.tag_all_libs = False
                 with_stems = self._attach_stems()
                 n_orig = len(self.tag_files) - len(self.tag_parent)
             self.cfg["hist_tagger"] = core.history(self.cfg, "hist_tagger", path)
             core.save_config({"hist_tagger": self.cfg["hist_tagger"], "tagger_recursive": bool(recursive)})
             return {"files": n_orig, "stems": len(with_stems), "errors": errors, **self._verify_start(stats, "tagger")}
+        return self._run("tagload", "Dateien einlesen", job)
+
+    def _tag_load_libs(self):
+        """#311: alle aktiven Bibliotheken zusammen in den Tagger laden (immer mit Unterordnern; jeder Ordner einmal)."""
+        info = self._lib_roots()
+        roots = [r["path"] for r in info["roots"]]
+        if not roots:
+            return {"ok": False, "error": "Keine aktive Bibliothek erreichbar – Einstellungen › Speicherort und Ordner."}
+
+        def job(cancel, progress):
+            files, errors, stats = [], [], {"cached": [], "caches": []}
+            for r in roots:
+                st = {}
+                got, err = core.load_files(r, True, cancel, progress, self.reg, self._list_cache_on(), st)
+                files += got
+                errors += err
+                stats["cached"] += list(st.get("cached") or [])
+                stats["caches"] += list(st.get("caches") or [])
+                if cancel.is_set():
+                    break
+            with self.lock:
+                self.tag_files = files
+                try:
+                    self.tag_root = os.path.commonpath(roots) if len(roots) > 1 else roots[0]
+                except ValueError:                                         # verschiedene Laufwerke
+                    self.tag_root = roots[0]
+                self.tag_all_libs = True
+                with_stems = self._attach_stems()
+                n_orig = len(self.tag_files) - len(self.tag_parent)
+            self.cfg["hist_tagger"] = core.history(self.cfg, "hist_tagger", folders.ALL_LIBS)
+            core.save_config({"hist_tagger": self.cfg["hist_tagger"]})
+            return {"files": n_orig, "stems": len(with_stems), "errors": errors,
+                    "skipped": [f"{x['name']} – {x['why']}" for x in info["skipped"]], **self._verify_start(stats, "tagger")}
         return self._run("tagload", "Dateien einlesen", job)
 
     def start_tag_load_files(self, paths, label=""):
@@ -1595,6 +1635,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             files, errors = core._load_list(want, None, self.reg, cancel, progress)
             with self.lock:
                 self.tag_files = files
+                self.tag_all_libs = False
                 roots = {os.path.dirname(f.path) for f in files}
                 try:                                   # verschiedene Laufwerke (Windows) → kein gemeinsamer Ordner
                     self.tag_root = os.path.commonpath(list(roots)) if len(roots) > 1 else (roots.pop() if roots else "")
@@ -1748,8 +1789,12 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         td = self.view_defaults()["tagger"]
         return {"hist": self.cfg.get("hist_tagger", []), "recursive": td.get("recursive", self.cfg.get("tagger_recursive", False)),
                 "defaults": td, "start": self.tagger_start(),
-                "state": {**self.tag_state(), "exists": bool(self.tag_state().get("root")) and os.path.exists(self.tag_state()["root"])},
+                "state": {**self.tag_state(), "exists": bool(self.tag_state().get("root")) and (
+                    self.tag_state()["root"] == folders.ALL_LIBS or os.path.exists(self.tag_state()["root"]))},
                 "default": str(self.cfg.get("default_tagger") or ""),
+                "libraries": [{"name": x["name"], "path": x["path"], "main": x["main"], "active": x["active"]}
+                              for x in folders.libraries(self.cfg)] if isinstance(self.cfg.get("folders"), dict) else [],
+                "all_libs": folders.ALL_LIBS,
                 "fields": [[k, label, ph, field_name(k), field_help(k)] for k, label, ph in tagger.FIELDS],   # #151
                 "extra_cols": [[k, label, field_name(k)] for k, label in tagger.EXTRA_COLS],                  # #154
                 "features": [[n, label, desc] for n, label, desc in features.FEATURES],
@@ -1907,7 +1952,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
 
     def tag_rows(self) -> dict:
         with self.lock:
-            return {"root": self.tag_root, "rows": [self._tag_row(i, f) for i, f in enumerate(self.tag_files)],
+            return {"root": folders.ALL_LIBS if getattr(self, "tag_all_libs", False) else self.tag_root,
+                    "rows": [self._tag_row(i, f) for i, f in enumerate(self.tag_files)],
                     "stems_flat": bool(self.cfg.get("tagger_stems_flat"))}
 
     def tag_locate(self, path) -> dict:

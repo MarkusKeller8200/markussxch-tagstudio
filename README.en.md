@@ -517,7 +517,12 @@ the structure `00_New` (new music, subfolder per source) · `01_Library` (librar
 `91_Work` (stage folders) · `99_Sicherung` (`Tags`, `Snapshots`). “Change …” switches any role to an **own folder**
 (also on another drive) and back to “Base”; backup and snapshots can stay in the program data as before. There can be
 **several libraries** (each with a name, active/inactive, exactly one **main library**); overlaps (a library inside
-another one, the same folder via another path) are shown. “Change …” only changes the setting – files stay where they
+another one, the same folder via another path) are shown and read only once. **Active** libraries are used by
+the purchases comparison, playlist comparison, Discover (“already owned”) and Help › Scan; “Compared with” shows their
+names (click → settings), unreachable ones are skipped and named. From two active libraries on the tagger shows the
+**“Library ▾”** selection with **“All active”** (loads them all together); Prepare takes over into the main library
+unless the workflow has its own library folder. The **Snapshots** switch per library turns the daily snapshot on or off
+(existing snapshots stay). “Change …” only changes the setting – files stay where they
 are; “Create structure …” creates missing folders. On the first start after the update the previous settings are taken
 over; if the library was entered differently in different places, TagStudio shows the overview **“We found these
 folders”** to decide (nothing is silently dropped). Concept (German): [docs/KONZEPT-ORDNER.md](docs/KONZEPT-ORDNER.md).

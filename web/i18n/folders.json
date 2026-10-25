@@ -85,5 +85,18 @@
 "Startordner aller Exporte (Listen, Playlists, DJ-Sets, Journal)": ["Start folder of all exports (lists, playlists, DJ sets, journal)", "Startordner vo allne Export (Lischte, Playlists, DJ-Sets, Journal)"],
 "Als Datei speichern …": ["Save as file …", "Als Datei speichere …"],
 "Workflow gespeichert:": ["Workflow saved:", "Workflow gspeicheret:"],
-"Workflow – {x}.json": ["Workflow – {x}.json", "Workflow – {x}.json"]
+"Workflow – {x}.json": ["Workflow – {x}.json", "Workflow – {x}.json"],
+"Tag-Stand täglich als Snapshot festhalten (Seite Snapshots)": ["Record the tag state daily as a snapshot (Snapshots page)", "Tag-Stand täglich als Snapshot feschthalte (Siite Snapshots)"],
+"Einstellungen › Speicherort und Ordner": ["Settings › Storage location and folders", "Iistellige › Spiicherort und Ordner"],
+"Bibliothek laden": ["Load library", "Bibliothek lade"],
+"Übersprungen: {x}": ["Skipped: {x}", "Übersprunge: {x}"],
+"Verglichen mit: {x}{x}{x}": ["Compared with: {x}{x}{x}", "Vergliche mit: {x}{x}{x}"],
+"Bibliothek ▾": ["Library ▾", "Bibliothek ▾"],
+"Alle aktiven": ["All active", "Alli aktive"],
+"Keine aktive Bibliothek erreichbar – Einstellungen › Speicherort und Ordner.": ["No active library reachable – Settings › Storage location and folders.", "Kei aktivi Bibliothek erreichbar – Iistellige › Spiicherort und Ordner."],
+"Lese die Bibliothek {x} …": ["Reading library {x} …", "Lies d Bibliothek {x} …"],
+"Snapshots eingeschaltet.": ["Snapshots switched on.", "Snapshots iigschaltet."],
+"Keine täglichen Snapshots mehr – vorhandene bleiben unter Snapshots.": ["No more daily snapshots – existing ones stay under Snapshots.", "Kei tägliche Snapshots meh – vorhandeni bliibed under Snapshots."],
+"Ordner fehlt – Snapshots starten, sobald er da ist.": ["Folder missing – snapshots start as soon as it exists.", "Ordner fehlt – Snapshots fanged aa, sobald er da isch."],
+"Zuerst unter Einstellungen › Speicherort und Ordner eine Bibliothek festlegen": ["First set a library under Settings › Storage location and folders", "Zerscht under Iistellige › Spiicherort und Ordner e Bibliothek feschtlege"]
 }

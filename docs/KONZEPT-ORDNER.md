@@ -2,7 +2,9 @@
 
 Status: **FREIGEGEBEN** (25.10.2026, Wunsch User 13:53; Entscheide O1–O6 vom User 14:04; Umsetzung freigegeben 14:57,
 Meilenstein #26 „4.10.0 – Ordner“). Umgesetzt: **Schritt 1 (#310)** – `folders.py`, `session_folders.py`,
-`web/folders.js`; **Export-Ordner (#312)** – `Api.save_dialog` startet in `Session.export_dir()`. Ergänzt
+`web/folders.js`; **Export-Ordner (#312)** – `Api.save_dialog` startet in `Session.export_dir()`; **mehrere Bibliotheken (#311)** –
+`folders.scan_roots`, `Session._lib_roots()`/`_pl_lib_roots()`, Tagger-Kennung `@bibliotheken` (`folders.ALL_LIBS`),
+Snapshots-Schalter je Bibliothek = `auto` des überwachten Ordners im Snapshot-Speicher. Ergänzt
 [KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md) (Programmdaten bleiben dort beschrieben) und ersetzt dessen Abschnitte 4/5,
 sobald umgesetzt.
 
@@ -79,7 +81,11 @@ Jede Bibliothek hat: **Name** (z. B. „Haupt“, „Vinyl-Rips“, „Extern SS
   Doppel werden beim Einlesen nur einmal gelesen.
 - **Tagger:** Auswahlliste „Bibliothek ▾“ neben dem Pfad; **„Alle aktiven“ lädt alle zusammen** (Entscheid O2).
   Mit nur einer Bibliothek (der Normalfall) erscheint keine Auswahl, der Tagger startet wie bisher.
-- **Snapshots je Bibliothek** ein- und ausschaltbar (Entscheid O3), Standard „an“ für die Hauptbibliothek.
+- **Snapshots je Bibliothek** ein- und ausschaltbar (Entscheid O3). Umsetzung: übernommen wird, was schon überwacht
+  war; neue Bibliotheken starten „aus“ (der Assistent fragt wie bisher). „Aus“ beendet nur den täglichen Snapshot –
+  vorhandene Snapshots bleiben.
+- **Tagger-Standardordner** (Tagger-Einstellungen, Assistent) = Hauptbibliothek: Setzen macht den Ordner zur
+  Hauptbibliothek (neu eingetragen, falls er noch keine ist).
 - **„Verglichen mit“** (Käufe, Playlist-Abgleich) zeigt die Namen der aktiven Bibliotheken; ein Klick öffnet die
   Ordner-Einstellungen.
 

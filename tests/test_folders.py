@@ -241,6 +241,82 @@ class TestSession(Base):
         self.assertEqual(len(d["libraries"]), 1)
 
 
+class TestLibraries(Base):
+    """#311: mehrere Bibliotheken – Einlesen, Module, Tagger „Alle aktiven“, Snapshots je Bibliothek."""
+
+    def session(self, cfg):
+        from session import Session
+        s = Session()
+        s.cfg.clear()
+        s.cfg.update(cfg)
+        return s
+
+    def test_scan_roots(self):
+        m = folders.set_base(folders.empty(), self.dir)
+        m, a = folders.lib_add(m, "A", "custom", self.A)
+        m, sub = folders.lib_add(m, "A-Unter", "custom", J(self.A, "sub"))
+        os.makedirs(J(self.A, "sub"))
+        m, b = folders.lib_add(m, "B", "custom", self.B, active=False)
+        m, gone = folders.lib_add(m, "Weg", "custom", J(self.dir, "fehlt"))
+        roots, skipped = folders.scan_roots(m)
+        self.assertEqual([r["name"] for r in roots], ["A"])                  # Unterordner nur einmal, B inaktiv
+        self.assertEqual([(x["name"], x["why"]) for x in skipped], [("Weg", "fehlt")])
+        if os.name == "nt":
+            return
+        m, _ = folders.lib_add(m, "X", "custom", "/Volumes/TagStudioTestNichtDa/Musik")
+        _r, skipped = folders.scan_roots(m)
+        self.assertIn(("X", "nicht erreichbar"), [(x["name"], x["why"]) for x in skipped])
+
+    def test_modules_use_active_libraries(self):
+        s = self.session({"default_tagger": self.A, "base_dir": self.dir})
+        s.folders_get()
+        d = s.folders_lib_add("B", "custom", self.B, False)
+        self.assertEqual(s._pl_lib_roots(), [os.path.normpath(self.A)])        # inaktiv: nicht abgeglichen
+        info = s._lib_info()
+        self.assertEqual([x["name"] for x in info["libs"]], ["Haupt"])
+        s.folders_lib_update(d["libraries"][1]["id"], {"active": True})
+        self.assertEqual(len(s._pl_lib_roots()), 2)
+        self.assertEqual(s._disc_library(), "Haupt · B")
+        self.assertEqual(len(s._disc_lib_files()), 3)                         # 2 Titel in A, 1 in B
+        self.assertEqual([r["label"] for r in s._help_roots()][:2], ["Bibliothek Haupt", "Bibliothek B"])
+        self.assertEqual(s._prep_get()["library"], os.path.normpath(self.A))   # Übernehmen → Hauptbibliothek
+        st = s.purch_state()
+        self.assertEqual([x["name"] for x in st["libs"]], ["Haupt", "B"])
+
+    def test_tagger_all_libraries(self):
+        import time
+        s = self.session({"default_tagger": self.A, "base_dir": self.dir})
+        s.folders_get()
+        s.folders_lib_add("B", "custom", self.B, True)
+        t = s.tagger_settings()
+        self.assertEqual([x["name"] for x in t["libraries"]], ["Haupt", "B"])
+        r = s.start_tag_load(folders.ALL_LIBS)
+        self.assertTrue(r.get("ok", True), r)
+        for _ in range(500):
+            if s.task_status().get("done"):
+                break
+            time.sleep(0.02)
+        self.assertEqual(len(s.tag_files), 3)
+        self.assertEqual(s.tag_rows()["root"], folders.ALL_LIBS)
+        s.folders_lib_update(s._folders()["libraries"][1]["id"], {"active": False})
+        s.folders_lib_update(s._folders()["libraries"][0]["id"], {"name": "Haupt"})
+        roots = s._lib_roots()["roots"]
+        self.assertEqual(len(roots), 1)
+
+    def test_snapshots_per_library(self):
+        s = self.session({"default_tagger": self.A, "snap_dir": J(self.dir, "Snaps")})
+        s.folders_get()
+        lid = s._folders()["libraries"][0]["id"]
+        r = s.folders_lib_update(lid, {"snapshots": True})
+        self.assertEqual(r["snap_note"], "Snapshots eingeschaltet.")
+        libs = s.snap_store.libraries()
+        self.assertEqual(len(libs), 1)
+        self.assertTrue(libs[0].get("auto", True))
+        r = s.folders_lib_update(lid, {"snapshots": False})
+        self.assertFalse(s.snap_store.libraries()[0]["auto"])                  # nicht gelöscht, nur nicht mehr täglich
+        self.assertIn("vorhandene bleiben", r["snap_note"])
+
+
 class TestExport(Base):
     def test_export_dir_and_save_dialog(self):
         """#312: Exporte starten im Export-Ordner; fehlt er, wird er angelegt; ohne Rolle: Benutzerordner."""

@@ -44,6 +44,7 @@ function tgInitOnce() {
     TG.settings = await call("tagger_settings");
     $("#histTg").innerHTML = TG.settings.hist.map((h) => `<option value="${esc(h)}"></option>`).join("");
     $("#tgPath").value = TG.settings.default || TG.settings.hist[0] || "";      // #84: Standardordner
+    tgLibSelect();
     if (typeof homeSync === "function") homeSync();
     $("#tgRec").checked = !!TG.settings.recursive;
     const td = TG.settings.defaults || {};                                    // #86: Vorgaben beim Start
@@ -186,19 +187,29 @@ async function taggerLoad() {
   await tgAfterLoad(res, path, $("#tgRec").checked);
 }
 
+/** #311: Auswahl „Bibliothek ▾“ – nur mit mehr als einer aktiven Bibliothek; „Alle aktiven“ lädt alle zusammen (O2) */
+function tgLibSelect() {
+  const sel = $("#tgLib"); if (!sel) return;
+  const libs = (TG.settings.libraries || []).filter((l) => l.active);
+  sel.hidden = libs.length < 2;
+  sel.innerHTML = `<option value="">Bibliothek ▾</option>${libs.map((l) => `<option value="${esc(l.path)}" translate="no">${esc(l.name)}${l.main ? " ★" : ""}</option>`).join("")}<option value="${esc(TG.settings.all_libs)}">Alle aktiven</option>`;
+}
+
 async function tgAfterLoad(res, path, rec) {
   // #275: nur die Titel einer Playlist geladen? (merken, welcher Ordner vorher da war)
   const prev = TG.loaded && !TG.list ? { prev: TG.root, prevRec: TG.recursive } : (TG.list ? { prev: TG.list.prev, prevRec: TG.list.prevRec } : {});
   TG.list = res.label && !path ? { label: res.label, n: res.files, ...prev } : null;
   TG.settings = await call("tagger_settings");
+  tgLibSelect();
   $("#histTg").innerHTML = TG.settings.hist.map((h) => `<option value="${esc(h)}"></option>`).join("");
   if (typeof plForget === "function") plForget("tag");     // Indizes gelten nur für die vorige Liste
   await tgAdopt(await call("tag_rows"), path, rec);
   if (S.pairs.length) await refreshAll();  // gemeinsames Register: Vergleich frisch halten
   status(`${fmtN(res.files)} Datei(en) im Tagger${res.stems ? ` · ${fmtN(res.stems)} mit Stems (▸ aufklappen)` : ""}.`, res.files ? "ok" : "warn");
   if (typeof verifyWatch === "function") verifyWatch(res, `${fmtN(res.files)} Datei(en) im Tagger`);
+  if (res.skipped && res.skipped.length) status(`Übersprungen: ${res.skipped.join(", ")}`, "warn");     // #311
   if (res.errors.length) await info(`${res.errors.length} Datei(en) nicht lesbar`, res.errors.slice(0, 30).join("\n"));
-  if (typeof snDetect === "function") snDetect(path);       // #60: mitgegebenen Snapshot-Speicher anbieten
+  if (typeof snDetect === "function" && path !== TG.settings.all_libs) snDetect(path);       // #60: mitgegebenen Snapshot-Speicher anbieten
 }
 
 /** Geladene Liste übernehmen (nach Einlesen oder beim Neuladen der Seite) und gemerkten Zustand anwenden (#127) */
@@ -1643,6 +1654,12 @@ async function tgOriginDialog(preset = "") {
 // ---------------------------------------------------------------------- Ereignisse
 (function bindTagger() {
   $("#tgLoad").addEventListener("click", taggerLoad);
+  $("#tgLib").addEventListener("change", (e) => {                                 // #311
+    const v = e.target.value; e.target.value = ""; if (!v) return;
+    $("#tgPath").value = v;
+    if (v === TG.settings.all_libs) $("#tgRec").checked = true;
+    taggerLoad();
+  });
   $("#tgPath").addEventListener("keydown", (e) => { if (e.key === "Enter") taggerLoad(); });
   $$("[data-tgpick]").forEach((b) => b.addEventListener("click", async () => {
     const p = await call("pick_path", "T", b.dataset.tgpick === "1", $("#tgPath").value.trim());

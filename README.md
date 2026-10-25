@@ -539,7 +539,12 @@ Unterordner je Quelle) · `91_Work` (Stufen-Ordner) · `99_Sicherung` (`Tags`, `
 „Ändern …“ auf einen **eigenen Ordner** umstellen (auch anderes Laufwerk) und wieder zurück auf „Basis“; Sicherung
 und Snapshots können wie bisher in den Programmdaten bleiben. Es gibt **mehrere Bibliotheken** (je mit Name,
 aktiv/inaktiv, genau eine **Hauptbibliothek**); Überschneidungen (eine Bibliothek in einer anderen, derselbe Ordner
-über einen anderen Weg) werden angezeigt. „Ändern …“ stellt nur die Einstellung um – Dateien bleiben, wo sie sind;
+über einen anderen Weg) werden angezeigt und beim Einlesen nur einmal gelesen. **Aktive** Bibliotheken nutzen
+Käufe-Abgleich, Playlist-Abgleich, Entdecken („schon vorhanden“) und Hilfe › Scan; „Verglichen mit“ zeigt ihre Namen
+(Klick → Einstellungen), nicht erreichbare werden übersprungen und genannt. Der Tagger zeigt ab zwei aktiven
+Bibliotheken die Auswahl **„Bibliothek ▾“** mit **„Alle aktiven“** (lädt alle zusammen); Vorbereiten übernimmt ohne
+eigenen Bibliotheksordner in die Hauptbibliothek. Der Schalter **Snapshots** je Bibliothek schaltet den täglichen
+Snapshot ein bzw. aus (vorhandene Snapshots bleiben). „Ändern …“ stellt nur die Einstellung um – Dateien bleiben, wo sie sind;
 „Struktur anlegen …“ legt fehlende Ordner an. Beim ersten Start nach dem Update werden die bisherigen Einstellungen
 übernommen; war die Bibliothek an verschiedenen Stellen verschieden eingetragen, zeigt TagStudio die Übersicht
 **„Diese Ordner haben wir gefunden“** zur Entscheidung (nichts wird still verworfen). Konzept:

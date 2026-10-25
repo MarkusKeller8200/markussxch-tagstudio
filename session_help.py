@@ -106,14 +106,15 @@ class HelpMixin:
 
     # ------------------------------------------------------------------ Tag-Übersicht
     def _help_roots(self) -> list[dict]:
-        """Ordner, die gescannt werden können: Standardordner des Taggers, geladener Ordner, Snapshot-Bibliotheken."""
+        """Ordner, die gescannt werden können: aktive Bibliotheken (#311), geladener Ordner, Snapshot-Bibliotheken."""
         out, seen = [], set()
 
         def add(p, label):
             if p and os.path.isdir(p) and os.path.normcase(os.path.abspath(p)) not in seen:
                 seen.add(os.path.normcase(os.path.abspath(p)))
                 out.append({"path": os.path.abspath(p), "label": label, "cached": bool(taghelp.cached(p))})
-        add(self.cfg.get("default_tagger"), "Standardordner Tagger")
+        for r in self._lib_roots()["roots"]:                                 # #311: Einstellungen › Ordner
+            add(r["path"], f"Bibliothek {r['name']}")
         add(getattr(self, "tag_root", ""), "im Tagger geladen")
         try:
             for lib in self.snap_store.libraries():

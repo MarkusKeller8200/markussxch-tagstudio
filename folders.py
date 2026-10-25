@@ -276,7 +276,7 @@ def lib_add(m: dict, name: str, mode: str, value="", active=True) -> tuple[dict,
     m = normalize(m)
     lib = {"id": uuid.uuid4().hex[:8], "name": str(name or "").strip()[:60] or "Bibliothek",
            "mode": "custom" if mode == "custom" else "base", "sub": LIB_SUB, "active": bool(active),
-           "main": not m["libraries"], "snapshots": not m["libraries"]}
+           "main": not m["libraries"], "snapshots": False}            # Snapshots schaltet der Nutzer ein (O3)
     if lib["mode"] == "custom":
         lib["path"] = clean_path(value)
         if not lib["path"]:
@@ -432,7 +432,7 @@ def migrate(cfg: dict, workflows=None, current=None, snap_libs=None, beatport_de
         lib = {"id": "main" if i == 0 else uuid.uuid4().hex[:8],
                "name": "Haupt" if i == 0 else (os.path.basename(c["path"].rstrip("\\/")) or c["path"]),
                "active": True, "main": i == 0,
-               "snapshots": any(f == "Snapshots" for f in c["found"]) or i == 0}
+               "snapshots": any(f == "Snapshots" for f in c["found"])}       # nur, was schon überwacht wurde
         if m["base"] and same_dir(c["path"], _join(m["base"], LIB_SUB)):
             lib.update(mode="base", sub=LIB_SUB)
         else:
@@ -535,3 +535,34 @@ def structure_model(m: dict, base: str, paths: dict, keep_snapshots: bool = Fals
         for x in m["libraries"]:
             x["main"] = x is lib
     return normalize(m)
+
+
+ALL_LIBS = "@bibliotheken"          # Tagger: „Alle aktiven Bibliotheken“ zusammen laden (O2)
+
+
+def scan_roots(m: dict) -> tuple[list[dict], list[dict]]:
+    """Aktive Bibliotheken zum Einlesen (#311): jeder Ordner nur einmal – eine Bibliothek, die in einer anderen liegt
+    oder derselbe Ordner über einen anderen Weg ist, wird mit der äusseren gelesen. Nicht erreichbare bzw. fehlende
+    werden übersprungen. → (roots [{id, name, path}], skipped [{id, name, path, why}])."""
+    m = normalize(m)
+    cands, skipped = [], []
+    for lib in m["libraries"]:
+        if not lib["active"]:
+            continue
+        p = resolve_lib(m, lib)
+        x = {"id": lib["id"], "name": lib["name"], "path": p}
+        if not p:
+            skipped.append({**x, "why": "nicht festgelegt"})
+        elif not reachable(p):
+            skipped.append({**x, "why": "nicht erreichbar"})
+        elif not os.path.isdir(p):
+            skipped.append({**x, "why": "fehlt"})
+        else:
+            cands.append(x)
+    roots = []
+    for x in cands:
+        outer = next((o for o in cands if o is not x and inside(x["path"], o["path"])), None)
+        twin = next((o for o in roots if same_dir(o["path"], x["path"])), None)
+        if outer is None and twin is None:
+            roots.append(x)
+    return roots, skipped
