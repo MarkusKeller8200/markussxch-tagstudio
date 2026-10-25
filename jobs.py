@@ -145,8 +145,10 @@ class JobManager:
                 return
             os.makedirs(os.path.dirname(self.state_file), exist_ok=True)
             pending = pending + [r for r in self.resumable if r not in pending]
-            with open(self.state_file, "w", encoding="utf-8") as fh:
+            tmp = self.state_file + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as fh:
                 json.dump({"pending": pending}, fh, ensure_ascii=False, indent=1)
+            os.replace(tmp, self.state_file)               # atomar: ein Abbruch leert die Warteschlange nicht
         except OSError:
             pass
 

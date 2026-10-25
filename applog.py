@@ -15,7 +15,7 @@ import traceback
 MAX_BYTES = 1_000_000
 NAME = "app.log"
 _lock = threading.Lock()
-_SECRET_WORDS = ("token", "password", "passwort", "secret", "api_key", "apikey")
+_SECRET_WORDS = ("token", "password", "passwort", "secret", "api_key", "apikey", "authorization", "bearer", "cookie")
 
 
 def log_dir() -> str:

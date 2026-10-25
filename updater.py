@@ -324,24 +324,30 @@ def download_asset(asset: dict, dest_dir: str, progress=None, cancelled=None, op
     h, done, total = hashlib.sha256(), 0, int(asset.get("size") or 0)
     req = urllib.request.Request(url, headers={"User-Agent": "MarKusSXCH-TagStudio"})
     op = opener or urllib.request.urlopen
-    with op(req, timeout=30) as r, open(part, "wb") as fh:
-        total = total or int(r.headers.get("Content-Length") or 0)
-        while True:
-            if cancelled and cancelled():
-                raise InterruptedError("Abgebrochen.")
-            chunk = r.read(256 * 1024)
-            if not chunk:
-                break
-            fh.write(chunk)
-            h.update(chunk)
-            done += len(chunk)
-            if progress:
-                progress(done, total)
-    got = "sha256:" + h.hexdigest()
-    if got.lower() != want.lower():
-        os.remove(part)
-        raise ValueError("Prüfsumme stimmt nicht – die Datei ist unvollständig oder verändert. Nichts installiert.")
-    os.replace(part, path)
+    try:
+        with op(req, timeout=30) as r, open(part, "wb") as fh:
+            total = total or int(r.headers.get("Content-Length") or 0)
+            while True:
+                if cancelled and cancelled():
+                    raise InterruptedError("Abgebrochen.")
+                chunk = r.read(256 * 1024)
+                if not chunk:
+                    break
+                fh.write(chunk)
+                h.update(chunk)
+                done += len(chunk)
+                if progress:
+                    progress(done, total)
+        got = "sha256:" + h.hexdigest()
+        if got.lower() != want.lower():
+            raise ValueError("Prüfsumme stimmt nicht – die Datei ist unvollständig oder verändert. Nichts installiert.")
+        os.replace(part, path)
+    finally:
+        if os.path.exists(part):                       # Abbruch, Netzfehler, falsche Prüfsumme: keine Reste
+            try:
+                os.remove(part)
+            except OSError:
+                pass
     return path
 
 

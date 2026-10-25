@@ -276,6 +276,20 @@ class TestPrepare(Base):
         files = self.s.prep_cleanup(self.wid)["files"]
         self.assertFalse(any(os.path.dirname(f) == self.inbox for f in files), files)
 
+    def test_free_name_checks_content(self):
+        """4.9.1: gleicher Name und gleiche Grösse, aber anderer Inhalt → wird nicht als „schon da“ übersprungen."""
+        d = os.path.join(self.dir, "Eingang2")
+        os.makedirs(d)
+        with open(os.path.join(d, "t.mp3"), "wb") as fh:
+            fh.write(b"A" * 100)
+        src = os.path.join(self.dir, "src.mp3")
+        with open(src, "wb") as fh:
+            fh.write(b"B" * 100)
+        self.assertEqual(prepare._free_name(d, "t.mp3", 100, lambda: prepare._crc(src)), ("t (2).mp3", False))
+        with open(src, "wb") as fh:
+            fh.write(b"A" * 100)
+        self.assertEqual(prepare._free_name(d, "t.mp3", 100, lambda: prepare._crc(src)), ("t.mp3", True))
+
 
 if __name__ == "__main__":
     import unittest

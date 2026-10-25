@@ -189,7 +189,11 @@ def do_rename(plan) -> list[dict]:
             if os.path.normcase(f.path) == os.path.normcase(dst):  # nur Gross-/Kleinschreibung (Windows/macOS)
                 tmp = dst + ".tagstudio_tmp"
                 os.rename(f.path, tmp)
-                os.rename(tmp, dst)
+                try:
+                    os.rename(tmp, dst)
+                except OSError:
+                    os.rename(tmp, f.path)                 # zurück zum alten Namen, nie mit Hilfsnamen liegen lassen
+                    raise
             else:
                 os.rename(f.path, dst)
             results.append({"old": p["old"], "new": p["new"], "ok": True})

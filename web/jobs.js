@@ -88,7 +88,7 @@ function jobsNotify(j) {
   toast(msg);
   status(msg, ok ? "ok" : "warn");
   try {
-    if (document.hidden && window.Notification && Notification.permission === "granted") new Notification("TagStudio", { body: msg });
+    if (document.hidden && window.Notification && Notification.permission === "granted") new Notification("TagStudio", { body: typeof tr === "function" ? tr(msg) : msg });
   } catch (e) { /* Systemmeldung ist optional */ }
   if (ok && typeof jobFinishedHook === "function") jobFinishedHook(j);
   if (typeof jobFinishedSnapshot === "function") jobFinishedSnapshot(j);
@@ -110,8 +110,10 @@ async function jobsPoll() {
       if (!st.active && !JOBS.open) break;
       await new Promise((r) => setTimeout(r, st.active ? 1000 : 1500));
     }
-  } catch (e) { /* nächster Anstoss startet neu */ }
-  finally { JOBS.polling = false; }
+  } catch (e) {
+    // kurzer Aussetzer: weiter abfragen, solange ein Auftrag läuft (sonst bliebe der Fortschritt stehen)
+    if (JOBS.st && JOBS.st.active) setTimeout(() => jobsPoll(), 3000);
+  } finally { JOBS.polling = false; }
 }
 
 /** Nach „Stems erzeugen …“ usw.: Auftrag wurde angelegt. */

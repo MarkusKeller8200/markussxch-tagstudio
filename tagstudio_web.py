@@ -956,6 +956,7 @@ def _tk_pick(folder, start, kind="mp3"):
 
 
 # =========================================================================== Browser-Modus (lokaler Server)
+MAX_REQUEST = 64 << 20        # grösste API-Anfrage (64 MB)
 STATIC_TYPES = {
     ".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8",
     ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml",
@@ -980,7 +981,15 @@ def make_server(api: Api, port: int = 0):
             self.end_headers()
             self.wfile.write(body)
 
+        def _host_ok(self) -> bool:
+            """Nur Aufrufe an die eigene Adresse (Schutz vor DNS-Rebinding fremder Webseiten)."""
+            host = (self.headers.get("Host") or "").strip().lower()
+            port = self.server.server_address[1]
+            return host in (f"127.0.0.1:{port}", f"localhost:{port}", f"[::1]:{port}")
+
         def do_GET(self):  # noqa: N802
+            if not self._host_ok():
+                return self._send(403, b"forbidden", "text/plain")
             path = urlparse(self.path).path
             if path in ("", "/"):
                 path = "/index.html"
@@ -994,7 +1003,8 @@ def make_server(api: Api, port: int = 0):
 
         def do_POST(self):  # noqa: N802
             path = urlparse(self.path).path
-            if not path.startswith("/api/") or self.headers.get("X-Token") != token:
+            if not path.startswith("/api/") or not self._host_ok() \
+                    or not secrets.compare_digest(self.headers.get("X-Token") or "", token):
                 return self._send(403, b'{"error":"forbidden"}')
             name = path[5:]
             fn = getattr(api, name, None)
@@ -1002,6 +1012,8 @@ def make_server(api: Api, port: int = 0):
                 return self._send(404, b'{"error":"unknown"}')
             try:
                 n = int(self.headers.get("Content-Length") or 0)
+                if n < 0 or n > MAX_REQUEST:
+                    return self._send(413, b'{"error":"too large"}')
                 args = json.loads(self.rfile.read(n) or b"[]")
                 res = fn(*args)
                 body = json.dumps({"ok": True, "result": res}, ensure_ascii=False).encode("utf-8")

@@ -455,5 +455,8 @@
 "tr[data-k]",
 "log-window.html#pid={x}&token={x}",
 "Cancelled",
-"arbeit-"
+"arbeit-",
+"Host",
+"Origin",
+"Vary"
 ]

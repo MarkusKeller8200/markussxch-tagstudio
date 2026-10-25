@@ -16,6 +16,15 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Behoben
 
+- **Oberfläche und lokaler Server (#305):** Tagger und Vergleich zeigen beim schnellen Blättern keine veralteten
+  Werte mehr; Hinweise erscheinen nacheinander statt sich zu überschreiben; die Auftrags-Anzeige bleibt nach einem
+  Abruffehler nicht stehen; der lokale Server nimmt nur Aufrufe an die eigene Adresse an (Schutz vor
+  DNS-Rebinding), vergleicht den Schlüssel in konstanter Zeit und lehnt übergrosse Anfragen ab.
+- **Kern (#306):** Archiv vergibt eindeutige Namen und vermerkt jeden Titel sofort; Umbenennen nur in
+  Gross-/Kleinschreibung hinterlässt keine Hilfsdatei; Warteschlange atomar; kein Doppelstart von Vorgängen;
+  keine `.part`-Reste bei abgebrochenen Updates, Plugin-Update legt bei Fehler die alte Version zurück;
+  Protokoll schwärzt auch Authorization/Bearer/Cookie; Melden kürzt lange Texte sauber; Vorbereiten › Abholen
+  erkennt gleichnamige Dateien gleicher Grösse auch am Inhalt.
 - **Plugins (#302):** Stems (1.3) und Tonart (1.4) nutzen je Lauf einen eigenen Arbeitsordner (Hintergrund- und
   Vordergrund-Auftrag löschten sich gegenseitig die Daten); Lautheit (1.1) bricht FFmpeg beim Abbrechen sofort ab
   und überschreibt keine vorhandenen Kopien; Spotify/SoundCloud (1.1) laden bei leeren oder wiederholten Seiten

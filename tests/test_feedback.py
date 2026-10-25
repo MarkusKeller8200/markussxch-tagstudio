@@ -123,5 +123,18 @@ class TestFeedback(unittest.TestCase):
                 self.assertIn(f"id: {fid}", t, f"{tpl}: {fid}")
 
 
+class TestUrlCut(unittest.TestCase):
+    """4.9.1: zu lange Adresse wird zeichenweise gekürzt – nie mitten in einem %XX-Zeichen."""
+
+    def test_umlauts(self):
+        import urllib.parse
+        import feedback
+        u, cut = feedback._url({"template": "x", "title": "ä" * 5000, "body": "b" * 150})
+        self.assertTrue(cut)
+        self.assertLessEqual(len(u), feedback.MAX_URL)
+        self.assertGreater(len(u), feedback.MAX_URL - 50)
+        urllib.parse.unquote(u, errors="strict")
+
+
 if __name__ == "__main__":
     unittest.main()

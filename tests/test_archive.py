@@ -1,6 +1,7 @@
 """Aussortieren ins Archiv (#173): Tagger und Vorbereiten, Unterordner bleiben, Vermerk, Zurückholen."""
 import os
 import time
+import unittest
 
 from helpers import write_mp3, text
 from test_tagger_tools import Base
@@ -80,3 +81,25 @@ class TestArchive(Base):
         with self.assertRaises(ValueError):
             self.s.tag_archive([])
         self.assertEqual(archive.entries(""), [])
+
+
+class TestArchivePlanUnique(unittest.TestCase):
+    """4.9.1: zwei Titel mit gleichem Namen ausserhalb des Stammordners bekommen verschiedene Ziele."""
+
+    def test_same_names(self):
+        import tempfile
+        import archive
+        with tempfile.TemporaryDirectory() as d:
+            a, b = os.path.join(d, "x", "t.mp3"), os.path.join(d, "y", "t.mp3")
+            for p in (a, b):
+                os.makedirs(os.path.dirname(p))
+                with open(p, "wb") as fh:
+                    fh.write(p.encode())
+            arc = os.path.join(d, "Archiv")
+            pl = archive.plan([a, b], None, arc)
+            self.assertNotEqual(os.path.normcase(pl[0]["dst"]), os.path.normcase(pl[1]["dst"]))
+            r = archive.move(pl, arc)
+            self.assertEqual(len(r["moved"]), 2, r)
+            names = sorted(os.listdir(arc))
+            self.assertIn("t.mp3", names)
+            self.assertIn("t (2).mp3", names)

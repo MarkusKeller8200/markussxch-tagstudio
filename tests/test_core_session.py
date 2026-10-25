@@ -289,6 +289,19 @@ class TestWebServer(TempHome):
             with self.assertRaises(urllib.error.HTTPError):
                 post("_s", [])
             self.assertTrue(post("settings", [])["ok"])
+            # 4.9.1: fremder Host (DNS-Rebinding) und übergrosse Anfragen werden abgelehnt
+            import http.client
+            c = http.client.HTTPConnection("127.0.0.1", srv.server_address[1], timeout=10)
+            c.request("GET", "/index.html", headers={"Host": "evil.example:80"})
+            self.assertEqual(c.getresponse().status, 403)
+            c.close()
+            c = http.client.HTTPConnection("127.0.0.1", srv.server_address[1], timeout=10)
+            c.putrequest("POST", "/api/settings")
+            c.putheader("X-Token", token)
+            c.putheader("Content-Length", str(tagstudio_web.MAX_REQUEST + 1))
+            c.endheaders()
+            self.assertEqual(c.getresponse().status, 413)
+            c.close()
             self.assertTrue(post("start_load", [self.L, self.R, False, "filename"])["result"]["ok"])
             t0 = time.time()
             while not post("task_status", [])["result"]["done"] and time.time() - t0 < 20:
@@ -300,9 +313,6 @@ class TestWebServer(TempHome):
             srv.shutdown()
             srv.server_close()
 
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 class TestSaveConfigConcurrent(unittest.TestCase):
@@ -327,3 +337,7 @@ class TestSaveConfigConcurrent(unittest.TestCase):
             self.assertFalse(os.path.exists(core.CONFIG + ".tmp"))
         finally:
             core.CONFIG = old
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -12,8 +12,12 @@ import os
 import re
 import secrets
 import threading
+
 from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+# Eigene Oberfläche: Browser-Modus (http://127.0.0.1:…) oder Desktop-Fenster mit lokaler Datei (Origin „null“)
+_LOOPBACK_ORIGIN = re.compile(r"null|http://(127\.0\.0\.1|localhost|\[::1\])(:\d+)?")
 
 AUDIO_TYPES = {".mp3": "audio/mpeg", ".flac": "audio/flac", ".wav": "audio/wav", ".m4a": "audio/mp4",
                ".aac": "audio/aac", ".ogg": "audio/ogg", ".opus": "audio/ogg", ".aif": "audio/aiff", ".aiff": "audio/aiff"}
@@ -111,7 +115,10 @@ class MediaServer:
         h.send_header("Accept-Ranges", "bytes")
         h.send_header("Content-Length", str(length))
         h.send_header("Cache-Control", "no-store")
-        h.send_header("Access-Control-Allow-Origin", "*")
+        origin = h.headers.get("Origin") or ""
+        if _LOOPBACK_ORIGIN.fullmatch(origin):            # nur die eigene Oberfläche darf die Daten lesen (Wellenform)
+            h.send_header("Access-Control-Allow-Origin", origin)
+            h.send_header("Vary", "Origin")
         if status == 206:
             h.send_header("Content-Range", f"bytes {start}-{end}/{size}")
         h.end_headers()

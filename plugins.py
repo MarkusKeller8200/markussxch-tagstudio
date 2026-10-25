@@ -216,6 +216,8 @@ def run_lines(cmd, on_line=None, cancel=None, env=None, cwd=None, low_priority=F
             if on_line:
                 on_line(line)
     finally:
+        if proc.poll() is None and sys.exc_info()[0] is not None:
+            proc.terminate()                               # Fehler beim Verarbeiten: Prozess nicht weiterlaufen lassen
         rc = proc.wait()
         stop.set()
         proc.stdout.close()

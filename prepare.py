@@ -339,13 +339,29 @@ def source_candidates(q: dict, st: dict) -> list[dict]:
     return out
 
 
-def _free_name(folder: str, name: str, size: int) -> tuple[str, bool]:
-    """Zielname im Eingang; (Name, schon_gleich) – gleiche Datei (Name + Grösse) wird nicht nochmals abgelegt."""
+def _crc(path: str) -> int:
+    import zlib
+    c = 0
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            c = zlib.crc32(chunk, c)
+    return c & 0xFFFFFFFF
+
+
+def _free_name(folder: str, name: str, size: int, crc=None) -> tuple[str, bool]:
+    """Zielname im Eingang; (Name, schon_gleich) – gleiche Datei (Name + Grösse + Inhalt) wird nicht nochmals
+    abgelegt. crc(): Prüfsumme der Quelle (erst bei gleicher Grösse berechnet)."""
     stem, ext = os.path.splitext(name)
     cand, k = name, 1
+    src_crc = None
     while os.path.exists(os.path.join(folder, cand)):
         if os.path.getsize(os.path.join(folder, cand)) == size:
-            return cand, True
+            if crc is None:
+                return cand, True
+            if src_crc is None:
+                src_crc = crc()
+            if _crc(os.path.join(folder, cand)) == src_crc:
+                return cand, True
         k += 1
         cand = f"{stem} ({k}){ext}"
     return cand, False
@@ -363,7 +379,12 @@ def fetch_source(w: dict, q: dict, st: dict, cancel=None, progress=None) -> dict
         if progress:
             progress(("progress", i, len(cands), c["name"]))
         try:
-            name, exists = _free_name(dest_dir, c["name"], c["size"])
+            def crc(c=c):
+                if c["member"]:
+                    with zipfile.ZipFile(c["path"]) as z:
+                        return z.getinfo(c["member"]).CRC
+                return _crc(c["path"])
+            name, exists = _free_name(dest_dir, c["name"], c["size"], crc)
             dst = os.path.join(dest_dir, name)
             if not exists:
                 os.makedirs(dest_dir, exist_ok=True)

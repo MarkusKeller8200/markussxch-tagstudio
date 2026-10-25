@@ -732,12 +732,15 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         return res
 
     # ================================================================== Hintergrund-Aufgaben
+    _RUN_LOCK = threading.Lock()
+
     def _run(self, kind, label, fn):
-        if self.task.get("running"):
-            return {"ok": False, "error": "Es läuft bereits ein Vorgang."}
-        self._cancel = threading.Event()
-        self.task = {"running": True, "kind": kind, "label": label, "i": 0, "total": 0, "text": label,
-                     "done": False, "error": None, "result": None}
+        with self._RUN_LOCK:                           # prüfen und starten in einem Schritt (Doppelklick, zwei Fenster)
+            if self.task.get("running"):
+                return {"ok": False, "error": "Es läuft bereits ein Vorgang."}
+            self._cancel = threading.Event()
+            self.task = {"running": True, "kind": kind, "label": label, "i": 0, "total": 0, "text": label,
+                         "done": False, "error": None, "result": None}
 
         def progress(m):
             t = self.task

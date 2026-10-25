@@ -242,7 +242,12 @@ def install(entry: dict, assets: list, dest_root: str, cache_dir: str, tag: str 
         if os.path.isdir(target):
             old = os.path.join(dest_root, f".old-{pid}-{int(time.time())}")
             os.replace(target, old)
-        os.replace(tmp, target)
+        try:
+            os.replace(tmp, target)
+        except OSError:
+            if old:
+                os.replace(old, target)                    # bisherige Version zurücklegen statt ohne Plugin
+            raise
         if old:
             shutil.rmtree(old, ignore_errors=True)
     finally:

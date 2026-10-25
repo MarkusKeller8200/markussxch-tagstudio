@@ -233,7 +233,11 @@ async function taggerRefresh() {
 }
 
 async function tgLoadDetail() {
-  taggerApplyDetail(await call("tag_detail", tgSelected()));
+  // schnelles Blättern: nur die Antwort zur letzten Markierung anzeigen (ältere können später eintreffen)
+  const seq = TG.detSeq = (TG.detSeq || 0) + 1;
+  const d = await call("tag_detail", tgSelected());
+  if (seq !== TG.detSeq) return;
+  taggerApplyDetail(d);
 }
 
 function tgSelected() { return TG.order.filter((i) => TG.sel.has(i)); }  // in Anzeige-Reihenfolge

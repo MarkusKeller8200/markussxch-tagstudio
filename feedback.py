@@ -165,7 +165,13 @@ def _url(params: dict) -> tuple[str, bool]:
             return url, cut
         k = max((x for x in p if x not in ("template", "title")), key=lambda x: len(p[x]), default=None)
         if k is None or len(p[k]) < 200:
-            return url[:MAX_URL], True
+            # nur noch kurze Felder: das längste zeichenweise kürzen (nie die Adresse mitten in %XX abschneiden)
+            k = max((x for x in p if x != "template"), key=lambda x: len(p[x]))
+            over = len(url) - MAX_URL
+            per = len(urllib.parse.quote(p[k])) / max(1, len(p[k]))     # Zeichen in der Adresse je Textzeichen
+            p[k] = p[k][: max(0, len(p[k]) - int(over / per) - 1)]
+            cut = True
+            continue
         p[k] = p[k][: max(150, len(p[k]) * 2 // 3)] + "\n\n[… gekürzt – Rest bitte im Formular ergänzen]"
         cut = True
 

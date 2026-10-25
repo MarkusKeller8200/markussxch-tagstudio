@@ -33,10 +33,11 @@ def _inside(path: str, folder: str) -> bool:
     return a.startswith(b.rstrip("\\/") + os.sep)
 
 
-def _unique(path: str) -> str:
+def _unique(path: str, taken: set | None = None) -> str:
+    """Freier Name – auch gegenüber Zielen, die im selben Plan schon vergeben sind."""
     stem, ext = os.path.splitext(path)
     k, cand = 1, path
-    while os.path.exists(cand):
+    while os.path.exists(cand) or (taken is not None and os.path.normcase(cand) in taken):
         k += 1
         cand = f"{stem} ({k}){ext}"
     return cand
@@ -50,7 +51,7 @@ def stems_dir(path: str) -> str:
 
 def plan(paths, root, archive_dir) -> list[dict]:
     """→ [{"src", "dst", "stems_src", "stems_dst", "problem"}]"""
-    out = []
+    out, taken = [], set()
     for p in paths:
         p = os.path.abspath(p)
         prob = ""
@@ -58,11 +59,13 @@ def plan(paths, root, archive_dir) -> list[dict]:
             prob = "Datei fehlt"
         elif _inside(p, archive_dir):
             prob = "liegt schon im Archiv"
-        dst = _unique(os.path.join(archive_dir, _rel(p, root)))
+        dst = _unique(os.path.join(archive_dir, _rel(p, root)), taken)
+        taken.add(os.path.normcase(dst))
         sd = stems_dir(p) if not prob else ""
-        out.append({"src": p, "dst": dst, "stems_src": sd,
-                    "stems_dst": _unique(os.path.join(os.path.dirname(dst), os.path.basename(sd))) if sd else "",
-                    "problem": prob})
+        sdst = _unique(os.path.join(os.path.dirname(dst), os.path.basename(sd)), taken) if sd else ""
+        if sdst:
+            taken.add(os.path.normcase(sdst))
+        out.append({"src": p, "dst": dst, "stems_src": sd, "stems_dst": sdst, "problem": prob})
     return out
 
 
@@ -75,12 +78,13 @@ def move(pl, archive_dir, area="Tagger") -> dict:
             continue
         try:
             os.makedirs(os.path.dirname(e["dst"]), exist_ok=True)
+            if os.path.exists(e["dst"]):                  # nie eine vorhandene Datei im Archiv ersetzen
+                raise OSError("Ziel existiert bereits im Archiv")
             shutil.move(e["src"], e["dst"])
-            if e["stems_src"]:
-                shutil.move(e["stems_src"], e["stems_dst"])
-            moved.append(e)
+            moved.append(e)                                # Vermerk sofort – auch wenn danach die Stems scheitern
             rows.append([time.strftime("%Y-%m-%d %H:%M:%S"), e["src"], e["dst"], area, ""])
             if e["stems_src"]:
+                shutil.move(e["stems_src"], e["stems_dst"])
                 rows.append([time.strftime("%Y-%m-%d %H:%M:%S"), e["stems_src"], e["stems_dst"], area + " (Stems)", ""])
         except OSError as ex:
             errors.append(f"{os.path.basename(e['src'])}: {ex}")

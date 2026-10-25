@@ -257,5 +257,6 @@
 "Einstellungen nicht gespeichert ({x}: {x})": ["Settings not saved ({x}: {x})", "Iistellige nöd gspeicheret ({x}: {x})"],
 "Einstellungen nicht lesbar ({x}) – Änderung nicht gespeichert.": ["Settings not readable ({x}) – change not saved.", "Iistellige nöd lesbar ({x}) – Änderig nöd gspeicheret."],
 "Einstellungsdatei war defekt – Kopie gesichert, neu angelegt.": ["Settings file was damaged – copy saved, created anew.", "Iistelligsdatei isch kaputt gsi – Kopie gsicheret, neu aagleit."],
-"Einstellungen konnten nicht gespeichert werden.": ["Settings could not be saved.", "Iistellige händ nöd chöne gspeicheret werde."]
+"Einstellungen konnten nicht gespeichert werden.": ["Settings could not be saved.", "Iistellige händ nöd chöne gspeicheret werde."],
+"Ziel existiert bereits im Archiv": ["Target already exists in the archive", "Ziel gits scho im Archiv"]
 }

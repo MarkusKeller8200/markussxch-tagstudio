@@ -84,7 +84,15 @@ function status(msg, tone = "info") {
   $("#pendingDot").className = "dot " + ({ ok: "ok", warn: "warn" }[tone] || (S.meta.unsaved ? "pending" : ""));
 }
 
-function dialog({ title, text = "", buttons, area = null }) {
+// Dialoge nacheinander: ein zweiter Aufruf wartet, bis der erste geschlossen ist (sonst überschreibt er ihn)
+let DLG_Q = Promise.resolve();
+function dialog(opts) {
+  const p = DLG_Q.then(() => dialogNow(opts));
+  DLG_Q = p.catch(() => {});
+  return p;
+}
+
+function dialogNow({ title, text = "", buttons, area = null }) {
   return new Promise((resolve) => {
     const ov = $("#dialog");
     $("#dlgTitle").textContent = title;
@@ -805,11 +813,20 @@ function scrollPairIntoView(i) {
   drawPairWindow();
 }
 
+let SEL_Q = Promise.resolve();
 async function selectPair(i, src = "key") {
-  if (i === S.cur) return;
+  if (i === S.cur && !S.selPending) return;
   S.sel.clear();
   S.anchor = null;
-  applyState(await call("select", i));
+  // nacheinander an Python (Reihenfolge bleibt), aber nur die letzte Antwort anzeigen
+  const seq = S.selSeq = (S.selSeq || 0) + 1;
+  S.selPending = true;
+  const p = SEL_Q.then(() => call("select", i));
+  SEL_Q = p.catch(() => {});
+  let st;
+  try { st = await p; } finally { if (seq === S.selSeq) S.selPending = false; }
+  if (seq !== S.selSeq) return;
+  applyState(st);
   scrollPairIntoView(i);
   if (typeof playerFollow === "function") playerFollow(src);
 }
