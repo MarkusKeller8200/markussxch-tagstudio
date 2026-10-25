@@ -189,8 +189,8 @@ def _keychain():
     global _mac
     if backend is not None:
         return backend
-    if not is_mac():
-        return None
+    if not is_mac() or os.environ.get("TAGSTUDIO_SECRETS") == "file":
+        return None                                    # „file“: Tests/CI ohne Schlüsselbund (sonst wartet macOS auf Freigabe)
     if _mac is None:
         try:
             _mac = MacKeychain()
