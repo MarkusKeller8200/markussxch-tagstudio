@@ -31,11 +31,11 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
 
 ### Abgleich: doppelte Bibliothek, Hinweis, Zuordnen (#290)
 
-- Dieselbe Datei unter einem zweiten Pfad (gleicher Dateiname + gleiche Grösse, ) zählt
+- Dieselbe Datei unter einem zweiten Pfad (gleicher Dateiname + gleiche Grösse, `playlists.LibIndex.dupes`) zählt
   nur einmal – sonst wäre jeder Titel „unklar – mehrere Treffer“, wenn Tagger-Standardordner, Bibliothek aus
-  „Vorbereiten“ und  dieselbe Sammlung über verschiedene Pfade zeigen. Wirkt auch beim Playlist-Abgleich.
+  „Vorbereiten“ und `01_Library` dieselbe Sammlung über verschiedene Pfade zeigen. Wirkt auch beim Playlist-Abgleich.
 - Zeile „Verglichen mit …“ (Ordner, Dateien, zusammengefasste Doppelte mit Beispielen im Tooltip), Spalte „Hinweis“.
-- „Zuordnen …“ (, Feld ): bleibt bei Abgleich und Aktualisieren, „Zuordnung aufheben“.
+- „Zuordnen …“ (`Store.link`, Feld `linked`): bleibt bei Abgleich und Aktualisieren, „Zuordnung aufheben“.
 
 ## 3. Technik
 
