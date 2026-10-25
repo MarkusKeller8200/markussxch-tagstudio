@@ -58,6 +58,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
            "tg_sort_default": list,                          # #153: Standard-Sortierung (bis 3 Stufen)
            "col_widths": dict,                               # #337/#340: Spaltenbreiten je Tabelle
            "fx_mode": str,                                   # #339: Tag-Fixer „multi“ oder „smart“
+           "st_open": list,                                  # #351: aufgeklappte Kacheln der Einstellungen
            "tg_view_default": dict,                          # #155: bevorzugte Ansicht
            "lang": str,                                      # #157: Sprache der Oberfläche
            "cmp_tb_icons": bool, "tg_tb_icons": bool}                             # #107: Werkzeugleiste im Vergleich nur mit Symbolen
@@ -299,6 +300,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             raise ValueError("tg_fit: fit oder scroll")
         elif name == "tg_sort_default":
             value = self._clean_sorts(value)
+        elif name == "st_open":
+            value = [x for x in dict.fromkeys(value) if isinstance(x, str) and 0 < len(x) <= 40][:60]
         elif name == "fx_mode" and value not in ("multi", "smart"):
             raise ValueError("fx_mode: multi oder smart")
         elif name == "col_widths":

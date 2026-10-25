@@ -506,5 +506,6 @@
 "Schreibzugriff Playlists: {x}",
 "Allow",
 "Käufe",
-"(keine)"
+"(keine)",
+"button, input, select, a, label"
 ]

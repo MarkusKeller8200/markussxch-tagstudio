@@ -627,7 +627,9 @@ Installation mit dem **Einrichtungsassistenten**. Plugins, die Stems-Umgebung un
 wird über die Profilwahl beim Start, eine Desktop-Verknüpfung oder `--profil Name`; das Standardprofil benutzt wie
 bisher `~/.tagstudio.json` und `~/TagStudio`.
 
-Die Seite **Einstellungen** fasst alles zusammen – Kacheln in der Reihenfolge des Menüs, oben Sprungmarken:
+Die Seite **Einstellungen** fasst alles zusammen – Kacheln in der Reihenfolge des Menüs, standardmässig eingeklappt
+(Klick auf den Titel klappt auf/zu, gemerkt; oben „Alle ausklappen“/„Alle einklappen“), oben Sprungmarken, die die
+Kachel öffnen:
 Darstellung · **Tagger** (Standardordner, Stems; *beim Start:* automatisch einlesen, Unterordner, Sortierung,
 Cover-Spalte, Herkunfts-Filter) · Tag-Fixer · **Vergleich** (Standardordner; *beim Start:* Unterordner, Zuordnen nach,
 Anzeige, Unwichtige, Leere Felder, Cover – weicht der Vergleich davon ab, setzt ⌂ „Standard“ ihn zurück) ·

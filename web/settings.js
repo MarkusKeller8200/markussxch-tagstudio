@@ -175,7 +175,36 @@ async function stVdSet(sel) {
 function stToc() {
   const box = $("#stToc");
   if (!box) return;
-  box.innerHTML = $$("#stGrid > .card").filter((c) => !c.hidden && $("h3", c)).map((c) => `<button class="chip" data-goto="${c.id}">${esc($("h3", c).textContent)}</button>`).join("");
+  box.innerHTML = $$("#stGrid > .card").filter((c) => !c.hidden && $("h3", c)).map((c) => `<button class="chip" data-goto="${c.id}">${esc($("h3", c).textContent)}</button>`).join("")
+    + `<span class="st-fold-all"><button class="ghost sm" data-fold="open" title="Alle Kacheln ausklappen">Alle ausklappen</button><button class="ghost sm" data-fold="close" title="Alle Kacheln einklappen">Alle einklappen</button></span>`;
+  stFoldApply();
+}
+
+// #351: Kacheln ein-/ausklappbar, Standard eingeklappt; offene Kacheln in LAYOUT.st_open gemerkt
+function stFoldApply() {
+  const open = new Set(LAYOUT.st_open || []);
+  $$("#stGrid > .card").forEach((c) => {
+    const h = $(":scope > h3", c);
+    if (!h) return;
+    const on = open.has(c.id);
+    c.classList.toggle("st-folded", !on);
+    h.classList.add("st-fold-h");
+    h.setAttribute("role", "button");
+    h.tabIndex = 0;
+    h.setAttribute("aria-expanded", String(on));
+  });
+}
+function stFoldSet(ids, on) {
+  const open = new Set(LAYOUT.st_open || []);
+  ids.forEach((id) => (on ? open.add(id) : open.delete(id)));
+  LAYOUT.st_open = [...open];
+  saveUi("st_open");
+  stFoldApply();
+}
+/** Kachel aufklappen und hinspringen (Sprungmarken, Links von anderen Seiten) */
+function stOpenCard(id) {
+  if (!(LAYOUT.st_open || []).includes(id)) stFoldSet([id], true);
+  $("#" + id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function stDefRow(k, label) {
@@ -529,9 +558,20 @@ function initSettings() {
   $("#stImport").addEventListener("click", () => stTransfer("import"));
   $("#stReset").addEventListener("click", () => stReset());
   $("#stToc").addEventListener("click", (e) => {                         // #87: Sprungmarken
-    const b = e.target.closest("[data-goto]"); if (b) $("#" + b.dataset.goto)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const b = e.target.closest("[data-goto]"); if (b) stOpenCard(b.dataset.goto);
+    const f = e.target.closest("[data-fold]");                                   // #351: alle ein-/ausklappen
+    if (f) stFoldSet($$("#stGrid > .card").filter((c) => $(":scope > h3", c)).map((c) => c.id), f.dataset.fold === "open");
   });
   const grid = $("#stGrid");
+  const foldClick = (e) => {                                                     // #351: Titel klappt ein/aus
+    const h = e.target.closest(".card > h3.st-fold-h");
+    if (!h || e.target.closest("button, input, select, a, label")) return false;
+    const c = h.parentElement;
+    stFoldSet([c.id], c.classList.contains("st-folded"));
+    return true;
+  };
+  grid.addEventListener("click", (e) => { foldClick(e); }, true);
+  grid.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("h3.st-fold-h")) { e.preventDefault(); foldClick(e); } });
   grid.addEventListener("click", async (e) => {
     const t = e.target.closest("button"); if (!t) return;
     if (t.closest("#stLang")) return;                                       // #157: i18n.js übernimmt

@@ -596,7 +596,8 @@ own settings and data (under `~/TagStudio-Profile/<name>/`). An empty profile st
 **setup wizard**. Plugins, the stems environment and models are shared. It is started via the profile choice on start,
 a desktop shortcut or `--profil name`; the default profile uses `~/.tagstudio.json` and `~/TagStudio` as before.
 
-The **Settings** page brings everything together – tiles in the order of the menu, jump links at the top:
+The **Settings** page brings everything together – tiles in the order of the menu, collapsed by default (click the
+title to expand/collapse, remembered; “Expand all”/“Collapse all” at the top), jump links at the top that open the tile:
 Appearance (theme, key notation, **language**) · **Tagger** (default folder, stems; *on start:* read automatically,
 subfolders, sorting, cover column, origin filter) · Tag fixer · **Compare** (default folder; *on start:* subfolders,
 match by, display, unimportant, empty fields, cover – if the comparison differs, ⌂ “Default” resets it) · Snapshots ·

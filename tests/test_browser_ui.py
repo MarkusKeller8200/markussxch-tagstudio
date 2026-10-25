@@ -61,7 +61,12 @@ class UiTest(unittest.TestCase):
             with open(os.path.join(self.home, ".tagstudio.json"), "w", encoding="utf-8") as fh:
                 # snap_hint aus: der Hinweis „Snapshots einrichten?“ kommt seit #326 erst nach dem Tagger und würde sich
                 # sonst zeitabhängig über laufende Tests legen (kein Test braucht ihn)
-                json.dump({"setup_done": "test", "seen_version": VERSION, "first_steps": False, "snap_hint": False}, fh)
+                # #351: Einstellungs-Kacheln sind sonst eingeklappt – die bestehenden Tests erwarten sie offen
+                cards = ["stLookCard", "stTaggerCard", "stFixerCard", "stCompareCard", "stSnapCard", "stSaveCard",
+                         "stPlayerCard", "stPluginCard", "stOriginCard", "stTrivCard", "stCache", "stUpdateCard",
+                         "stFolderCard", "stCloudCard", "stProfileCard", "stExpertCard"]
+                ui = {} if "settings_fold" in self._testMethodName else {"web_ui": {"st_open": cards}}
+                json.dump({"setup_done": "test", "seen_version": VERSION, "first_steps": False, "snap_hint": False, **ui}, fh)
         self.errors = []
         self.server, self.url = self.start_server()
         self.pw = sync_playwright().start()
@@ -2995,6 +3000,30 @@ class UiTest(unittest.TestCase):
         pg.click('#fxMode [data-fxmode="multi"]')                                         # zurück: Mehrfachwerte
         self.assertTrue(pg.locator("#fxSmart").is_hidden())
         self.assertTrue(self.until("call('settings').then(r => r.ui.fx_mode === 'multi')"))
+
+    def test_settings_fold(self):
+        """#351: Einstellungen – alle Kacheln standardmässig eingeklappt, Titel klappt auf/zu (gemerkt), „Alle
+        ausklappen/einklappen“, Sprungmarke öffnet die Kachel."""
+        pg = self.pg
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stToc [data-fold='open']")
+        n = pg.evaluate("document.querySelectorAll('#stGrid > .card:not([hidden]) > h3').length")
+        self.assertEqual(pg.locator("#stGrid > .card.st-folded").count(), pg.evaluate("document.querySelectorAll('#stGrid > .card > h3').length"))
+        self.assertGreater(n, 10)
+        self.assertTrue(pg.locator("#stExpertRows").is_hidden())
+        pg.click("#stExpertCard > h3")
+        self.assertTrue(self.until("!document.querySelector('#stExpertCard').classList.contains('st-folded')"))
+        self.assertTrue(self.until("call('settings').then(r => (r.ui.st_open || []).includes('stExpertCard'))"))
+        pg.click("#stExpertCard > h3")
+        self.assertTrue(self.until("document.querySelector('#stExpertCard').classList.contains('st-folded')"))
+        pg.click("#stToc [data-fold='open']")
+        self.assertEqual(pg.locator("#stGrid > .card.st-folded").count(), 0)
+        pg.click("#stToc [data-fold='close']")
+        self.assertEqual(pg.locator("#stGrid > .card.st-folded").count(), pg.evaluate("document.querySelectorAll('#stGrid > .card > h3').length"))
+        pg.click("#stToc [data-goto='stCloudCard']")
+        self.assertTrue(self.until("!document.querySelector('#stCloudCard').classList.contains('st-folded')"))
+        pg.press("#stCloudCard > h3", "Enter")                                           # Tastatur
+        self.assertTrue(self.until("document.querySelector('#stCloudCard').classList.contains('st-folded')"))
 
     def test_expert_log_clear_on_exit(self):
         """#332: Expert › Entwicklung – „Protokolle beim Beenden leeren“, Standard aus, Plugin-Protokolle nur wählbar,

@@ -285,5 +285,9 @@
 "Fehler aus der vorigen Sitzung sind danach weg – für Fehlermeldungen ausschalten.": ["Errors from the previous session are gone afterwards – switch off when reporting a bug.", "Fähler us de letschte Sitzig sind dänn wäg – für Fählermäldige uusschalte."],
 "App- und Plugin-Protokolle werden beim Beenden geleert.": ["App and plugin logs are cleared on exit.", "App- und Plugin-Protokoll wärded bim Beände gläärt."],
 "Das App-Protokoll wird beim Beenden geleert.": ["The app log is cleared on exit.", "S App-Protokoll wird bim Beände gläärt."],
-"Protokolle bleiben beim Beenden erhalten.": ["Logs are kept on exit.", "D Protokoll bliibed bim Beände erhalte."]
+"Protokolle bleiben beim Beenden erhalten.": ["Logs are kept on exit.", "D Protokoll bliibed bim Beände erhalte."],
+"Alle Kacheln ausklappen": ["Expand all tiles", "Alli Chachle uufklappe"],
+"Alle Kacheln einklappen": ["Collapse all tiles", "Alli Chachle zueklappe"],
+"Alle ausklappen": ["Expand all", "Alli uufklappe"],
+"Alle einklappen": ["Collapse all", "Alli zueklappe"]
 }

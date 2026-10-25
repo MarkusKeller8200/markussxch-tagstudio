@@ -38,6 +38,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Verbessert
 
+- **Einstellungen ein- und ausklappbar (#351):** alle Kacheln standardmässig eingeklappt, „Alle ausklappen/einklappen“,
+  Sprungmarken öffnen die Kachel, Zustand gemerkt.
+
 - **„Käufe“ heisst jetzt „Einkäufe“ (#348)** – überall in der Oberfläche; Daten unverändert.
 
 - **Entdecken als eigene Seite (#333):** zuoberst in der Seitenleiste mit der Zahl neuer Vorschläge; „Vorbereiten“

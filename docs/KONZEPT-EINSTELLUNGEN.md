@@ -13,6 +13,10 @@ Alle Einstellungen an einem Ort, verständlich gruppiert, mit Vorgaben für den 
 
 ## 2. Funktionen
 
+- **Ein-/Ausklappen (#351, 4.12.0):** alle Kacheln standardmässig eingeklappt; Titel (h3) klappt auf/zu (auch Enter/Leertaste),
+  „Alle ausklappen“/„Alle einklappen“ bei den Sprungmarken; offene Kacheln in `web_ui.st_open`. Sprungmarken und Links
+  von anderen Seiten öffnen die Kachel (`stOpenCard`). CSS blendet alles ausser dem Titel aus (`.st-folded`), auch bei
+  später gezeichnetem Inhalt.
 - **Kacheln** mit Sprungmarken (`#stToc`): Darstellung (inkl. Seitenleiste ein-/ausblenden) · Tagger · Tag-Fixer ·
   Vergleich · Snapshots · Sicherungen und Speichern (ID3-Version, Sicherung) · Player · Plugins · Herkunft der Tags ·
   Unwichtige Felder · Cache · Updates · Speicherort und Ordner (Basisordner, Struktur, Archiv) · Profile · **Expert**

@@ -264,7 +264,7 @@ async function foldersStartup() {
 async function foldersGoto() {
   setModule("settings");
   for (let i = 0; i < 40 && !$("#stFolders table"); i++) await new Promise((ok) => setTimeout(ok, 100));
-  $("#stFolderCard")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (typeof stOpenCard === "function") stOpenCard("stFolderCard"); else $("#stFolderCard")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 /** „Verglichen mit“: Bibliotheksnamen statt Pfade (Pfad im Tooltip), übersprungene mit Grund; Klick → Einstellungen */
