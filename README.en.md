@@ -564,7 +564,8 @@ switches between German, English and Zurich German; “Use the operating system 
 Windows or macOS and is active on the very first start. Tags in the MP3 files are never translated. “Export texts” saves
 all texts as CSV or JSON for your own translation or corrections; “Import texts …” checks the file (unknown texts,
 placeholders, HTML) and stores it as your own texts in `~/TagStudio/Sprachen/<language>.json`; “Reset own texts”
-removes them again.
+removes them again. File dialogs (file types, titles) and the window titles of the player and logs follow the chosen
+language too.
 
 Settings are stored in `~/.tagstudio.json`. Further folders under `~/TagStudio`:
 

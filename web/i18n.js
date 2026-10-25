@@ -221,6 +221,8 @@ async function i18nLoad(lang) {
   if (was !== "de-CH" && r.lang !== was) { location.reload(); return; }   // bereits übersetzte Texte zurückholen
   I18N.langs = r.langs || [];
   i18nSetCatalog(r.lang, r.catalog);
+  // #304: Fenstertitel (Hauptfenster, Player, Protokolle) kommen aus Python – nach dem Laden neu setzen
+  if (typeof S !== "undefined" && S.settings && S.settings.native) call("window_titles").catch(() => {});
   i18nApply();
   i18nSideRefresh();
   document.documentElement.classList.remove("i18n-wait");

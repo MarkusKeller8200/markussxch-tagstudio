@@ -266,3 +266,37 @@ def detect(accept: str | None) -> str:
 
 def langs() -> list[dict]:
     return [{"code": c, "name": n, "flag": f, "de": d} for c, n, f, d in LANGS]
+
+
+# ---------------------------------------------------------------- Texte, die Python direkt ans Betriebssystem gibt (#304)
+# Dateidialoge und Fenstertitel laufen nicht durch die Übersetzung der Oberfläche. Die Oberfläche meldet ihre
+# (aufgelöste) Sprache beim Laden des Katalogs; Python übersetzt diese Texte dann selbst.
+_current = SOURCE
+
+
+def set_current(lang: str) -> str:
+    """Sprache der Oberfläche merken (aufgelöst, nie "auto")."""
+    global _current
+    _current = lang if lang in CODES else SOURCE
+    return _current
+
+
+def current() -> str:
+    return _current
+
+
+def tr(text: str, lang: str | None = None) -> str:
+    """Text in die Sprache der Oberfläche übersetzen (exakter Eintrag im wirksamen Katalog, sonst unverändert)."""
+    lang = lang or _current
+    if lang == SOURCE or not text:
+        return text
+    return catalog(lang).get(text) or text
+
+
+def file_types(types, lang: str | None = None) -> tuple:
+    """Dateitypen für den Dialog übersetzen: nur die Bezeichnung vor „ (“, das Muster bleibt."""
+    out = []
+    for t in types:
+        name, sep, pat = str(t).partition(" (")
+        out.append(tr(name, lang) + sep + pat)
+    return tuple(out)

@@ -592,7 +592,8 @@ Windows bzw. macOS und ist beim allerersten Start aktiv. Tags in den MP3-Dateien
 exportieren“ speichert alle Texte als CSV oder JSON für eigene Übersetzungen oder Korrekturen; „Texte importieren …“
 prüft die Datei (unbekannte Texte, Platzhalter, HTML) und legt sie als eigene Texte in
 `~/TagStudio/Sprachen/<sprache>.json` ab; „Eigene Texte zurücksetzen“ entfernt sie wieder. Die Hilfe zeigt auf Englisch
-die englischen Fassungen von Handbuch, ID3-Feldern und Plugin-Anleitung.
+die englischen Fassungen von Handbuch, ID3-Feldern und Plugin-Anleitung. Auch die Dateidialoge (Dateitypen, Titel)
+und die Fenstertitel von Player und Protokollen folgen der gewählten Sprache.
 
 Gespeichert wird in `~/.tagstudio.json`. Weitere Ordner unter `~/TagStudio`:
 

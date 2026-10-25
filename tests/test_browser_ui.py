@@ -1034,6 +1034,20 @@ class UiTest(unittest.TestCase):
         self.assertIn("Einstellungen", pg.inner_text(".nav[data-module=settings]"))
         self.assertEqual(self.errors, [])
 
+    def test_i18n_dialog_language(self):
+        """#304: Die Sprache der Oberfläche gilt auch für Python (Dateidialoge, Fenstertitel)."""
+        pg = self.pg
+        self.assertEqual(pg.evaluate("call('window_titles')")["lang"], "de-CH")
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stLang")
+        self.lang_pick("#stLang", "en")
+        self.assertTrue(self.until("I18N.lang === 'en'"))
+        self.assertTrue(self.until("call('window_titles').then((r) => r.lang === 'en')"))
+        pg.reload()
+        pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'en'")
+        self.assertTrue(self.until("call('window_titles').then((r) => r.lang === 'en' && r.main.startsWith('MarKusSXCH TagStudio'))"))
+        self.assertEqual(self.errors, [])
+
     def test_i18n_side_and_system(self):
         """Sprachwahl als Auswahlliste mit Flaggen (Seitenleiste unter „Einklappen“, Einstellungen), Deutsch mit
         geteilter Flagge, Eintrag „Sprache des Betriebssystems“."""

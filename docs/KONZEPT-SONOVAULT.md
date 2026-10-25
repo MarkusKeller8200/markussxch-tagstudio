@@ -1,6 +1,7 @@
 # Konzept: SonoVault-Integration
 
-> Stand 24.10.2026 – Entwurf auf Wunsch des Users. Status **Idee**: keine Umsetzung ohne Freigabe (`_1 bereit`).
+> Stand 25.10.2026 – Status **ENTSCHIEDEN** (SV1–SV4, Abschnitt 6), Umsetzung in 4.11.0 (Meilenstein #27), freigegeben
+> vom User am 25.10.2026, 16:59 (`_1 bereit`).
 > Issues: #253 (Grundlage) · #254 (Online-Metadaten) · #255 (Plattform-IDs) · #256 (Bibliothek abgleichen) ·
 > #257 (Audio-Erkennung) · #258 (Entdecken) · #259 (später: Genre-Korrektur, Radio-Monitoring)
 

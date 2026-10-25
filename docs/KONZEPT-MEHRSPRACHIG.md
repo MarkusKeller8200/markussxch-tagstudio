@@ -75,6 +75,11 @@ Umgesetzt wurde eine **Übersetzungsschicht über dem DOM** statt Schlüsseln im
   `de-DE` ist damit nicht vorgesehen.
 - **Python und Plugins:** Meldungen bleiben deutsch im Code und werden in der Oberfläche übersetzt. Plugins können in
   `plugin.json` `"i18n": {"en": {"Deutsch": "English"}}` mitbringen; die eingebauten stehen im Katalog.
+- **Dateidialoge und Fenstertitel (#304):** gehen direkt von Python ans Betriebssystem, also nicht durch die
+  DOM-Schicht. Die Oberfläche meldet beim Laden des Katalogs ihre aufgelöste Sprache (`i18n_catalog` →
+  `i18n.set_current`); `i18n.tr` und `i18n.file_types` übersetzen Dateitypen (nur die Bezeichnung, das Muster bleibt)
+  und Titel der tkinter-Dialoge; `Api.window_titles` setzt die Titel von Hauptfenster, Player und Protokollen neu.
+  Der Titel des System-Dialogs im App-Fenster selbst kommt vom Betriebssystem (pywebview bietet keinen Titel an).
 - **Prüfung:** `tools/i18n_extract.py` sammelt Texte aus JS, HTML, Python (inkl. `label=`, Frame-Tabellen) und Plugins;
   `tests/test_i18n.py` verlangt, dass jeder Text in `en` und `gsw-u-sd-chzh` übersetzt ist. Der Oberflächentest
   `test_i18n_pages_english` öffnet alle Seiten auf Englisch und meldet deutsche Reste (sichtbar oder in der

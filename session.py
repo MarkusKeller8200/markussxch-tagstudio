@@ -274,8 +274,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
     def i18n_catalog(self, lang: str) -> dict:
         """#157: Sprachen und Katalog für die Oberfläche (Ausgangssprache de-CH → leerer Katalog)."""
         import i18n
-        return {"lang": lang if lang in i18n.CODES else i18n.SOURCE, "langs": i18n.langs(),
-                "catalog": i18n.catalog(lang)}
+        lang = i18n.set_current(lang)                       # #304: auch Dateidialoge und Fenstertitel in dieser Sprache
+        return {"lang": lang, "langs": i18n.langs(), "catalog": i18n.catalog(lang)}
 
     def set_ui(self, name: str, value):
         """Layout merken (Breiten der Splitter, eingeklappte Seitenleiste)."""

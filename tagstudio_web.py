@@ -34,6 +34,7 @@ if sys.version_info < MIN_PYTHON:   # pragma: no cover – verständliche Meldun
 
 from session import Session  # noqa: E402
 import applog  # noqa: E402
+import i18n  # noqa: E402
 import instance  # noqa: E402
 import updater  # noqa: E402
 from version import VERSION  # noqa: E402
@@ -374,7 +375,7 @@ class Api:
                 wins.pop(pid, None)
         import webview
         try:
-            w = webview.create_window(f"{APP} – Protokoll {self._s.plugins.get(pid).name}", url=os.path.join(WEB, "log-window.html"),
+            w = webview.create_window(f"{APP} – {i18n.tr('Protokoll')} {self._s.plugins.get(pid).name}", url=os.path.join(WEB, "log-window.html"),
                                       js_api=self, width=900, height=560, min_size=(420, 240), background_color="#121419")
         except Exception as ex:  # noqa: BLE001
             return {"ok": False, "error": f"Fenster konnte nicht geöffnet werden: {ex}"}
@@ -415,7 +416,7 @@ class Api:
         if g.get("x") is not None and g.get("y") is not None:
             kw.update(x=g["x"], y=g["y"])
         try:
-            w = webview.create_window(f"{APP} – Player", url=os.path.join(WEB, "player-window.html"), js_api=self,
+            w = webview.create_window(f"{APP} – {i18n.tr('Player')}", url=os.path.join(WEB, "player-window.html"), js_api=self,
                                       min_size=(760, 300), background_color="#121419", **kw)
         except Exception as ex:  # noqa: BLE001
             return {"ok": False, "error": f"Fenster konnte nicht geöffnet werden: {ex}"}
@@ -515,7 +516,7 @@ class Api:
                  "playlist": ("Playlists (*.m3u;*.m3u8;*.xml;*.csv;*.txt)", "Alle Dateien (*.*)")}[kind]
         if self._window is not None:
             import webview
-            res = self._window.create_file_dialog(webview.OPEN_DIALOG, directory=start, file_types=types)
+            res = self._window.create_file_dialog(webview.OPEN_DIALOG, directory=start, file_types=i18n.file_types(types))
             return os.path.normpath(res[0] if isinstance(res, (list, tuple)) else res) if res else ""
         return _tk_dialog("open", start, kind)
 
@@ -549,7 +550,7 @@ class Api:
             dlg = webview.FOLDER_DIALOG if folder else webview.OPEN_DIALOG
             types = () if folder else (("Programme (*.exe;*.app;*.bat;*.cmd)", "Alle Dateien (*.*)") if kind == "program"
                                        else ("MP3-Dateien (*.mp3;*.MP3)", "Alle Dateien (*.*)"))
-            res = self._window.create_file_dialog(dlg, directory=start, file_types=types)
+            res = self._window.create_file_dialog(dlg, directory=start, file_types=i18n.file_types(types))
             if not res:
                 return ""
             return os.path.normpath(res[0] if isinstance(res, (list, tuple)) else res)
@@ -589,6 +590,26 @@ class Api:
         ok = titlebar_theme(self._window, self._dark)
         titlebar_theme(self._pwin, self._dark)
         return ok
+
+    def window_titles(self):
+        """#304: Fenstertitel nach einem Sprachwechsel neu setzen (Hauptfenster mit Profil, Player, Protokolle)."""
+        out = {"main": _title(), "lang": i18n.current()}
+        if self._pwin is not None:
+            out["player"] = f"{APP} – {i18n.tr('Player')}"
+        wins = [(self._window, out["main"])] + ([(self._pwin, out["player"])] if "player" in out else [])
+        for pid, w in self.__dict__.get("_logwins", {}).items():
+            try:
+                wins.append((w, f"{APP} – {i18n.tr('Protokoll')} {self._s.plugins.get(pid).name}"))
+            except Exception:  # noqa: BLE001 – Plugin inzwischen entfernt
+                pass
+        for w, t in wins:
+            if w is None:
+                continue
+            try:
+                w.set_title(t) if hasattr(w, "set_title") else setattr(w, "title", t)
+            except Exception:  # noqa: BLE001 – Fenster inzwischen zu
+                pass
+        return out
 
     def set_update_channel(self, channel):
         return self._s.set_update_channel(channel)
@@ -929,7 +950,9 @@ def _tk_dialog(kind, start, extra=""):
                       "json": [("Einstellungen", "*.json")],
                       "texts": [("Texte", "*.csv *.json")],
                       "playlist": [("Playlists", "*.m3u *.m3u8 *.xml *.csv *.txt")]}.get(extra, [("MP3-Dateien", "*.mp3 *.MP3")])
-                p = filedialog.askopenfilename(initialdir=start, parent=root, filetypes=ft + [("Alle Dateien", "*")])
+                ft = [(i18n.tr(n), pat) for n, pat in ft + [("Alle Dateien", "*")]]          # #304
+                p = filedialog.askopenfilename(initialdir=start, parent=root, filetypes=ft,
+                                               title=i18n.tr("Datei wählen"))
             root.destroy()
             result["p"] = os.path.normpath(p) if p else ""
         except Exception:  # noqa: BLE001
@@ -954,12 +977,13 @@ def _tk_pick(folder, start, kind="mp3"):
             root.withdraw()
             root.attributes("-topmost", True)
             if folder:
-                p = filedialog.askdirectory(initialdir=start, title="Ordner wählen", parent=root)
+                p = filedialog.askdirectory(initialdir=start, title=i18n.tr("Ordner wählen"), parent=root)
             else:
                 ft = [("Programme", "*.exe *.app *.bat *.cmd"), ("Alle Dateien", "*")] if kind == "program" \
                     else [("MP3-Dateien", "*.mp3 *.MP3"), ("Alle Dateien", "*")]
-                p = filedialog.askopenfilename(initialdir=start, title="Programm wählen" if kind == "program" else "MP3-Datei wählen",
-                                               parent=root, filetypes=ft)
+                ft = [(i18n.tr(n), pat) for n, pat in ft]                                     # #304
+                p = filedialog.askopenfilename(initialdir=start, parent=root, filetypes=ft,
+                                               title=i18n.tr("Programm wählen" if kind == "program" else "MP3-Datei wählen"))
             root.destroy()
             result["p"] = os.path.normpath(p) if p else ""
         except Exception:  # noqa: BLE001

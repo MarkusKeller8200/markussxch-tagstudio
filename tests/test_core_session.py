@@ -341,3 +341,63 @@ class TestSaveConfigConcurrent(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestDialogLanguage(TempHome):
+    """#304: Dateidialoge und Fenstertitel in der Sprache der Oberfläche."""
+
+    def tearDown(self):
+        import i18n
+        i18n.set_current(i18n.SOURCE)
+        super().tearDown()
+
+    def test_tr_and_file_types(self):
+        import i18n
+        self.assertEqual(i18n.tr("Ordner wählen"), "Ordner wählen")                 # Ausgangssprache: unverändert
+        i18n.set_current("en")
+        self.assertEqual(i18n.current(), "en")
+        self.assertEqual(i18n.tr("Ordner wählen"), "Choose folder")
+        self.assertEqual(i18n.tr("Gibt es nicht"), "Gibt es nicht")
+        self.assertEqual(i18n.file_types(("MP3-Dateien (*.mp3;*.MP3)", "Alle Dateien (*.*)")),
+                         ("MP3 files (*.mp3;*.MP3)", "All files (*.*)"))
+        self.assertEqual(i18n.tr("Alle Dateien", "gsw-u-sd-chzh"), "Alli Dateie")
+        self.assertEqual(i18n.set_current("auto"), i18n.SOURCE)                         # nie "auto" merken
+
+    def test_dialogs_and_titles_follow_ui_language(self):
+        import sys as _sys
+        import types
+        from unittest import mock
+        import tagstudio_web
+        stub = types.SimpleNamespace(OPEN_DIALOG=10, FOLDER_DIALOG=20, SAVE_DIALOG=30)
+
+        class Win:
+            def __init__(self):
+                self.calls, self.title = [], ""
+
+            def create_file_dialog(self, kind, directory="", file_types=(), save_filename=""):
+                self.calls.append((kind, tuple(file_types)))
+                return None
+
+            def set_title(self, t):
+                self.title = t
+
+        api = tagstudio_web.Api()
+        api._window = Win()
+        api._s.i18n_catalog("gsw-u-sd-chzh")                                          # Oberfläche meldet ihre Sprache
+        with mock.patch.dict(_sys.modules, {"webview": stub}):
+            api.pick_file("mp3", self.dir)
+            api.pick_path("L", folder=False, start=self.dir, kind="program")
+            api.pick_path("L", folder=True, start=self.dir)
+        self.assertEqual(api._window.calls[0], (10, ("MP3-Dateie (*.mp3;*.MP3)", "Alli Dateie (*.*)")))
+        self.assertTrue(api._window.calls[1][1][0].startswith("Programm (*.exe"))
+        self.assertEqual(api._window.calls[2], (20, ()))
+        api._pwin = Win()
+        api._s.i18n_catalog("en")
+        r = api.window_titles()
+        self.assertEqual(r["player"], "MarKusSXCH TagStudio – Player")
+        self.assertEqual(api._window.title, r["main"])
+        self.assertTrue(r["main"].startswith("MarKusSXCH TagStudio"))
+        api._s.i18n_catalog("de-CH")
+        with mock.patch.dict(_sys.modules, {"webview": stub}):
+            api.pick_file("image", self.dir)
+        self.assertEqual(api._window.calls[-1][1], ("Bilder (*.jpg;*.jpeg;*.png;*.gif)", "Alle Dateien (*.*)"))
