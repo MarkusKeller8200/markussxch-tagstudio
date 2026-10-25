@@ -1,8 +1,32 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-25 (17:05): 4.10.0 final veröffentlicht; 4.11.0 vorbereitet** – Meilenstein #27 „4.11.0 – Cloud, SonoVault & Verbesserungen“ mit allen Entscheiden, siehe „Start 4.11.0“ und „Übergabe-Prompt 4.11.0“.
+Stand: **2026-10-25 (Abend): 4.11.0 umgesetzt, alle 14 Issues im Beta-Test** – siehe „Sitzung 25.10.2026 (Abend)“. Davor (17:05): 4.10.0 final veröffentlicht; 4.11.0 vorbereitet – Meilenstein #27 „4.11.0 – Cloud, SonoVault & Verbesserungen“ mit allen Entscheiden, siehe „Start 4.11.0“ und „Übergabe-Prompt 4.11.0“.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Sitzung 25.10.2026 (Abend) – 4.11.0 umgesetzt
+
+- **Freigabe User 16:59** („alle in der Reihenfolge frei“). Alle 14 Issues des Meilensteins #27 auf `main`, Label
+  `_3 Beta-Test`, Testlisten als Kommentar in den Issues; Commits mit „Refs #n“:
+  - **#304** Dateidialoge/Fenstertitel: `i18n.set_current/tr/file_types` (Oberfläche meldet die Sprache in
+    `i18n_catalog`), `Api.window_titles`. Den Titel des System-Dialogs im App-Fenster vergibt das Betriebssystem.
+  - **#107** Werkzeugleiste im Vergleich: Gruppen Anzeige/Kopieren/Bearbeiten/Verlauf, farbige Symbole, „Aa“ = nur
+    Symbole (`web_ui.cmp_tb_icons`), ↶/↷ im Vergleich. Tagger-Leiste (optional) nicht umgesetzt.
+  - **#222** Wellenform im MP3 (W1): `wavetag.py`, GEOB „TagStudio Overview“ (`TSOV`, v1), Einstellung `wave_in_file`
+    (Standard aus) → `core.save_files(…, wave=True)`; Player liest bei leerem Cache aus dem MP3.
+  - **SonoVault #253–#258** (Plugin `sonovault` 1.0, Online-Metadaten 2.2): Zähler `quota.json` (Free 1000, Warnung
+    90 %, 429 nie wiederholt), Zwischenspeicher ≤ 30 Tage, nur erlaubte Felder (`allowed_fields`), BPM/Tonart als
+    `compare` in der Notiz, Plattform-IDs als Ergebnis-Tabelle (`res["table"]`, `pluginResultTable`), Bulk-Abgleich nur
+    Anzeige mit Kostenvorschau, Entdecken-Quelle `sonovault` (nie bei der täglichen Suche, Einträge ≤ 30 Tage, nie im
+    Export), Audio-Erkennung optional mit Kostenhinweis (Ausschnitt ohne Tags). Antwortformat nach den SDKs von
+    Rekordcloud (GitHub) – mit echtem Schlüssel im API-Tester prüfen.
+  - **Cloud #317** Rahmen `cloudsync.py` + `session_cloud.py` + `web/cloudsync.js`; **#318–#320** Plugins `onedrive`,
+    `gdrive`, `dropbox` (je 1.0) mit `cloudkit.py`; `onlinematch.http_request`, `oauthkit` `auth_params`.
+- **Beim Release 4.11.0 mitnehmen:** neue Module `wavetag`, `cloudsync`, `cloudkit`, `session_cloud` in
+  `packaging/build.py` › `HIDDEN` eintragen (nicht angefasst, wie bei 4.10.0).
+- Lokal nicht erreichbar: PyPI (Proxy sperrt), sonovault.now, Microsoft/Google/Dropbox – alles mit nachgebauten Diensten
+  getestet. Echte Tests nur mit Schlüssel/Client-ID des Users.
+- Offen für den User: Testlisten in #107, #222, #253–#258, #304, #309, #317–#320.
 
 ## Start 4.11.0 (vorbereitet 25.10.2026, 17:05)
 
