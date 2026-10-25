@@ -135,5 +135,7 @@
 "{x}: Datei fehlt ({x})": ["{x}: file missing ({x})", "{x}: Datei fählt ({x})"],
 "{x}: Ordner {q} konnte nicht angelegt werden": ["{x}: folder {q} could not be created", "{x}: Ordner {q} het nöd chöne aagleit werde"],
 "{x}: keine Upload-Sitzung erhalten": ["{x}: no upload session received", "{x}: kei Upload-Sitzig übercho"],
-"Änderungen seit dem letzten Mal": ["Changes since last time", "Änderige sit em letschte Mal"]
+"Änderungen seit dem letzten Mal": ["Changes since last time", "Änderige sit em letschte Mal"],
+"· eigener Schlüssel ·": ["· own key ·", "· eigete Schlüssel ·"],
+"· ohne Anmeldung ·": ["· no sign-in ·", "· ohni Aamäldig ·"]
 }

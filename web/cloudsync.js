@@ -18,7 +18,7 @@ async function stCloudSyncRender() {
   try { o = await call("cloud_sync_overview"); } catch (e) { box.innerHTML = `<span class="st-missing sm">${esc(String(e.message || e))}</span>`; return; }
   const provs = o.providers || [];
   const ready = provs.filter((p) => p.ready);
-  const provSel = (r) => `<select class="inp sm" data-csprov aria-label="Dienst für ${esc(r.label)}"><option value="">aus</option>${provs.map((p) => `<option value="${esc(p.id)}" ${r.sync && r.sync.provider === p.id ? "selected" : ""} ${p.ready ? "" : "disabled"}>${esc(p.name)}${p.ready ? "" : " (nicht angemeldet)"}</option>`).join("")}</select>`;
+  const provSel = (r) => `<select class="inp sm" data-csprov aria-label="Dienst für ${esc(r.label)}"><option value="">aus</option>${provs.map((p) => `<option value="${esc(p.id)}" ${r.sync && r.sync.provider === p.id ? "selected" : ""} ${p.ready ? "" : "disabled"} translate="no">${esc(p.name)}${p.ready ? "" : ` ${esc(typeof tr === "function" ? tr("(nicht angemeldet)") : "(nicht angemeldet)")}`}</option>`).join("")}</select>`;
   const modeSel = (r) => `<select class="inp sm" data-csmode aria-label="Richtung" ${r.sync ? "" : "disabled"}>${Object.entries(CLOUD_MODES).map(([k, v]) => `<option value="${k}" ${(r.sync ? r.sync.mode : "both") === k ? "selected" : ""}>${esc(v)}</option>`).join("")}</select>`;
   const row = (r) => `<tr data-cskind="${esc(r.kind)}" data-csid="${esc(r.id)}"><th scope="row">${r.kind === "role" ? "" : '<span class="muted sm">Programmdaten · </span>'}${esc(r.label)}</th>
       <td>${provSel(r)} ${modeSel(r)} <input class="inp sm cs-remote" data-csremote value="${esc(r.sync ? r.sync.remote : r.default_remote)}" ${r.sync ? "" : "disabled"} spellcheck="false" aria-label="Ordner im Dienst" title="Ordner im Dienst">
