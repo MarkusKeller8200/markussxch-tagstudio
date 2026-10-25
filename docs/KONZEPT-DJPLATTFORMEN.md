@@ -159,6 +159,8 @@ Die Tabelle betrifft Integrationsmöglichkeiten **für Drittentwickler**. Intern
   curation, my. `my/downloads` → `TrackDownloadList` (mit `purchase_date`, ohne ISRC/Katalognr./Label);
   `my/playlists` → `PlaylistProxy` (id, name, track_count, …), Titel `my/playlists/{id}/tracks/` → `PlaylistTrack`
   (id, position, track); `my/charts/{id}/tracks/`. **Kein Endpunkt zum Herunterladen gekaufter Dateien.**
+  `my/account/myaccount/` kennt nur PUT/PATCH – das Konto liest TagStudio über `GET /my/account/`.
+  `my/beatport/artists|labels` ohne Antwort-Schema → TagStudio liest Namen oder IDs (#288).
 
 #### Amazon Music Web API (geprüft 25.10.2026)
 

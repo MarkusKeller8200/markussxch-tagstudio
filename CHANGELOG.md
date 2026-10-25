@@ -21,6 +21,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Beatport: eigener API-Zugang (#286):** Anmelden mit der eigenen offiziellen Beatport-App (Client-ID und Secret,
   verschlüsselt gespeichert), Erneuern des Tokens über die App, Abmelden zieht das Token bei Beatport zurück
   (Beatport-Plugin 1.3).
+- **Entdecken ← My Beatport (#288):** Beatport-Plugin › „Gefolgte Künstler und Labels in „Entdecken“ übernehmen …“
+  ergänzt die auf Beatport gefolgten Künstler und Labels (nur lesen).
 - **Beatport offiziell (#289):** Plugin heisst jetzt „Beatport“; Standard-Anmeldung ist der eigene API-Zugang, die
   bisherige Anmeldung bleibt als „inoffizieller Ausweichweg“. Das Integrationsfenster listet alle Endpunkte der
   offiziellen Beschreibung (catalog, my, curation) mit Status; genutzt werden nur dokumentierte Endpunkte, ausser

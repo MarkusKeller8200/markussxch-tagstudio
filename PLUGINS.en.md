@@ -288,6 +288,10 @@ Matching: first via a stored Beatport ID (`TXXX:BEATPORT_TRACK_ID`), then ISRC, 
 Client ID and secret are stored encrypted in the plugin (leave empty = use the stored ones), the password never. The
 token is renewed with client ID and secret; “Sign out” revokes it at Beatport.
 
+**Followed artists and labels (#288):** “Add followed artists and labels to Discover …” reads whom you follow on
+Beatport (“My Beatport”, `/my/beatport/artists/` and `/labels/`) and adds them to the lists in “Discover”. Existing
+ones stay, nothing is changed at Beatport.
+
 **Purchases (#285):** the page “Purchases” uses `store_purchases(ctx)` (all purchases with title, mix, key, BPM,
 catalogue number, link, purchase date) and `store_download(ctx, items, dest)` (download missing ones into the inbox).
 

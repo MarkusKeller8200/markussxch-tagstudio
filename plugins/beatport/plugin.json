@@ -27,7 +27,8 @@
         "method": "GET",
         "path": "/catalog/artists/",
         "label": "Künstler suchen",
-        "status": "none"
+        "status": "partial",
+        "use": "Namen gefolgter Künstler/Labels über ihre IDs"
       },
       {
         "id": "artists",
@@ -156,7 +157,8 @@
         "method": "GET",
         "path": "/catalog/labels/",
         "label": "Labels suchen",
-        "status": "none"
+        "status": "partial",
+        "use": "Namen gefolgter Künstler/Labels über ihre IDs"
       },
       {
         "id": "labels",
@@ -533,7 +535,8 @@
         "method": "GET",
         "path": "/my/beatport/artists/",
         "label": "My Beatport: gefolgte Künstler",
-        "status": "none"
+        "status": "full",
+        "use": "Gefolgte Künstler und Labels in „Entdecken“ übernehmen"
       },
       {
         "id": "my-beatport-delete",
@@ -549,7 +552,8 @@
         "method": "GET",
         "path": "/my/beatport/labels/",
         "label": "My Beatport: gefolgte Labels",
-        "status": "none"
+        "status": "full",
+        "use": "Gefolgte Künstler und Labels in „Entdecken“ übernehmen"
       },
       {
         "id": "my-beatport-playlists",

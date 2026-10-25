@@ -99,6 +99,12 @@ class FakeBeatport:
                 {"id": 2002, "name": "Vorbestellt", "artists": [{"name": "X"}], "pre_order": True, "order_item_download_id": 503}]}).encode()
         if p == "/v4/my/downloads/502/":
             return 200, {}, json.dumps({"id": 502, "download_url": "https://dl.beatport.com/sig/abc.mp3"}).encode()
+        if p == "/v4/my/beatport/artists/":                    # #288: Antwort ohne Schema – mit Namen
+            return 200, {}, json.dumps({"results": [{"id": 1, "name": "Mara Lind"}, {"id": 5, "name": "Oskar Vey"}]}).encode()
+        if p == "/v4/my/beatport/labels/":                     # … oder nur IDs
+            return 200, {}, json.dumps({"results": [77]}).encode()
+        if p == "/v4/catalog/labels/" and q.get("id"):
+            return 200, {}, json.dumps({"results": [{"id": 77, "name": "Polar Records"}]}).encode()
         if p == "/v4/my/playlists/":                       # #284: eigene Playlists (Form nach API v4, Seiten)
             return 200, {}, json.dumps({"results": [{"id": 7, "name": "Peak Time", "track_count": 2},
                                                     {"id": 8, "name": "Leer", "track_count": 0}]}).encode()
@@ -165,7 +171,7 @@ class TestBeatport(Base):
         info = {p["id"]: p for p in self.s.plugins_list()["plugins"]}["beatport"]
         self.assertEqual(info["state"], "ready")
         self.assertEqual(info["status_text"], "Nicht angemeldet.")
-        self.assertEqual(sorted(a["id"] for a in info["actions"] if a["where"] == "page"), ["download", "login", "logout", "purchases", "test"])
+        self.assertEqual(sorted(a["id"] for a in info["actions"] if a["where"] == "page"), ["download", "follow", "login", "logout", "purchases", "test"])
         # ohne Login: Abruf scheitert verständlich
         st = self.act("fetch", [0])
         self.assertIn("Nicht bei Beatport angemeldet", st["error"])
@@ -346,6 +352,22 @@ class TestBeatport(Base):
         self.assertIn("/v4/my/account/", paths)
         self.assertNotIn("/v4/my/account/myaccount/", paths)
         self.assertFalse([c for c in self.fake.calls if c[0] in ("PUT", "PATCH", "DELETE")])
+
+    def test_follow_to_discover(self):
+        """#288: gefolgte Künstler und Labels aus „My Beatport“ in „Entdecken“ übernehmen (nur lesen, keine Doppelten)."""
+        import discover
+        self.login()
+        d = discover.load()
+        d["follow"]["artists"] = ["Mara Lind"]
+        discover.save(d)
+        st = self.act("follow", artists=True, labels=True)
+        self.assertIsNone(st["error"], st)
+        self.assertIn("2 Künstler und 1 Labels gelesen, 1 Künstler und 1 Labels neu", st["result"]["message"])
+        f = discover.load()["follow"]
+        self.assertEqual((sorted(f["artists"]), f["labels"]), (["Mara Lind", "Oskar Vey"], ["Polar Records"]))
+        st = self.act("follow", artists=True, labels=True)
+        self.assertIn("0 Künstler und 0 Labels neu", st["result"]["message"])
+        self.assertFalse([c for c in self.fake.calls if c[0] != "GET" and "/my/beatport" in c[1]])
 
     def test_token_paste_and_refresh(self):
         self.fake.valid.add("PASTED")

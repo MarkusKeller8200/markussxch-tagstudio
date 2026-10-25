@@ -2055,6 +2055,17 @@ class UiTest(unittest.TestCase):
         self.assertEqual((vis("username"), vis("client_id"), vis("token")), (False, False, True))
         pg.click("#mBtns button >> nth=0")
 
+    def test_beatport_follow_form(self):
+        """#288: Beatport › „Gefolgte Künstler und Labels in Entdecken übernehmen …“ – Formular mit beiden Häkchen."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("void pluginRun('beatport', 'follow')")
+        pg.wait_for_selector('#modal [data-ok="artists"]')
+        self.assertTrue(pg.locator('#modal [data-ok="artists"]').is_checked())
+        self.assertTrue(pg.locator('#modal [data-ok="labels"]').is_checked())
+        self.assertIn("My Beatport", pg.inner_text("#modal"))
+        pg.click("#mBtns button >> nth=0")
+
     def test_preview_links(self):
         """#144: Vorschau von Plugins zeigt Links zum Treffer auf der Plattform (je Datei und je Feld)."""
         pg = self.pg

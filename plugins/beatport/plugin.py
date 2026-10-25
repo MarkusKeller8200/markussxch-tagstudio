@@ -75,6 +75,12 @@ ACTIONS = [
             {"type": "info", "show_if": {"method": "token"}, "label": "Token-Methode: auf api.beatport.com/v4/docs anmelden, Entwicklertools (F12) → Netzwerk → Anfrage „token“ → Antwort kopieren und hier einfügen."},
         ],
     },
+    {"id": "follow", "label": "Gefolgte Künstler und Labels in „Entdecken“ übernehmen …", "where": "page",
+     "run_label": "Übernehmen", "needs_selection": False,
+     "description": "Liest die Künstler und Labels, denen du auf Beatport folgst („My Beatport“), und ergänzt sie in "
+                    "„Entdecken“. Vorhandene bleiben, nichts wird entfernt; bei Beatport wird nichts geändert.",
+     "options": [{"key": "artists", "type": "check", "label": "Gefolgte Künstler", "default": True},
+                 {"key": "labels", "type": "check", "label": "Gefolgte Labels", "default": True}]},
     {"id": "logout", "label": "Abmelden", "where": "page", "run_label": "Abmelden", "needs_selection": False,
      "description": "Gespeicherten Token löschen (beim eigenen API-Zugang wird er bei Beatport auch zurückgezogen).",
      "options": [{"key": "forget_app", "type": "check", "label": "Client-ID und Secret des eigenen API-Zugangs ebenfalls löschen",
@@ -884,6 +890,8 @@ def run(action, ctx, files, opts):
     if action == "test":
         acc = account(Client(ctx))
         return {"message": f"Verbindung in Ordnung – angemeldet als {acc.get('username', '?')}."}
+    if action == "follow":
+        return run_follow(ctx, opts)
     if action == "purchases":
         return run_purchases(ctx, opts)
     if action == "download":
@@ -1422,3 +1430,64 @@ def store_download(ctx, items, dest) -> dict:
     if no_url:
         ctx.log(f"{no_url} Titel ohne Download-Adresse – bitte über {DOWNLOAD_PAGE} laden (Variante 2).")
     return {"files": files, "failed": failed, "manual": DOWNLOAD_PAGE if no_url else ""}
+
+
+# =========================================================================== #288: „My Beatport“ → Entdecken
+def _names_of(rows, kind) -> tuple[list, list]:
+    """Antwort ohne festes Schema (offizielle Beschreibung nennt keins): Einträge mit Namen oder nur IDs."""
+    names, ids = [], []
+    for r in rows:
+        if isinstance(r, dict):
+            obj = r.get(kind[:-1]) if isinstance(r.get(kind[:-1]), dict) else r      # {"artist": {...}} oder direkt
+            if obj.get("name"):
+                names.append(str(obj["name"]))
+            elif obj.get("id") is not None:
+                ids.append(obj["id"])
+        elif isinstance(r, (int, str)) and str(r).isdigit():
+            ids.append(int(r))
+    return names, ids
+
+
+def followed(ctx, kind) -> list[str]:
+    """Namen der auf Beatport gefolgten Künstler bzw. Labels (kind "artists"/"labels"): GET /my/beatport/<kind>/;
+    liefert Beatport nur IDs, werden die Namen über /catalog/<kind>/?id=… nachgeschlagen. Nur lesen."""
+    c = Client(ctx)
+    res = c.get(f"/my/beatport/{kind}/", page=1, per_page=100)
+    rows = _items(res) if not (isinstance(res, dict) and isinstance(res.get(kind), list)) else res[kind]
+    if isinstance(res, dict) and not rows and res:
+        ctx.log(f"/my/beatport/{kind}/: Felder {', '.join(sorted(res))}")
+    if rows and isinstance(rows[0], dict):
+        ctx.log(f"/my/beatport/{kind}/: Felder je Eintrag {', '.join(sorted(rows[0]))}")
+    more = rows
+    page = 1
+    while isinstance(res, (dict, list)) and len(more) == 100 and page < 50:     # weitere Seiten
+        page += 1
+        res = c.get(f"/my/beatport/{kind}/", page=page, per_page=100)
+        more = _items(res)
+        rows += more
+    names, ids = _names_of(rows, kind)
+    for k in range(0, len(ids), 100):
+        for o in _items(c.get(f"/catalog/{kind}/", id=",".join(str(i) for i in ids[k:k + 100]), per_page=100)):
+            if isinstance(o, dict) and o.get("name"):
+                names.append(str(o["name"]))
+    return list(dict.fromkeys(n.strip() for n in names if n.strip()))
+
+
+def add_to_discover(artists=(), labels=()) -> tuple[int, int]:
+    import discover
+    d = discover.load()
+    a0, l0 = len(d["follow"]["artists"]), len(d["follow"]["labels"])
+    d["follow"]["artists"] = discover._names(d["follow"]["artists"] + list(artists))
+    d["follow"]["labels"] = discover._names(d["follow"]["labels"] + list(labels))
+    discover.save(d)
+    return len(d["follow"]["artists"]) - a0, len(d["follow"]["labels"]) - l0
+
+
+def run_follow(ctx, opts) -> dict:
+    ok, why = ready(ctx)
+    if not ok:
+        return {"message": f"Beatport: {why}."}
+    arts = followed(ctx, "artists") if opts.get("artists", True) else []
+    labs = followed(ctx, "labels") if opts.get("labels", True) else []
+    na, nl = add_to_discover(arts, labs)
+    return {"message": f"{len(arts)} Künstler und {len(labs)} Labels gelesen, {na} Künstler und {nl} Labels neu in „Entdecken“ übernommen."}

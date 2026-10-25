@@ -282,5 +282,11 @@
 "Token aus dem Browser einfügen (inoffiziell)": ["Paste token from the browser (unofficial)", "Token us em Browser iifüege (inoffiziell)"],
 "Angemeldet als {x} (inoffizieller Ausweichweg).": ["Signed in as {x} (unofficial fallback).", "Aagmäldet als {x} (inoffizielle Uswiichwäg)."],
 "Angemeldet als {x} (inoffizieller Ausweichweg, Token abgelaufen – wird bei Bedarf erneuert).": ["Signed in as {x} (unofficial fallback, token expired – renewed when needed).", "Aagmäldet als {x} (inoffizielle Uswiichwäg, Token abgloffe – wird bi Bedarf erneueret)."],
-"Playlists › Importieren ▾ › Aus Beatport …": ["Playlists › Import ▾ › From Beatport …", "Playlists › Importiere ▾ › Us Beatport …"]
+"Playlists › Importieren ▾ › Aus Beatport …": ["Playlists › Import ▾ › From Beatport …", "Playlists › Importiere ▾ › Us Beatport …"],
+"{x} Künstler und {x} Labels gelesen, {x} Künstler und {x} Labels neu in {q} übernommen.": ["{x} artists and {x} labels read, {x} artists and {x} labels newly added to {q}.", "{x} Künschtler und {x} Labels gläse, {x} Künschtler und {x} Labels neu i {q} übernoh."],
+"Gefolgte Künstler und Labels in {q} übernehmen …": ["Add followed artists and labels to {q} …", "Gfolgti Künschtler und Labels i {q} übernäh …"],
+"Liest die Künstler und Labels, denen du auf Beatport folgst ({q}), und ergänzt sie in {q}. Vorhandene bleiben, nichts wird entfernt; bei Beatport wird nichts geändert.": ["Reads the artists and labels you follow on Beatport ({q}) and adds them to {q}. Existing ones stay, nothing is removed; nothing is changed at Beatport.", "Liest d Künschtler und Labels, wo du uf Beatport folgsch ({q}), und ergänzt sie i {q}. Vorhandeni bliibed, nüt wird entfernt; bi Beatport wird nüt gänderet."],
+"Gefolgte Labels": ["Followed labels", "Gfolgti Labels"],
+"Namen gefolgter Künstler/Labels über ihre IDs": ["Names of followed artists/labels via their IDs", "Näme vo gfolgte Künschtler/Labels über ihri IDs"],
+"Gefolgte Künstler und Labels in {q} übernehmen": ["Add followed artists and labels to {q}", "Gfolgti Künschtler und Labels i {q} übernäh"]
 }
