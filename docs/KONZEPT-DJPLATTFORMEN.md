@@ -35,7 +35,7 @@ Die Angaben in dieser Tabelle stammen aus Abschnitt 1 des PDF (Seiten 1–2); si
 | Mixupload | Teilweise | Teilweise | Ja | Remixe, DJ-Mixes |
 | 7digital | Ja | Ja | Nein | Pop, Rock, Electronic |
 | iTunes Store | Ja | Ja | Nein | Mainstream, alle Genres |
-| Amazon Music | Regional | Bei Kauf | Ja | Mainstream |
+| Amazon Music | Regional (auch Schweiz, Hinweis User 25.10.2026) | Bei Kauf | Ja | Mainstream |
 | SoundCloud | Nein | Bei Freigabe | Ja | Remixe, Bootlegs |
 | Spotify | Nein | Kein freier Download | Ja | Alle Genres |
 | TIDAL | Nein | Kein freier Download | Ja | Hi-Fi, Mainstream |
@@ -63,7 +63,7 @@ Tabelle oben ohne Eintrag hier (Qobuz, Volumo, Mixupload, 7digital, DJcity, ZIPD
 | [Spotify](https://www.spotify.com/ch-de/premium/) | Streaming; in Serato, rekordbox, djay | Free mit Werbung; Premium 15,95 CHF/Monat (Duo 21,95, Family 26,95, Student 8,95) |
 | [Deezer](https://www.deezer.com) | Streaming; Quelle für „Online-Metadaten“ und „Entdecken“ | Premium ca. 11,99 USD/Monat; API kostenlos |
 | [Apple Music](https://www.apple.com/apple-music/) | Streaming; in djay, Serato, rekordbox, Engine | ca. 10,99 USD/Monat |
-| [Amazon Music](https://music.amazon.com) | Streaming; in Denon-/Numark-Geräten | Unlimited ca. 10,99 USD/Monat (Prime) |
+| [Amazon Music](https://music.amazon.com) | Streaming; in Denon-/Numark-Geräten. Verkauft auch MP3-Downloads, laut User auch in der Schweiz (meist 256 kbps) | Unlimited ca. 10,99 USD/Monat (Prime); Kauf je Titel |
 | [TIDAL](https://tidal.com) | Streaming in hoher Qualität mit DJ-Erweiterung | 10,99 + 9 USD DJ-Erweiterung = 19,99 USD/Monat |
 | [SoundCloud](https://soundcloud.com) | Streaming und Künstlerplattform | Go 4,99 (ohne DJ-Nutzung), Go+ 10,99, DJ 19,99 USD/Monat |
 | [MusicBrainz](https://musicbrainz.org) | Offene Musikdatenbank; Quelle für Picard und das TagStudio-Plugin | kostenlos |
