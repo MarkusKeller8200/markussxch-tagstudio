@@ -631,7 +631,7 @@ class PlaylistMixin:
             except Exception:  # noqa: BLE001
                 dur = 0
             out.append(playlists.lib_entry(f.path, f.text("TPE1").replace(MV, ", "), f.text("TIT2"), f.text("TSRC"),
-                                           int(dur or 0), f.text("TIT3")))
+                                           int(dur or 0), f.text("TIT3"), getattr(f, "size", 0) or 0))
         return out
 
     def _pl_lib_index(self, cancel, progress, roots=None) -> list:

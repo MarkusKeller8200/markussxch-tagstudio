@@ -120,7 +120,7 @@ class Store:
                 it["first_seen"] = now
                 it["status"] = "missing"
             else:
-                for f in ("first_seen", "status", "file", "downloaded", "cands", "reason"):
+                for f in ("first_seen", "status", "file", "downloaded", "cands", "reason", "linked"):
                     if f in old:
                         it[f] = old[f]
                 if not it.get("bought") and old.get("bought"):
@@ -144,12 +144,37 @@ class Store:
         if downloaded:
             it["downloaded"] = int(time.time())
 
+    def link(self, key, path, inbox: str = ""):
+        """Kauf von Hand einer Datei zuordnen (bleibt bei weiteren Abgleichen); path "" = Zuordnung aufheben."""
+        it = self.data["items"].get(key)
+        if it is None:
+            raise ValueError("Kauf nicht gefunden.")
+        if path:
+            if not os.path.isfile(path):
+                raise ValueError("Datei nicht gefunden.")
+            inbox_k = playlists.nk(inbox) + os.sep if inbox else ""
+            it.update(file=path, linked=True, reason="von Hand zugeordnet",
+                      status="inbox" if inbox_k and playlists.nk(path).startswith(inbox_k) else "library")
+            it.pop("cands", None)
+        else:
+            for k in ("linked", "file", "cands"):
+                it.pop(k, None)
+            it.update(status="missing", reason="")
+        self.save()
+
     def match(self, index, inbox: str = "") -> dict:
         """Status aller Käufe neu bestimmen. index: playlists.LibIndex der Bibliothek (inkl. Eingang).
         Dateien im Eingangsordner → „im Eingang“, sonst „in Bibliothek“. → Zähler je Status"""
         inbox_k = playlists.nk(inbox) + os.sep if inbox else ""
         count = {s: 0 for s in STATUSES}
         for it in self.data["items"].values():
+            if it.get("linked") and it.get("file") and os.path.isfile(it["file"]):     # von Hand zugeordnet (#290)
+                it["status"] = "inbox" if inbox_k and playlists.nk(it["file"]).startswith(inbox_k) else "library"
+                it["reason"] = "von Hand zugeordnet"
+                it.pop("cands", None)
+                count[it["status"]] += 1
+                continue
+            it.pop("linked", None)
             ref = {k: it.get(k, "") for k in ("artist", "title", "mix", "isrc")}
             ref["dur"] = it.get("dur") or 0
             r = playlists.match_ref(ref, index)

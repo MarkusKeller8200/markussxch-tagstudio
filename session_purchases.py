@@ -55,7 +55,8 @@ class PurchasesMixin:
                 "catalog": it.get("catalog", ""), "label": it.get("label", ""), "release": it.get("release", ""),
                 "genre": it.get("genre", ""), "isrc": it.get("isrc", ""), "url": it.get("url", ""),
                 "bought": it.get("bought", ""), "seen": it.get("first_seen") or 0, "status": it.get("status", "missing"),
-                "file": it.get("file", ""), "reason": it.get("reason", ""), "preorder": bool(it.get("preorder")), "received": bool(it.get("received")),
+                "file": it.get("file", ""), "reason": it.get("reason", ""), "preorder": bool(it.get("preorder")),
+                "cands": list(it.get("cands") or []), "linked": bool(it.get("linked")), "received": bool(it.get("received")),
                 "downloaded": it.get("downloaded") or 0}
 
     def purch_state(self) -> dict:
@@ -69,6 +70,7 @@ class PurchasesMixin:
             count[r["status"]] = count.get(r["status"], 0) + 1
         dest, why = self._purch_dest()
         return {"rows": rows, "stores": stores, "sources": self.plugins.store_sources(), "count": count,
+                "last": dict(getattr(self, "_purch_last", {}) or {}),
                 "dest": dest, "dest_from": why, "dest_ok": bool(dest) and os.path.isdir(dest),
                 "roots": self._pl_lib_roots()}
 
@@ -93,6 +95,24 @@ class PurchasesMixin:
             return ""
         d = datetime.date.fromisoformat(max(dates)) - datetime.timedelta(days=OVERLAP_DAYS)
         return d.isoformat()
+
+    def _purch_diag(self, index, dest) -> dict:
+        """Was wurde verglichen? Ordner, Anzahl Dateien, zusammengefasste Doppelte (gleiche Datei unter 2. Pfad)."""
+        roots = self._pl_lib_roots()
+        if dest and os.path.isdir(dest) and playlists.nk(dest) not in {playlists.nk(r) for r in roots}:
+            roots = roots + [dest]
+        dupes = getattr(index, "dupes", [])
+        d = {"roots": roots, "files": len(index), "dupes": len(dupes),
+             "examples": [{"path": a, "same": b} for a, b in dupes[:5]]}
+        self._purch_last = d
+        return d
+
+    def purch_link(self, key, path="") -> dict:
+        """Unklaren (oder anderen) Kauf von Hand einer Datei zuordnen; path "" hebt die Zuordnung auf (#290)."""
+        dest, _why = self._purch_dest()
+        with self.lock:
+            self._purch().link(str(key), str(path or ""), dest)
+        return self.purch_state()
 
     def start_purch_refresh(self, stores=None, full=False):
         """Käufe der Stores holen (None = alle bereiten), zusammenführen, mit der Bibliothek abgleichen. Nach dem
@@ -126,7 +146,8 @@ class PurchasesMixin:
             index, dest = self._purch_index(cancel, progress)
             with self.lock:
                 count = self._purch().match(index, dest)
-            return {"ok": True, "new": new, "count": count, "errors": errors, "library": len(index)}
+            return {"ok": True, "new": new, "count": count, "errors": errors, "library": len(index),
+                    "diag": self._purch_diag(index, dest)}
         return self._run("purch", "Käufe aktualisieren", job)
 
     def start_purch_match(self):
@@ -135,7 +156,8 @@ class PurchasesMixin:
             index, dest = self._purch_index(cancel, progress)
             with self.lock:
                 count = self._purch().match(index, dest)
-            return {"ok": True, "new": 0, "count": count, "errors": [], "library": len(index)}
+            return {"ok": True, "new": 0, "count": count, "errors": [], "library": len(index),
+                    "diag": self._purch_diag(index, dest)}
         return self._run("purch", "Käufe abgleichen", job)
 
     def start_purch_download(self, keys_=None):

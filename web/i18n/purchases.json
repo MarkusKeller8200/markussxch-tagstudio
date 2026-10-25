@@ -67,5 +67,19 @@
 "Hier {q} – die Titel stehen dann auf {q} bzw. {q}.": ["Here {q} – the tracks then show {q} or {q}.", "Da {q} – d Titel staht denn uf {q} bzw. {q}."],
 "Nicht geladene Titel ({x})": ["Tracks not downloaded ({x})", "Nöd abegladeni Titel ({x})"],
 "Downloads bei {x} öffnen": ["Open downloads at {x}", "Downloads bi {x} öffne"],
-"{x} Titel ohne Download-Adresse – bitte über {x} laden (Variante {n}).": ["{x} tracks without download address – please download via {x} (option {n}).", "{x} Titel ohni Download-Adrässe – bitte über {x} abelade (Variante {n})."]
+"{x} Titel ohne Download-Adresse – bitte über {x} laden (Variante {n}).": ["{x} tracks without download address – please download via {x} (option {n}).", "{x} Titel ohni Download-Adrässe – bitte über {x} abelade (Variante {n})."],
+"· {x} Kandidaten": ["· {x} candidates", "· {x} Kandidate"],
+"{x} Kandidaten": ["{x} candidates", "{x} Kandidate"],
+"· {x} Dateien": ["· {x} files", "· {x} Dateie"],
+"{x} doppelt (gleiche Datei unter anderem Pfad) zusammengefasst": ["{x} duplicates (same file under another path) merged", "{x} doppelt (glichi Datei under emne andere Pfad) zämegfasst"],
+"Verglichen mit:": ["Compared with:", "Verglichä mit:"],
+"Zuordnen": ["Assign", "Zueordne"],
+"Grund: {x}": ["Reason: {x}", "Grund: {x}"],
+"Keine Kandidaten aus dem Abgleich.": ["No candidates from matching.", "Kei Kandidate us em Abgliich."],
+"Andere Datei wählen …": ["Choose another file …", "Anderi Datei wähle …"],
+"Zugeordnet – bleibt bei weiteren Abgleichen.": ["Assigned – kept for further matching.", "Zuegordnet – bliibt bi wiitere Abgliich."],
+"Zuordnen …": ["Assign …", "Zueordne …"],
+"Zuordnung aufheben": ["Remove assignment", "Zueordnig ufhebe"],
+"Kauf nicht gefunden.": ["Purchase not found.", "Chauf nöd gfunde."],
+"von Hand zugeordnet": ["assigned by hand", "vo Hand zuegordnet"]
 }

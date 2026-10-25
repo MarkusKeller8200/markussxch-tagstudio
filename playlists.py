@@ -234,13 +234,14 @@ def artist_keys(artist) -> set:
     return {norm(a) for a in _ART_SPLIT.split(str(artist or "")) if norm(a)}
 
 
-def lib_entry(path, artist, title, isrc="", dur=0, subtitle="") -> dict:
-    """Eintrag des Bibliotheks-Index. subtitle (TIT3): Mix, wenn er nicht im Titel steht."""
+def lib_entry(path, artist, title, isrc="", dur=0, subtitle="", size=0) -> dict:
+    """Eintrag des Bibliotheks-Index. subtitle (TIT3): Mix, wenn er nicht im Titel steht. size: Dateigrösse (zum
+    Erkennen derselben Datei unter einem zweiten Pfad, #290)."""
     base, mix = split_title(title)
     if not mix and subtitle and re.search(r"\b(?:" + _MIXWORDS + r")\b", subtitle, re.I):
         mix = mix_key(subtitle)
     return {"path": path, "artist": artist, "title": title, "isrc": norm(isrc).replace(" ", ""), "dur": dur or 0,
-            "akeys": artist_keys(artist), "base": base, "mix": mix}
+            "akeys": artist_keys(artist), "base": base, "mix": mix, "size": int(size or 0)}
 
 
 class LibIndex:
@@ -248,7 +249,16 @@ class LibIndex:
     Sammlungen)."""
 
     def __init__(self, entries):
-        self.entries = list(entries)
+        """Dieselbe Datei unter einem zweiten Pfad (gleicher Dateiname und gleiche Grösse – z. B. Laufwerk und
+        Netzwerkpfad derselben Bibliothek) zählt nur einmal; sonst wäre jeder Titel „mehrere Treffer“ (#290)."""
+        self.entries, self.dupes, seen = [], [], {}
+        for e in entries:
+            k = (os.path.basename(e["path"]).casefold(), e.get("size") or 0)
+            if k[1] and k in seen:
+                self.dupes.append((e["path"], seen[k]))
+                continue
+            seen[k] = e["path"]
+            self.entries.append(e)
         self.isrc, self.base, self.artist = {}, {}, {}
         for e in self.entries:
             if e["isrc"]:

@@ -1670,3 +1670,5 @@ html.i18n-wait body{visibility:hidden}
 .pur-t tr.sel td{background:var(--acc-soft)}
 .pur-st{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;background:var(--raise);color:var(--dim)}
 .pur-st.library{color:var(--ok)}.pur-st.inbox{color:var(--acc)}.pur-st.unclear{color:var(--warn)}.pur-st.missing{color:#e5484d}.pur-st.pre{color:var(--faint)}
+.pur-diag{padding:8px 10px 4px}
+.pur-t td.pur-why{color:var(--warn)}

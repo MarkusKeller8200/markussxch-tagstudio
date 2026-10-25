@@ -5,7 +5,7 @@
 const PUR = { st: null, q: "", store: "", status: "", sel: new Set(), sort: { k: "bought", desc: true } };
 const PUR_STATUS = { library: "in Bibliothek", inbox: "im Eingang", unclear: "unklar", missing: "fehlt" };
 const PUR_COLS = [["status", "Status"], ["title", "Titel"], ["artist", "Interpret"], ["mix", "Mix"], ["dur", "Länge"],
-  ["key", "Tonart"], ["bpm", "BPM"], ["catalog", "Katalognr."], ["store", "Store"], ["bought", "Kaufdatum"]];
+  ["key", "Tonart"], ["bpm", "BPM"], ["catalog", "Katalognr."], ["store", "Store"], ["bought", "Kaufdatum"], ["hint", "Hinweis"]];
 
 async function purchasesShow() {
   try { purApply(await call("purch_state")); } catch (e) { toast(String(e.message || e)); }
@@ -48,6 +48,13 @@ function purRenderBar() {
   b.disabled = !(sel || miss) || !st.dest;
 }
 
+/** #290: sichtbarer Grund bzw. gefundene Datei */
+function purHint(r) {
+  if (r.status === "library" || r.status === "inbox") return r.file ? r.file.split(/[\\/]/).pop() : "";
+  if (r.status === "unclear") return r.reason + (r.cands && r.cands.length > 1 ? ` · ${r.cands.length} Kandidaten` : "");
+  return r.reason && r.reason !== "nicht gefunden" ? r.reason : "";
+}
+
 function purVisible() {
   const q = PUR.q.trim().toLowerCase();
   const rows = PUR.st.rows.filter((r) => (!PUR.store || r.store === PUR.store) && (!PUR.status || r.status === PUR.status)
@@ -55,7 +62,7 @@ function purVisible() {
   const { k, desc } = PUR.sort;
   const val = (r) => k === "key" ? (r.key ? (parseInt(r.key, 10) * 2 - (r.key.endsWith("A") ? 1 : 0)) : null)
     : k === "bought" ? (r.bought || (r.seen ? new Date(r.seen * 1000).toISOString() : ""))
-    : k === "status" ? Object.keys(PUR_STATUS).indexOf(r.status) : r[k];
+    : k === "status" ? Object.keys(PUR_STATUS).indexOf(r.status) : k === "hint" ? purHint(r) : r[k];
   rows.sort((a, b) => {
     const x = val(a), y = val(b);
     const ex = x === null || x === undefined || x === "", ey = y === null || y === undefined || y === "";
@@ -76,8 +83,10 @@ function purRenderTable() {
   }
   const rows = purVisible();
   const all = rows.length && rows.every((r) => PUR.sel.has(r.k));
+  const dg = st.last || {};
+  const diag = `<div class="muted sm pur-diag">Verglichen mit: <span translate="no">${esc((dg.roots || st.roots || []).join(" · ") || "–")}</span>${dg.files ? ` · ${fmtN(dg.files)} Dateien` : ""}${dg.dupes ? ` · <span title="${esc((dg.examples || []).map((x) => x.path + "\n= " + x.same).join("\n\n"))}">${fmtN(dg.dupes)} doppelt (gleiche Datei unter anderem Pfad) zusammengefasst</span>` : ""}</div>`;
   const head = PUR_COLS.map(([k, l]) => `<th data-pursort="${k}" class="${["dur", "bpm"].includes(k) ? "r" : ""}" aria-sort="${PUR.sort.k === k ? (PUR.sort.desc ? "descending" : "ascending") : "none"}">${esc(l)}${PUR.sort.k === k ? (PUR.sort.desc ? " ▾" : " ▴") : ""}</th>`).join("");
-  box.innerHTML = `<table class="pur-t"><thead><tr><th><input type="checkbox" id="purAll" ${all ? "checked" : ""} aria-label="Alle wählen"></th>${head}<th></th></tr></thead><tbody>
+  box.innerHTML = diag + `<table class="pur-t"><thead><tr><th><input type="checkbox" id="purAll" ${all ? "checked" : ""} aria-label="Alle wählen"></th>${head}<th></th></tr></thead><tbody>
     ${rows.map((r) => {
       const stc = r.preorder ? `<span class="pur-st pre">Vorbestellung</span>` : `<span class="pur-st ${r.status}" title="${esc([r.file || r.reason || "", r.received ? `Bei ${purStoreName(r.store)} schon heruntergeladen` : ""].filter(Boolean).join(" · "))}">${esc(PUR_STATUS[r.status] || r.status)}</span>`;
       const date = r.bought ? esc(r.bought.slice(0, 10)) : (r.seen ? `<span class="muted" title="Kein Kaufdatum vom Store – zuerst gesehen">${esc(new Date(r.seen * 1000).toLocaleDateString())}</span>` : "");
@@ -87,6 +96,7 @@ function purRenderTable() {
         <td class="nm muted" translate="no">${esc(r.mix)}</td><td class="r muted">${r.dur ? fmtTime(r.dur) : ""}</td>
         <td>${r.key ? keyBadge(r.key) : ""}</td><td class="r">${bpm}</td><td translate="no">${esc(r.catalog)}</td>
         <td translate="no">${esc(purStoreName(r.store))}</td><td>${date}</td>
+        <td class="nm sm ${r.status === "unclear" ? "pur-why" : "muted"}" title="${esc([r.file, ...(r.cands || [])].filter(Boolean).join("\n"))}"${r.status === "library" || r.status === "inbox" ? ' translate="no"' : ""}>${r.linked ? "✓ " : ""}${esc(purHint(r))}</td>
         <td>${r.url ? `<a href="#" class="pls-link" data-url="${esc(r.url)}" title="Bei ${esc(purStoreName(r.store))} öffnen">↗</a>` : ""}</td></tr>`;
     }).join("")}</tbody></table>${rows.length ? "" : '<div class="tg-empty">Keine Käufe für diesen Filter.</div>'}`;
 }
@@ -132,6 +142,23 @@ async function purManual(r) {
   if (a === "open") call("open_url", m.url);
 }
 
+/** #290: Kauf von Hand einer Datei zuordnen – Kandidaten aus dem Abgleich oder eigene Datei */
+async function purLinkDialog(r) {
+  const cands = r.cands || [];
+  const pick = await modal({ title: "Zuordnen", wide: true,
+    html: `<p style="margin:0" translate="no">${esc(r.artist)} – ${esc(r.title)}${r.mix ? ` (${esc(r.mix)})` : ""}</p>
+      ${r.reason ? `<p class="muted sm" style="margin:4px 0 8px">Grund: ${esc(r.reason)}</p>` : ""}
+      ${cands.length ? cands.map((p, k) => `<label class="pls-pick-row"><input type="radio" name="purLink" value="${k}"${k === 0 ? " checked" : ""}> <span class="ellipsis" translate="no" title="${esc(p)}">${esc(p)}</span></label>`).join("") : '<div class="muted sm">Keine Kandidaten aus dem Abgleich.</div>'}
+      <label class="pls-pick-row"><input type="radio" name="purLink" value="pick"${cands.length ? "" : " checked"}> Andere Datei wählen …</label>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Zuordnen", value: true, primary: true }],
+    collect: (b) => (b.querySelector('input[name="purLink"]:checked') || {}).value });
+  if (pick === null || pick === undefined) return;
+  let path = pick === "pick" ? await call("pick_file", "mp3", r.file || (PUR.st.roots || [])[0] || "") : cands[+pick];
+  if (!path) return;
+  try { purApply(await call("purch_link", r.k, path)); toast("Zugeordnet – bleibt bei weiteren Abgleichen."); }
+  catch (e) { toast(String(e.message || e)); }
+}
+
 async function purPickDest() {
   const p = await call("pick_path", "", true, PUR.st ? PUR.st.dest : "");
   if (p) purApply(await call("purch_set_dest", p));
@@ -145,6 +172,8 @@ function purRowMenu(e, k) {
   if (r.file) items.push({ label: "Dateiordner öffnen", icon: ICON.folder, run: () => call("reveal", r.file) });
   const ws = typeof webSearchItem === "function" ? webSearchItem(e, r.artist, r.title + (r.mix ? ` (${r.mix})` : "")) : null;
   if (ws) items.push(ws);
+  if (r.status !== "library" || r.linked) items.push({ label: "Zuordnen …", run: () => purLinkDialog(r) });
+  if (r.linked) items.push({ label: "Zuordnung aufheben", run: async () => purApply(await call("purch_link", r.k, "")) });
   if (r.status !== "library" && !r.preorder) items.push({ label: "Herunterladen …", run: () => { PUR.sel = new Set([k]); purRenderBar(); purDownload(); } });
   if (items.length) showMenu(e.clientX, e.clientY, items);
 }

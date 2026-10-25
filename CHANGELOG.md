@@ -27,6 +27,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   bisherige Anmeldung bleibt als „inoffizieller Ausweichweg“. Das Integrationsfenster listet alle Endpunkte der
   offiziellen Beschreibung (catalog, my, curation) mit Status; genutzt werden nur dokumentierte Endpunkte, ausser
   beim Download gekaufter Dateien. Konto über `GET /my/account/`.
+- **Käufe: Abgleich (#290):** dieselbe Datei unter zwei Pfaden zählt nur einmal (weniger „unklar“, auch bei
+  Playlists), Spalte „Hinweis“ mit dem Grund, Zeile „Verglichen mit …“, „Zuordnen …“ von Hand.
 - **Käufe (#285):** neue Seite „Käufe“ – gekaufte Titel aller Stores (vorerst Beatport) in einer Tabelle mit Titel,
   Interpret, Mix, Länge, Tonart, BPM, Katalognummer, Store, Kaufdatum und Link; „Aktualisieren“ holt neue Käufe und
   gleicht mit der Bibliothek ab (in Bibliothek, im Eingang, unklar, fehlt), „Fehlende herunterladen“ lädt in den

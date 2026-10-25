@@ -2533,30 +2533,42 @@ class UiTest(unittest.TestCase):
             dur: 300, key: "8A", bpm: 124, catalog: "POL0" + id, label: "", release: "", genre: "", isrc: "", url: "https://www.beatport.com/track/x/" + id,
             bought: "", seen: 1761350000, status, file: "", reason: "", preorder: false, downloaded: 0 }, extra || {});
           const st = { rows: [row("beatport:1", "1", "Nordlicht", "library", { bought: "2026-10-20 10:00:00", file: "/x/n.mp3" }),
-              row("beatport:2", "2", "Kaltes Glas", "missing", { bought: "2026-10-22 09:00:00" }), row("beatport:3", "3", "Vorab", "missing", { preorder: true })],
+              row("beatport:2", "2", "Kaltes Glas", "missing", { bought: "2026-10-22 09:00:00" }), row("beatport:3", "3", "Vorab", "missing", { preorder: true }),
+              row("beatport:4", "4", "Ufer", "unclear", { reason: "mehrere Treffer", cands: ["/a/Ufer.mp3", "/b/Ufer.mp3"] })],
             stores: { beatport: { name: "Beatport", refreshed: 1761350000, count: 3 } }, sources: [{ id: "beatport", name: "Beatport", ready: true, why: "" }],
-            count: { library: 1, inbox: 0, unclear: 0, missing: 2 }, dest: "/musik/00_New", dest_from: "Basisordner", dest_ok: true, roots: [] };
+            count: { library: 1, inbox: 0, unclear: 1, missing: 2 }, dest: "/musik/00_New", dest_from: "Basisordner", dest_ok: true, roots: ["/a", "/b"],
+            last: { roots: ["/a", "/b"], files: 900, dupes: 450, examples: [] } };
           window.call = (n, ...a) => {
             if (n === "purch_state") return Promise.resolve(JSON.parse(JSON.stringify(st)));
             if (n === "start_purch_download") { window.__dl = a[0]; window.__fake = { ok: true, downloaded: 0, failed: ["Mara Lind – Kaltes Glas: keine Download-Adresse gefunden"], dest: st.dest,
               manual: [{ store: "beatport", name: "Beatport", url: "https://www.beatport.com/library/downloads" }] }; return Promise.resolve({ ok: true }); }
             if (n === "open_url") { window.__opened = a[0]; return Promise.resolve({}); }
+            if (n === "purch_link") { window.__link = a; const r = st.rows.find((x) => x.k === a[0]); Object.assign(r, { status: "library", file: a[1], linked: true, reason: "von Hand zugeordnet", cands: [] });
+              return Promise.resolve(JSON.parse(JSON.stringify(st))); }
             if (n === "task_status" && window.__fake) { const r = window.__fake; window.__fake = null; return Promise.resolve({ done: true, running: false, result: r }); }
             return orig(n, ...a); }; })()""")
         pg.click('.nav[data-module="purchases"]')
         pg.wait_for_selector("#purTable .pur-t tbody tr")
-        self.assertEqual(pg.locator("#purTable tbody tr").count(), 3)
+        self.assertEqual(pg.locator("#purTable tbody tr").count(), 4)
         self.assertEqual(pg.inner_text("#purTable tbody tr:first-child td:nth-child(3)"), "Kaltes Glas")   # neuester Kauf zuerst
+        self.assertIn("450 doppelt", pg.inner_text("#purTable .pur-diag"))                                # #290: Diagnose
+        self.assertIn("mehrere Treffer · 2 Kandidaten", pg.inner_text('#purTable tr[data-k="beatport:4"]'))   # Grund sichtbar
+        pg.click('#purTable tr[data-k="beatport:4"] td:nth-child(3)', button="right")
+        pg.click("#menu button >> text=Zuordnen …")
+        pg.check('input[name="purLink"][value="1"]')
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("window.__link && window.__link[1] === '/b/Ufer.mp3'"))
+        pg.wait_for_function("document.querySelector('#purTable tr[data-k=\"beatport:4\"] .pur-st.library')")
         self.assertIn("Fehlende herunterladen (1)", pg.inner_text("#purDl"))                              # ohne Vorbestellung
         self.assertIn("Vorbestellung", pg.inner_text("#purTable"))
-        self.assertEqual(pg.locator("#purTable .pls-link").count(), 3)
+        self.assertEqual(pg.locator("#purTable .pls-link").count(), 4)
         pg.click('#purStatus [data-purst="library"]')
-        self.assertEqual(pg.locator("#purTable tbody tr").count(), 1)
+        self.assertEqual(pg.locator("#purTable tbody tr").count(), 2)                       # inkl. von Hand zugeordnet
         pg.click('#purStatus [data-purst=""]')
         pg.fill("#purFind", "kaltes")
         pg.wait_for_function("document.querySelectorAll('#purTable tbody tr').length === 1")
         pg.fill("#purFind", "")
-        pg.wait_for_function("document.querySelectorAll('#purTable tbody tr').length === 3")
+        pg.wait_for_function("document.querySelectorAll('#purTable tbody tr').length === 4")
         pg.click('#purTable th[data-pursort="title"]')
         self.assertEqual(pg.inner_text("#purTable tbody tr:first-child td:nth-child(3)"), "Kaltes Glas")  # A→Z
         pg.check('#purTable tr[data-k="beatport:2"] [data-pursel]')
