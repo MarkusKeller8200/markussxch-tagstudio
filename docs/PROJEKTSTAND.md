@@ -1,11 +1,10 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-25 (20:15): **4.11.0 auf `main`** (Meilenstein #27): geschlossen #222, #253–#258, #304, #325, #331; im Beta-Test
-> #107, #309, #317–#320, #323, #324, #326–#330 (Sofort-Liste im Tagger, Protokolle live/leeren, Dialoge verschiebbar …): #304 Dateidialoge
-> übersetzt, #107 Werkzeugleiste im Vergleich, #222 Wellenform im MP3 (`wavetag.py`), SonoVault #253–#258 (Plugin
-> `sonovault`, Online-Metadaten 2.2, Entdecken), Cloud Weg 2 #317 (`cloudsync.py`, `session_cloud.py`,
-> `web/cloudsync.js`) mit Plugins OneDrive/Google Drive/Dropbox #318–#320 (`cloudkit.py`). Kein Release ohne Freigabe;
-> beim Release neue Module in `packaging/build.py` › `HIDDEN`.
+> Stand 2026-10-25 (22:35): **v4.11.0 final veröffentlicht** (Release `v4.11.0`, Windows + macOS, 25 Dateien; Meilenstein #27
+> „Cloud, SonoVault & Verbesserungen“ mit 23 Issues geschlossen): Dateidialoge übersetzt (#304), Werkzeugleisten im Vergleich
+> und Tagger (#107), Wellenform im MP3 (#222), SonoVault (#253–#258), Cloud-Abgleich mit OneDrive/Google Drive/Dropbox
+> (#309, #317–#320, #323, #324), Tagger-Sofort-Liste mit Covern (#326), Protokolle live/leeren (#327, #329), Dialoge
+> verschiebbar (#330), Spalten (#331), Start-Fehler (#325, #328).
 >
 > Davor 16:55: **4.10.0 final veröffentlicht** (Release `v4.10.0`, Meilenstein #26 geschlossen). Nächstes: **4.11.0 – Cloud, SonoVault & Verbesserungen** (Meilenstein #27: #304, #107, #222, #309/#317–#320, #253–#258; Entscheide C1–C4, SV1–SV4, W1 getroffen; Konzept `docs/KONZEPT-CLOUD.md`).
 >

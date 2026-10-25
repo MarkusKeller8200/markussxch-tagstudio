@@ -14,7 +14,7 @@ Vor Architekturentscheidungen, neuen Modulen oder grösseren Codeänderungen unb
 
 ## Aktuelle Iterationsplanung
 
-**Stand 25.10.2026 (Abend):** **v4.10.0 final** veröffentlicht; **4.11.0** (Meilenstein #27) auf `main` umgesetzt, alle Issues im Beta-Test (`docs/KONZEPT-CLOUD.md`, `docs/KONZEPT-SONOVAULT.md`). Cloud-Gegenstellen = Plugins mit `cloud_list/get/put/delete` (`cloudsync.py`); SonoVault-Werte nie in Protokolle, Exporte oder Cloud. Ordner immer über `folders.role()`, `folders.libraries()`, `folders.main_library()` bzw. `Session._lib_roots()` holen – keine eigenen Pfad-Einstellungen mehr je Modul. Nutzer-Issues aus GitHub-Feedback (Label `triage`) nur nach Owner-Freigabe.
+**Stand 25.10.2026 (22:35):** **v4.11.0 final** veröffentlicht, Meilenstein #27 geschlossen (`docs/KONZEPT-CLOUD.md`, `docs/KONZEPT-SONOVAULT.md`). Nächster Meilenstein noch nicht festgelegt (offen: Sammlungen Verbesserungen/Funktionen). Cloud-Gegenstellen = Plugins mit `cloud_list/get/put/delete` (`cloudsync.py`); SonoVault-Werte nie in Protokolle, Exporte oder Cloud. Ordner immer über `folders.role()`, `folders.libraries()`, `folders.main_library()` bzw. `Session._lib_roots()` holen – keine eigenen Pfad-Einstellungen mehr je Modul. Nutzer-Issues aus GitHub-Feedback (Label `triage`) nur nach Owner-Freigabe.
 
 ## GitHub-Meilensteinverwaltung
 

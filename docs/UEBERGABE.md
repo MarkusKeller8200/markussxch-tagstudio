@@ -1,8 +1,22 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-25 (Abend, 20:15): 4.11.0 auf `main`, 14 Issues im Beta-Test, 9 geschlossen** (dazu #323–#331 aus dem Chat) – siehe „Sitzung 25.10.2026 (Abend)“. Davor (17:05): 4.10.0 final veröffentlicht; 4.11.0 vorbereitet – Meilenstein #27 „4.11.0 – Cloud, SonoVault & Verbesserungen“ mit allen Entscheiden, siehe „Start 4.11.0“ und „Übergabe-Prompt 4.11.0“.
+Stand: **2026-10-25 (22:35): v4.11.0 final veröffentlicht, Meilenstein #27 geschlossen** – siehe „Release 4.11.0“ und „Sitzung 25.10.2026 (Abend)“. Davor (17:05): 4.10.0 final veröffentlicht.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Release 4.11.0 (25.10.2026, 22:35)
+
+- **Freigabe User 22:10** („wenn der Lauf fehlerfrei war, Release erstellen und Meilenstein schliessen“). Vorher alle
+  Testlisten abgehakt (User 22:05/22:09), #107 nach fehlerfreiem Lauf geschlossen.
+- Erster Lauf (6871731) war **nicht** fehlerfrei: Test #331 setzte die Schriftbreite voraus (CI-Linux breiter),
+  `test_web_search_menu` zeitabhängig (Snapshot-Hinweis kommt seit #326 erst nach dem Tagger). → 5cc1f51: Test mit
+  2560/1280 px, `snap_hint: False` in der Test-Grundeinstellung. Danach 107 Oberflächentests + CI grün.
+- `packaging/build.py` › `HIDDEN`: `wavetag`, `cloudsync`, `cloudkit`, `session_cloud`. `release.py 4.11.0`, Commit
+  „Version 4.11.0“ (45d17d3), Workflow „Installer“ grün (plan, windows, macos, release) → **Release `v4.11.0`**
+  (nicht Vorabversion, „latest“), 25 Dateien: Setup.exe, macOS-Apple-Chip.dmg, `plugins.json`, 22 Plugin-ZIPs (neu:
+  sonovault 1.0, onedrive/gdrive/dropbox 1.1). Meilenstein #27 geschlossen (23 Issues).
+- Hinweis: `gh release view` nutzt GraphQL (gesperrt) – Release per REST prüfen: `gh api repos/…/releases/tags/vX.Y.Z`.
+- Nächster Meilenstein noch offen (Sammlungen: Verbesserungen 1, Funktionen 14 offen).
 
 ## Sitzung 25.10.2026 (Abend) – 4.11.0 umgesetzt
 
