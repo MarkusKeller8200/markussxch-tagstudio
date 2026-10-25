@@ -208,6 +208,9 @@ nur angehakt, wenn TKEY leer ist.
   nach 5 min ohne Fortschritt; leer → `/analyze/result?file=`). Antwortformate tolerant gelesen (nicht dokumentiert).
   `/analyze/clear` nie. Auto-Tagging der App wird über geänderte Änderungszeiten erkannt und gemeldet.
 
+- **Store-Sitzung (#295):** erlaubte Store-Funktionen `store_purchases`, `store_download`, `store_login`,
+  `store_logout`, `store_session` (`Manager.PLAYLIST_FNS`). `store_login` hält Zugangsdaten nur für die Sitzung im
+  Speicher des Plugins; die Seite „Käufe“ fragt sie bei `need_login` ab.
 - **Protokolle (#293):** „Mehr …“ jedes Plugins: „Log-Ordner öffnen“ (`plugin_log_folder`, markiert `<id>.log`) und
   „Protokoll live anzeigen …“ (`web/log-window.html`, `web/logwin.js`; in der App `log_window_open` = eigenes
   pywebview-Fenster je Plugin, im Browser Popup mit Token). Das Fenster liest jede Sekunde `plugin_log_read(pid, name,

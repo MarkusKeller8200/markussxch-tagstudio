@@ -46,6 +46,30 @@ function purRenderBar() {
   const b = $("#purDl");
   b.textContent = sel ? `Markierte herunterladen (${fmtN(sel)})` : `Fehlende herunterladen (${fmtN(miss)})`;
   b.disabled = !(sel || miss) || !st.dest;
+  const ss = Object.entries(st.sessions || {}).filter(([, v]) => v && v.active);   // #295
+  $("#purSess").innerHTML = ss.map(([id, v]) => `<span class="pur-sess-on" title="Anmeldung nur für diese Sitzung – wird nicht gespeichert">● ${esc(purStoreName(id))}: Sitzung ${esc(v.username || "")}</span> <button class="ghost sm" data-sesslogout="${esc(id)}">Abmelden</button>`).join(" ");
+}
+
+/** #295: Anmelden nur für diese Sitzung, wie auf der Webseite – Token bleibt im Speicher, Passwort wird nicht gespeichert */
+async function purSessionLogin(store, name, why) {
+  return modal({ title: `${name} – Anmelden für den Download`,
+      html: `<p style="margin:0">${esc(why || `${name} lehnt den gespeicherten Zugang für den Download ab.`)}</p>
+        <p class="muted sm" style="margin:6px 0 10px">Anmelden wie auf der Webseite. Die Anmeldung gilt nur, solange TagStudio läuft – Passwort und Token werden nicht gespeichert.</p>
+        <div class="frm"><label for="purSU">Benutzername / E-Mail</label><input id="purSU" type="text" autocomplete="username" spellcheck="false">
+        <label for="purSP">Passwort</label><input id="purSP" type="password" autocomplete="current-password" spellcheck="false"></div>
+        <p class="st-missing sm" id="purSErr" style="margin:8px 0 0"></p>`,
+      buttons: [{ label: "Abbrechen", value: null }, { label: "Anmelden und herunterladen", value: true, primary: true }],
+      collect: async (b) => {
+        const u = $("#purSU", b).value.trim(), p = $("#purSP", b).value;
+        if (!u || !p) { $("#purSErr", b).textContent = "Benutzername und Passwort angeben."; return false; }
+        $("#purSErr", b).textContent = "Anmelden …";
+        try {
+          const r = await call("purch_session_login", store, u, p);
+          $("#purSP", b).value = "";
+          if (PUR.st) PUR.st.sessions = r.sessions;
+          return r;
+        } catch (e) { $("#purSErr", b).textContent = String(e.message || e); $("#purSP", b).value = ""; return false; }
+      } });
 }
 
 /** #290: sichtbarer Grund bzw. gefundene Datei */
@@ -119,11 +143,19 @@ async function purDownload() {
       <p class="muted sm" style="margin:8px 0 0">Die Dateien kommen unverändert vom Store; danach geht es wie gewohnt mit „Vorbereiten“ weiter. Vorbestellungen werden ausgelassen.</p>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Herunterladen", value: true, primary: true }] });
   if (!ok) return;
+  await purDoDownload(keys, 0);
+}
+
+async function purDoDownload(keys, round) {
   const r = await runTask(call("start_purch_download", keys), "Käufe herunterladen");
   if (!r || r.cancelled) return;
   PUR.sel = new Set();
   await purchasesShow();
   toast(`${fmtN(r.downloaded || 0)} Titel geladen.`);
+  if (r.need_login && r.need_login.length && round === 0) {        // #295: Sitzungs-Anmeldung, dann gleich erneut
+    const n = r.need_login[0];
+    if (await purSessionLogin(n.store, n.name)) { await purDoDownload(n.keys, 1); return; }
+  }
   if (r.manual && r.manual.length) { await purManual(r); return; }
   if (r.failed && r.failed.length) info("Nicht geladen", r.failed.slice(0, 30).join("\n") + (r.failed.length > 30 ? "\n…" : ""));
 }
@@ -184,6 +216,11 @@ function purInit() {
   $("#purFull").addEventListener("click", () => purRefresh(false, true));
   $("#purDl").addEventListener("click", purDownload);
   $("#purDestBtn").addEventListener("click", purPickDest);
+  $("#purSess").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-sesslogout]"); if (!b) return;
+    const r = await call("purch_session_logout", b.dataset.sesslogout);
+    PUR.st.sessions = r.sessions; purRenderBar(); toast("Sitzung abgemeldet.");
+  });
   let qt = 0;
   $("#purFind").addEventListener("input", (e) => { clearTimeout(qt); qt = setTimeout(() => { PUR.q = e.target.value; purRenderTable(); }, 120); });
   $("#purStore").addEventListener("change", (e) => { PUR.store = e.target.value; purRenderTable(); });

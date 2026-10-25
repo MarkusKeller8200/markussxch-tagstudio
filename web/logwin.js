@@ -64,7 +64,7 @@ async function lwTick() {
   } finally { LW.busy = false; }
 }
 
-function logInit(pid) {
+function lwStart(pid) {
   if (LW.pid === pid) return;
   Object.assign(LW, { pid, name: "", offset: -1, seq: 0, text: "", live: [], first: true });
   clearInterval(LW.timer);
@@ -78,5 +78,5 @@ function logInit(pid) {
   $("#lwPause").addEventListener("change", lwTick);
   $("#lwCopy").addEventListener("click", () => navigator.clipboard.writeText($("#lwLog").innerText).catch(() => {}));
   $("#lwFolder").addEventListener("click", () => call("plugin_log_folder", LW.pid).catch(() => {}));
-  if (LW_HASH.get("pid")) logInit(LW_HASH.get("pid"));
+  if (LW_HASH.get("pid")) lwStart(LW_HASH.get("pid"));
 })();

@@ -2661,6 +2661,48 @@ class UiTest(unittest.TestCase):
         self.assertIn("Fehlende herunterladen", pg.inner_text("#purDl"))
         self.assertEqual(pg.inner_text("#purCount").strip(), "2")
 
+    def test_purchases_session_login(self):
+        """#295: Download abgelehnt → Sitzungs-Anmeldung (wie die Webseite), dann gleich erneut herunterladen."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("""(() => { const orig = call; window.__dls = []; window.__login = []; window.__fake = null;
+          const st = { rows: [{ k: "beatport:2", store: "beatport", id: "2", title: "Kaltes Glas", mix: "", artist: "Mara Lind", dur: 300, key: "", bpm: 0,
+              catalog: "", label: "", release: "", genre: "", isrc: "", url: "", bought: "2026-10-22 09:00:00", seen: 1, status: "missing", file: "", reason: "",
+              preorder: false, downloaded: 0 }],
+            stores: { beatport: { name: "Beatport" } }, sources: [{ id: "beatport", name: "Beatport", ready: true, why: "" }],
+            count: { library: 0, inbox: 0, unclear: 0, missing: 1 }, dest: "/musik/00_New", dest_from: "Basisordner", dest_ok: true, roots: [], last: {},
+            sessions: { beatport: { active: false, username: "" } } };
+          window.call = (n, ...a) => {
+            if (n === "purch_state") return Promise.resolve(JSON.parse(JSON.stringify(st)));
+            if (n === "start_purch_download") { window.__dls.push(a[0]);
+              window.__fake = st.sessions.beatport.active ? { ok: true, downloaded: 1, failed: [], dest: st.dest, manual: [], need_login: [] }
+                : { ok: true, downloaded: 0, failed: [], dest: st.dest, manual: [], need_login: [{ store: "beatport", name: "Beatport", keys: ["beatport:2"] }] };
+              return Promise.resolve({ ok: true }); }
+            if (n === "purch_session_login") { window.__login.push(a[2]);
+              if (a[2] !== "geheim") return Promise.reject(new Error("Anmeldung abgelehnt: Ungültige Zugangsdaten"));
+              st.sessions.beatport = { active: true, username: a[1] }; return Promise.resolve({ ok: true, username: a[1], sessions: st.sessions }); }
+            if (n === "purch_session_logout") { st.sessions.beatport = { active: false, username: "" }; return Promise.resolve({ ok: true, sessions: st.sessions }); }
+            if (n === "task_status" && window.__fake) { const r = window.__fake; window.__fake = null; return Promise.resolve({ done: true, running: false, result: r }); }
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="purchases"]')
+        pg.wait_for_selector("#purTable .pur-t tbody tr")
+        self.assertEqual(pg.inner_text("#purSess").strip(), "")
+        pg.click("#purDl")
+        pg.click("#mBtns .primary")
+        pg.wait_for_selector("#purSP")
+        self.assertIn("nur, solange TagStudio läuft", pg.inner_text("#mBody"))
+        pg.fill("#purSU", "marku")
+        pg.fill("#purSP", "falsch")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("document.querySelector('#purSErr').textContent.includes('abgelehnt')")
+        self.assertEqual(pg.input_value("#purSP"), "")                                      # Passwort-Feld geleert
+        pg.fill("#purSP", "geheim")
+        pg.press("#purSP", "Enter")
+        self.assertTrue(self.until("window.__dls.length === 2 && window.__dls[1].join(',') === 'beatport:2'"))
+        pg.wait_for_function("document.querySelector('#purSess').textContent.includes('Sitzung marku')")
+        pg.click('#purSess [data-sesslogout="beatport"]')
+        pg.wait_for_function("document.querySelector('#purSess').textContent.trim() === ''")
+
     def test_playlists_page(self):
         """#267–#269: Titel aus dem Tagger in Playlists, Seite verwalten, Playlist-Ordner, Archiv, DJ-Set, Filter."""
         pg = self.pg

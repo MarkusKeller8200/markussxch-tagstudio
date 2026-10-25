@@ -33,6 +33,11 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   erster Download-Weg, Plugin 1.4 – `_3 Beta-Test`; offen, ob das App-Token akzeptiert wird.
 - **#293 Plugin-Protokolle** (Bugfix-Wunsch User 10:39): „Mehr …“ → „Log-Ordner öffnen“ und „Protokoll live
   anzeigen …“ (eigenes Fenster `log-window.html`, Live-Zeilen aus `Context.log`) – `_3 Beta-Test`.
+- **#295 Sitzungs-Anmeldung für den Download** (Wunsch User 11:05; Protokoll des Users: `purchase-download` 403 mit
+  dem Token des eigenen API-Zugangs): Fenster „Anmelden für den Download“, Token nur im Speicher, Plugin 1.5 –
+  `_3 Beta-Test`. Nicht versuchen, Kennungen aus der Beatport-Webseite auszulesen (abgelehnt, fremde Zugangsdaten).
+- CodeQL #294 (`js/user-controlled-bypass` in `web/logwin.js`): Fehlalarm, weil die Funktion `logInit` wie „logIn“
+  aussah – umbenannt in `lwStart`; schliesst sich nach dem Push von selbst.
 - Meilenstein #24 hat damit keine Issues mehr ohne Testliste; nächster Schritt: Testrückmeldungen, danach
   4.9.0-beta.1 oder final **nur nach Freigabe**. Konzept-Abschnitte 18–20 in `KONZEPT-PLAYLISTS.md`.
 

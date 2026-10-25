@@ -1695,3 +1695,5 @@ html.i18n-wait body{visibility:hidden}
 .lw-head{color:var(--acc)}
 .lw-live{color:var(--warn,#d29922)}
 .lw-t{opacity:.7}
+.pur-sess{display:inline-flex;gap:6px;align-items:center}
+.pur-sess-on{color:var(--ok,#2ea043)}

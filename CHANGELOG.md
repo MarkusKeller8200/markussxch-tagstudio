@@ -27,6 +27,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   bisherige Anmeldung bleibt als „inoffizieller Ausweichweg“. Das Integrationsfenster listet alle Endpunkte der
   offiziellen Beschreibung (catalog, my, curation) mit Status; genutzt werden nur dokumentierte Endpunkte, ausser
   beim Download gekaufter Dateien. Konto über `GET /my/account/`.
+- **Beatport: Anmelden für den Download (#295):** lehnt Beatport den gespeicherten Zugang beim Herunterladen ab,
+  fragt die Seite „Käufe“ nach einer Anmeldung nur für diese Sitzung (wie die Webseite, nichts gespeichert) und lädt
+  gleich erneut; Anzeige der Sitzung mit „Abmelden“ (Beatport-Plugin 1.5).
 - **Plugin-Protokolle (#293):** bei jedem Plugin unter „Mehr …“ „Log-Ordner öffnen“ und „Protokoll live anzeigen …“
   – eigenes Fenster, das das Protokoll jede Sekunde nachführt (Datei wählen, filtern, anhalten, kopieren); Zeilen
   laufender Vorgänge erscheinen sofort.

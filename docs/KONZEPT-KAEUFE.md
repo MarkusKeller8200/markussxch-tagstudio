@@ -65,6 +65,13 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
   Datei-Adresse. Dieser Weg steht jetzt zuerst in `download_candidates`; `order_item_download_id` liefert das offizielle
   `/my/downloads/`. Offen: ob das Token des eigenen API-Zugangs dafür zugelassen ist (Beta-Test). Jeder Abruf zählt als
   Download-Versuch (`order_item_download_try_count`).
+- **#295 (Plugin 1.5), Wunsch User 11:05:** Das Protokoll zeigte `purchase-download: HTTP 403` mit dem Token des
+  eigenen API-Zugangs. Darum Sitzungs-Anmeldung nur für den Download: `store_download` meldet `need_login`, wenn
+  `purchase-download` 401/403 liefert (oder niemand angemeldet ist); die Seite zeigt „Anmelden für den Download“,
+  `store_login` nutzt den Ablauf der Webseite (`/auth/login/` → `/auth/o/authorize/` → Code → Token, wie `login()`),
+  hält den Token in `_SESSION` (nur Speicher, `SessionClient` erneuert ohne zu speichern) und die Seite lädt sofort
+  erneut. Passwort wird nie gespeichert, `token.bin`/`app.bin` bleiben unverändert. Ob Beatport mit diesem Token
+  lädt, zeigt der Beta-Test; sonst bleibt Variante 2.
 - **Beatport-Plugin 1.2**: nutzt die bestehende inoffizielle Abfrage der Käufe (`/my/downloads/` u. a., #117) und den
   Download (`resolve_download`, `fetch_file`, merkt geladene in `geladen.json`). Kaufdatum aus bekannten Feldnamen
   (`purchase_date`, `order_date`, `created` …, auch aus der Bestellung um den Titel); fehlt es, stehen die Feldnamen im

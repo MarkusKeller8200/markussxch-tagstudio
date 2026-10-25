@@ -199,6 +199,10 @@ Weitere Funktionen, die ein Plugin anbieten kann (alle optional):
 - `store_purchases(ctx)` → `{"name", "items": [{id, title, mix, artist, dur, key, bpm, catalog, isrc, label, release,
   genre, url, bought, preorder, dl}]}` und `store_download(ctx, items, dest)` → `{"files": {id: [Pfade]}, "failed"}` –
   Seite „Käufe“ (#285): gekaufte Titel eines Stores sammeln und fehlende herunterladen (Beispiel: Beatport).
+  Optional (#295): `store_download` liefert `"need_login": true`, wenn der Store eine Anmeldung nur für den Download
+  braucht; die Seite fragt dann Benutzername und Passwort und ruft `store_login(ctx, username, password)` auf (Token
+  nur im Speicher halten, nichts speichern), danach erneut `store_download`. Dazu `store_logout(ctx)` und
+  `store_session(ctx)` → `{"active", "username"}`.
 - `playlist_push(ctx, playlist, options)` – Seite Playlists › Mehr ▾ › „An <Plugin> senden …“ (#273). `playlist` =
   `{"name", "folder", "items": [{"path", "artist", "title"}], "remote"}` (`remote` = die ID, die das Plugin beim
   letzten Senden zurückgegeben hat, sonst `None`). Rückgabe `{"ok", "id", "message", "missing": [Pfade], …}`; TagStudio

@@ -775,7 +775,8 @@ class Manager:
             return set()
 
     # ---- #242: Playlists anderer Programme fürs DJ-Set (playlists(ctx), playlist_files(ctx, id))
-    PLAYLIST_FNS = ("playlists", "playlist_files", "playlist_push", "store_purchases", "store_download")
+    PLAYLIST_FNS = ("playlists", "playlist_files", "playlist_push", "store_purchases", "store_download",
+                    "store_login", "store_logout", "store_session")
 
     def playlist_sources(self) -> list[dict]:
         """Bereite, eingeschaltete Plugins mit playlists(ctx) – z. B. Lexicon."""
@@ -832,7 +833,9 @@ class Manager:
         res = fn(ctx, *args)
         if ctx.log_lines:                              # #273/#284: Protokoll (z. B. Feldnamen der Beatport-Antworten)
             lf = write_log(f"{p.id}.log", {"playlists": "Playlists holen", "playlist_files": "Playlist holen",
-                                           "store_purchases": "Käufe holen", "store_download": "Käufe herunterladen"}
+                                           "store_purchases": "Käufe holen", "store_download": "Käufe herunterladen",
+                                           "store_login": "Sitzungs-Anmeldung", "store_logout": "Sitzung abmelden",
+                                           "store_session": "Sitzung"}
                            .get(fn_name, "Playlist senden") + "\n" + "\n".join(ctx.log_lines))
             if fn_name == "playlist_push" and isinstance(res, dict):
                 res["logfile"] = lf

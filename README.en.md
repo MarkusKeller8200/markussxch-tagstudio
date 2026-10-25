@@ -308,8 +308,10 @@ provides it, otherwise “first seen”) and a link to the store. **“↻ Refre
 everything with the library: *in library*, *in inbox*, *unclear* or *missing*. **“Download missing”** (or the selected
 ones) puts the files unchanged into the inbox folder (`00_New` or the inbox of “Prepare”, changeable under
 “Folder …”) – continue from there as usual. Pre-orders are not downloaded. Beatport does not officially offer
-downloading; if it fails, TagStudio shows how to download the tracks yourself on Beatport's download page and take
-them over with “Fetch”.
+downloading. If Beatport refuses the saved access for it, a window **“Sign in to download”** appears: sign in like on
+the website, valid only while TagStudio is running (password and token are not saved), then TagStudio downloads the
+tracks again right away; “● Beatport: session …” shows the sign-in, “Sign out” ends it. If that fails too, TagStudio
+shows how to download the tracks yourself on Beatport's download page and take them over with “Fetch”.
 
 ### Tag fixer
 

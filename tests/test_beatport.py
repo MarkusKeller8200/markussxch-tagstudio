@@ -35,13 +35,16 @@ class FakeBeatport:
     def __init__(self):
         self.calls = []
         self.password = "geheim"
+        self.web = set()
         self.token_n = 0
         self.valid = set()
 
-    def _tok(self):
+    def _tok(self, web=False):
         self.token_n += 1
         t = f"AT{self.token_n}"
         self.valid.add(t)
+        if web:                                                    # #295: Token wie die Webseite (Anmeldung → Code)
+            self.web.add(t)
         return 200, {}, json.dumps({"access_token": t, "expires_in": 3600, "refresh_token": f"RT{self.token_n}"}).encode()
 
     def __call__(self, method, url, *, headers=None, data=None, opener=None, follow=True):
@@ -74,7 +77,7 @@ class FakeBeatport:
                     return self._tok()
                 return 401, {}, json.dumps({"error": "invalid_grant", "error_description": "Invalid credentials"}).encode()
             if q.get("grant_type") == "authorization_code" and q.get("code") == "CODE1":
-                return self._tok()
+                return self._tok(web=True)
             if q.get("grant_type") == "refresh_token" and q.get("refresh_token", "").startswith("RT"):
                 return self._tok()
             return 400, {}, b"{}"
@@ -97,6 +100,8 @@ class FakeBeatport:
                  "order_item_download_id": 502, "audio_format": {"name": "mp3"}, "release": "Frisch EP",   # wie TrackDownloadList
                  "purchase_date": "2026-10-22T09:15:00Z", "received_status": True},
                 {"id": 2002, "name": "Vorbestellt", "artists": [{"name": "X"}], "pre_order": True, "order_item_download_id": 503}]}).encode()
+        if p == "/v4/catalog/tracks/purchase-download/" and auth[7:] not in self.web:      # #295: eigene App → 403
+            return 403, {"Content-Type": "application/json"}, json.dumps({"detail": "forbidden"}).encode()
         if p == "/v4/catalog/tracks/purchase-download/" and q.get("order_item_download_id") == "502":   # #292
             return 200, {}, json.dumps({"location": "https://dl.beatport.com/sig/abc.mp3"}).encode()
         if p == "/v4/my/downloads/502/":
@@ -238,6 +243,69 @@ class TestBeatport(Base):
         finally:
             self.mod._urlopen = orig
 
+    def test_session_login_download(self):
+        """#295: eigener API-Zugang wird beim Download abgelehnt → Sitzungs-Anmeldung wie die Webseite, Token nur im
+        Speicher, dann derselbe Download-Weg (purchase-download)."""
+        self.mod._SESSION.clear()
+        self.addCleanup(self.mod._SESSION.clear)
+        st = self.act("login", method="app", client_id="MYAPP", client_secret="S3CRET", username="marku", password="geheim")
+        self.assertIsNone(st["error"], st)
+        inbox = os.path.join(self.dir, "00_New")
+        os.makedirs(inbox)
+        self.s.purch_set_dest(inbox)
+        self.s.start_purch_refresh()
+        self.wait()
+        self.assertEqual(self.s.purch_state()["sessions"], {"beatport": {"active": False, "username": ""}})
+        r = self.s.start_purch_download(["beatport:2001"])
+        self.assertTrue(r["ok"], r)
+        res = self.wait()["result"]
+        self.assertEqual((res["downloaded"], res["manual"]), (0, []))
+        self.assertEqual(res["need_login"], [{"store": "beatport", "name": "Beatport", "keys": ["beatport:2001"]}])
+        with self.assertRaises(Exception):
+            self.s.purch_session_login("beatport", "marku", "falsch")
+        tok_file = os.path.join(os.path.join(plugins.data_root(), "beatport"), "token.bin")
+        with open(tok_file, "rb") as fh:
+            before = fh.read()
+        r = self.s.purch_session_login("beatport", "marku", "geheim")
+        self.assertEqual((r["ok"], r["sessions"]["beatport"]), (True, {"active": True, "username": "marku"}))
+        with open(tok_file, "rb") as fh:
+            self.assertEqual(fh.read(), before)                                           # gespeicherter Zugang bleibt
+        audio = b"ID3\x03\x00\x00\x00\x00\x00\x00" + b"\xff\xfb" * 200
+
+        class Resp:
+            headers = {"Content-Type": "audio/mpeg", "Content-Disposition": 'attachment; filename="x.mp3"'}
+
+            def __init__(self):
+                self.left = audio
+
+            def read(self, n=-1):
+                out, self.left = self.left[:n], self.left[n:]
+                return out
+
+            def close(self):
+                pass
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+        orig = self.mod._urlopen
+        self.mod._urlopen = lambda req, timeout: Resp()
+        try:
+            r = self.s.start_purch_download(["beatport:2001"])
+            res = self.wait()["result"]
+        finally:
+            self.mod._urlopen = orig
+        self.assertEqual((res["downloaded"], res["need_login"]), (1, []))
+        with open(os.path.join(os.path.join(plugins.data_root(), "beatport"), "app.bin"), "rb") as fh:
+            self.assertNotIn(b"geheim", fh.read())                                        # Passwort nirgends gespeichert
+        for root, _d, files in os.walk(os.path.join(plugins.data_root(), "beatport")):
+            for f in files:
+                with open(os.path.join(root, f), "rb") as fh:
+                    self.assertNotIn(b"geheim", fh.read(), f)
+        self.assertEqual(self.s.purch_session_logout("beatport")["sessions"]["beatport"]["active"], False)
+
     def test_purchases_page(self):
         """#285: Seite „Käufe“ – Käufe sammeln, mit der Bibliothek abgleichen, fehlende in den Eingang laden."""
         src = self.s.purch_state()["sources"]
@@ -304,7 +372,7 @@ class TestBeatport(Base):
         self.assertNotIn("purchase_date", [c[2] for c in self.fake.calls if c[1] == "/v4/my/downloads/"][-1])
         # Variante 1 scheitert (keine Download-Adresse) → Hinweis auf die Download-Seite (Variante 2)
         orig_rd = self.mod.resolve_download
-        self.mod.resolve_download = lambda client, t, log: ""
+        self.mod.resolve_download = lambda client, t, log, seen=None: ""
         try:
             r = self.s.start_purch_download(["beatport:2001"])
             self.assertTrue(r["ok"], r)

@@ -72,7 +72,7 @@ class PurchasesMixin:
         return {"rows": rows, "stores": stores, "sources": self.plugins.store_sources(), "count": count,
                 "last": dict(getattr(self, "_purch_last", {}) or {}),
                 "dest": dest, "dest_from": why, "dest_ok": bool(dest) and os.path.isdir(dest),
-                "roots": self._pl_lib_roots()}
+                "roots": self._pl_lib_roots(), "sessions": self._purch_sessions()}
 
     def _purch_index(self, cancel, progress):
         """Bibliothek (wie bei den Playlists) plus Eingangsordner."""
@@ -160,6 +160,24 @@ class PurchasesMixin:
                     "diag": self._purch_diag(index, dest)}
         return self._run("purch", "Käufe abgleichen", job)
 
+    def purch_session_login(self, store, username, password) -> dict:
+        """#295: Anmeldung nur für diese Sitzung (Download wie die Webseite). Passwort wird nicht gespeichert."""
+        r = self.plugins.call_playlist(str(store), "store_login", username, password, session=self) or {}
+        return {"ok": bool(r.get("ok")), "username": r.get("username", ""), "sessions": self._purch_sessions()}
+
+    def purch_session_logout(self, store) -> dict:
+        self.plugins.call_playlist(str(store), "store_logout", session=self)
+        return {"ok": True, "sessions": self._purch_sessions()}
+
+    def _purch_sessions(self) -> dict:
+        out = {}
+        for s in self.plugins.store_sources():
+            try:
+                out[s["id"]] = self.plugins.call_playlist(s["id"], "store_session", session=self) or {}
+            except Exception:  # noqa: BLE001 – Store ohne Sitzungs-Anmeldung
+                pass
+        return out
+
     def start_purch_download(self, keys_=None):
         """Gewählte (bzw. alle fehlenden) Käufe in den Eingangsordner laden. keys_: ["store:id", …]."""
         dest, _why = self._purch_dest()
@@ -181,7 +199,7 @@ class PurchasesMixin:
             by_store.setdefault(it["store"], []).append(it)
 
         def job(cancel, progress):
-            got, failed, manual = 0, [], []
+            got, failed, manual, need = 0, [], [], []
             for store, its in by_store.items():
                 try:
                     r = self.plugins.call_playlist(store, "store_download", its, dest, session=self, cancel=cancel,
@@ -199,9 +217,14 @@ class PurchasesMixin:
                             got += 1
                     st.save()
                 failed += r.get("failed") or []
+                if r.get("need_login"):                     # #295: Sitzungs-Anmeldung wie die Webseite anbieten
+                    with self.lock:
+                        nm = (self._purch().data["stores"].get(store) or {}).get("name") or self.plugins.get(store).name
+                    need.append({"store": store, "name": nm, "keys": [it["key"] for it in its]})
+                    continue
                 if r.get("manual"):                         # Store lässt den Download nicht zu → selbst laden
                     with self.lock:
                         name = (self._purch().data["stores"].get(store) or {}).get("name") or self.plugins.get(store).name
                     manual.append({"store": store, "name": name, "url": r["manual"]})
-            return {"ok": True, "downloaded": got, "failed": failed, "dest": dest, "manual": manual}
+            return {"ok": True, "downloaded": got, "failed": failed, "dest": dest, "manual": manual, "need_login": need}
         return self._run("purch_dl", "Käufe herunterladen", job)

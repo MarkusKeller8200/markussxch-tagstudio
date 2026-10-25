@@ -318,8 +318,11 @@ es liefert, sonst „zuerst gesehen“) und Link zum Store. **„↻ Aktualisier
 der Bibliothek ab: *in Bibliothek*, *im Eingang*, *unklar* oder *fehlt*. **„Fehlende herunterladen“** (bzw. die
 markierten) lädt die Dateien unverändert in den Eingangsordner (`00_New` bzw. Eingang von „Vorbereiten“, unter
 „Ordner …“ änderbar) – von dort geht es wie gewohnt weiter. Vorbestellungen werden nicht geladen. Beatport bietet
-das Herunterladen offiziell nicht an; klappt es nicht, zeigt TagStudio, wie du die Titel auf der Download-Seite von
-Beatport selbst lädst und mit „Abholen“ übernimmst.
+das Herunterladen offiziell nicht an. Lehnt Beatport den gespeicherten Zugang dafür ab, erscheint ein Fenster
+**„Anmelden für den Download“**: Anmeldung wie auf der Webseite, gültig nur solange TagStudio läuft (Passwort und
+Token werden nicht gespeichert), danach lädt TagStudio die Titel gleich erneut; „● Beatport: Sitzung …“ zeigt die
+Anmeldung, „Abmelden“ beendet sie. Klappt es auch so nicht, zeigt TagStudio, wie du die Titel auf der Download-Seite
+von Beatport selbst lädst und mit „Abholen“ übernimmst.
 
 ### Tag-Fixer
 

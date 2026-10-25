@@ -81,5 +81,19 @@
 "Zuordnen …": ["Assign …", "Zueordne …"],
 "Zuordnung aufheben": ["Remove assignment", "Zueordnig ufhebe"],
 "Kauf nicht gefunden.": ["Purchase not found.", "Chauf nöd gfunde."],
-"von Hand zugeordnet": ["assigned by hand", "vo Hand zuegordnet"]
+"von Hand zugeordnet": ["assigned by hand", "vo Hand zuegordnet"],
+"Anmeldung nur für diese Sitzung – wird nicht gespeichert": ["Sign-in for this session only – not saved", "Aamäldig nur für die Sitzig – wird nöd gspeicheret"],
+"● {x}: Sitzung {x}": ["● {x}: session {x}", "● {x}: Sitzig {x}"],
+"{x} – Anmelden für den Download": ["{x} – sign in to download", "{x} – Aamälde für de Download"],
+"{x} lehnt den gespeicherten Zugang für den Download ab.": ["{x} refuses the saved access for downloading.", "{x} lehnt de gspeichereti Zuegang für de Download ab."],
+"Anmelden wie auf der Webseite. Die Anmeldung gilt nur, solange TagStudio läuft – Passwort und Token werden nicht gespeichert.": ["Sign in like on the website. The sign-in only lasts while TagStudio is running – password and token are not saved.", "Aamälde wie uf de Websiite. D Aamäldig gilt nur, solang TagStudio lauft – Passwort und Token werded nöd gspeicheret."],
+"Anmelden und herunterladen": ["Sign in and download", "Aamälde und abelade"],
+"Benutzername und Passwort angeben.": ["Enter user name and password.", "Benutzername und Passwort aagä."],
+"Sitzung abgemeldet.": ["Session signed out.", "Sitzig abgmäldet."],
+"Sitzungs-Anmeldung": ["Session sign-in", "Sitzigs-Aamäldig"],
+"Sitzung abmelden": ["Sign out of session", "Sitzig abmälde"],
+"Sitzungs-Anmeldung als {x} – nur für diese Sitzung, nichts gespeichert.": ["Session sign-in as {x} – for this session only, nothing saved.", "Sitzigs-Aamäldig als {x} – nur für die Sitzig, nüt gspeicheret."],
+"Download mit Sitzungs-Anmeldung ({x})": ["Download with session sign-in ({x})", "Download mit Sitzigs-Aamäldig ({x})"],
+"Die Sitzungs-Anmeldung bei Beatport ist abgelaufen – beim Herunterladen erneut anmelden.": ["The Beatport session sign-in has expired – sign in again when downloading.", "D Sitzigs-Aamäldig bi Beatport isch abglaufe – bim Abelade nomal aamälde."],
+"Beatport lehnt den gespeicherten Token für den Download ab – Sitzungs-Anmeldung wie auf der Webseite anbieten.": ["Beatport refuses the saved token for downloading – offering a session sign-in like on the website.", "Beatport lehnt de gspeicheret Token für de Download ab – Sitzigs-Aamäldig wie uf de Websiite aabüüte."]
 }

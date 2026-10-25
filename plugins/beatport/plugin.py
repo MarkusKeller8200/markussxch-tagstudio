@@ -351,7 +351,7 @@ def revoke(ctx, tok) -> bool:
     return st < 400
 
 
-def refresh(ctx, tok):
+def refresh(ctx, tok, save=True):
     if not tok.get("refresh_token"):
         return None
     app = load_app(ctx) if tok.get("app") else None
@@ -375,7 +375,8 @@ def refresh(ctx, tok):
     new["username"] = tok.get("username", "")
     if tok.get("app"):
         new["app"] = True
-    save_token(ctx, new)
+    if save:
+        save_token(ctx, new)
     return new
 
 
@@ -392,14 +393,14 @@ class Client:
 
     def get(self, path, **params):
         if self.tok["expires_at"] - 30 < time.time():
-            self.tok = refresh(self.ctx, self.tok) or self._expired()
+            self.tok = self._refresh() or self._expired()
         url = API + (path if path.startswith("/") else "/" + path)
         if params:
             url += "?" + urllib.parse.urlencode(params)
         for attempt in range(3):
             st, h, body = request("GET", url, headers={"Authorization": f"Bearer {self.tok['access_token']}"})
             if st == 401 and attempt == 0:
-                self.tok = refresh(self.ctx, self.tok) or self._expired()
+                self.tok = self._refresh() or self._expired()
                 continue
             if st == 429:
                 time.sleep(_retry_after(h.get("Retry-After")))
@@ -421,6 +422,9 @@ class Client:
         if isinstance(acc, list):
             acc = acc[0] if acc and isinstance(acc[0], dict) else {}
         return acc if isinstance(acc, dict) else {}
+
+    def _refresh(self):
+        return refresh(self.ctx, self.tok)
 
     def _expired(self):
         delete_token(self.ctx)
@@ -1129,11 +1133,60 @@ def download_candidates(t) -> list[tuple[str, dict]]:
     return out
 
 
-def resolve_download(client, t, log) -> str:
-    """Download-Adresse ermitteln; jeder Versuch wird mit Status und Feldnamen protokolliert (ohne Token)."""
+# ---- #295: Sitzungs-Anmeldung für den Download – wie die Webseite, Token nur im Speicher (nie auf Platte)
+_SESSION: dict = {}
+
+
+class SessionClient(Client):
+    """Client mit dem Token der Sitzungs-Anmeldung: erneuert nur im Speicher, löscht beim Ablauf nur die Sitzung."""
+
+    def __init__(self, ctx, tok):            # noqa: D107 – bewusst ohne load_token
+        self.ctx = ctx
+        self.tok = tok
+        self.session = True
+
+    def _refresh(self):
+        new = refresh(self.ctx, self.tok, save=False)
+        if new:
+            _SESSION["tok"] = new
+        return new
+
+    def _expired(self):
+        _SESSION.clear()
+        raise RuntimeError("Die Sitzungs-Anmeldung bei Beatport ist abgelaufen – beim Herunterladen erneut anmelden.")
+
+
+def store_login(ctx, username, password) -> dict:
+    """Anmelden nur für diese Sitzung (Ablauf wie die Beatport-Webseite: Anmeldung → Code → Token). Das Passwort wird
+    nicht gespeichert, der Token nur im Speicher gehalten – nach dem Beenden von TagStudio ist er weg."""
+    username, password = str(username or "").strip(), str(password or "")
+    if not username or not password:
+        raise ValueError("Benutzername und Passwort angeben.")
+    tok = login(ctx, username, password)
+    _SESSION.clear()
+    _SESSION["tok"] = tok
+    ctx.log(f"Sitzungs-Anmeldung als {tok.get('username') or username} – nur für diese Sitzung, nichts gespeichert.")
+    return {"ok": True, "username": tok.get("username") or username}
+
+
+def store_logout(ctx) -> dict:
+    _SESSION.clear()
+    return {"ok": True}
+
+
+def store_session(ctx) -> dict:
+    tok = _SESSION.get("tok") or {}
+    return {"active": bool(tok), "username": tok.get("username", "")}
+
+
+def resolve_download(client, t, log, seen=None) -> str:
+    """Download-Adresse ermitteln; jeder Versuch wird mit Status und Feldnamen protokolliert (ohne Token).
+    seen["denied"] = True, wenn Beatport den Token für den Download-Weg der Webseite ablehnt (401/403)."""
     for path, params in download_candidates(t):
         url = API + path + ("?" + urllib.parse.urlencode(params) if params else "")
         st, h, body = request("GET", url, headers={"Authorization": f"Bearer {client.tok['access_token']}"}, follow=False)
+        if seen is not None and st in (401, 403) and path == "/catalog/tracks/purchase-download/":
+            seen["denied"] = True
         if st in (301, 302, 303, 307, 308) and h.get("Location", h.get("location", "")).startswith("https://"):
             log(f"{path}: HTTP {st} → Weiterleitung")
             return h.get("Location") or h.get("location")
@@ -1400,7 +1453,17 @@ def store_download(ctx, items, dest) -> dict:
     (Variante 2: dort laden, mit „Abholen“ übernehmen)."""
     if not dest or not os.path.isdir(dest):
         raise ValueError("Zielordner nicht gefunden.")
-    c = Client(ctx)
+    sess = _SESSION.get("tok")
+    if sess:
+        c = SessionClient(ctx, dict(sess))
+        ctx.log(f"Download mit Sitzungs-Anmeldung ({sess.get('username', '')})")
+    else:
+        try:
+            c = Client(ctx)
+        except RuntimeError as ex:                     # nicht angemeldet → Sitzungs-Anmeldung anbieten (#295)
+            ctx.log(str(ex))
+            return {"files": {}, "failed": [], "manual": "", "need_login": True}
+    seen: dict = {}
     try:
         with open(_done_path(ctx), encoding="utf-8") as fh:
             done = json.load(fh)
@@ -1413,7 +1476,7 @@ def store_download(ctx, items, dest) -> dict:
         label = f"{it.get('artist', '')} – {it.get('title', '')}"
         ctx.progress(k, len(items), label)
         try:
-            url = resolve_download(c, t, ctx.log)
+            url = resolve_download(c, t, ctx.log, seen)
             if not url:
                 failed.append(f"{label}: keine Download-Adresse gefunden")
                 no_url += 1
@@ -1429,9 +1492,12 @@ def store_download(ctx, items, dest) -> dict:
             failed.append(f"{label}: {ex}")
     for f in failed:
         ctx.log(f)
-    if no_url:
+    need = bool(seen.get("denied")) and not sess
+    if need:
+        ctx.log("Beatport lehnt den gespeicherten Token für den Download ab – Sitzungs-Anmeldung wie auf der Webseite anbieten.")
+    elif no_url:
         ctx.log(f"{no_url} Titel ohne Download-Adresse – bitte über {DOWNLOAD_PAGE} laden (Variante 2).")
-    return {"files": files, "failed": failed, "manual": DOWNLOAD_PAGE if no_url else ""}
+    return {"files": files, "failed": failed, "manual": DOWNLOAD_PAGE if no_url else "", "need_login": need}
 
 
 # =========================================================================== #288: „My Beatport“ → Entdecken
