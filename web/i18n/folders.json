@@ -82,5 +82,8 @@
 "Playlists nicht neu geschrieben: {x}": ["Playlists not rewritten: {x}", "Playlists nöd neu gschribe: {x}"],
 "Bitte einen Ordner wählen (nicht direkt das Laufwerk).": ["Please choose a folder (not the drive itself).", "Bitte en Ordner wähle (nöd grad s Laufwerk)."],
 "Zuerst eine andere Bibliothek als Hauptbibliothek wählen.": ["First choose another library as main library.", "Zerscht en anderi Bibliothek als Hauptbibliothek wähle."],
-"Startordner aller Exporte (Listen, Playlists, DJ-Sets, Journal)": ["Start folder of all exports (lists, playlists, DJ sets, journal)", "Startordner vo allne Export (Lischte, Playlists, DJ-Sets, Journal)"]
+"Startordner aller Exporte (Listen, Playlists, DJ-Sets, Journal)": ["Start folder of all exports (lists, playlists, DJ sets, journal)", "Startordner vo allne Export (Lischte, Playlists, DJ-Sets, Journal)"],
+"Als Datei speichern …": ["Save as file …", "Als Datei speichere …"],
+"Workflow gespeichert:": ["Workflow saved:", "Workflow gspeicheret:"],
+"Workflow – {x}.json": ["Workflow – {x}.json", "Workflow – {x}.json"]
 }

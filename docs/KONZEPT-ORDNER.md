@@ -2,7 +2,7 @@
 
 Status: **FREIGEGEBEN** (25.10.2026, Wunsch User 13:53; Entscheide O1–O6 vom User 14:04; Umsetzung freigegeben 14:57,
 Meilenstein #26 „4.10.0 – Ordner“). Umgesetzt: **Schritt 1 (#310)** – `folders.py`, `session_folders.py`,
-`web/folders.js`. Ergänzt
+`web/folders.js`; **Export-Ordner (#312)** – `Api.save_dialog` startet in `Session.export_dir()`. Ergänzt
 [KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md) (Programmdaten bleiben dort beschrieben) und ersetzt dessen Abschnitte 4/5,
 sobald umgesetzt.
 

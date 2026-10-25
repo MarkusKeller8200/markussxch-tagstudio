@@ -191,6 +191,17 @@ class FolderRolesMixin:
         self._folders_save(folders.review_apply(self._folders(), decision if isinstance(decision, dict) else {}))
         return self.folders_get()
 
+    def export_dir(self) -> str:
+        """Startordner aller „Exportieren …“ (#312): Rolle „Export“, fehlt er, wird er angelegt (wenn das Laufwerk
+        erreichbar ist). "" = keine Rolle festgelegt bzw. nicht anlegbar → Aufrufer nimmt den Benutzerordner."""
+        p = folders.resolve_role(self._folders(), "export")
+        if p and not os.path.isdir(p) and folders.reachable(p):
+            try:
+                os.makedirs(p, exist_ok=True)
+            except OSError:
+                return ""
+        return p if p and os.path.isdir(p) else ""
+
     def folders_adopt(self) -> dict:
         """Nach dem Einrichtungsassistenten („bestehende Ordner wählen“): Rollen aus den gesetzten Einzel-Ordnern
         neu übernehmen."""

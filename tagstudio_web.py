@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import secrets
 import subprocess
 import sys
@@ -283,6 +284,20 @@ class Api:
             return {"ok": False, "cancelled": True}
         return self._s.pl_shopping_file(dest, ids, folder)
 
+    def prep_export_file(self, wid):
+        """#312: Workflow als JSON-Datei speichern (Speichern-Dialog im Export-Ordner)."""
+        w = self._s._prep_get(wid)
+        safe = re.sub(r'[<>:"/\\|?*]', "", w.get("name") or "Workflow").strip() or "Workflow"
+        dest = self.save_dialog(f"Workflow – {safe}.json")
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        try:
+            with open(dest, "w", encoding="utf-8") as fh:
+                fh.write(self._s.prep_export(wid))
+        except OSError as ex:
+            return {"ok": False, "error": str(ex)}
+        return {"ok": True, "path": dest}
+
     def pl_import(self, folder=""):
         """#271: M3U/M3U8, Rekordbox-XML oder CSV wählen und als Playlist(s) übernehmen."""
         p = self.pick_file("playlist")
@@ -505,7 +520,9 @@ class Api:
         return _tk_dialog("open", start, kind)
 
     def save_dialog(self, name):
-        start = os.path.expanduser("~")
+        """Speichern-Dialog für alle Exporte – startet im Export-Ordner (#312), sonst im Benutzerordner."""
+        exp = self._s.export_dir()
+        start = exp or os.path.expanduser("~")
         if self._window is not None:
             import webview
             res = self._window.create_file_dialog(webview.SAVE_DIALOG, directory=start, save_filename=name)
@@ -513,8 +530,8 @@ class Api:
         p = _tk_dialog("save", start, name)
         if p:
             return p
-        if sys.platform == "darwin":  # Browser-Modus auf dem Mac: kein Dialog möglich → Downloads
-            return os.path.join(os.path.expanduser("~/Downloads"), name)
+        if sys.platform == "darwin":  # Browser-Modus auf dem Mac: kein Dialog möglich → Export-Ordner bzw. Downloads
+            return os.path.join(exp or os.path.expanduser("~/Downloads"), name)
         return ""
 
     def pick_path(self, side, folder=True, start="", kind="mp3"):

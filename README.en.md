@@ -513,7 +513,7 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
 folder is set **exactly once** – as a **role**: Inbox · Libraries · Archive · Playlists · **Export** · Downloads · Work ·
 Backup · Snapshots. The default is the **base folder** (e.g. `D:\TagStudio`, every folder selection starts there) with
 the structure `00_New` (new music, subfolder per source) · `01_Library` (library) · `02_Archiv` (sorted out) ·
-`03_Playlists` (M3U8) · `04_Export` (start folder of all exports) · `90_Download` (downloads, subfolder per source) ·
+`03_Playlists` (M3U8) · `04_Export` (start folder of all exports: every save dialog – tagger list, playlists, DJ set, watch list, journal, settings, workflow, cover – opens there; a missing folder is created) · `90_Download` (downloads, subfolder per source) ·
 `91_Work` (stage folders) · `99_Sicherung` (`Tags`, `Snapshots`). “Change …” switches any role to an **own folder**
 (also on another drive) and back to “Base”; backup and snapshots can stay in the program data as before. There can be
 **several libraries** (each with a name, active/inactive, exactly one **main library**); overlaps (a library inside

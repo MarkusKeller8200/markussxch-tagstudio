@@ -16,6 +16,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   werden einmalig übernommen; verschiedene Bibliotheks-Einträge erscheinen in der Übersicht „Diese Ordner haben wir
   gefunden“. Ändern stellt nur die Einstellung um (Dateien bleiben); Workflows, die auf den bisherigen Ordner zeigten,
   folgen. Neues Modul `folders.py`, Seite `web/folders.js`.
+- **Export-Ordner (#312):** Jeder Speichern-Dialog für Exporte (Tagger-Liste, Playlists, Einkaufsliste, DJ-Set,
+  Merkliste, Snapshot-Journal, Einstellungen, Texte, Cover) öffnet im Export-Ordner (`04_Export` bzw. eigener
+  Ordner); fehlt er, wird er angelegt. Neu: „Workflow exportieren …“ kann den Workflow auch als Datei speichern.
 
 ## [4.9.1] – 2026-10-25
 

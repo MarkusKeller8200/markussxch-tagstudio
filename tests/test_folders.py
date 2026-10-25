@@ -241,5 +241,43 @@ class TestSession(Base):
         self.assertEqual(len(d["libraries"]), 1)
 
 
+class TestExport(Base):
+    def test_export_dir_and_save_dialog(self):
+        """#312: Exporte starten im Export-Ordner; fehlt er, wird er angelegt; ohne Rolle: Benutzerordner."""
+        import sys
+        import types
+        from unittest import mock
+        import tagstudio_web
+        api = tagstudio_web.Api()
+        s = api._s
+        s.cfg.clear()
+        s.cfg.update({"base_dir": J(self.dir, "TS")})
+        self.assertEqual(s.export_dir(), J(self.dir, "TS", "04_Export"))
+        self.assertTrue(os.path.isdir(J(self.dir, "TS", "04_Export")))
+        seen = {}
+
+        class Win:
+            def create_file_dialog(self, kind, directory="", save_filename="", file_types=()):
+                seen["dir"], seen["name"] = directory, save_filename
+                return [os.path.join(directory, save_filename)]
+        api._window = Win()
+        with mock.patch.dict(sys.modules, {"webview": types.SimpleNamespace(SAVE_DIALOG=30, OPEN_DIALOG=10, FOLDER_DIALOG=20)}):
+            p = api.save_dialog("Liste.csv")
+            self.assertEqual(seen["dir"], J(self.dir, "TS", "04_Export"))
+            self.assertEqual(p, J(self.dir, "TS", "04_Export", "Liste.csv"))
+            s.folders_set_role("export", "custom", self.B)
+            api.save_dialog("x.csv")
+            self.assertEqual(seen["dir"], os.path.normpath(self.B))
+            s.folders_set_base("")
+            s.folders_set_role("export", "base", "04_Export")                    # ohne Basisordner: keine Rolle
+            self.assertEqual(s.export_dir(), "")
+            api.save_dialog("x.csv")
+            self.assertEqual(seen["dir"], os.path.expanduser("~"))
+            r = api.prep_export_file(s._prep_get()["id"])
+            self.assertTrue(r["ok"] and r["path"].endswith(".json"))
+            with open(r["path"], encoding="utf-8") as fh:
+                self.assertIn("tagstudio_workflow", fh.read())
+
+
 if __name__ == "__main__":
     unittest.main()

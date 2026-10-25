@@ -1836,6 +1836,21 @@ class UiTest(unittest.TestCase):
         self.assertFalse(c["folders"]["libraries"][1]["active"])
         self.assertEqual(self.errors, [])
 
+    def test_export_folder_workflow_file(self):
+        """#312: Workflow-Export als Datei (im App-Fenster) – Speichern geht über den Export-Ordner."""
+        pg = self.pg
+        pg.click('.nav[data-module="prep"]')
+        pg.wait_for_function("PREP.d && PREP.d.workflow")
+        pg.evaluate("""S.settings.native = true; window.__calls = [];
+            const orig = call; call = (n, ...a) => { if (n === 'prep_export_file') { __calls.push(a); return Promise.resolve({ ok: true, path: 'X/Workflow.json' }); } return orig(n, ...a); }; true""")
+        pg.click("#prepMore")
+        pg.click('#menu button:has-text("Workflow exportieren")')
+        pg.wait_for_selector('#mBtns button:has-text("Als Datei speichern")')
+        pg.click('#mBtns button:has-text("Als Datei speichern")')
+        pg.wait_for_function("__calls.length === 1")
+        self.assertEqual(pg.evaluate("__calls[0][0]"), pg.evaluate("PREP.d.workflow.id"))
+        self.assertEqual(self.errors, [])
+
     def test_archive_tagger(self):
         """#173: Aussortieren im Tagger – Vorschau, verschieben, Liste neu geladen, zurückholen."""
         pg = self.pg

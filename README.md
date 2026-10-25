@@ -534,7 +534,7 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
 **genau einmal** festgelegt – als **Rolle**: Eingang · Bibliotheken · Archiv · Playlists · **Export** · Downloads ·
 Arbeit · Sicherung · Snapshots. Standard ist der **Basisordner** (z. B. `D:\TagStudio`, jede Ordnerauswahl beginnt
 dort) mit der Struktur `00_New` (neue Musik, Unterordner je Quelle) · `01_Library` (Bibliothek) · `02_Archiv`
-(aussortiert) · `03_Playlists` (M3U8) · `04_Export` (Startordner aller Exporte) · `90_Download` (Downloads,
+(aussortiert) · `03_Playlists` (M3U8) · `04_Export` (Startordner aller Exporte: jeder Speichern-Dialog – Tagger-Liste, Playlists, DJ-Set, Merkliste, Journal, Einstellungen, Workflow, Cover – öffnet dort; fehlt der Ordner, wird er angelegt) · `90_Download` (Downloads,
 Unterordner je Quelle) · `91_Work` (Stufen-Ordner) · `99_Sicherung` (`Tags`, `Snapshots`). Jede Rolle lässt sich mit
 „Ändern …“ auf einen **eigenen Ordner** umstellen (auch anderes Laufwerk) und wieder zurück auf „Basis“; Sicherung
 und Snapshots können wie bisher in den Programmdaten bleiben. Es gibt **mehrere Bibliotheken** (je mit Name,
