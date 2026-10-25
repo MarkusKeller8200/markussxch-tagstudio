@@ -407,7 +407,7 @@ Sitzung mit erneutem Import), Oberflächentest `test_playlists_dj_and_text_impor
 Meilenstein #24 „4.9.0 – Playlists Phase 3“: #272 Smartlists, #273 Senden an DJ-Programme, #284 Beatport-Playlists.
 **Entscheid User 25.10.2026, 01:16:** #222 (Wellenform im MP3) und #107 (Werkzeugleiste im Vergleich) **nicht** in
 4.9.0 (zurück in die Sammlungen Funktionen bzw. Verbesserungen); alle übrigen Vorschläge **so umsetzen** – die Spalte
-„Vorschlag“ gilt damit als beschlossen (W1 bleibt offen, bis #222 eingeplant wird).
+„Vorschlag“ gilt damit als beschlossen. **W1 beschlossen am 25.10.2026, 16:54** (Vorschlag angenommen, #222 in 4.11.0).
 
 | Nr. | Frage | Vorschlag |
 |---|---|---|

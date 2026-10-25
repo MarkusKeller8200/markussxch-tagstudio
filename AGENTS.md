@@ -14,7 +14,7 @@ Vor Architekturentscheidungen, neuen Modulen oder grösseren Codeänderungen unb
 
 ## Aktuelle Iterationsplanung
 
-**Stand 25.10.2026:** **v4.9.1 final** veröffentlicht, Meilenstein #25 geschlossen. **4.10.0 – Ordner** (Meilenstein #26, `docs/KONZEPT-ORDNER.md`): #310–#315 auf `main` im Beta-Test. Ordner immer über `folders.role()`, `folders.libraries()`, `folders.main_library()` bzw. `Session._lib_roots()` holen – keine eigenen Pfad-Einstellungen mehr je Modul. Nutzer-Issues aus GitHub-Feedback (Label `triage`) nur nach Owner-Freigabe.
+**Stand 25.10.2026:** **v4.10.0 final** veröffentlicht (Ordner-Rollen, `docs/KONZEPT-ORDNER.md`). Nächstes: **4.11.0** (Meilenstein #27, `docs/KONZEPT-CLOUD.md`, `docs/KONZEPT-SONOVAULT.md`). Ordner immer über `folders.role()`, `folders.libraries()`, `folders.main_library()` bzw. `Session._lib_roots()` holen – keine eigenen Pfad-Einstellungen mehr je Modul. Nutzer-Issues aus GitHub-Feedback (Label `triage`) nur nach Owner-Freigabe.
 
 ## GitHub-Meilensteinverwaltung
 

@@ -1,6 +1,6 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-25 (16:55): **4.10.0 final veröffentlicht** (Release `v4.10.0`, Meilenstein #26 geschlossen). Nächstes: **4.11.0 – Cloud, SonoVault & Verbesserungen** (Meilenstein #27, Entscheide offen).
+> Stand 2026-10-25 (16:55): **4.10.0 final veröffentlicht** (Release `v4.10.0`, Meilenstein #26 geschlossen). Nächstes: **4.11.0 – Cloud, SonoVault & Verbesserungen** (Meilenstein #27: #304, #107, #222, #309/#317–#320, #253–#258; Entscheide C1–C4, SV1–SV4, W1 getroffen; Konzept `docs/KONZEPT-CLOUD.md`).
 >
 > Davor 16:43: **4.10.0 – Ordner getestet** (Meilenstein #26): Ordner-Rollen #310
 > (`folders.py`, `session_folders.py`, `web/folders.js`), Export-Ordner #312, mehrere Bibliotheken #311, Unterordner je

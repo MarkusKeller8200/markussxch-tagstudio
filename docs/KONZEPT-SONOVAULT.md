@@ -93,7 +93,16 @@ Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Da
 4. #257 Audio-Erkennung – nur mit bezahltem Tarif sinnvoll.
 5. #259 – nur bei Bedarf.
 
-## 6. Offen / vor der Umsetzung klären
+## 6. Entscheide (User 25.10.2026, 16:54) – Umsetzung in 4.11.0 (Meilenstein #27, #253–#258)
+
+| ID | Frage | Entscheid |
+|---|---|---|
+| SV1 | Tarif | **Free.** TagStudio verwaltet die Anfragen: Zähler je Monat (aus `RateLimit-*` und eigenem Zähler), Rest auf der Plugin-Karte, Warnung vor dem Überschreiten, Bulk-Abgleich (#256) nur innerhalb des Kontingents bzw. in Etappen über mehrere Monate. |
+| SV2 | Audio-Erkennung (#257) | **Optional**, mit Hinweis, dass dafür Kredits gekauft werden müssen und was es kostet (10 + 1 je MB) – auch im Free-Tarif anbieten. |
+| SV3 | „Auf Plattform öffnen“ (#255) | IDs nur anzeigen; Verlinken erst nach Rückfrage bei Rekordcloud. |
+| SV4 | Vorrang in „Online-Metadaten“ | Nach Beatport und MusicBrainz, vor Deezer und iTunes. |
+
+## 6a. Offen / vor der Umsetzung klären
 
 - ~~Nutzungsbedingungen~~, ~~Datenschutz~~ → geprüft, siehe Abschnitt 3. Offen: Seite „Data Sources & Attribution“ (nicht
   erreichbar), Verlinken auf Plattformen.

@@ -234,7 +234,7 @@ TagStudio braucht dafür:
 - **Nicht in die Cloud:** Snapshot-Speicher, Arbeit, Cache und Plugin-Umgebungen (viele kleine/grosse Dateien,
   Sperren, Konfliktgefahr). Beim Wählen eines Sync-Ordners für diese Rollen kommt ein Hinweis.
 
-**Weg 2 – Abgleich über die Dienste (später, eigenes Konzept):** Plugins „OneDrive“, „Google Drive“, „Dropbox“
+**Weg 2 – Abgleich über die Dienste (4.11.0, Konzept [KONZEPT-CLOUD.md](KONZEPT-CLOUD.md)):** Plugins „OneDrive“, „Google Drive“, „Dropbox“
 (OAuth wie Spotify/SoundCloud, `oauthkit`) gleichen Rollen direkt über die API ab – ohne Desktop-Client,
 z. B. Playlists und Export auf einen zweiten Rechner, Programmdaten-Teile (Playlists, Käufe, Entdecken,
 Einstellungen ohne Zugangsdaten) als Sicherung. Das Ordner-Modell bekommt dafür je Rolle ein optionales Feld
