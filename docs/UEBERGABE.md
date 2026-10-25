@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-25 (Abend): 4.10.0 – Ordner umgesetzt, alle Schritte #310–#315 auf `main` im Beta-Test (Meilenstein #26), siehe „Sitzung 25.10.2026 (Abend)“.** Davor (14:25): 4.9.1 final veröffentlicht.
+Stand: **2026-10-25 (16:43): 4.10.0 – Ordner getestet** – alle Testlisten #310–#315 abgehakt, Issues und #308 geschlossen, Meilenstein #26 ohne offene Issues. Release 4.10.0 wartet auf die Freigabe des Users (dann `HIDDEN` in `packaging/build.py` ergänzen, `release.py 4.10.0`).
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -33,7 +33,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **Beim Release 4.10.0 mitnehmen:** neue Module `folders`, `session_folders`, `cloud`, `foldermove` in
   `packaging/build.py` › `HIDDEN` eintragen (jetzt nicht angefasst – eine Änderung unter `packaging/` startet den
   Installer-Workflow). PyInstaller findet sie auch so (Importe in Funktionen werden erkannt).
-- Offen im Meilenstein: #308 (Konzept, schliessen mit dem letzten Schritt) und die Tests des Users.
+- **User 16:43 „Testresultate eingetragen“:** alle Testlisten abgehakt → #308, #310–#315 geschlossen, Meilenstein #26
+  ohne offene Issues. Nächster Schritt: Release 4.10.0 nur nach ausdrücklicher Freigabe.
 
 ## Start 4.10.0 – Ordner (vorbereitet 25.10.2026, 14:25)
 

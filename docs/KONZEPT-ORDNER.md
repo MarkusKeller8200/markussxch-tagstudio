@@ -1,6 +1,6 @@
 # Konzept: Ordner-Rollen – jeder Ordner genau einmal festgelegt
 
-Status: **FREIGEGEBEN** (25.10.2026, Wunsch User 13:53; Entscheide O1–O6 vom User 14:04; Umsetzung freigegeben 14:57,
+Status: **UMGESETZT** (4.10.0, vom User getestet 25.10.2026 16:43; Konzept 25.10.2026, Wunsch User 13:53; Entscheide O1–O6 vom User 14:04; Umsetzung freigegeben 14:57,
 Meilenstein #26 „4.10.0 – Ordner“). Umgesetzt: **Schritt 1 (#310)** – `folders.py`, `session_folders.py`,
 `web/folders.js`; **Export-Ordner (#312)** – `Api.save_dialog` startet in `Session.export_dir()`; **mehrere Bibliotheken (#311)** –
 `folders.scan_roots`, `Session._lib_roots()`/`_pl_lib_roots()`, Tagger-Kennung `@bibliotheken` (`folders.ALL_LIBS`),
