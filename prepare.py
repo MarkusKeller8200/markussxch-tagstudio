@@ -105,6 +105,8 @@ def clean_workflow(w: dict) -> dict:
         seen.add(sid)
         st = {"id": sid, "type": s["type"], "label": str(s.get("label") or STEP_TYPES[s["type"]]).strip()[:80]}
         folder = re.sub(r'[<>:"/\\|?*]', "", str(s.get("folder") or "")).strip()
+        if not folder.strip("."):                       # „.“/„..“ würden auf Arbeits- bzw. Elternordner zeigen
+            folder = ""
         if s["type"] == "recipe":
             st.update(recipe=str(s.get("recipe") or ""), folder=folder or f"_{sid}")
         elif s["type"] == "external":
@@ -425,6 +427,11 @@ def launch(program: str, args: str, folder: str, files: list[str]) -> str:
         cmd = ["open", "-a", program] + (["--args"] + parts if parts else [])
     else:
         cmd = [program] + parts
+    if sys.platform.startswith("win") and program.lower().endswith((".bat", ".cmd")) \
+            and any(c in p for p in parts for c in '&|^%!<>()"'):
+        # cmd.exe wertet diese Zeichen in Argumenten aus (Befehle könnten eingeschleust werden)
+        raise ValueError("Batch-Datei: Dateinamen mit Sonderzeichen wie & oder % können nicht sicher übergeben werden – "
+                         "den Ordner statt der Dateien übergeben oder ein Programm (.exe) wählen.")
     subprocess.Popen(cmd, close_fds=True)
     return " ".join(cmd[:3]) + (" …" if len(cmd) > 3 else "")
 

@@ -246,6 +246,40 @@ class TestBeatport(Base):
         finally:
             self.mod._urlopen = orig
 
+    def test_refresh_keeps_login_on_server_error(self):
+        """4.9.1 (#299): Erneuerung mit 503/HTML behält die Anmeldung, 400/401 gilt als abgelehnt."""
+        self.login()
+        import plugins
+        ctx = plugins.Context(self.s.plugins.get("beatport"), self.s)
+        tok = self.mod.load_token(ctx)
+        orig = self.mod.request
+        try:
+            self.mod.request = lambda *a, **k: (503, {}, b"<html>busy</html>")
+            with self.assertRaises(self.mod.HttpError):
+                self.mod.refresh(ctx, tok, save=False)
+            self.mod.request = lambda *a, **k: (200, {}, b"<html>kein json</html>")
+            with self.assertRaises(self.mod.HttpError):
+                self.mod.refresh(ctx, tok, save=False)
+            self.mod.request = lambda *a, **k: (400, {}, b'{"error": "invalid_grant"}')
+            self.assertIsNone(self.mod.refresh(ctx, tok, save=False))
+        finally:
+            self.mod.request = orig
+        self.assertIsNotNone(self.mod.load_token(ctx))
+
+    def test_auth_header_not_redirected(self):
+        """4.9.1 (#299): Token nur an die erste Adresse, nie an eine Weiterleitung."""
+        import urllib.request
+        seen = []
+
+        class Op:
+            def open(self, req, timeout=None):
+                seen.append(req)
+                raise urllib.error.URLError("aus")
+        with self.assertRaises(self.mod.HttpError):
+            self._orig("GET", "https://api.beatport.com/v4/x/", headers={"Authorization": "Bearer T"}, opener=Op())
+        self.assertNotIn("Authorization", seen[0].headers)
+        self.assertEqual(seen[0].unredirected_hdrs.get("Authorization"), "Bearer T")
+
     def test_token_scope(self):
         """#296: Scope aus der Token-Antwort oder aus dem JWT lesen und beim Anmelden/Testen/Download protokollieren."""
         import base64

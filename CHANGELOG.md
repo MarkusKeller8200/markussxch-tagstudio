@@ -14,6 +14,15 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   `secretstore.py`, Dateien werden atomar und von Anfang an nur für den Benutzer lesbar geschrieben
   (Beatport-Plugin 1.8).
 
+### Behoben
+
+- **Vorbereiten (#298):** „Übernehmen“ ersetzt nie mehr eine vorhandene Datei in der Bibliothek (auch nicht mit
+  „trotzdem“); Stufen-Ordner „.“/„..“ werden verworfen, „Stufen-Kopien aufräumen“ löscht nur in Stufen-Ordnern;
+  externe Batch-Programme (.bat/.cmd) bekommen keine Dateinamen mit Sonderzeichen wie & oder %.
+- **Beatport (#299):** Token wird nie an eine Weiterleitung mitgeschickt; die Anmeldung bleibt bei Serverfehlern
+  während der Token-Erneuerung erhalten; ZIP-Inhalte und die Liste geladener Käufe werden vollständig bzw. atomar
+  geschrieben.
+
 ## [4.9.0] – 2026-10-25
 
 ### Neu

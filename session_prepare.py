@@ -215,6 +215,10 @@ class PrepareMixin:
                                    note=f"{sum(len(e['changes']) for e in p)} Änderung(en)")
                     elif s["type"] == "import":
                         dst = os.path.join(w["library"], n)
+                        if os.path.exists(dst):                       # nie eine Bibliotheksdatei ersetzen, auch nicht mit „trotzdem“
+                            rec.update(state="error", at=prepare.now(), note=f"Datei existiert bereits: {n}")
+                            errors.append(f"Datei existiert bereits: {n}")
+                            continue
                         dups = prepare.duplicates(src, lib_files or [], dst) if s.get("dup", True) else []
                         if dups and not force:
                             rec.update(state="error", at=prepare.now(), note="; ".join(dups))
@@ -492,9 +496,14 @@ class PrepareMixin:
                 continue
             if not imp or ((t.get("steps") or {}).get(imp[0]["id"]) or {}).get("state") not in ("done", "warn"):
                 continue
+            wd = os.path.abspath(prepare.work_dir(w))
+            keep = {os.path.normcase(os.path.abspath(x)) for x in (w.get("inbox"), w.get("library")) if x}
             for s in w["steps"]:
                 if s.get("folder"):
-                    p = os.path.join(prepare.work_dir(w), s["folder"], n)
+                    p = os.path.abspath(os.path.join(wd, s["folder"], n))
+                    d = os.path.normcase(os.path.dirname(p))
+                    if d in keep or os.path.normcase(os.path.dirname(d)) != os.path.normcase(wd):
+                        continue                                   # nur Stufen-Ordner direkt im Arbeitsordner, nie Eingang/Bibliothek
                     if os.path.isfile(p):
                         files.append(p)
         if not apply:

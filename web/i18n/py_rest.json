@@ -252,5 +252,6 @@
 "Schlüsselbund: {x} fehlgeschlagen (OSStatus {x})": ["Keychain: {x} failed (OSStatus {x})", "Schlüsselbund: {x} hät nöd klappet (OSStatus {x})"],
 "Schlüsselbund nicht verfügbar ({x}) – Datei nur für dich lesbar ({n}).": ["Keychain not available ({x}) – file readable only by you ({n}).", "Schlüsselbund nöd verfüegbar ({x}) – Datei nur für dich lesbar ({n})."],
 "{x} – Datei nur für dich lesbar ({n}).": ["{x} – file readable only by you ({n}).", "{x} – Datei nur für dich lesbar ({n})."],
-"Lesen": ["Reading", "Läse"]
+"Lesen": ["Reading", "Läse"],
+"Batch-Datei: Dateinamen mit Sonderzeichen wie & oder % können nicht sicher übergeben werden – den Ordner statt der Dateien übergeben oder ein Programm (.exe) wählen.": ["Batch file: file names with special characters such as & or % cannot be passed safely – pass the folder instead of the files or choose a program (.exe).", "Batch-Datei: Dateinäme mit Sonderzeiche wie & oder % chönd nöd sicher übergeh werde – de Ordner statt de Dateie übergeh oder es Programm (.exe) wähle."]
 }

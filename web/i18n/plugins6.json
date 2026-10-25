@@ -108,5 +108,8 @@
 "Bitte Client-ID und Client-Secret deiner SoundCloud-App eintragen.": ["Please enter the client ID and client secret of your SoundCloud app.", "Bitte Client-ID und Client-Secret vo dinere SoundCloud-App iitrage."],
 "Bitte die Client-ID deiner Spotify-App eintragen.": ["Please enter the client ID of your Spotify app.", "Bitte d Client-ID vo dinere Spotify-App iitrage."],
 "Keine Zusatzpakete nötig. Unter {q} Client-ID und Secret deiner SoundCloud-App eintragen und anmelden.": ["No extra packages needed. Enter the client ID and secret of your SoundCloud app under {q} and sign in.", "Kei Zuesatzpakete nötig. Under {q} Client-ID und Secret vo dinere SoundCloud-App iitrage und aamälde."],
-"Keine Zusatzpakete nötig. Unter {q} die Client-ID deiner Spotify-App eintragen und anmelden.": ["No extra packages needed. Enter the client ID of your Spotify app under {q} and sign in.", "Kei Zuesatzpakete nötig. Under {q} d Client-ID vo dinere Spotify-App iitrage und aamälde."]
+"Keine Zusatzpakete nötig. Unter {q} die Client-ID deiner Spotify-App eintragen und anmelden.": ["No extra packages needed. Enter the client ID of your Spotify app under {q} and sign in.", "Kei Zuesatzpakete nötig. Under {q} d Client-ID vo dinere Spotify-App iitrage und aamälde."],
+"Token-Erneuerung: HTTP {x} – später nochmals versuchen.": ["Token renewal: HTTP {x} – try again later.", "Token-Erneuerig: HTTP {x} – spöter nomal probiere."],
+"Download: {x} ist unerwartet gross – nicht entpackt.": ["Download: {x} is unexpectedly large – not extracted.", "Download: {x} isch unerwartet gross – nöd entpackt."],
+"Token-Erneuerung: unerwartete Antwort von Beatport.": ["Token renewal: unexpected response from Beatport.", "Token-Erneuerig: unerwarteti Antwort vo Beatport."]
 }

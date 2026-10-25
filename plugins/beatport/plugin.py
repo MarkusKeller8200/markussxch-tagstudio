@@ -225,7 +225,10 @@ def request(method, url, *, headers=None, data=None, opener=None, follow=True):
     if data is not None:
         body = json.dumps(data).encode("utf-8") if not isinstance(data, bytes) else data
         h.setdefault("Content-Type", "application/json")
+    auth = h.pop("Authorization", None)
     req = urllib.request.Request(url, data=body, headers=h, method=method)
+    if auth:                                            # nie an eine Weiterleitung (anderer Host) mitschicken
+        req.add_unredirected_header("Authorization", auth)
     op = opener or urllib.request.build_opener(*([] if follow else [_NoRedirect()]))
     try:
         with op.open(req, timeout=TIMEOUT) as r:
@@ -355,9 +358,14 @@ def refresh(ctx, tok, save=True):
                                     "client_id": client_id(ctx)})
         st, _h, body = request("POST", f"{API}/auth/o/token/?{q}", data=b"",
                                headers={"Content-Type": "application/x-www-form-urlencoded"})
-    if st >= 400:
+    if st in (400, 401):                               # Erneuerung abgelehnt (abgelaufen/zurückgezogen)
         return None
-    new = _norm_token(json.loads(body))
+    if st >= 400:                                      # Beatport gerade nicht verfügbar: Anmeldung behalten
+        raise HttpError(st, f"Token-Erneuerung: HTTP {st} – später nochmals versuchen.")
+    try:
+        new = _norm_token(json.loads(body))
+    except (ValueError, KeyError, TypeError) as e:
+        raise HttpError(st, "Token-Erneuerung: unerwartete Antwort von Beatport.") from e
     new["username"] = tok.get("username", "")
     if tok.get("app"):
         new["app"] = True
@@ -1223,9 +1231,11 @@ def fetch_file(url, dest_dir, t, client, cancel=None) -> list[str]:
 
     def open_url(auth):
         h = {"User-Agent": USER_AGENT}
+        req = urllib.request.Request(url, headers=h)
         if auth and (host == "beatport.com" or host.endswith(".beatport.com")):
-            h["Authorization"] = f"Bearer {client.tok['access_token']}"
-        return _urlopen(urllib.request.Request(url, headers=h), 120)
+            # nur für die erste Adresse – eine Weiterleitung (z. B. CDN) bekommt den Token nicht
+            req.add_unredirected_header("Authorization", f"Bearer {client.tok['access_token']}")
+        return _urlopen(req, 120)
 
     try:
         r = open_url(False)
@@ -1258,9 +1268,17 @@ def fetch_file(url, dest_dir, t, client, cancel=None) -> list[str]:
                     base = os.path.basename(zi.filename)
                     if zi.is_dir() or base.startswith(".") or os.path.splitext(base)[1].lower() not in EXT.values():
                         continue
+                    if zi.file_size > MAX_ZIP_MEMBER:
+                        raise HttpError(0, f"Download: {base} ist unerwartet gross – nicht entpackt.")
                     dst = _unique(os.path.join(dest_dir, _safe(base)))
-                    with z.open(zi) as src, open(dst, "wb") as fh:
-                        shutil.copyfileobj(src, fh)
+                    part = dst + ".part"
+                    try:
+                        with z.open(zi) as src, open(part, "wb") as fh:
+                            shutil.copyfileobj(src, fh)
+                        os.replace(part, dst)               # erst vollständig unter dem richtigen Namen
+                    finally:
+                        if os.path.exists(part):
+                            os.remove(part)
                     got.append(dst)
             return got
         ext = os.path.splitext(name)[1].lower() if name else ""
@@ -1273,6 +1291,9 @@ def fetch_file(url, dest_dir, t, client, cancel=None) -> list[str]:
     finally:
         if tmp and os.path.exists(tmp):
             os.remove(tmp)
+
+
+MAX_ZIP_MEMBER = 2 << 30                               # 2 GB je Audiodatei im ZIP
 
 
 def _urlopen(req, timeout):
@@ -1291,6 +1312,14 @@ def _unique(path):
 
 def _done_path(ctx):
     return os.path.join(ctx.data_dir, "geladen.json")
+
+
+def _save_done(ctx, done: dict):
+    """Liste der geladenen Käufe atomar schreiben (ein Abbruch darf sie nicht leeren)."""
+    path = _done_path(ctx)
+    with open(path + ".tmp", "w", encoding="utf-8") as fh:
+        json.dump(done, fh, ensure_ascii=False, indent=1)
+    os.replace(path + ".tmp", path)
 
 
 def run_download(ctx, opts):
@@ -1336,8 +1365,7 @@ def run_download(ctx, opts):
                 ctx.output(p)
             got += paths
             done[str(t.get("id"))] = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "files": [os.path.basename(p) for p in paths]}
-            with open(_done_path(ctx), "w", encoding="utf-8") as fh:
-                json.dump(done, fh, ensure_ascii=False, indent=1)
+            _save_done(ctx, done)
         except Cancelled:
             raise
         except Exception as ex:  # noqa: BLE001
@@ -1480,8 +1508,7 @@ def store_download(ctx, items, dest) -> dict:
             got = fetch_file(url, dest, t, c, ctx.cancelled)
             files[str(it["id"])] = got
             done[str(it["id"])] = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "files": [os.path.basename(p) for p in got]}
-            with open(_done_path(ctx), "w", encoding="utf-8") as fh:
-                json.dump(done, fh, ensure_ascii=False, indent=1)
+            _save_done(ctx, done)
         except Cancelled:
             raise
         except Exception as ex:  # noqa: BLE001

@@ -237,6 +237,46 @@ class TestPrepare(Base):
         self.assertEqual(prepare.pick_proposals(props, "none"), [])
 
 
+    # Bugfix-Runde 4.9.1: Übernahme ersetzt nie eine Bibliotheksdatei; Stufen-Ordner „..“; Aufräumen nur Stufen
+
+    def test_import_never_overwrites(self):
+        old = os.path.join(self.lib, "a.mp3")
+        write_mp3(old, [text("TIT2", "Schon da")], audio_seed=90)
+        with open(old, "rb") as fh:
+            before = fh.read()
+        for sid in ("s02", "s03", "s04", "s05", "s06"):
+            self.s.prep_mark(self.wid, sid, ["a.mp3"], "skipped")
+        self.s.start_prep_run(self.wid, "s07", ["a.mp3"], True)       # auch „trotzdem“ ersetzt nicht
+        r = self.wait()
+        self.assertEqual(r["done"], 0)
+        self.assertIn("existiert bereits", r["errors"][0])
+        with open(old, "rb") as fh:
+            self.assertEqual(fh.read(), before)
+
+    def test_dot_folders_and_cleanup_scope(self):
+        w = dict(self.w)
+        steps = [dict(s) for s in w["steps"]]
+        for s in steps:
+            if s["type"] == "recipe":
+                s["folder"] = ".."
+        w["steps"] = steps
+        w2 = self.s.prep_workflow_save(w)["workflow"]
+        rec = next(s for s in w2["steps"] if s["type"] == "recipe")
+        self.assertNotIn(rec["folder"], ("..", "."))
+        # ein Stufen-Ordner mit dem Namen des Eingangs wird beim Aufräumen nie angefasst
+        for s in steps:
+            if s["type"] == "recipe":
+                s["folder"] = os.path.basename(self.inbox)
+        w["steps"] = steps
+        self.s.prep_workflow_save(w)
+        for sid in ("s02", "s03", "s04", "s05", "s06"):
+            self.s.prep_mark(self.wid, sid, ["a.mp3"], "skipped")
+        self.s.start_prep_run(self.wid, "s07", ["a.mp3"])
+        self.wait()
+        files = self.s.prep_cleanup(self.wid)["files"]
+        self.assertFalse(any(os.path.dirname(f) == self.inbox for f in files), files)
+
+
 if __name__ == "__main__":
     import unittest
     unittest.main()
