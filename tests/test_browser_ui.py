@@ -150,7 +150,7 @@ class UiTest(unittest.TestCase):
         """#88 Menü-Reihenfolge und Startseite, #87 Einstellungskacheln, #85/#86 Vorgaben, #89 Kanal."""
         pg = self.pg
         navs = pg.evaluate("[...document.querySelectorAll('.nav[data-module]')].map(b=>b.dataset.module)")
-        self.assertEqual(navs, ["purchases", "prep", "tagger", "fixer", "compare", "djset", "playlists", "snapshots", "backups", "plugins", "settings", "help", "db"])
+        self.assertEqual(navs, ["discover", "purchases", "prep", "tagger", "fixer", "compare", "djset", "playlists", "snapshots", "backups", "plugins", "settings", "help", "db"])
         self.assertEqual(pg.evaluate("S.module"), "tagger")
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stUpdateCard")
@@ -1892,11 +1892,10 @@ class UiTest(unittest.TestCase):
                                  "status": "new", "owned": i == 3, "first": "2026-10-11T10:00:00"} for i in (1, 2, 3)}
         with open(os.path.join(d, "entdecken.json"), "w", encoding="utf-8") as fh:
             json.dump({"follow": {"artists": ["Mara Lind"]}, "items": items}, fh)
-        pg.click('.nav[data-module="prep"]')
-        pg.wait_for_function("PREP.d && PREP.d.workflow")
-        pg.click('#prepTabs [data-ptab="disc"]')
+        pg.click('.nav[data-module="discover"]')                                       # #333: eigene Seite
         pg.wait_for_function("DISC.d && DISC.d.items.length === 3")
-        self.assertTrue(pg.locator("#prepWfPane").is_hidden())
+        self.assertTrue(pg.locator("#modulePrep").is_hidden())
+        self.assertEqual(pg.locator("#prepTabs").count(), 0)                             # kein Umschalter mehr
         self.assertEqual(pg.locator("#discList tbody tr").count(), 2)          # vorhandener ausgeblendet
         pg.uncheck("#discHideOwned")
         self.assertEqual(pg.locator("#discList tbody tr").count(), 3)
@@ -1909,8 +1908,11 @@ class UiTest(unittest.TestCase):
         pg.fill("#dfLab", "Nordwerk\nDrumcode")
         pg.click("#mBtns .primary")
         pg.wait_for_function("DISC.d.follow.labels.length === 2")
-        pg.click('#prepTabs [data-ptab="wf"]')
-        self.assertTrue(pg.locator("#discPane").is_hidden())
+        pg.click('.nav[data-module="prep"]')
+        self.assertTrue(pg.locator("#moduleDiscover").is_hidden())
+        self.assertTrue(pg.locator("#prepWfPane").is_visible())
+        pg.click('.nav[data-module="discover"]')                                       # zuletzt benutzte Seite gemerkt
+        self.assertTrue(self.until("call('settings').then(r => r.ui.module === 'discover')"))
 
     def test_discover_sonovault(self):
         """#258: SonoVault in Entdecken – Quelle nur mit Schlüssel wählbar, Einträge ohne Link („Öffnen“ gesperrt)."""
@@ -1924,9 +1926,7 @@ class UiTest(unittest.TestCase):
                                      "preview": "", "url": "", "status": "new", "owned": False, "first": now}}
         with open(os.path.join(d, "entdecken.json"), "w", encoding="utf-8") as fh:
             json.dump({"follow": {"artists": ["Mara Lind"], "sources": ["deezer", "sonovault"]}, "items": items}, fh)
-        pg.click('.nav[data-module="prep"]')
-        pg.wait_for_function("PREP.d && PREP.d.workflow")
-        pg.click('#prepTabs [data-ptab="disc"]')
+        pg.click('.nav[data-module="discover"]')
         pg.wait_for_function("DISC.d && DISC.d.items.length === 1")
         row = '#discList tr[data-k="sonovault:rel:7"]'
         self.assertIn("SonoVault", pg.inner_text(row))
@@ -1953,9 +1953,7 @@ class UiTest(unittest.TestCase):
         with open(os.path.join(k, "kaeufe.json"), "w", encoding="utf-8") as fh:
             json.dump({"format": 1, "stores": {}, "items": {"beatport:1": {"store": "beatport", "id": "1", "title": "Titel 1",
                        "artist": "Mara Lind", "bought": "2026-10-05T10:00:00", "status": "missing"}}}, fh)
-        pg.click('.nav[data-module="prep"]')
-        pg.wait_for_function("PREP.d && PREP.d.workflow")
-        pg.click('#prepTabs [data-ptab="disc"]')
+        pg.click('.nav[data-module="discover"]')
         pg.wait_for_function("DISC.d && DISC.d.items.length === 3")
         pg.click("#discFol summary")
         self.assertEqual(pg.locator('#discFolList .disc-chip[data-kind="artists"]').count(), 2)
@@ -2199,7 +2197,7 @@ class UiTest(unittest.TestCase):
         """#316: Käufe zuerst und ausschaltbar; eigene Reihenfolge mit ↑/↓, Standard-Reihenfolge."""
         pg = self.pg
         first = "[...document.querySelectorAll('.nav[data-module]')].map(b => b.dataset.module)"
-        self.assertEqual(pg.evaluate(first)[0], "purchases")
+        self.assertEqual(pg.evaluate(first)[:2], ["discover", "purchases"])        # #333: Entdecken zuoberst
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector('[data-navshow="purchases"]')
         pg.uncheck('[data-navshow="purchases"]')
@@ -2208,7 +2206,7 @@ class UiTest(unittest.TestCase):
         pg.wait_for_function("!document.querySelector('.nav[data-module=\"purchases\"]').hidden")
         pg.click('[data-navmove="tagger|-1"]')
         self.assertTrue(self.until(f"{first}.indexOf('tagger') < {first}.indexOf('prep')"))
-        self.assertEqual(self.cfg_until(lambda c: bool(c.get("nav_order"))).get("nav_order")[1], "tagger")
+        self.assertEqual(self.cfg_until(lambda c: bool(c.get("nav_order"))).get("nav_order")[2], "tagger")
         pg.click('[data-navorder="reset"]')
         self.assertTrue(self.until(f"{first}.indexOf('prep') < {first}.indexOf('tagger')"))
         self.assertEqual(self.errors, [])

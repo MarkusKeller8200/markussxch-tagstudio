@@ -107,6 +107,12 @@ Einträge ohne Datei in allen Playlists mit den neuen Titeln verknüpft, wenn si
 - **Zugangsdaten:** wie bisher nur ein verschlüsseltes Token; das Passwort wird nie gespeichert.
 
 ### 8. Entdecken (neue Titel vorschlagen, mit Vorhören)
+
+> **Seit 4.12.0 (#333) eine eigene Seite** „Entdecken“ (`#moduleDiscover`, Modul `discover`, Standard zuoberst in
+> `session_setup.MODULES`; bestehende eigene Reihenfolgen bekommen es über `_nav_order` an den Anfang). Der Umschalter
+> `Workflow | Entdecken` in „Vorbereiten“ ist weg, die Zahl neuer Vorschläge steht am Menüpunkt (`#discCount`). Daten
+> und Einstellungen (`entdecken.json`, gefolgt, Quellen, tägliche Suche) unverändert. Ideen sammeln wandert ins Modul
+> IDEE (Konzept [KONZEPT-IDEE.md](KONZEPT-IDEE.md), #186).
 Machbarkeit je Dienst (Stand 2026-10):
 - **Beatport:** Charts, Neuheiten je Genre/Label/Künstler und Vorhör-Ausschnitte über die bestehende Anmeldung –
   realistischste Quelle, Kauf über Link.

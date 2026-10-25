@@ -21,6 +21,8 @@
       <button class="nav nav-back" id="navBack" aria-label="Zurück"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg><span class="nt nav-back-t" id="navBackLbl"><span>Zurück</span></span></button>
       <button class="icon-btn nav-fwd" id="navFwd" hidden aria-label="Vorwärts"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
     </div>
+    <button class="nav" data-module="discover" title="Entdecken: neue Titel gefolgter Künstler, Labels und Genres vorhören und merken">
+      <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg><span class="nt">Entdecken</span><span class="nav-sub nt" id="discCount" title="Neue Vorschläge"></span></button>
     <button class="nav" data-module="purchases" title="Käufe: gekaufte Titel aller Stores (zuerst Beatport) sammeln, mit der Bibliothek abgleichen und fehlende herunterladen">
       <svg class="i" viewBox="0 0 24 24"><path d="M5 7h14l-1.5 10.5a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg><span class="nt">Käufe</span><span class="nav-sub nt" id="purCount"></span></button>
     <button class="nav" data-module="prep" title="Tracks vorbereiten: Eingang → Stufen → Bibliothek">
@@ -460,26 +462,13 @@
       </div>
     </div>
 
-    <div class="work module" id="modulePrep" hidden>
+    <div class="work module" id="moduleDiscover" hidden>
       <div class="mod-page prep-page">
         <header class="mod-head">
-          <div><h2>Tracks vorbereiten</h2>
-          <p class="muted">Neue Titel laufen vom Eingangsordner Schritt für Schritt bis in die Bibliothek. Jede Stufe arbeitet auf einer Kopie – die Rohdaten bleiben unverändert. Ab „nur ergänzen“-Schritten meldet TagStudio, wenn ein Programm bestehende Tags ändert.</p></div>
-          <div class="mod-actions" id="prepWfActs">
-            <select id="prepWf" class="inp" aria-label="Workflow"></select>
-            <button class="ghost" id="prepFetch" hidden title="Neue Downloads der Quellen (MP3, ZIP) in den Eingangsordner kopieren">Abholen</button>
-            <button class="ghost" id="prepEdit">Workflow bearbeiten …</button>
-            <button class="ghost" id="prepMore" aria-haspopup="menu">Mehr ▾</button>
-            <button class="primary" id="prepRefresh" title="Eingangsordner neu lesen und Programme erkennen">Aktualisieren</button>
-          </div>
+          <div><h2>Entdecken</h2>
+          <p class="muted">Neue Titel von Künstlern, Labels und Genres, denen du folgst – mit Vorhören, Merkliste und Link zum Kauf. Gekauft wird nie automatisch.</p></div>
         </header>
-        <div class="seg prep-tabs" id="prepTabs" role="tablist" aria-label="Bereiche"><button data-ptab="wf" role="tab" class="on" aria-selected="true">Workflow</button><button data-ptab="disc" role="tab" aria-selected="false">Entdecken <span class="tab-n" id="discCount"></span></button></div>
-        <div id="prepWfPane" class="prep-pane">
-        <div class="muted sm prep-paths" id="prepPaths"></div>
-        <div class="prep-steps" id="prepSteps"></div>
-        <div class="prep-table card" id="prepTable"></div>
-        </div>
-        <div id="discPane" class="prep-pane" hidden>
+        <div id="discPane" class="prep-pane">
           <div class="disc-bar">
             <div class="seg sm" id="discFilter" role="radiogroup" aria-label="Anzeigen"></div>
             <input id="discSearch" class="inp" type="search" placeholder="Suchen (Künstler, Titel, Label)" aria-label="Suchen">
@@ -499,6 +488,27 @@
           <div class="muted sm" id="discInfo"></div>
           <div class="prep-table card" id="discList"></div>
           <audio id="discAudio" preload="none"></audio>
+        </div>
+      </div>
+    </div>
+
+    <div class="work module" id="modulePrep" hidden>
+      <div class="mod-page prep-page">
+        <header class="mod-head">
+          <div><h2>Tracks vorbereiten</h2>
+          <p class="muted">Neue Titel laufen vom Eingangsordner Schritt für Schritt bis in die Bibliothek. Jede Stufe arbeitet auf einer Kopie – die Rohdaten bleiben unverändert. Ab „nur ergänzen“-Schritten meldet TagStudio, wenn ein Programm bestehende Tags ändert.</p></div>
+          <div class="mod-actions" id="prepWfActs">
+            <select id="prepWf" class="inp" aria-label="Workflow"></select>
+            <button class="ghost" id="prepFetch" hidden title="Neue Downloads der Quellen (MP3, ZIP) in den Eingangsordner kopieren">Abholen</button>
+            <button class="ghost" id="prepEdit">Workflow bearbeiten …</button>
+            <button class="ghost" id="prepMore" aria-haspopup="menu">Mehr ▾</button>
+            <button class="primary" id="prepRefresh" title="Eingangsordner neu lesen und Programme erkennen">Aktualisieren</button>
+          </div>
+        </header>
+        <div id="prepWfPane" class="prep-pane">
+        <div class="muted sm prep-paths" id="prepPaths"></div>
+        <div class="prep-steps" id="prepSteps"></div>
+        <div class="prep-table card" id="prepTable"></div>
         </div>
       </div>
     </div>

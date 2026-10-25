@@ -141,5 +141,11 @@
 "– kein Archiv-Ordner festgelegt": ["– no archive folder set", "– kän Archiv-Ordner feschtgleit"],
 "Noch nichts aussortiert{x}.": ["Nothing sorted out yet{x}.", "Nonig nüüt ussortiert{x}."],
 "Ausgewählte zurückholen": ["Bring back selected", "Uusgwäälti zruggholle"],
-"Standard-Reihenfolge": ["Default order", "Standard-Reihefolg"]
+"Standard-Reihenfolge": ["Default order", "Standard-Reihefolg"],
+"Neue Musik entdecken": ["Discover new music", "Nöii Musig entdecke"],
+"Künstlern, Labels und Genres folgen, neue Titel vorhören und merken": ["Follow artists, labels and genres, preview and save new tracks", "Künschtler, Labels und Genres folge, nöii Titel vorlose und merke"],
+"{q}: Künstlern, Labels und Genres folgen – oder sie von Beatport übernehmen.": ["{q}: follow artists, labels and genres – or take them over from Beatport.", "{q}: Künschtler, Labels und Genres folge – oder si vo Beatport übernäh."],
+"{q} holt neue Titel; vorhören, merken oder ausblenden.": ["{q} fetches new tracks; preview, save or hide them.", "{q} holt nöii Titel; vorlose, merke oder uusblände."],
+"Die Zahl in der Seitenleiste zeigt neue Vorschläge (tägliche Suche unter {q}).": ["The number in the sidebar shows new suggestions (daily search under {q}).", "D Zahl i de Siiteleischte zeigt nöii Vorschläg (täglichi Suechi under {q})."],
+"{q} übernimmt neue Downloads (auch ZIP) in den Eingangsordner.": ["{q} takes new downloads (ZIP too) into the inbox folder.", "{q} übernimmt nöii Downloads (au ZIP) in Iigangsordner."]
 }

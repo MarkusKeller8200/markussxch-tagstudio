@@ -3,12 +3,13 @@
 "use strict";
 
 const SETUP = { st: null };
-const NAV_NAMES = { purchases: "Käufe", prep: "Vorbereiten", tagger: "Tagger", fixer: "Tag-Fixer", compare: "Vergleich", djset: "DJ-Set", playlists: "Playlists",
+const NAV_NAMES = { discover: "Entdecken", purchases: "Käufe", prep: "Vorbereiten", tagger: "Tagger", fixer: "Tag-Fixer", compare: "Vergleich", djset: "DJ-Set", playlists: "Playlists",
   snapshots: "Snapshots", backups: "Sicherungen", plugins: "Plugins", settings: "Einstellungen", help: "Hilfe" };
 
 const WIZ_GOALS = [
   ["tags", "Tags bearbeiten und vervollständigen", "Tagger, Tag-Fixer und Tag-Rezepte – Titel, Künstler, Cover, Tonart, BPM …", ["tagger", "fixer"]],
   ["prep", "Neue Tracks vorbereiten", "Vom Download über deine Programme bis in die Bibliothek – mit Schutz bestehender Tags", ["prep"]],
+  ["discover", "Neue Musik entdecken", "Künstlern, Labels und Genres folgen, neue Titel vorhören und merken", ["discover"]],
   ["compare", "Ordner oder Sicherungen vergleichen", "Zwei Stände nebeneinander, Unterschiede übernehmen", ["compare"]],
   ["djset", "DJ-Sets planen", "Reihenfolge nach Tonart, BPM und Energie, Export für Rekordbox & Co.", ["djset"]],
   ["track", "Änderungen nachverfolgen", "Snapshots der Bibliothek und Sicherungen vor jedem Speichern", ["snapshots", "backups"]],
@@ -28,7 +29,8 @@ const WIZ_ONLINE = [
   ["stems", "Stems", "Gesang, Drums, Bass … trennen – grosse Installation (Umgebung und Modelle), unter Plugins installieren"],
 ];
 const FIRST_STEPS = {
-  prep: ["Unter „Workflow bearbeiten“ Eingangsordner, Arbeitsordner und Bibliothek wählen.", "Schritte der Reihe nach ausführen – jede Stufe arbeitet auf einer Kopie.", "Reiter „Entdecken“: Künstlern und Labels folgen, neue Titel vorhören."],
+  discover: ["„Folgen …“: Künstlern, Labels und Genres folgen – oder sie von Beatport übernehmen.", "„Suchen“ holt neue Titel; vorhören, merken oder ausblenden.", "Die Zahl in der Seitenleiste zeigt neue Vorschläge (tägliche Suche unter „Folgen …“)."],
+  prep: ["Unter „Workflow bearbeiten“ Eingangsordner, Arbeitsordner und Bibliothek wählen.", "Schritte der Reihe nach ausführen – jede Stufe arbeitet auf einer Kopie.", "„Abholen“ übernimmt neue Downloads (auch ZIP) in den Eingangsordner."],
   tagger: ["Oben einen Ordner wählen und „Laden“ – alle MP3 erscheinen in der Liste.", "Titel markieren und rechts bearbeiten; Strg+S speichert (vorher wird gesichert).", "Leertaste spielt ab, 0–5 bewertet; alle Tasten unter Hilfe › Tastatur."],
   fixer: ["Bereich wählen: markierte Titel oder ganzer Ordner.", "Mehrfachwerte, Gross-/Kleinschreibung oder Suchen & Ersetzen einstellen.", "Vorschau prüfen, dann übernehmen – Rückgängig jederzeit."],
   compare: ["Links und rechts je einen Ordner (oder Snapshot/Sicherung) wählen.", "Paare links auswählen; Unterschiede sind markiert.", "Alt+→ / Alt+← kopiert markierte Felder auf die andere Seite."],

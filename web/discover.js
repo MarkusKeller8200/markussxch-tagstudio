@@ -1,17 +1,9 @@
-/* MarKusSXCH TagStudio – Vorbereiten › Entdecken (#120): neue Titel gefolgter Künstler, Labels und Genres mit
-   Vorhören, Merkliste und Kauf-Link. Logik in discover.py / session_discover.py. Gekauft wird nie automatisch. */
+/* MarKusSXCH TagStudio – Entdecken (#120, eigene Seite seit #333): neue Titel gefolgter Künstler, Labels und Genres
+   mit Vorhören, Merkliste und Kauf-Link. Logik in discover.py / session_discover.py. Gekauft wird nie automatisch. */
 "use strict";
 
 const DISC = { d: null, filter: "new", playing: "" };
 const DISC_FILTERS = [["new", "Neu"], ["saved", "Gemerkt"], ["all", "Alle"], ["bought", "Gekauft"], ["hidden", "Ausgeblendet"]];
-
-function prepTab(tab) {
-  $$("#prepTabs [data-ptab]").forEach((b) => { b.classList.toggle("on", b.dataset.ptab === tab); b.setAttribute("aria-selected", String(b.dataset.ptab === tab)); });
-  $("#prepWfPane").hidden = tab !== "wf";
-  $("#prepWfActs").style.visibility = tab === "wf" ? "" : "hidden";
-  $("#discPane").hidden = tab !== "disc";
-  if (tab === "disc") discShow(); else discStop();
-}
 
 async function discShow() {
   try { discApply(await call("disc_overview")); } catch (e) { toast(String(e.message || e)); }
@@ -255,7 +247,7 @@ async function discAutoStart() {
     if (!st.running) {
       discBadge(st.count_new);
       if (st.auto_new) toast(`Entdecken: ${fmtN(st.auto_new)} neue(r) Vorschlag/Vorschläge.`);
-      if (S.module === "prep" && !$("#discPane").hidden) discShow();
+      if (S.module === "discover") discShow();
       return;
     }
   }
@@ -269,7 +261,6 @@ async function discBadge(n) {
 (function bindDiscover() {
   setTimeout(discAutoStart, 8000);
   $("#discExport").addEventListener("click", (e) => { e.stopPropagation(); discExportMenu(); });
-  $("#prepTabs").addEventListener("click", (e) => { const b = e.target.closest("[data-ptab]"); if (b) prepTab(b.dataset.ptab); });
   $("#discFilter").addEventListener("click", (e) => { const b = e.target.closest("[data-f]"); if (!b) return; DISC.filter = b.dataset.f; discApply(DISC.d); });
   $("#discSearch").addEventListener("input", () => DISC.d && discRender());
   $("#discHideOwned").addEventListener("change", () => DISC.d && discRender());

@@ -206,7 +206,8 @@ füllen“), Pflichtfelder prüfen, Übernahme mit Duplikatprüfung und nachgela
 „nur ergänzen“ meldet (oder setzt zurück), wenn ein Programm bestehende Tags ändert. **Quellen** sind Download-Ordner
 der Kaufplattformen; „Abholen“ kopiert neue MP3 (auch aus ZIP) in den Eingang.
 
-**Entdecken:** Unter „Folgen …“ Künstler, Labels und Beatport-Genres festlegen (oder aus der Bibliothek vorschlagen
+**Entdecken** ist eine eigene Seite, standardmässig zuoberst in der Seitenleiste (die Zahl daneben = neue
+Vorschläge); „Vorbereiten“ zeigt nur noch den Workflow. Unter „Folgen …“ Künstler, Labels und Beatport-Genres festlegen (oder aus der Bibliothek vorschlagen
 lassen); „Suchen“ holt neue Veröffentlichungen von Deezer und Beatport, auf Wunsch auch von **SonoVault** (kostet
 Kredite: je Künstler/Label 1–2 Anfragen; nie bei der täglichen Suche; Einträge ohne Link, nach 30 Tagen entfernt und
 nie exportiert). In der Liste vorhören (▶), merken (☆), als
