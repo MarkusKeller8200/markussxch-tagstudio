@@ -4,6 +4,18 @@ Stand: **2026-10-25 (22:35): v4.11.0 final veröffentlicht, Meilenstein #27 gesc
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
+## Start 4.12.0 (angelegt 25.10.2026, 23:00)
+
+- **Meilenstein #28 „4.12.0 – Käufe, Tag-Fixer & Entdecken“** (User 22:55/23:00): #332–#344 aus dem Chat, dazu #186
+  (Konzept IDEE, hängt mit #333 zusammen) und #321 (Fremdkomponenten, Routine; #322 ist Duplikat – schliessen nach Rückfrage).
+- **Entscheid #339:** Ziel-Trenner im Rezept wählbar, Standard „, “.
+- **Vorschlag Reihenfolge** (noch nicht freigegeben): #332 Entwickler-Protokolle → #344 Trennzeichen als Code →
+  #337+#340 Spaltenbreite (gemeinsame Hilfe) → #341 Vorschau-Auswahl → #342 Ausnahmen je Feld → #343 Ausnahmen-Editor →
+  #339 Smart Fix → #336 ZIP entpacken → #338 strenge Zuweisung + Korrekturfenster → #334 Download-Playlist → #335
+  Kaufdatum-Playlists → #186 Konzept IDEE (Entscheid) → #333 Entdecken-Seite → #321 Fremdkomponenten.
+- **Vor der Umsetzung klären:** #334/#335 Beatport-API zum Anlegen/Befüllen eigener Playlists (Plugin liest heute nur;
+  ändert das Beatport-Konto nur auf Klick); #186 ob Merkliste/Entdecken ins Modul IDEE wandert.
+
 ## Release 4.11.0 (25.10.2026, 22:35)
 
 - **Freigabe User 22:10** („wenn der Lauf fehlerfrei war, Release erstellen und Meilenstein schliessen“). Vorher alle
