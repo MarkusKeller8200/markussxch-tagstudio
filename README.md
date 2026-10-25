@@ -87,7 +87,8 @@ und darüber installieren – Einstellungen, Sicherungen und Plugin-Daten liegen
 
 ## Bedienung
 
-Seitenleiste mit **Tagger, Tag-Fixer, Vergleich, DJ-Set, Playlists, Snapshots, Sicherungen, Plugins, Einstellungen**, unten
+Seitenleiste mit **Käufe, Vorbereiten, Tagger, Tag-Fixer, Vergleich, DJ-Set, Playlists, Snapshots, Sicherungen, Plugins,
+Einstellungen** (Einstellungen › Darstellung › Seitenleiste: Menüpunkte ein-/ausblenden und mit ↑/↓ eigene Reihenfolge), unten
 „Nach Update suchen“, Versionshinweise, Einklappen und Hell/Dunkel. **Zurück:** Nach einem Sprung aus dem Inhalt
 (z. B. Playlist › „Im Tagger öffnen“) erscheint oben in der Seitenleiste „← Zurück“ mit dem Ziel – es führt an
 dieselbe Stelle zurück (Auswahl, Filter, Bildlauf); ebenso Alt+← / Alt+→ (ausser im Vergleich) und die Maustasten

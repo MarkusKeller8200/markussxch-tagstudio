@@ -1698,3 +1698,9 @@ html.i18n-wait body{visibility:hidden}
 .lw-t{opacity:.7}
 .pur-sess{display:inline-flex;gap:6px;align-items:center}
 .pur-sess-on{color:var(--ok,#2ea043)}
+/* #316: Reihenfolge der Menüpunkte */
+.nav-order{display:flex;flex-direction:column;gap:2px;max-width:340px}
+.nav-ord-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.nav-ord-btns{display:flex;gap:2px}
+.nav-ord-btns .icon-btn{width:24px;height:22px;font-size:12px}
+.nav-ord-btns .icon-btn:disabled{opacity:.3;cursor:default}

@@ -140,5 +140,6 @@
 "Bereich": ["Area", "Beriich"],
 "– kein Archiv-Ordner festgelegt": ["– no archive folder set", "– kän Archiv-Ordner feschtgleit"],
 "Noch nichts aussortiert{x}.": ["Nothing sorted out yet{x}.", "Nonig nüüt ussortiert{x}."],
-"Ausgewählte zurückholen": ["Bring back selected", "Uusgwäälti zruggholle"]
+"Ausgewählte zurückholen": ["Bring back selected", "Uusgwäälti zruggholle"],
+"Standard-Reihenfolge": ["Default order", "Standard-Reihefolg"]
 }

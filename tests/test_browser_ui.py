@@ -1764,6 +1764,24 @@ class UiTest(unittest.TestCase):
         pg.uncheck('[data-navshow="djset"]')
         pg.wait_for_function("document.querySelector('.nav[data-module=\"djset\"]').hidden")
 
+    def test_nav_order_purchases(self):
+        """#316: Käufe zuerst und ausschaltbar; eigene Reihenfolge mit ↑/↓, Standard-Reihenfolge."""
+        pg = self.pg
+        first = "[...document.querySelectorAll('.nav[data-module]')].map(b => b.dataset.module)"
+        self.assertEqual(pg.evaluate(first)[0], "purchases")
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector('[data-navshow="purchases"]')
+        pg.uncheck('[data-navshow="purchases"]')
+        pg.wait_for_function("document.querySelector('.nav[data-module=\"purchases\"]').hidden")
+        pg.check('[data-navshow="purchases"]')
+        pg.wait_for_function("!document.querySelector('.nav[data-module=\"purchases\"]').hidden")
+        pg.click('[data-navmove="tagger|-1"]')
+        self.assertTrue(self.until(f"{first}.indexOf('tagger') < {first}.indexOf('prep')"))
+        self.assertEqual(self.cfg_until(lambda c: bool(c.get("nav_order"))).get("nav_order")[1], "tagger")
+        pg.click('[data-navorder="reset"]')
+        self.assertTrue(self.until(f"{first}.indexOf('prep') < {first}.indexOf('tagger')"))
+        self.assertEqual(self.errors, [])
+
     def test_archive_tagger(self):
         """#173: Aussortieren im Tagger – Vorschau, verschieben, Liste neu geladen, zurückholen."""
         pg = self.pg

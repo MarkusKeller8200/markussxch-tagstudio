@@ -19,7 +19,7 @@ import core
 GROUPS = [
     ("design", "Design und Tonart-Schreibweise", ("web_theme", "theme", "key_notation")),
     ("layout", "Layout (Splitter, Seitenleiste, Fenster)", ("web_ui", "geometry", "features_open", "window",
-                                                           "nav_hidden", "nav_recommended")),
+                                                           "nav_hidden", "nav_recommended", "nav_order")),
     ("setup", "Einrichtung (Assistent, Erste Schritte)", ("setup_done", "first_steps", "first_steps_seen", "seen_version", "base_dir", "archive_dir", "playlist_dir")),
     ("view", "Ansicht und Filter", ("filter", "show_trivial", "empty_set", "show_covers", "mode", "recursive",
                                     "tagger_recursive", "tagger_stems_flat", "cmp_defaults", "tg_defaults", "feat_scale", "mood_list")),

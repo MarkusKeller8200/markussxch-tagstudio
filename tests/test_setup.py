@@ -13,6 +13,26 @@ class TestSetup(Base):
         s.cfg.update(cfg)
         return s
 
+    def test_nav_order_and_purchases(self):
+        """#316: Käufe schaltbar und zuerst; eigene Reihenfolge, neue Module an ihrem Standardplatz, zurücksetzen."""
+        s = self.session({"setup_done": "x"})
+        st = s.setup_state()
+        self.assertEqual(st["order"][0], "purchases")
+        self.assertNotIn("settings", st["order"])
+        self.assertEqual(s.set_nav_hidden(["purchases"])["hidden"], ["purchases"])
+        order = list(st["order"])
+        order.remove("tagger")
+        order.insert(0, "tagger")
+        st = s.set_nav_order(order)
+        self.assertEqual(st["order"][:2], ["tagger", "purchases"])
+        s.cfg["nav_order"] = ["tagger", "prep"]                  # ältere Liste ohne neue Module
+        o = s.setup_state()["order"]
+        self.assertEqual(o[0], "purchases")
+        self.assertLess(o.index("tagger"), o.index("prep"))
+        self.assertEqual(sorted(o), sorted(m for m in st["modules"] if m not in ("settings", "help")))
+        self.assertEqual(s.set_nav_order([])["order"][0], "purchases")
+        self.assertEqual(s.cfg.get("nav_order"), [])
+
     def test_first_and_finish(self):
         s = self.session({})
         st = s.setup_state()

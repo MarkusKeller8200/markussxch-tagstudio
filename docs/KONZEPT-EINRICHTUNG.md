@@ -96,7 +96,9 @@ Alles ist später unter Einstellungen änderbar; der Assistent lässt sich jeder
 - **Eigene Assistenten-Ansicht** (Vollbild-Overlay mit Fortschritt „Schritt 2 von 7“, Zurück/Weiter/Überspringen) – nicht
   im bestehenden Einzel-Dialog, damit Dateibrowser und Rückfragen darin funktionieren.
 - **Menüpunkte ein-/ausblenden** (Einstellungen › Darstellung › Seitenleiste): wenig genutzte Module verstecken; der
-  Assistent setzt eine Empfehlung, alles bleibt jederzeit einblendbar.
+  Assistent setzt eine Empfehlung, alles bleibt jederzeit einblendbar. **#316:** auch „Käufe“ (Standard ganz oben);
+  eigene Reihenfolge mit ↑/↓ (cfg `nav_order`, leer = Standard; neue Module kommen an ihren Standardplatz),
+  „Standard-Reihenfolge“ setzt zurück.
 - **„Erste Schritte“-Hinweise** je Seite: kleine, abschaltbare Karte oben („So funktioniert der Tagger in 3 Schritten“),
   verschwindet nach dem ersten Benutzen.
 - **„Neu in dieser Version“:** nach einem Update kurze Hinweise nur zu neuen Funktionen (aus dem CHANGELOG), damit

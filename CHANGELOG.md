@@ -6,6 +6,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Verbessert
+
+- **Seitenleiste (#316):** „Käufe“ lässt sich ein-/ausblenden und steht standardmässig ganz oben; eigene Reihenfolge
+  der Menüpunkte mit ↑/↓ in Einstellungen › Darstellung › Seitenleiste, „Standard-Reihenfolge“ setzt zurück.
+
 ### Sicherheit
 
 - **Zugangsdaten unter macOS im Schlüsselbund (#287):** Schlüssel und Tokens der Dienst-Plugins (AcoustID, Discogs,

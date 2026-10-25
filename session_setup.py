@@ -7,7 +7,8 @@ import re
 import core
 from version import VERSION
 
-MODULES = ["prep", "tagger", "fixer", "compare", "djset", "playlists", "snapshots", "backups", "plugins", "settings", "help"]
+MODULES = ["purchases", "prep", "tagger", "fixer", "compare", "djset", "playlists", "snapshots", "backups", "plugins",
+           "settings", "help"]                 # Standard-Reihenfolge der Seitenleiste (#316: Käufe zuerst)
 ALWAYS = {"settings", "help"}          # lassen sich nicht ausblenden
 # Schlüssel, an denen ein schon benutztes TagStudio erkennbar ist (dann kein Assistent beim Start)
 USED_KEYS = ("hist_tagger", "default_tagger", "tagger_state", "hist_left", "web_ui", "theme", "web_theme", "backup_dir", "prep_workflows")
@@ -37,7 +38,25 @@ class SetupMixin:
                 "hidden": [m for m in c.get("nav_hidden") or [] if m in MODULES and m not in ALWAYS],
                 "first_steps": c.get("first_steps", True) is not False,
                 "first_steps_seen": [m for m in c.get("first_steps_seen") or [] if m in MODULES],
-                "seen_version": c.get("seen_version") or "", "modules": MODULES}
+                "seen_version": c.get("seen_version") or "", "modules": MODULES, "order": self._nav_order()}
+
+    def _nav_order(self) -> list:
+        """Eigene Reihenfolge der verschiebbaren Menüpunkte (#316); neue Module kommen an ihren Standardplatz."""
+        movable = [m for m in MODULES if m not in ALWAYS]
+        own = [m for m in self.cfg.get("nav_order") or [] if m in movable]
+        for m in movable:
+            if m not in own:                              # neu dazugekommen: hinter seinen Vorgänger in der Standardliste
+                i = movable.index(m)
+                prev = next((p for p in reversed(movable[:i]) if p in own), None)
+                own.insert(own.index(prev) + 1 if prev else 0, m)
+        return own
+
+    def set_nav_order(self, order=None) -> dict:
+        """Reihenfolge speichern; None/leer = Standard-Reihenfolge."""
+        movable = [m for m in MODULES if m not in ALWAYS]
+        own = [m for m in order or [] if m in movable]
+        self._setup_set(nav_order=own if own and own != movable else [])
+        return self.setup_state()
 
     def _setup_set(self, **kv):
         self.cfg.update(kv)

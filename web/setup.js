@@ -3,7 +3,7 @@
 "use strict";
 
 const SETUP = { st: null };
-const NAV_NAMES = { prep: "Vorbereiten", tagger: "Tagger", fixer: "Tag-Fixer", compare: "Vergleich", djset: "DJ-Set", playlists: "Playlists",
+const NAV_NAMES = { purchases: "Käufe", prep: "Vorbereiten", tagger: "Tagger", fixer: "Tag-Fixer", compare: "Vergleich", djset: "DJ-Set", playlists: "Playlists",
   snapshots: "Snapshots", backups: "Sicherungen", plugins: "Plugins", settings: "Einstellungen", help: "Hilfe" };
 
 const WIZ_GOALS = [
@@ -53,6 +53,9 @@ async function setupInit(st) {
 /** Seitenleiste: empfohlene Menüpunkte markieren, ausgeblendete verstecken (#169) */
 function setupNav() {
   const s = SETUP.st; if (!s) return;
+  // #316: Reihenfolge – verschiebbare Menüpunkte vor „Einstellungen“ einreihen
+  const anchor = $('.nav[data-module="settings"]');
+  if (anchor && s.order) s.order.forEach((m) => { const b = $(`.nav[data-module="${m}"]`); if (b) anchor.parentNode.insertBefore(b, anchor); });
   $$(".nav[data-module]").forEach((b) => {
     const m = b.dataset.module;
     b.classList.toggle("rec", s.recommended.length > 0 && s.recommended.includes(m));
@@ -245,6 +248,17 @@ async function whatsNew() {
       return;
     }
     if (e.target.closest("[data-setup=wizard]")) { await wizardRun(); if (S.module === "settings") settingsShow(); return; }
+    const mv = e.target.closest("[data-navmove]");
+    if (mv) {
+      const [m, d] = mv.dataset.navmove.split("|");
+      const order = [...SETUP.st.order], i = order.indexOf(m), j = i + +d;
+      if (i < 0 || j < 0 || j >= order.length) return;
+      [order[i], order[j]] = [order[j], order[i]];
+      SETUP.st = await call("set_nav_order", order);
+      setupNav(); stNavOrderRefresh();
+      return;
+    }
+    if (e.target.closest("[data-navorder=reset]")) { SETUP.st = await call("set_nav_order", []); setupNav(); stNavOrderRefresh(); return; }
     if (e.target.closest("[data-setup=firststeps]")) { SETUP.st = await call("first_steps_restart"); toast("„Erste Schritte“ werden wieder auf jeder Seite gezeigt."); firstStepsShow(S.module); return; }
   });
   document.addEventListener("change", async (e) => {
@@ -257,10 +271,21 @@ async function whatsNew() {
   });
 })();
 
+/** Liste „Menüpunkte“ nach einer Änderung der Reihenfolge neu zeichnen (ohne die ganze Seite) */
+function stNavOrderRefresh() {
+  const box = $("#stNavOrder"); if (!box) return;
+  const tmp = document.createElement("div");
+  tmp.innerHTML = setupSettingsHtml();
+  const fresh = tmp.querySelector("#stNavOrder");
+  if (fresh) box.replaceWith(fresh);
+}
+
 /** Einstellungen › Darstellung: Seitenleiste und Einrichtung (#169) */
 function setupSettingsHtml() {
   const s = SETUP.st; if (!s) return "";
-  return `<h4 class="st-sub">Seitenleiste</h4><div class="st-row"><span>Menüpunkte</span><div class="nav-pick">${s.modules.filter((m) => !["settings", "help"].includes(m)).map((m) => `<label class="check"><input type="checkbox" data-navshow="${m}" ${s.hidden.includes(m) ? "" : "checked"}> ${esc(NAV_NAMES[m])}${s.recommended.includes(m) ? ' <span class="rec-dot" title="empfohlen">★</span>' : ""}</label>`).join("")}</div>
+  const order = s.order || s.modules.filter((m) => !["settings", "help"].includes(m));
+  return `<h4 class="st-sub">Seitenleiste</h4><div class="st-row"><span>Menüpunkte</span><div><div class="nav-pick nav-order" id="stNavOrder">${order.map((m, i) => `<div class="nav-ord-row"><label class="check"><input type="checkbox" data-navshow="${m}" ${s.hidden.includes(m) ? "" : "checked"}> ${esc(NAV_NAMES[m])}${s.recommended.includes(m) ? ' <span class="rec-dot" title="empfohlen">★</span>' : ""}</label><span class="nav-ord-btns"><button class="icon-btn sm" data-navmove="${m}|-1" title="Nach oben" aria-label="Nach oben" ${i ? "" : "disabled"}>↑</button><button class="icon-btn sm" data-navmove="${m}|1" title="Nach unten" aria-label="Nach unten" ${i < order.length - 1 ? "" : "disabled"}>↓</button></span></div>`).join("")}</div>
+    <button class="ghost sm" data-navorder="reset">Standard-Reihenfolge</button></div>
     <span>Einrichtung</span><div class="st-path"><button class="ghost sm" data-setup="wizard">Einrichtungsassistent starten</button><button class="ghost sm" data-setup="firststeps">„Erste Schritte“ neu starten</button></div></div>`;
 }
 

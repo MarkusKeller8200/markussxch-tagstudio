@@ -21,6 +21,8 @@
       <button class="nav nav-back" id="navBack" aria-label="Zurück"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg><span class="nt nav-back-t" id="navBackLbl"><span>Zurück</span></span></button>
       <button class="icon-btn nav-fwd" id="navFwd" hidden aria-label="Vorwärts"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
     </div>
+    <button class="nav" data-module="purchases" title="Käufe: gekaufte Titel aller Stores (zuerst Beatport) sammeln, mit der Bibliothek abgleichen und fehlende herunterladen">
+      <svg class="i" viewBox="0 0 24 24"><path d="M5 7h14l-1.5 10.5a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg><span class="nt">Käufe</span><span class="nav-sub nt" id="purCount"></span></button>
     <button class="nav" data-module="prep" title="Tracks vorbereiten: Eingang → Stufen → Bibliothek">
       <svg class="i" viewBox="0 0 24 24"><path d="M4 6h10"/><path d="M4 12h7"/><path d="M4 18h4"/><path d="m14 15 3 3 5-6"/></svg><span class="nt">Vorbereiten</span><span class="nav-sub nt" id="prepCount" title="Titel im Eingang, die noch nicht übernommen sind"></span></button>
     <button class="nav" data-module="tagger" title="Tagger">
@@ -33,8 +35,6 @@
       <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M12 3v3M21 12h-3M12 21v-3M3 12h3"/></svg><span class="nt">DJ-Set</span><span class="nav-sub nt" id="djCount" title="Titel im DJ-Set"></span></button>
     <button class="nav" data-module="playlists" title="Playlists: Titel aus Tagger und DJ-Set sammeln, ordnen und als M3U8 ablegen">
       <svg class="i" viewBox="0 0 24 24"><path d="M3 6h12"/><path d="M3 12h12"/><path d="M3 18h7"/><circle cx="17" cy="17" r="3"/><path d="M20 17V7l2-1"/></svg><span class="nt">Playlists</span><span class="nav-sub nt" id="plsCount"></span></button>
-    <button class="nav" data-module="purchases" title="Käufe: gekaufte Titel aller Stores (zuerst Beatport) sammeln, mit der Bibliothek abgleichen und fehlende herunterladen">
-      <svg class="i" viewBox="0 0 24 24"><path d="M5 7h14l-1.5 10.5a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg><span class="nt">Käufe</span><span class="nav-sub nt" id="purCount"></span></button>
     <button class="nav" data-module="snapshots" title="Snapshots und Änderungsjournal">
       <svg class="i" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><circle cx="12" cy="13" r="3.5"/></svg><span class="nt">Snapshots</span><span class="nav-sub nt" id="snapSize"></span></button>
     <button class="nav" data-module="backups" title="Sicherungen">

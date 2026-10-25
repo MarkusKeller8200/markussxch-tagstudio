@@ -88,7 +88,8 @@ install it over the old one – settings, backups and plugin data live in the us
 
 ## Usage
 
-Sidebar with **Tagger, Tag fixer, Compare, DJ set, Playlists, Snapshots, Backups, Plugins, Settings**, at the bottom
+Sidebar with **Purchases, Prepare, Tagger, Tag fixer, Compare, DJ set, Playlists, Snapshots, Backups, Plugins, Settings**
+(Settings › Appearance › Sidebar: show/hide items and set your own order with ↑/↓), at the bottom
 “Check for update”, release notes, collapse and light/dark. **Back:** after a jump from the content (e.g. playlist ›
 “Open in the tagger”) “← Back” appears at the top of the sidebar with the target – it returns to the same place
 (selection, filter, scroll position); likewise Alt+← / Alt+→ (except in Compare) and the mouse buttons back/forward,
