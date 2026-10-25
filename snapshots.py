@@ -26,6 +26,7 @@ import os
 import paths
 import shutil
 import struct
+import threading
 import time
 import uuid
 import zlib
@@ -152,10 +153,19 @@ class Store:
         p = self._obj(h)
         if not os.path.exists(p):
             os.makedirs(os.path.dirname(p), exist_ok=True)
-            tmp = p + ".tmp"
-            with open(tmp, "wb") as fh:
-                fh.write(zlib.compress(data, 6))
-            os.replace(tmp, p)
+            tmp = _tmp_name(p)
+            try:
+                with open(tmp, "wb") as fh:
+                    fh.write(zlib.compress(data, 6))
+                os.replace(tmp, p)                      # gleichzeitiges Ablegen desselben Objekts ist unschädlich
+            finally:
+                if os.path.exists(tmp):
+                    os.remove(tmp)
+        else:
+            try:
+                os.utime(p)                             # wiederverwendet: als frisch markieren (gc-Schonfrist)
+            except OSError:
+                pass
         return h
 
     def get(self, h: str) -> bytes:
@@ -271,7 +281,7 @@ class Store:
     def write_manifest(self, lid: str, m: dict) -> dict:
         self._init()
         p = self._snap_path(lid, m["id"])
-        tmp = p + ".tmp"
+        tmp = _tmp_name(p)
         with gzip.open(tmp, "wt", encoding="utf-8") as fh:
             json.dump(m, fh, separators=(",", ":"))
         os.replace(tmp, p)
@@ -398,11 +408,19 @@ class Store:
         used = set(self._all_refs())
         freed = 0
         base = os.path.join(self.root, "objects")
+        with _WLOCK:
+            starts = list(_WRITERS.values())
+        fresh = min(starts) - 2 if starts else None     # läuft ein Snapshot/eine Sicherung: deren neue Objekte schonen
         for d, _dirs, files in os.walk(base):
             for n in files:
                 if n.endswith(".z") and n[:-2] not in used:
                     p = os.path.join(d, n)
                     if n[:-2] in PINNED:              # gehört zu einer laufenden Sicherung (#59)
+                        continue
+                    try:
+                        if fresh is not None and os.path.getmtime(p) >= fresh:   # vom laufenden Schreiber abgelegt/benutzt
+                            continue
+                    except OSError:
                         continue
                     try:
                         freed += os.path.getsize(p)
@@ -716,12 +734,13 @@ def create(store: Store, lid: str, label: str = "", auto=False, pinned=False, th
     store._init()
     prev = store.latest(lid)
     stats: dict = {}
-    files, errors = scan(lib["root"], store, prev, thorough, cancel, progress, stats)
-    now = datetime.datetime.now()
-    m = {"v": MANIFEST_VERSION, "id": now.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:6], "created": _now(now),
-         "label": label or ("Automatisch" if auto else "Snapshot"), "auto": bool(auto), "pinned": bool(pinned),
-         "root": lib["root"], "count": len(files), "files": files, "errors": errors[:200]}
-    store.write_manifest(lid, m)
+    with writing():
+        files, errors = scan(lib["root"], store, prev, thorough, cancel, progress, stats)
+        now = datetime.datetime.now()
+        m = {"v": MANIFEST_VERSION, "id": now.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:6], "created": _now(now),
+             "label": label or ("Automatisch" if auto else "Snapshot"), "auto": bool(auto), "pinned": bool(pinned),
+             "root": lib["root"], "count": len(files), "files": files, "errors": errors[:200]}
+        store.write_manifest(lid, m)
     return {k: m.get(k) for k in ("id", "created", "label", "pinned", "auto", "count")} | {"errors": errors, **stats}
 
 
@@ -931,9 +950,34 @@ def _parse(s: str) -> datetime.datetime:
     return datetime.datetime.strptime(s, "%Y-%m-%dT%H:%M:%S")
 
 
+_WRITERS: dict[int, float] = {}
+_WLOCK = threading.Lock()
+
+
+class writing:
+    """Solange ein Snapshot oder eine Sicherung Objekte ablegt (noch ohne Manifest), lässt das Aufräumen alle Objekte
+    stehen, die seit dessen Beginn abgelegt oder wiederverwendet wurden."""
+
+    def __enter__(self):
+        with _WLOCK:
+            self.key = id(self)
+            _WRITERS[self.key] = time.time()
+        return self
+
+    def __exit__(self, *exc):
+        with _WLOCK:
+            _WRITERS.pop(self.key, None)
+        return False
+
+
+def _tmp_name(path: str) -> str:
+    """Eigener Temp-Name je Prozess und Faden (gleichzeitige Schreiber kommen sich nicht in die Quere)."""
+    return f"{path}.{os.getpid()}-{threading.get_ident()}.tmp"
+
+
 def _write_json(path: str, data):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    tmp = path + ".tmp"
+    tmp = _tmp_name(path)
     with open(tmp, "w", encoding="utf-8") as fh:
         json.dump(data, fh, ensure_ascii=False, indent=1)
     os.replace(tmp, path)

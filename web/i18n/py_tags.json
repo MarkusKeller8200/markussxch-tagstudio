@@ -172,5 +172,7 @@
 "kein Tag": ["no tag", "kän Tag"],
 "(verschlüsselt/komprimiert – nicht lesbar)": ["(encrypted/compressed – not readable)", "(verschlüsselt/komprimiert – nöd läsbar)"],
 "Serato-DJ-Daten (Cue-Punkte/Beatgrid) – gehören zu genau diesem Track": ["Serato DJ data (cue points/beatgrid) – belongs to exactly this track", "Serato-DJ-Date (Cue-Pünkt/Beatgrid) – ghöred zu genau dem Track"],
-"binär": ["binary", "binär"]
+"binär": ["binary", "binär"],
+"ID3-Tag beschädigt (Grösse passt nicht zur Datei) – nicht gespeichert, damit keine Audiodaten verloren gehen.": ["ID3 tag damaged (size does not match the file) – not saved so that no audio data is lost.", "ID3-Tag kaputt (Grössi passt nöd zur Datei) – nöd gspeicheret, dass kei Audiodate verlore gönd."],
+"Sicherheitskopie nicht möglich – nicht wiederhergestellt ({x})": ["Safety copy not possible – not restored ({x})", "Sicherheitskopie nöd möglich – nöd wiederhergstellt ({x})"]
 }

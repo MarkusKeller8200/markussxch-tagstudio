@@ -147,10 +147,11 @@ class StoreBackupWriter:
             if lay["has_v1"]:
                 f.seek(-128, os.SEEK_END)
                 v1 = f.read(128)
-        parts = [self.store.put(p) for p in snapshots.split_tag(tag)]
-        hv1 = self.store.put(v1) if v1 else None
-        self._pins.update(parts + ([hv1] if hv1 else []))
-        snapshots.PINNED.update(self._pins)
+        with snapshots.writing():                          # Aufräumen dazwischen lässt die neuen Objekte stehen
+            parts = [self.store.put(p) for p in snapshots.split_tag(tag)]
+            hv1 = self.store.put(v1) if v1 else None
+            self._pins.update(parts + ([hv1] if hv1 else []))
+            snapshots.PINNED.update(self._pins)
         st = os.stat(path)
         self.entries.append({
             "id": len(self.entries), "path": os.path.abspath(path), "name": os.path.basename(path),
@@ -354,11 +355,14 @@ def restore(zip_path: str, ids: list[int] | None = None, safety_folder: str | No
         # Sicherheitsnetz: aktuellen Zustand vor dem Zurückschreiben sichern
         safety = make_writer(safety_folder or os.path.dirname(zip_path),
                              f"Vor Wiederherstellung von {os.path.basename(zip_path)}", store)
+        secured = []
         for e in todo:
             try:
                 safety.add(e["path"])
-            except OSError:
-                pass
+                secured.append(e)
+            except OSError as ex:                          # ohne Sicherheitskopie nicht überschreiben
+                results.append((e["path"], "error", f"Sicherheitskopie nicht möglich – nicht wiederhergestellt ({ex})"))
+        todo = secured
         safety.close()
         for n, e in enumerate(todo, 1):
             if cancel is not None and cancel.is_set():

@@ -724,6 +724,7 @@ class MP3File:
         self.audio_start = 0
         self.tag_space = 0
         self.has_footer = False
+        self.tag_damaged = False
         self.v1_genre = 255
         if not hasattr(self, "v1_mode"):
             self.v1_mode = None        # #112: None = wie vorhanden, "write" = ID3v1 schreiben/anlegen, "remove" = entfernen
@@ -757,6 +758,8 @@ class MP3File:
             self.tag_space = 0 if self.has_footer else size
             self.tag_desc = f"ID3v2.{ver}"
             tag_len = 10 + size
+            # Grösse ungültig (Bit 7 gesetzt) oder grösser als die Datei: Speichern würde Audio überschreiben
+            self.tag_damaged = any(b >= 0x80 for b in head[6:10]) or self.audio_start > self.size
             sig.update(head + body)
             self._parse_v2(ver, flags, body)
         if v1[:3] == b"TAG" and len(v1) == 128:
@@ -1107,6 +1110,9 @@ class MP3File:
         """Schreibt nur, wenn etwas geändert wurde. Reihenfolge der Frames bleibt erhalten."""
         if not self.is_modified():
             return
+        if self.tag_damaged:
+            raise ValueError("ID3-Tag beschädigt (Grösse passt nicht zur Datei) – nicht gespeichert, damit keine "
+                             "Audiodaten verloren gehen.")
         ver = self.version
         body = b"".join(b for it in self.items.values() for b in it.to_frames(ver))
         need = len(body)

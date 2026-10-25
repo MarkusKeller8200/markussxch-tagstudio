@@ -211,5 +211,26 @@ class TestCoverMime(unittest.TestCase):
         self.assertEqual(safe_mime("image/png<script>"), "image/jpeg")
 
 
+class TestDamagedHeader(unittest.TestCase):
+    """4.9.1: ID3-Grösse grösser als die Datei → nie speichern (würde Audio mit Nullen überschreiben)."""
+
+    def test_refuses_save(self):
+        import tempfile
+        from id3tags import MP3File
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "kaputt.mp3")
+            audio = b"\xff\xfb\x90\x00" + b"\x11" * 4000
+            frame = b"TIT2" + (6).to_bytes(4, "big") + b"\x00\x00" + b"\x03Titel"
+            with open(p, "wb") as fh:                     # Header behauptet 1 MB Tag, Datei ist ~4 KB
+                fh.write(b"ID3\x04\x00\x00" + bytes([0x00, 0x40, 0x00, 0x00]) + frame + audio)
+            f = MP3File(p)
+            self.assertTrue(f.tag_damaged)
+            f.set_text("TIT2", "Neu")
+            with self.assertRaises(ValueError):
+                f.save()
+            with open(p, "rb") as fh:
+                self.assertTrue(fh.read().endswith(audio))
+
+
 if __name__ == "__main__":
     unittest.main()

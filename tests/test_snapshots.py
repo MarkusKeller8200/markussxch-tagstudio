@@ -291,6 +291,33 @@ class TestMoveStore(Base):
         self.assertIsNone(sn.find_store(moved))
 
 
+class TestGcWhileWriting(unittest.TestCase):
+    """4.9.1: Aufräumen während eines laufenden Snapshots löscht dessen neue Objekte nicht."""
+
+    def test_gc_spares_running_writer(self):
+        import tempfile
+        import shutil
+        d = tempfile.mkdtemp()
+        try:
+            st = sn.Store(d)
+            st._init()
+            old = st.put(b"alt, unbenutzt")
+            p_old = st._obj(old)
+            os.utime(p_old, (time.time() - 100, time.time() - 100))
+            with sn.writing():
+                time.sleep(0.01)
+                new = st.put(b"neu, noch ohne Manifest")
+                st.put(b"alt, unbenutzt")                 # wiederverwendet → ebenfalls geschont
+                st.gc()
+                self.assertTrue(os.path.exists(st._obj(new)))
+                self.assertTrue(os.path.exists(p_old))
+            st.gc()                                       # ohne Schreiber: unbenutzte Objekte weg
+            self.assertFalse(os.path.exists(st._obj(new)))
+            self.assertFalse(any(f.endswith(".tmp") for _r, _d, fs in os.walk(d) for f in fs))
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main()
 
@@ -576,4 +603,3 @@ class TestSessionSnapshots(Base):
         self.assertEqual(res["removed"], 0)                     # die alte Baseline ist angeheftet
         self.assertIn("Neue Baseline", res["message"])
         self.assertEqual(s.snap_baseline_info(lid)["current"], later)
-

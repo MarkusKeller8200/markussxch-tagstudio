@@ -200,5 +200,51 @@ class TestViewDefaults(Base):
         self.assertIn("cmp_defaults", dict((g, k) for g, _l, k in appsettings.GROUPS)["view"])
 
 
+class TestSaveConfigSafety(unittest.TestCase):
+    """4.9.1: save_config leert die Einstellungen nie, wenn die Datei gerade nicht lesbar ist."""
+
+    def setUp(self):
+        import core
+        self.core = core
+        self.tmp = tempfile.mkdtemp()
+        self._cfg, self._old = core.CONFIG, core.CONFIG_OLD
+        core.CONFIG = core.CONFIG_OLD = os.path.join(self.tmp, ".tagstudio.json")
+        with open(core.CONFIG, "w", encoding="utf-8") as fh:
+            json.dump({"a": 1, "b": 2}, fh)
+
+    def tearDown(self):
+        self.core.CONFIG, self.core.CONFIG_OLD = self._cfg, self._old
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def read(self):
+        with open(self.core.CONFIG, encoding="utf-8") as fh:
+            return json.load(fh)
+
+    def test_locked_file_is_not_emptied(self):
+        import builtins
+        real = builtins.open
+
+        def locked(f, *a, **k):
+            if f == self.core.CONFIG and (not a or "r" in a[0]) and "w" not in (a[0] if a else k.get("mode", "r")):
+                raise PermissionError("gesperrt")
+            return real(f, *a, **k)
+        builtins.open = locked
+        try:
+            self.core.save_config({"c": 3})
+        finally:
+            builtins.open = real
+        self.assertEqual(self.read(), {"a": 1, "b": 2})
+        self.core.save_config({"c": 3})
+        self.assertEqual(self.read(), {"a": 1, "b": 2, "c": 3})
+
+    def test_damaged_file_is_kept_as_copy(self):
+        with open(self.core.CONFIG, "w", encoding="utf-8") as fh:
+            fh.write("{kaputt")
+        self.core.save_config({"c": 3})
+        self.assertEqual(self.read(), {"c": 3})
+        self.assertTrue(any(".defekt-" in f for f in os.listdir(self.tmp)))
+        self.assertFalse(any(f.endswith(".tmp") for f in os.listdir(self.tmp)))
+
+
 if __name__ == "__main__":
     unittest.main()

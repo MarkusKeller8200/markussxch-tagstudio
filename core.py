@@ -43,26 +43,79 @@ def load_config() -> dict:
         return {}
 
 
-_CFG_LOCK = threading.Lock()
+_CFG_LOCK = threading.RLock()
+
+
+def _log_warn(msg: str):
+    try:
+        import applog
+        applog.warn(msg)
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _read_for_update() -> dict | None:
+    """Einstellungen zum Ändern lesen. None = nicht lesbar (z. B. von Virenscanner/OneDrive gesperrt) → nichts
+    schreiben, sonst gingen alle übrigen Einstellungen verloren. Eine defekte Datei wird vorher als Kopie gesichert."""
+    import time
+    src = config_path()
+    for attempt in range(6):
+        try:
+            with open(src, encoding="utf-8") as fh:
+                cfg = json.load(fh)
+            return cfg if isinstance(cfg, dict) else {}
+        except FileNotFoundError:
+            return {}
+        except ValueError:
+            try:
+                import shutil
+                shutil.copy2(src, src + time.strftime(".defekt-%Y%m%d-%H%M%S"))
+            except OSError:
+                pass
+            _log_warn("Einstellungsdatei war defekt – Kopie gesichert, neu angelegt.")
+            return {}
+        except OSError as e:
+            if attempt == 5:
+                _log_warn(f"Einstellungen nicht lesbar ({type(e).__name__}) – Änderung nicht gespeichert.")
+                return None
+            time.sleep(0.1 * (attempt + 1))
+    return None
+
+
+def write_config(cfg: dict) -> bool:
+    """Ganze Einstellungsdatei atomar schreiben (eigene Temp-Datei, unter der gemeinsamen Sperre)."""
+    import tempfile
+    with _CFG_LOCK:
+        d = os.path.dirname(CONFIG) or "."
+        try:
+            os.makedirs(d, exist_ok=True)
+            fd, tmp = tempfile.mkstemp(prefix=".tagstudio-", suffix=".tmp", dir=d)
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                    json.dump(cfg, fh, indent=2, ensure_ascii=False)
+                os.replace(tmp, CONFIG)
+            except BaseException:
+                try:
+                    os.remove(tmp)
+                except OSError:
+                    pass
+                raise
+            return True
+        except OSError as e:
+            _log_warn(f"Einstellungen nicht gespeichert ({type(e).__name__}: {e})")
+            return False
 
 
 def save_config(updates: dict) -> None:
     """Schreibt nur die übergebenen Schlüssel – Einstellungen anderer Oberflächen bleiben erhalten.
-    Gesperrt und atomar: gleichzeitige Aufrufe (mehrere Anfragen der Oberfläche) verlieren keine Schlüssel mehr."""
+    Gesperrt und atomar: gleichzeitige Aufrufe (mehrere Anfragen der Oberfläche) verlieren keine Schlüssel mehr.
+    Ist die Datei gerade nicht lesbar, wird nichts geschrieben (statt sie mit nur den neuen Schlüsseln zu ersetzen)."""
     with _CFG_LOCK:
-        try:
-            with open(CONFIG, encoding="utf-8") as fh:
-                cfg = json.load(fh)
-        except Exception:  # noqa: BLE001
-            cfg = {}
+        cfg = _read_for_update()
+        if cfg is None:
+            return
         cfg.update(updates)
-        tmp = CONFIG + ".tmp"
-        try:
-            with open(tmp, "w", encoding="utf-8") as fh:
-                json.dump(cfg, fh, indent=2, ensure_ascii=False)
-            os.replace(tmp, CONFIG)
-        except OSError:
-            pass
+        write_config(cfg)
 
 
 def history(cfg: dict, name: str, value: str, n: int = 12) -> list[str]:

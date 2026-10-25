@@ -16,6 +16,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Behoben
 
+- **Schutz vor Datenverlust (#301):** Einstellungen werden nie mehr geleert, wenn die Datei beim Speichern gesperrt
+  oder defekt ist (defekte Datei wird als Kopie gesichert); Aufräumen im Snapshot-Speicher lässt Daten laufender
+  Snapshots/Sicherungen stehen; Wiederherstellen überschreibt keine Datei ohne Sicherheitskopie; MP3s mit
+  beschädigter ID3-Grösse werden nicht gespeichert (sonst wären Audiodaten überschrieben worden).
 - **Cover-Bildtyp (#300):** Ein präparierter Bildtyp im Cover einer MP3 konnte Script in die Oberfläche bringen.
   Bildtypen werden jetzt geprüft (nur `image/…`, sonst aus den Daten erkannt) und Bildadressen überall maskiert.
 - **Vorbereiten (#298):** „Übernehmen“ ersetzt nie mehr eine vorhandene Datei in der Bibliothek (auch nicht mit

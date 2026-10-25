@@ -66,11 +66,8 @@ def read_file() -> dict:
 
 
 def write_file(cfg: dict) -> None:
-    os.makedirs(os.path.dirname(core.CONFIG) or ".", exist_ok=True)
-    tmp = core.CONFIG + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as fh:
-        json.dump(cfg, fh, indent=2, ensure_ascii=False)
-    os.replace(tmp, core.CONFIG)
+    if not core.write_config(cfg):                     # gemeinsame Sperre mit save_config, eigene Temp-Datei
+        raise OSError("Einstellungen konnten nicht gespeichert werden.")
 
 
 def backup_current(reason: str) -> str | None:
