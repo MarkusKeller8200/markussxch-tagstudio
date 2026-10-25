@@ -1,7 +1,8 @@
 # Konzept: Ordner-Rollen – jeder Ordner genau einmal festgelegt
 
-Status: **ENTWURF** (25.10.2026, Wunsch User 13:53; Entscheide O1–O6 vom User 14:04 eingearbeitet) – Umsetzung noch
-nicht freigegeben. Ergänzt
+Status: **FREIGEGEBEN** (25.10.2026, Wunsch User 13:53; Entscheide O1–O6 vom User 14:04; Umsetzung freigegeben 14:57,
+Meilenstein #26 „4.10.0 – Ordner“). Umgesetzt: **Schritt 1 (#310)** – `folders.py`, `session_folders.py`,
+`web/folders.js`. Ergänzt
 [KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md) (Programmdaten bleiben dort beschrieben) und ersetzt dessen Abschnitte 4/5,
 sobald umgesetzt.
 
@@ -130,22 +131,33 @@ Klappmenü: **Rollen** (z. B. „Bibliothek: Haupt“, „Eingang“, „Export�
 "folders": {
   "base": "D:\\TagStudio",
   "roles": {
-    "inbox":     {"mode": "base", "name": "00_New"},
-    "archive":   {"mode": "base", "name": "02_Archiv"},
-    "playlists": {"mode": "base", "name": "03_Playlists"},
-    "export":    {"mode": "custom", "path": "E:\\Exporte"},
-    "downloads": {"mode": "base", "name": "90_Download"},
-    "work":      {"mode": "base", "name": "91_Work"},
-    "backup":    {"mode": "base", "name": "99_Sicherung\\Tags"},
-    "snapshots": {"mode": "base", "name": "99_Sicherung\\Snapshots"}
+    "inbox":     {"mode": "base", "sub": "00_New"},
+    "archive":   {"mode": "base", "sub": "02_Archiv"},
+    "playlists": {"mode": "base", "sub": "03_Playlists"},
+    "export":    {"mode": "custom", "sub": "04_Export", "path": "E:\\Exporte"},
+    "downloads": {"mode": "base", "sub": "90_Download"},
+    "work":      {"mode": "base", "sub": "91_Work"},
+    "backup":    {"mode": "base", "sub": "99_Sicherung/Tags"},
+    "snapshots": {"mode": "app",  "sub": "99_Sicherung/Snapshots"}
   },
   "libraries": [
-    {"id": "main", "name": "Haupt", "mode": "base", "name_sub": "01_Library", "active": true, "main": true, "snapshots": true},
-    {"id": "ssd1", "name": "Extern SSD", "mode": "custom", "path": "F:\\Musik", "active": false, "main": false, "snapshots": false}
-  ]
+    {"id": "main", "name": "Haupt", "mode": "base", "sub": "01_Library", "active": true, "main": true, "snapshots": true},
+    {"id": "ssd1", "name": "Extern SSD", "mode": "custom", "sub": "01_Library", "path": "F:\\Musik", "active": false, "main": false, "snapshots": false}
+  ],
+  "review": [{"id": "main", "path": "…", "found": ["Tagger-Standardordner", "Workflow „DJ“"]}]
 }
 ```
 
+- **Modus** je Rolle: `base` (Basisordner + `sub`, Name änderbar, Unterordner mit `/`), `custom` (eigener `path`),
+  `app` (Programmdaten von TagStudio – nur Sicherung und Snapshots; so übernommen, wenn der Speicher bisher dort lag).
+  `sub` bleibt auch bei `custom` gespeichert, damit „zurück auf Basis“ den bisherigen Namen kennt.
+- `review` gibt es nur nach der Übernahme, solange die Übersicht „Diese Ordner haben wir gefunden“ offen ist.
+- **Alte Schlüssel nachführen:** Nach jeder Änderung schreibt TagStudio `base_dir`, `archive_dir`, `playlist_dir`,
+  `backup_dir`, `snap_dir` und `default_tagger` (= Hauptbibliothek) aus dem Modell – **nur die, deren Wert sich durch die
+  Änderung tatsächlich verschiebt**. So arbeiten noch nicht umgestellte Module mit denselben Ordnern, und ein
+  Downgrade findet seine Einstellungen. Umgekehrt führen die alten Setter (Archiv, Playlist-Ordner, Sicherungsordner,
+  Snapshot-Speicher verschieben) die Rolle nach. Workflows (Eingang, Arbeit, Bibliothek, Quellen-Ordner) und das
+  Beatport-Download-Ziel, die auf den bisherigen Ordner zeigten, folgen; Unterordner bleiben erhalten.
 - Ein Modul ruft nur noch `folders.role("inbox")`, `folders.libraries(active=True)`, `folders.main_library()` –
   kein eigener Pfad mehr. Workflows speichern statt eines Pfads den Verweis `@inbox` / `@library:main`; ein eigener
   Pfad je Workflow bleibt möglich (z. B. zweiter Workflow mit anderem Eingang).

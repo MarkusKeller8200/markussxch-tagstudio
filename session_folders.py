@@ -1,0 +1,200 @@
+"""Session-Teil „Ordner-Rollen“ (#310, docs/KONZEPT-ORDNER.md): Einstellungen › Ordner.
+
+Das Modell liegt in ``cfg["folders"]`` (siehe :mod:`folders`). Beim ersten Zugriff werden die heutigen Einzel-
+Einstellungen übernommen; gibt es mehrere verschiedene Bibliotheks-Ordner, bleibt eine Übersicht zur Entscheidung
+offen (``folders_review``). Nach jeder Änderung werden die alten Schlüssel nachgeführt – nur die, deren Wert sich durch
+die Änderung tatsächlich verschiebt – und Workflows, die auf den bisherigen Ordner zeigten, folgen.
+Hier wird nur die Einstellung geändert; Dateien bleiben, wo sie sind (Verschieben/Kopieren: #313)."""
+from __future__ import annotations
+
+import os
+
+import core
+import folders
+
+
+class FolderRolesMixin:
+    """Teil der Klasse Session – nutzt self.cfg, self._prep_workflows, self.snap_store, self._snap_dir_set."""
+
+    # ------------------------------------------------------------------ Modell lesen / speichern
+    def _folders(self) -> dict:
+        if not isinstance(self.cfg.get("folders"), dict):
+            m = self._folders_migrate()
+            self.cfg["folders"] = m
+            core.save_config({"folders": m})
+        return folders.normalize(self.cfg["folders"])
+
+    def _folders_migrate(self) -> dict:
+        try:
+            snap_libs = self.snap_store.libraries() if os.path.isdir(self.snap_store.root) else []
+        except Exception:  # noqa: BLE001 – unlesbarer Speicher: ohne Snapshot-Bibliotheken übernehmen
+            snap_libs = []
+        bp = ((self.cfg.get("plugin_options") or {}).get("beatport") or {}).get("download") or {}
+        return folders.migrate(self.cfg, self.cfg.get("prep_workflows") or [], self.cfg.get("prep_current"),
+                               snap_libs, str(bp.get("dest") or ""))
+
+    def _folders_save(self, new: dict, follow: bool = True) -> dict:
+        """Modell speichern, alte Schlüssel und verweisende Einstellungen nachführen (nur geänderte Werte)."""
+        old = self._folders()
+        new = folders.normalize(new)
+        self.cfg["folders"] = new
+        upd = {"folders": new}
+        if follow:
+            lo, ln = folders.legacy(old), folders.legacy(new)
+            for k, v in ln.items():
+                if k == "snap_dir" or lo.get(k) == v:
+                    continue
+                self.cfg[k] = v
+                upd[k] = v
+            core.save_config(upd)
+            snap = folders.resolve_role(new, "snapshots")
+            if lo.get("snap_dir") != ln.get("snap_dir") and snap:
+                self._snap_dir_set(snap, note=False)
+            self._folders_follow(old, new)
+            if folders.resolve_role(old, "playlists") != folders.resolve_role(new, "playlists"):
+                try:
+                    self._pl_dir_changed()
+                except Exception as ex:  # noqa: BLE001 – Playlists werden beim nächsten Speichern geschrieben
+                    core._log_warn(f"Playlists nicht neu geschrieben: {ex}")
+        else:
+            core.save_config(upd)
+        return new
+
+    def _folders_follow(self, old: dict, new: dict):
+        """Workflows und Download-Ziel, die auf den bisherigen Ordner zeigten, auf den neuen setzen."""
+        def main(m):
+            return next((folders.resolve_lib(m, x) for x in m["libraries"] if x["main"]), "")
+
+        moves = {"inbox": (folders.resolve_role(old, "inbox"), folders.resolve_role(new, "inbox")),
+                 "work": (folders.resolve_role(old, "work"), folders.resolve_role(new, "work")),
+                 "library": (main(old), main(new))}
+        dl = (folders.resolve_role(old, "downloads"), folders.resolve_role(new, "downloads"))
+
+        def rebase(p, a, b):
+            if not p or not a or not b or folders.same_dir(a, b):
+                return p
+            if folders.same_dir(p, a):
+                return b
+            if folders.inside(p, a):
+                return os.path.join(b, os.path.relpath(os.path.normpath(p), os.path.normpath(a)))
+            return p
+
+        ws = self.cfg.get("prep_workflows")
+        changed = False
+        for w in ws if isinstance(ws, list) else []:
+            if not isinstance(w, dict):
+                continue
+            for k, (a, b) in moves.items():
+                p = str(w.get(k) or "")
+                q = b if p and folders.same_dir(p, a) and b and not folders.same_dir(a, b) else p
+                if q != p:
+                    w[k], changed = q, True
+            for src in w.get("sources") or []:
+                if isinstance(src, dict):
+                    q = rebase(str(src.get("folder") or ""), *dl)
+                    if q != src.get("folder"):
+                        src["folder"], changed = q, True
+        upd = {}
+        if changed:
+            upd["prep_workflows"] = ws
+        po = ((self.cfg.get("plugin_options") or {}).get("beatport") or {}).get("download")
+        if isinstance(po, dict) and po.get("dest"):
+            q = rebase(str(po["dest"]), *dl)
+            if q != po["dest"]:
+                po["dest"] = q
+                upd["plugin_options"] = self.cfg["plugin_options"]
+        if upd:
+            core.save_config(upd)
+
+    def _folders_note(self, rid: str, path):
+        """Ein altes Einstellungsfeld wurde direkt gesetzt (z. B. Snapshots › Speicher verschieben) – Rolle anpassen,
+        ohne die alten Schlüssel erneut zu schreiben."""
+        if not isinstance(self.cfg.get("folders"), dict):
+            return
+        m = folders.note_path(self._folders(), rid, path)
+        self.cfg["folders"] = m
+        core.save_config({"folders": m})
+
+    # ------------------------------------------------------------------ Oberfläche
+    def folders_get(self) -> dict:
+        m = self._folders()
+        st = folders.status(m)
+        roles = []
+        for r in folders.ROLES:
+            e = m["roles"][r["id"]]
+            roles.append({"id": r["id"], "label": r["label"], "desc": r["desc"], "mode": e["mode"], "sub": e["sub"],
+                          "default_sub": r["sub"], "app": bool(r.get("app")), **st["roles"][r["id"]]})
+        libs = [{**x, **st["libraries"][x["id"]]} for x in m["libraries"]]
+        return {"base": m["base"], "base_exists": bool(m["base"]) and os.path.isdir(m["base"]),
+                "roles": roles, "libraries": libs, "review": m.get("review") or [],
+                "structure": folders.structure(m)}
+
+    def folders_set_base(self, path, create=False) -> dict:
+        p = folders.clean_path(path)
+        if p and os.path.dirname(p) == p:
+            raise ValueError("Bitte einen Ordner wählen (nicht direkt das Laufwerk).")
+        if p and create:
+            os.makedirs(p, exist_ok=True)
+        self._folders_save(folders.set_base(self._folders(), p))
+        return self.folders_get()
+
+    def folders_set_role(self, rid, mode, value="") -> dict:
+        self._folders_save(folders.set_role(self._folders(), str(rid), str(mode), value))
+        return self.folders_get()
+
+    def folders_lib_add(self, name, mode, value="", active=True) -> dict:
+        m, _lib = folders.lib_add(self._folders(), name, str(mode), value, active)
+        self._folders_save(m)
+        return self.folders_get()
+
+    def folders_lib_update(self, lid, changes=None) -> dict:
+        c = changes if isinstance(changes, dict) else {}
+        m = folders.lib_update(self._folders(), str(lid), name=c.get("name"), mode=c.get("mode"),
+                               value=c.get("value"), active=c.get("active"), main=c.get("main"),
+                               snapshots=c.get("snapshots"))
+        self._folders_save(m)
+        return self.folders_get()
+
+    def folders_lib_remove(self, lid) -> dict:
+        """Nur den Eintrag entfernen – die Dateien bleiben (Rückfrage in der Oberfläche)."""
+        m = self._folders()
+        if any(x["id"] == lid and x["main"] for x in m["libraries"]) and len(m["libraries"]) > 1:
+            raise ValueError("Zuerst eine andere Bibliothek als Hauptbibliothek wählen.")
+        self._folders_save(folders.lib_remove(m, str(lid)))
+        return self.folders_get()
+
+    def folders_create(self, ids=None) -> dict:
+        """Fehlende Ordner anlegen (Rollen-IDs bzw. „lib:<id>“; ohne ids: alle aus dem Basisordner)."""
+        m = self._folders()
+        st = folders.status(m)
+        want = set(ids or [])
+        made, errors = [], []
+        targets = [(r["id"], st["roles"][r["id"]]) for r in folders.ROLES]
+        targets += [("lib:" + x["id"], st["libraries"][x["id"]]) for x in m["libraries"]]
+        for key, d in targets:
+            if want and key not in want:
+                continue
+            if not want and not (m["base"] and folders.inside(d["path"], m["base"])):
+                continue
+            if d["path"] and not d["exists"] and d["reachable"]:
+                try:
+                    os.makedirs(d["path"], exist_ok=True)
+                    made.append(d["path"])
+                except OSError as ex:
+                    errors.append(f"{d['path']}: {ex}")
+        out = self.folders_get()
+        out.update(created=made, errors=errors)
+        return out
+
+    def folders_review_apply(self, decision=None) -> dict:
+        """Entscheid zur Übersicht „Diese Ordner haben wir gefunden“."""
+        self._folders_save(folders.review_apply(self._folders(), decision if isinstance(decision, dict) else {}))
+        return self.folders_get()
+
+    def folders_adopt(self) -> dict:
+        """Nach dem Einrichtungsassistenten („bestehende Ordner wählen“): Rollen aus den gesetzten Einzel-Ordnern
+        neu übernehmen."""
+        m = self._folders_migrate()
+        self.cfg["folders"] = m
+        core.save_config({"folders": m})
+        return self.folders_get()

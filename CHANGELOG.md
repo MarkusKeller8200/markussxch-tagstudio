@@ -6,6 +6,17 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Ordner-Rollen – Grundlage (#310, Konzept `docs/KONZEPT-ORDNER.md`):** Einstellungen › Speicherort und Ordner zeigt
+  jeden Ordner genau einmal als Rolle (Eingang, Bibliotheken, Archiv, Playlists, **Export** `04_Export`, Downloads,
+  Arbeit, Sicherung, Snapshots) – je Rolle Modus „Basis“ (Basisordner + Unterordner, Name änderbar), „Eigener
+  Ordner“ oder (Sicherung/Snapshots) „Programmdaten“. Mehrere Bibliotheken mit Name, aktiv/inaktiv und
+  Hauptbibliothek; Hinweise „fehlt – anlegen?“, „nicht erreichbar“, Überschneidungen. Die bisherigen Einstellungen
+  werden einmalig übernommen; verschiedene Bibliotheks-Einträge erscheinen in der Übersicht „Diese Ordner haben wir
+  gefunden“. Ändern stellt nur die Einstellung um (Dateien bleiben); Workflows, die auf den bisherigen Ordner zeigten,
+  folgen. Neues Modul `folders.py`, Seite `web/folders.js`.
+
 ## [4.9.1] – 2026-10-25
 
 ### Verbessert

@@ -83,7 +83,7 @@ class TestSetup(Base):
         r = s.setup_structure(base, {"new": "00_Neu"})
         self.assertTrue(all(os.path.isdir(p) for p in r["paths"].values()))
         self.assertEqual(os.path.basename(r["paths"]["new"]), "00_Neu")
-        self.assertEqual(len(r["created"]), 6)
+        self.assertEqual(len(r["created"]), 7)                           # inkl. 04_Export (#310)
         self.assertEqual(s.cfg["base_dir"], base)
         self.assertEqual(s.cfg["playlist_dir"], r["paths"]["playlists"])             # #267
         self.assertEqual(os.path.basename(r["paths"]["playlists"]), "03_Playlists")

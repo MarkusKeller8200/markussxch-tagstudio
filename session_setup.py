@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 import core
+import folders
 from version import VERSION
 
 MODULES = ["purchases", "prep", "tagger", "fixer", "compare", "djset", "playlists", "snapshots", "backups", "plugins",
@@ -126,6 +127,7 @@ STRUCTURE = [
     ("library", "01_Library", "Endgültige Bibliothek"),
     ("archive", "02_Archiv", "Aussortierte Titel"),
     ("playlists", "03_Playlists", "Playlists als M3U8 (für DJ-Programme)"),
+    ("export", "04_Export", "Startordner aller Exporte (Listen, Playlists, DJ-Sets, Journal)"),
     ("download", "90_Download", "Temporäre Downloads (Browser, Beatport, ZIP)"),
     ("work", "91_Work", "Arbeitsordner für TagStudio und andere Programme (Stufen-Ordner)"),
     ("backup", "99_Sicherung", "Sicherungen der Tags und Snapshots"),
@@ -201,11 +203,8 @@ class FoldersMixin:
                 "rows": [{"label": lab, "path": p, "exists": bool(p) and os.path.isdir(p)} for lab, p in rows]}
 
     def set_base_dir(self, path, create=True) -> dict:
-        p = os.path.abspath(os.path.expanduser(str(path or "").strip())) if str(path or "").strip() else ""
-        if p and create:
-            os.makedirs(p, exist_ok=True)
-        self.cfg["base_dir"] = p
-        core.save_config({"base_dir": p})
+        """Basisordner setzen – Rollen im Modus „Basis“ folgen (#310); Dateien bleiben, wo sie sind."""
+        self.folders_set_base(path, create)
         return self.folders_overview()
 
     def setup_structure(self, base, names=None) -> dict:
@@ -229,14 +228,10 @@ class FoldersMixin:
         tags, snaps = os.path.join(p["backup"], "Tags"), os.path.join(p["backup"], "Snapshots")
         for d in (tags, snaps):
             os.makedirs(d, exist_ok=True)
-        self.set_base_dir(base)
+        keep = os.path.isdir(self.snap_store.root) and bool(os.listdir(self.snap_store.root))
+        self._folders_save(folders.structure_model(self._folders(), base, p, keep))   # #310: Rollen auf „Basis“
         self.set_default_dir("tagger", p["library"])
-        self.cfg["archive_dir"] = p["archive"]
-        self.cfg["playlist_dir"] = p["playlists"]
-        core.save_config({"archive_dir": p["archive"], "playlist_dir": p["playlists"]})
         self.set_backup(True, tags, None)
-        if not os.path.isdir(self.snap_store.root) or not os.listdir(self.snap_store.root):
-            self._snap_dir_set(snaps)
         w = self._prep_get()
         w.update(inbox=p["new"], work=p["work"], library=p["library"])
         if not any(os.path.normcase(q.get("folder", "")) == os.path.normcase(p["download"]) for q in w.get("sources") or []):
@@ -262,6 +257,7 @@ class ArchiveMixin:
         p = os.path.abspath(os.path.expanduser(str(path).strip())) if str(path or "").strip() else ""
         self.cfg["archive_dir"] = p
         core.save_config({"archive_dir": p})
+        self._folders_note("archive", p)                                           # #310: Rolle „Archiv“
         return self.folders_overview()
 
     def tag_archive(self, idx, apply=False) -> dict:

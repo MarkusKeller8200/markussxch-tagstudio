@@ -530,12 +530,21 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
 
 ## Einstellungen und Datenablage
 
-**Speicherort und Ordnerstruktur:** Unter Einstellungen › Speicherort und Ordner (oder im Einrichtungsassistenten)
-wählst du einen Basisordner, z. B. `D:\TagStudio`; jede Ordnerauswahl beginnt dort. Empfohlene Struktur:
-`00_New` (neue Musik, Rohdaten) · `01_Library` (Bibliothek) · `02_Archiv` (aussortiert) · `90_Download` (temporäre
-Downloads) · `91_Work` (Arbeitsordner mit Stufen-Ordnern) · `99_Sicherung` (Sicherungen der Tags und Snapshots).
-TagStudio sichert nur Tags – die Musik selbst zusätzlich auf ein anderes Laufwerk sichern. Alle Ablageorte im Überblick:
-[docs/KONZEPT-SPEICHER.md](docs/KONZEPT-SPEICHER.md).
+**Speicherort und Ordner (Ordner-Rollen, ab 4.10):** Unter Einstellungen › Speicherort und Ordner wird jeder Ordner
+**genau einmal** festgelegt – als **Rolle**: Eingang · Bibliotheken · Archiv · Playlists · **Export** · Downloads ·
+Arbeit · Sicherung · Snapshots. Standard ist der **Basisordner** (z. B. `D:\TagStudio`, jede Ordnerauswahl beginnt
+dort) mit der Struktur `00_New` (neue Musik, Unterordner je Quelle) · `01_Library` (Bibliothek) · `02_Archiv`
+(aussortiert) · `03_Playlists` (M3U8) · `04_Export` (Startordner aller Exporte) · `90_Download` (Downloads,
+Unterordner je Quelle) · `91_Work` (Stufen-Ordner) · `99_Sicherung` (`Tags`, `Snapshots`). Jede Rolle lässt sich mit
+„Ändern …“ auf einen **eigenen Ordner** umstellen (auch anderes Laufwerk) und wieder zurück auf „Basis“; Sicherung
+und Snapshots können wie bisher in den Programmdaten bleiben. Es gibt **mehrere Bibliotheken** (je mit Name,
+aktiv/inaktiv, genau eine **Hauptbibliothek**); Überschneidungen (eine Bibliothek in einer anderen, derselbe Ordner
+über einen anderen Weg) werden angezeigt. „Ändern …“ stellt nur die Einstellung um – Dateien bleiben, wo sie sind;
+„Struktur anlegen …“ legt fehlende Ordner an. Beim ersten Start nach dem Update werden die bisherigen Einstellungen
+übernommen; war die Bibliothek an verschiedenen Stellen verschieden eingetragen, zeigt TagStudio die Übersicht
+**„Diese Ordner haben wir gefunden“** zur Entscheidung (nichts wird still verworfen). Konzept:
+[docs/KONZEPT-ORDNER.md](docs/KONZEPT-ORDNER.md). TagStudio sichert nur Tags – die Musik selbst zusätzlich auf ein
+anderes Laufwerk sichern. Alle Ablageorte im Überblick: [docs/KONZEPT-SPEICHER.md](docs/KONZEPT-SPEICHER.md).
 
 **Profile:** Unter Einstellungen › Profile lässt sich ein weiteres Profil anlegen – eine unabhängige TagStudio-Instanz
 mit eigenen Einstellungen und Daten (unter `~/TagStudio-Profile/<Name>/`). Ein leeres Profil startet wie eine frische

@@ -56,6 +56,10 @@ Stems-Umgebung, Modelle und FFmpeg aus `~\TagStudio\Plugin-Daten\stems\`. Siehe 
 
 ## 4. Arbeitsordner – empfohlene Struktur unter dem Basisordner
 
+> Ab 4.10 legt [KONZEPT-ORDNER.md](KONZEPT-ORDNER.md) jeden Arbeitsordner als **Rolle** fest (Einstellung
+> `folders`, Seite Einstellungen › Speicherort und Ordner); neu ist `04_Export`. Abschnitte 4 und 5 beschreiben die
+> Standard-Struktur und die frei gewählten Ordner bis 4.9.
+
 > **Geplant:** Ordner-Rollen mit mehreren Bibliotheken, Export-Ordner und „Ändern …“ (verschieben/kopieren) –
 > siehe [KONZEPT-ORDNER.md](KONZEPT-ORDNER.md) (Entwurf 25.10.2026).
 

@@ -458,5 +458,8 @@
 "arbeit-",
 "Host",
 "Origin",
-"Vary"
+"Vary",
+"tr[data-rid]",
+"Volumes",
+"01_Library"
 ]

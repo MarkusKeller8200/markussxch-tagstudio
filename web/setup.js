@@ -47,6 +47,7 @@ async function setupInit(st) {
   if (st.start_paths && st.start_paths.length) return false;
   if (SETUP.st.first) return wizardRun();
   setTimeout(whatsNew, 2500);
+  setTimeout(() => { if (typeof foldersStartup === "function") foldersStartup(); }, 3500);   // #310
   return false;
 }
 
@@ -207,6 +208,7 @@ async function wizardApply(W, prep, pl) {  // eslint-disable-line no-param-reass
   if (W.notation) await call("tag_key_notation", W.notation).catch(() => {});
   await call("set_player_pref", "layout", W.layout).catch(() => {});
   if (typeof pl2Pref === "function") pl2Pref("layout", W.layout);
+  if (W.mode !== "struct") await call("folders_adopt").catch(() => {});   // #310: gewählte Ordner als Rollen
   SETUP.st = await call("setup_finish", rec, W.firstSteps);
   toast("Eingerichtet – viel Spass mit TagStudio!");
   const start = rec[0] || "tagger";
@@ -289,42 +291,7 @@ function setupSettingsHtml() {
     <span>Einrichtung</span><div class="st-path"><button class="ghost sm" data-setup="wizard">Einrichtungsassistent starten</button><button class="ghost sm" data-setup="firststeps">„Erste Schritte“ neu starten</button></div></div>`;
 }
 
-/** Einstellungen › Speicherort und Ordner (#171) */
-async function stFoldersRender() {
-  const box = $("#stFolders"); if (!box) return;
-  const f = await call("folders_overview");
-  box.innerHTML = `<div class="st-row">
-      <label for="stBase">Basisordner</label><div><div class="pl-folder"><input id="stBase" value="${esc(f.base)}" placeholder="${esc(f.suggest)}" spellcheck="false"><button class="ghost sm" data-stbase="pick">Wählen …</button><button class="ghost sm" data-stbase="save">Übernehmen</button></div>
-        <div class="muted sm">Jede Ordnerauswahl in TagStudio beginnt hier (z. B. ${esc(f.suggest)}).</div></div>
-      <span>Ordnerstruktur</span><div><button class="ghost sm" data-stbase="struct" ${f.base ? "" : "disabled"}>Struktur im Basisordner anlegen …</button>
-        <div class="muted sm">${esc(f.structure.map((x) => x.name).join(" · "))} – vorhandene Ordner bleiben; Bibliothek, Vorbereiten, Sicherungen und Downloads werden darauf eingestellt.</div></div>
-      <label for="stArch">Archiv</label><div><div class="pl-folder"><input id="stArch" value="${esc(f.archive || "")}" placeholder="z. B. ${esc((f.base || f.suggest) + "\\02_Archiv")}" spellcheck="false"><button class="ghost sm" data-stbase="archpick">Wählen …</button><button class="ghost sm" data-stbase="archsave">Übernehmen</button><button class="ghost sm" data-stbase="archlist">Aussortierte …</button></div>
-        <div class="muted sm">Ziel von „Aussortieren“ im Tagger und in „Vorbereiten“.</div></div>
-      <label for="stPlDir">Playlist-Ordner</label><div><div class="pl-folder"><input id="stPlDir" value="${esc(f.playlists || "")}" placeholder="${esc(f.playlists_auto || "z. B. " + (f.base || f.suggest) + "\\03_Playlists")}" spellcheck="false"><button class="ghost sm" data-stbase="plpick">Wählen …</button><button class="ghost sm" data-stbase="plsave">Übernehmen</button></div>
-        <div class="muted sm">Alle Playlists als M3U8 – zum Einlesen in DJ-Programme. Leer: „03_Playlists“ im Basisordner.</div></div>
-      <span>Arbeitsordner</span><div class="fold-rows">${f.rows.map((r) => `<div class="fold-row"><span>${esc(r.label)}</span><span class="${r.path && !r.exists ? "st-missing" : "muted"}" title="${esc(r.path)}">${esc(r.path || "–")}${r.path && !r.exists ? " (fehlt)" : ""}</span></div>`).join("")}</div>
-    </div>`;
-}
-
-(function bindFolders() {
-  document.addEventListener("click", async (e) => {
-    const b = e.target.closest("[data-stbase]"); if (!b) return;
-    const inp = $("#stBase");
-    if (b.dataset.stbase === "pick") { const p = await call("pick_path", "", true, inp.value.trim()); if (p) inp.value = p; return; }
-    if (b.dataset.stbase === "archpick") { const a = $("#stArch"); const p = await call("pick_path", "", true, a.value.trim()); if (p) a.value = p; return; }
-    if (b.dataset.stbase === "archsave") { await call("set_archive_dir", $("#stArch").value.trim()); toast("Archiv-Ordner gespeichert."); stFoldersRender(); return; }
-    if (b.dataset.stbase === "archlist") { archiveRestoreDialog(); return; }
-    if (b.dataset.stbase === "plpick") { const a = $("#stPlDir"); const p = await call("pick_path", "", true, a.value.trim()); if (p) a.value = p; return; }
-    if (b.dataset.stbase === "plsave") { try { await call("set_playlist_dir", $("#stPlDir").value.trim()); toast("Playlist-Ordner gespeichert – alle Playlists wurden dorthin geschrieben."); } catch (x) { toast(String(x.message || x)); } stFoldersRender(); return; }
-    if (b.dataset.stbase === "save") { try { await call("set_base_dir", inp.value.trim(), true); toast("Basisordner gespeichert."); } catch (x) { toast(String(x.message || x)); } stFoldersRender(); return; }
-    if (b.dataset.stbase === "struct") {
-      const f = await call("folders_overview");
-      if (!(await dialog({ title: "Ordnerstruktur anlegen", text: `In ${f.base} werden ${f.structure.map((x) => x.name).join(", ")} angelegt (vorhandene bleiben). Danach zeigen Tagger-Bibliothek, Vorbereiten (Eingang, Arbeitsordner, Bibliothek, Quelle Downloads), Archiv, Sicherungen und Beatport-Download auf diese Ordner. Weiter?`, buttons: [{ label: "Abbrechen", value: null }, { label: "Anlegen", value: true, primary: true }] }))) return;
-      try { const r = await call("setup_structure", f.base, {}); toast(`${r.created.length} Ordner angelegt, Einstellungen angepasst.`); } catch (x) { toast(String(x.message || x)); }
-      settingsShow();
-    }
-  });
-})();
+// Einstellungen › Speicherort und Ordner: web/folders.js (#310)
 
 // ---------------------------------------------------------------------- Aussortieren (#173)
 const archRows = (rows) => `<div class="fx-table" style="max-height:38vh"><table><thead><tr><th>Titel</th><th>Ziel im Archiv</th></tr></thead><tbody>${rows.map((r) => `<tr class="${r.problem ? "gone" : ""}"><td title="${esc(r.src)}">${esc(r.src.split(/[\\/]/).pop())}${r.stems ? ' <span class="muted sm">+ Stems</span>' : ""}</td><td>${r.problem ? `<span class="st-missing">${esc(r.problem)}</span>` : `<span class="muted sm" title="${esc(r.dst)}">${esc(r.dst)}</span>`}</td></tr>`).join("")}</tbody></table></div>`;

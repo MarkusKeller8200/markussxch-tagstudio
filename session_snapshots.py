@@ -305,13 +305,17 @@ class SnapshotMixin:
         return {"ok": True}
 
     # ------------------------------------------------------------------ Speicherort (#60)
-    def _snap_dir_set(self, root):
+    def _snap_dir_set(self, root, note=True):
         import snapshots
+        if not str(root or "").strip():
+            return
         root = os.path.abspath(root)
         val = "" if os.path.normcase(root) == os.path.normcase(os.path.abspath(snapshots.default_dir())) else root
         self.cfg["snap_dir"] = val
         core.save_config({"snap_dir": val})
         self._snap_store = None
+        if note:
+            self._folders_note("snapshots", root)                                     # #310: Rolle „Snapshots“
 
     def start_snap_move(self, dest):
         """Ganzen Snapshot-Speicher verschieben (kopieren, prüfen, alten entfernen) – mit Fortschritt."""

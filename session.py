@@ -38,6 +38,7 @@ from session_help import HelpMixin
 from session_prepare import PrepareMixin
 from session_discover import DiscoverMixin
 from session_setup import ArchiveMixin, FoldersMixin, SetupMixin
+from session_folders import FolderRolesMixin
 from session_playlists import PlaylistMixin
 from session_purchases import PurchasesMixin
 
@@ -55,7 +56,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
            "lang": str}                                      # #157: Sprache der Oberfläche
 
 
-class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, DiscoverMixin, SetupMixin, FoldersMixin, ArchiveMixin,
+class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, DiscoverMixin, SetupMixin, FoldersMixin, FolderRolesMixin, ArchiveMixin,
               PlaylistMixin, PurchasesMixin):
     def __init__(self):
         self.lock = threading.RLock()
@@ -1460,6 +1461,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         if folder:
             self.cfg["backup_dir"] = os.path.normpath(folder)
             core.save_config({"backup_dir": self.cfg["backup_dir"]})
+            self._folders_note("backup", self.cfg["backup_dir"])                   # #310: Rolle „Sicherung“
         return self.backups()
 
     def _backup_entry(self, path):

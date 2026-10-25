@@ -509,10 +509,18 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
 
 ## Settings and data storage
 
-**Storage location and folder structure:** under Settings › Storage location and folders (or in the setup wizard)
-you choose a base folder, e.g. `D:\TagStudio`; every folder selection starts there. Recommended structure:
-`00_New` (new music, raw data) · `01_Library` (library) · `02_Archiv` (sorted out) · `90_Download` (temporary
-downloads) · `91_Work` (working folder with stage folders) · `99_Sicherung` (backups of the tags and snapshots).
+**Storage location and folders (folder roles, from 4.10):** under Settings › Storage location and folders every
+folder is set **exactly once** – as a **role**: Inbox · Libraries · Archive · Playlists · **Export** · Downloads · Work ·
+Backup · Snapshots. The default is the **base folder** (e.g. `D:\TagStudio`, every folder selection starts there) with
+the structure `00_New` (new music, subfolder per source) · `01_Library` (library) · `02_Archiv` (sorted out) ·
+`03_Playlists` (M3U8) · `04_Export` (start folder of all exports) · `90_Download` (downloads, subfolder per source) ·
+`91_Work` (stage folders) · `99_Sicherung` (`Tags`, `Snapshots`). “Change …” switches any role to an **own folder**
+(also on another drive) and back to “Base”; backup and snapshots can stay in the program data as before. There can be
+**several libraries** (each with a name, active/inactive, exactly one **main library**); overlaps (a library inside
+another one, the same folder via another path) are shown. “Change …” only changes the setting – files stay where they
+are; “Create structure …” creates missing folders. On the first start after the update the previous settings are taken
+over; if the library was entered differently in different places, TagStudio shows the overview **“We found these
+folders”** to decide (nothing is silently dropped). Concept (German): [docs/KONZEPT-ORDNER.md](docs/KONZEPT-ORDNER.md).
 TagStudio only backs up tags – back up the music itself to another drive as well. All storage locations at a glance
 (German): [docs/KONZEPT-SPEICHER.md](docs/KONZEPT-SPEICHER.md).
 

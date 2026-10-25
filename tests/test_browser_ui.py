@@ -1782,6 +1782,60 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until(f"{first}.indexOf('prep') < {first}.indexOf('tagger')"))
         self.assertEqual(self.errors, [])
 
+    def test_folder_roles(self):
+        """#310: Einstellungen › Ordner – Übersicht gefundener Bibliotheken, Rolle umstellen, Bibliothek hinzufügen."""
+        other = os.path.join(self.dir, "zweite")
+        os.makedirs(other)
+        self.server.terminate()                                  # bestehende Einstellungen mit zwei Bibliotheken
+        self.server.wait(10)
+        c = self.cfg()
+        c.update(base_dir=os.path.join(self.dir, "TS"), default_tagger=self.lib, help_scan_root=other)
+        with open(os.path.join(self.home, ".tagstudio.json"), "w", encoding="utf-8") as fh:
+            json.dump(c, fh)
+        self.server, self.url = self.start_server()
+        self.pg = pg = self.page()
+        pg.wait_for_function("document.querySelector('#mTitle').textContent.includes('Diese Ordner') && !document.querySelector('#modal').hidden")
+        pg.click("#mBtns button >> nth=0")                      # Startdialog „Diese Ordner …“ → „Später“
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stFolders [data-freview]")
+        self.assertEqual(pg.locator('#stFolders tr[data-flib]').count(), 2)
+        pg.click("#stFolders [data-freview]")
+        pg.wait_for_selector("#modal tr[data-rid]")
+        pg.uncheck("#modal tr[data-rid] >> nth=1 >> [data-rkeep]")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("!document.querySelector('#stFolders [data-freview]') && document.querySelectorAll('#stFolders tr[data-flib]').length === 1")
+        f = self.cfg_until(lambda c: not c.get("folders", {}).get("review"))["folders"]
+        self.assertEqual([x["path"] for x in f["libraries"]], [os.path.normpath(self.lib)])
+        self.assertTrue(os.path.isdir(other))                   # nichts gelöscht
+        # Rolle „Export“ auf einen eigenen Ordner
+        exp = os.path.join(self.dir, "Exporte")
+        pg.click('#stFolders tr[data-frole="export"] [data-fchange]')
+        pg.wait_for_selector("#fPath")
+        pg.fill("#fPath", exp)
+        pg.click("#mBtns .primary")
+        pg.wait_for_function(f"document.querySelector('#stFolders tr[data-frole=\"export\"] .fold-path').textContent === {json.dumps(exp)}")
+        c = self.cfg_until(lambda c: c["folders"]["roles"]["export"].get("path") == exp)
+        self.assertEqual(c["folders"]["roles"]["export"]["mode"], "custom")
+        self.assertFalse(os.path.exists(exp))                   # nur die Einstellung
+        pg.click('#stFolders tr[data-frole="export"] [data-fcreate]')
+        for _ in range(40):
+            if os.path.isdir(exp):
+                break
+            time.sleep(0.1)
+        self.assertTrue(os.path.isdir(exp))
+        # zweite Bibliothek hinzufügen, aktiv/inaktiv
+        pg.click("#stFolders [data-flibadd]")
+        pg.wait_for_selector("#fName")
+        pg.fill("#fName", "Extern")
+        pg.fill("#fPath", other)
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("document.querySelectorAll('#stFolders tr[data-flib]').length === 2")
+        pg.uncheck("#stFolders tr[data-flib] >> nth=1 >> [data-factive]")
+        c = self.cfg_until(lambda c: len(c["folders"]["libraries"]) == 2 and not c["folders"]["libraries"][1]["active"])
+        self.assertEqual(c["folders"]["libraries"][1]["name"], "Extern")
+        self.assertFalse(c["folders"]["libraries"][1]["active"])
+        self.assertEqual(self.errors, [])
+
     def test_archive_tagger(self):
         """#173: Aussortieren im Tagger – Vorschau, verschieben, Liste neu geladen, zurückholen."""
         pg = self.pg
@@ -1796,7 +1850,7 @@ class UiTest(unittest.TestCase):
         pg.wait_for_function(f"TG.order.length === {n - 1}")
         self.assertEqual(len([f for _d, _s, fs in os.walk(arch) for f in fs if f.endswith(".mp3")]), 1)
         pg.click('.nav[data-module="settings"]')
-        pg.click('[data-stbase="archlist"]')
+        pg.click('[data-farchlist]')
         pg.wait_for_selector("#modal [data-arid]")
         pg.check("#modal [data-arid]")
         pg.click("#mBtns .primary")

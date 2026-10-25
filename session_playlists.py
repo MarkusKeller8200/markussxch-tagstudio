@@ -49,12 +49,18 @@ class PlaylistMixin:
         p = os.path.abspath(os.path.expanduser(str(path).strip())) if str(path or "").strip() else ""
         self.cfg["playlist_dir"] = p
         core.save_config({"playlist_dir": p})
+        base = str(self.cfg.get("base_dir") or "")
+        self._folders_note("playlists", p or (os.path.join(base, PLAYLIST_DIR) if base else ""))   # #310
+        self._pl_dir_changed()
+        return self.folders_overview()
+
+    def _pl_dir_changed(self):
+        """Playlist-Ordner gewechselt: alle Playlists dort neu schreiben (der alte Ordner bleibt unverändert)."""
         with self.lock:
             st = self._pls()
             st.index["written"] = {}                       # neuer Ordner: alle Playlists neu schreiben
             st.save_index()
             st.sync()
-        return self.folders_overview()
 
     # ------------------------------------------------------------------ Titelangaben
     @staticmethod
