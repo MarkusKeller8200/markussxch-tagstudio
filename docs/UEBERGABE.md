@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-25 (Abend, 18:40): 4.11.0 umgesetzt, alle 17 Issues im Beta-Test** (dazu #323–#325 aus dem Chat 18:07) – siehe „Sitzung 25.10.2026 (Abend)“. Davor (17:05): 4.10.0 final veröffentlicht; 4.11.0 vorbereitet – Meilenstein #27 „4.11.0 – Cloud, SonoVault & Verbesserungen“ mit allen Entscheiden, siehe „Start 4.11.0“ und „Übergabe-Prompt 4.11.0“.
+Stand: **2026-10-25 (Abend, 20:15): 4.11.0 auf `main`, 14 Issues im Beta-Test, 9 geschlossen** (dazu #323–#331 aus dem Chat) – siehe „Sitzung 25.10.2026 (Abend)“. Davor (17:05): 4.10.0 final veröffentlicht; 4.11.0 vorbereitet – Meilenstein #27 „4.11.0 – Cloud, SonoVault & Verbesserungen“ mit allen Entscheiden, siehe „Start 4.11.0“ und „Übergabe-Prompt 4.11.0“.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -36,7 +36,25 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
     mit (→ Vergleich, kein Tagger, Player sofort per Pfad) – jetzt `_restart_cmd()` nur noch mit Pfaden, wenn
     `web_ui.module == "compare"`; doppelte `--browser` entfernt. Oberflächentest `test_restart_keeps_last_page` mit
     echtem Neustart.
-- Offen für den User: Testlisten in #107, #222, #253–#258, #304, #309, #317–#320, #323–#325.
+- **Geschlossen nach abgehakter Testliste (User 18:47):** #222, #253–#258, #304, #325.
+- **Nachtrag 18:47–19:52 (Chat), alle `_3 Beta-Test`, CI grün, 106 Oberflächentests grün:**
+  - **#107** Werkzeugleiste: mit Text zweizeilig (Anzeige oben; Kopieren/Bearbeiten/Verlauf unten), nur Symbole einzeilig.
+  - **#326** Tagger schneller (Auswertung App-Protokoll User: Fenster/Seite 3–4 s, Einlesen 2,6–3,7 s – Zusammensetzen der
+    Tags mit Covern, nicht `stat`): `compare.scan(stats=)` gibt `DirEntry.stat()` weiter; **Sofort-Liste** aus
+    `cache/lists/tagger-rows.json.gz` (`tag_rows` merkt die Zeilen, `tag_rows_preview`), nur ansehen (`inert`), danach
+    `tgAdopt` + Meldung „x neu, y entfernt, z geändert“; Details des markierten Titels sofort über `tag_detail_file`
+    (`_detail` ausgelagert); Cover-Vorschau unter dem Listen-Hash `cache/tg_<ch>.png` (96 px) bzw. `tg_<ch>_440.jpg`
+    (Vergrösserung), fehlt sie, verkleinert die Oberfläche per Canvas (`tag_cover_thumb_store`); `_cover_hash` über Länge +
+    Anfang/Ende; beim Blättern keine Cover (`TG.scrolling`); Snapshots-Startprüfung nach dem Tagger; Startdialoge
+    nacheinander (`modalIdle`); Protokollzeilen „Startablauf: … s nach dem Start“ (`Api.start_mark`).
+  - **#327** Expert › Protokolle „Live anzeigen …“ (Live-Fenster mit `pid="@app"`, `expert_log_read`, `applog.read_from`).
+  - **#328** Vergleich blitzte beim Start auf: `#moduleCompare`/`#srcCompare` jetzt `hidden` im HTML.
+  - **#329** Protokolle leeren (`expert_log_clear`, nach Rückfrage, Datei wird geleert), nur Markierung kopieren, Live-Fenster
+    zeichnet bei Markierung nicht neu. `#dialog` liegt jetzt über `#modal` (z-index 55).
+  - **#330** Alle Dialoge am Titel verschiebbar, an der Ecke vergrösserbar (`dlgReset`, CSS `resize:both`).
+  - **#331** Tagger: zu viele Spalten → automatisch optimale Breite (`TG.autoScroll`, ResizeObserver); erste Spalte bleibt
+    beim waagrechten Blättern stehen (sticky + `--tg-hx`). Annahme „erste Zeile“ = erste Spalte – beim User bestätigen.
+- Offen für den User: Testlisten in #107, #309, #317–#320, #323, #324, #326–#331.
 
 ## Start 4.11.0 (vorbereitet 25.10.2026, 17:05)
 
