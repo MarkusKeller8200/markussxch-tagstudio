@@ -59,7 +59,9 @@ class UiTest(unittest.TestCase):
         if "wizard" not in self._testMethodName:          # #167: ohne Einrichtungsassistent (bestehende Installation)
             from version import VERSION
             with open(os.path.join(self.home, ".tagstudio.json"), "w", encoding="utf-8") as fh:
-                json.dump({"setup_done": "test", "seen_version": VERSION, "first_steps": False}, fh)
+                # snap_hint aus: der Hinweis „Snapshots einrichten?“ kommt seit #326 erst nach dem Tagger und würde sich
+                # sonst zeitabhängig über laufende Tests legen (kein Test braucht ihn)
+                json.dump({"setup_done": "test", "seen_version": VERSION, "first_steps": False, "snap_hint": False}, fh)
         self.errors = []
         self.server, self.url = self.start_server()
         self.pw = sync_playwright().start()
@@ -610,10 +612,11 @@ class UiTest(unittest.TestCase):
         """#331: zu viele Spalten bei „An Fenster anpassen“ → automatisch optimale Breite; beim waagrechten Blättern
         bleibt die erste Spalte samt Kopf links stehen."""
         pg = self.pg
-        pg.set_viewport_size({"width": 1700, "height": 800})
+        pg.set_viewport_size({"width": 2560, "height": 800})          # Ausgangslage: alles passt (auch mit CI-Schriften)
         self.load_tagger()
         self.assertEqual(pg.evaluate("LAYOUT.tg_fit"), "fit")
         self.assertFalse(pg.evaluate("document.querySelector('#tgTable').classList.contains('hscroll')"))
+        pg.set_viewport_size({"width": 1280, "height": 800})          # schmaleres Fenster, dazu alle Merkmale
         pg.evaluate("LAYOUT.tg_feat_cols = TG.settings.features.map((f) => f[0]); renderTgHead(); drawTgList()")
         self.assertTrue(pg.evaluate("TG.autoScroll && document.querySelector('#tgTable').classList.contains('hscroll')"))
         self.assertEqual(pg.evaluate("LAYOUT.tg_fit"), "fit")                       # gespeicherte Wahl bleibt
@@ -628,8 +631,9 @@ class UiTest(unittest.TestCase):
         self.assertLessEqual(abs(x(cell) - left), 2, (x(cell), left, before))           # Zeile: erste Spalte steht
         self.assertLessEqual(abs(x("#tgHead > :nth-child(2)") - x(cell)), 2,
                              pg.evaluate("JSON.stringify({hx: getComputedStyle(document.querySelector('#tgTable')).getPropertyValue('--tg-hx'), ht: document.querySelector('#tgHead').style.transform, c2: document.querySelector('#tgHead').children[1].offsetLeft, hd: document.querySelector('#tgHead').offsetLeft, op: document.querySelector('#tgHead').children[1].offsetParent.id, cls: document.querySelector('#tgHead').children[1].className})"))
+        pg.set_viewport_size({"width": 2560, "height": 800})
         pg.evaluate("LAYOUT.tg_feat_cols = []; renderTgHead(); drawTgList()")
-        self.assertFalse(pg.evaluate("TG.autoScroll || document.querySelector('#tgTable').classList.contains('hscroll')"))
+        self.assertTrue(self.until("!TG.autoScroll && !document.querySelector('#tgTable').classList.contains('hscroll')", 3))
 
     def test_resume_selects_row_and_doubleclick(self):
         """#195: nach dem Neustart steht der Tagger auf dem fortgesetzten Titel; #196: Doppelklick spielt danach."""
