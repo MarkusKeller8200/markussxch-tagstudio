@@ -86,7 +86,7 @@ class UiTest(unittest.TestCase):
         p.terminate()
         raise RuntimeError("Server startet nicht")
 
-    def page(self, init=None):
+    def page(self, init=None, close_notes=True):
         pg = self.ctx.new_page()
         if init:
             pg.add_init_script(init)
@@ -94,7 +94,7 @@ class UiTest(unittest.TestCase):
         pg.on("pageerror", lambda e: self.errors.append(str(e)))
         pg.goto(self.url)
         pg.wait_for_function("typeof S !== 'undefined' && S.settings")
-        for _ in range(30):                            # Hinweise beim Start (#78, Snapshots) schliessen
+        for _ in range(30 if close_notes else 0):      # Hinweise beim Start (#78, Snapshots) schliessen
             time.sleep(0.1)
             if pg.locator("#modal").is_visible():
                 pg.click("#mBtns button >> nth=0")
@@ -2193,7 +2193,7 @@ class UiTest(unittest.TestCase):
         with open(os.path.join(self.home, ".tagstudio.json"), "w", encoding="utf-8") as fh:
             json.dump(c, fh)
         self.server, self.url = self.start_server()
-        self.pg = pg = self.page()
+        self.pg = pg = self.page(close_notes=False)
         for _ in range(40):                                     # andere Startdialoge (Snapshots …) kommen nacheinander
             pg.wait_for_function("!document.querySelector('#modal').hidden", timeout=15000)
             if "Diese Ordner" in pg.inner_text("#mTitle"):
