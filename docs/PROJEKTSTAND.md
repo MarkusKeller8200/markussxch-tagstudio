@@ -1,6 +1,10 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-25 (22:35): **v4.11.0 final veröffentlicht** (Release `v4.11.0`, Windows + macOS, 25 Dateien; Meilenstein #27
+> Stand 2026-10-25 (23:35): **4.12.0 in Arbeit** (Meilenstein #28) – im Beta-Test auf `main`: #332 Protokolle beim Beenden
+> leeren (Entwicklung), #344 Trennzeichen als Code, #337/#340 Spaltenbreite per Ziehen (`web/colresize.js`), #341
+> Vorschau-Auswahl im Tag-Fixer, #342/#343 Ausnahmen je Feld mit Editor (`web/fixerexc.js`). Weiter mit #339 Smart Fix.
+>
+> Davor 22:35: **v4.11.0 final veröffentlicht** (Release `v4.11.0`, Windows + macOS, 25 Dateien; Meilenstein #27
 > „Cloud, SonoVault & Verbesserungen“ mit 23 Issues geschlossen): Dateidialoge übersetzt (#304), Werkzeugleisten im Vergleich
 > und Tagger (#107), Wellenform im MP3 (#222), SonoVault (#253–#258), Cloud-Abgleich mit OneDrive/Google Drive/Dropbox
 > (#309, #317–#320, #323, #324), Tagger-Sofort-Liste mit Covern (#326), Protokolle live/leeren (#327, #329), Dialoge

@@ -1,8 +1,22 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-25 (23:10): v4.11.0 final veröffentlicht; Meilenstein #28 „4.12.0 – Käufe, Tag-Fixer & Entdecken“ angelegt, Reihenfolge freigegeben** – Neuer Chat: Abschnitt „Übergabe-Prompt 4.12.0“ (unten); Details „Start 4.12.0“.
+Stand: **2026-10-25 (23:35): 4.12.0 in Arbeit – #332, #344, #337, #340, #341, #342, #343 im Beta-Test; weiter mit #339** (vorher 23:10: v4.11.0 final, Meilenstein #28 angelegt, Reihenfolge freigegeben) – Neuer Chat: Abschnitt „Übergabe-Prompt 4.12.0“ (unten); Details „Start 4.12.0“.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Sitzung 25.10.2026 (Nacht) – 4.12.0 in Arbeit
+
+- Nach freigegebener Reihenfolge umgesetzt, alle auf `main`, Label `_3 Beta-Test`, Testlisten als Kommentar im Issue:
+  - **#332** Expert › Entwicklung „Protokolle beim Beenden leeren“ (cfg `log_clear_exit`/`log_clear_plugins`,
+    `applog.clear_on_exit`, `Api._exit_logs()` in `quit`/`restart`/nach Fenster- bzw. Browser-Ende; `update*` bleibt).
+  - **#344** Trennzeichen als Code: `compare.sep_code/sep_codes` (␣, `\0`), JS `sepCode()` in `app.js`.
+  - **#337 + #340** Spaltenbreite per Ziehen: gemeinsame Hilfe `web/colresize.js` (`colResize(table, id)`,
+    `web_ui.col_widths`), Käufe (`purchases`) und Tag-Fixer (`fixer`, `fixer-exc`).
+  - **#341** Vorschau mit Häkchen: `Session._fixer_id`, `fixer_apply(o.skip)`.
+  - **#342 + #343** Ausnahmen je Feld/Gruppe (`compare.EXCEPTION_GROUPS`, `exceptions_for`, `split_multi(…, exceptions)`,
+    cfg `fixer_exceptions`) und Editor `web/fixerexc.js` (`fixer_exception_candidates`, `set_fixer_exceptions`).
+- CI: Lauf zu 20ef6dc „Oberflächen-Tests“ rot (Protokoll per Proxy nicht lesbar), Folgelauf abd5284 grün.
+- Nächstes laut Reihenfolge: **#339 Smart Fix** (Ausnahmen aus #342 und `sepCode` wiederverwenden).
 
 ## Start 4.12.0 (angelegt 25.10.2026, 23:00; Reihenfolge freigegeben 23:06)
 
