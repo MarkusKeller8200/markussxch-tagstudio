@@ -86,16 +86,18 @@ class DiscoverMixin:
 
     def disc_follow_edit(self, kind, name, add=True) -> dict:
         """Künstler/Label direkt in „Entdecken“ folgen bzw. entfernen (#291)."""
-        d = discover.load()
-        if discover.follow_edit(d, str(kind), str(name or ""), bool(add)):
-            discover.save(d)
+        with discover.LOCK:
+            d = discover.load()
+            if discover.follow_edit(d, str(kind), str(name or ""), bool(add)):
+                discover.save(d)
         return self.disc_overview()
 
     def disc_clear(self) -> dict:
         """Neue und ausgeblendete Vorschläge entfernen, gemerkte und gekaufte bleiben (#291)."""
-        d = discover.load()
-        n = discover.clear(d)
-        discover.save(d)
+        with discover.LOCK:
+            d = discover.load()
+            n = discover.clear(d)
+            discover.save(d)
         r = self.disc_overview()
         r["removed"] = n
         return r
@@ -125,13 +127,14 @@ class DiscoverMixin:
             arts = mod.followed(ctx, "artists")
             progress(("text", "Beatport: gefolgte Labels lesen …"))
             labs = mod.followed(ctx, "labels")
-            d = discover.load()
-            f = d["follow"]
-            na, nl = len(f["artists"]), len(f["labels"])
-            f["artists"] = discover._names(f["artists"] + arts)
-            f["labels"] = discover._names(f["labels"] + labs)
-            f["bp"] = {"artists": discover._names(f["bp"]["artists"] + arts), "labels": discover._names(f["bp"]["labels"] + labs)}
-            discover.save(d)
+            with discover.LOCK:
+                d = discover.load()
+                f = d["follow"]
+                na, nl = len(f["artists"]), len(f["labels"])
+                f["artists"] = discover._names(f["artists"] + arts)
+                f["labels"] = discover._names(f["labels"] + labs)
+                f["bp"] = {"artists": discover._names(f["bp"]["artists"] + arts), "labels": discover._names(f["bp"]["labels"] + labs)}
+                discover.save(d)
             return {"artists": len(arts), "labels": len(labs), "new_artists": len(f["artists"]) - na,
                     "new_labels": len(f["labels"]) - nl}
         return self._run("disc", "Beatport: Gefolgte übernehmen", job)
@@ -151,27 +154,29 @@ class DiscoverMixin:
         return self._run("disc", "Ähnliche Künstler suchen", job)
 
     def disc_follow_save(self, follow) -> dict:
-        d = discover.load()
-        f = follow if isinstance(follow, dict) else {}
-        bp = d["follow"].get("bp") or {"artists": [], "labels": []}
-        d["follow"] = {"artists": discover._names(f.get("artists")), "labels": discover._names(f.get("labels")),
-                       "genres": [{"id": g["id"], "name": str(g.get("name") or "")} for g in f.get("genres") or []
-                                  if isinstance(g, dict) and g.get("id")],
-                       "days": max(1, min(3650, int(f.get("days") or 60))), "auto": bool(f.get("auto")),
-                       "sources": [s for s in f.get("sources") or [] if s in ("deezer", "beatport")]}
-        keep = lambda kind: [x for x in bp.get(kind, []) if discover.norm(x) in {discover.norm(y) for y in d["follow"][kind]}]  # noqa: E731
-        d["follow"]["bp"] = {"artists": keep("artists"), "labels": keep("labels")}
-        discover.save(d)
+        with discover.LOCK:
+            d = discover.load()
+            f = follow if isinstance(follow, dict) else {}
+            bp = d["follow"].get("bp") or {"artists": [], "labels": []}
+            d["follow"] = {"artists": discover._names(f.get("artists")), "labels": discover._names(f.get("labels")),
+                           "genres": [{"id": g["id"], "name": str(g.get("name") or "")} for g in f.get("genres") or []
+                                      if isinstance(g, dict) and g.get("id")],
+                           "days": max(1, min(3650, int(f.get("days") or 60))), "auto": bool(f.get("auto")),
+                           "sources": [s for s in f.get("sources") or [] if s in ("deezer", "beatport")]}
+            keep = lambda kind: [x for x in bp.get(kind, []) if discover.norm(x) in {discover.norm(y) for y in d["follow"][kind]}]  # noqa: E731
+            d["follow"]["bp"] = {"artists": keep("artists"), "labels": keep("labels")}
+            discover.save(d)
         return self.disc_overview()
 
     def disc_set(self, keys, status) -> dict:
         if status not in discover.STATUS:
             raise ValueError("Unbekannter Status.")
-        d = discover.load()
-        for k in keys or []:
-            if k in d["items"]:
-                d["items"][k]["status"] = status
-        discover.save(d)
+        with discover.LOCK:
+            d = discover.load()
+            for k in keys or []:
+                if k in d["items"]:
+                    d["items"][k]["status"] = status
+            discover.save(d)
         return self.disc_overview()
 
     def disc_genres(self) -> dict:
@@ -203,10 +208,11 @@ class DiscoverMixin:
     def disc_auto(self) -> dict:
         """Tägliche Suche beim Start (#162): läuft im Hintergrund (eigener Thread, kein Fortschrittsfenster)."""
         import threading
-        d = discover.load()
-        if not discover.auto_due(d) or getattr(self, "_disc_auto_running", False):
-            return {"started": False}
-        self._disc_auto_running = True
+        with discover.LOCK:                             # prüfen und setzen in einem Schritt
+            d = discover.load()
+            if not discover.auto_due(d) or getattr(self, "_disc_auto_running", False):
+                return {"started": False}
+            self._disc_auto_running = True
 
         def work():
             try:
@@ -221,12 +227,13 @@ class DiscoverMixin:
                         idx = discover.owned_index(self._disc_lib_files())
                     except Exception as ex:  # noqa: BLE001
                         log.append(f"Bibliothek: {ex}")
-                cur = discover.load()
-                new = discover.merge(cur, found, idx)
-                cur["last"] = discover.time.strftime("%Y-%m-%dT%H:%M:%S")
-                cur["log"] = log[-50:]
-                cur["auto_new"] = new
-                discover.save(cur)
+                with discover.LOCK:
+                    cur = discover.load()
+                    new = discover.merge(cur, found, idx)
+                    cur["last"] = discover.time.strftime("%Y-%m-%dT%H:%M:%S")
+                    cur["log"] = log[-50:]
+                    cur["auto_new"] = new
+                    discover.save(cur)
             except Exception:  # noqa: BLE001 – Hintergrundsuche darf nie stören
                 pass
             finally:
@@ -262,10 +269,11 @@ class DiscoverMixin:
             dz = self._disc_deezer(log.append) if "deezer" in f["sources"] else None
             found = discover.run(d0, bp, log.append, progress, cancel, dz=dz)
             idx = discover.owned_index(self._disc_lib_files(cancel, progress)) if self._disc_library() else None
-            d = discover.load()
-            new = discover.merge(d, found, idx)
-            d["last"] = discover.time.strftime("%Y-%m-%dT%H:%M:%S")
-            d["log"] = log[-50:]
-            discover.save(d)
+            with discover.LOCK:
+                d = discover.load()
+                new = discover.merge(d, found, idx)
+                d["last"] = discover.time.strftime("%Y-%m-%dT%H:%M:%S")
+                d["log"] = log[-50:]
+                discover.save(d)
             return {"new": new, "found": len(found), "log": log[-50:]}
         return self._run("disc", "Entdecken", job)

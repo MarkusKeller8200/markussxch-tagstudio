@@ -79,23 +79,30 @@ def auth(ctx):
 
 
 def get(ctx, path, cl=None, **params):
+    if path.startswith("https://") and urllib.parse.urlparse(path).hostname != urllib.parse.urlparse(API).hostname:
+        raise RuntimeError(f"Unerwartete Adresse ({urllib.parse.urlparse(path).hostname}) – Anmeldung wird nicht mitgeschickt.")
     url = path if path.startswith("https://") else API + path + ("?" + urllib.parse.urlencode(params) if params else "")
     return app(ctx).get(url, cl or client(ctx))
+
+
+MAX_PAGES = 500
 
 
 def pages(ctx, path, cl=None, limit=200, max_items=MAX_ITEMS, **params) -> list:
     """Listen mit linked_partitioning ({collection, next_href}) bzw. einfache Listen."""
     cl = cl or client(ctx)
     d = get(ctx, path, cl, limit=limit, linked_partitioning="true", **params)
-    out = []
+    out, seen, before = [], set(), -1
     while d:
         if isinstance(d, list):
             out += d
             break
         out += d.get("collection") or []
         nxt = d.get("next_href")
-        if not nxt or len(out) >= max_items:
-            break
+        if not nxt or len(out) >= max_items or nxt in seen or len(out) == before or len(seen) >= MAX_PAGES:
+            break                                       # Ende, gleiche Seite nochmals oder leere Seite: nicht endlos laden
+        seen.add(nxt)
+        before = len(out)
         ctx.check_cancel()
         d = get(ctx, nxt, cl)
     return out[:max_items]

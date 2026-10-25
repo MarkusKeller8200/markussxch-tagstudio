@@ -45,6 +45,22 @@ ACTIONS = [
 ]
 
 
+def _new_work(ctx) -> str:
+    """Arbeitsordner für diesen Lauf; liegengebliebene eigene Ordner (> 1 Tag, z. B. nach Absturz) werden entfernt."""
+    import tempfile
+    import time
+    os.makedirs(ctx.data_dir, exist_ok=True)
+    for n in os.listdir(ctx.data_dir):
+        p = os.path.join(ctx.data_dir, n)
+        if (n == "arbeit" or n.startswith("arbeit-")) and os.path.isdir(p):
+            try:
+                if time.time() - os.path.getmtime(p) > 86400:
+                    shutil.rmtree(p, ignore_errors=True)
+            except OSError:
+                pass
+    return tempfile.mkdtemp(prefix="arbeit-", dir=ctx.data_dir)
+
+
 def _settings_path(ctx) -> str:
     return os.path.join(ctx.data_dir, "settings.json")
 
@@ -68,9 +84,7 @@ def analyse(ctx, files, store) -> dict:
     model = os.path.join(eng, "openkeyscan3.pt")
     if not (os.path.isfile(model) and os.path.isfile(os.path.join(eng, "model.py"))):
         raise RuntimeError("Das Tonart-Modell fehlt – bitte auf der Plugin-Seite „Neu installieren …“ wählen.")
-    work = os.path.join(ctx.data_dir, "arbeit")
-    shutil.rmtree(work, ignore_errors=True)
-    os.makedirs(work, exist_ok=True)
+    work = _new_work(ctx)                       # eigener Ordner je Lauf (Hintergrund und Vordergrund gleichzeitig)
     job = {"files": [f.path for f in files], "engine": eng, "model": model,
            "device": load_settings(ctx)["device"]}
     job_path = os.path.join(work, "auftrag.json")

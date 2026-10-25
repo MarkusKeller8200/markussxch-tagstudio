@@ -46,6 +46,22 @@ PASSES = {"htdemucs_ft.yaml": 8, "htdemucs.yaml": 2, "htdemucs_6s.yaml": 2}
 _STEM_RE = re.compile(r"_\(([^)]+)\)")
 
 
+def _new_work(ctx) -> str:
+    """Arbeitsordner für diesen Lauf; liegengebliebene eigene Ordner (> 1 Tag, z. B. nach Absturz) werden entfernt."""
+    import tempfile
+    import time
+    os.makedirs(ctx.data_dir, exist_ok=True)
+    for n in os.listdir(ctx.data_dir):
+        p = os.path.join(ctx.data_dir, n)
+        if (n == "arbeit" or n.startswith("arbeit-")) and os.path.isdir(p):
+            try:
+                if time.time() - os.path.getmtime(p) > 86400:
+                    shutil.rmtree(p, ignore_errors=True)
+            except OSError:
+                pass
+    return tempfile.mkdtemp(prefix="arbeit-", dir=ctx.data_dir)
+
+
 def _target_dir(f, opts):
     base = os.path.splitext(os.path.basename(f.path))[0]
     root = os.path.dirname(f.path)
@@ -104,9 +120,7 @@ def run(action, ctx, files, opts):
     if not todo:
         return {"message": f"Nichts zu tun – für alle {skipped} Titel gibt es schon Stems."}
 
-    work = os.path.join(ctx.data_dir, "arbeit")
-    shutil.rmtree(work, ignore_errors=True)
-    os.makedirs(work, exist_ok=True)
+    work = _new_work(ctx)                       # eigener Ordner je Lauf (Hintergrund und Vordergrund gleichzeitig)
     job = {"files": [f.path for f in todo], "work": work, "format": opts.get("format", "FLAC"),
            "model": opts.get("model", "htdemucs_ft.yaml"), "stem": opts.get("stem") or "",
            "model_dir": os.path.join(ctx.shared_dir, "modelle"), "data_dir": ctx.shared_dir,

@@ -84,21 +84,28 @@ def auth(ctx):
 
 
 def get(ctx, path, cl=None, **params):
+    if path.startswith("https://") and urllib.parse.urlparse(path).hostname != urllib.parse.urlparse(API).hostname:
+        raise RuntimeError(f"Unerwartete Adresse ({urllib.parse.urlparse(path).hostname}) – Anmeldung wird nicht mitgeschickt.")
     url = path if path.startswith("https://") else API + path + ("?" + urllib.parse.urlencode(params) if params else "")
     return app(ctx).get(url, cl or client(ctx)) or {}
+
+
+MAX_PAGES = 500
 
 
 def pages(ctx, path, cl=None, limit=50, key="items", max_items=MAX_ITEMS, **params):
     """Alle Seiten einer Liste (next-Links bzw. Cursor) → Einträge."""
     cl = cl or client(ctx)
     d = get(ctx, path, cl, limit=limit, **params)
-    out = []
+    out, seen, before = [], set(), -1
     while d:
         box = d.get(key) if isinstance(d.get(key), dict) else d          # /me/following: {"artists": {...}}
         out += box.get("items") or []
         nxt = box.get("next")
-        if not nxt or len(out) >= max_items:
-            break
+        if not nxt or len(out) >= max_items or nxt in seen or len(out) == before or len(seen) >= MAX_PAGES:
+            break                                       # Ende, gleiche Seite nochmals oder leere Seite: nicht endlos laden
+        seen.add(nxt)
+        before = len(out)
         ctx.check_cancel()
         d = get(ctx, nxt, cl)
     return out[:max_items]

@@ -57,10 +57,32 @@ def find_ffmpeg(ctx=None) -> str:
                        "Suchpfad legen.")
 
 
+RUN_TIMEOUT = 1800                                     # FFmpeg je Titel höchstens 30 Minuten
+
+
+class Cancelled(Exception):
+    pass
+
+
 def _run(cmd, cancel=None):
+    """FFmpeg ausführen; Abbruch durch den Benutzer und Zeitlimit beenden den Prozess sofort."""
+    import time
     flags = 0x08000000 if os.name == "nt" else 0          # CREATE_NO_WINDOW
-    p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", creationflags=flags)
-    return p.returncode, p.stderr
+    p = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, encoding="utf-8",
+                         errors="replace", creationflags=flags)
+    t0 = time.time()
+    while True:
+        try:
+            _out, err = p.communicate(timeout=0.5)
+            return p.returncode, err
+        except subprocess.TimeoutExpired:
+            stop = cancel is not None and cancel()
+            if stop or time.time() - t0 > RUN_TIMEOUT:
+                p.kill()
+                p.communicate()
+                if stop:
+                    raise Cancelled()
+                raise RuntimeError("FFmpeg antwortet nicht (Zeitlimit) – Datei prüfen.")
 
 
 def parse(text: str) -> dict:
@@ -76,9 +98,9 @@ def parse(text: str) -> dict:
     return out
 
 
-def measure(ff: str, path: str) -> dict:
+def measure(ff: str, path: str, cancel=None) -> dict:
     rc, err = _run([ff, "-hide_banner", "-nostats", "-i", path, "-map", "0:a:0", "-af", "volumedetect,ebur128=peak=true",
-                    "-f", "null", "-"])
+                    "-f", "null", "-"], cancel)
     if rc != 0:
         raise RuntimeError((err.strip().splitlines() or ["FFmpeg-Fehler"])[-1])
     d = parse(err)
@@ -87,31 +109,46 @@ def measure(ff: str, path: str) -> dict:
     return d
 
 
-def normalize(ff: str, path: str, dest: str, target: float, m: dict):
+def normalize(ff: str, path: str, dest: str, target: float, m: dict, cancel=None):
     """Zwei Durchgänge loudnorm (lineare Angleichung, True Peak −1 dBTP), Tags aus dem Original übernehmen."""
     import json
     rc, err = _run([ff, "-hide_banner", "-nostats", "-i", path, "-map", "0:a:0",
-                    "-af", f"loudnorm=I={target}:TP=-1:LRA=20:print_format=json", "-f", "null", "-"])
+                    "-af", f"loudnorm=I={target}:TP=-1:LRA=20:print_format=json", "-f", "null", "-"], cancel)
     js = err[err.rfind("{"):err.rfind("}") + 1] if "{" in err else "{}"
     meas = json.loads(js) if js.strip() else {}
     af = (f"loudnorm=I={target}:TP=-1:LRA=20:linear=true:measured_I={meas.get('input_i', m['I'])}"
           f":measured_TP={meas.get('input_tp', m.get('Peak') or 0)}:measured_LRA={meas.get('input_lra', m.get('LRA') or 0)}"
           f":measured_thresh={meas.get('input_thresh', -70)}:offset={meas.get('target_offset', 0)}")
     os.makedirs(os.path.dirname(dest), exist_ok=True)
-    tmp = dest + ".tmp.mp3"
-    rc, err = _run([ff, "-hide_banner", "-nostats", "-y", "-i", path, "-map", "0:a:0", "-af", af, "-ar", "44100",
-                    "-c:a", "libmp3lame", "-b:a", "320k", "-map_metadata", "-1", "-id3v2_version", "0", tmp])
-    if rc != 0:
-        raise RuntimeError((err.strip().splitlines() or ["FFmpeg-Fehler"])[-1])
-    # Tags byte-genau aus dem Original vor das neue Audio setzen
-    import backup
-    lay = backup.read_layout(path)
-    with open(path, "rb") as fh:
-        tag = fh.read(lay["audio_start"])
-    with open(tmp, "rb") as fh, open(dest, "wb") as out:
-        out.write(tag)
-        shutil.copyfileobj(fh, out)
-    os.remove(tmp)
+    tmp, part = dest + ".tmp.mp3", dest + ".part"
+    try:
+        rc, err = _run([ff, "-hide_banner", "-nostats", "-y", "-i", path, "-map", "0:a:0", "-af", af, "-ar", "44100",
+                        "-c:a", "libmp3lame", "-b:a", "320k", "-map_metadata", "-1", "-id3v2_version", "0", tmp], cancel)
+        if rc != 0:
+            raise RuntimeError((err.strip().splitlines() or ["FFmpeg-Fehler"])[-1])
+        # Tags byte-genau aus dem Original vor das neue Audio setzen
+        import backup
+        lay = backup.read_layout(path)
+        with open(path, "rb") as fh:
+            tag = fh.read(lay["audio_start"])
+        with open(tmp, "rb") as fh, open(part, "wb") as out:
+            out.write(tag)
+            shutil.copyfileobj(fh, out)
+        os.replace(part, dest)                             # erst vollständig unter dem richtigen Namen
+    finally:
+        for x in (tmp, part):
+            if os.path.exists(x):
+                os.remove(x)
+
+
+def _unique(dest: str, made: set) -> str:
+    """Freier Name „Titel (2).mp3“ … – auch gegenüber Kopien, die in diesem Lauf schon entstanden sind."""
+    stem, ext = os.path.splitext(dest)
+    cand, k = dest, 1
+    while os.path.exists(cand) or os.path.normcase(os.path.abspath(cand)) in made:
+        k += 1
+        cand = f"{stem} ({k}){ext}"
+    return cand
 
 
 def run(action, ctx, files, opts):
@@ -120,12 +157,16 @@ def run(action, ctx, files, opts):
     ff = find_ffmpeg(ctx)
     ctx.log(f"FFmpeg: {ff}")
     done, copies, clipped, errors = 0, 0, 0, []
+    made: set[str] = set()
     for n, f in enumerate(files):
         ctx.check_cancel()
         name = os.path.basename(f.path)
         ctx.progress(n, len(files), name)
         try:
-            m = measure(ff, f.path)
+            m = measure(ff, f.path, ctx.cancelled)
+        except Cancelled:
+            ctx.check_cancel()
+            raise
         except Exception as ex:  # noqa: BLE001
             errors.append(f"{name}: {ex}")
             continue
@@ -154,9 +195,14 @@ def run(action, ctx, files, opts):
             try:
                 if os.path.abspath(dest) == os.path.abspath(f.path):
                     raise RuntimeError("Ziel wäre das Original – anderen Ordner wählen.")
-                normalize(ff, f.path, dest, float(opts.get("target") or -10.5), m)
+                dest = _unique(dest, made)                   # vorhandene Kopie oder gleichnamiger Titel: nie überschreiben
+                normalize(ff, f.path, dest, float(opts.get("target") or -10.5), m, ctx.cancelled)
+                made.add(os.path.normcase(os.path.abspath(dest)))
                 ctx.output(dest)
                 copies += 1
+            except Cancelled:
+                ctx.check_cancel()
+                raise
             except Exception as ex:  # noqa: BLE001
                 errors.append(f"{name} (Angleichen): {ex}")
     ctx.progress(len(files), len(files), "fertig")

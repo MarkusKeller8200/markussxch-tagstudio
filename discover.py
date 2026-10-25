@@ -17,6 +17,7 @@ Nur Standardbibliothek.
 from __future__ import annotations
 
 import json
+import threading
 import os
 import paths
 import re
@@ -32,6 +33,9 @@ MAX_ITEMS = 5000             # ältere ausgeblendete/neue Einträge fallen weg, 
 
 
 # =========================================================================== Zustand
+LOCK = threading.RLock()        # um jedes Laden-Ändern-Speichern (Oberfläche und Hintergrundsuche gleichzeitig)
+
+
 def state_path() -> str:
     return paths.sub("Entdecken", "entdecken.json")
 
@@ -61,10 +65,11 @@ def save(d: dict):
     if len(items) > MAX_ITEMS:
         keep = sorted(items.values(), key=lambda e: (e.get("status") == "saved", e.get("first", "")), reverse=True)
         d["items"] = {e["key"]: e for e in keep[:MAX_ITEMS]}
-    tmp = p + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as fh:
-        json.dump(d, fh, ensure_ascii=False, indent=1)
-    os.replace(tmp, p)
+    with LOCK:
+        tmp = p + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(d, fh, ensure_ascii=False, indent=1)
+        os.replace(tmp, p)
 
 
 def _names(xs) -> list[str]:

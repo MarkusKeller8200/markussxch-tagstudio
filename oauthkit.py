@@ -75,8 +75,9 @@ def parse_redirect(url: str, state: str) -> str:
     return code
 
 
-def wait_for_redirect(port: int, path: str, cancel=None, timeout: float = WAIT_LOGIN) -> str:
-    """Kurzzeitiger Server auf 127.0.0.1:port; liefert die vollständige Rückleitungs-Adresse."""
+def wait_for_redirect(port: int, path: str, cancel=None, timeout: float = WAIT_LOGIN, host: str = "127.0.0.1") -> str:
+    """Kurzzeitiger Server auf 127.0.0.1:port (bei „localhost“ zusätzlich [::1], weil Browser localhost oft als IPv6
+    auflösen); liefert die vollständige Rückleitungs-Adresse."""
     got: dict = {}
 
     class H(http.server.BaseHTTPRequestHandler):
@@ -85,7 +86,7 @@ def wait_for_redirect(port: int, path: str, cancel=None, timeout: float = WAIT_L
                 self.send_response(404)
                 self.end_headers()
                 return
-            got["url"] = f"http://127.0.0.1:{port}{self.path}"
+            got["url"] = f"http://{host}:{port}{self.path}"
             ok = "code=" in self.path
             page = DONE_PAGE.format(title="Anmeldung abgeschlossen" if ok else "Anmeldung nicht abgeschlossen",
                                     text=html.escape("Du kannst dieses Fenster schliessen und zu TagStudio zurückkehren."))
@@ -99,11 +100,21 @@ def wait_for_redirect(port: int, path: str, cancel=None, timeout: float = WAIT_L
         def log_message(self, *a):
             pass
 
+    import select
+    import socket
+
+    class V6(http.server.HTTPServer):
+        address_family = socket.AF_INET6
+
     try:
-        srv = http.server.HTTPServer(("127.0.0.1", int(port)), H)
+        servers = [http.server.HTTPServer(("127.0.0.1", int(port)), H)]
     except OSError as ex:
         raise OAuthError(f"Port {port} ist belegt – anderen Port eintragen oder „Adresse einfügen“ wählen.") from ex
-    srv.timeout = 0.5
+    if host == "localhost" and socket.has_ipv6:
+        try:
+            servers.append(V6(("::1", int(port)), H))
+        except OSError:
+            pass                                          # ohne IPv6 genügt 127.0.0.1
     t0 = time.time()
     try:
         while "url" not in got:
@@ -111,9 +122,12 @@ def wait_for_redirect(port: int, path: str, cancel=None, timeout: float = WAIT_L
                 cancel()
             if time.time() - t0 > timeout:
                 raise OAuthError("Keine Anmeldung innerhalb von 3 Minuten – bitte nochmals versuchen.")
-            srv.handle_request()
+            ready, _w, _x = select.select(servers, [], [], 0.5)
+            for s in ready:
+                s.handle_request()
     finally:
-        srv.server_close()
+        for s in servers:
+            s.server_close()
     return got["url"]
 
 
@@ -221,7 +235,8 @@ class App:
         url = self.auth_url()
         if not open_browser(url):
             self.ctx.log(f"Browser liess sich nicht öffnen – diese Adresse im Browser öffnen: {url}")
-        return self.finish(wait_for_redirect(u.port or 80, u.path or "/", getattr(self.ctx, "check_cancel", None)))
+        return self.finish(wait_for_redirect(u.port or 80, u.path or "/", getattr(self.ctx, "check_cancel", None),
+                                             host=u.hostname or "127.0.0.1"))
 
     def _store(self, tok: dict):
         old = self.token

@@ -111,5 +111,7 @@
 "Keine Zusatzpakete nötig. Unter {q} die Client-ID deiner Spotify-App eintragen und anmelden.": ["No extra packages needed. Enter the client ID of your Spotify app under {q} and sign in.", "Kei Zuesatzpakete nötig. Under {q} d Client-ID vo dinere Spotify-App iitrage und aamälde."],
 "Token-Erneuerung: HTTP {x} – später nochmals versuchen.": ["Token renewal: HTTP {x} – try again later.", "Token-Erneuerig: HTTP {x} – spöter nomal probiere."],
 "Download: {x} ist unerwartet gross – nicht entpackt.": ["Download: {x} is unexpectedly large – not extracted.", "Download: {x} isch unerwartet gross – nöd entpackt."],
-"Token-Erneuerung: unerwartete Antwort von Beatport.": ["Token renewal: unexpected response from Beatport.", "Token-Erneuerig: unerwarteti Antwort vo Beatport."]
+"Token-Erneuerung: unerwartete Antwort von Beatport.": ["Token renewal: unexpected response from Beatport.", "Token-Erneuerig: unerwarteti Antwort vo Beatport."],
+"FFmpeg antwortet nicht (Zeitlimit) – Datei prüfen.": ["FFmpeg is not responding (time limit) – check the file.", "FFmpeg git kei Antwort (Ziitlimit) – Datei prüefe."],
+"Unerwartete Adresse ({x}) – Anmeldung wird nicht mitgeschickt.": ["Unexpected address ({x}) – sign-in is not sent along.", "Unerwarteti Adresse ({x}) – Aamäldig wird nöd mitgschickt."]
 }

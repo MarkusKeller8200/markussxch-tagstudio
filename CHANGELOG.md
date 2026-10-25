@@ -16,6 +16,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Behoben
 
+- **Plugins (#302):** Stems (1.3) und Tonart (1.4) nutzen je Lauf einen eigenen Arbeitsordner (Hintergrund- und
+  Vordergrund-Auftrag löschten sich gegenseitig die Daten); Lautheit (1.1) bricht FFmpeg beim Abbrechen sofort ab
+  und überschreibt keine vorhandenen Kopien; Spotify/SoundCloud (1.1) laden bei leeren oder wiederholten Seiten
+  nicht endlos und schicken den Token nur an den eigenen API-Host; Anmeldung mit Rückleitung über `localhost`
+  klappt auch, wenn der Browser IPv6 nutzt.
+- **Entdecken (#303):** Änderungen (merken, ausblenden, folgen) gehen nicht mehr verloren, wenn gleichzeitig die
+  Hintergrundsuche speichert.
 - **Schutz vor Datenverlust (#301):** Einstellungen werden nie mehr geleert, wenn die Datei beim Speichern gesperrt
   oder defekt ist (defekte Datei wird als Kopie gesichert); Aufräumen im Snapshot-Speicher lässt Daten laufender
   Snapshots/Sicherungen stehen; Wiederherstellen überschreibt keine Datei ohne Sicherheitskopie; MP3s mit

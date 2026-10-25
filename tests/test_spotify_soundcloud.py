@@ -115,6 +115,24 @@ class TestPkce(unittest.TestCase):
         with self.assertRaises(oauthkit.OAuthError):
             oauthkit.parse_redirect("http://127.0.0.1:8765/callback?error=access_denied&state=S", "S")
 
+    def test_loopback_localhost(self):
+        """4.9.1: Rückleitung über localhost – Server nimmt 127.0.0.1 (und [::1], falls vorhanden) an."""
+        port = 18767
+        res = {}
+        t = threading.Thread(target=lambda: res.setdefault("url", oauthkit.wait_for_redirect(port, "/cb", timeout=10,
+                                                                                               host="localhost")))
+        t.start()
+        for _ in range(50):
+            try:
+                with urllib.request.urlopen(f"http://127.0.0.1:{port}/cb?code=L&state=S", timeout=2) as r:
+                    r.read()
+                break
+            except OSError:
+                time.sleep(0.1)
+        t.join(5)
+        self.assertTrue(res["url"].startswith("http://localhost:"), res)
+        self.assertEqual(oauthkit.parse_redirect(res["url"], "S"), "L")
+
     def test_loopback_server(self):
         port = 18765
         res = {}
@@ -180,6 +198,31 @@ class TestPlugins(Base):
         r = self.act(pid, "login", method="paste", url=f"{q['redirect_uri']}?code=CODE1&state={q['state']}")
         self.assertIn("angemeldet als", r["message"])
         return q
+
+    def test_pages_stop_and_host(self):
+        """4.9.1: leere Seiten bzw. wiederholte next-Links beenden das Laden; fremder Host bekommt keinen Token."""
+        class C:
+            def check_cancel(self):
+                pass
+        for pid, nxt_key, box in (("spotify", "next", "items"), ("soundcloud", "next_href", "collection")):
+            mod = self.s.plugins.get(pid).load()
+            calls = []
+            api = mod.API
+
+            def fake_get(ctx, path, cl=None, **params):
+                calls.append(path)
+                if len(calls) > 50:
+                    raise AssertionError("endlos")
+                return {box: [] if calls[1:] else [{"id": 1}], nxt_key: api + "/next?x=1"}
+            orig = mod.get
+            mod.get = fake_get
+            try:
+                self.assertEqual(len(mod.pages(C(), "/me", cl=object())), 1)
+                self.assertLessEqual(len(calls), 3, calls)
+            finally:
+                mod.get = orig
+            with self.assertRaises(RuntimeError):
+                mod.get(C(), "https://evil.example/steal", cl=object())
 
     def test_spotify(self):
         q = self.login("spotify", client_id="CID", redirect="http://127.0.0.1:8765/callback")

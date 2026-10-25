@@ -81,5 +81,36 @@ class TestLoudness(Base):
         self.assertEqual(d["I"], -9.0)
 
 
+class TestLoudnessSafety(unittest.TestCase):
+    """4.9.1: FFmpeg lässt sich abbrechen; angeglichene Kopien überschreiben nichts."""
+
+    def mod(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("ld2", os.path.join(os.path.dirname(__file__), "..", "plugins", "loudness", "plugin.py"))
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        return m
+
+    def test_cancel_kills_process(self):
+        import sys
+        import time
+        m = self.mod()
+        t0 = time.time()
+        with self.assertRaises(m.Cancelled):
+            m._run([sys.executable, "-c", "import time; time.sleep(20)"], lambda: time.time() - t0 > 0.6)
+        self.assertLess(time.time() - t0, 8)
+
+    def test_unique_names(self):
+        import tempfile
+        m = self.mod()
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "Titel.mp3")
+            self.assertEqual(m._unique(p, set()), p)
+            open(p, "wb").close()
+            self.assertEqual(m._unique(p, set()), os.path.join(d, "Titel (2).mp3"))
+            made = {os.path.normcase(os.path.abspath(os.path.join(d, "Titel (2).mp3")))}
+            self.assertEqual(m._unique(p, made), os.path.join(d, "Titel (3).mp3"))
+
+
 if __name__ == "__main__":
     unittest.main()
