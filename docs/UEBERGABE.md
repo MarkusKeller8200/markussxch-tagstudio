@@ -4,6 +4,17 @@ Stand: **2026-10-25 (01:00): 4.8.0 final freigegeben (Auftrag User 01:01) und er
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
+## 25.10.2026 (Mittag) – 4.9.0 final
+
+- User 12:38: Testresultate eingetragen, finale 4.9.0 freigegeben. Alle 4.9.0-Issues getestet und geschlossen
+  (#272, #273, #284–#286, #288–#293, #295–#297; CodeQL #294 automatisch). `python3 packaging/release.py 4.9.0`,
+  Commit „Version 4.9.0“, Push → Workflow „Installer“ baut und legt `v4.9.0` an. Danach Meilenstein #24 schliessen.
+- **#287** (CodeQL, Klartext-Speicherung unter macOS) → Meilenstein **#25 „4.9.1“** (Entscheid User). Vorschlag:
+  macOS-Schlüsselbund über `security` für Beatport `token.bin`/`app.bin` und `servicekit.save_keys`, Übernahme
+  bestehender Dateien; auf einem echten Mac testen lassen.
+- Ergebnis Beatport-Download: mit der Sitzungs-Anmeldung (#295, Ablauf der Webseite) liefert `purchase-download`
+  HTTP 200; mit dem eigenen API-Zugang 403 (Scope der Client-ID).
+
 ## Sitzung 25.10.2026 (Nacht) – 4.9.0 in Arbeit
 
 - **Umfang 4.9.0 (Entscheid User 01:16):** #272, #273, #284; **#222 und #107 nicht in 4.9.0** (in die Sammlungen

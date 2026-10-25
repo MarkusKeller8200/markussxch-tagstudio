@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.9.0] – 2026-10-25
+
 ### Neu
 
 - **Smartlists (#272):** Playlists, die sich über Regeln selbst füllen („+ Smartlist“, ⚡). Datenbasis Bibliothek,

@@ -10,8 +10,8 @@ Security fixes are provided for the **latest release** only.
 
 | Version | Unterstützt / Supported |
 | ------- | ----------------------- |
-| 4.8.x   | :white_check_mark:      |
-| < 4.8   | :x:                     |
+| 4.9.x   | :white_check_mark:      |
+| < 4.9   | :x:                     |
 
 ## Sicherheitslücke melden / Reporting a vulnerability
 
