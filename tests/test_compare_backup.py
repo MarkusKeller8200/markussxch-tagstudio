@@ -90,6 +90,17 @@ class TestFixer(Base):
         self.assertEqual(fix_multi("AC/DC", self.SEPS, ", "), "AC/DC")  # "/" ohne Leerzeichen bleibt
         self.assertEqual(fix_multi("A; a; B", self.SEPS, ", ", dedupe=True), "A, B")
 
+    def test_sep_codes_visible(self):
+        """#344: Trennzeichen als Code – Leerzeichen sichtbar, Null-Trenner als \\0, Beschreibung ohne Zeichen."""
+        from compare import sep_code, sep_codes
+        self.assertEqual(sep_code(MV), "\\0")
+        self.assertEqual(sep_code(" / "), "␣/␣")
+        self.assertEqual(sep_code("\\\\"), "\\\\")
+        self.assertEqual(sep_codes(" feat. "), ["␣feat.␣", "␣ft.␣", "␣featuring␣"])
+        for label, sep, _ in INPUT_SEPARATORS:
+            self.assertNotIn("'", label)
+            self.assertTrue(sep_codes(sep))
+
     def test_plan_v23_without_upgrade_gets_semicolon(self):
         p = self.make("F", "a.mp3", [text("TPE1", "A / B", 3)], ver=3)
         f = MP3File(p)

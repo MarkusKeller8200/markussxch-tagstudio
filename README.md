@@ -334,6 +334,8 @@ von Beatport selbst lädst und mit „Abholen“ übernimmst.
 
 Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare, alle Dateien,
 Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte), laufende Vorschau.
+Die Trennzeichen stehen als Code neben ihrer Beschreibung – Leerzeichen als `␣`, der Null-Trenner als `\0` –, auch
+der gewählte Ausgabe-Trenner wird so angezeigt.
 
 ### Vergleich
 

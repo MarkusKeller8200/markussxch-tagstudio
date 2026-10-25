@@ -8,6 +8,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Verbessert
 
+- **Tag-Fixer: Trennzeichen als Code (#344):** Die Trennzeichen stehen als Code neben ihrer Beschreibung –
+  Leerzeichen sichtbar als `␣`, der Null-Trenner als `\0`; der gewählte Ausgabe-Trenner wird ebenso angezeigt.
+
 - **Protokolle beim Beenden leeren (#332, Entwicklung):** Einstellungen › Expert – Schalter, Standard aus. Beim Beenden,
   Neustart und Update werden `app.log` und `app.log.1` geleert (nicht gelöscht), auf Wunsch auch die Plugin-Protokolle;
   die erste Zeile danach meldet „Protokoll beim letzten Beenden geleert (Entwicklermodus)“.

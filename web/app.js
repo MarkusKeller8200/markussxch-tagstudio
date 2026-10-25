@@ -61,6 +61,13 @@ const ICON = {
   image: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>',
 };
 
+/** #344: Trennzeichen sichtbar als Code – Leerzeichen als ␣, Null-Trenner als \0; title = Beschreibung (Tooltip).
+ *  codes: fertige Schreibweisen (vom Server, sep_codes) oder eine rohe Zeichenkette. */
+function sepCode(codes, title = "") {
+  const list = Array.isArray(codes) ? codes : [String(codes ?? "").replace(/\u0000/g, "\\0").replace(/ /g, "␣")];
+  return list.map((c) => `<code class="sep-code" translate="no"${title ? ` title="${esc(title)}"` : ""}>${esc(c) || "&nbsp;"}</code>`).join(" ");
+}
+
 const S = {
   settings: null, opts: {}, pairs: [], counts: {}, visible: [], cur: null,
   chip: "all", advKeys: null, view: null, meta: {}, sel: new Set(), anchor: null, module: "compare",

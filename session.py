@@ -28,7 +28,7 @@ import tagger
 import xmltools
 import blobs
 from compare import (PAIR_MODES, Rules, DEFAULT_TRIVIAL, Cancelled, diff, copy_tags, all_keys, MULTI_FIELDS,
-                     INPUT_SEPARATORS, plan_multi_fix)
+                     INPUT_SEPARATORS, plan_multi_fix, sep_codes)
 from id3tags import key_label, field_name, field_help, sort_key, TEXT_LABELS, STANDARD_KEYS, MV, MV_SHOW, Cover, Item, safe_mime
 from undo import UndoStack
 from version import VERSION  # einzige Versionsquelle
@@ -1396,7 +1396,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
     def fixer_settings(self) -> dict:
         fc = self.cfg.get("fixer", {})
         return {"fields": [[k, key_label(k)] for k in MULTI_FIELDS],
-                "separators": [[label, sep, active] for label, sep, active in INPUT_SEPARATORS],
+                "separators": [[label, sep, active, sep_codes(sep)] for label, sep, active in INPUT_SEPARATORS],
                 "saved": {"fields": fc.get("fields", MULTI_FIELDS), "all_text": fc.get("all_text", False),
                           "seps": fc.get("seps", [s for _, s, a in INPUT_SEPARATORS if a]),
                           "mode": fc.get("mode", "sep"), "sep": fc.get("sep", ", "),

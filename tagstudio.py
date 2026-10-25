@@ -40,7 +40,7 @@ import core  # noqa: E402
 import xmltools  # noqa: E402
 from core import URL_RE, FILTER_OPS  # noqa: E402,F401
 from compare import (diff, copy_tags, all_keys, PAIR_MODES, Rules, DEFAULT_TRIVIAL,  # noqa: E402
-                     Cancelled, MULTI_FIELDS, INPUT_SEPARATORS, plan_multi_fix)  # noqa: E402
+                     Cancelled, MULTI_FIELDS, INPUT_SEPARATORS, plan_multi_fix, sep_codes)  # noqa: E402
 
 APP = "MarKusSXCH TagStudio"
 from version import VERSION  # noqa: E402  – einzige Versionsquelle
@@ -2435,7 +2435,7 @@ class App(tk.Tk):
         for i, (label, sep, _) in enumerate(INPUT_SEPARATORS):
             v = tk.BooleanVar(value=sep in on)
             svars.append((sep, v))
-            ttk.Checkbutton(sf, text=label, variable=v).grid(row=i, column=0, sticky="w")
+            ttk.Checkbutton(sf, text=f"{label}   {'  '.join(sep_codes(sep))}", variable=v).grid(row=i, column=0, sticky="w")
 
         # Ausgabe
         section("Ausgabe")

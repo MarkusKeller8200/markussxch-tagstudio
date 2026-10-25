@@ -200,17 +200,30 @@ def copy_tags(src: MP3File, dst: MP3File, keys, delete_missing: bool = False) ->
 # =========================================================================== Mehrfachwerte-Fixer
 MULTI_FIELDS = ["TPE1", "TPE2", "TPE3", "TPE4", "TCOM", "TEXT", "TOLY", "TOPE", "TCON",
                 "TSOP", "TSO2", "TSOC", "TMCL", "TIPL"]
-INPUT_SEPARATORS = [  # (Anzeige, Zeichenkette, Standard aktiv)
+INPUT_SEPARATORS = [  # (Beschreibung, Zeichenkette, Standard aktiv) – #344: Zeichen zeigt sep_codes() als Code
     ("Null (ID3v2.4-Mehrfachwert)", MV, True),
-    ("Semikolon  ;", ";", True),
-    ("Schrägstrich mit Leerzeichen  ' / '", " / ", True),
-    ("Doppel-Backslash  \\\\  (Mp3tag)", "\\\\", True),
-    ("Komma  ,", ",", False),
-    ("Schrägstrich ohne Leerzeichen  /  (Achtung: AC/DC)", "/", False),
-    ("Kaufmanns-Und  &", "&", False),
-    ("' feat. ' / ' ft. '", " feat. ", False),
-    ("' x '", " x ", False),
+    ("Semikolon", ";", True),
+    ("Schrägstrich mit Leerzeichen", " / ", True),
+    ("Doppel-Backslash (Mp3tag)", "\\\\", True),
+    ("Komma", ",", False),
+    ("Schrägstrich ohne Leerzeichen (Achtung: AC/DC)", "/", False),
+    ("Kaufmanns-Und", "&", False),
+    ("Gastkünstler (auch ft. und featuring)", " feat. ", False),
+    ("x zwischen Namen", " x ", False),
 ]
+SPACE_MARK = "␣"
+
+
+def sep_code(sep: str) -> str:
+    """#344: Trennzeichen sichtbar machen – Leerzeichen als ␣, Null-Trenner als \\0."""
+    return "\\0" if sep == MV else str(sep).replace(MV, "\\0").replace(" ", SPACE_MARK)
+
+
+def sep_codes(sep: str) -> list[str]:
+    """#344: alle Schreibweisen, die ein Eingangs-Trenner erkennt (feat. auch ft./featuring) – für die Anzeige als Code."""
+    if sep == " feat. ":
+        return [sep_code(s) for s in (" feat. ", " ft. ", " featuring ")]
+    return [sep_code(sep)]
 
 
 def split_multi(text: str, seps) -> list[str]:

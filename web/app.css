@@ -338,6 +338,9 @@ span.xml-treeonly{display:contents}
 .fx-opts .opt input[type=checkbox],.fx-opts .opt input[type=radio]{width:16px;height:16px;accent-color:var(--acc);flex-shrink:0}
 .fx-opts .opt.dim{color:var(--faint)}
 .fx-fields{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.sep-code{font-family:var(--mono);font-size:12px;padding:1px 6px;border-radius:5px;background:var(--bg);border:1px solid var(--line);white-space:pre;color:var(--fg)}
+.fx-seps .sep-codes{display:inline-flex;gap:3px;min-width:92px;flex-wrap:wrap}
+.fx-seps .sep-name{color:var(--dim)}
 .fx-opts .sep-in{width:70px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:0 8px;font-family:var(--mono)}
 .fx-prev{min-height:0}
 .fx-table{flex:1;min-height:200px;overflow:auto;border:1px solid var(--line);border-radius:10px}

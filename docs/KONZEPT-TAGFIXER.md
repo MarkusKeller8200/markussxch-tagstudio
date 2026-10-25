@@ -1,6 +1,6 @@
 # Konzept: Tag-Fixer
 
-Stand: 2026-10-11 (4.4.0-beta.4) · Status: **umgesetzt** (seit 2.x, in der Web-Oberfläche seit 3.0) · nachträglich erstellt
+Stand: 2026-10-25 (4.12.0, #344) · Status: **umgesetzt** (seit 2.x, in der Web-Oberfläche seit 3.0) · nachträglich erstellt
 
 > **Pflege:** Dieses Dokument wurde nachträglich aus Code und Handbuch zusammengestellt. Wird am Tag-Fixer
 > weitergearbeitet, ist es im selben Zug anzupassen (Funktionen, Umsetzung, Entscheide, Offen).
@@ -20,11 +20,15 @@ Mehrfachwerte (mehrere Künstler, Genres …) stehen je nach Programm unterschie
   `&`, ` feat. `/` ft. `, ` x ` – Standard aus.
 - **Ausgabe:** ein Trennzeichen nach Wahl oder echte ID3v2.4-Mehrfachwerte (dann wird beim Speichern v2.4 geschrieben);
   doppelte Werte entfernen.
+- **Trennzeichen als Code (#344, 4.12.0):** Zeichen getrennt von der Beschreibung als `code` (`translate="no"`),
+  Leerzeichen als `␣`, Null-Trenner als `\0`, Beschreibung als Tooltip; `feat.` zeigt auch `ft.`/`featuring`. Der
+  Ausgabe-Trenner hat eine laufende Code-Vorschau. Gemeinsame Hilfe `sepCode()` (`web/app.js`) – auch für den
+  Ausnahmen-Editor (#343) und Smart Fix (#339).
 - **Vorschau** je Datei und Feld (alt → neu), anwenden mit Undo; geschrieben wird mit „Speichern“.
 
 ## 3. Umsetzung
 
-- **Kern:** `compare.py` – `MULTI_FIELDS`, `INPUT_SEPARATORS`, `split_multi`, `fix_multi`, `plan_multi_fix`.
+- **Kern:** `compare.py` – `MULTI_FIELDS`, `INPUT_SEPARATORS` (Beschreibung ohne Zeichen), `sep_code`/`sep_codes`, `split_multi`, `fix_multi`, `plan_multi_fix`.
 - **Session:** `fixer_settings`, `fixer_preview`, `fixer_apply` in `session.py`.
 - **Oberfläche:** Seite „Tag-Fixer“ (`web/modules.js`), aufrufbar auch aus Tagger und Vergleich.
 - **Einstellungen:** `fixer` (gewählte Trenner, Felder, Ausgabe).

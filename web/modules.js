@@ -228,13 +228,16 @@ async function fixerShow(scopePreset) {
     <h4>Dateien</h4>${scopes.map(([v, l, en]) => `<label class="opt${en ? "" : " dim"}"><input type="radio" name="fx-scope" value="${v}" ${en ? "" : "disabled"} ${v === def ? "checked" : ""}> ${esc(l)}</label>`).join("")}
     <h4>Felder</h4><div class="fx-fields">${st.fields.map(([k, l]) => `<label class="opt"><input type="checkbox" data-field="${k}" ${sv.fields.includes(k) ? "checked" : ""}> ${esc(l)}</label>`).join("")}</div>
     <label class="opt"><input type="checkbox" id="fxAllText" ${sv.all_text ? "checked" : ""}> Alle Textfelder (inkl. Benutzertexte)</label>
-    <h4>Als Trenner erkennen</h4>${st.separators.map(([l, sep], n) => `<label class="opt"><input type="checkbox" data-sep="${n}" ${sv.seps.includes(sep) ? "checked" : ""}> ${esc(l)}</label>`).join("")}
+    <h4>Als Trenner erkennen</h4><div class="fx-seps">${st.separators.map(([l, sep, , codes], n) => `<label class="opt" title="${esc(l)}"><input type="checkbox" data-sep="${n}" ${sv.seps.includes(sep) ? "checked" : ""}> <span class="sep-codes">${sepCode(codes || sep, l)}</span> <span class="sep-name">${esc(l)}</span></label>`).join("")}</div>
     <h4>Ausgabe</h4>
-    <label class="opt"><input type="radio" name="fx-mode" value="sep" ${sv.mode !== "v24" ? "checked" : ""}> Trennzeichen <input class="sep-in" id="fxSep" value="${esc(sv.sep)}" aria-label="Trennzeichen"></label>
+    <label class="opt"><input type="radio" name="fx-mode" value="sep" ${sv.mode !== "v24" ? "checked" : ""}> Trennzeichen <input class="sep-in" id="fxSep" value="${esc(sv.sep)}" aria-label="Trennzeichen"> <span id="fxSepShow">${sepCode(sv.sep, "So wird getrennt (␣ = Leerzeichen)")}</span></label>
     <label class="opt"><input type="radio" name="fx-mode" value="v24" ${sv.mode === "v24" ? "checked" : ""}> ID3v2.4-Standard (echte Mehrfachwerte)</label>
     <label class="opt" style="padding-left:24px"><input type="checkbox" id="fxUpgrade" ${sv.upgrade ? "checked" : ""}> v2.3-Dateien dafür auf v2.4 umstellen</label>
     <label class="opt"><input type="checkbox" id="fxDedupe" ${sv.dedupe ? "checked" : ""}> Doppelte Werte entfernen</label>`;
-  $("#fxOpts").oninput = () => { clearTimeout(FX.timer); FX.timer = setTimeout(fixerPreview, 200); };
+  $("#fxOpts").oninput = (e) => {
+    if (e.target.id === "fxSep") $("#fxSepShow").innerHTML = sepCode(e.target.value, "So wird getrennt (␣ = Leerzeichen)");   // #344
+    clearTimeout(FX.timer); FX.timer = setTimeout(fixerPreview, 200);
+  };
   await fixerPreview();
 }
 

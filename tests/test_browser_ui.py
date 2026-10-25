@@ -2859,6 +2859,21 @@ class UiTest(unittest.TestCase):
         self.assertIn("Start ", pg.input_value("#xText"))
         pg.click("#mBtns .primary")
 
+    def test_fixer_separators_as_code(self):
+        """#344: Tag-Fixer – Trennzeichen als Code (Leerzeichen als ␣, Null als \\0), Beschreibung daneben, Ausgabe-Trenner
+        mit sichtbarer Vorschau."""
+        pg = self.pg
+        pg.click('.nav[data-module="fixer"]')
+        pg.wait_for_selector("#fxOpts .fx-seps code.sep-code")
+        codes = pg.eval_on_selector_all("#fxOpts .fx-seps code.sep-code", "els => els.map(e => e.textContent)")
+        for c in ("\\0", ";", "␣/␣", ",", "␣feat.␣", "␣ft.␣", "␣x␣"):
+            self.assertIn(c, codes)
+        self.assertEqual(pg.get_attribute("#fxOpts .fx-seps code.sep-code >> nth=2", "data-tip-title"), "Schrägstrich mit Leerzeichen")
+        self.assertEqual(pg.get_attribute("#fxOpts .fx-seps code.sep-code >> nth=0", "translate"), "no")
+        self.assertEqual(pg.inner_text("#fxSepShow"), "," + "␣")
+        pg.fill("#fxSep", " / ")
+        self.assertTrue(self.until("document.querySelector('#fxSepShow').textContent === '␣/␣'"))
+
     def test_expert_log_clear_on_exit(self):
         """#332: Expert › Entwicklung – „Protokolle beim Beenden leeren“, Standard aus, Plugin-Protokolle nur wählbar,
         wenn eingeschaltet; Einstellung bleibt gespeichert."""
