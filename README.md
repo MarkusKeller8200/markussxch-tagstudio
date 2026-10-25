@@ -361,6 +361,10 @@ Unten in der Fussleiste (oder oben, siehe unten) – in Tagger und Vergleich:
   wird gemerkt. Bei Titeln mit Cue-Punkten springen zwei Knöpfe zum vorigen/nächsten Cue.
 - **Wellenform:** wird beim ersten Abspielen einmal berechnet und im Cache abgelegt (`~/TagStudio/cache/wave`,
   bleibt beim Bearbeiten der Tags und Umbenennen gültig); im Menü ⋯ bzw. in den Einstellungen abschaltbar.
+  **Wellenform im MP3** (#222, Einstellungen › Sicherungen und Speichern, Standard aus): beim Speichern legt TagStudio
+  sie zusätzlich als eigenes GEOB „TagStudio Overview“ (rund 1.6 KB) in die Datei – dann reist sie mit der Datei und
+  übersteht das Leeren des Caches. Serato-Felder bleiben unberührt; ohne Cache zeigt der Player zuerst die eigene,
+  dann die Serato-Wellenform.
 - **Cue-Marken** aus Serato (Cues und Loops mit Farbe und Name) und Mixed In Key über der Leiste: Klick springt
   hin, **Shift+←/→** zum vorigen/nächsten Cue (Rücksprung ignoriert Cues innerhalb der letzten vier Takte). Ein Klick auf eine **Loop-Marke** spielt den Loop als Schleife
   (erneuter Klick beendet sie); beim Überfahren der Leiste stehen Zeit und Cue-Name.

@@ -644,7 +644,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         c = self.cfg
         return {"file": appsettings.overview(), "trivial": list(self.rules.trivial), "trivial_default": list(DEFAULT_TRIVIAL),
                 "save_version": c.get("save_version", 0), "save_v1": c.get("save_v1", 0),
-                "stamp_edited": c.get("stamp_edited", True), "stamp_added": c.get("stamp_added", True), "key_notation": c.get("key_notation", "camelot"),
+                "stamp_edited": c.get("stamp_edited", True), "stamp_added": c.get("stamp_added", True),
+                "wave_in_file": bool(c.get("wave_in_file", False)), "key_notation": c.get("key_notation", "camelot"),
                 "notations": [[k, v] for k, v in keys.NOTATIONS.items()], "theme": self.opts["theme"],
                 "backup_enabled": c.get("backup_enabled", True), "backup_dir": self._backup_folder(),
                 "backup_store": self._backup_in_store(),
@@ -689,6 +690,14 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         self.cfg["save_v1"] = mode
         core.save_config({"save_v1": mode})
         return mode
+
+    def set_wave_in_file(self, on):
+        """#222 (W1): beim Speichern die eigene Wellenform als GEOB „TagStudio Overview“ ins MP3 – Standard aus."""
+        if not isinstance(on, bool):
+            raise ValueError("Ja/Nein erwartet")
+        self.cfg["wave_in_file"] = on
+        core.save_config({"wave_in_file": on})
+        return on
 
     def set_stamp_edited(self, on):
         """#185: beim Speichern geänderter Tags „Letzte Bearbeitung“ (TXXX:TAGSTUDIO_EDITED) setzen."""
@@ -1227,7 +1236,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         def job(cancel, progress):
             with self.lock:
                 return core.save_files(files, backup_on, folder, cancel, progress, force=bool(force),
-                                       store=self._backup_store(), stamp=self.cfg.get("stamp_edited", True))
+                                       store=self._backup_store(), stamp=self.cfg.get("stamp_edited", True),
+                                       wave=bool(self.cfg.get("wave_in_file", False)))
         return self._run("save", f"{len(files)} Datei(en) speichern", job)
 
     # ================================================================== Feld hinzufügen

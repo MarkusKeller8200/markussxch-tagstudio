@@ -6,6 +6,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Wellenform im MP3 (#222, Entscheid W1):** Einstellungen › Sicherungen und Speichern › „Wellenform im MP3“
+  (Standard aus) – beim Speichern kommt die eigene Wellenform als GEOB „TagStudio Overview“ (`wavetag.py`, rund
+  1.6 KB) in die Datei; der Player liest sie, wenn der Cache leer ist, und legt sie wieder in den Cache. Serato-Felder
+  werden nie verändert.
+
 ### Verbessert
 
 - **Werkzeugleiste im Vergleich (#107):** gruppiert wie in der klassischen Oberfläche – Anzeige, Kopieren, Bearbeiten,

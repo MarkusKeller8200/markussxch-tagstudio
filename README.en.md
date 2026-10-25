@@ -351,6 +351,9 @@ At the bottom in the footer (or at the top, see below) – in tagger and compari
   remembered. For tracks with cue points two buttons jump to the previous/next cue.
 - **Waveform:** calculated once on first play and stored in the cache (`~/TagStudio/cache/wave`, stays valid when
   editing tags and renaming); can be switched off in the ⋯ menu or in the settings.
+  **Waveform in the MP3** (#222, Settings › Backups and saving, off by default): when saving, TagStudio also stores it
+  as its own GEOB “TagStudio Overview” (about 1.6 KB) in the file – it then travels with the file and survives clearing
+  the cache. Serato fields stay untouched; without a cache the player shows its own waveform first, then Serato's.
 - **Cue marks** from Serato (cues and loops with colour and name) and Mixed In Key above the bar: a click jumps
   there, **Shift+←/→** to the previous/next cue (jumping back ignores cues within the last four bars). A click on a
   **loop mark** plays the loop repeatedly (another click ends it); hovering over the bar shows the time and cue name.

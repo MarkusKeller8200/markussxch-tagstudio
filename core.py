@@ -515,7 +515,7 @@ class BackupUnavailable(Exception):
 
 
 def save_files(files, backup_on=True, folder=None, cancel=None, progress=None, force=False, store=None,
-               stamp=True) -> dict:
+               stamp=True, wave=False) -> dict:
     """Speichert Dateien; vorher werden die bisherigen Tags gesichert (eine ZIP pro Vorgang).
     Schlägt die Sicherung einer Datei fehl, wird diese Datei nicht gespeichert.
     → {"saved": n, "errors": [...], "backup": pfad|None, "cancelled": bool}"""
@@ -547,6 +547,9 @@ def save_files(files, backup_on=True, folder=None, cancel=None, progress=None, f
         try:
             if stamp:
                 tsmeta.stamp_edited(f)                 # #185: „Letzte Bearbeitung“ – nur bei geänderten Tags
+            if wave:                                   # #222 (W1): eigene Wellenform als GEOB, nur auf Wunsch
+                import wavetag
+                wavetag.embed_from_cache(f)
             f.save()
             saved += 1
         except Exception as ex:  # noqa: BLE001

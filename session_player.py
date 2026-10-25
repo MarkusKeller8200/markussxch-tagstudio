@@ -340,6 +340,16 @@ class PlayerMixin:
             out["wave"] = waveform.load(out["wave_key"])
         except (OSError, ValueError):
             pass
+        if not out.get("wave"):                                              # #222: eigene Wellenform aus dem MP3
+            import wavetag
+            w = wavetag.of_file(f)
+            if w:
+                out["wave"] = w
+                if out.get("wave_key"):
+                    try:
+                        waveform.save(out["wave_key"], w["peaks"], w["rms"])   # zurück in den Cache
+                    except (OSError, ValueError):
+                        pass
         if not out.get("wave"):                                              # #220: Serato-Übersicht statt nichts
             it = f.get("GEOB:Serato Overview")
             if it is not None and getattr(it, "payload", None):

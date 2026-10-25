@@ -63,7 +63,7 @@ BUILTIN = [
     ("PRIV:www.amazon.com*", "amazon"), ("PRIV:Amazon*", "amazon"),
     ("TXXX:replaygain*", "replaygain"), ("TXXX:MP3GAIN*", "replaygain"),
     ("TSSE", "encoder"), ("TENC", "encoder"),
-    ("TXXX:TagStudio*", "tagstudio"),
+    ("TXXX:TagStudio*", "tagstudio"), ("GEOB:TagStudio*", "tagstudio"),        # #222: eigene Wellenform
 ]
 
 

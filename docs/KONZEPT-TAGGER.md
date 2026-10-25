@@ -79,7 +79,7 @@ conf=0.87; src=analyse; date=2026-10-17` – nur das Raster, nicht die Wellenfor
 (`Session.tag_beatgrid`, Vorschau → Übernehmen mit Rückgängig, gespeichert wie üblich); übersprungen werden Titel mit
 Serato-Raster (Vorrang) und ohne Analyse, vorhandene Werte nur mit „ersetzen“. Lesen: Status `tag` („Analyse (Tag)“) vor
 `analyse`; Player-Raster aus dem Tag (`from_tag`, Kennzeichnung „Audioanalyse (Tag)“), auch ohne Cache. Kein Verstoss
-gegen die Schutzregel in „Vorbereiten“. Idee: Wellenform als GEOB „TagStudio Overview“ (#222, später).
+gegen die Schutzregel in „Vorbereiten“. Wellenform als GEOB „TagStudio Overview“: siehe Abschnitt „Wellenform im MP3 (#222)“ unten.
 **Vergleich Serato ↔ eigene Analyse (#223):** Hat ein Serato-Titel auch eine eigene Analyse (Tag oder Cache), vergleicht
 `gridstatus.compare` (Python) bzw. `plGridCompare` (JS, gleiche Regeln): Tempoverhältnis 2 bzw. ½ → „halbes/doppeltes
 Tempo in Serato“, Tempo-Abweichung > 0,1 % → „Tempo weicht ab“, sonst Abstand des ersten Schlags modulo Schlaglänge
@@ -145,3 +145,16 @@ der vom User gewünschten Reihenfolge **Beatport, Spotify, SoundCloud, Apple Mus
 `WEB_SEARCH`). Suchbegriff `webSearchQuery`: Künstler (Mehrfachwerte mit Komma) + Titel + Mix; „Original Mix“ fällt
 weg, ein Mix, der schon im Titel steht, wird nicht doppelt angehängt. Geöffnet wird über `open_url` im Browser; ohne
 Künstler und Titel (DJ-Set mit nicht geladenen Titeln) dient der Dateiname als Suchbegriff.
+
+## Wellenform im MP3 (#222, 4.11.0, Entscheid W1 vom 25.10.2026)
+
+- **Nur auf Wunsch:** Einstellung `wave_in_file` (Einstellungen › Sicherungen und Speichern › „Wellenform im MP3“),
+  Standard aus. Eingeschaltet legt `core.save_files(…, wave=True)` vor dem Schreiben jeder ohnehin gespeicherten Datei
+  die Wellenform aus dem Cache als GEOB ab (`wavetag.embed_from_cache`). Ohne Cache-Eintrag passiert nichts, ein
+  vorhandenes Feld bleibt.
+- **Format** (`wavetag.py`): GEOB „TagStudio Overview“, MIME `application/octet-stream`, Daten
+  `b"TSOV"` · Version 1 · Anzahl n (2 Byte) · n Spitzen · n RMS (je 0–255) – rund 1.6 KB bei 800 Werten.
+- **Lesen:** `media_extra` nimmt zuerst den Cache, dann das eigene GEOB (und legt es wieder in den Cache), erst dann die
+  Serato-Übersicht (#220).
+- **Serato:** Serato-Felder werden weder gelesen noch verändert; Herkunft „TagStudio“ (`origins`: `GEOB:TagStudio*`);
+  in „Vorbereiten“ kein Verstoss gegen die Schutzregel.

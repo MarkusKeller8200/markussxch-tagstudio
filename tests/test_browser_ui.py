@@ -562,6 +562,28 @@ class UiTest(unittest.TestCase):
         self.assertFalse(c.get("stamp_added"))
         self.assertEqual(self.errors, [])
 
+    def test_wave_in_file_setting(self):
+        """#222 (W1): Einstellung „Wellenform im MP3“ – Standard aus, Schalter speichert; Player zeigt die Wellenform
+        aus dem MP3, wenn der Cache leer ist."""
+        import wavetag
+        pg = self.pg
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stWaveFile")
+        self.assertFalse(pg.is_checked("#stWaveFile"))
+        pg.click("#stWaveFile")
+        c = self.cfg_until(lambda c: c.get("wave_in_file") is True)
+        self.assertTrue(c.get("wave_in_file"))
+        # MP3 mit gespeicherter Wellenform → Player nimmt sie ohne Cache
+        name = sorted(f for f in os.listdir(self.lib) if f.endswith(".mp3"))[0]
+        from id3tags import MP3File
+        f = MP3File(os.path.join(self.lib, name))
+        wavetag.embed(f, {"peaks": [200] * 64, "rms": [100] * 64})
+        f.save()
+        self.load_tagger()
+        r = pg.evaluate("call('media_url', 'tag', 0)")
+        self.assertEqual((len(r["wave"]["peaks"]), r["wave"]["peaks"][0]), (64, 200))
+        self.assertEqual(self.errors, [])
+
     def test_cover_mime_no_script(self):
         """4.9.1: Ein präparierter Bildtyp im Cover (APIC) bringt kein Script in die Oberfläche (Tagger, Vergleich)."""
         from helpers import write_mp3, text, apic
