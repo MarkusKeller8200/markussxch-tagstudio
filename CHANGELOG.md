@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.10.0] – 2026-10-25
+
 ### Neu
 
 - **Ordner-Rollen – Grundlage (#310, Konzept `docs/KONZEPT-ORDNER.md`):** Einstellungen › Speicherort und Ordner zeigt
