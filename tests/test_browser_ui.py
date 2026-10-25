@@ -551,7 +551,11 @@ class UiTest(unittest.TestCase):
         self.assertFalse(pg.evaluate("TG.loaded"))
         self.assertTrue(pg.evaluate("document.querySelector('#tgScroll').inert && !document.querySelector('#tgPrevNote').hidden"))
         self.assertTrue(pg.evaluate("TG.sel.has(1)"))                          # Markierung wie beim Schliessen
+        # Details des markierten Titels kommen gleich aus der Datei (nur ansehen)
+        self.assertTrue(self.until("TG.detail && TG.detail.preview && TG.detail.count === 1 && TG.detail.file.name === '02 Ton 330.mp3'", 3))
+        self.assertTrue(pg.evaluate("document.querySelector('#tgEdit').inert"))
         self.assertTrue(self.until("TG.loaded && TG.rows.length === 4 && !TG.preview", 20))
+        self.assertTrue(self.until("TG.detail && !TG.detail.preview && !document.querySelector('#tgEdit').inert", 5))
         self.assertTrue(pg.evaluate("!document.querySelector('#tgScroll').inert && document.querySelector('#tgPrevNote').hidden"))
         self.assertTrue(self.until("document.querySelector('#statusText').textContent.includes('1 neu, 0 entfernt, 0 geändert')", 5),
                         pg.inner_text("#statusText"))
@@ -586,6 +590,14 @@ class UiTest(unittest.TestCase):
         with open(thumb, "rb") as fh:
             self.assertTrue(fh.read(8).startswith(b"\x89PNG"))
         self.assertTrue(self.until("TG_THUMBS.get(TG.rows[0].ch).length < 20000"))     # verkleinert, nicht das Cover
+        # Darüberfahren: grosse, scharfe Vorschau (440 px, JPEG) – einmal erzeugt und abgelegt
+        pg.hover("#tgInner .tg-thumb >> nth=0")
+        self.assertTrue(self.until("document.querySelector('#tgThumbPop img') && document.querySelector('#tgThumbPop img').src.startsWith('data:image/jpeg')", 5))
+        self.assertTrue(os.path.isfile(os.path.join(self.home, "TagStudio", "cache", f"tg_{ch}_440.jpg")))
+        # Blättern: während des Blätterns keine Cover zeichnen, danach wieder
+        pg.evaluate("document.querySelector('#tgScroll').dispatchEvent(new Event('scroll'))")
+        self.assertTrue(pg.evaluate("TG.scrolling"))
+        self.assertTrue(self.until("!TG.scrolling && document.querySelectorAll('#tgInner .tg-thumb img').length === 3", 2))
         pg = self.restart_with_init("""(() => { const wait = () => { if (typeof callNow !== 'function') return setTimeout(wait, 5);
             const orig = callNow; window.callNow = async (n, ...a) => {
               if (n === 'start_tag_load') await new Promise(r => setTimeout(r, 4000));

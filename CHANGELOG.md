@@ -74,7 +74,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Sortierung bleiben, Änderungen meldet die Statuszeile („x neu, y entfernt, z geändert“). Der Cover-Fingerabdruck der
   Liste rechnet nicht mehr über das ganze Bild. **Cover sofort:** Vorschaubilder liegen zusätzlich unter dem
   Listen-Fingerabdruck im Cache und erscheinen schon in der Sofort-Liste; fehlt ein kleines Bild, verkleinert die
-  Oberfläche das Cover einmal selbst (statt jedes Mal das ganze Cover zu laden). Startdialoge (Snapshots, Ordner, Neuigkeiten) kommen nacheinander.
+  Oberfläche das Cover einmal selbst (statt jedes Mal das ganze Cover zu laden). Beim schnellen Blättern werden Cover erst nach dem
+  Anhalten gezeichnet (kein Ruckeln); beim Darüberfahren erscheint eine scharfe grosse Vorschau (440 px). Die Details des
+  markierten Titels (meist der im Player) kommen in der Sofort-Liste gleich aus der Datei. Startdialoge (Snapshots, Ordner, Neuigkeiten) kommen nacheinander.
 - **Neustart öffnete immer den Vergleich (#325):** nach „Neu starten“ oder einem Update startete die App im Vergleich
   und las ihn neu ein, ohne den Tagger zu laden – und blieb bei jedem weiteren Neustart dort. Jetzt öffnet sie die
   zuletzt benutzte Seite, liest den Tagger im Hintergrund ein und setzt den Player an derselben Stelle fort (gemäss

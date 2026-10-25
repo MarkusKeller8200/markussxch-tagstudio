@@ -136,6 +136,15 @@ async function tgPreviewShow(path) {
   $("#tgPrevNote").hidden = false;
   if (TG.restore) tgStateApply(TG.restore); else { tgApplyOrder(); drawTgList(); }
   if (typeof startMark === "function") startMark(`Tagger-Liste aus dem Zwischenspeicher angezeigt (${p.rows.length} Titel)`);
+  // Details des markierten Titels (meist der im Player) gleich aus der Datei – nur ansehen, bis die Liste da ist
+  const one = TG.sel.size === 1 ? TG.rows[[...TG.sel][0]] : null;
+  if (one && p.root) {
+    $("#tgEdit").inert = true; $("#tgEdit").classList.add("tg-preview");
+    try {
+      const d = await callNow("tag_detail_file", p.root, one.rel);
+      if (TG.preview && d && d.count === 1) { TG.detail = d; if (d.meta) { S.meta = d.meta; renderMeta(); } renderTgEditor(); }
+    } catch (e) { /* egal – Details kommen mit der Liste */ }
+  }
 }
 /** Vorschau beenden – liefert die Zeilen der Vorschau (für den Vergleich mit der eingelesenen Liste) */
 function tgPreviewClear() {
@@ -144,6 +153,7 @@ function tgPreviewClear() {
   TG.preview = null;
   const sc = $("#tgScroll");
   sc.inert = false; sc.classList.remove("tg-preview");
+  $("#tgEdit").inert = false; $("#tgEdit").classList.remove("tg-preview");
   $("#tgPrevNote").hidden = true;
   if (!TG.loaded) { TG.rows = []; TG.sel = new Set(); TG.view = []; }
   return prev.rows;
@@ -582,13 +592,13 @@ function drawTgList() {
         return v === null || v === undefined ? "<span></span>" : `<span class="ft-c"><i style="width:${v}%"></i>${v}</span>`; }).join("")}</div>`;
   }
   inner.innerHTML = h;
-  if (LAYOUT.tg_cover_col) tgThumbsLoad();
+  if (LAYOUT.tg_cover_col && !TG.scrolling) tgThumbsLoad();
 }
 
 /** Eine Zelle der Dateiliste (#152/#154) */
 function tgCell(r, c, v, name, fit) {
   switch (c) {
-    case "name": return `<span class="fn">${LAYOUT.tg_cover_col && v.child === undefined ? `<span class="tg-thumb${r.ch ? "" : " none"}"${r.ch ? ` data-ch="${r.ch}"` : ""}>${r.ch && TG_THUMBS.get(r.ch) ? `<img src="${esc(TG_THUMBS.get(r.ch))}" alt="">` : ""}</span>` : ""}${name}${rateMini(r.rating, r.like)}</span>`;
+    case "name": return `<span class="fn">${LAYOUT.tg_cover_col && v.child === undefined ? `<span class="tg-thumb${r.ch ? "" : " none"}"${r.ch ? ` data-ch="${r.ch}"` : ""}>${r.ch && !TG.scrolling && TG_THUMBS.get(r.ch) ? `<img src="${esc(TG_THUMBS.get(r.ch))}" alt="" decoding="async">` : ""}</span>` : ""}${name}${rateMini(r.rating, r.like)}</span>`;
     case "TBPM": return `<span class="num">${esc(r.TBPM)}</span>`;
     case "camelot": return `<span title="${esc(r.TKEY)}">${r.camelot ? keyBadge(r.camelot, fit.size && !TG.sel.has(r.i) ? (fit.has(r.camelot) ? "fit" : "") : "") : `<span class="mx" translate="no">${esc(r.TKEY)}</span>`}</span>`;
     case "len": return `<span class="num">${tgMmss(r.len)}</span>`;
@@ -860,38 +870,57 @@ async function tgThumbsLoad() {
       const r = await call("tag_cover_thumb", h);
       if (r.retry) { TG_THUMB_WAIT.delete(h); continue; }          // #326: Titel noch nicht eingelesen – später nochmals
       TG_THUMBS.set(h, r.ok ? r.src : "");
-      if (r.ok && r.store) tgThumbShrink(h, r.src);                 // #326: einmal verkleinern und ablegen
+      if (r.ok && r.store) tgThumbShrink(h, r.src, 96).then((s) => { if (s) TG_THUMBS.set(h, s); });   // #326: einmal verkleinern und ablegen
     } catch (e) { TG_THUMBS.set(h, ""); }
     TG_THUMB_WAIT.delete(h);
     const src = TG_THUMBS.get(h);
     $$(`#tgInner .tg-thumb[data-ch="${h}"]`).forEach((el) => { el.innerHTML = src ? `<img src="${esc(src)}" alt="">` : ""; });
   }
 }
-/** #326: Cover im Browser auf höchstens 96 px verkleinern (PNG) und unter dem Listen-Hash ablegen – nächstes Mal
-    kommt es sofort, auch in der Sofort-Liste beim Start. Braucht kein Bildwerkzeug auf dem Rechner. */
-function tgThumbShrink(h, src) {
-  const img = new Image();
-  img.onload = () => {
-    try {
-      const k = Math.min(1, 96 / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
-      const cv = document.createElement("canvas");
-      cv.width = Math.max(1, Math.round(img.naturalWidth * k)); cv.height = Math.max(1, Math.round(img.naturalHeight * k));
-      const g = cv.getContext("2d");
-      g.imageSmoothingQuality = "high";
-      g.drawImage(img, 0, 0, cv.width, cv.height);
-      const png = cv.toDataURL("image/png");
-      TG_THUMBS.set(h, png);
-      callNow("tag_cover_thumb_store", h, png.split(",")[1]).catch(() => {});
-    } catch (e) { /* egal – dann eben das grosse Bild */ }
-  };
-  img.src = src;
+/** #326: Cover im Browser verkleinern und unter dem Listen-Hash ablegen – nächstes Mal kommt es sofort, auch in der
+    Sofort-Liste beim Start. Braucht kein Bildwerkzeug auf dem Rechner. size 96: Liste (PNG), 440: Vergrösserung (JPEG).
+    → Promise mit der data:-Adresse (bzw. "" bei Fehler) */
+function tgThumbShrink(h, src, size) {
+  return new Promise((done) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const k = Math.min(1, size / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+        const cv = document.createElement("canvas");
+        cv.width = Math.max(1, Math.round(img.naturalWidth * k)); cv.height = Math.max(1, Math.round(img.naturalHeight * k));
+        const g = cv.getContext("2d");
+        g.imageSmoothingQuality = "high";
+        g.drawImage(img, 0, 0, cv.width, cv.height);
+        const out = size > 96 ? cv.toDataURL("image/jpeg", 0.9) : cv.toDataURL("image/png");
+        callNow("tag_cover_thumb_store", h, out.split(",")[1], size).catch(() => {});
+        done(out);
+      } catch (e) { done(""); }
+    };
+    img.onerror = () => done("");
+    img.src = src;
+  });
+}
+const TG_BIG = new Map(), TG_BIG_WAIT = new Map();   // #326: grosse Vorschau beim Darüberfahren (scharf, darf länger laden)
+function tgCoverBig(h) {
+  if (TG_BIG.has(h)) return Promise.resolve(TG_BIG.get(h));
+  if (!TG_BIG_WAIT.has(h)) TG_BIG_WAIT.set(h, (async () => {
+    let r;
+    try { r = await call("tag_cover_thumb", h, 440); } catch (e) { r = { ok: false }; }
+    const src = !r.ok ? "" : r.store ? (await tgThumbShrink(h, r.src, 440)) || r.src : r.src;
+    if (src) TG_BIG.set(h, src);
+    TG_BIG_WAIT.delete(h);
+    return src;
+  })());
+  return TG_BIG_WAIT.get(h);
 }
 function tgCoverPop(e) {
   const th = e.target.closest && e.target.closest(".tg-thumb[data-ch]"), pop = $("#tgThumbPop");
-  if (!th || e.type === "mouseout") { if (pop) pop.hidden = true; return; }
-  const src = TG_THUMBS.get(th.dataset.ch); if (!src) return;
+  if (!th || e.type === "mouseout") { if (pop) { pop.hidden = true; pop.dataset.h = ""; } return; }
+  const h = th.dataset.ch, src = TG_BIG.get(h) || TG_THUMBS.get(h); if (!src) return;
   const r = th.getBoundingClientRect();
+  pop.dataset.h = h;
   pop.innerHTML = `<img src="${esc(src)}" alt="">`;
+  if (!TG_BIG.has(h)) tgCoverBig(h).then((big) => { if (big && pop.dataset.h === h && !pop.hidden) pop.innerHTML = `<img src="${esc(big)}" alt="">`; });
   pop.hidden = false;
   pop.style.left = (r.right + 8) + "px";
   pop.style.top = Math.max(8, Math.min(innerHeight - 228, r.top - 90)) + "px";
@@ -1758,7 +1787,13 @@ async function tgOriginDialog(preset = "") {
   tgColFilterInit();                                                     // #202
   $("#tgColsBtn").addEventListener("click", (e) => { e.stopPropagation(); tgColsMenu(e.currentTarget); });
   $("#tgSortReset").addEventListener("click", tgSortReset);
-  $("#tgScroll").addEventListener("scroll", () => { requestAnimationFrame(drawTgList); tgHeadScrollSync(); tgStateSave(); });
+  $("#tgScroll").addEventListener("scroll", () => {
+    // #326: während des Blätterns keine Cover zeichnen (ruckelt sonst) – kurz nach dem Anhalten kommen sie
+    TG.scrolling = true;
+    clearTimeout(TG.scrollT);
+    TG.scrollT = setTimeout(() => { TG.scrolling = false; drawTgList(); }, 140);
+    requestAnimationFrame(drawTgList); tgHeadScrollSync(); tgStateSave();
+  });
   // Kopf und Filterzeile um die Breite der senkrechten Bildlaufleiste der Liste einrücken – sonst laufen die
   // flexiblen Spalten auseinander (Windows: Bildlaufleiste nimmt Platz ein)
   const sbw = () => { const sc = $("#tgScroll"); $("#tgTable").style.setProperty("--tg-sbw", `${Math.max(0, sc.offsetWidth - sc.clientWidth)}px`); };

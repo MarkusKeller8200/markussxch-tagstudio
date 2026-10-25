@@ -195,6 +195,12 @@ class TestListCache(unittest.TestCase):
         c.data = c.data[:-1] + bytes([c.data[-1] ^ 1])                                    # letztes Byte anders
         c._h = None
         self.assertNotEqual(s._cover_hash(f), h1)
+        # Details eines Titels direkt aus der Datei (Sofort-Liste), nur innerhalb des Ordners
+        d = Session().tag_detail_file(self.lib, "02.mp3")
+        self.assertEqual((d["count"], d["preview"], d["file"]["name"], d["common"]["TIT2"]["value"]), (1, True, "02.mp3", "Titel 2"))
+        self.assertEqual(Session().tag_detail_file(self.lib, "../lib/02.mp3")["count"], 0)
+        self.assertEqual(Session().tag_detail_file(self.lib, "fehlt.mp3")["count"], 0)
+        self.assertEqual(Session().tag_detail_file(os.path.join(self.lib, "01.mp3"))["count"], 1)
         s.set_list_cache(False)
         self.assertEqual(s.tag_rows_preview(self.lib)["rows"], [])
         # Vorschaubild unter dem Listen-Hash: erst aus dem Cover (store), abgelegt → auch ohne eingelesene Titel
@@ -217,6 +223,15 @@ class TestListCache(unittest.TestCase):
             self.assertEqual(base64.b64decode(r2["src"].split(",")[1]), small)
             self.assertEqual(s2.tag_cover_thumb("0" * 16), {"ok": False, "retry": True})
             self.assertEqual(s2.tag_cover_thumb("kein-hash"), {"ok": False})
+            # grosse Vorschau (440 px, JPEG) getrennt von der Listen-Vorschau
+            big = b"\xff\xd8\xff\xe0" + b"j" * 100
+            self.assertTrue(s.tag_cover_thumb(h, 440)["store"])
+            self.assertFalse(s.tag_cover_thumb_store(h, base64.b64encode(small).decode(), 440))   # PNG ist hier falsch
+            self.assertTrue(s.tag_cover_thumb_store(h, base64.b64encode(big).decode(), 440))
+            r3 = s2.tag_cover_thumb(h, 440)
+            self.assertTrue(r3["src"].startswith("data:image/jpeg;base64,"))
+            self.assertEqual(base64.b64decode(s2.tag_cover_thumb(h)["src"].split(",")[1]), small)
+            self.assertTrue(Session._cache_dirs()["covers"][1].match(f"tg_{h}_440.jpg"))
             self.assertTrue(Session._cache_dirs()["covers"][1].match(f"tg_{h}.png"))
         finally:
             thumbs.CACHE_DIR = old_dir

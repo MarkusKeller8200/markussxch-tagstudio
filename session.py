@@ -454,7 +454,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         import re
         import thumbs
         import waveform
-        return {"covers": (thumbs.CACHE_DIR, re.compile(r"^(?:[0-9a-f]{32}_\d+|tg_[0-9a-f]{16})\.png$"), False),
+        return {"covers": (thumbs.CACHE_DIR, re.compile(r"^(?:[0-9a-f]{32}_\d+\.png|tg_[0-9a-f]{16}(?:\.png|_\d+\.jpg))$"), False),
                 "wave": (waveform.DIR, re.compile(r"^[0-9a-f]{32}\.json$"), True)}
 
     def cache_info(self) -> dict:
@@ -1962,13 +1962,16 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         return h
 
     # #326: Vorschaubild je Listen-Hash – auch ohne eingelesene Titel (Sofort-Liste beim Start)
+    THUMB_BIG = 440                     # Vergrösserung beim Darüberfahren (220 px, scharf auch bei 200 % Skalierung)
+
     @staticmethod
-    def _ch_thumb_path(h) -> str | None:
+    def _ch_thumb_path(h, size=96) -> str | None:
+        """Listen-Vorschau (96 px, PNG) bzw. Vergrösserung (440 px, JPEG) unter dem Listen-Hash."""
         import re
         import thumbs
         if not isinstance(h, str) or not re.fullmatch(r"[0-9a-f]{16}", h):
             return None
-        return os.path.join(thumbs.CACHE_DIR, f"tg_{h}.png")
+        return os.path.join(thumbs.CACHE_DIR, f"tg_{h}.png" if size == 96 else f"tg_{h}_{Session.THUMB_BIG}.jpg")
 
     def _cover_index(self) -> dict:
         """{Listen-Hash: Datei} – einmal je geladener Liste statt bei jedem Vorschaubild die ganze Liste."""
@@ -1983,16 +1986,18 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             self._cover_idx = idx
         return idx[1]
 
-    def tag_cover_thumb(self, h) -> dict:
+    def tag_cover_thumb(self, h, size=96) -> dict:
         """Cover zu einem Hash aus tag_rows (für die Cover-Spalte, #73). #326: zuerst das kleine Vorschaubild unter dem
         Listen-Hash (geht schon vor dem Einlesen); sonst aus dem Cover – store=True: die Oberfläche verkleinert es und
         legt es mit tag_cover_thumb_store ab."""
-        p = self._ch_thumb_path(h)
+        size = 96 if size != self.THUMB_BIG else self.THUMB_BIG
+        p = self._ch_thumb_path(h, size)
         if p is None:
             return {"ok": False}
         try:
             with open(p, "rb") as fh:
-                return {"ok": True, "src": "data:image/png;base64," + base64.b64encode(fh.read()).decode("ascii"), "desc": ""}
+                data = fh.read()
+            return {"ok": True, "src": f"data:{safe_mime('', data)};base64," + base64.b64encode(data).decode("ascii"), "desc": ""}
         except OSError:
             pass
         with self.lock:
@@ -2009,7 +2014,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             c = self._front_cover(f)
             try:                                    # kleines Vorschaubild aus dem Cache (#80) → auch unter dem Listen-Hash
                 src = thumbs.cache_path(c.data, self.THUMB)
-                if os.path.isfile(src):
+                if size == 96 and os.path.isfile(src):
                     shutil.copyfile(src, p)
                     with open(p, "rb") as fh:
                         return {"ok": True, "src": "data:image/png;base64," + base64.b64encode(fh.read()).decode("ascii"),
@@ -2019,14 +2024,17 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return {"ok": True, "src": f"data:{safe_mime(c.mime, c.data)};base64,{base64.b64encode(c.data).decode('ascii')}",
                     "desc": c.describe(), "store": True}
 
-    def tag_cover_thumb_store(self, h, png_b64) -> bool:
-        """#326: von der Oberfläche verkleinertes Vorschaubild (PNG, höchstens 96 px) unter dem Listen-Hash ablegen."""
-        p = self._ch_thumb_path(h)
+    def tag_cover_thumb_store(self, h, png_b64, size=96) -> bool:
+        """#326: von der Oberfläche verkleinertes Vorschaubild unter dem Listen-Hash ablegen – PNG mit 96 px für die
+        Liste, JPEG mit 440 px für die Vergrösserung beim Darüberfahren."""
+        big = size == self.THUMB_BIG
+        p = self._ch_thumb_path(h, self.THUMB_BIG if big else 96)
         try:
             data = base64.b64decode(str(png_b64 or ""), validate=True)
         except ValueError:
             return False
-        if p is None or not data.startswith(b"\x89PNG\r\n\x1a\n") or len(data) > 200_000:
+        magic = b"\xff\xd8\xff" if big else b"\x89PNG\r\n\x1a\n"
+        if p is None or not data.startswith(magic) or len(data) > (1_500_000 if big else 200_000):
             return False
         try:
             os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -2121,53 +2129,78 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
     def tag_detail(self, idx) -> dict:
         with self.lock:
             files = self._tsel(idx)
-            out = {"count": len(files), "meta": self.meta(), "rows": [self._tag_row(i, self.tag_files[i])
-                                                                   for i in idx if 0 <= i < len(self.tag_files)]}
-            if not files:
-                return out
-            out["common"] = tagger.common_values(files)
-            kv = out["common"].get("TKEY", {})
-            kv["camelot"] = keys.parse_key(kv.get("value")) if not kv.get("mixed") else None
-            cs = tagger.cover_summary(files)
-            if cs.get("data") is not None:
-                cs["src"] = f"data:{safe_mime(cs.get('mime'), cs['data'])};base64,{base64.b64encode(cs.pop('data')).decode('ascii')}" \
-                    if len(cs["data"]) <= 4_000_000 else ""
-            out["cover"] = cs
-            out["features"] = features.common(files)
-            out["mood"] = moods.common(files)                                            # #12
-            rs, ls = {ratings.get_rating(f) for f in files}, {ratings.get_like(f) for f in files}
-            out["rating"] = {"value": next(iter(rs)) if len(rs) == 1 else None, "mixed": len(rs) > 1,
-                             "like": next(iter(ls)) if len(ls) == 1 else None}
-            durs = [float(getattr(f, "duration", 0) or 0) for f in files]
-            out["length"] = {"total": round(sum(durs), 1), "count": len(files),
-                             "same": len({round(d) for d in durs}) == 1}
-            vers = {f.version for f in files}
-            out["version"] = vers.pop() if len(vers) == 1 else None
-            if len(files) == 1:
-                f = files[0]
-                out["file"] = {"name": os.path.basename(f.path), "path": f.path, "info": f.info()}
-                std = {k for k, _l, _p in tagger.FIELDS}
-                feat = {f"TXXX:{n}".upper() for n in features.NAMES}
-                fields = []
-                for k in sorted(f.items, key=sort_key):
-                    if k in std or k.upper() in feat or k == "TMOO" or k.upper() == "TXXX:MOOD":   # Stimmung: eigenes Feld (#12)
-                        continue
-                    it = f.get(k)
-                    xml = xmltools.xml_of_item(it)
-                    shown = core.disp(it)
-                    if k.startswith("GEOB:Serato"):            # #76: Serato-Daten als lesbare Kurzfassung
-                        dec = serato.decode(it.desc or k[5:], blobs.split(it)["data"]) if it.payload is not None else None
-                        if dec is not None:
-                            shown = "Serato " + dec["name"] + ": " + (dec.get("error") or dec["summary"])
-                    fields.append({"key": k, "label": key_label(k), "name": field_name(k), "help": field_help(k),
-                                   "text": shown, "src": self._src(k, f), "ver": self._ver(k, f), "official": self._official(k),
-                                   "editable": core.can_edit_text(f, k) and xml is None,
-                                   "multiline": "\n" in (it.text or "") or k.startswith(("COMM", "USLT")),
-                                   "blob": blobs.is_blob(it),
-                                   "xml": None if xml is None else ("edit" if xml[1] else "view"),
-                                   "mod": f.field_modified(k), "edit": core.edit_text(it) if it.kind != "picture" and xml is None else ""})
-                out["fields"] = fields
+            return self._detail(files, [self._tag_row(i, self.tag_files[i]) for i in idx if 0 <= i < len(self.tag_files)])
+
+    def tag_detail_file(self, path, rel=None) -> dict:
+        """#326: Details eines Titels direkt aus der Datei (nur ansehen) – für die Sofort-Liste beim Start, bevor der
+        Ordner eingelesen ist (typisch der Titel im Player). Nur MP3-Dateien, die es gibt."""
+        from id3tags import MP3File
+        p = str(path or "")
+        if rel:                                                  # Ordner + relativer Name aus der Listenzeile
+            if p == folders.ALL_LIBS or os.path.isabs(str(rel)) or ".." in str(rel).replace("\\", "/").split("/"):
+                return {"count": 0, "rows": []}
+            p = os.path.join(p, str(rel))
+        if not p.lower().endswith(".mp3") or not os.path.isfile(p):
+            return {"count": 0, "rows": []}
+        k = os.path.normcase(os.path.abspath(p))
+        f = self.reg.get(k) if isinstance(getattr(self, "reg", None), dict) else None
+        try:
+            f = f or MP3File(p)
+        except OSError:
+            return {"count": 0, "rows": []}
+        with self.lock:
+            out = self._detail([f], [])
+        out["preview"] = True
+        return out
+
+    def _detail(self, files, rows) -> dict:
+        """Details der Dateien files für den Editor (Felder, Cover, Merkmale …); rows = ihre Listenzeilen."""
+        out = {"count": len(files), "meta": self.meta(), "rows": rows}
+        if not files:
             return out
+        out["common"] = tagger.common_values(files)
+        kv = out["common"].get("TKEY", {})
+        kv["camelot"] = keys.parse_key(kv.get("value")) if not kv.get("mixed") else None
+        cs = tagger.cover_summary(files)
+        if cs.get("data") is not None:
+            cs["src"] = f"data:{safe_mime(cs.get('mime'), cs['data'])};base64,{base64.b64encode(cs.pop('data')).decode('ascii')}" \
+                if len(cs["data"]) <= 4_000_000 else ""
+        out["cover"] = cs
+        out["features"] = features.common(files)
+        out["mood"] = moods.common(files)                                            # #12
+        rs, ls = {ratings.get_rating(f) for f in files}, {ratings.get_like(f) for f in files}
+        out["rating"] = {"value": next(iter(rs)) if len(rs) == 1 else None, "mixed": len(rs) > 1,
+                         "like": next(iter(ls)) if len(ls) == 1 else None}
+        durs = [float(getattr(f, "duration", 0) or 0) for f in files]
+        out["length"] = {"total": round(sum(durs), 1), "count": len(files),
+                         "same": len({round(d) for d in durs}) == 1}
+        vers = {f.version for f in files}
+        out["version"] = vers.pop() if len(vers) == 1 else None
+        if len(files) == 1:
+            f = files[0]
+            out["file"] = {"name": os.path.basename(f.path), "path": f.path, "info": f.info()}
+            std = {k for k, _l, _p in tagger.FIELDS}
+            feat = {f"TXXX:{n}".upper() for n in features.NAMES}
+            fields = []
+            for k in sorted(f.items, key=sort_key):
+                if k in std or k.upper() in feat or k == "TMOO" or k.upper() == "TXXX:MOOD":   # Stimmung: eigenes Feld (#12)
+                    continue
+                it = f.get(k)
+                xml = xmltools.xml_of_item(it)
+                shown = core.disp(it)
+                if k.startswith("GEOB:Serato"):            # #76: Serato-Daten als lesbare Kurzfassung
+                    dec = serato.decode(it.desc or k[5:], blobs.split(it)["data"]) if it.payload is not None else None
+                    if dec is not None:
+                        shown = "Serato " + dec["name"] + ": " + (dec.get("error") or dec["summary"])
+                fields.append({"key": k, "label": key_label(k), "name": field_name(k), "help": field_help(k),
+                               "text": shown, "src": self._src(k, f), "ver": self._ver(k, f), "official": self._official(k),
+                               "editable": core.can_edit_text(f, k) and xml is None,
+                               "multiline": "\n" in (it.text or "") or k.startswith(("COMM", "USLT")),
+                               "blob": blobs.is_blob(it),
+                               "xml": None if xml is None else ("edit" if xml[1] else "view"),
+                               "mod": f.field_modified(k), "edit": core.edit_text(it) if it.kind != "picture" and xml is None else ""})
+            out["fields"] = fields
+        return out
 
     def tag_set(self, idx, key, value):
         with self.lock:
