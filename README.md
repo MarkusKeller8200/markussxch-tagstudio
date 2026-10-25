@@ -347,7 +347,9 @@ oder Reihenfolge, Unterordner.
   Filter Alle/Unterschiede/Gleiche, Unwichtige, leere Felder, Feldsuche, **+ Feld**.
 - **Werkzeugleiste** (#107) in Gruppen wie in der klassischen Oberfläche, je Gruppe eine Farbe: Anzeige (✱ ≠ = ≈ ▣),
   Kopieren (⇇ ⇤ ⇥ ⇉), Bearbeiten (+ Feld, ⊘ Herkunft, ⟳ Paar neu), Verlauf (↶ ↷). „Aa“ rechts schaltet zwischen
-  Symbolen mit Text und nur Symbolen um (wird gemerkt); jeder Knopf hat einen Tooltip.
+  Symbolen mit Text und nur Symbolen um (wird gemerkt); jeder Knopf hat einen Tooltip. Mit Text zwei Zeilen, nur
+  Symbole eine Zeile. Der **Tagger** hat dieselbe Leiste: Anzeige (⊻ Filter, ▥ Spalten, ▣ Cover, ≋ Merkmale, ⑂ Stems),
+  ↺ Zurücksetzen und ✉ Melden, ↶/↷ Verlauf – mit eigenem „Aa“.
 - **Bilder:** Rechtsklick auf ein Cover: anzeigen, ersetzen, exportieren, entfernen; Klick auf den leeren
   Cover-Platz fügt eines hinzu. (Dateidialoge im App-Fenster; im Browser-Modus nur unter Windows/Linux.)
 

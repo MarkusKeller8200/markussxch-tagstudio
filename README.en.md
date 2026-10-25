@@ -335,7 +335,9 @@ subfolders.
   fields, field search, **+ Field**.
 - **Toolbar** (#107) in groups as in the classic interface, one colour per group: view (✱ ≠ = ≈ ▣), copy (⇇ ⇤ ⇥ ⇉),
   edit (+ field, ⊘ origin, ⟳ reload pair), history (↶ ↷). “Aa” on the right switches between icons with text and
-  icons only (remembered); every button has a tooltip.
+  icons only (remembered); every button has a tooltip. With text two rows, icons only one row. The **tagger** has the
+  same toolbar: view (⊻ filter, ▥ columns, ▣ cover, ≋ features, ⑂ stems), ↺ reset and ✉ report, ↶/↷ history – with its
+  own “Aa”.
 - **Images:** right-click a cover: show, replace, export, remove; a click on the empty cover space adds one. (File
   dialogs in the app window; in browser mode only on Windows/Linux.)
 

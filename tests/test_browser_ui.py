@@ -1291,6 +1291,34 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("document.querySelector('#cmpToolbar').classList.contains('icons-only')", 5))
         self.assertEqual(self.errors, [])
 
+    def test_tagger_toolbar_groups(self):
+        """#107: Werkzeugleiste im Tagger wie im Vergleich – Gruppen mit Symbolen, ↶/↷, „Aa“ (eigene Einstellung);
+        mit Text zweizeilig (Suche oben), nur Symbole einzeilig."""
+        pg = self.pg
+        pg.set_viewport_size({"width": 1920, "height": 900})
+        self.load_tagger()
+        grps = pg.evaluate("[...document.querySelectorAll('#tgToolbar .tb-grp')].map((g) => g.dataset.grp)")
+        self.assertEqual(grps, ["view", "edit", "hist"])
+        self.assertEqual(pg.inner_text("#tgCoverCol .tb-s"), "▣")
+        self.assertTrue(pg.evaluate("[...document.querySelectorAll('#tgToolbar button')].every((b) => b.title || b.dataset.tipTitle || b.getAttribute('aria-label'))"))
+        top = lambda sel: pg.evaluate(f"Math.round(document.querySelector({json.dumps(sel)}).getBoundingClientRect().top)")
+        self.assertGreater(top("#tgToolbar [data-grp=view]"), top("#tgQuery") + 10)          # zweite Zeile
+        # ↶/↷ wie oben: ohne Änderung gesperrt, nach einer Änderung Rückgängig möglich
+        self.assertTrue(pg.evaluate("document.querySelector('#tgUndo').disabled"))
+        pg.click('.tg-row[data-i="0"] .nm')
+        pg.evaluate("call('tag_set', [0], 'TIT2', 'Neu 107').then(taggerApplyDetail)")
+        self.assertTrue(self.until("!document.querySelector('#tgUndo').disabled"))
+        pg.click("#tgUndo")
+        self.assertTrue(self.until("TG.rows[0].TIT2 === 'Ton 220'"))
+        # nur Symbole: eine Zeile, eigene Einstellung (Vergleich bleibt)
+        pg.click("#tgTbMode")
+        self.assertTrue(pg.locator("#tgCoverCol .tb-t").is_hidden())
+        self.assertLess(abs(top("#tgToolbar [data-grp=hist]") - top("#tgQuery")), 14)
+        c = self.cfg_until(lambda c: (c.get("web_ui") or {}).get("tg_tb_icons") is True)
+        self.assertNotEqual((c.get("web_ui") or {}).get("cmp_tb_icons"), True)
+        self.assertFalse(pg.evaluate("document.querySelector('#cmpToolbar').classList.contains('icons-only')"))
+        self.assertEqual(self.errors, [])
+
     def test_i18n_dialog_language(self):
         """#304: Die Sprache der Oberfläche gilt auch für Python (Dateidialoge, Fenstertitel)."""
         pg = self.pg
@@ -3598,13 +3626,13 @@ class UiTest(unittest.TestCase):
         self.assertTrue(pg.locator("#tgFilterReset").is_hidden())
         # #276: ein Knopf klappt auf und zu
         self.assertEqual(pg.locator("#tgStemBtns button").count(), 1)
-        self.assertEqual(pg.inner_text("#tgStemToggle"), "Stems ▸")
+        self.assertEqual(pg.inner_text("#tgStemToggle .tb-t"), "Stems ▸")
         n = pg.evaluate("TG.view.length")
         pg.click("#tgStemToggle")
-        pg.wait_for_function(f"TG.view.length > {n} && document.querySelector('#tgStemToggle').textContent === 'Stems ▾'")
+        pg.wait_for_function(f"TG.view.length > {n} && document.querySelector('#tgStemToggle .tb-t').textContent === 'Stems ▾'")
         self.assertTrue(pg.evaluate("document.querySelector('#tgStemToggle').classList.contains('on')"))   # #277
         pg.click("#tgStemToggle")
-        pg.wait_for_function(f"TG.view.length === {n} && document.querySelector('#tgStemToggle').textContent === 'Stems ▸'")
+        pg.wait_for_function(f"TG.view.length === {n} && document.querySelector('#tgStemToggle .tb-t').textContent === 'Stems ▸'")
         # Suche → „↺ Filter“ hebt sie auf
         pg.fill("#tgQuery", "Ton 330")
         pg.wait_for_function("TG.order.length === 1")

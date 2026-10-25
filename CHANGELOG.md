@@ -58,7 +58,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Werkzeugleiste im Vergleich (#107):** gruppiert wie in der klassischen Oberfläche – Anzeige, Kopieren, Bearbeiten,
   Verlauf (neu: ↶/↷ direkt im Vergleich) –, je Gruppe farbige Symbole, Trenner und Tooltips; „Aa“ schaltet auf
   „nur Symbole“ um (wird gemerkt). Mit Symbol und Text zwei Zeilen – oben die Anzeige, darunter Kopieren, Bearbeiten
-  und Verlauf; nur Symbole: alles in einer Zeile.
+  und Verlauf; nur Symbole: alles in einer Zeile. **Im Tagger** dieselbe Leiste: Anzeige (Filter, Spalten, Cover, Merkmale,
+  Stems), Zurücksetzen/Melden, Verlauf mit ↶/↷ direkt im Tagger und eigenem „Aa“.
 - **Dateidialoge und Fenstertitel übersetzt (#304):** Dateitypen in den Öffnen- und Ordner-Dialogen („MP3-Dateien“,
   „Alle Dateien“ …), die Titel der Dialoge im Browser-Modus und die Fenstertitel von Player und Protokollen folgen
   der gewählten Sprache (Englisch, Zürichdeutsch) – auch direkt nach einem Sprachwechsel.

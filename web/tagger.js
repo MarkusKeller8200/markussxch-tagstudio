@@ -366,7 +366,7 @@ function tgApplyOrder() {
   $("#tgStemBtns").hidden = !nStem;
   const anyOpen = TG.rows.some((r) => r.stems && TG.open.has(r.i));             // #276: ein Umschalt-Knopf
   const sb = $("#tgStemToggle");
-  sb.textContent = anyOpen ? "Stems ▾" : "Stems ▸";
+  $(".tb-t", sb).textContent = anyOpen ? "Stems ▾" : "Stems ▸";
   sb.title = anyOpen ? "Alle Stems zuklappen" : "Alle Stems aufklappen";
   sb.setAttribute("aria-pressed", String(anyOpen));
   sb.classList.toggle("on", anyOpen);                                         // #277: blau wie „Cover“
@@ -528,7 +528,7 @@ function renderTgHead() {
   const cb = $("#tgCoverCol"); if (cb) cb.classList.toggle("on", !!LAYOUT.tg_cover_col);
   const fcols = tgFeatCols(), cols = tgCols();
   let scroll = LAYOUT.tg_fit === "scroll";
-  const fb = $("#tgFeatCols"); if (fb) { fb.classList.toggle("on", fcols.length > 0); fb.textContent = fcols.length ? `Merkmale (${fcols.length}) ▾` : "Merkmale ▾"; }
+  const fb = $("#tgFeatCols"); if (fb) { fb.classList.toggle("on", fcols.length > 0); $(".tb-t", fb).textContent = fcols.length ? `Merkmale (${fcols.length}) ▾` : "Merkmale ▾"; }
   // #148: „fit“ = an Fenster anpassen, „scroll“ = optimale Breite mit horizontalem Bildlauf
   const w = (id) => { const d = tgColDef(id); return scroll ? (id === "name" ? "var(--tg-name-px,260px)" : `${d.px}px`) : d.fit; };
   const tbl = $("#tgTable");
