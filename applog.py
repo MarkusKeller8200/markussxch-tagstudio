@@ -85,6 +85,45 @@ def install_hooks():
         threading.excepthook = thook
 
 
+def files() -> list[dict]:
+    """Alle Protokolle im Log-Ordner (App und Plugins), neueste zuerst – Name, Pfad, Grösse, Änderungszeit."""
+    d = log_dir()
+    out = []
+    try:
+        for n in os.listdir(d):
+            fp = os.path.join(d, n)
+            if os.path.isfile(fp) and not n.startswith("."):
+                st = os.stat(fp)
+                out.append({"name": n, "path": fp, "size": st.st_size, "mtime": st.st_mtime})
+    except OSError:
+        pass
+    return sorted(out, key=lambda x: -x["mtime"])
+
+
+def read_from(name: str = "", offset: int = -1, limit: int = 200_000) -> dict:
+    """#327: Protokoll fortlaufend lesen (Live-Fenster) – ab Byte offset (-1 = die letzten limit Bytes).
+    name: Dateiname im Log-Ordner (Standard app.log). → {name, files, size, offset, text, reset, mtime}"""
+    fs = {f["name"]: f for f in files()}
+    name = os.path.basename(str(name or ""))
+    name = name if name in fs else (NAME if NAME in fs else next(iter(fs), ""))
+    res = {"name": name, "files": sorted(fs, key=lambda n: (n != NAME, n.lower())), "size": 0, "offset": 0, "text": "",
+           "reset": offset < 0, "mtime": 0.0}
+    if name:
+        f = fs[name]
+        size, res["mtime"] = f["size"], f["mtime"]
+        if offset < 0 or offset > size:
+            res["reset"] = True
+            offset = max(0, size - limit)
+        try:
+            with open(f["path"], "rb") as fh:
+                fh.seek(offset)
+                data = fh.read(max(0, size - offset))
+        except OSError:
+            data = b""
+        res.update(size=offset + len(data), offset=offset, text=data.decode("utf-8", "replace"))
+    return res
+
+
 def tail(p: str, limit: int = 200_000) -> str:
     """Ende einer Textdatei (höchstens `limit` Bytes)."""
     try:

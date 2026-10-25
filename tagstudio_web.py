@@ -45,6 +45,7 @@ WEB = os.path.join(HERE, "web")
 
 # Sitzungs-Methoden, die die Oberfläche direkt aufrufen darf
 _STARTED = time.time()
+APP_LOGS = "@app"          # #327: Live-Fenster für alle Protokolle im Log-Ordner (Einstellungen › Expert)
 
 _PASS = {
     "tag_locate",                                                   # #175
@@ -359,9 +360,10 @@ class Api:
         return self.open_folder(plugins.log_dir())
 
     def log_window_open(self, pid):
-        """Live-Protokoll in einem eigenen Fenster (je Plugin eines). Im Browser-Modus öffnet die Oberfläche ein Popup."""
+        """Live-Protokoll in einem eigenen Fenster (je Plugin eines; #327: APP_LOGS = alle App-Protokolle).
+        Im Browser-Modus öffnet die Oberfläche ein Popup."""
         import json as _json
-        pid = self._s.plugins.get(str(pid)).id
+        pid = APP_LOGS if pid == APP_LOGS else self._s.plugins.get(str(pid)).id
         if self._window is None:
             return {"ok": False, "browser": True}
         wins = self.__dict__.setdefault("_logwins", {})
@@ -375,7 +377,7 @@ class Api:
                 wins.pop(pid, None)
         import webview
         try:
-            w = webview.create_window(f"{APP} – {i18n.tr('Protokoll')} {self._s.plugins.get(pid).name}", url=os.path.join(WEB, "log-window.html"),
+            w = webview.create_window(self._log_title(pid), url=os.path.join(WEB, "log-window.html"),
                                       js_api=self, width=900, height=560, min_size=(420, 240), background_color="#121419")
         except Exception as ex:  # noqa: BLE001
             return {"ok": False, "error": f"Fenster konnte nicht geöffnet werden: {ex}"}
@@ -387,6 +389,11 @@ class Api:
         except Exception:  # noqa: BLE001
             pass
         return {"ok": True}
+
+    def _log_title(self, pid) -> str:
+        if pid == APP_LOGS:
+            return f"{APP} – {i18n.tr('Protokolle')}"
+        return f"{APP} – {i18n.tr('Protokoll')} {self._s.plugins.get(pid).name}"
 
     def log_windows_close(self):
         for w in list(self.__dict__.get("_logwins", {}).values()):
@@ -599,7 +606,7 @@ class Api:
         wins = [(self._window, out["main"])] + ([(self._pwin, out["player"])] if "player" in out else [])
         for pid, w in self.__dict__.get("_logwins", {}).items():
             try:
-                wins.append((w, f"{APP} – {i18n.tr('Protokoll')} {self._s.plugins.get(pid).name}"))
+                wins.append((w, self._log_title(pid)))
             except Exception:  # noqa: BLE001 – Plugin inzwischen entfernt
                 pass
         for w, t in wins:
@@ -729,17 +736,16 @@ class Api:
         return {"path": p, "text": text, "error": None}
 
     def expert_logs(self) -> list:
-        d = applog.log_dir()
-        out = []
-        try:
-            for n in os.listdir(d):
-                fp = os.path.join(d, n)
-                if os.path.isfile(fp):
-                    st = os.stat(fp)
-                    out.append({"name": n, "size": st.st_size, "mtime": st.st_mtime})
-        except OSError:
-            pass
-        return sorted(out, key=lambda x: -x["mtime"])
+        return [{k: f[k] for k in ("name", "size", "mtime")} for f in applog.files()]
+
+    def expert_log_read(self, name="", offset=-1, seq=0):
+        """#327: App-Protokolle fortlaufend lesen – gleiche Antwort wie plugin_log_read (Live-Fenster)."""
+        r = applog.read_from(str(name or ""), int(offset))
+        r.update(live=[], seq=int(seq or 0), plugin=APP_LOGS, title=i18n.tr("Protokolle"), dir=applog.log_dir())
+        return r
+
+    def expert_log_folder(self):
+        return self.open_folder(applog.log_dir())
 
     def expert_log(self, name) -> dict:
         d = applog.log_dir()

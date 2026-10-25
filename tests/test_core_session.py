@@ -257,6 +257,16 @@ class TestExpert(TempHome):
             applog.MAX_BYTES = old
         self.assertTrue(os.path.isfile(applog.path() + ".1"))
         self.assertIn("app.log.1", [x["name"] for x in api.expert_logs()])
+        # #327: Live-Fenster – fortlaufend lesen, nur Dateien im Log-Ordner, app.log zuerst
+        r = api.expert_log_read("", -1, 0)
+        self.assertEqual((r["name"], r["files"][0], r["reset"], r["live"], r["plugin"]), ("app.log", "app.log", True, [], "@app"))
+        applog.info("Live-Zeile")
+        r2 = api.expert_log_read("app.log", r["size"], 0)
+        self.assertFalse(r2["reset"])
+        self.assertIn("Live-Zeile", r2["text"])
+        self.assertNotIn("noch eine Zeile", r2["text"])
+        self.assertEqual(api.expert_log_read("../.tagstudio.json", -1)["name"], "app.log")       # nie ausserhalb
+        self.assertIn("x is undefined", api.expert_log_read("app.log.1", -1)["text"])        # rotierte Datei wählbar
 
 
 class TestWindowMode(TempHome):

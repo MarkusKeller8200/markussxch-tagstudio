@@ -319,5 +319,7 @@
 "Download mit gespeichertem Zugang ({x}) – {x}": ["Download with saved access ({x}) – {x}", "Download mit gspeichertem Zuegang ({x}) – {x}"],
 "Angemeldet als {x} über deinen eigenen API-Zugang. Das Passwort wurde nicht gespeichert. {x}.": ["Signed in as {x} via your own API access. The password was not saved. {x}.", "Aagmäldet als {x} über din eigete API-Zuegang. S Passwort isch nöd gspeicheret worde. {x}."],
 "eigener API-Zugang": ["own API access", "eigete API-Zuegang"],
-"Ausweichweg": ["fallback", "Usweichwäg"]
+"Ausweichweg": ["fallback", "Usweichwäg"],
+"Eigenes Fenster, das die Protokolle laufend nachführt – wie bei den Plugins": ["Separate window that follows the logs continuously – like for the plugins", "Eigets Fänschter, wo d Protokoll laufend nachfüert – wie bi de Plugins"],
+"Live anzeigen …": ["Show live …", "Live aazeige …"]
 }

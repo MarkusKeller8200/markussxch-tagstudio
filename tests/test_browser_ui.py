@@ -1874,6 +1874,29 @@ class UiTest(unittest.TestCase):
         self.assertNotIn("erste Zeile", w.inner_text("#lwLog"))
         w.close()
 
+    def test_expert_log_window(self):
+        """#327: Einstellungen › Expert › Protokolle „Live anzeigen …“ – dasselbe Live-Fenster wie bei den Plugins."""
+        pg = self.pg
+        logs = os.path.join(self.home, "TagStudio", "Logs")
+        os.makedirs(logs, exist_ok=True)
+        with open(os.path.join(logs, "beatport.log"), "w", encoding="utf-8") as fh:
+            fh.write("Beatport-Zeile\n")
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stXLive")
+        with pg.expect_popup() as pop:
+            pg.click("#stXLive")
+        w = pop.value
+        w.wait_for_function("document.querySelector('#lwFile').value === 'app.log'")
+        self.assertIn("Start ", w.inner_text("#lwLog"))
+        pg.evaluate("call('client_log', 'error', 'Live-Probe 327')")
+        w.wait_for_function("document.querySelector('#lwLog').textContent.includes('Live-Probe 327')", timeout=8000)
+        self.assertIn("beatport.log", w.evaluate("[...document.querySelectorAll('#lwFile option')].map((o) => o.value)"))
+        w.select_option("#lwFile", "beatport.log")
+        w.wait_for_function("document.querySelector('#lwLog').textContent.includes('Beatport-Zeile')")
+        self.assertNotIn("Live-Probe 327", w.inner_text("#lwLog"))
+        self.assertEqual(w.inner_text("#lwTitle"), "Protokolle")
+        w.close()
+
     def test_profiles(self):
         """#164/#165: Profil anlegen in den Einstellungen, Profilwahl beim Start (gleiches Profil → kein Neustart)."""
         pg = self.pg

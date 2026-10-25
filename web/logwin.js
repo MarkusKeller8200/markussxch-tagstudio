@@ -40,7 +40,8 @@ async function lwTick() {
   if (LW.busy || !LW.pid || $("#lwPause").checked) return;
   LW.busy = true;
   try {
-    const r = await call("plugin_log_read", LW.pid, LW.name, LW.offset, LW.seq);
+    const r = await call(LW.pid === "@app" ? "expert_log_read" : "plugin_log_read", LW.pid === "@app" ? LW.name : LW.pid,
+      ...(LW.pid === "@app" ? [LW.offset, LW.seq] : [LW.name, LW.offset, LW.seq]));
     if (r.name !== LW.name || r.reset) { LW.text = ""; LW.first = true; }
     LW.name = r.name;
     if (r.text) LW.text += r.text;
@@ -49,12 +50,12 @@ async function lwTick() {
     LW.seq = r.seq;
     LW.mtime = r.mtime;
     LW.live = LW.live.concat(r.live).filter((e) => r.name !== `${LW.pid}.log` || e[1] > r.mtime);
-    const sel = $("#lwFile"), files = r.files.length ? r.files : [`${LW.pid}.log`];
+    const sel = $("#lwFile"), files = r.files.length ? r.files : [LW.pid === "@app" ? "app.log" : `${LW.pid}.log`];
     if (sel.options.length !== files.length || [...sel.options].some((o, i) => o.value !== files[i])) {
       sel.innerHTML = files.map((f) => `<option value="${esc(f)}">${esc(f)}</option>`).join("");
     }
     sel.value = LW.name || files[0];
-    document.title = `${r.title} – Protokoll`;
+    document.title = LW.pid === "@app" ? r.title : `${r.title} – Protokoll`;
     $("#lwTitle").textContent = r.title;
     $("#lwInfo").textContent = r.name ? `${r.dir} · ${r.name} · ${(r.size / 1024).toFixed(1)} KB · aktualisiert ${new Date().toLocaleTimeString()}`
       : `${r.dir} · noch kein Protokoll – es erscheint hier, sobald das Plugin etwas schreibt.`;
@@ -77,6 +78,6 @@ function lwStart(pid) {
   $("#lwFind").addEventListener("input", lwRender);
   $("#lwPause").addEventListener("change", lwTick);
   $("#lwCopy").addEventListener("click", () => navigator.clipboard.writeText($("#lwLog").innerText).catch(() => {}));
-  $("#lwFolder").addEventListener("click", () => call("plugin_log_folder", LW.pid).catch(() => {}));
+  $("#lwFolder").addEventListener("click", () => call(LW.pid === "@app" ? "expert_log_folder" : "plugin_log_folder", ...(LW.pid === "@app" ? [] : [LW.pid])).catch(() => {}));
   if (LW_HASH.get("pid")) lwStart(LW_HASH.get("pid"));
 })();

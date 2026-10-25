@@ -37,6 +37,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Verbessert
 
+- **Protokolle live (#327):** Einstellungen › Expert › Protokolle „Live anzeigen …“ öffnet dasselbe Live-Fenster wie
+  bei den Plugins – alle Protokolle im Log-Ordner zur Auswahl (Standard `app.log`), läuft mit, Filtern, Anhalten,
+  Kopieren, Log-Ordner öffnen.
 - **Einstellungen › Cloud (#324):** eigene Karte nach „Speicherort und Ordner“ mit den Sync-Ordnern der Desktop-
   Clients, „Nur-online-Dateien herunterladen“ und dem Abgleich über die Dienste; dessen Tabelle hat jetzt eine
   Kopfzeile (Bereich · Dienst · Richtung · Ordner im Dienst), ist nach Ordner-Rollen und Programmdaten gegliedert und

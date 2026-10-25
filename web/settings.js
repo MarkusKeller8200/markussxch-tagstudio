@@ -286,7 +286,7 @@ async function stExpertRender() {
   const when = (t) => new Date(t * 1000).toLocaleString("de-CH", { dateStyle: "short", timeStyle: "short" });
   box.innerHTML = inf.facts.map(([k, v]) => `<span>${esc(k)}</span><span class="x-val">${esc(v)}</span>`).join("")
     + `<span>Einstellungsdatei</span><div class="st-path"><button class="ghost sm" id="stXConfig">Anzeigen …</button><button class="ghost sm" id="stXCopy" title="Version, System und Pfade für eine Fehlermeldung kopieren">Diagnose kopieren</button></div>`
-    + `<span>Protokolle</span><div class="x-logs">${logs.length ? logs.map((l) => `<button class="ghost sm" data-xlog="${esc(l.name)}" title="${esc(when(l.mtime))}">${esc(l.name)} <span class="faint">${kb(l.size)}</span></button>`).join("") : '<span class="muted sm">noch keine</span>'}<button class="ghost sm" id="stXLogs" title="Liste neu laden">↻</button></div>`
+    + `<span>Protokolle</span><div class="x-logs">${logs.length ? logs.map((l) => `<button class="ghost sm" data-xlog="${esc(l.name)}" title="${esc(when(l.mtime))}">${esc(l.name)} <span class="faint">${kb(l.size)}</span></button>`).join("") : '<span class="muted sm">noch keine</span>'}<button class="ghost sm" id="stXLogs" title="Liste neu laden">↻</button><button class="ghost sm" id="stXLive" title="Eigenes Fenster, das die Protokolle laufend nachführt – wie bei den Plugins">Live anzeigen …</button></div>`
     + inf.paths.map(([k, p]) => `<span>${esc(k)}</span><div class="st-path"><code class="x-path" title="${esc(p)}">${esc(p)}</code><button class="ghost sm" data-xreveal="${esc(p)}">Zeigen</button></div>`).join("");
   stToc();
 }
@@ -548,6 +548,7 @@ function initSettings() {
     else if (t.dataset.xlog) stExpertLog(t.dataset.xlog);
     else if (t.id === "stXCopy") stExpertCopy();
     else if (t.id === "stXLogs") stExpertRender();
+    else if (t.id === "stXLive" && typeof pluginLogWindow === "function") pluginLogWindow("@app");      // #327
     else if (t.id === "stTrivAdd") { const v = $("#stTrivIn").value.trim(); if (v) { await stTrivSet([...ST.data.trivial, v]); $("#stTrivIn").value = ""; } }
     else if (t.id === "stTrivDef") { if (await dialog({ title: "Standardliste wiederherstellen?", text: "Eigene Muster gehen verloren.", buttons: [{ label: "Abbrechen", value: null }, { label: "Wiederherstellen", value: true, primary: true }] })) stTrivSet(ST.data.trivial_default); }
     else if (t.dataset.k !== undefined && t.closest("#stTriv")) { const l = [...ST.data.trivial]; l.splice(+t.dataset.k, 1); stTrivSet(l); }

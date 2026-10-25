@@ -569,7 +569,7 @@ subfolders, sorting, cover column, origin filter) · Tag fixer · **Compare** (d
 match by, display, unimportant, empty fields, cover – if the comparison differs, ⌂ “Default” resets it) · Snapshots ·
 Backups and saving (ID3 version, backup) · Player · Plugins · Origin of the tags · unimportant fields · Cache ·
 Updates · **Expert** (diagnostics with version, system and paths to copy, view and search the settings file and logs –
-credentials hidden). Every “on start” default can also stay “as last used”. **Export** saves everything as a file
+credentials hidden; “Show live …” opens a separate window that follows all logs continuously, like for the plugins). Every “on start” default can also stay “as last used”. **Export** saves everything as a file
 (without credentials), **Import** takes over chosen areas – paths of another system are not preselected –, **Reset**
 works for single areas or everything. Before import and reset the old file is backed up to `~/TagStudio/Einstellungen`.
 
