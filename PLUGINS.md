@@ -271,7 +271,8 @@ und optional Titel/Künstler/Album von Beatport, dazu Beatport-Playlists und die
 Inoffiziell sind nur noch der Ausweichweg bei der Anmeldung und der Download gekaufter Dateien (Beatport bietet ihn
 offiziell nicht an). Der Download nutzt zuerst denselben Weg wie die Beatport-Webseite
 (`/catalog/tracks/purchase-download/?order_item_download_id=…`, #292, Plugin 1.4); jeder Download zählt bei Beatport
-als Download-Versuch wie auf der Webseite.
+als Download-Versuch wie auf der Webseite. „Testen“ und „Anmelden“ zeigen die **Berechtigungen (Scope)** des Tokens
+(#296); laut Beatport hängen sie an der Client-ID und bestimmen, welche Endpunkte erlaubt sind.
 
 1. Seite **Plugins** → Beatport → **Anmelden …**
    - *Eigener API-Zugang* (Standard, empfohlen): Client-ID, Client-Secret, Benutzername, Passwort – siehe unten.

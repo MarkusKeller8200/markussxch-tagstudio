@@ -309,5 +309,15 @@
 "Protokoll live anzeigen …": ["Show log live …", "Protokoll live aazeige …"],
 "Eigenes Fenster, das das Protokoll laufend nachführt – auch während ein Vorgang läuft": ["Separate window that keeps the log up to date – even while an operation is running", "Eigets Fänschter, wo s Protokoll laufend nachefüert – au während öppis lauft"],
 "Das Protokoll-Fenster wurde vom Browser blockiert – bitte Popups für diese Seite erlauben.": ["The log window was blocked by the browser – please allow pop-ups for this page.", "S Protokoll-Fänschter isch vom Browser blockiert worde – bitte Popups für die Siite erlaube."],
-"Fenster konnte nicht geöffnet werden.": ["Window could not be opened.", "Fänschter het nöd chöne göffnet werde."]
+"Fenster konnte nicht geöffnet werden.": ["Window could not be opened.", "Fänschter het nöd chöne göffnet werde."],
+"Berechtigungen (Scope): {x}": ["Permissions (scope): {x}", "Berächtigunge (Scope): {x}"],
+"Sitzungs-Anmeldung als {x} – nur für diese Sitzung, nichts gespeichert. {x}": ["Session sign-in as {x} – for this session only, nothing saved. {x}", "Sitzigs-Aamäldig als {x} – nur für die Sitzig, nüt gspeicheret. {x}"],
+"Anmeldung als {x} ({x}) – {x}": ["Signed in as {x} ({x}) – {x}", "Aamäldig als {x} ({x}) – {x}"],
+"Angemeldet als {x}. Das Passwort wurde nicht gespeichert. {x}.": ["Signed in as {x}. The password was not saved. {x}.", "Aagmäldet als {x}. S Passwort isch nöd gspeicheret worde. {x}."],
+"Verbindung in Ordnung – angemeldet als {x}. {x}.": ["Connection OK – signed in as {x}. {x}.", "Verbindig i Ornig – aagmäldet als {x}. {x}."],
+"Download mit Sitzungs-Anmeldung ({x}) – {x}": ["Download with session sign-in ({x}) – {x}", "Download mit Sitzigs-Aamäldig ({x}) – {x}"],
+"Download mit gespeichertem Zugang ({x}) – {x}": ["Download with saved access ({x}) – {x}", "Download mit gspeichertem Zuegang ({x}) – {x}"],
+"Angemeldet als {x} über deinen eigenen API-Zugang. Das Passwort wurde nicht gespeichert. {x}.": ["Signed in as {x} via your own API access. The password was not saved. {x}.", "Aagmäldet als {x} über din eigete API-Zuegang. S Passwort isch nöd gspeicheret worde. {x}."],
+"eigener API-Zugang": ["own API access", "eigete API-Zuegang"],
+"Ausweichweg": ["fallback", "Usweichwäg"]
 }

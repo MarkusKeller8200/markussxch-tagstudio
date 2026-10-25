@@ -72,6 +72,13 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
   hält den Token in `_SESSION` (nur Speicher, `SessionClient` erneuert ohne zu speichern) und die Seite lädt sofort
   erneut. Passwort wird nie gespeichert, `token.bin`/`app.bin` bleiben unverändert. Ob Beatport mit diesem Token
   lädt, zeigt der Beta-Test; sonst bleibt Variante 2.
+- **#296 (Plugin 1.6), Partnerportal Beatport („Authenticating with our Identity Service“, gelesen 25.10.2026 mit
+  Login des Users):** offizieller Weg = Authorization Code + PKCE über `account.beatport.com/o/authorize/` und
+  `/o/token/`, Redirect-URI fest bei Beatport hinterlegt, Token 10 min, Refresh-Token 31 Tage und einmalig, Logout
+  über `account.beatport.com/identity/v1/logout/?callbackUrl=…`. **Der Scope hängt an der Client-ID** und bestimmt die
+  erlaubten Routen (Beispiel `app:externaltrusted user:dj`); kein Artikel zum Herunterladen gekaufter Dateien. Darum
+  zeigt das Plugin den Scope bei Anmelden/Testen und protokolliert ihn bei jedem Download. Umstellung auf PKCE
+  vorgeschlagen, vom User zurückgestellt; Download-Scope kann nur Beatport freischalten.
 - **Beatport-Plugin 1.2**: nutzt die bestehende inoffizielle Abfrage der Käufe (`/my/downloads/` u. a., #117) und den
   Download (`resolve_download`, `fetch_file`, merkt geladene in `geladen.json`). Kaufdatum aus bekannten Feldnamen
   (`purchase_date`, `order_date`, `created` …, auch aus der Bestellung um den Titel); fehlt es, stehen die Feldnamen im

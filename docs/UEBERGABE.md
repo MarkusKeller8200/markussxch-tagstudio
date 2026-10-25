@@ -36,6 +36,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **#295 Sitzungs-Anmeldung für den Download** (Wunsch User 11:05; Protokoll des Users: `purchase-download` 403 mit
   dem Token des eigenen API-Zugangs): Fenster „Anmelden für den Download“, Token nur im Speicher, Plugin 1.5 –
   `_3 Beta-Test`. Nicht versuchen, Kennungen aus der Beatport-Webseite auszulesen (abgelehnt, fremde Zugangsdaten).
+- **#296 Scope anzeigen** (User 11:33 „Nur mal 1“ nach dem Partnerportal-Artikel zum Identity Service): Scope bei
+  Anmelden/Testen/Download, Plugin 1.6 – `_3 Beta-Test`. Zurückgestellt: eigener API-Zugang auf Authorization Code +
+  PKCE (`account.beatport.com`, braucht die hinterlegte Redirect-URI des Users); Download-Scope nur über Beatport.
 - CodeQL #294 (`js/user-controlled-bypass` in `web/logwin.js`): Fehlalarm, weil die Funktion `logInit` wie „logIn“
   aussah – umbenannt in `lwStart`; schliesst sich nach dem Push von selbst.
 - Meilenstein #24 hat damit keine Issues mehr ohne Testliste; nächster Schritt: Testrückmeldungen, danach

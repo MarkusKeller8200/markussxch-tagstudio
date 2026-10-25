@@ -209,7 +209,32 @@ def _norm_token(data) -> dict:
         tok["username"] = data["username"]
     if data.get("app"):
         tok["app"] = True
+    if data.get("scope"):
+        tok["scope"] = str(data["scope"])
     return tok
+
+
+def token_scope(tok) -> str:
+    """#296: Berechtigungen (Scope) eines Tokens – aus der Token-Antwort oder aus dem Token selbst (JWT, Mittelteil
+    base64url; gelesen wird nur „scope“, nichts wird geprüft oder weitergegeben). "" = unbekannt."""
+    if not isinstance(tok, dict):
+        return ""
+    if tok.get("scope"):
+        return str(tok["scope"])
+    parts = str(tok.get("access_token") or "").split(".")
+    if len(parts) != 3:
+        return ""
+    import base64
+    try:
+        pl = json.loads(base64.urlsafe_b64decode(parts[1] + "=" * (-len(parts[1]) % 4)).decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return ""
+    sc = pl.get("scope") or pl.get("scp") if isinstance(pl, dict) else ""
+    return " ".join(sc) if isinstance(sc, list) else str(sc or "")
+
+
+def scope_text(tok) -> str:
+    return f"Berechtigungen (Scope): {token_scope(tok) or 'unbekannt'}"
 
 
 # =========================================================================== HTTP
@@ -888,12 +913,15 @@ def run(action, ctx, files, opts):
         tok["username"] = acc.get("username") or tok.get("username", "")
         save_token(ctx, tok)
         who = tok["username"] or "Beatport-Konto"
+        ctx.log(f"Anmeldung als {who} ({'eigener API-Zugang' if tok.get('app') else 'Ausweichweg'}) – {scope_text(tok)}")
         if tok.get("app"):
-            return {"message": f"Angemeldet als {who} über deinen eigenen API-Zugang. Das Passwort wurde nicht gespeichert."}
-        return {"message": f"Angemeldet als {who}. Das Passwort wurde nicht gespeichert."}
+            return {"message": f"Angemeldet als {who} über deinen eigenen API-Zugang. Das Passwort wurde nicht gespeichert. {scope_text(tok)}."}
+        return {"message": f"Angemeldet als {who}. Das Passwort wurde nicht gespeichert. {scope_text(tok)}."}
     if action == "test":
-        acc = account(Client(ctx))
-        return {"message": f"Verbindung in Ordnung – angemeldet als {acc.get('username', '?')}."}
+        c = Client(ctx)
+        acc = account(c)
+        ctx.log(scope_text(c.tok))
+        return {"message": f"Verbindung in Ordnung – angemeldet als {acc.get('username', '?')}. {scope_text(c.tok)}."}
     if action == "follow":
         return run_follow(ctx, opts)
     if action == "purchases":
@@ -1165,7 +1193,7 @@ def store_login(ctx, username, password) -> dict:
     tok = login(ctx, username, password)
     _SESSION.clear()
     _SESSION["tok"] = tok
-    ctx.log(f"Sitzungs-Anmeldung als {tok.get('username') or username} – nur für diese Sitzung, nichts gespeichert.")
+    ctx.log(f"Sitzungs-Anmeldung als {tok.get('username') or username} – nur für diese Sitzung, nichts gespeichert. {scope_text(tok)}")
     return {"ok": True, "username": tok.get("username") or username}
 
 
@@ -1456,13 +1484,14 @@ def store_download(ctx, items, dest) -> dict:
     sess = _SESSION.get("tok")
     if sess:
         c = SessionClient(ctx, dict(sess))
-        ctx.log(f"Download mit Sitzungs-Anmeldung ({sess.get('username', '')})")
+        ctx.log(f"Download mit Sitzungs-Anmeldung ({sess.get('username', '')}) – {scope_text(sess)}")
     else:
         try:
             c = Client(ctx)
         except RuntimeError as ex:                     # nicht angemeldet → Sitzungs-Anmeldung anbieten (#295)
             ctx.log(str(ex))
             return {"files": {}, "failed": [], "manual": "", "need_login": True}
+        ctx.log(f"Download mit gespeichertem Zugang ({'eigener API-Zugang' if c.tok.get('app') else 'Ausweichweg'}) – {scope_text(c.tok)}")
     seen: dict = {}
     try:
         with open(_done_path(ctx), encoding="utf-8") as fh:

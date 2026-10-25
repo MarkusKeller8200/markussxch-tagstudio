@@ -45,7 +45,10 @@ class FakeBeatport:
         self.valid.add(t)
         if web:                                                    # #295: Token wie die Webseite (Anmeldung → Code)
             self.web.add(t)
-        return 200, {}, json.dumps({"access_token": t, "expires_in": 3600, "refresh_token": f"RT{self.token_n}"}).encode()
+        d = {"access_token": t, "expires_in": 3600, "refresh_token": f"RT{self.token_n}"}
+        if not web:
+            d["scope"] = "app:externaltrusted user:dj"             # #296: Scope der eigenen App
+        return 200, {}, json.dumps(d).encode()
 
     def __call__(self, method, url, *, headers=None, data=None, opener=None, follow=True):
         u = urllib.parse.urlparse(url)
@@ -242,6 +245,23 @@ class TestBeatport(Base):
             self.assertEqual(len(seen), 1)
         finally:
             self.mod._urlopen = orig
+
+    def test_token_scope(self):
+        """#296: Scope aus der Token-Antwort oder aus dem JWT lesen und beim Anmelden/Testen/Download protokollieren."""
+        import base64
+        b64 = lambda d: base64.urlsafe_b64encode(json.dumps(d).encode()).decode().rstrip("=")   # noqa: E731
+        jwt = f"{b64({'alg': 'RS256'})}.{b64({'scope': 'app:externaltrusted user:dj openid', 'sub': '1'})}.sig"
+        self.assertEqual(self.mod.token_scope({"access_token": jwt}), "app:externaltrusted user:dj openid")
+        self.assertEqual(self.mod.token_scope({"access_token": "x", "scope": "a b"}), "a b")
+        self.assertEqual(self.mod.token_scope({"access_token": "kein.jwt.!!"}), "")
+        self.assertEqual(self.mod.scope_text({"access_token": "AT1"}), "Berechtigungen (Scope): unbekannt")
+        st = self.act("login", method="app", client_id="MYAPP", client_secret="S3CRET", username="marku", password="geheim")
+        self.assertIn("Berechtigungen (Scope): app:externaltrusted user:dj", st["result"]["message"])
+        self.assertIn("app:externaltrusted user:dj", self.act("test")["result"]["message"])
+        with open(os.path.join(plugins.log_dir(), "beatport.log"), encoding="utf-8") as fh:
+            log = fh.read()
+        self.assertIn("Berechtigungen (Scope): app:externaltrusted user:dj", log)
+        self.assertNotRegex(log, r"\bAT\d+\b")                                            # nie der Token selbst
 
     def test_session_login_download(self):
         """#295: eigener API-Zugang wird beim Download abgelehnt → Sitzungs-Anmeldung wie die Webseite, Token nur im
