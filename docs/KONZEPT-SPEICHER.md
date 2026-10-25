@@ -56,6 +56,9 @@ Stems-Umgebung, Modelle und FFmpeg aus `~\TagStudio\Plugin-Daten\stems\`. Siehe 
 
 ## 4. Arbeitsordner – empfohlene Struktur unter dem Basisordner
 
+> **Geplant:** Ordner-Rollen mit mehreren Bibliotheken, Export-Ordner und „Ändern …“ (verschieben/kopieren) –
+> siehe [KONZEPT-ORDNER.md](KONZEPT-ORDNER.md) (Entwurf 25.10.2026).
+
 Der **Basisordner** wird gespeichert (Einstellungen › Speicherort und Ordner bzw. Einrichtungsassistent); jede
 Ordnerauswahl in TagStudio beginnt dort. Vorschlag: `D:\TagStudio` (erstes weiteres festes Laufwerk), nur mit C:
 `~\Music\TagStudio` – bewusst **nicht** `~\TagStudio`, dort liegen die Programmdaten.

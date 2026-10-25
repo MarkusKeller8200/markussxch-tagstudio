@@ -268,6 +268,7 @@ Zug nachführen.**
 | Einstellungen | [KONZEPT-EINSTELLUNGEN.md](KONZEPT-EINSTELLUNGEN.md) |
 | Profile, Einrichtungsassistent | [KONZEPT-EINRICHTUNG.md](KONZEPT-EINRICHTUNG.md) |
 | Speicherorte, Ordnerstruktur | [KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md) |
+| Ordner-Rollen (Entwurf: mehrere Bibliotheken, Export, Ordner ändern mit Verschieben/Kopieren) | [KONZEPT-ORDNER.md](KONZEPT-ORDNER.md) |
 | Hilfe | [KONZEPT-HILFE.md](KONZEPT-HILFE.md) |
 | Update, Versionen, Release | [KONZEPT-UPDATE.md](KONZEPT-UPDATE.md) |
 | App und Oberfläche | [KONZEPT-APP-GUI.md](KONZEPT-APP-GUI.md) |
