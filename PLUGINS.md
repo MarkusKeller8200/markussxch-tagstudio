@@ -66,7 +66,9 @@ Plugins/
 - `category`: Kennzeichen auf der Plugin-Karte – `online` (Online-API), `local_api` (Lokale API), `import`
   (Übernahme aus Tags), `audio` (Audio-Verarbeitung) oder `other` (Sonstiges, Standard).
 - Seiten-Aktionen mit den IDs `test`, `keys` bzw. `login` und `settings` erscheinen als feste Knöpfe „Testen“,
-  „Schlüssel“/„Anmelden“ und „Optionen“; alle übrigen unter „Mehr …“.
+  „Schlüssel“/„Anmelden“ und „Optionen“; alle übrigen unter „Mehr …“. Dort stehen bei jedem Plugin zusätzlich
+  „Log-Ordner öffnen“ und „Protokoll live anzeigen …“ (#293): `ctx.log(...)` erscheint im Live-Fenster sofort,
+  in `Logs/<id>.log` wie bisher am Ende des Vorgangs.
 - `requires`: Python-Module, die vorhanden sein müssen. Fehlen sie, steht das Plugin auf „Pakete fehlen“
   und bietet die `install`-Varianten als Knöpfe an (`pip install …` mit dem Python von TagStudio).
 - `external`: Programme, die im Suchpfad liegen sollten (nur Hinweis, blockiert nicht).

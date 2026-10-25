@@ -498,6 +498,8 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   Playlist in Lexicon an, erneutes Senden fügt fehlende Titel an ihrer Stelle ein und entfernt nichts; nur mit
   eingeschaltetem Zurückschreiben, siehe [PLUGINS.md](PLUGINS.md)).
 - **Lautheit messen:** LUFS, True Peak, Lautheitsbereich (EBU R128, FFmpeg) als Felder, optional angeglichene Kopie.
+- **Protokolle:** Bei jedem Plugin unter **Mehr …** „Log-Ordner öffnen“ und „Protokoll live anzeigen …“ – ein eigenes
+  Fenster, das das Protokoll laufend nachführt; Zeilen eines laufenden Vorgangs erscheinen sofort („läuft“).
 - **Eigene Plugins** in `~/TagStudio/Plugins` – Anleitung in [PLUGINS.md](PLUGINS.md).
 
 ### Update, Layout, Tastatur

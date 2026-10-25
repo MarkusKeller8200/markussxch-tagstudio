@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MarKusSXCH TagStudio – Protokoll</title>
+<link rel="icon" href="icon.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body class="lw-body">
+<div class="lw-bar">
+  <b id="lwTitle">Protokoll</b>
+  <select id="lwFile" aria-label="Protokolldatei"></select>
+  <input id="lwFind" class="inp" type="search" placeholder="Filtern" aria-label="Filtern">
+  <label class="check sm" title="Neue Zeilen automatisch ans Ende scrollen"><input type="checkbox" id="lwFollow" checked> mitlaufen</label>
+  <label class="check sm" title="Anzeige anhalten (das Protokoll wird weiter geschrieben)"><input type="checkbox" id="lwPause"> anhalten</label>
+  <span class="lw-acts"><button class="ghost sm" id="lwCopy" title="Angezeigten Text kopieren">Kopieren</button><button class="ghost sm" id="lwFolder" title="Log-Ordner öffnen">Log-Ordner</button></span>
+</div>
+<div class="lw-info muted sm" id="lwInfo"></div>
+<pre class="lw-log" id="lwLog" tabindex="0" aria-live="polite"></pre>
+<script src="i18n.js"></script>
+<script src="logwin.js"></script>
+</body>
+</html>

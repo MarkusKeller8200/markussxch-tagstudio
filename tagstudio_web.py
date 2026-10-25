@@ -66,7 +66,7 @@ _PASS = {
     "setup_state", "setup_finish", "set_nav_hidden", "first_steps_seen", "first_steps_restart", "set_first_steps", "whats_new", "whats_new_seen", "folders_overview", "set_base_dir", "setup_structure", "set_archive_dir", "tag_archive", "prep_archive", "archive_list", "archive_restore",
     "disc_overview", "disc_follow_save", "disc_follow_edit", "disc_clear", "start_disc_bp_follow", "start_disc_related", "disc_set", "disc_genres", "disc_auto", "disc_auto_status", "start_disc_suggest", "start_disc_run",
     "prep_overview", "prep_pending", "start_prep_fetch", "prep_workflow_save", "prep_workflow_new", "prep_workflow_delete", "prep_export", "prep_import", "start_prep_run", "prep_refresh", "prep_mark", "prep_revert", "prep_allow", "prep_cleanup",
-    "plugins_list", "plugin_enable", "plugin_actions", "plugin_form", "start_plugin_action", "start_plugin_install", "plugin_apply",
+    "plugins_list", "plugin_log_read", "plugin_enable", "plugin_actions", "plugin_form", "start_plugin_action", "start_plugin_install", "plugin_apply",
     "start_plugin_catalog", "start_plugin_store_install", "plugin_store_revert",
 }
 
@@ -332,6 +332,54 @@ class Api:
         info["url"] = media.SERVER.register(info["path"])
         info.update(self._s.media_extra(kind, ref))
         return info
+
+    # ---------- Protokolle der Plugins (#293)
+    def plugin_log_folder(self, pid):
+        """Log-Ordner öffnen, das Protokoll des Plugins markiert (falls vorhanden)."""
+        import plugins
+        p = os.path.join(plugins.log_dir(), f"{self._s.plugins.get(str(pid)).id}.log")
+        if os.path.isfile(p) and self.reveal(p):
+            return True
+        return self.open_folder(plugins.log_dir())
+
+    def log_window_open(self, pid):
+        """Live-Protokoll in einem eigenen Fenster (je Plugin eines). Im Browser-Modus öffnet die Oberfläche ein Popup."""
+        import json as _json
+        pid = self._s.plugins.get(str(pid)).id
+        if self._window is None:
+            return {"ok": False, "browser": True}
+        wins = self.__dict__.setdefault("_logwins", {})
+        w = wins.get(pid)
+        if w is not None:
+            try:
+                w.restore()
+                w.show()
+                return {"ok": True}
+            except Exception:  # noqa: BLE001 – Fenster inzwischen zu
+                wins.pop(pid, None)
+        import webview
+        try:
+            w = webview.create_window(f"{APP} – Protokoll {self._s.plugins.get(pid).name}", url=os.path.join(WEB, "log-window.html"),
+                                      js_api=self, width=900, height=560, min_size=(420, 240), background_color="#121419")
+        except Exception as ex:  # noqa: BLE001
+            return {"ok": False, "error": f"Fenster konnte nicht geöffnet werden: {ex}"}
+        wins[pid] = w
+        try:
+            w.events.shown += lambda: titlebar_theme(w, getattr(self, "_dark", True))
+            w.events.loaded += lambda: w.evaluate_js(f"logInit({_json.dumps(pid)})")
+            w.events.closed += lambda: wins.pop(pid, None)
+        except Exception:  # noqa: BLE001
+            pass
+        return {"ok": True}
+
+    def log_windows_close(self):
+        for w in list(self.__dict__.get("_logwins", {}).values()):
+            try:
+                w.destroy()
+            except Exception:  # noqa: BLE001
+                pass
+        self.__dict__["_logwins"] = {}
+        return True
 
     # ---------- abgedockter Player (#69)
     def player_window_open(self, two=False):
@@ -1089,6 +1137,7 @@ def run_window(api: Api):
     try:
         win.events.closing += on_closing
         win.events.closed += api.player_window_close      # abgedockten Player mit schliessen (#69)
+        win.events.closed += api.log_windows_close        # Live-Protokolle mit schliessen (#293)
         for ev, fn in (("resized", on_resized), ("moved", on_moved), ("maximized", on_maximized), ("restored", on_restored)):
             event = getattr(win.events, ev, None)
             if event is not None:

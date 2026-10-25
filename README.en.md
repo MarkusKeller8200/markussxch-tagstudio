@@ -479,6 +479,8 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   (Playlists › More ▾ › “Send to Lexicon …”: creates the playlist in Lexicon, sending again inserts missing tracks at
   their position and removes nothing; only with writing back switched on, see [PLUGINS.en.md](PLUGINS.en.md)).
 - **Measure loudness:** LUFS, true peak, loudness range (EBU R128, FFmpeg) as fields, optionally a levelled copy.
+- **Logs:** for every plugin under **More …** “Open log folder” and “Show log live …” – a separate window that keeps
+  the log up to date; lines of a running operation appear immediately (“running”).
 - **Your own plugins** in `~/TagStudio/Plugins` – instructions in [PLUGINS.en.md](PLUGINS.en.md).
 
 ### Update, layout, keyboard

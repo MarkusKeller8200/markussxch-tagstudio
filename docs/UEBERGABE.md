@@ -31,6 +31,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   („gekauft“), My-Beatport-Feed `/my/beatport/tracks/` – `_3 Beta-Test`. Bei Beatport wird nie gefolgt/entfolgt.
 - **#292 Beatport-Download** (Hinweis User 04:18): Weg der Webseite `purchase-download?order_item_download_id=` als
   erster Download-Weg, Plugin 1.4 – `_3 Beta-Test`; offen, ob das App-Token akzeptiert wird.
+- **#293 Plugin-Protokolle** (Bugfix-Wunsch User 10:39): „Mehr …“ → „Log-Ordner öffnen“ und „Protokoll live
+  anzeigen …“ (eigenes Fenster `log-window.html`, Live-Zeilen aus `Context.log`) – `_3 Beta-Test`.
 - Meilenstein #24 hat damit keine Issues mehr ohne Testliste; nächster Schritt: Testrückmeldungen, danach
   4.9.0-beta.1 oder final **nur nach Freigabe**. Konzept-Abschnitte 18–20 in `KONZEPT-PLAYLISTS.md`.
 

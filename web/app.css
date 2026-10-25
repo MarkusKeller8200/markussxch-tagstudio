@@ -1685,3 +1685,13 @@ html.i18n-wait body{visibility:hidden}
 .pur-st.library{color:var(--ok)}.pur-st.inbox{color:var(--acc)}.pur-st.unclear{color:var(--warn)}.pur-st.missing{color:#e5484d}.pur-st.pre{color:var(--faint)}
 .pur-diag{padding:8px 10px 4px}
 .pur-t td.pur-why{color:var(--warn)}
+/* #293 Live-Protokoll */
+.lw-body{margin:0;height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--fg)}
+.lw-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line)}
+.lw-bar #lwFind{max-width:220px}
+.lw-acts{margin-left:auto;display:flex;gap:6px}
+.lw-info{padding:4px 12px}
+.lw-log{flex:1;margin:0;padding:8px 12px;overflow:auto;font:12px/1.45 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+.lw-head{color:var(--acc)}
+.lw-live{color:var(--warn,#d29922)}
+.lw-t{opacity:.7}

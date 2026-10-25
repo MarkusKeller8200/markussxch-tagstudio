@@ -219,6 +219,42 @@ class TestSessionPlugins(PluginBase):
         self.assertFalse(s.start_plugin_install("demo-gibts-nicht")["ok"])
 
 
+class TestLiveLog(PluginBase):
+    def test_log_read_and_live(self):
+        """#293: Protokoll fortlaufend lesen, Live-Zeilen laufender Vorgänge, nur Protokolle dieses Plugins."""
+        make_plugin(self.udir, "demo")
+        s = self.session()
+        r = s.plugin_log_read("demo")
+        self.assertEqual((r["name"], r["text"], r["files"]), ("", "", []))
+        plugins.write_log("demo.log", "erste Zeile")
+        plugins.write_log("demo-installation.log", "inst")
+        plugins.write_log("demox.log", "fremd")
+        r = s.plugin_log_read("demo")
+        self.assertEqual((r["name"], r["files"]), ("demo.log", ["demo-installation.log", "demo.log"]))
+        self.assertIn("erste Zeile", r["text"])
+        off = r["size"]
+        plugins.write_log("demo.log", "zweite Zeile")
+        r2 = s.plugin_log_read("demo", "demo.log", off, r["seq"])
+        self.assertFalse(r2["reset"])
+        self.assertIn("zweite Zeile", r2["text"])
+        self.assertNotIn("erste Zeile", r2["text"])
+        self.assertTrue(r2["size"] > off)
+        r3 = s.plugin_log_read("demo", "../demox.log")                     # fremde Datei → eigenes Protokoll
+        self.assertEqual(r3["name"], "demo.log")
+        time.sleep(0.02)
+        ctx = plugins.Context(s.plugins.get("demo"), s)
+        ctx.log("läuft gerade")
+        r4 = s.plugin_log_read("demo", "demo.log", r2["size"], r2["seq"])
+        self.assertEqual([e[2] for e in r4["live"]], ["läuft gerade"])
+        self.assertEqual(s.plugin_log_read("demo", "demo.log", r4["size"], r4["seq"])["live"], [])   # nur neue
+        self.assertTrue(r4["live"][0][1] > r4["mtime"])
+        time.sleep(0.02)
+        plugins.write_log("demo.log", "läuft gerade")                      # am Ende in die Datei geschrieben
+        self.assertEqual(s.plugin_log_read("demo", "demo.log", -1, 0)["live"], [])
+        with self.assertRaises(KeyError):
+            s.plugin_log_read("gibtsnicht")
+
+
 # --------------------------------------------------------------------------- Stems mit Attrappe
 FAKE_SEPARATOR = """
 import os

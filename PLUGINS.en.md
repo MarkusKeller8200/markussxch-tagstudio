@@ -66,7 +66,8 @@ Plugins/
 - `category`: badge on the plugin card – `online` (online API), `local_api` (local API), `import` (takeover from
   tags), `audio` (audio processing) or `other` (default).
 - Page actions with the IDs `test`, `keys` or `login` and `settings` appear as fixed buttons “Test”, “Key”/“Sign in”
-  and “Settings”; all others under “More …”.
+  and “Settings”; all others under “More …”. There, every plugin also has “Open log folder” and “Show log live …”
+  (#293): `ctx.log(...)` appears in the live window immediately, in `Logs/<id>.log` as before at the end of the run.
 - `requires`: Python modules that must be present. If they are missing, the plugin shows “Packages missing” and
   offers the `install` variants as buttons (`pip install …` with TagStudio's Python).
 - `external`: programs that should be on the search path (hint only, does not block).

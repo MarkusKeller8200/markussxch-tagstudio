@@ -63,6 +63,68 @@ def log_dir() -> str:
     return d
 
 
+# ---- #293: Protokoll live – Zeilen laufender Vorgänge, bevor sie am Ende in die Datei geschrieben werden
+_LIVE: dict = {}
+_LIVE_LOCK = threading.Lock()
+_LIVE_SEQ = [0]
+
+
+def live_push(pid: str, line: str):
+    import collections
+    import time
+    with _LIVE_LOCK:
+        _LIVE_SEQ[0] += 1
+        _LIVE.setdefault(pid, collections.deque(maxlen=2000)).append((_LIVE_SEQ[0], time.time(), str(line)))
+
+
+def live_since(pid: str, seq: int = 0, after: float = 0.0) -> list:
+    """Live-Zeilen eines Plugins mit Nummer > seq und Zeit > after (noch nicht in der Datei). → [[seq, zeit, zeile]]"""
+    with _LIVE_LOCK:
+        return [list(e) for e in _LIVE.get(pid, ()) if e[0] > seq and e[1] > after]
+
+
+def log_files(pid: str) -> list[dict]:
+    """Protokolle eines Plugins im Log-Ordner: <id>.log und <id>-*.log (z. B. Installation)."""
+    d = log_dir()
+    out = []
+    try:
+        names = sorted(os.listdir(d))
+    except OSError:
+        names = []
+    for n in names:
+        if n.endswith(".log") and (n == f"{pid}.log" or n.startswith(f"{pid}-")):
+            p = os.path.join(d, n)
+            try:
+                st = os.stat(p)
+            except OSError:
+                continue
+            out.append({"name": n, "path": p, "size": st.st_size, "mtime": st.st_mtime})
+    return out
+
+
+def log_read(pid: str, name: str = "", offset: int = -1, seq: int = 0, tail: int = 200_000) -> dict:
+    """Protokoll ab Byte offset lesen (-1 = die letzten tail Bytes); dazu die Live-Zeilen (#293).
+    name muss ein Protokoll dieses Plugins sein. → {name, size, offset, text, reset, mtime, live, seq}"""
+    files = {f["name"]: f for f in log_files(pid)}
+    name = name if name in files else (f"{pid}.log" if f"{pid}.log" in files else next(iter(files), ""))
+    res = {"name": name, "files": [f["name"] for f in files.values()], "size": 0, "offset": 0, "text": "",
+           "reset": offset < 0, "mtime": 0.0}
+    if name:
+        f = files[name]
+        size, res["mtime"] = f["size"], f["mtime"]
+        if offset < 0 or offset > size:
+            res["reset"] = True
+            offset = max(0, size - tail)
+        with open(f["path"], "rb") as fh:
+            fh.seek(offset)
+            data = fh.read(max(0, size - offset))
+        res.update(size=offset + len(data), offset=offset, text=data.decode("utf-8", "replace"))
+    live = live_since(pid, seq, res["mtime"] if name == f"{pid}.log" else 0.0)
+    res["live"] = live
+    res["seq"] = max([seq] + [e[0] for e in live])
+    return res
+
+
 def write_log(name: str, text: str, append=True) -> str:
     """Protokoll nach ~/TagStudio/Logs/<name> schreiben. Liefert den Pfad (Fehler beim Schreiben werden ignoriert)."""
     import datetime
@@ -256,6 +318,7 @@ class Context:
 
     def log(self, msg: str):
         self.log_lines.append(str(msg))
+        live_push(self.id, msg)                  # #293: im Live-Protokoll sofort sichtbar
 
     def output(self, path: str):
         """Erzeugte Datei/Ordner melden (wird im Ergebnis angezeigt)."""

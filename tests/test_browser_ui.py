@@ -1632,6 +1632,39 @@ class UiTest(unittest.TestCase):
         pg.wait_for_function("DISC.d.items.length === 1")
         self.assertEqual(pg.evaluate("DISC.d.items[0].key"), "beatport:3")
 
+    def test_plugin_log_window(self):
+        """#293: „Mehr …“ jedes Plugins mit Log-Ordner und Live-Protokoll im eigenen Fenster, das nachführt."""
+        pg = self.pg
+        logs = os.path.join(self.home, "TagStudio", "Logs")
+        os.makedirs(logs, exist_ok=True)
+        lf = os.path.join(logs, "beatport.log")
+        with open(lf, "w", encoding="utf-8") as fh:
+            fh.write("===== 2026-10-25 10:00:00 =====\nKäufe herunterladen\nerste Zeile\n\n")
+        pg.click('.nav[data-module="plugins"]')
+        pg.wait_for_selector('.pl-card[data-pid="beatport"]')
+        pg.click('.pl-card[data-pid="beatport"] [data-plmore]')
+        pg.wait_for_selector("#mBody .pl-more")
+        more = pg.inner_text("#mBody")
+        self.assertIn("Log-Ordner öffnen", more)
+        self.assertIn("Protokoll live anzeigen", more)
+        pg.evaluate("""() => { const orig = call; window.__calls = [];
+          window.call = (n, ...a) => { if (n === "plugin_log_folder") { window.__calls.push([n, ...a]); return Promise.resolve(true); } return orig(n, ...a); }; }""")
+        pg.click('#mBody button:has-text("Log-Ordner öffnen")')
+        self.assertTrue(self.until("window.__calls.length === 1 && window.__calls[0][1] === 'beatport'"))
+        pg.click('.pl-card[data-pid="beatport"] [data-plmore]')
+        pg.wait_for_selector("#mBody .pl-more")
+        with pg.expect_popup() as pop:
+            pg.click('#mBody button:has-text("Protokoll live anzeigen")')
+        w = pop.value
+        w.wait_for_function("document.querySelector('#lwLog').textContent.includes('erste Zeile')")
+        self.assertEqual(w.input_value("#lwFile"), "beatport.log")
+        with open(lf, "a", encoding="utf-8") as fh:
+            fh.write("===== 2026-10-25 10:01:00 =====\nzweite Zeile\n\n")
+        w.wait_for_function("document.querySelector('#lwLog').textContent.includes('zweite Zeile')", timeout=8000)
+        w.fill("#lwFind", "zweite")
+        self.assertNotIn("erste Zeile", w.inner_text("#lwLog"))
+        w.close()
+
     def test_profiles(self):
         """#164/#165: Profil anlegen in den Einstellungen, Profilwahl beim Start (gleiches Profil → kein Neustart)."""
         pg = self.pg

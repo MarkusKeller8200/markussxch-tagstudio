@@ -2512,6 +2512,13 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return self.plugins.test_query(pid, raw if isinstance(raw, dict) else {}, self, cancel, progress)
         return self._run("service_test", "Testabfrage", job)
 
+    def plugin_log_read(self, pid, name="", offset=-1, seq=0):
+        """#293: Protokoll eines Plugins fortlaufend lesen (Live-Fenster)."""
+        p = self.plugins.get(str(pid))
+        r = plugins.log_read(p.id, str(name or ""), int(offset), int(seq))
+        r.update(plugin=p.id, title=p.name, dir=plugins.log_dir())
+        return r
+
     def plugin_enable(self, pid, on):
         core.save_config(self.plugins.set_enabled(pid, on))
         return self.plugins_list()

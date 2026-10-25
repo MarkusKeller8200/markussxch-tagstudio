@@ -27,6 +27,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   bisherige Anmeldung bleibt als „inoffizieller Ausweichweg“. Das Integrationsfenster listet alle Endpunkte der
   offiziellen Beschreibung (catalog, my, curation) mit Status; genutzt werden nur dokumentierte Endpunkte, ausser
   beim Download gekaufter Dateien. Konto über `GET /my/account/`.
+- **Plugin-Protokolle (#293):** bei jedem Plugin unter „Mehr …“ „Log-Ordner öffnen“ und „Protokoll live anzeigen …“
+  – eigenes Fenster, das das Protokoll jede Sekunde nachführt (Datei wählen, filtern, anhalten, kopieren); Zeilen
+  laufender Vorgänge erscheinen sofort.
 - **Beatport-Download wie die Webseite (#292):** „Fehlende herunterladen“ versucht zuerst den Weg der
   Beatport-Webseite (`purchase-download` mit der Kauf-ID aus `/my/downloads/`); Beatport-Plugin 1.4.
 - **Entdecken verbessert (#291):** Bereich „Gefolgt“ mit allen gefolgten Künstlern, Labels und Genres (von Beatport

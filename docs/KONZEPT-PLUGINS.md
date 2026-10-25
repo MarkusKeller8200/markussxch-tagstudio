@@ -208,6 +208,14 @@ nur angehakt, wenn TKEY leer ist.
   nach 5 min ohne Fortschritt; leer → `/analyze/result?file=`). Antwortformate tolerant gelesen (nicht dokumentiert).
   `/analyze/clear` nie. Auto-Tagging der App wird über geänderte Änderungszeiten erkannt und gemeldet.
 
+- **Protokolle (#293):** „Mehr …“ jedes Plugins: „Log-Ordner öffnen“ (`plugin_log_folder`, markiert `<id>.log`) und
+  „Protokoll live anzeigen …“ (`web/log-window.html`, `web/logwin.js`; in der App `log_window_open` = eigenes
+  pywebview-Fenster je Plugin, im Browser Popup mit Token). Das Fenster liest jede Sekunde `plugin_log_read(pid, name,
+  offset, seq)` → nur neue Bytes (Datei kleiner → von vorne, erstes Mal die letzten 200 KB) plus Live-Zeilen:
+  `Context.log` legt jede Zeile zusätzlich in einen Ringpuffer je Plugin (`plugins.live_push`, 2000 Zeilen,
+  Nummer + Zeit). Angezeigt werden Live-Zeilen, die jünger sind als die letzte Änderung von `<id>.log` – sobald der
+  Vorgang am Ende in die Datei schreibt, ersetzt die Datei sie. Nur Dateien `<id>.log` / `<id>-*.log` im Log-Ordner.
+
 ## 5. Entscheide
 
 - Zugangsdaten nie im Klartext: Passwörter werden nicht gespeichert, Tokens/Schlüssel nur verschlüsselt, nie

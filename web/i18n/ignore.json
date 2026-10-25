@@ -452,5 +452,6 @@
 "min={q} max={q}",
 "input[name={q}][value={q}]",
 "dateipfad",
-"tr[data-k]"
+"tr[data-k]",
+"log-window.html#pid={x}&token={x}"
 ]

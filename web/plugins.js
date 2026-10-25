@@ -53,6 +53,8 @@ function plMore(p) {                                   // Funktionen für „Wei
     : { kind: "revert", label: "Nachgeladenes Plugin entfernen", desc: "Entfernt das Plugin aus dem Plugin-Ordner." });
   (p.links || []).forEach((l) => acts.push({ kind: "link", label: l.label, desc: l.desc || l.url, url: l.url }));   // #249
   if (p.path) acts.push({ kind: "dir", label: "Ordner dieses Plugins öffnen", desc: p.path });
+  acts.push({ kind: "logdir", label: "Log-Ordner öffnen", desc: `${PL.logDir || "Logs"} – Protokolle dieses Plugins (${p.id}.log)` },   // #293
+    { kind: "logview", label: "Protokoll live anzeigen …", desc: "Eigenes Fenster, das das Protokoll laufend nachführt – auch während ein Vorgang läuft" });
   if (p.env && p.state === "ready" && p.install.length) p.install.forEach((v) => acts.push({ kind: "install", id: v.id, label: `Neu installieren: ${v.label.replace(/^Installieren\s*\(?|\)$/g, "") || v.label}`, desc: (v.hint || "") }));
   return acts;
 }
@@ -295,6 +297,18 @@ async function pluginMore(pid) {
   else if (pick.kind === "revert") pluginStoreRevert(pid);
   else if (pick.kind === "link") call("open_url", pick.url);
   else if (pick.kind === "dir" && !(await call("open_folder", p.path))) toast("Ordner konnte nicht geöffnet werden.");
+  else if (pick.kind === "logdir" && !(await call("plugin_log_folder", pid))) toast("Ordner konnte nicht geöffnet werden.");
+  else if (pick.kind === "logview") pluginLogWindow(pid);
+}
+
+/** #293: Live-Protokoll abgedockt – im App-Fenster ein eigenes Fenster, im Browser ein Popup */
+async function pluginLogWindow(pid) {
+  let r;
+  try { r = await call("log_window_open", pid); } catch (e) { r = { ok: false, error: String(e.message || e) }; }
+  if (r.ok) return;
+  if (!r.browser) { toast(r.error || "Fenster konnte nicht geöffnet werden."); return; }
+  const w = window.open(`log-window.html#pid=${encodeURIComponent(pid)}&token=${encodeURIComponent(TOKEN)}`, `tsLog_${pid}`, "width=900,height=560,resizable=yes");
+  if (!w) toast("Das Protokoll-Fenster wurde vom Browser blockiert – bitte Popups für diese Seite erlauben.");
 }
 
 async function pluginInstall(pid, variant) {
