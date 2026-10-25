@@ -5,7 +5,7 @@
 > und Tagger (#107), Wellenform im MP3 (#222), SonoVault (#253–#258), Cloud-Abgleich mit OneDrive/Google Drive/Dropbox
 > (#309, #317–#320, #323, #324), Tagger-Sofort-Liste mit Covern (#326), Protokolle live/leeren (#327, #329), Dialoge
 > verschiebbar (#330), Spalten (#331), Start-Fehler (#325, #328).
-> Nächstes: **4.12.0 – Käufe, Tag-Fixer & Entdecken** (Meilenstein #28: #332–#344, #186, #321) – Reihenfolge vorgeschlagen, noch nicht freigegeben.
+> Nächstes: **4.12.0 – Käufe, Tag-Fixer & Entdecken** (Meilenstein #28: #332–#344, #186, #321) – Reihenfolge freigegeben (User 23:06), Start mit #332; Übergabe-Prompt in `docs/UEBERGABE.md`.
 >
 > Davor 16:55: **4.10.0 final veröffentlicht** (Release `v4.10.0`, Meilenstein #26 geschlossen). Nächstes: **4.11.0 – Cloud, SonoVault & Verbesserungen** (Meilenstein #27: #304, #107, #222, #309/#317–#320, #253–#258; Entscheide C1–C4, SV1–SV4, W1 getroffen; Konzept `docs/KONZEPT-CLOUD.md`).
 >
