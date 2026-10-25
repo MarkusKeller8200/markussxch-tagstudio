@@ -169,6 +169,35 @@ class TestListCache(unittest.TestCase):
         s.start_tag_load(self.lib, False)
         self.assertEqual(self.wait(s)["cached"], 0)
 
+    def test_tagger_preview_rows(self):
+        """#326: zuletzt angezeigte Tagger-Zeilen werden gemerkt (im Listen-Cache) und nur für denselben Ordner
+        geliefert; ohne Listen-Cache nie. Schneller Cover-Fingerabdruck: gleiche Bilder gleich, andere verschieden."""
+        from session import Session
+        s = Session()
+        s.start_tag_load(self.lib, False)
+        self.wait(s)
+        rows = s.tag_rows()["rows"]
+        t0 = time.time()
+        while getattr(s, "_tag_prev_busy", False) and time.time() - t0 < 5:
+            time.sleep(0.02)
+        p = s.tag_rows_preview(self.lib)
+        self.assertEqual([r["rel"] for r in p["rows"]], [r["rel"] for r in rows])
+        self.assertEqual(p["rows"][0]["TIT2"], "Titel 1")
+        self.assertEqual(s.tag_rows_preview(self.lib + os.sep)["rows"], p["rows"])         # gleiche Schreibweise egal
+        self.assertEqual(s.tag_rows_preview(self.dir)["rows"], [])                          # anderer Ordner
+        self.assertEqual(s.tag_rows_preview("")["rows"], [])
+        self.assertTrue(os.path.isfile(os.path.join(listcache.DIR, "tagger-rows.json.gz")))
+        self.assertEqual(len({r["ch"] for r in rows}), 1)                                   # gleiches Cover → gleicher Hash
+        f = s.tag_files[0]
+        c = s._front_cover(f)
+        c._h = None
+        h1 = s._cover_hash(f)
+        c.data = c.data[:-1] + bytes([c.data[-1] ^ 1])                                    # letztes Byte anders
+        c._h = None
+        self.assertNotEqual(s._cover_hash(f), h1)
+        s.set_list_cache(False)
+        self.assertEqual(s.tag_rows_preview(self.lib)["rows"], [])
+
     def test_single_file_always_fresh(self):
         """#81: eine einzelne Datei (z. B. aus dem Journal) kommt nie aus dem Cache."""
         from session import Session

@@ -88,9 +88,10 @@ async function tgAutoStartRun() {
 async function tgLoadBackground() {
   const path = $("#tgPath").value.trim(), rec = $("#tgRec").checked;
   if (typeof homeSync === "function") homeSync();
+  await tgPreviewShow(path);                                   // #326: letzte Liste sofort, Einlesen im Hintergrund
   if (typeof startMark === "function") startMark("Tagger-Einlesen beginnt");
   const r = await callNow("start_tag_load", path, rec);
-  if (!r.ok) { status(r.error, "warn"); return; }
+  if (!r.ok) { tgPreviewClear(); drawTgList(); status(r.error, "warn"); return; }
   let done;
   BG.kind = "tagload";
   BG.p = new Promise((res) => { done = res; });
@@ -114,10 +115,47 @@ async function tgLoadBackground() {
     BG.p = null; BG.kind = "";
     done();
   }
-  if (!res) { drawTgList(); return; }
-  if (res.cancelled) { status("Einlesen abgebrochen.", "warn"); drawTgList(); return; }
+  if (!res) { tgPreviewClear(); drawTgList(); return; }
+  if (res.cancelled) { tgPreviewClear(); status("Einlesen abgebrochen.", "warn"); drawTgList(); return; }
   await tgAfterLoad(res, path, rec);
   if (typeof startMark === "function") startMark(`Tagger-Liste angezeigt (${TG.rows.length} Titel)`);
+}
+
+// ---------------------------------------------------------------------- #326: letzte Liste sofort zeigen
+/** Beim Start die zuletzt angezeigten Zeilen zeigen (nur ansehen), bis das Einlesen fertig ist */
+async function tgPreviewShow(path) {
+  if (TG.loaded || !path) return;
+  let p;
+  try { p = await callNow("tag_rows_preview", path); } catch (e) { return; }
+  if (TG.loaded || !p || !p.rows || !p.rows.length) return;
+  TG.preview = { rows: p.rows };
+  TG.rows = p.rows; TG.flat = !!p.stems_flat; TG.open = new Set();
+  TG.sel = new Set([0]); TG.anchor = 0;
+  const sc = $("#tgScroll");
+  sc.inert = true; sc.classList.add("tg-preview");
+  $("#tgPrevNote").hidden = false;
+  if (TG.restore) tgStateApply(TG.restore); else { tgApplyOrder(); drawTgList(); }
+  if (typeof startMark === "function") startMark(`Tagger-Liste aus dem Zwischenspeicher angezeigt (${p.rows.length} Titel)`);
+}
+/** Vorschau beenden – liefert die Zeilen der Vorschau (für den Vergleich mit der eingelesenen Liste) */
+function tgPreviewClear() {
+  const prev = TG.preview;
+  if (!prev) return null;
+  TG.preview = null;
+  const sc = $("#tgScroll");
+  sc.inert = false; sc.classList.remove("tg-preview");
+  $("#tgPrevNote").hidden = true;
+  if (!TG.loaded) { TG.rows = []; TG.sel = new Set(); TG.view = []; }
+  return prev.rows;
+}
+/** Unterschiede Vorschau → eingelesene Liste: „x neu, y entfernt, z geändert“ (leer, wenn alles gleich) */
+function tgPreviewDiff(before, after) {
+  const proj = (r) => JSON.stringify({ ...r, i: 0, parent: undefined, stems: r.stems ? r.stems.map((s) => s.name) : undefined });
+  const a = new Map(before.map((r) => [r.rel, proj(r)])), b = new Map(after.map((r) => [r.rel, proj(r)]));
+  let neu = 0, weg = 0, anders = 0;
+  for (const [k, v] of b) { if (!a.has(k)) neu++; else if (a.get(k) !== v) anders++; }
+  for (const k of a.keys()) if (!b.has(k)) weg++;
+  return neu || weg || anders ? `Liste aktualisiert: ${fmtN(neu)} neu, ${fmtN(weg)} entfernt, ${fmtN(anders)} geändert.` : "";
 }
 
 async function taggerShow() {
@@ -208,6 +246,7 @@ async function tgAfterLoad(res, path, rec) {
   await tgAdopt(await call("tag_rows"), path, rec);
   if (S.pairs.length) await refreshAll();  // gemeinsames Register: Vergleich frisch halten
   status(`${fmtN(res.files)} Datei(en) im Tagger${res.stems ? ` · ${fmtN(res.stems)} mit Stems (▸ aufklappen)` : ""}.`, res.files ? "ok" : "warn");
+  if (TG.prevDiff) { status(TG.prevDiff, "ok"); TG.prevDiff = ""; }        // #326: Änderungen gegenüber der letzten Liste
   if (typeof verifyWatch === "function") verifyWatch(res, `${fmtN(res.files)} Datei(en) im Tagger`);
   if (res.skipped && res.skipped.length) status(`Übersprungen: ${res.skipped.join(", ")}`, "warn");     // #311
   if (res.cloud && res.cloud.online) status(`${fmtN(res.cloud.online)} Titel liegen nur in der Cloud (${res.cloud.provider}) und wurden nicht eingelesen – herunterladen lassen oder in Einstellungen › Cloud einschalten.`, "warn");   // #315
@@ -218,6 +257,8 @@ async function tgAfterLoad(res, path, rec) {
 
 /** Geladene Liste übernehmen (nach Einlesen oder beim Neuladen der Seite) und gemerkten Zustand anwenden (#127) */
 async function tgAdopt(tr, path, recursive) {
+  const before = tgPreviewClear();                                          // #326
+  TG.prevDiff = before ? tgPreviewDiff(before, tr.rows) : "";
   TG.loaded = true;
   TG.rows = tr.rows; TG.flat = !!tr.stems_flat; TG.open = new Set();
   TG.root = tr.root || path; TG.recursive = !!recursive;
@@ -512,8 +553,8 @@ function renderTgHead() {
 function drawTgList() {
   if (typeof TGG !== "undefined" && !TGG.scan) { clearTimeout(TGG.t); TGG.t = setTimeout(tgGridMaybeScan, 400); }   // #191
   const sc = $("#tgScroll"), inner = $("#tgInner");
-  if (!TG.loaded && TG.bg) { inner.innerHTML = `<div class="tg-empty tg-bg"><span class="spin"></span> <span id="tgBgText">${esc(TG.bg.text)}</span><div class="muted sm">Du kannst schon weiterarbeiten – „Einlesen“ bricht ab und lädt neu.</div></div>`; inner.style.height = ""; return; }
-  if (!TG.loaded) { inner.innerHTML = '<div class="tg-empty">Oben einen Ordner oder eine MP3-Datei wählen und auf <b>Einlesen</b> klicken.</div>'; inner.style.height = ""; return; }
+  if (!TG.loaded && TG.bg && !TG.preview) { inner.innerHTML = `<div class="tg-empty tg-bg"><span class="spin"></span> <span id="tgBgText">${esc(TG.bg.text)}</span><div class="muted sm">Du kannst schon weiterarbeiten – „Einlesen“ bricht ab und lädt neu.</div></div>`; inner.style.height = ""; return; }
+  if (!TG.loaded && !TG.preview) { inner.innerHTML = '<div class="tg-empty">Oben einen Ordner oder eine MP3-Datei wählen und auf <b>Einlesen</b> klicken.</div>'; inner.style.height = ""; return; }
   if (!TG.view.length) { inner.innerHTML = `<div class="tg-empty">${TG.rows.length ? "Keine Datei passt zum Filter." : "Keine MP3-Dateien gefunden."}</div>`; return; }
   const first = Math.max(0, Math.floor(sc.scrollTop / TG_ROW) - 6);
   const last = Math.min(TG.view.length, Math.ceil((sc.scrollTop + sc.clientHeight) / TG_ROW) + 6);
@@ -541,7 +582,7 @@ function drawTgList() {
         return v === null || v === undefined ? "<span></span>" : `<span class="ft-c"><i style="width:${v}%"></i>${v}</span>`; }).join("")}</div>`;
   }
   inner.innerHTML = h;
-  if (LAYOUT.tg_cover_col) tgThumbsLoad();
+  if (LAYOUT.tg_cover_col && !TG.preview) tgThumbsLoad();
 }
 
 /** Eine Zelle der Dateiliste (#152/#154) */

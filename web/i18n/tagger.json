@@ -221,5 +221,7 @@
 "({x} Titel)": ["({x} tracks)", "({x} Titel)"],
 "Ganzen Ordner laden": ["Load whole folder", "Ganze Ordner lade"],
 "Filter aufgehoben.": ["Filters cleared.", "Filter ufghobe."],
-"Online suchen ›": ["Search online ›", "Online sueche ›"]
+"Online suchen ›": ["Search online ›", "Online sueche ›"],
+"Letzte Liste – wird im Hintergrund geprüft …": ["Last list – being checked in the background …", "Letschti Lischte – wird im Hintergrund prüeft …"],
+"Liste aktualisiert: {x} neu, {x} entfernt, {x} geändert.": ["List updated: {x} new, {x} removed, {x} changed.", "Lischte aktualisiert: {x} neu, {x} entfernt, {x} gänderet."]
 }

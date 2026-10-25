@@ -7,6 +7,7 @@ Lange Vorgänge (Einlesen, Speichern) laufen im Hintergrund – Fortschritt übe
 from __future__ import annotations
 
 import base64
+import json
 import os
 import sys
 import threading
@@ -1938,14 +1939,18 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         return it.cover if it is not None and it.cover and it.cover.data else None
 
     def _cover_hash(self, f) -> str:
-        """#73: kurzer Hash des Covers (am Cover-Objekt gemerkt) – gleiche Cover eines Albums nur einmal laden."""
+        """#73: kurzer Hash des Covers (am Cover-Objekt gemerkt) – gleiche Cover eines Albums nur einmal laden.
+        #326: über Länge, Anfang und Ende des Bildes statt über alle Bytes (Cover sind oft 200–500 KB; bei 1500 Titeln
+        sonst mehrere hundert MB je Liste) – zwei verschiedene Bilder gleicher Länge mit gleichen ersten und letzten
+        8 KB kommen bei komprimierten Bildern praktisch nicht vor."""
         import hashlib
         c = self._front_cover(f)
         if c is None:
             return ""
         h = getattr(c, "_h", None)
         if h is None or getattr(c, "_hlen", -1) != len(c.data):
-            h = hashlib.md5(c.data).hexdigest()[:16]
+            d = c.data
+            h = hashlib.md5(len(d).to_bytes(8, "little") + (d if len(d) <= 32768 else d[:8192] + d[-8192:])).hexdigest()[:16]
             c._h, c._hlen = h, len(c.data)
         return h
 
@@ -1968,9 +1973,64 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
 
     def tag_rows(self) -> dict:
         with self.lock:
-            return {"root": folders.ALL_LIBS if getattr(self, "tag_all_libs", False) else self.tag_root,
-                    "rows": [self._tag_row(i, f) for i, f in enumerate(self.tag_files)],
-                    "stems_flat": bool(self.cfg.get("tagger_stems_flat"))}
+            out = {"root": folders.ALL_LIBS if getattr(self, "tag_all_libs", False) else self.tag_root,
+                   "rows": [self._tag_row(i, f) for i, f in enumerate(self.tag_files)],
+                   "stems_flat": bool(self.cfg.get("tagger_stems_flat"))}
+        self._tag_preview_store(out)
+        return out
+
+    # ------------------------------------------------------------------ #326: letzte Liste sofort zeigen
+    def _tag_preview_path(self) -> str:
+        import listcache
+        return os.path.join(listcache.DIR, "tagger-rows.json.gz")
+
+    def _tag_preview_store(self, out, wait=False):
+        """Zuletzt angezeigte Tagger-Zeilen merken (im Listen-Cache, wird mit ihm geleert) – im Hintergrund, höchstens
+        eine Schreibung gleichzeitig; die neueste gewinnt."""
+        if not self._list_cache_on() or not out.get("rows") or not out.get("root"):
+            return
+        self._tag_prev_next = {"root": out["root"], "recursive": bool(self.cfg.get("tagger_recursive", False)),
+                               "rows": out["rows"], "stems_flat": out["stems_flat"], "saved": time.time()}
+        if getattr(self, "_tag_prev_busy", False) and not wait:
+            return
+        self._tag_prev_busy = True
+
+        def write():
+            import gzip
+            try:
+                while getattr(self, "_tag_prev_next", None) is not None:
+                    data, self._tag_prev_next = self._tag_prev_next, None
+                    p = self._tag_preview_path()
+                    os.makedirs(os.path.dirname(p), exist_ok=True)
+                    tmp = p + ".tmp"
+                    with gzip.open(tmp, "wt", encoding="utf-8", compresslevel=3) as fh:
+                        json.dump(data, fh, separators=(",", ":"))
+                    os.replace(tmp, p)
+            except OSError:
+                pass
+            finally:
+                self._tag_prev_busy = False
+        if wait:
+            write()
+        else:
+            threading.Thread(target=write, daemon=True).start()
+
+    def tag_rows_preview(self, root) -> dict:
+        """Zuletzt angezeigte Zeilen für root (nur zum Ansehen, bis das Einlesen fertig ist) – sonst {"rows": []}."""
+        import gzip
+        if not self._list_cache_on() or not root:
+            return {"rows": []}
+        try:
+            with gzip.open(self._tag_preview_path(), "rt", encoding="utf-8") as fh:
+                d = json.load(fh)
+        except (OSError, ValueError, EOFError):
+            return {"rows": []}
+        same = d.get("root") == root or (root != folders.ALL_LIBS and d.get("root") != folders.ALL_LIBS
+                                         and os.path.normcase(os.path.abspath(str(d.get("root") or "")))
+                                         == os.path.normcase(os.path.abspath(str(root))))
+        if not same or not isinstance(d.get("rows"), list):
+            return {"rows": []}
+        return {"root": d["root"], "rows": d["rows"], "stems_flat": bool(d.get("stems_flat")), "saved": d.get("saved", 0)}
 
     def tag_locate(self, path) -> dict:
         """#175: Index einer Datei im Tagger (Stem-Spur → Original). index None = nicht im geladenen Ordner."""

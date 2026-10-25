@@ -103,7 +103,9 @@ Das App-Fenster öffnet in der Grösse und Position vom letzten Mal (auch maximi
 ### Tagger
 
 - **Schnell wieder da:** ein schon eingelesener Ordner erscheint sofort aus dem Listen-Cache; danach prüft TagStudio
-  im Hintergrund jeden Titel über einen Hash seiner Tags und liest Geändertes neu (Stand in der Statuszeile).
+  im Hintergrund jeden Titel über einen Hash seiner Tags und liest Geändertes neu (Stand in der Statuszeile). Beim
+  App-Start zeigt der Tagger die **zuletzt angezeigte Liste sofort** (nur ansehen, Hinweis „wird im Hintergrund
+  geprüft …“) und ersetzt sie nach dem Einlesen – Änderungen meldet die Statuszeile („2 neu, 0 entfernt, 1 geändert“).
 - **Liste:** Ordner oder Datei einlesen; optional mit **Cover-Spalte** (Knopf „Cover“); Spalten Datei, Titel, Künstler, Album, Spur, Jahr, Genre, Tonart –
   sortierbar per Klick, filterbar. Markieren mit Klick, Shift, Strg/Cmd, Strg/Cmd+A.
 - **Spalten ▾:** weitere Spalten (Album-Künstler, Disk, Komponist, Kommentar, Länge, kbit/s, Bewertung, ID3-Version,

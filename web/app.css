@@ -413,6 +413,10 @@ span.xml-treeonly{display:contents}
 .tg-row .mx{color:var(--faint)}
 .tg-row .m{width:7px;height:7px;border-radius:99px;background:var(--acc)}
 .tg-empty{padding:40px 20px;text-align:center;color:var(--faint)}
+/* #326: letzte Liste beim Start sofort zeigen (nur ansehen), bis das Einlesen fertig ist */
+.tg-prev-note{display:flex;align-items:center;gap:8px;padding:5px 12px;font-size:12px;color:var(--dim);background:var(--acc-soft);border-bottom:1px solid var(--line)}
+.tg-prev-note[hidden]{display:none}
+.tg-scroll.tg-preview{opacity:.72}
 .tg-edit{width:var(--tg-edit-w,430px);flex-shrink:0;border-left:1px solid var(--line);background:var(--surf);overflow:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px}
 .tg-edit h3{margin:0;font-size:16px;overflow-wrap:anywhere}
 /* #71: Cover in der Breite der Feldnamen, Infos bündig mit den Eingabefeldern darunter */

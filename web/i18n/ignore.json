@@ -489,5 +489,6 @@
 "Snapshots-Startprüfung beginnt",
 "Tagger-Einlesen beginnt",
 "Tagger-Liste angezeigt ({x} Titel)",
-"Startablauf: {x} – {x} s nach dem Start"
+"Startablauf: {x} – {x} s nach dem Start",
+"Tagger-Liste aus dem Zwischenspeicher angezeigt ({x} Titel)"
 ]

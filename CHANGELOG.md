@@ -61,6 +61,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Windows entfällt so ein Zugriff je Datei; gilt auch für Vergleich und Snapshots-Startprüfung). Die
   Snapshots-Startprüfung beginnt erst, wenn der Tagger geladen ist, statt gleichzeitig dieselben Dateien abzufragen.
   Das App-Protokoll zeigt den Startablauf mit Zeiten („Startablauf: … s nach dem Start“).
+  **Letzte Liste sofort:** beim Start erscheint die zuletzt angezeigte Tagger-Liste direkt nach dem Seitenaufbau (nur
+  ansehen, Hinweis „wird im Hintergrund geprüft …“); nach dem Einlesen ersetzt die echte Liste sie – Markierung und
+  Sortierung bleiben, Änderungen meldet die Statuszeile („x neu, y entfernt, z geändert“). Der Cover-Fingerabdruck der
+  Liste rechnet nicht mehr über das ganze Bild. Startdialoge (Snapshots, Ordner, Neuigkeiten) kommen nacheinander.
 - **Neustart öffnete immer den Vergleich (#325):** nach „Neu starten“ oder einem Update startete die App im Vergleich
   und las ihn neu ein, ohne den Tagger zu laden – und blieb bei jedem weiteren Neustart dort. Jetzt öffnet sie die
   zuletzt benutzte Seite, liest den Tagger im Hintergrund ein und setzt den Player an derselben Stelle fort (gemäss

@@ -525,6 +525,33 @@ class UiTest(unittest.TestCase):
         m = m[last:]
         self.assertLess(m.index("Tagger-Liste angezeigt (3 Titel)"), m.index("Snapshots-Startprüfung beginnt"))
 
+    def test_tagger_preview_last_list(self):
+        """#326: Beim Start erscheint die letzte Liste sofort (nur ansehen); nach dem Einlesen im Hintergrund wird sie
+        ersetzt und Änderungen werden gemeldet („1 neu …“)."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="1"] .nm')
+        self.cfg_until(lambda c: len(c.get("tagger_state", {}).get("sel", [])) == 1)
+        prev = os.path.join(self.home, "TagStudio", "cache", "lists", "tagger-rows.json.gz")
+        t0 = time.time()
+        while not os.path.isfile(prev) and time.time() - t0 < 5:
+            time.sleep(0.1)
+        self.assertTrue(os.path.isfile(prev))
+        shutil.copy(os.path.join(self.lib, "01 Ton 220.mp3"), os.path.join(self.lib, "04 Neu.mp3"))
+        pg = self.restart_with_init("""(() => { const wait = () => { if (typeof callNow !== 'function') return setTimeout(wait, 5);
+            const orig = callNow; window.callNow = async (n, ...a) => {
+              if (n === 'start_tag_load') await new Promise(r => setTimeout(r, 4000));
+              return orig(n, ...a); }; }; wait(); })()""")
+        self.assertTrue(self.until("!!TG.preview && TG.rows.length === 3 && document.querySelectorAll('#tgInner .tg-row').length === 3", 5))
+        self.assertFalse(pg.evaluate("TG.loaded"))
+        self.assertTrue(pg.evaluate("document.querySelector('#tgScroll').inert && !document.querySelector('#tgPrevNote').hidden"))
+        self.assertTrue(pg.evaluate("TG.sel.has(1)"))                          # Markierung wie beim Schliessen
+        self.assertTrue(self.until("TG.loaded && TG.rows.length === 4 && !TG.preview", 20))
+        self.assertTrue(pg.evaluate("!document.querySelector('#tgScroll').inert && document.querySelector('#tgPrevNote').hidden"))
+        self.assertTrue(self.until("document.querySelector('#statusText').textContent.includes('1 neu, 0 entfernt, 0 geändert')", 5),
+                        pg.inner_text("#statusText"))
+        self.assertTrue(pg.evaluate("TG.rows[[...TG.sel][0]].rel === '02 Ton 330.mp3'"))
+
     def test_resume_selects_row_and_doubleclick(self):
         """#195: nach dem Neustart steht der Tagger auf dem fortgesetzten Titel; #196: Doppelklick spielt danach."""
         pg = self.pg

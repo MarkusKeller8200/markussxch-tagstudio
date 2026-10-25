@@ -104,6 +104,8 @@ too).
 
 - **Back quickly:** a folder that was already read appears immediately from the list cache; TagStudio then checks
   every track in the background via a hash of its tags and re-reads what has changed (progress in the status line).
+  On app start the tagger shows the **last displayed list immediately** (view only, note “being checked in the
+  background …”) and replaces it once reading is done – changes are reported in the status line.
 - **List:** read a folder or file; optionally with a **cover column** (“Cover” button); columns file, title, artist,
   album, track, year, genre, key – sortable with a click, filterable. Select with click, Shift, Ctrl/Cmd, Ctrl/Cmd+A.
 - **Columns ▾:** more columns (album artist, disc, composer, comment, length, kbit/s, rating, ID3 version, label,
