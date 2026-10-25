@@ -1139,16 +1139,26 @@ class UiTest(unittest.TestCase):
         self.assertNotEqual(cv, ce)
         # Verlauf: ohne Änderung gesperrt (wie die Knöpfe oben)
         self.assertTrue(pg.evaluate("document.querySelector('#cmpUndo').disabled"))
+        # Symbol + Text: zwei Zeilen – Anzeige oben, Kopieren/Bearbeiten/Verlauf in der zweiten (Rückmeldung User)
+        top = lambda sel: pg.evaluate(f"Math.round(document.querySelector('{sel}').getBoundingClientRect().top)")
+        self.assertGreater(top("[data-grp=copy]"), top("[data-grp=view]") + 10)
+        self.assertGreaterEqual(top("[data-grp=hist]"), top("[data-grp=copy]"))     # schmal: darf weiter umbrechen
+        pg.set_viewport_size({"width": 1920, "height": 900})                        # breit: alle drei in Zeile 2
+        time.sleep(0.2)
+        self.assertEqual(top("[data-grp=copy]"), top("[data-grp=hist]"))
+        self.assertGreater(top("[data-grp=copy]"), top("[data-grp=view]") + 10)
         # nur Symbole umschalten, wird gemerkt
         self.assertTrue(pg.locator('[data-filter="diff"] .tb-t').is_visible())
         pg.click("#cmpTbMode")
         self.assertTrue(pg.locator('[data-filter="diff"] .tb-t').is_hidden())
+        self.assertLess(abs(top("[data-grp=hist]") - top("[data-grp=view]")), 12)   # nur Symbole: eine Zeile
+        self.assertLess(abs(top("#cmpTbMode") - top("[data-grp=view]")), 12)
         self.assertEqual(pg.get_attribute("#cmpTbMode", "aria-pressed"), "true")
         c = self.cfg_until(lambda c: (c.get("web_ui") or {}).get("cmp_tb_icons") is True)
         self.assertTrue(c["web_ui"]["cmp_tb_icons"])
         pg.reload()
         pg.wait_for_function("typeof S !== 'undefined' && S.settings")
-        self.assertTrue(pg.evaluate("document.querySelector('#cmpToolbar').classList.contains('icons-only')"))
+        self.assertTrue(self.until("document.querySelector('#cmpToolbar').classList.contains('icons-only')", 5))
         self.assertEqual(self.errors, [])
 
     def test_i18n_dialog_language(self):
