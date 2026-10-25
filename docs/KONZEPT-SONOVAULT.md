@@ -120,6 +120,12 @@ Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Da
   wie OpenKeyScan). Keine IDs, keine Katalognummer, kein Cover. Im Protokoll (Datei) stehen keine SonoVault-Werte.
 - **Plattform-IDs (#255, SV3):** Tagger-Aktion „Plattform-IDs anzeigen (SonoVault) …“ → Ergebnis-Tabelle
   (`res["table"]`, neu im Kern: `pluginResultTable`), nicht im Protokoll, nie in Tags, keine Links.
+- **Bibliothek abgleichen (#256):** Tagger-Aktion „Mit SonoVault abgleichen (Bibliothek) …“ – `resolve_plan` (braucht
+  Anfrage / im Zwischenspeicher / ohne Künstler+Titel), ohne Häkchen nur Kostenvorschau; `resolve_run` schickt
+  höchstens min(Eingabe, Rest des Kontingents) Zeilen in Blöcken zu 100 (`input_type` `isrc` bzw. `track_name`),
+  gezählt werden die gesendeten Zeilen ausser `skipped_no_credits`. Ergebnis je Titel 30 Tage im Zwischenspeicher
+  (auch „nicht gefunden“); Anzeige der Abweichungen (ISRC, Label, Genre, Album, Jahr, Tonart) als Tabelle – nie
+  Massen-Schreiben (§7). POST über `onlinematch.http_post` (neu).
 - **Antwortformat:** Feldnamen nach den offiziellen SDKs von Rekordcloud (`sonovault-python`, `sonovault-mcp`);
   Release-Felder (Album, Label, `release_date`) werden tolerant gelesen – beim ersten echten Test im API-Tester prüfen.
   Laut SDK liefert die öffentliche API BPM und Tonart (`bpm`, `key_alphanumeric`, `keys`), aber keine Energie.

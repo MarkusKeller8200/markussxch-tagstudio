@@ -372,6 +372,11 @@ Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: 
   der Notiz („Vergleich SonoVault: Tonart 08A (2 Quellen) – TKEY gleich, 122 BPM – TBPM gleich“).
 - **Plattform-IDs anzeigen (SonoVault) …** (Tagger): IDs bei Spotify, Beatport, Apple Music, Tidal, Discogs,
   MusicBrainz und YouTube als Tabelle – **nur Anzeige**, nie in die Dateien, nicht im Protokoll.
+- **Mit SonoVault abgleichen (Bibliothek) …** (Tagger, #256): vergleicht die markierten Titel in Blöcken zu 100
+  (`POST /v1/tracks/resolve`, 1 Kredit je Titel) und zeigt als Tabelle, wo ISRC, Label, Genre, Album, Jahr oder Tonart
+  abweichen – **nur Anzeige**, übernommen wird pro Titel über „Online-Metadaten“. Ohne Häkchen „Kredite verwenden“
+  nur Kostenvorschau; nie mehr als das übrige Kontingent – der Rest lässt sich im nächsten Monat abgleichen (Titel im
+  Zwischenspeicher kosten nichts).
 - **Zwischenspeicher:** Antworten liegen höchstens 30 Tage im Datenordner des Plugins (wiederholte Abfragen kosten
   dann nichts), werden nie exportiert und lassen sich mit „Zwischenspeicher leeren“ löschen.
 - **Integrationsfenster:** Endpunkte mit Umsetzungsstand; API-Tester und „Zugriff prüfen“ zählen mit und rufen

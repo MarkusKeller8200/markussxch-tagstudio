@@ -363,6 +363,10 @@ key** – TagStudio does not ship one (concept and terms of use: `docs/KONZEPT-S
   genre, date, duration and ISRC may go into the file – BPM and key only appear as a **comparison** in the note.
 - **Show platform IDs (SonoVault) …** (tagger): IDs on Spotify, Beatport, Apple Music, Tidal, Discogs, MusicBrainz and
   YouTube as a table – **display only**, never written to the files, not in the log.
+- **Compare with SonoVault (library) …** (tagger, #256): compares the selected tracks in blocks of 100
+  (`POST /v1/tracks/resolve`, 1 credit per track) and shows as a table where ISRC, label, genre, album, year or key
+  differ – **display only**, apply per track via “Online metadata”. Without the “Use credits” check mark only a cost
+  preview; never more than the remaining quota – the rest can be compared next month (cached tracks cost nothing).
 - **Cache:** responses are kept for at most 30 days in the plugin's data folder, never exported; “Clear cache” deletes them.
 - **Integration window:** endpoints with implementation status; the API tester and “Check access” count along and do
   not call paid endpoints (identification, browse, new releases).

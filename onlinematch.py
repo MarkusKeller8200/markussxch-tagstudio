@@ -157,6 +157,18 @@ def http_get(url: str, headers: dict | None = None) -> tuple[int, dict, bytes]:
         raise HttpError(0, f"Keine Verbindung: {getattr(ex, 'reason', ex)}") from ex
 
 
+def http_post(url: str, headers: dict | None, data: bytes) -> tuple[int, dict, bytes]:
+    """Eine POST-Anfrage (z. B. SonoVault-Bulk, #256) → (Status, Kopfzeilen, Inhalt). In Tests ersetzbar."""
+    req = urllib.request.Request(url, data=data, headers=headers or {}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+            return r.status, dict(r.headers), r.read()
+    except urllib.error.HTTPError as ex:
+        return ex.code, dict(ex.headers or {}), ex.read() if hasattr(ex, "read") else b""
+    except (urllib.error.URLError, OSError) as ex:
+        raise HttpError(0, f"Keine Verbindung: {getattr(ex, 'reason', ex)}") from ex
+
+
 class Throttle:
     """Mindestabstand je Dienst (z. B. MusicBrainz 1/s) – thread-sicher."""
 

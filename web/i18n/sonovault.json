@@ -65,5 +65,18 @@
 "Korrektur melden": ["Report a correction", "Korrektur mälde"],
 "Stream-Monitoring": ["Stream monitoring", "Stream-Monitoring"],
 "– aufgebraucht": ["– used up", "– ufbruucht"],
-"kostenpflichtig je Stream (#{n})": ["paid per stream (#{n})", "choschtepflichtig pro Stream (#{n})"]
+"kostenpflichtig je Stream (#{n})": ["paid per stream (#{n})", "choschtepflichtig pro Stream (#{n})"],
+"Abgleich {x}–{x} von {x}": ["Comparing {x}–{x} of {x}", "Abglich {x}–{x} vo {x}"],
+"{x} Titel: {x} brauchen eine Anfrage, {x} aus dem Zwischenspeicher": ["{x} tracks: {x} need a request, {x} from the cache", "{x} Titel: {x} bruuched e Aafroog, {x} us em Zwüschespeicher"],
+"Abgeglichen: {x} neu, {x} aus dem Zwischenspeicher – {x} stimmen überein, {x} nicht gefunden": ["Compared: {x} new, {x} from the cache – {x} match, {x} not found", "Abgliche: {x} neu, {x} us em Zwüschespeicher – {x} stimmed überii, {x} nöd gfunde"],
+", {x} ohne Künstler/Titel übersprungen": [", {x} without artist/title skipped", ", {x} ohni Künschtler/Titel übersprunge"],
+", {x} noch offen (Kontingent) – später erneut starten": [", {x} still open (quota) – start again later", ", {x} no offe (Kontingänt) – spöter nomal starte"],
+"Kontingent: {x}. Reicht es nicht, gleicht TagStudio nur so viele Titel ab, wie übrig sind – den Rest im nächsten Monat erneut starten (bereits abgeglichene kosten dann nichts).": ["Quota: {x}. If it is not enough, TagStudio only compares as many tracks as remain – start the rest again next month (tracks already compared then cost nothing).", "Kontingänt: {x}. Längts nöd, glicht TagStudio nur so vill Titel ab, wie übrig sind – de Räscht im nächschte Monet nomal starte (scho abgliicheni choschted dänn nüüt)."],
+"Mit SonoVault abgleichen (Bibliothek) …": ["Compare with SonoVault (library) …", "Mit SonoVault abgliiche (Bibliothek) …"],
+"Vergleicht die markierten Titel in Blöcken zu {n} mit SonoVault und zeigt, wo ISRC, Label, Genre, Album, Jahr oder Tonart abweichen. Nur Anzeige – übernehmen pro Titel über {q} (Massen-Schreiben erlauben die Nutzungsbedingungen nicht). {n} Kredit je Titel; Titel im Zwischenspeicher ({n} Tage) kosten nichts.": ["Compares the selected tracks with SonoVault in blocks of {n} and shows where ISRC, label, genre, album, year or key differ. Display only – apply per track via {q} (the terms of use do not allow bulk writing). {n} credit per track; tracks in the cache ({n} days) cost nothing.", "Verglicht di markierte Titel i Blöck vo {n} mit SonoVault und zeigt, wo ISRC, Label, Genre, Album, Jahr oder Tonart abwiiched. Nur Aazeig – übernää pro Titel über {q} (Masse-Schriibe erlaubed d Nutzigsbedingige nöd). {n} Kredit pro Titel; Titel im Zwüschespeicher ({n} Täg) choschted nüüt."],
+"Höchstens so viele Kredite: ganze Zahl erwartet.": ["At most this many credits: whole number expected.", "Höchschtens so vill Kredit: ganzi Zahl erwartet."],
+"Tonart (Vergleich)": ["Key (comparison)", "Tonart (Verglich)"],
+"In der Datei": ["In the file", "I de Datei"],
+"Höchstens so viele Kredite verwenden": ["Use at most this many credits", "Höchschtens so vill Kredit bruuche"],
+"Kredite verwenden (ohne Häkchen: nur Kosten anzeigen)": ["Use credits (without the check mark: only show the cost)", "Kredit bruuche (ohni Häkli: nur d Chöschte aazeige)"]
 }

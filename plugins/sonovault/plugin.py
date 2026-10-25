@@ -384,6 +384,148 @@ def api_request(ctx, ep, params):
     return st, hd, body, url
 
 
+# =========================================================================== Bibliothek abgleichen (#256, nur Anzeige)
+BATCH = 100
+COMPARE = (("TSRC", "ISRC", "isrc"), ("TPUB", "Label", "label"), ("TCON", "Genre", "genre"), ("TALB", "Album", "album"),
+           ("TDRC", "Jahr", "date"))
+
+
+def _post(ctx, path: str, body: dict, lines: int):
+    """POST mit Zähler (1 Kredit je Zeile, laut Nutzungsbedingungen bzw. Preisliste). 429 nie wiederholen."""
+    key = token(ctx)
+    if not key:
+        raise HttpError(401, "SonoVault: kein Schlüssel gespeichert (Plugin SonoVault › „Schlüssel …“).")
+    _reserve(ctx, lines)
+    for host, sec in INTERVALS.items():
+        om.INTERVALS.setdefault(host, sec)
+    cancel = getattr(ctx, "check_cancel", None)
+    if callable(cancel):
+        cancel()
+    om.SHARED.wait(HOST)
+    st, hd, data = om.http_post(API + path, {"User-Agent": sk.USER_AGENT, "Accept": "application/json",
+                                             "Content-Type": "application/json", "x-api-key": key},
+                                json.dumps(body).encode("utf-8"))
+    if st >= 400 or st == 0:
+        _count(ctx, hd, 1 if st != 429 else 0)
+        raise HttpError(st, _error(st, data))
+    try:
+        d = json.loads(data.decode("utf-8")) if data else {}
+    except (UnicodeDecodeError, ValueError) as ex:
+        _count(ctx, hd, lines)
+        raise HttpError(-1, "SonoVault: unerwartete Antwort") from ex
+    rows = d.get("results") if isinstance(d, dict) else d
+    rows = rows if isinstance(rows, list) else []
+    used = sum(1 for r in rows if isinstance(r, dict) and r.get("status") != "skipped_no_credits") if rows else lines
+    _count(ctx, hd, used)
+    return rows
+
+
+def _item_key(f) -> tuple[str, object, str]:
+    """(input_type, Eintrag, Zwischenspeicher-Schlüssel) einer Datei."""
+    info = om.file_info(f)
+    if info["isrc"]:
+        return "isrc", info["isrc"], "resolve:isrc:" + info["isrc"]
+    title = info["title"] + (f" ({info['mix']})" if info.get("mix") else "")
+    return "track_name", {"artist": info["artist"], "title": title}, "resolve:name:" + om.norm(info["artist"]) + "|" + om.norm(title)
+
+
+def resolve_plan(ctx, files) -> dict:
+    """Wie viele Titel brauchen eine Anfrage (nicht im Zwischenspeicher, mit Künstler+Titel oder ISRC)?"""
+    need, cached, skip = [], [], []
+    for f in files:
+        kind, item, ck = _item_key(f)
+        if kind == "track_name" and not (item["artist"] and item["title"]):
+            skip.append(f)
+        elif _cache_get(ctx, ck) is not None:
+            cached.append(f)
+        else:
+            need.append(f)
+    q = quota(ctx)
+    return {"need": need, "cached": cached, "skip": skip, "rest": max(0, q["limit"] - q["used"]), "limit": q["limit"]}
+
+
+def _diff_rows(f, c) -> list:
+    rows = []
+    for key, label, field in COMPARE:
+        new = (c.get(field) or "").strip()
+        if not new:
+            continue
+        cur = f.text(key).strip()
+        if key == "TDRC":
+            new, cur = new[:4], cur[:4]
+        if om.norm(cur) != om.norm(new):
+            rows.append([os.path.basename(f.path), label, cur or "–", new])
+    cmp = c.get("compare") or {}
+    if cmp.get("key"):
+        import keys as keys_mod
+        code, tk = keys_mod.parse_key(str(cmp["key"])), keys_mod.parse_key(f.text("TKEY")) if f.text("TKEY") else None
+        if code and tk and code != tk:
+            rows.append([os.path.basename(f.path), "Tonart (Vergleich)", keys_mod.format_key(tk, "camelot"),
+                         keys_mod.format_key(code, "camelot")])
+    return rows
+
+
+def resolve_run(ctx, files, limit: int) -> dict:
+    """Abgleich: Titel aus dem Zwischenspeicher kosten nichts, die übrigen in Blöcken zu 100 – höchstens limit Kredite."""
+    plan = resolve_plan(ctx, files)
+    todo = plan["need"][:max(0, min(limit, plan["rest"]))]
+    later = len(plan["need"]) - len(todo)
+    groups = {"isrc": [], "track_name": []}
+    for f in todo:
+        kind, item, ck = _item_key(f)
+        groups[kind].append((f, item, ck))
+    done = 0
+    for kind, lst in groups.items():
+        for i in range(0, len(lst), BATCH):
+            part = lst[i:i + BATCH]
+            ctx.progress(done, len(todo), f"Abgleich {done + 1}–{done + len(part)} von {len(todo)}")
+            res = _post(ctx, "/v1/tracks/resolve", {"input_type": kind, "items": [it for _f, it, _k in part]}, len(part))
+            for (f, _it, ck), r in zip(part, res):
+                if not isinstance(r, dict):
+                    continue
+                if r.get("status") == "matched" and isinstance(r.get("track"), dict):
+                    _cache_put(ctx, ck, json.dumps(r["track"]).encode("utf-8"))
+                elif r.get("status") == "not_found":
+                    _cache_put(ctx, ck, b"{}")
+                else:                                                   # skipped_no_credits
+                    later += 1
+            done += len(part)
+    rows, same, missing = [], 0, 0
+    for f in plan["need"] + plan["cached"]:
+        _kind, _it, ck = _item_key(f)
+        raw = _cache_get(ctx, ck)
+        if raw is None:
+            continue
+        t = json.loads(raw.decode("utf-8") or "{}")
+        if not t:
+            missing += 1
+            rows.append([os.path.basename(f.path), "–", "–", "nicht gefunden"])
+            continue
+        d = _diff_rows(f, candidate(t))
+        same += not d
+        rows += d
+    return {"rows": rows, "sent": len(todo), "cached": len(plan["cached"]), "later": later, "same": same,
+            "missing": missing, "skip": len(plan["skip"])}
+
+
+def actions(ctx):
+    q = quota(ctx)
+    rest = max(0, q["limit"] - q["used"])
+    return ACTIONS + [
+        {"id": "resolve", "label": "Mit SonoVault abgleichen (Bibliothek) …", "where": "tagger", "run_label": "Abgleichen",
+         "description": "Vergleicht die markierten Titel in Blöcken zu 100 mit SonoVault und zeigt, wo ISRC, Label, Genre, "
+                        "Album, Jahr oder Tonart abweichen. Nur Anzeige – übernehmen pro Titel über „Online-Metadaten“ "
+                        "(Massen-Schreiben erlauben die Nutzungsbedingungen nicht). 1 Kredit je Titel; Titel im "
+                        "Zwischenspeicher (30 Tage) kosten nichts.",
+         "options": [
+             {"type": "info", "label": f"Kontingent: {quota_text(ctx)}. Reicht es nicht, gleicht TagStudio nur so viele "
+                                      "Titel ab, wie übrig sind – den Rest im nächsten Monat erneut starten (bereits "
+                                      "abgeglichene kosten dann nichts)."},
+             {"key": "max", "type": "text", "label": "Höchstens so viele Kredite verwenden", "default": str(min(rest, 500))},
+             {"key": "confirm", "type": "check", "label": "Kredite verwenden (ohne Häkchen: nur Kosten anzeigen)",
+              "default": False}]}]
+
+
 def status(ctx):
     return ("Schlüssel gespeichert" if token(ctx) else "kein Schlüssel – unter „Schlüssel …“ eintragen") + \
         f" · {quota_text(ctx)}"
@@ -430,6 +572,29 @@ def run(action, ctx, files, opts):
         if not opts.get("confirm"):
             return {"message": "Nichts gelöscht – zum Leeren das Häkchen setzen."}
         return {"message": f"{cache_prune(ctx, everything=True)} gespeicherte Antwort(en) gelöscht."}
+    if action == "resolve":
+        ok, why = ready(ctx)
+        if not ok:
+            raise ValueError(f"SonoVault: {why}.")
+        cache_prune(ctx)
+        s = str(opts.get("max") or "").strip()
+        if not s.isdigit():
+            raise ValueError("Höchstens so viele Kredite: ganze Zahl erwartet.")
+        plan = resolve_plan(ctx, files)
+        cost = min(len(plan["need"]), int(s), plan["rest"])
+        head = (f"{len(files)} Titel: {len(plan['need'])} brauchen eine Anfrage, {len(plan['cached'])} aus dem "
+                f"Zwischenspeicher" + (f", {len(plan['skip'])} ohne Künstler/Titel übersprungen" if plan["skip"] else "")
+                + f". Kosten jetzt: {cost} Kredite · {quota_text(ctx)}")
+        if not opts.get("confirm"):
+            return {"message": head + ". Nichts abgefragt – zum Starten „Kredite verwenden“ anhaken."}
+        try:
+            r = resolve_run(ctx, files, int(s))
+        except HttpError as ex:
+            raise RuntimeError(f"{ex} · {quota_text(ctx)}") from ex
+        msg = (f"Abgeglichen: {r['sent']} neu, {r['cached']} aus dem Zwischenspeicher – {r['same']} stimmen überein, "
+               f"{r['missing']} nicht gefunden" + (f", {r['later']} noch offen (Kontingent) – später erneut starten"
+                                                    if r["later"] else "") + f". Quelle: SonoVault, nur Anzeige. {quota_text(ctx)}.")
+        return {"message": msg, "table": {"cols": ["Datei", "Feld", "In der Datei", "SonoVault"], "rows": r["rows"][:2000]}}
     if action == "links":
         ok, why = ready(ctx)
         if not ok:

@@ -48,11 +48,37 @@ class FakeSV:
         return 404, hd, b"{}"
 
 
+class FakePost:
+    def __init__(self):
+        self.calls, self.no_credits = [], False
+
+    def __call__(self, url, headers, data):
+        body = json.loads(data.decode("utf-8"))
+        self.calls.append((urllib.parse.urlparse(url).path, body))
+        if headers.get("x-api-key") != "svk_live_TEST":
+            return 401, {}, b'{"error":"invalid key"}'
+        out = []
+        for it in body["items"]:
+            if self.no_credits:
+                out.append({"status": "skipped_no_credits"})
+            elif it == "CHA012100001":
+                out.append({"status": "matched", "track": SV_N, "links": []})
+            elif isinstance(it, dict) and "kaltes" in it["title"].lower():
+                out.append({"status": "matched", "track": SV_TRACK, "links": []})
+            else:
+                out.append({"status": "not_found"})
+        return 200, {}, json.dumps({"results": out, "partial": False}).encode()
+
+
 class TestSonoVault(OnlineHarness):
     def setUp(self):
         super().setUp()
         self.sv = FakeSV(self.fake)
         onlinematch.http_get = self.sv
+        self.post = FakePost()
+        self._post_orig = onlinematch.http_post
+        onlinematch.http_post = self.post
+        self.addCleanup(setattr, onlinematch, "http_post", self._post_orig)
         onlinematch.INTERVALS["api.sonovault.now"] = 0
         self.mod = self.s.plugins.get("sonovault").load()
         self.assertIsNotNone(self.mod, self.s.plugins.get("sonovault").error)
@@ -151,3 +177,34 @@ class TestSonoVault(OnlineHarness):
         ok, why = self.mod.check(ctx)
         self.assertTrue(ok)
         self.assertIn("1 von 1000", why)
+
+    def test_resolve_compare_only(self):
+        """#256: Bibliothek abgleichen – Kostenvorschau ohne Abruf, dann Blöcke, nur Anzeige, Zwischenspeicher kostet nichts."""
+        self.keys()
+        idx = [self.idx[n] for n in ("n.mp3", "k.mp3", "u.mp3")]
+        r = self.act("resolve", idx, pid="sonovault", max="500", confirm=False)["result"]
+        self.assertIn("3 brauchen eine Anfrage", r["message"])
+        self.assertIn("Kosten jetzt: 3 Kredite", r["message"])
+        self.assertEqual(self.post.calls, [])
+        r = self.act("resolve", idx, pid="sonovault", max="500", confirm=True)["result"]
+        self.assertEqual([c[1]["input_type"] for c in self.post.calls], ["isrc", "track_name"])
+        rows = r["table"]["rows"]
+        self.assertIn(["k.mp3", "Album", "Eigenes Album", "Nachtfahrt EP"], rows)
+        self.assertIn(["u.mp3", "–", "–", "nicht gefunden"], rows)
+        self.assertIn("3 von 1000 Anfragen", self.info()["status_text"])
+        self.assertEqual(r.get("proposals", []), [])
+        self.assertFalse(any(self.s.tag_files[i].is_modified() for i in idx))
+        # nochmals: alles aus dem Zwischenspeicher, keine Kosten
+        r = self.act("resolve", idx, pid="sonovault", max="500", confirm=True)["result"]
+        self.assertEqual(len(self.post.calls), 2)
+        self.assertIn("3 aus dem Zwischenspeicher", r["message"])
+        self.assertIn("3 von 1000 Anfragen", self.info()["status_text"])
+
+    def test_resolve_respects_quota(self):
+        self.keys()
+        self.act("keys", pid="sonovault", limit="2")
+        idx = [self.idx[n] for n in ("n.mp3", "k.mp3", "u.mp3")]
+        r = self.act("resolve", idx, pid="sonovault", max="500", confirm=True)["result"]
+        self.assertIn("1 noch offen", r["message"])                                 # nur 2 Kredite übrig
+        self.assertEqual(sum(len(c[1]["items"]) for c in self.post.calls), 2)
+        self.assertIn("aufgebraucht", self.info()["status_text"])

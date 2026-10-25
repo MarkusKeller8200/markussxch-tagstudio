@@ -2372,6 +2372,14 @@ class UiTest(unittest.TestCase):
         pg.click('#tgPlugins [data-plugin="online"][data-action="fetch"]')
         pg.wait_for_selector('#modal [data-ok="sonovault"]')
         self.assertFalse(pg.locator('#modal [data-ok="sonovault"]').is_checked())
+        pg.click("#mBtns button >> nth=0")
+        # #256: Abgleich zeigt das Kontingent und ist ohne Häkchen nur eine Kostenvorschau
+        pg.click('#tgPlugins [data-plugin="sonovault"][data-action="resolve"]')
+        pg.wait_for_selector('#modal [data-ok="confirm"]')
+        self.assertIn("0 von 1000 Anfragen", pg.inner_text("#modal"))
+        self.assertFalse(pg.locator('#modal [data-ok="confirm"]').is_checked())
+        self.assertEqual(pg.input_value('#modal [data-ok="max"]'), "500")
+        pg.click("#mBtns button >> nth=0")
         self.assertEqual(self.errors, [])
 
     def test_restart_and_quit_buttons(self):
