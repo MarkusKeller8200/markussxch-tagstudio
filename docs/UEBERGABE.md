@@ -4,6 +4,31 @@ Stand: **2026-10-25 (01:00): 4.8.0 final freigegeben (Auftrag User 01:01) und er
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
+## Sitzung 25.10.2026 (Nachmittag) – 4.9.1 Bugfix-Runde und Code-Review
+
+- **#287 umgesetzt:** neues Kernmodul `secretstore.py` (Windows DPAPI, macOS Schlüsselbund über Security.framework/
+  ctypes, Konto = Pfad der Datei, Datei enthält nur `KEYCHAIN:1`, Übernahme alter Klartext-Dateien, Rückfall 0600).
+  Genutzt von `servicekit.save_keys` (alle Dienst-Plugins, OAuth-Token) und Beatport (1.8). Workflow
+  „Zugangsdaten-Test“ (temporärer Schlüsselbund auf macOS – grün). CodeQL-Fund weg; Issue vom Auto-Close wieder
+  geöffnet bis zum Test des Users.
+- **Code-Review (drei Bereiche) → Issues im Meilenstein #25, alle `_3 Beta-Test`:** #298 Vorbereiten (Übernehmen
+  ersetzt nie eine Bibliotheksdatei, „..“-Ordner, Batch-Argumente, Abholen mit Prüfsumme), #299 Beatport (Token nicht
+  an Weiterleitungen, Anmeldung bei 5xx behalten, ZIP/geladen.json atomar), **#300 XSS über Cover-Bildtyp**
+  (`id3tags.safe_mime`, `esc()` für Bildadressen), #301 Datenverlust (Einstellungen nie leeren, Snapshot-gc schont
+  laufende Schreiber `snapshots.writing()`, Wiederherstellen nur mit Sicherheitskopie, beschädigter ID3-Header →
+  Speichern verweigert), #302 Plugins (Stems 1.3/Tonart 1.4 Arbeitsordner je Lauf, Lautheit 1.1 Abbruch/Kopien,
+  Spotify/SoundCloud 1.1 Seitenabruf/Host, OAuth localhost auch IPv6), #303 Entdecken (Sperre `discover.LOCK`),
+  #305 Oberfläche/Server (veraltete Antworten Tagger/Vergleich, Dialog-Warteschlange, Host-Prüfung,
+  `compare_digest`, `MAX_REQUEST`, Audio-CORS nur eigene Oberfläche/`null`), #306 Kern klein (Archiv-Namen,
+  Umbenennen, Warteschlange atomar, `_run`-Sperre, Update-`.part`, Plugin-Update zurücklegen, Protokoll schwärzen,
+  Melden kürzen). #304 (Dateidialoge übersetzen) in „Verbesserungen“.
+- **Oberflächentest `test_beatgrid_to_tag`** lokal rot – schon am Ausgangsstand e4261ac, nicht durch die Runde;
+  CI-Ergebnis beobachten.
+- **Offen (Frage an den User):** Ordner-Konzept überarbeiten – zentrale Rollen (Eingang, Bibliotheken mit „aktiv“,
+  Archiv, Playlists, Downloads, Arbeit, Sicherung, Snapshots) aus dem Basisordner, alle Module verweisen darauf.
+  Auslöser: Käufe-Abgleich liest die Bibliothek aus drei Einstellungen (`_pl_lib_roots`). Vorschlag: Konzept in
+  `KONZEPT-SPEICHER.md`, Umsetzung eher 4.10.
+
 ## Start 4.9.1 – Bugfixes (vorbereitet 25.10.2026, 12:50)
 
 - **4.9.0 final veröffentlicht** (25.10.2026, 12:49): Release `v4.9.0` mit Windows-Setup, macOS-DMG (Apple-Chip) und

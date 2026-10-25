@@ -1,5 +1,9 @@
 # MarKusSXCH TagStudio – Projektstand
 
+> Stand 2026-10-25, 14:00: **4.9.1 in Arbeit** (Meilenstein #25): #287 Zugangsdaten im macOS-Schlüsselbund
+> (`secretstore.py`); Code-Review mit Behebungen #298–#303, #305, #306 (u. a. XSS über Cover-Bildtyp #300,
+> Datenverlust #301) – alle `_3 Beta-Test`. Offen: Entscheid zum Ordner-Konzept (zentrale Rollen statt Pfade je Modul).
+>
 > Stand 2026-10-25, 12:50: **4.9.0 final veröffentlicht** (Release `v4.9.0`: Windows-Setup, macOS-DMG, Plugin-ZIPs; Meilenstein #24 geschlossen). **Nächstes: 4.9.1 – Bugfixes** (Meilenstein #25, bisher #287 Zugangsdaten unter macOS); Übergabe-Prompt in `docs/UEBERGABE.md`.
 >
 > Davor (Mittag): **4.9.0 final freigegeben** (User 12:38 „Testresultate eingetragen … finale 4.9.0“): alle Testlisten abgehakt, 15 Issues geschlossen, Meilenstein #24 ohne offene Issues; `release.py 4.9.0`, Push auf `main` – Workflow „Installer“ baut Windows/macOS und legt Tag `v4.9.0` und Release an. CodeQL-Fund #287 (Beatport-Zugangsdaten unter macOS unverschlüsselt in Datei 0600, wie alle Dienst-Schlüssel seit 4.6) nach Entscheid User in den neuen Meilenstein **#25 „4.9.1“** verschoben (Vorschlag: macOS-Schlüsselbund).
