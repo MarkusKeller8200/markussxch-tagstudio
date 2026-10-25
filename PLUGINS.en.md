@@ -262,6 +262,8 @@ Fetches BPM, key (in your notation), genre/subgenre, label, catalogue number, da
 optionally title/artist/album from Beatport, plus Beatport playlists and the Purchases page. Uses the **official
 Beatport API v4** – all endpoints with their status are listed under Plugins › Beatport › “Integration …”. Only the
 fallback sign-in and downloading bought files are unofficial (Beatport does not offer downloads officially).
+Downloads first use the same way as the Beatport website (`/catalog/tracks/purchase-download/?order_item_download_id=…`,
+#292, plugin 1.4); each download counts as a download attempt at Beatport, just like on the website.
 
 1. **Plugins** page → Beatport → **Sign in …**
    - *Own API access* (default, recommended): client ID, client secret, user name, password – see below.

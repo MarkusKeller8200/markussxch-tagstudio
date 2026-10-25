@@ -60,6 +60,11 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
   Download versucht weiter die undokumentierten Wege (#117); findet er keine Adresse, meldet die Seite „Selbst
   herunterladen“ (Variante 2) mit Knopf zur Download-Seite `https://www.beatport.com/library/downloads`: dort in den
   Download-Ordner laden, in „Vorbereiten“ „Abholen“, hier „Abgleichen“ (`store_download` → `manual`).
+- **#292 (Plugin 1.4):** Hinweis User 25.10.2026 04:18 (Entwicklerwerkzeuge auf beatport.com): die Webseite lädt über
+  `GET /v4/catalog/tracks/purchase-download/?order_item_download_id=<id>` mit Bearer-Token und erhält eine signierte
+  Datei-Adresse. Dieser Weg steht jetzt zuerst in `download_candidates`; `order_item_download_id` liefert das offizielle
+  `/my/downloads/`. Offen: ob das Token des eigenen API-Zugangs dafür zugelassen ist (Beta-Test). Jeder Abruf zählt als
+  Download-Versuch (`order_item_download_try_count`).
 - **Beatport-Plugin 1.2**: nutzt die bestehende inoffizielle Abfrage der Käufe (`/my/downloads/` u. a., #117) und den
   Download (`resolve_download`, `fetch_file`, merkt geladene in `geladen.json`). Kaufdatum aus bekannten Feldnamen
   (`purchase_date`, `order_date`, `created` …, auch aus der Bestellung um den Titel); fehlt es, stehen die Feldnamen im

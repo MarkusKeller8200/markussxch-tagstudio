@@ -27,6 +27,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   bisherige Anmeldung bleibt als „inoffizieller Ausweichweg“. Das Integrationsfenster listet alle Endpunkte der
   offiziellen Beschreibung (catalog, my, curation) mit Status; genutzt werden nur dokumentierte Endpunkte, ausser
   beim Download gekaufter Dateien. Konto über `GET /my/account/`.
+- **Beatport-Download wie die Webseite (#292):** „Fehlende herunterladen“ versucht zuerst den Weg der
+  Beatport-Webseite (`purchase-download` mit der Kauf-ID aus `/my/downloads/`); Beatport-Plugin 1.4.
 - **Entdecken verbessert (#291):** Bereich „Gefolgt“ mit allen gefolgten Künstlern, Labels und Genres (von Beatport
   übernommene mit „BP“) – direkt hinzufügen, mit × entfernen, „Von Beatport übernehmen“, „Ähnliche Künstler …“
   (Deezer); Rechtsklick auf einen Vorschlag „Künstler folgen“ / „Label folgen“; „Leeren …“ (gemerkte und gekaufte

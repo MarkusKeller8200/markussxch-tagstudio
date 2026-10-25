@@ -1,7 +1,7 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "1.3",
+  "version": "1.4",
   "min_app": "4.8.0",
   "category": "online",
   "api": 1,
@@ -725,6 +725,16 @@
         "label": "Streaming-Qualität ändern",
         "status": "none",
         "note": "schreibt – wird nie benutzt",
+        "test": false
+      },
+      {
+        "id": "purchase-download",
+        "method": "GET",
+        "path": "/catalog/tracks/purchase-download/",
+        "label": "Download eines Kaufs wie die Beatport-Webseite (inoffiziell)",
+        "status": "partial",
+        "use": "Käufe: Fehlende herunterladen (Variante 1, erster Weg) – Parameter order_item_download_id aus /my/downloads/",
+        "note": "nicht in der offiziellen Beschreibung, von der Beatport-Webseite benutzt – liefert eine signierte Adresse der Datei",
         "test": false
       },
       {

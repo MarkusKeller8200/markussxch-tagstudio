@@ -263,7 +263,9 @@ Holt BPM, Tonart (in deiner Schreibweise), Genre/Subgenre, Label, Katalognummer,
 und optional Titel/Künstler/Album von Beatport, dazu Beatport-Playlists und die Seite „Käufe“. Nutzt die
 **offizielle Beatport-API v4** – alle Endpunkte mit Status stehen unter Plugins › Beatport › „Integration …“.
 Inoffiziell sind nur noch der Ausweichweg bei der Anmeldung und der Download gekaufter Dateien (Beatport bietet ihn
-offiziell nicht an).
+offiziell nicht an). Der Download nutzt zuerst denselben Weg wie die Beatport-Webseite
+(`/catalog/tracks/purchase-download/?order_item_download_id=…`, #292, Plugin 1.4); jeder Download zählt bei Beatport
+als Download-Versuch wie auf der Webseite.
 
 1. Seite **Plugins** → Beatport → **Anmelden …**
    - *Eigener API-Zugang* (Standard, empfohlen): Client-ID, Client-Secret, Benutzername, Passwort – siehe unten.

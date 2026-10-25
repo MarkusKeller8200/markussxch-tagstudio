@@ -288,5 +288,8 @@
 "Liest die Künstler und Labels, denen du auf Beatport folgst ({q}), und ergänzt sie in {q}. Vorhandene bleiben, nichts wird entfernt; bei Beatport wird nichts geändert.": ["Reads the artists and labels you follow on Beatport ({q}) and adds them to {q}. Existing ones stay, nothing is removed; nothing is changed at Beatport.", "Liest d Künschtler und Labels, wo du uf Beatport folgsch ({q}), und ergänzt sie i {q}. Vorhandeni bliibed, nüt wird entfernt; bi Beatport wird nüt gänderet."],
 "Gefolgte Labels": ["Followed labels", "Gfolgti Labels"],
 "Namen gefolgter Künstler/Labels über ihre IDs": ["Names of followed artists/labels via their IDs", "Näme vo gfolgte Künschtler/Labels über ihri IDs"],
-"Gefolgte Künstler und Labels in {q} übernehmen": ["Add followed artists and labels to {q}", "Gfolgti Künschtler und Labels i {q} übernäh"]
+"Gefolgte Künstler und Labels in {q} übernehmen": ["Add followed artists and labels to {q}", "Gfolgti Künschtler und Labels i {q} übernäh"],
+"Download eines Kaufs wie die Beatport-Webseite (inoffiziell)": ["Download of a purchase like the Beatport website (unofficial)", "Download vomene Kauf wie d Beatport-Websiite (inoffiziell)"],
+"Käufe: Fehlende herunterladen (Variante {n}, erster Weg) – Parameter order_item_download_id aus /my/downloads/": ["Purchases: download missing (option {n}, first way) – parameter order_item_download_id from /my/downloads/", "Käuf: Fählendi abelade (Variante {n}, erschte Wäg) – Parameter order_item_download_id us /my/downloads/"],
+"nicht in der offiziellen Beschreibung, von der Beatport-Webseite benutzt – liefert eine signierte Adresse der Datei": ["not in the official description, used by the Beatport website – returns a signed address of the file", "nöd i de offizielle Beschriibig, vo de Beatport-Websiite bruucht – liefered e signierti Adrässe vo de Datei"]
 }

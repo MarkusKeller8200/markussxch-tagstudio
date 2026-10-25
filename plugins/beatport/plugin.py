@@ -1117,11 +1117,13 @@ def _fmt_key(t) -> str:
 
 
 def download_candidates(t) -> list[tuple[str, dict]]:
-    """Mögliche Wege zur Download-Adresse (inoffiziell, Reihenfolge = Wahrscheinlichkeit)."""
+    """Mögliche Wege zur Download-Adresse (inoffiziell, Reihenfolge = Wahrscheinlichkeit). Zuerst der Weg der
+    Beatport-Webseite (#292, beobachtet 25.10.2026): GET /catalog/tracks/purchase-download/?order_item_download_id=…
+    mit dem Token → signierte Adresse der Datei. order_item_download_id steht offiziell in /my/downloads/."""
     odid, tid, fmt = t.get("order_item_download_id"), t.get("id"), _fmt_key(t)
     out = []
     if odid:
-        out += [(f"/my/downloads/{odid}/", {}), (f"/my/downloads/{odid}/download/", {})]
+        out += [("/catalog/tracks/purchase-download/", {"order_item_download_id": odid}),(f"/my/downloads/{odid}/", {}), (f"/my/downloads/{odid}/download/", {})]
     if tid:
         out += [(f"/catalog/tracks/{tid}/download/", {"quality": fmt})]
     return out

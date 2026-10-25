@@ -97,6 +97,8 @@ class FakeBeatport:
                  "order_item_download_id": 502, "audio_format": {"name": "mp3"}, "release": "Frisch EP",   # wie TrackDownloadList
                  "purchase_date": "2026-10-22T09:15:00Z", "received_status": True},
                 {"id": 2002, "name": "Vorbestellt", "artists": [{"name": "X"}], "pre_order": True, "order_item_download_id": 503}]}).encode()
+        if p == "/v4/catalog/tracks/purchase-download/" and q.get("order_item_download_id") == "502":   # #292
+            return 200, {}, json.dumps({"location": "https://dl.beatport.com/sig/abc.mp3"}).encode()
         if p == "/v4/my/downloads/502/":
             return 200, {}, json.dumps({"id": 502, "download_url": "https://dl.beatport.com/sig/abc.mp3"}).encode()
         if p == "/v4/my/beatport/artists/":                    # #288: Antwort ohne Schema – mit Namen
@@ -228,6 +230,8 @@ class TestBeatport(Base):
                 self.assertEqual(fh.read(), audio)                                     # unverändert
             self.assertEqual(seen[0][0], "https://dl.beatport.com/sig/abc.mp3")
             self.assertNotIn("Authorization", seen[0][1])                              # signierte Adresse ohne Token
+            tried = [c[1] for c in self.fake.calls if "download" in c[1] and c[1] != "/v4/my/downloads/"]
+            self.assertEqual(tried, ["/v4/catalog/tracks/purchase-download/"])           # #292: Weg der Webseite zuerst
             st = self.act("download", dest=inbox, folders=self.B, count=5)
             self.assertIn("nichts zu laden", st["result"]["message"])                  # nicht doppelt
             self.assertEqual(len(seen), 1)
