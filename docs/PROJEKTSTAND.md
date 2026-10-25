@@ -1,6 +1,9 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-25, 14:00: **4.9.1 in Arbeit** (Meilenstein #25): #287 Zugangsdaten im macOS-Schlüsselbund
+> Stand 2026-10-25, 14:25: **4.9.1 final freigegeben** (alle 11 Issues getestet; Release `v4.9.1` über den Workflow
+> „Installer“). **Nächstes: 4.10.0 – Ordner** (Meilenstein #26, Konzept `docs/KONZEPT-ORDNER.md`, #308, #310–#315).
+>
+> Vorher 14:00: **4.9.1 in Arbeit** (Meilenstein #25): #287 Zugangsdaten im macOS-Schlüsselbund
 > (`secretstore.py`); Code-Review mit Behebungen #298–#303, #305, #306 (u. a. XSS über Cover-Bildtyp #300,
 > Datenverlust #301) – alle `_3 Beta-Test`. Offen: Entscheid zum Ordner-Konzept (zentrale Rollen statt Pfade je Modul).
 >

@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.9.1] – 2026-10-25
+
 ### Verbessert
 
 - **Seitenleiste (#316):** „Käufe“ lässt sich ein-/ausblenden und steht standardmässig ganz oben; eigene Reihenfolge
