@@ -565,7 +565,13 @@ Ordner liegen, den der Desktop-Client synchronisiert – TagStudio erkennt ihn (
 zusätzlich relativ zum Sync-Ordner (gilt auch auf einem zweiten Rechner), überspringt beim Einlesen **Nur-online-
 Dateien** („Dateien bei Bedarf“, nichts lädt unbemerkt herunter – auf Wunsch einschaltbar) und meldet
 **Konfliktkopien** des Clients. Snapshots, Arbeit und Sicherung im Sync-Ordner bekommen einen Hinweis (nicht
-empfohlen). „Ändern …“ (auch beim Basisordner) zeigt, was im bisherigen Ordner liegt (Dateien,
+empfohlen). **Abgleich über die Dienste** (#317, ohne Desktop-Client): Unten in derselben Karte lassen sich die
+Rollen **Playlists** und **Export** sowie Programmdaten-Teile (Playlists-Speicher, Käufe, Entdecken, Einstellungen
+ohne Zugangsdaten) mit einem Ordner bei OneDrive, Google Drive oder Dropbox abgleichen (Plugins, eigene App je
+Dienst; Standard `/TagStudio/<Rolle>`), in beiden Richtungen oder nur hoch-/herunterladen. **Jetzt abgleichen** zeigt
+danach Konflikte mit beiden Fassungen (hier behalten / aus dem Dienst / beide behalten) und gelöschte Dateien – gelöscht
+wird nur nach Rückfrage. Musik, Snapshots, Arbeit, Cache und Zugangsdaten werden nie über die Dienste abgeglichen;
+SonoVault-Einträge in „Entdecken“ bleiben auf diesem Rechner. „Ändern …“ (auch beim Basisordner) zeigt, was im bisherigen Ordner liegt (Dateien,
 Grösse, freier Platz, gleiche Namen am Ziel) und fragt **Verschieben / Kopieren / Nicht übernehmen** – bei
 Bibliotheken ist „Nicht übernehmen“ vorgewählt, mit Hinweis, dass Engine DJ, Lexicon, Rekordbox, Serato und
 VirtualDJ ihre Pfade danach selbst suchen müssen (TagStudio ändert keine fremden Datenbanken). Nie wird etwas

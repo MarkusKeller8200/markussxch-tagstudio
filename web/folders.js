@@ -44,7 +44,9 @@ async function stFoldersRender() {
     <p class="muted sm">„Ändern …“ fragt, ob der bisherige Inhalt verschoben, kopiert oder dort gelassen wird – nie wird etwas überschrieben. Fremde DJ-Programme werden nie verändert.</p>
     <div class="st-row"><span>Cloud</span><div><div class="muted sm">${f.cloud.roots.length ? "Sync-Ordner auf diesem Rechner: " + f.cloud.roots.map((c) => `<span title="${esc(c.path)}">☁ ${esc(c.label)}</span>`).join(" · ") : "Kein Sync-Ordner von OneDrive, Google Drive oder Dropbox gefunden."}</div>
       <label class="check sm"><input type="checkbox" data-fcloudonline ${f.cloud.load_online ? "checked" : ""}> Nur-online-Dateien beim Einlesen herunterladen</label>
-      <div class="muted sm">Aus (Standard): Titel, die nur in der Cloud liegen, werden übersprungen und gemeldet – nichts lädt unbemerkt herunter.</div></div></div>`;
+      <div class="muted sm">Aus (Standard): Titel, die nur in der Cloud liegen, werden übersprungen und gemeldet – nichts lädt unbemerkt herunter.</div></div></div>
+    <div id="stCloudSync"></div>`;
+  if (typeof stCloudSyncRender === "function") stCloudSyncRender();          // #317: Abgleich über die Dienste
   if (typeof TG !== "undefined" && TG.settings && typeof tgLibSelect === "function") {     // #311: Auswahl im Tagger auffrischen
     call("tagger_settings").then((t) => { TG.settings = t; tgLibSelect(); }).catch(() => {});
   }

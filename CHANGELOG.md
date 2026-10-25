@@ -8,6 +8,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Abgleich über die Dienste – Rahmen (#317, Cloud Weg 2):** Einstellungen › Speicherort und Ordner › „Abgleich
+  über die Dienste“ – Rollen Playlists und Export sowie Programmdaten-Teile (Playlists-Speicher, Käufe, Entdecken,
+  Einstellungen ohne Zugangsdaten) mit einem Ordner im Dienst abgleichen, in beiden Richtungen. Ändert sich eine Datei
+  hier und dort, zeigt TagStudio beide Fassungen und fragt; gelöschte Dateien werden nur nach Rückfrage gelöscht.
 - **SonoVault (#253–#255, Plugin 1.0):** Dienst-Plugin mit eigenem Schlüssel; zählt die Anfragen je Monat (Free:
   1000), zeigt den Rest auf der Kachel, warnt ab 90 % und fragt beim erreichten Kontingent nichts mehr ab; HTTP 429 wird
   nie wiederholt. Neue Quelle in „Online-Metadaten“ (2.2) nach MusicBrainz/Discogs – nur die laut Nutzungsbedingungen

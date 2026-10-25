@@ -1877,6 +1877,20 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until(f"{first}.indexOf('prep') < {first}.indexOf('tagger')"))
         self.assertEqual(self.errors, [])
 
+    def test_cloud_sync_section(self):
+        """#317: Einstellungen › Ordner › „Abgleich über die Dienste“ – Rollen Playlists/Export und Programmdaten-Teile,
+        ohne angemeldeten Dienst nichts wählbar und „Jetzt abgleichen“ gesperrt."""
+        pg = self.pg
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stCloudSync tr[data-csid]")
+        ids = pg.evaluate("[...document.querySelectorAll('#stCloudSync tr[data-csid]')].map((t) => t.dataset.csid)")
+        self.assertEqual(ids, ["playlists", "export", "pl_store", "purchases", "discover", "settings"])
+        self.assertTrue(pg.locator("#stCloudSync [data-cssync]").is_disabled())
+        self.assertIn("gelöscht wird nur nach Rückfrage", pg.inner_text("#stCloudSync"))
+        # Dienste ohne Anmeldung sind in der Auswahl gesperrt
+        self.assertEqual(pg.evaluate("[...document.querySelectorAll('#stCloudSync tr[data-csid=playlists] [data-csprov] option')].filter((o) => o.value && !o.disabled).length"), 0)
+        self.assertEqual(self.errors, [])
+
     def test_folder_roles(self):
         """#310: Einstellungen › Ordner – Übersicht gefundener Bibliotheken, Rolle umstellen, Bibliothek hinzufügen."""
         other = os.path.join(self.dir, "zweite")

@@ -38,6 +38,32 @@ Desktop-Client, z. B. auf einen zweiten Rechner (Windows ↔ Mac). Musik bleibt 
 - Nur Dateien, die TagStudio selbst schreibt; fremde Dateien im Zielordner bleiben unberührt.
 - Keine Kosten: nur die Gratis-API-Kontingente der Dienste; bei Grenzen melden statt wiederholen.
 
+## 4a. Umsetzung Rahmen (#317, 25.10.2026)
+
+- **`cloudsync.py`** (Kern, nur Standardbibliothek): Teile `FolderPart` (Ordner rekursiv, erlaubte Endungen –
+  Playlists: m3u8/m3u/xml/csv/txt/json, Export: alle; ohne versteckte, `.part`/`.tmp` und Konfliktkopien der
+  Desktop-Clients), `DiscoverPart` (SonoVault-Einträge nie hochladen, beim Herunterladen die hiesigen behalten),
+  `SettingsPart` (eine Datei `einstellungen.json` aus `appsettings.shareable`, nur Gruppen ohne Pfade/Fenster:
+  Design, Ansicht, Unwichtige, DJ-Set, Herkunft, Plugins, Updates; Übernahme über `appsettings.import_apply` mit
+  Sicherung). `plan` ordnet je Datei zu: hochladen, herunterladen, prüfen (beide da, kein Zustand → Inhalt vergleichen),
+  Konflikt, im Dienst bzw. hier gelöscht (nur melden). Modus `up`/`down` lässt die andere Richtung aus.
+- **Zustand** `~/TagStudio/Cloud/abgleich.json`: je Ziel (`Teil|Dienst|Ordner`) und Datei SHA-256 + Revision, dazu
+  `_last` (Zeitpunkt, ↑, ↓, Konflikte, offene Löschungen, Fehler). Herunterladen atomar (`.part` → ersetzen).
+- **Einstellung:** Rollen über `folders` › `roles.<id>.sync` (`{"provider", "remote", "mode"}`), Programmdaten-Teile
+  in `cloud_sync_app`. Standard-Ordner im Dienst `TagStudio/<Rolle>` bzw. `TagStudio/Programmdaten/<Teil>`.
+- **Session** (`session_cloud.py`): `cloud_sync_overview`, `cloud_sync_set`, `start_cloud_sync` (Auftrag; Konflikte und
+  Löschungen in eine Liste), `cloud_pending` (Vorschau beider Fassungen), `cloud_resolve` (hier / dort / beide –
+  „beide“ legt die Fassung aus dem Dienst als „Name (Cloud).ext“ daneben), `cloud_gone` (löschen nach Rückfrage in
+  der Oberfläche bzw. „nicht löschen“ = Stand vergessen, beim nächsten Abgleich wieder übertragen). Nach dem
+  Herunterladen werden Playlists-/Käufe-Speicher und Einstellungen der Sitzung neu geladen.
+- **Gegenstelle:** Plugins mit `cloud_list/get/put/delete` (siehe PLUGINS.md, Abschnitt „Cloud-Abgleich“).
+- **Oberfläche** (`web/cloudsync.js`): Abschnitt „Abgleich über die Dienste“ in Einstellungen › Speicherort und Ordner –
+  je Zeile Dienst (nur angemeldete wählbar), Richtung, Ordner im Dienst, Stand; „Jetzt abgleichen“; Dialog „Abgleich –
+  bitte entscheiden“.
+- **Grenzen:** Playlists-Speicher enthält absolute Pfade der Titel – zwischen Windows und Mac passen sie nur, wenn die
+  Musik gleich liegt (Weg 1, relativ zum Sync-Ordner). Eine heruntergeladene M3U8 im Playlist-Ordner meldet der
+  Playlists-Speicher wie jede fremde Änderung.
+
 ## 5. Offen (bei der Umsetzung prüfen)
 
 - Genaue Endpunkte und Kontingente (Microsoft Graph, Google Drive API v3, Dropbox API v2) aus den offiziellen

@@ -161,6 +161,23 @@ More settings per action:
 Instead of `ACTIONS` a function `actions(ctx)` that returns the list works too (e.g. for a dynamic choice).
 TagStudio remembers the last used values per action.
 
+### Cloud sync (`cloud_sync`, #317)
+
+A service plugin becomes a target for “Sync via the services” (Settings › Storage location and folders) when its
+`plugin.py` offers these functions (paths with “/”, relative to the account's root folder):
+
+```python
+def cloud_list(ctx, folder) -> dict:      # {"subfolder/file.m3u8": {"rev": "…", "size": 123}} – recursive, files only
+def cloud_get(ctx, path) -> bytes
+def cloud_put(ctx, path, data) -> str     # creates folders, overwrites; returns the new revision
+def cloud_delete(ctx, path)               # only after confirmation in the interface
+def ready(ctx) -> (bool, str)             # signed in? (otherwise disabled in the selection)
+```
+
+The core (`cloudsync.py`) remembers checksum and revision of the last common version per file and decides: changed only
+here → upload, only there → download (atomically), both → conflict dialog. Deleted files are only reported.
+Credentials, snapshots, work and cache are never synced.
+
 ### The context `ctx`
 
 | | |

@@ -162,6 +162,23 @@ Weitere Angaben je Aktion:
 Statt `ACTIONS` geht auch eine Funktion `actions(ctx)`, die die Liste liefert (z. B. für dynamische Auswahl).
 Die zuletzt benutzten Werte merkt sich TagStudio pro Aktion.
 
+### Cloud-Abgleich (`cloud_sync`, #317)
+
+Ein Dienst-Plugin wird zur Gegenstelle für „Abgleich über die Dienste“ (Einstellungen › Speicherort und Ordner), wenn
+sein `plugin.py` diese Funktionen anbietet (Pfade mit „/“, relativ zum Wurzelordner des Kontos):
+
+```python
+def cloud_list(ctx, folder) -> dict:      # {"Unterordner/datei.m3u8": {"rev": "…", "size": 123}} – rekursiv, nur Dateien
+def cloud_get(ctx, path) -> bytes
+def cloud_put(ctx, path, data) -> str     # legt Ordner an, überschreibt; gibt die neue Revision zurück
+def cloud_delete(ctx, path)               # nur nach Rückfrage in der Oberfläche
+def ready(ctx) -> (bool, str)             # angemeldet? (sonst in der Auswahl gesperrt)
+```
+
+Der Kern (`cloudsync.py`) merkt sich je Datei Prüfsumme und Revision der letzten gemeinsamen Fassung und entscheidet:
+nur hier geändert → hochladen, nur dort → herunterladen (atomar), beide → Konflikt-Dialog. Gelöschte Dateien werden
+nur gemeldet. Zugangsdaten, Snapshots, Arbeit und Cache werden nie abgeglichen.
+
 ### Der Kontext `ctx`
 
 | | |

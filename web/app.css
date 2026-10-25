@@ -647,6 +647,14 @@ span.xml-treeonly{display:contents}
 .svc-body{max-height:40vh;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;font:12px/1.45 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
 .pl-prev{max-height:52vh}
 .pl-res-table{max-height:52vh;margin-top:10px}   /* #255: Tabelle im Plugin-Ergebnis */
+/* #317: Abgleich über die Dienste */
+.cs-table td{vertical-align:top}
+.cs-table select,.cs-table .cs-remote{margin:0 4px 4px 0}
+.cs-remote{width:240px;max-width:100%}
+.cs-conf,.cs-gone{border:1px solid var(--line);border-radius:var(--r);padding:10px;margin-bottom:10px}
+.cs-two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}
+.cs-two pre{max-height:28vh;overflow:auto;margin:0}
+@media (max-width:700px){.cs-two{grid-template-columns:1fr}}
 .pl-prev td{vertical-align:top}
 .pl-prev .pv-val{white-space:pre-line;max-height:9.5em;overflow:auto}   /* #183: mehrzeilige Werte (Liedtexte) */
 .pl-prev .pv-file td{background:var(--raise);border-top:1px solid var(--line)}
