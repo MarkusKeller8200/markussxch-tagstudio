@@ -1,7 +1,7 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "2.2",
+  "version": "2.3",
   "min_app": "4.9.1",
   "category": "online",
   "categories": [
@@ -516,8 +516,8 @@
         "path": "/my/account/{id}/",
         "label": "Konto ändern",
         "status": "none",
-        "note": "schreibt – wird nie benutzt",
-        "test": false
+        "note": "schreibt – nur im API-Tester, nach Rückfrage – ändert dein Beatport-Konto",
+        "danger": true
       },
       {
         "id": "my-account-myaccount",
@@ -525,8 +525,8 @@
         "path": "/my/account/myaccount/",
         "label": "Eigenes Konto ändern",
         "status": "none",
-        "note": "schreibt – wird nie benutzt",
-        "test": false
+        "note": "schreibt – nur im API-Tester, nach Rückfrage – ändert dein Beatport-Konto",
+        "danger": true
       },
       {
         "id": "my-beatport",
@@ -594,8 +594,7 @@
         "path": "/my/charts/{mycharts_pk}/tracks/{id}/",
         "label": "Titel eines eigenen Charts ändern",
         "status": "none",
-        "note": "schreibt – wird nie benutzt",
-        "test": false
+        "note": "schreibt – nur im API-Tester, nach Rückfrage"
       },
       {
         "id": "my-charts-id",
@@ -639,8 +638,8 @@
         "path": "/my/email-preferences/{id}/",
         "label": "E-Mail-Einstellungen ändern",
         "status": "none",
-        "note": "schreibt – wird nie benutzt",
-        "test": false
+        "note": "schreibt – nur im API-Tester, nach Rückfrage – ändert deine E-Mail-Einstellungen",
+        "danger": true
       },
       {
         "id": "my-genres",
@@ -672,7 +671,38 @@
         "path": "/my/playlists/",
         "label": "Eigene Playlist anlegen",
         "status": "partial",
-        "use": "Download Tracks / Playlists je Kaufdatum (#334/#335) – nur TagStudio_…, nur auf Klick"
+        "use": "Download Tracks / Playlists je Kaufdatum (#334/#335) – nur TagStudio_…, nur auf Klick",
+        "body": {
+          "name": "TagStudio_Test"
+        },
+        "fields": [
+          {
+            "name": "name",
+            "type": "string",
+            "required": true,
+            "help": "Name der neuen Playlist (TagStudio verwendet „TagStudio_…“)",
+            "example": "TagStudio_Test"
+          }
+        ]
+      },
+      {
+        "id": "my-playlists-update",
+        "method": "PATCH",
+        "path": "/my/playlists/{id}/",
+        "label": "Eigene Playlist ändern (umbenennen)",
+        "status": "none",
+        "note": "schreibt – nur im API-Tester, nach Rückfrage",
+        "body": {
+          "name": "TagStudio_Test_neu"
+        },
+        "fields": [
+          {
+            "name": "name",
+            "type": "string",
+            "help": "neuer Name der Playlist",
+            "example": "TagStudio_Test_neu"
+          }
+        ]
       },
       {
         "id": "my-playlists-delete",
@@ -704,8 +734,18 @@
         "path": "/my/playlists/{myplaylists_pk}/tracks/{id}/",
         "label": "Titel einer eigenen Playlist ändern",
         "status": "none",
-        "note": "schreibt – wird nie benutzt",
-        "test": false
+        "note": "schreibt – nur im API-Tester, nach Rückfrage",
+        "body": {
+          "position": 1
+        },
+        "fields": [
+          {
+            "name": "position",
+            "type": "integer",
+            "help": "neue Position des Titels in der Playlist (Beispiel – mit „Vom Dienst laden“ prüfen)",
+            "example": 1
+          }
+        ]
       },
       {
         "id": "my-playlists-myplaylists_pk-tracks-bulk",
@@ -713,8 +753,26 @@
         "path": "/my/playlists/{myplaylists_pk}/tracks/bulk/",
         "label": "Mehrere Titel einer Playlist ändern",
         "status": "partial",
-        "test": false,
-        "use": "Titel in eine eigene TagStudio-Playlist eintragen (#334/#335)"
+        "use": "Titel in eine eigene TagStudio-Playlist eintragen (#334/#335)",
+        "body": {
+          "track_ids": [
+            17951063
+          ]
+        },
+        "fields": [
+          {
+            "name": "track_ids",
+            "type": "list",
+            "child": {
+              "type": "integer"
+            },
+            "required": true,
+            "help": "Beatport-Track-IDs, höchstens 100 je Aufruf",
+            "example": [
+              17951063
+            ]
+          }
+        ]
       },
       {
         "id": "my-playlists-myplaylists_pk-tracks-ids",
@@ -737,8 +795,7 @@
         "path": "/my/playlists/bulk/",
         "label": "Mehrere Playlists ändern",
         "status": "none",
-        "note": "schreibt – wird nie benutzt",
-        "test": false
+        "note": "schreibt – nur im API-Tester, nach Rückfrage"
       },
       {
         "id": "my-streaming-quality",
@@ -753,8 +810,8 @@
         "path": "/my/streaming-quality/{id}/",
         "label": "Streaming-Qualität ändern",
         "status": "none",
-        "note": "schreibt – wird nie benutzt",
-        "test": false
+        "note": "schreibt – nur im API-Tester, nach Rückfrage",
+        "danger": true
       },
       {
         "id": "purchase-download",

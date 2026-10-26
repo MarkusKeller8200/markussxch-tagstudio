@@ -24,7 +24,8 @@ function modal({ title, html, buttons, wide = false, onMount, collect }) {
     old.replaceWith(body);
     $("#mTitle").textContent = title;
     body.innerHTML = html;
-    $(".modal-dlg").classList.toggle("wide", wide);
+    $(".modal-dlg").classList.toggle("wide", !!wide);
+    $(".modal-dlg").classList.toggle("xwide", wide === "xl");                    // #354: ca. 50 % breiter
     box.innerHTML = "";
     const finish = async (v) => {
       let out = v;

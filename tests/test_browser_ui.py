@@ -3033,6 +3033,24 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("!document.querySelector('#stCloudCard').classList.contains('st-folded')"))
         pg.press("#stCloudCard > h3", "Enter")                                           # Tastatur
         self.assertTrue(self.until("document.querySelector('#stCloudCard').classList.contains('st-folded')"))
+        # #358: Aufklappen ordnet die anderen Kacheln nicht um (feste Spalte, Reihenfolge bleibt)
+        pos = """[...document.querySelectorAll('#stGrid > .card:not([hidden])')].map((c) => { const r = c.getBoundingClientRect();
+                 return [c.id, Math.round(r.left), Math.round(r.top)]; })"""
+        self.assertTrue(self.until("document.querySelector('#stGrid').classList.contains('st-masonry')"))
+        before = pg.evaluate(pos)
+        self.assertGreater(len({x[1] for x in before}), 1)                               # mehrere Spalten (1440 px)
+        first = before[0][0]
+        pg.click(f"#{first} > h3")
+        self.assertTrue(self.until(f"!document.querySelector('#{first}').classList.contains('st-folded')"))
+        pg.wait_for_timeout(150)
+        after = pg.evaluate(pos)
+        col = {i: l for i, l, _ in before}
+        self.assertEqual([(i, l) for i, l, _ in after], [(i, col[i]) for i, _, _ in after])  # gleiche Spalte für alle
+        for c in {l for _, l, _ in before}:                                               # Reihenfolge je Spalte gleich
+            self.assertEqual([i for i, l, _ in before if l == c], [i for i, l, _ in sorted(after, key=lambda x: x[2]) if l == c])
+        others = [(i, t) for i, l, t in before if l != before[0][1]]
+        self.assertEqual(others, [(i, t) for i, l, t in after if l != before[0][1]])     # andere Spalten unverändert
+        pg.click(f"#{first} > h3")
 
     def test_expert_log_clear_on_exit(self):
         """#332: Expert › Entwicklung – „Protokolle beim Beenden leeren“, Standard aus, Plugin-Protokolle nur wählbar,
@@ -3186,6 +3204,24 @@ class UiTest(unittest.TestCase):
         pg.evaluate("call('tag_mood', [2], ['Hypnotic'], []).then(taggerApplyDetail)")
         pg.evaluate("tgSetCols([...tgCols(), 'fld:TMOO'], true)")
         self.assertTrue(self.until("TG.rows[2] && TG.rows[2].x && TG.rows[2].x.TMOO === 'Hypnotic'"))
+
+    def test_tagger_best_match(self):
+        """#355: Best Match im Tagger – Symbol links im Kopf, Spalte Datei so breit wie nötig, ohne waagrechten Bildlauf."""
+        pg = self.pg
+        self.load_tagger()
+        pg.evaluate("tgSetFit('scroll')")
+        self.assertEqual(pg.inner_text("#tgBestMatch").strip(), "")
+        self.assertTrue(pg.locator("#tgBestMatch svg").count())
+        self.assertEqual(pg.get_attribute("#tgBestMatch", "aria-label"), "Best Match")
+        pg.click("#tgBestMatch")
+        c = self.cfg_until(lambda c: c.get("web_ui", {}).get("tg_fit") == "fit" and (c.get("web_ui", {}).get("tg_col_name") or 0) >= 130)
+        w = c["web_ui"]["tg_col_name"]
+        nm = pg.eval_on_selector('#tgHead [data-col="name"]', "e => e.closest('.th-name').getBoundingClientRect().width")
+        self.assertLess(abs(nm - w), 12)                                  # Spalte Datei hat die berechnete Breite
+        full = pg.evaluate("Math.max(...[...document.querySelectorAll('.tg-row .nm')].map((e) => e.scrollWidth))")
+        self.assertGreaterEqual(w + 2, min(full, 900))                    # Dateiname passt ganz hinein
+        sc = pg.evaluate("(() => { const h = document.querySelector('#tgHead'); return [h.scrollWidth, h.clientWidth]; })()")
+        self.assertLessEqual(sc[0], sc[1] + 2)                            # kein waagrechter Bildlauf
 
     def test_tagger_columns_sort_view(self):
         """#152 Spalten anordnen, #154 weitere Spalten, #148 waagrecht blättern, #153 Sortierstufen, #155 Ansicht."""
@@ -3588,7 +3624,7 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.inner_text("#purTable tbody tr:first-child td:nth-child(3)"), "Kaltes Glas")   # neuester Kauf zuerst
         self.assertIn("450 doppelt", pg.inner_text("#purTable .pur-diag"))                                # #290: Diagnose
         self.assertIn("mehrere Treffer · 2 Kandidaten", pg.inner_text('#purTable tr[data-k="beatport:4"]'))   # Grund sichtbar
-        pg.click('#purTable tr[data-k="beatport:4"] td:nth-child(3)', button="right", modifiers=["Shift"])   # #346: Shift → Menü
+        pg.click('#purTable tr[data-k="beatport:4"] td:nth-child(3)', button="right")       # #353: Rechtsklick → Menü
         pg.click("#menu button >> text=Zuordnen …")
         pg.check('input[name="purLink"][value="1"]')
         pg.click("#mBtns .primary")
@@ -3829,12 +3865,19 @@ class UiTest(unittest.TestCase):
         pg.wait_for_selector("#purTable tbody tr")
         self.assertIn("Einkäufe", pg.inner_text('.nav[data-module="purchases"]'))          # #348
         self.assertIn("Einkäufe", pg.inner_text("#modulePurchases .mod-head h2"))
-        pg.click('#purTable tr[data-k="beatport:2"] td:nth-child(3)', button="right")       # #346
+        pg.click('#purTable tr[data-k="beatport:2"] td:nth-child(3)')                       # #353: Linksklick → Korrektur
         pg.wait_for_selector("#mTitle >> text=Korrigieren")
         self.assertEqual(pg.evaluate("window.__cand"), ["beatport:2"])
+        w = pg.evaluate("document.querySelector('.modal-dlg').getBoundingClientRect().width")    # #354: ca. 50 % breiter
+        self.assertGreater(w, 1010)
+        self.assertTrue(pg.evaluate("document.querySelector('.modal-dlg').classList.contains('xwide')"))
         pg.click("#mBtns button >> nth=0")
-        pg.click('#purTable tr[data-k="beatport:2"] td:nth-child(3)', button="right", modifiers=["Shift"])
+        pg.click('#purTable tr[data-k="beatport:2"] [data-pursel]')                          # Häkchen öffnet nichts
+        self.assertEqual(pg.evaluate("window.__cand"), ["beatport:2"])
+        pg.click('#purTable tr[data-k="beatport:2"] [data-pursel]')
+        pg.click('#purTable tr[data-k="beatport:2"] td:nth-child(3)', button="right")       # Rechtsklick: Menü
         pg.wait_for_selector("#menu:not([hidden]) button >> text=Korrigieren …")
+        self.assertEqual(pg.evaluate("window.__cand"), ["beatport:2"])
         pg.keyboard.press("Escape"); pg.evaluate("hideMenu()")
         pg.click('#purTable tr[data-k="beatport:1"] td:nth-child(3)', button="right")       # fehlt: Menü, Korrigieren zuoberst
         self.assertEqual(pg.inner_text("#menu button >> nth=0"), "Korrigieren …")
@@ -3848,6 +3891,9 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.evaluate("window.__cand.length"), 2)
         pg.dblclick('#purTable tr[data-k="beatport:3"] td:nth-child(3)')                    # #349
         self.assertTrue(self.until("window.__play && window.__play[0] === 'file' && window.__play[1] === '/lib/n.mp3'"))
+        self.assertEqual(pg.inner_text("#purTable .col-fit").strip(), "")                   # #355: nur Symbol
+        self.assertTrue(pg.locator("#purTable .col-fit svg").count())
+        self.assertEqual(pg.get_attribute("#purTable .col-fit", "aria-label"), "Best Match")
         pg.click("#purTable .col-fit")                                                      # #347
         self.assertTrue(self.until("call('settings').then(r => !!(r.ui.col_widths || {}).purchases)"))
         sw = pg.evaluate("(() => { const b = document.querySelector('#purTable'); return [b.scrollWidth, b.clientWidth]; })()")
@@ -3879,6 +3925,53 @@ class UiTest(unittest.TestCase):
         pg.select_option("#svcApiEp", "my-playlists-delete")
         pg.wait_for_selector('#svcApi [data-ap="id"]')
         self.assertEqual(pg.locator("#svcApiReq").count(), 0)                            # DELETE ohne Body
+        self.errors.clear()
+
+    def test_api_tester_fields(self):
+        """#356 Body-Editor mit möglichen Werten (Plugin-Beschreibung, „Vom Dienst laden“ per OPTIONS, Einfügen,
+        Beispiel, Formatieren, JSON-Prüfung); #357 PATCH-Endpunkte im Tester, Konto-Endpunkte deutlich gewarnt."""
+        pg = self.pg
+        pg.evaluate("""(() => { const orig = call; window.__fld = []; window.__fake = null;
+          window.call = (n, ...a) => {
+            if (n === "service_detail") return orig(n, ...a).then((d) => Object.assign(d, { ready: true }));
+            if (n === "start_service_fields") { window.__fld.push(a);
+              window.__fake = { fields: [{ name: "name", type: "string", child: "", required: true, read_only: false, label: "Name", help: "", max_length: 255, choices: [], example: null },
+                                         { name: "is_public", type: "boolean", child: "", required: false, read_only: false, label: "", help: "", max_length: null, choices: [], example: null },
+                                         { name: "id", type: "integer", child: "", required: false, read_only: true, label: "", help: "", max_length: null, choices: [], example: null }],
+                                source: "service", note: "", allow: "GET, POST, OPTIONS" };
+              return Promise.resolve({ ok: true }); }
+            if (n === "task_status" && window.__fake) { const r = window.__fake; window.__fake = null; return Promise.resolve({ done: true, result: r }); }
+            return orig(n, ...a); }; })()""")
+        pg.evaluate("svcOpen('beatport', 'api', 'my-playlists-create'); 0")
+        pg.wait_for_selector("#svcFields")
+        self.assertIn("Plugin-Beschreibung", pg.inner_text("#svcFields"))
+        self.assertIn("name", pg.inner_text("#svcFields table"))
+        pg.click('#svcFields [data-fins="name"]')
+        self.assertEqual(json.loads(pg.input_value("#svcApiReq")), {"name": "TagStudio_Test"})
+        self.assertIn("gültiges JSON", pg.inner_text("#svcJsonState"))
+        pg.fill("#svcApiReq", '{"name": ')
+        self.assertIn("Kein gültiges JSON", pg.inner_text("#svcJsonState"))
+        pg.click("#svcFldEx")                                                              # Beispiel einfügen
+        self.assertEqual(json.loads(pg.input_value("#svcApiReq")), {"name": "TagStudio_Test"})
+        pg.click("#svcFldLoad")                                                            # OPTIONS (gefälscht)
+        self.assertTrue(self.until("window.__fld.length === 1 && document.querySelector('#svcFields').textContent.includes('is_public')"))
+        self.assertEqual(pg.evaluate("window.__fld[0].slice(0, 2)"), ["beatport", "my-playlists-create"])
+        self.assertIn("vom Dienst", pg.inner_text("#svcFields"))
+        self.assertIn("nur lesen", pg.inner_text("#svcFields"))                          # id: nur lesen, kein Knopf
+        self.assertEqual(pg.locator('#svcFields [data-fins="id"]').count(), 0)
+        pg.click("#svcFldAll")
+        self.assertEqual(json.loads(pg.input_value("#svcApiReq")), {"name": "TagStudio_Test", "is_public": False})
+        pg.fill("#svcApiReq", '{"name":"x"}')
+        pg.click("#svcFldFmt")
+        self.assertEqual(pg.input_value("#svcApiReq"), '{\n  "name": "x"\n}')
+        # #357: PATCH im Tester, Konto deutlich gewarnt
+        opts = pg.evaluate("[...document.querySelectorAll('#svcApiEp option')].map((o) => o.textContent)")
+        self.assertTrue(any(o.startswith("⚠ PATCH /my/playlists/{id}/") for o in opts), opts)
+        self.assertTrue(any(o.startswith("⚠ PATCH /my/account/myaccount/") for o in opts))
+        self.assertFalse(any("/my/beatport/delete/" in o for o in opts))                  # Konto löschen bleibt gesperrt
+        pg.select_option("#svcApiEp", "my-account-myaccount")
+        pg.wait_for_selector("#svcFields")
+        self.assertIn("Achtung", pg.inner_text("#svcApi"))
         self.errors.clear()
 
     def test_purchases_session_login(self):

@@ -193,6 +193,48 @@ function stFoldApply() {
     h.tabIndex = 0;
     h.setAttribute("aria-expanded", String(on));
   });
+  stMasonryWatch();
+}
+
+/* #358: Spalten mit fester Zuordnung. CSS-Spalten („columns“) verteilen die Kacheln bei jeder Höhenänderung neu –
+   beim Auf-/Zuklappen sprangen andere Kacheln in eine andere Spalte. Jetzt bekommt jede Kachel ihre Spalte nach der
+   Reihenfolge (wie bei eingeklappten Kacheln) und behält sie; nur darunterliegende Kacheln rücken nach. */
+const ST_COL = { min: 420, gap: 14, max: 3 };
+let stMasonryRaf = 0, stMasonryRO = null;
+function stMasonry() {
+  stMasonryRaf = 0;
+  const grid = $("#stGrid"); if (!grid) return;
+  const W = grid.clientWidth;
+  if (!W) return;                                                    // Seite nicht sichtbar – später, wenn sichtbar
+  const cards = $$("#stGrid > .card").filter((c) => !c.hidden);
+  const n = Math.max(1, Math.min(ST_COL.max, Math.floor((W + ST_COL.gap) / (ST_COL.min + ST_COL.gap)), cards.length));
+  grid.classList.toggle("st-masonry", n > 1);
+  if (n === 1) {
+    grid.style.height = "";
+    $$("#stGrid > .card").forEach((c) => { c.style.left = c.style.top = c.style.width = ""; delete c.dataset.stcol; });
+    return;
+  }
+  const cw = (W - ST_COL.gap * (n - 1)) / n, tops = new Array(n).fill(0);
+  cards.forEach((c, i) => {
+    const col = Math.floor((i * n) / cards.length);                  // fest nach Reihenfolge, unabhängig von der Höhe
+    c.dataset.stcol = String(col);
+    c.style.width = cw + "px";
+    c.style.left = col * (cw + ST_COL.gap) + "px";
+    c.style.top = tops[col] + "px";
+    tops[col] += c.offsetHeight + ST_COL.gap;
+  });
+  grid.style.height = Math.max(0, Math.max(...tops) - ST_COL.gap) + "px";
+}
+function stMasonryQueue() { if (!stMasonryRaf) stMasonryRaf = requestAnimationFrame(stMasonry); }
+function stMasonryWatch() {
+  const grid = $("#stGrid"); if (!grid) return;
+  if (typeof ResizeObserver === "function") {
+    if (!stMasonryRO) stMasonryRO = new ResizeObserver(stMasonryQueue);
+    stMasonryRO.disconnect();
+    stMasonryRO.observe(grid);
+    $$("#stGrid > .card").forEach((c) => stMasonryRO.observe(c));
+  }
+  stMasonry();
 }
 function stFoldSet(ids, on) {
   const open = new Set(LAYOUT.st_open || []);

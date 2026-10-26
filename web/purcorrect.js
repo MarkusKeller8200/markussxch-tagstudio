@@ -38,7 +38,7 @@ async function purCorrectOne(key) {
     name: `${r.artist} - ${r.title}${r.mix ? ` (${r.mix})` : ""}` };
   const more = purOpenList().length;
   const res = await modal({
-    title: `Korrigieren – ${head}`, wide: true,
+    title: `Korrigieren – ${head}`, wide: "xl",
     html: `<div class="pc-buy"><span class="muted sm">Kauf</span><b translate="no">${esc(r.artist)} – ${esc(r.title)}${r.mix ? ` (${esc(r.mix)})` : ""}</b>
         <span class="muted sm">${[fmtD(r.dur), r.key || "", r.bpm ? `${Math.round(r.bpm)} BPM` : "", r.catalog].filter(Boolean).map(esc).join(" · ")}</span></div>
       <p class="muted sm" style="margin:6px 0 8px">${esc(help)}${r.reason ? ` <span class="pc-why">(${esc(r.reason)})</span>` : ""}${c.strict ? ' · <span class="pc-strict">Abgleich streng</span>' : ""}</p>

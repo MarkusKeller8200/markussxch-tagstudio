@@ -333,7 +333,16 @@ catalogue number, link, purchase date) and `store_download(ctx, items, dest)` (d
 
 **Writing API tester (#350, plugin 2.1):** in the integration window › API tester, POST, PATCH and DELETE can be chosen
 too (marked ⚠, body as JSON). They are only sent after confirmation; every call is in the log (Plugins › Beatport) with
-method, address, headers, body, status, response headers and response – token and cookies blacked out.
+method, address, headers, body, status, response headers and response – token and cookies blacked out. **Plugin 2.3
+(#356/#357):** the PATCH endpoints too (e.g. rename playlist, move track; account, e-mail and streaming settings with a
+clear warning) – deleting the account, deleting genres and sign-in stay locked. Below the body, **“Possible values”** lists
+the fields (name, type, required, description): first from the plugin description, with **“Load from service”** current
+from the service (OPTIONS – changes nothing). “Insert” adds one field with a sample value, “Insert all values” all
+writable ones, “Insert example” sets a whole example body, “Format” indents; the body is checked as JSON while typing.
+
+For your own plugins: endpoints with a body may set `"body"` (example object), `"fields"` (list `{name, type, required,
+help, example, choices}`) and `"danger": true` (clear warning); `services.api_fields` queries the fields via `api_request`
+with method OPTIONS (Django REST format `actions`) and otherwise falls back to `"fields"`.
 
 **Creating playlists in Beatport (#334/#335, plugin 2.0):** only when **“Create and fill playlists in Beatport”** is
 switched on under “Settings …” (off by default) and only on click in Purchases › “Beatport playlists ▾”:

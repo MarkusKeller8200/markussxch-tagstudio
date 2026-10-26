@@ -75,12 +75,14 @@ async function svcOpen(pid, tab = "ep", eid = "") {
         if (e.target.closest("#svcApiClear")) { svcApiClear(b, true); }
         if (e.target.closest("#svcApiEx")) { svcApiClear(b, false); }
         if (e.target.closest("#svcApiRun")) svcApiRun(b);
+        if (e.target.closest("#svcFields")) { svcFieldsClick(b, e); return; }       // #356
         if (e.target.closest("#svcAccRun")) svcAccRun(b);
         const af = e.target.closest("[data-accf]");
         if (af) { SVC.accF = SVC.accF === af.dataset.accf ? "" : af.dataset.accf; $("#svcAccOut", b).innerHTML = svcAccOut(); return; }
         if (e.target.closest("#svcApiCopy")) { const pre = $("#svcApiBody", b); if (pre) navigator.clipboard?.writeText(pre.textContent).then(() => toast("Antwort kopiert.")); }
       });
       b.addEventListener("change", (e) => { if (e.target.id === "svcApiEp") { SVC.lastEp = e.target.value; svcRender(b); } });
+      b.addEventListener("input", (e) => { if (e.target.id === "svcApiReq") svcBodyChanged(b); });   // #356: JSON laufend prüfen
       b.addEventListener("keydown", (e) => {
         if (e.key !== "Enter" || e.target.tagName !== "INPUT") return;
         e.preventDefault(); e.stopPropagation();
@@ -187,12 +189,103 @@ function svcApiHtml(d) {
         return `<optgroup label="${SVC_ST[st][0]}">${g.map((e) => `<option value="${esc(e.id)}" ${e.id === ep.id ? "selected" : ""}>${e.write ? "⚠ " : ""}${esc(e.method)} ${esc(e.path)} – ${esc(e.label)}</option>`).join("")}</optgroup>`; }).join("")}</select>
       ${ep.params.map((p) => `<label for="svcP-${esc(p.name)}">${esc(p.label)}${p.required ? " *" : ""}${p.in === "path" ? ' <span class="faint">(Pfad)</span>' : ""}</label>
         <input id="svcP-${esc(p.name)}" data-ap="${esc(p.name)}" value="${esc(vals[p.name] ?? (p.example || p.default))}" placeholder="${esc(p.example || "")}" spellcheck="false">`).join("")}
-      ${ep.write && ep.method !== "DELETE" ? `<label for="svcApiReq">Body (JSON)</label><textarea id="svcApiReq" data-ap="_body" class="inp mono" rows="5" spellcheck="false" placeholder="{&quot;name&quot;: &quot;TagStudio_Test&quot;}">${esc(bodyVal)}</textarea>` : ""}
-      ${ep.write ? '<span></span><div class="pc-why sm">⚠ Schreibende Anfrage – ändert dein Konto beim Dienst. Vor dem Senden kommt eine Rückfrage.</div>' : ""}
+      ${ep.write && ep.method !== "DELETE" ? `<label for="svcApiReq">Body (JSON)</label><div><textarea id="svcApiReq" data-ap="_body" class="inp mono" rows="6" spellcheck="false" placeholder="{&quot;name&quot;: &quot;TagStudio_Test&quot;}">${esc(bodyVal)}</textarea>
+        <div class="sm svc-json" id="svcJsonState">${svcJsonState(bodyVal)}</div></div>
+        <span class="svc-fld-l">Mögliche Werte</span>${svcFieldsBox(d, ep)}` : ""}
+      ${ep.write ? `<span></span><div class="pc-why sm">⚠ Schreibende Anfrage – ändert dein Konto beim Dienst. Vor dem Senden kommt eine Rückfrage.${ep.danger ? " <b>Achtung: betrifft dein Konto bzw. deine Einstellungen direkt.</b>" : ""}</div>` : ""}
       <span></span><div class="svc-btns"><button class="primary sm" id="svcApiRun">Senden</button>
         ${ep.params.length ? '<button class="ghost sm" id="svcApiClear" title="Eingaben leeren – feste Vorgaben wie fmt=json bleiben">Felder löschen</button>' : ""}
         ${hasEx ? '<button class="ghost sm" id="svcApiEx" title="Beispielwerte, die ein Resultat liefern">Beispiel einsetzen</button>' : ""}</div></div>
     <div id="svcApiOut">${(SVC.apiOut || {})[ep.id] || ""}</div></div>`;
+}
+
+// #356: Body-Editor – mögliche Werte (Felder) aus der Plugin-Beschreibung bzw. beim Dienst per OPTIONS
+function svcJsonState(txt) {
+  const t = String(txt || "").trim();
+  if (!t) return '<span class="muted">leer – „Einfügen“ übernimmt Felder mit Beispielwert</span>';
+  try { const v = JSON.parse(t); return v && typeof v === "object" ? '<span class="svc-ok">✓ gültiges JSON</span>' : '<span class="svc-bad">⚠ Der Body muss ein JSON-Objekt sein.</span>'; }
+  catch (e) { return `<span class="svc-bad">⚠ Kein gültiges JSON: ${esc(e.message)}</span>`; }
+}
+function svcFieldEx(f) {
+  if (f.example !== null && f.example !== undefined) return f.example;
+  if (f.choices && f.choices.length) return f.type === "multiple choice" ? [f.choices[0].value] : f.choices[0].value;
+  return ({ integer: 0, float: 0, decimal: 0, boolean: false, list: f.child === "integer" ? [0] : [], "multiple choice": [],
+    "nested object": {}, object: {}, datetime: "2026-01-01T00:00:00Z", date: "2026-01-01" })[f.type] ?? "";
+}
+function svcFieldsState(d, ep) {
+  const key = d.id + "/" + ep.id;
+  SVC.fields = SVC.fields || {};
+  if (!SVC.fields[key]) SVC.fields[key] = { fields: ep.fields || [], source: (ep.fields || []).length ? "plugin" : "", note: "" };
+  return SVC.fields[key];
+}
+function svcFieldsBox(d, ep) {
+  const st = svcFieldsState(d, ep), fs = st.fields;
+  const src = st.source === "service" ? `Felder vom Dienst (OPTIONS${st.allow ? ` · erlaubt: ${esc(st.allow)}` : ""})`
+    : st.source === "plugin" ? "Felder aus der Plugin-Beschreibung – „Vom Dienst laden“ fragt die aktuellen ab" : "Noch keine Felder bekannt – „Vom Dienst laden“";
+  const desc = (f) => [f.label && f.label !== f.name ? f.label : "", f.help, f.max_length ? `max. ${f.max_length} Zeichen` : "",
+    f.choices && f.choices.length ? "Werte: " + f.choices.map((c) => `${c.value}${c.label !== String(c.value) ? ` (${c.label})` : ""}`).join(", ") : ""].filter(Boolean).join(" · ");
+  return `<div class="svc-fields" id="svcFields">
+    <div class="svc-btns"><button class="ghost sm" id="svcFldLoad" title="OPTIONS-Anfrage – ändert nichts, keine Rückfrage">Vom Dienst laden</button>
+      ${ep.body ? '<button class="ghost sm" id="svcFldEx" title="Body durch ein Beispiel ersetzen">Beispiel einfügen</button>' : ""}
+      ${fs.some((f) => !f.read_only) ? '<button class="ghost sm" id="svcFldAll" title="Alle beschreibbaren Felder mit Beispielwert ergänzen (vorhandene bleiben)">Alle Werte einfügen</button>' : ""}
+      <button class="ghost sm" id="svcFldFmt">Formatieren</button></div>
+    <div class="muted sm">${src}${st.note ? ` · ${esc(st.note)}` : ""}</div>
+    ${fs.length ? `<div class="fx-table svc-table"><table><thead><tr><th>Feld</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th><th></th></tr></thead><tbody>
+      ${fs.map((f) => `<tr${f.read_only ? ' class="muted"' : ""}><td><code translate="no">${esc(f.name)}</code></td><td class="sm" translate="no">${esc(f.type)}${f.child ? ` (${esc(f.child)})` : ""}</td>
+        <td>${f.required ? "✓" : ""}</td><td class="sm">${esc(desc(f))}</td>
+        <td>${f.read_only ? '<span class="sm">nur lesen</span>' : `<button class="ghost sm" data-fins="${esc(f.name)}" title="Feld mit Beispielwert in den Body einfügen">Einfügen</button>`}</td></tr>`).join("")}</tbody></table></div>` : ""}</div>`;
+}
+/** Body lesen; ungültiges JSON → Hinweis, null */
+function svcBodyObj(b) {
+  const ta = $("#svcApiReq", b), t = ta.value.trim();
+  if (!t) return {};
+  try { const v = JSON.parse(t); if (v && typeof v === "object" && !Array.isArray(v)) return v; } catch { /* unten */ }
+  info("Body ist kein gültiges JSON", "Bitte zuerst den Body korrigieren (oder leeren) – dann lassen sich Felder einfügen.");
+  return null;
+}
+function svcBodySet(b, obj) {
+  const ta = $("#svcApiReq", b);
+  ta.value = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+  svcBodyChanged(b);
+}
+function svcBodyChanged(b) {
+  const ta = $("#svcApiReq", b); if (!ta) return;
+  const key = SVC.detail.id + "/" + $("#svcApiEp", b).value;
+  SVC.apiVals[key] = { ...(SVC.apiVals[key] || {}), _body: ta.value };
+  $("#svcJsonState", b).innerHTML = svcJsonState(ta.value);
+}
+async function svcFieldsClick(b, e) {
+  const d = SVC.detail, ep = d.endpoints.find((x) => x.id === $("#svcApiEp", b).value);
+  if (!ep || !$("#svcFields", b)) return false;
+  const st = svcFieldsState(d, ep);
+  const ins = e.target.closest("[data-fins]");
+  if (ins) {
+    const o = svcBodyObj(b); if (!o) return true;
+    const f = st.fields.find((x) => x.name === ins.dataset.fins);
+    if (f) { o[f.name] = svcFieldEx(f); svcBodySet(b, o); }
+    return true;
+  }
+  if (e.target.closest("#svcFldAll")) {
+    const o = svcBodyObj(b); if (!o) return true;
+    [...st.fields].filter((f) => !f.read_only).sort((x, y) => (y.required ? 1 : 0) - (x.required ? 1 : 0))
+      .forEach((f) => { if (!(f.name in o)) o[f.name] = svcFieldEx(f); });
+    svcBodySet(b, o); return true;
+  }
+  if (e.target.closest("#svcFldEx")) { svcBodySet(b, ep.body); return true; }
+  if (e.target.closest("#svcFldFmt")) { const o = svcBodyObj(b); if (o) svcBodySet(b, o); return true; }
+  if (e.target.closest("#svcFldLoad")) {
+    const params = {};
+    b.querySelectorAll("[data-ap]").forEach((i) => { if (i.dataset.ap !== "_body") params[i.dataset.ap] = i.value; });
+    const r = await svcTask(call("start_service_fields", d.id, ep.id, params), $("#svcApiOut", b));
+    if (!r) return true;
+    SVC.fields[d.id + "/" + ep.id] = { fields: r.fields || [], source: r.source, note: r.note, allow: r.allow };
+    const body = $("#svcApiReq", b).value;
+    svcRender(b);
+    $("#svcApiReq", b).value = body; svcBodyChanged(b);
+    toast(r.source === "service" ? `${fmtN(r.fields.length)} Feld(er) vom Dienst.` : (r.note || "Keine Felder vom Dienst."));
+    return true;
+  }
+  return false;
 }
 
 async function svcApiRun(b) {
@@ -202,7 +295,7 @@ async function svcApiRun(b) {
   const ep = SVC.detail.endpoints.find((e) => e.id === eid);
   if (ep && ep.write) {                                                        // #350: nur nach ausdrücklicher Rückfrage
     const ok = await dialog({ title: `${ep.method} senden?`,
-      text: `${ep.method} ${ep.path} ändert dein Konto bei ${SVC.detail.name}. Wirklich senden?`,
+      text: `${ep.method} ${ep.path} ändert dein Konto bei ${SVC.detail.name}.${ep.danger ? " Achtung: betrifft dein Konto bzw. deine Einstellungen direkt." : ""} Wirklich senden?`,
       buttons: [{ label: "Abbrechen", value: false }, { label: "Senden", value: true, primary: true }] });
     if (!ok) return;
     params._confirm = "yes";

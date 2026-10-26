@@ -1,8 +1,26 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-26 (früher Morgen): 4.12.0 – Meilenstein #28 umgesetzt; geschlossen nach Test: #332, #344, #337, #340–#343, #339, #336, #338, #321; im Beta-Test: #333, #334, #335, #345–#352; #186 Konzept wartet auf I1–I6** (vorher 23:10: v4.11.0 final, Meilenstein #28 angelegt, Reihenfolge freigegeben) – Neuer Chat: Abschnitt „Übergabe-Prompt 4.12.0“ (unten); Details „Start 4.12.0“.
+Stand: **2026-10-26 (01:10–): 4.12.0 – geschlossen nach Test: #332, #333, #336–#344, #346–#352, #321; im Beta-Test: #334, #335, #345, #353–#358; #186 Konzept wartet auf I1–I6** (vorher 23:10: v4.11.0 final, Meilenstein #28 angelegt, Reihenfolge freigegeben) – Neuer Chat: Abschnitt „Übergabe-Prompt 4.12.0“ (unten); Details „Start 4.12.0“.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Sitzung 26.10.2026 (01:10) – zweite Testrunde
+
+- Geschlossen (Testliste abgehakt): #333, #346, #347, #348, #349, #350, #351, #352. Rückmeldungen als neue Issues
+  (Meilenstein #28), umgesetzt, `_3 Beta-Test`:
+  - **#353** Linksklick auf unklaren Einkauf → Korrektur (`purchases.js` Klick-Handler, Klasse `pur-clickfix`),
+    Rechtsklick immer Kontextmenü (ersetzt #346).
+  - **#354** Korrekturfenster `modal({ wide: "xl" })` → `.modal-dlg.wide.xwide` 1500 px.
+  - **#355** Best Match nur Symbol (`COLFIT_ICON`, `COLFIT_TIP` in colresize.js); Tagger: `#tgBestMatch` im ersten
+    Kopffeld, `tgBestMatch()` misst die Dateinamen (Canvas) und setzt `tg_col_name`, `tg_fit = "fit"`.
+  - **#356** Body-Editor: `services.clean_fields/field_example/body_template/api_fields`, `Manager.api_fields`,
+    `Session.start_service_fields` (Api-Liste), JS `svcFieldsBox/svcFieldsClick/svcJsonState`; plugin.json-Endpunkte
+    mit `body`, `fields`, `danger`.
+  - **#357** PATCH testbar (Beatport **2.3**, neu `my-playlists-update` PATCH `/my/playlists/{id}/`); gesperrt bleiben
+    `my-beatport-delete`, `my-genres-id`, `auth-*`.
+  - **#358** Einstellungen: CSS-Spalten ersetzt durch `stMasonry()` (feste Spalte je Kachel nach Reihenfolge,
+    absolut positioniert, ResizeObserver) – Selektoren `#stGrid > .card` bleiben gültig.
+- Beim Release: Plugin-ZIP Beatport **2.3**.
 
 ## Sitzung 26.10.2026 (00:11–01:00) – Rückmeldungen aus dem Test
 
@@ -23,7 +41,7 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   - **#352** Plugin-Kategorie **Shop-API**: `plugins.CATEGORIES["shop"]`, `plugin.json` `"categories"` (Zusatzkategorien,
     `d["categories"]`/`category_labels`), Katalog trägt `categories`; Beatport **2.2** `["online","shop"]`.
 - **Offen beim User:** Label „_2%20in%20Arbeit“ wurde versehentlich angelegt (URL-kodiert) – Löschen nur nach Freigabe.
-- Beim Release: Plugin-ZIP Beatport **2.2**.
+- (Beatport-Version inzwischen 2.3, siehe oben.)
 
 ## Sitzung 25.10.2026 (Nacht) – 4.12.0 in Arbeit
 

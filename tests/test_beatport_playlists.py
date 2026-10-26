@@ -184,3 +184,45 @@ class TestApiTesterWrite(unittest.TestCase):
         de = next(e for e in svc["endpoints"] if e["method"] == "DELETE" and e["path"] == "/my/playlists/{id}/")
         services.api_call(P(), self.ctx, de["id"], {"id": "1", "_confirm": "yes"}, "UA")
         self.assertNotIn(1, self.api.pl)
+
+    def test_fields_editor_and_patch(self):
+        """#356: Felder per OPTIONS (ändert nichts, ohne Bestätigung), Rückfall auf plugin.json; #357: PATCH testbar."""
+        import services
+        raw = json.load(open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                          "plugins", "beatport", "plugin.json"), encoding="utf-8"))["service"]
+        svc = services.clean(raw)
+
+        class P:
+            service = svc
+
+            def load(_s):
+                return self.bp
+        r = services.api_fields(P(), self.ctx, "my-playlists-create", {})
+        self.assertEqual((r["source"], [f["name"] for f in r["fields"]]), ("service", ["name"]))
+        self.assertEqual(json.loads(r["template"]), {"name": ""})
+        self.assertIn("POST", r["allow"])
+        self.assertEqual([c[0] for c in self.api.calls], ["OPTIONS"])                 # nur OPTIONS, nichts geschrieben
+        self.assertIn("OPTIONS https://api.beatport.com/v4/my/playlists/", "\n".join(self.ctx.logs))
+        r = services.api_fields(P(), self.ctx, "my-playlists-update", {})             # Pfad-ID fehlt → plugin.json
+        self.assertEqual(r["source"], "plugin")
+        self.assertIn("id", r["note"])
+        self.assertEqual(json.loads(r["example"]), {"name": "TagStudio_Test_neu"})
+        with self.assertRaises(ValueError):
+            services.api_fields(P(), self.ctx, "my-playlists-delete", {"id": "1"})    # DELETE hat keinen Body
+        eps = {e["id"]: e for e in svc["endpoints"]}
+        patch = [e for e in svc["endpoints"] if e["method"] == "PATCH"]
+        self.assertTrue(patch and all(e["test"] and e["write"] for e in patch))
+        self.assertTrue(eps["my-account-myaccount"]["danger"])
+        for eid in ("my-beatport-delete", "my-genres-id", "auth-token", "auth-login", "auth-revoke"):
+            self.assertFalse(eps[eid]["test"], eid)                                     # bleiben gesperrt
+        r = services.api_call(P(), self.ctx, "my-playlists-update", {"id": "1", "_body": '{"name": "TagStudio_X"}', "_confirm": "yes"}, "UA")
+        self.assertEqual(self.api.calls[-1][:2], ("PATCH", "/my/playlists/1/"))
+
+    def test_clean_fields(self):
+        import services
+        fs = services.clean_fields({"name": {"type": "string", "required": True, "max_length": 255, "help_text": "h"},
+                                    "kind": {"type": "choice", "choices": [{"value": "a", "display_name": "A"}]},
+                                    "ids": {"type": "list", "child": {"type": "integer"}},
+                                    "id": {"type": "integer", "read_only": True}, "bad name": {"type": "x"}})
+        self.assertEqual([f["name"] for f in fs], ["name", "kind", "ids", "id"])
+        self.assertEqual(services.body_template(fs), {"name": "", "kind": "a", "ids": [0]})

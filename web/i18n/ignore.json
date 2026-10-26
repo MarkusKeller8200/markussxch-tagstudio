@@ -507,5 +507,7 @@
 "Allow",
 "Käufe",
 "(keine)",
-"button, input, select, a, label"
+"button, input, select, a, label",
+"tbody tr[data-k]",
+"input, a, button, .col-grip"
 ]

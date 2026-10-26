@@ -323,7 +323,7 @@ Gekaufte Titel aller Stores an einem Ort – vorerst **Beatport** (Anmeldung im 
 Seitenleiste: Tabelle mit Titel, Interpret, Mix, Länge, Tonart, BPM, Katalognummer, Store, Kaufdatum (sofern der Store
 es liefert, sonst „zuerst gesehen“) und Link zum Store. Spaltenbreiten lassen sich am Rand der Spaltenköpfe ziehen
 (Doppelklick: passend zum Inhalt, ←/→ auf dem Griff; Rechtsklick auf die Kopfzeile: zurücksetzen) – TagStudio merkt
-sie sich, ebenso im Tag-Fixer. **„⇔ Best Match“** über der Tabelle verteilt die angezeigten Spalten nach Inhalt auf die
+sie sich, ebenso im Tag-Fixer. Das Symbol **⇔ „Best Match“** über der Tabelle (im Tagger links im Tabellenkopf) verteilt die angezeigten Spalten nach Inhalt auf die
 verfügbare Breite (fixe Spalten wie das Häkchen bleiben). Doppelklick auf einen gefundenen Einkauf spielt die Datei
 ab. **„↻ Aktualisieren“** holt neue Einkäufe und gleicht alles mit
 der Bibliothek ab: *in Bibliothek*, *im Eingang*, *unklar* oder *fehlt*. **„Fehlende herunterladen“** (bzw. die
@@ -338,8 +338,8 @@ von Beatport selbst lädst und mit „Abholen“ übernimmst. **„Beatport-Play
 Beatport die Playlist öffnen und alle in den Download übernehmen; „Playlists je Kaufdatum …“ legt
 `TagStudio_BUY_JJJJ_MM_TT` an bzw. ergänzt sie; „Aufräumen …“ löscht die Download-Playlists nach Rückfrage. Andere
 Playlists verändert TagStudio nie. **„Streng“** gleicht so ab, dass Künstler, Titel und Mix passen müssen – auch bei gleicher
-ISRC. **„Unklare prüfen …“** – bzw. mit markierten Zeilen „Markierte prüfen …“, ein Rechtsklick auf einen unklaren
-Einkauf (Umschalt+Rechtsklick: Kontextmenü) oder „Korrigieren …“ im Menü – öffnet ein Korrekturfenster je Grund: bei mehreren
+ISRC. **„Unklare prüfen …“** – bzw. mit markierten Zeilen „Markierte prüfen …“, ein Klick auf einen unklaren
+Einkauf (Rechtsklick: Kontextmenü) oder „Korrigieren …“ im Menü – öffnet ein breites Korrekturfenster je Grund: bei mehreren
 Treffern die Kandidaten mit ihren Tags zum Auswählen, bei anderem Mix Titel, Untertitel und Dateiname der Datei zum
 Anpassen („Wie der Kauf“, „Ändern und prüfen“ – mit Sicherung), bei anderem Künstler die Ähnlichkeit in Prozent;
 „Weiter ›“ springt zum nächsten unklaren Kauf. **„ZIP entpacken“** (Standard ein): neue ZIP-Dateien im
@@ -628,7 +628,7 @@ wird über die Profilwahl beim Start, eine Desktop-Verknüpfung oder `--profil N
 bisher `~/.tagstudio.json` und `~/TagStudio`.
 
 Die Seite **Einstellungen** fasst alles zusammen – Kacheln in der Reihenfolge des Menüs, standardmässig eingeklappt
-(Klick auf den Titel klappt auf/zu, gemerkt; oben „Alle ausklappen“/„Alle einklappen“), oben Sprungmarken, die die
+(Klick auf den Titel klappt auf/zu, gemerkt; oben „Alle ausklappen“/„Alle einklappen“; jede Kachel behält dabei ihre Spalte), oben Sprungmarken, die die
 Kachel öffnen:
 Darstellung · **Tagger** (Standardordner, Stems; *beim Start:* automatisch einlesen, Unterordner, Sortierung,
 Cover-Spalte, Herkunfts-Filter) · Tag-Fixer · **Vergleich** (Standardordner; *beim Start:* Unterordner, Zuordnen nach,

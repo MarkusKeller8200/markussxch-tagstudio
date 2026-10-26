@@ -542,7 +542,7 @@ function renderTgHead() {
   const mark = (k) => { const n = TG.sorts.findIndex((s) => s.col === k); if (n < 0) return ""; return (TG.sorts[n].dir > 0 ? " ▴" : " ▾") + (multi ? `<sup>${n + 1}</sup>` : ""); };
   const on = (k) => (TG.sorts.some((s) => s.col === k) ? "on" : "");
   const tip = "Klick: sortieren · Shift+Klick: weitere Sortierstufe (bis 3) · Ziehen: Spalte verschieben";
-  $("#tgHead").innerHTML = "<span></span>" + cols.map((k) => {
+  $("#tgHead").innerHTML = `<span class="tg-h0"><button class="tg-bm" id="tgBestMatch" type="button" title="${esc(COLFIT_TIP)}" aria-label="Best Match">${COLFIT_ICON}</button></span>` + cols.map((k) => {
     const d = tgColDef(k);
     const b = `<button data-sort="${esc(k)}" data-col="${esc(k)}" draggable="true" class="${on(k)}${d.num ? " num" : ""}" title="${esc(d.l + (d.key ? ` (${d.key})` : "") + "\n" + tip)}">${esc(d.l)}${mark(k)}</button>`;
     return k === "name" ? `<span class="th-name">${b}<span class="col-grip" id="tgNameGrip" role="separator" aria-orientation="vertical" aria-label="Breite der Spalte Datei" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: automatisch"></span></span>` : b;
@@ -557,6 +557,7 @@ function renderTgHead() {
     scroll = true; TG.autoScroll = true; setGrid();
   }
   tgHeadScrollSync();
+  $("#tgBestMatch").onclick = (e) => { e.stopPropagation(); tgBestMatch(); };   // #355
   const grip = $("#tgNameGrip");     // #41: Breite der Datei-Spalte
   if (!grip) return;
   const setW = (w) => { LAYOUT.tg_col_name = w ? clamp(Math.round(w), 110, 900) : 0; applyLayout(); };
@@ -808,6 +809,27 @@ function tgColsMenu(btn) {
     ...(LAYOUT.tg_view_default && LAYOUT.tg_view_default.cols ? [{ label: "Bevorzugte Ansicht laden", run: tgViewApply }] : []),
     { label: "Standard-Spalten wiederherstellen", run: () => tgSetCols(TG_DEFAULT_COLS.slice(), false) },
   ]);
+}
+/** #355: Best Match im Tagger – an das Fenster anpassen, Spalte „Datei“ so breit wie nötig (höchstens, was neben den
+    Mindestbreiten der übrigen Spalten Platz hat); die übrigen teilen sich den Rest. */
+function tgBestMatch() {
+  const head = $("#tgHead"), cols = tgCols(), fcols = tgFeatCols();
+  if (!cols.includes("name") || !head.clientWidth) return;
+  const nm = $(".tg-row .nm"), cs = getComputedStyle(nm || head);
+  const cv = tgBestMatch.cv || (tgBestMatch.cv = document.createElement("canvas")), g = cv.getContext("2d");
+  g.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  let need = 0;
+  TG.view.slice(0, 3000).forEach((v) => { const r = v.stem ? null : TG.rows[v.i]; if (r) need = Math.max(need, g.measureText(r.rel || r.name || "").width + (r.stems ? 90 : 0)); });
+  need = Math.ceil(need) + 30;                                         // Innenabstand, Aufklapp-Pfeil
+  const minOf = (spec) => { const m = /^(?:minmax\()?(\d+)px/.exec(spec || ""); return m ? +m[1] : 80; };
+  const others = cols.filter((k) => k !== "name").reduce((n, k) => n + minOf(tgColDef(k).fit), 0) + fcols.length * 52;
+  const gaps = (cols.length + fcols.length) * 10 + 24 + 22;
+  const room = head.clientWidth - others - gaps;
+  LAYOUT.tg_col_name = clamp(Math.round(Math.min(need, room)), 130, 900);
+  saveUi("tg_col_name");
+  LAYOUT.tg_fit = "fit"; call("set_ui", "tg_fit", "fit").catch(() => {});
+  applyLayout(); renderTgHead(); drawTgList();
+  toast("Spalten an die Breite angepasst.");
 }
 function tgSetFit(mode) {
   LAYOUT.tg_fit = mode; call("set_ui", "tg_fit", mode).catch(() => {});

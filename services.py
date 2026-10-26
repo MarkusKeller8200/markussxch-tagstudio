@@ -39,6 +39,72 @@ STATUS = {"full": "vollständig", "partial": "teilweise", "none": "nicht impleme
 AUTH = {"none": "ohne Anmeldung", "key": "eigener Schlüssel", "token": "eigener Token", "oauth": "Anmeldung (OAuth)",
         "local": "lokales Programm"}
 METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE"}
+BODY_METHODS = {"POST", "PUT", "PATCH"}
+FIELD_TYPES = {"string", "integer", "float", "decimal", "boolean", "list", "field", "choice", "multiple choice", "date",
+               "datetime", "time", "email", "url", "slug", "nested object", "file upload", "image upload", "object"}
+
+
+def clean_fields(raw) -> list:
+    """#356: Feldbeschreibungen für den Body-Editor – aus plugin.json ("fields": [{name, type, required, help …}]) oder
+    aus der OPTIONS-Antwort einer Django-REST-API ({"name": {"type", "required", "read_only", "label", "help_text",
+    "max_length", "choices": [{"value", "display_name"}], "child": {"type"}}})."""
+    items = []
+    if isinstance(raw, dict):
+        items = [dict(v, name=k) for k, v in raw.items() if isinstance(v, dict)]
+    elif isinstance(raw, list):
+        items = [x for x in raw if isinstance(x, dict)]
+    out = []
+    for f in items[:80]:
+        name = str(f.get("name") or "")
+        if not re.match(r"^[A-Za-z_][A-Za-z0-9_.-]{0,60}$", name):
+            continue
+        typ = str(f.get("type") or "string").lower()
+        child = f.get("child") if isinstance(f.get("child"), dict) else {}
+        ch = []
+        for c in (f.get("choices") or [])[:30]:
+            if isinstance(c, dict) and isinstance(c.get("value"), (str, int, float, bool)):
+                ch.append({"value": c["value"], "label": str(c.get("display_name") or c["value"])[:80]})
+            elif isinstance(c, (str, int, float)):
+                ch.append({"value": c, "label": str(c)[:80]})
+        ml = f.get("max_length")
+        out.append({"name": name, "type": typ if typ in FIELD_TYPES else "string",
+                    "child": str(child.get("type") or "")[:20],
+                    "required": bool(f.get("required")), "read_only": bool(f.get("read_only")),
+                    "label": str(f.get("label") or "")[:80], "help": str(f.get("help") or f.get("help_text") or "")[:300],
+                    "max_length": ml if isinstance(ml, int) and ml > 0 else None, "choices": ch,
+                    "example": f["example"] if isinstance(f.get("example"), (str, int, float, bool, list)) else None})
+    return out
+
+
+def field_example(f: dict):
+    """Beispielwert je Feldtyp für „Einfügen“."""
+    if f.get("example") is not None:
+        return f["example"]
+    if f.get("choices"):
+        v = f["choices"][0]["value"]
+        return [v] if f["type"] == "multiple choice" else v
+    t = f.get("type")
+    if t == "integer":
+        return 0
+    if t in ("float", "decimal"):
+        return 0.0
+    if t == "boolean":
+        return False
+    if t in ("list", "multiple choice"):
+        return [0] if f.get("child") == "integer" else []
+    if t in ("nested object", "object"):
+        return {}
+    if t == "datetime":
+        return "2026-01-01T00:00:00Z"
+    if t == "date":
+        return "2026-01-01"
+    return ""
+
+
+def body_template(fields: list) -> dict:
+    """Alle beschreibbaren Felder mit Beispielwert – Pflichtfelder zuerst."""
+    fs = [f for f in fields if not f.get("read_only")]
+    return {f["name"]: field_example(f) for f in sorted(fs, key=lambda f: not f.get("required"))}
 MAX_BODY = 300_000                     # Zeichen der Antwort im Tester
 _ID = re.compile(r"^[a-z0-9][a-z0-9_.:-]{0,60}$")
 
@@ -88,10 +154,17 @@ def clean(raw) -> dict | None:
             if not any(p["name"] == name for p in params):
                 params.append({"name": name, "label": name, "default": "", "example": "", "required": True, "in": "path"})
         status = e.get("status") if e.get("status") in STATUS else "none"
+        body_ex = ""                                                        # #356: Beispiel-Body (JSON-Objekt)
+        if isinstance(e.get("body"), (dict, list)):
+            body_ex = json.dumps(e["body"], ensure_ascii=False, indent=2)
+            body_ex = body_ex if len(body_ex) <= 2000 else ""
         out["endpoints"].append({
             "id": eid, "method": method, "path": path, "label": str(e.get("label") or path)[:120],
             "status": status, "use": str(e.get("use") or "")[:200], "note": str(e.get("note") or "")[:300],
             "params": params,
+            "body": body_ex if method in BODY_METHODS else "",
+            "fields": clean_fields(e.get("fields")) if method in BODY_METHODS else [],
+            "danger": bool(e.get("danger")),                                # #357: z. B. Konto ändern – deutlich warnen
             "write": method != "GET",
             "test": (method == "GET" or bool(raw.get("write_test"))) and e.get("test", True) is not False})
     return out
@@ -260,6 +333,44 @@ def api_call(plugin, ctx, eid: str, params: dict, user_agent: str) -> dict:
     res = format_response(status, headers, body, url, (time.monotonic() - t0) * 1000, secrets)
     res["retries"] = 0 if callable(custom) else retries
     return res
+
+
+def api_fields(plugin, ctx, eid: str, params: dict) -> dict:
+    """#356: Mögliche Werte eines schreibenden Endpunkts. Zuerst beim Dienst per OPTIONS (ändert nichts – Django REST
+    liefert unter "actions" die Felder für POST bzw. PUT/PATCH), sonst die Beschreibung aus plugin.json."""
+    svc = plugin.service
+    if not svc:
+        raise ValueError("Dieses Plugin beschreibt keinen Dienst.")
+    ep = next((e for e in svc["endpoints"] if e["id"] == eid), None)
+    if ep is None:
+        raise ValueError(f"Endpunkt „{eid}“ nicht gefunden.")
+    if ep["method"] not in BODY_METHODS or not ep["test"]:
+        raise ValueError("Dieser Endpunkt hat keinen Body.")
+    mod = plugin.load()
+    custom = getattr(mod, "api_request", None) if mod is not None else None
+    fields, source, note, allow, status = [], "plugin", "", "", 0
+    if callable(custom):
+        p = {k: v for k, v in (params or {}).items() if not str(k).startswith("_")}
+        try:
+            status, headers, body, _url = custom(ctx, dict(ep, method="OPTIONS"), p)
+            allow = str({str(k).lower(): v for k, v in (headers or {}).items()}.get("allow") or "")
+            data = json.loads((body or b"{}").decode("utf-8", "replace") or "{}") if 200 <= status < 300 else {}
+            acts = data.get("actions") if isinstance(data, dict) and isinstance(data.get("actions"), dict) else {}
+            spec = acts.get(ep["method"]) or acts.get("PUT") or acts.get("POST") or {}
+            fields = clean_fields(spec)
+            if fields:
+                source = "service"
+            else:
+                note = f"Der Dienst nennt keine Felder (HTTP {status})." + (f" Erlaubt: {allow}." if allow else "")
+        except (ValueError, OSError, KeyError, TypeError) as ex:
+            note = f"Abfrage beim Dienst nicht möglich: {ex}"
+    else:
+        note = "Dieses Plugin kann die Felder nicht beim Dienst abfragen."
+    if not fields:
+        fields = ep.get("fields") or []
+    return {"fields": fields, "source": source if fields else "", "note": note, "allow": allow, "status": status,
+            "template": json.dumps(body_template(fields), ensure_ascii=False, indent=2) if fields else "",
+            "example": ep.get("body") or ""}
 
 
 # =========================================================================== #297: Zugriff prüfen

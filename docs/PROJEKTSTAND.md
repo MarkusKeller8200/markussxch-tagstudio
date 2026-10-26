@@ -1,6 +1,10 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-26 (früher Morgen): nach dem ersten Test geschlossen #332, #344, #337, #340–#343, #339, #336, #338, #321;
+> Stand 2026-10-26 (01:10, zweite Testrunde): geschlossen #333, #346–#352; neu im Beta-Test #353 Linksklick → Korrektur,
+> #354 Korrekturfenster breiter, #355 Best Match nur Symbol (auch Tagger), #356 API-Tester Werte-Editor, #357 PATCH
+> (Beatport 2.3), #358 Einstellungen feste Spalten; weiter im Beta-Test #334, #335, #345; #186 wartet auf I1–I6.
+>
+> Davor 2026-10-26 (früher Morgen): nach dem ersten Test geschlossen #332, #344, #337, #340–#343, #339, #336, #338, #321;
 > neu umgesetzt und im Beta-Test #345 Markierte prüfen, #346 Rechtsklick → Korrektur, #347 „Best Match“ (Spalten),
 > #348 „Einkäufe“, #349 Doppelklick spielt ab, #350 API-Tester POST/DELETE (Beatport 2.1), #351 Einstellungen klappbar,
 > #352 Kategorie Shop-API (Beatport 2.2); weiterhin im Beta-Test #333, #334, #335; #186 wartet auf I1–I6.

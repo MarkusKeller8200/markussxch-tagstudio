@@ -724,6 +724,17 @@ class Manager:
             res["logfile"] = write_log(f"{p.id}.log", "API-Tester\n" + "\n".join(ctx.log_lines))
         return res
 
+    def api_fields(self, pid, eid, params, session=None, cancel=None, progress=None) -> dict:
+        """#356: mögliche Werte (Felder) eines schreibenden Endpunkts – OPTIONS beim Dienst, sonst plugin.json."""
+        import services
+        p = self.service_plugin(pid)
+        ctx = Context(p, session, cancel, progress)
+        res = services.api_fields(p, ctx, eid, params or {})
+        res["log"] = ctx.log_lines
+        if ctx.log_lines:
+            res["logfile"] = write_log(f"{p.id}.log", "API-Tester – Felder\n" + "\n".join(ctx.log_lines))
+        return res
+
     def access_check(self, pid, session=None, cancel=None, progress=None) -> dict:
         """#297: Welche Endpunkte erlaubt die aktuelle Anmeldung? (nur GET). Optional access_info(ctx) → Text
         (z. B. Berechtigungen/Scope des Tokens)."""

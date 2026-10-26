@@ -129,6 +129,11 @@ Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
   und nur über `api_request` des Plugins; „Zugriff prüfen“ bleibt rein lesend. Beatport protokolliert jeden Aufruf mit
   Methode, Adresse, Kopfzeilen, Body, Status, Antwort-Kopfzeilen und Antwort (Token/Cookies geschwärzt);
   `Manager.api_call` schreibt die Zeilen ins Plugin-Protokoll.
+- **Body-Editor und PATCH (#356/#357, Beatport 2.3):** Endpunkte mit Body tragen `body` (Beispiel), `fields` und
+  `danger`; `services.clean_fields` normalisiert Feldlisten aus plugin.json bzw. die OPTIONS-Antwort (`actions` von
+  Django REST), `services.api_fields` → `Manager.api_fields` → `Session.start_service_fields` holt sie (nur OPTIONS, ohne
+  Bestätigung). Die Oberfläche fügt Felder mit Beispielwert ein (`body_template` bzw. `svcFieldEx`). PATCH-Endpunkte sind
+  testbar; Konto löschen, Genres löschen und Anmelde-Endpunkte bleiben `"test": false`.
 - **Zugriff prüfen (#297):** `services.access_check(plugin, ctx, ua)` ruft alle GET-Endpunkte (ohne `/auth/…` und
   `…/download/`) mit `api_request` des Plugins bzw. `get_retry` auf, Listen zuerst; die erste `id` einer Antwort füllt
   Platzhalter der Unterpfade (je Platzhalter der Pfad davor), `{num}` = 10. Einordnung 2xx Zugriff, 400/405/422

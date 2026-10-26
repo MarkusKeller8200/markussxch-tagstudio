@@ -340,7 +340,16 @@ Katalognummer, Link, Kaufdatum) und `store_download(ctx, items, dest)` (fehlende
 **API-Tester schreibend (#350, Plugin 2.1):** Im Integrationsfenster › API-Tester sind auch POST, PATCH und DELETE
 wählbar (mit ⚠ markiert, Body als JSON). Gesendet wird erst nach einer Rückfrage; jeder Aufruf steht mit Methode,
 Adresse, Kopfzeilen, Body, Status, Antwort-Kopfzeilen und Antwort im Protokoll (Plugins › Beatport) – Token und Cookies
-geschwärzt.
+geschwärzt. **Plugin 2.3 (#356/#357):** auch die PATCH-Endpunkte (u. a. Playlist umbenennen, Titel verschieben; Konto,
+E-Mail- und Streaming-Einstellungen deutlich gewarnt) – Konto löschen, Genres löschen und Anmeldung bleiben gesperrt.
+Unter dem Body zeigt **„Mögliche Werte“** die Felder (Name, Typ, Pflicht, Beschreibung): zuerst aus der Plugin-Beschreibung,
+mit **„Vom Dienst laden“** aktuell vom Dienst (OPTIONS – ändert nichts). „Einfügen“ ergänzt ein Feld mit Beispielwert,
+„Alle Werte einfügen“ alle beschreibbaren, „Beispiel einfügen“ setzt einen ganzen Beispiel-Body, „Formatieren“ rückt ein;
+der Body wird laufend als JSON geprüft.
+
+Für eigene Plugins: Endpunkte mit Body dürfen `"body"` (Beispiel-Objekt), `"fields"` (Liste `{name, type, required,
+help, example, choices}`) und `"danger": true` (deutliche Warnung) angeben; `services.api_fields` fragt die Felder per
+`api_request` mit Methode OPTIONS ab (Django-REST-Format `actions`) und fällt sonst auf `"fields"` zurück.
 
 **Playlists in Beatport anlegen (#334/#335, Plugin 2.0):** Nur wenn unter „Einstellungen …“ **„Playlists in Beatport
 anlegen und befüllen“** eingeschaltet ist (Standard aus) und nur auf Klick in Einkäufe › „Beatport-Playlists ▾“:

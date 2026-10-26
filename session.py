@@ -2951,6 +2951,19 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return self.plugins.api_call(pid, str(eid), params, self, cancel, progress)
         return self._run("service_api", "API-Abfrage", job)
 
+    def start_service_fields(self, pid, eid, params):
+        """#356: API-Tester – mögliche Werte eines schreibenden Endpunkts holen (OPTIONS, ändert nichts)."""
+        try:
+            self.plugins.service_plugin(pid)
+        except (KeyError, ValueError) as ex:
+            return {"ok": False, "error": str(ex)}
+        params = {str(k): str(v) for k, v in (params or {}).items()} if isinstance(params, dict) else {}
+
+        def job(cancel, progress):
+            progress(("text", "Felder werden abgefragt …"))
+            return self.plugins.api_fields(pid, str(eid), params, self, cancel, progress)
+        return self._run("service_fields", "Felder abfragen", job)
+
     def start_service_access(self, pid):
         """#297: Zugriff prüfen – alle lesenden Endpunkte mit der aktuellen Anmeldung einmal aufrufen."""
         try:

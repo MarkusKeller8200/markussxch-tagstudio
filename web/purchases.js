@@ -133,12 +133,12 @@ function purRenderTable() {
       const stc = r.preorder ? `<span class="pur-st pre">Vorbestellung</span>` : `<span class="pur-st ${r.status}" title="${esc([r.file || r.reason || "", r.received ? `Bei ${purStoreName(r.store)} schon heruntergeladen` : ""].filter(Boolean).join(" · "))}">${esc(PUR_STATUS[r.status] || r.status)}</span>`;
       const date = r.bought ? esc(r.bought.slice(0, 10)) : (r.seen ? `<span class="muted" title="Kein Kaufdatum vom Store – zuerst gesehen">${esc(new Date(r.seen * 1000).toLocaleDateString())}</span>` : "");
       const bpm = r.bpm ? (Math.round(r.bpm * 10) / 10).toString() : "";
-      return `<tr data-k="${esc(r.k)}" class="${PUR.sel.has(r.k) ? "sel" : ""}"><td><input type="checkbox" data-pursel ${PUR.sel.has(r.k) ? "checked" : ""}></td>
+      return `<tr data-k="${esc(r.k)}" class="${PUR.sel.has(r.k) ? "sel" : ""}${r.status === "unclear" && !r.preorder ? " pur-clickfix" : ""}"><td><input type="checkbox" data-pursel ${PUR.sel.has(r.k) ? "checked" : ""}></td>
         <td>${stc}</td><td class="nm" translate="no" title="${esc(r.title)}">${esc(r.title)}</td><td class="nm" translate="no" title="${esc(r.artist)}">${esc(r.artist)}</td>
         <td class="nm muted" translate="no">${esc(r.mix)}</td><td class="r muted">${r.dur ? fmtTime(r.dur) : ""}</td>
         <td>${r.key ? keyBadge(r.key) : ""}</td><td class="r">${bpm}</td><td translate="no">${esc(r.catalog)}</td>
         <td translate="no">${esc(purStoreName(r.store))}</td><td>${date}</td>
-        <td class="nm sm ${r.status === "unclear" ? "pur-why" : "muted"}" title="${esc([r.file, ...(r.cands || [])].filter(Boolean).join("\n"))}"${r.status === "library" || r.status === "inbox" ? ' translate="no"' : ""}>${r.linked ? "✓ " : ""}${esc(purHint(r))}</td>
+        <td class="nm sm ${r.status === "unclear" ? "pur-why" : "muted"}" title="${esc([r.status === "unclear" && !r.preorder ? "Klick: korrigieren · Rechtsklick: Menü" : "", r.file, ...(r.cands || [])].filter(Boolean).join("\n"))}"${r.status === "library" || r.status === "inbox" ? ' translate="no"' : ""}>${r.linked ? "✓ " : ""}${esc(purHint(r))}</td>
         <td>${r.url ? `<a href="#" class="pls-link" data-url="${esc(r.url)}" title="Bei ${esc(purStoreName(r.store))} öffnen">↗</a>` : ""}</td></tr>`;
     }).join("")}</tbody></table>${rows.length ? "" : '<div class="tg-empty">Keine Einkäufe für diesen Filter.</div>'}`;
   colResize(box.querySelector("table.pur-t"), "purchases");      // #337
@@ -265,14 +265,17 @@ function purInit() {
     if (th) { const k = th.dataset.pursort; PUR.sort = PUR.sort.k === k ? { k, desc: !PUR.sort.desc } : { k, desc: k === "bought" }; purRenderTable(); return; }
     if (e.target.id === "purAll") { const rows = purVisible(); if (e.target.checked) rows.forEach((r) => PUR.sel.add(r.k)); else rows.forEach((r) => PUR.sel.delete(r.k)); purRenderTable(); purRenderBar(); return; }
     const cb = e.target.closest("[data-pursel]");
-    if (cb) { const k = cb.closest("tr").dataset.k; if (cb.checked) PUR.sel.add(k); else PUR.sel.delete(k); cb.closest("tr").classList.toggle("sel", cb.checked); purRenderBar(); }
+    if (cb) { const k = cb.closest("tr").dataset.k; if (cb.checked) PUR.sel.add(k); else PUR.sel.delete(k); cb.closest("tr").classList.toggle("sel", cb.checked); purRenderBar(); return; }
+    // #353: Linksklick auf einen unklaren Einkauf öffnet die Korrektur (Häkchen, Links und Spaltengriffe ausgenommen)
+    const tr = e.target.closest("tbody tr[data-k]");
+    if (!tr || e.target.closest("input, a, button, .col-grip") || e.shiftKey || e.ctrlKey || e.metaKey) return;
+    const r = PUR.st.rows.find((x) => x.k === tr.dataset.k);
+    if (r && r.status === "unclear" && !r.preorder) purCorrect(r.k);
   });
   box.addEventListener("contextmenu", (e) => {
     const tr = e.target.closest("tr[data-k]"); if (!tr) return;
     e.preventDefault();
-    const r = PUR.st.rows.find((x) => x.k === tr.dataset.k);
-    if (r && r.status === "unclear" && !r.preorder && !e.shiftKey) { purCorrect(r.k); return; }   // #346: direkt korrigieren
-    purRowMenu(e, tr.dataset.k);
+    purRowMenu(e, tr.dataset.k);                                                // #353: Rechtsklick immer das Kontextmenü
   });
   box.addEventListener("dblclick", (e) => {                                    // #349: gefundene Titel abspielen
     const tr = e.target.closest("tr[data-k]");

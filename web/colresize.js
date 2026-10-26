@@ -97,6 +97,10 @@ function colBestMatch(table, tid) {
   colApply(table, tid);
 }
 
+/** #355: „Best Match“ nur als Symbol (Doppelpfeil zwischen zwei Linien) */
+const COLFIT_ICON = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5v14M21 5v14M7 12h10M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>';
+const COLFIT_TIP = "Best Match – angezeigte Spalten bestmöglich auf die Breite verteilen (fixe Spalten bleiben)";
+
 function colResize(table, tid) {
   if (!table || !tid) return;
   const ths = [...table.querySelectorAll(":scope > thead > tr:first-child > th")];
@@ -106,7 +110,7 @@ function colResize(table, tid) {
   if (!(prev && prev.classList.contains("col-fit-bar"))) {
     const bar = document.createElement("div");
     bar.className = "col-fit-bar";
-    bar.innerHTML = `<button class="ghost sm col-fit" type="button" title="Angezeigte Spalten bestmöglich auf die Breite verteilen (fixe Spalten bleiben)">⇔ Best Match</button>`;
+    bar.innerHTML = `<button class="ghost sm col-fit" type="button" title="${esc(COLFIT_TIP)}" aria-label="Best Match">${COLFIT_ICON}</button>`;
     table.before(bar);
   }
   ths.forEach((th, i) => {

@@ -8,6 +8,14 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Beatport-API-Tester: Werte-Editor und PATCH (#356, #357, Plugin 2.3):** unter dem Body „Mögliche Werte“ mit Feld,
+  Typ, Pflicht und Beschreibung (aus der Plugin-Beschreibung oder per OPTIONS „Vom Dienst laden“), „Einfügen“ je Feld,
+  „Alle Werte einfügen“, „Beispiel einfügen“, „Formatieren“, laufende JSON-Prüfung; PATCH-Endpunkte testbar (neu:
+  Playlist umbenennen), Konto-Endpunkte deutlich gewarnt, Konto löschen/Anmeldung bleiben gesperrt.
+- **Einkäufe: Linksklick auf unklaren Einkauf öffnet die Korrektur (#353)**, Rechtsklick wieder das Kontextmenü;
+  Korrekturfenster ca. 50 % breiter (#354).
+- **„Best Match“ nur noch als Symbol ⇔ (#355)**, neu auch im Tagger (links im Tabellenkopf: Spalte Datei so breit wie
+  nötig, ohne waagrechten Bildlauf).
 - **Plugins: neue Kategorie „Shop-API“ (#352):** ein Plugin kann mehreren Kategorien angehören (`plugin.json`
   `"categories"`); Beatport (Plugin 2.2) steht unter Online-API und Shop-API, Filter und Karte zeigen beide.
 - **Beatport: API-Tester auch schreibend (#350, Plugin 2.1):** POST, PATCH und DELETE im Integrationsfenster testbar –
@@ -61,6 +69,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Protokolle beim Beenden leeren (#332, Entwicklung):** Einstellungen › Expert – Schalter, Standard aus. Beim Beenden,
   Neustart und Update werden `app.log` und `app.log.1` geleert (nicht gelöscht), auf Wunsch auch die Plugin-Protokolle;
   die erste Zeile danach meldet „Protokoll beim letzten Beenden geleert (Entwicklermodus)“.
+
+### Behoben
+
+- **Einstellungen: Kacheln springen beim Auf-/Zuklappen nicht mehr in andere Spalten (#358)** – feste Spalte je
+  Kachel, nur darunterliegende rücken nach.
 
 ## [4.11.0] – 2026-10-25
 
