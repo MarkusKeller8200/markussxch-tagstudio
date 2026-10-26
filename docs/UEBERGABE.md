@@ -28,6 +28,13 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   **Beim nächsten Release:** `packaging/build.py` `--add-data` für `docs/HANDBUCH.md` und `docs/HANDBUCH.en.md` (sonst
   zeigt die installierte Hilfe die kurze Startseite) – zusammen mit `downloadstats` in `HIDDEN`. Bilder neu:
   `python tools/screenshots.py` (Playwright + ffmpeg). Themen (topics) und Vorschaubild: siehe Anleitung an den User.
+- **#374 macOS signieren + notarisieren** (18:35): vorbereitet auf Zweig **`macos-signing`** (73add7c): installer.yml
+  (Schlüsselbund aus Secrets, `TS_SIGN_ID`, notarytool-Umgebung, spctl-Prüfung, Aufräumen), `packaging/build.py`
+  (`--codesign-identity`, `--osx-entitlements-file`, App neu signieren mit Hardened Runtime), `packaging/make_dmg.sh`
+  (DMG signieren, notarytool submit --wait, staple; „Zuerst lesen“ je nach Signatur), `packaging/entitlements.plist`.
+  Secrets (setzt der User): `MACOS_CERT_P12`, `MACOS_CERT_PASSWORD`, `APPLE_API_KEY_ID`, `APPLE_API_ISSUER_ID`,
+  `APPLE_API_KEY_P8`. Anleitung im Issue. Nächster Schritt: Probe-Build per workflow_dispatch auf dem Zweig (nur mit
+  Freigabe), danach mit dem nächsten Release nach `main` mergen und Handbuch/README „Trotzdem öffnen“ anpassen.
 
 ## Release 4.12.0 (26.10.2026, 04:20)
 
