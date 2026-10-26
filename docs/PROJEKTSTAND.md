@@ -1,6 +1,10 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-27 (00:30): nach 4.12.0 umgesetzt und geschlossen: #370 Download-Verwaltung, #374 macOS-Signatur
+> Stand 2026-10-27 (01:30): **4.13.0 in Arbeit** (Meilenstein #30 „Ideen & Wunschlisten“): #186 Seite „Ideen“ –
+> Wunschlisten als Playlists (Ordner „Ideen“), Idee merken aus Entdecken, Status bis Kauf/Bibliothek, Notiz, Vorhören,
+> Export, Als Playlist, Als Beatport-Playlist (nur auf Klick); `_3 Beta-Test` auf `main`.
+>
+> Davor 2026-10-27 (00:30): nach 4.12.0 umgesetzt und geschlossen: #370 Download-Verwaltung, #374 macOS-Signatur
 > (Zweig `macos-signing`, Merge beim nächsten Release). Neuer Meilenstein **#29 „GitHub & Webseite“** (nicht Teil der
 > Anwendung, kein Release): #371 Statistik, #372 Release-Seite, #373 Startseite/Handbuch, #375 Webseite – geschlossen;
 > #376 SignPath (Windows-Signatur) offen, wartet auf die Bewerbung.

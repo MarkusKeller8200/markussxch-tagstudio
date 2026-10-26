@@ -1,8 +1,20 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-27 (00:30): v4.12.0 final; danach #370–#375 umgesetzt und geschlossen, #376 SignPath (Meilenstein #29) wartet auf die Bewerbung; #186 wartet auf I1–I6. Für das nächste Release vorgemerkt: Zweig `macos-signing`, `downloadstats` in HIDDEN, `docs/HANDBUCH*.md` ins Paket.**
+Stand: **2026-10-27 (01:30): v4.12.0 final; Meilenstein #30 „4.13.0 – Ideen & Wunschlisten“ – #186 umgesetzt, im Beta-Test. #376 SignPath (Meilenstein #29) wartet auf die Bewerbung. Für das nächste Release vorgemerkt: Zweig `macos-signing`, `downloadstats`/`ideas`/`session_ideas` in HIDDEN, `docs/HANDBUCH*.md` ins Paket.**
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## 4.13.0 – Ideen & Wunschlisten (Meilenstein #30, 27.10.2026, 00:35)
+
+- **Entscheid User:** #186 Phase 2a und 2b **zusammen** umsetzen; Entscheide I1–I6 wie vorgeschlagen, zusätzlich je
+  Eintrag Notiz, Status (automatisch aus Käufe), Quelle/Link, Vorhören. I5: Beatport-Wunschliste **nur auf Klick**.
+- **Umgesetzt (74df148, `_3 Beta-Test`, Testliste im Issue):** `ideas.py` (Logik), `session_ideas.py` (IdeasMixin,
+  API `ideas_*`, `start_ideas_match`, `start_ideas_bp`, `Api.ideas_export`), `web/ideas.js`, Seite `#moduleIdeas`,
+  Katalog `web/i18n/ideas.json`, Tests `tests/test_ideas.py` + `test_browser_ui.test_ideas_page`.
+- Wunschlisten = Playlists `kind: "wish"` im Ordner „Ideen“, kein M3U8 (`Store.desired`); Item-Feld `idea`
+  (`playlists.clean_idea`). Übernahme aus Entdecken einmalig (`index.json › migrated.ideas_from_discover`).
+- **Für das nächste Release vormerken:** `ideas`, `session_ideas` in `packaging/build.py` HIDDEN aufnehmen (statisch
+  importiert, aber wie die anderen Module eintragen). Filter „Gemerkt“ in Entdecken eine Version später entfernen (I3).
 
 ## Meilenstein „GitHub & Webseite“ (#29, angelegt 27.10.2026, 00:26)
 
