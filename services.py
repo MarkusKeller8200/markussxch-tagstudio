@@ -303,7 +303,7 @@ def api_call(plugin, ctx, eid: str, params: dict, user_agent: str) -> dict:
         raise ValueError("Dieser Endpunkt wird im Tester nicht aufgerufen (ändert Daten oder lädt Dateien).")
     mod = plugin.load()
     custom = getattr(mod, "api_request", None) if mod is not None else None
-    if ep.get("write"):                                         # #350: schreibend nur bestätigt und über das Plugin
+    if ep.get("write") or ep.get("danger"):                     # #350/#361: schreibend bzw. ändernd nur bestätigt
         if str((params or {}).get("_confirm") or "") != "yes":
             raise ValueError("Schreibende Anfrage nicht bestätigt – es wurde nichts gesendet.")
         if not callable(custom):
@@ -431,7 +431,7 @@ def access_check(plugin, ctx, user_agent: str) -> dict:
     a = a if isinstance(a, dict) else {}
     secrets = [v for v in list((a.get("headers") or {}).values()) + list((a.get("params") or {}).values()) if v]
     eps = [e for e in svc["endpoints"] if e["method"] == "GET" and not e["path"].startswith("/auth/")
-           and not e["path"].rstrip("/").endswith("/download")]
+           and not e["path"].rstrip("/").endswith("/download") and not e.get("danger")]   # #361: ändernde nie
     eps.sort(key=lambda e: (e["path"].count("{"), e["path"]))       # Listen zuerst (liefern die Beispiel-IDs)
     ids, rows = {}, []
     for i, e in enumerate(eps, 1):

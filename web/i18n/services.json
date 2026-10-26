@@ -167,5 +167,10 @@
 "Spalten an die Breite angepasst.": ["Columns fitted to the width.", "Spalte a d Breiti aapasst."],
 "Klick: korrigieren · Rechtsklick: Menü": ["Click: correct · right-click: menu", "Klick: korrigiere · Rächtsklick: Menü"],
 "– Beatport nennt die erlaubten Methoden nicht (OPTIONS ohne Angabe); TagStudio versucht es beim Anlegen direkt": ["– Beatport does not state the allowed methods (OPTIONS without details); TagStudio tries directly when creating", "– Beatport nännt di erlaubte Methode nöd (OPTIONS ohni Aagab); TagStudio probierts bim Aaläge diräkt"],
-"Beatport erlaubt das Anlegen über diese Anmeldung nicht.": ["Beatport does not allow creating with this sign-in.", "Beatport erlaubt s Aaläge über die Aamäldig nöd."]
+"Beatport erlaubt das Anlegen über diese Anmeldung nicht.": ["Beatport does not allow creating with this sign-in.", "Beatport erlaubt s Aaläge über die Aamäldig nöd."],
+"Download eines Kaufs zurücksetzen (inoffiziell)": ["Reset the download of a purchase (unofficial)", "Download vomene Chauf zrücksetze (inoffiziell)"],
+"inoffiziell, von der Beatport-Webseite – setzt den Download eines Kaufs zurück (ändert den Download-Status im Konto); nur im API-Tester, nach Rückfrage (#{n})": ["unofficial, used by the Beatport website – resets the download of a purchase (changes the download status in the account); only in the API tester, after confirmation (#{n})", "inoffiziell, vo de Beatport-Websiite – setzt de Download vomene Chauf zrugg (änderet de Download-Status im Konto); nur im API-Tester, nach Rückfrag (#{n})"],
+"Download-ID (order_item_download_id aus /my/downloads/)": ["Download ID (order_item_download_id from /my/downloads/)", "Download-ID (order_item_download_id us /my/downloads/)"],
+"Download eines Kaufs zurücksetzen, als POST (inoffiziell)": ["Reset the download of a purchase, as POST (unofficial)", "Download vomene Chauf zrücksetze, als POST (inoffiziell)"],
+"Download-ID aus /my/downloads/ (falls Beatport sie im Body statt in der Adresse erwartet)": ["Download ID from /my/downloads/ (in case Beatport expects it in the body instead of the address)", "Download-ID us /my/downloads/ (falls Beatport sie im Body statt i de Adrässe erwartet)"]
 }

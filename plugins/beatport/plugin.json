@@ -1,7 +1,7 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "2.5",
+  "version": "2.6",
   "min_app": "4.9.1",
   "category": "online",
   "categories": [
@@ -822,6 +822,51 @@
         "use": "Einkäufe: Fehlende herunterladen (Variante 1, erster Weg) – Parameter order_item_download_id aus /my/downloads/",
         "note": "nicht in der offiziellen Beschreibung, von der Beatport-Webseite benutzt – liefert eine signierte Adresse der Datei",
         "test": false
+      },
+      {
+        "id": "track-reset-download",
+        "method": "GET",
+        "path": "/catalog/tracks/reset-download/",
+        "label": "Download eines Kaufs zurücksetzen (inoffiziell)",
+        "status": "none",
+        "note": "inoffiziell, von der Beatport-Webseite – setzt den Download eines Kaufs zurück (ändert den Download-Status im Konto); nur im API-Tester, nach Rückfrage (#361)",
+        "danger": true,
+        "params": [
+          {
+            "name": "order_item_download_id",
+            "label": "Download-ID (order_item_download_id aus /my/downloads/)",
+            "required": true,
+            "example": "605271245"
+          }
+        ]
+      },
+      {
+        "id": "track-reset-download-post",
+        "method": "POST",
+        "path": "/catalog/tracks/reset-download/",
+        "label": "Download eines Kaufs zurücksetzen, als POST (inoffiziell)",
+        "status": "none",
+        "note": "inoffiziell, von der Beatport-Webseite – setzt den Download eines Kaufs zurück (ändert den Download-Status im Konto); nur im API-Tester, nach Rückfrage (#361)",
+        "danger": true,
+        "params": [
+          {
+            "name": "order_item_download_id",
+            "label": "Download-ID (order_item_download_id aus /my/downloads/)",
+            "required": true,
+            "example": "605271245"
+          }
+        ],
+        "body": {
+          "order_item_download_id": 605271245
+        },
+        "fields": [
+          {
+            "name": "order_item_download_id",
+            "type": "integer",
+            "help": "Download-ID aus /my/downloads/ (falls Beatport sie im Body statt in der Adresse erwartet)",
+            "example": 605271245
+          }
+        ]
       },
       {
         "id": "my-download-item",

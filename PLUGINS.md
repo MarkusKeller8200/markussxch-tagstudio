@@ -342,7 +342,9 @@ wählbar (mit ⚠ markiert, Body als JSON). Gesendet wird erst nach einer Rückf
 Adresse, Kopfzeilen, Body, Status, Antwort-Kopfzeilen und Antwort im Protokoll (Plugins › Beatport) – Token und Cookies
 geschwärzt. **Plugin 2.3 (#356/#357):** auch die PATCH-Endpunkte (u. a. Playlist umbenennen, Titel verschieben; Konto,
 E-Mail- und Streaming-Einstellungen deutlich gewarnt) – Konto löschen, Genres löschen und Anmeldung bleiben gesperrt.
-Unter dem Body zeigt **„Mögliche Werte“** die Felder (Name, Typ, Pflicht, Beschreibung): zuerst aus der Plugin-Beschreibung,
+Neu (#361, 2.6): **„Download eines Kaufs zurücksetzen“** (`/catalog/tracks/reset-download/?order_item_download_id=…`,
+inoffiziell, als GET und POST) – ändernde GET-Endpunkte (`"danger": true`) fragen ebenfalls nach und fehlen in „Zugriff
+prüfen“. Unter dem Body zeigt **„Mögliche Werte“** die Felder (Name, Typ, Pflicht, Beschreibung): zuerst aus der Plugin-Beschreibung,
 mit **„Vom Dienst laden“** aktuell vom Dienst (OPTIONS – ändert nichts). „Einfügen“ ergänzt ein Feld mit Beispielwert,
 „Alle Werte einfügen“ alle beschreibbaren, „Beispiel einfügen“ setzt einen ganzen Beispiel-Body, „Formatieren“ rückt ein;
 der Body wird laufend als JSON geprüft.

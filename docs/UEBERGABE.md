@@ -23,7 +23,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **#359** (Fehler, 01:34): Beatport-Playlists in Einkäufe abgelehnt, obwohl der API-Tester anlegt – `_allowed` liefert
   None bei unverwertbarer OPTIONS-Antwort, `_may()` = versuchen; `store_playlist_put` versucht POST immer. Plugin **2.4**.
 - **#360** (01:38): Playlists je Kaufdatum ungeteilt (`purch_buy_playlists_preview` eine Zeile je Datum), Plugin **2.5**.
-- Beim Release: Plugin-ZIP Beatport **2.5**.
+- **#361** (02:16): API-Tester `track-reset-download` (GET) + `…-post`, `danger` → Bestätigung auch bei GET
+  (`services.api_call`, JS), `access_check` lässt `danger` aus. Plugin **2.6**. Ergebnis des Users abwarten.
+- Beim Release: Plugin-ZIP Beatport **2.6**.
 
 ## Sitzung 26.10.2026 (00:11–01:00) – Rückmeldungen aus dem Test
 

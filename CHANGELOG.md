@@ -8,6 +8,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Beatport-API-Tester: „Download eines Kaufs zurücksetzen“ (#361, Plugin 2.6)** – inoffizieller Endpunkt
+  `/catalog/tracks/reset-download/` als GET und POST, ⚠ mit Rückfrage, nie in „Zugriff prüfen“.
 - **Beatport-API-Tester: Werte-Editor und PATCH (#356, #357, Plugin 2.3):** unter dem Body „Mögliche Werte“ mit Feld,
   Typ, Pflicht und Beschreibung (aus der Plugin-Beschreibung oder per OPTIONS „Vom Dienst laden“), „Einfügen“ je Feld,
   „Alle Werte einfügen“, „Beispiel einfügen“, „Formatieren“, laufende JSON-Prüfung; PATCH-Endpunkte testbar (neu:

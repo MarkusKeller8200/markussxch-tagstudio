@@ -257,3 +257,28 @@ class TestApiTesterWrite(unittest.TestCase):
         self.assertEqual((r["created"], r["added"], r["total"]), (True, 250, 250))
         self.assertEqual([len(v["tracks"]) for v in self.api.pl.values() if v["name"] == "TagStudio_BUY_2026_10_21"], [250])
         self.assertEqual(len([c for c in self.api.calls if c[0] == "POST" and c[1].endswith("/tracks/bulk/")]), 3)
+
+    def test_reset_download_endpoint(self):
+        """#361: reset-download im API-Tester – GET, aber ändernd: nur mit Bestätigung, nie in „Zugriff prüfen“."""
+        import services
+        raw = json.load(open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                          "plugins", "beatport", "plugin.json"), encoding="utf-8"))["service"]
+        svc = services.clean(raw)
+        eps = {e["id"]: e for e in svc["endpoints"]}
+        ep = eps["track-reset-download"]
+        self.assertEqual((ep["method"], ep["test"], ep["danger"]), ("GET", True, True))
+        self.assertEqual(ep["params"][0]["example"], "605271245")
+        self.assertTrue(eps["track-reset-download-post"]["write"])
+
+        class P:
+            service = svc
+
+            def load(_s):
+                return self.bp
+        with self.assertRaises(ValueError):
+            services.api_call(P(), self.ctx, "track-reset-download", {"order_item_download_id": "605271245"}, "UA")
+        self.assertFalse(self.api.calls)                                                # ohne Bestätigung nichts gesendet
+        services.api_call(P(), self.ctx, "track-reset-download", {"order_item_download_id": "605271245", "_confirm": "yes"}, "UA")
+        self.assertEqual(self.api.calls[-1][:2], ("GET", "/catalog/tracks/reset-download/?order_item_download_id=605271245"))
+        src = open(services.__file__, encoding="utf-8").read()
+        self.assertIn('not e.get("danger")', src)                                       # „Zugriff prüfen“ lässt es aus

@@ -335,7 +335,9 @@ catalogue number, link, purchase date) and `store_download(ctx, items, dest)` (d
 too (marked ⚠, body as JSON). They are only sent after confirmation; every call is in the log (Plugins › Beatport) with
 method, address, headers, body, status, response headers and response – token and cookies blacked out. **Plugin 2.3
 (#356/#357):** the PATCH endpoints too (e.g. rename playlist, move track; account, e-mail and streaming settings with a
-clear warning) – deleting the account, deleting genres and sign-in stay locked. Below the body, **“Possible values”** lists
+clear warning) – deleting the account, deleting genres and sign-in stay locked. New (#361, 2.6): **“Reset the download of a purchase”** (`/catalog/tracks/reset-download/?order_item_download_id=…`,
+unofficial, as GET and POST) – changing GET endpoints (`"danger": true`) also ask first and are left out of “Check
+access”. Below the body, **“Possible values”** lists
 the fields (name, type, required, description): first from the plugin description, with **“Load from service”** current
 from the service (OPTIONS – changes nothing). “Insert” adds one field with a sample value, “Insert all values” all
 writable ones, “Insert example” sets a whole example body, “Format” indents; the body is checked as JSON while typing.
