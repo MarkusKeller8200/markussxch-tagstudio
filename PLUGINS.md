@@ -356,7 +356,8 @@ antwortet darauf nicht verwertbar, angelegt wird mit der echten Anfrage):** Nur 
 anlegen und befüllen“** eingeschaltet ist (Standard aus) und nur auf Klick in Einkäufe › „Beatport-Playlists ▾“:
 **„Download Tracks …“** trägt die Einkäufe ohne lokale Datei in `TagStudio_DOWNLOAD_<Datum>_<n>` ein (je 100 Titel –
 mehr lädt Beatport nicht auf einmal; gleichnamige wird ersetzt, „Aufräumen“ löscht sie nach Rückfrage),
-**„Playlists je Kaufdatum …“** legt `<Präfix><JJJJ_MM_TT>` an bzw. ergänzt sie (Präfix Standard `TagStudio_BUY_`).
+**„Playlists je Kaufdatum …“** legt `<Präfix><JJJJ_MM_TT>` an bzw. ergänzt sie – eine Playlist je Datum mit allen Titeln, ohne
+100er-Teilung (#360) (Präfix Standard `TagStudio_BUY_`).
 TagStudio verändert nur Playlists, deren Name mit `TagStudio_` beginnt. **„Schreibzugriff prüfen“** fragt Beatport per
 `OPTIONS` (ändert nichts), ob Anlegen, Hinzufügen, Entfernen und Löschen erlaubt sind; das Ergebnis steht auch im
 Protokoll. Funktionen für die Seite: `store_settings`, `store_playlist_check`, `store_playlist_list`,

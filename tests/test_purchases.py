@@ -172,8 +172,7 @@ class TestBeatportPlaylistPlan(TestCorrectSession):
         self.assertEqual(s.purch_dl_playlist_preview(keys)["count"], 3)
         b = s.purch_buy_playlists_preview()
         self.assertEqual([(r["name"], r["count"]) for r in b["rows"]],
-                         [("TagStudio_BUY_2026_10_21", 100), ("TagStudio_BUY_2026_10_21_2", 15),
-                          ("TagStudio_BUY_2026_10_20", 100), ("TagStudio_BUY_2026_10_20_2", 15)])
+                         [("TagStudio_BUY_2026_10_21", 115), ("TagStudio_BUY_2026_10_20", 115)])   # #360: ungeteilt
         b = s.purch_buy_playlists_preview(None, "2026-10-21", "2026-10-21")
         self.assertEqual({r["date"] for r in b["rows"]}, {"2026-10-21"})
         s.plugins.call_playlist = lambda *a, **kw: (_ for _ in ()).throw(ValueError("Plugin aus"))

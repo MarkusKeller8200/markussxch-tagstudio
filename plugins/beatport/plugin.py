@@ -731,7 +731,8 @@ def _track_ids(c, pid) -> dict:
 
 def store_playlist_put(ctx, name, track_ids, replace=False) -> dict:
     """Playlist „name“ (muss mit TagStudio_ beginnen) anlegen bzw. wiederverwenden und die Titel eintragen.
-    replace: Titel, die nicht (mehr) dazugehören, entfernen – sonst nur ergänzen. Nie mehr als PL_MAX neue auf einmal.
+    replace: Titel, die nicht (mehr) dazugehören, entfernen – sonst nur ergänzen. Die Titel gehen in Paketen zu PL_MAX an
+    die API; die Playlist selbst darf grösser sein (#360: Playlists je Kaufdatum ungeteilt).
     → {id, name, url, added, removed, total, created, note}"""
     name = str(name or "")
     if not name.startswith(OWN_PREFIX):

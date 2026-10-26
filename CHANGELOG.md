@@ -48,6 +48,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Verbessert
 
+- **Einkäufe: Playlists je Kaufdatum ungeteilt (#360, Plugin 2.5)** – eine Playlist pro Datum mit allen Titeln; die
+  100er-Teilung gilt nur noch für „Download Tracks“.
 - **Einstellungen ein- und ausklappbar (#351):** alle Kacheln standardmässig eingeklappt, „Alle ausklappen/einklappen“,
   Sprungmarken öffnen die Kachel, Zustand gemerkt.
 

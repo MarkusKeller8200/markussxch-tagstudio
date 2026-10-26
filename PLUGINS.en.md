@@ -350,7 +350,7 @@ switched on under “Settings …” (off by default) and only on click in Purch
 **“Download Tracks …”** puts the purchases without a local file into `TagStudio_DOWNLOAD_<date>_<n>` (100 tracks each –
 Beatport does not download more at once; one with the same name is replaced, “Clean up” deletes them after
 confirmation), **“Playlists per purchase date …”** creates or completes `<prefix><YYYY_MM_DD>` (default prefix
-`TagStudio_BUY_`). TagStudio only changes playlists whose name starts with `TagStudio_`. **“Check write access”** asks
+`TagStudio_BUY_`) – one playlist per date with all tracks, no split into 100 (#360). TagStudio only changes playlists whose name starts with `TagStudio_`. **“Check write access”** asks
 Beatport via `OPTIONS` (changes nothing) whether creating, adding, removing and deleting are allowed; the result is also
 in the log. Functions for the page: `store_settings`, `store_playlist_check`, `store_playlist_list`,
 `store_playlist_put(ctx, name, ids, replace)`, `store_playlist_delete(ctx, prefix)`.

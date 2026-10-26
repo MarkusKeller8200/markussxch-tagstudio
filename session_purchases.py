@@ -230,14 +230,13 @@ class PurchasesMixin:
         rows = []
         for d in sorted(days, reverse=True):
             ids = list(dict.fromkeys(days[d]))
-            base = prefix + d.replace("-", "_")
-            for n, k in enumerate(range(0, len(ids), 100)):
-                rows.append({"date": d, "name": base if n == 0 else f"{base}_{n + 1}", "ids": ids[k:k + 100],
-                             "count": len(ids[k:k + 100])})
+            # #360: eine Playlist je Kaufdatum mit allen Titeln – die 100er-Teilung gilt nur für „Download Tracks“
+            rows.append({"date": d, "name": prefix + d.replace("-", "_"), "ids": ids, "count": len(ids)})
         return {"rows": rows, "prefix": prefix, **{k: v for k, v in s.items() if k != "buy_prefix"}}
 
     def start_purch_buy_playlists(self, prefix=None, since="", until=""):
-        """Je Kaufdatum eine Playlist PREFIX_JJJJ_MM_TT – vorhandene werden nur ergänzt, keine Doppelten."""
+        """Je Kaufdatum eine Playlist PREFIX_JJJJ_MM_TT mit allen Titeln (#360, nicht in 100er geteilt) – vorhandene werden
+        nur ergänzt, keine Doppelten."""
         if prefix:
             self.purch_bp_settings({"buy_prefix": str(prefix)})
         pv = self.purch_buy_playlists_preview(None, since, until)

@@ -336,7 +336,7 @@ Anmeldung, „Abmelden“ beendet sie. Klappt es auch so nicht, zeigt TagStudio,
 von Beatport selbst lädst und mit „Abholen“ übernimmst. **„Beatport-Playlists ▾“** (nur mit eingeschalteter Einstellung im Plugin Beatport, Standard aus):
 „Download Tracks …“ trägt die Titel ohne Datei in Playlists `TagStudio_DOWNLOAD_<Datum>_<n>` zu je 100 ein – in
 Beatport die Playlist öffnen und alle in den Download übernehmen; „Playlists je Kaufdatum …“ legt
-`TagStudio_BUY_JJJJ_MM_TT` an bzw. ergänzt sie; „Aufräumen …“ löscht die Download-Playlists nach Rückfrage. Andere
+`TagStudio_BUY_JJJJ_MM_TT` an bzw. ergänzt sie (eine Playlist je Datum mit allen Titeln); „Aufräumen …“ löscht die Download-Playlists nach Rückfrage. Andere
 Playlists verändert TagStudio nie. **„Streng“** gleicht so ab, dass Künstler, Titel und Mix passen müssen – auch bei gleicher
 ISRC. **„Unklare prüfen …“** – bzw. mit markierten Zeilen „Markierte prüfen …“, ein Klick auf einen unklaren
 Einkauf (Rechtsklick: Kontextmenü) oder „Korrigieren …“ im Menü – öffnet ein breites Korrekturfenster je Grund: bei mehreren

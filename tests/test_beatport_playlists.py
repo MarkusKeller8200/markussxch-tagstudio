@@ -247,3 +247,13 @@ class TestApiTesterWrite(unittest.TestCase):
                                     "id": {"type": "integer", "read_only": True}, "bad name": {"type": "x"}})
         self.assertEqual([f["name"] for f in fs], ["name", "kind", "ids", "id"])
         self.assertEqual(services.body_template(fs), {"name": "", "kind": "a", "ids": [0]})
+
+    def test_large_buy_playlist(self):
+        """#360: Playlist je Kaufdatum mit mehr als 100 Titeln – eine Playlist, API-Pakete je 100."""
+        self.bp.ready = lambda ctx: (True, "")
+        self.bp.store_settings(self.ctx, {"playlists_write": True})
+        ids = [str(i) for i in range(1, 251)]
+        r = self.bp.store_playlist_put(self.ctx, "TagStudio_BUY_2026_10_21", ids, False)
+        self.assertEqual((r["created"], r["added"], r["total"]), (True, 250, 250))
+        self.assertEqual([len(v["tracks"]) for v in self.api.pl.values() if v["name"] == "TagStudio_BUY_2026_10_21"], [250])
+        self.assertEqual(len([c for c in self.api.calls if c[0] == "POST" and c[1].endswith("/tracks/bulk/")]), 3)
