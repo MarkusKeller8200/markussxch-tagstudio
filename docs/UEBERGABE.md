@@ -34,7 +34,11 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **#364** (02:42): `purchase-download` im Tester (danger, no_follow, order_item_download_id). Plugin **2.9**.
   „Zugriff prüfen“ ruft `danger`-Endpunkte ohne Pfad-ID weiterhin auf, aber **ohne** Beispielwert und ohne Pflicht
   (zeigt nur 401/403, lädt/ändert nichts); `danger` mit `{id}` im Pfad bleibt draussen.
-- Beim Release: Plugin-ZIP Beatport **2.9**.
+- **#365** (02:51): Tester-Zugang `SVC.auth[pid]` (""/"session"), `Session.service_session`, Anmeldefeld inline im
+  Integrationsfenster (kein zweites `modal()` – Modal-Verschachtelung bricht Tastatur-Handler), `purch_session_login`;
+  Beatport `api_request` mit `_auth=session` → `SessionClient`. Plugin **2.10**. Hinweis an User: Bearer-Token nie in
+  Screenshots teilen (02:50 passiert, User zum Ab-/Anmelden aufgefordert).
+- Beim Release: Plugin-ZIP Beatport **2.10**.
 
 ## Sitzung 26.10.2026 (00:11–01:00) – Rückmeldungen aus dem Test
 

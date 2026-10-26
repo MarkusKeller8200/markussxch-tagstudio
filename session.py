@@ -2951,6 +2951,14 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return self.plugins.api_call(pid, str(eid), params, self, cancel, progress)
         return self._run("service_api", "API-Abfrage", job)
 
+    def service_session(self, pid) -> dict:
+        """#365: Sitzungs-Anmeldung des Plugins (wie die Webseite) für den API-Tester → {supported, active, username}"""
+        try:
+            r = self.plugins.call_playlist(str(pid), "store_session", session=self) or {}
+        except Exception:  # noqa: BLE001 – Plugin ohne Sitzungs-Anmeldung
+            return {"supported": False, "active": False, "username": ""}
+        return {"supported": True, "active": bool(r.get("active")), "username": str(r.get("username") or "")}
+
     def start_service_fields(self, pid, eid, params):
         """#356: API-Tester – mögliche Werte eines schreibenden Endpunkts holen (OPTIONS, ändert nichts)."""
         try:

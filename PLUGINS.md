@@ -342,6 +342,9 @@ wählbar (mit ⚠ markiert, Body als JSON). Gesendet wird erst nach einer Rückf
 Adresse, Kopfzeilen, Body, Status, Antwort-Kopfzeilen und Antwort im Protokoll (Plugins › Beatport) – Token und Cookies
 geschwärzt. **Plugin 2.3 (#356/#357):** auch die PATCH-Endpunkte (u. a. Playlist umbenennen, Titel verschieben; Konto,
 E-Mail- und Streaming-Einstellungen deutlich gewarnt) – Konto löschen, Genres löschen und Anmeldung bleiben gesperrt.
+**Zugang im Tester (#365, 2.10):** Zeile „Zugang“ – *gespeicherter Zugang* oder *Sitzungs-Anmeldung (wie die
+Webseite)*; „Anmelden …“ öffnet das Anmeldefeld im Tester (Benutzername/Passwort, nur im Speicher), danach schickt der
+Tester diesen Token (`_auth=session` → `api_request`); das Protokoll nennt den benutzten Zugang.
 **Download-Endpunkte im Tester (#363, 2.8; #364, 2.9):** `/my/downloads/{id}/`, `/my/downloads/{id}/download/`,
 `/catalog/tracks/{id}/download/` und `/catalog/tracks/purchase-download/?order_item_download_id=…` – Weiterleitungen werden nicht verfolgt (`"no_follow": true`, Ziel unter Kopfzeilen ›
 `location`), Dateien erscheinen als „Binärdaten“; die beiden …/download/ nur nach Rückfrage (können als Download zählen).

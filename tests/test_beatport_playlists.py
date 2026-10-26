@@ -343,3 +343,40 @@ class TestApiTesterWrite(unittest.TestCase):
         self.assertNotIn("��", log)
         services.api_call(P(), self.ctx, "purchase-download", {"order_item_download_id": "605271245", "_confirm": "yes"}, "UA")
         self.assertEqual(seen[-1], ("GET", "/catalog/tracks/purchase-download/?order_item_download_id=605271245", False))
+
+    def test_tester_session_token(self):
+        """#365: API-Tester mit Sitzungs-Anmeldung – deren Token, Zugang im Protokoll; ohne Sitzung klare Meldung."""
+        import services
+        raw = json.load(open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                          "plugins", "beatport", "plugin.json"), encoding="utf-8"))["service"]
+        svc = services.clean(raw)
+        sent = []
+
+        def req(method, url, headers=None, data=None, follow=True, **kw):
+            sent.append((headers or {}).get("Authorization"))
+            return 200, {"Content-Type": "application/json"}, b'{"location": "https://x"}'
+        self.bp.request = req
+        self.bp.scope_text = lambda tok: "Scope: test"
+
+        class P:
+            service = svc
+
+            def load(_s):
+                return self.bp
+        self.bp._SESSION.clear()
+        with self.assertRaises(ValueError) as cm:
+            services.api_call(P(), self.ctx, "purchase-download", {"order_item_download_id": "1", "_confirm": "yes", "_auth": "session"}, "UA")
+        self.assertIn("Sitzungs-Anmeldung", str(cm.exception))
+        self.bp._SESSION["tok"] = {"access_token": "SESSIONTOKEN123", "expires_at": time.time() + 3600, "username": "marku"}
+        try:
+            r = services.api_call(P(), self.ctx, "purchase-download", {"order_item_download_id": "1", "_confirm": "yes", "_auth": "session"}, "UA")
+        finally:
+            self.bp._SESSION.clear()
+        self.assertEqual(sent[-1], "Bearer SESSIONTOKEN123")
+        self.assertEqual(r["status"], 200)
+        log = "\n".join(self.ctx.logs)
+        self.assertIn("Zugang: Sitzungs-Anmeldung als marku", log)
+        self.assertNotIn("SESSIONTOKEN123", log)
+        services.api_call(P(), self.ctx, "purchase-download", {"order_item_download_id": "1", "_confirm": "yes"}, "UA")
+        self.assertEqual(sent[-1], "Bearer x")                                           # gespeicherter Zugang
+        self.assertIn("Zugang: gespeicherter Zugang", "\n".join(self.ctx.logs))

@@ -1626,6 +1626,8 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .fold-row{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:8px}
 .fold-row span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .svc-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.svc-auth{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.svc-auth select{width:auto}   /* #365 */
+.svc-login{display:grid;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px}
 .svc-json{margin-top:3px}.svc-ok{color:var(--ok)}.svc-bad{color:var(--warn)}   /* #356 */
 .svc-fld-l{align-self:start;padding-top:4px}
 .svc-fields{display:grid;gap:6px;min-width:0}

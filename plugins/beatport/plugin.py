@@ -927,9 +927,16 @@ def api_request(ctx, ep, params):
     bestätigt, Body aus `_body`). Jeder Aufruf kommt mit Methode, Adresse, Kopfzeilen, Body, Status, Antwort-Kopfzeilen
     und Antwort ins Protokoll – Token und Cookies geschwärzt."""
     import services
-    cl = Client(ctx)
+    if str(params.get("_auth") or "") == "session":                    # #365: Token der Sitzungs-Anmeldung
+        if not _SESSION.get("tok"):
+            raise ValueError("Keine Sitzungs-Anmeldung – im API-Tester bei „Zugang“ zuerst „Anmelden …“.")
+        cl = SessionClient(ctx, dict(_SESSION["tok"]))
+        who = f"Sitzungs-Anmeldung als {cl.tok.get('username') or '?'}"
+    else:
+        cl = Client(ctx)
+        who = "gespeicherter Zugang"
     if cl.tok["expires_at"] - 30 < time.time():
-        cl.tok = refresh(ctx, cl.tok) or cl._expired()
+        cl.tok = cl._refresh() or cl._expired()
     method = str(ep.get("method") or "GET").upper()
     url = services.build_url({"base": API}, ep, {k: v for k, v in params.items() if not str(k).startswith("_")})
     body = None
@@ -945,7 +952,7 @@ def api_request(ctx, ep, params):
         return sent, request(method, url, headers=hdr, data=body, follow=not ep.get("no_follow"))   # #363
     sent, (st, h, resp) = send()
     if st == 401:
-        cl.tok = refresh(ctx, cl.tok) or cl._expired()
+        cl.tok = cl._refresh() or cl._expired()
         sent, (st, h, resp) = send()
     ctx.secrets = [cl.tok.get("access_token"), cl.tok.get("refresh_token")]
     ctype = str({str(k).lower(): v for k, v in (h or {}).items()}.get("content-type") or "")
@@ -956,7 +963,7 @@ def api_request(ctx, ep, params):
     for s in ctx.secrets:
         if s and len(str(s)) >= 8:
             text = text.replace(str(s), "•••")
-    ctx.log(f"{method} {url}\nAnfrage-Kopfzeilen:\n{_log_headers(sent)}\nAnfrage-Body: "
+    ctx.log(f"{method} {url}\nZugang: {who} ({scope_text(cl.tok)})\nAnfrage-Kopfzeilen:\n{_log_headers(sent)}\nAnfrage-Body: "
             f"{json.dumps(body, ensure_ascii=False) if body is not None else '(leer)'}\n"
             f"Antwort: HTTP {st}\nAntwort-Kopfzeilen:\n{_log_headers(h)}\nAntwort-Body ({len(resp or b'')} Bytes):\n"
             f"{text or '(leer)'}")

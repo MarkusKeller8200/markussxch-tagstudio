@@ -39,7 +39,9 @@ async function svcOpen(pid, tab = "ep", eid = "") {
   let d;
   try { d = await call("service_detail", pid); } catch (e) { toast(String(e.message || e)); return; }
   SVC.detail = d; SVC.tab = tab; SVC.filter = ""; SVC.lastEp = eid || SVC.lastEp; SVC.tqOut = ""; SVC.apiOut = {}; SVC.acc = null; SVC.accF = "";
-  SVC.tqv = SVC.tqv || {}; SVC.apiVals = SVC.apiVals || {};
+  SVC.tqv = SVC.tqv || {}; SVC.apiVals = SVC.apiVals || {}; SVC.auth = SVC.auth || {};
+  SVC.sess = await call("service_session", pid).catch(() => ({ supported: false }));   // #365
+  SVC.loginOpen = false;
   await modal({
     title: `Integration – ${d.name}`, wide: true,
     html: `<div class="svc-head">
@@ -76,16 +78,31 @@ async function svcOpen(pid, tab = "ep", eid = "") {
         if (e.target.closest("#svcApiEx")) { svcApiClear(b, false); }
         if (e.target.closest("#svcApiRun")) svcApiRun(b);
         if (e.target.closest("#svcFields")) { svcFieldsClick(b, e); return; }       // #356
+        if (e.target.closest("#svcSessLogin")) { svcSessLogin(b); return; }           // #365
+        if (e.target.closest("#svcSessDo")) { svcSessDo(b); return; }
+        if (e.target.closest("#svcSessCancel")) { svcApiKeep(b); SVC.loginOpen = false; if (!(SVC.sess && SVC.sess.active)) SVC.auth[SVC.detail.id] = ""; svcRender(b); return; }
+        if (e.target.closest("#svcSessLogout")) {
+          svcApiKeep(b);
+          call("purch_session_logout", SVC.detail.id).then(() => { SVC.sess = { supported: true, active: false, username: "" }; SVC.auth[SVC.detail.id] = ""; svcRender(b); toast("Abgemeldet."); });
+          return;
+        }
         if (e.target.closest("#svcAccRun")) svcAccRun(b);
         const af = e.target.closest("[data-accf]");
         if (af) { SVC.accF = SVC.accF === af.dataset.accf ? "" : af.dataset.accf; $("#svcAccOut", b).innerHTML = svcAccOut(); return; }
         if (e.target.closest("#svcApiCopy")) { const pre = $("#svcApiBody", b); if (pre) navigator.clipboard?.writeText(pre.textContent).then(() => toast("Antwort kopiert.")); }
       });
-      b.addEventListener("change", (e) => { if (e.target.id === "svcApiEp") { SVC.lastEp = e.target.value; svcRender(b); } });
+      b.addEventListener("change", (e) => {
+        if (e.target.id === "svcApiEp") { SVC.lastEp = e.target.value; svcRender(b); }
+        if (e.target.id === "svcAuth") {                                          // #365: ohne Sitzung gleich anmelden
+          SVC.auth[SVC.detail.id] = e.target.value;
+          if (e.target.value === "session" && !(SVC.sess && SVC.sess.active)) svcSessLogin(b);
+        }
+      });
       b.addEventListener("input", (e) => { if (e.target.id === "svcApiReq") svcBodyChanged(b); });   // #356: JSON laufend prüfen
       b.addEventListener("keydown", (e) => {
         if (e.key !== "Enter" || e.target.tagName !== "INPUT") return;
         e.preventDefault(); e.stopPropagation();
+        if (e.target.closest("#svcLogin")) { svcSessDo(b); return; }              // #365
         if (e.target.closest("#svcTq")) svcTestQuery(b); else if (e.target.closest("#svcApi")) svcApiRun(b);
       });
       svcRender(b);
@@ -187,6 +204,7 @@ function svcApiHtml(d) {
       <label for="svcApiEp">Endpunkt</label><select id="svcApiEp" class="inp">${["full", "partial", "none"].map((st) => {
         const g = eps.filter((e) => e.status === st); if (!g.length) return "";
         return `<optgroup label="${SVC_ST[st][0]}">${g.map((e) => `<option value="${esc(e.id)}" ${e.id === ep.id ? "selected" : ""}>${e.write || e.danger ? "⚠ " : ""}${esc(e.method)} ${esc(e.path)} – ${esc(e.label)}</option>`).join("")}</optgroup>`; }).join("")}</select>
+      ${svcAuthRow(d)}
       ${ep.params.map((p) => `<label for="svcP-${esc(p.name)}">${esc(p.label)}${p.required ? " *" : ""}${p.in === "path" ? ' <span class="faint">(Pfad)</span>' : ""}</label>
         <input id="svcP-${esc(p.name)}" data-ap="${esc(p.name)}" value="${esc(vals[p.name] ?? (p.example || p.default))}" placeholder="${esc(p.example || "")}" spellcheck="false">`).join("")}
       ${ep.write && ep.method !== "DELETE" ? `<label for="svcApiReq">Body (JSON)</label><div><textarea id="svcApiReq" data-ap="_body" class="inp mono" rows="6" spellcheck="false" placeholder="{&quot;name&quot;: &quot;TagStudio_Test&quot;}">${esc(bodyVal)}</textarea>
@@ -197,6 +215,52 @@ function svcApiHtml(d) {
         ${ep.params.length ? '<button class="ghost sm" id="svcApiClear" title="Eingaben leeren – feste Vorgaben wie fmt=json bleiben">Felder löschen</button>' : ""}
         ${hasEx ? '<button class="ghost sm" id="svcApiEx" title="Beispielwerte, die ein Resultat liefern">Beispiel einsetzen</button>' : ""}</div></div>
     <div id="svcApiOut">${(SVC.apiOut || {})[ep.id] || ""}</div></div>`;
+}
+
+// #365: Zugang wählen – gespeicherter Zugang oder Sitzungs-Anmeldung wie die Webseite (Token nur im Speicher)
+function svcAuthRow(d) {
+  const s = SVC.sess || {};
+  if (!s.supported) return "";
+  const mode = SVC.auth[d.id] || "";
+  return `<label for="svcAuth">Zugang</label><div class="svc-auth"><select id="svcAuth" class="inp">
+      <option value="" ${mode ? "" : "selected"}>Gespeicherter Zugang (Plugin)</option>
+      <option value="session" ${mode === "session" ? "selected" : ""}>Sitzungs-Anmeldung (wie die Webseite)</option></select>
+    <span class="sm ${s.active ? "svc-ok" : "muted"}" id="svcSessInfo">${s.active ? `angemeldet als ${esc(s.username || "?")}` : "nicht angemeldet"}</span>
+    <button class="ghost sm" id="svcSessLogin">${s.active ? "Neu anmelden …" : "Anmelden …"}</button>
+    ${s.active ? '<button class="ghost sm" id="svcSessLogout">Abmelden</button>' : ""}</div>
+    ${SVC.loginOpen ? `<span></span><div class="svc-login" id="svcLogin" data-keep-enter>
+      <div class="sm">Anmelden wie auf der ${esc(d.name)}-Webseite – der Tester schickt dann deren Token (z. B. für Downloads).
+        Gilt nur, solange TagStudio läuft; Passwort und Token werden nicht gespeichert.</div>
+      <div class="frm"><label for="svcSU">Benutzername / E-Mail</label><input id="svcSU" type="text" autocomplete="username" spellcheck="false">
+        <label for="svcSP">Passwort</label><input id="svcSP" type="password" autocomplete="current-password" spellcheck="false"></div>
+      <div class="svc-btns"><button class="primary sm" id="svcSessDo">Anmelden</button><button class="ghost sm" id="svcSessCancel">Abbrechen</button>
+        <span class="st-missing sm" id="svcSErr"></span></div></div>` : ""}`;
+}
+function svcApiKeep(b) {
+  const sel = $("#svcApiEp", b); if (!sel) return;
+  const key = SVC.detail.id + "/" + sel.value, vals = {};
+  b.querySelectorAll("[data-ap]").forEach((i) => { vals[i.dataset.ap] = i.value; });
+  SVC.apiVals[key] = { ...(SVC.apiVals[key] || {}), ...vals };
+}
+/** Anmeldefeld im Tester öffnen (kein zweites Fenster – das Integrationsfenster bleibt offen) */
+function svcSessLogin(b) {
+  svcApiKeep(b);
+  SVC.loginOpen = true;
+  svcRender(b);
+  $("#svcSU", b)?.focus();
+}
+async function svcSessDo(b) {
+  const d = SVC.detail, u = $("#svcSU", b).value.trim(), p = $("#svcSP", b).value, err = $("#svcSErr", b);
+  if (!u || !p) { err.textContent = "Benutzername und Passwort angeben."; return; }
+  err.textContent = "Anmelden …";
+  try {
+    const r = await call("purch_session_login", d.id, u, p);
+    $("#svcSP", b).value = "";
+    if (typeof PUR !== "undefined" && PUR.st) PUR.st.sessions = r.sessions;
+    SVC.sess = { supported: true, active: true, username: r.username }; SVC.auth[d.id] = "session"; SVC.loginOpen = false;
+    svcRender(b);
+    toast(`Angemeldet als ${r.username}.`);
+  } catch (e) { err.textContent = String(e.message || e); $("#svcSP", b).value = ""; }
 }
 
 // #356: Body-Editor – mögliche Werte (Felder) aus der Plugin-Beschreibung bzw. beim Dienst per OPTIONS
@@ -299,6 +363,10 @@ async function svcApiRun(b) {
       buttons: [{ label: "Abbrechen", value: false }, { label: "Senden", value: true, primary: true }] });
     if (!ok) return;
     params._confirm = "yes";
+  }
+  if (SVC.auth[SVC.detail.id] === "session") {                                // #365: Token der Sitzungs-Anmeldung
+    if (!(SVC.sess && SVC.sess.active)) { svcSessLogin(b); return; }
+    params._auth = "session";
   }
   const out = $("#svcApiOut", b);
   const r = await svcTask(call("start_service_api", SVC.detail.id, eid, params), out);

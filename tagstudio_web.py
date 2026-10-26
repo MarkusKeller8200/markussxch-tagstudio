@@ -49,7 +49,7 @@ APP_LOGS = "@app"          # #327: Live-Fenster für alle Protokolle im Log-Ordn
 
 _PASS = {
     "tag_locate",                                                   # #175
-    "services_overview", "service_detail", "start_service_api", "start_service_fields", "start_service_access", "start_service_test",   # #204
+    "services_overview", "service_detail", "start_service_api", "start_service_fields", "service_session", "start_service_access", "start_service_test",   # #204
     "add_field_choices", "add_field", "bulk_keys", "bulk_apply", "cover_remove",
     "fixer_settings", "fixer_preview", "fixer_apply", "set_fixer_exceptions", "fixer_exception_candidates",
     "purch_unzip", "set_unzip_auto", "set_purch_strict", "purch_candidates", "purch_fix_file",

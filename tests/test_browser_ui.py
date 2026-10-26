@@ -3996,6 +3996,42 @@ class UiTest(unittest.TestCase):
         self.assertIn("Achtung", pg.inner_text("#svcApi"))
         self.errors.clear()
 
+    def test_api_tester_session_login(self):
+        """#365: API-Tester – Zugang „Sitzungs-Anmeldung“ öffnet das Anmeldefeld im Tester, danach geht _auth=session mit."""
+        pg = self.pg
+        pg.evaluate("""(() => { const orig = call; window.__api = []; window.__login = [];
+          window.call = (n, ...a) => {
+            if (n === "service_detail") return orig(n, ...a).then((d) => Object.assign(d, { ready: true }));
+            if (n === "service_session") return Promise.resolve({ supported: true, active: false, username: "" });
+            if (n === "purch_session_login") { window.__login.push(a.slice(0, 2));
+              return a[2] === "falsch" ? Promise.reject(new Error("Anmeldung abgelehnt")) : Promise.resolve({ ok: true, username: "marku", sessions: {} }); }
+            if (n === "purch_session_logout") return Promise.resolve({ ok: true, sessions: {} });
+            if (n === "start_service_api") { window.__api.push(a); return Promise.resolve({ ok: false, error: "Test" }); }
+            return orig(n, ...a); }; })()""")
+        pg.evaluate("svcOpen('beatport', 'api', 'purchase-download'); 0")
+        pg.wait_for_selector("#svcAuth")
+        self.assertIn("nicht angemeldet", pg.inner_text("#svcSessInfo"))
+        pg.select_option("#svcAuth", "session")                                            # ohne Sitzung → Anmeldefeld
+        pg.wait_for_selector("#svcLogin #svcSU")
+        self.assertFalse(pg.locator("#modal").is_hidden())                                 # Integrationsfenster bleibt offen
+        pg.fill("#svcSU", "marku"); pg.fill("#svcSP", "falsch")
+        pg.press("#svcSP", "Enter")                                                         # Enter meldet an, schliesst nichts
+        self.assertTrue(self.until("/abgelehnt/.test(document.querySelector('#svcSErr').textContent)"))
+        self.assertEqual(pg.input_value("#svcSP"), "")                                     # Passwort geleert
+        pg.fill("#svcSP", "richtig")
+        pg.click("#svcSessDo")
+        self.assertTrue(self.until("document.querySelector('#svcSessInfo') && /angemeldet als marku/.test(document.querySelector('#svcSessInfo').textContent)"))
+        self.assertEqual(pg.locator("#svcLogin").count(), 0)
+        self.assertEqual(pg.input_value("#svcAuth"), "session")
+        self.assertIn("605271245", pg.input_value('[data-ap="order_item_download_id"]'))
+        pg.click("#svcApiRun")
+        pg.click("#dlgBtns .primary")                                                       # Rückfrage (danger)
+        self.assertTrue(self.until("window.__api.length === 1 && window.__api[0][2]._auth === 'session'"))
+        pg.click("#svcSessLogout")
+        self.assertTrue(self.until("/nicht angemeldet/.test(document.querySelector('#svcSessInfo').textContent)"))
+        self.assertEqual(pg.input_value("#svcAuth"), "")
+        self.errors.clear()
+
     def test_purchases_session_login(self):
         """#295: Download abgelehnt → Sitzungs-Anmeldung (wie die Webseite), dann gleich erneut herunterladen."""
         pg = self.pg
