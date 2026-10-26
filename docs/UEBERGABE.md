@@ -21,6 +21,13 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **Plugins in einen Ordner** (User-Frage 17:38): GitHub-Release-Dateien haben keine Ordner. Optionen beim User
   angefragt (Sammel-ZIP bzw. eigenes Plugin-Release – beides braucht App-Änderung, ältere Versionen fänden die
   Plugin-Updates nicht mehr); bis dahin sind die Plugins im Download-Kasten zugeklappt.
+- **#373 Startseite** (17:52, Entscheide: Kopf neu + Handbuch auslagern, Bilder hell/dunkel): README/README.en =
+  Startseite (Kopf, Abzeichen, Download-Knöpfe, `<picture>`-Bilder aus `docs/screenshots/`, Kacheln); Anleitung
+  unverändert nach `docs/HANDBUCH.md`/`.en.md` (Links umgeschrieben). Hilfe liest `docs/HANDBUCH.md`, Rückfall README
+  (ältere Pakete). **Ab jetzt Bedienungsdoku in docs/HANDBUCH*.md** (Regel „README.md + README.en.md“ gilt dafür).
+  **Beim nächsten Release:** `packaging/build.py` `--add-data` für `docs/HANDBUCH.md` und `docs/HANDBUCH.en.md` (sonst
+  zeigt die installierte Hilfe die kurze Startseite) – zusammen mit `downloadstats` in `HIDDEN`. Bilder neu:
+  `python tools/screenshots.py` (Playwright + ffmpeg). Themen (topics) und Vorschaubild: siehe Anleitung an den User.
 
 ## Release 4.12.0 (26.10.2026, 04:20)
 

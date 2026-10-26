@@ -54,11 +54,11 @@ python -m unittest discover -s tests -v
 3. Commit-Nachricht auf Deutsch: erste Zeile kurz und aussagekräftig, darunter das Warum. Mit `Fixes #n` bzw.
    `Refs #n` auf Issues verweisen.
 4. **CHANGELOG.md:** Eintrag unter „Unveröffentlicht“ (Neu / Geändert / Behoben).
-5. README bzw. PLUGINS.md nachziehen, wenn sich Bedienung oder Schnittstellen ändern.
+5. Handbuch (`docs/HANDBUCH.md`) bzw. PLUGINS.md nachziehen, wenn sich Bedienung oder Schnittstellen ändern.
 6. Pull Request gegen `main` öffnen und die Checkliste der Vorlage ausfüllen. Die Tests in GitHub Actions müssen
    grün sein.
 
-Versionsnummern und Releases setzt der Projektverantwortliche (`packaging/release.py`, siehe README unter
+Versionsnummern und Releases setzt der Projektverantwortliche (`packaging/release.py`, siehe Handbuch unter
 „Versionen & Releases“) – bitte `version.py` in Pull Requests nicht ändern.
 
 ## Plugins

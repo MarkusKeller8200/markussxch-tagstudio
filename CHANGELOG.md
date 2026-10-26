@@ -15,6 +15,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Verlauf je Tag und Tabelle je Version.
 - **Release-Seite: Download oben (#372):** In den Versionshinweisen steht ganz oben ein Kasten mit direkten Links für
   Windows und macOS (Plugins zugeklappt) – kein Scrollen mehr zu den Dateien.
+- **Neue Startseite des Repositories (#373):** README mit Symbol, Abzeichen, Download-Knöpfen, Bildschirmfotos (hell und
+  dunkel) und Funktions-Kacheln; die Bedienungsanleitung steht jetzt in `docs/HANDBUCH.md` bzw. `docs/HANDBUCH.en.md`
+  (Hilfe in TagStudio zeigt sie wie bisher). Bilder erzeugt `tools/screenshots.py` mit Beispieltiteln.
 
 ## [4.12.0] – 2026-10-26
 

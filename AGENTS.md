@@ -54,7 +54,9 @@ Meilensteine können über den **gesicherten [Administrationskanal #190](https:/
   Python-Meldungen, Plugins) wird **im selben Commit in allen Auslieferungssprachen** erstellt: Deutsch im Code
   (Ausgangstext), Englisch und Zürichdeutsch in `web/i18n/<bereich>.json` (`"Deutsch": ["English", "Züritüütsch"]`).
   Prüfen mit `python3 tools/i18n_extract.py --plugins` (muss „0 fehlen“ melden); `tests/test_i18n.py` schlägt sonst fehl.
-  Hilfe-Dokumente auf Englisch (`README.en.md`, `PLUGINS.en.md`, `docs/ID3-FELDER.en.md`) mitführen. Details:
+  Hilfe-Dokumente auf Englisch (`docs/HANDBUCH.en.md`, `README.en.md`, `PLUGINS.en.md`, `docs/ID3-FELDER.en.md`) mitführen.
+  Seit #373 ist `README.md` nur die Startseite (Kopf, Bilder, Kacheln); die Bedienungsanleitung steht in
+  `docs/HANDBUCH.md` (+ `.en.md`) – dort Funktionen beschreiben, im README nur bei neuen Hauptbereichen die Kacheln. Details:
   `docs/KONZEPT-MEHRSPRACHIG.md`, Abschnitt „Umsetzung“.
 - **Plugin-Versionen (#235):** Wer ein Plugin ändert, erhöht dessen `version` in `plugin.json` (sonst bietet der
   Plugin-Katalog die Änderung nicht als Update an) und hält `min_app` aktuell (älteste passende TagStudio-Version).

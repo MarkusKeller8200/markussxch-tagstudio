@@ -8,7 +8,8 @@ import time
 import taghelp
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DOCS = {"readme": ("Handbuch", "README.md"), "id3": ("ID3-Felder", os.path.join("docs", "ID3-FELDER.md")),
+# #373: das Handbuch liegt in docs/HANDBUCH.md (README ist nur noch die Startseite); ältere Pakete haben es im README
+DOCS = {"readme": ("Handbuch", os.path.join("docs", "HANDBUCH.md")), "id3": ("ID3-Felder", os.path.join("docs", "ID3-FELDER.md")),
         "plugins": ("Plugins", "PLUGINS.md")}
 LICENSES = os.path.join("docs", "third-party.json")                                # #176
 
@@ -35,7 +36,11 @@ class HelpMixin:
                 base, ext = os.path.splitext(rel)
                 text = _read_doc(base + ".en" + ext)
                 doc_lang = "en" if text else "de"
-            out[k] = {"title": t, "text": text or _read_doc(rel), "lang": doc_lang}
+            text = text or _read_doc(rel)
+            if not text and k == "readme":                                       # Paket ohne docs/HANDBUCH.md
+                old = "README.en.md" if lang == "en" else "README.md"
+                text, doc_lang = _read_doc(old) or _read_doc("README.md"), ("en" if lang == "en" and _read_doc(old) else "de")
+            out[k] = {"title": t, "text": text, "lang": doc_lang}
         return out
 
     def help_licenses(self) -> dict:

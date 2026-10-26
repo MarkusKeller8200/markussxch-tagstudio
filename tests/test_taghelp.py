@@ -91,6 +91,14 @@ class TestTagHelp(Base):
         self.assertIn("Where do plugins live?", en["plugins"]["text"])
         gsw = self.s.help_docs("gsw-u-sd-chzh")                                 # Zürichdeutsch: deutsche Dokumente
         self.assertEqual(gsw["readme"]["text"], d["readme"]["text"])
+        self.assertTrue(d["readme"]["text"].startswith("# MarKusSXCH TagStudio – Handbuch"))   # #373: docs/HANDBUCH.md
+        self.assertTrue(en["readme"]["text"].startswith("# MarKusSXCH TagStudio – Manual"))
+        import session_help
+        from unittest import mock
+        with mock.patch.dict(session_help.DOCS, {"readme": ("Handbuch", os.path.join("docs", "GIBTSNICHT.md"))}):
+            old = self.s.help_docs("en")["readme"]                              # älteres Paket: Handbuch im README
+        self.assertEqual(old["lang"], "en")
+        self.assertIn("MarKusSXCH TagStudio", old["text"])
 
 
 if __name__ == "__main__":

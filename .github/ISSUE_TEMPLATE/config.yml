@@ -4,5 +4,5 @@ contact_links:
     url: https://github.com/MarkusKeller8200/markussxch-tagstudio/security/advisories/new
     about: Sicherheitsprobleme bitte nicht öffentlich, sondern privat melden – siehe SECURITY.md.
   - name: Anleitung und Funktionsübersicht
-    url: https://github.com/MarkusKeller8200/markussxch-tagstudio#readme
-    about: README mit Installation, Bedienung und Tastenkürzeln.
+    url: https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/docs/HANDBUCH.md
+    about: Handbuch mit Installation, Bedienung und Tastenkürzeln.
