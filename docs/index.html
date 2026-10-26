@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TagStudio – Downloads</title>
+<meta name="description" content="Wie oft MarKusSXCH TagStudio heruntergeladen wurde – je Version, Windows und macOS, mit Verlauf je Tag.">
+<!-- #371: Statistik-Seite (GitHub Pages, Zweig „stats“, Ordner /docs). Daten: summary.json, vom Workflow
+     „Download-Statistik“ geschrieben. Keine externen Skripte, keine Cookies. -->
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --fg:#1b1f24; --muted:#5f6b7a; --line:#e2e6ea; --acc:#1d76db; --acc2:#7a3fd1; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1216; --card:#171b21; --fg:#e8ecf1; --muted:#97a3b3; --line:#262c35; --acc:#5eaaff; --acc2:#c9a2ff; }
+    .cta { color:#0f1216 !important; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:960px; margin:0 auto; padding:28px 16px 48px; }
+  header h1 { margin:0; font-size:26px; letter-spacing:-.01em; }
+  header p { margin:4px 0 0; color:var(--muted); }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin:22px 0; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .card b { display:block; font-size:26px; font-variant-numeric:tabular-nums; }
+  .card span { color:var(--muted); font-size:13px; }
+  .card.main b { color:var(--acc); }
+  section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-top:14px; }
+  section h2 { margin:0 0 10px; font-size:16px; }
+  .bars { display:flex; align-items:flex-end; gap:3px; height:120px; border-bottom:1px solid var(--line); }
+  .bar { flex:1; min-width:4px; display:flex; flex-direction:column-reverse; }
+  .bar i { display:block; background:var(--acc); border-radius:2px 2px 0 0; }
+  .bar i.mac { background:var(--acc2); border-radius:0; }
+  .legend { display:flex; gap:14px; color:var(--muted); font-size:13px; margin-top:6px; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
+  .scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th, td { padding:7px 8px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
+  th { color:var(--muted); font-weight:600; font-size:13px; }
+  td.r, th.r { text-align:right; }
+  a { color:var(--acc); text-decoration:none; } a:hover { text-decoration:underline; }
+  .tag { font-size:11px; border:1px solid var(--line); border-radius:99px; padding:1px 7px; color:var(--muted); margin-left:6px; }
+  .muted { color:var(--muted); font-size:13px; }
+  .cta { display:inline-block; margin-top:14px; background:var(--acc); color:#fff; padding:9px 16px; border-radius:10px; font-weight:600; }
+  .cta:hover { text-decoration:none; opacity:.92; }
+  footer { margin-top:22px; color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>MarKusSXCH TagStudio – Downloads</h1>
+    <p>Wie oft die Installationsdateien heruntergeladen wurden – je Version, Windows und macOS.</p>
+    <a class="cta" id="dl" href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest">⬇ Neueste Version laden</a>
+  </header>
+  <div class="cards" id="cards"><div class="card"><span>Lade Zahlen …</span></div></div>
+  <section id="hist" hidden>
+    <h2>Neue Downloads je Tag</h2>
+    <div class="bars" id="bars" role="img" aria-label="Neue Installer-Downloads je Tag"></div>
+    <div class="legend"><span><i style="background:var(--acc)"></i>Windows</span><span><i style="background:var(--acc2)"></i>macOS</span><span id="range"></span></div>
+  </section>
+  <section>
+    <h2>Je Version</h2>
+    <div class="scroll"><table><thead><tr><th>Version</th><th>Datum</th><th class="r">Windows</th><th class="r">macOS</th><th class="r">Installer</th><th class="r">Plugins</th></tr></thead>
+      <tbody id="rows"></tbody></table></div>
+  </section>
+  <footer id="foot">Zahlen von GitHub (Release-Seite und Update in TagStudio), täglich gesammelt.</footer>
+</main>
+<script>
+(async () => {
+  const n = (x) => Number(x || 0).toLocaleString("de-CH");
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  let s;
+  try { s = await (await fetch("summary.json", { cache: "no-store" })).json(); }
+  catch (e) { document.getElementById("cards").innerHTML = '<div class="card"><span>Zahlen gerade nicht verfügbar.</span></div>'; return; }
+  const t = s.total, h = s.history || { days: [] };
+  const card = (v, l, cls = "") => `<div class="card ${cls}"><b>${v}</b><span>${l}</span></div>`;
+  document.getElementById("cards").innerHTML = card(n(t.installers), "Installer gesamt", "main") + card(n(t.win), "Windows") + card(n(t.mac), "macOS")
+    + (h.days.length ? card(n(h.last7), "letzte 7 Tage") + card(n(h.last30), "letzte 30 Tage") : "") + card(n(t.plugins), "Plugin-Downloads");
+  if (h.days.length) {
+    const max = Math.max(1, ...h.days.map((d) => d.total));
+    document.getElementById("bars").innerHTML = h.days.map((d) => `<div class="bar" title="${esc(d.day)}: ${n(d.total)} (Windows ${n(d.win)}, macOS ${n(d.mac)})">
+      <i style="height:${(d.win / max) * 116}px"></i><i class="mac" style="height:${(d.mac / max) * 116}px"></i></div>`).join("");
+    document.getElementById("range").textContent = `${h.days[0].day} – ${h.days[h.days.length - 1].day}`;
+    document.getElementById("hist").hidden = false;
+  }
+  document.getElementById("rows").innerHTML = s.rows.map((r) => `<tr><td><a href="${esc(r.url)}">${esc(r.tag)}</a>${r.beta ? '<span class="tag">Beta</span>' : ""}</td>
+    <td>${esc(r.date)}</td><td class="r">${n(r.win)}</td><td class="r">${n(r.mac)}</td><td class="r"><b>${n(r.total)}</b></td><td class="r muted">${n(r.plugins)}</td></tr>`).join("");
+  document.getElementById("foot").textContent = `Zahlen von GitHub (Release-Seite und Update in TagStudio), täglich gesammelt · Stand ${s.updated || "?"}`
+    + (h.since ? ` · Verlauf seit ${h.since}` : "");
+})();
+</script>
+</body>
+</html>
