@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TagStudio – Datenschutz</title><meta name="description" content="Datenschutz bei MarKusSXCH TagStudio: keine Telemetrie, keine Nutzungsdaten, Zugangsdaten nur lokal.">
+<meta property="og:title" content="TagStudio – Datenschutz"><meta property="og:description" content="Datenschutz bei MarKusSXCH TagStudio: keine Telemetrie, keine Nutzungsdaten, Zugangsdaten nur lokal.">
+<meta property="og:image" content="https://markuskeller8200.github.io/markussxch-tagstudio/img/social-preview.png"><meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image"><link rel="icon" href="img/icon.png">
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#1b1f24;--muted:#5f6b7a;--line:#e2e6ea;--acc:#1d76db;--acc2:#7a3fd1;--code:#eef1f5;--hl:#fff2a8}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1216;--card:#171b21;--fg:#e8ecf1;--muted:#97a3b3;--line:#262c35;--acc:#5eaaff;--acc2:#c9a2ff;--code:#1f252d;--hl:#5a4a00}}
+*{box-sizing:border-box}html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+header.top .brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--fg)}
+header.top .brand img{width:30px;height:30px;border-radius:8px}
+header.top nav{display:flex;gap:16px;flex-wrap:wrap;margin-left:auto;font-size:15px}
+header.top nav a{color:var(--muted)}header.top nav a.on,header.top nav a:hover{color:var(--fg);text-decoration:none}
+main{max-width:1180px;margin:0 auto;padding:28px 16px 56px}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--acc);color:#fff;padding:11px 18px;border-radius:12px;font-weight:600}
+.btn:hover{text-decoration:none;opacity:.92}.btn.alt{background:transparent;color:var(--fg);border:1px solid var(--line)}
+@media (prefers-color-scheme:dark){.btn{color:#0f1216}.btn.alt{color:var(--fg)}}
+.muted{color:var(--muted)}.sm{font-size:14px}
+footer{max-width:1180px;margin:0 auto;padding:24px 16px 40px;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+/* Startseite */
+.hero{text-align:center;padding:36px 0 18px}.hero img.logo{width:88px;height:88px;border-radius:22px}
+.hero h1{font-size:clamp(30px,5vw,46px);line-height:1.1;margin:18px 0 10px;letter-spacing:-.02em}
+.hero p.lead{font-size:clamp(17px,2.4vw,21px);color:var(--muted);max-width:720px;margin:0 auto}
+.dl{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:24px 0 8px}
+.ver{color:var(--muted);font-size:14px}
+.shot{margin:28px auto 8px;max-width:1100px}.shot img{width:100%;border-radius:14px;border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.18)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:34px 0}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.tile b{display:block;font-size:17px;margin-bottom:4px}.tile span{color:var(--muted);font-size:15px}
+.pics{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.pics figure{margin:0}.pics img{width:100%;border-radius:12px;border:1px solid var(--line)}
+.pics figcaption{color:var(--muted);font-size:14px;margin-top:6px}
+.nums{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin:10px 0 0}.nums div{text-align:center}
+.nums b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.nums span{color:var(--muted);font-size:13px}
+h2.sec{font-size:24px;margin:44px 0 14px}
+/* Handbuch */
+.doc{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.toc{position:sticky;top:76px;max-height:calc(100vh - 96px);overflow:auto;font-size:14px;padding-right:6px}
+.toc input{width:100%;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;margin-bottom:10px}
+.toc ul{list-style:none;margin:0;padding:0}.toc li{margin:2px 0}.toc li li{padding-left:14px}
+.toc a{color:var(--muted);display:block;padding:2px 6px;border-radius:6px}.toc a:hover{color:var(--fg);background:var(--card);text-decoration:none}
+.toc .hit{color:var(--muted);font-size:13px;margin:0 0 8px}
+article{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 30px 30px;min-width:0}
+article h1{font-size:30px;margin:22px 0 8px}article h2{font-size:23px;margin:34px 0 10px;padding-top:10px;border-top:1px solid var(--line)}
+article h3{font-size:19px;margin:26px 0 8px}article h4{font-size:16px;margin:20px 0 6px}
+article code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:.9em}
+article pre{background:var(--code);padding:12px 14px;border-radius:10px;overflow:auto}article pre code{background:none;padding:0}
+article table{border-collapse:collapse;display:block;overflow-x:auto;margin:12px 0}
+article th,article td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+article blockquote{margin:12px 0;padding:6px 14px;border-left:4px solid var(--acc);color:var(--muted)}
+article img{max-width:100%}
+article section.hide{display:none}
+article{overflow-wrap:anywhere}.doc>*{min-width:0}article pre{white-space:pre-wrap}
+.tile code{overflow-wrap:anywhere}mark{background:var(--hl);color:inherit;border-radius:3px}
+.toc-btn{display:none}
+@media (max-width:860px){.doc{grid-template-columns:1fr}.toc{position:static;max-height:none}.toc ul{display:none}.toc.open ul{display:block}
+  .toc-btn{display:inline-block;margin-bottom:8px}article{padding:4px 16px 20px}}
+</style></head><body>
+<header class="top"><div class="in"><a class="brand" href="index.html"><img src="img/icon.png" alt="">MarKusSXCH TagStudio</a>
+<nav><a href="index.html">Start</a><a href="handbuch.html">Handbuch</a><a href="statistik.html">Statistik</a><a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest">Download</a><a href="https://github.com/MarkusKeller8200/markussxch-tagstudio">GitHub</a><a href="manual.html" hreflang="en">EN</a></nav></div></header>
+<main><article style="max-width:860px;margin:0 auto">
+<h1>Datenschutz</h1>
+<p><b>Kurz:</b> TagStudio sammelt keine Nutzungsdaten, hat keine Telemetrie und kein Benutzerkonto. Deine Musik, Tags,
+Einstellungen und Zugangsdaten bleiben auf deinem Computer.</p>
+<h2>Was TagStudio auf deinem Computer speichert</h2>
+<ul><li>Einstellungen, Sicherungen, Playlists, Protokolle und Plugin-Daten im Benutzerordner (<code>~/.tagstudio.json</code>,
+<code>~/TagStudio</code>).</li>
+<li>Zugangsdaten für Online-Dienste (z. B. Beatport, Discogs, Cloud-Speicher) nur, wenn du sie selbst einträgst – verschlüsselt
+im Schlüsselbund des Systems (Windows DPAPI bzw. macOS-Schlüsselbund), nie im Klartext und nie an das TagStudio-Projekt.</li></ul>
+<h2>Verbindungen ins Internet</h2>
+<ul><li><b>Update-Prüfung und Plugin-Katalog:</b> TagStudio fragt bei GitHub nach neuen Versionen und Plugins (öffentliche Schnittstelle, ohne Anmeldung).
+Dabei sieht GitHub wie bei jedem Webseitenaufruf deine IP-Adresse.</li>
+<li><b>Online-Plugins</b> (MusicBrainz, Deezer, Beatport, Discogs, Spotify, Cloud-Abgleich …) verbinden sich nur, wenn du sie
+einschaltest und benutzt – und nur mit dem jeweiligen Dienst. Es gelten dessen Datenschutzbestimmungen.</li>
+<li><b>Fehler melden</b> öffnet das GitHub-Formular im Browser; abgeschickt wird erst dort, mit deiner eigenen
+GitHub-Anmeldung. Persönliche Angaben (Benutzerordner, E-Mail-Adressen, Schlüssel) werden vorher geschwärzt.</li></ul>
+<h2>Diese Webseite</h2>
+<p>Die Seite liegt auf GitHub Pages, setzt keine Cookies und lädt nichts von fremden Servern. GitHub kann beim Aufruf
+technische Daten (z. B. IP-Adresse) protokollieren – siehe <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub-Datenschutzerklärung</a>.
+Die Download-Zahlen stammen aus den öffentlichen Zählern von GitHub und enthalten keine Personendaten.</p>
+<h2>Kontakt</h2>
+<p>Fragen zum Datenschutz: über die <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/issues">Issues</a> des Projekts.</p>
+</article></main>
+<footer>MarKusSXCH TagStudio · <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio">GitHub</a> · <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/LICENSE">GNU GPL v3</a> ·
+<a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/issues">Fehler &amp; Ideen</a> · <a href="datenschutz.html">Datenschutz</a> · Diese Seite setzt keine Cookies und lädt nichts von
+fremden Servern.<br>Windows: Free code signing provided by <a href="https://signpath.io">SignPath.io</a>, certificate by
+<a href="https://signpath.org">SignPath Foundation</a>.</footer>
+</body></html>
