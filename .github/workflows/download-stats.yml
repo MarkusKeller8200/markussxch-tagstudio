@@ -3,10 +3,12 @@ name: Download-Statistik
 # #370: GitHub zählt Downloads der Release-Dateien nur als Gesamtsumme. Dieser Workflow speichert täglich die
 # Zählerstände im Zweig „stats“ (docs/download-stats.json) – TagStudio berechnet daraus die neuen Downloads je Tag.
 # Nichts auf main; Pushes mit GITHUB_TOKEN lösen keine weiteren Workflows aus.
+# #371: dazu summary.json, badge.json und die Statistik-Seite docs/index.html (GitHub Pages: Zweig stats, Ordner /docs).
+# #372: setzt oben in die Versionshinweise jedes Releases den Kasten „Download“ mit direkten Links.
 
 on:
   schedule:
-    - cron: "37 23 * * *"   # täglich kurz vor Mitternacht (UTC)
+    - cron: "37 */3 * * *"   # alle 3 Stunden – neue Releases bekommen den Download-Kasten bald; ein Stand je Tag
   workflow_dispatch:
 
 permissions:
@@ -37,7 +39,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Zählerstände eintragen
-        run: python3 code/downloadstats.py --update stats/docs/download-stats.json
+        run: |
+          python3 code/downloadstats.py --update stats/docs/download-stats.json
+          cp code/.github/stats/index.html stats/docs/index.html
+          touch stats/docs/.nojekyll
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download-Kasten in den Versionshinweisen
+        run: python3 code/downloadstats.py --release-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Speichern

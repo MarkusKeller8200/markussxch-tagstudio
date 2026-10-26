@@ -1,12 +1,14 @@
 # MarKusSXCH TagStudio
 
+[![Downloads](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FMarkusKeller8200%2Fmarkussxch-tagstudio%2Fstats%2Fdocs%2Fbadge.json)](https://markuskeller8200.github.io/markussxch-tagstudio/) [![Latest version](https://img.shields.io/github/v/release/MarkusKeller8200/markussxch-tagstudio?label=Version)](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest)
+
 *English version – [Deutsch](README.md) is the source and may be more up to date.*
 
 Toolbox for DJs' MP3 libraries: **tagger, comparison** (in the style of Beyond Compare), **tag fixer, backups,
 Camelot wheel, audio features** and **plugins** (e.g. stems, Beatport). For **Windows and macOS**.
 The core needs no extra packages, only Python 3.12 or newer – or nothing at all with the installer.
 
-**Download:** [Releases](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases) ·
+**Download:** [Latest version](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest) · [Download statistics](https://markuskeller8200.github.io/markussxch-tagstudio/) ·
 **Changes:** [CHANGELOG.md](CHANGELOG.md) · **Plugins:** [PLUGINS.en.md](PLUGINS.en.md) ·
 **Bugs & ideas:** [Issues](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues) ·
 **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Security:** [SECURITY.md](SECURITY.md) ·

@@ -66,6 +66,17 @@ Version Windows-Setup, macOS-DMG und Plugin-ZIPs zusammen. Der Workflow „Downl
 raw.githubusercontent.com und berechnet die neuen Downloads je Tag (`history`). Anzeige: Einstellungen › Expert ›
 Entwicklung › „Downloads je Version …“.
 
+**Öffentlich (#371):** Der Workflow schreibt zusätzlich `summary.json`, `badge.json` (shields.io-Endpunkt, nur
+Installer) und kopiert `.github/stats/index.html` als Statistik-Seite nach `docs/` im Zweig `stats` (dazu `.nojekyll`);
+GitHub Pages: Zweig `stats`, Ordner `/docs` → `https://markuskeller8200.github.io/markussxch-tagstudio/`. Abzeichen
+im README (`img.shields.io/endpoint?url=…/stats/docs/badge.json`).
+
+**Download-Kasten (#372):** Derselbe Workflow (alle 3 Stunden) setzt oben in die Versionshinweise jedes Releases
+einen Kasten mit direkten Links (Windows zuerst, Grösse, Plugins zugeklappt) zwischen den Markierungen
+`<!-- tagstudio-downloads:start/end -->` und entfernt die alte Zeile „**Download:** …“. `installer.yml` bleibt
+unberührt (eine Änderung dort löst einen Build aus). TagStudio entfernt den Kasten in seinen Versionshinweisen
+(`updater._strip_dl` → `downloadstats.strip_block`). Release-Dateien können auf GitHub nicht in Ordner gelegt werden.
+
 ## 4. Umsetzung
 
 - **Kern:** `updater.py` (`status`, `pull`, `fetch_releases`, `release_check`, `parse_version`, `is_beta`,

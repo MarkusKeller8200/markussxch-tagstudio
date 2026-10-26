@@ -180,6 +180,15 @@ def is_beta(v: str) -> bool:
     return "-" in (v or "")
 
 
+def _strip_dl(body: str) -> str:
+    """#372: Download-Kasten der Release-Seite nicht in den Versionshinweisen von TagStudio zeigen."""
+    try:
+        import downloadstats
+        return downloadstats.strip_block(body)
+    except ImportError:                        # ältere Pakete ohne das Modul
+        return body
+
+
 def fetch_releases(timeout: float = 8.0) -> list:
     """Releases von GitHub (öffentliche API, ohne Anmeldung). Wirft OSError/ValueError, wenn offline."""
     import urllib.request
@@ -193,7 +202,7 @@ def fetch_releases(timeout: float = 8.0) -> list:
         if parse_version(tag) is None or x.get("draft"):
             continue
         out.append({"tag": tag, "version": tag.lstrip("v"), "beta": bool(x.get("prerelease")) or is_beta(tag),
-                    "url": x.get("html_url") or RELEASES_URL, "notes": str(x.get("body") or ""),
+                    "url": x.get("html_url") or RELEASES_URL, "notes": _strip_dl(str(x.get("body") or "")),
                     "date": str(x.get("published_at") or "")[:10],
                     "assets": [{"name": a.get("name"), "url": a.get("browser_download_url"), "size": a.get("size") or 0,
                                 "digest": str(a.get("digest") or "")} for a in x.get("assets") or []]})

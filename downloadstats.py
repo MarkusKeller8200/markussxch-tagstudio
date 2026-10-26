@@ -9,6 +9,10 @@ GitHub zählt je Release-Datei nur die Gesamtzahl der Downloads (``download_coun
   Downloads je Tag. TagStudio liest die Datei über ``STATS_URL`` (fehlt sie, gibt es nur die Gesamtsummen).
 
 Datei: {"format": 1, "days": {"2026-10-26": {"v4.12.0": [win, mac, plugins], …}, …}}
+
+#371: Daneben ``summary.json`` (je Version) und ``badge.json`` (shields.io-Endpunkt) für die Statistik-Seite und das
+Abzeichen. #372: ``download_block``/``apply_block`` setzen oben in die Versionshinweise einen Kasten mit direkten
+Download-Links (``--release-notes``); ``strip_block`` entfernt ihn wieder (Anzeige in TagStudio).
 """
 from __future__ import annotations
 
@@ -59,8 +63,10 @@ def fetch(token: str = "", timeout: float = 10.0, get=None) -> list:
                 continue
             out.append({"tag": str(x.get("tag_name") or ""), "date": str(x.get("published_at") or "")[:10],
                         "beta": bool(x.get("prerelease")), "url": str(x.get("html_url") or RELEASES_URL),
+                        "id": x.get("id"), "body": str(x.get("body") or ""),
                         "assets": [{"name": str(a.get("name") or ""), "kind": kind(a.get("name")),
-                                    "count": int(a.get("download_count") or 0)} for a in x.get("assets") or []]})
+                                    "count": int(a.get("download_count") or 0), "size": int(a.get("size") or 0),
+                                    "url": str(a.get("browser_download_url") or "")} for a in x.get("assets") or []]})
         if len(data) < 100:
             break
     return out
@@ -122,6 +128,92 @@ def history(data: dict | None, today: str | None = None) -> dict:
     return {"days": out[-60:], "last7": last(7), "last30": last(30), "since": days[0][0] if days else ""}
 
 
+def badge(summary: dict) -> dict:
+    """#371: shields.io-Endpunkt (nur Installer)."""
+    return {"schemaVersion": 1, "label": "Downloads", "message": f"{summary['total']['installers']:,}".replace(",", "'"),
+            "color": "1D76DB", "cacheSeconds": 3600}
+
+
+def write_site(folder: str, releases: list, data: dict) -> None:
+    """#371: summary.json und badge.json neben download-stats.json schreiben (für Statistik-Seite und Abzeichen)."""
+    s = summarize(releases)
+    s["history"] = history(data)
+    s["updated"] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    s["releases_url"] = RELEASES_URL
+    for name, obj in (("summary.json", s), ("badge.json", badge(s))):
+        with open(os.path.join(folder, name), "w", encoding="utf-8", newline="\n") as fh:
+            json.dump(obj, fh, ensure_ascii=False, indent=1)
+            fh.write("\n")
+
+
+# =========================================================================== #372: Download-Kasten in den Versionshinweisen
+BLOCK_START = "<!-- tagstudio-downloads:start -->"
+BLOCK_END = "<!-- tagstudio-downloads:end -->"
+_OLD_LINE = "**Download:** Windows →"
+
+
+def _mb(n: int) -> str:
+    return f"{n / 1048576:.0f} MB" if n >= 1048576 else f"{max(1, round(n / 1024))} KB"
+
+
+def download_block(rel: dict) -> str:
+    """Kasten mit direkten Links: Installer oben, Plugins zugeklappt. "" ohne Installer."""
+    inst = [a for a in rel["assets"] if a["kind"] in ("win", "mac") and a.get("url")]
+    if not inst:
+        return ""
+    label = {"win": "Windows", "mac": "macOS (Apple-Chip)"}
+    lines = [BLOCK_START, "## ⬇ Download", "", "| | |", "|---|---|"]
+    for a in sorted(inst, key=lambda a: a["kind"] != "win"):
+        lines.append(f"| **{label[a['kind']]}** | [{a['name']}]({a['url']}) · {_mb(a.get('size') or 0)} |")
+    plug = [a for a in rel["assets"] if a["kind"] == "plugin" and a.get("url")]
+    if plug:
+        lines += ["", f"<details><summary>Plugins ({len(plug)}) – TagStudio bietet sie unter „Plugins“ selbst an, "
+                      "einzeln laden nur bei Bedarf</summary>", ""]
+        lines += [f"- [{a['name']}]({a['url']})" for a in sorted(plug, key=lambda a: a["name"])]
+        lines += ["", "</details>"]
+    lines += ["", BLOCK_END]
+    return "\n".join(lines)
+
+
+def strip_block(body: str) -> str:
+    """Kasten (und die alte Zeile „**Download:** …“) aus den Versionshinweisen entfernen."""
+    s = str(body or "")
+    while BLOCK_START in s and BLOCK_END in s:
+        a, b = s.index(BLOCK_START), s.index(BLOCK_END) + len(BLOCK_END)
+        s = s[:a] + s[b:]
+    return s.lstrip("\r\n")
+
+
+def apply_block(body: str, block: str) -> str:
+    """Kasten oben einsetzen bzw. ersetzen; die alte allgemeine Zeile „**Download:** …“ fällt weg."""
+    rest = strip_block(body)
+    rest = "\n".join(l for l in rest.split("\n") if not l.startswith(_OLD_LINE)).lstrip("\r\n")
+    return (block + "\n\n" + rest) if block else rest
+
+
+def update_release_notes(releases: list, token: str, patch=None, log=print) -> int:
+    """Alle Releases mit Installern prüfen und den Kasten setzen, wo er fehlt oder abweicht → Anzahl geändert."""
+    def _patch(rid, body):
+        req = urllib.request.Request(f"https://api.github.com/repos/{REPO}/releases/{rid}", method="PATCH",
+                                     data=json.dumps({"body": body}).encode("utf-8"),
+                                     headers={"Accept": "application/vnd.github+json", "User-Agent": UA,
+                                              "Authorization": f"Bearer {token}", "Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            r.read()
+    patch = patch or _patch
+    n = 0
+    for r in releases:
+        blk = download_block(r)
+        if not blk or not r.get("id"):
+            continue
+        new = apply_block(r.get("body", ""), blk)
+        if new.strip() != str(r.get("body") or "").strip():
+            patch(r["id"], new)
+            n += 1
+            log(f"Download-Kasten gesetzt: {r['tag']}")
+    return n
+
+
 def load_stats(timeout: float = 8.0, get=None):
     """Verlauf aus dem Zweig „stats“ – None, wenn es ihn (noch) nicht gibt."""
     try:
@@ -138,7 +230,16 @@ def report(timeout: float = 10.0) -> dict:
 
 
 def main(argv) -> int:
-    """Workflow: python downloadstats.py --update docs/download-stats.json"""
+    """Workflow: python downloadstats.py --update docs/download-stats.json   (dazu summary.json, badge.json)
+              python downloadstats.py --release-notes                     (Download-Kasten oben, braucht GITHUB_TOKEN)"""
+    if len(argv) == 2 and argv[1] == "--release-notes":
+        tok = os.environ.get("GITHUB_TOKEN", "")
+        if not tok:
+            print("GITHUB_TOKEN fehlt.")
+            return 2
+        n = update_release_notes(fetch(tok), tok)
+        print(f"{n} Release(s) angepasst.")
+        return 0
     if len(argv) != 3 or argv[1] != "--update":
         print(main.__doc__)
         return 2
@@ -154,6 +255,7 @@ def main(argv) -> int:
     with open(path, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(data, fh, ensure_ascii=False, indent=1, sort_keys=True)
         fh.write("\n")
+    write_site(os.path.dirname(os.path.abspath(path)), rel, data)
     s = summarize(rel)["total"]
     print(f"{len(rel)} Releases · Installer {s['installers']} (Windows {s['win']}, macOS {s['mac']}) · Plugins {s['plugins']}")
     return 0

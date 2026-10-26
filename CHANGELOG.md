@@ -11,6 +11,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Download-Verwaltung (#370):** Einstellungen › Expert › Entwicklung › „Downloads je Version …“ – wie oft die
   Installationsdateien je Version heruntergeladen wurden (Windows, macOS, Plugins, Summen, letzte 7/30 Tage); der neue
   Workflow „Download-Statistik“ speichert die Zählerstände täglich im Zweig `stats` für den Verlauf je Tag.
+- **Download-Zahlen öffentlich (#371):** Abzeichen „Downloads“ im README und Statistik-Seite (GitHub Pages) mit Summen,
+  Verlauf je Tag und Tabelle je Version.
+- **Release-Seite: Download oben (#372):** In den Versionshinweisen steht ganz oben ein Kasten mit direkten Links für
+  Windows und macOS (Plugins zugeklappt) – kein Scrollen mehr zu den Dateien.
 
 ## [4.12.0] – 2026-10-26
 

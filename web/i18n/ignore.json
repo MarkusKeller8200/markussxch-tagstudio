@@ -513,5 +513,9 @@
 "OPTIONS meldet kein POST für /my/playlists/ – versuche es trotzdem.",
 "Sitzung beendet (ohne client_id kein Zurückziehen möglich)",
 "Sitzungs-Token bei Beatport zurückgezogen (HTTP",
-"Einkäufe: {x} Datei(en) in die Bibliothek verschoben → {x}"
+"Einkäufe: {x} Datei(en) in die Bibliothek verschoben → {x}",
+"Plugins ({x}) – TagStudio bietet sie unter {q} selbst an, einzeln laden nur bei Bedarf",
+"{x} Release(s) angepasst.",
+"Download-Kasten gesetzt: {x}",
+"GITHUB_TOKEN fehlt."
 ]
