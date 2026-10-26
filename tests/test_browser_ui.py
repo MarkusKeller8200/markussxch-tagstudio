@@ -1613,7 +1613,7 @@ class UiTest(unittest.TestCase):
         pg.check("#btSerato")
         self.assertTrue(self.until("document.querySelector('#modal table')?.textContent.includes('bpm=123.400')"))
         pg.click("#mBtns .primary")
-        self.assertTrue(self.until("TG.rows[TG.view[0].i].grid === 'tag' && TG.rows[TG.view[0].i].modified"))
+        self.assertTrue(self.until("TG.rows[TG.view[0].i].grid === 'tag' && TG.rows[TG.view[0].i].modified", 15))   # unter Last langsam
         self.assertIn("Analyse (Tag)", pg.inner_text(".tg-row >> nth=0"))
         self.assertEqual(self.errors, [])
 
@@ -3017,7 +3017,7 @@ class UiTest(unittest.TestCase):
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stToc [data-fold='open']")
         n = pg.evaluate("document.querySelectorAll('#stGrid > .card:not([hidden]) > h3').length")
-        self.assertEqual(pg.locator("#stGrid > .card.st-folded").count(), pg.evaluate("document.querySelectorAll('#stGrid > .card > h3').length"))
+        self.assertTrue(self.until("document.querySelectorAll('#stGrid > .card.st-folded').length === document.querySelectorAll('#stGrid > .card > h3').length"))   # Einklappen läuft nach dem Zeichnen
         self.assertGreater(n, 10)
         self.assertTrue(pg.locator("#stExpertRows").is_hidden())
         pg.click("#stExpertCard > h3")
