@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TagStudio – Manual</title><meta name="description" content="Manual for MarKusSXCH TagStudio: all features, settings and shortcuts.">
+<meta property="og:title" content="TagStudio – Manual"><meta property="og:description" content="Manual for MarKusSXCH TagStudio: all features, settings and shortcuts.">
+<meta property="og:image" content="https://markuskeller8200.github.io/markussxch-tagstudio/img/social-preview.png"><meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image"><link rel="icon" href="img/icon.png">
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#1b1f24;--muted:#5f6b7a;--line:#e2e6ea;--acc:#1d76db;--acc2:#7a3fd1;--code:#eef1f5;--hl:#fff2a8}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1216;--card:#171b21;--fg:#e8ecf1;--muted:#97a3b3;--line:#262c35;--acc:#5eaaff;--acc2:#c9a2ff;--code:#1f252d;--hl:#5a4a00}}
+*{box-sizing:border-box}html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+header.top .brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--fg)}
+header.top .brand img{width:30px;height:30px;border-radius:8px}
+header.top nav{display:flex;gap:16px;flex-wrap:wrap;margin-left:auto;font-size:15px}
+header.top nav a{color:var(--muted)}header.top nav a.on,header.top nav a:hover{color:var(--fg);text-decoration:none}
+main{max-width:1180px;margin:0 auto;padding:28px 16px 56px}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--acc);color:#fff;padding:11px 18px;border-radius:12px;font-weight:600}
+.btn:hover{text-decoration:none;opacity:.92}.btn.alt{background:transparent;color:var(--fg);border:1px solid var(--line)}
+@media (prefers-color-scheme:dark){.btn{color:#0f1216}.btn.alt{color:var(--fg)}}
+.muted{color:var(--muted)}.sm{font-size:14px}
+footer{max-width:1180px;margin:0 auto;padding:24px 16px 40px;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+/* Startseite */
+.hero{text-align:center;padding:36px 0 18px}.hero img.logo{width:88px;height:88px;border-radius:22px}
+.hero h1{font-size:clamp(30px,5vw,46px);line-height:1.1;margin:18px 0 10px;letter-spacing:-.02em}
+.hero p.lead{font-size:clamp(17px,2.4vw,21px);color:var(--muted);max-width:720px;margin:0 auto}
+.dl{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:24px 0 8px}
+.ver{color:var(--muted);font-size:14px}
+.shot{margin:28px auto 8px;max-width:1100px}.shot img{width:100%;border-radius:14px;border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.18)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:34px 0}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.tile b{display:block;font-size:17px;margin-bottom:4px}.tile span{color:var(--muted);font-size:15px}
+.pics{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.pics figure{margin:0}.pics img{width:100%;border-radius:12px;border:1px solid var(--line)}
+.pics figcaption{color:var(--muted);font-size:14px;margin-top:6px}
+.nums{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin:10px 0 0}.nums div{text-align:center}
+.nums b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.nums span{color:var(--muted);font-size:13px}
+h2.sec{font-size:24px;margin:44px 0 14px}
+/* Handbuch */
+.doc{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.toc{position:sticky;top:76px;max-height:calc(100vh - 96px);overflow:auto;font-size:14px;padding-right:6px}
+.toc input{width:100%;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;margin-bottom:10px}
+.toc ul{list-style:none;margin:0;padding:0}.toc li{margin:2px 0}.toc li li{padding-left:14px}
+.toc a{color:var(--muted);display:block;padding:2px 6px;border-radius:6px}.toc a:hover{color:var(--fg);background:var(--card);text-decoration:none}
+.toc .hit{color:var(--muted);font-size:13px;margin:0 0 8px}
+article{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 30px 30px;min-width:0}
+article h1{font-size:30px;margin:22px 0 8px}article h2{font-size:23px;margin:34px 0 10px;padding-top:10px;border-top:1px solid var(--line)}
+article h3{font-size:19px;margin:26px 0 8px}article h4{font-size:16px;margin:20px 0 6px}
+article code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:.9em}
+article pre{background:var(--code);padding:12px 14px;border-radius:10px;overflow:auto}article pre code{background:none;padding:0}
+article table{border-collapse:collapse;display:block;overflow-x:auto;margin:12px 0}
+article th,article td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+article blockquote{margin:12px 0;padding:6px 14px;border-left:4px solid var(--acc);color:var(--muted)}
+article img{max-width:100%}
+article section.hide{display:none}
+article{overflow-wrap:anywhere}.doc>*{min-width:0}article pre{white-space:pre-wrap}
+.tile code{overflow-wrap:anywhere}mark{background:var(--hl);color:inherit;border-radius:3px}
+.toc-btn{display:none}
+@media (max-width:860px){.doc{grid-template-columns:1fr}.toc{position:static;max-height:none}.toc ul{display:none}.toc.open ul{display:block}
+  .toc-btn{display:inline-block;margin-bottom:8px}article{padding:4px 16px 20px}}
+</style></head><body>
+<header class="top"><div class="in"><a class="brand" href="index.html"><img src="img/icon.png" alt="">MarKusSXCH TagStudio</a>
+<nav><a href="index.html">Start</a><a href="manual.html" class="on">Manual</a><a href="statistik.html">Statistics</a><a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest">Download</a><a href="https://github.com/MarkusKeller8200/markussxch-tagstudio">GitHub</a><a href="handbuch.html" hreflang="de">DE</a></nav></div></header>
+<main><div class="doc"><aside class="toc" id="toc"><button class="btn alt toc-btn" onclick="this.parentNode.classList.toggle('open')">Contents</button><input id="q" type="search" placeholder="Search the manual …" aria-label="Search"><p class="hit" id="hit"></p><ul><li><a href="#features-at-a-glance">Features at a glance</a></li><li><a href="#starting-the-program">Starting the program</a></li><li><a href="#installation">Installation</a><ul><li><a href="#with-the-installer-recommended-no-python-needed">With the installer (recommended, no Python needed)</a></li><li><a href="#from-the-source-code-for-development-and-the-update-button">From the source code (for development and the update button)</a></li></ul></li><li><a href="#usage">Usage</a><ul><li><a href="#tagger">Tagger</a></li><li><a href="#prepare-and-discover">Prepare and discover</a></li><li><a href="#dj-set">DJ set</a></li><li><a href="#playlists">Playlists</a></li><li><a href="#purchases">Purchases</a></li><li><a href="#tag-fixer">Tag fixer</a></li><li><a href="#compare">Compare</a></li><li><a href="#preview-player-and-external-players">Preview player and external players</a></li><li><a href="#snapshots-change-journal">Snapshots &amp; change journal</a></li><li><a href="#backups">Backups</a></li><li><a href="#plugins">Plugins</a></li><li><a href="#update-layout-keyboard">Update, layout, keyboard</a></li></ul></li><li><a href="#settings-and-data-storage">Settings and data storage</a></li><li><a href="#technical-details">Technical details</a></li><li><a href="#files">Files</a></li><li><a href="#development">Development</a></li><li><a href="#versions-releases">Versions &amp; releases</a></li><li><a href="#reporting-bugs-ideas-security">Reporting bugs, ideas, security</a></li><li><a href="#classic-interface-frozen">Classic interface (frozen)</a></li><li><a href="#licence">Licence</a></li></ul></aside><article><h1 id="markussxch-tagstudio-manual">MarKusSXCH TagStudio – Manual</h1>
+<p><em>English version – <a href="handbuch.html">Deutsch</a> is the source and may be more up to date.</em></p>
+<p>The complete guide to all features. Overview, pictures and download: <a href="index.html">start page</a></p>
+<blockquote>
+<p>Up to version 2.8 the program was called “MP3 Tag Compare”. Settings and backups from that time are taken over
+automatically.</p>
+</blockquote>
+<section data-s="1"><h2 id="features-at-a-glance">Features at a glance</h2>
+<ul>
+<li><strong>Tagger:</strong> edit many files together, cover, tags from file name, renaming, track numbers, upper/lower case,
+  search &amp; replace, export to Excel/CSV.</li>
+<li><strong>Editors for every field:</strong> multi-line field editor, multiple values as single values, JSON as a tree, XML editor,
+  binary field editor for DJ data (GEOB/PRIV), colour picker for hex colours, clickable links.</li>
+<li><strong>Key:</strong> Camelot wheel with harmonically matching keys; notation Camelot (<code>08A</code>), musical (<code>Am</code>) or Open Key (<code>1m</code>).</li>
+<li><strong>Audio features:</strong> Energy, Danceability, Happiness … as fields with values 0–100, as columns in the tagger,
+  sortable and filterable (<code>energy&gt;=70</code>); files optionally in 0–10 (Lexicon).</li>
+<li><strong>DJ set:</strong> optimise the order by key (Camelot), BPM and energy, rate every transition, re-order and lock by
+  dragging, path through the Camelot wheel and energy curve; export as M3U8, Rekordbox XML and CSV.</li>
+<li><strong>Playlists:</strong> collect tracks from the tagger and the DJ set in playlists with folders; every playlist is also
+  stored as M3U8 in the playlist folder (for Engine DJ, VirtualDJ &amp; co.); archive instead of delete.</li>
+<li><strong>Comparing two folders/files:</strong> field by field with character-exact highlighting, take over values with an arrow.</li>
+<li><strong>Tag fixer:</strong> unify multiple values (<code>;</code>, <code>/</code>, <code>feat.</code> …) or convert them into real ID3v2.4 multiple values.</li>
+<li><strong>Safe saving:</strong> automatic backup of the tags before every save, change viewer, byte-exact restore; undo/redo
+  across all files.</li>
+<li><strong>Preview player:</strong> listen to tracks with waveform and cue marks (Serato, Mixed In Key), live preview, crossfading
+  with tempo matching, <strong>rating and like</strong>, second player for pre-listening, can be undocked to a second screen, A/B
+  in the comparison, external players (foobar2000, VLC …).</li>
+<li><strong>Snapshots &amp; change journal:</strong> record the tag state of watched folders, detect changes made by other programs
+  and undo them one by one; protection against overwriting changes made elsewhere.</li>
+<li><strong>Origin of the tags:</strong> marks which application wrote a field; filter or remove the fields of one application.</li>
+<li><strong>Plugins:</strong> stems (separate vocals, drums, bass … – in the background, stems expandable below the track) and
+  Beatport (metadata with your own login, match purchases and download missing ones); your own plugins are possible; filter by category (online API, shop API, cloud API …).</li>
+<li><strong>Settings</strong> in one place – with defaults for the start –, export/import (e.g. Windows ↔ Mac) and reset; updates
+  either official versions only or beta versions too, release notes right in the app.</li>
+<li><strong>Languages:</strong> German, English and Zurich German; your own texts can be exported, edited and
+  imported (Settings › Appearance › Language).</li>
+</ul>
+</section><section data-s="2"><h2 id="starting-the-program">Starting the program</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Installed</td>
+<td><strong>TagStudio</strong> in the Start menu or under Applications</td>
+</tr>
+<tr>
+<td>Source code Windows</td>
+<td><code>start_windows.bat</code> (or <code>start_web_windows.bat</code>)</td>
+</tr>
+<tr>
+<td>Source code macOS</td>
+<td><code>start_mac.command</code> (or <code>start_web_mac.command</code>)</td>
+</tr>
+<tr>
+<td>Terminal</td>
+<td><code>python tagstudio_web.py [left] [right]</code> – with <code>--browser</code> in the browser instead of its own window</td>
+</tr>
+</tbody>
+</table>
+<p>The first, classic interface (tkinter) has been frozen since version 3.0 – see
+<a href="#classic-interface-frozen">Classic interface</a> at the end.</p>
+</section><section data-s="3"><h2 id="installation">Installation</h2>
+<h3 id="with-the-installer-recommended-no-python-needed">With the installer (recommended, no Python needed)</h3>
+<p>Download the latest version under <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases">Releases</a>:</p>
+<ul>
+<li><strong>Windows:</strong> run <code>TagStudio-&lt;version&gt;-Windows-Setup.exe</code>. Installs without administrator rights to
+  <code>%LOCALAPPDATA%\Programs\TagStudio</code>, with a Start menu entry, optional desktop icon and uninstall via
+  “Apps &amp; features”. The installer is not signed – if “Windows protected your PC” appears:
+  <strong>More info → Run anyway</strong>.</li>
+<li><strong>macOS (Apple chip):</strong> open <code>TagStudio-&lt;version&gt;-macOS-Apple-Chip.dmg</code>, drag <strong>TagStudio</strong> to <strong>Applications</strong>.
+  The app is not notarised by Apple: close the message on first start, then <strong>System Settings → Privacy &amp; Security →
+  “Open Anyway”</strong> (details in “Zuerst lesen.txt” in the disk image).</li>
+</ul>
+<p>The installed app contains the new interface including plugins (stems sets up its own environment the first time it
+is installed). <strong>Updates:</strong> the “Check for update” button opens the releases page; download the new version and
+install it over the old one – settings, backups and plugin data live in the user folder and are kept.</p>
+<h3 id="from-the-source-code-for-development-and-the-update-button">From the source code (for development and the update button)</h3>
+<ol>
+<li>Install <strong>Python</strong> from https://www.python.org/downloads/ – Windows: tick “Add python.exe to PATH”;
+   macOS: the installer package contains tkinter (Homebrew Python additionally needs <code>brew install python-tk</code>).</li>
+<li><strong>Get the program</strong> – ideally as a Git clone, then the update button works:
+   <code>git clone https://github.com/MarkusKeller8200/markussxch-tagstudio.git</code>
+   (alternatively download the ZIP from GitHub and unpack it).</li>
+<li><strong>Start</strong> with a double-click (see table; macOS the first time: right-click → Open).
+   On first start the new interface installs <code>pywebview</code> (small, internet needed) and opens its own app window.
+   Without pywebview it opens in the browser (<code>python tagstudio_web.py --browser</code>).</li>
+</ol>
+</section><section data-s="4"><h2 id="usage">Usage</h2>
+<p>Sidebar with <strong>Purchases, Prepare, Tagger, Tag fixer, Compare, DJ set, Playlists, Snapshots, Backups, Plugins, Settings</strong>
+(Settings › Appearance › Sidebar: show/hide items and set your own order with ↑/↓), at the bottom
+“Check for update”, release notes, collapse and light/dark. <strong>Back:</strong> after a jump from the content (e.g. playlist ›
+“Open in the tagger”) “← Back” appears at the top of the sidebar with the target – it returns to the same place
+(selection, filter, scroll position); likewise Alt+← / Alt+→ (except in Compare) and the mouse buttons back/forward,
+right-click shows the last stations. Clicks in the sidebar do not count. On start the last used page opens (the tagger on first
+start). On start the tagger loads the last loaded folder in the background (the app can be used immediately) and
+restores selection, sorting, filter and scroll position (Settings › Tagger › “Load on start”: last loaded, default
+folder or nothing). Compare and tagger work on the same files – changes are visible in both, are saved together
+(Ctrl/Cmd+S) and can be undone together. The app window opens with the size and position of last time (maximised
+too).</p>
+<h3 id="tagger">Tagger</h3>
+<ul>
+<li><strong>Back quickly:</strong> a folder that was already read appears immediately from the list cache; TagStudio then checks
+  every track in the background via a hash of its tags and re-reads what has changed (progress in the status line).
+  On app start the tagger shows the <strong>last displayed list immediately</strong> (view only, note “being checked in the
+  background …”) and replaces it once reading is done – changes are reported in the status line.</li>
+<li><strong>List:</strong> read a folder or file; optionally with a <strong>cover column</strong> (“Cover” button); columns file, title, artist,
+  album, track, year, genre, key – sortable with a click, filterable. Select with click, Shift, Ctrl/Cmd, Ctrl/Cmd+A.</li>
+<li><strong>Columns ▾:</strong> more columns (album artist, disc, composer, comment, length, kbit/s, rating, ID3 version, label,
+  catalogue number, remixer, ISRC … or <strong>any field</strong> such as <code>TXXX:LABEL</code>), order by <strong>dragging in the header</strong>,
+  “Fit to window” or “Optimal width” with horizontal scrolling (if the columns don't fit, the list switches to
+  horizontal scrolling by itself; the first column stays at the left). <strong>Sort</strong> in up to three levels (Shift+click on more
+  columns), “↺ Sorting” resets to the default; “Current sorting as default” and <strong>“Save view as preferred”</strong> (also
+  under Settings › Tagger).</li>
+<li><strong>Editing:</strong> on the right the standard fields of the selected files. With several files “‹mixed›” shows different
+  values – they stay unchanged until you enter something. Set/remove the cover, choose the ID3 version (v2.3/v2.4).
+  If a field contains a web address (e.g. comment), a link button appears next to it.</li>
+<li><strong>Tools</strong> (all with preview):</li>
+<li><strong>Tags from file name</strong> – patterns like <code>%track% - %artist% - %title%</code>, <code>%dummy%</code> skips a part.</li>
+<li><strong>Rename files</strong> – from tags; invalid characters → <code>_</code>, collisions are detected (immediately, not via “Save”).</li>
+<li><strong>Track numbers</strong> – in list order, optionally with total (3/12).</li>
+<li><strong>Upper/lower case</strong> – title case, sentence case, UPPER, lower; abbreviations such as DJ/AC/DC are kept.</li>
+<li><strong>Search &amp; replace</strong> – across all selected files, selectable fields, whole words, regular expressions.</li>
+<li><strong>Cover from folder</strong> – <code>cover/folder/front/album.jpg|png</code> in the file's folder, otherwise the largest image.</li>
+<li><strong>Export list</strong> – Excel (.xlsx) or CSV with semicolons, including Camelot and audio feature columns.</li>
+<li><strong>Add field</strong>, <strong>Tag fixer</strong>, <strong>Show in Explorer/Finder</strong>.</li>
+</ul>
+<h4 id="more-fields-and-editors">More fields and editors</h4>
+<p>With one file selected, “More fields” lists all other tags. The divider between field and value can be dragged
+(double-click = default, the width is remembered). Links are clickable, hex colours (fields with “COLOR” in the name,
+e.g. <code>#CC0000</code>, <code>0xFFCC0000</code>) appear as a colour swatch. The <strong>pencil button</strong> or a <strong>double-click</strong> opens the
+matching editor, ✕ removes the field.</p>
+<ul>
+<li><strong>Field editor:</strong> large multi-line text field (comments, lyrics), character/line counter, ‹ › or Alt+↑/↓ move to
+  the previous/next field (and save), Ctrl/Cmd+Enter applies.</li>
+<li><strong>Single values:</strong> multiple values (separated by NULL characters/ID3v2.4, semicolon or comma) as a list – add a
+    value (Enter too), remove, re-order; the separator can be changed, e.g. convert “House; Techno” into real ID3v2.4
+    multiple values.</li>
+<li><strong>Colour picker</strong> for hex colours – the notation (prefix, case, alpha) is kept.</li>
+<li><strong>JSON tree</strong> (for JSON in text fields and DJ data, e.g. Mixed In Key): key/value pairs as in the XML editor,
+  expandable. Only the values are edited – text, numbers (validated), yes/no as a tick box; only the changed values
+  are replaced in the original text, format and indentation stay exact. <strong>Expert mode</strong> (tick box, remembered): add
+  entries – in lists e.g. a new cue point as a copy of the last one, in objects new keys with a type –, duplicate (⧉)
+  and remove (✕).</li>
+<li><strong>XML editor</strong> (marked <strong>XML</strong>, in the comparison too): <strong>tree</strong> (edit attributes and texts directly,
+  expand/collapse, search) and <strong>source</strong> (coloured, line numbers), continuous validation with error position,
+  <strong>Format</strong> and <strong>Compact</strong>. XML inside binary fields can be edited too – only the XML section is replaced.</li>
+<li>
+<p><strong>Binary field editor</strong> (GEOB/PRIV, e.g. Serato, Mixed In Key): header (description, MIME type and file name or
+  owner) and content – readable text and Base64-encoded text/JSON can be edited directly (encoded the same way again
+  on apply), XML in the XML editor, otherwise a hex view. Only what was edited is changed.</p>
+</li>
+<li>
+<p><strong>Origin:</strong> in front of the field name a small badge shows which application wrote the field (e.g. <strong>Serato</strong>,
+  <strong>MIK</strong>, <strong>MB</strong> for MusicBrainz, <strong>Beatport</strong>, <strong>Spotify</strong>, <strong>Discogs</strong>, <strong>Traktor</strong>, <strong>iTunes</strong>), tooltip with an
+  explanation. Official ID3 fields (title, artist, BPM, cover …) also show their <strong>ID3 version</strong> (v2.3/v2.4, can be
+  switched off); user-defined fields (TXXX, GEOB, PRIV …) without a known application are called <strong>“unknown”</strong>.
+  Text and colour of each badge can be adjusted in the settings and reset. In the comparison too – there the
+  <strong>“Origin”</strong> button removes the fields of one application on the left, right or both sides. In the tagger filter via
+  “All origins”; “Remove all …” or <strong>“Fields by origin …”</strong> removes all fields of one application from the selected
+  files (preview, undo).</p>
+</li>
+</ul>
+<blockquote>
+<p>Programs such as Serato or Mixed In Key expect their own format in their fields. Try changes to DJ data (e.g. new
+cue points) on a test file first.</p>
+</blockquote>
+<h4 id="key-and-camelot-wheel">Key and Camelot wheel</h4>
+<p>The button next to the “Key” field opens the wheel (major outside, minor inside). A click sets the key of the
+selected files; the current key and the harmonically matching keys (±1, relative key) are highlighted. It is written
+either as <strong>Camelot</strong> (always two digits: <code>08A</code>, <code>01B</code>), <strong>musical</strong> (<code>Am</code>) or <strong>Open Key</strong> (<code>1m</code>); notations such as
+<code>8A</code>, <code>A minor</code>, <code>F♯m</code>, <code>a-Moll</code> or <code>Es-Dur</code> are recognised too. “Unify notation” rewrites all selected files. The
+“Key” column shows coloured Camelot codes (sortable); with one file selected the matching tracks are outlined.</p>
+<h4 id="audio-features">Audio features</h4>
+<p>Expandable area in the tagger: Energy, Danceability, Happiness, Valence, Acousticness, Instrumentalness, Liveness,
+Speechiness, Brightness, Aggressiveness as <code>TXXX:ENERGY</code> … with values 0–100 – with a slider or a number
+(0.78 → 78), for one or several files. Other notations (<code>TXXX:Energy</code>) are recognised and unified on change.</p>
+<p><strong>Columns and filters:</strong> via “Features ▾” in the list, features can be shown as columns (with a small bar) and sorted
+by clicking the column header. Besides text, the search field understands number filters, several separated by
+spaces and combinable with text:</p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>finds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>energy&gt;=70</code>, <code>Energie ≥ 70</code></td>
+<td>Energy from 70</td>
+</tr>
+<tr>
+<td><code>dance&lt;40</code>, <code>tanz&lt;40</code></td>
+<td>Danceability below 40</td>
+</tr>
+<tr>
+<td><code>energy:60-80</code></td>
+<td>Energy from 60 to 80</td>
+</tr>
+<tr>
+<td><code>bpm:120-128</code>, <code>tempo=124</code></td>
+<td>BPM range or exactly 124</td>
+</tr>
+<tr>
+<td><code>house energy&gt;50</code></td>
+<td>text “house” and Energy above 50</td>
+</tr>
+</tbody>
+</table>
+<p>Names may be abbreviated (<code>ener</code>, <code>dance</code>) or German (Energie, Tanz, Stimmung, Akustik, Sprache …).
+<strong>Scale:</strong> under Settings › Tagger you can set that the values in the files are 0–10 (e.g. from Lexicon). Display and
+input stay 0–100; reading multiplies by 10, writing divides by 10.</p>
+<h3 id="prepare-and-discover">Prepare and discover</h3>
+<p><strong>Workflow:</strong> new tracks run from the <strong>inbox folder</strong> through freely configurable steps into the <strong>library</strong> – every
+stage works on a copy, the raw data stays unchanged. Step types: tag recipe, external program (detect completion via
+the origin or confirm it), plugin (e.g. loudness, online metadata – “fill empty fields only”), check required fields,
+takeover with duplicate check and downstream programs as status. The protection rule “only complete” reports (or
+reverts) when a program changes existing tags. <strong>Sources</strong> are the download folders of the shops; “Collect” copies
+new MP3s (from ZIPs too) into the inbox.</p>
+<p><strong>Discover</strong> is a page of its own, at the top of the sidebar by default (the number next to it = new suggestions);
+“Prepare” only shows the workflow. Under “Follow …” set artists, labels and Beatport genres (or have them suggested from the library);
+“Search” fetches new releases from Deezer and Beatport, optionally also from <strong>SonoVault</strong> (costs credits: 1–2 requests
+per artist/label; never in the daily search; entries without link, removed after 30 days and never exported). In the list, pre-listen (▶), remember (☆), mark as bought (✓)
+or hide (✕); “Open” leads to the track's page. Nothing is ever bought automatically. The section <strong>Following</strong>
+shows all followed artists, labels and genres (those imported from Beatport marked “BP”): add names directly, remove
+with ×, “Import from Beatport” and “Similar artists …” (Deezer). Right-click a suggestion: “Follow artist” / “Follow
+label”. <strong>Clear …</strong> removes new and hidden suggestions (watch-listed and bought ones stay), optionally searching
+again. Tracks listed under <strong>Purchases</strong> are marked “bought” and appear in the filter “Bought”.</p>
+<h3 id="dj-set">DJ set</h3>
+<p>Orders tracks so that the transitions fit. Page <strong>DJ set</strong> in the sidebar (with the number of tracks in the set).</p>
+<ol>
+<li><strong>Get tracks:</strong> read a folder in the tagger, then “+ Selected from the tagger” or “+ Whole tagger folder” – or
+   select tracks in the tagger and right-click “Add to DJ set”.</li>
+<li><strong>Configure:</strong> energy curve (any, rising, falling, wave), weighting of key, BPM and energy, maximum BPM jump in
+   percent, tracks without key/BPM at the end or planned as neutral.</li>
+<li><strong>Optimise:</strong> up to 15 tracks the best order is calculated exactly, above that a very good approximation (usually
+   less than 2 % from the optimum, a few seconds for 200 tracks). “⇄ Before/after” switches between the old and the new
+   order.</li>
+</ol>
+<p><strong>Rating:</strong> between two tracks the transition is shown with a traffic light, the kind of key change (same, ±1 on the
+wheel, relative key, energy jump +2/diagonal, jump), the BPM difference (half/double tempo is recognised, ×2 or ½)
+and a score 0–100. Transitions above the maximum BPM jump get 0. The total score is the average of the transitions,
+with an energy curve 20 % is the closeness to the target curve. If the ENERGY field is missing, the energy is roughly
+estimated from the BPM (striped bar).</p>
+<p><strong>Adjust by hand:</strong> drag rows with the mouse; 🔒 <strong>locks</strong> a track at its position – “Optimise the rest” then only
+re-orders the others. Keys: ↑/↓ select, Alt+↑/↓ move, G lock, Del remove, Enter or double-click plays. The player
+follows the set order (⏮/⏭, “Follow”, crossfade), so transitions can be pre-listened. Rows can also be dragged onto
+player A or B.</p>
+<p><strong>Right:</strong> the set's path through the Camelot wheel (start circled) and the curve of energy, target curve and BPM.</p>
+<p><strong>Export ▾:</strong> M3U8 playlist with absolute or relative paths, Rekordbox XML (in Rekordbox under
+<em>Preferences › Advanced › rekordbox xml</em> add the file, then the playlist appears in the “rekordbox xml” area and can
+be imported), CSV for Excel with transition ratings, and write <strong>track numbers in set order</strong> (preview, can be undone,
+saved as usual).</p>
+<p>TagStudio remembers the set and the options; tracks from another folder stay in the set but appear grey until their
+folder is loaded in the tagger again.</p>
+<p><strong>Playlist ▾</strong> (top): save the set as a playlist (new ones go into the folder “DJ-Sets”, with locks and options) or
+load any playlist into the set. Duplicate tracks of a playlist are left out – in the set every track appears once.</p>
+<h3 id="playlists">Playlists</h3>
+<p>Collect and arrange tracks and make them available to DJ programs. Page <strong>Playlists</strong> in the sidebar.</p>
+<ul>
+<li><strong>Add tracks:</strong> select tracks in the tagger, right-click (or tools › “Playlist ▾”) → “Add to playlist …” – choose
+  an existing one or create a new one with a folder. <strong>Ctrl+Shift+P</strong> puts the selected tracks into the most recently
+  used playlist. In the DJ set the same works by right-clicking a track. <strong>“Search online ›”</strong> in the right-click menu
+  (tagger, playlists, DJ set) opens the search at Beatport, Spotify, SoundCloud, Apple Music or YouTube with artist and
+  title – also for entries without a file. If a track is already contained, TagStudio
+  asks: skip or add anyway (duplicates are allowed).</li>
+<li><strong>Manage:</strong> on the left the tree with folders (any depth), “Recently used” and search; dragging playlists onto a
+  folder moves them. Right-click: rename (F2), duplicate, move, colour and note, merge with others, archive. On the
+  right the tracks with BPM, key, length and rating – dragging or Alt+↑/↓ re-orders, Del removes (only from the
+  playlist, never the file), double-click plays, dragging tracks onto another playlist in the tree copies them there.
+  Ctrl+Z / Ctrl+Y undo every change.</li>
+<li><strong>Open:</strong> “Open in the tagger” loads only the playlist's tracks into the tagger (note “Only playlist loaded” with
+  “Load whole folder”), “Open in the DJ set” into the set. In the tagger, “Playlist ▾ → Show only tracks from a
+  playlist …” shows only its tracks (filter chip, ✕ clears it). <strong>“↺ Filter”</strong> above the list clears all filters
+  (search, columns, field, playlist) and loads the whole folder again if needed.</li>
+<li><strong>Playlist folder:</strong> every playlist is also stored as M3U8 (relative paths) in <code>03_Playlists</code> in the base folder,
+  subfolders as in the tree – for reading into Engine DJ, VirtualDJ and other programs. Set it under Settings ›
+  Storage and folders. If another program changes a file there or adds a new one, the page reports it (“Changes in
+  the folder …”) – take over, keep or ignore; TagStudio never overwrites anything without asking.</li>
+<li><strong>Smartlists (⚡):</strong> “+ Smartlist” creates a playlist that fills itself by rules – e.g. “BPM 124–128 and ★ ≥ 4”.
+  Source: the library (tagger default folder, library from “Prepare” or <code>01_Library</code>, with list cache), the tracks
+  loaded in the tagger (including unsaved changes) or another playlist. Rules on text, artist, title, album, genre,
+  label, comment, year, BPM, key (also “fits 8A”), rating, like, mood, energy, added/edited (date range or last n days)
+  and origin; “all” or “at least one” must match; sort order (also random) and limit. It is rebuilt when opened (if
+  older than 15 minutes) and with “↻ Refresh”, never in the background; the M3U8 in the playlist folder is written
+  along. A smartlist cannot be changed by hand – “More ▾ → Freeze” turns it into a normal playlist (Ctrl+Z undoes it).</li>
+<li><strong>Archive instead of delete:</strong> “Archive” puts the playlist into the archive (at the bottom of the tree), its M3U8
+  moves to <code>02_Archiv/_Playlists</code> (note in <code>_aussortiert.csv</code>). “Bring back” restores it; deleting permanently is only
+  possible in the archive. Tracks moved to the archive stay in their playlists and are marked “in the archive”.</li>
+<li><strong>Play:</strong> “▶ Play” starts from the selected track – the player then follows the playlist on other pages too
+  (⏭/⏮, end of track; “▶ playing” in the header). The tracks do not need to be loaded in the tagger. “More ▾ → To the
+  queue” appends the tracks loaded in the tagger; in the queue, “Save as playlist …” stores it as a playlist, and in the
+  player menu “Add the playing track to a playlist …” stores the current track.</li>
+<li><strong>Import ▾:</strong> take over M3U/M3U8, Rekordbox XML (with folder tree) or CSV – also lists without files (columns
+  artist, title, mix, ISRC, duration) and Spotify exports (e.g. Exportify CSV). <strong>“From Serato …”, “From Engine
+  DJ …”, “From VirtualDJ …”</strong> and “From Lexicon …” fetch the playlists of these programs (crates, playlists with
+  folders, virtual folders) – the library is looked for in the usual place and on external drives and <strong>only read</strong>;
+  fetching again updates them. <strong>“Paste tracklist …”</strong> takes over a copied tracklist from 1001Tracklists, MixID,
+  Beatport etc. (one “Artist - Title” per line) as entries without a file; TagStudio does not fetch any web page.</li>
+<li><strong>More ▾:</strong> export as M3U8 (absolute or relative paths), Rekordbox XML or CSV (whole folders as Rekordbox XML with
+  folder tree by right-clicking the folder). <strong>“Match with library …”</strong> finds the matching track for entries without
+  a file (same ISRC or artist + title + mix = found; “Song - Extended Mix” and “Song (Extended)” count as equal,
+  “Original Mix” and “Remastered” as no mix). A different mix such as radio edit instead of extended mix or only a
+  similar title = unclear with reason and suggestion ★; “Another mix counts as found” picks it directly (extended
+  preferred). It searches the ticked libraries and, if wanted, another folder (“Other
+  folder …”); suggestions ★ are preselected. Right-clicking a folder or “More ▾ › Match all playlists with library …”
+  does this for many playlists at once. When a playlist is fetched again (Spotify, SoundCloud, Lexicon …), links are
+  kept and sure matches are linked right away. <strong>“Find missing …”</strong> finds moved files by file name (same size preferred). <strong>“Export
+  shopping list …”</strong> saves everything missing as CSV.</li>
+<li><strong>Prepare:</strong> in the step “Take over into the library”, “Add to playlist” (e.g. <code>New/{Jahr}-{Monat}</code>) puts the
+  taken-over tracks into a playlist; new tracks are also linked automatically to matching entries without a file.</li>
+<li>The previously saved DJ set lists are taken over once as playlists on the first start.</li>
+</ul>
+<h3 id="purchases">Purchases</h3>
+<p>Bought tracks from all stores in one place – <strong>Beatport</strong> for now (sign in to the Beatport plugin). Page <strong>Purchases</strong>
+in the sidebar: table with title, artist, mix, length, key, BPM, catalogue number, store, purchase date (if the store
+provides it, otherwise “first seen”) and a link to the store. Drag the edge of a column header to change its width
+(double-click: fit to content, ←/→ on the handle; right-click the header row: reset) – TagStudio remembers it, in the
+Tag fixer as well. The <strong>⇔ “Best Match”</strong> icon above the table (in the Tagger at the left of the table header) spreads the visible columns over the available width by content
+(fixed columns like the checkbox stay). Double-click a found purchase to play the file. <strong>“↻ Refresh”</strong> fetches new purchases and matches
+everything with the library: <em>in library</em>, <em>in inbox</em>, <em>unclear</em> or <em>missing</em>. <strong>“Download missing”</strong> (or the selected
+ones) puts the files unchanged into the inbox folder (<code>00_New</code> or the inbox of “Prepare”, changeable under
+“Folder …”) – continue from there as usual. Pre-orders are not downloaded. Beatport does not officially offer
+downloading. If Beatport refuses the saved access for it, a window <strong>“Sign in to download”</strong> appears: sign in like on
+the website, valid only while TagStudio is running (password and token are not saved), then TagStudio downloads the
+tracks again right away; “● Beatport: session …” shows the sign-in, “Sign out” ends it. If that fails too, TagStudio
+shows how to download the tracks yourself on Beatport's download page and take them over with “Fetch”.
+<strong>“Beatport playlists ▾”</strong> (only with the setting switched on in the Beatport plugin, off by default):
+“Download Tracks …” puts the tracks without a file into playlists <code>TagStudio_DOWNLOAD_&lt;date&gt;_&lt;n&gt;</code> of 100 each – open
+the playlist in Beatport and add all to the download; “Playlists per purchase date …” creates or completes
+<code>TagStudio_BUY_YYYY_MM_DD</code> (one playlist per date with all tracks); “Clean up …” deletes the download playlists after confirmation. <strong>If “Download missing” cannot download a track</strong>,
+TagStudio releases it for download at Beatport automatically and shows the <strong>save location to copy</strong> (paste it as the
+target in the browser) plus “Open downloads at Beatport”; TagStudio detects the files downloaded in the browser (also ZIP)
+on the page itself and <strong>links</strong> them (“Take over downloads” works by hand too). <strong>“Move to library …”</strong> moves purchases
+“in inbox” into a library (never overwriting) and opens them in the Tagger if you like. <strong>“Release for download again …”</strong> (also in the
+right-click menu) resets the download of the selected or missing purchases at Beatport – they then appear in the
+download queue at Beatport (after confirmation, does not need the playlist setting). TagStudio never changes other
+playlists. <strong>“Strict”</strong> matches only when artist, title and mix fit – even with the same ISRC. <strong>“Check unclear …”</strong> (with selected rows “Check selected …”; clicking an unclear purchase opens it directly,
+right-click shows the context menu with “Correct …”) opens a wide correction window per reason: for several matches the candidates with their tags to
+choose from, for a different mix the file's title, subtitle and file name to adjust (“Like the purchase”, “Change and
+check” – with backup), for a different artist the similarity in percent; “Next ›” jumps to the next unclear purchase.
+<strong>“Unpack ZIP”</strong> (on by default): new ZIP files in the download folder are unpacked when the page opens and when
+fetching – audio files only, nothing is overwritten; the ZIP then moves to the subfolder <code>_entpackt</code> (never deleted).
+Unfinished downloads and ZIPs with unsafe paths are left alone.</p>
+<h3 id="tag-fixer">Tag fixer</h3>
+<p>Unify multiple values – scope (current pair, one side, selected pairs, all files, tagger selection), fields,
+detected separators, output (separator or ID3v2.4 multiple values), live preview. <strong>Smart Fix</strong> (switch at the top: “Multiple values | Smart Fix”) works with recipes: built-in ones (copy only) and your
+own (create, edit, delete, export/import as JSON). The built-in recipe <strong>“Multiple values with comma”</strong> joins values
+separated by <code>&amp;</code> or <code>;</code> with <code>,</code> and removes duplicates – in artists and contributors, genre and mood. The target
+separator can be chosen per recipe (default <code>,</code>; also ID3v2.4 multiple value, “ / ” for v2.3 files). Preview,
+selection and undo as in the multiple-value fixer; exceptions apply here too.
+<strong>“Exceptions …”</strong> keeps names containing a separator together
+(e.g. “Above &amp; Beyond”, “Eli &amp; Fur”) – per field or field group (artists and contributors, genre, mood), ignoring case
+and spaces. The editor suggests values from the loaded tracks that contain a search text (e.g. <code>&amp;</code>), with the number of
+tracks: check them, “Take over checked”, save. Existing exceptions are hidden in the suggestions – “Show existing
+exceptions” or the eye (○/◉) per entry shows them again, marked. Exceptions are part of the settings export.
+In the preview each change can be deselected (checkbox column, Shift-click for ranges,
+header = all/none) – “Apply” only runs the checked ones, as one undo step. Separators are shown as code next to
+their description – spaces as <code>␣</code>, the null separator as <code>\0</code> –, the chosen output separator as well.</p>
+<h3 id="compare">Compare</h3>
+<p>Two folders or files side by side: paths with history, matching by file name, disc + track number, title or order,
+subfolders.
+- <strong>Pair list</strong> with status (≠ differences, ≈ unimportant only, = same, ◧/◨ one side only), search in file names and
+  values, extended filter by field/condition/side, multiple selection and <strong>bulk copy</strong>.
+- <strong>Table</strong> with character-exact highlighting, arrow buttons per field, all/missing to the left/right, editing by
+  double-click (Tab = next field, multiple values with <code>¦</code>), context menu (copy, edit, remove, open link, show in
+  Explorer/Finder), clickable links, cover preview with a large view, filter all/differences/same, unimportant, empty
+  fields, field search, <strong>+ Field</strong>.
+- <strong>Toolbar</strong> (#107) in groups as in the classic interface, one colour per group: view (✱ ≠ = ≈ ▣), copy (⇇ ⇤ ⇥ ⇉),
+  edit (+ field, ⊘ origin, ⟳ reload pair), history (↶ ↷). “Aa” on the right switches between icons with text and
+  icons only (remembered); every button has a tooltip. With text two rows, icons only one row. The <strong>tagger</strong> has the
+  same toolbar: view (⊻ filter, ▥ columns, ▣ cover, ≋ features, ⑂ stems), ↺ reset and ✉ report, ↶/↷ history – with its
+  own “Aa”.
+- <strong>Images:</strong> right-click a cover: show, replace, export, remove; a click on the empty cover space adds one. (File
+  dialogs in the app window; in browser mode only on Windows/Linux.)</p>
+<h3 id="preview-player-and-external-players">Preview player and external players</h3>
+<p>At the bottom in the footer (or at the top, see below) – in tagger and comparison:
+- <strong>Play</strong> the selected track (space bar, ▶ or <strong>double-click</strong> on the row), ⏮/⏭ jumps to the previous/next track;
+  while playing the player follows ↑/↓ and plays the next track at the end. <strong>Live preview</strong> (button with the radio
+  waves): a single click on a track plays it immediately; without live preview a click does not change the playing
+  track. <strong>↑/↓</strong> change the track wherever the focus is (except in multi-line, selection and number fields). <strong>←/→</strong>
+  jump bar by bar (four beats, with beatgrid or BPM estimate), <strong>Shift+←/→</strong> to the previous/next cue; a click in the
+  bar jumps.
+- <strong>Tempo by hand:</strong> click on the BPM display → enter a new tempo (50–200 %), <strong>Reset</strong> = original tempo; applies
+  only to the playing track, nothing changes in the file. The button next to the title (<strong>Show in tagger</strong>) switches
+  to the tagger and selects the playing track.
+- <strong>Start point</strong> via toggle: start, 30 %, 1:00 or first cue – handy for quickly listening through. The volume is
+  remembered. For tracks with cue points two buttons jump to the previous/next cue.
+- <strong>Waveform:</strong> calculated once on first play and stored in the cache (<code>~/TagStudio/cache/wave</code>, stays valid when
+  editing tags and renaming); can be switched off in the ⋯ menu or in the settings.
+  <strong>Waveform in the MP3</strong> (#222, Settings › Backups and saving, off by default): when saving, TagStudio also stores it
+  as its own GEOB “TagStudio Overview” (about 1.6 KB) in the file – it then travels with the file and survives clearing
+  the cache. Serato fields stay untouched; without a cache the player shows its own waveform first, then Serato's.
+- <strong>Cue marks</strong> from Serato (cues and loops with colour and name) and Mixed In Key above the bar: a click jumps
+  there, <strong>Shift+←/→</strong> to the previous/next cue (jumping back ignores cues within the last four bars). A click on a
+  <strong>loop mark</strong> plays the loop repeatedly (another click ends it); hovering over the bar shows the time and cue name.
+- Between waveform and start point: <strong>key</strong> (Camelot badge plus musical and Open Key), <strong>BPM</strong>, elapsed time,
+  <strong>remaining time</strong> (flashes red in the last 30 seconds) and length. Key <strong>M</strong> mutes.
+- <strong>Stems:</strong> for tracks with stems the button next to the title (or <strong>S</strong> / Shift+S) switches between the original
+  and the stems – playback continues <strong>at the same position</strong>.
+- <strong>Repeat track</strong> (🔁 or <strong>R</strong>) and <strong>A–B loop</strong> (“A–B” button or <strong>L</strong>: set A, set B, clear; <strong>Esc</strong> clears).
+- <strong>A/B in the comparison:</strong> L/R switches between the left and right file <strong>at the same position</strong>.
+- <strong>Rating and like:</strong> stars and ♥ next to the title in the player, keys <strong>0–5</strong> (same star again: clear) and <strong>F</strong>.
+  The rating is stored in the <strong>POPM</strong> field (like Windows Media Player, MusicBee, Mp3tag; existing POPM frames are
+  adjusted, the play counter is kept) and – if present – in <code>TXXX:FMPS_Rating</code>; the like is stored as
+  <code>{"like":true}</code> in <code>TXXX:TAGSTUDIO</code>. In the tagger the stars are shown next to the length (for several selected
+  tracks too) and small in the list. Changes can be undone and are written with “Save”.
+- <strong>Crossfade</strong> (Settings → Player or ⋯): at the end of a track crossfade evenly (equal power) into the next track,
+  <strong>1–30 s in 1-second steps</strong> (0 = off); the next track starts at the start point, the beginning or the first cue;
+  optionally already after 15 s … 2 minutes (for quickly listening through). Not with “Repeat track” or a loop.
+  <strong>Match tempo</strong> (on by default): during the crossfade the next track plays at the BPM of the current one (pitch is
+  kept, at most ±10 %, half/double tempo is recognised; no matching without a BPM field) and then glides back to its
+  own BPM in the set time (immediately … 1 minute).
+  <strong>Latency/phase correction (test feature):</strong> Settings → Player → “Next track correction (ms)” or ⋯ → “Latency
+  correction”: −500 to +500 ms, 0 = off. <strong>Plus</strong> moves the beats of the next track later, <strong>minus</strong> earlier. The
+  setting is saved and applied to all automatic transitions with “On the beat” active and compatible beatgrids. This
+  is a phase offset, not an actual pause of the next track and not proof of a constant decoder latency.
+  <strong>On the beat</strong> (on by default): with a usable beatgrid the phase is aligned to the playing track when the new
+  (initially muted) track actually starts. “Crossfade on bar boundary” first plans the next bar (4), 8 beats or the
+  next phrase (16); loading and decoder delays can still shift the actual start. Without a reliable beatgrid only
+  tempo sync is possible.
+- <strong>Beatgrid:</strong> from Serato (<code>GEOB:Serato BeatGrid</code>), otherwise determined from the audio (with the waveform,
+  remembered in the cache), as a last resort estimated from the BPM field with the first cue as a beat. “Keep pitch”
+  (Settings › Player) can be switched off – then the pitch changes with the tempo like on a turntable. The waveform
+  shows grid lines (bar/phrase stronger, estimated ones paler). <strong>Sync</strong> in player B brings it to the tempo and – with
+  a beatgrid – onto the beat of player A. The <strong>magnifier</strong> shows a high-resolution section around the position with
+  the Serato grid above and TagStudio's own analysis below.
+  <strong>Metronome during transitions:</strong> if the metronome is active for A, it stays tied to the beatgrid of the old track
+  during an automatic crossfade until it has completely faded out; then it switches to the new grid automatically. It
+  also stays active when the new grid only becomes available through the audio analysis. Player B stays independent.
+  <strong>Metronome volume:</strong> Settings → Player → Metronome volume (0–100 %, default 80 %) or via the player menu for A/B.
+  Changes take effect immediately during playback. Shared by both players, independent of the track volume. With
+  headphones start low.
+- <strong>Player at the top</strong> (Settings → Player → Position or the controls menu): its own full-width bar above the page
+  with a larger waveform; button ˄ or <strong>Shift+P</strong> collapses it (one row per player with ▶/⏸, title and remaining
+  time).
+- <strong>Resume:</strong> on start the player loads the last played track (A and B) paused at the same position, if it is in the
+  loaded tagger folder; can be switched off in Settings › Player. “After restart” selects pause, autoplay or “play if
+  it was playing when closing”.
+- <strong>Player B</strong> (only with the player at the top, controls menu or settings): a second, independent player below
+  player A for pre-listening – built the same way (⏮/⏭, cues, repeat, A–B, rating, its own start point and volume,
+  L/R in the comparison) and with its own <strong>output device</strong> in the menu (if the system allows it), e.g. headphones.
+  Right-click a track → “Load in player B” – or simply <strong>drag</strong> the track (from the tagger, DJ set or a pair from the
+  comparison) onto player A or B. If a player is playing, the dragged track is loaded paused. A click on the label
+  <strong>A</strong> or <strong>B</strong> at the very front (or key <strong>B</strong>) sets what selection, space bar, double-click and keys act on.
+- <strong>Undock</strong> (button ⧉): the player – with cover and, if switched on, player B too – appears in its own window, e.g.
+  on the second screen; playback continues at the same position, selection, ↑/↓ and the space bar in the main window
+  keep controlling it. Size and position are remembered; closing the window (or “Dock”) brings it back.
+- <strong>Default settings</strong> (Settings → Player): “Save current as default”, “Reset to default” and “After start: last used /
+  always the default settings”.
+- <strong>External players</strong> (⋯ or <strong>Ctrl/Cmd+P</strong>): open selected tracks in foobar2000, VLC, Rekordbox, Music …; without
+  set-up in the system's default program. Under “External players…” any number of programs with arguments (<code>{files}</code>
+  all files, <code>{file}</code> first, <code>{folder}</code> folder, <code>{m3u}</code> temporary playlist).
+- Playback runs through a local mini server (127.0.0.1 only, released files only, random token).</p>
+<h3 id="snapshots-change-journal">Snapshots &amp; change journal</h3>
+<p>For libraries that other programs edit too (Mp3tag, beaTunes, Mixed In Key, Platinum Notes, Rekordbox …):
+- <strong>Watch folders</strong> and create <strong>snapshots</strong> – the tag state of all tracks is recorded byte-exactly, without audio.
+  Every frame is stored only once; further snapshots only cost what has changed. Snapshots can be named (“Before Mixed
+  In Key”), pinned (never cleaned up) and deleted.
+- <strong>Journal:</strong> snapshot ↔ now (or two snapshots) – changed, new, removed, renamed tracks and tracks with changed audio;
+  per track all fields old/new with origin badges and the <strong>probable program</strong> (e.g. Mixed In Key for key + energy).
+  Filter by status, program and field, search by title, field or value; “Select visible” selects e.g. all key changes
+  by Mixed In Key for reverting. ⇄ opens the track in the comparison.
+- <strong>Revert:</strong> tick single fields or whole tracks → “Revert selection” (can be undone, written with “Save”) or “Write
+  back byte-exactly” (exactly the snapshot state including Serato/cue data, backup first; tracks with changed audio are
+  skipped).
+- <strong>Several folders</strong> with colour, unique name and path; display name and folder can be changed, the daily snapshot
+  can be switched off per folder. As long as no folder is watched, TagStudio points this out on start.
+- <strong>Automation:</strong> one snapshot per folder once a day, on start the question with the number of changed tracks (both
+  can be switched off). Clean-up: 20 automatic ones + one per week for the last 12 weeks (adjustable).
+- <strong>Storage space</strong> per snapshot, per folder and in total; the sum is also shown in the sidebar.
+- <strong>⚑ New baseline:</strong> set the current state (new snapshot) or an existing snapshot as the new starting point and
+  delete older snapshots; pinned ones only if explicitly chosen. The baseline is marked and never deleted when
+  cleaning up.
+- <strong>Watching while TagStudio runs:</strong> every 5 minutes (adjustable) a thrifty look at size and modification time; “n
+  tracks changed externally” in the footer opens the journal. TagStudio's own saves do not count.
+- <strong>In the comparison:</strong> choose a <strong>snapshot</strong> on the left or right (📷 next to the path) – read-only, values only go
+  towards the real files. Matching by <strong>“audio content”</strong> also finds renamed and moved tracks.
+- <strong>Change the storage location:</strong> the whole store is copied, checked and only then removed at the old location –
+  e.g. into the MP3 folder (<code>.tagstudio-snapshots</code>) to pass it on with its history. When a folder with such a store
+  is read, TagStudio offers to use it.
+- <strong>Log</strong> per snapshot job in <code>Logs/snapshots.log</code>: start, end, duration, tracks, errors and storage space.
+- Independently of this, TagStudio protects against overwriting changes made elsewhere when <strong>saving</strong>: it shows what
+  another program has changed since reading and, if wanted, takes it over together with your own changes.</p>
+<h3 id="backups">Backups</h3>
+<p>All backups with files, status (restorable/same/missing/audio changed) and <strong>changed fields</strong>. A click opens the
+<strong>change viewer</strong>: every field “Before (backup)” and “Now”, marked changed/new/removed, differing characters
+highlighted; page with ‹ › and restore single files directly. Also restore selected or all (the current state is
+backed up first), delete a backup, automatic backup on/off, change/open the folder.</p>
+<h3 id="plugins">Plugins</h3>
+<p>Page “Plugins”: switch extensions on/off, install missing packages with a button; actions appear in the tagger under
+“Plugins”. Suggestions from plugins (e.g. Beatport) first appear as a <strong>preview with tick boxes</strong>.</p>
+<ul>
+<li><strong>Stems:</strong> separates tracks into vocals, drums, bass, instrumental … (audio-separator, its own Python environment,
+  variants CPU/DirectML/NVIDIA). Runs <strong>in the background</strong>: the dialog closes immediately, the footer shows the
+  progress (“Stems: 2 of 7 · 45 %”), a click shows all jobs (cancel, folder, log). Further jobs are queued; on exit
+  you are asked, and the queue is offered for resuming on the next start. In the tagger the stems hang <strong>expandable
+  below the original</strong> (▸, →/←, toggle button “Stems” for all): edit MP3 stems, listen to FLAC/WAV; “Stems: tags from the
+  original …” copies the tags.</li>
+<li><strong>Beatport:</strong> BPM, key, genre, label, catalogue number, ISRC, remixer, cover and more via the official Beatport API
+  with your own API access (fallback: your Beatport login; the password is never stored). The preview shows <strong>all delivered fields</strong> – identical ones grey,
+  deselected and already filled ones unticked. Your own <strong>Beatport playlists</strong> are fetched via Playlists › Import ▾ ›
+  “From Beatport …” (entries without a file with a link, read only).</li>
+<li><strong>Online metadata:</strong> album, date, label, catalogue number, ISRC, genre, cover and more from MusicBrainz (also via
+  AcoustID fingerprint), Deezer, Spotify, iTunes, SoundCloud, Discogs, <strong>SonoVault</strong> (own key, Free: 1000 requests per
+  month – TagStudio counts along; BPM/key for comparison only, platform IDs display only) and Last.fm. Default: only complete empty fields; per field the first
+  source is preselected, others appear as alternatives. Discogs token, Last.fm and AcoustID keys under Plugins ›
+  Online metadata › “Key …” (stored encrypted); “Test connections” checks the services.</li>
+<li><strong>Spotify and SoundCloud (read only, own app at the service):</strong> playlists, Liked Songs or likes as playlists with
+  entries without a file (Playlists › Import ▾), track data with link for online metadata and followed artists for
+  “Discover”. Setup in <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.en.md">PLUGINS.en.md</a>.</li>
+<li><strong>Take over Mixed In Key:</strong> key, BPM and energy from the places where Mixed In Key wrote them (comment “10A - Energy
+  7”, title or artist prefix, grouping, label, TXXX:EnergyLevel) into TKEY, TBPM and ENERGY; remove the prefixes if
+  wanted.</li>
+<li><strong>Take over beaTunes:</strong> MOOD_DANCEABILITY, MOOD_ACOUSTIC, MOOD_HAPPY, MOOD_AGGRESSIVE (written into the files by
+  beaTunes) as audio features. <strong>Take over Lexicon:</strong> danceability, energy, happiness, optionally rating, popularity,
+  color and custom tags via the Lexicon Local API (matched by path or artist + title). Both with <strong>matching</strong>: if a
+  value in the file was changed since the last takeover, the suggestion is not ticked – TagStudio asks. Lexicon also:
+  open selected tracks and playlists, optionally update paths, add new tracks, write tags back and <strong>send playlists</strong>
+  (Playlists › More ▾ › “Send to Lexicon …”: creates the playlist in Lexicon, sending again inserts missing tracks at
+  their position and removes nothing; only with writing back switched on, see <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.en.md">PLUGINS.en.md</a>).</li>
+<li><strong>Measure loudness:</strong> LUFS, true peak, loudness range (EBU R128, FFmpeg) as fields, optionally a levelled copy.</li>
+<li><strong>Logs:</strong> for every plugin under <strong>More …</strong> “Open log folder” and “Show log live …” – a separate window that keeps
+  the log up to date; lines of a running operation appear immediately (“running”).</li>
+<li><strong>Your own plugins</strong> in <code>~/TagStudio/Plugins</code> – instructions in <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.en.md">PLUGINS.en.md</a>.</li>
+</ul>
+<h3 id="update-layout-keyboard">Update, layout, keyboard</h3>
+<ul>
+<li><strong>Update:</strong> “Check for update” at the bottom of the sidebar; TagStudio checks by itself on start (dot on the
+  button). Under Settings › Updates: <strong>official versions only</strong> or <strong>beta versions too</strong>. The installed app shows the
+  new version with its notes and downloads the matching installer. In the source code variant a click fetches the new
+  version (<code>git</code>, fast-forward only, only without your own changes in the program folder; with “official only” up to
+  the newest version tag) and restarts; unsaved changes are asked about first.</li>
+<li><strong>Window and program:</strong> at the very bottom of the sidebar full screen (F11 too), window mode (back from full screen
+  or maximised), restart and quit. On quitting – also via the window's X – “Saving settings …” appears briefly;
+  unsaved changes and running jobs are asked about first. Only <strong>one instance</strong> ever runs; a second start reports
+  “TagStudio is already running”.</li>
+<li><strong>Release notes:</strong> below the update button – what is new in the installed version and, if available, in the newest
+  one; below that “More versions” with all older versions to expand; with a link to GitHub.</li>
+<li><strong>Splitters:</strong> sidebar, pair list, table columns, editing area and field name column can be dragged (or with ←/→ on
+  the handle); a double-click resets, everything is remembered. The sidebar can be collapsed.</li>
+<li><strong>Keyboard</strong> (complete list: Help › Keyboard): Ctrl/Cmd+S save · Ctrl/Cmd+Z / Ctrl+Y undo/redo · Alt+← / Alt+→ copy
+  selected · Ctrl/Cmd+A select all · space bar play · double-click play · 0–5 rating · F like · B player A/B · Shift+P
+  player bar on/off · ↑/↓ change track (everywhere) · S stem · R repeat · L A–B loop · ←/→ one bar (player) ·
+  Shift+←/→ previous/next cue · Shift+F5 re-read pair · Ctrl/Cmd+P external player · →/← expand/collapse stems (tagger
+  list) · F5 re-read · ↑/↓ in lists · Esc closes dialogs.</li>
+</ul>
+</section><section data-s="5"><h2 id="settings-and-data-storage">Settings and data storage</h2>
+<p><strong>Storage location and folders (folder roles, from 4.10):</strong> under Settings › Storage location and folders every
+folder is set <strong>exactly once</strong> – as a <strong>role</strong>: Inbox · Libraries · Archive · Playlists · <strong>Export</strong> · Downloads · Work ·
+Backup · Snapshots. The default is the <strong>base folder</strong> (e.g. <code>D:\TagStudio</code>, every folder selection starts there) with
+the structure <code>00_New</code> (new music, subfolder per source) · <code>01_Library</code> (library) · <code>02_Archiv</code> (sorted out) ·
+<code>03_Playlists</code> (M3U8) · <code>04_Export</code> (start folder of all exports: every save dialog – tagger list, playlists, DJ set, watch list, journal, settings, workflow, cover – opens there; a missing folder is created) · <code>90_Download</code> (downloads, subfolder per source) ·
+<code>91_Work</code> (stage folders) · <code>99_Sicherung</code> (<code>Tags</code>, <code>Snapshots</code>). “Change …” switches any role to an <strong>own folder</strong>
+(also on another drive) and back to “Base”; backup and snapshots can stay in the program data as before. There can be
+<strong>several libraries</strong> (each with a name, active/inactive, exactly one <strong>main library</strong>); overlaps (a library inside
+another one, the same folder via another path) are shown and read only once. <strong>Active</strong> libraries are used by
+the purchases comparison, playlist comparison, Discover (“already owned”) and Help › Scan; “Compared with” shows their
+names (click → settings), unreachable ones are skipped and named. From two active libraries on the tagger shows the
+<strong>“Library ▾”</strong> selection with <strong>“All active”</strong> (loads them all together); Prepare takes over into the main library
+unless the workflow has its own library folder. The <strong>Snapshots</strong> switch per library turns the daily snapshot on or off
+(existing snapshots stay). Every folder selection (tagger, compare, workflow, purchases, default folders) opens a
+<strong>drop-down menu</strong> with libraries, roles, recently used folders, “Other folder …” and “New folder …”. <strong>Subfolder per
+source:</strong> when a store plugin (e.g. Beatport) is switched on, <code>90_Download\Beatport</code> and <code>00_New\Beatport</code> are created,
+the workflow gets the source “Beatport” (fetch: download subfolder → inbox subfolder) and purchase downloads go to
+<code>90_Download\Beatport</code>; manual downloads belong in <code>90_Download\_Manuell</code>. The workflow fields inbox, work and library
+may stay empty – they then follow the roles (inbox, work, main library). <strong>Cloud (OneDrive, Google Drive, Dropbox):</strong> roles and
+libraries may lie in a folder synchronised by the desktop client – TagStudio detects it (“☁ OneDrive”), additionally
+stores the path relative to the sync folder (also valid on a second computer), skips <strong>online-only files</strong> (“files on
+demand”) when reading – nothing downloads unnoticed, can be switched on – and reports <strong>conflict copies</strong> of the client.
+Snapshots, work and backup inside a sync folder get a hint (not recommended). Sync folders and “online-only files” live in their own card <strong>Settings › Cloud</strong> (#324). <strong>Sync via the services</strong>
+(#317, without desktop client): in the same card, in a table (area · service · direction · folder in the service), the roles <strong>Playlists</strong> and <strong>Export</strong> as well as parts of the program
+data (playlist store, purchases, Discover, settings without credentials) can be synced with a folder on OneDrive, Google
+Drive or Dropbox (plugins, your own app per service – setup in <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.en.md">PLUGINS.en.md</a>; default <code>/TagStudio/&lt;role&gt;</code>), both directions or upload/download
+only. <strong>Sync now</strong> then shows conflicts with both versions (keep this one / take from the service / keep both) and
+deleted files – deleting only after confirmation. Music, snapshots, work, cache and credentials are never synced via
+the services. “Change …” (also for the base folder) shows what lies in the
+previous folder (files, size, free space, same names at the target) and asks <strong>Move / Copy / Don't take over</strong> – for
+libraries “Don't take over” is preselected, with a note that Engine DJ, Lexicon, Rekordbox, Serato and VirtualDJ have
+to look for their paths themselves afterwards (TagStudio never changes other databases). Nothing is ever overwritten
+(“keep target” or “name (2)”); on the same drive files are renamed, across drives copied, verified with SHA-256 and only
+then removed. The job can be cancelled without half files; references in playlists (M3U8 rewritten), purchases,
+snapshots, <code>_aussortiert.csv</code>, Prepare, history and queue are updated; log <code>Ordnerwechsel.csv</code> in the export folder; an
+old folder that became empty is only deleted after asking. “Create structure …” creates missing folders. On the first start after the update the previous settings are taken
+over; if the library was entered differently in different places, TagStudio shows the overview <strong>“We found these
+folders”</strong> to decide (nothing is silently dropped). Concept (German): <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/docs/KONZEPT-ORDNER.md">docs/KONZEPT-ORDNER.md</a>.
+TagStudio only backs up tags – back up the music itself to another drive as well. All storage locations at a glance
+(German): <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/docs/KONZEPT-SPEICHER.md">docs/KONZEPT-SPEICHER.md</a>.</p>
+<p><strong>Profiles:</strong> under Settings › Profiles another profile can be created – an independent TagStudio instance with its
+own settings and data (under <code>~/TagStudio-Profile/&lt;name&gt;/</code>). An empty profile starts like a fresh installation with the
+<strong>setup wizard</strong>. Plugins, the stems environment and models are shared. It is started via the profile choice on start,
+a desktop shortcut or <code>--profil name</code>; the default profile uses <code>~/.tagstudio.json</code> and <code>~/TagStudio</code> as before.</p>
+<p>The <strong>Settings</strong> page brings everything together – tiles in the order of the menu, collapsed by default (click the
+title to expand/collapse, remembered; “Expand all”/“Collapse all” at the top; each tile keeps its column), jump links at the top that open the tile:
+Appearance (theme, key notation, <strong>language</strong>) · <strong>Tagger</strong> (default folder, stems; <em>on start:</em> read automatically,
+subfolders, sorting, cover column, origin filter) · Tag fixer · <strong>Compare</strong> (default folder; <em>on start:</em> subfolders,
+match by, display, unimportant, empty fields, cover – if the comparison differs, ⌂ “Default” resets it) · Snapshots ·
+Backups and saving (ID3 version, backup) · Player · Plugins · Origin of the tags · unimportant fields · Cache ·
+Updates · <strong>Expert</strong> (diagnostics with version, system and paths to copy, view and search the settings file and logs –
+credentials hidden; “Show live …” opens a separate window that follows all logs continuously, like for the plugins; “Empty …” empties a log
+after confirmation, “Copy” takes only the selection; <em>Development:</em> “Clear logs on exit” – off by default – empties
+<code>app.log</code> and <code>app.log.1</code> on exit, restart and update, optionally the plugin logs too; the first line afterwards says it
+was cleared. Switch it off again when reporting a bug; <strong>“Downloads per version …”</strong> shows how often the installation
+files were downloaded per version – Windows, macOS, plugins, with a history per day from the “Download statistics” workflow). All dialogs can be moved by their title and resized at the corner
+(double-click the title: reset). Every “on start” default can also stay “as last used”. <strong>Export</strong> saves everything as a file
+(without credentials), <strong>Import</strong> takes over chosen areas – paths of another system are not preselected –, <strong>Reset</strong>
+works for single areas or everything. Before import and reset the old file is backed up to <code>~/TagStudio/Einstellungen</code>.</p>
+<p><strong>Language:</strong> Settings › Appearance › Language or the drop-down at the bottom of the sidebar (below “Collapse”)
+switches between German, English and Zurich German; “Use the operating system language” follows the language of
+Windows or macOS and is active on the very first start. Tags in the MP3 files are never translated. “Export texts” saves
+all texts as CSV or JSON for your own translation or corrections; “Import texts …” checks the file (unknown texts,
+placeholders, HTML) and stores it as your own texts in <code>~/TagStudio/Sprachen/&lt;language&gt;.json</code>; “Reset own texts”
+removes them again. File dialogs (file types, titles) and the window titles of the player and logs follow the chosen
+language too.</p>
+<p>Settings are stored in <code>~/.tagstudio.json</code>. Further folders under <code>~/TagStudio</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Folder</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Sicherungen</code></td>
+<td>automatic backups of the tags (one ZIP per save, folder can be changed)</td>
+</tr>
+<tr>
+<td><code>cache</code></td>
+<td>cover thumbnails, waveforms (<code>wave</code>)</td>
+</tr>
+<tr>
+<td><code>Einstellungen</code></td>
+<td>backups of the settings file before import/reset</td>
+</tr>
+<tr>
+<td><code>Plugins</code></td>
+<td>your own plugins</td>
+</tr>
+<tr>
+<td><code>Plugin-Daten</code></td>
+<td>e.g. stems environment and models, Beatport token (encrypted on Windows)</td>
+</tr>
+<tr>
+<td><code>Logs</code></td>
+<td>app log <code>app.log</code> (start, end, errors, warnings; from 1 MB <code>app.log.1</code>), logs of plugins and installations</td>
+</tr>
+<tr>
+<td><code>Sprachen</code></td>
+<td>your own texts per language</td>
+</tr>
+<tr>
+<td><code>Auftraege.json</code></td>
+<td>open background jobs (for resuming after a restart)</td>
+</tr>
+<tr>
+<td><code>Snapshots</code></td>
+<td>snapshots of watched folders (location adjustable)</td>
+</tr>
+</tbody>
+</table>
+<p>Next to it is <code>~/.tagstudio.lock</code>: locked as long as TagStudio runs (one instance only).</p>
+<p>The unimportant fields (<code>"trivial"</code>, placeholder <code>*</code>) and your own origin assignments (<code>"tag_origins"</code>) can be edited
+in the settings.</p>
+</section><section data-s="6"><h2 id="technical-details">Technical details</h2>
+<p><strong>Real-world test (version 2.5):</strong> 1,493 files of a real DJ library (ID3v2.4, Beatport/beaTunes/Mixed In Key/Serato)
+were read and rewritten on copies, converted between v2.4 and v2.3 and changed one by one – without read errors,
+without data loss, the audio byte-identical each time.</p>
+<ul>
+<li>Reads ID3v2.2/2.3/2.4 and ID3v1, writes in the existing version (v2.3 for files without a tag).</li>
+<li>Unchanged fields are written back byte-exactly, audio data is never touched. If the tag grows, a temporary file is
+  written and only then swapped in.</li>
+<li>When copying between v2.3 and v2.4, fields are converted correctly (e.g. date TDRC ↔ TYER/TDAT); ID3v2.4 multiple
+  values are joined with “ / ” in v2.3.</li>
+<li><strong>DJ data</strong> (GEOB objects such as <em>Serato Markers2</em>, Mixed In Key <em>Key/Energy/CuePoints</em>, <em>PlatinumNotes</em>) is
+  assigned by its description, shown readably and kept unchanged as long as it is not edited deliberately. In the
+  comparison it counts as “unimportant” by default, since cue points/beatgrids belong to exactly one track.</li>
+<li>Tip: try it on a copy of the music before the first real use.</li>
+</ul>
+</section><section data-s="7"><h2 id="files">Files</h2>
+<p>The code and its comments are in German. Overview:</p>
+<ul>
+<li><code>tagstudio_web.py</code> + <code>web/</code> – the app (HTML/CSS/JS in the app window via pywebview, otherwise in the browser);
+  <code>web/i18n.js</code> + <code>web/i18n/</code> translation layer and catalogues, <code>web/tagger.js</code> tagger and editors, <code>web/player.js</code>
+  preview player, <code>web/settings.js</code> settings, <code>web/djset.js</code> page “DJ set”</li>
+<li><code>core.py</code> – shared logic: display, character diff, filters, loading, saving, settings</li>
+<li><code>session.py</code> – state and commands of a session; parts in <code>session_*.py</code></li>
+<li><code>id3tags.py</code> – reading/writing ID3, MPEG info (without external libraries)</li>
+<li><code>compare.py</code>, <code>tagger.py</code>, <code>keys.py</code>, <code>features.py</code>, <code>setplan.py</code>, <code>setexport.py</code> – comparison, tagger tools, keys,
+  audio features, DJ set and its exports</li>
+<li><code>i18n.py</code> – language catalogues, plugin texts and your own texts (export/import)</li>
+<li><code>plugins.py</code> + <code>plugins/</code> – plugin system (see <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.en.md">PLUGINS.en.md</a>)</li>
+<li><code>updater.py</code> – updates; <code>version.py</code> – version number (single source)</li>
+<li><code>tagstudio.py</code> – classic interface (tkinter, frozen at 3.0)</li>
+<li><code>packaging/</code> – installers; <code>.github/</code> – workflows</li>
+</ul>
+<p>The complete German list is in <a href="index.html">README.md</a>.</p>
+</section><section data-s="8"><h2 id="development">Development</h2>
+<ul>
+<li><strong>Project status and handover</strong> (German): <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/docs/PROJEKTSTAND.md">docs/PROJEKTSTAND.md</a>,
+  <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/docs/UEBERGABE.md">docs/UEBERGABE.md</a>; concepts per area in <code>docs/KONZEPT-*.md</code>.</li>
+<li><strong>Tests:</strong> <code>python -m unittest discover -s tests -v</code> – with synthetic MP3 files, without extra packages and without
+  network. <strong>UI tests</strong> in the browser (Playwright/Chromium, ffmpeg): <code>TAGSTUDIO_UI_TESTS=1 python -m unittest
+  discover -s tests -p "test_browser_ui.py" -v</code>.</li>
+<li><strong>Translations:</strong> <code>python3 tools/i18n_extract.py</code> lists missing texts per language; the test
+  <code>tests/test_i18n.py</code> makes sure every interface text has a translation.</li>
+<li><strong>Licences and third-party components:</strong> <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/docs/third-party.json">docs/third-party.json</a> (shown under Help ›
+  Licences).</li>
+<li><strong>Planning:</strong> open points as <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/issues">issues</a>, planned
+  versions as <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones">milestones</a>.</li>
+</ul>
+</section><section data-s="9"><h2 id="versions-releases">Versions &amp; releases</h2>
+<p><strong>Scheme MAJOR.MINOR.PATCH</strong> (<a href="https://semver.org/">Semantic Versioning</a>), single source: <code>version.py</code>.
+PATCH only bug fixes, MINOR new features (the normal case), MAJOR big breaks, pre-releases such as <code>3.2.0-beta.1</code> for
+testing. Every change goes into <code>CHANGELOG.md</code> under “Unveröffentlicht” right away; <code>python packaging/release.py X.Y.Z</code>
+sets the version, and as soon as the new version number lands on <code>main</code>, GitHub Actions builds, tests and publishes
+the installers for Windows and macOS (betas Windows only).</p>
+<p><strong>Channels:</strong> selectable in the settings – <strong>official versions only</strong> or <strong>beta versions too</strong>.</p>
+</section><section data-s="10"><h2 id="reporting-bugs-ideas-security">Reporting bugs, ideas, security</h2>
+<ul>
+<li><strong>Bugs and wishes:</strong> as an <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/new/choose">issue</a> or
+  directly in the app under Help › Report.</li>
+<li><strong>Improving translations:</strong> Settings › Appearance › Language → export, edit and import texts; then “Submit own
+  texts …” (or Help › Report › “Submit translation”) – the changed texts are filled into the GitHub form and shipped
+  after review.</li>
+<li><strong>Contributing:</strong> <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>; the <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/CODE_OF_CONDUCT.md">code of conduct</a> applies.</li>
+<li><strong>Security vulnerabilities</strong> please report privately, not publicly – see <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/SECURITY.md">SECURITY.md</a>.</li>
+</ul>
+</section><section data-s="11"><h2 id="classic-interface-frozen">Classic interface (frozen)</h2>
+<p>TagStudio's first interface (<code>tagstudio.py</code>, tkinter) is <strong>frozen at version 3.0</strong> and no longer developed. It can
+compare, copy, edit fields, unify multiple values (tag fixer), back up and restore and has an icon toolbar. Everything
+added since (tagger, snapshots, player, plugins …) is only available in the new interface. Start:
+<code>start_classic_windows.bat</code>, <code>start_classic_mac.command</code> or <code>python3 tagstudio.py [left] [right]</code>. It uses the same
+settings and is German only.</p>
+</section><section data-s="12"><h2 id="licence">Licence</h2>
+<p>© 2026 Markus Keller. MarKusSXCH TagStudio is free software: you can redistribute it and/or modify it under the terms
+of the <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/LICENSE">GNU General Public License, version 3</a> or (at your option) any later version. The program is
+distributed in the hope that it will be useful, but <strong>without any warranty</strong> – details in the licence. Bundled or
+later installed third-party components (e.g. pywebview, FFmpeg, audio-separator) are under their own licences.</p></section></article></div></main><script>
+(() => {
+  const q = document.getElementById("q"), hit = document.getElementById("hit"), secs = [...document.querySelectorAll("article section")];
+  const clean = () => document.querySelectorAll("article mark").forEach((m) => m.replaceWith(document.createTextNode(m.textContent)));
+  const mark = (el, w) => { const it = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); const hits = []; let t;
+    while ((t = it.nextNode())) { const i = t.data.toLowerCase().indexOf(w); if (i >= 0 && !t.parentNode.closest("mark")) hits.push([t, i]); }
+    hits.slice(0, 200).forEach(([t, i]) => { const r = document.createRange(); r.setStart(t, i); r.setEnd(t, i + w.length);
+      const m = document.createElement("mark"); r.surroundContents(m); }); };
+  let tm = 0;
+  q.addEventListener("input", () => { clearTimeout(tm); tm = setTimeout(() => {
+    clean(); const w = q.value.trim().toLowerCase(); let n = 0;
+    secs.forEach((s) => { const ok = !w || s.textContent.toLowerCase().includes(w); s.classList.toggle("hide", !ok); if (ok && w) { n++; mark(s, w); } });
+    hit.textContent = w ? (n ? n + " section(s) with matches" : "No matches") : "";
+    if (w && n) { const f = document.querySelector("article section:not(.hide)"); if (f) f.scrollIntoView({ block: "start" }); }
+  }, 180); });
+})();
+</script>
+<footer>MarKusSXCH TagStudio · <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio">GitHub</a> · <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/LICENSE">GNU GPL v3</a> ·
+<a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/issues">Fehler &amp; Ideen</a> · Diese Seite setzt keine Cookies und lädt nichts von fremden Servern.</footer>
+</body></html>

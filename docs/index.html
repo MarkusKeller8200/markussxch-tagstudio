@@ -1,92 +1,110 @@
 <!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TagStudio – Downloads</title>
-<meta name="description" content="Wie oft MarKusSXCH TagStudio heruntergeladen wurde – je Version, Windows und macOS, mit Verlauf je Tag.">
-<!-- #371: Statistik-Seite (GitHub Pages, Zweig „stats“, Ordner /docs). Daten: summary.json, vom Workflow
-     „Download-Statistik“ geschrieben. Keine externen Skripte, keine Cookies. -->
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MarKusSXCH TagStudio – MP3-Werkzeugkasten für DJs</title><meta name="description" content="Kostenloser Werkzeugkasten für die MP3-Bibliothek von DJs: Tagger, Vergleich, Tag-Fixer, Einkäufe (Beatport), DJ-Set, Playlists – Windows &amp; macOS.">
+<meta property="og:title" content="MarKusSXCH TagStudio – MP3-Werkzeugkasten für DJs"><meta property="og:description" content="Kostenloser Werkzeugkasten für die MP3-Bibliothek von DJs: Tagger, Vergleich, Tag-Fixer, Einkäufe (Beatport), DJ-Set, Playlists – Windows &amp; macOS.">
+<meta property="og:image" content="https://markuskeller8200.github.io/markussxch-tagstudio/img/social-preview.png"><meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image"><link rel="icon" href="img/icon.png">
 <style>
-  :root { --bg:#f6f7f9; --card:#fff; --fg:#1b1f24; --muted:#5f6b7a; --line:#e2e6ea; --acc:#1d76db; --acc2:#7a3fd1; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#0f1216; --card:#171b21; --fg:#e8ecf1; --muted:#97a3b3; --line:#262c35; --acc:#5eaaff; --acc2:#c9a2ff; }
-    .cta { color:#0f1216 !important; }
-  }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
-  main { max-width:960px; margin:0 auto; padding:28px 16px 48px; }
-  header h1 { margin:0; font-size:26px; letter-spacing:-.01em; }
-  header p { margin:4px 0 0; color:var(--muted); }
-  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin:22px 0; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
-  .card b { display:block; font-size:26px; font-variant-numeric:tabular-nums; }
-  .card span { color:var(--muted); font-size:13px; }
-  .card.main b { color:var(--acc); }
-  section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-top:14px; }
-  section h2 { margin:0 0 10px; font-size:16px; }
-  .bars { display:flex; align-items:flex-end; gap:3px; height:120px; border-bottom:1px solid var(--line); }
-  .bar { flex:1; min-width:4px; display:flex; flex-direction:column-reverse; }
-  .bar i { display:block; background:var(--acc); border-radius:2px 2px 0 0; }
-  .bar i.mac { background:var(--acc2); border-radius:0; }
-  .legend { display:flex; gap:14px; color:var(--muted); font-size:13px; margin-top:6px; }
-  .legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
-  .scroll { overflow-x:auto; }
-  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
-  th, td { padding:7px 8px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
-  th { color:var(--muted); font-weight:600; font-size:13px; }
-  td.r, th.r { text-align:right; }
-  a { color:var(--acc); text-decoration:none; } a:hover { text-decoration:underline; }
-  .tag { font-size:11px; border:1px solid var(--line); border-radius:99px; padding:1px 7px; color:var(--muted); margin-left:6px; }
-  .muted { color:var(--muted); font-size:13px; }
-  .cta { display:inline-block; margin-top:14px; background:var(--acc); color:#fff; padding:9px 16px; border-radius:10px; font-weight:600; }
-  .cta:hover { text-decoration:none; opacity:.92; }
-  footer { margin-top:22px; color:var(--muted); font-size:13px; }
-</style>
-</head>
-<body>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#1b1f24;--muted:#5f6b7a;--line:#e2e6ea;--acc:#1d76db;--acc2:#7a3fd1;--code:#eef1f5;--hl:#fff2a8}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1216;--card:#171b21;--fg:#e8ecf1;--muted:#97a3b3;--line:#262c35;--acc:#5eaaff;--acc2:#c9a2ff;--code:#1f252d;--hl:#5a4a00}}
+*{box-sizing:border-box}html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+header.top .brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--fg)}
+header.top .brand img{width:30px;height:30px;border-radius:8px}
+header.top nav{display:flex;gap:16px;flex-wrap:wrap;margin-left:auto;font-size:15px}
+header.top nav a{color:var(--muted)}header.top nav a.on,header.top nav a:hover{color:var(--fg);text-decoration:none}
+main{max-width:1180px;margin:0 auto;padding:28px 16px 56px}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--acc);color:#fff;padding:11px 18px;border-radius:12px;font-weight:600}
+.btn:hover{text-decoration:none;opacity:.92}.btn.alt{background:transparent;color:var(--fg);border:1px solid var(--line)}
+@media (prefers-color-scheme:dark){.btn{color:#0f1216}.btn.alt{color:var(--fg)}}
+.muted{color:var(--muted)}.sm{font-size:14px}
+footer{max-width:1180px;margin:0 auto;padding:24px 16px 40px;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+/* Startseite */
+.hero{text-align:center;padding:36px 0 18px}.hero img.logo{width:88px;height:88px;border-radius:22px}
+.hero h1{font-size:clamp(30px,5vw,46px);line-height:1.1;margin:18px 0 10px;letter-spacing:-.02em}
+.hero p.lead{font-size:clamp(17px,2.4vw,21px);color:var(--muted);max-width:720px;margin:0 auto}
+.dl{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:24px 0 8px}
+.ver{color:var(--muted);font-size:14px}
+.shot{margin:28px auto 8px;max-width:1100px}.shot img{width:100%;border-radius:14px;border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.18)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:34px 0}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.tile b{display:block;font-size:17px;margin-bottom:4px}.tile span{color:var(--muted);font-size:15px}
+.pics{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.pics figure{margin:0}.pics img{width:100%;border-radius:12px;border:1px solid var(--line)}
+.pics figcaption{color:var(--muted);font-size:14px;margin-top:6px}
+.nums{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin:10px 0 0}.nums div{text-align:center}
+.nums b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.nums span{color:var(--muted);font-size:13px}
+h2.sec{font-size:24px;margin:44px 0 14px}
+/* Handbuch */
+.doc{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+.toc{position:sticky;top:76px;max-height:calc(100vh - 96px);overflow:auto;font-size:14px;padding-right:6px}
+.toc input{width:100%;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;margin-bottom:10px}
+.toc ul{list-style:none;margin:0;padding:0}.toc li{margin:2px 0}.toc li li{padding-left:14px}
+.toc a{color:var(--muted);display:block;padding:2px 6px;border-radius:6px}.toc a:hover{color:var(--fg);background:var(--card);text-decoration:none}
+.toc .hit{color:var(--muted);font-size:13px;margin:0 0 8px}
+article{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 30px 30px;min-width:0}
+article h1{font-size:30px;margin:22px 0 8px}article h2{font-size:23px;margin:34px 0 10px;padding-top:10px;border-top:1px solid var(--line)}
+article h3{font-size:19px;margin:26px 0 8px}article h4{font-size:16px;margin:20px 0 6px}
+article code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:.9em}
+article pre{background:var(--code);padding:12px 14px;border-radius:10px;overflow:auto}article pre code{background:none;padding:0}
+article table{border-collapse:collapse;display:block;overflow-x:auto;margin:12px 0}
+article th,article td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+article blockquote{margin:12px 0;padding:6px 14px;border-left:4px solid var(--acc);color:var(--muted)}
+article img{max-width:100%}
+article section.hide{display:none}
+article{overflow-wrap:anywhere}.doc>*{min-width:0}article pre{white-space:pre-wrap}
+.tile code{overflow-wrap:anywhere}mark{background:var(--hl);color:inherit;border-radius:3px}
+.toc-btn{display:none}
+@media (max-width:860px){.doc{grid-template-columns:1fr}.toc{position:static;max-height:none}.toc ul{display:none}.toc.open ul{display:block}
+  .toc-btn{display:inline-block;margin-bottom:8px}article{padding:4px 16px 20px}}
+</style></head><body>
+<header class="top"><div class="in"><a class="brand" href="index.html"><img src="img/icon.png" alt="">MarKusSXCH TagStudio</a>
+<nav><a href="index.html" class="on">Start</a><a href="handbuch.html">Handbuch</a><a href="statistik.html">Statistik</a><a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest">Download</a><a href="https://github.com/MarkusKeller8200/markussxch-tagstudio">GitHub</a><a href="manual.html" hreflang="en">EN</a></nav></div></header>
 <main>
-  <header>
-    <h1>MarKusSXCH TagStudio – Downloads</h1>
-    <p>Wie oft die Installationsdateien heruntergeladen wurden – je Version, Windows und macOS.</p>
-    <a class="cta" id="dl" href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest">⬇ Neueste Version laden</a>
-  </header>
-  <div class="cards" id="cards"><div class="card"><span>Lade Zahlen …</span></div></div>
-  <section id="hist" hidden>
-    <h2>Neue Downloads je Tag</h2>
-    <div class="bars" id="bars" role="img" aria-label="Neue Installer-Downloads je Tag"></div>
-    <div class="legend"><span><i style="background:var(--acc)"></i>Windows</span><span><i style="background:var(--acc2)"></i>macOS</span><span id="range"></span></div>
-  </section>
-  <section>
-    <h2>Je Version</h2>
-    <div class="scroll"><table><thead><tr><th>Version</th><th>Datum</th><th class="r">Windows</th><th class="r">macOS</th><th class="r">Installer</th><th class="r">Plugins</th></tr></thead>
-      <tbody id="rows"></tbody></table></div>
-  </section>
-  <footer id="foot">Zahlen von GitHub (Release-Seite und Update in TagStudio), täglich gesammelt.</footer>
+<section class="hero"><img class="logo" src="img/icon.png" alt="">
+<h1>MarKusSXCH TagStudio</h1>
+<p class="lead">Der Werkzeugkasten für die MP3-Bibliothek von DJs: taggen, vergleichen, aufräumen, Einkäufe abgleichen und
+Sets planen – für Windows und macOS. Kostenlos und quelloffen.</p>
+<div class="dl"><a class="btn" id="dlWin" href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest">⬇ Download für Windows</a>
+<a class="btn" id="dlMac" href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest">⬇ Download für macOS (Apple-Chip)</a>
+<a class="btn alt" href="handbuch.html">Handbuch lesen</a></div>
+<div class="ver" id="ver">Neueste Version auf GitHub</div>
+<div class="nums" id="nums"></div></section>
+<div class="shot"><picture><source media="(prefers-color-scheme: dark)" srcset="img/tagger-dark.png"><img src="img/tagger-light.png" alt="Tagger: viele Dateien gemeinsam bearbeiten" loading="lazy"></picture></div>
+<h2 class="sec">Was TagStudio kann</h2><div class="grid"><div class="tile"><b>🏷️ Tagger</b><span>Viele Dateien gemeinsam bearbeiten, Cover, Tags aus dem Dateinamen, Umbenennen, Export nach Excel/CSV.</span></div><div class="tile"><b>⚖️ Vergleich</b><span>Zwei Ordner oder Dateien Feld für Feld – zeichengenau markiert, Werte per Pfeil übernehmen.</span></div><div class="tile"><b>🧹 Tag-Fixer</b><span>Mehrfachwerte (; / feat. …) vereinheitlichen, Smart-Fix-Rezepte, Ausnahmen je Feld.</span></div><div class="tile"><b>🛒 Einkäufe</b><span>Beatport-Käufe mit der Bibliothek abgleichen, fehlende laden, Playlists in Beatport anlegen.</span></div><div class="tile"><b>🎛️ DJ-Set</b><span>Reihenfolge nach Tonart (Camelot), BPM und Energie – Export als M3U8, Rekordbox-XML, CSV.</span></div><div class="tile"><b>📂 Playlists</b><span>Titel sammeln und ordnen, als M3U8 für Engine DJ, VirtualDJ &amp; Co.</span></div><div class="tile"><b>🎧 Vorschau-Player</b><span>Wellenform, Cue-Marken (Serato, Mixed In Key), Überblenden mit Tempo-Angleichung.</span></div><div class="tile"><b>🛡️ Sicher speichern</b><span>Sicherung vor jedem Speichern, Rückgängig über alle Dateien, Snapshots.</span></div><div class="tile"><b>🧩 Plugins</b><span>Stems, Beatport, Discogs, MusicBrainz, Lexicon, Cloud-Abgleich (OneDrive, Google Drive, Dropbox).</span></div></div>
+<h2 class="sec">Bilder</h2><div class="pics"><figure><picture><source media="(prefers-color-scheme: dark)" srcset="img/compare-dark.png"><img src="img/compare-light.png" alt="Vergleich – Unterschiede je Feld, per Pfeil übernehmen" loading="lazy"></picture><figcaption>Vergleich – Unterschiede je Feld, per Pfeil übernehmen</figcaption></figure><figure><picture><source media="(prefers-color-scheme: dark)" srcset="img/djset-dark.png"><img src="img/djset-light.png" alt="DJ-Set – Weg durch das Camelot-Rad, Energie und BPM" loading="lazy"></picture><figcaption>DJ-Set – Weg durch das Camelot-Rad, Energie und BPM</figcaption></figure><figure><picture><source media="(prefers-color-scheme: dark)" srcset="img/purchases-dark.png"><img src="img/purchases-light.png" alt="Einkäufe – gekauft, im Eingang, in der Bibliothek, fehlt" loading="lazy"></picture><figcaption>Einkäufe – gekauft, im Eingang, in der Bibliothek, fehlt</figcaption></figure><figure><picture><source media="(prefers-color-scheme: dark)" srcset="img/plugins-dark.png"><img src="img/plugins-light.png" alt="Plugins – nach Kategorie, einzeln aktualisierbar" loading="lazy"></picture><figcaption>Plugins – nach Kategorie, einzeln aktualisierbar</figcaption></figure></div>
+<p class="muted sm">Bilder mit erfundenen Beispieltiteln.</p>
+<h2 class="sec">Installation</h2>
+<div class="grid"><div class="tile"><b>Windows</b><span>Setup herunterladen und ausführen – ohne Administratorrechte.
+Der Installer ist nicht signiert: bei „Der Computer wurde durch Windows geschützt“ <i>Weitere Informationen → Trotzdem
+ausführen</i>.</span></div>
+<div class="tile"><b>macOS (Apple-Chip)</b><span>Disk-Image öffnen, TagStudio auf „Programme“ ziehen und starten. Hinweise
+zum ersten Start stehen in „Zuerst lesen.txt“ im Disk-Image.</span></div>
+<div class="tile"><b>Aus dem Quellcode</b><span>Python 3.12 oder neuer, <code>git clone https://github.com/MarkusKeller8200/markussxch-tagstudio.git</code>, dann
+<code>start_windows.bat</code> bzw. <code>start_mac.command</code>. Details im <a href="handbuch.html#installation">Handbuch</a>.</span></div></div>
 </main>
 <script>
 (async () => {
   const n = (x) => Number(x || 0).toLocaleString("de-CH");
-  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-  let s;
-  try { s = await (await fetch("summary.json", { cache: "no-store" })).json(); }
-  catch (e) { document.getElementById("cards").innerHTML = '<div class="card"><span>Zahlen gerade nicht verfügbar.</span></div>'; return; }
-  const t = s.total, h = s.history || { days: [] };
-  const card = (v, l, cls = "") => `<div class="card ${cls}"><b>${v}</b><span>${l}</span></div>`;
-  document.getElementById("cards").innerHTML = card(n(t.installers), "Installer gesamt", "main") + card(n(t.win), "Windows") + card(n(t.mac), "macOS")
-    + (h.days.length ? card(n(h.last7), "letzte 7 Tage") + card(n(h.last30), "letzte 30 Tage") : "") + card(n(t.plugins), "Plugin-Downloads");
-  if (h.days.length) {
-    const max = Math.max(1, ...h.days.map((d) => d.total));
-    document.getElementById("bars").innerHTML = h.days.map((d) => `<div class="bar" title="${esc(d.day)}: ${n(d.total)} (Windows ${n(d.win)}, macOS ${n(d.mac)})">
-      <i style="height:${(d.win / max) * 116}px"></i><i class="mac" style="height:${(d.mac / max) * 116}px"></i></div>`).join("");
-    document.getElementById("range").textContent = `${h.days[0].day} – ${h.days[h.days.length - 1].day}`;
-    document.getElementById("hist").hidden = false;
-  }
-  document.getElementById("rows").innerHTML = s.rows.map((r) => `<tr><td><a href="${esc(r.url)}">${esc(r.tag)}</a>${r.beta ? '<span class="tag">Beta</span>' : ""}</td>
-    <td>${esc(r.date)}</td><td class="r">${n(r.win)}</td><td class="r">${n(r.mac)}</td><td class="r"><b>${n(r.total)}</b></td><td class="r muted">${n(r.plugins)}</td></tr>`).join("");
-  document.getElementById("foot").textContent = `Zahlen von GitHub (Release-Seite und Update in TagStudio), täglich gesammelt · Stand ${s.updated || "?"}`
-    + (h.since ? ` · Verlauf seit ${h.since}` : "");
+  try {
+    const s = await (await fetch("summary.json", { cache: "no-store" })).json();
+    const rel = (s.rows || []).find((r) => !r.beta);
+    if (rel) {
+      const v = rel.tag.replace(/^v/, ""), base = "https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/download/" + rel.tag + "/";
+      document.getElementById("dlWin").href = base + "TagStudio-" + v + "-Windows-Setup.exe";
+      document.getElementById("dlMac").href = base + "TagStudio-" + v + "-macOS-Apple-Chip.dmg";
+      document.getElementById("ver").innerHTML = 'Version <b>' + v + '</b> vom ' + rel.date + ' · <a href="' + rel.url + '">Versionshinweise</a>';
+    }
+    const t = s.total || {}, h = s.history || {};
+    document.getElementById("nums").innerHTML = '<div><b>' + n(t.installers) + '</b><span>Downloads gesamt</span></div>'
+      + (h.days && h.days.length ? '<div><b>' + n(h.last30) + '</b><span>letzte 30 Tage</span></div>' : '')
+      + '<div><b><a href="statistik.html">›</a></b><span><a href="statistik.html">Statistik</a></span></div>';
+  } catch (e) { /* Knöpfe führen dann zur Release-Seite */ }
 })();
 </script>
-</body>
-</html>
+<footer>MarKusSXCH TagStudio · <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio">GitHub</a> · <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/LICENSE">GNU GPL v3</a> ·
+<a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/issues">Fehler &amp; Ideen</a> · Diese Seite setzt keine Cookies und lädt nichts von fremden Servern.</footer>
+</body></html>
