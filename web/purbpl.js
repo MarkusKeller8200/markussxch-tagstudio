@@ -11,6 +11,8 @@ function purBpMenu(e) {
     { label: "Download Tracks …", run: purBpDownload },
     { label: "Playlists je Kaufdatum …", run: purBpByDate },
     "-",
+    { label: "Erneut zum Download freigeben …", run: () => purBpReset() },     // #362
+    "-",
     { label: "Download-Playlists aufräumen …", run: purBpCleanup },
     { label: "Schreibzugriff prüfen", run: purBpCheck },
   ]);
@@ -87,6 +89,27 @@ async function purBpByDate() {
   if (!res) return;
   const r = await runTask(call("start_purch_buy_playlists", res.prefix || null, res.since, res.until), "Playlists je Kaufdatum in Beatport");
   if (r && r.ok) purBpResult("Playlists je Kaufdatum", r);
+}
+
+/** #362: Einkäufe bei Beatport erneut zum Download freigeben (reset-download) – markierte, eine Zeile oder alle
+    fehlenden/unklaren. Ändert den Download-Status im Beatport-Konto, daher Rückfrage. */
+async function purBpReset(keys) {
+  keys = keys || (PUR.sel.size ? [...PUR.sel] : null);
+  const pv = await call("purch_reset_preview", keys);
+  if (!pv.available) return info("Beatport nicht bereit", "Das Plugin „Beatport“ ist aus oder nicht angemeldet.");
+  if (!pv.count) return info("Erneut zum Download freigeben", "Keine Beatport-Einkäufe ohne lokale Datei.");
+  const ok = await dialog({ title: "Erneut zum Download freigeben?",
+    text: `${fmtN(pv.count)} ${keys ? "gewählte" : "fehlende bzw. unklare"} Beatport-Einkäufe bei Beatport erneut zum Download freigeben? Beatport setzt den Download zurück – die Titel stehen danach in deiner Download-Warteliste bei Beatport.${pv.no_id ? ` ${fmtN(pv.no_id)} ohne Download-ID werden übersprungen (zuerst „Aktualisieren“).` : ""}`,
+    buttons: [{ label: "Abbrechen", value: false }, { label: "Freigeben", value: true, primary: true }] });
+  if (!ok) return;
+  const r = await runTask(call("start_purch_reset", keys), "Erneut zum Download freigeben");
+  if (!r || !r.ok) return;
+  const lines = [...(r.failed || []), ...(r.skipped || [])];
+  const go = await dialog({ title: "Erneut zum Download freigegeben",
+    text: `${fmtN((r.reset || []).length)} Titel freigegeben – in Beatport unter „Downloads“ herunterladen und danach mit „Abholen“ übernehmen.${lines.length ? "\n\n" + lines.join("\n") : ""}`,
+    buttons: [{ label: "Schliessen", value: false }, { label: "Beatport-Downloads öffnen ↗", value: true, primary: true }] });
+  if (go && r.url) call("open_url", r.url);
+  call("purch_state").then((st) => { PUR.st = st; purRenderBar(); purRenderTable(); }).catch(() => {});
 }
 
 async function purBpCleanup() {

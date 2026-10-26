@@ -171,6 +171,32 @@ class PurchasesMixin:
                 sel = [it for it in items.values() if it.get("status") in ("missing", "unclear")]
             return [it for it in sel if it.get("store") == self.BP and not it.get("preorder") and it.get("id")]
 
+    # ---- #362: Einkäufe erneut zum Download freigeben (Beatport reset-download)
+    def purch_reset_preview(self, keys_=None) -> dict:
+        """Wie viele Beatport-Einkäufe würden freigegeben (markierte bzw. fehlende/unklare)? → {count, no_id}"""
+        items = self._bp_open_items(keys_)
+        no_id = sum(1 for it in items if not (it.get("dl") or {}).get("order_item_download_id"))
+        return {"count": len(items), "no_id": no_id, "available": self.purch_bp_settings().get("available", False)}
+
+    def start_purch_reset(self, keys_=None):
+        """Markierte bzw. fehlende Beatport-Einkäufe bei Beatport erneut zum Download freigeben (nach Rückfrage)."""
+        items = self._bp_open_items(keys_)
+        if not items:
+            return {"ok": False, "error": "Keine Beatport-Einkäufe ohne lokale Datei."}
+
+        def job(cancel, progress):
+            r = self.plugins.call_playlist(self.BP, "store_reset_download", items, session=self, cancel=cancel,
+                                           progress=progress) or {}
+            with self.lock:                                   # Beatport führt sie wieder als „nicht heruntergeladen“
+                st = self._purch()
+                for sid in r.get("reset") or []:
+                    it = st.data["items"].get(purchases.key_of(self.BP, sid))
+                    if it is not None:
+                        it.pop("received", None)
+                st.save()
+            return {"ok": True, **r}
+        return self._run("purch", "Erneut zum Download freigeben", job)
+
     def purch_dl_playlist_preview(self, keys_=None) -> dict:
         import datetime
         items = self._bp_open_items(keys_)

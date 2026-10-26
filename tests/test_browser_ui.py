@@ -3839,6 +3839,28 @@ class UiTest(unittest.TestCase):
         pg.click("#menu button >> text=Download-Playlists aufräumen …")
         pg.click("#dlgBtns .primary")
         self.assertTrue(self.until("window.__runs.some(r => r[0] === 'start_purch_dl_cleanup')"))
+        # #362: erneut zum Download freigeben – Rückfrage mit Anzahl, Abbrechen sendet nichts, Ergebnis mit Link
+        pg.evaluate("""(() => { const c = window.call; window.call = (n, ...a) => {
+            if (n === "purch_reset_preview") { window.__rp = a; return Promise.resolve({ available: true, count: 4, no_id: 1 }); }
+            if (n === "start_purch_reset") { window.__runs.push([n, ...a]);
+              window.__fake = { ok: true, reset: ["1", "2", "3"], failed: [], skipped: ["X – Y: keine Download-ID (zuerst „Aktualisieren“)"], url: "https://www.beatport.com/library/downloads" };
+              return Promise.resolve({ ok: true }); }
+            if (n === "purch_state") return Promise.resolve(PUR.st);
+            return c(n, ...a); }; })()""")
+        pg.click("#purBpl")
+        pg.click("#menu button >> text=Erneut zum Download freigeben …")
+        pg.wait_for_selector("#dialog:not([hidden])")
+        self.assertIn("4 fehlende bzw. unklare", pg.inner_text("#dialog"))
+        self.assertIn("1 ohne Download-ID", pg.inner_text("#dialog"))
+        pg.click("#dlgBtns button >> nth=0")
+        self.assertFalse(pg.evaluate("window.__runs.some(r => r[0] === 'start_purch_reset')"))
+        pg.click("#purBpl")
+        pg.click("#menu button >> text=Erneut zum Download freigeben …")
+        pg.click("#dlgBtns .primary")
+        self.assertTrue(self.until("document.querySelector('#dlgTitle') && /freigegeben/.test(document.querySelector('#dialog').textContent) && /3 Titel/.test(document.querySelector('#dialog').textContent)"))
+        self.assertIn("keine Download-ID", pg.inner_text("#dialog"))
+        pg.click("#dlgBtns .primary")
+        self.assertTrue(self.until("window.__url === 'https://www.beatport.com/library/downloads'"))
 
     def test_purchases_feedback_345_349(self):
         """#345 markierte prüfen, #346 Rechtsklick auf unklar → Korrektur, #347 Best Match, #349 Doppelklick spielt ab,

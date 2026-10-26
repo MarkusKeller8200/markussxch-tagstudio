@@ -53,7 +53,7 @@ _PASS = {
     "add_field_choices", "add_field", "bulk_keys", "bulk_apply", "cover_remove",
     "fixer_settings", "fixer_preview", "fixer_apply", "set_fixer_exceptions", "fixer_exception_candidates",
     "purch_unzip", "set_unzip_auto", "set_purch_strict", "purch_candidates", "purch_fix_file",
-    "purch_bp_settings", "purch_bp_check", "purch_dl_playlist_preview", "start_purch_dl_playlist", "start_purch_dl_cleanup",
+    "purch_bp_settings", "purch_bp_check", "purch_dl_playlist_preview", "start_purch_dl_playlist", "purch_reset_preview", "start_purch_reset", "start_purch_dl_cleanup",
     "purch_buy_playlists_preview", "start_purch_buy_playlists", "smart_list", "smart_set_out", "smart_save", "smart_delete", "smart_select", "smart_import", "smart_preview", "smart_apply",
     "backups", "set_backup", "start_backup_check", "start_restore", "backup_diff", "delete_backup",
     "start_tag_load", "start_tag_load_files", "tagger_settings", "tag_state_save", "tag_rows", "tag_rows_preview", "tag_detail_file", "tag_cover_thumb_store", "tag_detail", "tag_set", "tag_set_rating", "player_mark", "tag_remove", "tag_add_field",

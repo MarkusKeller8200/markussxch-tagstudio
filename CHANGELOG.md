@@ -8,6 +8,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Einkäufe: „Erneut zum Download freigeben …“ (#362, Plugin 2.7)** – setzt bei Beatport den Download der markierten bzw.
+  fehlenden Einkäufe zurück (reset-download, getestet: HTTP 204, Titel danach in der Download-Warteliste); nach Rückfrage,
+  mit Link zu den Beatport-Downloads; auch im Rechtsklick-Menü.
 - **Beatport-API-Tester: „Download eines Kaufs zurücksetzen“ (#361, Plugin 2.6)** – inoffizieller Endpunkt
   `/catalog/tracks/reset-download/` als GET und POST, ⚠ mit Rückfrage, nie in „Zugriff prüfen“.
 - **Beatport-API-Tester: Werte-Editor und PATCH (#356, #357, Plugin 2.3):** unter dem Body „Mögliche Werte“ mit Feld,

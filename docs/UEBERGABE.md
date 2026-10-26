@@ -25,7 +25,10 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **#360** (01:38): Playlists je Kaufdatum ungeteilt (`purch_buy_playlists_preview` eine Zeile je Datum), Plugin **2.5**.
 - **#361** (02:16): API-Tester `track-reset-download` (GET) + `…-post`, `danger` → Bestätigung auch bei GET
   (`services.api_call`, JS), `access_check` lässt `danger` aus. Plugin **2.6**. Ergebnis User 02:24: **HTTP 204**, Track danach in der Beatport-Download-Warteliste – Einbau in Einkäufe noch offen (Entscheid User).
-- Beim Release: Plugin-ZIP Beatport **2.6**.
+- **#362** (Entscheid „eigene Aktion“): `store_reset_download` (Plugin, in `PLAYLIST_FNS`), `purch_reset_preview` /
+  `start_purch_reset` (entfernt `received`), JS `purBpReset(keys)` in purbpl.js, Menü „Beatport-Playlists ▾“ und Rechtsklick.
+  Plugin **2.7**.
+- Beim Release: Plugin-ZIP Beatport **2.7**.
 
 ## Sitzung 26.10.2026 (00:11–01:00) – Rückmeldungen aus dem Test
 

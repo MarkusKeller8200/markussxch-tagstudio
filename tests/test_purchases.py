@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -177,3 +178,39 @@ class TestBeatportPlaylistPlan(TestCorrectSession):
         self.assertEqual({r["date"] for r in b["rows"]}, {"2026-10-21"})
         s.plugins.call_playlist = lambda *a, **kw: (_ for _ in ()).throw(ValueError("Plugin aus"))
         self.assertFalse(s.purch_bp_settings()["available"])
+
+    def test_reset(self):
+        """#362: erneut zum Download freigeben – Vorschau zählt markierte bzw. fehlende, ohne Download-ID gesondert;
+        nach dem Freigeben gilt der Einkauf nicht mehr als „beim Store heruntergeladen“."""
+        from session import Session
+        s = Session()
+        st = s._purch()
+        st.merge("beatport", "Beatport", [{"id": 1, "title": "A", "artist": "X", "received": True, "dl": {"order_item_download_id": 11}},
+                                          {"id": 2, "title": "B", "artist": "X", "dl": {}},
+                                          {"id": 3, "title": "C", "artist": "X", "preorder": True}])
+        for it in st.data["items"].values():
+            it["status"] = "missing"
+        calls = []
+
+        def fake(pid, fn, *a, **kw):
+            calls.append((fn, a))
+            if fn == "store_settings":
+                return {"playlists_write": False, "buy_prefix": "TagStudio_BUY_"}
+            if fn == "store_reset_download":
+                return {"reset": ["1"], "failed": [], "skipped": ["B"], "url": "u"}
+            return {}
+        s.plugins.call_playlist = fake
+        pv = s.purch_reset_preview()
+        self.assertEqual((pv["count"], pv["no_id"], pv["available"]), (2, 1, True))          # ohne Vorbestellung
+        self.assertEqual(s.purch_reset_preview(["beatport:1"])["count"], 1)
+        self.assertTrue(s.start_purch_reset()["ok"])
+        r = None
+        for _ in range(200):
+            t = s.task_status()
+            if t.get("done"):
+                r = t["result"]
+                break
+            time.sleep(0.02)
+        self.assertEqual(r["reset"], ["1"])
+        self.assertEqual([len(a[0]) for fn, a in calls if fn == "store_reset_download"], [2])
+        self.assertFalse(st.data["items"]["beatport:1"].get("received"))

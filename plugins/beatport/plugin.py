@@ -1775,6 +1775,34 @@ def store_purchases(ctx, since="") -> dict:
 DOWNLOAD_PAGE = "https://www.beatport.com/library/downloads"
 
 
+def store_reset_download(ctx, items) -> dict:
+    """#362: Einkäufe erneut zum Download freigeben – GET /catalog/tracks/reset-download/?order_item_download_id=…
+    (inoffiziell, wie die Beatport-Webseite; getestet 26.10.2026: HTTP 204, Titel danach in der Download-Warteliste).
+    Ändert den Download-Status im Konto – die Oberfläche fragt vorher. → {reset: [ids], failed: [Text], skipped: [Text],
+    url}"""
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"Beatport: {why}.")
+    c = Client(ctx)
+    reset, failed, skipped = [], [], []
+    for k, it in enumerate(items or []):
+        ctx.check_cancel()
+        label = f"{it.get('artist', '')} – {it.get('title', '')}".strip(" –")
+        ctx.progress(k, len(items), label)
+        odid = (it.get("dl") or {}).get("order_item_download_id")
+        if not odid:
+            skipped.append(f"{label}: keine Download-ID (zuerst „Aktualisieren“)")
+            continue
+        st, js, _h = _send(c, "GET", f"/catalog/tracks/reset-download/?order_item_download_id={int(odid)}")
+        ctx.log(f"reset-download {odid} ({label}): HTTP {st}")
+        if 200 <= st < 300:
+            reset.append(str(it.get("id")))
+        else:
+            detail = (js or {}).get("detail") if isinstance(js, dict) else ""
+            failed.append(f"{label}: HTTP {st}{' – ' + str(detail)[:120] if detail else ''}")
+    return {"reset": reset, "failed": failed, "skipped": skipped, "url": DOWNLOAD_PAGE}
+
+
 def store_download(ctx, items, dest) -> dict:
     """Gewählte Einkäufe in den Ordner dest laden → {"files": {id: [Pfade]}, "failed": [Text], "manual": URL|""}.
     Die offizielle API hat keinen Download-Endpunkt (OpenAPI-Beschreibung, 25.10.2026): versucht werden die

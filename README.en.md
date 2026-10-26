@@ -324,7 +324,9 @@ shows how to download the tracks yourself on Beatport's download page and take t
 **“Beatport playlists ▾”** (only with the setting switched on in the Beatport plugin, off by default):
 “Download Tracks …” puts the tracks without a file into playlists `TagStudio_DOWNLOAD_<date>_<n>` of 100 each – open
 the playlist in Beatport and add all to the download; “Playlists per purchase date …” creates or completes
-`TagStudio_BUY_YYYY_MM_DD` (one playlist per date with all tracks); “Clean up …” deletes the download playlists after confirmation. TagStudio never changes other
+`TagStudio_BUY_YYYY_MM_DD` (one playlist per date with all tracks); “Clean up …” deletes the download playlists after confirmation. **“Release for download again …”** (also in the
+right-click menu) resets the download of the selected or missing purchases at Beatport – they then appear in the
+download queue at Beatport (after confirmation, does not need the playlist setting). TagStudio never changes other
 playlists. **“Strict”** matches only when artist, title and mix fit – even with the same ISRC. **“Check unclear …”** (with selected rows “Check selected …”; clicking an unclear purchase opens it directly,
 right-click shows the context menu with “Correct …”) opens a wide correction window per reason: for several matches the candidates with their tags to
 choose from, for a different mix the file's title, subtitle and file name to adjust (“Like the purchase”, “Change and

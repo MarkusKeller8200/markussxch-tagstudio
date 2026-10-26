@@ -282,3 +282,26 @@ class TestApiTesterWrite(unittest.TestCase):
         self.assertEqual(self.api.calls[-1][:2], ("GET", "/catalog/tracks/reset-download/?order_item_download_id=605271245"))
         src = open(services.__file__, encoding="utf-8").read()
         self.assertIn('not e.get("danger")', src)                                       # „Zugriff prüfen“ lässt es aus
+
+    def test_store_reset_download(self):
+        """#362: reset-download je Einkauf mit Download-ID, ohne ID übersprungen, Fehler je Titel."""
+        self.bp.ready = lambda ctx: (True, "")
+        self.ctx.check_cancel = lambda: None
+        self.ctx.progress = lambda *a: None
+        seen = []
+
+        def req(method, url, **kw):
+            seen.append((method, url.split("/v4", 1)[1]))
+            return (204, {}, b"") if url.endswith("=11") else (403, {}, b'{"detail": "Nope"}')
+        self.bp.request = req
+        r = self.bp.store_reset_download(self.ctx, [
+            {"id": 1, "title": "A", "artist": "X", "dl": {"order_item_download_id": 11}},
+            {"id": 2, "title": "B", "artist": "X", "dl": {"order_item_download_id": 22}},
+            {"id": 3, "title": "C", "artist": "X", "dl": {}}])
+        self.assertEqual(r["reset"], ["1"])
+        self.assertEqual(len(r["failed"]), 1)
+        self.assertIn("HTTP 403 – Nope", r["failed"][0])
+        self.assertIn("keine Download-ID", r["skipped"][0])
+        self.assertEqual(seen, [("GET", "/catalog/tracks/reset-download/?order_item_download_id=11"),
+                                ("GET", "/catalog/tracks/reset-download/?order_item_download_id=22")])
+        self.assertTrue(r["url"].startswith("https://www.beatport.com/"))

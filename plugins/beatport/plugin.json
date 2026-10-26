@@ -1,7 +1,7 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "2.6",
+  "version": "2.7",
   "min_app": "4.9.1",
   "category": "online",
   "categories": [
@@ -828,7 +828,7 @@
         "method": "GET",
         "path": "/catalog/tracks/reset-download/",
         "label": "Download eines Kaufs zurücksetzen (inoffiziell)",
-        "status": "none",
+        "status": "partial",
         "note": "inoffiziell, von der Beatport-Webseite – setzt den Download eines Kaufs zurück (ändert den Download-Status im Konto); nur im API-Tester, nach Rückfrage (#361)",
         "danger": true,
         "params": [
@@ -838,7 +838,8 @@
             "required": true,
             "example": "605271245"
           }
-        ]
+        ],
+        "use": "Einkäufe › „Erneut zum Download freigeben …“ (#362) – nur auf Klick, nach Rückfrage"
       },
       {
         "id": "track-reset-download-post",

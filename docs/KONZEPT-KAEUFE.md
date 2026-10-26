@@ -136,6 +136,16 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
 - Session: `purch_bp_settings`, `purch_bp_check`, `purch_dl_playlist_preview`, `start_purch_dl_playlist`,
   `start_purch_dl_cleanup`, `purch_buy_playlists_preview`, `start_purch_buy_playlists`; Oberfläche `web/purbpl.js`.
 
+## 3e. Erneut zum Download freigeben (#361, #362, 4.12.0)
+
+- Inoffizieller Endpunkt der Beatport-Webseite `GET /catalog/tracks/reset-download/?order_item_download_id=…` – vom User
+  im API-Tester geprüft (26.10.2026): **HTTP 204**, der Titel steht danach in der Download-Warteliste bei Beatport.
+- Einkäufe › „Beatport-Playlists ▾“ bzw. Rechtsklick › **„Erneut zum Download freigeben …“** für markierte, sonst alle
+  fehlenden/unklaren Beatport-Einkäufe (ohne Vorbestellungen); Rückfrage mit Anzahl, ohne Download-ID übersprungen.
+- Danach gilt der Einkauf nicht mehr als „beim Store heruntergeladen“ (`received` entfernt, der nächste Abgleich setzt
+  es wieder nach Beatport). Download dann in Beatport, Übernahme mit „Abholen“.
+- Ändert den Download-Status im Konto – nur auf Klick; unabhängig von der Einstellung „Playlists in Beatport“.
+
 ## 3b. ZIP-Downloads entpacken (#336, 4.12.0)
 
 - `unzip.py`: `pending` (ZIPs direkt im Ordner, mindestens 5 s unverändert – `.crdownload`/`.part` sind keine ZIPs),

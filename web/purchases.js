@@ -227,6 +227,7 @@ function purRowMenu(e, k) {
   if (r.status !== "library" || r.linked) items.push({ label: "Zuordnen …", run: () => purLinkDialog(r) });
   if (r.linked) items.push({ label: "Zuordnung aufheben", run: async () => purApply(await call("purch_link", r.k, "")) });
   if (r.status !== "library" && !r.preorder) items.push({ label: "Herunterladen …", run: () => { PUR.sel = new Set([k]); purRenderBar(); purDownload(); } });
+  if (r.store === "beatport" && r.status !== "library" && !r.preorder) items.push({ label: "Erneut zum Download freigeben …", run: () => purBpReset([k]) });   // #362
   if (items.length) showMenu(e.clientX, e.clientY, items);
 }
 

@@ -187,5 +187,17 @@
 "Markierte prüfen … ({x})": ["Check selected … ({x})", "Markierti prüefe … ({x})"],
 "Keine Datei zugeordnet – nichts abzuspielen.": ["No file assigned – nothing to play.", "Kei Datei zueordnet – nüt zum Abspile."],
 "Angezeigte Spalten bestmöglich auf die Breite verteilen (fixe Spalten bleiben)": ["Spread the visible columns over the width as well as possible (fixed columns stay)", "Aazeigti Spalte so guet wie möglich uf d Breiti verteile (fixi Spalte bliibed)"],
-"⇔ Best Match": ["⇔ Best Match", "⇔ Best Match"]
+"⇔ Best Match": ["⇔ Best Match", "⇔ Best Match"],
+"Erneut zum Download freigeben …": ["Release for download again …", "Nomol zum Download freigää …"],
+"Erneut zum Download freigeben": ["Release for download again", "Nomol zum Download freigää"],
+"Erneut zum Download freigeben?": ["Release for download again?", "Nomol zum Download freigää?"],
+"gewählte": ["selected", "gwählti"],
+"{x} ohne Download-ID werden übersprungen (zuerst {q}).": ["{x} without a download ID are skipped (first {q}).", "{x} ohni Download-ID wärded übersprunge (zerscht {q})."],
+"{x} {x} Beatport-Einkäufe bei Beatport erneut zum Download freigeben? Beatport setzt den Download zurück – die Titel stehen danach in deiner Download-Warteliste bei Beatport.{x}": ["Release {x} {x} Beatport purchases for download again at Beatport? Beatport resets the download – the tracks then appear in your download queue at Beatport.{x}", "{x} {x} Beatport-Iichäuf bi Beatport nomol zum Download freigää? Beatport setzt de Download zrugg – d Titel stönd denn i dinere Download-Warteliste bi Beatport.{x}"],
+"Freigeben": ["Release", "Freigää"],
+"Erneut zum Download freigegeben": ["Released for download again", "Nomol zum Download freigää"],
+"{x} Titel freigegeben – in Beatport unter {q} herunterladen und danach mit {q} übernehmen.{x}": ["{x} tracks released – download them in Beatport under {q}, then take them over with {q}.{x}", "{x} Titel freigää – i Beatport under {q} abelade und denn mit {q} übernää.{x}"],
+"Beatport-Downloads öffnen ↗": ["Open Beatport downloads ↗", "Beatport-Downloads öffne ↗"],
+"{x}: keine Download-ID (zuerst {q})": ["{x}: no download ID (first {q})", "{x}: kei Download-ID (zerscht {q})"],
+"Einkäufe › {q} (#{n}) – nur auf Klick, nach Rückfrage": ["Purchases › {q} (#{n}) – only on click, after confirmation", "Iichäuf › {q} (#{n}) – nur uf Klick, nach Rückfrag"]
 }

@@ -824,7 +824,7 @@ class Manager:
             return set()
 
     # ---- #242: Playlists anderer Programme fürs DJ-Set (playlists(ctx), playlist_files(ctx, id))
-    PLAYLIST_FNS = ("playlists", "playlist_files", "playlist_push", "store_purchases", "store_download",
+    PLAYLIST_FNS = ("playlists", "playlist_files", "playlist_push", "store_purchases", "store_download", "store_reset_download",
                     "store_login", "store_logout", "store_session", "store_settings", "store_playlist_check",
                     "store_playlist_list", "store_playlist_put", "store_playlist_delete")
 
