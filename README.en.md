@@ -26,7 +26,8 @@
   <a href="docs/HANDBUCH.en.md">Manual</a> ·
   <a href="CHANGELOG.md">Changes</a> ·
   <a href="PLUGINS.en.md">Plugins</a> ·
-  <a href="https://markuskeller8200.github.io/markussxch-tagstudio/">Download statistics</a> ·
+  <a href="https://markuskeller8200.github.io/markussxch-tagstudio/">Website</a> ·
+  <a href="https://markuskeller8200.github.io/markussxch-tagstudio/statistik.html">Download statistics</a> ·
   <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/issues">Bugs &amp; ideas</a> ·
   <a href="README.md">Deutsch</a>
 </p>

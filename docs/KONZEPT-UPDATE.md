@@ -71,6 +71,13 @@ Installer) und kopiert `.github/stats/index.html` als Statistik-Seite nach `docs
 GitHub Pages: Zweig `stats`, Ordner `/docs` → `https://markuskeller8200.github.io/markussxch-tagstudio/`. Abzeichen
 im README (`img.shields.io/endpoint?url=…/stats/docs/badge.json`).
 
+**Projekt-Webseite (#375):** `tools/website.py OUT` baut aus `docs/HANDBUCH*.md` (Paket `markdown`, Anker wie GitHub
+über `slugify_unicode`), den Bildschirmfotos und `summary.json` die Seiten `index.html` (Start, Download-Knöpfe direkt
+zur neuesten Datei aus `summary.json`), `handbuch.html`/`manual.html` (Inhaltsverzeichnis, Suche filtert Abschnitte je
+H2 und markiert Treffer), `statistik.html` (`.github/stats/index.html` mit Kopfzeile) und `img/`. Links im Handbuch:
+Handbuch ↔ Webseite, sonst GitHub (blob/main). Der Workflow „Download-Statistik“ baut alle 3 Stunden und bei
+Änderungen an Handbuch/Bildern/Generator auf `main`.
+
 **Download-Kasten (#372):** Derselbe Workflow (alle 3 Stunden) setzt oben in die Versionshinweise jedes Releases
 einen Kasten mit direkten Links (Windows zuerst, Grösse, Plugins zugeklappt) zwischen den Markierungen
 `<!-- tagstudio-downloads:start/end -->` und entfernt die alte Zeile „**Download:** …“. `installer.yml` bleibt

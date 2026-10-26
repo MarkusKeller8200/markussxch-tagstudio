@@ -28,6 +28,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   **Beim nächsten Release:** `packaging/build.py` `--add-data` für `docs/HANDBUCH.md` und `docs/HANDBUCH.en.md` (sonst
   zeigt die installierte Hilfe die kurze Startseite) – zusammen mit `downloadstats` in `HIDDEN`. Bilder neu:
   `python tools/screenshots.py` (Playwright + ffmpeg). Themen (topics) und Vorschaubild: siehe Anleitung an den User.
+- **#375 Projekt-Webseite** (19:42): `tools/website.py` (nicht `site.py` – würde das Python-Modul `site` verdecken),
+  Workflow baut Seiten in `stats:docs/` (Start, Handbuch DE/EN mit Suche, Statistik); Push-Auslöser auf `main` für
+  Handbuch, Bilder, Generator. README verlinkt Webseite + `statistik.html`.
 - **#374 macOS signieren + notarisieren** (18:35): vorbereitet auf Zweig **`macos-signing`** (73add7c): installer.yml
   (Schlüsselbund aus Secrets, `TS_SIGN_ID`, notarytool-Umgebung, spctl-Prüfung, Aufräumen), `packaging/build.py`
   (`--codesign-identity`, `--osx-entitlements-file`, App neu signieren mit Hardened Runtime), `packaging/make_dmg.sh`

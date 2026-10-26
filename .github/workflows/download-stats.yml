@@ -5,11 +5,16 @@ name: Download-Statistik
 # Nichts auf main; Pushes mit GITHUB_TOKEN lösen keine weiteren Workflows aus.
 # #371: dazu summary.json, badge.json und die Statistik-Seite docs/index.html (GitHub Pages: Zweig stats, Ordner /docs).
 # #372: setzt oben in die Versionshinweise jedes Releases den Kasten „Download“ mit direkten Links.
+# #375: baut die Projekt-Webseite (tools/website.py: Startseite, Handbuch DE/EN, Statistik) – auch bei Änderungen auf main.
 
 on:
   schedule:
     - cron: "37 */3 * * *"   # alle 3 Stunden – neue Releases bekommen den Download-Kasten bald; ein Stand je Tag
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["docs/HANDBUCH.md", "docs/HANDBUCH.en.md", "docs/screenshots/**", "docs/social-preview.png",
+            "tools/website.py", ".github/stats/**", "downloadstats.py", ".github/workflows/download-stats.yml"]
 
 permissions:
   contents: write
@@ -41,8 +46,9 @@ jobs:
       - name: Zählerstände eintragen
         run: |
           python3 code/downloadstats.py --update stats/docs/download-stats.json
-          cp code/.github/stats/index.html stats/docs/index.html
-          touch stats/docs/.nojekyll
+          python3 -m pip install --quiet markdown
+          rm -f stats/docs/index.html
+          python3 code/tools/website.py stats/docs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Download-Kasten in den Versionshinweisen

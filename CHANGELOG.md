@@ -18,6 +18,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Neue Startseite des Repositories (#373):** README mit Symbol, Abzeichen, Download-Knöpfen, Bildschirmfotos (hell und
   dunkel) und Funktions-Kacheln; die Bedienungsanleitung steht jetzt in `docs/HANDBUCH.md` bzw. `docs/HANDBUCH.en.md`
   (Hilfe in TagStudio zeigt sie wie bisher). Bilder erzeugt `tools/screenshots.py` mit Beispieltiteln.
+- **Projekt-Webseite (#375):** https://markuskeller8200.github.io/markussxch-tagstudio/ mit Startseite (Download-Knöpfe
+  direkt zur neuesten Datei, Bilder, Funktionen), Handbuch Deutsch/Englisch mit Inhaltsverzeichnis und Suche und der
+  Download-Statistik; baut sich automatisch neu (`tools/website.py`, Workflow „Download-Statistik“).
 
 ## [4.12.0] – 2026-10-26
 
