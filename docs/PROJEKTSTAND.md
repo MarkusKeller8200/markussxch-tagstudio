@@ -1,6 +1,9 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-26 (03:46): zusätzlich geschlossen #335, #357, #367–#369 – offen nur noch #334 und #186.
+> Stand 2026-10-26 (04:20): **v4.12.0 final veröffentlicht** (Release `v4.12.0`, Windows + macOS, 25 Dateien, Beatport 2.11);
+> Meilenstein #28 „Käufe, Tag-Fixer & Entdecken“ mit 39 Issues geschlossen. #186 Modul IDEE liegt in „Funktionen“.
+>
+> Davor 2026-10-26 (03:46): zusätzlich geschlossen #335, #357, #367–#369 – offen nur noch #334 und #186.
 >
 > Davor 2026-10-26 (03:37, dritte Testrunde): geschlossen #345, #353–#356, #358–#366 (u. a. Best Match als Symbol, API-Tester
 > mit Werte-Editor, Download-Endpunkten, Sitzungs-Anmeldung und Revoke, Beatport-Plugin 2.11, „Erneut zum Download

@@ -1,8 +1,19 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-26 (03:46): 4.12.0 – Meilenstein #28: offen nur noch #334 (Beta-Test, Testliste nicht abgehakt) und #186 (Konzept, Entscheide I1–I6); alle übrigen geschlossen. Release erst nach Freigabe des Users**
+Stand: **2026-10-26 (04:20): v4.12.0 final veröffentlicht** (Windows + macOS, 25 Dateien, Beatport-Plugin 2.11), Meilenstein #28 geschlossen (39 Issues). #186 (Modul IDEE, Entscheide I1–I6) liegt in „Funktionen“. Nächster Meilenstein noch nicht festgelegt.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Release 4.12.0 (26.10.2026, 04:20)
+
+- **Freigabe User 03:53** („die Version kann nun erstellt werden“; Auswahl: 4.12.0 final). #334 vom User als getestet
+  gemeldet und geschlossen; #186 hat der User in die Sammlung „Funktionen“ verschoben.
+- Vorher ganze Testreihe grün: 123 Oberflächentests lokal (zwei unter Last wacklige Tests stabilisiert, 8b0a1c1), CI
+  Windows/macOS/Oberfläche/CodeQL.
+- `packaging/build.py` › `HIDDEN`: `smartfix`, `unzip`. `release.py 4.12.0`, Commit „Version 4.12.0“ (e672b34), Workflow
+  „Installer“ grün → **Release `v4.12.0`** (nicht Vorabversion, 25 Dateien: Windows-Setup, macOS-DMG Apple-Chip,
+  21 Plugin-ZIPs inkl. Beatport 2.11, plugins.json). Meilenstein #28 geschlossen.
+- Offen beim User: Label „_2%20in%20Arbeit“ (versehentlich angelegt) löschen? – nur nach Freigabe.
 
 ## Sitzung 26.10.2026 (01:10) – zweite Testrunde
 
