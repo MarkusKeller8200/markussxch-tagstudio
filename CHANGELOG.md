@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.12.0] – 2026-10-26
+
 ### Neu
 
 - **Einkäufe: im Browser laden, verlinken, in die Bibliothek (#367, #368, #369)** – nicht ladbare Titel gibt „Fehlende
