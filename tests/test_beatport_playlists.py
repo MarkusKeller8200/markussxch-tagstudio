@@ -281,7 +281,7 @@ class TestApiTesterWrite(unittest.TestCase):
         services.api_call(P(), self.ctx, "track-reset-download", {"order_item_download_id": "605271245", "_confirm": "yes"}, "UA")
         self.assertEqual(self.api.calls[-1][:2], ("GET", "/catalog/tracks/reset-download/?order_item_download_id=605271245"))
         src = open(services.__file__, encoding="utf-8").read()
-        self.assertIn('not e.get("danger")', src)                                       # „Zugriff prüfen“ lässt es aus
+        self.assertIn('and not e.get("danger")', src)                                   # „Zugriff prüfen“: ohne Beispiel-ID
 
     def test_store_reset_download(self):
         """#362: reset-download je Einkauf mit Download-ID, ohne ID übersprungen, Fehler je Titel."""
@@ -314,8 +314,9 @@ class TestApiTesterWrite(unittest.TestCase):
                                           "plugins", "beatport", "plugin.json"), encoding="utf-8"))["service"]
         svc = services.clean(raw)
         eps = {e["id"]: e for e in svc["endpoints"]}
-        self.assertEqual([(eps[i]["test"], eps[i]["danger"], eps[i]["no_follow"]) for i in ("my-download-item", "my-download", "track-download")],
-                         [(True, False, True), (True, True, True), (True, True, True)])
+        self.assertEqual([(eps[i]["test"], eps[i]["danger"], eps[i]["no_follow"]) for i in ("my-download-item", "my-download", "track-download", "purchase-download")],
+                         [(True, False, True), (True, True, True), (True, True, True), (True, True, True)])   # #364: purchase-download
+        self.assertEqual(eps["purchase-download"]["params"][0]["example"], "605271245")
         seen = []
 
         def req(method, url, headers=None, data=None, follow=True, **kw):
@@ -340,3 +341,5 @@ class TestApiTesterWrite(unittest.TestCase):
         log = "\n".join(self.ctx.logs)
         self.assertIn("(Binärdaten · audio/mpeg · 10000 Bytes – nicht angezeigt)", log)
         self.assertNotIn("��", log)
+        services.api_call(P(), self.ctx, "purchase-download", {"order_item_download_id": "605271245", "_confirm": "yes"}, "UA")
+        self.assertEqual(seen[-1], ("GET", "/catalog/tracks/purchase-download/?order_item_download_id=605271245", False))

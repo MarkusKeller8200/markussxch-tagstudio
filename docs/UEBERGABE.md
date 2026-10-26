@@ -31,7 +31,10 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **#363** (02:29): Tester für drei Download-Endpunkte; Endpunkt-Feld `no_follow` (services.clean → Beatport
   `api_request(follow=…)`), `location`/`content-disposition` in den angezeigten Kopfzeilen, Binärantwort nicht ins Protokoll.
   Plugin **2.8**.
-- Beim Release: Plugin-ZIP Beatport **2.8**.
+- **#364** (02:42): `purchase-download` im Tester (danger, no_follow, order_item_download_id). Plugin **2.9**.
+  „Zugriff prüfen“ ruft `danger`-Endpunkte ohne Pfad-ID weiterhin auf, aber **ohne** Beispielwert und ohne Pflicht
+  (zeigt nur 401/403, lädt/ändert nichts); `danger` mit `{id}` im Pfad bleibt draussen.
+- Beim Release: Plugin-ZIP Beatport **2.9**.
 
 ## Sitzung 26.10.2026 (00:11–01:00) – Rückmeldungen aus dem Test
 

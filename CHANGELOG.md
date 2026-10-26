@@ -8,6 +8,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Beatport-API-Tester: `/catalog/tracks/purchase-download/` (#364, Plugin 2.9)** – mit order_item_download_id, nach Rückfrage,
+  ohne Weiterleitung.
 - **Beatport-API-Tester: Download-Endpunkte (#363, Plugin 2.8)** – `/my/downloads/{id}/`, `/my/downloads/{id}/download/`,
   `/catalog/tracks/{id}/download/`; Weiterleitung nicht verfolgt (Ziel unter `location`), Dateien nur als Grösse, …/download/
   nach Rückfrage.

@@ -432,7 +432,8 @@ def access_check(plugin, ctx, user_agent: str) -> dict:
     a = a if isinstance(a, dict) else {}
     secrets = [v for v in list((a.get("headers") or {}).values()) + list((a.get("params") or {}).values()) if v]
     eps = [e for e in svc["endpoints"] if e["method"] == "GET" and not e["path"].startswith("/auth/")
-           and not e["path"].rstrip("/").endswith("/download") and not e.get("danger")]   # #361: ändernde nie
+           and not e["path"].rstrip("/").endswith("/download")
+           and not (e.get("danger") and "{" in e["path"])]          # #361/#364: ändernde nur ohne ID (siehe unten)
     eps.sort(key=lambda e: (e["path"].count("{"), e["path"]))       # Listen zuerst (liefern die Beispiel-IDs)
     ids, rows = {}, []
     for i, e in enumerate(eps, 1):
@@ -453,10 +454,14 @@ def access_check(plugin, ctx, user_agent: str) -> dict:
                 rows.append(row)
                 continue
         for p in e["params"]:                                       # Pflichtwerte der Abfrage: Beispiel oder leer
-            if p["in"] == "query" and p["required"] and p.get("example"):
+            # #364: ändernde Endpunkte (reset-download, purchase-download) ohne Beispiel-ID – zeigt nur, ob die
+            # Anmeldung reicht (401/403), lädt bzw. ändert nichts
+            if p["in"] == "query" and p["required"] and p.get("example") and not e.get("danger"):
                 params[p["name"]] = p["example"]
-        if not any(p["name"] == "per_page" for p in e["params"]):
-            ep["params"] = e["params"] + [{"name": "per_page", "label": "per_page", "default": "1", "example": "",
+        if e.get("danger"):                                         # #364: ohne ID aufrufen (Pflicht aufheben)
+            ep["params"] = [dict(p, required=False) for p in e["params"]]
+        if not any(p["name"] == "per_page" for p in ep["params"]):
+            ep["params"] = ep["params"] + [{"name": "per_page", "label": "per_page", "default": "1", "example": "",
                                            "required": False, "in": "query"}]
         t0 = time.monotonic()
         try:
