@@ -164,7 +164,8 @@ def clean(raw) -> dict | None:
             "params": params,
             "body": body_ex if method in BODY_METHODS else "",
             "fields": clean_fields(e.get("fields")) if method in BODY_METHODS else [],
-            "danger": bool(e.get("danger")),                                # #357: z. B. Konto ändern – deutlich warnen
+            "danger": bool(e.get("danger")),
+            "no_follow": bool(e.get("no_follow")),                          # #363: Weiterleitung nicht verfolgen                                # #357: z. B. Konto ändern – deutlich warnen
             "write": method != "GET",
             "test": (method == "GET" or bool(raw.get("write_test"))) and e.get("test", True) is not False})
     return out
@@ -282,7 +283,7 @@ def format_response(status: int, headers: dict, body: bytes, url: str, ms: float
             else:
                 text = f"(Binärdaten · {ctype or 'unbekannt'} · {len(body):,} Bytes)".replace(",", "'")
     cut = len(text) > MAX_BODY
-    keep = ("content-type", "content-length", "retry-after", "x-ratelimit-limit", "x-ratelimit-remaining",
+    keep = ("content-type", "content-length", "location", "content-disposition", "retry-after", "x-ratelimit-limit", "x-ratelimit-remaining",
             "ratelimit-remaining", "x-discogs-ratelimit-remaining", "cache-control", "date")
     return {"status": status, "ok": 200 <= status < 300, "ms": round(ms), "bytes": len(body or b""),
             "url": redact(url, secrets), "json": is_json, "content_type": ctype,

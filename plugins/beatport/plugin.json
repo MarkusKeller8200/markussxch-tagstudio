@@ -1,7 +1,7 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "2.7",
+  "version": "2.8",
   "min_app": "4.9.1",
   "category": "online",
   "categories": [
@@ -876,8 +876,15 @@
         "label": "Download eines Kaufs (inoffiziell)",
         "status": "partial",
         "use": "Einkäufe: Fehlende herunterladen (Variante 1)",
-        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2)",
-        "test": false
+        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2) · API-Tester: Weiterleitung wird nicht verfolgt (#363)",
+        "no_follow": true,
+        "params": [
+          {
+            "name": "id",
+            "label": "ID aus /my/downloads/ (Feld id)",
+            "required": true
+          }
+        ]
       },
       {
         "id": "my-download",
@@ -886,8 +893,16 @@
         "label": "Download eines Kaufs, 2. Weg (inoffiziell)",
         "status": "partial",
         "use": "Einkäufe: Fehlende herunterladen (Variante 1)",
-        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2)",
-        "test": false
+        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2) · API-Tester: kann bei Beatport als Download zählen, nach Rückfrage; Weiterleitung wird nicht verfolgt – Ziel unter Kopfzeilen › location (#363)",
+        "no_follow": true,
+        "danger": true,
+        "params": [
+          {
+            "name": "id",
+            "label": "ID aus /my/downloads/ (Feld id)",
+            "required": true
+          }
+        ]
       },
       {
         "id": "track-download",
@@ -896,8 +911,16 @@
         "label": "Download über den Katalog (inoffiziell)",
         "status": "partial",
         "use": "Einkäufe: Fehlende herunterladen (Variante 1)",
-        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2)",
-        "test": false
+        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2) · API-Tester: kann bei Beatport als Download zählen, nach Rückfrage; Weiterleitung wird nicht verfolgt – Ziel unter Kopfzeilen › location (#363)",
+        "no_follow": true,
+        "danger": true,
+        "params": [
+          {
+            "name": "id",
+            "label": "Track-ID (Beatport)",
+            "required": true
+          }
+        ]
       },
       {
         "id": "auth-token",

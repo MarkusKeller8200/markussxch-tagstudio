@@ -8,6 +8,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Beatport-API-Tester: Download-Endpunkte (#363, Plugin 2.8)** – `/my/downloads/{id}/`, `/my/downloads/{id}/download/`,
+  `/catalog/tracks/{id}/download/`; Weiterleitung nicht verfolgt (Ziel unter `location`), Dateien nur als Grösse, …/download/
+  nach Rückfrage.
 - **Einkäufe: „Erneut zum Download freigeben …“ (#362, Plugin 2.7)** – setzt bei Beatport den Download der markierten bzw.
   fehlenden Einkäufe zurück (reset-download, getestet: HTTP 204, Titel danach in der Download-Warteliste); nach Rückfrage,
   mit Link zu den Beatport-Downloads; auch im Rechtsklick-Menü.

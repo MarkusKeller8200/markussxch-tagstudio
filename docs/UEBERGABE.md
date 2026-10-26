@@ -28,7 +28,10 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **#362** (Entscheid „eigene Aktion“): `store_reset_download` (Plugin, in `PLAYLIST_FNS`), `purch_reset_preview` /
   `start_purch_reset` (entfernt `received`), JS `purBpReset(keys)` in purbpl.js, Menü „Beatport-Playlists ▾“ und Rechtsklick.
   Plugin **2.7**.
-- Beim Release: Plugin-ZIP Beatport **2.7**.
+- **#363** (02:29): Tester für drei Download-Endpunkte; Endpunkt-Feld `no_follow` (services.clean → Beatport
+  `api_request(follow=…)`), `location`/`content-disposition` in den angezeigten Kopfzeilen, Binärantwort nicht ins Protokoll.
+  Plugin **2.8**.
+- Beim Release: Plugin-ZIP Beatport **2.8**.
 
 ## Sitzung 26.10.2026 (00:11–01:00) – Rückmeldungen aus dem Test
 

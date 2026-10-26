@@ -942,13 +942,17 @@ def api_request(ctx, ep, params):
         sent = {"User-Agent": USER_AGENT, "Accept": "application/json, text/html;q=0.9, */*;q=0.5", **hdr}
         if body is not None:
             sent["Content-Type"] = "application/json"
-        return sent, request(method, url, headers=hdr, data=body)
+        return sent, request(method, url, headers=hdr, data=body, follow=not ep.get("no_follow"))   # #363
     sent, (st, h, resp) = send()
     if st == 401:
         cl.tok = refresh(ctx, cl.tok) or cl._expired()
         sent, (st, h, resp) = send()
     ctx.secrets = [cl.tok.get("access_token"), cl.tok.get("refresh_token")]
-    text = (resp or b"")[:20000].decode("utf-8", "replace")
+    ctype = str({str(k).lower(): v for k, v in (h or {}).items()}.get("content-type") or "")
+    if resp and ctype and not any(x in ctype for x in ("json", "text", "xml", "html")):   # #363: Datei nicht ins Protokoll
+        text = f"(Binärdaten · {ctype} · {len(resp)} Bytes – nicht angezeigt)"
+    else:
+        text = (resp or b"")[:20000].decode("utf-8", "replace")
     for s in ctx.secrets:
         if s and len(str(s)) >= 8:
             text = text.replace(str(s), "•••")

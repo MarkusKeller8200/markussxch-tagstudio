@@ -305,3 +305,38 @@ class TestApiTesterWrite(unittest.TestCase):
         self.assertEqual(seen, [("GET", "/catalog/tracks/reset-download/?order_item_download_id=11"),
                                 ("GET", "/catalog/tracks/reset-download/?order_item_download_id=22")])
         self.assertTrue(r["url"].startswith("https://www.beatport.com/"))
+
+    def test_download_endpoints_tester(self):
+        """#363: Download-Endpunkte im Tester – Weiterleitung nicht verfolgt (Ziel unter location), Datei nicht im
+        Protokoll, …/download/ nur mit Bestätigung."""
+        import services
+        raw = json.load(open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                          "plugins", "beatport", "plugin.json"), encoding="utf-8"))["service"]
+        svc = services.clean(raw)
+        eps = {e["id"]: e for e in svc["endpoints"]}
+        self.assertEqual([(eps[i]["test"], eps[i]["danger"], eps[i]["no_follow"]) for i in ("my-download-item", "my-download", "track-download")],
+                         [(True, False, True), (True, True, True), (True, True, True)])
+        seen = []
+
+        def req(method, url, headers=None, data=None, follow=True, **kw):
+            seen.append((method, url.split("/v4", 1)[1], follow))
+            if "/catalog/" in url:
+                return 200, {"Content-Type": "audio/mpeg"}, b"\xff\xfb" * 5000
+            return 302, {"Location": "https://dl.example/x.mp3?sig=1"}, b""
+        self.bp.request = req
+
+        class P:
+            service = svc
+
+            def load(_s):
+                return self.bp
+        r = services.api_call(P(), self.ctx, "my-download-item", {"id": "605271245"}, "UA")
+        self.assertEqual((r["status"], r["headers"].get("location")), (302, "https://dl.example/x.mp3?sig=1"))
+        self.assertEqual(seen[-1], ("GET", "/my/downloads/605271245/", False))
+        with self.assertRaises(ValueError):
+            services.api_call(P(), self.ctx, "track-download", {"id": "1"}, "UA")           # ohne Bestätigung
+        r = services.api_call(P(), self.ctx, "track-download", {"id": "1", "_confirm": "yes"}, "UA")
+        self.assertIn("Binärdaten", r["body"])
+        log = "\n".join(self.ctx.logs)
+        self.assertIn("(Binärdaten · audio/mpeg · 10000 Bytes – nicht angezeigt)", log)
+        self.assertNotIn("��", log)

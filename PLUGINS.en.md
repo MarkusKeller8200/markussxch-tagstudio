@@ -335,7 +335,10 @@ catalogue number, link, purchase date) and `store_download(ctx, items, dest)` (d
 too (marked ⚠, body as JSON). They are only sent after confirmation; every call is in the log (Plugins › Beatport) with
 method, address, headers, body, status, response headers and response – token and cookies blacked out. **Plugin 2.3
 (#356/#357):** the PATCH endpoints too (e.g. rename playlist, move track; account, e-mail and streaming settings with a
-clear warning) – deleting the account, deleting genres and sign-in stay locked. **“Release for download again …” (#362, 2.7):** Purchases › “Beatport playlists ▾” or right-click calls
+clear warning) – deleting the account, deleting genres and sign-in stay locked. **Download endpoints in the tester (#363, 2.8):** `/my/downloads/{id}/`, `/my/downloads/{id}/download/` and
+`/catalog/tracks/{id}/download/` – redirects are not followed (`"no_follow": true`, target under headers › `location`),
+files show as “binary data”; the two …/download/ only after confirmation (may count as a download).
+**“Release for download again …” (#362, 2.7):** Purchases › “Beatport playlists ▾” or right-click calls
 `store_reset_download(ctx, items)` – per purchase `GET /catalog/tracks/reset-download/?order_item_download_id=…` (HTTP 204,
 the track then appears in the download queue at Beatport); skipped without a download ID. New (#361, 2.6): **“Reset the download of a purchase”** (`/catalog/tracks/reset-download/?order_item_download_id=…`,
 unofficial, as GET and POST) – changing GET endpoints (`"danger": true`) also ask first and are left out of “Check

@@ -143,7 +143,7 @@ class TestServicePlugins(Base):
         self.assertTrue(info["lyrics"]["service"]["test_query"])
         d = self.s.service_detail("beatport")
         dl = next(e for e in d["endpoints"] if e["id"] == "track-download")
-        self.assertFalse(dl["test"])                                                # Downloads nie im Tester
+        self.assertTrue(dl["test"] and dl["danger"] and dl["no_follow"])             # #363: Tester mit Rückfrage, ohne Weiterleitung
         with self.assertRaises(ValueError):
             self.s.service_detail("mik")                                             # kein Dienst
 

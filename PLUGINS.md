@@ -342,6 +342,9 @@ wählbar (mit ⚠ markiert, Body als JSON). Gesendet wird erst nach einer Rückf
 Adresse, Kopfzeilen, Body, Status, Antwort-Kopfzeilen und Antwort im Protokoll (Plugins › Beatport) – Token und Cookies
 geschwärzt. **Plugin 2.3 (#356/#357):** auch die PATCH-Endpunkte (u. a. Playlist umbenennen, Titel verschieben; Konto,
 E-Mail- und Streaming-Einstellungen deutlich gewarnt) – Konto löschen, Genres löschen und Anmeldung bleiben gesperrt.
+**Download-Endpunkte im Tester (#363, 2.8):** `/my/downloads/{id}/`, `/my/downloads/{id}/download/` und
+`/catalog/tracks/{id}/download/` – Weiterleitungen werden nicht verfolgt (`"no_follow": true`, Ziel unter Kopfzeilen ›
+`location`), Dateien erscheinen als „Binärdaten“; die beiden …/download/ nur nach Rückfrage (können als Download zählen).
 **„Erneut zum Download freigeben …“ (#362, 2.7):** Einkäufe › „Beatport-Playlists ▾“ bzw. Rechtsklick ruft
 `store_reset_download(ctx, items)` auf – je Einkauf `GET /catalog/tracks/reset-download/?order_item_download_id=…` (HTTP 204,
 Titel danach in der Download-Warteliste bei Beatport); ohne Download-ID übersprungen. Neu (#361, 2.6): **„Download eines Kaufs zurücksetzen“** (`/catalog/tracks/reset-download/?order_item_download_id=…`,
