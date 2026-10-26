@@ -165,6 +165,35 @@ jobs:
         run: python -m pip install --upgrade pip pyinstaller pywebview pillow uv
       - name: Tests
         run: python -m unittest discover -s tests
+      # #374: Developer ID + Notarisierung, nur wenn die Secrets gesetzt sind (sonst wie bisher ad hoc signiert)
+      - name: Signaturzertifikat einrichten
+        env:
+          CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+          CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+          API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          if [ -z "$CERT_P12" ]; then echo "::notice title=macOS unsigniert::Keine Secrets MACOS_CERT_* – App wird ad hoc signiert (Trotzdem öffnen nötig)."; exit 0; fi
+          kc="$RUNNER_TEMP/tagstudio.keychain-db"; pw="$(uuidgen)"
+          echo "$CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$pw" "$kc"
+          security set-keychain-settings -lut 21600 "$kc"
+          security unlock-keychain -p "$pw" "$kc"
+          security import "$RUNNER_TEMP/cert.p12" -k "$kc" -P "$CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$pw" "$kc" >/dev/null
+          security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
+          rm -f "$RUNNER_TEMP/cert.p12"
+          id="$(security find-identity -v -p codesigning "$kc" | grep 'Developer ID Application' | head -1 | sed -E 's/.*"(.*)".*/\1/')"
+          [ -n "$id" ] || { echo "::error title=Zertifikat::Kein „Developer ID Application“-Zertifikat im .p12"; exit 1; }
+          echo "TS_SIGN_ID=$id" >> "$GITHUB_ENV"
+          echo "::notice title=macOS signiert::$id"
+          if [ -n "$API_KEY_P8" ]; then
+            printf '%s\n' "$API_KEY_P8" > "$RUNNER_TEMP/notary.p8"
+            { echo "TS_NOTARY_KEY=$RUNNER_TEMP/notary.p8"; echo "TS_NOTARY_KEY_ID=$API_KEY_ID"; echo "TS_NOTARY_ISSUER=$API_ISSUER_ID"; } >> "$GITHUB_ENV"
+          else
+            echo "::warning title=Ohne Notarisierung::Secret APPLE_API_KEY_P8 fehlt – signiert, aber nicht beglaubigt."
+          fi
       - name: App bauen (PyInstaller)
         run: |
           set -o pipefail
@@ -179,8 +208,21 @@ jobs:
           [ -f selftest.txt ] || echo "keine Ausgabe (Code $rc)" > selftest.txt
           python packaging/ci_note.py notice "macOS-Selbsttest" selftest.txt
           exit $rc
-      - name: Disk-Image bauen
+      - name: Disk-Image bauen (signieren und beglaubigen, falls eingerichtet)
         run: bash packaging/make_dmg.sh "$TS_VERSION"
+      - name: Signatur prüfen
+        if: env.TS_SIGN_ID != ''
+        run: |
+          set +e
+          spctl -a -vv dist/TagStudio.app > spctl.txt 2>&1
+          spctl -a -t open --context context:primary-signature -vv dist/TagStudio-*.dmg >> spctl.txt 2>&1
+          cat spctl.txt
+          python packaging/ci_note.py notice "macOS-Signatur" spctl.txt
+      - name: Schlüsselbund aufräumen
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/tagstudio.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/notary.p8"
       - uses: actions/upload-artifact@v6
         with:
           name: TagStudio-macOS-Python${{ env.TS_PYTHON }}

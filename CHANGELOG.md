@@ -8,6 +8,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **macOS: signiert und von Apple beglaubigt (#374):** Die macOS-App ist mit „Developer ID“ signiert und notarisiert –
+  „Trotzdem öffnen“ beim ersten Start entfällt (Workflow „Installer“, nur wenn die Signatur-Secrets gesetzt sind).
 - **Download-Verwaltung (#370):** Einstellungen › Expert › Entwicklung › „Downloads je Version …“ – wie oft die
   Installationsdateien je Version heruntergeladen wurden (Windows, macOS, Plugins, Summen, letzte 7/30 Tage); der neue
   Workflow „Download-Statistik“ speichert die Zählerstände täglich im Zweig `stats` für den Verlauf je Tag.

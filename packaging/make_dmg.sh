@@ -15,6 +15,17 @@ mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Programme"
 cp "$ROOT/README.md" "$ROOT/CHANGELOG.md" "$ROOT/PLUGINS.md" "$ROOT/LICENSE" "$STAGE/" 2>/dev/null || true
+if [ -n "${TS_SIGN_ID:-}" ]; then        # #374: signiert und von Apple beglaubigt
+cat > "$STAGE/Zuerst lesen.txt" <<EOF
+MarKusSXCH TagStudio $VER
+
+Installieren: „TagStudio“ auf „Programme“ ziehen und starten.
+Die App ist signiert und von Apple beglaubigt (notarisiert).
+
+Einstellungen, Sicherungen und Plugins liegen im Benutzerordner (~/.tagstudio.json, ~/TagStudio)
+und bleiben bei einem Update erhalten.
+EOF
+else
 cat > "$STAGE/Zuerst lesen.txt" <<EOF
 MarKusSXCH TagStudio $VER
 
@@ -30,5 +41,22 @@ Alternativ im Terminal: xattr -dr com.apple.quarantine /Applications/TagStudio.a
 Einstellungen, Sicherungen und Plugins liegen im Benutzerordner (~/.tagstudio.json, ~/TagStudio)
 und bleiben bei einem Update erhalten.
 EOF
+fi
 hdiutil create -volname "TagStudio $VER" -srcfolder "$STAGE" -ov -format UDZO "$OUT"
+if [ -n "${TS_SIGN_ID:-}" ]; then        # #374: Disk-Image signieren, beglaubigen lassen, Ticket anheften
+  codesign --force --timestamp --sign "$TS_SIGN_ID" "$OUT"
+  if [ -n "${TS_NOTARY_KEY:-}" ]; then
+    mkdir -p "$ROOT/build"
+    xcrun notarytool submit "$OUT" --key "$TS_NOTARY_KEY" --key-id "$TS_NOTARY_KEY_ID" --issuer "$TS_NOTARY_ISSUER" \
+      --wait --timeout 30m --output-format json | tee "$ROOT/build/notary.json"
+    if ! grep -q '"status" *: *"Accepted"' "$ROOT/build/notary.json"; then
+      id="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' "$ROOT/build/notary.json")"
+      [ -n "$id" ] && xcrun notarytool log "$id" --key "$TS_NOTARY_KEY" --key-id "$TS_NOTARY_KEY_ID" --issuer "$TS_NOTARY_ISSUER" || true
+      echo "Notarisierung abgelehnt"
+      exit 1
+    fi
+    xcrun stapler staple "$OUT"
+    xcrun stapler validate "$OUT"
+  fi
+fi
 echo "Fertig: $OUT"

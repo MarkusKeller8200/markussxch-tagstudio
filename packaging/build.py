@@ -92,8 +92,12 @@ def main():
             "--paths", ROOT]
     for h in HIDDEN:
         args += ["--hidden-import", h]
+    sign_id = os.environ.get("TS_SIGN_ID", "").strip() if mac else ""    # #374: Developer ID aus dem Workflow
+    ent = os.path.join(ROOT, "packaging", "entitlements.plist")
     if mac:
         args += ["--osx-bundle-identifier", BUNDLE_ID]
+        if sign_id:                     # PyInstaller signiert alle eingebetteten Teile (Hardened Runtime)
+            args += ["--codesign-identity", sign_id, "--osx-entitlements-file", ent]
     args.append(os.path.join(ROOT, "tagstudio_web.py"))
     print(" ".join(args), flush=True)
     subprocess.run(args, check=True, cwd=ROOT)
@@ -107,8 +111,13 @@ def main():
                     NSHumanReadableCopyright="Markus Keller")
         with open(plist, "wb") as fh:
             plistlib.dump(info, fh)
-        # nach dem Ändern neu (ad hoc) signieren, sonst startet die App auf Apple-Chips nicht
-        subprocess.run(["codesign", "--force", "--deep", "--sign", "-", os.path.join(DIST, NAME + ".app")], check=True)
+        app = os.path.join(DIST, NAME + ".app")
+        if sign_id:   # #374: nach dem Ändern die App selbst neu signieren (Teile sind schon signiert), für Notarisierung
+            subprocess.run(["codesign", "--force", "--options", "runtime", "--timestamp", "--entitlements", ent,
+                            "--sign", sign_id, app], check=True)
+            subprocess.run(["codesign", "--verify", "--deep", "--strict", "--verbose=2", app], check=True)
+        else:         # nach dem Ändern neu (ad hoc) signieren, sonst startet die App auf Apple-Chips nicht
+            subprocess.run(["codesign", "--force", "--deep", "--sign", "-", app], check=True)
 
     env = os.environ.get("GITHUB_ENV")
     if env:
