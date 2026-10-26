@@ -48,6 +48,8 @@ class FakeBeatport:
                 return 200, {"Allow": "POST, OPTIONS"}, json.dumps({"actions": {"POST": {"track_ids": {"type": "list"}}}}).encode()
             return 200, {"Allow": "GET, PATCH, DELETE, OPTIONS"}, b"{}"
         if method == "POST" and path == "/my/playlists/":
+            if not self.allow_create:
+                return 403, {}, b'{"detail": "You do not have permission"}'
             self.next += 1
             self.pl[self.next] = {"id": self.next, "name": data["name"], "tracks": []}
             return 201, {}, json.dumps({"id": self.next, "name": data["name"]}).encode()
@@ -125,6 +127,25 @@ class TestBeatportPlaylists(unittest.TestCase):
         d = self.bp.store_playlist_delete(self.ctx, "TagStudio_DOWNLOAD_")
         self.assertEqual(sorted(d["deleted"]), names)
         self.assertEqual(sorted(v["name"] for v in self.api.pl.values()), ["Meine Liste", "TagStudio_BUY_2026_10_20"])
+
+    def test_options_without_answer(self):
+        """#334: OPTIONS ohne Angabe (wie bei echtem Beatport) blockiert nicht – die echte Anfrage entscheidet."""
+        real = self.api.request
+
+        def req(method, url, **kw):
+            if method == "OPTIONS":
+                self.api.calls.append((method, url, None))
+                return 403, {}, b'{"detail": "Method not allowed"}'
+            return real(method, url, **kw)
+        self.bp.request = req
+        self.bp.store_settings(self.ctx, {"playlists_write": True})
+        chk = self.bp.store_playlist_check(self.ctx)
+        self.assertTrue(chk["create"] and not chk["known"])
+        self.assertIn("versucht es beim Anlegen direkt", chk["text"])
+        r = self.bp.store_playlist_put(self.ctx, "TagStudio_DOWNLOAD_x_1", ["1", "2"], True)
+        self.assertTrue(r["created"])
+        self.assertEqual(r["added"], 2)
+        self.assertIn("OPTIONS /my/playlists/: HTTP 403", "\n".join(self.ctx.logs))
 
     def test_no_create_permission(self):
         self.api.allow_create = False

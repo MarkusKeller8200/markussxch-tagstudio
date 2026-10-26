@@ -344,7 +344,8 @@ For your own plugins: endpoints with a body may set `"body"` (example object), `
 help, example, choices}`) and `"danger": true` (clear warning); `services.api_fields` queries the fields via `api_request`
 with method OPTIONS (Django REST format `actions`) and otherwise falls back to `"fields"`.
 
-**Creating playlists in Beatport (#334/#335, plugin 2.0):** only when **“Create and fill playlists in Beatport”** is
+**Creating playlists in Beatport (#334/#335, plugin 2.0; #359, 2.4: “Check write access” via OPTIONS is only a hint – Beatport
+does not answer it usefully, creating uses the real request):** only when **“Create and fill playlists in Beatport”** is
 switched on under “Settings …” (off by default) and only on click in Purchases › “Beatport playlists ▾”:
 **“Download Tracks …”** puts the purchases without a local file into `TagStudio_DOWNLOAD_<date>_<n>` (100 tracks each –
 Beatport does not download more at once; one with the same name is replaced, “Clean up” deletes them after

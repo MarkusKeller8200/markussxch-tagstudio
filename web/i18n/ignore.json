@@ -509,5 +509,6 @@
 "(keine)",
 "button, input, select, a, label",
 "tbody tr[data-k]",
-"input, a, button, .col-grip"
+"input, a, button, .col-grip",
+"OPTIONS meldet kein POST für /my/playlists/ – versuche es trotzdem."
 ]

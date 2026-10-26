@@ -20,7 +20,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
     `my-beatport-delete`, `my-genres-id`, `auth-*`.
   - **#358** Einstellungen: CSS-Spalten ersetzt durch `stMasonry()` (feste Spalte je Kachel nach Reihenfolge,
     absolut positioniert, ResizeObserver) – Selektoren `#stGrid > .card` bleiben gültig.
-- Beim Release: Plugin-ZIP Beatport **2.3**.
+- **#359** (Fehler, 01:34): Beatport-Playlists in Einkäufe abgelehnt, obwohl der API-Tester anlegt – `_allowed` liefert
+  None bei unverwertbarer OPTIONS-Antwort, `_may()` = versuchen; `store_playlist_put` versucht POST immer. Plugin **2.4**.
+- Beim Release: Plugin-ZIP Beatport **2.4**.
 
 ## Sitzung 26.10.2026 (00:11–01:00) – Rückmeldungen aus dem Test
 

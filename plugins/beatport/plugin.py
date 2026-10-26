@@ -619,21 +619,32 @@ def _send(c, method, path, data=None):
     return 429, None, {}
 
 
-def _allowed(c, path) -> tuple[set, dict]:
-    """OPTIONS: erlaubte Methoden (Allow-Header bzw. DRF-„actions“) und Felder für POST/PUT."""
+def _allowed(c, path, log=None) -> tuple[set | None, dict]:
+    """OPTIONS: erlaubte Methoden (Allow-Header bzw. DRF-„actions“) und Felder für POST/PUT.
+    None = Beatport hat nichts Verwertbares geantwortet (Fehlerstatus, kein Allow) – dann gilt „unbekannt, versuchen“:
+    die echte Anfrage entscheidet (OPTIONS ist bei Beatport nicht verlässlich, #334)."""
     st, js, h = _send(c, "OPTIONS", path)
-    allow = {m.strip().upper() for m in str((h or {}).get("Allow") or (h or {}).get("allow") or "").split(",") if m.strip()}
+    hl = {str(k).lower(): v for k, v in (h or {}).items()}
+    allow = {m.strip().upper() for m in str(hl.get("allow") or "").split(",") if m.strip()}
     acts = js.get("actions") if isinstance(js, dict) and isinstance(js.get("actions"), dict) else {}
     allow |= {m.upper() for m in acts}
-    return (allow if st and st < 400 else set()), acts
+    if log:
+        log(f"OPTIONS {path}: HTTP {st} · Allow: {hl.get('allow') or '–'} · actions: {', '.join(acts) or '–'}")
+    return (allow if st and st < 400 and allow else None), acts
+
+
+def _may(allow, method) -> bool:
+    """Erlaubt laut OPTIONS – unbekannt (None) zählt als „versuchen“."""
+    return allow is None or method in allow
 
 
 def _check(c, log=None) -> dict:
     """Schreibzugriff ermitteln (nichts wird geändert)."""
     out = {"create": False, "add": False, "remove": False, "delete": False, "name_field": "name",
            "tracks_field": "track_ids", "probe": ""}
-    allow, acts = _allowed(c, "/my/playlists/")
-    out["create"] = "POST" in allow
+    allow, acts = _allowed(c, "/my/playlists/", log)
+    out["create"] = _may(allow, "POST")
+    out["known"] = allow is not None
     fields = acts.get("POST") if isinstance(acts.get("POST"), dict) else {}
     if fields and "name" not in fields:
         out["name_field"] = next((k for k in fields if "name" in k), "name")
@@ -645,22 +656,22 @@ def _check(c, log=None) -> dict:
     if mine:
         pid = mine[0].get("id")
         out["probe"] = str(mine[0].get("name") or pid)
-        a2, acts2 = _allowed(c, f"/my/playlists/{pid}/tracks/bulk/")
-        out["add"] = "POST" in a2
+        a2, acts2 = _allowed(c, f"/my/playlists/{pid}/tracks/bulk/", log)
+        out["add"] = _may(a2, "POST")
         f2 = acts2.get("POST") if isinstance(acts2.get("POST"), dict) else {}
         tf = next((k for k in f2 if "track" in k.lower()), "")
         if tf:
             out["tracks_field"] = tf
-        a3, _ = _allowed(c, f"/my/playlists/{pid}/")
-        out["delete"] = "DELETE" in a3
+        a3, _ = _allowed(c, f"/my/playlists/{pid}/", log)
+        out["delete"] = _may(a3, "DELETE")
         items = []
         try:
             items = _items(c.get(f"/my/playlists/{pid}/tracks/", per_page=1))
         except HttpError:
             pass
         if items and isinstance(items[0], dict) and items[0].get("id") is not None:
-            a4, _ = _allowed(c, f"/my/playlists/{pid}/tracks/{items[0]['id']}/")
-            out["remove"] = "DELETE" in a4
+            a4, _ = _allowed(c, f"/my/playlists/{pid}/tracks/{items[0]['id']}/", log)
+            out["remove"] = _may(a4, "DELETE")
         else:
             out["remove"] = out["add"]          # ohne Titel nicht prüfbar – wird beim Leeren erneut versucht
     if log:
@@ -680,6 +691,8 @@ def store_playlist_check(ctx) -> dict:
            f"{yes(r['remove'])} · Playlist löschen: {yes(r['delete'])}")
     if not r["probe"]:
         txt += " (ohne eigene Playlist sind Hinzufügen/Löschen nicht prüfbar)"
+    if not r.get("known"):
+        txt += " – Beatport nennt die erlaubten Methoden nicht (OPTIONS ohne Angabe); TagStudio versucht es beim Anlegen direkt"
     r.update(ok=r["create"] and (r["add"] or not r["probe"]), text=txt + ". " + scope_text(c.tok))
     return r
 
@@ -730,12 +743,15 @@ def store_playlist_put(ctx, name, track_ids, replace=False) -> dict:
     have_pl = next((p for p in store_playlist_list(ctx, name) if p["name"] == name), None)
     created = False
     if have_pl is None:
+        # #334: OPTIONS ist nur ein Hinweis – die echte Anfrage entscheidet (der API-Tester legt Playlists an, obwohl
+        # OPTIONS kein POST meldet). Abgelehnt → Status und Antwort im Protokoll.
         if not chk["create"]:
-            raise ValueError("Beatport erlaubt das Anlegen von Playlists über die API nicht (Schreibzugriff prüfen).")
+            ctx.log("OPTIONS meldet kein POST für /my/playlists/ – versuche es trotzdem.")
         st, js, _h = _send(c, "POST", "/my/playlists/", {chk["name_field"]: name})
         if st >= 400 or not isinstance(js, dict) or js.get("id") is None:
             ctx.log(f"POST /my/playlists/: HTTP {st} {str(js)[:300]}")
-            raise ValueError(f"Beatport hat die Playlist „{name}“ nicht angelegt (HTTP {st}) – Details im Protokoll.")
+            raise ValueError(f"Beatport hat die Playlist „{name}“ nicht angelegt (HTTP {st}) – Details im Protokoll."
+                             + (" Beatport erlaubt das Anlegen über diese Anmeldung nicht." if st in (401, 403, 405) else ""))
         pid, created, cur = str(js["id"]), True, {}
     else:
         pid = have_pl["id"]

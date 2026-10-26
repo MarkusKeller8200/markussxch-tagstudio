@@ -351,7 +351,8 @@ Für eigene Plugins: Endpunkte mit Body dürfen `"body"` (Beispiel-Objekt), `"fi
 help, example, choices}`) und `"danger": true` (deutliche Warnung) angeben; `services.api_fields` fragt die Felder per
 `api_request` mit Methode OPTIONS ab (Django-REST-Format `actions`) und fällt sonst auf `"fields"` zurück.
 
-**Playlists in Beatport anlegen (#334/#335, Plugin 2.0):** Nur wenn unter „Einstellungen …“ **„Playlists in Beatport
+**Playlists in Beatport anlegen (#334/#335, Plugin 2.0; #359, 2.4: „Schreibzugriff prüfen“ per OPTIONS ist nur ein Hinweis – Beatport
+antwortet darauf nicht verwertbar, angelegt wird mit der echten Anfrage):** Nur wenn unter „Einstellungen …“ **„Playlists in Beatport
 anlegen und befüllen“** eingeschaltet ist (Standard aus) und nur auf Klick in Einkäufe › „Beatport-Playlists ▾“:
 **„Download Tracks …“** trägt die Einkäufe ohne lokale Datei in `TagStudio_DOWNLOAD_<Datum>_<n>` ein (je 100 Titel –
 mehr lädt Beatport nicht auf einmal; gleichnamige wird ersetzt, „Aufräumen“ löscht sie nach Rückfrage),

@@ -165,5 +165,7 @@
 "Best Match – angezeigte Spalten bestmöglich auf die Breite verteilen (fixe Spalten bleiben)": ["Best match – spread the visible columns across the width as well as possible (fixed columns stay)", "Best Match – di aazeigte Spalte bestmöglich uf d Breiti verteile (fixi Spalte bliibed)"],
 "Best Match": ["Best match", "Best Match"],
 "Spalten an die Breite angepasst.": ["Columns fitted to the width.", "Spalte a d Breiti aapasst."],
-"Klick: korrigieren · Rechtsklick: Menü": ["Click: correct · right-click: menu", "Klick: korrigiere · Rächtsklick: Menü"]
+"Klick: korrigieren · Rechtsklick: Menü": ["Click: correct · right-click: menu", "Klick: korrigiere · Rächtsklick: Menü"],
+"– Beatport nennt die erlaubten Methoden nicht (OPTIONS ohne Angabe); TagStudio versucht es beim Anlegen direkt": ["– Beatport does not state the allowed methods (OPTIONS without details); TagStudio tries directly when creating", "– Beatport nännt di erlaubte Methode nöd (OPTIONS ohni Aagab); TagStudio probierts bim Aaläge diräkt"],
+"Beatport erlaubt das Anlegen über diese Anmeldung nicht.": ["Beatport does not allow creating with this sign-in.", "Beatport erlaubt s Aaläge über die Aamäldig nöd."]
 }

@@ -72,6 +72,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Behoben
 
+- **Einkäufe: Beatport-Playlists wurden fälschlich als „nicht erlaubt“ abgelehnt (#359, Plugin 2.4)** – die Vorprüfung per
+  OPTIONS liefert bei Beatport keine verwertbare Antwort; jetzt entscheidet die echte Anfrage, Status und Antwort im Protokoll.
 - **Einstellungen: Kacheln springen beim Auf-/Zuklappen nicht mehr in andere Spalten (#358)** – feste Spalte je
   Kachel, nur darunterliegende rücken nach.
 
