@@ -35,7 +35,11 @@ class TestBuild(unittest.TestCase):
     def test_build(self):
         with tempfile.TemporaryDirectory() as out:
             pages = ts_site.build(out)
-            self.assertEqual(pages, ["handbuch.html", "index.html", "manual.html", "statistik.html"])
+            self.assertEqual(pages, ["datenschutz.html", "handbuch.html", "index.html", "manual.html", "statistik.html"])
+            idx = open(os.path.join(out, "index.html"), encoding="utf-8").read()
+            self.assertIn("certificate by", idx)                                   # #376: SignPath-Hinweis
+            self.assertIn("SignPath Foundation", idx)
+            self.assertIn("keine Telemetrie", open(os.path.join(out, "datenschutz.html"), encoding="utf-8").read())
             for p in pages:
                 txt = open(os.path.join(out, p), encoding="utf-8").read()
                 self.assertIn('<header class="top"', txt)

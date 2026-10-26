@@ -100,7 +100,9 @@ def page(title: str, body: str, active: str, desc: str, lang: str = "de", extra_
 <nav>{links}{other}</nav></div></header>
 {body}
 <footer>MarKusSXCH TagStudio · <a href="{GH}">GitHub</a> · <a href="{GH}/blob/main/LICENSE">GNU GPL v3</a> ·
-<a href="{GH}/issues">Fehler &amp; Ideen</a> · Diese Seite setzt keine Cookies und lädt nichts von fremden Servern.</footer>
+<a href="{GH}/issues">Fehler &amp; Ideen</a> · <a href="datenschutz.html">Datenschutz</a> · Diese Seite setzt keine Cookies und lädt nichts von
+fremden Servern.<br>Windows: Free code signing provided by <a href="https://signpath.io">SignPath.io</a>, certificate by
+<a href="https://signpath.org">SignPath Foundation</a>.</footer>
 </body></html>
 """
 
@@ -144,8 +146,9 @@ Sets planen – für Windows und macOS. Kostenlos und quelloffen.</p>
 <p class="muted sm">Bilder mit erfundenen Beispieltiteln.</p>
 <h2 class="sec">Installation</h2>
 <div class="grid"><div class="tile"><b>Windows</b><span>Setup herunterladen und ausführen – ohne Administratorrechte.
-Der Installer ist nicht signiert: bei „Der Computer wurde durch Windows geschützt“ <i>Weitere Informationen → Trotzdem
-ausführen</i>.</span></div>
+Code-Signatur: Free code signing provided by <a href="https://signpath.io">SignPath.io</a>, certificate by
+<a href="https://signpath.org">SignPath Foundation</a> (beantragt). Solange Windows den Herausgeber noch nicht kennt:
+bei „Der Computer wurde durch Windows geschützt“ <i>Weitere Informationen → Trotzdem ausführen</i>.</span></div>
 <div class="tile"><b>macOS (Apple-Chip)</b><span>Disk-Image öffnen, TagStudio auf „Programme“ ziehen und starten. Hinweise
 zum ersten Start stehen in „Zuerst lesen.txt“ im Disk-Image.</span></div>
 <div class="tile"><b>Aus dem Quellcode</b><span>Python 3.12 oder neuer, <code>git clone {GH}.git</code>, dann
@@ -172,6 +175,35 @@ zum ersten Start stehen in „Zuerst lesen.txt“ im Disk-Image.</span></div>
 </script>"""
     return page("MarKusSXCH TagStudio – MP3-Werkzeugkasten für DJs", body, "index.html",
                 "Kostenloser Werkzeugkasten für die MP3-Bibliothek von DJs: Tagger, Vergleich, Tag-Fixer, Einkäufe (Beatport), DJ-Set, Playlists – Windows & macOS.")
+
+
+def privacy() -> str:
+    """#376: Datenschutz – was TagStudio (nicht) sammelt und wohin es Verbindungen aufbaut."""
+    body = f"""<main><article style="max-width:860px;margin:0 auto">
+<h1>Datenschutz</h1>
+<p><b>Kurz:</b> TagStudio sammelt keine Nutzungsdaten, hat keine Telemetrie und kein Benutzerkonto. Deine Musik, Tags,
+Einstellungen und Zugangsdaten bleiben auf deinem Computer.</p>
+<h2>Was TagStudio auf deinem Computer speichert</h2>
+<ul><li>Einstellungen, Sicherungen, Playlists, Protokolle und Plugin-Daten im Benutzerordner (<code>~/.tagstudio.json</code>,
+<code>~/TagStudio</code>).</li>
+<li>Zugangsdaten für Online-Dienste (z. B. Beatport, Discogs, Cloud-Speicher) nur, wenn du sie selbst einträgst – verschlüsselt
+im Schlüsselbund des Systems (Windows DPAPI bzw. macOS-Schlüsselbund), nie im Klartext und nie an das TagStudio-Projekt.</li></ul>
+<h2>Verbindungen ins Internet</h2>
+<ul><li><b>Update-Prüfung und Plugin-Katalog:</b> TagStudio fragt bei GitHub nach neuen Versionen und Plugins (öffentliche Schnittstelle, ohne Anmeldung).
+Dabei sieht GitHub wie bei jedem Webseitenaufruf deine IP-Adresse.</li>
+<li><b>Online-Plugins</b> (MusicBrainz, Deezer, Beatport, Discogs, Spotify, Cloud-Abgleich …) verbinden sich nur, wenn du sie
+einschaltest und benutzt – und nur mit dem jeweiligen Dienst. Es gelten dessen Datenschutzbestimmungen.</li>
+<li><b>Fehler melden</b> öffnet das GitHub-Formular im Browser; abgeschickt wird erst dort, mit deiner eigenen
+GitHub-Anmeldung. Persönliche Angaben (Benutzerordner, E-Mail-Adressen, Schlüssel) werden vorher geschwärzt.</li></ul>
+<h2>Diese Webseite</h2>
+<p>Die Seite liegt auf GitHub Pages, setzt keine Cookies und lädt nichts von fremden Servern. GitHub kann beim Aufruf
+technische Daten (z. B. IP-Adresse) protokollieren – siehe <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub-Datenschutzerklärung</a>.
+Die Download-Zahlen stammen aus den öffentlichen Zählern von GitHub und enthalten keine Personendaten.</p>
+<h2>Kontakt</h2>
+<p>Fragen zum Datenschutz: über die <a href="{GH}/issues">Issues</a> des Projekts.</p>
+</article></main>"""
+    return page("TagStudio – Datenschutz", body, "datenschutz.html",
+                "Datenschutz bei MarKusSXCH TagStudio: keine Telemetrie, keine Nutzungsdaten, Zugangsdaten nur lokal.")
 
 
 def _link(url: str, lang: str) -> str:
@@ -259,7 +291,7 @@ def build(out: str) -> list:
     sp = os.path.join(ROOT, "docs", "social-preview.png")
     if os.path.isfile(sp):
         shutil.copy(sp, os.path.join(out, "img", "social-preview.png"))
-    files = {"index.html": landing(), "statistik.html": stats_page(),
+    files = {"index.html": landing(), "statistik.html": stats_page(), "datenschutz.html": privacy(),
              "handbuch.html": manual(os.path.join(ROOT, "docs", "HANDBUCH.md"), "de"),
              "manual.html": manual(os.path.join(ROOT, "docs", "HANDBUCH.en.md"), "en")}
     for name, text in files.items():
