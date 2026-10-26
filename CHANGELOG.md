@@ -8,6 +8,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Einkäufe: im Browser laden, verlinken, in die Bibliothek (#367, #368, #369)** – nicht ladbare Titel gibt „Fehlende
+  herunterladen“ bei Beatport automatisch zum Download frei; Fenster mit Speicherort zum Kopieren und „Downloads bei
+  Beatport öffnen“; im Browser geladene Dateien (auch ZIP) erkennt TagStudio selbst und verlinkt sie; „In Bibliothek
+  verschieben …“ (nie überschreibend) mit „Im Tagger öffnen“.
 - **Beatport: Sitzungs-Token wird zurückgezogen (#366, Plugin 2.11)** – beim Abmelden sowie beim Beenden/Neustarten von
   TagStudio (Revoke laut Beatport-Anleitung, Access- und Refresh-Token).
 - **Beatport-API-Tester mit Sitzungs-Anmeldung (#365, Plugin 2.10)** – Zeile „Zugang“: gespeicherter Zugang oder Anmeldung

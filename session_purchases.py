@@ -7,6 +7,9 @@ Wahl (cfg ``purch_dest``), sonst der Eingang von „Vorbereiten“, sonst ``<Bas
 from __future__ import annotations
 
 import os
+import shutil
+import threading
+import time
 
 import core
 import keys
@@ -178,23 +181,163 @@ class PurchasesMixin:
         no_id = sum(1 for it in items if not (it.get("dl") or {}).get("order_item_download_id"))
         return {"count": len(items), "no_id": no_id, "available": self.purch_bp_settings().get("available", False)}
 
+    def _purch_reset_items(self, store, items, cancel=None, progress=None) -> dict | None:
+        """#362/#367: Einkäufe beim Store erneut zum Download freigeben und als „wartet auf Download“ markieren
+        (TagStudio erkennt die im Browser geladenen Dateien danach selbst, #368). None = Store kann das nicht."""
+        if not items:
+            return None
+        try:
+            r = self.plugins.call_playlist(store, "store_reset_download", items, session=self, cancel=cancel,
+                                           progress=progress) or {}
+        except Exception as ex:  # noqa: BLE001 – Store ohne reset-download, nicht angemeldet …
+            if isinstance(ex, core.Cancelled):
+                raise
+            return {"reset": [], "failed": [str(ex)], "skipped": [], "url": "", "error": str(ex)}
+        now = int(time.time())
+        with self.lock:
+            st = self._purch()
+            for sid in r.get("reset") or []:
+                it = st.data["items"].get(purchases.key_of(store, sid))
+                if it is not None:
+                    it.pop("received", None)                  # Beatport führt sie wieder als „nicht heruntergeladen“
+                    it["await_dl"] = now
+            st.save()
+        return r
+
+    # ---- #368: im Browser geladene Dateien erkennen und verlinken
+    def _purch_wait_folders(self) -> list:
+        dest, why = self._purch_dest()
+        out = list(self._purch_dl_folders())
+        with self.lock:
+            stores = {it.get("store") for it in self._purch().data["items"].values() if it.get("await_dl")}
+        out += [self._purch_dest_for(s, dest, why) for s in stores if s]
+        return [p for p in dict.fromkeys(out) if p and os.path.isdir(p)]
+
+    def purch_dl_signature(self) -> dict:
+        """Billig: wartende Einkäufe und ein Fingerabdruck der Download-Ordner (Anzahl + jüngste Änderung von MP3/ZIP)
+        – die Oberfläche ruft purch_pickup nur, wenn sich etwas geändert hat."""
+        with self.lock:
+            waiting = sum(1 for it in self._purch().data["items"].values() if it.get("await_dl") and not it.get("file"))
+        if not waiting:
+            return {"waiting": 0, "sig": ""}
+        n, newest = 0, 0.0
+        for root in self._purch_wait_folders():
+            for dp, dns, fns in os.walk(root):
+                dns[:] = [d for d in dns if not d.startswith(".")]
+                for fn in fns:
+                    if fn.lower().endswith((".mp3", ".zip", ".flac", ".wav", ".aiff", ".aif", ".m4a")):
+                        n += 1
+                        try:
+                            newest = max(newest, os.path.getmtime(os.path.join(dp, fn)))
+                        except OSError:
+                            pass
+        return {"waiting": waiting, "sig": f"{n}:{int(newest)}"}
+
+    def purch_pickup(self) -> dict:
+        """Neue Dateien in den Download-Ordnern übernehmen: ZIPs entpacken (#336), dann die wartenden Einkäufe
+        (await_dl) mit diesen Dateien abgleichen und sicher erkannte fest verlinken (Status „im Eingang“).
+        → {found: [Schlüssel], waiting, unzipped, rows-Stand über purch_state}"""
+        folders = self._purch_wait_folders()
+        uz = self._unzip(folders)
+        with self.lock:
+            wait = {k: dict(it) for k, it in self._purch().data["items"].items() if it.get("await_dl") and not it.get("file")}
+        if not wait or not folders:
+            return {"found": [], "waiting": len(wait), "unzipped": uz.get("files", 0)}
+        cancel, entries = threading.Event(), []
+        for r in folders:
+            files, _err = core.load_files(r, True, cancel, lambda *_a: None, registry=None, use_cache=self._list_cache_on())
+            entries += self._pl_index(files)
+        index = playlists.LibIndex(entries)
+        dest, _why = self._purch_dest()
+        found = []
+        with self.lock:
+            st = self._purch()
+            for k, w in wait.items():
+                ref = {f: w.get(f, "") for f in ("artist", "title", "mix", "isrc")}
+                ref["dur"] = w.get("dur") or 0
+                m = playlists.match_ref(ref, index, strict=self._purch_strict())
+                it = st.data["items"].get(k)
+                if it is None:
+                    continue
+                if m["status"] == "sure" and m.get("path"):
+                    it.update(file=m["path"], status="inbox", linked=True, downloaded=int(time.time()),
+                              reason="im Browser heruntergeladen und verlinkt")
+                    it.pop("await_dl", None)
+                    it.pop("cands", None)
+                    found.append(k)
+                elif m["status"] == "unclear":
+                    it["cands"] = list(m.get("candidates") or [])[:3]
+                    it["reason"] = m.get("reason", "")
+            st.save()
+        return {"found": found, "waiting": len(wait) - len(found), "unzipped": uz.get("files", 0)}
+
+    # ---- #369: in die Bibliothek verschieben, danach im Tagger weiter
+    def _purch_inbox_items(self, keys_=None) -> list:
+        with self.lock:
+            items = self._purch().data["items"]
+            ks = [k for k in (keys_ or list(items)) if k in items]
+            return [(k, dict(items[k])) for k in ks
+                    if items[k].get("status") == "inbox" and items[k].get("file") and os.path.isfile(items[k]["file"])]
+
+    def purch_move_preview(self, keys_=None) -> dict:
+        """Was würde verschoben, wohin? → {count, files, targets: [{name, path}], target}"""
+        its = self._purch_inbox_items(keys_)
+        info = self._lib_roots()
+        targets = [{"name": r["name"], "path": r["path"]} for r in info["roots"]]
+        if not targets and self.cfg.get("base_dir") and os.path.isdir(str(self.cfg["base_dir"])):
+            targets = [{"name": "Basisordner", "path": str(self.cfg["base_dir"])}]
+        last = str(self.cfg.get("purch_move_to") or "")
+        target = last if last and os.path.isdir(last) else (targets[0]["path"] if targets else "")
+        return {"count": len(its), "files": [it["file"] for _k, it in its][:200], "targets": targets, "target": target}
+
+    def purch_move(self, keys_=None, target="") -> dict:
+        """Einkäufe „im Eingang“ in den Zielordner verschieben (nie überschreiben) → {moved, skipped, files, state}"""
+        target = os.path.abspath(os.path.expanduser(str(target or "").strip())) if str(target or "").strip() else ""
+        if not target or not os.path.isdir(target):
+            raise ValueError("Zielordner nicht gefunden.")
+        self.cfg["purch_move_to"] = target
+        core.save_config({"purch_move_to": target})
+        moved, skipped, files = [], [], []
+        for k, it in self._purch_inbox_items(keys_):
+            src = it["file"]
+            dst = os.path.join(target, os.path.basename(src))
+            if os.path.normcase(os.path.abspath(src)) == os.path.normcase(dst):
+                skipped.append(f"{os.path.basename(src)}: liegt schon dort")
+                continue
+            if os.path.exists(dst):
+                skipped.append(f"{os.path.basename(src)}: im Ziel schon vorhanden – nicht überschrieben")
+                continue
+            try:
+                shutil.move(src, dst)
+            except OSError as ex:
+                skipped.append(f"{os.path.basename(src)}: {ex}")
+                continue
+            with self.lock:
+                cur = self._purch().data["items"].get(k)
+                if cur is not None:
+                    cur.update(file=dst, status="library", linked=True, reason="in die Bibliothek verschoben")
+                    cur.pop("await_dl", None)
+            moved.append({"k": k, "from": src, "to": dst})
+            files.append(dst)
+        with self.lock:
+            self._purch().save()
+        if moved:
+            import applog
+            applog.info(f"Einkäufe: {len(moved)} Datei(en) in die Bibliothek verschoben → {target}")
+        return {"moved": moved, "skipped": skipped, "files": files, "target": target, "state": self.purch_state()}
+
     def start_purch_reset(self, keys_=None):
         """Markierte bzw. fehlende Beatport-Einkäufe bei Beatport erneut zum Download freigeben (nach Rückfrage)."""
         items = self._bp_open_items(keys_)
         if not items:
             return {"ok": False, "error": "Keine Beatport-Einkäufe ohne lokale Datei."}
+        dest, why = self._purch_dest()
 
         def job(cancel, progress):
-            r = self.plugins.call_playlist(self.BP, "store_reset_download", items, session=self, cancel=cancel,
-                                           progress=progress) or {}
-            with self.lock:                                   # Beatport führt sie wieder als „nicht heruntergeladen“
-                st = self._purch()
-                for sid in r.get("reset") or []:
-                    it = st.data["items"].get(purchases.key_of(self.BP, sid))
-                    if it is not None:
-                        it.pop("received", None)
-                st.save()
-            return {"ok": True, **r}
+            r = self._purch_reset_items(self.BP, items, cancel, progress) or {}
+            if r.get("error"):
+                raise ValueError(r["error"])
+            return {"ok": True, "dest": self._purch_dest_for(self.BP, dest, why), **r}
         return self._run("purch", "Erneut zum Download freigeben", job)
 
     def purch_dl_playlist_preview(self, keys_=None) -> dict:
@@ -330,6 +473,7 @@ class PurchasesMixin:
                 "bought": it.get("bought", ""), "seen": it.get("first_seen") or 0, "status": it.get("status", "missing"),
                 "file": it.get("file", ""), "reason": it.get("reason", ""), "preorder": bool(it.get("preorder")),
                 "cands": list(it.get("cands") or []), "linked": bool(it.get("linked")), "received": bool(it.get("received")),
+                "await": bool(it.get("await_dl")) and not it.get("file"),
                 "downloaded": it.get("downloaded") or 0, "kind": it.get("kind", "")}
 
     def purch_state(self) -> dict:
@@ -510,9 +654,15 @@ class PurchasesMixin:
                         nm = (self._purch().data["stores"].get(store) or {}).get("name") or self.plugins.get(store).name
                     need.append({"store": store, "name": nm, "keys": [it["key"] for it in its]})
                     continue
-                if r.get("manual"):                         # Store lässt den Download nicht zu → selbst laden
+                got_ids = {str(k) for k, v in (r.get("files") or {}).items() if v}
+                left = [it for it in its if str(it.get("id")) not in got_ids]
+                # #367: nicht ladbare beim Store zum Download freigeben → im Browser laden, TagStudio verlinkt sie (#368)
+                rs = self._purch_reset_items(store, left, cancel, progress) if left else None
+                if r.get("manual") or (rs and rs.get("reset")):   # Store lässt den Download nicht zu → selbst laden
                     with self.lock:
                         name = (self._purch().data["stores"].get(store) or {}).get("name") or self.plugins.get(store).name
-                    manual.append({"store": store, "name": name, "url": r["manual"]})
+                    manual.append({"store": store, "name": name, "url": r.get("manual") or (rs or {}).get("url") or "",
+                                   "dest": to, "reset": len((rs or {}).get("reset") or []),
+                                   "reset_failed": ((rs or {}).get("failed") or []) + ((rs or {}).get("skipped") or [])})
             return {"ok": True, "downloaded": got, "failed": failed, "dest": dest, "manual": manual, "need_login": need}
         return self._run("purch_dl", "Einkäufe herunterladen", job)

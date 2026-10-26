@@ -43,6 +43,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   `Api._exit_sessions()` (max. 6 s) läuft vor `_exit_logs`. Plugin **2.11**.
 - **Offen (User 03:13):** „Webseite öffnen und dort machen“ – Antwort: Token aus der Beatport-Webseite auslesen ist
   durch die Projektregel ausgeschlossen; Vorschlag: Download auf der Webseite + automatisches Abholen. Entscheid offen.
+- **#367/#368/#369** (03:29): siehe KONZEPT-KAEUFE 3f – `await_dl` (bleibt bei merge), `purch_dl_signature`/
+  `purch_pickup` (Oberfläche prüft alle 5 s, nur auf Seite Einkäufe), `purch_move_preview`/`purch_move`, JS
+  `purWaitDialog`, `purWatch`, `purPickup`, `purMoveDialog`. Kein Plugin-Wechsel nötig.
 - Beim Release: Plugin-ZIP Beatport **2.11**.
 
 ## Sitzung 26.10.2026 (00:11–01:00) – Rückmeldungen aus dem Test

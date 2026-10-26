@@ -512,5 +512,6 @@
 "input, a, button, .col-grip",
 "OPTIONS meldet kein POST für /my/playlists/ – versuche es trotzdem.",
 "Sitzung beendet (ohne client_id kein Zurückziehen möglich)",
-"Sitzungs-Token bei Beatport zurückgezogen (HTTP"
+"Sitzungs-Token bei Beatport zurückgezogen (HTTP",
+"Einkäufe: {x} Datei(en) in die Bibliothek verschoben → {x}"
 ]

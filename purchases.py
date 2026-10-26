@@ -131,7 +131,7 @@ class Store:
                 it["first_seen"] = now
                 it["status"] = "missing"
             else:
-                for f in ("first_seen", "status", "file", "downloaded", "cands", "reason", "linked"):
+                for f in ("first_seen", "status", "file", "downloaded", "cands", "reason", "linked", "await_dl"):
                     if f in old:
                         it[f] = old[f]
                 if not it.get("bought") and old.get("bought"):
@@ -193,6 +193,7 @@ class Store:
             it["reason"] = r.get("reason", "")
             it["kind"] = r.get("kind", "")
             if r["status"] == "sure" and r.get("path"):
+                it.pop("await_dl", None)                       # #368: gefunden – wartet nicht mehr
                 it["file"] = r["path"]
                 it["status"] = "inbox" if inbox_k and playlists.nk(r["path"]).startswith(inbox_k) else "library"
                 it.pop("cands", None)

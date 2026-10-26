@@ -237,5 +237,96 @@ class TestEndSessions(unittest.TestCase):
         self.assertNotIn(("other", "store_logout"), calls)
 
 
+
+class TestBrowserDownloadFlow(TestCorrectSession):
+    """#367 nicht ladbare → bei Beatport freigeben + Speicherort; #368 im Browser geladene erkennen und verlinken;
+    #369 in die Bibliothek verschieben (nie überschreiben)."""
+
+    def wait(self, s):
+        for _ in range(300):
+            t = s.task_status()
+            if t.get("done"):
+                return t
+            time.sleep(0.02)
+        self.fail("Auftrag hängt")
+
+    def test_flow(self):
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from helpers import write_mp3, text
+        from session import Session
+        dl = os.path.join(self.home, "Downloads")
+        lib = os.path.join(self.home, "Lib")
+        os.makedirs(dl)
+        os.makedirs(lib)
+        s = Session()
+        s.purch_set_dest(dl)
+        st = s._purch()
+        st.merge("beatport", "Beatport", [{"id": 1, "title": "Nordlicht", "mix": "Extended Mix", "artist": "Mara Lind",
+                                           "dl": {"order_item_download_id": 11}},
+                                          {"id": 2, "title": "Kaltes Glas", "mix": "Original Mix", "artist": "Ivo Berg",
+                                           "dl": {"order_item_download_id": 22}}])
+        for it in st.data["items"].values():
+            it["status"] = "missing"
+        calls = []
+
+        def fake(pid, fn, *a, **kw):
+            calls.append(fn)
+            if fn == "store_download":
+                return {"files": {}, "failed": ["Mara Lind – Nordlicht: keine Adresse", "Ivo Berg – Kaltes Glas: keine Adresse"],
+                        "manual": "https://www.beatport.com/library/downloads"}
+            if fn == "store_reset_download":
+                return {"reset": ["1", "2"], "failed": [], "skipped": [], "url": "https://www.beatport.com/library/downloads"}
+            if fn == "store_session":
+                return {"active": False}
+            if fn == "store_settings":
+                return {"playlists_write": False, "buy_prefix": "TagStudio_BUY_"}
+            return {}
+        s.plugins.call_playlist = fake
+        s.plugins.store_sources = lambda: []
+        self.assertTrue(s.start_purch_download()["ok"])
+        r = self.wait(s)["result"]
+        self.assertIn("store_reset_download", calls)                                      # #367: automatisch freigegeben
+        m = r["manual"][0]
+        self.assertEqual((m["reset"], m["dest"]), (2, dl))
+        self.assertTrue(all(it.get("await_dl") for it in st.data["items"].values()))
+        rows = {x["k"]: x for x in s.purch_state()["rows"]}
+        self.assertTrue(rows["beatport:1"]["await"])
+        self.assertEqual(s.purch_dl_signature()["waiting"], 2)
+        sig0 = s.purch_dl_signature()["sig"]
+        # #368: im Browser geladen → erkannt und verlinkt
+        f1 = os.path.join(dl, "Mara Lind - Nordlicht (Extended Mix).mp3")
+        write_mp3(f1, [text("TPE1", "Mara Lind"), text("TIT2", "Nordlicht (Extended Mix)")])
+        self.assertNotEqual(s.purch_dl_signature()["sig"], sig0)
+        p = s.purch_pickup()
+        self.assertEqual((p["found"], p["waiting"]), (["beatport:1"], 1))
+        it = st.data["items"]["beatport:1"]
+        self.assertEqual((it["file"], it["status"], it.get("linked")), (f1, "inbox", True))
+        self.assertNotIn("await_dl", it)
+        self.assertTrue(st.data["items"]["beatport:2"].get("await_dl"))
+        # #369: in die Bibliothek verschieben, nie überschreiben
+        pv = s.purch_move_preview()
+        self.assertEqual(pv["count"], 1)
+        with self.assertRaises(ValueError):
+            s.purch_move(None, os.path.join(self.home, "gibtsnicht"))
+        mv = s.purch_move(None, lib)
+        dst = os.path.join(lib, os.path.basename(f1))
+        self.assertEqual(mv["files"], [dst])
+        self.assertTrue(os.path.isfile(dst) and not os.path.exists(f1))
+        it = st.data["items"]["beatport:1"]
+        self.assertEqual((it["file"], it["status"]), (dst, "library"))
+        f2 = os.path.join(dl, "Ivo Berg - Kaltes Glas.mp3")                                # gleichnamig im Ziel
+        write_mp3(f2, [text("TPE1", "Ivo Berg"), text("TIT2", "Kaltes Glas")])
+        with open(os.path.join(lib, "Ivo Berg - Kaltes Glas.mp3"), "wb") as fh:
+            fh.write(b"alt")
+        s.purch_pickup()
+        mv = s.purch_move(["beatport:2"], lib)
+        self.assertEqual(mv["moved"], [])
+        self.assertIn("nicht überschrieben", mv["skipped"][0])
+        with open(os.path.join(lib, "Ivo Berg - Kaltes Glas.mp3"), "rb") as fh:
+            self.assertEqual(fh.read(), b"alt")
+        self.assertTrue(os.path.isfile(f2))
+        self.assertEqual(s.purch_move_preview()["target"], lib)                             # zuletzt benutztes Ziel
+
+
 if __name__ == "__main__":
     unittest.main()

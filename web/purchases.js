@@ -64,6 +64,11 @@ function purRenderBar() {
   const b = $("#purDl");
   b.textContent = sel ? `Markierte herunterladen (${fmtN(sel)})` : `Fehlende herunterladen (${fmtN(miss)})`;
   b.disabled = !(sel || miss) || !st.dest;
+  const inb = (PUR.sel.size ? st.rows.filter((r) => PUR.sel.has(r.k)) : st.rows).filter((r) => r.status === "inbox" && r.file).length;   // #369
+  const mv = $("#purMove"); mv.disabled = !inb; mv.textContent = inb ? `In Bibliothek verschieben … (${fmtN(inb)})` : "In Bibliothek verschieben …";
+  const wt = st.rows.filter((r) => r.await).length;                                   // #368
+  const wb = $("#purWait"); wb.hidden = !wt; wb.textContent = `Heruntergeladene übernehmen (${fmtN(wt)} warten)`;
+  purWatch(wt);
   const ss = Object.entries(st.sessions || {}).filter(([, v]) => v && v.active);   // #295
   $("#purSess").innerHTML = ss.map(([id, v]) => `<span class="pur-sess-on" title="Anmeldung nur für diese Sitzung – wird nicht gespeichert">● ${esc(purStoreName(id))}: Sitzung ${esc(v.username || "")}</span> <button class="ghost sm" data-sesslogout="${esc(id)}">Abmelden</button>`).join(" ");
 }
@@ -92,6 +97,7 @@ async function purSessionLogin(store, name, why) {
 
 /** #290: sichtbarer Grund bzw. gefundene Datei */
 function purHint(r) {
+  if (r.await) return "wartet auf Download – im Browser laden, TagStudio verlinkt die Datei selbst";   // #368
   if (r.status === "library" || r.status === "inbox") return r.file ? r.file.split(/[\\/]/).pop() : "";
   if (r.status === "unclear") return r.reason + (r.cands && r.cands.length > 1 ? ` · ${r.cands.length} Kandidaten` : "");
   return r.reason && r.reason !== "nicht gefunden" ? r.reason : "";
@@ -174,6 +180,10 @@ async function purDoDownload(keys, round) {
   if (r.need_login && r.need_login.length && round === 0) {        // #295: Sitzungs-Anmeldung, dann gleich erneut
     const n = r.need_login[0];
     if (await purSessionLogin(n.store, n.name)) { await purDoDownload(n.keys, 1); return; }
+    // #367: Anmeldung abgebrochen → trotzdem bei Beatport zum Download freigeben
+    const rs = await runTask(call("start_purch_reset", n.keys), "Zum Download freigeben");
+    if (rs && rs.ok) { await purchasesShow(); await purWaitDialog({ name: n.name, url: rs.url, dest: rs.dest, reset: (rs.reset || []).length,
+      notes: [...(rs.failed || []), ...(rs.skipped || [])], notLoaded: n.keys.length }); return; }
   }
   if (r.manual && r.manual.length) { await purManual(r); return; }
   if (r.failed && r.failed.length) info("Nicht geladen", r.failed.slice(0, 30).join("\n") + (r.failed.length > 30 ? "\n…" : ""));
@@ -182,6 +192,9 @@ async function purDoDownload(keys, round) {
 /** Variante 2: Der Store lässt das Herunterladen über die Schnittstelle nicht zu → auf seiner Seite selbst laden */
 async function purManual(r) {
   const m = r.manual[0];
+  if (m.dest || m.reset) {                                                     // #367: freigegeben + Speicherort
+    return purWaitDialog({ name: m.name, url: m.url, dest: m.dest, reset: m.reset || 0, notes: m.reset_failed || [], notLoaded: r.failed.length, failed: r.failed });
+  }
   const a = await modal({ title: "Selbst herunterladen", wide: true,
     html: `<p style="margin:0">${fmtN(r.failed.length)} Titel konnte TagStudio nicht laden: ${esc(m.name)} gibt dafür keine Download-Adresse heraus.</p>
       <p style="margin:8px 0 0">So geht es weiter (Variante 2):</p>
@@ -191,6 +204,89 @@ async function purManual(r) {
       <details style="margin-top:8px"><summary class="muted sm">Nicht geladene Titel (${fmtN(r.failed.length)})</summary><div class="sm" translate="no" style="max-height:180px;overflow:auto">${r.failed.slice(0, 100).map(esc).join("<br>")}</div></details>`,
     buttons: [{ label: "Schliessen", value: null }, { label: `Downloads bei ${m.name} öffnen`, value: "open", primary: true }] });
   if (a === "open") call("open_url", m.url);
+}
+
+/** #367/#368: Titel wurden beim Store zum Download freigegeben – Speicherort zum Kopieren, Seite öffnen; die im Browser
+    geladenen Dateien erkennt TagStudio selbst (purWatch) und verlinkt sie. */
+async function purWaitDialog(o) {
+  const a = await modal({ title: "Im Browser herunterladen", wide: true,
+    html: `<p style="margin:0">${o.notLoaded ? `${fmtN(o.notLoaded)} Titel konnte TagStudio nicht direkt laden. ` : ""}<b>${fmtN(o.reset)}</b> ${o.notLoaded ? "davon stehen" : "Titel stehen"} jetzt in deiner Download-Warteliste bei ${esc(o.name)}.</p>
+      <ol style="margin:8px 0 0;padding-left:20px"><li>„Downloads bei ${esc(o.name)} öffnen“ und die Titel dort herunterladen.</li>
+        <li>Als Speicherort diesen Ordner einfügen (oder im Browser als Download-Ordner wählen):</li></ol>
+      <div class="pur-dest-copy"><input class="inp mono" id="purDestCopy" readonly value="${esc(o.dest || "")}" translate="no"><button class="ghost sm" id="purDestCopyBtn">Kopieren</button></div>
+      <p class="muted sm" style="margin:8px 0 0">Sobald die Dateien (auch als ZIP) dort liegen, erkennt TagStudio sie auf der Seite „Einkäufe“ selbst und verlinkt sie mit den Einkäufen – danach „In Bibliothek verschieben …“.</p>
+      ${(o.notes || []).length ? `<details style="margin-top:8px"><summary class="muted sm">Hinweise (${fmtN(o.notes.length)})</summary><div class="sm" translate="no" style="max-height:160px;overflow:auto">${o.notes.slice(0, 100).map(esc).join("<br>")}</div></details>` : ""}`,
+    buttons: [{ label: "Schliessen", value: null }, { label: `Downloads bei ${o.name} öffnen`, value: "open", primary: true }],
+    onMount: (b) => {
+      $("#purDestCopyBtn", b).addEventListener("click", async () => {
+        const inp = $("#purDestCopy", b);
+        try { await navigator.clipboard.writeText(inp.value); toast("Speicherort kopiert."); }
+        catch { inp.select(); document.execCommand && document.execCommand("copy"); toast("Speicherort markiert – mit Strg+C kopieren."); }
+      });
+      $("#purDestCopy", b).addEventListener("focus", (e) => e.target.select());
+    } });
+  if (a === "open" && o.url) call("open_url", o.url);
+}
+
+/** #368: solange Einkäufe auf den Download warten und die Seite offen ist, alle 5 s die Download-Ordner prüfen */
+let PUR_WATCH = { t: 0, sig: "", busy: false };
+function purWatch(waiting) {
+  if (!waiting) { clearInterval(PUR_WATCH.t); PUR_WATCH.t = 0; return; }
+  if (PUR_WATCH.t) return;
+  PUR_WATCH.t = setInterval(purWatchTick, 5000);
+}
+async function purWatchTick() {
+  if (PUR_WATCH.busy || (typeof S !== "undefined" && S.module !== "purchases")) return;
+  PUR_WATCH.busy = true;
+  try {
+    const s = await call("purch_dl_signature");
+    if (!s.waiting) { purWatch(0); return; }
+    if (s.sig === PUR_WATCH.sig) return;
+    PUR_WATCH.sig = s.sig;
+    await purPickup(false);
+  } catch { /* nächster Versuch */ } finally { PUR_WATCH.busy = false; }
+}
+async function purPickup(loud) {
+  const r = await call("purch_pickup");
+  if (r.found.length || loud) {
+    purApply(await call("purch_state"));
+    toast(r.found.length ? `${fmtN(r.found.length)} heruntergeladene Titel verlinkt${r.waiting ? ` · ${fmtN(r.waiting)} warten noch` : ""}.`
+      : `Noch keine passenden Dateien im Speicherort${r.waiting ? ` (${fmtN(r.waiting)} warten)` : ""}.`);
+  }
+}
+
+/** #369: Einkäufe „im Eingang“ in die Bibliothek verschieben, danach im Tagger öffnen */
+async function purMoveDialog(keys) {
+  keys = keys || (PUR.sel.size ? [...PUR.sel] : null);
+  const pv = await call("purch_move_preview", keys);
+  if (!pv.count) return info("In Bibliothek verschieben", "Keine Einkäufe „im Eingang“ mit Datei.");
+  const opts = pv.targets.map((t) => `<option value="${esc(t.path)}"${t.path === pv.target ? " selected" : ""}>${esc(t.name)} – ${esc(t.path)}</option>`).join("")
+    + (pv.target && !pv.targets.some((t) => t.path === pv.target) ? `<option value="${esc(pv.target)}" selected>${esc(pv.target)}</option>` : "");
+  const target = await modal({ title: "In Bibliothek verschieben", wide: true,
+    html: `<p style="margin:0">${fmtN(pv.count)} Datei(en) aus dem Eingang in die Bibliothek verschieben?</p>
+      <div class="frm" style="margin-top:10px"><label for="purMvTo">Ziel</label><div class="pur-dest-copy"><select id="purMvTo" class="inp">${opts || '<option value="">– kein Ordner –</option>'}</select><button class="ghost sm" id="purMvPick">Anderer Ordner …</button></div></div>
+      <p class="muted sm" style="margin:8px 0 0">Gleichnamige Dateien im Ziel werden nie überschrieben (übersprungen und genannt). Danach stehen die Einkäufe auf „in Bibliothek“.</p>
+      <details style="margin-top:8px"><summary class="muted sm">Dateien (${fmtN(pv.count)})</summary><div class="sm" translate="no" style="max-height:160px;overflow:auto">${pv.files.map((f) => esc(f.split(/[\\/]/).pop())).join("<br>")}</div></details>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Verschieben", value: true, primary: true }],
+    onMount: (b) => $("#purMvPick", b).addEventListener("click", async (e) => {
+      e.stopPropagation();                                                       // sonst schliesst der Klick das Menü
+      const p = await pickFolder(e.currentTarget, $("#purMvTo", b).value || "", { role: "library" });
+      if (p === FOLDER_FOLLOW) return;
+      if (p) { const s = $("#purMvTo", b); s.insertAdjacentHTML("beforeend", `<option value="${esc(p)}">${esc(p)}</option>`); s.value = p; }
+    }),
+    collect: (b) => $("#purMvTo", b).value || false });
+  if (!target) return;
+  let r;
+  try { r = await call("purch_move", keys, target); } catch (e) { return info("Nicht verschoben", String(e.message || e)); }
+  purApply(r.state);
+  const go = await dialog({ title: "In die Bibliothek verschoben",
+    text: `${fmtN(r.moved.length)} Datei(en) nach ${r.target} verschoben.${r.skipped.length ? "\n\nNicht verschoben:\n" + r.skipped.join("\n") : ""}`,
+    buttons: [{ label: "Schliessen", value: false }, ...(r.files.length ? [{ label: "Im Tagger öffnen", value: true, primary: true }] : [])] });
+  if (!go || !r.files.length) return;
+  const t = await runTask(call("start_tag_load_files", r.files, "Einkäufe"), "Dateien einlesen");
+  if (!t || t.cancelled) return;
+  setModule("tagger");
+  if (typeof tgAfterLoad === "function") await tgAfterLoad(t, "", false);
 }
 
 /** #290: Kauf von Hand einer Datei zuordnen – Kandidaten aus dem Abgleich oder eigene Datei */
@@ -228,6 +324,7 @@ function purRowMenu(e, k) {
   if (r.linked) items.push({ label: "Zuordnung aufheben", run: async () => purApply(await call("purch_link", r.k, "")) });
   if (r.status !== "library" && !r.preorder) items.push({ label: "Herunterladen …", run: () => { PUR.sel = new Set([k]); purRenderBar(); purDownload(); } });
   if (r.store === "beatport" && r.status !== "library" && !r.preorder) items.push({ label: "Erneut zum Download freigeben …", run: () => purBpReset([k]) });   // #362
+  if (r.status === "inbox" && r.file) items.push({ label: "In Bibliothek verschieben …", run: () => purMoveDialog([k]) });   // #369
   if (items.length) showMenu(e.clientX, e.clientY, items);
 }
 
@@ -236,6 +333,8 @@ function purInit() {
   $("#purMatch").addEventListener("click", () => purRefresh(true));
   $("#purFull").addEventListener("click", () => purRefresh(false, true));
   $("#purDl").addEventListener("click", purDownload);
+  $("#purMove").addEventListener("click", () => purMoveDialog());                // #369
+  $("#purWait").addEventListener("click", () => purPickup(true));                // #368
   $("#purDestBtn").addEventListener("click", purPickDest);
   $("#purFix").addEventListener("click", () => purCorrect());                   // #338
   $("#purBpl").addEventListener("click", (e) => purBpMenu(e));                  // #334/#335

@@ -104,12 +104,8 @@ async function purBpReset(keys) {
   if (!ok) return;
   const r = await runTask(call("start_purch_reset", keys), "Erneut zum Download freigeben");
   if (!r || !r.ok) return;
-  const lines = [...(r.failed || []), ...(r.skipped || [])];
-  const go = await dialog({ title: "Erneut zum Download freigegeben",
-    text: `${fmtN((r.reset || []).length)} Titel freigegeben – in Beatport unter „Downloads“ herunterladen und danach mit „Abholen“ übernehmen.${lines.length ? "\n\n" + lines.join("\n") : ""}`,
-    buttons: [{ label: "Schliessen", value: false }, { label: "Beatport-Downloads öffnen ↗", value: true, primary: true }] });
-  if (go && r.url) call("open_url", r.url);
   call("purch_state").then((st) => { PUR.st = st; purRenderBar(); purRenderTable(); }).catch(() => {});
+  await purWaitDialog({ name: "Beatport", url: r.url, dest: r.dest, reset: (r.reset || []).length, notes: [...(r.failed || []), ...(r.skipped || [])] });   // #367
 }
 
 async function purBpCleanup() {

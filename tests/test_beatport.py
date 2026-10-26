@@ -466,7 +466,11 @@ class TestBeatport(Base):
         finally:
             self.mod.resolve_download = orig_rd
         self.assertEqual((res["downloaded"], len(res["failed"])), (0, 1))
-        self.assertEqual(res["manual"], [{"store": "beatport", "name": "Beatport", "url": "https://www.beatport.com/library/downloads"}])
+        m = res["manual"][0]                                                           # #367: dazu Speicherort und Freigabe
+        self.assertEqual({k: m[k] for k in ("store", "name", "url")},
+                         {"store": "beatport", "name": "Beatport", "url": "https://www.beatport.com/library/downloads"})
+        self.assertTrue(m["dest"].endswith("00_New"))
+        self.assertIn("reset", m)
 
     def test_own_api_access(self):
         """Offizieller Zugang mit eigener Beatport-App: Password Grant, Refresh per Formular, Abmelden zieht zurück."""

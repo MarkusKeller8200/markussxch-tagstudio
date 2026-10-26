@@ -3843,7 +3843,7 @@ class UiTest(unittest.TestCase):
         pg.evaluate("""(() => { const c = window.call; window.call = (n, ...a) => {
             if (n === "purch_reset_preview") { window.__rp = a; return Promise.resolve({ available: true, count: 4, no_id: 1 }); }
             if (n === "start_purch_reset") { window.__runs.push([n, ...a]);
-              window.__fake = { ok: true, reset: ["1", "2", "3"], failed: [], skipped: ["X – Y: keine Download-ID (zuerst „Aktualisieren“)"], url: "https://www.beatport.com/library/downloads" };
+              window.__fake = { ok: true, reset: ["1", "2", "3"], failed: [], skipped: ["X – Y: keine Download-ID (zuerst „Aktualisieren“)"], url: "https://www.beatport.com/library/downloads", dest: "/dl/Beatport" };
               return Promise.resolve({ ok: true }); }
             if (n === "purch_state") return Promise.resolve(PUR.st);
             return c(n, ...a); }; })()""")
@@ -3857,9 +3857,11 @@ class UiTest(unittest.TestCase):
         pg.click("#purBpl")
         pg.click("#menu button >> text=Erneut zum Download freigeben …")
         pg.click("#dlgBtns .primary")
-        self.assertTrue(self.until("document.querySelector('#dlgTitle') && /freigegeben/.test(document.querySelector('#dialog').textContent) && /3 Titel/.test(document.querySelector('#dialog').textContent)"))
-        self.assertIn("keine Download-ID", pg.inner_text("#dialog"))
-        pg.click("#dlgBtns .primary")
+        pg.wait_for_selector("#purDestCopy")                                               # #367: gleiches Fenster wie Download
+        self.assertIn("3", pg.inner_text("#mBody b"))
+        self.assertIn("3 Titel stehen", pg.inner_text("#mBody"))
+        self.assertIn("Hinweise (1)", pg.inner_text("#mBody"))
+        pg.click("#mBtns .primary")
         self.assertTrue(self.until("window.__url === 'https://www.beatport.com/library/downloads'"))
 
     def test_purchases_feedback_345_349(self):
@@ -4030,6 +4032,68 @@ class UiTest(unittest.TestCase):
         pg.click("#svcSessLogout")
         self.assertTrue(self.until("/nicht angemeldet/.test(document.querySelector('#svcSessInfo').textContent)"))
         self.assertEqual(pg.input_value("#svcAuth"), "")
+        self.errors.clear()
+
+    def test_purchases_browser_download(self):
+        """#367 freigegeben + Speicherort zum Kopieren, #368 Heruntergeladene erkennen (Knopf und Beobachten),
+        #369 In Bibliothek verschieben → Im Tagger öffnen."""
+        pg = self.pg
+        self.calm()
+        pg.evaluate("""(() => { const orig = call; window.__calls = []; window.__fake = null; window.__found = false;
+          const row = (k, title, status, extra) => Object.assign({ k, store: "beatport", id: k.split(":")[1], title, mix: "", artist: "Mara Lind", dur: 300, key: "", bpm: 0,
+              catalog: "", label: "", release: "", genre: "", isrc: "", url: "", bought: "2026-10-22 09:00:00", seen: 1, status, file: "", reason: "",
+              preorder: false, downloaded: 0, await: false }, extra || {});
+          const state = () => ({ rows: window.__found
+              ? [row("beatport:1", "Nordlicht", "inbox", { file: "/dl/Mara Lind - Nordlicht.mp3", linked: true }), row("beatport:2", "Kaltes Glas", "missing", { await: true })]
+              : [row("beatport:1", "Nordlicht", "missing", { await: true }), row("beatport:2", "Kaltes Glas", "missing", { await: true })],
+            stores: { beatport: { name: "Beatport" } }, sources: [{ id: "beatport", name: "Beatport", ready: true, why: "" }],
+            count: window.__found ? { library: 0, inbox: 1, unclear: 0, missing: 1 } : { library: 0, inbox: 0, unclear: 0, missing: 2 },
+            dest: "/dl", dest_from: "eigene Wahl", dest_ok: true, roots: [], last: {}, sessions: {}, unzip: true, strict: false });
+          window.call = (n, ...a) => {
+            if (n === "purch_state") return Promise.resolve(state());
+            if (n === "purch_unzip") return Promise.resolve({ zips: [], files: 0, skipped: 0, errors: [] });
+            if (n === "start_purch_download") { window.__calls.push(n);
+              window.__fake = { ok: true, downloaded: 0, failed: ["a", "b"], dest: "/dl", need_login: [],
+                manual: [{ store: "beatport", name: "Beatport", url: "https://www.beatport.com/library/downloads", dest: "/dl/Beatport", reset: 2, reset_failed: [] }] };
+              return Promise.resolve({ ok: true }); }
+            if (n === "task_status" && window.__fake) { const r = window.__fake; window.__fake = null; return Promise.resolve({ done: true, running: false, result: r }); }
+            if (n === "purch_dl_signature") return Promise.resolve({ waiting: window.__found ? 1 : 2, sig: window.__found ? "1:5" : "0:0" });
+            if (n === "purch_pickup") { window.__calls.push(n); return Promise.resolve({ found: window.__found ? ["beatport:1"] : [], waiting: window.__found ? 1 : 2, unzipped: 0 }); }
+            if (n === "purch_move_preview") return Promise.resolve({ count: 1, files: ["/dl/Mara Lind - Nordlicht.mp3"], targets: [{ name: "Main", path: "/lib" }], target: "/lib" });
+            if (n === "purch_move") { window.__calls.push([n, a[1]]);
+              return Promise.resolve({ moved: [{ k: "beatport:1", from: "/dl/x", to: "/lib/x" }], skipped: [], files: ["/lib/Mara Lind - Nordlicht.mp3"], target: "/lib", state: state() }); }
+            if (n === "start_tag_load_files") { window.__calls.push([n, a[0]]); return Promise.resolve({ ok: false, error: "kein Tagger im Test" }); }
+            if (n === "open_url") { window.__url = a[0]; return Promise.resolve({}); }
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="purchases"]')
+        pg.wait_for_selector("#purTable tbody tr")
+        self.assertIn("wartet auf Download", pg.inner_text("#purTable"))
+        self.assertTrue(pg.locator("#purWait").is_visible())
+        self.assertIn("2 warten", pg.inner_text("#purWait"))
+        self.assertTrue(pg.locator("#purMove").is_disabled())
+        pg.click("#purDl")
+        pg.click("#mBtns .primary")                                                        # herunterladen
+        pg.wait_for_selector("#purDestCopy")
+        self.assertIn("2", pg.inner_text("#mBody b"))
+        self.assertEqual(pg.input_value("#purDestCopy"), "/dl/Beatport")                    # #367: Speicherort
+        pg.click("#purDestCopyBtn")
+        self.assertTrue(self.until("/Speicherort (kopiert|markiert)/.test(document.body.textContent)"))
+        pg.click("#mBtns .primary")
+        self.assertTrue(self.until("window.__url === 'https://www.beatport.com/library/downloads'"))
+        pg.evaluate("window.__found = true")                                               # #368: Datei ist da
+        pg.click("#purWait")
+        self.assertTrue(self.until("document.querySelector('#purMove') && !document.querySelector('#purMove').disabled"))
+        self.assertIn("(1)", pg.inner_text("#purMove"))
+        self.assertTrue(pg.evaluate("window.__calls.includes('purch_pickup')"))
+        pg.click("#purMove")                                                                 # #369
+        pg.wait_for_selector("#purMvTo")
+        self.assertEqual(pg.input_value("#purMvTo"), "/lib")
+        pg.click("#mBtns .primary")
+        pg.wait_for_selector("#dialog:not([hidden])")
+        self.assertIn("verschoben", pg.inner_text("#dialog"))
+        pg.click("#dlgBtns .primary")                                                       # Im Tagger öffnen
+        self.assertTrue(self.until("window.__calls.some((c) => Array.isArray(c) && c[0] === 'start_tag_load_files' && c[1][0] === '/lib/Mara Lind - Nordlicht.mp3')"))
+        self.assertTrue(pg.evaluate("window.__calls.some((c) => Array.isArray(c) && c[0] === 'purch_move' && c[1] === '/lib')"))
         self.errors.clear()
 
     def test_purchases_session_login(self):

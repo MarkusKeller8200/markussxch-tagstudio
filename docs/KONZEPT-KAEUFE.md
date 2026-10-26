@@ -136,6 +136,20 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
 - Session: `purch_bp_settings`, `purch_bp_check`, `purch_dl_playlist_preview`, `start_purch_dl_playlist`,
   `start_purch_dl_cleanup`, `purch_buy_playlists_preview`, `start_purch_buy_playlists`; Oberfläche `web/purbpl.js`.
 
+## 3f. Im Browser laden, verlinken, in die Bibliothek (#367, #368, #369, 4.12.0)
+
+- **#367:** „Fehlende herunterladen“ – was der Store nicht liefert, gibt TagStudio per reset-download frei
+  (`Session._purch_reset_items`, markiert `await_dl`), auch nach abgebrochener Sitzungs-Anmeldung. Fenster
+  „Im Browser herunterladen“ (`purWaitDialog`): Anzahl, Speicherort (Ziel des Stores) mit „Kopieren“, „Downloads bei
+  Beatport öffnen“.
+- **#368:** Solange Einkäufe warten und die Seite offen ist, prüft die Oberfläche alle 5 s `purch_dl_signature`
+  (Anzahl + jüngste Änderung von Audio/ZIP in den Download-Ordnern); bei Änderung `purch_pickup`: ZIPs entpacken, nur
+  die Download-Ordner einlesen, wartende Einkäufe per `match_ref` abgleichen, sichere **fest verlinken**
+  (`linked`, Status „im Eingang“); unklare behalten Kandidaten. Knopf „Heruntergeladene übernehmen“.
+- **#369:** „In Bibliothek verschieben …“ (`purch_move_preview` / `purch_move`): Ziel aus den Bibliotheken bzw.
+  Basisordner oder eigener Ordner (gemerkt `purch_move_to`), `shutil.move`, nie überschreiben; danach Status
+  „in Bibliothek“, verlinkt; „Im Tagger öffnen“ lädt genau diese Dateien (`start_tag_load_files`).
+
 ## 3e. Erneut zum Download freigeben (#361, #362, 4.12.0)
 
 - Inoffizieller Endpunkt der Beatport-Webseite `GET /catalog/tracks/reset-download/?order_item_download_id=…` – vom User

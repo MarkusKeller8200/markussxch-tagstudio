@@ -354,6 +354,7 @@ th:hover>.col-grip::after,.col-grip:focus-visible::after,body.col-dragging .col-
 #stGrid > .card.st-folded > h3.st-fold-h{margin-bottom:0}
 .st-fold-all{display:inline-flex;gap:6px;margin-left:auto}
 .pur-t tr.pur-clickfix{cursor:pointer}
+.pur-dest-copy{display:flex;gap:6px;align-items:center;margin-top:6px}.pur-dest-copy .inp{flex:1;min-width:0}   /* #367/#369 */
 .col-fit-bar{display:flex;justify-content:flex-end;padding:2px 4px}
 .col-fit{height:22px;width:26px;padding:0;display:inline-grid;place-items:center;opacity:.8}
 .col-fit .i,.tg-bm .i{width:15px;height:15px}
