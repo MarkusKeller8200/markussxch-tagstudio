@@ -11,6 +11,16 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   (`dlStatsOpen` in settings.js). **Beim nächsten Release `downloadstats` in `packaging/build.py` › `HIDDEN`
   eintragen** (packaging/ jetzt nicht anfassen – löst den Installer aus). Workflow einmal von Hand starten, damit der
   Zweig `stats` entsteht (User oder per `gh api … /dispatches`).
+- **#371 Abzeichen + Statistik-Seite** (17:38): Workflow schreibt `summary.json`, `badge.json`, kopiert
+  `.github/stats/index.html` → `stats:docs/index.html` (+ `.nojekyll`); Abzeichen im README (shields.io-Endpunkt).
+  **User muss GitHub Pages einschalten:** Settings › Pages › Deploy from a branch › `stats` / `/docs`
+  → https://markuskeller8200.github.io/markussxch-tagstudio/ (Pages-API ist über den Proxy gesperrt).
+- **#372 Download-Kasten oben in den Versionshinweisen**: `downloadstats.py --release-notes` im selben Workflow (jetzt
+  alle 3 Stunden), Markierungen `<!-- tagstudio-downloads:start/end -->`; `installer.yml` unverändert. TagStudio
+  blendet den Kasten aus (`updater._strip_dl`) – ältere installierte Versionen zeigen ihn in den Versionshinweisen.
+- **Plugins in einen Ordner** (User-Frage 17:38): GitHub-Release-Dateien haben keine Ordner. Optionen beim User
+  angefragt (Sammel-ZIP bzw. eigenes Plugin-Release – beides braucht App-Änderung, ältere Versionen fänden die
+  Plugin-Updates nicht mehr); bis dahin sind die Plugins im Download-Kasten zugeklappt.
 
 ## Release 4.12.0 (26.10.2026, 04:20)
 
