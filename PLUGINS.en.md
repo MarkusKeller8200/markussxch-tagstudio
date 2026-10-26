@@ -335,7 +335,10 @@ catalogue number, link, purchase date) and `store_download(ctx, items, dest)` (d
 too (marked ⚠, body as JSON). They are only sent after confirmation; every call is in the log (Plugins › Beatport) with
 method, address, headers, body, status, response headers and response – token and cookies blacked out. **Plugin 2.3
 (#356/#357):** the PATCH endpoints too (e.g. rename playlist, move track; account, e-mail and streaming settings with a
-clear warning) – deleting the account, deleting genres and sign-in stay locked. **Access in the tester (#365, 2.10):** row “Access” – *saved access* or *session sign-in (like the website)*; “Sign
+clear warning) – deleting the account, deleting genres and sign-in stay locked. **Revoke (#366, 2.11):** the session sign-in remembers its client_id; “Sign out” (Purchases, tester) and quitting or
+restarting TagStudio revoke the access and refresh token at Beatport (`POST /auth/o/revoke/?client_id=…&token=…`, at most
+a few seconds), then the session is gone.
+**Access in the tester (#365, 2.10):** row “Access” – *saved access* or *session sign-in (like the website)*; “Sign
 in …” opens the sign-in fields in the tester (user name/password, kept in memory only), then the tester sends that
 token (`_auth=session` → `api_request`); the log names the access used.
 **Download endpoints in the tester (#363, 2.8; #364, 2.9):** `/my/downloads/{id}/`, `/my/downloads/{id}/download/`,

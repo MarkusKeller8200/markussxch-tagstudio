@@ -748,8 +748,25 @@ class Api:
         core.save_config({"log_clear_exit": on, "log_clear_plugins": plugins})
         return {"log_clear_exit": on, "log_clear_plugins": plugins}
 
+    def _exit_sessions(self, wait=6.0):
+        """#366: Sitzungs-Anmeldungen (Beatport) beim Beenden zurückziehen – höchstens wait Sekunden, nur einmal."""
+        if getattr(self, "_sess_done", False):
+            return
+        self._sess_done = True
+        fn = getattr(self._s, "end_store_sessions", None)
+        if not callable(fn):
+            return
+        t = threading.Thread(target=lambda: fn(), daemon=True)
+        t.start()
+        t.join(wait)
+
     def _exit_logs(self):
-        """#332: beim Beenden, Neustart und Update die Protokolle leeren, wenn eingeschaltet (nur einmal je Prozess)."""
+        """#332: beim Beenden, Neustart und Update die Protokolle leeren, wenn eingeschaltet (nur einmal je Prozess).
+        #366: vorher die Sitzungs-Anmeldungen zurückziehen (damit es noch im Protokoll steht)."""
+        try:
+            self._exit_sessions()
+        except Exception:  # noqa: BLE001
+            pass
         if getattr(self, "_logs_done", False):
             return []
         self._logs_done = True

@@ -225,7 +225,7 @@ class HttpError(Exception):
 _last = [0.0]
 
 
-def request(method, url, *, headers=None, data=None, opener=None, follow=True):
+def request(method, url, *, headers=None, data=None, opener=None, follow=True, timeout=None):
     """Liefert (Status, Header, Body-Bytes). Fehlerstatus werden nicht als Ausnahme geworfen."""
     wait = MIN_INTERVAL - (time.time() - _last[0])
     if wait > 0:
@@ -243,7 +243,7 @@ def request(method, url, *, headers=None, data=None, opener=None, follow=True):
         req.add_unredirected_header("Authorization", auth)
     op = opener or urllib.request.build_opener(*([] if follow else [_NoRedirect()]))
     try:
-        with op.open(req, timeout=TIMEOUT) as r:
+        with op.open(req, timeout=timeout or TIMEOUT) as r:
             return r.status, dict(r.headers), r.read()
     except urllib.error.HTTPError as e:
         return e.code, dict(e.headers or {}), e.read() if e.fp else b""
@@ -313,6 +313,7 @@ def login(ctx, username, password):
         raise HttpError(st, f"Token-Austausch fehlgeschlagen (HTTP {st}).")
     tok = _norm_token(json.loads(body))
     tok["username"] = data.get("username", "")
+    tok["client_id"] = cid                         # #366: für das Zurückziehen (Revoke) beim Abmelden
     return tok
 
 
@@ -1468,6 +1469,8 @@ class SessionClient(Client):
     def _refresh(self):
         new = refresh(self.ctx, self.tok, save=False)
         if new:
+            new.setdefault("client_id", self.tok.get("client_id"))      # #366: Revoke braucht sie weiterhin
+            new.setdefault("username", self.tok.get("username"))
             _SESSION["tok"] = new
         return new
 
@@ -1489,9 +1492,34 @@ def store_login(ctx, username, password) -> dict:
     return {"ok": True, "username": tok.get("username") or username}
 
 
+def revoke_session(ctx, tok, timeout=8) -> list:
+    """#366: Token bei Beatport zurückziehen (Anleitung „Step 4: Revoking the Access Token“):
+    POST /auth/o/revoke/?client_id=…&token=… – Access- und Refresh-Token. → Status je Token (0 = keine Antwort)."""
+    cid = tok.get("client_id") or ""
+    out = []
+    for t in (tok.get("access_token"), tok.get("refresh_token")):
+        if not t or not cid:
+            continue
+        q = urllib.parse.urlencode({"client_id": cid, "token": t})
+        try:
+            st, _h, _b = request("POST", f"{API}/auth/o/revoke/?{q}", data=b"", timeout=timeout,
+                                 headers={"Content-Type": "application/x-www-form-urlencoded"})
+        except (HttpError, OSError):
+            st = 0
+        out.append(st)
+    return out
+
+
 def store_logout(ctx) -> dict:
+    """Sitzungs-Anmeldung beenden: Token bei Beatport zurückziehen (#366), dann aus dem Speicher löschen."""
+    tok = dict(_SESSION.get("tok") or {})
     _SESSION.clear()
-    return {"ok": True}
+    if not tok:
+        return {"ok": True, "revoked": []}
+    sts = revoke_session(ctx, tok)
+    ctx.log("Sitzungs-Token bei Beatport zurückgezogen (HTTP " + ", ".join(str(s) for s in sts) + ")" if sts
+            else "Sitzung beendet (ohne client_id kein Zurückziehen möglich)")
+    return {"ok": True, "revoked": sts}
 
 
 def store_session(ctx) -> dict:

@@ -342,6 +342,9 @@ wählbar (mit ⚠ markiert, Body als JSON). Gesendet wird erst nach einer Rückf
 Adresse, Kopfzeilen, Body, Status, Antwort-Kopfzeilen und Antwort im Protokoll (Plugins › Beatport) – Token und Cookies
 geschwärzt. **Plugin 2.3 (#356/#357):** auch die PATCH-Endpunkte (u. a. Playlist umbenennen, Titel verschieben; Konto,
 E-Mail- und Streaming-Einstellungen deutlich gewarnt) – Konto löschen, Genres löschen und Anmeldung bleiben gesperrt.
+**Revoke (#366, 2.11):** Die Sitzungs-Anmeldung merkt sich ihre client_id; „Abmelden“ (Einkäufe, Tester) und das
+Beenden bzw. Neustarten von TagStudio ziehen Access- und Refresh-Token bei Beatport zurück
+(`POST /auth/o/revoke/?client_id=…&token=…`, höchstens wenige Sekunden), danach ist die Sitzung gelöscht.
 **Zugang im Tester (#365, 2.10):** Zeile „Zugang“ – *gespeicherter Zugang* oder *Sitzungs-Anmeldung (wie die
 Webseite)*; „Anmelden …“ öffnet das Anmeldefeld im Tester (Benutzername/Passwort, nur im Speicher), danach schickt der
 Tester diesen Token (`_auth=session` → `api_request`); das Protokoll nennt den benutzten Zugang.

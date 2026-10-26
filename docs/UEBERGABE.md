@@ -38,7 +38,12 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   Integrationsfenster (kein zweites `modal()` – Modal-Verschachtelung bricht Tastatur-Handler), `purch_session_login`;
   Beatport `api_request` mit `_auth=session` → `SessionClient`. Plugin **2.10**. Hinweis an User: Bearer-Token nie in
   Screenshots teilen (02:50 passiert, User zum Ab-/Anmelden aufgefordert).
-- Beim Release: Plugin-ZIP Beatport **2.10**.
+- **#366** (03:13): Revoke der Sitzungs-Anmeldung – `login()` speichert `client_id` im Token, `revoke_session()` (nicht
+  verwechseln mit `revoke()` für den eigenen API-Zugang), `store_logout` zieht zurück; `Session.end_store_sessions()`,
+  `Api._exit_sessions()` (max. 6 s) läuft vor `_exit_logs`. Plugin **2.11**.
+- **Offen (User 03:13):** „Webseite öffnen und dort machen“ – Antwort: Token aus der Beatport-Webseite auslesen ist
+  durch die Projektregel ausgeschlossen; Vorschlag: Download auf der Webseite + automatisches Abholen. Entscheid offen.
+- Beim Release: Plugin-ZIP Beatport **2.11**.
 
 ## Sitzung 26.10.2026 (00:11–01:00) – Rückmeldungen aus dem Test
 

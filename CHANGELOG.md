@@ -8,6 +8,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Beatport: Sitzungs-Token wird zurückgezogen (#366, Plugin 2.11)** – beim Abmelden sowie beim Beenden/Neustarten von
+  TagStudio (Revoke laut Beatport-Anleitung, Access- und Refresh-Token).
 - **Beatport-API-Tester mit Sitzungs-Anmeldung (#365, Plugin 2.10)** – Zeile „Zugang“: gespeicherter Zugang oder Anmeldung
   wie die Webseite (Anmeldefeld im Tester, Token nur im Speicher); Protokoll nennt den Zugang.
 - **Beatport-API-Tester: `/catalog/tracks/purchase-download/` (#364, Plugin 2.9)** – mit order_item_download_id, nach Rückfrage,

@@ -443,6 +443,18 @@ class PurchasesMixin:
         self.plugins.call_playlist(str(store), "store_logout", session=self)
         return {"ok": True, "sessions": self._purch_sessions()}
 
+    def end_store_sessions(self) -> list:
+        """#366: beim Beenden alle Sitzungs-Anmeldungen der Stores beenden (Token beim Store zurückziehen)."""
+        done = []
+        for store, s in self._purch_sessions().items():
+            if s.get("active"):
+                try:
+                    self.plugins.call_playlist(store, "store_logout", session=self)
+                    done.append(store)
+                except Exception:  # noqa: BLE001 – Beenden darf daran nie scheitern
+                    pass
+        return done
+
     def _purch_sessions(self) -> dict:
         out = {}
         for s in self.plugins.store_sources():

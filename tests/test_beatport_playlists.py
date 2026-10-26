@@ -380,3 +380,32 @@ class TestApiTesterWrite(unittest.TestCase):
         services.api_call(P(), self.ctx, "purchase-download", {"order_item_download_id": "1", "_confirm": "yes"}, "UA")
         self.assertEqual(sent[-1], "Bearer x")                                           # gespeicherter Zugang
         self.assertIn("Zugang: gespeicherter Zugang", "\n".join(self.ctx.logs))
+
+    def test_session_revoke(self):
+        """#366: Abmelden zieht Access- und Refresh-Token bei Beatport zurück (client_id der Anmeldung), Token nie im
+        Protokoll; ohne Antwort trotzdem abgemeldet."""
+        calls = []
+
+        def req(method, url, headers=None, data=None, timeout=None, **kw):
+            calls.append((method, url.split("/v4", 1)[1], timeout))
+            return 200, {}, b""
+        self.bp.request = req
+        self.bp._SESSION["tok"] = {"access_token": "ACC123456789", "refresh_token": "REF123456789",
+                                   "client_id": "CID", "expires_at": time.time() + 3600, "username": "marku"}
+        r = self.bp.store_logout(self.ctx)
+        self.assertEqual(r["revoked"], [200, 200])
+        self.assertFalse(self.bp._SESSION)
+        self.assertEqual([c[1] for c in calls], ["/auth/o/revoke/?client_id=CID&token=ACC123456789",
+                                                  "/auth/o/revoke/?client_id=CID&token=REF123456789"])
+        self.assertTrue(all(c[0] == "POST" and c[2] == 8 for c in calls))
+        log = "\n".join(self.ctx.logs)
+        self.assertIn("zurückgezogen (HTTP 200, 200)", log)
+        self.assertNotIn("ACC123456789", log)
+
+        def down(*a, **kw):
+            raise OSError("offline")
+        self.bp.request = down
+        self.bp._SESSION["tok"] = {"access_token": "A", "client_id": "CID", "expires_at": time.time() + 60}
+        self.assertEqual(self.bp.store_logout(self.ctx)["revoked"], [0])                # ohne Netz: trotzdem weg
+        self.assertFalse(self.bp._SESSION)
+        self.assertEqual(self.bp.store_logout(self.ctx), {"ok": True, "revoked": []})   # keine Sitzung

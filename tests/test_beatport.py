@@ -50,7 +50,7 @@ class FakeBeatport:
             d["scope"] = "app:externaltrusted user:dj"             # #296: Scope der eigenen App
         return 200, {}, json.dumps(d).encode()
 
-    def __call__(self, method, url, *, headers=None, data=None, opener=None, follow=True):
+    def __call__(self, method, url, *, headers=None, data=None, opener=None, follow=True, timeout=None):
         u = urllib.parse.urlparse(url)
         q = {k: v[0] for k, v in urllib.parse.parse_qs(u.query).items()}
         if isinstance(data, bytes) and data:                      # Formular (offizieller Weg, eigener API-Zugang)

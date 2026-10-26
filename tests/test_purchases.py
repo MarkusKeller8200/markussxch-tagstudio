@@ -214,3 +214,28 @@ class TestBeatportPlaylistPlan(TestCorrectSession):
         self.assertEqual(r["reset"], ["1"])
         self.assertEqual([len(a[0]) for fn, a in calls if fn == "store_reset_download"], [2])
         self.assertFalse(st.data["items"]["beatport:1"].get("received"))
+
+
+class TestEndSessions(unittest.TestCase):
+    def test_end_store_sessions(self):
+        """#366: beim Beenden nur aktive Sitzungen abmelden; Fehler halten das Beenden nicht auf."""
+        from session import Session
+        s = Session()
+        calls = []
+        s.plugins.store_sources = lambda: [{"id": "beatport"}, {"id": "other"}]
+
+        def fake(pid, fn, *a, **kw):
+            calls.append((pid, fn))
+            if fn == "store_session":
+                return {"active": pid == "beatport"}
+            if fn == "store_logout" and pid == "beatport":
+                return {"ok": True}
+            raise RuntimeError("nicht unterstützt")
+        s.plugins.call_playlist = fake
+        self.assertEqual(s.end_store_sessions(), ["beatport"])
+        self.assertIn(("beatport", "store_logout"), calls)
+        self.assertNotIn(("other", "store_logout"), calls)
+
+
+if __name__ == "__main__":
+    unittest.main()
