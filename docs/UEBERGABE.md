@@ -1,8 +1,17 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-26 (04:20): v4.12.0 final veröffentlicht** (Windows + macOS, 25 Dateien, Beatport-Plugin 2.11), Meilenstein #28 geschlossen (39 Issues). #186 (Modul IDEE, Entscheide I1–I6) liegt in „Funktionen“. Nächster Meilenstein noch nicht festgelegt.
+Stand: **2026-10-27 (00:30): v4.12.0 final; danach #370–#375 umgesetzt und geschlossen, #376 SignPath (Meilenstein #29) wartet auf die Bewerbung; #186 wartet auf I1–I6. Für das nächste Release vorgemerkt: Zweig `macos-signing`, `downloadstats` in HIDDEN, `docs/HANDBUCH*.md` ins Paket.**
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Meilenstein „GitHub & Webseite“ (#29, angelegt 27.10.2026, 00:26)
+
+- **Entscheid User:** Aufgaben rund um den GitHub-Auftritt (README/Startseite, Projekt-Webseite, Statistik, Release-Seite,
+  Signatur-Anträge) gehören in den eigenen Meilenstein **#29 „GitHub & Webseite“** – nicht in die Sammlungen der
+  Anwendung, kein Release nötig; schliessen, wenn die Testliste abgehakt ist.
+- Dorthin verschoben: #371, #372, #373, #375 (geschlossen), #376 SignPath (offen, Beta-Test – Bewerbung beim User).
+- Geschlossen nach Test: #370 (Download-Verwaltung in der App), #374 (macOS-Signatur – **Zweig `macos-signing` mit dem
+  nächsten Release mergen**).
 
 ## Nach 4.12.0 (26.10.2026, 17:24)
 
