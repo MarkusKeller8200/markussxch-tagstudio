@@ -47,12 +47,22 @@ if [ -n "${TS_SIGN_ID:-}" ]; then        # #374: Disk-Image signieren, beglaubig
   codesign --force --timestamp --sign "$TS_SIGN_ID" "$OUT"
   if [ -n "${TS_NOTARY_KEY:-}" ]; then
     mkdir -p "$ROOT/build"
-    xcrun notarytool submit "$OUT" --key "$TS_NOTARY_KEY" --key-id "$TS_NOTARY_KEY_ID" --issuer "$TS_NOTARY_ISSUER" \
-      --wait --timeout 30m --output-format json | tee "$ROOT/build/notary.json"
-    if ! grep -q '"status" *: *"Accepted"' "$ROOT/build/notary.json"; then
-      id="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' "$ROOT/build/notary.json")"
-      [ -n "$id" ] && xcrun notarytool log "$id" --key "$TS_NOTARY_KEY" --key-id "$TS_NOTARY_KEY_ID" --issuer "$TS_NOTARY_ISSUER" || true
-      echo "Notarisierung abgelehnt"
+    auth=(--key "$TS_NOTARY_KEY" --key-id "$TS_NOTARY_KEY_ID" --issuer "$TS_NOTARY_ISSUER")
+    # einreichen ohne zu warten → ID sichtbar (die erste Beglaubigung eines neuen Kontos kann Stunden dauern)
+    xcrun notarytool submit "$OUT" "${auth[@]}" --no-wait --output-format json > "$ROOT/build/notary.json"
+    id="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' "$ROOT/build/notary.json")"
+    [ -n "$id" ] || { cat "$ROOT/build/notary.json"; echo "::error title=Notarisierung::Einreichen fehlgeschlagen"; exit 1; }
+    echo "::notice title=Notarisierung eingereicht::ID $id"
+    set +e
+    xcrun notarytool wait "$id" "${auth[@]}" --timeout "${TS_NOTARY_WAIT:-120m}" --output-format json > "$ROOT/build/notary-wait.json"
+    set -e
+    status="$(python3 -c 'import json,sys
+try: print(json.load(open(sys.argv[1])).get("status",""))
+except Exception: print("")' "$ROOT/build/notary-wait.json")"
+    if [ "$status" != "Accepted" ]; then
+      xcrun notarytool info "$id" "${auth[@]}" || true
+      [ "$status" = "Invalid" ] && xcrun notarytool log "$id" "${auth[@]}" || true
+      echo "::error title=Notarisierung ${status:-noch nicht fertig}::ID $id – Status „${status:-In Progress}“. Bei „In Progress“: Apple prüft noch (beim ersten Mal oft Stunden), später erneut bauen."
       exit 1
     fi
     xcrun stapler staple "$OUT"
