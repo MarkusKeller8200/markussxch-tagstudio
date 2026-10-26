@@ -1,6 +1,11 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-26 (04:20): **v4.12.0 final veröffentlicht** (Release `v4.12.0`, Windows + macOS, 25 Dateien, Beatport 2.11);
+> Stand 2026-10-27 (00:30): nach 4.12.0 umgesetzt und geschlossen: #370 Download-Verwaltung, #374 macOS-Signatur
+> (Zweig `macos-signing`, Merge beim nächsten Release). Neuer Meilenstein **#29 „GitHub & Webseite“** (nicht Teil der
+> Anwendung, kein Release): #371 Statistik, #372 Release-Seite, #373 Startseite/Handbuch, #375 Webseite – geschlossen;
+> #376 SignPath (Windows-Signatur) offen, wartet auf die Bewerbung.
+>
+> Davor 2026-10-26 (04:20): **v4.12.0 final veröffentlicht** (Release `v4.12.0`, Windows + macOS, 25 Dateien, Beatport 2.11);
 > Meilenstein #28 „Käufe, Tag-Fixer & Entdecken“ mit 39 Issues geschlossen. #186 Modul IDEE liegt in „Funktionen“.
 >
 > Davor 2026-10-26 (03:46): zusätzlich geschlossen #335, #357, #367–#369 – offen nur noch #334 und #186.
