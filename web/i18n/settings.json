@@ -289,5 +289,18 @@
 "Alle Kacheln ausklappen": ["Expand all tiles", "Alli Chachle uufklappe"],
 "Alle Kacheln einklappen": ["Collapse all tiles", "Alli Chachle zueklappe"],
 "Alle ausklappen": ["Expand all", "Alli uufklappe"],
-"Alle einklappen": ["Collapse all", "Alli zueklappe"]
+"Alle einklappen": ["Collapse all", "Alli zueklappe"],
+"Wie oft wurden die Installationsdateien je Version heruntergeladen? (GitHub, mit Verlauf je Tag)": ["How often were the installation files downloaded per version? (GitHub, with history per day)", "Wie oft sind d Installationsdateie pro Version abeglade worde? (GitHub, mit Verlauf pro Tag)"],
+"Downloads je Version …": ["Downloads per version …", "Downloads pro Version …"],
+"Downloads von GitHub lesen …": ["Reading downloads from GitHub …", "Downloads vo GitHub läse …"],
+"Downloads je Version": ["Downloads per version", "Downloads pro Version"],
+"{x}: {x} (Windows {x}, macOS {x})": ["{x}: {x} (Windows {x}, macOS {x})", "{x}: {x} (Windows {x}, macOS {x})"],
+"Neue Installer-Downloads je Tag": ["New installer downloads per day", "Neui Installer-Downloads pro Tag"],
+"Neue Installer-Downloads je Tag (letzte {x} Tage, Verlauf seit {x})": ["New installer downloads per day (last {x} days, history since {x})", "Neui Installer-Downloads pro Tag (letschti {x} Täg, Verlauf sit {x})"],
+"(erster Stand {x})": ["(first snapshot {x})", "(erschte Stand {x})"],
+"Noch kein Verlauf – der Workflow {q} speichert die Zählerstände täglich{x}; neue Downloads je Tag erscheinen ab dem zweiten Tag.": ["No history yet – the workflow {q} saves the counts daily{x}; new downloads per day appear from the second day.", "No kei Verlauf – de Workflow {q} speicheret d Zählerständ täglich{x}; neui Downloads pro Tag chömed ab em zwöite Tag."],
+"Installer gesamt": ["Installers total", "Installer total"],
+"Plugin-ZIPs": ["Plugin ZIPs", "Plugin-ZIPs"],
+"Installer": ["Installers", "Installer"],
+"Zahlen von GitHub (Downloads über die Release-Seite und das Update in TagStudio). GitHub aktualisiert sie mit Verzögerung.": ["Figures from GitHub (downloads via the release page and the update in TagStudio). GitHub updates them with a delay.", "Zahle vo GitHub (Downloads über d Release-Siite und s Update in TagStudio). GitHub aktualisiert sie mit Verzögerig."]
 }

@@ -3052,6 +3052,37 @@ class UiTest(unittest.TestCase):
         self.assertEqual(others, [(i, t) for i, l, t in after if l != before[0][1]])     # andere Spalten unverändert
         pg.click(f"#{first} > h3")
 
+    def test_download_stats(self):
+        """#370: Expert › Entwicklung › „Downloads je Version …“ – Summen, Balken je Tag, Tabelle, Link; offline Hinweis."""
+        pg = self.pg
+        pg.evaluate("""(() => { const orig = call; window.__off = false;
+          window.call = (n, ...a) => {
+            if (n === "download_stats") return Promise.resolve(window.__off ? { ok: false, error: "GitHub ist nicht erreichbar (offline)." } : { ok: true,
+              total: { win: 12, mac: 3, plugins: 40, installers: 15 }, releases_url: "https://github.com/x/releases",
+              rows: [{ tag: "v4.12.0", date: "2026-10-26", beta: false, url: "https://github.com/x/releases/tag/v4.12.0", win: 7, mac: 2, plugins: 30, total: 9, files: [] },
+                     { tag: "v4.12.0-beta.1", date: "2026-10-25", beta: true, url: "u", win: 5, mac: 1, plugins: 10, total: 6, files: [] }],
+              history: { days: [{ day: "2026-10-26", win: 2, mac: 1, total: 3 }, { day: "2026-10-27", win: 4, mac: 0, total: 4 }], last7: 7, last30: 7, since: "2026-10-25" } });
+            if (n === "open_url") { window.__url = a[0]; return Promise.resolve({}); }
+            return orig(n, ...a); }; })()""")
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stXDl", state="attached")
+        pg.evaluate("stOpenCard('stExpertCard'); 0")
+        pg.click("#stXDl")
+        pg.wait_for_selector("#mBody .dl-sum")
+        txt = pg.inner_text("#mBody")
+        for want in ("15", "Installer gesamt", "Windows", "macOS", "letzte 7 Tage", "v4.12.0", "Beta"):
+            self.assertIn(want, txt)
+        self.assertEqual(pg.locator("#mBody .dl-bar").count(), 2)
+        pg.click('#mBody a[data-url="https://github.com/x/releases/tag/v4.12.0"]')
+        self.assertTrue(self.until("window.__url === 'https://github.com/x/releases/tag/v4.12.0'"))
+        pg.click("#mBtns button >> nth=0")                                                 # Auf GitHub ansehen
+        self.assertTrue(self.until("window.__url === 'https://github.com/x/releases'"))
+        pg.evaluate("window.__off = true")
+        pg.click("#stXDl")
+        pg.wait_for_selector("#dialog:not([hidden])")
+        self.assertIn("nicht erreichbar", pg.inner_text("#dialog"))
+        self.errors.clear()
+
     def test_expert_log_clear_on_exit(self):
         """#332: Expert › Entwicklung – „Protokolle beim Beenden leeren“, Standard aus, Plugin-Protokolle nur wählbar,
         wenn eingeschaltet; Einstellung bleibt gespeichert."""

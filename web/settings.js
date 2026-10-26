@@ -358,12 +358,42 @@ async function stExpertRender() {
   box.innerHTML = inf.facts.map(([k, v]) => `<span>${esc(k)}</span><span class="x-val">${esc(v)}</span>`).join("")
     + `<span>Einstellungsdatei</span><div class="st-path"><button class="ghost sm" id="stXConfig">Anzeigen …</button><button class="ghost sm" id="stXCopy" title="Version, System und Pfade für eine Fehlermeldung kopieren">Diagnose kopieren</button></div>`
     + `<span>Protokolle</span><div class="x-logs">${logs.length ? logs.map((l) => `<button class="ghost sm" data-xlog="${esc(l.name)}" title="${esc(when(l.mtime))}">${esc(l.name)} <span class="faint">${kb(l.size)}</span></button>`).join("") : '<span class="muted sm">noch keine</span>'}<button class="ghost sm" id="stXLogs" title="Liste neu laden">↻</button><button class="ghost sm" id="stXLive" title="Eigenes Fenster, das die Protokolle laufend nachführt – wie bei den Plugins">Live anzeigen …</button></div>`
-    + `<span>Entwicklung</span><div class="st-path x-dev">${stCheck("stXClearExit", !!(inf.dev || {}).log_clear_exit, "Protokolle beim Beenden leeren (Entwicklung)")}${stCheck("stXClearPlugins", !!(inf.dev || {}).log_clear_plugins, "auch Plugin-Protokolle")}<span class="muted sm" id="stXClearHint">Fehler aus der vorigen Sitzung sind danach weg – für Fehlermeldungen ausschalten.</span></div>`
+    + `<span>Entwicklung</span><div class="st-path x-dev">${stCheck("stXClearExit", !!(inf.dev || {}).log_clear_exit, "Protokolle beim Beenden leeren (Entwicklung)")}${stCheck("stXClearPlugins", !!(inf.dev || {}).log_clear_plugins, "auch Plugin-Protokolle")}<span class="muted sm" id="stXClearHint">Fehler aus der vorigen Sitzung sind danach weg – für Fehlermeldungen ausschalten.</span>
+      <button class="ghost sm" id="stXDl" title="Wie oft wurden die Installationsdateien je Version heruntergeladen? (GitHub, mit Verlauf je Tag)">Downloads je Version …</button></div>`
     + inf.paths.map(([k, p]) => `<span>${esc(k)}</span><div class="st-path"><code class="x-path" title="${esc(p)}">${esc(p)}</code><button class="ghost sm" data-xreveal="${esc(p)}">Zeigen</button></div>`).join("");
   const pl = $("#stXClearPlugins", box);
   if (pl) pl.disabled = !(inf.dev || {}).log_clear_exit;
   stToc();
 }
+/** #370: Download-Verwaltung – wie oft wurden die Installationsdateien je Version heruntergeladen (GitHub zählt nur
+    Gesamtsummen; der Verlauf je Tag kommt aus dem Zweig „stats“, den der Workflow „Download-Statistik“ täglich füllt). */
+async function dlStatsOpen() {
+  const btn = $("#stXDl"); if (btn) btn.disabled = true;
+  toast("Downloads von GitHub lesen …");
+  const r = await call("download_stats").catch((e) => ({ ok: false, error: String(e.message || e) }));
+  if (btn) btn.disabled = false;
+  if (!r.ok) return info("Downloads je Version", r.error || "GitHub ist nicht erreichbar.");
+  const t = r.total, h = r.history || { days: [] };
+  const max = Math.max(1, ...h.days.map((d) => d.total));
+  const bars = h.days.length
+    ? `<div class="dl-bars" role="img" aria-label="Neue Installer-Downloads je Tag">${h.days.map((d) => `<span class="dl-bar" style="height:${Math.max(2, Math.round((d.total / max) * 60))}px" title="${esc(d.day)}: ${fmtN(d.total)} (Windows ${fmtN(d.win)}, macOS ${fmtN(d.mac)})"></span>`).join("")}</div>
+       <div class="muted sm">Neue Installer-Downloads je Tag (letzte ${fmtN(h.days.length)} Tage, Verlauf seit ${esc(h.since)})</div>`
+    : `<div class="muted sm">Noch kein Verlauf – der Workflow „Download-Statistik“ speichert die Zählerstände täglich${h.since ? ` (erster Stand ${esc(h.since)})` : ""}; neue Downloads je Tag erscheinen ab dem zweiten Tag.</div>`;
+  await modal({ title: "Downloads je Version", wide: true,
+    html: `<div class="dl-sum">
+        <div><b>${fmtN(t.installers)}</b><span>Installer gesamt</span></div><div><b>${fmtN(t.win)}</b><span>Windows</span></div>
+        <div><b>${fmtN(t.mac)}</b><span>macOS</span></div><div><b>${fmtN(t.plugins)}</b><span>Plugin-ZIPs</span></div>
+        <div><b>${h.days.length ? fmtN(h.last7) : "–"}</b><span>letzte 7 Tage</span></div><div><b>${h.days.length ? fmtN(h.last30) : "–"}</b><span>letzte 30 Tage</span></div></div>
+      ${bars}
+      <div class="fx-table" style="max-height:44vh;overflow:auto;margin-top:10px"><table><thead><tr><th>Version</th><th>Datum</th><th class="r">Windows</th><th class="r">macOS</th><th class="r">Installer</th><th class="r">Plugins</th></tr></thead><tbody>
+        ${r.rows.map((x) => `<tr><td><a href="#" data-url="${esc(x.url)}" translate="no">${esc(x.tag)}</a>${x.beta ? ' <span class="fx-rcp-tag">Beta</span>' : ""}</td><td>${esc(x.date)}</td>
+          <td class="r">${fmtN(x.win)}</td><td class="r">${fmtN(x.mac)}</td><td class="r"><b>${fmtN(x.total)}</b></td><td class="r muted">${fmtN(x.plugins)}</td></tr>`).join("")}</tbody></table></div>
+      <p class="muted sm" style="margin:8px 0 0">Zahlen von GitHub (Downloads über die Release-Seite und das Update in TagStudio). GitHub aktualisiert sie mit Verzögerung.</p>`,
+    buttons: [{ label: "Auf GitHub ansehen", value: "gh" }, { label: "Schliessen", value: null, primary: true }],
+    onMount: (b) => b.addEventListener("click", (e) => { const a = e.target.closest("a[data-url]"); if (a) { e.preventDefault(); call("open_url", a.dataset.url); } }),
+  }).then((v) => { if (v === "gh") call("open_url", r.releases_url); });
+}
+
 /** #332: Protokolle beim Beenden leeren (Entwicklung) – Schalter speichern */
 async function stExpertDevSave() {
   const on = $("#stXClearExit").checked, pl = $("#stXClearPlugins");
@@ -653,6 +683,7 @@ function initSettings() {
     else if (t.id === "stXCopy") stExpertCopy();
     else if (t.id === "stXLogs") stExpertRender();
     else if (t.id === "stXLive" && typeof pluginLogWindow === "function") pluginLogWindow("@app");      // #327
+    else if (t.id === "stXDl") dlStatsOpen();                                       // #370
     else if (t.id === "stTrivAdd") { const v = $("#stTrivIn").value.trim(); if (v) { await stTrivSet([...ST.data.trivial, v]); $("#stTrivIn").value = ""; } }
     else if (t.id === "stTrivDef") { if (await dialog({ title: "Standardliste wiederherstellen?", text: "Eigene Muster gehen verloren.", buttons: [{ label: "Abbrechen", value: null }, { label: "Wiederherstellen", value: true, primary: true }] })) stTrivSet(ST.data.trivial_default); }
     else if (t.dataset.k !== undefined && t.closest("#stTriv")) { const l = [...ST.data.trivial]; l.splice(+t.dataset.k, 1); stTrivSet(l); }

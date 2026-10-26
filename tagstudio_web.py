@@ -740,6 +740,14 @@ class Api:
         dev = {"log_clear_exit": bool(c.get("log_clear_exit", False)), "log_clear_plugins": bool(c.get("log_clear_plugins", False))}
         return {"facts": facts, "paths": paths, "dev": dev}
 
+    def download_stats(self):
+        """#370: Downloads der Installationsdateien je Version (GitHub) und Verlauf aus dem Zweig „stats“."""
+        import downloadstats
+        try:
+            return {"ok": True, **downloadstats.report()}
+        except (OSError, ValueError) as ex:
+            return {"ok": False, "error": f"GitHub ist nicht erreichbar ({ex})."}
+
     def set_log_clear_exit(self, on, plugins=False):
         """#332 (Entwicklung): Protokolle beim Beenden/Neustart leeren – Standard aus; Plugin-Protokolle nur auf Wunsch."""
         import core

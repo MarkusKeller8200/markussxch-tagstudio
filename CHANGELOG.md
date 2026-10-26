@@ -6,6 +6,12 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Download-Verwaltung (#370):** Einstellungen › Expert › Entwicklung › „Downloads je Version …“ – wie oft die
+  Installationsdateien je Version heruntergeladen wurden (Windows, macOS, Plugins, Summen, letzte 7/30 Tage); der neue
+  Workflow „Download-Statistik“ speichert die Zählerstände täglich im Zweig `stats` für den Verlauf je Tag.
+
 ## [4.12.0] – 2026-10-26
 
 ### Neu

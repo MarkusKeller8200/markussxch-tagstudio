@@ -57,6 +57,15 @@ Developer Release“ (Tooltip: Anzahl Änderungen, Stand, Basisversion). `update
 --long --match v[0-9]*`, einmal je Start zwischengespeichert. Die installierte App ist nie ein Developer Release.
 Betas sind nicht nötig, wenn alles auf `main` getestet ist (4.5.0 erschien direkt final).
 
+**Download-Statistik (#370, Entscheid User 26.10.2026: in TagStudio + Verlauf):** GitHub zählt je Release-Datei nur
+die Gesamtzahl (`download_count`). `downloadstats.py` holt alle Releases (öffentliche API, alle Seiten) und fasst je
+Version Windows-Setup, macOS-DMG und Plugin-ZIPs zusammen. Der Workflow „Download-Statistik“
+(`.github/workflows/download-stats.yml`, täglich 23:37 UTC und von Hand) schreibt die Zählerstände je Tag in den Zweig
+`stats` (`docs/download-stats.json`, `{"days": {Tag: {Tag-Name: [win, mac, plugins]}}}`, höchstens 800 Tage) – nie auf
+`main`, Pushes mit `GITHUB_TOKEN` lösen keine weiteren Workflows aus. TagStudio liest die Datei über
+raw.githubusercontent.com und berechnet die neuen Downloads je Tag (`history`). Anzeige: Einstellungen › Expert ›
+Entwicklung › „Downloads je Version …“.
+
 ## 4. Umsetzung
 
 - **Kern:** `updater.py` (`status`, `pull`, `fetch_releases`, `release_check`, `parse_version`, `is_beta`,

@@ -1,0 +1,51 @@
+name: Download-Statistik
+
+# #370: GitHub zählt Downloads der Release-Dateien nur als Gesamtsumme. Dieser Workflow speichert täglich die
+# Zählerstände im Zweig „stats“ (docs/download-stats.json) – TagStudio berechnet daraus die neuen Downloads je Tag.
+# Nichts auf main; Pushes mit GITHUB_TOKEN lösen keine weiteren Workflows aus.
+
+on:
+  schedule:
+    - cron: "37 23 * * *"   # täglich kurz vor Mitternacht (UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: download-stats
+  cancel-in-progress: false
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: code
+      - name: Zweig „stats“ holen bzw. anlegen
+        run: |
+          git clone --quiet "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" stats
+          cd stats
+          if git ls-remote --exit-code --heads origin stats >/dev/null; then
+            git checkout --quiet stats
+          else
+            git checkout --quiet --orphan stats
+            git rm -rf --quiet . || true
+            printf '# Download-Statistik\n\nAutomatisch vom Workflow „Download-Statistik“ (#370) – nicht von Hand ändern.\n' > README.md
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Zählerstände eintragen
+        run: python3 code/downloadstats.py --update stats/docs/download-stats.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Speichern
+        run: |
+          cd stats
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "Keine Änderung."; exit 0; fi
+          git commit --quiet -m "Download-Statistik $(date -u +%F)"
+          git push --quiet origin stats

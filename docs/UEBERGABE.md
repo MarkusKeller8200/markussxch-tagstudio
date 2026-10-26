@@ -4,6 +4,14 @@ Stand: **2026-10-26 (04:20): v4.12.0 final veröffentlicht** (Windows + macOS, 2
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
+## Nach 4.12.0 (26.10.2026, 17:24)
+
+- **#370 Download-Verwaltung** (Sammlung „Funktionen“, Entscheid User „In TagStudio + Verlauf“): `downloadstats.py`,
+  Workflow `download-stats.yml` (Zweig `stats`), `Api.download_stats`, Expert › Entwicklung „Downloads je Version …“
+  (`dlStatsOpen` in settings.js). **Beim nächsten Release `downloadstats` in `packaging/build.py` › `HIDDEN`
+  eintragen** (packaging/ jetzt nicht anfassen – löst den Installer aus). Workflow einmal von Hand starten, damit der
+  Zweig `stats` entsteht (User oder per `gh api … /dispatches`).
+
 ## Release 4.12.0 (26.10.2026, 04:20)
 
 - **Freigabe User 03:53** („die Version kann nun erstellt werden“; Auswahl: 4.12.0 final). #334 vom User als getestet
