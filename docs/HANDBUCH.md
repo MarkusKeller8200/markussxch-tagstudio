@@ -17,6 +17,8 @@ Die vollständige Anleitung zu allen Funktionen. Kurzüberblick, Bilder und Down
   sortier- und filterbar (`energy>=70`); Dateien wahlweise in 0–10 (Lexicon).
 - **DJ-Set:** Reihenfolge nach Tonart (Camelot), BPM und Energie optimieren, jeden Übergang bewerten, per Ziehen
   umsortieren und sperren, Weg durch das Camelot-Rad und Energiekurve; Export als M3U8, Rekordbox-XML und CSV.
+- **Ideen:** Wunschlisten mit Titeln, die du später kaufen willst – aus „Entdecken“, von Hand oder aus Text; Status
+  Idee → Kaufen → Gekauft → In Bibliothek, Notiz, Vorhören, als Beatport-Playlist (nur auf Klick).
 - **Playlists:** Titel aus Tagger und DJ-Set in Playlists mit Ordnern sammeln; jede Playlist liegt zusätzlich als
   M3U8 im Playlist-Ordner (für Engine DJ, VirtualDJ & Co.); Archivieren statt Löschen.
 - **Vergleich zweier Ordner/Dateien:** Feld für Feld mit zeichengenauen Markierungen, Werte per Pfeil übernehmen.
@@ -203,13 +205,43 @@ der Kaufplattformen; „Abholen“ kopiert neue MP3 (auch aus ZIP) in den Eingan
 Vorschläge); „Vorbereiten“ zeigt nur noch den Workflow. Unter „Folgen …“ Künstler, Labels und Beatport-Genres festlegen (oder aus der Bibliothek vorschlagen
 lassen); „Suchen“ holt neue Veröffentlichungen von Deezer und Beatport, auf Wunsch auch von **SonoVault** (kostet
 Kredite: je Künstler/Label 1–2 Anfragen; nie bei der täglichen Suche; Einträge ohne Link, nach 30 Tagen entfernt und
-nie exportiert). In der Liste vorhören (▶), merken (☆), als
-gekauft markieren (✓) oder ausblenden (✕); „Öffnen“ führt zur Seite des Titels. Gekauft wird nie automatisch.
+nie exportiert). In der Liste vorhören (▶), mit ☆ **als Idee merken ▸** (Wunschliste wählen oder neue
+anlegen; auch per Rechtsklick „Idee merken ›“), als gekauft markieren (✓) oder ausblenden (✕); „Öffnen“ führt zur Seite des Titels. Gekauft wird nie automatisch.
 Der Bereich **Gefolgt** zeigt alle gefolgten Künstler, Labels und Genres (von Beatport übernommene mit „BP“):
 Namen direkt hinzufügen, mit × entfernen, „Von Beatport übernehmen“ und „Ähnliche Künstler …“ (Deezer). Rechtsklick
 auf einen Vorschlag: „Künstler folgen“ / „Label folgen“. **Leeren …** entfernt neue und ausgeblendete Vorschläge
 (gemerkte und gekaufte bleiben), auf Wunsch mit neuer Suche. Titel, die unter **Einkäufe** stehen, sind mit „gekauft“
-markiert und erscheinen im Filter „Gekauft“.
+markiert und erscheinen im Filter „Gekauft“. Titel, die in einer Wunschliste stehen, tragen „in Ideen“ und bleiben
+beim Leeren erhalten.
+
+### Ideen
+
+Die Seite **Ideen** (in der Seitenleiste nach „Entdecken“, die Zahl daneben = zum Kauf vorgemerkte Titel) sammelt Titel,
+die du später kaufen willst, in **Wunschlisten**. Links die Wunschlisten („＋“ legt eine neue an; Rechtsklick:
+umbenennen, als Playlist übernehmen, exportieren, archivieren), rechts die Einträge mit Vorhören (▶), Cover, Künstler,
+Titel, Label, Datum, Quelle, Status und Notiz (Klick auf die Notiz bearbeitet sie).
+
+- **Hinzufügen:** in „Entdecken“ mit ☆ „Idee merken ▸“, hier „+ Hinzufügen ▾“ › „Titel von Hand …“ oder „Liste aus
+  Text einfügen …“ (je Zeile „Künstler - Titel (Mix)“, z. B. aus einer Trackliste). Doppelte (gleicher Vorschlag,
+  gleiche Store-ID oder gleicher Künstler + Titel + Mix) werden nicht noch einmal aufgenommen. Von SonoVault-Vorschlägen
+  werden nur Künstler, Titel und Mix übernommen.
+- **Status:** 🛒 merkt einen Titel zum Kauf vor, ✕ verwirft ihn (bleibt unter „Verworfen“, ↺ holt ihn zurück).
+  **Gekauft** erkennt TagStudio selbst über die Liste **Einkäufe** (gleiche Beatport-ID bzw. Künstler + Titel + Mix),
+  **In Bibliothek**, sobald eine Datei verknüpft ist – automatisch bei der Übernahme in die Bibliothek („Vorbereiten“)
+  oder mit „Mit Bibliothek abgleichen“. Filter: Offen, Kaufen, Gekauft, In Bibliothek, Verworfen, Alle.
+- **Markieren** (Kästchen) für mehrere: Status setzen, verschieben, entfernen (mit Rückfrage); Rechtsklick auf einen
+  Eintrag: Status, Notiz, verschieben/kopieren in eine andere Wunschliste, bei der Quelle öffnen, „Online suchen ›“.
+  „Weitere ▾“ › „Rückgängig“ nimmt die letzte Änderung zurück.
+- **Als Beatport-Playlist:** legt die Wunschliste in deinem Beatport-Konto als `TagStudio_WISH_<Liste>` an bzw. ergänzt
+  sie – nur auf Klick, nur Titel mit Beatport-ID (Vorschläge von Beatport), nichts wird gekauft. Dafür muss im
+  Beatport-Plugin „Playlists in Beatport schreiben“ eingeschaltet sein (wie bei „Einkäufe“).
+- **Als Playlist übernehmen …** legt eine normale Playlist an (ohne verworfene); Titel ohne Datei stehen dort als
+  Einkaufsliste. **Exportieren** als Excel oder CSV (eine oder alle Wunschlisten).
+
+Wunschlisten sind Playlists der Art „Wunschliste“ im Ordner **Ideen** des Playlists-Speichers (sichtbar unter
+„Playlists“, nicht als M3U8 im Playlist-Ordner). Beim ersten Öffnen werden die in „Entdecken“ gemerkten Titel einmal in
+die Wunschliste „Gemerkt (Entdecken)“ kopiert; „Entdecken“ selbst bleibt unverändert. Der Filter „Gemerkt“ in
+„Entdecken“ bleibt noch eine Version und fällt danach weg.
 
 ### DJ-Set
 

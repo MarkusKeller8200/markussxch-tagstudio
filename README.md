@@ -46,7 +46,7 @@
 | 🎧 **Vorschau-Player**<br>Wellenform, Cue-Marken (Serato, Mixed In Key), Überblenden mit Tempo-Angleichung, Bewertung. | 🛡️ **Sicher speichern**<br>Sicherung vor jedem Speichern, Rückgängig über alle Dateien, Snapshots und Änderungsjournal. | 🧩 **Plugins**<br>Stems, Beatport, Discogs, MusicBrainz, Lexicon, Cloud-Abgleich (OneDrive, Google Drive, Dropbox) … |
 
 Dazu: Camelot-Rad und Tonart-Schreibweisen, Audio-Merkmale (Energy, Danceability …) als Spalten, Herkunft der Tags,
-„Entdecken“ neuer Veröffentlichungen, Einstellungen an einem Ort, Deutsch, Englisch und Zürichdeutsch.
+„Entdecken“ neuer Veröffentlichungen mit Wunschlisten („Ideen“), Einstellungen an einem Ort, Deutsch, Englisch und Zürichdeutsch.
 Alles im Detail im **[Handbuch](docs/HANDBUCH.md)**.
 
 ## Bilder

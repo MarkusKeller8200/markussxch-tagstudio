@@ -23,6 +23,8 @@
     </div>
     <button class="nav" data-module="discover" title="Entdecken: neue Titel gefolgter Künstler, Labels und Genres vorhören und merken">
       <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg><span class="nt">Entdecken</span><span class="nav-sub nt" id="discCount" title="Neue Vorschläge"></span></button>
+    <button class="nav" data-module="ideas" title="Ideen: Wunschlisten mit Titeln, die du später kaufen willst – vorhören, Notiz, Status bis in die Bibliothek">
+      <svg class="i" viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.8.6 1.1 1.4 1.1 2.2h5c0-.8.3-1.6 1.1-2.2A6 6 0 0 0 12 3Z"/></svg><span class="nt">Ideen</span><span class="nav-sub nt" id="ideaCount" title="Zum Kauf vorgemerkt"></span></button>
     <button class="nav" data-module="purchases" title="Einkäufe: gekaufte Titel aller Stores (zuerst Beatport) sammeln, mit der Bibliothek abgleichen und fehlende herunterladen">
       <svg class="i" viewBox="0 0 24 24"><path d="M5 7h14l-1.5 10.5a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg><span class="nt">Einkäufe</span><span class="nav-sub nt" id="purCount"></span></button>
     <button class="nav" data-module="prep" title="Tracks vorbereiten: Eingang → Stufen → Bibliothek">
@@ -494,6 +496,32 @@
       </div>
     </div>
 
+    <div class="work module" id="moduleIdeas" hidden>
+      <div class="mod-page prep-page">
+        <header class="mod-head">
+          <div><h2>Ideen</h2>
+          <p class="muted">Wunschlisten mit Titeln, die du später kaufen willst – aus „Entdecken“, von Hand oder aus Text. Gekauft erkennt TagStudio über „Einkäufe“, in der Bibliothek über die Datei. Es wird nie automatisch gekauft.</p></div>
+        </header>
+        <div class="idea-wrap">
+          <aside class="idea-lists card" id="ideaLists" aria-label="Wunschlisten"></aside>
+          <section class="idea-main prep-pane">
+            <div class="disc-bar">
+              <h3 class="idea-title ellipsis" id="ideaTitle" translate="no"></h3>
+              <div class="seg sm" id="ideaFilter" role="radiogroup" aria-label="Anzeigen"></div>
+              <input id="ideaSearch" class="inp" type="search" placeholder="Suchen (Künstler, Titel, Notiz)" aria-label="Suchen">
+              <span class="disc-acts"><button class="ghost" id="ideaAdd" aria-haspopup="menu">+ Hinzufügen ▾</button><button class="ghost" id="ideaMatch">Mit Bibliothek abgleichen</button><button class="ghost" id="ideaMore" aria-haspopup="menu">Weitere ▾</button><button class="primary" id="ideaBp">Als Beatport-Playlist</button></span>
+            </div>
+            <div class="idea-sel" id="ideaSel" hidden><b id="ideaSelN"></b>
+              <select id="ideaSelStatus" aria-label="Status der markierten setzen"><option value="">Status setzen …</option><option value="idea">Idee</option><option value="buy">Kaufen</option><option value="dropped">Verworfen</option></select>
+              <button class="ghost sm" id="ideaSelMove">Verschieben nach …</button><button class="ghost sm" id="ideaSelRemove">Entfernen …</button><button class="ghost sm" id="ideaSelNone">Markierung aufheben</button></div>
+            <div class="muted sm" id="ideaInfo"></div>
+            <div class="prep-table card" id="ideaList"></div>
+            <audio id="ideaAudio" preload="none"></audio>
+          </section>
+        </div>
+      </div>
+    </div>
+
     <div class="work module" id="modulePrep" hidden>
       <div class="mod-page prep-page">
         <header class="mod-head">
@@ -718,6 +746,7 @@
 <script src="recipes.js"></script>
 <script src="prepare.js"></script>
 <script src="discover.js"></script>
+<script src="ideas.js"></script>
 <script src="profiles.js"></script>
 <script src="setup.js"></script>
 <script src="folders.js"></script>

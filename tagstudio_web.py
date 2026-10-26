@@ -71,6 +71,8 @@ _PASS = {
     "help_docs", "help_licenses", "help_lic_mark", "feedback_info", "feedback_search", "feedback_prepare", "feedback_translation", "help_tags", "start_tag_scan", "tag_field_filter",
     "setup_state", "setup_finish", "set_nav_hidden", "set_nav_order", "first_steps_seen", "first_steps_restart", "set_first_steps", "whats_new", "whats_new_seen", "folders_overview", "folders_get", "folders_set_base", "folders_set_role", "folders_lib_add", "folders_lib_update", "folders_lib_remove", "folders_create", "folders_review_apply", "folders_adopt", "folders_menu", "folders_recent_add", "folders_mkdir", "folders_cloud_online", "folders_change_preview", "start_folders_change", "folders_remove_empty", "set_base_dir", "setup_structure", "set_archive_dir", "tag_archive", "prep_archive", "archive_list", "archive_restore",
     "disc_overview", "disc_follow_save", "disc_follow_edit", "disc_clear", "start_disc_bp_follow", "start_disc_related", "disc_set", "disc_genres", "disc_auto", "disc_auto_status", "start_disc_suggest", "start_disc_run",
+    "ideas_overview", "ideas_count", "ideas_list_create", "ideas_list_rename", "ideas_list_archive", "ideas_from_disc", "ideas_add_manual", "ideas_add_text",   # #186
+    "ideas_set", "ideas_remove", "ideas_move", "ideas_undo", "ideas_preview", "ideas_to_playlist", "start_ideas_match", "ideas_bp_preview", "start_ideas_bp",
     "prep_overview", "prep_pending", "start_prep_fetch", "prep_workflow_save", "prep_workflow_new", "prep_workflow_delete", "prep_export", "prep_import", "start_prep_run", "prep_refresh", "prep_mark", "prep_revert", "prep_allow", "prep_cleanup",
     "plugins_list", "plugin_log_read", "plugin_enable", "plugin_actions", "plugin_form", "start_plugin_action", "start_plugin_install", "plugin_apply",
     "start_plugin_catalog", "start_plugin_store_install", "plugin_store_revert",
@@ -274,6 +276,13 @@ class Api:
         if not dest:
             return {"ok": False, "cancelled": True}
         return self._s.disc_export_write(fmt, dest, which)
+
+    def ideas_export(self, fmt, pid=""):
+        """#186: Wunschliste(n) als Excel/CSV speichern."""
+        dest = self.save_dialog(self._s.ideas_export_name(fmt, pid))
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        return self._s.ideas_export_write(fmt, dest, pid)
 
     def pl_export(self, fmt, ids=None, folder=None, opts=None):
         """#271: Playlist(s) als M3U8, Rekordbox-XML oder CSV speichern."""

@@ -18,6 +18,8 @@ The complete guide to all features. Overview, pictures and download: [start page
   sortable and filterable (`energy>=70`); files optionally in 0–10 (Lexicon).
 - **DJ set:** optimise the order by key (Camelot), BPM and energy, rate every transition, re-order and lock by
   dragging, path through the Camelot wheel and energy curve; export as M3U8, Rekordbox XML and CSV.
+- **Ideas:** wish lists of tracks you want to buy later – from “Discover”, by hand or from text; status idea → buy →
+  bought → in library, note, preview, as Beatport playlist (only on click).
 - **Playlists:** collect tracks from the tagger and the DJ set in playlists with folders; every playlist is also
   stored as M3U8 in the playlist folder (for Engine DJ, VirtualDJ & co.); archive instead of delete.
 - **Comparing two folders/files:** field by field with character-exact highlighting, take over values with an arrow.
@@ -198,12 +200,40 @@ new MP3s (from ZIPs too) into the inbox.
 **Discover** is a page of its own, at the top of the sidebar by default (the number next to it = new suggestions);
 “Prepare” only shows the workflow. Under “Follow …” set artists, labels and Beatport genres (or have them suggested from the library);
 “Search” fetches new releases from Deezer and Beatport, optionally also from **SonoVault** (costs credits: 1–2 requests
-per artist/label; never in the daily search; entries without link, removed after 30 days and never exported). In the list, pre-listen (▶), remember (☆), mark as bought (✓)
-or hide (✕); “Open” leads to the track's page. Nothing is ever bought automatically. The section **Following**
+per artist/label; never in the daily search; entries without link, removed after 30 days and never exported). In the list, pre-listen (▶), **save as idea ▸** with ☆ (choose a wish list or
+create one; also via right-click “Save as idea ›”), mark as bought (✓) or hide (✕); “Open” leads to the track's page. Nothing is ever bought automatically. The section **Following**
 shows all followed artists, labels and genres (those imported from Beatport marked “BP”): add names directly, remove
 with ×, “Import from Beatport” and “Similar artists …” (Deezer). Right-click a suggestion: “Follow artist” / “Follow
 label”. **Clear …** removes new and hidden suggestions (watch-listed and bought ones stay), optionally searching
-again. Tracks listed under **Purchases** are marked “bought” and appear in the filter “Bought”.
+again. Tracks listed under **Purchases** are marked “bought” and appear in the filter “Bought”. Tracks that are in a
+wish list carry “in ideas” and are kept when clearing.
+
+### Ideas
+
+The **Ideas** page (in the sidebar after “Discover”, the number next to it = tracks marked for buying) collects tracks
+you want to buy later in **wish lists**. On the left the wish lists (“＋” creates one; right-click: rename, turn into
+playlist, export, archive), on the right the entries with preview (▶), cover, artist, title, label, date, source,
+status and note (click the note to edit it).
+
+- **Add:** in “Discover” with ☆ “Save as idea ▸”, here “+ Add ▾” › “Track by hand …” or “Paste list from text …” (one
+  “Artist - Title (Mix)” per line, e.g. from a tracklist). Duplicates (same suggestion, same store ID or same artist +
+  title + mix) are not added again. From SonoVault suggestions only artist, title and mix are taken over.
+- **Status:** 🛒 marks a track for buying, ✕ drops it (stays under “Dropped”, ↺ brings it back). **Bought** is
+  detected by TagStudio itself via the **Purchases** list (same Beatport ID or artist + title + mix), **In library** as
+  soon as a file is linked – automatically when taken over into the library (“Prepare”) or with “Match with library”.
+  Filters: Open, Buy, Bought, In library, Dropped, All.
+- **Select** (check boxes) several entries: set status, move, remove (with confirmation); right-click an entry: status,
+  note, move/copy to another wish list, open at the source, “Search online ›”. “More ▾” › “Undo” reverts the last change.
+- **As Beatport playlist:** creates or extends the wish list in your Beatport account as `TagStudio_WISH_<list>` – only
+  on click, only tracks with a Beatport ID (suggestions from Beatport), nothing is bought. “Write playlists to Beatport”
+  must be switched on in the Beatport plugin (as for “Purchases”).
+- **Turn into playlist …** creates a normal playlist (without dropped entries); tracks without a file are listed there
+  as a shopping list. **Export** as Excel or CSV (one or all wish lists).
+
+Wish lists are playlists of the kind “wish list” in the **Ideen** folder of the playlist store (visible under
+“Playlists”, not written as M3U8 to the playlist folder). On first opening, the tracks remembered in “Discover” are
+copied once into the wish list “Gemerkt (Entdecken)”; “Discover” itself stays unchanged. The filter “Watch list” in
+“Discover” stays for one more version and is removed afterwards.
 
 ### DJ set
 

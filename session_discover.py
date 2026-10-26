@@ -92,7 +92,11 @@ class DiscoverMixin:
     def disc_overview(self) -> dict:
         d = discover.load()
         purchased = discover.mark_purchased(d, self._disc_bought())
+        in_ideas = self._ideas_disc_keys() if hasattr(self, "_ideas_disc_keys") else set()
         items = sorted(d["items"].values(), key=lambda e: (e.get("date") or "", e.get("first") or ""), reverse=True)
+        for e in items:                                    # #186: Kennzeichen „in Ideen“ (nur Anzeige)
+            if e["key"] in in_ideas:
+                e["idea"] = True
         counts = {k: 0 for k in discover.STATUS}
         for e in items:
             st = e.get("status", "new")
@@ -119,9 +123,10 @@ class DiscoverMixin:
 
     def disc_clear(self) -> dict:
         """Neue und ausgeblendete Vorschläge entfernen, gemerkte und gekaufte bleiben (#291)."""
+        keep = self._ideas_disc_keys() if hasattr(self, "_ideas_disc_keys") else ()   # #186: vor dem Sperren lesen
         with discover.LOCK:
             d = discover.load()
-            n = discover.clear(d)
+            n = discover.clear(d, keys=keep)
             discover.save(d)
         r = self.disc_overview()
         r["removed"] = n

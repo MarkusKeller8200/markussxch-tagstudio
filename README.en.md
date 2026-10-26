@@ -48,7 +48,7 @@
 | 🎧 **Preview player**<br>Waveform, cue points (Serato, Mixed In Key), crossfading with tempo matching, ratings. | 🛡️ **Safe saving**<br>Backup before every save, undo across all files, snapshots and change journal. | 🧩 **Plugins**<br>Stems, Beatport, Discogs, MusicBrainz, Lexicon, cloud sync (OneDrive, Google Drive, Dropbox) … |
 
 Plus: Camelot wheel and key notations, audio features (energy, danceability …) as columns, origin of tags,
-“Discover” new releases, settings in one place, German, English and Swiss German.
+“Discover” new releases with wish lists (“Ideas”), settings in one place, German, English and Swiss German.
 Everything in detail in the **[manual](docs/HANDBUCH.en.md)**.
 
 ## Pictures

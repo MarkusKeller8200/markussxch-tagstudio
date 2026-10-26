@@ -42,13 +42,13 @@ function discRender() {
       <td><button class="icon-btn play ${DISC.playing === e.key ? "on" : ""}" data-a="play" ${e.preview ? "" : "disabled"} title="${e.preview ? "Vorhören (Ausschnitt)" : "kein Vorhör-Ausschnitt"}" aria-label="Vorhören">${DISC.playing === e.key ? "❚❚" : "▶"}</button></td>
       <td class="cv">${e.cover ? `<img src="${esc(e.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer"><img class="big" src="${esc(e.cover)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}</td>
       <td class="ell" title="${esc(e.artist)}">${esc(e.artist)}</td>
-      <td class="ell nm" title="${esc(e.title + (e.mix ? ` (${e.mix})` : ""))}"><b>${esc(e.title)}</b>${e.mix ? ` <span class="muted">(${esc(e.mix)})</span>` : ""}${e.status === "new" && DISC.filter !== "new" ? '<span class="disc-badge">neu</span>' : ""}${e.owned ? '<span class="disc-badge" title="Gleicher Künstler und Titel ist schon in der Bibliothek">vorhanden</span>' : ""}${e.purchased ? `<span class="disc-badge buy" title="${e.purchased === "ja" ? "Steht unter „Einkäufe“" : "Laut „Einkäufe“ gekauft am " + esc(e.purchased)}">gekauft</span>` : ""}</td>
+      <td class="ell nm" title="${esc(e.title + (e.mix ? ` (${e.mix})` : ""))}"><b>${esc(e.title)}</b>${e.mix ? ` <span class="muted">(${esc(e.mix)})</span>` : ""}${e.status === "new" && DISC.filter !== "new" ? '<span class="disc-badge">neu</span>' : ""}${e.owned ? '<span class="disc-badge" title="Gleicher Künstler und Titel ist schon in der Bibliothek">vorhanden</span>' : ""}${e.idea ? '<span class="disc-badge" title="Steht in einer Wunschliste unter „Ideen“">in Ideen</span>' : ""}${e.purchased ? `<span class="disc-badge buy" title="${e.purchased === "ja" ? "Steht unter „Einkäufe“" : "Laut „Einkäufe“ gekauft am " + esc(e.purchased)}">gekauft</span>` : ""}</td>
       <td class="ell sm" title="${esc([e.label, e.release].filter(Boolean).join(" – "))}">${esc(e.label || "")}</td>
       <td class="sm nw">${esc((e.date || "").slice(0, 10))}</td>
       <td class="sm nw muted">${esc([e.bpm ? e.bpm : "", e.key_name].filter(Boolean).join(" · "))}</td>
       <td class="sm nw" title="${esc([e.seed, e.genre].filter(Boolean).join(" · "))}">${esc(src[e.src] || e.src)}</td>
       <td class="d-acts"><div class="d-row"><button class="ghost sm" data-a="open" ${e.url ? "" : "disabled"} title="${esc(e.url ? `Auf ${src[e.src] || e.src} öffnen (Kauf nur dort)` : "Kein Link (SonoVault: nur Anzeige, Eintrag verschwindet nach 30 Tagen)")}">Öffnen</button>
-        ${e.status !== "saved" ? '<button class="icon-btn" data-a="saved" title="Merken">☆</button>' : '<button class="icon-btn" data-a="new" title="Nicht mehr merken">★</button>'}
+        <button class="icon-btn${e.idea ? " on" : ""}" data-a="idea" title="${e.idea ? "Steht in einer Wunschliste – in eine weitere merken ▸" : "Idee merken ▸ (Wunschliste wählen)"}" aria-haspopup="menu">${e.idea ? "★" : "☆"}</button>
         ${e.status !== "bought" ? '<button class="icon-btn" data-a="bought" title="Als gekauft markieren">✓</button>' : ""}
         ${e.status !== "hidden" ? '<button class="icon-btn" data-a="hidden" title="Ausblenden">✕</button>' : '<button class="icon-btn" data-a="new" title="Wieder anzeigen">↺</button>'}</div></td></tr>`).join("")}
     </tbody></table>${discRows().length > 1000 ? '<div class="muted sm" style="padding:8px">Die ersten 1000 Einträge – Suche oder Filter einschränken.</div>' : ""}`;
@@ -214,6 +214,7 @@ function discRowMenu(ev, e) {
     items.push(has("artists", a) ? { label: `Künstler nicht mehr folgen: ${a}`, run: () => discFolEdit("artists", a, false) }
       : { label: `Künstler folgen: ${a}`, run: () => discFolEdit("artists", a, true) });
   });
+  items.unshift({ label: "Idee merken ›", run: () => setTimeout(() => ideasRememberMenu(ev, [e.key], () => discShow()), 0) }, "-");
   if (e.label) items.push(has("labels", e.label) ? { label: `Label nicht mehr folgen: ${e.label}`, run: () => discFolEdit("labels", e.label, false) }
     : { label: `Label folgen: ${e.label}`, run: () => discFolEdit("labels", e.label, true) });
   if (!items.length) return;
@@ -286,6 +287,7 @@ async function discBadge(n) {
     const k = b.closest("tr").dataset.k, e = DISC.d.items.find((x) => x.key === k); if (!e) return;
     if (b.dataset.a === "play") return discPlay(e);
     if (b.dataset.a === "open") return call("open_url", e.url);
+    if (b.dataset.a === "idea") return ideasRememberMenu(ev, [k], () => discShow());     // #186: in eine Wunschliste
     if (DISC.playing === k && b.dataset.a === "hidden") discStop();
     discApply(await call("disc_set", [k], b.dataset.a));
   });

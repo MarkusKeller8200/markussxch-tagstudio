@@ -3,8 +3,8 @@
 "use strict";
 
 const PLS = { play: null, st: null, sel: new Set(), anchor: null, drag: null, busy: false, open: new Set(), closed: new Set(), archOpen: false, q: "" };
-const PLS_ICON = { manual: "♫", djset: "◎", smart: "⚡", import: "⇣", queue: "⏭" };
-const PLS_KIND = { manual: "Playlist", djset: "DJ-Set", smart: "Smartlist", import: "Import", queue: "Warteschlange" };
+const PLS_ICON = { manual: "♫", djset: "◎", smart: "⚡", import: "⇣", queue: "⏭", wish: "☆" };
+const PLS_KIND = { manual: "Playlist", djset: "DJ-Set", smart: "Smartlist", import: "Import", queue: "Warteschlange", wish: "Wunschliste" };
 
 async function playlistsShow() {
   try {
@@ -237,7 +237,7 @@ function plsPlay(k) {
 /** Playlist wählen oder neu anlegen → {id} | {name, folder} | null */
 async function plsPick({ title, ok = "OK", allowNew = true, exclude = "" } = {}) {
   const st = await call("pl_list");
-  const pls = st.playlists.filter((p) => p.id !== exclude && p.kind !== "smart");
+  const pls = st.playlists.filter((p) => p.id !== exclude && p.kind !== "smart" && p.kind !== "wish");   // #186: Wunschlisten über „Ideen“
   const order = [...st.recent.map((id) => pls.find((p) => p.id === id)).filter(Boolean), ...pls.filter((p) => !st.recent.includes(p.id))];
   const folders = st.folders;
   const html = `<input class="inp" id="plsPickFind" placeholder="Suchen …" style="width:100%" autocomplete="off">

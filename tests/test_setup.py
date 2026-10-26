@@ -17,17 +17,17 @@ class TestSetup(Base):
         """#316: Käufe schaltbar und zuerst; eigene Reihenfolge, neue Module an ihrem Standardplatz, zurücksetzen."""
         s = self.session({"setup_done": "x"})
         st = s.setup_state()
-        self.assertEqual(st["order"][:2], ["discover", "purchases"])           # #333: Entdecken zuoberst
+        self.assertEqual(st["order"][:3], ["discover", "ideas", "purchases"])  # #333: Entdecken zuoberst, #186 Ideen
         self.assertNotIn("settings", st["order"])
         self.assertEqual(s.set_nav_hidden(["purchases"])["hidden"], ["purchases"])
         order = list(st["order"])
         order.remove("tagger")
         order.insert(0, "tagger")
         st = s.set_nav_order(order)
-        self.assertEqual(st["order"][:3], ["tagger", "discover", "purchases"])
+        self.assertEqual(st["order"][:4], ["tagger", "discover", "ideas", "purchases"])
         s.cfg["nav_order"] = ["tagger", "prep"]                  # ältere Liste ohne neue Module
         o = s.setup_state()["order"]
-        self.assertEqual(o[:2], ["discover", "purchases"])                      # neue Module an ihrem Standardplatz
+        self.assertEqual(o[:3], ["discover", "ideas", "purchases"])             # neue Module an ihrem Standardplatz
         self.assertLess(o.index("tagger"), o.index("prep"))
         self.assertEqual(sorted(o), sorted(m for m in st["modules"] if m not in ("settings", "help")))
         self.assertEqual(s.set_nav_order([])["order"][0], "discover")

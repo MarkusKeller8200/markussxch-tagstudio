@@ -155,7 +155,7 @@ class UiTest(unittest.TestCase):
         """#88 Menü-Reihenfolge und Startseite, #87 Einstellungskacheln, #85/#86 Vorgaben, #89 Kanal."""
         pg = self.pg
         navs = pg.evaluate("[...document.querySelectorAll('.nav[data-module]')].map(b=>b.dataset.module)")
-        self.assertEqual(navs, ["discover", "purchases", "prep", "tagger", "fixer", "compare", "djset", "playlists", "snapshots", "backups", "plugins", "settings", "help", "db"])
+        self.assertEqual(navs, ["discover", "ideas", "purchases", "prep", "tagger", "fixer", "compare", "djset", "playlists", "snapshots", "backups", "plugins", "settings", "help", "db"])
         self.assertEqual(pg.evaluate("S.module"), "tagger")
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stUpdateCard")
@@ -1904,10 +1904,14 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.locator("#discList tbody tr").count(), 2)          # vorhandener ausgeblendet
         pg.uncheck("#discHideOwned")
         self.assertEqual(pg.locator("#discList tbody tr").count(), 3)
-        pg.click('#discList tr[data-k="deezer:2"] [data-a="saved"]')
+        pg.click('#discList tr[data-k="deezer:2"] [data-a="idea"]')                    # #186: Idee merken ▸
+        pg.click('#menu button:has-text("Neue Wunschliste")')
+        pg.fill("#ideaNm", "Herbst")
+        pg.click("#mBtns .primary")
         pg.wait_for_function("DISC.d.counts.saved === 1")
         pg.click('#discFilter [data-f="saved"]')
         self.assertEqual(pg.locator("#discList tbody tr").count(), 1)
+        self.assertIn("in Ideen", pg.inner_text('#discList tr[data-k="deezer:2"]'))
         self.assertEqual(pg.inner_text("#discCount").strip(), "2")
         pg.click("#discFollow")
         pg.fill("#dfLab", "Nordwerk\nDrumcode")
@@ -1918,6 +1922,80 @@ class UiTest(unittest.TestCase):
         self.assertTrue(pg.locator("#prepWfPane").is_visible())
         pg.click('.nav[data-module="discover"]')                                       # zuletzt benutzte Seite gemerkt
         self.assertTrue(self.until("call('settings').then(r => r.ui.module === 'discover')"))
+
+    def test_ideas_page(self):
+        """#186: Ideen – Übernahme der gemerkten aus Entdecken, Wunschlisten, Status, Notiz, von Hand/aus Text,
+        verschieben, entfernen mit Rückfrage, Rückgängig, Zahl in der Seitenleiste, Beatport nur auf Klick."""
+        pg = self.pg
+        d = os.path.join(self.home, "TagStudio", "Entdecken")
+        os.makedirs(d, exist_ok=True)
+        items = {f"beatport:{i}": {"key": f"beatport:{i}", "src": "beatport", "id": str(i), "artist": "Mara Lind", "title": f"Titel {i}",
+                                   "mix": "Extended Mix", "label": "Nordwerk", "date": "2026-10-0%d" % i, "preview": "", "url": "https://www.beatport.com/track/x/%d" % i,
+                                   "status": "saved" if i < 3 else "new", "first": "2026-10-11T10:00:00"} for i in (1, 2, 3)}
+        with open(os.path.join(d, "entdecken.json"), "w", encoding="utf-8") as fh:
+            json.dump({"follow": {"artists": ["Mara Lind"]}, "items": items}, fh)
+        nav = [b.get_attribute("data-module") for b in pg.locator(".side .nav[data-module]").all()]
+        self.assertEqual(nav[:3], ["discover", "ideas", "purchases"])                  # I4: nach Entdecken
+        pg.click('.nav[data-module="ideas"]')
+        pg.wait_for_function("IDEA.d && IDEA.d.lists.length === 1 && IDEA.d.items.length === 2")   # einmalige Übernahme
+        self.assertIn("Gemerkt (Entdecken)", pg.inner_text("#ideaLists"))
+        self.assertTrue(pg.locator("#ideaMatch").is_disabled())                        # ohne Bibliothek
+        # Status „Kaufen“ → Zahl in der Seitenleiste
+        pg.click('#ideaList tr[data-k="0"] [data-a="buy"]')
+        pg.wait_for_function("IDEA.d.buy === 1")
+        self.assertEqual(pg.inner_text("#ideaCount").strip(), "1")
+        pg.click('#ideaFilter [data-f="buy"]')
+        self.assertEqual(pg.locator("#ideaList tbody tr").count(), 1)
+        pg.click('#ideaFilter [data-f="open"]')
+        # Notiz
+        pg.click('#ideaList tr[data-k="1"] [data-a="note"]')
+        pg.fill("#inTxt", "fürs Warm-up")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("IDEA.d.items[1].note === 'fürs Warm-up'")
+        # neue Wunschliste, aus Text, von Hand
+        pg.click("#ideaNewList")
+        pg.fill("#ideaNm", "Club")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("IDEA.d.lists.length === 2 && IDEA.d.items.length === 0")
+        pg.click("#ideaAdd")
+        pg.click('#menu button:has-text("Liste aus Text")')
+        pg.fill("#itTxt", "01. Kai Ost - Nordwind (Original Mix)\nID - ID\nKai Ost - Morgen")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("IDEA.d.items.length === 2")
+        pg.click("#ideaAdd")
+        pg.click('#menu button:has-text("Titel von Hand")')
+        pg.fill("#imA", "Lena Berg")
+        pg.fill("#imT", "Glas")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("IDEA.d.items.length === 3")
+        # markieren und verschieben
+        pg.check('#ideaList tr[data-k="2"] [data-c]')
+        self.assertTrue(pg.locator("#ideaSel").is_visible())
+        pg.click("#ideaSelMove")
+        pg.click('#menu button:has-text("Gemerkt (Entdecken)")')
+        pg.wait_for_function("IDEA.d.items.length === 2")
+        # verwerfen, entfernen mit Rückfrage, Rückgängig
+        pg.click('#ideaList tr[data-k="0"] [data-a="dropped"]')
+        pg.wait_for_function("IDEA.d.items[0].status === 'dropped'")
+        pg.click('#ideaFilter [data-f="dropped"]')
+        self.assertEqual(pg.locator("#ideaList tbody tr").count(), 1)
+        pg.click('#ideaList tr[data-k="0"]', button="right")
+        pg.click('#menu button:has-text("Entfernen")')
+        pg.click("#dlgBtns .primary")
+        pg.wait_for_function("IDEA.d.items.length === 1")
+        pg.click("#ideaMore")
+        pg.click('#menu button:has-text("Rückgängig")')
+        pg.wait_for_function("IDEA.d.items.length === 2")
+        # Beatport: ohne Plugin nur ein Hinweis, nichts wird verändert
+        pg.click("#ideaBp")
+        pg.wait_for_selector("#dialog:not([hidden])")
+        self.assertIn("Beatport", pg.inner_text("#dialog"))
+        pg.click("#dlgBtns button >> nth=0")
+        # Entdecken zeigt „in Ideen“
+        pg.click('.nav[data-module="discover"]')
+        pg.wait_for_function("DISC.d && DISC.d.items.length === 3")
+        pg.click('#discFilter [data-f="saved"]')
+        self.assertIn("in Ideen", pg.inner_text('#discList tr[data-k="beatport:1"]'))
 
     def test_discover_sonovault(self):
         """#258: SonoVault in Entdecken – Quelle nur mit Schlüssel wählbar, Einträge ohne Link („Öffnen“ gesperrt)."""
@@ -2204,7 +2282,7 @@ class UiTest(unittest.TestCase):
         """#316: Käufe zuerst und ausschaltbar; eigene Reihenfolge mit ↑/↓, Standard-Reihenfolge."""
         pg = self.pg
         first = "[...document.querySelectorAll('.nav[data-module]')].map(b => b.dataset.module)"
-        self.assertEqual(pg.evaluate(first)[:2], ["discover", "purchases"])        # #333: Entdecken zuoberst
+        self.assertEqual(pg.evaluate(first)[:3], ["discover", "ideas", "purchases"])   # #333: Entdecken zuoberst, #186
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector('[data-navshow="purchases"]')
         pg.uncheck('[data-navshow="purchases"]')
@@ -2213,7 +2291,7 @@ class UiTest(unittest.TestCase):
         pg.wait_for_function("!document.querySelector('.nav[data-module=\"purchases\"]').hidden")
         pg.click('[data-navmove="tagger|-1"]')
         self.assertTrue(self.until(f"{first}.indexOf('tagger') < {first}.indexOf('prep')"))
-        self.assertEqual(self.cfg_until(lambda c: bool(c.get("nav_order"))).get("nav_order")[2], "tagger")
+        self.assertEqual(self.cfg_until(lambda c: bool(c.get("nav_order"))).get("nav_order")[3], "tagger")
         pg.click('[data-navorder="reset"]')
         self.assertTrue(self.until(f"{first}.indexOf('prep') < {first}.indexOf('tagger')"))
         self.assertEqual(self.errors, [])

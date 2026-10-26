@@ -32,8 +32,11 @@ import archive
 import setexport
 
 FORMAT = 1
-KINDS = ("manual", "djset", "smart", "import", "queue")
-ITEM_KEYS = ("path", "size", "akey", "added", "lock", "note", "artist", "title", "dur", "ref")
+KINDS = ("manual", "djset", "smart", "import", "queue", "wish")     # #186: „wish“ = Wunschliste (Seite „Ideen“)
+ITEM_KEYS = ("path", "size", "akey", "added", "lock", "note", "artist", "title", "dur", "ref", "idea")
+IDEA_STATUS = ("idea", "buy", "dropped")      # #186: von Hand gesetzt; „gekauft“/„in Bibliothek“ ergeben sich selbst
+_IDEA_TEXT = ("src", "store", "sid", "label", "date", "release", "genre", "disc", "bought")
+_IDEA_URL = ("preview", "cover")
 MIRROR_EXT = ".m3u8"
 ARCHIVE_SUB = "_Playlists"          # im Archiv-Ordner
 MIRROR_ARCHIVE = "_Archiv"          # im Playlist-Ordner, wenn kein Archiv-Ordner festgelegt ist
@@ -136,10 +139,35 @@ def clean_item(x) -> dict | None:
                 return None
     elif "ref" in out:
         del out["ref"]
+    if "idea" in out:                                                  # #186: Angaben einer Idee (Wunschliste)
+        idea = clean_idea(out["idea"])
+        if idea:
+            out["idea"] = idea
+        else:
+            del out["idea"]
+    if "note" in out:
+        out["note"] = str(out["note"])[:1000]
     if "lock" in out:
         out["lock"] = bool(out["lock"])
         if not out["lock"]:
             del out["lock"]
+    return out
+
+
+def clean_idea(x) -> dict | None:
+    """#186: Zusatzangaben eines Eintrags einer Wunschliste – Status, Quelle, Store-ID, Vorhör- und Cover-Link (nur
+    Verweise, keine Kopie), Label, Datum, Schlüssel in „Entdecken“."""
+    if not isinstance(x, dict):
+        return None
+    out = {"status": x.get("status") if x.get("status") in IDEA_STATUS else "idea"}
+    for k in _IDEA_TEXT:
+        v = str(x.get(k) or "").strip()
+        if v:
+            out[k] = v[:300]
+    for k in _IDEA_URL:
+        v = str(x.get(k) or "").strip()
+        if v.startswith("https://") and len(v) < 1000:
+            out[k] = v
     return out
 
 
@@ -1070,6 +1098,8 @@ class Store:
         """Aktive Playlist → relativer Pfad ihrer M3U8 im Playlist-Ordner (Trenner „/“, eindeutig)."""
         out, used = {}, set()
         for p in self.active():
+            if p.get("kind") == "wish":                       # #186: Wunschlisten nicht als M3U8 (meist ohne Dateien)
+                continue
             parts = [safe_part(x) for x in p.get("folder", "").split("/") if x]
             stem = safe_part(p["name"])
             rel = "/".join(parts + [stem + MIRROR_EXT])

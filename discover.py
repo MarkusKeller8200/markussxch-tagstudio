@@ -126,10 +126,12 @@ def follow_edit(d: dict, kind: str, name: str, add: bool = True) -> bool:
     return True
 
 
-def clear(d: dict, keep=("saved", "bought")) -> int:
-    """Vorschläge leeren (#291): alles außer gemerkten und gekauften entfernen. → Anzahl entfernt."""
+def clear(d: dict, keep=("saved", "bought"), keys=()) -> int:
+    """Vorschläge leeren (#291): alles außer gemerkten und gekauften entfernen; keys: Einträge, die in einer
+    Wunschliste stehen (#186), bleiben ebenfalls. → Anzahl entfernt."""
     before = len(d["items"])
-    d["items"] = {k: e for k, e in d["items"].items() if e.get("status") in keep}
+    keys = set(keys or ())
+    d["items"] = {k: e for k, e in d["items"].items() if e.get("status") in keep or k in keys}
     d.pop("auto_new", None)
     return before - len(d["items"])
 

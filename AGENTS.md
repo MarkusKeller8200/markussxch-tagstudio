@@ -14,7 +14,9 @@ Vor Architekturentscheidungen, neuen Modulen oder grösseren Codeänderungen unb
 
 ## Aktuelle Iterationsplanung
 
-**Stand 25.10.2026 (22:35):** **v4.11.0 final** veröffentlicht, Meilenstein #27 geschlossen (`docs/KONZEPT-CLOUD.md`, `docs/KONZEPT-SONOVAULT.md`). Nächster Meilenstein: **#28 „4.12.0 – Käufe, Tag-Fixer & Entdecken“** (#332–#344, #186, #321), Reihenfolge freigegeben. Cloud-Gegenstellen = Plugins mit `cloud_list/get/put/delete` (`cloudsync.py`); SonoVault-Werte nie in Protokolle, Exporte oder Cloud. Ordner immer über `folders.role()`, `folders.libraries()`, `folders.main_library()` bzw. `Session._lib_roots()` holen – keine eigenen Pfad-Einstellungen mehr je Modul. Nutzer-Issues aus GitHub-Feedback (Label `triage`) nur nach Owner-Freigabe.
+**Stand 27.10.2026 (01:30):** v4.12.0 final. Meilenstein **#30 „4.13.0 – Ideen & Wunschlisten“** mit #186 (Phase 2a+2b zusammen, Entscheide I1–I6 in `docs/KONZEPT-IDEE.md`): Seite „Ideen“ (`ideas.py`, `session_ideas.py`, `web/ideas.js`); Wunschlisten sind Playlists der Art `wish` im Ordner „Ideen“ (kein M3U8). GitHub-Auftritt (README, Webseite, Statistik, Signatur-Anträge) gehört in Meilenstein **#29 „GitHub & Webseite“**, nicht in die App-Sammlungen.
+
+**Davor 25.10.2026 (22:35):** **v4.11.0 final** veröffentlicht, Meilenstein #27 geschlossen (`docs/KONZEPT-CLOUD.md`, `docs/KONZEPT-SONOVAULT.md`). Nächster Meilenstein: **#28 „4.12.0 – Käufe, Tag-Fixer & Entdecken“** (#332–#344, #186, #321), Reihenfolge freigegeben. Cloud-Gegenstellen = Plugins mit `cloud_list/get/put/delete` (`cloudsync.py`); SonoVault-Werte nie in Protokolle, Exporte oder Cloud. Ordner immer über `folders.role()`, `folders.libraries()`, `folders.main_library()` bzw. `Session._lib_roots()` holen – keine eigenen Pfad-Einstellungen mehr je Modul. Nutzer-Issues aus GitHub-Feedback (Label `triage`) nur nach Owner-Freigabe.
 
 ## GitHub-Meilensteinverwaltung
 

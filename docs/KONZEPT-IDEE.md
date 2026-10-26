@@ -1,9 +1,9 @@
 # Konzept: Modul IDEE – Ideen sammeln, Wunschlisten pflegen, später kaufen (#186)
 
-Stand: 2026-10-26 (4.12.0, Meilenstein #28) · Status: **KONZEPT – Entscheide I1–I6 freigegeben (27.10.2026)**, noch nicht umgesetzt.
+Stand: 2026-10-26 (4.12.0, Meilenstein #28) · Status: **UMGESETZT (Phase 2a und 2b zusammen, 4.13.0, im Beta-Test)** – Entscheide I1–I6 freigegeben (27.10.2026).
 
-> Was es heute schon gibt (umgesetzt) und was geplant ist, ist in jedem Abschnitt getrennt markiert. Nichts aus diesem
-> Konzept ist implementiert, bevor der User die Entscheide in Abschnitt 8 freigegeben hat (Issue #186, Phase 2).
+> Umgesetzt in `ideas.py`, `session_ideas.py`, `web/ideas.js` (Seite „Ideen“), Tests `tests/test_ideas.py` und
+> `test_browser_ui.test_ideas_page`. Abweichungen vom ursprünglichen Plan stehen in Abschnitt 10.
 
 ## 1. Ziel
 
@@ -133,3 +133,20 @@ Zusätzlich bestätigt: je Eintrag **Notiz**, **Status** (automatisch aus dem K�
 2. **Phase 2a:** Seite „Ideen“, Wunschlisten, „Idee merken ▸“ aus Entdecken, Übernahme der gemerkten Einträge,
    Status Idee/Kaufen/Verworfen, Erkennung gekauft/in Bibliothek, Export.
 3. **Phase 2b:** „Als Beatport-Playlist“, „Als Playlist übernehmen“, Einträge von Hand bzw. aus Text einfügen.
+
+## 10. Umsetzung (4.13.0)
+
+- **Speicher:** Wunschlisten sind Playlists der Art `wish` im Ordner „Ideen“ (`playlists.KINDS`); Einträge `{ref, note,
+  idea: {status, src, store, sid, preview, cover, label, date, release, genre, disc}}` (`playlists.clean_idea`, nur
+  https-Verweise). Wunschlisten werden **nicht** als M3U8 in den Playlist-Ordner geschrieben (`Store.desired`).
+- **Status:** gespeichert nur `idea | buy | dropped`; *Gekauft* (Abgleich mit „Einkäufe“ wie #291) und *In Bibliothek*
+  (verknüpfte Datei) werden bei jeder Anzeige ermittelt (`ideas.status`). Verknüpfen: automatisch bei der Übernahme in
+  die Bibliothek (`_pl_autolink`) und „Mit Bibliothek abgleichen“ (`_pl_auto_match`).
+- **Übernahme aus Entdecken:** einmalig beim ersten Öffnen (Kennzeichen `index.json › migrated.ideas_from_discover`),
+  ohne Rückgängig-Schritt; `entdecken.json` unverändert. „Idee merken ▸“ setzt den Vorschlag in Entdecken auf
+  „gemerkt“ (Filter „Gemerkt“ noch eine Version, I3); Einträge in Wunschlisten bleiben beim „Leeren“ erhalten.
+- **Doppelte:** gleicher Schlüssel in Entdecken, gleiche Store-ID oder gleicher Künstler + Titel + Mix (`ideas.keys`).
+- **Vorhören:** Deezer-Links laufen ab und werden über die Titel-ID frisch geholt (`ideas_preview`).
+- **Beatport (I5):** `store_playlist_put` des Plugins (wie #334) mit `TagStudio_WISH_<Liste>`, nur offene Einträge mit
+  Beatport-ID, ergänzen statt ersetzen; Ziel wird in `pushed.beatport` vermerkt. Plugin unverändert.
+- **Löschen:** Wunschlisten werden archiviert (Playlists › Archiv), Einträge nur nach Rückfrage entfernt (Rückgängig).
