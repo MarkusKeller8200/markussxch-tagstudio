@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-26 (03:37): 4.12.0 – nach der dritten Testrunde offen im Beta-Test: #334, #335, #357, #367, #368, #369; #186 wartet auf I1–I6; alle übrigen Issues von Meilenstein #28 geschlossen**
+Stand: **2026-10-26 (03:46): 4.12.0 – Meilenstein #28: offen nur noch #334 (Beta-Test, Testliste nicht abgehakt) und #186 (Konzept, Entscheide I1–I6); alle übrigen geschlossen. Release erst nach Freigabe des Users**
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 

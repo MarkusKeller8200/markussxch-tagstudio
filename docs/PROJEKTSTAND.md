@@ -1,6 +1,8 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-26 (03:37, dritte Testrunde): geschlossen #345, #353–#356, #358–#366 (u. a. Best Match als Symbol, API-Tester
+> Stand 2026-10-26 (03:46): zusätzlich geschlossen #335, #357, #367–#369 – offen nur noch #334 und #186.
+>
+> Davor 2026-10-26 (03:37, dritte Testrunde): geschlossen #345, #353–#356, #358–#366 (u. a. Best Match als Symbol, API-Tester
 > mit Werte-Editor, Download-Endpunkten, Sitzungs-Anmeldung und Revoke, Beatport-Plugin 2.11, „Erneut zum Download
 > freigeben“); offen im Beta-Test #334, #335, #357, #367–#369 (im Browser laden, verlinken, In Bibliothek verschieben);
 > #186 wartet auf I1–I6.
