@@ -1,6 +1,11 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-26 (01:10, zweite Testrunde): geschlossen #333, #346–#352; neu im Beta-Test #353 Linksklick → Korrektur,
+> Stand 2026-10-26 (03:37, dritte Testrunde): geschlossen #345, #353–#356, #358–#366 (u. a. Best Match als Symbol, API-Tester
+> mit Werte-Editor, Download-Endpunkten, Sitzungs-Anmeldung und Revoke, Beatport-Plugin 2.11, „Erneut zum Download
+> freigeben“); offen im Beta-Test #334, #335, #357, #367–#369 (im Browser laden, verlinken, In Bibliothek verschieben);
+> #186 wartet auf I1–I6.
+>
+> Davor 2026-10-26 (01:10, zweite Testrunde): geschlossen #333, #346–#352; neu im Beta-Test #353 Linksklick → Korrektur,
 > #354 Korrekturfenster breiter, #355 Best Match nur Symbol (auch Tagger), #356 API-Tester Werte-Editor, #357 PATCH
 > (Beatport 2.3), #358 Einstellungen feste Spalten; weiter im Beta-Test #334, #335, #345; #186 wartet auf I1–I6.
 >

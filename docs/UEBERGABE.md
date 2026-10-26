@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-26 (01:10–): 4.12.0 – geschlossen nach Test: #332, #333, #336–#344, #346–#352, #321; im Beta-Test: #334, #335, #345, #353–#358; #186 Konzept wartet auf I1–I6** (vorher 23:10: v4.11.0 final, Meilenstein #28 angelegt, Reihenfolge freigegeben) – Neuer Chat: Abschnitt „Übergabe-Prompt 4.12.0“ (unten); Details „Start 4.12.0“.
+Stand: **2026-10-26 (03:37): 4.12.0 – nach der dritten Testrunde offen im Beta-Test: #334, #335, #357, #367, #368, #369; #186 wartet auf I1–I6; alle übrigen Issues von Meilenstein #28 geschlossen**
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
