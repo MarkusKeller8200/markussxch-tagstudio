@@ -38,6 +38,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   Secrets (setzt der User): `MACOS_CERT_P12`, `MACOS_CERT_PASSWORD`, `APPLE_API_KEY_ID`, `APPLE_API_ISSUER_ID`,
   `APPLE_API_KEY_P8`. Anleitung im Issue. Nächster Schritt: Probe-Build per workflow_dispatch auf dem Zweig (nur mit
   Freigabe), danach mit dem nächsten Release nach `main` mergen und Handbuch/README „Trotzdem öffnen“ anpassen.
+  **Probe-Build 2 grün (a05b6eb, Lauf 40382928332):** App und DMG „Notarized Developer ID“ (Team GDR6X6XJ92). Lauf 1
+  brach nach 30 Min. Warten auf Apple ab (erste Beglaubigung); jetzt `--no-wait` + `notarytool wait` bis 120 Min.
+  Offen: User testet das DMG am Mac; danach beim nächsten Release Zweig mergen.
 
 ## Release 4.12.0 (26.10.2026, 04:20)
 
