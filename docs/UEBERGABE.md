@@ -16,7 +16,7 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - Label „_2%20in%20Arbeit“ (versehentlich angelegt): Löschen freigegeben (12:19), aber **per API nicht möglich** – der
   Proxy lehnt Pfade mit `%25` ab, und `gh label delete "_2%20in%20Arbeit"` dekodiert zu „_2 in Arbeit“ und hat das
   **echte** Status-Label gelöscht (an keinem offenen Issue). Neu angelegt: „_2 in Arbeit“, Farbe FBCA04, „Wird gerade
-  umgesetzt“ (alte Farbe unbekannt). Das falsche Label muss der User in GitHub › Issues › Labels löschen.
+  umgesetzt“ (alte Farbe unbekannt). Das falsche Label hat der User am 26.10.2026 (17:23) in GitHub gelöscht.
   **Lehre:** Labels nur mit wörtlichem Namen anlegen (`-f labels[]=_2 in Arbeit`), nie URL-kodiert; `gh label delete`
   nicht für Namen mit `%`.
 
