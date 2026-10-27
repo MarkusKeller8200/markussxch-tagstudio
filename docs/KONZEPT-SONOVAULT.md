@@ -151,6 +151,20 @@ Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Da
 - Anfrage an Rekordcloud zusammen mit MixID (#218): offizieller Zugang, Kontingent für TagStudio-Nutzer.
 - Doppelte Quellen: Verhältnis zu MusicBrainz/Discogs/Beatport bei gleichen Feldern (Vorrang in „Online-Metadaten“).
 
+## 6c. Durchsicht 27.10.2026 – was noch offen ist
+
+Doku und Website mit der Umsetzung verglichen (Terms unverändert „Last updated: October 19, 2026“):
+- **Integrationsfenster veraltet** (fehlen: `GET /v1/suggestions`, Streams-Unterendpunkte, Webhooks; geänderte Antworten
+  bei identify und artists/labels) → **#379**.
+- **Releases** (`/v1/releases/search`, `/v1/releases/{id}`, Free) bisher ungenutzt → Idee **#380**.
+- **Neuerscheinungs-Feed und Browse** (bezahlt) nicht umgesetzt (SV1 Free) → Idee **#381**, nur bei bezahltem Tarif.
+- **Fragen an Rekordcloud** (Verlinken SV3, Quellenangabe – Seite „Data Sources“ gibt es nicht, BPM/Tonart in Tags,
+  Kontingent) → **#382**, gemeinsam mit der MixID-Anfrage (#218).
+- **Genre-Korrektur, Radio-Überwachung** → weiter Idee **#259** (neue Endpunkte dort vermerkt).
+- Nicht relevant für TagStudio: Bulk Lookup im Dashboard, MCP-Server, Royalty-Seiten.
+- Neu laut Terms §11: Daten nach einer Takedown-/Korrektur-Meldung innert 7 Tagen löschen – betrifft TagStudio nur über
+  den Zwischenspeicher (höchstens 30 Tage, „Zwischenspeicher leeren“ vorhanden).
+
 ## 7. Eigener Katalog statt Dienst (#260, Entscheid User 24.10.2026)
 
 Ein eigener Dienst wie SonoVault wird **nicht** gebaut (alle drei Punkte vom User am 24.10.2026, 11:14 bestätigt). Geplant ist **nur lokale Ausführung**: ein Katalog in TagStudio
