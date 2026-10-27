@@ -45,6 +45,7 @@ function jobsRenderList() {
       <div class="t">${esc(j.label)}</div>
       <div class="acts">
         ${j.status === "waiting" || j.status === "running" ? '<button class="ghost sm" data-jcancel="1">Abbrechen</button>' : ""}
+        ${j.mix_open ? '<button class="ghost sm" data-jmix="1">Ergebnis öffnen</button>' : ""}
         ${j.outputs && j.outputs.length ? `<button class="ghost sm" data-jopen="1" title="${esc(j.outputs[0])}">Ordner öffnen</button>` : ""}
         ${j.logfile ? '<button class="ghost sm" data-jlog="1">Protokoll</button>' : ""}
       </div>
@@ -73,6 +74,7 @@ async function jobsDialog() {
         else if (t.id === "jobCancelAll") JOBS.st = await call("jobs_cancel_all");
         else if (t.dataset.jcancel) JOBS.st = await call("job_cancel", id);
         else if (t.dataset.jopen && job) call("reveal", job.outputs[0]);
+        else if (t.dataset.jmix && job && typeof mixCloseThen === "function") { const rid = job.mix_open; mixCloseThen(() => mixOpen(rid)); return; }
         else if (t.dataset.jlog && job) call("reveal", job.logfile);
         jobsRenderChip(); jobsRenderList();
       });
@@ -80,6 +82,7 @@ async function jobsDialog() {
   });
   await p;
   JOBS.open = false;
+  if (typeof mixRunNext === "function") await mixRunNext();      // #389: „Ergebnis öffnen“ aus der Liste
 }
 
 function jobsNotify(j) {
@@ -91,6 +94,7 @@ function jobsNotify(j) {
     if (document.hidden && window.Notification && Notification.permission === "granted") new Notification("TagStudio", { body: typeof tr === "function" ? tr(msg) : msg });
   } catch (e) { /* Systemmeldung ist optional */ }
   if (ok && typeof jobFinishedHook === "function") jobFinishedHook(j);
+  if (ok && j.mix_open && typeof mixJobDone === "function") mixJobDone(j);            // #389
   if (typeof jobFinishedSnapshot === "function") jobFinishedSnapshot(j);
 }
 

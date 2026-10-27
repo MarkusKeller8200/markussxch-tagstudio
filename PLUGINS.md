@@ -82,6 +82,8 @@ Plugins/
   die neue Dateien erzeugen – Tag-Änderungen und Vorschläge gehören in Vordergrund-Aktionen. Auch je Aktion
   möglich (`"background": true` im ACTIONS-Eintrag). Seiten-Aktionen ohne Auswahl (`"needs_selection": false`)
   laufen ebenfalls im Hintergrund; sie bekommen keine Dateien, aber die Sitzung (z. B. für die Bibliotheksordner, #261).
+  `"background": "option"` (#389): ein Häkchen mit dem Schlüssel `background` entscheidet je Lauf; `"job_name": "mix"`
+  benennt den Auftrag nach dem Dateinamen in dieser Option.
   Eigene Aktionen ohne Auswahl reiht ein Plugin mit `ctx.queue_job(aktion, optionen)` selbst ein (#387, z. B. aus
   `on_event`); wartet schon ein Auftrag derselben Aktion, entsteht kein zweiter.
 - `fields`: Felder, die das Plugin schreibt (Muster mit `*`). TagStudio zeigt bei diesen Feldern die Herkunft
@@ -311,7 +313,9 @@ wird nichts geändert. Erkannt werden nur Titel, die im Index sind – fremde Ti
    0,4 MB Index je Titel (gemessen: 1610 Titel ≈ 660 MB).
 3. **Mix analysieren …** – auf der Plugin-Karte oder unter **Playlists › Importieren ▾ › Aus Mix erkennen …**:
    Mix-Datei wählen, optional die bekannte Tracklist („Künstler - Titel“ je Zeile, gern mit Zeitmarken – auch direkt
-   aus YouTube kopiert) zum Vergleich.
+   aus YouTube kopiert) zum Vergleich. Mit **„Im Hintergrund analysieren“** läuft die Analyse als Hintergrund-Auftrag
+   (Fortschritt und Abbrechen unten in der Fussleiste, #389); danach fragt TagStudio „Ergebnis öffnen?“, in der
+   Auftragsliste steht „Ergebnis öffnen“.
 4. **Ergebnisfenster:** je Titel Zeit (Mitte des Übergangs – dort setzen Tracklisten meist den Wechsel; von Hand
    änderbar), Tempo, Sicherheit, Datei; **▶ Mix** und **▶ Titel** zum Vorhören, **✕** verwirft einen falschen
    Treffer. Speichern als **Playlist** im Ordner „Mixe“ (Zeit, Tempo und Sicherheit als Notiz je Eintrag; nochmals

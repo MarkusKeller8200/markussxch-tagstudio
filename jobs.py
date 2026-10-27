@@ -195,7 +195,8 @@ class JobManager:
             upd = {"status": "cancelled", "text": "abgebrochen"} if res.get("cancelled") or cancel.is_set() \
                 else {"status": "done", "text": "fertig", "i": job["total"], "frac": 0.0}
             upd.update(message=str(res.get("message") or ""), outputs=list(res.get("outputs") or []),
-                       logfile=str(res.get("logfile") or ""), log=[str(x) for x in (res.get("log") or [])][-60:])
+                       logfile=str(res.get("logfile") or ""), log=[str(x) for x in (res.get("log") or [])][-60:],
+                       mix_open=str(res.get("mix_open") or ""))        # #389: Ergebnis von „Mix analysieren“
         except Exception as ex:  # noqa: BLE001 – ein Auftrag darf die Warteschlange nicht anhalten
             upd = {"status": "cancelled", "text": "abgebrochen"} if cancel.is_set() \
                 else {"status": "error", "error": str(ex) or type(ex).__name__, "text": "Fehler"}

@@ -18,8 +18,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Playlists › Importieren ▾ „Aus Mix erkennen …“ und „Frühere Mix-Analysen …“. Kopierte YouTube-Tracklisten mit Links
   („[04:56](https://…)“) werden überall verstanden; Playlists: „feat. X (Remix)“ verlor beim Vergleich den
   Remix-Namen – behoben. Playlists zeigen die Notiz eines Eintrags hinter dem Titel.
+  Plugin 1.1 (#389): Analyse wahlweise **im Hintergrund** – Fortschritt in der Fussleiste, danach „Ergebnis öffnen“.
   Plugin-Rahmen: Optionstyp `file`, Aktionen ohne Formular (`direct`) und versteckte Aktionen (`hidden`),
-  `ctx.queue_job()`, Ereignis `app_started`, Seiten-Aktionen ohne Auswahl im Hintergrund.
+  `ctx.queue_job()`, Ereignis `app_started`, Seiten-Aktionen ohne Auswahl im Hintergrund, Hintergrund per Häkchen
+  (`"background": "option"`, `job_name`).
 
 - **Ideen – Wunschlisten (#186):** neue Seite „Ideen“ nach „Entdecken“. Titel, die du später kaufen willst, in
   Wunschlisten sammeln – mit ☆ „Idee merken ▸“ in Entdecken, von Hand oder als Liste aus Text; je Eintrag Notiz, Quelle

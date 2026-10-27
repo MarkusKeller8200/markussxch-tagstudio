@@ -558,7 +558,7 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   without keylock) – entirely locally (own environment with NumPy, SciPy, FFmpeg). Once **More … › Index library …**
   (background job; afterwards TagStudio updates the index after “Prepare” and at start by itself), then **Analyse
   mix …** (plugin card or Playlists › Import ▾ › “Recognise from mix …”): choose the mix file, optionally the known
-  tracklist for comparison. The **result window** shows per track the time (middle of the transition, editable), tempo
+  tracklist for comparison; optionally **in the background** (keep working, then “Open result”). The **result window** shows per track the time (middle of the transition, editable), tempo
   and confidence; ▶ previews in the mix or in the track, ✕ discards wrong matches. Save as playlist (folder “Mixe”),
   CUE file (next to the mix) or text; save missing tracks of the tracklist as ideas. Tracks you don't own are not
   recognised – they stay “ID – ID”. Details in [PLUGINS.en.md](../PLUGINS.en.md).

@@ -203,3 +203,11 @@ async function mixMenuEntries() {
   if (d.items.length) out.push({ label: `Frühere Mix-Analysen (${d.items.length}) …`, run: () => mixListDialog() });
   return out;
 }
+
+/** #389: Mix im Hintergrund analysiert – sobald kein anderer Dialog offen ist, fragen, ob das Ergebnis aufgehen soll */
+async function mixJobDone(j) {
+  if (typeof modalIdle === "function") await modalIdle(600000);
+  const v = await dialog({ title: "Mix analysiert", text: `${j.names[0] || ""}\n\n${j.message || ""}`,
+    buttons: [{ label: "Später", value: false }, { label: "Ergebnis öffnen", value: true, primary: true }] });
+  if (v) await mixOpen(j.mix_open);
+}

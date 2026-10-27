@@ -220,7 +220,8 @@ More functions a plugin can offer (all optional):
 - `on_event(ctx, event, data)` – TagStudio reports `"files_moved"` (`[{"old", "new"}]`: renamed, archived,
   restored), `"files_added"` (`[path]`: newly taken into the library, Prepare) and `"app_started"` (once per start, about 20 s
   after opening; #387). Runs in the background, errors only go to the log. Own actions without a selection can be
-  queued with `ctx.queue_job(action, options)` (#387); if a job of the same action is already waiting, no second one
+  queued with `ctx.queue_job(action, options)` (#387); `"background": "option"` (#389) lets a check box with the key
+  `background` decide per run, `"job_name": "mix"` names the job after the file name in that option; if a job of the same action is already waiting, no second one
   is created.
 - Result `{"mix_result": {mix, duration, rows, compare, report, index, version}}` of an action (#387): TagStudio stores
   it under `~/TagStudio/Mixe` and opens the “Analyse mix” result window (`mixresult.py`).
@@ -294,7 +295,8 @@ are recognised – other tracks stay “ID – ID”.
    (measured: 1610 tracks ≈ 660 MB).
 3. **Analyse mix …** – on the plugin card or under **Playlists › Import ▾ › Recognise from mix …**: choose the mix
    file, optionally the known tracklist (one “Artist - Title” per line, ideally with timestamps – also copied straight
-   from YouTube) for comparison.
+   from YouTube) for comparison. With **“Analyse in the background”** the analysis runs as a background job (progress
+   and cancel in the footer, #389); afterwards TagStudio asks “Open result?”, and the job list shows “Open result”.
 4. **Result window:** per track the time (middle of the transition – where tracklists usually place the change;
    editable), tempo, confidence and file; **▶ Mix** and **▶ Track** to preview, **✕** discards a wrong match. Save as
    a **playlist** in the folder “Mixe” (time, tempo and confidence as a note per entry; saving again updates the same

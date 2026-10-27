@@ -588,7 +588,8 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   und ohne Keylock) – ganz lokal (eigene Umgebung mit NumPy, SciPy, FFmpeg). Einmal **Mehr … › Bibliothek
   indexieren …** (Hintergrund-Auftrag; danach führt TagStudio den Index nach „Vorbereiten“ und beim Start selbst
   nach), dann **Mix analysieren …** (Plugin-Karte oder Playlists › Importieren ▾ › „Aus Mix erkennen …“): Mix-Datei
-  wählen, optional die bekannte Tracklist zum Vergleich. Das **Ergebnisfenster** zeigt je Titel Zeit (Mitte des
+  wählen, optional die bekannte Tracklist zum Vergleich; auf Wunsch **im Hintergrund** (weiterarbeiten, danach
+  „Ergebnis öffnen“). Das **Ergebnisfenster** zeigt je Titel Zeit (Mitte des
   Übergangs, änderbar), Tempo und Sicherheit; ▶ hört im Mix bzw. im Titel vor, ✕ verwirft falsche Treffer. Speichern
   als Playlist (Ordner „Mixe“), CUE-Datei (neben dem Mix) oder Text; fehlende Titel der Tracklist als Ideen merken.
   Fremde Titel erkennt das Plugin nicht – sie bleiben „ID – ID“. Details in [PLUGINS.md](../PLUGINS.md).

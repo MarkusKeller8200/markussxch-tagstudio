@@ -972,7 +972,7 @@ class Manager:
         return {"plugin": pid, "plugin_name": p.name, "id": aid, "label": a["label"],
                 "description": a.get("description", ""), "options": opts, "run_label": a.get("run_label", "Ausführen"),
                 "needs_selection": a.get("needs_selection", True), "direct": bool(a.get("direct")),
-                "background": bool(a.get("background", (p.manifest or {}).get("background", False)))}
+                "background": a.get("background", (p.manifest or {}).get("background", False)) is True}
 
     def clean_options(self, action: dict, values: dict) -> dict:
         out = {}
@@ -1009,10 +1009,14 @@ class Manager:
         self.cfg.setdefault("plugin_options", {}).setdefault(pid, {})[aid] = opts
         return {"plugin_options": self.cfg["plugin_options"]}
 
-    def is_background(self, pid, aid) -> bool:
-        """Aktion als Hintergrund-Auftrag? („background“: true in der Aktion oder in plugin.json)"""
+    def is_background(self, pid, aid, opts=None) -> bool:
+        """Aktion als Hintergrund-Auftrag? („background“: true in der Aktion oder in plugin.json; #389: „option“ =
+        das Häkchen mit dem Schlüssel „background“ in den Optionen entscheidet)"""
         p, a = self.action(pid, aid)
-        return bool(a.get("background", (p.manifest or {}).get("background", False)))
+        bg = a.get("background", (p.manifest or {}).get("background", False))
+        if bg == "option":
+            return bool((opts or {}).get("background"))
+        return bool(bg)
 
     def run(self, pid, aid, files, values, session=None, cancel=None, progress=None, background=False) -> dict:
         p, a = self.action(pid, aid)

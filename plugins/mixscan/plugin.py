@@ -16,7 +16,7 @@ _LOCK = threading.RLock()          # Warteliste (neue/verschobene Titel) – Ere
 
 ACTIONS = [
     {"id": "analyse", "label": "Mix analysieren …", "short": "Mix analysieren", "where": "page", "run_label": "Analysieren",
-     "needs_selection": False,
+     "needs_selection": False, "background": "option", "job_name": "mix",
      "description": "Sucht die Titel deiner Bibliothek in einer Mix-Datei (DJ-Set, Radiosendung, eigener Mix) und zeigt "
                     "die Tracklist mit Zeit, Tempo und Sicherheit – speichern als Playlist, CUE-Datei oder Text.",
      "options": [
@@ -26,6 +26,9 @@ ACTIONS = [
          {"key": "tracklist", "type": "textarea",
           "label": "Bekannte Tracklist (optional, je Zeile „Künstler - Titel“) – zum Vergleich; fehlende Titel lassen "
                    "sich danach als Ideen merken"},
+         {"key": "background", "type": "check", "default": False,
+          "label": "Im Hintergrund analysieren – weiterarbeiten; das Ergebnis lässt sich danach öffnen (Fussleiste "
+                   "bzw. „Frühere Analysen …“)"},
          {"key": "hint", "type": "info",
           "label": "Nur eigene Dateien – TagStudio lädt nichts von YouTube, SoundCloud oder Mixcloud herunter. Erkannt "
                    "werden nur Titel, die im Index sind."}]},

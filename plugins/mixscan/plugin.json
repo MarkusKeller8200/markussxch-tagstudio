@@ -1,7 +1,7 @@
 {
   "id": "mixscan",
   "name": "Mix analysieren",
-  "version": "1.0",
+  "version": "1.1",
   "min_app": "4.13.0",
   "category": "audio",
   "api": 1,

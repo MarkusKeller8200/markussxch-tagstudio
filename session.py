@@ -3041,8 +3041,11 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         opts = self.plugins.clean_options(a, values)
         core.save_config(self.plugins.remember(pid, aid, opts))
         # Hintergrund: mit markierten Dateien – oder Seiten-Aktionen ohne Auswahl (#261: Bibliothek indexieren)
-        if self.plugins.is_background(pid, aid) and (files or not a.get("needs_selection", True)):
-            job = self.jobs.add(pid, aid, f"{p.name}: {a.get('run_label') or a['label']}", [f.path for f in files], opts)
+        if self.plugins.is_background(pid, aid, opts) and (files or not a.get("needs_selection", True)):
+            # #389: „job_name“ = Option, deren Wert (z. B. die Mix-Datei) den Auftrag in der Liste benennt
+            names = [os.path.basename(str(opts.get(a["job_name"]) or ""))] if a.get("job_name") and not files else None
+            job = self.jobs.add(pid, aid, f"{p.name}: {a.get('run_label') or a['label']}", [f.path for f in files], opts,
+                                names=names)
             waiting = sum(1 for j in self.jobs.status()["jobs"] if j["status"] == "waiting")
             return {"ok": True, "background": True, "job": job["id"], "waiting": waiting}
 
@@ -3112,6 +3115,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             raise RuntimeError(f"{str(ex) or type(ex).__name__}\n\nDetails im Protokoll: {path}") from ex
         if res.get("proposals"):
             res["log"] = list(res.get("log") or []) + ["Hinweis: Vorschläge sind nur im Vordergrund möglich und wurden verworfen."]
+        if isinstance(res.get("mix_result"), dict):              # #389: Mix im Hintergrund analysiert
+            res["mix_open"] = self._mix_store(res.pop("mix_result"))
         if res.get("log"):
             res["logfile"] = plugins.write_log(f"{job['plugin']}.log", "\n".join(res["log"]))
         return res

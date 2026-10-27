@@ -177,5 +177,8 @@ Auftrag User 15:21: „finalisieren (entfernen von Prototyp) und einbauen an den
   wenn einmal von Hand indexiert wurde; abschaltbar unter „Einstellungen …“ (Standard ein). Verschieben gilt immer.
 - **Plugin-Rahmen:** Optionstyp `file` (`kind: "audio"`), `"direct": true`, `"where": "hidden"`, `ctx.queue_job()`,
   Ereignis `app_started`, Ergebnis `mix_result` (PLUGINS.md).
+- **Hintergrund (#389, Plugin 1.1, Wunsch User 22:39):** Häkchen „Im Hintergrund analysieren“ (`"background":
+  "option"`); der Auftrag trägt den Namen der Mix-Datei (`job_name`), das Ergebnis hängt am Auftrag (`mix_open`) –
+  Rückfrage „Ergebnis öffnen?“, sobald kein anderer Dialog offen ist, und Knopf in der Auftragsliste.
 - **Offen / später:** Speicherbedarf des Index (≈ 0,4 MB je Titel; für sehr grosse Bibliotheken Index stückweise bzw.
   als Speicherabbild laden), Treffer durch anderen Titel ersetzen, Unbekanntes über SonoVault (M3, Phase 4).

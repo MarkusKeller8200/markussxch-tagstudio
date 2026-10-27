@@ -30,6 +30,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   `ctx.queue_job`, Ereignis `app_started` (`plugins_startup`, 20 s nach dem Start); Index-Warteliste
   `index/warteliste.json` → versteckte Aktion `index_add`. M4 wie vorgeschlagen (nur lokale Dateien).
   **Beim Release:** `mixresult`, `session_mixes` in `packaging/build.py` › `HIDDEN`.
+- **#389 (22:39, Plugin 1.1):** Analyse wahlweise im Hintergrund – `"background": "option"`, `job_name`, Job-Feld
+  `mix_open`, `mixJobDone` (Rückfrage nach `modalIdle`), Knopf „Ergebnis öffnen“ in der Auftragsliste.
 - **Messungen 1–7 (User, 27.10.2026) → Plugin 0.2–0.10**, Tabelle in `docs/KONZEPT-MIXSCAN.md` §10.1. Stand 0.10:
   Purified Radio 520 mit 1610 Titeln 11/13 (davon 1 unsicher), die 2 übrigen nicht im Index; Titelanfang im Median
   48 s vor der Tracklist-Zeit, diese liegt in allen Fällen im Übergang. Hintergrund-Indexierung (`index_bg`).

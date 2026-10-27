@@ -113,7 +113,9 @@ PLUGIN = textwrap.dedent('''
                {"id": "front", "label": "Vorne …", "options": []},
                {"id": "page", "label": "Seite …", "where": "page", "needs_selection": False, "background": True, "options": []},
                {"id": "mix", "label": "Mix …", "where": "page", "needs_selection": False, "direct": True,
-                "options": [{"key": "mix", "type": "file", "kind": "audio", "label": "Mix"}]}]
+                "background": "option", "job_name": "mix",
+                "options": [{"key": "mix", "type": "file", "kind": "audio", "label": "Mix"},
+                            {"key": "background", "type": "check", "label": "Hintergrund", "default": False}]}]
 
     def on_event(ctx, event, data):
         if event == "app_started":
@@ -194,6 +196,14 @@ class TestSessionJobs(unittest.TestCase):
             res = s.task_status()["result"]
             self.assertNotIn("mix_result", res)
             self.assertEqual(s.mix_get(res["mix_open"])["lines"][0]["title"], "T")
+            # #389: dieselbe Aktion wahlweise als Hintergrund-Auftrag – Ergebnis hängt am Auftrag
+            self.assertFalse(f["background"])
+            r = s.start_plugin_action("bgtest", "mix", [], {"mix": os.path.join(lib, "a.mp3"), "background": True})
+            self.assertTrue(r["ok"] and r["background"])
+            wait_for(lambda: s.jobs_status()["active"] == 0)
+            j = [x for x in s.jobs_status()["jobs"] if x["action"] == "mix"][0]
+            self.assertEqual((j["status"], j["names"]), ("done", ["a.mp3"]))
+            self.assertEqual(s.mix_get(j["mix_open"])["lines"][0]["title"], "T")
         finally:
             core.CONFIG, core.CONFIG_OLD, jobs.STATE_FILE, plugins.data_root = old
             shutil.rmtree(d, ignore_errors=True)

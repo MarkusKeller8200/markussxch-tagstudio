@@ -3652,6 +3652,12 @@ class UiTest(unittest.TestCase):
         self.assertTrue(pg.locator("#modal").is_hidden())
         self.assertEqual(pg.locator("#plsList .pls-row[data-k]").count(), 2)
         self.assertIn("00:25 · +2.0 % · 58 %", pg.inner_text("#plsList"))   # Zeit, Tempo, Sicherheit als Notiz
+        # #389: im Hintergrund analysiert → Rückfrage „Ergebnis öffnen“ (erst, wenn kein anderer Dialog offen ist)
+        pg.evaluate(f"() => {{ mixJobDone({{names: ['Mix.mp3'], message: '2 Titel erkannt', mix_open: '{res['id']}'}}); }}")
+        pg.wait_for_selector("#dialog:not([hidden])")
+        self.assertIn("2 Titel erkannt", pg.inner_text("#dlgText"))
+        pg.click("#dlgBtns .primary")
+        pg.wait_for_selector("#mxRows tr[data-n]")
 
     def test_playlists_smartlist(self):
         """#272: Smartlist anlegen (Regel-Dialog), Aktualisieren nach Tag-Änderung, Regel hinzufügen, Einfrieren."""
