@@ -159,29 +159,68 @@ def track_name(path: str) -> tuple[str, str]:
     return "", stem
 
 
+def _mix(m: str) -> str:
+    """Fassung für den Vergleich: Original und Extended gelten als gleich (Beatport: Extended = Original)."""
+    return "" if m in ("", "extended", "extended club", "club") else m
+
+
+def _key(artist, title):
+    import playlists
+    t, mix = playlists.split_title(title)
+    return playlists.artist_keys(artist), t, _mix(mix)
+
+
 def compare(expected_text: str, found: list) -> dict:
-    """Bekannte Tracklist mit den erkannten Titeln vergleichen. found: [{artist, title}] → {expected, hit, miss, extra}."""
+    """Bekannte Tracklist mit den erkannten Titeln vergleichen. found: [{artist, title}] →
+    {expected, hit, miss, other, extra}. „other“: gleicher Titel, aber eine andere Fassung (z. B. Remix statt Extended
+    Mix) – zählt nicht als erkannt (Messung 27.10.2026: „Space (Extended Mix)“ statt „Space (Paradoks Remix)“)."""
     import playlists
     exp, _unknown = playlists.parse_tracklist(expected_text or "", "text")
-
-    def key(artist, title):
-        t, _mix = playlists.split_title(title)
-        return playlists.artist_keys(artist), t
-
-    fk = [key(x["artist"], x["title"]) for x in found]
-    hit, miss, used = [], [], set()
+    fk = [_key(x["artist"], x["title"]) for x in found]
+    hit, miss, other, used = [], [], [], set()
     for e in exp:
         r = e["ref"]
-        ea, et = key(r.get("artist", ""), r.get("title", ""))
-        k = next((i for i, (fa, ft) in enumerate(fk) if i not in used and ft and (ft == et or ft in et or et in ft)
-                  and (not ea or not fa or ea & fa)), None)
-        if k is None:
-            miss.append(f"{r.get('artist', '')} - {r.get('title', '')}")
+        ea, et, em = _key(r.get("artist", ""), r.get("title", ""))
+        cands = [i for i, (fa, ft, fm) in enumerate(fk) if i not in used and ft and (ft == et or ft in et or et in ft)
+                 and (not ea or not fa or ea & fa)]
+        same = [i for i in cands if fk[i][2] == em]
+        name = f"{r.get('artist', '')} - {r.get('title', '')}"
+        if same:
+            used.add(same[0])
+            hit.append(name)
+        elif cands:
+            used.add(cands[0])
+            other.append(f"{name} → {name_of(found[cands[0]]['artist'], found[cands[0]]['title'])}")
         else:
-            used.add(k)
-            hit.append(f"{r.get('artist', '')} - {r.get('title', '')}")
+            miss.append(name)
     extra = [name_of(found[i]["artist"], found[i]["title"]) for i in range(len(found)) if i not in used]
-    return {"expected": len(exp), "hit": hit, "miss": miss, "extra": extra}
+    return {"expected": len(exp), "hit": hit, "miss": miss, "other": other, "extra": extra}
+
+
+def merge_rows(rows: list, gap: float = 60.0) -> list:
+    """Aufeinanderfolgende Abschnitte desselben Titels (gleicher Künstler und Titel, auch andere Fassung wie Dub Mix)
+    mit höchstens gap Sekunden Abstand zusammenfassen – der Abschnitt mit den meisten Treffern gibt Datei und Fassung
+    vor, die übrigen Fassungen stehen unter „auch“ (Messung 27.10.2026: „Hypnotic“ in sechs Stücken)."""
+    out = []
+    for r in sorted(rows, key=lambda x: x["start"]):
+        a, t, _m = _key(r["artist"], r["title"])
+        last = out[-1] if out else None
+        if last and r["start"] - last["end"] <= gap and last["_t"] == t and (not a or not last["_a"] or a & last["_a"]):
+            best = r if r["hits"] > last["hits"] else last
+            alts = set(last.get("also") or []) | {name_of(x["artist"], x["title"]) for x in (r, last) if x is not best}
+            merged = {**best, "start": last["start"], "end": max(last["end"], r["end"]), "hits": last["hits"] + r["hits"],
+                      "blocks": last.get("blocks", 0) + r.get("blocks", 0), "conf": max(last["conf"], r["conf"]),
+                      "_a": last["_a"], "_t": t}
+            alts.discard(name_of(best["artist"], best["title"]))
+            if alts:
+                merged["also"] = sorted(alts)
+            out[-1] = merged
+        else:
+            out.append({**r, "_a": a, "_t": t})
+    for r in out:
+        r.pop("_a", None)
+        r.pop("_t", None)
+    return out
 
 
 def name_of(artist, title) -> str:
@@ -219,7 +258,8 @@ def report_text(mix, res, rows, cmp, idx_info, near=None, self_excluded=False) -
     for r in rows:
         L.append(f"  {fmt_time(r['start'])}–{fmt_time(r['end'])}  {name_of(r['artist'], r['title'])}  "
                  f"(Tempo {r['tempo']:+.1f} %{'' if r['keylock'] else ', ohne Keylock'}, Sicherheit {round(r['conf'] * 100)} %"
-                 f"{', unsicher' if r['conf'] < 0.6 else ''})")
+                 f"{', unsicher' if r['conf'] < 0.6 else ''})"
+                 + (f" – auch: {', '.join(r['also'])}" if r.get("also") else ""))
     if not rows:
         L.append("  – keine –")
     if self_excluded:
@@ -231,8 +271,10 @@ def report_text(mix, res, rows, cmp, idx_info, near=None, self_excluded=False) -
     if cmp and cmp["expected"]:
         q = round(100 * len(cmp["hit"]) / cmp["expected"])
         L += ["", f"Abgleich mit der bekannten Tracklist: {len(cmp['hit'])} von {cmp['expected']} erkannt ({q} %)."]
+        if cmp.get("other"):
+            L += ["Gleicher Titel, aber andere Fassung in der Bibliothek (zählt nicht als erkannt):"] + [f"  {x}" for x in cmp["other"]]
         if cmp["miss"]:
-            L += ["Nicht erkannt:"] + [f"  {x}" for x in cmp["miss"]]
+            L += ["Nicht erkannt (nicht im Index oder nicht gefunden):"] + [f"  {x}" for x in cmp["miss"]]
         if cmp["extra"]:
             L += ["Erkannt, aber nicht in der Tracklist (falsch oder fehlt dort):"] + [f"  {x}" for x in cmp["extra"]]
     L += ["", "Bitte diesen Bericht im Issue #261 anhängen bzw. die Zahlen eintragen."]
@@ -349,6 +391,7 @@ def run_analyse(ctx, opts) -> dict:
         p = by_nr.get(s["track"], "")
         a, t = track_name(p) if p else ("", "?")
         rows.append({**s, "path": p, "artist": a, "title": t})
+    rows = merge_rows(rows)
     cmp = compare(opts.get("tracklist") or "", [r for r in rows if r["conf"] >= 0.6]) if str(opts.get("tracklist") or "").strip() else None
     st = m.get("stats") or {}
     idx_info = f"{len(m['files'])} Titel, {st.get('bytes', 0) / 1e6:.1f} MB"

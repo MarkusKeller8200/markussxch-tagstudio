@@ -302,6 +302,8 @@ def segments(blocks: list[dict], min_score: int = 70, ratio: float = 1.4, win: i
         off0 = info[(b0, r["track"])][2]
         blk = BLOCK_S * FPS
         conf = float(min(0.99, (1 - np.exp(-hits.mean() / 25)) * min(1.0, 0.4 + len(hits) / 6)))
+        if mode == "pitch" and len(hits) < 6:      # ohne Keylock doppelt so viele Versuche → kurze Treffer eher Zufall
+            conf *= 0.75                            # (Messung 27.10.2026: drei kurze Fehltreffer am Ende des Mixes)
         out.append({"start": b0 * BLOCK_S, "end": (r["b1"] + 1) * BLOCK_S, "track": r["track"], "hits": int(hits.sum()),
                     "blocks": len(hits), "tempo": round((sc - 1) * 100, 1), "keylock": mode == "lock",
                     "conf": round(conf, 2), "pos": max(0.0, (off0 + b0 * blk * sc) / FPS)})

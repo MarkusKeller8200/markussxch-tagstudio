@@ -71,6 +71,22 @@ class TestPlugin(unittest.TestCase):
         self.assertEqual((todo, drop), ([(1, a)], [2]))
         self.assertNotIn(b, m["files"])
 
+    def test_merge_rows_and_versions(self):
+        """Messung 27.10.2026: „Hypnotic“ in Stücken (auch Dub Mix) → ein Abschnitt; Remix ≠ Extended Mix."""
+        rows = [{"start": 325, "end": 345, "artist": "Path Of Youth", "title": "Hypnotic (Extended Mix)", "hits": 300, "blocks": 4, "conf": 0.99},
+                {"start": 365, "end": 455, "artist": "Path Of Youth", "title": "Hypnotic (Extended Mix)", "hits": 900, "blocks": 18, "conf": 0.99},
+                {"start": 475, "end": 490, "artist": "Path Of Youth", "title": "Hypnotic (Dub Mix)", "hits": 120, "blocks": 3, "conf": 0.73},
+                {"start": 550, "end": 785, "artist": "Nelly Furtado, Nora En Pure, HAYLA", "title": "FADED (Nora En Pure Remix)", "hits": 2000, "blocks": 47, "conf": 0.9}]
+        out = plugin.merge_rows(rows)
+        self.assertEqual([(r["start"], r["end"], r["title"]) for r in out],
+                         [(325, 490, "Hypnotic (Extended Mix)"), (550, 785, "FADED (Nora En Pure Remix)")])
+        self.assertEqual(out[0]["also"], ["Path Of Youth - Hypnotic (Dub Mix)"])
+        c = plugin.compare("Nora En Pure - Space (Paradoks Remix)\nPath Of Youth - Hypnotic (Original Mix)",
+                           [{"artist": "Nora En Pure", "title": "Space (Extended Mix)"}, {"artist": "Path Of Youth", "title": "Hypnotic (Extended Mix)"}])
+        self.assertEqual(c["hit"], ["Path Of Youth - Hypnotic (Original Mix)"])                 # Original = Extended
+        self.assertEqual(c["other"], ["Nora En Pure - Space (Paradoks Remix) → Nora En Pure - Space (Extended Mix)"])
+        self.assertEqual((c["miss"], c["extra"]), ([], []))
+
     def test_near_misses(self):
         blocks = [{"start": 0, "cands": [[90, 1, 1.0, "lock", 0], [12, 2, 1.0, "lock", 0]]},
                   {"start": 5, "cands": [[80, 1, 1.0, "lock", 0], [17, 2, 1.0, "lock", 0], [9, 3, 1.0, "lock", 0]]}]

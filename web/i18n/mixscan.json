@@ -20,6 +20,7 @@
 "Ergebnis: {x} von {x} erkannt ({x} %), {x} falsch.": ["Result: {x} of {x} recognised ({x} %), {x} wrong.", "Resultat: {x} vo {x} erkannt ({x} %), {x} falsch."],
 "Erkannt, aber nicht in der Tracklist (falsch oder fehlt dort):": ["Recognised but not in the tracklist (wrong or missing there):", "Erkannt, aber nöd i de Tracklist (falsch oder fehlt det):"],
 "Erkannte Titel:": ["Recognised tracks:", "Erkannti Titel:"],
+"Gleicher Titel, aber andere Fassung in der Bibliothek (zählt nicht als erkannt):": ["Same track, but a different version in the library (not counted as recognised):", "Gliiche Titel, aber en anderi Fassig i de Bibliothek (zellt nöd als erkannt):"],
 "Hinweis: Der Mix liegt selbst im indexierten Ordner und wurde nicht mitgezählt.": ["Note: the mix itself is in the indexed folder and was not counted.", "Hinwiis: De Mix liit sälber im indexierte Ordner und isch nöd mitzellt worde."],
 "Höchstens so viele Titel ({n} = alle)": ["At most this many tracks ({n} = all)", "Höchschtens so vill Titel ({n} = alli)"],
 "Im Hintergrund indexieren": ["Index in the background", "Im Hintergrund indexiere"],
@@ -37,7 +38,7 @@
 "Mix analysieren – Messbericht ({x})": ["Analyse mix – measurement report ({x})", "Mix analysiere – Mässbricht ({x})"],
 "Mix analysieren – Selbsttest ({x})": ["Analyse mix – self-test ({x})", "Mix analysiere – Sälbschttescht ({x})"],
 "Mix-Datei (vollständiger Pfad; MP3, WAV, FLAC, M4A …)": ["Mix file (full path; MP3, WAV, FLAC, M4A …)", "Mix-Datei (vollständige Pfad; MP3, WAV, FLAC, M4A …)"],
-"Nicht erkannt:": ["Not recognised:", "Nöd erkannt:"],
+"Nicht erkannt (nicht im Index oder nicht gefunden):": ["Not recognised (not in the index or not found):", "Nöd erkannt (nöd im Index oder nöd gfunde):"],
 "Nicht erkannte Titel mit den meisten Treffern (zum Vergleich: echte Treffer liegen meist über {n} je {n} s):": ["Unrecognised tracks with the most hits (for comparison: real matches are usually above {n} per {n} s):", "Nöd erkannti Titel mit de meischte Träffer (zum Vergliich: ächti Träffer ligged meischt über {n} pro {n} s):"],
 "Noch kein Index – zuerst {q}.": ["No index yet – first {q}.", "No kein Index – zersch {q}."],
 "Noch kein Index.": ["No index yet.", "No kein Index."],
@@ -56,6 +57,7 @@
 "{x} Titel erkannt ({x} unsicher) in {x} Mix, Analyse {x} s.": ["{x} tracks recognised ({x} uncertain) in {x} mix, analysis {x} s.", "{x} Titel erkannt ({x} unsicher) i {x} Mix, Analyse {x} s."],
 "{x} Titel, {x} MB": ["{x} tracks, {x} MB", "{x} Titel, {x} MB"],
 "{x}: höchstens {x} Treffer (bei {x}), {x}× unter den Besten": ["{x}: at most {x} hits (at {x}), {x}× among the best", "{x}: höchschtens {x} Träffer (bi {x}), {x}× under de Beschte"],
+"– auch: {x}": ["– also: {x}", "– au: {x}"],
 "– keine –": ["– none –", "– keini –"],
 "→ erkannt {x}, {x} %, Sicherheit {x} %": ["→ recognised {x}, {x} %, confidence {x} %", "→ erkannt {x}, {x} %, Sicherheit {x} %"]
 }
