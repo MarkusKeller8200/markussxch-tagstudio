@@ -228,9 +228,9 @@ def query(index: Index, y: np.ndarray, grid=GRID, modes=("lock", "pitch"), progr
                 if kr == 0:
                     prev = cur.get(kt)
                     if prev is None or kc > prev[0]:
-                        cur[kt] = [kc, kt, s, mode, ko * OFF_Q - shift, [ko * OFF_Q - shift]]
+                        cur[kt] = [kc, kt, s, mode, ko * OFF_Q - shift, [[ko * OFF_Q - shift, kc]]]
                 elif cur.get(kt) and cur[kt][2] == s and cur[kt][3] == mode and kc * 2 >= cur[kt][0]:
-                    cur[kt][5].append(ko * OFF_Q - shift)
+                    cur[kt][5].append([ko * OFF_Q - shift, kc])
     out = []
     for b in range(nblocks):
         cands = [tuple(x[:5]) + (x[5],) for x in sorted(best.get(b, {}).values(), key=lambda x: -x[0])[:5]]
@@ -253,7 +253,7 @@ def segments(blocks: list[dict], min_score: int = 70, ratio: float = 1.4, win: i
     for bl in blocks:
         for hits, tid, sc, mode, off, *more in bl["cands"]:
             M[bl["block"], col[tid]] = hits
-            info[(bl["block"], tid)] = (sc, mode, off, more[0] if more else [off])
+            info[(bl["block"], tid)] = (sc, mode, off, [tuple(x) if isinstance(x, (list, tuple)) else (x, hits) for x in more[0]] if more else [(off, hits)])
     # gleitende Summe nur über Blöcke mit passendem Versatz: derselbe Titel an derselben Stelle (Zufallstreffer
     # anderer Titel springen im Versatz und summieren sich nicht)
     W = M.copy()
@@ -265,7 +265,7 @@ def segments(blocks: list[dict], min_score: int = 70, ratio: float = 1.4, win: i
             if d == 0 or not 0 <= nb < n or (nb, tid) not in info:
                 continue
             other = info[(nb, tid)][3]
-            if any(abs(a - b) <= OFF_TOL * abs(d) for a in offs for b in other):
+            if any(abs(a[0] - b[0]) <= OFF_TOL * abs(d) for a in offs for b in other):
                 W[bb, k] += M[nb, k]
     order = np.argsort(-W, axis=1)
     best, second = order[:, 0], order[:, 1] if W.shape[1] > 1 else order[:, 0]
@@ -304,9 +304,34 @@ def segments(blocks: list[dict], min_score: int = 70, ratio: float = 1.4, win: i
         conf = float(min(0.99, (1 - np.exp(-hits.mean() / 25)) * min(1.0, 0.4 + len(hits) / 6)))
         if mode == "pitch" and len(hits) < 6:      # ohne Keylock doppelt so viele Versuche → kurze Treffer eher Zufall
             conf *= 0.75                            # (Messung 27.10.2026: drei kurze Fehltreffer am Ende des Mixes)
+        # Titelanfang im Mix: Versatz = Titelzeit − Mixzeit·s → Titelzeit 0 bei Mixzeit −Versatz/s (Median über die
+        # Blöcke; einzelne Blöcke können wegen sich wiederholender Phrasen danebenliegen)
+        # Jeder Block liefert bis zu drei Versätze mit ihrer Trefferzahl (Musik wiederholt sich in Phrasen); der
+        # Titelanfang, für den über den ganzen Abschnitt die meisten Treffer sprechen, gewinnt (Raster 0,5 s).
+        votes: dict = {}
+        for m in meta:
+            for off, cnt in m[3]:
+                if m[0]:
+                    st = -off / m[0] / FPS
+                    k = int(round(st * 2))
+                    v = votes.setdefault(k, [0.0, 0.0])
+                    v[0] += cnt
+                    v[1] += cnt * st
+        if votes:
+            score = {x: votes[x][0] + 0.5 * (votes.get(x - 1, [0])[0] + votes.get(x + 1, [0])[0]) for x in votes}
+            top = max(score.values())
+            # gleich starke Kandidaten (Wiederholung): der späteste Anfang, der noch vor dem Erkennen liegt – DJs
+            # blenden einen Titel meist von vorne ein, erkannt wird er erst gegen Ende des Übergangs
+            ok = [x for x in score if score[x] >= 0.85 * top and x / 2 <= b0 * BLOCK_S + 5]
+            k = max(ok) if ok else max(score, key=score.get)
+            near = [votes[x] for x in (k - 1, k, k + 1) if x in votes]
+            track_start = sum(v[1] for v in near) / sum(v[0] for v in near)
+        else:
+            track_start = b0 * BLOCK_S
         out.append({"start": b0 * BLOCK_S, "end": (r["b1"] + 1) * BLOCK_S, "track": r["track"], "hits": int(hits.sum()),
                     "blocks": len(hits), "tempo": round((sc - 1) * 100, 1), "keylock": mode == "lock",
-                    "conf": round(conf, 2), "pos": max(0.0, (off0 + b0 * blk * sc) / FPS)})
+                    "conf": round(conf, 2), "pos": max(0.0, (off0 + b0 * blk * sc) / FPS),
+                    "track_start": round(track_start, 1)})
     return out
 
 

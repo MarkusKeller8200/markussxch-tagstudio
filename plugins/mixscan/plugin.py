@@ -185,15 +185,35 @@ def _key(artist, title):
     return _artists(artist), t, _mix(mix)
 
 
+_TL_TIME = None
+
+
+def tracklist_times(text: str) -> list:
+    """Zeitmarken je Tracklist-Zeile (in Reihenfolge der erkannten Titel): „[04:56] …“, „04:56 …“, „1:02:10 …“ →
+    Sekunden bzw. None. Zeilen ohne Titel (z. B. „00:00 Intro“) zählen nicht."""
+    import re
+    import playlists
+    out = []
+    for line in str(text or "").splitlines():
+        items, _u = playlists.parse_tracklist(line, "text")
+        if not items:
+            continue
+        line = playlists.MD_LINK.sub(r"\1", line)
+        m = re.match(r"\s*\[?\s*(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\s*\]?", line)
+        out.append(int(m.group(1) or 0) * 3600 + int(m.group(2)) * 60 + int(m.group(3)) if m else None)
+    return out
+
+
 def compare(expected_text: str, found: list) -> dict:
     """Bekannte Tracklist mit den erkannten Titeln vergleichen. found: [{artist, title}] →
     {expected, hit, miss, other, extra}. „other“: gleicher Titel, aber eine andere Fassung (z. B. Remix statt Extended
     Mix) – zählt nicht als erkannt (Messung 27.10.2026: „Space (Extended Mix)“ statt „Space (Paradoks Remix)“)."""
     import playlists
     exp, _unknown = playlists.parse_tracklist(expected_text or "", "text")
+    times = tracklist_times(expected_text)
     fk = [_key(x["artist"], x["title"]) for x in found]
-    hit, miss, other, used = [], [], [], set()
-    for e in exp:
+    hit, miss, other, used, timing = [], [], [], set(), []
+    for n, e in enumerate(exp):
         r = e["ref"]
         ea, et, em = _key(r.get("artist", ""), r.get("title", ""))
         cands = [i for i, (fa, ft, fm) in enumerate(fk) if i not in used and ft and (ft == et or ft in et or et in ft)
@@ -203,13 +223,18 @@ def compare(expected_text: str, found: list) -> dict:
         if same:
             used.add(same[0])
             hit.append(name)
+            t = times[n] if n < len(times) else None
+            f = found[same[0]]
+            if t is not None and f.get("track_start") is not None:
+                timing.append({"name": name, "list": t, "calc": f["track_start"], "seen": f.get("start"),
+                               "diff": round(f["track_start"] - t)})
         elif cands:
             used.add(cands[0])
             other.append(f"{name} → {name_of(found[cands[0]]['artist'], found[cands[0]]['title'])}")
         else:
             miss.append(name)
     extra = [name_of(found[i]["artist"], found[i]["title"]) for i in range(len(found)) if i not in used]
-    return {"expected": len(exp), "hit": hit, "miss": miss, "other": other, "extra": extra}
+    return {"expected": len(exp), "hit": hit, "miss": miss, "other": other, "extra": extra, "timing": timing}
 
 
 def merge_rows(rows: list, gap: float = 60.0) -> list:
@@ -280,7 +305,8 @@ def report_text(mix, res, rows, cmp, idx_info, near=None, self_excluded=False) -
          f"Mix: {mix}", f"Länge: {fmt_time(res['duration'])} · Analyse: {res['secs']} s",
          f"Index: {idx_info}", "", "Erkannte Titel:"]
     for r in rows:
-        L.append(f"  {fmt_time(r['start'])}–{fmt_time(r['end'])}  {name_of(r['artist'], r['title'])}  "
+        anf = f"  [Titelanfang ≈ {fmt_time(max(0.0, r['track_start']))}]" if r.get("track_start") is not None else ""
+        L.append(f"  {fmt_time(r['start'])}–{fmt_time(r['end'])}{anf}  {name_of(r['artist'], r['title'])}  "
                  f"(Tempo {r['tempo']:+.1f} %{'' if r['keylock'] else ', ohne Keylock'}, Sicherheit {round(r['conf'] * 100)} %"
                  f"{', unsicher' if r['conf'] < 0.6 else ''})"
                  + (f" – auch: {', '.join(r['also'])}" if r.get("also") else ""))
@@ -295,6 +321,11 @@ def report_text(mix, res, rows, cmp, idx_info, near=None, self_excluded=False) -
     if cmp and cmp["expected"]:
         q = round(100 * len(cmp["hit"]) / cmp["expected"])
         L += ["", f"Abgleich mit der bekannten Tracklist: {len(cmp['hit'])} von {cmp['expected']} erkannt ({q} %)."]
+        if cmp.get("timing"):
+            d = sorted(abs(x["diff"]) for x in cmp["timing"])
+            L += [f"Zeiten (Titelanfang berechnet gegenüber Tracklist; Median der Abweichung {d[len(d) // 2]} s):"]
+            L += [f"  {x['name']}: Tracklist {fmt_time(x['list'])} · berechnet {fmt_time(max(0.0, x['calc']))} ({x['diff']:+d} s)"
+                  f" · erkannt ab {fmt_time(x['seen'])}" for x in cmp["timing"]]
         if cmp.get("other"):
             L += ["Gleicher Titel, aber andere Fassung in der Bibliothek (zählt nicht als erkannt):"] + [f"  {x}" for x in cmp["other"]]
         if cmp["miss"]:

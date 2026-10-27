@@ -481,18 +481,22 @@ _TL_SEP = re.compile(r"\s+[-–—]\s+")
 _TL_TAIL = re.compile(r"\s*\[[^\]]*\]\s*$")
 
 
+MD_LINK = re.compile(r"\[([^\]]*)\]\(https?://[^)\s]*\)")     # Markdown-Link aus kopierten YouTube-Tracklisten
+
+
 def parse_tracklist(text: str, source: str = "text") -> tuple[list[dict], int]:
     """Kopierte Trackliste (1001Tracklists, MixID, Beatport, eigene Notizen) → (Einträge ohne Datei, unbekannte).
     Je Zeile „Künstler – Titel (Mix)“; Nummern, Zeitmarken, „w/“ und ein Label in eckigen Klammern am Ende fallen
     weg. „ID – ID“ (unbekannter Titel) wird gezählt, aber nicht übernommen; Zeilen ohne Trennstrich zählen nicht."""
     out, unknown = [], 0
     for line in str(text or "").splitlines():
-        t = line.strip().strip("\u200b")
+        t = MD_LINK.sub(r"\1", line).strip().strip("\u200b")      # „[04:56](https://youtube…)“ → „04:56“
         for _ in range(3):                                   # „01 [12:34] …“ oder „[12:34] 01. …“
             t = _TL_NUM.sub("", _TL_TIME.sub("", t)).strip()
         if t.lower().startswith("w/ "):
             t = t[3:].strip()
         t = _TL_TAIL.sub("", t)
+        t = re.sub(r"\s*\*+\s*$", "", t)                           # Markierungen „*“/„**“ am Zeilenende
         parts = _TL_SEP.split(t, maxsplit=1)
         if len(parts) != 2:
             continue

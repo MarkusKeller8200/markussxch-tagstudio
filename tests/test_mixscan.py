@@ -93,6 +93,18 @@ class TestPlugin(unittest.TestCase):
                             {"artist": "Con's Universe", "title": "Evenfall (Original Mix)"}])
         self.assertEqual(len(c["hit"]), 2)
 
+    def test_tracklist_times(self):
+        """Zeitmarken aus kopierten YouTube-Tracklisten (Markdown-Links) und Abweichung je Titel."""
+        text = ("[00:00](https://www.youtube.com/watch?v=x&t=0s) Intro\n"
+                "[04:56](https://www.youtube.com/watch?v=x&t=296s) Path Of Youth - Hypnotic (Original Mix)\n"
+                "1:02:10 Estiva - Chemicals (Extended Mix) **\nOhne Zeit - Titel")
+        self.assertEqual(plugin.tracklist_times(text), [296, 3730, None])
+        c = plugin.compare(text, [{"artist": "Path Of Youth", "title": "Hypnotic (Extended Mix)", "track_start": 295.0, "start": 325}])
+        self.assertEqual(c["timing"], [{"name": "Path Of Youth - Hypnotic (Original Mix)", "list": 296, "calc": 295.0, "seen": 325, "diff": -1}])
+        self.assertIn("Estiva - Chemicals (Extended Mix)", c["miss"])                       # „**“ entfernt
+        t = plugin.report_text("/m", {"duration": 4000, "secs": 1}, [], c, "1 Titel")
+        self.assertIn("Hypnotic (Original Mix): Tracklist 04:56 · berechnet 04:55 (-1 s) · erkannt ab 05:25", t)
+
     def test_near_misses(self):
         blocks = [{"start": 0, "cands": [[90, 1, 1.0, "lock", 0], [12, 2, 1.0, "lock", 0]]},
                   {"start": 5, "cands": [[80, 1, 1.0, "lock", 0], [17, 2, 1.0, "lock", 0], [9, 3, 1.0, "lock", 0]]}]
@@ -225,6 +237,14 @@ class TestRecognition(unittest.TestCase):
             if fac != 1.0:
                 self.assertEqual(s["keylock"], mode == "lock")
         self.assertLess(segs[1]["start"], segs[2]["start"])
+        # Titelanfang im Mix (berechnet): jeder Titel beginnt bei Sekunde 8 → Mixzeit des Abschnitts − 8/Tempo.
+        # Synthetische Titel wiederholen sich exakt in 4-Takt-Phrasen – dort ist der Anfang mehrdeutig; mindestens
+        # drei von fünf müssen auf 2 s stimmen.
+        t, ok = 0.0, 0
+        for s, (_p, fac, _m) in zip(segs, spec):
+            ok += abs(s["track_start"] - (t - 8 / fac)) <= 2
+            t += 36 / fac - 8
+        self.assertGreaterEqual(ok, 3)
 
     def test_mix_in_index_is_excluded(self):
         """Messung 27.10.2026: Liegt der Mix im indexierten Ordner, fand er sich selbst – mit exclude zählt er nicht."""

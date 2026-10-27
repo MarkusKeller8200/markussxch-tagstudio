@@ -302,7 +302,9 @@ nichts wird hochgeladen, nichts heruntergeladen, an den Dateien wird nichts geä
 2. **Bibliothek indexieren (Test) …** – Ordner wählen (leer = alle Bibliotheken), für die Messung etwa 200 Titel,
    darunter die Titel des Test-Mixes. Unveränderte Titel werden beim nächsten Mal nicht neu gelesen.
 3. **Mix analysieren (Test) …** – vollständigen Pfad der Mix-Datei eingeben (MP3, WAV, FLAC, M4A …), optional die
-   bekannte Tracklist („Künstler - Titel“ je Zeile) für die Trefferquote.
+   bekannte Tracklist („Künstler - Titel“ je Zeile, gern mit Zeitmarken wie „04:56“ – auch direkt aus YouTube kopiert)
+   für die Trefferquote. Der Bericht nennt je Titel den berechneten **Titelanfang im Mix** und, mit Zeitmarken, die
+   Abweichung zur Tracklist.
 
    **„Bibliothek im Hintergrund indexieren …“** macht dasselbe als Hintergrund-Auftrag (niedrige Priorität, weiterarbeiten,
    Abbrechen jederzeit – beim nächsten Lauf geht es dort weiter; Zwischenstand alle 25 Titel gesichert).

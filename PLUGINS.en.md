@@ -285,7 +285,9 @@ uploaded, nothing downloaded, nothing in the files is changed.
 2. **Index library (test) …** – choose folders (empty = all libraries); about 200 tracks are enough for the
    measurement, including the tracks of the test mix. Unchanged tracks are not read again next time.
 3. **Analyse mix (test) …** – enter the full path of the mix file (MP3, WAV, FLAC, M4A …), optionally the known
-   tracklist (one “Artist - Title” per line) for the hit rate.
+   tracklist (one “Artist - Title” per line, ideally with timestamps such as “04:56” – also copied straight from
+   YouTube) for the hit rate. The report shows the calculated **track start in the mix** for each track and, with
+   timestamps, the deviation from the tracklist.
 
    **“Index library in the background …”** does the same as a background job (low priority, keep working, cancel at
    any time – the next run continues where it stopped; progress saved every 25 tracks).
