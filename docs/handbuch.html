@@ -85,6 +85,8 @@ article{overflow-wrap:anywhere}.doc>*{min-width:0}article pre{white-space:pre-wr
   Idee → Kaufen → Gekauft → In Bibliothek, Notiz, Vorhören, als Beatport-Playlist (nur auf Klick).</li>
 <li><strong>Playlists:</strong> Titel aus Tagger und DJ-Set in Playlists mit Ordnern sammeln; jede Playlist liegt zusätzlich als
   M3U8 im Playlist-Ordner (für Engine DJ, VirtualDJ &amp; Co.); Archivieren statt Löschen.</li>
+<li><strong>Mix analysieren:</strong> in einer Mix-Datei (DJ-Set, Radiosendung) die Titel der eigenen Bibliothek erkennen – auch mit
+  geändertem Tempo – und als Playlist, CUE-Datei oder Text speichern; läuft lokal (Plugin).</li>
 <li><strong>Vergleich zweier Ordner/Dateien:</strong> Feld für Feld mit zeichengenauen Markierungen, Werte per Pfeil übernehmen.</li>
 <li><strong>Tag-Fixer:</strong> Mehrfachwerte (<code>;</code>, <code>/</code>, <code>feat.</code> …) vereinheitlichen oder in echte ID3v2.4-Mehrfachwerte umwandeln.</li>
 <li><strong>Sicherheit beim Speichern:</strong> vor jedem Speichern automatische Sicherung der Tags, Änderungs-Viewer,
@@ -407,7 +409,10 @@ jeder Titel einmal vor.</p>
   DJ …“, „Aus VirtualDJ …“</strong> und „Aus Lexicon …“ holen die Playlists dieser Programme (Crates, Playlists mit Ordnern,
   virtuelle Ordner) – die Bibliothek wird am üblichen Ort und auf externen Laufwerken gesucht und <strong>nur gelesen</strong>;
   erneut holen aktualisiert sie. <strong>„Trackliste einfügen …“</strong> übernimmt eine kopierte Trackliste von 1001Tracklists,
-  MixID, Beatport u. a. (je Zeile „Künstler - Titel“) als Einträge ohne Datei; TagStudio ruft dafür keine Webseite ab.</li>
+  MixID, Beatport u. a. (je Zeile „Künstler - Titel“) als Einträge ohne Datei; TagStudio ruft dafür keine Webseite ab.
+  <strong>„Aus Mix erkennen …“</strong> (mit dem Plugin „Mix analysieren“) findet die Titel deiner Bibliothek in einer Mix-Datei und
+  speichert sie als Playlist im Ordner „Mixe“; <strong>„Frühere Mix-Analysen …“</strong> öffnet gespeicherte Ergebnisse (siehe
+  Plugins).</li>
 <li><strong>Mehr ▾:</strong> exportieren als M3U8 (absolute oder relative Pfade), Rekordbox-XML oder CSV (ganze Ordner als
   Rekordbox-XML mit Ordnerbaum per Rechtsklick auf den Ordner). <strong>„Mit Bibliothek abgleichen …“</strong> sucht zu Einträgen
   ohne Datei den passenden Titel (gleiche ISRC bzw. Künstler + Titel + Mix = gefunden; „Song - Extended Mix“ und
@@ -647,6 +652,14 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   Playlist in Lexicon an, erneutes Senden fügt fehlende Titel an ihrer Stelle ein und entfernt nichts; nur mit
   eingeschaltetem Zurückschreiben, siehe <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.md">PLUGINS.md</a>).</li>
 <li><strong>Lautheit messen:</strong> LUFS, True Peak, Lautheitsbereich (EBU R128, FFmpeg) als Felder, optional angeglichene Kopie.</li>
+<li><strong>Mix analysieren:</strong> erkennt die Titel deiner Bibliothek in einer Mix-Datei – auch mit geändertem Tempo (±10 %, mit
+  und ohne Keylock) – ganz lokal (eigene Umgebung mit NumPy, SciPy, FFmpeg). Einmal <strong>Mehr … › Bibliothek
+  indexieren …</strong> (Hintergrund-Auftrag; danach führt TagStudio den Index nach „Vorbereiten“ und beim Start selbst
+  nach), dann <strong>Mix analysieren …</strong> (Plugin-Karte oder Playlists › Importieren ▾ › „Aus Mix erkennen …“): Mix-Datei
+  wählen, optional die bekannte Tracklist zum Vergleich. Das <strong>Ergebnisfenster</strong> zeigt je Titel Zeit (Mitte des
+  Übergangs, änderbar), Tempo und Sicherheit; ▶ hört im Mix bzw. im Titel vor, ✕ verwirft falsche Treffer. Speichern
+  als Playlist (Ordner „Mixe“), CUE-Datei (neben dem Mix) oder Text; fehlende Titel der Tracklist als Ideen merken.
+  Fremde Titel erkennt das Plugin nicht – sie bleiben „ID – ID“. Details in <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.md">PLUGINS.md</a>.</li>
 <li><strong>Protokolle:</strong> Bei jedem Plugin unter <strong>Mehr …</strong> „Log-Ordner öffnen“ und „Protokoll live anzeigen …“ – ein eigenes
   Fenster, das das Protokoll laufend nachführt; Zeilen eines laufenden Vorgangs erscheinen sofort („läuft“).</li>
 <li><strong>Eigene Plugins</strong> in <code>~/TagStudio/Plugins</code> – Anleitung in <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.md">PLUGINS.md</a>.</li>

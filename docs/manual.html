@@ -85,6 +85,8 @@ automatically.</p>
   bought → in library, note, preview, as Beatport playlist (only on click).</li>
 <li><strong>Playlists:</strong> collect tracks from the tagger and the DJ set in playlists with folders; every playlist is also
   stored as M3U8 in the playlist folder (for Engine DJ, VirtualDJ &amp; co.); archive instead of delete.</li>
+<li><strong>Analyse mix:</strong> recognise the tracks of your own library in a mix file (DJ set, radio show) – even with changed
+  tempo – and save them as playlist, CUE file or text; runs locally (plugin).</li>
 <li><strong>Comparing two folders/files:</strong> field by field with character-exact highlighting, take over values with an arrow.</li>
 <li><strong>Tag fixer:</strong> unify multiple values (<code>;</code>, <code>/</code>, <code>feat.</code> …) or convert them into real ID3v2.4 multiple values.</li>
 <li><strong>Safe saving:</strong> automatic backup of the tags before every save, change viewer, byte-exact restore; undo/redo
@@ -394,7 +396,9 @@ load any playlist into the set. Duplicate tracks of a playlist are left out – 
   DJ …”, “From VirtualDJ …”</strong> and “From Lexicon …” fetch the playlists of these programs (crates, playlists with
   folders, virtual folders) – the library is looked for in the usual place and on external drives and <strong>only read</strong>;
   fetching again updates them. <strong>“Paste tracklist …”</strong> takes over a copied tracklist from 1001Tracklists, MixID,
-  Beatport etc. (one “Artist - Title” per line) as entries without a file; TagStudio does not fetch any web page.</li>
+  Beatport etc. (one “Artist - Title” per line) as entries without a file; TagStudio does not fetch any web page.
+  <strong>“Recognise from mix …”</strong> (with the “Analyse mix” plugin) finds the tracks of your library in a mix file and saves
+  them as a playlist in the folder “Mixe”; <strong>“Earlier mix analyses …”</strong> opens saved results (see Plugins).</li>
 <li><strong>More ▾:</strong> export as M3U8 (absolute or relative paths), Rekordbox XML or CSV (whole folders as Rekordbox XML with
   folder tree by right-clicking the folder). <strong>“Match with library …”</strong> finds the matching track for entries without
   a file (same ISRC or artist + title + mix = found; “Song - Extended Mix” and “Song (Extended)” count as equal,
@@ -618,6 +622,14 @@ backed up first), delete a backup, automatic backup on/off, change/open the fold
   (Playlists › More ▾ › “Send to Lexicon …”: creates the playlist in Lexicon, sending again inserts missing tracks at
   their position and removes nothing; only with writing back switched on, see <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.en.md">PLUGINS.en.md</a>).</li>
 <li><strong>Measure loudness:</strong> LUFS, true peak, loudness range (EBU R128, FFmpeg) as fields, optionally a levelled copy.</li>
+<li><strong>Analyse mix:</strong> recognises the tracks of your library in a mix file – even with changed tempo (±10 %, with and
+  without keylock) – entirely locally (own environment with NumPy, SciPy, FFmpeg). Once <strong>More … › Index library …</strong>
+  (background job; afterwards TagStudio updates the index after “Prepare” and at start by itself), then <strong>Analyse
+  mix …</strong> (plugin card or Playlists › Import ▾ › “Recognise from mix …”): choose the mix file, optionally the known
+  tracklist for comparison. The <strong>result window</strong> shows per track the time (middle of the transition, editable), tempo
+  and confidence; ▶ previews in the mix or in the track, ✕ discards wrong matches. Save as playlist (folder “Mixe”),
+  CUE file (next to the mix) or text; save missing tracks of the tracklist as ideas. Tracks you don't own are not
+  recognised – they stay “ID – ID”. Details in <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.en.md">PLUGINS.en.md</a>.</li>
 <li><strong>Logs:</strong> for every plugin under <strong>More …</strong> “Open log folder” and “Show log live …” – a separate window that keeps
   the log up to date; lines of a running operation appear immediately (“running”).</li>
 <li><strong>Your own plugins</strong> in <code>~/TagStudio/Plugins</code> – instructions in <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.en.md">PLUGINS.en.md</a>.</li>
