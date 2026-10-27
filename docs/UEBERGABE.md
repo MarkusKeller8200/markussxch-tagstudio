@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-27 (01:30): v4.12.0 final; Meilenstein #30 „4.13.0 – Ideen & Wunschlisten“ – #186 umgesetzt, im Beta-Test. #376 SignPath (Meilenstein #29) wartet auf die Bewerbung. Für das nächste Release vorgemerkt: Zweig `macos-signing`, `downloadstats`/`ideas`/`session_ideas` in HIDDEN, `docs/HANDBUCH*.md` ins Paket.**
+Stand: **2026-10-27 (01:30): v4.12.0 final; Meilenstein #30 „4.13.0 – Ideen & Wunschlisten“ – #186 umgesetzt, getestet und geschlossen (03:37) – Meilenstein ohne offene Issues, Release nur nach Freigabe. #376 SignPath (Meilenstein #29) wartet auf die Bewerbung. Für das nächste Release vorgemerkt: Zweig `macos-signing`, `downloadstats`/`ideas`/`session_ideas` in HIDDEN, `docs/HANDBUCH*.md` ins Paket.**
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
