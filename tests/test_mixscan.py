@@ -86,6 +86,11 @@ class TestPlugin(unittest.TestCase):
         self.assertEqual(c["hit"], ["Path Of Youth - Hypnotic (Original Mix)"])                 # Original = Extended
         self.assertEqual(c["other"], ["Nora En Pure - Space (Paradoks Remix) → Nora En Pure - Space (Extended Mix)"])
         self.assertEqual((c["miss"], c["extra"]), ([], []))
+        # Messung 520: Länderzusatz und „Remix, Extended“
+        c = plugin.compare("NTO - I Cared For You (Tim Engelhardt Remix)\nCon's Universe - Evenfall (Extended Mix)",
+                           [{"artist": "NTO (FR), Mont Rouge", "title": "I Cared For You (Tim Engelhardt Remix, Extended)"},
+                            {"artist": "Con's Universe", "title": "Evenfall (Original Mix)"}])
+        self.assertEqual(len(c["hit"]), 2)
 
     def test_near_misses(self):
         blocks = [{"start": 0, "cands": [[90, 1, 1.0, "lock", 0], [12, 2, 1.0, "lock", 0]]},

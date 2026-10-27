@@ -159,15 +159,30 @@ def track_name(path: str) -> tuple[str, str]:
     return "", stem
 
 
+_MIX_WORDS = {"extended", "original", "mix", "remix", "edit", "version", "club", "rmx"}
+
+
 def _mix(m: str) -> str:
-    """Fassung für den Vergleich: Original und Extended gelten als gleich (Beatport: Extended = Original)."""
-    return "" if m in ("", "extended", "extended club", "club") else m
+    """Fassung für den Vergleich: ohne Füllwörter – „Tim Engelhardt Remix, Extended“ = „Tim Engelhardt Remix“,
+    Original = Extended (Beatport); übrig bleibt der Remixer bzw. „dub“, „radio“, „instrumental“ …"""
+    return " ".join(w for w in str(m or "").split() if w not in _MIX_WORDS)
+
+
+def _artists(artist) -> set:
+    """Künstler für den Vergleich, ohne Länderzusatz wie „(FR)“ (Messung 27.10.2026: „NTO (FR)“ ≠ „NTO“)."""
+    import playlists
+    import re
+    return playlists.artist_keys(re.sub(r"\s*[\(\[][A-Za-z]{2,3}[\)\]]", "", str(artist or "")))
+
+
+def _same_artist(a: set, b: set) -> bool:
+    return not a or not b or bool(a & b) or any(x.startswith(y + " ") or y.startswith(x + " ") for x in a for y in b)
 
 
 def _key(artist, title):
     import playlists
     t, mix = playlists.split_title(title)
-    return playlists.artist_keys(artist), t, _mix(mix)
+    return _artists(artist), t, _mix(mix)
 
 
 def compare(expected_text: str, found: list) -> dict:
@@ -182,7 +197,7 @@ def compare(expected_text: str, found: list) -> dict:
         r = e["ref"]
         ea, et, em = _key(r.get("artist", ""), r.get("title", ""))
         cands = [i for i, (fa, ft, fm) in enumerate(fk) if i not in used and ft and (ft == et or ft in et or et in ft)
-                 and (not ea or not fa or ea & fa)]
+                 and _same_artist(ea, fa)]
         same = [i for i in cands if fk[i][2] == em]
         name = f"{r.get('artist', '')} - {r.get('title', '')}"
         if same:
@@ -205,7 +220,7 @@ def merge_rows(rows: list, gap: float = 60.0) -> list:
     for r in sorted(rows, key=lambda x: x["start"]):
         a, t, _m = _key(r["artist"], r["title"])
         last = out[-1] if out else None
-        if last and r["start"] - last["end"] <= gap and last["_t"] == t and (not a or not last["_a"] or a & last["_a"]):
+        if last and r["start"] - last["end"] <= gap and last["_t"] == t and _same_artist(a, last["_a"]):
             best = r if r["hits"] > last["hits"] else last
             alts = set(last.get("also") or []) | {name_of(x["artist"], x["title"]) for x in (r, last) if x is not best}
             merged = {**best, "start": last["start"], "end": max(last["end"], r["end"]), "hits": last["hits"] + r["hits"],

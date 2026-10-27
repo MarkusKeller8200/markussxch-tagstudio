@@ -19,6 +19,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   im Hintergrund laufen.
   Plugin 0.5: Abschnitte desselben Titels werden zusammengefasst (auch andere Fassung wie Dub Mix), der Tracklist-
   Abgleich unterscheidet Fassungen (Remix ≠ Extended Mix), kurze Treffer ohne Keylock gelten als unsicher.
+  Plugin 0.6: Tracklist-Abgleich toleranter bei Länderzusätzen („NTO (FR)“) und Fassungsnamen („Remix, Extended“).
 
 - **Ideen – Wunschlisten (#186):** neue Seite „Ideen“ nach „Entdecken“. Titel, die du später kaufen willst, in
   Wunschlisten sammeln – mit ☆ „Idee merken ▸“ in Entdecken, von Hand oder als Liste aus Text; je Eintrag Notiz, Quelle
