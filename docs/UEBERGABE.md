@@ -1,8 +1,18 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-27 (01:30): v4.12.0 final; Meilenstein #30 „4.13.0 – Ideen & Wunschlisten“ – #186 umgesetzt, getestet und geschlossen (03:37) – Meilenstein ohne offene Issues, Release nur nach Freigabe. #376 SignPath (Meilenstein #29) wartet auf die Bewerbung. Für das nächste Release vorgemerkt: Zweig `macos-signing`, `downloadstats`/`ideas`/`session_ideas` in HIDDEN, `docs/HANDBUCH*.md` ins Paket.**
+Stand: **2026-10-27 (04:10): Meilenstein #30 „4.13.0“ – #186 Ideen geschlossen; #261 Mix analysieren als Prototyp im Beta-Test (Messung beim User, M4 offen); #218 MixID zurück in „Funktionen“ (Anfrage durch den User). #376 SignPath wartet. Für das nächste Release vorgemerkt: Zweig `macos-signing`, `downloadstats`/`ideas`/`session_ideas` in HIDDEN, `docs/HANDBUCH*.md` ins Paket.**
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## 4.13.0 – Mix analysieren (#261, Prototyp) und MixID (#218), 27.10.2026, 03:45
+
+- **Entscheide User:** M1 eigene Umsetzung, M2/M3 nur eigene Bibliothek (Unbekanntes bleibt unbekannt), M5/M7 Plugin
+  mit Ergebnisfenster, M6 Prototyp zuerst (weiter ab ≥ 80 %), M8 MixID-Anfrage sendet der User – #218 zurück in
+  „Funktionen“. **M4 (nur lokale Dateien) noch bestätigen lassen** (nicht angekreuzt).
+- **Prototyp (a5c8cdd, `_3 Beta-Test`):** Plugin `plugins/mixscan` 0.1 (`fp.py`, `worker.py`, `plugin.py`), Katalog
+  `web/i18n/mixscan.json`, Tests `tests/test_mixscan.py` (Erkennung nur mit NumPy/SciPy/FFmpeg – Workflow
+  „Mix-Analyse-Test“), NumPy/SciPy in `docs/third-party.json`. Wartet auf die Messung mit echter Musik beim User.
+- Plugin wird beim nächsten Release mit dem Ordner `plugins/` ausgeliefert (kein Eingriff in `packaging/` nötig).
 
 ## 4.13.0 – Ideen & Wunschlisten (Meilenstein #30, 27.10.2026, 00:35)
 
