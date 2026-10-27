@@ -10,9 +10,11 @@
 "Bitte den vollständigen Pfad einer Mix-Datei angeben.": ["Please enter the full path of a mix file.", "Bitte de vollständig Pfad vo ere Mix-Datei aagäh."],
 "Bitte diesen Bericht im Issue #{n} anhängen bzw. die Zahlen eintragen.": ["Please attach this report to issue #{n} or enter the figures there.", "Bitte dä Bricht im Issue #{n} aahänke oder d Zahle iiträge."],
 "Der Index enthält genau die gewählten Titel; unveränderte Titel werden nicht neu gelesen. Es wird nichts an den Dateien geändert.": ["The index contains exactly the chosen tracks; unchanged tracks are not read again. Nothing in the files is changed.", "De Index enthaltet gnau di gwählte Titel; unveränderti Titel werded nöd neu gläse. A de Dateie wird nüüt gänderet."],
+"Der Mix ist selbst im Index – er wird bei der Analyse nicht mitgezählt.": ["The mix itself is in the index – it is not counted in the analysis.", "De Mix isch sälber im Index – er wird bi de Analyse nöd mitzellt."],
 "Die Installation legt eine eigene Umgebung an (Python {n} wird bei Bedarf geladen). Der Index liegt im Benutzerordner unter TagStudio › Plugin-Daten › mixscan und enthält nur Fingerabdrücke, keine Audiodaten.": ["The installation creates its own environment (Python {n} is downloaded if needed). The index is stored in your user folder under TagStudio › Plugin-Daten › mixscan and contains only fingerprints, no audio data.", "D Installation leit e eigeni Umgäbig aa (Python {n} wird wänn nötig glade). De Index liit im Benutzerordner under TagStudio › Plugin-Daten › mixscan und enthaltet nur Fingerabdrück, kei Audiodate."],
 "Erkannt, aber nicht in der Tracklist (falsch oder fehlt dort):": ["Recognised but not in the tracklist (wrong or missing there):", "Erkannt, aber nöd i de Tracklist (falsch oder fehlt det):"],
 "Erkannte Titel:": ["Recognised tracks:", "Erkannti Titel:"],
+"Hinweis: Der Mix liegt selbst im indexierten Ordner und wurde nicht mitgezählt.": ["Note: the mix itself is in the indexed folder and was not counted.", "Hinwiis: De Mix liit sälber im indexierte Ordner und isch nöd mitzellt worde."],
 "Höchstens so viele Titel ({n} = alle)": ["At most this many tracks ({n} = all)", "Höchschtens so vill Titel ({n} = alli)"],
 "Index: {x} Titel ({x} neu gelesen, {x} entfernt), {x} MB (≈ {x} MB je {n} Titel), {x} s.": ["Index: {x} tracks ({x} newly read, {x} removed), {x} MB (≈ {x} MB per {n} tracks), {x} s.", "Index: {x} Titel ({x} neu gläse, {x} entfernt), {x} MB (≈ {x} MB pro {n} Titel), {x} s."],
 "Index: {x} Titel, {x} MB (Stand {x}).": ["Index: {x} tracks, {x} MB (as of {x}).", "Index: {x} Titel, {x} MB (Stand {x})."],
@@ -27,6 +29,7 @@
 "Mix analysieren – Messbericht ({x})": ["Analyse mix – measurement report ({x})", "Mix analysiere – Mässbricht ({x})"],
 "Mix-Datei (vollständiger Pfad; MP3, WAV, FLAC, M4A …)": ["Mix file (full path; MP3, WAV, FLAC, M4A …)", "Mix-Datei (vollständige Pfad; MP3, WAV, FLAC, M4A …)"],
 "Nicht erkannt:": ["Not recognised:", "Nöd erkannt:"],
+"Nicht erkannte Titel mit den meisten Treffern (zum Vergleich: echte Treffer liegen meist über {n} je {n} s):": ["Unrecognised tracks with the most hits (for comparison: real matches are usually above {n} per {n} s):", "Nöd erkannti Titel mit de meischte Träffer (zum Vergliich: ächti Träffer ligged meischt über {n} pro {n} s):"],
 "Noch kein Index – zuerst {q}.": ["No index yet – first {q}.", "No kein Index – zersch {q}."],
 "Noch kein Index.": ["No index yet.", "No kein Index."],
 "Nur eigene Dateien – TagStudio lädt nichts von YouTube, SoundCloud oder Mixcloud herunter.": ["Own files only – TagStudio does not download anything from YouTube, SoundCloud or Mixcloud.", "Nur eigeni Dateie – TagStudio laadt nüüt vo YouTube, SoundCloud oder Mixcloud abe."],
@@ -39,5 +42,6 @@
 "{x} Datei(en) mit Fehler – siehe Protokoll.": ["{x} file(s) with errors – see log.", "{x} Datei(e) mit Fähler – lueg im Protokoll."],
 "{x} Titel erkannt ({x} unsicher) in {x} Mix, Analyse {x} s.": ["{x} tracks recognised ({x} uncertain) in {x} mix, analysis {x} s.", "{x} Titel erkannt ({x} unsicher) i {x} Mix, Analyse {x} s."],
 "{x} Titel, {x} MB": ["{x} tracks, {x} MB", "{x} Titel, {x} MB"],
+"{x}: höchstens {x} Treffer (bei {x}), {x}× unter den Besten": ["{x}: at most {x} hits (at {x}), {x}× among the best", "{x}: höchschtens {x} Träffer (bi {x}), {x}× under de Beschte"],
 "– keine –": ["– none –", "– keini –"]
 }

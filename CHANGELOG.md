@@ -12,6 +12,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Mix-Datei, auch mit geändertem Tempo (±10 %, mit und ohne Keylock), und schreibt einen Messbericht (Startzeit, Tempo,
   Sicherheit, Trefferquote gegen eine bekannte Tracklist). Eigener Audio-Fingerabdruck, läuft vollständig lokal
   (Konzept `docs/KONZEPT-MIXSCAN.md`).
+  Plugin 0.2: liegt der Mix selbst im indexierten Ordner, zählt er nicht mit; der Bericht nennt die nicht erkannten
+  Titel mit den meisten Treffern.
 
 - **Ideen – Wunschlisten (#186):** neue Seite „Ideen“ nach „Entdecken“. Titel, die du später kaufen willst, in
   Wunschlisten sammeln – mit ☆ „Idee merken ▸“ in Entdecken, von Hand oder als Liste aus Text; je Eintrag Notiz, Quelle

@@ -84,7 +84,7 @@ def do_analyse(job):
         emit(event="fatal", msg="Keine Audiodaten im Mix.")
         return
     modes = ("lock", "pitch") if job.get("pitch", True) else ("lock",)
-    bl = fp.query(idx, y, modes=modes, progress=lambda i, n: emit(event="step", i=i, n=n))
+    bl = fp.query(idx, y, modes=modes, progress=lambda i, n: emit(event="step", i=i, n=n), exclude=job.get("exclude") or ())
     segs = fp.segments(bl)
     emit(event="result", segments=segs, duration=round(len(y) / fp.SR, 1), secs=round(time.time() - t0, 1),
          blocks=[{"start": b["start"], "cands": [list(c) for c in b["cands"][:3]]} for b in bl])

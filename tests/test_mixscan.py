@@ -71,6 +71,16 @@ class TestPlugin(unittest.TestCase):
         self.assertEqual((todo, drop), ([(1, a)], [2]))
         self.assertNotIn(b, m["files"])
 
+    def test_near_misses(self):
+        blocks = [{"start": 0, "cands": [[90, 1, 1.0, "lock", 0], [12, 2, 1.0, "lock", 0]]},
+                  {"start": 5, "cands": [[80, 1, 1.0, "lock", 0], [17, 2, 1.0, "lock", 0], [9, 3, 1.0, "lock", 0]]}]
+        near = plugin.near_misses(blocks, {1}, {2: "/x/A - Zwei.wav", 3: "/x/B - Drei.wav"})
+        self.assertEqual([(x["name"], x["hits"], x["at"], x["blocks"]) for x in near],
+                         [("A - Zwei", 17, 5, 2), ("B - Drei", 9, 5, 1)])
+        t = plugin.report_text("/m.mp3", {"duration": 60, "secs": 1}, [], None, "3 Titel", near, True)
+        self.assertIn("nicht mitgezählt", t)
+        self.assertIn("A - Zwei: höchstens 17 Treffer (bei 00:05), 2× unter den Besten", t)
+
     def test_track_name_from_filename(self):
         self.assertEqual(plugin.track_name("/x/Mara Lind - Golden Hour (Extended Mix).wav"), ("Mara Lind", "Golden Hour (Extended Mix)"))
         self.assertEqual(plugin.track_name("/x/ohne.wav"), ("", "ohne"))
@@ -176,7 +186,7 @@ class TestRecognition(unittest.TestCase):
         for k in range(1, len(spec)):
             flt += f"[{cur}][s{k}]acrossfade=d=8[x{k}];"
             cur = f"x{k}"
-        flt += f"anoisesrc=c=pink:a=0.03:r={SR}:d=600[n];[{cur}][n]amix=inputs=2:duration=first,highpass=f=60,volume=1.5[out]"
+        flt += f"anoisesrc=c=pink:a=0.03:r={SR}:d=600:seed=7[n];[{cur}][n]amix=inputs=2:duration=first,highpass=f=60,volume=1.5[out]"
         out = os.path.join(self.d, name)
         subprocess.run([FFMPEG, "-v", "error", "-y", *args, "-filter_complex", flt, "-map", "[out]", "-b:a", "192k", out], check=True)
         return out
@@ -191,6 +201,19 @@ class TestRecognition(unittest.TestCase):
             if fac != 1.0:
                 self.assertEqual(s["keylock"], mode == "lock")
         self.assertLess(segs[1]["start"], segs[2]["start"])
+
+    def test_mix_in_index_is_excluded(self):
+        """Messung 27.10.2026: Liegt der Mix im indexierten Ordner, fand er sich selbst – mit exclude zählt er nicht."""
+        spec = [(self.files[5], 1.02, "lock"), (self.files[9], 0.97, "lock")]
+        mix = self.mix(spec, "self.mp3")
+        y = fp.decode(mix, FFMPEG)
+        n = len(self.files)
+        idx = fp.Index.build([(i, *fp.fingerprint(fp.decode(p, FFMPEG))) for i, p in enumerate(self.files)]
+                             + [(n, *fp.fingerprint(y))])
+        self_only = [s["track"] for s in fp.segments(fp.query(idx, y)) if s["conf"] >= 0.6]
+        self.assertEqual(self_only, [n])                                            # ohne exclude: nur der Mix selbst
+        segs = [s["track"] for s in fp.segments(fp.query(idx, y, exclude=[n])) if s["conf"] >= 0.6]
+        self.assertEqual(segs, [5, 9])
 
     def test_unknown_tracks_not_reported(self):
         extra = []

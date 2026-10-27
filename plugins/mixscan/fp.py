@@ -175,8 +175,10 @@ def _soft(x: np.ndarray) -> list[np.ndarray]:
     return [r, np.where(amb, alt, r)] if amb.any() else [r]
 
 
-def query(index: Index, y: np.ndarray, grid=GRID, modes=("lock", "pitch"), progress=None) -> list[dict]:
-    """Mix → Kandidaten je Block: [{block, cands: [(Treffer, Titel, s, Modus, Versatz)]}] (beste zuerst)."""
+def query(index: Index, y: np.ndarray, grid=GRID, modes=("lock", "pitch"), progress=None, exclude=()) -> list[dict]:
+    """Mix → Kandidaten je Block: [{block, cands: [(Treffer, Titel, s, Modus, Versatz)]}] (beste zuerst).
+    exclude: Titel-Nummern, die nicht zählen (z. B. der Mix selbst, wenn er im indexierten Ordner liegt)."""
+    excl = np.array(sorted({int(x) for x in exclude or ()}), dtype=np.int64)
     t, f = peaks(spectrogram(y))
     t1, f1, f2, dtm = pairs(t, f)
     blk = int(round(BLOCK_S * FPS))
@@ -202,6 +204,9 @@ def query(index: Index, y: np.ndarray, grid=GRID, modes=("lock", "pitch"), progr
         # gleiche Abfrage (Zeit + Schlüssel) nur einmal
         uq = np.unique((qt.astype(np.int64) << 32) | q.astype(np.int64))
         mt, ti, tt = index.lookup((uq & 0xFFFFFFFF).astype(np.uint32), (uq >> 32).astype(np.int64))
+        if len(excl) and len(ti):
+            keep = ~np.isin(ti, excl)
+            mt, ti, tt = mt[keep], ti[keep], tt[keep]
         if not len(mt):
             continue
         rel = tt - np.rint(mt * s).astype(np.int64)

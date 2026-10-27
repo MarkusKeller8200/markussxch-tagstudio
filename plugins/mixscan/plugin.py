@@ -175,7 +175,26 @@ def fmt_time(sec: float) -> str:
     return f"{sec // 3600}:{sec // 60 % 60:02d}:{sec % 60:02d}" if sec >= 3600 else f"{sec // 60:02d}:{sec % 60:02d}"
 
 
-def report_text(mix, res, rows, cmp, idx_info) -> str:
+def near_misses(blocks, found, by_nr, n=10) -> list:
+    """Indexierte Titel, die nicht erkannt wurden, mit ihrem stärksten Block (Treffer) und der Zahl der Blöcke, in denen
+    sie unter den drei Besten waren – zeigt, ob ein Titel knapp unter der Schwelle lag (Messung #261)."""
+    best, cnt = {}, {}
+    for b in blocks:
+        for c in b.get("cands") or []:
+            tid, hits = c[1], c[0]
+            if tid in found:
+                continue
+            cnt[tid] = cnt.get(tid, 0) + 1
+            if hits > best.get(tid, (0, 0))[0]:
+                best[tid] = (hits, b.get("start", 0))
+    out = []
+    for tid in sorted(best, key=lambda t: -best[t][0])[:n]:
+        a, t = track_name(by_nr.get(tid, "")) if by_nr.get(tid) else ("", "?")
+        out.append({"track": tid, "name": name_of(a, t), "hits": best[tid][0], "at": best[tid][1], "blocks": cnt[tid]})
+    return out
+
+
+def report_text(mix, res, rows, cmp, idx_info, near=None, self_excluded=False) -> str:
     L = [f"Mix analysieren – Messbericht ({time.strftime('%Y-%m-%d %H:%M')})", "",
          f"Mix: {mix}", f"Länge: {fmt_time(res['duration'])} · Analyse: {res['secs']} s",
          f"Index: {idx_info}", "", "Erkannte Titel:"]
@@ -185,6 +204,12 @@ def report_text(mix, res, rows, cmp, idx_info) -> str:
                  f"{', unsicher' if r['conf'] < 0.6 else ''})")
     if not rows:
         L.append("  – keine –")
+    if self_excluded:
+        L += ["", "Hinweis: Der Mix liegt selbst im indexierten Ordner und wurde nicht mitgezählt."]
+    if near:
+        L += ["", "Nicht erkannte Titel mit den meisten Treffern (zum Vergleich: echte Treffer liegen meist über 40 je 5 s):"]
+        L += [f"  {x['name']}: höchstens {x['hits']} Treffer (bei {fmt_time(x['at'])}), {x['blocks']}× unter den Besten"
+              for x in near]
     if cmp and cmp["expected"]:
         q = round(100 * len(cmp["hit"]) / cmp["expected"])
         L += ["", f"Abgleich mit der bekannten Tracklist: {len(cmp['hit'])} von {cmp['expected']} erkannt ({q} %)."]
@@ -285,6 +310,10 @@ def run_analyse(ctx, opts) -> dict:
     if not m["files"]:
         raise ValueError("Noch kein Index – zuerst „Bibliothek indexieren (Test)“.")
     by_nr = {v["nr"]: k for k, v in m["files"].items()}
+    key = os.path.normcase(os.path.abspath(mix))
+    exclude = [v["nr"] for k, v in m["files"].items() if os.path.normcase(os.path.abspath(k)) == key]
+    if exclude:                         # Mix liegt im indexierten Ordner: würde sich selbst finden (Messung 27.10.2026)
+        ctx.log("Der Mix ist selbst im Index – er wird bei der Analyse nicht mitgezählt.")
     got = {}
 
     def on_event(ev):
@@ -292,7 +321,8 @@ def run_analyse(ctx, opts) -> dict:
             ctx.progress(ev["i"], ev["n"], "Vergleiche Tempo-Stufen …")
         elif ev.get("event") == "result":
             got.update(ev)
-    _work(ctx, {"task": "analyse", "dir": _index_dir(ctx), "mix": mix, "pitch": bool(opts.get("pitch", True))}, on_event)
+    _work(ctx, {"task": "analyse", "dir": _index_dir(ctx), "mix": mix, "pitch": bool(opts.get("pitch", True)),
+                "exclude": exclude}, on_event)
     rows = []
     for s in got.get("segments") or []:
         p = by_nr.get(s["track"], "")
@@ -301,7 +331,8 @@ def run_analyse(ctx, opts) -> dict:
     cmp = compare(opts.get("tracklist") or "", [r for r in rows if r["conf"] >= 0.6]) if str(opts.get("tracklist") or "").strip() else None
     st = m.get("stats") or {}
     idx_info = f"{len(m['files'])} Titel, {st.get('bytes', 0) / 1e6:.1f} MB"
-    text = report_text(mix, got, rows, cmp, idx_info)
+    near = near_misses(got.get("blocks") or [], {r["track"] for r in rows}, by_nr)
+    text = report_text(mix, got, rows, cmp, idx_info, near, bool(exclude))
     out_dir = os.path.join(ctx.data_dir, "berichte")
     os.makedirs(out_dir, exist_ok=True)
     base = os.path.join(out_dir, time.strftime("%Y-%m-%d_%H%M%S_") + os.path.splitext(os.path.basename(mix))[0][:60])
