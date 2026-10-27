@@ -9,7 +9,7 @@ name: Download-Statistik
 
 on:
   schedule:
-    - cron: "37 */3 * * *"   # alle 3 Stunden – neue Releases bekommen den Download-Kasten bald; ein Stand je Tag
+    - cron: "37 * * * *"   # stündlich (#388; GitHub startet bei Last später oder lässt Läufe aus) – ein Stand je Tag
   workflow_dispatch:
   push:
     branches: [main]

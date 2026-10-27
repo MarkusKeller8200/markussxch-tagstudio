@@ -75,10 +75,10 @@ im README (`img.shields.io/endpoint?url=…/stats/docs/badge.json`).
 über `slugify_unicode`), den Bildschirmfotos und `summary.json` die Seiten `index.html` (Start, Download-Knöpfe direkt
 zur neuesten Datei aus `summary.json`), `handbuch.html`/`manual.html` (Inhaltsverzeichnis, Suche filtert Abschnitte je
 H2 und markiert Treffer), `statistik.html` (`.github/stats/index.html` mit Kopfzeile) und `img/`. Links im Handbuch:
-Handbuch ↔ Webseite, sonst GitHub (blob/main). Der Workflow „Download-Statistik“ baut alle 3 Stunden und bei
+Handbuch ↔ Webseite, sonst GitHub (blob/main). Der Workflow „Download-Statistik“ baut stündlich (#388) und bei
 Änderungen an Handbuch/Bildern/Generator auf `main`.
 
-**Download-Kasten (#372):** Derselbe Workflow (alle 3 Stunden) setzt oben in die Versionshinweise jedes Releases
+**Download-Kasten (#372):** Derselbe Workflow (stündlich) setzt oben in die Versionshinweise jedes Releases
 einen Kasten mit direkten Links (Windows zuerst, Grösse, Plugins zugeklappt) zwischen den Markierungen
 `<!-- tagstudio-downloads:start/end -->` und entfernt die alte Zeile „**Download:** …“. `installer.yml` bleibt
 unberührt (eine Änderung dort löst einen Build aus). TagStudio entfernt den Kasten in seinen Versionshinweisen
