@@ -4,6 +4,16 @@ Stand: **2026-10-27 (04:10): Meilenstein #30 „4.13.0“ – #186 Ideen geschlo
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
+## Für später vorgemerkt (27.10.2026, 08:32–08:49)
+
+- **#378** beets / beets-beatport4 (Idee).
+- **SonoVault-Durchsicht:** #379 Integrationsfenster nachführen, #380 Releases nachschlagen (Idee), #381 Entdecken mit
+  bezahltem Tarif (Idee), #382 Fragen an Rekordcloud (mit MixID #218), **#383** eigene Felder `TXXX:SONOVAULT_*`
+  (freigegeben: nur Terms-§7-Felder + Abrufdatum; BPM/Tonart/ISWC/Katalognr. erst nach Zusage; IDs nie).
+- **Spotify:** **#384** Erweiterungen SP1–SP6 freigegeben (Reihenfolge SP2, SP1, SP5, SP3, SP4, SP6), **#385** Felder
+  `TXXX:SPOTIFY_*` – Variante B (volle Liste) auf eigene Verantwortung des Users, Hinweis auf Developer Terms in
+  Vorschau und PLUGINS.md vorsehen. **Entscheid User 08:49: für später**, nicht in 4.13.0.
+
 ## 4.13.0 – Mix analysieren (#261, Prototyp) und MixID (#218), 27.10.2026, 03:45
 
 - **Entscheide User:** M1 eigene Umsetzung, M2/M3 nur eigene Bibliothek (Unbekanntes bleibt unbekannt), M5/M7 Plugin
