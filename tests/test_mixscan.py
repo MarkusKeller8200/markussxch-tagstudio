@@ -100,10 +100,11 @@ class TestPlugin(unittest.TestCase):
                 "1:02:10 Estiva - Chemicals (Extended Mix) **\nOhne Zeit - Titel")
         self.assertEqual(plugin.tracklist_times(text), [296, 3730, None])
         c = plugin.compare(text, [{"artist": "Path Of Youth", "title": "Hypnotic (Extended Mix)", "track_start": 295.0, "start": 325}])
-        self.assertEqual(c["timing"], [{"name": "Path Of Youth - Hypnotic (Original Mix)", "list": 296, "calc": 295.0, "seen": 325, "diff": -1}])
+        self.assertEqual(c["timing"], [{"name": "Path Of Youth - Hypnotic (Original Mix)", "list": 296, "calc": 295.0, "seen": 325, "diff": -1, "inside": True}])
         self.assertIn("Estiva - Chemicals (Extended Mix)", c["miss"])                       # „**“ entfernt
         t = plugin.report_text("/m", {"duration": 4000, "secs": 1}, [], c, "1 Titel")
-        self.assertIn("Hypnotic (Original Mix): Tracklist 04:56 · berechnet 04:55 (-1 s) · erkannt ab 05:25", t)
+        self.assertIn("Hypnotic (Original Mix): Tracklist 04:56 · berechnet 04:55 (-1 s) · erkannt ab 05:25 ✓", t)
+        self.assertIn("1 von 1", t)
 
     def test_near_misses(self):
         blocks = [{"start": 0, "cands": [[90, 1, 1.0, "lock", 0], [12, 2, 1.0, "lock", 0]]},

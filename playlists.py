@@ -217,7 +217,7 @@ def m3u_text(pl: dict, dest_dir: str) -> str:
 _MIXWORDS = r"mix|edit|remix|version|dub|rework|bootleg|vip|instrumental|acapella|a cappella|extended|original|radio|club|remaster(?:ed)?|live"
 _MIX_RE = re.compile(r"\s*[\(\[]([^\)\]]*\b(?:" + _MIXWORDS + r")\b[^\)\]]*)[\)\]]\s*$", re.I)
 _DASH_MIX_RE = re.compile(r"^(.*?\S)\s+[-–—]\s+([^-–—]*\b(?:" + _MIXWORDS + r")\b[^-–—]*)$", re.I)   # „Song - Extended Mix“
-_FEAT_RE = re.compile(r"\s*[\(\[]?\b(?:feat|ft|featuring)\b\.?\s+[^\)\]]*[\)\]]?", re.I)
+_FEAT_RE = re.compile(r"\s*[\(\[]?\b(?:feat|ft|featuring)\b\.?\s+[^\)\]\(\[]*[\)\]]?", re.I)   # bis vor „(Mix)“
 _ART_SPLIT = re.compile(r"\s*(?:,|&|;|/|\bx\b|\bvs\.?|\band\b|\bund\b|\bfeat\.?|\bft\.?|\bfeaturing\b)\s*", re.I)
 _MIX_TAIL = ("mix", "version", "edit")
 SIMILAR = 0.88                       # Titel ähnlich genug für „unklar“ mit Vorschlag (#281)

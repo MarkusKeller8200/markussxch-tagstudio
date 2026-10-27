@@ -28,6 +28,7 @@ DT_MIN, DT_MAX = 2, 63     # Abstand zum Partner in Rahmen (6 Bit)
 DF_MAX = 127               # |f2 - f1| in Bins (8 Bit)
 BLOCK_S = 5.0              # Auswertung je Block
 OFF_Q = 4                  # Versatz-Raster in Rahmen
+START_TOL = 30             # Titelanfang zweier Blöcke darf um so viele Rahmen (≈ 0,7 s) abweichen
 OFF_TOL = 12               # erlaubte Versatz-Abweichung je Block Abstand (Tempo-Stufe ±0,5 %, Nachjustieren)
 MAX_OCC = 400              # Schlüssel, die öfter vorkommen, sind wertlos (Stille, Klick)
 GRID = tuple(round(1 + k / 100, 2) for k in range(-10, 11))      # 0,90 … 1,10
@@ -264,8 +265,11 @@ def segments(blocks: list[dict], min_score: int = 70, ratio: float = 1.4, win: i
             nb = bb + d
             if d == 0 or not 0 <= nb < n or (nb, tid) not in info:
                 continue
-            other = info[(nb, tid)][3]
-            if any(abs(a[0] - b[0]) <= OFF_TOL * abs(d) for a in offs for b in other):
+            osc, other = info[(nb, tid)][0], info[(nb, tid)][3]
+            # Vergleich über den Titelanfang (−Versatz/Tempo) statt über den rohen Versatz: wechselt die beste
+            # Tempo-Stufe zwischen zwei Blöcken (z. B. 1,02 ↔ 1,03 bei echten +2,5 %), springt der Versatz um ~20 s,
+            # der Titelanfang aber kaum (Messung 27.10.2026, „Evenfall“ in Purified Radio 520)
+            if any(abs(a[0] / sc - b[0] / osc) <= START_TOL + OFF_TOL * abs(d) for a in offs for b in other):
                 W[bb, k] += M[nb, k]
     order = np.argsort(-W, axis=1)
     best, second = order[:, 0], order[:, 1] if W.shape[1] > 1 else order[:, 0]

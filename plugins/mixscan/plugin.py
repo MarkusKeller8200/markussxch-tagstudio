@@ -226,8 +226,11 @@ def compare(expected_text: str, found: list) -> dict:
             t = times[n] if n < len(times) else None
             f = found[same[0]]
             if t is not None and f.get("track_start") is not None:
-                timing.append({"name": name, "list": t, "calc": f["track_start"], "seen": f.get("start"),
-                               "diff": round(f["track_start"] - t)})
+                seen = f.get("start")
+                timing.append({"name": name, "list": t, "calc": f["track_start"], "seen": seen,
+                               "diff": round(f["track_start"] - t),
+                               # Tracklist-Zeit zwischen Titelanfang (Einblenden) und „erkannt ab“ (Titel dominiert)?
+                               "inside": seen is not None and f["track_start"] - 5 <= t <= seen + 10})
         elif cands:
             used.add(cands[0])
             other.append(f"{name} → {name_of(found[cands[0]]['artist'], found[cands[0]]['title'])}")
@@ -323,9 +326,11 @@ def report_text(mix, res, rows, cmp, idx_info, near=None, self_excluded=False) -
         L += ["", f"Abgleich mit der bekannten Tracklist: {len(cmp['hit'])} von {cmp['expected']} erkannt ({q} %)."]
         if cmp.get("timing"):
             d = sorted(abs(x["diff"]) for x in cmp["timing"])
-            L += [f"Zeiten (Titelanfang berechnet gegenüber Tracklist; Median der Abweichung {d[len(d) // 2]} s):"]
+            ins = sum(1 for x in cmp["timing"] if x.get("inside"))
+            L += [f"Zeiten (Titelanfang berechnet gegenüber Tracklist; Median der Abweichung {d[len(d) // 2]} s; "
+                  f"Tracklist-Zeit im Übergang zwischen Titelanfang und „erkannt ab“: {ins} von {len(d)}):"]
             L += [f"  {x['name']}: Tracklist {fmt_time(x['list'])} · berechnet {fmt_time(max(0.0, x['calc']))} ({x['diff']:+d} s)"
-                  f" · erkannt ab {fmt_time(x['seen'])}" for x in cmp["timing"]]
+                  f" · erkannt ab {fmt_time(x['seen'])}{' ✓' if x.get('inside') else ''}" for x in cmp["timing"]]
         if cmp.get("other"):
             L += ["Gleicher Titel, aber andere Fassung in der Bibliothek (zählt nicht als erkannt):"] + [f"  {x}" for x in cmp["other"]]
         if cmp["miss"]:
