@@ -165,6 +165,14 @@ Doku und Website mit der Umsetzung verglichen (Terms unverändert „Last update
 - Neu laut Terms §11: Daten nach einer Takedown-/Korrektur-Meldung innert 7 Tagen löschen – betrifft TagStudio nur über
   den Zwischenspeicher (höchstens 30 Tage, „Zwischenspeicher leeren“ vorhanden).
 
+## 6d. Eigene Felder `TXXX:SONOVAULT_*` (#383, Entscheid User 27.10.2026, 08:41)
+
+- Muster freigegeben: `TXXX:SONOVAULT_TITLE`, `_ARTIST`, `_RELEASE`, `_LABEL`, `_GENRE`, `_RELEASE_DATE`, `_DURATION`,
+  `_ISRC` und `TXXX:SONOVAULT_DATE` (Abrufdatum) – Herkunft „SonoVault“ über `plugin.json › fields` (`TXXX:SONOVAULT*`).
+- Nur diese Felder (Terms §7). `_BPM`, `_KEY`, `_ISWC`, `_CATALOGNUMBER` erst nach Zusage von Rekordcloud (#382);
+  Plattform-IDs und eine SonoVault-ID nie.
+- Schreiben nur über die Vorschau mit Häkchen, je Titel, eigene Dateien; zusätzlich zu den normalen Vorschlägen.
+
 ## 7. Eigener Katalog statt Dienst (#260, Entscheid User 24.10.2026)
 
 Ein eigener Dienst wie SonoVault wird **nicht** gebaut (alle drei Punkte vom User am 24.10.2026, 11:14 bestätigt). Geplant ist **nur lokale Ausführung**: ein Katalog in TagStudio
