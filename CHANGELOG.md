@@ -13,7 +13,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Sicherheit, Trefferquote gegen eine bekannte Tracklist). Eigener Audio-Fingerabdruck, läuft vollständig lokal
   (Konzept `docs/KONZEPT-MIXSCAN.md`).
   Plugin 0.2: liegt der Mix selbst im indexierten Ordner, zählt er nicht mit; der Bericht nennt die nicht erkannten
-  Titel mit den meisten Treffern.
+  Titel mit den meisten Treffern. Plugin 0.3: „Selbsttest mit eigenen Titeln …“ baut aus indexierten Titeln einen
+  Test-Mix (Tempo ±6 %, mit und ohne Keylock) und misst die Trefferquote ohne Tracklist.
 
 - **Ideen – Wunschlisten (#186):** neue Seite „Ideen“ nach „Entdecken“. Titel, die du später kaufen willst, in
   Wunschlisten sammeln – mit ☆ „Idee merken ▸“ in Entdecken, von Hand oder als Liste aus Text; je Eintrag Notiz, Quelle

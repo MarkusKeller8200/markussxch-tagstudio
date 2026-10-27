@@ -34,6 +34,14 @@ ACTIONS = [
                                                    "geändert, dauert etwa doppelt so lange)", "default": True},
          {"key": "hint", "type": "info",
           "label": "Nur eigene Dateien – TagStudio lädt nichts von YouTube, SoundCloud oder Mixcloud herunter."}]},
+    {"id": "selftest", "label": "Selbsttest mit eigenen Titeln …", "where": "page", "run_label": "Testen",
+     "needs_selection": False,
+     "description": "Baut aus zufällig gewählten indexierten Titeln einen Test-Mix (je 70 s, Tempo −6 … +6 %, mit und "
+                    "ohne Keylock, überblendet) und prüft, ob die Analyse sie wiederfindet – ganz ohne Tracklist.",
+     "options": [{"key": "count", "type": "number", "label": "Anzahl Titel im Test-Mix", "default": 8},
+                 {"key": "hint", "type": "info",
+                  "label": "Der Test-Mix liegt danach unter Plugin-Daten › mixscan › index › selbsttest.mp3 (wird beim "
+                           "nächsten Selbsttest überschrieben)."}]},
 ]
 
 
@@ -350,7 +358,64 @@ def run_analyse(ctx, opts) -> dict:
     return {"message": msg}
 
 
+def run_selftest(ctx, opts) -> dict:
+    import random
+    m = load_manifest(ctx)
+    pool = [(v["nr"], k, v.get("dur") or 0) for k, v in m["files"].items()
+            if (v.get("dur") or 0) >= 100 and os.path.isfile(k)]
+    try:
+        n = max(2, min(16, int(float(opts.get("count") or 8))))
+    except (TypeError, ValueError):
+        n = 8
+    if len(pool) < 2:
+        raise ValueError("Zu wenig indexierte Titel (mindestens 2 mit über 100 s) – zuerst „Bibliothek indexieren (Test)“.")
+    pick = random.sample(pool, min(n, len(pool)))
+    by_nr = {v["nr"]: k for k, v in m["files"].items()}
+    got, exp = {}, {}
+
+    def on_event(ev):
+        if ev.get("event") == "step":
+            ctx.progress(ev["i"], ev["n"], "Vergleiche Tempo-Stufen …")
+        elif ev.get("event") == "expected":
+            exp.update(ev)
+        elif ev.get("event") == "result":
+            got.update(ev)
+    _work(ctx, {"task": "selftest", "dir": _index_dir(ctx), "tracks": pick, "pitch": True}, on_event)
+    found = {s["track"]: s for s in got.get("segments") or [] if s["conf"] >= 0.6}
+    lines = [f"Mix analysieren – Selbsttest ({time.strftime('%Y-%m-%d %H:%M')})", "",
+             f"Index: {len(m['files'])} Titel · Test-Mix {fmt_time(got.get('duration', 0))} · Analyse {got.get('secs', 0)} s", ""]
+    ok = 0
+    for e in exp.get("items") or []:
+        a, t = track_name(by_nr.get(e["track"], ""))
+        s = found.get(e["track"])
+        if s:
+            ok += 1
+        lines.append(f"  {'✓' if s else '✗'} {fmt_time(e['start'])}  {name_of(a, t)}  (Tempo {e['tempo']:+.1f} %"
+                     f"{'' if e['keylock'] else ', ohne Keylock'})"
+                     + (f" → erkannt {fmt_time(s['start'])}, {s['tempo']:+.1f} %, Sicherheit {round(s['conf'] * 100)} %" if s else ""))
+    wrong = [s for s in got.get("segments") or [] if s["conf"] >= 0.6 and s["track"] not in {e["track"] for e in exp.get("items") or []}]
+    for s in wrong:
+        a, t = track_name(by_nr.get(s["track"], ""))
+        lines.append(f"  ! {fmt_time(s['start'])}  {name_of(a, t)} – falsch erkannt (Sicherheit {round(s['conf'] * 100)} %)")
+    total = len(exp.get("items") or [])
+    lines += ["", f"Ergebnis: {ok} von {total} erkannt ({round(100 * ok / max(1, total))} %), {len(wrong)} falsch."]
+    text = "\n".join(lines) + "\n"
+    out_dir = os.path.join(ctx.data_dir, "berichte")
+    os.makedirs(out_dir, exist_ok=True)
+    path = os.path.join(out_dir, time.strftime("%Y-%m-%d_%H%M%S_selbsttest.txt"))
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(text)
+    with open(path[:-4] + ".json", "w", encoding="utf-8") as fh:
+        json.dump({"expected": exp, "result": got}, fh, ensure_ascii=False, indent=1)
+    ctx.output(path)
+    ctx.log(text)
+    return {"message": f"Selbsttest: {ok} von {total} Titeln erkannt ({round(100 * ok / max(1, total))} %), {len(wrong)} falsch. "
+                       f"Bericht: {os.path.basename(path)}"}
+
+
 def run(action, ctx, files, opts):
+    if action == "selftest":
+        return run_selftest(ctx, opts)
     if action == "index":
         return run_index(ctx, opts)
     if action == "analyse":

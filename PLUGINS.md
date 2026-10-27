@@ -303,6 +303,9 @@ nichts wird hochgeladen, nichts heruntergeladen, an den Dateien wird nichts geä
 3. **Mix analysieren (Test) …** – vollständigen Pfad der Mix-Datei eingeben (MP3, WAV, FLAC, M4A …), optional die
    bekannte Tracklist („Künstler - Titel“ je Zeile) für die Trefferquote.
 
+4. **Selbsttest mit eigenen Titeln …** – baut aus zufällig gewählten indexierten Titeln einen Test-Mix (je 70 s,
+   Tempo −6 … +6 %, mit und ohne Keylock, überblendet) und prüft, ob die Analyse sie wiederfindet – ohne Tracklist.
+
 Ergebnis: Bericht in `~/TagStudio/Plugin-Daten/mixscan/berichte` (Text und JSON). Index unter
 `~/TagStudio/Plugin-Daten/mixscan/index` (nur Fingerabdrücke). Titel, die nicht in der Bibliothek sind, bleiben
 „unbekannt“. Kein Herunterladen von YouTube, SoundCloud oder Mixcloud.

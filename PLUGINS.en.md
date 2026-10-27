@@ -285,6 +285,9 @@ uploaded, nothing downloaded, nothing in the files is changed.
 3. **Analyse mix (test) …** – enter the full path of the mix file (MP3, WAV, FLAC, M4A …), optionally the known
    tracklist (one “Artist - Title” per line) for the hit rate.
 
+4. **Self-test with your own tracks …** – builds a test mix from randomly chosen indexed tracks (70 s each, tempo
+   −6 … +6 %, with and without keylock, crossfaded) and checks whether the analysis finds them again – no tracklist needed.
+
 Result: report in `~/TagStudio/Plugin-Daten/mixscan/berichte` (text and JSON). Index under
 `~/TagStudio/Plugin-Daten/mixscan/index` (fingerprints only). Tracks that are not in the library stay “unknown”. No
 downloading from YouTube, SoundCloud or Mixcloud.

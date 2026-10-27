@@ -90,11 +90,50 @@ def do_analyse(job):
          blocks=[{"start": b["start"], "cands": [list(c) for c in b["cands"][:3]]} for b in bl])
 
 
+SELF_SPEC = [(1.0, "lock"), (1.03, "lock"), (0.96, "lock"), (1.05, "lock"), (0.98, "pitch"), (1.06, "pitch"),
+             (0.94, "lock"), (1.02, "pitch")]
+
+
+def do_selftest(job):
+    """Selbsttest mit echter Musik: aus indexierten Titeln einen Mix bauen (je 70 s aus der Mitte, Tempo ±6 % mit und
+    ohne Keylock, 10 s überblendet, leises Rauschen), dann wie einen fremden Mix analysieren."""
+    import subprocess
+    d = job["dir"]
+    ff = ffmpeg_exe()
+    tracks = job["tracks"]
+    args, flt, expected, t = [], "", [], 0.0
+    for i, (nr, path, dur) in enumerate(tracks):
+        fac, mode = SELF_SPEC[i % len(SELF_SPEC)]
+        start = max(0.0, float(dur or 0) / 2 - 35)
+        args += ["-ss", f"{start:.1f}", "-t", "70", "-i", path]
+        f = f"atempo={fac}" if mode == "lock" else f"aresample=44100,asetrate=44100*{fac},aresample=44100"
+        flt += f"[{i}:a]aformat=channel_layouts=stereo,aresample=44100,{f}[s{i}];"
+        length = 70 / fac
+        expected.append({"track": int(nr), "start": round(t, 1), "end": round(t + length, 1), "tempo": round((fac - 1) * 100, 1),
+                         "keylock": mode == "lock"})
+        t += length - 10
+    cur = "s0"
+    for k in range(1, len(tracks)):
+        flt += f"[{cur}][s{k}]acrossfade=d=10[x{k}];"
+        cur = f"x{k}"
+    flt += f"anoisesrc=c=pink:a=0.02:r=44100:d=3600:seed=7,aformat=channel_layouts=stereo[n];[{cur}][n]amix=inputs=2:duration=first,volume=1.5[out]"
+    out = os.path.join(d, "selbsttest.mp3")
+    emit(event="status", msg="Test-Mix bauen …")
+    r = subprocess.run([ff, "-nostdin", "-v", "error", "-y", *args, "-filter_complex", flt, "-map", "[out]", "-b:a", "192k", out],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+    if r.returncode != 0:
+        emit(event="fatal", msg="Test-Mix: " + (r.stderr or b"").decode("utf-8", "replace")[-300:])
+        return
+    job = dict(job, mix=out)
+    emit(event="expected", items=expected, mix=out)
+    do_analyse(job)
+
+
 def main():
     with open(sys.argv[1], encoding="utf-8") as fh:
         job = json.load(fh)
     try:
-        {"index": do_index, "analyse": do_analyse}[job["task"]](job)
+        {"index": do_index, "analyse": do_analyse, "selftest": do_selftest}[job["task"]](job)
     except Exception as ex:  # noqa: BLE001
         traceback.print_exc()
         emit(event="fatal", msg=str(ex)[:500])
