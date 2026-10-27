@@ -45,7 +45,7 @@
 |---|---|---|
 | 🏷️ **Tagger**<br>Edit many files at once, covers, tags from the file name, renaming, search & replace, export to Excel/CSV. | ⚖️ **Comparison**<br>Two folders or files field by field – marked character by character, copy values with an arrow. | 🧹 **Tag fixer**<br>Unify multiple values (`;` `/` `feat.` …), Smart Fix recipes, exceptions per field. |
 | 🛒 **Purchases**<br>Match bought tracks (Beatport) with the library, download missing ones, create playlists in Beatport. | 🎛️ **DJ set**<br>Optimise the order by key (Camelot), BPM and energy – export as M3U8, Rekordbox XML, CSV. | 📂 **Playlists**<br>Collect tracks, sort them into folders, as M3U8 for Engine DJ, VirtualDJ & co. |
-| 🎧 **Preview player**<br>Waveform, cue points (Serato, Mixed In Key), crossfading with tempo matching, ratings. | 🛡️ **Safe saving**<br>Backup before every save, undo across all files, snapshots and change journal. | 🧩 **Plugins**<br>Stems, Beatport, Discogs, MusicBrainz, Lexicon, cloud sync (OneDrive, Google Drive, Dropbox) … |
+| 🎧 **Preview player**<br>Waveform, cue points (Serato, Mixed In Key), crossfading with tempo matching, ratings. | 🛡️ **Safe saving**<br>Backup before every save, undo across all files, snapshots and change journal. | 🧩 **Plugins**<br>Stems, Analyse mix (recognise tracks in DJ mixes), Beatport, Discogs, MusicBrainz, Lexicon, cloud sync (OneDrive, Google Drive, Dropbox) … |
 
 Plus: Camelot wheel and key notations, audio features (energy, danceability …) as columns, origin of tags,
 “Discover” new releases with wish lists (“Ideas”), settings in one place, German, English and Swiss German.

@@ -684,6 +684,7 @@ async function init() {
   if (typeof pqInit === "function") pqInit();          // #138 Warteschlange
   if (typeof initJobs === "function") initJobs();
   if (typeof initSnapshots === "function") setTimeout(initSnapshots, 1200);
+  if (typeof pluginsStartup === "function") setTimeout(pluginsStartup, 20000);   // #387: z. B. Mix-Index nachführen
   $("#updateBtn").addEventListener("click", runUpdate);
   $("#winFull").addEventListener("click", () => appWindow("fullscreen"));
   $("#winNormal").addEventListener("click", () => appWindow("window"));

@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-27 (04:10): Meilenstein #30 „4.13.0“ – #186 Ideen geschlossen; #261 Mix analysieren als Prototyp im Beta-Test (Messung beim User, M4 offen); #218 MixID zurück in „Funktionen“ (Anfrage durch den User). #376 SignPath wartet. Für das nächste Release vorgemerkt: Zweig `macos-signing`, `downloadstats`/`ideas`/`session_ideas` in HIDDEN, `docs/HANDBUCH*.md` ins Paket.**
+Stand: **2026-10-27 (15:45): Meilenstein #30 „4.13.0“ – #186 Ideen geschlossen; #261 Mix analysieren: Prototyp gemessen (11/13), fertiggestellt in #387 (Plugin 1.0, Beta-Test); #218 MixID zurück in „Funktionen“ (Anfrage durch den User). #376 SignPath wartet. Für das nächste Release vorgemerkt: Zweig `macos-signing`, `downloadstats`/`ideas`/`session_ideas` in HIDDEN, `docs/HANDBUCH*.md` ins Paket.**
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -23,6 +23,13 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   `web/i18n/mixscan.json`, Tests `tests/test_mixscan.py` (Erkennung nur mit NumPy/SciPy/FFmpeg – Workflow
   „Mix-Analyse-Test“), NumPy/SciPy in `docs/third-party.json`. Wartet auf die Messung mit echter Musik beim User.
 - Plugin wird beim nächsten Release mit dem Ordner `plugins/` ausgeliefert (kein Eingriff in `packaging/` nötig).
+- **#387 Fertigstellung (Auftrag User 15:21 „finalisieren und einbauen“, `_3 Beta-Test`):** Plugin 1.0 ohne
+  „(Test)“-Aktionen; Ergebnis `mix_result` → `mixresult.py` (Ablage `~/TagStudio/Mixe`, Text/CUE/Playlist-Einträge,
+  Tracklist-Zeit = Mitte des Übergangs) + `session_mixes.py` (MixesMixin, `mix_*` in `_PASS`) + `web/mixes.js`
+  (Ergebnisfenster, Frühere Analysen); Playlists › Importieren ▾; Plugin-Rahmen `file`/`direct`/`hidden`,
+  `ctx.queue_job`, Ereignis `app_started` (`plugins_startup`, 20 s nach dem Start); Index-Warteliste
+  `index/warteliste.json` → versteckte Aktion `index_add`. M4 wie vorgeschlagen (nur lokale Dateien).
+  **Beim Release:** `mixresult`, `session_mixes` in `packaging/build.py` › `HIDDEN`.
 - **Messungen 1–7 (User, 27.10.2026) → Plugin 0.2–0.10**, Tabelle in `docs/KONZEPT-MIXSCAN.md` §10.1. Stand 0.10:
   Purified Radio 520 mit 1610 Titeln 11/13 (davon 1 unsicher), die 2 übrigen nicht im Index; Titelanfang im Median
   48 s vor der Tracklist-Zeit, diese liegt in allen Fällen im Übergang. Hintergrund-Indexierung (`index_bg`).
@@ -36,7 +43,7 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   Katalog `web/i18n/ideas.json`, Tests `tests/test_ideas.py` + `test_browser_ui.test_ideas_page`.
 - Wunschlisten = Playlists `kind: "wish"` im Ordner „Ideen“, kein M3U8 (`Store.desired`); Item-Feld `idea`
   (`playlists.clean_idea`). Übernahme aus Entdecken einmalig (`index.json › migrated.ideas_from_discover`).
-- **Für das nächste Release vormerken:** `ideas`, `session_ideas` in `packaging/build.py` HIDDEN aufnehmen (statisch
+- **Für das nächste Release vormerken:** `ideas`, `session_ideas` (und `mixresult`, `session_mixes`, #387) in `packaging/build.py` HIDDEN aufnehmen (statisch
   importiert, aber wie die anderen Module eintragen). Filter „Gemerkt“ in Entdecken eine Version später entfernen (I3).
 
 ## Meilenstein „GitHub & Webseite“ (#29, angelegt 27.10.2026, 00:26)

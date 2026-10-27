@@ -180,7 +180,7 @@ class PlaylistMixin:
                          "dur": inf.get("dur") or x.get("dur") or ref.get("dur") or 0,
                          "rating": inf.get("rating", 0), "i": inf.get("i"), "missing": bool(inf.get("missing")),
                          "in_archive": inf.get("archived", ""), "lock": bool(x.get("lock")), "dup": count.get(k, 0) > 1,
-                         "added": x.get("added", 0)}
+                         "added": x.get("added", 0), "note": str(x.get("note") or "")[:200]}
                     dur += r["dur"]
                     missing += r["missing"]
                     loaded += r["i"] is not None

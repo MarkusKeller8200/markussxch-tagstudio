@@ -71,6 +71,55 @@ class TestPlugin(unittest.TestCase):
         todo, drop = plugin.plan(m, [a])                                   # b nicht mehr gewählt
         self.assertEqual((todo, drop), ([(1, a)], [2]))
         self.assertNotIn(b, m["files"])
+        c = self.touch("lib", "C - Drei.mp3")
+        todo, drop = plugin.plan(m, [c], prune=False)                    # #387: nach „Vorbereiten“ nur hinzufügen
+        self.assertEqual((todo, drop), ([(3, c)], []))
+        self.assertIn(a, m["files"])
+
+    def test_moves_settings_and_events(self):
+        # #387: Index automatisch nachführen – verschoben, neu nach „Vorbereiten“, beim Start; Einstellungen
+        class Ctx:
+            id = "mixscan"
+
+            def __init__(s, d):
+                s.data_dir, s.jobs, s.lines = d, [], []
+
+            def queue_job(s, aid, opts=None, label=""):
+                s.jobs.append((aid, opts))
+
+            def log(s, m):
+                s.lines.append(m)
+        ctx = Ctx(self.d)
+        new = self.touch("neu", "A - Eins.mp3")
+        plugin.on_event(ctx, "files_added", [new])
+        self.assertEqual(ctx.jobs, [])                                     # noch kein Index → nichts automatisch
+        plugin.save_manifest(ctx, {"next": 2, "folders": "", "files": {"/alt/A - Eins.mp3": {"nr": 1, "size": 1, "mtime": 0, "keys": 9}}})
+        plugin.on_event(ctx, "files_moved", [{"old": "/alt/A - Eins.mp3", "new": new}, {"old": "/x/fremd.mp3", "new": "/y.mp3"}])
+        plugin.on_event(ctx, "files_added", [new, "/x/cover.jpg"])
+        plugin.on_event(ctx, "app_started", {"at": 1})
+        self.assertEqual(ctx.jobs, [("index_add", None), ("index_add", None), ("index", {"folders": ""})])
+        pend = plugin._pending(ctx)
+        self.assertEqual((pend["add"], pend["moves"]), ([new], [["/alt/A - Eins.mp3", new]]))
+        m = plugin.load_manifest(ctx)
+        self.assertEqual(plugin.apply_moves(m, pend["moves"]), 1)
+        self.assertEqual(m["files"][new]["nr"], 1)                          # gleiche Nummer, nicht neu gelesen
+        self.assertEqual(m["files"][new]["keys"], 9)
+        plugin._take_pending(ctx)
+        self.assertEqual(plugin._pending(ctx), {"add": [], "moves": []})
+        self.assertEqual(plugin.settings(ctx), {"auto_add": True, "auto_start": True})
+        self.assertEqual(plugin.run("settings", ctx, [], {"auto_add": False, "auto_start": True})["message"], "Einstellungen gespeichert.")
+        plugin.on_event(ctx, "files_added", [new])
+        plugin.on_event(ctx, "app_started", {})
+        self.assertEqual(len(ctx.jobs), 4)                                 # nur noch der Start
+        self.assertEqual(plugin.run("results", ctx, [], {}), {"message": "", "mix_list": True})
+
+    def test_actions_final(self):
+        ids = {a["id"]: a for a in plugin.ACTIONS}
+        self.assertEqual(set(ids), {"analyse", "index", "results", "settings", "selftest", "index_add"})
+        self.assertFalse(any("(Test)" in a["label"] for a in plugin.ACTIONS))
+        self.assertEqual(ids["analyse"]["options"][0]["type"], "file")
+        self.assertTrue(ids["index"]["background"])
+        self.assertEqual(ids["index_add"]["where"], "hidden")
 
     def test_merge_rows_and_versions(self):
         """Messung 27.10.2026: „Hypnotic“ in Stücken (auch Dub Mix) → ein Abschnitt; Remix ≠ Extended Mix."""

@@ -31,7 +31,7 @@ _ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,40}$")
 # Kategorie je Plugin (plugin.json "category"), als Kennzeichen auf der Plugin-Karte
 CATEGORIES = {"online": "Online-API", "shop": "Shop-API", "cloud": "Cloud-API", "local_api": "Lokale API", "import": "Übernahme aus Tags",
               "audio": "Audio-Verarbeitung", "other": "Sonstiges"}
-OPTION_TYPES = {"select", "check", "text", "number", "folder", "folders", "info", "password", "textarea"}
+OPTION_TYPES = {"select", "check", "text", "number", "folder", "folders", "file", "info", "password", "textarea"}   # „file“: #387
 SECRET_TYPES = {"password"}   # werden nie gespeichert
 
 
@@ -301,6 +301,21 @@ class Context:
         if rc != 0 and env_broken(tail):
             raise RuntimeError(BROKEN_ENV_MSG)
         return rc, tail
+
+    # ---- #387: eigene Aktion als Hintergrund-Auftrag einreihen (z. B. Index nachführen nach „Vorbereiten“)
+    def queue_job(self, aid, opts=None, label="") -> dict | None:
+        """Aktion aid dieses Plugins ohne Dateiauswahl in die Warteschlange der Hintergrund-Aufträge stellen. Gibt es
+        schon einen wartenden Auftrag derselben Aktion, wird keiner mehr angelegt. None ohne Sitzung (Tests, CLI)."""
+        s = self._session
+        if s is None or not hasattr(s, "jobs"):
+            return None
+        a = next((x for x in self.plugin.actions(self) if x["id"] == aid), None)
+        if a is None:
+            raise KeyError(f"Aktion „{aid}“ nicht gefunden.")
+        for j in s.jobs.status().get("jobs", []):
+            if j.get("plugin") == self.id and j.get("action") == aid and j.get("status") == "waiting":
+                return None
+        return s.jobs.add(self.id, aid, f"{self.plugin.name}: {label or a.get('run_label') or a['label']}", [], dict(opts or {}))
 
     # ---- Fortschritt / Abbruch / Protokoll
     def progress(self, i: int, total: int, text: str = "", frac: float = None):
@@ -787,7 +802,7 @@ class Manager:
 
     def emit(self, event: str, data, session=None, wait=False):
         """Ereignis an Plugins mit on_event(ctx, event, data) melden – im Hintergrund, Fehler nur ins Protokoll.
-        Ereignisse: "files_moved" [{"old", "new"}], "files_added" [Pfad]. wait=True (Tests): auf das Ende warten."""
+        Ereignisse: "files_moved" [{"old", "new"}], "files_added" [Pfad], "app_started" {"at"} (#387). wait=True (Tests): auf das Ende warten."""
         if not data:
             return []
         threads = []
@@ -956,7 +971,7 @@ class Manager:
             opts.append(o)
         return {"plugin": pid, "plugin_name": p.name, "id": aid, "label": a["label"],
                 "description": a.get("description", ""), "options": opts, "run_label": a.get("run_label", "Ausführen"),
-                "needs_selection": a.get("needs_selection", True),
+                "needs_selection": a.get("needs_selection", True), "direct": bool(a.get("direct")),
                 "background": bool(a.get("background", (p.manifest or {}).get("background", False)))}
 
     def clean_options(self, action: dict, values: dict) -> dict:

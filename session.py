@@ -41,6 +41,7 @@ from session_help import HelpMixin
 from session_prepare import PrepareMixin
 from session_discover import DiscoverMixin
 from session_ideas import IdeasMixin
+from session_mixes import MixesMixin
 from session_setup import ArchiveMixin, FoldersMixin, SetupMixin
 from session_folders import FolderRolesMixin
 from session_playlists import PlaylistMixin
@@ -66,7 +67,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
 
 
 class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, DiscoverMixin, IdeasMixin, SetupMixin, FoldersMixin, FolderRolesMixin, ArchiveMixin,
-              PlaylistMixin, PurchasesMixin, CloudSyncMixin):
+              PlaylistMixin, PurchasesMixin, CloudSyncMixin, MixesMixin):
     def __init__(self):
         self.lock = threading.RLock()
         self._bus, self._buslock = {}, threading.Lock()       # Nachrichten zwischen Fenstern (#69)
@@ -2914,6 +2915,15 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         except Exception:  # noqa: BLE001
             pass
 
+    def plugins_startup(self) -> dict:
+        """#387: einmal nach dem Start (die Oberfläche ruft es verzögert auf) – Plugins mit on_event erfahren es als
+        „app_started“, z. B. um ihren Index im Hintergrund nachzuführen."""
+        if getattr(self, "_plugins_started", False):
+            return {"ok": True, "again": True}
+        self._plugins_started = True
+        self._emit("app_started", {"at": time.time()})
+        return {"ok": True}
+
     def plugins_list(self, rescan=False):
         if rescan:
             self._origins = None
@@ -3046,6 +3056,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 raise RuntimeError(f"{msg}\n\nDetails im Protokoll: {path}") from ex
             if res.get("log"):
                 res["logfile"] = plugins.write_log(f"{pid}.log", "\n".join(res["log"]))
+            if isinstance(res.get("mix_result"), dict):          # #387: Ergebnis von „Mix analysieren“ → Ergebnisfenster
+                res["mix_open"] = self._mix_store(res.pop("mix_result"))
             props = res.pop("proposals", [])
             if props:
                 import uuid

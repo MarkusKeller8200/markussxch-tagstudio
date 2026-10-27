@@ -158,9 +158,11 @@ def run(action, ctx, files, options):
 More settings per action:
 
 - `"where": "page"` – button on the plugin card instead of in the tagger (e.g. sign in); then usually
-  `"needs_selection": false`.
+  `"needs_selection": false`. `"where": "hidden"` – not shown anywhere, only for `ctx.queue_job` (#387).
+  `"direct": true` – an action without options starts without a form.
 - Additional option types `password` (never stored), `textarea`, `folders` (several folders, one per line, with a
-  “+ Folder …” picker button); `"secret": true` prevents remembering for any type. `"show_if": {"method": "login"}`
+  “+ Folder …” picker button), `file` (one file with “Choose …”; `"kind": "audio"` for all audio formats, otherwise
+  MP3; #387); `"secret": true` prevents remembering for any type. `"show_if": {"method": "login"}`
   only shows a field when another field has this value.
 - A function `status(ctx)` in the plugin returns a status text for the card (e.g. “Signed in as …”).
 
@@ -215,9 +217,13 @@ message.
 
 More functions a plugin can offer (all optional):
 
-- `on_event(ctx, event, data)` – TagStudio reports `"files_moved"` (`[{"old", "new"}]`: renamed, archived, restored)
-  and `"files_added"` (`[path]`: newly taken into the library, Prepare). Runs in the background, errors only go to the
-  log.
+- `on_event(ctx, event, data)` – TagStudio reports `"files_moved"` (`[{"old", "new"}]`: renamed, archived,
+  restored), `"files_added"` (`[path]`: newly taken into the library, Prepare) and `"app_started"` (once per start, about 20 s
+  after opening; #387). Runs in the background, errors only go to the log. Own actions without a selection can be
+  queued with `ctx.queue_job(action, options)` (#387); if a job of the same action is already waiting, no second one
+  is created.
+- Result `{"mix_result": {mix, duration, rows, compare, report, index, version}}` of an action (#387): TagStudio stores
+  it under `~/TagStudio/Mixe` and opens the “Analyse mix” result window (`mixresult.py`).
 - `detect_files(ctx, paths)` – Prepare: a status step whose “detection” is the plugin id treats these files as done
   (example: Lexicon – the file is in Lexicon).
 - `apply_remote(ctx, items)` – see `kind="remote"` above.
@@ -273,30 +279,40 @@ with TKEY, Beatport (`TXXX:INITIAL_KEY`) and the Mixed In Key comment: same, rel
 key) or different; plus the model's confidence (`keyscan` only). Results are cached per file (size + modification
 time). Usable as a step in **Prepare** (step type “Plugin”, mode “only fill empty fields”).
 
-## Built in: Analyse mix (prototype)
+## Built in: Analyse mix
 
-Recognises tracks of your **own library** in a mix file (#261) – even with changed tempo (±10 %, with and without
-keylock) – and writes a measurement report with start time, tempo and confidence. Own method (audio fingerprint with
-queries in tempo steps, `plugins/mixscan/fp.py`, concept `docs/KONZEPT-MIXSCAN.md`). Runs entirely locally: nothing is
-uploaded, nothing downloaded, nothing in the files is changed.
+Recognises tracks of your **own library** in a mix file (DJ set, radio show, your own mix; #261, #387) – even with
+changed tempo (±10 %, with and without keylock) – and shows the tracklist with time, tempo and confidence. Own method
+(audio fingerprint with queries in tempo steps, `plugins/mixscan/fp.py`, concept `docs/KONZEPT-MIXSCAN.md`). Runs
+entirely locally: nothing is uploaded, nothing downloaded, nothing in the files is changed. Only tracks in the index
+are recognised – other tracks stay “ID – ID”.
 
 1. **Plugins** page → “Analyse mix” → **Install** (own environment with Python 3.12, NumPy, SciPy, imageio-ffmpeg;
    about 100 MB).
-2. **Index library (test) …** – choose folders (empty = all libraries); about 200 tracks are enough for the
-   measurement, including the tracks of the test mix. Unchanged tracks are not read again next time.
-3. **Analyse mix (test) …** – enter the full path of the mix file (MP3, WAV, FLAC, M4A …), optionally the known
-   tracklist (one “Artist - Title” per line, ideally with timestamps such as “04:56” – also copied straight from
-   YouTube) for the hit rate. The report shows the calculated **track start in the mix** for each track and, with
-   timestamps, the deviation from the tracklist.
+2. **More … › Index library …** – once by hand; empty folders = all libraries. Runs as a background job (low
+   priority, cancel at any time – the next run continues where it stopped). About 0.4 MB of index per track
+   (measured: 1610 tracks ≈ 660 MB).
+3. **Analyse mix …** – on the plugin card or under **Playlists › Import ▾ › Recognise from mix …**: choose the mix
+   file, optionally the known tracklist (one “Artist - Title” per line, ideally with timestamps – also copied straight
+   from YouTube) for comparison.
+4. **Result window:** per track the time (middle of the transition – where tracklists usually place the change;
+   editable), tempo, confidence and file; **▶ Mix** and **▶ Track** to preview, **✕** discards a wrong match. Save as
+   a **playlist** in the folder “Mixe” (time, tempo and confidence as a note per entry; saving again updates the same
+   playlist), a **CUE file** (suggested: next to the mix) or **text** (`[12:30] Artist - Title`, copy or save). With a
+   tracklist: **Missing ones as ideas** saves the tracks that are not in your library on the “Ideas” page (#186).
+5. **Earlier analyses …** (plugin card or Playlists › Import ▾) opens saved results without a new analysis;
+   “Delete …” removes only the result.
 
-   **“Index library in the background …”** does the same as a background job (low priority, keep working, cancel at
-   any time – the next run continues where it stopped; progress saved every 25 tracks).
-4. **Self-test with your own tracks …** – builds a test mix from randomly chosen indexed tracks (70 s each, tempo
-   −6 … +6 %, with and without keylock, crossfaded) and checks whether the analysis finds them again – no tracklist needed.
+**Update the index automatically** (Options): add new tracks after “Prepare” and check at start in the background
+(new, changed, deleted tracks) – both on by default, but only after you have indexed once by hand. Moved or renamed
+tracks are always updated without reading them again.
 
-Result: report in `~/TagStudio/Plugin-Daten/mixscan/berichte` (text and JSON). Index under
-`~/TagStudio/Plugin-Daten/mixscan/index` (fingerprints only). Tracks that are not in the library stay “unknown”. No
-downloading from YouTube, SoundCloud or Mixcloud.
+**Self-test with your own tracks …** (More …) builds a test mix from randomly chosen indexed tracks (70 s each, tempo
+−6 … +6 %, with and without keylock, crossfaded) and checks whether the analysis finds them again.
+
+Storage: results in `~/TagStudio/Mixe` (one JSON per analysis), index under `~/TagStudio/Plugin-Daten/mixscan/index`
+(fingerprints only), technical report per analysis under `…/mixscan/berichte` (“Show report”). No downloading from
+YouTube, SoundCloud or Mixcloud.
 
 ## Built in: Stems
 

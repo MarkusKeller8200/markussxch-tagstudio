@@ -43,7 +43,7 @@
 |---|---|---|
 | 🏷️ **Tagger**<br>Viele Dateien gemeinsam bearbeiten, Cover, Tags aus dem Dateinamen, Umbenennen, Suchen & Ersetzen, Export nach Excel/CSV. | ⚖️ **Vergleich**<br>Zwei Ordner oder Dateien Feld für Feld – zeichengenau markiert, Werte per Pfeil übernehmen. | 🧹 **Tag-Fixer**<br>Mehrfachwerte (`;` `/` `feat.` …) vereinheitlichen, Smart-Fix-Rezepte, Ausnahmen je Feld. |
 | 🛒 **Einkäufe**<br>Gekaufte Titel (Beatport) mit der Bibliothek abgleichen, fehlende laden, Playlists in Beatport anlegen. | 🎛️ **DJ-Set**<br>Reihenfolge nach Tonart (Camelot), BPM und Energie optimieren – Export als M3U8, Rekordbox-XML, CSV. | 📂 **Playlists**<br>Titel sammeln, in Ordnern ordnen, als M3U8 für Engine DJ, VirtualDJ & Co. |
-| 🎧 **Vorschau-Player**<br>Wellenform, Cue-Marken (Serato, Mixed In Key), Überblenden mit Tempo-Angleichung, Bewertung. | 🛡️ **Sicher speichern**<br>Sicherung vor jedem Speichern, Rückgängig über alle Dateien, Snapshots und Änderungsjournal. | 🧩 **Plugins**<br>Stems, Beatport, Discogs, MusicBrainz, Lexicon, Cloud-Abgleich (OneDrive, Google Drive, Dropbox) … |
+| 🎧 **Vorschau-Player**<br>Wellenform, Cue-Marken (Serato, Mixed In Key), Überblenden mit Tempo-Angleichung, Bewertung. | 🛡️ **Sicher speichern**<br>Sicherung vor jedem Speichern, Rückgängig über alle Dateien, Snapshots und Änderungsjournal. | 🧩 **Plugins**<br>Stems, Mix analysieren (Titel in DJ-Mixes erkennen), Beatport, Discogs, MusicBrainz, Lexicon, Cloud-Abgleich (OneDrive, Google Drive, Dropbox) … |
 
 Dazu: Camelot-Rad und Tonart-Schreibweisen, Audio-Merkmale (Energy, Danceability …) als Spalten, Herkunft der Tags,
 „Entdecken“ neuer Veröffentlichungen mit Wunschlisten („Ideen“), Einstellungen an einem Ort, Deutsch, Englisch und Zürichdeutsch.

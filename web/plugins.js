@@ -92,7 +92,7 @@ function renderPlugins() {
     const ext = p.external.length ? `<div class="pl-box warn"><b>Zusätzlich nötig:</b> ${p.external.map((e) => `${esc(e.label)}${e.hint ? ` <span class="hint">– ${esc(e.hint)}</span>` : ""}`).join("<br>")}</div>` : "";
     const err = p.state === "error" ? `<div class="pl-box err">${esc(p.error)}</div>` : "";
     // 3. Aktionen (erscheinen im Tagger)
-    const tagActs = acts.filter((a) => a.where !== "page");
+    const tagActs = acts.filter((a) => a.where !== "page" && a.where !== "hidden");   // #387: „hidden“ = nur intern
     // #248: einzeilig – Kurzname (sonst Name ohne „…“), zu lange Namen mit „…“ gekürzt (ganzer Name im Tooltip),
     // höchstens vier Chips + „+n“; „Im Tagger:“ statt „· Tagger“ an jedem Chip, wenn alle im Tagger sind
     const allTagger = tagActs.length && tagActs.every((a) => a.where === "tagger");
@@ -363,6 +363,7 @@ function pluginOptionInner(o, id) {
   if (o.type === "check") return `<span></span><label class="check"><input type="checkbox" id="${id}" data-ok="${esc(o.key)}" ${o.value ? "checked" : ""}> ${esc(o.label || o.key)}</label>`;
   if (o.type === "select") return lab + `<select id="${id}" class="inp" data-ok="${esc(o.key)}">${(o.choices || []).map((c) => { const [v, l] = Array.isArray(c) ? c : [c, c]; return `<option value="${esc(v)}" ${String(v) === String(o.value) ? "selected" : ""}>${esc(l)}</option>`; }).join("")}</select>`;
   if (o.type === "folders") return lab + `<div class="pl-folders"><textarea id="${id}" class="inp pl-ta" data-ok="${esc(o.key)}" spellcheck="false" rows="3" placeholder="Je Zeile ein Ordner">${esc(o.value)}</textarea><button class="ghost sm" data-plpick="${id}" data-add="1" title="Ordner auswählen und als neue Zeile anfügen">+ Ordner …</button></div>`;
+  if (o.type === "file") return lab + `<div class="pl-folder"><input id="${id}" data-ok="${esc(o.key)}" value="${esc(o.value)}" spellcheck="false" placeholder="Datei …"><button class="ghost sm" data-plpick="${id}" data-file="${esc(o.kind || "mp3")}">Wählen …</button></div>`;   // #387
   if (o.type === "folder") return lab + `<div class="pl-folder"><input id="${id}" data-ok="${esc(o.key)}" value="${esc(o.value)}" spellcheck="false" placeholder="Ordner …"><button class="ghost sm" data-plpick="${id}">Wählen …</button></div>`;
   return lab + `<input id="${id}" data-ok="${esc(o.key)}" ${o.type === "number" ? 'type="number" step="any"' : ""} value="${esc(o.value)}" spellcheck="false">`;
 }
@@ -371,7 +372,7 @@ async function pluginRun(pid, aid) {
   const idx = typeof tgSelected === "function" ? tgSelected() : [];
   const f = await call("plugin_form", pid, aid);
   if (f.needs_selection && !idx.length) { toast("Bitte zuerst Dateien markieren."); return; }
-  const values = await modal({
+  const values = f.direct && !f.options.length ? {} : await modal({
     title: `${f.label.replace(/\s*…$/, "")}${f.needs_selection ? ` (${idx.length} Datei(en))` : ""}`,
     wide: true,
     html: `${f.description ? `<p class="muted" style="margin:0">${esc(f.description)}</p>` : ""}
@@ -386,7 +387,7 @@ async function pluginRun(pid, aid) {
       b.querySelectorAll("[data-plpick]").forEach((btn) => btn.addEventListener("click", async () => {
         const inp = $("#" + btn.dataset.plpick, b);
         const add = !!btn.dataset.add, lines = inp.value.split("\n").map((x) => x.trim()).filter(Boolean);
-        const p = await call("pick_path", "", true, add ? (lines[lines.length - 1] || "") : inp.value.trim());
+        const p = await call("pick_path", "", !btn.dataset.file, add ? (lines[lines.length - 1] || "") : inp.value.trim(), btn.dataset.file || "mp3");
         if (p) inp.value = add ? [...lines.filter((x) => x.toLowerCase() !== p.toLowerCase()), p].join("\n") : p;
         else if (!S.settings.native) toast("Pfad bitte direkt ins Feld eintippen.");
       }));
@@ -414,6 +415,8 @@ async function pluginRun(pid, aid) {
   if (!res) return;
   if (res.proposals && res.proposals.length) { await pluginPreview(f, res); return; }
   if (res.open && res.open.files && res.open.files.length) { await pluginOpenFiles(res.open, res); return; }   // #238
+  if (res.mix_open && typeof mixOpen === "function") { status(res.message || "", "info"); await mixOpen(res.mix_open); return; }   // #387
+  if (res.mix_list && typeof mixListDialog === "function") { await mixListDialog(); return; }
   if (res.changed && typeof taggerRefresh === "function") await taggerRefresh();
   if (res.cancelled) { status("Abgebrochen.", "warn"); if (!res.log.length) return; }
   const log = (res.log || []).slice(-40).join("\n");
@@ -571,3 +574,8 @@ async function pluginPreview(f, res) {
     pluginInstall(b.closest("[data-pid]").dataset.pid, b.dataset.install);
   });
 })();
+
+/** #387: einmal nach dem Start – Plugins führen z. B. ihren Index im Hintergrund nach (Ereignis „app_started“) */
+async function pluginsStartup() {
+  try { await call("plugins_startup"); } catch (e) { /* egal */ }
+}

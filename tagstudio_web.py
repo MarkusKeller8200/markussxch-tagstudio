@@ -71,6 +71,7 @@ _PASS = {
     "help_docs", "help_licenses", "help_lic_mark", "feedback_info", "feedback_search", "feedback_prepare", "feedback_translation", "help_tags", "start_tag_scan", "tag_field_filter",
     "setup_state", "setup_finish", "set_nav_hidden", "set_nav_order", "first_steps_seen", "first_steps_restart", "set_first_steps", "whats_new", "whats_new_seen", "folders_overview", "folders_get", "folders_set_base", "folders_set_role", "folders_lib_add", "folders_lib_update", "folders_lib_remove", "folders_create", "folders_review_apply", "folders_adopt", "folders_menu", "folders_recent_add", "folders_mkdir", "folders_cloud_online", "folders_change_preview", "start_folders_change", "folders_remove_empty", "set_base_dir", "setup_structure", "set_archive_dir", "tag_archive", "prep_archive", "archive_list", "archive_restore",
     "disc_overview", "disc_follow_save", "disc_follow_edit", "disc_clear", "start_disc_bp_follow", "start_disc_related", "disc_set", "disc_genres", "disc_auto", "disc_auto_status", "start_disc_suggest", "start_disc_run",
+    "mix_list", "mix_get", "mix_drop", "mix_set_time", "mix_rename", "mix_delete", "mix_audio", "mix_to_playlist", "mix_export_name", "mix_cue_beside", "mix_export_write", "mix_missing_to_ideas", "plugins_startup",   # #387
     "ideas_overview", "ideas_count", "ideas_list_create", "ideas_list_rename", "ideas_list_archive", "ideas_from_disc", "ideas_add_manual", "ideas_add_text",   # #186
     "ideas_set", "ideas_remove", "ideas_move", "ideas_undo", "ideas_preview", "ideas_to_playlist", "start_ideas_match", "ideas_bp_preview", "start_ideas_bp",
     "prep_overview", "prep_pending", "start_prep_fetch", "prep_workflow_save", "prep_workflow_new", "prep_workflow_delete", "prep_export", "prep_import", "start_prep_run", "prep_refresh", "prep_mark", "prep_revert", "prep_allow", "prep_cleanup",
@@ -572,7 +573,7 @@ class Api:
 
     def pick_path(self, side, folder=True, start="", kind="mp3"):
         """Ordner- bzw. Dateiauswahl des Betriebssystems. Liefert den Pfad oder ''.
-        kind (nur Dateien): "mp3" oder "program" (Programme, z. B. für externe Schritte im Workflow).
+        kind (nur Dateien): "mp3", "audio" (alle Audioformate, #387) oder "program" (Programme, z. B. für externe Schritte im Workflow).
         Ohne Startpfad beginnt die Auswahl im Basisordner (#171), sonst im Benutzerordner."""
         if not start and kind != "program":
             base = self._s.base_dir()
@@ -584,6 +585,7 @@ class Api:
             import webview
             dlg = webview.FOLDER_DIALOG if folder else webview.OPEN_DIALOG
             types = () if folder else (("Programme (*.exe;*.app;*.bat;*.cmd)", "Alle Dateien (*.*)") if kind == "program"
+                                       else (AUDIO_PICK, "Alle Dateien (*.*)") if kind == "audio"                 # #387
                                        else ("MP3-Dateien (*.mp3;*.MP3)", "Alle Dateien (*.*)"))
             res = self._window.create_file_dialog(dlg, directory=start, file_types=i18n.file_types(types))
             if not res:
@@ -1077,6 +1079,9 @@ def _tk_dialog(kind, start, extra=""):
     return result["p"]
 
 
+AUDIO_PICK = "Audiodateien (*.mp3;*.wav;*.flac;*.m4a;*.aac;*.aif;*.aiff;*.ogg;*.opus)"   # #387: Mix-Datei
+
+
 def _tk_pick(folder, start, kind="mp3"):
     """Rückfall für den Browser-Modus: Dialog über tkinter (falls vorhanden)."""
     result = {"p": ""}
@@ -1092,10 +1097,11 @@ def _tk_pick(folder, start, kind="mp3"):
                 p = filedialog.askdirectory(initialdir=start, title=i18n.tr("Ordner wählen"), parent=root)
             else:
                 ft = [("Programme", "*.exe *.app *.bat *.cmd"), ("Alle Dateien", "*")] if kind == "program" \
+                    else [("Audiodateien", "*.mp3 *.wav *.flac *.m4a *.aac *.aif *.aiff *.ogg *.opus"), ("Alle Dateien", "*")] if kind == "audio" \
                     else [("MP3-Dateien", "*.mp3 *.MP3"), ("Alle Dateien", "*")]
                 ft = [(i18n.tr(n), pat) for n, pat in ft]                                     # #304
                 p = filedialog.askopenfilename(initialdir=start, parent=root, filetypes=ft,
-                                               title=i18n.tr("Programm wählen" if kind == "program" else "MP3-Datei wählen"))
+                                               title=i18n.tr("Programm wählen" if kind == "program" else "Audiodatei wählen" if kind == "audio" else "MP3-Datei wählen"))
             root.destroy()
             result["p"] = os.path.normpath(p) if p else ""
         except Exception:  # noqa: BLE001

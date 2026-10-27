@@ -1,6 +1,10 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-27 (04:10): #261 **Mix analysieren** – Konzept `docs/KONZEPT-MIXSCAN.md` (Entscheide M1–M8, M4 offen),
+> Stand 2026-10-27 (15:45): **#387 Mix analysieren fertiggestellt** (Auftrag User 15:21) – Plugin `mixscan` 1.0 mit
+> Ergebnisfenster (`web/mixes.js`), Speichern als Playlist „Mixe“/CUE/Text/Ideen, Aufruf über Playlists › Importieren ▾,
+> Index automatisch nachführen (nach Vorbereiten, beim Start, verschoben); Konzept §11. `_3 Beta-Test`.
+>
+> Davor 2026-10-27 (04:10): #261 **Mix analysieren** – Konzept `docs/KONZEPT-MIXSCAN.md` (Entscheide M1–M8, M4 offen),
 > Prototyp-Plugin `mixscan` 0.10 im Beta-Test (Messung 7 beim User: 11/13 in Purified Radio 520, Tabelle in KONZEPT-MIXSCAN §10.1). #218 MixID zurück in „Funktionen“.
 >
 > Davor 2026-10-27 (01:30): **4.13.0 in Arbeit** (Meilenstein #30 „Ideen & Wunschlisten“): #186 Seite „Ideen“ –

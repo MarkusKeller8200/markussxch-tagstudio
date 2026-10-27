@@ -82,6 +82,8 @@ Plugins/
   die neue Dateien erzeugen – Tag-Änderungen und Vorschläge gehören in Vordergrund-Aktionen. Auch je Aktion
   möglich (`"background": true` im ACTIONS-Eintrag). Seiten-Aktionen ohne Auswahl (`"needs_selection": false`)
   laufen ebenfalls im Hintergrund; sie bekommen keine Dateien, aber die Sitzung (z. B. für die Bibliotheksordner, #261).
+  Eigene Aktionen ohne Auswahl reiht ein Plugin mit `ctx.queue_job(aktion, optionen)` selbst ein (#387, z. B. aus
+  `on_event`); wartet schon ein Auftrag derselben Aktion, entsteht kein zweiter.
 - `fields`: Felder, die das Plugin schreibt (Muster mit `*`). TagStudio zeigt bei diesen Feldern die Herkunft
   „TagStudio · Plugin-Name“ an (Tagger, Vergleich), damit eigene Felder erkennbar bleiben.
 - `source` (optional, ab 4.10): Name der Quelle bzw. des Stores, z. B. `"Beatport"`. Beim **Einschalten** legt
@@ -160,7 +162,9 @@ def run(action, ctx, files, options):
 Weitere Angaben je Aktion:
 
 - `"where": "page"` – Knopf auf der Plugin-Karte statt im Tagger (z. B. Anmelden); dann meist `"needs_selection": false`.
-- Optionstypen zusätzlich `password` (wird nie gespeichert), `textarea`, `folders` (mehrere Ordner, je Zeile einer, mit Auswahl-Knopf „+ Ordner …“); `"secret": true` verhindert das Merken
+  `"where": "hidden"` – nirgends angezeigt, nur für `ctx.queue_job` (#387). `"direct": true` – Aktion ohne Optionen
+  startet ohne Formular.
+- Optionstypen zusätzlich `password` (wird nie gespeichert), `textarea`, `folders` (mehrere Ordner, je Zeile einer, mit Auswahl-Knopf „+ Ordner …“), `file` (eine Datei mit „Wählen …“; `"kind": "audio"` für alle Audioformate, sonst MP3; #387); `"secret": true` verhindert das Merken
   bei jedem Typ. `"show_if": {"method": "login"}` zeigt ein Feld nur, wenn ein anderes Feld diesen Wert hat.
 - Eine Funktion `status(ctx)` im Plugin liefert einen Statustext für die Karte (z. B. „Angemeldet als …“).
 
@@ -216,8 +220,10 @@ Fehlermeldung angezeigt.
 Weitere Funktionen, die ein Plugin anbieten kann (alle optional):
 
 - `on_event(ctx, event, data)` – TagStudio meldet `"files_moved"` (`[{"old", "new"}]`: umbenannt, archiviert,
-  zurückgeholt) und `"files_added"` (`[Pfad]`: neu in die Bibliothek übernommen, Vorbereiten). Läuft im Hintergrund,
-  Fehler landen nur im Protokoll.
+  zurückgeholt), `"files_added"` (`[Pfad]`: neu in die Bibliothek übernommen, Vorbereiten) und `"app_started"`
+  (einmal je Start, rund 20 s nach dem Öffnen; #387). Läuft im Hintergrund, Fehler landen nur im Protokoll.
+- Ergebnis `{"mix_result": {mix, duration, rows, compare, report, index, version}}` einer Aktion (#387): TagStudio legt
+  es unter `~/TagStudio/Mixe` ab und öffnet das Ergebnisfenster „Mix analysieren“ (`mixresult.py`).
 - `detect_files(ctx, paths)` – Vorbereiten: Status-Schritt mit „Erkennung“ = Plugin-ID erkennt diese Dateien als
   erledigt (Beispiel: Lexicon – Datei ist in Lexicon).
 - `apply_remote(ctx, items)` – siehe `kind="remote"` oben.
@@ -290,30 +296,41 @@ Ergebnis: Ordner `<Titel> – Stems` neben dem Titel (oder im gewählten Ordner)
 Bei MP3 werden Tags und Cover übernommen, der Titel bekommt den Zusatz „(Vocals)“. Die Modelle landen in
 `~/TagStudio/Plugin-Daten/stems/modelle` und werden nur einmal geladen.
 
-## Eingebaut: Mix analysieren (Prototyp)
+## Eingebaut: Mix analysieren
 
-Erkennt Titel der **eigenen Bibliothek** in einer Mix-Datei (#261) – auch mit geändertem Tempo (±10 %, mit Keylock
-und ohne) – und schreibt einen Messbericht mit Startzeit, Tempo und Sicherheit. Eigenes Verfahren (Audio-Fingerabdruck
-mit Abfrage in Tempo-Stufen, `plugins/mixscan/fp.py`, Konzept `docs/KONZEPT-MIXSCAN.md`). Läuft vollständig lokal:
-nichts wird hochgeladen, nichts heruntergeladen, an den Dateien wird nichts geändert.
+Erkennt Titel der **eigenen Bibliothek** in einer Mix-Datei (DJ-Set, Radiosendung, eigener Mix; #261, #387) – auch
+mit geändertem Tempo (±10 %, mit Keylock und ohne) – und zeigt die Tracklist mit Zeit, Tempo und Sicherheit. Eigenes
+Verfahren (Audio-Fingerabdruck mit Abfrage in Tempo-Stufen, `plugins/mixscan/fp.py`, Konzept
+`docs/KONZEPT-MIXSCAN.md`). Läuft vollständig lokal: nichts wird hochgeladen, nichts heruntergeladen, an den Dateien
+wird nichts geändert. Erkannt werden nur Titel, die im Index sind – fremde Titel bleiben „ID – ID“.
 
 1. Seite **Plugins** → bei „Mix analysieren“ **Installieren** (eigene Umgebung mit Python 3.12, NumPy, SciPy,
    imageio-ffmpeg; etwa 100 MB).
-2. **Bibliothek indexieren (Test) …** – Ordner wählen (leer = alle Bibliotheken), für die Messung etwa 200 Titel,
-   darunter die Titel des Test-Mixes. Unveränderte Titel werden beim nächsten Mal nicht neu gelesen.
-3. **Mix analysieren (Test) …** – vollständigen Pfad der Mix-Datei eingeben (MP3, WAV, FLAC, M4A …), optional die
-   bekannte Tracklist („Künstler - Titel“ je Zeile, gern mit Zeitmarken wie „04:56“ – auch direkt aus YouTube kopiert)
-   für die Trefferquote. Der Bericht nennt je Titel den berechneten **Titelanfang im Mix** und, mit Zeitmarken, die
-   Abweichung zur Tracklist.
+2. **Mehr … › Bibliothek indexieren …** – einmal von Hand; Ordner leer = alle Bibliotheken. Läuft als
+   Hintergrund-Auftrag (niedrige Priorität, Abbrechen jederzeit – beim nächsten Lauf geht es dort weiter). Rund
+   0,4 MB Index je Titel (gemessen: 1610 Titel ≈ 660 MB).
+3. **Mix analysieren …** – auf der Plugin-Karte oder unter **Playlists › Importieren ▾ › Aus Mix erkennen …**:
+   Mix-Datei wählen, optional die bekannte Tracklist („Künstler - Titel“ je Zeile, gern mit Zeitmarken – auch direkt
+   aus YouTube kopiert) zum Vergleich.
+4. **Ergebnisfenster:** je Titel Zeit (Mitte des Übergangs – dort setzen Tracklisten meist den Wechsel; von Hand
+   änderbar), Tempo, Sicherheit, Datei; **▶ Mix** und **▶ Titel** zum Vorhören, **✕** verwirft einen falschen
+   Treffer. Speichern als **Playlist** im Ordner „Mixe“ (Zeit, Tempo und Sicherheit als Notiz je Eintrag; nochmals
+   speichern führt dieselbe Playlist nach), **CUE-Datei** (Vorschlag: neben dem Mix), **Text**
+   (`[12:30] Künstler - Titel`, kopieren oder speichern). Mit Tracklist: **Fehlende als Ideen** merkt die Titel, die
+   nicht in der Bibliothek sind, auf der Seite „Ideen“ (#186).
+5. **Frühere Analysen …** (Plugin-Karte bzw. Playlists › Importieren ▾) öffnet gespeicherte Ergebnisse ohne neue
+   Analyse; „Löschen …“ entfernt nur das Ergebnis.
 
-   **„Bibliothek im Hintergrund indexieren …“** macht dasselbe als Hintergrund-Auftrag (niedrige Priorität, weiterarbeiten,
-   Abbrechen jederzeit – beim nächsten Lauf geht es dort weiter; Zwischenstand alle 25 Titel gesichert).
-4. **Selbsttest mit eigenen Titeln …** – baut aus zufällig gewählten indexierten Titeln einen Test-Mix (je 70 s,
-   Tempo −6 … +6 %, mit und ohne Keylock, überblendet) und prüft, ob die Analyse sie wiederfindet – ohne Tracklist.
+**Index automatisch nachführen** (Optionen): neue Titel nach „Vorbereiten“ aufnehmen und beim Start im Hintergrund
+prüfen (neue, geänderte, gelöschte Titel) – beides Standard ein, aber erst, nachdem einmal von Hand indexiert wurde.
+Verschobene oder umbenannte Titel werden immer nachgeführt, ohne sie neu zu lesen.
 
-Ergebnis: Bericht in `~/TagStudio/Plugin-Daten/mixscan/berichte` (Text und JSON). Index unter
-`~/TagStudio/Plugin-Daten/mixscan/index` (nur Fingerabdrücke). Titel, die nicht in der Bibliothek sind, bleiben
-„unbekannt“. Kein Herunterladen von YouTube, SoundCloud oder Mixcloud.
+**Selbsttest mit eigenen Titeln …** (Mehr …) baut aus zufällig gewählten indexierten Titeln einen Test-Mix (je 70 s,
+Tempo −6 … +6 %, mit und ohne Keylock, überblendet) und prüft, ob die Analyse sie wiederfindet.
+
+Ablage: Ergebnisse in `~/TagStudio/Mixe` (JSON je Analyse), Index unter `~/TagStudio/Plugin-Daten/mixscan/index`
+(nur Fingerabdrücke), technischer Bericht je Analyse unter `…/mixscan/berichte` („Bericht zeigen“). Kein Herunterladen
+von YouTube, SoundCloud oder Mixcloud.
 
 ## Eingebaut: Beatport
 

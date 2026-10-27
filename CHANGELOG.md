@@ -8,24 +8,18 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
-- **Mix analysieren – Prototyp (#261):** neues Plugin „Mix analysieren“ erkennt Titel der eigenen Bibliothek in einer
-  Mix-Datei, auch mit geändertem Tempo (±10 %, mit und ohne Keylock), und schreibt einen Messbericht (Startzeit, Tempo,
-  Sicherheit, Trefferquote gegen eine bekannte Tracklist). Eigener Audio-Fingerabdruck, läuft vollständig lokal
-  (Konzept `docs/KONZEPT-MIXSCAN.md`).
-  Plugin 0.2: liegt der Mix selbst im indexierten Ordner, zählt er nicht mit; der Bericht nennt die nicht erkannten
-  Titel mit den meisten Treffern. Plugin 0.3: „Selbsttest mit eigenen Titeln …“ baut aus indexierten Titeln einen
-  Test-Mix (Tempo ±6 %, mit und ohne Keylock) und misst die Trefferquote ohne Tracklist. Plugin 0.4: „Bibliothek im
-  Hintergrund indexieren …“ als Hintergrund-Auftrag, fortsetzbar. Plugins: Seiten-Aktionen ohne Auswahl können jetzt
-  im Hintergrund laufen.
-  Plugin 0.5: Abschnitte desselben Titels werden zusammengefasst (auch andere Fassung wie Dub Mix), der Tracklist-
-  Abgleich unterscheidet Fassungen (Remix ≠ Extended Mix), kurze Treffer ohne Keylock gelten als unsicher.
-  Plugin 0.6: Tracklist-Abgleich toleranter bei Länderzusätzen („NTO (FR)“) und Fassungsnamen („Remix, Extended“).
-  Plugin 0.7: Plugin-Version steht im Bericht (Text und JSON). Plugin 0.8: berechneter **Titelanfang im Mix** je Titel
-  und – mit Zeitmarken in der Tracklist – die Abweichung in Sekunden. Kopierte YouTube-Tracklisten mit Links
-  („[04:56](https://…)“) werden überall verstanden (auch Ideen › Liste aus Text).
-  Plugin 0.9: Titel mit Tempo zwischen zwei Stufen (z. B. +2,5 %) werden zuverlässiger erkannt; der Bericht prüft,
-  ob die Tracklist-Zeit im Übergang liegt. Playlists: „feat. X (Remix)“ verlor beim Vergleich den Remix-Namen – behoben.
-  Plugin 0.10: unsicher erkannte Titel, die zur Tracklist passen, zählen als „erkannt (unsicher)“ statt „nicht erkannt“.
+- **Mix analysieren (#261, #387):** neues Plugin „Mix analysieren“ erkennt die Titel der eigenen Bibliothek in einer
+  Mix-Datei (DJ-Set, Radiosendung, eigener Mix) – auch mit geändertem Tempo (±10 %, mit und ohne Keylock). Eigener
+  Audio-Fingerabdruck, läuft vollständig lokal (Konzept `docs/KONZEPT-MIXSCAN.md`). Einmal „Bibliothek indexieren …“
+  (Hintergrund-Auftrag), danach führt TagStudio den Index nach „Vorbereiten“ und beim Start selbst nach (abschaltbar).
+  **Ergebnisfenster:** Zeit je Titel (Mitte des Übergangs, änderbar), Tempo, Sicherheit; Vorhören im Mix und im
+  Titel; falsche Treffer verwerfen; Lücken als „ID – ID“. Speichern als **Playlist** im Ordner „Mixe“, **CUE-Datei**
+  (neben dem Mix) oder **Text**; mit bekannter Tracklist fehlende Titel als **Ideen** merken. Aufruf auch über
+  Playlists › Importieren ▾ „Aus Mix erkennen …“ und „Frühere Mix-Analysen …“. Kopierte YouTube-Tracklisten mit Links
+  („[04:56](https://…)“) werden überall verstanden; Playlists: „feat. X (Remix)“ verlor beim Vergleich den
+  Remix-Namen – behoben. Playlists zeigen die Notiz eines Eintrags hinter dem Titel.
+  Plugin-Rahmen: Optionstyp `file`, Aktionen ohne Formular (`direct`) und versteckte Aktionen (`hidden`),
+  `ctx.queue_job()`, Ereignis `app_started`, Seiten-Aktionen ohne Auswahl im Hintergrund.
 
 - **Ideen – Wunschlisten (#186):** neue Seite „Ideen“ nach „Entdecken“. Titel, die du später kaufen willst, in
   Wunschlisten sammeln – mit ☆ „Idee merken ▸“ in Entdecken, von Hand oder als Liste aus Text; je Eintrag Notiz, Quelle

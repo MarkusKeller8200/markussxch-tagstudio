@@ -1903,3 +1903,20 @@ html.i18n-wait body{visibility:hidden}
 .fold-move{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:0 0 8px;display:flex;flex-direction:column;gap:4px}
 .fold-move code{font-size:11.5px;word-break:break-all}
 .fold-warn{color:var(--warn)}
+
+/* #387: Mix analysieren – Ergebnisfenster */
+.mx-head{display:flex;flex-direction:column;gap:2px;margin:0 0 8px}
+.mx-cmp{margin:0 0 8px;font-size:13px}
+.mx-cmp summary{cursor:pointer;color:var(--dim)}
+.mx-table{max-height:56vh;margin:6px 0}
+.mx-table td.mx-acts{width:1%}
+.mx-btns{display:flex;gap:4px;justify-content:flex-end;flex-wrap:nowrap;white-space:nowrap}
+.mx-table tr.mx-unsure td{background:color-mix(in srgb, var(--warn, #d9a400) 7%, transparent)}
+.mx-table tr.mx-gap td{color:var(--faint)}
+.mx-time{width:78px;font-variant-numeric:tabular-nums;padding:3px 6px}
+.mx-time.edited{border-color:var(--acc)}
+.mx-play.on{border-color:var(--acc);color:var(--acc)}
+.mx-tag{display:inline-block;padding:0 6px;border-radius:99px;border:1px solid var(--line2);font-size:11px;color:var(--dim)}
+.mx-tag.warn{border-color:var(--warn, #d9a400);color:var(--warn, #d9a400)}
+.mx-dropped{margin:6px 0 0}
+.mx-dropped summary{cursor:pointer;color:var(--dim)}

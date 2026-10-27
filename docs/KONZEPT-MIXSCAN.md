@@ -1,6 +1,6 @@
 # Konzept: Mix analysieren – Titel in DJ-Mixes erkennen (#261) und MixID (#218)
 
-Stand: 2026-10-27 (Meilenstein #30 „4.13.0“) · Status: **Entscheide freigegeben (27.10.2026, 03:45)** – Phase 2 (Prototyp) umgesetzt, Messung beim User offen.
+Stand: 2026-10-27 (Meilenstein #30 „4.13.0“) · Status: **Phase 3 umgesetzt (#387, Plugin 1.0)** – Prototyp nach Messung 7 (11/13 = 85 % ≥ 80 %, M6) fertiggestellt und eingebaut (Abschnitt 11).
 
 > Was es schon gibt und was geplant ist, ist je Abschnitt markiert. Umgesetzt wird erst nach Freigabe der Entscheide in
 > Abschnitt 8. Grundsatz aus #260 (Entscheid User 24.10.2026): **nur lokale Ausführung**, kein eigener Server.
@@ -54,8 +54,9 @@ gleichzeitig), EQ, Effekte. Klassische Landmark-Verfahren (audfprint, dejavu) ve
 
 ### 4.2 Index der eigenen Bibliothek
 
-- SQLite im Benutzerordner (`~/TagStudio/Mixscan/index.db`, je Profil), Tabellen Titel (Pfad, Grösse, Änderungszeit,
-  Dauer) und Schlüssel (Hash → Titel, Zeit). Nur Verweise auf die Dateien, keine Audiokopien.
+- ~~SQLite~~ **umgesetzt:** `Plugin-Daten/mixscan/index` – `titel.json` (Pfad → Nr., Grösse, Änderungszeit, Dauer,
+  Schlüsselzahl), je Titel `parts/<nr>.npz` und daraus zusammengesetzt `index.npz` (sortierte NumPy-Felder). Nur
+  Verweise auf die Dateien, keine Audiokopien. Gemessen: ≈ 0,4 MB je Titel.
 - Quelle: alle aktiven Bibliotheken (`folders.libraries()`); nur neue/geänderte Dateien werden nachgeführt,
   verschwundene entfernt.
 - Aufbau im Hintergrund (abbrechbar, fortsetzbar). Grobe Erwartung je 10 000 Titel: einige hundert MB, einige Stunden
@@ -74,7 +75,8 @@ gleichzeitig), EQ, Effekte. Klassische Landmark-Verfahren (audfprint, dejavu) ve
   Treffer korrigieren (anderen Titel wählen) oder verwerfen; Lücken mit Notiz („ID – ID“).
 - Speichern als **Playlist** (Ordner „Mixe“, Startzeit als Notiz je Eintrag), **CUE-Datei** neben dem Mix,
   **Text** (`[00:00] Künstler - Titel`), Lücken optional als Einträge einer **Wunschliste** (#186).
-- Ergebnisse je Mix im Benutzerordner (`~/TagStudio/Mixscan/mixe/<id>.json`), erneut öffnen ohne neue Analyse.
+- Ergebnisse je Mix im Benutzerordner (umgesetzt: `~/TagStudio/Mixe/mx_<id>.json`, je Profil), erneut öffnen ohne
+  neue Analyse.
 
 ### 4.5 Unbekannte Abschnitte (optional, siehe M3)
 
@@ -108,7 +110,7 @@ Ergebnis speichern. Prototyp-Messung mit echter Musik beim User (M6).
 | M1 | Verfahren | **A** – eigene Umsetzung, Abfrage in Tempo-Stufen; B (Quad) nur, falls der Prototyp nicht reicht |
 | M2 | Welche Titel werden erkannt? | nur Titel der **eigenen Bibliothek** (alle aktiven Bibliotheken) |
 | M3 | Unbekannte Abschnitte | vorerst „unbekannt“ lassen; SonoVault Identify je Abschnitt auf Klick als Option später |
-| M4 | Eingabe | Vorschlag: nur **lokale Dateien** – in der Rückfrage nicht angekreuzt, **noch zu bestätigen**; der Prototyp liest nur lokale Dateien |
+| M4 | Eingabe | nur **lokale Dateien** – in der Rückfrage nicht angekreuzt; umgesetzt wie vorgeschlagen (Auftrag „fertigstellen“ 27.10.2026, 15:21), kein Herunterladen |
 | M5 | Index aufbauen | von Hand starten, danach automatisch für neue Titel (nach „Vorbereiten“ und beim Start im Hintergrund) |
 | M6 | Prototyp zuerst | ja: Messwerkzeug, das du mit ~200 Titeln und einem eigenen Mix mit bekannter Tracklist laufen lässt; weiter erst bei ≥ 80 % erkannten Titeln |
 | M7 | Ergebnis und Ort | Plugin-Aktion „Mix analysieren …“ (Playlists und Plugin-Seite) mit Ergebnisfenster; speichern als Playlist (Ordner „Mixe“), CUE, Text |
@@ -116,9 +118,9 @@ Ergebnis speichern. Prototyp-Messung mit echter Musik beim User (M6).
 
 ## 9. Phasen
 
-1. **Konzept** (dieses Dokument) – M1–M3, M5–M8 freigegeben; M4 zu bestätigen.
+1. **Konzept** (dieses Dokument) – M1–M8.
 2. **Prototyp** (M6): Plugin mit Index + Analyse ohne Oberfläche, Messbericht (Trefferquote, Speicher, Zeit).
-3. **Plugin** mit Ergebnisfenster, Export, automatischem Nachführen.
+3. **Plugin** mit Ergebnisfenster, Export, automatischem Nachführen – **umgesetzt (#387, Abschnitt 11)**.
 4. Optional: SonoVault für Lücken (M3), MixID (M8, nur mit API).
 
 ## 10. Prototyp (umgesetzt, 4.13.0)
@@ -149,3 +151,31 @@ Ergebnis speichern. Prototyp-Messung mit echter Musik beim User (M6).
 | 7 | 0.9 | 520 | 10/13 sicher, Evenfall mit 58 % gefunden, aber als „nicht erkannt“ gezählt; Zeiten 10/10 im Übergang | 0.10: unsichere Abschnitte zählen, wenn sie zur Tracklist passen („erkannt (unsicher)“) – 11/13 |
 
 Die zwei übrigen Titel („More Than I Should Know“, „DJ Paulus – Mirage“) liegen nach dem Bericht nicht im Index.
+
+## 11. Fertigstellung (#387, Plugin 1.0, 27.10.2026)
+
+Auftrag User 15:21: „finalisieren (entfernen von Prototyp) und einbauen an den entsprechenden Stellen“.
+
+- **Plugin** `mixscan` 1.0 (`min_app` 4.13.0): Aktionen „Mix analysieren …“ (Dateiauswahl, Tempo ohne Keylock,
+  optionale Tracklist), „Bibliothek indexieren …“ (Hintergrund), „Frühere Analysen …“, „Einstellungen …“,
+  „Selbsttest …“; Prototyp-Aktionen „(Test)“ und Index-Grenze entfallen. Der Bericht bleibt als Datei („Bericht zeigen“).
+- **Ergebnis** (`mixresult.py`, `session_mixes.py`, `web/mixes.js`): Das Plugin gibt `mix_result` zurück, TagStudio
+  legt es in `~/TagStudio/Mixe` ab und öffnet das Ergebnisfenster. **Zeit je Titel = Mitte des Übergangs** zwischen
+  berechnetem Titelanfang und „erkannt ab“ (Messung 7: Median 17 s neben der Tracklist statt 48 s beim Titelanfang),
+  von Hand änderbar. Vorhören (Mix bzw. Titel an derselben Stelle, über den lokalen Medien-Server – nur Dateien des
+  Ergebnisses), Treffer verwerfen/zurückholen, Lücken ≥ 60 s als „ID – ID“.
+- **Ausgabe:** Playlist im Ordner „Mixe“ (Art `import`, Quelle `mixscan`, Notiz „12:30 · +2.0 % · 94 %“ je Eintrag –
+  sprachneutral, in Playlists hinter dem Titel sichtbar); erneut speichern führt dieselbe Playlist nach. CUE-Datei
+  (Vorschlag neben dem Mix; anderswo mit vollem Pfad unter FILE; nie ungefragt ersetzen). Text
+  `[mm:ss] Künstler - Titel` (kopieren/speichern). Mit Tracklist: fehlende Titel als Ideen (#186).
+- **Einbau:** Playlists › Importieren ▾ „Aus Mix erkennen (Mix analysieren) …“ (wenn das Plugin bereit ist) und
+  „Frühere Mix-Analysen (n) …“; Plugin-Karte (Mehr …).
+- **Index automatisch nachführen (M5):** Ereignisse an das Plugin – `files_added` (nach „Vorbereiten“) und
+  `files_moved` landen in einer Warteliste (`index/warteliste.json`) und werden als versteckte Hintergrund-Aktion
+  `index_add` abgearbeitet (nur hinzufügen bzw. umbenennen, nichts entfernen); neues Ereignis `app_started` (rund 20 s
+  nach dem Start, einmal je Sitzung) reiht „Bibliothek indexieren“ mit den zuletzt gewählten Ordnern ein. Beides erst,
+  wenn einmal von Hand indexiert wurde; abschaltbar unter „Einstellungen …“ (Standard ein). Verschieben gilt immer.
+- **Plugin-Rahmen:** Optionstyp `file` (`kind: "audio"`), `"direct": true`, `"where": "hidden"`, `ctx.queue_job()`,
+  Ereignis `app_started`, Ergebnis `mix_result` (PLUGINS.md).
+- **Offen / später:** Speicherbedarf des Index (≈ 0,4 MB je Titel; für sehr grosse Bibliotheken Index stückweise bzw.
+  als Speicherabbild laden), Treffer durch anderen Titel ersetzen, Unbekanntes über SonoVault (M3, Phase 4).

@@ -22,6 +22,8 @@ The complete guide to all features. Overview, pictures and download: [start page
   bought → in library, note, preview, as Beatport playlist (only on click).
 - **Playlists:** collect tracks from the tagger and the DJ set in playlists with folders; every playlist is also
   stored as M3U8 in the playlist folder (for Engine DJ, VirtualDJ & co.); archive instead of delete.
+- **Analyse mix:** recognise the tracks of your own library in a mix file (DJ set, radio show) – even with changed
+  tempo – and save them as playlist, CUE file or text; runs locally (plugin).
 - **Comparing two folders/files:** field by field with character-exact highlighting, take over values with an arrow.
 - **Tag fixer:** unify multiple values (`;`, `/`, `feat.` …) or convert them into real ID3v2.4 multiple values.
 - **Safe saving:** automatic backup of the tags before every save, change viewer, byte-exact restore; undo/redo
@@ -314,6 +316,8 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
   folders, virtual folders) – the library is looked for in the usual place and on external drives and **only read**;
   fetching again updates them. **“Paste tracklist …”** takes over a copied tracklist from 1001Tracklists, MixID,
   Beatport etc. (one “Artist - Title” per line) as entries without a file; TagStudio does not fetch any web page.
+  **“Recognise from mix …”** (with the “Analyse mix” plugin) finds the tracks of your library in a mix file and saves
+  them as a playlist in the folder “Mixe”; **“Earlier mix analyses …”** opens saved results (see Plugins).
 - **More ▾:** export as M3U8 (absolute or relative paths), Rekordbox XML or CSV (whole folders as Rekordbox XML with
   folder tree by right-clicking the folder). **“Match with library …”** finds the matching track for entries without
   a file (same ISRC or artist + title + mix = found; “Song - Extended Mix” and “Song (Extended)” count as equal,
@@ -550,6 +554,14 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   (Playlists › More ▾ › “Send to Lexicon …”: creates the playlist in Lexicon, sending again inserts missing tracks at
   their position and removes nothing; only with writing back switched on, see [PLUGINS.en.md](../PLUGINS.en.md)).
 - **Measure loudness:** LUFS, true peak, loudness range (EBU R128, FFmpeg) as fields, optionally a levelled copy.
+- **Analyse mix:** recognises the tracks of your library in a mix file – even with changed tempo (±10 %, with and
+  without keylock) – entirely locally (own environment with NumPy, SciPy, FFmpeg). Once **More … › Index library …**
+  (background job; afterwards TagStudio updates the index after “Prepare” and at start by itself), then **Analyse
+  mix …** (plugin card or Playlists › Import ▾ › “Recognise from mix …”): choose the mix file, optionally the known
+  tracklist for comparison. The **result window** shows per track the time (middle of the transition, editable), tempo
+  and confidence; ▶ previews in the mix or in the track, ✕ discards wrong matches. Save as playlist (folder “Mixe”),
+  CUE file (next to the mix) or text; save missing tracks of the tracklist as ideas. Tracks you don't own are not
+  recognised – they stay “ID – ID”. Details in [PLUGINS.en.md](../PLUGINS.en.md).
 - **Logs:** for every plugin under **More …** “Open log folder” and “Show log live …” – a separate window that keeps
   the log up to date; lines of a running operation appear immediately (“running”).
 - **Your own plugins** in `~/TagStudio/Plugins` – instructions in [PLUGINS.en.md](../PLUGINS.en.md).

@@ -1,57 +1,65 @@
-"""Mix analysieren (#261) – Titel der eigenen Bibliothek in DJ-Mixes erkennen, lokal (Prototyp, Entscheid M6).
+"""Mix analysieren (#261, #387) – Titel der eigenen Bibliothek in DJ-Mixes erkennen, lokal.
 
 Verfahren: eigener Audio-Fingerabdruck mit Abfrage in Tempo-Stufen (fp.py, docs/KONZEPT-MIXSCAN.md). Die Rechnung
 läuft in worker.py im Python der Plugin-Umgebung (NumPy, SciPy, imageio-ffmpeg); dieses Modul sammelt die Dateien,
-führt den Index nach und schreibt den Messbericht. Alles bleibt auf dem eigenen Rechner – nichts wird hochgeladen.
+führt den Index nach (von Hand, nach „Vorbereiten“ und beim Start) und gibt das Ergebnis an TagStudio, das es im
+Ergebnisfenster zeigt (mixresult.py, session_mixes.py). Alles bleibt auf dem eigenen Rechner – nichts wird hochgeladen.
 """
 import json
 import os
 import shutil
+import threading
 import time
 
 AUDIO_EXT = (".mp3", ".wav", ".flac", ".m4a", ".aac", ".aif", ".aiff", ".ogg", ".opus")
+_LOCK = threading.RLock()          # Warteliste (neue/verschobene Titel) – Ereignisse kommen aus anderen Threads
 
 ACTIONS = [
-    {"id": "index", "label": "Bibliothek indexieren (Test) …", "where": "page", "run_label": "Indexieren",
+    {"id": "analyse", "label": "Mix analysieren …", "short": "Mix analysieren", "where": "page", "run_label": "Analysieren",
      "needs_selection": False,
-     "description": "Liest die Titel der gewählten Ordner und legt ihren Fingerabdruck im Benutzerordner ab. Für die "
-                    "Messung genügen etwa 200 Titel – darunter die Titel deines Test-Mixes.",
+     "description": "Sucht die Titel deiner Bibliothek in einer Mix-Datei (DJ-Set, Radiosendung, eigener Mix) und zeigt "
+                    "die Tracklist mit Zeit, Tempo und Sicherheit – speichern als Playlist, CUE-Datei oder Text.",
      "options": [
-         {"key": "folders", "type": "folders", "label": "Ordner (leer = alle Bibliotheken)"},
-         {"key": "limit", "type": "number", "label": "Höchstens so viele Titel (0 = alle)", "default": 200},
-         {"key": "hint", "type": "info",
-          "label": "Der Index enthält genau die gewählten Titel; unveränderte Titel werden nicht neu gelesen. "
-                   "Es wird nichts an den Dateien geändert."}]},
-    {"id": "index_bg", "label": "Bibliothek im Hintergrund indexieren …", "where": "page", "run_label": "Im Hintergrund indexieren", "background": True,
-     "needs_selection": False,
-     "description": "Wie „Bibliothek indexieren“, aber als Hintergrund-Auftrag mit niedriger Priorität – du kannst "
-                    "weiterarbeiten. Abbrechen jederzeit; beim nächsten Mal geht es dort weiter, wo es aufgehört hat.",
-     "options": [
-         {"key": "folders", "type": "folders", "label": "Ordner (leer = alle Bibliotheken)"},
-         {"key": "limit", "type": "number", "label": "Höchstens so viele Titel (0 = alle)", "default": 0},
-         {"key": "hint", "type": "info",
-          "label": "Der Index enthält genau die gewählten Titel; unveränderte Titel werden nicht neu gelesen. "
-                   "Es wird nichts an den Dateien geändert."}]},
-    {"id": "analyse", "label": "Mix analysieren (Test) …", "where": "page", "run_label": "Analysieren",
-     "needs_selection": False,
-     "description": "Sucht die indexierten Titel in einer Mix-Datei und schreibt einen Messbericht (Startzeit, Titel, "
-                    "Tempo, Sicherheit). Mit bekannter Tracklist wird die Trefferquote berechnet.",
-     "options": [
-         {"key": "mix", "type": "text", "label": "Mix-Datei (vollständiger Pfad; MP3, WAV, FLAC, M4A …)"},
-         {"key": "tracklist", "type": "textarea",
-          "label": "Bekannte Tracklist (optional, je Zeile „Künstler - Titel“) – für die Trefferquote"},
+         {"key": "mix", "type": "file", "kind": "audio", "label": "Mix-Datei (MP3, WAV, FLAC, M4A …)"},
          {"key": "pitch", "type": "check", "label": "Auch ohne Keylock gespielte Titel suchen (Tempo und Tonhöhe "
                                                    "geändert, dauert etwa doppelt so lange)", "default": True},
+         {"key": "tracklist", "type": "textarea",
+          "label": "Bekannte Tracklist (optional, je Zeile „Künstler - Titel“) – zum Vergleich; fehlende Titel lassen "
+                   "sich danach als Ideen merken"},
          {"key": "hint", "type": "info",
-          "label": "Nur eigene Dateien – TagStudio lädt nichts von YouTube, SoundCloud oder Mixcloud herunter."}]},
+          "label": "Nur eigene Dateien – TagStudio lädt nichts von YouTube, SoundCloud oder Mixcloud herunter. Erkannt "
+                   "werden nur Titel, die im Index sind."}]},
+    {"id": "index", "label": "Bibliothek indexieren …", "short": "Indexieren", "where": "page",
+     "run_label": "Im Hintergrund indexieren", "background": True, "needs_selection": False,
+     "description": "Liest die Titel deiner Bibliotheken und legt ihren Fingerabdruck im Benutzerordner ab – als "
+                    "Hintergrund-Auftrag, du kannst weiterarbeiten. Abbrechen jederzeit; beim nächsten Mal geht es dort "
+                    "weiter. Danach wird der Index automatisch nachgeführt (siehe Optionen).",
+     "options": [
+         {"key": "folders", "type": "folders", "label": "Ordner (leer = alle Bibliotheken)"},
+         {"key": "hint", "type": "info",
+          "label": "Der Index enthält genau die Titel dieser Ordner; unveränderte Titel werden nicht neu gelesen, "
+                   "verschwundene entfernt. An den Dateien wird nichts geändert."}]},
+    {"id": "results", "label": "Frühere Analysen …", "where": "page", "run_label": "Öffnen", "needs_selection": False,
+     "direct": True,
+     "description": "Gespeicherte Ergebnisse wieder öffnen – ohne neue Analyse.", "options": []},
+    {"id": "settings", "label": "Einstellungen …", "where": "page", "run_label": "Speichern", "needs_selection": False,
+     "description": "Wann der Index automatisch nachgeführt wird – erst, nachdem du einmal „Bibliothek indexieren …“ "
+                    "gestartet hast.",
+     "options": [
+         {"key": "auto_add", "type": "check", "label": "Neue Titel nach „Vorbereiten“ aufnehmen", "default": True},
+         {"key": "auto_start", "type": "check", "label": "Beim Start im Hintergrund nachführen (neue, geänderte und "
+                                                        "gelöschte Titel)", "default": True},
+         {"key": "hint", "type": "info", "label": "Verschobene Titel werden immer nachgeführt, ohne sie neu zu lesen."}]},
     {"id": "selftest", "label": "Selbsttest mit eigenen Titeln …", "where": "page", "run_label": "Testen",
      "needs_selection": False,
      "description": "Baut aus zufällig gewählten indexierten Titeln einen Test-Mix (je 70 s, Tempo −6 … +6 %, mit und "
-                    "ohne Keylock, überblendet) und prüft, ob die Analyse sie wiederfindet – ganz ohne Tracklist.",
+                    "ohne Keylock, überblendet) und prüft, ob die Analyse sie wiederfindet.",
      "options": [{"key": "count", "type": "number", "label": "Anzahl Titel im Test-Mix", "default": 8},
                  {"key": "hint", "type": "info",
                   "label": "Der Test-Mix liegt danach unter Plugin-Daten › mixscan › index › selbsttest.mp3 (wird beim "
                            "nächsten Selbsttest überschrieben)."}]},
+    {"id": "index_add", "label": "Index nachführen", "where": "hidden", "run_label": "Nachführen", "background": True,
+     "needs_selection": False, "options": []},
 ]
 
 
@@ -86,6 +94,89 @@ def save_manifest(ctx, m):
     os.replace(tmp, p)
 
 
+def _settings_path(ctx) -> str:
+    return os.path.join(ctx.data_dir, "einstellungen.json")
+
+
+def settings(ctx) -> dict:
+    out = {"auto_add": True, "auto_start": True}
+    try:
+        with open(_settings_path(ctx), encoding="utf-8") as fh:
+            d = json.load(fh)
+        out.update({k: bool(d[k]) for k in out if k in d})
+    except (OSError, ValueError, TypeError):
+        pass
+    return out
+
+
+def _pending_path(ctx) -> str:
+    return os.path.join(_index_dir(ctx), "warteliste.json")
+
+
+def _pending(ctx, add=(), moves=()) -> dict:
+    """Warteliste lesen und ergänzen: {"add": [Pfad], "moves": [[alt, neu]]}."""
+    with _LOCK:
+        try:
+            with open(_pending_path(ctx), encoding="utf-8") as fh:
+                d = json.load(fh)
+        except (OSError, ValueError):
+            d = {}
+        d = {"add": list(d.get("add") or []), "moves": list(d.get("moves") or [])}
+        if add or moves:
+            d["add"] = list(dict.fromkeys(d["add"] + [p for p in add if str(p).lower().endswith(AUDIO_EXT)]))
+            d["moves"] += [[m[0], m[1]] for m in moves]
+            with open(_pending_path(ctx), "w", encoding="utf-8") as fh:
+                json.dump(d, fh, ensure_ascii=False)
+        return d
+
+
+def _take_pending(ctx) -> dict:
+    with _LOCK:
+        d = _pending(ctx) if os.path.isfile(_pending_path(ctx)) else {"add": [], "moves": []}
+        try:
+            os.remove(_pending_path(ctx))
+        except OSError:
+            pass
+        return d
+
+
+def apply_moves(m: dict, moves) -> int:
+    """Verschobene/umbenannte Titel im Index nachführen, ohne sie neu zu lesen (gleiche Nummer, gleiche Schlüssel)."""
+    n = 0
+    files = m["files"]
+    for old, new in moves:
+        e = files.pop(old, None)
+        if e is None:
+            continue
+        files[new] = e
+        try:
+            st = os.stat(new)
+            e["size"], e["mtime"] = st.st_size, int(st.st_mtime)
+        except OSError:
+            pass
+        n += 1
+    return n
+
+
+def on_event(ctx, event, data):
+    """Index nachführen (M5): neue Titel nach „Vorbereiten“, verschobene sofort umbenennen, beim Start alles prüfen –
+    nur, wenn schon einmal indexiert wurde. Die Arbeit selbst läuft als Hintergrund-Auftrag."""
+    m = load_manifest(ctx)
+    if not m["files"]:
+        return
+    st = settings(ctx)
+    if event == "files_moved":
+        moves = [(d.get("old"), d.get("new")) for d in data or [] if isinstance(d, dict) and d.get("old") and d.get("new")]
+        if any(o in m["files"] for o, _n in moves):
+            _pending(ctx, moves=[(o, n) for o, n in moves if o in m["files"]])
+            ctx.queue_job("index_add")
+    elif event == "files_added" and st["auto_add"]:
+        if _pending(ctx, add=[p for p in data or [] if isinstance(p, str)])["add"]:
+            ctx.queue_job("index_add")
+    elif event == "app_started" and st["auto_start"]:
+        ctx.queue_job("index", {"folders": m.get("folders", "")})
+
+
 def _roots(ctx, opts) -> list:
     roots = [x.strip() for x in str(opts.get("folders") or "").splitlines() if x.strip()]
     if not roots and ctx._session is not None and hasattr(ctx._session, "_lib_roots"):
@@ -113,8 +204,9 @@ def scan(roots, limit=0, cancel=None) -> list:
     return out
 
 
-def plan(manifest: dict, paths: list) -> tuple[list, list]:
-    """Was neu gelesen bzw. entfernt werden muss → ([(Nr., Pfad)], [Nr.]); manifest wird nachgeführt."""
+def plan(manifest: dict, paths: list, prune=True) -> tuple[list, list]:
+    """Was neu gelesen bzw. entfernt werden muss → ([(Nr., Pfad)], [Nr.]); manifest wird nachgeführt.
+    prune=False: nur hinzufügen/aktualisieren (neue Titel nach „Vorbereiten“), nichts entfernen."""
     files = manifest["files"]
     want = {}
     for p in paths:
@@ -123,8 +215,8 @@ def plan(manifest: dict, paths: list) -> tuple[list, list]:
         except OSError:
             continue
         want[p] = (st.st_size, int(st.st_mtime))
-    drop = [v["nr"] for k, v in files.items() if k not in want]
-    for k in [k for k in files if k not in want]:
+    drop = [v["nr"] for k, v in files.items() if k not in want] if prune else []
+    for k in ([k for k in files if k not in want] if prune else []):
         del files[k]
     todo = []
     for p, (size, mtime) in want.items():
@@ -311,7 +403,7 @@ def near_misses(blocks, found, by_nr, n=10) -> list:
 
 
 def report_text(mix, res, rows, cmp, idx_info, near=None, self_excluded=False) -> str:
-    L = [f"Mix analysieren – Messbericht ({time.strftime('%Y-%m-%d %H:%M')}, Plugin {plugin_version()})", "",
+    L = [f"Mix analysieren – Bericht ({time.strftime('%Y-%m-%d %H:%M')}, Plugin {plugin_version()})", "",
          f"Mix: {mix}", f"Länge: {fmt_time(res['duration'])} · Analyse: {res['secs']} s",
          f"Index: {idx_info}", "", "Erkannte Titel:"]
     for r in rows:
@@ -348,7 +440,6 @@ def report_text(mix, res, rows, cmp, idx_info, near=None, self_excluded=False) -
             L += ["Nicht erkannt (nicht im Index oder nicht gefunden):"] + [f"  {x}" for x in cmp["miss"]]
         if cmp["extra"]:
             L += ["Erkannt, aber nicht in der Tracklist (falsch oder fehlt dort):"] + [f"  {x}" for x in cmp["extra"]]
-    L += ["", "Bitte diesen Bericht im Issue #261 anhängen bzw. die Zahlen eintragen."]
     return "\n".join(L) + "\n"
 
 
@@ -386,18 +477,8 @@ def _work(ctx, job, on_event) -> None:
         raise RuntimeError(state["fatal"] or f"Analyse fehlgeschlagen (Code {rc}) – Details im Protokoll.")
 
 
-def run_index(ctx, opts) -> dict:
-    roots = _roots(ctx, opts)
-    if not roots:
-        raise ValueError("Kein Ordner gewählt und keine Bibliothek festgelegt (Einstellungen › Speicherort und Ordner).")
-    try:
-        limit = max(0, int(float(opts.get("limit") or 0)))
-    except (TypeError, ValueError):
-        limit = 0
-    ctx.status("Suche Titel …")
-    paths = scan(roots, limit, ctx.cancelled)
-    m = load_manifest(ctx)
-    todo, drop = plan(m, paths)
+def _build(ctx, m, todo, drop) -> dict:
+    """Titel lesen (todo), entfernte aus dem Index nehmen (drop) und den Index neu zusammensetzen."""
     by_nr = {v["nr"]: k for k, v in m["files"].items()}
     info = {"failed": 0, "built": {}}
 
@@ -423,15 +504,54 @@ def run_index(ctx, opts) -> dict:
         m["files"] = {k: v for k, v in m["files"].items() if v.get("keys")}
         save_manifest(ctx, m)
     b = info["built"]
-    mb = b.get("bytes", 0) / 1e6
-    per1000 = mb / max(1, b.get("tracks", 1)) * 1000
     m["stats"] = {"tracks": b.get("tracks", 0), "keys": b.get("keys", 0), "bytes": b.get("bytes", 0),
                   "secs": b.get("secs", 0), "at": time.strftime("%Y-%m-%d %H:%M")}
     save_manifest(ctx, m)
-    msg = (f"Index: {b.get('tracks', 0)} Titel ({len(todo)} neu gelesen, {len(drop)} entfernt), {mb:.1f} MB "
-           f"(≈ {per1000:.0f} MB je 1000 Titel), {b.get('secs', 0)} s.")
+    return info
+
+
+def run_index(ctx, opts) -> dict:
+    roots = _roots(ctx, opts)
+    if not roots:
+        raise ValueError("Kein Ordner gewählt und keine Bibliothek festgelegt (Einstellungen › Speicherort und Ordner).")
+    ctx.status("Suche Titel …")
+    paths = scan(roots, 0, ctx.cancelled)
+    ctx.check_cancel()                                   # halbe Liste nie zum Aufräumen verwenden
+    pend = _take_pending(ctx)
+    m = load_manifest(ctx)
+    apply_moves(m, pend["moves"])
+    m["folders"] = str(opts.get("folders") or "")
+    todo, drop = plan(m, paths)
+    if not todo and not drop and m.get("stats"):
+        save_manifest(ctx, m)
+        return {"message": f"Index aktuell: {len(m['files'])} Titel."}
+    info = _build(ctx, m, todo, drop)
+    b = info["built"]
+    msg = (f"Index: {b.get('tracks', 0)} Titel ({len(todo)} neu gelesen, {len(drop)} entfernt), "
+           f"{b.get('bytes', 0) / 1e6:.1f} MB, {b.get('secs', 0)} s.")
     if info["failed"]:
         msg += f" {info['failed']} Datei(en) mit Fehler – siehe Protokoll."
+    ctx.log(msg)
+    return {"message": msg}
+
+
+def run_index_add(ctx, opts) -> dict:
+    """Warteliste abarbeiten: neue Titel aufnehmen (nichts entfernen), verschobene umbenennen."""
+    pend = _take_pending(ctx)
+    m = load_manifest(ctx)
+    if not m["files"]:
+        return {"message": "Noch kein Index – nichts nachzuführen."}
+    moved = apply_moves(m, pend["moves"])
+    todo, _drop = plan(m, [p for p in pend["add"] if os.path.isfile(p)], prune=False)
+    if not todo:
+        save_manifest(ctx, m)
+        return {"message": f"Index nachgeführt: {moved} verschoben." if moved else "Index aktuell."}
+    try:
+        info = _build(ctx, m, todo, [])
+    except BaseException:
+        _pending(ctx, add=[p for _nr, p in todo if not (m["files"].get(p) or {}).get("keys")])   # beim nächsten Mal
+        raise
+    msg = f"Index nachgeführt: {len(todo) - info['failed']} neu" + (f", {moved} verschoben" if moved else "") + "."
     ctx.log(msg)
     return {"message": msg}
 
@@ -439,10 +559,11 @@ def run_index(ctx, opts) -> dict:
 def run_analyse(ctx, opts) -> dict:
     mix = str(opts.get("mix") or "").strip().strip('"')
     if not mix or not os.path.isfile(mix):
-        raise ValueError("Bitte den vollständigen Pfad einer Mix-Datei angeben.")
+        raise ValueError("Bitte eine Mix-Datei wählen.")
     m = load_manifest(ctx)
     if not m["files"]:
-        raise ValueError("Noch kein Index – zuerst „Bibliothek indexieren (Test)“.")
+        raise ValueError("Noch kein Index – zuerst „Bibliothek indexieren …“ (Plugins › Mix analysieren › Mehr …).")
+    apply_moves(m, _pending(ctx)["moves"])              # verschoben, aber noch nicht nachgeführt: neuer Pfad
     by_nr = {v["nr"]: k for k, v in m["files"].items()}
     key = os.path.normcase(os.path.abspath(mix))
     exclude = [v["nr"] for k, v in m["files"].items() if os.path.normcase(os.path.abspath(k)) == key]
@@ -475,14 +596,15 @@ def run_analyse(ctx, opts) -> dict:
         fh.write(text)
     with open(base + ".json", "w", encoding="utf-8") as fh:
         json.dump({"plugin_version": plugin_version(), "mix": mix, "result": got, "rows": rows, "compare": cmp}, fh, ensure_ascii=False, indent=1)
-    ctx.output(base + ".txt")
     ctx.log(text)
     sure = sum(1 for r in rows if r["conf"] >= 0.6)
     msg = f"{sure} Titel erkannt ({len(rows) - sure} unsicher) in {fmt_time(got.get('duration', 0))} Mix, Analyse {got.get('secs', 0)} s."
     if cmp and cmp["expected"]:
         msg += f" Tracklist: {len(cmp['hit'])} von {cmp['expected']} erkannt ({round(100 * len(cmp['hit']) / cmp['expected'])} %)."
-    msg += " Bericht: " + os.path.basename(base) + ".txt"
-    return {"message": msg}
+    keep = ("start", "end", "track_start", "path", "artist", "title", "tempo", "keylock", "conf", "also")
+    return {"message": msg, "mix_result": {
+        "mix": mix, "duration": got.get("duration", 0), "rows": [{k: r[k] for k in keep if k in r} for r in rows],
+        "compare": cmp, "report": base + ".txt", "index": idx_info, "version": plugin_version()}}
 
 
 def run_selftest(ctx, opts) -> dict:
@@ -495,7 +617,7 @@ def run_selftest(ctx, opts) -> dict:
     except (TypeError, ValueError):
         n = 8
     if len(pool) < 2:
-        raise ValueError("Zu wenig indexierte Titel (mindestens 2 mit über 100 s) – zuerst „Bibliothek indexieren (Test)“.")
+        raise ValueError("Zu wenig indexierte Titel (mindestens 2 mit über 100 s) – zuerst „Bibliothek indexieren …“.")
     pick = random.sample(pool, min(n, len(pool)))
     by_nr = {v["nr"]: k for k, v in m["files"].items()}
     got, exp = {}, {}
@@ -545,8 +667,17 @@ def run(action, ctx, files, opts):
         return run_selftest(ctx, opts)
     if action in ("index", "index_bg"):
         return run_index(ctx, opts)
+    if action == "index_add":
+        return run_index_add(ctx, opts)
     if action == "analyse":
         return run_analyse(ctx, opts)
+    if action == "results":
+        return {"message": "", "mix_list": True}
+    if action == "settings":
+        st = {k: bool(opts.get(k, True)) for k in ("auto_add", "auto_start")}
+        with open(_settings_path(ctx), "w", encoding="utf-8") as fh:
+            json.dump(st, fh)
+        return {"message": "Einstellungen gespeichert."}
     raise ValueError(f"Unbekannte Aktion: {action}")
 
 
@@ -554,5 +685,5 @@ def status(ctx):
     m = load_manifest(ctx)
     st = m.get("stats") or {}
     if not m["files"]:
-        return "Noch kein Index."
+        return "Noch kein Index – „Mehr …“ › „Bibliothek indexieren …“."
     return f"Index: {len(m['files'])} Titel, {st.get('bytes', 0) / 1e6:.1f} MB (Stand {st.get('at', '?')})."

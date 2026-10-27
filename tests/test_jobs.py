@@ -111,9 +111,18 @@ class TestJobManager(unittest.TestCase):
 PLUGIN = textwrap.dedent('''
     ACTIONS = [{"id": "work", "label": "Arbeiten …", "run_label": "Arbeiten", "background": True, "options": []},
                {"id": "front", "label": "Vorne …", "options": []},
-               {"id": "page", "label": "Seite …", "where": "page", "needs_selection": False, "background": True, "options": []}]
+               {"id": "page", "label": "Seite …", "where": "page", "needs_selection": False, "background": True, "options": []},
+               {"id": "mix", "label": "Mix …", "where": "page", "needs_selection": False, "direct": True,
+                "options": [{"key": "mix", "type": "file", "kind": "audio", "label": "Mix"}]}]
+
+    def on_event(ctx, event, data):
+        if event == "app_started":
+            ctx.queue_job("page")
 
     def run(action, ctx, files, opts):
+        if action == "mix":
+            return {"message": "gefunden", "mix_result": {"mix": opts["mix"], "duration": 60,
+                    "rows": [{"start": 5, "end": 30, "artist": "A", "title": "T", "conf": 0.9, "tempo": 1}]}}
         if action == "page":
             return {"message": f"seite: {len(files)} Dateien, Sitzung {'ja' if ctx._session is not None else 'nein'}"
                                + (" bg" if ctx.background else " fg")}
@@ -168,10 +177,60 @@ class TestSessionJobs(unittest.TestCase):
             self.assertTrue(r["ok"] and r["background"])
             wait_for(lambda: s.jobs_status()["active"] == 0)
             self.assertEqual(s.jobs_status()["jobs"][0]["message"], "seite: 0 Dateien, Sitzung ja bg")
+            # #387: Plugin reiht beim Start selbst einen Auftrag ein (Ereignis „app_started“, einmal je Sitzung)
+            s.jobs_clear()
+            s._emit_wait = True
+            self.assertEqual(s.plugins_startup(), {"ok": True})
+            self.assertTrue(s.plugins_startup().get("again"))
+            wait_for(lambda: s.jobs_status()["active"] == 0)
+            self.assertEqual([j["action"] for j in s.jobs_status()["jobs"]], ["page"])
+            # #387: Optionstyp „file“, Aktion ohne Formular, Ergebnis „mix_result“ → gespeichertes Mix-Ergebnis
+            s._mix_dir = lambda: os.path.join(d, "Mixe")
+            f = s.plugin_form("bgtest", "mix")
+            self.assertTrue(f["direct"])
+            self.assertEqual(f["options"][0]["type"], "file")
+            r = s.start_plugin_action("bgtest", "mix", [], {"mix": os.path.join(lib, "a.mp3")})
+            wait_for(lambda: s.task_status()["done"])
+            res = s.task_status()["result"]
+            self.assertNotIn("mix_result", res)
+            self.assertEqual(s.mix_get(res["mix_open"])["lines"][0]["title"], "T")
         finally:
             core.CONFIG, core.CONFIG_OLD, jobs.STATE_FILE, plugins.data_root = old
             shutil.rmtree(d, ignore_errors=True)
 
+
+class TestQueueJob(unittest.TestCase):
+    def test_queue_once(self):
+        # #387: Context.queue_job – nur ein wartender Auftrag je Aktion; ohne Sitzung nichts
+        import plugins
+
+        class Jobs:
+            def __init__(s):
+                s.list = []
+
+            def status(s):
+                return {"jobs": [dict(j, status="waiting") for j in s.list]}
+
+            def add(s, plugin, action, label, paths, opts):
+                j = {"plugin": plugin, "action": action, "label": label, "opts": opts}
+                s.list.append(j)
+                return j
+
+        class Sess:
+            jobs = Jobs()
+
+        class P:
+            id, name = "mx", "Mix"
+
+            def actions(self, ctx=None):
+                return [{"id": "index", "label": "Indexieren …", "run_label": "Indexieren"}]
+        ctx = plugins.Context(P(), Sess())
+        self.assertEqual(ctx.queue_job("index", {"folders": ""})["label"], "Mix: Indexieren")
+        self.assertIsNone(ctx.queue_job("index"))
+        self.assertEqual(len(Sess.jobs.list), 1)
+        self.assertIsNone(plugins.Context(P()).queue_job("index"))
+        with self.assertRaises(KeyError):
+            ctx.queue_job("gibtsnicht")
 
 if __name__ == "__main__":
     unittest.main()

@@ -138,7 +138,7 @@ function plsRenderList() {
     const bpm = r.bpm ? (Math.round(r.bpm * 10) / 10).toString().replace(".", ",") : "–";
     return `<div class="pls-row${PLS.sel.has(r.k) ? " sel" : ""}${r.missing ? " missing" : ""}${r.lock ? " locked" : ""}" data-k="${r.k}" draggable="${!pl.archived}" role="option" aria-selected="${PLS.sel.has(r.k)}" title="${esc(r.in_archive || r.path)}">
       <span class="h" aria-hidden="true">${plsFixed(pl) ? "" : "⋮⋮"}</span><span class="n">${r.k + 1}</span>
-      <span class="t ellipsis"><span translate="no">${esc(t)}</span>${r.dup ? ' <span class="chip sm" title="Titel kommt mehrmals vor">doppelt</span>' : ""}${r.lock ? ' <span title="Im DJ-Set gesperrt">🔒</span>' : ""}${miss}</span>
+      <span class="t ellipsis"><span translate="no">${esc(t)}</span>${r.dup ? ' <span class="chip sm" title="Titel kommt mehrmals vor">doppelt</span>' : ""}${r.lock ? ' <span title="Im DJ-Set gesperrt">🔒</span>' : ""}${miss}${r.note ? ` <span class="muted sm" translate="no" title="Notiz">· ${esc(r.note)}</span>` : ""}</span>
       <span class="bp">${bpm}</span><span class="kk">${r.key ? keyBadge(r.key) : '<span class="mx">–</span>'}</span>
       <span class="d muted sm">${r.dur ? fmtTime(r.dur) : ""}</span><span class="rt">${r.rating ? "★".repeat(r.rating) : ""}</span>
       <span class="dir muted sm ellipsis" translate="no">${esc(r.dir)}</span></div>`;
@@ -475,10 +475,12 @@ async function plsToQueue(id) {
 async function plsImportMenu(btn) {
   let src = [];
   try { src = (await call("dj_sources")).sources || []; } catch (e) { /* keine */ }
+  const mix = typeof mixMenuEntries === "function" ? await mixMenuEntries() : [];      // #387
   const r = btn.getBoundingClientRect();
   showMenu(r.left, r.bottom + 6, [
     { label: "Datei (M3U, M3U8, Rekordbox-XML, CSV, Spotify-Export) …", run: () => plsImportFile() },
     { label: "Trackliste einfügen (1001Tracklists, MixID, Beatport …) …", run: () => plsImportText() },
+    ...(mix.length ? ["-", ...mix] : []),
     "-",
     { label: "Aus Serato …", run: () => plsImportApp("serato") },
     { label: "Aus Engine DJ …", run: () => plsImportApp("engine") },
