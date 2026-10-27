@@ -1,8 +1,9 @@
 {
 "! {x} {x} – falsch erkannt (Sicherheit {x} %)": ["! {x} {x} – wrongly recognised (confidence {x} %)", "! {x} {x} – falsch erkannt (Sicherheit {x} %)"],
+", davon {x} unsicher.": [", of which {x} uncertain.", ", devo {x} unsicher."],
 ", ohne Keylock": [", without keylock", ", ohni Keylock"],
 ", unsicher": [", uncertain", ", unsicher"],
-"Abgleich mit der bekannten Tracklist: {x} von {x} erkannt ({x} %).": ["Comparison with the known tracklist: {x} of {x} recognised ({x} %).", "Abgliich mit de bekannte Tracklist: {x} vo {x} erkannt ({x} %)."],
+"Abgleich mit der bekannten Tracklist: {x} von {x} erkannt ({x} %)": ["Comparison with the known tracklist: {x} of {x} recognised ({x} %)", "Abgliich mit de bekannte Tracklist: {x} vo {x} erkannt ({x} %)"],
 "Analyse fehlgeschlagen (Code {x}) – Details im Protokoll.": ["Analysis failed (code {x}) – details in the log.", "Analyse isch fählgschlage (Code {x}) – Details im Protokoll."],
 "Anzahl Titel im Test-Mix": ["Number of tracks in the test mix", "Aazahl Titel im Test-Mix"],
 "Auch ohne Keylock gespielte Titel suchen (Tempo und Tonhöhe geändert, dauert etwa doppelt so lange)": ["Also look for tracks played without keylock (tempo and pitch changed, takes about twice as long)", "Au Titel sueche, wo ohni Keylock gspillt worde sind (Tempo und Tonhöchi gänderet, gaht öppe doppelt so lang)"],
@@ -18,6 +19,7 @@
 "Der Test-Mix liegt danach unter Plugin-Daten › mixscan › index › selbsttest.mp3 (wird beim nächsten Selbsttest überschrieben).": ["The test mix is then stored under Plugin-Daten › mixscan › index › selbsttest.mp3 (overwritten by the next self-test).", "De Test-Mix liit dänn under Plugin-Daten › mixscan › index › selbsttest.mp3 (wird bim nächschte Sälbschttescht überschribe)."],
 "Die Installation legt eine eigene Umgebung an (Python {n} wird bei Bedarf geladen). Der Index liegt im Benutzerordner unter TagStudio › Plugin-Daten › mixscan und enthält nur Fingerabdrücke, keine Audiodaten.": ["The installation creates its own environment (Python {n} is downloaded if needed). The index is stored in your user folder under TagStudio › Plugin-Daten › mixscan and contains only fingerprints, no audio data.", "D Installation leit e eigeni Umgäbig aa (Python {n} wird wänn nötig glade). De Index liit im Benutzerordner under TagStudio › Plugin-Daten › mixscan und enthaltet nur Fingerabdrück, kei Audiodate."],
 "Ergebnis: {x} von {x} erkannt ({x} %), {x} falsch.": ["Result: {x} of {x} recognised ({x} %), {x} wrong.", "Resultat: {x} vo {x} erkannt ({x} %), {x} falsch."],
+"Erkannt (unsicher – passt zur Tracklist, aber wenig Treffer):": ["Recognised (uncertain – matches the tracklist, but few hits):", "Erkannt (unsicher – passt zur Tracklist, aber wenig Träffer):"],
 "Erkannt, aber nicht in der Tracklist (falsch oder fehlt dort):": ["Recognised but not in the tracklist (wrong or missing there):", "Erkannt, aber nöd i de Tracklist (falsch oder fehlt det):"],
 "Erkannte Titel:": ["Recognised tracks:", "Erkannti Titel:"],
 "Gleicher Titel, aber andere Fassung in der Bibliothek (zählt nicht als erkannt):": ["Same track, but a different version in the library (not counted as recognised):", "Gliiche Titel, aber en anderi Fassig i de Bibliothek (zellt nöd als erkannt):"],

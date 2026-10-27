@@ -207,22 +207,28 @@ def tracklist_times(text: str) -> list:
 def compare(expected_text: str, found: list) -> dict:
     """Bekannte Tracklist mit den erkannten Titeln vergleichen. found: [{artist, title}] →
     {expected, hit, miss, other, extra}. „other“: gleicher Titel, aber eine andere Fassung (z. B. Remix statt Extended
-    Mix) – zählt nicht als erkannt (Messung 27.10.2026: „Space (Extended Mix)“ statt „Space (Paradoks Remix)“)."""
+    Mix) – zählt nicht als erkannt (Messung 27.10.2026: „Space (Extended Mix)“ statt „Space (Paradoks Remix)“).
+    Unsichere Abschnitte (conf < 0.6) zählen nur, wenn sie zu einem Tracklist-Titel passen („erkannt (unsicher)“,
+    Messung 27.10.2026: „Evenfall“ mit 58 %); unpassende unsichere Abschnitte erscheinen nicht unter „extra“."""
     import playlists
     exp, _unknown = playlists.parse_tracklist(expected_text or "", "text")
     times = tracklist_times(expected_text)
     fk = [_key(x["artist"], x["title"]) for x in found]
-    hit, miss, other, used, timing = [], [], [], set(), []
+    hit, miss, other, used, timing, unsure = [], [], [], set(), [], []
+    sure = [x.get("conf", 1.0) >= 0.6 for x in found]
     for n, e in enumerate(exp):
         r = e["ref"]
         ea, et, em = _key(r.get("artist", ""), r.get("title", ""))
         cands = [i for i, (fa, ft, fm) in enumerate(fk) if i not in used and ft and (ft == et or ft in et or et in ft)
                  and _same_artist(ea, fa)]
+        cands.sort(key=lambda i: (not sure[i], -found[i].get("conf", 1.0)))
         same = [i for i in cands if fk[i][2] == em]
         name = f"{r.get('artist', '')} - {r.get('title', '')}"
         if same:
             used.add(same[0])
             hit.append(name)
+            if not sure[same[0]]:
+                unsure.append(name)
             t = times[n] if n < len(times) else None
             f = found[same[0]]
             if t is not None and f.get("track_start") is not None:
@@ -236,8 +242,9 @@ def compare(expected_text: str, found: list) -> dict:
             other.append(f"{name} → {name_of(found[cands[0]]['artist'], found[cands[0]]['title'])}")
         else:
             miss.append(name)
-    extra = [name_of(found[i]["artist"], found[i]["title"]) for i in range(len(found)) if i not in used]
-    return {"expected": len(exp), "hit": hit, "miss": miss, "other": other, "extra": extra, "timing": timing}
+    extra = [name_of(found[i]["artist"], found[i]["title"]) for i in range(len(found)) if i not in used and sure[i]]
+    return {"expected": len(exp), "hit": hit, "miss": miss, "other": other, "extra": extra, "timing": timing,
+            "unsure": unsure}
 
 
 def merge_rows(rows: list, gap: float = 60.0) -> list:
@@ -323,7 +330,11 @@ def report_text(mix, res, rows, cmp, idx_info, near=None, self_excluded=False) -
               for x in near]
     if cmp and cmp["expected"]:
         q = round(100 * len(cmp["hit"]) / cmp["expected"])
-        L += ["", f"Abgleich mit der bekannten Tracklist: {len(cmp['hit'])} von {cmp['expected']} erkannt ({q} %)."]
+        un = cmp.get("unsure") or []
+        L += ["", f"Abgleich mit der bekannten Tracklist: {len(cmp['hit'])} von {cmp['expected']} erkannt ({q} %)"
+              + (f", davon {len(un)} unsicher." if un else ".")]
+        if un:
+            L += ["Erkannt (unsicher – passt zur Tracklist, aber wenig Treffer):"] + [f"  {x}" for x in un]
         if cmp.get("timing"):
             d = sorted(abs(x["diff"]) for x in cmp["timing"])
             ins = sum(1 for x in cmp["timing"] if x.get("inside"))
@@ -452,7 +463,7 @@ def run_analyse(ctx, opts) -> dict:
         a, t = track_name(p) if p else ("", "?")
         rows.append({**s, "path": p, "artist": a, "title": t})
     rows = merge_rows(rows)
-    cmp = compare(opts.get("tracklist") or "", [r for r in rows if r["conf"] >= 0.6]) if str(opts.get("tracklist") or "").strip() else None
+    cmp = compare(opts.get("tracklist") or "", rows) if str(opts.get("tracklist") or "").strip() else None
     st = m.get("stats") or {}
     idx_info = f"{len(m['files'])} Titel, {st.get('bytes', 0) / 1e6:.1f} MB"
     near = near_misses(got.get("blocks") or [], {r["track"] for r in rows}, by_nr)

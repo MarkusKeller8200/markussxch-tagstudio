@@ -136,3 +136,16 @@ Ergebnis speichern. Prototyp-Messung mit echter Musik beim User (M6).
   falls zu gross: Dichte senken oder Index stückweise (Speicherabbild) laden.
 - Startzeiten auf 5 s genau (Blockraster); im Übergang zählt noch der alte Titel. Verfeinerung in Phase 3.
 - Test: `tests/test_mixscan.py`, Workflow „Mix-Analyse-Test“ (Windows, macOS; synthetische Titel, keine echte Musik).
+
+### 10.1 Messungen mit echter Musik (User, 27.10.2026)
+
+| Nr. | Plugin | Mix / Index | Ergebnis | Folge |
+|---|---|---|---|---|
+| 1 | 0.1 | Purified 531, Mix im indexierten Ordner | Mix erkennt sich selbst | 0.2: Mix-Datei wird ausgeschlossen |
+| 2–3 | 0.2 | 531 / 530 (YouTube), wenige Titel | Titel nicht im Index → nichts erkannt | 0.3: „knapp verpasst“-Liste, Selbsttest |
+| 4 | 0.4 | 531, 1610 Titel (≈ 658 MB) | Titel zerstückelt, andere Fassung als Treffer, kurze Fehltreffer ohne Keylock | 0.5: Zusammenfassen, Fassungsvergleich, Abschlag |
+| 5 | 0.5 | 520 | „NTO (FR)“, „Remix, Extended“ nicht zugeordnet | 0.6 Abgleich toleranter; 0.7 Version im Bericht |
+| 6 | 0.8 | 520 | Titelanfang 23–64 s vor Tracklist-Zeit (Median 48 s, DJ-Intro 16/32 Takte); Evenfall (+2,5 %) fehlt | 0.9: Konsistenz über den Titelanfang; „feat.“-Fehler behoben |
+| 7 | 0.9 | 520 | 10/13 sicher, Evenfall mit 58 % gefunden, aber als „nicht erkannt“ gezählt; Zeiten 10/10 im Übergang | 0.10: unsichere Abschnitte zählen, wenn sie zur Tracklist passen („erkannt (unsicher)“) – 11/13 |
+
+Die zwei übrigen Titel („More Than I Should Know“, „DJ Paulus – Mirage“) liegen nach dem Bericht nicht im Index.

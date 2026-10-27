@@ -1,7 +1,7 @@
 # MarKusSXCH TagStudio – Projektstand
 
 > Stand 2026-10-27 (04:10): #261 **Mix analysieren** – Konzept `docs/KONZEPT-MIXSCAN.md` (Entscheide M1–M8, M4 offen),
-> Prototyp-Plugin `mixscan` 0.1 im Beta-Test (Messung mit echter Musik beim User). #218 MixID zurück in „Funktionen“.
+> Prototyp-Plugin `mixscan` 0.10 im Beta-Test (Messung 7 beim User: 11/13 in Purified Radio 520, Tabelle in KONZEPT-MIXSCAN §10.1). #218 MixID zurück in „Funktionen“.
 >
 > Davor 2026-10-27 (01:30): **4.13.0 in Arbeit** (Meilenstein #30 „Ideen & Wunschlisten“): #186 Seite „Ideen“ –
 > Wunschlisten als Playlists (Ordner „Ideen“), Idee merken aus Entdecken, Status bis Kauf/Bibliothek, Notiz, Vorhören,

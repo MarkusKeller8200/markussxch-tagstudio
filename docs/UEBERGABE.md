@@ -23,6 +23,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   `web/i18n/mixscan.json`, Tests `tests/test_mixscan.py` (Erkennung nur mit NumPy/SciPy/FFmpeg – Workflow
   „Mix-Analyse-Test“), NumPy/SciPy in `docs/third-party.json`. Wartet auf die Messung mit echter Musik beim User.
 - Plugin wird beim nächsten Release mit dem Ordner `plugins/` ausgeliefert (kein Eingriff in `packaging/` nötig).
+- **Messungen 1–7 (User, 27.10.2026) → Plugin 0.2–0.10**, Tabelle in `docs/KONZEPT-MIXSCAN.md` §10.1. Stand 0.10:
+  Purified Radio 520 mit 1610 Titeln 11/13 (davon 1 unsicher), die 2 übrigen nicht im Index; Titelanfang im Median
+  48 s vor der Tracklist-Zeit, diese liegt in allen Fällen im Übergang. Hintergrund-Indexierung (`index_bg`).
 
 ## 4.13.0 – Ideen & Wunschlisten (Meilenstein #30, 27.10.2026, 00:35)
 

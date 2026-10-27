@@ -136,6 +136,19 @@ class TestPlugin(unittest.TestCase):
         with open(os.path.join(PLUG, "plugin.json"), encoding="utf-8") as fh:
             self.assertIn(f"Plugin {json.load(fh)['version']})", t)
 
+    def test_unsure_rows_count_only_when_in_tracklist(self):
+        # Messung 7: „Evenfall“ mit 58 % gefunden – passt zur Tracklist → „erkannt (unsicher)“; unpassend → nicht extra
+        found = [{"artist": "Con's Universe", "title": "Evenfall (Original Mix)", "conf": 0.58},
+                 {"artist": "Kai Ost", "title": "Fremd", "conf": 0.4},
+                 {"artist": "Mara Lind", "title": "Golden Hour", "conf": 0.5},
+                 {"artist": "Mara Lind", "title": "Golden Hour", "conf": 0.9}]
+        c = plugin.compare("Con’s Universe - Evenfall (Extended Mix)\nMara Lind - Golden Hour", found)
+        self.assertEqual(c["hit"], ["Con’s Universe - Evenfall (Extended Mix)", "Mara Lind - Golden Hour"])
+        self.assertEqual((c["unsure"], c["extra"], c["miss"]), (["Con’s Universe - Evenfall (Extended Mix)"], [], []))
+        t = plugin.report_text("/mix.mp3", {"duration": 600, "secs": 5}, [], c, "4 Titel")
+        self.assertIn("2 von 2 erkannt (100 %), davon 1 unsicher.", t)
+        self.assertIn("Erkannt (unsicher", t)
+
 
 # =========================================================================== Erkennung (NumPy, SciPy, FFmpeg)
 SR = 22050

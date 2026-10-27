@@ -25,6 +25,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   („[04:56](https://…)“) werden überall verstanden (auch Ideen › Liste aus Text).
   Plugin 0.9: Titel mit Tempo zwischen zwei Stufen (z. B. +2,5 %) werden zuverlässiger erkannt; der Bericht prüft,
   ob die Tracklist-Zeit im Übergang liegt. Playlists: „feat. X (Remix)“ verlor beim Vergleich den Remix-Namen – behoben.
+  Plugin 0.10: unsicher erkannte Titel, die zur Tracklist passen, zählen als „erkannt (unsicher)“ statt „nicht erkannt“.
 
 - **Ideen – Wunschlisten (#186):** neue Seite „Ideen“ nach „Entdecken“. Titel, die du später kaufen willst, in
   Wunschlisten sammeln – mit ☆ „Idee merken ▸“ in Entdecken, von Hand oder als Liste aus Text; je Eintrag Notiz, Quelle
