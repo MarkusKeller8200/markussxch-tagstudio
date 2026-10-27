@@ -110,9 +110,13 @@ class TestJobManager(unittest.TestCase):
 
 PLUGIN = textwrap.dedent('''
     ACTIONS = [{"id": "work", "label": "Arbeiten …", "run_label": "Arbeiten", "background": True, "options": []},
-               {"id": "front", "label": "Vorne …", "options": []}]
+               {"id": "front", "label": "Vorne …", "options": []},
+               {"id": "page", "label": "Seite …", "where": "page", "needs_selection": False, "background": True, "options": []}]
 
     def run(action, ctx, files, opts):
+        if action == "page":
+            return {"message": f"seite: {len(files)} Dateien, Sitzung {'ja' if ctx._session is not None else 'nein'}"
+                               + (" bg" if ctx.background else " fg")}
         out = []
         for i, f in enumerate(files):
             ctx.progress(i, len(files), f.path)
@@ -159,6 +163,11 @@ class TestSessionJobs(unittest.TestCase):
             wait_for(lambda: s.task_status()["done"])
             self.assertEqual(s.task_status()["result"]["message"], "fertig: Ungespeichert fg")
             self.assertEqual(len(s.jobs_clear()["jobs"]), 0)
+            # #261: Seiten-Aktion ohne Auswahl im Hintergrund – mit Sitzung (z. B. Bibliotheksordner)
+            r = s.start_plugin_action("bgtest", "page", [], {})
+            self.assertTrue(r["ok"] and r["background"])
+            wait_for(lambda: s.jobs_status()["active"] == 0)
+            self.assertEqual(s.jobs_status()["jobs"][0]["message"], "seite: 0 Dateien, Sitzung ja bg")
         finally:
             core.CONFIG, core.CONFIG_OLD, jobs.STATE_FILE, plugins.data_root = old
             shutil.rmtree(d, ignore_errors=True)

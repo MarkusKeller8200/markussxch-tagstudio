@@ -14,7 +14,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   (Konzept `docs/KONZEPT-MIXSCAN.md`).
   Plugin 0.2: liegt der Mix selbst im indexierten Ordner, zählt er nicht mit; der Bericht nennt die nicht erkannten
   Titel mit den meisten Treffern. Plugin 0.3: „Selbsttest mit eigenen Titeln …“ baut aus indexierten Titeln einen
-  Test-Mix (Tempo ±6 %, mit und ohne Keylock) und misst die Trefferquote ohne Tracklist.
+  Test-Mix (Tempo ±6 %, mit und ohne Keylock) und misst die Trefferquote ohne Tracklist. Plugin 0.4: „Bibliothek im
+  Hintergrund indexieren …“ als Hintergrund-Auftrag, fortsetzbar. Plugins: Seiten-Aktionen ohne Auswahl können jetzt
+  im Hintergrund laufen.
 
 - **Ideen – Wunschlisten (#186):** neue Seite „Ideen“ nach „Entdecken“. Titel, die du später kaufen willst, in
   Wunschlisten sammeln – mit ☆ „Idee merken ▸“ in Entdecken, von Hand oder als Liste aus Text; je Eintrag Notiz, Quelle

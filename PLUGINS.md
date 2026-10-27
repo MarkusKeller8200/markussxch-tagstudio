@@ -80,7 +80,8 @@ Plugins/
   schliesst sofort, man kann weiterarbeiten. Das Plugin bekommt eigene, frisch von der Platte gelesene Dateien
   (`ctx.background` ist `True`), Prozesse über `ctx.run_env` laufen mit niedriger Priorität. Für lange Aktionen,
   die neue Dateien erzeugen – Tag-Änderungen und Vorschläge gehören in Vordergrund-Aktionen. Auch je Aktion
-  möglich (`"background": true` im ACTIONS-Eintrag).
+  möglich (`"background": true` im ACTIONS-Eintrag). Seiten-Aktionen ohne Auswahl (`"needs_selection": false`)
+  laufen ebenfalls im Hintergrund; sie bekommen keine Dateien, aber die Sitzung (z. B. für die Bibliotheksordner, #261).
 - `fields`: Felder, die das Plugin schreibt (Muster mit `*`). TagStudio zeigt bei diesen Feldern die Herkunft
   „TagStudio · Plugin-Name“ an (Tagger, Vergleich), damit eigene Felder erkennbar bleiben.
 - `source` (optional, ab 4.10): Name der Quelle bzw. des Stores, z. B. `"Beatport"`. Beim **Einschalten** legt
@@ -303,6 +304,8 @@ nichts wird hochgeladen, nichts heruntergeladen, an den Dateien wird nichts geä
 3. **Mix analysieren (Test) …** – vollständigen Pfad der Mix-Datei eingeben (MP3, WAV, FLAC, M4A …), optional die
    bekannte Tracklist („Künstler - Titel“ je Zeile) für die Trefferquote.
 
+   **„Bibliothek im Hintergrund indexieren …“** macht dasselbe als Hintergrund-Auftrag (niedrige Priorität, weiterarbeiten,
+   Abbrechen jederzeit – beim nächsten Lauf geht es dort weiter; Zwischenstand alle 25 Titel gesichert).
 4. **Selbsttest mit eigenen Titeln …** – baut aus zufällig gewählten indexierten Titeln einen Test-Mix (je 70 s,
    Tempo −6 … +6 %, mit und ohne Keylock, überblendet) und prüft, ob die Analyse sie wiederfindet – ohne Tracklist.
 

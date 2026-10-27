@@ -3030,7 +3030,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return {"ok": False, "error": "Bitte zuerst im Tagger Dateien markieren."}
         opts = self.plugins.clean_options(a, values)
         core.save_config(self.plugins.remember(pid, aid, opts))
-        if self.plugins.is_background(pid, aid) and files:
+        # Hintergrund: mit markierten Dateien – oder Seiten-Aktionen ohne Auswahl (#261: Bibliothek indexieren)
+        if self.plugins.is_background(pid, aid) and (files or not a.get("needs_selection", True)):
             job = self.jobs.add(pid, aid, f"{p.name}: {a.get('run_label') or a['label']}", [f.path for f in files], opts)
             waiting = sum(1 for j in self.jobs.status()["jobs"] if j["status"] == "waiting")
             return {"ok": True, "background": True, "job": job["id"], "waiting": waiting}
@@ -3086,10 +3087,13 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                     files.append(MP3File(p))
                 except Exception as ex:  # noqa: BLE001
                     progress(("text", f"{os.path.basename(p)}: {ex}"))
-        if not files:
+        page = not job["paths"]                          # Seiten-Aktion ohne Auswahl (#261)
+        if not files and not page:
             raise RuntimeError("Keine der Dateien ist mehr vorhanden.")
         try:
-            res = self.plugins.run(job["plugin"], job["action"], files, job["opts"], None, cancel, progress, background=True)
+            # Seiten-Aktionen bekommen die Sitzung (z. B. für die Bibliotheksordner) – Dateien gibt es dort keine
+            res = self.plugins.run(job["plugin"], job["action"], files, job["opts"], self if page else None, cancel, progress,
+                                   background=True)
         except Exception as ex:
             import traceback
             path = plugins.write_log(f"{job['plugin']}.log", traceback.format_exc())

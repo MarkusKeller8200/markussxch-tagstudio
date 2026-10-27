@@ -78,7 +78,9 @@ Plugins/
 - `background`: `true` → actions run as a **background job** in a queue (like stems): the dialog closes immediately and
   you can keep working. The plugin gets its own files, freshly read from disk (`ctx.background` is `True`); processes
   via `ctx.run_env` run with low priority. For long actions that create new files – tag changes and suggestions belong
-  in foreground actions. Also possible per action (`"background": true` in the ACTIONS entry).
+  in foreground actions. Also possible per action (`"background": true` in the ACTIONS entry). Page actions without a selection
+  (`"needs_selection": false`) can run in the background too; they get no files but the session (e.g. for the
+  library folders, #261).
 - `fields`: fields the plugin writes (patterns with `*`). For these fields TagStudio shows the origin
   “TagStudio · plugin name” (tagger, comparison), so your own fields stay recognisable.
 - `source` (optional, from 4.10): name of the source or store, e.g. `"Beatport"`. When the plugin is **switched on**,
@@ -285,6 +287,8 @@ uploaded, nothing downloaded, nothing in the files is changed.
 3. **Analyse mix (test) …** – enter the full path of the mix file (MP3, WAV, FLAC, M4A …), optionally the known
    tracklist (one “Artist - Title” per line) for the hit rate.
 
+   **“Index library in the background …”** does the same as a background job (low priority, keep working, cancel at
+   any time – the next run continues where it stopped; progress saved every 25 tracks).
 4. **Self-test with your own tracks …** – builds a test mix from randomly chosen indexed tracks (70 s each, tempo
    −6 … +6 %, with and without keylock, crossfaded) and checks whether the analysis finds them again – no tracklist needed.
 

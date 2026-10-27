@@ -22,6 +22,16 @@ ACTIONS = [
          {"key": "hint", "type": "info",
           "label": "Der Index enthält genau die gewählten Titel; unveränderte Titel werden nicht neu gelesen. "
                    "Es wird nichts an den Dateien geändert."}]},
+    {"id": "index_bg", "label": "Bibliothek im Hintergrund indexieren …", "where": "page", "run_label": "Im Hintergrund indexieren", "background": True,
+     "needs_selection": False,
+     "description": "Wie „Bibliothek indexieren“, aber als Hintergrund-Auftrag mit niedriger Priorität – du kannst "
+                    "weiterarbeiten. Abbrechen jederzeit; beim nächsten Mal geht es dort weiter, wo es aufgehört hat.",
+     "options": [
+         {"key": "folders", "type": "folders", "label": "Ordner (leer = alle Bibliotheken)"},
+         {"key": "limit", "type": "number", "label": "Höchstens so viele Titel (0 = alle)", "default": 0},
+         {"key": "hint", "type": "info",
+          "label": "Der Index enthält genau die gewählten Titel; unveränderte Titel werden nicht neu gelesen. "
+                   "Es wird nichts an den Dateien geändert."}]},
     {"id": "analyse", "label": "Mix analysieren (Test) …", "where": "page", "run_label": "Analysieren",
      "needs_selection": False,
      "description": "Sucht die indexierten Titel in einer Mix-Datei und schreibt einen Messbericht (Startzeit, Titel, "
@@ -286,6 +296,9 @@ def run_index(ctx, opts) -> dict:
             p = by_nr.get(ev["nr"])
             if p in m["files"]:
                 m["files"][p].update(keys=ev["keys"], dur=ev["dur"])
+            info["n"] = info.get("n", 0) + 1
+            if info["n"] % 25 == 0:                  # Zwischenstand sichern: nach Abbruch oder Absturz geht es weiter
+                save_manifest(ctx, {**m, "files": {k: v for k, v in m["files"].items() if v.get("keys")}})
         elif kind == "fail":
             info["failed"] += 1
             ctx.log(f"Fehler bei {os.path.basename(ev.get('path', ''))}: {ev.get('msg', '')}")
@@ -416,7 +429,7 @@ def run_selftest(ctx, opts) -> dict:
 def run(action, ctx, files, opts):
     if action == "selftest":
         return run_selftest(ctx, opts)
-    if action == "index":
+    if action in ("index", "index_bg"):
         return run_index(ctx, opts)
     if action == "analyse":
         return run_analyse(ctx, opts)
