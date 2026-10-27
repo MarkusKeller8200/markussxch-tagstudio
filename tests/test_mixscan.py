@@ -2,6 +2,7 @@
 in einem synthetischen Mix mit Tempoänderung mit und ohne Keylock. Die Erkennung läuft im Workflow „Mix-Analyse-Test“
 (Umgebung wie im Plugin); im normalen Testlauf ohne NumPy wird sie übersprungen."""
 import importlib.util
+import json
 import os
 import shutil
 import subprocess
@@ -119,6 +120,8 @@ class TestPlugin(unittest.TestCase):
         self.assertIn("unsicher", t)
         self.assertIn("1 von 2 erkannt (50 %)", t)
         self.assertIn("1:01:40", t)
+        with open(os.path.join(PLUG, "plugin.json"), encoding="utf-8") as fh:
+            self.assertIn(f"Plugin {json.load(fh)['version']})", t)
 
 
 # =========================================================================== Erkennung (NumPy, SciPy, FFmpeg)

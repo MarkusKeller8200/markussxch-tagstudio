@@ -238,6 +238,15 @@ def merge_rows(rows: list, gap: float = 60.0) -> list:
     return out
 
 
+def plugin_version() -> str:
+    """Version aus plugin.json – steht in jedem Bericht, damit Messungen vergleichbar bleiben."""
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "plugin.json"), encoding="utf-8") as fh:
+            return str(json.load(fh).get("version") or "?")
+    except (OSError, ValueError):
+        return "?"
+
+
 def name_of(artist, title) -> str:
     return f"{artist} - {title}" if artist else title
 
@@ -267,7 +276,7 @@ def near_misses(blocks, found, by_nr, n=10) -> list:
 
 
 def report_text(mix, res, rows, cmp, idx_info, near=None, self_excluded=False) -> str:
-    L = [f"Mix analysieren – Messbericht ({time.strftime('%Y-%m-%d %H:%M')})", "",
+    L = [f"Mix analysieren – Messbericht ({time.strftime('%Y-%m-%d %H:%M')}, Plugin {plugin_version()})", "",
          f"Mix: {mix}", f"Länge: {fmt_time(res['duration'])} · Analyse: {res['secs']} s",
          f"Index: {idx_info}", "", "Erkannte Titel:"]
     for r in rows:
@@ -418,7 +427,7 @@ def run_analyse(ctx, opts) -> dict:
     with open(base + ".txt", "w", encoding="utf-8") as fh:
         fh.write(text)
     with open(base + ".json", "w", encoding="utf-8") as fh:
-        json.dump({"mix": mix, "result": got, "rows": rows, "compare": cmp}, fh, ensure_ascii=False, indent=1)
+        json.dump({"plugin_version": plugin_version(), "mix": mix, "result": got, "rows": rows, "compare": cmp}, fh, ensure_ascii=False, indent=1)
     ctx.output(base + ".txt")
     ctx.log(text)
     sure = sum(1 for r in rows if r["conf"] >= 0.6)
@@ -453,7 +462,7 @@ def run_selftest(ctx, opts) -> dict:
             got.update(ev)
     _work(ctx, {"task": "selftest", "dir": _index_dir(ctx), "tracks": pick, "pitch": True}, on_event)
     found = {s["track"]: s for s in got.get("segments") or [] if s["conf"] >= 0.6}
-    lines = [f"Mix analysieren – Selbsttest ({time.strftime('%Y-%m-%d %H:%M')})", "",
+    lines = [f"Mix analysieren – Selbsttest ({time.strftime('%Y-%m-%d %H:%M')}, Plugin {plugin_version()})", "",
              f"Index: {len(m['files'])} Titel · Test-Mix {fmt_time(got.get('duration', 0))} · Analyse {got.get('secs', 0)} s", ""]
     ok = 0
     for e in exp.get("items") or []:
@@ -477,7 +486,7 @@ def run_selftest(ctx, opts) -> dict:
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(text)
     with open(path[:-4] + ".json", "w", encoding="utf-8") as fh:
-        json.dump({"expected": exp, "result": got}, fh, ensure_ascii=False, indent=1)
+        json.dump({"plugin_version": plugin_version(), "expected": exp, "result": got}, fh, ensure_ascii=False, indent=1)
     ctx.output(path)
     ctx.log(text)
     return {"message": f"Selbsttest: {ok} von {total} Titeln erkannt ({round(100 * ok / max(1, total))} %), {len(wrong)} falsch. "
