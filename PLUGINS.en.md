@@ -271,6 +271,24 @@ with TKEY, Beatport (`TXXX:INITIAL_KEY`) and the Mixed In Key comment: same, rel
 key) or different; plus the model's confidence (`keyscan` only). Results are cached per file (size + modification
 time). Usable as a step in **Prepare** (step type “Plugin”, mode “only fill empty fields”).
 
+## Built in: Analyse mix (prototype)
+
+Recognises tracks of your **own library** in a mix file (#261) – even with changed tempo (±10 %, with and without
+keylock) – and writes a measurement report with start time, tempo and confidence. Own method (audio fingerprint with
+queries in tempo steps, `plugins/mixscan/fp.py`, concept `docs/KONZEPT-MIXSCAN.md`). Runs entirely locally: nothing is
+uploaded, nothing downloaded, nothing in the files is changed.
+
+1. **Plugins** page → “Analyse mix” → **Install** (own environment with Python 3.12, NumPy, SciPy, imageio-ffmpeg;
+   about 100 MB).
+2. **Index library (test) …** – choose folders (empty = all libraries); about 200 tracks are enough for the
+   measurement, including the tracks of the test mix. Unchanged tracks are not read again next time.
+3. **Analyse mix (test) …** – enter the full path of the mix file (MP3, WAV, FLAC, M4A …), optionally the known
+   tracklist (one “Artist - Title” per line) for the hit rate.
+
+Result: report in `~/TagStudio/Plugin-Daten/mixscan/berichte` (text and JSON). Index under
+`~/TagStudio/Plugin-Daten/mixscan/index` (fingerprints only). Tracks that are not in the library stay “unknown”. No
+downloading from YouTube, SoundCloud or Mixcloud.
+
 ## Built in: Stems
 
 Separates tracks into single stems with [audio-separator](https://github.com/nomadkaraoke/python-audio-separator)

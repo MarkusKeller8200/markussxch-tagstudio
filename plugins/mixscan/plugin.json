@@ -1,0 +1,23 @@
+{
+  "id": "mixscan",
+  "name": "Mix analysieren",
+  "version": "0.1",
+  "min_app": "4.12.0",
+  "category": "audio",
+  "api": 1,
+  "author": "MarKusSXCH TagStudio",
+  "description": "Prototyp (#261): erkennt Titel deiner eigenen Bibliothek in einer Mix-Datei – auch mit geändertem Tempo (±10 %, mit und ohne Keylock) – und schreibt einen Messbericht mit Startzeit, Tempo und Sicherheit. Läuft vollständig auf deinem Rechner; nichts wird hochgeladen, nichts heruntergeladen, an den Dateien wird nichts geändert.",
+  "env": {
+    "python": "3.12",
+    "check": ["numpy", "scipy", "imageio_ffmpeg"]
+  },
+  "install": [
+    {
+      "id": "cpu",
+      "label": "Installieren",
+      "packages": ["numpy", "scipy", "imageio-ffmpeg"],
+      "hint": "Klein (etwa 100 MB): NumPy, SciPy und FFmpeg zum Dekodieren aller Audioformate."
+    }
+  ],
+  "notes": "Die Installation legt eine eigene Umgebung an (Python 3.12 wird bei Bedarf geladen). Der Index liegt im Benutzerordner unter TagStudio › Plugin-Daten › mixscan und enthält nur Fingerabdrücke, keine Audiodaten."
+}

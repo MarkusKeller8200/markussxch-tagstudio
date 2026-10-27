@@ -8,6 +8,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Mix analysieren – Prototyp (#261):** neues Plugin „Mix analysieren“ erkennt Titel der eigenen Bibliothek in einer
+  Mix-Datei, auch mit geändertem Tempo (±10 %, mit und ohne Keylock), und schreibt einen Messbericht (Startzeit, Tempo,
+  Sicherheit, Trefferquote gegen eine bekannte Tracklist). Eigener Audio-Fingerabdruck, läuft vollständig lokal
+  (Konzept `docs/KONZEPT-MIXSCAN.md`).
+
 - **Ideen – Wunschlisten (#186):** neue Seite „Ideen“ nach „Entdecken“. Titel, die du später kaufen willst, in
   Wunschlisten sammeln – mit ☆ „Idee merken ▸“ in Entdecken, von Hand oder als Liste aus Text; je Eintrag Notiz, Quelle
   mit Link und Vorhören. Status Idee → Kaufen → Gekauft (erkannt über „Einkäufe“) → In Bibliothek (verknüpfte Datei,

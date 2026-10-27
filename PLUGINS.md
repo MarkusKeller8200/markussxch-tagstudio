@@ -289,6 +289,24 @@ Ergebnis: Ordner `<Titel> – Stems` neben dem Titel (oder im gewählten Ordner)
 Bei MP3 werden Tags und Cover übernommen, der Titel bekommt den Zusatz „(Vocals)“. Die Modelle landen in
 `~/TagStudio/Plugin-Daten/stems/modelle` und werden nur einmal geladen.
 
+## Eingebaut: Mix analysieren (Prototyp)
+
+Erkennt Titel der **eigenen Bibliothek** in einer Mix-Datei (#261) – auch mit geändertem Tempo (±10 %, mit Keylock
+und ohne) – und schreibt einen Messbericht mit Startzeit, Tempo und Sicherheit. Eigenes Verfahren (Audio-Fingerabdruck
+mit Abfrage in Tempo-Stufen, `plugins/mixscan/fp.py`, Konzept `docs/KONZEPT-MIXSCAN.md`). Läuft vollständig lokal:
+nichts wird hochgeladen, nichts heruntergeladen, an den Dateien wird nichts geändert.
+
+1. Seite **Plugins** → bei „Mix analysieren“ **Installieren** (eigene Umgebung mit Python 3.12, NumPy, SciPy,
+   imageio-ffmpeg; etwa 100 MB).
+2. **Bibliothek indexieren (Test) …** – Ordner wählen (leer = alle Bibliotheken), für die Messung etwa 200 Titel,
+   darunter die Titel des Test-Mixes. Unveränderte Titel werden beim nächsten Mal nicht neu gelesen.
+3. **Mix analysieren (Test) …** – vollständigen Pfad der Mix-Datei eingeben (MP3, WAV, FLAC, M4A …), optional die
+   bekannte Tracklist („Künstler - Titel“ je Zeile) für die Trefferquote.
+
+Ergebnis: Bericht in `~/TagStudio/Plugin-Daten/mixscan/berichte` (Text und JSON). Index unter
+`~/TagStudio/Plugin-Daten/mixscan/index` (nur Fingerabdrücke). Titel, die nicht in der Bibliothek sind, bleiben
+„unbekannt“. Kein Herunterladen von YouTube, SoundCloud oder Mixcloud.
+
 ## Eingebaut: Beatport
 
 Holt BPM, Tonart (in deiner Schreibweise), Genre/Subgenre, Label, Katalognummer, Datum, ISRC, Remixer, Cover

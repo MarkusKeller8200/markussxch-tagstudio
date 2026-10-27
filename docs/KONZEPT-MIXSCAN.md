@@ -1,6 +1,6 @@
 # Konzept: Mix analysieren – Titel in DJ-Mixes erkennen (#261) und MixID (#218)
 
-Stand: 2026-10-27 (Meilenstein #30 „4.13.0“) · Status: **KONZEPT – Entscheide M1–M8 zur Freigabe**, nichts umgesetzt.
+Stand: 2026-10-27 (Meilenstein #30 „4.13.0“) · Status: **Entscheide freigegeben (27.10.2026, 03:45)** – Phase 2 (Prototyp) umgesetzt, Messung beim User offen.
 
 > Was es schon gibt und was geplant ist, ist je Abschnitt markiert. Umgesetzt wird erst nach Freigabe der Entscheide in
 > Abschnitt 8. Grundsatz aus #260 (Entscheid User 24.10.2026): **nur lokale Ausführung**, kein eigener Server.
@@ -101,22 +101,38 @@ Unit: Schlüssel bilden, Index nachführen (neu/geändert/gelöscht), Abfrage mi
 (±8 % mit und ohne Tonhöhe), Glättung zu Abschnitten, Export CUE/Text/Playlist. Oberfläche: Dialog/Seite, Index-Status,
 Ergebnis speichern. Prototyp-Messung mit echter Musik beim User (M6).
 
-## 8. Entscheide (offen – bitte freigeben)
+## 8. Entscheide (User 27.10.2026, 03:45)
 
-| Nr. | Frage | Vorschlag |
+| Nr. | Frage | Entscheid |
 |---|---|---|
 | M1 | Verfahren | **A** – eigene Umsetzung, Abfrage in Tempo-Stufen; B (Quad) nur, falls der Prototyp nicht reicht |
 | M2 | Welche Titel werden erkannt? | nur Titel der **eigenen Bibliothek** (alle aktiven Bibliotheken) |
 | M3 | Unbekannte Abschnitte | vorerst „unbekannt“ lassen; SonoVault Identify je Abschnitt auf Klick als Option später |
-| M4 | Eingabe | nur **lokale Dateien**; kein Herunterladen von YouTube/SoundCloud/Mixcloud |
+| M4 | Eingabe | Vorschlag: nur **lokale Dateien** – in der Rückfrage nicht angekreuzt, **noch zu bestätigen**; der Prototyp liest nur lokale Dateien |
 | M5 | Index aufbauen | von Hand starten, danach automatisch für neue Titel (nach „Vorbereiten“ und beim Start im Hintergrund) |
 | M6 | Prototyp zuerst | ja: Messwerkzeug, das du mit ~200 Titeln und einem eigenen Mix mit bekannter Tracklist laufen lässt; weiter erst bei ≥ 80 % erkannten Titeln |
 | M7 | Ergebnis und Ort | Plugin-Aktion „Mix analysieren …“ (Playlists und Plugin-Seite) mit Ergebnisfenster; speichern als Playlist (Ordner „Mixe“), CUE, Text |
-| M8 | MixID (#218) | Anfrage an Rekordcloud senden (durch dich); #218 bis zur Antwort aus 4.13.0 nehmen (Sammlung „Funktionen“) |
+| M8 | MixID (#218) | Anfrage an Rekordcloud senden (durch den User); #218 bis zur Antwort aus 4.13.0 genommen (Sammlung „Funktionen“) |
 
 ## 9. Phasen
 
-1. **Konzept** (dieses Dokument) – Freigabe M1–M8.
+1. **Konzept** (dieses Dokument) – M1–M3, M5–M8 freigegeben; M4 zu bestätigen.
 2. **Prototyp** (M6): Plugin mit Index + Analyse ohne Oberfläche, Messbericht (Trefferquote, Speicher, Zeit).
 3. **Plugin** mit Ergebnisfenster, Export, automatischem Nachführen.
 4. Optional: SonoVault für Lücken (M3), MixID (M8, nur mit API).
+
+## 10. Prototyp (umgesetzt, 4.13.0)
+
+- Plugin `plugins/mixscan` 0.1: `fp.py` (Verfahren A), `worker.py` (Umgebung), `plugin.py` (Aktionen
+  „Bibliothek indexieren (Test) …“ und „Mix analysieren (Test) …“, Messbericht in `Plugin-Daten/mixscan/berichte`).
+- Parameter: 11 025 Hz mono, FFT 1024 / Sprung 256 (23 ms), ≤ 18 Spitzen je Sekunde, 6 Partner je Anker, Schlüssel
+  `f1 | f2−f1 | dt` (32 Bit). Abfrage in 21 Tempo-Stufen (0,90–1,10) mit Keylock und 20 ohne; Werte nahe an der
+  Rundungsgrenze fragen beide Nachbarn ab. Auswertung je 5-s-Block; Glättung über 5 Blöcke nur bei passendem Versatz
+  (je Block die 3 besten Versätze – Musik wiederholt sich); Schwelle 70 Treffer, Abstand 1,4 zum Zweiten;
+  Abschnitte desselben Titels mit ≤ 20 s Unterbrechung zusammengefasst; Sicherheit < 60 % = „unsicher“.
+- **Synthetische Messung** (40 erzeugte Titel, Mix 3:18 min, 6 Titel, Tempo −6 … +8 %, 2 ohne Keylock, Rauschen und EQ,
+  MP3): 6/6 erkannt, Tempo auf ±1 % genau; Mix aus 4 unbekannten Titeln: nichts mit ≥ 60 % gemeldet. Abfrage ≈ 1 s je
+  Minute Mix. Index ≈ 100 Schlüssel/s ≈ 1,2 MB je Minute Audio (≈ 440 MB je 1000 Titel à 6 min) – im echten Test messen;
+  falls zu gross: Dichte senken oder Index stückweise (Speicherabbild) laden.
+- Startzeiten auf 5 s genau (Blockraster); im Übergang zählt noch der alte Titel. Verfeinerung in Phase 3.
+- Test: `tests/test_mixscan.py`, Workflow „Mix-Analyse-Test“ (Windows, macOS; synthetische Titel, keine echte Musik).
