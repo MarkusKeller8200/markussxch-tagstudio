@@ -155,6 +155,18 @@ class TestPlugin(unittest.TestCase):
         self.assertIn("Hypnotic (Original Mix): Tracklist 04:56 · berechnet 04:55 (-1 s) · erkannt ab 05:25 ✓", t)
         self.assertIn("1 von 1", t)
 
+    def test_mixid_tracklist(self):
+        """#382: von MixID kopierte Tracklist – Gedankenstrich „—“ und Minuten über 99 („106:00“)."""
+        import playlists
+        text = ("0:00  Nora En Pure — Indulgence\n5:20  Üm, Romulus — Mia Mia (Romulus Remix)\n"
+                "99:48  Jats (ofc) — Lost Planet\n106:00  Clim, C-Lim — Wik\n128:44  Aalson — With Each Other")
+        items, unknown = playlists.parse_tracklist(text, "mixid")
+        self.assertEqual(unknown, 0)
+        self.assertEqual([(i["ref"]["artist"], i["ref"]["title"]) for i in items],
+                         [("Nora En Pure", "Indulgence"), ("Üm, Romulus", "Mia Mia (Romulus Remix)"), ("Jats (ofc)", "Lost Planet"),
+                          ("Clim, C-Lim", "Wik"), ("Aalson", "With Each Other")])
+        self.assertEqual(plugin.tracklist_times(text), [0, 320, 5988, 6360, 7724])
+
     def test_near_misses(self):
         blocks = [{"start": 0, "cands": [[90, 1, 1.0, "lock", 0], [12, 2, 1.0, "lock", 0]]},
                   {"start": 5, "cands": [[80, 1, 1.0, "lock", 0], [17, 2, 1.0, "lock", 0], [9, 3, 1.0, "lock", 0]]}]

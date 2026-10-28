@@ -294,7 +294,7 @@ def tracklist_times(text: str) -> list:
         if not items:
             continue
         line = playlists.MD_LINK.sub(r"\1", line)
-        m = re.match(r"\s*\[?\s*(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\s*\]?", line)
+        m = re.match(r"\s*\[?\s*(?:(\d{1,2}):)?(\d{1,3}):(\d{2})\s*\]?", line)      # „106:00“ (MixID)
         out.append(int(m.group(1) or 0) * 3600 + int(m.group(2)) * 60 + int(m.group(3)) if m else None)
     return out
 

@@ -8,6 +8,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **MixID-Tracklisten einfügen (#392):** von MixID kopierte Tracklisten mit Zeitmarken über 99 Minuten („106:00“)
+  werden richtig gelesen (Playlists, Ideen, Mix analysieren 1.2) – bisher blieb die Zeit im Künstlernamen stehen.
+
 - **SonoVault 1.2 (#380, #381, #383, #259):** eigene Felder `TXXX:SONOVAULT_*` mit Herkunft „SonoVault“ (nur
   erlaubte Werte + Abrufdatum, Option in Online-Metadaten, Release nachschlagen und Audio erkennen); „Release
   nachschlagen (SonoVault) …“ für ganze Alben/EPs; Tarif-Einstellung Free/Bezahlt – mit bezahltem Tarif die neuesten

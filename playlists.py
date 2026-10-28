@@ -475,7 +475,7 @@ def parse_csv(text: str, base_dir: str = "") -> list[dict]:
     return out
 
 
-_TL_TIME = re.compile(r"^\[?\(?\d{1,2}:\d{2}(?::\d{2})?\)?\]?\s*")
+_TL_TIME = re.compile(r"^\[?\(?\d{1,3}:\d{2}(?::\d{2})?\)?\]?\s*")      # MixID: Minuten über 99 („106:00“)
 _TL_NUM = re.compile(r"^(?:#?\d{1,3}[.):]?|\d{1,3}/\d{1,3})\s+")
 _TL_SEP = re.compile(r"\s+[-–—]\s+")
 _TL_TAIL = re.compile(r"\s*\[[^\]]*\]\s*$")
