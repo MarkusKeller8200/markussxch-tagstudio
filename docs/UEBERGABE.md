@@ -36,6 +36,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   „106:00“ → #392 behoben (`playlists._TL_TIME`, `mixscan.tracklist_times`). Anleitung + Link im Dialog
   „Trackliste einfügen“ (`PLS_TXT_GUIDE`). **#382 geschlossen (User 23:14: wird nicht weiter verfolgt)** – Anfrage an
   Rekordcloud nicht gesendet; #383-Erweiterung (BPM/Tonart/ISWC/Katalognummer) und Links SV3 bleiben damit aus.
+- **#383 geschlossen (User 23:21: wird nicht weiter verfolgt, „not planned“)** – Terms §7 (ii) bestätigt: nur Titel,
+  Künstler, Release, Label, Genre, Datum, Dauer, ISRC; IDs/BPM/Tonart/ISWC/Katalognummer bleiben ausgeschlossen.
+  Umgesetzter Teil (8 erlaubte Felder + Abrufdatum) bleibt im Code.
 - **Testrückmeldung 28.10. 20:25:** geschlossen #387, #390, #379, #380, #381, #259 (Testlisten abgehakt); offen #383 (Testliste
   noch nicht abgehakt) und #382 (Anfrage sendet der User).
 - **SonoVault 1.2 (28.10. 19:59, `_3 Beta-Test`, Meilenstein #30):** #383 `TXXX:SONOVAULT_*` (Herkunft „SonoVault“ in
