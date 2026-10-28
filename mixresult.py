@@ -15,7 +15,9 @@ FOLDER = "Mixe"          # Playlist-Ordner für gespeicherte Mixe
 SURE = 0.6               # ab hier „sicher“
 GAP = 60.0               # Lücken ab einer Minute erscheinen als „ID – ID“
 _ID = re.compile(r"^mx_[0-9a-f]{12}$")
-_ROW_KEYS = ("start", "end", "track_start", "path", "artist", "title", "tempo", "keylock", "conf", "also", "at", "drop", "online")
+_ROW_KEYS = ("start", "end", "track_start", "path", "artist", "title", "tempo", "keylock", "conf", "also", "at", "drop", "online",
+             "tl", "linked")
+TL_TOL = 60.0            # #394: Zeitmarke der Tracklist darf so weit neben einer Lücke liegen (Entscheid User 28.10.)
 CLIP_STEP = 180.0        # #393: ein Ausschnitt je angefangene 3 Minuten Lücke
 CLIP_EDGE = 15.0         # Abstand zu den Übergängen am Rand der Lücke
 ONLINE_MIN = 0.3         # Online-Treffer darunter werden verworfen (unter SURE = „unsicher“)
@@ -77,16 +79,22 @@ def clean_row(r) -> dict | None:
         out["online"] = {"pid": str(o["pid"])[:60], "name": str(o.get("name") or o["pid"])[:60],
                          "fetched": str(o.get("fetched") or "")[:10]}
         out["path"] = ""
+    elif r.get("tl"):                                        # #394: aus der bekannten Tracklist (keine Datei)
+        out["tl"] = True
+        out["path"] = ""
+    if r.get("linked") and out["path"]:                     # #395: nachträglich mit der Bibliothek verknüpft (Herkunft)
+        out["linked"] = str(r["linked"])[:60]
     return out
 
 
-def new(mix: str, duration: float, rows: list, *, compare=None, report="", index="", plugin="", version="") -> dict:
+def new(mix: str, duration: float, rows: list, *, compare=None, report="", index="", plugin="", version="", tracklist="") -> dict:
     """Neues Ergebnis (noch nicht gespeichert)."""
     rs = sorted((x for x in (clean_row(r) for r in rows or []) if x), key=lambda x: x["start"])
     res = {"format": FORMAT, "id": "mx_" + secrets.token_hex(6), "mix": str(mix),
            "name": os.path.splitext(os.path.basename(str(mix)))[0][:200],
            "created": time.strftime("%Y-%m-%d %H:%M"), "duration": float(duration or 0), "rows": rs,
-           "report": str(report or ""), "index": str(index or ""), "plugin": str(plugin or ""), "version": str(version or "")}
+           "report": str(report or ""), "index": str(index or ""), "plugin": str(plugin or ""), "version": str(version or ""),
+           "tracklist": str(tracklist or "")[:50000]}
     if isinstance(compare, dict):
         res["compare"] = {k: [str(x) for x in compare.get(k) or []][:500] for k in ("hit", "miss", "other", "unsure")}
         res["compare"]["expected"] = int(compare.get("expected") or 0)
@@ -162,6 +170,8 @@ def note_of(r) -> str:
     (online erkannt: „12:30 · SonoVault · 85 %“)."""
     if r.get("online"):
         return f"{fmt_time(mark(r))} · {r['online']['name']} · {round(r['conf'] * 100)} %"
+    if r.get("tl"):
+        return f"{fmt_time(mark(r))} · Tracklist"
     return f"{fmt_time(mark(r))} · {r['tempo']:+.1f} % · {round(r['conf'] * 100)} %"
 
 
@@ -178,7 +188,7 @@ def to_items(res) -> list:
                 pass
         else:
             it["ref"] = {"artist": r["artist"], "title": r["title"],
-                         "source": r["online"]["pid"] if r.get("online") else "mixscan"}
+                         "source": r["online"]["pid"] if r.get("online") else "tracklist" if r.get("tl") else "mixscan"}
         out.append(it)
     return out
 
@@ -282,8 +292,77 @@ def purge_online(res, retain: dict, today=None) -> bool:
 
 
 def online_text(res) -> str:
-    """Online erkannte Titel (nicht verworfen) als Zeilen „Künstler - Titel“ (zum Merken als Ideen)."""
-    return "\n".join(name_of(r) for _n, r in kept(res) if r.get("online"))
+    """Titel ohne Datei – online erkannt oder aus der Tracklist (nicht verworfen) – als Zeilen „Künstler - Titel“ (zum
+    Merken als Ideen)."""
+    return "\n".join(name_of(r) for _n, r in kept(res) if r.get("online") or r.get("tl"))
+
+
+# =========================================================================== #394 Lücken aus der Tracklist
+_TL_AT = re.compile(r"^\s*(?:\d{1,3}[.)]\s+)?\[?\(?\s*(?:(\d{1,2}):)?(\d{1,3}):(\d{2})\s*\)?\]?")
+
+
+def parse_tracklist(text) -> list:
+    """Tracklist-Text → [{"at": Sekunden | None, "artist", "title"}] – Zeitmarken wie „[04:56]“, „1:02:10“, „106:00“
+    (MixID), auch mit Nummer davor. „ID – ID“ und Zeilen ohne Künstler/Titel zählen nicht."""
+    import playlists
+    out = []
+    for line in str(text or "").splitlines()[:2000]:
+        items, _u = playlists.parse_tracklist(line, "text")
+        if not items:
+            continue
+        m = _TL_AT.match(playlists.MD_LINK.sub(r"\1", line))
+        at = int(m.group(1) or 0) * 3600 + int(m.group(2)) * 60 + int(m.group(3)) if m else None
+        r = items[0]["ref"]
+        out.append({"at": at, "artist": r.get("artist", "")[:300], "title": r.get("title", "")[:300]})
+    return out
+
+
+def fill_from_tracklist(res, tol=TL_TOL) -> int:
+    """Einträge der Tracklist mit Zeitmarke, die in einer Lücke liegen (bzw. höchstens tol Sekunden daneben) und noch
+    nicht als Zeile vorkommen (auch nicht verworfen), als Zeilen „aus Tracklist“ einfügen. Jede Zeile reicht bis zum
+    nächsten Eintrag bzw. zum Ende der Lücke. → Zahl neuer Zeilen."""
+    entries = [e for e in parse_tracklist(res.get("tracklist") or "") if e["at"] is not None]
+    if not entries:
+        return 0
+    entries.sort(key=lambda e: e["at"])
+    have = list(res.get("rows") or [])
+    new = []
+    for g0, g1 in gaps(res):
+        inside = [e for e in entries if g0 - tol <= e["at"] <= g1 + tol
+                  and not any(_same(e, r) for r in have + new)]
+        for k, e in enumerate(inside):
+            start = min(max(float(e["at"]), g0), g1)
+            nxt = min(max(float(inside[k + 1]["at"]), g0), g1) if k + 1 < len(inside) else g1
+            row = clean_row({"start": start, "end": max(start, nxt), "artist": e["artist"], "title": e["title"],
+                             "conf": 1.0, "tempo": 0, "tl": True})
+            if row and not any(_same(row, x) for x in new):
+                new.append(row)
+    res["rows"] = sorted(have + new, key=lambda x: x["start"])
+    return len(new)
+
+
+# =========================================================================== #395 mit der Bibliothek verknüpfen
+def link_rows(res, index) -> int:
+    """Zeilen ohne Datei (online / aus Tracklist) mit der Bibliothek abgleichen (playlists.LibIndex); sichere Treffer
+    bekommen die Datei und werden zu normalen Zeilen (Herkunft in "linked"). → Zahl verknüpfter Zeilen."""
+    import playlists
+    n = 0
+    for r in res.get("rows") or []:
+        if r.get("path") or not (r.get("online") or r.get("tl")) or not r.get("title"):
+            continue
+        m = playlists.match_ref({"artist": r.get("artist", ""), "title": r.get("title", "")}, index)
+        if m["status"] != "sure" or not m.get("path"):
+            continue
+        r["linked"] = r["online"]["name"] if r.get("online") else "Tracklist"
+        r.pop("online", None)
+        r.pop("tl", None)
+        r["path"] = m["path"]
+        n += 1
+    return n
+
+
+def unlinked(res) -> int:
+    return sum(1 for _n, r in kept(res) if not r.get("path") and (r.get("online") or r.get("tl")))
 
 
 # =========================================================================== Ablage

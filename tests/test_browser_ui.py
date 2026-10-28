@@ -3727,6 +3727,34 @@ class UiTest(unittest.TestCase):
         pg.click('.nav[data-module="ideas"]')
         pg.wait_for_function("document.body.innerText.includes('Kaltes Glas')")
 
+    def test_mix_tracklist_and_link(self):
+        """#394–#396: Tracklist nachträglich einfügen füllt Lücken („aus Tracklist“), Abgleich mit der Bibliothek,
+        Knopf „Ordner analysieren …“."""
+        import mixresult
+        pg = self.pg
+        f = sorted(os.path.join(self.lib, n) for n in os.listdir(self.lib) if n.endswith(".mp3"))
+        res = mixresult.new(f[0], 600, [
+            {"start": 100, "end": 160, "track_start": 90, "path": f[1], "artist": "Test", "title": "Ton 330", "tempo": -2, "conf": 0.94}],
+            version="1.3")
+        mixresult.save(os.path.join(self.home, "TagStudio", "Mixe"), res)
+        pg.click('.nav[data-module="mixes"]')
+        pg.wait_for_selector("#mxRows tr[data-n]")
+        self.assertEqual(pg.locator("#mxFolder").count(), 1)
+        self.assertTrue(pg.locator("#mxFolder").is_disabled())                 # Plugin ohne Umgebung
+        self.assertEqual(pg.locator("#mxRows tr.mx-gap").count(), 2)
+        pg.click('[data-mxa="tracklist"]')
+        pg.wait_for_selector("#mxTlText")
+        pg.fill("#mxTlText", "[00:30] Intro - Anfang\n[01:40] Test - Ton 330\n[06:30] Spät - Ende\n[09:00] Weit - Weg")
+        pg.click("#mBtns .primary")
+        pg.wait_for_selector('#mxRows .mx-tag:has-text("aus Tracklist")')
+        self.assertEqual(pg.locator('#mxRows .mx-tag:has-text("aus Tracklist")').count(), 3)   # Anfang, Ende, Weg – „Ton 330“ ist schon erkannt
+        self.assertIn("Tracklist ändern", pg.inner_text("#mxMain .mx-bar"))
+        self.assertIn("Ohne Datei als Ideen (3)", pg.inner_text("#mxMain .mx-bar"))
+        self.assertEqual(pg.locator('#mxRows tr:has-text("Anfang") .mx-time').input_value(), "00:30")
+        pg.click('[data-mxa="link"]')
+        pg.wait_for_function("(document.querySelector('#toast') && /verknüpft|Keine sicheren/.test(document.querySelector('#toast').textContent))"
+                             " || (!document.querySelector('#dialog').hidden && /Bibliothek/.test(document.querySelector('#dlgText').textContent))")
+
     def test_playlists_smartlist(self):
         """#272: Smartlist anlegen (Regel-Dialog), Aktualisieren nach Tag-Änderung, Regel hinzufügen, Einfrieren."""
         pg = self.pg

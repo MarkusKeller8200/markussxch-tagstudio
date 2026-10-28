@@ -361,6 +361,14 @@ under Plugins); nothing is uploaded or downloaded.
   “Confirm costs and upload” starts it. Matches appear with “online · SonoVault” and “not in the library”;
   “Recognised online as ideas” keeps them in a wish list. Spots already checked are not sent again. For your own use
   only – do not publish such tracklists.
+- **Gaps from the tracklist (free):** if the analysis has a known tracklist with timestamps (inserted when analysing or
+  later with “Insert tracklist …”), TagStudio fills every gap with the entry whose time lies in it (at most 60 s next to
+  it) – marked “from tracklist”. Only what is left needs online recognition.
+- **Link with the library:** tracks without a file (recognised online or from the tracklist) are linked automatically
+  with the new file after “Prepare” (“linked · SonoVault”), including a saved playlist; by hand with “Match with
+  library”. “Without file as ideas” keeps the rest in a wish list.
+- **Analyse folder …:** all mix files of a folder (optionally with subfolders, already analysed ones skipped) as
+  separate background jobs.
 
 ### Purchases
 

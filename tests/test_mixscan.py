@@ -115,11 +115,57 @@ class TestPlugin(unittest.TestCase):
 
     def test_actions_final(self):
         ids = {a["id"]: a for a in plugin.ACTIONS}
-        self.assertEqual(set(ids), {"analyse", "index", "results", "settings", "selftest", "index_add"})
+        self.assertEqual(set(ids), {"analyse", "analyse_folder", "index", "results", "settings", "selftest", "index_add"})
         self.assertFalse(any("(Test)" in a["label"] for a in plugin.ACTIONS))
         self.assertEqual(ids["analyse"]["options"][0]["type"], "file")
         self.assertTrue(ids["index"]["background"])
         self.assertEqual(ids["index_add"]["where"], "hidden")
+
+    def test_analyse_folder_queues_jobs(self):
+        """#396: je Mix-Datei ein Hintergrund-Auftrag; Unterordner wahlweise; schon analysierte auslassen."""
+        import mixresult
+
+        class Ctx:
+            id = "mixscan"
+
+            def __init__(s, d):
+                s.data_dir, s.jobs, s.lines = d, [], []
+
+            def queue_job(s, aid, opts=None, label="", dedupe=True):
+                s.jobs.append((aid, opts["mix"], label, dedupe))
+                return {}
+
+            def log(s, m):
+                s.lines.append(m)
+        ctx = Ctx(os.path.join(self.d, "data"))
+        os.makedirs(ctx.data_dir)
+        mixes = os.path.join(self.d, "Radio")
+        a, b = self.touch("Radio", "Folge 2.mp3"), self.touch("Radio", "Folge 1.m4a")
+        c = self.touch("Radio", "alt", "Folge 0.flac")
+        self.touch("Radio", "cover.jpg")
+        with self.assertRaises(ValueError):                                  # noch kein Index
+            plugin.run("analyse_folder", ctx, [], {"folder": mixes})
+        plugin.save_manifest(ctx, {"next": 2, "folders": "", "files": {"/x.mp3": {"nr": 1, "size": 1, "mtime": 0, "keys": 1}}})
+        home = os.path.join(self.d, "home")
+        old = {k: os.environ.get(k) for k in ("HOME", "USERPROFILE")}
+        os.environ["HOME"] = os.environ["USERPROFILE"] = home
+        try:
+            r = plugin.run("analyse_folder", ctx, [], {"folder": mixes, "pitch": False})
+            self.assertEqual([j[1] for j in ctx.jobs], [b, a])                     # sortiert, ohne Unterordner
+            self.assertEqual(ctx.jobs[0][2:], ("Folge 1.m4a", False))
+            self.assertIn("2 Mix-Datei(en) in die Warteschlange", r["message"])
+            import paths
+            mixresult.save(paths.sub("Mixe"), mixresult.new(a, 100, []))
+            ctx.jobs.clear()
+            r = plugin.run("analyse_folder", ctx, [], {"folder": mixes, "subfolders": True})
+            self.assertEqual([j[1] for j in ctx.jobs], [b, c])
+            self.assertIn("1 schon analysiert", r["message"])
+        finally:
+            for k, v in old.items():
+                if v is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = v
 
     def test_merge_rows_and_versions(self):
         """Messung 27.10.2026: „Hypnotic“ in Stücken (auch Dub Mix) → ein Abschnitt; Remix ≠ Extended Mix."""

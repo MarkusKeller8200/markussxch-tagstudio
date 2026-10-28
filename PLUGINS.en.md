@@ -293,7 +293,8 @@ changed tempo (±10 %, with and without keylock) – and shows the tracklist wit
 (audio fingerprint with queries in tempo steps, `plugins/mixscan/fp.py`, concept `docs/KONZEPT-MIXSCAN.md`). Runs
 entirely locally: nothing is uploaded, nothing downloaded, nothing in the files is changed. Only tracks in the index
 are recognised – other tracks stay “ID – ID”; these gaps can optionally be filled via a recognition service
-(SonoVault, paid, #393 – see SonoVault).
+(SonoVault, paid, #393 – see SonoVault) or from a known tracklist with timestamps (#394, free). From 1.3 also “Analyse
+folder of mixes …” (#396): one background job per mix file (`ctx.queue_job(…, dedupe=False)`).
 
 1. **Plugins** page → “Analyse mix” → **Install** (own environment with Python 3.12, NumPy, SciPy, imageio-ffmpeg;
    about 100 MB).

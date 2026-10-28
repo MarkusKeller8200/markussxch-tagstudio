@@ -238,6 +238,8 @@ class TestQueueJob(unittest.TestCase):
         self.assertEqual(ctx.queue_job("index", {"folders": ""})["label"], "Mix: Indexieren")
         self.assertIsNone(ctx.queue_job("index"))
         self.assertEqual(len(Sess.jobs.list), 1)
+        self.assertIsNotNone(ctx.queue_job("index", {"folders": "b"}, dedupe=False))   # #396: je Mix ein Auftrag
+        self.assertEqual(len(Sess.jobs.list), 2)
         self.assertIsNone(plugins.Context(P()).queue_job("index"))
         with self.assertRaises(KeyError):
             ctx.queue_job("gibtsnicht")

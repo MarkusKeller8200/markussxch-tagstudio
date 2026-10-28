@@ -97,6 +97,48 @@ class TestLogic(unittest.TestCase):
         self.assertTrue(mixresult.purge_online(r, {"sonovault": 30}, today="2026-12-01"))
         self.assertEqual(mixresult.online_text(r), "")
 
+    def test_tracklist_fills_gaps(self):
+        """#394: Zeitmarken in einer Lücke (±60 s) → Zeilen „aus Tracklist“; schon vorhandene/verworfene nicht."""
+        tl = ("01. [00:10] Intro Act - Anfang\n[04:56] Dan Sushi - Shadows\n06:40 Boxer - Verde\n"
+              "[07:20] DJ Paulus - Mirage (Extended Mix)\n[08:30] ID - ID\nOhne Zeit - Titel\n[16:00] Ende - Schluss")
+        e = mixresult.parse_tracklist(tl)
+        self.assertEqual([(x["at"], x["title"]) for x in e][:2], [(10, "Anfang"), (296, "Shadows")])
+        self.assertIn((None, "Titel"), [(x["at"], x["title"]) for x in e])
+        self.assertFalse(any(x["title"] == "ID" for x in e))
+        self.assertEqual(mixresult.parse_tracklist("106:00 Aalson - With Each Other")[0]["at"], 6360)
+        r = mixresult.new("/x/Mix.mp3", 1000, rows(), tracklist=tl)
+        self.assertEqual(mixresult.fill_from_tracklist(r), 3)              # Anfang, Mirage, Schluss (Shadows/Verde schon da)
+        tlr = [x for x in r["rows"] if x.get("tl")]
+        self.assertEqual([(x["title"], x["start"], x["end"]) for x in tlr],
+                         [("Anfang", 10.0, 85.0), ("Mirage (Extended Mix)", 440.0, 615.0), ("Schluss", 960.0, 1000.0)])
+        self.assertEqual(mixresult.fill_from_tracklist(r), 0)              # nicht doppelt
+        self.assertEqual(mixresult.note_of(tlr[0]), "00:10 · Tracklist")
+        it = [x for x in mixresult.to_items(r) if x["title"] == "Anfang"][0]
+        self.assertEqual(it["ref"]["source"], "tracklist")
+        self.assertIn("Intro Act - Anfang", mixresult.online_text(r))
+        # verworfene Zeile kommt nicht wieder; Lücke zu weit weg → nicht
+        r2 = mixresult.new("/x/Mix.mp3", 1000, rows(), tracklist="[13:00] Weit - Weg")
+        self.assertEqual(mixresult.fill_from_tracklist(r2), 1)              # Lücke 815–1000, 780 s liegt 35 s davor
+        r3 = mixresult.new("/x/Mix.mp3", 1000, rows(), tracklist="[12:00] Weit - Weg")
+        self.assertEqual(mixresult.fill_from_tracklist(r3), 0)              # 720 s: mehr als 60 s neben jeder Lücke
+        r2["rows"][[x.get("tl") for x in r2["rows"]].index(True)]["drop"] = True
+        self.assertEqual(mixresult.fill_from_tracklist(r2), 0)
+
+    def test_link_rows(self):
+        """#395: Zeilen ohne Datei mit der Bibliothek verknüpfen – nur sichere Treffer."""
+        import playlists
+        r = mixresult.new("/x/Mix.mp3", 1000, rows() + [
+            {"start": 900, "end": 930, "artist": "Mara Lind", "title": "Kaltes Glas (Original Mix)", "conf": 0.9,
+             "online": {"pid": "sonovault", "name": "SonoVault", "fetched": "2026-10-28"}},
+            {"start": 950, "end": 990, "artist": "Niemand", "title": "Unbekannt", "conf": 1, "tl": True}])
+        self.assertEqual(mixresult.unlinked(r), 2)
+        ix = playlists.LibIndex([playlists.lib_entry("/m/Mara Lind - Kaltes Glas.mp3", "Mara Lind", "Kaltes Glas (Original Mix)", "", 340, "", 10)])
+        self.assertEqual(mixresult.link_rows(r, ix), 1)
+        row = [x for x in r["rows"] if x["start"] == 900][0]
+        self.assertEqual((row["path"], row["linked"], "online" in row), ("/m/Mara Lind - Kaltes Glas.mp3", "SonoVault", False))
+        self.assertEqual(mixresult.clean_row(row)["linked"], "SonoVault")
+        self.assertEqual(mixresult.unlinked(r), 1)
+        self.assertEqual(mixresult.link_rows(r, ix), 0)
 
 class TestSession(unittest.TestCase):
     def setUp(self):
@@ -170,7 +212,30 @@ class TestSession(unittest.TestCase):
         self.assertEqual(self.s.mix_delete(self.rid)["items"], [])
         self.assertTrue(os.path.isfile(self.mix))                                            # Mix bleibt
 
-    def test_plugin_result_is_stored(self):
+    def test_tracklist_and_link_in_session(self):
+        """#394/#395: Tracklist beim Speichern bzw. nachträglich; Verknüpfen nach „Vorbereiten“ über die Ergebnisse."""
+        rid = self.s._mix_store({"mix": self.mix, "duration": 1000, "rows": rows(), "tracklist": "[00:20] Intro - Anfang"})
+        d = self.s.mix_get(rid)
+        self.assertEqual(d["tl_rows"], 1)
+        self.assertTrue([ln for ln in d["lines"] if ln.get("tl") and ln["title"] == "Anfang"])
+        d = self.s.mix_set_tracklist(rid, "[00:20] Intro - Anfang\n[16:10] Outro - Schluss")
+        self.assertEqual((d["added"], d["tl_rows"]), (1, 2))
+        self.assertIn("Outro - Schluss", d["tracklist"])
+        self.assertEqual(d["nofile"], 2)                                    # nur online / aus Tracklist
+        # nach „Vorbereiten“: neue Datei → Zeile verknüpft, gespeicherte Playlist nachgeführt
+        self.s.mix_to_playlist(rid)
+        from helpers import text, write_mp3
+        new = os.path.join(self.home, "Outro - Schluss.mp3")
+        write_mp3(new, [text("TPE1", "Outro"), text("TIT2", "Schluss")])
+        self.assertEqual(self.s._mix_autolink([new]), 1)
+        d = self.s.mix_get(rid)
+        ln = [x for x in d["lines"] if x.get("title") == "Schluss"][0]
+        self.assertEqual((ln["path"], ln["linked"], ln["tl"]), (new, "Tracklist", False))
+        self.assertEqual(d["nofile"], 1)
+        pl = self.s._pls().get(d["playlist"])
+        self.assertIn(new, [x.get("path") for x in pl["items"]])
+        self.assertEqual(self.s._mix_autolink([new]), 0)
+
         # start_plugin_action legt ein „mix_result“ als Ergebnis ab und gibt die Kennung zurück
         import mixresult as mr
         before = len(mr.listing(self.s._mix_dir()))

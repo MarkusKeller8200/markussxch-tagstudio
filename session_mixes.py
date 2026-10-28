@@ -18,7 +18,9 @@ class MixesMixin:
     def _mix_store(self, res: dict) -> str:
         """Neues Ergebnis eines Plugin-Laufs ablegen → Kennung."""
         r = mixresult.new(res.get("mix", ""), res.get("duration", 0), res.get("rows") or [], compare=res.get("compare"),
-                          report=res.get("report", ""), index=res.get("index", ""), plugin=PLUGIN, version=res.get("version", ""))
+                          report=res.get("report", ""), index=res.get("index", ""), plugin=PLUGIN, version=res.get("version", ""),
+                          tracklist=res.get("tracklist", ""))
+        mixresult.fill_from_tracklist(r)                  # #394: Lücken aus der bekannten Tracklist (ohne Kosten)
         mixresult.save(self._mix_dir(), r)
         return r["id"]
 
@@ -64,7 +66,8 @@ class MixesMixin:
                           "exists": bool(r["path"]) and os.path.isfile(r["path"]), "tempo": r["tempo"],
                           "keylock": r["keylock"], "conf": r["conf"], "sure": r["conf"] >= mixresult.SURE,
                           "also": r.get("also") or [], "edited": r.get("at") is not None,
-                          "online": (r.get("online") or {}).get("name", "")})
+                          "online": (r.get("online") or {}).get("name", ""), "tl": bool(r.get("tl")),
+                          "linked": r.get("linked", "")})
         dropped = [{"n": n, "artist": r["artist"], "title": r["title"], "start": r["start"], "online": bool(r.get("online"))}
                    for n, r in enumerate(res["rows"]) if r.get("drop")]
         pl = res.get("playlist") or ""
@@ -79,7 +82,9 @@ class MixesMixin:
                 "index": res.get("index", ""), "version": res.get("version", ""), "playlist": pl,
                 "compare": cmp, "missing": (cmp or {}).get("miss") or [], "text": mixresult.to_text(res),
                 "gaps": len(mixresult.gaps(res)),
-                "online": sum(1 for _n, r in mixresult.kept(res) if r.get("online"))}
+                "online": sum(1 for _n, r in mixresult.kept(res) if r.get("online")),
+                "nofile": mixresult.unlinked(res), "tracklist": res.get("tracklist", ""),
+                "tl_rows": sum(1 for _n, r in mixresult.kept(res) if r.get("tl"))}
 
     # ------------------------------------------------------------------ Bearbeiten
     def _mix_change(self, rid, fn) -> dict:
@@ -273,11 +278,73 @@ class MixesMixin:
                     "name": rec["name"], "mix_open": rid}
         return self._run("mixes", f"Mix-Lücken erkennen ({rec['name']})", job)
 
+    # ------------------------------------------------------------------ #394 Tracklist nachträglich
+    def mix_set_tracklist(self, rid, text) -> dict:
+        """Bekannte Tracklist (nachträglich) speichern und die Lücken daraus füllen – ohne Kosten."""
+        added = []
+
+        def fn(res):
+            res["tracklist"] = str(text or "")[:50000]
+            added.append(mixresult.fill_from_tracklist(res))
+        d = self._mix_change(rid, fn)
+        d["added"] = added[0] if added else 0
+        return d
+
+    # ------------------------------------------------------------------ #395 mit der Bibliothek verknüpfen
+    def _mix_link_index(self, index) -> int:
+        """Alle Ergebnisse: Zeilen ohne Datei mit dem Index verknüpfen; gespeicherte Playlists nachführen."""
+        d, n = self._mix_dir(), 0
+        for it in mixresult.listing(d):
+            try:
+                res = mixresult.load(d, it["id"])
+            except ValueError:
+                continue
+            k = mixresult.link_rows(res, index)
+            if k:
+                mixresult.save(d, res)
+                n += k
+                if res.get("playlist"):
+                    try:
+                        self.mix_to_playlist(res["id"])
+                    except ValueError:
+                        pass
+        return n
+
+    def _mix_autolink(self, files) -> int:
+        """Nach „Vorbereiten“: neu aufgenommene Titel mit Zeilen ohne Datei verknüpfen (nur sichere Treffer)."""
+        import playlists
+        from id3tags import MP3File
+        if not mixresult.listing(self._mix_dir()):
+            return 0
+        loaded = []
+        for p in files or []:
+            try:
+                f = MP3File(p)
+                f.load()
+                loaded.append(f)
+            except Exception:  # noqa: BLE001
+                pass
+        index = playlists.LibIndex(self._pl_index(loaded))
+        return self._mix_link_index(index) if len(index) else 0
+
+    def start_mix_link(self, rid=""):
+        """Von Hand: Zeilen ohne Datei mit der ganzen Bibliothek abgleichen (alle Ergebnisse bzw. eines)."""
+        import playlists
+        if not self._pl_lib_roots() and not self.tag_files:
+            return {"ok": False, "error": "Keine Bibliothek festgelegt (Einstellungen › Speicherort und Ordner)."}
+        if rid and not mixresult.unlinked(mixresult.load(self._mix_dir(), rid)):
+            return {"ok": False, "error": "Keine Zeile ohne Datei in dieser Analyse."}
+
+        def job(cancel, progress):
+            index = playlists.LibIndex(self._pl_lib_index(cancel, progress))
+            return {"ok": True, "linked": self._mix_link_index(index), "mix_open": rid}
+        return self._run("mixes", "Mixe mit der Bibliothek abgleichen", job)
+
     def mix_online_to_ideas(self, rid, pid="", name="") -> dict:
         """Online erkannte Titel als Ideen merken (#393, nur auf Klick)."""
         text = mixresult.online_text(mixresult.load(self._mix_dir(), rid))
         if not text.strip():
-            raise ValueError("Keine online erkannten Titel.")
+            raise ValueError("Keine Titel ohne Datei.")
         import ideas
         new, _unknown = ideas.from_text(text)
         if not new:

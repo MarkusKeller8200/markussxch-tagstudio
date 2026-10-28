@@ -311,7 +311,9 @@ mit geändertem Tempo (±10 %, mit Keylock und ohne) – und zeigt die Tracklist
 Verfahren (Audio-Fingerabdruck mit Abfrage in Tempo-Stufen, `plugins/mixscan/fp.py`, Konzept
 `docs/KONZEPT-MIXSCAN.md`). Läuft vollständig lokal: nichts wird hochgeladen, nichts heruntergeladen, an den Dateien
 wird nichts geändert. Erkannt werden nur Titel, die im Index sind – fremde Titel bleiben „ID – ID“; diese Lücken
-lassen sich auf Wunsch über einen Erkennungsdienst füllen (SonoVault, kostenpflichtig, #393 – siehe SonoVault).
+lassen sich aus einer bekannten Tracklist mit Zeitmarken (#394, ohne Kosten) bzw. auf Wunsch über einen
+Erkennungsdienst füllen (SonoVault, kostenpflichtig, #393 – siehe SonoVault). Ab 1.3 auch „Ordner mit Mixen analysieren
+…“ (#396): je Mix-Datei ein Hintergrund-Auftrag (`ctx.queue_job(…, dedupe=False)`).
 
 1. Seite **Plugins** → bei „Mix analysieren“ **Installieren** (eigene Umgebung mit Python 3.12, NumPy, SciPy,
    imageio-ffmpeg; etwa 100 MB).

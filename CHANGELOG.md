@@ -8,6 +8,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Mixe – Tracklist, Verknüpfen, Ordner (#394–#396, Mix analysieren 1.3):** Lücken werden ohne Kosten aus einer
+  bekannten Tracklist mit Zeitmarken gefüllt (höchstens 60 s daneben; auch nachträglich „Tracklist einfügen …“).
+  Titel ohne Datei werden nach „Vorbereiten“ bzw. mit „Mit Bibliothek abgleichen“ mit der neuen Datei verknüpft.
+  „Ordner analysieren …“ stellt alle Mix-Dateien eines Ordners als einzelne Hintergrund-Aufträge an.
 - **„MixID light“ (#393):** auf der Seite **Mixe** die Lücken („ID – ID“) einer Analyse online erkennen – kurze
   Ausschnitte gehen an einen Erkennungsdienst (SonoVault 1.3, kostenpflichtig), mit Kostengrenze, Kostenvorschau und
   Bestätigung. Treffer erscheinen als „online · SonoVault“, lassen sich verwerfen und als Ideen merken; geprüfte Stellen

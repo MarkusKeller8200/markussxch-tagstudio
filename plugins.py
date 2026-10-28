@@ -303,16 +303,17 @@ class Context:
         return rc, tail
 
     # ---- #387: eigene Aktion als Hintergrund-Auftrag einreihen (z. B. Index nachführen nach „Vorbereiten“)
-    def queue_job(self, aid, opts=None, label="") -> dict | None:
+    def queue_job(self, aid, opts=None, label="", dedupe=True) -> dict | None:
         """Aktion aid dieses Plugins ohne Dateiauswahl in die Warteschlange der Hintergrund-Aufträge stellen. Gibt es
-        schon einen wartenden Auftrag derselben Aktion, wird keiner mehr angelegt. None ohne Sitzung (Tests, CLI)."""
+        schon einen wartenden Auftrag derselben Aktion, wird keiner mehr angelegt (dedupe=False: immer, z. B. je Mix
+        ein Auftrag, #396). None ohne Sitzung (Tests, CLI)."""
         s = self._session
         if s is None or not hasattr(s, "jobs"):
             return None
         a = next((x for x in self.plugin.actions(self) if x["id"] == aid), None)
         if a is None:
             raise KeyError(f"Aktion „{aid}“ nicht gefunden.")
-        for j in s.jobs.status().get("jobs", []):
+        for j in s.jobs.status().get("jobs", []) if dedupe else []:
             if j.get("plugin") == self.id and j.get("action") == aid and j.get("status") == "waiting":
                 return None
         return s.jobs.add(self.id, aid, f"{self.plugin.name}: {label or a.get('run_label') or a['label']}", [], dict(opts or {}))

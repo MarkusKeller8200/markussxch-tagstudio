@@ -46,6 +46,12 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   `mixresult.gaps/plan_clips/add_online/purge_online/online_text` (Zeilen `online`, `probed`), Session
   `mix_gaps_info/mix_gaps_plan/start_mix_gaps/mix_online_to_ideas` (in `_PASS`), Oberfläche in `web/mixes.js`.
   Entscheide ML1–ML5 vom User bestätigt (23:52 „ja umsetzen“). Beim Release: SonoVault-ZIP 1.3.
+- **Erweiterungen (Vorschlag 23:54, Issues #394–#399):** #394–#396 in 4.13.0 umgesetzt (Auftrag 23:56, Toleranz 60 s),
+  `_3 Beta-Test`, Mix analysieren **1.3**: `mixresult.parse_tracklist/fill_from_tracklist/link_rows/unlinked`, Zeilen
+  `tl`/`linked`, Ergebnis-Feld `tracklist`; Session `mix_set_tracklist`, `start_mix_link`, `_mix_autolink` (Aufruf in
+  `session_prepare` nach `_pl_autolink`); Plugin-Aktion `analyse_folder`, `Context.queue_job(dedupe=False)`.
+  #397 Nachprüfen, #398 AudD/ACRCloud, #399 „Meine Titel in Mixen“ = Ideen in „Funktionen“.
+  Beim Release: Plugin-ZIPs mixscan 1.3, sonovault 1.3.
 - **Testrückmeldung 28.10. 20:25:** geschlossen #387, #390, #379, #380, #381, #259 (Testlisten abgehakt); offen #383 (Testliste
   noch nicht abgehakt) und #382 (Anfrage sendet der User).
 - **SonoVault 1.2 (28.10. 19:59, `_3 Beta-Test`, Meilenstein #30):** #383 `TXXX:SONOVAULT_*` (Herkunft „SonoVault“ in

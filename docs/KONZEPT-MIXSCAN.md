@@ -208,3 +208,18 @@ der lokalen Erkennung über einen Dienst gefüllt.
 - **Oberfläche** (`web/mixes.js`): Knopf „Lücken online erkennen (n) …“, „Erkennen …“ je Lücke, Fenster mit Dienst,
   Länge, Höchstzahl, Kosten und Bestätigung; Kennzeichen „online · SonoVault“, Hinweis „nicht veröffentlichen“.
 
+## 13. Erweiterungen #394–#396 (Plugin 1.3, 29.10.2026)
+
+Vorschläge aus dem Chat 28.10. 23:54, Auftrag User 23:56 („60 Sekunden ist ein guter Wert, umsetzen“).
+
+- **#394 Lücken aus der Tracklist:** Das Ergebnis speichert die Tracklist (`tracklist`, Text). `parse_tracklist`
+  liest Zeitmarken (`[04:56]`, `1:02:10`, `106:00`, mit Nummer davor); `fill_from_tracklist` füllt Lücken mit
+  Einträgen, deren Zeit in der Lücke oder höchstens **60 s** daneben liegt (`TL_TOL`, Entscheid User) und die noch nicht
+  als Zeile vorkommen (auch nicht verworfen). Zeile `tl: True` ohne Datei, bis zum nächsten Eintrag bzw. Lückenende;
+  Notiz „mm:ss · Tracklist“. Automatisch beim Speichern einer Analyse; nachträglich `mix_set_tracklist`.
+- **#395 Verknüpfen:** `link_rows(res, LibIndex)` – sichere Treffer (`playlists.match_ref`) bekommen die Datei,
+  `online`/`tl` entfallen, Herkunft in `linked`. Automatisch nach „Vorbereiten“ (`_mix_autolink`, nur die neuen
+  Dateien), von Hand `start_mix_link` (ganze Bibliothek); gespeicherte Playlist wird nachgeführt.
+- **#396 Ordner:** Aktion `analyse_folder` (Ordner, Unterordner, schon analysierte auslassen, Tempo ohne Keylock) stellt
+  je Datei einen Auftrag `analyse` in die Warteschlange; `Context.queue_job(dedupe=False)`.
+

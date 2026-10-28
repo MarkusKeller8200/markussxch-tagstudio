@@ -376,6 +376,14 @@ unter Plugins „Installieren …“); nichts wird hochgeladen oder heruntergela
   das Häkchen „Kosten und Hochladen bestätigen“ startet. Treffer erscheinen mit „online · SonoVault“ und „nicht in der
   Bibliothek“; „Online erkannte als Ideen“ merkt sie in einer Wunschliste. Bereits geprüfte Stellen werden nicht
   nochmals gesendet. Nur für den eigenen Gebrauch – solche Tracklisten nicht veröffentlichen.
+- **Lücken aus der Tracklist (ohne Kosten):** Hat die Analyse eine bekannte Tracklist mit Zeitmarken (beim Analysieren
+  eingefügt oder nachträglich mit „Tracklist einfügen …“), füllt TagStudio jede Lücke mit dem Eintrag, dessen Zeit darin
+  liegt (höchstens 60 s daneben) – Kennzeichen „aus Tracklist“. Online erkannt wird danach nur noch, was übrig bleibt.
+- **Mit der Bibliothek verknüpfen:** Titel ohne Datei (online erkannt bzw. aus der Tracklist) werden nach „Vorbereiten“
+  automatisch mit der neuen Datei verknüpft („verknüpft · SonoVault“), auch eine gespeicherte Playlist; von Hand mit
+  „Mit Bibliothek abgleichen“. „Ohne Datei als Ideen“ merkt die übrigen in einer Wunschliste.
+- **Ordner analysieren …:** alle Mix-Dateien eines Ordners (wahlweise mit Unterordnern, schon analysierte ausgelassen)
+  als einzelne Hintergrund-Aufträge.
 
 ### Einkäufe
 

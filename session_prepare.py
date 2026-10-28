@@ -314,6 +314,11 @@ class PrepareMixin:
                     linked = self._pl_autolink(added)
                 except Exception as ex:  # noqa: BLE001
                     errors.append(f"Playlist: {ex}")
+            if s["type"] == "import" and added:                    # #395: Zeilen ohne Datei in Mix-Ergebnissen verknüpfen
+                try:
+                    self._mix_autolink(added)
+                except Exception as ex:  # noqa: BLE001
+                    errors.append(f"Mixe: {ex}")
             if s["type"] == "import" and done:
                 lib = next((l for l in self.snap_store.libraries()
                             if os.path.normcase(os.path.abspath(l.get("root") or "")) == os.path.normcase(os.path.abspath(w["library"]))), None) \

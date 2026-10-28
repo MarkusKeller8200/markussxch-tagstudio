@@ -50,13 +50,16 @@ function mixRowsHtml(d) {
       const pos = l.track_start != null ? Math.max(0, l.at - l.track_start) : 0;
       return `<tr data-n="${l.n}" class="${l.sure ? "" : "mx-unsure"}">
         <td><input class="inp mx-time${l.edited ? " edited" : ""}" data-mxtime="${l.n}" value="${mixTime(l.at)}" title="Zeit in der Tracklist – Mitte des Übergangs (Titelanfang ${l.track_start != null ? mixTime(l.track_start) : "?"}, erkannt ab ${mixTime(l.start)}). Ändern und Enter; leer = wieder berechnen." spellcheck="false"></td>
-        <td><span translate="no">${esc(l.artist ? `${l.artist} - ${l.title}` : l.title)}</span>${l.online ? ` <span class="mx-tag online" title="Online erkannt – nicht in deiner Bibliothek">online · <span translate="no">${esc(l.online)}</span></span>` : l.exists ? "" : ' <span class="mx-tag warn" title="Die Datei ist nicht mehr am gespeicherten Ort">fehlt</span>'}
+        <td><span translate="no">${esc(l.artist ? `${l.artist} - ${l.title}` : l.title)}</span>${l.online ? ` <span class="mx-tag online" title="Online erkannt – nicht in deiner Bibliothek">online · <span translate="no">${esc(l.online)}</span></span>`
+          : l.tl ? ' <span class="mx-tag online" title="Aus der bekannten Tracklist – Zeitmarke in einer Lücke">aus Tracklist</span>'
+          : l.exists ? "" : ' <span class="mx-tag warn" title="Die Datei ist nicht mehr am gespeicherten Ort">fehlt</span>'}
+          ${l.linked ? ` <span class="faint sm" title="Zuerst ohne Datei erkannt, danach mit der Bibliothek verknüpft">verknüpft · <span translate="no">${esc(l.linked)}</span></span>` : ""}
           ${l.also.length ? `<div class="faint sm">auch: <span translate="no">${esc(l.also.join(", "))}</span></div>` : ""}
-          ${l.online ? '<div class="faint sm">nicht in der Bibliothek</div>' : `<div class="faint sm" translate="no">${esc(l.path)}</div>`}</td>
-        <td>${l.online ? '<span class="faint">–</span>' : (l.tempo >= 0 ? "+" : "") + l.tempo.toFixed(1) + " %" + (l.keylock ? "" : '<div class="faint sm">ohne Keylock</div>')}</td>
-        <td>${Math.round(l.conf * 100)} %${l.sure ? "" : ' <span class="mx-tag">unsicher</span>'}</td>
+          ${l.online || l.tl ? '<div class="faint sm">nicht in der Bibliothek</div>' : `<div class="faint sm" translate="no">${esc(l.path)}</div>`}</td>
+        <td>${l.online || l.tl || l.linked ? '<span class="faint">–</span>' : (l.tempo >= 0 ? "+" : "") + l.tempo.toFixed(1) + " %" + (l.keylock ? "" : '<div class="faint sm">ohne Keylock</div>')}</td>
+        <td>${l.tl ? '<span class="faint">Tracklist</span>' : `${Math.round(l.conf * 100)} %${l.sure ? "" : ' <span class="mx-tag">unsicher</span>'}`}</td>
         <td class="mx-acts"><div class="mx-btns"><button class="ghost sm mx-play" data-mxplay="mix" data-t="${l.at}" title="Im Mix ab dieser Zeit vorhören">▶ Mix</button>
-          ${l.online ? "" : `<button class="ghost sm mx-play" data-mxplay="${l.n}" data-t="${pos}" ${l.exists ? "" : "disabled"} title="Den erkannten Titel an derselben Stelle vorhören">▶ Titel</button>`}
+          ${l.online || l.tl ? "" : `<button class="ghost sm mx-play" data-mxplay="${l.n}" data-t="${pos}" ${l.exists ? "" : "disabled"} title="Den erkannten Titel an derselben Stelle vorhören">▶ Titel</button>`}
           <button class="ghost sm" data-mxdrop="${l.n}" title="Treffer verwerfen (falsch erkannt)">✕</button></div></td></tr>`;
     }).join("")}</tbody></table></div>`;
 }
@@ -85,7 +88,9 @@ function mixHead() {
       <button class="ghost sm" data-mxa="cue">CUE speichern …</button>
       ${MXP.d.missing.length ? `<button class="ghost sm" data-mxa="ideas">Fehlende als Ideen (${MXP.d.missing.length})</button>` : ""}
       ${MXP.d.gaps ? `<button class="ghost sm" data-mxa="gaps" title="Ausschnitte der Lücken über einen Erkennungsdienst erkennen (kostenpflichtig)">Lücken online erkennen (${MXP.d.gaps}) …</button>` : ""}
-      ${MXP.d.online ? `<button class="ghost sm" data-mxa="online" title="Online erkannte Titel in einer Wunschliste merken">Online erkannte als Ideen (${MXP.d.online})</button>` : ""}
+      <button class="ghost sm" data-mxa="tracklist" title="Bekannte Tracklist (mit Zeitmarken) einfügen – füllt passende Lücken ohne Kosten">${MXP.d.tracklist ? "Tracklist ändern …" : "Tracklist einfügen …"}</button>
+      ${MXP.d.nofile ? `<button class="ghost sm" data-mxa="link" title="Titel ohne Datei (online erkannt bzw. aus der Tracklist) in der Bibliothek suchen und verknüpfen">Mit Bibliothek abgleichen</button>
+      <button class="ghost sm" data-mxa="online" title="Titel ohne Datei in einer Wunschliste merken">Ohne Datei als Ideen (${MXP.d.nofile})</button>` : ""}
       ${MXP.d.report ? '<button class="ghost sm" data-mxa="report">Bericht zeigen</button>' : ""}
       <button class="ghost sm" data-mxa="delete" title="Nur die Analyse löschen – Mix, Titel und gespeicherte Playlist bleiben">Löschen …</button>
       <button class="primary sm" data-mxa="pl" id="mxSavePl">${MXP.d.playlist ? "Playlist nachführen" : "Als Playlist speichern"}</button></div>`;
@@ -104,7 +109,7 @@ async function mixesShow(sel) {
     : !pl.enabled ? "Plugin „Mix analysieren“ ist ausgeschaltet (Plugins)."
     : pl.state !== "ready" ? "Plugin „Mix analysieren“ ist noch nicht installiert – unter Plugins „Installieren …“ (etwa 100 MB)."
     : `Plugin ${pl.version} · ${pl.status || ""}`;
-  ["#mxNew", "#mxIndex", "#mxOpts"].forEach((s) => { $(s).disabled = !MXP.ready; });
+  ["#mxNew", "#mxIndex", "#mxOpts", "#mxFolder"].forEach((s) => { $(s).disabled = !MXP.ready; });
   $("#mxList").innerHTML = `<div class="idea-lh"><b>Analysen</b></div>` + (MXP.items.length ? MXP.items.map((x) => `<button class="idea-l mx-l${x.id === MXP.sel ? " on" : ""}" data-mx="${esc(x.id)}" aria-current="${x.id === MXP.sel}" title="${esc(x.mix)}">
       <span class="nm"><span class="ellipsis" translate="no">${esc(x.name)}</span><span class="faint sm">${esc(x.created)} · ${mixTime(x.duration)}${x.exists ? "" : " · Mix-Datei fehlt"}</span></span>
       <span class="n" title="Erkannte Titel${x.count > x.sure ? `, davon ${x.count - x.sure} unsicher` : ""}">${x.count}</span></button>`).join("")
@@ -178,6 +183,13 @@ async function mixAction(a) {
       if (typeof ideasBadge === "function") ideasBadge();
     } else if (a === "gaps") {
       await mixGaps(null);
+    } else if (a === "tracklist") {
+      await mixTracklist();
+    } else if (a === "link") {
+      const r = await runTask(call("start_mix_link", id), "Mixe mit der Bibliothek abgleichen");
+      if (!r) return;
+      toast(r.linked ? `${r.linked} Titel mit der Bibliothek verknüpft.` : "Keine sicheren Treffer in der Bibliothek.");
+      await mixesLoad(id);
     } else if (a === "online") {
       const r = await call("mix_online_to_ideas", id, "", "");
       toast(r.added ? `${r.added} Titel als Ideen gemerkt in „${r.name}“${r.dupes ? ` (${r.dupes} schon vorhanden)` : ""}.` : `Schon alle in „${r.name}“.`);
@@ -204,6 +216,7 @@ async function mixAction(a) {
   $("#mxNew").addEventListener("click", () => pluginRun("mixscan", "analyse"));
   $("#mxIndex").addEventListener("click", () => pluginRun("mixscan", "index"));
   $("#mxOpts").addEventListener("click", () => pluginRun("mixscan", "settings"));
+  $("#mxFolder").addEventListener("click", () => pluginRun("mixscan", "analyse_folder"));
   $("#mxList").addEventListener("click", (e) => {
     const b = e.target.closest("[data-mx]"); if (!b) return;
     mixStop();
@@ -234,6 +247,25 @@ async function mixAction(a) {
     if (t) await act(() => call("mix_set_time", MXP.sel, +t.dataset.mxtime, t.value));
   });
 })();
+
+// ====================================================================== #394 Tracklist nachträglich
+async function mixTracklist() {
+  const id = MXP.sel;
+  const text = await modal({
+    title: "Tracklist einfügen",
+    html: `<div class="mx-gapdlg"><p>Je Zeile „Künstler - Titel“, mit Zeitmarke (z. B. von MixID oder 1001Tracklists kopiert). Einträge, deren Zeit in einer Lücke liegt (höchstens 60 s daneben), füllen sie als „aus Tracklist“ – ohne Hochladen, ohne Kosten.</p>
+      <textarea id="mxTlText" class="inp" rows="14" spellcheck="false" translate="no" placeholder="[00:00] Künstler - Titel">${esc(MXP.d.tracklist || "")}</textarea></div>`,
+    wide: true,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: "go", primary: true }],
+    collect: (body) => $("#mxTlText", body).value,
+  });
+  if (text === null || text === undefined) return;
+  try {
+    MXP.d = await call("mix_set_tracklist", id, text);
+    mixesRenderMain();
+    toast(MXP.d.added ? `${MXP.d.added} Lücke(n) aus der Tracklist gefüllt.` : "Keine Lücke mit passender Zeitmarke.");
+  } catch (e) { toast(String(e.message || e)); }
+}
 
 // ====================================================================== #393 „MixID light“: Lücken online erkennen
 /** Dialog mit Dienst, Ausschnittlänge, Kostengrenze und Kostenvorschau; only = Beginn einer einzelnen Lücke */

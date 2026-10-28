@@ -24,14 +24,26 @@ ACTIONS = [
          {"key": "pitch", "type": "check", "label": "Auch ohne Keylock gespielte Titel suchen (Tempo und Tonhöhe "
                                                    "geändert, dauert etwa doppelt so lange)", "default": True},
          {"key": "tracklist", "type": "textarea",
-          "label": "Bekannte Tracklist (optional, je Zeile „Künstler - Titel“) – zum Vergleich; fehlende Titel lassen "
-                   "sich danach als Ideen merken"},
+          "label": "Bekannte Tracklist (optional, je Zeile „Künstler - Titel“, gern mit Zeitmarke) – zum Vergleich; "
+                   "Lücken mit passender Zeitmarke füllt TagStudio daraus, fehlende Titel lassen sich als Ideen merken"},
          {"key": "background", "type": "check", "default": False,
           "label": "Im Hintergrund analysieren – weiterarbeiten; das Ergebnis lässt sich danach öffnen (Fussleiste "
                    "bzw. „Frühere Analysen …“)"},
          {"key": "hint", "type": "info",
           "label": "Nur eigene Dateien – TagStudio lädt nichts von YouTube, SoundCloud oder Mixcloud herunter. Erkannt "
                    "werden nur Titel, die im Index sind."}]},
+    {"id": "analyse_folder", "label": "Ordner mit Mixen analysieren …", "short": "Ordner analysieren", "where": "page",
+     "run_label": "In die Warteschlange", "needs_selection": False,
+     "description": "Alle Mix-Dateien eines Ordners (z. B. alle Folgen einer Radiosendung) nacheinander analysieren – je "
+                    "Datei ein Hintergrund-Auftrag; die Ergebnisse erscheinen einzeln auf der Seite „Mixe“.",
+     "options": [
+         {"key": "folder", "type": "folder", "label": "Ordner mit Mix-Dateien"},
+         {"key": "subfolders", "type": "check", "label": "Auch Unterordner", "default": False},
+         {"key": "skip_done", "type": "check", "label": "Schon analysierte Mixe auslassen", "default": True},
+         {"key": "pitch", "type": "check", "label": "Auch ohne Keylock gespielte Titel suchen (dauert etwa doppelt so "
+                                                   "lange)", "default": True},
+         {"key": "hint", "type": "info", "label": "Ein laufender Auftrag lässt sich in der Fussleiste abbrechen – die "
+                                                 "anderen laufen weiter."}]},
     {"id": "index", "label": "Bibliothek indexieren …", "short": "Indexieren", "where": "page",
      "run_label": "Im Hintergrund indexieren", "background": True, "needs_selection": False,
      "description": "Liest die Titel deiner Bibliotheken und legt ihren Fingerabdruck im Benutzerordner ab – als "
@@ -559,6 +571,45 @@ def run_index_add(ctx, opts) -> dict:
     return {"message": msg}
 
 
+def mix_files(folder: str, subfolders=False) -> list:
+    """Audiodateien eines Ordners (sortiert), auf Wunsch mit Unterordnern."""
+    out = []
+    for dp, dns, fns in os.walk(folder):
+        dns[:] = sorted(d for d in dns if not d.startswith(".")) if subfolders else []
+        out += [os.path.join(dp, f) for f in sorted(fns) if f.lower().endswith(AUDIO_EXT) and not f.startswith(".")]
+    return out
+
+
+def run_analyse_folder(ctx, opts) -> dict:
+    """#396: je Mix-Datei einen Hintergrund-Auftrag „Mix analysieren“ anlegen."""
+    folder = str(opts.get("folder") or "").strip().strip('"')
+    if not folder or not os.path.isdir(folder):
+        raise ValueError("Bitte einen Ordner wählen.")
+    if not load_manifest(ctx)["files"]:
+        raise ValueError("Noch kein Index – zuerst „Bibliothek indexieren …“ (Plugins › Mix analysieren › Mehr …).")
+    files = mix_files(folder, bool(opts.get("subfolders")))
+    done = set()
+    if opts.get("skip_done", True):
+        try:
+            import mixresult
+            import paths
+            done = {os.path.normcase(os.path.abspath(x["mix"])) for x in mixresult.listing(paths.sub("Mixe")) if x.get("mix")}
+        except Exception as ex:  # noqa: BLE001
+            ctx.log(f"Frühere Analysen nicht lesbar: {ex}")
+    todo = [p for p in files if os.path.normcase(os.path.abspath(p)) not in done]
+    if not todo:
+        return {"message": f"Keine neuen Mix-Dateien in „{os.path.basename(folder)}“ ({len(files)} gefunden, alle schon analysiert)."
+                if files else f"Keine Audiodateien in „{os.path.basename(folder)}“."}
+    n = 0
+    for p in todo:
+        if ctx.queue_job("analyse", {"mix": p, "pitch": bool(opts.get("pitch", True)), "background": True},
+                         os.path.basename(p), dedupe=False) is not None:
+            n += 1
+    skipped = len(files) - len(todo)
+    return {"message": f"{n} Mix-Datei(en) in die Warteschlange gestellt" + (f", {skipped} schon analysiert" if skipped else "")
+            + " – Fortschritt in der Fussleiste."}
+
+
 def run_analyse(ctx, opts) -> dict:
     mix = str(opts.get("mix") or "").strip().strip('"')
     if not mix or not os.path.isfile(mix):
@@ -607,7 +658,8 @@ def run_analyse(ctx, opts) -> dict:
     keep = ("start", "end", "track_start", "path", "artist", "title", "tempo", "keylock", "conf", "also")
     return {"message": msg, "mix_result": {
         "mix": mix, "duration": got.get("duration", 0), "rows": [{k: r[k] for k in keep if k in r} for r in rows],
-        "compare": cmp, "report": base + ".txt", "index": idx_info, "version": plugin_version()}}
+        "compare": cmp, "report": base + ".txt", "index": idx_info, "version": plugin_version(),
+        "tracklist": str(opts.get("tracklist") or "")}}
 
 
 def run_selftest(ctx, opts) -> dict:
@@ -674,6 +726,8 @@ def run(action, ctx, files, opts):
         return run_index_add(ctx, opts)
     if action == "analyse":
         return run_analyse(ctx, opts)
+    if action == "analyse_folder":
+        return run_analyse_folder(ctx, opts)
     if action == "results":
         return {"message": "", "mix_list": True}
     if action == "settings":

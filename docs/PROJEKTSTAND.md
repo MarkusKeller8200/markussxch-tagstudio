@@ -1,6 +1,10 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-28 (23:59): **#393 „MixID light“** (Auftrag User 23:36) – Seite Mixe › „Lücken online erkennen …“:
+> Stand 2026-10-29 (00:40): **#394–#396** (Auftrag User 23:56) – Lücken aus der Tracklist (±60 s, ohne Kosten),
+> Titel ohne Datei mit der Bibliothek verknüpfen (nach Vorbereiten / von Hand), „Ordner analysieren …“; Mix analysieren
+> 1.3, KONZEPT-MIXSCAN §13. `_3 Beta-Test`. Ideen #397–#399 in „Funktionen“.
+>
+> Davor 2026-10-28 (23:59): **#393 „MixID light“** (Auftrag User 23:36) – Seite Mixe › „Lücken online erkennen …“:
 > Ausschnitte der Lücken an einen Erkennungsdienst (Plugin-Funktion `identify_clip`, SonoVault 1.3), Kostenvorschau,
 > Treffer „online · SonoVault“, als Ideen; Konzept KONZEPT-MIXSCAN §12. `_3 Beta-Test`. Eingestellt am 28.10.: #382,
 > #383 (Erweiterung), #391. Offen im Meilenstein #30: #392, #393.
