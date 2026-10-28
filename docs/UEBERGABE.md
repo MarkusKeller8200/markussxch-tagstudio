@@ -30,6 +30,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   `ctx.queue_job`, Ereignis `app_started` (`plugins_startup`, 20 s nach dem Start); Index-Warteliste
   `index/warteliste.json` → versteckte Aktion `index_add`. M4 wie vorgeschlagen (nur lokale Dateien).
   **Beim Release:** `mixresult`, `session_mixes` in `packaging/build.py` › `HIDDEN`.
+- **Testrückmeldung 28.10. 20:25:** geschlossen #387, #390, #379, #380, #381, #259 (Testlisten abgehakt); offen #383 (Testliste
+  noch nicht abgehakt) und #382 (Anfrage sendet der User).
 - **SonoVault 1.2 (28.10. 19:59, `_3 Beta-Test`, Meilenstein #30):** #383 `TXXX:SONOVAULT_*` (Herkunft „SonoVault“ in
   `origins.py`, Option „own“ in Online-Metadaten 2.3), #380 „Release nachschlagen“, #381 Tarif Free/Bezahlt +
   Browse in Entdecken (`discover.run` mit `sv.paid`), #259 Genre-Korrektur + „Meine Genre-Vorschläge“. #379 1.1
