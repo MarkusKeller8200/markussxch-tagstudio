@@ -1918,6 +1918,9 @@ html.i18n-wait body{visibility:hidden}
 .mx-play.on{border-color:var(--acc);color:var(--acc)}
 .mx-tag{display:inline-block;padding:0 6px;border-radius:99px;border:1px solid var(--line2);font-size:11px;color:var(--dim)}
 .mx-tag.warn{border-color:var(--warn, #d9a400);color:var(--warn, #d9a400)}
+.mx-tag.online{border-color:var(--acc);color:var(--acc)}
+.mx-gapdlg{display:flex;flex-direction:column;gap:10px;max-width:640px}
+.mx-gapdlg select{min-width:160px}
 .mx-dropped{margin:6px 0 0}
 .mx-dropped summary{cursor:pointer;color:var(--dim)}
 /* #390: Seite „Mixe“ */

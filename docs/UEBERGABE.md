@@ -40,6 +40,12 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   Künstler, Release, Label, Genre, Datum, Dauer, ISRC; IDs/BPM/Tonart/ISWC/Katalognummer bleiben ausgeschlossen.
   Umgesetzter Teil (8 erlaubte Felder + Abrufdatum) bleibt im Code.
 - **#391 Radio-/Stream-Überwachung geschlossen (User 23:24: wird nicht weiter verfolgt, „not planned“).**
+- **#393 „MixID light“ (Auftrag User 23:36 „anlegen und gleich umsetzen in 4.13“, `_3 Beta-Test`):** Lücken eines
+  Mix-Ergebnisses über einen Erkennungsdienst füllen. Rahmen `identify_clip`/`identify_clip_info`
+  (`Manager.recognizers/recognize`), SonoVault **1.3** (`excerpt_at`, `retain_days` None = bezahlt, sonst 30),
+  `mixresult.gaps/plan_clips/add_online/purge_online/online_text` (Zeilen `online`, `probed`), Session
+  `mix_gaps_info/mix_gaps_plan/start_mix_gaps/mix_online_to_ideas` (in `_PASS`), Oberfläche in `web/mixes.js`.
+  Entscheide ML1–ML5 als Standard im Issue – Bestätigung des Users offen. Beim Release: SonoVault-ZIP 1.3.
 - **Testrückmeldung 28.10. 20:25:** geschlossen #387, #390, #379, #380, #381, #259 (Testlisten abgehakt); offen #383 (Testliste
   noch nicht abgehakt) und #382 (Anfrage sendet der User).
 - **SonoVault 1.2 (28.10. 19:59, `_3 Beta-Test`, Meilenstein #30):** #383 `TXXX:SONOVAULT_*` (Herkunft „SonoVault“ in

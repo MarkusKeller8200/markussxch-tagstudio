@@ -15,7 +15,10 @@ FOLDER = "Mixe"          # Playlist-Ordner für gespeicherte Mixe
 SURE = 0.6               # ab hier „sicher“
 GAP = 60.0               # Lücken ab einer Minute erscheinen als „ID – ID“
 _ID = re.compile(r"^mx_[0-9a-f]{12}$")
-_ROW_KEYS = ("start", "end", "track_start", "path", "artist", "title", "tempo", "keylock", "conf", "also", "at", "drop")
+_ROW_KEYS = ("start", "end", "track_start", "path", "artist", "title", "tempo", "keylock", "conf", "also", "at", "drop", "online")
+CLIP_STEP = 180.0        # #393: ein Ausschnitt je angefangene 3 Minuten Lücke
+CLIP_EDGE = 15.0         # Abstand zu den Übergängen am Rand der Lücke
+ONLINE_MIN = 0.3         # Online-Treffer darunter werden verworfen (unter SURE = „unsicher“)
 
 
 def fmt_time(sec) -> str:
@@ -69,6 +72,11 @@ def clean_row(r) -> dict | None:
         out["also"] = [str(x)[:300] for x in r["also"][:8]]
     if r.get("drop"):
         out["drop"] = True
+    o = r.get("online")
+    if isinstance(o, dict) and o.get("pid"):                 # #393: online erkannt (kein Titel der Bibliothek)
+        out["online"] = {"pid": str(o["pid"])[:60], "name": str(o.get("name") or o["pid"])[:60],
+                         "fetched": str(o.get("fetched") or "")[:10]}
+        out["path"] = ""
     return out
 
 
@@ -150,7 +158,10 @@ def to_cue(res, dest="") -> str:
 
 
 def note_of(r) -> str:
-    """Notiz je Playlist-Eintrag – sprachneutral, weil sie als Daten gespeichert wird: „12:30 · +2.0 % · 94 %“."""
+    """Notiz je Playlist-Eintrag – sprachneutral, weil sie als Daten gespeichert wird: „12:30 · +2.0 % · 94 %“
+    (online erkannt: „12:30 · SonoVault · 85 %“)."""
+    if r.get("online"):
+        return f"{fmt_time(mark(r))} · {r['online']['name']} · {round(r['conf'] * 100)} %"
     return f"{fmt_time(mark(r))} · {r['tempo']:+.1f} % · {round(r['conf'] * 100)} %"
 
 
@@ -166,7 +177,8 @@ def to_items(res) -> list:
             except OSError:
                 pass
         else:
-            it["ref"] = {"artist": r["artist"], "title": r["title"], "source": "mixscan"}
+            it["ref"] = {"artist": r["artist"], "title": r["title"],
+                         "source": r["online"]["pid"] if r.get("online") else "mixscan"}
         out.append(it)
     return out
 
@@ -174,6 +186,104 @@ def to_items(res) -> list:
 def missing_text(res) -> str:
     """Titel der bekannten Tracklist, die nicht im Index sind (zum Merken als Ideen)."""
     return "\n".join((res.get("compare") or {}).get("miss") or [])
+
+
+# =========================================================================== #393 „MixID light“
+def gaps(res) -> list:
+    """Lücken (ohne Titel) als [(start, end)]."""
+    return [(e["start"], e["end"]) for e in with_gaps(res) if e.get("gap")]
+
+
+def _overlaps(a0, a1, ranges) -> bool:
+    return any(a0 < b1 and b0 < a1 for b0, b1 in ranges)
+
+
+def plan_clips(res, seconds=30, max_clips=10, only=None) -> list:
+    """Ausschnitte für die Lücken: je angefangene CLIP_STEP Sekunden einer, in der Mitte des Abschnitts, mit Abstand zu
+    den Übergängen; schon geprüfte Stellen (res["probed"]) werden ausgelassen. Verteilung reihum über die Lücken,
+    damit bei einer Kostengrenze jede Lücke zuerst einen Ausschnitt bekommt. only = Beginn einer Lücke (nur diese).
+    → [{"start", "end", "gap"}] nach Zeit."""
+    seconds = max(5, int(seconds))
+    probed = [tuple(x) for x in res.get("probed") or [] if isinstance(x, (list, tuple)) and len(x) == 2]
+    per_gap = []
+    for g0, g1 in gaps(res):
+        if only is not None and abs(g0 - float(only)) > 1:
+            continue
+        length = g1 - g0
+        if length < seconds:
+            continue
+        n = max(1, -(-int(length) // int(CLIP_STEP)))
+        seg = length / n
+        clips = []
+        for i in range(n):
+            a = g0 + i * seg + (seg - seconds) / 2
+            a = min(max(a, g0 + CLIP_EDGE), g1 - CLIP_EDGE - seconds) if length >= seconds + 2 * CLIP_EDGE else g0 + (length - seconds) / 2
+            a = round(max(g0, a), 1)
+            if not _overlaps(a, a + seconds, probed):
+                clips.append({"start": a, "end": round(a + seconds, 1), "gap": g0})
+        per_gap.append(clips)
+    out, k = [], 0
+    while len(out) < max(0, int(max_clips)) and any(k < len(c) for c in per_gap):
+        for c in per_gap:
+            if k < len(c) and len(out) < int(max_clips):
+                out.append(c[k])
+        k += 1
+    return sorted(out, key=lambda x: x["start"])
+
+
+def _same(a, b) -> bool:
+    n = lambda r: (re.sub(r"\W+", " ", (r.get("artist") or "").lower()).strip(), re.sub(r"\W+", " ", (r.get("title") or "").lower()).strip())
+    return n(a) == n(b)
+
+
+def add_online(res, found, pid, name, today=None) -> int:
+    """Treffer der Ausschnitte übernehmen: found = [(clip, hit | None)]. Gleiche Treffer nebeneinander werden zu einer
+    Zeile; geprüfte Stellen kommen nach res["probed"]. → Zahl neuer Zeilen."""
+    today = today or time.strftime("%Y-%m-%d")
+    probed = res.setdefault("probed", [])
+    new = []
+    for clip, hit in sorted(found, key=lambda x: x[0]["start"]):
+        probed.append([clip["start"], clip["end"]])
+        if not hit or float(hit.get("conf") or 0) < ONLINE_MIN:
+            continue
+        row = clean_row({"start": clip["start"], "end": clip["end"], "artist": hit.get("artist", ""), "title": hit.get("title", ""),
+                         "conf": hit.get("conf", 0), "tempo": 0, "online": {"pid": pid, "name": name, "fetched": today}})
+        if not row:
+            continue
+        prev = new[-1] if new else None
+        if prev and _same(prev, row) and row["start"] - prev["end"] <= CLIP_STEP + 60:
+            prev["end"], prev["conf"] = row["end"], max(prev["conf"], row["conf"])
+            continue
+        new.append(row)
+    res["rows"] = sorted((res.get("rows") or []) + new, key=lambda x: x["start"])
+    return len(new)
+
+
+def purge_online(res, retain: dict, today=None) -> bool:
+    """Online-Treffer entfernen, die nicht mehr aufbewahrt werden dürfen: retain = {pid: Tage | None}; None = behalten
+    (bezahlter Tarif), fehlt der Dienst = behalten. → True, wenn etwas entfernt wurde."""
+    import datetime
+    day = datetime.date.fromisoformat(today) if today else datetime.date.today()
+    keep, gone = [], False
+    for r in res.get("rows") or []:
+        o = r.get("online")
+        days = retain.get(o["pid"]) if o else None
+        if o and days is not None:
+            try:
+                age = (day - datetime.date.fromisoformat(o.get("fetched") or "")).days
+            except ValueError:
+                age = days + 1
+            if age > days:
+                gone = True
+                continue
+        keep.append(r)
+    res["rows"] = keep
+    return gone
+
+
+def online_text(res) -> str:
+    """Online erkannte Titel (nicht verworfen) als Zeilen „Künstler - Titel“ (zum Merken als Ideen)."""
+    return "\n".join(name_of(r) for _n, r in kept(res) if r.get("online"))
 
 
 # =========================================================================== Ablage

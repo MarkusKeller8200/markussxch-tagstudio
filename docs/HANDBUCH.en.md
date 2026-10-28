@@ -355,6 +355,12 @@ under Plugins); nothing is uploaded or downloaded.
   tracklist “Missing ones as ideas” (“Ideas” page). “Delete …” removes only the analysis.
 - Only tracks in the index are recognised – other tracks stay “ID – ID”. Also reachable via Playlists › Import ▾
   “Recognise from mix …” / “Earlier mix analyses …”.
+- **Recognise gaps online (“MixID light”):** “Recognise gaps online …” (all) or “Recognise …” on a gap sends short
+  excerpts (without tags) to a recognition service – currently SonoVault (key and credits or a paid plan needed). In
+  the window choose the excerpt length and the maximum number; the costs are shown below, only the check mark
+  “Confirm costs and upload” starts it. Matches appear with “online · SonoVault” and “not in the library”;
+  “Recognised online as ideas” keeps them in a wish list. Spots already checked are not sent again. For your own use
+  only – do not publish such tracklists.
 
 ### Purchases
 

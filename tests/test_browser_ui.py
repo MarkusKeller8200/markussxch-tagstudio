@@ -3692,6 +3692,41 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.inner_text("#mixCount").strip(), "")
         self.assertTrue(os.path.isfile(f[0]))
 
+    def test_mix_gaps_online(self):
+        """#393 „MixID light“: Lücken-Knöpfe, Hinweis ohne bereiten Erkennungsdienst, online erkannte Zeile, als Ideen."""
+        import mixresult
+        pg = self.pg
+        f = sorted(os.path.join(self.lib, n) for n in os.listdir(self.lib) if n.endswith(".mp3"))
+        res = mixresult.new(f[0], 600, [
+            {"start": 100, "end": 160, "track_start": 90, "path": f[1], "artist": "Test", "title": "Ton 330", "tempo": -2, "conf": 0.94},
+            {"start": 300, "end": 330, "artist": "Mara Lind", "title": "Kaltes Glas", "conf": 0.88,
+             "online": {"pid": "sonovault", "name": "SonoVault", "fetched": "2026-10-28"}}], version="1.2")
+        mixresult.save(os.path.join(self.home, "TagStudio", "Mixe"), res)
+        pg.click('.nav[data-module="mixes"]')
+        pg.wait_for_selector("#mxRows tr[data-n]")
+        self.assertEqual(pg.locator("#mxRows tr.mx-gap").count(), 3)              # 0–100, 160–300, 330–600
+        self.assertEqual(pg.locator("#mxRows [data-mxgap]").count(), 3)
+        self.assertIn("Lücken online erkennen (3)", pg.inner_text("#mxMain .mx-bar"))
+        row = pg.locator('#mxRows tr[data-n="1"]')
+        self.assertIn("online · SonoVault", row.inner_text())
+        self.assertIn("nicht in der Bibliothek", row.inner_text())
+        self.assertEqual(row.locator('[data-mxplay="1"]').count(), 0)            # kein Titel zum Vorhören
+        self.assertIn("nicht veröffentlichen", pg.inner_text("#mxMain"))
+        # ohne Schlüssel bzw. ausgeschaltetes SonoVault: verständlicher Hinweis, kein Hochladen
+        pg.click('[data-mxa="gaps"]')
+        pg.wait_for_selector("#dialog:not([hidden])")
+        self.assertEqual(pg.inner_text("#dlgTitle"), "Lücken online erkennen")
+        self.assertRegex(pg.inner_text("#dlgText"), "Kein Erkennungsdienst|SonoVault")
+        pg.click("#dlgBtns .primary")
+        pg.click('#mxRows tr.mx-gap >> nth=1 >> [data-mxgap]')
+        pg.wait_for_selector("#dialog:not([hidden])")
+        pg.click("#dlgBtns .primary")
+        # online erkannte als Ideen
+        pg.click('[data-mxa="online"]')
+        pg.wait_for_function("document.querySelector('#toast') && /Ideen gemerkt/.test(document.querySelector('#toast').textContent)")
+        pg.click('.nav[data-module="ideas"]')
+        pg.wait_for_function("document.body.innerText.includes('Kaltes Glas')")
+
     def test_playlists_smartlist(self):
         """#272: Smartlist anlegen (Regel-Dialog), Aktualisieren nach Tag-Änderung, Regel hinzufügen, Einfrieren."""
         pg = self.pg

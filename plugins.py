@@ -885,6 +885,39 @@ class Manager:
             out.append({"id": p.id, "name": p.name, "ready": bool(ok), "why": why or ""})
         return out
 
+    # ---- #393 „MixID light“: Erkennungsdienste für Ausschnitte (identify_clip(ctx, path, start, seconds),
+    #      identify_clip_info(ctx) → {"ready", "why", "seconds", "default", "cost", "rest", "quota", "retain_days"})
+    def recognizers(self, session=None) -> list[dict]:
+        """Eingeschaltete Plugins mit identify_clip – mit ihrem Stand (bereit, Kosten, Kontingent)."""
+        out = []
+        for p, _fn in self._ready_with("identify_clip"):
+            d = {"id": p.id, "name": p.name, "ready": True, "why": ""}
+            info = getattr(p.load(), "identify_clip_info", None)
+            try:
+                if callable(info):
+                    d.update(info(Context(p, session)) or {})
+            except Exception as ex:  # noqa: BLE001
+                d.update(ready=False, why=str(ex))
+            d["id"], d["name"] = p.id, p.name
+            out.append(d)
+        return out
+
+    def recognize(self, pid, path, start, seconds, session=None, cancel=None) -> list[dict]:
+        """Einen Ausschnitt mit dem Plugin pid erkennen; Protokoll ins Plugin-Log."""
+        p = self.get(pid)
+        if not p.enabled or p.state() != "ready":
+            raise ValueError(f"Plugin „{p.name}“ ist nicht bereit.")
+        fn = getattr(p.load(), "identify_clip", None)
+        if not callable(fn):
+            raise ValueError(f"„{p.name}“ kann keine Ausschnitte erkennen.")
+        ctx = Context(p, session, cancel)
+        try:
+            res = fn(ctx, path, float(start), int(seconds))
+        finally:
+            if ctx.log_lines:
+                write_log(f"{p.id}.log", "Mix-Lücken erkennen\n" + "\n".join(ctx.log_lines))
+        return [x for x in (res or []) if isinstance(x, dict) and x.get("title")]
+
     def call_playlist(self, pid, fn_name, *args, session=None, cancel=None, progress=None):
         if fn_name not in self.PLAYLIST_FNS:
             raise ValueError("Unbekannte Funktion.")

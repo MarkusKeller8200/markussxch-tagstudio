@@ -202,6 +202,9 @@ nie über einen Proxy, `is_local`).
 - **#273 Senden:** Plugin-Funktion `playlist_push(ctx, playlist, options)` und optional `push_ready(ctx)`;
   `Manager.push_targets()`, Session `start_pl_push` (Ziel-ID je Playlist in `pushed`). Lexicon 2.2: anlegen bzw.
   fehlende Titel einfügen, nie löschen. Details `docs/KONZEPT-PLAYLISTS.md` Abschnitt 19.
+- **#393 Erkennungsdienst:** Plugin-Funktionen `identify_clip(ctx, path, start, seconds)` und `identify_clip_info(ctx)`;
+  `Manager.recognizers()` / `Manager.recognize()`; genutzt von „Lücken online erkennen“ (Seite Mixe). SonoVault 1.3.
+  Details `docs/KONZEPT-MIXSCAN.md` Abschnitt 12.
 
 ### API-Rekorder (#243, Entscheid User 17.10.2026)
 

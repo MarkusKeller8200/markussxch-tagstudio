@@ -186,3 +186,25 @@ Auftrag User 15:21: „finalisieren (entfernen von Prototyp) und einbauen an den
   `mix_list` liefert den Stand des Plugins; Vorhören endet beim Seitenwechsel.
 - **Offen / später:** Speicherbedarf des Index (≈ 0,4 MB je Titel; für sehr grosse Bibliotheken Index stückweise bzw.
   als Speicherabbild laden), Treffer durch anderen Titel ersetzen, Unbekanntes über SonoVault (M3, Phase 4).
+
+## 12. „MixID light“ – Lücken online erkennen (#393, 28.10.2026)
+
+Auftrag User 23:36 („MixID Light anlegen und gleich umsetzen in 4.13“). Eigene grosse Datenbank wie MixID ist nicht
+sinnvoll (fremde Musik, Server, Rechte; mit SonoVault-Daten nach §4/§25 verboten) – stattdessen werden nur die Lücken
+der lokalen Erkennung über einen Dienst gefüllt.
+
+- **Entscheide (Standard, im Issue zur Bestätigung):** ML1 SonoVault-Audioerkennung, Rahmen offen für weitere
+  Plugins; ML2 Ausschnitt 30 s (30/45/60), einer je angefangene 3 Minuten Lücke, mittig, 15 s Abstand zu den Rändern;
+  ML3 höchstens 10 Ausschnitte je Lauf (5/10/20/50), reihum über die Lücken; ML4 Ideen nur auf Klick; ML5 Aufbewahrung
+  nach den Bedingungen des Dienstes.
+- **Rahmen:** Plugin-Funktionen `identify_clip(ctx, path, start, seconds)` und `identify_clip_info(ctx)`;
+  `Manager.recognizers()` / `Manager.recognize()`.
+- **Logik** (`mixresult.py`): `gaps`, `plan_clips` (lässt geprüfte Stellen `probed` aus), `add_online` (unter 30 %
+  verworfen, unter 60 % „unsicher“, gleiche Treffer nebeneinander zusammengefasst), `purge_online` (Tage je Dienst),
+  `online_text`. Zeilen mit `online: {pid, name, fetched}` haben keine Datei; Playlist-Eintrag mit Quelle des Dienstes.
+- **Sitzung** (`session_mixes.py`): `mix_gaps_info`, `mix_gaps_plan` (Kostenvorschau), `start_mix_gaps` (Vorgang mit
+  Abbrechen; Treffer werden am Ende in das frisch geladene Ergebnis übernommen), `mix_online_to_ideas`; `mix_get`
+  entfernt abgelaufene Online-Treffer.
+- **Oberfläche** (`web/mixes.js`): Knopf „Lücken online erkennen (n) …“, „Erkennen …“ je Lücke, Fenster mit Dienst,
+  Länge, Höchstzahl, Kosten und Bestätigung; Kennzeichen „online · SonoVault“, Hinweis „nicht veröffentlichen“.
+

@@ -244,6 +244,12 @@ More functions a plugin can offer (all optional):
   writing is switched off in the plugin. Rules: never delete anything, skip and report entries without a file, record
   changes in the plugin's own journal (example: Lexicon – creates the playlist or inserts missing tracks at their
   position, removes nothing).
+- `identify_clip(ctx, path, start, seconds)` – recognition service for excerpts (#393, “Recognise gaps online” on the
+  Mixes page). The plugin cuts an excerpt of `seconds` seconds from `path` at second `start` (without tags) and returns
+  `[{"artist", "title", "conf", "id", "source"}]` (best first). Plus `identify_clip_info(ctx)` →
+  `{"ready", "why", "seconds": [30, …], "default", "cost": {"30": 11, …}, "unit", "rest", "quota", "retain_days"}`
+  (`retain_days` = how long TagStudio may keep matches in the mix result, `None` = unlimited). Errors with `status`
+  0/401/402/403/429 stop the run. Example: SonoVault 1.3.
 
 ## Tool: API recorder (for developers)
 
@@ -286,7 +292,8 @@ Recognises tracks of your **own library** in a mix file (DJ set, radio show, you
 changed tempo (±10 %, with and without keylock) – and shows the tracklist with time, tempo and confidence. Own method
 (audio fingerprint with queries in tempo steps, `plugins/mixscan/fp.py`, concept `docs/KONZEPT-MIXSCAN.md`). Runs
 entirely locally: nothing is uploaded, nothing downloaded, nothing in the files is changed. Only tracks in the index
-are recognised – other tracks stay “ID – ID”.
+are recognised – other tracks stay “ID – ID”; these gaps can optionally be filled via a recognition service
+(SonoVault, paid, #393 – see SonoVault).
 
 1. **Plugins** page → “Analyse mix” → **Install** (own environment with Python 3.12, NumPy, SciPy, imageio-ffmpeg;
    about 100 MB).
@@ -515,6 +522,11 @@ key** – TagStudio does not ship one (concept and terms of use: `docs/KONZEPT-S
   nothing charged). Without the check mark only a cost preview. Privacy: SonoVault keeps the excerpt without a fixed
   deadline – only your own recordings. Matches as a preview (allowed fields only); slim matches (only ID, title,
   artist) are completed via the ID (1 request). Tip: try AcoustID first.
+- **Recognise gaps of a mix (“MixID light”, #393, from 1.3):** **Mixes** page › “Recognise gaps online …” or
+  “Recognise …” on a gap – one excerpt (30/45/60 s) per started 3 minutes of gap goes to the same recognition, with a
+  cost limit (5/10/20/50 excerpts) and a cost preview; without the check mark nothing is uploaded. Matches appear as a
+  row “online · SonoVault” (artist and title only). Retention per §7: kept in the mix result on a paid plan, removed
+  after 30 days on the Free plan. For your own use only – do not publish tracklists with these matches (§4).
 - **Report genre correction to SonoVault …** (tagger, #259, paid plan): compares the file's genre (first value in TCON)
   with SonoVault; if it matches exactly one genre from `/v1/genres` and differs, TagStudio reports
   `POST /v1/tracks/{id}/suggestions` with `genreId` and an optional note (≤ 100 characters) when ticked. Without the tick

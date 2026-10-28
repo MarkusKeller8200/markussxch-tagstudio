@@ -42,8 +42,17 @@ class MixesMixin:
             pass
         return {"items": mixresult.listing(self._mix_dir()), "ready": self._mix_ready(), "plugin": info}
 
+    def _mix_retain(self) -> dict:
+        """#393: Aufbewahrung der Online-Treffer je Erkennungsdienst (Tage oder None = behalten)."""
+        try:
+            return {r["id"]: r.get("retain_days") for r in self.plugins.recognizers(self) if "retain_days" in r}
+        except Exception:  # noqa: BLE001
+            return {}
+
     def mix_get(self, rid) -> dict:
         res = mixresult.load(self._mix_dir(), rid)
+        if any(r.get("online") for r in res["rows"]) and mixresult.purge_online(res, self._mix_retain()):
+            mixresult.save(self._mix_dir(), res)
         lines = []
         for e in mixresult.with_gaps(res):
             if e.get("gap"):
@@ -54,8 +63,9 @@ class MixesMixin:
                           "track_start": r.get("track_start"), "artist": r["artist"], "title": r["title"], "path": r["path"],
                           "exists": bool(r["path"]) and os.path.isfile(r["path"]), "tempo": r["tempo"],
                           "keylock": r["keylock"], "conf": r["conf"], "sure": r["conf"] >= mixresult.SURE,
-                          "also": r.get("also") or [], "edited": r.get("at") is not None})
-        dropped = [{"n": n, "artist": r["artist"], "title": r["title"], "start": r["start"]}
+                          "also": r.get("also") or [], "edited": r.get("at") is not None,
+                          "online": (r.get("online") or {}).get("name", "")})
+        dropped = [{"n": n, "artist": r["artist"], "title": r["title"], "start": r["start"], "online": bool(r.get("online"))}
                    for n, r in enumerate(res["rows"]) if r.get("drop")]
         pl = res.get("playlist") or ""
         with self.lock:
@@ -67,7 +77,9 @@ class MixesMixin:
                 "duration": res.get("duration", 0), "mix_exists": os.path.isfile(res.get("mix", "")),
                 "lines": lines, "dropped": dropped, "report": res.get("report", "") if os.path.isfile(res.get("report", "")) else "",
                 "index": res.get("index", ""), "version": res.get("version", ""), "playlist": pl,
-                "compare": cmp, "missing": (cmp or {}).get("miss") or [], "text": mixresult.to_text(res)}
+                "compare": cmp, "missing": (cmp or {}).get("miss") or [], "text": mixresult.to_text(res),
+                "gaps": len(mixresult.gaps(res)),
+                "online": sum(1 for _n, r in mixresult.kept(res) if r.get("online"))}
 
     # ------------------------------------------------------------------ Bearbeiten
     def _mix_change(self, rid, fn) -> dict:
@@ -185,6 +197,87 @@ class MixesMixin:
         text = mixresult.missing_text(res)
         if not text.strip():
             raise ValueError("Keine fehlenden Titel – alle Titel der Tracklist wurden gefunden.")
+        import ideas
+        new, _unknown = ideas.from_text(text)
+        if not new:
+            raise ValueError("Keine Titel erkannt.")
+        return self._ideas_add(pid, name, new)
+
+    # ------------------------------------------------------------------ #393 „MixID light“: Lücken online erkennen
+    def mix_gaps_info(self, rid) -> dict:
+        """Lücken des Ergebnisses und die Erkennungsdienste (Plugins mit identify_clip) mit Kosten und Kontingent."""
+        res = mixresult.load(self._mix_dir(), rid)
+        recs = self.plugins.recognizers(self)
+        return {"gaps": [{"start": a, "end": b} for a, b in mixresult.gaps(res)], "recognizers": recs,
+                "mix_exists": os.path.isfile(res.get("mix", ""))}
+
+    def mix_gaps_plan(self, rid, pid="", seconds=30, max_clips=10, only=None) -> dict:
+        """Kostenvorschau: Zahl der Ausschnitte und Kosten (nichts wird hochgeladen)."""
+        res = mixresult.load(self._mix_dir(), rid)
+        rec = self._mix_recognizer(pid)
+        clips = mixresult.plan_clips(res, seconds, max_clips, only)
+        all_clips = mixresult.plan_clips(res, seconds, 10_000, only)
+        each = int((rec.get("cost") or {}).get(str(int(seconds)), 0) or 0)
+        return {"clips": len(clips), "more": max(0, len(all_clips) - len(clips)), "each": each, "cost": each * len(clips),
+                "unit": rec.get("unit", ""), "rest": rec.get("rest"), "quota": rec.get("quota", ""),
+                "gaps": len({c["gap"] for c in clips}), "name": rec.get("name", "")}
+
+    def _mix_recognizer(self, pid="") -> dict:
+        recs = [r for r in self.plugins.recognizers(self) if not pid or r["id"] == pid]
+        if not recs:
+            raise ValueError("Kein Erkennungsdienst eingeschaltet – das Plugin SonoVault einschalten und den Schlüssel "
+                             "eintragen (Audio-Erkennung braucht einen bezahlten Tarif bzw. Kredite).")
+        rec = recs[0]
+        if not rec.get("ready"):
+            raise ValueError(f"{rec['name']}: {rec.get('why') or 'nicht bereit'}.")
+        return rec
+
+    def start_mix_gaps(self, rid, opts=None):
+        """Ausschnitte der Lücken an den Erkennungsdienst senden und Treffer als Zeilen „online“ übernehmen."""
+        o = opts or {}
+        if not o.get("confirm"):
+            return {"ok": False, "error": "Kosten und Hochladen zuerst bestätigen."}
+        d = self._mix_dir()
+        res = mixresult.load(d, rid)
+        if not os.path.isfile(res.get("mix", "")):
+            return {"ok": False, "error": "Die Mix-Datei gibt es nicht mehr am gespeicherten Ort."}
+        try:
+            rec = self._mix_recognizer(o.get("pid") or "")
+        except ValueError as ex:
+            return {"ok": False, "error": str(ex)}
+        secs = int(o.get("seconds") or rec.get("default") or 30)
+        clips = mixresult.plan_clips(res, secs, int(o.get("max") or 10), o.get("only"))
+        if not clips:
+            return {"ok": False, "error": "Keine Lücke zum Erkennen (alle Stellen schon geprüft)."}
+        mix = res["mix"]
+
+        def job(cancel, progress):
+            found, error = [], ""
+            for i, c in enumerate(clips):
+                if cancel.is_set():
+                    break
+                progress(("progress", i, len(clips), f"{mixresult.fmt_time(c['start'])} – {rec['name']}"))
+                try:
+                    hits = self.plugins.recognize(rec["id"], mix, c["start"], secs, session=self, cancel=cancel)
+                except Exception as ex:  # noqa: BLE001
+                    if getattr(ex, "status", None) in (0, 401, 402, 403, 429) or isinstance(ex, (ValueError, RuntimeError)):
+                        error = str(ex)
+                        break
+                    continue                              # nur diese Stelle (nicht als geprüft merken)
+                found.append((c, hits[0] if hits else None))
+            progress(("progress", len(clips), len(clips), "fertig"))
+            cur = mixresult.load(d, rid)                  # frisch laden (Änderungen während des Laufs)
+            added = mixresult.add_online(cur, found, rec["id"], rec["name"])
+            mixresult.save(d, cur)
+            return {"ok": True, "found": added, "clips": len(found), "planned": len(clips), "error": error,
+                    "name": rec["name"], "mix_open": rid}
+        return self._run("mixes", f"Mix-Lücken erkennen ({rec['name']})", job)
+
+    def mix_online_to_ideas(self, rid, pid="", name="") -> dict:
+        """Online erkannte Titel als Ideen merken (#393, nur auf Klick)."""
+        text = mixresult.online_text(mixresult.load(self._mix_dir(), rid))
+        if not text.strip():
+            raise ValueError("Keine online erkannten Titel.")
         import ideas
         new, _unknown = ideas.from_text(text)
         if not new:

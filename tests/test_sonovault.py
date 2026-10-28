@@ -477,6 +477,59 @@ class TestSonoVaultMore(TestSonoVault):
         r = self.act("suggestions", pid="sonovault")["result"]
         self.assertEqual(r["table"]["rows"][0][3:5], ["Techno", "pending"])
 
+    def test_mix_gaps_online(self):
+        """#393 „MixID light“: Erkennungsdienst im Rahmen, Kostenvorschau, Lauf, Zeilen „online“, Aufbewahrung, Ideen."""
+        import mixresult
+        self.keys()
+        mix = os.path.join(self.B, "Mix.mp3")
+        with open(mix, "wb") as fh:
+            fh.write(b"\xff\xfb\x90\x00" * 50)
+        rid = self.s._mix_store({"mix": mix, "duration": 900, "rows": [
+            {"start": 400, "end": 500, "path": "", "artist": "A", "title": "Bekannt", "conf": 0.9}]})
+        recs = self.s.plugins.recognizers(self.s)
+        self.assertEqual([r["id"] for r in recs], ["sonovault"])
+        self.assertEqual(recs[0]["retain_days"], 30)                         # Free: nur 30 Tage
+        info = self.s.mix_gaps_info(rid)
+        self.assertEqual([(g["start"], g["end"]) for g in info["gaps"]], [(0.0, 400.0), (500.0, 900.0)])
+        p = self.s.mix_gaps_plan(rid, "sonovault", 30, 3)
+        self.assertEqual((p["clips"], p["more"], p["each"], p["cost"]), (3, 3, 11, 33))   # je 3 Ausschnitte (400 s = 3 × 180 s)
+        self.assertFalse(self.s.start_mix_gaps(rid, {"seconds": 30, "max": 3})["ok"])      # ohne Bestätigung
+        self.assertEqual(self.post.calls, [])
+        cut = []
+        orig = self.mod.excerpt_at
+        self.mod.excerpt_at = lambda ctx, path, start, secs: cut.append((start, secs)) or b"x" * 1000
+        self.addCleanup(setattr, self.mod, "excerpt_at", orig)
+        self.act("keys", pid="sonovault", tier="paid")
+        self.assertTrue(self.s.start_mix_gaps(rid, {"seconds": 30, "max": 3, "confirm": True})["ok"])
+        r = self.wait()["result"]
+        self.assertEqual((r["found"], r["clips"], r["error"]), (2, 3, ""))   # zwei gleiche Treffer nebeneinander → eine Zeile
+        self.assertEqual(len(cut), 3)
+        d = self.s.mix_get(rid)
+        on = [ln for ln in d["lines"] if not ln.get("gap") and ln["online"]]
+        self.assertEqual([ln["title"] for ln in on], ["Kaltes Glas (Original Mix)", "Kaltes Glas (Original Mix)"])
+        self.assertEqual(on[0]["online"], "SonoVault")
+        self.assertEqual(d["online"], 2)
+        self.assertIn("Mara Lind - Kaltes Glas (Original Mix)", d["text"])
+        res = mixresult.load(self.s._mix_dir(), rid)
+        again = mixresult.plan_clips(res, 30, 10)                           # geprüfte Stellen nicht nochmals
+        self.assertTrue(again)
+        self.assertFalse([c for c in again if any(c["start"] < b and a < c["end"] for a, b in res["probed"])])
+        self.assertTrue(any(r.get("online") for r in res["rows"]))
+        it = [x for x in mixresult.to_items(res) if x["title"].startswith("Kaltes")][0]
+        self.assertEqual(it["ref"]["source"], "sonovault")
+        self.assertIn("SonoVault", it["note"])
+        r = self.s.mix_online_to_ideas(rid, "", "")
+        self.assertEqual(r["added"], 1)
+        # bezahlter Tarif: bleiben; Free und älter als 30 Tage: werden entfernt
+        for row in res["rows"]:
+            if row.get("online"):
+                row["online"]["fetched"] = "2026-01-01"
+        mixresult.save(self.s._mix_dir(), res)
+        self.assertEqual(self.s.mix_get(rid)["online"], 2)
+        self.act("keys", pid="sonovault", tier="free")
+        self.assertEqual(self.s.mix_get(rid)["online"], 0)
+        self.assertEqual([ln["title"] for ln in self.s.mix_get(rid)["lines"] if not ln.get("gap")], ["Bekannt"])
+
 
 for _n in [n for n in dir(TestSonoVault) if n.startswith("test_")]:     # geerbte Tests nicht doppelt ausführen
     setattr(TestSonoVaultMore, _n, None)

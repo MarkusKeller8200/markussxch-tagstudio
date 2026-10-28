@@ -1,6 +1,11 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-27 (15:45): **#387 Mix analysieren fertiggestellt** (Auftrag User 15:21) – Plugin `mixscan` 1.0 mit
+> Stand 2026-10-28 (23:59): **#393 „MixID light“** (Auftrag User 23:36) – Seite Mixe › „Lücken online erkennen …“:
+> Ausschnitte der Lücken an einen Erkennungsdienst (Plugin-Funktion `identify_clip`, SonoVault 1.3), Kostenvorschau,
+> Treffer „online · SonoVault“, als Ideen; Konzept KONZEPT-MIXSCAN §12. `_3 Beta-Test`. Eingestellt am 28.10.: #382,
+> #383 (Erweiterung), #391. Offen im Meilenstein #30: #392, #393.
+>
+> Davor 2026-10-27 (15:45): **#387 Mix analysieren fertiggestellt** (Auftrag User 15:21) – Plugin `mixscan` 1.0 mit
 > Ergebnisfenster (`web/mixes.js`), Speichern als Playlist „Mixe“/CUE/Text/Ideen, Aufruf über Playlists › Importieren ▾,
 > Index automatisch nachführen (nach Vorbereiten, beim Start, verschoben); Konzept §11. `_3 Beta-Test`.
 >

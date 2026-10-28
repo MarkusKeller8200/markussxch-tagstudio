@@ -245,6 +245,12 @@ Weitere Funktionen, die ein Plugin anbieten kann (alle optional):
   `(bereit, Hinweis)`, z. B. wenn das Schreiben im Plugin ausgeschaltet ist. Regeln: nie etwas löschen, Einträge ohne
   Datei auslassen und melden, Änderungen ins eigene Journal (Beispiel: Lexicon – legt an bzw. fügt fehlende Titel an
   ihrer Stelle ein, entfernt nichts).
+- `identify_clip(ctx, path, start, seconds)` – Erkennungsdienst für Ausschnitte (#393, „Lücken online erkennen“ auf der
+  Seite Mixe). Das Plugin schneidet aus `path` ab Sekunde `start` einen Ausschnitt von `seconds` Sekunden (ohne Tags)
+  und gibt `[{"artist", "title", "conf", "id", "source"}]` zurück (bester zuerst). Dazu `identify_clip_info(ctx)` →
+  `{"ready", "why", "seconds": [30, …], "default", "cost": {"30": 11, …}, "unit", "rest", "quota", "retain_days"}`
+  (`retain_days` = wie lange TagStudio Treffer im Mix-Ergebnis behalten darf, `None` = unbegrenzt). Fehler mit
+  `status` 0/401/402/403/429 brechen den Lauf ab. Beispiel: SonoVault 1.3.
 
 ## Werkzeug: API-Rekorder (für Entwickler)
 
@@ -304,7 +310,8 @@ Erkennt Titel der **eigenen Bibliothek** in einer Mix-Datei (DJ-Set, Radiosendun
 mit geändertem Tempo (±10 %, mit Keylock und ohne) – und zeigt die Tracklist mit Zeit, Tempo und Sicherheit. Eigenes
 Verfahren (Audio-Fingerabdruck mit Abfrage in Tempo-Stufen, `plugins/mixscan/fp.py`, Konzept
 `docs/KONZEPT-MIXSCAN.md`). Läuft vollständig lokal: nichts wird hochgeladen, nichts heruntergeladen, an den Dateien
-wird nichts geändert. Erkannt werden nur Titel, die im Index sind – fremde Titel bleiben „ID – ID“.
+wird nichts geändert. Erkannt werden nur Titel, die im Index sind – fremde Titel bleiben „ID – ID“; diese Lücken
+lassen sich auf Wunsch über einen Erkennungsdienst füllen (SonoVault, kostenpflichtig, #393 – siehe SonoVault).
 
 1. Seite **Plugins** → bei „Mix analysieren“ **Installieren** (eigene Umgebung mit Python 3.12, NumPy, SciPy,
    imageio-ffmpeg; etwa 100 MB).
@@ -536,6 +543,12 @@ Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: 
   SonoVault bewahrt den Ausschnitt ohne feste Frist auf – nur eigene Aufnahmen. Treffer als Vorschau (nur erlaubte
   Felder, ab 80 % Sicherheit leere vorausgewählt). Schlanke Treffer (nur ID, Titel, Künstler) holt TagStudio über die
   ID nach (1 Anfrage). Tipp: zuerst AcoustID (gratis, ohne Hochladen).
+- **Lücken eines Mixes erkennen („MixID light“, #393, ab 1.3):** Seite **Mixe** › „Lücken online erkennen …“ bzw.
+  „Erkennen …“ an einer Lücke – je angefangene 3 Minuten Lücke ein Ausschnitt (30/45/60 s) an dieselbe Erkennung, mit
+  Kostengrenze (5/10/20/50 Ausschnitte) und Kostenvorschau; ohne Häkchen wird nichts hochgeladen. Treffer erscheinen
+  als Zeile „online · SonoVault“ (nur Künstler und Titel). Aufbewahrung nach §7: mit bezahltem Tarif im Mix-Ergebnis,
+  im Free-Tarif nach 30 Tagen entfernt. Nur für den eigenen Gebrauch – Tracklisten mit diesen Treffern nicht
+  veröffentlichen (§4).
 - **Genre-Korrektur an SonoVault melden …** (Tagger, #259, bezahlter Tarif): vergleicht das Genre der Datei (erster
   Wert in TCON) mit SonoVault; entspricht es genau einem Genre aus `/v1/genres` und weicht es ab, meldet TagStudio auf
   Häkchen `POST /v1/tracks/{id}/suggestions` mit `genreId` und optionaler Notiz (≤ 100 Zeichen). Ohne Häkchen nur

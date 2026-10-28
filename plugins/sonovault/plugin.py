@@ -962,6 +962,45 @@ def identify(ctx, data: bytes, cost: int) -> list:
     return out
 
 
+# =========================================================================== #393 „MixID light“: Lücken eines Mixes
+def excerpt_at(ctx, path: str, start: float, seconds: int) -> bytes:
+    """Ausschnitt ab Sekunde start (für Mixe) – mono, 16 kHz, MP3 48 kbit/s, ohne Tags."""
+    import subprocess
+    cmd = [find_ffmpeg(), "-v", "error", "-ss", f"{max(0.0, float(start)):.1f}", "-t", str(int(seconds)), "-i", path, "-vn",
+           "-ac", "1", "-ar", "16000", "-b:a", "48k", "-map_metadata", "-1", "-id3v2_version", "0", "-f", "mp3", "pipe:1"]
+    flags = 0x08000000 if os.name == "nt" else 0          # CREATE_NO_WINDOW
+    r = subprocess.run(cmd, capture_output=True, timeout=120, creationflags=flags)
+    if r.returncode != 0 or not r.stdout:
+        raise RuntimeError(f"Ausschnitt nicht möglich: {r.stderr.decode('utf-8', 'replace')[-200:].strip()}")
+    return r.stdout
+
+
+def identify_clip_info(ctx) -> dict:
+    """Rahmen „Erkennungsdienst“ (#393): bereit?, Kosten je Ausschnitt, Längen, Kontingent, Aufbewahrung.
+    retain_days: None = Treffer dürfen im Mix-Ergebnis bleiben (bezahlter Tarif, Terms §7 „Retained Data“);
+    sonst höchstens so viele Tage (Free: nur Zwischenspeicher ≤ 30 Tage)."""
+    ok, why = ready(ctx)
+    q = quota(ctx)
+    return {"ready": bool(ok), "why": why or "", "name": "SonoVault", "seconds": [int(x) for x in ID_SECONDS], "default": 30,
+            "cost": {str(x): estimate_cost(int(x)) for x in ID_SECONDS}, "unit": "Kredite",
+            "rest": max(0, q["limit"] - q["used"]), "quota": quota_text(ctx), "paid": is_paid(ctx),
+            "retain_days": None if is_paid(ctx) else 30}
+
+
+def identify_clip(ctx, path: str, start: float, seconds: int) -> list:
+    """Ausschnitt [start, start+seconds] aus path erkennen → [{"artist", "title", "conf", "id", "source"}] (beste zuerst).
+    Nur Anzeige-Daten (Titel/Künstler); 429/401/402/403 → HttpError an den Aufrufer (Lauf abbrechen)."""
+    secs = int(seconds) if str(int(seconds)) in ID_SECONDS else 30
+    data = excerpt_at(ctx, path, start, secs)
+    out = []
+    for c, conf in identify(ctx, data, identify_cost(len(data))):
+        title = c.get("title", "") + (f" ({c['mix']})" if c.get("mix") else "")
+        out.append({"artist": ", ".join(c.get("artists") or []), "title": title, "conf": round(float(conf or 0), 3),
+                    "id": c.get("id", ""), "source": "sonovault", "source_name": "SonoVault"})
+    out.sort(key=lambda x: -x["conf"])
+    return out
+
+
 FIELDS = (("TIT2", "Titel", "title"), ("TPE1", "Künstler", "artists"), ("TALB", "Album", "album"), ("TPUB", "Label", "label"),
           ("TCON", "Genre", "genre"), ("TDRC", "Jahr", "date"), ("TSRC", "ISRC", "isrc"))
 

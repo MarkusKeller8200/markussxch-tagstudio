@@ -45,17 +45,18 @@ function mixRowsHtml(d) {
   return `<div class="fx-table mx-table"><table><thead><tr><th>Zeit</th><th>Titel</th><th>Tempo</th><th>Sicherheit</th><th></th></tr></thead><tbody>
     ${d.lines.map((l) => {
       if (l.gap) return `<tr class="mx-gap"><td>${mixTime(l.start)}</td><td colspan="3"><span class="muted">ID – ID</span> <span class="faint sm">· unbekannt ${mixTime(l.start)}–${mixTime(l.end)}</span></td>
-        <td class="mx-acts"><div class="mx-btns"><button class="ghost sm mx-play" data-mxplay="mix" data-t="${l.start}" title="Im Mix vorhören">▶ Mix</button></div></td></tr>`;
+        <td class="mx-acts"><div class="mx-btns"><button class="ghost sm mx-play" data-mxplay="mix" data-t="${l.start}" title="Im Mix vorhören">▶ Mix</button>
+          <button class="ghost sm" data-mxgap="${l.start}" title="Diese Lücke über einen Erkennungsdienst erkennen (kostenpflichtig)">Erkennen …</button></div></td></tr>`;
       const pos = l.track_start != null ? Math.max(0, l.at - l.track_start) : 0;
       return `<tr data-n="${l.n}" class="${l.sure ? "" : "mx-unsure"}">
         <td><input class="inp mx-time${l.edited ? " edited" : ""}" data-mxtime="${l.n}" value="${mixTime(l.at)}" title="Zeit in der Tracklist – Mitte des Übergangs (Titelanfang ${l.track_start != null ? mixTime(l.track_start) : "?"}, erkannt ab ${mixTime(l.start)}). Ändern und Enter; leer = wieder berechnen." spellcheck="false"></td>
-        <td><span translate="no">${esc(l.artist ? `${l.artist} - ${l.title}` : l.title)}</span>${l.exists ? "" : ' <span class="mx-tag warn" title="Die Datei ist nicht mehr am gespeicherten Ort">fehlt</span>'}
+        <td><span translate="no">${esc(l.artist ? `${l.artist} - ${l.title}` : l.title)}</span>${l.online ? ` <span class="mx-tag online" title="Online erkannt – nicht in deiner Bibliothek">online · <span translate="no">${esc(l.online)}</span></span>` : l.exists ? "" : ' <span class="mx-tag warn" title="Die Datei ist nicht mehr am gespeicherten Ort">fehlt</span>'}
           ${l.also.length ? `<div class="faint sm">auch: <span translate="no">${esc(l.also.join(", "))}</span></div>` : ""}
-          <div class="faint sm" translate="no">${esc(l.path)}</div></td>
-        <td>${(l.tempo >= 0 ? "+" : "") + l.tempo.toFixed(1)} %${l.keylock ? "" : '<div class="faint sm">ohne Keylock</div>'}</td>
+          ${l.online ? '<div class="faint sm">nicht in der Bibliothek</div>' : `<div class="faint sm" translate="no">${esc(l.path)}</div>`}</td>
+        <td>${l.online ? '<span class="faint">–</span>' : (l.tempo >= 0 ? "+" : "") + l.tempo.toFixed(1) + " %" + (l.keylock ? "" : '<div class="faint sm">ohne Keylock</div>')}</td>
         <td>${Math.round(l.conf * 100)} %${l.sure ? "" : ' <span class="mx-tag">unsicher</span>'}</td>
         <td class="mx-acts"><div class="mx-btns"><button class="ghost sm mx-play" data-mxplay="mix" data-t="${l.at}" title="Im Mix ab dieser Zeit vorhören">▶ Mix</button>
-          <button class="ghost sm mx-play" data-mxplay="${l.n}" data-t="${pos}" ${l.exists ? "" : "disabled"} title="Den erkannten Titel an derselben Stelle vorhören">▶ Titel</button>
+          ${l.online ? "" : `<button class="ghost sm mx-play" data-mxplay="${l.n}" data-t="${pos}" ${l.exists ? "" : "disabled"} title="Den erkannten Titel an derselben Stelle vorhören">▶ Titel</button>`}
           <button class="ghost sm" data-mxdrop="${l.n}" title="Treffer verwerfen (falsch erkannt)">✕</button></div></td></tr>`;
     }).join("")}</tbody></table></div>`;
 }
@@ -70,7 +71,8 @@ function mixBodyHtml(d) {
       ${d.index ? `<div class="faint sm">Index: ${esc(d.index)}</div>` : ""}
       ${d.playlist ? `<div class="sm">Gespeichert als Playlist – <a href="#" data-mxpl="${esc(d.playlist)}">in Playlists öffnen ›</a></div>` : ""}</div>
     ${cmp}
-    <div class="hint">Die Zeit ist die Mitte des Übergangs – dort setzen Tracklisten meist den Wechsel. Unsichere Treffer prüfen (▶), falsche mit ✕ verwerfen. Erkannt werden nur Titel deiner Bibliothek; Lücken erscheinen als „ID – ID“.</div>
+    <div class="hint">Die Zeit ist die Mitte des Übergangs – dort setzen Tracklisten meist den Wechsel. Unsichere Treffer prüfen (▶), falsche mit ✕ verwerfen. Erkannt werden nur Titel deiner Bibliothek; Lücken erscheinen als „ID – ID“ und lassen sich mit „Lücken online erkennen …“ über einen Erkennungsdienst füllen.</div>
+    ${d.online ? '<div class="hint">Online erkannte Titel nur für den eigenen Gebrauch – eine Tracklist mit diesen Treffern nicht veröffentlichen (Nutzungsbedingungen des Dienstes).</div>' : ""}
     <div id="mxRows">${mixRowsHtml(d)}</div>${dropped}`;
 }
 
@@ -82,6 +84,8 @@ function mixHead() {
       <button class="ghost sm" data-mxa="copy">Text kopieren</button><button class="ghost sm" data-mxa="txt">Text speichern …</button>
       <button class="ghost sm" data-mxa="cue">CUE speichern …</button>
       ${MXP.d.missing.length ? `<button class="ghost sm" data-mxa="ideas">Fehlende als Ideen (${MXP.d.missing.length})</button>` : ""}
+      ${MXP.d.gaps ? `<button class="ghost sm" data-mxa="gaps" title="Ausschnitte der Lücken über einen Erkennungsdienst erkennen (kostenpflichtig)">Lücken online erkennen (${MXP.d.gaps}) …</button>` : ""}
+      ${MXP.d.online ? `<button class="ghost sm" data-mxa="online" title="Online erkannte Titel in einer Wunschliste merken">Online erkannte als Ideen (${MXP.d.online})</button>` : ""}
       ${MXP.d.report ? '<button class="ghost sm" data-mxa="report">Bericht zeigen</button>' : ""}
       <button class="ghost sm" data-mxa="delete" title="Nur die Analyse löschen – Mix, Titel und gespeicherte Playlist bleiben">Löschen …</button>
       <button class="primary sm" data-mxa="pl" id="mxSavePl">${MXP.d.playlist ? "Playlist nachführen" : "Als Playlist speichern"}</button></div>`;
@@ -172,6 +176,12 @@ async function mixAction(a) {
       const r = await call("mix_missing_to_ideas", id, "", "");
       toast(r.added ? `${r.added} Titel als Ideen gemerkt in „${r.name}“${r.dupes ? ` (${r.dupes} schon vorhanden)` : ""}.` : `Schon alle in „${r.name}“.`);
       if (typeof ideasBadge === "function") ideasBadge();
+    } else if (a === "gaps") {
+      await mixGaps(null);
+    } else if (a === "online") {
+      const r = await call("mix_online_to_ideas", id, "", "");
+      toast(r.added ? `${r.added} Titel als Ideen gemerkt in „${r.name}“${r.dupes ? ` (${r.dupes} schon vorhanden)` : ""}.` : `Schon alle in „${r.name}“.`);
+      if (typeof ideasBadge === "function") ideasBadge();
     } else if (a === "pl") {
       const r = await call("mix_to_playlist", id, "");
       toast(r.message);
@@ -210,6 +220,8 @@ async function mixAction(a) {
     if (x) { await act(() => call("mix_drop", MXP.sel, +x.dataset.mxdrop, true)); return; }
     const r = e.target.closest("[data-mxback]");
     if (r) { await act(() => call("mix_drop", MXP.sel, +r.dataset.mxback, false)); return; }
+    const g = e.target.closest("[data-mxgap]");
+    if (g) { await mixGaps(+g.dataset.mxgap); return; }
     const l = e.target.closest("[data-mxpl]");
     if (l) { e.preventDefault(); mixStop(); await mixShowPlaylist(l.dataset.mxpl); }
   });
@@ -222,6 +234,58 @@ async function mixAction(a) {
     if (t) await act(() => call("mix_set_time", MXP.sel, +t.dataset.mxtime, t.value));
   });
 })();
+
+// ====================================================================== #393 „MixID light“: Lücken online erkennen
+/** Dialog mit Dienst, Ausschnittlänge, Kostengrenze und Kostenvorschau; only = Beginn einer einzelnen Lücke */
+async function mixGaps(only) {
+  const id = MXP.sel;
+  let g;
+  try { g = await call("mix_gaps_info", id); } catch (e) { toast(String(e.message || e)); return; }
+  if (!g.mix_exists) { await info("Lücken online erkennen", "Die Mix-Datei gibt es nicht mehr am gespeicherten Ort."); return; }
+  const recs = g.recognizers || [];
+  if (!recs.length) {
+    await info("Lücken online erkennen", "Kein Erkennungsdienst eingeschaltet. Unter Plugins „SonoVault“ einschalten und den Schlüssel eintragen – die Audio-Erkennung braucht einen bezahlten Tarif bzw. Kredite.");
+    return;
+  }
+  const rec = recs.find((r) => r.ready) || recs[0];
+  if (!rec.ready) { await info("Lücken online erkennen", `${rec.name}: ${rec.why || "nicht bereit"}.`); return; }
+  const secs = (rec.seconds || [30]).map((s) => `<option value="${s}"${s === (rec.default || 30) ? " selected" : ""}>${s} Sekunden</option>`).join("");
+  const maxes = [5, 10, 20, 50].map((n) => `<option value="${n}"${n === 10 ? " selected" : ""}>${n}</option>`).join("");
+  const html = `<div class="mx-gapdlg">
+      <p><b>${only === null ? `${g.gaps.length} Lücke(n) ohne erkannten Titel.` : `Lücke ab ${mixTime(only)}.`}</b></p>
+      <p>TagStudio schneidet daraus kurze Ausschnitte (ohne Tags, mono) und lässt sie erkennen – je angefangene 3 Minuten einer, in der Mitte des Abschnitts.</p>
+      <label class="row" style="gap:8px;align-items:center">Dienst <select id="mgPid" class="inp">${recs.filter((r) => r.ready).map((r) => `<option value="${esc(r.id)}" translate="no">${esc(r.name)}</option>`).join("")}</select></label>
+      <label class="row" style="gap:8px;align-items:center">Länge des Ausschnitts <select id="mgSec" class="inp">${secs}</select></label>
+      <label class="row" style="gap:8px;align-items:center">Höchstens so viele Ausschnitte <select id="mgMax" class="inp">${maxes}</select></label>
+      <div id="mgEst" class="mx-cmp">…</div>
+      <div class="hint">Datenschutz: Die Ausschnitte werden zum Dienst hochgeladen. Nur Mixe, die du hochladen darfst (eigene Aufnahmen bzw. mit Rechten). Treffer bleiben im Mix-Ergebnis – nur für den eigenen Gebrauch, nicht veröffentlichen.</div>
+      <label class="row" style="gap:8px;align-items:center"><input type="checkbox" id="mgOk"> Kosten und Hochladen bestätigen</label></div>`;
+  const est = async (body) => {
+    try {
+      const p = await call("mix_gaps_plan", id, $("#mgPid", body).value, +$("#mgSec", body).value, +$("#mgMax", body).value, only);
+      $("#mgEst", body).innerHTML = p.clips
+        ? `<div><b>${p.clips} Ausschnitt(e)</b> aus ${p.gaps} Lücke(n) – geschätzt <b>${p.cost} ${esc(p.unit)}</b> (${p.each} je Ausschnitt).</div>${p.more ? `<div class="sm">${p.more} weitere Stelle(n) bei einem späteren Lauf.</div>` : ""}<div class="faint sm">${esc(p.quota)}</div>`
+        : "Keine Stelle mehr zum Erkennen – alle schon geprüft.";
+    } catch (e) { $("#mgEst", body).textContent = String(e.message || e); }
+  };
+  const opts = await modal({
+    title: "Lücken online erkennen", html,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Erkennen", value: "go", primary: true }],
+    onMount: (body) => { body.addEventListener("change", (e) => { if (e.target.id !== "mgOk") est(body); }); est(body); },
+    collect: (body) => {
+      if (!$("#mgOk", body).checked) { toast("Bitte zuerst „Kosten und Hochladen bestätigen“ anhaken."); return false; }
+      return { pid: $("#mgPid", body).value, seconds: +$("#mgSec", body).value, max: +$("#mgMax", body).value, only, confirm: true };
+    },
+  });
+  if (!opts) return;
+  const r = await runTask(call("start_mix_gaps", id, opts), "Mix-Lücken erkennen");
+  if (!r) return;
+  const msg = `${r.name}: ${r.found} Titel erkannt aus ${r.clips} von ${r.planned} Ausschnitt(en).`;
+  status(msg, "info");
+  if (r.error) await info("Lücken online erkennen", `${msg}\n\nAbgebrochen: ${r.error}`);
+  else toast(msg);
+  await mixesLoad(id);
+}
 
 /** Playlists › Importieren ▾: Einträge, wenn das Plugin bereit ist bzw. Analysen vorhanden sind */
 async function mixMenuEntries() {

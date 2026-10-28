@@ -8,6 +8,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **„MixID light“ (#393):** auf der Seite **Mixe** die Lücken („ID – ID“) einer Analyse online erkennen – kurze
+  Ausschnitte gehen an einen Erkennungsdienst (SonoVault 1.3, kostenpflichtig), mit Kostengrenze, Kostenvorschau und
+  Bestätigung. Treffer erscheinen als „online · SonoVault“, lassen sich verwerfen und als Ideen merken; geprüfte Stellen
+  werden nicht nochmals gesendet; Aufbewahrung nach den SonoVault-Bedingungen. Neue Plugin-Funktion `identify_clip`.
 - **MixID-Tracklisten einfügen (#392):** von MixID kopierte Tracklisten mit Zeitmarken über 99 Minuten („106:00“)
   werden richtig gelesen (Playlists, Ideen, Mix analysieren 1.2) – bisher blieb die Zeit im Künstlernamen stehen.
   „Trackliste einfügen …“ zeigt für MixID und 1001Tracklists eine Anleitung mit Link.

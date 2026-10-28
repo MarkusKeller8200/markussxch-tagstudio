@@ -199,7 +199,18 @@ Release nachschlagen als Tagger-Aktion (#380). Feldnamen und Parameter aus der �
   ISRC bzw. Suche (nur sichere Treffer); gleich → nichts. Melden nur mit Häkchen: `POST /v1/tracks/{id}/suggestions`
   `{genreId, note ≤ 100}` (100 je Tag); „Meine Genre-Vorschläge …“ = `GET /v1/suggestions` mit Status.
 - **Audio-Erkennung:** Antwort `results` ist schlank (`id`, `title`, `artists`, `confidence`) → `GET /v1/tracks/{id}`.
-- **#382:** Anfrage-Entwurf (SonoVault-Fragen + MixID) im Issue, sendet der User.
+- **#382:** Anfrage-Entwurf (SonoVault-Fragen + MixID) im Issue, sendet der User. (Am 28.10. eingestellt; ebenso
+  #383-Erweiterung und #391.)
+
+## 6f. „MixID light“ (#393, Plugin 1.3, 28.10.2026)
+
+- `identify_clip(ctx, path, start, seconds)` schneidet mit `excerpt_at` einen Ausschnitt aus dem Mix und nutzt
+  dieselbe Erkennung wie „Audio erkennen“ (`POST /v1/tracks/identify`, 10 Kredite + 1 je MB, 429 nie wiederholt).
+  Zurück gehen nur Künstler, Titel, Sicherheit, ID.
+- `identify_clip_info(ctx)`: Kosten je Länge, Kontingent, `retain_days` = `None` mit bezahltem Tarif (§7 „Retained
+  Data“), sonst 30 (Free: nur Zwischenspeicher). TagStudio entfernt Online-Treffer im Free-Tarif nach 30 Tagen.
+- Terms §4/§25: keine eigene oder geteilte Musikdatenbank aus diesen Treffern; Hinweis in der Oberfläche, Tracklisten
+  mit SonoVault-Treffern nicht zu veröffentlichen. §5 „Inputs“: nur Mixe hochladen, die man hochladen darf.
 
 ## 7. Eigener Katalog statt Dienst (#260, Entscheid User 24.10.2026)
 

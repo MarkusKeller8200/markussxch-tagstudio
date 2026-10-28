@@ -74,6 +74,29 @@ class TestLogic(unittest.TestCase):
         finally:
             shutil.rmtree(d, ignore_errors=True)
 
+    def test_online_gaps(self):
+        """#393: Ausschnitte je Lücke reihum, Treffer zusammenfassen, unter 30 % verwerfen, Aufbewahrung."""
+        r = mixresult.new("/x/Mix.mp3", 815, rows())
+        self.assertEqual(mixresult.gaps(r), [(0.0, 85.0), (390.0, 615.0)])
+        c = mixresult.plan_clips(r, 30, 10)
+        self.assertEqual([x["gap"] for x in c], [0.0, 390.0, 390.0])          # 85 s → 1, 225 s → 2 Ausschnitte
+        self.assertTrue(all(g <= x["start"] and x["end"] <= e for x in c for g, e in mixresult.gaps(r) if g == x["gap"]))
+        self.assertEqual([x["gap"] for x in mixresult.plan_clips(r, 30, 2)], [0.0, 390.0])   # zuerst jede Lücke einmal
+        self.assertEqual([x["gap"] for x in mixresult.plan_clips(r, 30, 10, only=390)], [390.0, 390.0])
+        hit = {"artist": "X", "title": "Y", "conf": 0.8}
+        n = mixresult.add_online(r, [(c[0], {"artist": "Z", "title": "W", "conf": 0.2}), (c[1], hit), (c[2], dict(hit, conf=0.5))],
+                                 "sonovault", "SonoVault", today="2026-10-28")
+        self.assertEqual(n, 1)
+        on = [x for x in r["rows"] if x.get("online")]
+        self.assertEqual((len(on), on[0]["start"], on[0]["end"], on[0]["conf"]), (1, c[1]["start"], c[2]["end"], 0.8))
+        self.assertEqual(len(r["probed"]), 3)
+        self.assertEqual(mixresult.plan_clips(r, 30, 10), [])
+        self.assertEqual(mixresult.online_text(r), "X - Y")
+        self.assertFalse(mixresult.purge_online(r, {"sonovault": None}, today="2027-01-01"))
+        self.assertFalse(mixresult.purge_online(r, {"sonovault": 30}, today="2026-11-20"))
+        self.assertTrue(mixresult.purge_online(r, {"sonovault": 30}, today="2026-12-01"))
+        self.assertEqual(mixresult.online_text(r), "")
+
 
 class TestSession(unittest.TestCase):
     def setUp(self):

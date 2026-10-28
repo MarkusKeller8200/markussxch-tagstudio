@@ -370,6 +370,12 @@ unter Plugins „Installieren …“); nichts wird hochgeladen oder heruntergela
   Analyse.
 - Erkannt werden nur Titel, die im Index sind – fremde Titel bleiben „ID – ID“. Auch erreichbar über Playlists ›
   Importieren ▾ „Aus Mix erkennen …“ / „Frühere Mix-Analysen …“.
+- **Lücken online erkennen („MixID light“):** „Lücken online erkennen …“ (alle) bzw. „Erkennen …“ an einer Lücke
+  schickt kurze Ausschnitte (ohne Tags) an einen Erkennungsdienst – heute SonoVault (Schlüssel und Kredite bzw.
+  bezahlter Tarif nötig). Im Fenster Länge des Ausschnitts und Höchstzahl wählen; die Kosten stehen darunter, erst
+  das Häkchen „Kosten und Hochladen bestätigen“ startet. Treffer erscheinen mit „online · SonoVault“ und „nicht in der
+  Bibliothek“; „Online erkannte als Ideen“ merkt sie in einer Wunschliste. Bereits geprüfte Stellen werden nicht
+  nochmals gesendet. Nur für den eigenen Gebrauch – solche Tracklisten nicht veröffentlichen.
 
 ### Einkäufe
 
