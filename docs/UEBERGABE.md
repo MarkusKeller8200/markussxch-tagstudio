@@ -39,6 +39,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **#383 geschlossen (User 23:21: wird nicht weiter verfolgt, „not planned“)** – Terms §7 (ii) bestätigt: nur Titel,
   Künstler, Release, Label, Genre, Datum, Dauer, ISRC; IDs/BPM/Tonart/ISWC/Katalognummer bleiben ausgeschlossen.
   Umgesetzter Teil (8 erlaubte Felder + Abrufdatum) bleibt im Code.
+- **#259 (User 23:23: wird nicht weiter verfolgt)** – war schon geschlossen, Grund auf „not planned“ geändert; Aktionen
+  „Genre-Korrektur melden“/„Meine Genre-Vorschläge“ bleiben vorerst im Plugin (Ausbau nur auf Wunsch).
 - **Testrückmeldung 28.10. 20:25:** geschlossen #387, #390, #379, #380, #381, #259 (Testlisten abgehakt); offen #383 (Testliste
   noch nicht abgehakt) und #382 (Anfrage sendet der User).
 - **SonoVault 1.2 (28.10. 19:59, `_3 Beta-Test`, Meilenstein #30):** #383 `TXXX:SONOVAULT_*` (Herkunft „SonoVault“ in
