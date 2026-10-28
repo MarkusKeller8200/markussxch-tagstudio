@@ -316,6 +316,8 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
   folders, virtual folders) – the library is looked for in the usual place and on external drives and **only read**;
   fetching again updates them. **“Paste tracklist …”** takes over a copied tracklist from 1001Tracklists, MixID,
   Beatport etc. (one “Artist - Title” per line) as entries without a file; TagStudio does not fetch any web page.
+  For MixID and 1001Tracklists the dialog shows short instructions with a link (open the mix in your browser, select
+  and copy the tracklist, paste it); timestamps also above 99 minutes (“106:00”).
   **“Recognise from mix …”** (with the “Analyse mix” plugin) finds the tracks of your library in a mix file and saves
   them as a playlist in the folder “Mixe”; **“Earlier mix analyses …”** leads to the **Mixes** page (see there).
 - **More ▾:** export as M3U8 (absolute or relative paths), Rekordbox XML or CSV (whole folders as Rekordbox XML with

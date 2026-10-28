@@ -533,15 +533,36 @@ async function plsImportApp(app) {
 }
 const PLS_DJ_HINT = { serato: "den Ordner „_Serato_“", engine: "den Ordner „Engine Library“", vdj: "den Ordner „VirtualDJ“" };
 
+/** #392: Anleitung je Quelle im Dialog „Trackliste einfügen“ (MixID: kein Auslesen der Seite – Nutzungsbedingungen §4) */
+const PLS_TXT_GUIDE = {
+  mixid: { name: "MixID", url: "https://www.mixid.fm/",
+    steps: ["Mix auf mixid.fm öffnen (angemeldet).", "Tracklist mit der Maus markieren (Zeit, Künstler — Titel) und kopieren (Strg+C bzw. Cmd+C).",
+      "Hier einfügen und „Übernehmen“ – danach „Mit Bibliothek abgleichen …“."] },
+  "1001tracklists": { name: "1001Tracklists", url: "https://www.1001tracklists.com/",
+    steps: ["Tracklist auf 1001tracklists.com öffnen.", "Titel markieren und kopieren.", "Hier einfügen und „Übernehmen“."] },
+};
+
 /** #279: kopierte Trackliste einfügen → Einträge ohne Datei, danach „Mit Bibliothek abgleichen …“ */
 async function plsImportText() {
   const r = await modal({ title: "Trackliste einfügen", wide: true,
     html: `<div class="hint">Trackliste von 1001Tracklists, MixID, einer Beatport-Chart oder aus eigenen Notizen kopieren und hier einfügen – je Zeile „Künstler - Titel (Mix)“. Nummern, Zeitmarken und Labels in eckigen Klammern fallen weg; unbekannte Titel („ID - ID“) werden ausgelassen. TagStudio ruft dafür keine Webseite ab.</div>
       <div class="row" style="gap:8px;margin:0 0 8px"><input class="inp" id="plsTxtName" placeholder="Name der Playlist" style="flex:1">
       <select class="inp" id="plsTxtSrc"><option value="1001tracklists">1001Tracklists</option><option value="mixid">MixID</option><option value="beatport">Beatport</option><option value="spotify">Spotify</option><option value="text" selected>andere Quelle</option></select></div>
+      <div class="hint pls-guide" id="plsTxtGuide" hidden></div>
       <textarea class="inp" id="plsTxt" rows="14" style="width:100%;font-family:var(--mono, monospace)" translate="no" placeholder="01. Künstler - Titel (Extended Mix) [Label]"></textarea>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
-    onMount: (b) => b.querySelector("#plsTxt").focus(),
+    onMount: (b) => {
+      // #392: Anleitung je Quelle mit Link (öffnet im Standard-Browser) – TagStudio selbst ruft die Seite nie ab
+      const guide = () => {
+        const g = PLS_TXT_GUIDE[b.querySelector("#plsTxtSrc").value], box = b.querySelector("#plsTxtGuide");
+        box.hidden = !g;
+        if (g) box.innerHTML = `<b>${esc(g.name)}:</b> ${g.steps.map((x, k) => `<span>${k + 1}.</span> <span>${esc(x)}</span>`).join(" ")} <a href="#" class="pl-link" data-url="${esc(g.url)}" title="${esc(g.url)}">${esc(g.name)} öffnen ↗</a>`;
+      };
+      b.querySelector("#plsTxtSrc").addEventListener("change", guide);
+      b.addEventListener("click", (e) => { const l = e.target.closest(".pl-link[data-url]"); if (l) { e.preventDefault(); call("open_url", l.dataset.url); } });
+      guide();
+      b.querySelector("#plsTxt").focus();
+    },
     collect: (b) => ({ text: b.querySelector("#plsTxt").value, name: b.querySelector("#plsTxtName").value.trim(), src: b.querySelector("#plsTxtSrc").value,
       label: b.querySelector("#plsTxtSrc").selectedOptions[0].textContent }) });
   if (!r || !r.text.trim()) return;

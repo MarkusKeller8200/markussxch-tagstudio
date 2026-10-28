@@ -33,7 +33,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **#382 / MixID (28.10. 23:05):** User fragte nach einem Prototyp, der MixID mit Login automatisch ausliest – abgeraten
   (MixID-Terms §4 „scrape“, Kontosperre §8 trifft ggf. alle Rekordcloud-Dienste, widerspricht dem Anfrage-Entwurf).
   Stattdessen halbautomatisch: kopierte Tracklist → „Trackliste einfügen“; Prototyp mit 31 Titeln zeigte Fehler bei
-  „106:00“ → #392 behoben (`playlists._TL_TIME`, `mixscan.tracklist_times`).
+  „106:00“ → #392 behoben (`playlists._TL_TIME`, `mixscan.tracklist_times`). Anleitung + Link im Dialog
+  „Trackliste einfügen“ (`PLS_TXT_GUIDE`). **#382 geschlossen (User 23:14: wird nicht weiter verfolgt)** – Anfrage an
+  Rekordcloud nicht gesendet; #383-Erweiterung (BPM/Tonart/ISWC/Katalognummer) und Links SV3 bleiben damit aus.
 - **Testrückmeldung 28.10. 20:25:** geschlossen #387, #390, #379, #380, #381, #259 (Testlisten abgehakt); offen #383 (Testliste
   noch nicht abgehakt) und #382 (Anfrage sendet der User).
 - **SonoVault 1.2 (28.10. 19:59, `_3 Beta-Test`, Meilenstein #30):** #383 `TXXX:SONOVAULT_*` (Herkunft „SonoVault“ in

@@ -328,6 +328,8 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
   virtuelle Ordner) – die Bibliothek wird am üblichen Ort und auf externen Laufwerken gesucht und **nur gelesen**;
   erneut holen aktualisiert sie. **„Trackliste einfügen …“** übernimmt eine kopierte Trackliste von 1001Tracklists,
   MixID, Beatport u. a. (je Zeile „Künstler - Titel“) als Einträge ohne Datei; TagStudio ruft dafür keine Webseite ab.
+  Für MixID und 1001Tracklists zeigt der Dialog eine kurze Anleitung mit Link (Mix im Browser öffnen, Tracklist markieren
+  und kopieren, einfügen); Zeitmarken auch über 99 Minuten („106:00“).
   **„Aus Mix erkennen …“** (mit dem Plugin „Mix analysieren“) findet die Titel deiner Bibliothek in einer Mix-Datei;
   **„Frühere Mix-Analysen …“** führt auf die Seite **Mixe** (siehe dort).
 - **Mehr ▾:** exportieren als M3U8 (absolute oder relative Pfade), Rekordbox-XML oder CSV (ganze Ordner als

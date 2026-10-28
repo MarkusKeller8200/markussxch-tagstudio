@@ -4591,6 +4591,10 @@ class UiTest(unittest.TestCase):
         pg.click("#menu:not([hidden]) button >> text=Trackliste einfügen")
         pg.wait_for_selector("#plsTxt")
         pg.fill("#plsTxtName", "Radio-Mix")
+        self.assertTrue(pg.locator("#plsTxtGuide").is_hidden())                      # „andere Quelle“: keine Anleitung
+        pg.select_option("#plsTxtSrc", "mixid")                                      # #392: Anleitung mit Link
+        self.assertIn("Mix auf mixid.fm öffnen", pg.inner_text("#plsTxtGuide"))
+        self.assertEqual(pg.get_attribute("#plsTxtGuide .pl-link", "data-url"), "https://www.mixid.fm/")
         pg.select_option("#plsTxtSrc", "1001tracklists")
         pg.fill("#plsTxt", "01. Test - Ton 330 [LABEL]\n02. ID - ID\n03. Test - Gibt es nicht")
         pg.click("#mBtns .primary")
