@@ -311,19 +311,20 @@ wird nichts geändert. Erkannt werden nur Titel, die im Index sind – fremde Ti
 2. **Mehr … › Bibliothek indexieren …** – einmal von Hand; Ordner leer = alle Bibliotheken. Läuft als
    Hintergrund-Auftrag (niedrige Priorität, Abbrechen jederzeit – beim nächsten Lauf geht es dort weiter). Rund
    0,4 MB Index je Titel (gemessen: 1610 Titel ≈ 660 MB).
-3. **Mix analysieren …** – auf der Plugin-Karte oder unter **Playlists › Importieren ▾ › Aus Mix erkennen …**:
+3. **Mix analysieren …** – auf der Seite **Mixe** (Seitenleiste, #390), auf der Plugin-Karte oder unter
+   **Playlists › Importieren ▾ › Aus Mix erkennen …**:
    Mix-Datei wählen, optional die bekannte Tracklist („Künstler - Titel“ je Zeile, gern mit Zeitmarken – auch direkt
    aus YouTube kopiert) zum Vergleich. Mit **„Im Hintergrund analysieren“** läuft die Analyse als Hintergrund-Auftrag
    (Fortschritt und Abbrechen unten in der Fussleiste, #389); danach fragt TagStudio „Ergebnis öffnen?“, in der
    Auftragsliste steht „Ergebnis öffnen“.
-4. **Ergebnisfenster:** je Titel Zeit (Mitte des Übergangs – dort setzen Tracklisten meist den Wechsel; von Hand
+4. **Ergebnis** (Seite „Mixe“, links alle Analysen, rechts die Tracklist): je Titel Zeit (Mitte des Übergangs – dort setzen Tracklisten meist den Wechsel; von Hand
    änderbar), Tempo, Sicherheit, Datei; **▶ Mix** und **▶ Titel** zum Vorhören, **✕** verwirft einen falschen
    Treffer. Speichern als **Playlist** im Ordner „Mixe“ (Zeit, Tempo und Sicherheit als Notiz je Eintrag; nochmals
    speichern führt dieselbe Playlist nach), **CUE-Datei** (Vorschlag: neben dem Mix), **Text**
    (`[12:30] Künstler - Titel`, kopieren oder speichern). Mit Tracklist: **Fehlende als Ideen** merkt die Titel, die
    nicht in der Bibliothek sind, auf der Seite „Ideen“ (#186).
-5. **Frühere Analysen …** (Plugin-Karte bzw. Playlists › Importieren ▾) öffnet gespeicherte Ergebnisse ohne neue
-   Analyse; „Löschen …“ entfernt nur das Ergebnis.
+5. Gespeicherte Ergebnisse stehen auf der Seite **Mixe** (auch „Frühere Analysen …“ auf der Plugin-Karte bzw.
+   Playlists › Importieren ▾) – öffnen ohne neue Analyse; „Löschen …“ entfernt nur das Ergebnis.
 
 **Index automatisch nachführen** (Optionen): neue Titel nach „Vorbereiten“ aufnehmen und beim Start im Hintergrund
 prüfen (neue, geänderte, gelöschte Titel) – beides Standard ein, aber erst, nachdem einmal von Hand indexiert wurde.

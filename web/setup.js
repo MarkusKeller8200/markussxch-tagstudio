@@ -3,7 +3,7 @@
 "use strict";
 
 const SETUP = { st: null };
-const NAV_NAMES = { discover: "Entdecken", ideas: "Ideen", purchases: "Einkäufe", prep: "Vorbereiten", tagger: "Tagger", fixer: "Tag-Fixer", compare: "Vergleich", djset: "DJ-Set", playlists: "Playlists",
+const NAV_NAMES = { discover: "Entdecken", ideas: "Ideen", purchases: "Einkäufe", prep: "Vorbereiten", tagger: "Tagger", fixer: "Tag-Fixer", compare: "Vergleich", djset: "DJ-Set", playlists: "Playlists", mixes: "Mixe",
   snapshots: "Snapshots", backups: "Sicherungen", plugins: "Plugins", settings: "Einstellungen", help: "Hilfe" };
 
 const WIZ_GOALS = [
@@ -12,6 +12,7 @@ const WIZ_GOALS = [
   ["discover", "Neue Musik entdecken", "Künstlern, Labels und Genres folgen, neue Titel vorhören und in Wunschlisten merken", ["discover", "ideas"]],
   ["compare", "Ordner oder Sicherungen vergleichen", "Zwei Stände nebeneinander, Unterschiede übernehmen", ["compare"]],
   ["djset", "DJ-Sets planen", "Reihenfolge nach Tonart, BPM und Energie, Export für Rekordbox & Co.", ["djset"]],
+  ["mixes", "Titel in DJ-Mixes erkennen", "Tracklist eines Mixes aus deiner Bibliothek – als Playlist, CUE oder Text", ["mixes"]],
   ["track", "Änderungen nachverfolgen", "Snapshots der Bibliothek und Sicherungen vor jedem Speichern", ["snapshots", "backups"]],
 ];
 // Programme → Plugin (an/aus) und Schritt im Vorbereiten-Workflow (Stichwort in der Bezeichnung)
@@ -37,6 +38,7 @@ const FIRST_STEPS = {
   compare: ["Links und rechts je einen Ordner (oder Snapshot/Sicherung) wählen.", "Paare links auswählen; Unterschiede sind markiert.", "Alt+→ / Alt+← kopiert markierte Felder auf die andere Seite."],
   djset: ["Titel im Tagger markieren und „Zum DJ-Set“ hinzufügen.", "„Optimieren“ ordnet nach Tonart, BPM und Energie; G fixiert einen Titel.", "Als M3U8, Rekordbox-XML oder CSV exportieren."],
   playlists: ["Im Tagger Titel markieren, Rechtsklick „Zur Playlist hinzufügen …“ (Strg+Shift+P: zur zuletzt benutzten).", "Hier ordnen, umbenennen und in Ordner ziehen; Doppelklick spielt ab.", "Jede Playlist liegt auch als M3U8 im Playlist-Ordner – Archivieren statt Löschen."],
+  mixes: ["Plugin „Mix analysieren“ installieren (Plugins) und einmal „Bibliothek indexieren …“ – danach führt TagStudio den Index selbst nach.", "„Mix analysieren …“: Mix-Datei wählen, optional die bekannte Tracklist; auf Wunsch im Hintergrund.", "Treffer prüfen (▶ Mix / ▶ Titel), falsche mit ✕ verwerfen, dann als Playlist, CUE oder Text speichern."],
   snapshots: ["Bibliothek hinzufügen – TagStudio merkt sich den Tag-Stand aller Titel.", "Snapshots täglich oder von Hand; das Journal zeigt jede Änderung.", "Einzelne Felder oder ganze Titel lassen sich zurücksetzen."],
   backups: ["Vor jedem Speichern sichert TagStudio die Tags der betroffenen Titel.", "Hier ansehen, vergleichen und wiederherstellen.", "Speicherort unter Einstellungen › Sicherungen."],
   plugins: ["Plugins erweitern TagStudio (Online-Metadaten, Beatport, Stems …).", "Mit dem Schalter ein-/ausschalten; manche brauchen eine Installation.", "Aktionen erscheinen danach im Tagger unter „Plugins“."],

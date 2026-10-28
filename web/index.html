@@ -39,6 +39,8 @@
       <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M12 3v3M21 12h-3M12 21v-3M3 12h3"/></svg><span class="nt">DJ-Set</span><span class="nav-sub nt" id="djCount" title="Titel im DJ-Set"></span></button>
     <button class="nav" data-module="playlists" title="Playlists: Titel aus Tagger und DJ-Set sammeln, ordnen und als M3U8 ablegen">
       <svg class="i" viewBox="0 0 24 24"><path d="M3 6h12"/><path d="M3 12h12"/><path d="M3 18h7"/><circle cx="17" cy="17" r="3"/><path d="M20 17V7l2-1"/></svg><span class="nt">Playlists</span><span class="nav-sub nt" id="plsCount"></span></button>
+    <button class="nav" data-module="mixes" title="Mixe: Titel deiner Bibliothek in DJ-Mixes erkennen – Tracklist mit Zeit, Tempo und Sicherheit, speichern als Playlist, CUE oder Text">
+      <svg class="i" viewBox="0 0 24 24"><path d="M3 12h2l2-5 3 10 3-12 3 9 2-2h3"/></svg><span class="nt">Mixe</span><span class="nav-sub nt" id="mixCount" title="Gespeicherte Analysen"></span></button>
     <button class="nav" data-module="snapshots" title="Snapshots und Änderungsjournal">
       <svg class="i" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><circle cx="12" cy="13" r="3.5"/></svg><span class="nt">Snapshots</span><span class="nav-sub nt" id="snapSize"></span></button>
     <button class="nav" data-module="backups" title="Sicherungen">
@@ -518,6 +520,21 @@
             <div class="prep-table card" id="ideaList"></div>
             <audio id="ideaAudio" preload="none"></audio>
           </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="work module" id="moduleMixes" hidden>
+      <div class="mod-page prep-page">
+        <header class="mod-head">
+          <div><h2>Mixe</h2>
+          <p class="muted">Titel deiner Bibliothek in einer Mix-Datei erkennen (DJ-Set, Radiosendung, eigener Mix) – auch mit geändertem Tempo. Ergebnis als Tracklist mit Zeit, Tempo und Sicherheit; speichern als Playlist, CUE-Datei oder Text. Läuft lokal mit dem Plugin „Mix analysieren“, nichts wird hochgeladen.</p></div>
+          <div class="mod-actions"><button class="ghost" id="mxIndex">Bibliothek indexieren …</button><button class="ghost" id="mxOpts">Optionen …</button><button class="primary" id="mxNew">Mix analysieren …</button></div>
+        </header>
+        <div class="muted sm" id="mxStatus"></div>
+        <div class="idea-wrap mx-wrap">
+          <aside class="idea-lists card" id="mxList" aria-label="Analysen"></aside>
+          <section class="idea-main prep-pane" id="mxMain"></section>
         </div>
       </div>
     </div>

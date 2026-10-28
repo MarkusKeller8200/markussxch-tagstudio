@@ -21,8 +21,8 @@ Die vollständige Anleitung zu allen Funktionen. Kurzüberblick, Bilder und Down
   Idee → Kaufen → Gekauft → In Bibliothek, Notiz, Vorhören, als Beatport-Playlist (nur auf Klick).
 - **Playlists:** Titel aus Tagger und DJ-Set in Playlists mit Ordnern sammeln; jede Playlist liegt zusätzlich als
   M3U8 im Playlist-Ordner (für Engine DJ, VirtualDJ & Co.); Archivieren statt Löschen.
-- **Mix analysieren:** in einer Mix-Datei (DJ-Set, Radiosendung) die Titel der eigenen Bibliothek erkennen – auch mit
-  geändertem Tempo – und als Playlist, CUE-Datei oder Text speichern; läuft lokal (Plugin).
+- **Mixe:** in einer Mix-Datei (DJ-Set, Radiosendung) die Titel der eigenen Bibliothek erkennen – auch mit
+  geändertem Tempo – und als Playlist, CUE-Datei oder Text speichern; eigene Seite, läuft lokal (Plugin).
 - **Vergleich zweier Ordner/Dateien:** Feld für Feld mit zeichengenauen Markierungen, Werte per Pfeil übernehmen.
 - **Tag-Fixer:** Mehrfachwerte (`;`, `/`, `feat.` …) vereinheitlichen oder in echte ID3v2.4-Mehrfachwerte umwandeln.
 - **Sicherheit beim Speichern:** vor jedem Speichern automatische Sicherung der Tags, Änderungs-Viewer,
@@ -328,9 +328,8 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
   virtuelle Ordner) – die Bibliothek wird am üblichen Ort und auf externen Laufwerken gesucht und **nur gelesen**;
   erneut holen aktualisiert sie. **„Trackliste einfügen …“** übernimmt eine kopierte Trackliste von 1001Tracklists,
   MixID, Beatport u. a. (je Zeile „Künstler - Titel“) als Einträge ohne Datei; TagStudio ruft dafür keine Webseite ab.
-  **„Aus Mix erkennen …“** (mit dem Plugin „Mix analysieren“) findet die Titel deiner Bibliothek in einer Mix-Datei und
-  speichert sie als Playlist im Ordner „Mixe“; **„Frühere Mix-Analysen …“** öffnet gespeicherte Ergebnisse (siehe
-  Plugins).
+  **„Aus Mix erkennen …“** (mit dem Plugin „Mix analysieren“) findet die Titel deiner Bibliothek in einer Mix-Datei;
+  **„Frühere Mix-Analysen …“** führt auf die Seite **Mixe** (siehe dort).
 - **Mehr ▾:** exportieren als M3U8 (absolute oder relative Pfade), Rekordbox-XML oder CSV (ganze Ordner als
   Rekordbox-XML mit Ordnerbaum per Rechtsklick auf den Ordner). **„Mit Bibliothek abgleichen …“** sucht zu Einträgen
   ohne Datei den passenden Titel (gleiche ISRC bzw. Künstler + Titel + Mix = gefunden; „Song - Extended Mix“ und
@@ -346,6 +345,29 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
   die übernommenen Titel in eine Playlist; neue Titel werden ausserdem automatisch mit passenden Einträgen ohne Datei
   verknüpft.
 - Die bisherigen gespeicherten DJ-Set-Listen werden beim ersten Start einmalig als Playlists übernommen.
+
+### Mixe
+
+Titel deiner Bibliothek in einer **Mix-Datei** erkennen (DJ-Set, Radiosendung, eigener Mix) – auch mit geändertem
+Tempo (±10 %, mit und ohne Keylock). Seite **Mixe** in der Seitenleiste (nach „Playlists“, die Zahl = gespeicherte
+Analysen). Läuft ganz lokal mit dem Plugin „Mix analysieren“ (eigene Umgebung mit NumPy, SciPy, FFmpeg, etwa 100 MB –
+unter Plugins „Installieren …“); nichts wird hochgeladen oder heruntergeladen.
+
+- **Einmal „Bibliothek indexieren …“** (Hintergrund-Auftrag, rund 0,4 MB je Titel). Danach führt TagStudio den Index
+  selbst nach: neue Titel nach „Vorbereiten“, beim Start im Hintergrund, verschobene Titel sofort (**Optionen …**).
+- **„Mix analysieren …“:** Mix-Datei wählen, optional die bekannte Tracklist (je Zeile „Künstler - Titel“, gern mit
+  Zeitmarken, auch direkt aus YouTube kopiert) zum Vergleich; auf Wunsch **im Hintergrund** (Fortschritt unten in der
+  Fussleiste, danach „Ergebnis öffnen“).
+- **Ergebnis:** links alle Analysen, rechts die Tracklist – je Titel Zeit (Mitte des Übergangs, änderbar: Zeit
+  eintippen + Enter, leer = neu berechnen), Tempo, Sicherheit; unsichere Treffer sind hervorgehoben, Lücken stehen
+  als „ID – ID“. **▶ Mix** hört den Mix ab dieser Zeit, **▶ Titel** den erkannten Titel an derselben Stelle; **✕**
+  verwirft einen falschen Treffer („Verworfen › Zurückholen“).
+- **Speichern:** „Als Playlist speichern“ legt eine Playlist im Ordner „Mixe“ an (Zeit · Tempo · Sicherheit als Notiz;
+  nochmals speichern führt sie nach), „CUE speichern …“ (Vorschlag: neben dem Mix), „Text kopieren/speichern …“
+  (`[12:30] Künstler - Titel`), mit Tracklist „Fehlende als Ideen“ (Seite „Ideen“). „Löschen …“ entfernt nur die
+  Analyse.
+- Erkannt werden nur Titel, die im Index sind – fremde Titel bleiben „ID – ID“. Auch erreichbar über Playlists ›
+  Importieren ▾ „Aus Mix erkennen …“ / „Frühere Mix-Analysen …“.
 
 ### Einkäufe
 
@@ -584,15 +606,8 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   Playlist in Lexicon an, erneutes Senden fügt fehlende Titel an ihrer Stelle ein und entfernt nichts; nur mit
   eingeschaltetem Zurückschreiben, siehe [PLUGINS.md](../PLUGINS.md)).
 - **Lautheit messen:** LUFS, True Peak, Lautheitsbereich (EBU R128, FFmpeg) als Felder, optional angeglichene Kopie.
-- **Mix analysieren:** erkennt die Titel deiner Bibliothek in einer Mix-Datei – auch mit geändertem Tempo (±10 %, mit
-  und ohne Keylock) – ganz lokal (eigene Umgebung mit NumPy, SciPy, FFmpeg). Einmal **Mehr … › Bibliothek
-  indexieren …** (Hintergrund-Auftrag; danach führt TagStudio den Index nach „Vorbereiten“ und beim Start selbst
-  nach), dann **Mix analysieren …** (Plugin-Karte oder Playlists › Importieren ▾ › „Aus Mix erkennen …“): Mix-Datei
-  wählen, optional die bekannte Tracklist zum Vergleich; auf Wunsch **im Hintergrund** (weiterarbeiten, danach
-  „Ergebnis öffnen“). Das **Ergebnisfenster** zeigt je Titel Zeit (Mitte des
-  Übergangs, änderbar), Tempo und Sicherheit; ▶ hört im Mix bzw. im Titel vor, ✕ verwirft falsche Treffer. Speichern
-  als Playlist (Ordner „Mixe“), CUE-Datei (neben dem Mix) oder Text; fehlende Titel der Tracklist als Ideen merken.
-  Fremde Titel erkennt das Plugin nicht – sie bleiben „ID – ID“. Details in [PLUGINS.md](../PLUGINS.md).
+- **Mix analysieren:** erkennt die Titel deiner Bibliothek in Mix-Dateien – Bedienung auf der Seite **Mixe** (siehe
+  dort), Details in [PLUGINS.md](../PLUGINS.md).
 - **Protokolle:** Bei jedem Plugin unter **Mehr …** „Log-Ordner öffnen“ und „Protokoll live anzeigen …“ – ein eigenes
   Fenster, das das Protokoll laufend nachführt; Zeilen eines laufenden Vorgangs erscheinen sofort („läuft“).
 - **Eigene Plugins** in `~/TagStudio/Plugins` – Anleitung in [PLUGINS.md](../PLUGINS.md).

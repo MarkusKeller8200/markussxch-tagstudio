@@ -31,7 +31,16 @@ class MixesMixin:
 
     # ------------------------------------------------------------------ Abruf
     def mix_list(self) -> dict:
-        return {"items": mixresult.listing(self._mix_dir()), "ready": self._mix_ready()}
+        """Gespeicherte Analysen und Stand des Plugins (für die Seite „Mixe“, #390)."""
+        info = {"found": False}
+        try:
+            p = self.plugins.get(PLUGIN)
+            d = p.info()
+            info = {"found": True, "enabled": bool(d.get("enabled")), "state": d.get("state", ""),
+                    "version": d.get("version", ""), "status": d.get("status_text", "")}
+        except KeyError:
+            pass
+        return {"items": mixresult.listing(self._mix_dir()), "ready": self._mix_ready(), "plugin": info}
 
     def mix_get(self, rid) -> dict:
         res = mixresult.load(self._mix_dir(), rid)

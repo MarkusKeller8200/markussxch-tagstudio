@@ -293,16 +293,18 @@ are recognised – other tracks stay “ID – ID”.
 2. **More … › Index library …** – once by hand; empty folders = all libraries. Runs as a background job (low
    priority, cancel at any time – the next run continues where it stopped). About 0.4 MB of index per track
    (measured: 1610 tracks ≈ 660 MB).
-3. **Analyse mix …** – on the plugin card or under **Playlists › Import ▾ › Recognise from mix …**: choose the mix
+3. **Analyse mix …** – on the **Mixes** page (sidebar, #390), on the plugin card or under
+   **Playlists › Import ▾ › Recognise from mix …**: choose the mix
    file, optionally the known tracklist (one “Artist - Title” per line, ideally with timestamps – also copied straight
    from YouTube) for comparison. With **“Analyse in the background”** the analysis runs as a background job (progress
    and cancel in the footer, #389); afterwards TagStudio asks “Open result?”, and the job list shows “Open result”.
-4. **Result window:** per track the time (middle of the transition – where tracklists usually place the change;
+4. **Result** (“Mixes” page, all analyses on the left, the tracklist on the right): per track the time (middle of the transition – where tracklists usually place the change;
    editable), tempo, confidence and file; **▶ Mix** and **▶ Track** to preview, **✕** discards a wrong match. Save as
    a **playlist** in the folder “Mixe” (time, tempo and confidence as a note per entry; saving again updates the same
    playlist), a **CUE file** (suggested: next to the mix) or **text** (`[12:30] Artist - Title`, copy or save). With a
    tracklist: **Missing ones as ideas** saves the tracks that are not in your library on the “Ideas” page (#186).
-5. **Earlier analyses …** (plugin card or Playlists › Import ▾) opens saved results without a new analysis;
+5. Saved results are on the **Mixes** page (also “Earlier analyses …” on the plugin card or Playlists › Import ▾) –
+   open without a new analysis;
    “Delete …” removes only the result.
 
 **Update the index automatically** (Options): add new tracks after “Prepare” and check at start in the background

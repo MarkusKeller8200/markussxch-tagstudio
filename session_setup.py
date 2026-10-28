@@ -8,8 +8,9 @@ import core
 import folders
 from version import VERSION
 
-MODULES = ["discover", "ideas", "purchases", "prep", "tagger", "fixer", "compare", "djset", "playlists", "snapshots", "backups", "plugins",
-           "settings", "help"]                 # Standard-Reihenfolge der Seitenleiste (#316; #333: Entdecken zuerst; #186: Ideen danach)
+MODULES = ["discover", "ideas", "purchases", "prep", "tagger", "fixer", "compare", "djset", "playlists", "mixes", "snapshots", "backups",
+           "plugins", "settings", "help"]      # Standard-Reihenfolge der Seitenleiste (#316; #333: Entdecken zuerst; #186: Ideen danach;
+                                                # #390: Mixe nach Playlists)
 ALWAYS = {"settings", "help"}          # lassen sich nicht ausblenden
 # Schlüssel, an denen ein schon benutztes TagStudio erkennbar ist (dann kein Assistent beim Start)
 USED_KEYS = ("hist_tagger", "default_tagger", "tagger_state", "hist_left", "web_ui", "theme", "web_theme", "backup_dir", "prep_workflows")

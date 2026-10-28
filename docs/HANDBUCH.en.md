@@ -22,8 +22,8 @@ The complete guide to all features. Overview, pictures and download: [start page
   bought → in library, note, preview, as Beatport playlist (only on click).
 - **Playlists:** collect tracks from the tagger and the DJ set in playlists with folders; every playlist is also
   stored as M3U8 in the playlist folder (for Engine DJ, VirtualDJ & co.); archive instead of delete.
-- **Analyse mix:** recognise the tracks of your own library in a mix file (DJ set, radio show) – even with changed
-  tempo – and save them as playlist, CUE file or text; runs locally (plugin).
+- **Mixes:** recognise the tracks of your own library in a mix file (DJ set, radio show) – even with changed
+  tempo – and save them as playlist, CUE file or text; own page, runs locally (plugin).
 - **Comparing two folders/files:** field by field with character-exact highlighting, take over values with an arrow.
 - **Tag fixer:** unify multiple values (`;`, `/`, `feat.` …) or convert them into real ID3v2.4 multiple values.
 - **Safe saving:** automatic backup of the tags before every save, change viewer, byte-exact restore; undo/redo
@@ -317,7 +317,7 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
   fetching again updates them. **“Paste tracklist …”** takes over a copied tracklist from 1001Tracklists, MixID,
   Beatport etc. (one “Artist - Title” per line) as entries without a file; TagStudio does not fetch any web page.
   **“Recognise from mix …”** (with the “Analyse mix” plugin) finds the tracks of your library in a mix file and saves
-  them as a playlist in the folder “Mixe”; **“Earlier mix analyses …”** opens saved results (see Plugins).
+  them as a playlist in the folder “Mixe”; **“Earlier mix analyses …”** leads to the **Mixes** page (see there).
 - **More ▾:** export as M3U8 (absolute or relative paths), Rekordbox XML or CSV (whole folders as Rekordbox XML with
   folder tree by right-clicking the folder). **“Match with library …”** finds the matching track for entries without
   a file (same ISRC or artist + title + mix = found; “Song - Extended Mix” and “Song (Extended)” count as equal,
@@ -331,6 +331,28 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
 - **Prepare:** in the step “Take over into the library”, “Add to playlist” (e.g. `New/{Jahr}-{Monat}`) puts the
   taken-over tracks into a playlist; new tracks are also linked automatically to matching entries without a file.
 - The previously saved DJ set lists are taken over once as playlists on the first start.
+
+### Mixes
+
+Recognise the tracks of your library in a **mix file** (DJ set, radio show, your own mix) – even with changed tempo
+(±10 %, with and without keylock). **Mixes** page in the sidebar (after “Playlists”, the number = saved analyses). Runs
+entirely locally with the “Analyse mix” plugin (own environment with NumPy, SciPy, FFmpeg, about 100 MB – “Install …”
+under Plugins); nothing is uploaded or downloaded.
+
+- **Once “Index library …”** (background job, about 0.4 MB per track). Afterwards TagStudio updates the index by
+  itself: new tracks after “Prepare”, at start in the background, moved tracks immediately (**Options …**).
+- **“Analyse mix …”:** choose the mix file, optionally the known tracklist (one “Artist - Title” per line, ideally
+  with timestamps, also copied straight from YouTube) for comparison; optionally **in the background** (progress in
+  the footer, then “Open result”).
+- **Result:** all analyses on the left, the tracklist on the right – per track the time (middle of the transition,
+  editable: type the time + Enter, empty = calculate again), tempo and confidence; uncertain matches are highlighted,
+  gaps show as “ID – ID”. **▶ Mix** plays the mix from this time, **▶ Track** the recognised track at the same
+  position; **✕** discards a wrong match (“Discarded › Restore”).
+- **Saving:** “Save as playlist” creates a playlist in the folder “Mixe” (time · tempo · confidence as a note; saving
+  again updates it), “Save CUE …” (suggested: next to the mix), “Copy/save text …” (`[12:30] Artist - Title`), with a
+  tracklist “Missing ones as ideas” (“Ideas” page). “Delete …” removes only the analysis.
+- Only tracks in the index are recognised – other tracks stay “ID – ID”. Also reachable via Playlists › Import ▾
+  “Recognise from mix …” / “Earlier mix analyses …”.
 
 ### Purchases
 
@@ -554,14 +576,8 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   (Playlists › More ▾ › “Send to Lexicon …”: creates the playlist in Lexicon, sending again inserts missing tracks at
   their position and removes nothing; only with writing back switched on, see [PLUGINS.en.md](../PLUGINS.en.md)).
 - **Measure loudness:** LUFS, true peak, loudness range (EBU R128, FFmpeg) as fields, optionally a levelled copy.
-- **Analyse mix:** recognises the tracks of your library in a mix file – even with changed tempo (±10 %, with and
-  without keylock) – entirely locally (own environment with NumPy, SciPy, FFmpeg). Once **More … › Index library …**
-  (background job; afterwards TagStudio updates the index after “Prepare” and at start by itself), then **Analyse
-  mix …** (plugin card or Playlists › Import ▾ › “Recognise from mix …”): choose the mix file, optionally the known
-  tracklist for comparison; optionally **in the background** (keep working, then “Open result”). The **result window** shows per track the time (middle of the transition, editable), tempo
-  and confidence; ▶ previews in the mix or in the track, ✕ discards wrong matches. Save as playlist (folder “Mixe”),
-  CUE file (next to the mix) or text; save missing tracks of the tracklist as ideas. Tracks you don't own are not
-  recognised – they stay “ID – ID”. Details in [PLUGINS.en.md](../PLUGINS.en.md).
+- **Analyse mix:** recognises the tracks of your library in mix files – use it on the **Mixes** page (see there),
+  details in [PLUGINS.en.md](../PLUGINS.en.md).
 - **Logs:** for every plugin under **More …** “Open log folder” and “Show log live …” – a separate window that keeps
   the log up to date; lines of a running operation appear immediately (“running”).
 - **Your own plugins** in `~/TagStudio/Plugins` – instructions in [PLUGINS.en.md](../PLUGINS.en.md).

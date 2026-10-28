@@ -155,7 +155,7 @@ class UiTest(unittest.TestCase):
         """#88 Menü-Reihenfolge und Startseite, #87 Einstellungskacheln, #85/#86 Vorgaben, #89 Kanal."""
         pg = self.pg
         navs = pg.evaluate("[...document.querySelectorAll('.nav[data-module]')].map(b=>b.dataset.module)")
-        self.assertEqual(navs, ["discover", "ideas", "purchases", "prep", "tagger", "fixer", "compare", "djset", "playlists", "snapshots", "backups", "plugins", "settings", "help", "db"])
+        self.assertEqual(navs, ["discover", "ideas", "purchases", "prep", "tagger", "fixer", "compare", "djset", "playlists", "mixes", "snapshots", "backups", "plugins", "settings", "help", "db"])
         self.assertEqual(pg.evaluate("S.module"), "tagger")
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stUpdateCard")
@@ -3609,9 +3609,9 @@ class UiTest(unittest.TestCase):
         lists = pg.evaluate("call('pl_list').then(r => r.playlists.map(p => [p.folder, p.name, p.kind]))")
         self.assertEqual(lists, [["DJ-Sets", "Probe", "djset"]])                      # #269: als Playlist gespeichert
 
-    def test_mix_result_window(self):
-        """#387: Mix analysieren – frühere Analyse über Playlists › Importieren öffnen, vorhören, Zeit ändern,
-        Treffer verwerfen, als Playlist im Ordner „Mixe“ speichern und dort öffnen."""
+    def test_mix_page(self):
+        """#387/#390: Seite „Mixe“ – Analyse über Playlists › Importieren und über die Seitenleiste öffnen, vorhören,
+        Zeit ändern, Treffer verwerfen, als Playlist im Ordner „Mixe“ speichern, löschen mit Rückfrage."""
         import mixresult
         pg = self.pg
         f = sorted(os.path.join(self.lib, n) for n in os.listdir(self.lib) if n.endswith(".mp3"))
@@ -3621,15 +3621,23 @@ class UiTest(unittest.TestCase):
             {"start": 36, "end": 40, "path": "", "artist": "Fremd", "title": "Falsch", "tempo": 0, "conf": 0.7}],
             compare={"hit": ["Test - Ton 330"], "miss": ["DJ Paulus - Mirage (Extended Mix)"], "expected": 2}, version="1.0")
         mixresult.save(os.path.join(self.home, "TagStudio", "Mixe"), res)
+        # Seite ohne Plugin-Umgebung: Hinweis, Knöpfe gesperrt, Analyse trotzdem lesbar
+        pg.click('.nav[data-module="mixes"]')
+        pg.wait_for_selector("#mxRows tr[data-n]")
+        self.assertIn("noch nicht installiert", pg.inner_text("#mxStatus"))
+        self.assertTrue(pg.locator("#mxNew").is_disabled())
+        self.assertEqual(pg.inner_text("#mixCount").strip(), "1")
+        self.assertEqual(pg.locator("#mxList [data-mx]").count(), 1)
+        # auch über Playlists › Importieren erreichbar
         pg.click('.nav[data-module="playlists"]')
         pg.click("#plsImport")
         self.assertEqual(pg.locator('#menu button:has-text("Aus Mix erkennen")').count(), 0)   # Plugin ohne Umgebung
         pg.click('#menu button:has-text("Frühere Mix-Analysen (1)")')
-        pg.click("[data-mxopen]")
+        pg.wait_for_function("S.module === 'mixes'")
         pg.wait_for_selector("#mxRows tr[data-n]")
         self.assertEqual(pg.locator("#mxRows tr[data-n]").count(), 3)
         self.assertEqual(pg.locator("#mxRows tr.mx-unsure").count(), 1)
-        self.assertIn("1 von 2", pg.inner_text("#mBody"))
+        self.assertIn("1 von 2", pg.inner_text("#mxMain"))
         self.assertEqual(pg.input_value('[data-mxtime="0"]'), "00:15")                    # Mitte des Übergangs
         # vorhören im Mix und im Titel
         pg.click('#mxRows tr[data-n="0"] [data-mxplay="mix"]')
@@ -3643,21 +3651,28 @@ class UiTest(unittest.TestCase):
         pg.click('#mxRows tr[data-n="2"] [data-mxdrop]')
         pg.wait_for_selector(".mx-dropped")
         self.assertEqual(pg.locator("#mxRows tr[data-n]").count(), 2)
-        # als Playlist speichern, dann in Playlists öffnen
-        pg.click("#mBtns .primary")
+        # als Playlist speichern, dann in Playlists öffnen (Vorhören endet beim Seitenwechsel)
+        pg.click("#mxSavePl")
         pg.wait_for_selector("[data-mxpl]")
-        self.assertEqual(pg.inner_text("#mBtns .primary"), "Playlist nachführen")
+        self.assertEqual(pg.inner_text("#mxSavePl"), "Playlist nachführen")
         pg.click("[data-mxpl]")
         pg.wait_for_function("PLS.st && PLS.st.pl && PLS.st.pl.folder === 'Mixe'")
-        self.assertTrue(pg.locator("#modal").is_hidden())
+        self.assertTrue(pg.evaluate("MIX.audio.paused"))
         self.assertEqual(pg.locator("#plsList .pls-row[data-k]").count(), 2)
         self.assertIn("00:25 · +2.0 % · 58 %", pg.inner_text("#plsList"))   # Zeit, Tempo, Sicherheit als Notiz
-        # #389: im Hintergrund analysiert → Rückfrage „Ergebnis öffnen“ (erst, wenn kein anderer Dialog offen ist)
+        # #389: im Hintergrund analysiert → Rückfrage „Ergebnis öffnen“ → Seite „Mixe“
         pg.evaluate(f"() => {{ mixJobDone({{names: ['Mix.mp3'], message: '2 Titel erkannt', mix_open: '{res['id']}'}}); }}")
         pg.wait_for_selector("#dialog:not([hidden])")
         self.assertIn("2 Titel erkannt", pg.inner_text("#dlgText"))
         pg.click("#dlgBtns .primary")
+        pg.wait_for_function("S.module === 'mixes'")
         pg.wait_for_selector("#mxRows tr[data-n]")
+        # löschen mit Rückfrage – nur das Ergebnis
+        pg.click('[data-mxa="delete"]')
+        pg.click("#dlgBtns .primary")
+        pg.wait_for_selector(".mx-empty")
+        self.assertEqual(pg.inner_text("#mixCount").strip(), "")
+        self.assertTrue(os.path.isfile(f[0]))
 
     def test_playlists_smartlist(self):
         """#272: Smartlist anlegen (Regel-Dialog), Aktualisieren nach Tag-Änderung, Regel hinzufügen, Einfrieren."""

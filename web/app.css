@@ -1920,3 +1920,12 @@ html.i18n-wait body{visibility:hidden}
 .mx-tag.warn{border-color:var(--warn, #d9a400);color:var(--warn, #d9a400)}
 .mx-dropped{margin:6px 0 0}
 .mx-dropped summary{cursor:pointer;color:var(--dim)}
+/* #390: Seite „Mixe“ */
+.mx-wrap{grid-template-columns:260px 1fr}
+.mx-l .nm{display:flex;flex-direction:column;gap:1px;min-width:0}
+.mx-bar{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin:0 0 8px}
+#mxMain{display:flex;flex-direction:column;min-height:0}
+.mx-card{padding:12px 14px;flex:1;min-height:0;overflow:auto}
+.mx-card .mx-table{max-height:none;min-height:0;overflow:visible}
+.mx-empty{padding:24px}
+@media (max-width:800px){.mx-wrap{grid-template-columns:1fr}}

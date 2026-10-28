@@ -180,5 +180,9 @@ Auftrag User 15:21: „finalisieren (entfernen von Prototyp) und einbauen an den
 - **Hintergrund (#389, Plugin 1.1, Wunsch User 22:39):** Häkchen „Im Hintergrund analysieren“ (`"background":
   "option"`); der Auftrag trägt den Namen der Mix-Datei (`job_name`), das Ergebnis hängt am Auftrag (`mix_open`) –
   Rückfrage „Ergebnis öffnen?“, sobald kein anderer Dialog offen ist, und Knopf in der Auftragsliste.
+- **Seite „Mixe“ (#390, Auftrag User 28.10.2026 19:28 „weiteren Menüpunkt erstellen“):** Modul `mixes` in der
+  Seitenleiste nach „Playlists“ (`session_setup.MODULES`, `#moduleMixes`), Liste der Analysen links, Ergebnis rechts
+  statt Dialog; `mixOpen(id)` führt auf die Seite (Playlists › Importieren, Plugin „Frühere Analysen …“, Auftrag fertig);
+  `mix_list` liefert den Stand des Plugins; Vorhören endet beim Seitenwechsel.
 - **Offen / später:** Speicherbedarf des Index (≈ 0,4 MB je Titel; für sehr grosse Bibliotheken Index stückweise bzw.
   als Speicherabbild laden), Treffer durch anderen Titel ersetzen, Unbekanntes über SonoVault (M3, Phase 4).

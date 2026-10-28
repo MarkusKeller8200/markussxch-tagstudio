@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Ergebnisse von „Mix analysieren“ (#261, #387): Tracklist eines Mixes ansehen, vorhören,
+/* MarKusSXCH TagStudio – Seite „Mixe“ (#261, #387, #390): Ergebnisse von „Mix analysieren“ ansehen, vorhören,
    Treffer verwerfen, Zeiten korrigieren und als Playlist (Ordner „Mixe“), CUE-Datei, Text oder Ideen speichern.
    Die Analyse läuft im Plugin „mixscan“; Logik und Ablage in mixresult.py / session_mixes.py. */
 "use strict";
@@ -74,125 +74,154 @@ function mixBodyHtml(d) {
     <div id="mxRows">${mixRowsHtml(d)}</div>${dropped}`;
 }
 
-/** Ergebnisfenster */
-async function mixOpen(id) {
-  let d;
-  try { d = await call("mix_get", id); } catch (e) { toast(String(e.message || e)); return; }
-  MIX.id = id;
-  const rerender = (b, nd) => { d = nd; b.innerHTML = mixBodyHtml(d); };
-  const act = async (b, fn) => { try { rerender(b, await fn()); } catch (e) { toast(String(e.message || e)); } };
-  const btns = [{ label: "Schliessen", value: null }];
-  if (d.report) btns.push({ label: "Bericht zeigen", value: "report" });
-  btns.push({ label: "Text kopieren", value: "copy" }, { label: "Text speichern …", value: "txt" }, { label: "CUE speichern …", value: "cue" });
-  if (d.missing.length) btns.push({ label: `Fehlende als Ideen (${d.missing.length})`, value: "ideas" });
-  btns.push({ label: d.playlist ? "Playlist nachführen" : "Als Playlist speichern", value: "pl", primary: true });
-  await modal({
-    title: "Mix analysieren – Ergebnis", wide: "xl", html: mixBodyHtml(d), buttons: btns,
-    onMount: (b) => {
-      b.addEventListener("click", async (e) => {
-        const p = e.target.closest("[data-mxplay]");
-        if (p) { const n = p.dataset.mxplay === "mix" ? null : +p.dataset.mxplay; mixPlay(id, n, +p.dataset.t, `${p.dataset.mxplay}@${p.dataset.t}`, p); return; }
-        const x = e.target.closest("[data-mxdrop]");
-        if (x) { await act(b, () => call("mix_drop", id, +x.dataset.mxdrop, true)); return; }
-        const r = e.target.closest("[data-mxback]");
-        if (r) { await act(b, () => call("mix_drop", id, +r.dataset.mxback, false)); return; }
-        const l = e.target.closest("[data-mxpl]");
-        if (l) { e.preventDefault(); const pid = l.dataset.mxpl; mixCloseThen(() => mixShowPlaylist(pid)); }
-      });
-      b.addEventListener("keydown", async (e) => {
-        const t = e.target.closest("[data-mxtime]");
-        if (t && e.key === "Enter") { e.preventDefault(); e.stopPropagation(); await act(b, () => call("mix_set_time", id, +t.dataset.mxtime, t.value)); }
-      }, true);
-      b.addEventListener("change", async (e) => {
-        const t = e.target.closest("[data-mxtime]");
-        if (t) await act(b, () => call("mix_set_time", id, +t.dataset.mxtime, t.value));
-      });
-    },
-    collect: async (b, v) => {
-      try {
-        if (v === "report") { call("reveal", d.report); return false; }
-        if (v === "copy") {
-          try { await navigator.clipboard.writeText(d.text); toast("Tracklist kopiert."); } catch (e) { toast("Kopieren nicht möglich."); }
-          return false;
-        }
-        if (v === "txt" || v === "cue") {
-          let dest = "";
-          const beside = v === "cue" && d.mix_exists ? await call("mix_cue_beside", id) : "";
-          if (beside) {
-            const w = await dialog({ title: "CUE-Datei speichern", text: `Neben dem Mix speichern?\n\n${beside}\n\nDort finden Player und DJ-Programme sie automatisch.`,
-              buttons: [{ label: "Abbrechen", value: null }, { label: "Anderer Ort …", value: "pick" }, { label: "Neben dem Mix", value: "beside", primary: true }] });
-            if (!w) return false;
-            if (w === "beside") dest = beside;
-          }
-          if (!dest) dest = await call("save_dialog", await call("mix_export_name", id, v));
-          if (!dest) return false;
-          let r = await call("mix_export_write", id, v, dest, false);
-          if (r.exists) {
-            const ok = await dialog({ title: "Datei ersetzen?", text: `${r.path}\n\nDiese Datei gibt es schon. Ersetzen?`, buttons: [{ label: "Abbrechen", value: false }, { label: "Ersetzen", value: true, primary: true }] });
-            if (!ok) return false;
-            r = await call("mix_export_write", id, v, dest, true);
-          }
-          if (r.ok) { toast(r.message); status(`${r.message} (${r.path})`, "info"); }
-          return false;
-        }
-        if (v === "ideas") {
-          const r = await call("mix_missing_to_ideas", id, "", "");
-          toast(r.added ? `${r.added} Titel als Ideen gemerkt in „${r.name}“${r.dupes ? ` (${r.dupes} schon vorhanden)` : ""}.` : `Schon alle in „${r.name}“.`);
-          if (typeof ideasBadge === "function") ideasBadge();
-          return false;
-        }
-        if (v === "pl") {
-          const r = await call("mix_to_playlist", id, "");
-          toast(r.message);
-          rerender(b, await call("mix_get", id));
-          const bt = [...$("#mBtns").querySelectorAll("button")].find((x) => x.classList.contains("primary"));
-          if (bt) bt.textContent = "Playlist nachführen";
-          return false;
-        }
-      } catch (e) { toast(String(e.message || e)); return false; }
-      return v;
-    },
-  });
-  mixStop();
-  await mixRunNext();
+// ====================================================================== Seite „Mixe“ (#390)
+const MXP = { items: [], sel: "", d: null, plugin: null, ready: false };
+
+function mixHead() {
+  return `<div class="mx-bar">
+      <button class="ghost sm" data-mxa="copy">Text kopieren</button><button class="ghost sm" data-mxa="txt">Text speichern …</button>
+      <button class="ghost sm" data-mxa="cue">CUE speichern …</button>
+      ${MXP.d.missing.length ? `<button class="ghost sm" data-mxa="ideas">Fehlende als Ideen (${MXP.d.missing.length})</button>` : ""}
+      ${MXP.d.report ? '<button class="ghost sm" data-mxa="report">Bericht zeigen</button>' : ""}
+      <button class="ghost sm" data-mxa="delete" title="Nur die Analyse löschen – Mix, Titel und gespeicherte Playlist bleiben">Löschen …</button>
+      <button class="primary sm" data-mxa="pl" id="mxSavePl">${MXP.d.playlist ? "Playlist nachführen" : "Als Playlist speichern"}</button></div>`;
 }
 
+/** Seite zeigen; sel = Kennung einer Analyse (sonst die zuletzt gewählte bzw. neueste) */
+async function mixesShow(sel) {
+  let d;
+  try { d = await call("mix_list"); } catch (e) { toast(String(e.message || e)); return; }
+  MXP.items = d.items; MXP.plugin = d.plugin; MXP.ready = d.ready;
+  if (sel !== undefined) MXP.sel = sel;
+  if (!MXP.items.some((x) => x.id === MXP.sel)) MXP.sel = MXP.items.length ? MXP.items[0].id : "";
+  mixBadge(MXP.items.length);
+  const pl = MXP.plugin || {};
+  $("#mxStatus").textContent = !pl.found ? "Plugin „Mix analysieren“ fehlt."
+    : !pl.enabled ? "Plugin „Mix analysieren“ ist ausgeschaltet (Plugins)."
+    : pl.state !== "ready" ? "Plugin „Mix analysieren“ ist noch nicht installiert – unter Plugins „Installieren …“ (etwa 100 MB)."
+    : `Plugin ${pl.version} · ${pl.status || ""}`;
+  ["#mxNew", "#mxIndex", "#mxOpts"].forEach((s) => { $(s).disabled = !MXP.ready; });
+  $("#mxList").innerHTML = `<div class="idea-lh"><b>Analysen</b></div>` + (MXP.items.length ? MXP.items.map((x) => `<button class="idea-l mx-l${x.id === MXP.sel ? " on" : ""}" data-mx="${esc(x.id)}" aria-current="${x.id === MXP.sel}" title="${esc(x.mix)}">
+      <span class="nm"><span class="ellipsis" translate="no">${esc(x.name)}</span><span class="faint sm">${esc(x.created)} · ${mixTime(x.duration)}${x.exists ? "" : " · Mix-Datei fehlt"}</span></span>
+      <span class="n" title="Erkannte Titel${x.count > x.sure ? `, davon ${x.count - x.sure} unsicher` : ""}">${x.count}</span></button>`).join("")
+    : `<div class="muted sm" style="padding:8px">Noch keine Analysen.${MXP.ready ? " „Mix analysieren …“ oben rechts." : ""}</div>`);
+  if (MXP.sel) await mixesLoad(MXP.sel);
+  else {
+    MXP.d = null;
+    $("#mxMain").innerHTML = `<div class="empty mx-empty">${MXP.ready
+      ? "Mix-Datei wählen mit „Mix analysieren …“. Erkannt werden nur Titel, die im Index sind – einmal „Bibliothek indexieren …“, danach führt TagStudio den Index selbst nach."
+      : `Für „Mixe“ braucht es das Plugin „Mix analysieren“ (eigene Umgebung, etwa 100 MB). <button class="ghost sm" data-mxa="plugins">Zu den Plugins</button>`}</div>`;
+  }
+}
+
+async function mixesLoad(id) {
+  try { MXP.d = await call("mix_get", id); } catch (e) { toast(String(e.message || e)); return; }
+  MXP.sel = id;
+  mixesRenderMain();
+}
+function mixesRenderMain() {
+  if (!MXP.d) return;
+  $("#mxMain").innerHTML = mixHead() + `<div class="card mx-card">${mixBodyHtml(MXP.d)}</div>`;
+}
+
+function mixBadge(n) {
+  const el = $("#mixCount"); if (el) el.textContent = n ? String(n) : "";
+}
+
+/** Ergebnis öffnen = Seite „Mixe“ mit dieser Analyse */
+async function mixOpen(id) {
+  MXP.sel = id || MXP.sel;
+  if (S.module === "mixes") await mixesShow(MXP.sel);
+  else setModule("mixes");
+}
+/** frühere Aufrufe (Playlists › Importieren, Plugin „Frühere Analysen …“) führen auf die Seite */
+async function mixListDialog() { await mixOpen(""); }
+
 async function mixShowPlaylist(pid) {
-  if (typeof setModule === "function") setModule("playlists");
+  setModule("playlists");
   try { if (typeof plsApply === "function") { PLS.sel = new Set(); plsApply(await call("pl_state", pid)); } } catch (e) { /* Playlist weg */ }
 }
 
-/** Frühere Analysen (Programmdaten › Mixe) */
-async function mixListDialog() {
-  let d;
-  try { d = await call("mix_list"); } catch (e) { toast(String(e.message || e)); return; }
-  const body = () => d.items.length
-    ? `<div class="fx-table mx-table"><table><thead><tr><th>Mix</th><th>Analysiert</th><th>Titel</th><th></th></tr></thead><tbody>${d.items.map((x) => `<tr>
-        <td><span translate="no">${esc(x.name)}</span> <span class="faint sm">${mixTime(x.duration)}</span>${x.exists ? "" : ' <span class="mx-tag warn">Mix-Datei fehlt</span>'}<div class="faint sm" translate="no">${esc(x.mix)}</div></td>
-        <td>${esc(x.created)}</td><td>${x.count}${x.count > x.sure ? ` <span class="faint sm">(${x.count - x.sure} unsicher)</span>` : ""}</td>
-        <td class="mx-acts"><div class="mx-btns"><button class="ghost sm" data-mxopen="${esc(x.id)}">Öffnen</button><button class="ghost sm" data-mxdel="${esc(x.id)}" title="Nur die Analyse löschen – Mix, Titel und gespeicherte Playlist bleiben">Löschen …</button></div></td></tr>`).join("")}</tbody></table></div>`
-    : '<div class="empty">Noch keine Analysen.</div>';
-  const btns = [{ label: "Schliessen", value: null }];
-  if (d.ready) btns.push({ label: "Mix analysieren …", value: "new", primary: true });
-  const v = await modal({
-    title: "Mix-Analysen", wide: true, buttons: btns,
-    html: `<div class="hint">Gespeicherte Ergebnisse von „Mix analysieren“ – öffnen ohne neue Analyse.${d.ready ? "" : " Für neue Analysen das Plugin „Mix analysieren“ installieren und einschalten (Plugins)."}</div><div id="mxList">${body()}</div>`,
-    onMount: (b) => b.addEventListener("click", async (e) => {
-      const o = e.target.closest("[data-mxopen]");
-      if (o) { const rid = o.dataset.mxopen; mixCloseThen(() => mixOpen(rid)); return; }
-      const x = e.target.closest("[data-mxdel]");
-      if (x) {
-        const it = d.items.find((i) => i.id === x.dataset.mxdel);
-        const ok = await dialog({ title: "Analyse löschen?", text: `${it ? it.name : ""}\n\nNur das gespeicherte Ergebnis wird gelöscht – der Mix, die Titel und eine gespeicherte Playlist bleiben.`,
-          buttons: [{ label: "Abbrechen", value: false }, { label: "Löschen", value: true, primary: true }] });
-        if (!ok) return;
-        try { d = await call("mix_delete", x.dataset.mxdel); $("#mxList", b).innerHTML = body(); } catch (err) { toast(String(err.message || err)); }
+async function mixAction(a) {
+  const id = MXP.sel, d = MXP.d;
+  if (a === "plugins") { setModule("plugins"); return; }
+  if (!d) return;
+  try {
+    if (a === "report") call("reveal", d.report);
+    else if (a === "copy") {
+      try { await navigator.clipboard.writeText(d.text); toast("Tracklist kopiert."); } catch (e) { toast("Kopieren nicht möglich."); }
+    } else if (a === "txt" || a === "cue") {
+      let dest = "";
+      const beside = a === "cue" && d.mix_exists ? await call("mix_cue_beside", id) : "";
+      if (beside) {
+        const w = await dialog({ title: "CUE-Datei speichern", text: `Neben dem Mix speichern?\n\n${beside}\n\nDort finden Player und DJ-Programme sie automatisch.`,
+          buttons: [{ label: "Abbrechen", value: null }, { label: "Anderer Ort …", value: "pick" }, { label: "Neben dem Mix", value: "beside", primary: true }] });
+        if (!w) return;
+        if (w === "beside") dest = beside;
       }
-    }),
-  });
-  if (v === "new" && typeof pluginRun === "function") await pluginRun("mixscan", "analyse");
-  else await mixRunNext();
+      if (!dest) dest = await call("save_dialog", await call("mix_export_name", id, a));
+      if (!dest) return;
+      let r = await call("mix_export_write", id, a, dest, false);
+      if (r.exists) {
+        const ok = await dialog({ title: "Datei ersetzen?", text: `${r.path}\n\nDiese Datei gibt es schon. Ersetzen?`, buttons: [{ label: "Abbrechen", value: false }, { label: "Ersetzen", value: true, primary: true }] });
+        if (!ok) return;
+        r = await call("mix_export_write", id, a, dest, true);
+      }
+      if (r.ok) { toast(r.message); status(`${r.message} (${r.path})`, "info"); }
+    } else if (a === "ideas") {
+      const r = await call("mix_missing_to_ideas", id, "", "");
+      toast(r.added ? `${r.added} Titel als Ideen gemerkt in „${r.name}“${r.dupes ? ` (${r.dupes} schon vorhanden)` : ""}.` : `Schon alle in „${r.name}“.`);
+      if (typeof ideasBadge === "function") ideasBadge();
+    } else if (a === "pl") {
+      const r = await call("mix_to_playlist", id, "");
+      toast(r.message);
+      await mixesLoad(id);
+    } else if (a === "delete") {
+      const ok = await dialog({ title: "Analyse löschen?", text: `${d.name}\n\nNur das gespeicherte Ergebnis wird gelöscht – der Mix, die Titel und eine gespeicherte Playlist bleiben.`,
+        buttons: [{ label: "Abbrechen", value: false }, { label: "Löschen", value: true, primary: true }] });
+      if (!ok) return;
+      mixStop();
+      await call("mix_delete", id);
+      MXP.sel = "";
+      await mixesShow();
+    }
+  } catch (e) { toast(String(e.message || e)); }
 }
+
+(function bindMixes() {
+  if (!$("#moduleMixes")) return;
+  setTimeout(() => call("mix_list").then((d) => mixBadge(d.items.length)).catch(() => {}), 9500);
+  $("#mxNew").addEventListener("click", () => pluginRun("mixscan", "analyse"));
+  $("#mxIndex").addEventListener("click", () => pluginRun("mixscan", "index"));
+  $("#mxOpts").addEventListener("click", () => pluginRun("mixscan", "settings"));
+  $("#mxList").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mx]"); if (!b) return;
+    mixStop();
+    mixesShow(b.dataset.mx);
+  });
+  const main = $("#mxMain");
+  const act = async (fn) => { try { MXP.d = await fn(); mixesRenderMain(); } catch (e) { toast(String(e.message || e)); } };
+  main.addEventListener("click", async (e) => {
+    const a = e.target.closest("[data-mxa]");
+    if (a) { mixAction(a.dataset.mxa); return; }
+    const p = e.target.closest("[data-mxplay]");
+    if (p) { const n = p.dataset.mxplay === "mix" ? null : +p.dataset.mxplay; mixPlay(MXP.sel, n, +p.dataset.t, `${p.dataset.mxplay}@${p.dataset.t}`, p); return; }
+    const x = e.target.closest("[data-mxdrop]");
+    if (x) { await act(() => call("mix_drop", MXP.sel, +x.dataset.mxdrop, true)); return; }
+    const r = e.target.closest("[data-mxback]");
+    if (r) { await act(() => call("mix_drop", MXP.sel, +r.dataset.mxback, false)); return; }
+    const l = e.target.closest("[data-mxpl]");
+    if (l) { e.preventDefault(); mixStop(); await mixShowPlaylist(l.dataset.mxpl); }
+  });
+  main.addEventListener("keydown", async (e) => {
+    const t = e.target.closest("[data-mxtime]");
+    if (t && e.key === "Enter") { e.preventDefault(); await act(() => call("mix_set_time", MXP.sel, +t.dataset.mxtime, t.value)); }
+  });
+  main.addEventListener("change", async (e) => {
+    const t = e.target.closest("[data-mxtime]");
+    if (t) await act(() => call("mix_set_time", MXP.sel, +t.dataset.mxtime, t.value));
+  });
+})();
 
 /** Playlists › Importieren ▾: Einträge, wenn das Plugin bereit ist bzw. Analysen vorhanden sind */
 async function mixMenuEntries() {
@@ -200,7 +229,7 @@ async function mixMenuEntries() {
   try { d = await call("mix_list"); } catch (e) { return []; }
   const out = [];
   if (d.ready) out.push({ label: "Aus Mix erkennen (Mix analysieren) …", run: () => pluginRun("mixscan", "analyse") });
-  if (d.items.length) out.push({ label: `Frühere Mix-Analysen (${d.items.length}) …`, run: () => mixListDialog() });
+  if (d.items.length) out.push({ label: `Frühere Mix-Analysen (${d.items.length}) …`, run: () => mixOpen("") });
   return out;
 }
 
