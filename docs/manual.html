@@ -63,7 +63,7 @@ article{overflow-wrap:anywhere}.doc>*{min-width:0}article pre{white-space:pre-wr
 </style></head><body>
 <header class="top"><div class="in"><a class="brand" href="index.html"><img src="img/icon.png" alt="">MarKusSXCH TagStudio</a>
 <nav><a href="index.html">Start</a><a href="manual.html" class="on">Manual</a><a href="statistik.html">Statistics</a><a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest">Download</a><a href="https://github.com/MarkusKeller8200/markussxch-tagstudio">GitHub</a><a href="handbuch.html" hreflang="de">DE</a></nav></div></header>
-<main><div class="doc"><aside class="toc" id="toc"><button class="btn alt toc-btn" onclick="this.parentNode.classList.toggle('open')">Contents</button><input id="q" type="search" placeholder="Search the manual …" aria-label="Search"><p class="hit" id="hit"></p><ul><li><a href="#features-at-a-glance">Features at a glance</a></li><li><a href="#starting-the-program">Starting the program</a></li><li><a href="#installation">Installation</a><ul><li><a href="#with-the-installer-recommended-no-python-needed">With the installer (recommended, no Python needed)</a></li><li><a href="#from-the-source-code-for-development-and-the-update-button">From the source code (for development and the update button)</a></li></ul></li><li><a href="#usage">Usage</a><ul><li><a href="#tagger">Tagger</a></li><li><a href="#prepare-and-discover">Prepare and discover</a></li><li><a href="#ideas">Ideas</a></li><li><a href="#dj-set">DJ set</a></li><li><a href="#playlists">Playlists</a></li><li><a href="#purchases">Purchases</a></li><li><a href="#tag-fixer">Tag fixer</a></li><li><a href="#compare">Compare</a></li><li><a href="#preview-player-and-external-players">Preview player and external players</a></li><li><a href="#snapshots-change-journal">Snapshots &amp; change journal</a></li><li><a href="#backups">Backups</a></li><li><a href="#plugins">Plugins</a></li><li><a href="#update-layout-keyboard">Update, layout, keyboard</a></li></ul></li><li><a href="#settings-and-data-storage">Settings and data storage</a></li><li><a href="#technical-details">Technical details</a></li><li><a href="#files">Files</a></li><li><a href="#development">Development</a></li><li><a href="#versions-releases">Versions &amp; releases</a></li><li><a href="#reporting-bugs-ideas-security">Reporting bugs, ideas, security</a></li><li><a href="#classic-interface-frozen">Classic interface (frozen)</a></li><li><a href="#licence">Licence</a></li></ul></aside><article><h1 id="markussxch-tagstudio-manual">MarKusSXCH TagStudio – Manual</h1>
+<main><div class="doc"><aside class="toc" id="toc"><button class="btn alt toc-btn" onclick="this.parentNode.classList.toggle('open')">Contents</button><input id="q" type="search" placeholder="Search the manual …" aria-label="Search"><p class="hit" id="hit"></p><ul><li><a href="#features-at-a-glance">Features at a glance</a></li><li><a href="#starting-the-program">Starting the program</a></li><li><a href="#installation">Installation</a><ul><li><a href="#with-the-installer-recommended-no-python-needed">With the installer (recommended, no Python needed)</a></li><li><a href="#from-the-source-code-for-development-and-the-update-button">From the source code (for development and the update button)</a></li></ul></li><li><a href="#usage">Usage</a><ul><li><a href="#tagger">Tagger</a></li><li><a href="#prepare-and-discover">Prepare and discover</a></li><li><a href="#ideas">Ideas</a></li><li><a href="#dj-set">DJ set</a></li><li><a href="#playlists">Playlists</a></li><li><a href="#mixes">Mixes</a></li><li><a href="#purchases">Purchases</a></li><li><a href="#tag-fixer">Tag fixer</a></li><li><a href="#compare">Compare</a></li><li><a href="#preview-player-and-external-players">Preview player and external players</a></li><li><a href="#snapshots-change-journal">Snapshots &amp; change journal</a></li><li><a href="#backups">Backups</a></li><li><a href="#plugins">Plugins</a></li><li><a href="#update-layout-keyboard">Update, layout, keyboard</a></li></ul></li><li><a href="#settings-and-data-storage">Settings and data storage</a></li><li><a href="#technical-details">Technical details</a></li><li><a href="#files">Files</a></li><li><a href="#development">Development</a></li><li><a href="#versions-releases">Versions &amp; releases</a></li><li><a href="#reporting-bugs-ideas-security">Reporting bugs, ideas, security</a></li><li><a href="#classic-interface-frozen">Classic interface (frozen)</a></li><li><a href="#licence">Licence</a></li></ul></aside><article><h1 id="markussxch-tagstudio-manual">MarKusSXCH TagStudio – Manual</h1>
 <p><em>English version – <a href="handbuch.html">Deutsch</a> is the source and may be more up to date.</em></p>
 <p>The complete guide to all features. Overview, pictures and download: <a href="index.html">start page</a></p>
 <blockquote>
@@ -85,8 +85,8 @@ automatically.</p>
   bought → in library, note, preview, as Beatport playlist (only on click).</li>
 <li><strong>Playlists:</strong> collect tracks from the tagger and the DJ set in playlists with folders; every playlist is also
   stored as M3U8 in the playlist folder (for Engine DJ, VirtualDJ &amp; co.); archive instead of delete.</li>
-<li><strong>Analyse mix:</strong> recognise the tracks of your own library in a mix file (DJ set, radio show) – even with changed
-  tempo – and save them as playlist, CUE file or text; runs locally (plugin).</li>
+<li><strong>Mixes:</strong> recognise the tracks of your own library in a mix file (DJ set, radio show) – even with changed
+  tempo – and save them as playlist, CUE file or text; own page, runs locally (plugin).</li>
 <li><strong>Comparing two folders/files:</strong> field by field with character-exact highlighting, take over values with an arrow.</li>
 <li><strong>Tag fixer:</strong> unify multiple values (<code>;</code>, <code>/</code>, <code>feat.</code> …) or convert them into real ID3v2.4 multiple values.</li>
 <li><strong>Safe saving:</strong> automatic backup of the tags before every save, change viewer, byte-exact restore; undo/redo
@@ -398,7 +398,7 @@ load any playlist into the set. Duplicate tracks of a playlist are left out – 
   fetching again updates them. <strong>“Paste tracklist …”</strong> takes over a copied tracklist from 1001Tracklists, MixID,
   Beatport etc. (one “Artist - Title” per line) as entries without a file; TagStudio does not fetch any web page.
   <strong>“Recognise from mix …”</strong> (with the “Analyse mix” plugin) finds the tracks of your library in a mix file and saves
-  them as a playlist in the folder “Mixe”; <strong>“Earlier mix analyses …”</strong> opens saved results (see Plugins).</li>
+  them as a playlist in the folder “Mixe”; <strong>“Earlier mix analyses …”</strong> leads to the <strong>Mixes</strong> page (see there).</li>
 <li><strong>More ▾:</strong> export as M3U8 (absolute or relative paths), Rekordbox XML or CSV (whole folders as Rekordbox XML with
   folder tree by right-clicking the folder). <strong>“Match with library …”</strong> finds the matching track for entries without
   a file (same ISRC or artist + title + mix = found; “Song - Extended Mix” and “Song (Extended)” count as equal,
@@ -412,6 +412,27 @@ load any playlist into the set. Duplicate tracks of a playlist are left out – 
 <li><strong>Prepare:</strong> in the step “Take over into the library”, “Add to playlist” (e.g. <code>New/{Jahr}-{Monat}</code>) puts the
   taken-over tracks into a playlist; new tracks are also linked automatically to matching entries without a file.</li>
 <li>The previously saved DJ set lists are taken over once as playlists on the first start.</li>
+</ul>
+<h3 id="mixes">Mixes</h3>
+<p>Recognise the tracks of your library in a <strong>mix file</strong> (DJ set, radio show, your own mix) – even with changed tempo
+(±10 %, with and without keylock). <strong>Mixes</strong> page in the sidebar (after “Playlists”, the number = saved analyses). Runs
+entirely locally with the “Analyse mix” plugin (own environment with NumPy, SciPy, FFmpeg, about 100 MB – “Install …”
+under Plugins); nothing is uploaded or downloaded.</p>
+<ul>
+<li><strong>Once “Index library …”</strong> (background job, about 0.4 MB per track). Afterwards TagStudio updates the index by
+  itself: new tracks after “Prepare”, at start in the background, moved tracks immediately (<strong>Options …</strong>).</li>
+<li><strong>“Analyse mix …”:</strong> choose the mix file, optionally the known tracklist (one “Artist - Title” per line, ideally
+  with timestamps, also copied straight from YouTube) for comparison; optionally <strong>in the background</strong> (progress in
+  the footer, then “Open result”).</li>
+<li><strong>Result:</strong> all analyses on the left, the tracklist on the right – per track the time (middle of the transition,
+  editable: type the time + Enter, empty = calculate again), tempo and confidence; uncertain matches are highlighted,
+  gaps show as “ID – ID”. <strong>▶ Mix</strong> plays the mix from this time, <strong>▶ Track</strong> the recognised track at the same
+  position; <strong>✕</strong> discards a wrong match (“Discarded › Restore”).</li>
+<li><strong>Saving:</strong> “Save as playlist” creates a playlist in the folder “Mixe” (time · tempo · confidence as a note; saving
+  again updates it), “Save CUE …” (suggested: next to the mix), “Copy/save text …” (<code>[12:30] Artist - Title</code>), with a
+  tracklist “Missing ones as ideas” (“Ideas” page). “Delete …” removes only the analysis.</li>
+<li>Only tracks in the index are recognised – other tracks stay “ID – ID”. Also reachable via Playlists › Import ▾
+  “Recognise from mix …” / “Earlier mix analyses …”.</li>
 </ul>
 <h3 id="purchases">Purchases</h3>
 <p>Bought tracks from all stores in one place – <strong>Beatport</strong> for now (sign in to the Beatport plugin). Page <strong>Purchases</strong>
@@ -622,14 +643,8 @@ backed up first), delete a backup, automatic backup on/off, change/open the fold
   (Playlists › More ▾ › “Send to Lexicon …”: creates the playlist in Lexicon, sending again inserts missing tracks at
   their position and removes nothing; only with writing back switched on, see <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.en.md">PLUGINS.en.md</a>).</li>
 <li><strong>Measure loudness:</strong> LUFS, true peak, loudness range (EBU R128, FFmpeg) as fields, optionally a levelled copy.</li>
-<li><strong>Analyse mix:</strong> recognises the tracks of your library in a mix file – even with changed tempo (±10 %, with and
-  without keylock) – entirely locally (own environment with NumPy, SciPy, FFmpeg). Once <strong>More … › Index library …</strong>
-  (background job; afterwards TagStudio updates the index after “Prepare” and at start by itself), then <strong>Analyse
-  mix …</strong> (plugin card or Playlists › Import ▾ › “Recognise from mix …”): choose the mix file, optionally the known
-  tracklist for comparison; optionally <strong>in the background</strong> (keep working, then “Open result”). The <strong>result window</strong> shows per track the time (middle of the transition, editable), tempo
-  and confidence; ▶ previews in the mix or in the track, ✕ discards wrong matches. Save as playlist (folder “Mixe”),
-  CUE file (next to the mix) or text; save missing tracks of the tracklist as ideas. Tracks you don't own are not
-  recognised – they stay “ID – ID”. Details in <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.en.md">PLUGINS.en.md</a>.</li>
+<li><strong>Analyse mix:</strong> recognises the tracks of your library in mix files – use it on the <strong>Mixes</strong> page (see there),
+  details in <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.en.md">PLUGINS.en.md</a>.</li>
 <li><strong>Logs:</strong> for every plugin under <strong>More …</strong> “Open log folder” and “Show log live …” – a separate window that keeps
   the log up to date; lines of a running operation appear immediately (“running”).</li>
 <li><strong>Your own plugins</strong> in <code>~/TagStudio/Plugins</code> – instructions in <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/PLUGINS.en.md">PLUGINS.en.md</a>.</li>
