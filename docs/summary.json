@@ -494,12 +494,18 @@
     "win": 0,
     "mac": 0,
     "total": 0
+   },
+   {
+    "day": "2026-10-28",
+    "win": 0,
+    "mac": 0,
+    "total": 0
    }
   ],
   "last7": 0,
   "last30": 0,
   "since": "2026-10-26"
  },
- "updated": "2026-10-27 21:55 UTC",
+ "updated": "2026-10-28 00:40 UTC",
  "releases_url": "https://github.com/MarkusKeller8200/markussxch-tagstudio/releases"
 }
