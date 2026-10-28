@@ -30,6 +30,10 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   `ctx.queue_job`, Ereignis `app_started` (`plugins_startup`, 20 s nach dem Start); Index-Warteliste
   `index/warteliste.json` → versteckte Aktion `index_add`. M4 wie vorgeschlagen (nur lokale Dateien).
   **Beim Release:** `mixresult`, `session_mixes` in `packaging/build.py` › `HIDDEN`.
+- **SonoVault 1.2 (28.10. 19:59, `_3 Beta-Test`, Meilenstein #30):** #383 `TXXX:SONOVAULT_*` (Herkunft „SonoVault“ in
+  `origins.py`, Option „own“ in Online-Metadaten 2.3), #380 „Release nachschlagen“, #381 Tarif Free/Bezahlt +
+  Browse in Entdecken (`discover.run` mit `sv.paid`), #259 Genre-Korrektur + „Meine Genre-Vorschläge“. #379 1.1
+  (Integrationsfenster). Radio-Überwachung → Idee #391. #382 Anfrage-Entwurf im Issue, sendet der User. Konzept 6e.
 - **#390 (28.10. 19:28, `_3 Beta-Test`):** eigene Seite „Mixe“ (Modul `mixes` nach „Playlists“, `web/mixes.js` als
   Seite statt Dialog, `#mixCount`, Erste Schritte, Assistent-Ziel „Titel in DJ-Mixes erkennen“).
 - **#389 (22:39, Plugin 1.1; getestet und geschlossen 28.10. 19:21):** Analyse wahlweise im Hintergrund – `"background": "option"`, `job_name`, Job-Feld

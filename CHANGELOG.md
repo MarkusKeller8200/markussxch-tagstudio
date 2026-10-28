@@ -8,6 +8,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **SonoVault 1.2 (#380, #381, #383, #259):** eigene Felder `TXXX:SONOVAULT_*` mit Herkunft „SonoVault“ (nur
+  erlaubte Werte + Abrufdatum, Option in Online-Metadaten, Release nachschlagen und Audio erkennen); „Release
+  nachschlagen (SonoVault) …“ für ganze Alben/EPs; Tarif-Einstellung Free/Bezahlt – mit bezahltem Tarif die neuesten
+  Titel je Label und Genre in „Entdecken“ und „Genre-Korrektur an SonoVault melden …“ mit „Meine Genre-Vorschläge …“.
+  Audio-Erkennung holt schlanke Treffer über die ID nach. Online-Metadaten 2.3.
 - **SonoVault-Integrationsfenster nachgeführt (#379, Plugin 1.1):** neue Endpunkte der Doku (Genre-Vorschläge,
   Radio-Überwachung, Webhooks) kostenpflichtig markiert und nie abgefragt; Notizen zu Erkennung (nur rohes Audio),
   Künstler/Label und Blättern mit Cursor. „Zugriff prüfen“ ruft bei allen Diensten keine Endpunkte mit `test: false`

@@ -489,6 +489,8 @@ wiederholt.
 - **Verbindung testen** zeigt Konto und freien Speicher; die Kachel zeigt die Endpunkte (Integrationsfenster).
 
 
+## Eingebaut: SonoVault
+
 Musik-Metadaten-API von Rekordcloud ([sonovault.now](https://sonovault.now), über 93 Mio. Titel) mit **eigenem
 Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: `docs/KONZEPT-SONOVAULT.md`).
 
@@ -498,10 +500,22 @@ Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: 
 - **Anfragen zählen (Free-Tarif):** Die Kachel zeigt „diesen Monat x von 1000 Anfragen (Rest y)“; ab 90 % warnt
   TagStudio, beim Erreichen des Kontingents fragt es nichts mehr ab (ab dem 1. des Monats wieder). Ein anderes
   Kontingent lässt sich unter „Schlüssel …“ eintragen. Bei HTTP 429 wird **nie** wiederholt.
+- **Tarif (#381):** unter „Schlüssel …“ „Free“ oder „Bezahlt (Starter oder höher)“. Bezahlt setzt das Kontingent auf
+  50 000 (änderbar), erlaubt 60 Anfragen je Minute und schaltet Browse in „Entdecken“ und die Genre-Korrektur frei.
+  Ohne bezahlten Tarif ruft TagStudio diese Endpunkte nie auf.
 - **Online-Metadaten:** Quelle „SonoVault“ (aus, bis du sie anhakst) nach MusicBrainz und Discogs, vor Deezer und
   iTunes. Zuerst über die ISRC, sonst Künstler + Titel. In die Datei dürfen laut Nutzungsbedingungen **nur** Titel,
   Künstler, Album/Release, Label, Genre, Datum, Dauer und ISRC – BPM und Tonart erscheinen nur als **Vergleich** in
   der Notiz („Vergleich SonoVault: Tonart 08A (2 Quellen) – TKEY gleich, 122 BPM – TBPM gleich“).
+- **Eigene Felder `TXXX:SONOVAULT_*` (#383):** mit der Option „Zusätzlich eigene Felder der Quelle mit Herkunft
+  schreiben“ (Online-Metadaten; ebenso bei „Release nachschlagen“ und „Audio erkennen“) kommt eine Kopie der erlaubten
+  Werte in `TXXX:SONOVAULT_TITLE`, `…_ARTIST`, `…_RELEASE`, `…_LABEL`, `…_GENRE`, `…_RELEASE_DATE`, `…_DURATION`,
+  `…_ISRC` und das Abrufdatum in `…_DATE` – Herkunft „SonoVault“ im Tagger (filter- und entfernbar). Nie BPM, Tonart,
+  ISWC, Katalognummer oder IDs (erst nach einer Zusage von Rekordcloud, #382).
+- **Release nachschlagen (SonoVault) …** (Tagger, #380): sucht das Release (Album, EP) der markierten Titel über
+  Album- und Künstlername (`/v1/releases/search`, dann `/v1/releases/{id}` – 2 Anfragen je Release, 30 Tage
+  zwischengespeichert) und ordnet die Trackliste über ISRC bzw. Titel zu. Vorschläge nur für Album, Label, Datum, ISRC,
+  Genre (auf Wunsch Titel und Künstler); Katalog-, Titel- und CD-Nummer nur in der Notiz.
 - **Plattform-IDs anzeigen (SonoVault) …** (Tagger): IDs bei Spotify, Beatport, Apple Music, Tidal, Discogs,
   MusicBrainz und YouTube als Tabelle – **nur Anzeige**, nie in die Dateien, nicht im Protokoll.
 - **Mit SonoVault abgleichen (Bibliothek) …** (Tagger, #256): vergleicht die markierten Titel in Blöcken zu 100
@@ -512,14 +526,21 @@ Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: 
 - **Entdecken (#258):** Quelle „SonoVault“ unter Entdecken › Folgen … (nur mit Schlüssel wählbar): neue
   Veröffentlichungen gefolgter Künstler und Labels (`/v1/artists|labels/search`, 30 Tage zwischengespeichert, und
   `…/{id}/releases?from=…`, 20 Stunden). Nur bei „Suchen“, nie bei der täglichen Suche; Einträge ohne Link, nach 30 Tagen
-  entfernt (auch gemerkte) und nie in der Einkaufsliste. Neuerscheinungen allgemein und Browse brauchen einen bezahlten
-  Tarif und sind nicht umgesetzt.
+  entfernt (auch gemerkte) und nie in der Einkaufsliste. **Mit bezahltem Tarif (#381)** zusätzlich die neuesten Titel
+  je gefolgtem Label und Genre (`/v1/tracks/browse` mit `labelId` bzw. `genre`, höchstens 20 je Abfrage, 20 Stunden
+  zwischengespeichert). Den allgemeinen Neuerscheinungs-Feed (`/v1/releases/new`, ohne Filter) nutzt TagStudio nicht.
 - **Audio erkennen (SonoVault, kostenpflichtig) …** (Tagger, #257, optional): für Titel ohne brauchbare Tags ein
   Ausschnitt aus der Mitte (30/45/60 s, mono, 16 kHz, ohne Tags) an `POST /v1/tracks/identify` – kostet je Titel
   10 Kredite + 1 je angefangenes MB (bei 30 s: 11). Dafür müssen bei SonoVault Kredite gekauft werden; im Free-Tarif
   lehnt SonoVault ab (verständliche Meldung, nichts verrechnet). Ohne Häkchen nur Kostenvorschau. Datenschutz:
   SonoVault bewahrt den Ausschnitt ohne feste Frist auf – nur eigene Aufnahmen. Treffer als Vorschau (nur erlaubte
-  Felder, ab 80 % Sicherheit leere vorausgewählt). Tipp: zuerst AcoustID (gratis, ohne Hochladen).
+  Felder, ab 80 % Sicherheit leere vorausgewählt). Schlanke Treffer (nur ID, Titel, Künstler) holt TagStudio über die
+  ID nach (1 Anfrage). Tipp: zuerst AcoustID (gratis, ohne Hochladen).
+- **Genre-Korrektur an SonoVault melden …** (Tagger, #259, bezahlter Tarif): vergleicht das Genre der Datei (erster
+  Wert in TCON) mit SonoVault; entspricht es genau einem Genre aus `/v1/genres` und weicht es ab, meldet TagStudio auf
+  Häkchen `POST /v1/tracks/{id}/suggestions` mit `genreId` und optionaler Notiz (≤ 100 Zeichen). Ohne Häkchen nur
+  Vorschau; höchstens 100 je Tag. Das SonoVault-Team prüft die Vorschläge; **Meine Genre-Vorschläge …** zeigt den
+  Status (offen, angenommen, abgelehnt).
 - **Zwischenspeicher:** Antworten liegen höchstens 30 Tage im Datenordner des Plugins (wiederholte Abfragen kosten
   dann nichts), werden nie exportiert und lassen sich mit „Zwischenspeicher leeren“ löschen.
 - **Integrationsfenster:** Endpunkte mit Umsetzungsstand; API-Tester und „Zugriff prüfen“ zählen mit und rufen

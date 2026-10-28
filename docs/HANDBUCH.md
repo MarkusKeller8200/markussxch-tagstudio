@@ -591,6 +591,11 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   Anfragen im Monat – TagStudio zählt mit; BPM/Tonart nur zum Vergleich, Plattform-IDs nur anzeigen) und Last.fm. Standard: nur leere Felder ergänzen; je Feld ist die
   erste Quelle vorausgewählt, andere erscheinen als Alternative. Discogs-Token, Last.fm- und AcoustID-Schlüssel unter
   Plugins › Online-Metadaten › „Schlüssel …“ (verschlüsselt gespeichert); „Verbindungen testen“ prüft die Dienste.
+- **SonoVault zusätzlich:** auf Wunsch eigene Felder `TXXX:SONOVAULT_*` mit Herkunft „SonoVault“ (Option in
+  Online-Metadaten), „Release nachschlagen (SonoVault) …“ für ganze Alben/EPs (2 Anfragen je Release) und – mit
+  bezahltem Tarif (Plugins › SonoVault › „Schlüssel …“ › Tarif) – die neuesten Titel je Label und Genre in „Entdecken“
+  sowie „Genre-Korrektur an SonoVault melden …“ (nur auf Häkchen, Status unter „Meine Genre-Vorschläge …“).
+  Details in [PLUGINS.md](../PLUGINS.md).
 - **Spotify und SoundCloud (nur lesen, eigene App beim Dienst):** Playlists, Lieblingssongs bzw. Likes als Playlists
   mit Einträgen ohne Datei (Playlists › Importieren ▾), Titel-Daten mit Link für die Online-Metadaten und gefolgte
   Künstler für „Entdecken“. Einrichtung in [PLUGINS.md](../PLUGINS.md).

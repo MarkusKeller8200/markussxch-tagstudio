@@ -72,6 +72,8 @@ def actions(ctx):
         {"key": "cover", "type": "select", "label": "Cover",
          "choices": [["missing", "Nur wenn keins vorhanden"], ["replace", "Ersetzen"], ["no", "Nicht übernehmen"]], "default": "missing"},
         {"key": "ids", "type": "check", "label": "IDs speichern (MusicBrainz, Deezer, iTunes, Discogs)", "default": True},
+        {"key": "own", "type": "check", "default": False,
+         "label": "Zusätzlich eigene Felder der Quelle mit Herkunft schreiben (SonoVault: TXXX:SONOVAULT_*)"},
     ]
     return [
         {"id": "fetch", "label": "Online-Metadaten holen …", "where": "tagger", "run_label": "Suchen",
@@ -194,6 +196,17 @@ def propose_file(ctx, cl, f, hits, opts, group, stats, auth=None):
                 ctx.propose(f, key, val, lab, note=note, checked=False, group=group, **lk, hint="schon gefüllt – nur ergänzen")
             else:
                 ctx.propose(f, key, val, lab, note=note, checked=sure, group=group, **lk)
+    # #383: eigene Felder einer Quelle (z. B. TXXX:SONOVAULT_*) – Kopie mit Herkunft, nur mit Option „own“
+    if opts.get("own"):
+        for src, c, s in hits:
+            own = [tuple(x) + (False,) * (4 - len(x)) for x in c.get("own_fields") or []]
+            for key, val, label, stamp in own:
+                if stamp and all(f.text(k).strip() == v for k, v, _l, st in own if not st):
+                    continue                         # nur der Stempel (z. B. Abrufdatum) wäre neu
+                if f.text(key).strip() == val:
+                    continue
+                ctx.propose(f, key, val, f"{label} ({SOURCE_NAME[src]})", note=f"{SOURCE_NAME[src]}: eigenes Feld",
+                            checked=s >= SURE, group=group, hint=f"eigenes Feld mit Herkunft „{SOURCE_NAME[src]}“")
     # Cover: aus der ersten Quelle, die eins hat
     cov = opts.get("cover", "missing")
     has = f.get("APIC:3") is not None

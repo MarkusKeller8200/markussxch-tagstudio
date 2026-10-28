@@ -319,3 +319,164 @@ class TestSonoVault(OnlineHarness):
         st = self.act("identify", sel, pid="sonovault", seconds="30", only_untagged=True, confirm=True)
         self.assertIn("gekaufte Kredite", st["error"] or "")
         self.assertIn("11 von 1000 Anfragen", self.info()["status_text"])
+
+
+REL_SEARCH = {"results": [{"id": 9, "title": "Andere EP", "artist": {"id": 2, "name": "Jemand"}},
+                          {"id": 8, "title": "Nachtfahrt EP", "artist": {"id": 1, "name": "Mara Lind"},
+                           "label": {"id": 3, "name": "Polar Records"}, "release_date": "2021-05-14"}], "next_cursor": None}
+REL = {"id": 8, "title": "Nachtfahrt EP", "artist": {"id": 1, "name": "Mara Lind"}, "label": {"id": 3, "name": "Polar Records"},
+       "release_date": "2021-05-14", "catalog_no": "POL042", "editions": [], "edition": None,
+       "tracks": [dict(SV_N, disc_number=1, track_number=1, releases=None),
+                  dict(SV_TRACK, disc_number=1, track_number=2, releases=None)]}
+BROWSE = {"results": [dict(SV_TRACK, id=901, title="Frisch (Extended Mix)", releases=[{"title": "Frisch", "label": {"name": "Polar Records"},
+                                                                                      "release_date": "2026-10-25"}]),
+                      dict(SV_TRACK, id=902, title="Alt", releases=[{"title": "Alt", "release_date": "2019-01-01"}])]}
+
+
+class TestSonoVaultMore(TestSonoVault):
+    """#380, #381, #383, #259 – Release nachschlagen, eigene Felder, Tarif, Browse in Entdecken, Genre-Korrektur."""
+
+    def setUp(self):
+        super().setUp()
+        sv = self.sv
+
+        def fake(url, headers=None):
+            u = urllib.parse.urlparse(url)
+            if u.netloc == "api.sonovault.now":
+                q = {k: v[0] for k, v in urllib.parse.parse_qs(u.query).items()}
+                js = (lambda d: (sv.calls.append((u.path, q, {})) or (200, {}, json.dumps(d).encode())))   # noqa: E731
+                if u.path == "/v1/releases/search":
+                    return js(REL_SEARCH)
+                if u.path == "/v1/releases/8":
+                    return js(REL)
+                if u.path == "/v1/tracks/browse":
+                    return js(BROWSE)
+                if u.path == "/v1/labels/search":
+                    return js({"results": [{"id": 3, "name": "Polar Records"}]})
+                if u.path == "/v1/genres":
+                    return js({"genres": [{"id": 12, "name": "House", "type": "main"},
+                                          {"id": 47, "name": "Deep House", "type": "subgenre", "parent": "House"},
+                                          {"id": 50, "name": "Techno", "type": "main"}]})
+                if u.path == "/v1/suggestions":
+                    return js({"results": [{"id": 5, "track_id": 4711, "field": "genre",
+                                            "proposed_value": {"genre_id": 50, "genre_name": "Techno"},
+                                            "current_value": {"genre": ["House"], "subgenre": ["Deep House"]},
+                                            "status": "pending", "review_note": None, "created_at": "2026-10-28T10:00:00Z"}],
+                               "next_cursor": None})
+                if u.path == "/v1/tracks/4711":
+                    return js(SV_TRACK)
+            return sv(url, headers)
+        onlinematch.http_get = fake
+        post = self.post
+
+        def fpost(url, headers, data):
+            u = urllib.parse.urlparse(url)
+            if u.path.endswith("/suggestions"):
+                body = json.loads(data.decode("utf-8"))
+                post.calls.append((u.path, body))
+                if not post.paid:
+                    return 403, {}, b'{"error":"paid plan required"}'
+                return 201, {}, json.dumps({"id": 6, "track_id": 4711, "field": "genre", "status": "pending"}).encode()
+            return post(url, headers, data)
+        onlinematch.http_post = fpost
+
+    def test_release_lookup(self):
+        """#380: Release über Album + Künstler, Trackliste per ISRC bzw. Titel zugeordnet, nur erlaubte Felder,
+        Katalog-/Titelnummer nur in der Notiz, 2 Anfragen je Release (danach Zwischenspeicher)."""
+        self.keys()
+        r = self.act("release", [self.idx["n.mp3"], self.idx["k.mp3"], self.idx["u.mp3"]], pid="sonovault",
+                     title="Nachtfahrt EP", artist="Mara Lind", mode="empty", date="year", names=False, own=False)["result"]
+        self.assertIn("1 von 1 Release(s) gefunden, 2 von 3 Titel(n) zugeordnet", r["message"])
+        by = {(p["name"], p["label"]): p for p in r["proposals"]}
+        self.assertEqual(by[("n.mp3", "Album (SonoVault)")]["new"], "Nachtfahrt EP")
+        self.assertEqual(by[("k.mp3", "Label (SonoVault)")]["new"], "Polar Records")
+        self.assertEqual(by[("k.mp3", "Jahr (SonoVault)")]["new"], "2021")
+        self.assertEqual(by[("k.mp3", "ISRC (SonoVault)")]["new"], "CHA012100002")
+        self.assertIn("Katalognummer POL042 (nur Anzeige)", by[("k.mp3", "Album (SonoVault)")]["note"])
+        self.assertIn("Titel 2 / CD 1 (nur Anzeige)", by[("k.mp3", "Album (SonoVault)")]["note"])
+        self.assertFalse(any("Katalog" in p["label"] or "Spur" in p["label"] or "SONOVAULT" in p["label"] for p in r["proposals"]))
+        self.assertIn(["u.mp3", "Nachtfahrt EP", "nicht in der Trackliste"], r["table"]["rows"])
+        self.assertEqual([c[0] for c in self.sv.calls], ["/v1/releases/search", "/v1/releases/8"])
+        self.assertTrue(all("Polar" not in ln for ln in r["log"]))                       # keine Werte im Protokoll
+        self.act("release", [self.idx["k.mp3"]], pid="sonovault", title="Nachtfahrt EP", artist="Mara Lind")
+        self.assertEqual(len(self.sv.calls), 2)
+
+    def test_own_fields(self):
+        """#383: eigene Felder TXXX:SONOVAULT_* nur auf Wunsch, nur erlaubte Werte + Abrufdatum, Herkunft „SonoVault“."""
+        import datetime
+        import origins
+        self.keys()
+        res = self.fetch(["k.mp3"], mb=False, deezer=False, sonovault=True, own=True)
+        own = {p["label"].split(" (")[0]: p for p in res["proposals"] if p["label"].startswith("SONOVAULT_")}
+        self.assertEqual(set(own), {"SONOVAULT_TITLE", "SONOVAULT_ARTIST", "SONOVAULT_RELEASE", "SONOVAULT_LABEL",
+                                    "SONOVAULT_GENRE", "SONOVAULT_RELEASE_DATE", "SONOVAULT_DURATION", "SONOVAULT_ISRC",
+                                    "SONOVAULT_DATE"})
+        self.assertEqual(own["SONOVAULT_DURATION"]["new"], "5:40")
+        self.assertEqual(own["SONOVAULT_DATE"]["new"], datetime.date.today().isoformat())
+        self.assertEqual(own["SONOVAULT_RELEASE_DATE"]["new"], "2021-05-14")
+        self.assertFalse(any(k in own for k in ("SONOVAULT_BPM", "SONOVAULT_KEY", "SONOVAULT_ID", "SONOVAULT_CATALOGNUMBER")))
+        res = self.fetch(["k.mp3"], mb=False, deezer=False, sonovault=True, own=False)
+        self.assertFalse(any(p["label"].startswith("SONOVAULT_") for p in res["proposals"]))
+        o = origins.Origins()
+        self.assertEqual(o.catalog()[o.of("TXXX:SONOVAULT_LABEL")]["name"], "SonoVault")
+
+    def test_tier_browse_in_discover(self):
+        """#381: Tarif „Bezahlt“ – Starter-Kontingent, Entdecken holt zusätzlich die neuesten Titel je Label/Genre."""
+        import discover
+        self.keys()
+        mod = self.mod
+        import plugins
+        ctx = plugins.Context(self.s.plugins.get("sonovault"))
+        with self.assertRaises(ValueError):
+            mod.browse(ctx, {"genre": "House"}, "x", 60)                   # Free: nie abgefragt
+        self.act("keys", pid="sonovault", tier="paid")
+        self.assertTrue(mod.is_paid(ctx))
+        self.assertIn("50000", self.info()["status_text"])
+        self.assertIn("Tarif bezahlt", self.info()["status_text"])
+        with discover.LOCK:
+            d = discover.load()
+            d["follow"].update(artists=[], labels=["Polar Records"], genres=[{"id": 5, "name": "House"}], sources=["sonovault"])
+            discover.save(d)
+        self.assertTrue(self.s.disc_overview()["sonovault"]["paid"])
+        self.s.start_disc_run()
+        st = self.wait()
+        self.assertIsNone(st["error"], st)
+        items = discover.load()["items"]
+        e = items.get("sonovault:trk:901")
+        self.assertIsNotNone(e, list(items))
+        self.assertEqual((e["title"], e["mix"], e["url"]), ("Frisch", "Extended Mix", ""))
+        self.assertNotIn("sonovault:trk:902", items)                         # älter als „days“
+        paths = [c[0] for c in self.sv.calls]
+        self.assertIn("/v1/tracks/browse", paths)
+        browse_q = [c[1] for c in self.sv.calls if c[0] == "/v1/tracks/browse"]
+        self.assertIn({"labelId": "3"}, browse_q)
+        self.assertIn({"genre": "House"}, browse_q)
+        self.assertEqual(discover.export_rows(discover.load()), [])           # nie exportiert
+        self.act("keys", pid="sonovault", tier="free")
+        self.assertIn("1000 Anfragen", self.info()["status_text"])
+
+    def test_genre_suggestion(self):
+        """#259: Vorschau ohne Senden, dann genreId + note; nur mit bezahltem Tarif; Liste mit Status."""
+        self.keys()
+        f = self.s.tag_files[self.idx["k.mp3"]]
+        f.set_text("TCON", "Techno")
+        st = self.act("suggest", [self.idx["k.mp3"]], pid="sonovault", note="", confirm=False)
+        self.assertIn("bezahlten Tarif", st["error"] or "")
+        self.act("keys", pid="sonovault", tier="paid")
+        r = self.act("suggest", [self.idx["k.mp3"], self.idx["u.mp3"]], pid="sonovault", note="", confirm=False)["result"]
+        self.assertIn("1 von 2 Titel(n) könnten gemeldet werden – nichts gesendet", r["message"])
+        self.assertIn(["k.mp3", "House, Deep House", "Techno", "Techno"], r["table"]["rows"])
+        self.assertFalse([c for c in self.post.calls if c[0].endswith("/suggestions")])
+        r = self.act("suggest", [self.idx["k.mp3"]], pid="sonovault", note="Klar Techno", confirm=True)["result"]
+        sent = [c for c in self.post.calls if c[0].endswith("/suggestions")]
+        self.assertEqual(sent, [("/v1/tracks/4711/suggestions", {"genreId": 50, "note": "Klar Techno"})])
+        self.assertIn("1 Genre-Korrektur(en) gemeldet", r["message"])
+        f.set_text("TCON", "Deep House")                                         # gleich → nichts zu melden
+        r = self.act("suggest", [self.idx["k.mp3"]], pid="sonovault", confirm=False)["result"]
+        self.assertIn(["k.mp3", "House, Deep House", "Deep House", "gleich"], r["table"]["rows"])
+        r = self.act("suggestions", pid="sonovault")["result"]
+        self.assertEqual(r["table"]["rows"][0][3:5], ["Techno", "pending"])
+
+
+for _n in [n for n in dir(TestSonoVault) if n.startswith("test_")]:     # geerbte Tests nicht doppelt ausführen
+    setattr(TestSonoVaultMore, _n, None)

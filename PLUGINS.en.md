@@ -473,6 +473,8 @@ quota) are reported, not retried.
   `http://127.0.0.1:8769/callback`, the app key as client ID.
 
 
+## Built in: SonoVault
+
 Music metadata API by Rekordcloud ([sonovault.now](https://sonovault.now), over 93 million tracks) with **your own
 key** – TagStudio does not ship one (concept and terms of use: `docs/KONZEPT-SONOVAULT.md`).
 
@@ -481,9 +483,21 @@ key** – TagStudio does not ship one (concept and terms of use: `docs/KONZEPT-S
 - **Counting requests (Free plan):** the tile shows “this month x of 1000 requests (remaining y)”; from 90 % TagStudio
   warns, once the quota is reached it stops sending requests (again from the 1st of the month). A different quota can
   be entered under “Key …”. HTTP 429 is **never** retried.
+- **Plan (#381):** “Free” or “Paid (Starter or higher)” under “Key …”. Paid sets the quota to 50,000 (changeable),
+  allows 60 requests per minute and unlocks browse in “Discover” and genre corrections. Without a paid plan TagStudio
+  never calls these endpoints.
 - **Online metadata:** source “SonoVault” (off until you tick it) after MusicBrainz and Discogs, before Deezer and
   iTunes. ISRC first, otherwise artist + title. Per the terms of use **only** title, artist, album/release, label,
   genre, date, duration and ISRC may go into the file – BPM and key only appear as a **comparison** in the note.
+- **Own fields `TXXX:SONOVAULT_*` (#383):** with the option “Also write the source's own fields with origin” (online
+  metadata; also in “Look up release” and “Identify audio”) a copy of the allowed values goes into
+  `TXXX:SONOVAULT_TITLE`, `…_ARTIST`, `…_RELEASE`, `…_LABEL`, `…_GENRE`, `…_RELEASE_DATE`, `…_DURATION`, `…_ISRC` and the
+  fetch date into `…_DATE` – origin “SonoVault” in the tagger (filterable, removable). Never BPM, key, ISWC, catalogue
+  number or IDs (only after Rekordcloud agrees, #382).
+- **Look up release (SonoVault) …** (tagger, #380): finds the release (album, EP) of the selected tracks by album and
+  artist name (`/v1/releases/search`, then `/v1/releases/{id}` – 2 requests per release, cached for 30 days) and matches
+  the tracklist by ISRC or title. Suggestions only for album, label, date, ISRC, genre (optionally title and artist);
+  catalogue, track and disc number only in the note.
 - **Show platform IDs (SonoVault) …** (tagger): IDs on Spotify, Beatport, Apple Music, Tidal, Discogs, MusicBrainz and
   YouTube as a table – **display only**, never written to the files, not in the log.
 - **Compare with SonoVault (library) …** (tagger, #256): compares the selected tracks in blocks of 100
@@ -493,11 +507,19 @@ key** – TagStudio does not ship one (concept and terms of use: `docs/KONZEPT-S
 - **Discover (#258):** source “SonoVault” under Discover › Follow … (only selectable with a key): new releases of
   followed artists and labels (name lookup cached for 30 days, release list for 20 hours). Only with “Search”, never in
   the daily search; entries without link, removed after 30 days (even watch-listed ones) and never in the shopping list.
+  **With a paid plan (#381)** also the newest tracks per followed label and genre (`/v1/tracks/browse` with `labelId`
+  or `genre`, at most 20 per query, cached for 20 hours). TagStudio does not use the unfiltered new-releases feed.
 - **Identify audio (SonoVault, paid) …** (tagger, #257, optional): for tracks without usable tags an excerpt from the
   middle (30/45/60 s, mono, 16 kHz, without tags) is sent to `POST /v1/tracks/identify` – 10 credits + 1 per started MB
   per track (30 s: 11). Credits must be bought at SonoVault; on the Free plan SonoVault declines (clear message,
   nothing charged). Without the check mark only a cost preview. Privacy: SonoVault keeps the excerpt without a fixed
-  deadline – only your own recordings. Matches as a preview (allowed fields only). Tip: try AcoustID first.
+  deadline – only your own recordings. Matches as a preview (allowed fields only); slim matches (only ID, title,
+  artist) are completed via the ID (1 request). Tip: try AcoustID first.
+- **Report genre correction to SonoVault …** (tagger, #259, paid plan): compares the file's genre (first value in TCON)
+  with SonoVault; if it matches exactly one genre from `/v1/genres` and differs, TagStudio reports
+  `POST /v1/tracks/{id}/suggestions` with `genreId` and an optional note (≤ 100 characters) when ticked. Without the tick
+  only a preview; at most 100 per day. The SonoVault team reviews suggestions; **My genre suggestions …** shows their
+  status (pending, approved, rejected).
 - **Cache:** responses are kept for at most 30 days in the plugin's data folder, never exported; “Clear cache” deletes them.
 - **Integration window:** endpoints with implementation status; the API tester and “Check access” count along and do
   not call paid endpoints (identification, browse, new releases, genre suggestions, radio monitoring, webhooks).

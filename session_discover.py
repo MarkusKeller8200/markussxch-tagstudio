@@ -60,7 +60,11 @@ class DiscoverMixin:
                 if log:
                     log("SonoVault übersprungen: Plugin aus oder kein Schlüssel gespeichert.")
                 return None
-            return lambda kind, name, days: mod.discover_releases(ctx, kind, name, days)
+            def sv(kind, name, days):
+                fn = getattr(mod, "discover", None) or mod.discover_releases
+                return fn(ctx, kind, name, days)
+            sv.paid = bool(getattr(mod, "is_paid", lambda c: False)(ctx))        # #381: Browse nur mit bezahltem Tarif
+            return sv
         except Exception as ex:  # noqa: BLE001
             if log:
                 log(f"SonoVault nicht verfügbar: {ex}")
@@ -73,7 +77,8 @@ class DiscoverMixin:
             if p is None or not p.enabled or p.state() != "ready" or p.load() is None:
                 return {"ready": False, "text": ""}
             mod, ctx = p.load(), plugins.Context(p, None)
-            return {"ready": bool(mod.token(ctx)), "text": mod.quota_text(ctx)}
+            return {"ready": bool(mod.token(ctx)), "text": mod.quota_text(ctx),
+                    "paid": bool(getattr(mod, "is_paid", lambda c: False)(ctx))}
         except Exception:  # noqa: BLE001
             return {"ready": False, "text": ""}
 

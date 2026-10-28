@@ -2897,6 +2897,24 @@ class UiTest(unittest.TestCase):
         self.assertIn("ohne feste Frist", txt)
         self.assertIn("~11 Kredite je Titel", pg.inner_text('#modal [data-ok="seconds"]'))
         self.assertFalse(pg.locator('#modal [data-ok="confirm"]').is_checked())
+        self.assertFalse(pg.locator('#modal [data-ok="own"]').is_checked())               # #383: eigene Felder nur auf Wunsch
+        pg.click("#mBtns button >> nth=0")
+        # #380: Release nachschlagen – Felder für Titel/Künstler, eigene Felder aus
+        pg.click('#tgPlugins [data-plugin="sonovault"][data-action="release"]')
+        pg.wait_for_selector('#modal [data-ok="title"]')
+        self.assertFalse(pg.locator('#modal [data-ok="names"]').is_checked())
+        pg.click("#mBtns button >> nth=0")
+        # #259: Genre-Korrektur – ohne Häkchen nur Vorschau, Hinweis auf den Tarif
+        pg.click('#tgPlugins [data-plugin="sonovault"][data-action="suggest"]')
+        pg.wait_for_selector('#modal [data-ok="confirm"]')
+        self.assertFalse(pg.locator('#modal [data-ok="confirm"]').is_checked())
+        self.assertIn("Tarif ist auf", pg.inner_text("#modal"))
+        pg.click("#mBtns button >> nth=0")
+        # #381: Tarif unter „Schlüssel …“
+        pg.click('.nav[data-module="plugins"]')
+        pg.click(card + ' [data-paction="keys"]')
+        pg.wait_for_selector('#modal [data-ok="tier"]')
+        self.assertEqual(pg.input_value('#modal [data-ok="tier"]'), "free")
         pg.click("#mBtns button >> nth=0")
         self.assertEqual(self.errors, [])
 

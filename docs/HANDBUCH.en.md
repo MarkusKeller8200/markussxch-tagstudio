@@ -562,6 +562,10 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   month – TagStudio counts along; BPM/key for comparison only, platform IDs display only) and Last.fm. Default: only complete empty fields; per field the first
   source is preselected, others appear as alternatives. Discogs token, Last.fm and AcoustID keys under Plugins ›
   Online metadata › “Key …” (stored encrypted); “Test connections” checks the services.
+- **SonoVault also:** optionally own fields `TXXX:SONOVAULT_*` with origin “SonoVault” (option in online metadata),
+  “Look up release (SonoVault) …” for whole albums/EPs (2 requests per release) and – with a paid plan (Plugins ›
+  SonoVault › “Key …” › Plan) – the newest tracks per label and genre in “Discover” plus “Report genre correction to
+  SonoVault …” (only when ticked, status under “My genre suggestions …”). Details in [PLUGINS.en.md](../PLUGINS.en.md).
 - **Spotify and SoundCloud (read only, own app at the service):** playlists, Liked Songs or likes as playlists with
   entries without a file (Playlists › Import ▾), track data with link for online metadata and followed artists for
   “Discover”. Setup in [PLUGINS.en.md](../PLUGINS.en.md).

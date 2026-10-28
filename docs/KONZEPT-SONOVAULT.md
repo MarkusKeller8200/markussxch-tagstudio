@@ -173,10 +173,33 @@ Doku und Website mit der Umsetzung verglichen (Terms unverändert „Last update
 ## 6d. Eigene Felder `TXXX:SONOVAULT_*` (#383, Entscheid User 27.10.2026, 08:41)
 
 - Muster freigegeben: `TXXX:SONOVAULT_TITLE`, `_ARTIST`, `_RELEASE`, `_LABEL`, `_GENRE`, `_RELEASE_DATE`, `_DURATION`,
-  `_ISRC` und `TXXX:SONOVAULT_DATE` (Abrufdatum) – Herkunft „SonoVault“ über `plugin.json › fields` (`TXXX:SONOVAULT*`).
+  `_ISRC` und `TXXX:SONOVAULT_DATE` (Abrufdatum) – Herkunft „SonoVault“ (umgesetzt als eingebaute Quelle, siehe 6e).
 - Nur diese Felder (Terms §7). `_BPM`, `_KEY`, `_ISWC`, `_CATALOGNUMBER` erst nach Zusage von Rekordcloud (#382);
   Plattform-IDs und eine SonoVault-ID nie.
 - Schreiben nur über die Vorschau mit Häkchen, je Titel, eigene Dateien; zusätzlich zu den normalen Vorschlägen.
+
+## 6e. Umsetzung 28.10.2026 – Plugin 1.2 (Auftrag User 19:59 „restliche SonoVault-Issues vorbereiten und umsetzen“)
+
+Entscheide User (19:59): bezahlten Tarif nehmen (#381, #259 umsetzen), Radio-Überwachung **nicht** (→ Idee #391),
+Release nachschlagen als Tagger-Aktion (#380). Feldnamen und Parameter aus der öffentlichen Doku (28.10.2026).
+
+- **#383 eigene Felder:** `own_fields()` im Plugin (nur §7-Werte + Abrufdatum als Stempel), Herkunft „SonoVault“ als
+  eingebaute Quelle in `origins.py` (`TXXX:SONOVAULT*`, statt „TagStudio · Plugin“ über `plugin.json › fields`).
+  Option „own“ in Online-Metadaten (2.3, allgemein für Quellen mit `own_fields`), Release nachschlagen und Audio
+  erkennen; Standard aus.
+- **#380 Release nachschlagen:** `/v1/releases/search` (title, artist, limit) → bester Treffer (Titel, Künstler) →
+  `/v1/releases/{id}` (`tracks[]` mit `isrc`, `genre`, `subgenre`, `disc_number`, `track_number`; `catalog_no`,
+  `editions[]`). Zuordnung über ISRC, sonst Titel (+ Mix). Katalog-/Titel-/CD-Nummer nur in der Notiz.
+- **Tarif:** `quota.json › tier` (free/paid) unter „Schlüssel …“; bezahlt → Kontingent 50 000 (Starter), Abstand 1,05 s.
+  `_need_paid()` sperrt Browse und Genre-Korrektur im Free-Tarif (kein Abruf).
+- **#381 Entdecken:** `/v1/tracks/browse` (`labelId` über die Label-Suche, `genre` = Name eines gefolgten Genres;
+  höchstens 20, neueste zuerst, 20 Stunden zwischengespeichert), Einträge `sonovault:trk:<id>` wie #258 (ohne Link,
+  30 Tage, nie exportiert). `/v1/releases/new` ist ein ungefilterter Feed über den ganzen Katalog → nicht genutzt.
+- **#259 Genre-Korrektur:** `GET /v1/genres` (30 Tage) → Genre-ID zum ersten TCON-Wert (genauer Name); Titel über
+  ISRC bzw. Suche (nur sichere Treffer); gleich → nichts. Melden nur mit Häkchen: `POST /v1/tracks/{id}/suggestions`
+  `{genreId, note ≤ 100}` (100 je Tag); „Meine Genre-Vorschläge …“ = `GET /v1/suggestions` mit Status.
+- **Audio-Erkennung:** Antwort `results` ist schlank (`id`, `title`, `artists`, `confidence`) → `GET /v1/tracks/{id}`.
+- **#382:** Anfrage-Entwurf (SonoVault-Fragen + MixID) im Issue, sendet der User.
 
 ## 7. Eigener Katalog statt Dienst (#260, Entscheid User 24.10.2026)
 

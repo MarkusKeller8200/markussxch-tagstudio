@@ -498,7 +498,8 @@ def beatport_genres(client) -> list[dict]:
 def run(d: dict, bp_client=None, log=None, progress=None, cancel=None, dz=_dz, sv=None) -> list[dict]:
     """Alle Quellen für alle gefolgten Künstler/Labels/Genres abfragen. Fehler einzelner Abfragen landen im Log.
     dz: Deezer-Abruf (Plugin Deezer, #204); None = Deezer überspringen.
-    sv: SonoVault-Abruf sv(kind, name, days) (#258); None = überspringen. Ist das Kontingent aufgebraucht (HTTP 429),
+    sv: SonoVault-Abruf sv(kind, name, days) (#258); None = überspringen. sv.paid (#381): zusätzlich Browse je Label
+    und Genre (kind „browse_label“/„browse_genre“). Ist das Kontingent aufgebraucht (HTTP 429),
     werden die übrigen SonoVault-Abfragen ausgelassen."""
     f = d["follow"]
     days = f.get("days") or 60
@@ -515,6 +516,10 @@ def run(d: dict, bp_client=None, log=None, progress=None, cancel=None, dz=_dz, s
     if "sonovault" in f["sources"] and sv is not None:
         jobs += [("SonoVault", a, lambda a=a: sv("artist", a, days)) for a in f["artists"]]
         jobs += [("SonoVault", lab, lambda lab=lab: sv("label", lab, days)) for lab in f["labels"]]
+        if getattr(sv, "paid", False):                   # #381: bezahlter Tarif – neueste Titel je Label und Genre (Browse)
+            jobs += [("SonoVault", f"{lab} (Browse)", lambda lab=lab: sv("browse_label", lab, days)) for lab in f["labels"]]
+            jobs += [("SonoVault", f"{g.get('name', '')} (Browse)", lambda g=g: sv("browse_genre", g.get("name", ""), days))
+                     for g in f["genres"] if g.get("name")]
     found, stop = [], set()
     for i, (src, what, fn) in enumerate(jobs, 1):
         if cancel is not None and cancel.is_set():
