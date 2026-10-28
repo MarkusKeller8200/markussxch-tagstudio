@@ -8,6 +8,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **SonoVault-Integrationsfenster nachgeführt (#379, Plugin 1.1):** neue Endpunkte der Doku (Genre-Vorschläge,
+  Radio-Überwachung, Webhooks) kostenpflichtig markiert und nie abgefragt; Notizen zu Erkennung (nur rohes Audio),
+  Künstler/Label und Blättern mit Cursor. „Zugriff prüfen“ ruft bei allen Diensten keine Endpunkte mit `test: false`
+  mehr auf.
+
 - **Mix analysieren (#261, #387):** neues Plugin „Mix analysieren“ erkennt die Titel der eigenen Bibliothek in einer
   Mix-Datei (DJ-Set, Radiosendung, eigener Mix) – auch mit geändertem Tempo (±10 %, mit und ohne Keylock). Eigener
   Audio-Fingerabdruck, läuft vollständig lokal (Konzept `docs/KONZEPT-MIXSCAN.md`). Einmal „Bibliothek indexieren …“

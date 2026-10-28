@@ -433,7 +433,8 @@ def access_check(plugin, ctx, user_agent: str) -> dict:
     secrets = [v for v in list((a.get("headers") or {}).values()) + list((a.get("params") or {}).values()) if v]
     eps = [e for e in svc["endpoints"] if e["method"] == "GET" and not e["path"].startswith("/auth/")
            and not e["path"].rstrip("/").endswith("/download")
-           and not (e.get("danger") and "{" in e["path"])]          # #361/#364: ändernde nur ohne ID (siehe unten)
+           and not (e.get("danger") and "{" in e["path"])          # #361/#364: ändernde nur ohne ID (siehe unten)
+           and e.get("test", True)]                                  # #379: nie testen (kostenpflichtig, Live-Feed, Download)
     eps.sort(key=lambda e: (e["path"].count("{"), e["path"]))       # Listen zuerst (liefern die Beispiel-IDs)
     ids, rows = {}, []
     for i, e in enumerate(eps, 1):

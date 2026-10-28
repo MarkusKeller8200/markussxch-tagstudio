@@ -450,7 +450,8 @@ need **your own app** at the service; TagStudio does not ship shared credentials
   your sign-in (token blacked out).
 - **Check access (#297):** in the integration window of every service plugin, the tab “Check access” calls each read
   endpoint once with the current sign-in and shows *access*, *reachable* (incomplete request), *no access* (401/403)
-  etc. per endpoint – GET only, without sign-in routes and file downloads. A plugin can add `access_info(ctx)` → text
+  etc. per endpoint – GET only, without sign-in routes, file downloads and endpoints with `"test": false` (#379, e.g.
+  paid ones). A plugin can add `access_info(ctx)` → text
   describing what is used for the check (Beatport: access type and scope).
 
 ## Built in: OneDrive, Google Drive and Dropbox (sync via the services)
@@ -499,7 +500,9 @@ key** – TagStudio does not ship one (concept and terms of use: `docs/KONZEPT-S
   deadline – only your own recordings. Matches as a preview (allowed fields only). Tip: try AcoustID first.
 - **Cache:** responses are kept for at most 30 days in the plugin's data folder, never exported; “Clear cache” deletes them.
 - **Integration window:** endpoints with implementation status; the API tester and “Check access” count along and do
-  not call paid endpoints (identification, browse, new releases).
+  not call paid endpoints (identification, browse, new releases, genre suggestions, radio monitoring, webhooks).
+  Endpoint list as documented on 27.10.2026 (#379, plugin 1.1) – with cursor paging and the changed responses of
+  identification, artist and label.
 
 ## Built in: Lexicon
 

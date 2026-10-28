@@ -183,6 +183,22 @@ class TestSonoVault(OnlineHarness):
         ok, why = self.mod.check(ctx)
         self.assertTrue(ok)
         self.assertIn("1 von 1000", why)
+        # #379: neue Endpunkte der Doku stehen in der Tabelle, sind kostenpflichtig markiert und werden nie aufgerufen
+        before = len(self.sv.calls)
+        eps = {e["id"]: e for e in p.service["endpoints"]}
+        new = ["suggestions-list", "stream", "stream-update", "stream-delete", "stream-history", "streams-report", "streams-live",
+               "webhooks-create", "webhooks", "webhook-update", "webhook-delete", "webhook-test", "webhook-deliveries"]
+        for eid in new + ["streams", "suggestions", "tracks-identify", "tracks-browse", "releases-new"]:
+            self.assertIn(eid, eps)
+            self.assertFalse(eps[eid]["test"], eid)
+            self.assertTrue(self.mod.paid(eid), eid)
+            self.assertEqual(self.mod.api_request(ctx, eps[eid], {"id": "1"})[0], 403)
+        self.assertEqual(len(self.sv.calls), before)
+        self.assertIn("415", eps["tracks-identify"]["note"])
+        self.assertIn("next_cursor", eps["artist-releases"]["note"])
+        import services
+        rows = services.access_check(p, ctx, "Test")["rows"]                  # „Zugriff prüfen“ lässt sie aus
+        self.assertFalse({r["path"] for r in rows} & {eps[e]["path"] for e in new + ["streams", "tracks-browse", "releases-new"]})
 
     def test_resolve_compare_only(self):
         """#256: Bibliothek abgleichen – Kostenvorschau ohne Abruf, dann Blöcke, nur Anzeige, Zwischenspeicher kostet nichts."""

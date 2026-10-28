@@ -460,7 +460,8 @@ geändert. Beide brauchen eine **eigene App** beim Dienst; TagStudio liefert kei
   Anmeldung auf (Token geschwärzt).
 - **Zugriff prüfen (#297):** Im Integrationsfenster jedes Dienst-Plugins ruft der Reiter „Zugriff prüfen“ mit der
   aktuellen Anmeldung jeden lesenden Endpunkt einmal auf und zeigt je Endpunkt *Zugriff*, *erreichbar* (Anfrage
-  unvollständig), *kein Zugriff* (401/403) usw. – nur GET, ohne Anmelde-Routen und Datei-Downloads. Ein Plugin kann mit
+  unvollständig), *kein Zugriff* (401/403) usw. – nur GET, ohne Anmelde-Routen, Datei-Downloads und Endpunkte mit
+  `"test": false` (#379, z. B. kostenpflichtige). Ein Plugin kann mit
   `access_info(ctx)` → Text ergänzen, womit geprüft wird (Beatport: Zugang und Scope).
 
 ## Eingebaut: OneDrive, Google Drive und Dropbox (Abgleich über die Dienste)
@@ -522,7 +523,9 @@ Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: 
 - **Zwischenspeicher:** Antworten liegen höchstens 30 Tage im Datenordner des Plugins (wiederholte Abfragen kosten
   dann nichts), werden nie exportiert und lassen sich mit „Zwischenspeicher leeren“ löschen.
 - **Integrationsfenster:** Endpunkte mit Umsetzungsstand; API-Tester und „Zugriff prüfen“ zählen mit und rufen
-  kostenpflichtige Endpunkte (Erkennung, Browse, Neuerscheinungen) nicht auf.
+  kostenpflichtige Endpunkte (Erkennung, Browse, Neuerscheinungen, Genre-Vorschläge, Radio-Überwachung, Webhooks)
+  nicht auf. Stand der Endpunkte: Doku vom 27.10.2026 (#379, Plugin 1.1) – mit Cursor-Blättern und den geänderten
+  Antworten von Erkennung, Künstler und Label.
 
 ## Eingebaut: Lexicon
 

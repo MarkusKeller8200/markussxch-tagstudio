@@ -155,7 +155,12 @@ Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Da
 
 Doku und Website mit der Umsetzung verglichen (Terms unverändert „Last updated: October 19, 2026“):
 - **Integrationsfenster veraltet** (fehlen: `GET /v1/suggestions`, Streams-Unterendpunkte, Webhooks; geänderte Antworten
-  bei identify und artists/labels) → **#379**.
+  bei identify und artists/labels) → **#379, umgesetzt 28.10.2026 (Plugin 1.1):** 35 Endpunkte; neu
+  `GET /v1/suggestions`, `GET/PATCH/DELETE /v1/streams/{id}`, `…/history`, `/v1/streams/report`, `/v1/streams/live`
+  (SSE), `POST/GET /v1/webhooks`, `PATCH/DELETE /v1/webhooks/{id}`, `…/test`, `…/deliveries` – alle „nicht
+  implementiert“, kostenpflichtig markiert (`paid()`: Streams, Webhooks, Vorschläge), `test: false`. Notizen: identify
+  nimmt nur rohes Audio (JSON → 415, Antwort `matched`/`results`/`credits_charged`), Künstler/Label ohne Listen, Listen
+  mit `cursor`/`next_cursor`. „Zugriff prüfen“ lässt Endpunkte mit `test: false` aus (gilt für alle Dienst-Plugins).
 - **Releases** (`/v1/releases/search`, `/v1/releases/{id}`, Free) bisher ungenutzt → Idee **#380**.
 - **Neuerscheinungs-Feed und Browse** (bezahlt) nicht umgesetzt (SV1 Free) → Idee **#381**, nur bei bezahltem Tarif.
 - **Fragen an Rekordcloud** (Verlinken SV3, Quellenangabe – Seite „Data Sources“ gibt es nicht, BPM/Tonart in Tags,

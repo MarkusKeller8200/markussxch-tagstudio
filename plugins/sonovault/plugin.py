@@ -35,7 +35,12 @@ WARN_AT = 0.9                                # ab 90 % verbraucht warnen
 CACHE_DAYS = 30                              # Nutzungsbedingungen §7: spätestens alle 30 Tage erneuern
 # Felder, die laut Nutzungsbedingungen (§7) in die Datei dürfen
 ALLOWED = ("TIT2", "TPE1", "TALB", "TPUB", "TCON", "TDRC", "TSRC", "TLEN")
-PAID = {"tracks-browse", "releases-new", "tracks-identify", "streams"}
+PAID = {"tracks-browse", "releases-new", "tracks-identify", "streams", "suggestions", "suggestions-list"}
+PAID_PREFIX = ("stream", "webhook")      # #379: Radio-Überwachung und Webhooks – kostenpflichtig, nie im API-Tester
+
+
+def paid(eid) -> bool:
+    return eid in PAID or str(eid or "").startswith(PAID_PREFIX)
 PLATFORMS = {"spotify": "Spotify", "applemusic": "Apple Music", "apple_music": "Apple Music", "tidal": "Tidal",
              "beatport": "Beatport", "discogs": "Discogs", "musicbrainz": "MusicBrainz", "youtube": "YouTube"}
 PRIVACY = ("Datenschutz: SonoVault sieht, welche Titel du abfragst (Künstler, Titel, ISRC), und speichert die Anfragen "
@@ -375,7 +380,7 @@ def api_request(ctx, ep, params):
     """API-Tester und „Zugriff prüfen“: über den Zähler; kostenpflichtige Endpunkte werden nicht aufgerufen."""
     import services
     url = services.build_url(ctx.plugin.service, ep, params or {})
-    if ep.get("id") in PAID or ep.get("method", "GET") != "GET":
+    if paid(ep.get("id")) or ep.get("method", "GET") != "GET":
         return 403, {}, json.dumps({"error": "nicht abgefragt – kostenpflichtig bzw. nur in bezahlten Tarifen"}).encode(), url
     if not token(ctx):
         return 401, {}, json.dumps({"error": "kein Schlüssel gespeichert"}).encode(), url

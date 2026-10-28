@@ -1,7 +1,7 @@
 {
   "id": "sonovault",
   "name": "SonoVault",
-  "version": "1.0",
+  "version": "1.1",
   "min_app": "4.11.0",
   "category": "online",
   "api": 1,
@@ -141,7 +141,7 @@
         "path": "/v1/tracks/identify",
         "label": "Audio-Erkennung",
         "status": "partial",
-        "note": "kostenpflichtig: 10 + 1 Kredit je MB (#257)",
+        "note": "kostenpflichtig: 10 + 1 Kredit je MB (#257); nimmt nur rohes Audio (application/octet-stream – JSON → 415); Antwort matched, results (id, title, artists, confidence), credits_charged",
         "params": [],
         "test": false,
         "use": "Audio erkennen (optional, Ausschnitt 30–60 s)"
@@ -182,7 +182,8 @@
             "name": "id",
             "example": "1"
           }
-        ]
+        ],
+        "note": "ohne Veröffentlichungen – dafür „Veröffentlichungen eines Künstlers“"
       },
       {
         "id": "artist-releases",
@@ -190,7 +191,7 @@
         "path": "/v1/artists/{id}/releases",
         "label": "Veröffentlichungen eines Künstlers",
         "status": "partial",
-        "note": "neueste zuerst (#258)",
+        "note": "neueste zuerst (#258); blättern mit cursor/next_cursor (bis 10 000 Ergebnisse)",
         "params": [
           {
             "name": "id",
@@ -225,7 +226,8 @@
             "name": "id",
             "example": "1"
           }
-        ]
+        ],
+        "note": "ohne Künstler und Veröffentlichungen – dafür die eigenen Listen-Endpunkte"
       },
       {
         "id": "label-releases",
@@ -233,7 +235,7 @@
         "path": "/v1/labels/{id}/releases",
         "label": "Veröffentlichungen eines Labels",
         "status": "partial",
-        "note": "neueste zuerst (#258)",
+        "note": "neueste zuerst (#258); blättern mit cursor/next_cursor (bis 10 000 Ergebnisse)",
         "params": [
           {
             "name": "id",
@@ -253,7 +255,8 @@
             "name": "id",
             "example": "1"
           }
-        ]
+        ],
+        "note": "blättern mit cursor/next_cursor (bis 10 000 Ergebnisse)"
       },
       {
         "id": "releases-search",
@@ -301,7 +304,17 @@
         "path": "/v1/tracks/{id}/suggestions",
         "label": "Korrektur melden",
         "status": "none",
-        "note": "(#259)",
+        "note": "bezahlte Tarife, 100 je Tag; schreibt beim Dienst (#259)",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "suggestions-list",
+        "method": "GET",
+        "path": "/v1/suggestions",
+        "label": "Eigene Korrektur-Vorschläge mit Status",
+        "status": "none",
+        "note": "bezahlte Tarife (#259)",
         "params": [],
         "test": false
       },
@@ -309,10 +322,170 @@
         "id": "streams",
         "method": "GET",
         "path": "/v1/streams",
-        "label": "Stream-Monitoring",
+        "label": "Überwachte Streams (Liste)",
         "status": "none",
-        "note": "kostenpflichtig je Stream (#259)",
+        "note": "Radio-Überwachung – kostenpflichtig je Stream, nicht im API-Tarif (#259)",
         "params": [],
+        "test": false
+      },
+      {
+        "id": "stream",
+        "method": "GET",
+        "path": "/v1/streams/{id}",
+        "label": "Ein überwachter Stream",
+        "status": "none",
+        "note": "Radio-Überwachung – kostenpflichtig, nicht im API-Tarif (#259)",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ],
+        "test": false
+      },
+      {
+        "id": "stream-update",
+        "method": "PATCH",
+        "path": "/v1/streams/{id}",
+        "label": "Stream ändern",
+        "status": "none",
+        "note": "Radio-Überwachung – kostenpflichtig, nicht im API-Tarif (#259)",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ],
+        "test": false
+      },
+      {
+        "id": "stream-delete",
+        "method": "DELETE",
+        "path": "/v1/streams/{id}",
+        "label": "Stream entfernen",
+        "status": "none",
+        "note": "Radio-Überwachung – kostenpflichtig, nicht im API-Tarif (#259)",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ],
+        "test": false
+      },
+      {
+        "id": "stream-history",
+        "method": "GET",
+        "path": "/v1/streams/{id}/history",
+        "label": "Verlauf eines Streams (gespielte Titel)",
+        "status": "none",
+        "note": "Radio-Überwachung – kostenpflichtig, nicht im API-Tarif (#259)",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ],
+        "test": false
+      },
+      {
+        "id": "streams-report",
+        "method": "GET",
+        "path": "/v1/streams/report",
+        "label": "Bericht über bis 92 Tage",
+        "status": "none",
+        "note": "Radio-Überwachung – kostenpflichtig, nicht im API-Tarif (#259)",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "streams-live",
+        "method": "GET",
+        "path": "/v1/streams/live",
+        "label": "Live-Feed (Server-Sent Events)",
+        "status": "none",
+        "note": "Radio-Überwachung – kostenpflichtig, nicht im API-Tarif (#259); dauerhafte Verbindung, nicht für den API-Tester",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "webhooks-create",
+        "method": "POST",
+        "path": "/v1/webhooks",
+        "label": "Webhook anlegen",
+        "status": "none",
+        "note": "Webhooks – Benachrichtigungen der Radio-Überwachung (#259)",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "webhooks",
+        "method": "GET",
+        "path": "/v1/webhooks",
+        "label": "Webhooks (Liste)",
+        "status": "none",
+        "note": "Webhooks – Benachrichtigungen der Radio-Überwachung (#259)",
+        "params": [],
+        "test": false
+      },
+      {
+        "id": "webhook-update",
+        "method": "PATCH",
+        "path": "/v1/webhooks/{id}",
+        "label": "Webhook ändern",
+        "status": "none",
+        "note": "Webhooks – Benachrichtigungen der Radio-Überwachung (#259)",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ],
+        "test": false
+      },
+      {
+        "id": "webhook-delete",
+        "method": "DELETE",
+        "path": "/v1/webhooks/{id}",
+        "label": "Webhook löschen",
+        "status": "none",
+        "note": "Webhooks – Benachrichtigungen der Radio-Überwachung (#259)",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ],
+        "test": false
+      },
+      {
+        "id": "webhook-test",
+        "method": "POST",
+        "path": "/v1/webhooks/{id}/test",
+        "label": "Webhook testen",
+        "status": "none",
+        "note": "Webhooks – Benachrichtigungen der Radio-Überwachung (#259)",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ],
+        "test": false
+      },
+      {
+        "id": "webhook-deliveries",
+        "method": "GET",
+        "path": "/v1/webhooks/{id}/deliveries",
+        "label": "Zustellungen eines Webhooks",
+        "status": "none",
+        "note": "Webhooks – Benachrichtigungen der Radio-Überwachung (#259)",
+        "params": [
+          {
+            "name": "id",
+            "example": "1"
+          }
+        ],
         "test": false
       }
     ],
