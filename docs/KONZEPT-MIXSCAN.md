@@ -193,7 +193,7 @@ Auftrag User 23:36 („MixID Light anlegen und gleich umsetzen in 4.13“). Eige
 sinnvoll (fremde Musik, Server, Rechte; mit SonoVault-Daten nach §4/§25 verboten) – stattdessen werden nur die Lücken
 der lokalen Erkennung über einen Dienst gefüllt.
 
-- **Entscheide (Standard, im Issue zur Bestätigung):** ML1 SonoVault-Audioerkennung, Rahmen offen für weitere
+- **Entscheide (vom User bestätigt 28.10.2026, 23:52):** ML1 SonoVault-Audioerkennung, Rahmen offen für weitere
   Plugins; ML2 Ausschnitt 30 s (30/45/60), einer je angefangene 3 Minuten Lücke, mittig, 15 s Abstand zu den Rändern;
   ML3 höchstens 10 Ausschnitte je Lauf (5/10/20/50), reihum über die Lücken; ML4 Ideen nur auf Klick; ML5 Aufbewahrung
   nach den Bedingungen des Dienstes.
