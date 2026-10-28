@@ -180,7 +180,7 @@ Doku und Website mit der Umsetzung verglichen (Terms unverändert „Last update
 
 ## 6e. Umsetzung 28.10.2026 – Plugin 1.2 (Auftrag User 19:59 „restliche SonoVault-Issues vorbereiten und umsetzen“)
 
-Entscheide User (19:59): bezahlten Tarif nehmen (#381, #259 umsetzen), Radio-Überwachung **nicht** (→ Idee #391),
+Entscheide User (19:59): bezahlten Tarif nehmen (#381, #259 umsetzen), Radio-Überwachung **nicht** (→ Idee #391, am 28.10. eingestellt),
 Release nachschlagen als Tagger-Aktion (#380). Feldnamen und Parameter aus der öffentlichen Doku (28.10.2026).
 
 - **#383 eigene Felder:** `own_fields()` im Plugin (nur §7-Werte + Abrufdatum als Stempel), Herkunft „SonoVault“ als

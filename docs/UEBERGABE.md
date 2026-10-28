@@ -39,14 +39,13 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **#383 geschlossen (User 23:21: wird nicht weiter verfolgt, „not planned“)** – Terms §7 (ii) bestätigt: nur Titel,
   Künstler, Release, Label, Genre, Datum, Dauer, ISRC; IDs/BPM/Tonart/ISWC/Katalognummer bleiben ausgeschlossen.
   Umgesetzter Teil (8 erlaubte Felder + Abrufdatum) bleibt im Code.
-- **#259 (User 23:23: wird nicht weiter verfolgt)** – war schon geschlossen, Grund auf „not planned“ geändert; Aktionen
-  „Genre-Korrektur melden“/„Meine Genre-Vorschläge“ bleiben vorerst im Plugin (Ausbau nur auf Wunsch).
+- **#391 Radio-/Stream-Überwachung geschlossen (User 23:24: wird nicht weiter verfolgt, „not planned“).**
 - **Testrückmeldung 28.10. 20:25:** geschlossen #387, #390, #379, #380, #381, #259 (Testlisten abgehakt); offen #383 (Testliste
   noch nicht abgehakt) und #382 (Anfrage sendet der User).
 - **SonoVault 1.2 (28.10. 19:59, `_3 Beta-Test`, Meilenstein #30):** #383 `TXXX:SONOVAULT_*` (Herkunft „SonoVault“ in
   `origins.py`, Option „own“ in Online-Metadaten 2.3), #380 „Release nachschlagen“, #381 Tarif Free/Bezahlt +
   Browse in Entdecken (`discover.run` mit `sv.paid`), #259 Genre-Korrektur + „Meine Genre-Vorschläge“. #379 1.1
-  (Integrationsfenster). Radio-Überwachung → Idee #391. #382 Anfrage-Entwurf im Issue, sendet der User. Konzept 6e.
+  (Integrationsfenster). Radio-Überwachung → Idee #391 (eingestellt 28.10.). #382 Anfrage-Entwurf im Issue, sendet der User. Konzept 6e.
 - **#390 (28.10. 19:28, `_3 Beta-Test`):** eigene Seite „Mixe“ (Modul `mixes` nach „Playlists“, `web/mixes.js` als
   Seite statt Dialog, `#mixCount`, Erste Schritte, Assistent-Ziel „Titel in DJ-Mixes erkennen“).
 - **#389 (22:39, Plugin 1.1; getestet und geschlossen 28.10. 19:21):** Analyse wahlweise im Hintergrund – `"background": "option"`, `job_name`, Job-Feld
