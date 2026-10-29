@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-29 (21:30): 4.14.0 im Beta-Test** (Meilenstein #31). Geschlossen: #384, #385, #401–#403, #405, #409, #411–#415. Offen: #417 Update-Popup (`_3 Beta-Test`), #406/#407 (OK, Workflow-Teil beim Release; Secret `VIRUSTOTAL_API_KEY` ist eingetragen), #410 (CodeQL im Test), #416 (wackeliger UI-Test, `_1 bereit`). Meilenstein #29: #418 Statistik-TOTAL (`_3 Beta-Test`). Release nur nach Freigabe.
+Stand: **2026-10-29 (22:30): 4.14.0 bereit für die Beta** (Meilenstein #31). Offen nur noch, was den Build braucht: #417 Update-Popup, #406/#407 (Workflow-Teil beim Release). #410 behoben und von CodeQL geschlossen, #416 (wackeliger UI-Test) behoben, `_3 Beta-Test` (CI beobachten). #418 geschlossen. Release nur nach Freigabe.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
