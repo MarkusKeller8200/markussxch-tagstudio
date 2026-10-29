@@ -35,7 +35,9 @@ SP_ALBUM = {"id": "al1", "name": "Nachtfahrt EP", "release_date": "2021-05-14", 
                                   "duration_ms": 340000, "artists": [{"id": "ar1", "name": "Mara Lind"}]},
                                  {"id": "sp3", "name": "Nordlicht", "track_number": 2, "disc_number": 1,
                                   "duration_ms": 372000, "artists": [{"id": "ar1", "name": "Mara Lind"}]}], "next": None}}
-SP_RELEASES = {"ar1": [{"id": "al9", "name": "Neue Single", "album_type": "single", "release_date": "2026-10-25",
+import datetime as _dt                                                          # noqa: E402
+_RECENT = (_dt.date.today() - _dt.timedelta(days=3)).isoformat()
+SP_RELEASES = {"ar1": [{"id": "al9", "name": "Neue Single", "album_type": "single", "release_date": _RECENT,
                         "artists": [{"id": "ar1", "name": "Mara Lind"}], "images": [{"url": "https://i.scdn.co/image/n"}],
                         "external_urls": {"spotify": "https://open.spotify.com/album/al9"}},
                        {"id": "al0", "name": "Altes Album", "album_type": "album", "release_date": "2019-01-01",
@@ -81,6 +83,11 @@ class Fake:
                 return js({"items": [{"track": SP_TRACK}], "next": None})
             if p == "/v1/me/following":
                 return js({"artists": {"items": [{"name": "Mara Lind"}, {"name": "Neu Artist"}], "next": None}})
+            if p == "/v1/search" and q.get("type") == "artist":                 # #384 SP1
+                return js({"artists": {"items": [{"id": "ar1", "name": "Mara Lind"}] if "mara" in q["q"].lower() else []}})
+            if p == "/v1/albums/al9/tracks":
+                return js({"items": [{"id": "sp9", "name": "Neue Single - Club Mix", "artists": [{"id": "ar1", "name": "Mara Lind"}],
+                                      "external_urls": {"spotify": "https://open.spotify.com/track/sp9"}}], "next": None})
             if p == "/v1/search":
                 hit = "cha012100002" in q["q"].lower() or "kaltes" in q["q"].lower()
                 assert int(q["limit"]) <= 10
@@ -408,6 +415,32 @@ class TestPlugins(Base):
         self.assertIn("user-read-currently-playing", self.s.ideas_overview()["spotify"]["missing"])
         with self.assertRaises(Exception):
             self.s.ideas_spotify_now()
+
+    def test_spotify_discover(self):
+        """#384 SP1: Entdecken mit Quelle Spotify – neue Singles/Alben gefolgter Künstler, alte bleiben weg."""
+        self.login("spotify", client_id="CID", redirect="http://127.0.0.1:8765/callback")
+        import discover
+        d = discover.load()
+        d["follow"]["artists"] = ["Mara Lind", "Unbekannt"]
+        d["follow"]["sources"] = ["spotify"]
+        discover.save(d)
+        self.assertTrue(self.s.disc_overview()["spotify"])
+        st = self.s.start_disc_run()
+        self.assertTrue(st["ok"], st)
+        r = self.wait()["result"]
+        self.assertEqual(r["new"], 1, r)
+        e = discover.load()["items"]["spotify:sp9"]
+        self.assertEqual((e["artist"], e["title"], e["mix"], e["release"], e["src"]),
+                         ("Mara Lind", "Neue Single", "Club Mix", "Neue Single", "spotify"))
+        self.assertFalse(any(k.startswith("spotify:") and "al0" in k for k in discover.load()["items"]))
+        n_search = sum(1 for c in self.fake.calls if c[1] == "/v1/search" and c[2].get("type") == "artist")
+        self.s.start_disc_run()
+        self.wait()
+        self.assertEqual(sum(1 for c in self.fake.calls if c[1] == "/v1/search" and c[2].get("type") == "artist"), n_search)
+        # Idee merken übernimmt die Spotify-ID (für „Als Spotify-Playlist“)
+        res = self.s.ideas_from_disc(["spotify:sp9"], "", "Neu")
+        it = self.s.ideas_overview(res["pid"])["items"][0]
+        self.assertEqual((it["store"], it["sid"]), ("spotify", "sp9"))
 
     def test_soundcloud(self):
         self.login("soundcloud", client_id="SCID", client_secret="SECRET", redirect="http://127.0.0.1:8766/callback")

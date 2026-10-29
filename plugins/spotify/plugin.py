@@ -411,6 +411,79 @@ def wish_push(ctx, name: str, uris: list, existing_id: str = "") -> dict:
                         + (f", {len(uris) - len(todo)} waren schon drin" if len(uris) > len(todo) else "") + ".")}
 
 
+# =========================================================================== #384 SP1: Entdecken – neue Veröffentlichungen
+def _ids_path(ctx):
+    import os
+    return os.path.join(ctx.data_dir, "kuenstler-ids.json")
+
+
+def _artist_id(ctx, cl, name: str) -> str:
+    """Künstler-ID zu einem Namen (Suche, höchstens 10 Treffer; gleicher Name bevorzugt) – zwischengespeichert, damit
+    jede Suche nur einmal kostet."""
+    import json as _json
+    import os
+    import time
+    key = om.norm(name)
+    try:
+        with open(_ids_path(ctx), encoding="utf-8") as fh:
+            cache = _json.load(fh)
+    except (OSError, ValueError):
+        cache = {}
+    hit = cache.get(key)
+    if isinstance(hit, str) and hit:
+        return hit
+    if isinstance(hit, dict) and time.time() - float(hit.get("none") or 0) < 7 * 86400:
+        return ""                                        # nicht gefunden – erst nach 7 Tagen wieder suchen
+    d = get(ctx, "/search", cl, q=name, type="artist", limit=10) or {}
+    items = (d.get("artists") or {}).get("items") or []
+    pick = next((a for a in items if str(a.get("name", "")).lower() == name.lower()), None)
+    aid = (pick or {}).get("id", "")
+    cache[key] = aid or {"none": time.time()}
+    os.makedirs(ctx.data_dir, exist_ok=True)
+    with open(_ids_path(ctx) + ".part", "w", encoding="utf-8") as fh:
+        _json.dump(cache, fh, ensure_ascii=False)
+    os.replace(_ids_path(ctx) + ".part", _ids_path(ctx))
+    return aid
+
+
+def _recent(date: str, days: int) -> bool:
+    import time
+    date = str(date or "")
+    if len(date) == 4:
+        date += "-12-31"
+    elif len(date) == 7:
+        date += "-28"
+    try:
+        return time.mktime(time.strptime(date[:10], "%Y-%m-%d")) >= time.time() - days * 86400
+    except ValueError:
+        return False
+
+
+def discover_artist(ctx, name: str, days: int = 60, max_releases: int = 5) -> list:
+    """Neue Singles/Alben eines Künstlers (``/artists/{id}/albums``, Ersatz für das entfernte /browse/new-releases)
+    → Einträge für Entdecken (je Titel; ``/albums/{id}/tracks`` nur für neue Veröffentlichungen)."""
+    cl = client(ctx)
+    aid = _artist_id(ctx, cl, name)
+    if not aid:
+        return []
+    rel = get(ctx, f"/artists/{aid}/albums", cl, include_groups="single,album", limit=10) or {}
+    new = sorted([a for a in rel.get("items") or [] if _recent(a.get("release_date"), days)],
+                 key=lambda a: str(a.get("release_date") or ""), reverse=True)[:max_releases]
+    out = []
+    for alb in new:
+        ctx.check_cancel()
+        imgs = alb.get("images") or []
+        for t in pages(ctx, f"/albums/{alb['id']}/tracks", cl, max_items=50):
+            if not t.get("id") or not t.get("name"):
+                continue
+            title, mix = om.split_title(t["name"])
+            out.append({"key": f"spotify:{t['id']}", "src": "spotify", "id": t["id"], "artist": ", ".join(_artists(t)),
+                        "title": title, "mix": mix, "label": "", "date": str(alb.get("release_date") or "")[:10],
+                        "preview": "", "url": (t.get("external_urls") or {}).get("spotify") or f"https://open.spotify.com/track/{t['id']}",
+                        "release": alb.get("name", ""), "cover": imgs[-1].get("url", "") if imgs else "", "seed": name})
+    return out
+
+
 # =========================================================================== Entdecken
 def followed_artists(ctx, top=False) -> list:
     cl = client(ctx)

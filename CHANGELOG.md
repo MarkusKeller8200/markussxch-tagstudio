@@ -29,6 +29,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Spotify → Ideen (#384 SP2, SP5; Spotify 1.3):** „Läuft gerade in Spotify merken“ und „Zuletzt gehört in Spotify …“
   in Ideen; Wunschliste „Als Spotify-Playlist …“ (privat, nur auf Klick, nur ergänzen). Neue Berechtigungen – einmal neu
   anmelden.
+- **Entdecken mit Spotify (#384 SP1):** neue Singles und Alben gefolgter Künstler als weitere Quelle (kostenlos).
 
 ### Sicherheit
 

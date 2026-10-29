@@ -48,9 +48,9 @@ def from_discover(e: dict) -> dict | None:
         return None
     if e.get("src") == "sonovault":
         return entry(e.get("artist", ""), e.get("title", ""), e.get("mix", ""), src="manual")
-    src = e.get("src") if e.get("src") in ("deezer", "beatport") else "discover"
+    src = e.get("src") if e.get("src") in ("deezer", "beatport", "spotify") else "discover"
     return entry(e.get("artist", ""), e.get("title", ""), e.get("mix", ""), url=e.get("url", ""), src=src,
-                 store=src if src in ("deezer", "beatport") else "", sid=str(e.get("id") or ""),
+                 store=src if src in ("deezer", "beatport", "spotify") else "", sid=str(e.get("id") or ""),
                  preview=e.get("preview", ""), cover=e.get("cover", ""), label=e.get("label", ""),
                  date=str(e.get("date") or "")[:10], release=e.get("release", ""), genre=e.get("genre", ""),
                  disc=e.get("key", ""))

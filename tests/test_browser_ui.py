@@ -2039,6 +2039,8 @@ class UiTest(unittest.TestCase):
         pg.click("#discFollow")
         pg.wait_for_selector("#dfSv")
         self.assertTrue(pg.locator("#dfSv").is_disabled())                       # ohne Schlüssel nicht wählbar
+        self.assertIn("Spotify", pg.inner_text('label:has(#dfSp)'))                # #384 SP1: Quelle Spotify
+        self.assertIn("nicht angemeldet", pg.inner_text('label:has(#dfSp)'))
         self.assertIn("kein Schlüssel", pg.inner_text("#modal"))
         pg.click("#mBtns button >> nth=0")
         self.assertEqual(self.errors, [])

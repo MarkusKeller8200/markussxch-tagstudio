@@ -49,6 +49,32 @@ class DiscoverMixin:
                 log(f"Deezer nicht verfügbar: {ex}")
             return None
 
+    def _disc_spotify(self, log=None):
+        """#384 SP1: Spotify-Abruf sp(name, days) über das Plugin – None, wenn aus oder nicht angemeldet."""
+        try:
+            import plugins
+            p = self.plugins.plugins.get("spotify")
+            mod = p.load() if p is not None and p.enabled and p.state() == "ready" else None
+            ctx = plugins.Context(p, None) if mod is not None else None
+            if mod is None or not callable(getattr(mod, "discover_artist", None)) or not mod.ready(ctx)[0]:
+                if log:
+                    log("Spotify übersprungen: Plugin aus oder nicht angemeldet.")
+                return None
+            return lambda name, days: mod.discover_artist(ctx, name, days)
+        except Exception as ex:  # noqa: BLE001
+            if log:
+                log(f"Spotify nicht verfügbar: {ex}")
+            return None
+
+    def _disc_sp_ready(self) -> bool:
+        try:
+            import plugins
+            p = self.plugins.plugins.get("spotify")
+            mod = p.load() if p is not None and p.enabled and p.state() == "ready" else None
+            return bool(mod is not None and mod.ready(plugins.Context(p, None))[0])
+        except Exception:  # noqa: BLE001
+            return False
+
     def _disc_sonovault(self, log=None):
         """#258: SonoVault-Abruf über das Plugin (Schlüssel, Zähler) – None, wenn aus oder ohne Schlüssel."""
         try:
@@ -115,7 +141,7 @@ class DiscoverMixin:
         except KeyError:
             pass
         return {"follow": d["follow"], "items": items, "counts": counts, "status": discover.STATUS,
-                "last": d.get("last", ""), "log": d.get("log", [])[-30:], "beatport": bp, "sonovault": self._disc_sv_info(), "library": self._disc_library(),
+                "last": d.get("last", ""), "log": d.get("log", [])[-30:], "beatport": bp, "sonovault": self._disc_sv_info(), "spotify": self._disc_sp_ready(), "library": self._disc_library(),
                 "purchased": purchased}
 
     def disc_follow_edit(self, kind, name, add=True) -> dict:
@@ -256,7 +282,8 @@ class DiscoverMixin:
                 f = d["follow"]
                 bp = self._disc_beatport(log.append) if "beatport" in f["sources"] else None
                 dz = self._disc_deezer(log.append) if "deezer" in f["sources"] else None
-                found = discover.run(d, bp, log.append, dz=dz)
+                sp = self._disc_spotify(log.append) if "spotify" in f["sources"] else None       # #384 SP1
+                found = discover.run(d, bp, log.append, dz=dz, sp=sp)
                 idx = None
                 if self._disc_library():
                     try:
@@ -304,7 +331,8 @@ class DiscoverMixin:
                 log.append("Beatport übersprungen: nicht angemeldet oder Plugin aus.")
             dz = self._disc_deezer(log.append) if "deezer" in f["sources"] else None
             sv = self._disc_sonovault(log.append) if "sonovault" in f["sources"] else None    # #258: nur hier, nie automatisch
-            found = discover.run(d0, bp, log.append, progress, cancel, dz=dz, sv=sv)
+            sp = self._disc_spotify(log.append) if "spotify" in f["sources"] else None          # #384 SP1
+            found = discover.run(d0, bp, log.append, progress, cancel, dz=dz, sv=sv, sp=sp)
             idx = discover.owned_index(self._disc_lib_files(cancel, progress)) if self._disc_library() else None
             with discover.LOCK:
                 d = discover.load()

@@ -114,7 +114,7 @@ class TestDiscover(Base):
         s = Session()
         self.assertFalse(s.start_disc_run()["ok"])                          # nichts zum Folgen
         ov = s.disc_follow_save({"artists": ["Mara Lind", "mara lind", ""], "labels": ["Nordwerk"], "days": 30,
-                                 "sources": ["deezer", "spotify"]})
+                                 "sources": ["deezer", "napster"]})
         self.assertEqual(ov["follow"]["artists"], ["Mara Lind"])
         self.assertEqual(ov["follow"]["sources"], ["deezer"])
         self.assertTrue(s.start_disc_run()["ok"])

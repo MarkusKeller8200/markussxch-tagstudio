@@ -213,7 +213,8 @@ der Kaufplattformen; „Abholen“ kopiert neue MP3 (auch aus ZIP) in den Eingan
 
 **Entdecken** ist eine eigene Seite, standardmässig zuoberst in der Seitenleiste (die Zahl daneben = neue
 Vorschläge); „Vorbereiten“ zeigt nur noch den Workflow. Unter „Folgen …“ Künstler, Labels und Beatport-Genres festlegen (oder aus der Bibliothek vorschlagen
-lassen); „Suchen“ holt neue Veröffentlichungen von Deezer und Beatport, auf Wunsch auch von **SonoVault** (kostet
+lassen); „Suchen“ holt neue Veröffentlichungen von Deezer und Beatport, auf Wunsch auch von **Spotify** (neue Singles und Alben
+gefolgter Künstler, kostenlos, Spotify-Plugin angemeldet, #384) und **SonoVault** (kostet
 Kredite: je Künstler/Label 1–2 Anfragen; nie bei der täglichen Suche; Einträge ohne Link, nach 30 Tagen entfernt und
 nie exportiert). In der Liste vorhören (▶), mit ☆ **als Idee merken ▸** (Wunschliste wählen oder neue
 anlegen; auch per Rechtsklick „Idee merken ›“), als gekauft markieren (✓) oder ausblenden (✕); „Öffnen“ führt zur Seite des Titels. Gekauft wird nie automatisch.

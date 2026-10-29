@@ -5,6 +5,7 @@ Quellen:
             Künstler, 30-s-Vorhören
   beatport  über die Anmeldung des Beatport-Plugins – neue Titel gefolgter Künstler/Labels und Genre-Charts
             (Top 100) mit Vorhör-Ausschnitt; Kauf nur über den Link, nie automatisch
+  spotify   über das Spotify-Plugin (#384 SP1) – neue Singles/Alben gefolgter Künstler (/artists/{id}/albums)
   sonovault über das Plugin SonoVault (#258) – neue Veröffentlichungen gefolgter Künstler/Labels; kostet Kredite,
             darum nur bei „Suchen“ (nie bei der täglichen Suche), Einträge höchstens 30 Tage (Nutzungsbedingungen),
             ohne Link und nie im Export
@@ -33,7 +34,7 @@ DEEZER = "https://api.deezer.com"
 UA = "MarKusSXCH-TagStudio (+https://github.com/MarkusKeller8200/markussxch-tagstudio)"
 STATUS = {"new": "neu", "saved": "gemerkt", "hidden": "ausgeblendet", "bought": "gekauft"}
 MAX_ITEMS = 5000             # ältere ausgeblendete/neue Einträge fallen weg, gemerkte bleiben
-SOURCES = ("deezer", "beatport", "sonovault")
+SOURCES = ("deezer", "beatport", "sonovault", "spotify")
 SV_DAYS = 30                 # #258: SonoVault-Einträge höchstens 30 Tage behalten (Nutzungsbedingungen §7)
 
 
@@ -495,7 +496,7 @@ def beatport_genres(client) -> list[dict]:
 
 
 # =========================================================================== Lauf
-def run(d: dict, bp_client=None, log=None, progress=None, cancel=None, dz=_dz, sv=None) -> list[dict]:
+def run(d: dict, bp_client=None, log=None, progress=None, cancel=None, dz=_dz, sv=None, sp=None) -> list[dict]:
     """Alle Quellen für alle gefolgten Künstler/Labels/Genres abfragen. Fehler einzelner Abfragen landen im Log.
     dz: Deezer-Abruf (Plugin Deezer, #204); None = Deezer überspringen.
     sv: SonoVault-Abruf sv(kind, name, days) (#258); None = überspringen. sv.paid (#381): zusätzlich Browse je Label
@@ -513,6 +514,8 @@ def run(d: dict, bp_client=None, log=None, progress=None, cancel=None, dz=_dz, s
         jobs += [("Beatport", g.get("name", ""), lambda g=g: beatport_genre(bp_client, g["id"], g.get("name", "")))
                  for g in f["genres"]]
         jobs.append(("Beatport", "My Beatport", lambda: beatport_feed(bp_client, days, log)))
+    if "spotify" in f["sources"] and sp is not None:                     # #384 SP1: sp(name, days)
+        jobs += [("Spotify", a, lambda a=a: sp(a, days)) for a in f["artists"]]
     if "sonovault" in f["sources"] and sv is not None:
         jobs += [("SonoVault", a, lambda a=a: sv("artist", a, days)) for a in f["artists"]]
         jobs += [("SonoVault", lab, lambda lab=lab: sv("label", lab, days)) for lab in f["labels"]]

@@ -468,6 +468,9 @@ Lesen deine Playlists und Titel-Daten bei Spotify bzw. SoundCloud. SoundCloud **
   (höchstens 50, `GET /me/player/currently-playing`, `/me/player/recently-played`), „Als Spotify-Playlist …“ (privat,
   `POST /me/playlists`, `POST /playlists/{id}/items`, nur ergänzen). Lehnt Spotify das Schreiben mit HTTP 403 ab
   (Entwicklungsmodus), nennt TagStudio den Grund; geprüft wird nur auf deinen Klick.
+- **Entdecken (SP1):** Quelle „Spotify“ unter Entdecken › „Folgen …“ – je gefolgtem Künstler die neuen Singles und
+  Alben (`/artists/{id}/albums`, Ersatz für das entfernte `/browse/new-releases`); die Künstler-ID wird einmal gesucht und
+  gemerkt (nicht gefundene nach 7 Tagen erneut). Ohne Vorhör-Ausschnitt (liefert Spotify nicht mehr).
 - **Eigene Felder `TXXX:SPOTIFY_*` (#385, Spotify 1.2, Online-Metadaten 2.4):** mit der Option „Zusätzlich eigene Felder
   der Quelle mit Herkunft schreiben“ schlägt Online-Metadaten Kopien mit Herkunft „Spotify“ vor: `SPOTIFY_ALBUM_ID`,
   `SPOTIFY_ARTIST_ID` (erster Künstler), `SPOTIFY_TITLE`, `SPOTIFY_ARTIST`, `SPOTIFY_ALBUM`, `SPOTIFY_RELEASE_DATE`,

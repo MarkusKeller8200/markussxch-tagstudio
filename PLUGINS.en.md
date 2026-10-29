@@ -456,6 +456,9 @@ Read your playlists and track data at Spotify or SoundCloud. SoundCloud is **rea
   `user-library-modify` (sign in once more). **Ideas:** “Save what's playing in Spotify”, “Recently played in Spotify …”
   (at most 50), “As Spotify playlist …” (private, add only). If Spotify refuses the write with HTTP 403 (development
   mode), TagStudio says why; writes only happen on your click.
+- **Discover (SP1):** source “Spotify” under Discover › “Follow …” – new singles and albums per followed artist
+  (`/artists/{id}/albums`, replacing the removed `/browse/new-releases`); the artist ID is searched once and remembered
+  (not found: again after 7 days). No preview clip (no longer provided by Spotify).
 - **Own fields `TXXX:SPOTIFY_*` (#385, Spotify 1.2, Online metadata 2.4):** with the option “Additionally write the
   source's own fields with origin”, Online metadata proposes copies with origin “Spotify”: `SPOTIFY_ALBUM_ID`,
   `SPOTIFY_ARTIST_ID` (first artist), `SPOTIFY_TITLE`, `SPOTIFY_ARTIST`, `SPOTIFY_ALBUM`, `SPOTIFY_RELEASE_DATE`,
