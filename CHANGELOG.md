@@ -6,6 +6,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Sicherheit
+
+- **Zugangsdaten nie an fremde Hosts (#401):** Leitet ein Dienst um (z. B. OneDrive-Download auf eine vorab
+  beglaubigte Adresse), schickt TagStudio `Authorization`, `Cookie` und API-Schlüssel nur noch an denselben Host und
+  dasselbe Schema mit. Bisher übernahm Python bei Umleitungen alle Kopfzeilen – betroffen waren alle Dienst-Plugins,
+  die über den Kern abrufen (OneDrive, Google Drive, Dropbox, Spotify, SoundCloud, SonoVault, Discogs …).
+
 ## [4.13.0] – 2026-10-29
 
 ### Neu

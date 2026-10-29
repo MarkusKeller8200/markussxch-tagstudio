@@ -139,6 +139,10 @@ Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
   Platzhalter der Unterpfade (je Platzhalter der Pfad davor), `{num}` = 10. Einordnung 2xx Zugriff, 400/405/422
   erreichbar, 401/403 kein Zugriff (+ `detail`), 404, 429, sonst Fehler, ohne ID übersprungen. Ergebnis und
   `access_info(ctx)` ins Plugin-Protokoll; Reiter „Zugriff prüfen“ im Integrationsfenster (`start_service_access`).
+- **Umleitungen (#401):** `onlinematch.http_get`/`http_request` und `oauthkit.http_post` folgen Umleitungen über
+  `onlinematch.SafeRedirect` – bei Wechsel von Schema, Host oder Port werden `Authorization`, `Cookie`,
+  `Proxy-Authorization` und `X-Api-Key` entfernt. Eigene Abrufe in Plugins nutzen diese Funktionen (Beatport hat
+  eigene Logik mit `add_unredirected_header`).
 - Die Update-Prüfung (GitHub Releases) bleibt im Kern.
 
 ### Plugins aus den Releases (#235, Entscheid User 17.10.2026)

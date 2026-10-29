@@ -145,11 +145,40 @@ def retry_after(v) -> float:
         return 5.0
 
 
+SENSITIVE_HEADERS = ("Authorization", "Cookie", "Proxy-authorization", "X-api-key")   # Request.capitalize()
+
+
+class SafeRedirect(urllib.request.HTTPRedirectHandler):
+    """Umleitungen folgen, aber Zugangsdaten nie an einen anderen Host bzw. ein anderes Schema mitschicken (#401).
+
+    ``urllib`` übernimmt bei 301/302/303/307/308 sonst alle Kopfzeilen ausser Content-Length/-Type – also auch
+    ``Authorization: Bearer …`` (z. B. OneDrive-Download → vorab beglaubigte Adresse auf einem anderen Host)."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        new = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if new is not None and not same_origin(req.full_url, new.full_url):
+            for h in SENSITIVE_HEADERS:
+                new.remove_header(h)
+        return new
+
+
+def same_origin(a: str, b: str) -> bool:
+    pa, pb = urllib.parse.urlsplit(a), urllib.parse.urlsplit(b)
+    return (pa.scheme.lower(), (pa.hostname or "").lower(), pa.port) == (pb.scheme.lower(), (pb.hostname or "").lower(), pb.port)
+
+
+_OPENER = urllib.request.build_opener(SafeRedirect())
+
+
+def _open(req):
+    return _OPENER.open(req, timeout=TIMEOUT)   # noqa: S310 – Adressen der Dienste (https)
+
+
 def http_get(url: str, headers: dict | None = None) -> tuple[int, dict, bytes]:
     """Eine GET-Anfrage → (Status, Kopfzeilen, Inhalt). In Tests ersetzbar."""
     req = urllib.request.Request(url, headers=headers or {})
     try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+        with _open(req) as r:
             return r.status, dict(r.headers), r.read()
     except urllib.error.HTTPError as ex:
         return ex.code, dict(ex.headers or {}), ex.read() if hasattr(ex, "read") else b""
@@ -166,7 +195,7 @@ def http_request(method: str, url: str, headers: dict | None, data: bytes | None
     """Beliebige Anfrage (Cloud-Plugins, #317: PUT, DELETE …) → (Status, Kopfzeilen, Inhalt). In Tests ersetzbar."""
     req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
     try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+        with _open(req) as r:
             return r.status, dict(r.headers), r.read()
     except urllib.error.HTTPError as ex:
         return ex.code, dict(ex.headers or {}), ex.read() if hasattr(ex, "read") else b""

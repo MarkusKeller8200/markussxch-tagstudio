@@ -50,7 +50,7 @@ def http_post(url: str, data: dict, headers: dict | None = None) -> tuple[int, d
          **(headers or {})}
     req = urllib.request.Request(url, data=body, headers=h, method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+        with om._OPENER.open(req, timeout=TIMEOUT) as r:   # Umleitungen ohne Zugangsdaten an fremde Hosts (#401)
             raw, st = r.read(), r.status
     except urllib.error.HTTPError as ex:
         raw, st = (ex.read() if hasattr(ex, "read") else b""), ex.code
