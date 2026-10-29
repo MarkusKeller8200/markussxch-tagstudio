@@ -49,5 +49,20 @@
 "Neue Singles und Alben gefolgter Künstler (Spotify-Plugin, kostenlos)": ["New singles and albums of followed artists (Spotify plugin, free)", "Neui Singles und Albe vo gfolgte Künstler (Spotify-Plugin, gratis)"],
 "Spotify{x}": ["Spotify{x}", "Spotify{x}"],
 "Spotify nicht verfügbar: {x}": ["Spotify not available: {x}", "Spotify nöd verfüegbar: {x}"],
-"Spotify übersprungen: Plugin aus oder nicht angemeldet.": ["Spotify skipped: plugin off or not signed in.", "Spotify übersprunge: Plugin us oder nöd aagmäldet."]
+"Spotify übersprungen: Plugin aus oder nicht angemeldet.": ["Spotify skipped: plugin off or not signed in.", "Spotify übersprunge: Plugin us oder nöd aagmäldet."],
+"{x} von {x} Album/Alben gefunden, {x} von {x} Titel(n) zugeordnet (Quelle: Spotify).": ["{x} of {x} album(s) found, {x} of {x} track(s) matched (source: Spotify).", "{x} vo {x} Album/Albe gfunde, {x} vo {x} Titel zuegordnet (Quälle: Spotify)."],
+"Spotify · Album: {x}": ["Spotify · album: {x}", "Spotify · Album: {x}"],
+"Titel {x}/{x}": ["Track {x}/{x}", "Titel {x}/{x}"],
+"Album nachschlagen (Spotify) …": ["Look up album (Spotify) …", "Album naaluege (Spotify) …"],
+"Album nachschlagen": ["Look up album", "Album naaluege"],
+"Sucht das ganze Album bzw. die EP der markierten Titel bei Spotify (wenige Anfragen statt je Titel) und schlägt Album, Albumkünstler, Datum, Titel-/CD-Nummer, Genre und Cover vor. Spotify liefert kein Label mehr. Nichts wird ohne Bestätigung geändert.": ["Looks up the whole album or EP of the selected tracks at Spotify (a few requests instead of one per track) and proposes album, album artist, date, track/disc number, genre and cover. Spotify no longer provides the label. Nothing is changed without confirmation.", "Suecht s ganz Album bzw. d EP vo de markierte Titel bim Spotify (wenigi Aafrage statt pro Titel) und schlaat Album, Albumkünstler, Datum, Titel-/CD-Nummere, Genre und Cover vor. Spotify liferet kei Label meh. Nüt wird ohni Bestätigung gänderet."],
+"Album-Titel (leer = Album der markierten Titel)": ["Album title (empty = album of the selected tracks)", "Album-Titel (leer = Album vo de markierte Titel)"],
+"Spotify-ID und -Link speichern (TXXX:SPOTIFY_TRACK_ID, _URL)": ["Save Spotify ID and link (TXXX:SPOTIFY_TRACK_ID, _URL)", "Spotify-ID und -Link speichere (TXXX:SPOTIFY_TRACK_ID, _URL)"],
+"Zusätzlich eigene Felder TXXX:SPOTIFY_* (Herkunft {q}, auf eigene Verantwortung)": ["Additionally own fields TXXX:SPOTIFY_* (origin {q}, at your own risk)", "Zuesätzlich eigeni Fälder TXXX:SPOTIFY_* (Herkunft {q}, uf eigeni Verantwortig)"],
+"kein Album (TALB) – Album-Titel in den Optionen angeben": ["no album (TALB) – enter the album title in the options", "kei Album (TALB) – Album-Titel i de Optione aagä"],
+"Album nicht gefunden": ["Album not found", "Album nöd gfunde"],
+"Albumkünstler": ["Album artist", "Albumkünstler"],
+"Titelnummer": ["Track number", "Titelnummere"],
+"nicht in der Titelliste": ["not in the track list", "nöd i de Titellischte"],
+"Cover von Spotify": ["Cover from Spotify", "Cover vo Spotify"]
 }

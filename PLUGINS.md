@@ -468,6 +468,10 @@ Lesen deine Playlists und Titel-Daten bei Spotify bzw. SoundCloud. SoundCloud **
   (höchstens 50, `GET /me/player/currently-playing`, `/me/player/recently-played`), „Als Spotify-Playlist …“ (privat,
   `POST /me/playlists`, `POST /playlists/{id}/items`, nur ergänzen). Lehnt Spotify das Schreiben mit HTTP 403 ab
   (Entwicklungsmodus), nennt TagStudio den Grund; geprüft wird nur auf deinen Klick.
+- **Album nachschlagen (SP4, Tagger):** „Album nachschlagen (Spotify) …“ sucht das Album bzw. die EP der markierten
+  Titel (Album aus TALB oder in den Optionen) und schlägt je Titel Album, Albumkünstler, Datum, Titel-/CD-Nummer
+  (z. B. `2/4`), Genre (vom Künstler), Cover und auf Wunsch Spotify-ID/-Link bzw. `TXXX:SPOTIFY_*` vor – wenige Anfragen
+  statt je Titel. Zuordnung über Titel und Mix; Label liefert Spotify nicht mehr.
 - **Gespeicherte Alben (SP3):** Playlists › Importieren ▾ › „Aus Spotify …“ zeigt zusätzlich deine gespeicherten Alben
   (`GET /me/albums`, höchstens 300) – je Album eine Playlist mit allen Titeln (Einträge ohne Datei, danach „Mit
   Bibliothek abgleichen“).

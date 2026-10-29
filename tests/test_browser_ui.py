@@ -4781,6 +4781,8 @@ class UiTest(unittest.TestCase):
             pg.wait_for_selector(card + " .pl-btns")
             self.assertIn(f"API: {name}", pg.inner_text(card + " .pl-svc"))
             self.assertIn("Anmelden", pg.inner_text(card + " .pl-btns"))
+            if pid == "spotify":
+                self.assertIn("Album nachschlagen", pg.inner_text(card + " .pl-acts"))       # #384 SP4
             pg.click(card + ' [data-paction="login"]')
             pg.wait_for_selector('#modal [data-ok="client_id"]')
             self.assertEqual(pg.locator('#modal [data-ok="client_secret"]').count(), 1 if pid == "soundcloud" else 0)

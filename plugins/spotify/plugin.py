@@ -60,6 +60,26 @@ ACTIONS = [
      "description": "Gespeicherte Anmeldung löschen.", "options": [{"key": "clear", "type": "check", "label": "Auch die Zugangsdaten der App löschen", "default": False}]},
     {"id": "test", "label": "Verbindung testen", "where": "page", "run_label": "Testen", "needs_selection": False,
      "description": "Prüft Zugang und Anmeldung bei Spotify.", "options": []},
+    {"id": "album", "label": "Album nachschlagen (Spotify) …", "where": "tagger", "run_label": "Nachschlagen",
+     "short": "Album nachschlagen",
+     "description": "Sucht das ganze Album bzw. die EP der markierten Titel bei Spotify (wenige Anfragen statt je Titel) "
+                    "und schlägt Album, Albumkünstler, Datum, Titel-/CD-Nummer, Genre und Cover vor. Spotify liefert kein "
+                    "Label mehr. Nichts wird ohne Bestätigung geändert.",
+     "options": [
+         {"key": "title", "type": "text", "label": "Album-Titel (leer = Album der markierten Titel)"},
+         {"key": "artist", "type": "text", "label": "Künstler (leer = Albumkünstler bzw. Künstler)"},
+         {"key": "mode", "type": "select", "label": "Vorhandene Werte",
+          "choices": [["empty", "Nur leere Felder füllen"], ["overwrite", "Überschreiben (Vorschau zeigt alt → neu)"]],
+          "default": "empty"},
+         {"key": "date", "type": "select", "label": "Erscheinungsdatum",
+          "choices": [["year", "Nur Jahr"], ["full", "Volles Datum (JJJJ-MM-TT)"]], "default": "year"},
+         {"key": "cover", "type": "select", "label": "Cover",
+          "choices": [["missing", "Nur wenn keins vorhanden"], ["replace", "Ersetzen"], ["no", "Nicht übernehmen"]],
+          "default": "missing"},
+         {"key": "names", "type": "check", "label": "Titel und Künstler übernehmen", "default": False},
+         {"key": "ids", "type": "check", "label": "Spotify-ID und -Link speichern (TXXX:SPOTIFY_TRACK_ID, _URL)", "default": True},
+         {"key": "own", "type": "check", "default": False,
+          "label": "Zusätzlich eigene Felder TXXX:SPOTIFY_* (Herkunft „Spotify“, auf eigene Verantwortung)"}]},
     {"id": "follow", "label": "Gefolgte Künstler in „Entdecken“ übernehmen …", "where": "page", "run_label": "Übernehmen",
      "needs_selection": False,
      "description": "Liest die Künstler, denen du auf Spotify folgst, und ergänzt sie in „Entdecken“ › Gefolgte Künstler.",
@@ -438,6 +458,139 @@ def wish_push(ctx, name: str, uris: list, existing_id: str = "") -> dict:
                         + (f", {len(uris) - len(todo)} waren schon drin" if len(uris) > len(todo) else "") + ".")}
 
 
+# =========================================================================== #384 SP4: ganzes Album nachschlagen
+def _album_score(a: dict, title: str, artist: str) -> float:
+    at, aa = om.norm(a.get("name", "")), om.norm(", ".join(_artists(a)))
+    t = om.norm(title)
+    sc = 1.0 if at == t else 0.6 if t and (t in at or at in t) else 0.0
+    if artist and aa:
+        ar = om.norm(artist)
+        sc += 0.5 if ar == aa or ar in aa or aa in ar else -0.3
+    return sc
+
+
+def find_album(ctx, title: str, artist: str = "", cl=None):
+    """Album über Titel (+ Künstler) suchen (Suche höchstens 10 Treffer) und mit allen Titeln holen."""
+    cl = cl or client(ctx)
+    q = f'album:"{title}"' + (f' artist:"{artist}"' if artist else "")
+    d = get(ctx, "/search", cl, q=q, type="album", limit=10) or {}
+    items = (d.get("albums") or {}).get("items") or []
+    if not items and artist:
+        d = get(ctx, "/search", cl, q=f"{artist} {title}", type="album", limit=10) or {}
+        items = (d.get("albums") or {}).get("items") or []
+    items = sorted(items, key=lambda a: -_album_score(a, title, artist))
+    if not items or _album_score(items[0], title, artist) < 0.6:
+        return None, []
+    return album_tracks(ctx, items[0]["id"], cl)
+
+
+def match_album(rows: list, files) -> list:
+    """[(Datei, Album-Titel | None)] – über Titel mit Mix, sonst Titel ohne Mix; jeder Album-Titel nur einmal."""
+    out, used = [], set()
+    for f in files:
+        info = om.file_info(f)
+        want = om.norm(info["title"] + (f" ({info['mix']})" if info.get("mix") else ""))
+        plain = om.norm(info["title"])
+
+        def full(t):
+            ti, mx = om.split_title(t.get("name", ""))
+            return om.norm(ti + (f" ({mx})" if mx else ""))
+        t = next((x for x in rows if id(x) not in used and full(x) == want), None) or \
+            next((x for x in rows if id(x) not in used and om.norm(om.split_title(x.get("name", ""))[0]) == plain), None)
+        if t is not None:
+            used.add(id(t))
+        out.append((f, t))
+    return out
+
+
+def run_album(ctx, files, opts) -> dict:
+    import os
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"Spotify: {why}.")
+    cl = client(ctx)
+    groups = {}
+    for f in files:
+        title = str(opts.get("title") or "").strip() or f.text("TALB").strip()
+        artist = str(opts.get("artist") or "").strip() or f.text("TPE2").strip() or f.text("TPE1").replace(om.MV, ", ").strip()
+        groups.setdefault((title, artist), []).append(f)
+    found = matched = 0
+    rows_out = []
+    overwrite, full = opts.get("mode") == "overwrite", opts.get("date") == "full"
+    for i, ((title, artist), fs) in enumerate(groups.items()):
+        ctx.progress(i, len(groups), title or "?")
+        if not title:
+            rows_out += [[os.path.basename(f.path), "–", "kein Album (TALB) – Album-Titel in den Optionen angeben"] for f in fs]
+            continue
+        alb, tracks = find_album(ctx, title, artist, cl)
+        if not alb:
+            rows_out += [[os.path.basename(f.path), "–", "Album nicht gefunden"] for f in fs]
+            continue
+        found += 1
+        genre = ""
+        art = ((alb.get("artists") or [{}])[0] or {}).get("id")
+        if art:
+            g = (get(ctx, f"/artists/{art}", cl) or {}).get("genres") or []
+            genre = g[0].title() if g else ""
+        cover = b""
+        imgs = alb.get("images") or []
+        total = alb.get("total_tracks") or len(tracks)
+        for f, t in match_album(tracks, fs):
+            name = os.path.basename(f.path)
+            if t is None:
+                rows_out.append([name, alb.get("name", ""), "nicht in der Titelliste"])
+                continue
+            matched += 1
+            rows_out.append([name, alb.get("name", ""), f"Titel {t.get('track_number') or '?'}/{total}"])
+            t = dict(t, album=alb)
+            c = _cand(t)
+            c["genre"] = genre
+            note = f"Spotify · Album: {alb.get('name', '')}"
+            date = str(alb.get("release_date") or "")
+            vals = [("TALB", alb.get("name", ""), "Album", True), ("TPE2", ", ".join(_artists(alb)), "Albumkünstler", True),
+                    ("TDRC", date[:10] if full else date[:4], "Datum" if full else "Jahr", True),
+                    ("TRCK", f"{t.get('track_number')}/{total}" if t.get("track_number") else "", "Titelnummer", True),
+                    ("TPOS", str(t.get("disc_number") or ""), "CD-Nummer", bool(t.get("disc_number") and int(t.get("disc_number") or 1) > 1)),
+                    ("TCON", genre, "Genre", True),
+                    ("TIT2", c["title"] + (f" ({c['mix']})" if c["mix"] else ""), "Titel", bool(opts.get("names"))),
+                    ("TPE1", ", ".join(c["artists"]), "Künstler", bool(opts.get("names")))]
+            if opts.get("ids", True):
+                vals += [(k, v, k.split(":", 1)[1], True) for k, v in (c.get("ids") or {}).items()]
+            for key, val, label, wanted in vals:
+                val = str(val or "").strip()
+                if not val:
+                    continue
+                cur = f.text(key).strip()
+                if cur == val:
+                    continue
+                sel = wanted and (overwrite or not cur)
+                ctx.propose(f, key, val, f"{label} (Spotify)", note=note, group=name, checked=sel,
+                            hint="" if sel else "schon gefüllt" if cur else "in den Optionen abgewählt",
+                            link=c.get("url", ""), link_label="Spotify")
+            if opts.get("own"):
+                for key, val, label, stamp in own_fields(c):
+                    if stamp and all(f.text(k).strip() == v for k, v, _l, st in own_fields(c) if not st):
+                        continue
+                    if f.text(key).strip() == val:
+                        continue
+                    ctx.propose(f, key, val, f"{label} (Spotify)", note=note, group=name, checked=True, hint=OWN_HINT)
+            cov = opts.get("cover", "missing")
+            has = f.get("APIC:3") is not None
+            if imgs and cov != "no" and (cov == "replace" or not has):
+                if not cover:
+                    try:
+                        cover = cl.raw(imgs[0].get("url", "")) or b""
+                    except HttpError as ex:
+                        ctx.log(f"Cover: {ex}")
+                        cover = b"-"
+                if cover[:3] in (b"\xff\xd8\xff", b"\x89PN"):
+                    ctx.propose(f, "APIC:3", "Cover von Spotify", "Cover", kind="cover", data=cover, group=name,
+                                checked=True, hint="ersetzt vorhandenes Cover" if has else "")
+    ctx.progress(len(groups), len(groups), "fertig")
+    return {"message": f"{found} von {len(groups)} Album/Alben gefunden, {matched} von {len(files)} Titel(n) zugeordnet (Quelle: Spotify).",
+            "table": {"cols": ["Datei", "Album", "Ergebnis"], "rows": rows_out[:2000]}}
+
+
 # =========================================================================== #384 SP1: Entdecken – neue Veröffentlichungen
 def _ids_path(ctx):
     import os
@@ -567,6 +720,8 @@ def run(action, ctx, files, opts):
                 return {"message": f"Spotify: {why}."}
             me = _me(ctx, client(ctx))
             return {"message": f"Spotify: in Ordnung – angemeldet als {me.get('display_name') or me.get('id') or '?'}."}
+        if action == "album":                            # #384 SP4
+            return run_album(ctx, files, opts)
         if action == "follow":
             ok, why = ready(ctx)
             if not ok:

@@ -31,6 +31,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   anmelden.
 - **Entdecken mit Spotify (#384 SP1):** neue Singles und Alben gefolgter Künstler als weitere Quelle (kostenlos).
 - **Spotify – gespeicherte Alben (#384 SP3):** beim Import „Aus Spotify …“ je gespeichertem Album eine Playlist.
+- **Spotify – Album nachschlagen (#384 SP4):** Tagger-Aktion für ganze Alben/EPs mit Titel-/CD-Nummer, Datum, Genre, Cover.
 
 ### Sicherheit
 

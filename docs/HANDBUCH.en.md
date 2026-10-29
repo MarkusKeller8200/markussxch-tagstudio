@@ -596,9 +596,12 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   “Look up release (SonoVault) …” for whole albums/EPs (2 requests per release) and – with a paid plan (Plugins ›
   SonoVault › “Key …” › Plan) – the newest tracks per label and genre in “Discover” plus “Report genre correction to
   SonoVault …” (only when ticked, status under “My genre suggestions …”). Details in [PLUGINS.en.md](../PLUGINS.en.md).
-- **Spotify and SoundCloud (read only, own app at the service):** playlists, Liked Songs or likes as playlists with
+- **Spotify and SoundCloud (own app at the service):** playlists, Liked Songs or likes as playlists with
   entries without a file (Playlists › Import ▾), track data with link for online metadata and followed artists for
-  “Discover”. Setup in [PLUGINS.en.md](../PLUGINS.en.md).
+  “Discover”. **Spotify additionally (#384, #385):** saved albums on import, new releases in “Discover”, “Look up album
+  (Spotify) …” in the Tagger, own fields `TXXX:SPOTIFY_*` (at your own risk – Spotify Developer Terms), ideas from
+  “playing now”/“recently played”, wish list as Spotify playlist and “in your Spotify library” (writes only on your
+  click). SoundCloud read only. Setup in [PLUGINS.en.md](../PLUGINS.en.md).
 - **Take over Mixed In Key:** key, BPM and energy from the places where Mixed In Key wrote them (comment “10A - Energy
   7”, title or artist prefix, grouping, label, TXXX:EnergyLevel) into TKEY, TBPM and ENERGY; remove the prefixes if
   wanted.

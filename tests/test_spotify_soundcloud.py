@@ -83,6 +83,8 @@ class Fake:
                 return js({"items": [{"track": SP_TRACK}], "next": None})
             if p == "/v1/me/following":
                 return js({"artists": {"items": [{"name": "Mara Lind"}, {"name": "Neu Artist"}], "next": None}})
+            if p == "/v1/search" and q.get("type") == "album":                  # #384 SP4
+                return js({"albums": {"items": [SP_ALBUM] if "nachtfahrt" in q["q"].lower() else []}})
             if p == "/v1/search" and q.get("type") == "artist":                 # #384 SP1
                 return js({"artists": {"items": [{"id": "ar1", "name": "Mara Lind"}] if "mara" in q["q"].lower() else []}})
             if p == "/v1/albums/al9/tracks":
@@ -455,6 +457,29 @@ class TestPlugins(Base):
         pl = self.s._pls().get(r["lists"][0]["id"])
         self.assertEqual([i["ref"]["title"] for i in pl["items"]], ["Kaltes Glas", "Nordlicht"])
         self.assertEqual(pl["name"], "Nachtfahrt EP – Mara Lind")
+
+    def test_spotify_album_lookup(self):
+        """#384 SP4: „Album nachschlagen (Spotify)“ – ganzes Album mit wenigen Anfragen, Titelnummern, kein Label."""
+        self.login("spotify", client_id="CID", redirect="http://127.0.0.1:8765/callback")
+        n0 = len(self.fake.calls)
+        res = self.act("spotify", "album", [self.idx["k.mp3"], self.idx["n.mp3"]], title="Nachtfahrt EP", artist="Mara Lind",
+                       mode="empty", date="full", cover="missing", names=False, ids=True, own=False)
+        self.assertIn("1 von 1 Album", res["message"])
+        self.assertIn("2 von 2 Titel", res["message"])
+        by = {(r["name"], r["label"]): r["new"] for r in res["proposals"]}
+        self.assertEqual(by[("k.mp3", "Titelnummer (Spotify)")], "1/2")
+        self.assertEqual(by[("n.mp3", "Titelnummer (Spotify)")], "2/2")
+        self.assertEqual(by[("k.mp3", "Album (Spotify)")], "Nachtfahrt EP")
+        self.assertEqual(by[("k.mp3", "Datum (Spotify)")], "2021-05-14")
+        self.assertEqual(by[("k.mp3", "Genre (Spotify)")], "Deep House")
+        self.assertEqual(by[("n.mp3", "SPOTIFY_TRACK_ID (Spotify)")], "sp3")
+        self.assertFalse(any(r["label"].startswith("Label") for r in res["proposals"]))
+        self.assertTrue(any(r.get("kind") == "cover" for r in res["proposals"]))
+        api = [c for c in self.fake.calls[n0:] if c[0] == "api.spotify.com"]
+        self.assertLessEqual(len(api), 4, api)                                 # Suche, Album, Künstler (+ Cover extern)
+        res2 = self.act("spotify", "album", [self.idx["n.mp3"]], title="Gibt es nicht", artist="", mode="empty",
+                        date="year", cover="no", names=False, ids=True, own=False)
+        self.assertIn("0 von 1", res2["message"])
 
     def test_soundcloud(self):
         self.login("soundcloud", client_id="SCID", client_secret="SECRET", redirect="http://127.0.0.1:8766/callback")

@@ -627,9 +627,12 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
   bezahltem Tarif (Plugins › SonoVault › „Schlüssel …“ › Tarif) – die neuesten Titel je Label und Genre in „Entdecken“
   sowie „Genre-Korrektur an SonoVault melden …“ (nur auf Häkchen, Status unter „Meine Genre-Vorschläge …“).
   Details in [PLUGINS.md](../PLUGINS.md).
-- **Spotify und SoundCloud (nur lesen, eigene App beim Dienst):** Playlists, Lieblingssongs bzw. Likes als Playlists
+- **Spotify und SoundCloud (eigene App beim Dienst):** Playlists, Lieblingssongs bzw. Likes als Playlists
   mit Einträgen ohne Datei (Playlists › Importieren ▾), Titel-Daten mit Link für die Online-Metadaten und gefolgte
-  Künstler für „Entdecken“. Einrichtung in [PLUGINS.md](../PLUGINS.md).
+  Künstler für „Entdecken“. **Spotify zusätzlich (#384, #385):** gespeicherte Alben beim Import, neue Veröffentlichungen
+  in „Entdecken“, „Album nachschlagen (Spotify) …“ im Tagger, eigene Felder `TXXX:SPOTIFY_*` (auf eigene Verantwortung –
+  Spotify Developer Terms), Ideen aus „Läuft gerade“/„Zuletzt gehört“, Wunschliste als Spotify-Playlist und „In deiner
+  Spotify-Bibliothek“ (schreibt nur auf deinen Klick). SoundCloud nur lesen. Einrichtung in [PLUGINS.md](../PLUGINS.md).
 - **Mixed In Key übernehmen:** Tonart, BPM und Energie aus den Stellen, an die Mixed In Key sie geschrieben hat
   (Kommentar „10A - Energy 7“, Titel- oder Künstler-Präfix, Gruppierung, Label, TXXX:EnergyLevel) in TKEY, TBPM und
   ENERGY übernehmen; Präfixe auf Wunsch entfernen.
