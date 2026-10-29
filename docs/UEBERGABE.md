@@ -13,6 +13,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   (`Apps/TagStudio`), freier Loopback-Port, delta, If-Match, Token-Sperre. **Entscheid User 17:35: nicht weiter
   verfolgt** (bei OD1 bleiben); Bibliothek nicht im Sync-Ordner bearbeiten. Neu **#402** Sicherung der Programmdaten
   in einen Cloud-Ordner (Funktionen, Fragen offen).
+- Idee User 17:51: Musik als **Einweg-Spiegel** in den OneDrive-Ordner (**#403**, nie im Spiegel bearbeiten) und
+  später ein **Web-Player** (**#404**, Idee; Wege A–D, A bräuchte wieder eine Microsoft-App).
 - **#401 Sicherheit** (Fehler): `urllib` sendet `Authorization` bei 302 an fremde Hosts mit (OneDrive-Download).
 - Fragen zu 4.14.0 (Reihenfolge, Scopes auf einmal, Issue „Gemerkt“) weiterhin unbeantwortet.
 
