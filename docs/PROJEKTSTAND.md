@@ -1,6 +1,9 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-29 (03:50): **v4.13.0 final veröffentlicht** (Release `v4.13.0`, Windows + macOS signiert und von Apple
+> Stand 2026-10-29 (17:40): Konzept **`docs/KONZEPT-ONEDRIVE.md`** (Entwurf, OD1–OD8 offen) zu #400 – OneDrive nur
+> private Konten, einfache Anmeldung, App-Ordner; neu **#401** (Sicherheit: Token bei Umleitungen). 4.14.0 noch nicht begonnen.
+>
+> Davor 2026-10-29 (03:50): **v4.13.0 final veröffentlicht** (Release `v4.13.0`, Windows + macOS signiert und von Apple
 > beglaubigt, 26 Dateien); Meilenstein #30 „Ideen & Wunschlisten“ mit 18 Issues geschlossen. Nächstes Release 4.14.0 – Spotify
 > (Meilenstein #31: #384, #385).
 >

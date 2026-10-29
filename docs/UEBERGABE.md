@@ -4,6 +4,16 @@ Stand: **2026-10-29 (03:50): v4.13.0 final veröffentlicht** (Windows + macOS si
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
+## Sitzung 29.10.2026 (03:54–17:40) – Cloud-Anmeldung und OneDrive-Konzept
+
+- Wunsch User: Cloud-Dienste ohne eigene App, Anmeldung im Browser („TagStudio vertrauen“) → **#400** (Funktionen).
+  Entscheid User 04:02: **keine Geschäfts-/Schulkonten**. Abklärung: neue Entra-Apps nur noch in einem Verzeichnis
+  (seit 06/2024) – mit reinem Privatkonto keine Registrierung; Google/Dropbox mit Privatkonto möglich.
+- **Konzept `docs/KONZEPT-ONEDRIVE.md`** (Auftrag 17:23, ENTWURF): `consumers`, `Files.ReadWrite.AppFolder`
+  (`Apps/TagStudio`), freier Loopback-Port, delta, If-Match, Token-Sperre; Entscheide **OD1–OD8 offen**.
+- **#401 Sicherheit** (Fehler): `urllib` sendet `Authorization` bei 302 an fremde Hosts mit (OneDrive-Download).
+- Fragen zu 4.14.0 (Reihenfolge, Scopes auf einmal, Issue „Gemerkt“) weiterhin unbeantwortet.
+
 ## Start 4.14.0 – Spotify (vorbereitet 29.10.2026, 03:50)
 
 - **Meilenstein #31 „4.14.0 – Spotify“** (Entscheid User 03:21: #384/#385 „kommt in der nächsten Version“):
@@ -14,7 +24,7 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   - **#385** Felder `TXXX:SPOTIFY_*` mit Herkunft „Spotify“ – **Variante B** (volle Liste) auf eigene Verantwortung des
     Users; Hinweis auf die Developer Terms in der Vorschau und in PLUGINS.md vorsehen.
   - Zusätzlich beim Release 4.14.0: Filter „Gemerkt“ in Entdecken entfernen (I3, #186).
-- **Stand Spotify-Plugin:** 1.1 (`plugins/spotify`, `oauthkit.py`, PKCE, Rückleitung 127.0.0.1:8766). Web-API-Stand
+- **Stand Spotify-Plugin:** 1.1 (`plugins/spotify`, `oauthkit.py`, PKCE, Rückleitung 127.0.0.1:8765). Web-API-Stand
   Februar 2026 (Migration Guide): keine Sammelabfragen, kein `/browse/new-releases`, keine `popularity`/Album-`label`,
   Suche höchstens 10 Treffer; Entwicklungsmodus (Premium, höchstens 5 Nutzer). Echte Tests nur mit der Spotify-App des
   Users (Client-ID trägt er selbst ein).
@@ -706,6 +716,7 @@ Zug nachführen.**
 | Speicherorte, Ordnerstruktur | [KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md) |
 | Ordner-Rollen (umgesetzt in 4.10.0: mehrere Bibliotheken, Export, Ordner ändern, Cloud-Sync-Ordner) | [KONZEPT-ORDNER.md](KONZEPT-ORDNER.md) |
 | Cloud-Abgleich über OneDrive/Google Drive/Dropbox als Plugins (4.11.0, #309, #317–#320) | [KONZEPT-CLOUD.md](KONZEPT-CLOUD.md) |
+| OneDrive nur privat, einfache Anmeldung, App-Ordner (Entwurf, #400) | [KONZEPT-ONEDRIVE.md](KONZEPT-ONEDRIVE.md) |
 | Hilfe | [KONZEPT-HILFE.md](KONZEPT-HILFE.md) |
 | Update, Versionen, Release | [KONZEPT-UPDATE.md](KONZEPT-UPDATE.md) |
 | App und Oberfläche | [KONZEPT-APP-GUI.md](KONZEPT-APP-GUI.md) |
