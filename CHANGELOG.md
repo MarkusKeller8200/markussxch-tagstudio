@@ -36,6 +36,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Geändert
 
+- **Herkunft einheitlich je Dienst (#411):** alle `TXXX:SPOTIFY_*` (auch `SPOTIFY_TRACK_ID`/`_URL`) stehen unter der
+  Herkunft „Spotify“, `TXXX:BEATPORT_TRACK_ID` unter „Beatport“, `TXXX:DISCOGS_RELEASE_ID` unter „Discogs“ – statt
+  „TagStudio · <Plugin>“. Eigene Zuordnungen haben weiterhin Vorrang.
 - **Entdecken ohne Filter „Gemerkt“ (#409):** gemerkte Titel stehen seit 4.13.0 auf der Seite „Ideen“; in „Entdecken“
   bleiben sie unter „Alle“ sichtbar (Hinweis „in Ideen“).
 

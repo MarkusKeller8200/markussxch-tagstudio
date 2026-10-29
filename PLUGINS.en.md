@@ -82,7 +82,9 @@ Plugins/
   (`"needs_selection": false`) can run in the background too; they get no files but the session (e.g. for the
   library folders, #261).
 - `fields`: fields the plugin writes (patterns with `*`). For these fields TagStudio shows the origin
-  “TagStudio · plugin name” (tagger, comparison), so your own fields stay recognisable.
+  “TagStudio · plugin name” (tagger, comparison), so your own fields stay recognisable. Exception (#411): if TagStudio
+  already knows a source of the same name for the field (e.g. `TXXX:SPOTIFY_*` → “Spotify”, `TXXX:BEATPORT_*` →
+  “Beatport”), that origin is kept – so all fields of a service share one origin.
 - `source` (optional, from 4.10): name of the source or store, e.g. `"Beatport"`. When the plugin is **switched on**,
   TagStudio creates `<Downloads>\<source>` and `<Inbox>\<source>` (only if missing), adds the source to the current
   workflow (download subfolder → inbox subfolder) and points the target of the plugin action `download` to the

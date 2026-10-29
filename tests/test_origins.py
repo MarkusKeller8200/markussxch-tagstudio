@@ -45,11 +45,24 @@ class TestOrigins(unittest.TestCase):
     def test_custom_and_plugin_first(self):
         o = origins.Origins([{"pattern": "TXXX:VDJ*", "source": "VirtualDJ"}, {"pattern": "GEOB:Serato Autotags", "source": "serato"},
                              {"pattern": "TXXX:SERATO_X", "source": "Mixed In Key"}, {"pattern": "", "source": "x"}],
-                            [("TXXX:BEATPORT_TRACK_ID", "Beatport")])
+                            [("TXXX:BEATPORT_TRACK_ID", "Beatport"), ("TXXX:WAVE_X", "Wellen"), ("TXXX:SPOTIFY_X", "Online-Metadaten")])
         self.assertEqual(o.of("TXXX:VDJ Cue"), "u:VirtualDJ")
         self.assertEqual(o.catalog()["u:VirtualDJ"]["kind"], "custom")
         self.assertEqual(o.of("TXXX:SERATO_X"), "mik")            # Name einer bekannten Quelle → deren id
-        self.assertEqual(o.of("TXXX:BEATPORT_TRACK_ID"), "p:Beatport")
+        self.assertEqual(o.of("TXXX:BEATPORT_TRACK_ID"), "beatport")      # #411: gleichnamige Quelle gewinnt
+        self.assertNotIn("p:Beatport", o.catalog())
+        self.assertEqual(o.of("TXXX:WAVE_X"), "p:Wellen")                # Plugin-Feld ohne eingebaute Quelle
+        self.assertEqual(o.of("TXXX:SPOTIFY_X"), "p:Online-Metadaten")   # anderes Plugin: weiterhin Plugin-Herkunft
+
+    def test_spotify_plugin_fields_are_spotify(self):
+        """#411: alle Felder aus plugins/spotify/plugin.json (auch SPOTIFY_TRACK_ID) unter Herkunft „Spotify“."""
+        import json, os
+        m = json.load(open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "plugins", "spotify",
+                                        "plugin.json"), encoding="utf-8"))
+        o = origins.Origins(None, [(f, m["name"]) for f in m["fields"]])
+        self.assertEqual({o.of(f) for f in m["fields"]}, {"spotify"})
+        self.assertEqual(origins.Origins([{"pattern": "TXXX:SPOTIFY_TRACK_ID", "source": "Mixed In Key"}],
+                                         [(f, m["name"]) for f in m["fields"]]).of("TXXX:SPOTIFY_TRACK_ID"), "mik")
         self.assertEqual(o.of("TXXX:BEATPORT_GENRE"), "beatport")
         self.assertEqual(len(origins.clean_custom([{"pattern": "A", "source": "B"}, {"pattern": "a", "source": "C"}])), 1)
 
@@ -76,7 +89,7 @@ class TestSessionOrigins(unittest.TestCase):
             self.assertEqual(src["GEOB:Serato Markers2"], "serato")
             self.assertEqual(src["PRIV:TRAKTOR4"], "traktor")
             self.assertEqual(s.settings()["origins"]["id3v4"]["name"], "v2.4")
-            self.assertEqual(src["TXXX:BEATPORT_TRACK_ID"], "p:Beatport")   # aus plugin.json „fields“
+            self.assertEqual(src["TXXX:BEATPORT_TRACK_ID"], "beatport")     # #411: plugin.json-Feld → gleichnamige Quelle
             pv = s.tag_origin_remove([0, 1], "serato")
             self.assertEqual((pv["count"], pv["files"], len(pv["keys"])), (4, 2, 2))
             r = s.tag_origin_remove([0, 1], "serato", True)

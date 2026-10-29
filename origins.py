@@ -99,6 +99,11 @@ class Origins:
                 self.sources.setdefault(known, {"name": r["source"], "desc": "eigene Zuordnung", "kind": "custom"})
             self.rules.append((r["pattern"].lower(), known))
         for pat, pname in plugin_fields or []:
+            # #411: Feld eines Dienst-Plugins, das schon ein eingebautes Muster der gleichnamigen Quelle trifft
+            # (z. B. TXXX:SPOTIFY_TRACK_ID vom Plugin „Spotify“) → eingebaute Herkunft „Spotify“, nicht „TagStudio · …“
+            if any(self.sources.get(s, {}).get("name", "").lower() == str(pname).strip().lower()
+                   and fnmatch.fnmatchcase(str(pat).lower(), p.lower()) for p, s in BUILTIN):
+                continue
             sid = "p:" + pname
             self.sources.setdefault(sid, {"name": f"TagStudio · {pname}", "desc": f"geschrieben vom TagStudio-Plugin „{pname}“",
                                           "kind": "plugin"})

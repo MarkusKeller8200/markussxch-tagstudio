@@ -723,6 +723,11 @@ class UiTest(unittest.TestCase):
         pg.click("#tgSrcF")
         pg.click("#menu button >> text=Alle Herkünfte zeigen")
         self.assertTrue(self.until(f"TG.srcSel.size === 0 && document.querySelectorAll('.tg-more .tg-f').length === {total}"))
+        # #411: Spotify-Felder (auch SPOTIFY_TRACK_ID aus plugin.json) haben die Herkunft „Spotify“
+        for desc in ("SPOTIFY_TRACK_ID", "SPOTIFY_ALBUM_ID"):
+            pg.evaluate(f"call('tag_add_field', [0], 'TXXX', '{desc}', 'x').then(taggerApplyDetail)")
+        self.assertTrue(self.until("['TXXX:SPOTIFY_TRACK_ID', 'TXXX:SPOTIFY_ALBUM_ID'].every((k) => (TG.detail.fields.find((f) => f.key === k) || {}).src === 'spotify')"),
+                        pg.evaluate("JSON.stringify(TG.detail.fields.filter((f) => f.key.includes('SPOTIFY')).map((f) => [f.key, f.src]))"))
         # #197: Kontextmenü im Tagger hat „Dateiordner öffnen“
         pg.click('.tg-row[data-i="1"] .nm', button="right")
         pg.wait_for_selector("#menu button >> text=Dateiordner öffnen")

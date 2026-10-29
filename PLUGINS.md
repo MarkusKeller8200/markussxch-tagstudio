@@ -87,7 +87,9 @@ Plugins/
   Eigene Aktionen ohne Auswahl reiht ein Plugin mit `ctx.queue_job(aktion, optionen)` selbst ein (#387, z. B. aus
   `on_event`); wartet schon ein Auftrag derselben Aktion, entsteht kein zweiter.
 - `fields`: Felder, die das Plugin schreibt (Muster mit `*`). TagStudio zeigt bei diesen Feldern die Herkunft
-  „TagStudio · Plugin-Name“ an (Tagger, Vergleich), damit eigene Felder erkennbar bleiben.
+  „TagStudio · Plugin-Name“ an (Tagger, Vergleich), damit eigene Felder erkennbar bleiben. Ausnahme (#411): kennt
+  TagStudio für das Feld schon eine gleichnamige Quelle (z. B. `TXXX:SPOTIFY_*` → „Spotify“, `TXXX:BEATPORT_*` →
+  „Beatport“), bleibt es bei dieser Herkunft – so stehen alle Felder eines Dienstes unter einer Herkunft.
 - `source` (optional, ab 4.10): Name der Quelle bzw. des Stores, z. B. `"Beatport"`. Beim **Einschalten** legt
   TagStudio `<Downloads>\<source>` und `<Eingang>\<source>` an (nur wenn nicht vorhanden), trägt im aktuellen
   Workflow die Quelle ein (Download-Unterordner → Eingangs-Unterordner) und setzt das Ziel der Plugin-Aktion
