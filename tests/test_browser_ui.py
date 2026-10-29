@@ -627,10 +627,14 @@ class UiTest(unittest.TestCase):
         pg.set_viewport_size({"width": 2560, "height": 800})          # Ausgangslage: alles passt (auch mit CI-Schriften)
         self.load_tagger()
         self.assertEqual(pg.evaluate("LAYOUT.tg_fit"), "fit")
-        self.assertFalse(pg.evaluate("document.querySelector('#tgTable').classList.contains('hscroll')"))
+        # #416: die Spaltenbreite wird nach einer Grössenänderung verzögert (ResizeObserver + 120 ms) neu geprüft –
+        # auf den Endzustand warten statt sofort zu prüfen (in der CI sonst gelegentlich noch der Zwischenstand)
+        self.assertTrue(self.until("!document.querySelector('#tgTable').classList.contains('hscroll')", 5),
+                        pg.evaluate("JSON.stringify({auto: TG.autoScroll, w: document.querySelector('#tgHead').clientWidth, sw: document.querySelector('#tgHead').scrollWidth})"))
         pg.set_viewport_size({"width": 1280, "height": 800})          # schmaleres Fenster, dazu alle Merkmale
         pg.evaluate("LAYOUT.tg_feat_cols = TG.settings.features.map((f) => f[0]); renderTgHead(); drawTgList()")
-        self.assertTrue(pg.evaluate("TG.autoScroll && document.querySelector('#tgTable').classList.contains('hscroll')"))
+        self.assertTrue(self.until("TG.autoScroll && document.querySelector('#tgTable').classList.contains('hscroll')", 5))
+        time.sleep(0.3)                                                # verzögertes Neuzeichnen nach dem Verkleinern abwarten
         self.assertEqual(pg.evaluate("LAYOUT.tg_fit"), "fit")                       # gespeicherte Wahl bleibt
         sc = "document.querySelector('#tgScroll')"
         self.assertTrue(pg.evaluate(f"{sc}.scrollWidth > {sc}.clientWidth"))
