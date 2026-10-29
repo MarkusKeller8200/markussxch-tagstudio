@@ -315,7 +315,7 @@ class TestPlugins(Base):
         self.assertEqual([x["name"] for x in self.s.dj_sources()["sources"] if x["id"] == "spotify"], ["Spotify"])
         st = self.s.start_dj_source_list("spotify")
         lists = self.wait()["result"]["playlists"]
-        self.assertEqual([p["id"] for p in lists], ["liked", "pl1"])
+        self.assertEqual([p["id"] for p in lists], ["liked", "pl1", "album:al1"])               # #384 SP3: + Alben
         self.s.start_pl_source_import("spotify", ["pl1"])
         r = self.wait()["result"]
         self.assertEqual(r["lists"][0]["count"], 1)                                  # Podcast fällt weg
@@ -441,6 +441,20 @@ class TestPlugins(Base):
         res = self.s.ideas_from_disc(["spotify:sp9"], "", "Neu")
         it = self.s.ideas_overview(res["pid"])["items"][0]
         self.assertEqual((it["store"], it["sid"]), ("spotify", "sp9"))
+
+    def test_spotify_saved_albums(self):
+        """#384 SP3: gespeicherte Alben erscheinen beim Import als eigene Playlists mit allen Titeln."""
+        self.login("spotify", client_id="CID", redirect="http://127.0.0.1:8765/callback")
+        self.s.start_dj_source_list("spotify")
+        lists = self.wait()["result"]["playlists"]
+        alb = [p for p in lists if p["id"] == "album:al1"]
+        self.assertEqual(len(alb), 1)
+        self.assertEqual(alb[0]["name"], "Album: Nachtfahrt EP – Mara Lind")
+        self.s.start_pl_source_import("spotify", ["album:al1"])
+        r = self.wait()["result"]
+        pl = self.s._pls().get(r["lists"][0]["id"])
+        self.assertEqual([i["ref"]["title"] for i in pl["items"]], ["Kaltes Glas", "Nordlicht"])
+        self.assertEqual(pl["name"], "Nachtfahrt EP – Mara Lind")
 
     def test_soundcloud(self):
         self.login("soundcloud", client_id="SCID", client_secret="SECRET", redirect="http://127.0.0.1:8766/callback")

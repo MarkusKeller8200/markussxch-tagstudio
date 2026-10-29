@@ -456,6 +456,8 @@ Read your playlists and track data at Spotify or SoundCloud. SoundCloud is **rea
   `user-library-modify` (sign in once more). **Ideas:** “Save what's playing in Spotify”, “Recently played in Spotify …”
   (at most 50), “As Spotify playlist …” (private, add only). If Spotify refuses the write with HTTP 403 (development
   mode), TagStudio says why; writes only happen on your click.
+- **Saved albums (SP3):** Playlists › Import ▾ › “From Spotify …” also lists your saved albums (`GET /me/albums`, at
+  most 300) – one playlist per album with all tracks (entries without a file, then “Match with library”).
 - **Discover (SP1):** source “Spotify” under Discover › “Follow …” – new singles and albums per followed artist
   (`/artists/{id}/albums`, replacing the removed `/browse/new-releases`); the artist ID is searched once and remembered
   (not found: again after 7 days). No preview clip (no longer provided by Spotify).

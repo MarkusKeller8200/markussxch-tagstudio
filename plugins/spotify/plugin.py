@@ -22,6 +22,8 @@ SOURCE = {"id": "spotify", "name": "Spotify", "order": 35, "role": "metadata"}
 API = "https://api.spotify.com/v1"
 INTERVALS = {"api.spotify.com": 0.2}
 LIKED = "liked"
+ALBUM = "album:"                                        # #384 SP3: gespeicherte Alben als Playlist-Quelle
+MAX_ALBUMS = 300
 SCOPES = ["playlist-read-private", "playlist-read-collaborative", "user-library-read", "user-follow-read",
           "user-top-read", "user-read-recently-played",
           # #384 (Entscheid User: alle auf einmal – eine neue Anmeldung): Läuft gerade, Playlist anlegen, Bibliothek
@@ -269,7 +271,28 @@ def playlists(ctx) -> list:
         own = (p.get("owner") or {}).get("id") == me or p.get("collaborative")
         if own:
             out.append({"id": p["id"], "name": p.get("name") or p["id"], "path": [], "depth": 0, "type": "playlist"})
+    # #384 SP3: gespeicherte Alben (je Album eine Playlist mit allen Titeln)
+    for r in pages(ctx, "/me/albums", cl, max_items=MAX_ALBUMS):
+        a = r.get("album") or {}
+        if a.get("id"):
+            out.append({"id": f"{ALBUM}{a['id']}", "name": f"Album: {a.get('name') or a['id']} – {', '.join(_artists(a))}",
+                        "path": [], "depth": 0, "type": "album"})
     return out
+
+
+def album_tracks(ctx, aid: str, cl=None) -> tuple[dict, list]:
+    """Album und alle Titel (eingebettete erste Seite, weitere Seiten über /albums/{id}/tracks) → (Album, [Titel])."""
+    cl = cl or client(ctx)
+    alb = get(ctx, f"/albums/{aid}", cl) or {}
+    box = alb.get("tracks") or {}
+    rows = list(box.get("items") or [])
+    if box.get("next"):
+        rows += pages(ctx, box["next"], cl)
+    elif not rows:
+        rows = pages(ctx, f"/albums/{aid}/tracks", cl)
+    for t in rows:                                       # Titel aus dem Album kennen ihr Album nicht – ergänzen
+        t.setdefault("album", {k: alb.get(k) for k in ("id", "name", "release_date", "images", "artists", "total_tracks")})
+    return alb, rows
 
 
 def playlist_files(ctx, pid) -> dict:
@@ -277,6 +300,10 @@ def playlist_files(ctx, pid) -> dict:
     cl = client(ctx)
     if pid == LIKED:
         name, rows = "Lieblingssongs", pages(ctx, "/me/tracks", cl)
+    elif str(pid).startswith(ALBUM):                     # #384 SP3
+        alb, rows = album_tracks(ctx, str(pid)[len(ALBUM):], cl)
+        name = f"{alb.get('name') or pid} – {', '.join(_artists(alb))}"
+        rows = [{"item": t} for t in rows]
     else:
         meta = get(ctx, f"/playlists/{pid}", cl, fields="name")
         name = meta.get("name") or f"Playlist {pid}"

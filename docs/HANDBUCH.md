@@ -337,7 +337,8 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
   Warteschlange“ hängt die im Tagger geladenen Titel an; in der Warteschlange speichert „Als Playlist speichern …“ sie
   als Playlist, im Player-Menü legt „Laufenden Titel zur Playlist hinzufügen …“ den gerade gespielten Titel ab.
 - **Importieren ▾:** M3U/M3U8, Rekordbox-XML (mit Ordnerbaum) oder CSV übernehmen – auch Listen ohne Dateien (Spalten
-  Künstler, Titel, Mix, ISRC, Dauer) und Spotify-Exporte (z. B. Exportify-CSV). **„Aus Serato …“, „Aus Engine
+  Künstler, Titel, Mix, ISRC, Dauer) und Spotify-Exporte (z. B. Exportify-CSV). „Aus Spotify …“ (Spotify-Plugin) bietet
+  Lieblingssongs, eigene Playlists und **gespeicherte Alben** (je Album eine Playlist, #384). **„Aus Serato …“, „Aus Engine
   DJ …“, „Aus VirtualDJ …“** und „Aus Lexicon …“ holen die Playlists dieser Programme (Crates, Playlists mit Ordnern,
   virtuelle Ordner) – die Bibliothek wird am üblichen Ort und auf externen Laufwerken gesucht und **nur gelesen**;
   erneut holen aktualisiert sie. **„Trackliste einfügen …“** übernimmt eine kopierte Trackliste von 1001Tracklists,

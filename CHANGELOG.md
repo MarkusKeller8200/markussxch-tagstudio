@@ -30,6 +30,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   in Ideen; Wunschliste „Als Spotify-Playlist …“ (privat, nur auf Klick, nur ergänzen). Neue Berechtigungen – einmal neu
   anmelden.
 - **Entdecken mit Spotify (#384 SP1):** neue Singles und Alben gefolgter Künstler als weitere Quelle (kostenlos).
+- **Spotify – gespeicherte Alben (#384 SP3):** beim Import „Aus Spotify …“ je gespeichertem Album eine Playlist.
 
 ### Sicherheit
 
