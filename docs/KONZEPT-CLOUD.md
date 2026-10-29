@@ -80,6 +80,16 @@ Aktionen „Anmelden … / Abmelden … / Verbindung testen“), `oauthkit` mit 
 „AdminConsentRequired: No“. Eine Organisation kann die Zustimmung durch Benutzer aber sperren – dann meldet die Anmeldung
 das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzustimmung.
 
+## 4c. Entscheid 29.10.2026 (17:58) – OneDrive nach Kontoart (#405, geplant für 4.14.0)
+
+- Plugin `onedrive` bleibt (eigene App, API-Abgleich), neu mit **Umschalter Kontoart**:
+  - **Geschäfts-/Schulkonto:** App-Anbindung über Microsoft Graph wie bisher, Endpunkt `organizations`.
+  - **Privates OneDrive:** keine App, keine Anmeldung – nur der angegebene **OneDrive-Ordner** des Desktop-Clients:
+    Spiegel der Bibliothek als Einweg-Kopie (#403) und Sicherung der Programmdaten (#402).
+- Abo und Speichergrösse entscheidet der Benutzer; TagStudio zeigt eine **Schätzung des benötigten Platzes**.
+- Sicherheitsfehler #401 (Token bei Umleitungen) wird behoben. Einfache Anmeldung mit TagStudio-App (#400) und
+  [KONZEPT-ONEDRIVE.md](KONZEPT-ONEDRIVE.md) nicht weiter verfolgt; Web-Player #404 bleibt Idee.
+
 ## 5. Offen (bei der Umsetzung prüfen)
 
 - **OneDrive nur privat, einfache Anmeldung, App-Ordner:** Entwurf in [KONZEPT-ONEDRIVE.md](KONZEPT-ONEDRIVE.md)

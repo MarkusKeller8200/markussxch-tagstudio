@@ -2,7 +2,8 @@
 
 > Stand 29.10.2026 (17:40) – Status **NICHT WEITER VERFOLGT** (Entscheid User 17:35: bei OD1 bleiben, keine
 > TagStudio-App, kein Ausbau des API-Abgleichs; stattdessen Sicherung der Programmdaten in den Cloud-Ordner, #402).
-> Bleibt als Referenz. #401 (Sicherheit) gilt unabhängig davon.
+> Bleibt als Referenz. #401 (Sicherheit) gilt unabhängig davon. Neuer Weg ab 17:58: Umschalter Kontoart (#405),
+> siehe [KONZEPT-CLOUD.md](KONZEPT-CLOUD.md) §4c.
 > Auftrag User 29.10.2026, 17:23. Issues: [#400](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/400)
 > (einfache Anmeldung) · [#401](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/401) (Token bei
 > Umleitungen, Sicherheit). Baut auf [KONZEPT-CLOUD.md](KONZEPT-CLOUD.md) (Weg 2, Entscheide C1–C4) und dem Plugin

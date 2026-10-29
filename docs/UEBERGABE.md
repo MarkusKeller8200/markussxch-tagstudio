@@ -15,6 +15,11 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   in einen Cloud-Ordner (Funktionen, Fragen offen).
 - Idee User 17:51: Musik als **Einweg-Spiegel** in den OneDrive-Ordner (**#403**, nie im Spiegel bearbeiten) und
   später ein **Web-Player** (**#404**, Idee; Wege A–D, A bräuchte wieder eine Microsoft-App).
+- **Entscheid User 17:58:** OneDrive-Plugin bleibt, Sicherheitslücken beheben; **#405 Umschalter Kontoart**
+  (Geschäftlich = App-Anbindung `organizations`, Privat = OneDrive-Ordner angeben → Spiegel #403 + Sicherung #402);
+  Abo/Speicher Sache des Users, TagStudio zeigt eine **Platzschätzung**. **#401, #402, #403, #405 in Meilenstein #31
+  (4.14.0)** aufgenommen – **noch nichts umsetzen** (Auftrag User). #400 (nicht weiter verfolgt) und #404 (Idee) bleiben
+  in „Funktionen“. KONZEPT-CLOUD §4c.
 - **#401 Sicherheit** (Fehler): `urllib` sendet `Authorization` bei 302 an fremde Hosts mit (OneDrive-Download).
 - Fragen zu 4.14.0 (Reihenfolge, Scopes auf einmal, Issue „Gemerkt“) weiterhin unbeantwortet.
 

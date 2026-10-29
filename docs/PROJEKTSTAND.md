@@ -1,7 +1,8 @@
 # MarKusSXCH TagStudio – Projektstand
 
 > Stand 2026-10-29 (17:40): Konzept **`docs/KONZEPT-ONEDRIVE.md`** zu #400 – vom User nicht weiter verfolgt (17:35);
-> neu **#401** (Sicherheit: Token bei Umleitungen) und **#402** (Programmdaten in Cloud-Ordner sichern), #403 Spiegel der Bibliothek, #404 Web-Player (Idee). 4.14.0 noch nicht begonnen.
+> neu **#401** (Sicherheit: Token bei Umleitungen) und **#402** (Programmdaten in Cloud-Ordner sichern), #403 Spiegel der Bibliothek, #404 Web-Player (Idee).
+> 17:58: #405 Umschalter Kontoart OneDrive; #401, #402, #403, #405 in Meilenstein #31 (4.14.0), noch nicht umgesetzt. 4.14.0 noch nicht begonnen.
 >
 > Davor 2026-10-29 (03:50): **v4.13.0 final veröffentlicht** (Release `v4.13.0`, Windows + macOS signiert und von Apple
 > beglaubigt, 26 Dateien); Meilenstein #30 „Ideen & Wunschlisten“ mit 18 Issues geschlossen. Nächstes Release 4.14.0 – Spotify
