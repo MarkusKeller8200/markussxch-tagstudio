@@ -246,6 +246,13 @@ jobs:
       - name: Plugin-Katalog und Plugin-ZIPs (#235)
         # je Plugin ein ZIP plus plugins.json (ID, Version, Prüfsumme, Mindestversion) – die App lädt daraus einzelne Plugins
         run: python3 -c "import sys, plugin_store; plugin_store.build('plugins', 'assets', sys.argv[1])" "${TAG#v}"
+      - name: Installer bei VirusTotal prüfen (#407)
+        # meldet ein Scanner etwas, endet der Schritt mit Fehler – das Release wird dann NICHT erstellt (Entscheid User)
+        env:
+          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+        run: python3 .github/scripts/release_checks.py virustotal assets/*.exe assets/*.dmg
+      - name: Prüfsummen SHA256SUMS.txt (#406)
+        run: python3 .github/scripts/release_checks.py sums assets
       - name: Release-Text aus dem CHANGELOG
         run: |
           ver="${TAG#v}"
@@ -259,7 +266,14 @@ jobs:
           mac = bool(glob.glob("assets/*.dmg"))
           print("**Download:** Windows → `TagStudio-…-Windows-Setup.exe`"
                 + (" · macOS (Apple-Chip) → `TagStudio-…-macOS-Apple-Chip.dmg`" if mac else " (Beta: nur Windows)") + "\n")
-          print("Die Installer sind nicht signiert: Windows zeigt evtl. „Der Computer wurde durch Windows geschützt“ → „Weitere Informationen“ → „Trotzdem ausführen“. macOS: siehe „Zuerst lesen.txt“ im Disk-Image.\n")
+          if mac:
+              print("macOS: signiert und von Apple beglaubigt. Windows: der Installer ist nicht signiert – Windows zeigt evtl. „Der Computer wurde durch Windows geschützt“ → „Weitere Informationen“ → „Trotzdem ausführen“.\n")
+          else:
+              print("Der Windows-Installer ist nicht signiert – Windows zeigt evtl. „Der Computer wurde durch Windows geschützt“ → „Weitere Informationen“ → „Trotzdem ausführen“.\n")
+          import os
+          vt = open("virustotal.md", encoding="utf-8").read().strip() if os.path.isfile("virustotal.md") else ""
+          print("**Download prüfen:** SHA-256 aller Dateien in `SHA256SUMS.txt` (Windows: `Get-FileHash <Datei>`, macOS: `shasum -a 256 <Datei>`)."
+                + ("\n\n" + vt if vt else "") + "\n")
           if "-" in ver:
               print("> **Vorabversion** zum Testen – noch nicht für den Alltag gedacht.\n")
           print(body or "(keine Einträge im CHANGELOG)")
