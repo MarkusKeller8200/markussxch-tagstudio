@@ -354,6 +354,11 @@ function showUpdateBadge(st) {
     : `Nach neuer Version suchen (${(st && st.channel) === "beta" ? "auch Beta-Versionen" : "nur offizielle Versionen"})`;
 }
 
+/** Versionshinweise ohne die Zeilen für die Release-Seite (Download, Signatur, Prüfsummen, VirusTotal – #406/#407) */
+function relNotesClean(t) {
+  return String(t || "").split("\n").filter((ln) => !/^(\*\*Download( prüfen)?:\*\*|Die Installer sind nicht signiert|Der Windows-Installer ist nicht signiert|macOS: signiert|- \*\*VirusTotal\*\*)/.test(ln)).join("\n").replace(/^\n+/, "");
+}
+
 /** Sehr einfache Markdown-Darstellung für Versionshinweise (#90): Überschriften, Listen, fett, Code, Links */
 function mdLite(md) {
   const inl = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>")
@@ -379,7 +384,7 @@ async function showReleaseNotes() {
   const nw = r.newer && r.latest;
   const html = `<div class="rn">
     ${nw ? `<section class="rn-new"><h3>Neu in ${esc(r.latest.version)}${r.latest.beta ? ' <span class="beta-b">Beta</span>' : ""}<span class="muted sm"> ${esc(r.latest.date || "")}</span></h3>
-      ${mdLite(r.latest.notes.replace(/^\*\*Download:\*\*.*$/m, "").replace(/^Die Installer sind nicht signiert.*$/m, ""))}
+      ${mdLite(relNotesClean(r.latest.notes))}
       <p><a href="#" data-url="${esc(r.latest.url)}">Auf GitHub ansehen und herunterladen</a></p></section>` : ""}
     <section><h3>Installiert: ${esc(r.version)}${r.beta ? ' <span class="beta-b">Beta</span>' : ""}</h3>
       ${r.current ? mdLite(r.current) : '<p class="muted">Keine Versionshinweise gefunden.</p>'}
@@ -428,7 +433,7 @@ async function updateNotify(st) {
   if (busy) { setTimeout(() => updateNotify(Object.assign({}, st, { busy: false })), 60000); return; }
   UPDN.shown.add(key);
   const rel = st.kind === "release", lt = st.latest || {};
-  const notes = rel ? mdLite(String(lt.notes || "").replace(/^\*\*Download:\*\*.*$/m, "").split("\n").slice(0, 14).join("\n")) : "";
+  const notes = rel ? mdLite(relNotesClean(lt.notes).split("\n").slice(0, 14).join("\n")) : "";
   const r = await modal({ title: rel ? `Neue Version ${lt.version}${lt.beta ? " (Beta)" : ""}` : "Neue Version verfügbar", wide: true,
     html: `<div class="rn upd-pop"><p>Installiert: <b>${esc(st.version || "")}</b>${rel ? ` · neu: <b>${esc(lt.version)}</b>${lt.date ? ` vom ${esc(lt.date)}` : ""}`
         : ` · ${fmtN(st.behind || 0)} Änderung(en) auf GitHub (${esc(st.switch || st.branch || "")})`}</p>
@@ -461,7 +466,7 @@ async function runUpdate() {
     const asset = (lt.assets || []).find((a) => (win ? /\.exe$/i : /\.dmg$/i).test(a.name || ""));
     const go = await modal({ title: `Neue Version ${lt.version}${lt.beta ? " (Beta)" : ""}`, wide: true,
       html: `<div class="rn"><p>Installiert: <b>${esc(st.version)}</b> · neu: <b>${esc(lt.version)}</b>${lt.date ? ` vom ${esc(lt.date)}` : ""}</p>
-        ${mdLite(lt.notes.replace(/^\*\*Download:\*\*.*$/m, "").replace(/^Die Installer sind nicht signiert.*$/m, ""))}
+        ${mdLite(relNotesClean(lt.notes))}
         <p class="muted sm">${st.auto && asset
           ? "„Jetzt aktualisieren“ lädt den Installer, prüft ihn, schliesst TagStudio, installiert die neue Version und startet sie – Einstellungen und Daten bleiben erhalten."
           : "Herunterladen, TagStudio schliessen und den Installer ausführen – Einstellungen bleiben erhalten."}</p></div>`,
