@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-29 (Abend): 4.14.0 im Beta-Test** (Meilenstein #31 „4.14.0 – Spotify, Cloud & Vertrauen“). Geschlossen: #384, #385, #401, #403, #409. Offen im Beta-Test: #402, #405, #406, #407 (Workflow-Teil mit dem Release), #411–#415. Release nur nach Freigabe. Davor: v4.13.0 final (03:50).
+Stand: **2026-10-29 (20:50): 4.14.0 im Beta-Test** (Meilenstein #31 „4.14.0 – Spotify, Cloud & Vertrauen“). Geschlossen: #384, #385, #401–#403, #405, #409, #412–#415. Offen: #411 (Beta-Test), #406/#407 (OK vom User, Workflow-Teil beim Release), #410 (CodeQL-Fund im Test), #416 (wackeliger UI-Test, `_1 bereit`). Release nur nach Freigabe.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
