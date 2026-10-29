@@ -734,14 +734,18 @@ demand”) when reading – nothing downloads unnoticed, can be switched on – 
 Snapshots, work and backup inside a sync folder get a hint (not recommended). Sync folders and “online-only files” live in their own card <strong>Settings › Cloud</strong> (#324). <strong>Library mirror</strong>
 (#403): in the same card the music is placed as a <strong>one-way copy</strong> into a cloud folder (e.g. private OneDrive – the
 folder is suggested when “Private” is chosen under Plugins › OneDrive › “Account type …”). TagStudio keeps working only
-with the library; nothing is ever changed in the mirror. Whatever is missing or changed is copied (first as <code>.part</code>,
+with the library; nothing is ever changed in the mirror. <strong>Layout</strong> (#413): default is “path of the library without
+drive” – <code>D:\Musik\DJ</code> becomes <code>&lt;OneDrive&gt;\Musik\DJ</code> (macOS: <code>/Volumes/Musik/DJ</code> → <code>&lt;OneDrive&gt;/DJ</code>), and <code>index.json</code>
+and playlists go to <code>&lt;OneDrive&gt;/TagStudio/Spiegel</code>; alternatively “one folder per library, named after it”. Below the
+layout you see where each library is mirrored. Plugins › OneDrive › “Account type …” › <strong>“Create mirror folders”</strong>
+creates these folders and points the mirror there. Whatever is missing or changed is copied (first as <code>.part</code>,
 then renamed). <strong>Estimate space …</strong> shows music total, already in the mirror, still to copy and the free space on the
 drive – you choose plan and storage size. Optional: update automatically after saving and after “Prepare › Take over”,
 write playlists as M3U8 with relative paths, set copies “online-only” (Windows). Files no longer in the library are
 only reported and deleted after confirmation. The mirror also contains <code>index.json</code> (title, artist, BPM, key,
 duration). <strong>Program data backup</strong> (#402): settings (without credentials), playlists
 with ideas/wish lists, purchases, Discover (without SonoVault entries), Prepare and mixes as a ZIP file
-<code>TagStudio-Programmdaten_&lt;computer&gt;_&lt;date&gt;.zip</code> into a folder, e.g. <code>OneDrive/TagStudio/Sicherungen</code> – manually (“Back up
+<code>TagStudio-Programmdaten_&lt;computer&gt;_&lt;date&gt;.zip</code> into a folder – suggested <code>OneDrive/TagStudio/Sicherung</code> (#415) – manually (“Back up
 now”), on exit or daily. Never included: credentials, snapshots, caches, music. More backups than “keep” (default 10)
 are deleted only after confirmation. <strong>Restore …</strong> shows a preview (what is replaced, which settings groups – from
 another computer window, path and player settings are not preselected), first backs up the current state
