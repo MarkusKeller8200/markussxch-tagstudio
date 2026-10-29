@@ -55,6 +55,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **Testrückmeldung 29.10. 01:04:** geschlossen #392, #393, #395, #396 (Testlisten abgehakt); offen #394 (Testliste
   noch nicht abgehakt) – einziges offenes Issue im Meilenstein #30. **#394 um 02:40 abgehakt → geschlossen;
   Meilenstein #30 ohne offene Issues** (Release 4.13.0 nur nach Freigabe).
+- **#376 SignPath (User 03:11):** nach Meilenstein #4 „Idee (Später)“ verschoben (Meilenstein dafür wieder geöffnet),
+  Label `idee` statt `_3 Beta-Test`.
 - **Testrückmeldung 28.10. 20:25:** geschlossen #387, #390, #379, #380, #381, #259 (Testlisten abgehakt); offen #383 (Testliste
   noch nicht abgehakt) und #382 (Anfrage sendet der User).
 - **SonoVault 1.2 (28.10. 19:59, `_3 Beta-Test`, Meilenstein #30):** #383 `TXXX:SONOVAULT_*` (Herkunft „SonoVault“ in
