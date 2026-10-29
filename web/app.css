@@ -1932,3 +1932,10 @@ html.i18n-wait body{visibility:hidden}
 .mx-card .mx-table{max-height:none;min-height:0;overflow:visible}
 .mx-empty{padding:24px}
 @media (max-width:800px){.mx-wrap{grid-template-columns:1fr}}
+
+/* #402: Wiederherstellen – Vorschau der Programmdaten */
+.ab-part { margin: 0 0 8px; }
+.ab-part > .muted, .ab-groups { margin-left: 26px; }
+.ab-groups .check { display: block; }
+.mr-extra { max-height: 50vh; overflow: auto; }
+.mr-extra .check, .ab-list .check { display: block; }

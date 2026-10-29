@@ -16,6 +16,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   OneDrive privat), mit Platzschätzung, `index.json`, Playlists als M3U8 mit relativen Pfaden, wahlweise automatisch
   nach dem Speichern bzw. Vorbereiten und „nur online“ (Windows). Im Spiegel wird nie bearbeitet; überzählige Dateien
   werden nur nach Rückfrage gelöscht.
+- **Sicherung der Programmdaten (#402):** Einstellungen › Cloud – Einstellungen (ohne Zugangsdaten), Playlists/Ideen,
+  Einkäufe, Entdecken (ohne SonoVault), Vorbereiten und Mixe als ZIP in einen Ordner (z. B. OneDrive), von Hand, beim
+  Beenden oder täglich; Wiederherstellen mit Vorschau, vorheriger Sicherung und Pfaden für diesen Rechner; ältere
+  Sicherungen nur nach Rückfrage löschen.
 
 ### Sicherheit
 

@@ -359,10 +359,12 @@ class FolderRolesMixin:
         n = foldermove.remove_empty(p)
         return {"ok": True, "removed": n}
 
-    def _folders_relink(self, old, new) -> dict:
-        """TagStudio-Verweise von old auf new umschreiben (nie fremde Datenbanken). → Anzahl je Bereich."""
+    def _folders_relink(self, old, new, rb=None) -> dict:
+        """TagStudio-Verweise von old auf new umschreiben (nie fremde Datenbanken). → Anzahl je Bereich.
+        rb: eigene Umschreib-Funktion (z. B. Wiederherstellen einer Sicherung von einem anderen Rechner, #402)."""
         import foldermove
-        rb = lambda p: foldermove.rebase(p, old, new) if isinstance(p, str) else p  # noqa: E731
+        if rb is None:
+            rb = lambda p: foldermove.rebase(p, old, new) if isinstance(p, str) else p  # noqa: E731
         out = {}
         with self.lock:                                                     # Playlists (+ M3U8 neu schreiben)
             try:

@@ -399,6 +399,8 @@
 "Content-Disposition",
 "Authorization",
 "Cookie",
+"vor-Wiederherstellen",
+"Rechner",
 "persönlichen Konto",
 "Proxy-authorization",
 "X-api-key",

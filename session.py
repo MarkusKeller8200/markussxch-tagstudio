@@ -48,6 +48,7 @@ from session_playlists import PlaylistMixin
 from session_purchases import PurchasesMixin
 from session_cloud import CloudSyncMixin
 from session_mirror import MirrorMixin
+from session_appbackup import AppBackupMixin
 
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
@@ -68,7 +69,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
 
 
 class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, DiscoverMixin, IdeasMixin, SetupMixin, FoldersMixin, FolderRolesMixin, ArchiveMixin,
-              PlaylistMixin, PurchasesMixin, CloudSyncMixin, MixesMixin, MirrorMixin):
+              PlaylistMixin, PurchasesMixin, CloudSyncMixin, MixesMixin, MirrorMixin, AppBackupMixin):
     def __init__(self):
         self.lock = threading.RLock()
         self._bus, self._buslock = {}, threading.Lock()       # Nachrichten zwischen Fenstern (#69)
@@ -2925,6 +2926,10 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return {"ok": True, "again": True}
         self._plugins_started = True
         self._emit("app_started", {"at": time.time()})
+        try:
+            self.appbackup_daily()                                 # #402: tägliche Sicherung der Programmdaten
+        except Exception:  # noqa: BLE001
+            pass
         return {"ok": True}
 
     def plugins_list(self, rescan=False):

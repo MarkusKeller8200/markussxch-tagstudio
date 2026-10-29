@@ -2552,6 +2552,37 @@ class UiTest(unittest.TestCase):
             pg.locator("#stCloudCard").screenshot(path=os.path.join(os.environ["TAGSTUDIO_SHOTS"], "cloud_mirror.png"))
         self.assertEqual(self.errors, [])
 
+    def test_cloud_appbackup(self):
+        """#402: Einstellungen › Cloud › „Sicherung der Programmdaten“ – Ordner, Jetzt sichern, Wiederherstellen mit
+        Vorschau (vorher Sicherung des jetzigen Stands)."""
+        pg = self.pg
+        target = os.path.join(self.home, "OneDrive", "TagStudio", "Sicherungen")
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stAppBackup [data-abrun]")
+        self.assertTrue(pg.locator("#stAppBackup [data-abrun]").is_disabled())
+        self.assertIn("Nie dabei: Zugangsdaten", pg.inner_text("#stAppBackup"))
+        pg.fill("#abFolder", target)
+        pg.dispatch_event("#abFolder", "change")
+        pg.wait_for_selector("#stAppBackup [data-abrun]:not([disabled])")
+        pg.select_option("#abAuto", "exit")
+        self.assertEqual(self.cfg_until(lambda c: (c.get("app_backup") or {}).get("auto") == "exit")["app_backup"]["folder"], target)
+        pg.click("#stAppBackup [data-abrun]")
+        pg.wait_for_function("document.querySelector('#abLast') && document.querySelector('#abLast').textContent.includes('im Ordner')", timeout=20000)
+        zips = [n for n in os.listdir(target) if n.endswith(".zip")]
+        self.assertEqual(len(zips), 1)
+        pg.click("#stAppBackup [data-abrestore]")
+        pg.wait_for_selector("#modal >> text=Sicherung wählen")
+        pg.click("#mBtns button >> text=Weiter")
+        pg.wait_for_selector("#modal >> text=Wiederherstellen – Vorschau")
+        self.assertTrue(pg.locator('#modal [data-abpart="settings"]').is_checked())
+        if os.environ.get("TAGSTUDIO_SHOTS"):
+            pg.locator(".modal-dlg").screenshot(path=os.path.join(os.environ["TAGSTUDIO_SHOTS"], "appbackup_preview.png"))
+        pg.click("#mBtns button >> text=Wiederherstellen")
+        pg.wait_for_selector("#dialog:not([hidden]) >> text=Wiederhergestellt", timeout=20000)
+        self.assertEqual(len([n for n in os.listdir(target) if "vor-Wiederherstellen" in n]), 1)
+        self.errors = [e for e in self.errors if "reload" not in e.lower()]
+        self.assertEqual(self.errors, [])
+
     def test_folder_change_move(self):
         """#313: Ordner ändern – Vorschau, Standard je Rolle (Bibliothek: nicht übernehmen + Warnung), verschieben."""
         pg = self.pg

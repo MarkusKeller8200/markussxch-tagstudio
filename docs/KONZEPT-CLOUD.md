@@ -103,6 +103,21 @@ das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzusti
   „automatisch“). Vorschlag für das Ziel: `cloud_folder(ctx)` der Plugins (OneDrive privat) + `TagStudio-Spiegel`.
 - Oberfläche `web/mirror.js` (Abschnitt `#stMirror` in Einstellungen › Cloud).
 
+### Umsetzung Sicherung der Programmdaten (#402, 29.10.2026)
+
+- `appbackup.py`: Teile settings (`appsettings.export_text`, ohne Zugangsdaten), playlists (`Playlists/*.json|.m3u8`),
+  purchases (`Käufe`), discover (`cloudsync.DiscoverPart` – ohne SonoVault), prepare (`Vorbereiten`), mixes (`Mixe`).
+  ZIP `TagStudio-Programmdaten_<Rechner>_<JJJJ-MM-TT_HHMMSS>[_Notiz][-n].zip` mit `manifest.json` (Format
+  `tagstudio-appbackup` 1, Version, Rechner, Plattform, Profil, Bibliotheken, SHA-256 je Datei); `.part` → umbenennen.
+  `read` prüft Format, Grösse (≤ 512 MB) und Prüfsummen; `preview` (ersetzt/neu/gleich/nur hier, Einstellungsgruppen über
+  `appsettings.import_preview`), `path_mapper` (Bibliotheken gleicher ID bzw. gleichen Namens, Trennzeichen egal),
+  `restore_files` (atomar, Dateien „nur hier“ bleiben), `surplus`/`delete` (nur eigene ZIPs im Ordner).
+- `session_appbackup.py`: cfg `app_backup` {folder, auto off|exit|daily, keep}, `app_backup_last`; `start_appbackup`,
+  `appbackup_surplus/delete`, `appbackup_preview`, `start_appbackup_restore` (zuerst Sicherung „vor-Wiederherstellen“,
+  dann Dateien, Einstellungen, `_folders_relink(rb=…)`); `appbackup_exit` (Api `_exit_backup`, höchstens 30 s),
+  `appbackup_daily` (aus `plugins_startup`). Vorschlag: Cloud-Ordner eines Plugins + `TagStudio/Sicherungen`.
+- Oberfläche `web/appbackup.js` (Abschnitt `#stAppBackup` in Einstellungen › Cloud).
+
 ## 5. Offen (bei der Umsetzung prüfen)
 
 - **OneDrive nur privat, einfache Anmeldung, App-Ordner:** Entwurf in [KONZEPT-ONEDRIVE.md](KONZEPT-ONEDRIVE.md)

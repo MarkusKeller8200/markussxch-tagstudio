@@ -656,7 +656,13 @@ then renamed). **Estimate space …** shows music total, already in the mirror, 
 drive – you choose plan and storage size. Optional: update automatically after saving and after “Prepare › Take over”,
 write playlists as M3U8 with relative paths, set copies “online-only” (Windows). Files no longer in the library are
 only reported and deleted after confirmation. The mirror also contains `index.json` (title, artist, BPM, key,
-duration). **Sync via the services**
+duration). **Program data backup** (#402): settings (without credentials), playlists
+with ideas/wish lists, purchases, Discover (without SonoVault entries), Prepare and mixes as a ZIP file
+`TagStudio-Programmdaten_<computer>_<date>.zip` into a folder, e.g. `OneDrive/TagStudio/Sicherungen` – manually (“Back up
+now”), on exit or daily. Never included: credentials, snapshots, caches, music. More backups than “keep” (default 10)
+are deleted only after confirmation. **Restore …** shows a preview (what is replaced, which settings groups – from
+another computer window, path and player settings are not preselected), first backs up the current state
+(“vor-Wiederherstellen”) and rewrites paths to music via the libraries for this computer. **Sync via the services**
 (#317, without desktop client): in the same card, in a table (area · service · direction · folder in the service), the roles **Playlists** and **Export** as well as parts of the program
 data (playlist store, purchases, Discover, settings without credentials) can be synced with a folder on OneDrive (work/school accounts only – for a private OneDrive choose “Private” under
 Plugins › OneDrive › “Account type …” and enter the OneDrive folder, #405), Google

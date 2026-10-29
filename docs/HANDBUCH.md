@@ -691,7 +691,14 @@ weiter nur mit der Bibliothek; im Spiegel wird nie etwas geändert. Kopiert wird
 den freien Platz auf dem Laufwerk – Abo und Speichergrösse bestimmst du selbst. Wahlweise: automatisch nach dem
 Speichern und nach „Vorbereiten › Übernehmen“ nachführen, Playlists als M3U8 mit relativen Pfaden mitschreiben, Kopien
 „nur online“ stellen (Windows). Dateien, die nicht mehr in der Bibliothek sind, werden nur gemeldet und erst nach
-Rückfrage gelöscht. Im Spiegel liegt zusätzlich `index.json` (Titel, Künstler, BPM, Tonart, Dauer). **Abgleich über die Dienste**
+Rückfrage gelöscht. Im Spiegel liegt zusätzlich `index.json` (Titel, Künstler, BPM, Tonart, Dauer). **Sicherung der Programmdaten** (#402): Einstellungen
+(ohne Zugangsdaten), Playlists mit Ideen/Wunschlisten, Einkäufe, Entdecken (ohne SonoVault-Einträge), Vorbereiten und
+Mixe als ZIP-Datei `TagStudio-Programmdaten_<Rechner>_<Datum>.zip` in einen Ordner, z. B. `OneDrive/TagStudio/Sicherungen`
+– von Hand („Jetzt sichern“), beim Beenden oder täglich. Nie dabei: Zugangsdaten, Snapshots, Caches, Musik. Mehr
+Sicherungen als „behalten“ (Standard 10) werden nur nach Rückfrage gelöscht. **Wiederherstellen …** zeigt eine
+Vorschau (was ersetzt wird, welche Einstellungsgruppen – von einem anderen Rechner sind Fenster, Pfade und Player nicht
+vorgewählt), sichert vorher den jetzigen Stand („vor-Wiederherstellen“) und schreibt Pfade auf Musik über die
+Bibliotheken auf diesen Rechner um. **Abgleich über die Dienste**
 (#317, ohne Desktop-Client): In derselben Karte lassen sich in einer Tabelle (Bereich · Dienst · Richtung · Ordner im Dienst) die
 Rollen **Playlists** und **Export** sowie Programmdaten-Teile (Playlists-Speicher, Einkäufe, Entdecken, Einstellungen
 ohne Zugangsdaten) mit einem Ordner bei OneDrive (nur Geschäfts-/Schulkonten – für ein privates OneDrive unter
