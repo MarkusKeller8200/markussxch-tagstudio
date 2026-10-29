@@ -1,6 +1,11 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-29 (Abend): **4.14.0 umgesetzt, im Beta-Test** – Meilenstein #31 umbenannt in „4.14.0 – Spotify, Cloud &
+> Stand 2026-10-29 (21:00): Testrückmeldungen – geschlossen #384, #385, #401, #403, #409; neu umgesetzt und im
+> Beta-Test #411 (Herkunft Spotify einheitlich), #412 (OneDrive 1.3: „Privat“ vorausgewählt), #413 (Spiegel im Pfad der
+> Bibliothek ohne Laufwerk, „Spiegel-Ordner erstellen“), #414 (Knöpfe Cloud gleich hoch), #415 (Vorschläge
+> `<OneDrive>/TagStudio/Sicherung`). Offen im Beta-Test zudem #402, #405, #406/#407 (Workflow beim Release).
+>
+> Davor 2026-10-29 (Abend): **4.14.0 umgesetzt, im Beta-Test** – Meilenstein #31 umbenannt in „4.14.0 – Spotify, Cloud &
 > Vertrauen“. `_3 Beta-Test`: #401 (Token bei Umleitungen), #405 (OneDrive Kontoart, 1.2), #403 (Spiegel), #402
 > (Sicherung Programmdaten), #385 (`TXXX:SPOTIFY_*`), #384 (Spotify 1.3, SP1–SP6), #409 (Filter „Gemerkt“ entfernt).
 > #406/#407 (Prüfsummen, VirusTotal – Release anhalten bei Treffern): Code fertig, Workflow-Teil mit dem Release;

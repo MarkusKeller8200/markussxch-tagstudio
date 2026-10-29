@@ -1,8 +1,22 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-29 (Abend): 4.14.0 umgesetzt, im Beta-Test** (Meilenstein #31 „4.14.0 – Spotify, Cloud & Vertrauen“: #384, #385, #401–#403, #405, #409 `_3 Beta-Test`; #406/#407 Workflow-Teil mit dem Release). Release nur nach Freigabe. Davor: v4.13.0 final (03:50).
+Stand: **2026-10-29 (Abend): 4.14.0 im Beta-Test** (Meilenstein #31 „4.14.0 – Spotify, Cloud & Vertrauen“). Geschlossen: #384, #385, #401, #403, #409. Offen im Beta-Test: #402, #405, #406, #407 (Workflow-Teil mit dem Release), #411–#415. Release nur nach Freigabe. Davor: v4.13.0 final (03:50).
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Sitzung 29.10.2026 (20:06–Abend) – Testrückmeldungen, #411–#415
+
+- **Arbeitsregel User 20:06:** User meldet getestete Issues → direkt schliessen (Testliste abhaken); Verbesserungen
+  daraus nur als Issue in 4.14.0 anlegen, **erst umsetzen, wenn der User es sagt** (20:27 freigegeben für #411–#415).
+- **Getestet ok und geschlossen:** #384, #385, #401, #403, #409. #406/#407 „soweit möglich ok“ → `_3 Beta-Test`, offen
+  bis der Workflow-Teil beim Release läuft. #408 Store: nein. Zweig `release-4.13` existiert nicht mehr; **`macos-signing`
+  löscht der User selbst** (Löschen über den Proxy gesperrt).
+- **Umgesetzt (`_3 Beta-Test`):** #411 Herkunft – Plugin-Felder einer gleichnamigen eingebauten Quelle bekommen deren
+  Herkunft (532b90c); #412 OneDrive 1.3 Kontoart standardmässig „Privat“ (2a132a3, **bestehende App-Nutzer wählen einmal
+  „Geschäftlich“**); #413 Spiegel-Aufbau „Pfad ohne Laufwerk“ + OneDrive-Option „Spiegel-Ordner erstellen“
+  (`Context.mirror_folders`), #415 Vorschläge `<OneDrive>/TagStudio/Sicherung` bzw. OneDrive-Ordner mit Aufbau „Pfad“
+  (0784b61; Entscheid User 20:22 „Sicherung“); #414 Knöpfe in Einstellungen › Cloud gleich hoch (c2c57ff).
+- Offen im Beta-Test: #402, #405, #406, #407, #411–#415. Plugin-ZIPs beim Release: onedrive **1.3**, spotify 1.3, online 2.4.
 
 ## Sitzung 29.10.2026 (18:27–Abend) – 4.14.0 umgesetzt, im Beta-Test
 
@@ -31,7 +45,7 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
     `release_checks.py sums assets`, `virustotal.md` an `notes.md` anhängen; Notes-Text: macOS signiert/beglaubigt,
     Windows unsigniert + Hinweis Prüfsumme.
   - **Secret `VIRUSTOTAL_API_KEY` legt der User an** (ohne Secret: Hinweis, Prüfung übersprungen).
-  - Plugin-ZIPs: onedrive 1.2, spotify 1.3, online 2.4.
+  - Plugin-ZIPs: onedrive 1.3, spotify 1.3, online 2.4.
 - Offen: Zweige `macos-signing`, `release-4.13` löschen? (nur nach Rückfrage). CI-Ausreisser
   `test_tagger_auto_scroll_and_frozen_column` (einmal, lokal grün).
 
