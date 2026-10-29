@@ -147,6 +147,12 @@ article{overflow-wrap:anywhere}.doc>*{min-width:0}article pre{white-space:pre-wr
   Versionen: beim ersten Start Meldung schliessen, dann <strong>Systemeinstellungen → Datenschutz &amp; Sicherheit → „Trotzdem
   öffnen“</strong> (Details in „Zuerst lesen.txt“ im Disk-Image).</li>
 </ul>
+<p><strong>Download prüfen (#406, #407):</strong> Ab 4.14.0 stehen in den Versionshinweisen bei jedem Installer die <strong>SHA-256</strong>-Prüfsumme
+und ein Link zum <strong>VirusTotal</strong>-Bericht; <code>SHA256SUMS.txt</code> enthält die Prüfsummen aller Release-Dateien. Vor dem
+Ausführen vergleichen: Windows (PowerShell) <code>Get-FileHash .\TagStudio-&lt;Version&gt;-Windows-Setup.exe -Algorithm SHA256</code>,
+macOS (Terminal) <code>shasum -a 256 TagStudio-&lt;Version&gt;-macOS-Apple-Chip.dmg</code> – der angezeigte Wert muss genau
+übereinstimmen. Erst dann bei der Windows-Warnung „Trotzdem ausführen“ wählen. Das Update auf Knopfdruck prüft die
+Prüfsumme selbst.</p>
 <p>Die installierte App enthält die neue Oberfläche samt Plugins (Stems richtet seine eigene Umgebung beim ersten
 Installieren selbst ein). <strong>Updates:</strong> Der Knopf „Nach Update suchen“ öffnet die Releases-Seite; neue Version laden
 und darüber installieren – Einstellungen, Sicherungen und Plugin-Daten liegen im Benutzerordner und bleiben erhalten.</p>

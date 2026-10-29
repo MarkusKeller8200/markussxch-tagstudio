@@ -146,6 +146,11 @@ automatically.</p>
   close the message on first start, then <strong>System Settings → Privacy &amp; Security → “Open Anyway”</strong> (details in
   “Zuerst lesen.txt” in the disk image).</li>
 </ul>
+<p><strong>Verify the download (#406, #407):</strong> from 4.14.0 the release notes show the <strong>SHA-256</strong> checksum and a link to the
+<strong>VirusTotal</strong> report for each installer; <code>SHA256SUMS.txt</code> lists the checksums of all release files. Compare before
+running: Windows (PowerShell) <code>Get-FileHash .\TagStudio-&lt;version&gt;-Windows-Setup.exe -Algorithm SHA256</code>, macOS (Terminal)
+<code>shasum -a 256 TagStudio-&lt;version&gt;-macOS-Apple-Chip.dmg</code> – the value shown must match exactly. Only then choose “Run
+anyway” at the Windows warning. The one-click update checks the checksum itself.</p>
 <p>The installed app contains the new interface including plugins (stems sets up its own environment the first time it
 is installed). <strong>Updates:</strong> the “Check for update” button opens the releases page; download the new version and
 install it over the old one – settings, backups and plugin data live in the user folder and are kept.</p>
