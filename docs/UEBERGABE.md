@@ -53,7 +53,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   #397 Nachprüfen, #398 AudD/ACRCloud, #399 „Meine Titel in Mixen“ = Ideen in „Funktionen“.
   Beim Release: Plugin-ZIPs mixscan 1.3, sonovault 1.3.
 - **Testrückmeldung 29.10. 01:04:** geschlossen #392, #393, #395, #396 (Testlisten abgehakt); offen #394 (Testliste
-  noch nicht abgehakt) – einziges offenes Issue im Meilenstein #30.
+  noch nicht abgehakt) – einziges offenes Issue im Meilenstein #30. **#394 um 02:40 abgehakt → geschlossen;
+  Meilenstein #30 ohne offene Issues** (Release 4.13.0 nur nach Freigabe).
 - **Testrückmeldung 28.10. 20:25:** geschlossen #387, #390, #379, #380, #381, #259 (Testlisten abgehakt); offen #383 (Testliste
   noch nicht abgehakt) und #382 (Anfrage sendet der User).
 - **SonoVault 1.2 (28.10. 19:59, `_3 Beta-Test`, Meilenstein #30):** #383 `TXXX:SONOVAULT_*` (Herkunft „SonoVault“ in
