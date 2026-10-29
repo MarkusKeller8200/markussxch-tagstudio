@@ -57,6 +57,7 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   Meilenstein #30 ohne offene Issues** (Release 4.13.0 nur nach Freigabe).
 - **#376 SignPath (User 03:11):** nach Meilenstein #4 „Idee (Später)“ verschoben (Meilenstein dafür wieder geöffnet),
   Label `idee` statt `_3 Beta-Test`.
+- **#386 geschlossen (User 03:19):** Weg A = #393, C = #394, AudD/ACRCloud = #398; Weg B (ganzer Mix an einen Dienst) nicht.
 - **Testrückmeldung 28.10. 20:25:** geschlossen #387, #390, #379, #380, #381, #259 (Testlisten abgehakt); offen #383 (Testliste
   noch nicht abgehakt) und #382 (Anfrage sendet der User).
 - **SonoVault 1.2 (28.10. 19:59, `_3 Beta-Test`, Meilenstein #30):** #383 `TXXX:SONOVAULT_*` (Herkunft „SonoVault“ in
