@@ -250,7 +250,10 @@ Titel, Label, Datum, Quelle, Status und Notiz (Klick auf die Notiz bearbeitet si
   der gerade in Spotify läuft; **„Zuletzt gehört in Spotify …“** zeigt die letzten (höchstens 50) Titel zum Ankreuzen.
   „Weitere ▾“ › **„Als Spotify-Playlist …“** legt die Wunschliste als **private** Playlist `TagStudio_WISH_<Liste>` in
   deinem Spotify-Konto an bzw. ergänzt fehlende Titel – nur auf Klick, nur Titel mit Spotify-Link, es wird nichts
-  entfernt. Die neuen Berechtigungen fragt eine einmalige neue Anmeldung (Plugins › Spotify › „Anmelden …“) ab.
+  entfernt. **„In Spotify-Bibliothek prüfen“** zeigt mit ♥ in der Spalte „Quelle“, welche Titel schon unter
+  „Lieblingssongs“ stehen (nur lesen); **„Markierte in Spotify-Bibliothek speichern …“** speichert die markierten Titel
+  mit Spotify-Link nach Rückfrage dort. Die neuen Berechtigungen fragt eine einmalige neue Anmeldung (Plugins › Spotify ›
+  „Anmelden …“) ab.
 - **Als Playlist übernehmen …** legt eine normale Playlist an (ohne verworfene); Titel ohne Datei stehen dort als
   Einkaufsliste. **Exportieren** als Excel oder CSV (eine oder alle Wunschlisten).
 

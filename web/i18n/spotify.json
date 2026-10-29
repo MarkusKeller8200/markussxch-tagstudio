@@ -64,5 +64,20 @@
 "Albumkünstler": ["Album artist", "Albumkünstler"],
 "Titelnummer": ["Track number", "Titelnummere"],
 "nicht in der Titelliste": ["not in the track list", "nöd i de Titellischte"],
-"Cover von Spotify": ["Cover from Spotify", "Cover vo Spotify"]
+"Cover von Spotify": ["Cover from Spotify", "Cover vo Spotify"],
+"In deiner Spotify-Bibliothek": ["In your Spotify library", "I dinere Spotify-Bibliothek"],
+"{x} von {x} Titeln mit Spotify-ID stehen in deiner Spotify-Bibliothek (♥).": ["{x} of {x} tracks with a Spotify ID are in your Spotify library (♥).", "{x} vo {x} Titel mit Spotify-ID sind i dinere Spotify-Bibliothek (♥)."],
+"Kein Eintrag mit Spotify-Link bzw. -ID.": ["No entry with a Spotify link or ID.", "Kein Iitrag mit Spotify-Link bzw. -ID."],
+"In Spotify-Bibliothek speichern": ["Save to Spotify library", "I de Spotify-Bibliothek speichere"],
+"Bitte zuerst Einträge markieren.": ["Please select entries first.", "Bitte zerscht Iiträg markiere."],
+"{x} markierte Einträge in deinem Spotify-Konto unter {q} speichern (nur Einträge mit Spotify-ID). Es wird nichts entfernt.": ["Save {x} selected entries in your Spotify account under {q} (only entries with a Spotify ID). Nothing is removed.", "{x} markierti Iiträg i dim Spotify-Konto under {q} speichere (nur Iiträg mit Spotify-ID). Es wird nüt entfernt."],
+"In Spotify speichern": ["Save in Spotify", "I Spotify speichere"],
+"Spotify – Bibliothek": ["Spotify – library", "Spotify – Bibliothek"],
+"In Spotify-Bibliothek prüfen": ["Check Spotify library", "I de Spotify-Bibliothek prüefe"],
+"Markierte in Spotify-Bibliothek speichern …": ["Save selected to Spotify library …", "Markierti i de Spotify-Bibliothek speichere …"],
+"Spotify: in der Bibliothek speichern": ["Spotify: save to library", "Spotify: i de Bibliothek speichere"],
+"Spotify: Berechtigung zum Speichern in der Bibliothek fehlt – bitte unter Plugins › Spotify einmal {q}.": ["Spotify: permission to save to the library is missing – please use {q} once under Plugins › Spotify.", "Spotify: Berächtigung zum Speichere i de Bibliothek fählt – bitte under Plugins › Spotify eimal {q}."],
+"Kein markierter Eintrag mit Spotify-Link bzw. -ID.": ["No selected entry with a Spotify link or ID.", "Kein markierte Iitrag mit Spotify-Link bzw. -ID."],
+"{x} Titel in der Spotify-Bibliothek gespeichert.": ["{x} tracks saved to the Spotify library.", "{x} Titel i de Spotify-Bibliothek gspeicheret."],
+"{x} Titel in deiner Spotify-Bibliothek gespeichert.": ["{x} tracks saved to your Spotify library.", "{x} Titel i dinere Spotify-Bibliothek gspeicheret."]
 }

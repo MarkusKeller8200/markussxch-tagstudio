@@ -1595,6 +1595,7 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .idea-st{font-size:11px;padding:1px 7px;border-radius:9px;background:var(--line)}
 .idea-st.st-buy{background:var(--acc-soft);color:var(--acc)}
 .idea-st.st-bought,.idea-st.st-lib{background:var(--ok-soft,rgba(46,160,67,.18));color:var(--ok,#2ea043)}
+.sp-lib{color:#1db954}
 .idea-t tr.ist-dropped td{opacity:.5}
 .idea-t tr.ist-lib .nm b{color:var(--ok,#2ea043)}
 .disc-t .icon-btn.on{color:var(--acc)}

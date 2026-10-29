@@ -373,6 +373,41 @@ class IdeasMixin:
             return {"ok": True, **r, "without": pv["without"]}
         return self._run("ideas", f"Spotify: {pv['name']}", job)
 
+    def ideas_sp_library(self, pid) -> dict:
+        """SP6: Welche Einträge stehen schon in deiner Spotify-Bibliothek (Lieblingssongs)? → {"state": {k: bool}}"""
+        sp = self._ideas_sp()
+        if not sp["available"]:
+            raise ValueError(f"Spotify: {sp['why'] or 'nicht bereit'}.")
+        with self.lock:
+            items = list(self._ideas_get(self._pls(), pid).get("items") or [])
+        by = {}
+        for k, x in enumerate(items):
+            u = ideas.spotify_uri(x)
+            if u:
+                by.setdefault(u, []).append(k)
+        res = self.plugins.call_playlist(self.SP, "library_contains", list(by), session=self) if by else {}
+        return {"state": {k: bool(res.get(u)) for u, ks in by.items() for k in ks},
+                "without": len(items) - sum(len(v) for v in by.values())}
+
+    def start_ideas_sp_save(self, pid, ks):
+        """SP6: gewählte Einträge in deiner Spotify-Bibliothek speichern – nur auf Klick (Bestätigung in der Oberfläche)."""
+        sp = self._ideas_sp()
+        if not sp["available"]:
+            return {"ok": False, "error": f"Spotify: {sp['why'] or 'nicht bereit'}."}
+        if "user-library-modify" in sp["missing"]:
+            return {"ok": False, "error": "Spotify: Berechtigung zum Speichern in der Bibliothek fehlt – bitte unter Plugins › "
+                                          "Spotify einmal „Anmelden …“."}
+        with self.lock:
+            items = list(self._ideas_get(self._pls(), pid).get("items") or [])
+        uris = [u for u in dict.fromkeys(ideas.spotify_uri(items[k]) for k in self._ideas_ks(ks, len(items))) if u]
+        if not uris:
+            return {"ok": False, "error": "Kein markierter Eintrag mit Spotify-Link bzw. -ID."}
+
+        def job(cancel, progress):
+            r = self.plugins.call_playlist(self.SP, "library_save", uris, session=self, cancel=cancel, progress=progress) or {}
+            return {"ok": True, **r}
+        return self._run("ideas", "Spotify: in der Bibliothek speichern", job)
+
     def ideas_bp_preview(self, pid) -> dict:
         """„Als Beatport-Playlist“: Name, Zahl der Titel mit Beatport-ID, ohne ID, Einstellung „Playlists schreiben“."""
         with self.lock:

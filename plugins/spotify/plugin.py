@@ -664,6 +664,37 @@ def discover_artist(ctx, name: str, days: int = 60, max_releases: int = 5) -> li
     return out
 
 
+# =========================================================================== #384 SP6: „In deiner Spotify-Bibliothek“
+def library_contains(ctx, uris: list) -> dict:
+    """Welche URIs stehen schon in deiner Bibliothek? (``GET /me/library/contains``, je 40) → {uri: bool}"""
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"Spotify: {why}.")
+    cl = client(ctx)
+    uris = [u for u in dict.fromkeys(uris or []) if _uri_ok(u)]
+    out = {}
+    for i in range(0, len(uris), 40):
+        part = uris[i:i + 40]
+        d = get(ctx, "/me/library/contains", cl, uris=",".join(part))
+        vals = d if isinstance(d, list) else []
+        out.update({u: bool(vals[j]) if j < len(vals) else False for j, u in enumerate(part)})
+    return out
+
+
+def library_save(ctx, uris: list) -> dict:
+    """Auf Klick: Titel in deiner Bibliothek (Lieblingssongs) speichern (``PUT /me/library``, je 40). Entfernt nie."""
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"Spotify: {why}.")
+    need_scopes(ctx, "user-library-modify")
+    uris = [u for u in dict.fromkeys(uris or []) if _uri_ok(u)]
+    for i in range(0, len(uris), 40):
+        ctx.check_cancel()
+        send(ctx, "PUT", "/me/library", None, uris=",".join(uris[i:i + 40]))
+    ctx.log(f"{len(uris)} Titel in der Spotify-Bibliothek gespeichert.")
+    return {"saved": len(uris), "message": f"{len(uris)} Titel in deiner Spotify-Bibliothek gespeichert."}
+
+
 # =========================================================================== Entdecken
 def followed_artists(ctx, top=False) -> list:
     cl = client(ctx)

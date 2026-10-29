@@ -1943,6 +1943,20 @@ class UiTest(unittest.TestCase):
         pg.click("#menu button >> text=Als Spotify-Playlist")
         pg.wait_for_selector("#dialog:not([hidden]) >> text=Spotify ist nicht bereit")
         pg.click("#dlgBtns button")
+        # SP6: Bibliothek prüfen / Markierte speichern – ohne Markierung erst ein Hinweis, nichts wird geschrieben
+        pg.click("#ideaMore")
+        pg.wait_for_selector("#menu:not([hidden]) button >> text=In Spotify-Bibliothek prüfen")
+        pg.click("#menu button >> text=In Spotify-Bibliothek prüfen")
+        pg.wait_for_selector("#dialog:not([hidden]) >> text=Spotify ist nicht bereit")
+        pg.click("#dlgBtns button")
+        pg.click("#ideaMore")
+        pg.click("#menu button >> text=Markierte in Spotify-Bibliothek speichern")
+        pg.wait_for_selector("#dialog:not([hidden]) >> text=Bitte zuerst Einträge markieren")
+        pg.click("#dlgBtns button")
+        pg.evaluate("call('ideas_add_manual', IDEA.d.sel, {artist: 'Lio Berg', title: 'Morgenrot', url: 'https://open.spotify.com/track/sp2xxxxxxxxxxxxxxxxxxx'}).then(() => ideasShow())")
+        pg.wait_for_function("IDEA.d.items.length === 1")
+        pg.evaluate("IDEA.splib = {0: true}; ideasRender()")
+        self.assertEqual(pg.locator('#ideaList tr[data-k="0"] .sp-lib').count(), 1)
         self.assertEqual(self.errors, [])
 
     def test_ideas_page(self):

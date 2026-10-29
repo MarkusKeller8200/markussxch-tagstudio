@@ -240,7 +240,9 @@ status and note (click the note to edit it).
 - **Spotify (#384, Spotify plugin 1.3):** “+ Add ▾” › **“Save what's playing in Spotify”** takes the track currently
   playing in Spotify; **“Recently played in Spotify …”** lists the last (at most 50) tracks to tick. “More ▾” › **“As
   Spotify playlist …”** creates or extends the wish list as a **private** playlist `TagStudio_WISH_<list>` in your
-  Spotify account – only on click, only tracks with a Spotify link, nothing is removed. A one-time new sign-in
+  Spotify account – only on click, only tracks with a Spotify link, nothing is removed. **“Check Spotify library”**
+  marks with ♥ in the “Source” column which tracks are already in “Liked Songs” (read only); **“Save selected to
+  Spotify library …”** saves the selected tracks with a Spotify link there after a confirmation. A one-time new sign-in
   (Plugins › Spotify › “Sign in …”) asks for the new permissions.
 - **Turn into playlist …** creates a normal playlist (without dropped entries); tracks without a file are listed there
   as a shopping list. **Export** as Excel or CSV (one or all wish lists).

@@ -462,6 +462,9 @@ Read your playlists and track data at Spotify or SoundCloud. SoundCloud is **rea
   by title and mix; Spotify no longer provides the label.
 - **Saved albums (SP3):** Playlists › Import ▾ › “From Spotify …” also lists your saved albums (`GET /me/albums`, at
   most 300) – one playlist per album with all tracks (entries without a file, then “Match with library”).
+- **In your Spotify library (SP6):** Ideas › “More ▾” › “Check Spotify library” marks entries already in “Liked
+  Songs” with ♥ (`GET /me/library/contains`, 40 per request, read only); “Save selected to Spotify library …” saves
+  after a confirmation (`PUT /me/library`, 40 per request) – never removes anything.
 - **Discover (SP1):** source “Spotify” under Discover › “Follow …” – new singles and albums per followed artist
   (`/artists/{id}/albums`, replacing the removed `/browse/new-releases`); the artist ID is searched once and remembered
   (not found: again after 7 days). No preview clip (no longer provided by Spotify).

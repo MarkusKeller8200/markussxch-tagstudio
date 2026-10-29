@@ -3,7 +3,7 @@
    sind Playlists (Ordner „Ideen“). Logik in ideas.py / session_ideas.py. Beatport wird nur auf Klick verändert. */
 "use strict";
 
-const IDEA = { d: null, filter: "open", playing: "", checked: new Set() };
+const IDEA = { d: null, filter: "open", playing: "", checked: new Set(), splib: {} };
 const IDEA_FILTERS = [["open", "Offen"], ["buy", "Kaufen"], ["bought", "Gekauft"], ["lib", "In Bibliothek"], ["dropped", "Verworfen"], ["all", "Alle"]];
 const IDEA_STATUS = { idea: "Idee", buy: "Kaufen", bought: "Gekauft", lib: "In Bibliothek", dropped: "Verworfen" };
 const IDEA_SRC = { deezer: "Deezer", beatport: "Beatport", spotify: "Spotify", manual: "von Hand", text: "Text", discover: "Entdecken" };
@@ -13,7 +13,7 @@ async function ideasShow(sel) {
 }
 
 function ideasApply(d) {
-  if (IDEA.d && IDEA.d.sel !== d.sel) IDEA.checked.clear();
+  if (IDEA.d && IDEA.d.sel !== d.sel) { IDEA.checked.clear(); IDEA.splib = {}; }
   IDEA.d = d;
   ideasBadge(d.buy);
   $("#ideaLists").innerHTML = `<div class="idea-lh"><b>Wunschlisten</b><button class="icon-btn" id="ideaNewList" title="Neue Wunschliste …" aria-label="Neue Wunschliste">＋</button></div>`
@@ -61,7 +61,7 @@ function ideasRender() {
       <td class="ell nm" title="${esc(e.title + (e.mix ? ` (${e.mix})` : ""))}"><b>${esc(e.title)}</b>${e.mix ? ` <span class="muted">(${esc(e.mix)})</span>` : ""}</td>
       <td class="ell sm" title="${esc([e.label, e.release].filter(Boolean).join(" – "))}">${esc(e.label || "")}</td>
       <td class="sm nw">${esc((e.date || "").slice(0, 10))}</td>
-      <td class="sm nw">${esc(IDEA_SRC[e.src] || e.src || "")}</td>
+      <td class="sm nw">${esc(IDEA_SRC[e.src] || e.src || "")}${IDEA.splib[e.k] ? ' <span class="sp-lib" title="In deiner Spotify-Bibliothek">♥</span>' : ""}</td>
       <td class="sm nw"><span class="idea-st st-${e.status}" title="${e.status === "bought" ? (e.bought === "ja" ? "Steht unter „Einkäufe“" : "Laut „Einkäufe“ gekauft am " + esc(e.bought)) : e.status === "lib" ? esc(e.path) : ""}">${IDEA_STATUS[e.status] || e.status}</span></td>
       <td class="ell sm idea-note" data-a="note" title="${esc(e.note || "Notiz bearbeiten")}">${e.note ? esc(e.note) : '<span class="muted">＋</span>'}</td>
       <td class="d-acts"><div class="d-row"><button class="ghost sm" data-a="open" ${e.url ? "" : "disabled"} title="${esc(!e.url ? "Kein Link" : IDEA_SRC[e.src] ? `Auf ${IDEA_SRC[e.src]} öffnen (Kauf nur dort)` : "Bei der Quelle öffnen (Kauf nur dort)")}">Öffnen</button>
@@ -214,6 +214,33 @@ async function ideasSpotifyPush() {
   ideasShow();
 }
 
+/** #384 SP6: „In deiner Spotify-Bibliothek“ – prüfen (nur lesen) */
+async function ideasSpotifyLibCheck() {
+  if (!(await ideasSpotifyReady())) return;
+  let r;
+  try { r = await call("ideas_sp_library", IDEA.d.sel); } catch (e) { return toast(String(e.message || e)); }
+  IDEA.splib = {};
+  Object.entries(r.state || {}).forEach(([k, v]) => { if (v) IDEA.splib[k] = true; });
+  const known = Object.keys(r.state || {}).length, yes = Object.keys(IDEA.splib).length;
+  ideasRender();
+  status(known ? `${fmtN(yes)} von ${fmtN(known)} Titeln mit Spotify-ID stehen in deiner Spotify-Bibliothek (♥).` : "Kein Eintrag mit Spotify-Link bzw. -ID.", "info");
+}
+
+/** #384 SP6: markierte Titel in deiner Spotify-Bibliothek speichern – nur auf Klick, entfernt nie etwas */
+async function ideasSpotifyLibSave() {
+  const ks = [...IDEA.checked];
+  if (!ks.length) { await info("In Spotify-Bibliothek speichern", "Bitte zuerst Einträge markieren."); return; }
+  if (!(await ideasSpotifyReady("user-library-modify"))) return;
+  const ok = await dialog({ title: "In Spotify-Bibliothek speichern",
+    text: `${fmtN(ks.length)} markierte Einträge in deinem Spotify-Konto unter „Lieblingssongs“ speichern (nur Einträge mit Spotify-ID). Es wird nichts entfernt.`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "In Spotify speichern", value: true, primary: true }] });
+  if (!ok) return;
+  const r = await runTask(call("start_ideas_sp_save", IDEA.d.sel, ks), "Spotify – Bibliothek");
+  if (!r) return;
+  status(r.message || "Fertig.", "info");
+  await ideasSpotifyLibCheck();
+}
+
 async function ideasManual() {
   const res = await modal({
     title: "Idee von Hand",
@@ -253,6 +280,8 @@ function ideasMoreMenu() {
   showMenu(b.left, b.bottom + 6, [
     ...(l ? [{ label: "Als Playlist übernehmen …", run: () => ideasToPlaylist(l.id) },
       { label: "Als Spotify-Playlist …", run: ideasSpotifyPush },                // #384 SP5
+      { label: "In Spotify-Bibliothek prüfen", run: ideasSpotifyLibCheck },      // #384 SP6
+      { label: "Markierte in Spotify-Bibliothek speichern …", run: ideasSpotifyLibSave },
       { label: "Diese Wunschliste als Excel", run: () => ideasExport("xlsx", l.id) },
       { label: "Diese Wunschliste als CSV", run: () => ideasExport("csv", l.id) }] : []),
     { label: "Alle Wunschlisten als Excel", run: () => ideasExport("xlsx", "") }, "-",

@@ -418,6 +418,29 @@ class TestPlugins(Base):
         with self.assertRaises(Exception):
             self.s.ideas_spotify_now()
 
+    def test_spotify_library(self):
+        """#384 SP6: „In deiner Spotify-Bibliothek“ prüfen (nur lesen) und markierte auf Klick speichern."""
+        self.login("spotify", client_id="CID", redirect="http://127.0.0.1:8765/callback")
+        self.fake.playing = SP2_TRACK
+        now = self.s.ideas_spotify_now()["track"]
+        rec = self.s.ideas_spotify_recent(50)["tracks"]
+        r = self.s.ideas_add_spotify("", [now, rec[0]], "")
+        pid = r["pid"]
+        lib = self.s.ideas_sp_library(pid)
+        self.assertEqual(list(lib["state"].values()), [False])                 # ein Eintrag mit gültiger ID
+        self.assertEqual(lib["without"], 1)
+        k = next(iter(lib["state"]))
+        self.assertEqual(self.write.calls, [])                                   # Prüfen schreibt nichts
+        bad = self.s.start_ideas_sp_save(pid, [1 - k])                          # nur Eintrag ohne ID markiert
+        self.assertFalse(bad["ok"])
+        st = self.s.start_ideas_sp_save(pid, [0, 1])
+        self.assertTrue(st["ok"], st)
+        res = self.wait()["result"]
+        self.assertEqual(res["saved"], 1)
+        self.assertEqual(self.fake.saved, {"spotify:track:sp2xxxxxxxxxxxxxxxxxxx"})
+        self.assertEqual([c[0] for c in self.write.calls], ["PUT"])
+        self.assertEqual(self.s.ideas_sp_library(pid)["state"], {k: True})
+
     def test_spotify_discover(self):
         """#384 SP1: Entdecken mit Quelle Spotify – neue Singles/Alben gefolgter Künstler, alte bleiben weg."""
         self.login("spotify", client_id="CID", redirect="http://127.0.0.1:8765/callback")

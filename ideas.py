@@ -65,19 +65,24 @@ def from_spotify(r: dict) -> dict | None:
                  cover=r.get("cover", ""), release=r.get("release", ""), date=str(r.get("date") or "")[:10])
 
 
+def spotify_uri(x: dict) -> str:
+    """Spotify-URI eines Eintrags (gespeicherte ID oder open.spotify.com-Link) – sonst leer."""
+    idea = x.get("idea") or {}
+    sid = str(idea.get("sid") or "") if idea.get("store") == "spotify" else ""
+    if not sid:
+        m = re.search(r"open\.spotify\.com/track/([A-Za-z0-9]{22})", str((x.get("ref") or {}).get("url") or ""))
+        sid = m.group(1) if m else ""
+    return f"spotify:track:{sid}" if sid and re.fullmatch(r"[A-Za-z0-9]{22}", sid) else ""
+
+
 def spotify_uris(items: list) -> tuple[list[str], int]:
     """#384 SP5: Spotify-URIs der offenen Einträge (Idee/Kaufen) mit Spotify-ID → (URIs, Anzahl ohne ID)."""
     uris, without = [], 0
     for x in items or []:
-        idea = x.get("idea") or {}
-        if idea.get("status") not in ("idea", "buy", None):
+        if (x.get("idea") or {}).get("status") not in ("idea", "buy", None):
             continue
-        sid = str(idea.get("sid") or "") if idea.get("store") == "spotify" else ""
-        if not sid:
-            m = re.search(r"open\.spotify\.com/track/([A-Za-z0-9]{22})", str((x.get("ref") or {}).get("url") or ""))
-            sid = m.group(1) if m else ""
-        if sid and re.fullmatch(r"[A-Za-z0-9]{22}", sid):
-            u = f"spotify:track:{sid}"
+        u = spotify_uri(x)
+        if u:
             if u not in uris:
                 uris.append(u)
         else:
