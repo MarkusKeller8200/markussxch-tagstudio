@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.13.0] – 2026-10-29
+
 ### Neu
 
 - **Mixe – Tracklist, Verknüpfen, Ordner (#394–#396, Mix analysieren 1.3):** Lücken werden ohne Kosten aus einer
