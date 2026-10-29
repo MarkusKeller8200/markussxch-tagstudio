@@ -683,7 +683,15 @@ Ordner liegen, den der Desktop-Client synchronisiert – TagStudio erkennt ihn (
 zusätzlich relativ zum Sync-Ordner (gilt auch auf einem zweiten Rechner), überspringt beim Einlesen **Nur-online-
 Dateien** („Dateien bei Bedarf“, nichts lädt unbemerkt herunter – auf Wunsch einschaltbar) und meldet
 **Konfliktkopien** des Clients. Snapshots, Arbeit und Sicherung im Sync-Ordner bekommen einen Hinweis (nicht
-empfohlen). Sync-Ordner und „Nur-online-Dateien“ stehen in der eigenen Karte **Einstellungen › Cloud** (#324). **Abgleich über die Dienste**
+empfohlen). Sync-Ordner und „Nur-online-Dateien“ stehen in der eigenen Karte **Einstellungen › Cloud** (#324). **Spiegel der Bibliothek**
+(#403): In derselben Karte wird die Musik als **Einweg-Kopie** in einen Cloud-Ordner gelegt (z. B. OneDrive privat –
+der Ordner wird vorgeschlagen, wenn unter Plugins › OneDrive › „Kontoart …“ „Privat“ gewählt ist). TagStudio arbeitet
+weiter nur mit der Bibliothek; im Spiegel wird nie etwas geändert. Kopiert wird, was fehlt oder sich geändert hat
+(erst als `.part`, dann umbenannt). **Platz schätzen …** zeigt Musik gesamt, schon im Spiegel, noch zu kopieren und
+den freien Platz auf dem Laufwerk – Abo und Speichergrösse bestimmst du selbst. Wahlweise: automatisch nach dem
+Speichern und nach „Vorbereiten › Übernehmen“ nachführen, Playlists als M3U8 mit relativen Pfaden mitschreiben, Kopien
+„nur online“ stellen (Windows). Dateien, die nicht mehr in der Bibliothek sind, werden nur gemeldet und erst nach
+Rückfrage gelöscht. Im Spiegel liegt zusätzlich `index.json` (Titel, Künstler, BPM, Tonart, Dauer). **Abgleich über die Dienste**
 (#317, ohne Desktop-Client): In derselben Karte lassen sich in einer Tabelle (Bereich · Dienst · Richtung · Ordner im Dienst) die
 Rollen **Playlists** und **Export** sowie Programmdaten-Teile (Playlists-Speicher, Einkäufe, Entdecken, Einstellungen
 ohne Zugangsdaten) mit einem Ordner bei OneDrive (nur Geschäfts-/Schulkonten – für ein privates OneDrive unter

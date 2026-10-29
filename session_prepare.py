@@ -307,6 +307,7 @@ class PrepareMixin:
                         errors.append(str(ex))
             snap = ""
             self._emit("files_added", added)                       # #239: z. B. in Lexicon aufnehmen
+            self._mirror_touch(added)                              # #403: Spiegel (falls automatisch)
             plname = linked = ""
             if s["type"] == "import" and added:                    # #270/#271: Playlist, Einträge ohne Datei verknüpfen
                 try:

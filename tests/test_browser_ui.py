@@ -2514,6 +2514,44 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.cfg_until(lambda c: c.get("cloud_load_online")).get("cloud_load_online"))
         self.assertEqual(self.errors, [])
 
+    def test_cloud_mirror(self):
+        """#403: Einstellungen › Cloud › „Spiegel der Bibliothek“ – Ziel wählen, Platz schätzen, nachführen, überzählige
+        Dateien nur nach Rückfrage."""
+        pg = self.pg
+        target = os.path.join(self.home, "OneDrive", "TagStudio-Spiegel")
+        pg.evaluate("(p) => call('folders_lib_add', 'Musik', 'custom', p, true)", self.lib)
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stMirror [data-mrrun]")
+        self.assertTrue(pg.locator("#stMirror [data-mrrun]").is_disabled())          # ohne Ziel gesperrt
+        self.assertIn("Einweg-Kopie", pg.inner_text("#stMirror"))
+        pg.fill("#mrFolder", target)
+        pg.dispatch_event("#mrFolder", "change")
+        self.assertEqual(self.cfg_until(lambda c: (c.get("mirror") or {}).get("folder"))["mirror"]["folder"], target)
+        pg.wait_for_selector("#stMirror [data-mrrun]:not([disabled])")
+        pg.click("#stMirror [data-mrest]")
+        pg.wait_for_selector("#modal >> text=Benötigt in der Cloud")
+        self.assertIn("musik gesamt", pg.inner_text("#modal").lower())
+        pg.click("#mBtns button >> text=OK")
+        pg.click("#stMirror [data-mrrun]")
+        pg.wait_for_function("document.querySelector('#mrLast') && document.querySelector('#mrLast').textContent.includes('kopiert')", timeout=20000)
+        n = len([f for _d, _s, fs in os.walk(os.path.join(target, "Musik")) for f in fs if f.endswith(".mp3")])
+        self.assertGreater(n, 0)
+        self.assertTrue(os.path.isfile(os.path.join(target, "index.json")))
+        # Titel in der Bibliothek löschen → im Spiegel überzählig, löschen nur nach Bestätigung
+        victim = next(os.path.join(d, f) for d, _s, fs in os.walk(self.lib) for f in fs if f.endswith(".mp3"))
+        os.remove(victim)
+        pg.click("#stMirror [data-mrrun]")
+        pg.wait_for_selector("#modal >> text=Überzählige Dateien im Spiegel", timeout=20000)
+        pg.click("#mBtns button >> text=Markierte löschen")
+        pg.wait_for_selector("#dialog:not([hidden])")
+        pg.click("#dlgBtns button >> text=Löschen")
+        pg.wait_for_function("!document.querySelector('#stMirror [data-mrextra]')")
+        n2 = len([f for _d, _s, fs in os.walk(os.path.join(target, "Musik")) for f in fs if f.endswith(".mp3")])
+        self.assertEqual(n2, n - 1)
+        if os.environ.get("TAGSTUDIO_SHOTS"):                                      # Bild zum Ansehen (optional)
+            pg.locator("#stCloudCard").screenshot(path=os.path.join(os.environ["TAGSTUDIO_SHOTS"], "cloud_mirror.png"))
+        self.assertEqual(self.errors, [])
+
     def test_folder_change_move(self):
         """#313: Ordner ändern – Vorschau, Standard je Rolle (Bibliothek: nicht übernehmen + Warnung), verschieben."""
         pg = self.pg

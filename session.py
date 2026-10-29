@@ -47,6 +47,7 @@ from session_folders import FolderRolesMixin
 from session_playlists import PlaylistMixin
 from session_purchases import PurchasesMixin
 from session_cloud import CloudSyncMixin
+from session_mirror import MirrorMixin
 
 # Layout der Web-Oberfläche (Splitter, eingeklappte Seitenleiste): Schlüssel → erlaubter Typ
 UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, float),
@@ -67,7 +68,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
 
 
 class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, DiscoverMixin, IdeasMixin, SetupMixin, FoldersMixin, FolderRolesMixin, ArchiveMixin,
-              PlaylistMixin, PurchasesMixin, CloudSyncMixin, MixesMixin):
+              PlaylistMixin, PurchasesMixin, CloudSyncMixin, MixesMixin, MirrorMixin):
     def __init__(self):
         self.lock = threading.RLock()
         self._bus, self._buslock = {}, threading.Lock()       # Nachrichten zwischen Fenstern (#69)
@@ -1269,9 +1270,11 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
 
         def job(cancel, progress):
             with self.lock:
-                return core.save_files(files, backup_on, folder, cancel, progress, force=bool(force),
-                                       store=self._backup_store(), stamp=self.cfg.get("stamp_edited", True),
-                                       wave=bool(self.cfg.get("wave_in_file", False)))
+                res = core.save_files(files, backup_on, folder, cancel, progress, force=bool(force),
+                                      store=self._backup_store(), stamp=self.cfg.get("stamp_edited", True),
+                                      wave=bool(self.cfg.get("wave_in_file", False)))
+            self._mirror_touch([f.path for f in files])            # #403: Spiegel automatisch nachführen (falls an)
+            return res
         return self._run("save", f"{len(files)} Datei(en) speichern", job)
 
     # ================================================================== Feld hinzufügen

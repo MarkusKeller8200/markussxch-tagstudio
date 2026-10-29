@@ -56,7 +56,10 @@ function stCloudCardRender(f) {
   box.innerHTML = `<div class="st-row"><span>Sync-Ordner</span><div><div class="muted sm">${f.cloud.roots.length ? "Auf diesem Rechner: " + f.cloud.roots.map((c) => `<span title="${esc(c.path)}">☁ ${esc(c.label)}</span>`).join(" · ") : "Kein Sync-Ordner von OneDrive, Google Drive oder Dropbox gefunden."}</div>
       <label class="check sm"><input type="checkbox" data-fcloudonline ${f.cloud.load_online ? "checked" : ""}> Nur-online-Dateien beim Einlesen herunterladen</label>
       <div class="muted sm">Aus (Standard): Titel, die nur in der Cloud liegen, werden übersprungen und gemeldet – nichts lädt unbemerkt herunter.</div></div></div>
+    <div id="stMirror"></div><div id="stAppBackup"></div>
     <div id="stCloudSync"></div>`;
+  if (typeof stMirrorRender === "function") stMirrorRender();                // #403: Spiegel der Bibliothek
+  if (typeof stAppBackupRender === "function") stAppBackupRender();          // #402: Sicherung der Programmdaten
   if (typeof stCloudSyncRender === "function") stCloudSyncRender();          // #317: Abgleich über die Dienste
 }
 

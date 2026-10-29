@@ -12,6 +12,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   wie bisher über Microsoft Graph mit eigener Entra-App, jetzt über den Endpunkt `organizations` bzw. eine
   eingetragene Verzeichnis-ID; **Privates OneDrive** ohne App und ohne Anmeldung – nur der OneDrive-Ordner auf diesem
   Rechner (für Spiegel und Sicherung). Bestehende Einrichtungen mit App bleiben „Geschäftlich“.
+- **Spiegel der Bibliothek (#403):** Einstellungen › Cloud – Musik als Einweg-Kopie in einen Cloud-Ordner (z. B.
+  OneDrive privat), mit Platzschätzung, `index.json`, Playlists als M3U8 mit relativen Pfaden, wahlweise automatisch
+  nach dem Speichern bzw. Vorbereiten und „nur online“ (Windows). Im Spiegel wird nie bearbeitet; überzählige Dateien
+  werden nur nach Rückfrage gelöscht.
 
 ### Sicherheit
 

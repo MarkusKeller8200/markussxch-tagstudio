@@ -648,7 +648,15 @@ may stay empty – they then follow the roles (inbox, work, main library). **Clo
 libraries may lie in a folder synchronised by the desktop client – TagStudio detects it (“☁ OneDrive”), additionally
 stores the path relative to the sync folder (also valid on a second computer), skips **online-only files** (“files on
 demand”) when reading – nothing downloads unnoticed, can be switched on – and reports **conflict copies** of the client.
-Snapshots, work and backup inside a sync folder get a hint (not recommended). Sync folders and “online-only files” live in their own card **Settings › Cloud** (#324). **Sync via the services**
+Snapshots, work and backup inside a sync folder get a hint (not recommended). Sync folders and “online-only files” live in their own card **Settings › Cloud** (#324). **Library mirror**
+(#403): in the same card the music is placed as a **one-way copy** into a cloud folder (e.g. private OneDrive – the
+folder is suggested when “Private” is chosen under Plugins › OneDrive › “Account type …”). TagStudio keeps working only
+with the library; nothing is ever changed in the mirror. Whatever is missing or changed is copied (first as `.part`,
+then renamed). **Estimate space …** shows music total, already in the mirror, still to copy and the free space on the
+drive – you choose plan and storage size. Optional: update automatically after saving and after “Prepare › Take over”,
+write playlists as M3U8 with relative paths, set copies “online-only” (Windows). Files no longer in the library are
+only reported and deleted after confirmation. The mirror also contains `index.json` (title, artist, BPM, key,
+duration). **Sync via the services**
 (#317, without desktop client): in the same card, in a table (area · service · direction · folder in the service), the roles **Playlists** and **Export** as well as parts of the program
 data (playlist store, purchases, Discover, settings without credentials) can be synced with a folder on OneDrive (work/school accounts only – for a private OneDrive choose “Private” under
 Plugins › OneDrive › “Account type …” and enter the OneDrive folder, #405), Google

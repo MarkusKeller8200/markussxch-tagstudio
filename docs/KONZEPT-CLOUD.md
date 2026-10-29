@@ -90,6 +90,19 @@ das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzusti
 - Sicherheitsfehler #401 (Token bei Umleitungen) wird behoben. Einfache Anmeldung mit TagStudio-App (#400) und
   [KONZEPT-ONEDRIVE.md](KONZEPT-ONEDRIVE.md) nicht weiter verfolgt; Web-Player #404 bleibt Idee.
 
+### Umsetzung Spiegel (#403, 29.10.2026)
+
+- `mirror.py` (Kern, nur Standardbibliothek): `plan` (je Bibliothek `<Ziel>/<Name>/…`, Audio-Endungen, Vergleich
+  Grösse + Änderungszeit ±2 s, überzählige Dateien), `run` (`.part` → `os.replace`, Zeit übernommen), `estimate`,
+  `free_space`, `delete_extra` (nur Audio unterhalb des Ziels), `set_online_only` (Windows `attrib +u -p`; macOS nur
+  Hinweis – **ZU PRÜFEN** beim User, ob OneDrive neue Dateien danach freigibt), `write_index` (`index.json`, Format 1,
+  übernimmt unveränderte Einträge), `write_playlists` (`<Ziel>/Playlists/<Ordner>/<Name>.m3u8`, relative Pfade mit „/“).
+- `session_mirror.py` (MirrorMixin): cfg `mirror` {folder, libraries [] = alle aktiven, auto, playlists, online_only},
+  `mirror_last`; `mirror_overview/set/estimate`, `start_mirror` (Auftrag), `mirror_extra`, `mirror_delete_extra` (nur
+  Pfade aus dem letzten Lauf), `_mirror_touch` (nach `start_save` und Vorbereiten-Übernahme, Hintergrund-Faden, nur mit
+  „automatisch“). Vorschlag für das Ziel: `cloud_folder(ctx)` der Plugins (OneDrive privat) + `TagStudio-Spiegel`.
+- Oberfläche `web/mirror.js` (Abschnitt `#stMirror` in Einstellungen › Cloud).
+
 ## 5. Offen (bei der Umsetzung prüfen)
 
 - **OneDrive nur privat, einfache Anmeldung, App-Ordner:** Entwurf in [KONZEPT-ONEDRIVE.md](KONZEPT-ONEDRIVE.md)
