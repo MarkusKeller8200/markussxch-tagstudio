@@ -20,6 +20,11 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   Abo/Speicher Sache des Users, TagStudio zeigt eine **Platzschätzung**. **#401, #402, #403, #405 in Meilenstein #31
   (4.14.0)** aufgenommen – **noch nichts umsetzen** (Auftrag User). #400 (nicht weiter verfolgt) und #404 (Idee) bleiben
   in „Funktionen“. KONZEPT-CLOUD §4c.
+- **SignPath abgelehnt (Mail weitergeleitet 17:59):** zu wenig externe Signale; neue Bewerbung später (#376 bleibt
+  offen, Kommentar). Geplant in 4.14.0, **noch nicht umsetzen**: **#406** SHA-256-Prüfsummen (SHA256SUMS, Webseite,
+  Handbuch), **#407** VirusTotal-Bericht (beschleunigt SmartScreen laut Microsoft nicht; Secret legt der User an),
+  **#408** Microsoft Store als MSIX (kostenloses Einzelkonto; EXE im Store bräuchte eigene Signatur; Plugins/Updater
+  zu prüfen). #406/#407 ändern `installer.yml` → nur mit dem Release committen.
 - **#401 Sicherheit** (Fehler): `urllib` sendet `Authorization` bei 302 an fremde Hosts mit (OneDrive-Download).
 - Fragen zu 4.14.0 (Reihenfolge, Scopes auf einmal, Issue „Gemerkt“) weiterhin unbeantwortet.
 
