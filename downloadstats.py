@@ -96,6 +96,12 @@ def summarize(releases: list) -> dict:
         tot["mac"] += m
         tot["plugins"] += p
     tot["installers"] = tot["win"] + tot["mac"]
+    # #418: laufende Summe über die Versionen (älteste zuerst; die Liste bleibt neueste zuerst)
+    ci = cp = 0
+    for k in sorted(range(len(rows)), key=lambda k: (rows[k]["date"], -k)):
+        ci += rows[k]["total"]
+        cp += rows[k]["plugins"]
+        rows[k]["cum_installers"], rows[k]["cum_plugins"] = ci, cp
     return {"rows": rows, "total": tot}
 
 

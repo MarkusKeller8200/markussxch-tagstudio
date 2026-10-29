@@ -720,7 +720,7 @@ credentials hidden; “Show live …” opens a separate window that follows all
 after confirmation, “Copy” takes only the selection; *Development:* “Clear logs on exit” – off by default – empties
 `app.log` and `app.log.1` on exit, restart and update, optionally the plugin logs too; the first line afterwards says it
 was cleared. Switch it off again when reporting a bug; **“Downloads per version …”** shows how often the installation
-files were downloaded per version – Windows, macOS, plugins, with a history per day from the “Download statistics” workflow). All dialogs can be moved by their title and resized at the corner
+files were downloaded per version – Windows, macOS, plugins, each with a running total (“total”, #418), with a history per day from the “Download statistics” workflow). All dialogs can be moved by their title and resized at the corner
 (double-click the title: reset). Every “on start” default can also stay “as last used”. **Export** saves everything as a file
 (without credentials), **Import** takes over chosen areas – paths of another system are not preselected –, **Reset**
 works for single areas or everything. Before import and reset the old file is backed up to `~/TagStudio/Einstellungen`.

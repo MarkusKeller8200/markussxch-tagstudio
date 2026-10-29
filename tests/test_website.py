@@ -54,6 +54,8 @@ class TestBuild(unittest.TestCase):
             st = open(os.path.join(out, "statistik.html"), encoding="utf-8").read()
             self.assertIn("summary.json", st)
             self.assertIn('href="handbuch.html"', st)
+            self.assertIn("Installer total", st)                                    # #418
+            self.assertIn("cum_plugins", st)
 
 
 if __name__ == "__main__":

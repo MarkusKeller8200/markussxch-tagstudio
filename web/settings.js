@@ -385,9 +385,9 @@ async function dlStatsOpen() {
         <div><b>${fmtN(t.mac)}</b><span>macOS</span></div><div><b>${fmtN(t.plugins)}</b><span>Plugin-ZIPs</span></div>
         <div><b>${h.days.length ? fmtN(h.last7) : "–"}</b><span>letzte 7 Tage</span></div><div><b>${h.days.length ? fmtN(h.last30) : "–"}</b><span>letzte 30 Tage</span></div></div>
       ${bars}
-      <div class="fx-table" style="max-height:44vh;overflow:auto;margin-top:10px"><table><thead><tr><th>Version</th><th>Datum</th><th class="r">Windows</th><th class="r">macOS</th><th class="r">Installer</th><th class="r">Plugins</th></tr></thead><tbody>
+      <div class="fx-table" style="max-height:44vh;overflow:auto;margin-top:10px"><table><thead><tr><th>Version</th><th>Datum</th><th class="r">Windows</th><th class="r">macOS</th><th class="r">Installer</th><th class="r" title="Laufende Summe über die Versionen">Installer total</th><th class="r">Plugins</th><th class="r" title="Laufende Summe über die Versionen">Plugins total</th></tr></thead><tbody>
         ${r.rows.map((x) => `<tr><td><a href="#" data-url="${esc(x.url)}" translate="no">${esc(x.tag)}</a>${x.beta ? ' <span class="fx-rcp-tag">Beta</span>' : ""}</td><td>${esc(x.date)}</td>
-          <td class="r">${fmtN(x.win)}</td><td class="r">${fmtN(x.mac)}</td><td class="r"><b>${fmtN(x.total)}</b></td><td class="r muted">${fmtN(x.plugins)}</td></tr>`).join("")}</tbody></table></div>
+          <td class="r">${fmtN(x.win)}</td><td class="r">${fmtN(x.mac)}</td><td class="r"><b>${fmtN(x.total)}</b></td><td class="r">${fmtN(x.cum_installers || 0)}</td><td class="r muted">${fmtN(x.plugins)}</td><td class="r muted">${fmtN(x.cum_plugins || 0)}</td></tr>`).join("")}</tbody></table></div>
       <p class="muted sm" style="margin:8px 0 0">Zahlen von GitHub (Downloads über die Release-Seite und das Update in TagStudio). GitHub aktualisiert sie mit Verzögerung.</p>`,
     buttons: [{ label: "Auf GitHub ansehen", value: "gh" }, { label: "Schliessen", value: null, primary: true }],
     onMount: (b) => b.addEventListener("click", (e) => { const a = e.target.closest("a[data-url]"); if (a) { e.preventDefault(); call("open_url", a.dataset.url); } }),

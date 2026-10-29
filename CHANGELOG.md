@@ -37,6 +37,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Geändert
 
+- **Download-Statistik (#418):** Tabelle „Je Version“ (Webseite und Expert › „Downloads je Version …“) mit den Spalten
+  „Installer total“ und „Plugins total“ – laufende Summe von der ältesten bis zur jeweiligen Version.
 - **Einstellungen › Cloud (#414):** alle Knöpfe und Felder einer Zeile gleich hoch (Spiegel, Sicherung, Abgleich).
 - **Spiegel im Aufbau „Pfad“ (#413, #415; OneDrive 1.3):** Standard für neue Spiegel: je Bibliothek derselbe Pfad wie
   auf dem Rechner, ohne Laufwerk (`D:\Musik\DJ` → `<OneDrive>\Musik\DJ`), `index.json`/Playlists in

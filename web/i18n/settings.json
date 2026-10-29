@@ -302,5 +302,8 @@
 "Installer gesamt": ["Installers total", "Installer total"],
 "Plugin-ZIPs": ["Plugin ZIPs", "Plugin-ZIPs"],
 "Installer": ["Installers", "Installer"],
-"Zahlen von GitHub (Downloads über die Release-Seite und das Update in TagStudio). GitHub aktualisiert sie mit Verzögerung.": ["Figures from GitHub (downloads via the release page and the update in TagStudio). GitHub updates them with a delay.", "Zahle vo GitHub (Downloads über d Release-Siite und s Update in TagStudio). GitHub aktualisiert sie mit Verzögerig."]
+"Zahlen von GitHub (Downloads über die Release-Seite und das Update in TagStudio). GitHub aktualisiert sie mit Verzögerung.": ["Figures from GitHub (downloads via the release page and the update in TagStudio). GitHub updates them with a delay.", "Zahle vo GitHub (Downloads über d Release-Siite und s Update in TagStudio). GitHub aktualisiert sie mit Verzögerig."],
+"Laufende Summe über die Versionen": ["Running total across versions", "Laufendi Summe über d Versione"],
+"Installer total": ["Installers total", "Installer total"],
+"Plugins total": ["Plugins total", "Plugins total"]
 }

@@ -59,7 +59,7 @@
   </section>
   <section>
     <h2>Je Version</h2>
-    <div class="scroll"><table><thead><tr><th>Version</th><th>Datum</th><th class="r">Windows</th><th class="r">macOS</th><th class="r">Installer</th><th class="r">Plugins</th></tr></thead>
+    <div class="scroll"><table><thead><tr><th>Version</th><th>Datum</th><th class="r">Windows</th><th class="r">macOS</th><th class="r">Installer</th><th class="r" title="Laufende Summe über die Versionen">Installer total</th><th class="r">Plugins</th><th class="r" title="Laufende Summe über die Versionen">Plugins total</th></tr></thead>
       <tbody id="rows"></tbody></table></div>
   </section>
   <footer id="foot">Zahlen von GitHub (Release-Seite und Update in TagStudio), täglich gesammelt.</footer>
@@ -83,7 +83,7 @@
     document.getElementById("hist").hidden = false;
   }
   document.getElementById("rows").innerHTML = s.rows.map((r) => `<tr><td><a href="${esc(r.url)}">${esc(r.tag)}</a>${r.beta ? '<span class="tag">Beta</span>' : ""}</td>
-    <td>${esc(r.date)}</td><td class="r">${n(r.win)}</td><td class="r">${n(r.mac)}</td><td class="r"><b>${n(r.total)}</b></td><td class="r muted">${n(r.plugins)}</td></tr>`).join("");
+    <td>${esc(r.date)}</td><td class="r">${n(r.win)}</td><td class="r">${n(r.mac)}</td><td class="r"><b>${n(r.total)}</b></td><td class="r">${n(r.cum_installers)}</td><td class="r muted">${n(r.plugins)}</td><td class="r muted">${n(r.cum_plugins)}</td></tr>`).join("");
   document.getElementById("foot").textContent = `Zahlen von GitHub (Release-Seite und Update in TagStudio), täglich gesammelt · Stand ${s.updated || "?"}`
     + (h.since ? ` · Verlauf seit ${h.since}` : "");
 })();

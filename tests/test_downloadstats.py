@@ -38,6 +38,8 @@ class TestDownloadStats(unittest.TestCase):
         s = ds.summarize(r)
         self.assertEqual(s["total"], {"win": 5, "mac": 1, "plugins": 5, "installers": 6})
         self.assertEqual((s["rows"][0]["total"], s["rows"][1]["beta"]), (4, True))
+        # #418: laufende Summe – älteste Version zuerst, neueste = Gesamtsumme
+        self.assertEqual([(x["cum_installers"], x["cum_plugins"]) for x in s["rows"]], [(6, 5), (2, 0)])
         self.assertEqual([f["name"] for f in s["rows"][0]["files"]], ["TagStudio-4.12.0-Windows-Setup.exe", "TagStudio-4.12.0-macOS-Apple-Chip.dmg"])
 
     def test_update_and_history(self):
