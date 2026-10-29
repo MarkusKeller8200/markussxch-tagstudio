@@ -83,7 +83,8 @@ das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzusti
 ## 5. Offen (bei der Umsetzung prüfen)
 
 - **OneDrive nur privat, einfache Anmeldung, App-Ordner:** Entwurf in [KONZEPT-ONEDRIVE.md](KONZEPT-ONEDRIVE.md)
-  (29.10.2026, Entscheide OD1–OD8 offen, #400; Sicherheitsfehler Token bei Umleitungen #401).
+  (29.10.2026, nicht weiter verfolgt – Entscheid User 17:35; stattdessen #402 Sicherung in den Cloud-Ordner;
+  Sicherheitsfehler Token bei Umleitungen #401).
 
 - Genaue Endpunkte und Kontingente (Microsoft Graph, Google Drive API v3, Dropbox API v2) aus den offiziellen
   Dokumentationen nachtragen.

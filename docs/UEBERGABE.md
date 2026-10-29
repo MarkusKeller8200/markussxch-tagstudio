@@ -10,7 +10,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   Entscheid User 04:02: **keine Geschäfts-/Schulkonten**. Abklärung: neue Entra-Apps nur noch in einem Verzeichnis
   (seit 06/2024) – mit reinem Privatkonto keine Registrierung; Google/Dropbox mit Privatkonto möglich.
 - **Konzept `docs/KONZEPT-ONEDRIVE.md`** (Auftrag 17:23, ENTWURF): `consumers`, `Files.ReadWrite.AppFolder`
-  (`Apps/TagStudio`), freier Loopback-Port, delta, If-Match, Token-Sperre; Entscheide **OD1–OD8 offen**.
+  (`Apps/TagStudio`), freier Loopback-Port, delta, If-Match, Token-Sperre. **Entscheid User 17:35: nicht weiter
+  verfolgt** (bei OD1 bleiben); Bibliothek nicht im Sync-Ordner bearbeiten. Neu **#402** Sicherung der Programmdaten
+  in einen Cloud-Ordner (Funktionen, Fragen offen).
 - **#401 Sicherheit** (Fehler): `urllib` sendet `Authorization` bei 302 an fremde Hosts mit (OneDrive-Download).
 - Fragen zu 4.14.0 (Reihenfolge, Scopes auf einmal, Issue „Gemerkt“) weiterhin unbeantwortet.
 
