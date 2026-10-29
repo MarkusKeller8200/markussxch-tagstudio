@@ -1,6 +1,8 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-29 (00:40): **#394–#396** (Auftrag User 23:56) – Lücken aus der Tracklist (±60 s, ohne Kosten),
+> Stand 2026-10-29 (01:05): Testrückmeldung – #392, #393, #395, #396 geschlossen; offen im Meilenstein #30 nur #394.
+>
+> Davor 2026-10-29 (00:40): **#394–#396** (Auftrag User 23:56) – Lücken aus der Tracklist (±60 s, ohne Kosten),
 > Titel ohne Datei mit der Bibliothek verknüpfen (nach Vorbereiten / von Hand), „Ordner analysieren …“; Mix analysieren
 > 1.3, KONZEPT-MIXSCAN §13. `_3 Beta-Test`. Ideen #397–#399 in „Funktionen“.
 >
