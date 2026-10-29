@@ -23,7 +23,8 @@ MIGRATED_LIST = "Gemerkt (Entdecken)"
 MIGRATED_FLAG = "ideas_from_discover"     # in index.json › migrated
 BP_PREFIX = "TagStudio_WISH_"
 STATUS = {"idea": "Idee", "buy": "Kaufen", "bought": "Gekauft", "lib": "In Bibliothek", "dropped": "Verworfen"}
-SOURCES = {"deezer": "Deezer", "beatport": "Beatport", "manual": "von Hand", "text": "Text", "discover": "Entdecken"}
+SOURCES = {"deezer": "Deezer", "beatport": "Beatport", "spotify": "Spotify", "manual": "von Hand", "text": "Text",
+           "discover": "Entdecken"}
 EXPORT_HEAD = ["Wunschliste", "Status", "Künstler", "Titel", "Mix", "Label", "Datum", "Quelle", "Notiz", "Link", "Gekauft am"]
 
 
@@ -53,6 +54,40 @@ def from_discover(e: dict) -> dict | None:
                  preview=e.get("preview", ""), cover=e.get("cover", ""), label=e.get("label", ""),
                  date=str(e.get("date") or "")[:10], release=e.get("release", ""), genre=e.get("genre", ""),
                  disc=e.get("key", ""))
+
+
+def from_spotify(r: dict) -> dict | None:
+    """#384 SP2: Titel aus Spotify („Läuft gerade“/„Zuletzt gehört“) → Eintrag mit Link, ISRC und Spotify-ID."""
+    if not isinstance(r, dict):
+        return None
+    return entry(r.get("artist", ""), r.get("title", ""), r.get("mix", ""), url=r.get("url", ""), isrc=r.get("isrc", ""),
+                 dur=r.get("dur") or 0, src="spotify", store="spotify", sid=str(r.get("id") or ""),
+                 cover=r.get("cover", ""), release=r.get("release", ""), date=str(r.get("date") or "")[:10])
+
+
+def spotify_uris(items: list) -> tuple[list[str], int]:
+    """#384 SP5: Spotify-URIs der offenen Einträge (Idee/Kaufen) mit Spotify-ID → (URIs, Anzahl ohne ID)."""
+    uris, without = [], 0
+    for x in items or []:
+        idea = x.get("idea") or {}
+        if idea.get("status") not in ("idea", "buy", None):
+            continue
+        sid = str(idea.get("sid") or "") if idea.get("store") == "spotify" else ""
+        if not sid:
+            m = re.search(r"open\.spotify\.com/track/([A-Za-z0-9]{22})", str((x.get("ref") or {}).get("url") or ""))
+            sid = m.group(1) if m else ""
+        if sid and re.fullmatch(r"[A-Za-z0-9]{22}", sid):
+            u = f"spotify:track:{sid}"
+            if u not in uris:
+                uris.append(u)
+        else:
+            without += 1
+    return uris, without
+
+
+def sp_name(list_name: str) -> str:
+    """Name der Spotify-Playlist zu einer Wunschliste – gleich wie bei Beatport (TagStudio_WISH_<Liste>)."""
+    return bp_name(list_name)
 
 
 def from_text(text: str) -> tuple[list[dict], int]:

@@ -1,5 +1,8 @@
-"""Spotify (#280) – nur lesen: eigene Playlists und Lieblingssongs als Playlists, Titel-Daten mit ISRC und Link für
-„Online-Metadaten“, gefolgte Künstler für „Entdecken“.
+"""Spotify (#280, #384) – eigene Playlists und Lieblingssongs als Playlists, Titel-Daten mit ISRC und Link für
+„Online-Metadaten“, gefolgte Künstler für „Entdecken“. Seit 1.3 (#384): „Läuft gerade“/„Zuletzt gehört“ → Ideen (SP2),
+neue Veröffentlichungen gefolgter Künstler in Entdecken (SP1), Wunschliste als Spotify-Playlist (SP5, nur auf Klick),
+gespeicherte Alben (SP3), ganzes Album nachschlagen (SP4), „In deiner Spotify-Bibliothek“ (SP6, speichern nur auf Klick).
+Schreibende Aufrufe (SP5, SP6) laufen nie automatisch.
 
 Zugang über eine **eigene Spotify-App** (developer.spotify.com, Entwicklungsmodus; der Besitzer braucht Spotify
 Premium) und OAuth mit PKCE – kein Client-Secret nötig. Client-ID und Token liegen verschlüsselt im Datenordner
@@ -20,7 +23,10 @@ API = "https://api.spotify.com/v1"
 INTERVALS = {"api.spotify.com": 0.2}
 LIKED = "liked"
 SCOPES = ["playlist-read-private", "playlist-read-collaborative", "user-library-read", "user-follow-read",
-          "user-top-read", "user-read-recently-played"]
+          "user-top-read", "user-read-recently-played",
+          # #384 (Entscheid User: alle auf einmal – eine neue Anmeldung): Läuft gerade, Playlist anlegen, Bibliothek
+          "user-read-currently-playing", "playlist-modify-private", "user-library-modify"]
+NEW_SCOPES = ("user-read-currently-playing", "playlist-modify-private", "user-library-modify")
 CFG = {"name": "Spotify", "authorize": "https://accounts.spotify.com/authorize",
        "token": "https://accounts.spotify.com/api/token", "scopes": SCOPES, "header": "Bearer", "secret": False,
        "redirect": "http://127.0.0.1:8765/callback"}
@@ -28,7 +34,7 @@ MAX_ITEMS = 5000
 
 ACTIONS = [
     {"id": "login", "label": "Anmelden …", "where": "page", "run_label": "Anmelden", "needs_selection": False,
-     "description": "Zugangsdaten deiner eigenen Spotify-App eintragen (leer = unverändert, verschlüsselt gespeichert) und die Anmeldeseite im Browser öffnen. TagStudio liest nur – es ändert nichts in deinem Konto.",
+     "description": "Zugangsdaten deiner eigenen Spotify-App eintragen (leer = unverändert, verschlüsselt gespeichert) und die Anmeldeseite im Browser öffnen. TagStudio liest – geändert wird dein Konto nur auf deinen Klick (Wunschliste als Playlist, in deiner Bibliothek speichern).",
      "options": [{"type": "info", "title": "Spotify-App anlegen",
           "label": "1. Auf developer.spotify.com mit deinem Spotify-Konto anmelden (Premium nötig). 2. Dashboard › "
                    "„Create app“, bei „Redirect URIs“ genau die Adresse unten eintragen (Standard "
@@ -74,6 +80,19 @@ def ready(ctx):
     if not a.logged_in():
         return False, "nicht angemeldet (Plugin Spotify › „Anmelden …“)"
     return True, ""
+
+
+def missing_scopes(ctx, need=SCOPES) -> list:
+    """Berechtigungen, die der gespeicherten Anmeldung fehlen (ältere Anmeldung vor 1.3) – dann neu anmelden."""
+    have = set(str(app(ctx).token.get("scope") or "").split())
+    return [x for x in need if x not in have] if have else []
+
+
+def need_scopes(ctx, *need):
+    miss = missing_scopes(ctx, need)
+    if miss:
+        raise OAuthError("Für diese Funktion fehlt eine Berechtigung (" + ", ".join(miss) + ") – bitte unter Plugins › "
+                         "Spotify einmal „Anmelden …“ (neue Anmeldung mit den zusätzlichen Berechtigungen).")
 
 
 def auth(ctx):
@@ -268,6 +287,128 @@ def playlist_files(ctx, pid) -> dict:
         if t and t.get("type", "track") == "track" and t.get("name"):
             items.append({"ref": ref_of(t)})
     return {"name": name, "files": [], "items": items, "missing": 0}
+
+
+# =========================================================================== #384 SP2: Läuft gerade / Zuletzt gehört → Ideen
+def idea_of(t, played_at: str = "") -> dict:
+    """Spotify-Titel → Eintrag für eine Wunschliste (Künstler, Titel, Mix, ISRC, Link, Cover, Album, Datum)."""
+    r = ref_of(t)
+    alb = t.get("album") or {}
+    imgs = alb.get("images") or []
+    r.update({"id": t.get("id", ""), "uri": t.get("uri") or (f"spotify:track:{t['id']}" if t.get("id") else ""),
+              "cover": imgs[-1].get("url", "") if imgs else "", "release": alb.get("name", ""),
+              "date": str(alb.get("release_date") or "")[:10], "played_at": played_at})
+    return r
+
+
+def now_playing(ctx) -> dict:
+    """Was gerade in Spotify läuft → {"track": Eintrag | None, "playing": bool}. Podcasts/Werbung → kein Titel."""
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"Spotify: {why}.")
+    need_scopes(ctx, "user-read-currently-playing")
+    d = get(ctx, "/me/player/currently-playing", client(ctx)) or {}
+    t = d.get("item") or {}
+    if not t or t.get("type", "track") != "track" or not t.get("name"):
+        return {"track": None, "playing": bool(d.get("is_playing"))}
+    return {"track": idea_of(t), "playing": bool(d.get("is_playing"))}
+
+
+def recently_played(ctx, n=50) -> list:
+    """Zuletzt gehörte Titel (neueste zuerst, höchstens 50 – mehr liefert Spotify nicht), ohne Doppel."""
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"Spotify: {why}.")
+    d = get(ctx, "/me/player/recently-played", client(ctx), limit=max(1, min(50, int(n or 50)))) or {}
+    out, seen = [], set()
+    for it in d.get("items") or []:
+        t = it.get("track") or {}
+        if t.get("name") and t.get("id") not in seen:
+            seen.add(t.get("id"))
+            out.append(idea_of(t, str(it.get("played_at") or "")))
+    return out
+
+
+# =========================================================================== Schreiben (nur auf Klick: SP5, SP6)
+WRITE_403 = ("Spotify hat das Schreiben abgelehnt (HTTP 403). Im Entwicklungsmodus sperrt Spotify Schreibzugriffe für "
+             "manche Apps; prüfe im Developer Dashboard, ob dein Konto unter „Users Management“ eingetragen ist, und melde "
+             "dich mit den neuen Berechtigungen neu an.")
+
+
+def send(ctx, method: str, path: str, body=None, **params):
+    """Schreibender Aufruf (POST/PUT/DELETE) mit Token, einmal erneuern bei 401 → JSON (oder {})."""
+    import json as _json
+    url = API + path + ("?" + urllib.parse.urlencode(params) if params else "")
+    a = app(ctx)
+    data = _json.dumps(body).encode("utf-8") if body is not None else None
+    for attempt in (0, 1):
+        h = {"User-Agent": sk.USER_AGENT, "Accept": "application/json", **a.headers()}
+        if data is not None:
+            h["Content-Type"] = "application/json"
+        om.SHARED.wait("api.spotify.com")
+        st, _hd, raw = om.http_request(method, url, h, data)
+        if st == 401 and attempt == 0 and a.refresh():
+            continue
+        break
+    if st == 403:
+        raise HttpError(403, WRITE_403)
+    if st == 0 or st >= 400:
+        raise HttpError(st, f"Spotify: HTTP {st} bei {method} {path}")
+    try:
+        return _json.loads(raw.decode("utf-8")) if raw else {}
+    except (UnicodeDecodeError, ValueError):
+        return {}
+
+
+def _uri_ok(u) -> bool:
+    import re
+    return bool(re.fullmatch(r"spotify:(track|album):[A-Za-z0-9]{22}", str(u or "")))
+
+
+def wish_push(ctx, name: str, uris: list, existing_id: str = "") -> dict:
+    """SP5: Wunschliste als **private** Spotify-Playlist anlegen bzw. fehlende Titel ergänzen (nur auf Klick).
+    Nie werden Titel entfernt oder fremde Playlists verändert. → {"id", "url", "created", "added", "existing"}"""
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"Spotify: {why}.")
+    need_scopes(ctx, "playlist-modify-private")
+    uris = [u for u in dict.fromkeys(uris or []) if _uri_ok(u)]
+    cl = client(ctx)
+    me = _me(ctx, cl).get("id") or ""
+    pl = {}
+    if existing_id:
+        pl = get(ctx, f"/playlists/{existing_id}", cl, fields="id,name,owner(id),external_urls") or {}
+        if (pl.get("owner") or {}).get("id") != me:
+            pl = {}
+    if not pl:                                           # gleichnamige eigene Playlist wiederverwenden (kein Doppel)
+        for p in pages(ctx, "/me/playlists", cl):
+            if p.get("name") == name and (p.get("owner") or {}).get("id") == me:
+                pl = p
+                break
+    created = False
+    if not pl:
+        pl = send(ctx, "POST", "/me/playlists", {"name": name, "public": False,
+                                                 "description": "Wunschliste aus MarKusSXCH TagStudio"})
+        created = True
+        ctx.log(f"Playlist angelegt: {name} ({pl.get('id')})")
+    pid = pl.get("id") or ""
+    if not pid:
+        raise HttpError(-1, "Spotify: Playlist wurde nicht angelegt (keine ID).")
+    have = set()
+    if not created:
+        for r in pages(ctx, f"/playlists/{pid}/items", cl, fields="items(item(uri),track(uri)),next"):
+            u = (r.get("item") or r.get("track") or {}).get("uri")
+            if u:
+                have.add(u)
+    todo = [u for u in uris if u not in have]
+    for i in range(0, len(todo), 100):
+        ctx.check_cancel()
+        send(ctx, "POST", f"/playlists/{pid}/items", {"uris": todo[i:i + 100]})
+    url = (pl.get("external_urls") or {}).get("spotify") or f"https://open.spotify.com/playlist/{pid}"
+    ctx.log(f"{len(todo)} Titel ergänzt, {len(uris) - len(todo)} waren schon drin.")
+    return {"id": pid, "url": url, "created": created, "added": len(todo), "existing": len(uris) - len(todo),
+            "message": (f"Spotify-Playlist „{name}“ {'angelegt' if created else 'ergänzt'}: {len(todo)} Titel hinzugefügt"
+                        + (f", {len(uris) - len(todo)} waren schon drin" if len(uris) > len(todo) else "") + ".")}
 
 
 # =========================================================================== Entdecken

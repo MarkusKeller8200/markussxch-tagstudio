@@ -431,8 +431,8 @@ exported as a shopping list. Fetching again updates the playlist and keeps the l
 
 ## Built in: Spotify and SoundCloud
 
-Read your playlists and track data at Spotify or SoundCloud – **read only**, nothing in your account is changed. Both
-need **your own app** at the service; TagStudio does not ship shared credentials.
+Read your playlists and track data at Spotify or SoundCloud. SoundCloud is **read only**; Spotify changes your account
+**only on your click** (from 1.3: wish list as playlist, save to library). Both need **your own app** at the service; TagStudio does not ship shared credentials.
 
 - **Spotify:** sign in on [developer.spotify.com](https://developer.spotify.com/dashboard) with your account (Spotify
   Premium required), “Create app”, enter exactly `http://127.0.0.1:8765/callback` as redirect URI, choose “Web API”.
@@ -452,6 +452,10 @@ need **your own app** at the service; TagStudio does not ship shared credentials
   (with link). “↗” in the list opens the track at the service.
 - **Online metadata:** sources “Spotify” and “SoundCloud” (off until you tick them) – album, date, ISRC, genre, cover
   and as fields `TXXX:SPOTIFY_TRACK_ID`/`TXXX:SPOTIFY_URL` or `TXXX:SOUNDCLOUD_TRACK_ID`/`TXXX:SOUNDCLOUD_URL`.
+- **New in Spotify 1.3 (#384):** permissions `user-read-currently-playing`, `playlist-modify-private`,
+  `user-library-modify` (sign in once more). **Ideas:** “Save what's playing in Spotify”, “Recently played in Spotify …”
+  (at most 50), “As Spotify playlist …” (private, add only). If Spotify refuses the write with HTTP 403 (development
+  mode), TagStudio says why; writes only happen on your click.
 - **Own fields `TXXX:SPOTIFY_*` (#385, Spotify 1.2, Online metadata 2.4):** with the option “Additionally write the
   source's own fields with origin”, Online metadata proposes copies with origin “Spotify”: `SPOTIFY_ALBUM_ID`,
   `SPOTIFY_ARTIST_ID` (first artist), `SPOTIFY_TITLE`, `SPOTIFY_ARTIST`, `SPOTIFY_ALBUM`, `SPOTIFY_RELEASE_DATE`,

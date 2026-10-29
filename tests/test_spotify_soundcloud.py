@@ -23,6 +23,24 @@ SP_TRACK = {"id": "sp1", "type": "track", "name": "Kaltes Glas - Extended Mix", 
             "album": {"id": "al1", "name": "Nachtfahrt EP", "release_date": "2021-05-14", "artists": [{"name": "Mara Lind"}],
                       "total_tracks": 4,
                       "images": [{"url": "https://i.scdn.co/image/abc"}]}}
+SP2_TRACK = {"id": "sp2" + "x" * 19, "type": "track", "name": "Morgenrot", "duration_ms": 300000, "track_number": 1,
+             "artists": [{"id": "ar2", "name": "Lio Berg"}], "external_ids": {"isrc": "CHA012100009"},
+             "external_urls": {"spotify": "https://open.spotify.com/track/sp2xxxxxxxxxxxxxxxxxxx"},
+             "uri": "spotify:track:sp2xxxxxxxxxxxxxxxxxxx",
+             "album": {"id": "al2", "name": "Morgenrot", "release_date": "2026-10-20", "images": []}}
+SP_ALBUM = {"id": "al1", "name": "Nachtfahrt EP", "release_date": "2021-05-14", "total_tracks": 2, "album_type": "ep",
+            "artists": [{"id": "ar1", "name": "Mara Lind"}], "images": [{"url": "https://i.scdn.co/image/abc"}],
+            "external_urls": {"spotify": "https://open.spotify.com/album/al1"},
+            "tracks": {"items": [{"id": "sp1", "name": "Kaltes Glas - Extended Mix", "track_number": 1, "disc_number": 1,
+                                  "duration_ms": 340000, "artists": [{"id": "ar1", "name": "Mara Lind"}]},
+                                 {"id": "sp3", "name": "Nordlicht", "track_number": 2, "disc_number": 1,
+                                  "duration_ms": 372000, "artists": [{"id": "ar1", "name": "Mara Lind"}]}], "next": None}}
+SP_RELEASES = {"ar1": [{"id": "al9", "name": "Neue Single", "album_type": "single", "release_date": "2026-10-25",
+                        "artists": [{"id": "ar1", "name": "Mara Lind"}], "images": [{"url": "https://i.scdn.co/image/n"}],
+                        "external_urls": {"spotify": "https://open.spotify.com/album/al9"}},
+                       {"id": "al0", "name": "Altes Album", "album_type": "album", "release_date": "2019-01-01",
+                        "artists": [{"id": "ar1", "name": "Mara Lind"}], "images": [],
+                        "external_urls": {"spotify": "https://open.spotify.com/album/al0"}}]}
 SC_TRACK = {"id": 77, "title": "Nordlicht (Club Mix)", "duration": 372000, "genre": "Techno", "bpm": 128,
             "permalink_url": "https://soundcloud.com/maralind/nordlicht", "user": {"username": "maralind"},
             "publisher_metadata": {"artist": "Mara Lind", "isrc": "CHA012100001", "release_title": "Nachtfahrt EP"},
@@ -34,6 +52,7 @@ class Fake:
 
     def __init__(self):
         self.calls, self.token_ok = [], {"SP-OK", "SC-OK", "SP-NEW", "SC-NEW"}
+        self.playing, self.sp_items, self.saved = None, {}, set()
 
     def __call__(self, url, headers=None):
         u = urllib.parse.urlparse(url)
@@ -70,6 +89,29 @@ class Fake:
                 return js(SP_TRACK)
             if p == "/v1/artists/ar1":
                 return js({"id": "ar1", "genres": ["deep house"]})
+            if p == "/v1/me/player/currently-playing":                      # #384 SP2
+                if getattr(self, "playing", None) is None:
+                    return 204, {}, b""
+                return js({"is_playing": True, "item": self.playing})
+            if p == "/v1/me/player/recently-played":
+                return js({"items": [{"track": SP_TRACK, "played_at": "2026-10-29T18:00:00Z"},
+                                     {"track": SP_TRACK, "played_at": "2026-10-29T17:50:00Z"},
+                                     {"track": SP2_TRACK, "played_at": "2026-10-29T17:40:00Z"}]})
+            if p.startswith("/v1/playlists/wp1"):                              # SP5: eigene Wunschliste
+                if p.endswith("/items"):
+                    return js({"items": [{"item": {"uri": u}} for u in self.sp_items.get("wp1", [])], "next": None})
+                return js({"id": "wp1", "name": "x", "owner": {"id": "me"}, "external_urls": {"spotify": "https://open.spotify.com/playlist/wp1"}})
+            if p == "/v1/me/library/contains":                                 # SP6
+                ids = q["uris"].split(",")
+                return js([u in self.saved for u in ids])
+            if p.startswith("/v1/artists/") and p.endswith("/albums"):         # SP1
+                return js({"items": SP_RELEASES.get(p.split("/")[3], []), "next": None})
+            if p == "/v1/me/albums":                                           # SP3
+                return js({"items": [{"added_at": "2026-10-01T00:00:00Z", "album": SP_ALBUM}], "next": None})
+            if p == "/v1/albums/al1":                                          # SP4
+                return js(SP_ALBUM)
+            if p == "/v1/albums/al1/tracks":
+                return js({"items": SP_ALBUM["tracks"]["items"], "next": None})
         if u.netloc == "api.soundcloud.com":
             assert auth.startswith("OAuth ")
             if p == "/me":
@@ -86,6 +128,33 @@ class Fake:
                 return js({"collection": [SC_TRACK] if "nordlicht" in q["q"].lower() else []})
         if u.netloc in ("i.scdn.co", "i1.sndcdn.com"):
             return 200, {}, b"\xff\xd8\xff\xe0" + b"0" * 64
+        return 404, {}, b""
+
+
+class FakeWrite:
+    """Schreibende Spotify-Aufrufe (#384 SP5/SP6) über onlinematch.http_request."""
+
+    def __init__(self, fake):
+        self.fake, self.calls, self.status = fake, [], None
+
+    def __call__(self, method, url, headers, data=None):
+        u = urllib.parse.urlparse(url)
+        q = {k: v[0] for k, v in urllib.parse.parse_qs(u.query).items()}
+        body = json.loads(data) if data else None
+        self.calls.append((method, u.path, q, body, dict(headers or {})))
+        if self.status:
+            return self.status, {}, b'{"error":{"status":403,"message":"Forbidden"}}'
+        assert (headers or {}).get("Authorization", "").startswith("Bearer SP-")
+        if method == "POST" and u.path == "/v1/me/playlists":
+            assert body["public"] is False                                     # immer privat
+            self.fake.sp_items["wp1"] = []
+            return 201, {}, json.dumps({"id": "wp1", "external_urls": {"spotify": "https://open.spotify.com/playlist/wp1"}}).encode()
+        if method == "POST" and u.path == "/v1/playlists/wp1/items":
+            self.fake.sp_items.setdefault("wp1", []).extend(body["uris"])
+            return 201, {}, b'{"snapshot_id":"s"}'
+        if method == "PUT" and u.path == "/v1/me/library":
+            self.fake.saved.update(q["uris"].split(","))
+            return 200, {}, b""
         return 404, {}, b""
 
 
@@ -162,8 +231,10 @@ class TestPlugins(Base):
         self.s.start_tag_load(self.B, False)
         self.wait()
         self.fake, self.post = Fake(), FakePost()
-        self._orig = (onlinematch.http_get, oauthkit.http_post, oauthkit.open_browser)
+        self._orig = (onlinematch.http_get, oauthkit.http_post, oauthkit.open_browser, onlinematch.http_request)
         onlinematch.http_get, oauthkit.http_post = self.fake, self.post
+        self.write = FakeWrite(self.fake)
+        onlinematch.http_request = self.write
         self.opened = []
         oauthkit.open_browser = lambda url: self.opened.append(url) or True
         self._iv = dict(onlinematch.INTERVALS)
@@ -172,7 +243,7 @@ class TestPlugins(Base):
         self.idx = {os.path.basename(f.path): i for i, f in enumerate(self.s.tag_files)}
 
     def tearDown(self):
-        onlinematch.http_get, oauthkit.http_post, oauthkit.open_browser = self._orig
+        onlinematch.http_get, oauthkit.http_post, oauthkit.open_browser, onlinematch.http_request = self._orig
         onlinematch.INTERVALS.update(self._iv)
         super().tearDown()
 
@@ -288,6 +359,55 @@ class TestPlugins(Base):
         self.assertIn("Neu Artist", self.s.disc_overview()["follow"]["artists"])
         self.act("spotify", "logout", clear=False)
         self.assertNotIn("spotify", [x["id"] for x in self.s.dj_sources()["sources"]])
+
+    def test_spotify_ideas_now_recent_push(self):
+        """#384 SP2 + SP5: Läuft gerade / Zuletzt gehört → Ideen; Wunschliste als private Spotify-Playlist (nur ergänzen)."""
+        self.login("spotify", client_id="CID", redirect="http://127.0.0.1:8765/callback")
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.opened[-1]).query)
+        for sc in ("user-read-currently-playing", "playlist-modify-private", "user-library-modify"):
+            self.assertIn(sc, q["scope"][0])                                   # alle neuen Berechtigungen auf einmal
+        ov = self.s.ideas_overview()
+        self.assertTrue(ov["spotify"]["available"])
+        self.assertIsNone(self.s.ideas_spotify_now()["track"])                # 204: nichts läuft
+        self.fake.playing = SP2_TRACK
+        now = self.s.ideas_spotify_now()["track"]
+        self.assertEqual((now["artist"], now["title"], now["isrc"]), ("Lio Berg", "Morgenrot", "CHA012100009"))
+        rec = self.s.ideas_spotify_recent(50)["tracks"]
+        self.assertEqual([t["title"] for t in rec], ["Kaltes Glas", "Morgenrot"])   # ohne Doppel, neueste zuerst
+        r = self.s.ideas_add_spotify("", [now, rec[0]], "")
+        self.assertEqual(r["added"], 2)
+        items = self.s.ideas_overview(r["pid"])["items"]
+        self.assertEqual({i["src"] for i in items}, {"spotify"})
+        self.assertTrue(all(i["url"].startswith("https://open.spotify.com/track/") for i in items))
+        self.assertEqual(self.s.ideas_add_spotify(r["pid"], [now], "")["added"], 0)   # schon vorhanden
+        # SP5: Vorschau, Anlegen (privat), zweites Mal nur ergänzen
+        pv = self.s.ideas_sp_preview(r["pid"])
+        self.assertEqual((pv["count"], pv["without"]), (1, 1))                # sp1 hat keine gültige 22-Zeichen-ID
+        self.assertTrue(pv["name"].startswith("TagStudio_WISH_"))
+        st = self.s.start_ideas_sp(r["pid"])
+        self.assertTrue(st["ok"], st)
+        res = self.wait()["result"]
+        self.assertTrue(res["created"])
+        self.assertEqual(self.fake.sp_items["wp1"], ["spotify:track:sp2xxxxxxxxxxxxxxxxxxx"])
+        self.s.start_ideas_sp(r["pid"])
+        res2 = self.wait()["result"]
+        self.assertEqual((res2["created"], res2["added"], res2["existing"]), (False, 0, 1))
+        self.assertFalse(any(c[0] == "DELETE" for c in self.write.calls))      # nie etwas entfernen
+        # 403 (Entwicklungsmodus): verständliche Meldung
+        self.write.status = 403
+        self.s._pls().set_pushed(r["pid"], "spotify", {"id": ""})
+        self.s.start_ideas_sp(r["pid"])
+        st3 = self.wait()
+        self.assertIn("403", str(st3.get("error") or st3.get("result")))
+        # alte Anmeldung ohne neue Berechtigungen → Hinweis „neu anmelden“
+        import plugins
+        p = self.s.plugins.get("spotify")
+        mod = p.load()
+        a = mod.app(plugins.Context(p))
+        a._save(token=json.dumps({**a.token, "scope": "playlist-read-private user-read-recently-played"}))
+        self.assertIn("user-read-currently-playing", self.s.ideas_overview()["spotify"]["missing"])
+        with self.assertRaises(Exception):
+            self.s.ideas_spotify_now()
 
     def test_soundcloud(self):
         self.login("soundcloud", client_id="SCID", client_secret="SECRET", redirect="http://127.0.0.1:8766/callback")

@@ -6,7 +6,7 @@
 const IDEA = { d: null, filter: "open", playing: "", checked: new Set() };
 const IDEA_FILTERS = [["open", "Offen"], ["buy", "Kaufen"], ["bought", "Gekauft"], ["lib", "In Bibliothek"], ["dropped", "Verworfen"], ["all", "Alle"]];
 const IDEA_STATUS = { idea: "Idee", buy: "Kaufen", bought: "Gekauft", lib: "In Bibliothek", dropped: "Verworfen" };
-const IDEA_SRC = { deezer: "Deezer", beatport: "Beatport", manual: "von Hand", text: "Text", discover: "Entdecken" };
+const IDEA_SRC = { deezer: "Deezer", beatport: "Beatport", spotify: "Spotify", manual: "von Hand", text: "Text", discover: "Entdecken" };
 
 async function ideasShow(sel) {
   try { ideasApply(await call("ideas_overview", sel || (IDEA.d && IDEA.d.sel) || "")); } catch (e) { toast(String(e.message || e)); }
@@ -145,8 +145,73 @@ function ideasAddMenu() {
   showMenu(b.left, b.bottom + 6, [
     { label: "Titel von Hand …", run: ideasManual },
     { label: "Liste aus Text einfügen …", run: ideasText },
-    { label: "Aus Entdecken …", run: () => setModule("discover") },
+    { label: "Aus Entdecken …", run: () => setModule("discover") }, "-",
+    { label: "Läuft gerade in Spotify merken", run: ideasSpotifyNow },          // #384 SP2
+    { label: "Zuletzt gehört in Spotify …", run: ideasSpotifyRecent },
   ]);
+}
+
+/** #384: Spotify bereit? Sonst erklären (Plugin aus, nicht angemeldet, Berechtigung fehlt) → false */
+async function ideasSpotifyReady(need) {
+  const sp = (IDEA.d && IDEA.d.spotify) || {};
+  if (!sp.available) { await info("Spotify", `Spotify ist nicht bereit: ${sp.why || "Plugin aus"}. Unter Plugins › Spotify einschalten und „Anmelden …“.`); return false; }
+  if (need && (sp.missing || []).includes(need)) {
+    await info("Spotify", "Für diese Funktion fehlt eine neue Berechtigung – bitte unter Plugins › Spotify einmal „Anmelden …“ (die Anmeldung fragt die zusätzlichen Berechtigungen ab).");
+    return false;
+  }
+  return true;
+}
+
+async function ideasSpotifyNow() {
+  if (!(await ideasSpotifyReady("user-read-currently-playing"))) return;
+  let r;
+  try { r = await call("ideas_spotify_now"); } catch (e) { return toast(String(e.message || e)); }
+  if (!r.track) { await info("Läuft gerade", r.playing ? "In Spotify läuft gerade kein Musiktitel (z. B. Podcast oder Werbung)." : "In Spotify läuft gerade nichts."); return; }
+  const t = r.track;
+  const ok = await dialog({ title: "Läuft gerade in Spotify", text: `${t.artist} – ${t.title}${t.mix ? ` (${t.mix})` : ""}\n\nAls Idee in „${(ideasCur() || {}).name || "Ideen"}“ merken?`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Merken", value: true, primary: true }] });
+  if (!ok) return;
+  try {
+    const a = await call("ideas_add_spotify", IDEA.d.sel, [t], "");
+    toast(a.added ? "Als Idee gemerkt." : "Steht schon in der Wunschliste.");
+    await ideasShow(a.pid);
+  } catch (e) { toast(String(e.message || e)); }
+}
+
+async function ideasSpotifyRecent() {
+  if (!(await ideasSpotifyReady())) return;
+  let r;
+  try { r = await call("ideas_spotify_recent", 50); } catch (e) { return toast(String(e.message || e)); }
+  if (!r.tracks.length) { await info("Zuletzt gehört", "Spotify meldet keine zuletzt gehörten Titel."); return; }
+  const when = (s) => (s ? s.replace("T", " ").slice(0, 16) : "");
+  const pick = await modal({ title: "Zuletzt gehört in Spotify", wide: true,
+    html: `<p class="muted sm" style="margin:0 0 6px">Neueste zuerst (Spotify liefert höchstens 50). Markierte kommen als Ideen in „${esc((ideasCur() || {}).name || "Ideen")}“.</p>
+      <div class="ab-list">${r.tracks.map((t, i) => `<label class="check sm"><input type="checkbox" data-spr="${i}"> <span translate="no">${esc(t.artist)} – ${esc(t.title)}${t.mix ? ` (${esc(t.mix)})` : ""}</span> <span class="muted">${esc(when(t.played_at))}</span></label>`).join("")}</div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Als Ideen merken", value: true, primary: true }],
+    collect: (b) => [...b.querySelectorAll("[data-spr]:checked")].map((x) => r.tracks[+x.dataset.spr]) });
+  if (!pick || !pick.length) return;
+  try {
+    const a = await call("ideas_add_spotify", IDEA.d.sel, pick, "");
+    toast(`${fmtN(a.added)} gemerkt${a.dupes ? `, ${fmtN(a.dupes)} schon vorhanden` : ""}.`);
+    await ideasShow(a.pid);
+  } catch (e) { toast(String(e.message || e)); }
+}
+
+/** #384 SP5: Wunschliste als private Spotify-Playlist – nur auf Klick, es wird nichts entfernt */
+async function ideasSpotifyPush() {
+  if (!(await ideasSpotifyReady("playlist-modify-private"))) return;
+  const pv = await call("ideas_sp_preview", IDEA.d.sel);
+  if (!pv.count) { await info("Als Spotify-Playlist", "Kein offener Eintrag mit Spotify-Link bzw. -ID. Titel aus „Läuft gerade“, „Zuletzt gehört“ oder mit einem open.spotify.com-Link haben eine."); return; }
+  const ok = await dialog({ title: "Als Spotify-Playlist",
+    text: `In deinem Spotify-Konto die private Playlist „${pv.name}“ ${pv.pushed && pv.pushed.id ? "ergänzen" : "anlegen bzw. ergänzen"}: ${fmtN(pv.count)} Titel.${pv.without ? ` ${fmtN(pv.without)} Einträge ohne Spotify-ID bleiben aussen vor.` : ""} Vorhandene Titel der Playlist bleiben, es wird nichts entfernt.`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "In Spotify anlegen", value: true, primary: true }] });
+  if (!ok) return;
+  const r = await runTask(call("start_ideas_sp", IDEA.d.sel), "Spotify – Wunschliste");
+  if (!r) return;
+  const go = await dialog({ title: "Als Spotify-Playlist", text: r.message || "Fertig.",
+    buttons: [{ label: "OK", value: null }, ...(r.url ? [{ label: "In Spotify öffnen", value: true, primary: true }] : [])] });
+  if (go && r.url) call("open_url", r.url);
+  ideasShow();
 }
 
 async function ideasManual() {
@@ -187,6 +252,7 @@ function ideasMoreMenu() {
   const b = $("#ideaMore").getBoundingClientRect(), l = ideasCur();
   showMenu(b.left, b.bottom + 6, [
     ...(l ? [{ label: "Als Playlist übernehmen …", run: () => ideasToPlaylist(l.id) },
+      { label: "Als Spotify-Playlist …", run: ideasSpotifyPush },                // #384 SP5
       { label: "Diese Wunschliste als Excel", run: () => ideasExport("xlsx", l.id) },
       { label: "Diese Wunschliste als CSV", run: () => ideasExport("csv", l.id) }] : []),
     { label: "Alle Wunschlisten als Excel", run: () => ideasExport("xlsx", "") }, "-",

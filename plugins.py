@@ -842,7 +842,9 @@ class Manager:
     # ---- #242: Playlists anderer Programme fürs DJ-Set (playlists(ctx), playlist_files(ctx, id))
     PLAYLIST_FNS = ("playlists", "playlist_files", "playlist_push", "store_purchases", "store_download", "store_reset_download",
                     "store_login", "store_logout", "store_session", "store_settings", "store_playlist_check",
-                    "store_playlist_list", "store_playlist_put", "store_playlist_delete")
+                    "store_playlist_list", "store_playlist_put", "store_playlist_delete",
+                    # #384 Spotify: Läuft gerade/Zuletzt gehört (SP2), Wunschliste als Playlist (SP5), Bibliothek (SP6)
+                    "now_playing", "recently_played", "wish_push", "library_contains", "library_save")
 
     def playlist_sources(self) -> list[dict]:
         """Bereite, eingeschaltete Plugins mit playlists(ctx) – z. B. Lexicon."""

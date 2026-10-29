@@ -245,6 +245,11 @@ Titel, Label, Datum, Quelle, Status und Notiz (Klick auf die Notiz bearbeitet si
 - **Als Beatport-Playlist:** legt die Wunschliste in deinem Beatport-Konto als `TagStudio_WISH_<Liste>` an bzw. ergänzt
   sie – nur auf Klick, nur Titel mit Beatport-ID (Vorschläge von Beatport), nichts wird gekauft. Dafür muss im
   Beatport-Plugin „Playlists in Beatport schreiben“ eingeschaltet sein (wie bei „Einkäufe“).
+- **Spotify (#384, Spotify-Plugin 1.3):** „+ Hinzufügen ▾“ › **„Läuft gerade in Spotify merken“** übernimmt den Titel,
+  der gerade in Spotify läuft; **„Zuletzt gehört in Spotify …“** zeigt die letzten (höchstens 50) Titel zum Ankreuzen.
+  „Weitere ▾“ › **„Als Spotify-Playlist …“** legt die Wunschliste als **private** Playlist `TagStudio_WISH_<Liste>` in
+  deinem Spotify-Konto an bzw. ergänzt fehlende Titel – nur auf Klick, nur Titel mit Spotify-Link, es wird nichts
+  entfernt. Die neuen Berechtigungen fragt eine einmalige neue Anmeldung (Plugins › Spotify › „Anmelden …“) ab.
 - **Als Playlist übernehmen …** legt eine normale Playlist an (ohne verworfene); Titel ohne Datei stehen dort als
   Einkaufsliste. **Exportieren** als Excel oder CSV (eine oder alle Wunschlisten).
 

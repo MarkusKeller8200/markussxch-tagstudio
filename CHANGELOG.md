@@ -26,6 +26,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Spotify – eigene Felder `TXXX:SPOTIFY_*` (#385, Spotify 1.2, Online-Metadaten 2.4):** mit der Option „eigene Felder“
   Album-/Künstler-ID, Titel, Künstler, Album, Datum, ISRC, Genre, Spur (2/4), Dauer, Explicit und Abrufdatum mit Herkunft
   „Spotify“ – auf eigene Verantwortung (Spotify Developer Terms), Hinweis in der Vorschau.
+- **Spotify → Ideen (#384 SP2, SP5; Spotify 1.3):** „Läuft gerade in Spotify merken“ und „Zuletzt gehört in Spotify …“
+  in Ideen; Wunschliste „Als Spotify-Playlist …“ (privat, nur auf Klick, nur ergänzen). Neue Berechtigungen – einmal neu
+  anmelden.
 
 ### Sicherheit
 

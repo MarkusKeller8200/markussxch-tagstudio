@@ -92,11 +92,13 @@ class IdeasMixin:
                                   "date": idea.get("date", ""), "release": idea.get("release", ""), "added": x.get("added", 0)})
             total_buy += counts["buy"]
             out_lists.append({"id": p["id"], "name": p["name"], "count": len(p.get("items") or []), "counts": counts,
-                              "bp": ideas.bp_name(p["name"]), "pushed": (p.get("pushed") or {}).get("beatport")})
+                              "bp": ideas.bp_name(p["name"]), "pushed": (p.get("pushed") or {}).get("beatport"),
+                              "sp_pushed": (p.get("pushed") or {}).get("spotify")})
         s = self.purch_bp_settings() if hasattr(self, "purch_bp_settings") else {"available": False}
         return {"lists": out_lists, "sel": sel, "items": items, "buy": total_buy, "status": ideas.STATUS,
                 "sources": ideas.SOURCES, "beatport": {"available": bool(s.get("available")),
                                                        "write": bool(s.get("playlists_write"))},
+                "spotify": self._ideas_sp(),
                 "library": bool(self._pl_lib_roots()) if hasattr(self, "_pl_lib_roots") else False,
                 "undo": bool(self._pls().undo_stack)}
 
@@ -301,6 +303,75 @@ class IdeasMixin:
         def job(cancel, progress):
             return {"ok": True, "linked": self._pl_auto_match([pid], cancel, progress)}
         return self._run("ideas", "Wunschliste mit der Bibliothek abgleichen", job)
+
+    # ------------------------------------------------------------------ #384 Spotify (SP2, SP5)
+    SP = "spotify"
+
+    def _ideas_sp(self) -> dict:
+        """Spotify-Plugin für Ideen: {"available", "why", "missing": [fehlende Berechtigungen]}."""
+        import plugins as _pl
+        try:
+            p = self.plugins.get(self.SP)
+        except KeyError:
+            return {"available": False, "why": "Spotify-Plugin fehlt", "missing": []}
+        if not p.enabled or p.state() != "ready":
+            return {"available": False, "why": "Spotify-Plugin ist aus", "missing": []}
+        mod = p.load()
+        try:
+            ctx = _pl.Context(p, self)
+            ok, why = mod.ready(ctx)
+            miss = mod.missing_scopes(ctx, mod.NEW_SCOPES) if ok and hasattr(mod, "missing_scopes") else []
+        except Exception as ex:  # noqa: BLE001
+            ok, why, miss = False, str(ex), []
+        return {"available": bool(ok), "why": why, "missing": miss}
+
+    def ideas_spotify_now(self) -> dict:
+        """„Läuft gerade“ in Spotify → {"track": Eintrag | None, "playing"} (nur lesen)."""
+        return self.plugins.call_playlist(self.SP, "now_playing", session=self) or {}
+
+    def ideas_spotify_recent(self, n=50) -> dict:
+        """„Zuletzt gehört“ in Spotify → {"tracks": [...]} – zum Auswählen in der Oberfläche."""
+        return {"tracks": self.plugins.call_playlist(self.SP, "recently_played", int(n or 50), session=self) or []}
+
+    def ideas_add_spotify(self, pid, tracks, name="") -> dict:
+        """Gewählte Spotify-Titel als Ideen merken (Link, ISRC, Spotify-ID bleiben erhalten)."""
+        new = [e for e in (ideas.from_spotify(t) for t in tracks or []) if e]
+        if not new:
+            raise ValueError("Kein Titel gewählt.")
+        return self._ideas_add(pid, name, new)
+
+    def ideas_sp_preview(self, pid) -> dict:
+        """„Als Spotify-Playlist“ (SP5): Name, Titel mit Spotify-ID, ohne ID, schon angelegt?"""
+        with self.lock:
+            pl = self._ideas_get(self._pls(), pid)
+            uris, without = ideas.spotify_uris(pl.get("items") or [])
+            pushed = (pl.get("pushed") or {}).get("spotify") or {}
+        sp = self._ideas_sp()
+        return {"name": ideas.sp_name(pl["name"]), "count": len(uris), "without": without, "pushed": pushed, **sp}
+
+    def start_ideas_sp(self, pid):
+        """Wunschliste als private Spotify-Playlist anlegen bzw. fehlende Titel ergänzen – nur auf Klick (SP5)."""
+        pv = self.ideas_sp_preview(pid)
+        if not pv["available"]:
+            return {"ok": False, "error": f"Spotify: {pv['why'] or 'nicht bereit'}."}
+        if "playlist-modify-private" in pv["missing"]:
+            return {"ok": False, "error": "Spotify: Berechtigung zum Anlegen von Playlists fehlt – bitte unter Plugins › "
+                                          "Spotify einmal „Anmelden …“."}
+        if not pv["count"]:
+            return {"ok": False, "error": "Kein offener Eintrag mit Spotify-Link bzw. -ID (z. B. aus „Läuft gerade“ "
+                                          "oder „Zuletzt gehört“)."}
+        with self.lock:
+            uris, _w = ideas.spotify_uris(self._ideas_get(self._pls(), pid).get("items") or [])
+
+        def job(cancel, progress):
+            r = self.plugins.call_playlist(self.SP, "wish_push", pv["name"], uris, (pv.get("pushed") or {}).get("id", ""),
+                                           session=self, cancel=cancel, progress=progress) or {}
+            with self.lock:
+                st = self._pls()
+                if st.exists(pid) and r.get("id"):
+                    st.set_pushed(pid, "spotify", {"id": r["id"], "url": r.get("url", "")})
+            return {"ok": True, **r, "without": pv["without"]}
+        return self._run("ideas", f"Spotify: {pv['name']}", job)
 
     def ideas_bp_preview(self, pid) -> dict:
         """„Als Beatport-Playlist“: Name, Zahl der Titel mit Beatport-ID, ohne ID, Einstellung „Playlists schreiben“."""

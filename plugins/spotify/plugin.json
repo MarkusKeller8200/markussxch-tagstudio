@@ -1,12 +1,12 @@
 {
   "id": "spotify",
   "name": "Spotify",
-  "version": "1.2",
+  "version": "1.3",
   "min_app": "4.8.0",
   "category": "online",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
-  "description": "Liest deine Spotify-Playlists und Lieblingssongs (Playlists › Importieren › „Aus Spotify …“, danach Abgleich mit der Bibliothek), Titel-Daten mit ISRC und Spotify-Link für „Online-Metadaten“ und gefolgte Künstler für „Entdecken“. Braucht eine eigene Spotify-App im Developer Dashboard (Premium nötig). Nur lesen – nichts in deinem Spotify-Konto wird geändert.",
+  "description": "Liest deine Spotify-Playlists und Lieblingssongs (Playlists › Importieren › „Aus Spotify …“, danach Abgleich mit der Bibliothek), Titel-Daten mit ISRC und Spotify-Link für „Online-Metadaten“ und gefolgte Künstler für „Entdecken“. Ideen: „Läuft gerade“ und „Zuletzt gehört“ merken, Wunschliste als private Spotify-Playlist (nur auf Klick). Braucht eine eigene Spotify-App im Developer Dashboard (Premium nötig). Dein Konto wird nur auf deinen Klick geändert.",
   "notes": "Keine Zusatzpakete nötig. Unter „Anmelden …“ die Client-ID deiner Spotify-App eintragen und anmelden.",
   "fields": [
     "TXXX:SPOTIFY_TRACK_ID",

@@ -236,6 +236,11 @@ status and note (click the note to edit it).
 - **As Beatport playlist:** creates or extends the wish list in your Beatport account as `TagStudio_WISH_<list>` – only
   on click, only tracks with a Beatport ID (suggestions from Beatport), nothing is bought. “Write playlists to Beatport”
   must be switched on in the Beatport plugin (as for “Purchases”).
+- **Spotify (#384, Spotify plugin 1.3):** “+ Add ▾” › **“Save what's playing in Spotify”** takes the track currently
+  playing in Spotify; **“Recently played in Spotify …”** lists the last (at most 50) tracks to tick. “More ▾” › **“As
+  Spotify playlist …”** creates or extends the wish list as a **private** playlist `TagStudio_WISH_<list>` in your
+  Spotify account – only on click, only tracks with a Spotify link, nothing is removed. A one-time new sign-in
+  (Plugins › Spotify › “Sign in …”) asks for the new permissions.
 - **Turn into playlist …** creates a normal playlist (without dropped entries); tracks without a file are listed there
   as a shopping list. **Export** as Excel or CSV (one or all wish lists).
 

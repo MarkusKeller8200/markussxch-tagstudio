@@ -1923,6 +1923,28 @@ class UiTest(unittest.TestCase):
         pg.click('.nav[data-module="discover"]')                                       # zuletzt benutzte Seite gemerkt
         self.assertTrue(self.until("call('settings').then(r => r.ui.module === 'discover')"))
 
+    def test_ideas_spotify(self):
+        """#384 SP2/SP5: Ideen › „+ Hinzufügen ▾“ mit Spotify-Einträgen und „Weitere ▾“ › „Als Spotify-Playlist …“ –
+        ohne angemeldetes Spotify erklärt ein Hinweis, was fehlt."""
+        pg = self.pg
+        pg.evaluate("call('ideas_list_create', 'Abend')")
+        pg.click('.nav[data-module="ideas"]')
+        pg.wait_for_selector("#ideaAdd:not([disabled])")
+        pg.click("#ideaAdd")
+        pg.wait_for_selector("#menu:not([hidden])")
+        labels = pg.evaluate("[...document.querySelectorAll('#menu button')].map((b) => b.textContent.trim())")
+        self.assertIn("Läuft gerade in Spotify merken", labels)
+        self.assertIn("Zuletzt gehört in Spotify …", labels)
+        pg.click("#menu button >> text=Läuft gerade in Spotify merken")
+        pg.wait_for_selector("#dialog:not([hidden]) >> text=Spotify ist nicht bereit")
+        pg.click("#dlgBtns button")
+        pg.click("#ideaMore")
+        pg.wait_for_selector("#menu:not([hidden]) button >> text=Als Spotify-Playlist")
+        pg.click("#menu button >> text=Als Spotify-Playlist")
+        pg.wait_for_selector("#dialog:not([hidden]) >> text=Spotify ist nicht bereit")
+        pg.click("#dlgBtns button")
+        self.assertEqual(self.errors, [])
+
     def test_ideas_page(self):
         """#186: Ideen – Übernahme der gemerkten aus Entdecken, Wunschlisten, Status, Notiz, von Hand/aus Text,
         verschieben, entfernen mit Rückfrage, Rückgängig, Zahl in der Seitenleiste, Beatport nur auf Klick."""

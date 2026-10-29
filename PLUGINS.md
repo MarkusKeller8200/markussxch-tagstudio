@@ -442,8 +442,8 @@ Protokoll (Plugins › Beatport).
 
 ## Eingebaut: Spotify und SoundCloud
 
-Lesen deine Playlists und Titel-Daten bei Spotify bzw. SoundCloud – **nur lesen**, in deinem Konto wird nichts
-geändert. Beide brauchen eine **eigene App** beim Dienst; TagStudio liefert keine gemeinsamen Zugangsdaten mit.
+Lesen deine Playlists und Titel-Daten bei Spotify bzw. SoundCloud. SoundCloud **nur lesen**; Spotify ändert dein Konto
+**nur auf deinen Klick** (ab 1.3: Wunschliste als Playlist, in der Bibliothek speichern). Beide brauchen eine **eigene App** beim Dienst; TagStudio liefert keine gemeinsamen Zugangsdaten mit.
 
 - **Spotify:** auf [developer.spotify.com](https://developer.spotify.com/dashboard) mit deinem Konto anmelden
   (Spotify Premium nötig), „Create app“, als Redirect URI genau `http://127.0.0.1:8765/callback` eintragen, „Web API“
@@ -463,6 +463,11 @@ geändert. Beide brauchen eine **eigene App** beim Dienst; TagStudio liefert kei
   „Einkaufsliste exportieren …“ (mit Link). „↗“ in der Liste öffnet den Titel beim Dienst.
 - **Online-Metadaten:** Quellen „Spotify“ und „SoundCloud“ (aus, bis du sie anhakst) – Album, Datum, ISRC, Genre,
   Cover und als Felder `TXXX:SPOTIFY_TRACK_ID`/`TXXX:SPOTIFY_URL` bzw. `TXXX:SOUNDCLOUD_TRACK_ID`/`TXXX:SOUNDCLOUD_URL`.
+- **Neu in Spotify 1.3 (#384):** Berechtigungen `user-read-currently-playing`, `playlist-modify-private`,
+  `user-library-modify` (einmal neu anmelden). **Ideen:** „Läuft gerade in Spotify merken“, „Zuletzt gehört in Spotify …“
+  (höchstens 50, `GET /me/player/currently-playing`, `/me/player/recently-played`), „Als Spotify-Playlist …“ (privat,
+  `POST /me/playlists`, `POST /playlists/{id}/items`, nur ergänzen). Lehnt Spotify das Schreiben mit HTTP 403 ab
+  (Entwicklungsmodus), nennt TagStudio den Grund; geprüft wird nur auf deinen Klick.
 - **Eigene Felder `TXXX:SPOTIFY_*` (#385, Spotify 1.2, Online-Metadaten 2.4):** mit der Option „Zusätzlich eigene Felder
   der Quelle mit Herkunft schreiben“ schlägt Online-Metadaten Kopien mit Herkunft „Spotify“ vor: `SPOTIFY_ALBUM_ID`,
   `SPOTIFY_ARTIST_ID` (erster Künstler), `SPOTIFY_TITLE`, `SPOTIFY_ARTIST`, `SPOTIFY_ALBUM`, `SPOTIFY_RELEASE_DATE`,
