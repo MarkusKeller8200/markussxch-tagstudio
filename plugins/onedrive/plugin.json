@@ -1,14 +1,14 @@
 {
   "id": "onedrive",
   "name": "OneDrive",
-  "version": "1.1",
+  "version": "1.2",
   "min_app": "4.11.0",
   "category": "cloud",
   "api": 1,
   "author": "MarKusSXCH TagStudio",
   "fields": [],
-  "description": "Gleicht Playlists, Export und Programmdaten-Teile mit einem Ordner in deinem OneDrive ab (privat und geschäftlich) – ohne OneDrive-App, über Microsoft Graph. Braucht eine eigene App in Microsoft Entra (Client-ID). Einrichten unter Einstellungen › Cloud › „Abgleich über die Dienste“.",
-  "notes": "Keine Zusatzpakete nötig. Unter „Anmelden …“ die Client-ID deiner App eintragen und anmelden.",
+  "description": "Zwei Kontoarten (umschaltbar unter „Kontoart …“): Geschäfts- oder Schulkonto – gleicht Playlists, Export und Programmdaten-Teile über Microsoft Graph mit einem Ordner in OneDrive ab (eigene App in Microsoft Entra, Client-ID). Privates OneDrive – keine App und keine Anmeldung: TagStudio nutzt nur den OneDrive-Ordner auf diesem Rechner für den Spiegel der Bibliothek und die Sicherung der Programmdaten. Einrichten unter Einstellungen › Cloud.",
+  "notes": "Keine Zusatzpakete nötig. Zuerst „Kontoart …“ wählen; bei Geschäftskonten danach unter „Anmelden …“ die Client-ID deiner App eintragen.",
   "service": {
     "name": "Microsoft Graph (OneDrive)",
     "kind": "online",
@@ -16,7 +16,7 @@
     "docs": "https://learn.microsoft.com/graph/api/resources/onedrive",
     "base": "https://graph.microsoft.com/v1.0",
     "auth": "oauth",
-    "auth_note": "Eigene App in Microsoft Entra (Client-ID, öffentlicher Client), Anmeldung mit PKCE, Berechtigung Files.ReadWrite (ohne Administrator-Zustimmung, ausser die Organisation sperrt die Benutzer-Zustimmung). Token verschlüsselt.",
+    "auth_note": "Geschäfts-/Schulkonto: eigene App in Microsoft Entra (Client-ID, öffentlicher Client), Endpunkt „organizations“ bzw. Verzeichnis-ID, Anmeldung mit PKCE, Berechtigung Files.ReadWrite (ohne Administrator-Zustimmung, ausser die Organisation sperrt die Benutzer-Zustimmung). Token verschlüsselt. Privates OneDrive: keine Anmeldung (OneDrive-Ordner).",
     "limits": "Drosselung durch Microsoft (HTTP 429 mit Retry-After) – TagStudio meldet und wiederholt nicht",
     "terms": "https://learn.microsoft.com/legal/microsoft-apis/terms-of-use",
     "endpoints": [

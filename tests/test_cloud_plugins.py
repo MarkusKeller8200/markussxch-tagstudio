@@ -275,3 +275,78 @@ class TestCloudPlugins(Base):
         ov = self.s.cloud_sync_set("app", "purchases", {"provider": "dropbox"})
         row = [r for r in ov["rows"] if r["id"] == "purchases"][0]
         self.assertEqual(row["sync"]["remote"], "TagStudio/Programmdaten/Käufe")
+
+
+class TestOneDriveKind(Base):
+    """#405: Umschalter Kontoart – geschäftlich (App, organizations) bzw. privat (OneDrive-Ordner)."""
+
+    def setUp(self):
+        super().setUp()
+        from session import Session
+        import plugins
+        self.s = Session()
+        self.p = self.s.plugins.get("onedrive")
+        self.mod = self.p.load()
+        self.assertIsNotNone(self.mod, self.p.error)
+        self.ctx = plugins.Context(self.p)
+        self.od = os.path.join(self.dir, "OneDrive")
+        os.makedirs(self.od)
+        self._orig = onlinematch.http_request
+        self.addCleanup(setattr, onlinematch, "http_request", self._orig)
+
+    def ids(self):
+        return [a["id"] for a in self.p.actions(self.ctx)]
+
+    def test_default_private_without_app(self):
+        self.assertEqual(self.mod.load_settings(self.ctx)["account"], "private")
+        self.assertEqual(self.ids(), ["settings", "test"])
+        ok, why = self.mod.ready(self.ctx)
+        self.assertFalse(ok)
+        self.assertIn("OneDrive-Ordner fehlt", why)
+
+    def test_default_business_with_existing_app(self):
+        self.mod.app(self.ctx).save_credentials({"client_id": "CID"})
+        self.assertEqual(self.mod.load_settings(self.ctx)["account"], "business")
+        self.assertEqual(self.ids(), ["settings", "login", "logout", "test"])
+
+    def test_private_folder(self):
+        r = self.mod.run("settings", self.ctx, [], {"account": "private", "folder": self.od})
+        self.assertIn("privates OneDrive", r["message"])
+        self.assertEqual(self.mod.cloud_folder(self.ctx), os.path.abspath(self.od))
+        self.assertIn("in Ordnung", self.mod.run("test", self.ctx, [], {})["message"])
+        self.assertIn("keine Anmeldung", self.mod.run("login", self.ctx, [], {})["message"])
+        with self.assertRaises(onlinematch.HttpError):
+            self.mod.cloud_list(self.ctx, "TagStudio")                     # privat: kein API-Abgleich
+        prov = {p["id"]: p for p in self.s.cloud_sync_overview()["providers"]}
+        self.assertFalse(prov["onedrive"]["ready"])
+        # fehlender Ordner → Meldung, Einstellung bleibt
+        r = self.mod.run("settings", self.ctx, [], {"account": "private", "folder": os.path.join(self.dir, "fehlt")})
+        self.assertIn("nicht gefunden", r["message"])
+        self.assertEqual(self.mod.cloud_folder(self.ctx), os.path.abspath(self.od))
+
+    def test_switch_keeps_settings(self):
+        self.mod.app(self.ctx).save_credentials({"client_id": "CID"})
+        self.mod.run("settings", self.ctx, [], {"account": "private", "folder": self.od})
+        self.assertEqual(self.mod.app(self.ctx).client_id, "CID")          # App-Daten bleiben
+        self.mod.run("settings", self.ctx, [], {"account": "business", "tenant": ""})
+        st = self.mod.load_settings(self.ctx)
+        self.assertEqual((st["account"], st["folder"], st["tenant"]), ("business", os.path.abspath(self.od), "organizations"))
+        self.assertEqual(self.mod.cloud_folder(self.ctx), "")
+
+    def test_business_endpoint_and_tenant(self):
+        self.mod.run("settings", self.ctx, [], {"account": "business", "tenant": ""})
+        a = self.mod.app(self.ctx)
+        a.save_credentials({"client_id": "CID"})
+        self.assertTrue(a.auth_url().startswith("https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?"))
+        self.mod.run("settings", self.ctx, [], {"account": "business", "tenant": "firma.ch"})
+        self.assertIn("/firma.ch/oauth2/v2.0/token", self.mod.app(self.ctx).cfg["token"])
+        for bad in ("common", "consumers", "a b"):
+            self.assertIn("Verzeichnis", self.mod.run("settings", self.ctx, [], {"account": "business", "tenant": bad})["message"])
+
+    def test_business_personal_drive_hint(self):
+        g = FakeGraph()
+        onlinematch.http_request = g
+        a = self.mod.app(self.ctx)
+        a.save_credentials({"client_id": "CID"})
+        a._save(token=json.dumps({"access_token": TOKEN, "refresh_token": "RT", "expires_at": time.time() + 3600}))
+        self.assertIn("Privates OneDrive", self.mod.run("test", self.ctx, [], {})["message"])   # Fake: driveType personal

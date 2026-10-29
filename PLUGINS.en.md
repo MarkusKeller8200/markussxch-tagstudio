@@ -470,10 +470,19 @@ Targets for Settings › Cloud › **“Sync via the services”** (#317–#320,
 “Paste address” as a fallback. TagStudio only writes below its folder (default `TagStudio/<role>`). Limits (HTTP 429,
 quota) are reported, not retried.
 
-- **OneDrive** (Microsoft Graph, personal and work): register an app in Microsoft Entra, platform “Mobile and desktop
-  applications” with redirect URI `http://localhost/callback` (any port), allow public client flows, delegated
-  permissions `Files.ReadWrite`, `User.Read`, `offline_access` (no admin consent needed unless the organisation blocks
-  user consent). Up to 4 MB in one request, larger files via an upload session; deleting = recycle bin.
+- **OneDrive** (1.2, #405) with the switch **“Account type …”** (tile button “Options”):
+  - **Work or school account** (Microsoft Graph): register an app in your organisation's Entra directory (account types
+    “this organisational directory only” – then enter the directory ID or domain under “Account type …” – or “any
+    organisational directory”), platform “Mobile and desktop applications” with redirect URI `http://localhost/callback`
+    (any port), allow public client flows, delegated permissions `Files.ReadWrite`, `User.Read`, `offline_access`.
+    Sign-in uses the `organizations` endpoint (Microsoft rejects personal accounts there – TagStudio then points to the
+    switch). No admin consent needed unless the organisation blocks user consent. Up to 4 MB in one request, larger
+    files via an upload session; deleting = recycle bin.
+  - **Private OneDrive**: no app and no sign-in. You only choose the **OneDrive folder** on this computer (suggested from
+    the desktop client); the library mirror and the program data backup go there (Settings › Cloud). You choose plan and
+    storage size; TagStudio shows an estimate before mirroring.
+  - New installation without an app: “Private”; with an app already entered: “Work” (previous behaviour). Switching
+    keeps app data and folder.
 - **Google Drive** (Drive API v3): Google Cloud project, enable the Drive API, OAuth client “Desktop app” (client ID and
   secret), scope `drive.file` – TagStudio only sees what it created itself; deleting = trash.
 - **Dropbox** (API v2): app in the App Console (scoped access, “App folder” recommended), permissions

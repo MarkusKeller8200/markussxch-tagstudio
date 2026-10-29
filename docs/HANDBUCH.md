@@ -686,7 +686,8 @@ Dateien** („Dateien bei Bedarf“, nichts lädt unbemerkt herunter – auf Wun
 empfohlen). Sync-Ordner und „Nur-online-Dateien“ stehen in der eigenen Karte **Einstellungen › Cloud** (#324). **Abgleich über die Dienste**
 (#317, ohne Desktop-Client): In derselben Karte lassen sich in einer Tabelle (Bereich · Dienst · Richtung · Ordner im Dienst) die
 Rollen **Playlists** und **Export** sowie Programmdaten-Teile (Playlists-Speicher, Einkäufe, Entdecken, Einstellungen
-ohne Zugangsdaten) mit einem Ordner bei OneDrive, Google Drive oder Dropbox abgleichen (Plugins, eigene App je
+ohne Zugangsdaten) mit einem Ordner bei OneDrive (nur Geschäfts-/Schulkonten – für ein privates OneDrive unter
+Plugins › OneDrive › „Kontoart …“ „Privat“ wählen und den OneDrive-Ordner angeben, #405), Google Drive oder Dropbox abgleichen (Plugins, eigene App je
 Dienst – Einrichtung in [PLUGINS.md](../PLUGINS.md); Standard `/TagStudio/<Rolle>`), in beiden Richtungen oder nur hoch-/herunterladen. **Jetzt abgleichen** zeigt
 danach Konflikte mit beiden Fassungen (hier behalten / aus dem Dienst / beide behalten) und gelöschte Dateien – gelöscht
 wird nur nach Rückfrage. Musik, Snapshots, Arbeit, Cache und Zugangsdaten werden nie über die Dienste abgeglichen;

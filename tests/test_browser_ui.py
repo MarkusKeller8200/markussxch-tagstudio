@@ -2325,9 +2325,23 @@ class UiTest(unittest.TestCase):
             t = document.querySelector('#stCloudSync .cs-table').getBoundingClientRect(); return [c.width, t.width]; })()""")
         self.assertGreater(w[1], w[0] - 4, w)
         pg.locator("#stCloudCard").screenshot(path=os.path.join(self.dir, "cloud.png"))
-        # Plugin-Karte OneDrive: Anmelden mit Anleitung, Redirect auf localhost
+        # Plugin-Karte OneDrive (#405): ohne App zuerst „Privat“ – Kontoart umschalten, dann Anmelden mit Anleitung
         pg.click('.nav[data-module="plugins"]')
         card = '.pl-card[data-pid="onedrive"]'
+        pg.wait_for_selector(card + ' [data-paction="settings"]')
+        self.assertEqual(pg.locator(card + ' [data-paction="login"]').count(), 0)
+        self.assertIn("OneDrive-Ordner fehlt", pg.inner_text(card))
+        pg.click(card + ' [data-paction="settings"]')
+        pg.wait_for_selector('#modal [data-ok="account"]')
+        vis = lambda k: pg.locator(f'#modal [data-ok="{k}"]').is_visible()   # noqa: E731
+        self.assertEqual(pg.input_value('#modal [data-ok="account"]'), "private")
+        self.assertEqual((vis("folder"), vis("tenant")), (True, False))
+        self.assertIn("wie viel Platz", pg.inner_text("#modal"))
+        pg.select_option('#modal [data-ok="account"]', "business")
+        self.assertEqual((vis("folder"), vis("tenant")), (False, True))
+        pg.click("#mBtns button >> text=Übernehmen")
+        pg.wait_for_selector("#modal >> text=Geschäfts-/Schulkonto")
+        pg.click("#mBtns button >> text=OK")
         pg.wait_for_selector(card + ' [data-paction="login"]')
         self.assertIn("keine Client-ID", pg.inner_text(card))
         pg.click(card + ' [data-paction="login"]')

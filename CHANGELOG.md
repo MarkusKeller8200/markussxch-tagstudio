@@ -6,6 +6,13 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **OneDrive – Kontoart (#405, Plugin 1.2):** Umschalter „Kontoart …“ (Knopf „Optionen“): **Geschäfts-/Schulkonto**
+  wie bisher über Microsoft Graph mit eigener Entra-App, jetzt über den Endpunkt `organizations` bzw. eine
+  eingetragene Verzeichnis-ID; **Privates OneDrive** ohne App und ohne Anmeldung – nur der OneDrive-Ordner auf diesem
+  Rechner (für Spiegel und Sicherung). Bestehende Einrichtungen mit App bleiben „Geschäftlich“.
+
 ### Sicherheit
 
 - **Zugangsdaten nie an fremde Hosts (#401):** Leitet ein Dienst um (z. B. OneDrive-Download auf eine vorab

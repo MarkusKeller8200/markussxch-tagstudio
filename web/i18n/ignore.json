@@ -399,6 +399,7 @@
 "Content-Disposition",
 "Authorization",
 "Cookie",
+"persönlichen Konto",
 "Proxy-authorization",
 "X-api-key",
 "Retry-After",
