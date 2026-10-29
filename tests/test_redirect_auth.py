@@ -11,16 +11,19 @@ import onlinematch as om  # noqa: E402
 
 
 class _Srv:
-    """Kleiner Server: /redirect?to=<url> → 302, sonst 200 und merkt sich die Kopfzeilen."""
+    """Kleiner Server: /redirect → 302 auf das vorher gesetzte Ziel ``target``, sonst 200 und merkt sich die
+    Kopfzeilen. Das Ziel kommt nie aus der Anfrage (#410, CodeQL „HTTP Response Splitting“)."""
 
     def __init__(self, host="127.0.0.1"):
         seen = self.seen = []
+        srv = self
+        self.target = ""
 
         class H(http.server.BaseHTTPRequestHandler):
             def _go(self):
-                if self.path.startswith("/redirect?to="):
+                if self.path == "/redirect":
                     self.send_response(302)
-                    self.send_header("Location", self.path.split("=", 1)[1])
+                    self.send_header("Location", srv.target)
                     self.send_header("Content-Length", "0")
                     self.end_headers()
                     return
@@ -61,7 +64,8 @@ class RedirectAuthTest(unittest.TestCase):
 
     def test_other_host_gets_no_token(self):
         target = f"http://127.0.0.1:{self.b.port}/datei"      # anderer Port = andere Herkunft (wie anderer Host)
-        url = f"http://127.0.0.1:{self.a.port}/redirect?to={target}"
+        self.a.target = target
+        url = f"http://127.0.0.1:{self.a.port}/redirect"
         st, _h, body = om.http_get(url, {"Authorization": "Bearer GEHEIM", "Cookie": "s=1", "X-Api-Key": "K",
                                          "User-Agent": "test"})
         self.assertEqual((st, body), (200, b"ok"))
@@ -72,13 +76,15 @@ class RedirectAuthTest(unittest.TestCase):
         self.assertEqual(h.get("user-agent"), "test")       # unkritische Kopfzeilen bleiben
 
     def test_same_host_keeps_token(self):
-        url = f"http://127.0.0.1:{self.a.port}/redirect?to=http://127.0.0.1:{self.a.port}/datei"
+        self.a.target = f"http://127.0.0.1:{self.a.port}/datei"
+        url = f"http://127.0.0.1:{self.a.port}/redirect"
         st, _h, _b = om.http_get(url, {"Authorization": "Bearer GEHEIM"})
         self.assertEqual(st, 200)
         self.assertEqual(self.a.seen[-1].get("authorization"), "Bearer GEHEIM")
 
     def test_request_also_protected(self):
-        url = f"http://127.0.0.1:{self.a.port}/redirect?to=http://127.0.0.1:{self.b.port}/datei"
+        self.a.target = f"http://127.0.0.1:{self.b.port}/datei"
+        url = f"http://127.0.0.1:{self.a.port}/redirect"
         st, _h, _b = om.http_request("GET", url, {"Authorization": "Bearer GEHEIM"})
         self.assertEqual(st, 200)
         self.assertNotIn("authorization", self.b.seen[-1])
