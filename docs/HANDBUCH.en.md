@@ -68,6 +68,12 @@ Download the latest version under [Releases](https://github.com/MarkusKeller8200
   close the message on first start, then **System Settings → Privacy & Security → “Open Anyway”** (details in
   “Zuerst lesen.txt” in the disk image).
 
+**Verify the download (#406, #407):** from 4.14.0 the release notes show the **SHA-256** checksum and a link to the
+**VirusTotal** report for each installer; `SHA256SUMS.txt` lists the checksums of all release files. Compare before
+running: Windows (PowerShell) `Get-FileHash .\TagStudio-<version>-Windows-Setup.exe -Algorithm SHA256`, macOS (Terminal)
+`shasum -a 256 TagStudio-<version>-macOS-Apple-Chip.dmg` – the value shown must match exactly. Only then choose “Run
+anyway” at the Windows warning. The one-click update checks the checksum itself.
+
 The installed app contains the new interface including plugins (stems sets up its own environment the first time it
 is installed). **Updates:** the “Check for update” button opens the releases page; download the new version and
 install it over the old one – settings, backups and plugin data live in the user folder and are kept.

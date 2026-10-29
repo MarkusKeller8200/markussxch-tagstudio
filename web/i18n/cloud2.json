@@ -131,5 +131,9 @@
 "Nichts zum Wiederherstellen gewählt.": ["Nothing selected to restore.", "Nüt zum Widerhärstelle gwählt."],
 "Programmdaten sichern …": ["Backing up program data …", "Programmdate sichere …"],
 "Jetzigen Stand sichern …": ["Backing up the current state …", "Jetzige Stand sichere …"],
-"keine Dateien": ["no files", "kei Datei"]
+"keine Dateien": ["no files", "kei Datei"],
+"(alle Dateien: [{x}]({x}))": ["(all files: [{x}]({x}))", "(alli Datei: [{x}]({x}))"],
+"Download prüfen: Windows `Get-FileHash": ["Verify the download: Windows `Get-FileHash", "Download prüefe: Windows `Get-FileHash"],
+"-Algorithm SHA256`, macOS `shasum -a {n}": ["-Algorithm SHA256`, macOS `shasum -a {n}", "-Algorithm SHA256`, macOS `shasum -a {n}"],
+"` – der Wert muss mit der SHA-{n} oben übereinstimmen{x}.": ["` – the value must match the SHA-{n} above{x}.", "` – de Wärt mues mit de SHA-{n} obe übereistimme{x}."]
 }

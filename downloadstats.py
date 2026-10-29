@@ -19,6 +19,7 @@ from __future__ import annotations
 import datetime
 import json
 import os
+import re
 import sys
 import urllib.request
 
@@ -28,6 +29,7 @@ STATS_URL = f"https://raw.githubusercontent.com/{REPO}/stats/docs/download-stats
 RELEASES_URL = f"https://github.com/{REPO}/releases"
 UA = "MarKusSXCH-TagStudio"
 KEEP_DAYS = 800
+SUMS_NAME = "SHA256SUMS.txt"                  # #406: Prüfsummen aller Release-Dateien
 
 
 def kind(name: str) -> str:
@@ -66,7 +68,8 @@ def fetch(token: str = "", timeout: float = 10.0, get=None) -> list:
                         "id": x.get("id"), "body": str(x.get("body") or ""),
                         "assets": [{"name": str(a.get("name") or ""), "kind": kind(a.get("name")),
                                     "count": int(a.get("download_count") or 0), "size": int(a.get("size") or 0),
-                                    "url": str(a.get("browser_download_url") or "")} for a in x.get("assets") or []]})
+                                    "url": str(a.get("browser_download_url") or ""),
+                                    "digest": str(a.get("digest") or "")} for a in x.get("assets") or []]})
         if len(data) < 100:
             break
     return out
@@ -165,6 +168,14 @@ def download_block(rel: dict) -> str:
     lines = [BLOCK_START, "## ⬇ Download", "", "| | |", "|---|---|"]
     for a in sorted(inst, key=lambda a: a["kind"] != "win"):
         lines.append(f"| **{label[a['kind']]}** | [{a['name']}]({a['url']}) · {_mb(a.get('size') or 0)} |")
+        sha = str(a.get("digest") or "")
+        if sha.lower().startswith("sha256:") and re.fullmatch(r"[0-9a-fA-F]{64}", sha[7:]):   # #406: Prüfsumme
+            lines.append(f"| | SHA-256 `{sha[7:].lower()}` |")
+    sums = next((a for a in rel["assets"] if a["name"] == SUMS_NAME and a.get("url")), None)
+    if sums or any(str(a.get("digest") or "").startswith("sha256:") for a in inst):
+        allf = f" (alle Dateien: [{SUMS_NAME}]({sums['url']}))" if sums else ""
+        lines += ["", "Download prüfen: Windows `Get-FileHash <Datei> -Algorithm SHA256`, macOS `shasum -a 256 <Datei>` – "
+                      f"der Wert muss mit der SHA-256 oben übereinstimmen{allf}."]
     plug = [a for a in rel["assets"] if a["kind"] == "plugin" and a.get("url")]
     if plug:
         lines += ["", f"<details><summary>Plugins ({len(plug)}) – TagStudio bietet sie unter „Plugins“ selbst an, "

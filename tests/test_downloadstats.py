@@ -103,6 +103,16 @@ class TestSiteAndNotes(unittest.TestCase):
         self.assertIn("<details><summary>Plugins (1)", blk)
         self.assertNotIn("plugins.json", blk)
         self.assertEqual(ds.download_block(r[1]), "")                                   # ohne Download-Adressen kein Kasten
+        r[0]["assets"][0]["digest"] = "sha256:" + "AB" * 32                              # #406: Prüfsumme im Kasten
+        r[0]["assets"].append({"name": "SHA256SUMS.txt", "kind": "other", "count": 0, "size": 9, "url": "https://x/s.txt"})
+        blk2 = ds.download_block(r[0])
+        self.assertIn("SHA-256 `" + "ab" * 32 + "`", blk2)
+        self.assertIn("[SHA256SUMS.txt](https://x/s.txt)", blk2)
+        self.assertIn("Get-FileHash", blk2)
+        r[0]["assets"][0]["digest"] = "sha256:kaputt"
+        self.assertNotIn("kaputt", ds.download_block(r[0]))
+        r[0]["assets"] = [a for a in r[0]["assets"] if a["name"] != "SHA256SUMS.txt"]
+        r[0]["assets"][0].pop("digest")
         body = ds.apply_block(r[0]["body"], blk)
         self.assertTrue(body.startswith(ds.BLOCK_START))
         self.assertNotIn("**Download:** Windows →", body)                                 # alte Zeile weg

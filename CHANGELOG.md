@@ -20,6 +20,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   Einkäufe, Entdecken (ohne SonoVault), Vorbereiten und Mixe als ZIP in einen Ordner (z. B. OneDrive), von Hand, beim
   Beenden oder täglich; Wiederherstellen mit Vorschau, vorheriger Sicherung und Pfaden für diesen Rechner; ältere
   Sicherungen nur nach Rückfrage löschen.
+- **Download prüfen (#406, #407):** Versionshinweise zeigen je Installer die SHA-256-Prüfsumme (auch rückwirkend im
+  Download-Kasten) und ab diesem Release `SHA256SUMS.txt` sowie den VirusTotal-Bericht; ein Release wird angehalten,
+  wenn ein Scanner etwas meldet. Handbuch: Abschnitt „Download prüfen“.
 
 ### Sicherheit
 
