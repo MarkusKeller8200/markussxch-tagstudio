@@ -689,8 +689,10 @@ backed up first), delete a backup, automatic backup on/off, change/open the fold
 </ul>
 <h3 id="update-layout-keyboard">Update, layout, keyboard</h3>
 <ul>
-<li><strong>Update:</strong> “Check for update” at the bottom of the sidebar; TagStudio checks by itself on start (dot on the
-  button). Under Settings › Updates: <strong>official versions only</strong> or <strong>beta versions too</strong>. The installed app shows the
+<li><strong>Update:</strong> “Check for update” at the bottom of the sidebar; TagStudio checks by itself on start and every 15
+  minutes (dot on the button) and announces a new version with a <strong>pop-up</strong> (#417: once per version, “Later” = again
+  at the next start; never while a task runs). “Don't notify me again” in the pop-up or Settings › Updates › “Notify me
+  about a new version” switches the pop-up off – then only the marker on the button remains. Under Settings › Updates: <strong>official versions only</strong> or <strong>beta versions too</strong>. The installed app shows the
   new version with its notes and downloads the matching installer. In the source code variant a click fetches the new
   version (<code>git</code>, fast-forward only, only without your own changes in the program folder; with “official only” up to
   the newest version tag) and restarts; unsaved changes are asked about first.</li>
