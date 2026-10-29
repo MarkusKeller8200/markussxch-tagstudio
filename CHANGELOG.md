@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.14.0] – 2026-10-29
+
 ### Neu
 
 - **Update-Benachrichtigung (#417):** TagStudio prüft beim Start und alle 15 Minuten auf eine neue Version und meldet
