@@ -1943,3 +1943,4 @@ html.i18n-wait body{visibility:hidden}
 /* #414: Einstellungen › Cloud – alle Knöpfe und Felder einer Zeile gleich hoch */
 #stCloud .primary.sm,#stCloud .ghost.sm,#stCloud .st-row .inp,#stCloud select.inp{height:34px;box-sizing:border-box}
 #stCloud .primary.sm{padding:0 14px;font-size:13px}
+.upd-pop .upd-notes{max-height:34vh;overflow:auto;margin:6px 0 10px}   /* #417 */

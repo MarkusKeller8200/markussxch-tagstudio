@@ -129,6 +129,7 @@ async function settingsShow() {
         <span></span><span class="muted sm">${d.update_channel === "dev" ? "Entwicklungsstand: jede Änderung auf GitHub sofort – nicht für den normalen Einsatz."
           : d.update_channel === "stable" && /-/.test(d.version) ? "Du verwendest eine Beta – die nächste offizielle Version wird angeboten, sobald sie erscheint."
           : "Beta-Versionen erscheinen nur, solange eine neue Version in Arbeit ist."}</span>
+        <span></span><label class="check sm"><input type="checkbox" id="stUpdNotify" ${d.update_notify !== false ? "checked" : ""}> Bei neuer Version benachrichtigen (Popup) – sonst nur die Markierung bei „Nach Update suchen“; geprüft wird beim Start und alle 15 Minuten</label>
         <span></span><div class="st-path"><button class="ghost sm" id="stUpdCheck">Jetzt nach Updates suchen</button><button class="ghost sm" id="stUpdNotes">Versionshinweise</button></div>
       </div></section>
     <section class="card" id="stFolderCard"><h3>Speicherort und Ordner</h3><div id="stFolders"><span class="muted sm">…</span></div></section>
@@ -794,6 +795,7 @@ function initSettings() {
     }
     else if (t.id === "stPlXfRet") plSetPref("xfade_return", +t.value);
     else if (t.dataset.vd) await stVdSet(t);
+    else if (t.id === "stUpdNotify") { await call("set_update_notify", t.checked); toast(t.checked ? "Neue Versionen werden mit einem Popup gemeldet." : "Keine Update-Popups – neue Versionen zeigt nur „Nach Update suchen“."); }
     else if (t.id === "stUpdCh") { await call("set_update_channel", t.value); toast(t.value === "dev" ? "Updates: Entwicklungsstand (jede Änderung)." : t.value === "beta" ? "Updates: auch Beta-Versionen." : "Updates: nur offizielle Versionen."); settingsShow(); checkUpdateQuietly(); }
     else if (t.id === "stPlLayout") { pl2Pref("layout", t.value); await call("set_player_pref", "layout", t.value); settingsShow(); }
     else if (t.id === "stPlDeck2") plSetPref("deck2", t.checked);

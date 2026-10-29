@@ -8,6 +8,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Update-Benachrichtigung (#417):** TagStudio prüft beim Start und alle 15 Minuten auf eine neue Version und meldet
+  sie mit einem Popup (Versionshinweise, „Jetzt aktualisieren …“, „Später“). Abschaltbar im Popup („Nicht mehr
+  benachrichtigen“) und unter Einstellungen › Updates – dann bleibt nur die Markierung bei „Nach Update suchen“.
 - **OneDrive – Kontoart (#405, #412, Plugin 1.3):** Umschalter „Kontoart …“ (Knopf „Optionen“): **Geschäfts-/Schulkonto**
   wie bisher über Microsoft Graph mit eigener Entra-App, jetzt über den Endpunkt `organizations` bzw. eine
   eingetragene Verzeichnis-ID; **Privates OneDrive** ohne App und ohne Anmeldung – nur der OneDrive-Ordner auf diesem

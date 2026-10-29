@@ -623,8 +623,10 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
 
 ### Update, layout, keyboard
 
-- **Update:** “Check for update” at the bottom of the sidebar; TagStudio checks by itself on start (dot on the
-  button). Under Settings › Updates: **official versions only** or **beta versions too**. The installed app shows the
+- **Update:** “Check for update” at the bottom of the sidebar; TagStudio checks by itself on start and every 15
+  minutes (dot on the button) and announces a new version with a **pop-up** (#417: once per version, “Later” = again
+  at the next start; never while a task runs). “Don't notify me again” in the pop-up or Settings › Updates › “Notify me
+  about a new version” switches the pop-up off – then only the marker on the button remains. Under Settings › Updates: **official versions only** or **beta versions too**. The installed app shows the
   new version with its notes and downloads the matching installer. In the source code variant a click fetches the new
   version (`git`, fast-forward only, only without your own changes in the program folder; with “official only” up to
   the newest version tag) and restarts; unsaved changes are asked about first.

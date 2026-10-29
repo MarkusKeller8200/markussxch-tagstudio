@@ -656,7 +656,10 @@ Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen 
 
 ### Update, Layout, Tastatur
 
-- **Update:** „Nach Update suchen“ unten in der Seitenleiste; TagStudio prüft beim Start selbst (Punkt am Knopf).
+- **Update:** „Nach Update suchen“ unten in der Seitenleiste; TagStudio prüft beim Start und danach alle 15 Minuten
+  selbst (Punkt am Knopf) und meldet eine neue Version mit einem **Popup** (#417: einmal je Version, „Später“ = beim
+  nächsten Start wieder; nicht während eines Auftrags). „Nicht mehr benachrichtigen“ im Popup bzw. Einstellungen ›
+  Updates › „Bei neuer Version benachrichtigen“ schaltet das Popup ab – dann bleibt nur die Markierung am Knopf.
   Unter Einstellungen › Updates: **nur offizielle Versionen** oder **auch Beta-Versionen**. Die installierte App
   zeigt die neue Version mit ihren Hinweisen; unter Windows lädt **„Jetzt aktualisieren“** den Installer, prüft ihn,
   installiert still und startet TagStudio neu (macOS: Installer herunterladen). In der Quellcode-Variante

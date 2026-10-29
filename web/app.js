@@ -401,8 +401,52 @@ async function showReleaseNotes() {
     } });
 }
 
+// #417: beim Start und alle 15 Minuten prüfen; bei neuer Version ein Popup (abschaltbar), sonst nur die Markierung
+const UPD_EVERY = 15 * 60 * 1000;
+const UPDN = { shown: new Set(), timer: null };
+
 async function checkUpdateQuietly() {
-  try { showUpdateBadge(await call("update_status", true)); } catch (e) { /* offline – egal */ }
+  let st;
+  try { st = await call("update_status", true); } catch (e) { return; /* offline – egal */ }
+  showUpdateBadge(st);
+  updateNotify(st);
+}
+
+function updateKey(st) {
+  if (!st || !st.ok) return "";
+  if (st.kind === "release") return st.newer && st.latest ? `r:${st.latest.version}` : "";
+  return st.behind || st.switch ? `g:${st.remote || st.switch || ""}:${st.behind || 0}` : "";
+}
+
+/** Popup einmal je Version und Sitzung („Später“ = erst beim nächsten Start wieder) – nicht während eines Auftrags
+ *  oder eines offenen Dialogs */
+async function updateNotify(st) {
+  const key = updateKey(st);
+  if (!key || st.notify === false || UPDN.shown.has(key)) return;
+  const busy = st.busy || ($("#progress") && !$("#progress").hidden) || ($("#modal") && !$("#modal").hidden)
+    || ($("#dialog") && !$("#dialog").hidden) || ($("#wizard") && !$("#wizard").hidden);
+  if (busy) { setTimeout(() => updateNotify(Object.assign({}, st, { busy: false })), 60000); return; }
+  UPDN.shown.add(key);
+  const rel = st.kind === "release", lt = st.latest || {};
+  const notes = rel ? mdLite(String(lt.notes || "").replace(/^\*\*Download:\*\*.*$/m, "").split("\n").slice(0, 14).join("\n")) : "";
+  const r = await modal({ title: rel ? `Neue Version ${lt.version}${lt.beta ? " (Beta)" : ""}` : "Neue Version verfügbar", wide: true,
+    html: `<div class="rn upd-pop"><p>Installiert: <b>${esc(st.version || "")}</b>${rel ? ` · neu: <b>${esc(lt.version)}</b>${lt.date ? ` vom ${esc(lt.date)}` : ""}`
+        : ` · ${fmtN(st.behind || 0)} Änderung(en) auf GitHub (${esc(st.switch || st.branch || "")})`}</p>
+      ${notes ? `<div class="upd-notes">${notes}</div>` : ""}
+      <label class="check sm"><input type="checkbox" id="updNoPop"> Nicht mehr benachrichtigen – nur noch die Markierung bei „Nach Update suchen“ (Einstellungen › Updates)</label></div>`,
+    buttons: [{ label: "Später", value: "later" }, { label: "Jetzt aktualisieren …", value: "go", primary: true }],
+    collect: (b, v) => ({ off: $("#updNoPop", b).checked, value: v }) });
+  const off = !!(r && r.off);
+  if (off) {
+    try { await call("set_update_notify", false); } catch (e) { /* bleibt an */ }
+    toast("Keine Update-Popups mehr – neue Versionen zeigt nur noch „Nach Update suchen“.");
+  }
+  if (r && r.value === "go") runUpdate();
+}
+
+function updateWatch() {
+  if (UPDN.timer) clearInterval(UPDN.timer);
+  UPDN.timer = setInterval(checkUpdateQuietly, UPD_EVERY);
 }
 
 async function runUpdate() {
@@ -695,6 +739,7 @@ async function init() {
   });
   $("#notesBtn").addEventListener("click", showReleaseNotes);                // #90
   setTimeout(checkUpdateQuietly, 1500);
+  updateWatch();                                                             // #417: alle 15 Minuten
   syncOptions();
   renderPairs();
   showView(null);

@@ -257,6 +257,15 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         core.save_config({"update_channel": channel, "update_channel_v2": True})
         return channel
 
+    def update_notify(self) -> bool:
+        """#417: bei neuer Version ein Popup zeigen (Standard an); aus = nur die Markierung am Knopf „Nach Update suchen“."""
+        return self.cfg.get("update_notify", True) is not False
+
+    def set_update_notify(self, on) -> bool:
+        self.cfg["update_notify"] = bool(on)
+        core.save_config({"update_notify": bool(on)})
+        return bool(on)
+
     def i18n_overlay_info(self, lang: str) -> dict:
         """#219: Anzahl eigener Texte je Sprache und Ablageort."""
         import i18n
@@ -689,7 +698,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 "stems_flat": bool(c.get("tagger_stems_flat")),
                 "mood_list": c.get("mood_list") if isinstance(c.get("mood_list"), list) else [],
                 "feat_scale": features.SCALE, "feat_scales": [[k, v] for k, v in features.SCALES.items()],
-                "update_channel": self.update_channel(), "version": VERSION, "frozen": bool(getattr(sys, "frozen", False)),
+                "update_channel": self.update_channel(), "update_notify": self.update_notify(), "version": VERSION, "frozen": bool(getattr(sys, "frozen", False)),
                 "view_defaults": self.view_defaults(), "modes": [[k, v] for k, v in PAIR_MODES.items()],
                 "empty_sets": [[k, v] for k, v in core.EMPTY_SETS.items()],
                 "tg_sort_cols": [["name", "Datei"], ["TIT2", "Titel"], ["TPE1", "Künstler"], ["TALB", "Album"], ["TRCK", "Spur"],

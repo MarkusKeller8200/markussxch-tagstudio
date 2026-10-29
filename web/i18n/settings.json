@@ -305,5 +305,13 @@
 "Zahlen von GitHub (Downloads über die Release-Seite und das Update in TagStudio). GitHub aktualisiert sie mit Verzögerung.": ["Figures from GitHub (downloads via the release page and the update in TagStudio). GitHub updates them with a delay.", "Zahle vo GitHub (Downloads über d Release-Siite und s Update in TagStudio). GitHub aktualisiert sie mit Verzögerig."],
 "Laufende Summe über die Versionen": ["Running total across versions", "Laufendi Summe über d Versione"],
 "Installer total": ["Installers total", "Installer total"],
-"Plugins total": ["Plugins total", "Plugins total"]
+"Plugins total": ["Plugins total", "Plugins total"],
+"· {x} Änderung(en) auf GitHub ({x})": ["· {x} change(s) on GitHub ({x})", "· {x} Änderig(e) uf GitHub ({x})"],
+"Nicht mehr benachrichtigen – nur noch die Markierung bei {q} (Einstellungen › Updates)": ["Don't notify me again – only the marker at {q} (Settings › Updates)", "Nüme benachrichtige – nur no d Markierig bi {q} (Iistellige › Updates)"],
+"Jetzt aktualisieren …": ["Update now …", "Jetzt aktualisiere …"],
+"Keine Update-Popups mehr – neue Versionen zeigt nur noch {q}.": ["No more update pop-ups – new versions are only shown by {q}.", "Kei Update-Popups meh – neui Versione zeigt nur no {q}."],
+"Bei neuer Version benachrichtigen (Popup) – sonst nur die Markierung bei {q}; geprüft wird beim Start und alle {n} Minuten": ["Notify me about a new version (pop-up) – otherwise only the marker at {q}; checked at start and every {n} minutes", "Bi neuer Version benachrichtige (Popup) – susch nur d Markierig bi {q}; prüeft wird bim Start und alli {n} Minute"],
+"Neue Versionen werden mit einem Popup gemeldet.": ["New versions are announced with a pop-up.", "Neui Versione werded mit eme Popup gmäldet."],
+"Keine Update-Popups – neue Versionen zeigt nur {q}.": ["No update pop-ups – new versions are only shown by {q}.", "Kei Update-Popups – neui Versione zeigt nur {q}."],
+"Updates (Kanal, Benachrichtigung)": ["Updates (channel, notification)", "Updates (Kanal, Benachrichtigung)"]
 }

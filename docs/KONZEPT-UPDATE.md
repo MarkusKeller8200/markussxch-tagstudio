@@ -13,7 +13,11 @@ bleiben bei jedem Update erhalten.
 
 ## 2. Funktionen
 
-- **„Nach Update suchen“** unten in der Seitenleiste; Prüfung beim Start (Punkt am Knopf).
+- **„Nach Update suchen“** unten in der Seitenleiste; Prüfung beim Start und alle 15 Minuten (Entscheid User
+  29.10.2026 21:04, #417; `web/app.js › UPD_EVERY`, `updateWatch`), Punkt am Knopf. **Popup** bei neuer Version
+  (`updateNotify`): einmal je Version und Sitzung, nicht während eines Auftrags (`update_status › busy`) oder eines
+  offenen Dialogs; „Nicht mehr benachrichtigen“ → cfg `update_notify` = false (auch Einstellungen › Updates, Export-
+  Gruppe „update“). Aus = nur die Markierung.
 - **Kanal** (Einstellungen › Updates, `update_channel`): `stable` = nur offizielle Versionen, `beta` = auch Betas –
   beide nur **veröffentlichte** Versionen (Releases bzw. Versions-Tags). `dev` = Entwicklungsstand `main`, **nur im
   Quellcode** wählbar, nie in der installierten App (#233, Entscheid User 17.10.2026). Ältere Quellcode-Einstellungen

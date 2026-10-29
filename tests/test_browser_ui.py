@@ -66,6 +66,9 @@ class UiTest(unittest.TestCase):
                          "stPlayerCard", "stPluginCard", "stOriginCard", "stTrivCard", "stCache", "stUpdateCard",
                          "stFolderCard", "stCloudCard", "stProfileCard", "stExpertCard"]
                 ui = {} if "settings_fold" in self._testMethodName else {"web_ui": {"st_open": cards}}
+                # #417: kein Update-Popup, das sich zeitabhängig über andere Tests legt (eigener Test: update_popup)
+                if "update_popup" not in self._testMethodName:
+                    ui["update_notify"] = False
                 json.dump({"setup_done": "test", "seen_version": VERSION, "first_steps": False, "snap_hint": False, **ui}, fh)
         self.errors = []
         self.server, self.url = self.start_server()
@@ -3308,6 +3311,49 @@ class UiTest(unittest.TestCase):
         others = [(i, t) for i, l, t in before if l != before[0][1]]
         self.assertEqual(others, [(i, t) for i, l, t in after if l != before[0][1]])     # andere Spalten unverändert
         pg.click(f"#{first} > h3")
+
+    def test_update_popup(self):
+        """#417: neue Version → Popup (einmal je Version und Sitzung), „Nicht mehr benachrichtigen“ im Popup und in den
+        Einstellungen; Prüfung alle 15 Minuten; während eines Auftrags kein Popup."""
+        pg = self.pg
+        pg.evaluate("""(() => { const orig = call; window.__calls = [];
+          window.__st = { ok: true, kind: "release", frozen: true, channel: "stable", version: "4.14.0", newer: true, behind: 1, notify: true, busy: false,
+            latest: { version: "4.15.0", beta: false, date: "2026-11-01", url: "u", notes: "## Neu\\n- Etwas Neues", assets: [] } };
+          window.call = (n, ...a) => {
+            if (n === "update_status") return Promise.resolve(Object.assign({}, window.__st));
+            if (n === "set_update_notify") { window.__calls.push(["notify", a[0]]); window.__st.notify = !!a[0]; return Promise.resolve(!!a[0]); }
+            return orig(n, ...a); }; })()""")
+        self.assertEqual(pg.evaluate("UPD_EVERY"), 15 * 60 * 1000)
+        self.assertTrue(pg.evaluate("!!UPDN.timer"))                                     # regelmässige Prüfung läuft
+        pg.evaluate("window.__st.busy = true; checkUpdateQuietly()")                       # Auftrag läuft → noch kein Popup
+        pg.wait_for_function("document.querySelector('#updateBtn').classList.contains('has-update')")
+        self.assertTrue(pg.locator("#modal").is_hidden())
+        pg.evaluate("window.__st.busy = false; UPDN.shown.clear(); checkUpdateQuietly()")
+        pg.wait_for_selector("#modal:not([hidden]) >> text=Neue Version 4.15.0")
+        self.assertIn("Etwas Neues", pg.inner_text("#mBody"))
+        pg.click("#mBtns button >> text=Später")
+        pg.evaluate("checkUpdateQuietly()")                                                # gleiche Version: kein zweites Mal
+        pg.wait_for_timeout(400)
+        self.assertTrue(pg.locator("#modal").is_hidden())
+        pg.evaluate("window.__st.latest = Object.assign({}, window.__st.latest, { version: '4.15.1' }); checkUpdateQuietly()")
+        pg.wait_for_selector("#modal:not([hidden]) >> text=Neue Version 4.15.1")           # neuere Version: wieder
+        pg.check("#updNoPop")
+        pg.click("#mBtns button >> text=Später")
+        self.assertTrue(self.until("window.__calls.some((c) => c[0] === 'notify' && c[1] === false)"))
+        pg.evaluate("window.__st.latest = Object.assign({}, window.__st.latest, { version: '4.16.0' }); checkUpdateQuietly()")
+        pg.wait_for_timeout(400)
+        self.assertTrue(pg.locator("#modal").is_hidden())                                 # aus: nur Markierung
+        self.assertIn("4.16.0", pg.inner_text("#updateLbl"))
+        # Einstellungen › Updates: Häkchen
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stUpdNotify", state="attached")
+        pg.evaluate("stOpenCard('stUpdateCard'); 0")
+        self.assertTrue(pg.locator("#stUpdNotify").is_checked())                          # Standard an
+        pg.uncheck("#stUpdNotify")
+        self.assertTrue(self.until("window.__calls.filter((c) => c[0] === 'notify' && c[1] === false).length === 2"))
+        pg.check("#stUpdNotify")
+        self.assertTrue(self.until("window.__calls.some((c) => c[0] === 'notify' && c[1] === true)"))
+        self.assertEqual(self.errors, [])
 
     def test_download_stats(self):
         """#370: Expert › Entwicklung › „Downloads je Version …“ – Summen, Balken je Tag, Tabelle, Link; offline Hinweis."""

@@ -606,6 +606,8 @@ class Api:
             st = updater.status(bool(fetch), channel=ch)
             st.update(kind="git", version=VERSION)
         st["unsaved"] = self._s.unsaved()
+        st["notify"] = self._s.update_notify()                                         # #417: Popup ja/nein
+        st["busy"] = bool((getattr(self._s, "task", None) or {}).get("running"))       # #417: kein Popup während eines Auftrags
         return st
 
     def release_notes(self):
@@ -651,6 +653,10 @@ class Api:
 
     def set_update_channel(self, channel):
         return self._s.set_update_channel(channel)
+
+    def set_update_notify(self, on):
+        """#417: Popup bei neuer Version ein/aus (Einstellungen › Updates bzw. im Popup)."""
+        return self._s.set_update_notify(on)
 
     # ---------- #234: Update auf Knopfdruck (installierte App, zuerst Windows)
     def start_app_update(self):

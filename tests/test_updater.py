@@ -209,6 +209,29 @@ class TestChannelSetting(unittest.TestCase):
         self.core.CONFIG, self.core.CONFIG_OLD = self.old
         self.tmp.cleanup()
 
+    def test_update_notify(self):
+        """#417: Popup bei neuer Version – Standard an, abschaltbar, bleibt gespeichert, im Status und im Export."""
+        import json
+        from unittest import mock
+        import appsettings
+        import core
+        from session import Session
+        s = Session()
+        self.assertTrue(s.update_notify())
+        self.assertTrue(s.settings_page()["update_notify"])
+        self.assertFalse(s.set_update_notify(False))
+        self.assertFalse(Session().update_notify())                     # nach Neustart
+        self.assertEqual(json.load(open(core.CONFIG, encoding="utf-8")).get("update_notify"), False)
+        grp = next(g for g in appsettings.GROUPS if g[0] == "update")
+        self.assertIn("update_notify", grp[2])
+        import tagstudio_web
+        api = tagstudio_web.Api.__new__(tagstudio_web.Api)
+        api._s = s
+        with mock.patch.object(updater, "frozen", return_value=True), \
+                mock.patch.object(updater, "release_check", return_value={"ok": True, "newer": True, "latest": {"version": "9.0.0"}}):
+            st = api.update_status(True)
+        self.assertEqual((st["notify"], st["busy"], st["newer"]), (False, False, True))
+
     def test_channels(self):
         from unittest import mock
         from session import Session
