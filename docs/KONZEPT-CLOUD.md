@@ -86,6 +86,7 @@ das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzusti
   - **Geschäfts-/Schulkonto:** App-Anbindung über Microsoft Graph wie bisher, Endpunkt `organizations`.
   - **Privates OneDrive:** keine App, keine Anmeldung – nur der angegebene **OneDrive-Ordner** des Desktop-Clients:
     Spiegel der Bibliothek als Einweg-Kopie (#403) und Sicherung der Programmdaten (#402).
+  - Vorausgewählt ist immer „Privat“ (Entscheid User 29.10.2026 20:13, #412, OneDrive 1.3).
 - Abo und Speichergrösse entscheidet der Benutzer; TagStudio zeigt eine **Schätzung des benötigten Platzes**.
 - Sicherheitsfehler #401 (Token bei Umleitungen) wird behoben. Einfache Anmeldung mit TagStudio-App (#400) und
   [KONZEPT-ONEDRIVE.md](KONZEPT-ONEDRIVE.md) nicht weiter verfolgt; Web-Player #404 bleibt Idee.

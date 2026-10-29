@@ -496,7 +496,7 @@ Targets for Settings › Cloud › **“Sync via the services”** (#317–#320,
 “Paste address” as a fallback. TagStudio only writes below its folder (default `TagStudio/<role>`). Limits (HTTP 429,
 quota) are reported, not retried.
 
-- **OneDrive** (1.2, #405) with the switch **“Account type …”** (tile button “Options”):
+- **OneDrive** (1.3, #405, #412) with the switch **“Account type …”** (tile button “Options”):
   - **Work or school account** (Microsoft Graph): register an app in your organisation's Entra directory (account types
     “this organisational directory only” – then enter the directory ID or domain under “Account type …” – or “any
     organisational directory”), platform “Mobile and desktop applications” with redirect URI `http://localhost/callback`
@@ -507,8 +507,8 @@ quota) are reported, not retried.
   - **Private OneDrive**: no app and no sign-in. You only choose the **OneDrive folder** on this computer (suggested from
     the desktop client); the library mirror and the program data backup go there (Settings › Cloud). You choose plan and
     storage size; TagStudio shows an estimate before mirroring.
-  - New installation without an app: “Private”; with an app already entered: “Work” (previous behaviour). Switching
-    keeps app data and folder.
+  - **“Private”** is always preselected (1.3, #412), even with an app already entered – if you use the app connection,
+    choose “Work” once. Switching keeps app data and folder.
 - **Google Drive** (Drive API v3): Google Cloud project, enable the Drive API, OAuth client “Desktop app” (client ID and
   secret), scope `drive.file` – TagStudio only sees what it created itself; deleting = trash.
 - **Dropbox** (API v2): app in the App Console (scoped access, “App folder” recommended), permissions

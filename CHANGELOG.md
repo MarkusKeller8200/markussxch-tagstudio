@@ -8,10 +8,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
-- **OneDrive – Kontoart (#405, Plugin 1.2):** Umschalter „Kontoart …“ (Knopf „Optionen“): **Geschäfts-/Schulkonto**
+- **OneDrive – Kontoart (#405, #412, Plugin 1.3):** Umschalter „Kontoart …“ (Knopf „Optionen“): **Geschäfts-/Schulkonto**
   wie bisher über Microsoft Graph mit eigener Entra-App, jetzt über den Endpunkt `organizations` bzw. eine
   eingetragene Verzeichnis-ID; **Privates OneDrive** ohne App und ohne Anmeldung – nur der OneDrive-Ordner auf diesem
-  Rechner (für Spiegel und Sicherung). Bestehende Einrichtungen mit App bleiben „Geschäftlich“.
+  Rechner (für Spiegel und Sicherung). Vorausgewählt ist immer „Privat“ – **wer OneDrive bisher mit eigener App
+  abgleicht, wählt nach dem Update einmal „Geschäftlich“** (App und Anmeldung bleiben gespeichert).
 - **Spiegel der Bibliothek (#403):** Einstellungen › Cloud – Musik als Einweg-Kopie in einen Cloud-Ordner (z. B.
   OneDrive privat), mit Platzschätzung, `index.json`, Playlists als M3U8 mit relativen Pfaden, wahlweise automatisch
   nach dem Speichern bzw. Vorbereiten und „nur online“ (Windows). Im Spiegel wird nie bearbeitet; überzählige Dateien

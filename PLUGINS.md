@@ -510,7 +510,7 @@ Anleitung und „Adresse einfügen“ als Ausweg wie bei Spotify. TagStudio schr
 `TagStudio/<Rolle>` bzw. `TagStudio/Programmdaten/<Teil>`). Bei Grenzen (HTTP 429, Kontingent) wird gemeldet, nicht
 wiederholt.
 
-- **OneDrive** (1.2, #405) mit Umschalter **„Kontoart …“** (Knopf „Optionen“ der Kachel):
+- **OneDrive** (1.3, #405, #412) mit Umschalter **„Kontoart …“** (Knopf „Optionen“ der Kachel):
   - **Geschäfts- oder Schulkonto** (Microsoft Graph): App im Entra-Verzeichnis deiner Organisation registrieren
     (Kontotypen „Nur Konten in diesem Organisationsverzeichnis“ – dann die Verzeichnis-ID bzw. Domain unter
     „Kontoart …“ eintragen – oder „beliebiges Organisationsverzeichnis“), Plattform „Mobile Anwendungen und
@@ -523,8 +523,8 @@ wiederholt.
   - **Privates OneDrive**: keine App und keine Anmeldung. Angegeben wird nur der **OneDrive-Ordner** auf diesem Rechner
     (Vorschlag aus dem Desktop-Client); dorthin gehen der Spiegel der Bibliothek und die Sicherung der Programmdaten
     (Einstellungen › Cloud). Abo und Speichergrösse bestimmst du; TagStudio zeigt vor dem Spiegeln eine Schätzung.
-  - Neue Installation ohne App: „Privat“; mit schon eingetragener App: „Geschäftlich“ (bisheriges Verhalten). Beim
-    Umschalten bleiben App-Daten und Ordner erhalten.
+  - Vorausgewählt ist immer **„Privat“** (1.3, #412), auch mit schon eingetragener App – wer die App-Anbindung nutzt,
+    wählt einmal „Geschäftlich“. Beim Umschalten bleiben App-Daten und Ordner erhalten.
 - **Google Drive** (Drive API v3): Projekt in der Google Cloud Console, Drive API aktivieren, OAuth-Client „Desktop-App“
   (Client-ID und Client-Secret), Bereich `drive.file` – TagStudio sieht nur, was es selbst angelegt hat. Ordner werden
   über Name und übergeordneten Ordner gefunden bzw. angelegt; Löschen = Papierkorb. Kontingent: 325 000 Einheiten je

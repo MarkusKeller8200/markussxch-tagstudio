@@ -79,8 +79,8 @@ def clean_tenant(v) -> str:
 
 
 def load_settings(ctx) -> dict:
-    """{"account": "business"|"private", "folder", "tenant"} – ohne Datei: mit gespeicherter App/Anmeldung
-    „business“ (bisheriges Verhalten), sonst „private“."""
+    """{"account": "business"|"private", "folder", "tenant"} – ohne gespeicherte Wahl immer „private“ (#412);
+    eine gespeicherte App/Anmeldung bleibt erhalten und gilt wieder, sobald „Geschäftlich“ gewählt ist."""
     d = {}
     try:
         with open(_settings_path(ctx), encoding="utf-8") as fh:
@@ -91,9 +91,7 @@ def load_settings(ctx) -> dict:
         d = {}
     kind = d.get("account")
     if kind not in KINDS:
-        import servicekit as sk
-        keys = sk.load_keys(ctx)
-        kind = "business" if (keys.get("client_id") or keys.get("token")) else "private"
+        kind = "private"
     try:
         tenant = clean_tenant(d.get("tenant"))
     except ValueError:

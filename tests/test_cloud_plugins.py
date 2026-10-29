@@ -181,6 +181,8 @@ class TestCloudPlugins(Base):
         a = mod.app(ctx)
         a.save_credentials({"client_id": "CID", "client_secret": "SEC"})
         a._save(token=json.dumps({"access_token": TOKEN, "refresh_token": "RT", "expires_at": time.time() + 3600}))
+        if pid == "onedrive":                                              # #412: Standard „Privat“ → App-Anbindung wählen
+            mod.save_settings(ctx, {"account": "business"})
         for h in mod.INTERVALS:
             onlinematch.INTERVALS[h] = 0
         return mod, ctx, p
@@ -304,10 +306,15 @@ class TestOneDriveKind(Base):
         self.assertFalse(ok)
         self.assertIn("OneDrive-Ordner fehlt", why)
 
-    def test_default_business_with_existing_app(self):
+    def test_default_private_with_existing_app(self):
+        """#412: auch mit gespeicherter App ohne Wahl „Privat“; nach Umschalten wieder die App-Anbindung."""
         self.mod.app(self.ctx).save_credentials({"client_id": "CID"})
+        self.assertEqual(self.mod.load_settings(self.ctx)["account"], "private")
+        self.assertEqual(self.ids(), ["settings", "test"])
+        self.mod.run("settings", self.ctx, [], {"account": "business"})
         self.assertEqual(self.mod.load_settings(self.ctx)["account"], "business")
         self.assertEqual(self.ids(), ["settings", "login", "logout", "test"])
+        self.assertEqual(self.mod.app(self.ctx).client_id, "CID")                   # bleibt gespeichert
 
     def test_private_folder(self):
         r = self.mod.run("settings", self.ctx, [], {"account": "private", "folder": self.od})
@@ -349,4 +356,5 @@ class TestOneDriveKind(Base):
         a = self.mod.app(self.ctx)
         a.save_credentials({"client_id": "CID"})
         a._save(token=json.dumps({"access_token": TOKEN, "refresh_token": "RT", "expires_at": time.time() + 3600}))
+        self.mod.save_settings(self.ctx, {"account": "business"})
         self.assertIn("Privates OneDrive", self.mod.run("test", self.ctx, [], {})["message"])   # Fake: driveType personal
