@@ -72,8 +72,8 @@ Alles im Detail im **[Handbuch](docs/HANDBUCH.md)**.
 
 - **Windows:** `TagStudio-<Version>-Windows-Setup.exe` ausführen – ohne Administratorrechte. Der Installer ist nicht
   signiert: bei „Der Computer wurde durch Windows geschützt“ **Weitere Informationen → Trotzdem ausführen**.
-- **macOS (Apple-Chip):** `TagStudio-<Version>-macOS-Apple-Chip.dmg` öffnen, **TagStudio** auf **Programme** ziehen;
-  beim ersten Start **Systemeinstellungen → Datenschutz & Sicherheit → „Trotzdem öffnen“**.
+- **macOS (Apple-Chip):** `TagStudio-<Version>-macOS-Apple-Chip.dmg` öffnen, **TagStudio** auf **Programme** ziehen –
+  signiert und von Apple beglaubigt (ab 4.13.0).
 
 **Aus dem Quellcode:** Python 3.12 oder neuer, dann
 `git clone https://github.com/MarkusKeller8200/markussxch-tagstudio.git` und `start_windows.bat` bzw.

@@ -74,8 +74,8 @@ system from the “Download” box at the top.
 
 - **Windows:** run `TagStudio-<version>-Windows-Setup.exe` – no administrator rights needed. The installer is not
   signed: at “Windows protected your PC” choose **More info → Run anyway**.
-- **macOS (Apple silicon):** open `TagStudio-<version>-macOS-Apple-Chip.dmg`, drag **TagStudio** to **Applications**;
-  on first start **System Settings → Privacy & Security → “Open Anyway”**.
+- **macOS (Apple silicon):** open `TagStudio-<version>-macOS-Apple-Chip.dmg`, drag **TagStudio** to **Applications** –
+  signed and notarised by Apple (from 4.13.0).
 
 **From source:** Python 3.12 or newer, then
 `git clone https://github.com/MarkusKeller8200/markussxch-tagstudio.git` and `start_windows.bat` or

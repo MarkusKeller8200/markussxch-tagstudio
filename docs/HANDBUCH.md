@@ -64,8 +64,9 @@ Unter [Releases](https://github.com/MarkusKeller8200/markussxch-tagstudio/releas
   „Apps & Features“. Der Installer ist nicht signiert – erscheint „Der Computer wurde durch Windows geschützt“:
   **Weitere Informationen → Trotzdem ausführen**.
 - **macOS (Apple-Chip):** `TagStudio-<Version>-macOS-Apple-Chip.dmg` öffnen, **TagStudio** auf **Programme** ziehen.
-  Die App ist nicht von Apple beglaubigt: beim ersten Start Meldung schliessen, dann **Systemeinstellungen →
-  Datenschutz & Sicherheit → „Trotzdem öffnen“** (Details in „Zuerst lesen.txt“ im Disk-Image).
+  Ab 4.13.0 ist die App mit „Developer ID“ signiert und von Apple beglaubigt – sie startet ohne Rückfrage. Ältere
+  Versionen: beim ersten Start Meldung schliessen, dann **Systemeinstellungen → Datenschutz & Sicherheit → „Trotzdem
+  öffnen“** (Details in „Zuerst lesen.txt“ im Disk-Image).
 
 Die installierte App enthält die neue Oberfläche samt Plugins (Stems richtet seine eigene Umgebung beim ersten
 Installieren selbst ein). **Updates:** Der Knopf „Nach Update suchen“ öffnet die Releases-Seite; neue Version laden

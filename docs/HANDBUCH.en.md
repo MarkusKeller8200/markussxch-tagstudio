@@ -64,8 +64,9 @@ Download the latest version under [Releases](https://github.com/MarkusKeller8200
   “Apps & features”. The installer is not signed – if “Windows protected your PC” appears:
   **More info → Run anyway**.
 - **macOS (Apple chip):** open `TagStudio-<version>-macOS-Apple-Chip.dmg`, drag **TagStudio** to **Applications**.
-  The app is not notarised by Apple: close the message on first start, then **System Settings → Privacy & Security →
-  “Open Anyway”** (details in “Zuerst lesen.txt” in the disk image).
+  From 4.13.0 the app is signed with “Developer ID” and notarised by Apple – it starts without asking. Older versions:
+  close the message on first start, then **System Settings → Privacy & Security → “Open Anyway”** (details in
+  “Zuerst lesen.txt” in the disk image).
 
 The installed app contains the new interface including plugins (stems sets up its own environment the first time it
 is installed). **Updates:** the “Check for update” button opens the releases page; download the new version and

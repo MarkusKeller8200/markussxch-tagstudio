@@ -34,6 +34,7 @@ HIDDEN = [
     "folders", "session_folders", "cloud", "foldermove",                # #310–#315: Ordner-Rollen (4.10.0)
     "wavetag", "cloudsync", "cloudkit", "session_cloud",               # #222, #317–#320: Wellenform im MP3, Cloud-Abgleich (4.11.0)
     "smartfix", "unzip",                                               # #339 Smart Fix, #336 ZIP entpacken (4.12.0)
+    "downloadstats", "ideas", "session_ideas", "mixresult", "session_mixes", "djlibs",   # #370, #186, #387 (4.13.0)
     # Standardbibliothek für Plugins
     "http.cookiejar", "urllib.request", "urllib.parse", "urllib.error", "difflib", "unicodedata", "ctypes",
     "ctypes.wintypes", "uuid", "csv", "zipfile", "logging", "base64", "hashlib", "html", "html.parser",
@@ -85,6 +86,8 @@ def main():
             "--add-data", f"{os.path.join(ROOT, 'PLUGINS.md')}{sep}.",
             "--add-data", f"{os.path.join(ROOT, 'README.en.md')}{sep}.",          # englische Hilfe (#219)
             "--add-data", f"{os.path.join(ROOT, 'PLUGINS.en.md')}{sep}.",
+            "--add-data", f"{os.path.join(ROOT, 'docs', 'HANDBUCH.md')}{sep}docs",     # Handbuch der Hilfe (#373)
+            "--add-data", f"{os.path.join(ROOT, 'docs', 'HANDBUCH.en.md')}{sep}docs",
             "--add-data", f"{os.path.join(ROOT, 'docs', 'ID3-FELDER.md')}{sep}docs",
             "--add-data", f"{os.path.join(ROOT, 'docs', 'ID3-FELDER.en.md')}{sep}docs",
             "--add-data", f"{os.path.join(ROOT, 'docs', 'third-party.json')}{sep}docs",   # Hilfe › Lizenzen (#176)
@@ -92,8 +95,12 @@ def main():
             "--paths", ROOT]
     for h in HIDDEN:
         args += ["--hidden-import", h]
+    sign_id = os.environ.get("TS_SIGN_ID", "").strip() if mac else ""    # #374: Developer ID aus dem Workflow
+    ent = os.path.join(ROOT, "packaging", "entitlements.plist")
     if mac:
         args += ["--osx-bundle-identifier", BUNDLE_ID]
+        if sign_id:                     # PyInstaller signiert alle eingebetteten Teile (Hardened Runtime)
+            args += ["--codesign-identity", sign_id, "--osx-entitlements-file", ent]
     args.append(os.path.join(ROOT, "tagstudio_web.py"))
     print(" ".join(args), flush=True)
     subprocess.run(args, check=True, cwd=ROOT)
@@ -107,8 +114,13 @@ def main():
                     NSHumanReadableCopyright="Markus Keller")
         with open(plist, "wb") as fh:
             plistlib.dump(info, fh)
-        # nach dem Ändern neu (ad hoc) signieren, sonst startet die App auf Apple-Chips nicht
-        subprocess.run(["codesign", "--force", "--deep", "--sign", "-", os.path.join(DIST, NAME + ".app")], check=True)
+        app = os.path.join(DIST, NAME + ".app")
+        if sign_id:   # #374: nach dem Ändern die App selbst neu signieren (Teile sind schon signiert), für Notarisierung
+            subprocess.run(["codesign", "--force", "--options", "runtime", "--timestamp", "--entitlements", ent,
+                            "--sign", sign_id, app], check=True)
+            subprocess.run(["codesign", "--verify", "--deep", "--strict", "--verbose=2", app], check=True)
+        else:         # nach dem Ändern neu (ad hoc) signieren, sonst startet die App auf Apple-Chips nicht
+            subprocess.run(["codesign", "--force", "--deep", "--sign", "-", app], check=True)
 
     env = os.environ.get("GITHUB_ENV")
     if env:
