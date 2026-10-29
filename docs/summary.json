@@ -18,7 +18,9 @@
      "name": "TagStudio-4.13.0-Windows-Setup.exe",
      "count": 15
     }
-   ]
+   ],
+   "cum_installers": 92,
+   "cum_plugins": 171
   },
   {
    "tag": "v4.12.0",
@@ -38,7 +40,9 @@
      "name": "TagStudio-4.12.0-Windows-Setup.exe",
      "count": 3
     }
-   ]
+   ],
+   "cum_installers": 76,
+   "cum_plugins": 150
   },
   {
    "tag": "v4.11.0",
@@ -58,7 +62,9 @@
      "name": "TagStudio-4.11.0-Windows-Setup.exe",
      "count": 3
     }
-   ]
+   ],
+   "cum_installers": 68,
+   "cum_plugins": 98
   },
   {
    "tag": "v4.10.0",
@@ -78,7 +84,9 @@
      "name": "TagStudio-4.10.0-Windows-Setup.exe",
      "count": 3
     }
-   ]
+   ],
+   "cum_installers": 61,
+   "cum_plugins": 51
   },
   {
    "tag": "v4.9.1",
@@ -98,7 +106,9 @@
      "name": "TagStudio-4.9.1-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 55,
+   "cum_plugins": 13
   },
   {
    "tag": "v4.9.0",
@@ -118,7 +128,9 @@
      "name": "TagStudio-4.9.0-Windows-Setup.exe",
      "count": 2
     }
-   ]
+   ],
+   "cum_installers": 53,
+   "cum_plugins": 12
   },
   {
    "tag": "v4.8.0",
@@ -138,7 +150,9 @@
      "name": "TagStudio-4.8.0-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 50,
+   "cum_plugins": 7
   },
   {
    "tag": "v4.7.0",
@@ -158,7 +172,9 @@
      "name": "TagStudio-4.7.0-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 48,
+   "cum_plugins": 0
   },
   {
    "tag": "v4.6.0",
@@ -178,7 +194,9 @@
      "name": "TagStudio-4.6.0-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 46,
+   "cum_plugins": 0
   },
   {
    "tag": "v4.5.0",
@@ -198,7 +216,9 @@
      "name": "TagStudio-4.5.0-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 44,
+   "cum_plugins": 0
   },
   {
    "tag": "v4.4.1",
@@ -218,7 +238,9 @@
      "name": "TagStudio-4.4.1-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 42,
+   "cum_plugins": 0
   },
   {
    "tag": "v4.4.0",
@@ -238,7 +260,9 @@
      "name": "TagStudio-4.4.0-Windows-Setup.exe",
      "count": 6
     }
-   ]
+   ],
+   "cum_installers": 40,
+   "cum_plugins": 0
   },
   {
    "tag": "v4.3.0",
@@ -258,7 +282,9 @@
      "name": "TagStudio-4.3.0-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 31,
+   "cum_plugins": 0
   },
   {
    "tag": "v4.2.0",
@@ -278,7 +304,9 @@
      "name": "TagStudio-4.2.0-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 29,
+   "cum_plugins": 0
   },
   {
    "tag": "v4.1.0",
@@ -298,7 +326,9 @@
      "name": "TagStudio-4.1.0-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 27,
+   "cum_plugins": 0
   },
   {
    "tag": "v4.0.0",
@@ -318,7 +348,9 @@
      "name": "TagStudio-4.0.0-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 24,
+   "cum_plugins": 0
   },
   {
    "tag": "v3.5.0",
@@ -338,7 +370,9 @@
      "name": "TagStudio-3.5.0-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 22,
+   "cum_plugins": 0
   },
   {
    "tag": "v3.4.0",
@@ -358,7 +392,9 @@
      "name": "TagStudio-3.4.0-Windows-Setup.exe",
      "count": 2
     }
-   ]
+   ],
+   "cum_installers": 20,
+   "cum_plugins": 0
   },
   {
    "tag": "v3.3.1",
@@ -378,7 +414,9 @@
      "name": "TagStudio-3.3.1-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 17,
+   "cum_plugins": 0
   },
   {
    "tag": "v3.3.0",
@@ -398,7 +436,9 @@
      "name": "TagStudio-3.3.0-Windows-Setup.exe",
      "count": 2
     }
-   ]
+   ],
+   "cum_installers": 14,
+   "cum_plugins": 0
   },
   {
    "tag": "v3.2.0",
@@ -418,7 +458,9 @@
      "name": "TagStudio-3.2.0-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 10,
+   "cum_plugins": 0
   },
   {
    "tag": "v3.1.1",
@@ -438,7 +480,9 @@
      "name": "TagStudio-3.1.1-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 8,
+   "cum_plugins": 0
   },
   {
    "tag": "v3.1.0",
@@ -458,7 +502,9 @@
      "name": "TagStudio-3.1.0-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 6,
+   "cum_plugins": 0
   },
   {
    "tag": "v3.0.1",
@@ -478,7 +524,9 @@
      "name": "TagStudio-3.0.1-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 4,
+   "cum_plugins": 0
   },
   {
    "tag": "v3.0.0",
@@ -498,7 +546,9 @@
      "name": "TagStudio-3.0.0-Windows-Setup.exe",
      "count": 1
     }
-   ]
+   ],
+   "cum_installers": 2,
+   "cum_plugins": 0
   }
  ],
  "total": {
@@ -532,6 +582,6 @@
   "last30": 71,
   "since": "2026-10-26"
  },
- "updated": "2026-10-29 19:41 UTC",
+ "updated": "2026-10-29 20:12 UTC",
  "releases_url": "https://github.com/MarkusKeller8200/markussxch-tagstudio/releases"
 }
