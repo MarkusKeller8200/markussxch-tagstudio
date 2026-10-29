@@ -3,7 +3,9 @@
 Einweg-Kopie Bibliothek → Spiegel, z. B. in den OneDrive-Ordner des Desktop-Clients (Kontoart „Privat“, #405). Im
 Spiegel wird nie bearbeitet; TagStudio arbeitet weiter nur mit der lokalen Bibliothek.
 
-- Je Bibliothek ein Unterordner ``<Ziel>/<Name der Bibliothek>/…`` mit denselben Unterordnern.
+- Aufbau im Ziel (#413): **„Pfad“** (Standard) – je Bibliothek derselbe Pfad wie auf dem Rechner, ohne Laufwerk
+  (``D:\\Musik\\DJ`` → ``<Ziel>/Musik/DJ``, macOS ``/Volumes/Musik/DJ`` → ``<Ziel>/DJ``); ``index.json`` und Playlists
+  dann in ``<Ziel>/TagStudio/Spiegel``. **„Name“** – je Bibliothek ``<Ziel>/<Name der Bibliothek>/…``.
 - Kopiert wird, was fehlt oder sich geändert hat (Grösse oder Änderungszeit); geschrieben wird als ``.part`` und erst
   dann umbenannt – der Client lädt nie eine halbe Datei hoch. Die Änderungszeit wird übernommen.
 - Dateien im Spiegel ohne Gegenstück in der Bibliothek („überzählig“) werden nur gemeldet und erst nach Rückfrage
@@ -28,14 +30,19 @@ AUDIO_EXTS = (".mp3", ".wav", ".aif", ".aiff", ".flac", ".m4a", ".ogg", ".opus")
 INDEX = "index.json"
 PLAYLIST_DIR = "Playlists"
 TOLERANCE = 2.0                     # Sekunden (FAT/exFAT und Cloud-Clients runden Änderungszeiten)
-DEFAULT_SUB = "TagStudio-Spiegel"
+DEFAULT_SUB = "TagStudio-Spiegel"   # Aufbau „Name“
+LAYOUTS = ("path", "name")
+META_SUB = ("TagStudio", "Spiegel")  # Aufbau „Pfad“: index.json und Playlists
 
 
 def clean_cfg(c) -> dict:
-    """Einstellung des Spiegels: {"folder", "libraries": [ids] | [] = alle aktiven, "online_only", "auto", "playlists"}."""
+    """Einstellung des Spiegels: {"folder", "layout", "libraries": [ids] | [] = alle aktiven, "online_only", "auto",
+    "playlists"}. Ohne Angabe: Aufbau „Pfad“ (#413); ein schon gespeicherter Ordner ohne Aufbau bleibt bei „Name“."""
     c = c if isinstance(c, dict) else {}
     libs = c.get("libraries")
-    return {"folder": str(c.get("folder") or "").strip(),
+    folder = str(c.get("folder") or "").strip()
+    layout = c.get("layout") if c.get("layout") in LAYOUTS else ("name" if folder else "path")
+    return {"folder": folder, "layout": layout,
             "libraries": [str(x) for x in libs if str(x)] if isinstance(libs, list) else [],
             "online_only": bool(c.get("online_only", False)),
             "auto": bool(c.get("auto", False)),
@@ -77,12 +84,37 @@ def _walk(root: str):
                 continue
 
 
+def path_parts(path: str, mod=os.path, darwin: bool | None = None) -> list[str]:
+    """#413: Ordner eines Pfads ohne Laufwerk – ``D:\\Musik\\DJ`` → [Musik, DJ], UNC ``\\\\nas\\musik\\DJ`` → [DJ],
+    macOS ``/Volumes/Musik/DJ`` → [DJ], sonst ``/home/u/Musik`` → [home, u, Musik]."""
+    darwin = sys.platform == "darwin" if darwin is None else darwin
+    p = mod.normpath(path)
+    _drive, rest = mod.splitdrive(p)
+    parts = [x for x in re.split(r"[\\/]+", rest) if x and x not in (".", "..")]
+    if darwin and len(parts) >= 2 and parts[0] == "Volumes":
+        parts = parts[2:]
+    return [safe_name(x) for x in parts]
+
+
+def dest_of(lib: dict, target: str, layout: str = "name") -> str:
+    """Ordner einer Bibliothek im Spiegel (ohne ihn anzulegen)."""
+    if layout == "path":
+        parts = path_parts(os.path.abspath(lib["path"]))
+        return os.path.join(target, *(parts or [safe_name(lib.get("name") or lib.get("id"))]))
+    return os.path.join(target, safe_name(lib.get("name") or lib.get("id")))
+
+
+def meta_dir(target: str, layout: str = "name") -> str:
+    """Ordner für index.json und Playlists."""
+    return os.path.join(target, *META_SUB) if layout == "path" else target
+
+
 def _inside(child: str, root: str) -> bool:
     c, r = os.path.normcase(os.path.abspath(child)), os.path.normcase(os.path.abspath(root))
     return c == r or c.startswith(r.rstrip(os.sep) + os.sep)
 
 
-def plan(libs: list[dict], target: str) -> dict:
+def plan(libs: list[dict], target: str, layout: str = "name") -> dict:
     """libs: [{"id", "name", "path"}] → was zu tun ist (ohne etwas zu ändern).
 
     → {"libs": [{id, name, dest, files, bytes, copy, copy_bytes, same, extra}], "copy": [(src, dst, size, mtime)],
@@ -100,12 +132,19 @@ def plan(libs: list[dict], target: str) -> dict:
             out["error"] = f"Spiegel und Bibliothek dürfen nicht ineinander liegen ({lib['name']})."
             return out
         name = safe_name(lib.get("name") or lib.get("id"))
-        while name.lower() in used:
-            name += "_"
-        used.add(name.lower())
-        dest = os.path.join(target, name)
+        dest = dest_of(lib, target, layout)
+        while dest.lower() in used:                 # Windows/macOS/OneDrive: Gross-/Kleinschreibung egal
+            dest += "_"
+        used.add(dest.lower())
+        if layout == "path":
+            for other in pl_dests(out):
+                if _inside(dest, other) or _inside(other, dest):
+                    out["error"] = (f"Bibliotheken liegen ineinander – im Aufbau „Pfad“ würden sich ihre Spiegel überlagern "
+                                    f"({lib['name']}). Bitte eine davon abwählen oder Aufbau „Name“ wählen.")
+                    return out
         have = {r: (s, m) for r, s, m in _walk(dest)} if os.path.isdir(dest) else {}
-        row = {"id": lib.get("id", ""), "name": name, "src": src, "dest": dest, "files": 0, "bytes": 0, "copy": 0,
+        row = {"id": lib.get("id", ""), "name": name, "src": src, "dest": dest,
+               "rel": os.path.relpath(dest, target).replace(os.sep, "/"), "files": 0, "bytes": 0, "copy": 0,
                "copy_bytes": 0, "same": 0, "extra": 0}
         seen = set()
         for rel, size, mt in _walk(src):
@@ -135,6 +174,10 @@ def plan(libs: list[dict], target: str) -> dict:
         out["copy_bytes"] += row["copy_bytes"]
         out["libs"].append(row)
     return out
+
+
+def pl_dests(pl: dict) -> list[str]:
+    return [r["dest"] for r in pl["libs"]]
 
 
 def free_space(path: str) -> int | None:
@@ -250,9 +293,10 @@ def read_meta(path: str) -> dict:
         return {}
 
 
-def write_index(target: str, pl: dict, previous: dict | None = None) -> int:
-    """``index.json`` im Spiegel neu schreiben (Einträge mit gleicher Grösse/Zeit aus dem vorigen Index übernehmen).
-    → Anzahl Einträge"""
+def write_index(target: str, pl: dict, previous: dict | None = None, meta: str = "") -> int:
+    """``index.json`` (in ``meta``, sonst im Ziel) neu schreiben – Pfade relativ zum Ziel, ``root`` = Weg vom Index
+    zum Ziel; Einträge mit gleicher Grösse/Zeit aus dem vorigen Index übernehmen. → Anzahl Einträge"""
+    meta = meta or target
     prev = {}
     for e in (previous or {}).get("tracks") or []:
         if isinstance(e, dict) and e.get("path"):
@@ -260,7 +304,7 @@ def write_index(target: str, pl: dict, previous: dict | None = None) -> int:
     tracks = []
     for lib in pl["libs"]:
         for rel, size, mt in _walk(lib["dest"]):
-            path = f"{lib['name']}/{rel}"
+            path = f"{lib.get('rel') or lib['name']}/{rel}"
             old = prev.get(path)
             if old and old.get("size") == size and abs(float(old.get("mtime") or 0) - mt) <= TOLERANCE:
                 tracks.append(old)
@@ -270,8 +314,10 @@ def write_index(target: str, pl: dict, previous: dict | None = None) -> int:
                 e.update(read_meta(os.path.join(lib["dest"], *rel.split("/"))))
             tracks.append(e)
     data = {"format": 1, "app": "MarKusSXCH TagStudio", "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "libraries": [x["name"] for x in pl["libs"]], "tracks": tracks}
-    _write_json(os.path.join(target, INDEX), data)
+            "libraries": [x["name"] for x in pl["libs"]],
+            "root": os.path.relpath(target, meta).replace(os.sep, "/"), "tracks": tracks}
+    os.makedirs(meta, exist_ok=True)
+    _write_json(os.path.join(meta, INDEX), data)
     return len(tracks)
 
 

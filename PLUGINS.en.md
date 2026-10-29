@@ -506,7 +506,9 @@ quota) are reported, not retried.
     files via an upload session; deleting = recycle bin.
   - **Private OneDrive**: no app and no sign-in. You only choose the **OneDrive folder** on this computer (suggested from
     the desktop client); the library mirror and the program data backup go there (Settings › Cloud). You choose plan and
-    storage size; TagStudio shows an estimate before mirroring.
+    storage size; TagStudio shows an estimate before mirroring. Option **“Create mirror folders”** (#413): creates the
+    same path without drive per library inside the OneDrive folder (`D:\Musik\DJ` → `OneDrive\Musik\DJ`) and points
+    the mirror there; nothing is deleted. Plugin interface: `ctx.mirror_folders(folder, create)` (TagStudio 4.14+).
   - **“Private”** is always preselected (1.3, #412), even with an app already entered – if you use the app connection,
     choose “Work” once. Switching keeps app data and folder.
 - **Google Drive** (Drive API v3): Google Cloud project, enable the Drive API, OAuth client “Desktop app” (client ID and

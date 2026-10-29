@@ -30,7 +30,7 @@ PREFIX = "TagStudio-Programmdaten_"
 KEEP_DEFAULT = 10
 MAX_ZIP = 512 * 1024 * 1024                 # Schutz beim Öffnen fremder Dateien
 MODES = ("off", "exit", "daily")
-DEFAULT_SUB = os.path.join("TagStudio", "Sicherungen")
+DEFAULT_SUB = os.path.join("TagStudio", "Sicherung")   # #415
 
 # Teile: (ID, Bezeichnung, Unterordner im Datenordner, erlaubte Endungen)
 PARTS = [("settings", "Einstellungen (ohne Zugangsdaten)", None, None),

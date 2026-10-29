@@ -343,6 +343,14 @@ class Context:
         self.outputs.append(path)
 
     # ---- #238: Zustand der Oberfläche (nur lesend)
+    def mirror_folders(self, base: str, create: bool = False) -> dict:
+        """#413: Spiegel-Ordner im Cloud-Ordner nach dem Pfad der Bibliotheken (ohne Laufwerk) – Vorschau bzw. anlegen
+        und als Ziel des Spiegels eintragen (Einstellungen › Cloud)."""
+        s = self._session
+        if s is None or not callable(getattr(s, "mirror_cloud_folders", None)):
+            raise ValueError("Nur in TagStudio verfügbar.")
+        return s.mirror_cloud_folders(base, create)
+
     def djset(self) -> dict:
         """Aktuelles DJ-Set: {"name", "paths"} (leer ohne Sitzung)."""
         s = self._session

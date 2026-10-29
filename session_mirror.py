@@ -34,13 +34,28 @@ class MirrorMixin:
                 out.append({"id": pid, "name": p.name, "path": f})
         return out
 
-    def _mirror_suggest(self) -> str:
-        """Vorschlag für das Ziel: Ordner aus einem Cloud-Plugin (OneDrive privat), sonst ein erkannter OneDrive-Ordner."""
+    def _cloud_root(self) -> str:
+        """Ordner aus einem Cloud-Plugin (OneDrive privat), sonst ein erkannter OneDrive-Ordner – oder leer."""
         roots = [x["path"] for x in self._cloud_folders()]
         if not roots:
             import cloud
             roots = [r["path"] for r in cloud.detect() if r.get("provider") == "onedrive"]
-        return os.path.join(roots[0], mirror.DEFAULT_SUB) if roots else ""
+        return roots[0] if roots else ""
+
+    def _mirror_suggest(self, layout: str = "path") -> str:
+        """Vorschlag für das Ziel (#415): Aufbau „Pfad“ → der OneDrive-Ordner selbst (darin der Pfad der Bibliothek ohne
+        Laufwerk, #413); Aufbau „Name“ → ``<OneDrive>/TagStudio-Spiegel``."""
+        root = self._cloud_root()
+        if not root:
+            return ""
+        return root if layout == "path" else os.path.join(root, mirror.DEFAULT_SUB)
+
+    def _mirror_dests(self, c: dict, folder: str = "", layout: str = "") -> list[dict]:
+        folder, layout = folder or c["folder"], layout or c["layout"]
+        if not folder:
+            return []
+        return [{"name": r["name"], "path": r["path"], "dest": mirror.dest_of(r, os.path.abspath(folder), layout)}
+                for r in self._mirror_libs(c)]
 
     def _mirror_libs(self, c: dict) -> list[dict]:
         roots, _skipped = folders.scan_roots(self._folders())
@@ -53,7 +68,10 @@ class MirrorMixin:
         want = set(c["libraries"])
         libs = [{"id": r["id"], "name": r["name"], "path": r["path"], "on": not want or r["id"] in want} for r in roots]
         extra = getattr(self, "_mirror_extra", None) or []
-        return {"cfg": c, "suggest": self._mirror_suggest(), "cloud_folders": self._cloud_folders(), "libraries": libs,
+        return {"cfg": c, "suggest": self._mirror_suggest(c["layout"]),
+                "suggests": {k: self._mirror_suggest(k) for k in mirror.LAYOUTS},
+                "dests": self._mirror_dests(c, c["folder"] or self._mirror_suggest(c["layout"])),
+                "cloud_folders": self._cloud_folders(), "libraries": libs,
                 "skipped": skipped, "last": self.cfg.get(LAST_KEY) or {}, "extra": len(extra),
                 "windows": os.name == "nt"}
 
@@ -68,6 +86,35 @@ class MirrorMixin:
         core.save_config({"mirror": c})
         return self.mirror_overview()
 
+    def mirror_cloud_folders(self, base, create: bool = False) -> dict:
+        """#413 (OneDrive privat › „Spiegel-Ordner erstellen“): im Cloud-Ordner je gewählter Bibliothek denselben Pfad
+        wie auf dem Rechner ohne Laufwerk; mit ``create`` anlegen und den Spiegel darauf einstellen (Aufbau „Pfad“).
+        Nichts wird gelöscht; vorhandene Ordner werden weiterverwendet."""
+        base = os.path.abspath(os.path.expanduser(str(base or "").strip() or self._cloud_root()))
+        if not base or not os.path.isdir(base):
+            raise ValueError(f"Cloud-Ordner nicht gefunden: {base}")
+        c = dict(self._mirror_cfg(), folder=base, layout="path")
+        libs = self._mirror_libs(c)
+        if not libs:
+            raise ValueError("Keine erreichbare Bibliothek zum Spiegeln.")
+        dests = self._mirror_dests(c)
+        for r, d in zip(libs, dests):
+            if mirror._inside(base, r["path"]) or mirror._inside(r["path"], base):
+                raise ValueError(f"Der Cloud-Ordner liegt in der Bibliothek „{r['name']}“ (oder umgekehrt).")
+        for i, a in enumerate(dests):
+            for b in dests[i + 1:]:
+                if mirror._inside(a["dest"], b["dest"]) or mirror._inside(b["dest"], a["dest"]):
+                    raise ValueError(f"Die Bibliotheken „{a['name']}“ und „{b['name']}“ liegen ineinander – bitte eine "
+                                     "unter Einstellungen › Cloud › Spiegel abwählen.")
+        made = 0
+        if create:
+            for d in dests:
+                if not os.path.isdir(d["dest"]):
+                    os.makedirs(d["dest"], exist_ok=True)
+                    made += 1
+            self.mirror_set(c)
+        return {"folder": base, "dests": dests, "created": made, "saved": bool(create)}
+
     # ------------------------------------------------------------------ Schätzung und Lauf
     def _mirror_plan(self, c: dict | None = None) -> dict:
         c = c or self._mirror_cfg()
@@ -76,7 +123,7 @@ class MirrorMixin:
         libs = self._mirror_libs(c)
         if not libs:
             raise ValueError("Keine erreichbare Bibliothek zum Spiegeln gewählt.")
-        pl = mirror.plan(libs, c["folder"])
+        pl = mirror.plan(libs, c["folder"], c["layout"])
         if pl["error"]:
             raise ValueError(pl["error"])
         return pl
@@ -113,11 +160,12 @@ class MirrorMixin:
                 if cancel.is_set():
                     return {"cancelled": True, "log": log}
                 progress(("text", "index.json schreiben …"))
-                n_idx = mirror.write_index(c["folder"], pl, mirror.load_index(c["folder"]))
+                meta = mirror.meta_dir(c["folder"], c["layout"])
+                n_idx = mirror.write_index(c["folder"], pl, mirror.load_index(meta), meta)
                 n_pl = 0
                 if c["playlists"]:
                     try:
-                        n_pl = mirror.write_playlists(c["folder"], self._pls().active(), pl)
+                        n_pl = mirror.write_playlists(meta, self._pls().active(), pl)
                     except Exception as ex:  # noqa: BLE001 – Playlists sind eine Beigabe
                         log.append(f"Playlists nicht geschrieben: {ex}")
                 note = mirror.set_online_only(res["paths"]) if c["online_only"] else ""
@@ -174,7 +222,7 @@ class MirrorMixin:
             if not (c["auto"] and c["folder"] and paths):
                 return
             libs = self._mirror_libs(c)
-            pl = mirror.plan(libs, c["folder"]) if libs else None
+            pl = mirror.plan(libs, c["folder"], c["layout"]) if libs else None
         except Exception:  # noqa: BLE001
             return
         if not pl or pl["error"]:

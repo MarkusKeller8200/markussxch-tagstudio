@@ -93,7 +93,10 @@ das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzusti
 
 ### Umsetzung Spiegel (#403, 29.10.2026)
 
-- `mirror.py` (Kern, nur Standardbibliothek): `plan` (je Bibliothek `<Ziel>/<Name>/…`, Audio-Endungen, Vergleich
+- `mirror.py` (Kern, nur Standardbibliothek): `plan(libs, ziel, layout)` (#413: Aufbau `path` – Standard für neue
+  Einstellungen – `<Ziel>/<Pfad ohne Laufwerk>/…` über `path_parts`/`dest_of`, `index.json` und Playlists in
+  `<Ziel>/TagStudio/Spiegel` (`meta_dir`, Index mit `root`), ineinander liegende Bibliotheken abgelehnt; Aufbau `name` –
+  `<Ziel>/<Name>/…`, gilt für schon gespeicherte Ordner ohne Aufbau), Audio-Endungen, Vergleich
   Grösse + Änderungszeit ±2 s, überzählige Dateien), `run` (`.part` → `os.replace`, Zeit übernommen), `estimate`,
   `free_space`, `delete_extra` (nur Audio unterhalb des Ziels), `set_online_only` (Windows `attrib +u -p`; macOS nur
   Hinweis – **ZU PRÜFEN** beim User, ob OneDrive neue Dateien danach freigibt), `write_index` (`index.json`, Format 1,
@@ -101,7 +104,10 @@ das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzusti
 - `session_mirror.py` (MirrorMixin): cfg `mirror` {folder, libraries [] = alle aktiven, auto, playlists, online_only},
   `mirror_last`; `mirror_overview/set/estimate`, `start_mirror` (Auftrag), `mirror_extra`, `mirror_delete_extra` (nur
   Pfade aus dem letzten Lauf), `_mirror_touch` (nach `start_save` und Vorbereiten-Übernahme, Hintergrund-Faden, nur mit
-  „automatisch“). Vorschlag für das Ziel: `cloud_folder(ctx)` der Plugins (OneDrive privat) + `TagStudio-Spiegel`.
+  „automatisch“). Vorschlag für das Ziel (#415): `cloud_folder(ctx)` der Plugins (OneDrive privat) bzw. erkannter
+  OneDrive-Ordner – Aufbau `path` direkt, Aufbau `name` + `TagStudio-Spiegel`. `mirror_cloud_folders(base, create)`
+  (#413, aufgerufen über `Context.mirror_folders` vom OneDrive-Plugin, Option „Spiegel-Ordner erstellen“): Ordner je
+  Bibliothek anlegen, Spiegel auf `base` + Aufbau `path` stellen, nichts löschen.
 - Oberfläche `web/mirror.js` (Abschnitt `#stMirror` in Einstellungen › Cloud).
 
 ### Umsetzung Sicherung der Programmdaten (#402, 29.10.2026)
@@ -116,7 +122,7 @@ das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzusti
 - `session_appbackup.py`: cfg `app_backup` {folder, auto off|exit|daily, keep}, `app_backup_last`; `start_appbackup`,
   `appbackup_surplus/delete`, `appbackup_preview`, `start_appbackup_restore` (zuerst Sicherung „vor-Wiederherstellen“,
   dann Dateien, Einstellungen, `_folders_relink(rb=…)`); `appbackup_exit` (Api `_exit_backup`, höchstens 30 s),
-  `appbackup_daily` (aus `plugins_startup`). Vorschlag: Cloud-Ordner eines Plugins + `TagStudio/Sicherungen`.
+  `appbackup_daily` (aus `plugins_startup`). Vorschlag (#415): Cloud-Ordner eines Plugins + `TagStudio/Sicherung`.
 - Oberfläche `web/appbackup.js` (Abschnitt `#stAppBackup` in Einstellungen › Cloud).
 
 ## 5. Offen (bei der Umsetzung prüfen)

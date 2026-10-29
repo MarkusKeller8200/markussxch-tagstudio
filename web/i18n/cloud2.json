@@ -135,5 +135,20 @@
 "(alle Dateien: [{x}]({x}))": ["(all files: [{x}]({x}))", "(alli Datei: [{x}]({x}))"],
 "Download prüfen: Windows `Get-FileHash": ["Verify the download: Windows `Get-FileHash", "Download prüefe: Windows `Get-FileHash"],
 "-Algorithm SHA256`, macOS `shasum -a {n}": ["-Algorithm SHA256`, macOS `shasum -a {n}", "-Algorithm SHA256`, macOS `shasum -a {n}"],
-"` – der Wert muss mit der SHA-{n} oben übereinstimmen{x}.": ["` – the value must match the SHA-{n} above{x}.", "` – de Wärt mues mit de SHA-{n} obe übereistimme{x}."]
+"` – der Wert muss mit der SHA-{n} oben übereinstimmen{x}.": ["` – the value must match the SHA-{n} above{x}.", "` – de Wärt mues mit de SHA-{n} obe übereistimme{x}."],
+"z. B. OneDrive": ["e.g. OneDrive", "z. B. OneDrive"],
+"Aufbau im Ziel-Ordner": ["Layout in the target folder", "Ufbau im Ziel-Ordner"],
+"Aufbau": ["Layout", "Ufbau"],
+"Je Bibliothek ein Ordner mit ihrem Namen": ["One folder per library, named after it", "Pro Bibliothek en Ordner mit ihrem Name"],
+"Bibliotheken liegen ineinander – im Aufbau {q} würden sich ihre Spiegel überlagern ({x}). Bitte eine davon abwählen oder Aufbau {q} wählen.": ["Libraries are nested – with layout {q} their mirrors would overlap ({x}). Please deselect one of them or choose layout {q}.", "Bibliotheke ligged inenand – im Ufbau {q} würded sich ihri Spiegel überlagere ({x}). Bitte eini devo abwähle oder Ufbau {q} wähle."],
+"Nur in TagStudio verfügbar.": ["Only available in TagStudio.", "Nur i TagStudio verfüegbar."],
+"Cloud-Ordner nicht gefunden: {x}": ["Cloud folder not found: {x}", "Cloud-Ordner nöd gfunde: {x}"],
+"Der Cloud-Ordner liegt in der Bibliothek {q} (oder umgekehrt).": ["The cloud folder is inside the library {q} (or vice versa).", "De Cloud-Ordner liit i de Bibliothek {q} (oder umgekehrt)."],
+"Die Bibliotheken {q} und {q} liegen ineinander – bitte eine unter Einstellungen › Cloud › Spiegel abwählen.": ["The libraries {q} and {q} are nested – please deselect one under Settings › Cloud › Mirror.", "D Bibliotheke {q} und {q} ligged inenand – bitte eini under Iistellige › Cloud › Spiegel abwähle."],
+"Keine erreichbare Bibliothek zum Spiegeln.": ["No reachable library to mirror.", "Kei erreichbari Bibliothek zum Spiegle."],
+"Spiegel-Ordner: {x} ({x} neu angelegt). Der Spiegel ist darauf eingestellt – {q} und {q} unter Einstellungen › Cloud.": ["Mirror folders: {x} ({x} newly created). The mirror now uses them – {q} and {q} under Settings › Cloud.", "Spiegel-Ordner: {x} ({x} neu aagleit). De Spiegel isch druf iigstellt – {q} und {q} under Iistellige › Cloud."],
+"Spiegel-Ordner nicht erstellt: {x}": ["Mirror folders not created: {x}", "Spiegel-Ordner nöd erstellt: {x}"],
+"Spiegel-Ordner: braucht TagStudio {n} oder neuer.": ["Mirror folders: needs TagStudio {n} or newer.", "Spiegel-Ordner: bruucht TagStudio {n} oder neuer."],
+"Pfad der Bibliothek ohne Laufwerk (z. B. D: › Musik › DJ → Ziel › Musik › DJ)": ["Path of the library without drive (e.g. D: › Musik › DJ → target › Musik › DJ)", "Pfad vo de Bibliothek ohni Laufwerk (z. B. D: › Musik › DJ → Ziel › Musik › DJ)"],
+"Spiegel-Ordner erstellen – im OneDrive-Ordner derselbe Pfad wie die Bibliothek, ohne Laufwerk (z. B. D: › Musik › DJ → OneDrive › Musik › DJ), und den Spiegel darauf einstellen": ["Create mirror folders – the same path as the library inside the OneDrive folder, without drive (e.g. D: › Musik › DJ → OneDrive › Musik › DJ), and point the mirror there", "Spiegel-Ordner erstelle – im OneDrive-Ordner dä gliich Pfad wie d Bibliothek, ohni Laufwerk (z. B. D: › Musik › DJ → OneDrive › Musik › DJ), und de Spiegel druf iistelle"]
 }

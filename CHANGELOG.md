@@ -37,6 +37,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Geändert
 
+- **Spiegel im Aufbau „Pfad“ (#413, #415; OneDrive 1.3):** Standard für neue Spiegel: je Bibliothek derselbe Pfad wie
+  auf dem Rechner, ohne Laufwerk (`D:\Musik\DJ` → `<OneDrive>\Musik\DJ`), `index.json`/Playlists in
+  `<OneDrive>/TagStudio/Spiegel`; Vorschau je Bibliothek. Plugins › OneDrive › „Kontoart …“ › „Spiegel-Ordner erstellen“
+  legt die Ordner an. Sicherung der Programmdaten schlägt `<OneDrive>/TagStudio/Sicherung` vor.
 - **Herkunft einheitlich je Dienst (#411):** alle `TXXX:SPOTIFY_*` (auch `SPOTIFY_TRACK_ID`/`_URL`) stehen unter der
   Herkunft „Spotify“, `TXXX:BEATPORT_TRACK_ID` unter „Beatport“, `TXXX:DISCOGS_RELEASE_ID` unter „Discogs“ – statt
   „TagStudio · <Plugin>“. Eigene Zuordnungen haben weiterhin Vorrang.

@@ -12,8 +12,12 @@ async function stMirrorRender() {
   const last = l.at ? `zuletzt ${esc(l.at.replace("T", " ").slice(0, 16))} · ${fmtN(l.copied || 0)} kopiert · ${fmtN(l.files || 0)} Titel${l.extra ? ` · ${fmtN(l.extra)} überzählig` : ""}${l.errors ? ` · ${fmtN(l.errors)} Fehler` : ""}` : "noch nie nachgeführt";
   box.innerHTML = `<h4 class="cs-h">Spiegel der Bibliothek</h4>
     <div class="muted sm">Einweg-Kopie der Musik in einen Cloud-Ordner (z. B. OneDrive privat) – TagStudio bearbeitet weiter nur die Bibliothek, im Spiegel wird nie etwas geändert. Abo und Speichergrösse bestimmst du; „Platz schätzen“ zeigt, wie viel nötig ist.</div>
-    <div class="st-row"><span>Ziel-Ordner</span><div><span class="pl-folder"><input id="mrFolder" class="inp sm" value="${esc(c.folder)}" placeholder="${esc(o.suggest || "z. B. OneDrive\\TagStudio-Spiegel")}" spellcheck="false" aria-label="Ziel-Ordner des Spiegels" translate="no"><button class="ghost sm" data-mrpick>Wählen …</button>${!c.folder && o.suggest ? '<button class="ghost sm" data-mrsuggest>Vorschlag übernehmen</button>' : ""}</span>
+    <div class="st-row"><span>Ziel-Ordner</span><div><span class="pl-folder"><input id="mrFolder" class="inp sm" value="${esc(c.folder)}" placeholder="${esc(o.suggest || "z. B. OneDrive")}" spellcheck="false" aria-label="Ziel-Ordner des Spiegels" translate="no"><button class="ghost sm" data-mrpick>Wählen …</button>${!c.folder && o.suggest ? '<button class="ghost sm" data-mrsuggest>Vorschlag übernehmen</button>' : ""}</span>
       ${o.cloud_folders.length ? `<div class="muted sm">Cloud-Ordner aus Plugins: ${o.cloud_folders.map((x) => `<span title="${esc(x.path)}">☁ ${esc(x.name)}</span>`).join(" · ")}</div>` : '<div class="muted sm">Tipp: Plugins › OneDrive › „Kontoart …“ › „Privat“ – dann wird der OneDrive-Ordner vorgeschlagen.</div>'}</div></div>
+    <div class="st-row"><span>Aufbau</span><div><select id="mrLayout" class="inp sm" aria-label="Aufbau im Ziel-Ordner">
+        <option value="path" ${c.layout === "path" ? "selected" : ""}>Pfad der Bibliothek ohne Laufwerk (z. B. D: › Musik › DJ → Ziel › Musik › DJ)</option>
+        <option value="name" ${c.layout === "name" ? "selected" : ""}>Je Bibliothek ein Ordner mit ihrem Namen</option></select>
+      ${(o.dests || []).length ? `<div class="muted sm mr-dests">${o.dests.map((d) => `<div title="${esc(d.path)}"><span translate="no">${esc(d.name)}</span> → <code translate="no">${esc(d.dest)}</code></div>`).join("")}</div>` : ""}</div></div>
     <div class="st-row"><span>Bibliotheken</span><div>${libs || '<span class="muted sm">Keine erreichbare Bibliothek.</span>'}</div></div>
     <div class="st-row"><span>Optionen</span><div>
       <label class="check sm"><input type="checkbox" data-mropt="auto" ${c.auto ? "checked" : ""}> Automatisch nachführen (nach dem Speichern und nach „Vorbereiten › Übernehmen“)</label>
@@ -30,7 +34,7 @@ function mirrorCollect() {
   const all = [...box.querySelectorAll("[data-mrlib]")];
   const on = all.filter((x) => x.checked).map((x) => x.dataset.mrlib);
   const opt = (k) => { const el = box.querySelector(`[data-mropt="${k}"]`); return !!(el && el.checked); };
-  return { folder: $("#mrFolder").value.trim(), libraries: on.length === all.length ? [] : on,
+  return { folder: $("#mrFolder").value.trim(), layout: $("#mrLayout").value, libraries: on.length === all.length ? [] : on,
            auto: opt("auto"), playlists: opt("playlists"), online_only: opt("online_only") };
 }
 
@@ -82,7 +86,7 @@ async function mirrorExtraDialog() {
 }
 
 document.addEventListener("change", (e) => {
-  if (e.target.closest("#stMirror") && e.target.matches("#mrFolder,[data-mrlib],[data-mropt]")) mirrorSave();
+  if (e.target.closest("#stMirror") && e.target.matches("#mrFolder,#mrLayout,[data-mrlib],[data-mropt]")) mirrorSave();
 });
 
 document.addEventListener("click", async (e) => {

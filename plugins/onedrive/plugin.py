@@ -144,6 +144,9 @@ def _kind_action(ctx) -> dict:
                              ["private", "Privates OneDrive (OneDrive-Ordner)"]]},
                 {"key": "folder", "type": "folder", "label": "OneDrive-Ordner", "default": st["folder"] or suggest_folder(),
                  "show_if": {"account": "private"}},
+                {"key": "mirror", "type": "check", "default": False, "show_if": {"account": "private"},
+                 "label": "Spiegel-Ordner erstellen – im OneDrive-Ordner derselbe Pfad wie die Bibliothek, ohne Laufwerk "
+                          "(z. B. D: › Musik › DJ → OneDrive › Musik › DJ), und den Spiegel darauf einstellen"},
                 {"type": "info", "show_if": {"account": "private"},
                  "label": "Abo und Speichergrösse bestimmst du selbst – vor dem Spiegeln zeigt TagStudio, wie viel Platz "
                           "nötig ist. Den freien Platz in OneDrive kennt TagStudio ohne Anmeldung nicht."},
@@ -151,6 +154,21 @@ def _kind_action(ctx) -> dict:
                                                           "bei einer App nur für deine Organisation)",
                  "default": "" if st["tenant"] == "organizations" else st["tenant"], "show_if": {"account": "business"}},
             ]}
+
+
+def _make_mirror(ctx, folder: str) -> str:
+    """#413: Spiegel-Ordner nach dem Pfad der Bibliotheken (ohne Laufwerk) anlegen – über TagStudio (Einstellungen ›
+    Cloud › Spiegel); nichts wird gelöscht."""
+    fn = getattr(ctx, "mirror_folders", None)
+    if not callable(fn):
+        return "Spiegel-Ordner: braucht TagStudio 4.14 oder neuer."
+    try:
+        r = fn(folder, True)
+    except ValueError as ex:
+        return f"Spiegel-Ordner nicht erstellt: {ex}"
+    where = "; ".join(f"{x['name']} → {x['dest']}" for x in r["dests"])
+    return (f"Spiegel-Ordner: {where} ({r['created']} neu angelegt). Der Spiegel ist darauf eingestellt – "
+            "„Platz schätzen“ und „Spiegel nachführen“ unter Einstellungen › Cloud.")
 
 
 def actions(ctx):
@@ -294,9 +312,11 @@ def run(action, ctx, files, opts):
         except ValueError as ex:
             return {"message": f"{NAME}: {ex}"}
         if d["account"] == "private":
-            return {"message": f"{NAME}: privates OneDrive – Ordner {d['folder']}. Spiegel und Sicherung unter "
-                               "Einstellungen › Cloud einrichten; eine gespeicherte App-Anmeldung bleibt erhalten, wird "
-                               "aber nicht benutzt."}
+            msg = (f"{NAME}: privates OneDrive – Ordner {d['folder']}. Spiegel und Sicherung unter Einstellungen › Cloud "
+                   "einrichten; eine gespeicherte App-Anmeldung bleibt erhalten, wird aber nicht benutzt.")
+            if opts.get("mirror"):
+                msg += " " + _make_mirror(ctx, d["folder"])
+            return {"message": msg}
         return {"message": f"{NAME}: Geschäfts-/Schulkonto (Verzeichnis {d['tenant']}) – jetzt „Anmelden …“."}
     if action == "test" and is_private(ctx):
         ok, why = check(ctx)

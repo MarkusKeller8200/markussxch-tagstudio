@@ -2381,10 +2381,11 @@ class UiTest(unittest.TestCase):
         pg.wait_for_selector('#modal [data-ok="account"]')
         vis = lambda k: pg.locator(f'#modal [data-ok="{k}"]').is_visible()   # noqa: E731
         self.assertEqual(pg.input_value('#modal [data-ok="account"]'), "private")
-        self.assertEqual((vis("folder"), vis("tenant")), (True, False))
+        self.assertEqual((vis("folder"), vis("tenant"), vis("mirror")), (True, False, True))   # #413 „Spiegel-Ordner erstellen“
+        self.assertFalse(pg.locator('#modal [data-ok="mirror"]').is_checked())
         self.assertIn("wie viel Platz", pg.inner_text("#modal"))
         pg.select_option('#modal [data-ok="account"]', "business")
-        self.assertEqual((vis("folder"), vis("tenant")), (False, True))
+        self.assertEqual((vis("folder"), vis("tenant"), vis("mirror")), (False, True, False))
         pg.click("#mBtns button >> text=Übernehmen")
         pg.wait_for_selector("#modal >> text=Geschäfts-/Schulkonto")
         pg.click("#mBtns button >> text=OK")
@@ -2570,9 +2571,16 @@ class UiTest(unittest.TestCase):
         pg.wait_for_selector("#stMirror [data-mrrun]")
         self.assertTrue(pg.locator("#stMirror [data-mrrun]").is_disabled())          # ohne Ziel gesperrt
         self.assertIn("Einweg-Kopie", pg.inner_text("#stMirror"))
+        self.assertEqual(pg.input_value("#mrLayout"), "path")                       # #413/#415: Standard „Pfad“
         pg.fill("#mrFolder", target)
         pg.dispatch_event("#mrFolder", "change")
-        self.assertEqual(self.cfg_until(lambda c: (c.get("mirror") or {}).get("folder"))["mirror"]["folder"], target)
+        self.assertEqual(self.cfg_until(lambda c: (c.get("mirror") or {}).get("folder"))["mirror"]["layout"], "path")
+        import mirror as _mr
+        pg.wait_for_selector("#stMirror .mr-dests")
+        self.assertIn(os.path.join(target, *_mr.path_parts(self.lib)), pg.inner_text("#stMirror .mr-dests"))
+        pg.select_option("#mrLayout", "name")                                        # Aufbau „Name“: <Ziel>/Musik
+        self.assertEqual(self.cfg_until(lambda c: (c.get("mirror") or {}).get("layout") == "name")["mirror"]["folder"], target)
+        pg.wait_for_function("document.querySelector('#stMirror .mr-dests') && document.querySelector('#stMirror .mr-dests').textContent.includes('TagStudio-Spiegel' + (navigator.platform.startsWith('Win') ? '\\\\' : '/') + 'Musik')")
         pg.wait_for_selector("#stMirror [data-mrrun]:not([disabled])")
         pg.click("#stMirror [data-mrest]")
         pg.wait_for_selector("#modal >> text=Benötigt in der Cloud")

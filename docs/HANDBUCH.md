@@ -706,14 +706,19 @@ Dateien** („Dateien bei Bedarf“, nichts lädt unbemerkt herunter – auf Wun
 empfohlen). Sync-Ordner und „Nur-online-Dateien“ stehen in der eigenen Karte **Einstellungen › Cloud** (#324). **Spiegel der Bibliothek**
 (#403): In derselben Karte wird die Musik als **Einweg-Kopie** in einen Cloud-Ordner gelegt (z. B. OneDrive privat –
 der Ordner wird vorgeschlagen, wenn unter Plugins › OneDrive › „Kontoart …“ „Privat“ gewählt ist). TagStudio arbeitet
-weiter nur mit der Bibliothek; im Spiegel wird nie etwas geändert. Kopiert wird, was fehlt oder sich geändert hat
+weiter nur mit der Bibliothek; im Spiegel wird nie etwas geändert. **Aufbau** (#413): Standard ist „Pfad der Bibliothek
+ohne Laufwerk“ – aus `D:\Musik\DJ` wird `<OneDrive>\Musik\DJ` (macOS: `/Volumes/Musik/DJ` → `<OneDrive>/DJ`),
+`index.json` und Playlists liegen dann in `<OneDrive>/TagStudio/Spiegel`; wahlweise „je Bibliothek ein Ordner mit ihrem
+Namen“. Unter dem Aufbau steht, wohin jede Bibliothek gespiegelt wird. Plugins › OneDrive › „Kontoart …“ ›
+**„Spiegel-Ordner erstellen“** legt diese Ordner an und stellt den Spiegel darauf ein. Kopiert wird, was fehlt oder sich geändert hat
 (erst als `.part`, dann umbenannt). **Platz schätzen …** zeigt Musik gesamt, schon im Spiegel, noch zu kopieren und
 den freien Platz auf dem Laufwerk – Abo und Speichergrösse bestimmst du selbst. Wahlweise: automatisch nach dem
 Speichern und nach „Vorbereiten › Übernehmen“ nachführen, Playlists als M3U8 mit relativen Pfaden mitschreiben, Kopien
 „nur online“ stellen (Windows). Dateien, die nicht mehr in der Bibliothek sind, werden nur gemeldet und erst nach
-Rückfrage gelöscht. Im Spiegel liegt zusätzlich `index.json` (Titel, Künstler, BPM, Tonart, Dauer). **Sicherung der Programmdaten** (#402): Einstellungen
+Rückfrage gelöscht. Im Spiegel liegt zusätzlich `index.json` (Titel, Künstler, BPM, Tonart, Dauer; Pfade relativ zum
+Ziel-Ordner). **Sicherung der Programmdaten** (#402): Einstellungen
 (ohne Zugangsdaten), Playlists mit Ideen/Wunschlisten, Einkäufe, Entdecken (ohne SonoVault-Einträge), Vorbereiten und
-Mixe als ZIP-Datei `TagStudio-Programmdaten_<Rechner>_<Datum>.zip` in einen Ordner, z. B. `OneDrive/TagStudio/Sicherungen`
+Mixe als ZIP-Datei `TagStudio-Programmdaten_<Rechner>_<Datum>.zip` in einen Ordner – Vorschlag `OneDrive/TagStudio/Sicherung` (#415)
 – von Hand („Jetzt sichern“), beim Beenden oder täglich. Nie dabei: Zugangsdaten, Snapshots, Caches, Musik. Mehr
 Sicherungen als „behalten“ (Standard 10) werden nur nach Rückfrage gelöscht. **Wiederherstellen …** zeigt eine
 Vorschau (was ersetzt wird, welche Einstellungsgruppen – von einem anderen Rechner sind Fenster, Pfade und Player nicht

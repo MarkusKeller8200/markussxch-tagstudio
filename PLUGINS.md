@@ -523,6 +523,9 @@ wiederholt.
   - **Privates OneDrive**: keine App und keine Anmeldung. Angegeben wird nur der **OneDrive-Ordner** auf diesem Rechner
     (Vorschlag aus dem Desktop-Client); dorthin gehen der Spiegel der Bibliothek und die Sicherung der Programmdaten
     (Einstellungen › Cloud). Abo und Speichergrösse bestimmst du; TagStudio zeigt vor dem Spiegeln eine Schätzung.
+    Option **„Spiegel-Ordner erstellen“** (#413): legt im OneDrive-Ordner je Bibliothek denselben Pfad ohne Laufwerk an
+    (`D:\Musik\DJ` → `OneDrive\Musik\DJ`) und stellt den Spiegel darauf ein; nichts wird gelöscht.
+    Plugin-Schnittstelle dafür: `ctx.mirror_folders(ordner, create)` (ab TagStudio 4.14).
   - Vorausgewählt ist immer **„Privat“** (1.3, #412), auch mit schon eingetragener App – wer die App-Anbindung nutzt,
     wählt einmal „Geschäftlich“. Beim Umschalten bleiben App-Daten und Ordner erhalten.
 - **Google Drive** (Drive API v3): Projekt in der Google Cloud Console, Drive API aktivieren, OAuth-Client „Desktop-App“

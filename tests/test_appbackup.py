@@ -153,6 +153,15 @@ class TestAppBackup(Base):
             time.sleep(0.05)
         self.assertEqual(len(appbackup.listing(self.T)), 2)
 
+    def test_suggest_onedrive_sicherung(self):
+        """#415: Vorschlag <OneDrive>/TagStudio/Sicherung (Ordner aus dem OneDrive-Plugin, Kontoart „Privat“)."""
+        import plugins
+        od = os.path.join(self.dir, "OneDrive")
+        os.makedirs(od, exist_ok=True)
+        p = self.s.plugins.get("onedrive")
+        p.load().run("settings", plugins.Context(p), [], {"account": "private", "folder": od})
+        self.assertEqual(self.s.appbackup_overview()["suggest"], os.path.join(os.path.abspath(od), "TagStudio", "Sicherung"))
+
     def test_mirror_estimate_counts_backups(self):
         self.s.appbackup_set({"folder": self.T, "keep": 5})
         self.assertGreater(self.s._appbackup_bytes(), 0)

@@ -56,8 +56,36 @@ class TestMirrorCore(Base):
         self.assertIn("Ziel", mirror.plan(self.libs, "")["error"])
         self.assertEqual(mirror.safe_name('A:B/C*'), "A_B_C_")
         two = [{"id": "a", "name": "Musik", "path": self.A}, {"id": "b", "name": "musik", "path": self.B}]
-        names = [x["name"] for x in mirror.plan(two, self.T)["libs"]]
-        self.assertEqual(len(set(n.lower() for n in names)), 2)          # keine Kollision
+        dests = [x["dest"] for x in mirror.plan(two, self.T)["libs"]]
+        self.assertEqual(len(set(d.lower() for d in dests)), 2)          # keine Kollision
+
+    def test_layout_path(self):
+        """#413: Aufbau „Pfad“ – Pfad der Bibliothek ohne Laufwerk; Index und Playlists in TagStudio/Spiegel."""
+        import ntpath
+        import posixpath
+        self.assertEqual(mirror.path_parts(r"D:\Musik\DJ\Bibliothek", ntpath, False), ["Musik", "DJ", "Bibliothek"])
+        self.assertEqual(mirror.path_parts(r"\\nas\musik\DJ", ntpath, False), ["DJ"])
+        self.assertEqual(mirror.path_parts("/Volumes/Musik/DJ/Set", posixpath, True), ["DJ", "Set"])
+        self.assertEqual(mirror.clean_cfg({})["layout"], "path")                  # neu: Standard „Pfad“
+        self.assertEqual(mirror.clean_cfg({"folder": "/x"})["layout"], "name")    # schon gespeichert: wie bisher
+        od = os.path.join(self.dir, "OneDrive")
+        pl = mirror.plan(self.libs, od, "path")
+        self.assertEqual(pl["error"], "")
+        want = os.path.join(od, *mirror.path_parts(self.A))
+        self.assertEqual(pl["libs"][0]["dest"], want)
+        mirror.run(pl)
+        self.assertTrue(os.path.isfile(os.path.join(want, "Sub", "4.mp3")))
+        meta = mirror.meta_dir(od, "path")
+        self.assertEqual(meta, os.path.join(od, "TagStudio", "Spiegel"))
+        mirror.write_index(od, pl, None, meta)
+        idx = mirror.load_index(meta)
+        self.assertEqual(idx["root"], "../..")
+        rel = pl["libs"][0]["rel"]
+        self.assertTrue(all(t["path"].startswith(rel + "/") for t in idx["tracks"]))
+        self.assertTrue(os.path.isfile(os.path.join(meta, *idx["root"].split("/"), *idx["tracks"][0]["path"].split("/"))))
+        # ineinander liegende Bibliotheken würden sich überlagern → abgelehnt
+        nest = self.libs + [{"id": "sub", "name": "Sub", "path": os.path.join(self.A, "Sub")}]
+        self.assertIn("ineinander", mirror.plan(nest, od, "path")["error"])
 
     def test_estimate_and_index_and_playlists(self):
         pl = mirror.plan(self.libs, self.T)
@@ -151,6 +179,24 @@ class TestMirrorSession(Base):
         mod = p.load()
         mod.run("settings", plugins.Context(p), [], {"account": "private", "folder": od})
         ov = self.s.mirror_overview()
-        self.assertEqual(ov["suggest"], os.path.join(os.path.abspath(od), mirror.DEFAULT_SUB))
+        self.assertEqual(ov["suggest"], os.path.abspath(od))                # #415: Aufbau „Pfad“ im OneDrive-Ordner
+        self.assertEqual(ov["suggests"]["name"], os.path.join(os.path.abspath(od), mirror.DEFAULT_SUB))
+        self.assertEqual(ov["dests"][0]["dest"], os.path.join(os.path.abspath(od), *mirror.path_parts(self.A)))
+        self.assertEqual(self.s.cfg.get("mirror"), None)                         # nur Vorschlag, nichts gespeichert
+        # #413: OneDrive › „Kontoart …“ › „Spiegel-Ordner erstellen“
+        r = mod.run("settings", plugins.Context(p, self.s), [], {"account": "private", "folder": od, "mirror": True})
+        self.assertIn("Spiegel-Ordner:", r["message"])
+        dest = os.path.join(os.path.abspath(od), *mirror.path_parts(self.A))
+        self.assertTrue(os.path.isdir(dest))
+        c = self.s.mirror_overview()["cfg"]
+        self.assertEqual((c["folder"], c["layout"]), (os.path.abspath(od), "path"))
+        r2 = self.s.mirror_cloud_folders(od, True)                              # nochmals: kein Fehler, nichts neu
+        self.assertEqual(r2["created"], 0)
+        self.assertTrue(self.s.start_mirror()["ok"])
+        self.wait()
+        self.assertTrue(os.path.isfile(os.path.join(dest, "1.mp3")))
+        self.assertTrue(os.path.isfile(os.path.join(od, "TagStudio", "Spiegel", "index.json")))
+        with self.assertRaises(ValueError):
+            self.s.mirror_cloud_folders(os.path.join(self.A, "Sub"), True)      # Cloud-Ordner in der Bibliothek
         self.assertEqual([x["id"] for x in ov["cloud_folders"]], ["onedrive"])
         json.dumps(ov)                                                      # für die Oberfläche serialisierbar
