@@ -1,8 +1,22 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-27 (15:45): Meilenstein #30 „4.13.0“ – #186 Ideen geschlossen; #261 Mix analysieren: Prototyp gemessen (11/13), fertiggestellt in #387 (Plugin 1.0, Beta-Test); #218 MixID zurück in „Funktionen“ (Anfrage durch den User). #376 SignPath wartet. Für das nächste Release vorgemerkt: Zweig `macos-signing`, `downloadstats`/`ideas`/`session_ideas` in HIDDEN, `docs/HANDBUCH*.md` ins Paket.**
+Stand: **2026-10-29 (03:50): v4.13.0 final veröffentlicht** (Windows + macOS signiert/beglaubigt, 26 Dateien), Meilenstein #30 geschlossen. Nächstes Release: **4.14.0 – Spotify** (Meilenstein #31: #384, #385). #376 SignPath in „Idee (Später)“. Beim nächsten Release: Filter „Gemerkt“ in Entdecken entfernen (I3, #186).
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Release 4.13.0 (29.10.2026, 03:50)
+
+- **Freigabe User 03:21** („4.13.0 ist somit freigegeben“); gleichzeitig #218 geschlossen, #384/#385 in den neuen
+  Meilenstein **#31 „4.14.0 – Spotify“**.
+- Vorher ganze Testreihe grün: 791 Unit-Tests, 128 Oberflächentests lokal; CI auf `main` grün.
+- Release-Vorbereitung (54cb1e0): Zweig **`macos-signing` gemergt** (#374), `packaging/build.py` › `HIDDEN` +
+  `downloadstats`, `ideas`, `session_ideas`, `mixresult`, `session_mixes`, `djlibs`; `docs/HANDBUCH.md`/`.en.md` per
+  `--add-data` ins Paket; Handbuch/README ohne „Trotzdem öffnen“ für macOS. `release.py 4.13.0` → „Version 4.13.0“
+  (387faa5). Workflow „Installer“ grün → **Release `v4.13.0`** (latest, 26 Dateien: Windows-Setup, macOS-DMG –
+  „Notarized Developer ID“, Team GDR6X6XJ92 –, 23 Plugin-ZIPs inkl. mixscan 1.3, sonovault 1.3, online 2.3,
+  plugins.json). Meilenstein #30 geschlossen (18 Issues).
+- Offen beim User: Zweig `macos-signing` (gemergt) und lokaler Hilfszweig `release-4.13` könnten gelöscht werden –
+  nur nach Rückfrage.
 
 ## Für später vorgemerkt (27.10.2026, 08:32–08:49)
 
@@ -608,7 +622,7 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 
 ## Release-Freigabe (Entscheid 14.10.2026)
 
-**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte finale Stand ist **v4.8.0** (25.10.2026, Freigabe des Users 01:01); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
+**Beta- und finale Builds/Releases ausschliesslich nach ausdrücklicher neuer Rückfrage und Bestätigung des Projektverantwortlichen starten.** Code-Commits und reguläre automatisierte Tests/CodeQL sind davon nicht betroffen; bis zur Freigabe weder `version.py` noch einen Release-Tag oder den Installer-Workflow verändern/auslösen. Hintergrund: `version.py`-Änderungen auf `main` lösen über GitHub Actions automatisch einen Installer- und Pre-Release-Build aus. Der aktuell veröffentlichte finale Stand ist **v4.13.0** (29.10.2026, Freigabe des Users 03:21); spätere Änderungen liegen bis zur nächsten Freigabe ausschliesslich auf `main`. Auch wenn ein Issue für Entwicklung oder Beta-Test freigegeben ist, bedeutet dies **keine Release-Freigabe**.
 
 ## GitHub-Meilensteinverwaltung
 

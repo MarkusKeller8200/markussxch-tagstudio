@@ -1,6 +1,10 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-29 (02:45): #394 getestet und geschlossen – **Meilenstein #30 „4.13.0“ ohne offene Issues**.
+> Stand 2026-10-29 (03:50): **v4.13.0 final veröffentlicht** (Release `v4.13.0`, Windows + macOS signiert und von Apple
+> beglaubigt, 26 Dateien); Meilenstein #30 „Ideen & Wunschlisten“ mit 18 Issues geschlossen. Nächstes Release 4.14.0 – Spotify
+> (Meilenstein #31: #384, #385).
+>
+> Davor 2026-10-29 (02:45): #394 getestet und geschlossen – **Meilenstein #30 „4.13.0“ ohne offene Issues**.
 >
 > Davor 2026-10-29 (01:05): Testrückmeldung – #392, #393, #395, #396 geschlossen; offen im Meilenstein #30 nur #394.
 >
