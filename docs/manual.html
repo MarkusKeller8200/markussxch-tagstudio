@@ -714,7 +714,15 @@ may stay empty – they then follow the roles (inbox, work, main library). <stro
 libraries may lie in a folder synchronised by the desktop client – TagStudio detects it (“☁ OneDrive”), additionally
 stores the path relative to the sync folder (also valid on a second computer), skips <strong>online-only files</strong> (“files on
 demand”) when reading – nothing downloads unnoticed, can be switched on – and reports <strong>conflict copies</strong> of the client.
-Snapshots, work and backup inside a sync folder get a hint (not recommended). Sync folders and “online-only files” live in their own card <strong>Settings › Cloud</strong> (#324). <strong>Sync via the services</strong>
+Snapshots, work and backup inside a sync folder get a hint (not recommended). Sync folders and “online-only files” live in their own card <strong>Settings › Cloud</strong> (#324). <strong>Library mirror</strong>
+(#403): in the same card the music is placed as a <strong>one-way copy</strong> into a cloud folder (e.g. private OneDrive – the
+folder is suggested when “Private” is chosen under Plugins › OneDrive › “Account type …”). TagStudio keeps working only
+with the library; nothing is ever changed in the mirror. Whatever is missing or changed is copied (first as <code>.part</code>,
+then renamed). <strong>Estimate space …</strong> shows music total, already in the mirror, still to copy and the free space on the
+drive – you choose plan and storage size. Optional: update automatically after saving and after “Prepare › Take over”,
+write playlists as M3U8 with relative paths, set copies “online-only” (Windows). Files no longer in the library are
+only reported and deleted after confirmation. The mirror also contains <code>index.json</code> (title, artist, BPM, key,
+duration). <strong>Sync via the services</strong>
 (#317, without desktop client): in the same card, in a table (area · service · direction · folder in the service), the roles <strong>Playlists</strong> and <strong>Export</strong> as well as parts of the program
 data (playlist store, purchases, Discover, settings without credentials) can be synced with a folder on OneDrive (work/school accounts only – for a private OneDrive choose “Private” under
 Plugins › OneDrive › “Account type …” and enter the OneDrive folder, #405), Google
