@@ -259,8 +259,8 @@ Titel, Label, Datum, Quelle, Status und Notiz (Klick auf die Notiz bearbeitet si
 
 Wunschlisten sind Playlists der Art „Wunschliste“ im Ordner **Ideen** des Playlists-Speichers (sichtbar unter
 „Playlists“, nicht als M3U8 im Playlist-Ordner). Beim ersten Öffnen werden die in „Entdecken“ gemerkten Titel einmal in
-die Wunschliste „Gemerkt (Entdecken)“ kopiert; „Entdecken“ selbst bleibt unverändert. Der Filter „Gemerkt“ in
-„Entdecken“ bleibt noch eine Version und fällt danach weg.
+die Wunschliste „Gemerkt (Entdecken)“ kopiert; „Entdecken“ selbst bleibt unverändert. Seit 4.14.0 hat „Entdecken“
+keinen Filter „Gemerkt“ mehr (#409) – gemerkte Titel stehen unter „Alle“ (Hinweis „in Ideen“) und auf der Seite „Ideen“.
 
 ### DJ-Set
 

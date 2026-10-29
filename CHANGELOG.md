@@ -34,6 +34,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Spotify – gespeicherte Alben (#384 SP3):** beim Import „Aus Spotify …“ je gespeichertem Album eine Playlist.
 - **Spotify – Album nachschlagen (#384 SP4):** Tagger-Aktion für ganze Alben/EPs mit Titel-/CD-Nummer, Datum, Genre, Cover.
 
+### Geändert
+
+- **Entdecken ohne Filter „Gemerkt“ (#409):** gemerkte Titel stehen seit 4.13.0 auf der Seite „Ideen“; in „Entdecken“
+  bleiben sie unter „Alle“ sichtbar (Hinweis „in Ideen“).
+
 ### Sicherheit
 
 - **Zugangsdaten nie an fremde Hosts (#401):** Leitet ein Dienst um (z. B. OneDrive-Download auf eine vorab

@@ -1909,9 +1909,12 @@ class UiTest(unittest.TestCase):
         pg.fill("#ideaNm", "Herbst")
         pg.click("#mBtns .primary")
         pg.wait_for_function("DISC.d.counts.saved === 1")
-        pg.click('#discFilter [data-f="saved"]')
-        self.assertEqual(pg.locator("#discList tbody tr").count(), 1)
-        self.assertIn("in Ideen", pg.inner_text('#discList tr[data-k="deezer:2"]'))
+        filters = pg.evaluate("[...document.querySelectorAll('#discFilter [data-f]')].map((b) => b.dataset.f)")
+        self.assertEqual(filters, ["new", "all", "bought", "hidden"])                  # #409: kein „Gemerkt“
+        pg.click('#discFilter [data-f="all"]')
+        self.assertIn("in Ideen", pg.inner_text('#discList tr[data-k="deezer:2"]'))    # gemerkte unter „Alle“
+        pg.evaluate("DISC.filter = 'saved'; discApply(DISC.d)")                         # alter Filter → „Neu“
+        self.assertEqual(pg.evaluate("DISC.filter"), "new")
         self.assertEqual(pg.inner_text("#discCount").strip(), "2")
         pg.click("#discFollow")
         pg.fill("#dfLab", "Nordwerk\nDrumcode")
@@ -2030,7 +2033,7 @@ class UiTest(unittest.TestCase):
         # Entdecken zeigt „in Ideen“
         pg.click('.nav[data-module="discover"]')
         pg.wait_for_function("DISC.d && DISC.d.items.length === 3")
-        pg.click('#discFilter [data-f="saved"]')
+        pg.click('#discFilter [data-f="all"]')
         self.assertIn("in Ideen", pg.inner_text('#discList tr[data-k="beatport:1"]'))
 
     def test_discover_sonovault(self):

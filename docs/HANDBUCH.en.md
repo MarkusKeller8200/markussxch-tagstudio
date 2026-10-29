@@ -249,8 +249,8 @@ status and note (click the note to edit it).
 
 Wish lists are playlists of the kind “wish list” in the **Ideen** folder of the playlist store (visible under
 “Playlists”, not written as M3U8 to the playlist folder). On first opening, the tracks remembered in “Discover” are
-copied once into the wish list “Gemerkt (Entdecken)”; “Discover” itself stays unchanged. The filter “Watch list” in
-“Discover” stays for one more version and is removed afterwards.
+copied once into the wish list “Gemerkt (Entdecken)”; “Discover” itself stays unchanged. Since 4.14.0 “Discover” no
+longer has a filter “Watch list” (#409) – remembered tracks appear under “All” (hint “in Ideas”) and on the “Ideas” page.
 
 ### DJ set
 

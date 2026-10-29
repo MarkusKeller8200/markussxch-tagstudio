@@ -119,7 +119,7 @@ Seitenleiste, Übersetzungen.
 |---|---|---|
 | I1 | Wandert ganz Entdecken ins Modul IDEE oder bleibt Entdecken eine eigene Quellen-Seite? | **Entdecken bleibt eigene Seite** (#333, zuoberst) als Quelle; nur das Merken wandert nach IDEE |
 | I2 | Datenmodell | **Variante B** – Wunschlisten als Playlists im Ordner „Ideen“ |
-| I3 | Was passiert mit dem Filter „Gemerkt“ in Entdecken? | bleibt vorerst als Ansicht, Einträge zeigen „in Ideen“; nach einer Version entfernen |
+| I3 | Was passiert mit dem Filter „Gemerkt“ in Entdecken? | bleibt vorerst als Ansicht, Einträge zeigen „in Ideen“; nach einer Version entfernen – **entfernt in 4.14.0 (#409)** |
 | I4 | Name des Menüpunkts | „Ideen“ (Seitenleiste nach „Entdecken“) |
 | I5 | Wunschliste als Beatport-Playlist (`TagStudio_WISH_<Liste>`) | ja, in Phase 2b, **nur auf Klick** je Liste (nur Titel mit Beatport-ID, kein automatischer Abgleich), gleiche Einstellung wie #334 |
 | I6 | SonoVault-Vorschläge als Idee merken | nur Künstler/Titel/Mix ohne SonoVault-Felder, wie ein Eintrag von Hand |
@@ -144,7 +144,7 @@ Zusätzlich bestätigt: je Eintrag **Notiz**, **Status** (automatisch aus dem K�
   die Bibliothek (`_pl_autolink`) und „Mit Bibliothek abgleichen“ (`_pl_auto_match`).
 - **Übernahme aus Entdecken:** einmalig beim ersten Öffnen (Kennzeichen `index.json › migrated.ideas_from_discover`),
   ohne Rückgängig-Schritt; `entdecken.json` unverändert. „Idee merken ▸“ setzt den Vorschlag in Entdecken auf
-  „gemerkt“ (Filter „Gemerkt“ noch eine Version, I3); Einträge in Wunschlisten bleiben beim „Leeren“ erhalten.
+  „gemerkt“ (Filter „Gemerkt“ in 4.14.0 entfernt, #409; sichtbar unter „Alle“); Einträge in Wunschlisten bleiben beim „Leeren“ erhalten.
 - **Doppelte:** gleicher Schlüssel in Entdecken, gleiche Store-ID oder gleicher Künstler + Titel + Mix (`ideas.keys`).
 - **Vorhören:** Deezer-Links laufen ab und werden über die Titel-ID frisch geholt (`ideas_preview`).
 - **Beatport (I5):** `store_playlist_put` des Plugins (wie #334) mit `TagStudio_WISH_<Liste>`, nur offene Einträge mit

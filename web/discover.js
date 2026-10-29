@@ -3,7 +3,8 @@
 "use strict";
 
 const DISC = { d: null, filter: "new", playing: "" };
-const DISC_FILTERS = [["new", "Neu"], ["saved", "Gemerkt"], ["all", "Alle"], ["bought", "Gekauft"], ["hidden", "Ausgeblendet"]];
+// #409: kein Filter „Gemerkt“ mehr – gemerkte Titel stehen auf der Seite „Ideen“ (unter „Alle“ bleiben sie sichtbar)
+const DISC_FILTERS = [["new", "Neu"], ["all", "Alle"], ["bought", "Gekauft"], ["hidden", "Ausgeblendet"]];
 
 async function discShow() {
   try { discApply(await call("disc_overview")); } catch (e) { toast(String(e.message || e)); }
@@ -13,6 +14,7 @@ function discApply(d) {
   DISC.d = d;
   const c = d.counts || {};
   $("#discCount").textContent = c.new ? String(c.new) : "";
+  if (!DISC_FILTERS.some(([k]) => k === DISC.filter)) DISC.filter = "new";              // z. B. früher „Gemerkt“
   $("#discFilter").innerHTML = DISC_FILTERS.map(([k, t]) => `<button data-f="${k}" role="radio" aria-checked="${k === DISC.filter}" class="${k === DISC.filter ? "on" : ""}">${t}${k !== "all" && c[k] ? ` <span class="muted">${fmtN(c[k])}</span>` : ""}</button>`).join("");
   const f = d.follow, n = f.artists.length + f.labels.length + f.genres.length;
   discFolRender();
