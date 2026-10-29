@@ -1,6 +1,10 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-29 (21:30): #411–#415, #402, #405 getestet und geschlossen; neu im Beta-Test **#417** (Update-Popup,
+> Stand 2026-10-29 (23:45): **v4.14.0 final veröffentlicht** (Release `v4.14.0`, Windows + macOS beglaubigt, 27 Dateien
+> inkl. SHA256SUMS.txt, VirusTotal 75/75 unauffällig). Geschlossen #406, #407, #410, #418. Offen in #31: #417 (jetzt
+> testbar), #416 (CI beobachten).
+>
+> Davor 2026-10-29 (21:30): #411–#415, #402, #405 getestet und geschlossen; neu im Beta-Test **#417** (Update-Popup,
 > Prüfung beim Start und alle 15 Minuten, abschaltbar) und **#418** (Statistik: laufende TOTAL-Spalten, Meilenstein #29).
 > Offen: #406/#407 (Workflow beim Release), #410, #416.
 >

@@ -1,8 +1,23 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-29 (22:30): 4.14.0 bereit für die Beta** (Meilenstein #31). Offen nur noch, was den Build braucht: #417 Update-Popup, #406/#407 (Workflow-Teil beim Release). #410 behoben und von CodeQL geschlossen, #416 (wackeliger UI-Test) behoben, `_3 Beta-Test` (CI beobachten). #418 geschlossen. Release nur nach Freigabe.
+Stand: **2026-10-29 (23:45): v4.14.0 final veröffentlicht** (latest, 27 Dateien inkl. `SHA256SUMS.txt`; VirusTotal Windows und macOS je 75/75 unauffällig). Meilenstein #31 offen nur noch mit #417 (Update-Popup – jetzt mit der Release-Version testbar) und #416 (wackeliger UI-Test, CI beobachten). Nächste Fehler aus dem Test → Bugfix 4.14.1.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Release 4.14.0 (29.10.2026, 23:45)
+
+- **Freigabe User 22:23** („Du kannst eine finale Version machen. Wenn wir noch was entdecken gibt es ein Bugfix“) –
+  ohne Beta.
+- Vorher ganze Testreihe grün: 833 Unit-Tests, 134 Oberflächentests lokal; CI auf `main` grün (adac678).
+- **Schreibzugriff auf GitHub war 22:30–22:50 weg** (`push: false`, HTTP 403) – Ursache vermutlich zwei claude.ai-Konten
+  (privat/Business) mit derselben GitHub-App; nach dem Neu-Verbinden durch den User wieder da.
+- Release-Vorbereitung: `packaging/build.py › HIDDEN` + `mirror`, `session_mirror`, `appbackup`, `session_appbackup`;
+  `installer.yml` Job „release“: VirusTotal (`release_checks.py virustotal`, Secret `VIRUSTOTAL_API_KEY`, Exit 1 hält
+  das Release an), `release_checks.py sums assets`, Versionshinweise (macOS signiert/beglaubigt, Windows unsigniert,
+  „Download prüfen“, VirusTotal-Zeilen); `web/app.js › relNotesClean` blendet diese Zeilen in TagStudio aus
+  (3b10ecf, adac678). Probelauf „Installer“ ohne Release grün. `release.py 4.14.0` → „Version 4.14.0“ (0059925).
+- **Release `v4.14.0`** (latest): Windows-Setup, macOS-DMG (beglaubigt), 23 Plugin-ZIPs (u. a. onedrive 1.3,
+  spotify 1.3, online 2.4), plugins.json, SHA256SUMS.txt. #406/#407 geschlossen.
 
 ## Sitzung 29.10.2026 (20:59–21:30) – Update-Popup, Statistik-TOTAL
 
