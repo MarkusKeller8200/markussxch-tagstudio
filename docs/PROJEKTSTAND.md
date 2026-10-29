@@ -1,6 +1,10 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-29 (21:00): Testrückmeldungen – geschlossen #384, #385, #401, #403, #409; neu umgesetzt und im
+> Stand 2026-10-29 (21:30): #411–#415, #402, #405 getestet und geschlossen; neu im Beta-Test **#417** (Update-Popup,
+> Prüfung beim Start und alle 15 Minuten, abschaltbar) und **#418** (Statistik: laufende TOTAL-Spalten, Meilenstein #29).
+> Offen: #406/#407 (Workflow beim Release), #410, #416.
+>
+> Davor 2026-10-29 (21:00): Testrückmeldungen – geschlossen #384, #385, #401, #403, #409; neu umgesetzt und im
 > Beta-Test #411 (Herkunft Spotify einheitlich), #412 (OneDrive 1.3: „Privat“ vorausgewählt), #413 (Spiegel im Pfad der
 > Bibliothek ohne Laufwerk, „Spiegel-Ordner erstellen“), #414 (Knöpfe Cloud gleich hoch), #415 (Vorschläge
 > `<OneDrive>/TagStudio/Sicherung`). Offen im Beta-Test zudem #402, #405, #406/#407 (Workflow beim Release).

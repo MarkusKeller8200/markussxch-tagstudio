@@ -1,8 +1,19 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-29 (20:50): 4.14.0 im Beta-Test** (Meilenstein #31 „4.14.0 – Spotify, Cloud & Vertrauen“). Geschlossen: #384, #385, #401–#403, #405, #409, #412–#415. Offen: #411 (Beta-Test), #406/#407 (OK vom User, Workflow-Teil beim Release), #410 (CodeQL-Fund im Test), #416 (wackeliger UI-Test, `_1 bereit`). Release nur nach Freigabe.
+Stand: **2026-10-29 (21:30): 4.14.0 im Beta-Test** (Meilenstein #31). Geschlossen: #384, #385, #401–#403, #405, #409, #411–#415. Offen: #417 Update-Popup (`_3 Beta-Test`), #406/#407 (OK, Workflow-Teil beim Release; Secret `VIRUSTOTAL_API_KEY` ist eingetragen), #410 (CodeQL im Test), #416 (wackeliger UI-Test, `_1 bereit`). Meilenstein #29: #418 Statistik-TOTAL (`_3 Beta-Test`). Release nur nach Freigabe.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Sitzung 29.10.2026 (20:59–21:30) – Update-Popup, Statistik-TOTAL
+
+- **#417** (Wunsch 20:59, Prüfzeit-Entscheid 21:04 „beim Start, dann alle 15 Minuten“, Umsetzung freigegeben 21:10):
+  `web/app.js` `UPD_EVERY`, `updateWatch`, `updateNotify` (einmal je Version und Sitzung, nicht bei Auftrag/Dialog);
+  cfg `update_notify` (Session `update_notify/set_update_notify`, Api `set_update_notify`, `update_status › notify/busy`,
+  appsettings-Gruppe „update“); Einstellungen › Updates Häkchen. UI-Tests setzen `update_notify: false` in der
+  Test-Konfiguration (ausser `test_update_popup`). db35f29.
+- **#418** (Meilenstein #29): laufende Summe `cum_installers`/`cum_plugins` in `downloadstats.summarize`, Spalten auf
+  `.github/stats/index.html` und im Dialog „Downloads je Version …“. d635b41.
+- VirusTotal-Secret vom User eingetragen (21:10).
 
 ## Sitzung 29.10.2026 (20:06–Abend) – Testrückmeldungen, #411–#415
 
