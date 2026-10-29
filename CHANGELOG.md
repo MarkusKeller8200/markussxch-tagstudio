@@ -37,6 +37,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Geändert
 
+- **Einstellungen › Cloud (#414):** alle Knöpfe und Felder einer Zeile gleich hoch (Spiegel, Sicherung, Abgleich).
 - **Spiegel im Aufbau „Pfad“ (#413, #415; OneDrive 1.3):** Standard für neue Spiegel: je Bibliothek derselbe Pfad wie
   auf dem Rechner, ohne Laufwerk (`D:\Musik\DJ` → `<OneDrive>\Musik\DJ`), `index.json`/Playlists in
   `<OneDrive>/TagStudio/Spiegel`; Vorschau je Bibliothek. Plugins › OneDrive › „Kontoart …“ › „Spiegel-Ordner erstellen“

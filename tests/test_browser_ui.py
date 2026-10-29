@@ -2606,6 +2606,30 @@ class UiTest(unittest.TestCase):
             pg.locator("#stCloudCard").screenshot(path=os.path.join(os.environ["TAGSTUDIO_SHOTS"], "cloud_mirror.png"))
         self.assertEqual(self.errors, [])
 
+    def test_cloud_buttons_same_height(self):
+        """#414: Einstellungen › Cloud – Knöpfe (Spiegel, Sicherung, Abgleich) und Felder einer Zeile gleich hoch."""
+        pg = self.pg
+        pg.evaluate("(p) => call('folders_lib_add', 'Musik', 'custom', p, true)", self.lib)
+        pg.evaluate("(p) => call('mirror_set', {folder: p})", os.path.join(self.home, "OneDrive"))
+        pg.evaluate("(p) => call('appbackup_set', {folder: p})", os.path.join(self.home, "OneDrive", "TagStudio", "Sicherung"))
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stMirror [data-mrrun]:not([disabled])")
+        pg.wait_for_selector("#stAppBackup [data-abrun]:not([disabled])")
+        rows = pg.evaluate("""() => {
+          const out = {};
+          document.querySelectorAll('#stCloud button, #stCloud .st-row .inp, #stCloud select').forEach((b) => {
+            const r = b.getBoundingClientRect();
+            if (!r.height || b.closest('label') || b.type === 'checkbox') return;
+            const row = b.closest('.fold-acts, .pl-folder, .st-row');
+            const k = (row ? row.className : 'x') + '@' + Math.round(r.top + r.height / 2);
+            (out[k] = out[k] || []).push([b.textContent.trim() || b.id || b.tagName, Math.round(r.height)]);
+          });
+          return out; }""")
+        self.assertTrue(rows)
+        for k, items in rows.items():
+            self.assertEqual(len({h for _n, h in items}), 1, f"{k}: {items}")
+        self.assertEqual(self.errors, [])
+
     def test_cloud_appbackup(self):
         """#402: Einstellungen › Cloud › „Sicherung der Programmdaten“ – Ordner, Jetzt sichern, Wiederherstellen mit
         Vorschau (vorher Sicherung des jetzigen Stands)."""
