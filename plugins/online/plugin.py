@@ -73,7 +73,7 @@ def actions(ctx):
          "choices": [["missing", "Nur wenn keins vorhanden"], ["replace", "Ersetzen"], ["no", "Nicht übernehmen"]], "default": "missing"},
         {"key": "ids", "type": "check", "label": "IDs speichern (MusicBrainz, Deezer, iTunes, Discogs)", "default": True},
         {"key": "own", "type": "check", "default": False,
-         "label": "Zusätzlich eigene Felder der Quelle mit Herkunft schreiben (SonoVault: TXXX:SONOVAULT_*)"},
+         "label": "Zusätzlich eigene Felder der Quelle mit Herkunft schreiben (SonoVault: TXXX:SONOVAULT_*, Spotify: TXXX:SPOTIFY_*)"},
     ]
     return [
         {"id": "fetch", "label": "Online-Metadaten holen …", "where": "tagger", "run_label": "Suchen",
@@ -206,7 +206,8 @@ def propose_file(ctx, cl, f, hits, opts, group, stats, auth=None):
                 if f.text(key).strip() == val:
                     continue
                 ctx.propose(f, key, val, f"{label} ({SOURCE_NAME[src]})", note=f"{SOURCE_NAME[src]}: eigenes Feld",
-                            checked=s >= SURE, group=group, hint=f"eigenes Feld mit Herkunft „{SOURCE_NAME[src]}“")
+                            checked=s >= SURE, group=group,
+                            hint=c.get("own_hint") or f"eigenes Feld mit Herkunft „{SOURCE_NAME[src]}“")   # #385
     # Cover: aus der ersten Quelle, die eins hat
     cov = opts.get("cover", "missing")
     has = f.get("APIC:3") is not None

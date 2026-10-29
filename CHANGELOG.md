@@ -23,6 +23,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Download prüfen (#406, #407):** Versionshinweise zeigen je Installer die SHA-256-Prüfsumme (auch rückwirkend im
   Download-Kasten) und ab diesem Release `SHA256SUMS.txt` sowie den VirusTotal-Bericht; ein Release wird angehalten,
   wenn ein Scanner etwas meldet. Handbuch: Abschnitt „Download prüfen“.
+- **Spotify – eigene Felder `TXXX:SPOTIFY_*` (#385, Spotify 1.2, Online-Metadaten 2.4):** mit der Option „eigene Felder“
+  Album-/Künstler-ID, Titel, Künstler, Album, Datum, ISRC, Genre, Spur (2/4), Dauer, Explicit und Abrufdatum mit Herkunft
+  „Spotify“ – auf eigene Verantwortung (Spotify Developer Terms), Hinweis in der Vorschau.
 
 ### Sicherheit
 

@@ -1,7 +1,7 @@
 {
   "id": "spotify",
   "name": "Spotify",
-  "version": "1.1",
+  "version": "1.2",
   "min_app": "4.8.0",
   "category": "online",
   "api": 1,
@@ -10,7 +10,19 @@
   "notes": "Keine Zusatzpakete nötig. Unter „Anmelden …“ die Client-ID deiner Spotify-App eintragen und anmelden.",
   "fields": [
     "TXXX:SPOTIFY_TRACK_ID",
-    "TXXX:SPOTIFY_URL"
+    "TXXX:SPOTIFY_URL",
+    "TXXX:SPOTIFY_ALBUM_ID",
+    "TXXX:SPOTIFY_ARTIST_ID",
+    "TXXX:SPOTIFY_TITLE",
+    "TXXX:SPOTIFY_ARTIST",
+    "TXXX:SPOTIFY_ALBUM",
+    "TXXX:SPOTIFY_RELEASE_DATE",
+    "TXXX:SPOTIFY_ISRC",
+    "TXXX:SPOTIFY_GENRE",
+    "TXXX:SPOTIFY_TRACK",
+    "TXXX:SPOTIFY_DURATION",
+    "TXXX:SPOTIFY_EXPLICIT",
+    "TXXX:SPOTIFY_DATE"
   ],
   "service": {
     "name": "Spotify Web API",

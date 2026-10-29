@@ -134,8 +134,46 @@ def _cand(t) -> dict:
             "isrc": ((t.get("external_ids") or {}).get("isrc") or "").upper(), "album": alb.get("name", ""),
             "album_id": alb.get("id", ""), "album_artist": ", ".join(_artists(alb)), "date": alb.get("release_date", ""),
             "cover": imgs[0].get("url", "") if imgs else "", "track": str(t.get("track_number") or ""),
-            "disc": str(t.get("disc_number") or ""), "url": url,
+            "disc": str(t.get("disc_number") or ""), "url": url, "total_tracks": alb.get("total_tracks") or 0,
+            "explicit": t.get("explicit"), "artist_id": ((t.get("artists") or [{}])[0] or {}).get("id", ""),
             "ids": {k: v for k, v in (("TXXX:SPOTIFY_TRACK_ID", t.get("id", "")), ("TXXX:SPOTIFY_URL", url)) if v}}
+
+
+# =========================================================================== #385: eigene Felder TXXX:SPOTIFY_*
+# Entscheid User 27.10.2026: Variante B (volle Liste) auf eigene Verantwortung – die Spotify Developer Terms zählen
+# Metadaten zu den Spotify-Inhalten (nicht dauerhaft speichern). Hinweis in der Vorschau und in PLUGINS.md.
+OWN = ("ALBUM_ID", "ARTIST_ID", "TITLE", "ARTIST", "ALBUM", "RELEASE_DATE", "ISRC", "GENRE", "TRACK", "DURATION",
+       "EXPLICIT")
+OWN_HINT = ("eigenes Feld mit Herkunft „Spotify“ – auf eigene Verantwortung: die Spotify Developer Terms erlauben "
+            "kein dauerhaftes Speichern von Spotify-Metadaten")
+
+
+def fmt_duration(sec) -> str:
+    try:
+        sec = int(round(float(sec)))
+    except (TypeError, ValueError):
+        return ""
+    return f"{sec // 3600}:{sec // 60 % 60:02d}:{sec % 60:02d}" if sec >= 3600 else f"{sec // 60}:{sec % 60:02d}"
+
+
+def own_fields(c: dict) -> list:
+    """Kopie der Spotify-Werte als TXXX:SPOTIFY_<FELD> – [(Schlüssel, Wert, Beschriftung, Stempel)]. TRACK_ID und URL
+    kommen wie bisher über „IDs speichern“. Popularität, Label und Audio-Merkmale liefert Spotify eigenen Apps nicht."""
+    title = (c.get("title") or "") + (f" ({c['mix']})" if c.get("mix") else "")
+    track = str(c.get("track") or "")
+    if track and c.get("total_tracks"):
+        track = f"{track}/{c['total_tracks']}"
+    ex = c.get("explicit")
+    vals = {"ALBUM_ID": c.get("album_id") or "", "ARTIST_ID": c.get("artist_id") or "", "TITLE": title,
+            "ARTIST": ", ".join(a for a in c.get("artists") or [] if a), "ALBUM": c.get("album") or "",
+            "RELEASE_DATE": c.get("date") or "", "ISRC": c.get("isrc") or "", "GENRE": c.get("genre") or "",
+            "TRACK": track, "DURATION": fmt_duration(c.get("length")) if c.get("length") else "",
+            "EXPLICIT": "" if ex is None else ("1" if ex else "0")}
+    out = [(f"TXXX:SPOTIFY_{k}", str(vals[k]).strip(), f"SPOTIFY_{k}", False) for k in OWN if str(vals[k]).strip()]
+    if out:                                              # Abrufdatum (Stempel – kein Spotify-Wert)
+        import datetime
+        out.append(("TXXX:SPOTIFY_DATE", datetime.date.today().isoformat(), "SPOTIFY_DATE", True))
+    return out
 
 
 def candidates(ctx, cl, info, opts=None) -> list:
@@ -169,6 +207,8 @@ def details(ctx, cl, c) -> dict:
             g = a.get("genres") or []
             if g:
                 c["genre"] = g[0].title()
+    c["own_fields"] = own_fields(c)                     # #385: nur auf Wunsch (Option „eigene Felder“ in Online-Metadaten)
+    c["own_hint"] = OWN_HINT
     return c
 
 

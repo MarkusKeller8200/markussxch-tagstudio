@@ -1,0 +1,4 @@
+{
+"Zusätzlich eigene Felder der Quelle mit Herkunft schreiben (SonoVault: TXXX:SONOVAULT_*, Spotify: TXXX:SPOTIFY_*)": ["Additionally write the source's own fields with origin (SonoVault: TXXX:SONOVAULT_*, Spotify: TXXX:SPOTIFY_*)", "Zuesätzlich eigeni Fälder vo de Quälle mit Herkunft schriibe (SonoVault: TXXX:SONOVAULT_*, Spotify: TXXX:SPOTIFY_*)"],
+"eigenes Feld mit Herkunft {q} – auf eigene Verantwortung: die Spotify Developer Terms erlauben kein dauerhaftes Speichern von Spotify-Metadaten": ["own field with origin {q} – at your own risk: the Spotify Developer Terms do not allow storing Spotify metadata permanently", "eigets Fäld mit Herkunft {q} – uf eigeni Verantwortig: d Spotify Developer Terms erlaubed kei dauerhafts Speichere vo Spotify-Metadate"]
+}

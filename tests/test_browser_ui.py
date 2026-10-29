@@ -4775,6 +4775,15 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.evaluate("window.__urls"), ["https://open.spotify.com/track/x"])
         self.assertEqual(self.errors, [])
 
+    def test_spotify_own_fields_option(self):
+        """#385: Online-Metadaten nennt die eigenen Felder TXXX:SPOTIFY_* bei der Option „eigene Felder“ (Standard aus)."""
+        pg = self.pg
+        f = pg.evaluate("call('plugin_form', 'online', 'fetch')")
+        own = [o for o in f["options"] if o.get("key") == "own"][0]
+        self.assertIn("TXXX:SPOTIFY_*", own["label"])
+        self.assertFalse(own["value"])
+        self.assertEqual(self.errors, [])
+
     def test_web_search_menu(self):
         """#283: Rechtsklick › „Online suchen ›“ im Tagger und in den Playlists – Reihenfolge und Adresse."""
         pg = self.pg

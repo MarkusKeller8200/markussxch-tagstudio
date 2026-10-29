@@ -463,6 +463,14 @@ geändert. Beide brauchen eine **eigene App** beim Dienst; TagStudio liefert kei
   „Einkaufsliste exportieren …“ (mit Link). „↗“ in der Liste öffnet den Titel beim Dienst.
 - **Online-Metadaten:** Quellen „Spotify“ und „SoundCloud“ (aus, bis du sie anhakst) – Album, Datum, ISRC, Genre,
   Cover und als Felder `TXXX:SPOTIFY_TRACK_ID`/`TXXX:SPOTIFY_URL` bzw. `TXXX:SOUNDCLOUD_TRACK_ID`/`TXXX:SOUNDCLOUD_URL`.
+- **Eigene Felder `TXXX:SPOTIFY_*` (#385, Spotify 1.2, Online-Metadaten 2.4):** mit der Option „Zusätzlich eigene Felder
+  der Quelle mit Herkunft schreiben“ schlägt Online-Metadaten Kopien mit Herkunft „Spotify“ vor: `SPOTIFY_ALBUM_ID`,
+  `SPOTIFY_ARTIST_ID` (erster Künstler), `SPOTIFY_TITLE`, `SPOTIFY_ARTIST`, `SPOTIFY_ALBUM`, `SPOTIFY_RELEASE_DATE`,
+  `SPOTIFY_ISRC`, `SPOTIFY_GENRE` (Genre des Künstlers), `SPOTIFY_TRACK` (z. B. `2/4`), `SPOTIFY_DURATION`,
+  `SPOTIFY_EXPLICIT` (0/1) und `SPOTIFY_DATE` (Abrufdatum). Popularität, Label und Audio-Merkmale liefert Spotify
+  eigenen Apps nicht mehr. ⚠ **Nutzungsbedingungen:** Die [Spotify Developer Terms](https://developer.spotify.com/terms)
+  zählen Metadaten zu den Spotify-Inhalten und erlauben kein dauerhaftes Speichern – das Schreiben in die Datei
+  geschieht auf eigene Verantwortung (Hinweis auch in der Vorschau).
 - **„Gefolgte Künstler in „Entdecken“ übernehmen …“:** ergänzt die Künstler (Spotify, wahlweise auch deine Top 20)
   bzw. Konten (SoundCloud), denen du folgst, unter Entdecken › Gefolgte Künstler.
 - Die Kachel zeigt unter „Endpunkte“ alle Lese-Endpunkte mit Umsetzungsstand; der API-Tester ruft sie mit deiner

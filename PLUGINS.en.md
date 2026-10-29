@@ -452,6 +452,14 @@ need **your own app** at the service; TagStudio does not ship shared credentials
   (with link). “↗” in the list opens the track at the service.
 - **Online metadata:** sources “Spotify” and “SoundCloud” (off until you tick them) – album, date, ISRC, genre, cover
   and as fields `TXXX:SPOTIFY_TRACK_ID`/`TXXX:SPOTIFY_URL` or `TXXX:SOUNDCLOUD_TRACK_ID`/`TXXX:SOUNDCLOUD_URL`.
+- **Own fields `TXXX:SPOTIFY_*` (#385, Spotify 1.2, Online metadata 2.4):** with the option “Additionally write the
+  source's own fields with origin”, Online metadata proposes copies with origin “Spotify”: `SPOTIFY_ALBUM_ID`,
+  `SPOTIFY_ARTIST_ID` (first artist), `SPOTIFY_TITLE`, `SPOTIFY_ARTIST`, `SPOTIFY_ALBUM`, `SPOTIFY_RELEASE_DATE`,
+  `SPOTIFY_ISRC`, `SPOTIFY_GENRE` (artist genre), `SPOTIFY_TRACK` (e.g. `2/4`), `SPOTIFY_DURATION`, `SPOTIFY_EXPLICIT`
+  (0/1) and `SPOTIFY_DATE` (retrieval date). Popularity, label and audio features are no longer available to own apps.
+  ⚠ **Terms of use:** the [Spotify Developer Terms](https://developer.spotify.com/terms) count metadata as Spotify
+  content and do not allow storing it permanently – writing it into the file is at your own risk (also noted in the
+  preview).
 - **“Add followed artists to “Discover” …”:** adds the artists (Spotify, optionally also your top 20) or accounts
   (SoundCloud) you follow under Discover › Followed artists.
 - The card lists all read endpoints with their implementation state under “endpoints”; the API tester calls them with

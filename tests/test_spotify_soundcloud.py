@@ -17,9 +17,11 @@ import oauthkit
 import onlinematch
 
 SP_TRACK = {"id": "sp1", "type": "track", "name": "Kaltes Glas - Extended Mix", "duration_ms": 340000, "track_number": 3,
+            "explicit": False,
             "disc_number": 1, "artists": [{"id": "ar1", "name": "Mara Lind"}], "external_ids": {"isrc": "cha012100002"},
             "external_urls": {"spotify": "https://open.spotify.com/track/sp1"},
             "album": {"id": "al1", "name": "Nachtfahrt EP", "release_date": "2021-05-14", "artists": [{"name": "Mara Lind"}],
+                      "total_tracks": 4,
                       "images": [{"url": "https://i.scdn.co/image/abc"}]}}
 SC_TRACK = {"id": 77, "title": "Nordlicht (Club Mix)", "duration": 372000, "genre": "Techno", "bpm": 128,
             "permalink_url": "https://soundcloud.com/maralind/nordlicht", "user": {"username": "maralind"},
@@ -262,6 +264,21 @@ class TestPlugins(Base):
         self.assertEqual(by["SPOTIFY_URL (Spotify)"], "https://open.spotify.com/track/sp1")
         self.assertEqual(by["Genre (Spotify)"], "Deep House")
         self.assertTrue(any(c[2].get("q") == "isrc:CHA012100002" for c in self.fake.calls))
+        # #385: eigene Felder TXXX:SPOTIFY_* nur mit Option „own“, mit Hinweis auf die Developer Terms
+        self.assertFalse(any(r["label"].startswith("SPOTIFY_ALBUM") for r in res["proposals"]))
+        res = self.act("online", "fetch", [self.idx["k.mp3"]], mb=False, discogs=False, deezer=False, itunes=False,
+                       spotify=True, soundcloud=False, lastfm=False, acoustid=False, mode="empty", album=True, date="full",
+                       label=True, isrc=True, genre=True, bpm=False, track=False, names=False, cover="no", ids=True, own=True)
+        own = {"TXXX:" + r["label"].split(" (")[0]: r for r in res["proposals"] if r["label"].startswith("SPOTIFY_")}
+        self.assertEqual(own["TXXX:SPOTIFY_ALBUM_ID"]["new"], "al1")
+        self.assertEqual(own["TXXX:SPOTIFY_ARTIST_ID"]["new"], "ar1")
+        self.assertEqual(own["TXXX:SPOTIFY_TITLE"]["new"], "Kaltes Glas (Extended Mix)")
+        self.assertEqual(own["TXXX:SPOTIFY_TRACK"]["new"], "3/4")
+        self.assertEqual(own["TXXX:SPOTIFY_DURATION"]["new"], "5:40")
+        self.assertEqual(own["TXXX:SPOTIFY_EXPLICIT"]["new"], "0")
+        self.assertEqual(own["TXXX:SPOTIFY_GENRE"]["new"], "Deep House")
+        self.assertIn("TXXX:SPOTIFY_DATE", own)
+        self.assertIn("Developer Terms", own["TXXX:SPOTIFY_ALBUM"]["hint"])
         # abgelaufener Token wird erneuert
         self.fake.token_ok.discard("SP-OK")
         self.assertIn("in Ordnung", self.act("spotify", "test")["message"])
