@@ -1,6 +1,12 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-29 (17:40): Konzept **`docs/KONZEPT-ONEDRIVE.md`** zu #400 – vom User nicht weiter verfolgt (17:35);
+> Stand 2026-10-29 (Abend): **4.14.0 umgesetzt, im Beta-Test** – Meilenstein #31 umbenannt in „4.14.0 – Spotify, Cloud &
+> Vertrauen“. `_3 Beta-Test`: #401 (Token bei Umleitungen), #405 (OneDrive Kontoart, 1.2), #403 (Spiegel), #402
+> (Sicherung Programmdaten), #385 (`TXXX:SPOTIFY_*`), #384 (Spotify 1.3, SP1–SP6), #409 (Filter „Gemerkt“ entfernt).
+> #406/#407 (Prüfsummen, VirusTotal – Release anhalten bei Treffern): Code fertig, Workflow-Teil mit dem Release;
+> Secret `VIRUSTOTAL_API_KEY` legt der User an. #408 Microsoft Store: nein (geschlossen). Release-Checkliste in UEBERGABE.md.
+>
+> Davor 2026-10-29 (17:40): Konzept **`docs/KONZEPT-ONEDRIVE.md`** zu #400 – vom User nicht weiter verfolgt (17:35);
 > neu **#401** (Sicherheit: Token bei Umleitungen) und **#402** (Programmdaten in Cloud-Ordner sichern), #403 Spiegel der Bibliothek, #404 Web-Player (Idee).
 > 17:58: #405 Umschalter Kontoart OneDrive; #401, #402, #403, #405 in Meilenstein #31 (4.14.0), noch nicht umgesetzt.
 > SignPath abgelehnt; geplant in #31: #406 Prüfsummen, #407 VirusTotal, #408 Microsoft Store (MSIX). 4.14.0 noch nicht begonnen.

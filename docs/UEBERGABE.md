@@ -1,8 +1,39 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-10-29 (03:50): v4.13.0 final veröffentlicht** (Windows + macOS signiert/beglaubigt, 26 Dateien), Meilenstein #30 geschlossen. Nächstes Release: **4.14.0 – Spotify** (Meilenstein #31: #384, #385). #376 SignPath in „Idee (Später)“. Beim nächsten Release: Filter „Gemerkt“ in Entdecken entfernen (I3, #186).
+Stand: **2026-10-29 (Abend): 4.14.0 umgesetzt, im Beta-Test** (Meilenstein #31 „4.14.0 – Spotify, Cloud & Vertrauen“: #384, #385, #401–#403, #405, #409 `_3 Beta-Test`; #406/#407 Workflow-Teil mit dem Release). Release nur nach Freigabe. Davor: v4.13.0 final (03:50).
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Sitzung 29.10.2026 (18:27–Abend) – 4.14.0 umgesetzt, im Beta-Test
+
+- **Entscheide User 18:27:** Microsoft Store **nein** (#408 geschlossen, nicht geplant); **#407 ja** – Release
+  **anhalten**, wenn ein Scanner etwas meldet; Meilenstein #31 umbenannt in **„4.14.0 – Spotify, Cloud & Vertrauen“**;
+  Reihenfolge wie vorgeschlagen; alle neuen Spotify-Scopes auf einmal. Fragen #402/#403 wie vorgeschlagen: Sicherung
+  von Hand (Standard) + „beim Beenden“/„täglich“, 10 behalten; Spiegel über alle aktiven Bibliotheken (abwählbar);
+  „nur online“ als Option, Standard aus.
+- **Umgesetzt (alle `_3 Beta-Test`, Testlisten in den Issues):**
+  - **#401** `onlinematch.SafeRedirect`: `Authorization`/`Cookie`/API-Schlüssel nur an gleiches Schema+Host+Port (a190c68).
+  - **#405** OneDrive 1.2: Umschalter Kontoart (Geschäftlich = `organizations`/Tenant, Privat = OneDrive-Ordner) (492534b).
+  - **#403** `mirror.py` + `session_mirror.py` + `web/mirror.js`: Einweg-Spiegel mit Platzschätzung, Index, M3U8,
+    „Überzählige“ nur nach Rückfrage löschen, „nur online“ (Windows `attrib +u -p`, macOS ZU PRÜFEN) (e166ffb).
+  - **#402** `appbackup.py` + `session_appbackup.py` + `web/appbackup.js`: ZIP mit Manifest/SHA-256, Wiederherstellen
+    mit Vorschau, vorher Sicherung „vor-Wiederherstellen“, Pfade umschreiben (f05d3f4).
+  - **#406/#407** `downloadstats.py` (SHA-256 im Download-Kasten) und `.github/scripts/release_checks.py` (`sums`,
+    `virustotal`) – **Workflow-Teil noch offen** (nur mit dem Release, siehe Checkliste) (5b9f31e). Labels `_2 in Arbeit`.
+  - **#385** Spotify 1.2 / Online-Metadaten 2.4: `TXXX:SPOTIFY_*` (Variante B, Hinweis Developer Terms) (0f8e2b3).
+  - **#384** Spotify 1.3: SP2+SP5 (8f4408c), SP1 (ed8e970), SP3 (ff309be, ohne eigenen Oberflächentest), SP4 (3b00cc7),
+    SP6 (64c2db0). Neue Scopes → einmal neu anmelden; Schreiben nur auf Klick; Dev-Modus kann 403 liefern.
+  - **#409** Filter „Gemerkt“ in Entdecken entfernt (786e0cc).
+- **Release-Checkliste 4.14.0 (erst nach Freigabe):**
+  - `packaging/build.py › HIDDEN`: `mirror`, `session_mirror`, `appbackup`, `session_appbackup`.
+  - `installer.yml`, Job „release“: Schritt `python3 .github/scripts/release_checks.py virustotal assets/*.exe assets/*.dmg`
+    mit `env: VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}` (Exit 1 → Release angehalten), danach
+    `release_checks.py sums assets`, `virustotal.md` an `notes.md` anhängen; Notes-Text: macOS signiert/beglaubigt,
+    Windows unsigniert + Hinweis Prüfsumme.
+  - **Secret `VIRUSTOTAL_API_KEY` legt der User an** (ohne Secret: Hinweis, Prüfung übersprungen).
+  - Plugin-ZIPs: onedrive 1.2, spotify 1.3, online 2.4.
+- Offen: Zweige `macos-signing`, `release-4.13` löschen? (nur nach Rückfrage). CI-Ausreisser
+  `test_tagger_auto_scroll_and_frozen_column` (einmal, lokal grün).
 
 ## Sitzung 29.10.2026 (03:54–17:40) – Cloud-Anmeldung und OneDrive-Konzept
 
