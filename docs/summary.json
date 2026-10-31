@@ -19,7 +19,7 @@
      "count": 0
     }
    ],
-   "cum_installers": 92,
+   "cum_installers": 94,
    "cum_plugins": 171
   },
   {
@@ -41,7 +41,7 @@
      "count": 15
     }
    ],
-   "cum_installers": 92,
+   "cum_installers": 94,
    "cum_plugins": 171
   },
   {
@@ -63,7 +63,7 @@
      "count": 3
     }
    ],
-   "cum_installers": 76,
+   "cum_installers": 78,
    "cum_plugins": 150
   },
   {
@@ -85,7 +85,7 @@
      "count": 3
     }
    ],
-   "cum_installers": 68,
+   "cum_installers": 70,
    "cum_plugins": 98
   },
   {
@@ -107,7 +107,7 @@
      "count": 3
     }
    ],
-   "cum_installers": 61,
+   "cum_installers": 63,
    "cum_plugins": 51
   },
   {
@@ -129,7 +129,7 @@
      "count": 1
     }
    ],
-   "cum_installers": 55,
+   "cum_installers": 57,
    "cum_plugins": 13
   },
   {
@@ -151,7 +151,7 @@
      "count": 2
     }
    ],
-   "cum_installers": 53,
+   "cum_installers": 55,
    "cum_plugins": 12
   },
   {
@@ -173,7 +173,7 @@
      "count": 1
     }
    ],
-   "cum_installers": 50,
+   "cum_installers": 52,
    "cum_plugins": 7
   },
   {
@@ -195,7 +195,7 @@
      "count": 1
     }
    ],
-   "cum_installers": 48,
+   "cum_installers": 50,
    "cum_plugins": 0
   },
   {
@@ -217,7 +217,7 @@
      "count": 1
     }
    ],
-   "cum_installers": 46,
+   "cum_installers": 48,
    "cum_plugins": 0
   },
   {
@@ -239,7 +239,7 @@
      "count": 1
     }
    ],
-   "cum_installers": 44,
+   "cum_installers": 46,
    "cum_plugins": 0
   },
   {
@@ -247,21 +247,21 @@
    "date": "2026-10-16",
    "beta": false,
    "url": "https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/tag/v4.4.1",
-   "win": 1,
-   "mac": 1,
+   "win": 2,
+   "mac": 2,
    "plugins": 0,
-   "total": 2,
+   "total": 4,
    "files": [
     {
      "name": "TagStudio-4.4.1-macOS-Apple-Chip.dmg",
-     "count": 1
+     "count": 2
     },
     {
      "name": "TagStudio-4.4.1-Windows-Setup.exe",
-     "count": 1
+     "count": 2
     }
    ],
-   "cum_installers": 42,
+   "cum_installers": 44,
    "cum_plugins": 0
   },
   {
@@ -574,10 +574,10 @@
   }
  ],
  "total": {
-  "win": 53,
-  "mac": 39,
+  "win": 54,
+  "mac": 40,
   "plugins": 171,
-  "installers": 92
+  "installers": 94
  },
  "history": {
   "days": [
@@ -607,15 +607,15 @@
    },
    {
     "day": "2026-10-31",
-    "win": 0,
-    "mac": 0,
-    "total": 0
+    "win": 1,
+    "mac": 1,
+    "total": 2
    }
   ],
-  "last7": 71,
-  "last30": 71,
+  "last7": 73,
+  "last30": 73,
   "since": "2026-10-26"
  },
- "updated": "2026-10-31 08:44 UTC",
+ "updated": "2026-10-31 15:28 UTC",
  "releases_url": "https://github.com/MarkusKeller8200/markussxch-tagstudio/releases"
 }
