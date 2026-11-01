@@ -26,6 +26,10 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **Beim Release:** `carts`, `session_carts` in `packaging/build.py › HIDDEN` eintragen.
 - **Offen:** #424 (URL) erst nach Freigabe/Test von #420–#423; Beatport-Playlist mit dem echten Konto testet der User;
   #427 wackeliger Oberflächentest `test_folder_menu_and_sources` (nur Issue, Umsetzung auf Freigabe).
+- **19:58:** Links zum Prüfen als Issues in „Funktionen“ (Labels funktion, idee): #428 1001-tracklists-api (Scraping,
+  Nutzungsbedingungen klären), #429 beautifulsoup4 (keine Pflicht-Abhängigkeit im Kern), #430 OpenSubsonic (zu #404),
+  #431 Bandcamp-API (inoffiziell, zu #425), #432 sidify-music-converter-reloaded (vermutlich gecrackt – nicht
+  verwenden, Vorschlag schliessen). Nichts umsetzen ohne Freigabe.
 - **19:40:** Meilenstein #31 „4.14.0“ geprüft und geschlossen – #416 und #417 hatten vollständig abgehakte
   Testlisten (Auftrag User).
 
