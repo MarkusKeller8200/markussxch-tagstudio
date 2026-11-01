@@ -17,6 +17,15 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   in den Warenkorb“ und bezahlen; die offizielle Beatport-API kennt keinen Warenkorb. Körbe bleiben als Historik
   „Offen“/„Gekauft“ (automatisch, sobald alles unter „Einkäufe“ steht, oder von Hand), Export Excel/CSV, Teil der
   Sicherung der Programmdaten. Konzept `docs/KONZEPT-WARENKORB.md`. Beatport-Plugin 2.12 (`store_search`).
+- **Warenkorb – Assistent und Vorschau (#433–#437):** Bei einem neuen Warenkorb führt ein **Assistent** Schritt für
+  Schritt durch Hinzufügen, Suchen, Prüfen, Senden und Kaufen; jeder Schritt und jeder Knopf zeigt zuerst eine
+  **Vorschau** (Titel mit Häkchen). Hinzufügen als einzelne Knöpfe („Liste einfügen …“, „Aus Ideen …“, „Von Hand …“,
+  „Per Link …“), Hinweis auf 1001Tracklists, Namensvorlage `Warenkorb_JJJJ_MM_TT`. Beim Einfügen einer Trackliste ist
+  die **Titelzeile des Mixes** (z. B. „Nora En Pure - Purified Radio 531 …“) ausmarkiert statt als Titel übernommen –
+  auch in Ideen und Playlists.
+- **Warenkorb per Link (#424):** Titel aus Links von **Beatport** (Titel, Release, Chart, Playlist), **Spotify**
+  (Playlist, Album, Titel) und **SoundCloud** übernehmen – nur lesend, mit Vorschau. Beatport 2.13, Spotify 1.4,
+  SoundCloud 1.2 (`url_tracks`).
 
 ## [4.14.0] – 2026-10-29
 

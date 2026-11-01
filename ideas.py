@@ -104,6 +104,8 @@ def from_text(text: str) -> tuple[list[dict], int]:
         title, mix = discover.split_mix(ref.get("title", ""))
         e = entry(ref.get("artist", ""), title, mix, url=ref.get("url", ""), src="text")
         if e:
+            if r.get("head"):
+                e["head"] = True                              # #436: nur für die Vorschau, pick_tracklist entfernt es
             out.append(e)
     return out, unknown
 

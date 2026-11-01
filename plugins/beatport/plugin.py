@@ -945,6 +945,35 @@ def store_search(ctx, refs) -> list:
     return out
 
 
+_BP_URL = re.compile(r"^https://(?:www\.)?beatport\.com/(?:[a-z]{2}/)?(track|release|chart|playlists(?:/share)?|library/playlists)"
+                     r"/(?:[^/?#]+/)?(\d+)(?:[/?#]|$)")
+
+
+def url_tracks(ctx, url) -> dict:
+    """#424 Warenkorb: Titel eines Beatport-Links (Titel, Release, Chart, Playlist, eigene Playlist) – nur lesend.
+    → {"name", "items": [{artist, title, mix, isrc, dur, url, sid}]}"""
+    m = _BP_URL.match(str(url or "").strip())
+    if not m:
+        raise ValueError("Unbekannter Beatport-Link – unterstützt: Titel, Release, Chart, Playlist.")
+    kind, oid = m.group(1), m.group(2)
+    c = Client(ctx)
+    if kind == "track":
+        t = c.track(oid)
+        rows, name = ([t] if isinstance(t, dict) else []), (t or {}).get("name", "") if isinstance(t, dict) else ""
+    else:
+        path = {"release": f"/catalog/releases/{oid}", "chart": f"/catalog/charts/{oid}",
+                "library/playlists": f"/my/playlists/{oid}"}.get(kind, f"/catalog/playlists/{oid}")
+        meta = c.get(path + "/") or {}
+        name = meta.get("name", "") if isinstance(meta, dict) else ""
+        rows = _pages(c, path + "/tracks/", 2000, ctx.log)
+        rows = [r.get("track") if isinstance(r.get("track"), dict) else r for r in rows]
+    items = []
+    for t in rows:
+        if isinstance(t, dict) and t.get("id") and t.get("name"):
+            items.append(dict(track_ref(t), sid=str(t["id"])))
+    return {"name": name or f"Beatport {kind} {oid}", "items": items}
+
+
 # =========================================================================== #204: Integration
 _SECRET_HEADERS = ("authorization", "cookie", "set-cookie", "proxy-authorization", "x-csrftoken")
 

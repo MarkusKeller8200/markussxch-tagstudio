@@ -1601,6 +1601,17 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .disc-t .icon-btn.on{color:var(--acc)}
 @media (max-width:800px){.idea-wrap{grid-template-columns:1fr}.idea-lists{max-height:180px}}
 /* #420 Warenkorb */
+.cart-add{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0 2px}
+.cart-pv{max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.cart-pv table{width:100%;border-collapse:collapse;font-size:12.5px}
+.cart-pv td,.cart-pv th{padding:3px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.cart-pv tr.head td{opacity:.65}
+.cart-pv .why{font-size:11px;color:var(--warn,#d29922)}
+.cart-wz-steps{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 10px}
+.cart-wz-steps span{font-size:11.5px;padding:2px 8px;border-radius:10px;background:var(--line)}
+.cart-wz-steps span.on{background:var(--acc-soft);color:var(--acc);font-weight:600}
+.cart-wz-steps span.done{opacity:.6}
+.cart-wz-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .cart-grp{padding:8px 8px 2px;text-transform:uppercase;letter-spacing:.04em;font-size:10.5px}
 .cart-l.arch{opacity:.6}
 .cart-arch{margin:8px 4px 2px;align-self:flex-start}

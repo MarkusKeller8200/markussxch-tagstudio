@@ -850,7 +850,7 @@ class Manager:
     # ---- #242: Playlists anderer Programme fürs DJ-Set (playlists(ctx), playlist_files(ctx, id))
     PLAYLIST_FNS = ("playlists", "playlist_files", "playlist_push", "store_purchases", "store_download", "store_reset_download",
                     "store_login", "store_logout", "store_session", "store_settings", "store_playlist_check",
-                    "store_playlist_list", "store_playlist_put", "store_playlist_delete", "store_search",   # #423 Warenkorb
+                    "store_playlist_list", "store_playlist_put", "store_playlist_delete", "store_search", "url_tracks",   # #423/#424 Warenkorb
                     # #384 Spotify: Läuft gerade/Zuletzt gehört (SP2), Wunschliste als Playlist (SP5), Bibliothek (SP6)
                     "now_playing", "recently_played", "wish_push", "library_contains", "library_save")
 
@@ -947,7 +947,8 @@ class Manager:
                                            "store_session": "Sitzung", "store_playlist_check": "Schreibzugriff prüfen",
                                            "store_playlist_put": "Playlist in Beatport befüllen",
                                            "store_playlist_delete": "Playlists in Beatport löschen",
-                                           "store_search": "Warenkorb: bei Beatport suchen"}
+                                           "store_search": "Warenkorb: bei Beatport suchen",
+                                           "url_tracks": "Warenkorb: Titel aus einem Link"}
                            .get(fn_name, "Playlist senden") + "\n" + "\n".join(ctx.log_lines))
             if fn_name == "playlist_push" and isinstance(res, dict):
                 res["logfile"] = lf

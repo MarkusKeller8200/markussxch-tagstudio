@@ -1,7 +1,7 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "2.12",
+  "version": "2.13",
   "min_app": "4.9.1",
   "category": "online",
   "categories": [
@@ -78,7 +78,8 @@
         "method": "GET",
         "path": "/catalog/charts/{id}/",
         "label": "Ein Chart",
-        "status": "none"
+        "status": "partial",
+        "use": "Warenkorb: Name einer Chart (Link, #424)"
       },
       {
         "id": "catalog-charts-id-images",
@@ -92,7 +93,8 @@
         "method": "GET",
         "path": "/catalog/charts/{id}/tracks/",
         "label": "Titel eines Charts",
-        "status": "none"
+        "status": "partial",
+        "use": "Warenkorb: Titel einer Chart (Link, #424)"
       },
       {
         "id": "catalog-charts-id-tracks-ids",
@@ -207,7 +209,8 @@
         "method": "GET",
         "path": "/catalog/playlists/{id}/",
         "label": "Eine Beatport-Playlist",
-        "status": "none"
+        "status": "partial",
+        "use": "Warenkorb: Name einer Beatport-Playlist (Link, #424)"
       },
       {
         "id": "catalog-playlists-id-chart-mapping",
@@ -228,7 +231,8 @@
         "method": "GET",
         "path": "/catalog/playlists/{playlists_pk}/tracks/",
         "label": "Titel einer Beatport-Playlist",
-        "status": "none"
+        "status": "partial",
+        "use": "Warenkorb: Titel einer Beatport-Playlist (Link, #424)"
       },
       {
         "id": "catalog-playlists-playlists_pk-tracks-ids",
@@ -249,7 +253,8 @@
         "method": "GET",
         "path": "/catalog/releases/{id}/",
         "label": "Eine Veröffentlichung",
-        "status": "none",
+        "status": "partial",
+        "use": "Warenkorb: Name eines Releases (Link, #424)",
         "note": "Label und Katalognummer kommen aus dem Titel-Datensatz Beispiel-ID: zuerst „Katalog durchsuchen“ senden und eine id aus der Antwort übernehmen.",
         "params": []
       },
@@ -293,7 +298,8 @@
         "method": "GET",
         "path": "/catalog/releases/{release_pk}/tracks/",
         "label": "Titel einer Veröffentlichung",
-        "status": "none"
+        "status": "partial",
+        "use": "Warenkorb: Titel eines Releases (Link, #424)"
       },
       {
         "id": "catalog-releases-release_pk-tracks-ids",

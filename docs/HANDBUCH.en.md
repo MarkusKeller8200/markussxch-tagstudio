@@ -260,24 +260,37 @@ longer has a filter “Watch list” (#409) – remembered tracks appear under �
 The **Cart** page (in the sidebar between “Ideas” and “Purchases”; the number next to it = tracks on the shopping lists
 of open carts) gathers everything that should be bought – so nothing is bought twice. For now the shop is **Beatport**;
 others (iTunes Store …) will follow. On the left the carts in the groups **Open**, **Bought (history)** and **Archive**
-(“＋” creates a new one; right-click: rename, close as bought or reopen, export, archive or bring back), on the right the
+(“＋” creates a new one – suggested name `Warenkorb_YYYY_MM_DD`, on the same day `_2` …; right-click: rename, close as bought or reopen, export, archive or bring back), on the right the
 tracks with artist, title (mix), Beatport match, source, status and note. Filters: **Shopping list** (still to buy),
 Bought, In library, Removed, All.
 
-- **Adding tracks:** “+ Add ▾” › **“Paste list (e.g. 1001Tracklists) …”** – paste the copied tracklist, one “Artist -
-  Title (Mix)” per line; numbers, timestamps, “w/” and labels in [square brackets] are dropped, “ID - ID” is skipped.
-  **From your ideas:** select tracks there and choose **“Into the cart ▸”** (or right-click › “Into the cart ›”) – the
-  Beatport ID and link are taken over and the idea gets the status “Buy”. Or **“Track by hand …”** (a Beatport link
-  provides the Beatport ID right away). Duplicates are not added again.
-- **Search on Beatport:** matches tracks without a Beatport ID via the Beatport search (read only). Sure matches show
-  “✓ ID”; with **“uncertain – choose …”** you pick one of up to three candidates or “None of them”; “not found” means
-  not available on Beatport. “More ▾” › “Search uncertain and not found again”.
-- **Check for purchases:** first refreshes the purchases at the shop (like “Purchases” › “Refresh”), then matches the
-  tracks against “Purchases” and the library. The status column shows **Bought** (with purchase date) or **In
-  library**; a hint above the table offers **“Remove bought (n) …”** – after a confirmation these tracks are taken off
-  the shopping list. They stay visible under “Removed” (↺ brings them back), “More ▾” › “Undo” reverts the last change.
+- **Assistant:** with a new cart the **assistant** starts by itself (otherwise the button “Assistant …”) and guides you
+  through everything in five steps: add tracks → search on Beatport → check for purchases → send to Beatport → buy.
+  Every step **first shows what will happen**; it only runs on your click. “Skip”, “Back” and “Cancel” work at any time.
+- **Adding tracks** (buttons below the header, each with a preview to select and deselect):
+  - **“Paste list …”** – paste the copied tracklist (instructions for 1001Tracklists and a button “Open 1001Tracklists”
+    in the window), one “Artist - Title (Mix)” per line; numbers, timestamps, “w/” and labels in [square brackets] are
+    dropped, “ID - ID” is skipped. If the tracks have timestamps, a line without one – usually the **title of the mix**
+    (“Nora En Pure - Purified Radio 531 …”) – is **deselected** in the preview and can be selected if needed. The same
+    preview is used for “List from text” in Ideas and “Paste tracklist” in Playlists.
+  - **“From ideas …”** – choose a wish list, open ideas are selected; the Beatport ID and link are taken over and the
+    idea gets the status “Buy”. Also in Ideas itself: select tracks › **“Into the cart ▸”**.
+  - **“By hand …”** – a Beatport link provides the Beatport ID right away.
+  - **“By link …”** – link of a playlist, an album/release, a chart or a track from **Beatport**, **Spotify** or
+    **SoundCloud**; the respective plugin reads the tracks (signed in, read only). Tracks from Beatport already have the
+    Beatport ID.
+  Duplicates are not added again.
+- **Search on Beatport …:** first shows the tracks without a Beatport ID, then the Beatport search matches them (read
+  only). Sure matches show “✓ ID”; for all **uncertain** ones a window then opens where you choose the right candidate or
+  “None of them” per track (later also via “uncertain – choose …” in the table). “not found” means not available on
+  Beatport. “More ▾” › “Search uncertain and not found again …”.
+- **Check for purchases …:** first shows what will be checked, then refreshes the purchases at the shop (like
+  “Purchases” › “Refresh”) and matches the tracks against “Purchases” and the library. The status column shows **Bought**
+  (with purchase date) or **In library**; afterwards (and via the hint **“Remove bought (n) …”**) the list of these
+  tracks appears with check boxes – the selected ones are taken off the shopping list. They stay visible under “Removed” (↺ brings them back), “More ▾” › “Undo” reverts the last change.
   ✕ or “Take off shopping list …” takes tracks off by hand.
-- **Send to Beatport …:** checks the purchases once more and creates the shopping list in your Beatport account as the
+- **Send to Beatport …:** first shows all tracks that will be sent (and which are left out), checks the purchases once
+  more and creates the shopping list in your Beatport account as the
   playlist **`TagStudio_CART_<cart>`**, or brings it to exactly the shopping list – only on click, only tracks with a
   Beatport ID, never ones already bought. Other playlists stay untouched; “Write playlists in Beatport” must be switched
   on in the Beatport plugin. The official Beatport API has no cart: afterwards open the playlist on Beatport (“Open

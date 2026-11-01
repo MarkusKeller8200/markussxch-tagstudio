@@ -184,9 +184,12 @@ class IdeasMixin:
             raise ValueError("Bitte Künstler oder Titel eingeben.")
         return self._ideas_add(pid, "", [e])
 
-    def ideas_add_text(self, pid, text) -> dict:
-        """Liste aus Text (je Zeile „Künstler - Titel (Mix)“) in die Wunschliste übernehmen."""
+    def ideas_add_text(self, pid, text, skip=None) -> dict:
+        """Liste aus Text (je Zeile „Künstler - Titel (Mix)“) in die Wunschliste übernehmen. skip (#436): nicht
+        übernommene Positionen der Vorschau (None = erkannte Titelzeilen des Mixes auslassen)."""
+        import playlists
         new, unknown = ideas.from_text(text)
+        new = playlists.pick_tracklist(new, skip)
         if not new:
             raise ValueError("Keine Titel erkannt – je Zeile „Künstler - Titel“.")
         r = self._ideas_add(pid, "", new)

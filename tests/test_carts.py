@@ -96,6 +96,96 @@ class TestLogic(unittest.TestCase):
             shutil.rmtree(d, ignore_errors=True)
 
 
+PURIFIED = """Nora En Pure - Purified Radio 531 2026-10-26
+
+[01:54] Nora En Pure - Space (Paradoks Remix) [ENORMOUS TUNES]
+[05:20] Path Of Youth - Hypnotic [ENORMOUS TUNES]
+[09:03] HAYLA & Nelly Furtado - FADED (Nora En Pure Remix) [CASABLANCA (UMG)]
+[13:30] Sonickraft - Vice [DAYS LIKE NIGHTS (ARMADA)]
+[17:48] John Lynx & SAFARIS ft. Coulson (UK) - Dreaming [ENORMOUS VISION]
+[22:55] Estiva - Chemicals [COLORIZE (ENHANCED)]
+Pure Discovery:
+[26:35] Tomy Wahl & Transformation - Away From You [WIDERWORKS]
+[31:09] Milan Steenwinkel & Deviu - Delusion [PURIFIED]
+[36:04] LUFS & Aplexo - Down [PURIFIED]
+[39:53] Estiva - Repeater (Einmusik Remix) [COLORIZE (ENHANCED)]
+Listener's Choice:
+[46:00] Alande - Shades (Midnight Mix) [TRUST YOU MELODIC]
+w/ Massane & sadHAPPY - Another Life [COLORIZE (ENHANCED)]
+[55:22] Iskarelyn - A Way Of Being [PURIFIED]
+
+Please set a backlink to keep the tracklist up-to-date: https://1001.tl/28c2pk79"""
+
+
+class TestHeadsNamesLinks(unittest.TestCase):
+    """#433 Namensvorlage, #436 Titelzeile des Mixes, #424 Links."""
+
+    def test_heads_purified(self):
+        import playlists
+        got, unknown = carts.from_text(PURIFIED)
+        self.assertEqual((len(got), unknown), (14, 0))
+        self.assertEqual([x["title"] for x in got if x.get("head")], ["Purified Radio 531 2026-10-26"])
+        picked = playlists.pick_tracklist(got)                                        # Standard: Titelzeile weg
+        self.assertEqual(len(picked), 13)
+        self.assertNotIn("head", picked[0])
+        self.assertEqual((picked[0]["title"], picked[0]["mix"]), ("Space", "Paradoks Remix"))
+        self.assertEqual(len(playlists.pick_tracklist(got, [])), 14)                  # von Hand angewählt
+        self.assertEqual(len(playlists.pick_tracklist(got, [0, 1])), 12)
+        notes, _u = carts.from_text("Mara Lind - Eins\nKai Ost - Zwei")              # ohne Zeitmarken: keine Kopfzeile
+        self.assertFalse(any(x.get("head") for x in notes))
+
+    def test_next_name(self):
+        d = tempfile.mkdtemp()
+        try:
+            st = carts.Store(d)
+            day = time.mktime((2026, 11, 1, 12, 0, 0, 0, 0, -1))
+            self.assertEqual(st.next_name(day), "Warenkorb_2026_11_01")
+            st.create("Warenkorb_2026_11_01")
+            self.assertEqual(st.next_name(day), "Warenkorb_2026_11_01_2")
+            self.assertTrue(st.create("")["name"].startswith("Warenkorb_"))
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+
+    def test_url_plugin_and_ref(self):
+        self.assertEqual(carts.url_plugin("https://www.beatport.com/chart/x/123"), "beatport")
+        self.assertEqual(carts.url_plugin("https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"), "spotify")
+        self.assertEqual(carts.url_plugin("https://m.soundcloud.com/a/sets/b"), "soundcloud")
+        self.assertEqual(carts.url_plugin("http://www.beatport.com/track/x/1"), "")
+        self.assertEqual(carts.url_plugin("https://evil.com/?u=beatport.com"), "")
+        e = carts.from_ref({"artist": "A", "title": "B", "sid": "77", "url": "https://www.beatport.com/track/b/77"})
+        self.assertEqual((e["sid"], e["src"], e["match"]["state"]), ("77", "url", "sure"))
+        self.assertNotIn("sid", carts.from_ref({"artist": "A", "title": "B", "url": "https://open.spotify.com/track/x"}))
+
+    def test_plugin_url_tracks(self):
+        from test_beatport_purchases import load_plugin, Ctx
+        bp = load_plugin()
+        calls = []
+
+        class FakeClient:
+            def __init__(self, ctx):
+                pass
+
+            def track(self, tid):
+                return {"id": int(tid), "name": "Eins", "mix_name": "Extended Mix", "artists": [{"name": "A"}], "slug": "eins"}
+
+            def get(self, path, **params):
+                calls.append(path)
+                if path.endswith("/tracks/"):
+                    return [{"id": 5, "name": "Zwei", "mix_name": "", "artists": [{"name": "B"}]}] if params.get("page") == 1 else []
+                return {"name": "Top 10"}
+        bp.Client = FakeClient
+        ctx = Ctx(tempfile.mkdtemp())
+        r = bp.url_tracks(ctx, "https://www.beatport.com/track/eins/9")
+        self.assertEqual((r["items"][0]["sid"], r["items"][0]["mix"]), ("9", "Extended Mix"))
+        r = bp.url_tracks(ctx, "https://www.beatport.com/de/chart/top-10/123")
+        self.assertEqual((r["name"], [x["sid"] for x in r["items"]]), ("Top 10", ["5"]))
+        self.assertIn("/catalog/charts/123/tracks/", calls)
+        bp.url_tracks(ctx, "https://www.beatport.com/library/playlists/42")
+        self.assertIn("/my/playlists/42/tracks/", calls)
+        with self.assertRaises(ValueError):
+            bp.url_tracks(ctx, "https://www.beatport.com/artist/x/1")
+
+
 class TestSession(unittest.TestCase):
     def setUp(self):
         import core
@@ -227,6 +317,43 @@ class TestSession(unittest.TestCase):
         self.assertEqual(res["count"], 2)
         self.assertIn(("store_playlist_put", ("TagStudio_CART_BP", ["11", "22"], True)), calls)
         self.assertEqual(self.s.carts_overview(cid)["carts"][0]["pushed"]["id"], "99")
+
+    def test_text_skip_remove_bought_pick_many(self):
+        r = self.s.carts_add_text("", PURIFIED)                                          # ohne Vorschau: Titelzeile weg
+        self.assertEqual(r["added"], 13)
+        self.assertTrue(r["name"].startswith("Warenkorb_"))                              # #433
+        pv = self.s.tracklist_preview(PURIFIED)
+        self.assertEqual((len(pv["items"]), pv["heads"]), (14, 1))
+        r2 = self.s.carts_add_text("", "Kai Ost - Mix 1\n01. A - Eins\n02. B - Zwei", name="X", skip=[])
+        self.assertEqual(r2["added"], 3)                                                 # Titelzeile von Hand angewählt
+        cid = r["cid"]
+        self.s._purch().merge("beatport", "Beatport", [{"id": 1, "artist": "Path Of Youth", "title": "Hypnotic", "bought": "2026-10-25"},
+                                                         {"id": 2, "artist": "Sonickraft", "title": "Vice", "bought": "2026-10-25"}])
+        ov = self.s.carts_remove_bought(cid, [1])                                        # nur die gewählte
+        self.assertEqual(ov["removed_n"], 1)
+        self.assertEqual([x["status"] for x in ov["items"][1:4]], ["removed", "open", "bought"])
+        self.s._carts().quiet(lambda cs: [cs[cid]["items"][k].update(match={"state": "unsure", "score": 0.7,
+                                          "cands": [{"id": str(10 + k), "artist": "x", "title": "y", "score": 0.7}]}) for k in (4, 5)] and True)
+        ov = self.s.carts_pick_many(cid, {"4": 0, "5": -1})
+        self.assertEqual([(x["sid"], x["match"]) for x in ov["items"][4:6]], [("14", "sure"), ("", "none")])
+
+    def test_url_import(self):
+        def fake(plugin, fn, *args, **kw):
+            self.assertEqual((plugin, fn), ("beatport", "url_tracks"))
+            return {"name": "Top 10", "items": [{"artist": "A", "title": "Eins", "sid": "9", "url": "https://www.beatport.com/track/eins/9"},
+                                                {"artist": "B", "title": "Zwei"}]}
+        bad = self.s.start_carts_url("https://example.com/x")
+        self.assertFalse(bad["ok"])
+        p = self.s.plugins.get("beatport")
+        with mock.patch.object(type(p), "state", return_value="ready"), mock.patch.object(type(p), "enabled", True, create=True), \
+                mock.patch.object(self.s.plugins, "call_playlist", side_effect=fake):
+            st = self.s.start_carts_url("https://www.beatport.com/chart/top-10/123")
+            self.assertNotIn("error", st)
+            res = self.wait()["result"]
+        self.assertEqual((res["name"], len(res["items"]), res["items"][0]["sid"]), ("Top 10", 2, "9"))
+        r = self.s.carts_add_refs("", res["items"][:1], name="Link")
+        it = self.s.carts_overview(r["cid"])["items"][0]
+        self.assertEqual((it["src"], it["sid"], it["match"]), ("url", "9", "sure"))
 
     def test_send_needs_setting(self):
         cid = self.s.carts_add_text("", "A - B", name="X")["cid"]

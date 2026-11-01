@@ -487,12 +487,16 @@ MD_LINK = re.compile(r"\[([^\]]*)\]\(https?://[^)\s]*\)")     # Markdown-Link au
 def parse_tracklist(text: str, source: str = "text") -> tuple[list[dict], int]:
     """Kopierte Trackliste (1001Tracklists, MixID, Beatport, eigene Notizen) → (Einträge ohne Datei, unbekannte).
     Je Zeile „Künstler – Titel (Mix)“; Nummern, Zeitmarken, „w/“ und ein Label in eckigen Klammern am Ende fallen
-    weg. „ID – ID“ (unbekannter Titel) wird gezählt, aber nicht übernommen; Zeilen ohne Trennstrich zählen nicht."""
-    out, unknown = [], 0
+    weg. „ID – ID“ (unbekannter Titel) wird gezählt, aber nicht übernommen; Zeilen ohne Trennstrich zählen nicht.
+    #436: Haben die meisten Titel eine Zeitmarke bzw. Nummer, bekommen Zeilen ohne „head“: True – meist der Titel des
+    Mixes („Nora En Pure - Purified Radio 531 2026-10-26“). Sie werden nicht verworfen; die Vorschau markiert sie aus."""
+    out, unknown, marked = [], 0, []
     for line in str(text or "").splitlines():
         t = MD_LINK.sub(r"\1", line).strip().strip("\u200b")      # „[04:56](https://youtube…)“ → „04:56“
+        raw = t
         for _ in range(3):                                   # „01 [12:34] …“ oder „[12:34] 01. …“
             t = _TL_NUM.sub("", _TL_TIME.sub("", t)).strip()
+        has_mark = t != raw or t.lower().startswith("w/ ")         # #436: „w/“ = gleichzeitig gespielt, ohne Zeitmarke
         if t.lower().startswith("w/ "):
             t = t[3:].strip()
         t = _TL_TAIL.sub("", t)
@@ -507,7 +511,27 @@ def parse_tracklist(text: str, source: str = "text") -> tuple[list[dict], int]:
             unknown += 1
             continue
         out.append({"ref": {"artist": artist, "title": title, "source": source}})
+        marked.append(has_mark)
+    n = sum(marked)
+    if n >= 2 and n * 2 >= len(out) and n < len(out):
+        for x, m in zip(out, marked):
+            if not m:
+                x["head"] = True
     return out, unknown
+
+
+def pick_tracklist(items: list, skip=None) -> list:
+    """#436: Auswahl aus parse_tracklist (bzw. davon abgeleiteten Listen gleicher Reihenfolge). skip: Positionen, die
+    nicht übernommen werden; None = die als Kopfzeile erkannten („head“) auslassen. Das Kennzeichen fällt weg."""
+    drop = {i for i, x in enumerate(items) if x and x.get("head")} if skip is None else {
+        i for i in skip or [] if isinstance(i, int)}
+    out = []
+    for i, x in enumerate(items):
+        if x and i not in drop:
+            y = dict(x)
+            y.pop("head", None)
+            out.append(y)
+    return out
 
 
 def read_rekordbox_tree(text: str) -> list[dict]:

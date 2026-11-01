@@ -242,6 +242,10 @@ More functions a plugin can offer (all optional):
 - `store_search(ctx, refs)` – page “Cart” (#423): match tracks without a store id (read only). `refs` =
   `[{artist, title, mix, isrc, dur}]` → per track `{"id", "score", "sure", "url", "cands": [{id, artist, title, mix,
   url, score}]}` or `None` (no match). `sure` = take over directly, otherwise the user picks from `cands`.
+- `url_tracks(ctx, url)` – page “Cart” › “By link …” (#424): read the tracks of a link (read only) →
+  `{"name", "items": [{artist, title, mix, isrc, dur, url, sid}]}` (`sid` = Beatport ID if known). Built into Beatport
+  (track, release, chart, playlist, own playlist), Spotify (playlist, album, track) and SoundCloud (track, playlist via
+  `/resolve`); TagStudio picks the plugin by the address (beatport.com, open.spotify.com, soundcloud.com).
 - `playlist_push(ctx, playlist, options)` – Playlists page › More ▾ › “Send to <plugin> …” (#273). `playlist` =
   `{"name", "folder", "items": [{"path", "artist", "title"}], "remote"}` (`remote` = the id the plugin returned the last
   time, otherwise `None`). Return `{"ok", "id", "message", "missing": [paths], …}`; TagStudio remembers `id` per
@@ -428,7 +432,7 @@ Beatport via `OPTIONS` (changes nothing) whether creating, adding, removing and 
 in the log. Functions for the page: `store_settings`, `store_playlist_check`, `store_playlist_list`,
 `store_playlist_put(ctx, name, ids, replace)`, `store_playlist_delete(ctx, prefix)`.
 
-**Cart (#423, plugin 2.12):** with **“Search on Beatport”** the “Cart” page matches tracks without a Beatport ID via
+**Cart (#423, plugin 2.12; #424, 2.13: “By link …” via `url_tracks` – track, release, chart, playlist):** with **“Search on Beatport”** the “Cart” page matches tracks without a Beatport ID via
 `store_search` (ISRC, otherwise catalogue search for artist + title + mix; same scoring as the online metadata: from
 0.80 sure, from 0.62 uncertain with up to three candidates) – read only. **“Send to Beatport …”** creates the shopping
 list as `TagStudio_CART_<cart>` (`store_playlist_put` with `replace=True`: afterwards the playlist contains exactly the
@@ -450,7 +454,8 @@ Read your playlists and track data at Spotify or SoundCloud. SoundCloud is **rea
   Premium required), “Create app”, enter exactly `http://127.0.0.1:8765/callback` as redirect URI, choose “Web API”.
   Paste the client ID under Plugins › Spotify › **Sign in …** (no secret needed, sign-in with PKCE). Development mode:
   at most 5 users per app. Since February 2026 Spotify returns tracks only for own or collaborative playlists, search
-  at most 10 results per query and no label on albums.
+  at most 10 results per query and no label on albums. Cart › “By link …” (1.4, #424): playlist, album and track links
+  – other people's playlists therefore return no tracks.
 - **SoundCloud:** register an app in “SoundCloud for Developers” (self-registration with Artist Pro), redirect URI
   `http://127.0.0.1:8766/callback`. Paste client ID **and** client secret under Plugins › SoundCloud › **Sign in …**
   (OAuth 2.1 with PKCE).

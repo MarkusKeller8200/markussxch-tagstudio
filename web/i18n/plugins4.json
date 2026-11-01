@@ -359,5 +359,16 @@
 "{q} der TagStudio-Download-Playlists nach Rückfrage": ["{q} of the TagStudio download playlists after confirmation", "{q} vo de TagStudio-Download-Playlists nach Rückfrag"],
 "Titel aus eigener Playlist entfernen": ["Remove track from own playlist", "Titel us eigeter Playlist entfärne"],
 "Download-Playlist und Warenkorb-Playlist ersetzen statt anhäufen": ["Replace download playlist and cart playlist instead of piling up", "Download-Playlist und Warechorb-Playlist ersetze statt aasammle"],
-"Titel in eine eigene TagStudio-Playlist eintragen (#{n}/#{n}, Warenkorb #{n})": ["Add tracks to an own TagStudio playlist (#{n}/#{n}, cart #{n})", "Titel i e eigeti TagStudio-Playlist iitrage (#{n}/#{n}, Warechorb #{n})"]
+"Titel in eine eigene TagStudio-Playlist eintragen (#{n}/#{n}, Warenkorb #{n})": ["Add tracks to an own TagStudio playlist (#{n}/#{n}, cart #{n})", "Titel i e eigeti TagStudio-Playlist iitrage (#{n}/#{n}, Warechorb #{n})"],
+"Beatport {x} {x}": ["Beatport {x} {x}", "Beatport {x} {x}"],
+"Unbekannter Beatport-Link – unterstützt: Titel, Release, Chart, Playlist.": ["Unknown Beatport link – supported: track, release, chart, playlist.", "Unbekannte Beatport-Link – unterstützt: Titel, Release, Chart, Playlist."],
+"Warenkorb: Name einer Chart (Link, #{n})": ["Cart: name of a chart (link, #{n})", "Warechorb: Name vo ere Chart (Link, #{n})"],
+"Warenkorb: Titel einer Chart (Link, #{n})": ["Cart: tracks of a chart (link, #{n})", "Warechorb: Titel vo ere Chart (Link, #{n})"],
+"Warenkorb: Name einer Beatport-Playlist (Link, #{n})": ["Cart: name of a Beatport playlist (link, #{n})", "Warechorb: Name vo ere Beatport-Playlist (Link, #{n})"],
+"Warenkorb: Titel einer Beatport-Playlist (Link, #{n})": ["Cart: tracks of a Beatport playlist (link, #{n})", "Warechorb: Titel vo ere Beatport-Playlist (Link, #{n})"],
+"Warenkorb: Name eines Releases (Link, #{n})": ["Cart: name of a release (link, #{n})", "Warechorb: Name vo emene Release (Link, #{n})"],
+"Warenkorb: Titel eines Releases (Link, #{n})": ["Cart: tracks of a release (link, #{n})", "Warechorb: Titel vo emene Release (Link, #{n})"],
+"Unbekannter SoundCloud-Link – unterstützt: Titel und Playlists (soundcloud.com/…).": ["Unknown SoundCloud link – supported: tracks and playlists (soundcloud.com/…).", "Unbekannte SoundCloud-Link – unterstützt: Titel und Playlists (soundcloud.com/…)."],
+"Unbekannter Spotify-Link – unterstützt: Playlist, Album, Titel (open.spotify.com).": ["Unknown Spotify link – supported: playlist, album, track (open.spotify.com).", "Unbekannte Spotify-Link – unterstützt: Playlist, Album, Titel (open.spotify.com)."],
+"Spotify liefert die Titel dieser Playlist nicht – seit Februar {n} nur für eigene bzw. gemeinsame Playlists. Alben und einzelne Titel gehen weiterhin.": ["Spotify does not return the tracks of this playlist – since February {n} only for own or collaborative playlists. Albums and single tracks still work.", "Spotify liferet d Titel vo dere Playlist nöd – sit Februar {n} nur für eigeni bzw. gmeinsami Playlists. Albe und einzelni Titel gönd wiiterhin."]
 }

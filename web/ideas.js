@@ -268,8 +268,10 @@ async function ideasText() {
     collect: (b) => $("#itTxt", b).value,
   });
   if (!text || !text.trim()) return;
+  const skip = typeof tracklistPickDialog === "function" ? await tracklistPickDialog(text, "Liste aus Text – Vorschau") : undefined;   // #436
+  if (skip === null) return;
   try {
-    const r = await call("ideas_add_text", IDEA.d.sel, text);
+    const r = await call("ideas_add_text", IDEA.d.sel, text, skip);
     status(`${fmtN(r.added)} Idee(n) übernommen${r.dupes ? `, ${fmtN(r.dupes)} schon vorhanden` : ""}${r.unknown ? `, ${fmtN(r.unknown)} unbekannte (ID) ausgelassen` : ""}.`, "info");
     await ideasShow(r.pid);
   } catch (e) { toast(String(e.message || e)); }

@@ -77,7 +77,7 @@ _PASS = {
     "ideas_set", "ideas_remove", "ideas_move", "ideas_undo", "ideas_preview", "ideas_to_playlist", "start_ideas_match", "ideas_bp_preview", "start_ideas_bp",
     "carts_overview", "carts_count", "carts_create", "carts_rename", "carts_close", "carts_reopen", "carts_archive", "carts_add_text",   # #420–#423
     "carts_add_manual", "carts_from_ideas", "carts_remove", "carts_restore", "carts_remove_bought", "carts_note", "carts_pick", "carts_undo",
-    "start_carts_check", "start_carts_bp_match", "carts_bp_preview", "start_carts_bp",
+    "start_carts_check", "start_carts_bp_match", "carts_bp_preview", "start_carts_bp", "tracklist_preview", "carts_pick_many", "start_carts_url", "carts_add_refs",
     "prep_overview", "prep_pending", "start_prep_fetch", "prep_workflow_save", "prep_workflow_new", "prep_workflow_delete", "prep_export", "prep_import", "start_prep_run", "prep_refresh", "prep_mark", "prep_revert", "prep_allow", "prep_cleanup",
     "plugins_list", "plugin_log_read", "plugin_enable", "plugin_actions", "plugin_form", "start_plugin_action", "start_plugin_install", "plugin_apply",
     "start_plugin_catalog", "start_plugin_store_install", "plugin_store_revert",

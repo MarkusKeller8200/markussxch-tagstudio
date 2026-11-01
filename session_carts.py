@@ -57,7 +57,7 @@ class CartsMixin:
         if last and st.exists(last) and st.get(last)["status"] == "open" and not st.get(last).get("archived"):
             return st.get(last)
         opened = [c for c in st.carts(archived=False) if c["status"] == "open"]
-        return opened[0] if opened else st.create(carts.DEFAULT_NAME)
+        return opened[0] if opened else st.create("")                  # #433: Warenkorb_JJJJ_MM_TT
 
     # ------------------------------------------------------------------ Abruf
     def carts_overview(self, sel="", archived=False) -> dict:
@@ -93,7 +93,8 @@ class CartsMixin:
                                   "url": x.get("url", ""), "sid": x.get("sid", ""), "src": x.get("src", ""),
                                   "note": x.get("note", ""), "status": s, "bought": b.get(k, ""), "lib": x.get("lib", ""),
                                   "removed": (x.get("removed") or {}).get("why", ""), "match": m.get("state", ""),
-                                  "score": m.get("score", 0), "cands": m.get("cands") or [], "added": x.get("added", 0)})
+                                  "score": m.get("score", 0), "cands": m.get("cands") or [], "hand": bool(m.get("hand")),
+                                  "added": x.get("added", 0)})
             if c["status"] == "open" and not c.get("archived"):
                 total += counts["open"]
             out.append({"id": c["id"], "name": c["name"], "status": c["status"], "store": c["store"],
@@ -102,7 +103,10 @@ class CartsMixin:
                         "checked": c.get("checked", 0), "count": len(c["items"]), "counts": counts, "no_id": no_id,
                         "unsure": unsure, "bp": carts.bp_name(c["name"]), "pushed": (c.get("pushed") or {}).get("beatport")})
         s = self.purch_bp_settings() if hasattr(self, "purch_bp_settings") else {"available": False}
+        with self.lock:
+            new_name = self._carts().next_name()
         return {"carts": out, "sel": sel, "items": items, "open": total, "undo": undo, "archived": bool(archived),
+                "new_name": new_name, "library": bool(self._pl_lib_roots()) if hasattr(self, "_pl_lib_roots") else False,
                 "n_archived": sum(1 for c in lst if c.get("archived")), "status": carts.STATUS,
                 "sources": carts.SOURCES, "removed_why": carts.REMOVED_WHY,
                 "beatport": {"available": bool(s.get("available")), "write": bool(s.get("playlists_write"))}}
@@ -117,7 +121,7 @@ class CartsMixin:
     # ------------------------------------------------------------------ Körbe
     def carts_create(self, name) -> dict:
         with self.lock:
-            c = self._carts().create(name or carts.DEFAULT_NAME)
+            c = self._carts().create(name or "")
         self._carts_remember(c["id"])
         return self.carts_overview(c["id"])
 
@@ -200,14 +204,56 @@ class CartsMixin:
         self._carts_remember(target)
         return {"ok": True, "cid": target, "name": nm, **res}
 
-    def carts_add_text(self, cid, text, name="") -> dict:
-        """#421: Liste aus Text (z. B. 1001Tracklists) – je Zeile „Künstler - Titel (Mix)“."""
+    @staticmethod
+    def tracklist_preview(text) -> dict:
+        """#436: Vorschau einer eingefügten Trackliste (Warenkorb, Ideen, Playlists) – gleiche Reihenfolge wie beim
+        Übernehmen; „head“ = vermutlich Titel des Mixes, in der Vorschau ausmarkiert."""
         new, unknown = carts.from_text(text)
+        return {"items": [{"i": i, "artist": x.get("artist", ""), "title": x.get("title", ""), "mix": x.get("mix", ""),
+                           "head": bool(x.get("head"))} for i, x in enumerate(new)],
+                "unknown": unknown, "heads": sum(1 for x in new if x.get("head"))}
+
+    def carts_add_text(self, cid, text, name="", skip=None) -> dict:
+        """#421: Liste aus Text (z. B. 1001Tracklists) – je Zeile „Künstler - Titel (Mix)“. skip (#436): Positionen der
+        Vorschau, die nicht übernommen werden (None = erkannte Titelzeilen des Mixes auslassen)."""
+        new, unknown = carts.from_text(text)
+        new = playlists.pick_tracklist(new, skip)
         if not new:
             raise ValueError("Keine Titel erkannt – je Zeile „Künstler - Titel“.")
         r = self._carts_add(cid, name, new)
         r["unknown"] = unknown
         return r
+
+    def start_carts_url(self, url):
+        """#424: Titel eines Links (Beatport, Spotify, SoundCloud) über das Plugin lesen – nur lesend, Ergebnis zur Vorschau."""
+        url = str(url or "").strip()
+        pid = carts.url_plugin(url)
+        if not pid:
+            return {"ok": False, "error": "Unbekannter Link – unterstützt werden Beatport, Spotify und SoundCloud "
+                                          "(https://…)."}
+        try:
+            p = self.plugins.get(pid)
+        except KeyError:
+            return {"ok": False, "error": f"Das Plugin „{pid}“ fehlt."}
+        if not p.enabled or p.state() != "ready":
+            return {"ok": False, "error": f"Das Plugin „{p.name}“ ist aus – unter Plugins einschalten und anmelden."}
+
+        def job(cancel, progress):
+            progress(("text", f"{p.name}: Titel lesen …"))
+            r = self.plugins.call_playlist(pid, "url_tracks", url, session=self, cancel=cancel, progress=progress) or {}
+            items = [e for e in (carts.from_ref(x) for x in r.get("items") or []) if e]
+            return {"ok": True, "plugin": p.name, "name": str(r.get("name") or "")[:200],
+                    "items": [{"artist": e.get("artist", ""), "title": e.get("title", ""), "mix": e.get("mix", ""),
+                               "isrc": e.get("isrc", ""), "dur": e.get("dur", 0), "url": e.get("url", ""),
+                               "sid": e.get("sid", "")} for e in items]}
+        return self._run("carts", "Warenkorb: Titel aus dem Link lesen", job)
+
+    def carts_add_refs(self, cid, refs, name="") -> dict:
+        """#424: gewählte Titel aus der Link-Vorschau übernehmen."""
+        new = [e for e in (carts.from_ref(r) for r in refs or []) if e]
+        if not new:
+            raise ValueError("Keine Titel gewählt.")
+        return self._carts_add(cid, name, new)
 
     def carts_add_manual(self, cid, data) -> dict:
         data = data if isinstance(data, dict) else {}
@@ -278,8 +324,9 @@ class CartsMixin:
             return bool(n)
         return self._carts_items(cid, "Zurück auf die Einkaufsliste", fn)
 
-    def carts_remove_bought(self, cid) -> dict:
-        """#422: gekaufte und in der Bibliothek vorhandene Titel aus der Einkaufsliste nehmen (Rückfrage in der Oberfläche)."""
+    def carts_remove_bought(self, cid, ks=None) -> dict:
+        """#422: gekaufte und in der Bibliothek vorhandene Titel aus der Einkaufsliste nehmen (Rückfrage in der Oberfläche).
+        ks (#435): nur diese Positionen (aus der Vorschau); None = alle gekauften bzw. vorhandenen."""
         import time
         bought = self._carts_bought()
         with self.lock:
@@ -287,9 +334,10 @@ class CartsMixin:
         res = {"n": 0}
 
         def fn(items):
+            only = None if ks is None else set(self._carts_ks(ks, len(items)))
             for k, x in enumerate(items):
                 s = carts.status(x, b.get(k, ""))
-                if s in ("bought", "lib"):
+                if s in ("bought", "lib") and (only is None or k in only):
                     x["removed"] = {"why": s, "at": int(time.time())}
                     res["n"] += 1
             return bool(res["n"])
@@ -322,6 +370,21 @@ class CartsMixin:
             c = cs[cand] if isinstance(cand, int) and 0 <= cand < len(cs) else None
             items[k] = carts.pick(items[k], c)
             return True
+        return self._carts_items(cid, "Beatport-Treffer wählen", fn)
+
+    def carts_pick_many(self, cid, picks) -> dict:
+        """#435: mehrere unsichere Beatport-Treffer auf einmal wählen – picks {Position: Kandidat (-1 = keiner)}."""
+        picks = {int(k): v for k, v in (picks or {}).items() if str(k).lstrip("-").isdigit()}
+
+        def fn(items):
+            n = 0
+            for k, cand in picks.items():
+                if 0 <= k < len(items) and (items[k].get("match") or {}).get("state") == "unsure":
+                    cs = items[k]["match"].get("cands") or []
+                    c = cs[cand] if isinstance(cand, int) and 0 <= cand < len(cs) else None
+                    items[k] = carts.pick(items[k], c)
+                    n += 1
+            return bool(n)
         return self._carts_items(cid, "Beatport-Treffer wählen", fn)
 
     def carts_undo(self, sel="") -> dict:

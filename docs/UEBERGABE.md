@@ -26,6 +26,13 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **Beim Release:** `carts`, `session_carts` in `packaging/build.py › HIDDEN` eintragen.
 - **Offen:** #424 (URL) erst nach Freigabe/Test von #420–#423; Beatport-Playlist mit dem echten Konto testet der User;
   #427 wackeliger Oberflächentest `test_folder_menu_and_sources` (nur Issue, Umsetzung auf Freigabe).
+- **20:27 Auftrag „Alle Issues nun ausführen“** (Meilenstein #32; Prüf-Issues #428–#432 nicht freigegeben, #423
+  wartet nur auf den Test): umgesetzt #424 (Per Link, `url_tracks` in Beatport 2.13 / Spotify 1.4 / SoundCloud 1.2),
+  #427 (Test wartet auf beide Ordner), #433 (`Warenkorb_JJJJ_MM_TT`), #434 (einzelne Knöpfe, „Aus Ideen …“ als
+  Auswahlfenster), #435 (Assistent automatisch beim neuen Korb, Vorschau vor jeder Aktion, `carts_pick_many`,
+  `carts_remove_bought(cid, ks)`), #436 (`parse_tracklist` → `head`, `pick_tracklist`, `tracklist_preview`, auch Ideen
+  und Playlists; „w/“-Zeilen zählen als Titel), #437 (Anleitung 1001Tracklists). Alle `_3 Beta-Test`. KONZEPT-WARENKORB
+  Abschnitt 12.
 - **20:19 Entscheide zu #435:** Assistent startet automatisch beim neuen Korb; einzelne Knöpfe zeigen immer zuerst eine
   Vorschau. **20:25:** #436 (Fehler: Titelzeile des Mixes wird beim Einfügen als Titel übernommen → in der Vorschau
   ausmarkieren; Beispiel Purified Radio 531 im Issue) und #437 (Hinweis auf 1001Tracklists) angelegt, Meilenstein #32.

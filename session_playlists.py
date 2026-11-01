@@ -1007,10 +1007,12 @@ class PlaylistMixin:
         return self._run("pl_dj", f"{name}: Playlists übernehmen", job)
 
     # ------------------------------------------------------------------ Trackliste als Text (#279)
-    def pl_import_text(self, text, name="", folder="", source="text") -> dict:
-        """Kopierte Trackliste (1001Tracklists, MixID, Beatport …) als Playlist mit Einträgen ohne Datei."""
+    def pl_import_text(self, text, name="", folder="", source="text", skip=None) -> dict:
+        """Kopierte Trackliste (1001Tracklists, MixID, Beatport …) als Playlist mit Einträgen ohne Datei. skip (#436):
+        nicht übernommene Positionen der Vorschau (None = erkannte Titelzeilen des Mixes auslassen)."""
         source = str(source or "text")[:40]
         items, unknown = playlists.parse_tracklist(text, source)
+        items = playlists.pick_tracklist(items, skip)
         if not items:
             raise ValueError("Keine Titel erkannt – je Zeile „Künstler - Titel“.")
         folder = playlists.clean_folder(folder)

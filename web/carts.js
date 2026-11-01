@@ -1,5 +1,5 @@
-/* MarKusSXCH TagStudio – Warenkorb (#420–#423): Titel zum Kaufen in Warenkörben sammeln (Liste einfügen, aus Ideen,
-   von Hand), auf bereits gekaufte prüfen, bei Beatport zuordnen und die Einkaufsliste als Playlist TagStudio_CART_…
+/* MarKusSXCH TagStudio – Warenkorb (#420–#424, #433–#437): Titel zum Kaufen in Warenkörben sammeln (Liste einfügen, aus
+   Ideen, von Hand, per Link – jeweils mit Vorschau), Assistent Schritt für Schritt, auf bereits gekaufte prüfen, bei Beatport zuordnen und die Einkaufsliste als Playlist TagStudio_CART_…
    senden (nur auf Klick). Körbe bleiben als Historik „Offen“/„Gekauft“. Logik in carts.py / session_carts.py. */
 "use strict";
 
@@ -41,7 +41,7 @@ function cartsApply(d) {
   $("#cartFilter").innerHTML = CART_FILTERS.map(([k, t]) => `<button data-f="${k}" role="radio" aria-checked="${k === CART.filter}" class="${k === CART.filter ? "on" : ""}">${t}${cnt(k) ? ` <span class="muted">${fmtN(cnt(k))}</span>` : ""}</button>`).join("");
   $("#cartTitle").textContent = c ? c.name : "";
   const open = !!c && c.status === "open" && !c.archived, bp = d.beatport || {};
-  ["#cartAdd", "#cartMatch", "#cartCheck", "#cartBp"].forEach((s) => ($(s).disabled = !open));
+  ["#cartAddText", "#cartAddIdeas", "#cartAddManual", "#cartAddUrl", "#cartMatch", "#cartCheck", "#cartBp", "#cartWizard"].forEach((s) => ($(s).disabled = !open));
   $("#cartMatch").title = !bp.available ? "Beatport-Plugin aus oder nicht angemeldet" : "Titel ohne Beatport-ID über die Beatport-Suche zuordnen (nur lesend)";
   $("#cartBp").title = !bp.available ? "Beatport-Plugin aus oder nicht angemeldet" : !bp.write ? "Im Beatport-Plugin „Playlists in Beatport schreiben“ einschalten"
     : `Einkaufsliste als Beatport-Playlist ${c ? c.bp : ""} anlegen bzw. abgleichen – danach auf beatport.com „Alle in den Warenkorb“`;
@@ -66,7 +66,7 @@ function cartsHint(c) {
     const lib = (CART.d.items || []).filter((e) => e.status === "lib").length, b = (c.counts.bought || 0);
     if (b + lib) parts.push(`${fmtN(b + lib)} Titel ${b && lib ? "sind gekauft bzw. schon in der Bibliothek" : b ? "sind bereits gekauft" : "sind schon in der Bibliothek"} und würden doppelt gekauft. <button class="ghost sm" data-h="rmbought">Gekaufte entfernen (${fmtN(b + lib)}) …</button>`);
     if (c.unsure) parts.push(`${fmtN(c.unsure)} unsichere Beatport-Treffer – in der Spalte „Beatport“ wählen.`);
-    else if (c.no_id && c.counts.open) parts.push(`${fmtN(c.no_id)} Titel ohne Beatport-Zuordnung – „Bei Beatport suchen“.`);
+    else if (c.no_id && c.counts.open) parts.push(`${fmtN(c.no_id)} Titel ohne Beatport-Zuordnung – „Bei Beatport suchen …“.`);
   }
   box.innerHTML = parts.map((p) => `<div>${p}</div>`).join("");
   box.hidden = !parts.length;
@@ -89,7 +89,7 @@ function cartsRender() {
   if (!c) { box.innerHTML = '<div class="tg-empty">Links einen Warenkorb wählen oder mit „＋“ einen neuen anlegen.</div>'; cartsSelInfo(); return; }
   const rows = cartsRows();
   if (!rows.length) {
-    box.innerHTML = `<div class="tg-empty">${CART.d.items.length ? "Nichts in dieser Ansicht." : "Dieser Warenkorb ist leer – „+ Hinzufügen ▾“ (z. B. eine Trackliste einfügen) oder in „Ideen“ „In den Warenkorb ▸“."}</div>`;
+    box.innerHTML = `<div class="tg-empty">${CART.d.items.length ? "Nichts in dieser Ansicht." : "Dieser Warenkorb ist leer – „Liste einfügen …“ (z. B. von 1001Tracklists), „Aus Ideen …“, „Von Hand …“, „Per Link …“ oder der „Assistent …“."}</div>`;
     cartsSelInfo();
     return;
   }
@@ -129,11 +129,19 @@ async function cartsNameDialog(title, value = "", label = "Speichern") {
   });
 }
 
-function cartsDefaultName() { return `Warenkorb ${new Date().toLocaleDateString()}`; }
+/** #433: Vorschlag für neue Körbe – Warenkorb_JJJJ_MM_TT (vom Kern, gleiche Schreibweise in allen Sprachen) */
+function cartsDefaultName() {
+  if (CART.d && CART.d.new_name) return CART.d.new_name;
+  const t = new Date(), p = (n) => String(n).padStart(2, "0");
+  return `Warenkorb_${t.getFullYear()}_${p(t.getMonth() + 1)}_${p(t.getDate())}`;
+}
 
+/** Neuer Warenkorb – danach startet der Assistent automatisch (#435, Entscheid 1) */
 async function cartsNew() {
   const n = await cartsNameDialog("Neuer Warenkorb", cartsDefaultName(), "Anlegen");
-  if (n) await cartsDo("carts_create", n);
+  if (!n) return;
+  const d = await cartsDo("carts_create", n);
+  if (d) cartsWizard();
 }
 
 function cartsListMenu(ev, id) {
@@ -160,28 +168,100 @@ async function cartsArchive(c) {
   if (ok) { await cartsDo("carts_archive", c.id, true); status(`Warenkorb „${c.name}“ archiviert.`, "info"); }
 }
 
-function cartsAddMenu() {
-  const b = $("#cartAdd").getBoundingClientRect();
-  showMenu(b.left, b.bottom + 6, [
-    { label: "Liste einfügen (z. B. 1001Tracklists) …", run: cartsText },
-    { label: "Titel von Hand …", run: cartsManual },
-    { label: "Aus Ideen …", run: () => setModule("ideas") },
-  ]);
+// ---------------------------------------------------------------------- Vorschau-Tabelle (#435, #436)
+/** Liste mit Häkchen; rows: [{artist, title, mix, on, why, extra}] → Tabelle; liefert HTML */
+function cartsPvTable(rows, extraHead = "") {
+  return `<div class="cart-pv"><table><thead><tr><th><input type="checkbox" data-pvall checked aria-label="Alle"></th><th>Künstler</th><th>Titel</th>${extraHead ? `<th>${extraHead}</th>` : ""}</tr></thead><tbody>
+    ${rows.map((r, i) => `<tr class="${r.on ? "" : "head"}"><td><input type="checkbox" data-pv="${i}" ${r.on ? "checked" : ""} aria-label="Übernehmen"></td>
+      <td translate="no">${esc(r.artist || "")}</td><td translate="no"><b>${esc(r.title || "")}</b>${r.mix ? ` <span class="muted">(${esc(r.mix)})</span>` : ""}${r.why ? `<div class="why">${esc(r.why)}</div>` : ""}</td>${extraHead ? `<td class="sm">${r.extra || ""}</td>` : ""}</tr>`).join("")}</tbody></table></div>`;
+}
+
+function cartsPvBind(b, rows, countEl) {
+  const upd = () => {
+    const n = b.querySelectorAll("[data-pv]:checked").length;
+    if (countEl) countEl(n);
+    const all = b.querySelector("[data-pvall]"); if (all) all.checked = n === rows.length;
+  };
+  b.addEventListener("change", (ev) => {
+    if (ev.target.matches("[data-pvall]")) b.querySelectorAll("[data-pv]").forEach((x) => { x.checked = ev.target.checked; });
+    upd();
+  });
+  upd();
+}
+
+const cartsPvPicked = (b) => [...b.querySelectorAll("[data-pv]:checked")].map((x) => +x.dataset.pv);
+
+/** #436: Vorschau einer eingefügten Trackliste – Titelzeile des Mixes ausmarkiert. → skip (Positionen) oder null */
+async function tracklistPickDialog(text, title = "Vorschau") {
+  let pv;
+  try { pv = await call("tracklist_preview", text); } catch (e) { toast(String(e.message || e)); return null; }
+  if (!pv.items.length) { await info(title, "Keine Titel erkannt – je Zeile „Künstler - Titel“."); return null; }
+  const rows = pv.items.map((x) => ({ ...x, on: !x.head, why: x.head ? "vermutlich Titel des Mixes – nicht übernommen" : "" }));
+  const pick = await modal({ title, wide: true,
+    html: `<p class="muted sm" style="margin:0 0 6px">${fmtN(pv.items.length)} Zeilen erkannt${pv.unknown ? `, ${fmtN(pv.unknown)} unbekannte (ID) ausgelassen` : ""}${pv.heads ? `. Ausmarkiert: vermutlich der Titel des Mixes – bei Bedarf anwählen` : ""}. Nur angewählte Titel werden übernommen.</p>${cartsPvTable(rows)}`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
+    onMount: (b) => cartsPvBind(b, rows, (n) => { const p = $("#mBtns .primary"); if (p) { p.textContent = `Übernehmen (${n})`; p.disabled = !n; } }),
+    collect: (b) => cartsPvPicked(b) });
+  if (!pick) return null;
+  const on = new Set(pick);
+  return rows.map((_r, i) => i).filter((i) => !on.has(i));
+}
+
+// ---------------------------------------------------------------------- Titel hinzufügen (#421, #434, #437, #424)
+/** → true, wenn etwas übernommen wurde */
+async function cartsAddDone(r) {
+  status(`${fmtN(r.added)} Titel in „${r.name}“${r.dupes ? `, ${fmtN(r.dupes)} schon vorhanden` : ""}${r.unknown ? `, ${fmtN(r.unknown)} unbekannte (ID) ausgelassen` : ""}.`, "info");
+  await cartsShow(r.cid);
+  return r.added > 0;
 }
 
 async function cartsText() {
   const text = await modal({
-    title: "Liste einfügen",
-    html: `<p class="muted sm" style="margin:0 0 6px">Je Zeile „Künstler - Titel (Mix)“ – z. B. die kopierte Trackliste von 1001Tracklists, MixID oder eigene Notizen. Nummern, Zeitmarken und Labels in [eckigen Klammern] fallen weg; „ID - ID“ wird ausgelassen.</p><textarea id="ctTxt" class="fe-val" style="width:100%;min-height:220px" spellcheck="false" autofocus></textarea>`,
-    buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
+    title: "Liste einfügen", wide: true,
+    html: `<div class="hint"><b>1001Tracklists:</b> <span>1.</span> Tracklist auf 1001tracklists.com öffnen. <span>2.</span> Die Titelliste markieren und kopieren. <span>3.</span> Hier einfügen. <a href="#" data-u="https://www.1001tracklists.com/">1001Tracklists öffnen ↗</a>
+      <div class="muted sm" style="margin-top:4px">Auch MixID, eine Beatport-Chart oder eigene Notizen gehen – je Zeile „Künstler - Titel (Mix)“. Nummern, Zeitmarken und Labels in [eckigen Klammern] fallen weg, „ID - ID“ wird ausgelassen. Vor dem Übernehmen zeigt eine Vorschau alle erkannten Titel. TagStudio ruft dafür keine Webseite ab.</div></div>
+      <textarea id="ctTxt" class="fe-val" style="width:100%;min-height:220px;font-family:var(--mono, monospace)" spellcheck="false" translate="no" autofocus placeholder="[01:54] Künstler - Titel (Extended Mix) [Label]"></textarea>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Weiter zur Vorschau", value: true, primary: true }],
+    onMount: (b) => b.addEventListener("click", (ev) => { const a = ev.target.closest("[data-u]"); if (a) { ev.preventDefault(); call("open_url", a.dataset.u); } }),
     collect: (b) => $("#ctTxt", b).value,
   });
-  if (!text || !text.trim()) return;
-  try {
-    const r = await call("carts_add_text", CART.d.sel, text, CART.d.sel ? "" : cartsDefaultName());
-    status(`${fmtN(r.added)} Titel in „${r.name}“${r.dupes ? `, ${fmtN(r.dupes)} schon vorhanden` : ""}${r.unknown ? `, ${fmtN(r.unknown)} unbekannte (ID) ausgelassen` : ""}.`, "info");
-    await cartsShow(r.cid);
-  } catch (e) { toast(String(e.message || e)); }
+  if (!text || !text.trim()) return false;
+  const skip = await tracklistPickDialog(text, "Liste einfügen – Vorschau");
+  if (skip === null) return false;
+  try { return await cartsAddDone(await call("carts_add_text", CART.d.sel, text, CART.d.sel ? "" : cartsDefaultName(), skip)); }
+  catch (e) { toast(String(e.message || e)); return false; }
+}
+
+/** #434/#435: Titel aus einer Wunschliste wählen (Vorschau mit Häkchen; offene angewählt) */
+async function cartsIdeasDialog() {
+  let d;
+  try { d = await call("ideas_overview", ""); } catch (e) { toast(String(e.message || e)); return false; }
+  if (!d.lists.length) { await info("Aus Ideen", "Noch keine Wunschliste – in „Ideen“ bzw. „Entdecken“ Titel merken."); return false; }
+  const ST = { idea: "Idee", buy: "Kaufen", bought: "gekauft", lib: "in Bibliothek", dropped: "verworfen" };
+  let cur = d;
+  const rowsOf = (dd) => dd.items.map((e) => ({ artist: e.artist, title: e.title, mix: e.mix, k: e.k, on: e.status === "idea" || e.status === "buy",
+    extra: esc(ST[e.status] || e.status) + (e.store === "beatport" && e.sid ? " · Beatport ✓" : "") }));
+  const body = (dd) => `<div class="row" style="gap:8px;margin:0 0 8px;align-items:center"><label for="ciList">Wunschliste</label><select id="ciList" class="inp">${dd.lists.map((l) => `<option value="${esc(l.id)}" ${l.id === dd.sel ? "selected" : ""}>${esc(l.name)} (${fmtN(l.count)})</option>`).join("")}</select></div>
+    <p class="muted sm" style="margin:0 0 6px">Angewählt sind offene Ideen (Idee, Kaufen); gekaufte, vorhandene und verworfene nur auf Wunsch. Übernommene Ideen bekommen den Status „Kaufen“.</p>
+    <div id="ciTbl">${dd.items.length ? cartsPvTable(rowsOf(dd), "Status") : '<div class="muted sm">Diese Wunschliste ist leer.</div>'}</div>`;
+  let rows = rowsOf(cur);
+  const setCount = (n) => { const p = $("#mBtns .primary"); if (p) { p.textContent = `In den Warenkorb (${n})`; p.disabled = !n; } };
+  const pick = await modal({ title: "Aus Ideen", wide: true, html: body(cur),
+    buttons: [{ label: "Abbrechen", value: null }, { label: "In den Warenkorb", value: true, primary: true }],
+    onMount: (b) => {
+      cartsPvBind(b, rows, setCount);
+      b.addEventListener("change", async (ev) => {
+        if (ev.target.id !== "ciList") return;
+        try { cur = await call("ideas_overview", ev.target.value); } catch (e) { return; }
+        rows = rowsOf(cur);
+        $("#ciTbl", b).innerHTML = cur.items.length ? cartsPvTable(rows, "Status") : '<div class="muted sm">Diese Wunschliste ist leer.</div>';
+        setCount(b.querySelectorAll("[data-pv]:checked").length);
+      });
+    },
+    collect: (b) => ({ pid: cur.sel, ks: cartsPvPicked(b).map((i) => rows[i].k) }) });
+  if (!pick || !pick.ks.length) return false;
+  try { return await cartsAddDone(await call("carts_from_ideas", pick.pid, pick.ks, CART.d.sel, CART.d.sel ? "" : cartsDefaultName())); }
+  catch (e) { toast(String(e.message || e)); return false; }
 }
 
 async function cartsManual() {
@@ -195,18 +275,41 @@ async function cartsManual() {
     buttons: [{ label: "Abbrechen", value: null }, { label: "Hinzufügen", value: true, primary: true }],
     collect: (b) => ({ artist: $("#cmA", b).value, title: $("#cmT", b).value, mix: $("#cmM", b).value, url: $("#cmU", b).value, note: $("#cmN", b).value }),
   });
-  if (!res) return;
+  if (!res) return false;
   try {
     const r = await call("carts_add_manual", CART.d.sel, res);
     toast(r.added ? "Titel hinzugefügt." : "Steht schon im Warenkorb.");
     await cartsShow(r.cid);
-  } catch (e) { toast(String(e.message || e)); }
+    return r.added > 0;
+  } catch (e) { toast(String(e.message || e)); return false; }
+}
+
+/** #424: Titel eines Links (Beatport, Spotify, SoundCloud) lesen, Vorschau, übernehmen */
+async function cartsUrl() {
+  const url = await modal({ title: "Per Link",
+    html: `<p class="muted sm" style="margin:0 0 6px">Link einer Playlist, eines Albums bzw. Releases, einer Chart oder eines Titels einfügen – <b>Beatport</b>, <b>Spotify</b> oder <b>SoundCloud</b>. Gelesen wird über das jeweilige Plugin (angemeldet), nur lesend; vor dem Übernehmen zeigt eine Vorschau alle Titel.</p>
+      <input id="cuUrl" class="inp" type="url" style="width:100%" placeholder="https://www.beatport.com/chart/…/123456" autofocus spellcheck="false">`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Titel lesen", value: true, primary: true }],
+    collect: (b) => { const v = $("#cuUrl", b).value.trim(); if (!v) { $("#cuUrl", b).focus(); return false; } return v; } });
+  if (!url) return false;
+  const r = await runTask(call("start_carts_url", url), "Titel aus dem Link lesen");
+  if (!r || r.cancelled) return false;
+  if (!r.items.length) { await info("Per Link", `${r.plugin}: keine Titel gefunden.`); return false; }
+  const rows = r.items.map((x) => ({ ...x, on: true, extra: x.sid ? "Beatport ✓" : "" }));
+  const pick = await modal({ title: `Per Link – ${r.name || r.plugin}`, wide: true,
+    html: `<p class="muted sm" style="margin:0 0 6px">${fmtN(rows.length)} Titel von ${esc(r.plugin)}. Nur angewählte werden übernommen.</p>${cartsPvTable(rows, "Beatport")}`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
+    onMount: (b) => cartsPvBind(b, rows, (n) => { const p = $("#mBtns .primary"); if (p) { p.textContent = `Übernehmen (${n})`; p.disabled = !n; } }),
+    collect: (b) => cartsPvPicked(b).map((i) => r.items[i]) });
+  if (!pick || !pick.length) return false;
+  try { return await cartsAddDone(await call("carts_add_refs", CART.d.sel, pick, CART.d.sel ? "" : cartsDefaultName())); }
+  catch (e) { toast(String(e.message || e)); return false; }
 }
 
 function cartsMoreMenu() {
   const b = $("#cartMore").getBoundingClientRect(), c = cartsCur(), open = c && c.status === "open" && !c.archived;
   showMenu(b.left, b.bottom + 6, [
-    ...(open ? [{ label: "Unsichere und nicht gefundene neu suchen", run: () => cartsMatch(true) },
+    ...(open ? [{ label: "Unsichere und nicht gefundene neu suchen …", run: () => cartsMatch(true) },
       { label: "Gekaufte entfernen …", run: cartsRemoveBought },
       { label: "Als gekauft abschliessen …", run: () => cartsClose(c) }] : []),
     ...(c && !open && !c.archived ? [{ label: "Wieder öffnen", run: () => cartsDo("carts_reopen", c.id) }] : []),
@@ -232,34 +335,73 @@ async function cartsRemove(ks) {
   await cartsDo("carts_remove", CART.d.sel, ks);
 }
 
-/** #422: gekaufte und in der Bibliothek vorhandene Titel aus der Einkaufsliste nehmen – nach Rückfrage */
+/** #422/#435: gekaufte und vorhandene Titel – Vorschau mit Häkchen, dann aus der Einkaufsliste nehmen */
 async function cartsRemoveBought() {
-  const c = cartsCur(); if (!c) return;
-  const n = (CART.d.items || []).filter((e) => e.status === "bought" || e.status === "lib").length;
-  if (!n) { await info("Gekaufte entfernen", c.checked ? "Auf der Einkaufsliste steht kein bereits gekaufter Titel." : "Kein gekaufter Titel bekannt – zuerst „Auf Käufe prüfen“."); return; }
-  const ok = await dialog({ title: "Gekaufte entfernen", text: `${fmtN(n)} Titel sind bereits gekauft bzw. schon in der Bibliothek. Aus der Einkaufsliste nehmen? Sie bleiben unter „Entfernt“ sichtbar; Rückgängig ist möglich.`,
-    buttons: [{ label: "Abbrechen", value: null }, { label: "Entfernen", value: true, primary: true }] });
-  if (!ok) return;
-  const d = await cartsDo("carts_remove_bought", c.id);
+  const c = cartsCur(); if (!c) return false;
+  const found = (CART.d.items || []).filter((e) => e.status === "bought" || e.status === "lib");
+  if (!found.length) { await info("Gekaufte entfernen", c.checked ? "Auf der Einkaufsliste steht kein bereits gekaufter Titel." : "Kein gekaufter Titel bekannt – zuerst „Auf Käufe prüfen“."); return false; }
+  const rows = found.map((e) => ({ artist: e.artist, title: e.title, mix: e.mix, on: true,
+    extra: esc(e.status === "bought" ? (e.bought && e.bought !== "ja" ? `gekauft am ${e.bought}` : "gekauft") : "in Bibliothek") }));
+  const pick = await modal({ title: "Gekaufte entfernen", wide: true,
+    html: `<p class="muted sm" style="margin:0 0 6px">${fmtN(found.length)} Titel sind bereits gekauft bzw. schon in der Bibliothek und würden doppelt gekauft. Angewählte werden aus der Einkaufsliste genommen; sie bleiben unter „Entfernt“ sichtbar, Rückgängig ist möglich.</p>${cartsPvTable(rows, "Status")}`,
+    buttons: [{ label: "Behalten", value: null }, { label: "Aus Einkaufsliste nehmen", value: true, primary: true }],
+    onMount: (b) => cartsPvBind(b, rows, (n) => { const p = $("#mBtns .primary"); if (p) { p.textContent = `Aus Einkaufsliste nehmen (${n})`; p.disabled = !n; } }),
+    collect: (b) => cartsPvPicked(b).map((i) => found[i].k) });
+  if (!pick || !pick.length) return false;
+  const d = await cartsDo("carts_remove_bought", c.id, pick);
   if (d) status(`${fmtN(d.removed_n)} bereits gekaufte Titel aus der Einkaufsliste genommen.`, "info");
+  return !!d;
 }
 
-/** #422: Einkäufe aktualisieren, dann mit „Einkäufe“ und der Bibliothek abgleichen */
+/** #422/#435: zuerst zeigen, was geprüft wird; dann Einkäufe aktualisieren und abgleichen; danach gekaufte zur Auswahl */
 async function cartsCheck() {
+  const c = cartsCur(); if (!c) return false;
+  const n = (CART.d.items || []).filter((e) => e.status !== "removed").length;
+  const bp = CART.d.beatport || {};
+  const ok = await dialog({ title: "Auf Käufe prüfen",
+    text: `${fmtN(n)} Titel dieses Warenkorbs werden geprüft:\n\n• ${bp.available ? "Einkäufe bei Beatport aktualisieren (nur neue Käufe, nur lesend)" : "Beatport ist nicht angemeldet – geprüft wird gegen die gespeicherten Einkäufe"}\n• mit „Einkäufe“ abgleichen (gleiche Beatport-ID bzw. Künstler + Titel + Mix)\n• ${CART.d.library ? "mit der Bibliothek abgleichen (sichere Treffer)" : "Bibliothek: keine festgelegt – wird ausgelassen"}\n\nEs wird nichts entfernt; danach kannst du gekaufte Titel aus der Einkaufsliste nehmen.`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Prüfen", value: true, primary: true }] });
+  if (!ok) return false;
   const r = await runTask(call("start_carts_check", CART.d.sel), "Warenkorb auf Käufe prüfen");
-  if (!r) return;
+  if (!r) return false;
   await cartsShow();
   const parts = [`${fmtN(r.bought)} bereits gekauft`, r.library ? `${fmtN(r.lib)} in der Bibliothek` : "Bibliothek nicht geprüft (keine festgelegt)"];
   status(`Geprüft: ${parts.join(", ")}.${(r.errors || []).length ? " " + r.errors.join(" ") : ""}`, r.errors && r.errors.length ? "warn" : "info");
-  if (r.bought + r.lib) cartsRemoveBought();
+  if ((CART.d.items || []).some((e) => e.status === "bought" || e.status === "lib")) await cartsRemoveBought();
+  return true;
 }
 
-/** #423: Titel ohne Beatport-ID zuordnen (nur lesend) */
+/** #423/#435: zuerst zeigen, welche Titel gesucht werden; danach unsichere direkt wählen */
 async function cartsMatch(again) {
+  const c = cartsCur(); if (!c) return false;
+  const bp = CART.d.beatport || {};
+  if (!bp.available) { await info("Bei Beatport suchen", "Das Beatport-Plugin ist aus oder nicht angemeldet (Plugins › Beatport)."); return false; }
+  const todo = (CART.d.items || []).filter((e) => e.status === "open" && !e.sid && !e.hand && (again || !e.match));
+  if (!todo.length) { await info("Bei Beatport suchen", "Alle Titel der Einkaufsliste sind schon zugeordnet (bzw. als „nicht gefunden“ markiert – über „Weitere ▾“ neu suchen)."); return false; }
+  const ok = await modal({ title: "Bei Beatport suchen", wide: true,
+    html: `<p class="muted sm" style="margin:0 0 6px">${fmtN(todo.length)} Titel ohne Beatport-ID werden in der Beatport-Suche nachgeschlagen (nur lesend, dein Konto wird nicht verändert). Sichere Treffer werden zugeordnet, bei unsicheren wählst du danach selbst.</p>
+      <div class="cart-pv"><table><tbody>${todo.map((e) => `<tr><td translate="no">${esc(e.artist)}</td><td translate="no"><b>${esc(e.title)}</b>${e.mix ? ` <span class="muted">(${esc(e.mix)})</span>` : ""}</td></tr>`).join("")}</tbody></table></div>`,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Suchen", value: true, primary: true }] });
+  if (!ok) return false;
   const r = await runTask(call("start_carts_bp_match", CART.d.sel, !!again), "Warenkorb: bei Beatport suchen");
-  if (!r) return;
+  if (!r) return false;
+  await cartsShow();
   status(`${fmtN(r.searched)} gesucht: ${fmtN(r.sure)} sicher zugeordnet, ${fmtN(r.unsure)} unsicher (bitte wählen), ${fmtN(r.none)} nicht gefunden.`, "info");
-  cartsShow();
+  const unsure = (CART.d.items || []).filter((e) => e.match === "unsure" && (e.cands || []).length);
+  if (unsure.length) await cartsPickMany(unsure, r);
+  return true;
+}
+
+/** #435: alle unsicheren Treffer in einem Fenster wählen */
+async function cartsPickMany(list, r) {
+  const opt = (e) => `<select class="inp sm" data-pk="${e.k}">${e.cands.map((c, i) => `<option value="${i}">${esc(c.artist || "")} – ${esc(c.title || "")}${c.mix ? ` (${esc(c.mix)})` : ""} · ${Math.round((c.score || 0) * 100)} %</option>`).join("")}<option value="-1">Keiner davon – nicht bei Beatport</option></select>`;
+  const pick = await modal({ title: "Beatport-Treffer wählen", wide: "xl",
+    html: `<p class="muted sm" style="margin:0 0 6px">${r ? `${fmtN(r.sure)} sicher zugeordnet, ${fmtN(r.none)} nicht gefunden. ` : ""}Für ${fmtN(list.length)} Titel gibt es mehrere mögliche Treffer – bitte wählen (vorgewählt ist der beste).</p>
+      <div class="cart-pv"><table><tbody>${list.map((e) => `<tr><td translate="no">${esc(e.artist)} – <b>${esc(e.title)}</b>${e.mix ? ` <span class="muted">(${esc(e.mix)})</span>` : ""}</td><td>${opt(e)}</td></tr>`).join("")}</tbody></table></div>`,
+    buttons: [{ label: "Später", value: null }, { label: "Übernehmen", value: true, primary: true }],
+    collect: (b) => Object.fromEntries([...b.querySelectorAll("[data-pk]")].map((s) => [s.dataset.pk, +s.value])) });
+  if (!pick) return;
+  await cartsDo("carts_pick_many", CART.d.sel, pick);
 }
 
 async function cartsPick(e) {
@@ -274,28 +416,77 @@ async function cartsPick(e) {
   await cartsDo("carts_pick", CART.d.sel, e.k, pick);
 }
 
-/** #423: Einkaufsliste als Beatport-Playlist TagStudio_CART_<Korb> – nur auf Klick (W2) */
+/** #423/#435: Einkaufsliste als Beatport-Playlist TagStudio_CART_<Korb> – Vorschau mit allen Titeln, nur auf Klick */
 async function cartsBeatport() {
   const pv = await call("carts_bp_preview", CART.d.sel);
   if (!pv.available || !pv.write) {
     await info("An Beatport senden", !pv.available ? "Das Beatport-Plugin ist aus oder nicht angemeldet (Plugins › Beatport)."
       : "Im Beatport-Plugin unter „Einstellungen …“ zuerst „Playlists in Beatport schreiben“ einschalten.");
-    return;
+    return false;
   }
-  if (!pv.count) { await info("An Beatport senden", `Auf der Einkaufsliste steht kein Titel mit Beatport-ID${pv.without ? ` (${fmtN(pv.without)} ohne Zuordnung)` : ""} – zuerst „Bei Beatport suchen“.`); return; }
-  const ok = await dialog({ title: "An Beatport senden",
-    text: `In deinem Beatport-Konto die Playlist „${pv.name}“ ${pv.pushed && pv.pushed.id ? "abgleichen" : "anlegen"}: ${fmtN(pv.count)} Titel der Einkaufsliste.`
-      + `${pv.without ? ` ${fmtN(pv.without)} Titel ohne Beatport-ID bleiben aussen vor.` : ""}${pv.bought ? ` ${fmtN(pv.bought)} bereits gekaufte werden nicht gesendet.` : ""}`
-      + ` Vorher werden die Einkäufe noch einmal geprüft. Die Playlist enthält danach genau die Einkaufsliste; andere Playlists bleiben unberührt. Es wird nichts gekauft – auf beatport.com „Alle in den Warenkorb“ und dort bezahlen.`,
+  if (!pv.count) { await info("An Beatport senden", `Auf der Einkaufsliste steht kein Titel mit Beatport-ID${pv.without ? ` (${fmtN(pv.without)} ohne Zuordnung)` : ""} – zuerst „Bei Beatport suchen“.`); return false; }
+  const send = (CART.d.items || []).filter((e) => e.status === "open" && e.sid), left = (CART.d.items || []).filter((e) => e.status === "open" && !e.sid);
+  const ok = await modal({ title: "An Beatport senden", wide: true,
+    html: `<p style="margin:0 0 6px">In deinem Beatport-Konto die Playlist <b translate="no">${esc(pv.name)}</b> ${pv.pushed && pv.pushed.id ? "abgleichen" : "anlegen"}: ${fmtN(pv.count)} Titel der Einkaufsliste.</p>
+      <div class="cart-pv"><table><tbody>${send.map((e) => `<tr><td translate="no">${esc(e.artist)}</td><td translate="no"><b>${esc(e.title)}</b>${e.mix ? ` <span class="muted">(${esc(e.mix)})</span>` : ""}</td><td class="sm">✓ ${esc(e.sid)}</td></tr>`).join("")}</tbody></table></div>
+      <p class="muted sm" style="margin:6px 0 0">${pv.without ? `${fmtN(pv.without)} Titel ohne Beatport-ID bleiben aussen vor${left.length ? `: ${left.slice(0, 5).map((e) => esc(`${e.artist} – ${e.title}`)).join("; ")}${left.length > 5 ? " …" : ""}` : ""}. ` : ""}${pv.bought ? `${fmtN(pv.bought)} bereits gekaufte werden nicht gesendet. ` : ""}Vorher werden die Einkäufe noch einmal geprüft. Die Playlist enthält danach genau die Einkaufsliste; andere Playlists bleiben unberührt. Es wird nichts gekauft – auf beatport.com „Alle in den Warenkorb“ und dort bezahlen.</p>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "An Beatport senden", value: true, primary: true }] });
-  if (!ok) return;
+  if (!ok) return false;
   const r = await runTask(call("start_carts_bp", CART.d.sel), "Beatport – Warenkorb");
-  if (!r) return;
+  if (!r) return false;
   await cartsShow();
   const go = await dialog({ title: "An Beatport gesendet",
     text: `${r.name}: ${fmtN(r.count)} Titel${r.created ? " (neu angelegt)" : ""}.${r.bought ? ` ${fmtN(r.bought)} bereits gekaufte ausgelassen.` : ""}${r.note ? " " + r.note : ""}\n\nAuf beatport.com die Playlist öffnen, „Alle in den Warenkorb“ wählen und dort bezahlen. Danach erkennt „Einkäufe“ die Käufe, und der Warenkorb wird als gekauft abgeschlossen.`,
     buttons: [{ label: "OK", value: null }, ...(r.url ? [{ label: "Playlist bei Beatport öffnen", value: true, primary: true }] : [])] });
   if (go && r.url) call("open_url", r.url);
+  return true;
+}
+
+// ---------------------------------------------------------------------- #435 Assistent
+const CART_WZ = [
+  ["add", "Titel hinzufügen", "Titel für diesen Warenkorb sammeln. Jeder Weg zeigt vor dem Übernehmen eine Vorschau."],
+  ["match", "Bei Beatport suchen", "Titel ohne Beatport-ID werden in der Beatport-Suche nachgeschlagen (nur lesend). Vorher siehst du die Liste, danach wählst du unsichere Treffer."],
+  ["check", "Auf Käufe prüfen", "Einkäufe aktualisieren und mit „Einkäufe“ und der Bibliothek abgleichen. Danach kannst du bereits gekaufte Titel aus der Einkaufsliste nehmen."],
+  ["send", "An Beatport senden", "Die Einkaufsliste wird als Playlist in deinem Beatport-Konto angelegt – erst nach der Vorschau und deinem Klick auf „An Beatport senden“."],
+  ["buy", "Kaufen", "Auf beatport.com die Playlist öffnen, „Alle in den Warenkorb“ wählen und dort bezahlen. Danach erkennt „Einkäufe“ die Käufe und schliesst den Warenkorb ab."],
+];
+
+async function cartsWizard() {
+  let i = 0;
+  for (;;) {
+    const c = cartsCur();
+    if (!c || c.status !== "open" || c.archived) return;
+    const [id, title, text] = CART_WZ[i], n = c.counts || {};
+    const stat = `${fmtN(n.open || 0)} auf der Einkaufsliste · ${fmtN(c.no_id || 0)} ohne Beatport-ID · ${fmtN(c.unsure || 0)} unsicher · ${fmtN(n.bought || 0)} gekauft${c.pushed ? ` · gesendet am ${cartsDate(c.pushed.at)}` : ""}`;
+    let choice = "";
+    const acts = id === "add" ? `<div class="cart-wz-acts"><button class="ghost" data-wz="text">Liste einfügen …</button><button class="ghost" data-wz="ideas">Aus Ideen …</button><button class="ghost" data-wz="manual">Von Hand …</button><button class="ghost" data-wz="url">Per Link …</button></div>`
+      : id === "buy" && c.pushed && c.pushed.url ? `<div class="cart-wz-acts"><button class="ghost" data-wz="openbp">Playlist bei Beatport öffnen ↗</button></div>` : "";
+    const primary = { add: "Weiter", match: "Bei Beatport suchen …", check: "Auf Käufe prüfen …", send: "An Beatport senden …", buy: "Fertig" }[id];
+    const v = await modal({ title: `Assistent – ${c.name}`, wide: true,
+      html: `<div class="cart-wz-steps">${CART_WZ.map((s, k) => `<span class="${k === i ? "on" : k < i ? "done" : ""}">${k + 1}. ${esc(s[1])}</span>`).join("")}</div>
+        <h3 style="margin:0 0 6px">Schritt ${i + 1} von ${CART_WZ.length}: ${esc(title)}</h3><p style="margin:0 0 6px">${esc(text)}</p>
+        <div class="muted sm">${esc(stat)}</div>${acts}`,
+      buttons: [{ label: "Abbrechen", value: null }, ...(i > 0 ? [{ label: "Zurück", value: "back" }] : []), ...(i < CART_WZ.length - 1 ? [{ label: "Überspringen", value: "skip" }] : []),
+        { label: primary, value: "run", primary: true }],
+      onMount: (b) => b.addEventListener("click", (ev) => {
+        const a = ev.target.closest("[data-wz]"); if (!a) return;
+        choice = a.dataset.wz;
+        const p = $("#mBtns .primary"); if (p) p.click();
+      }),
+      collect: (_b, val) => choice || val });
+    if (v === null || v === undefined) return;
+    if (v === "back") { i = Math.max(0, i - 1); continue; }
+    if (v === "skip") { i++; continue; }
+    if (v === "openbp") { if (c.pushed && c.pushed.url) call("open_url", c.pushed.url); continue; }
+    if (["text", "ideas", "manual", "url"].includes(v)) {
+      await ({ text: cartsText, ideas: cartsIdeasDialog, manual: cartsManual, url: cartsUrl })[v]();
+      continue;                                          // im Schritt bleiben – weitere Titel oder „Weiter“
+    }
+    if (id === "add") { i++; continue; }
+    if (id === "buy") return;
+    const done = await ({ match: () => cartsMatch(false), check: cartsCheck, send: cartsBeatport })[id]();
+    if (done) i++;
+  }
 }
 
 async function cartsNote(e) {
@@ -340,7 +531,7 @@ async function cartsFromIdeasMenu(ev, pid, ks, after) {
   };
   const items = d.carts.filter((c) => c.status === "open" && !c.archived).map((c) => ({ label: `${c.name}${c.id === d.sel ? " ✓" : ""}`, run: () => save(c.id, "") }));
   if (items.length) items.push("-");
-  items.push({ label: "Neuer Warenkorb …", run: async () => { const n = await cartsNameDialog("Neuer Warenkorb", cartsDefaultName(), "Anlegen und hinzufügen"); if (n) save("", n); } });
+  items.push({ label: "Neuer Warenkorb …", run: async () => { const n = await cartsNameDialog("Neuer Warenkorb", d.new_name || cartsDefaultName(), "Anlegen und hinzufügen"); if (n) save("", n); } });
   const r = ev.target && ev.target.getBoundingClientRect ? ev.target.getBoundingClientRect() : { left: 0, bottom: 0 };
   setTimeout(() => showMenu(ev.clientX || r.left, ev.clientY || r.bottom, items), 0);
 }
@@ -361,7 +552,11 @@ async function cartsBadge(n) {
   $("#cartLists").addEventListener("contextmenu", (ev) => { const b = ev.target.closest("[data-c]"); if (b) cartsListMenu(ev, b.dataset.c); });
   $("#cartFilter").addEventListener("click", (e) => { const b = e.target.closest("[data-f]"); if (!b) return; CART.filter = b.dataset.f; cartsApply(CART.d); });
   $("#cartSearch").addEventListener("input", () => CART.d && cartsRender());
-  $("#cartAdd").addEventListener("click", (e) => { e.stopPropagation(); cartsAddMenu(); });
+  $("#cartAddText").addEventListener("click", cartsText);                 // #434: einzelne Knöpfe
+  $("#cartAddIdeas").addEventListener("click", cartsIdeasDialog);
+  $("#cartAddManual").addEventListener("click", cartsManual);
+  $("#cartAddUrl").addEventListener("click", cartsUrl);                   // #424
+  $("#cartWizard").addEventListener("click", cartsWizard);                // #435
   $("#cartMore").addEventListener("click", (e) => { e.stopPropagation(); cartsMoreMenu(); });
   $("#cartMatch").addEventListener("click", () => cartsMatch(false));
   $("#cartCheck").addEventListener("click", cartsCheck);

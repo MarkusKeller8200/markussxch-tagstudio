@@ -33,6 +33,7 @@ REMOVED_WHY = {"hand": "von Hand", "bought": "bereits gekauft", "lib": "in Bibli
 MATCH = ("sure", "unsure", "none")
 BP_PREFIX = "TagStudio_CART_"
 DEFAULT_NAME = "Warenkorb"
+NAME_TEMPLATE = "Warenkorb_{y:04d}_{m:02d}_{d:02d}"      # #433: Vorlage für neue Körbe (unabhängig von der Sprache)
 UNDO_MAX = 30
 EXPORT_HEAD = ["Warenkorb", "Zustand", "Status", "Künstler", "Titel", "Mix", "Beatport-ID", "Link", "Quelle", "Notiz",
                "Gekauft am"]
@@ -119,9 +120,38 @@ def from_text(text: str) -> tuple[list[dict], int]:
         ref = r.get("ref") or {}
         title, mix = discover.split_mix(ref.get("title", ""))
         e = item(ref.get("artist", ""), title, mix, url=ref.get("url", ""), src="text")
-        if e:
-            out.append(e)
-    return out, unknown
+        if e and r.get("head"):
+            e["head"] = True                                  # #436: vermutlich Titel des Mixes (nur für die Vorschau)
+        out.append(e)
+    return [x for x in out if x], unknown
+
+
+URL_PLUGINS = {"beatport.com": "beatport", "open.spotify.com": "spotify", "soundcloud.com": "soundcloud"}
+
+
+def url_plugin(url: str) -> str:
+    """#424: zuständiges Plugin für einen Link (Beatport, Spotify, SoundCloud) – sonst ""."""
+    import urllib.parse
+    u = str(url or "").strip()
+    if not u.startswith("https://"):
+        return ""
+    host = (urllib.parse.urlparse(u).hostname or "").lower()
+    for dom, pid in URL_PLUGINS.items():
+        if host == dom or host.endswith("." + dom):
+            return pid
+    return ""
+
+
+def from_ref(r: dict, src="url") -> dict | None:
+    """#424: Titel aus einem Plugin (url_tracks) → Eintrag; Beatport-ID nur aus „sid“ bzw. einem Beatport-Link."""
+    if not isinstance(r, dict):
+        return None
+    sid = str(r.get("sid") or "") or bp_id_from_url(r.get("url", ""))
+    e = item(r.get("artist", ""), r.get("title", ""), r.get("mix", ""), url=r.get("url", ""), isrc=r.get("isrc", ""),
+             dur=r.get("dur") or 0, src=src, sid=sid)
+    if e and e.get("sid"):
+        e["match"] = {"state": "sure", "score": 1.0}
+    return e
 
 
 def bp_id_from_url(url: str) -> str:
@@ -364,6 +394,18 @@ class Store:
     def exists(self, cid) -> bool:
         return str(cid or "") in self.data["carts"]
 
+    def next_name(self, day=None) -> str:
+        """#433: Vorschlag für einen neuen Korb – Warenkorb_JJJJ_MM_TT, am selben Tag _2, _3 … (auch gegen archivierte)."""
+        t = time.localtime(day if day is not None else time.time())
+        base = NAME_TEMPLATE.format(y=t.tm_year, m=t.tm_mon, d=t.tm_mday)
+        taken = {c["name"].lower() for c in self.data["carts"].values()}
+        if base.lower() not in taken:
+            return base
+        k = 2
+        while f"{base}_{k}".lower() in taken:
+            k += 1
+        return f"{base}_{k}"
+
     def unique_name(self, name) -> str:
         name = _txt(name, 120) or DEFAULT_NAME
         taken = {c["name"].lower() for c in self.data["carts"].values() if not c.get("archived")}
@@ -400,9 +442,9 @@ class Store:
         self.save()
         return label
 
-    def create(self, name, store="beatport", items=None) -> dict:
+    def create(self, name="", store="beatport", items=None) -> dict:
         cid = "c_" + secrets.token_hex(6)
-        c = {"id": cid, "name": self.unique_name(name), "store": store if store in STORES else "beatport",
+        c = {"id": cid, "name": self.unique_name(name) if _txt(name) else self.next_name(), "store": store if store in STORES else "beatport",
              "created": int(time.time()), "status": "open", "auto": True,
              "items": [y for y in (clean_item(x) for x in items or []) if y]}
 

@@ -10,6 +10,7 @@ des Plugins. Stand der Web-API: Februar 2026 (Inhalte nur eigener bzw. gemeinsam
 Treffer pro Abfrage, keine Sammelabfragen, Album ohne Label).
 Nur Standardbibliothek.
 """
+import re
 import urllib.parse
 
 import oauthkit
@@ -334,6 +335,34 @@ def playlist_files(ctx, pid) -> dict:
         if t and t.get("type", "track") == "track" and t.get("name"):
             items.append({"ref": ref_of(t)})
     return {"name": name, "files": [], "items": items, "missing": 0}
+
+
+_SP_URL = re.compile(r"^https://open\.spotify\.com/(?:intl-[a-z]{2}(?:-[a-z]{2})?/)?(playlist|album|track)/([A-Za-z0-9]{22})")
+
+
+def url_tracks(ctx, url) -> dict:
+    """#424 Warenkorb: Titel eines Spotify-Links (Playlist, Album, Titel) – nur lesend (Developer Terms: keine
+    Speicherung von Spotify-Inhalten über die Anzeige hinaus; übernommen werden Künstler, Titel, Mix, ISRC, Link).
+    → {"name", "items": [{artist, title, mix, isrc, dur, url}]}"""
+    m = _SP_URL.match(str(url or "").strip())
+    if not m:
+        raise ValueError("Unbekannter Spotify-Link – unterstützt: Playlist, Album, Titel (open.spotify.com).")
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"Spotify: {why}.")
+    kind, sid = m.group(1), m.group(2)
+    cl = client(ctx)
+    if kind == "track":
+        t = get(ctx, f"/tracks/{sid}", cl) or {}
+        return {"name": t.get("name", ""), "items": [ref_of(t)] if t.get("name") else []}
+    if kind == "album":
+        alb, rows = album_tracks(ctx, sid, cl)
+        return {"name": f"{alb.get('name') or sid} – {', '.join(_artists(alb))}", "items": [ref_of(t) for t in rows if t.get("name")]}
+    d = playlist_files(ctx, sid)
+    if not d["items"]:
+        raise ValueError("Spotify liefert die Titel dieser Playlist nicht – seit Februar 2026 nur für eigene bzw. "
+                         "gemeinsame Playlists. Alben und einzelne Titel gehen weiterhin.")
+    return {"name": d["name"], "items": [x["ref"] for x in d["items"]]}
 
 
 # =========================================================================== #384 SP2: Läuft gerade / Zuletzt gehört → Ideen

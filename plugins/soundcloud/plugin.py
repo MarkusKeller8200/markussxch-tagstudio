@@ -6,6 +6,7 @@ SoundCloud verlangt dazu Client-ID **und** Client-Secret. Beides und der Token l
 Plugins. Refresh-Token sind nur einmal gültig – der neue wird sofort gespeichert.
 Nur Standardbibliothek.
 """
+import re
 import urllib.parse
 
 import oauthkit
@@ -194,6 +195,22 @@ def playlist_files(ctx, pid) -> dict:
         name, rows = p.get("title") or f"Playlist {pid}", p.get("tracks") or []
     items = [{"ref": ref_of(t)} for t in rows if isinstance(t, dict) and t.get("title")]
     return {"name": name, "files": [], "items": items, "missing": 0}
+
+
+def url_tracks(ctx, url) -> dict:
+    """#424 Warenkorb: Titel eines SoundCloud-Links (Titel oder Playlist/Set) über /resolve – nur lesend.
+    → {"name", "items": [{artist, title, mix, isrc, dur, url}]}"""
+    u = str(url or "").strip()
+    if not re.match(r"^https://(?:www\.|m\.)?soundcloud\.com/[^/?#]+/[^?#]+", u):
+        raise ValueError("Unbekannter SoundCloud-Link – unterstützt: Titel und Playlists (soundcloud.com/…).")
+    ok, why = ready(ctx)
+    if not ok:
+        raise ValueError(f"SoundCloud: {why}.")
+    d = get(ctx, "/resolve", client(ctx), url=u) or {}
+    if d.get("kind") == "track":
+        return {"name": d.get("title", ""), "items": [ref_of(d)]}
+    rows = d.get("tracks") or []
+    return {"name": d.get("title", "") or "SoundCloud", "items": [ref_of(t) for t in rows if isinstance(t, dict) and t.get("title")]}
 
 
 # =========================================================================== Entdecken

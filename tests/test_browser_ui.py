@@ -2012,6 +2012,8 @@ class UiTest(unittest.TestCase):
         pg.click('#menu button:has-text("Liste aus Text")')
         pg.fill("#itTxt", "01. Kai Ost - Nordwind (Original Mix)\nID - ID\nKai Ost - Morgen")
         pg.click("#mBtns .primary")
+        pg.wait_for_selector("#modal:not([hidden]) .cart-pv")                       # #436: Vorschau
+        pg.click("#mBtns .primary")
         pg.wait_for_function("IDEA.d.items.length === 2")
         pg.click("#ideaAdd")
         pg.click('#menu button:has-text("Titel von Hand")')
@@ -2063,24 +2065,39 @@ class UiTest(unittest.TestCase):
         self.assertEqual(nav[nav.index("carts") + 1], "purchases")
         pg.click('.nav[data-module="carts"]')
         pg.wait_for_function("CART.d && CART.d.carts.length === 0")
-        self.assertTrue(pg.locator("#cartAdd").is_disabled())
+        self.assertTrue(pg.locator("#cartAddText").is_disabled())
         pg.click("#cartNew")
+        self.assertRegex(pg.input_value("#cartNm"), r"^Warenkorb_\d{4}_\d{2}_\d{2}$")      # #433
         pg.fill("#cartNm", "Club")
         pg.click("#mBtns .primary")
         pg.wait_for_function("CART.d.carts.length === 1 && CART.d.sel")
-        # Liste wie aus 1001Tracklists einfügen
-        pg.click("#cartAdd")
-        pg.click('#menu button:has-text("Liste einfügen")')
-        pg.fill("#ctTxt", "01 [00:00] Kai Ost - Nordwind (Original Mix) [Nordwerk]\n02 [03:10] ID - ID\n03 [06:20] Lena Berg - Glas (Extended Mix)\nw/ Mara Lind - Morgen")
+        # #435: Assistent startet automatisch – Schritt 1, Liste einfügen (#434 Knöpfe, #437 Hinweis, #436 Vorschau)
+        pg.wait_for_selector("#modal:not([hidden]) .cart-wz-steps")
+        self.assertIn("Schritt 1 von 5", pg.inner_text("#mBody"))
+        pg.click('#mBody [data-wz="text"]')
+        pg.wait_for_selector("#ctTxt")
+        self.assertIn("1001Tracklists öffnen", pg.inner_text("#mBody"))
+        pg.fill("#ctTxt", "Kai Ost - Club Night 12 2026-10-26\n\n01 [00:00] Kai Ost - Nordwind (Original Mix) [Nordwerk]\n02 [03:10] ID - ID\n03 [06:20] Lena Berg - Glas (Extended Mix)\nw/ Mara Lind - Morgen")
         pg.click("#mBtns .primary")
+        pg.wait_for_selector("#modal:not([hidden]) .cart-pv")
+        self.assertFalse(pg.is_checked('#mBody [data-pv="0"]'))                        # Titelzeile des Mixes ausmarkiert
+        self.assertIn("vermutlich Titel des Mixes", pg.inner_text("#mBody"))
+        self.assertIn("(3)", pg.inner_text("#mBtns .primary"))
+        pg.click("#mBtns .primary")
+        pg.wait_for_selector("#modal:not([hidden]) .cart-wz-steps")                    # zurück im Assistenten
         pg.wait_for_function("CART.d.items.length === 3")
+        pg.click("#mBtns .primary")                                                    # Weiter → Schritt 2
+        pg.wait_for_function("document.querySelector('#mBody') && document.querySelector('#mBody').innerText.includes('Schritt 2 von 5')")
+        pg.click('#mBtns button:has-text("Abbrechen")')
+        self.assertTrue(pg.locator("#cartAddText").is_enabled())
         self.assertEqual(pg.evaluate("CART.d.items.map(e => e.status)"), ["bought", "open", "open"])   # Nordwind schon gekauft
         self.assertEqual(pg.inner_text("#cartCount").strip(), "2")
         self.assertIn("bereits gekauft", pg.inner_text("#cartHint"))
         # gekaufte entfernen – nur nach Rückfrage, Rückgängig
         pg.click('#cartHint [data-h="rmbought"]')
-        pg.wait_for_selector("#dialog:not([hidden])")
-        pg.click("#dlgBtns .primary")
+        pg.wait_for_selector("#modal:not([hidden]) .cart-pv")                       # #435: Vorschau mit Häkchen
+        self.assertIn("Nordwind", pg.inner_text("#mBody"))
+        pg.click("#mBtns .primary")
         pg.wait_for_function("CART.d.items[0].status === 'removed'")
         pg.click('#cartFilter [data-f="removed"]')
         self.assertEqual(pg.locator("#cartList tbody tr").count(), 1)
@@ -2105,7 +2122,7 @@ class UiTest(unittest.TestCase):
         pg.click("#dlgBtns .primary")
         pg.wait_for_function("CART.d.carts[0].status === 'bought'")
         self.assertIn("gekauft (historik)", pg.inner_text("#cartLists").lower())
-        self.assertTrue(pg.locator("#cartAdd").is_disabled())
+        self.assertTrue(pg.locator("#cartAddText").is_disabled())
         self.assertEqual(pg.inner_text("#cartCount").strip(), "")
         pg.click('#cartHint [data-h="reopen"]')
         pg.wait_for_function("CART.d.carts[0].status === 'open'")
@@ -2620,8 +2637,8 @@ class UiTest(unittest.TestCase):
             pg.uncheck(cb)
             time.sleep(0.4)
         pg.check(cb)
-        for _ in range(40):
-            if os.path.isdir(os.path.join(base, "90_Download", "Beatport")):
+        for _ in range(80):                                   # #427: auf beide Ordner warten (werden nacheinander angelegt)
+            if all(os.path.isdir(os.path.join(base, d, "Beatport")) for d in ("90_Download", "00_New")):
                 break
             time.sleep(0.1)
         self.assertTrue(os.path.isdir(os.path.join(base, "90_Download", "Beatport")))
@@ -4960,6 +4977,8 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.get_attribute("#plsTxtGuide .pl-link", "data-url"), "https://www.mixid.fm/")
         pg.select_option("#plsTxtSrc", "1001tracklists")
         pg.fill("#plsTxt", "01. Test - Ton 330 [LABEL]\n02. ID - ID\n03. Test - Gibt es nicht")
+        pg.click("#mBtns .primary")
+        pg.wait_for_selector("#modal:not([hidden]) .cart-pv")                       # #436: Vorschau
         pg.click("#mBtns .primary")
         pg.wait_for_function("PLS.st.pl && PLS.st.pl.name === 'Radio-Mix' && PLS.st.pl.refs === 2")
         self.assertEqual(pg.evaluate("PLS.st.pl.folder"), "1001Tracklists")

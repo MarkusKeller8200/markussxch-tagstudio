@@ -566,8 +566,10 @@ async function plsImportText() {
     collect: (b) => ({ text: b.querySelector("#plsTxt").value, name: b.querySelector("#plsTxtName").value.trim(), src: b.querySelector("#plsTxtSrc").value,
       label: b.querySelector("#plsTxtSrc").selectedOptions[0].textContent }) });
   if (!r || !r.text.trim()) return;
+  const skip = typeof tracklistPickDialog === "function" ? await tracklistPickDialog(r.text, "Trackliste einfügen – Vorschau") : undefined;   // #436
+  if (skip === null) return;
   const folder = r.src === "text" ? "Tracklisten" : r.label;
-  try { PLS.sel = new Set(); plsApply(await call("pl_import_text", r.text, r.name, folder, r.src)); }
+  try { PLS.sel = new Set(); plsApply(await call("pl_import_text", r.text, r.name, folder, r.src, skip)); }
   catch (e) { toast(String(e.message || e)); }
 }
 async function plsImportFile() {

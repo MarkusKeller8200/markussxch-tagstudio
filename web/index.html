@@ -539,8 +539,13 @@
               <h3 class="idea-title ellipsis" id="cartTitle" translate="no"></h3>
               <div class="seg sm" id="cartFilter" role="radiogroup" aria-label="Anzeigen"></div>
               <input id="cartSearch" class="inp" type="search" placeholder="Suchen (Künstler, Titel, Notiz)" aria-label="Suchen">
-              <span class="disc-acts"><button class="ghost" id="cartAdd" aria-haspopup="menu">+ Hinzufügen ▾</button><button class="ghost" id="cartMatch">Bei Beatport suchen</button><button class="ghost" id="cartCheck">Auf Käufe prüfen</button><button class="ghost" id="cartMore" aria-haspopup="menu">Weitere ▾</button><button class="primary" id="cartBp">An Beatport senden …</button></span>
+              <span class="disc-acts"><button class="ghost" id="cartMatch">Bei Beatport suchen …</button><button class="ghost" id="cartCheck">Auf Käufe prüfen …</button><button class="ghost" id="cartMore" aria-haspopup="menu">Weitere ▾</button><button class="ghost" id="cartWizard" title="Schritt für Schritt: hinzufügen, bei Beatport suchen, auf Käufe prüfen, senden, kaufen – jeder Schritt zeigt zuerst, was passiert">Assistent …</button><button class="primary" id="cartBp">An Beatport senden …</button></span>
             </div>
+            <div class="cart-add" id="cartAddBar" role="group" aria-label="Titel hinzufügen"><span class="muted sm">Hinzufügen:</span>
+              <button class="ghost sm" id="cartAddText" title="Kopierte Trackliste einfügen – z. B. von 1001Tracklists, MixID oder eigene Notizen">Liste einfügen …</button>
+              <button class="ghost sm" id="cartAddIdeas" title="Titel aus einer Wunschliste der Ideen auswählen">Aus Ideen …</button>
+              <button class="ghost sm" id="cartAddManual" title="Künstler, Titel, Mix und Link eingeben">Von Hand …</button>
+              <button class="ghost sm" id="cartAddUrl" title="Link einer Playlist, eines Albums/Releases, einer Chart oder eines Titels von Beatport, Spotify oder SoundCloud">Per Link …</button></div>
             <div class="idea-sel" id="cartSel" hidden><b id="cartSelN"></b>
               <button class="ghost sm" id="cartSelRemove">Aus Einkaufsliste nehmen …</button><button class="ghost sm" id="cartSelRestore">Zurück auf die Einkaufsliste</button><button class="ghost sm" id="cartSelNone">Markierung aufheben</button></div>
             <div class="cart-note" id="cartHint" hidden></div>

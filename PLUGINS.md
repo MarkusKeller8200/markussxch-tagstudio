@@ -243,6 +243,10 @@ Weitere Funktionen, die ein Plugin anbieten kann (alle optional):
 - `store_search(ctx, refs)` – Seite „Warenkorb“ (#423): Titel ohne Store-ID zuordnen (nur lesend). `refs` =
   `[{artist, title, mix, isrc, dur}]` → je Titel `{"id", "score", "sure", "url", "cands": [{id, artist, title, mix,
   url, score}]}` oder `None` (kein Treffer). `sure` = sicher übernehmen, sonst wählt der Benutzer aus `cands`.
+- `url_tracks(ctx, url)` – Seite „Warenkorb“ › „Per Link …“ (#424): Titel eines Links lesen (nur lesend) →
+  `{"name", "items": [{artist, title, mix, isrc, dur, url, sid}]}` (`sid` = Beatport-ID, falls bekannt). Eingebaut in
+  Beatport (Titel, Release, Chart, Playlist, eigene Playlist), Spotify (Playlist, Album, Titel) und SoundCloud (Titel,
+  Playlist über `/resolve`); TagStudio wählt das Plugin nach der Adresse (beatport.com, open.spotify.com, soundcloud.com).
 - `playlist_push(ctx, playlist, options)` – Seite Playlists › Mehr ▾ › „An <Plugin> senden …“ (#273). `playlist` =
   `{"name", "folder", "items": [{"path", "artist", "title"}], "remote"}` (`remote` = die ID, die das Plugin beim
   letzten Senden zurückgegeben hat, sonst `None`). Rückgabe `{"ok", "id", "message", "missing": [Pfade], …}`; TagStudio
@@ -438,7 +442,7 @@ TagStudio verändert nur Playlists, deren Name mit `TagStudio_` beginnt. **„Sc
 Protokoll. Funktionen für die Seite: `store_settings`, `store_playlist_check`, `store_playlist_list`,
 `store_playlist_put(ctx, name, ids, replace)`, `store_playlist_delete(ctx, prefix)`.
 
-**Warenkorb (#423, Plugin 2.12):** Die Seite „Warenkorb“ ordnet mit **„Bei Beatport suchen“** Titel ohne Beatport-ID
+**Warenkorb (#423, Plugin 2.12; #424, 2.13: „Per Link …“ über `url_tracks` – Titel, Release, Chart, Playlist):** Die Seite „Warenkorb“ ordnet mit **„Bei Beatport suchen“** Titel ohne Beatport-ID
 über `store_search` zu (ISRC, sonst Katalogsuche nach Künstler + Titel + Mix; gleiche Bewertung wie die
 Online-Metadaten: ab 0,80 sicher, ab 0,62 unsicher mit bis zu drei Kandidaten) – nur lesend. **„An Beatport senden …“**
 legt die Einkaufsliste als `TagStudio_CART_<Warenkorb>` an (`store_playlist_put` mit `replace=True`: die Playlist
@@ -461,7 +465,8 @@ Lesen deine Playlists und Titel-Daten bei Spotify bzw. SoundCloud. SoundCloud **
   (Spotify Premium nötig), „Create app“, als Redirect URI genau `http://127.0.0.1:8765/callback` eintragen, „Web API“
   wählen. Die Client-ID unter Plugins › Spotify › **Anmelden …** einfügen (ein Secret ist nicht nötig, Anmeldung mit
   PKCE). Entwicklungsmodus: höchstens 5 Nutzer je App. Seit Februar 2026 liefert Spotify Titel nur für eigene bzw.
-  gemeinsame Playlists, die Suche höchstens 10 Treffer je Abfrage und beim Album kein Label mehr.
+  gemeinsame Playlists, die Suche höchstens 10 Treffer je Abfrage und beim Album kein Label mehr. Warenkorb › „Per Link …“
+  (1.4, #424): Playlist-, Album- und Titel-Links – fremde Playlists liefern deshalb keine Titel.
 - **SoundCloud:** App in „SoundCloud for Developers“ registrieren (Selbstregistrierung mit Artist Pro), Redirect URI
   `http://127.0.0.1:8766/callback`. Client-ID **und** Client-Secret unter Plugins › SoundCloud › **Anmelden …**
   einfügen (OAuth 2.1 mit PKCE).

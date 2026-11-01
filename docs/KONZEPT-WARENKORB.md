@@ -1,6 +1,7 @@
 # Konzept: Warenkorb – Titel sammeln, auf Käufe prüfen, an den Shop senden (#420–#425)
 
-Stand: 2026-11-01 (4.15.0, Meilenstein #32) · Status: **IN ARBEIT** – Entscheide W1–W3 vom User (01.11.2026, 16:20).
+Stand: 2026-11-01 (4.15.0, Meilenstein #32) · Status: **IN ARBEIT** – Entscheide W1–W3 vom User (01.11.2026, 16:20),
+W4–W5 (20:19); Rückmeldungen aus dem Test #433–#437 umgesetzt (Abschnitt 12).
 
 ## 1. Ziel
 
@@ -33,6 +34,9 @@ URL einer Plattform ──┘          │
 | W1 | Meilenstein | neuer Meilenstein **#32 „4.15.0 – Warenkorb“** |
 | W2 | Übergabe an Beatport – die offizielle API v4 (117 Endpunkte, Stand 25.10.2026) hat **keinen** Warenkorb-Endpunkt | eigene **Beatport-Playlist `TagStudio_CART_<Korb>`** über die offizielle API (`/my/playlists/`, wie #334); auf beatport.com mit „Alle in den Warenkorb“ übernehmen. Nur auf Klick, nur mit der Plugin-Einstellung „Playlists in Beatport“ |
 | W3 | Wann ist ein Korb „gekauft“? | **automatisch**, wenn alle Titel der Einkaufsliste über „Einkäufe“ als gekauft erkannt sind, **und von Hand** („Als gekauft abschliessen“) |
+
+| W4 | Assistent (#435): nur auf Knopfdruck oder automatisch? | **automatisch** beim neuen Warenkorb, zusätzlich Knopf „Assistent …“ |
+| W5 | Sollen auch die einzelnen Knöpfe zuerst eine Vorschau zeigen? | **ja** |
 
 Reihenfolge der Quellen (User): zuerst die **einfache Liste** (z. B. kopierte Trackliste von 1001Tracklists), dann
 aus den Ideen, danach per URL einer Streaming-Plattform (#424).
@@ -131,10 +135,32 @@ gekauft und Wieder öffnen, Rückgängig, Export, Beatport-Zuordnung mit Plugin-
 Oberfläche (`test_browser_ui.test_carts_page`): Menüpunkt zwischen Ideen und Einkäufe, Korb anlegen, Liste einfügen,
 Prüfung mit „Einkäufe“, Gekaufte entfernen mit Rückfrage, Historik, aus Ideen in den Warenkorb.
 
+## 12. Rückmeldungen aus dem Test (01.11.2026, 20:16–20:25, umgesetzt)
+
+- **#433 Namensvorlage:** neue Körbe `Warenkorb_JJJJ_MM_TT` (`carts.NAME_TEMPLATE`, `Store.next_name`), am selben Tag
+  `_2`, `_3` … – auch gegen archivierte Körbe; gilt für „＋“, „Neuer Warenkorb …“ aus den Ideen und automatisch
+  angelegte Körbe. Bestehende Namen bleiben.
+- **#434 Einzelne Knöpfe:** Zeile „Hinzufügen:“ mit „Liste einfügen …“, „Aus Ideen …“ (Auswahl der Wunschliste mit
+  Häkchen statt Sprung auf die Seite „Ideen“), „Von Hand …“, „Per Link …“.
+- **#435 Assistent (W4, W5):** fünf Schritte (hinzufügen, bei Beatport suchen, auf Käufe prüfen, senden, kaufen), jeder
+  Schritt beschreibt zuerst, was passiert; „Zurück“, „Überspringen“, „Abbrechen“. Die Aktionen selbst zeigen immer
+  zuerst eine Vorschau: Suche (Liste der Titel), Prüfung (was abgefragt wird; danach gekaufte mit Häkchen,
+  `carts_remove_bought(cid, ks)`), unsichere Treffer gesammelt wählen (`carts_pick_many`), Senden (alle Titel).
+- **#436 Titelzeile des Mixes:** `playlists.parse_tracklist` kennzeichnet Zeilen ohne Zeitmarke/Nummer mit `head`, wenn
+  die meisten Titel eine haben („w/“-Zeilen zählen als Titel); `playlists.pick_tracklist(items, skip)` übernimmt die
+  Auswahl (`skip` None = Kopfzeilen weglassen). Vorschau `tracklist_preview` mit ausmarkierter Titelzeile – auch für
+  Ideen › „Liste aus Text“ und Playlists › „Trackliste einfügen“.
+- **#437 Hinweis 1001Tracklists:** Anleitung im Fenster „Liste einfügen“ mit Knopf „1001Tracklists öffnen“ (nur die
+  Webseite im Browser, kein Auslesen – siehe #428).
+- **#424 Per Link:** Plugin-Funktion `url_tracks(ctx, url)` in Beatport 2.13 (Titel, Release, Chart, Playlist, eigene
+  Playlist), Spotify 1.4 (Playlist, Album, Titel – fremde Playlists liefert Spotify seit Februar 2026 nicht) und
+  SoundCloud 1.2 (`/resolve`). `carts.url_plugin` wählt das Plugin nach der Adresse, `start_carts_url` liest im
+  Hintergrund, Vorschau mit Häkchen, `carts_add_refs` übernimmt.
+
 ## 11. Phasen
 
 1. **4.15.0:** #420 Seite und Historik, #421 Liste einfügen und aus Ideen, #422 Prüfung auf Käufe, #423 Beatport
    zuordnen und senden.
-2. **4.15.0 (danach):** #424 Titel per URL einer Plattform.
+2. **4.15.0 (danach):** #424 Titel per URL einer Plattform, #433–#437 aus dem Test (Abschnitt 12).
 3. **Später:** #425 weitere Shops (iTunes Store, Traxsource, Bandcamp, Beatsource, Amazon) – je Shop prüfen, ob es
    eine erlaubte Schnittstelle gibt, sonst Einkaufsliste mit Links.
