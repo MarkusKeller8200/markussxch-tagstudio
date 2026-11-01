@@ -1,7 +1,7 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "2.11",
+  "version": "2.12",
   "min_app": "4.9.1",
   "category": "online",
   "categories": [
@@ -322,7 +322,7 @@
         "path": "/catalog/search/",
         "label": "Katalog durchsuchen",
         "status": "full",
-        "use": "Beatport-Daten holen, Entdecken (Künstler/Labels)",
+        "use": "Beatport-Daten holen, Entdecken (Künstler/Labels), Warenkorb: bei Beatport suchen",
         "params": [
           {
             "name": "q",
@@ -367,7 +367,7 @@
         "path": "/catalog/tracks/",
         "label": "Titel filtern (ISRC, Künstler, Label, IDs)",
         "status": "partial",
-        "use": "ISRC-Suche, Entdecken (neue Titel), Einkäufe: Katalognummer, ISRC, Label",
+        "use": "ISRC-Suche (auch Warenkorb), Entdecken (neue Titel), Einkäufe: Katalognummer, ISRC, Label",
         "note": "genutzt: isrc, id, artist_id, label_id, order_by",
         "params": [
           {
@@ -671,7 +671,7 @@
         "path": "/my/playlists/",
         "label": "Eigene Playlist anlegen",
         "status": "partial",
-        "use": "Download Tracks / Playlists je Kaufdatum (#334/#335) – nur TagStudio_…, nur auf Klick",
+        "use": "Download Tracks / Playlists je Kaufdatum (#334/#335), Warenkorb TagStudio_CART_ (#423) – nur TagStudio_…, nur auf Klick",
         "body": {
           "name": "TagStudio_Test"
         },
@@ -718,7 +718,7 @@
         "path": "/my/playlists/{myplaylists_pk}/tracks/{id}/",
         "label": "Titel aus eigener Playlist entfernen",
         "status": "partial",
-        "use": "Download-Playlist ersetzen statt anhäufen"
+        "use": "Download-Playlist und Warenkorb-Playlist ersetzen statt anhäufen"
       },
       {
         "id": "my-playlists-myplaylists_pk-tracks",
@@ -753,7 +753,7 @@
         "path": "/my/playlists/{myplaylists_pk}/tracks/bulk/",
         "label": "Mehrere Titel einer Playlist ändern",
         "status": "partial",
-        "use": "Titel in eine eigene TagStudio-Playlist eintragen (#334/#335)",
+        "use": "Titel in eine eigene TagStudio-Playlist eintragen (#334/#335, Warenkorb #423)",
         "body": {
           "track_ids": [
             17951063

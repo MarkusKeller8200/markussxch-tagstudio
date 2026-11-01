@@ -41,6 +41,7 @@ from session_help import HelpMixin
 from session_prepare import PrepareMixin
 from session_discover import DiscoverMixin
 from session_ideas import IdeasMixin
+from session_carts import CartsMixin
 from session_mixes import MixesMixin
 from session_setup import ArchiveMixin, FoldersMixin, SetupMixin
 from session_folders import FolderRolesMixin
@@ -68,7 +69,7 @@ UI_KEYS = {"side_w": (int, float), "side_collapsed": bool, "pairs_w": (int, floa
            "cmp_tb_icons": bool, "tg_tb_icons": bool}                             # #107: Werkzeugleiste im Vergleich nur mit Symbolen
 
 
-class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, DiscoverMixin, IdeasMixin, SetupMixin, FoldersMixin, FolderRolesMixin, ArchiveMixin,
+class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, DiscoverMixin, IdeasMixin, CartsMixin, SetupMixin, FoldersMixin, FolderRolesMixin, ArchiveMixin,
               PlaylistMixin, PurchasesMixin, CloudSyncMixin, MixesMixin, MirrorMixin, AppBackupMixin):
     def __init__(self):
         self.lock = threading.RLock()

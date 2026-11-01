@@ -1600,6 +1600,15 @@ body.pl-dragging .player{outline:2px dashed var(--acc-soft);outline-offset:-2px}
 .idea-t tr.ist-lib .nm b{color:var(--ok,#2ea043)}
 .disc-t .icon-btn.on{color:var(--acc)}
 @media (max-width:800px){.idea-wrap{grid-template-columns:1fr}.idea-lists{max-height:180px}}
+/* #420 Warenkorb */
+.cart-grp{padding:8px 8px 2px;text-transform:uppercase;letter-spacing:.04em;font-size:10.5px}
+.cart-l.arch{opacity:.6}
+.cart-arch{margin:8px 4px 2px;align-self:flex-start}
+.cart-note{display:flex;flex-direction:column;gap:4px;padding:6px 10px;border:1px solid var(--warn,#d29922);border-radius:8px;background:var(--warn-soft,rgba(210,153,34,.12));font-size:12.5px}
+.cart-note>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.cart-bp.ok{color:var(--ok,#2ea043);text-decoration:none}
+.cart-bp.warn{color:var(--warn,#d29922)}
+.cart-t tr.ist-bought .nm b,.cart-t tr.ist-lib .nm b{color:var(--ok,#2ea043)}
 .disc-rel{display:flex;flex-direction:column;gap:2px;max-height:50vh;overflow:auto}
 .disc-f textarea{width:100%;min-height:110px;resize:vertical}
 .disc-f .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}

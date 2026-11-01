@@ -342,6 +342,12 @@ function ideasPickList(ev, ks, copyOnly) {
   } }))), 0);
 }
 
+/** #421: markierte Ideen in einen Warenkorb (web/carts.js); die Ideen bekommen den Status „Kaufen“ */
+function ideasToCart(ev, ks) {
+  if (typeof cartsFromIdeasMenu !== "function") return;
+  cartsFromIdeasMenu(ev, IDEA.d.sel, ks, () => { IDEA.checked.clear(); ideasShow(); });
+}
+
 async function ideasRemove(ks) {
   const ok = await dialog({ title: "Aus der Wunschliste entfernen", text: `${fmtN(ks.length)} Eintrag/Einträge entfernen? „Verwerfen“ behält sie unter „Verworfen“. Rückgängig ist möglich.`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Entfernen", value: true, primary: true }] });
@@ -365,6 +371,7 @@ function ideasRowMenu(ev, e) {
     { label: "Als Idee", run: () => ideasDo("ideas_set", IDEA.d.sel, ks, "idea") },
     { label: "Verwerfen", run: () => ideasDo("ideas_set", IDEA.d.sel, ks, "dropped") }, "-",
     ...(ks.length === 1 ? [{ label: "Notiz …", run: () => ideasNote(e) }] : []),
+    { label: "In den Warenkorb ›", run: () => ideasToCart(ev, ks) },                // #421
     { label: "Verschieben nach ›", run: () => ideasPickList(ev, ks, false) },
     { label: "Kopieren nach ›", run: () => ideasPickList(ev, ks, true) },
   ];
@@ -422,6 +429,7 @@ async function ideasBadge(n) {
     if (v) { await ideasDo("ideas_set", IDEA.d.sel, [...IDEA.checked], v); }
   });
   $("#ideaSelMove").addEventListener("click", (ev) => ideasPickList(ev, [...IDEA.checked], false));
+  $("#ideaSelCart").addEventListener("click", (ev) => { ev.stopPropagation(); ideasToCart(ev, [...IDEA.checked]); });
   $("#ideaSelRemove").addEventListener("click", () => ideasRemove([...IDEA.checked]));
   $("#ideaSelNone").addEventListener("click", () => { IDEA.checked.clear(); ideasRender(); });
   $("#ideaList").addEventListener("change", (ev) => {

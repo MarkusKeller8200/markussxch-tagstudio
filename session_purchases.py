@@ -532,6 +532,31 @@ class PurchasesMixin:
             self._purch().link(str(key), str(path or ""), dest)
         return self.purch_state()
 
+    def _purch_fetch(self, src, full, cancel, progress) -> tuple[int, list]:
+        """Einkäufe der Stores src holen und zuführen (ohne Abgleich mit der Bibliothek). → (neue, Fehlertexte).
+        Auch für den Warenkorb (#422: vor der Prüfung auf bereits gekaufte Titel)."""
+        new, errors = 0, []
+        for s in src:
+            if not s["ready"]:
+                errors.append(f"{s['name']}: {s['why']}")
+                continue
+            progress(("text", f"{s['name']}: gekaufte Titel lesen …"))
+            with self.lock:
+                since = self._purch_since(s["id"], bool(full))
+            try:
+                r = self.plugins.call_playlist(s["id"], "store_purchases", since, session=self, cancel=cancel,
+                                               progress=progress) or {}
+            except core.Cancelled:
+                raise
+            except Exception as ex:  # noqa: BLE001
+                errors.append(f"{s['name']}: {ex}")
+                continue
+            with self.lock:
+                m = self._purch().merge(s["id"], r.get("name") or s["name"], r.get("items") or [],
+                                        full=not r.get("since"))
+            new += m["new"]
+        return new, errors
+
     def start_purch_refresh(self, stores=None, full=False):
         """Einkäufe der Stores holen (None = alle bereiten), zusammenführen, mit der Bibliothek abgleichen. Nach dem
         ersten Mal nur neue Einkäufe (Filter Kaufdatum), alle FULL_EVERY Tage bzw. mit full=True die ganze Liste."""
@@ -540,26 +565,7 @@ class PurchasesMixin:
             return {"ok": False, "error": "Kein Store eingerichtet – zuerst im Plugin „Beatport“ anmelden."}
 
         def job(cancel, progress):
-            new, errors = 0, []
-            for s in src:
-                if not s["ready"]:
-                    errors.append(f"{s['name']}: {s['why']}")
-                    continue
-                progress(("text", f"{s['name']}: gekaufte Titel lesen …"))
-                with self.lock:
-                    since = self._purch_since(s["id"], bool(full))
-                try:
-                    r = self.plugins.call_playlist(s["id"], "store_purchases", since, session=self, cancel=cancel,
-                                                   progress=progress) or {}
-                except core.Cancelled:
-                    raise
-                except Exception as ex:  # noqa: BLE001
-                    errors.append(f"{s['name']}: {ex}")
-                    continue
-                with self.lock:
-                    m = self._purch().merge(s["id"], r.get("name") or s["name"], r.get("items") or [],
-                                            full=not r.get("since"))
-                new += m["new"]
+            new, errors = self._purch_fetch(src, full, cancel, progress)
             progress(("text", "Mit der Bibliothek abgleichen …"))
             index, dest = self._purch_index(cancel, progress)
             with self.lock:

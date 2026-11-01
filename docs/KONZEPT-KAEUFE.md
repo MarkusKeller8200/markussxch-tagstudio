@@ -171,6 +171,13 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
 - Einstellung `unzip_auto` (Standard ein), Schalter „ZIP entpacken“ in der Käufe-Leiste; Ergebnis als Meldung und im
   App-Protokoll.
 
+## 3g. Warenkorb (#420–#423, 4.15.0)
+
+- Die Seite „Warenkorb“ (zwischen „Ideen“ und „Einkäufe“) prüft ihre Einkaufslisten gegen `kaeufe.json`
+  (`discover.mark_purchased`, wie #291) und aktualisiert dafür die Einkäufe über `Session._purch_fetch` (dieselbe
+  Abfrage wie „Aktualisieren“, ohne Bibliotheks-Abgleich der Einkäufe). Ein Korb wird „gekauft“, sobald alle Titel
+  hier stehen. Details: [KONZEPT-WARENKORB.md](KONZEPT-WARENKORB.md).
+
 ## 4. Später
 
 - Weitere Stores als Plugins: iTunes Store, Amazon, Traxsource, Bandcamp, Beatsource – soweit es eine erlaubte

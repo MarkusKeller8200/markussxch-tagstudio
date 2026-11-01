@@ -19,6 +19,9 @@ Die vollständige Anleitung zu allen Funktionen. Kurzüberblick, Bilder und Down
   umsortieren und sperren, Weg durch das Camelot-Rad und Energiekurve; Export als M3U8, Rekordbox-XML und CSV.
 - **Ideen:** Wunschlisten mit Titeln, die du später kaufen willst – aus „Entdecken“, von Hand oder aus Text; Status
   Idee → Kaufen → Gekauft → In Bibliothek, Notiz, Vorhören, als Beatport-Playlist (nur auf Klick).
+- **Warenkorb:** alles, was du kaufen willst, in Warenkörben sammeln – aus einer kopierten Trackliste (z. B.
+  1001Tracklists), aus den Ideen oder von Hand; bereits gekaufte Titel erkennen und herausnehmen, die Einkaufsliste als
+  Beatport-Playlist senden (nur auf Klick); Körbe bleiben als Historik „Offen“/„Gekauft“.
 - **Playlists:** Titel aus Tagger und DJ-Set in Playlists mit Ordnern sammeln; jede Playlist liegt zusätzlich als
   M3U8 im Playlist-Ordner (für Engine DJ, VirtualDJ & Co.); Archivieren statt Löschen.
 - **Mixe:** in einer Mix-Datei (DJ-Set, Radiosendung) die Titel der eigenen Bibliothek erkennen – auch mit
@@ -261,6 +264,41 @@ Wunschlisten sind Playlists der Art „Wunschliste“ im Ordner **Ideen** des Pl
 „Playlists“, nicht als M3U8 im Playlist-Ordner). Beim ersten Öffnen werden die in „Entdecken“ gemerkten Titel einmal in
 die Wunschliste „Gemerkt (Entdecken)“ kopiert; „Entdecken“ selbst bleibt unverändert. Seit 4.14.0 hat „Entdecken“
 keinen Filter „Gemerkt“ mehr (#409) – gemerkte Titel stehen unter „Alle“ (Hinweis „in Ideen“) und auf der Seite „Ideen“.
+
+### Warenkorb
+
+Die Seite **Warenkorb** (in der Seitenleiste zwischen „Ideen“ und „Einkäufe“, die Zahl daneben = Titel auf den
+Einkaufslisten offener Körbe) fasst alles zusammen, was gekauft werden soll – damit nichts doppelt gekauft wird. Shop
+ist vorerst **Beatport**; weitere (iTunes Store …) folgen. Links die Warenkörbe in den Gruppen **Offen**, **Gekauft
+(Historik)** und **Archiv** („＋“ legt einen neuen an; Rechtsklick: umbenennen, als gekauft abschliessen bzw. wieder
+öffnen, exportieren, archivieren bzw. zurückholen), rechts die Titel mit Künstler, Titel (Mix), Beatport-Zuordnung,
+Quelle, Status und Notiz. Filter: **Einkaufsliste** (noch zu kaufen), Gekauft, In Bibliothek, Entfernt, Alle.
+
+- **Titel hinzufügen:** „+ Hinzufügen ▾“ › **„Liste einfügen (z. B. 1001Tracklists) …“** – die kopierte Trackliste
+  einfügen, je Zeile „Künstler - Titel (Mix)“; Nummern, Zeitmarken, „w/“ und Labels in [eckigen Klammern] fallen weg,
+  „ID - ID“ wird ausgelassen. **Aus den Ideen:** dort Titel markieren und **„In den Warenkorb ▸“** (bzw. Rechtsklick ›
+  „In den Warenkorb ›“) – Beatport-ID und Link werden übernommen, die Idee bekommt den Status „Kaufen“. Oder **„Titel von
+  Hand …“** (ein Beatport-Link liefert die Beatport-ID gleich mit). Doppelte werden nicht noch einmal aufgenommen.
+- **Bei Beatport suchen:** ordnet Titel ohne Beatport-ID über die Beatport-Suche zu (nur lesend). Sichere Treffer
+  zeigen „✓ ID“, bei **„unsicher – wählen …“** wählst du aus bis zu drei Kandidaten oder „Keiner davon“; „nicht
+  gefunden“ heisst: bei Beatport nicht erhältlich. „Weitere ▾“ › „Unsichere und nicht gefundene neu suchen“.
+- **Auf Käufe prüfen:** aktualisiert zuerst die Einkäufe beim Shop (wie „Einkäufe“ › „Aktualisieren“) und gleicht die
+  Titel dann mit „Einkäufe“ und der Bibliothek ab. **Gekauft** (mit Kaufdatum) bzw. **In Bibliothek** zeigt die Spalte
+  Status; ein Hinweis über der Tabelle bietet **„Gekaufte entfernen (n) …“** an – nach Rückfrage werden diese Titel aus
+  der Einkaufsliste genommen. Sie bleiben unter „Entfernt“ sichtbar (↺ holt sie zurück), „Weitere ▾“ › „Rückgängig“
+  nimmt die letzte Änderung zurück. Mit ✕ bzw. „Aus Einkaufsliste nehmen …“ nimmst du Titel von Hand heraus.
+- **An Beatport senden …:** prüft vorher noch einmal die Einkäufe und legt die Einkaufsliste in deinem Beatport-Konto als
+  Playlist **`TagStudio_CART_<Warenkorb>`** an bzw. bringt sie auf genau die Einkaufsliste – nur auf Klick, nur Titel mit
+  Beatport-ID, bereits gekaufte nie. Andere Playlists bleiben unberührt; dafür muss im Beatport-Plugin „Playlists in
+  Beatport schreiben“ eingeschaltet sein. Die offizielle Beatport-API kennt keinen Warenkorb: Öffne danach die Playlist
+  bei Beatport („Playlist bei Beatport öffnen“), wähle dort **„Alle in den Warenkorb“** und bezahle auf beatport.com.
+- **Historik:** Sobald alle Titel der Einkaufsliste unter „Einkäufe“ stehen, wird der Warenkorb automatisch **gekauft**
+  (mit Datum) und wandert zu „Gekauft (Historik)“. „Als gekauft abschliessen …“ geht auch von Hand, „Wieder öffnen“
+  macht ihn wieder bearbeitbar (er schliesst dann erst wieder von selbst, wenn neue Titel dazukommen). Archivieren
+  blendet einen Korb aus, gelöscht wird nichts. **Exportieren** als Excel oder CSV (ein oder alle Warenkörbe).
+
+Die Warenkörbe liegen in `~/TagStudio/Warenkorb/warenkorb.json` und gehören zur Sicherung der Programmdaten
+(Einstellungen › Cloud). Konzept: [KONZEPT-WARENKORB.md](KONZEPT-WARENKORB.md).
 
 ### DJ-Set
 
@@ -720,8 +758,8 @@ Speichern und nach „Vorbereiten › Übernehmen“ nachführen, Playlists als 
 „nur online“ stellen (Windows). Dateien, die nicht mehr in der Bibliothek sind, werden nur gemeldet und erst nach
 Rückfrage gelöscht. Im Spiegel liegt zusätzlich `index.json` (Titel, Künstler, BPM, Tonart, Dauer; Pfade relativ zum
 Ziel-Ordner). **Sicherung der Programmdaten** (#402): Einstellungen
-(ohne Zugangsdaten), Playlists mit Ideen/Wunschlisten, Einkäufe, Entdecken (ohne SonoVault-Einträge), Vorbereiten und
-Mixe als ZIP-Datei `TagStudio-Programmdaten_<Rechner>_<Datum>.zip` in einen Ordner – Vorschlag `OneDrive/TagStudio/Sicherung` (#415)
+(ohne Zugangsdaten), Playlists mit Ideen/Wunschlisten, Einkäufe, Entdecken (ohne SonoVault-Einträge), Vorbereiten,
+Mixe und Warenkorb als ZIP-Datei `TagStudio-Programmdaten_<Rechner>_<Datum>.zip` in einen Ordner – Vorschlag `OneDrive/TagStudio/Sicherung` (#415)
 – von Hand („Jetzt sichern“), beim Beenden oder täglich. Nie dabei: Zugangsdaten, Snapshots, Caches, Musik. Mehr
 Sicherungen als „behalten“ (Standard 10) werden nur nach Rückfrage gelöscht. **Wiederherstellen …** zeigt eine
 Vorschau (was ersetzt wird, welche Einstellungsgruppen – von einem anderen Rechner sind Fenster, Pfade und Player nicht

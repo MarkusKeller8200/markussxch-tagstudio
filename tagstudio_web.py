@@ -75,6 +75,9 @@ _PASS = {
     "mix_gaps_info", "mix_gaps_plan", "start_mix_gaps", "mix_online_to_ideas", "mix_set_tracklist", "start_mix_link",   # #393–#395
     "ideas_overview", "ideas_count", "ideas_list_create", "ideas_list_rename", "ideas_list_archive", "ideas_from_disc", "ideas_add_manual", "ideas_add_text",   # #186
     "ideas_set", "ideas_remove", "ideas_move", "ideas_undo", "ideas_preview", "ideas_to_playlist", "start_ideas_match", "ideas_bp_preview", "start_ideas_bp",
+    "carts_overview", "carts_count", "carts_create", "carts_rename", "carts_close", "carts_reopen", "carts_archive", "carts_add_text",   # #420–#423
+    "carts_add_manual", "carts_from_ideas", "carts_remove", "carts_restore", "carts_remove_bought", "carts_note", "carts_pick", "carts_undo",
+    "start_carts_check", "start_carts_bp_match", "carts_bp_preview", "start_carts_bp",
     "prep_overview", "prep_pending", "start_prep_fetch", "prep_workflow_save", "prep_workflow_new", "prep_workflow_delete", "prep_export", "prep_import", "start_prep_run", "prep_refresh", "prep_mark", "prep_revert", "prep_allow", "prep_cleanup",
     "plugins_list", "plugin_log_read", "plugin_enable", "plugin_actions", "plugin_form", "start_plugin_action", "start_plugin_install", "plugin_apply",
     "start_plugin_catalog", "start_plugin_store_install", "plugin_store_revert",
@@ -285,6 +288,13 @@ class Api:
         if not dest:
             return {"ok": False, "cancelled": True}
         return self._s.ideas_export_write(fmt, dest, pid)
+
+    def carts_export(self, fmt, cid=""):
+        """#420: Warenkorb (bzw. alle) als Excel/CSV speichern."""
+        dest = self.save_dialog(self._s.carts_export_name(fmt, cid))
+        if not dest:
+            return {"ok": False, "cancelled": True}
+        return self._s.carts_export_write(fmt, dest, cid)
 
     def pl_export(self, fmt, ids=None, folder=None, opts=None):
         """#271: Playlist(s) als M3U8, Rekordbox-XML oder CSV speichern."""

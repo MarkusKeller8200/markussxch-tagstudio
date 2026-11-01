@@ -3,13 +3,13 @@
 "use strict";
 
 const SETUP = { st: null };
-const NAV_NAMES = { discover: "Entdecken", ideas: "Ideen", purchases: "Einkäufe", prep: "Vorbereiten", tagger: "Tagger", fixer: "Tag-Fixer", compare: "Vergleich", djset: "DJ-Set", playlists: "Playlists", mixes: "Mixe",
+const NAV_NAMES = { discover: "Entdecken", ideas: "Ideen", carts: "Warenkorb", purchases: "Einkäufe", prep: "Vorbereiten", tagger: "Tagger", fixer: "Tag-Fixer", compare: "Vergleich", djset: "DJ-Set", playlists: "Playlists", mixes: "Mixe",
   snapshots: "Snapshots", backups: "Sicherungen", plugins: "Plugins", settings: "Einstellungen", help: "Hilfe" };
 
 const WIZ_GOALS = [
   ["tags", "Tags bearbeiten und vervollständigen", "Tagger, Tag-Fixer und Tag-Rezepte – Titel, Künstler, Cover, Tonart, BPM …", ["tagger", "fixer"]],
   ["prep", "Neue Tracks vorbereiten", "Vom Download über deine Programme bis in die Bibliothek – mit Schutz bestehender Tags", ["prep"]],
-  ["discover", "Neue Musik entdecken", "Künstlern, Labels und Genres folgen, neue Titel vorhören und in Wunschlisten merken", ["discover", "ideas"]],
+  ["discover", "Neue Musik entdecken", "Künstlern, Labels und Genres folgen, neue Titel vorhören und in Wunschlisten merken", ["discover", "ideas", "carts"]],
   ["compare", "Ordner oder Sicherungen vergleichen", "Zwei Stände nebeneinander, Unterschiede übernehmen", ["compare"]],
   ["djset", "DJ-Sets planen", "Reihenfolge nach Tonart, BPM und Energie, Export für Rekordbox & Co.", ["djset"]],
   ["mixes", "Titel in DJ-Mixes erkennen", "Tracklist eines Mixes aus deiner Bibliothek – als Playlist, CUE oder Text", ["mixes"]],
@@ -32,6 +32,7 @@ const WIZ_ONLINE = [
 const FIRST_STEPS = {
   discover: ["„Folgen …“: Künstlern, Labels und Genres folgen – oder sie von Beatport übernehmen.", "„Suchen“ holt neue Titel; vorhören, mit ☆ als Idee in eine Wunschliste merken oder ausblenden.", "Die Zahl in der Seitenleiste zeigt neue Vorschläge (tägliche Suche unter „Folgen …“)."],
   ideas: ["In „Entdecken“ bei einem Titel „Idee merken ▸“ wählen – oder hier „+ Hinzufügen ▾“ (von Hand, aus Text).", "🛒 merkt einen Titel zum Kauf vor; „Als Beatport-Playlist“ legt die Liste in deinem Beatport-Konto an (nur auf Klick).", "Gekauft und „In Bibliothek“ erkennt TagStudio selbst über „Einkäufe“ und „Mit Bibliothek abgleichen“."],
+  carts: ["„+ Hinzufügen ▾“: eine kopierte Trackliste (z. B. 1001Tracklists) einfügen – oder in „Ideen“ Titel markieren und „In den Warenkorb ▸“.", "„Bei Beatport suchen“ ordnet die Titel zu, „Auf Käufe prüfen“ nimmt bereits gekaufte heraus.", "„An Beatport senden …“ legt die Einkaufsliste als Playlist TagStudio_CART_… an – dort „Alle in den Warenkorb“ und bezahlen."],
   prep: ["Unter „Workflow bearbeiten“ Eingangsordner, Arbeitsordner und Bibliothek wählen.", "Schritte der Reihe nach ausführen – jede Stufe arbeitet auf einer Kopie.", "„Abholen“ übernimmt neue Downloads (auch ZIP) in den Eingangsordner."],
   tagger: ["Oben einen Ordner wählen und „Laden“ – alle MP3 erscheinen in der Liste.", "Titel markieren und rechts bearbeiten; Strg+S speichert (vorher wird gesichert).", "Leertaste spielt ab, 0–5 bewertet; alle Tasten unter Hilfe › Tastatur."],
   fixer: ["Bereich wählen: markierte Titel oder ganzer Ordner.", "Mehrfachwerte, Gross-/Kleinschreibung oder Suchen & Ersetzen einstellen.", "Vorschau prüfen, dann übernehmen – Rückgängig jederzeit."],

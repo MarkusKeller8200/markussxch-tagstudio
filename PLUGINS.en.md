@@ -239,6 +239,9 @@ More functions a plugin can offer (all optional):
   the page then asks for user name and password and calls `store_login(ctx, username, password)` (keep the token in
   memory only, save nothing), then `store_download` again. Plus `store_logout(ctx)` and `store_session(ctx)` →
   `{"active", "username"}`.
+- `store_search(ctx, refs)` – page “Cart” (#423): match tracks without a store id (read only). `refs` =
+  `[{artist, title, mix, isrc, dur}]` → per track `{"id", "score", "sure", "url", "cands": [{id, artist, title, mix,
+  url, score}]}` or `None` (no match). `sure` = take over directly, otherwise the user picks from `cands`.
 - `playlist_push(ctx, playlist, options)` – Playlists page › More ▾ › “Send to <plugin> …” (#273). `playlist` =
   `{"name", "folder", "items": [{"path", "artist", "title"}], "remote"}` (`remote` = the id the plugin returned the last
   time, otherwise `None`). Return `{"ok", "id", "message", "missing": [paths], …}`; TagStudio remembers `id` per
@@ -424,6 +427,13 @@ confirmation), **“Playlists per purchase date …”** creates or completes `<
 Beatport via `OPTIONS` (changes nothing) whether creating, adding, removing and deleting are allowed; the result is also
 in the log. Functions for the page: `store_settings`, `store_playlist_check`, `store_playlist_list`,
 `store_playlist_put(ctx, name, ids, replace)`, `store_playlist_delete(ctx, prefix)`.
+
+**Cart (#423, plugin 2.12):** with **“Search on Beatport”** the “Cart” page matches tracks without a Beatport ID via
+`store_search` (ISRC, otherwise catalogue search for artist + title + mix; same scoring as the online metadata: from
+0.80 sure, from 0.62 uncertain with up to three candidates) – read only. **“Send to Beatport …”** creates the shopping
+list as `TagStudio_CART_<cart>` (`store_playlist_put` with `replace=True`: afterwards the playlist contains exactly the
+shopping list; never tracks already bought) – only on click and only with the same setting as above. The official API
+has no cart; choose “Add all to cart” on beatport.com and pay there.
 
 **Playlists (#284, read only):** after signing in, Playlists › Import ▾ offers **“From Beatport …”**: choose your own
 Beatport playlists; they arrive as playlists with entries without a file (artist, title, mix, ISRC, length, link to

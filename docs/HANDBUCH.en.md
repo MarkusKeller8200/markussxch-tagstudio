@@ -20,6 +20,9 @@ The complete guide to all features. Overview, pictures and download: [start page
   dragging, path through the Camelot wheel and energy curve; export as M3U8, Rekordbox XML and CSV.
 - **Ideas:** wish lists of tracks you want to buy later – from “Discover”, by hand or from text; status idea → buy →
   bought → in library, note, preview, as Beatport playlist (only on click).
+- **Cart:** collect everything you want to buy in carts – from a copied tracklist (e.g. 1001Tracklists), from your
+  ideas or by hand; recognise and take out tracks already bought, send the shopping list to Beatport as a playlist (only
+  on click); carts are kept as history “open”/“bought”.
 - **Playlists:** collect tracks from the tagger and the DJ set in playlists with folders; every playlist is also
   stored as M3U8 in the playlist folder (for Engine DJ, VirtualDJ & co.); archive instead of delete.
 - **Mixes:** recognise the tracks of your own library in a mix file (DJ set, radio show) – even with changed
@@ -251,6 +254,41 @@ Wish lists are playlists of the kind “wish list” in the **Ideen** folder of 
 “Playlists”, not written as M3U8 to the playlist folder). On first opening, the tracks remembered in “Discover” are
 copied once into the wish list “Gemerkt (Entdecken)”; “Discover” itself stays unchanged. Since 4.14.0 “Discover” no
 longer has a filter “Watch list” (#409) – remembered tracks appear under “All” (hint “in Ideas”) and on the “Ideas” page.
+
+### Cart
+
+The **Cart** page (in the sidebar between “Ideas” and “Purchases”; the number next to it = tracks on the shopping lists
+of open carts) gathers everything that should be bought – so nothing is bought twice. For now the shop is **Beatport**;
+others (iTunes Store …) will follow. On the left the carts in the groups **Open**, **Bought (history)** and **Archive**
+(“＋” creates a new one; right-click: rename, close as bought or reopen, export, archive or bring back), on the right the
+tracks with artist, title (mix), Beatport match, source, status and note. Filters: **Shopping list** (still to buy),
+Bought, In library, Removed, All.
+
+- **Adding tracks:** “+ Add ▾” › **“Paste list (e.g. 1001Tracklists) …”** – paste the copied tracklist, one “Artist -
+  Title (Mix)” per line; numbers, timestamps, “w/” and labels in [square brackets] are dropped, “ID - ID” is skipped.
+  **From your ideas:** select tracks there and choose **“Into the cart ▸”** (or right-click › “Into the cart ›”) – the
+  Beatport ID and link are taken over and the idea gets the status “Buy”. Or **“Track by hand …”** (a Beatport link
+  provides the Beatport ID right away). Duplicates are not added again.
+- **Search on Beatport:** matches tracks without a Beatport ID via the Beatport search (read only). Sure matches show
+  “✓ ID”; with **“uncertain – choose …”** you pick one of up to three candidates or “None of them”; “not found” means
+  not available on Beatport. “More ▾” › “Search uncertain and not found again”.
+- **Check for purchases:** first refreshes the purchases at the shop (like “Purchases” › “Refresh”), then matches the
+  tracks against “Purchases” and the library. The status column shows **Bought** (with purchase date) or **In
+  library**; a hint above the table offers **“Remove bought (n) …”** – after a confirmation these tracks are taken off
+  the shopping list. They stay visible under “Removed” (↺ brings them back), “More ▾” › “Undo” reverts the last change.
+  ✕ or “Take off shopping list …” takes tracks off by hand.
+- **Send to Beatport …:** checks the purchases once more and creates the shopping list in your Beatport account as the
+  playlist **`TagStudio_CART_<cart>`**, or brings it to exactly the shopping list – only on click, only tracks with a
+  Beatport ID, never ones already bought. Other playlists stay untouched; “Write playlists in Beatport” must be switched
+  on in the Beatport plugin. The official Beatport API has no cart: afterwards open the playlist on Beatport (“Open
+  playlist on Beatport”), choose **“Add all to cart”** there and pay on beatport.com.
+- **History:** as soon as all tracks of the shopping list are listed under “Purchases”, the cart is automatically
+  **bought** (with date) and moves to “Bought (history)”. “Close as bought …” also works by hand, “Reopen” makes it
+  editable again (it then only closes by itself again once new tracks are added). Archiving hides a cart, nothing is
+  deleted. **Export** as Excel or CSV (one or all carts).
+
+The carts are stored in `~/TagStudio/Warenkorb/warenkorb.json` and are part of the program data backup (Settings › Cloud).
+Concept (German): [KONZEPT-WARENKORB.md](KONZEPT-WARENKORB.md).
 
 ### DJ set
 
@@ -681,7 +719,7 @@ drive – you choose plan and storage size. Optional: update automatically after
 write playlists as M3U8 with relative paths, set copies “online-only” (Windows). Files no longer in the library are
 only reported and deleted after confirmation. The mirror also contains `index.json` (title, artist, BPM, key,
 duration). **Program data backup** (#402): settings (without credentials), playlists
-with ideas/wish lists, purchases, Discover (without SonoVault entries), Prepare and mixes as a ZIP file
+with ideas/wish lists, purchases, Discover (without SonoVault entries), Prepare, mixes and carts as a ZIP file
 `TagStudio-Programmdaten_<computer>_<date>.zip` into a folder – suggested `OneDrive/TagStudio/Sicherung` (#415) – manually (“Back up
 now”), on exit or daily. Never included: credentials, snapshots, caches, music. More backups than “keep” (default 10)
 are deleted only after confirmation. **Restore …** shows a preview (what is replaced, which settings groups – from

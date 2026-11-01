@@ -158,7 +158,7 @@ class UiTest(unittest.TestCase):
         """#88 Menü-Reihenfolge und Startseite, #87 Einstellungskacheln, #85/#86 Vorgaben, #89 Kanal."""
         pg = self.pg
         navs = pg.evaluate("[...document.querySelectorAll('.nav[data-module]')].map(b=>b.dataset.module)")
-        self.assertEqual(navs, ["discover", "ideas", "purchases", "prep", "tagger", "fixer", "compare", "djset", "playlists", "mixes", "snapshots", "backups", "plugins", "settings", "help", "db"])
+        self.assertEqual(navs, ["discover", "ideas", "carts", "purchases", "prep", "tagger", "fixer", "compare", "djset", "playlists", "mixes", "snapshots", "backups", "plugins", "settings", "help", "db"])
         self.assertEqual(pg.evaluate("S.module"), "tagger")
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector("#stUpdateCard")
@@ -1986,7 +1986,7 @@ class UiTest(unittest.TestCase):
         with open(os.path.join(d, "entdecken.json"), "w", encoding="utf-8") as fh:
             json.dump({"follow": {"artists": ["Mara Lind"]}, "items": items}, fh)
         nav = [b.get_attribute("data-module") for b in pg.locator(".side .nav[data-module]").all()]
-        self.assertEqual(nav[:3], ["discover", "ideas", "purchases"])                  # I4: nach Entdecken
+        self.assertEqual(nav[:4], ["discover", "ideas", "carts", "purchases"])         # I4: nach Entdecken; #420 Warenkorb
         pg.click('.nav[data-module="ideas"]')
         pg.wait_for_function("IDEA.d && IDEA.d.lists.length === 1 && IDEA.d.items.length === 2")   # einmalige Übernahme
         self.assertIn("Gemerkt (Entdecken)", pg.inner_text("#ideaLists"))
@@ -2047,6 +2047,91 @@ class UiTest(unittest.TestCase):
         pg.wait_for_function("DISC.d && DISC.d.items.length === 3")
         pg.click('#discFilter [data-f="all"]')
         self.assertIn("in Ideen", pg.inner_text('#discList tr[data-k="beatport:1"]'))
+
+    def test_carts_page(self):
+        """#420–#423: Warenkorb – Menüpunkt zwischen Ideen und Einkäufe, Liste einfügen (1001Tracklists), gekaufte erkennen
+        und nach Rückfrage entfernen, Historik (automatisch gekauft, wieder öffnen), aus Ideen in den Warenkorb,
+        Beatport ohne Plugin nur ein Hinweis."""
+        pg = self.pg
+        k = os.path.join(self.home, "TagStudio", "Käufe")
+        os.makedirs(k, exist_ok=True)
+        with open(os.path.join(k, "kaeufe.json"), "w", encoding="utf-8") as fh:
+            json.dump({"format": 1, "stores": {}, "items": {"beatport:1": {"store": "beatport", "id": "1", "title": "Nordwind",
+                       "artist": "Kai Ost", "bought": "2026-10-05T10:00:00", "status": "missing"}}}, fh)
+        nav = [b.get_attribute("data-module") for b in pg.locator(".side .nav[data-module]").all()]
+        self.assertEqual(nav[nav.index("ideas") + 1], "carts")
+        self.assertEqual(nav[nav.index("carts") + 1], "purchases")
+        pg.click('.nav[data-module="carts"]')
+        pg.wait_for_function("CART.d && CART.d.carts.length === 0")
+        self.assertTrue(pg.locator("#cartAdd").is_disabled())
+        pg.click("#cartNew")
+        pg.fill("#cartNm", "Club")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("CART.d.carts.length === 1 && CART.d.sel")
+        # Liste wie aus 1001Tracklists einfügen
+        pg.click("#cartAdd")
+        pg.click('#menu button:has-text("Liste einfügen")')
+        pg.fill("#ctTxt", "01 [00:00] Kai Ost - Nordwind (Original Mix) [Nordwerk]\n02 [03:10] ID - ID\n03 [06:20] Lena Berg - Glas (Extended Mix)\nw/ Mara Lind - Morgen")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("CART.d.items.length === 3")
+        self.assertEqual(pg.evaluate("CART.d.items.map(e => e.status)"), ["bought", "open", "open"])   # Nordwind schon gekauft
+        self.assertEqual(pg.inner_text("#cartCount").strip(), "2")
+        self.assertIn("bereits gekauft", pg.inner_text("#cartHint"))
+        # gekaufte entfernen – nur nach Rückfrage, Rückgängig
+        pg.click('#cartHint [data-h="rmbought"]')
+        pg.wait_for_selector("#dialog:not([hidden])")
+        pg.click("#dlgBtns .primary")
+        pg.wait_for_function("CART.d.items[0].status === 'removed'")
+        pg.click('#cartFilter [data-f="removed"]')
+        self.assertEqual(pg.locator("#cartList tbody tr").count(), 1)
+        self.assertIn("bereits gekauft", pg.inner_text("#cartList tbody tr"))
+        pg.click('#cartFilter [data-f="open"]')
+        self.assertEqual(pg.locator("#cartList tbody tr").count(), 2)
+        # von Hand aus der Einkaufsliste nehmen und zurückholen
+        pg.click('#cartList tr[data-k="2"] [data-a="remove"]')
+        pg.click("#dlgBtns .primary")
+        pg.wait_for_function("CART.d.items[2].status === 'removed'")
+        pg.click('#cartFilter [data-f="all"]')
+        pg.click('#cartList tr[data-k="2"] [data-a="restore"]')
+        pg.wait_for_function("CART.d.items[2].status === 'open'")
+        # Beatport ohne Plugin: nur ein Hinweis
+        pg.click("#cartBp")
+        pg.wait_for_selector("#dialog:not([hidden])")
+        self.assertIn("Beatport", pg.inner_text("#dialog"))
+        pg.click("#dlgBtns button >> nth=0")
+        # gekauft (Historik): von Hand abschliessen, wieder öffnen
+        pg.click("#cartMore")
+        pg.click('#menu button:has-text("Als gekauft abschliessen")')
+        pg.click("#dlgBtns .primary")
+        pg.wait_for_function("CART.d.carts[0].status === 'bought'")
+        self.assertIn("gekauft (historik)", pg.inner_text("#cartLists").lower())
+        self.assertTrue(pg.locator("#cartAdd").is_disabled())
+        self.assertEqual(pg.inner_text("#cartCount").strip(), "")
+        pg.click('#cartHint [data-h="reopen"]')
+        pg.wait_for_function("CART.d.carts[0].status === 'open'")
+        # aus Ideen in den Warenkorb
+        pg.click('.nav[data-module="ideas"]')
+        pg.wait_for_function("IDEA.d")
+        pg.click("#ideaNewList")
+        pg.fill("#ideaNm", "W")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("IDEA.d.lists.length === 1")
+        pg.click("#ideaAdd")
+        pg.click('#menu button:has-text("Titel von Hand")')
+        pg.fill("#imA", "Nora Feld")
+        pg.fill("#imT", "Licht")
+        pg.fill("#imU", "https://www.beatport.com/track/licht/77")
+        pg.click("#mBtns .primary")
+        pg.wait_for_function("IDEA.d.items.length === 1")
+        pg.check('#ideaList tr[data-k="0"] [data-c]')
+        pg.click("#ideaSelCart")
+        pg.click('#menu button:has-text("Club")')
+        pg.wait_for_function("IDEA.d.items[0].set === 'buy'")
+        pg.click('.nav[data-module="carts"]')
+        pg.wait_for_function("CART.d && CART.d.items.length === 4")
+        self.assertEqual(pg.evaluate("CART.d.items[3].sid"), "77")
+        self.assertIn("77", pg.inner_text('#cartList tr[data-k="3"]'))
+        self.assertEqual(self.errors, [])
 
     def test_discover_sonovault(self):
         """#258: SonoVault in Entdecken – Quelle nur mit Schlüssel wählbar, Einträge ohne Link („Öffnen“ gesperrt)."""
@@ -2335,7 +2420,7 @@ class UiTest(unittest.TestCase):
         """#316: Käufe zuerst und ausschaltbar; eigene Reihenfolge mit ↑/↓, Standard-Reihenfolge."""
         pg = self.pg
         first = "[...document.querySelectorAll('.nav[data-module]')].map(b => b.dataset.module)"
-        self.assertEqual(pg.evaluate(first)[:3], ["discover", "ideas", "purchases"])   # #333: Entdecken zuoberst, #186
+        self.assertEqual(pg.evaluate(first)[:4], ["discover", "ideas", "carts", "purchases"])   # #333: Entdecken zuoberst, #186, #420
         pg.click('.nav[data-module="settings"]')
         pg.wait_for_selector('[data-navshow="purchases"]')
         pg.uncheck('[data-navshow="purchases"]')
@@ -2344,7 +2429,7 @@ class UiTest(unittest.TestCase):
         pg.wait_for_function("!document.querySelector('.nav[data-module=\"purchases\"]').hidden")
         pg.click('[data-navmove="tagger|-1"]')
         self.assertTrue(self.until(f"{first}.indexOf('tagger') < {first}.indexOf('prep')"))
-        self.assertEqual(self.cfg_until(lambda c: bool(c.get("nav_order"))).get("nav_order")[3], "tagger")
+        self.assertEqual(self.cfg_until(lambda c: bool(c.get("nav_order"))).get("nav_order")[4], "tagger")   # nach discover, ideas, carts, purchases
         pg.click('[data-navorder="reset"]')
         self.assertTrue(self.until(f"{first}.indexOf('prep') < {first}.indexOf('tagger')"))
         self.assertEqual(self.errors, [])

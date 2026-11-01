@@ -5,7 +5,7 @@ Eine ZIP-Datei je Sicherung ``TagStudio-Programmdaten_<Rechner>_<JJJJ-MM-TT_HHMM
 Cloud-Client lädt nie eine halbe Datei hoch.
 
 Enthalten: Einstellungen ohne Zugangsdaten, Playlists-Speicher (mit Ideen/Wunschlisten), Einkäufe, Entdecken (ohne
-SonoVault-Einträge – Nutzungsbedingungen), Vorbereiten, Mixe. **Nie:** Zugangsdaten/Token (Schlüsselablage der
+SonoVault-Einträge – Nutzungsbedingungen), Vorbereiten, Mixe, Warenkorb. **Nie:** Zugangsdaten/Token (Schlüsselablage der
 Plugins), Caches, Snapshots, Plugin-Umgebungen, Protokolle, Musik.
 
 Wiederherstellen: Vorschau (was ersetzt wird), vorher automatische Sicherung des jetzigen Stands, dann Übernahme; Pfade
@@ -38,7 +38,8 @@ PARTS = [("settings", "Einstellungen (ohne Zugangsdaten)", None, None),
          ("purchases", "Einkäufe", "Käufe", (".json", ".csv")),
          ("discover", "Entdecken (ohne SonoVault)", "Entdecken", (".json",)),
          ("prepare", "Vorbereiten (Workflows, Stand)", "Vorbereiten", (".json",)),
-         ("mixes", "Mixe (Analysen)", "Mixe", (".json", ".cue", ".txt", ".m3u8"))]
+         ("mixes", "Mixe (Analysen)", "Mixe", (".json", ".cue", ".txt", ".m3u8")),
+         ("carts", "Warenkorb", "Warenkorb", (".json",))]                       # #420
 PART_IDS = tuple(p[0] for p in PARTS)
 SETTINGS_NAME = "einstellungen.json"
 

@@ -6,6 +6,18 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Warenkorb (#420–#423):** neue Seite zwischen „Ideen“ und „Einkäufe“ – alles, was gekauft werden soll, in
+  Warenkörben sammeln: kopierte Trackliste einfügen (z. B. 1001Tracklists), aus den Ideen („In den Warenkorb ▸“, die
+  Idee wird „Kaufen“) oder von Hand. **Bei Beatport suchen** ordnet Titel ohne Beatport-ID zu (unsichere zur Auswahl),
+  **Auf Käufe prüfen** aktualisiert die Einkäufe und gleicht mit „Einkäufe“ und der Bibliothek ab, **Gekaufte
+  entfernen** nimmt sie nach Rückfrage aus der Einkaufsliste. **An Beatport senden …** legt die Einkaufsliste als
+  Playlist `TagStudio_CART_<Warenkorb>` an (nur auf Klick, Einstellung „Playlists in Beatport schreiben“) – dort „Alle
+  in den Warenkorb“ und bezahlen; die offizielle Beatport-API kennt keinen Warenkorb. Körbe bleiben als Historik
+  „Offen“/„Gekauft“ (automatisch, sobald alles unter „Einkäufe“ steht, oder von Hand), Export Excel/CSV, Teil der
+  Sicherung der Programmdaten. Konzept `docs/KONZEPT-WARENKORB.md`. Beatport-Plugin 2.12 (`store_search`).
+
 ## [4.14.0] – 2026-10-29
 
 ### Neu

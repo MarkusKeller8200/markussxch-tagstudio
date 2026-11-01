@@ -1,8 +1,30 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-11-01 (16:05): Übergabe für 4.15.0 vorbereitet** – letzte Version **v4.14.0 final** (29.10.2026). Meilenstein #31 noch offen mit #417 (Update-Popup testen) und #416 (CI beobachten). Für 4.15.0 gibt es noch keinen Meilenstein und keinen freigegebenen Umfang – siehe „Start 4.15.0“.
+Stand: **2026-11-01 (Abend): 4.15.0 – Warenkorb in Arbeit** (Meilenstein #32, #420–#425) – letzte Version **v4.14.0 final** (29.10.2026). Meilenstein #31 noch offen mit #417 (Update-Popup testen) und #416 (CI beobachten). Siehe „Sitzung 01.11.2026 – Warenkorb“.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Sitzung 01.11.2026 (16:12–) – Warenkorb (4.15.0)
+
+- **Auftrag User 16:12:** neuer Menüpunkt **„Warenkorb“** zwischen Ideen und Einkäufe; Titel aus Ideen, per URL einer
+  Streaming-Plattform oder als einfache Liste (zuerst 1001Tracklists); Einkaufsliste an den Shop (zuerst Beatport);
+  bereits gekaufte erkennen und aus der Einkaufsliste nehmen; Körbe mit Zustand Offen/Gekauft in der Historik.
+- **Entscheide 16:20 (W1–W3):** neuer Meilenstein **#32 „4.15.0 – Warenkorb“**; die offizielle Beatport-API hat
+  **keinen Warenkorb-Endpunkt** → Einkaufsliste als Playlist **`TagStudio_CART_<Korb>`** (nur auf Klick, Einstellung
+  „Playlists in Beatport schreiben“), auf beatport.com „Alle in den Warenkorb“; Korb **gekauft automatisch** (alle
+  Titel unter „Einkäufe“) **und von Hand**. Konzept `docs/KONZEPT-WARENKORB.md`.
+- **Issues:** #420 Seite/Historik, #421 Liste einfügen + aus Ideen, #422 Prüfung auf Käufe, #423 Beatport zuordnen
+  und senden (alle Meilenstein #32); #424 per URL (Meilenstein #32, noch nicht umgesetzt); #425 weitere Shops
+  („Funktionen“).
+- **Umgesetzt (#420–#423):** `carts.py` (Logik, Speicher `~/TagStudio/Warenkorb/warenkorb.json`, Rückgängig im
+  Speicher), `session_carts.py` (`CartsMixin`, API `carts_*`, `start_carts_check`, `start_carts_bp_match`,
+  `start_carts_bp`), `web/carts.js`, Seite `#moduleCarts`, Menüpunkt `carts` (`session_setup.MODULES`, nach „ideas“),
+  „In den Warenkorb ▸“ in `web/ideas.js`, Sicherungsteil `carts` (`appbackup.PARTS`). `Session._purch_fetch` aus
+  `start_purch_refresh` herausgelöst (auch für den Warenkorb). Beatport-Plugin **2.12**: `store_search(ctx, refs)`
+  (in `plugins.PLAYLIST_FNS`). Tests `tests/test_carts.py`, `test_browser_ui.test_carts_page`; Übersetzungen
+  `web/i18n/carts.json`.
+- **Beim Release:** `carts`, `session_carts` in `packaging/build.py › HIDDEN` eintragen.
+- **Offen:** #424 (URL) erst nach Freigabe/Test von #420–#423; Beatport-Playlist mit dem echten Konto testet der User.
 
 ## Start 4.15.0 (vorbereitet 01.11.2026, 16:05)
 

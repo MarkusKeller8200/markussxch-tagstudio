@@ -908,6 +908,43 @@ def best_match(client, info):
     return t, s, ""
 
 
+def store_search(ctx, refs) -> list:
+    """#423 Warenkorb: Titel ohne Beatport-ID über die Katalogsuche zuordnen (nur lesend, gleiche Bewertung wie die
+    Online-Metadaten). refs: [{artist, title, mix, isrc, dur}] → je Titel {"id", "score", "sure", "url", "cands"}
+    (bis drei Kandidaten ab MAYBE) oder None ohne Treffer. Fehler einzelner Titel → None (steht im Protokoll)."""
+    c = Client(ctx)
+    out = []
+    refs = list(refs or [])
+    for i, r in enumerate(refs):
+        ctx.progress(i, len(refs), f"{r.get('artist', '')} – {r.get('title', '')}")       # prüft auch den Abbruch
+        title, mix = str(r.get("title") or ""), str(r.get("mix") or "")
+        if not mix:
+            title, mix = split_title(title)
+        info = {"title": title, "mix": mix, "artist": str(r.get("artist") or ""), "isrc": str(r.get("isrc") or "").strip().upper(),
+                "duration": float(r.get("dur") or 0), "bpid": ""}
+        try:
+            cands = c.by_isrc(info["isrc"]) if info["isrc"] else []
+            if not cands:
+                q = " ".join(x for x in (_FEAT_RE.sub("", info["artist"]).split(",")[0], info["title"], info["mix"]) if x)
+                cands = c.search_tracks(q)
+                if not cands and info["mix"]:
+                    cands = c.search_tracks(f"{info['artist']} {info['title']}")
+        except (HttpError, OSError) as ex:
+            ctx.log(f"Suche „{info['artist']} – {info['title']}“: {ex}")
+            out.append(None)
+            continue
+        scored = sorted(((score(info, t), t) for t in cands if isinstance(t, dict) and t.get("id")), key=lambda x: -x[0])
+        if not scored:
+            out.append(None)
+            continue
+        best_s, best = scored[0]
+        ref = track_ref(best)
+        out.append({"id": str(best["id"]), "score": round(best_s, 3), "sure": best_s >= SURE, "url": ref["url"],
+                    "cands": [dict(track_ref(t), id=str(t["id"]), score=round(s, 3)) for s, t in scored[:3] if s >= MAYBE]})
+    ctx.progress(len(refs), len(refs), "")
+    return out
+
+
 # =========================================================================== #204: Integration
 _SECRET_HEADERS = ("authorization", "cookie", "set-cookie", "proxy-authorization", "x-csrftoken")
 

@@ -1,6 +1,11 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-11-01 (16:05): Übergabe für **4.15.0** vorbereitet (docs/UEBERGABE.md › „Start 4.15.0“) – Umfang und
+> Stand 2026-11-01 (Abend): **4.15.0 – Warenkorb** in Arbeit (Meilenstein #32): #420–#423 umgesetzt und im Beta-Test
+> (Seite „Warenkorb“ zwischen Ideen und Einkäufe, Liste einfügen/aus Ideen, Prüfung auf Käufe, Beatport-Playlist
+> `TagStudio_CART_<Korb>`, Historik Offen/Gekauft; Beatport-Plugin 2.12); #424 (URL) offen, #425 in „Funktionen“.
+> Konzept `docs/KONZEPT-WARENKORB.md`.
+>
+> Davor 2026-11-01 (16:05): Übergabe für **4.15.0** vorbereitet (docs/UEBERGABE.md › „Start 4.15.0“) – Umfang und
 > Meilenstein noch offen. Aus 4.14.0 offen: #417, #416.
 >
 > Davor 2026-10-29 (23:45): **v4.14.0 final veröffentlicht** (Release `v4.14.0`, Windows + macOS beglaubigt, 27 Dateien

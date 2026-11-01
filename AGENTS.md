@@ -14,7 +14,12 @@ Vor Architekturentscheidungen, neuen Modulen oder grösseren Codeänderungen unb
 
 ## Aktuelle Iterationsplanung
 
-**Stand 27.10.2026 (15:45):** #387 „Mix analysieren“ fertiggestellt (Plugin `mixscan` 1.0): Ergebnisse in `mixresult.py` (Logik, Ablage `~/TagStudio/Mixe`), `session_mixes.py` (MixesMixin, API `mix_*`), `web/mixes.js` (Ergebnisfenster); Aufruf über Playlists › Importieren ▾. Plugin-Rahmen neu: Optionstyp `file`, `direct`, `where: hidden`, `ctx.queue_job()`, Ereignis `app_started` (`Session.plugins_startup`). Beim Release `mixresult`, `session_mixes` in `packaging/build.py` › `HIDDEN`.
+**Stand 01.11.2026:** Meilenstein **#32 „4.15.0 – Warenkorb“** (#420–#425, Konzept `docs/KONZEPT-WARENKORB.md`):
+Seite „Warenkorb“ (`carts.py`, `session_carts.py`, `web/carts.js`), Beatport-Plugin-Funktion `store_search`. Beatport
+nur über die eigene Playlist `TagStudio_CART_<Korb>` (offizielle API ohne Warenkorb), nur auf Klick. Beim Release
+`carts`, `session_carts` in `packaging/build.py` › `HIDDEN`.
+
+**Davor 27.10.2026 (15:45):** #387 „Mix analysieren“ fertiggestellt (Plugin `mixscan` 1.0): Ergebnisse in `mixresult.py` (Logik, Ablage `~/TagStudio/Mixe`), `session_mixes.py` (MixesMixin, API `mix_*`), `web/mixes.js` (Ergebnisfenster); Aufruf über Playlists › Importieren ▾. Plugin-Rahmen neu: Optionstyp `file`, `direct`, `where: hidden`, `ctx.queue_job()`, Ereignis `app_started` (`Session.plugins_startup`). Beim Release `mixresult`, `session_mixes` in `packaging/build.py` › `HIDDEN`.
 
 **Davor 27.10.2026 (01:30):** v4.12.0 final. Meilenstein **#30 „4.13.0 – Ideen & Wunschlisten“** mit #186 (Phase 2a+2b zusammen, Entscheide I1–I6 in `docs/KONZEPT-IDEE.md`): Seite „Ideen“ (`ideas.py`, `session_ideas.py`, `web/ideas.js`); Wunschlisten sind Playlists der Art `wish` im Ordner „Ideen“ (kein M3U8). GitHub-Auftritt (README, Webseite, Statistik, Signatur-Anträge) gehört in Meilenstein **#29 „GitHub & Webseite“**, nicht in die App-Sammlungen.
 

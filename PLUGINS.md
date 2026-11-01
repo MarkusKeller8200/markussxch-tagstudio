@@ -240,6 +240,9 @@ Weitere Funktionen, die ein Plugin anbieten kann (alle optional):
   braucht; die Seite fragt dann Benutzername und Passwort und ruft `store_login(ctx, username, password)` auf (Token
   nur im Speicher halten, nichts speichern), danach erneut `store_download`. Dazu `store_logout(ctx)` und
   `store_session(ctx)` → `{"active", "username"}`.
+- `store_search(ctx, refs)` – Seite „Warenkorb“ (#423): Titel ohne Store-ID zuordnen (nur lesend). `refs` =
+  `[{artist, title, mix, isrc, dur}]` → je Titel `{"id", "score", "sure", "url", "cands": [{id, artist, title, mix,
+  url, score}]}` oder `None` (kein Treffer). `sure` = sicher übernehmen, sonst wählt der Benutzer aus `cands`.
 - `playlist_push(ctx, playlist, options)` – Seite Playlists › Mehr ▾ › „An <Plugin> senden …“ (#273). `playlist` =
   `{"name", "folder", "items": [{"path", "artist", "title"}], "remote"}` (`remote` = die ID, die das Plugin beim
   letzten Senden zurückgegeben hat, sonst `None`). Rückgabe `{"ok", "id", "message", "missing": [Pfade], …}`; TagStudio
@@ -434,6 +437,13 @@ TagStudio verändert nur Playlists, deren Name mit `TagStudio_` beginnt. **„Sc
 `OPTIONS` (ändert nichts), ob Anlegen, Hinzufügen, Entfernen und Löschen erlaubt sind; das Ergebnis steht auch im
 Protokoll. Funktionen für die Seite: `store_settings`, `store_playlist_check`, `store_playlist_list`,
 `store_playlist_put(ctx, name, ids, replace)`, `store_playlist_delete(ctx, prefix)`.
+
+**Warenkorb (#423, Plugin 2.12):** Die Seite „Warenkorb“ ordnet mit **„Bei Beatport suchen“** Titel ohne Beatport-ID
+über `store_search` zu (ISRC, sonst Katalogsuche nach Künstler + Titel + Mix; gleiche Bewertung wie die
+Online-Metadaten: ab 0,80 sicher, ab 0,62 unsicher mit bis zu drei Kandidaten) – nur lesend. **„An Beatport senden …“**
+legt die Einkaufsliste als `TagStudio_CART_<Warenkorb>` an (`store_playlist_put` mit `replace=True`: die Playlist
+enthält danach genau die Einkaufsliste; bereits gekaufte nie) – nur auf Klick und nur mit derselben Einstellung wie
+oben. Die offizielle API hat keinen Warenkorb; auf beatport.com „Alle in den Warenkorb“ wählen und dort bezahlen.
 
 **Playlists (#284, nur lesen):** Nach dem Anmelden bietet Playlists › Importieren ▾ **„Aus Beatport …“**: deine
 eigenen Beatport-Playlists wählen, sie kommen als Playlists mit Einträgen ohne Datei (Künstler, Titel, Mix, ISRC,

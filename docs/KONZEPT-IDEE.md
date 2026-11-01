@@ -149,4 +149,6 @@ Zusätzlich bestätigt: je Eintrag **Notiz**, **Status** (automatisch aus dem K�
 - **Vorhören:** Deezer-Links laufen ab und werden über die Titel-ID frisch geholt (`ideas_preview`).
 - **Beatport (I5):** `store_playlist_put` des Plugins (wie #334) mit `TagStudio_WISH_<Liste>`, nur offene Einträge mit
   Beatport-ID, ergänzen statt ersetzen; Ziel wird in `pushed.beatport` vermerkt. Plugin unverändert.
+- **Warenkorb (#421, 4.15.0):** „In den Warenkorb ▸“ (Markierung bzw. Rechtsklick) übernimmt Einträge in einen
+  Warenkorb (Beatport-ID, Link, ISRC) und setzt sie auf „Kaufen“; siehe [KONZEPT-WARENKORB.md](KONZEPT-WARENKORB.md).
 - **Löschen:** Wunschlisten werden archiviert (Playlists › Archiv), Einträge nur nach Rückfrage entfernt (Rückgängig).
