@@ -358,24 +358,39 @@ keinen Filter „Gemerkt“ mehr (#409) – gemerkte Titel stehen unter „Alle�
 <p>Die Seite <strong>Warenkorb</strong> (in der Seitenleiste zwischen „Ideen“ und „Einkäufe“, die Zahl daneben = Titel auf den
 Einkaufslisten offener Körbe) fasst alles zusammen, was gekauft werden soll – damit nichts doppelt gekauft wird. Shop
 ist vorerst <strong>Beatport</strong>; weitere (iTunes Store …) folgen. Links die Warenkörbe in den Gruppen <strong>Offen</strong>, <strong>Gekauft
-(Historik)</strong> und <strong>Archiv</strong> („＋“ legt einen neuen an; Rechtsklick: umbenennen, als gekauft abschliessen bzw. wieder
+(Historik)</strong> und <strong>Archiv</strong> („＋“ legt einen neuen an – Name-Vorschlag <code>Warenkorb_JJJJ_MM_TT</code>, am selben Tag <code>_2</code> …; Rechtsklick: umbenennen, als gekauft abschliessen bzw. wieder
 öffnen, exportieren, archivieren bzw. zurückholen), rechts die Titel mit Künstler, Titel (Mix), Beatport-Zuordnung,
 Quelle, Status und Notiz. Filter: <strong>Einkaufsliste</strong> (noch zu kaufen), Gekauft, In Bibliothek, Entfernt, Alle.</p>
 <ul>
-<li><strong>Titel hinzufügen:</strong> „+ Hinzufügen ▾“ › <strong>„Liste einfügen (z. B. 1001Tracklists) …“</strong> – die kopierte Trackliste
-  einfügen, je Zeile „Künstler - Titel (Mix)“; Nummern, Zeitmarken, „w/“ und Labels in [eckigen Klammern] fallen weg,
-  „ID - ID“ wird ausgelassen. <strong>Aus den Ideen:</strong> dort Titel markieren und <strong>„In den Warenkorb ▸“</strong> (bzw. Rechtsklick ›
-  „In den Warenkorb ›“) – Beatport-ID und Link werden übernommen, die Idee bekommt den Status „Kaufen“. Oder <strong>„Titel von
-  Hand …“</strong> (ein Beatport-Link liefert die Beatport-ID gleich mit). Doppelte werden nicht noch einmal aufgenommen.</li>
-<li><strong>Bei Beatport suchen:</strong> ordnet Titel ohne Beatport-ID über die Beatport-Suche zu (nur lesend). Sichere Treffer
-  zeigen „✓ ID“, bei <strong>„unsicher – wählen …“</strong> wählst du aus bis zu drei Kandidaten oder „Keiner davon“; „nicht
-  gefunden“ heisst: bei Beatport nicht erhältlich. „Weitere ▾“ › „Unsichere und nicht gefundene neu suchen“.</li>
-<li><strong>Auf Käufe prüfen:</strong> aktualisiert zuerst die Einkäufe beim Shop (wie „Einkäufe“ › „Aktualisieren“) und gleicht die
-  Titel dann mit „Einkäufe“ und der Bibliothek ab. <strong>Gekauft</strong> (mit Kaufdatum) bzw. <strong>In Bibliothek</strong> zeigt die Spalte
-  Status; ein Hinweis über der Tabelle bietet <strong>„Gekaufte entfernen (n) …“</strong> an – nach Rückfrage werden diese Titel aus
-  der Einkaufsliste genommen. Sie bleiben unter „Entfernt“ sichtbar (↺ holt sie zurück), „Weitere ▾“ › „Rückgängig“
+<li><strong>Assistent:</strong> Bei einem neuen Warenkorb startet der <strong>Assistent</strong> von selbst (sonst Knopf „Assistent …“) und führt in
+  fünf Schritten durch alles: Titel hinzufügen → bei Beatport suchen → auf Käufe prüfen → an Beatport senden → kaufen.
+  Jeder Schritt zeigt <strong>zuerst, was passiert</strong>; ausgeführt wird erst auf deinen Klick. „Überspringen“, „Zurück“ und
+  „Abbrechen“ gehen jederzeit.</li>
+<li><strong>Titel hinzufügen</strong> (Knöpfe unter der Kopfzeile, jeweils mit Vorschau zum An- und Abwählen):</li>
+<li><strong>„Liste einfügen …“</strong> – die kopierte Trackliste einfügen (Anleitung für 1001Tracklists und Knopf
+    „1001Tracklists öffnen“ im Fenster), je Zeile „Künstler - Titel (Mix)“; Nummern, Zeitmarken, „w/“ und Labels in
+    [eckigen Klammern] fallen weg, „ID - ID“ wird ausgelassen. Haben die Titel Zeitmarken, ist eine Zeile ohne Zeitmarke
+    – meist der <strong>Titel des Mixes</strong> („Nora En Pure - Purified Radio 531 …“) – in der Vorschau <strong>ausmarkiert</strong> und lässt
+    sich bei Bedarf anwählen. Dieselbe Vorschau gilt für „Liste aus Text“ in den Ideen und „Trackliste einfügen“ bei den
+    Playlists.</li>
+<li><strong>„Aus Ideen …“</strong> – Wunschliste wählen, offene Ideen sind angewählt; Beatport-ID und Link werden übernommen, die
+    Idee bekommt den Status „Kaufen“. Auch in den Ideen selbst: Titel markieren › <strong>„In den Warenkorb ▸“</strong>.</li>
+<li><strong>„Von Hand …“</strong> – ein Beatport-Link liefert die Beatport-ID gleich mit.</li>
+<li><strong>„Per Link …“</strong> – Link einer Playlist, eines Albums/Releases, einer Chart oder eines Titels von <strong>Beatport</strong>,
+    <strong>Spotify</strong> oder <strong>SoundCloud</strong>; das jeweilige Plugin liest die Titel (angemeldet, nur lesend). Titel von Beatport
+    haben die Beatport-ID schon.
+  Doppelte werden nicht noch einmal aufgenommen.</li>
+<li><strong>Bei Beatport suchen …:</strong> zeigt zuerst die Titel ohne Beatport-ID, dann ordnet die Beatport-Suche sie zu (nur
+  lesend). Sichere Treffer zeigen „✓ ID“; für alle <strong>unsicheren</strong> öffnet sich danach ein Fenster, in dem du je Titel den
+  passenden Kandidaten oder „Keiner davon“ wählst (später auch über „unsicher – wählen …“ in der Tabelle). „nicht
+  gefunden“ heisst: bei Beatport nicht erhältlich. „Weitere ▾“ › „Unsichere und nicht gefundene neu suchen …“.</li>
+<li><strong>Auf Käufe prüfen …:</strong> zeigt zuerst, was geprüft wird, aktualisiert dann die Einkäufe beim Shop (wie „Einkäufe“ ›
+  „Aktualisieren“) und gleicht die Titel mit „Einkäufe“ und der Bibliothek ab. <strong>Gekauft</strong> (mit Kaufdatum) bzw. <strong>In
+  Bibliothek</strong> zeigt die Spalte Status; danach (und über den Hinweis <strong>„Gekaufte entfernen (n) …“</strong>) erscheint die Liste
+  dieser Titel mit Häkchen – die angewählten werden aus der Einkaufsliste genommen. Sie bleiben unter „Entfernt“ sichtbar (↺ holt sie zurück), „Weitere ▾“ › „Rückgängig“
   nimmt die letzte Änderung zurück. Mit ✕ bzw. „Aus Einkaufsliste nehmen …“ nimmst du Titel von Hand heraus.</li>
-<li><strong>An Beatport senden …:</strong> prüft vorher noch einmal die Einkäufe und legt die Einkaufsliste in deinem Beatport-Konto als
+<li><strong>An Beatport senden …:</strong> zeigt zuerst alle Titel, die gesendet werden (und welche aussen vor bleiben), prüft vorher
+  noch einmal die Einkäufe und legt die Einkaufsliste in deinem Beatport-Konto als
   Playlist <strong><code>TagStudio_CART_&lt;Warenkorb&gt;</code></strong> an bzw. bringt sie auf genau die Einkaufsliste – nur auf Klick, nur Titel mit
   Beatport-ID, bereits gekaufte nie. Andere Playlists bleiben unberührt; dafür muss im Beatport-Plugin „Playlists in
   Beatport schreiben“ eingeschaltet sein. Die offizielle Beatport-API kennt keinen Warenkorb: Öffne danach die Playlist

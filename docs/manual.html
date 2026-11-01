@@ -347,24 +347,37 @@ longer has a filter “Watch list” (#409) – remembered tracks appear under �
 <p>The <strong>Cart</strong> page (in the sidebar between “Ideas” and “Purchases”; the number next to it = tracks on the shopping lists
 of open carts) gathers everything that should be bought – so nothing is bought twice. For now the shop is <strong>Beatport</strong>;
 others (iTunes Store …) will follow. On the left the carts in the groups <strong>Open</strong>, <strong>Bought (history)</strong> and <strong>Archive</strong>
-(“＋” creates a new one; right-click: rename, close as bought or reopen, export, archive or bring back), on the right the
+(“＋” creates a new one – suggested name <code>Warenkorb_YYYY_MM_DD</code>, on the same day <code>_2</code> …; right-click: rename, close as bought or reopen, export, archive or bring back), on the right the
 tracks with artist, title (mix), Beatport match, source, status and note. Filters: <strong>Shopping list</strong> (still to buy),
 Bought, In library, Removed, All.</p>
 <ul>
-<li><strong>Adding tracks:</strong> “+ Add ▾” › <strong>“Paste list (e.g. 1001Tracklists) …”</strong> – paste the copied tracklist, one “Artist -
-  Title (Mix)” per line; numbers, timestamps, “w/” and labels in [square brackets] are dropped, “ID - ID” is skipped.
-  <strong>From your ideas:</strong> select tracks there and choose <strong>“Into the cart ▸”</strong> (or right-click › “Into the cart ›”) – the
-  Beatport ID and link are taken over and the idea gets the status “Buy”. Or <strong>“Track by hand …”</strong> (a Beatport link
-  provides the Beatport ID right away). Duplicates are not added again.</li>
-<li><strong>Search on Beatport:</strong> matches tracks without a Beatport ID via the Beatport search (read only). Sure matches show
-  “✓ ID”; with <strong>“uncertain – choose …”</strong> you pick one of up to three candidates or “None of them”; “not found” means
-  not available on Beatport. “More ▾” › “Search uncertain and not found again”.</li>
-<li><strong>Check for purchases:</strong> first refreshes the purchases at the shop (like “Purchases” › “Refresh”), then matches the
-  tracks against “Purchases” and the library. The status column shows <strong>Bought</strong> (with purchase date) or <strong>In
-  library</strong>; a hint above the table offers <strong>“Remove bought (n) …”</strong> – after a confirmation these tracks are taken off
-  the shopping list. They stay visible under “Removed” (↺ brings them back), “More ▾” › “Undo” reverts the last change.
+<li><strong>Assistant:</strong> with a new cart the <strong>assistant</strong> starts by itself (otherwise the button “Assistant …”) and guides you
+  through everything in five steps: add tracks → search on Beatport → check for purchases → send to Beatport → buy.
+  Every step <strong>first shows what will happen</strong>; it only runs on your click. “Skip”, “Back” and “Cancel” work at any time.</li>
+<li><strong>Adding tracks</strong> (buttons below the header, each with a preview to select and deselect):</li>
+<li><strong>“Paste list …”</strong> – paste the copied tracklist (instructions for 1001Tracklists and a button “Open 1001Tracklists”
+    in the window), one “Artist - Title (Mix)” per line; numbers, timestamps, “w/” and labels in [square brackets] are
+    dropped, “ID - ID” is skipped. If the tracks have timestamps, a line without one – usually the <strong>title of the mix</strong>
+    (“Nora En Pure - Purified Radio 531 …”) – is <strong>deselected</strong> in the preview and can be selected if needed. The same
+    preview is used for “List from text” in Ideas and “Paste tracklist” in Playlists.</li>
+<li><strong>“From ideas …”</strong> – choose a wish list, open ideas are selected; the Beatport ID and link are taken over and the
+    idea gets the status “Buy”. Also in Ideas itself: select tracks › <strong>“Into the cart ▸”</strong>.</li>
+<li><strong>“By hand …”</strong> – a Beatport link provides the Beatport ID right away.</li>
+<li><strong>“By link …”</strong> – link of a playlist, an album/release, a chart or a track from <strong>Beatport</strong>, <strong>Spotify</strong> or
+    <strong>SoundCloud</strong>; the respective plugin reads the tracks (signed in, read only). Tracks from Beatport already have the
+    Beatport ID.
+  Duplicates are not added again.</li>
+<li><strong>Search on Beatport …:</strong> first shows the tracks without a Beatport ID, then the Beatport search matches them (read
+  only). Sure matches show “✓ ID”; for all <strong>uncertain</strong> ones a window then opens where you choose the right candidate or
+  “None of them” per track (later also via “uncertain – choose …” in the table). “not found” means not available on
+  Beatport. “More ▾” › “Search uncertain and not found again …”.</li>
+<li><strong>Check for purchases …:</strong> first shows what will be checked, then refreshes the purchases at the shop (like
+  “Purchases” › “Refresh”) and matches the tracks against “Purchases” and the library. The status column shows <strong>Bought</strong>
+  (with purchase date) or <strong>In library</strong>; afterwards (and via the hint <strong>“Remove bought (n) …”</strong>) the list of these
+  tracks appears with check boxes – the selected ones are taken off the shopping list. They stay visible under “Removed” (↺ brings them back), “More ▾” › “Undo” reverts the last change.
   ✕ or “Take off shopping list …” takes tracks off by hand.</li>
-<li><strong>Send to Beatport …:</strong> checks the purchases once more and creates the shopping list in your Beatport account as the
+<li><strong>Send to Beatport …:</strong> first shows all tracks that will be sent (and which are left out), checks the purchases once
+  more and creates the shopping list in your Beatport account as the
   playlist <strong><code>TagStudio_CART_&lt;cart&gt;</code></strong>, or brings it to exactly the shopping list – only on click, only tracks with a
   Beatport ID, never ones already bought. Other playlists stay untouched; “Write playlists in Beatport” must be switched
   on in the Beatport plugin. The official Beatport API has no cart: afterwards open the playlist on Beatport (“Open
