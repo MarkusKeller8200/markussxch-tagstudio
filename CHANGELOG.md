@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.15.0] – 2026-11-01
+
 ### Neu
 
 - **Warenkorb (#420–#423):** neue Seite zwischen „Ideen“ und „Einkäufe“ – alles, was gekauft werden soll, in
