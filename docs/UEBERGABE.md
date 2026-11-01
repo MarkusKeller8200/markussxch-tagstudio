@@ -26,6 +26,7 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **Beim Release:** `carts`, `session_carts` in `packaging/build.py › HIDDEN` eintragen.
 - **Offen:** #424 (URL) erst nach Freigabe/Test von #420–#423; Beatport-Playlist mit dem echten Konto testet der User;
   #427 wackeliger Oberflächentest `test_folder_menu_and_sources` (nur Issue, Umsetzung auf Freigabe).
+- **22:58/23:00:** #437 ergänzt um MixID (Quelle wählen im Fenster „Liste einfügen“, `CART_TXT_GUIDE`), Freigabe User 23:00.
 - **20:27 Auftrag „Alle Issues nun ausführen“** (Meilenstein #32; Prüf-Issues #428–#432 nicht freigegeben, #423
   wartet nur auf den Test): umgesetzt #424 (Per Link, `url_tracks` in Beatport 2.13 / Spotify 1.4 / SoundCloud 1.2),
   #427 (Test wartet auf beide Ordner), #433 (`Warenkorb_JJJJ_MM_TT`), #434 (einzelne Knöpfe, „Aus Ideen …“ als

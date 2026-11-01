@@ -268,8 +268,8 @@ Bought, In library, Removed, All.
   through everything in five steps: add tracks → search on Beatport → check for purchases → send to Beatport → buy.
   Every step **first shows what will happen**; it only runs on your click. “Skip”, “Back” and “Cancel” work at any time.
 - **Adding tracks** (buttons below the header, each with a preview to select and deselect):
-  - **“Paste list …”** – paste the copied tracklist (instructions for 1001Tracklists and a button “Open 1001Tracklists”
-    in the window), one “Artist - Title (Mix)” per line; numbers, timestamps, “w/” and labels in [square brackets] are
+  - **“Paste list …”** – paste the copied tracklist (choose the source: instructions and a button to open
+    **1001Tracklists** or **MixID**), one “Artist - Title (Mix)” per line; numbers, timestamps, “w/” and labels in [square brackets] are
     dropped, “ID - ID” is skipped. If the tracks have timestamps, a line without one – usually the **title of the mix**
     (“Nora En Pure - Purified Radio 531 …”) – is **deselected** in the preview and can be selected if needed. The same
     preview is used for “List from text” in Ideas and “Paste tracklist” in Playlists.

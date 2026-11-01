@@ -279,8 +279,8 @@ Quelle, Status und Notiz. Filter: **Einkaufsliste** (noch zu kaufen), Gekauft, I
   Jeder Schritt zeigt **zuerst, was passiert**; ausgeführt wird erst auf deinen Klick. „Überspringen“, „Zurück“ und
   „Abbrechen“ gehen jederzeit.
 - **Titel hinzufügen** (Knöpfe unter der Kopfzeile, jeweils mit Vorschau zum An- und Abwählen):
-  - **„Liste einfügen …“** – die kopierte Trackliste einfügen (Anleitung für 1001Tracklists und Knopf
-    „1001Tracklists öffnen“ im Fenster), je Zeile „Künstler - Titel (Mix)“; Nummern, Zeitmarken, „w/“ und Labels in
+  - **„Liste einfügen …“** – die kopierte Trackliste einfügen (Quelle wählen: Anleitung und Knopf zum Öffnen für
+    **1001Tracklists** bzw. **MixID**), je Zeile „Künstler - Titel (Mix)“; Nummern, Zeitmarken, „w/“ und Labels in
     [eckigen Klammern] fallen weg, „ID - ID“ wird ausgelassen. Haben die Titel Zeitmarken, ist eine Zeile ohne Zeitmarke
     – meist der **Titel des Mixes** („Nora En Pure - Purified Radio 531 …“) – in der Vorschau **ausmarkiert** und lässt
     sich bei Bedarf anwählen. Dieselbe Vorschau gilt für „Liste aus Text“ in den Ideen und „Trackliste einfügen“ bei den

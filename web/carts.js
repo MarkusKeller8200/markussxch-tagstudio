@@ -215,14 +215,33 @@ async function cartsAddDone(r) {
   return r.added > 0;
 }
 
+/** #437: Anleitung je Quelle mit Link (öffnet nur die Webseite im Browser – TagStudio liest dort nichts aus) */
+const CART_TXT_GUIDE = {
+  "1001tracklists": { name: "1001Tracklists", url: "https://www.1001tracklists.com/",
+    steps: ["Tracklist auf 1001tracklists.com öffnen.", "Die Titelliste markieren und kopieren.", "Hier einfügen."] },
+  mixid: { name: "MixID", url: "https://www.mixid.fm/",
+    steps: ["Mix auf mixid.fm öffnen (angemeldet).", "Tracklist mit der Maus markieren (Zeit, Künstler — Titel) und kopieren (Strg+C bzw. Cmd+C).", "Hier einfügen."] },
+};
+
 async function cartsText() {
   const text = await modal({
     title: "Liste einfügen", wide: true,
-    html: `<div class="hint"><b>1001Tracklists:</b> <span>1.</span> Tracklist auf 1001tracklists.com öffnen. <span>2.</span> Die Titelliste markieren und kopieren. <span>3.</span> Hier einfügen. <a href="#" data-u="https://www.1001tracklists.com/">1001Tracklists öffnen ↗</a>
-      <div class="muted sm" style="margin-top:4px">Auch MixID, eine Beatport-Chart oder eigene Notizen gehen – je Zeile „Künstler - Titel (Mix)“. Nummern, Zeitmarken und Labels in [eckigen Klammern] fallen weg, „ID - ID“ wird ausgelassen. Vor dem Übernehmen zeigt eine Vorschau alle erkannten Titel. TagStudio ruft dafür keine Webseite ab.</div></div>
+    html: `<div class="row" style="gap:8px;margin:0 0 8px;align-items:center"><label for="ctSrc">Quelle</label><select id="ctSrc" class="inp"><option value="1001tracklists">1001Tracklists</option><option value="mixid">MixID</option><option value="text">andere Quelle</option></select></div>
+      <div class="hint"><div id="ctGuide"></div>
+      <div class="muted sm" style="margin-top:4px">Auch eine Beatport-Chart oder eigene Notizen gehen – je Zeile „Künstler - Titel (Mix)“. Nummern, Zeitmarken und Labels in [eckigen Klammern] fallen weg, „ID - ID“ wird ausgelassen. Vor dem Übernehmen zeigt eine Vorschau alle erkannten Titel. TagStudio ruft dafür keine Webseite ab.</div></div>
       <textarea id="ctTxt" class="fe-val" style="width:100%;min-height:220px;font-family:var(--mono, monospace)" spellcheck="false" translate="no" autofocus placeholder="[01:54] Künstler - Titel (Extended Mix) [Label]"></textarea>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Weiter zur Vorschau", value: true, primary: true }],
-    onMount: (b) => b.addEventListener("click", (ev) => { const a = ev.target.closest("[data-u]"); if (a) { ev.preventDefault(); call("open_url", a.dataset.u); } }),
+    onMount: (b) => {
+      const guide = () => {
+        const g = CART_TXT_GUIDE[$("#ctSrc", b).value], box = $("#ctGuide", b);
+        box.hidden = !g;
+        if (g) box.innerHTML = `<b>${esc(g.name)}:</b> ${g.steps.map((x, k) => `<span>${k + 1}.</span> <span>${esc(x)}</span>`).join(" ")} <a href="#" data-u="${esc(g.url)}" title="${esc(g.url)}">${esc(g.name)} öffnen ↗</a>`;
+      };
+      $("#ctSrc", b).addEventListener("change", guide);
+      b.addEventListener("click", (ev) => { const a = ev.target.closest("[data-u]"); if (a) { ev.preventDefault(); call("open_url", a.dataset.u); } });
+      guide();
+      $("#ctTxt", b).focus();
+    },
     collect: (b) => $("#ctTxt", b).value,
   });
   if (!text || !text.trim()) return false;

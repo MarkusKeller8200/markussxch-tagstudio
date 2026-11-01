@@ -2077,6 +2077,11 @@ class UiTest(unittest.TestCase):
         pg.click('#mBody [data-wz="text"]')
         pg.wait_for_selector("#ctTxt")
         self.assertIn("1001Tracklists öffnen", pg.inner_text("#mBody"))
+        pg.select_option("#ctSrc", "mixid")                                            # #437: auch MixID
+        self.assertIn("MixID öffnen", pg.inner_text("#ctGuide"))
+        self.assertEqual(pg.get_attribute("#ctGuide [data-u]", "data-u"), "https://www.mixid.fm/")
+        pg.select_option("#ctSrc", "text")
+        self.assertTrue(pg.locator("#ctGuide").is_hidden())
         pg.fill("#ctTxt", "Kai Ost - Club Night 12 2026-10-26\n\n01 [00:00] Kai Ost - Nordwind (Original Mix) [Nordwerk]\n02 [03:10] ID - ID\n03 [06:20] Lena Berg - Glas (Extended Mix)\nw/ Mara Lind - Morgen")
         pg.click("#mBtns .primary")
         pg.wait_for_selector("#modal:not([hidden]) .cart-pv")

@@ -20,7 +20,7 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Warenkorb – Assistent und Vorschau (#433–#437):** Bei einem neuen Warenkorb führt ein **Assistent** Schritt für
   Schritt durch Hinzufügen, Suchen, Prüfen, Senden und Kaufen; jeder Schritt und jeder Knopf zeigt zuerst eine
   **Vorschau** (Titel mit Häkchen). Hinzufügen als einzelne Knöpfe („Liste einfügen …“, „Aus Ideen …“, „Von Hand …“,
-  „Per Link …“), Hinweis auf 1001Tracklists, Namensvorlage `Warenkorb_JJJJ_MM_TT`. Beim Einfügen einer Trackliste ist
+  „Per Link …“), Anleitung für 1001Tracklists und MixID, Namensvorlage `Warenkorb_JJJJ_MM_TT`. Beim Einfügen einer Trackliste ist
   die **Titelzeile des Mixes** (z. B. „Nora En Pure - Purified Radio 531 …“) ausmarkiert statt als Titel übernommen –
   auch in Ideen und Playlists.
 - **Warenkorb per Link (#424):** Titel aus Links von **Beatport** (Titel, Release, Chart, Playlist), **Spotify**

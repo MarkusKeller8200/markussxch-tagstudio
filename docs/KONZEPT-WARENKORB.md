@@ -150,8 +150,9 @@ Prüfung mit „Einkäufe“, Gekaufte entfernen mit Rückfrage, Historik, aus I
   die meisten Titel eine haben („w/“-Zeilen zählen als Titel); `playlists.pick_tracklist(items, skip)` übernimmt die
   Auswahl (`skip` None = Kopfzeilen weglassen). Vorschau `tracklist_preview` mit ausmarkierter Titelzeile – auch für
   Ideen › „Liste aus Text“ und Playlists › „Trackliste einfügen“.
-- **#437 Hinweis 1001Tracklists:** Anleitung im Fenster „Liste einfügen“ mit Knopf „1001Tracklists öffnen“ (nur die
-  Webseite im Browser, kein Auslesen – siehe #428).
+- **#437 Hinweis 1001Tracklists und MixID:** Im Fenster „Liste einfügen“ Quelle wählen (1001Tracklists, MixID, andere)
+  mit Anleitung und Knopf „… öffnen“ (`CART_TXT_GUIDE`; nur die Webseite im Browser, kein Auslesen – siehe #428).
+  MixID ergänzt nach dem Test (User 22:58).
 - **#424 Per Link:** Plugin-Funktion `url_tracks(ctx, url)` in Beatport 2.13 (Titel, Release, Chart, Playlist, eigene
   Playlist), Spotify 1.4 (Playlist, Album, Titel – fremde Playlists liefert Spotify seit Februar 2026 nicht) und
   SoundCloud 1.2 (`/resolve`). `carts.url_plugin` wählt das Plugin nach der Adresse, `start_carts_url` liest im
