@@ -26,6 +26,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **Beim Release:** `carts`, `session_carts` in `packaging/build.py › HIDDEN` eintragen.
 - **Offen:** #424 (URL) erst nach Freigabe/Test von #420–#423; Beatport-Playlist mit dem echten Konto testet der User;
   #427 wackeliger Oberflächentest `test_folder_menu_and_sources` (nur Issue, Umsetzung auf Freigabe).
+- **20:16 Verbesserungen aus dem Test** (nur angelegt, Meilenstein #32, umsetzen erst auf Wort des Users): #433
+  Namensvorlage `Warenkorb_YYYY_MM_DD`, #434 Hinzufügen als einzelne Knöpfe, #435 Assistent – Schritte vor dem Ausführen
+  zeigen (offene Fragen im Issue).
 - **20:02 Testrückmeldung:** #420, #421, #422 getestet und geschlossen. #423 (Beatport zuordnen/senden) noch
   ungetestet im Beta-Test; offen im Meilenstein #32 ausserdem #424 (URL) und #427 (wackeliger Test).
 - **19:58:** Links zum Prüfen als Issues in „Funktionen“ (Labels funktion, idee): #428 1001-tracklists-api (Scraping,
