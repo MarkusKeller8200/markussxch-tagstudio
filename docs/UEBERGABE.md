@@ -34,6 +34,10 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **Beim Release:** `carts`, `session_carts` in `packaging/build.py › HIDDEN` eintragen.
 - **Offen:** #424 (URL) erst nach Freigabe/Test von #420–#423; Beatport-Playlist mit dem echten Konto testet der User;
   #427 wackeliger Oberflächentest `test_folder_menu_and_sources` (nur Issue, Umsetzung auf Freigabe).
+- **23:19 Testrückmeldung:** #423, #424, #427, #433, #434, #436, #437, #438 getestet und geschlossen. Offen nur **#435**
+  (ein Punkt nicht abgehakt: „Nichts wird ohne Weiter/Senden ausgeführt; Beatport-Konto erst im Schritt 4“). Auftrag
+  User: wenn alles erledigt, Meilenstein 4.15.0 schliessen und **finale Version 4.15.0** erstellen (Freigabe bedingt) –
+  wartet auf #435.
 - **23:13:** #438 Quelle genauer (`via` je Titel, „Liste – 1001Tracklists“ usw.) umgesetzt, `_3 Beta-Test`;
   CI-Regel neu (Abschnitt „CI-Prüfung“).
 - **22:58/23:00:** #437 ergänzt um MixID (Quelle wählen im Fenster „Liste einfügen“, `CART_TXT_GUIDE`), Freigabe User 23:00.

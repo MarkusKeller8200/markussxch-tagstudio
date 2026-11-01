@@ -1,6 +1,9 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-11-01 (Abend): #424, #427, #433–#437 umgesetzt und im Beta-Test (Assistent, Vorschau, einzelne Knöpfe,
+> Stand 2026-11-01 (23:19): Meilenstein #32 bis auf #435 getestet und geschlossen (11 von 12); Release 4.15.0 freigegeben,
+> sobald #435 abgehakt ist.
+>
+> Davor 2026-11-01 (Abend): #424, #427, #433–#437 umgesetzt und im Beta-Test (Assistent, Vorschau, einzelne Knöpfe,
 > Per Link, Titelzeile des Mixes ausmarkiert, Namensvorlage); #423 weiterhin im Beta-Test. Beatport 2.13, Spotify 1.4,
 > SoundCloud 1.2.
 >
