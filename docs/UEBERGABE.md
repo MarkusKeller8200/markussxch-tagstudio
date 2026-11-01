@@ -1,8 +1,22 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-11-01 (Abend): 4.15.0 – Warenkorb in Arbeit** (Meilenstein #32, #420–#425) – letzte Version **v4.14.0 final** (29.10.2026). Meilenstein #31 „4.14.0“ am 01.11.2026 (19:40) geschlossen (#416, #417 getestet, 18 Issues). Siehe „Sitzung 01.11.2026 – Warenkorb“.
+Stand: **2026-11-01 (23:50): v4.15.0 final veröffentlicht** (Warenkorb, Meilenstein #32 mit 12 Issues geschlossen). Nächstes Release noch ohne Meilenstein und Umfang – siehe „Release 4.15.0“.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
+
+## Release 4.15.0 (01.11.2026, 23:50)
+
+- **Freigabe User 23:19** („Wenn alles erledigt ist dann 4.15.0 schliessen und eine Version erstellen“), #435 als letztes
+  getestet 23:21 – ohne Beta.
+- Vorher ganze Testreihe grün: 854 Unit-Tests, 135 Oberflächentests lokal; CI auf `main` grün (e9d6c16, Windows/macOS).
+- `packaging/build.py › HIDDEN` + `carts`, `session_carts` (e9d6c16, Probelauf „Installer“ ohne Release grün);
+  `release.py 4.15.0` → „Version 4.15.0“ (f0c3167).
+- **Release `v4.15.0`** (latest, 27 Dateien): Windows-Setup (unsigniert), macOS-DMG (signiert, beglaubigt), 23 Plugin-ZIPs
+  (u. a. beatport 2.13, spotify 1.4, soundcloud 1.2), plugins.json, SHA256SUMS.txt; VirusTotal 75/75 unauffällig
+  (exe und dmg). Meilenstein #32 geschlossen.
+- **Nächstes:** noch kein Meilenstein/Umfang. Kandidaten wie unter „Start 4.15.0“ (Formate #262–#266, Mix analysieren
+  #397–#399, #398 AudD, #404 Web-Player mit #430 OpenSubsonic …) und die Prüf-Issues #428–#432 (#432 zum Schliessen
+  vorgeschlagen). Fehler aus dem Test von 4.15.0 → Bugfix 4.15.1.
 
 ## CI-Prüfung (Entscheid User 01.11.2026, 23:13)
 
