@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-11-01 (Abend): 4.15.0 – Warenkorb in Arbeit** (Meilenstein #32, #420–#425) – letzte Version **v4.14.0 final** (29.10.2026). Meilenstein #31 noch offen mit #417 (Update-Popup testen) und #416 (CI beobachten). Siehe „Sitzung 01.11.2026 – Warenkorb“.
+Stand: **2026-11-01 (Abend): 4.15.0 – Warenkorb in Arbeit** (Meilenstein #32, #420–#425) – letzte Version **v4.14.0 final** (29.10.2026). Meilenstein #31 „4.14.0“ am 01.11.2026 (19:40) geschlossen (#416, #417 getestet, 18 Issues). Siehe „Sitzung 01.11.2026 – Warenkorb“.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -24,7 +24,10 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
   (in `plugins.PLAYLIST_FNS`). Tests `tests/test_carts.py`, `test_browser_ui.test_carts_page`; Übersetzungen
   `web/i18n/carts.json`.
 - **Beim Release:** `carts`, `session_carts` in `packaging/build.py › HIDDEN` eintragen.
-- **Offen:** #424 (URL) erst nach Freigabe/Test von #420–#423; Beatport-Playlist mit dem echten Konto testet der User.
+- **Offen:** #424 (URL) erst nach Freigabe/Test von #420–#423; Beatport-Playlist mit dem echten Konto testet der User;
+  #427 wackeliger Oberflächentest `test_folder_menu_and_sources` (nur Issue, Umsetzung auf Freigabe).
+- **19:40:** Meilenstein #31 „4.14.0“ geprüft und geschlossen – #416 und #417 hatten vollständig abgehakte
+  Testlisten (Auftrag User).
 
 ## Start 4.15.0 (vorbereitet 01.11.2026, 16:05)
 
