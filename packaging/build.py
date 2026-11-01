@@ -36,6 +36,7 @@ HIDDEN = [
     "smartfix", "unzip",                                               # #339 Smart Fix, #336 ZIP entpacken (4.12.0)
     "downloadstats", "ideas", "session_ideas", "mixresult", "session_mixes", "djlibs",   # #370, #186, #387 (4.13.0)
     "mirror", "session_mirror", "appbackup", "session_appbackup",     # #403 Spiegel, #402 Sicherung (4.14.0)
+    "carts", "session_carts",                                          # #420–#438 Warenkorb (4.15.0)
     # Standardbibliothek für Plugins
     "http.cookiejar", "urllib.request", "urllib.parse", "urllib.error", "difflib", "unicodedata", "ctypes",
     "ctypes.wintypes", "uuid", "csv", "zipfile", "logging", "base64", "hashlib", "html", "html.parser",
