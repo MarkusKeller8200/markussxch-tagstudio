@@ -63,7 +63,7 @@ article{overflow-wrap:anywhere}.doc>*{min-width:0}article pre{white-space:pre-wr
 </style></head><body>
 <header class="top"><div class="in"><a class="brand" href="index.html"><img src="img/icon.png" alt="">MarKusSXCH TagStudio</a>
 <nav><a href="index.html">Start</a><a href="manual.html" class="on">Manual</a><a href="statistik.html">Statistics</a><a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest">Download</a><a href="https://github.com/MarkusKeller8200/markussxch-tagstudio">GitHub</a><a href="handbuch.html" hreflang="de">DE</a></nav></div></header>
-<main><div class="doc"><aside class="toc" id="toc"><button class="btn alt toc-btn" onclick="this.parentNode.classList.toggle('open')">Contents</button><input id="q" type="search" placeholder="Search the manual …" aria-label="Search"><p class="hit" id="hit"></p><ul><li><a href="#features-at-a-glance">Features at a glance</a></li><li><a href="#starting-the-program">Starting the program</a></li><li><a href="#installation">Installation</a><ul><li><a href="#with-the-installer-recommended-no-python-needed">With the installer (recommended, no Python needed)</a></li><li><a href="#from-the-source-code-for-development-and-the-update-button">From the source code (for development and the update button)</a></li></ul></li><li><a href="#usage">Usage</a><ul><li><a href="#tagger">Tagger</a></li><li><a href="#prepare-and-discover">Prepare and discover</a></li><li><a href="#ideas">Ideas</a></li><li><a href="#dj-set">DJ set</a></li><li><a href="#playlists">Playlists</a></li><li><a href="#mixes">Mixes</a></li><li><a href="#purchases">Purchases</a></li><li><a href="#tag-fixer">Tag fixer</a></li><li><a href="#compare">Compare</a></li><li><a href="#preview-player-and-external-players">Preview player and external players</a></li><li><a href="#snapshots-change-journal">Snapshots &amp; change journal</a></li><li><a href="#backups">Backups</a></li><li><a href="#plugins">Plugins</a></li><li><a href="#update-layout-keyboard">Update, layout, keyboard</a></li></ul></li><li><a href="#settings-and-data-storage">Settings and data storage</a></li><li><a href="#technical-details">Technical details</a></li><li><a href="#files">Files</a></li><li><a href="#development">Development</a></li><li><a href="#versions-releases">Versions &amp; releases</a></li><li><a href="#reporting-bugs-ideas-security">Reporting bugs, ideas, security</a></li><li><a href="#classic-interface-frozen">Classic interface (frozen)</a></li><li><a href="#licence">Licence</a></li></ul></aside><article><h1 id="markussxch-tagstudio-manual">MarKusSXCH TagStudio – Manual</h1>
+<main><div class="doc"><aside class="toc" id="toc"><button class="btn alt toc-btn" onclick="this.parentNode.classList.toggle('open')">Contents</button><input id="q" type="search" placeholder="Search the manual …" aria-label="Search"><p class="hit" id="hit"></p><ul><li><a href="#features-at-a-glance">Features at a glance</a></li><li><a href="#starting-the-program">Starting the program</a></li><li><a href="#installation">Installation</a><ul><li><a href="#with-the-installer-recommended-no-python-needed">With the installer (recommended, no Python needed)</a></li><li><a href="#from-the-source-code-for-development-and-the-update-button">From the source code (for development and the update button)</a></li></ul></li><li><a href="#usage">Usage</a><ul><li><a href="#tagger">Tagger</a></li><li><a href="#prepare-and-discover">Prepare and discover</a></li><li><a href="#ideas">Ideas</a></li><li><a href="#cart">Cart</a></li><li><a href="#dj-set">DJ set</a></li><li><a href="#playlists">Playlists</a></li><li><a href="#mixes">Mixes</a></li><li><a href="#purchases">Purchases</a></li><li><a href="#tag-fixer">Tag fixer</a></li><li><a href="#compare">Compare</a></li><li><a href="#preview-player-and-external-players">Preview player and external players</a></li><li><a href="#snapshots-change-journal">Snapshots &amp; change journal</a></li><li><a href="#backups">Backups</a></li><li><a href="#plugins">Plugins</a></li><li><a href="#update-layout-keyboard">Update, layout, keyboard</a></li></ul></li><li><a href="#settings-and-data-storage">Settings and data storage</a></li><li><a href="#technical-details">Technical details</a></li><li><a href="#files">Files</a></li><li><a href="#development">Development</a></li><li><a href="#versions-releases">Versions &amp; releases</a></li><li><a href="#reporting-bugs-ideas-security">Reporting bugs, ideas, security</a></li><li><a href="#classic-interface-frozen">Classic interface (frozen)</a></li><li><a href="#licence">Licence</a></li></ul></aside><article><h1 id="markussxch-tagstudio-manual">MarKusSXCH TagStudio – Manual</h1>
 <p><em>English version – <a href="handbuch.html">Deutsch</a> is the source and may be more up to date.</em></p>
 <p>The complete guide to all features. Overview, pictures and download: <a href="index.html">start page</a></p>
 <blockquote>
@@ -83,6 +83,9 @@ automatically.</p>
   dragging, path through the Camelot wheel and energy curve; export as M3U8, Rekordbox XML and CSV.</li>
 <li><strong>Ideas:</strong> wish lists of tracks you want to buy later – from “Discover”, by hand or from text; status idea → buy →
   bought → in library, note, preview, as Beatport playlist (only on click).</li>
+<li><strong>Cart:</strong> collect everything you want to buy in carts – from a copied tracklist (e.g. 1001Tracklists), from your
+  ideas or by hand; recognise and take out tracks already bought, send the shopping list to Beatport as a playlist (only
+  on click); carts are kept as history “open”/“bought”.</li>
 <li><strong>Playlists:</strong> collect tracks from the tagger and the DJ set in playlists with folders; every playlist is also
   stored as M3U8 in the playlist folder (for Engine DJ, VirtualDJ &amp; co.); archive instead of delete.</li>
 <li><strong>Mixes:</strong> recognise the tracks of your own library in a mix file (DJ set, radio show) – even with changed
@@ -340,6 +343,39 @@ status and note (click the note to edit it).</p>
 “Playlists”, not written as M3U8 to the playlist folder). On first opening, the tracks remembered in “Discover” are
 copied once into the wish list “Gemerkt (Entdecken)”; “Discover” itself stays unchanged. Since 4.14.0 “Discover” no
 longer has a filter “Watch list” (#409) – remembered tracks appear under “All” (hint “in Ideas”) and on the “Ideas” page.</p>
+<h3 id="cart">Cart</h3>
+<p>The <strong>Cart</strong> page (in the sidebar between “Ideas” and “Purchases”; the number next to it = tracks on the shopping lists
+of open carts) gathers everything that should be bought – so nothing is bought twice. For now the shop is <strong>Beatport</strong>;
+others (iTunes Store …) will follow. On the left the carts in the groups <strong>Open</strong>, <strong>Bought (history)</strong> and <strong>Archive</strong>
+(“＋” creates a new one; right-click: rename, close as bought or reopen, export, archive or bring back), on the right the
+tracks with artist, title (mix), Beatport match, source, status and note. Filters: <strong>Shopping list</strong> (still to buy),
+Bought, In library, Removed, All.</p>
+<ul>
+<li><strong>Adding tracks:</strong> “+ Add ▾” › <strong>“Paste list (e.g. 1001Tracklists) …”</strong> – paste the copied tracklist, one “Artist -
+  Title (Mix)” per line; numbers, timestamps, “w/” and labels in [square brackets] are dropped, “ID - ID” is skipped.
+  <strong>From your ideas:</strong> select tracks there and choose <strong>“Into the cart ▸”</strong> (or right-click › “Into the cart ›”) – the
+  Beatport ID and link are taken over and the idea gets the status “Buy”. Or <strong>“Track by hand …”</strong> (a Beatport link
+  provides the Beatport ID right away). Duplicates are not added again.</li>
+<li><strong>Search on Beatport:</strong> matches tracks without a Beatport ID via the Beatport search (read only). Sure matches show
+  “✓ ID”; with <strong>“uncertain – choose …”</strong> you pick one of up to three candidates or “None of them”; “not found” means
+  not available on Beatport. “More ▾” › “Search uncertain and not found again”.</li>
+<li><strong>Check for purchases:</strong> first refreshes the purchases at the shop (like “Purchases” › “Refresh”), then matches the
+  tracks against “Purchases” and the library. The status column shows <strong>Bought</strong> (with purchase date) or <strong>In
+  library</strong>; a hint above the table offers <strong>“Remove bought (n) …”</strong> – after a confirmation these tracks are taken off
+  the shopping list. They stay visible under “Removed” (↺ brings them back), “More ▾” › “Undo” reverts the last change.
+  ✕ or “Take off shopping list …” takes tracks off by hand.</li>
+<li><strong>Send to Beatport …:</strong> checks the purchases once more and creates the shopping list in your Beatport account as the
+  playlist <strong><code>TagStudio_CART_&lt;cart&gt;</code></strong>, or brings it to exactly the shopping list – only on click, only tracks with a
+  Beatport ID, never ones already bought. Other playlists stay untouched; “Write playlists in Beatport” must be switched
+  on in the Beatport plugin. The official Beatport API has no cart: afterwards open the playlist on Beatport (“Open
+  playlist on Beatport”), choose <strong>“Add all to cart”</strong> there and pay on beatport.com.</li>
+<li><strong>History:</strong> as soon as all tracks of the shopping list are listed under “Purchases”, the cart is automatically
+  <strong>bought</strong> (with date) and moves to “Bought (history)”. “Close as bought …” also works by hand, “Reopen” makes it
+  editable again (it then only closes by itself again once new tracks are added). Archiving hides a cart, nothing is
+  deleted. <strong>Export</strong> as Excel or CSV (one or all carts).</li>
+</ul>
+<p>The carts are stored in <code>~/TagStudio/Warenkorb/warenkorb.json</code> and are part of the program data backup (Settings › Cloud).
+Concept (German): <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/docs/KONZEPT-WARENKORB.md">KONZEPT-WARENKORB.md</a>.</p>
 <h3 id="dj-set">DJ set</h3>
 <p>Orders tracks so that the transitions fit. Page <strong>DJ set</strong> in the sidebar (with the number of tracks in the set).</p>
 <ol>
@@ -746,7 +782,7 @@ drive – you choose plan and storage size. Optional: update automatically after
 write playlists as M3U8 with relative paths, set copies “online-only” (Windows). Files no longer in the library are
 only reported and deleted after confirmation. The mirror also contains <code>index.json</code> (title, artist, BPM, key,
 duration). <strong>Program data backup</strong> (#402): settings (without credentials), playlists
-with ideas/wish lists, purchases, Discover (without SonoVault entries), Prepare and mixes as a ZIP file
+with ideas/wish lists, purchases, Discover (without SonoVault entries), Prepare, mixes and carts as a ZIP file
 <code>TagStudio-Programmdaten_&lt;computer&gt;_&lt;date&gt;.zip</code> into a folder – suggested <code>OneDrive/TagStudio/Sicherung</code> (#415) – manually (“Back up
 now”), on exit or daily. Never included: credentials, snapshots, caches, music. More backups than “keep” (default 10)
 are deleted only after confirmation. <strong>Restore …</strong> shows a preview (what is replaced, which settings groups – from
