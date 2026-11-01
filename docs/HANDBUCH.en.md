@@ -279,7 +279,8 @@ Bought, In library, Removed, All.
   - **“By link …”** – link of a playlist, an album/release, a chart or a track from **Beatport**, **Spotify** or
     **SoundCloud**; the respective plugin reads the tracks (signed in, read only). Tracks from Beatport already have the
     Beatport ID.
-  Duplicates are not added again.
+  Duplicates are not added again. The **Source** column shows where a track came from – e.g. “List – 1001Tracklists”,
+  “Link – Spotify”, “Ideas – <wish list>” (also in the export and the search).
 - **Search on Beatport …:** first shows the tracks without a Beatport ID, then the Beatport search matches them (read
   only). Sure matches show “✓ ID”; for all **uncertain** ones a window then opens where you choose the right candidate or
   “None of them” per track (later also via “uncertain – choose …” in the table). “not found” means not available on

@@ -91,6 +91,7 @@ class CartsMixin:
                     m = x.get("match") or {}
                     items.append({"k": k, "artist": x.get("artist", ""), "title": x.get("title", ""), "mix": x.get("mix", ""),
                                   "url": x.get("url", ""), "sid": x.get("sid", ""), "src": x.get("src", ""),
+                                  "via": x.get("via", ""), "source": carts.source_label(x),
                                   "note": x.get("note", ""), "status": s, "bought": b.get(k, ""), "lib": x.get("lib", ""),
                                   "removed": (x.get("removed") or {}).get("why", ""), "match": m.get("state", ""),
                                   "score": m.get("score", 0), "cands": m.get("cands") or [], "hand": bool(m.get("hand")),
@@ -213,13 +214,19 @@ class CartsMixin:
                            "head": bool(x.get("head"))} for i, x in enumerate(new)],
                 "unknown": unknown, "heads": sum(1 for x in new if x.get("head"))}
 
-    def carts_add_text(self, cid, text, name="", skip=None) -> dict:
+    TEXT_VIA = {"1001tracklists": "1001Tracklists", "mixid": "MixID"}      # #438: gewählte Quelle beim Einfügen
+
+    def carts_add_text(self, cid, text, name="", skip=None, via="") -> dict:
         """#421: Liste aus Text (z. B. 1001Tracklists) – je Zeile „Künstler - Titel (Mix)“. skip (#436): Positionen der
         Vorschau, die nicht übernommen werden (None = erkannte Titelzeilen des Mixes auslassen)."""
         new, unknown = carts.from_text(text)
         new = playlists.pick_tracklist(new, skip)
         if not new:
             raise ValueError("Keine Titel erkannt – je Zeile „Künstler - Titel“.")
+        v = self.TEXT_VIA.get(str(via or ""), "")
+        if v:
+            for x in new:
+                x["via"] = v
         r = self._carts_add(cid, name, new)
         r["unknown"] = unknown
         return r
@@ -248,9 +255,13 @@ class CartsMixin:
                                "sid": e.get("sid", "")} for e in items]}
         return self._run("carts", "Warenkorb: Titel aus dem Link lesen", job)
 
-    def carts_add_refs(self, cid, refs, name="") -> dict:
-        """#424: gewählte Titel aus der Link-Vorschau übernehmen."""
+    def carts_add_refs(self, cid, refs, name="", via="") -> dict:
+        """#424: gewählte Titel aus der Link-Vorschau übernehmen; via (#438) = Dienst (Beatport, Spotify, SoundCloud)."""
         new = [e for e in (carts.from_ref(r) for r in refs or []) if e]
+        v = carts._txt(via, 60)
+        if v:
+            for x in new:
+                x["via"] = v
         if not new:
             raise ValueError("Keine Titel gewählt.")
         return self._carts_add(cid, name, new)
@@ -277,6 +288,8 @@ class CartsMixin:
         new = [e for e in (carts.from_idea(items[k]) for k in sel) if e]
         if not new:
             raise ValueError("Keine Einträge gewählt.")
+        for x in new:
+            x["via"] = carts._txt(pl.get("name"), 120)                 # #438: Name der Wunschliste
         r = self._carts_add(cid, name, new)
         with self.lock:
             pls = self._pls()

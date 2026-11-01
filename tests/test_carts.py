@@ -355,6 +355,21 @@ class TestSession(unittest.TestCase):
         it = self.s.carts_overview(r["cid"])["items"][0]
         self.assertEqual((it["src"], it["sid"], it["match"]), ("url", "9", "sure"))
 
+    def test_source_via(self):
+        """#438: Quelle genauer – Liste – 1001Tracklists, Link – Spotify, Ideen – <Wunschliste>, auch im Export."""
+        cid = self.s.carts_add_text("", "01. A - Eins\n02. B - Zwei", name="Q", via="1001tracklists")["cid"]
+        self.s.carts_add_text(cid, "C - Drei", via="egal")                                # unbekannt → nur „Liste“
+        self.s.carts_add_refs(cid, [{"artist": "D", "title": "Vier"}], via="Spotify")
+        pid = self.s.ideas_list_create("Club")["sel"]
+        self.s.ideas_add_manual(pid, {"artist": "E", "title": "Fünf"})
+        self.s.carts_from_ideas(pid, [0], cid=cid)
+        items = self.s.carts_overview(cid)["items"]
+        self.assertEqual([x["source"] for x in items], ["Liste – 1001Tracklists", "Liste – 1001Tracklists", "Liste",
+                                                        "Link – Spotify", "Ideen – Club"])
+        dest = os.path.join(self.home, "q.csv")
+        self.s.carts_export_write("csv", dest, cid)
+        self.assertIn("Liste – 1001Tracklists", read(dest, "utf-8-sig"))
+
     def test_send_needs_setting(self):
         cid = self.s.carts_add_text("", "A - B", name="X")["cid"]
         with mock.patch.object(self.s.plugins, "call_playlist", return_value={"playlists_write": False}):

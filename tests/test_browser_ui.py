@@ -2082,6 +2082,7 @@ class UiTest(unittest.TestCase):
         self.assertEqual(pg.get_attribute("#ctGuide [data-u]", "data-u"), "https://www.mixid.fm/")
         pg.select_option("#ctSrc", "text")
         self.assertTrue(pg.locator("#ctGuide").is_hidden())
+        pg.select_option("#ctSrc", "1001tracklists")
         pg.fill("#ctTxt", "Kai Ost - Club Night 12 2026-10-26\n\n01 [00:00] Kai Ost - Nordwind (Original Mix) [Nordwerk]\n02 [03:10] ID - ID\n03 [06:20] Lena Berg - Glas (Extended Mix)\nw/ Mara Lind - Morgen")
         pg.click("#mBtns .primary")
         pg.wait_for_selector("#modal:not([hidden]) .cart-pv")
@@ -2091,6 +2092,7 @@ class UiTest(unittest.TestCase):
         pg.click("#mBtns .primary")
         pg.wait_for_selector("#modal:not([hidden]) .cart-wz-steps")                    # zurück im Assistenten
         pg.wait_for_function("CART.d.items.length === 3")
+        self.assertIn("Liste – 1001Tracklists", pg.inner_text('#cartList tr[data-k="1"]'))   # #438: Quelle genauer
         pg.click("#mBtns .primary")                                                    # Weiter → Schritt 2
         pg.wait_for_function("document.querySelector('#mBody') && document.querySelector('#mBody').innerText.includes('Schritt 2 von 5')")
         pg.click('#mBtns button:has-text("Abbrechen")')

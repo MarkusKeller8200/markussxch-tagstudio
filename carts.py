@@ -84,6 +84,9 @@ def clean_item(x) -> dict | None:
     except (TypeError, ValueError):
         pass
     out["src"] = x.get("src") if x.get("src") in SOURCES else "manual"
+    via = _txt(x.get("via"), 120)
+    if via:
+        out["via"] = via                                          # #438: woher genau (1001Tracklists, Spotify, Wunschliste …)
     out["added"] = int(x.get("added") or time.time())
     sid = str(x.get("sid") or "").strip()
     if re.fullmatch(r"\d{1,15}", sid):
@@ -224,6 +227,12 @@ def status(x: dict, bought_on: str = "", exists=os.path.isfile) -> str:
     return "open"
 
 
+def source_label(x: dict) -> str:
+    """#438: Quelle für Anzeige und Export – „Liste – 1001Tracklists“, „Link – Spotify“, „Ideen – Club“, „von Hand“."""
+    base = SOURCES.get(x.get("src", ""), x.get("src", ""))
+    return f"{base} – {x['via']}" if x.get("via") else base
+
+
 def bp_name(cart_name: str) -> str:
     """Name der Beatport-Playlist zu einem Korb (Entscheid W2): TagStudio_CART_<Korb>."""
     s = re.sub(r"[^\w\-]+", "_", str(cart_name or "").strip(), flags=re.UNICODE).strip("_") or "Korb"
@@ -307,7 +316,7 @@ def export_rows(carts: list, bought_by: dict) -> list[list[str]]:
                 label += f" ({REMOVED_WHY.get((x.get('removed') or {}).get('why'), '')})"
             rows.append([c["name"], "gekauft" if c.get("status") == "bought" else "offen", label, x.get("artist", ""),
                          x.get("title", ""), x.get("mix", ""), x.get("sid", ""), x.get("url", ""),
-                         SOURCES.get(x.get("src", ""), x.get("src", "")), x.get("note", ""), b.get(k, "")])
+                         source_label(x), x.get("note", ""), b.get(k, "")])
     return rows
 
 

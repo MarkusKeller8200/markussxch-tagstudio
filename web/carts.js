@@ -74,7 +74,7 @@ function cartsHint(c) {
 
 function cartsRows() {
   const q = ($("#cartSearch").value || "").toLowerCase().trim(), f = CART.filter;
-  return CART.d.items.filter((e) => (f === "all" || e.status === f) && (!q || `${e.artist} ${e.title} ${e.mix} ${e.note}`.toLowerCase().includes(q)));
+  return CART.d.items.filter((e) => (f === "all" || e.status === f) && (!q || `${e.artist} ${e.title} ${e.mix} ${e.note} ${e.source || ""}`.toLowerCase().includes(q)));
 }
 
 function cartsBpCell(e) {
@@ -101,7 +101,7 @@ function cartsRender() {
       <td class="ell" title="${esc(e.artist)}">${esc(e.artist)}</td>
       <td class="ell nm" title="${esc(e.title + (e.mix ? ` (${e.mix})` : ""))}"><b>${esc(e.title)}</b>${e.mix ? ` <span class="muted">(${esc(e.mix)})</span>` : ""}</td>
       <td class="sm nw">${cartsBpCell(e)}</td>
-      <td class="sm nw">${esc(CART_SRC[e.src] || e.src || "")}</td>
+      <td class="sm nw ell" title="${esc(e.source || "")}">${esc(CART_SRC[e.src] || e.src || "")}${e.via ? ` – <span translate="no">${esc(e.via)}</span>` : ""}</td>
       <td class="sm nw"><span class="idea-st st-${e.status === "open" ? "buy" : e.status}" title="${esc(e.status === "bought" ? (e.bought === "ja" ? "Steht unter „Einkäufe“" : "Laut „Einkäufe“ gekauft am " + e.bought) : e.status === "lib" ? e.lib : e.status === "removed" ? "Aus der Einkaufsliste genommen: " + (CART_WHY[e.removed] || "") : "")}">${CART_STATUS[e.status] || e.status}${e.status === "removed" && e.removed !== "hand" ? ` – ${CART_WHY[e.removed] || ""}` : ""}</span></td>
       <td class="ell sm idea-note" data-a="note" title="${esc(e.note || "Notiz bearbeiten")}">${e.note ? esc(e.note) : '<span class="muted">＋</span>'}</td>
       <td class="d-acts"><div class="d-row"><button class="ghost sm" data-a="open" ${e.url ? "" : "disabled"} title="${esc(e.url ? "Beim Shop bzw. bei der Quelle öffnen" : "Kein Link")}">Öffnen</button>
@@ -242,12 +242,12 @@ async function cartsText() {
       guide();
       $("#ctTxt", b).focus();
     },
-    collect: (b) => $("#ctTxt", b).value,
+    collect: (b) => ({ text: $("#ctTxt", b).value, via: $("#ctSrc", b).value }),     // #438: gewählte Quelle
   });
-  if (!text || !text.trim()) return false;
-  const skip = await tracklistPickDialog(text, "Liste einfügen – Vorschau");
+  if (!text || !text.text.trim()) return false;
+  const skip = await tracklistPickDialog(text.text, "Liste einfügen – Vorschau");
   if (skip === null) return false;
-  try { return await cartsAddDone(await call("carts_add_text", CART.d.sel, text, CART.d.sel ? "" : cartsDefaultName(), skip)); }
+  try { return await cartsAddDone(await call("carts_add_text", CART.d.sel, text.text, CART.d.sel ? "" : cartsDefaultName(), skip, text.via)); }
   catch (e) { toast(String(e.message || e)); return false; }
 }
 
@@ -321,7 +321,7 @@ async function cartsUrl() {
     onMount: (b) => cartsPvBind(b, rows, (n) => { const p = $("#mBtns .primary"); if (p) { p.textContent = `Übernehmen (${n})`; p.disabled = !n; } }),
     collect: (b) => cartsPvPicked(b).map((i) => r.items[i]) });
   if (!pick || !pick.length) return false;
-  try { return await cartsAddDone(await call("carts_add_refs", CART.d.sel, pick, CART.d.sel ? "" : cartsDefaultName())); }
+  try { return await cartsAddDone(await call("carts_add_refs", CART.d.sel, pick, CART.d.sel ? "" : cartsDefaultName(), r.plugin)); }
   catch (e) { toast(String(e.message || e)); return false; }
 }
 

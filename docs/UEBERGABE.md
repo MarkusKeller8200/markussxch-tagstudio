@@ -4,6 +4,14 @@ Stand: **2026-11-01 (Abend): 4.15.0 – Warenkorb in Arbeit** (Meilenstein #32, 
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
+## CI-Prüfung (Entscheid User 01.11.2026, 23:13)
+
+- Änderungen weiterhin **sofort pushen**; die CI läuft dabei automatisch, Claude **wartet aber nicht** nach jedem Push
+  auf das Ergebnis.
+- **Zu Beginn der nächsten Arbeit** prüfen, ob der letzte CI-Lauf auf `main` grün war (Fehler zuerst beheben).
+- **Vor jeder Beta- bzw. finalen Freigabe** muss die CI auf dem Release-Stand ganz grün sein (zusätzlich zur lokalen
+  Testreihe).
+
 ## Sitzung 01.11.2026 (16:12–) – Warenkorb (4.15.0)
 
 - **Auftrag User 16:12:** neuer Menüpunkt **„Warenkorb“** zwischen Ideen und Einkäufe; Titel aus Ideen, per URL einer
@@ -26,6 +34,8 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **Beim Release:** `carts`, `session_carts` in `packaging/build.py › HIDDEN` eintragen.
 - **Offen:** #424 (URL) erst nach Freigabe/Test von #420–#423; Beatport-Playlist mit dem echten Konto testet der User;
   #427 wackeliger Oberflächentest `test_folder_menu_and_sources` (nur Issue, Umsetzung auf Freigabe).
+- **23:13:** #438 Quelle genauer (`via` je Titel, „Liste – 1001Tracklists“ usw.) umgesetzt, `_3 Beta-Test`;
+  CI-Regel neu (Abschnitt „CI-Prüfung“).
 - **22:58/23:00:** #437 ergänzt um MixID (Quelle wählen im Fenster „Liste einfügen“, `CART_TXT_GUIDE`), Freigabe User 23:00.
 - **20:27 Auftrag „Alle Issues nun ausführen“** (Meilenstein #32; Prüf-Issues #428–#432 nicht freigegeben, #423
   wartet nur auf den Test): umgesetzt #424 (Per Link, `url_tracks` in Beatport 2.13 / Spotify 1.4 / SoundCloud 1.2),

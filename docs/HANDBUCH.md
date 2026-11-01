@@ -291,7 +291,8 @@ Quelle, Status und Notiz. Filter: **Einkaufsliste** (noch zu kaufen), Gekauft, I
   - **„Per Link …“** – Link einer Playlist, eines Albums/Releases, einer Chart oder eines Titels von **Beatport**,
     **Spotify** oder **SoundCloud**; das jeweilige Plugin liest die Titel (angemeldet, nur lesend). Titel von Beatport
     haben die Beatport-ID schon.
-  Doppelte werden nicht noch einmal aufgenommen.
+  Doppelte werden nicht noch einmal aufgenommen. Die Spalte **Quelle** zeigt, woher ein Titel stammt – z. B. „Liste –
+  1001Tracklists“, „Link – Spotify“, „Ideen – <Wunschliste>“ (auch im Export und in der Suche).
 - **Bei Beatport suchen …:** zeigt zuerst die Titel ohne Beatport-ID, dann ordnet die Beatport-Suche sie zu (nur
   lesend). Sichere Treffer zeigen „✓ ID“; für alle **unsicheren** öffnet sich danach ein Fenster, in dem du je Titel den
   passenden Kandidaten oder „Keiner davon“ wählst (später auch über „unsicher – wählen …“ in der Tabelle). „nicht

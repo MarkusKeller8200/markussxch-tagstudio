@@ -23,6 +23,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   „Per Link …“), Anleitung für 1001Tracklists und MixID, Namensvorlage `Warenkorb_JJJJ_MM_TT`. Beim Einfügen einer Trackliste ist
   die **Titelzeile des Mixes** (z. B. „Nora En Pure - Purified Radio 531 …“) ausmarkiert statt als Titel übernommen –
   auch in Ideen und Playlists.
+- **Warenkorb – Quelle genauer (#438):** Spalte „Quelle“ zeigt z. B. „Liste – 1001Tracklists“, „Liste – MixID“,
+  „Link – Spotify“ oder „Ideen – <Wunschliste>“, auch im Export.
 - **Warenkorb per Link (#424):** Titel aus Links von **Beatport** (Titel, Release, Chart, Playlist), **Spotify**
   (Playlist, Album, Titel) und **SoundCloud** übernehmen – nur lesend, mit Vorschau. Beatport 2.13, Spotify 1.4,
   SoundCloud 1.2 (`url_tracks`).

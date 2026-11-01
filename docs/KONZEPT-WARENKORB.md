@@ -158,6 +158,10 @@ Prüfung mit „Einkäufe“, Gekaufte entfernen mit Rückfrage, Historik, aus I
   SoundCloud 1.2 (`/resolve`). `carts.url_plugin` wählt das Plugin nach der Adresse, `start_carts_url` liest im
   Hintergrund, Vorschau mit Häkchen, `carts_add_refs` übernimmt.
 
+- **#438 Quelle genauer** (User 23:07): Feld `via` je Titel – gewählte Quelle beim Einfügen (1001Tracklists, MixID),
+  Dienst beim Link (Beatport, Spotify, SoundCloud), Name der Wunschliste bei Ideen; Anzeige „Liste – 1001Tracklists“
+  (`carts.source_label`, in der Oberfläche übersetzt zusammengesetzt), Export und Suche.
+
 ## 11. Phasen
 
 1. **4.15.0:** #420 Seite und Historik, #421 Liste einfügen und aus Ideen, #422 Prüfung auf Käufe, #423 Beatport
