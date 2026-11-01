@@ -26,6 +26,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - **Beim Release:** `carts`, `session_carts` in `packaging/build.py › HIDDEN` eintragen.
 - **Offen:** #424 (URL) erst nach Freigabe/Test von #420–#423; Beatport-Playlist mit dem echten Konto testet der User;
   #427 wackeliger Oberflächentest `test_folder_menu_and_sources` (nur Issue, Umsetzung auf Freigabe).
+- **20:19 Entscheide zu #435:** Assistent startet automatisch beim neuen Korb; einzelne Knöpfe zeigen immer zuerst eine
+  Vorschau. **20:25:** #436 (Fehler: Titelzeile des Mixes wird beim Einfügen als Titel übernommen → in der Vorschau
+  ausmarkieren; Beispiel Purified Radio 531 im Issue) und #437 (Hinweis auf 1001Tracklists) angelegt, Meilenstein #32.
 - **20:16 Verbesserungen aus dem Test** (nur angelegt, Meilenstein #32, umsetzen erst auf Wort des Users): #433
   Namensvorlage `Warenkorb_YYYY_MM_DD`, #434 Hinzufügen als einzelne Knöpfe, #435 Assistent – Schritte vor dem Ausführen
   zeigen (offene Fragen im Issue).
