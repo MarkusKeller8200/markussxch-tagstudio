@@ -1,6 +1,9 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-10-29 (23:45): **v4.14.0 final veröffentlicht** (Release `v4.14.0`, Windows + macOS beglaubigt, 27 Dateien
+> Stand 2026-11-01 (16:05): Übergabe für **4.15.0** vorbereitet (docs/UEBERGABE.md › „Start 4.15.0“) – Umfang und
+> Meilenstein noch offen. Aus 4.14.0 offen: #417, #416.
+>
+> Davor 2026-10-29 (23:45): **v4.14.0 final veröffentlicht** (Release `v4.14.0`, Windows + macOS beglaubigt, 27 Dateien
 > inkl. SHA256SUMS.txt, VirusTotal 75/75 unauffällig). Geschlossen #406, #407, #410, #418. Offen in #31: #417 (jetzt
 > testbar), #416 (CI beobachten).
 >
