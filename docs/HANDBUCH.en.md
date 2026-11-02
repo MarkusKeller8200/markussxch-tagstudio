@@ -3,12 +3,19 @@
 *English version – [Deutsch](HANDBUCH.md) is the source and may be more up to date.*
 
 The complete guide to all features. Overview, pictures and download: [start page](../README.en.md)
+Pictures with made-up example tracks (German interface).
 
 > Up to version 2.8 the program was called “MP3 Tag Compare”. Settings and backups from that time are taken over
 > automatically.
 
 ## Features at a glance
 
+From find to DJ set: **Discover → Ideas → Cart → Purchases → Prepare → Tag → DJ set → Mixes.**
+
+- **Discover:** new releases of followed artists and labels (Deezer, Beatport, optionally Spotify and SonoVault)
+  with preview; keep hits as ideas.
+- **Prepare:** new tracks run from the inbox through freely arranged stages (tag recipe, external program, plugin)
+  into the library – every stage works on a copy.
 - **Tagger:** edit many files together, cover, tags from file name, renaming, track numbers, upper/lower case,
   search & replace, export to Excel/CSV.
 - **Editors for every field:** multi-line field editor, multiple values as single values, JSON as a tree, XML editor,
@@ -18,9 +25,10 @@ The complete guide to all features. Overview, pictures and download: [start page
   sortable and filterable (`energy>=70`); files optionally in 0–10 (Lexicon).
 - **DJ set:** optimise the order by key (Camelot), BPM and energy, rate every transition, re-order and lock by
   dragging, path through the Camelot wheel and energy curve; export as M3U8, Rekordbox XML and CSV.
-- **Ideas:** wish lists of tracks you want to buy later – from “Discover”, by hand or from text; status idea → buy →
-  bought → in library, note, preview, as Beatport playlist (only on click).
-- **Cart:** collect everything you want to buy in carts – from a copied tracklist (e.g. 1001Tracklists), from your
+- **Ideas:** wish lists of tracks you want to buy later – from “Discover”, by hand, from text or from Spotify; status
+  idea → buy → bought → in library, note, preview, as Beatport or Spotify playlist (only on click).
+- **Cart:** collect everything you want to buy in carts – from a copied tracklist (e.g. 1001Tracklists, MixID), by link
+  (Beatport, Spotify, SoundCloud), from your
   ideas or by hand; recognise and take out tracks already bought, send the shopping list to Beatport as a playlist (only
   on click); carts are kept as history “open”/“bought”.
 - **Playlists:** collect tracks from the tagger and the DJ set in playlists with folders; every playlist is also
@@ -37,10 +45,16 @@ The complete guide to all features. Overview, pictures and download: [start page
 - **Snapshots & change journal:** record the tag state of watched folders, detect changes made by other programs
   and undo them one by one; protection against overwriting changes made elsewhere.
 - **Origin of the tags:** marks which application wrote a field; filter or remove the fields of one application.
-- **Plugins:** stems (separate vocals, drums, bass … – in the background, stems expandable below the track) and
-  Beatport (metadata with your own login, match purchases and download missing ones); your own plugins are possible; filter by category (online API, shop API, cloud API …).
+- **Purchases:** match Beatport purchases with the library (bought, in inbox, in library, missing) and download
+  missing ones.
+- **Cloud:** libraries in OneDrive, Google Drive or Dropbox (online-only files are skipped), **library mirror** as a
+  one-way copy into a cloud folder and **backup of the program data** (without credentials).
+- **Plugins:** stems (separate vocals, drums, bass …), Beatport, Spotify, SoundCloud, Discogs, MusicBrainz,
+  SonoVault, Lexicon, loudness, Analyse mix, OneDrive/Google Drive/Dropbox …; each updatable on its own, your own
+  plugins are possible; filter by category (online API, shop API, cloud API …).
 - **Settings** in one place – with defaults for the start –, export/import (e.g. Windows ↔ Mac) and reset; updates
-  either official versions only or beta versions too, release notes right in the app.
+  either official versions only or beta versions too, notice of new versions (at start and every 15 minutes, can be
+  switched off), release notes right in the app.
 - **Languages:** German, English and Zurich German; your own texts can be exported, edited and
   imported (Settings › Appearance › Language).
 
@@ -107,6 +121,8 @@ folder or nothing). Compare and tagger work on the same files – changes are vi
 too).
 
 ### Tagger
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/tagger-dark.png"><img alt="Tagger: list, cover and editor" src="screenshots/tagger-light.png"></picture>
 
 - **Back quickly:** a folder that was already read appears immediately from the list cache; TagStudio then checks
   every track in the background via a hash of its tags and re-reads what has changed (progress in the status line).
@@ -202,6 +218,10 @@ input stay 0–100; reading multiplies by 10, writing divides by 10.
 
 ### Prepare and discover
 
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/prep-dark.png"><img alt="Prepare: stages from inbox to library" src="screenshots/prep-light.png"></picture>
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/discover-dark.png"><img alt="Discover: new releases" src="screenshots/discover-light.png"></picture>
+
 **Workflow:** new tracks run from the **inbox folder** through freely configurable steps into the **library** – every
 stage works on a copy, the raw data stays unchanged. Step types: tag recipe, external program (detect completion via
 the origin or confirm it), plugin (e.g. loudness, online metadata – “fill empty fields only”), check required fields,
@@ -222,6 +242,8 @@ again. Tracks listed under **Purchases** are marked “bought” and appear in t
 wish list carry “in ideas” and are kept when clearing.
 
 ### Ideas
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/ideas-dark.png"><img alt="Ideas: wish lists" src="screenshots/ideas-light.png"></picture>
 
 The **Ideas** page (in the sidebar after “Discover”, the number next to it = tracks marked for buying) collects tracks
 you want to buy later in **wish lists**. On the left the wish lists (“＋” creates one; right-click: rename, turn into
@@ -256,6 +278,8 @@ copied once into the wish list “Gemerkt (Entdecken)”; “Discover” itself 
 longer has a filter “Watch list” (#409) – remembered tracks appear under “All” (hint “in Ideas”) and on the “Ideas” page.
 
 ### Cart
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/carts-dark.png"><img alt="Cart with Beatport matches" src="screenshots/carts-light.png"></picture>
 
 The **Cart** page (in the sidebar between “Ideas” and “Purchases”; the number next to it = tracks on the shopping lists
 of open carts) gathers everything that should be bought – so nothing is bought twice. For now the shop is **Beatport**;
@@ -306,6 +330,8 @@ Concept (German): [KONZEPT-WARENKORB.md](KONZEPT-WARENKORB.md).
 
 ### DJ set
 
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/djset-dark.png"><img alt="DJ set with Camelot wheel and energy curve" src="screenshots/djset-light.png"></picture>
+
 Orders tracks so that the transitions fit. Page **DJ set** in the sidebar (with the number of tracks in the set).
 
 1. **Get tracks:** read a folder in the tagger, then “+ Selected from the tagger” or “+ Whole tagger folder” – or
@@ -341,6 +367,8 @@ folder is loaded in the tagger again.
 load any playlist into the set. Duplicate tracks of a playlist are left out – in the set every track appears once.
 
 ### Playlists
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/playlists-dark.png"><img alt="Playlists in folders" src="screenshots/playlists-light.png"></picture>
 
 Collect and arrange tracks and make them available to DJ programs. Page **Playlists** in the sidebar.
 
@@ -404,6 +432,8 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
 
 ### Mixes
 
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/mixes-dark.png"><img alt="Mixes: recognised tracklist" src="screenshots/mixes-light.png"></picture>
+
 Recognise the tracks of your library in a **mix file** (DJ set, radio show, your own mix) – even with changed tempo
 (±10 %, with and without keylock). **Mixes** page in the sidebar (after “Playlists”, the number = saved analyses). Runs
 entirely locally with the “Analyse mix” plugin (own environment with NumPy, SciPy, FFmpeg, about 100 MB – “Install …”
@@ -440,6 +470,8 @@ under Plugins); nothing is uploaded or downloaded.
 
 ### Purchases
 
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/purchases-dark.png"><img alt="Purchases with matching" src="screenshots/purchases-light.png"></picture>
+
 Bought tracks from all stores in one place – **Beatport** for now (sign in to the Beatport plugin). Page **Purchases**
 in the sidebar: table with title, artist, mix, length, key, BPM, catalogue number, store, purchase date (if the store
 provides it, otherwise “first seen”) and a link to the store. Drag the edge of a column header to change its width
@@ -473,6 +505,8 @@ Unfinished downloads and ZIPs with unsafe paths are left alone.
 
 ### Tag fixer
 
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/fixer-dark.png"><img alt="Tag fixer: unify multiple values" src="screenshots/fixer-light.png"></picture>
+
 Unify multiple values – scope (current pair, one side, selected pairs, all files, tagger selection), fields,
 detected separators, output (separator or ID3v2.4 multiple values), live preview. **Smart Fix** (switch at the top: “Multiple values | Smart Fix”) works with recipes: built-in ones (copy only) and your
 own (create, edit, delete, export/import as JSON). The built-in recipe **“Multiple values with comma”** joins values
@@ -489,6 +523,8 @@ header = all/none) – “Apply” only runs the checked ones, as one undo step.
 their description – spaces as `␣`, the null separator as `\0` –, the chosen output separator as well.
 
 ### Compare
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/compare-dark.png"><img alt="Comparing two folders" src="screenshots/compare-light.png"></picture>
 
 Two folders or files side by side: paths with history, matching by file name, disc + track number, title or order,
 subfolders.
@@ -628,6 +664,8 @@ backed up first), delete a backup, automatic backup on/off, change/open the fold
 
 ### Plugins
 
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/plugins-dark.png"><img alt="Plugins by category" src="screenshots/plugins-light.png"></picture>
+
 Page “Plugins”: switch extensions on/off, install missing packages with a button; actions appear in the tagger under
 “Plugins”. Suggestions from plugins (e.g. Beatport) first appear as a **preview with tick boxes**.
 
@@ -757,6 +795,8 @@ over; if the library was entered differently in different places, TagStudio show
 folders”** to decide (nothing is silently dropped). Concept (German): [docs/KONZEPT-ORDNER.md](KONZEPT-ORDNER.md).
 TagStudio only backs up tags – back up the music itself to another drive as well. All storage locations at a glance
 (German): [docs/KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md).
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/cloud-dark.png"><img alt="Settings › Cloud: mirror and backup" src="screenshots/cloud-light.png"></picture>
 
 **Profiles:** under Settings › Profiles another profile can be created – an independent TagStudio instance with its
 own settings and data (under `~/TagStudio-Profile/<name>/`). An empty profile starts like a fresh installation with the

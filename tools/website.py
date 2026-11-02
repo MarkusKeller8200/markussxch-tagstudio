@@ -248,6 +248,7 @@ def manual(md_path: str, lang: str) -> str:
     md = markdown.Markdown(extensions=["tables", "fenced_code", "sane_lists", "toc"],
                            extension_configs={"toc": {"slugify": slugify_unicode, "toc_depth": "2-3"}})
     body = md.convert(text)
+    body = body.replace('="screenshots/', '="img/')            # #445: Bilder im Handbuch liegen auf der Webseite in img/
     # Abschnitte je H2 für die Suche
     parts = re.split(r"(?=<h2 )", body)
     body = parts[0] + "".join(f'<section data-s="{i}">{p}</section>' for i, p in enumerate(parts[1:], 1))

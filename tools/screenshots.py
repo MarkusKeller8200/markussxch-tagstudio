@@ -25,7 +25,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "docs", "screenshots")
 VIEW = {"width": 1600, "height": 900}          # Fenster wie bisher …
 SCALE = 1.6                                     # … 1,6-fach gerendert → 2560 × 1440 (#439)
-SITE = ("tagger", "discover", "ideas", "carts", "purchases", "prep", "compare", "djset", "mixes", "plugins")   # ins Repo
+SITE = ("tagger", "discover", "ideas", "carts", "purchases", "prep", "compare", "djset", "mixes", "plugins",
+        "fixer", "playlists", "cloud")   # ins Repo (Startseite und Handbuch)
 sys.path.insert(0, ROOT)
 
 # Erfundene Titel: Künstler, Titel, Mix, BPM, Tonart (Camelot), Genre, Label, Jahr, Ton (Hz)
@@ -487,7 +488,7 @@ def main() -> int:
 
 
 def site_copies(hd):
-    """Motive der Startseite verkleinert (1600 × 900) nach docs/screenshots – die 2560er bleiben ausserhalb des Repos."""
+    """Motive für Startseite und Handbuch verkleinert (1600 × 900) nach docs/screenshots – die 2560er bleiben ausserhalb des Repos."""
     from PIL import Image
     for name in SITE:
         for theme in ("light", "dark"):

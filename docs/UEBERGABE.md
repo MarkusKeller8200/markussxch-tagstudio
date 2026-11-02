@@ -24,6 +24,9 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - Beim Fotografieren gefundene Fehler (Meilenstein #33 „4.15.1 – Bugfixes“): #442 Vorschau-Kopfzeile im Warenkorb
   verschoben (Klasse `head` → `pv-head`, behoben), #443 Cover-Angabe im Tagger überdeckt Länge/Bewertung (behoben),
   #444 Player-Leiste überdeckt bei 1600 px Breite Rückgängig/Wiederholen (`_1 bereit`, nicht umgesetzt).
+- 23:55 Wunsch User „Handbuch ebenfalls aktualisieren“ → #445 (Meilenstein #29, `_3 Beta-Test`): Bilder in 13
+  Abschnitten von HANDBUCH.md/.en.md (`<picture>` mit `screenshots/…`, Webseite schreibt auf `img/` um), neue
+  Repo-Bilder fixer/playlists/cloud (SITE in `tools/screenshots.py`), Überblick und Ausblick auf Stand 4.15.0.
 
 ## Release 4.15.0 (01.11.2026, 23:50)
 

@@ -11,6 +11,10 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 - **Screenshots (#439):** `tools/screenshots.py` erzeugt alle Bilder in 2560 × 1440 (hell und dunkel) mit erfundener
   Demo-Bibliothek – zusätzlich Ausschnitte (Assistent, Trackliste, Camelot-Rad, Player) sowie Titel- und Schlussbild
   für Videos; neue Bilder für Entdecken, Ideen, Warenkorb, Vorbereiten und Mixe.
+- **Startseite und Webseite (#440):** Arbeitsablauf „Entdecken → … → Mixe“, neue Kacheln, „Neu in den letzten
+  Versionen“, Bilder in Ablauf-Reihenfolge; veralteter Hinweis auf die Windows-Signatur entfernt.
+- **Handbuch (#445):** Bilder in den Abschnitten (hell und dunkel, auch auf der Webseite), „Funktionen im Überblick“ und
+  „Ausblick“ auf Stand 4.15.0.
 
 ### Behoben
 

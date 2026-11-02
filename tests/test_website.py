@@ -51,6 +51,9 @@ class TestBuild(unittest.TestCase):
             hb = open(os.path.join(out, "handbuch.html"), encoding="utf-8").read()
             self.assertGreater(hb.count('<section data-s="'), 8)                       # Abschnitte je H2 für die Suche
             self.assertIn('id="installation"', hb)
+            self.assertIn('srcset="img/carts-dark.png"', hb)                         # #445: Bilder im Handbuch
+            self.assertNotIn('="screenshots/', hb)
+            self.assertTrue(os.path.exists(os.path.join(out, "img", "cloud-light.png")))
             self.assertIn('id="q"', hb)
             self.assertNotIn("](", hb.split("<article>")[1][:2000])                     # Markdown-Links umgewandelt
             self.assertTrue(os.path.isfile(os.path.join(out, "img", "tagger-dark.png")))

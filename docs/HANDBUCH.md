@@ -2,11 +2,18 @@
 
 Die vollständige Anleitung zu allen Funktionen. Kurzüberblick, Bilder und Download: [Startseite](../README.md) ·
 **English:** [HANDBUCH.en.md](HANDBUCH.en.md)
+Bilder mit erfundenen Beispieltiteln (Oberfläche Deutsch).
 
 > Bis Version 2.8 hiess das Programm „MP3 Tag Compare“. Einstellungen und Sicherungen von damals werden automatisch übernommen.
 
 ## Funktionen im Überblick
 
+Vom Fund bis ins DJ-Set: **Entdecken → Ideen → Warenkorb → Einkäufe → Vorbereiten → Taggen → DJ-Set → Mixe.**
+
+- **Entdecken:** neue Veröffentlichungen gefolgter Künstler und Labels (Deezer, Beatport, optional Spotify und
+  SonoVault) mit Vorhören; Treffer als Idee merken.
+- **Vorbereiten:** neue Titel vom Eingangsordner über frei zusammenstellbare Stufen (Tag-Rezept, externes Programm,
+  Plugin) in die Bibliothek – jede Stufe auf einer Kopie.
 - **Tagger:** viele Dateien gemeinsam bearbeiten, Cover, Tags aus Dateiname, Umbenennen, Spurnummern,
   Gross-/Kleinschreibung, Suchen & Ersetzen, Export nach Excel/CSV.
 - **Editoren für jedes Feld:** mehrzeiliger Feld-Editor, Mehrfachwerte als Einzelwerte, JSON als Baum,
@@ -17,10 +24,10 @@ Die vollständige Anleitung zu allen Funktionen. Kurzüberblick, Bilder und Down
   sortier- und filterbar (`energy>=70`); Dateien wahlweise in 0–10 (Lexicon).
 - **DJ-Set:** Reihenfolge nach Tonart (Camelot), BPM und Energie optimieren, jeden Übergang bewerten, per Ziehen
   umsortieren und sperren, Weg durch das Camelot-Rad und Energiekurve; Export als M3U8, Rekordbox-XML und CSV.
-- **Ideen:** Wunschlisten mit Titeln, die du später kaufen willst – aus „Entdecken“, von Hand oder aus Text; Status
-  Idee → Kaufen → Gekauft → In Bibliothek, Notiz, Vorhören, als Beatport-Playlist (nur auf Klick).
+- **Ideen:** Wunschlisten mit Titeln, die du später kaufen willst – aus „Entdecken“, von Hand, aus Text oder aus
+  Spotify; Status Idee → Kaufen → Gekauft → In Bibliothek, Notiz, Vorhören, als Beatport- oder Spotify-Playlist (nur auf Klick).
 - **Warenkorb:** alles, was du kaufen willst, in Warenkörben sammeln – aus einer kopierten Trackliste (z. B.
-  1001Tracklists), aus den Ideen oder von Hand; bereits gekaufte Titel erkennen und herausnehmen, die Einkaufsliste als
+  1001Tracklists, MixID), per Link (Beatport, Spotify, SoundCloud), aus den Ideen oder von Hand; bereits gekaufte Titel erkennen und herausnehmen, die Einkaufsliste als
   Beatport-Playlist senden (nur auf Klick); Körbe bleiben als Historik „Offen“/„Gekauft“.
 - **Playlists:** Titel aus Tagger und DJ-Set in Playlists mit Ordnern sammeln; jede Playlist liegt zusätzlich als
   M3U8 im Playlist-Ordner (für Engine DJ, VirtualDJ & Co.); Archivieren statt Löschen.
@@ -37,10 +44,16 @@ Die vollständige Anleitung zu allen Funktionen. Kurzüberblick, Bilder und Down
   und einzeln zurücknehmen; Schutz vor dem Überschreiben fremder Änderungen.
 - **Herkunft der Tags:** Kennzeichen, welche Anwendung ein Feld geschrieben hat; Felder einer Anwendung filtern
   oder entfernen.
-- **Plugins:** Stems (Gesang, Schlagzeug, Bass … trennen – im Hintergrund, Spuren aufklappbar unter dem Titel) und
-  Beatport (Metadaten mit eigenem Login, Einkäufe abgleichen und fehlende herunterladen), eigene Plugins möglich; Filter nach Kategorie (Online-API, Shop-API, Cloud-API …).
+- **Einkäufe:** Beatport-Käufe mit der Bibliothek abgleichen (gekauft, im Eingang, in der Bibliothek, fehlt) und
+  fehlende herunterladen.
+- **Cloud:** Bibliotheken in OneDrive, Google Drive oder Dropbox (Nur-online-Dateien werden übersprungen), **Spiegel
+  der Bibliothek** als Einweg-Kopie in einen Cloud-Ordner und **Sicherung der Programmdaten** (ohne Zugangsdaten).
+- **Plugins:** Stems (Gesang, Schlagzeug, Bass … trennen), Beatport, Spotify, SoundCloud, Discogs, MusicBrainz,
+  SonoVault, Lexicon, Lautheit, Mix analysieren, OneDrive/Google Drive/Dropbox …; jedes einzeln aktualisierbar,
+  eigene Plugins möglich; Filter nach Kategorie (Online-API, Shop-API, Cloud-API …).
 - **Einstellungen** an einem Ort – mit Vorgaben für den Start –, exportieren/importieren (z. B. Windows ↔ Mac) und
-  zurücksetzen; Updates wahlweise nur offizielle oder auch Beta-Versionen, Versionshinweise direkt in der App.
+  zurücksetzen; Updates wahlweise nur offizielle oder auch Beta-Versionen, Hinweis auf neue Versionen (beim Start und alle 15
+  Minuten, abschaltbar), Versionshinweise direkt in der App.
 - **Sprachen:** Deutsch, Englisch und Zürichdeutsch; eigene Texte exportieren, anpassen und wieder
   importieren (Einstellungen › Darstellung › Sprache).
 
@@ -109,6 +122,8 @@ zusammen gespeichert (Strg/Cmd+S) und lassen sich gemeinsam rückgängig machen.
 Das App-Fenster öffnet in der Grösse und Position vom letzten Mal (auch maximiert).
 
 ### Tagger
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/tagger-dark.png"><img alt="Tagger: Liste, Cover und Editor" src="screenshots/tagger-light.png"></picture>
 
 - **Schnell wieder da:** ein schon eingelesener Ordner erscheint sofort aus dem Listen-Cache; danach prüft TagStudio
   im Hintergrund jeden Titel über einen Hash seiner Tags und liest Geändertes neu (Stand in der Statuszeile). Beim
@@ -207,6 +222,10 @@ Lexicon). Angezeigt und eingegeben wird dann weiterhin 0–100; beim Lesen wird 
 
 ### Vorbereiten und Entdecken
 
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/prep-dark.png"><img alt="Vorbereiten: Stufen vom Eingang bis in die Bibliothek" src="screenshots/prep-light.png"></picture>
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/discover-dark.png"><img alt="Entdecken: neue Veröffentlichungen" src="screenshots/discover-light.png"></picture>
+
 **Workflow:** Neue Titel laufen vom **Eingangsordner** über frei zusammenstellbare Schritte in die **Bibliothek** – jede
 Stufe arbeitet auf einer Kopie, die Rohdaten bleiben unverändert. Schritt-Typen: Tag-Rezept, externes Programm
 (Abschluss an der Herkunft erkennen oder bestätigen), Plugin (z. B. Lautheit, Online-Metadaten – „nur leere Felder
@@ -229,6 +248,8 @@ markiert und erscheinen im Filter „Gekauft“. Titel, die in einer Wunschliste
 beim Leeren erhalten.
 
 ### Ideen
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/ideas-dark.png"><img alt="Ideen: Wunschlisten" src="screenshots/ideas-light.png"></picture>
 
 Die Seite **Ideen** (in der Seitenleiste nach „Entdecken“, die Zahl daneben = zum Kauf vorgemerkte Titel) sammelt Titel,
 die du später kaufen willst, in **Wunschlisten**. Links die Wunschlisten („＋“ legt eine neue an; Rechtsklick:
@@ -266,6 +287,8 @@ die Wunschliste „Gemerkt (Entdecken)“ kopiert; „Entdecken“ selbst bleibt
 keinen Filter „Gemerkt“ mehr (#409) – gemerkte Titel stehen unter „Alle“ (Hinweis „in Ideen“) und auf der Seite „Ideen“.
 
 ### Warenkorb
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/carts-dark.png"><img alt="Warenkorb mit Beatport-Treffern" src="screenshots/carts-light.png"></picture>
 
 Die Seite **Warenkorb** (in der Seitenleiste zwischen „Ideen“ und „Einkäufe“, die Zahl daneben = Titel auf den
 Einkaufslisten offener Körbe) fasst alles zusammen, was gekauft werden soll – damit nichts doppelt gekauft wird. Shop
@@ -318,6 +341,8 @@ Die Warenkörbe liegen in `~/TagStudio/Warenkorb/warenkorb.json` und gehören zu
 
 ### DJ-Set
 
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/djset-dark.png"><img alt="DJ-Set mit Camelot-Rad und Energiekurve" src="screenshots/djset-light.png"></picture>
+
 Ordnet Titel so, dass die Übergänge passen. Seite **DJ-Set** in der Seitenleiste (daneben die Anzahl Titel im Set).
 
 1. **Titel holen:** im Tagger einen Ordner einlesen, dann „+ Markierte aus dem Tagger“ oder „+ Ganzer
@@ -355,6 +380,8 @@ Optionen) oder eine beliebige Playlist ins Set laden. Doppelte Titel einer Playl
 jeder Titel einmal vor.
 
 ### Playlists
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/playlists-dark.png"><img alt="Playlists in Ordnern" src="screenshots/playlists-light.png"></picture>
 
 Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** in der Seitenleiste.
 
@@ -422,6 +449,8 @@ Titel sammeln, ordnen und für DJ-Programme bereitstellen. Seite **Playlists** i
 
 ### Mixe
 
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/mixes-dark.png"><img alt="Mixe: erkannte Tracklist" src="screenshots/mixes-light.png"></picture>
+
 Titel deiner Bibliothek in einer **Mix-Datei** erkennen (DJ-Set, Radiosendung, eigener Mix) – auch mit geändertem
 Tempo (±10 %, mit und ohne Keylock). Seite **Mixe** in der Seitenleiste (nach „Playlists“, die Zahl = gespeicherte
 Analysen). Läuft ganz lokal mit dem Plugin „Mix analysieren“ (eigene Umgebung mit NumPy, SciPy, FFmpeg, etwa 100 MB –
@@ -458,6 +487,8 @@ unter Plugins „Installieren …“); nichts wird hochgeladen oder heruntergela
   als einzelne Hintergrund-Aufträge.
 
 ### Einkäufe
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/purchases-dark.png"><img alt="Einkäufe mit Abgleich" src="screenshots/purchases-light.png"></picture>
 
 Gekaufte Titel aller Stores an einem Ort – vorerst **Beatport** (Anmeldung im Plugin Beatport). Seite **Einkäufe** in der
 Seitenleiste: Tabelle mit Titel, Interpret, Mix, Länge, Tonart, BPM, Katalognummer, Store, Kaufdatum (sofern der Store
@@ -496,6 +527,8 @@ Pfaden bleiben unberührt.
 
 ### Tag-Fixer
 
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/fixer-dark.png"><img alt="Tag-Fixer: Mehrfachwerte vereinheitlichen" src="screenshots/fixer-light.png"></picture>
+
 Mehrfachwerte vereinheitlichen – Bereich (aktuelles Paar, eine Seite, markierte Paare, alle Dateien,
 Tagger-Auswahl), Felder, erkannte Trenner, Ausgabe (Trennzeichen oder ID3v2.4-Mehrfachwerte), laufende Vorschau.
 **Smart Fix** (Umschalter oben: „Mehrfachwerte | Smart Fix“) arbeitet mit Rezepten: mitgelieferte (nur kopierbar)
@@ -513,6 +546,8 @@ alle/keine) – „Anwenden“ führt nur die angehakten aus, in einer Rückgän
 der gewählte Ausgabe-Trenner wird so angezeigt.
 
 ### Vergleich
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/compare-dark.png"><img alt="Vergleich zweier Ordner" src="screenshots/compare-light.png"></picture>
 
 Zwei Ordner oder Dateien nebeneinander: Pfade mit Verlauf, Zuordnung nach Dateiname, Disc + Spurnummer, Titel
 oder Reihenfolge, Unterordner.
@@ -661,6 +696,8 @@ automatische Sicherung ein/aus, Ordner ändern/öffnen.
 
 ### Plugins
 
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/plugins-dark.png"><img alt="Plugins nach Kategorie" src="screenshots/plugins-light.png"></picture>
+
 Seite „Plugins“: Erweiterungen ein-/ausschalten, fehlende Pakete per Knopf installieren; Aktionen erscheinen im
 Tagger unter „Plugins“. Vorschläge von Plugins (z. B. Beatport) erscheinen erst als **Vorschau mit Häkchen**.
 
@@ -801,6 +838,8 @@ Rückfrage gelöscht. „Struktur anlegen …“ legt fehlende Ordner an. Beim e
 **„Diese Ordner haben wir gefunden“** zur Entscheidung (nichts wird still verworfen). Konzept:
 [docs/KONZEPT-ORDNER.md](KONZEPT-ORDNER.md). TagStudio sichert nur Tags – die Musik selbst zusätzlich auf ein
 anderes Laufwerk sichern. Alle Ablageorte im Überblick: [docs/KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md).
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/cloud-dark.png"><img alt="Einstellungen › Cloud: Spiegel und Sicherung" src="screenshots/cloud-light.png"></picture>
 
 **Profile:** Unter Einstellungen › Profile lässt sich ein weiteres Profil anlegen – eine unabhängige TagStudio-Instanz
 mit eigenen Einstellungen und Daten (unter `~/TagStudio-Profile/<Name>/`). Ein leeres Profil startet wie eine frische
@@ -1006,26 +1045,24 @@ Zweigen (`feature/…`) und werden nach `main` übernommen, wenn sie fertig sind
 
 ## Ausblick
 
-Zuletzt erschienen: **4.3.0 – Tracks vorbereiten, Entdecken, Hilfe** (Seite „Vorbereiten“ mit Workflow vom
-Eingangsordner bis in die Bibliothek, Quellen, Schutzregel; Entdecken mit Vorhören und Merkliste; Tag-Rezepte;
-ID3v1 schreiben; alle ID3-Frames; Hilfe mit Tag-Übersicht, Bibliotheks-Scan und Tastenkombinationen; Sicherungen im
-Snapshot-Speicher; Plugin Lautheit). Davor **4.2.0 – Player, Tagger-Komfort, Importer & Playlist** und
-**4.1.0 – Online-Metadaten & App**.
+Zuletzt erschienen: **4.15.0 – Warenkorb** (Trackliste einfügen, Assistent, bereits gekaufte erkennen, Einkaufsliste
+an Beatport senden). Davor **4.14.0 – Spotify, Cloud & Vertrauen** (Spiegel und Sicherung in der Cloud, Spotify für
+Entdecken und Ideen, Update-Hinweis, Prüfsummen) und **4.13.0 – Ideen & Mixe** (Wunschlisten, Mix analysieren, macOS
+beglaubigt). Alle Änderungen im [CHANGELOG](../CHANGELOG.md).
 
-Geplant (Details in den [Milestones](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
+Geplant bzw. in Prüfung (Details in den [Meilensteinen](https://github.com/MarkusKeller8200/markussxch-tagstudio/milestones)):
 
-- **WAV-Unterstützung** (Konzept, [docs/KONZEPT-WAV.md](KONZEPT-WAV.md)) mit Testroutine `tools/wavcheck.py`
-  (Aufbau, LIST/INFO, ID3-Chunk; Schreibtest an einer Kopie).
-- **Mehrsprachigkeit** ([docs/KONZEPT-MEHRSPRACHIG.md](KONZEPT-MEHRSPRACHIG.md)): Englisch und Zürichdeutsch
-  sind im Developer Release für 4.7.0 umgesetzt; offen sind Deutsch (Deutschland) und Einreichen eigener Texte.
-- **Profile und Einrichtungsassistent** ([docs/KONZEPT-EINRICHTUNG.md](KONZEPT-EINRICHTUNG.md)): zweite,
-  unabhängige TagStudio-Instanz mit getrennten Einstellungen; geführte Einrichtung für neue Benutzer.
-- **Später:** Beatgrid und Beatmatching im Player, Plugin-Ideen (Liedtexte,
-  Duplikate, Qualitätsprüfung, Import aus Rekordbox/Traktor/Serato), Analyse-Modelle, signierte
-  Installer, Datenbank-Modul für die Bibliothek.
+- **Weitere Dateiformate:** FLAC, M4A (AAC/ALAC), AIFF, OGG/Opus und WAV ([docs/KONZEPT-WAV.md](KONZEPT-WAV.md)) –
+  mit einer gemeinsamen Zwischenschicht für Tagger, Vergleich und Plugins.
+- **Warenkorb:** weitere Shops (iTunes Store, Traxsource, Bandcamp …).
+- **Mixe:** „Meine Titel in Mixen“ als Spalte und Smartlist-Regel, unsichere Online-Treffer nachprüfen, weitere
+  Erkennungsdienste (AudD, ACRCloud) als Plugins.
+- **Audio-Analyse:** BPM, Tonart und Energie selbst ermitteln (Plugin).
+- **Profile und Einrichtungsassistent** ([docs/KONZEPT-EINRICHTUNG.md](KONZEPT-EINRICHTUNG.md)).
+- **Später:** Web-Player für den Spiegel, eigener lokaler Metadaten-Katalog, Beatgrid im Player, weitere Plugin-Ideen.
 
 Verworfen: Umstieg auf Qt (PySide6) – bringt gegenüber der neuen Oberfläche keinen Vorteil; Intel-Mac-Build (kein
-Bedarf).
+Bedarf); Windows-Signatur über die SignPath Foundation (abgelehnt).
 
 ## Klassische Oberfläche (eingefroren)
 
