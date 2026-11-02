@@ -4,6 +4,14 @@ Stand: **2026-11-01 (23:50): v4.15.0 final veröffentlicht** (Warenkorb, Meilens
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
+## Webseite und YouTube-Teaser (02.11.2026, 23:01–23:04)
+
+- Wunsch User: Startseite auf Stand 4.15.0, Material für einen YouTube-Teaser, vor allem gute Screenshots.
+- Entscheide 23:04: Oberfläche **Deutsch**, **hell und dunkel**, **2560 × 1440**, Bild oben auf der Webseite **Tagger**.
+- Issues im Meilenstein #29 „GitHub & Webseite“: #439 Screenshots (15 Motive + Ausschnitte, Originale als ZIP, im Repo
+  verkleinert), #440 README/Webseite (Kacheln, Bilder, „Neu in 4.13–4.15“, SignPath-Text korrigieren, Vorschaubild),
+  #441 Video-Material (Ablauf, Bildliste, Titel-/Schlussbild). **Noch nicht begonnen** – Start auf Wort des Users.
+
 ## Release 4.15.0 (01.11.2026, 23:50)
 
 - **Freigabe User 23:19** („Wenn alles erledigt ist dann 4.15.0 schliessen und eine Version erstellen“), #435 als letztes
