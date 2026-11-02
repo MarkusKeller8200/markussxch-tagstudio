@@ -2087,6 +2087,7 @@ class UiTest(unittest.TestCase):
         pg.click("#mBtns .primary")
         pg.wait_for_selector("#modal:not([hidden]) .cart-pv")
         self.assertFalse(pg.is_checked('#mBody [data-pv="0"]'))                        # Titelzeile des Mixes ausmarkiert
+        self.assertEqual(pg.evaluate("getComputedStyle(document.querySelector('#mBody tr.pv-head')).display"), "table-row")   # #442
         self.assertIn("vermutlich Titel des Mixes", pg.inner_text("#mBody"))
         self.assertIn("(3)", pg.inner_text("#mBtns .primary"))
         pg.click("#mBtns .primary")

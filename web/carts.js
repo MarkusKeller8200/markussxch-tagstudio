@@ -172,7 +172,7 @@ async function cartsArchive(c) {
 /** Liste mit Häkchen; rows: [{artist, title, mix, on, why, extra}] → Tabelle; liefert HTML */
 function cartsPvTable(rows, extraHead = "") {
   return `<div class="cart-pv"><table><thead><tr><th><input type="checkbox" data-pvall checked aria-label="Alle"></th><th>Künstler</th><th>Titel</th>${extraHead ? `<th>${extraHead}</th>` : ""}</tr></thead><tbody>
-    ${rows.map((r, i) => `<tr class="${r.on ? "" : "head"}"><td><input type="checkbox" data-pv="${i}" ${r.on ? "checked" : ""} aria-label="Übernehmen"></td>
+    ${rows.map((r, i) => `<tr class="${r.on ? "" : "pv-head"}"><td><input type="checkbox" data-pv="${i}" ${r.on ? "checked" : ""} aria-label="Übernehmen"></td>
       <td translate="no">${esc(r.artist || "")}</td><td translate="no"><b>${esc(r.title || "")}</b>${r.mix ? ` <span class="muted">(${esc(r.mix)})</span>` : ""}${r.why ? `<div class="why">${esc(r.why)}</div>` : ""}</td>${extraHead ? `<td class="sm">${r.extra || ""}</td>` : ""}</tr>`).join("")}</tbody></table></div>`;
 }
 
