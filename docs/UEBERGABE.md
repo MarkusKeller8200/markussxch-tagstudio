@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-11-01 (23:50): v4.15.0 final veröffentlicht** (Warenkorb, Meilenstein #32 mit 12 Issues geschlossen). Nächstes Release noch ohne Meilenstein und Umfang – siehe „Release 4.15.0“.
+Stand: **2026-11-02 (23:45): Webseite/README auf 4.15 und Screenshots 2560 × 1440 im Beta-Test** (#439–#441); Bugfixes #442/#443 im Beta-Test, #444 offen (Meilenstein #33 „4.15.1 – Bugfixes“). Letztes Release v4.15.0.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -10,7 +10,20 @@ ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Üb
 - Entscheide 23:04: Oberfläche **Deutsch**, **hell und dunkel**, **2560 × 1440**, Bild oben auf der Webseite **Tagger**.
 - Issues im Meilenstein #29 „GitHub & Webseite“: #439 Screenshots (15 Motive + Ausschnitte, Originale als ZIP, im Repo
   verkleinert), #440 README/Webseite (Kacheln, Bilder, „Neu in 4.13–4.15“, SignPath-Text korrigieren, Vorschaubild),
-  #441 Video-Material (Ablauf, Bildliste, Titel-/Schlussbild). **Noch nicht begonnen** – Start auf Wort des Users.
+  #441 Video-Material (Ablauf, Bildliste, Titel-/Schlussbild). Start 23:05 („du kannst loslegen“).
+- Umgesetzt (02.11., bis 23:45), alle `_3 Beta-Test`:
+  - #439 `tools/screenshots.py` neu: Demo-Bibliothek mit erfundenen Titeln/Covern, 15 Motive je hell/dunkel in
+    2560 × 1440 (Viewport 1600 × 900, Faktor 1.6, `de-CH`), Ausschnitte (Assistent, Vorschau-Trackliste, Camelot-Rad,
+    Player-Wellenform), `video/titelbild-youtube.png` (1280 × 720) und `video/schlussbild.png`. Repo-Kopien in
+    `docs/screenshots/` (1600 × 900, 256 Farben, 3 MB) und `docs/social-preview.png`. HD-ZIP an den User geschickt
+    (nicht im Repo). Vorschaubild in den GitHub-Einstellungen lädt der User selbst hoch.
+  - #440 README.md/README.en.md und `tools/website.py`: Arbeitsablauf „Entdecken → … → Mixe“, neue Kacheln (Entdecken &
+    Ideen, Warenkorb & Einkäufe, Mixe, Cloud), „Neu in den letzten Versionen“ (4.13–4.15), 8 Bilder in Ablauf-Reihenfolge,
+    Tagger oben; SignPath-Text entfernt (abgelehnt, #376) → „Installer ist nicht signiert“. Test `test_website` angepasst.
+  - #441 `Bildliste-Teaser.md` (im ZIP): 14 Szenen, ca. 75 s, Text-Einblendungen, Beschreibungstext; nur lizenzfreie Musik.
+- Beim Fotografieren gefundene Fehler (Meilenstein #33 „4.15.1 – Bugfixes“): #442 Vorschau-Kopfzeile im Warenkorb
+  verschoben (Klasse `head` → `pv-head`, behoben), #443 Cover-Angabe im Tagger überdeckt Länge/Bewertung (behoben),
+  #444 Player-Leiste überdeckt bei 1600 px Breite Rückgängig/Wiederholen (`_1 bereit`, nicht umgesetzt).
 
 ## Release 4.15.0 (01.11.2026, 23:50)
 

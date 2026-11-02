@@ -6,6 +6,17 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Screenshots (#439):** `tools/screenshots.py` erzeugt alle Bilder in 2560 × 1440 (hell und dunkel) mit erfundener
+  Demo-Bibliothek – zusätzlich Ausschnitte (Assistent, Trackliste, Camelot-Rad, Player) sowie Titel- und Schlussbild
+  für Videos; neue Bilder für Entdecken, Ideen, Warenkorb, Vorbereiten und Mixe.
+
+### Behoben
+
+- **Warenkorb (#442):** In der Vorschau „Liste einfügen“ war die ausgegraute Titelzeile (Mix-Titel) verschoben.
+- **Tagger (#443):** Die Cover-Angabe unter dem Bild überdeckte bei langen Texten Länge und Bewertung.
+
 ## [4.15.0] – 2026-11-01
 
 ### Neu

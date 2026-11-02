@@ -1,6 +1,10 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-11-01 (23:50): **v4.15.0 final veröffentlicht** (Release `v4.15.0`, Windows + macOS beglaubigt, 27 Dateien,
+> Stand 2026-11-02 (23:45): **Webseite/README auf Stand 4.15** und neue Screenshots 2560 × 1440 (hell/dunkel) im
+> Beta-Test (#439 Screenshots, #440 README/Webseite, #441 Teaser-Material; Meilenstein #29). Bugfixes #442/#443 im
+> Beta-Test, #444 offen (Meilenstein #33 „4.15.1 – Bugfixes“).
+>
+> Davor 2026-11-01 (23:50): **v4.15.0 final veröffentlicht** (Release `v4.15.0`, Windows + macOS beglaubigt, 27 Dateien,
 > VirusTotal 75/75 unauffällig); Meilenstein #32 „4.15.0 – Warenkorb“ mit 12 Issues geschlossen. Nächstes Release offen.
 >
 > Davor 2026-11-01 (23:19): Meilenstein #32 bis auf #435 getestet und geschlossen (11 von 12); Release 4.15.0 freigegeben,

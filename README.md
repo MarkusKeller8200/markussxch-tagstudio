@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>Der Werkzeugkasten für die MP3-Bibliothek von DJs</b><br>
-  Taggen, vergleichen, aufräumen, Einkäufe abgleichen und Sets planen – für Windows und macOS.
+  Entdecken, einkaufen, taggen, vergleichen und Sets planen – für Windows und macOS.
 </p>
 
 <p align="center">
@@ -39,26 +39,48 @@
 
 ## Was TagStudio kann
 
+Vom Fund bis ins DJ-Set: **Entdecken → Ideen → Warenkorb → Einkäufe → Vorbereiten → Taggen → DJ-Set → Mixe.**
+
 | | | |
 |---|---|---|
-| 🏷️ **Tagger**<br>Viele Dateien gemeinsam bearbeiten, Cover, Tags aus dem Dateinamen, Umbenennen, Suchen & Ersetzen, Export nach Excel/CSV. | ⚖️ **Vergleich**<br>Zwei Ordner oder Dateien Feld für Feld – zeichengenau markiert, Werte per Pfeil übernehmen. | 🧹 **Tag-Fixer**<br>Mehrfachwerte (`;` `/` `feat.` …) vereinheitlichen, Smart-Fix-Rezepte, Ausnahmen je Feld. |
-| 🛒 **Warenkorb & Einkäufe**<br>Titel zum Kaufen sammeln (z. B. aus 1001Tracklists), bereits gekaufte erkennen, Einkaufsliste an Beatport senden; Käufe mit der Bibliothek abgleichen, fehlende laden. | 🎛️ **DJ-Set**<br>Reihenfolge nach Tonart (Camelot), BPM und Energie optimieren – Export als M3U8, Rekordbox-XML, CSV. | 📂 **Playlists**<br>Titel sammeln, in Ordnern ordnen, als M3U8 für Engine DJ, VirtualDJ & Co. |
-| 🎧 **Vorschau-Player**<br>Wellenform, Cue-Marken (Serato, Mixed In Key), Überblenden mit Tempo-Angleichung, Bewertung. | 🛡️ **Sicher speichern**<br>Sicherung vor jedem Speichern, Rückgängig über alle Dateien, Snapshots und Änderungsjournal. | 🧩 **Plugins**<br>Stems, Mix analysieren (Titel in DJ-Mixes erkennen), Beatport, Discogs, MusicBrainz, Lexicon, Cloud-Abgleich (OneDrive, Google Drive, Dropbox) … |
+| 🔎 **Entdecken & Ideen**<br>Neue Veröffentlichungen gefolgter Künstler und Labels (Beatport, Spotify …), Ideen in Wunschlisten sammeln. | 🛒 **Warenkorb & Einkäufe**<br>Titel zum Kaufen sammeln (z. B. aus 1001Tracklists oder MixID), bereits gekaufte erkennen, Einkaufsliste an Beatport senden; Käufe mit der Bibliothek abgleichen, fehlende laden. | 🏷️ **Tagger**<br>Viele Dateien gemeinsam bearbeiten, Cover, Tags aus dem Dateinamen, Umbenennen, Suchen & Ersetzen, Export nach Excel/CSV. |
+| ⚖️ **Vergleich**<br>Zwei Ordner oder Dateien Feld für Feld – zeichengenau markiert, Werte per Pfeil übernehmen. | 🧹 **Tag-Fixer**<br>Mehrfachwerte (`;` `/` `feat.` …) vereinheitlichen, Smart-Fix-Rezepte, Ausnahmen je Feld. | 🎛️ **DJ-Set**<br>Reihenfolge nach Tonart (Camelot), BPM und Energie optimieren – Export als M3U8, Rekordbox-XML, CSV. |
+| 🎚️ **Mixe**<br>Titel der eigenen Bibliothek in DJ-Mixes erkennen, Lücken aus Tracklisten füllen, Mix und Tracks verknüpfen. | 📂 **Playlists**<br>Titel sammeln, in Ordnern ordnen, als M3U8 für Engine DJ, VirtualDJ & Co. | 🎧 **Vorschau-Player**<br>Wellenform, Cue-Marken (Serato, Mixed In Key), Überblenden mit Tempo-Angleichung, Bewertung. |
+| ☁️ **Cloud: Spiegel & Sicherung**<br>Musik als Einweg-Kopie in OneDrive, Google Drive oder Dropbox; Programmdaten sichern. | 🛡️ **Sicher speichern**<br>Sicherung vor jedem Speichern, Rückgängig über alle Dateien, Snapshots und Änderungsjournal. | 🧩 **Plugins**<br>Stems, Beatport, Spotify, Discogs, MusicBrainz, SonoVault, Lexicon … – nach Kategorie, einzeln aktualisierbar. |
 
 Dazu: Camelot-Rad und Tonart-Schreibweisen, Audio-Merkmale (Energy, Danceability …) als Spalten, Herkunft der Tags,
-„Entdecken“ neuer Veröffentlichungen mit Wunschlisten („Ideen“), Einstellungen an einem Ort, Deutsch, Englisch und Zürichdeutsch.
+Einstellungen an einem Ort, Update-Hinweis, Deutsch, Englisch und Zürichdeutsch.
 Alles im Detail im **[Handbuch](docs/HANDBUCH.md)**.
+
+## Neu in den letzten Versionen
+
+- **4.15 – Warenkorb:** Trackliste einfügen (1001Tracklists, MixID …) oder aus den Ideen übernehmen, Assistent mit
+  Vorschau, bereits gekaufte erkennen, Einkaufsliste als Beatport-Playlist senden, Historik „Offen/Gekauft“.
+- **4.14 – Cloud & Spotify:** Spiegel der Bibliothek und Sicherung der Programmdaten in der Cloud, Spotify als Quelle
+  für Entdecken und Ideen, Update-Benachrichtigung, SHA-256-Prüfsummen der Installer.
+- **4.13 – Ideen & Mixe:** Wunschlisten auf der Seite „Ideen“, Titel in DJ-Mixes erkennen („Mix analysieren“,
+  MixID-Tracklisten), macOS-App signiert und von Apple beglaubigt.
+
+Alle Änderungen: [CHANGELOG](CHANGELOG.md).
 
 ## Bilder
 
 <table>
   <tr>
-    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/compare-dark.png"><img alt="Vergleich zweier Ordner" src="docs/screenshots/compare-light.png"></picture><br><b>Vergleich</b> – Unterschiede je Feld, per Pfeil übernehmen</td>
-    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/djset-dark.png"><img alt="DJ-Set mit Camelot-Rad und Energiekurve" src="docs/screenshots/djset-light.png"></picture><br><b>DJ-Set</b> – Weg durch das Camelot-Rad, Energie und BPM</td>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/discover-dark.png"><img alt="Entdecken: neue Veröffentlichungen" src="docs/screenshots/discover-light.png"></picture><br><b>Entdecken</b> – Neues von gefolgten Künstlern und Labels</td>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/ideas-dark.png"><img alt="Ideen: Wunschlisten" src="docs/screenshots/ideas-light.png"></picture><br><b>Ideen</b> – Wunschlisten mit Status „Kaufen“</td>
   </tr>
   <tr>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/carts-dark.png"><img alt="Warenkorb mit Beatport-Treffern" src="docs/screenshots/carts-light.png"></picture><br><b>Warenkorb</b> – bereits gekaufte erkennen, an Beatport senden</td>
     <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/purchases-dark.png"><img alt="Einkäufe mit Abgleich" src="docs/screenshots/purchases-light.png"></picture><br><b>Einkäufe</b> – gekauft, im Eingang, in der Bibliothek, fehlt</td>
-    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/plugins-dark.png"><img alt="Plugins nach Kategorie" src="docs/screenshots/plugins-light.png"></picture><br><b>Plugins</b> – nach Kategorie, einzeln aktualisierbar</td>
+  </tr>
+  <tr>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/prep-dark.png"><img alt="Vorbereiten in Stufen" src="docs/screenshots/prep-light.png"></picture><br><b>Vorbereiten</b> – neue Tracks Schritt für Schritt</td>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/compare-dark.png"><img alt="Vergleich zweier Ordner" src="docs/screenshots/compare-light.png"></picture><br><b>Vergleich</b> – Unterschiede je Feld, per Pfeil übernehmen</td>
+  </tr>
+  <tr>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/djset-dark.png"><img alt="DJ-Set mit Camelot-Rad und Energiekurve" src="docs/screenshots/djset-light.png"></picture><br><b>DJ-Set</b> – Weg durch das Camelot-Rad, Energie und BPM</td>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/mixes-dark.png"><img alt="Mixe: erkannte Tracklist" src="docs/screenshots/mixes-light.png"></picture><br><b>Mixe</b> – Titel in DJ-Mixes erkennen</td>
   </tr>
 </table>
 

@@ -101,25 +101,37 @@ def page(title: str, body: str, active: str, desc: str, lang: str = "de", extra_
 {body}
 <footer>MarKusSXCH TagStudio · <a href="{GH}">GitHub</a> · <a href="{GH}/blob/main/LICENSE">GNU GPL v3</a> ·
 <a href="{GH}/issues">Fehler &amp; Ideen</a> · <a href="datenschutz.html">Datenschutz</a> · Diese Seite setzt keine Cookies und lädt nichts von
-fremden Servern.<br>Windows: Free code signing provided by <a href="https://signpath.io">SignPath.io</a>, certificate by
-<a href="https://signpath.org">SignPath Foundation</a>.</footer>
+fremden Servern.</footer>
 </body></html>
 """
 
 
-TILES = [("🏷️ Tagger", "Viele Dateien gemeinsam bearbeiten, Cover, Tags aus dem Dateinamen, Umbenennen, Export nach Excel/CSV."),
+TILES = [("🔎 Entdecken & Ideen", "Neue Veröffentlichungen gefolgter Künstler und Labels, Ideen in Wunschlisten sammeln."),
+         ("🛒 Warenkorb & Einkäufe", "Trackliste einfügen (1001Tracklists, MixID …), bereits gekaufte erkennen, Einkaufsliste an "
+          "Beatport senden; Käufe mit der Bibliothek abgleichen, fehlende laden."),
+         ("🏷️ Tagger", "Viele Dateien gemeinsam bearbeiten, Cover, Tags aus dem Dateinamen, Umbenennen, Export nach Excel/CSV."),
          ("⚖️ Vergleich", "Zwei Ordner oder Dateien Feld für Feld – zeichengenau markiert, Werte per Pfeil übernehmen."),
          ("🧹 Tag-Fixer", "Mehrfachwerte (; / feat. …) vereinheitlichen, Smart-Fix-Rezepte, Ausnahmen je Feld."),
-         ("🛒 Einkäufe", "Beatport-Käufe mit der Bibliothek abgleichen, fehlende laden, Playlists in Beatport anlegen."),
          ("🎛️ DJ-Set", "Reihenfolge nach Tonart (Camelot), BPM und Energie – Export als M3U8, Rekordbox-XML, CSV."),
+         ("🎚️ Mixe", "Titel der eigenen Bibliothek in DJ-Mixes erkennen, Lücken aus Tracklisten füllen."),
          ("📂 Playlists", "Titel sammeln und ordnen, als M3U8 für Engine DJ, VirtualDJ & Co."),
          ("🎧 Vorschau-Player", "Wellenform, Cue-Marken (Serato, Mixed In Key), Überblenden mit Tempo-Angleichung."),
+         ("☁️ Cloud: Spiegel & Sicherung", "Musik als Einweg-Kopie in OneDrive, Google Drive oder Dropbox; Programmdaten sichern."),
          ("🛡️ Sicher speichern", "Sicherung vor jedem Speichern, Rückgängig über alle Dateien, Snapshots."),
-         ("🧩 Plugins", "Stems, Beatport, Discogs, MusicBrainz, Lexicon, Cloud-Abgleich (OneDrive, Google Drive, Dropbox).")]
-PICS = [("compare", "Vergleich – Unterschiede je Feld, per Pfeil übernehmen"),
-        ("djset", "DJ-Set – Weg durch das Camelot-Rad, Energie und BPM"),
+         ("🧩 Plugins", "Stems, Beatport, Spotify, Discogs, MusicBrainz, SonoVault, Lexicon – nach Kategorie, einzeln aktualisierbar.")]
+PICS = [("discover", "Entdecken – Neues von gefolgten Künstlern und Labels"),
+        ("ideas", "Ideen – Wunschlisten mit Status „Kaufen“"),
+        ("carts", "Warenkorb – bereits gekaufte erkennen, an Beatport senden"),
         ("purchases", "Einkäufe – gekauft, im Eingang, in der Bibliothek, fehlt"),
-        ("plugins", "Plugins – nach Kategorie, einzeln aktualisierbar")]
+        ("prep", "Vorbereiten – neue Tracks Schritt für Schritt"),
+        ("compare", "Vergleich – Unterschiede je Feld, per Pfeil übernehmen"),
+        ("djset", "DJ-Set – Weg durch das Camelot-Rad, Energie und BPM"),
+        ("mixes", "Mixe – Titel in DJ-Mixes erkennen")]
+NEWS = [("4.15 – Warenkorb", "Trackliste einfügen (1001Tracklists, MixID …) oder aus den Ideen übernehmen, Assistent mit Vorschau, "
+         "bereits gekaufte erkennen, Einkaufsliste als Beatport-Playlist senden."),
+        ("4.14 – Cloud & Spotify", "Spiegel der Bibliothek und Sicherung der Programmdaten in der Cloud, Spotify für Entdecken und "
+         "Ideen, Update-Benachrichtigung, Prüfsummen der Installer."),
+        ("4.13 – Ideen & Mixe", "Wunschlisten, Titel in DJ-Mixes erkennen, macOS-App signiert und von Apple beglaubigt.")]
 
 
 def pic(name: str, alt: str) -> str:
@@ -130,10 +142,11 @@ def pic(name: str, alt: str) -> str:
 def landing() -> str:
     tiles = "".join(f'<div class="tile"><b>{html.escape(t)}</b><span>{html.escape(d)}</span></div>' for t, d in TILES)
     pics = "".join(f"<figure>{pic(n, c)}<figcaption>{html.escape(c)}</figcaption></figure>" for n, c in PICS)
+    news = "".join(f'<div class="tile"><b>{html.escape(t)}</b><span>{html.escape(d)}</span></div>' for t, d in NEWS)
     body = f"""<main>
 <section class="hero"><img class="logo" src="img/icon.png" alt="">
 <h1>MarKusSXCH TagStudio</h1>
-<p class="lead">Der Werkzeugkasten für die MP3-Bibliothek von DJs: taggen, vergleichen, aufräumen, Einkäufe abgleichen und
+<p class="lead">Der Werkzeugkasten für die MP3-Bibliothek von DJs: entdecken, einkaufen, taggen, vergleichen und
 Sets planen – für Windows und macOS. Kostenlos und quelloffen.</p>
 <div class="dl"><a class="btn" id="dlWin" href="{GH}/releases/latest">⬇ Download für Windows</a>
 <a class="btn" id="dlMac" href="{GH}/releases/latest">⬇ Download für macOS (Apple-Chip)</a>
@@ -141,14 +154,16 @@ Sets planen – für Windows und macOS. Kostenlos und quelloffen.</p>
 <div class="ver" id="ver">Neueste Version auf GitHub</div>
 <div class="nums" id="nums"></div></section>
 <div class="shot">{pic("tagger", "Tagger: viele Dateien gemeinsam bearbeiten")}</div>
-<h2 class="sec">Was TagStudio kann</h2><div class="grid">{tiles}</div>
+<h2 class="sec">Was TagStudio kann</h2>
+<p class="muted">Vom Fund bis ins DJ-Set: Entdecken → Ideen → Warenkorb → Einkäufe → Vorbereiten → Taggen → DJ-Set → Mixe.</p>
+<div class="grid">{tiles}</div>
+<h2 class="sec">Neu in den letzten Versionen</h2><div class="grid">{news}</div>
+<p class="muted sm">Alle Änderungen: <a href="{GH}/blob/main/CHANGELOG.md">CHANGELOG</a>.</p>
 <h2 class="sec">Bilder</h2><div class="pics">{pics}</div>
 <p class="muted sm">Bilder mit erfundenen Beispieltiteln.</p>
 <h2 class="sec">Installation</h2>
 <div class="grid"><div class="tile"><b>Windows</b><span>Setup herunterladen und ausführen – ohne Administratorrechte.
-Code-Signatur: Free code signing provided by <a href="https://signpath.io">SignPath.io</a>, certificate by
-<a href="https://signpath.org">SignPath Foundation</a> (beantragt). Solange Windows den Herausgeber noch nicht kennt:
-bei „Der Computer wurde durch Windows geschützt“ <i>Weitere Informationen → Trotzdem ausführen</i>.</span></div>
+Der Installer ist nicht signiert: bei „Der Computer wurde durch Windows geschützt“ <i>Weitere Informationen → Trotzdem ausführen</i>.</span></div>
 <div class="tile"><b>macOS (Apple-Chip)</b><span>Disk-Image öffnen, TagStudio auf „Programme“ ziehen und starten. Hinweise
 zum ersten Start stehen in „Zuerst lesen.txt“ im Disk-Image.</span></div>
 <div class="tile"><b>Aus dem Quellcode</b><span>Python 3.12 oder neuer, <code>git clone {GH}.git</code>, dann
@@ -174,7 +189,7 @@ zum ersten Start stehen in „Zuerst lesen.txt“ im Disk-Image.</span></div>
 }})();
 </script>"""
     return page("MarKusSXCH TagStudio – MP3-Werkzeugkasten für DJs", body, "index.html",
-                "Kostenloser Werkzeugkasten für die MP3-Bibliothek von DJs: Tagger, Vergleich, Tag-Fixer, Einkäufe (Beatport), DJ-Set, Playlists – Windows & macOS.")
+                "Kostenloser Werkzeugkasten für die MP3-Bibliothek von DJs: Entdecken, Warenkorb und Einkäufe (Beatport), Tagger, Vergleich, Tag-Fixer, DJ-Set, Mixe – Windows & macOS.")
 
 
 def privacy() -> str:
