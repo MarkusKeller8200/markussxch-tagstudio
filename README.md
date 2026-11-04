@@ -20,6 +20,7 @@
   <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest"><img alt="Download für Windows" src="https://img.shields.io/badge/Download-Windows-1D76DB?style=for-the-badge&logo=windows11&logoColor=white"></a>
   <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest"><img alt="Download für macOS" src="https://img.shields.io/badge/Download-macOS%20(Apple--Chip)-1D76DB?style=for-the-badge&logo=apple&logoColor=white"></a>
   <a href="docs/HANDBUCH.md"><img alt="Handbuch" src="https://img.shields.io/badge/Handbuch-lesen-6E7781?style=for-the-badge&logo=readthedocs&logoColor=white"></a>
+  <a href="https://youtu.be/f7voXQsTzFE"><img alt="Trailer ansehen" src="https://img.shields.io/badge/Trailer-ansehen-CC0000?style=for-the-badge&logo=youtube&logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -36,6 +37,11 @@
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/tagger-dark.png">
   <img alt="Tagger: viele Dateien gemeinsam bearbeiten, Tonart, BPM, Genre auf einen Blick" src="docs/screenshots/tagger-light.png">
 </picture>
+
+<p align="center">
+  <a href="https://youtu.be/f7voXQsTzFE" title="Trailer auf YouTube ansehen (rund 75 Sekunden)"><img alt="Trailer auf YouTube ansehen (rund 75 Sekunden)" src="https://img.youtube.com/vi/f7voXQsTzFE/hqdefault.jpg" width="480"></a><br>
+  <sub>▶ Trailer auf YouTube ansehen (rund 75 Sekunden)</sub>
+</p>
 
 ## Was TagStudio kann
 

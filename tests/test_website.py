@@ -38,6 +38,9 @@ class TestBuild(unittest.TestCase):
             self.assertEqual(pages, ["datenschutz.html", "handbuch.html", "index.html", "manual.html", "statistik.html"])
             idx = open(os.path.join(out, "index.html"), encoding="utf-8").read()
             self.assertNotIn("SignPath", idx)                                      # #440: SignPath abgelehnt (#376)
+            self.assertIn('id="ytBox"', idx)                                       # #457: Trailer, erst auf Klick
+            self.assertNotIn("<iframe", idx.split("<script>")[0])                  # vorher nichts von YouTube
+            self.assertIn("youtube-nocookie.com/embed/" + ts_site.YT, idx)
             self.assertIn("Installer ist nicht signiert", idx)
             for n in ("discover", "ideas", "carts", "purchases", "prep", "djset", "mixes"):   # #440: Bilder im Arbeitsablauf
                 self.assertIn(f'img/{n}-light.png', idx)

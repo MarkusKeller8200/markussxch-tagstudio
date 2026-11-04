@@ -8,6 +8,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Trailer (#457):** YouTube-Trailer auf der GitHub-Startseite (Knopf und Vorschaubild, README de/en) und auf der
+  Webseite (Abschnitt „Trailer“, Video erst nach Klick über youtube-nocookie.com; Datenschutzseite ergänzt).
 - **WAV und AIFF im Tagger (#156, #263, Test):** neue Einstellung „WAV und AIFF“ (Sicherungen und Speichern, Standard
   aus) – Tagger und Vergleich lesen und schreiben dann die Tags im ID3-Chunk von WAV/AIFF/AIFC (gleiche Felder wie MP3).
   Neues Modul `chunktags.py`: nur der ID3-Chunk wird ersetzt, alle anderen Chunks bleiben byte-genau, Audio-Prüfsumme

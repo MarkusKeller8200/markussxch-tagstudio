@@ -20,6 +20,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO = "MarkusKeller8200/markussxch-tagstudio"
+YT = "f7voXQsTzFE"                                   # #457: YouTube-Trailer
 GH = f"https://github.com/{REPO}"
 SITE = "https://markuskeller8200.github.io/markussxch-tagstudio/"
 
@@ -57,6 +58,12 @@ footer{max-width:1180px;margin:0 auto;padding:24px 16px 40px;color:var(--muted);
 .nums{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin:10px 0 0}.nums div{text-align:center}
 .nums b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.nums span{color:var(--muted);font-size:13px}
 h2.sec{font-size:24px;margin:44px 0 14px}
+/* Trailer (#457): erst nach Klick von YouTube laden (youtube-nocookie) */
+.trailer{max-width:860px;margin:30px auto 0}.trailer .yt{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;
+  border:1px solid var(--line);background:#000;cursor:pointer}.trailer .yt img{width:100%;height:100%;object-fit:cover;opacity:.55}
+.trailer .yt button{position:absolute;inset:0;margin:auto;width:84px;height:84px;border-radius:50%;border:0;background:#c00;
+  color:#fff;font-size:34px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.4)}.trailer .yt iframe{width:100%;height:100%;border:0}
+.trailer p{color:var(--muted);font-size:13px;text-align:center;margin:8px 0 0}
 /* Handbuch */
 .doc{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
 .toc{position:sticky;top:76px;max-height:calc(100vh - 96px);overflow:auto;font-size:14px;padding-right:6px}
@@ -154,6 +161,11 @@ Sets planen – für Windows und macOS. Kostenlos und quelloffen.</p>
 <div class="ver" id="ver">Neueste Version auf GitHub</div>
 <div class="nums" id="nums"></div></section>
 <div class="shot">{pic("tagger", "Tagger: viele Dateien gemeinsam bearbeiten")}</div>
+<h2 class="sec" id="trailer">Trailer</h2>
+<div class="trailer"><div class="yt" id="ytBox" role="button" tabindex="0" aria-label="Trailer abspielen (lädt YouTube)">
+<img src="img/tagger-dark.png" alt="" loading="lazy"><button type="button" aria-hidden="true" tabindex="-1">▶</button></div>
+<p>Ein Klick lädt das Video von YouTube (youtube-nocookie.com) – vorher wird nichts von YouTube geladen.
+<a href="https://youtu.be/{YT}">Direkt auf YouTube ansehen</a>.</p></div>
 <h2 class="sec">Was TagStudio kann</h2>
 <p class="muted">Vom Fund bis ins DJ-Set: Entdecken → Ideen → Warenkorb → Einkäufe → Vorbereiten → Taggen → DJ-Set → Mixe.</p>
 <div class="grid">{tiles}</div>
@@ -170,6 +182,16 @@ zum ersten Start stehen in „Zuerst lesen.txt“ im Disk-Image.</span></div>
 <code>start_windows.bat</code> bzw. <code>start_mac.command</code>. Details im <a href="handbuch.html#installation">Handbuch</a>.</span></div></div>
 </main>
 <script>
+(() => {{                                                    // #457: Trailer erst auf Klick einbetten
+  const box = document.getElementById("ytBox");
+  const go = () => {{
+    if (box.querySelector("iframe")) return;
+    box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/{YT}?autoplay=1&rel=0" title="TagStudio Trailer" '
+      + 'allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+  }};
+  box.addEventListener("click", go);
+  box.addEventListener("keydown", (e) => {{ if (e.key === "Enter" || e.key === " ") {{ e.preventDefault(); go(); }} }});
+}})();
 (async () => {{
   const n = (x) => Number(x || 0).toLocaleString("de-CH");
   try {{
@@ -211,7 +233,10 @@ einschaltest und benutzt – und nur mit dem jeweiligen Dienst. Es gelten dessen
 <li><b>Fehler melden</b> öffnet das GitHub-Formular im Browser; abgeschickt wird erst dort, mit deiner eigenen
 GitHub-Anmeldung. Persönliche Angaben (Benutzerordner, E-Mail-Adressen, Schlüssel) werden vorher geschwärzt.</li></ul>
 <h2>Diese Webseite</h2>
-<p>Die Seite liegt auf GitHub Pages, setzt keine Cookies und lädt nichts von fremden Servern. GitHub kann beim Aufruf
+<p>Die Seite liegt auf GitHub Pages, setzt keine Cookies und lädt nichts von fremden Servern. Einzige Ausnahme: Den
+<b>Trailer</b> auf der Startseite lädt die Seite erst, wenn du auf das Vorschaubild klickst – dann von YouTube im
+erweiterten Datenschutzmodus (youtube-nocookie.com); es gelten die
+<a href="https://policies.google.com/privacy">Datenschutzbestimmungen von Google</a>. GitHub kann beim Aufruf
 technische Daten (z. B. IP-Adresse) protokollieren – siehe <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub-Datenschutzerklärung</a>.
 Die Download-Zahlen stammen aus den öffentlichen Zählern von GitHub und enthalten keine Personendaten.</p>
 <h2>Kontakt</h2>
