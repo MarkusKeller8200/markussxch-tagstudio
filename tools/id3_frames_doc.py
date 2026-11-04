@@ -39,11 +39,24 @@ Issue #98.
 - **Verschlüsselte oder komprimierte Frames** werden in derselben Version byte-genau behalten; beim Wechsel der
   ID3-Version können sie nicht neu verpackt werden und entfallen.
 
-**Spalten:** v2.2 = ID in ID3v2.2 · Version = 2.3, 2.4 oder inoffiziell · Anzeige = Text, Bild, lesbare Kurzfassung
+**Dateiformate (#156, #263, 4.16.0)**
+
+| Format | Tags von TagStudio | Zusätzlich gelesen | Hinweise |
+|---|---|---|---|
+| MP3 | ID3v2.3/v2.4 am Dateianfang | ID3v1 am Dateiende (wird auf Wunsch mitgeschrieben) | – |
+| WAV | ID3v2 im Chunk `id3 ` (bzw. `ID3 `) – **alle Frames wie bei MP3** | RIFF `LIST/INFO`, wenn kein ID3-Chunk da ist (nur lesen) | Einstellung „WAV und AIFF“; RF64 (über 4 GB) nur lesen; kein ID3v1 |
+| AIFF / AIFC | ID3v2 im Chunk `ID3 ` – **alle Frames wie bei MP3** | `NAME`, `AUTH`, `(c) `, `ANNO`, wenn kein ID3-Chunk da ist (nur lesen) | Einstellung „WAV und AIFF“; kein ID3v1 |
+
+Beim Speichern von WAV/AIFF ersetzt TagStudio nur den ID3-Chunk; INFO bzw. NAME/AUTH bleiben unverändert. Ob die
+DJ-Programme ein Feld in WAV/AIFF auch lesen, ist je Programm verschieden (Messreihe #446). FLAC, M4A und OGG folgen
+später (#264–#266).
+
+**Spalten:** v2.2 = ID in ID3v2.2 · Version = 2.3, 2.4 oder inoffiziell · MP3 / WAV / AIFF = schreibbar (✔); dahinter
+das entsprechende Feld in ID3v1 bzw. im INFO-/AIFF-Textchunk (nur lesen) · Anzeige = Text, Bild, lesbare Kurzfassung
 oder Grösse + Prüfsumme · Bearbeiten = womit TagStudio das Feld ändern kann · Mp3tag = Feldname in Mp3tag.
 
-| Frame | v2.2 | Version | Bezeichnung | Anzeige | Bearbeiten | Mp3tag |
-|---|---|---|---|---|---|---|
+| Frame | v2.2 | Version | Bezeichnung | MP3 | WAV | AIFF | Anzeige | Bearbeiten | Mp3tag |
+|---|---|---|---|---|---|---|---|---|---|
 """
 
 
@@ -67,11 +80,23 @@ HEAD_EN = """# ID3 fields in TagStudio
 - **Encrypted or compressed frames** are kept byte-exactly in the same version; when the ID3 version changes they
   cannot be repacked and are dropped.
 
-**Columns:** v2.2 = ID in ID3v2.2 · Version = 2.3, 2.4 or unofficial · Display = text, image, readable summary or
+**File formats (#156, #263, 4.16.0)**
+
+| Format | Tags written by TagStudio | Also read | Notes |
+|---|---|---|---|
+| MP3 | ID3v2.3/v2.4 at the start of the file | ID3v1 at the end (written too on request) | – |
+| WAV | ID3v2 in the `id3 ` (or `ID3 `) chunk – **all frames as with MP3** | RIFF `LIST/INFO` if there is no ID3 chunk (read only) | setting “WAV and AIFF”; RF64 (over 4 GB) read only; no ID3v1 |
+| AIFF / AIFC | ID3v2 in the `ID3 ` chunk – **all frames as with MP3** | `NAME`, `AUTH`, `(c) `, `ANNO` if there is no ID3 chunk (read only) | setting “WAV and AIFF”; no ID3v1 |
+
+When saving WAV/AIFF, TagStudio only replaces the ID3 chunk; INFO or NAME/AUTH stay unchanged. Whether DJ programs
+also read a field in WAV/AIFF differs per program (test series #446). FLAC, M4A and OGG follow later (#264–#266).
+
+**Columns:** v2.2 = ID in ID3v2.2 · Version = 2.3, 2.4 or unofficial · MP3 / WAV / AIFF = writable (✔); after it the
+matching field in ID3v1 or in the INFO/AIFF text chunk (read only) · Display = text, image, readable summary or
 size + checksum · Edit = what TagStudio can change the field with · Mp3tag = field name in Mp3tag.
 
-| Frame | v2.2 | Version | Name | Display | Edit | Mp3tag |
-|---|---|---|---|---|---|---|
+| Frame | v2.2 | Version | Name | MP3 | WAV | AIFF | Display | Edit | Mp3tag |
+|---|---|---|---|---|---|---|---|---|---|
 """
 
 
@@ -79,6 +104,28 @@ def version(v: str, lang: str = "de") -> str:
     if lang == "en":
         return {"34": "2.3 + 2.4", "3": "2.3 only", "4": "2.4 only", "x": "unofficial"}[v]
     return {"34": "2.3 + 2.4", "3": "nur 2.3", "4": "nur 2.4", "x": "inoffiziell"}[v]
+
+
+V1 = {"TIT2": "v1", "TPE1": "v1", "TALB": "v1", "TYER": "v1", "TDRC": "v1", "COMM": "v1", "TRCK": "v1", "TCON": "v1"}
+
+
+def _side(table: dict) -> dict:
+    """chunktags-Zuordnung (Chunk-ID → Feldschlüssel) umgedreht: Frame → „INFO-ID, …“."""
+    out: dict = {}
+    for cid, key in table.items():
+        fid = key.split(":")[0]
+        out.setdefault(fid, []).append(f"`{cid.decode('latin-1').strip()}`")
+    if "TDRC" in out:
+        out.setdefault("TYER", out["TDRC"])
+    return {k: ", ".join(v) for k, v in out.items()}
+
+
+def formats(fid: str) -> tuple[str, str, str]:
+    """#156/#263: Spalten MP3, WAV, AIFF – alle Frames schreibbar (ID3v2 bzw. ID3-Chunk), dazu Lese-Gegenstück."""
+    import chunktags
+    wav, aif = _side(chunktags.INFO_MAP), _side(chunktags.AIFF_TEXT)
+    mp3 = "✔ · ID3v1" if fid in V1 else "✔"
+    return mp3, "✔ · INFO " + wav[fid] if fid in wav else "✔", "✔ · " + aif[fid] if fid in aif else "✔"
 
 
 def render(lang: str = "de") -> str:
@@ -94,8 +141,9 @@ def render(lang: str = "de") -> str:
     for fid in sorted(id3frames.SPEC):
         v22, ver, label = id3frames.SPEC[fid]
         c = id3frames.capabilities(fid)
-        rows.append(f"| `{fid}` | {v22 or '–'} | {version(ver, lang)} | {t(label)} | {t(c['show'])} | {t(c['edit'])} | "
-                    f"{FIELD_NAMES.get(fid, '') or '–'} |")
+        m, w, a = formats(fid)
+        rows.append(f"| `{fid}` | {v22 or '–'} | {version(ver, lang)} | {t(label)} | {m} | {w} | {a} | {t(c['show'])} | "
+                    f"{t(c['edit'])} | {FIELD_NAMES.get(fid, '') or '–'} |")
     if lang == "en":
         tail = "\n\n**Only in ID3v2.2 (dropped):** " + ", ".join(f"`{k}` {t(v)}" for k, v in id3frames.V22_DROPPED.items()) + "\n"
         return HEAD_EN + "\n".join(rows) + tail

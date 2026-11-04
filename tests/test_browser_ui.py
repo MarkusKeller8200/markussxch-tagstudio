@@ -1927,6 +1927,9 @@ class UiTest(unittest.TestCase):
         self.assertTrue(pg.locator("#helpDoc table").count() >= 0)
         pg.click('#helpTabs [data-htab="id3"]')
         pg.wait_for_selector("#helpDoc table.help-t")
+        heads = pg.evaluate("[...document.querySelectorAll('#helpDoc table.help-t th')].map(t => t.textContent.trim())")
+        self.assertTrue({"MP3", "WAV", "AIFF"} <= set(heads), heads)            # #156/#263: Spalten je Format
+        self.assertIn("INAM", pg.inner_text("#helpDoc"))
         pg.click('#helpTabs [data-htab="keys"]')                                  # #159
         pg.wait_for_selector("#helpDoc table.help-keys kbd")
         self.assertIn("A–B-Schleife", pg.inner_text("#helpDoc"))
