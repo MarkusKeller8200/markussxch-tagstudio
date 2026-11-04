@@ -71,6 +71,11 @@ Testdateien aus Rekordbox, Serato, Engine DJ, VirtualDJ, Lexicon und Mp3tag mit 
 
 ## 5. Reihenfolge (Vorschlag)
 
+> **Plan 04.11.2026 (nach 4.16.0 WAV/AIFF):** Zuordnung `formatmap.py` (Hilfe › ID3-Felder, #452) → #453 Messreihe
+> FLAC/M4A/OGG → #262 gemeinsame Basis + Einstellung „Formate in Tagger und Vergleich“ → #264 FLAC → #266 OGG (zuerst
+> nur lesen) → #265 M4A (AAC/ALAC) → #454 Player (ALAC über FFmpeg) → #456 Konverter erweitern. Entscheid #455 rohes AAC
+> (Vorschlag: nur lesen, Konverter → M4A ohne Neukodierung). #449 Plugins-Formatangabe parallel.
+
 1. **Stufe 1:** #262 Zwischenschicht + #156 WAV + #263 AIFF (beide ID3 → wenig Neues).
 2. **Stufe 2:** #264 FLAC.
 3. **Stufe 3:** #265 M4A.
