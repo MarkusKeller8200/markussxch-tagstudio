@@ -307,6 +307,19 @@ spaces and combinable with text:</p>
 <p>Names may be abbreviated (<code>ener</code>, <code>dance</code>) or German (Energie, Tanz, Stimmung, Akustik, Sprache …).
 <strong>Scale:</strong> under Settings › Tagger you can set that the values in the files are 0–10 (e.g. from Lexicon). Display and
 input stay 0–100; reading multiplies by 10, writing divides by 10.</p>
+<h4 id="wav-and-aiff-test-4160">WAV and AIFF (test, 4.16.0)</h4>
+<p>Under <strong>Settings › Backups and saving › WAV and AIFF</strong> (off by default) TagStudio also loads WAV and AIFF files
+(<code>.wav</code>, <code>.aif</code>, <code>.aiff</code>, <code>.aifc</code>) in the tagger and the comparison. Their tags live in a separate <strong>ID3 chunk</strong> – with
+the same fields as MP3 (text, custom fields, cover, rating, lyrics, Serato data).</p>
+<ul>
+<li>When saving, TagStudio only replaces the ID3 chunk (or appends one). All other parts of the file – audio, RIFF INFO,
+  <code>bext</code>, cue points, AIFF texts – stay <strong>byte-identical</strong>; the checksum of the audio data is compared before and
+  after, otherwise nothing is saved. Backups and “Restore” work as with MP3.</li>
+<li>If a WAV file only has an INFO block (or an AIFF file only NAME/AUTH), those fields are shown; saving then writes a
+  new ID3 chunk and leaves INFO unchanged.</li>
+<li>WAV files over 4 GB (RF64) and damaged files are not saved. WAV/AIFF have no ID3v1.</li>
+<li>Other areas (prepare, purchases, playlists, snapshots) still work with MP3 only for now.</li>
+</ul>
 <h3 id="prepare-and-discover">Prepare and discover</h3>
 <p><picture><source media="(prefers-color-scheme: dark)" srcset="img/prep-dark.png"><img alt="Prepare: stages from inbox to library" src="img/prep-light.png"></picture></p>
 <p><picture><source media="(prefers-color-scheme: dark)" srcset="img/discover-dark.png"><img alt="Discover: new releases" src="img/discover-light.png"></picture></p>

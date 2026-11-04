@@ -312,6 +312,19 @@ Leerzeichen getrennt und mit Text kombinierbar:</p>
 <p>Namen dürfen abgekürzt (<code>ener</code>, <code>dance</code>) oder deutsch sein (Energie, Tanz, Stimmung, Akustik, Sprache …).
 <strong>Skala:</strong> Unter Einstellungen › Tagger lässt sich einstellen, dass die Werte in den Dateien 0–10 sind (z. B. aus
 Lexicon). Angezeigt und eingegeben wird dann weiterhin 0–100; beim Lesen wird ×10, beim Schreiben ÷10 gerechnet.</p>
+<h4 id="wav-und-aiff-test-4160">WAV und AIFF (Test, 4.16.0)</h4>
+<p>Unter <strong>Einstellungen › Sicherungen und Speichern › WAV und AIFF</strong> (Standard aus) liest TagStudio auch WAV- und
+AIFF-Dateien (<code>.wav</code>, <code>.aif</code>, <code>.aiff</code>, <code>.aifc</code>) in Tagger und Vergleich ein. Die Tags stehen dort in einem eigenen
+<strong>ID3-Chunk</strong> – mit denselben Feldern wie bei MP3 (Text, eigene Felder, Cover, Bewertung, Liedtexte, Serato-Daten).</p>
+<ul>
+<li>Beim Speichern ersetzt TagStudio nur den ID3-Chunk (oder hängt einen an). Alle anderen Teile der Datei – Audio,
+  RIFF-INFO, <code>bext</code>, Cue-Punkte, AIFF-Texte – bleiben <strong>byte-genau</strong> erhalten; vorher und nachher wird die Prüfsumme
+  der Audiodaten verglichen, sonst wird nicht gespeichert. Sicherungen und „Wiederherstellen“ funktionieren wie bei MP3.</li>
+<li>Hat eine WAV-Datei nur einen INFO-Block (bzw. eine AIFF-Datei nur NAME/AUTH), werden diese Felder angezeigt;
+  gespeichert wird dann ein neuer ID3-Chunk, INFO bleibt unverändert.</li>
+<li>Nicht gespeichert werden WAV-Dateien über 4 GB (RF64) und beschädigte Dateien. ID3v1 gibt es bei WAV/AIFF nicht.</li>
+<li>Andere Bereiche (Vorbereiten, Einkäufe, Playlists, Snapshots) arbeiten vorerst weiterhin nur mit MP3.</li>
+</ul>
 <h3 id="vorbereiten-und-entdecken">Vorbereiten und Entdecken</h3>
 <p><picture><source media="(prefers-color-scheme: dark)" srcset="img/prep-dark.png"><img alt="Vorbereiten: Stufen vom Eingang bis in die Bibliothek" src="img/prep-light.png"></picture></p>
 <p><picture><source media="(prefers-color-scheme: dark)" srcset="img/discover-dark.png"><img alt="Entdecken: neue Veröffentlichungen" src="img/discover-light.png"></picture></p>
