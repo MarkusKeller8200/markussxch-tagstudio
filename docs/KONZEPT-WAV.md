@@ -54,6 +54,15 @@ und die Kopie in den DJ-Programmen öffnen (Felder sichtbar? Cues/Beatgrid erhal
 
 ## Umsetzung in Schritten
 
+> **Stand 04.11.2026 (4.16.0, Auftrag User 20:06):** Schritt 1 und 2 für WAV **und AIFF** umgesetzt in
+> `chunktags.py` (`ChunkFile` = Unterklasse von `MP3File`, eigenes `load`/`save`, `read_layout`, `write_tag_bytes`,
+> `audio_hash`). Getrennt vom MP3-Weg: `MP3File(pfad)` liefert für `.wav/.aif/.aiff/.aifc` ein `ChunkFile`; der
+> MP3-Schreiber verweigert WAV/AIFF. Tagger und Vergleich nehmen WAV/AIFF nur mit Einstellung `chunk_formats`
+> (Standard aus; `Session._tag_exts`, `compare.scan(exts=…)`). Kein Listen-Cache für WAV/AIFF. Sicherungen
+> (`backup.py`) speichern das Tag aus dem Chunk (`container` im Eintrag). INFO/NAME/AUTH werden nur gelesen (wenn kein
+> ID3-Chunk), nie geschrieben – Abgleich nach der Messreihe #446. Bestehender Chunk-Name (`id3 `/`ID3 `) bleibt; neu:
+> WAV `id3 `, AIFF `ID3 `. ID3-Version wie bei MP3 (Einstellung). Nächste Schritte: Player #448, Konverter #451.
+
 1. **Lesen:** `MP3File` um einen WAV-Zweig erweitern (Chunk-Liste, ID3-Chunk über den bestehenden Parser, INFO als
    Ersatz, Dauer aus `fmt `/`data`). Tagger, Vergleich, Snapshots und Listen-Cache bekommen WAV-Dateien.
 2. **Schreiben:** ID3-Chunk ersetzen bzw. anhängen (Prototyp `write_id3` aus `wavcheck.py`: alle anderen Chunks

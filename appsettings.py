@@ -27,7 +27,7 @@ GROUPS = [
                                                                        "default_left", "default_right", "default_tagger",
                                                                        "tagger_patterns", "fixer", "fixer_exceptions", "smart_recipes", "smart_out", "smart_current", "unzip_auto", "purch_strict", "recipes", "prep_workflows", "prep_current", "djset_items", "tagger_state")),
     ("trivial", "Unwichtige Felder", ("trivial", "trivial_known")),
-    ("saving", "Speichern und Sicherungen", ("backup_enabled", "backup_dir", "backup_store", "save_version", "save_v1", "stamp_edited", "stamp_added", "wave_in_file")),
+    ("saving", "Speichern und Sicherungen", ("backup_enabled", "backup_dir", "backup_store", "save_version", "save_v1", "stamp_edited", "stamp_added", "wave_in_file", "chunk_formats")),
     ("update", "Updates (Kanal, Benachrichtigung)", ("update_channel", "update_channel_v2", "update_notify")),
     ("player", "Player (Vorschau und externe)", ("player", "player_defaults", "player_window", "players", "player_resume")),
     ("snapshots", "Snapshots (Automatik, Aufbewahrung, Speicherort)", ("snap_daily", "snap_ask", "snap_keep",

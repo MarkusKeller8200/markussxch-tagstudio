@@ -4,6 +4,11 @@
 > Issues: #262 (Grundlage) · #156 (WAV, Detailkonzept [KONZEPT-WAV.md](KONZEPT-WAV.md)) · #263 (AIFF) · #264 (FLAC) ·
 > #265 (M4A) · #266 (OGG/Opus)
 
+> **4.16.0 „Audioformate“ (Meilenstein #34, ab 04.11.2026):** WAV (#156) und AIFF (#263) lesen/schreiben umgesetzt
+> (`chunktags.py`, Details in KONZEPT-WAV „Umsetzung“), Messreihe #446, Player #448, Konverter MP3 ↔ WAV/AIFF #451
+> (neu, Wunsch User – Formatwandlung damit doch Teil der Planung). Die volle Zwischenschicht #262 ist für WAV/AIFF
+> nicht nötig (gleiche ID3-Felder); sie bleibt Grundlage für FLAC/M4A/OGG.
+
 ## 1. Ausgangslage
 
 TagStudio ist um **ID3 in MP3** gebaut: `id3tags.MP3File`, Feldschlüssel wie `TXXX:ENERGY`, `GEOB:Serato Markers2`,

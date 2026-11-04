@@ -43,8 +43,13 @@ class Cancelled(Exception):
     """Einlesen wurde vom Benutzer abgebrochen."""
 
 
-def scan(path: str, recursive: bool = False, cancel=None, on_found=None, stats: dict | None = None) -> list[str]:
-    """Liefert alle MP3-Dateien. cancel: threading.Event (optional), on_found(n): Zwischenstand.
+MP3_EXTS = (".mp3",)
+CHUNK_EXTS = (".wav", ".aif", ".aiff", ".aifc")          # #156/#263: nur mit Einstellung „WAV und AIFF“
+
+
+def scan(path: str, recursive: bool = False, cancel=None, on_found=None, stats: dict | None = None,
+         exts=MP3_EXTS) -> list[str]:
+    """Liefert alle MP3-Dateien (bzw. alle mit den Endungen `exts`, #156). cancel: threading.Event (optional), on_found(n): Zwischenstand.
     stats (dict, optional): erhält je Pfad das stat-Ergebnis aus dem Verzeichniseintrag (#326) – unter Windows ohne
     weiteren Zugriff auf die Datei; das spart beim Listen-Cache das einzelne os.stat je Titel (Netz-/USB-Laufwerke)."""
     if os.path.isfile(path):
@@ -56,7 +61,7 @@ def scan(path: str, recursive: bool = False, cancel=None, on_found=None, stats: 
             raise Cancelled()
 
     def is_mp3(name):
-        return name.lower().endswith(".mp3") and not name.startswith(".")
+        return name.lower().endswith(exts) and not name.startswith(".")
 
     def keep(entry):
         if stats is not None:

@@ -705,7 +705,18 @@ def disk_sig(path: str) -> str:
     return h.hexdigest()
 
 
+CHUNK_EXTS = (".wav", ".aif", ".aiff", ".aifc")     # #156/#263: Tags im ID3-Chunk → chunktags.ChunkFile
+
+
 class MP3File:
+    def __new__(cls, path=None, *args, **kwargs):
+        """#156/#263: `MP3File(pfad)` liefert für WAV/AIFF ein `chunktags.ChunkFile` (gleiche Felder, eigenes Laden und
+        Speichern) – damit nie ein ID3-Kopf vor eine WAV-/AIFF-Datei geschrieben wird. MP3 bleibt unverändert."""
+        if cls is MP3File and path is not None and str(path).lower().endswith(CHUNK_EXTS):
+            import chunktags
+            return object.__new__(chunktags.ChunkFile)
+        return object.__new__(cls)
+
     def __init__(self, path: str):
         self.path = path
         self.load()
@@ -1110,6 +1121,8 @@ class MP3File:
         """Schreibt nur, wenn etwas geändert wurde. Reihenfolge der Frames bleibt erhalten."""
         if not self.is_modified():
             return
+        if self.path.lower().endswith(CHUNK_EXTS):        # #156: WAV/AIFF nie wie MP3 schreiben
+            raise ValueError("WAV-/AIFF-Datei – Tags werden im ID3-Chunk gespeichert, nicht wie bei MP3.")
         if self.tag_damaged:
             raise ValueError("ID3-Tag beschädigt (Grösse passt nicht zur Datei) – nicht gespeichert, damit keine "
                              "Audiodaten verloren gehen.")

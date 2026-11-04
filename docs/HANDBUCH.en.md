@@ -216,6 +216,20 @@ Names may be abbreviated (`ener`, `dance`) or German (Energie, Tanz, Stimmung, A
 **Scale:** under Settings › Tagger you can set that the values in the files are 0–10 (e.g. from Lexicon). Display and
 input stay 0–100; reading multiplies by 10, writing divides by 10.
 
+#### WAV and AIFF (test, 4.16.0)
+
+Under **Settings › Backups and saving › WAV and AIFF** (off by default) TagStudio also loads WAV and AIFF files
+(`.wav`, `.aif`, `.aiff`, `.aifc`) in the tagger and the comparison. Their tags live in a separate **ID3 chunk** – with
+the same fields as MP3 (text, custom fields, cover, rating, lyrics, Serato data).
+
+- When saving, TagStudio only replaces the ID3 chunk (or appends one). All other parts of the file – audio, RIFF INFO,
+  `bext`, cue points, AIFF texts – stay **byte-identical**; the checksum of the audio data is compared before and
+  after, otherwise nothing is saved. Backups and “Restore” work as with MP3.
+- If a WAV file only has an INFO block (or an AIFF file only NAME/AUTH), those fields are shown; saving then writes a
+  new ID3 chunk and leaves INFO unchanged.
+- WAV files over 4 GB (RF64) and damaged files are not saved. WAV/AIFF have no ID3v1.
+- Other areas (prepare, purchases, playlists, snapshots) still work with MP3 only for now.
+
 ### Prepare and discover
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/prep-dark.png"><img alt="Prepare: stages from inbox to library" src="screenshots/prep-light.png"></picture>

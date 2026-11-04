@@ -174,5 +174,16 @@
 "Serato-DJ-Daten (Cue-Punkte/Beatgrid) – gehören zu genau diesem Track": ["Serato DJ data (cue points/beatgrid) – belongs to exactly this track", "Serato-DJ-Date (Cue-Pünkt/Beatgrid) – ghöred zu genau dem Track"],
 "binär": ["binary", "binär"],
 "ID3-Tag beschädigt (Grösse passt nicht zur Datei) – nicht gespeichert, damit keine Audiodaten verloren gehen.": ["ID3 tag damaged (size does not match the file) – not saved so that no audio data is lost.", "ID3-Tag kaputt (Grössi passt nöd zur Datei) – nöd gspeicheret, dass kei Audiodate verlore gönd."],
-"Sicherheitskopie nicht möglich – nicht wiederhergestellt ({x})": ["Safety copy not possible – not restored ({x})", "Sicherheitskopie nöd möglich – nöd wiederhergstellt ({x})"]
+"Sicherheitskopie nicht möglich – nicht wiederhergestellt ({x})": ["Safety copy not possible – not restored ({x})", "Sicherheitskopie nöd möglich – nöd wiederhergstellt ({x})"],
+"{x} Kanäle": ["{x} channels", "{x} Kanäl"],
+"RF64 (WAV über {n} GB) wird nur gelesen – nicht gespeichert.": ["RF64 (WAV over {n} GB) is read only – not saved.", "RF64 (WAV über {n} GB) wird nur gläse – nöd gspeicheret."],
+"Datei unvollständig oder ohne Audiodaten – nicht gespeichert, damit nichts verloren geht.": ["File incomplete or without audio data – not saved so that nothing is lost.", "Datei unvollständig oder ohni Audiodate – nöd gspeicheret, dass nüt verlore gaht."],
+"Datei zu kurz – kein WAV/AIFF": ["File too short – not a WAV/AIFF", "Datei z churz – kei WAV/AIFF"],
+"Prüfung fehlgeschlagen: Audiodaten wären verändert worden – nicht gespeichert.": ["Check failed: audio data would have been changed – not saved.", "Prüefig fählgschlage: Audiodate wäred veränderet worde – nöd gspeicheret."],
+"Prüfung fehlgeschlagen: ID3-Chunk nicht lesbar – nicht gespeichert.": ["Check failed: ID3 chunk not readable – not saved.", "Prüefig fählgschlage: ID3-Chunk nöd läsbar – nöd gspeicheret."],
+"kein gültiger WAV-/AIFF-Container": ["not a valid WAV/AIFF container", "kein gültige WAV-/AIFF-Container"],
+"WAV-/AIFF-Datei bzw. ID3-Chunk beschädigt – nicht gespeichert, damit keine Audiodaten verloren gehen.": ["WAV/AIFF file or ID3 chunk damaged – not saved so that no audio data is lost.", "WAV-/AIFF-Datei bzw. ID3-Chunk kaputt – nöd gspeicheret, dass kei Audiodate verlore gönd."],
+"kein gültiger WAV-/AIFF-Kopf": ["not a valid WAV/AIFF header", "kein gültige WAV-/AIFF-Chopf"],
+"ID3-Chunk beschädigt": ["ID3 chunk damaged", "ID3-Chunk kaputt"],
+"WAV-/AIFF-Datei – Tags werden im ID3-Chunk gespeichert, nicht wie bei MP3.": ["WAV/AIFF file – tags are stored in the ID3 chunk, not like MP3.", "WAV-/AIFF-Datei – Tags werded im ID3-Chunk gspeicheret, nöd wie bim MP3."]
 }

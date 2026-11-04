@@ -8,6 +8,11 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **WAV und AIFF im Tagger (#156, #263, Test):** neue Einstellung „WAV und AIFF“ (Sicherungen und Speichern, Standard
+  aus) – Tagger und Vergleich lesen und schreiben dann die Tags im ID3-Chunk von WAV/AIFF/AIFC (gleiche Felder wie MP3).
+  Neues Modul `chunktags.py`: nur der ID3-Chunk wird ersetzt, alle anderen Chunks bleiben byte-genau, Audio-Prüfsumme
+  vorher/nachher; RF64 nur lesen. MP3 unverändert; `MP3File(pfad)` liefert für WAV/AIFF automatisch die neue Klasse,
+  damit nie ein ID3-Kopf vor eine WAV-Datei geschrieben wird. Sicherungen/Wiederherstellen kennen WAV/AIFF.
 - **Screenshots (#439):** `tools/screenshots.py` erzeugt alle Bilder in 2560 × 1440 (hell und dunkel) mit erfundener
   Demo-Bibliothek – zusätzlich Ausschnitte (Assistent, Trackliste, Camelot-Rad, Player) sowie Titel- und Schlussbild
   für Videos; neue Bilder für Entdecken, Ideen, Warenkorb, Vorbereiten und Mixe.

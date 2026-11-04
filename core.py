@@ -440,7 +440,7 @@ def _load_list(paths, cache, registry, cancel, progress, offset=0, total=None, c
     return files, errors
 
 
-def load_files(path, recursive, cancel=None, progress=None, registry=None, use_cache=False, stats=None):
+def load_files(path, recursive, cancel=None, progress=None, registry=None, use_cache=False, stats=None, exts=None):
     """Ordner/Datei für den Tagger einlesen → (files, errors). progress wie bei load_pairs.
     use_cache: Listen-Cache (#70); stats (dict) erhält "cached" (aus dem Cache geladene Dateien) und "caches"."""
     import listcache
@@ -448,7 +448,8 @@ def load_files(path, recursive, cancel=None, progress=None, registry=None, use_c
     progress = progress or (lambda m: None)
     t0 = time.time()
     sts = {}                                   # #326: stat aus dem Durchsuchen – kein zweiter Zugriff je Datei
-    paths = scan(path, recursive, cancel, lambda n: progress(("count", n)), stats=sts)
+    paths = scan(path, recursive, cancel, lambda n: progress(("count", n)), stats=sts,
+                 **({"exts": exts} if exts else {}))   # #156: WAV/AIFF nur mit Einstellung
     cinfo = {"provider": "", "online": [], "conflicts": []}
     if os.path.isdir(path):                    # #315: Nur-online-Dateien nicht unbemerkt herunterladen
         import cloud
@@ -466,7 +467,7 @@ def load_files(path, recursive, cancel=None, progress=None, registry=None, use_c
 
 
 def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=None, snap_loader=None, use_cache=False,
-               stats=None):
+               stats=None, exts=None):
     """Ordner/Dateien einlesen und zuordnen → (pairs, errors).
     progress(msg): ("count", n) beim Zählen, ("total", n), ("progress", i, total, pfad).
     Wirft Cancelled, wenn cancel (threading.Event) gesetzt wird.
@@ -487,8 +488,9 @@ def load_pairs(lp, rp, recursive, mode, cancel=None, progress=None, registry=Non
                 raise ValueError("Snapshots sind hier nicht verfügbar.")
             snap[side], roots[side], _label = snap_loader(p, cancel, progress)
     sts = {}                                   # #326: stat aus dem Durchsuchen
-    lpaths = scan(lp, recursive, cancel, counter(0), stats=sts) if lp and snap[0] is None else []
-    rpaths = scan(rp, recursive, cancel, counter(1), stats=sts) if rp and snap[1] is None else []
+    xo = {"exts": exts} if exts else {}        # #156: WAV/AIFF nur mit Einstellung
+    lpaths = scan(lp, recursive, cancel, counter(0), stats=sts, **xo) if lp and snap[0] is None else []
+    rpaths = scan(rp, recursive, cancel, counter(1), stats=sts, **xo) if rp and snap[1] is None else []
     total = len(lpaths) + len(rpaths)
     progress(("total", total))
     import listcache

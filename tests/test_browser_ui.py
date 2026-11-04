@@ -779,6 +779,47 @@ class UiTest(unittest.TestCase):
         self.assertFalse(c.get("stamp_added"))
         self.assertEqual(self.errors, [])
 
+    def test_chunk_formats_setting(self):
+        """#156/#263: Einstellung „WAV und AIFF“ – Standard aus (Tagger liest nur MP3), eingeschaltet erscheinen WAV und
+        AIFF im Tagger; Titel ändern und speichern schreibt den ID3-Chunk, Audio bleibt gleich."""
+        import shutil
+        import tempfile
+        import chunktags
+        from test_chunktags import make_aiff, make_wav
+        tmp = tempfile.mkdtemp(prefix="ts_chunk_ui_")
+        self.addCleanup(shutil.rmtree, tmp, True)
+        wav, aif = os.path.join(self.lib, "zz Chunk.wav"), os.path.join(self.lib, "zz Chunk.aiff")
+        make_wav(wav)
+        make_aiff(aif)
+        self.addCleanup(lambda: [os.remove(x) for x in (wav, aif) if os.path.exists(x)])
+        audio = chunktags.audio_hash(wav)
+        pg = self.pg
+        self.load_tagger()                                     # Standard: nur die 3 MP3
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stChunkFmt")
+        self.assertFalse(pg.is_checked("#stChunkFmt"))
+        pg.click("#stChunkFmt")
+        c = self.cfg_until(lambda c: c.get("chunk_formats") is True)
+        self.assertTrue(c.get("chunk_formats"))
+        pg.click('.nav[data-module="tagger"]')
+        pg.click("#tgLoad")
+        pg.wait_for_function("TG.loaded && TG.rows.length === 5")
+        i = pg.evaluate("TG.rows.findIndex(r => (r.name || r.path || '').endsWith('zz Chunk.wav'))")
+        self.assertGreaterEqual(i, 0)
+        pg.evaluate(f"call('tag_set', [{i}], 'TIT2', 'WAV aus dem Test')")
+        pg.evaluate("call('start_save')")
+        from id3tags import MP3File
+        t0 = time.time()
+        while MP3File(wav).text("TIT2") != "WAV aus dem Test" and time.time() - t0 < 10:
+            time.sleep(0.2)
+        self.assertEqual(MP3File(wav).text("TIT2"), "WAV aus dem Test")
+        self.assertEqual(chunktags.audio_hash(wav), audio)
+        pg.click('.nav[data-module="settings"]')
+        pg.wait_for_selector("#stChunkFmt")
+        pg.click("#stChunkFmt")
+        self.cfg_until(lambda c: c.get("chunk_formats") is False)
+        self.assertEqual(self.errors, [])
+
     def test_wave_in_file_setting(self):
         """#222 (W1): Einstellung „Wellenform im MP3“ – Standard aus, Schalter speichert; Player zeigt die Wellenform
         aus dem MP3, wenn der Cache leer ist."""

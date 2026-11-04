@@ -220,6 +220,20 @@ Namen dürfen abgekürzt (`ener`, `dance`) oder deutsch sein (Energie, Tanz, Sti
 **Skala:** Unter Einstellungen › Tagger lässt sich einstellen, dass die Werte in den Dateien 0–10 sind (z. B. aus
 Lexicon). Angezeigt und eingegeben wird dann weiterhin 0–100; beim Lesen wird ×10, beim Schreiben ÷10 gerechnet.
 
+#### WAV und AIFF (Test, 4.16.0)
+
+Unter **Einstellungen › Sicherungen und Speichern › WAV und AIFF** (Standard aus) liest TagStudio auch WAV- und
+AIFF-Dateien (`.wav`, `.aif`, `.aiff`, `.aifc`) in Tagger und Vergleich ein. Die Tags stehen dort in einem eigenen
+**ID3-Chunk** – mit denselben Feldern wie bei MP3 (Text, eigene Felder, Cover, Bewertung, Liedtexte, Serato-Daten).
+
+- Beim Speichern ersetzt TagStudio nur den ID3-Chunk (oder hängt einen an). Alle anderen Teile der Datei – Audio,
+  RIFF-INFO, `bext`, Cue-Punkte, AIFF-Texte – bleiben **byte-genau** erhalten; vorher und nachher wird die Prüfsumme
+  der Audiodaten verglichen, sonst wird nicht gespeichert. Sicherungen und „Wiederherstellen“ funktionieren wie bei MP3.
+- Hat eine WAV-Datei nur einen INFO-Block (bzw. eine AIFF-Datei nur NAME/AUTH), werden diese Felder angezeigt;
+  gespeichert wird dann ein neuer ID3-Chunk, INFO bleibt unverändert.
+- Nicht gespeichert werden WAV-Dateien über 4 GB (RF64) und beschädigte Dateien. ID3v1 gibt es bei WAV/AIFF nicht.
+- Andere Bereiche (Vorbereiten, Einkäufe, Playlists, Snapshots) arbeiten vorerst weiterhin nur mit MP3.
+
 ### Vorbereiten und Entdecken
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/prep-dark.png"><img alt="Vorbereiten: Stufen vom Eingang bis in die Bibliothek" src="screenshots/prep-light.png"></picture>

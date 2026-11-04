@@ -313,5 +313,9 @@
 "Bei neuer Version benachrichtigen (Popup) – sonst nur die Markierung bei {q}; geprüft wird beim Start und alle {n} Minuten": ["Notify me about a new version (pop-up) – otherwise only the marker at {q}; checked at start and every {n} minutes", "Bi neuer Version benachrichtige (Popup) – susch nur d Markierig bi {q}; prüeft wird bim Start und alli {n} Minute"],
 "Neue Versionen werden mit einem Popup gemeldet.": ["New versions are announced with a pop-up.", "Neui Versione werded mit eme Popup gmäldet."],
 "Keine Update-Popups – neue Versionen zeigt nur {q}.": ["No update pop-ups – new versions are only shown by {q}.", "Kei Update-Popups – neui Versione zeigt nur {q}."],
-"Updates (Kanal, Benachrichtigung)": ["Updates (channel, notification)", "Updates (Kanal, Benachrichtigung)"]
+"Updates (Kanal, Benachrichtigung)": ["Updates (channel, notification)", "Updates (Kanal, Benachrichtigung)"],
+"WAV und AIFF": ["WAV and AIFF", "WAV und AIFF"],
+"WAV- und AIFF-Dateien in Tagger und Vergleich einlesen – Tags im ID3-Chunk, gleiche Felder wie MP3 (Test, Standard aus)": ["Load WAV and AIFF files in the tagger and comparison – tags in the ID3 chunk, same fields as MP3 (test, off by default)", "WAV- und AIFF-Dateie im Tagger und im Vergliich iilese – Tags im ID3-Chunk, gliichi Fälder wie MP3 (Test, standardmässig us)"],
+"WAV und AIFF werden beim nächsten Einlesen mitgenommen.": ["WAV and AIFF will be included the next time files are loaded.", "WAV und AIFF werded bim nächschte Iilese mitgnoh."],
+"Tagger und Vergleich lesen wieder nur MP3-Dateien.": ["The tagger and comparison read only MP3 files again.", "Tagger und Vergliich läsed wieder nur MP3-Dateie."]
 }

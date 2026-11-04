@@ -240,9 +240,17 @@ class ListCache:
 def open_file(path: str, cache: ListCache | None, registry=None, st=None):
     """MP3File laden – aus dem Cache, wenn möglich. → (MP3File, aus_cache: bool).
     st: stat-Ergebnis aus dem Durchsuchen des Ordners (#326) – sonst wird die Datei einzeln abgefragt."""
-    from id3tags import MP3File
+    from id3tags import MP3File, CHUNK_EXTS
     k = os.path.normcase(os.path.abspath(path))
     f = registry.get(k) if registry is not None else None
+    if cache is not None and path.lower().endswith(CHUNK_EXTS):     # #156: WAV/AIFF immer frisch, ohne Cache
+        if f is not None:
+            f.load()
+        else:
+            f = MP3File(path)
+        if registry is not None:
+            registry[k] = f
+        return f, False
     if cache is None:
         if f is not None:
             f.load()

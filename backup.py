@@ -37,8 +37,47 @@ def default_dir() -> str:
 
 
 # --------------------------------------------------------------------------- Datei-Layout
+def _is_chunk(path: str) -> bool:
+    import chunktags
+    return chunktags.is_chunk_path(path)
+
+
+def _chunk_layout(path: str) -> dict:
+    """#156/#263: WAV/AIFF – Tag im ID3-Chunk, Fingerabdruck über den Anfang der Audiodaten (`data`/`SSND`)."""
+    import chunktags
+    try:
+        lay = chunktags.read_layout(path)
+    except chunktags.ChunkError as ex:
+        raise OSError(str(ex)) from ex
+    c = chunktags._audio_chunk(lay)
+    fp, alen = hashlib.md5(b"").hexdigest(), 0
+    if c is not None:
+        alen = max(0, min(c["size"], c["end"] - c["data_start"]))
+        with open(path, "rb") as f:
+            f.seek(c["data_start"])
+            fp = hashlib.md5(f.read(min(FP_BYTES, alen))).hexdigest()
+    return {"size": lay["size"], "audio_start": 0, "has_v1": False, "audio_len": alen, "audio_md5": fp,
+            "container": lay["kind"]}
+
+
+def _tag_now(path: str, lay: dict) -> tuple[bytes, bytes]:
+    """Aktuelle Tag-Bytes (ID3v2-Bereich, ID3v1) – bei WAV/AIFF das Tag aus dem ID3-Chunk."""
+    if lay.get("container"):
+        import chunktags
+        return chunktags.read_tag_bytes(path), b""
+    with open(path, "rb") as f:
+        tag = f.read(lay["audio_start"])
+        v1 = b""
+        if lay["has_v1"]:
+            f.seek(-128, os.SEEK_END)
+            v1 = f.read(128)
+    return tag, v1
+
+
 def read_layout(path: str) -> dict:
-    """Ermittelt Tag-Bereich, ID3v1 und Audio-Fingerabdruck einer MP3-Datei."""
+    """Ermittelt Tag-Bereich, ID3v1 und Audio-Fingerabdruck einer MP3-Datei (WAV/AIFF: siehe _chunk_layout)."""
+    if _is_chunk(path):
+        return _chunk_layout(path)
     size = os.path.getsize(path)
     with open(path, "rb") as f:
         head = f.read(10)
@@ -80,12 +119,7 @@ class BackupWriter:
         """Sichert die aktuellen Tag-Bytes der Datei (so wie sie jetzt auf dem Datenträger liegen)."""
         lay = read_layout(path)
         i = len(self.entries)
-        with open(path, "rb") as f:
-            tag = f.read(lay["audio_start"])
-            v1 = b""
-            if lay["has_v1"]:
-                f.seek(-128, os.SEEK_END)
-                v1 = f.read(128)
+        tag, v1 = _tag_now(path, lay)
         self.zip.writestr(f"{i:05d}.tag", tag)
         if v1:
             self.zip.writestr(f"{i:05d}.v1", v1)
@@ -141,12 +175,7 @@ class StoreBackupWriter:
     def add(self, path: str):
         import snapshots
         lay = read_layout(path)
-        with open(path, "rb") as f:
-            tag = f.read(lay["audio_start"])
-            v1 = b""
-            if lay["has_v1"]:
-                f.seek(-128, os.SEEK_END)
-                v1 = f.read(128)
+        tag, v1 = _tag_now(path, lay)
         with snapshots.writing():                          # Aufräumen dazwischen lässt die neuen Objekte stehen
             parts = [self.store.put(p) for p in snapshots.split_tag(tag)]
             hv1 = self.store.put(v1) if v1 else None
@@ -282,8 +311,7 @@ def check_entry(entry: dict) -> tuple[str, str]:
         return "missing", f"nicht lesbar: {ex}"
     if lay["audio_md5"] != entry["audio_md5"] or lay["audio_len"] != entry["audio_len"]:
         return "audio", "Audiodaten haben sich geändert – andere Datei?"
-    with open(p, "rb") as f:
-        tag_now = f.read(lay["audio_start"])
+    tag_now, _v1 = _tag_now(p, lay)
     if hashlib.md5(tag_now).hexdigest() == entry["tag_md5"] and lay["has_v1"] == entry["has_v1"]:
         return "same", "Tags entsprechen bereits der Sicherung"
     return "ok", "wiederherstellbar"
@@ -381,6 +409,10 @@ def restore(zip_path: str, ids: list[int] | None = None, safety_folder: str | No
 
 def _write_tags(path: str, tag: bytes, v1: bytes):
     """Ersetzt Tag-Bereich und ID3v1 einer Datei; Audio bleibt byte-identisch (über temporäre Datei)."""
+    if _is_chunk(path):                                    # #156/#263: WAV/AIFF – nur den ID3-Chunk ersetzen
+        import chunktags
+        chunktags.write_tag_bytes(path, tag)
+        return
     lay = read_layout(path)
     if len(tag) == lay["audio_start"] and bool(v1) == lay["has_v1"]:
         # gleiche Grösse → direkt an Ort und Stelle (schnell, auch bei grossen Dateien)

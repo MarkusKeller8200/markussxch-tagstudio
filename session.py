@@ -570,7 +570,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
 
     def _cache_work(self, name, paths, roots, cancel, progress) -> dict:
         """Eigentliche Arbeit – unabhängig von geladenen Objekten, damit ein Auftrag auch nach einem Neustart läuft."""
-        from id3tags import MP3File
+        from id3tags import MP3File, CHUNK_EXTS
         progress(("total", len(paths)))
         if name == "lists":
             import listcache
@@ -585,6 +585,9 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 for p in mine:
                     if cancel.is_set():
                         raise Cancelled()
+                    if p.lower().endswith(CHUNK_EXTS):    # #156: WAV/AIFF kommen nicht in den Listen-Cache
+                        done += 1
+                        continue
                     try:
                         st = os.stat(p)
                         g = MP3File.__new__(MP3File)
@@ -691,7 +694,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         return {"file": appsettings.overview(), "trivial": list(self.rules.trivial), "trivial_default": list(DEFAULT_TRIVIAL),
                 "save_version": c.get("save_version", 0), "save_v1": c.get("save_v1", 0),
                 "stamp_edited": c.get("stamp_edited", True), "stamp_added": c.get("stamp_added", True),
-                "wave_in_file": bool(c.get("wave_in_file", False)), "key_notation": c.get("key_notation", "camelot"),
+                "wave_in_file": bool(c.get("wave_in_file", False)),
+                "chunk_formats": bool(c.get("chunk_formats", False)), "key_notation": c.get("key_notation", "camelot"),
                 "notations": [[k, v] for k, v in keys.NOTATIONS.items()], "theme": self.opts["theme"],
                 "backup_enabled": c.get("backup_enabled", True), "backup_dir": self._backup_folder(),
                 "backup_store": self._backup_in_store(),
@@ -743,6 +747,14 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             raise ValueError("Ja/Nein erwartet")
         self.cfg["wave_in_file"] = on
         core.save_config({"wave_in_file": on})
+        return on
+
+    def set_chunk_formats(self, on):
+        """#156/#263: WAV und AIFF (Tags im ID3-Chunk) in Tagger und Vergleich einlesen – Standard aus."""
+        if not isinstance(on, bool):
+            raise ValueError("Ja/Nein erwartet")
+        self.cfg["chunk_formats"] = on
+        core.save_config({"chunk_formats": on})
         return on
 
     def set_stamp_edited(self, on):
@@ -873,7 +885,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         def job(cancel, progress):
             stats = {}
             pairs, errors = core.load_pairs(lp, rp, recursive, mode, cancel, progress, self.reg, snap_loader,
-                                            self._list_cache_on(), stats)
+                                            self._list_cache_on(), stats, exts=self._tag_exts())
             with self.lock:
                 self.undo.clear()
                 self.pairs = pairs
@@ -1832,7 +1844,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         def job(cancel, progress):
             stats = {}
             t0 = time.time()
-            files, errors = core.load_files(path, bool(recursive), cancel, progress, self.reg, self._list_cache_on(), stats)
+            files, errors = core.load_files(path, bool(recursive), cancel, progress, self.reg, self._list_cache_on(), stats,
+                                            exts=self._tag_exts())
             try:                                       # #137: Dauer fürs App-Protokoll (Wartezeit beim Start eingrenzen)
                 import applog
                 tm = stats.get("times") or {}
@@ -1865,7 +1878,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             for r in roots:
                 st = {}
                 per.append(st)
-                got, err = core.load_files(r, True, cancel, progress, self.reg, self._list_cache_on(), st)
+                got, err = core.load_files(r, True, cancel, progress, self.reg, self._list_cache_on(), st,
+                                           exts=self._tag_exts())
                 files += got
                 errors += err
                 stats["cached"] += list(st.get("cached") or [])
@@ -1912,6 +1926,12 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         return self._run("tagload", "Dateien einlesen", job)
 
     # ------------------------------------------------------------------ Listen-Cache und Prüfung (#70)
+    def _tag_exts(self):
+        """#156/#263: Endungen für Tagger und Vergleich – WAV/AIFF nur mit Einstellung „chunk_formats“ (Standard aus)."""
+        import compare
+        on = bool(getattr(self, "cfg", {}).get("chunk_formats", False))
+        return compare.MP3_EXTS + compare.CHUNK_EXTS if on else compare.MP3_EXTS
+
     def _list_cache_on(self) -> bool:
         return bool(getattr(self, "cfg", {}).get("list_cache", True))
 
@@ -2093,8 +2113,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 continue
             for st in found:
                 st["i"] = None
-                if st["ext"] == "MP3":
-                    k = os.path.normcase(os.path.abspath(st["path"]))
+                k = os.path.normcase(os.path.abspath(st["path"]))
+                if st["ext"] == "MP3" or k in where:      # #156: geladene WAV-Spur (Einstellung WAV/AIFF) ebenso
                     j = where.get(k)
                     if j is None:
                         try:
