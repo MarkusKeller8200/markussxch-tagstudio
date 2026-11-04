@@ -61,7 +61,11 @@ und die Kopie in den DJ-Programmen öffnen (Felder sichtbar? Cues/Beatgrid erhal
 > (Standard aus; `Session._tag_exts`, `compare.scan(exts=…)`). Kein Listen-Cache für WAV/AIFF. Sicherungen
 > (`backup.py`) speichern das Tag aus dem Chunk (`container` im Eintrag). INFO/NAME/AUTH werden nur gelesen (wenn kein
 > ID3-Chunk), nie geschrieben – Abgleich nach der Messreihe #446. Bestehender Chunk-Name (`id3 `/`ID3 `) bleibt; neu:
-> WAV `id3 `, AIFF `ID3 `. ID3-Version wie bei MP3 (Einstellung). Nächste Schritte: Player #448, Konverter #451.
+> WAV `id3 `, AIFF `ID3 `. ID3-Version wie bei MP3 (Einstellung).
+>
+> **Player (#448, 04.11.2026):** WAV direkt; AIFF/AIFC über `media.aiff_view`/`aiff_read` als virtuelle WAV-Datei
+> (44-Byte-Kopf, Samples Big-→Little-Endian, 8 bit signed→unsigned, AIFC `NONE/twos/sowt/raw /fl32/fl64`; andere
+> Kompressionen → 415). `waveform.key_for` nimmt bei WAV/AIFF nur den Audio-Chunk. Nächster Schritt: Konverter #451.
 
 1. **Lesen:** `MP3File` um einen WAV-Zweig erweitern (Chunk-Liste, ID3-Chunk über den bestehenden Parser, INFO als
    Ersatz, Dauer aus `fmt `/`data`). Tagger, Vergleich, Snapshots und Listen-Cache bekommen WAV-Dateien.

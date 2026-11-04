@@ -228,6 +228,9 @@ the same fields as MP3 (text, custom fields, cover, rating, lyrics, Serato data)
 - If a WAV file only has an INFO block (or an AIFF file only NAME/AUTH), those fields are shown; saving then writes a
   new ID3 chunk and leaves INFO unchanged.
 - WAV files over 4 GB (RF64) and damaged files are not saved. WAV/AIFF have no ID3v1.
+- **Player (#448):** WAV and AIFF play in the preview player like MP3 (waveform, seeking, cues from the ID3 chunk).
+  For this TagStudio serves AIFF internally as WAV (browsers and the app window cannot play AIFF directly) – the file
+  itself is not changed. Compressed AIFC (e.g. µ-law) is not played.
 - Other areas (prepare, purchases, playlists, snapshots) still work with MP3 only for now.
 
 ### Prepare and discover

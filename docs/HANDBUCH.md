@@ -232,6 +232,9 @@ AIFF-Dateien (`.wav`, `.aif`, `.aiff`, `.aifc`) in Tagger und Vergleich ein. Die
 - Hat eine WAV-Datei nur einen INFO-Block (bzw. eine AIFF-Datei nur NAME/AUTH), werden diese Felder angezeigt;
   gespeichert wird dann ein neuer ID3-Chunk, INFO bleibt unverändert.
 - Nicht gespeichert werden WAV-Dateien über 4 GB (RF64) und beschädigte Dateien. ID3v1 gibt es bei WAV/AIFF nicht.
+- **Player (#448):** WAV und AIFF spielen im Vorschau-Player wie MP3 (Wellenform, Spulen, Cues aus dem ID3-Chunk).
+  AIFF liefert TagStudio dafür intern als WAV aus (Browser und App-Fenster können AIFF nicht direkt abspielen) – an der
+  Datei ändert sich nichts. Komprimiertes AIFC (z. B. µ-law) wird nicht abgespielt.
 - Andere Bereiche (Vorbereiten, Einkäufe, Playlists, Snapshots) arbeiten vorerst weiterhin nur mit MP3.
 
 ### Vorbereiten und Entdecken

@@ -102,5 +102,9 @@
 "Tagger (noch nichts geladen)": ["tagger (nothing loaded yet)", "Tagger (nonig nüüt glaade)"],
 "Der Titel liegt nicht im {x}.": ["The track is not in the {x}.", "De Titel liit nöd im {x}."],
 "Diesen Ordner im Tagger laden": ["Load this folder in the tagger", "Dä Ordner im Tagger lade"],
-"Filter aufgehoben, damit der Titel sichtbar ist.": ["Filter cleared so that the track is visible.", "Filter ufghobe, dass de Titel sichtbar isch."]
+"Filter aufgehoben, damit der Titel sichtbar ist.": ["Filter cleared so that the track is visible.", "Filter ufghobe, dass de Titel sichtbar isch."],
+"AIFC-Kompression {x} wird nicht abgespielt": ["AIFC compression {x} cannot be played", "AIFC-Kompression {x} wird nöd abgspillt"],
+"keine AIFF-Datei": ["not an AIFF file", "kei AIFF-Datei"],
+"AIFF ohne Audiodaten": ["AIFF without audio data", "AIFF ohni Audiodate"],
+"AIFF-Angaben unvollständig": ["AIFF information incomplete", "AIFF-Aagabe unvollständig"]
 }

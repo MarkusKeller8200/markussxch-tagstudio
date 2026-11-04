@@ -35,7 +35,16 @@ def audio_key(path: str, audio_start: int = 0, audio_end: int | None = None) -> 
 
 
 def key_for(f) -> str:
-    """Schlüssel für eine geladene MP3File (Tag am Ende – ID3v1 – bleibt aussen vor)."""
+    """Schlüssel für eine geladene MP3File (Tag am Ende – ID3v1 – bleibt aussen vor). WAV/AIFF (#448): nur der
+    Audio-Chunk, damit der Schlüssel beim Bearbeiten der Tags gleich bleibt."""
+    if getattr(f, "container", None):
+        import chunktags
+        try:
+            c = chunktags._audio_chunk(chunktags.read_layout(f.path))
+        except chunktags.ChunkError:
+            c = None
+        if c is not None:
+            return audio_key(f.path, c["data_start"], min(c["data_start"] + c["size"], c["end"]))
     end = f.size - (128 if getattr(f, "had_v1", False) else 0)
     return audio_key(f.path, getattr(f, "audio_start", 0), end)
 

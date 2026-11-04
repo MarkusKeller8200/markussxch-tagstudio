@@ -820,6 +820,42 @@ class UiTest(unittest.TestCase):
         self.cfg_until(lambda c: c.get("chunk_formats") is False)
         self.assertEqual(self.errors, [])
 
+    def test_chunk_formats_player(self):
+        """#448: WAV und AIFF im Player – WAV direkt, AIFF als WAV ausgeliefert; spielt, Wellenform wird berechnet."""
+        import math
+        import struct
+        import wave
+        from test_chunkplayer import aiff
+        pcm = b"".join(struct.pack("<hh", int(9000 * math.sin(i / 20)), int(9000 * math.sin(i / 25)))
+                       for i in range(44100 * 4))
+        wav, aif = os.path.join(self.lib, "zz Play.wav"), os.path.join(self.lib, "zz Play.aiff")
+        with wave.open(wav, "wb") as w:
+            w.setnchannels(2)
+            w.setsampwidth(2)
+            w.setframerate(44100)
+            w.writeframes(pcm)
+        be = b"".join(pcm[i:i + 2][::-1] for i in range(0, len(pcm), 2))
+        aiff(aif, be)
+        self.addCleanup(lambda: [os.remove(x) for x in (wav, aif) if os.path.exists(x)])
+        pg = self.pg
+        pg.evaluate("call('set_chunk_formats', true)")
+        pg.click('.nav[data-module="tagger"]')
+        pg.fill("#tgPath", self.lib)
+        pg.click("#tgLoad")
+        pg.wait_for_function("TG.loaded && TG.rows.length === 5")
+        for name in ("zz Play.wav", "zz Play.aiff"):
+            i = pg.evaluate(f"TG.rows.findIndex(r => r.name === {name!r})")
+            self.assertGreaterEqual(i, 0, name)
+            pg.click(f'.tg-row[data-i="{i}"] .nm')
+            pg.keyboard.press(" ")
+            ok = self.until(f"PLAYER.ref === {i} && !PLAYER.audio.paused && PLAYER.audio.currentTime > 0.4", 10)
+            self.assertTrue(ok, pg.evaluate("JSON.stringify({ref: PLAYER.ref, err: PLAYER.audio.error && PLAYER.audio.error.code, src: PLAYER.audio.src, t: PLAYER.audio.currentTime})"))
+            self.assertAlmostEqual(pg.evaluate("PLAYER.audio.duration"), 4.0, delta=0.1)
+            self.assertTrue(self.until("PLAYER.info && PLAYER.info.wave && PLAYER.info.wave.peaks.length > 0", 15), name)
+            pg.keyboard.press(" ")
+        pg.evaluate("call('set_chunk_formats', false)")
+        self.assertEqual(self.errors, [])
+
     def test_wave_in_file_setting(self):
         """#222 (W1): Einstellung „Wellenform im MP3“ – Standard aus, Schalter speichert; Player zeigt die Wellenform
         aus dem MP3, wenn der Cache leer ist."""

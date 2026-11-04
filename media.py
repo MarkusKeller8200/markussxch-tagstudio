@@ -11,6 +11,7 @@ import hashlib
 import os
 import re
 import secrets
+import struct
 import threading
 
 from collections import OrderedDict
@@ -33,7 +34,9 @@ def _allowed_origin(origin: str) -> str:
     return f"http://{host}:{int(m.group(2))}" if m.group(2) else f"http://{host}"
 
 AUDIO_TYPES = {".mp3": "audio/mpeg", ".flac": "audio/flac", ".wav": "audio/wav", ".m4a": "audio/mp4",
-               ".aac": "audio/aac", ".ogg": "audio/ogg", ".opus": "audio/ogg", ".aif": "audio/aiff", ".aiff": "audio/aiff"}
+               ".aac": "audio/aac", ".ogg": "audio/ogg", ".opus": "audio/ogg", ".aif": "audio/aiff", ".aiff": "audio/aiff",
+               ".aifc": "audio/aiff"}
+AIFF_EXTS = (".aif", ".aiff", ".aifc")      # #448: Browser spielen AIFF nicht – wird als WAV ausgeliefert
 CHUNK = 256 * 1024
 MAX_FILES = 300          # nur die zuletzt genutzten Dateien bleiben freigegeben (#44)
 _RANGE = re.compile(r"^bytes=(\d*)-(\d*)$")
@@ -56,6 +59,9 @@ class MediaServer:
         if not os.path.isfile(path):
             raise FileNotFoundError(path)
         fid = hashlib.sha1(path.encode("utf-8", "surrogatepass")).hexdigest()[:20]
+        if ext in AIFF_EXTS:                       # #448: als WAV ausliefern (vorher prüfen, ob es geht)
+            aiff_view(path)
+            ext = ".wav"
         with self.lock:
             self.files[fid] = path
             self.files.move_to_end(fid)
@@ -106,8 +112,14 @@ class MediaServer:
         path = self.lookup(h.path.split("?", 1)[0])
         if path is None or not os.path.isfile(path):
             return _plain(h, 404, "not found")
-        size = os.path.getsize(path)
-        ctype = AUDIO_TYPES.get(os.path.splitext(path)[1].lower(), "application/octet-stream")
+        view = None
+        if path.lower().endswith(AIFF_EXTS):
+            try:
+                view = aiff_view(path)
+            except (OSError, ValueError):
+                return _plain(h, 415, "unsupported")
+        size = view["size"] if view else os.path.getsize(path)
+        ctype = "audio/wav" if view else AUDIO_TYPES.get(os.path.splitext(path)[1].lower(), "application/octet-stream")
         start, end, status = 0, size - 1, 200
         rng = h.headers.get("Range")
         if rng:
@@ -137,6 +149,18 @@ class MediaServer:
         h.end_headers()
         if head:
             return
+        if view:
+            try:
+                pos = start
+                while pos <= end:
+                    part = aiff_read(path, view, pos, min(end, pos + CHUNK - 1))
+                    if not part:
+                        break
+                    h.wfile.write(part)
+                    pos += len(part)
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                pass
+            return
         try:
             with open(path, "rb") as fh:
                 fh.seek(start)
@@ -149,6 +173,93 @@ class MediaServer:
                     left -= len(chunk)
         except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
             pass   # Wiedergabe abgebrochen/gespult – normal
+
+
+# --------------------------------------------------------------------------- AIFF als WAV (#448)
+# AIFF/AIFC enthält unkomprimiertes PCM in Big-Endian (AIFC „sowt“: Little-Endian). Für den Browser wird daraus eine
+# virtuelle WAV-Datei: 44-Byte-Kopf + Audiodaten mit umgedrehter Byte-Reihenfolge (8 bit: vorzeichenbehaftet →
+# vorzeichenlos). Nichts wird auf die Platte geschrieben; Spulen (Range) funktioniert wie bei echten Dateien.
+_AIFC = {b"NONE": ("be", 1), b"twos": ("be", 1), b"sowt": ("le", 1), b"raw ": ("u8", 1),
+         b"fl32": ("be", 3), b"FL32": ("be", 3), b"fl64": ("be", 3), b"FL64": ("be", 3)}
+_VIEWS: dict = {}
+
+
+def aiff_view(path: str) -> dict:
+    """Aufbau der virtuellen WAV-Datei → {"header", "off", "len", "width", "mode", "size"}. ValueError, wenn die
+    Datei nicht abspielbar ist (komprimiertes AIFC, kein Audio)."""
+    import chunktags
+    st = os.stat(path)
+    sig = (os.path.abspath(path), st.st_size, st.st_mtime_ns)
+    v = _VIEWS.get(sig[0])
+    if v and v["sig"] == sig:
+        return v
+    try:
+        lay = chunktags.read_layout(path)
+    except chunktags.ChunkError as ex:
+        raise ValueError(str(ex)) from ex
+    if lay["kind"] != "aiff":
+        raise ValueError("keine AIFF-Datei")
+    comm, ssnd = chunktags._find(lay, b"COMM"), chunktags._find(lay, b"SSND")
+    if comm is None or ssnd is None:
+        raise ValueError("AIFF ohne Audiodaten")
+    d = chunktags._read(path, comm)
+    ch, frames, bits = struct.unpack(">HIH", d[:8])
+    rate = int(round(chunktags._ext80(d[8:18])))
+    comp = d[18:22] if lay["form"] == b"AIFC" and len(d) >= 22 else b"NONE"
+    if comp not in _AIFC:
+        raise ValueError(f"AIFC-Kompression {comp.decode('latin-1').strip()} wird nicht abgespielt")
+    order, fmt = _AIFC[comp]
+    if comp in (b"fl32", b"FL32"):
+        bits = 32
+    elif comp in (b"fl64", b"FL64"):
+        bits = 64
+    width = (bits + 7) // 8
+    if not (ch and rate and width):
+        raise ValueError("AIFF-Angaben unvollständig")
+    with open(path, "rb") as fh:
+        fh.seek(ssnd["data_start"])
+        offset = struct.unpack(">I", fh.read(4))[0]
+    off = ssnd["data_start"] + 8 + offset
+    avail = max(0, min(ssnd["data_start"] + ssnd["size"], ssnd["end"]) - off)
+    block = ch * width
+    n = min(avail, frames * block) // block * block
+    mode = "u8" if width == 1 and order != "u8" else "copy" if order in ("le", "u8") or width == 1 else "swap"
+    header = (b"RIFF" + struct.pack("<I", 36 + n) + b"WAVE" + b"fmt " + struct.pack("<IHHIIHH", 16, fmt, ch, rate,
+              rate * block, block, width * 8) + b"data" + struct.pack("<I", n))
+    v = {"sig": sig, "header": header, "off": off, "len": n, "width": width, "mode": mode, "size": len(header) + n}
+    _VIEWS[sig[0]] = v
+    if len(_VIEWS) > 50:
+        _VIEWS.pop(next(iter(_VIEWS)))
+    return v
+
+
+_U8 = bytes((i + 128) & 255 for i in range(256))
+
+
+def aiff_read(path: str, v: dict, start: int, end: int) -> bytes:
+    """Bytes start..end (einschliesslich) der virtuellen WAV-Datei."""
+    out = b""
+    hl = len(v["header"])
+    if start < hl:
+        out = v["header"][start:min(end + 1, hl)]
+        start = hl
+    if start > end or start >= v["size"]:
+        return out
+    w = v["width"]
+    a, b = start - hl, min(end, v["size"] - 1) - hl + 1          # Bereich in den Audiodaten
+    a0 = a - a % w                                               # auf ganze Samples ausrichten
+    b0 = min(v["len"], b + (-b % w))
+    with open(path, "rb") as fh:
+        fh.seek(v["off"] + a0)
+        raw = fh.read(b0 - a0)
+    if v["mode"] == "swap":
+        buf = bytearray(len(raw))
+        for i in range(w):
+            buf[i::w] = raw[w - 1 - i::w]
+        raw = bytes(buf)
+    elif v["mode"] == "u8":
+        raw = raw.translate(_U8)
+    return out + raw[a - a0:b - a0]
 
 
 def _plain(h, code, text):
