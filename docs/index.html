@@ -38,6 +38,12 @@ footer{max-width:1180px;margin:0 auto;padding:24px 16px 40px;color:var(--muted);
 .nums{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin:10px 0 0}.nums div{text-align:center}
 .nums b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.nums span{color:var(--muted);font-size:13px}
 h2.sec{font-size:24px;margin:44px 0 14px}
+/* Trailer (#457): erst nach Klick von YouTube laden (youtube-nocookie) */
+.trailer{max-width:860px;margin:30px auto 0}.trailer .yt{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;
+  border:1px solid var(--line);background:#000;cursor:pointer}.trailer .yt img{width:100%;height:100%;object-fit:cover;opacity:.55}
+.trailer .yt button{position:absolute;inset:0;margin:auto;width:84px;height:84px;border-radius:50%;border:0;background:#c00;
+  color:#fff;font-size:34px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.4)}.trailer .yt iframe{width:100%;height:100%;border:0}
+.trailer p{color:var(--muted);font-size:13px;text-align:center;margin:8px 0 0}
 /* Handbuch */
 .doc{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
 .toc{position:sticky;top:76px;max-height:calc(100vh - 96px);overflow:auto;font-size:14px;padding-right:6px}
@@ -74,6 +80,11 @@ Sets planen – für Windows und macOS. Kostenlos und quelloffen.</p>
 <div class="ver" id="ver">Neueste Version auf GitHub</div>
 <div class="nums" id="nums"></div></section>
 <div class="shot"><picture><source media="(prefers-color-scheme: dark)" srcset="img/tagger-dark.png"><img src="img/tagger-light.png" alt="Tagger: viele Dateien gemeinsam bearbeiten" loading="lazy"></picture></div>
+<h2 class="sec" id="trailer">Trailer</h2>
+<div class="trailer"><div class="yt" id="ytBox" role="button" tabindex="0" aria-label="Trailer abspielen (lädt YouTube)">
+<img src="img/tagger-dark.png" alt="" loading="lazy"><button type="button" aria-hidden="true" tabindex="-1">▶</button></div>
+<p>Ein Klick lädt das Video von YouTube (youtube-nocookie.com) – vorher wird nichts von YouTube geladen.
+<a href="https://youtu.be/f7voXQsTzFE">Direkt auf YouTube ansehen</a>.</p></div>
 <h2 class="sec">Was TagStudio kann</h2>
 <p class="muted">Vom Fund bis ins DJ-Set: Entdecken → Ideen → Warenkorb → Einkäufe → Vorbereiten → Taggen → DJ-Set → Mixe.</p>
 <div class="grid"><div class="tile"><b>🔎 Entdecken &amp; Ideen</b><span>Neue Veröffentlichungen gefolgter Künstler und Labels, Ideen in Wunschlisten sammeln.</span></div><div class="tile"><b>🛒 Warenkorb &amp; Einkäufe</b><span>Trackliste einfügen (1001Tracklists, MixID …), bereits gekaufte erkennen, Einkaufsliste an Beatport senden; Käufe mit der Bibliothek abgleichen, fehlende laden.</span></div><div class="tile"><b>🏷️ Tagger</b><span>Viele Dateien gemeinsam bearbeiten, Cover, Tags aus dem Dateinamen, Umbenennen, Export nach Excel/CSV.</span></div><div class="tile"><b>⚖️ Vergleich</b><span>Zwei Ordner oder Dateien Feld für Feld – zeichengenau markiert, Werte per Pfeil übernehmen.</span></div><div class="tile"><b>🧹 Tag-Fixer</b><span>Mehrfachwerte (; / feat. …) vereinheitlichen, Smart-Fix-Rezepte, Ausnahmen je Feld.</span></div><div class="tile"><b>🎛️ DJ-Set</b><span>Reihenfolge nach Tonart (Camelot), BPM und Energie – Export als M3U8, Rekordbox-XML, CSV.</span></div><div class="tile"><b>🎚️ Mixe</b><span>Titel der eigenen Bibliothek in DJ-Mixes erkennen, Lücken aus Tracklisten füllen.</span></div><div class="tile"><b>📂 Playlists</b><span>Titel sammeln und ordnen, als M3U8 für Engine DJ, VirtualDJ &amp; Co.</span></div><div class="tile"><b>🎧 Vorschau-Player</b><span>Wellenform, Cue-Marken (Serato, Mixed In Key), Überblenden mit Tempo-Angleichung.</span></div><div class="tile"><b>☁️ Cloud: Spiegel &amp; Sicherung</b><span>Musik als Einweg-Kopie in OneDrive, Google Drive oder Dropbox; Programmdaten sichern.</span></div><div class="tile"><b>🛡️ Sicher speichern</b><span>Sicherung vor jedem Speichern, Rückgängig über alle Dateien, Snapshots.</span></div><div class="tile"><b>🧩 Plugins</b><span>Stems, Beatport, Spotify, Discogs, MusicBrainz, SonoVault, Lexicon – nach Kategorie, einzeln aktualisierbar.</span></div></div>
@@ -90,6 +101,16 @@ zum ersten Start stehen in „Zuerst lesen.txt“ im Disk-Image.</span></div>
 <code>start_windows.bat</code> bzw. <code>start_mac.command</code>. Details im <a href="handbuch.html#installation">Handbuch</a>.</span></div></div>
 </main>
 <script>
+(() => {                                                    // #457: Trailer erst auf Klick einbetten
+  const box = document.getElementById("ytBox");
+  const go = () => {
+    if (box.querySelector("iframe")) return;
+    box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/f7voXQsTzFE?autoplay=1&rel=0" title="TagStudio Trailer" '
+      + 'allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+  };
+  box.addEventListener("click", go);
+  box.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+})();
 (async () => {
   const n = (x) => Number(x || 0).toLocaleString("de-CH");
   try {
