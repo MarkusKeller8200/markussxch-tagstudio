@@ -194,5 +194,21 @@
 "Ziel gibt es schon – wird nicht überschrieben": ["Target already exists – not overwritten", "Ziil gits scho – wird nöd überschribe"],
 "gleicher Zielname wie eine andere Datei": ["same target name as another file", "gliiche Ziilname wie en anderi Datei"],
 "{x} Titel umgewandelt ({x}).": ["{x} tracks converted ({x}).", "{x} Titel umgwandlet ({x})."],
-"Nichts umzuwandeln – siehe Vorschau.": ["Nothing to convert – see preview.", "Nüt zum Umwandle – lueg i d Vorschau."]
+"Nichts umzuwandeln – siehe Vorschau.": ["Nothing to convert – see preview.", "Nüt zum Umwandle – lueg i d Vorschau."],
+"OGG: Cover als Base64-Feld `METADATA_BLOCK_PICTURE`": ["OGG: cover as Base64 field `METADATA_BLOCK_PICTURE`", "OGG: Cover als Base64-Fäld `METADATA_BLOCK_PICTURE`"],
+"OGG: ob Serato hier Daten ablegt, ist noch zu messen": ["OGG: whether Serato stores data here is still to be measured", "OGG: öb Serato da Date ablait, mues no gmässe werde"],
+"`tmpo` (nur ganze Zahl)": ["`tmpo` (whole number only)", "`tmpo` (nur ganzi Zahl)"],
+"`covr` (nur JPEG/PNG, ohne Bildart)": ["`covr` (JPEG/PNG only, no picture type)", "`covr` (nur JPEG/PNG, ohni Bildart)"],
+"freies Feld (`rtng` ist keine Sternebewertung)": ["free field (`rtng` is not a star rating)", "freis Fäld (`rtng` isch kei Stärnli-Bewertig)"],
+"freies Feld": ["free field", "freis Fäld"],
+"Serato: `----:com.serato.dj:…`, sonst freies Feld": ["Serato: `----:com.serato.dj:…`, otherwise free field", "Serato: `----:com.serato.dj:…`, susch freis Fäld"],
+"eigene Kapitel-Spur": ["separate chapter track", "eigeni Kapitel-Spur"],
+"`INITIALKEY` (manche: `KEY`)": ["`INITIALKEY` (some: `KEY`)", "`INITIALKEY` (mängi: `KEY`)"],
+"`LABEL` (auch `ORGANIZATION`, `PUBLISHER`)": ["`LABEL` (also `ORGANIZATION`, `PUBLISHER`)", "`LABEL` (au `ORGANIZATION`, `PUBLISHER`)"],
+"`COMMENT` (manche: `DESCRIPTION`)": ["`COMMENT` (some: `DESCRIPTION`)", "`COMMENT` (mängi: `DESCRIPTION`)"],
+"`PICTURE`-Block (mit Bildart) *": ["`PICTURE` block (with picture type) *", "`PICTURE`-Block (mit Bildart) *"],
+"freies Feld (z. B. `WEBSITE`)": ["free field (e.g. `WEBSITE`)", "freis Fäld (z. B. `WEBSITE`)"],
+"Serato: `SERATO_…` (Base64) *, sonst freies Feld": ["Serato: `SERATO_…` (Base64) *, otherwise free field", "Serato: `SERATO_…` (Base64) *, susch freis Fäld"],
+"`trkn` (Nr. + Anzahl)": ["`trkn` (no. + total)", "`trkn` (Nr. + Aazahl)"],
+"LRC-Text in `LYRICS`": ["LRC text in `LYRICS`", "LRC-Text in `LYRICS`"]
 }

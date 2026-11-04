@@ -14,7 +14,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   vorher/nachher; RF64 nur lesen. MP3 unverändert; `MP3File(pfad)` liefert für WAV/AIFF automatisch die neue Klasse,
   damit nie ein ID3-Kopf vor eine WAV-Datei geschrieben wird. Sicherungen/Wiederherstellen kennen WAV/AIFF.
 - **Hilfe › ID3-Felder (#452):** Abschnitt „Dateiformate“ und Spalten MP3 · WAV · AIFF je Frame (schreibbar, dazu das
-  Gegenstück in ID3v1 bzw. INFO/AIFF-Text); erzeugt von `tools/id3_frames_doc.py`.
+  Gegenstück in ID3v1 bzw. INFO/AIFF-Text); dazu die Spalten MP4 / M4A (AAC, ALAC), AAC und FLAC / OGG mit dem
+  Feldnamen im jeweiligen Format (geplant, Zuordnung in `formatmap.py`); erzeugt von `tools/id3_frames_doc.py`.
 - **Umwandeln MP3 ↔ WAV/AIFF (#451):** Tagger › Rechtsklick „Umwandeln (WAV, AIFF, MP3) …“ – neue Datei mit allen
   Tags (FFmpeg), Ziel Export-Ordner (Standard) oder neben dem Original, MP3-Bitrate wählbar (Standard 320 kbit/s),
   Hinweise zu Qualität und Serato-Versatz; Original bleibt unverändert, nichts wird überschrieben. Module `convert.py`,

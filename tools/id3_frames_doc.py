@@ -11,6 +11,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
+import formatmap  # noqa: E402
 import id3frames  # noqa: E402
 import i18n  # noqa: E402
 from id3tags import FIELD_NAMES  # noqa: E402
@@ -46,17 +47,22 @@ Issue #98.
 | MP3 | ID3v2.3/v2.4 am Dateianfang | ID3v1 am Dateiende (wird auf Wunsch mitgeschrieben) | – |
 | WAV | ID3v2 im Chunk `id3 ` (bzw. `ID3 `) – **alle Frames wie bei MP3** | RIFF `LIST/INFO`, wenn kein ID3-Chunk da ist (nur lesen) | Einstellung „WAV und AIFF“; RF64 (über 4 GB) nur lesen; kein ID3v1 |
 | AIFF / AIFC | ID3v2 im Chunk `ID3 ` – **alle Frames wie bei MP3** | `NAME`, `AUTH`, `(c) `, `ANNO`, wenn kein ID3-Chunk da ist (nur lesen) | Einstellung „WAV und AIFF“; kein ID3v1 |
+| MP4 / M4A (AAC, ALAC) | iTunes-Atome `ilst` (fest: `©nam`, `©ART` …), freie Felder `----:com.apple.iTunes:NAME` | – | **geplant** (#265); AAC und ALAC haben dieselben Atome, MP4 (Video) ebenso |
+| AAC (.aac, roh) | **kein eigenes Tag-System** | – | manche Programme setzen ein ID3v2 davor oder hängen APEv2 an, wird kaum gelesen – besser M4A |
+| FLAC / OGG Vorbis | Vorbis-Kommentare (`NAME=Wert`, frei wählbar); Cover in FLAC als `PICTURE`-Block, in OGG als `METADATA_BLOCK_PICTURE` | – | **geplant** (#264, #266); Mehrfachwerte über mehrere gleiche Felder; OGG bei DJ-Programmen selten |
 
 Beim Speichern von WAV/AIFF ersetzt TagStudio nur den ID3-Chunk; INFO bzw. NAME/AUTH bleiben unverändert. Ob die
-DJ-Programme ein Feld in WAV/AIFF auch lesen, ist je Programm verschieden (Messreihe #446). FLAC, M4A und OGG folgen
-später (#264–#266).
+DJ-Programme ein Feld in WAV/AIFF auch lesen, ist je Programm verschieden (Messreihe #446).
 
 **Spalten:** v2.2 = ID in ID3v2.2 · Version = 2.3, 2.4 oder inoffiziell · MP3 / WAV / AIFF = schreibbar (✔); dahinter
-das entsprechende Feld in ID3v1 bzw. im INFO-/AIFF-Textchunk (nur lesen) · Anzeige = Text, Bild, lesbare Kurzfassung
-oder Grösse + Prüfsumme · Bearbeiten = womit TagStudio das Feld ändern kann · Mp3tag = Feldname in Mp3tag.
+das entsprechende Feld in ID3v1 bzw. im INFO-/AIFF-Textchunk (nur lesen) · MP4 / M4A, AAC, FLAC / OGG = Name des Felds
+im jeweiligen Format (**noch nicht schreibbar**, Namen geplant und mit Testdateien zu bestätigen, #446): ✔ = Standardfeld,
+◐ = nur als freies Feld bzw. per Konvention, ✖ = gibt es nicht, * = Unterschied zwischen FLAC und OGG (unter der Tabelle)
+· Anzeige = Text, Bild, lesbare Kurzfassung oder Grösse + Prüfsumme · Bearbeiten = womit TagStudio das Feld ändern kann
+· Mp3tag = Feldname in Mp3tag.
 
-| Frame | v2.2 | Version | Bezeichnung | MP3 | WAV | AIFF | Anzeige | Bearbeiten | Mp3tag |
-|---|---|---|---|---|---|---|---|---|---|
+| Frame | v2.2 | Version | Bezeichnung | MP3 | WAV | AIFF | MP4 / M4A (AAC, ALAC) | AAC | FLAC / OGG | Anzeige | Bearbeiten | Mp3tag |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
 """
 
 
@@ -87,16 +93,22 @@ HEAD_EN = """# ID3 fields in TagStudio
 | MP3 | ID3v2.3/v2.4 at the start of the file | ID3v1 at the end (written too on request) | – |
 | WAV | ID3v2 in the `id3 ` (or `ID3 `) chunk – **all frames as with MP3** | RIFF `LIST/INFO` if there is no ID3 chunk (read only) | setting “WAV and AIFF”; RF64 (over 4 GB) read only; no ID3v1 |
 | AIFF / AIFC | ID3v2 in the `ID3 ` chunk – **all frames as with MP3** | `NAME`, `AUTH`, `(c) `, `ANNO` if there is no ID3 chunk (read only) | setting “WAV and AIFF”; no ID3v1 |
+| MP4 / M4A (AAC, ALAC) | iTunes atoms `ilst` (fixed: `©nam`, `©ART` …), free fields `----:com.apple.iTunes:NAME` | – | **planned** (#265); AAC and ALAC use the same atoms, so does MP4 (video) |
+| AAC (.aac, raw) | **no tag system of its own** | – | some programs put an ID3v2 in front or append APEv2, rarely read – better use M4A |
+| FLAC / OGG Vorbis | Vorbis comments (`NAME=value`, free names); cover in FLAC as `PICTURE` block, in OGG as `METADATA_BLOCK_PICTURE` | – | **planned** (#264, #266); multiple values via repeated fields; OGG rare in DJ programs |
 
 When saving WAV/AIFF, TagStudio only replaces the ID3 chunk; INFO or NAME/AUTH stay unchanged. Whether DJ programs
-also read a field in WAV/AIFF differs per program (test series #446). FLAC, M4A and OGG follow later (#264–#266).
+also read a field in WAV/AIFF differs per program (test series #446).
 
 **Columns:** v2.2 = ID in ID3v2.2 · Version = 2.3, 2.4 or unofficial · MP3 / WAV / AIFF = writable (✔); after it the
-matching field in ID3v1 or in the INFO/AIFF text chunk (read only) · Display = text, image, readable summary or
-size + checksum · Edit = what TagStudio can change the field with · Mp3tag = field name in Mp3tag.
+matching field in ID3v1 or in the INFO/AIFF text chunk (read only) · MP4 / M4A, AAC, FLAC / OGG = name of the field in
+that format (**not writable yet**, names planned and to be confirmed with test files, #446): ✔ = standard field,
+◐ = only as a free field or by convention, ✖ = does not exist, * = difference between FLAC and OGG (below the table)
+· Display = text, image, readable summary or size + checksum · Edit = what TagStudio can change the field with
+· Mp3tag = field name in Mp3tag.
 
-| Frame | v2.2 | Version | Name | MP3 | WAV | AIFF | Display | Edit | Mp3tag |
-|---|---|---|---|---|---|---|---|---|---|
+| Frame | v2.2 | Version | Name | MP3 | WAV | AIFF | MP4 / M4A (AAC, ALAC) | AAC | FLAC / OGG | Display | Edit | Mp3tag |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
 """
 
 
@@ -118,6 +130,12 @@ def _side(table: dict) -> dict:
     if "TDRC" in out:
         out.setdefault("TYER", out["TDRC"])
     return {k: ", ".join(v) for k, v in out.items()}
+
+
+def _fm(t, table: dict, fid: str) -> str:
+    """MP4-/AAC-/Vorbis-Zelle; der Hinweistext wird übersetzt (Code in `…` bleibt)."""
+    lvl, txt = table.get(fid, ("n", ""))
+    return f"{formatmap.MARK[lvl]} {t(txt) if txt else ''}".strip()
 
 
 def formats(fid: str) -> tuple[str, str, str]:
@@ -142,12 +160,14 @@ def render(lang: str = "de") -> str:
         v22, ver, label = id3frames.SPEC[fid]
         c = id3frames.capabilities(fid)
         m, w, a = formats(fid)
-        rows.append(f"| `{fid}` | {v22 or '–'} | {version(ver, lang)} | {t(label)} | {m} | {w} | {a} | {t(c['show'])} | "
-                    f"{t(c['edit'])} | {FIELD_NAMES.get(fid, '') or '–'} |")
+        x = [_fm(t, formatmap.MP4, fid), _fm(t, {fid: formatmap.AAC}, fid), _fm(t, formatmap.VORBIS, fid)]
+        rows.append(f"| `{fid}` | {v22 or '–'} | {version(ver, lang)} | {t(label)} | {m} | {w} | {a} | {' | '.join(x)} | "
+                    f"{t(c['show'])} | {t(c['edit'])} | {FIELD_NAMES.get(fid, '') or '–'} |")
+    star = "\n".join(f"- `{k}`: {t(v)}" for k, v in formatmap.VORBIS_DIFF.items())
     if lang == "en":
-        tail = "\n\n**Only in ID3v2.2 (dropped):** " + ", ".join(f"`{k}` {t(v)}" for k, v in id3frames.V22_DROPPED.items()) + "\n"
+        tail = "\n\n**Differences FLAC ↔ OGG** (marked with * in the table):\n\n" + star + "\n\n**Only in ID3v2.2 (dropped):** " + ", ".join(f"`{k}` {t(v)}" for k, v in id3frames.V22_DROPPED.items()) + "\n"
         return HEAD_EN + "\n".join(rows) + tail
-    tail = "\n\n**Nur in ID3v2.2 (entfällt):** " + ", ".join(f"`{k}` {v}" for k, v in id3frames.V22_DROPPED.items()) + "\n"
+    tail = "\n\n**Unterschiede FLAC ↔ OGG** (in der Tabelle mit * markiert):\n\n" + star + "\n\n**Nur in ID3v2.2 (entfällt):** " + ", ".join(f"`{k}` {v}" for k, v in id3frames.V22_DROPPED.items()) + "\n"
     return HEAD + "\n".join(rows) + tail
 
 
