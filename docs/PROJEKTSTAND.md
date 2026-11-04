@@ -1,6 +1,9 @@
 # MarKusSXCH TagStudio – Projektstand
 
-> Stand 2026-11-02 (23:45): **Webseite/README auf Stand 4.15** und neue Screenshots 2560 × 1440 (hell/dunkel) im
+> Stand 2026-11-04 (11:10): Übergabe für einen neuen Chat (docs/UEBERGABE.md › „Start nächster Chat“); CI auf `main`
+> (`5684856`) grün, Webseite auf Stand 4.15 veröffentlicht. Offen: Beta-Tests #439–#443, #445; #444 bereit.
+>
+> Davor 2026-11-02 (23:45): **Webseite/README auf Stand 4.15** und neue Screenshots 2560 × 1440 (hell/dunkel) im
 > Beta-Test (#439 Screenshots, #440 README/Webseite, #441 Teaser-Material, #445 Handbuch; Meilenstein #29). Bugfixes #442/#443 im
 > Beta-Test, #444 offen (Meilenstein #33 „4.15.1 – Bugfixes“).
 >
