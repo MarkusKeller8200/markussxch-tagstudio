@@ -1710,6 +1710,47 @@ async function tgAddedDialog() {
   });
 }
 
+// ====================================================================== #451 Umwandeln MP3 ↔ WAV/AIFF
+async function tgConvertDialog(idx) {
+  if (!idx.length) { toast("Bitte zuerst Titel markieren."); return; }
+  let pv;
+  try { pv = await call("convert_preview", idx); } catch (e) { toast(String(e.message || e)); return; }
+  if (pv.kinds.length === 1 && pv.kinds[0] === pv.target) pv = await call("convert_preview", idx, pv.kinds[0] === "mp3" ? "wav" : "mp3");
+  const opt = (v, l, cur) => `<option value="${v}"${String(v) === String(cur) ? " selected" : ""}>${esc(l)}</option>`;
+  const html = `<div class="frm">
+      <label for="cvTarget">Ziel-Format</label><select id="cvTarget" class="inp">${opt("wav", "WAV (unkomprimiert)", pv.target)}${opt("aiff", "AIFF (unkomprimiert)", pv.target)}${opt("mp3", "MP3", pv.target)}</select>
+      <label for="cvRate" class="cv-mp3">Bitrate</label><select id="cvRate" class="inp cv-mp3">${pv.bitrates.map((b) => opt(b, b + " kbit/s" + (b === 320 ? " (Standard)" : ""), pv.bitrate)).join("")}</select>
+      <label for="cvDest">Ablage</label><select id="cvDest" class="inp">${opt("export", "Export-Ordner" + (pv.export ? "" : " (nicht festgelegt – Benutzerordner)"), pv.dest)}${opt("beside", "neben dem Original", pv.dest)}</select>
+    </div>
+    <div class="hint" id="cvHint"></div>
+    <div id="cvRows" class="fx-table" style="max-height:40vh;margin-top:8px"></div>`;
+  const paint = async (b) => {
+    const t = $("#cvTarget", b).value, d = $("#cvDest", b).value, r = +$("#cvRate", b).value;
+    b.querySelectorAll(".cv-mp3").forEach((el) => (el.hidden = t !== "mp3"));
+    try { pv = await call("convert_preview", idx, t, d, r); } catch (e) { $("#cvRows", b).textContent = String(e.message || e); return; }
+    const notes = [];
+    if (!pv.ffmpeg) notes.push("<b>FFmpeg fehlt</b> – das Stems-Plugin installieren (bringt FFmpeg mit) oder FFmpeg in den Suchpfad legen.");
+    notes.push(t === "mp3" ? "WAV/AIFF → MP3 ist verlustbehaftet." : "MP3 → WAV/AIFF macht die Qualität nicht besser – die Datei wird nur grösser.");
+    notes.push("Das Original bleibt unverändert; die Tags (Cover, Bewertung, eigene Felder) werden übernommen. Bestehende Dateien werden nie überschrieben.");
+    if (pv.serato) notes.push("<b>Serato:</b> Cues und Beatgrid werden übernommen, können sich bei MP3 aber um wenige Millisekunden verschieben (Encoder-Versatz) – in Serato prüfen.");
+    $("#cvHint", b).innerHTML = notes.join("<br>");
+    $("#cvRows", b).innerHTML = `<table><thead><tr><th>Datei</th><th>Neu</th><th></th></tr></thead><tbody>${pv.rows.map((x) =>
+      `<tr class="${x.problem ? "gone" : ""}"><td title="${esc(x.src)}">${esc(x.src.split(/[\\/]/).pop())}</td><td class="sm" title="${esc(x.dst)}">${esc(x.dst)}</td><td class="sm">${esc(x.problem || "")}</td></tr>`).join("")}</tbody></table>`;
+    const go = $("#mBtns .primary");
+    if (go) { go.disabled = !pv.ok || !pv.ffmpeg; go.textContent = `${fmtN(pv.ok)} Titel umwandeln`; }
+  };
+  const res = await modal({ title: `Umwandeln (${idx.length})`, wide: true, html,
+    buttons: [{ label: "Abbrechen", value: null }, { label: "Umwandeln", value: true, primary: true }],
+    onMount: (b) => { b.addEventListener("change", () => paint(b)); paint(b); },
+    collect: (b) => ({ target: $("#cvTarget", b).value, dest: $("#cvDest", b).value, rate: +$("#cvRate", b).value }) });
+  if (!res) return;
+  const r = await runTask(call("start_convert", idx, res.target, res.dest, res.rate), "Umwandeln");
+  if (!r) return;
+  status(r.message, r.errors && r.errors.length ? "warn" : "info");
+  if (r.errors && r.errors.length) await info("Hinweise", r.errors.join("\n"));
+  else if (r.folder) toast(`Gespeichert in ${r.folder}`);
+}
+
 async function tgExportDialog() {
   const idx = tgSelected();
   const res = await modal({

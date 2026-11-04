@@ -235,6 +235,13 @@ AIFF-Dateien (`.wav`, `.aif`, `.aiff`, `.aifc`) in Tagger und Vergleich ein. Die
 - **Player (#448):** WAV und AIFF spielen im Vorschau-Player wie MP3 (Wellenform, Spulen, Cues aus dem ID3-Chunk).
   AIFF liefert TagStudio dafür intern als WAV aus (Browser und App-Fenster können AIFF nicht direkt abspielen) – an der
   Datei ändert sich nichts. Komprimiertes AIFC (z. B. µ-law) wird nicht abgespielt.
+- **Umwandeln (#451):** Rechtsklick auf markierte Titel › **Umwandeln (WAV, AIFF, MP3) …** erstellt eine neue Datei
+  MP3 → WAV, MP3 → AIFF oder WAV/AIFF → MP3 (Bitrate wählbar, Standard 320 kbit/s). Ablage wahlweise im
+  **Export-Ordner** (Standard) oder neben dem Original; die Wahl wird gemerkt. Das Original bleibt unverändert, die
+  Tags (Cover, Bewertung, eigene Felder, Serato-Daten) werden übernommen, bestehende Dateien nie überschrieben.
+  Hinweise im Dialog: MP3 → WAV/AIFF verbessert die Qualität nicht; WAV/AIFF → MP3 ist verlustbehaftet; Serato-Cues
+  und -Beatgrid können sich bei MP3 um wenige Millisekunden verschieben. Braucht FFmpeg (kommt mit dem Stems-Plugin
+  oder aus dem Suchpfad). Funktioniert auch ohne die Einstellung „WAV und AIFF“ für MP3 → WAV/AIFF.
 - Andere Bereiche (Vorbereiten, Einkäufe, Playlists, Snapshots) arbeiten vorerst weiterhin nur mit MP3.
 
 ### Vorbereiten und Entdecken

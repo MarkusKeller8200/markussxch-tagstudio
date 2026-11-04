@@ -231,6 +231,13 @@ the same fields as MP3 (text, custom fields, cover, rating, lyrics, Serato data)
 - **Player (#448):** WAV and AIFF play in the preview player like MP3 (waveform, seeking, cues from the ID3 chunk).
   For this TagStudio serves AIFF internally as WAV (browsers and the app window cannot play AIFF directly) – the file
   itself is not changed. Compressed AIFC (e.g. µ-law) is not played.
+- **Convert (#451):** right-click on selected tracks › **Convert (WAV, AIFF, MP3) …** creates a new file MP3 → WAV,
+  MP3 → AIFF or WAV/AIFF → MP3 (bitrate selectable, default 320 kbit/s). Stored either in the **export folder**
+  (default) or next to the original; the choice is remembered. The original stays unchanged, the tags (cover, rating,
+  custom fields, Serato data) are carried over, existing files are never overwritten. Notes in the dialog: MP3 →
+  WAV/AIFF does not improve quality; WAV/AIFF → MP3 is lossy; Serato cues and beatgrid can shift by a few milliseconds
+  with MP3. Needs FFmpeg (comes with the Stems plug-in or from the search path). Works for MP3 → WAV/AIFF even without
+  the “WAV and AIFF” setting.
 - Other areas (prepare, purchases, playlists, snapshots) still work with MP3 only for now.
 
 ### Prepare and discover

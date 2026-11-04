@@ -856,6 +856,34 @@ class UiTest(unittest.TestCase):
         pg.evaluate("call('set_chunk_formats', false)")
         self.assertEqual(self.errors, [])
 
+    def test_convert_dialog(self):
+        """#451: Rechtsklick „Umwandeln …“ – Ziel WAV neben dem Original, Bitrate nur bei MP3 sichtbar, Datei mit Tags."""
+        pg = self.pg
+        self.load_tagger()
+        name = pg.evaluate("TG.rows[0].name")
+        src = os.path.join(self.lib, name)
+        dst = os.path.splitext(src)[0] + ".wav"
+        self.addCleanup(lambda: os.path.exists(dst) and os.remove(dst))
+        pg.click('.tg-row[data-i="0"] .nm', button="right")
+        pg.click("#menu button >> text=Umwandeln")
+        pg.wait_for_selector("#cvTarget")
+        pg.select_option("#cvTarget", "mp3")
+        self.assertTrue(self.until("!document.querySelector('#cvRate').hidden"))
+        self.assertTrue(self.until("document.querySelector('#cvRows').textContent.includes('schon in diesem Format')"))
+        pg.select_option("#cvTarget", "wav")
+        pg.select_option("#cvDest", "beside")
+        self.assertTrue(self.until("document.querySelector('#cvRate').hidden && !document.querySelector('#mBtns .primary').disabled"))
+        self.assertIn("Qualität nicht besser", pg.inner_text("#cvHint"))
+        pg.click("#mBtns .primary")
+        t0 = time.time()
+        while not os.path.exists(dst) and time.time() - t0 < 20:
+            time.sleep(0.2)
+        self.assertTrue(self.until("document.querySelector('#progress').hidden", 20))
+        from id3tags import MP3File
+        self.assertEqual(MP3File(dst).text("TIT2"), MP3File(src).text("TIT2"))
+        self.assertEqual(self.cfg_until(lambda c: (c.get("convert") or {}).get("dest") == "beside")["convert"]["target"], "wav")
+        self.assertEqual(self.errors, [])
+
     def test_wave_in_file_setting(self):
         """#222 (W1): Einstellung „Wellenform im MP3“ – Standard aus, Schalter speichert; Player zeigt die Wellenform
         aus dem MP3, wenn der Cache leer ist."""

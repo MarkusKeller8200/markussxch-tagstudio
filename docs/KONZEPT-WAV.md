@@ -65,7 +65,13 @@ und die Kopie in den DJ-Programmen öffnen (Felder sichtbar? Cues/Beatgrid erhal
 >
 > **Player (#448, 04.11.2026):** WAV direkt; AIFF/AIFC über `media.aiff_view`/`aiff_read` als virtuelle WAV-Datei
 > (44-Byte-Kopf, Samples Big-→Little-Endian, 8 bit signed→unsigned, AIFC `NONE/twos/sowt/raw /fl32/fl64`; andere
-> Kompressionen → 415). `waveform.key_for` nimmt bei WAV/AIFF nur den Audio-Chunk. Nächster Schritt: Konverter #451.
+> Kompressionen → 415). `waveform.key_for` nimmt bei WAV/AIFF nur den Audio-Chunk.
+>
+> **Konverter (#451, 04.11.2026, Entscheide User 20:39):** Tagger › Rechtsklick „Umwandeln …“; Ablage wahlweise, Standard
+> Export-Ordner (`Session.export_dir`, sonst Benutzerordner); MP3-Bitrate wählbar 128/192/256/320, Standard 320 (CBR,
+> libmp3lame); Serato-Daten werden übernommen, mit Hinweis auf den Encoder-Versatz. `convert.py` (FFmpeg wie
+> Lautheit: Stems-Plugin, imageio_ffmpeg, Suchpfad; `-map_metadata -1`, bitexact, Bit-Tiefe/Abtastrate wie Quelle),
+> `session_convert.py` (`convert_preview`, `start_convert`, cfg `convert`). Nie überschreiben, temporäre Datei im Ziel.
 
 1. **Lesen:** `MP3File` um einen WAV-Zweig erweitern (Chunk-Liste, ID3-Chunk über den bestehenden Parser, INFO als
    Ersatz, Dauer aus `fmt `/`data`). Tagger, Vergleich, Snapshots und Listen-Cache bekommen WAV-Dateien.

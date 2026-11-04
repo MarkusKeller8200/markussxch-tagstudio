@@ -185,5 +185,14 @@
 "WAV-/AIFF-Datei bzw. ID3-Chunk beschädigt – nicht gespeichert, damit keine Audiodaten verloren gehen.": ["WAV/AIFF file or ID3 chunk damaged – not saved so that no audio data is lost.", "WAV-/AIFF-Datei bzw. ID3-Chunk kaputt – nöd gspeicheret, dass kei Audiodate verlore gönd."],
 "kein gültiger WAV-/AIFF-Kopf": ["not a valid WAV/AIFF header", "kein gültige WAV-/AIFF-Chopf"],
 "ID3-Chunk beschädigt": ["ID3 chunk damaged", "ID3-Chunk kaputt"],
-"WAV-/AIFF-Datei – Tags werden im ID3-Chunk gespeichert, nicht wie bei MP3.": ["WAV/AIFF file – tags are stored in the ID3 chunk, not like MP3.", "WAV-/AIFF-Datei – Tags werded im ID3-Chunk gspeicheret, nöd wie bim MP3."]
+"WAV-/AIFF-Datei – Tags werden im ID3-Chunk gespeichert, nicht wie bei MP3.": ["WAV/AIFF file – tags are stored in the ID3 chunk, not like MP3.", "WAV-/AIFF-Datei – Tags werded im ID3-Chunk gspeicheret, nöd wie bim MP3."],
+"Fehler {x}": ["Error {x}", "Fähler {x}"],
+"Ziel muss wav, aiff oder mp3 sein": ["Target must be wav, aiff or mp3", "Ziil muess wav, aiff oder mp3 sii"],
+"Format wird nicht umgewandelt": ["Format is not converted", "Format wird nöd umgwandlet"],
+"Bitrate nicht erlaubt": ["Bitrate not allowed", "Bitrate nöd erlaubt"],
+"ist schon in diesem Format": ["is already in this format", "isch scho i dem Format"],
+"Ziel gibt es schon – wird nicht überschrieben": ["Target already exists – not overwritten", "Ziil gits scho – wird nöd überschribe"],
+"gleicher Zielname wie eine andere Datei": ["same target name as another file", "gliiche Ziilname wie en anderi Datei"],
+"{x} Titel umgewandelt ({x}).": ["{x} tracks converted ({x}).", "{x} Titel umgwandlet ({x})."],
+"Nichts umzuwandeln – siehe Vorschau.": ["Nothing to convert – see preview.", "Nüt zum Umwandle – lueg i d Vorschau."]
 }
