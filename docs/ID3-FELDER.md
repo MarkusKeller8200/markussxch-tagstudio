@@ -26,7 +26,7 @@ Issue #98.
 | WAV | ID3v2 im Chunk `id3 ` (bzw. `ID3 `) – **alle Frames wie bei MP3** | RIFF `LIST/INFO`, wenn kein ID3-Chunk da ist (nur lesen) | Einstellung „WAV und AIFF“; RF64 (über 4 GB) nur lesen; kein ID3v1 |
 | AIFF / AIFC | ID3v2 im Chunk `ID3 ` – **alle Frames wie bei MP3** | `NAME`, `AUTH`, `(c) `, `ANNO`, wenn kein ID3-Chunk da ist (nur lesen) | Einstellung „WAV und AIFF“; kein ID3v1 |
 | MP4 / M4A (AAC, ALAC) | iTunes-Atome `ilst` (fest: `©nam`, `©ART` …), freie Felder `----:com.apple.iTunes:NAME` | – | Test (#265, Einstellung „Weitere Formate“); AAC und ALAC haben dieselben Atome, MP4 (Video) ebenso; Audio bleibt byte-gleich, Offsets werden nachgeführt |
-| AAC (.aac, roh) | **kein eigenes Tag-System** | – | manche Programme setzen ein ID3v2 davor oder hängen APEv2 an, wird kaum gelesen – besser M4A |
+| AAC (.aac, roh) | **kein eigenes Tag-System** | ID3v2 davor bzw. ID3v1 am Ende (nur lesen) | **nur lesen** (#455, Einstellung „Weitere Formate“); für Tags als M4A speichern – Umwandeln › M4A – AAC packt ohne Neukodierung um |
 | FLAC / OGG Vorbis | Vorbis-Kommentare (`NAME=Wert`, frei wählbar); Cover in FLAC als `PICTURE`-Block, in OGG als `METADATA_BLOCK_PICTURE` | – | FLAC: Test (#264); **OGG/Opus nur lesen** (#266); Mehrfachwerte über mehrere gleiche Felder; Platzpuffer (PADDING) wird genutzt |
 
 Beim Speichern von WAV/AIFF ersetzt TagStudio nur den ID3-Chunk; INFO bzw. NAME/AUTH bleiben unverändert. Ob die
@@ -41,115 +41,115 @@ im jeweiligen Format (so liest und schreibt TagStudio es; Namen mit Testdateien 
 
 | Frame | v2.2 | Version | Bezeichnung | MP3 | WAV | AIFF | MP4 / M4A (AAC, ALAC) | AAC | FLAC / OGG | Anzeige | Bearbeiten | Mp3tag |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| `AENC` | CRA | 2.3 + 2.4 | Audio-Verschlüsselung | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `APIC` | PIC | 2.3 + 2.4 | Bild / Cover | ✔ | ✔ | ✔ | ✔ `covr` (nur JPEG/PNG, ohne Bildart) | ◐ ID3v2 | ✔ `PICTURE`-Block (mit Bildart) * | Bild | Cover-Werkzeuge | PICTURE |
-| `ASPI` | – | nur 2.4 | Audio-Suchindex | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `CHAP` | – | 2.3 + 2.4 | Kapitel | ✔ | ✔ | ✔ | ✖ noch nicht (eigene Kapitel-Spur) | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `COMM` | COM | 2.3 + 2.4 | Kommentar | ✔ · ID3v1 | ✔ · INFO `ICMT` | ✔ · `ANNO` | ✔ `©cmt` | ◐ ID3v2 | ✔ `COMMENT` (manche: `DESCRIPTION`) | Text | Text | COMMENT |
-| `COMR` | – | 2.3 + 2.4 | Kommerziell | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `CTOC` | – | 2.3 + 2.4 | Inhaltsverzeichnis (Kapitel) | ✔ | ✔ | ✔ | ✖ noch nicht (eigene Kapitel-Spur) | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `ENCR` | – | 2.3 + 2.4 | Verschlüsselungsmethode | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `EQU2` | – | nur 2.4 | Equalizer | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `EQUA` | EQU | nur 2.3 | Equalizer | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `ETCO` | ETC | 2.3 + 2.4 | Ereignis-Zeitpunkte | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `GEOB` | GEO | 2.3 + 2.4 | Eingebettete Daten | ✔ | ✔ | ✔ | ◐ Serato: `----:com.serato.dj:…` bleibt unverändert erhalten | ◐ ID3v2 | ◐ Serato: `SERATO_…` (Base64) bleibt unverändert erhalten * | lesbar | Binärfeld-Editor | – |
-| `GRID` | – | 2.3 + 2.4 | Gruppen-ID | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `GRP1` | GP1 | inoffiziell | Gruppierung (iTunes) | ✔ | ✔ | ✔ | ✔ `©grp` | ◐ ID3v2 | ✔ `GROUPING` | Text | Text | GROUPING |
-| `IPLS` | IPL | nur 2.3 | Beteiligte Personen | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `LINK` | LNK | 2.3 + 2.4 | Verknüpfung | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `MCDI` | MCI | 2.3 + 2.4 | CD-Inhaltsverzeichnis | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `MLLT` | MLL | 2.3 + 2.4 | MPEG-Lookup-Tabelle | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `MVIN` | MVI | inoffiziell | Satznummer (iTunes) | ✔ | ✔ | ✔ | ✔ `©mvi` + `©mvc` | ◐ ID3v2 | ✔ `MOVEMENTNUMBER` | Text | Text | MOVEMENT |
-| `MVNM` | MVN | inoffiziell | Satzname (iTunes) | ✔ | ✔ | ✔ | ✔ `©mvn` | ◐ ID3v2 | ✔ `MOVEMENTNAME` | Text | Text | MOVEMENTNAME |
-| `OWNE` | – | 2.3 + 2.4 | Besitzer | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `PCNT` | CNT | 2.3 + 2.4 | Wiedergabezähler | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `PCST` | PCS | inoffiziell | Podcast-Kennzeichen (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `POPM` | POP | 2.3 + 2.4 | Bewertung | ✔ | ✔ | ✔ | ✖ noch nicht – Konvention wird gemessen (#453) | ◐ ID3v2 | ✖ noch nicht – `RATING`/`FMPS_RATING` wird gemessen (#453) | lesbar | Bewertung (Sterne) | RATING |
-| `POSS` | – | 2.3 + 2.4 | Positions-Synchronisation | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `PRIV` | – | 2.3 + 2.4 | Private Daten | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | Binärfeld-Editor | – |
-| `RBUF` | BUF | 2.3 + 2.4 | Puffergrösse | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `RVA2` | – | nur 2.4 | Lautstärke-Anpassung | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `RVAD` | RVA | nur 2.3 | Lautstärke-Anpassung | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `RVRB` | REV | 2.3 + 2.4 | Hall | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `SEEK` | – | nur 2.4 | Suchmarke | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `SIGN` | – | nur 2.4 | Signatur | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `SYLT` | SLT | 2.3 + 2.4 | Synchronisierter Liedtext | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ noch nicht | lesbar | – | – |
-| `SYTC` | STC | 2.3 + 2.4 | Tempo-Code | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `TALB` | TAL | 2.3 + 2.4 | Album | ✔ · ID3v1 | ✔ · INFO `IPRD` | ✔ | ✔ `©alb` | ◐ ID3v2 | ✔ `ALBUM` | Text | Text | ALBUM |
-| `TBPM` | TBP | 2.3 + 2.4 | Beats pro Minute | ✔ | ✔ | ✔ | ◐ `tmpo` (nur ganze Zahl) | ◐ ID3v2 | ✔ `BPM` | Text | Text | BPM |
-| `TCAT` | TCT | inoffiziell | Podcast-Kategorie (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TCMP` | TCP | inoffiziell | Zusammenstellung (iTunes) | ✔ | ✔ | ✔ | ✔ `cpil` | ◐ ID3v2 | ✔ `COMPILATION` | Text | Text | COMPILATION |
-| `TCOM` | TCM | 2.3 + 2.4 | Komponist | ✔ | ✔ | ✔ | ✔ `©wrt` | ◐ ID3v2 | ✔ `COMPOSER` | Text | Text | COMPOSER |
-| `TCON` | TCO | 2.3 + 2.4 | Genre | ✔ · ID3v1 | ✔ · INFO `IGNR` | ✔ | ✔ `©gen` | ◐ ID3v2 | ✔ `GENRE` | Text | Text | GENRE |
-| `TCOP` | TCR | 2.3 + 2.4 | Copyright | ✔ | ✔ · INFO `ICOP` | ✔ · `(c)` | ✔ `cprt` | ◐ ID3v2 | ✔ `COPYRIGHT` | Text | Text | COPYRIGHT |
-| `TDAT` | TDA | nur 2.3 | Datum (TTMM) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TDEN` | – | nur 2.4 | Kodierungsdatum | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TDES` | TDS | inoffiziell | Podcast-Beschreibung (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TDLY` | TDY | 2.3 + 2.4 | Verzögerung | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TDOR` | – | nur 2.4 | Originalveröffentlichungsdatum | ✔ | ✔ | ✔ | ◐ `----:ORIGINALDATE` | ◐ ID3v2 | ✔ `ORIGINALDATE` | Text | Text | ORIGYEAR |
-| `TDRC` | – | nur 2.4 | Aufnahmedatum | ✔ · ID3v1 | ✔ · INFO `ICRD` | ✔ | ✔ `©day` | ◐ ID3v2 | ✔ `DATE` | Text | Text | YEAR |
-| `TDRL` | – | nur 2.4 | Veröffentlichungsdatum | ✔ | ✔ | ✔ | ◐ `----:RELEASEDATE` | ◐ ID3v2 | ✔ `RELEASEDATE` | Text | Text | RELEASETIME |
-| `TDTG` | – | nur 2.4 | Tagging-Datum | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | TAGGINGTIME |
-| `TENC` | TEN | 2.3 + 2.4 | Kodiert von | ✔ | ✔ | ✔ | ✔ `©enc` | ◐ ID3v2 | ✔ `ENCODEDBY` | Text | Text | ENCODEDBY |
-| `TEXT` | TXT | 2.3 + 2.4 | Texter | ✔ | ✔ | ✔ | ◐ `----:LYRICIST` | ◐ ID3v2 | ✔ `LYRICIST` | Text | Text | LYRICIST |
-| `TFLT` | TFT | 2.3 + 2.4 | Dateityp | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | FILETYPE |
-| `TGID` | TID | inoffiziell | Podcast-ID (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TIME` | TIM | nur 2.3 | Uhrzeit (HHMM) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TIPL` | – | nur 2.4 | Beteiligte Personen | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | INVOLVEDPEOPLE |
-| `TIT1` | TT1 | 2.3 + 2.4 | Inhaltliche Gruppierung | ✔ | ✔ | ✔ | ✔ `©wrk` | ◐ ID3v2 | ✔ `WORK` | Text | Text | CONTENTGROUP |
-| `TIT2` | TT2 | 2.3 + 2.4 | Titel | ✔ · ID3v1 | ✔ · INFO `INAM` | ✔ · `NAME` | ✔ `©nam` | ◐ ID3v2 | ✔ `TITLE` | Text | Text | TITLE |
-| `TIT3` | TT3 | 2.3 + 2.4 | Untertitel | ✔ | ✔ | ✔ | ◐ `----:SUBTITLE` | ◐ ID3v2 | ✔ `SUBTITLE` | Text | Text | SUBTITLE |
-| `TKEY` | TKE | 2.3 + 2.4 | Tonart | ✔ | ✔ | ✔ | ◐ `----:initialkey` | ◐ ID3v2 | ◐ `INITIALKEY` (manche: `KEY`) | Text | Text | INITIALKEY |
-| `TKWD` | TKW | inoffiziell | Podcast-Schlüsselwörter (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TLAN` | TLA | 2.3 + 2.4 | Sprache | ✔ | ✔ | ✔ | ◐ `----:LANGUAGE` | ◐ ID3v2 | ✔ `LANGUAGE` | Text | Text | LANGUAGE |
-| `TLEN` | TLE | 2.3 + 2.4 | Länge (ms) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | LENGTH |
-| `TMCL` | – | nur 2.4 | Musiker | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | MUSICIANCREDITS |
-| `TMED` | TMT | 2.3 + 2.4 | Medientyp | ✔ | ✔ | ✔ | ◐ `----:MEDIA` | ◐ ID3v2 | ✔ `MEDIA` | Text | Text | MEDIATYPE |
-| `TMOO` | – | nur 2.4 | Stimmung | ✔ | ✔ | ✔ | ◐ `----:MOOD` | ◐ ID3v2 | ✔ `MOOD` | Text | Text | MOOD |
-| `TOAL` | TOT | 2.3 + 2.4 | Originalalbum | ✔ | ✔ | ✔ | ◐ freies Feld über TXXX | ◐ ID3v2 | ✔ `ORIGINALALBUM` | Text | Text | ORIGALBUM |
-| `TOFN` | TOF | 2.3 + 2.4 | Originaldateiname | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | ORIGFILENAME |
-| `TOLY` | TOL | 2.3 + 2.4 | Originaltexter | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | ORIGLYRICIST |
-| `TOPE` | TOA | 2.3 + 2.4 | Originalkünstler | ✔ | ✔ | ✔ | ◐ freies Feld über TXXX | ◐ ID3v2 | ✔ `ORIGINALARTIST` | Text | Text | ORIGARTIST |
-| `TORY` | TOR | nur 2.3 | Originaljahr | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TOWN` | – | 2.3 + 2.4 | Eigentümer | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | FILEOWNER |
-| `TPE1` | TP1 | 2.3 + 2.4 | Künstler | ✔ · ID3v1 | ✔ · INFO `IART` | ✔ · `AUTH` | ✔ `©ART` | ◐ ID3v2 | ✔ `ARTIST` | Text | Text | ARTIST |
-| `TPE2` | TP2 | 2.3 + 2.4 | Album-Künstler | ✔ | ✔ | ✔ | ✔ `aART` | ◐ ID3v2 | ✔ `ALBUMARTIST` | Text | Text | ALBUMARTIST |
-| `TPE3` | TP3 | 2.3 + 2.4 | Dirigent | ✔ | ✔ | ✔ | ◐ `----:CONDUCTOR` | ◐ ID3v2 | ✔ `CONDUCTOR` | Text | Text | CONDUCTOR |
-| `TPE4` | TP4 | 2.3 + 2.4 | Remix / Bearbeitung | ✔ | ✔ | ✔ | ◐ `----:REMIXER` | ◐ ID3v2 | ✔ `REMIXER` | Text | Text | MIXARTIST |
-| `TPOS` | TPA | 2.3 + 2.4 | Disknummer | ✔ | ✔ | ✔ | ✔ `disk` | ◐ ID3v2 | ✔ `DISCNUMBER` (+ `DISCTOTAL`) | Text | Text | DISCNUMBER |
-| `TPRO` | – | nur 2.4 | Produktionshinweis | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | PRODUCEDNOTICE |
-| `TPUB` | TPB | 2.3 + 2.4 | Herausgeber / Label | ✔ | ✔ | ✔ | ◐ `----:LABEL` | ◐ ID3v2 | ◐ `LABEL` (auch `ORGANIZATION`, `PUBLISHER`) | Text | Text | PUBLISHER |
-| `TRCK` | TRK | 2.3 + 2.4 | Spurnummer | ✔ · ID3v1 | ✔ · INFO `ITRK`, `IPRT` | ✔ | ✔ `trkn` (Nr. + Anzahl) | ◐ ID3v2 | ✔ `TRACKNUMBER` (+ `TRACKTOTAL`) | Text | Text | TRACK |
-| `TRDA` | TRD | nur 2.3 | Aufnahmedaten | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TRSN` | – | 2.3 + 2.4 | Internetradio-Name | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TRSO` | – | 2.3 + 2.4 | Internetradio-Eigentümer | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TSIZ` | TSI | nur 2.3 | Grösse (Bytes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `TSO2` | TS2 | inoffiziell | Album-Künstler einsortieren als (iTunes) | ✔ | ✔ | ✔ | ✔ `soaa` | ◐ ID3v2 | ✔ `ALBUMARTISTSORT` | Text | Text | ALBUMARTISTSORT |
-| `TSOA` | TSA | nur 2.4 | Album einsortieren als | ✔ | ✔ | ✔ | ✔ `soal` | ◐ ID3v2 | ✔ `ALBUMSORT` | Text | Text | ALBUMSORT |
-| `TSOC` | TSC | inoffiziell | Komponist einsortieren als (iTunes) | ✔ | ✔ | ✔ | ✔ `soco` | ◐ ID3v2 | ✔ `COMPOSERSORT` | Text | Text | COMPOSERSORT |
-| `TSOP` | TSP | nur 2.4 | Künstler einsortieren als | ✔ | ✔ | ✔ | ✔ `soar` | ◐ ID3v2 | ✔ `ARTISTSORT` | Text | Text | ARTISTSORT |
-| `TSOT` | TST | nur 2.4 | Titel einsortieren als | ✔ | ✔ | ✔ | ✔ `sonm` | ◐ ID3v2 | ✔ `TITLESORT` | Text | Text | TITLESORT |
-| `TSRC` | TRC | 2.3 + 2.4 | ISRC | ✔ | ✔ | ✔ | ◐ `----:ISRC` | ◐ ID3v2 | ✔ `ISRC` | Text | Text | ISRC |
-| `TSSE` | TSS | 2.3 + 2.4 | Kodierung Einstellungen | ✔ | ✔ · INFO `ISFT` | ✔ | ✔ `©too` | ◐ ID3v2 | ◐ `ENCODING` (Mp3tag: `ENCODERSETTINGS`) | Text | Text | ENCODERSETTINGS |
-| `TSST` | – | nur 2.4 | Disc-Untertitel | ✔ | ✔ | ✔ | ◐ `----:DISCSUBTITLE` | ◐ ID3v2 | ✔ `DISCSUBTITLE` | Text | Text | SETSUBTITLE |
-| `TXXX` | TXX | 2.3 + 2.4 | Benutzertext | ✔ | ✔ | ✔ | ✔ `----:com.apple.iTunes:<NAME>` | ◐ ID3v2 | ✔ `<NAME>` | Text | Text | – |
-| `TYER` | TYE | nur 2.3 | Jahr | ✔ · ID3v1 | ✔ · INFO `ICRD` | ✔ | ✔ `©day` | ◐ ID3v2 | ✔ `DATE` | Text | Text | – |
-| `UFID` | UFI | 2.3 + 2.4 | Eindeutige Datei-ID | ✔ | ✔ | ✔ | ✖ noch nicht | ◐ ID3v2 | ✖ noch nicht | lesbar | – | UNIQUEFILEID |
-| `USER` | – | 2.3 + 2.4 | Nutzungsbedingungen | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | lesbar | – | – |
-| `USLT` | ULT | 2.3 + 2.4 | Liedtext | ✔ | ✔ | ✔ | ✔ `©lyr` | ◐ ID3v2 | ✔ `LYRICS` | Text | Text | UNSYNCEDLYRICS |
-| `WCOM` | WCM | 2.3 + 2.4 | Kauf-Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWCOMMERCIALINFO |
-| `WCOP` | WCP | 2.3 + 2.4 | Copyright-Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWCOPYRIGHT |
-| `WFED` | WFD | inoffiziell | Podcast-Feed (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `WOAF` | WAF | 2.3 + 2.4 | Audiodatei Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWAUDIOFILE |
-| `WOAR` | WAR | 2.3 + 2.4 | Künstler Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWARTIST |
-| `WOAS` | WAS | 2.3 + 2.4 | Audioquelle Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWAUDIOSOURCE |
-| `WORS` | – | 2.3 + 2.4 | Internetradio Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `WPAY` | – | 2.3 + 2.4 | Bezahlung Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWPAYMENT |
-| `WPUB` | WPB | 2.3 + 2.4 | Herausgeber Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWPUBLISHER |
-| `WXXX` | WXX | 2.3 + 2.4 | Benutzer-Link | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `XSOA` | – | inoffiziell | Album einsortieren als (v2.3, iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `XSOP` | – | inoffiziell | Künstler einsortieren als (v2.3, iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
-| `XSOT` | – | inoffiziell | Titel einsortieren als (v2.3, iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
+| `AENC` | CRA | 2.3 + 2.4 | Audio-Verschlüsselung | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `APIC` | PIC | 2.3 + 2.4 | Bild / Cover | ✔ | ✔ | ✔ | ✔ `covr` (nur JPEG/PNG, ohne Bildart) | ◐ ID3v2 davor, nur lesen | ✔ `PICTURE`-Block (mit Bildart) * | Bild | Cover-Werkzeuge | PICTURE |
+| `ASPI` | – | nur 2.4 | Audio-Suchindex | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `CHAP` | – | 2.3 + 2.4 | Kapitel | ✔ | ✔ | ✔ | ✖ noch nicht (eigene Kapitel-Spur) | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `COMM` | COM | 2.3 + 2.4 | Kommentar | ✔ · ID3v1 | ✔ · INFO `ICMT` | ✔ · `ANNO` | ✔ `©cmt` | ◐ ID3v2 davor, nur lesen | ✔ `COMMENT` (manche: `DESCRIPTION`) | Text | Text | COMMENT |
+| `COMR` | – | 2.3 + 2.4 | Kommerziell | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `CTOC` | – | 2.3 + 2.4 | Inhaltsverzeichnis (Kapitel) | ✔ | ✔ | ✔ | ✖ noch nicht (eigene Kapitel-Spur) | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `ENCR` | – | 2.3 + 2.4 | Verschlüsselungsmethode | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `EQU2` | – | nur 2.4 | Equalizer | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `EQUA` | EQU | nur 2.3 | Equalizer | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `ETCO` | ETC | 2.3 + 2.4 | Ereignis-Zeitpunkte | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `GEOB` | GEO | 2.3 + 2.4 | Eingebettete Daten | ✔ | ✔ | ✔ | ◐ Serato: `----:com.serato.dj:…` bleibt unverändert erhalten | ◐ ID3v2 davor, nur lesen | ◐ Serato: `SERATO_…` (Base64) bleibt unverändert erhalten * | lesbar | Binärfeld-Editor | – |
+| `GRID` | – | 2.3 + 2.4 | Gruppen-ID | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `GRP1` | GP1 | inoffiziell | Gruppierung (iTunes) | ✔ | ✔ | ✔ | ✔ `©grp` | ◐ ID3v2 davor, nur lesen | ✔ `GROUPING` | Text | Text | GROUPING |
+| `IPLS` | IPL | nur 2.3 | Beteiligte Personen | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `LINK` | LNK | 2.3 + 2.4 | Verknüpfung | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `MCDI` | MCI | 2.3 + 2.4 | CD-Inhaltsverzeichnis | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `MLLT` | MLL | 2.3 + 2.4 | MPEG-Lookup-Tabelle | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `MVIN` | MVI | inoffiziell | Satznummer (iTunes) | ✔ | ✔ | ✔ | ✔ `©mvi` + `©mvc` | ◐ ID3v2 davor, nur lesen | ✔ `MOVEMENTNUMBER` | Text | Text | MOVEMENT |
+| `MVNM` | MVN | inoffiziell | Satzname (iTunes) | ✔ | ✔ | ✔ | ✔ `©mvn` | ◐ ID3v2 davor, nur lesen | ✔ `MOVEMENTNAME` | Text | Text | MOVEMENTNAME |
+| `OWNE` | – | 2.3 + 2.4 | Besitzer | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `PCNT` | CNT | 2.3 + 2.4 | Wiedergabezähler | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `PCST` | PCS | inoffiziell | Podcast-Kennzeichen (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `POPM` | POP | 2.3 + 2.4 | Bewertung | ✔ | ✔ | ✔ | ✖ noch nicht – Konvention wird gemessen (#453) | ◐ ID3v2 davor, nur lesen | ✖ noch nicht – `RATING`/`FMPS_RATING` wird gemessen (#453) | lesbar | Bewertung (Sterne) | RATING |
+| `POSS` | – | 2.3 + 2.4 | Positions-Synchronisation | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `PRIV` | – | 2.3 + 2.4 | Private Daten | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | Binärfeld-Editor | – |
+| `RBUF` | BUF | 2.3 + 2.4 | Puffergrösse | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `RVA2` | – | nur 2.4 | Lautstärke-Anpassung | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `RVAD` | RVA | nur 2.3 | Lautstärke-Anpassung | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `RVRB` | REV | 2.3 + 2.4 | Hall | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `SEEK` | – | nur 2.4 | Suchmarke | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `SIGN` | – | nur 2.4 | Signatur | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `SYLT` | SLT | 2.3 + 2.4 | Synchronisierter Liedtext | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ noch nicht | lesbar | – | – |
+| `SYTC` | STC | 2.3 + 2.4 | Tempo-Code | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `TALB` | TAL | 2.3 + 2.4 | Album | ✔ · ID3v1 | ✔ · INFO `IPRD` | ✔ | ✔ `©alb` | ◐ ID3v2 davor, nur lesen | ✔ `ALBUM` | Text | Text | ALBUM |
+| `TBPM` | TBP | 2.3 + 2.4 | Beats pro Minute | ✔ | ✔ | ✔ | ◐ `tmpo` (nur ganze Zahl) | ◐ ID3v2 davor, nur lesen | ✔ `BPM` | Text | Text | BPM |
+| `TCAT` | TCT | inoffiziell | Podcast-Kategorie (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TCMP` | TCP | inoffiziell | Zusammenstellung (iTunes) | ✔ | ✔ | ✔ | ✔ `cpil` | ◐ ID3v2 davor, nur lesen | ✔ `COMPILATION` | Text | Text | COMPILATION |
+| `TCOM` | TCM | 2.3 + 2.4 | Komponist | ✔ | ✔ | ✔ | ✔ `©wrt` | ◐ ID3v2 davor, nur lesen | ✔ `COMPOSER` | Text | Text | COMPOSER |
+| `TCON` | TCO | 2.3 + 2.4 | Genre | ✔ · ID3v1 | ✔ · INFO `IGNR` | ✔ | ✔ `©gen` | ◐ ID3v2 davor, nur lesen | ✔ `GENRE` | Text | Text | GENRE |
+| `TCOP` | TCR | 2.3 + 2.4 | Copyright | ✔ | ✔ · INFO `ICOP` | ✔ · `(c)` | ✔ `cprt` | ◐ ID3v2 davor, nur lesen | ✔ `COPYRIGHT` | Text | Text | COPYRIGHT |
+| `TDAT` | TDA | nur 2.3 | Datum (TTMM) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TDEN` | – | nur 2.4 | Kodierungsdatum | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TDES` | TDS | inoffiziell | Podcast-Beschreibung (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TDLY` | TDY | 2.3 + 2.4 | Verzögerung | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TDOR` | – | nur 2.4 | Originalveröffentlichungsdatum | ✔ | ✔ | ✔ | ◐ `----:ORIGINALDATE` | ◐ ID3v2 davor, nur lesen | ✔ `ORIGINALDATE` | Text | Text | ORIGYEAR |
+| `TDRC` | – | nur 2.4 | Aufnahmedatum | ✔ · ID3v1 | ✔ · INFO `ICRD` | ✔ | ✔ `©day` | ◐ ID3v2 davor, nur lesen | ✔ `DATE` | Text | Text | YEAR |
+| `TDRL` | – | nur 2.4 | Veröffentlichungsdatum | ✔ | ✔ | ✔ | ◐ `----:RELEASEDATE` | ◐ ID3v2 davor, nur lesen | ✔ `RELEASEDATE` | Text | Text | RELEASETIME |
+| `TDTG` | – | nur 2.4 | Tagging-Datum | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | TAGGINGTIME |
+| `TENC` | TEN | 2.3 + 2.4 | Kodiert von | ✔ | ✔ | ✔ | ✔ `©enc` | ◐ ID3v2 davor, nur lesen | ✔ `ENCODEDBY` | Text | Text | ENCODEDBY |
+| `TEXT` | TXT | 2.3 + 2.4 | Texter | ✔ | ✔ | ✔ | ◐ `----:LYRICIST` | ◐ ID3v2 davor, nur lesen | ✔ `LYRICIST` | Text | Text | LYRICIST |
+| `TFLT` | TFT | 2.3 + 2.4 | Dateityp | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | FILETYPE |
+| `TGID` | TID | inoffiziell | Podcast-ID (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TIME` | TIM | nur 2.3 | Uhrzeit (HHMM) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TIPL` | – | nur 2.4 | Beteiligte Personen | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | INVOLVEDPEOPLE |
+| `TIT1` | TT1 | 2.3 + 2.4 | Inhaltliche Gruppierung | ✔ | ✔ | ✔ | ✔ `©wrk` | ◐ ID3v2 davor, nur lesen | ✔ `WORK` | Text | Text | CONTENTGROUP |
+| `TIT2` | TT2 | 2.3 + 2.4 | Titel | ✔ · ID3v1 | ✔ · INFO `INAM` | ✔ · `NAME` | ✔ `©nam` | ◐ ID3v2 davor, nur lesen | ✔ `TITLE` | Text | Text | TITLE |
+| `TIT3` | TT3 | 2.3 + 2.4 | Untertitel | ✔ | ✔ | ✔ | ◐ `----:SUBTITLE` | ◐ ID3v2 davor, nur lesen | ✔ `SUBTITLE` | Text | Text | SUBTITLE |
+| `TKEY` | TKE | 2.3 + 2.4 | Tonart | ✔ | ✔ | ✔ | ◐ `----:initialkey` | ◐ ID3v2 davor, nur lesen | ◐ `INITIALKEY` (manche: `KEY`) | Text | Text | INITIALKEY |
+| `TKWD` | TKW | inoffiziell | Podcast-Schlüsselwörter (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TLAN` | TLA | 2.3 + 2.4 | Sprache | ✔ | ✔ | ✔ | ◐ `----:LANGUAGE` | ◐ ID3v2 davor, nur lesen | ✔ `LANGUAGE` | Text | Text | LANGUAGE |
+| `TLEN` | TLE | 2.3 + 2.4 | Länge (ms) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | LENGTH |
+| `TMCL` | – | nur 2.4 | Musiker | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | MUSICIANCREDITS |
+| `TMED` | TMT | 2.3 + 2.4 | Medientyp | ✔ | ✔ | ✔ | ◐ `----:MEDIA` | ◐ ID3v2 davor, nur lesen | ✔ `MEDIA` | Text | Text | MEDIATYPE |
+| `TMOO` | – | nur 2.4 | Stimmung | ✔ | ✔ | ✔ | ◐ `----:MOOD` | ◐ ID3v2 davor, nur lesen | ✔ `MOOD` | Text | Text | MOOD |
+| `TOAL` | TOT | 2.3 + 2.4 | Originalalbum | ✔ | ✔ | ✔ | ◐ freies Feld über TXXX | ◐ ID3v2 davor, nur lesen | ✔ `ORIGINALALBUM` | Text | Text | ORIGALBUM |
+| `TOFN` | TOF | 2.3 + 2.4 | Originaldateiname | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | ORIGFILENAME |
+| `TOLY` | TOL | 2.3 + 2.4 | Originaltexter | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | ORIGLYRICIST |
+| `TOPE` | TOA | 2.3 + 2.4 | Originalkünstler | ✔ | ✔ | ✔ | ◐ freies Feld über TXXX | ◐ ID3v2 davor, nur lesen | ✔ `ORIGINALARTIST` | Text | Text | ORIGARTIST |
+| `TORY` | TOR | nur 2.3 | Originaljahr | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TOWN` | – | 2.3 + 2.4 | Eigentümer | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | FILEOWNER |
+| `TPE1` | TP1 | 2.3 + 2.4 | Künstler | ✔ · ID3v1 | ✔ · INFO `IART` | ✔ · `AUTH` | ✔ `©ART` | ◐ ID3v2 davor, nur lesen | ✔ `ARTIST` | Text | Text | ARTIST |
+| `TPE2` | TP2 | 2.3 + 2.4 | Album-Künstler | ✔ | ✔ | ✔ | ✔ `aART` | ◐ ID3v2 davor, nur lesen | ✔ `ALBUMARTIST` | Text | Text | ALBUMARTIST |
+| `TPE3` | TP3 | 2.3 + 2.4 | Dirigent | ✔ | ✔ | ✔ | ◐ `----:CONDUCTOR` | ◐ ID3v2 davor, nur lesen | ✔ `CONDUCTOR` | Text | Text | CONDUCTOR |
+| `TPE4` | TP4 | 2.3 + 2.4 | Remix / Bearbeitung | ✔ | ✔ | ✔ | ◐ `----:REMIXER` | ◐ ID3v2 davor, nur lesen | ✔ `REMIXER` | Text | Text | MIXARTIST |
+| `TPOS` | TPA | 2.3 + 2.4 | Disknummer | ✔ | ✔ | ✔ | ✔ `disk` | ◐ ID3v2 davor, nur lesen | ✔ `DISCNUMBER` (+ `DISCTOTAL`) | Text | Text | DISCNUMBER |
+| `TPRO` | – | nur 2.4 | Produktionshinweis | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | PRODUCEDNOTICE |
+| `TPUB` | TPB | 2.3 + 2.4 | Herausgeber / Label | ✔ | ✔ | ✔ | ◐ `----:LABEL` | ◐ ID3v2 davor, nur lesen | ◐ `LABEL` (auch `ORGANIZATION`, `PUBLISHER`) | Text | Text | PUBLISHER |
+| `TRCK` | TRK | 2.3 + 2.4 | Spurnummer | ✔ · ID3v1 | ✔ · INFO `ITRK`, `IPRT` | ✔ | ✔ `trkn` (Nr. + Anzahl) | ◐ ID3v2 davor, nur lesen | ✔ `TRACKNUMBER` (+ `TRACKTOTAL`) | Text | Text | TRACK |
+| `TRDA` | TRD | nur 2.3 | Aufnahmedaten | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TRSN` | – | 2.3 + 2.4 | Internetradio-Name | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TRSO` | – | 2.3 + 2.4 | Internetradio-Eigentümer | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TSIZ` | TSI | nur 2.3 | Grösse (Bytes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `TSO2` | TS2 | inoffiziell | Album-Künstler einsortieren als (iTunes) | ✔ | ✔ | ✔ | ✔ `soaa` | ◐ ID3v2 davor, nur lesen | ✔ `ALBUMARTISTSORT` | Text | Text | ALBUMARTISTSORT |
+| `TSOA` | TSA | nur 2.4 | Album einsortieren als | ✔ | ✔ | ✔ | ✔ `soal` | ◐ ID3v2 davor, nur lesen | ✔ `ALBUMSORT` | Text | Text | ALBUMSORT |
+| `TSOC` | TSC | inoffiziell | Komponist einsortieren als (iTunes) | ✔ | ✔ | ✔ | ✔ `soco` | ◐ ID3v2 davor, nur lesen | ✔ `COMPOSERSORT` | Text | Text | COMPOSERSORT |
+| `TSOP` | TSP | nur 2.4 | Künstler einsortieren als | ✔ | ✔ | ✔ | ✔ `soar` | ◐ ID3v2 davor, nur lesen | ✔ `ARTISTSORT` | Text | Text | ARTISTSORT |
+| `TSOT` | TST | nur 2.4 | Titel einsortieren als | ✔ | ✔ | ✔ | ✔ `sonm` | ◐ ID3v2 davor, nur lesen | ✔ `TITLESORT` | Text | Text | TITLESORT |
+| `TSRC` | TRC | 2.3 + 2.4 | ISRC | ✔ | ✔ | ✔ | ◐ `----:ISRC` | ◐ ID3v2 davor, nur lesen | ✔ `ISRC` | Text | Text | ISRC |
+| `TSSE` | TSS | 2.3 + 2.4 | Kodierung Einstellungen | ✔ | ✔ · INFO `ISFT` | ✔ | ✔ `©too` | ◐ ID3v2 davor, nur lesen | ◐ `ENCODING` (Mp3tag: `ENCODERSETTINGS`) | Text | Text | ENCODERSETTINGS |
+| `TSST` | – | nur 2.4 | Disc-Untertitel | ✔ | ✔ | ✔ | ◐ `----:DISCSUBTITLE` | ◐ ID3v2 davor, nur lesen | ✔ `DISCSUBTITLE` | Text | Text | SETSUBTITLE |
+| `TXXX` | TXX | 2.3 + 2.4 | Benutzertext | ✔ | ✔ | ✔ | ✔ `----:com.apple.iTunes:<NAME>` | ◐ ID3v2 davor, nur lesen | ✔ `<NAME>` | Text | Text | – |
+| `TYER` | TYE | nur 2.3 | Jahr | ✔ · ID3v1 | ✔ · INFO `ICRD` | ✔ | ✔ `©day` | ◐ ID3v2 davor, nur lesen | ✔ `DATE` | Text | Text | – |
+| `UFID` | UFI | 2.3 + 2.4 | Eindeutige Datei-ID | ✔ | ✔ | ✔ | ✖ noch nicht | ◐ ID3v2 davor, nur lesen | ✖ noch nicht | lesbar | – | UNIQUEFILEID |
+| `USER` | – | 2.3 + 2.4 | Nutzungsbedingungen | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | lesbar | – | – |
+| `USLT` | ULT | 2.3 + 2.4 | Liedtext | ✔ | ✔ | ✔ | ✔ `©lyr` | ◐ ID3v2 davor, nur lesen | ✔ `LYRICS` | Text | Text | UNSYNCEDLYRICS |
+| `WCOM` | WCM | 2.3 + 2.4 | Kauf-Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | WWWCOMMERCIALINFO |
+| `WCOP` | WCP | 2.3 + 2.4 | Copyright-Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | WWWCOPYRIGHT |
+| `WFED` | WFD | inoffiziell | Podcast-Feed (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `WOAF` | WAF | 2.3 + 2.4 | Audiodatei Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | WWWAUDIOFILE |
+| `WOAR` | WAR | 2.3 + 2.4 | Künstler Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | WWWARTIST |
+| `WOAS` | WAS | 2.3 + 2.4 | Audioquelle Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | WWWAUDIOSOURCE |
+| `WORS` | – | 2.3 + 2.4 | Internetradio Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `WPAY` | – | 2.3 + 2.4 | Bezahlung Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | WWWPAYMENT |
+| `WPUB` | WPB | 2.3 + 2.4 | Herausgeber Internetseite | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | WWWPUBLISHER |
+| `WXXX` | WXX | 2.3 + 2.4 | Benutzer-Link | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `XSOA` | – | inoffiziell | Album einsortieren als (v2.3, iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `XSOP` | – | inoffiziell | Künstler einsortieren als (v2.3, iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
+| `XSOT` | – | inoffiziell | Titel einsortieren als (v2.3, iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 davor, nur lesen | ✖ | Text | Text | – |
 
 **Unterschiede FLAC ↔ OGG** (in der Tabelle mit * markiert):
 

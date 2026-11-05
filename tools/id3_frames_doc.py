@@ -48,7 +48,7 @@ Issue #98.
 | WAV | ID3v2 im Chunk `id3 ` (bzw. `ID3 `) – **alle Frames wie bei MP3** | RIFF `LIST/INFO`, wenn kein ID3-Chunk da ist (nur lesen) | Einstellung „WAV und AIFF“; RF64 (über 4 GB) nur lesen; kein ID3v1 |
 | AIFF / AIFC | ID3v2 im Chunk `ID3 ` – **alle Frames wie bei MP3** | `NAME`, `AUTH`, `(c) `, `ANNO`, wenn kein ID3-Chunk da ist (nur lesen) | Einstellung „WAV und AIFF“; kein ID3v1 |
 | MP4 / M4A (AAC, ALAC) | iTunes-Atome `ilst` (fest: `©nam`, `©ART` …), freie Felder `----:com.apple.iTunes:NAME` | – | Test (#265, Einstellung „Weitere Formate“); AAC und ALAC haben dieselben Atome, MP4 (Video) ebenso; Audio bleibt byte-gleich, Offsets werden nachgeführt |
-| AAC (.aac, roh) | **kein eigenes Tag-System** | – | manche Programme setzen ein ID3v2 davor oder hängen APEv2 an, wird kaum gelesen – besser M4A |
+| AAC (.aac, roh) | **kein eigenes Tag-System** | ID3v2 davor bzw. ID3v1 am Ende (nur lesen) | **nur lesen** (#455, Einstellung „Weitere Formate“); für Tags als M4A speichern – Umwandeln › M4A – AAC packt ohne Neukodierung um |
 | FLAC / OGG Vorbis | Vorbis-Kommentare (`NAME=Wert`, frei wählbar); Cover in FLAC als `PICTURE`-Block, in OGG als `METADATA_BLOCK_PICTURE` | – | FLAC: Test (#264); **OGG/Opus nur lesen** (#266); Mehrfachwerte über mehrere gleiche Felder; Platzpuffer (PADDING) wird genutzt |
 
 Beim Speichern von WAV/AIFF ersetzt TagStudio nur den ID3-Chunk; INFO bzw. NAME/AUTH bleiben unverändert. Ob die
@@ -94,7 +94,7 @@ HEAD_EN = """# ID3 fields in TagStudio
 | WAV | ID3v2 in the `id3 ` (or `ID3 `) chunk – **all frames as with MP3** | RIFF `LIST/INFO` if there is no ID3 chunk (read only) | setting “WAV and AIFF”; RF64 (over 4 GB) read only; no ID3v1 |
 | AIFF / AIFC | ID3v2 in the `ID3 ` chunk – **all frames as with MP3** | `NAME`, `AUTH`, `(c) `, `ANNO` if there is no ID3 chunk (read only) | setting “WAV and AIFF”; no ID3v1 |
 | MP4 / M4A (AAC, ALAC) | iTunes atoms `ilst` (fixed: `©nam`, `©ART` …), free fields `----:com.apple.iTunes:NAME` | – | test (#265, setting “More formats”); AAC and ALAC use the same atoms, so does MP4 (video); audio stays byte-identical, offsets are updated |
-| AAC (.aac, raw) | **no tag system of its own** | – | some programs put an ID3v2 in front or append APEv2, rarely read – better use M4A |
+| AAC (.aac, raw) | **no tag system of its own** | ID3v2 in front or ID3v1 at the end (read only) | **read only** (#455, setting “More formats”); for tags save as M4A – Convert › M4A – AAC repacks without re-encoding |
 | FLAC / OGG Vorbis | Vorbis comments (`NAME=value`, free names); cover in FLAC as `PICTURE` block, in OGG as `METADATA_BLOCK_PICTURE` | – | FLAC: test (#264); **OGG/Opus read only** (#266); multiple values via repeated fields; padding is used |
 
 When saving WAV/AIFF, TagStudio only replaces the ID3 chunk; INFO or NAME/AUTH stay unchanged. Whether DJ programs

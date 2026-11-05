@@ -258,5 +258,9 @@
 "Liste von Formaten erwartet": ["List of formats expected", "Lischte vo Format erwartet"],
 "iTunes-Atome": ["iTunes atoms", "iTunes-Atom"],
 "Ziel-Format nicht bekannt": ["Target format unknown", "Ziil-Format nöd bekannt"],
-"{x}: nicht übernommen (gibt es im Format nicht):": ["{x}: not carried over (does not exist in the format):", "{x}: nöd übernoh (gits im Format nöd):"]
+"{x}: nicht übernommen (gibt es im Format nicht):": ["{x}: not carried over (does not exist in the format):", "{x}: nöd übernoh (gits im Format nöd):"],
+"kein Tag (nur lesen)": ["no tag (read only)", "kein Tag (nur läse)"],
+"AAC (.aac) wird nur gelesen – für Tags die Datei als M4A speichern (Umwandeln › M4A – AAC, ohne Neukodierung).": ["AAC (.aac) is read only – to keep tags, save the file as M4A (Convert › M4A – AAC, without re-encoding).", "AAC (.aac) wird nur gläse – für Tags d Datei als M4A speichere (Umwandle › M4A – AAC, ohni Neukodierig)."],
+"AAC roh (.aac, nur lesen)": ["AAC raw (.aac, read only)", "AAC roh (.aac, nur läse)"],
+"ID3v2 davor, nur lesen": ["ID3v2 in front, read only", "ID3v2 devor, nur läse"]
 }

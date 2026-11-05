@@ -252,5 +252,6 @@
 "MP3 und M4A (AAC) sind verlustbehaftet.": ["MP3 and M4A (AAC) are lossy.", "MP3 und M4A (AAC) sind verluschtbehaftet."],
 "Aus MP3, AAC oder OGG wird die Qualität durch Umwandeln nicht besser – die Datei wird nur grösser.": ["Converting MP3, AAC or OGG does not improve quality – the file only gets bigger.", "Us MP3, AAC oder OGG wird d Qualität dur s Umwandle nöd besser – d Datei wird nur grösser."],
 "Manche Felder gibt es im Ziel-Format nicht – sie werden nicht übernommen (Spalte rechts).": ["Some fields do not exist in the target format – they are not carried over (right column).", "Mängi Fälder gits im Ziil-Format nöd – si werded nöd übernoh (Spalte rächts)."],
-"geht verloren:": ["will be lost:", "gaht verlore:"]
+"geht verloren:": ["will be lost:", "gaht verlore:"],
+"AAC-Dateien (.aac) werden ohne Neukodierung in M4A umgepackt – kein Qualitätsverlust, die Bitrate gilt dafür nicht.": ["AAC files (.aac) are repacked into M4A without re-encoding – no quality loss, the bitrate does not apply to them.", "AAC-Dateie (.aac) werded ohni Neukodierig in M4A umpackt – kei Qualitätsverluscht, d Bitrate gilt dafür nöd."]
 }

@@ -38,6 +38,7 @@ class ConvertMixin:
         return {**o, "rows": rows, "ok": sum(1 for r in rows if not r["problem"]), "export": exp,
                 "ffmpeg": bool(convert.find_ffmpeg()), "serato": any(convert.has_serato(f) for f in files),
                 "lossy_src": any(convert.is_lossy_source(f) for f in files),
+                "aac_copy": o["target"] == "m4a" and any(convert.kind_of(f.path) == "aac" for f in files),   # #455
                 "bitrates": list(convert.BITRATES), "kinds": sorted({convert.kind_of(f.path) for f in files} - {""})}
 
     def start_convert(self, idx, target, dest, bitrate) -> dict:

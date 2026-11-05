@@ -17,8 +17,9 @@ FORMATS = {
     "flac": ((".flac",), "FLAC", "flactags", "FlacFile", True),
     "m4a": ((".m4a", ".mp4", ".m4b"), "MP4 / M4A (AAC, ALAC)", "mp4tags", "Mp4File", True),
     "ogg": ((".ogg", ".oga", ".opus"), "OGG Vorbis / Opus (nur lesen)", "oggtags", "OggFile", False),
+    "aac": ((".aac", ".adts"), "AAC roh (.aac, nur lesen)", "aactags", "AacFile", False),               # #455
 }
-ORDER = ["wav", "aiff", "flac", "m4a", "ogg"]
+ORDER = ["wav", "aiff", "flac", "m4a", "ogg", "aac"]
 OTHER_EXTS = tuple(e for f in FORMATS.values() for e in f[0])
 FP_BYTES = 256 * 1024
 

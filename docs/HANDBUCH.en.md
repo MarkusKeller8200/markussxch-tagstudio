@@ -231,6 +231,9 @@ name each field is stored in each format.
   links) are **not written and reported** when saving. In M4A, BPM is whole numbers only. FLAC uses the padding in the
   file (then only the tag area is written); for M4A the references to the audio data are updated. In both cases
   TagStudio checks before replacing that the audio stays byte-identical. OGG/Opus is read only for now.
+- **Raw AAC (.aac, #455)** has no tag system of its own and is **read only** (ID3v2 in front or ID3v1 at the end, if
+  present). To keep tags, save the file as M4A: Convert › **M4A – AAC** repacks `.aac` **without re-encoding** (no
+  quality loss; the bitrate does not apply).
 
 - When saving, TagStudio only replaces the ID3 chunk (or appends one). All other parts of the file – audio, RIFF INFO,
   `bext`, cue points, AIFF texts – stay **byte-identical**; the checksum of the audio data is compared before and

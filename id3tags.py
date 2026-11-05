@@ -706,7 +706,7 @@ def disk_sig(path: str) -> str:
 
 
 CHUNK_EXTS = (".wav", ".aif", ".aiff", ".aifc")     # #156/#263: Tags im ID3-Chunk → chunktags.ChunkFile
-OTHER_EXTS = CHUNK_EXTS + (".flac", ".m4a", ".mp4", ".m4b", ".ogg", ".oga", ".opus")   # #262: alle ausser MP3
+OTHER_EXTS = CHUNK_EXTS + (".flac", ".m4a", ".mp4", ".m4b", ".ogg", ".oga", ".opus", ".aac", ".adts")   # #262/#455
 
 
 class MP3File:

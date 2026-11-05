@@ -236,6 +236,9 @@ in welchem Format unter welchem Namen steht, zeigt **Hilfe › ID3-Felder**.
   nur ganzzahlig. FLAC nutzt den Platzpuffer in der Datei (dann wird nur der Tag-Bereich geschrieben); bei M4A werden
   die Verweise auf die Audiodaten nachgeführt. In beiden Fällen prüft TagStudio vor dem Ersetzen, dass das Audio
   byte-gleich bleibt. OGG/Opus wird vorerst nur gelesen.
+- **Rohes AAC (.aac, #455)** hat kein eigenes Tag-System und wird **nur gelesen** (ID3v2 davor bzw. ID3v1 am Ende, falls
+  vorhanden). Für Tags die Datei als M4A speichern: Umwandeln › **M4A – AAC** packt `.aac` **ohne Neukodierung** um
+  (kein Qualitätsverlust; die Bitrate gilt dafür nicht).
 
 - Beim Speichern ersetzt TagStudio nur den ID3-Chunk (oder hängt einen an). Alle anderen Teile der Datei – Audio,
   RIFF-INFO, `bext`, Cue-Punkte, AIFF-Texte – bleiben **byte-genau** erhalten; vorher und nachher wird die Prüfsumme

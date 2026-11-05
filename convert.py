@@ -17,7 +17,8 @@ import subprocess
 import tempfile
 
 TARGETS = {"wav": ".wav", "aiff": ".aiff", "mp3": ".mp3", "flac": ".flac", "m4a": ".m4a", "alac": ".m4a"}
-SOURCES = (".mp3", ".wav", ".aif", ".aiff", ".aifc", ".flac", ".m4a", ".mp4", ".m4b", ".ogg", ".oga", ".opus")
+SOURCES = (".mp3", ".wav", ".aif", ".aiff", ".aifc", ".flac", ".m4a", ".mp4", ".m4b", ".ogg", ".oga", ".opus", ".aac",
+           ".adts")
 LOSSY_TARGETS = ("mp3", "m4a")                 # m4a = AAC; alac = M4A verlustfrei
 BITRATES = (128, 192, 256, 320)
 DEFAULT_BITRATE = 320
@@ -50,12 +51,13 @@ def find_ffmpeg() -> str:
 def kind_of(path: str) -> str:
     ext = os.path.splitext(path)[1].lower()
     return {".mp3": "mp3", ".wav": "wav", ".aif": "aiff", ".aiff": "aiff", ".aifc": "aiff", ".flac": "flac",
-            ".m4a": "m4a", ".mp4": "m4a", ".m4b": "m4a", ".ogg": "ogg", ".oga": "ogg", ".opus": "ogg"}.get(ext, "")
+            ".m4a": "m4a", ".mp4": "m4a", ".m4b": "m4a", ".ogg": "ogg", ".oga": "ogg", ".opus": "ogg",
+            ".aac": "aac", ".adts": "aac"}.get(ext, "")
 
 
 def is_lossy_source(f) -> bool:
     k = kind_of(getattr(f, "path", ""))
-    return k in ("mp3", "ogg") or (k == "m4a" and getattr(f, "codec", "") != "ALAC")
+    return k in ("mp3", "ogg", "aac") or (k == "m4a" and getattr(f, "codec", "") != "ALAC")
 
 
 def lost_keys(f, target: str) -> list[str]:
@@ -126,9 +128,11 @@ def _bits(f) -> int:
     return b if b in (16, 24, 32) else 16
 
 
-def ffmpeg_cmd(ff: str, src: str, out: str, target: str, bitrate: int, bits: int, rate: int) -> list[str]:
+def ffmpeg_cmd(ff: str, src: str, out: str, target: str, bitrate: int, bits: int, rate: int, copy: bool = False) -> list[str]:
     cmd = [ff, "-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-i", src, "-map", "0:a:0", "-vn",
            "-map_metadata", "-1", "-fflags", "+bitexact", "-flags:a", "+bitexact"]
+    if copy:                                     # #455: rohes AAC → M4A ohne Neukodierung (nur umpacken)
+        return cmd + ["-c:a", "copy", "-bsf:a", "aac_adtstoasc", "-f", "mp4", out]
     if rate:
         cmd += ["-ar", str(rate)]
     if target == "mp3":
@@ -185,8 +189,9 @@ def convert_one(src, dst: str, target: str, bitrate: int = DEFAULT_BITRATE, ff: 
     os.close(fd)
     try:
         rate = int(getattr(f, "samplerate", 0) or 0)
-        _run(ffmpeg_cmd(ff, f.path, tmp, target, bitrate, _bits(f), rate if rate in (32000, 44100, 48000, 88200, 96000) else 0),
-             cancel)
+        copy = target == "m4a" and kind_of(f.path) == "aac"
+        _run(ffmpeg_cmd(ff, f.path, tmp, target, bitrate, _bits(f), 0 if copy else rate if rate in (
+            32000, 44100, 48000, 88200, 96000) else 0, copy), cancel)
         g = MP3File(tmp)                          # wählt nach der Endung: MP3File, ChunkFile, FlacFile, Mp4File
         copy_tags(f, g, list(f.items))
         g.set_version(f.version if f.version in (3, 4) else 3)

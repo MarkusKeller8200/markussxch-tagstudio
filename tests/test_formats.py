@@ -433,3 +433,61 @@ class TestPlayer(Base):
             f.set_text("TIT2", "anders " + "x" * 5000)
             f.save()
             self.assertEqual(waveform.key_for(MP3File(p)), k, name)
+
+
+def adts_frames(n=43, sri=4, ch=2, size=200):
+    """ADTS-Rahmen (Kopf 7 Byte, Rest Füllbytes) – nur für Aufbau und Dauer."""
+    out = b""
+    for _ in range(n):
+        h = bytearray(7)
+        h[0], h[1] = 0xFF, 0xF1
+        h[2] = (1 << 6) | (sri << 2) | (ch >> 2)
+        h[3] = ((ch & 3) << 6) | ((size >> 11) & 3)
+        h[4] = (size >> 3) & 0xFF
+        h[5] = ((size & 7) << 5) | 0x1F
+        h[6] = 0xFC
+        out += bytes(h) + b"\x00" * (size - 7)
+    return out
+
+
+class TestAacRaw(Base):
+    """#455: rohes AAC – nur lesen (ID3v2 davor), Speichern gesperrt; Konverter → M4A ohne Neukodierung."""
+
+    def test_read_only(self):
+        from helpers import tag, text
+        p = os.path.join(self.dir, "r.aac")
+        with open(p, "wb") as fh:
+            fh.write(tag([text("TIT2", "AAC Titel"), text("TPE1", "X")]) + adts_frames())
+        f = MP3File(p)
+        import aactags
+        self.assertIsInstance(f, aactags.AacFile)
+        self.assertEqual((f.text("TIT2"), f.samplerate, f.channels), ("AAC Titel", 44100, "Stereo"))
+        self.assertAlmostEqual(f.duration, 43 * 1024 / 44100, places=3)
+        self.assertEqual(audioformats.label(f), "AAC")
+        h = sha(p)
+        f.set_text("TIT2", "neu")
+        with self.assertRaises(ValueError):
+            f.save()
+        self.assertEqual(sha(p), h)
+
+    @unittest.skipUnless(FF, "FFmpeg fehlt")
+    def test_convert_to_m4a_without_reencoding(self):
+        import convert
+        p = os.path.join(self.dir, "c.aac")
+        subprocess.run([FF, "-loglevel", "error", "-y", "-f", "lavfi", "-i", "sine=duration=2", "-ac", "2",
+                        "-c:a", "aac", "-b:a", "160k", "-f", "adts", p], check=True)
+        from helpers import tag, text
+        with open(p, "rb") as fh:
+            raw = fh.read()
+        with open(p, "wb") as fh:
+            fh.write(tag([text("TIT2", "Umpacken")]) + raw)
+        out = convert.convert_one(p, os.path.join(self.dir, "c.m4a"), "m4a", 320)
+        g = MP3File(out)
+        self.assertEqual((g.codec, g.text("TIT2")), ("AAC", "Umpacken"))
+
+        def pkts(x):                                                            # rohe AAC-Pakete ohne ADTS-Kopf
+            bsf = ["-bsf:a", "aac_adtstoasc"] if x.endswith(".aac") else []
+            r = subprocess.run([FF, "-loglevel", "error", "-i", x, "-map", "0:a", "-c", "copy"] + bsf + ["-f", "data", "-"],
+                               capture_output=True, check=True)
+            return hashlib.sha256(r.stdout).hexdigest()
+        self.assertEqual(pkts(out), pkts(p))                                      # dieselben AAC-Pakete

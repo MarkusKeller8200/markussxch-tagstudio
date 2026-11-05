@@ -34,7 +34,7 @@ def _allowed_origin(origin: str) -> str:
     return f"http://{host}:{int(m.group(2))}" if m.group(2) else f"http://{host}"
 
 AUDIO_TYPES = {".mp3": "audio/mpeg", ".flac": "audio/flac", ".wav": "audio/wav", ".m4a": "audio/mp4",
-               ".aac": "audio/aac", ".ogg": "audio/ogg", ".opus": "audio/ogg", ".aif": "audio/aiff", ".aiff": "audio/aiff",
+               ".aac": "audio/aac", ".adts": "audio/aac", ".ogg": "audio/ogg", ".opus": "audio/ogg", ".aif": "audio/aiff", ".aiff": "audio/aiff",
                ".aifc": "audio/aiff", ".mp4": "audio/mp4", ".m4b": "audio/mp4", ".oga": "audio/ogg"}
 AIFF_EXTS = (".aif", ".aiff", ".aifc")      # #448: Browser spielen AIFF nicht – wird als WAV ausgeliefert
 CHUNK = 256 * 1024

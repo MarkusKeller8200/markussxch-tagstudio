@@ -1732,6 +1732,7 @@ async function tgConvertDialog(idx) {
     try { pv = await call("convert_preview", idx, t, d, r); } catch (e) { $("#cvRows", b).textContent = String(e.message || e); return; }
     const notes = [];
     if (!pv.ffmpeg) notes.push("<b>FFmpeg fehlt</b> – das Stems-Plugin installieren (bringt FFmpeg mit) oder FFmpeg in den Suchpfad legen.");
+    if (pv.aac_copy) notes.push("AAC-Dateien (.aac) werden ohne Neukodierung in M4A umgepackt – kein Qualitätsverlust, die Bitrate gilt dafür nicht.");
     if (t === "mp3" || t === "m4a") notes.push("MP3 und M4A (AAC) sind verlustbehaftet.");
     else if (pv.lossy_src) notes.push("Aus MP3, AAC oder OGG wird die Qualität durch Umwandeln nicht besser – die Datei wird nur grösser.");
     if (pv.rows.some((x) => x.lost && x.lost.length)) notes.push("Manche Felder gibt es im Ziel-Format nicht – sie werden nicht übernommen (Spalte rechts).");

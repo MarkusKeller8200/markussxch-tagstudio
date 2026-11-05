@@ -58,7 +58,7 @@ VORBIS_DIFF = {
 }
 
 # Rohes AAC (.aac, ADTS) hat kein eigenes Tag-System: höchstens ein vorangestelltes ID3v2 (nicht standardisiert)
-AAC = ("p", "ID3v2")
+AAC = ("p", "ID3v2 davor, nur lesen")
 
 MARK = {"y": "✔", "p": "◐", "n": "✖", "?": "?"}
 
