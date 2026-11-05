@@ -25,16 +25,16 @@
 | MP3 | ID3v2.3/v2.4 at the start of the file | ID3v1 at the end (written too on request) | – |
 | WAV | ID3v2 in the `id3 ` (or `ID3 `) chunk – **all frames as with MP3** | RIFF `LIST/INFO` if there is no ID3 chunk (read only) | setting “WAV and AIFF”; RF64 (over 4 GB) read only; no ID3v1 |
 | AIFF / AIFC | ID3v2 in the `ID3 ` chunk – **all frames as with MP3** | `NAME`, `AUTH`, `(c) `, `ANNO` if there is no ID3 chunk (read only) | setting “WAV and AIFF”; no ID3v1 |
-| MP4 / M4A (AAC, ALAC) | iTunes atoms `ilst` (fixed: `©nam`, `©ART` …), free fields `----:com.apple.iTunes:NAME` | – | **planned** (#265); AAC and ALAC use the same atoms, so does MP4 (video) |
+| MP4 / M4A (AAC, ALAC) | iTunes atoms `ilst` (fixed: `©nam`, `©ART` …), free fields `----:com.apple.iTunes:NAME` | – | test (#265, setting “More formats”); AAC and ALAC use the same atoms, so does MP4 (video); audio stays byte-identical, offsets are updated |
 | AAC (.aac, raw) | **no tag system of its own** | – | some programs put an ID3v2 in front or append APEv2, rarely read – better use M4A |
-| FLAC / OGG Vorbis | Vorbis comments (`NAME=value`, free names); cover in FLAC as `PICTURE` block, in OGG as `METADATA_BLOCK_PICTURE` | – | **planned** (#264, #266); multiple values via repeated fields; OGG rare in DJ programs |
+| FLAC / OGG Vorbis | Vorbis comments (`NAME=value`, free names); cover in FLAC as `PICTURE` block, in OGG as `METADATA_BLOCK_PICTURE` | – | FLAC: test (#264); **OGG/Opus read only** (#266); multiple values via repeated fields; padding is used |
 
 When saving WAV/AIFF, TagStudio only replaces the ID3 chunk; INFO or NAME/AUTH stay unchanged. Whether DJ programs
 also read a field in WAV/AIFF differs per program (test series #446).
 
 **Columns:** v2.2 = ID in ID3v2.2 · Version = 2.3, 2.4 or unofficial · MP3 / WAV / AIFF = writable (✔); after it the
 matching field in ID3v1 or in the INFO/AIFF text chunk (read only) · MP4 / M4A, AAC, FLAC / OGG = name of the field in
-that format (**not writable yet**, names planned and to be confirmed with test files, #446): ✔ = standard field,
+that format (how TagStudio reads and writes it; names to be confirmed with test files, #453): ✔ = standard field,
 ◐ = only as a free field or by convention, ✖ = does not exist, * = difference between FLAC and OGG (below the table)
 · Display = text, image, readable summary or size + checksum · Edit = what TagStudio can change the field with
 · Mp3tag = field name in Mp3tag.
@@ -44,15 +44,15 @@ that format (**not writable yet**, names planned and to be confirmed with test f
 | `AENC` | CRA | 2.3 + 2.4 | Audio encryption | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
 | `APIC` | PIC | 2.3 + 2.4 | Image / cover | ✔ | ✔ | ✔ | ✔ `covr` (JPEG/PNG only, no picture type) | ◐ ID3v2 | ✔ `PICTURE` block (with picture type) * | Image | Cover tools | PICTURE |
 | `ASPI` | – | 2.4 only | Audio seek index | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
-| `CHAP` | – | 2.3 + 2.4 | Chapter | ✔ | ✔ | ✔ | ◐ separate chapter track | ◐ ID3v2 | ✖ | readable | – | – |
+| `CHAP` | – | 2.3 + 2.4 | Chapter | ✔ | ✔ | ✔ | ✖ not yet (separate chapter track) | ◐ ID3v2 | ✖ | readable | – | – |
 | `COMM` | COM | 2.3 + 2.4 | Comment | ✔ · ID3v1 | ✔ · INFO `ICMT` | ✔ · `ANNO` | ✔ `©cmt` | ◐ ID3v2 | ✔ `COMMENT` (some: `DESCRIPTION`) | Text | Text | COMMENT |
 | `COMR` | – | 2.3 + 2.4 | Commercial | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
-| `CTOC` | – | 2.3 + 2.4 | Table of contents (chapters) | ✔ | ✔ | ✔ | ◐ separate chapter track | ◐ ID3v2 | ✖ | readable | – | – |
+| `CTOC` | – | 2.3 + 2.4 | Table of contents (chapters) | ✔ | ✔ | ✔ | ✖ not yet (separate chapter track) | ◐ ID3v2 | ✖ | readable | – | – |
 | `ENCR` | – | 2.3 + 2.4 | Encryption method | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
 | `EQU2` | – | 2.4 only | Equalizer | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
 | `EQUA` | EQU | 2.3 only | Equalizer | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
 | `ETCO` | ETC | 2.3 + 2.4 | Event timing | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
-| `GEOB` | GEO | 2.3 + 2.4 | Embedded data | ✔ | ✔ | ✔ | ◐ Serato: `----:com.serato.dj:…`, otherwise free field | ◐ ID3v2 | ◐ Serato: `SERATO_…` (Base64) *, otherwise free field | readable | Binary field editor | – |
+| `GEOB` | GEO | 2.3 + 2.4 | Embedded data | ✔ | ✔ | ✔ | ◐ Serato: `----:com.serato.dj:…` is kept unchanged | ◐ ID3v2 | ◐ Serato: `SERATO_…` (Base64) is kept unchanged * | readable | Binary field editor | – |
 | `GRID` | – | 2.3 + 2.4 | Group ID | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
 | `GRP1` | GP1 | unofficial | Grouping (iTunes) | ✔ | ✔ | ✔ | ✔ `©grp` | ◐ ID3v2 | ✔ `GROUPING` | Text | Text | GROUPING |
 | `IPLS` | IPL | 2.3 only | Involved people | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
@@ -64,7 +64,7 @@ that format (**not writable yet**, names planned and to be confirmed with test f
 | `OWNE` | – | 2.3 + 2.4 | Owner | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
 | `PCNT` | CNT | 2.3 + 2.4 | Play counter | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
 | `PCST` | PCS | unofficial | Podcast flag (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
-| `POPM` | POP | 2.3 + 2.4 | Rating | ✔ | ✔ | ✔ | ◐ free field (`rtng` is not a star rating) | ◐ ID3v2 | ◐ `RATING` / `FMPS_RATING` | readable | Rating (stars) | RATING |
+| `POPM` | POP | 2.3 + 2.4 | Rating | ✔ | ✔ | ✔ | ✖ not yet – convention being measured (#453) | ◐ ID3v2 | ✖ not yet – `RATING`/`FMPS_RATING` being measured (#453) | readable | Rating (stars) | RATING |
 | `POSS` | – | 2.3 + 2.4 | Position synchronisation | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
 | `PRIV` | – | 2.3 + 2.4 | Private data | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | Binary field editor | – |
 | `RBUF` | BUF | 2.3 + 2.4 | Buffer size | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
@@ -73,7 +73,7 @@ that format (**not writable yet**, names planned and to be confirmed with test f
 | `RVRB` | REV | 2.3 + 2.4 | Hall | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
 | `SEEK` | – | 2.4 only | Seek frame | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
 | `SIGN` | – | 2.4 only | Signature | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
-| `SYLT` | SLT | 2.3 + 2.4 | Synchronized lyrics | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ◐ LRC text in `LYRICS` | readable | – | – |
+| `SYLT` | SLT | 2.3 + 2.4 | Synchronized lyrics | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ not yet | readable | – | – |
 | `SYTC` | STC | 2.3 + 2.4 | Tempo code | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
 | `TALB` | TAL | 2.3 + 2.4 | Album | ✔ · ID3v1 | ✔ · INFO `IPRD` | ✔ | ✔ `©alb` | ◐ ID3v2 | ✔ `ALBUM` | Text | Text | ALBUM |
 | `TBPM` | TBP | 2.3 + 2.4 | Beats per minute | ✔ | ✔ | ✔ | ◐ `tmpo` (whole number only) | ◐ ID3v2 | ✔ `BPM` | Text | Text | BPM |
@@ -106,10 +106,10 @@ that format (**not writable yet**, names planned and to be confirmed with test f
 | `TMCL` | – | 2.4 only | Musicians | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | MUSICIANCREDITS |
 | `TMED` | TMT | 2.3 + 2.4 | Media type | ✔ | ✔ | ✔ | ◐ `----:MEDIA` | ◐ ID3v2 | ✔ `MEDIA` | Text | Text | MEDIATYPE |
 | `TMOO` | – | 2.4 only | Mood | ✔ | ✔ | ✔ | ◐ `----:MOOD` | ◐ ID3v2 | ✔ `MOOD` | Text | Text | MOOD |
-| `TOAL` | TOT | 2.3 + 2.4 | Original album | ✔ | ✔ | ✔ | ◐ free field | ◐ ID3v2 | ✔ `ORIGINALALBUM` | Text | Text | ORIGALBUM |
+| `TOAL` | TOT | 2.3 + 2.4 | Original album | ✔ | ✔ | ✔ | ◐ free field via TXXX | ◐ ID3v2 | ✔ `ORIGINALALBUM` | Text | Text | ORIGALBUM |
 | `TOFN` | TOF | 2.3 + 2.4 | Original file name | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | ORIGFILENAME |
 | `TOLY` | TOL | 2.3 + 2.4 | Original lyricist | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | ORIGLYRICIST |
-| `TOPE` | TOA | 2.3 + 2.4 | Original artist | ✔ | ✔ | ✔ | ◐ free field | ◐ ID3v2 | ✔ `ORIGINALARTIST` | Text | Text | ORIGARTIST |
+| `TOPE` | TOA | 2.3 + 2.4 | Original artist | ✔ | ✔ | ✔ | ◐ free field via TXXX | ◐ ID3v2 | ✔ `ORIGINALARTIST` | Text | Text | ORIGARTIST |
 | `TORY` | TOR | 2.3 only | Original year | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
 | `TOWN` | – | 2.3 + 2.4 | Owner | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | FILEOWNER |
 | `TPE1` | TP1 | 2.3 + 2.4 | Artist | ✔ · ID3v1 | ✔ · INFO `IART` | ✔ · `AUTH` | ✔ `©ART` | ◐ ID3v2 | ✔ `ARTIST` | Text | Text | ARTIST |
@@ -134,19 +134,19 @@ that format (**not writable yet**, names planned and to be confirmed with test f
 | `TSST` | – | 2.4 only | Disc subtitle | ✔ | ✔ | ✔ | ◐ `----:DISCSUBTITLE` | ◐ ID3v2 | ✔ `DISCSUBTITLE` | Text | Text | SETSUBTITLE |
 | `TXXX` | TXX | 2.3 + 2.4 | User text | ✔ | ✔ | ✔ | ✔ `----:com.apple.iTunes:<NAME>` | ◐ ID3v2 | ✔ `<NAME>` | Text | Text | – |
 | `TYER` | TYE | 2.3 only | Year | ✔ · ID3v1 | ✔ · INFO `ICRD` | ✔ | ✔ `©day` | ◐ ID3v2 | ✔ `DATE` | Text | Text | – |
-| `UFID` | UFI | 2.3 + 2.4 | Unique file ID | ✔ | ✔ | ✔ | ◐ `----:MusicBrainz Track Id` | ◐ ID3v2 | ✔ `MUSICBRAINZ_TRACKID` | readable | – | UNIQUEFILEID |
+| `UFID` | UFI | 2.3 + 2.4 | Unique file ID | ✔ | ✔ | ✔ | ✖ not yet | ◐ ID3v2 | ✖ not yet | readable | – | UNIQUEFILEID |
 | `USER` | – | 2.3 + 2.4 | Terms of use | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | readable | – | – |
 | `USLT` | ULT | 2.3 + 2.4 | Lyrics | ✔ | ✔ | ✔ | ✔ `©lyr` | ◐ ID3v2 | ✔ `LYRICS` | Text | Text | UNSYNCEDLYRICS |
 | `WCOM` | WCM | 2.3 + 2.4 | Purchase website | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWCOMMERCIALINFO |
 | `WCOP` | WCP | 2.3 + 2.4 | Copyright website | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWCOPYRIGHT |
 | `WFED` | WFD | unofficial | Podcast feed (iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
 | `WOAF` | WAF | 2.3 + 2.4 | Audio file web page | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWAUDIOFILE |
-| `WOAR` | WAR | 2.3 + 2.4 | Artist web page | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ◐ free field (e.g. `WEBSITE`) | Text | Text | WWWARTIST |
+| `WOAR` | WAR | 2.3 + 2.4 | Artist web page | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWARTIST |
 | `WOAS` | WAS | 2.3 + 2.4 | Audio source web page | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWAUDIOSOURCE |
 | `WORS` | – | 2.3 + 2.4 | Internet radio web page | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
 | `WPAY` | – | 2.3 + 2.4 | Payment web page | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWPAYMENT |
 | `WPUB` | WPB | 2.3 + 2.4 | Publisher web page | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | WWWPUBLISHER |
-| `WXXX` | WXX | 2.3 + 2.4 | User link | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ◐ free field (e.g. `WEBSITE`) | Text | Text | – |
+| `WXXX` | WXX | 2.3 + 2.4 | User link | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
 | `XSOA` | – | unofficial | Album sort order (v2.3, iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
 | `XSOP` | – | unofficial | Artist sort order (v2.3, iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |
 | `XSOT` | – | unofficial | Title sort order (v2.3, iTunes) | ✔ | ✔ | ✔ | ✖ | ◐ ID3v2 | ✖ | Text | Text | – |

@@ -557,6 +557,9 @@ def save_files(files, backup_on=True, folder=None, cancel=None, progress=None, f
                 wavetag.embed_from_cache(f)
             f.save()
             saved += 1
+            if getattr(f, "save_skipped", None):                # #262: Felder, die es im Format nicht gibt
+                errors.append(f"{name}: nicht gespeichert, weil es diese Felder im Format nicht gibt: "
+                              + ", ".join(f.save_skipped))
         except Exception as ex:  # noqa: BLE001
             errors.append(f"{name}: {ex}")
         progress(("progress", i, len(files), f.path))

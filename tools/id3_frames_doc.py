@@ -47,16 +47,16 @@ Issue #98.
 | MP3 | ID3v2.3/v2.4 am Dateianfang | ID3v1 am Dateiende (wird auf Wunsch mitgeschrieben) | – |
 | WAV | ID3v2 im Chunk `id3 ` (bzw. `ID3 `) – **alle Frames wie bei MP3** | RIFF `LIST/INFO`, wenn kein ID3-Chunk da ist (nur lesen) | Einstellung „WAV und AIFF“; RF64 (über 4 GB) nur lesen; kein ID3v1 |
 | AIFF / AIFC | ID3v2 im Chunk `ID3 ` – **alle Frames wie bei MP3** | `NAME`, `AUTH`, `(c) `, `ANNO`, wenn kein ID3-Chunk da ist (nur lesen) | Einstellung „WAV und AIFF“; kein ID3v1 |
-| MP4 / M4A (AAC, ALAC) | iTunes-Atome `ilst` (fest: `©nam`, `©ART` …), freie Felder `----:com.apple.iTunes:NAME` | – | **geplant** (#265); AAC und ALAC haben dieselben Atome, MP4 (Video) ebenso |
+| MP4 / M4A (AAC, ALAC) | iTunes-Atome `ilst` (fest: `©nam`, `©ART` …), freie Felder `----:com.apple.iTunes:NAME` | – | Test (#265, Einstellung „Weitere Formate“); AAC und ALAC haben dieselben Atome, MP4 (Video) ebenso; Audio bleibt byte-gleich, Offsets werden nachgeführt |
 | AAC (.aac, roh) | **kein eigenes Tag-System** | – | manche Programme setzen ein ID3v2 davor oder hängen APEv2 an, wird kaum gelesen – besser M4A |
-| FLAC / OGG Vorbis | Vorbis-Kommentare (`NAME=Wert`, frei wählbar); Cover in FLAC als `PICTURE`-Block, in OGG als `METADATA_BLOCK_PICTURE` | – | **geplant** (#264, #266); Mehrfachwerte über mehrere gleiche Felder; OGG bei DJ-Programmen selten |
+| FLAC / OGG Vorbis | Vorbis-Kommentare (`NAME=Wert`, frei wählbar); Cover in FLAC als `PICTURE`-Block, in OGG als `METADATA_BLOCK_PICTURE` | – | FLAC: Test (#264); **OGG/Opus nur lesen** (#266); Mehrfachwerte über mehrere gleiche Felder; Platzpuffer (PADDING) wird genutzt |
 
 Beim Speichern von WAV/AIFF ersetzt TagStudio nur den ID3-Chunk; INFO bzw. NAME/AUTH bleiben unverändert. Ob die
 DJ-Programme ein Feld in WAV/AIFF auch lesen, ist je Programm verschieden (Messreihe #446).
 
 **Spalten:** v2.2 = ID in ID3v2.2 · Version = 2.3, 2.4 oder inoffiziell · MP3 / WAV / AIFF = schreibbar (✔); dahinter
 das entsprechende Feld in ID3v1 bzw. im INFO-/AIFF-Textchunk (nur lesen) · MP4 / M4A, AAC, FLAC / OGG = Name des Felds
-im jeweiligen Format (**noch nicht schreibbar**, Namen geplant und mit Testdateien zu bestätigen, #446): ✔ = Standardfeld,
+im jeweiligen Format (so liest und schreibt TagStudio es; Namen mit Testdateien zu bestätigen, #453): ✔ = Standardfeld,
 ◐ = nur als freies Feld bzw. per Konvention, ✖ = gibt es nicht, * = Unterschied zwischen FLAC und OGG (unter der Tabelle)
 · Anzeige = Text, Bild, lesbare Kurzfassung oder Grösse + Prüfsumme · Bearbeiten = womit TagStudio das Feld ändern kann
 · Mp3tag = Feldname in Mp3tag.
@@ -93,16 +93,16 @@ HEAD_EN = """# ID3 fields in TagStudio
 | MP3 | ID3v2.3/v2.4 at the start of the file | ID3v1 at the end (written too on request) | – |
 | WAV | ID3v2 in the `id3 ` (or `ID3 `) chunk – **all frames as with MP3** | RIFF `LIST/INFO` if there is no ID3 chunk (read only) | setting “WAV and AIFF”; RF64 (over 4 GB) read only; no ID3v1 |
 | AIFF / AIFC | ID3v2 in the `ID3 ` chunk – **all frames as with MP3** | `NAME`, `AUTH`, `(c) `, `ANNO` if there is no ID3 chunk (read only) | setting “WAV and AIFF”; no ID3v1 |
-| MP4 / M4A (AAC, ALAC) | iTunes atoms `ilst` (fixed: `©nam`, `©ART` …), free fields `----:com.apple.iTunes:NAME` | – | **planned** (#265); AAC and ALAC use the same atoms, so does MP4 (video) |
+| MP4 / M4A (AAC, ALAC) | iTunes atoms `ilst` (fixed: `©nam`, `©ART` …), free fields `----:com.apple.iTunes:NAME` | – | test (#265, setting “More formats”); AAC and ALAC use the same atoms, so does MP4 (video); audio stays byte-identical, offsets are updated |
 | AAC (.aac, raw) | **no tag system of its own** | – | some programs put an ID3v2 in front or append APEv2, rarely read – better use M4A |
-| FLAC / OGG Vorbis | Vorbis comments (`NAME=value`, free names); cover in FLAC as `PICTURE` block, in OGG as `METADATA_BLOCK_PICTURE` | – | **planned** (#264, #266); multiple values via repeated fields; OGG rare in DJ programs |
+| FLAC / OGG Vorbis | Vorbis comments (`NAME=value`, free names); cover in FLAC as `PICTURE` block, in OGG as `METADATA_BLOCK_PICTURE` | – | FLAC: test (#264); **OGG/Opus read only** (#266); multiple values via repeated fields; padding is used |
 
 When saving WAV/AIFF, TagStudio only replaces the ID3 chunk; INFO or NAME/AUTH stay unchanged. Whether DJ programs
 also read a field in WAV/AIFF differs per program (test series #446).
 
 **Columns:** v2.2 = ID in ID3v2.2 · Version = 2.3, 2.4 or unofficial · MP3 / WAV / AIFF = writable (✔); after it the
 matching field in ID3v1 or in the INFO/AIFF text chunk (read only) · MP4 / M4A, AAC, FLAC / OGG = name of the field in
-that format (**not writable yet**, names planned and to be confirmed with test files, #446): ✔ = standard field,
+that format (how TagStudio reads and writes it; names to be confirmed with test files, #453): ✔ = standard field,
 ◐ = only as a free field or by convention, ✖ = does not exist, * = difference between FLAC and OGG (below the table)
 · Display = text, image, readable summary or size + checksum · Edit = what TagStudio can change the field with
 · Mp3tag = field name in Mp3tag.

@@ -317,5 +317,8 @@
 "WAV und AIFF": ["WAV and AIFF", "WAV und AIFF"],
 "WAV- und AIFF-Dateien in Tagger und Vergleich einlesen – Tags im ID3-Chunk, gleiche Felder wie MP3 (Test, Standard aus)": ["Load WAV and AIFF files in the tagger and comparison – tags in the ID3 chunk, same fields as MP3 (test, off by default)", "WAV- und AIFF-Dateie im Tagger und im Vergliich iilese – Tags im ID3-Chunk, gliichi Fälder wie MP3 (Test, standardmässig us)"],
 "WAV und AIFF werden beim nächsten Einlesen mitgenommen.": ["WAV and AIFF will be included the next time files are loaded.", "WAV und AIFF werded bim nächschte Iilese mitgnoh."],
-"Tagger und Vergleich lesen wieder nur MP3-Dateien.": ["The tagger and comparison read only MP3 files again.", "Tagger und Vergliich läsed wieder nur MP3-Dateie."]
+"Tagger und Vergleich lesen wieder nur MP3-Dateien.": ["The tagger and comparison read only MP3 files again.", "Tagger und Vergliich läsed wieder nur MP3-Dateie."],
+"Weitere Formate": ["More formats", "Wiiteri Format"],
+"In Tagger und Vergleich zusätzlich zu MP3 einlesen (Test, Standard aus). Felder, die es im Format nicht gibt (z. B. Bewertung in FLAC), werden beim Speichern gemeldet. Übersicht: Hilfe › ID3-Felder.": ["Load in the tagger and comparison in addition to MP3 (test, off by default). Fields the format does not have (e.g. rating in FLAC) are reported when saving. Overview: Help › ID3 fields.", "Im Tagger und im Vergliich zuesätzlich zu MP3 iilese (Test, standardmässig us). Fälder, wos im Format nöd git (z. B. Bewertig im FLAC), werded bim Speichere gmäldet. Übersicht: Hilfe › ID3-Fälder."],
+"Die gewählten Formate werden beim nächsten Einlesen mitgenommen.": ["The selected formats will be included the next time files are loaded.", "Di gwählte Format werded bim nächschte Iilese mitgnoh."]
 }

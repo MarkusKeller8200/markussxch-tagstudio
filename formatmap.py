@@ -1,8 +1,8 @@
 """Feld-Zuordnung ID3 ↔ MP4/M4A ↔ FLAC/OGG (Vorbis) ↔ AAC (#262, Grundlage für #264–#266).
 
 TagStudio behält seine ID3-Schlüssel als gemeinsame Sprache; je Format steht hier, unter welchem Namen ein Feld liegt.
-Heute nur für die Übersicht in der Hilfe (docs/ID3-FELDER.md); die Lese-/Schreibschicht für FLAC, M4A und OGG wird
-darauf aufbauen. Namen nach der TagLib-Property-Zuordnung und den Konventionen von Mp3tag/Picard – **geplant, mit
+Übersicht in der Hilfe (docs/ID3-FELDER.md); die Lese-/Schreibschicht (`mapfile.VORBIS_MAP`, `mp4tags.MP4_TEXT/
+MP4_FREE`) folgt derselben Zuordnung – `tests/test_formatmap.py` prüft, dass beide übereinstimmen. Namen nach der TagLib-Property-Zuordnung und den Konventionen von Mp3tag/Picard – **geplant, mit
 Testdateien aus den DJ-Programmen zu bestätigen (#446)**.
 
 Werte: (Stufe, Text) mit Stufe "y" = Standardfeld, "p" = nur als freies Feld bzw. per Konvention, "n" = gibt es
@@ -21,14 +21,14 @@ MP4 = {
     "TPOS": ("y", "`disk`"), "TSST": ("p", "`----:DISCSUBTITLE`"), "TBPM": ("p", "`tmpo` (nur ganze Zahl)"),
     "TKEY": ("p", "`----:initialkey`"), "TSRC": ("p", "`----:ISRC`"), "TPUB": ("p", "`----:LABEL`"),
     "TCOP": ("y", "`cprt`"), "COMM": ("y", "`©cmt`"), "USLT": ("y", "`©lyr`"),
-    "APIC": ("y", "`covr` (nur JPEG/PNG, ohne Bildart)"), "POPM": ("p", "freies Feld (`rtng` ist keine Sternebewertung)"),
+    "APIC": ("y", "`covr` (nur JPEG/PNG, ohne Bildart)"), "POPM": ("n", "noch nicht – Konvention wird gemessen (#453)"),
     "TIT1": ("y", "`©wrk`"), "GRP1": ("y", "`©grp`"), "TIT3": ("p", "`----:SUBTITLE`"), "TMOO": ("p", "`----:MOOD`"),
     "TMED": ("p", "`----:MEDIA`"), "TLAN": ("p", "`----:LANGUAGE`"), "TENC": ("y", "`©enc`"), "TSSE": ("y", "`©too`"),
     "TSOT": ("y", "`sonm`"), "TSOP": ("y", "`soar`"), "TSOA": ("y", "`soal`"), "TSO2": ("y", "`soaa`"),
     "TSOC": ("y", "`soco`"), "TCMP": ("y", "`cpil`"), "MVNM": ("y", "`©mvn`"), "MVIN": ("y", "`©mvi` + `©mvc`"),
-    "TOPE": ("p", "freies Feld"), "TOAL": ("p", "freies Feld"), "TXXX": ("y", "`----:com.apple.iTunes:<NAME>`"),
-    "UFID": ("p", "`----:MusicBrainz Track Id`"), "GEOB": ("p", "Serato: `----:com.serato.dj:…`, sonst freies Feld"),
-    "CHAP": ("p", "eigene Kapitel-Spur"), "CTOC": ("p", "eigene Kapitel-Spur"),
+    "TOPE": ("p", "freies Feld über TXXX"), "TOAL": ("p", "freies Feld über TXXX"), "TXXX": ("y", "`----:com.apple.iTunes:<NAME>`"),
+    "UFID": ("n", "noch nicht"), "GEOB": ("p", "Serato: `----:com.serato.dj:…` bleibt unverändert erhalten"),
+    "CHAP": ("n", "noch nicht (eigene Kapitel-Spur)"), "CTOC": ("n", "noch nicht (eigene Kapitel-Spur)"),
 }
 
 VORBIS = {
@@ -39,16 +39,16 @@ VORBIS = {
     "TPOS": ("y", "`DISCNUMBER` (+ `DISCTOTAL`)"), "TSST": ("y", "`DISCSUBTITLE`"), "TBPM": ("y", "`BPM`"),
     "TKEY": ("p", "`INITIALKEY` (manche: `KEY`)"), "TSRC": ("y", "`ISRC`"),
     "TPUB": ("p", "`LABEL` (auch `ORGANIZATION`, `PUBLISHER`)"), "TCOP": ("y", "`COPYRIGHT`"),
-    "COMM": ("y", "`COMMENT` (manche: `DESCRIPTION`)"), "USLT": ("y", "`LYRICS`"), "SYLT": ("p", "LRC-Text in `LYRICS`"),
-    "APIC": ("y", "`PICTURE`-Block (mit Bildart) *"), "POPM": ("p", "`RATING` / `FMPS_RATING`"),
+    "COMM": ("y", "`COMMENT` (manche: `DESCRIPTION`)"), "USLT": ("y", "`LYRICS`"), "SYLT": ("n", "noch nicht"),
+    "APIC": ("y", "`PICTURE`-Block (mit Bildart) *"), "POPM": ("n", "noch nicht – `RATING`/`FMPS_RATING` wird gemessen (#453)"),
     "TIT1": ("y", "`WORK`"), "GRP1": ("y", "`GROUPING`"), "TIT3": ("y", "`SUBTITLE`"), "TMOO": ("y", "`MOOD`"),
     "TMED": ("y", "`MEDIA`"), "TLAN": ("y", "`LANGUAGE`"), "TENC": ("y", "`ENCODEDBY`"),
     "TSSE": ("p", "`ENCODING` (Mp3tag: `ENCODERSETTINGS`)"), "TSOT": ("y", "`TITLESORT`"), "TSOP": ("y", "`ARTISTSORT`"),
     "TSOA": ("y", "`ALBUMSORT`"), "TSO2": ("y", "`ALBUMARTISTSORT`"), "TSOC": ("y", "`COMPOSERSORT`"),
     "TCMP": ("y", "`COMPILATION`"), "MVNM": ("y", "`MOVEMENTNAME`"), "MVIN": ("y", "`MOVEMENTNUMBER`"),
     "TOPE": ("y", "`ORIGINALARTIST`"), "TOAL": ("y", "`ORIGINALALBUM`"), "TXXX": ("y", "`<NAME>`"),
-    "UFID": ("y", "`MUSICBRAINZ_TRACKID`"), "WOAR": ("p", "freies Feld (z. B. `WEBSITE`)"),
-    "WXXX": ("p", "freies Feld (z. B. `WEBSITE`)"), "GEOB": ("p", "Serato: `SERATO_…` (Base64) *, sonst freies Feld"),
+    "UFID": ("n", "noch nicht"),
+    "GEOB": ("p", "Serato: `SERATO_…` (Base64) bleibt unverändert erhalten *"),
 }
 
 # Unterschiede FLAC ↔ OGG Vorbis (in der Tabelle mit * markiert)

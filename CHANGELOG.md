@@ -8,6 +8,14 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **FLAC, M4A (AAC/ALAC), OGG/Opus im Tagger (#262, #264, #265, #266, Test):** Einstellung „Weitere Formate“ (je Format,
+  Standard aus; ersetzt „WAV und AIFF“), Spalte „Format“ im Tagger. Gemeinsame Grundlage `mapfile.py` (Übersetzung
+  der Format-Felder in die TagStudio-Felder, Namen/Reihenfolge/unbekannte Felder bleiben, nicht abbildbare Felder werden
+  gemeldet), `flactags.py` (Platzpuffer, sonst Neuschreiben mit Audio-Prüfung), `mp4tags.py` (ilst neu, `free`-Atom bzw.
+  `stco`/`co64` nachführen, Prüfung von mdat und Offsets), `oggtags.py` (nur lesen), `audioformats.py` (Formatliste,
+  Sicherungen). Hilfe-Tabelle (`formatmap.py`) entspricht der Umsetzung.
+- **Prüfwerkzeug (#453):** `tools/formatcheck.py DATEI [--roundtrip] [--json bericht.json]` für MP3, WAV, AIFF, FLAC,
+  M4A, OGG – Aufbau, Felder im Format, wie TagStudio sie liest, Serato-Felder, Schreibtest an einer Kopie.
 - **Trailer (#457):** YouTube-Trailer auf der GitHub-Startseite (Knopf und Vorschaubild, README de/en) und auf der
   Webseite (Abschnitt „Trailer“, Video erst nach Klick über youtube-nocookie.com; Datenschutzseite ergänzt).
 - **WAV und AIFF im Tagger (#156, #263, Test):** neue Einstellung „WAV und AIFF“ (Sicherungen und Speichern, Standard

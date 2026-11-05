@@ -38,33 +38,31 @@ def default_dir() -> str:
 
 # --------------------------------------------------------------------------- Datei-Layout
 def _is_chunk(path: str) -> bool:
-    import chunktags
-    return chunktags.is_chunk_path(path)
+    """#156/#262: kein MP3 (WAV, AIFF, FLAC, M4A, OGG) – Tag nicht am Dateianfang."""
+    import audioformats
+    return audioformats.is_other(path)
 
 
 def _chunk_layout(path: str) -> dict:
-    """#156/#263: WAV/AIFF – Tag im ID3-Chunk, Fingerabdruck über den Anfang der Audiodaten (`data`/`SSND`)."""
-    import chunktags
+    """Nicht-MP3: Tag-Bytes über audioformats, Fingerabdruck über den Anfang der Audiodaten."""
+    import audioformats
     try:
-        lay = chunktags.read_layout(path)
-    except chunktags.ChunkError as ex:
+        alen, fp = audioformats.audio_fingerprint(path)
+        kind = audioformats.kind_of(path)
+    except ValueError as ex:
         raise OSError(str(ex)) from ex
-    c = chunktags._audio_chunk(lay)
-    fp, alen = hashlib.md5(b"").hexdigest(), 0
-    if c is not None:
-        alen = max(0, min(c["size"], c["end"] - c["data_start"]))
-        with open(path, "rb") as f:
-            f.seek(c["data_start"])
-            fp = hashlib.md5(f.read(min(FP_BYTES, alen))).hexdigest()
-    return {"size": lay["size"], "audio_start": 0, "has_v1": False, "audio_len": alen, "audio_md5": fp,
-            "container": lay["kind"]}
+    return {"size": os.path.getsize(path), "audio_start": 0, "has_v1": False, "audio_len": alen, "audio_md5": fp,
+            "container": kind}
 
 
 def _tag_now(path: str, lay: dict) -> tuple[bytes, bytes]:
-    """Aktuelle Tag-Bytes (ID3v2-Bereich, ID3v1) – bei WAV/AIFF das Tag aus dem ID3-Chunk."""
+    """Aktuelle Tag-Bytes (ID3v2-Bereich, ID3v1) – bei anderen Formaten deren Tag-Bereich."""
     if lay.get("container"):
-        import chunktags
-        return chunktags.read_tag_bytes(path), b""
+        import audioformats
+        try:
+            return audioformats.tag_bytes(path), b""
+        except ValueError as ex:
+            raise OSError(str(ex)) from ex
     with open(path, "rb") as f:
         tag = f.read(lay["audio_start"])
         v1 = b""
@@ -323,6 +321,9 @@ def read_backup_tags(zip_path: str, entry: dict):
     import tempfile
     from id3tags import MP3File
     tag, v1 = _entry_bytes(zip_path, entry)
+    if entry.get("container") in ("flac", "m4a"):          # #262: keine ID3-Bytes
+        import audioformats
+        return audioformats.from_tag_bytes(entry["container"], tag)
     fd, tmp = tempfile.mkstemp(suffix=".mp3", prefix="tagstudio_bk_")
     try:
         with os.fdopen(fd, "wb") as fh:
@@ -409,9 +410,9 @@ def restore(zip_path: str, ids: list[int] | None = None, safety_folder: str | No
 
 def _write_tags(path: str, tag: bytes, v1: bytes):
     """Ersetzt Tag-Bereich und ID3v1 einer Datei; Audio bleibt byte-identisch (über temporäre Datei)."""
-    if _is_chunk(path):                                    # #156/#263: WAV/AIFF – nur den ID3-Chunk ersetzen
-        import chunktags
-        chunktags.write_tag_bytes(path, tag)
+    if _is_chunk(path):                                    # #156/#262: nur den Tag-Bereich des Formats ersetzen
+        import audioformats
+        audioformats.write_tag_bytes(path, tag)
         return
     lay = read_layout(path)
     if len(tag) == lay["audio_start"] and bool(v1) == lay["has_v1"]:

@@ -796,14 +796,23 @@ class UiTest(unittest.TestCase):
         pg = self.pg
         self.load_tagger()                                     # Standard: nur die 3 MP3
         pg.click('.nav[data-module="settings"]')
-        pg.wait_for_selector("#stChunkFmt")
-        self.assertFalse(pg.is_checked("#stChunkFmt"))
-        pg.click("#stChunkFmt")
-        c = self.cfg_until(lambda c: c.get("chunk_formats") is True)
-        self.assertTrue(c.get("chunk_formats"))
+        from test_formats import make_flac
+        flac = os.path.join(self.lib, "zz Chunk.flac")
+        make_flac(flac, ["TITLE=Flac Titel"])
+        self.addCleanup(lambda: os.path.exists(flac) and os.remove(flac))
+        pg.wait_for_selector("#stFmt_wav")
+        self.assertFalse(pg.is_checked("#stFmt_wav"))
+        pg.click("#stFmt_wav")
+        pg.click("#stFmt_aiff")
+        pg.click("#stFmt_flac")
+        c = self.cfg_until(lambda c: c.get("tag_formats") == ["wav", "aiff", "flac"])
+        self.assertEqual(c.get("tag_formats"), ["wav", "aiff", "flac"])
         pg.click('.nav[data-module="tagger"]')
         pg.click("#tgLoad")
-        pg.wait_for_function("TG.loaded && TG.rows.length === 5")
+        pg.wait_for_function("TG.loaded && TG.rows.length === 6")
+        fmts = pg.evaluate("Object.fromEntries(TG.rows.map(r => [r.name, r.fmt]))")              # #262: Spalte Format
+        self.assertEqual((fmts["zz Chunk.wav"], fmts["zz Chunk.aiff"], fmts["zz Chunk.flac"]), ("WAV", "AIFF", "FLAC"))
+        self.assertEqual(pg.evaluate("TG.rows.find(r => r.name === 'zz Chunk.flac').TIT2"), "Flac Titel")
         i = pg.evaluate("TG.rows.findIndex(r => (r.name || r.path || '').endsWith('zz Chunk.wav'))")
         self.assertGreaterEqual(i, 0)
         pg.evaluate(f"call('tag_set', [{i}], 'TIT2', 'WAV aus dem Test')")
@@ -815,9 +824,10 @@ class UiTest(unittest.TestCase):
         self.assertEqual(MP3File(wav).text("TIT2"), "WAV aus dem Test")
         self.assertEqual(chunktags.audio_hash(wav), audio)
         pg.click('.nav[data-module="settings"]')
-        pg.wait_for_selector("#stChunkFmt")
-        pg.click("#stChunkFmt")
-        self.cfg_until(lambda c: c.get("chunk_formats") is False)
+        pg.wait_for_selector("#stFmt_wav")
+        for k in ("wav", "aiff", "flac"):
+            pg.click(f"#stFmt_{k}")
+        self.cfg_until(lambda c: c.get("tag_formats") == [])
         self.assertEqual(self.errors, [])
 
     def test_chunk_formats_player(self):

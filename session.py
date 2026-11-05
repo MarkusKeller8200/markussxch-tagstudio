@@ -571,7 +571,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
 
     def _cache_work(self, name, paths, roots, cancel, progress) -> dict:
         """Eigentliche Arbeit – unabhängig von geladenen Objekten, damit ein Auftrag auch nach einem Neustart läuft."""
-        from id3tags import MP3File, CHUNK_EXTS
+        from id3tags import MP3File, OTHER_EXTS
         progress(("total", len(paths)))
         if name == "lists":
             import listcache
@@ -586,7 +586,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 for p in mine:
                     if cancel.is_set():
                         raise Cancelled()
-                    if p.lower().endswith(CHUNK_EXTS):    # #156: WAV/AIFF kommen nicht in den Listen-Cache
+                    if p.lower().endswith(OTHER_EXTS):    # #156/#262: nur MP3 kommt in den Listen-Cache
                         done += 1
                         continue
                     try:
@@ -696,7 +696,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                 "save_version": c.get("save_version", 0), "save_v1": c.get("save_v1", 0),
                 "stamp_edited": c.get("stamp_edited", True), "stamp_added": c.get("stamp_added", True),
                 "wave_in_file": bool(c.get("wave_in_file", False)),
-                "chunk_formats": bool(c.get("chunk_formats", False)), "key_notation": c.get("key_notation", "camelot"),
+                "chunk_formats": bool(c.get("chunk_formats", False)), "tag_formats": self._tag_formats(),
+                "tag_format_list": [[k, v[1]] for k, v in __import__("audioformats").FORMATS.items()], "key_notation": c.get("key_notation", "camelot"),
                 "notations": [[k, v] for k, v in keys.NOTATIONS.items()], "theme": self.opts["theme"],
                 "backup_enabled": c.get("backup_enabled", True), "backup_dir": self._backup_folder(),
                 "backup_store": self._backup_in_store(),
@@ -751,12 +752,23 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         return on
 
     def set_chunk_formats(self, on):
-        """#156/#263: WAV und AIFF (Tags im ID3-Chunk) in Tagger und Vergleich einlesen – Standard aus."""
+        """#156/#263: WAV und AIFF ein/aus (ältere Oberfläche) – schreibt in „tag_formats“."""
         if not isinstance(on, bool):
             raise ValueError("Ja/Nein erwartet")
-        self.cfg["chunk_formats"] = on
-        core.save_config({"chunk_formats": on})
+        ids = [i for i in self._tag_formats() if i not in ("wav", "aiff")] + (["wav", "aiff"] if on else [])
+        self.set_tag_formats(ids)
         return on
+
+    def set_tag_formats(self, ids):
+        """#262: weitere Formate in Tagger und Vergleich (wav, aiff, flac, m4a, ogg)."""
+        import audioformats
+        if not isinstance(ids, list) or any(not isinstance(i, str) or i not in audioformats.FORMATS for i in ids):
+            raise ValueError("Liste von Formaten erwartet")
+        ids = audioformats.clean_ids(ids)
+        self.cfg["tag_formats"] = ids
+        self.cfg["chunk_formats"] = "wav" in ids or "aiff" in ids
+        core.save_config({"tag_formats": ids, "chunk_formats": self.cfg["chunk_formats"]})
+        return ids
 
     def set_stamp_edited(self, on):
         """#185: beim Speichern geänderter Tags „Letzte Bearbeitung“ (TXXX:TAGSTUDIO_EDITED) setzen."""
@@ -1927,11 +1939,20 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         return self._run("tagload", "Dateien einlesen", job)
 
     # ------------------------------------------------------------------ Listen-Cache und Prüfung (#70)
+    def _tag_formats(self) -> list[str]:
+        """#262: weitere Formate für Tagger und Vergleich (Standard keine); alte Einstellung „WAV und AIFF“ übernehmen."""
+        import audioformats
+        c = getattr(self, "cfg", {})
+        ids = c.get("tag_formats")
+        if not isinstance(ids, list):
+            ids = ["wav", "aiff"] if c.get("chunk_formats") else []
+        return audioformats.clean_ids(ids)
+
     def _tag_exts(self):
-        """#156/#263: Endungen für Tagger und Vergleich – WAV/AIFF nur mit Einstellung „chunk_formats“ (Standard aus)."""
+        """#156/#262: Endungen für Tagger und Vergleich – MP3 plus die gewählten Formate."""
+        import audioformats
         import compare
-        on = bool(getattr(self, "cfg", {}).get("chunk_formats", False))
-        return compare.MP3_EXTS + compare.CHUNK_EXTS if on else compare.MP3_EXTS
+        return compare.MP3_EXTS + audioformats.exts_for(self._tag_formats())
 
     def _list_cache_on(self) -> bool:
         return bool(getattr(self, "cfg", {}).get("list_cache", True))
@@ -2193,7 +2214,8 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
     def _tag_row_base(self, i, f):
         return {"i": i, "name": os.path.basename(f.path), "rel": core.rel_name(f, self.tag_root),
                 "modified": f.is_modified(), "cover": f.get("APIC:3") is not None, "ch": self._cover_hash(f),
-                "version": f.version,
+                "version": f.version if not getattr(f, "container", None) else 0,
+                "fmt": __import__("audioformats").label(f),                                          # #262
                 **{key: tagger.text_of(f, key) for key, _l, _p in tagger.FIELDS},
                 "camelot": keys.parse_key(tagger.text_of(f, "TKEY")), "feat": features.values(f),
                 "rating": ratings.get_rating(f), "like": ratings.get_like(f),

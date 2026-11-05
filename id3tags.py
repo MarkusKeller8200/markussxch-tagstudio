@@ -706,15 +706,18 @@ def disk_sig(path: str) -> str:
 
 
 CHUNK_EXTS = (".wav", ".aif", ".aiff", ".aifc")     # #156/#263: Tags im ID3-Chunk → chunktags.ChunkFile
+OTHER_EXTS = CHUNK_EXTS + (".flac", ".m4a", ".mp4", ".m4b", ".ogg", ".oga", ".opus")   # #262: alle ausser MP3
 
 
 class MP3File:
     def __new__(cls, path=None, *args, **kwargs):
         """#156/#263: `MP3File(pfad)` liefert für WAV/AIFF ein `chunktags.ChunkFile` (gleiche Felder, eigenes Laden und
         Speichern) – damit nie ein ID3-Kopf vor eine WAV-/AIFF-Datei geschrieben wird. MP3 bleibt unverändert."""
-        if cls is MP3File and path is not None and str(path).lower().endswith(CHUNK_EXTS):
-            import chunktags
-            return object.__new__(chunktags.ChunkFile)
+        if cls is MP3File and path is not None and not str(path).lower().endswith(".mp3"):
+            import audioformats                       # #262: FLAC, M4A, OGG … – gleiche Felder, eigenes Laden/Speichern
+            other = audioformats.open_class(path)
+            if other is not None:
+                return object.__new__(other)
         return object.__new__(cls)
 
     def __init__(self, path: str):
@@ -1123,6 +1126,9 @@ class MP3File:
             return
         if self.path.lower().endswith(CHUNK_EXTS):        # #156: WAV/AIFF nie wie MP3 schreiben
             raise ValueError("WAV-/AIFF-Datei – Tags werden im ID3-Chunk gespeichert, nicht wie bei MP3.")
+        import audioformats
+        if audioformats.is_other(self.path):               # #262: FLAC, M4A, OGG nie wie MP3 schreiben
+            raise ValueError("Kein MP3 – dieses Format wird nicht wie MP3 gespeichert.")
         if self.tag_damaged:
             raise ValueError("ID3-Tag beschädigt (Grösse passt nicht zur Datei) – nicht gespeichert, damit keine "
                              "Audiodaten verloren gehen.")

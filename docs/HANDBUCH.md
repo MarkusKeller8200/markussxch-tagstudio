@@ -220,11 +220,22 @@ Namen dürfen abgekürzt (`ener`, `dance`) oder deutsch sein (Energie, Tanz, Sti
 **Skala:** Unter Einstellungen › Tagger lässt sich einstellen, dass die Werte in den Dateien 0–10 sind (z. B. aus
 Lexicon). Angezeigt und eingegeben wird dann weiterhin 0–100; beim Lesen wird ×10, beim Schreiben ÷10 gerechnet.
 
-#### WAV und AIFF (Test, 4.16.0)
+#### Weitere Formate: WAV, AIFF, FLAC, M4A, OGG (Test, 4.16.0)
 
-Unter **Einstellungen › Sicherungen und Speichern › WAV und AIFF** (Standard aus) liest TagStudio auch WAV- und
-AIFF-Dateien (`.wav`, `.aif`, `.aiff`, `.aifc`) in Tagger und Vergleich ein. Die Tags stehen dort in einem eigenen
-**ID3-Chunk** – mit denselben Feldern wie bei MP3 (Text, eigene Felder, Cover, Bewertung, Liedtexte, Serato-Daten).
+Unter **Einstellungen › Sicherungen und Speichern › Weitere Formate** (alle Standard aus) wählst du, welche Formate
+Tagger und Vergleich zusätzlich zu MP3 einlesen: **WAV**, **AIFF**, **FLAC**, **MP4 / M4A (AAC, ALAC)** und
+**OGG Vorbis / Opus** (nur lesen). Die Spalte **Format** im Tagger (Spalten ▾) zeigt, was eine Datei ist. Welches Feld
+in welchem Format unter welchem Namen steht, zeigt **Hilfe › ID3-Felder**.
+
+- **WAV und AIFF** haben ein vollständiges ID3-Tag in einem eigenen **ID3-Chunk** – dieselben Felder wie bei MP3 (Text,
+  eigene Felder, Cover, Bewertung, Liedtexte, Serato-Daten).
+- **FLAC** und **OGG/Opus** verwenden Vorbis-Kommentare (`TITLE`, `ARTIST`, `INITIALKEY` …), **M4A** iTunes-Atome
+  (`©nam`, `trkn`, `----:com.apple.iTunes:…`). TagStudio übersetzt sie in seine Felder; unveränderte Felder behalten
+  Namen und Reihenfolge, unbekannte Felder und Serato-Daten bleiben unverändert erhalten. Felder, die es im Format nicht
+  gibt (z. B. Bewertung, Binärfelder, Links), werden beim Speichern **nicht geschrieben und gemeldet**. In M4A ist BPM
+  nur ganzzahlig. FLAC nutzt den Platzpuffer in der Datei (dann wird nur der Tag-Bereich geschrieben); bei M4A werden
+  die Verweise auf die Audiodaten nachgeführt. In beiden Fällen prüft TagStudio vor dem Ersetzen, dass das Audio
+  byte-gleich bleibt. OGG/Opus wird vorerst nur gelesen.
 
 - Beim Speichern ersetzt TagStudio nur den ID3-Chunk (oder hängt einen an). Alle anderen Teile der Datei – Audio,
   RIFF-INFO, `bext`, Cue-Punkte, AIFF-Texte – bleiben **byte-genau** erhalten; vorher und nachher wird die Prüfsumme

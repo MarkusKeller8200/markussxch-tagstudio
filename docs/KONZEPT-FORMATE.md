@@ -71,6 +71,10 @@ Testdateien aus Rekordbox, Serato, Engine DJ, VirtualDJ, Lexicon und Mp3tag mit 
 
 ## 5. Reihenfolge (Vorschlag)
 
+> **Umgesetzt 05.11.2026 (Auftrag User 00:54):** #262 Grundlage (`mapfile.MappedFile`, `audioformats`, Einstellung
+> `tag_formats`, Spalte „Format“), #264 FLAC, #265 M4A, #266 OGG/Opus (nur lesen), #453 `tools/formatcheck.py`.
+> Offen: Bewertung (POPM ↔ `RATING`/`FMPS_RATING`/MP4) und Serato-Auswertung in FLAC/M4A – nach der Messreihe.
+
 > **Plan 04.11.2026 (nach 4.16.0 WAV/AIFF):** Zuordnung `formatmap.py` (Hilfe › ID3-Felder, #452) → #453 Messreihe
 > FLAC/M4A/OGG → #262 gemeinsame Basis + Einstellung „Formate in Tagger und Vergleich“ → #264 FLAC → #266 OGG (zuerst
 > nur lesen) → #265 M4A (AAC/ALAC) → #454 Player (ALAC über FFmpeg) → #456 Konverter erweitern. Entscheid #455 rohes AAC

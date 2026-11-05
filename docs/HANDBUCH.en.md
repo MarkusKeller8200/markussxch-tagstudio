@@ -216,11 +216,21 @@ Names may be abbreviated (`ener`, `dance`) or German (Energie, Tanz, Stimmung, A
 **Scale:** under Settings › Tagger you can set that the values in the files are 0–10 (e.g. from Lexicon). Display and
 input stay 0–100; reading multiplies by 10, writing divides by 10.
 
-#### WAV and AIFF (test, 4.16.0)
+#### More formats: WAV, AIFF, FLAC, M4A, OGG (test, 4.16.0)
 
-Under **Settings › Backups and saving › WAV and AIFF** (off by default) TagStudio also loads WAV and AIFF files
-(`.wav`, `.aif`, `.aiff`, `.aifc`) in the tagger and the comparison. Their tags live in a separate **ID3 chunk** – with
-the same fields as MP3 (text, custom fields, cover, rating, lyrics, Serato data).
+Under **Settings › Backups and saving › More formats** (all off by default) you choose which formats the tagger and the
+comparison load in addition to MP3: **WAV**, **AIFF**, **FLAC**, **MP4 / M4A (AAC, ALAC)** and **OGG Vorbis / Opus**
+(read only). The **Format** column in the tagger (Columns ▾) shows what a file is. **Help › ID3 fields** shows under which
+name each field is stored in each format.
+
+- **WAV and AIFF** carry a complete ID3 tag in a separate **ID3 chunk** – the same fields as MP3 (text, custom fields,
+  cover, rating, lyrics, Serato data).
+- **FLAC** and **OGG/Opus** use Vorbis comments (`TITLE`, `ARTIST`, `INITIALKEY` …), **M4A** uses iTunes atoms (`©nam`,
+  `trkn`, `----:com.apple.iTunes:…`). TagStudio translates them into its fields; unchanged fields keep their names and
+  order, unknown fields and Serato data stay unchanged. Fields the format does not have (e.g. rating, binary fields,
+  links) are **not written and reported** when saving. In M4A, BPM is whole numbers only. FLAC uses the padding in the
+  file (then only the tag area is written); for M4A the references to the audio data are updated. In both cases
+  TagStudio checks before replacing that the audio stays byte-identical. OGG/Opus is read only for now.
 
 - When saving, TagStudio only replaces the ID3 chunk (or appends one). All other parts of the file – audio, RIFF INFO,
   `bext`, cue points, AIFF texts – stay **byte-identical**; the checksum of the audio data is compared before and

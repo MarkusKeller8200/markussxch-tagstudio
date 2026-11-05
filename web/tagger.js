@@ -18,8 +18,9 @@ const TG_COLDEF = {
   len: { l: "Länge", fit: "56px", px: 60, num: true }, kbps: { l: "kbit/s", fit: "56px", px: 60, num: true },
   rating: { l: "Bewertung", fit: "86px", px: 90 }, ver: { l: "ID3", fit: "44px", px: 48 },
   grid: { l: "Beatgrid", fit: "92px", px: 100 },                                            // #191
+  fmt: { l: "Format", fit: "84px", px: 110 },                                               // #262
 };
-const TG_BASE_EXTRA = ["TPE2", "TPOS", "TCOM", "COMM:", "len", "kbps", "rating", "ver", "grid"];
+const TG_BASE_EXTRA = ["TPE2", "TPOS", "TCOM", "COMM:", "len", "kbps", "rating", "ver", "fmt", "grid"];
 function tgCols() {
   const c = (LAYOUT.tg_cols || []).filter((id) => TG_COLDEF[id] || id.startsWith("fld:"));
   return c.length ? c : TG_DEFAULT_COLS;
@@ -615,6 +616,7 @@ function tgCell(r, c, v, name, fit) {
     case "kbps": return `<span class="num">${r.kbps || ""}</span>`;
     case "rating": return `<span>${r.rating ? "★".repeat(r.rating) : ""}${r.like ? " ♥" : ""}</span>`;
     case "ver": return `<span>${r.version ? "v2." + r.version : ""}</span>`;
+    case "fmt": return `<span>${esc(r.fmt || "")}</span>`;                                   // #262
     case "grid": return typeof tgGridCell === "function" ? tgGridCell(r) : "";               // #191
     default: {
       const val = c.startsWith("fld:") ? (r.x && r.x[c.slice(4)]) || "" : r[c] || "";

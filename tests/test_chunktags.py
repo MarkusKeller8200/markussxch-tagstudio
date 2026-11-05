@@ -296,6 +296,11 @@ class TestChunkTags(Base):
         with self.assertRaises(ValueError):
             s.set_chunk_formats("ja")
         self.assertTrue(core.load_config().get("chunk_formats"))
+        self.assertEqual(core.load_config().get("tag_formats"), ["wav", "aiff"])
+        self.assertEqual(s.set_tag_formats(["flac", "wav"]), ["wav", "flac"])
+        with self.assertRaises(ValueError):
+            s.set_tag_formats(["mp5"])
+        s.set_tag_formats(["wav", "aiff"])
         files, _e = core.load_files(self.B, True, exts=s._tag_exts(), use_cache=True)
         self.assertEqual(sorted(os.path.basename(f.path) for f in files), ["3.mp3", "a.aiff", "w.wav"])
         # über den Tagger speichern (mit Sicherung)
