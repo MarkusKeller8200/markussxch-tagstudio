@@ -326,14 +326,17 @@ in welchem Format unter welchem Namen steht, zeigt <strong>Hilfe › ID3-Felder<
 <ul>
 <li><strong>WAV und AIFF</strong> haben ein vollständiges ID3-Tag in einem eigenen <strong>ID3-Chunk</strong> – dieselben Felder wie bei MP3 (Text,
   eigene Felder, Cover, Bewertung, Liedtexte, Serato-Daten).</li>
-<li>
-<p><strong>FLAC</strong> und <strong>OGG/Opus</strong> verwenden Vorbis-Kommentare (<code>TITLE</code>, <code>ARTIST</code>, <code>INITIALKEY</code> …), <strong>M4A</strong> iTunes-Atome
+<li><strong>FLAC</strong> und <strong>OGG/Opus</strong> verwenden Vorbis-Kommentare (<code>TITLE</code>, <code>ARTIST</code>, <code>INITIALKEY</code> …), <strong>M4A</strong> iTunes-Atome
   (<code>©nam</code>, <code>trkn</code>, <code>----:com.apple.iTunes:…</code>). TagStudio übersetzt sie in seine Felder; unveränderte Felder behalten
   Namen und Reihenfolge, unbekannte Felder und Serato-Daten bleiben unverändert erhalten. Felder, die es im Format nicht
   gibt (z. B. Bewertung, Binärfelder, Links), werden beim Speichern <strong>nicht geschrieben und gemeldet</strong>. In M4A ist BPM
   nur ganzzahlig. FLAC nutzt den Platzpuffer in der Datei (dann wird nur der Tag-Bereich geschrieben); bei M4A werden
   die Verweise auf die Audiodaten nachgeführt. In beiden Fällen prüft TagStudio vor dem Ersetzen, dass das Audio
-  byte-gleich bleibt. OGG/Opus wird vorerst nur gelesen.</p>
+  byte-gleich bleibt. OGG/Opus wird vorerst nur gelesen.</li>
+<li>
+<p><strong>Rohes AAC (.aac, #455)</strong> hat kein eigenes Tag-System und wird <strong>nur gelesen</strong> (ID3v2 davor bzw. ID3v1 am Ende, falls
+  vorhanden). Für Tags die Datei als M4A speichern: Umwandeln › <strong>M4A – AAC</strong> packt <code>.aac</code> <strong>ohne Neukodierung</strong> um
+  (kein Qualitätsverlust; die Bitrate gilt dafür nicht).</p>
 </li>
 <li>
 <p>Beim Speichern ersetzt TagStudio nur den ID3-Chunk (oder hängt einen an). Alle anderen Teile der Datei – Audio,

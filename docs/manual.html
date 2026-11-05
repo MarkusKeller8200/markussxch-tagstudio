@@ -321,13 +321,16 @@ name each field is stored in each format.</p>
 <ul>
 <li><strong>WAV and AIFF</strong> carry a complete ID3 tag in a separate <strong>ID3 chunk</strong> – the same fields as MP3 (text, custom fields,
   cover, rating, lyrics, Serato data).</li>
-<li>
-<p><strong>FLAC</strong> and <strong>OGG/Opus</strong> use Vorbis comments (<code>TITLE</code>, <code>ARTIST</code>, <code>INITIALKEY</code> …), <strong>M4A</strong> uses iTunes atoms (<code>©nam</code>,
+<li><strong>FLAC</strong> and <strong>OGG/Opus</strong> use Vorbis comments (<code>TITLE</code>, <code>ARTIST</code>, <code>INITIALKEY</code> …), <strong>M4A</strong> uses iTunes atoms (<code>©nam</code>,
   <code>trkn</code>, <code>----:com.apple.iTunes:…</code>). TagStudio translates them into its fields; unchanged fields keep their names and
   order, unknown fields and Serato data stay unchanged. Fields the format does not have (e.g. rating, binary fields,
   links) are <strong>not written and reported</strong> when saving. In M4A, BPM is whole numbers only. FLAC uses the padding in the
   file (then only the tag area is written); for M4A the references to the audio data are updated. In both cases
-  TagStudio checks before replacing that the audio stays byte-identical. OGG/Opus is read only for now.</p>
+  TagStudio checks before replacing that the audio stays byte-identical. OGG/Opus is read only for now.</li>
+<li>
+<p><strong>Raw AAC (.aac, #455)</strong> has no tag system of its own and is <strong>read only</strong> (ID3v2 in front or ID3v1 at the end, if
+  present). To keep tags, save the file as M4A: Convert › <strong>M4A – AAC</strong> repacks <code>.aac</code> <strong>without re-encoding</strong> (no
+  quality loss; the bitrate does not apply).</p>
 </li>
 <li>
 <p>When saving, TagStudio only replaces the ID3 chunk (or appends one). All other parts of the file – audio, RIFF INFO,
