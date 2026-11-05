@@ -73,7 +73,16 @@ Schliessen erst nach „getestet ok“ bzw. abgehakter Testliste des Users.
   - #451: `convert.py`, `session_convert.py` (`ConvertMixin`), Rechtsklick „Umwandeln …“ (`tgConvertDialog` in
     `web/tagger.js`); Entscheide User 20:39: Rechtsklick ja, Ablage wahlweise (Standard Export-Ordner), Bitrate wählbar
     (Standard 320k), Serato mit Hinweis.
-- **Beim Release:** `chunktags`, `convert`, `session_convert` in `packaging/build.py › HIDDEN`.
+- **05.11.2026 (00:54, Auftrag User „Issues umsetzen“):** #262 Grundlage (`mapfile.py` MappedFile + Vorbis-Übersetzung,
+  `audioformats.py` Formatliste/Weiche/Sicherungen, Einstellung `tag_formats` „Weitere Formate“ ersetzt
+  `chunk_formats`, Spalte „Format“), #264 `flactags.py`, #265 `mp4tags.py`, #266 `oggtags.py` (nur lesen), #453
+  `tools/formatcheck.py`, #454 Player (ALAC über `media.alac_cache`), #456 Konverter (FLAC, ALAC, AAC), #449
+  `plugin.json "formats"` (Plugin-Versionen erhöht, Audio-Plugins bleiben MP3). Alle `_3 Beta-Test`, Meilenstein #34.
+  **Offen:** #455 rohes AAC – Entscheid User (Vorschlag: nur lesen + Konverter → M4A ohne Neukodierung);
+  OGG schreiben nur nach Freigabe; Bewertung (POPM) und Serato-Anzeige in FLAC/M4A erst nach der Messreihe #453.
+  #450 (gleicher Titel in mehreren Formaten) Idee, #447 (Vorbereiten/Einkäufe) offen.
+- **Beim Release:** `chunktags`, `convert`, `session_convert`, `audioformats`, `mapfile`, `flactags`, `mp4tags`,
+  `oggtags`, `formatmap` in `packaging/build.py › HIDDEN`; Plugin-ZIPs mit den neuen Versionen (online 2.5, beatport 2.14 …).
 - CI 8ed08a0: macOS-Jobs abgebrochen (GitHub hatte keinen macOS-Runner), Windows/Oberfläche grün.
 
 ## Webseite und YouTube-Teaser (02.11.2026, 23:01–23:04)
