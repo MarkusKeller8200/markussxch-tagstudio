@@ -1720,7 +1720,7 @@ async function tgConvertDialog(idx) {
   if (pv.kinds.length === 1 && pv.kinds[0] === pv.target) pv = await call("convert_preview", idx, pv.kinds[0] === "mp3" ? "wav" : "mp3");
   const opt = (v, l, cur) => `<option value="${v}"${String(v) === String(cur) ? " selected" : ""}>${esc(l)}</option>`;
   const html = `<div class="frm">
-      <label for="cvTarget">Ziel-Format</label><select id="cvTarget" class="inp">${opt("wav", "WAV (unkomprimiert)", pv.target)}${opt("aiff", "AIFF (unkomprimiert)", pv.target)}${opt("mp3", "MP3", pv.target)}</select>
+      <label for="cvTarget">Ziel-Format</label><select id="cvTarget" class="inp">${opt("wav", "WAV (unkomprimiert)", pv.target)}${opt("aiff", "AIFF (unkomprimiert)", pv.target)}${opt("flac", "FLAC (verlustfrei)", pv.target)}${opt("alac", "M4A – ALAC (verlustfrei)", pv.target)}${opt("mp3", "MP3", pv.target)}${opt("m4a", "M4A – AAC", pv.target)}</select>
       <label for="cvRate" class="cv-mp3">Bitrate</label><select id="cvRate" class="inp cv-mp3">${pv.bitrates.map((b) => opt(b, b + " kbit/s" + (b === 320 ? " (Standard)" : ""), pv.bitrate)).join("")}</select>
       <label for="cvDest">Ablage</label><select id="cvDest" class="inp">${opt("export", "Export-Ordner" + (pv.export ? "" : " (nicht festgelegt – Benutzerordner)"), pv.dest)}${opt("beside", "neben dem Original", pv.dest)}</select>
     </div>
@@ -1728,16 +1728,18 @@ async function tgConvertDialog(idx) {
     <div id="cvRows" class="fx-table" style="max-height:40vh;margin-top:8px"></div>`;
   const paint = async (b) => {
     const t = $("#cvTarget", b).value, d = $("#cvDest", b).value, r = +$("#cvRate", b).value;
-    b.querySelectorAll(".cv-mp3").forEach((el) => (el.hidden = t !== "mp3"));
+    b.querySelectorAll(".cv-mp3").forEach((el) => (el.hidden = t !== "mp3" && t !== "m4a"));
     try { pv = await call("convert_preview", idx, t, d, r); } catch (e) { $("#cvRows", b).textContent = String(e.message || e); return; }
     const notes = [];
     if (!pv.ffmpeg) notes.push("<b>FFmpeg fehlt</b> – das Stems-Plugin installieren (bringt FFmpeg mit) oder FFmpeg in den Suchpfad legen.");
-    notes.push(t === "mp3" ? "WAV/AIFF → MP3 ist verlustbehaftet." : "MP3 → WAV/AIFF macht die Qualität nicht besser – die Datei wird nur grösser.");
+    if (t === "mp3" || t === "m4a") notes.push("MP3 und M4A (AAC) sind verlustbehaftet.");
+    else if (pv.lossy_src) notes.push("Aus MP3, AAC oder OGG wird die Qualität durch Umwandeln nicht besser – die Datei wird nur grösser.");
+    if (pv.rows.some((x) => x.lost && x.lost.length)) notes.push("Manche Felder gibt es im Ziel-Format nicht – sie werden nicht übernommen (Spalte rechts).");
     notes.push("Das Original bleibt unverändert; die Tags (Cover, Bewertung, eigene Felder) werden übernommen. Bestehende Dateien werden nie überschrieben.");
     if (pv.serato) notes.push("<b>Serato:</b> Cues und Beatgrid werden übernommen, können sich bei MP3 aber um wenige Millisekunden verschieben (Encoder-Versatz) – in Serato prüfen.");
     $("#cvHint", b).innerHTML = notes.join("<br>");
     $("#cvRows", b).innerHTML = `<table><thead><tr><th>Datei</th><th>Neu</th><th></th></tr></thead><tbody>${pv.rows.map((x) =>
-      `<tr class="${x.problem ? "gone" : ""}"><td title="${esc(x.src)}">${esc(x.src.split(/[\\/]/).pop())}</td><td class="sm" title="${esc(x.dst)}">${esc(x.dst)}</td><td class="sm">${esc(x.problem || "")}</td></tr>`).join("")}</tbody></table>`;
+      `<tr class="${x.problem ? "gone" : ""}"><td title="${esc(x.src)}">${esc(x.src.split(/[\\/]/).pop())}</td><td class="sm" title="${esc(x.dst)}">${esc(x.dst)}</td><td class="sm">${esc(x.problem || (x.lost && x.lost.length ? "geht verloren: " + x.lost.join(", ") : ""))}</td></tr>`).join("")}</tbody></table>`;
     const go = $("#mBtns .primary");
     if (go) { go.disabled = !pv.ok || !pv.ffmpeg; go.textContent = `${fmtN(pv.ok)} Titel umwandeln`; }
   };

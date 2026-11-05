@@ -883,7 +883,7 @@ class UiTest(unittest.TestCase):
         pg.select_option("#cvTarget", "wav")
         pg.select_option("#cvDest", "beside")
         self.assertTrue(self.until("document.querySelector('#cvRate').hidden && !document.querySelector('#mBtns .primary').disabled"))
-        self.assertIn("Qualität nicht besser", pg.inner_text("#cvHint"))
+        self.assertIn("nicht besser", pg.inner_text("#cvHint"))
         pg.click("#mBtns .primary")
         t0 = time.time()
         while not os.path.exists(dst) and time.time() - t0 < 20:

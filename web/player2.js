@@ -787,7 +787,7 @@ function plRowMenu(e, t, label) {
   }
   if (t.kind === "tag" && S.module === "tagger" && typeof tgConvertDialog === "function") {         // #451
     const idx = typeof tgSelected === "function" && tgSelected().length ? tgSelected() : [t.ref];
-    items.push("-", { label: `Umwandeln (WAV, AIFF, MP3) …${idx.length > 1 ? ` (${idx.length})` : ""}`, run: () => tgConvertDialog(idx) });
+    items.push("-", { label: `Umwandeln (WAV, AIFF, FLAC, M4A, MP3) …${idx.length > 1 ? ` (${idx.length})` : ""}`, run: () => tgConvertDialog(idx) });
   }
   if (t.kind === "tag") items.push("-", { label: "Dateiordner öffnen", icon: ICON.folder, run: () => call("reveal_tag", t.ref) });   // #197
   if (t.kind === "tag" && typeof webSearchItem === "function" && typeof TG !== "undefined") {    // #283

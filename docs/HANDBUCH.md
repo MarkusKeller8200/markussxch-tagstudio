@@ -247,8 +247,10 @@ in welchem Format unter welchem Namen steht, zeigt **Hilfe › ID3-Felder**.
   Cues aus dem ID3-Chunk bei WAV/AIFF). AIFF liefert TagStudio dafür intern als WAV aus; **ALAC** (M4A verlustfrei)
   wandelt es beim ersten Abspielen einmal mit FFmpeg in eine WAV-Fassung im Cache (`~/TagStudio/cache/play`, höchstens
   2 GB) – an den Dateien ändert sich nichts. Komprimiertes AIFC (z. B. µ-law) wird nicht abgespielt.
-- **Umwandeln (#451):** Rechtsklick auf markierte Titel › **Umwandeln (WAV, AIFF, MP3) …** erstellt eine neue Datei
-  MP3 → WAV, MP3 → AIFF oder WAV/AIFF → MP3 (Bitrate wählbar, Standard 320 kbit/s). Ablage wahlweise im
+- **Umwandeln (#451, #456):** Rechtsklick auf markierte Titel › **Umwandeln (WAV, AIFF, FLAC, M4A, MP3) …** erstellt
+  eine neue Datei in WAV, AIFF, FLAC, M4A – ALAC (verlustfrei), MP3 oder M4A – AAC (Bitrate wählbar, Standard
+  320 kbit/s); Quelle kann jedes eingelesene Format sein. Felder, die es im Ziel-Format nicht gibt, zeigt die Vorschau
+  („geht verloren“). Ablage wahlweise im
   **Export-Ordner** (Standard) oder neben dem Original; die Wahl wird gemerkt. Das Original bleibt unverändert, die
   Tags (Cover, Bewertung, eigene Felder, Serato-Daten) werden übernommen, bestehende Dateien nie überschrieben.
   Hinweise im Dialog: MP3 → WAV/AIFF verbessert die Qualität nicht; WAV/AIFF → MP3 ist verlustbehaftet; Serato-Cues

@@ -242,8 +242,10 @@ name each field is stored in each format.
   cues from the ID3 chunk for WAV/AIFF). TagStudio serves AIFF internally as WAV; **ALAC** (lossless M4A) is converted
   once with FFmpeg into a WAV copy in the cache (`~/TagStudio/cache/play`, at most 2 GB) on first playback – the files
   themselves are not changed. Compressed AIFC (e.g. µ-law) is not played.
-- **Convert (#451):** right-click on selected tracks › **Convert (WAV, AIFF, MP3) …** creates a new file MP3 → WAV,
-  MP3 → AIFF or WAV/AIFF → MP3 (bitrate selectable, default 320 kbit/s). Stored either in the **export folder**
+- **Convert (#451, #456):** right-click on selected tracks › **Convert (WAV, AIFF, FLAC, M4A, MP3) …** creates a new
+  file in WAV, AIFF, FLAC, M4A – ALAC (lossless), MP3 or M4A – AAC (bitrate selectable, default 320 kbit/s); the
+  source can be any loaded format. Fields that do not exist in the target format are listed in the preview
+  (“will be lost”). Stored either in the **export folder**
   (default) or next to the original; the choice is remembered. The original stays unchanged, the tags (cover, rating,
   custom fields, Serato data) are carried over, existing files are never overwritten. Notes in the dialog: MP3 →
   WAV/AIFF does not improve quality; WAV/AIFF → MP3 is lossy; Serato cues and beatgrid can shift by a few milliseconds

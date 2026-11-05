@@ -33,8 +33,11 @@ class ConvertMixin:
         """Vorschau: Ziele je Titel, Probleme, Hinweise (FFmpeg, Serato)."""
         o = self._conv_opts(target, dest, bitrate)
         files, rows, exp = self._conv_plan(idx, o)
+        for f, r in zip(files, rows):                                     # #456: Felder, die es im Ziel nicht gibt
+            r["lost"] = convert.lost_keys(f, o["target"]) if not r["problem"] else []
         return {**o, "rows": rows, "ok": sum(1 for r in rows if not r["problem"]), "export": exp,
                 "ffmpeg": bool(convert.find_ffmpeg()), "serato": any(convert.has_serato(f) for f in files),
+                "lossy_src": any(convert.is_lossy_source(f) for f in files),
                 "bitrates": list(convert.BITRATES), "kinds": sorted({convert.kind_of(f.path) for f in files} - {""})}
 
     def start_convert(self, idx, target, dest, bitrate) -> dict:
@@ -58,13 +61,17 @@ class ConvertMixin:
                     break
                 progress(("progress", n - 1, len(todo), r["src"]))
                 try:
-                    done.append(convert.convert_one(f, r["dst"], o["target"], o["bitrate"], ff, cancel))
+                    notes = []
+                    done.append(convert.convert_one(f, r["dst"], o["target"], o["bitrate"], ff, cancel, notes))
+                    if notes:
+                        errors.append(f"{os.path.basename(r['dst'])}: nicht übernommen (gibt es im Format nicht): "
+                                      + ", ".join(notes))
                 except convert.Cancelled:
                     break
                 except Exception as ex:  # noqa: BLE001
                     errors.append(f"{os.path.basename(r['src'])}: {ex}")
             progress(("progress", len(todo), len(todo), todo[-1][1]["src"]))
-            msg = f"{len(done)} Titel umgewandelt ({o['target'].upper()})." + (f" {len(errors)} Fehler." if errors else "")
+            msg = f"{len(done)} Titel umgewandelt ({o['target'].upper()})." + (f" {len(errors)} Hinweis(e)." if errors else "")
             return {"done": done, "errors": errors, "message": msg,
                     "folder": os.path.dirname(done[0]) if done else ""}
         return self._run("convert", "Umwandeln", job)

@@ -256,5 +256,7 @@
 "Kopfpakete zu gross": ["Header packets too large", "Chopfpaket z gross"],
 "OpusTags fehlt": ["OpusTags missing", "OpusTags fählt"],
 "Liste von Formaten erwartet": ["List of formats expected", "Lischte vo Format erwartet"],
-"iTunes-Atome": ["iTunes atoms", "iTunes-Atom"]
+"iTunes-Atome": ["iTunes atoms", "iTunes-Atom"],
+"Ziel-Format nicht bekannt": ["Target format unknown", "Ziil-Format nöd bekannt"],
+"{x}: nicht übernommen (gibt es im Format nicht):": ["{x}: not carried over (does not exist in the format):", "{x}: nöd übernoh (gits im Format nöd):"]
 }

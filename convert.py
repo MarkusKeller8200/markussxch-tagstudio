@@ -16,8 +16,9 @@ import shutil
 import subprocess
 import tempfile
 
-TARGETS = {"wav": ".wav", "aiff": ".aiff", "mp3": ".mp3"}
-SOURCES = (".mp3", ".wav", ".aif", ".aiff", ".aifc")
+TARGETS = {"wav": ".wav", "aiff": ".aiff", "mp3": ".mp3", "flac": ".flac", "m4a": ".m4a", "alac": ".m4a"}
+SOURCES = (".mp3", ".wav", ".aif", ".aiff", ".aifc", ".flac", ".m4a", ".mp4", ".m4b", ".ogg", ".oga", ".opus")
+LOSSY_TARGETS = ("mp3", "m4a")                 # m4a = AAC; alac = M4A verlustfrei
 BITRATES = (128, 192, 256, 320)
 DEFAULT_BITRATE = 320
 RUN_TIMEOUT = 1800
@@ -48,7 +49,42 @@ def find_ffmpeg() -> str:
 
 def kind_of(path: str) -> str:
     ext = os.path.splitext(path)[1].lower()
-    return "mp3" if ext == ".mp3" else "wav" if ext == ".wav" else "aiff" if ext in (".aif", ".aiff", ".aifc") else ""
+    return {".mp3": "mp3", ".wav": "wav", ".aif": "aiff", ".aiff": "aiff", ".aifc": "aiff", ".flac": "flac",
+            ".m4a": "m4a", ".mp4": "m4a", ".m4b": "m4a", ".ogg": "ogg", ".oga": "ogg", ".opus": "ogg"}.get(ext, "")
+
+
+def is_lossy_source(f) -> bool:
+    k = kind_of(getattr(f, "path", ""))
+    return k in ("mp3", "ogg") or (k == "m4a" and getattr(f, "codec", "") != "ALAC")
+
+
+def lost_keys(f, target: str) -> list[str]:
+    """Felder der Quelle, die es im Ziel-Format nicht gibt (Vorschau „geht verloren“)."""
+    if target in ("mp3", "wav", "aiff"):
+        return []
+    out = []
+    for key, it in getattr(f, "items", {}).items():
+        base = key.split("#")[0]
+        if it.kind == "picture":
+            if target in ("m4a", "alac") and it.cover is not None and it.cover.mime not in ("image/png", "image/jpeg"):
+                out.append(key)
+            continue
+        if it.kind == "raw" or it.fid in ("POPM", "GEOB", "PRIV", "UFID", "WXXX") or it.fid.startswith("W"):
+            out.append(key)
+        elif it.fid in ("COMM", "USLT") and it.desc:
+            out.append(key)
+        elif it.fid == "TXXX" and not (it.desc and all(0x20 <= ord(c) <= 0x7D and c != "=" for c in it.desc)):
+            out.append(key)
+        elif target != "flac" and base not in ("TXXX",) and it.fid != "TXXX":
+            import mp4tags
+            if base not in mp4tags.MP4_TEXT and base not in mp4tags.MP4_FREE and base not in (
+                    "TRCK", "TPOS", "TBPM", "TCMP", "MVIN"):
+                out.append(key)
+        elif target == "flac" and it.fid != "TXXX":
+            import mapfile
+            if base not in mapfile.VORBIS_MAP and base not in ("TRCK", "TPOS"):
+                out.append(key)
+    return out
 
 
 def target_path(src: str, target: str, folder: str | None) -> str:
@@ -59,7 +95,7 @@ def target_path(src: str, target: str, folder: str | None) -> str:
 def plan(paths, target: str, folder: str | None, dirty=()) -> list[dict]:
     """Je Datei {"src", "dst", "problem"} – problem "" = wird umgewandelt. folder None = neben dem Original."""
     if target not in TARGETS:
-        raise ValueError("Ziel muss wav, aiff oder mp3 sein")
+        raise ValueError("Ziel-Format nicht bekannt")
     dirty = {os.path.normcase(os.path.abspath(p)) for p in dirty}
     rows, seen = [], set()
     for p in paths:
@@ -69,7 +105,8 @@ def plan(paths, target: str, folder: str | None, dirty=()) -> list[dict]:
         problem = ""
         if not kind_of(src):
             problem = "Format wird nicht umgewandelt"
-        elif kind_of(src) == target:
+        elif kind_of(src) == target or (kind_of(src) == "m4a" and target in ("m4a", "alac") and
+                                        os.path.normcase(dst) == os.path.normcase(src)):
             problem = "ist schon in diesem Format"
         elif not os.path.isfile(src):
             problem = "Datei fehlt"
@@ -96,6 +133,13 @@ def ffmpeg_cmd(ff: str, src: str, out: str, target: str, bitrate: int, bits: int
         cmd += ["-ar", str(rate)]
     if target == "mp3":
         cmd += ["-c:a", "libmp3lame", "-b:a", f"{bitrate}k", "-id3v2_version", "0", "-write_id3v1", "0", "-f", "mp3"]
+    elif target == "m4a":
+        cmd += ["-c:a", "aac", "-b:a", f"{bitrate}k", "-f", "mp4"]
+    elif target == "alac":
+        cmd += ["-c:a", "alac"] + (["-sample_fmt", "s32p"] if bits > 16 else ["-sample_fmt", "s16p"]) + ["-f", "mp4"]
+    elif target == "flac":
+        cmd += ["-c:a", "flac"] + (["-sample_fmt", "s32", "-bits_per_raw_sample", "24"] if bits > 16 else
+                                   ["-sample_fmt", "s16"]) + ["-f", "flac"]
     elif target == "wav":
         cmd += ["-c:a", f"pcm_s{bits}le", "-f", "wav"]
     else:
@@ -121,7 +165,8 @@ def _run(cmd, cancel=None):
         raise RuntimeError("FFmpeg: " + (err.splitlines()[-1] if err else f"Fehler {p.returncode}"))
 
 
-def convert_one(src, dst: str, target: str, bitrate: int = DEFAULT_BITRATE, ff: str = "", cancel=None) -> str:
+def convert_one(src, dst: str, target: str, bitrate: int = DEFAULT_BITRATE, ff: str = "", cancel=None,
+                notes: list | None = None) -> str:
     """Eine Datei umwandeln und die Tags übernehmen. src = Pfad oder geladene Datei (MP3File/ChunkFile)."""
     from compare import copy_tags
     from id3tags import MP3File
@@ -142,10 +187,11 @@ def convert_one(src, dst: str, target: str, bitrate: int = DEFAULT_BITRATE, ff: 
         rate = int(getattr(f, "samplerate", 0) or 0)
         _run(ffmpeg_cmd(ff, f.path, tmp, target, bitrate, _bits(f), rate if rate in (32000, 44100, 48000, 88200, 96000) else 0),
              cancel)
-        g = MP3File(tmp) if target == "mp3" else _chunk(tmp)
+        g = MP3File(tmp)                          # wählt nach der Endung: MP3File, ChunkFile, FlacFile, Mp4File
         copy_tags(f, g, list(f.items))
         g.set_version(f.version if f.version in (3, 4) else 3)
         g.save()
+        lost = list(getattr(g, "save_skipped", []) or [])
         if os.path.exists(dst):
             raise FileExistsError(dst)
         os.replace(tmp, dst)
@@ -153,6 +199,8 @@ def convert_one(src, dst: str, target: str, bitrate: int = DEFAULT_BITRATE, ff: 
         if os.path.exists(tmp):
             os.remove(tmp)
         raise
+    if notes is not None and lost:
+        notes.extend(lost)
     return dst
 
 

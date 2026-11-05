@@ -14,6 +14,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
   gemeldet), `flactags.py` (Platzpuffer, sonst Neuschreiben mit Audio-Prüfung), `mp4tags.py` (ilst neu, `free`-Atom bzw.
   `stco`/`co64` nachführen, Prüfung von mdat und Offsets), `oggtags.py` (nur lesen), `audioformats.py` (Formatliste,
   Sicherungen). Hilfe-Tabelle (`formatmap.py`) entspricht der Umsetzung.
+- **Konverter erweitert (#456):** Ziele FLAC, M4A – ALAC und M4A – AAC (Bitrate wählbar), Quellen auch FLAC/M4A/OGG;
+  Vorschau zeigt Felder, die es im Ziel nicht gibt; Hinweise verlustbehaftet/verlustfrei.
 - **Player für FLAC, M4A, OGG (#454):** spielen direkt; ALAC über eine einmal erstellte WAV-Fassung im Cache
   (`media.alac_cache`, FFmpeg, höchstens 2 GB); Wellenform-Schlüssel nur über die Audiodaten (`audioformats.audio_range`).
 - **Prüfwerkzeug (#453):** `tools/formatcheck.py DATEI [--roundtrip] [--json bericht.json]` für MP3, WAV, AIFF, FLAC,

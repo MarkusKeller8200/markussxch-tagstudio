@@ -48,7 +48,7 @@ class TestConvertPlan(Base):
         open(os.path.join(exp, "1.wav"), "wb").close()
         self.assertIn("nicht überschrieben", convert.plan([a], "wav", exp)[0]["problem"])
         with self.assertRaises(ValueError):
-            convert.plan([a], "flac", exp)
+            convert.plan([a], "ogg", exp)
 
     def test_ffmpeg_cmd(self):
         c = convert.ffmpeg_cmd("ff", "a.wav", "o.mp3", "mp3", 320, 16, 44100)
@@ -102,6 +102,38 @@ class TestConvertRun(Base):
         with self.assertRaises(FileExistsError):
             convert.convert_one(src, w, "wav")
         self.assertEqual([n for n in os.listdir(out) if n.startswith(".tagstudio_conv_")], [])
+
+    def test_flac_alac_aac_targets(self):
+        """#456: Ziele FLAC, M4A (ALAC), M4A (AAC); FLAC → WAV → FLAC ist bitgleich; Felder ohne Gegenstück gemeldet."""
+        src = os.path.join(self.dir, "Quelle.mp3")
+        sine_mp3(src)
+        f = MP3File(src)
+        it = Item("POPM", "POPM:x", payload=b"x\x00\xff")
+        it.kind = "raw"
+        f.items["POPM:x"] = it
+        self.assertIn("POPM:x", convert.lost_keys(f, "flac"))
+        self.assertEqual(convert.lost_keys(f, "wav"), [])
+        out = os.path.join(self.dir, "o")
+        notes = []
+        fl = convert.convert_one(f, os.path.join(out, "Q.flac"), "flac", notes=notes)
+        self.assertIn("POPM:x", notes)
+        al = convert.convert_one(src, os.path.join(out, "QA.m4a"), "alac")
+        aa = convert.convert_one(src, os.path.join(out, "QC.m4a"), "m4a", 192)
+        for p, codec in ((fl, "FLAC"), (al, "ALAC"), (aa, "AAC")):
+            g = MP3File(p)
+            self.assertEqual(g.codec, codec, p)
+            self.assertEqual((g.text("TIT2"), g.text("TKEY"), g.text("TXXX:ENERGY")), ("Umwandeln Test", "8A", "7"), p)
+            self.assertEqual(g.items["APIC:3"].cover.data, PNG, p)
+            self.assertAlmostEqual(g.duration, 2.0, delta=0.15)
+        w = convert.convert_one(fl, os.path.join(out, "Q.wav"), "wav")
+        back = convert.convert_one(w, os.path.join(out, "zurück", "Q.flac"), "flac")
+
+        def pcm(p):
+            r = subprocess.run([FF, "-loglevel", "error", "-i", p, "-f", "s16le", "-"], capture_output=True, check=True)
+            return hashlib.sha256(r.stdout).hexdigest()
+        self.assertEqual(pcm(back), pcm(fl))                                     # verlustfrei hin und zurück
+        self.assertTrue(convert.is_lossy_source(MP3File(aa)))
+        self.assertFalse(convert.is_lossy_source(MP3File(al)))
 
     def test_session_job_to_export(self):
         src = os.path.join(self.B, "Job.mp3")
