@@ -1,7 +1,7 @@
 {
   "id": "sonovault",
   "name": "SonoVault",
-  "version": "1.3",
+  "version": "1.4", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
   "min_app": "4.11.0",
   "category": "online",
   "api": 1,

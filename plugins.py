@@ -586,6 +586,20 @@ class Plugin:
             self.trace = traceback.format_exc()
         return self.module
 
+    def formats(self, action: dict | None = None) -> list[str]:
+        """#449: Dateiformate, mit denen das Plugin (bzw. die Aktion) arbeiten kann – plugin.json "formats" (Aktion
+        darf überschreiben). Ohne Angabe nur MP3, damit ältere Plugins nie andere Formate bekommen."""
+        import audioformats
+        raw = (action or {}).get("formats") or self.manifest.get("formats") or ["mp3"]
+        if not isinstance(raw, list):
+            raw = ["mp3"]
+        known = {"mp3", *audioformats.FORMATS}
+        return [f for f in ["mp3", *audioformats.ORDER] if f in raw and f in known]
+
+    def accepts(self, path: str, action: dict | None = None) -> bool:
+        import audioformats
+        return (audioformats.kind_of(path) or "mp3") in self.formats(action)
+
     def actions(self, ctx=None) -> list[dict]:
         mod = self.load()
         if mod is None:
@@ -630,6 +644,7 @@ class Plugin:
                 d["store"] = {"version": str(mk.get("version", "")), "tag": str(mk.get("tag", ""))}
             d["builtin_version"] = getattr(self, "builtin_version", None)
         d["min_app"] = str(m.get("min_app", ""))
+        d["formats"] = self.formats()                                                       # #449
         cat = m.get("category") if m.get("category") in CATEGORIES else ("online" if self.service else "other")
         d["category"], d["category_label"] = cat, CATEGORIES[cat]
         # #352: weitere Kategorien (plugin.json "categories"), die Hauptkategorie immer zuerst

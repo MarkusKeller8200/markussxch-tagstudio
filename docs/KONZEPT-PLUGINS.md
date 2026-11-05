@@ -81,6 +81,12 @@ Der Kern bleibt reine Standardbibliothek; Plugins lassen sich ein-/ausschalten, 
 
 ### Plugin-Karte (Entscheid User 17.10.2026)
 
+**Formate (#449, 4.16.0):** `plugin.json` `"formats"` (bzw. je Aktion) – Standard `["mp3"]`. `Plugin.formats()`/
+`accepts()`; `Session.start_plugin_action` und `_job_runner` geben nur passende Dateien weiter. Eingebaute Plugins ohne
+Audio-Verarbeitung (Online-Metadaten, Dienste, Lyrics, Lexicon, beaTunes, MIK, AcoustID) können MP3/WAV/AIFF/FLAC/M4A
+(Version erhöht); Audio-Plugins (Tonart, OpenKeyScan, Lautheit, Stems, Mix analysieren) bleiben vorerst bei MP3 – nach
+einem Test mit den anderen Formaten erweitern.
+
 Über den Karten filtert eine Leiste nach Kategorie (Alle + je Kategorie mit Symbol und Anzahl, im Browser gemerkt).
 Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
 1. Titel, Version, „eingebaut“/„eigenes“; darunter die **Kategorie** (`plugin.json` `"category"`: `online` Online-API, `shop` Shop-API (#352),

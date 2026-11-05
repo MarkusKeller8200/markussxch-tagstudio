@@ -58,6 +58,10 @@ Plugins/
 }
 ```
 
+- `formats` (#449, from 4.16.0): file formats the plug-in can work with – `mp3`, `wav`, `aiff`, `flac`, `m4a`, `ogg`;
+  also possible per action. **Without it, MP3 only.** Selected files in other formats are not passed to the plug-in
+  (note “skipped” or “cannot handle these formats”). The plug-in sets fields with the usual ID3 keys as before; TagStudio
+  translates them into the format and reports fields that do not exist there.
 - `min_app`: oldest TagStudio version the plugin works with. The plugin catalog only offers the plugin there. When you
   change a plugin, increase its `version`, otherwise no update appears.
 - `links` (optional): `[{"label", "url", "desc"}]` – shown under “More …” on the plugin card, e.g. the download

@@ -3099,6 +3099,13 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         files = self._tsel(idx or [])
         if a.get("needs_selection", True) and not files:
             return {"ok": False, "error": "Bitte zuerst im Tagger Dateien markieren."}
+        fmt_skip = [f for f in files if not p.accepts(f.path, a)]                   # #449: Formate je Plugin
+        if fmt_skip:
+            files = [f for f in files if p.accepts(f.path, a)]
+            if not files:
+                import audioformats
+                kinds = sorted({audioformats.label(f) for f in fmt_skip})
+                return {"ok": False, "error": f"{p.name} kann diese Formate (noch) nicht: {', '.join(kinds)}."}
         opts = self.plugins.clean_options(a, values)
         core.save_config(self.plugins.remember(pid, aid, opts))
         # Hintergrund: mit markierten Dateien – oder Seiten-Aktionen ohne Auswahl (#261: Bibliothek indexieren)
@@ -3108,7 +3115,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             job = self.jobs.add(pid, aid, f"{p.name}: {a.get('run_label') or a['label']}", [f.path for f in files], opts,
                                 names=names)
             waiting = sum(1 for j in self.jobs.status()["jobs"] if j["status"] == "waiting")
-            return {"ok": True, "background": True, "job": job["id"], "waiting": waiting}
+            return {"ok": True, "background": True, "job": job["id"], "waiting": waiting, "format_skipped": len(fmt_skip)}
 
         def job(cancel, progress):
             try:
@@ -3136,6 +3143,9 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                                      "same": bool(p.get("same")), "link": p.get("link", ""), "link_label": p.get("link_label", "")}
                                     for n, p in enumerate(props)]
             res["unsaved"] = self.unsaved()
+            if fmt_skip:                                                                    # #449
+                res["message"] = (res.get("message") or "") + \
+                    f" {len(fmt_skip)} Datei(en) übersprungen – Format wird von {p.name} nicht unterstützt."
             return res
         return self._run("plugin", a["label"], job)
 
@@ -3157,7 +3167,14 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return self._snap_job(job, cancel, progress)
         from id3tags import MP3File
         files = []
+        try:
+            plug, act = self.plugins.action(job["plugin"], job["action"])
+        except (KeyError, ValueError):
+            plug = act = None
         for p in job["paths"]:
+            if plug is not None and not plug.accepts(p, act):                 # #449: nur unterstützte Formate
+                progress(("text", f"{os.path.basename(p)}: Format wird nicht unterstützt – übersprungen"))
+                continue
             if os.path.isfile(p):
                 try:
                     files.append(MP3File(p))

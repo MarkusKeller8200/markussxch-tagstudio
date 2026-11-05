@@ -547,3 +547,46 @@ class TestStems(PluginBase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPluginFormats(PluginBase):
+    """#449: plugin.json "formats" – ohne Angabe nur MP3; andere Formate werden übersprungen bzw. abgelehnt."""
+
+    def test_formats_filter(self):
+        from test_formats import make_flac
+        make_flac(os.path.join(self.dir, "z.flac"), ["TITLE=x"])
+        make_plugin(self.udir, "nurmp3")
+        make_plugin(self.udir, "alle", {"formats": ["mp3", "flac", "xyz"]})
+        from session import Session
+        s = Session()
+        s.set_tag_formats(["flac"])
+        s.start_tag_load(self.dir, True)
+        self.wait(s)
+        s.plugins.scan()
+        self.assertEqual(s.plugins.get("nurmp3").formats(), ["mp3"])
+        self.assertEqual(s.plugins.get("alle").formats(), ["mp3", "flac"])
+        names = [os.path.basename(f.path) for f in s.tag_files]
+        fi = names.index("z.flac")
+        r = s.start_plugin_action("nurmp3", "mark", [fi], {})
+        self.assertFalse(r["ok"])
+        self.assertIn("FLAC", r["error"])
+        mi = names.index("1.mp3")
+        r = s.start_plugin_action("nurmp3", "mark", [fi, mi], {})
+        self.assertTrue(r["ok"], r)
+        st = self.wait(s)
+        self.assertIn("übersprungen", st["result"]["message"])
+        self.assertEqual(s.tag_files[mi].text("TXXX:Demo"), "hallo-2-a")
+        self.assertEqual(s.tag_files[fi].text("TXXX:Demo"), "")
+        r = s.start_plugin_action("alle", "mark", [fi], {})
+        self.assertTrue(r["ok"], r)
+        self.wait(s)
+        self.assertEqual(s.tag_files[fi].text("TXXX:Demo"), "hallo-2-a")
+
+    def test_builtin_plugins_declare_formats(self):
+        root = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "plugins")
+        for pid in ("online", "lyrics", "beatport", "lexicon"):
+            with open(os.path.join(root, pid, "plugin.json"), encoding="utf-8") as fh:
+                self.assertIn("flac", json.load(fh).get("formats", []), pid)
+        for pid in ("keyscan", "loudness", "stems"):                       # Audio-Analyse: erst nach Test erweitern
+            with open(os.path.join(root, pid, "plugin.json"), encoding="utf-8") as fh:
+                self.assertNotIn("formats", json.load(fh), pid)

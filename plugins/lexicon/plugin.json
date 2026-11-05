@@ -1,7 +1,7 @@
 {
   "id": "lexicon",
   "name": "Lexicon",
-  "version": "2.2",
+  "version": "2.3", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
   "min_app": "4.8.0",
   "category": "local_api",
   "api": 1,

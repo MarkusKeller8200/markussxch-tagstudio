@@ -1,7 +1,7 @@
 {
   "id": "beatunes",
   "name": "beaTunes übernehmen",
-  "version": "1.0",
+  "version": "1.1", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
   "min_app": "4.8.0",
   "category": "import",
   "api": 1,

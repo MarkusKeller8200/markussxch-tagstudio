@@ -102,5 +102,8 @@
 "keine Analyse – zuerst {q}": ["no analysis – first {q}", "kei Analyse – zerscht {q}"],
 "Ordne Dateien zu …": ["Matching files …", "Ordne Dateie zue …"],
 "kein Snapshot gefunden": ["no snapshot found", "kän Snapshot gfunde"],
-"– zum Vergleich, Serato bleibt massgebend": ["– for comparison, Serato stays authoritative", "– zum Vergliich, Serato bliibt massgäbend"]
+"– zum Vergleich, Serato bleibt massgebend": ["– for comparison, Serato stays authoritative", "– zum Vergliich, Serato bliibt massgäbend"],
+"{x} kann diese Formate (noch) nicht: {x}.": ["{x} cannot handle these formats (yet): {x}.", "{x} cha die Format (no) nöd: {x}."],
+"{x} Datei(en) übersprungen – Format wird von {x} nicht unterstützt.": ["{x} file(s) skipped – format not supported by {x}.", "{x} Datei(e) übersprunge – Format wird vo {x} nöd unterstützt."],
+"{x}: Format wird nicht unterstützt – übersprungen": ["{x}: format not supported – skipped", "{x}: Format wird nöd unterstützt – übersprunge"]
 }
