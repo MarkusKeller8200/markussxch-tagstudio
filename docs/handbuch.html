@@ -318,14 +318,28 @@ Leerzeichen getrennt und mit Text kombinierbar:</p>
 <p>Namen dürfen abgekürzt (<code>ener</code>, <code>dance</code>) oder deutsch sein (Energie, Tanz, Stimmung, Akustik, Sprache …).
 <strong>Skala:</strong> Unter Einstellungen › Tagger lässt sich einstellen, dass die Werte in den Dateien 0–10 sind (z. B. aus
 Lexicon). Angezeigt und eingegeben wird dann weiterhin 0–100; beim Lesen wird ×10, beim Schreiben ÷10 gerechnet.</p>
-<h4 id="wav-und-aiff-test-4160">WAV und AIFF (Test, 4.16.0)</h4>
-<p>Unter <strong>Einstellungen › Sicherungen und Speichern › WAV und AIFF</strong> (Standard aus) liest TagStudio auch WAV- und
-AIFF-Dateien (<code>.wav</code>, <code>.aif</code>, <code>.aiff</code>, <code>.aifc</code>) in Tagger und Vergleich ein. Die Tags stehen dort in einem eigenen
-<strong>ID3-Chunk</strong> – mit denselben Feldern wie bei MP3 (Text, eigene Felder, Cover, Bewertung, Liedtexte, Serato-Daten).</p>
+<h4 id="weitere-formate-wav-aiff-flac-m4a-ogg-test-4160">Weitere Formate: WAV, AIFF, FLAC, M4A, OGG (Test, 4.16.0)</h4>
+<p>Unter <strong>Einstellungen › Sicherungen und Speichern › Weitere Formate</strong> (alle Standard aus) wählst du, welche Formate
+Tagger und Vergleich zusätzlich zu MP3 einlesen: <strong>WAV</strong>, <strong>AIFF</strong>, <strong>FLAC</strong>, <strong>MP4 / M4A (AAC, ALAC)</strong> und
+<strong>OGG Vorbis / Opus</strong> (nur lesen). Die Spalte <strong>Format</strong> im Tagger (Spalten ▾) zeigt, was eine Datei ist. Welches Feld
+in welchem Format unter welchem Namen steht, zeigt <strong>Hilfe › ID3-Felder</strong>.</p>
 <ul>
-<li>Beim Speichern ersetzt TagStudio nur den ID3-Chunk (oder hängt einen an). Alle anderen Teile der Datei – Audio,
+<li><strong>WAV und AIFF</strong> haben ein vollständiges ID3-Tag in einem eigenen <strong>ID3-Chunk</strong> – dieselben Felder wie bei MP3 (Text,
+  eigene Felder, Cover, Bewertung, Liedtexte, Serato-Daten).</li>
+<li>
+<p><strong>FLAC</strong> und <strong>OGG/Opus</strong> verwenden Vorbis-Kommentare (<code>TITLE</code>, <code>ARTIST</code>, <code>INITIALKEY</code> …), <strong>M4A</strong> iTunes-Atome
+  (<code>©nam</code>, <code>trkn</code>, <code>----:com.apple.iTunes:…</code>). TagStudio übersetzt sie in seine Felder; unveränderte Felder behalten
+  Namen und Reihenfolge, unbekannte Felder und Serato-Daten bleiben unverändert erhalten. Felder, die es im Format nicht
+  gibt (z. B. Bewertung, Binärfelder, Links), werden beim Speichern <strong>nicht geschrieben und gemeldet</strong>. In M4A ist BPM
+  nur ganzzahlig. FLAC nutzt den Platzpuffer in der Datei (dann wird nur der Tag-Bereich geschrieben); bei M4A werden
+  die Verweise auf die Audiodaten nachgeführt. In beiden Fällen prüft TagStudio vor dem Ersetzen, dass das Audio
+  byte-gleich bleibt. OGG/Opus wird vorerst nur gelesen.</p>
+</li>
+<li>
+<p>Beim Speichern ersetzt TagStudio nur den ID3-Chunk (oder hängt einen an). Alle anderen Teile der Datei – Audio,
   RIFF-INFO, <code>bext</code>, Cue-Punkte, AIFF-Texte – bleiben <strong>byte-genau</strong> erhalten; vorher und nachher wird die Prüfsumme
-  der Audiodaten verglichen, sonst wird nicht gespeichert. Sicherungen und „Wiederherstellen“ funktionieren wie bei MP3.</li>
+  der Audiodaten verglichen, sonst wird nicht gespeichert. Sicherungen und „Wiederherstellen“ funktionieren wie bei MP3.</p>
+</li>
 <li>Hat eine WAV-Datei nur einen INFO-Block (bzw. eine AIFF-Datei nur NAME/AUTH), werden diese Felder angezeigt;
   gespeichert wird dann ein neuer ID3-Chunk, INFO bleibt unverändert.</li>
 <li>Nicht gespeichert werden WAV-Dateien über 4 GB (RF64) und beschädigte Dateien. ID3v1 gibt es bei WAV/AIFF nicht.</li>
