@@ -894,6 +894,34 @@ class UiTest(unittest.TestCase):
         self.assertEqual(self.cfg_until(lambda c: (c.get("convert") or {}).get("dest") == "beside")["convert"]["target"], "wav")
         self.assertEqual(self.errors, [])
 
+    def test_formats_player(self):
+        """#454: FLAC, M4A (AAC), M4A (ALAC über WAV-Cache) und OGG im Player – spielt, Wellenform wird berechnet."""
+        import subprocess
+        made = []
+        for name, codec in (("zz P.flac", "flac"), ("zz P.ogg", "libvorbis"), ("zz A.m4a", "aac"), ("zz L.m4a", "alac")):
+            p = os.path.join(self.lib, name)
+            subprocess.run([shutil.which("ffmpeg"), "-loglevel", "error", "-y", "-f", "lavfi", "-i",
+                            "sine=frequency=330:duration=4", "-ac", "2", "-c:a", codec, p], check=True)
+            made.append(p)
+        self.addCleanup(lambda: [os.remove(x) for x in made if os.path.exists(x)])
+        pg = self.pg
+        pg.evaluate("call('set_tag_formats', ['flac', 'm4a', 'ogg'])")
+        pg.click('.nav[data-module="tagger"]')
+        pg.fill("#tgPath", self.lib)
+        pg.click("#tgLoad")
+        pg.wait_for_function("TG.loaded && TG.rows.length === 7")
+        aac_ok = pg.evaluate("document.createElement('audio').canPlayType('audio/mp4; codecs=\"mp4a.40.2\"')")
+        for name in ("zz P.flac", "zz P.ogg", "zz L.m4a") + (("zz A.m4a",) if aac_ok else ()):
+            i = pg.evaluate(f"TG.rows.findIndex(r => r.name === {name!r})")
+            pg.click(f'.tg-row[data-i="{i}"] .nm')
+            pg.keyboard.press(" ")
+            ok = self.until(f"PLAYER.ref === {i} && !PLAYER.audio.paused && PLAYER.audio.currentTime > 0.4", 15)
+            self.assertTrue(ok, name + " " + pg.evaluate("JSON.stringify({err: PLAYER.audio.error && PLAYER.audio.error.code, src: PLAYER.audio.src})"))
+            self.assertTrue(self.until("PLAYER.info && PLAYER.info.wave && PLAYER.info.wave.peaks.length > 0", 15), name)
+            pg.keyboard.press(" ")
+        pg.evaluate("call('set_tag_formats', [])")
+        self.assertEqual(self.errors, [])
+
     def test_wave_in_file_setting(self):
         """#222 (W1): Einstellung „Wellenform im MP3“ – Standard aus, Schalter speichert; Player zeigt die Wellenform
         aus dem MP3, wenn der Cache leer ist."""

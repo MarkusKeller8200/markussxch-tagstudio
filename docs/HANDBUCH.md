@@ -243,9 +243,10 @@ in welchem Format unter welchem Namen steht, zeigt **Hilfe › ID3-Felder**.
 - Hat eine WAV-Datei nur einen INFO-Block (bzw. eine AIFF-Datei nur NAME/AUTH), werden diese Felder angezeigt;
   gespeichert wird dann ein neuer ID3-Chunk, INFO bleibt unverändert.
 - Nicht gespeichert werden WAV-Dateien über 4 GB (RF64) und beschädigte Dateien. ID3v1 gibt es bei WAV/AIFF nicht.
-- **Player (#448):** WAV und AIFF spielen im Vorschau-Player wie MP3 (Wellenform, Spulen, Cues aus dem ID3-Chunk).
-  AIFF liefert TagStudio dafür intern als WAV aus (Browser und App-Fenster können AIFF nicht direkt abspielen) – an der
-  Datei ändert sich nichts. Komprimiertes AIFC (z. B. µ-law) wird nicht abgespielt.
+- **Player (#448, #454):** WAV, AIFF, FLAC, M4A und OGG/Opus spielen im Vorschau-Player wie MP3 (Wellenform, Spulen;
+  Cues aus dem ID3-Chunk bei WAV/AIFF). AIFF liefert TagStudio dafür intern als WAV aus; **ALAC** (M4A verlustfrei)
+  wandelt es beim ersten Abspielen einmal mit FFmpeg in eine WAV-Fassung im Cache (`~/TagStudio/cache/play`, höchstens
+  2 GB) – an den Dateien ändert sich nichts. Komprimiertes AIFC (z. B. µ-law) wird nicht abgespielt.
 - **Umwandeln (#451):** Rechtsklick auf markierte Titel › **Umwandeln (WAV, AIFF, MP3) …** erstellt eine neue Datei
   MP3 → WAV, MP3 → AIFF oder WAV/AIFF → MP3 (Bitrate wählbar, Standard 320 kbit/s). Ablage wahlweise im
   **Export-Ordner** (Standard) oder neben dem Original; die Wahl wird gemerkt. Das Original bleibt unverändert, die

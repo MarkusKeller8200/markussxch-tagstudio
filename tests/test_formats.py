@@ -392,3 +392,44 @@ class TestRealFiles(Base):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(FF, "FFmpeg fehlt")
+class TestPlayer(Base):
+    """#454: FLAC/M4A/OGG im Player; ALAC über eine WAV-Fassung im Cache."""
+
+    def gen(self, name, codec):
+        p = os.path.join(self.dir, name)
+        subprocess.run([FF, "-loglevel", "error", "-y", "-f", "lavfi", "-i", "sine=duration=1", "-ac", "2",
+                        "-c:a", codec, p], check=True)
+        return p
+
+    def test_alac_served_as_wav_and_aac_direct(self):
+        import media
+        from unittest import mock
+        srv = media.MediaServer()
+        self.addCleanup(srv.stop)
+        with mock.patch.object(media, "_play_dir", lambda: os.path.join(self.dir, "play")):
+            alac, aac = self.gen("l.m4a", "alac"), self.gen("a.m4a", "aac")
+            self.assertTrue(media.is_alac(alac))
+            self.assertFalse(media.is_alac(aac))
+            u1 = srv.register(alac)
+            self.assertTrue(u1.endswith(".wav"))
+            self.assertTrue(srv.register(aac).endswith(".m4a"))
+            cached = os.listdir(os.path.join(self.dir, "play"))
+            self.assertEqual(len(cached), 1)
+            srv.register(alac)                                                 # zweites Mal: aus dem Cache
+            self.assertEqual(os.listdir(os.path.join(self.dir, "play")), cached)
+            import wave
+            with wave.open(os.path.join(self.dir, "play", cached[0])) as w:
+                self.assertAlmostEqual(w.getnframes() / w.getframerate(), 1.0, delta=0.05)
+
+    def test_wave_key_ignores_tag_changes(self):
+        import waveform
+        for name, codec in (("w.flac", "flac"), ("w.m4a", "aac")):
+            p = self.gen(name, codec)
+            k = waveform.key_for(MP3File(p))
+            f = MP3File(p)
+            f.set_text("TIT2", "anders " + "x" * 5000)
+            f.save()
+            self.assertEqual(waveform.key_for(MP3File(p)), k, name)

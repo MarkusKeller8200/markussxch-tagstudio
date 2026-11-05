@@ -238,9 +238,10 @@ name each field is stored in each format.
 - If a WAV file only has an INFO block (or an AIFF file only NAME/AUTH), those fields are shown; saving then writes a
   new ID3 chunk and leaves INFO unchanged.
 - WAV files over 4 GB (RF64) and damaged files are not saved. WAV/AIFF have no ID3v1.
-- **Player (#448):** WAV and AIFF play in the preview player like MP3 (waveform, seeking, cues from the ID3 chunk).
-  For this TagStudio serves AIFF internally as WAV (browsers and the app window cannot play AIFF directly) – the file
-  itself is not changed. Compressed AIFC (e.g. µ-law) is not played.
+- **Player (#448, #454):** WAV, AIFF, FLAC, M4A and OGG/Opus play in the preview player like MP3 (waveform, seeking;
+  cues from the ID3 chunk for WAV/AIFF). TagStudio serves AIFF internally as WAV; **ALAC** (lossless M4A) is converted
+  once with FFmpeg into a WAV copy in the cache (`~/TagStudio/cache/play`, at most 2 GB) on first playback – the files
+  themselves are not changed. Compressed AIFC (e.g. µ-law) is not played.
 - **Convert (#451):** right-click on selected tracks › **Convert (WAV, AIFF, MP3) …** creates a new file MP3 → WAV,
   MP3 → AIFF or WAV/AIFF → MP3 (bitrate selectable, default 320 kbit/s). Stored either in the **export folder**
   (default) or next to the original; the choice is remembered. The original stays unchanged, the tags (cover, rating,

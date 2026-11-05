@@ -147,3 +147,23 @@ def from_tag_bytes(kind: str, tag: bytes):
     f._to_items()
     f.tag_desc = FORMATS[kind][1]
     return f
+
+
+def audio_range(path: str) -> tuple[int, int] | None:
+    """(Anfang, Ende) der Audiodaten – für den Wellenform-Schlüssel, der beim Taggen gleich bleiben soll (#448/#454)."""
+    k = kind_of(path)
+    try:
+        if k in ("wav", "aiff"):
+            import chunktags
+            c = chunktags._audio_chunk(chunktags.read_layout(path))
+            return (c["data_start"], min(c["data_start"] + c["size"], c["end"])) if c else None
+        if k == "flac":
+            import flactags
+            return flactags.read_layout(path)["audio_start"], os.path.getsize(path)
+        if k == "m4a":
+            import mp4tags
+            md = [a for a in mp4tags.top_atoms(path) if a[0] == b"mdat"]
+            return (md[0][1] + md[0][2], md[0][3]) if md else None
+    except (ValueError, OSError):
+        return None
+    return None

@@ -35,7 +35,7 @@ def _allowed_origin(origin: str) -> str:
 
 AUDIO_TYPES = {".mp3": "audio/mpeg", ".flac": "audio/flac", ".wav": "audio/wav", ".m4a": "audio/mp4",
                ".aac": "audio/aac", ".ogg": "audio/ogg", ".opus": "audio/ogg", ".aif": "audio/aiff", ".aiff": "audio/aiff",
-               ".aifc": "audio/aiff"}
+               ".aifc": "audio/aiff", ".mp4": "audio/mp4", ".m4b": "audio/mp4", ".oga": "audio/ogg"}
 AIFF_EXTS = (".aif", ".aiff", ".aifc")      # #448: Browser spielen AIFF nicht – wird als WAV ausgeliefert
 CHUNK = 256 * 1024
 MAX_FILES = 300          # nur die zuletzt genutzten Dateien bleiben freigegeben (#44)
@@ -62,6 +62,8 @@ class MediaServer:
         if ext in AIFF_EXTS:                       # #448: als WAV ausliefern (vorher prüfen, ob es geht)
             aiff_view(path)
             ext = ".wav"
+        elif ext in (".m4a", ".mp4", ".m4b") and is_alac(path):   # #454: ALAC spielt der Browser nicht
+            path, ext = alac_cache(path), ".wav"
         with self.lock:
             self.files[fid] = path
             self.files.move_to_end(fid)
@@ -260,6 +262,78 @@ def aiff_read(path: str, v: dict, start: int, end: int) -> bytes:
     elif v["mode"] == "u8":
         raw = raw.translate(_U8)
     return out + raw[a - a0:b - a0]
+
+
+# --------------------------------------------------------------------------- ALAC als WAV (#454)
+# Chromium/WebView2 spielen ALAC (M4A verlustfrei) nicht. TagStudio wandelt die Datei beim ersten Abspielen einmal mit
+# FFmpeg in eine WAV-Datei im Cache (`~/TagStudio/cache/play`) und liefert diese aus; die Originaldatei bleibt unberührt.
+PLAY_CACHE_MAX = 2 * 1024 ** 3          # höchstens 2 GB, älteste zuerst weg
+
+
+def is_alac(path: str) -> bool:
+    try:
+        import mp4tags
+        f = mp4tags.Mp4File.__new__(mp4tags.Mp4File)
+        f.path = path
+        f.load()
+        return getattr(f, "codec", "") == "ALAC"
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _play_dir() -> str:
+    import paths
+    return paths.sub("cache", "play")
+
+
+def alac_cache(path: str) -> str:
+    """WAV-Fassung einer ALAC-Datei im Cache (erstellt sie bei Bedarf). ValueError ohne FFmpeg."""
+    import subprocess
+    import tempfile
+    import convert
+    st = os.stat(path)
+    key = hashlib.sha1(f"{os.path.abspath(path)}|{st.st_size}|{st.st_mtime_ns}".encode("utf-8", "surrogatepass")).hexdigest()[:24]
+    d = _play_dir()
+    os.makedirs(d, exist_ok=True)
+    out = os.path.join(d, key + ".wav")
+    if os.path.isfile(out):
+        os.utime(out)
+        return out
+    ff = convert.find_ffmpeg()
+    if not ff:
+        raise ValueError("ALAC braucht zum Abspielen FFmpeg – das Stems-Plugin installieren oder FFmpeg in den Suchpfad legen.")
+    fd, tmp = tempfile.mkstemp(prefix=".alac_", suffix=".wav", dir=d)
+    os.close(fd)
+    try:
+        flags = 0x08000000 if os.name == "nt" else 0
+        r = subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-i", path, "-map", "0:a:0",
+                            "-vn", "-c:a", "pcm_s16le", "-f", "wav", tmp], stdout=subprocess.DEVNULL,
+                           stderr=subprocess.PIPE, timeout=600, creationflags=flags)
+        if r.returncode != 0:
+            raise ValueError("FFmpeg: " + (r.stderr.decode("utf-8", "replace").strip().splitlines() or ["Fehler"])[-1])
+        os.replace(tmp, out)
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+    _trim_play_cache(d)
+    return out
+
+
+def _trim_play_cache(d: str):
+    try:
+        files = sorted((os.path.getmtime(os.path.join(d, n)), os.path.getsize(os.path.join(d, n)), os.path.join(d, n))
+                       for n in os.listdir(d) if n.endswith(".wav") and not n.startswith("."))
+    except OSError:
+        return
+    total = sum(f[1] for f in files)
+    for _m, size, p in files:
+        if total <= PLAY_CACHE_MAX:
+            break
+        try:
+            os.remove(p)
+            total -= size
+        except OSError:
+            pass
 
 
 def _plain(h, code, text):

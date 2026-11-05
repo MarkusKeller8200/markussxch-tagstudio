@@ -106,5 +106,6 @@
 "AIFC-Kompression {x} wird nicht abgespielt": ["AIFC compression {x} cannot be played", "AIFC-Kompression {x} wird nöd abgspillt"],
 "keine AIFF-Datei": ["not an AIFF file", "kei AIFF-Datei"],
 "AIFF ohne Audiodaten": ["AIFF without audio data", "AIFF ohni Audiodate"],
-"AIFF-Angaben unvollständig": ["AIFF information incomplete", "AIFF-Aagabe unvollständig"]
+"AIFF-Angaben unvollständig": ["AIFF information incomplete", "AIFF-Aagabe unvollständig"],
+"ALAC braucht zum Abspielen FFmpeg – das Stems-Plugin installieren oder FFmpeg in den Suchpfad legen.": ["Playing ALAC needs FFmpeg – install the Stems plug-in or put FFmpeg on the search path.", "Zum ALAC abspile bruchts FFmpeg – s Stems-Plugin installiere oder FFmpeg in Suechpfad lege."]
 }
