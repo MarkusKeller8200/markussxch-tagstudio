@@ -189,6 +189,7 @@ class UiTest(unittest.TestCase):
     def test_player_live_doubleclick_rating(self):
         """#91 Live-Vorschau, #92 Doppelklick, #95/#96/#97 Bewertung und Like."""
         pg = self.pg
+        pg.set_viewport_size({"width": 1920, "height": 900})           # #444: Bewertung bei schmalem Player ausgeblendet
         self.load_tagger()
         pg.click(".tg-row >> nth=0")
         self.assertTrue(pg.evaluate("!PLAYER.audio.src || PLAYER.audio.paused"))
@@ -1362,6 +1363,7 @@ class UiTest(unittest.TestCase):
     def test_player_lyrics(self):
         """#215: Liedtext im Player – synchronisiert mit hervorgehobener Zeile, Klick springt, gemerkt; normaler Text."""
         pg = self.pg
+        pg.set_viewport_size({"width": 1920, "height": 900})           # #444: Knöpfe bei schmalem Player ausgeblendet
         self.load_tagger()
         pg.evaluate("""(() => { const orig = call; window.__lyCalls = 0;
           window.call = (n, ...a) => n === "media_lyrics"
@@ -1681,6 +1683,7 @@ class UiTest(unittest.TestCase):
     def test_player_zoom(self):
         """#224: Lupe – hochaufgelöster Ausschnitt um die Position, Serato oben/Analyse unten, Zoom, Klick springt, gemerkt."""
         pg = self.pg
+        pg.set_viewport_size({"width": 1920, "height": 900})           # #444: Knöpfe bei schmalem Player ausgeblendet
         self.load_tagger()
         pg.evaluate("plLoad({kind: 'tag', ref: 0}, false)")
         self.assertTrue(self.until("PLAYER.info && PLAYER.audio.src"))
