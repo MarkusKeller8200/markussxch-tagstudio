@@ -123,6 +123,20 @@ class TestFeedback(unittest.TestCase):
                 self.assertIn(f"id: {fid}", t, f"{tpl}: {fid}")
 
 
+    def test_templates_valid_yaml_scalars(self):
+        """#460: Ein nicht zitierter Wert mit «: » macht die Vorlage ungültig – GitHub zeigt sie dann nicht an."""
+        import glob
+        import re
+        root = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".github", "ISSUE_TEMPLATE")
+        for path in sorted(glob.glob(os.path.join(root, "*.yml"))):
+            with open(path, encoding="utf-8") as fh:
+                for n, line in enumerate(fh, 1):
+                    m = re.match(r"\s*(?:- )?[A-Za-z_-]+: (.+)$", line.rstrip("\n"))
+                    if not m or m.group(1)[0] in "\"'|>[{" or m.group(1).startswith("http"):
+                        continue
+                    self.assertNotIn(": ", m.group(1), f"{os.path.basename(path)}:{n} – Wert in Anführungszeichen setzen")
+
+
 class TestUrlCut(unittest.TestCase):
     """4.9.1: zu lange Adresse wird zeichenweise gekürzt – nie mitten in einem %XX-Zeichen."""
 

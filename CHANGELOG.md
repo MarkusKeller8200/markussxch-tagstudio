@@ -54,6 +54,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Behoben
 
+- **Vorlage «Übersetzung einreichen» (#460):** war kein gültiges YAML (Feldname mit «: » ohne Anführungszeichen) und
+  erschien deshalb auf GitHub nicht; Test prüft alle Vorlagen.
 - **Warenkorb (#442):** In der Vorschau „Liste einfügen“ war die ausgegraute Titelzeile (Mix-Titel) verschoben.
 - **Tagger (#443):** Die Cover-Angabe unter dem Bild überdeckte bei langen Texten Länge und Bewertung.
 

@@ -23,7 +23,7 @@ body:
   - type: textarea
     id: texts
     attributes:
-      label: Eigene Texte (JSON: Ausgangstext → eigene Fassung)
+      label: "Eigene Texte (JSON: Ausgangstext → eigene Fassung)"
       description: 'Je Zeile "Deutscher Ausgangstext": "eigene Fassung". Platzhalter wie {n}, {q}, {x} bitte beibehalten.'
       render: json
     validations:
