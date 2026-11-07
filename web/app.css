@@ -862,7 +862,7 @@ body.col-dragging,body.col-dragging *{cursor:col-resize!important;user-select:no
 .player .icon-btn{width:30px;height:30px}
 .player .pl-play{width:34px;height:34px;border-radius:99px;background:var(--acc-soft);color:var(--acc)}
 .player.on .pl-play{background:var(--acc);color:var(--acc-fg)}
-.player .pl-mid{flex:1;min-width:160px;display:flex;flex-direction:column;gap:2px}
+.player .pl-mid{flex:1;min-width:120px;display:flex;flex-direction:column;gap:2px}
 .player .pl-line{display:flex;gap:8px;align-items:baseline;font-size:12.5px;min-width:0}
 .player .pl-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dim)}
 .player.on .pl-title{color:var(--fg)}
@@ -913,8 +913,15 @@ body.col-dragging,body.col-dragging *{cursor:col-resize!important;user-select:no
 .player .seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
 .player .seg button{border:0;background:transparent;color:var(--dim);padding:3px 8px;font:600 12px var(--font);cursor:pointer}
 .player .seg button.on{background:var(--acc-soft);color:var(--acc)}
-@media (max-width:1250px){.player #plVol,.player #plStart{display:none}}
-@media (max-width:980px){.player .pl-info{display:none}}
+/* #444: Bei wenig Platz blendet der Player stufenweise Weniges aus, statt über Rückgängig/Wiederholen zu laufen.
+   Massgebend ist die Breite des Players selbst (Container-Abfrage), nicht die Fensterbreite. */
+#player{container:plbar / inline-size}
+@container plbar (max-width:810px){#player #plLyricsBtn,#player #plZoomBtn,#player #plMetro{display:none}}
+@container plbar (max-width:720px){#player #plRate,#player .pl-grid-status{display:none}}
+@container plbar (max-width:650px){#player #plStart,#player #plVol{display:none}}
+@container plbar (max-width:570px){#player #plLive,#player #plRepeat,#player #plAB2,#player .pl-key-alt{display:none}}
+@container plbar (max-width:480px){#player .pl-info{display:none}}
+@container plbar (max-width:390px){#player #plDetach,#player #plPrev,#player #plNext,#player .pl-cue-btn{display:none}}
 .player .pl-start button{padding:3px 5px;font-size:11.5px;white-space:nowrap}
 .actions #statusText{flex:0 3 auto;min-width:40px;max-width:max(140px,12vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .player .pl-cue-btn{width:26px!important;color:var(--acc)}

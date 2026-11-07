@@ -244,6 +244,34 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("PLAYER.audio.playbackRate === 1 && !PLAYER.tempoManual"))
         pg.evaluate("PLAYER.audio.pause()")
 
+    def test_player_footer_never_overlaps(self):
+        """#444: Bei schmalem Fenster läuft der Player nicht über Rückgängig/Wiederholen/Speichern – weniger Wichtiges
+        wird ausgeblendet (Container-Abfrage auf die Player-Breite)."""
+        pg = self.pg
+        self.load_tagger()
+        pg.click('.tg-row[data-i="0"] .nm')
+        pg.keyboard.press(" ")
+        self.assertTrue(self.until("!PLAYER.audio.paused && PLAYER.info", 10))
+        pg.evaluate("document.querySelector('#plGridStatus').hidden = false; document.querySelector('#plGridStatus').textContent = 'Nur BPM-Schätzung'")
+        seen = {}
+        for w in (1920, 1600, 1440, 1280, 1100, 960):
+            pg.set_viewport_size({"width": w, "height": 900})
+            pg.wait_for_timeout(250)
+            r = pg.evaluate("""(() => { const p = document.querySelector('#player'), u = document.querySelector('#undoBtn');
+              let right = 0;
+              for (const c of p.querySelectorAll(':scope > *')) if (c.offsetParent !== null) right = Math.max(right, c.getBoundingClientRect().right);
+              return {pr: p.getBoundingClientRect().right, right, ul: u.getBoundingClientRect().left,
+                      over: p.scrollWidth - p.clientWidth, play: !!document.querySelector('#plPlay').offsetParent,
+                      start: !!document.querySelector('#plStart').offsetParent}; })()""")
+            self.assertLessEqual(r["right"], r["pr"] + 0.5, (w, r))
+            self.assertLess(r["pr"], r["ul"], (w, r))
+            self.assertLessEqual(r["over"], 0, (w, r))
+            self.assertTrue(r["play"], w)                                    # Abspielen bleibt immer
+            seen[w] = r["start"]
+        self.assertTrue(seen[1920])                                          # breit: alles sichtbar
+        self.assertFalse(seen[960])                                          # schmal: Startpunkt ausgeblendet
+        self.assertEqual(self.errors, [])
+
     def test_player_manual_tempo_and_goto_tagger(self):
         """#174 Tempo von Hand (Klick auf BPM, Reset), #175 laufenden Titel im Tagger zeigen."""
         pg = self.pg

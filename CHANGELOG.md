@@ -54,6 +54,9 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Behoben
 
+- **Player-Fussleiste (#444):** Bei schmalem Fenster lief der Player über Rückgängig/Wiederholen. Jetzt richtet er sich
+  nach seiner eigenen Breite (Container-Abfrage) und blendet stufenweise aus: Liedtext/Lupe/Metronom, dann Bewertung und
+  Beatgrid-Hinweis, Startpunkt/Lautstärke, weitere Umschalter, Zeitangaben – Abspielen bleibt immer.
 - **Vorlage «Übersetzung einreichen» (#460):** war kein gültiges YAML (Feldname mit «: » ohne Anführungszeichen) und
   erschien deshalb auf GitHub nicht; Test prüft alle Vorlagen.
 - **Warenkorb (#442):** In der Vorschau „Liste einfügen“ war die ausgegraute Titelzeile (Mix-Titel) verschoben.
