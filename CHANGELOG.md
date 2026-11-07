@@ -8,6 +8,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ### Neu
 
+- **Fremdkomponenten (#459):** Stände vom 07.11.2026 übernommen (u. a. PyTorch 2.15, PyObjC 13, imageio-ffmpeg 0.8.1,
+  uv 0.13.7, Inno Setup 7.1.1; NumPy/SciPy erstmals erfasst); Lizenzangabe PyTorch um ISC und Zlib ergänzt.
 - **FLAC, M4A (AAC/ALAC), OGG/Opus im Tagger (#262, #264, #265, #266, Test):** Einstellung „Weitere Formate“ (je Format,
   Standard aus; ersetzt „WAV und AIFF“), Spalte „Format“ im Tagger. Gemeinsame Grundlage `mapfile.py` (Übersetzung
   der Format-Felder in die TagStudio-Felder, Namen/Reihenfolge/unbekannte Felder bleiben, nicht abbildbare Felder werden
