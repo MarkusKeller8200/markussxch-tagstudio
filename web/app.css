@@ -915,13 +915,16 @@ body.col-dragging,body.col-dragging *{cursor:col-resize!important;user-select:no
 .player .seg button.on{background:var(--acc-soft);color:var(--acc)}
 /* #444: Bei wenig Platz blendet der Player stufenweise Weniges aus, statt über Rückgängig/Wiederholen zu laufen.
    Massgebend ist die Breite des Players selbst (Container-Abfrage), nicht die Fensterbreite. */
-#player{container:plbar / inline-size}
-@container plbar (max-width:860px){#player #plLyricsBtn,#player #plZoomBtn,#player #plMetro{display:none}}
-@container plbar (max-width:780px){#player #plRate,#player .pl-grid-status{display:none}}
-@container plbar (max-width:680px){#player #plStart,#player #plVol{display:none}}
-@container plbar (max-width:590px){#player #plLive,#player #plRepeat,#player #plAB2,#player .pl-key-alt{display:none}}
-@container plbar (max-width:500px){#player .pl-info{display:none}}
-@container plbar (max-width:400px){#player #plDetach,#player #plPrev,#player #plNext,#player .pl-cue-btn{display:none}}
+#player{container-type:inline-size}
+/* plFit() in player.js setzt data-fit 0–6: so viele Stufen, bis der Inhalt in den Player passt (unabhängig von Schrift
+   und Fensterbreite) – 1 Liedtext/Lupe/Metronom, 2 Bewertung/Beatgrid-Hinweis, 3 Startpunkt/Lautstärke,
+   4 Live/Wiederholen/A–B/Tonart-Schreibweisen, 5 Tonart/BPM/Zeiten, 6 Abdocken/Vor/Zurück. */
+#player[data-fit="1"] #plLyricsBtn,#player[data-fit="1"] #plZoomBtn,#player[data-fit="1"] #plMetro,#player[data-fit="2"] #plLyricsBtn,#player[data-fit="2"] #plZoomBtn,#player[data-fit="2"] #plMetro,#player[data-fit="3"] #plLyricsBtn,#player[data-fit="3"] #plZoomBtn,#player[data-fit="3"] #plMetro,#player[data-fit="4"] #plLyricsBtn,#player[data-fit="4"] #plZoomBtn,#player[data-fit="4"] #plMetro,#player[data-fit="5"] #plLyricsBtn,#player[data-fit="5"] #plZoomBtn,#player[data-fit="5"] #plMetro,#player[data-fit="6"] #plLyricsBtn,#player[data-fit="6"] #plZoomBtn,#player[data-fit="6"] #plMetro{display:none}
+#player[data-fit="2"] #plRate,#player[data-fit="2"] .pl-grid-status,#player[data-fit="3"] #plRate,#player[data-fit="3"] .pl-grid-status,#player[data-fit="4"] #plRate,#player[data-fit="4"] .pl-grid-status,#player[data-fit="5"] #plRate,#player[data-fit="5"] .pl-grid-status,#player[data-fit="6"] #plRate,#player[data-fit="6"] .pl-grid-status{display:none}
+#player[data-fit="3"] #plStart,#player[data-fit="3"] #plVol,#player[data-fit="4"] #plStart,#player[data-fit="4"] #plVol,#player[data-fit="5"] #plStart,#player[data-fit="5"] #plVol,#player[data-fit="6"] #plStart,#player[data-fit="6"] #plVol{display:none}
+#player[data-fit="4"] #plLive,#player[data-fit="4"] #plRepeat,#player[data-fit="4"] #plAB2,#player[data-fit="4"] .pl-key-alt,#player[data-fit="5"] #plLive,#player[data-fit="5"] #plRepeat,#player[data-fit="5"] #plAB2,#player[data-fit="5"] .pl-key-alt,#player[data-fit="6"] #plLive,#player[data-fit="6"] #plRepeat,#player[data-fit="6"] #plAB2,#player[data-fit="6"] .pl-key-alt{display:none}
+#player[data-fit="5"] .pl-info,#player[data-fit="6"] .pl-info{display:none}
+#player[data-fit="6"] #plDetach,#player[data-fit="6"] #plPrev,#player[data-fit="6"] #plNext,#player[data-fit="6"] .pl-cue-btn{display:none}
 .player .pl-start button{padding:3px 5px;font-size:11.5px;white-space:nowrap}
 .actions #statusText{flex:0 3 auto;min-width:40px;max-width:max(140px,12vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .player .pl-cue-btn{width:26px!important;color:var(--acc)}

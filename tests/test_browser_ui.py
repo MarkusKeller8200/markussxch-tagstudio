@@ -255,9 +255,17 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("!PLAYER.audio.paused && PLAYER.info", 10))
         pg.evaluate("document.querySelector('#plGridStatus').hidden = false; document.querySelector('#plGridStatus').textContent = 'Nur BPM-Schätzung'")
         seen = {}
-        for w in (1920, 1600, 1440, 1280, 1100, 960):
+        widths = [(w, False) for w in (1920, 1600, 1440, 1280, 1100, 960)] + \
+            [(w, True) for w in (1600, 1440, 1280)]                         # breitere Schrift wie auf CI-Rechnern
+        for w, wide in widths:
+            if wide:
+                pg.evaluate("document.head.insertAdjacentHTML('beforeend', '<style id=\"wideFont\">#player *{letter-spacing:.9px}</style>')"
+                            " || document.getElementById('wideFont')")
+                pg.evaluate("plFit()")                                         # Schrift ändert sich sonst nie zur Laufzeit
             pg.set_viewport_size({"width": w, "height": 900})
             pg.wait_for_timeout(250)
+            if wide:
+                pg.evaluate("plFit()")
             r = pg.evaluate("""(() => { const p = document.querySelector('#player'), u = document.querySelector('#undoBtn');
               let right = 0;
               for (const c of p.querySelectorAll(':scope > *')) if (c.offsetParent !== null) right = Math.max(right, c.getBoundingClientRect().right);
@@ -268,7 +276,8 @@ class UiTest(unittest.TestCase):
             self.assertLess(r["pr"], r["ul"], (w, r))
             self.assertLessEqual(r["over"], 0, (w, r))
             self.assertTrue(r["play"], w)                                    # Abspielen bleibt immer
-            seen[w] = r["start"]
+            if not wide:
+                seen[w] = r["start"]
         self.assertTrue(seen[1920])                                          # breit: alles sichtbar
         self.assertFalse(seen[960])                                          # schmal: Startpunkt ausgeblendet
         self.assertEqual(self.errors, [])

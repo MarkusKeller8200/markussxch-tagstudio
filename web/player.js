@@ -325,10 +325,10 @@ function plRender() {
   const bpm = !i || !i.bpm ? "" : Math.abs(rate - 1) > 0.0005 && bpmN ? `${(bpmN * rate).toFixed(1)}` : String(Math.round(bpmN) || i.bpm);
   const alt = i && i.key_alt ? [i.key_alt.musical, i.key_alt.openkey].filter(Boolean) : [];
   const meta = i ? `${i.key && typeof keyBadge === "function" ? keyBadge(i.key) : ""}${alt.length ? `<span class="pl-key-alt" title="Musikalisch · Open Key">${esc(alt.join(" · "))}</span>` : ""}${bpm ? `<span class="pl-bpm${Math.abs(rate - 1) > 0.0005 ? " synced" : ""}${PLAYER.tempoManual ? " manual" : ""}" role="button" tabindex="0" title="${Math.abs(rate - 1) > 0.0005 ? `${PLAYER.tempoManual ? "Tempo von Hand" : "Tempo angeglichen"} (${rate > 1 ? "+" : ""}${((rate - 1) * 100).toFixed(1)} %, Original ${Math.round(bpmN)} BPM) – klicken: ändern · Doppelklick: Original · Mausrad: ±0,1 BPM (Shift ±1)` : "Tempo – klicken: ändern · Mausrad: ±0,1 BPM (Shift ±1)"}">${esc(bpm)} BPM</span>` : ""}` : "";
-  if ($("#plMeta").dataset.v !== meta) { $("#plMeta").innerHTML = meta; $("#plMeta").dataset.v = meta; }
+  if ($("#plMeta").dataset.v !== meta) { $("#plMeta").innerHTML = meta; $("#plMeta").dataset.v = meta; plFitSoon(); }
   plStemsRender();
   const rh = i && i.markable !== false && i.rating !== undefined ? rateHtml(i.rating, i.like, { keys: true }) : "";
-  if ($("#plRate").dataset.v !== rh) { $("#plRate").innerHTML = rh; $("#plRate").dataset.v = rh; }
+  if ($("#plRate").dataset.v !== rh) { $("#plRate").innerHTML = rh; $("#plRate").dataset.v = rh; plFitSoon(); }
   $("#plVol").classList.toggle("muted", a.muted);
   $("#plVol").title = a.muted ? "Stumm (M)" : "Lautstärke (M: stumm)";
   const dur = a.duration || (i && i.duration) || 0;
@@ -825,3 +825,26 @@ function plKeydown(e) {
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); call("players").then((l) => plExternal(l.length ? 0 : null)); }
     else if (typeof pl2Key === "function") pl2Key(e);
 }
+
+
+// ====================================================================== #444 Player passt sich seiner Breite an
+/** So viele Stufen ausblenden (data-fit 0–6, siehe app.css), bis nichts mehr über den Player hinausragt. */
+function plFit() {
+  const p = document.getElementById("player");
+  if (!p || p.offsetParent === null) return;
+  let k = 0;
+  p.dataset.fit = "0";
+  while (k < 6 && p.scrollWidth > p.clientWidth) p.dataset.fit = String(++k);
+}
+let PL_FIT_RAF = 0;
+function plFitSoon() {
+  if (PL_FIT_RAF) return;
+  PL_FIT_RAF = requestAnimationFrame(() => { PL_FIT_RAF = 0; plFit(); });
+}
+(() => {
+  const p = document.getElementById("player");
+  if (!p || typeof ResizeObserver === "undefined") return;
+  let w = -1;
+  new ResizeObserver(() => { if (p.clientWidth !== w) { w = p.clientWidth; plFitSoon(); } }).observe(p);
+  new MutationObserver(plFitSoon).observe(p, { subtree: true, attributes: true, attributeFilter: ["hidden"] });
+})();
