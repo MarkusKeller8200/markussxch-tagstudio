@@ -6,6 +6,8 @@ Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/rel
 
 ## [Unveröffentlicht]
 
+## [4.16.0] – 2026-11-08
+
 ### Neu
 
 - **Fremdkomponenten (#459):** Stände vom 07.11.2026 übernommen (u. a. PyTorch 2.15, PyObjC 13, imageio-ffmpeg 0.8.1,
