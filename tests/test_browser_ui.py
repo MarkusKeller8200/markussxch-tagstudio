@@ -288,6 +288,7 @@ class UiTest(unittest.TestCase):
         pg.click("#mBtns .primary")
         self.assertTrue(self.until(f"Math.abs(PLAYER.audio.playbackRate - {round(orig * 1.05, 1)} / {orig}) < 0.002"))
         pg.wait_for_selector("#plMeta .pl-bpm.manual")
+        pg.wait_for_timeout(pg.evaluate("DBL.win") + 80)              # sonst zählt der Klick als Doppelklick (= Original)
         pg.click("#plMeta .pl-bpm")
         pg.fill("#tpBpm", "1")                                                       # ausserhalb → Dialog bleibt offen
         pg.click("#mBtns .primary")
