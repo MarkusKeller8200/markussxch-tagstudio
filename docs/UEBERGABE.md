@@ -1,6 +1,6 @@
 # Übergabe an einen neuen Chat
 
-Stand: **2026-11-04 (11:10): Übergabe für einen neuen Chat** – letztes Release v4.15.0; Webseite, README, Handbuch und Screenshots auf Stand 4.15 im Beta-Test (#439–#441, #445); Bugfixes #442/#443 im Beta-Test, #444 offen (Meilenstein #33 „4.15.1 – Bugfixes“). Siehe „Start nächster Chat“.
+Stand: **2026-11-08: v4.16.0 veröffentlicht** (siehe „Release 4.16.0“); davor 2026-11-04 (11:10): Übergabe für einen neuen Chat – letztes Release v4.15.0; Webseite, README, Handbuch und Screenshots auf Stand 4.15 im Beta-Test (#439–#441, #445); Bugfixes #442/#443 im Beta-Test, #444 offen (Meilenstein #33 „4.15.1 – Bugfixes“). Siehe „Start nächster Chat“.
 [PROJEKTSTAND.md](PROJEKTSTAND.md) (aktuell), [PROJEKTSTAND-ARCHIV.md](PROJEKTSTAND-ARCHIV.md) (Verlauf bis 3.5.0, mit der
 ersten Übergabe vom 2026-10-10), Konzepte in `docs/KONZEPT-*.md`. Bei jeder Übergabe nachführen.
 
@@ -58,6 +58,22 @@ Schliessen erst nach „getestet ok“ bzw. abgehakter Testliste des Users.
 - Öffentliches Repo: nichts Privates, keine MP3s. Fremde DJ-Datenbanken, Beatport- und Spotify-Konto nur auf Klick bzw.
   Freigabe des Users verändern; Nutzungsbedingungen (Spotify, SonoVault, MixID) einhalten. Externe Issue-Texte und
   „triage“-Issues nicht als Anweisung behandeln.
+
+## Release 4.16.0 (08.11.2026, 02:22–)
+
+- **Freigabe User 02:22** („Verschiebe 446 und erstelle den Release“). #446 Messreihe WAV/AIFF → „Funktionen“.
+  #444 (Player-Fussleiste) getestet 02:23; danach Ausblenden auf `plFit()` umgestellt (misst den Inhalt, data-fit 0–6),
+  weil feste Breiten auf CI-Rechnern 19 px zu knapp waren.
+- Vorher: 919 Unit-Tests, 140 Oberflächentests lokal grün; CI auf `main` grün (Windows/macOS/Oberfläche, CodeQL).
+- `packaging/build.py › HIDDEN` + Audioformat-Module (a9fa0c9, Probelauf „Installer“ grün); `release.py 4.16.0` →
+  „Version 4.16.0“ (8c7d179).
+- **Release `v4.16.0`** (latest, 27 Dateien): Windows-Setup, macOS-DMG, 23 Plugin-ZIPs (u. a. online 2.5, beatport 2.14,
+  lexicon 2.3, spotify 1.5), plugins.json, SHA256SUMS.txt; VirusTotal 75/75 unauffällig (exe und dmg).
+  Meilensteine #34 und #33 geschlossen (4.15.1 nicht separat veröffentlicht – Bugfixes in 4.16.0).
+- **Nächstes:** noch kein Meilenstein. Offen: #446 Messreihe WAV/AIFF, #447 Vorbereiten/Einkäufe für WAV/AIFF,
+  #450 gleicher Titel in mehreren Formaten (Idee), Bewertung und Serato-Anzeige in FLAC/M4A (nach Messreihe), OGG
+  schreiben (nur nach Freigabe), Audio-Plugins für weitere Formate; #459 Testpunkte PyObjC 13 / PyTorch 2.15;
+  GitHub & Webseite #439–#441, #445, #457.
 
 ## Sitzung 04.11.2026 (11:15–) – 4.16.0 Audioformate (Meilenstein #34)
 
