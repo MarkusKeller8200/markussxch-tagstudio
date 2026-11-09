@@ -4892,7 +4892,7 @@ class UiTest(unittest.TestCase):
         pg.click("#purDl")
         pg.click("#mBtns .primary")
         pg.wait_for_selector("#purSP")
-        self.assertIn("nur, solange TagStudio läuft", pg.inner_text("#mBody"))
+        self.assertIn("nur, solange TagStudioSX läuft", pg.inner_text("#mBody"))
         pg.fill("#purSU", "marku")
         pg.fill("#purSP", "falsch")
         pg.click("#mBtns .primary")

@@ -506,7 +506,7 @@ def video_cards(br, hd):
     b64 = lambda p: base64.b64encode(open(p, "rb").read()).decode("ascii")      # noqa: E731
     icon = b64(os.path.join(ROOT, "web", "icon.png"))
     img = lambda n: b64(os.path.join(hd, n)) if os.path.isfile(os.path.join(hd, n)) else ""     # noqa: E731
-    css = """html,body{width:100%;height:100%}body{margin:0;overflow:hidden;background:radial-gradient(circle at 18% 22%,#22324a,#0f1216 62%);
+    css = """html,body{width:100%;height:100%}body{margin:0;overflow:hidden;background:#151B24;
       font-family:Inter,system-ui,sans-serif;color:#e8ecf1}"""
     os.makedirs(os.path.join(hd, "video"), exist_ok=True)
     title = f"""<!doctype html><html><head><meta charset="utf-8"><style>{css}
@@ -524,9 +524,9 @@ def video_cards(br, hd):
     end = f"""<!doctype html><html><head><meta charset="utf-8"><style>{css}
       .c{{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}}
       .c img{{width:150px;height:150px;border-radius:34px}} h1{{font-size:88px;margin:34px 0 10px;letter-spacing:-.02em}}
-      p{{font-size:38px;color:#a9b4c2;margin:0 0 40px}} .b{{font-size:34px;padding:18px 40px;border-radius:22px;background:#1d76db;color:#fff;font-weight:600}}
+      p{{font-size:38px;color:#a9b4c2;margin:0 0 40px}} .b{{font-size:34px;padding:18px 40px;border-radius:22px;background:#007EBB;color:#fff;font-weight:600}}
       .u{{margin-top:34px;font-size:30px;color:#8fa0b4}}</style></head><body><div class="c">
-      <img src="data:image/png;base64,{icon}"><h1>TagStudioSX</h1><p>Kostenlos und quelloffen · Windows &amp; macOS</p>
+      <img src="data:image/png;base64,{icon}"><h1><span style="color:#B59AFF">T</span>ag<span style="color:#FF8A00">S</span>tudio<span style="color:#32B8F2">SX</span></h1><p>Kostenlos und quelloffen · Windows &amp; macOS</p>
       <div class="b">Jetzt herunterladen</div><div class="u">markuskeller8200.github.io/markussxch-tagstudio</div></div></body></html>"""
     for html, (w, h), name in ((title, (1280, 720), "titelbild-youtube.png"), (end, (1280, 720), "schlussbild.png")):
         pg = br.new_page(viewport={"width": w, "height": h}, device_scale_factor=1 if name.startswith("titel") else 2)
@@ -543,7 +543,7 @@ def social_preview(br) -> None:
     b64 = lambda p: base64.b64encode(open(p, "rb").read()).decode("ascii")      # noqa: E731
     icon, shotimg = b64(os.path.join(ROOT, "web", "icon.png")), b64(os.path.join(OUT, "tagger-dark.png"))
     html = f"""<!doctype html><html><head><meta charset="utf-8"><style>
-      body{{margin:0;width:1280px;height:640px;overflow:hidden;background:radial-gradient(circle at 20% 20%,#22324a,#0f1216 60%);
+      body{{margin:0;width:1280px;height:640px;overflow:hidden;background:#151B24;
         font-family:Inter,system-ui,sans-serif;color:#e8ecf1}}
       .t{{position:absolute;left:72px;top:150px;width:520px}}
       .t img{{width:88px;height:88px;border-radius:20px}}
@@ -553,8 +553,9 @@ def social_preview(br) -> None:
       .k span{{border:1px solid #33404f;border-radius:99px;padding:5px 13px}}
       .s{{position:absolute;left:640px;top:70px;width:900px;border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.6);
         border:1px solid #2c3542}}</style></head><body>
-      <div class="t"><img src="data:image/png;base64,{icon}"><h1>MarKusSXCH<br>TagStudioSX</h1>
-        <p>Der Werkzeugkasten für die MP3-Bibliothek von DJs</p>
+      <div class="t"><img src="data:image/png;base64,{icon}"><h1><span style="color:#B59AFF">T</span>ag<span style="color:#FF8A00">S</span>tudio<span style="color:#32B8F2">SX</span></h1>
+        <p><b style="color:#e8ecf1">Music Management &amp; DJ Library</b><br>Der Werkzeugkasten für die MP3-Bibliothek von DJs</p>
+        <p style="font-size:18px;margin-top:12px">Developed by <b style="color:#e8ecf1">MarKusSXCH</b></p>
         <div class="k"><span>Warenkorb</span><span>Tagger</span><span>Vergleich</span><span>DJ-Set</span></div></div>
       <img class="s" src="data:image/png;base64,{shotimg}"></body></html>"""
     pg = br.new_page(viewport={"width": 1280, "height": 640})
