@@ -43,7 +43,7 @@ button{cursor:pointer}
 /* Seitenleiste */
 .side{width:var(--side-w,224px);flex-shrink:0;overflow:hidden;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:4px;padding:20px 14px}
 .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 22px}
-.logo{width:32px;height:32px;border-radius:9px;background:var(--acc);color:var(--acc-fg);display:flex;align-items:center;justify-content:center}
+.logo{width:32px;height:32px;flex-shrink:0;display:block}   /* Signet TagStudioSX, Kleinform (#465) */
 .brand-t{display:flex;flex-direction:column;line-height:1.1}
 .brand-k{font-size:11px;color:var(--dim);font-weight:600;margin-top:2px}
 .brand-n{font-size:18px;font-weight:700}
