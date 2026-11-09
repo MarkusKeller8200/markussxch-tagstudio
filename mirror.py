@@ -1,7 +1,7 @@
-"""MarKusSXCH TagStudio – Spiegel der Musikbibliothek in einen Cloud-Ordner (#403, docs/KONZEPT-CLOUD.md §4c).
+"""TagStudioSX – Spiegel der Musikbibliothek in einen Cloud-Ordner (#403, docs/KONZEPT-CLOUD.md §4c).
 
 Einweg-Kopie Bibliothek → Spiegel, z. B. in den OneDrive-Ordner des Desktop-Clients (Kontoart „Privat“, #405). Im
-Spiegel wird nie bearbeitet; TagStudio arbeitet weiter nur mit der lokalen Bibliothek.
+Spiegel wird nie bearbeitet; TagStudioSX arbeitet weiter nur mit der lokalen Bibliothek.
 
 - Aufbau im Ziel (#413): **„Pfad“** (Standard) – je Bibliothek derselbe Pfad wie auf dem Rechner, ohne Laufwerk
   (``D:\\Musik\\DJ`` → ``<Ziel>/Musik/DJ``, macOS ``/Volumes/Musik/DJ`` → ``<Ziel>/DJ``); ``index.json`` und Playlists
@@ -182,7 +182,7 @@ def pl_dests(pl: dict) -> list[str]:
 
 def free_space(path: str) -> int | None:
     """Freier Platz auf dem Laufwerk des (nächsten vorhandenen) Ordners – den freien Platz in der Cloud kennt
-    TagStudio ohne Anmeldung nicht."""
+    TagStudioSX ohne Anmeldung nicht."""
     p = os.path.abspath(path or ".")
     while p and not os.path.isdir(p):
         parent = os.path.dirname(p)
@@ -268,7 +268,7 @@ def set_online_only(paths: list[str]) -> str:
         return ""
     if not sys.platform.startswith("win"):
         return ("macOS: Platz im Finder freigeben (Rechtsklick auf den Spiegel-Ordner › „Speicherplatz freigeben“) – "
-                "TagStudio kann das nicht selbst.")
+                "TagStudioSX kann das nicht selbst.")
     bad = 0
     for p in paths:
         try:
@@ -313,7 +313,7 @@ def write_index(target: str, pl: dict, previous: dict | None = None, meta: str =
             if rel.lower().endswith(".mp3"):
                 e.update(read_meta(os.path.join(lib["dest"], *rel.split("/"))))
             tracks.append(e)
-    data = {"format": 1, "app": "MarKusSXCH TagStudio", "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    data = {"format": 1, "app": "TagStudioSX", "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "libraries": [x["name"] for x in pl["libs"]],
             "root": os.path.relpath(target, meta).replace(os.sep, "/"), "tracks": tracks}
     os.makedirs(meta, exist_ok=True)

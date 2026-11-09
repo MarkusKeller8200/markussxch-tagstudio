@@ -16,7 +16,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: TagStudio-Version
+      label: TagStudioSX-Version
       description: Steht unten in der Seitenleiste, z. B. 3.2.0
       placeholder: "3.2.0"
     validations:

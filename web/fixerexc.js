@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Tag-Fixer: Editor für Ausnahmen (#342, #343).
+/* TagStudioSX – Tag-Fixer: Editor für Ausnahmen (#342, #343).
    Ausnahmen je Feld bzw. Feldgruppe (Künstler und Mitwirkende, Genre, Stimmung oder ein einzelnes Feld): Namen wie
    „Above & Beyond“ werden beim Trennen von Mehrfachwerten nicht zerlegt. Vorschläge kommen aus den geladenen Titeln
    (Vergleich und Tagger), die einen Suchtext enthalten; anhaken, gesammelt übernehmen, speichern. Bestehende

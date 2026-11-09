@@ -13,7 +13,7 @@ wieder gelesen und geprüft, dass die Audiodaten unverändert sind. Die Original
     python tools/wavcheck.py DATEI.wav [...] [--roundtrip]
 
 Nur Standardbibliothek. Teile davon (read_chunks, read_id3, write_id3) sind der Prototyp für die spätere
-WAV-Unterstützung in TagStudio.
+WAV-Unterstützung in TagStudioSX.
 """
 from __future__ import annotations
 
@@ -82,7 +82,7 @@ def read_info(data: bytes) -> dict:
 
 
 def read_id3(data: bytes, path: str = ""):
-    """ID3-Chunk mit dem TagStudio-Parser lesen → MP3File-ähnliches Objekt (items, version) oder None."""
+    """ID3-Chunk mit dem TagStudioSX-Parser lesen → MP3File-ähnliches Objekt (items, version) oder None."""
     from id3tags import MP3File, _syncsafe
     if len(data) < 10 or data[:3] != b"ID3" or data[3] not in (2, 3, 4):
         return None
@@ -150,7 +150,7 @@ def write_id3(path: str, tag: bytes, chunk_id: bytes = b"id3 ") -> None:
 
 
 def build_id3(frames: dict, version: int = 3) -> bytes:
-    """Einfaches ID3v2-Tag aus Textfeldern {"TIT2": "…", "TXXX:NAME": "…"} (mit TagStudio-Items)."""
+    """Einfaches ID3v2-Tag aus Textfeldern {"TIT2": "…", "TXXX:NAME": "…"} (mit TagStudioSX-Items)."""
     from id3tags import MP3File, _to_syncsafe
     f = MP3File.__new__(MP3File)
     f.path = ""

@@ -3,7 +3,7 @@
 Aufruf: python worker.py auftrag.json
 Auftrag „index“:   {"task": "index", "dir": Indexordner, "files": [[Nr., Pfad], …], "drop": [Nr., …]}
 Auftrag „analyse“: {"task": "analyse", "dir": Indexordner, "mix": Pfad, "pitch": true}
-Meldungen an TagStudio als Zeilen „@@{json}“ (nur ASCII); alles andere ist Protokoll.
+Meldungen an TagStudioSX als Zeilen „@@{json}“ (nur ASCII); alles andere ist Protokoll.
 
 Index: je Titel eine Datei parts/<Nr>.npz (Schlüssel + Zeiten); daraus wird index.npz (sortiert) gebaut.
 """

@@ -63,10 +63,10 @@ async function appBackupRestoreFlow() {
     : `<div class="ab-part"><label class="check sm"><input type="checkbox" data-abpart="${esc(p.id)}" ${p.files ? "checked" : ""} ${p.files ? "" : "disabled"}> <b>${esc(p.label)}</b></label>
         <div class="muted sm">${p.files ? `${fmtN(p.files)} Datei(en): ${fmtN(p.changed)} ersetzt, ${fmtN(p.new)} neu, ${fmtN(p.same)} gleich` : "nicht in der Sicherung"}${p.only_here ? ` · ${fmtN(p.only_here)} nur hier (bleiben)` : ""}</div></div>`;
   const sel = await modal({ title: "Wiederherstellen – Vorschau", wide: true,
-    html: `<p style="margin:0 0 6px">Sicherung vom ${esc(String(m.created || "").replace("T", " "))} · Rechner <b translate="no">${esc(m.host || "?")}</b> · TagStudio ${esc(m.app_version || "?")}${pv.foreign ? ' · <span class="fold-warn">anderer Rechner – Fenster-, Pfad- und Player-Einstellungen sind nicht vorgewählt</span>' : ""}</p>
+    html: `<p style="margin:0 0 6px">Sicherung vom ${esc(String(m.created || "").replace("T", " "))} · Rechner <b translate="no">${esc(m.host || "?")}</b> · TagStudioSX ${esc(m.app_version || "?")}${pv.foreign ? ' · <span class="fold-warn">anderer Rechner – Fenster-, Pfad- und Player-Einstellungen sind nicht vorgewählt</span>' : ""}</p>
       ${pv.parts.map(partRow).join("")}
       ${pv.remap.length ? `<p class="muted sm">Pfade auf Musik werden umgeschrieben: ${pv.remap.map((r) => `<code translate="no">${esc(r.from)}</code> → <code translate="no">${esc(r.to)}</code>`).join(", ")}</p>` : ""}
-      <p class="muted sm">Vorher sichert TagStudio den jetzigen Stand („vor-Wiederherstellen“) in denselben Ordner. Danach lädt die Oberfläche neu.</p>`,
+      <p class="muted sm">Vorher sichert TagStudioSX den jetzigen Stand („vor-Wiederherstellen“) in denselben Ordner. Danach lädt die Oberfläche neu.</p>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Wiederherstellen", value: true, primary: true }],
     collect: (b) => ({ parts: [...b.querySelectorAll("[data-abpart]:checked")].map((x) => x.dataset.abpart),
                        groups: [...b.querySelectorAll("[data-abgrp]:checked")].map((x) => x.dataset.abgrp) }) });

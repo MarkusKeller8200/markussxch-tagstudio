@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Audio-Merkmale (Energy, Danceability …) als TXXX-Felder mit Werten 0–100.
+"""TagStudioSX – Audio-Merkmale (Energy, Danceability …) als TXXX-Felder mit Werten 0–100.
 
 Gelesen wird ohne Rücksicht auf Gross-/Kleinschreibung der Beschreibung (TXXX:Energy = TXXX:ENERGY),
 geschrieben immer in Grossbuchstaben; abweichend geschriebene Doppel werden dabei entfernt.

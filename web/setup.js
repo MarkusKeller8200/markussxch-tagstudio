@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Einrichtung (#167–#170): Einrichtungsassistent, empfohlene/ausgeblendete Menüpunkte,
+/* TagStudioSX – Einrichtung (#167–#170): Einrichtungsassistent, empfohlene/ausgeblendete Menüpunkte,
    „Erste Schritte“-Hinweise je Seite und „Neu in dieser Version“. Logik in session_setup.py. */
 "use strict";
 
@@ -31,7 +31,7 @@ const WIZ_ONLINE = [
 ];
 const FIRST_STEPS = {
   discover: ["„Folgen …“: Künstlern, Labels und Genres folgen – oder sie von Beatport übernehmen.", "„Suchen“ holt neue Titel; vorhören, mit ☆ als Idee in eine Wunschliste merken oder ausblenden.", "Die Zahl in der Seitenleiste zeigt neue Vorschläge (tägliche Suche unter „Folgen …“)."],
-  ideas: ["In „Entdecken“ bei einem Titel „Idee merken ▸“ wählen – oder hier „+ Hinzufügen ▾“ (von Hand, aus Text).", "🛒 merkt einen Titel zum Kauf vor; „Als Beatport-Playlist“ legt die Liste in deinem Beatport-Konto an (nur auf Klick).", "Gekauft und „In Bibliothek“ erkennt TagStudio selbst über „Einkäufe“ und „Mit Bibliothek abgleichen“."],
+  ideas: ["In „Entdecken“ bei einem Titel „Idee merken ▸“ wählen – oder hier „+ Hinzufügen ▾“ (von Hand, aus Text).", "🛒 merkt einen Titel zum Kauf vor; „Als Beatport-Playlist“ legt die Liste in deinem Beatport-Konto an (nur auf Klick).", "Gekauft und „In Bibliothek“ erkennt TagStudioSX selbst über „Einkäufe“ und „Mit Bibliothek abgleichen“."],
   carts: ["Der „Assistent …“ führt Schritt für Schritt durch alles (startet beim neuen Warenkorb von selbst) – jeder Schritt zeigt zuerst eine Vorschau.", "„Bei Beatport suchen“ ordnet die Titel zu, „Auf Käufe prüfen“ nimmt bereits gekaufte heraus.", "„An Beatport senden …“ legt die Einkaufsliste als Playlist TagStudio_CART_… an – dort „Alle in den Warenkorb“ und bezahlen."],
   prep: ["Unter „Workflow bearbeiten“ Eingangsordner, Arbeitsordner und Bibliothek wählen.", "Schritte der Reihe nach ausführen – jede Stufe arbeitet auf einer Kopie.", "„Abholen“ übernimmt neue Downloads (auch ZIP) in den Eingangsordner."],
   tagger: ["Oben einen Ordner wählen und „Laden“ – alle MP3 erscheinen in der Liste.", "Titel markieren und rechts bearbeiten; Strg+S speichert (vorher wird gesichert).", "Leertaste spielt ab, 0–5 bewertet; alle Tasten unter Hilfe › Tastatur."],
@@ -39,10 +39,10 @@ const FIRST_STEPS = {
   compare: ["Links und rechts je einen Ordner (oder Snapshot/Sicherung) wählen.", "Paare links auswählen; Unterschiede sind markiert.", "Alt+→ / Alt+← kopiert markierte Felder auf die andere Seite."],
   djset: ["Titel im Tagger markieren und „Zum DJ-Set“ hinzufügen.", "„Optimieren“ ordnet nach Tonart, BPM und Energie; G fixiert einen Titel.", "Als M3U8, Rekordbox-XML oder CSV exportieren."],
   playlists: ["Im Tagger Titel markieren, Rechtsklick „Zur Playlist hinzufügen …“ (Strg+Shift+P: zur zuletzt benutzten).", "Hier ordnen, umbenennen und in Ordner ziehen; Doppelklick spielt ab.", "Jede Playlist liegt auch als M3U8 im Playlist-Ordner – Archivieren statt Löschen."],
-  mixes: ["Plugin „Mix analysieren“ installieren (Plugins) und einmal „Bibliothek indexieren …“ – danach führt TagStudio den Index selbst nach.", "„Mix analysieren …“: Mix-Datei wählen, optional die bekannte Tracklist; auf Wunsch im Hintergrund.", "Treffer prüfen (▶ Mix / ▶ Titel), falsche mit ✕ verwerfen, dann als Playlist, CUE oder Text speichern."],
-  snapshots: ["Bibliothek hinzufügen – TagStudio merkt sich den Tag-Stand aller Titel.", "Snapshots täglich oder von Hand; das Journal zeigt jede Änderung.", "Einzelne Felder oder ganze Titel lassen sich zurücksetzen."],
-  backups: ["Vor jedem Speichern sichert TagStudio die Tags der betroffenen Titel.", "Hier ansehen, vergleichen und wiederherstellen.", "Speicherort unter Einstellungen › Sicherungen."],
-  plugins: ["Plugins erweitern TagStudio (Online-Metadaten, Beatport, Stems …).", "Mit dem Schalter ein-/ausschalten; manche brauchen eine Installation.", "Aktionen erscheinen danach im Tagger unter „Plugins“."],
+  mixes: ["Plugin „Mix analysieren“ installieren (Plugins) und einmal „Bibliothek indexieren …“ – danach führt TagStudioSX den Index selbst nach.", "„Mix analysieren …“: Mix-Datei wählen, optional die bekannte Tracklist; auf Wunsch im Hintergrund.", "Treffer prüfen (▶ Mix / ▶ Titel), falsche mit ✕ verwerfen, dann als Playlist, CUE oder Text speichern."],
+  snapshots: ["Bibliothek hinzufügen – TagStudioSX merkt sich den Tag-Stand aller Titel.", "Snapshots täglich oder von Hand; das Journal zeigt jede Änderung.", "Einzelne Felder oder ganze Titel lassen sich zurücksetzen."],
+  backups: ["Vor jedem Speichern sichert TagStudioSX die Tags der betroffenen Titel.", "Hier ansehen, vergleichen und wiederherstellen.", "Speicherort unter Einstellungen › Sicherungen."],
+  plugins: ["Plugins erweitern TagStudioSX (Online-Metadaten, Beatport, Stems …).", "Mit dem Schalter ein-/ausschalten; manche brauchen eine Installation.", "Aktionen erscheinen danach im Tagger unter „Plugins“."],
   settings: ["Alles an einem Ort, Sprungmarken oben.", "Export/Import der Einstellungen, auch zwischen Profilen.", "Hier lässt sich der Einrichtungsassistent erneut starten."],
   help: ["Tag-Übersicht: Bedeutung jedes Tags, mit Zähler aus deiner Bibliothek.", "Handbuch und alle Tastenkombinationen.", "Einrichtungsassistent und „Erste Schritte“ jederzeit neu starten."],
 };
@@ -108,27 +108,27 @@ async function wizardRun() {
   };
   const body = () => {
     switch (W.step) {
-      case 0: return `<h2>Willkommen bei TagStudio</h2>${typeof i18nPickerHtml === "function" ? `<div class="wiz-lang">${i18nDropHtml("wiz")}</div>` : ""}<p class="muted">In ein paar Schritten richtest du TagStudio für deine Arbeit ein. Alles lässt sich später unter Einstellungen ändern – jeder Schritt kann übersprungen werden.</p>
+      case 0: return `<h2>Willkommen bei TagStudioSX</h2>${typeof i18nPickerHtml === "function" ? `<div class="wiz-lang">${i18nDropHtml("wiz")}</div>` : ""}<p class="muted">In ein paar Schritten richtest du TagStudioSX für deine Arbeit ein. Alles lässt sich später unter Einstellungen ändern – jeder Schritt kann übersprungen werden.</p>
         <h4>Was willst du vor allem tun?</h4><div class="wiz-opts">${WIZ_GOALS.map(([id, t, sub]) => chk("goal", id, W.goals.has(id), t, sub)).join("")}</div>
         <p class="muted sm">Die passenden Menüpunkte werden als <span class="rec-dot">★</span> empfohlen markiert – die anderen bleiben erreichbar.</p>`;
-      case 1: return `<h2>Speicherort</h2><p class="muted">Auf welchem Laufwerk soll deine Musik liegen? Der <b>Basisordner</b> wird gemerkt: Jede Ordnerauswahl in TagStudio beginnt dort, damit du dich nicht jedes Mal durchklicken musst.</p>
+      case 1: return `<h2>Speicherort</h2><p class="muted">Auf welchem Laufwerk soll deine Musik liegen? Der <b>Basisordner</b> wird gemerkt: Jede Ordnerauswahl in TagStudioSX beginnt dort, damit du dich nicht jedes Mal durchklicken musst.</p>
         <div class="wiz-drives">${(fo.drives || []).map((d) => `<button class="wiz-drive ${W.base.toLowerCase().startsWith(d.root.toLowerCase()) ? "on" : ""}" data-wdrive="${esc(d.root)}"><b>${esc(d.root)}</b><span>${esc(d.label || d.kind || "")}</span><span class="muted sm">${gb(d.free)} frei von ${gb(d.total)}</span></button>`).join("")}</div>
         <div class="frm"><label for="wBase">Basisordner</label>${pathIn("wBase", W.base, fo.suggest || "")}</div>
         <h4>Wie möchtest du starten?</h4><div class="wiz-opts">
-          <label class="wiz-opt"><input type="radio" name="wMode" value="struct" ${W.mode === "struct" ? "checked" : ""}><span><b>Empfohlene Ordnerstruktur anlegen</b><span class="muted sm">Neue Musik, Bibliothek, Archiv, Downloads, Arbeitsordner und Sicherung als Unterordner – TagStudio stellt alles passend ein. Vorhandene Ordner bleiben, es wird nichts verschoben.</span></span></label>
+          <label class="wiz-opt"><input type="radio" name="wMode" value="struct" ${W.mode === "struct" ? "checked" : ""}><span><b>Empfohlene Ordnerstruktur anlegen</b><span class="muted sm">Neue Musik, Bibliothek, Archiv, Downloads, Arbeitsordner und Sicherung als Unterordner – TagStudioSX stellt alles passend ein. Vorhandene Ordner bleiben, es wird nichts verschoben.</span></span></label>
           <label class="wiz-opt"><input type="radio" name="wMode" value="own" ${W.mode !== "struct" ? "checked" : ""}><span><b>Bestehende Ordner wählen</b><span class="muted sm">Deine Musik liegt schon irgendwo – du wählst Bibliothek und Eingangsordner selbst (Auswahl beginnt im Basisordner).</span></span></label></div>`;
       case 2: return W.mode === "struct"
         ? `<h2>Ordnerstruktur</h2><p class="muted">Unter <b>${esc(W.base)}</b> werden diese Ordner angelegt (Namen änderbar):</p>
           <div class="wiz-struct">${(fo.structure || []).map((x) => `<input data-wname="${esc(x.id)}" value="${esc(W.names[x.id] || x.name)}" spellcheck="false" aria-label="${esc(x.desc)}"><span class="muted sm">${esc(x.desc)}</span>`).join("")}</div>
-          <p class="muted sm">TagStudio sichert nur die Tags (wenige MB). Gegen den Verlust des Laufwerks sichere die Musik zusätzlich auf ein anderes Laufwerk oder in die Cloud.</p>`
+          <p class="muted sm">TagStudioSX sichert nur die Tags (wenige MB). Gegen den Verlust des Laufwerks sichere die Musik zusätzlich auf ein anderes Laufwerk oder in die Cloud.</p>`
         : `<h2>Deine Musik</h2><p class="muted">Der <b>Bibliotheksordner</b> öffnet sich beim Start im Tagger. Der <b>Eingangsordner</b> ist der Ordner, in dem neue Musik landet (für „Vorbereiten“).</p>
         <div class="frm"><label for="wLib">Bibliothek</label>${pathIn("wLib", W.lib, "z. B. " + (W.base || "S:\\Musik") + "\\01_Library")}
         <label for="wInbox">Eingangsordner (optional)</label>${pathIn("wInbox", W.inbox, "z. B. " + (W.base || "S:\\Musik") + "\\00_New")}</div>`;
-      case 3: return `<h2>Sicherheit</h2><p class="muted">TagStudio verändert nur Tags, nie das Audio. Trotzdem lohnt sich ein Netz:</p>
+      case 3: return `<h2>Sicherheit</h2><p class="muted">TagStudioSX verändert nur Tags, nie das Audio. Trotzdem lohnt sich ein Netz:</p>
         <div class="wiz-opts"><label class="wiz-opt"><input type="checkbox" id="wBackup" ${W.backup ? "checked" : ""}><span><b>Vor jedem Speichern sichern</b><span class="muted sm">Die Tags der betroffenen Titel werden vorher abgelegt und lassen sich wiederherstellen.</span></span></label>
         ${W.lib || W.mode === "struct" ? `<label class="wiz-opt"><input type="checkbox" id="wSnap" ${W.snap ? "checked" : ""}><span><b>Bibliothek mit Snapshots überwachen</b><span class="muted sm">Merkt sich den Tag-Stand aller Titel; das Journal zeigt später jede Änderung – auch von anderen Programmen.</span></span></label>` : ""}</div>
         ${W.mode === "struct" ? `<p class="muted sm">Sicherungen und Snapshots kommen in ${esc(W.base)}\\${esc(W.names.backup || "99_Sicherung")}.</p>` : `<div class="frm"><label for="wBackupDir">Ordner für Sicherungen</label>${pathIn("wBackupDir", W.backupDir, pg.backup_dir ? `leer = wie bisher (${pg.backup_dir})` : "leer = Standard")}</div>`}`;
-      case 4: return `<h2>Deine Programme</h2><p class="muted">Welche Programme nutzt du? TagStudio erkennt deren Tags (Herkunft), schaltet passende Plugins ein und stellt den Vorbereiten-Ablauf darauf ein.</p>
+      case 4: return `<h2>Deine Programme</h2><p class="muted">Welche Programme nutzt du? TagStudioSX erkennt deren Tags (Herkunft), schaltet passende Plugins ein und stellt den Vorbereiten-Ablauf darauf ein.</p>
         <div class="wiz-opts cols">${WIZ_PROGRAMS.map(([id, t, plug]) => chk("prog", id, W.programs.has(id), t, plug ? "Plugin zum Übernehmen der Analysewerte" : "")).join("")}</div>
         ${W.goals.has("prep") && prep ? `<label class="check"><input type="checkbox" id="wAdapt" ${W.adapt ? "checked" : ""}> Vorbereiten-Workflow anpassen: Schritte für nicht genutzte Programme entfernen</label>` : ""}`;
       case 5: return `<h2>Online-Dienste <span class="muted sm">(optional)</span></h2><p class="muted">Plugins, die Daten aus dem Internet holen oder mehr Speicher brauchen. Anmeldungen und Schlüssel gibst du später selbst unter Plugins ein.</p>
@@ -216,7 +216,7 @@ async function wizardApply(W, prep, pl) {  // eslint-disable-line no-param-reass
   if (typeof pl2Pref === "function") pl2Pref("layout", W.layout);
   if (W.mode !== "struct") await call("folders_adopt").catch(() => {});   // #310: gewählte Ordner als Rollen
   SETUP.st = await call("setup_finish", rec, W.firstSteps);
-  toast("Eingerichtet – viel Spass mit TagStudio!");
+  toast("Eingerichtet – viel Spass mit TagStudioSX!");
   const start = rec[0] || "tagger";
   setModule(start, { side: true });
   if (start === "tagger" && W.lib && typeof taggerAutoStart === "function") taggerAutoStart().catch(() => {});
@@ -240,7 +240,7 @@ async function whatsNew() {
   try { r = await call("whats_new"); } catch (e) { return; }
   if (!r || !r.show) return;
   await modalIdle();                                     // nicht über einen anderen Startdialog legen
-  await modal({ title: `Neu in TagStudio ${esc(S.settings.version)}`, wide: true,
+  await modal({ title: `Neu in TagStudioSX ${esc(S.settings.version)}`, wide: true,
     html: `<div class="md wn">${r.parts.map((p) => `<h3>${esc(p.version)}</h3>${mdLite(p.notes)}`).join("")}</div>`,
     buttons: [{ label: "Alle Versionshinweise …", value: "all" }, { label: "OK", value: true, primary: true }] }).then((v) => { if (v === "all") showReleaseNotes(); });
   call("whats_new_seen").catch(() => {});

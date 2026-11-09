@@ -1,4 +1,4 @@
-# MarKusSXCH TagStudio – Manual
+# TagStudioSX – Manual
 
 *English version – [Deutsch](HANDBUCH.md) is the source and may be more up to date.*
 
@@ -62,7 +62,7 @@ From find to DJ set: **Discover → Ideas → Cart → Purchases → Prepare →
 
 | | |
 |---|---|
-| Installed | **TagStudio** in the Start menu or under Applications |
+| Installed | **TagStudioSX** in the Start menu or under Applications |
 | Source code Windows | `start_windows.bat` (or `start_web_windows.bat`) |
 | Source code macOS | `start_mac.command` (or `start_web_mac.command`) |
 | Terminal | `python tagstudio_web.py [left] [right]` – with `--browser` in the browser instead of its own window |
@@ -76,11 +76,11 @@ The first, classic interface (tkinter) has been frozen since version 3.0 – see
 
 Download the latest version under [Releases](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases):
 
-- **Windows:** run `TagStudio-<version>-Windows-Setup.exe`. Installs without administrator rights to
+- **Windows:** run `TagStudioSX-<version>-Windows-Setup.exe`. Installs without administrator rights to
   `%LOCALAPPDATA%\Programs\TagStudio`, with a Start menu entry, optional desktop icon and uninstall via
   “Apps & features”. The installer is not signed – if “Windows protected your PC” appears:
   **More info → Run anyway**.
-- **macOS (Apple chip):** open `TagStudio-<version>-macOS-Apple-Chip.dmg`, drag **TagStudio** to **Applications**.
+- **macOS (Apple chip):** open `TagStudioSX-<version>-macOS-Apple-Chip.dmg`, drag **TagStudioSX** to **Applications**.
   From 4.13.0 the app is signed with “Developer ID” and notarised by Apple – it starts without asking. Older versions:
   close the message on first start, then **System Settings → Privacy & Security → “Open Anyway”** (details in
   “Zuerst lesen.txt” in the disk image).
@@ -88,7 +88,7 @@ Download the latest version under [Releases](https://github.com/MarkusKeller8200
 **Verify the download (#406, #407):** from 4.14.0 the release notes show the **SHA-256** checksum and a link to the
 **VirusTotal** report for each installer; `SHA256SUMS.txt` lists the checksums of all release files. Compare before
 running: Windows (PowerShell) `Get-FileHash .\TagStudio-<version>-Windows-Setup.exe -Algorithm SHA256`, macOS (Terminal)
-`shasum -a 256 TagStudio-<version>-macOS-Apple-Chip.dmg` – the value shown must match exactly. Only then choose “Run
+`shasum -a 256 TagStudioSX-<version>-macOS-Apple-Chip.dmg` – the value shown must match exactly. Only then choose “Run
 anyway” at the Windows warning. The one-click update checks the checksum itself.
 
 The installed app contains the new interface including plugins (stems sets up its own environment the first time it
@@ -124,7 +124,7 @@ too).
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/tagger-dark.png"><img alt="Tagger: list, cover and editor" src="screenshots/tagger-light.png"></picture>
 
-- **Back quickly:** a folder that was already read appears immediately from the list cache; TagStudio then checks
+- **Back quickly:** a folder that was already read appears immediately from the list cache; TagStudioSX then checks
   every track in the background via a hash of its tags and re-reads what has changed (progress in the status line).
   On app start the tagger shows the **last displayed list immediately** (view only, note “being checked in the
   background …”) and replaces it once reading is done – changes are reported in the status line.
@@ -226,23 +226,23 @@ name each field is stored in each format.
 - **WAV and AIFF** carry a complete ID3 tag in a separate **ID3 chunk** – the same fields as MP3 (text, custom fields,
   cover, rating, lyrics, Serato data).
 - **FLAC** and **OGG/Opus** use Vorbis comments (`TITLE`, `ARTIST`, `INITIALKEY` …), **M4A** uses iTunes atoms (`©nam`,
-  `trkn`, `----:com.apple.iTunes:…`). TagStudio translates them into its fields; unchanged fields keep their names and
+  `trkn`, `----:com.apple.iTunes:…`). TagStudioSX translates them into its fields; unchanged fields keep their names and
   order, unknown fields and Serato data stay unchanged. Fields the format does not have (e.g. rating, binary fields,
   links) are **not written and reported** when saving. In M4A, BPM is whole numbers only. FLAC uses the padding in the
   file (then only the tag area is written); for M4A the references to the audio data are updated. In both cases
-  TagStudio checks before replacing that the audio stays byte-identical. OGG/Opus is read only for now.
+  TagStudioSX checks before replacing that the audio stays byte-identical. OGG/Opus is read only for now.
 - **Raw AAC (.aac, #455)** has no tag system of its own and is **read only** (ID3v2 in front or ID3v1 at the end, if
   present). To keep tags, save the file as M4A: Convert › **M4A – AAC** repacks `.aac` **without re-encoding** (no
   quality loss; the bitrate does not apply).
 
-- When saving, TagStudio only replaces the ID3 chunk (or appends one). All other parts of the file – audio, RIFF INFO,
+- When saving, TagStudioSX only replaces the ID3 chunk (or appends one). All other parts of the file – audio, RIFF INFO,
   `bext`, cue points, AIFF texts – stay **byte-identical**; the checksum of the audio data is compared before and
   after, otherwise nothing is saved. Backups and “Restore” work as with MP3.
 - If a WAV file only has an INFO block (or an AIFF file only NAME/AUTH), those fields are shown; saving then writes a
   new ID3 chunk and leaves INFO unchanged.
 - WAV files over 4 GB (RF64) and damaged files are not saved. WAV/AIFF have no ID3v1.
 - **Player (#448, #454):** WAV, AIFF, FLAC, M4A and OGG/Opus play in the preview player like MP3 (waveform, seeking;
-  cues from the ID3 chunk for WAV/AIFF). TagStudio serves AIFF internally as WAV; **ALAC** (lossless M4A) is converted
+  cues from the ID3 chunk for WAV/AIFF). TagStudioSX serves AIFF internally as WAV; **ALAC** (lossless M4A) is converted
   once with FFmpeg into a WAV copy in the cache (`~/TagStudio/cache/play`, at most 2 GB) on first playback – the files
   themselves are not changed. Compressed AIFC (e.g. µ-law) is not played.
 - **Convert (#451, #456):** right-click on selected tracks › **Convert (WAV, AIFF, FLAC, M4A, MP3) …** creates a new
@@ -294,7 +294,7 @@ status and note (click the note to edit it).
   “Artist - Title (Mix)” per line, e.g. from a tracklist). Duplicates (same suggestion, same store ID or same artist +
   title + mix) are not added again. From SonoVault suggestions only artist, title and mix are taken over.
 - **Status:** 🛒 marks a track for buying, ✕ drops it (stays under “Dropped”, ↺ brings it back). **Bought** is
-  detected by TagStudio itself via the **Purchases** list (same Beatport ID or artist + title + mix), **In library** as
+  detected by TagStudioSX itself via the **Purchases** list (same Beatport ID or artist + title + mix), **In library** as
   soon as a file is linked – automatically when taken over into the library (“Prepare”) or with “Match with library”.
   Filters: Open, Buy, Bought, In library, Dropped, All.
 - **Select** (check boxes) several entries: set status, move, remove (with confirmation); right-click an entry: status,
@@ -400,7 +400,7 @@ player A or B.
 be imported), CSV for Excel with transition ratings, and write **track numbers in set order** (preview, can be undone,
 saved as usual).
 
-TagStudio remembers the set and the options; tracks from another folder stay in the set but appear grey until their
+TagStudioSX remembers the set and the options; tracks from another folder stay in the set but appear grey until their
 folder is loaded in the tagger again.
 
 **Playlist ▾** (top): save the set as a playlist (new ones go into the folder “DJ-Sets”, with locks and options) or
@@ -416,7 +416,7 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
   an existing one or create a new one with a folder. **Ctrl+Shift+P** puts the selected tracks into the most recently
   used playlist. In the DJ set the same works by right-clicking a track. **“Search online ›”** in the right-click menu
   (tagger, playlists, DJ set) opens the search at Beatport, Spotify, SoundCloud, Apple Music or YouTube with artist and
-  title – also for entries without a file. If a track is already contained, TagStudio
+  title – also for entries without a file. If a track is already contained, TagStudioSX
   asks: skip or add anyway (duplicates are allowed).
 - **Manage:** on the left the tree with folders (any depth), “Recently used” and search; dragging playlists onto a
   folder moves them. Right-click: rename (F2), duplicate, move, colour and note, merge with others, archive. On the
@@ -430,7 +430,7 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
 - **Playlist folder:** every playlist is also stored as M3U8 (relative paths) in `03_Playlists` in the base folder,
   subfolders as in the tree – for reading into Engine DJ, VirtualDJ and other programs. Set it under Settings ›
   Storage and folders. If another program changes a file there or adds a new one, the page reports it (“Changes in
-  the folder …”) – take over, keep or ignore; TagStudio never overwrites anything without asking.
+  the folder …”) – take over, keep or ignore; TagStudioSX never overwrites anything without asking.
 - **Smartlists (⚡):** “+ Smartlist” creates a playlist that fills itself by rules – e.g. “BPM 124–128 and ★ ≥ 4”.
   Source: the library (tagger default folder, library from “Prepare” or `01_Library`, with list cache), the tracks
   loaded in the tagger (including unsaved changes) or another playlist. Rules on text, artist, title, album, genre,
@@ -451,7 +451,7 @@ Collect and arrange tracks and make them available to DJ programs. Page **Playli
   DJ …”, “From VirtualDJ …”** and “From Lexicon …” fetch the playlists of these programs (crates, playlists with
   folders, virtual folders) – the library is looked for in the usual place and on external drives and **only read**;
   fetching again updates them. **“Paste tracklist …”** takes over a copied tracklist from 1001Tracklists, MixID,
-  Beatport etc. (one “Artist - Title” per line) as entries without a file; TagStudio does not fetch any web page.
+  Beatport etc. (one “Artist - Title” per line) as entries without a file; TagStudioSX does not fetch any web page.
   For MixID and 1001Tracklists the dialog shows short instructions with a link (open the mix in your browser, select
   and copy the tracklist, paste it); timestamps also above 99 minutes (“106:00”).
   **“Recognise from mix …”** (with the “Analyse mix” plugin) finds the tracks of your library in a mix file and saves
@@ -479,7 +479,7 @@ Recognise the tracks of your library in a **mix file** (DJ set, radio show, your
 entirely locally with the “Analyse mix” plugin (own environment with NumPy, SciPy, FFmpeg, about 100 MB – “Install …”
 under Plugins); nothing is uploaded or downloaded.
 
-- **Once “Index library …”** (background job, about 0.4 MB per track). Afterwards TagStudio updates the index by
+- **Once “Index library …”** (background job, about 0.4 MB per track). Afterwards TagStudioSX updates the index by
   itself: new tracks after “Prepare”, at start in the background, moved tracks immediately (**Options …**).
 - **“Analyse mix …”:** choose the mix file, optionally the known tracklist (one “Artist - Title” per line, ideally
   with timestamps, also copied straight from YouTube) for comparison; optionally **in the background** (progress in
@@ -500,7 +500,7 @@ under Plugins); nothing is uploaded or downloaded.
   “Recognised online as ideas” keeps them in a wish list. Spots already checked are not sent again. For your own use
   only – do not publish such tracklists.
 - **Gaps from the tracklist (free):** if the analysis has a known tracklist with timestamps (inserted when analysing or
-  later with “Insert tracklist …”), TagStudio fills every gap with the entry whose time lies in it (at most 60 s next to
+  later with “Insert tracklist …”), TagStudioSX fills every gap with the entry whose time lies in it (at most 60 s next to
   it) – marked “from tracklist”. Only what is left needs online recognition.
 - **Link with the library:** tracks without a file (recognised online or from the tracklist) are linked automatically
   with the new file after “Prepare” (“linked · SonoVault”), including a saved playlist; by hand with “Match with
@@ -515,26 +515,26 @@ under Plugins); nothing is uploaded or downloaded.
 Bought tracks from all stores in one place – **Beatport** for now (sign in to the Beatport plugin). Page **Purchases**
 in the sidebar: table with title, artist, mix, length, key, BPM, catalogue number, store, purchase date (if the store
 provides it, otherwise “first seen”) and a link to the store. Drag the edge of a column header to change its width
-(double-click: fit to content, ←/→ on the handle; right-click the header row: reset) – TagStudio remembers it, in the
+(double-click: fit to content, ←/→ on the handle; right-click the header row: reset) – TagStudioSX remembers it, in the
 Tag fixer as well. The **⇔ “Best Match”** icon above the table (in the Tagger at the left of the table header) spreads the visible columns over the available width by content
 (fixed columns like the checkbox stay). Double-click a found purchase to play the file. **“↻ Refresh”** fetches new purchases and matches
 everything with the library: *in library*, *in inbox*, *unclear* or *missing*. **“Download missing”** (or the selected
 ones) puts the files unchanged into the inbox folder (`00_New` or the inbox of “Prepare”, changeable under
 “Folder …”) – continue from there as usual. Pre-orders are not downloaded. Beatport does not officially offer
 downloading. If Beatport refuses the saved access for it, a window **“Sign in to download”** appears: sign in like on
-the website, valid only while TagStudio is running (password and token are not saved), then TagStudio downloads the
-tracks again right away; “● Beatport: session …” shows the sign-in, “Sign out” ends it. If that fails too, TagStudio
+the website, valid only while TagStudioSX is running (password and token are not saved), then TagStudioSX downloads the
+tracks again right away; “● Beatport: session …” shows the sign-in, “Sign out” ends it. If that fails too, TagStudioSX
 shows how to download the tracks yourself on Beatport's download page and take them over with “Fetch”.
 **“Beatport playlists ▾”** (only with the setting switched on in the Beatport plugin, off by default):
 “Download Tracks …” puts the tracks without a file into playlists `TagStudio_DOWNLOAD_<date>_<n>` of 100 each – open
 the playlist in Beatport and add all to the download; “Playlists per purchase date …” creates or completes
 `TagStudio_BUY_YYYY_MM_DD` (one playlist per date with all tracks); “Clean up …” deletes the download playlists after confirmation. **If “Download missing” cannot download a track**,
-TagStudio releases it for download at Beatport automatically and shows the **save location to copy** (paste it as the
-target in the browser) plus “Open downloads at Beatport”; TagStudio detects the files downloaded in the browser (also ZIP)
+TagStudioSX releases it for download at Beatport automatically and shows the **save location to copy** (paste it as the
+target in the browser) plus “Open downloads at Beatport”; TagStudioSX detects the files downloaded in the browser (also ZIP)
 on the page itself and **links** them (“Take over downloads” works by hand too). **“Move to library …”** moves purchases
 “in inbox” into a library (never overwriting) and opens them in the Tagger if you like. **“Release for download again …”** (also in the
 right-click menu) resets the download of the selected or missing purchases at Beatport – they then appear in the
-download queue at Beatport (after confirmation, does not need the playlist setting). TagStudio never changes other
+download queue at Beatport (after confirmation, does not need the playlist setting). TagStudioSX never changes other
 playlists. **“Strict”** matches only when artist, title and mix fit – even with the same ISRC. **“Check unclear …”** (with selected rows “Check selected …”; clicking an unclear purchase opens it directly,
 right-click shows the context menu with “Correct …”) opens a wide correction window per reason: for several matches the candidates with their tags to
 choose from, for a different mix the file's title, subtitle and file name to adjust (“Like the purchase”, “Change and
@@ -598,7 +598,7 @@ At the bottom in the footer (or at the top, see below) – in tagger and compari
   remembered. For tracks with cue points two buttons jump to the previous/next cue.
 - **Waveform:** calculated once on first play and stored in the cache (`~/TagStudio/cache/wave`, stays valid when
   editing tags and renaming); can be switched off in the ⋯ menu or in the settings.
-  **Waveform in the MP3** (#222, Settings › Backups and saving, off by default): when saving, TagStudio also stores it
+  **Waveform in the MP3** (#222, Settings › Backups and saving, off by default): when saving, TagStudioSX also stores it
   as its own GEOB “TagStudio Overview” (about 1.6 KB) in the file – it then travels with the file and survives clearing
   the cache. Serato fields stay untouched; without a cache the player shows its own waveform first, then Serato's.
 - **Cue marks** from Serato (cues and loops with colour and name) and Mixed In Key above the bar: a click jumps
@@ -634,7 +634,7 @@ At the bottom in the footer (or at the top, see below) – in tagger and compari
   (Settings › Player) can be switched off – then the pitch changes with the tempo like on a turntable. The waveform
   shows grid lines (bar/phrase stronger, estimated ones paler). **Sync** in player B brings it to the tempo and – with
   a beatgrid – onto the beat of player A. The **magnifier** shows a high-resolution section around the position with
-  the Serato grid above and TagStudio's own analysis below.
+  the Serato grid above and TagStudioSX's own analysis below.
   **Metronome during transitions:** if the metronome is active for A, it stays tied to the beatgrid of the old track
   during an automatic crossfade until it has completely faded out; then it switches to the new grid automatically. It
   also stays active when the new grid only becomes available through the audio analysis. Player B stays independent.
@@ -677,22 +677,22 @@ For libraries that other programs edit too (Mp3tag, beaTunes, Mixed In Key, Plat
   back byte-exactly” (exactly the snapshot state including Serato/cue data, backup first; tracks with changed audio are
   skipped).
 - **Several folders** with colour, unique name and path; display name and folder can be changed, the daily snapshot
-  can be switched off per folder. As long as no folder is watched, TagStudio points this out on start.
+  can be switched off per folder. As long as no folder is watched, TagStudioSX points this out on start.
 - **Automation:** one snapshot per folder once a day, on start the question with the number of changed tracks (both
   can be switched off). Clean-up: 20 automatic ones + one per week for the last 12 weeks (adjustable).
 - **Storage space** per snapshot, per folder and in total; the sum is also shown in the sidebar.
 - **⚑ New baseline:** set the current state (new snapshot) or an existing snapshot as the new starting point and
   delete older snapshots; pinned ones only if explicitly chosen. The baseline is marked and never deleted when
   cleaning up.
-- **Watching while TagStudio runs:** every 5 minutes (adjustable) a thrifty look at size and modification time; “n
-  tracks changed externally” in the footer opens the journal. TagStudio's own saves do not count.
+- **Watching while TagStudioSX runs:** every 5 minutes (adjustable) a thrifty look at size and modification time; “n
+  tracks changed externally” in the footer opens the journal. TagStudioSX's own saves do not count.
 - **In the comparison:** choose a **snapshot** on the left or right (📷 next to the path) – read-only, values only go
   towards the real files. Matching by **“audio content”** also finds renamed and moved tracks.
 - **Change the storage location:** the whole store is copied, checked and only then removed at the old location –
   e.g. into the MP3 folder (`.tagstudio-snapshots`) to pass it on with its history. When a folder with such a store
-  is read, TagStudio offers to use it.
+  is read, TagStudioSX offers to use it.
 - **Log** per snapshot job in `Logs/snapshots.log`: start, end, duration, tracks, errors and storage space.
-- Independently of this, TagStudio protects against overwriting changes made elsewhere when **saving**: it shows what
+- Independently of this, TagStudioSX protects against overwriting changes made elsewhere when **saving**: it shows what
   another program has changed since reading and, if wanted, takes it over together with your own changes.
 
 ### Backups
@@ -721,7 +721,7 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
   “From Beatport …” (entries without a file with a link, read only).
 - **Online metadata:** album, date, label, catalogue number, ISRC, genre, cover and more from MusicBrainz (also via
   AcoustID fingerprint), Deezer, Spotify, iTunes, SoundCloud, Discogs, **SonoVault** (own key, Free: 1000 requests per
-  month – TagStudio counts along; BPM/key for comparison only, platform IDs display only) and Last.fm. Default: only complete empty fields; per field the first
+  month – TagStudioSX counts along; BPM/key for comparison only, platform IDs display only) and Last.fm. Default: only complete empty fields; per field the first
   source is preselected, others appear as alternatives. Discogs token, Last.fm and AcoustID keys under Plugins ›
   Online metadata › “Key …” (stored encrypted); “Test connections” checks the services.
 - **SonoVault also:** optionally own fields `TXXX:SONOVAULT_*` with origin “SonoVault” (option in online metadata),
@@ -740,7 +740,7 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
 - **Take over beaTunes:** MOOD_DANCEABILITY, MOOD_ACOUSTIC, MOOD_HAPPY, MOOD_AGGRESSIVE (written into the files by
   beaTunes) as audio features. **Take over Lexicon:** danceability, energy, happiness, optionally rating, popularity,
   color and custom tags via the Lexicon Local API (matched by path or artist + title). Both with **matching**: if a
-  value in the file was changed since the last takeover, the suggestion is not ticked – TagStudio asks. Lexicon also:
+  value in the file was changed since the last takeover, the suggestion is not ticked – TagStudioSX asks. Lexicon also:
   open selected tracks and playlists, optionally update paths, add new tracks, write tags back and **send playlists**
   (Playlists › More ▾ › “Send to Lexicon …”: creates the playlist in Lexicon, sending again inserts missing tracks at
   their position and removes nothing; only with writing back switched on, see [PLUGINS.en.md](../PLUGINS.en.md)).
@@ -753,7 +753,7 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
 
 ### Update, layout, keyboard
 
-- **Update:** “Check for update” at the bottom of the sidebar; TagStudio checks by itself on start and every 15
+- **Update:** “Check for update” at the bottom of the sidebar; TagStudioSX checks by itself on start and every 15
   minutes (dot on the button) and announces a new version with a **pop-up** (#417: once per version, “Later” = again
   at the next start; never while a task runs). “Don't notify me again” in the pop-up or Settings › Updates › “Notify me
   about a new version” switches the pop-up off – then only the marker on the button remains. Under Settings › Updates: **official versions only** or **beta versions too**. The installed app shows the
@@ -763,7 +763,7 @@ Page “Plugins”: switch extensions on/off, install missing packages with a bu
 - **Window and program:** at the very bottom of the sidebar full screen (F11 too), window mode (back from full screen
   or maximised), restart and quit. On quitting – also via the window's X – “Saving settings …” appears briefly;
   unsaved changes and running jobs are asked about first. Only **one instance** ever runs; a second start reports
-  “TagStudio is already running”.
+  “TagStudioSX is already running”.
 - **Release notes:** below the update button – what is new in the installed version and, if available, in the newest
   one; below that “More versions” with all older versions to expand; with a link to GitHub.
 - **Splitters:** sidebar, pair list, table columns, editing area and field name column can be dragged (or with ←/→ on
@@ -795,12 +795,12 @@ source:** when a store plugin (e.g. Beatport) is switched on, `90_Download\Beatp
 the workflow gets the source “Beatport” (fetch: download subfolder → inbox subfolder) and purchase downloads go to
 `90_Download\Beatport`; manual downloads belong in `90_Download\_Manuell`. The workflow fields inbox, work and library
 may stay empty – they then follow the roles (inbox, work, main library). **Cloud (OneDrive, Google Drive, Dropbox):** roles and
-libraries may lie in a folder synchronised by the desktop client – TagStudio detects it (“☁ OneDrive”), additionally
+libraries may lie in a folder synchronised by the desktop client – TagStudioSX detects it (“☁ OneDrive”), additionally
 stores the path relative to the sync folder (also valid on a second computer), skips **online-only files** (“files on
 demand”) when reading – nothing downloads unnoticed, can be switched on – and reports **conflict copies** of the client.
 Snapshots, work and backup inside a sync folder get a hint (not recommended). Sync folders and “online-only files” live in their own card **Settings › Cloud** (#324). **Library mirror**
 (#403): in the same card the music is placed as a **one-way copy** into a cloud folder (e.g. private OneDrive – the
-folder is suggested when “Private” is chosen under Plugins › OneDrive › “Account type …”). TagStudio keeps working only
+folder is suggested when “Private” is chosen under Plugins › OneDrive › “Account type …”). TagStudioSX keeps working only
 with the library; nothing is ever changed in the mirror. **Layout** (#413): default is “path of the library without
 drive” – `D:\Musik\DJ` becomes `<OneDrive>\Musik\DJ` (macOS: `/Volumes/Musik/DJ` → `<OneDrive>/DJ`), and `index.json`
 and playlists go to `<OneDrive>/TagStudio/Spiegel`; alternatively “one folder per library, named after it”. Below the
@@ -812,7 +812,7 @@ write playlists as M3U8 with relative paths, set copies “online-only” (Windo
 only reported and deleted after confirmation. The mirror also contains `index.json` (title, artist, BPM, key,
 duration). **Program data backup** (#402): settings (without credentials), playlists
 with ideas/wish lists, purchases, Discover (without SonoVault entries), Prepare, mixes and carts as a ZIP file
-`TagStudio-Programmdaten_<computer>_<date>.zip` into a folder – suggested `OneDrive/TagStudio/Sicherung` (#415) – manually (“Back up
+`TagStudioSX-Programmdaten_<computer>_<date>.zip` into a folder – suggested `OneDrive/TagStudio/Sicherung` (#415) – manually (“Back up
 now”), on exit or daily. Never included: credentials, snapshots, caches, music. More backups than “keep” (default 10)
 are deleted only after confirmation. **Restore …** shows a preview (what is replaced, which settings groups – from
 another computer window, path and player settings are not preselected), first backs up the current state
@@ -826,19 +826,19 @@ deleted files – deleting only after confirmation. Music, snapshots, work, cach
 the services. “Change …” (also for the base folder) shows what lies in the
 previous folder (files, size, free space, same names at the target) and asks **Move / Copy / Don't take over** – for
 libraries “Don't take over” is preselected, with a note that Engine DJ, Lexicon, Rekordbox, Serato and VirtualDJ have
-to look for their paths themselves afterwards (TagStudio never changes other databases). Nothing is ever overwritten
+to look for their paths themselves afterwards (TagStudioSX never changes other databases). Nothing is ever overwritten
 (“keep target” or “name (2)”); on the same drive files are renamed, across drives copied, verified with SHA-256 and only
 then removed. The job can be cancelled without half files; references in playlists (M3U8 rewritten), purchases,
 snapshots, `_aussortiert.csv`, Prepare, history and queue are updated; log `Ordnerwechsel.csv` in the export folder; an
 old folder that became empty is only deleted after asking. “Create structure …” creates missing folders. On the first start after the update the previous settings are taken
-over; if the library was entered differently in different places, TagStudio shows the overview **“We found these
+over; if the library was entered differently in different places, TagStudioSX shows the overview **“We found these
 folders”** to decide (nothing is silently dropped). Concept (German): [docs/KONZEPT-ORDNER.md](KONZEPT-ORDNER.md).
-TagStudio only backs up tags – back up the music itself to another drive as well. All storage locations at a glance
+TagStudioSX only backs up tags – back up the music itself to another drive as well. All storage locations at a glance
 (German): [docs/KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md).
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/cloud-dark.png"><img alt="Settings › Cloud: mirror and backup" src="screenshots/cloud-light.png"></picture>
 
-**Profiles:** under Settings › Profiles another profile can be created – an independent TagStudio instance with its
+**Profiles:** under Settings › Profiles another profile can be created – an independent TagStudioSX instance with its
 own settings and data (under `~/TagStudio-Profile/<name>/`). An empty profile starts like a fresh installation with the
 **setup wizard**. Plugins, the stems environment and models are shared. It is started via the profile choice on start,
 a desktop shortcut or `--profil name`; the default profile uses `~/.tagstudio.json` and `~/TagStudio` as before.
@@ -881,7 +881,7 @@ Settings are stored in `~/.tagstudio.json`. Further folders under `~/TagStudio`:
 | `Auftraege.json` | open background jobs (for resuming after a restart) |
 | `Snapshots` | snapshots of watched folders (location adjustable) |
 
-Next to it is `~/.tagstudio.lock`: locked as long as TagStudio runs (one instance only).
+Next to it is `~/.tagstudio.lock`: locked as long as TagStudioSX runs (one instance only).
 
 The unimportant fields (`"trivial"`, placeholder `*`) and your own origin assignments (`"tag_origins"`) can be edited
 in the settings.
@@ -938,6 +938,15 @@ The complete German list is in [README.md](../README.md#dateien).
 
 ## Versions & releases
 
+### New name from 5.0.0: TagStudioSX
+
+Up to version 4.16 the program was called “MarKusSXCH TagStudio”. From 5.0.0 it is **TagStudioSX**, a product of the
+MarKusSXCH brand (“Developed by MarKusSXCH”). **Unchanged:** settings and data (`~/TagStudio`, `~/.tagstudio.json`,
+profiles), the tag fields in your music files (`TAGSTUDIO_…`, “TagStudio Overview”), `TagStudio_…` playlists on Beatport
+and Spotify, plugins and the GitHub address. **New:** program file `TagStudioSX.exe` / `TagStudioSX.app`, downloads
+`TagStudioSX-…`, colours and wordmark. On Windows the update replaces the old version including shortcuts; on macOS
+install 5.0.0 once by hand and then delete `TagStudio.app`.
+
 **Scheme MAJOR.MINOR.PATCH** ([Semantic Versioning](https://semver.org/)), single source: `version.py`.
 PATCH only bug fixes, MINOR new features (the normal case), MAJOR big breaks, pre-releases such as `3.2.0-beta.1` for
 testing. Every change goes into `CHANGELOG.md` under “Unveröffentlicht” right away; `python packaging/release.py X.Y.Z`
@@ -958,7 +967,7 @@ the installers for Windows and macOS (betas Windows only).
 
 ## Classic interface (frozen)
 
-TagStudio's first interface (`tagstudio.py`, tkinter) is **frozen at version 3.0** and no longer developed. It can
+TagStudioSX's first interface (`tagstudio.py`, tkinter) is **frozen at version 3.0** and no longer developed. It can
 compare, copy, edit fields, unify multiple values (tag fixer), back up and restore and has an icon toolbar. Everything
 added since (tagger, snapshots, player, plugins …) is only available in the new interface. Start:
 `start_classic_windows.bat`, `start_classic_mac.command` or `python3 tagstudio.py [left] [right]`. It uses the same
@@ -966,7 +975,7 @@ settings and is German only.
 
 ## Licence
 
-© 2026 Markus Keller. MarKusSXCH TagStudio is free software: you can redistribute it and/or modify it under the terms
+© 2026 Markus Keller. TagStudioSX is free software: you can redistribute it and/or modify it under the terms
 of the [GNU General Public License, version 3](../LICENSE) or (at your option) any later version. The program is
 distributed in the hope that it will be useful, but **without any warranty** – details in the licence. Bundled or
 later installed third-party components (e.g. pywebview, FFmpeg, audio-separator) are under their own licences.

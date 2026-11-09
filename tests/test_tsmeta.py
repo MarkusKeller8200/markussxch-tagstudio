@@ -34,8 +34,8 @@ class TsMetaTest(unittest.TestCase):
         self.assertIsNone(tsmeta.parse("kein Datum"))
         with self.assertRaises(ValueError):
             tsmeta.normalize("31.12.")
-        self.assertEqual(key_label(tsmeta.EDITED), "Letzte Bearbeitung (TagStudio)")
-        self.assertEqual(key_label(tsmeta.ADDED), "In Bibliothek aufgenommen (TagStudio)")
+        self.assertEqual(key_label(tsmeta.EDITED), "Letzte Bearbeitung (TagStudioSX)")
+        self.assertEqual(key_label(tsmeta.ADDED), "In Bibliothek aufgenommen (TagStudioSX)")
 
     def test_edited_only_when_changed(self):
         f = MP3File(self.p)

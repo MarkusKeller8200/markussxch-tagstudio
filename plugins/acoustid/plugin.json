@@ -1,11 +1,11 @@
 {
   "id": "acoustid",
   "name": "AcoustID",
-  "version": "1.1", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
+  "version": "1.2", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
   "min_app": "4.8.0",
   "category": "online",
   "api": 1,
-  "author": "MarKusSXCH TagStudio",
+  "author": "TagStudioSX",
   "description": "Erkennt Titel ohne brauchbare Tags am Klang (Fingerabdruck mit fpcalc/Chromaprint) und findet die passende MusicBrainz-Aufnahme. Eigener, kostenloser Anwendungs-Schlüssel nötig – Anleitung unter „Schlüssel …“. Wird von „Online-Metadaten“ genutzt (braucht das Plugin MusicBrainz).",
   "notes": "Braucht das Programm fpcalc (Chromaprint).",
   "service": {
@@ -70,7 +70,7 @@
         "path": "/submit",
         "label": "Fingerabdruck beitragen",
         "status": "none",
-        "note": "TagStudio lädt nichts hoch",
+        "note": "TagStudioSX lädt nichts hoch",
         "params": []
       },
       {

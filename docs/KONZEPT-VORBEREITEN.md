@@ -9,14 +9,14 @@ Entwurf vom 2026-10-10 – Übersicht #121, Teil-Issues #109–#120 (Label `vorb
 ## Ziel
 
 Neue Titel kommen in einen **Eingangsordner** und durchlaufen einen festgelegten **Workflow** bis in die
-**Bibliothek**. TagStudio führt die Schritte, die es selbst kann, automatisch aus, übergibt die übrigen an externe
+**Bibliothek**. TagStudioSX führt die Schritte, die es selbst kann, automatisch aus, übergibt die übrigen an externe
 Programme, erkennt, wann ein Schritt erledigt ist, und schützt bereits gepflegte Tags. Der Workflow ist frei
 zusammenstellbar, damit ihn auch andere mit ihren Programmen nutzen können; der Workflow des Users wird als
 Vorlage mitgeliefert.
 
 ## Der Workflow des Users (Ausgangslage)
 
-| Nr. | Schritt | Heute | In TagStudio |
+| Nr. | Schritt | Heute | In TagStudioSX |
 |---|---|---|---|
 | 01 | Kauf/Download Beatport → `_01_Original` (Rohdaten, unverändert) | manuell | Eingangsordner überwachen; später Download gekaufter Titel (Machbarkeit offen) |
 | 02 | Mp3tag-Aktionen → `_02_MP3Tag` | Mp3tag | **intern als Tag-Rezept** (siehe unten), automatisch |
@@ -43,7 +43,7 @@ Vorlage mitgeliefert.
 
 ### 2. Workflow-Vorlagen
 - Ein Workflow ist eine geordnete Liste von Schritten; jeder Schritt hat einen Typ:
-  - **Rezept** (TagStudio-Aktionen, automatisch),
+  - **Rezept** (TagStudioSX-Aktionen, automatisch),
   - **Plugin** (z. B. Online-Metadaten, Download, Lautheit),
   - **Extern** (Programm mit Ordner/Dateien öffnen, Abschluss erkennen oder bestätigen),
   - **Kopieren/Verschieben** (in Stufe oder Bibliothek),
@@ -60,17 +60,17 @@ nutzbar. Benötigte Aktionen für das Rezept des Users:
 - **Doppelte Felder entfernen**, wenn der Inhalt gleich ist.
 - **Feld formatieren** (`FILETYPE` = erster Wert, Entsprechung zu Mp3tag `$meta(FILETYPE,0)`).
 - **Felder entfernen** (`COMMENT`, `COMM`).
-- Speichern als **ID3v2.4 und ID3v1** – TagStudio liest ID3v1 heute nur, **Schreiben fehlt noch**.
+- Speichern als **ID3v2.4 und ID3v1** – TagStudioSX liest ID3v1 heute nur, **Schreiben fehlt noch**.
 
 ### 4. Externe Programme
 - Programm je Schritt hinterlegen (Pfad, Argumente mit Platzhaltern für Ordner/Dateien).
 - Abschluss erkennen: Dateien im Ausgabe-Ordner, geänderte Tags, **Herkunfts-Kennzeichen** (Platinum Notes,
   Mixed In Key, beaTunes sind in `origins.py` schon bekannt) – sonst manuell bestätigen.
 - Platinum Notes, Picard und AudioRanger haben nach heutigem Stand keine dokumentierte Kommandozeile; sie werden
-  geöffnet, der User arbeitet dort, TagStudio erkennt das Ergebnis. Für OneTagger ist eine Kommandozeile zu prüfen.
+  geöffnet, der User arbeitet dort, TagStudioSX erkennt das Ergebnis. Für OneTagger ist eine Kommandozeile zu prüfen.
 
 ### 5. Schutzregel „nur ergänzen“
-- Vor einem geschützten Schritt hält TagStudio den Tag-Stand fest (Snapshot-Technik), danach Vergleich:
+- Vor einem geschützten Schritt hält TagStudioSX den Tag-Stand fest (Snapshot-Technik), danach Vergleich:
   neue Felder = ok, geänderte oder entfernte Felder = Warnung mit Liste.
 - Auf Wunsch die alten Werte feldweise zurückschreiben (wie im Änderungsjournal).
 
@@ -135,8 +135,8 @@ Machbarkeit je Dienst (Stand 2026-10):
 
 ## Entscheide des Users (2026-10-10)
 1. **Stufen-Ordner** (`_02_MP3Tag`, `_03_PlatinumNotes`): nach der Übernahme **optional löschen** (Auswahl, mit Rückfrage).
-2. **Platinum Notes:** TagStudio kopiert nach `_03_PlatinumNotes`, Platinum Notes ersetzt die Dateien dort – **ja**.
-3. **Picard, AudioRanger, OneTagger:** **vorerst weiter extern**; wenn TagStudio (4.1.0 Online-Metadaten, nur ergänzend)
+2. **Platinum Notes:** TagStudioSX kopiert nach `_03_PlatinumNotes`, Platinum Notes ersetzt die Dateien dort – **ja**.
+3. **Picard, AudioRanger, OneTagger:** **vorerst weiter extern**; wenn TagStudioSX (4.1.0 Online-Metadaten, nur ergänzend)
    den Funktionsumfang komplett abdeckt, eventuell nicht mehr.
 4. **Schutzregel – welche Felder:** **konfigurierbar** (siehe Abschnitt 5); Vorgabe Variante C mit Option „nur melden“.
 5. **Beatport-Download:** inoffizieller Zugriff ist **akzeptiert**, falls es keinen offiziellen Weg gibt.

@@ -25,10 +25,13 @@ GH = f"https://github.com/{REPO}"
 SITE = "https://markuskeller8200.github.io/markussxch-tagstudio/"
 
 CSS = """
-:root{--bg:#f6f7f9;--card:#fff;--fg:#1b1f24;--muted:#5f6b7a;--line:#e2e6ea;--acc:#1d76db;--acc2:#7a3fd1;--code:#eef1f5;--hl:#fff2a8}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1216;--card:#171b21;--fg:#e8ecf1;--muted:#97a3b3;--line:#262c35;--acc:#5eaaff;--acc2:#c9a2ff;--code:#1f252d;--hl:#5a4a00}}
+:root{--bg:#f6f7f9;--card:#fff;--fg:#1b1f24;--muted:#5f6b7a;--line:#e2e6ea;--acc:#00699E;--acc2:#7952B3;--bv:#7952B3;--bo:#FF8A00;--bb:#007EBB;--bn:#222222;--code:#eef1f5;--hl:#fff2a8}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1216;--card:#171b21;--fg:#e8ecf1;--muted:#97a3b3;--line:#262c35;--acc:#32B8F2;--acc2:#B59AFF;--bv:#B59AFF;--bo:#FF8A00;--bb:#32B8F2;--bn:#F2F5F8;--code:#1f252d;--hl:#5a4a00}}
 *{box-sizing:border-box}html{scroll-padding-top:72px}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 Inter,Aptos,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+/* Wortmarke TagStudioSX (CI-Manual MarKusSXCH v1.0, #467) */
+.wm{font-weight:700;color:var(--bn);white-space:nowrap}.wm .v{color:var(--bv)}.wm .o{color:var(--bo)}.wm .b{color:var(--bb)}
+.sig{color:var(--muted);font-size:.95rem}.sig b{color:var(--fg)}
 a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
 header.top{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 header.top .in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
@@ -103,10 +106,10 @@ def page(title: str, body: str, active: str, desc: str, lang: str = "de", extra_
 <meta property="og:image" content="{SITE}img/social-preview.png"><meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image"><link rel="icon" href="img/icon.png">
 <style>{CSS}</style>{extra_head}</head><body>
-<header class="top"><div class="in"><a class="brand" href="index.html"><img src="img/icon.png" alt="">MarKusSXCH TagStudio</a>
+<header class="top"><div class="in"><a class="brand" href="index.html"><img src="img/icon.png" alt=""><span class="wm" role="img" aria-label="TagStudioSX"><span aria-hidden="true"><span class="v">T</span>ag<span class="o">S</span>tudio<span class="b">SX</span></span></span></a>
 <nav>{links}{other}</nav></div></header>
 {body}
-<footer>MarKusSXCH TagStudio · <a href="{GH}">GitHub</a> · <a href="{GH}/blob/main/LICENSE">GNU GPL v3</a> ·
+<footer>TagStudioSX · Developed by <a href="https://markussx.ch">MarKusSXCH</a> · <a href="{GH}">GitHub</a> · <a href="{GH}/blob/main/LICENSE">GNU GPL v3</a> ·
 <a href="{GH}/issues">Fehler &amp; Ideen</a> · <a href="datenschutz.html">Datenschutz</a> · Diese Seite setzt keine Cookies und lädt nichts von
 fremden Servern.</footer>
 </body></html>
@@ -152,7 +155,8 @@ def landing() -> str:
     news = "".join(f'<div class="tile"><b>{html.escape(t)}</b><span>{html.escape(d)}</span></div>' for t, d in NEWS)
     body = f"""<main>
 <section class="hero"><img class="logo" src="img/icon.png" alt="">
-<h1>MarKusSXCH TagStudio</h1>
+<h1><span class="wm" role="img" aria-label="TagStudioSX"><span aria-hidden="true"><span class="v">T</span>ag<span class="o">S</span>tudio<span class="b">SX</span></span></span></h1>
+<p class="sig"><b>Music Management &amp; DJ Library</b> · Developed by <a href="https://markussx.ch/tagstudio"><b>MarKusSXCH</b></a></p>
 <p class="lead">Der Werkzeugkasten für die MP3-Bibliothek von DJs: entdecken, einkaufen, taggen, vergleichen und
 Sets planen – für Windows und macOS. Kostenlos und quelloffen.</p>
 <div class="dl"><a class="btn" id="dlWin" href="{GH}/releases/latest">⬇ Download für Windows</a>
@@ -166,7 +170,7 @@ Sets planen – für Windows und macOS. Kostenlos und quelloffen.</p>
 <img src="img/tagger-dark.png" alt="" loading="lazy"><button type="button" aria-hidden="true" tabindex="-1">▶</button></div>
 <p>Ein Klick lädt das Video von YouTube (youtube-nocookie.com) – vorher wird nichts von YouTube geladen.
 <a href="https://youtu.be/{YT}">Direkt auf YouTube ansehen</a>.</p></div>
-<h2 class="sec">Was TagStudio kann</h2>
+<h2 class="sec">Was TagStudioSX kann</h2>
 <p class="muted">Vom Fund bis ins DJ-Set: Entdecken → Ideen → Warenkorb → Einkäufe → Vorbereiten → Taggen → DJ-Set → Mixe.</p>
 <div class="grid">{tiles}</div>
 <h2 class="sec">Neu in den letzten Versionen</h2><div class="grid">{news}</div>
@@ -176,7 +180,7 @@ Sets planen – für Windows und macOS. Kostenlos und quelloffen.</p>
 <h2 class="sec">Installation</h2>
 <div class="grid"><div class="tile"><b>Windows</b><span>Setup herunterladen und ausführen – ohne Administratorrechte.
 Der Installer ist nicht signiert: bei „Der Computer wurde durch Windows geschützt“ <i>Weitere Informationen → Trotzdem ausführen</i>.</span></div>
-<div class="tile"><b>macOS (Apple-Chip)</b><span>Disk-Image öffnen, TagStudio auf „Programme“ ziehen und starten. Hinweise
+<div class="tile"><b>macOS (Apple-Chip)</b><span>Disk-Image öffnen, TagStudioSX auf „Programme“ ziehen und starten. Hinweise
 zum ersten Start stehen in „Zuerst lesen.txt“ im Disk-Image.</span></div>
 <div class="tile"><b>Aus dem Quellcode</b><span>Python 3.12 oder neuer, <code>git clone {GH}.git</code>, dann
 <code>start_windows.bat</code> bzw. <code>start_mac.command</code>. Details im <a href="handbuch.html#installation">Handbuch</a>.</span></div></div>
@@ -186,7 +190,7 @@ zum ersten Start stehen in „Zuerst lesen.txt“ im Disk-Image.</span></div>
   const box = document.getElementById("ytBox");
   const go = () => {{
     if (box.querySelector("iframe")) return;
-    box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/{YT}?autoplay=1&rel=0" title="TagStudio Trailer" '
+    box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/{YT}?autoplay=1&rel=0" title="TagStudioSX Trailer" '
       + 'allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
   }};
   box.addEventListener("click", go);
@@ -199,8 +203,9 @@ zum ersten Start stehen in „Zuerst lesen.txt“ im Disk-Image.</span></div>
     const rel = (s.rows || []).find((r) => !r.beta);
     if (rel) {{
       const v = rel.tag.replace(/^v/, ""), base = "{GH}/releases/download/" + rel.tag + "/";
-      document.getElementById("dlWin").href = base + "TagStudio-" + v + "-Windows-Setup.exe";
-      document.getElementById("dlMac").href = base + "TagStudio-" + v + "-macOS-Apple-Chip.dmg";
+      const nm = Number(v.split(".")[0]) >= 5 ? "TagStudioSX-" : "TagStudio-";   // #464: Dateinamen ab 5.0.0
+      document.getElementById("dlWin").href = base + nm + v + "-Windows-Setup.exe";
+      document.getElementById("dlMac").href = base + nm + v + "-macOS-Apple-Chip.dmg";
       document.getElementById("ver").innerHTML = 'Version <b>' + v + '</b> vom ' + rel.date + ' · <a href="' + rel.url + '">Versionshinweise</a>';
     }}
     const t = s.total || {{}}, h = s.history || {{}};
@@ -210,23 +215,23 @@ zum ersten Start stehen in „Zuerst lesen.txt“ im Disk-Image.</span></div>
   }} catch (e) {{ /* Knöpfe führen dann zur Release-Seite */ }}
 }})();
 </script>"""
-    return page("MarKusSXCH TagStudio – MP3-Werkzeugkasten für DJs", body, "index.html",
+    return page("TagStudioSX – MP3-Werkzeugkasten für DJs", body, "index.html",
                 "Kostenloser Werkzeugkasten für die MP3-Bibliothek von DJs: Entdecken, Warenkorb und Einkäufe (Beatport), Tagger, Vergleich, Tag-Fixer, DJ-Set, Mixe – Windows & macOS.")
 
 
 def privacy() -> str:
-    """#376: Datenschutz – was TagStudio (nicht) sammelt und wohin es Verbindungen aufbaut."""
+    """#376: Datenschutz – was TagStudioSX (nicht) sammelt und wohin es Verbindungen aufbaut."""
     body = f"""<main><article style="max-width:860px;margin:0 auto">
 <h1>Datenschutz</h1>
-<p><b>Kurz:</b> TagStudio sammelt keine Nutzungsdaten, hat keine Telemetrie und kein Benutzerkonto. Deine Musik, Tags,
+<p><b>Kurz:</b> TagStudioSX sammelt keine Nutzungsdaten, hat keine Telemetrie und kein Benutzerkonto. Deine Musik, Tags,
 Einstellungen und Zugangsdaten bleiben auf deinem Computer.</p>
-<h2>Was TagStudio auf deinem Computer speichert</h2>
+<h2>Was TagStudioSX auf deinem Computer speichert</h2>
 <ul><li>Einstellungen, Sicherungen, Playlists, Protokolle und Plugin-Daten im Benutzerordner (<code>~/.tagstudio.json</code>,
 <code>~/TagStudio</code>).</li>
 <li>Zugangsdaten für Online-Dienste (z. B. Beatport, Discogs, Cloud-Speicher) nur, wenn du sie selbst einträgst – verschlüsselt
-im Schlüsselbund des Systems (Windows DPAPI bzw. macOS-Schlüsselbund), nie im Klartext und nie an das TagStudio-Projekt.</li></ul>
+im Schlüsselbund des Systems (Windows DPAPI bzw. macOS-Schlüsselbund), nie im Klartext und nie an das TagStudioSX-Projekt.</li></ul>
 <h2>Verbindungen ins Internet</h2>
-<ul><li><b>Update-Prüfung und Plugin-Katalog:</b> TagStudio fragt bei GitHub nach neuen Versionen und Plugins (öffentliche Schnittstelle, ohne Anmeldung).
+<ul><li><b>Update-Prüfung und Plugin-Katalog:</b> TagStudioSX fragt bei GitHub nach neuen Versionen und Plugins (öffentliche Schnittstelle, ohne Anmeldung).
 Dabei sieht GitHub wie bei jedem Webseitenaufruf deine IP-Adresse.</li>
 <li><b>Online-Plugins</b> (MusicBrainz, Deezer, Beatport, Discogs, Spotify, Cloud-Abgleich …) verbinden sich nur, wenn du sie
 einschaltest und benutzt – und nur mit dem jeweiligen Dienst. Es gelten dessen Datenschutzbestimmungen.</li>
@@ -242,8 +247,8 @@ Die Download-Zahlen stammen aus den öffentlichen Zählern von GitHub und enthal
 <h2>Kontakt</h2>
 <p>Fragen zum Datenschutz: über die <a href="{GH}/issues">Issues</a> des Projekts.</p>
 </article></main>"""
-    return page("TagStudio – Datenschutz", body, "datenschutz.html",
-                "Datenschutz bei MarKusSXCH TagStudio: keine Telemetrie, keine Nutzungsdaten, Zugangsdaten nur lokal.")
+    return page("TagStudioSX – Datenschutz", body, "datenschutz.html",
+                "Datenschutz bei TagStudioSX: keine Telemetrie, keine Nutzungsdaten, Zugangsdaten nur lokal.")
 
 
 def _link(url: str, lang: str) -> str:
@@ -303,11 +308,11 @@ def manual(md_path: str, lang: str) -> str:
   }, 180); });
 })();
 </script>""".replace("ABSCHNITTE", "Abschnitt(e) mit Treffern" if de else "section(s) with matches").replace("KEINE", "Keine Treffer" if de else "No matches")
-    title = "TagStudio – Handbuch" if de else "TagStudio – Manual"
+    title = "TagStudioSX – Handbuch" if de else "TagStudioSX – Manual"
     return page(title, f'<main><div class="doc">{toc}<article>{body}</article></div></main>{script}',
                 "handbuch.html" if de else "manual.html",
-                "Handbuch zu MarKusSXCH TagStudio: alle Funktionen, Einstellungen und Tastenkürzel." if de else
-                "Manual for MarKusSXCH TagStudio: all features, settings and shortcuts.", lang)
+                "Handbuch zu TagStudioSX: alle Funktionen, Einstellungen und Tastenkürzel." if de else
+                "Manual for TagStudioSX: all features, settings and shortcuts.", lang)
 
 
 def stats_page() -> str:
@@ -315,7 +320,7 @@ def stats_page() -> str:
     nav = ('<header class="top" style="position:sticky;top:0;z-index:5;border-bottom:1px solid var(--line);background:var(--bg)">'
            '<div style="max-width:960px;margin:0 auto;padding:10px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap">'
            '<a href="index.html" style="display:flex;align-items:center;gap:8px;font-weight:700;color:var(--fg)">'
-           '<img src="img/icon.png" alt="" style="width:26px;height:26px;border-radius:7px">MarKusSXCH TagStudio</a>'
+           '<img src="img/icon.png" alt="" style="width:26px;height:26px;border-radius:7px">TagStudioSX</a>'
            '<span style="margin-left:auto;display:flex;gap:16px"><a href="index.html">Start</a><a href="handbuch.html">Handbuch</a></span>'
            '</div></header>')
     s = s.replace("<head>", '<head>\n<link rel="icon" href="img/icon.png">', 1)

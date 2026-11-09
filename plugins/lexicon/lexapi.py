@@ -5,7 +5,7 @@ Grundlage: offizielle OpenAPI-Beschreibung (https://www.lexicondj.com/developer/
   Klammerschreibweise (filter[location]=…). Alle anderen Methoden bekommen einen JSON-Rumpf.
 - Antworten: {"data": …}; Fehler: {"message", "errorCode"} meist mit HTTP 400.
 - Fehlercode 2 = Lexicon ist mit ändernden Anfragen beschäftigt → kurz warten und wiederholen.
-- Die API hat keine Anmeldung und lauscht im ganzen Netzwerk: TagStudio spricht sie nie über einen Proxy an und
+- Die API hat keine Anmeldung und lauscht im ganzen Netzwerk: TagStudioSX spricht sie nie über einen Proxy an und
   schreibt nur an eine Adresse auf diesem Rechner (is_local), siehe #239.
 """
 from __future__ import annotations

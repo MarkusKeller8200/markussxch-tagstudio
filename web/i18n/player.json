@@ -37,7 +37,7 @@
 "Latenzkorrektur {x}{x} ms gespeichert – gilt für folgende Übergänge.": ["Latency correction {x}{x} ms saved – applies to following transitions.", "Latänzkorrektur {x}{x} ms gspicheret – gilt für di nöchschte Übergäng."],
 "Programm": ["Program", "Programm"],
 "Argumente": ["Arguments", "Argumänt"],
-"Noch kein Player eingerichtet – ohne Eintrag öffnet TagStudio das Standardprogramm des Systems.": ["No player set up yet – without an entry TagStudio opens the system default program.", "Nonig en Player iigrichtet – ohni Iitrag macht TagStudio s Standardprogramm vom System uf."],
+"Noch kein Player eingerichtet – ohne Eintrag öffnet TagStudioSX das Standardprogramm des Systems.": ["No player set up yet – without an entry TagStudioSX opens the system default program.", "Nonig en Player iigrichtet – ohni Iitrag macht TagStudioSX s Standardprogramm vom System uf."],
 "Markierte Titel mit einem anderen Programm öffnen (Knopf ⋯ im Player oder Strg/Cmd+P für den ersten Eintrag). Argumente:": ["Open marked tracks with another program (button ⋯ in the player or Ctrl/Cmd+P for the first entry). Arguments:", "Markierti Titel mit eme andere Programm uftue (Chnopf ⋯ im Player oder Strg/Cmd+P für de erscht Iitrag). Argumänt:"],
 "alle Dateien ·": ["all files ·", "alli Dateie ·"],
 "erste Datei ·": ["first file ·", "erschti Datei ·"],

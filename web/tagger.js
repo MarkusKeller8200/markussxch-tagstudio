@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Tagger: Dateien eines Ordners auflisten, einzeln oder gemeinsam bearbeiten,
+/* TagStudioSX – Tagger: Dateien eines Ordners auflisten, einzeln oder gemeinsam bearbeiten,
    Tags aus Dateinamen, Umbenennen, Spurnummern, Cover. Nutzt Funktionen aus app.js / modules.js. */
 "use strict";
 
@@ -669,7 +669,7 @@ function tgCellValue(r, col) {
   if (col.startsWith("fld:")) return (r.x && r.x[col.slice(4)]) || "";
   return r[col] || "";
 }
-/** #214: Datumsspalten (TagStudio-Zeitstempel) */
+/** #214: Datumsspalten (TagStudioSX-Zeitstempel) */
 const TG_DATE_COL = /^fld:TXXX:TAGSTUDIO_(ADDED|EDITED)$/;
 const tgIsDateCol = (col) => TG_DATE_COL.test(col);
 function tgTs(v) { const t = Date.parse(String(v || "").trim()); return isFinite(t) ? t : null; }
@@ -1084,7 +1084,7 @@ function renderTgEditor() {
       aria-label="${esc(srcPickLabel(sel))}" title="Weitere Felder nach Herkunft filtern – mehrere möglich">${srcPickInner(sel)}</button>
       ${one1 && one1 !== "-" && srcInfo(one1)?.kind !== "id3" ? `<button class="ghost sm" id="tgSrcDel" data-src="${esc(one1)}">Alle entfernen …</button>` : ""}` : "";
   const more = one && d.fields.length ? `<div class="tg-more-tools"><h4>Weitere Felder <span class="muted sm" style="font-weight:400">${shownFields.length === d.fields.length ? d.fields.length : `${shownFields.length} von ${d.fields.length}`}</span></h4>${srcSel}
-      <button class="ghost sm" id="tgMoreSort" title="Weitere Felder sortieren: nach Feld oder nach Herkunft (TagStudio zuerst, dann alphabetisch)">${LAYOUT.tg_more_sort === "src" ? "Sortiert: Herkunft" : "Sortiert: Feld"}</button></div>
+      <button class="ghost sm" id="tgMoreSort" title="Weitere Felder sortieren: nach Feld oder nach Herkunft (TagStudioSX zuerst, dann alphabetisch)">${LAYOUT.tg_more_sort === "src" ? "Sortiert: Herkunft" : "Sortiert: Feld"}</button></div>
     <div class="tg-more">
       <div class="tg-more-head"><span class="k">Feld<span class="col-grip" id="tgMoreGrip" role="separator" aria-orientation="vertical" aria-label="Breite der Feldnamen" tabindex="0" title="Ziehen: Breite ändern · Doppelklick: Standardbreite"></span></span><span>Wert</span><span></span></div>
       ${shownFields.map((f) => {
@@ -1161,7 +1161,7 @@ function tgFieldNames(f) {
   if (name && name.toLowerCase() !== lab.toLowerCase()) return { main: lab, sub: name };
   return { main: lab, sub: "" };
 }
-/** #141: optional nach Herkunft sortieren – TagStudio (eigene Plugins) zuerst, dann alphabetisch, ohne Herkunft zuletzt */
+/** #141: optional nach Herkunft sortieren – TagStudioSX (eigene Plugins) zuerst, dann alphabetisch, ohne Herkunft zuletzt */
 function tgMoreSorted(fields) {
   if (LAYOUT.tg_more_sort !== "src") return fields;
   // #141: offizielle ID3v2.4-Felder, dann TagStudio/Plugins, dann Herkünfte alphabetisch, ohne Herkunft zuletzt

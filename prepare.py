@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Tracks vorbereiten (#109–#116): Eingangsordner → Stufen → Bibliothek.
+"""TagStudioSX – Tracks vorbereiten (#109–#116): Eingangsordner → Stufen → Bibliothek.
 
 Ein **Workflow** ist eine Liste von Schritten (Typen siehe STEP_TYPES). Jeder Titel aus dem Eingangsordner läuft der
 Reihe nach durch; Stufen-Schritte arbeiten auf einer **Kopie** im eigenen Stufen-Ordner (Rohdaten bleiben unverändert).

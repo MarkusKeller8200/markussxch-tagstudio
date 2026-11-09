@@ -1,11 +1,11 @@
 """Gemeinsame Grundlage für Formate ohne ID3 (#262): FLAC, OGG/Opus (Vorbis-Kommentare) und MP4/M4A (iTunes-Atome).
 
-TagStudio arbeitet weiter mit seinen ID3-Feldschlüsseln (`TIT2`, `TXXX:ENERGY`, `APIC:3` …). `MappedFile` übersetzt
+TagStudioSX arbeitet weiter mit seinen ID3-Feldschlüsseln (`TIT2`, `TXXX:ENERGY`, `APIC:3` …). `MappedFile` übersetzt
 beim Laden die Felder des Formats in diese Schlüssel und beim Speichern zurück (Zuordnung siehe `formatmap.py` und die
 Tabellen unten). Grundsätze:
 
 - **Unveränderte Felder bleiben, wie sie waren** – gleicher Name, gleiche Reihenfolge; unbekannte Felder und Binärdaten
-  (z. B. Serato) werden unverändert mitgeschrieben, auch wenn TagStudio sie nicht anzeigt.
+  (z. B. Serato) werden unverändert mitgeschrieben, auch wenn TagStudioSX sie nicht anzeigt.
 - Felder ohne Gegenstück im Format (z. B. `POPM`, `GEOB`, Links) werden **nicht geschrieben**; `save()` meldet sie in
   `save_skipped` (der Tagger zeigt den Hinweis).
 - Audio wird nie verändert (je Format geprüft), Schreiben über eine temporäre Datei bzw. nur im Tag-Bereich.
@@ -139,7 +139,7 @@ def channels_text(n: int) -> str:
 
 
 # =========================================================================== Vorbis-Kommentare (FLAC, OGG, Opus)
-# TagStudio-Schlüssel → Vorbis-Name (Schreiben); beim Lesen zusätzlich die Aliasse
+# TagStudioSX-Schlüssel → Vorbis-Name (Schreiben); beim Lesen zusätzlich die Aliasse
 VORBIS_MAP = {
     "TIT2": "TITLE", "TPE1": "ARTIST", "TALB": "ALBUM", "TPE2": "ALBUMARTIST", "TCOM": "COMPOSER", "TEXT": "LYRICIST",
     "TPE3": "CONDUCTOR", "TPE4": "REMIXER", "TCON": "GENRE", "TDRC": "DATE", "TDOR": "ORIGINALDATE",
@@ -161,7 +161,7 @@ _V_READ.update(VORBIS_ALIAS)
 
 
 def vorbis_key(name: str) -> str | None:
-    """Vorbis-Name → TagStudio-Schlüssel (ohne Spur/Disk); None = verborgen (unverändert mitschreiben)."""
+    """Vorbis-Name → TagStudioSX-Schlüssel (ohne Spur/Disk); None = verborgen (unverändert mitschreiben)."""
     u = name.upper()
     if u.startswith(VORBIS_HIDDEN):
         return None

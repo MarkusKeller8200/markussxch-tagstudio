@@ -11,7 +11,7 @@ async function stMirrorRender() {
   const libs = o.libraries.map((x) => `<label class="check sm" title="${esc(x.path)}"><input type="checkbox" data-mrlib="${esc(x.id)}" ${x.on ? "checked" : ""}> <span translate="no">${esc(x.name)}</span></label>`).join(" ");
   const last = l.at ? `zuletzt ${esc(l.at.replace("T", " ").slice(0, 16))} · ${fmtN(l.copied || 0)} kopiert · ${fmtN(l.files || 0)} Titel${l.extra ? ` · ${fmtN(l.extra)} überzählig` : ""}${l.errors ? ` · ${fmtN(l.errors)} Fehler` : ""}` : "noch nie nachgeführt";
   box.innerHTML = `<h4 class="cs-h">Spiegel der Bibliothek</h4>
-    <div class="muted sm">Einweg-Kopie der Musik in einen Cloud-Ordner (z. B. OneDrive privat) – TagStudio bearbeitet weiter nur die Bibliothek, im Spiegel wird nie etwas geändert. Abo und Speichergrösse bestimmst du; „Platz schätzen“ zeigt, wie viel nötig ist.</div>
+    <div class="muted sm">Einweg-Kopie der Musik in einen Cloud-Ordner (z. B. OneDrive privat) – TagStudioSX bearbeitet weiter nur die Bibliothek, im Spiegel wird nie etwas geändert. Abo und Speichergrösse bestimmst du; „Platz schätzen“ zeigt, wie viel nötig ist.</div>
     <div class="st-row"><span>Ziel-Ordner</span><div><span class="pl-folder"><input id="mrFolder" class="inp sm" value="${esc(c.folder)}" placeholder="${esc(o.suggest || "z. B. OneDrive")}" spellcheck="false" aria-label="Ziel-Ordner des Spiegels" translate="no"><button class="ghost sm" data-mrpick>Wählen …</button>${!c.folder && o.suggest ? '<button class="ghost sm" data-mrsuggest>Vorschlag übernehmen</button>' : ""}</span>
       ${o.cloud_folders.length ? `<div class="muted sm">Cloud-Ordner aus Plugins: ${o.cloud_folders.map((x) => `<span title="${esc(x.path)}">☁ ${esc(x.name)}</span>`).join(" · ")}</div>` : '<div class="muted sm">Tipp: Plugins › OneDrive › „Kontoart …“ › „Privat“ – dann wird der OneDrive-Ordner vorgeschlagen.</div>'}</div></div>
     <div class="st-row"><span>Aufbau</span><div><select id="mrLayout" class="inp sm" aria-label="Aufbau im Ziel-Ordner">
@@ -63,7 +63,7 @@ async function mirrorEstimateDialog() {
       ${row("Frei auf diesem Laufwerk", e.free == null ? "unbekannt" : fsize(e.free) + (e.free < e.to_copy ? ' · <span class="st-missing">zu wenig für die Kopien</span>' : ""))}
       ${e.extra ? row("Überzählig im Spiegel", `${fmtN(e.extra)} Datei(en), ${fsize(e.extra_bytes)} – werden nur nach Rückfrage gelöscht`) : ""}
     </tbody></table></div>
-    <p class="muted sm">Den freien Platz in deinem Cloud-Abo kennt TagStudio ohne Anmeldung nicht – vergleiche „Benötigt in der Cloud“ mit deinem Speicher (z. B. onedrive.live.com › Speicher). Jede Tag-Änderung lädt die ganze Datei neu hoch.</p>`,
+    <p class="muted sm">Den freien Platz in deinem Cloud-Abo kennt TagStudioSX ohne Anmeldung nicht – vergleiche „Benötigt in der Cloud“ mit deinem Speicher (z. B. onedrive.live.com › Speicher). Jede Tag-Änderung lädt die ganze Datei neu hoch.</p>`,
     buttons: [{ label: "OK", value: null, primary: true }] });
 }
 

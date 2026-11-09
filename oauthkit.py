@@ -1,7 +1,7 @@
-"""MarKusSXCH TagStudio – Anmeldung bei Online-Diensten mit OAuth 2 und PKCE (#280: Spotify, SoundCloud).
+"""TagStudioSX – Anmeldung bei Online-Diensten mit OAuth 2 und PKCE (#280: Spotify, SoundCloud).
 
-Ablauf „Im Browser anmelden“: TagStudio öffnet die Anmeldeseite des Dienstes; nach der Zustimmung leitet der Dienst
-auf die eingetragene Adresse `http://127.0.0.1:<Port>/callback` um, die TagStudio für kurze Zeit selbst beantwortet
+Ablauf „Im Browser anmelden“: TagStudioSX öffnet die Anmeldeseite des Dienstes; nach der Zustimmung leitet der Dienst
+auf die eingetragene Adresse `http://127.0.0.1:<Port>/callback` um, die TagStudioSX für kurze Zeit selbst beantwortet
 (nur auf diesem Rechner erreichbar). Geht das nicht (Port belegt, Dienst erlaubt keine solche Adresse), wird die
 Adresse aus der Adresszeile des Browsers eingefügt („Adresse einfügen“).
 
@@ -28,7 +28,7 @@ import servicekit as sk
 
 TIMEOUT = 30
 WAIT_LOGIN = 180                    # Sekunden, die auf die Anmeldung im Browser gewartet wird
-DONE_PAGE = ("<!doctype html><meta charset='utf-8'><title>TagStudio</title><body style='font-family:sans-serif;"
+DONE_PAGE = ("<!doctype html><meta charset='utf-8'><title>TagStudioSX</title><body style='font-family:sans-serif;"
              "padding:40px'><h2>{title}</h2><p>{text}</p></body>")
 
 
@@ -89,7 +89,7 @@ def wait_for_redirect(port: int, path: str, cancel=None, timeout: float = WAIT_L
             got["url"] = f"http://{host}:{port}{self.path}"
             ok = "code=" in self.path
             page = DONE_PAGE.format(title="Anmeldung abgeschlossen" if ok else "Anmeldung nicht abgeschlossen",
-                                    text=html.escape("Du kannst dieses Fenster schliessen und zu TagStudio zurückkehren."))
+                                    text=html.escape("Du kannst dieses Fenster schliessen und zu TagStudioSX zurückkehren."))
             data = page.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")

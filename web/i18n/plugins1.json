@@ -39,9 +39,9 @@
   "· fpcalc not found",
   "· fpcalc nöd gfunde"
  ],
- "Nur für den Fingerabdruck (Titel ohne brauchbare Tags). {n}. Bei acoustid.org anmelden. {n}. {q}: Name TagStudio, Version, Website (z. B. die GitHub-Seite). {n}. Den {q} der Anwendung kopieren und unten einfügen. {n}. Zusätzlich das Programm fpcalc (Chromaprint) herunterladen, entpacken und den Pfad zu fpcalc(.exe) unten eintragen.": [
-  "Only for the fingerprint (tracks without usable tags). {n}. Sign in at acoustid.org. {n}. {q}: name TagStudio, version, website (e.g. the GitHub page). {n}. Copy the {q} of the application and paste it below. {n}. Additionally download the program fpcalc (Chromaprint), unpack it and enter the path to fpcalc(.exe) below.",
-  "Nur für de Fingerabdruck (Titel ohni bruuchbari Tags). {n}. Bi acoustid.org aamälde. {n}. {q}: Name TagStudio, Version, Website (z. B. d GitHub-Siite). {n}. De {q} vo de Aawändig kopiere und une iifüege. {n}. Zuesätzlich s Programm fpcalc (Chromaprint) abelade, uuspacke und de Pfad zu fpcalc(.exe) une iiträge."
+ "Nur für den Fingerabdruck (Titel ohne brauchbare Tags). {n}. Bei acoustid.org anmelden. {n}. {q}: Name TagStudioSX, Version, Website (z. B. die GitHub-Seite). {n}. Den {q} der Anwendung kopieren und unten einfügen. {n}. Zusätzlich das Programm fpcalc (Chromaprint) herunterladen, entpacken und den Pfad zu fpcalc(.exe) unten eintragen.": [
+  "Only for the fingerprint (tracks without usable tags). {n}. Sign in at acoustid.org. {n}. {q}: name TagStudioSX, version, website (e.g. the GitHub page). {n}. Copy the {q} of the application and paste it below. {n}. Additionally download the program fpcalc (Chromaprint), unpack it and enter the path to fpcalc(.exe) below.",
+  "Nur für de Fingerabdruck (Titel ohni bruuchbari Tags). {n}. Bi acoustid.org aamälde. {n}. {q}: Name TagStudioSX, Version, Website (z. B. d GitHub-Siite). {n}. De {q} vo de Aawändig kopiere und une iifüege. {n}. Zuesätzlich s Programm fpcalc (Chromaprint) abelade, uuspacke und de Pfad zu fpcalc(.exe) une iiträge."
  ],
  "AcoustID: Anwendungs-Schlüssel": [
   "AcoustID: application key",
@@ -99,9 +99,9 @@
   "Contribute fingerprint",
   "Fingerabdruck biiträge"
  ],
- "TagStudio lädt nichts hoch": [
-  "TagStudio uploads nothing",
-  "TagStudio ladt nüüt ufe"
+ "TagStudioSX lädt nichts hoch": [
+  "TagStudioSX uploads nothing",
+  "TagStudioSX ladt nüüt ufe"
  ],
  "Stand eines Beitrags": [
   "Status of a contribution",
@@ -203,9 +203,9 @@
   "Public Deezer API without sign-in: track via ISRC or search, album with label and genre, BPM, cover. Used by {q} and {q} (new releases, similar artists, {n}-s previews).",
   "Öffentlichi Deezer-API ohni Aamäldig: Titel über ISRC oder Suechi, Album mit Label und Genre, BPM, Cover. Wird vo {q} und {q} bruucht (neui Veröffentlichige, äänlichi Künschtler, {n}-s-Vorlose)."
  ],
- "Grenze nicht verlässlich dokumentiert – TagStudio fragt höchstens etwa {n}-mal pro Sekunde": [
-  "Limit not reliably documented – TagStudio asks at most about {n} times per second",
-  "Gränze nöd verlässlich dokumentiert – TagStudio fröget höchschtens öppe {n}-mal pro Sekunde"
+ "Grenze nicht verlässlich dokumentiert – TagStudioSX fragt höchstens etwa {n}-mal pro Sekunde": [
+  "Limit not reliably documented – TagStudioSX asks at most about {n} times per second",
+  "Gränze nöd verlässlich dokumentiert – TagStudioSX fröget höchschtens öppe {n}-mal pro Sekunde"
  ],
  "Titel über ISRC": [
   "Track via ISRC",

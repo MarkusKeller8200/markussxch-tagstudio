@@ -1,5 +1,5 @@
-/* Einheitliche TagStudio-Hover-Infos (#72, #192): Hauptfenster und abgedockter Player.
- * Es gibt nur EINE sichtbare Art von Tooltip – die von TagStudio. Ein title-Attribut (auch dynamisch gesetzt)
+/* Einheitliche TagStudioSX-Hover-Infos (#72, #192): Hauptfenster und abgedockter Player.
+ * Es gibt nur EINE sichtbare Art von Tooltip – die von TagStudioSX. Ein title-Attribut (auch dynamisch gesetzt)
  * wird sofort in data-tip-title verschoben, SVG-<title>-Elemente ebenso; der Browser zeigt keinen eigenen Tooltip.
  * Für Screenreader bleibt bei Symbol-Knöpfen nur ein unsichtbares aria-label (kein zweiter Tooltip).
  */

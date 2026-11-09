@@ -1,7 +1,7 @@
 name: Download-Statistik
 
 # #370: GitHub zählt Downloads der Release-Dateien nur als Gesamtsumme. Dieser Workflow speichert täglich die
-# Zählerstände im Zweig „stats“ (docs/download-stats.json) – TagStudio berechnet daraus die neuen Downloads je Tag.
+# Zählerstände im Zweig „stats“ (docs/download-stats.json) – TagStudioSX berechnet daraus die neuen Downloads je Tag.
 # Nichts auf main; Pushes mit GITHUB_TOKEN lösen keine weiteren Workflows aus.
 # #371: dazu summary.json, badge.json und die Statistik-Seite docs/index.html (GitHub Pages: Zweig stats, Ordner /docs).
 # #372: setzt oben in die Versionshinweise jedes Releases den Kasten „Download“ mit direkten Links.

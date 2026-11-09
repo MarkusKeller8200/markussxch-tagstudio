@@ -76,6 +76,48 @@ class TestMacUpdate(unittest.TestCase):
         self.assertEqual(open(os.path.join(app, "Contents", "version")).read(), "neu")
         self.assertIn("FEHLER: DMG nicht einhängbar", open(log, encoding="utf-8").read())
 
+    @unittest.skipIf(os.name == "nt" or not shutil.which("bash"), "braucht bash")
+    def test_script_renames_to_tagstudiosx(self):
+        """#464: DMG mit TagStudioSX.app ersetzt eine installierte TagStudio.app – neue App unter TagStudioSX.app, alte als
+        Sicherung, gestartet wird die neue; danach ersetzt ein weiteres Update TagStudioSX.app an Ort und Stelle."""
+        d = tempfile.mkdtemp(prefix="ts_mac_")
+        self.addCleanup(shutil.rmtree, d, True)
+        progs = os.path.join(d, "Programme")
+        app = os.path.join(progs, "TagStudio.app")
+        os.makedirs(os.path.join(app, "Contents"))
+        with open(os.path.join(app, "Contents", "version"), "w") as fh:
+            fh.write("4.16")
+        content = os.path.join(d, "dmg")
+        os.makedirs(os.path.join(content, "TagStudioSX.app", "Contents"))
+        with open(os.path.join(content, "TagStudioSX.app", "Contents", "version"), "w") as fh:
+            fh.write("5.0")
+        dmg = os.path.join(d, "TagStudioSX-5.0.0-macOS-Apple-Chip.dmg")
+        open(dmg, "w").close()
+        stubs = os.path.join(d, "bin")
+        os.makedirs(stubs)
+        tools = {"hdiutil": ('if [ "$1" = attach ]; then mnt="${@: -1}"; cp -R "CONTENT/." "$mnt/"; fi\nexit 0'
+                             ).replace("CONTENT", content),
+                 "ditto": 'cp -R "$1" "$2"', "xattr": "exit 0",
+                 "open": 'echo "$1" >> "OPENED"'.replace("OPENED", os.path.join(d, "opened"))}
+        for name, body in tools.items():
+            with open(os.path.join(stubs, name), "w") as fh:
+                fh.write("#!/bin/bash\n" + body + "\n")
+            os.chmod(os.path.join(stubs, name), 0o700)
+        env = dict(os.environ, PATH=stubs + os.pathsep + os.environ["PATH"])
+        log, bak = os.path.join(d, "log.txt"), os.path.join(d, "vorherige-Version")
+        new = os.path.join(progs, "TagStudioSX.app")
+        for bundle in (app, new):
+            script = os.path.join(d, "update.sh")
+            with open(script, "w", encoding="utf-8") as fh:
+                fh.write(updater.mac_update_script(dmg, 999999, bundle, log, bak))
+            r = subprocess.run(["bash", script], env=env, timeout=60)
+            self.assertEqual(r.returncode, 0, open(log, encoding="utf-8").read())
+            self.assertFalse(os.path.exists(app))
+            self.assertEqual(open(os.path.join(new, "Contents", "version")).read(), "5.0")
+            self.assertEqual(open(os.path.join(d, "opened")).read().strip().splitlines()[-1], new)
+        self.assertEqual(open(os.path.join(bak, "TagStudio.app", "Contents", "version")).read(), "4.16")
+        self.assertEqual(sorted(os.listdir(progs)), ["TagStudioSX.app"])
+
     def test_no_write_access(self):
         with mock.patch.object(updater.os, "access", return_value=False):
             with self.assertRaisesRegex(RuntimeError, "Schreibrechte"):

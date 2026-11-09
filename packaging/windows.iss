@@ -1,4 +1,4 @@
-; MarKusSXCH TagStudio – Windows-Installer (Inno Setup 6)
+; TagStudioSX – Windows-Installer (Inno Setup 6)
 ; Aufruf: ISCC.exe /DAppVersion=3.0 packaging\windows.iss   (nach python packaging\build.py)
 
 #ifndef AppVersion
@@ -7,29 +7,31 @@
 
 [Setup]
 AppId={{8F1E6C2A-3B7D-4E59-9C1A-6D2F7A1B5E30}
-AppName=MarKusSXCH TagStudio
+AppName=TagStudioSX
 AppVersion={#AppVersion}
-AppVerName=MarKusSXCH TagStudio {#AppVersion}
+AppVerName=TagStudioSX {#AppVersion}
 AppPublisher=Markus Keller
 AppPublisherURL=https://github.com/MarkusKeller8200/markussxch-tagstudio
-DefaultDirName={autopf}\TagStudio
-DefaultGroupName=MarKusSXCH TagStudio
+; Neu-Installation in „TagStudioSX“; ein Update (gleiche AppId) bleibt im bisherigen Ordner, z. B. „TagStudio“ (#464)
+DefaultDirName={autopf}\TagStudioSX
+UsePreviousAppDir=yes
+DefaultGroupName=TagStudioSX
 DisableProgramGroupPage=yes
 ; ohne Administratorrechte installierbar (für den eigenen Benutzer); auf Wunsch für alle
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=..\dist
-OutputBaseFilename=TagStudio-{#AppVersion}-Windows-Setup
+OutputBaseFilename=TagStudioSX-{#AppVersion}-Windows-Setup
 SetupIconFile=icon.ico
-UninstallDisplayIcon={app}\TagStudio.exe
-UninstallDisplayName=MarKusSXCH TagStudio
+UninstallDisplayIcon={app}\TagStudioSX.exe
+UninstallDisplayName=TagStudioSX
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 CloseApplications=yes
-; laufendes TagStudio erkennen (Mutex aus instance.py) – erst schliessen, dann installieren
+; laufendes TagStudioSX erkennen (Mutex aus instance.py) – erst schliessen, dann installieren
 AppMutex=MarKusSXCH-TagStudio
 
 [Languages]
@@ -42,17 +44,40 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [InstallDelete]
 ; Reste einer älteren Version entfernen (Einstellungen, Sicherungen und Plugin-Daten liegen im Benutzerordner und bleiben)
 Type: filesandordirs; Name: "{app}\_internal"
+; Umbenennung 5.0.0 (#464): alte Programmdatei und Verknüpfungen „MarKusSXCH TagStudio“ entfernen
+Type: files; Name: "{app}\TagStudio.exe"
+Type: files; Name: "{autoprograms}\MarKusSXCH TagStudio.lnk"
+Type: files; Name: "{autodesktop}\MarKusSXCH TagStudio.lnk"
+Type: files; Name: "{userprograms}\MarKusSXCH TagStudio.lnk"
+Type: files; Name: "{userdesktop}\MarKusSXCH TagStudio.lnk"
 
 [Files]
-Source: "..\dist\TagStudio\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\TagStudioSX\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\README.md"; DestDir: "{app}\Dokumentation"; Flags: ignoreversion
 Source: "..\CHANGELOG.md"; DestDir: "{app}\Dokumentation"; Flags: ignoreversion
 Source: "..\PLUGINS.md"; DestDir: "{app}\Dokumentation"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}\Dokumentation"; DestName: "LICENSE.txt"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\MarKusSXCH TagStudio"; Filename: "{app}\TagStudio.exe"
-Name: "{autodesktop}\MarKusSXCH TagStudio"; Filename: "{app}\TagStudio.exe"; Tasks: desktopicon
+Name: "{autoprograms}\TagStudioSX"; Filename: "{app}\TagStudioSX.exe"
+Name: "{autodesktop}\TagStudioSX"; Filename: "{app}\TagStudioSX.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\TagStudio.exe"; Description: "{cm:LaunchProgram,MarKusSXCH TagStudio}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\TagStudioSX.exe"; Description: "{cm:LaunchProgram,TagStudioSX}"; Flags: nowait postinstall skipifsilent
+; Update aus 4.x (#464): dessen Updater startet danach die alte TagStudio.exe, die es nicht mehr gibt – hier neu starten
+Filename: "{app}\TagStudioSX.exe"; Flags: nowait runasoriginaluser; Check: RestartAfterLegacyUpdate
+
+[Code]
+var
+  LegacyExe: Boolean;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  LegacyExe := FileExists(ExpandConstant('{app}\TagStudio.exe'));
+  Result := '';
+end;
+
+function RestartAfterLegacyUpdate: Boolean;
+begin
+  Result := WizardSilent and LegacyExe;
+end;

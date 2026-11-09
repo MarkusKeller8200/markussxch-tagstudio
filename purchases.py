@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Gekaufte Titel (#285): Einkäufe aller Stores sammeln, mit der Bibliothek abgleichen.
+"""TagStudioSX – Gekaufte Titel (#285): Einkäufe aller Stores sammeln, mit der Bibliothek abgleichen.
 
 Gespeichert im Datenordner des Profils (``~/TagStudio/Käufe/kaeufe.json``, atomar geschrieben):
 

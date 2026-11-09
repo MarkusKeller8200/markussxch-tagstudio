@@ -11,7 +11,7 @@ zuerst **Beatport**, später iTunes und weitere. Bereits gekaufte Titel werden e
 genommen, damit nichts doppelt gekauft wird. Die Körbe bleiben mit ihrem Zustand **Offen** oder **Gekauft** in der
 **Historik**.
 
-**Nichtziele:** kein Bezahlen und kein Kauf durch TagStudio; kein Zugriff auf den Warenkorb der Shop-Webseite
+**Nichtziele:** kein Bezahlen und kein Kauf durch TagStudioSX; kein Zugriff auf den Warenkorb der Shop-Webseite
 (undokumentiert, siehe W2).
 
 ## 2. Ablauf

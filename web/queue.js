@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Warteschlange des Players (#138): „Als Nächstes spielen“ / „Zur Warteschlange hinzufügen“.
+/* TagStudioSX – Warteschlange des Players (#138): „Als Nächstes spielen“ / „Zur Warteschlange hinzufügen“.
    Die Warteschlange hat Vorrang vor der Reihenfolge im Tagger bzw. DJ-Set: ⏭, Titelende und Überblenden nehmen den
    ersten geladenen Titel daraus; gespielte Titel fallen heraus. Gemerkt in der Konfiguration (session_djset.pq_*). */
 "use strict";

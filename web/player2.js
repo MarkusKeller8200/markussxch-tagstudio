@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Player-Erweiterungen 3.4.0:
+/* TagStudioSX – Player-Erweiterungen 3.4.0:
    #94 Überblenden zum nächsten Titel · #68 Player oben (einklappbar) · #67 Player B (zweiter Player, eigenes Ausgabegerät)
    #69 Abdocken (eigenes Fenster: zeigt und steuert den Player; die Wiedergabe bleibt in diesem Fenster und läuft weiter)
    Kontextmenü auf Titeln: in Player A/B laden. */
@@ -48,7 +48,7 @@ function plGridStatus(info) {
   };
   if (g && (g.source === "Analyse" || g.analysed)) return {
     label: "Audioanalyse", state: "analysed",
-    hint: `TagStudio hat Tempo und Beat-Offset aus dem Audio geschätzt (${g.bpm} BPM)\nKein verifizierter Downbeat.`
+    hint: `TagStudioSX hat Tempo und Beat-Offset aus dem Audio geschätzt (${g.bpm} BPM)\nKein verifizierter Downbeat.`
   };
   const running = !!(info.wave_key && typeof PLAYER !== "undefined" && PLAYER.waveBusy === info.wave_key);
   if (g) return {

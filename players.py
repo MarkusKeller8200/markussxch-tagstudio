@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Titel in einem externen Player öffnen (foobar2000, VLC, Rekordbox, Music …).
+"""TagStudioSX – Titel in einem externen Player öffnen (foobar2000, VLC, Rekordbox, Music …).
 
 Player werden in den Einstellungen als Liste gespeichert: {"name", "cmd", "args"}.
 - cmd:  Programm (Pfad zur .exe, unter macOS auch eine .app)
@@ -37,7 +37,7 @@ def clean(players) -> list[dict]:
 
 
 def write_m3u(files, folder=None) -> str:
-    fd, path = tempfile.mkstemp(prefix="TagStudio-", suffix=".m3u8", dir=folder)
+    fd, path = tempfile.mkstemp(prefix="TagStudioSX-", suffix=".m3u8", dir=folder)
     with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as fh:
         fh.write("#EXTM3U\n")
         for f in files:

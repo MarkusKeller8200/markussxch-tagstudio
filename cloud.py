@@ -1,6 +1,6 @@
 """Cloud-Sync-Ordner erkennen (#315, docs/KONZEPT-ORDNER.md Abschnitt 9, Weg 1).
 
-TagStudio arbeitet nur mit dem Ordner, den der Desktop-Client (OneDrive, Google Drive, Dropbox) synchronisiert –
+TagStudioSX arbeitet nur mit dem Ordner, den der Desktop-Client (OneDrive, Google Drive, Dropbox) synchronisiert –
 kein Zugriff auf die Dienste selbst. Erkannt werden:
 
 - **Sync-Ordner** je Anbieter (Windows und macOS) → Anzeige „☁ OneDrive“ und Pfade relativ zum Sync-Ordner

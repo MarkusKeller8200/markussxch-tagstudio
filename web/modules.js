@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Dialoge und Module: Feld hinzufügen, Sammelkopie, Bilder, Tag-Fixer, Sicherungen.
+/* TagStudioSX – Dialoge und Module: Feld hinzufügen, Sammelkopie, Bilder, Tag-Fixer, Sicherungen.
    Nutzt call/dialog/info/toast/applyState/S aus app.js. */
 "use strict";
 

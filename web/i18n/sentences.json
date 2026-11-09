@@ -67,13 +67,13 @@
   "Writes the field {q} (TRCK) in the order of the set. Tracks not loaded are skipped. Undo with Ctrl+Z; saved as usual with {q}.",
   "Schriibt s Fäld {q} (TRCK) i de Reiefolg vom Set. Nöd glaadeni Titel werded übersprunge. Rückgängig mit Strg+Z; gspicheret wird wie gwohnt mit {q}."
  ],
- "TagStudio ist freie Software unter der GNU General Public License v3 (oder neuer). Hier stehen alle fremden Bibliotheken, Werkzeuge, Online-Dienste und Vorlagen mit Lizenz und Quelle. Die Liste wird monatlich automatisch auf neue Versionen und geänderte Lizenzen geprüft; {q} zeigt den zuletzt durchgesehenen Stand.": [
-  "TagStudio is free software under the GNU General Public License v3 (or later). Listed here are all third-party libraries, tools, online services and templates with license and source. The list is checked monthly for new versions and changed licenses; {q} shows the last reviewed state.",
-  "TagStudio isch freii Software under de GNU General Public License v3 (oder neuer). Da stönd alli frömde Bibliotheke, Wärchzüüg, Online-Dienscht und Vorlage mit Lizänz und Quälle. D Lischte wird monetlich automatisch uf neui Versione und gänderti Lizänze prüeft; {q} zeigt de zletscht duregluegete Stand."
+ "TagStudioSX ist freie Software unter der GNU General Public License v3 (oder neuer). Hier stehen alle fremden Bibliotheken, Werkzeuge, Online-Dienste und Vorlagen mit Lizenz und Quelle. Die Liste wird monatlich automatisch auf neue Versionen und geänderte Lizenzen geprüft; {q} zeigt den zuletzt durchgesehenen Stand.": [
+  "TagStudioSX is free software under the GNU General Public License v3 (or later). Listed here are all third-party libraries, tools, online services and templates with license and source. The list is checked monthly for new versions and changed licenses; {q} shows the last reviewed state.",
+  "TagStudioSX isch freii Software under de GNU General Public License v3 (oder neuer). Da stönd alli frömde Bibliotheke, Wärchzüüg, Online-Dienscht und Vorlage mit Lizänz und Quälle. D Lischte wird monetlich automatisch uf neui Versione und gänderti Lizänze prüeft; {q} zeigt de zletscht duregluegete Stand."
  ],
- "Meldungen landen als Issue im öffentlichen GitHub-Projekt. TagStudio füllt das Formular vor (Version, System, Bereich), sucht nach ähnlichen Meldungen und schwärzt private Angaben; abgeschickt wird im Browser mit deinem GitHub-Konto. TagStudio speichert keine Zugangsdaten.": [
-  "Reports end up as an issue in the public GitHub project. TagStudio prefills the form (version, system, area), searches for similar reports and blacks out private details; it is submitted in the browser with your GitHub account. TagStudio stores no credentials.",
-  "Meldige landed als Issue im öffentliche GitHub-Projekt. TagStudio füllt s Formular vor (Version, System, Beriich), suecht nach äänliche Meldige und schwärzt privati Aagabe; abgschickt wird im Browser mit dim GitHub-Konto. TagStudio spicheret kei Zuegangsdate."
+ "Meldungen landen als Issue im öffentlichen GitHub-Projekt. TagStudioSX füllt das Formular vor (Version, System, Bereich), sucht nach ähnlichen Meldungen und schwärzt private Angaben; abgeschickt wird im Browser mit deinem GitHub-Konto. TagStudioSX speichert keine Zugangsdaten.": [
+  "Reports end up as an issue in the public GitHub project. TagStudioSX prefills the form (version, system, area), searches for similar reports and blacks out private details; it is submitted in the browser with your GitHub account. TagStudioSX stores no credentials.",
+  "Meldige landed als Issue im öffentliche GitHub-Projekt. TagStudioSX füllt s Formular vor (Version, System, Beriich), suecht nach äänliche Meldige und schwärzt privati Aagabe; abgschickt wird im Browser mit dim GitHub-Konto. TagStudioSX spicheret kei Zuegangsdate."
  ],
  "Künstler, Genres & Co. mit gemischten Trennzeichen ({q}, {q}, {q}) einheitlich schreiben – als Trennzeichen oder als echte ID3v2.{n}-Mehrfachwerte.": [
   "Write artists, genres & co. with mixed separators ({q}, {q}, {q}) consistently – as a separator or as real ID3v2.{n} multiple values.",
@@ -423,9 +423,9 @@
   "{x}: audio has changed – skipped",
   "{x}: Audio hät sich gänderet – übersprunge"
  ],
- "{x}: hat ungespeicherte Änderungen in TagStudio – übersprungen": [
-  "{x}: has unsaved changes in TagStudio – skipped",
-  "{x}: hät ungspicherti Änderige in TagStudio – übersprunge"
+ "{x}: hat ungespeicherte Änderungen in TagStudioSX – übersprungen": [
+  "{x}: has unsaved changes in TagStudioSX – skipped",
+  "{x}: hät ungspicherti Änderige in TagStudioSX – übersprunge"
  ],
  "TBPM ist laut Spezifikation eine ganze Zahl; genaue BPM in einem eigenen Feld. TKEY erwartet eine Tonart wie {q} oder {q} – Camelot ({q}) ist verbreitet, aber nicht vorgesehen (Schreibweise unter Einstellungen › Tonart).": [
   "According to the specification TBPM is a whole number; exact BPM in a separate field. TKEY expects a key like {q} or {q} – Camelot ({q}) is common but not intended (notation under Settings › Key).",

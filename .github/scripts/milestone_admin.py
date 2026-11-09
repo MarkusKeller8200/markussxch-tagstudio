@@ -32,7 +32,7 @@ def api(method: str, endpoint: str, data: dict | None = None) -> object:
         "Accept": "application/vnd.github+json",
         "Authorization": "Bearer " + token,
         "Content-Type": "application/json",
-        "User-Agent": "TagStudio-milestone-admin",
+        "User-Agent": "TagStudioSX-milestone-admin",
         "X-GitHub-Api-Version": "2022-11-28",
     }
     req = urllib.request.Request(url, data=payload, headers=headers, method=method)

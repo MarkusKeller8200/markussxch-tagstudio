@@ -2,7 +2,7 @@ name: Installer
 
 # Baut die Installer für Windows (Setup.exe) und macOS (DMG).
 # - Neue Versionsnummer in version.py auf main (python packaging/release.py X.Y.Z + Push): bauen, testen, dann
-#   legt der Workflow selbst Tag vX.Y.Z und Release „TagStudio X.Y.Z“ an (Text aus dem CHANGELOG).
+#   legt der Workflow selbst Tag vX.Y.Z und Release „TagStudioSX X.Y.Z“ an (Text aus dem CHANGELOG).
 # - Von Hand gesetzter Versions-Tag (vX.Y.Z): ebenso, Release wird angelegt bzw. ergänzt.
 # - Von Hand: Actions → Installer → „Run workflow“ (Dateien dann unter „Artifacts“ des Laufs, kein Release).
 #   Dabei lässt sich die Python-Version wählen, z. B. 3.15 für einen Probe-Build (#135).
@@ -107,7 +107,7 @@ jobs:
         shell: pwsh
         run: |
           $out = Join-Path $PWD "selftest.txt"
-          $p = Start-Process -FilePath "dist\TagStudio\TagStudio.exe" -ArgumentList "--selftest", "`"$out`"" -Wait -PassThru
+          $p = Start-Process -FilePath "dist\TagStudioSX\TagStudioSX.exe" -ArgumentList "--selftest", "`"$out`"" -Wait -PassThru
           if (Test-Path $out) { Get-Content $out } else { "keine Ausgabe (Code $($p.ExitCode))" | Out-File $out }
           python packaging/ci_note.py notice "Windows-Selbsttest" selftest.txt
           if ($p.ExitCode -ne 0) { exit 1 }
@@ -126,10 +126,10 @@ jobs:
       - name: Installer testweise still installieren und starten
         shell: pwsh
         run: |
-          $setup = Get-ChildItem dist\TagStudio-*-Windows-Setup.exe | Select-Object -First 1
+          $setup = Get-ChildItem dist\TagStudioSX-*-Windows-Setup.exe | Select-Object -First 1
           $p = Start-Process -FilePath $setup.FullName -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER" -Wait -PassThru
           if ($p.ExitCode -ne 0) { Write-Host "Setup-Code $($p.ExitCode)"; exit 1 }
-          $exe = Join-Path $env:LOCALAPPDATA "Programs\TagStudio\TagStudio.exe"
+          $exe = Join-Path $env:LOCALAPPDATA "Programs\TagStudioSX\TagStudioSX.exe"
           if (-not (Test-Path $exe)) { Write-Host "nicht gefunden: $exe"; exit 1 }
           $out = Join-Path $PWD "selftest-installed.txt"
           $q = Start-Process -FilePath $exe -ArgumentList "--selftest", "`"$out`"" -Wait -PassThru
@@ -138,8 +138,8 @@ jobs:
           if ($q.ExitCode -ne 0) { exit 1 }
       - uses: actions/upload-artifact@v6
         with:
-          name: TagStudio-Windows-Python${{ env.TS_PYTHON }}
-          path: dist/TagStudio-*-Windows-Setup.exe
+          name: TagStudioSX-Windows-Python${{ env.TS_PYTHON }}
+          path: dist/TagStudioSX-*-Windows-Setup.exe
 
   macos:
     needs: plan
@@ -204,7 +204,7 @@ jobs:
       - name: Selbsttest der gebauten App
         run: |
           set +e
-          dist/TagStudio.app/Contents/MacOS/TagStudio --selftest "$PWD/selftest.txt"; rc=$?
+          dist/TagStudioSX.app/Contents/MacOS/TagStudioSX --selftest "$PWD/selftest.txt"; rc=$?
           [ -f selftest.txt ] || echo "keine Ausgabe (Code $rc)" > selftest.txt
           python packaging/ci_note.py notice "macOS-Selbsttest" selftest.txt
           exit $rc
@@ -214,8 +214,8 @@ jobs:
         if: env.TS_SIGN_ID != ''
         run: |
           set +e
-          spctl -a -vv dist/TagStudio.app > spctl.txt 2>&1
-          spctl -a -t open --context context:primary-signature -vv dist/TagStudio-*.dmg >> spctl.txt 2>&1
+          spctl -a -vv dist/TagStudioSX.app > spctl.txt 2>&1
+          spctl -a -t open --context context:primary-signature -vv dist/TagStudioSX-*.dmg >> spctl.txt 2>&1
           cat spctl.txt
           python packaging/ci_note.py notice "macOS-Signatur" spctl.txt
       - name: Schlüsselbund aufräumen
@@ -225,8 +225,8 @@ jobs:
           rm -f "$RUNNER_TEMP/notary.p8"
       - uses: actions/upload-artifact@v6
         with:
-          name: TagStudio-macOS-Python${{ env.TS_PYTHON }}
-          path: dist/TagStudio-*.dmg
+          name: TagStudioSX-macOS-Python${{ env.TS_PYTHON }}
+          path: dist/TagStudioSX-*.dmg
 
   release:
     needs: [plan, windows, macos]
@@ -264,8 +264,8 @@ jobs:
           body = release.section_text(open("CHANGELOG.md", encoding="utf-8").read(), ver)
           import glob
           mac = bool(glob.glob("assets/*.dmg"))
-          print("**Download:** Windows → `TagStudio-…-Windows-Setup.exe`"
-                + (" · macOS (Apple-Chip) → `TagStudio-…-macOS-Apple-Chip.dmg`" if mac else " (Beta: nur Windows)") + "\n")
+          print("**Download:** Windows → `TagStudioSX-…-Windows-Setup.exe`"
+                + (" · macOS (Apple-Chip) → `TagStudioSX-…-macOS-Apple-Chip.dmg`" if mac else " (Beta: nur Windows)") + "\n")
           if mac:
               print("macOS: signiert und von Apple beglaubigt. Windows: der Installer ist nicht signiert – Windows zeigt evtl. „Der Computer wurde durch Windows geschützt“ → „Weitere Informationen“ → „Trotzdem ausführen“.\n")
           else:
@@ -289,9 +289,9 @@ jobs:
             gh release edit "$TAG" --notes-file notes.md $pre
           else
             # legt den Tag auf genau diesem Commit an, falls es ihn noch nicht gibt
-            gh release create "$TAG" assets/* --target "$GITHUB_SHA" --title "TagStudio ${TAG#v}" --notes-file notes.md $pre
+            gh release create "$TAG" assets/* --target "$GITHUB_SHA" --title "TagStudioSX ${TAG#v}" --notes-file notes.md $pre
           fi
-          echo "::notice title=Release::TagStudio ${TAG#v} veröffentlicht"
+          echo "::notice title=Release::TagStudioSX ${TAG#v} veröffentlicht"
       - name: Beta-Releases dieser Version aufräumen (Tags bleiben)
         if: ${{ !contains(needs.plan.outputs.tag, '-') }}
         env:

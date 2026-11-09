@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Seite „Einstellungen“ (#21): alle Optionen an einem Ort, Export/Import, Zurücksetzen.
+/* TagStudioSX – Seite „Einstellungen“ (#21): alle Optionen an einem Ort, Export/Import, Zurücksetzen.
    Gespeichert wird sofort über die jeweiligen Sitzungs-Aufrufe; Export/Import/Zurücksetzen über appsettings.py. */
 "use strict";
 
@@ -25,7 +25,7 @@ async function settingsShow() {
       <div class="st-row">${stDefRow("tagger", "Standardordner")}
         <span>Stems</span>${stCheck("stStemsFlat", d.stems_flat, "Stems als eigene Titel anzeigen (statt aufklappbar unter dem Original)")}
         <label for="stFeatScale">Audio-Merkmale in den Dateien</label>${stSel("stFeatScale", d.feat_scales || [[100, "0–100"]], d.feat_scale || 100)}
-        <span></span><span class="muted sm">Angezeigt und bearbeitet wird immer 0–100. Bei 0–10 (z. B. Lexicon) rechnet TagStudio beim Lesen ×10 und beim Schreiben ÷10 um.</span>
+        <span></span><span class="muted sm">Angezeigt und bearbeitet wird immer 0–100. Bei 0–10 (z. B. Lexicon) rechnet TagStudioSX beim Lesen ×10 und beim Schreiben ÷10 um.</span>
         <span>Bevorzugte Ansicht</span><div><div class="st-path"><button class="ghost sm" id="stTgViewSave" title="Spalten, Reihenfolge, Breite, Sortierung und Merkmal-Spalten der Dateiliste merken">Aktuelle Ansicht speichern</button><button class="ghost sm" id="stTgViewApply" ${LAYOUT.tg_view_default && LAYOUT.tg_view_default.cols ? "" : "disabled"}>Anwenden</button><button class="ghost sm" id="stTgViewDel" ${LAYOUT.tg_view_default && LAYOUT.tg_view_default.cols ? "" : "disabled"}>Löschen</button></div>
           <div class="muted sm" id="stTgViewInfo">${stTgViewInfo()}</div></div>
         <label for="stMoodList">Stimmungen (Vorschläge)</label><div><textarea class="inp" id="stMoodList" rows="2" style="width:100%;resize:vertical" placeholder="z. B. Dark, Driving, Hypnotic" spellcheck="false">${esc((d.mood_list || []).join(", "))}</textarea>
@@ -271,10 +271,10 @@ async function stSnapRender() {
     <span>Beim Start</span>${stCheck("snAsk", s.snap_ask, "Fragen, ob ein weiterer Snapshot erstellt bzw. das Journal angezeigt werden soll")}
     <span></span>${stCheck("snHint", s.snap_hint, "Hinweis, solange noch kein Ordner überwacht wird")}
     <label for="snKeep">Aufbewahrung</label><div class="st-path"><input class="inp" type="number" min="1" max="500" id="snKeep" value="${s.snap_keep}" style="width:80px"><span>automatische behalten, danach je einer pro Woche für</span><input class="inp" type="number" min="0" max="520" id="snWeeks" value="${s.snap_weeks}" style="width:80px"><span>Wochen</span></div>
-    <label for="snWatch">Überwachung</label><div class="st-path"><span>Während TagStudio läuft alle</span><input class="inp" type="number" min="0" max="240" id="snWatch" value="${s.snap_watch}" style="width:70px"><span>Minuten auf fremde Änderungen prüfen (0 = aus)</span></div>
+    <label for="snWatch">Überwachung</label><div class="st-path"><span>Während TagStudioSX läuft alle</span><input class="inp" type="number" min="0" max="240" id="snWatch" value="${s.snap_watch}" style="width:70px"><span>Minuten auf fremde Änderungen prüfen (0 = aus)</span></div>
     <span>Gründlich</span>${stCheck("snThorough", s.snap_thorough, "Alle Dateien lesen (auch wenn Grösse und Änderungszeit gleich sind) – langsamer")}
     <span>Speicherort</span><div class="st-path"><code title="${esc(o.dir)}">${esc(o.dir)}</code><button class="ghost sm" data-copen="${esc(o.dir)}">Öffnen</button><button class="ghost sm" id="snMove" title="Ganzen Speicher an einen anderen Ort verschieben (z. B. in den MP3-Ordner, um ihn weiterzugeben)">Ändern …</button>${o.default ? "" : '<button class="ghost sm" id="snMoveDefault" title="Zurück in den TagStudio-Ordner verschieben">Standard</button>'}</div>
-    ${o.readonly ? '<span></span><div class="hint warn">Dieser Speicher stammt aus einer neueren TagStudio-Version und wird nur gelesen – bitte TagStudio aktualisieren.</div>' : ""}
+    ${o.readonly ? '<span></span><div class="hint warn">Dieser Speicher stammt aus einer neueren TagStudioSX-Version und wird nur gelesen – bitte TagStudioSX aktualisieren.</div>' : ""}
     <span>Belegt</span><div class="st-path"><span>${snMB(o.total)} · ${o.libs.length} überwachte(r) Ordner</span><button class="ghost sm" id="stSnapGo">Zur Seite „Snapshots“</button></div>`;
 }
 
@@ -390,7 +390,7 @@ async function dlStatsOpen() {
       <div class="fx-table" style="max-height:44vh;overflow:auto;margin-top:10px"><table><thead><tr><th>Version</th><th>Datum</th><th class="r">Windows</th><th class="r">macOS</th><th class="r">Installer</th><th class="r" title="Laufende Summe über die Versionen">Installer total</th><th class="r">Plugins</th><th class="r" title="Laufende Summe über die Versionen">Plugins total</th></tr></thead><tbody>
         ${r.rows.map((x) => `<tr><td><a href="#" data-url="${esc(x.url)}" translate="no">${esc(x.tag)}</a>${x.beta ? ' <span class="fx-rcp-tag">Beta</span>' : ""}</td><td>${esc(x.date)}</td>
           <td class="r">${fmtN(x.win)}</td><td class="r">${fmtN(x.mac)}</td><td class="r"><b>${fmtN(x.total)}</b></td><td class="r">${fmtN(x.cum_installers || 0)}</td><td class="r muted">${fmtN(x.plugins)}</td><td class="r muted">${fmtN(x.cum_plugins || 0)}</td></tr>`).join("")}</tbody></table></div>
-      <p class="muted sm" style="margin:8px 0 0">Zahlen von GitHub (Downloads über die Release-Seite und das Update in TagStudio). GitHub aktualisiert sie mit Verzögerung.</p>`,
+      <p class="muted sm" style="margin:8px 0 0">Zahlen von GitHub (Downloads über die Release-Seite und das Update in TagStudioSX). GitHub aktualisiert sie mit Verzögerung.</p>`,
     buttons: [{ label: "Auf GitHub ansehen", value: "gh" }, { label: "Schliessen", value: null, primary: true }],
     onMount: (b) => b.addEventListener("click", (e) => { const a = e.target.closest("a[data-url]"); if (a) { e.preventDefault(); call("open_url", a.dataset.url); } }),
   }).then((v) => { if (v === "gh") call("open_url", r.releases_url); });
@@ -407,7 +407,7 @@ async function stExpertDevSave() {
 }
 function stExpertText() {
   const inf = ST.expert || { facts: [], paths: [] };
-  return ["MarKusSXCH TagStudio – Diagnose", ...inf.facts.map(([k, v]) => `${k}: ${v}`), "", ...inf.paths.map(([k, p]) => `${k}: ${p}`)].join("\n");
+  return ["TagStudioSX – Diagnose", ...inf.facts.map(([k, v]) => `${k}: ${v}`), "", ...inf.paths.map(([k, p]) => `${k}: ${p}`)].join("\n");
 }
 async function stCopyText(text) {
   try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* Fallback unten */ }
@@ -501,7 +501,7 @@ async function stTransfer(kind) {
       const text = await call("settings_export_text");
       const a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
-      a.download = `TagStudio-Einstellungen-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `TagStudioSX-Einstellungen-${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 4000);
       toast("Einstellungen als Download gespeichert.");
@@ -524,7 +524,7 @@ async function stImportText(text, name) {
   const pv = await call("settings_import_preview", text);
   if (!pv.ok) return info("Import nicht möglich", pv.error);
   if (!pv.groups.length) return info("Nichts zu importieren", "Die Datei enthält keine bekannten Einstellungen.");
-  const from = [pv.app_version && `TagStudio ${pv.app_version}`, pv.platform && { win32: "Windows", darwin: "macOS", linux: "Linux" }[pv.platform] || pv.platform, pv.exported && pv.exported.replace("T", " ")].filter(Boolean).join(" · ");
+  const from = [pv.app_version && `TagStudioSX ${pv.app_version}`, pv.platform && { win32: "Windows", darwin: "macOS", linux: "Linux" }[pv.platform] || pv.platform, pv.exported && pv.exported.replace("T", " ")].filter(Boolean).join(" · ");
   const groups = await modal({
     title: "Einstellungen importieren",
     html: `<div class="hint">${esc(name || "Datei")}${from ? " – " + esc(from) : ""}</div>
@@ -573,7 +573,7 @@ async function originSettingsRender(card) {
   const triv = new Set(ST.data.trivial.map((t) => t.toLowerCase()));
   card.hidden = false;
   card.innerHTML = `<h3>Herkunft der Tags</h3>
-    <p class="muted sm" style="margin:0">TagStudio zeigt bei „Weitere Felder“ und im Vergleich, welche Anwendung ein Feld geschrieben hat. Eigene Zuordnungen gehen vor der eingebauten Liste.</p>
+    <p class="muted sm" style="margin:0">TagStudioSX zeigt bei „Weitere Felder“ und im Vergleich, welche Anwendung ein Feld geschrieben hat. Eigene Zuordnungen gehen vor der eingebauten Liste.</p>
     ${stCheck("orVer", o.ver_badge, "ID3-Version (v2.3/v2.4) bei offiziellen Feldern zeigen – zusammen mit der Herkunft; benutzerdefinierte Felder (TXXX, GEOB, PRIV …) ohne bekannte Herkunft heissen „unbekannt“")}
     <div class="or-list" id="orList"></div>
     <div><button class="ghost sm" id="orAdd" style="width:auto">+ Zuordnung</button> <button class="primary sm" id="orSave" style="width:auto" hidden>Zuordnungen speichern</button></div>

@@ -277,7 +277,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         import i18n
         if lang not in i18n.CODES or fmt not in ("csv", "json"):
             raise ValueError("Sprache oder Format unbekannt")
-        return {"name": f"TagStudio-Texte-{lang}.{fmt}", "text": i18n.export_text(lang, fmt)}
+        return {"name": f"TagStudioSX-Texte-{lang}.{fmt}", "text": i18n.export_text(lang, fmt)}
 
     def i18n_import_preview(self, lang: str, text: str) -> dict:
         import i18n
@@ -427,7 +427,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
         for sid, v in cat.items():
             v["patterns"] = o.patterns(sid)
             name = v["name"]
-            v["short_default"] = self.SRC_SHORT.get(sid) or ("TagStudio" if v["kind"] == "plugin"
+            v["short_default"] = self.SRC_SHORT.get(sid) or ("TagStudioSX" if v["kind"] == "plugin"
                                                               else name if len(name) <= 12 else name[:11] + "…")
             own = labels.get(sid) or {}
             v["short"] = own.get("short") or v["short_default"]
@@ -1265,7 +1265,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
 
     def save_merge_external(self, paths=None) -> dict:
         """Externe Änderungen übernehmen, eigene (ungespeicherte) Änderungen behalten: Datei neu einlesen und die
-        selbst geänderten Felder wieder darüberlegen. Bei Feldern, die beide geändert haben, gewinnt TagStudio."""
+        selbst geänderten Felder wieder darüberlegen. Bei Feldern, die beide geändert haben, gewinnt TagStudioSX."""
         n = 0
         with self.lock:
             want = {os.path.normcase(os.path.abspath(p)) for p in (paths or [])}
@@ -3343,7 +3343,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
             return {"ok": False, "error": "Plugin nicht im Katalog – bitte zuerst „Verfügbare Plugins …“ öffnen."}
         row = next(iter(plugin_store.compare(self.plugins.list(), [e], VERSION)))
         if row["state"] == "too_new":
-            return {"ok": False, "error": f"„{e['name']}“ braucht TagStudio {e['min_app']} oder neuer."}
+            return {"ok": False, "error": f"„{e['name']}“ braucht TagStudioSX {e['min_app']} oder neuer."}
         if row["state"] == "own":
             return {"ok": False, "error": f"Im Plugin-Ordner liegt ein eigenes Plugin „{pid}“ – es wird nicht überschrieben."}
 
@@ -3428,7 +3428,7 @@ class Session(SnapshotMixin, PlayerMixin, DjSetMixin, HelpMixin, PrepareMixin, D
                                     f"Tonart in {len(plan)} Datei(en) umgeschrieben – noch nicht gespeichert.")
 
     def tag_export_name(self, fmt):
-        base = os.path.basename(os.path.normpath(self.tag_root)) or "TagStudio"
+        base = os.path.basename(os.path.normpath(self.tag_root)) or "TagStudioSX"
         return f"{base}.{'xlsx' if fmt == 'xlsx' else 'csv'}"
 
     def tag_export_file(self, idx, fmt, dest):

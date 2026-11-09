@@ -87,7 +87,7 @@ class AppBackupMixin:
         return {"folder": c["folder"], "keep": c["keep"], "files": appbackup.surplus(c["folder"], c["keep"]) if c["folder"] else []}
 
     def appbackup_delete(self, paths_) -> dict:
-        """Nach Rückfrage: gewählte Sicherungen löschen (nur Dateien „TagStudio-Programmdaten_*.zip“ im Ordner)."""
+        """Nach Rückfrage: gewählte Sicherungen löschen (nur Dateien „TagStudioSX-Programmdaten_*.zip“ im Ordner)."""
         c = self._ab_cfg()
         return appbackup.delete(list(paths_ or []), c["folder"])
 

@@ -7,8 +7,8 @@
 
 Eigene App in Microsoft Entra (Client-ID, C4), Anmeldung mit OAuth 2 und PKCE (öffentlicher Client, ohne Secret),
 Berechtigung „Files.ReadWrite“ (laut Microsoft ohne Zustimmung des Administrators – eine Organisation kann die
-Zustimmung durch Benutzer aber sperren) plus „User.Read“ und „offline_access“. TagStudio schreibt nur unter dem
-gewählten Ordner (Standard „TagStudio“). Dateien bis 4 MB in einem Schritt, grössere über eine Upload-Sitzung.
+Zustimmung durch Benutzer aber sperren) plus „User.Read“ und „offline_access“. TagStudioSX schreibt nur unter dem
+gewählten Ordner (Standard „TagStudioSX“). Dateien bis 4 MB in einem Schritt, grössere über eine Upload-Sitzung.
 Nur Standardbibliothek.
 """
 import json
@@ -40,7 +40,7 @@ _TENANT = re.compile(r"^(organizations|[0-9a-fA-F-]{36}|[A-Za-z0-9.-]{3,253})$")
 LOGIN_ACTIONS = ck.login_actions(
     NAME, "Eigene App in Microsoft Entra anlegen (Verzeichnis deiner Organisation)",
     "1. Auf entra.microsoft.com › App-Registrierungen › „Neue Registrierung“ (im Verzeichnis deiner Organisation – "
-    "dazu braucht es dort die Berechtigung bzw. einen Administrator): Name z. B. „TagStudio“, unterstützte Kontotypen "
+    "dazu braucht es dort die Berechtigung bzw. einen Administrator): Name z. B. „TagStudioSX“, unterstützte Kontotypen "
     "„Nur Konten in diesem Organisationsverzeichnis“ (dann unter „Kontoart …“ die Verzeichnis-ID eintragen) oder "
     "„Konten in einem beliebigen Organisationsverzeichnis“. 2. Plattform „Mobile Anwendungen und Desktopanwendungen“ "
     "hinzufügen, Umleitungs-URI genau http://localhost/callback (der Port spielt bei localhost keine Rolle). "
@@ -136,7 +136,7 @@ def _kind_action(ctx) -> dict:
     st = load_settings(ctx)
     return {"id": "settings", "label": "Kontoart …", "where": "page", "run_label": "Übernehmen", "needs_selection": False,
             "description": "Geschäfts-/Schulkonto: Abgleich über Microsoft Graph mit eigener App. Privates OneDrive: "
-                           "keine App und keine Anmeldung – TagStudio nutzt nur den OneDrive-Ordner auf diesem Rechner "
+                           "keine App und keine Anmeldung – TagStudioSX nutzt nur den OneDrive-Ordner auf diesem Rechner "
                            "(Spiegel der Bibliothek und Sicherung der Programmdaten, Einstellungen › Cloud).",
             "options": [
                 {"key": "account", "type": "select", "label": "Kontoart", "default": st["account"],
@@ -148,8 +148,8 @@ def _kind_action(ctx) -> dict:
                  "label": "Spiegel-Ordner erstellen – im OneDrive-Ordner derselbe Pfad wie die Bibliothek, ohne Laufwerk "
                           "(z. B. D: › Musik › DJ → OneDrive › Musik › DJ), und den Spiegel darauf einstellen"},
                 {"type": "info", "show_if": {"account": "private"},
-                 "label": "Abo und Speichergrösse bestimmst du selbst – vor dem Spiegeln zeigt TagStudio, wie viel Platz "
-                          "nötig ist. Den freien Platz in OneDrive kennt TagStudio ohne Anmeldung nicht."},
+                 "label": "Abo und Speichergrösse bestimmst du selbst – vor dem Spiegeln zeigt TagStudioSX, wie viel Platz "
+                          "nötig ist. Den freien Platz in OneDrive kennt TagStudioSX ohne Anmeldung nicht."},
                 {"key": "tenant", "type": "text", "label": "Verzeichnis (leer = „organizations“; Verzeichnis-ID oder Domain "
                                                           "bei einer App nur für deine Organisation)",
                  "default": "" if st["tenant"] == "organizations" else st["tenant"], "show_if": {"account": "business"}},
@@ -157,11 +157,11 @@ def _kind_action(ctx) -> dict:
 
 
 def _make_mirror(ctx, folder: str) -> str:
-    """#413: Spiegel-Ordner nach dem Pfad der Bibliotheken (ohne Laufwerk) anlegen – über TagStudio (Einstellungen ›
+    """#413: Spiegel-Ordner nach dem Pfad der Bibliotheken (ohne Laufwerk) anlegen – über TagStudioSX (Einstellungen ›
     Cloud › Spiegel); nichts wird gelöscht."""
     fn = getattr(ctx, "mirror_folders", None)
     if not callable(fn):
-        return "Spiegel-Ordner: braucht TagStudio 4.14 oder neuer."
+        return "Spiegel-Ordner: braucht TagStudioSX 4.14 oder neuer."
     try:
         r = fn(folder, True)
     except ValueError as ex:

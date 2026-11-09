@@ -108,7 +108,7 @@ ACTIONS = [
          {"key": "folders", "type": "folders", "label": "Ordner zum Abgleich (vorhandene werden nicht geladen)"},
          {"key": "count", "type": "number", "label": "Höchstens so viele Titel laden", "default": 1},
          {"type": "info", "label": "Geladen wird im gekauften Format (audio_format). Bereits geladene Titel merkt sich "
-                                  "TagStudio und lädt sie nicht doppelt. Details im Protokoll (Plugins › Protokolle › beatport.log)."},
+                                  "TagStudioSX und lädt sie nicht doppelt. Details im Protokoll (Plugins › Protokolle › beatport.log)."},
      ]},
     {"id": "settings", "label": "Einstellungen …", "where": "page", "run_label": "Speichern", "needs_selection": False,
      "description": "Playlists in deinem Beatport-Konto anlegen – „Download Tracks“ (je 100 Titel) und eine Playlist je "
@@ -116,7 +116,7 @@ ACTIONS = [
      "options": [
          {"key": "playlists_write", "type": "check", "label": "Playlists in Beatport anlegen und befüllen (Einkäufe)", "default": False},
          {"key": "buy_prefix", "type": "text", "label": "Präfix für Playlists je Kaufdatum", "default": "TagStudio_BUY_"},
-         {"type": "info", "label": "TagStudio verändert nur Playlists, deren Name mit „TagStudio_“ beginnt, und löscht nie "
+         {"type": "info", "label": "TagStudioSX verändert nur Playlists, deren Name mit „TagStudio_“ beginnt, und löscht nie "
                                   "ohne Rückfrage. „Schreibzugriff prüfen“ fragt Beatport nur nach den erlaubten Methoden."},
      ]},
     {"id": "write_check", "label": "Schreibzugriff prüfen", "where": "page", "run_label": "Prüfen", "needs_selection": False,
@@ -693,7 +693,7 @@ def store_playlist_check(ctx) -> dict:
     if not r["probe"]:
         txt += " (ohne eigene Playlist sind Hinzufügen/Löschen nicht prüfbar)"
     if not r.get("known"):
-        txt += " – Beatport nennt die erlaubten Methoden nicht (OPTIONS ohne Angabe); TagStudio versucht es beim Anlegen direkt"
+        txt += " – Beatport nennt die erlaubten Methoden nicht (OPTIONS ohne Angabe); TagStudioSX versucht es beim Anlegen direkt"
     r.update(ok=r["create"] and (r["add"] or not r["probe"]), text=txt + ". " + scope_text(c.tok))
     return r
 
@@ -737,7 +737,7 @@ def store_playlist_put(ctx, name, track_ids, replace=False) -> dict:
     → {id, name, url, added, removed, total, created, note}"""
     name = str(name or "")
     if not name.startswith(OWN_PREFIX):
-        raise ValueError("TagStudio verändert nur Playlists, deren Name mit „TagStudio_“ beginnt.")
+        raise ValueError("TagStudioSX verändert nur Playlists, deren Name mit „TagStudio_“ beginnt.")
     c = _need_write(ctx)
     chk = getattr(ctx, "_bp_check", None) or _check(c, ctx.log)
     ctx._bp_check = chk
@@ -789,7 +789,7 @@ def store_playlist_delete(ctx, prefix) -> dict:
     → {deleted: [Namen], failed: [Texte]}"""
     prefix = str(prefix or "")
     if not prefix.startswith(OWN_PREFIX):
-        raise ValueError("TagStudio löscht nur Playlists, deren Name mit „TagStudio_“ beginnt.")
+        raise ValueError("TagStudioSX löscht nur Playlists, deren Name mit „TagStudio_“ beginnt.")
     c = _need_write(ctx)
     deleted, failed = [], []
     for p in store_playlist_list(ctx, prefix):
@@ -1547,7 +1547,7 @@ class SessionClient(Client):
 
 def store_login(ctx, username, password) -> dict:
     """Anmelden nur für diese Sitzung (Ablauf wie die Beatport-Webseite: Anmeldung → Code → Token). Das Passwort wird
-    nicht gespeichert, der Token nur im Speicher gehalten – nach dem Beenden von TagStudio ist er weg."""
+    nicht gespeichert, der Token nur im Speicher gehalten – nach dem Beenden von TagStudioSX ist er weg."""
     username, password = str(username or "").strip(), str(password or "")
     if not username or not password:
         raise ValueError("Benutzername und Passwort angeben.")

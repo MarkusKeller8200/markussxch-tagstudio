@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Lupe im Player (#224).
+/* TagStudioSX – Lupe im Player (#224).
    Vergrösserter Ausschnitt der Wellenform um die Abspielposition von Player A, in hoher Auflösung direkt aus dem Audio
    berechnet (nur im Speicher, nichts gespeichert). Serato-Raster (oben) und eigene Analyse (unten) werden getrennt
    eingezeichnet, damit Abweichungen sichtbar werden (#223). Klick springt, Mausrad bzw. −/+ zoomt. Nur lesen.

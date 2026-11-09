@@ -1,12 +1,12 @@
 {
   "id": "lexicon",
   "name": "Lexicon",
-  "version": "2.3", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
+  "version": "2.4", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
   "min_app": "4.8.0",
   "category": "local_api",
   "api": 1,
-  "author": "MarKusSXCH TagStudio",
-  "description": "Verbindet TagStudio mit Lexicon DJ über dessen Local API: übernimmt Tanzbarkeit, Energie, Fröhlichkeit und auf Wunsch Bewertung, Popularität, Farbe und Custom Tags (mit Abgleich), vergleicht Beatgrid und Cue-Punkte, öffnet in Lexicon markierte Titel oder Playlists im Tagger bzw. DJ-Set und kann – wenn eingeschaltet – Pfade nachführen, neue Titel aufnehmen und geänderte Tags mit Vorschau zurückschreiben.",
+  "author": "TagStudioSX",
+  "description": "Verbindet TagStudioSX mit Lexicon DJ über dessen Local API: übernimmt Tanzbarkeit, Energie, Fröhlichkeit und auf Wunsch Bewertung, Popularität, Farbe und Custom Tags (mit Abgleich), vergleicht Beatgrid und Cue-Punkte, öffnet in Lexicon markierte Titel oder Playlists im Tagger bzw. DJ-Set und kann – wenn eingeschaltet – Pfade nachführen, neue Titel aufnehmen und geänderte Tags mit Vorschau zurückschreiben.",
   "notes": "Keine Zusatzpakete nötig. Lexicon muss laufen, die Local API muss eingeschaltet sein (Settings › Integrations). Zurückschreiben ist standardmässig aus, geht nur an Lexicon auf diesem Rechner und löscht nie etwas.",
   "service": {
     "name": "Lexicon Local API",
@@ -95,7 +95,7 @@
         "path": "/playlists",
         "label": "Alle Playlists (Baum)",
         "status": "full",
-        "use": "Aus Lexicon öffnen, DJ-Set › Aus Lexicon …: alle Playlists zur Auswahl; Playlist „TagStudio Neu“ finden"
+        "use": "Aus Lexicon öffnen, DJ-Set › Aus Lexicon …: alle Playlists zur Auswahl; Playlist „TagStudioSX Neu“ finden"
       },
       {
         "id": "playlist",
@@ -118,7 +118,7 @@
         "path": "/playlist-by-path",
         "label": "Eine Playlist (Pfad)",
         "status": "none",
-        "note": "Pfadsuche erledigt TagStudio über den Baum aus /playlists"
+        "note": "Pfadsuche erledigt TagStudioSX über den Baum aus /playlists"
       },
       {
         "id": "playlists-selected",
@@ -177,7 +177,7 @@
         "path": "/tracks",
         "label": "Titel löschen",
         "status": "none",
-        "note": "bewusst nicht – TagStudio löscht nichts in Lexicon"
+        "note": "bewusst nicht – TagStudioSX löscht nichts in Lexicon"
       },
       {
         "id": "playlist-create",

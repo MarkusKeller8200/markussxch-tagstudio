@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Liedtext im Player (#215).
+/* TagStudioSX – Liedtext im Player (#215).
    Zeigt den Liedtext des Titels in Player A: synchronisiert (SYLT im MP3 oder .lrc daneben) mit hervorgehobener,
    mitlaufender Zeile – Klick auf eine Zeile springt dorthin; sonst den normalen Text (USLT). Nur lesen.
    Nutzt call/esc/toast aus app.js und PLAYER/plSetPref aus player.js. */

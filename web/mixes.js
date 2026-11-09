@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Seite „Mixe“ (#261, #387, #390): Ergebnisse von „Mix analysieren“ ansehen, vorhören,
+/* TagStudioSX – Seite „Mixe“ (#261, #387, #390): Ergebnisse von „Mix analysieren“ ansehen, vorhören,
    Treffer verwerfen, Zeiten korrigieren und als Playlist (Ordner „Mixe“), CUE-Datei, Text oder Ideen speichern.
    Die Analyse läuft im Plugin „mixscan“; Logik und Ablage in mixresult.py / session_mixes.py. */
 "use strict";
@@ -118,7 +118,7 @@ async function mixesShow(sel) {
   else {
     MXP.d = null;
     $("#mxMain").innerHTML = `<div class="empty mx-empty">${MXP.ready
-      ? "Mix-Datei wählen mit „Mix analysieren …“. Erkannt werden nur Titel, die im Index sind – einmal „Bibliothek indexieren …“, danach führt TagStudio den Index selbst nach."
+      ? "Mix-Datei wählen mit „Mix analysieren …“. Erkannt werden nur Titel, die im Index sind – einmal „Bibliothek indexieren …“, danach führt TagStudioSX den Index selbst nach."
       : `Für „Mixe“ braucht es das Plugin „Mix analysieren“ (eigene Umgebung, etwa 100 MB). <button class="ghost sm" data-mxa="plugins">Zu den Plugins</button>`}</div>`;
   }
 }
@@ -285,7 +285,7 @@ async function mixGaps(only) {
   const maxes = [5, 10, 20, 50].map((n) => `<option value="${n}"${n === 10 ? " selected" : ""}>${n}</option>`).join("");
   const html = `<div class="mx-gapdlg">
       <p><b>${only === null ? `${g.gaps.length} Lücke(n) ohne erkannten Titel.` : `Lücke ab ${mixTime(only)}.`}</b></p>
-      <p>TagStudio schneidet daraus kurze Ausschnitte (ohne Tags, mono) und lässt sie erkennen – je angefangene 3 Minuten einer, in der Mitte des Abschnitts.</p>
+      <p>TagStudioSX schneidet daraus kurze Ausschnitte (ohne Tags, mono) und lässt sie erkennen – je angefangene 3 Minuten einer, in der Mitte des Abschnitts.</p>
       <label class="row" style="gap:8px;align-items:center">Dienst <select id="mgPid" class="inp">${recs.filter((r) => r.ready).map((r) => `<option value="${esc(r.id)}" translate="no">${esc(r.name)}</option>`).join("")}</select></label>
       <label class="row" style="gap:8px;align-items:center">Länge des Ausschnitts <select id="mgSec" class="inp">${secs}</select></label>
       <label class="row" style="gap:8px;align-items:center">Höchstens so viele Ausschnitte <select id="mgMax" class="inp">${maxes}</select></label>

@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Sitzung: Snapshots, Journal, Überwachung, Speicherort (#52–#61)."""
+"""TagStudioSX – Sitzung: Snapshots, Journal, Überwachung, Speicherort (#52–#61)."""
 from __future__ import annotations
 
 import os
@@ -141,7 +141,7 @@ class SnapshotMixin:
         baseline = {"delete_older": bool, "include_pinned": bool}: danach als neue Baseline setzen."""
         lib = self.snap_store.library(str(lid))
         if self.snap_store.readonly:
-            return {"ok": False, "error": "Der Snapshot-Speicher stammt aus einer neueren TagStudio-Version (nur lesen)."}
+            return {"ok": False, "error": "Der Snapshot-Speicher stammt aus einer neueren TagStudioSX-Version (nur lesen)."}
         opts = {"lid": lib["id"], "label": str(label or ""), "auto": bool(auto), "pinned": bool(pinned),
                 "thorough": bool(self._snap_cfg("snap_thorough"))}
         if isinstance(baseline, dict):
@@ -262,7 +262,7 @@ class SnapshotMixin:
     # ------------------------------------------------------------------ Überwachung zur Laufzeit (#58)
     def snap_watch(self) -> dict:
         """Sparsame Abfrage: je überwachtem Ordner ein Listing + Grösse/Änderungszeit. Verglichen wird mit der
-        vorigen Abfrage; Dateien, die TagStudio selbst gespeichert hat (Register, Tag-Bytes wie gespeichert),
+        vorigen Abfrage; Dateien, die TagStudioSX selbst gespeichert hat (Register, Tag-Bytes wie gespeichert),
         zählen nicht. Funde sammeln sich, bis sie mit snap_watch_ack quittiert werden."""
         import snapshots
         base = self.__dict__.setdefault("_watch_base", {})
@@ -290,7 +290,7 @@ class SnapshotMixin:
                         continue
                     f = self.reg.get(os.path.normcase(os.path.abspath(p)))
                     if old is not None and f is not None and not f.external_change():
-                        continue                      # von TagStudio gespeichert
+                        continue                      # von TagStudioSX gespeichert
                     found.add(r)
                 found.update(r for r in prev if r not in cur)
             base[lib["id"]] = cur
@@ -468,7 +468,7 @@ class SnapshotMixin:
                 k = os.path.normcase(os.path.abspath(live))
                 f = self.reg.get(k)
                 if f is not None and f.is_modified():
-                    errors.append(f"{p}: hat ungespeicherte Änderungen in TagStudio – übersprungen")
+                    errors.append(f"{p}: hat ungespeicherte Änderungen in TagStudioSX – übersprungen")
                     continue
                 try:
                     bw.add(live)

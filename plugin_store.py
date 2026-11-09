@@ -2,7 +2,7 @@
 plugin_store.py – Plugins einzeln nachladen und aktualisieren (#235).
 
 Der Release-Workflow legt je Plugin ein ZIP und die Übersicht `plugins.json` als Release-Assets ab (`build`).
-TagStudio liest den Katalog des neuesten Releases im gewählten Kanal (offiziell bzw. auch Beta – nie den
+TagStudioSX liest den Katalog des neuesten Releases im gewählten Kanal (offiziell bzw. auch Beta – nie den
 Entwicklungsstand), zeigt Updates und neue Plugins und installiert sie nach `~/TagStudio/Plugins`. Ein dort
 installiertes Plugin überlagert das eingebaute gleicher ID (vorhandenes Verhalten des Plugin-Managers).
 
@@ -45,7 +45,7 @@ def app_base(v: str):
 
 
 def app_ok(min_app: str, app_version: str) -> bool:
-    """Passt das Plugin zur laufenden TagStudio-Version? Ohne Angabe: ja. Betas zählen wie ihre Version."""
+    """Passt das Plugin zur laufenden TagStudioSX-Version? Ohne Angabe: ja. Betas zählen wie ihre Version."""
     need, have = app_base(min_app), app_base(app_version)
     return need is None or have is None or have >= need
 
@@ -117,7 +117,7 @@ def build(plugins_dir: str, out_dir: str, app_version: str) -> dict:
 def clean_catalog(data) -> list[dict]:
     """Nur gültige Einträge übernehmen (fremde oder kaputte Angaben werden übersprungen)."""
     if not isinstance(data, dict) or data.get("format") != FORMAT or not isinstance(data.get("plugins"), list):
-        raise ValueError("Der Plugin-Katalog hat ein unbekanntes Format – bitte TagStudio aktualisieren.")
+        raise ValueError("Der Plugin-Katalog hat ein unbekanntes Format – bitte TagStudioSX aktualisieren.")
     out = []
     for e in data["plugins"]:
         if not isinstance(e, dict):

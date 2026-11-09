@@ -20,7 +20,7 @@ ACTIONS = [
      "options": [
          {"type": "info", "title": "AcoustID",
           "label": "Nur für den Fingerabdruck (Titel ohne brauchbare Tags). 1. Bei acoustid.org anmelden. "
-                   "2. „Register a new application“: Name TagStudio, Version, Website (z. B. die GitHub-Seite). "
+                   "2. „Register a new application“: Name TagStudioSX, Version, Website (z. B. die GitHub-Seite). "
                    "3. Den „API key“ der Anwendung kopieren und unten einfügen. 4. Zusätzlich das Programm fpcalc "
                    "(Chromaprint) herunterladen, entpacken und den Pfad zu fpcalc(.exe) unten eintragen.",
           "links": [["AcoustID: Anwendung registrieren", "https://acoustid.org/new-application"],

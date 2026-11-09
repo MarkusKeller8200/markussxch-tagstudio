@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Einstellungen sichern, übertragen und zurücksetzen.
+"""TagStudioSX – Einstellungen sichern, übertragen und zurücksetzen.
 
 Alle Einstellungen beider Oberflächen liegen in ~/.tagstudio.json. Dieses Modul teilt die Schlüssel in Gruppen
 ein, exportiert sie als Datei (ohne Geheimnisse), liest einen Export wieder ein und setzt Gruppen zurück.
@@ -116,7 +116,7 @@ def _load_export(text: str) -> dict:
         return data
     if isinstance(data, dict) and any(k in data for g in GROUPS for k in g[2]):   # rohe .tagstudio.json
         return {"format": FORMAT, "platform": "", "app_version": "", "exported": "", "settings": data}
-    raise ValueError("Das ist keine TagStudio-Einstellungsdatei.")
+    raise ValueError("Das ist keine TagStudioSX-Einstellungsdatei.")
 
 
 def import_preview(text: str) -> dict:

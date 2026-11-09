@@ -97,7 +97,7 @@ def import_text(text: str, taken=()) -> list[dict]:
     except ValueError as ex:
         raise ValueError(f"Keine gültige JSON-Datei: {ex}") from None
     if not isinstance(data, dict) or data.get("format") != FORMAT:
-        raise ValueError("Das ist keine Smart-Fix-Datei von TagStudio.")
+        raise ValueError("Das ist keine Smart-Fix-Datei von TagStudioSX.")
     out, ids = [], set(taken)
     for r in data.get("recipes") or []:
         c = clean(dict(r, id=""), ids) if isinstance(r, dict) else None

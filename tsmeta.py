@@ -1,7 +1,7 @@
-"""TagStudio-Zeitstempel in den Tags (#184, #185).
+"""TagStudioSX-Zeitstempel in den Tags (#184, #185).
 
 - ``TXXX:TAGSTUDIO_EDITED`` – „Letzte Bearbeitung“: Zeitpunkt des letzten erfolgreichen Speicherns GEÄNDERTER Tags durch
-  TagStudio (je Datei). Nicht bei Anzeigen, Einlesen, Vorhören oder Speichern ohne Änderung. Rückgängig/Wiederherstellen
+  TagStudioSX (je Datei). Nicht bei Anzeigen, Einlesen, Vorhören oder Speichern ohne Änderung. Rückgängig/Wiederherstellen
   ist ebenfalls ein Speichern → neue Zeit (Entscheid 16.10.2026).
 - ``TXXX:TAGSTUDIO_ADDED`` – „In Bibliothek aufgenommen“: Zeitpunkt der ersten Übernahme in die Bibliothek. Einmal
   gesetzt, wird er nie automatisch geändert (nur ausdrücklich durch den Nutzer).

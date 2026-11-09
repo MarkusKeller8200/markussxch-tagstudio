@@ -1,4 +1,4 @@
-# Claude – Einstieg in TagStudio
+# Claude – Einstieg in TagStudioSX
 
 Bitte zuerst [`AGENTS.md`](AGENTS.md) sowie [`docs/KONZEPT-PRODUKT-ARCHITEKTUR.md`](docs/KONZEPT-PRODUKT-ARCHITEKTUR.md) lesen.
 

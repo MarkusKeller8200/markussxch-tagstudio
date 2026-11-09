@@ -36,7 +36,7 @@ gleichzeitig), EQ, Effekte. Klassische Landmark-Verfahren (audfprint, dejavu) ve
 
 | Kandidat | Robust gegen Tempo/Tonhöhe | Lizenz | Bewertung |
 |---|---|---|---|
-| **A – eigene Umsetzung, Index einfach, Abfrage gerastert** | ja, durch Abfrage in Stufen (z. B. −10 … +10 % in 1-%-Schritten; mit Keylock nur die Zeitachse, ohne zusätzlich die Frequenz skaliert) | eigener Code (GPL wie TagStudio) | **empfohlen**: kleiner Index, Python/NumPy, volle Kontrolle; Abfrage kostet je Stufe Zeit |
+| **A – eigene Umsetzung, Index einfach, Abfrage gerastert** | ja, durch Abfrage in Stufen (z. B. −10 … +10 % in 1-%-Schritten; mit Keylock nur die Zeitachse, ohne zusätzlich die Frequenz skaliert) | eigener Code (GPL wie TagStudioSX) | **empfohlen**: kleiner Index, Python/NumPy, volle Kontrolle; Abfrage kostet je Stufe Zeit |
 | B – eigene Umsetzung „Quad“ (Sonnleitner & Widmer 2016) | ja, Schlüssel sind von Haus aus skalierungsfest | eigener Code nach Veröffentlichung | Ausweichweg, falls A im Prototyp nicht reicht; aufwändiger |
 | C – Panako (Joren Six) als getrenntes Werkzeug | ja, dafür gebaut | **AGPL-3.0**, Java 11 + LMDB | nur als vom Benutzer separat installiertes Programm; schwere Abhängigkeit |
 | audfprint / dejavu | nein (≈±5 %) | MIT | zu wenig tempo-robust |
@@ -159,7 +159,7 @@ Auftrag User 15:21: „finalisieren (entfernen von Prototyp) und einbauen an den
 - **Plugin** `mixscan` 1.0 (`min_app` 4.13.0): Aktionen „Mix analysieren …“ (Dateiauswahl, Tempo ohne Keylock,
   optionale Tracklist), „Bibliothek indexieren …“ (Hintergrund), „Frühere Analysen …“, „Einstellungen …“,
   „Selbsttest …“; Prototyp-Aktionen „(Test)“ und Index-Grenze entfallen. Der Bericht bleibt als Datei („Bericht zeigen“).
-- **Ergebnis** (`mixresult.py`, `session_mixes.py`, `web/mixes.js`): Das Plugin gibt `mix_result` zurück, TagStudio
+- **Ergebnis** (`mixresult.py`, `session_mixes.py`, `web/mixes.js`): Das Plugin gibt `mix_result` zurück, TagStudioSX
   legt es in `~/TagStudio/Mixe` ab und öffnet das Ergebnisfenster. **Zeit je Titel = Mitte des Übergangs** zwischen
   berechnetem Titelanfang und „erkannt ab“ (Messung 7: Median 17 s neben der Tracklist statt 48 s beim Titelanfang),
   von Hand änderbar. Vorhören (Mix bzw. Titel an derselben Stelle, über den lokalen Medien-Server – nur Dateien des

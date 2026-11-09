@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Seite „DJ-Set“ (#3): Titel aus dem Tagger sammeln, Reihenfolge nach Tonart, BPM und
+/* TagStudioSX – Seite „DJ-Set“ (#3): Titel aus dem Tagger sammeln, Reihenfolge nach Tonart, BPM und
    Energie optimieren, Übergänge bewerten, per Ziehen umsortieren, Titel sperren. Logik in setplan.py und
    session_djset.py; Wiedergabe über den Player (kind „tag“). */
 "use strict";

@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Seite „Snapshots“: überwachte Ordner, Snapshots, Änderungsjournal, Zurücksetzen
+/* TagStudioSX – Seite „Snapshots“: überwachte Ordner, Snapshots, Änderungsjournal, Zurücksetzen
    (#53, #54, #61). Logik in snapshots.py / session.py; Konzept: docs/KONZEPT-SNAPSHOTS.md */
 "use strict";
 
@@ -16,7 +16,7 @@ async function snapShow() {
   SN.ov = await call("snap_overview");
   snSideSize(SN.ov.total);
   if (!SN.ov.libs.some((l) => l.id === SN.lid)) SN.lid = SN.ov.libs.length ? SN.ov.libs[0].id : null;
-  $("#snInfo").innerHTML = `Speicher: <span class="path-dir">${esc(SN.ov.dir)}</span> · gesamt ${snMB(SN.ov.total)}${SN.ov.readonly ? " · NUR LESEN (aus neuerer TagStudio-Version)" : ""}`;   // #178
+  $("#snInfo").innerHTML = `Speicher: <span class="path-dir">${esc(SN.ov.dir)}</span> · gesamt ${snMB(SN.ov.total)}${SN.ov.readonly ? " · NUR LESEN (aus neuerer TagStudioSX-Version)" : ""}`;   // #178
   // #77: mehrere Ordner eindeutig – Farbe, Name (bei gleichen Namen mit übergeordnetem Ordner), Pfad, Zustand
   $("#snLibs").innerHTML = SN.ov.libs.length ? `<div class="muted sm">${SN.ov.libs.length} überwachte(r) Ordner</div>` + SN.ov.libs.map((l) => `<div class="sn-lib${l.id === SN.lid ? " cur" : ""}${l.exists ? "" : " missing"}" data-lib="${esc(l.id)}" role="button" tabindex="0" style="--lh:${l.hue}">
       <span class="n"><i class="sn-dot"></i>${esc(l.label || l.name)}</span><span class="z">${snMB(l.bytes)}</span>
@@ -217,7 +217,7 @@ async function snMoveStore(toDefault = false) {
   }
   const ok = await dialog({ title: "Snapshot-Speicher verschieben?", text: toDefault
       ? "Der Speicher wird zurück in den TagStudio-Ordner verschoben."
-      : `Ziel: ${dest}\n\nIst der Ordner nicht leer (z. B. dein MP3-Ordner), legt TagStudio darin den Unterordner „.tagstudio-snapshots“ an. Der Speicher wird kopiert, geprüft und erst danach am alten Ort entfernt.`,
+      : `Ziel: ${dest}\n\nIst der Ordner nicht leer (z. B. dein MP3-Ordner), legt TagStudioSX darin den Unterordner „.tagstudio-snapshots“ an. Der Speicher wird kopiert, geprüft und erst danach am alten Ort entfernt.`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Verschieben", value: true, primary: true }] });
   if (!ok) return false;
   const r = await runTask(call("start_snap_move", dest), "Snapshot-Speicher verschieben");
@@ -407,7 +407,7 @@ async function initSnapshots() {
   const libs = st.libs.filter((l) => !l.missing);
   if (!st.libs.length && st.hint) {                // #78: noch kein Ordner überwacht
     const v = await modal({ title: "Snapshots einrichten?",
-      html: `<p style="margin:0 0 8px">Es wird noch kein Ordner überwacht. Mit einem überwachten Ordner hält TagStudio den Tag-Zustand deiner Bibliothek fest und zeigt später, was andere Programme (Mixed In Key, beaTunes, Mp3tag …) geändert haben – einzeln rückgängig machbar.</p>
+      html: `<p style="margin:0 0 8px">Es wird noch kein Ordner überwacht. Mit einem überwachten Ordner hält TagStudioSX den Tag-Zustand deiner Bibliothek fest und zeigt später, was andere Programme (Mixed In Key, beaTunes, Mp3tag …) geändert haben – einzeln rückgängig machbar.</p>
         <label class="check"><input type="checkbox" id="snNoHint"> Nicht mehr fragen (in den Einstellungen wieder einschaltbar)</label>`,
       buttons: [{ label: "Später", value: "later" }, { label: "Ordner wählen …", value: "pick", primary: true }],
       collect: (b, v) => ({ v, no: $("#snNoHint", b).checked }) });
@@ -425,7 +425,7 @@ async function initSnapshots() {
     }).join("");
     const anyCh = libs.some((l) => l.last && l.changed + l.new + l.removed);
     const res = await modal({
-      title: "Snapshots", html: `${lines}<p class="muted sm" style="margin:10px 0 0">Änderungen stammen von anderen Programmen oder Speichern ausserhalb von TagStudio.${st.daily ? " Der tägliche automatische Snapshot läuft unabhängig davon im Hintergrund." : ""}</p>
+      title: "Snapshots", html: `${lines}<p class="muted sm" style="margin:10px 0 0">Änderungen stammen von anderen Programmen oder Speichern ausserhalb von TagStudioSX.${st.daily ? " Der tägliche automatische Snapshot läuft unabhängig davon im Hintergrund." : ""}</p>
         <label class="check" style="margin-top:8px"><input type="checkbox" id="snNoAsk"> Beim Start nicht mehr fragen (in den Einstellungen wieder einschaltbar)</label>`,
       buttons: [{ label: "Später", value: "later" }, ...(anyCh ? [{ label: "Journal ansehen", value: "journal" }] : []), { label: "Snapshot erstellen", value: "create", primary: !anyCh }],
       collect: (b, v) => ({ v, noask: $("#snNoAsk", b).checked }),

@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Online-Dienste als Plugins (#204):
+/* TagStudioSX – Online-Dienste als Plugins (#204):
    Integrationsfenster je Dienst-Plugin (Endpunkte, Testabfrage ohne Track, API-Tester) und Gesamtübersicht. */
 "use strict";
 
@@ -230,7 +230,7 @@ function svcAuthRow(d) {
     ${s.active ? '<button class="ghost sm" id="svcSessLogout">Abmelden</button>' : ""}</div>
     ${SVC.loginOpen ? `<span></span><div class="svc-login" id="svcLogin" data-keep-enter>
       <div class="sm">Anmelden wie auf der ${esc(d.name)}-Webseite – der Tester schickt dann deren Token (z. B. für Downloads).
-        Gilt nur, solange TagStudio läuft; Passwort und Token werden nicht gespeichert.</div>
+        Gilt nur, solange TagStudioSX läuft; Passwort und Token werden nicht gespeichert.</div>
       <div class="frm"><label for="svcSU">Benutzername / E-Mail</label><input id="svcSU" type="text" autocomplete="username" spellcheck="false">
         <label for="svcSP">Passwort</label><input id="svcSP" type="password" autocomplete="current-password" spellcheck="false"></div>
       <div class="svc-btns"><button class="primary sm" id="svcSessDo">Anmelden</button><button class="ghost sm" id="svcSessCancel">Abbrechen</button>
@@ -473,7 +473,7 @@ async function svcOverview() {
   }).join("");
   await modal({
     title: "Integrationen – alle Online-Dienste", wide: true,
-    html: `<div class="hint">Jeder Online-Dienst ist ein eigenes Plugin (Updates bleiben im Kern). „Vollständig“: genutzt, wie TagStudio es braucht · „teilweise“: nur ein Teil der Möglichkeiten · „nicht implementiert“: zur Übersicht aufgeführt.</div>
+    html: `<div class="hint">Jeder Online-Dienst ist ein eigenes Plugin (Updates bleiben im Kern). „Vollständig“: genutzt, wie TagStudioSX es braucht · „teilweise“: nur ein Teil der Möglichkeiten · „nicht implementiert“: zur Übersicht aufgeführt.</div>
       <div class="svc-filter" id="svcOvF">${["full", "partial", "none"].map((k) => `<button class="sn-chip" data-ovf="${k}">${SVC_ST[k][0]} ${all[k]}</button>`).join("")}
         <span class="muted sm">${list.length} Dienste · ${all.full + all.partial + all.none} Endpunkte</span></div>
       <div class="fx-table svc-table svc-ov"><table><thead><tr><th>Status</th><th>Methode</th><th>Pfad</th><th>Beschreibung</th><th>Genutzt für / Hinweis</th></tr></thead><tbody id="svcOvBody">${rows()}</tbody></table></div>`,

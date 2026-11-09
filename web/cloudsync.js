@@ -35,7 +35,7 @@ async function stCloudSyncRender() {
     </tbody></table></div>
     <div class="fold-acts"><button class="primary sm" data-cssync ${any ? "" : "disabled"}>Jetzt abgleichen</button>
       ${o.conflicts || o.gone ? `<button class="ghost sm" data-cspending>Offen: ${o.conflicts} Konflikt(e), ${o.gone} gelöscht …</button>` : ""}</div>
-    <p class="muted sm">Musik nur über den Sync-Ordner des Desktop-Clients (oben). Zugangsdaten, Snapshots, Arbeit und Cache werden nie abgeglichen. Ändert sich eine Datei hier und im Dienst, fragt TagStudio nach; gelöscht wird nur nach Rückfrage.</p>`;
+    <p class="muted sm">Musik nur über den Sync-Ordner des Desktop-Clients (oben). Zugangsdaten, Snapshots, Arbeit und Cache werden nie abgeglichen. Ändert sich eine Datei hier und im Dienst, fragt TagStudioSX nach; gelöscht wird nur nach Rückfrage.</p>`;
 }
 
 function cloudRowSync(tr) {

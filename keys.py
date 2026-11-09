@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Tonarten: erkennen, umschreiben (Camelot, musikalisch, Open Key), harmonisch passende
+"""TagStudioSX – Tonarten: erkennen, umschreiben (Camelot, musikalisch, Open Key), harmonisch passende
 Tonarten fürs Mixen. Nur Standardbibliothek.
 
 Camelot-Rad: Zahl 1–12, A = Moll (innen), B = Dur (aussen). 8B = C-Dur, 8A = a-Moll. Nachbarn (±1) und die

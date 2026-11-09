@@ -103,14 +103,14 @@ solchen Titeln beim Laden keine Analyse mehr.
 Offen: Qualität von `beatAnalyse()` (Taktanfang, Tempowechsel) und Vergleich Serato ↔ eigene Analyse – siehe
 KONZEPT-MUSIKANALYSIEREN.
 
-## 5a. TagStudio-Zeitstempel (#184, #185 – 4.5.0, Entscheide vom 16.10.2026)
+## 5a. TagStudioSX-Zeitstempel (#184, #185 – 4.5.0, Entscheide vom 16.10.2026)
 
 Modul `tsmeta.py`. Eigene TXXX-Felder (in Mp3tag, Lexicon usw. sichtbar), Wert ISO 8601 mit Zeitzone, sekundengenau
 (`2026-10-16T01:55:00+02:00`); im Tagger als Spalten „Aufgenommen“ / „Bearbeitet“ (Anzeige `16.10.2026 01:55`).
 
 | Feld | Bedeutung | Gesetzt | Nie |
 |---|---|---|---|
-| `TXXX:TAGSTUDIO_EDITED` „Letzte Bearbeitung“ | letztes erfolgreiches Speichern **geänderter** Tags durch TagStudio | `core.save_files` (vor `f.save()`) und Speicherstellen in „Vorbereiten“; Rückgängig + Speichern = neue Zeit; cfg `stamp_edited` | Anzeigen, Einlesen, Vorhören, Speichern ohne Änderung |
+| `TXXX:TAGSTUDIO_EDITED` „Letzte Bearbeitung“ | letztes erfolgreiches Speichern **geänderter** Tags durch TagStudioSX | `core.save_files` (vor `f.save()`) und Speicherstellen in „Vorbereiten“; Rückgängig + Speichern = neue Zeit; cfg `stamp_edited` | Anzeigen, Einlesen, Vorhören, Speichern ohne Änderung |
 | `TXXX:TAGSTUDIO_ADDED` „In Bibliothek aufgenommen“ | erste Übernahme in die Bibliothek | Übernahme-Schritt in „Vorbereiten“ (`session_prepare`, cfg `stamp_added`); Nachtragen von Hand | automatisch überschreiben; Dateidatum (mtime/ctime) |
 
 **Nachtragen** (Tagger › „Aufnahmedatum nachtragen …“, `Session.tag_added(idx, mode, value, overwrite, apply)`):
@@ -156,5 +156,5 @@ Künstler und Titel (DJ-Set mit nicht geladenen Titeln) dient der Dateiname als 
   `b"TSOV"` · Version 1 · Anzahl n (2 Byte) · n Spitzen · n RMS (je 0–255) – rund 1.6 KB bei 800 Werten.
 - **Lesen:** `media_extra` nimmt zuerst den Cache, dann das eigene GEOB (und legt es wieder in den Cache), erst dann die
   Serato-Übersicht (#220).
-- **Serato:** Serato-Felder werden weder gelesen noch verändert; Herkunft „TagStudio“ (`origins`: `GEOB:TagStudio*`);
+- **Serato:** Serato-Felder werden weder gelesen noch verändert; Herkunft „TagStudioSX“ (`origins`: `GEOB:TagStudio*`);
   in „Vorbereiten“ kein Verstoss gegen die Schutzregel.

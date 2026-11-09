@@ -21,7 +21,7 @@ RELEASES_URL = "https://github.com/MarkusKeller8200/markussxch-tagstudio/release
 
 
 def frozen() -> bool:
-    """Läuft TagStudio als installierte App (PyInstaller) statt aus dem Quellcode?"""
+    """Läuft TagStudioSX als installierte App (PyInstaller) statt aus dem Quellcode?"""
     return bool(getattr(sys, "frozen", False))
 
 
@@ -181,7 +181,7 @@ def is_beta(v: str) -> bool:
 
 
 def _strip_dl(body: str) -> str:
-    """#372: Download-Kasten der Release-Seite nicht in den Versionshinweisen von TagStudio zeigen."""
+    """#372: Download-Kasten der Release-Seite nicht in den Versionshinweisen von TagStudioSX zeigen."""
     try:
         import downloadstats
         return downloadstats.strip_block(body)
@@ -361,14 +361,14 @@ def download_asset(asset: dict, dest_dir: str, progress=None, cancelled=None, op
 
 
 def windows_update_script(installer: str, pid: int, exe: str, log: str, all_users: bool) -> str:
-    """PowerShell: wartet, bis TagStudio beendet ist, installiert still und startet TagStudio neu.
+    """PowerShell: wartet, bis TagStudioSX beendet ist, installiert still und startet TagStudioSX neu.
     PowerShell statt Batch, weil Pfade mit Umlauten (Benutzername) sonst an der Codepage scheitern."""
     q = lambda s: "'" + str(s).replace("'", "''") + "'"   # noqa: E731 – PowerShell-Zeichenkette
     mode = "/ALLUSERS" if all_users else "/CURRENTUSER"
     args = ", ".join(q(x) for x in ("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CLOSEAPPLICATIONS", "/SP-", mode,
                                     f'/LOG="{log}"'))
     return "\n".join([
-        "# TagStudio - Update auf Knopfdruck (#234)",
+        "# TagStudioSX - Update auf Knopfdruck (#234)",
         f"$p = {int(pid)}",
         "while (Get-Process -Id $p -ErrorAction SilentlyContinue) { Start-Sleep -Milliseconds 500 }",
         f"$r = Start-Process -FilePath {q(installer)} -ArgumentList {args} -Wait -PassThru",
@@ -378,25 +378,30 @@ def windows_update_script(installer: str, pid: int, exe: str, log: str, all_user
 
 
 def mac_update_script(dmg: str, pid: int, bundle: str, log: str, backup: str) -> str:
-    """bash: wartet, bis TagStudio beendet ist, hängt das DMG ein, ersetzt die App (die alte bleibt als Sicherung, bei
-    einem Fehler wird sie zurückgelegt), entfernt die Quarantäne-Markierung und startet TagStudio neu (#251)."""
+    """bash: wartet, bis TagStudioSX beendet ist, hängt das DMG ein, ersetzt die App (die alte bleibt als Sicherung, bei
+    einem Fehler wird sie zurückgelegt), entfernt die Quarantäne-Markierung und startet TagStudioSX neu (#251)."""
     q = lambda s: "'" + str(s).replace("'", "'\\''") + "'"      # noqa: E731 – bash-Zeichenkette
     return "\n".join([
         "#!/bin/bash",
-        "# TagStudio - Update auf Knopfdruck (macOS, #251)",
+        "# TagStudioSX - Update auf Knopfdruck (macOS, #251)",
         f"DMG={q(dmg)}; APP={q(bundle)}; BAK={q(backup)}; LOG={q(log)}; PID={int(pid)}",
         'exec >>"$LOG" 2>&1',
         'echo "== $(date) Update aus $DMG"',
         'for i in $(seq 1 240); do kill -0 "$PID" 2>/dev/null || break; sleep 0.5; done',
         'MNT="$(mktemp -d "${TMPDIR:-/tmp}/tagstudio-update.XXXXXX")"',
-        'fail() { echo "FEHLER: $1"; [ -d "$BAK/TagStudio.app" ] && [ ! -d "$APP" ] && mv "$BAK/TagStudio.app" "$APP"; '
+        # #464: ab 5.0.0 heisst die App TagStudioSX.app; eine alte TagStudio.app wird dabei ersetzt (liegt als Sicherung bereit)
+        'DST="$(dirname "$APP")/TagStudioSX.app"; OLD="$(basename "$APP")"',
+        'fail() { echo "FEHLER: $1"; [ -d "$BAK/$OLD" ] && [ ! -d "$APP" ] && mv "$BAK/$OLD" "$APP"; '
         'hdiutil detach "$MNT" -quiet 2>/dev/null; open "$APP"; exit 1; }',
         'hdiutil attach "$DMG" -nobrowse -readonly -noautoopen -mountpoint "$MNT" || fail "DMG nicht einhängbar"',
-        'NEW="$MNT/TagStudio.app"',
-        '[ -d "$NEW" ] || fail "TagStudio.app fehlt im DMG"',
-        'mkdir -p "$BAK" && rm -rf "$BAK/TagStudio.app"',
-        'mv "$APP" "$BAK/TagStudio.app" || fail "alte Version nicht verschiebbar (Schreibrechte?)"',
-        'ditto "$NEW" "$APP" || { rm -rf "$APP"; fail "Kopieren fehlgeschlagen"; }',
+        'NEW="$MNT/TagStudioSX.app"; [ -d "$NEW" ] || NEW="$MNT/TagStudio.app"',
+        '[ -d "$NEW" ] || fail "TagStudioSX.app fehlt im DMG"',
+        '[ "$(basename "$NEW")" = "TagStudioSX.app" ] || DST="$APP"',
+        'mkdir -p "$BAK" && rm -rf "$BAK/$OLD"',
+        'mv "$APP" "$BAK/$OLD" || fail "alte Version nicht verschiebbar (Schreibrechte?)"',
+        'if [ "$DST" != "$APP" ] && [ -d "$DST" ]; then rm -rf "$BAK/TagStudioSX.app.vorher"; mv "$DST" "$BAK/TagStudioSX.app.vorher" || true; fi',
+        'ditto "$NEW" "$DST" || { rm -rf "$DST"; fail "Kopieren fehlgeschlagen"; }',
+        'APP="$DST"',
         'hdiutil detach "$MNT" -quiet || true',
         'xattr -dr com.apple.quarantine "$APP" 2>/dev/null || true',
         'echo "OK – starte $APP"',

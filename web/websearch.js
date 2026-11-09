@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – „Online suchen ›“ im Rechtsklick-Menü (#283): Tagger, Playlists und DJ-Set.
+/* TagStudioSX – „Online suchen ›“ im Rechtsklick-Menü (#283): Tagger, Playlists und DJ-Set.
    Öffnet die Suche des gewählten Dienstes im Browser mit Künstler + Titel (+ Mix, ohne „Original Mix“).
    Reihenfolge nach Wunsch des Users: Beatport, Spotify, SoundCloud, Apple Music, YouTube. */
 "use strict";

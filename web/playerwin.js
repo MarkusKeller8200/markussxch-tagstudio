@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – abgedockter Player (#69, #101). Zeigt Player A (und Player B, wenn eingeschaltet) des
+/* TagStudioSX – abgedockter Player (#69, #101). Zeigt Player A (und Player B, wenn eingeschaltet) des
    Hauptfensters in einem eigenen Fenster – mit Cover – und steuert sie. Die Wiedergabe bleibt im Hauptfenster; beim
    Ab- und Andocken läuft sie an derselben Stelle weiter. Verbindung über den Nachrichten-Kanal der Sitzung (bus_*). */
 "use strict";

@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Seite „Einkäufe“ (#285): gekaufte Titel aller Stores, Abgleich mit der Bibliothek, Download.
+/* TagStudioSX – Seite „Einkäufe“ (#285): gekaufte Titel aller Stores, Abgleich mit der Bibliothek, Download.
    Speicher und Abgleich in purchases.py / session_purchases.py, Stores als Plugins (store_purchases, store_download). */
 "use strict";
 
@@ -77,7 +77,7 @@ function purRenderBar() {
 async function purSessionLogin(store, name, why) {
   return modal({ title: `${name} – Anmelden für den Download`,
       html: `<p style="margin:0">${esc(why || `${name} lehnt den gespeicherten Zugang für den Download ab.`)}</p>
-        <p class="muted sm" style="margin:6px 0 10px">Anmelden wie auf der Webseite. Die Anmeldung gilt nur, solange TagStudio läuft – Passwort und Token werden nicht gespeichert.</p>
+        <p class="muted sm" style="margin:6px 0 10px">Anmelden wie auf der Webseite. Die Anmeldung gilt nur, solange TagStudioSX läuft – Passwort und Token werden nicht gespeichert.</p>
         <div class="frm"><label for="purSU">Benutzername / E-Mail</label><input id="purSU" type="text" autocomplete="username" spellcheck="false">
         <label for="purSP">Passwort</label><input id="purSP" type="password" autocomplete="current-password" spellcheck="false"></div>
         <p class="st-missing sm" id="purSErr" style="margin:8px 0 0"></p>`,
@@ -97,7 +97,7 @@ async function purSessionLogin(store, name, why) {
 
 /** #290: sichtbarer Grund bzw. gefundene Datei */
 function purHint(r) {
-  if (r.await) return "wartet auf Download – im Browser laden, TagStudio verlinkt die Datei selbst";   // #368
+  if (r.await) return "wartet auf Download – im Browser laden, TagStudioSX verlinkt die Datei selbst";   // #368
   if (r.status === "library" || r.status === "inbox") return r.file ? r.file.split(/[\\/]/).pop() : "";
   if (r.status === "unclear") return r.reason + (r.cands && r.cands.length > 1 ? ` · ${r.cands.length} Kandidaten` : "");
   return r.reason && r.reason !== "nicht gefunden" ? r.reason : "";
@@ -196,7 +196,7 @@ async function purManual(r) {
     return purWaitDialog({ name: m.name, url: m.url, dest: m.dest, reset: m.reset || 0, notes: m.reset_failed || [], notLoaded: r.failed.length, failed: r.failed });
   }
   const a = await modal({ title: "Selbst herunterladen", wide: true,
-    html: `<p style="margin:0">${fmtN(r.failed.length)} Titel konnte TagStudio nicht laden: ${esc(m.name)} gibt dafür keine Download-Adresse heraus.</p>
+    html: `<p style="margin:0">${fmtN(r.failed.length)} Titel konnte TagStudioSX nicht laden: ${esc(m.name)} gibt dafür keine Download-Adresse heraus.</p>
       <p style="margin:8px 0 0">So geht es weiter (Variante 2):</p>
       <ol style="margin:4px 0 0;padding-left:20px"><li>Die Download-Seite bei ${esc(m.name)} öffnen und dort anmelden.</li>
         <li>Die fehlenden Titel in deinen Download-Ordner laden (z. B. 90_Download).</li>
@@ -207,14 +207,14 @@ async function purManual(r) {
 }
 
 /** #367/#368: Titel wurden beim Store zum Download freigegeben – Speicherort zum Kopieren, Seite öffnen; die im Browser
-    geladenen Dateien erkennt TagStudio selbst (purWatch) und verlinkt sie. */
+    geladenen Dateien erkennt TagStudioSX selbst (purWatch) und verlinkt sie. */
 async function purWaitDialog(o) {
   const a = await modal({ title: "Im Browser herunterladen", wide: true,
-    html: `<p style="margin:0">${o.notLoaded ? `${fmtN(o.notLoaded)} Titel konnte TagStudio nicht direkt laden. ` : ""}<b>${fmtN(o.reset)}</b> ${o.notLoaded ? "davon stehen" : "Titel stehen"} jetzt in deiner Download-Warteliste bei ${esc(o.name)}.</p>
+    html: `<p style="margin:0">${o.notLoaded ? `${fmtN(o.notLoaded)} Titel konnte TagStudioSX nicht direkt laden. ` : ""}<b>${fmtN(o.reset)}</b> ${o.notLoaded ? "davon stehen" : "Titel stehen"} jetzt in deiner Download-Warteliste bei ${esc(o.name)}.</p>
       <ol style="margin:8px 0 0;padding-left:20px"><li>„Downloads bei ${esc(o.name)} öffnen“ und die Titel dort herunterladen.</li>
         <li>Als Speicherort diesen Ordner einfügen (oder im Browser als Download-Ordner wählen):</li></ol>
       <div class="pur-dest-copy"><input class="inp mono" id="purDestCopy" readonly value="${esc(o.dest || "")}" translate="no"><button class="ghost sm" id="purDestCopyBtn">Kopieren</button></div>
-      <p class="muted sm" style="margin:8px 0 0">Sobald die Dateien (auch als ZIP) dort liegen, erkennt TagStudio sie auf der Seite „Einkäufe“ selbst und verlinkt sie mit den Einkäufen – danach „In Bibliothek verschieben …“.</p>
+      <p class="muted sm" style="margin:8px 0 0">Sobald die Dateien (auch als ZIP) dort liegen, erkennt TagStudioSX sie auf der Seite „Einkäufe“ selbst und verlinkt sie mit den Einkäufen – danach „In Bibliothek verschieben …“.</p>
       ${(o.notes || []).length ? `<details style="margin-top:8px"><summary class="muted sm">Hinweise (${fmtN(o.notes.length)})</summary><div class="sm" translate="no" style="max-height:160px;overflow:auto">${o.notes.slice(0, 100).map(esc).join("<br>")}</div></details>` : ""}`,
     buttons: [{ label: "Schliessen", value: null }, { label: `Downloads bei ${o.name} öffnen`, value: "open", primary: true }],
     onMount: (b) => {

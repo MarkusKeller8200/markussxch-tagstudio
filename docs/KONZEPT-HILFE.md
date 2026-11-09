@@ -32,14 +32,14 @@ Dazu die Knöpfe **Einrichtungsassistent** und **Erste Schritte** (erneut starte
   (`.github/workflows/third-party.yml`, `.github/scripts/third_party_check.py`) vergleicht monatlich mit PyPI/GitHub und
   führt ein Issue mit den Änderungen; nach der Durchsicht `--apply` und committen.
 - **Melden (#187):** Reiter „Melden“ und Knopf „Melden …“ im Tagger (Bereich Tagger vorgewählt) öffnen `fbOpen`
-  (`web/feedback.js`, Modul `feedback.py`). Sicherer Start ohne Schreib-Token: TagStudio baut die Adresse des
+  (`web/feedback.js`, Modul `feedback.py`). Sicherer Start ohne Schreib-Token: TagStudioSX baut die Adresse des
   GitHub-Formulars (`issues/new?template=bug_report.yml|improvement.yml|feature_request.yml|translation.yml&title=…&<Feld-ID>=…`, Feld-IDs wie in
   `.github/ISSUE_TEMPLATE`) und öffnet sie nach Vorschau und ausdrücklicher Zustimmung im Browser; abgeschickt wird dort
   mit der eigenen GitHub-Anmeldung. Vorher werden Benutzerordner in Pfaden, E-Mail-Adressen und lange Schlüssel/Token
   geschwärzt; Version/System nur mit Häkchen; keine Protokolle, Dateien oder Liedtexte. Duplikatsuche über die
   öffentliche GitHub-Suche (nur lesend, ohne Anmeldung, 10/min; Fehler offline/Rate-Limit verständlich). Die Vorlagen
   setzen `fehler`/`verbesserung`/`funktion` + **`triage`** (nicht freigegeben); Freigabe nur durch den Owner (`_1 bereit`, AGENTS.md).
-  Grenzen des sicheren Starts: Den Link des neuen Issues kennt TagStudio nicht (Absenden im Browser) – angeboten wird
+  Grenzen des sicheren Starts: Den Link des neuen Issues kennt TagStudioSX nicht (Absenden im Browser) – angeboten wird
   „Meine Meldungen“ (`author:@me`). Eine integrierte Meldemaske mit OAuth bleibt eine spätere Option.
 - **Übersetzung einreichen (#232):** vierte Art im Melden-Dialog und Knopf „Eigene Texte einreichen …“ in den
   Spracheinstellungen. `feedback.own_texts(lang)` liefert nur eigene Texte, die von der mitgelieferten Fassung abweichen
@@ -50,7 +50,7 @@ Dazu die Knöpfe **Einrichtungsassistent** und **Erste Schritte** (erneut starte
   `repo_info` (Sterne, letzter Push, archiviert, Diskussionen, Organisation) und meldet archivierte, über zwei Jahre
   stille, umbenannte oder nicht abrufbare Projekte im Issue (JSON-Schlüssel `_repo_info`, mit `--apply` übernehmen).
   Anzeige: Spalte „GitHub“ mit Link zum Repository und zum Entwickler-Profil, „Danke …“ (vorbereiteter Text, kopieren
-  und als Diskussion bzw. Issue öffnen – TagStudio sendet nichts selbst) und eigene Häkchen „geprüft / gefolgt /
+  und als Diskussion bzw. Issue öffnen – TagStudioSX sendet nichts selbst) und eigene Häkchen „geprüft / gefolgt /
   bedankt“ (cfg `lic_review`, nur lokal, `help_lic_mark`).
 - **Session:** `session_help.py` (`help_docs` mit `DOCS` = README, `docs/ID3-FELDER.md`, `PLUGINS.md`; `help_licenses`; `help_tags`,
   `start_tag_scan`, `tag_field_filter`).
@@ -71,7 +71,7 @@ Dazu die Knöpfe **Einrichtungsassistent** und **Erste Schritte** (erneut starte
 - **Neue Fremdkomponenten** (Bibliothek, Plugin-Paket, übernommene Vorlage, Online-Dienst) immer in `docs/third-party.json`
   eintragen – ein Test prüft die Pakete des Stems-Plugins.
 
-## 5.1 Geplante Erweiterung: Rückmeldungen aus TagStudio (TODO)
+## 5.1 Geplante Erweiterung: Rückmeldungen aus TagStudioSX (TODO)
 
 **Noch nicht umgesetzt; offene Idee [#187](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/187), keine Implementierungsfreigabe.**
 

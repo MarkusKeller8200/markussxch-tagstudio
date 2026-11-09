@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Seite „Vorbereiten“ (#109–#116): Workflow-Schritte, Status je Titel, Ausführen,
+/* TagStudioSX – Seite „Vorbereiten“ (#109–#116): Workflow-Schritte, Status je Titel, Ausführen,
    externe Programme, Schutzregel, Übernahme. Logik in prepare.py / session_prepare.py. */
 "use strict";
 

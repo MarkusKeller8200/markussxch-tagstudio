@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Live-Protokoll eines Plugins in eigenem Fenster (#293). Liest die Protokolldatei im Log-Ordner
+/* TagStudioSX – Live-Protokoll eines Plugins in eigenem Fenster (#293). Liest die Protokolldatei im Log-Ordner
    fortlaufend (nur neue Bytes) und zeigt zusätzlich die Zeilen laufender Vorgänge, bevor sie in die Datei geschrieben
    werden (markiert „läuft“). Nur lesen – am Protokoll wird nichts geändert. */
 "use strict";

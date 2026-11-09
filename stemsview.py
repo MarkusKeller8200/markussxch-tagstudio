@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – erzeugte Stems einem Original zuordnen (Tagger: aufklappbare Spuren, #31).
+"""TagStudioSX – erzeugte Stems einem Original zuordnen (Tagger: aufklappbare Spuren, #31).
 
 Das Stems-Plugin legt die Spuren in einen Ordner „<Titel> – Stems“ neben dem Titel (oder in einem festen Ordner)
 mit Dateinamen „<Titel> (Vocals).flac“ usw. Dieses Modul findet diese Spuren zu einer Originaldatei und erkennt

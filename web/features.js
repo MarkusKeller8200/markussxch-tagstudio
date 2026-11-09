@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Audio-Merkmale im Tagger (TXXX:ENERGY … 0–100).
+/* TagStudioSX – Audio-Merkmale im Tagger (TXXX:ENERGY … 0–100).
    Schieberegler + Zahlenfeld je Merkmal; funktioniert auch für mehrere markierte Dateien. */
 "use strict";
 

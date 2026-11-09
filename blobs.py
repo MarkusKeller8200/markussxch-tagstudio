@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Binärfelder (GEOB, PRIV) ansehen und bearbeiten.
+"""TagStudioSX – Binärfelder (GEOB, PRIV) ansehen und bearbeiten.
 
 Ein Binärfeld besteht aus einem Kopf (GEOB: Kodierung, MIME-Typ, Dateiname, Beschreibung; PRIV: Besitzer) und
 den eigentlichen Daten. Die Daten werden erkannt als

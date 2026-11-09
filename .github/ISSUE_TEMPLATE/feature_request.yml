@@ -22,7 +22,7 @@ body:
     id: solution
     attributes:
       label: Vorschlag
-      description: Wie könnte es in TagStudio aussehen? (Wo in der Oberfläche, welche Felder, welches Verhalten)
+      description: Wie könnte es in TagStudioSX aussehen? (Wo in der Oberfläche, welche Felder, welches Verhalten)
     validations:
       required: true
   - type: dropdown

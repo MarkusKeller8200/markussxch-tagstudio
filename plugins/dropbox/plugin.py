@@ -1,6 +1,6 @@
 """Dropbox (#320, Cloud Weg 2): Abgleich über die Dropbox API v2 (Entscheide C1–C4).
 
-Eigene App in der Dropbox App Console (App-Key = Client-ID, empfohlen Zugriff „App folder“ – dann sieht TagStudio nur
+Eigene App in der Dropbox App Console (App-Key = Client-ID, empfohlen Zugriff „App folder“ – dann sieht TagStudioSX nur
 „Apps/<App-Name>“), Anmeldung mit PKCE und Offline-Token (wird erneuert). Pfade beginnen bei der Wurzel der App bzw.
 der Dropbox, Standard „TagStudio/…“. Nur Standardbibliothek.
 """
@@ -22,8 +22,8 @@ CFG = {"name": NAME, "authorize": "https://www.dropbox.com/oauth2/authorize", "t
 
 ACTIONS = ck.login_actions(
     NAME, "Eigene App in der Dropbox App Console anlegen",
-    "1. Auf dropbox.com/developers/apps „Create app“: „Scoped access“, Zugriff „App folder“ (empfohlen – TagStudio sieht "
-    "dann nur seinen Ordner unter Apps), Name z. B. „TagStudio-DeinName“. 2. Unter „Permissions“ anhaken: "
+    "1. Auf dropbox.com/developers/apps „Create app“: „Scoped access“, Zugriff „App folder“ (empfohlen – TagStudioSX sieht "
+    "dann nur seinen Ordner unter Apps), Name z. B. „TagStudioSX-DeinName“. 2. Unter „Permissions“ anhaken: "
     "account_info.read, files.metadata.read, files.content.read, files.content.write – „Submit“. 3. Unter „Settings“ bei "
     "„Redirect URIs“ genau http://127.0.0.1:8769/callback eintragen. 4. Den „App key“ hier als Client-ID einfügen – ein "
     "Secret ist nicht nötig (PKCE).",

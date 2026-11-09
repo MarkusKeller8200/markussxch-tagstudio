@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Abgleich über die Dienste (Cloud Weg 2, #317, docs/KONZEPT-CLOUD.md).
+"""TagStudioSX – Abgleich über die Dienste (Cloud Weg 2, #317, docs/KONZEPT-CLOUD.md).
 
 Abgeglichen werden Ordner-Rollen (Playlists, Export) und Teile der Programmdaten (Playlists-Speicher, Einkäufe,
 Entdecken, Einstellungen ohne Zugangsdaten) mit einem Ordner bei OneDrive, Google Drive oder Dropbox – über ein
@@ -6,7 +6,7 @@ Dienst-Plugin mit der Fähigkeit „cloud_sync“ (Funktionen ``cloud_list``, ``
 ``cloud_delete`` im plugin.py).
 
 Entscheide C1–C4 (User 25.10.2026): beide Richtungen; ändern sich dieselbe Datei hier **und** im Dienst, fragt
-TagStudio nach (beide Fassungen) – nie still überschreiben. Löschen nie automatisch: entfernte Dateien werden gemeldet
+TagStudioSX nach (beide Fassungen) – nie still überschreiben. Löschen nie automatisch: entfernte Dateien werden gemeldet
 und erst nach Rückfrage gelöscht. Zugangsdaten nie abgleichen. Snapshots, Arbeit, Cache nie.
 
 Zustand je Ziel (Dienst + Ordner) in ``~/TagStudio/Cloud/abgleich.json``: je Datei Prüfsumme (SHA-256) und Revision der

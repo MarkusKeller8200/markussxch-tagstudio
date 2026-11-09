@@ -464,9 +464,9 @@ class TestDialogLanguage(TempHome):
         api._pwin = Win()
         api._s.i18n_catalog("en")
         r = api.window_titles()
-        self.assertEqual(r["player"], "MarKusSXCH TagStudio – Player")
+        self.assertEqual(r["player"], "TagStudioSX – Player")
         self.assertEqual(api._window.title, r["main"])
-        self.assertTrue(r["main"].startswith("MarKusSXCH TagStudio"))
+        self.assertTrue(r["main"].startswith("TagStudioSX"))
         api._s.i18n_catalog("de-CH")
         with mock.patch.dict(_sys.modules, {"webview": stub}):
             api.pick_file("image", self.dir)

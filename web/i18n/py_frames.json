@@ -58,7 +58,7 @@
 "Binärfeld-Editor": ["Binary field editor", "Binärfäld-Editor"],
 "Bewertung (Sterne)": ["Rating (stars)", "Bewertig (Stärn)"],
 "Plugin nicht ladbar: {x}": ["Plugin cannot be loaded: {x}", "Plugin nöd ladbar: {x}"],
-"Benötigt eine neuere TagStudio-Version (Plugin-API {x}).": ["Requires a newer TagStudio version (plugin API {x}).", "Bruucht e neueri TagStudio-Version (Plugin-API {x})."],
+"Benötigt eine neuere TagStudioSX-Version (Plugin-API {x}).": ["Requires a newer TagStudioSX version (plugin API {x}).", "Bruucht e neueri TagStudioSX-Version (Plugin-API {x})."],
 "Aktion {q} nicht gefunden.": ["Action {q} not found.", "Aktion {q} nöd gfunde."],
 "Lege Umgebung mit Python {x} an (lädt Python bei Bedarf) …": ["Creating environment with Python {x} (downloads Python if needed) …", "Leg Umgäbig mit Python {x} aa (ladt Python bi Bedarf) …"],
 "plugin.json nicht lesbar: {x}": ["plugin.json not readable: {x}", "plugin.json nöd läsbar: {x}"],

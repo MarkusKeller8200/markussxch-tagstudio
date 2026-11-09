@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Hintergrund-Aufträge (Warteschlange für lange Plugin-Aktionen wie Stems).
+"""TagStudioSX – Hintergrund-Aufträge (Warteschlange für lange Plugin-Aktionen wie Stems).
 
 Aufträge laufen nacheinander (immer nur einer gleichzeitig – Rechenlast) in einem eigenen Thread, während die
 Oberfläche benutzbar bleibt. Jeder Auftrag hat Status wartet/läuft/fertig/Fehler/abgebrochen, Fortschritt und
@@ -155,7 +155,7 @@ class JobManager:
     def _ensure_thread(self):
         with self.lock:
             if self.thread is None or not self.thread.is_alive():
-                self.thread = threading.Thread(target=self._loop, daemon=True, name="TagStudio-Auftraege")
+                self.thread = threading.Thread(target=self._loop, daemon=True, name="TagStudioSX-Auftraege")
                 self.thread.start()
 
     def _loop(self):

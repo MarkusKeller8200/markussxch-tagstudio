@@ -6,7 +6,7 @@ Status: **ENTSCHIEDEN** (Entscheide C1–C4 vom User 25.10.2026, 16:54) – Umse
 
 ## 1. Ziel
 
-TagStudio gleicht ausgewählte Ordner-Rollen und Programmdaten **direkt über die API** der Dienste ab – ohne
+TagStudioSX gleicht ausgewählte Ordner-Rollen und Programmdaten **direkt über die API** der Dienste ab – ohne
 Desktop-Client, z. B. auf einen zweiten Rechner (Windows ↔ Mac). Musik bleibt beim Desktop-Client (Weg 1).
 
 ## 2. Entscheide (User 25.10.2026, 16:54)
@@ -15,8 +15,8 @@ Desktop-Client, z. B. auf einen zweiten Rechner (Windows ↔ Mac). Musik bleibt 
 |---|---|---|
 | C1 | Welche Anbieter? | **Alle drei:** OneDrive (privat und geschäftlich), Google Drive, Dropbox – je ein Plugin. |
 | C2 | Was wird abgeglichen? | Rollen **Playlists** und **Export**, dazu Programmdaten-Teile: Playlists-Speicher, Käufe, Entdecken, Einstellungen **ohne Zugangsdaten**. Musik nur über den Desktop-Client (Weg 1). |
-| C3 | Richtung und Konflikte | **Beide Richtungen.** Bei gleichzeitiger Änderung auf zwei Rechnern **fragt TagStudio nach** (beide Fassungen zeigen) – nie still überschreiben. |
-| C4 | Zugang | **Eigene App je Dienst** (Client-ID), die der User im Plugin einträgt – wie Spotify/SoundCloud (OAuth mit PKCE, `oauthkit.py`). TagStudio liefert keine Client-ID mit. |
+| C3 | Richtung und Konflikte | **Beide Richtungen.** Bei gleichzeitiger Änderung auf zwei Rechnern **fragt TagStudioSX nach** (beide Fassungen zeigen) – nie still überschreiben. |
+| C4 | Zugang | **Eigene App je Dienst** (Client-ID), die der User im Plugin einträgt – wie Spotify/SoundCloud (OAuth mit PKCE, `oauthkit.py`). TagStudioSX liefert keine Client-ID mit. |
 
 ## 3. Aufbau
 
@@ -35,7 +35,7 @@ Desktop-Client, z. B. auf einen zweiten Rechner (Windows ↔ Mac). Musik bleibt 
 
 - Zugangsdaten nie abgleichen, nie protokollieren, nie exportieren (Einstellungen-Export ohne Zugangsdaten wie bisher).
 - Snapshot-Speicher, Arbeit, Cache und Plugin-Umgebungen **nie** über die Dienste (wie Weg 1).
-- Nur Dateien, die TagStudio selbst schreibt; fremde Dateien im Zielordner bleiben unberührt.
+- Nur Dateien, die TagStudioSX selbst schreibt; fremde Dateien im Zielordner bleiben unberührt.
 - Keine Kosten: nur die Gratis-API-Kontingente der Dienste; bei Grenzen melden statt wiederholen.
 
 ## 4a. Umsetzung Rahmen (#317, 25.10.2026)
@@ -72,13 +72,13 @@ Aktionen „Anmelden … / Abmelden … / Verbindung testen“), `oauthkit` mit 
 
 | Dienst | Anmeldung | Endpunkte | Grenzen (offizielle Doku) |
 |---|---|---|---|
-| OneDrive (Plugin `onedrive`) | Entra-App, öffentlicher Client, PKCE, `http://localhost/callback` (Port egal), Scopes `Files.ReadWrite User.Read offline_access` | `GET /me/drive`, `…/root:/{pfad}:/children`, `…:/content` (GET/PUT ≤ 4 MB), `…:/createUploadSession`, `DELETE …/root:/{pfad}` | Drosselung mit 429/Retry-After; einfacher Upload laut Graph bis 250 MB (TagStudio: Sitzung ab 4 MB) |
+| OneDrive (Plugin `onedrive`) | Entra-App, öffentlicher Client, PKCE, `http://localhost/callback` (Port egal), Scopes `Files.ReadWrite User.Read offline_access` | `GET /me/drive`, `…/root:/{pfad}:/children`, `…:/content` (GET/PUT ≤ 4 MB), `…:/createUploadSession`, `DELETE …/root:/{pfad}` | Drosselung mit 429/Retry-After; einfacher Upload laut Graph bis 250 MB (TagStudioSX: Sitzung ab 4 MB) |
 | Google Drive (`gdrive`) | Desktop-App mit Client-ID + Secret, PKCE, `access_type=offline`, `prompt=consent`, Scope `drive.file` | `GET /about`, `GET /files?q=…`, `POST /files` (Ordner), `GET /files/{id}?alt=media`, `POST /upload/…?uploadType=multipart`, `PATCH /upload/…/{id}?uploadType=media`, `PATCH /files/{id}` (trashed) | 325 000 Einheiten/Minute/Benutzer, 1 000 000/Minute/Projekt; Liste 100, Download 200, Ändern 50 Einheiten; 403/429 |
 | Dropbox (`dropbox`) | App-Key, PKCE, `token_access_type=offline`, Redirect `http://127.0.0.1:8769/callback` | `users/get_current_account`, `users/get_space_usage`, `files/list_folder` (+`/continue`), `files/download`, `files/upload` (overwrite), `files/delete_v2` | nicht veröffentlicht, 429 |
 
 **OneDrive geschäftlich (offener Punkt aus Abschnitt 5):** `Files.ReadWrite` (delegiert) hat laut Microsoft Graph
 „AdminConsentRequired: No“. Eine Organisation kann die Zustimmung durch Benutzer aber sperren – dann meldet die Anmeldung
-das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzustimmung.
+das (AADSTS65001/90094) und TagStudioSX nennt den Weg über die Administratorzustimmung.
 
 ## 4c. Entscheid 29.10.2026 (17:58) – OneDrive nach Kontoart (#405, geplant für 4.14.0)
 
@@ -87,8 +87,8 @@ das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzusti
   - **Privates OneDrive:** keine App, keine Anmeldung – nur der angegebene **OneDrive-Ordner** des Desktop-Clients:
     Spiegel der Bibliothek als Einweg-Kopie (#403) und Sicherung der Programmdaten (#402).
   - Vorausgewählt ist immer „Privat“ (Entscheid User 29.10.2026 20:13, #412, OneDrive 1.3).
-- Abo und Speichergrösse entscheidet der Benutzer; TagStudio zeigt eine **Schätzung des benötigten Platzes**.
-- Sicherheitsfehler #401 (Token bei Umleitungen) wird behoben. Einfache Anmeldung mit TagStudio-App (#400) und
+- Abo und Speichergrösse entscheidet der Benutzer; TagStudioSX zeigt eine **Schätzung des benötigten Platzes**.
+- Sicherheitsfehler #401 (Token bei Umleitungen) wird behoben. Einfache Anmeldung mit TagStudioSX-App (#400) und
   [KONZEPT-ONEDRIVE.md](KONZEPT-ONEDRIVE.md) nicht weiter verfolgt; Web-Player #404 bleibt Idee.
 
 ### Umsetzung Spiegel (#403, 29.10.2026)
@@ -105,7 +105,7 @@ das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzusti
   `mirror_last`; `mirror_overview/set/estimate`, `start_mirror` (Auftrag), `mirror_extra`, `mirror_delete_extra` (nur
   Pfade aus dem letzten Lauf), `_mirror_touch` (nach `start_save` und Vorbereiten-Übernahme, Hintergrund-Faden, nur mit
   „automatisch“). Vorschlag für das Ziel (#415): `cloud_folder(ctx)` der Plugins (OneDrive privat) bzw. erkannter
-  OneDrive-Ordner – Aufbau `path` direkt, Aufbau `name` + `TagStudio-Spiegel`. `mirror_cloud_folders(base, create)`
+  OneDrive-Ordner – Aufbau `path` direkt, Aufbau `name` + `TagStudioSX-Spiegel`. `mirror_cloud_folders(base, create)`
   (#413, aufgerufen über `Context.mirror_folders` vom OneDrive-Plugin, Option „Spiegel-Ordner erstellen“): Ordner je
   Bibliothek anlegen, Spiegel auf `base` + Aufbau `path` stellen, nichts löschen.
 - Oberfläche `web/mirror.js` (Abschnitt `#stMirror` in Einstellungen › Cloud).
@@ -114,7 +114,7 @@ das (AADSTS65001/90094) und TagStudio nennt den Weg über die Administratorzusti
 
 - `appbackup.py`: Teile settings (`appsettings.export_text`, ohne Zugangsdaten), playlists (`Playlists/*.json|.m3u8`),
   purchases (`Käufe`), discover (`cloudsync.DiscoverPart` – ohne SonoVault), prepare (`Vorbereiten`), mixes (`Mixe`).
-  ZIP `TagStudio-Programmdaten_<Rechner>_<JJJJ-MM-TT_HHMMSS>[_Notiz][-n].zip` mit `manifest.json` (Format
+  ZIP `TagStudioSX-Programmdaten_<Rechner>_<JJJJ-MM-TT_HHMMSS>[_Notiz][-n].zip` mit `manifest.json` (Format
   `tagstudio-appbackup` 1, Version, Rechner, Plattform, Profil, Bibliotheken, SHA-256 je Datei); `.part` → umbenennen.
   `read` prüft Format, Grösse (≤ 512 MB) und Prüfsummen; `preview` (ersetzt/neu/gleich/nur hier, Einstellungsgruppen über
   `appsettings.import_preview`), `path_mapper` (Bibliotheken gleicher ID bzw. gleichen Namens, Trennzeichen egal),

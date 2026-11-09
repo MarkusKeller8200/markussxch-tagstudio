@@ -2,11 +2,17 @@
   <img src="web/icon.png" width="96" height="96" alt="">
 </p>
 
-<h1 align="center">MarKusSXCH TagStudio</h1>
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/tagstudiosx-wordmark-dark.svg">
+    <img src="docs/brand/tagstudiosx-wordmark-light.svg" width="320" alt="TagStudioSX">
+  </picture>
+</h1>
 
 <p align="center">
-  <b>The toolbox for DJs' MP3 libraries</b><br>
-  Discover, shop, tag, compare and plan sets – for Windows and macOS.
+  <b>Music Management & DJ Library</b> – the toolbox for DJs' MP3 libraries<br>
+  Discover, shop, tag, compare and plan sets – for Windows and macOS.<br>
+  <sub>Developed by <a href="https://markussx.ch/tagstudio"><b>MarKusSXCH</b></a> · up to version 4.16 “MarKusSXCH TagStudio”</sub>
 </p>
 
 <p align="center">
@@ -17,8 +23,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest"><img alt="Download for Windows" src="https://img.shields.io/badge/Download-Windows-1D76DB?style=for-the-badge&logo=windows11&logoColor=white"></a>
-  <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest"><img alt="Download for macOS" src="https://img.shields.io/badge/Download-macOS%20(Apple%20silicon)-1D76DB?style=for-the-badge&logo=apple&logoColor=white"></a>
+  <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest"><img alt="Download for Windows" src="https://img.shields.io/badge/Download-Windows-007EBB?style=for-the-badge&logo=windows11&logoColor=white"></a>
+  <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest"><img alt="Download for macOS" src="https://img.shields.io/badge/Download-macOS%20(Apple%20silicon)-007EBB?style=for-the-badge&logo=apple&logoColor=white"></a>
   <a href="docs/HANDBUCH.en.md"><img alt="Manual" src="https://img.shields.io/badge/Manual-read-6E7781?style=for-the-badge&logo=readthedocs&logoColor=white"></a>
   <a href="https://youtu.be/f7voXQsTzFE"><img alt="Watch the trailer" src="https://img.shields.io/badge/Trailer-watch-CC0000?style=for-the-badge&logo=youtube&logoColor=white"></a>
 </p>
@@ -43,9 +49,9 @@
   <sub>▶ Watch the trailer on YouTube (about 75 seconds)</sub>
 </p>
 
-<sub>The pictures show the German interface; TagStudio also speaks English and Swiss German.</sub>
+<sub>The pictures show the German interface; TagStudioSX also speaks English and Swiss German.</sub>
 
-## What TagStudio does
+## What TagStudioSX does
 
 From find to DJ set: **Discover → Ideas → Cart → Purchases → Prepare → Tag → DJ set → Mixes.**
 
@@ -100,9 +106,9 @@ All changes: [CHANGELOG](CHANGELOG.md) (German).
 [Latest version](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest) download the file for your
 system from the “Download” box at the top.
 
-- **Windows:** run `TagStudio-<version>-Windows-Setup.exe` – no administrator rights needed. The installer is not
+- **Windows:** run `TagStudioSX-<version>-Windows-Setup.exe` – no administrator rights needed. The installer is not
   signed: at “Windows protected your PC” choose **More info → Run anyway**.
-- **macOS (Apple silicon):** open `TagStudio-<version>-macOS-Apple-Chip.dmg`, drag **TagStudio** to **Applications** –
+- **macOS (Apple silicon):** open `TagStudioSX-<version>-macOS-Apple-Chip.dmg`, drag **TagStudioSX** to **Applications** –
   signed and notarised by Apple (from 4.13.0).
 
 **From source:** Python 3.12 or newer, then
@@ -115,7 +121,7 @@ system from the “Download” box at the top.
 ## Contributing and contact
 
 - **Report bugs, suggest ideas:** [Issues](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues) – or
-  directly in TagStudio via “Report …”.
+  directly in TagStudioSX via “Report …”.
 - **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Code of conduct:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- **Security:** [SECURITY.md](SECURITY.md) · **Third-party components:** in TagStudio under Help › Licences
+- **Security:** [SECURITY.md](SECURITY.md) · **Third-party components:** in TagStudioSX under Help › Licences
 - **Licence:** [GNU GPL v3](LICENSE) – free to use, changes stay open.

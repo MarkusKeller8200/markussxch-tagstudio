@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – gemeinsame Werkzeuge der Dienst-Plugins (#204).
+"""TagStudioSX – gemeinsame Werkzeuge der Dienst-Plugins (#204).
 
 - Client: JSON-Abfragen mit eigenem User-Agent, Drosselung je Host (`onlinematch.INTERVALS`), Wiederholung bei
   429/503 und Abbruch. Der eigentliche Abruf läuft über `onlinematch.http_get` – in Tests an einer Stelle ersetzbar.

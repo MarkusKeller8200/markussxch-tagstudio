@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Hilfe (#158): Tag-Übersicht mit aufklappbaren Kapiteln, Herkunft und Zählern aus dem
+/* TagStudioSX – Hilfe (#158): Tag-Übersicht mit aufklappbaren Kapiteln, Herkunft und Zählern aus dem
    Bibliotheks-Scan (Klick filtert im Tagger), Handbuch (README), ID3-Felder und Plugins als Markdown. */
 "use strict";
 
@@ -51,7 +51,7 @@ function helpKeysHtml() {
 /** #176: Lizenzen und Quellen aller fremden Bestandteile, gruppiert; #206: GitHub-Repository, Vertrauenssignale, eigene Durchsicht */
 const LIC_MARKS = [["checked", "geprüft", "Code/Projekt angesehen und als vertrauenswürdig eingestuft"],
   ["followed", "gefolgt", "Dem Projekt bzw. Entwickler auf GitHub gefolgt (Stern/Folgen)"],
-  ["thanked", "bedankt", "Mitteilung gesendet, dass TagStudio den Code verwendet"]];
+  ["thanked", "bedankt", "Mitteilung gesendet, dass TagStudioSX den Code verwendet"]];
 function licAge(d) {
   if (!d) return "";
   const days = Math.round((Date.now() - new Date(d + "T00:00:00").getTime()) / 864e5);
@@ -67,7 +67,7 @@ function licRepoCell(it, review) {
     : '<div class="faint sm">Signale nach der nächsten Prüfung</div>';
   return `<a href="#" data-url="https://github.com/${esc(it.repo)}">${esc(it.repo)} ↗</a>${sig}
     <div class="lic-acts sm"><a href="#" data-url="https://github.com/${esc(owner)}" title="Profil von ${esc(owner)} – dort „Follow“">Entwickler ↗</a>
-      · <a href="#" data-licthanks="${esc(it.id)}" title="Vorbereitete Mitteilung, dass TagStudio diesen Code verwendet">Danke …</a></div>
+      · <a href="#" data-licthanks="${esc(it.id)}" title="Vorbereitete Mitteilung, dass TagStudioSX diesen Code verwendet">Danke …</a></div>
     <div class="lic-marks">${LIC_MARKS.map(([k, l, t]) => `<label title="${esc(t)}${rv[k] ? " – " + esc(rv[k]) : ""}"><input type="checkbox" data-licmark="${esc(it.id)}" data-key="${k}" ${rv[k] ? "checked" : ""}> ${l}</label>`).join("")}</div>`;
 }
 function helpLicensesHtml(d) {
@@ -77,8 +77,13 @@ function helpLicensesHtml(d) {
   const groups = Object.keys(d.groups).filter((g) => d.items.some((it) => it.group === g));
   const review = d.review || {}, repos = d.items.filter((it) => it.repo && it.group !== "app");
   const done = (k) => repos.filter((it) => (review[it.id] || {})[k]).length;
-  return `<h2>Lizenzen und Quellen</h2>
-    <p class="muted">TagStudio ist freie Software unter der GNU General Public License v3 (oder neuer). Hier stehen alle fremden
+  const ver = ($("#ver") || {}).textContent || "";
+  return `<div class="about-card"><img src="icon.png" alt=""><div>${brandWordmark()}
+    <p><b>Music Management & DJ Library</b> · ${esc(ver)}</p>
+    <p class="wm-sig sm">Developed by <b>MarKusSXCH</b> · <a href="#" data-url="https://markussx.ch/tagstudio">markussx.ch ↗</a> ·
+    <a href="#" data-url="https://github.com/MarkusKeller8200/markussxch-tagstudio">GitHub ↗</a></p></div></div>
+    <h2>Lizenzen und Quellen</h2>
+    <p class="muted">TagStudioSX ist freie Software unter der GNU General Public License v3 (oder neuer). Hier stehen alle fremden
     Bibliotheken, Werkzeuge, Online-Dienste und Vorlagen mit Lizenz und Quelle. Die Liste wird monatlich automatisch auf neue
     Versionen und geänderte Lizenzen geprüft; „Geprüft“ zeigt den zuletzt durchgesehenen Stand.</p>
     <p class="muted sm">GitHub: ${repos.length} Projekte · von dir geprüft ${done("checked")}, gefolgt ${done("followed")}, bedankt ${done("thanked")}.
@@ -93,7 +98,7 @@ function licThanksText(it, lang) {
   const who = it.repo.split("/")[0], proj = "https://github.com/MarkusKeller8200/markussxch-tagstudio";
   const lic = it.license ? (lang === "en" ? ` (${it.license})` : ` (${it.license})`) : "";
   if (lang === "en") {
-    return `Hi ${who},\n\nI'd like to say thank you: my open-source project MarKusSXCH TagStudio (MP3 tagger and DJ tool, GPL-3.0) `
+    return `Hi ${who},\n\nI'd like to say thank you: my open-source project TagStudioSX (MP3 tagger and DJ tool, GPL-3.0) `
       + `uses ${it.name}${lic}${it.use ? ` – ${it.use}` : ""}.\n\nProject: ${proj}\n`
       + `License and source are credited in the app under Help › Licenses (docs/third-party.json).\n\n`
       + `If this use conflicts with your license or your wishes, or if you would like your code removed from this project, `
@@ -102,7 +107,7 @@ function licThanksText(it, lang) {
   // Du-Form für Einzelpersonen, Ihr-Form für Organisationen (Teams) – nie „Sie“
   const org = (it.repo_info || {}).owner_type === "Organization";
   const [dich, deiner, deinen, deine] = org ? ["euch", "eurer", "euren", "eure"] : ["dich", "deiner", "deinen", "deine"];
-  return `Hallo ${who},\n\nich möchte mich bei ${dich} bedanken: Mein Open-Source-Projekt MarKusSXCH TagStudio (MP3-Tagger und DJ-Werkzeug, GPL-3.0) `
+  return `Hallo ${who},\n\nich möchte mich bei ${dich} bedanken: Mein Open-Source-Projekt TagStudioSX (MP3-Tagger und DJ-Werkzeug, GPL-3.0) `
     + `verwendet ${it.name}${lic}${it.use ? ` – ${it.use}` : ""}.\n\nProjekt: ${proj}\n`
     + `Lizenzangabe und Quelle stehen in der Hilfe unter „Lizenzen“ (docs/third-party.json).\n\n`
     + `Sollte die Nutzung des Codes ${deiner} Lizenz oder ${deinen} Wünschen widersprechen oder soll er aus diesem Projekt entfernt werden, `
@@ -112,12 +117,12 @@ async function licThanks(id) {
   const it = (HELP.lic?.items || []).find((x) => x.id === id);
   if (!it || !it.repo) return;
   const ri = it.repo_info || {}, base = `https://github.com/${it.repo}`;
-  const title = `Danke – ${it.name} wird in TagStudio verwendet`;
+  const title = `Danke – ${it.name} wird in TagStudioSX verwendet`;
   const where = ri.discussions ? `${base}/discussions/new?category=show-and-tell&title=${encodeURIComponent(title)}`
     : `${base}/issues/new?title=${encodeURIComponent(title)}`;
   const r = await modal({
     title: `Danke an ${it.repo}`,
-    html: `<p class="muted sm">Text anpassen, kopieren und auf GitHub einfügen. TagStudio sendet nichts selbst.
+    html: `<p class="muted sm">Text anpassen, kopieren und auf GitHub einfügen. TagStudioSX sendet nichts selbst.
       ${ri.discussions ? "Das Projekt hat Diskussionen – dort ist ein Danke am besten aufgehoben (Kategorie „Show and tell“, falls vorhanden)."
         : "Das Projekt hat keine Diskussionen – du kannst ein Issue eröffnen oder dem Entwickler über sein Profil schreiben (manche nennen dort E-Mail oder Mastodon)."}</p>
       <div class="lic-lang" role="radiogroup" aria-label="Sprache">
@@ -149,9 +154,9 @@ async function helpTab(tab) {
   $("#helpDoc").classList.toggle("wide", tab === "licenses");          // #206: Tabelle nutzt die ganze Breite
   if (tab === "report") {                                            // #187
     $("#helpDoc").innerHTML = `<h2>Fehler melden, Verbesserung oder neue Funktion vorschlagen</h2>
-      <p class="muted">Meldungen landen als Issue im öffentlichen GitHub-Projekt. TagStudio füllt das Formular vor (Version, System,
+      <p class="muted">Meldungen landen als Issue im öffentlichen GitHub-Projekt. TagStudioSX füllt das Formular vor (Version, System,
       Bereich), sucht nach ähnlichen Meldungen und schwärzt private Angaben; abgeschickt wird im Browser mit deinem GitHub-Konto.
-      TagStudio speichert keine Zugangsdaten.</p>
+      TagStudioSX speichert keine Zugangsdaten.</p>
       <p class="muted">Jede neue Meldung bekommt das Label <code>triage</code> und wird vom Projektverantwortlichen geprüft. Erst seine
       ausdrückliche Freigabe macht daraus einen Entwicklungsauftrag – eine Meldung allein ist keine Zusage.</p>
       <p class="muted">Je nach Art kommt die Meldung in einen eigenen Meilenstein: Fehler → Fehler, Verbesserung
@@ -212,7 +217,7 @@ function helpGroupShort(t) { t = typeof tr === "function" ? tr(t) : t; return t.
 function helpRowNorm(ch, r) {
   if (ch.kind !== "analysis") return r;
   return { ...r, key: r.key || "", tagShow: r.where, name: r.param,
-    meaning: `Eigener Frame: ${r.own}${r.tagstudio ? " · In TagStudio: " + r.tagstudio : ""}`, dj: true, analysis: true };
+    meaning: `Eigener Frame: ${r.own}${r.tagstudio ? " · In TagStudioSX: " + r.tagstudio : ""}`, dj: true, analysis: true };
 }
 
 function helpSortVal(r, k) {

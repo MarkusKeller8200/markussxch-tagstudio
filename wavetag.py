@@ -1,6 +1,6 @@
 """Eigene Wellenform im MP3 (#222, Entscheid W1): GEOB „TagStudio Overview“.
 
-Nur auf Wunsch (Einstellung „Wellenform im MP3 speichern“, Standard aus): beim Speichern legt TagStudio die Wellenform
+Nur auf Wunsch (Einstellung „Wellenform im MP3 speichern“, Standard aus): beim Speichern legt TagStudioSX die Wellenform
 aus dem Cache (``waveform.py``) als eigenes GEOB in der Datei ab – dann reist sie mit der Datei und übersteht das
 Leeren des Caches. Serato-Felder („Serato Overview“ & Co.) werden nie gelesen, verändert oder ersetzt.
 

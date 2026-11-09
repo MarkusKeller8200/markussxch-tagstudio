@@ -12,7 +12,7 @@ Titel aus dem **Tagger** und aus dem **DJ-Set** sollen in **Playlists** abgelegt
 einer Stelle **verwaltet** (anlegen, ordnen, umbenennen, prüfen, exportieren) und lassen sich überall wieder öffnen:
 im Tagger zum Bearbeiten, im DJ-Set zum Optimieren, im Player zum Abspielen.
 
-Eine Playlist ist eine **Liste von Verweisen auf Dateien**. TagStudio ändert dabei die MP3-Dateien nicht. Ausnahme ist
+Eine Playlist ist eine **Liste von Verweisen auf Dateien**. TagStudioSX ändert dabei die MP3-Dateien nicht. Ausnahme ist
 eine ausdrückliche Aktion wie „Spurnummern schreiben“. Fremde Bibliotheken (Engine DJ, Serato, Rekordbox, Lexicon …)
 werden nie direkt verändert. Der Austausch läuft über Dateien (M3U8, XML) oder über freigegebene Plugin-Wege.
 
@@ -94,7 +94,7 @@ Entscheid E3: **Programmdaten + eigener Playlist-Ordner.**
   Playlists als M3U8 mit **relativen Pfaden** zur Musik, ist für Menschen und DJ-Programme lesbar und reist mit der
   Bibliothek mit. Er wird bei jeder Änderung nachgeführt.
 - **Änderungen von aussen:** Wird eine M3U8 im Playlist-Ordner von einem anderen Programm geändert oder neu angelegt,
-  meldet TagStudio das beim nächsten Öffnen der Seite („3 Playlists im Ordner geändert – übernehmen?“, Vorschau).
+  meldet TagStudioSX das beim nächsten Öffnen der Seite („3 Playlists im Ordner geändert – übernehmen?“, Vorschau).
   Es überschreibt nichts stillschweigend.
 - Der Einrichtungsassistent und Einstellungen › Speicherort und Ordner bekommen den Eintrag `playlists`
   („03_Playlists – Playlists als M3U8“) in `session_setup.STRUCTURE`. Ohne Basisordner gibt es keinen Spiegel, nur den
@@ -200,7 +200,7 @@ Vorhanden in `setexport.py`, wird auf Playlists verallgemeinert.
 **Import:** M3U/M3U8 (auch relative Pfade, Windows-/Mac-Pfade, Umlaute), Rekordbox-XML (`read_rekordbox`, Ordner →
 Playlist-Ordner), CSV mit Pfadspalte. Titel, die nicht gefunden werden, bleiben als „fehlt“ in der Playlist.
 
-**Playlist-Ordner `03_Playlists`** (Abschnitt 5): immer eingeschaltet, sobald ein Basisordner gewählt ist. TagStudio
+**Playlist-Ordner `03_Playlists`** (Abschnitt 5): immer eingeschaltet, sobald ein Basisordner gewählt ist. TagStudioSX
 schreibt dort nur eigene `.m3u8`-Dateien. Umbenennen und Verschieben im Baum benennen bzw. verschieben die Datei mit.
 Archivieren verschiebt sie nach `02_Archiv/_Playlists`. Fremde Dateien im Ordner werden nie gelöscht.
 
@@ -462,7 +462,7 @@ Meilenstein #24 „4.9.0 – Playlists Phase 3“: #272 Smartlists, #273 Senden 
   abweichende Reihenfolge wird nicht korrigiert, doppelte Titel kommen nur einmal hinein. **Nie** `DELETE` – auch nicht
   zum Ersetzen (die Local API bietet laut OpenAPI kein Ersetzen des Inhalts; `PATCH /playlist` nicht genutzt).
   Journal im Plugin (`playlist` bzw. `playlist_tracks`); „Letzte Änderung rückgängig …“ lässt angelegte Playlists und
-  eingefügte Titel wie bisher stehen (TagStudio löscht nichts in Lexicon).
+  eingefügte Titel wie bisher stehen (TagStudioSX löscht nichts in Lexicon).
 - **P3:** Serato, Engine DJ und VirtualDJ werden nicht beschrieben – Austausch über die M3U8 im Playlist-Ordner.
 - **Tests:** `tests/test_lexicon.py` (`TestPushPlaylist`, nachgebaute API mit `index`), Oberflächentest
   `test_playlists_send_lexicon`.

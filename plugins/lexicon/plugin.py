@@ -55,12 +55,12 @@ ACTIONS = [{
         {"key": "grid", "type": "check", "label": "Beatgrid und Cue-Punkte mit der Datei vergleichen (nur Hinweis)",
          "default": True},
         {"key": "by_name", "type": "check", "label": "Titel ohne Pfad-Treffer über Künstler + Titel zuordnen", "default": True},
-        {"key": "to_ts", "type": "check", "label": "Zusätzlich in die TagStudio-Felder übernehmen (ENERGY, DANCEABILITY, "
+        {"key": "to_ts", "type": "check", "label": "Zusätzlich in die TagStudioSX-Felder übernehmen (ENERGY, DANCEABILITY, "
                                                     "HAPPINESS, Stimmung – mit Abgleich)", "default": False},
         {"type": "info", "label": "Lexicon muss laufen und die Local API eingeschaltet sein (Settings › Integrations). "
                                   "Werte ohne offizielles MP3-Feld kommen in eigene Felder TXXX:LEXICON_… (Herkunft "
                                   "„Lexicon“) und bleiben so, wie Lexicon sie liefert (1–10); 0 heisst „nicht analysiert“ und "
-                                  "wird übergangen. Die TagStudio-Felder (ENERGY usw.) bleiben unverändert."},
+                                  "wird übergangen. Die TagStudioSX-Felder (ENERGY usw.) bleiben unverändert."},
     ],
 }, {
     "id": "open", "label": "Aus Lexicon öffnen …", "short": "Öffnen", "where": "tagger", "run_label": "Öffnen", "needs_selection": False,
@@ -76,9 +76,9 @@ ACTIONS = [{
         {"type": "info", "label": "Ordner und Smartlists gehen auch: Lexicon liefert die Titel aller enthaltenen Playlists."},
     ],
 }, {
-    "id": "to_ts", "label": "Lexicon-Werte in TagStudio-Felder …", "short": "In TagStudio-Felder", "where": "tagger", "run_label": "Vorschau",
+    "id": "to_ts", "label": "Lexicon-Werte in TagStudioSX-Felder …", "short": "In TagStudioSX-Felder", "where": "tagger", "run_label": "Vorschau",
     "description": "Übernimmt die Werte aus den Lexicon-Feldern der Dateien (TXXX:LEXICON_ENERGY usw., 1–10) in die "
-                   "TagStudio-Felder (ENERGY usw., 10–100) und die Stimmung – mit Vorschau und Abgleich. Lexicon muss "
+                   "TagStudioSX-Felder (ENERGY usw., 10–100) und die Stimmung – mit Vorschau und Abgleich. Lexicon muss "
                    "dafür nicht laufen.",
     "options": [
         {"key": "danceability", "type": "check", "label": "LEXICON_DANCEABILITY → DANCEABILITY", "default": True},
@@ -111,15 +111,15 @@ ACTIONS = [{
     "options": [
         {"key": "url", "type": "text", "label": "Adresse der Lexicon Local API", "default": DEFAULT_URL},
         {"key": "write", "type": "check", "label": "Zurückschreiben nach Lexicon erlauben (Hauptschalter)", "default": False},
-        {"key": "move", "type": "check", "label": "Pfade nachführen, wenn TagStudio Dateien umbenennt oder verschiebt",
+        {"key": "move", "type": "check", "label": "Pfade nachführen, wenn TagStudioSX Dateien umbenennt oder verschiebt",
          "default": True},
         {"key": "add", "type": "check", "label": "Neu in die Bibliothek übernommene Titel (Vorbereiten) in Lexicon aufnehmen",
          "default": False},
-        {"key": "playlist", "type": "text", "label": "… und in diese Playlist legen (leer: keine)", "default": "TagStudio Neu"},
+        {"key": "playlist", "type": "text", "label": "… und in diese Playlist legen (leer: keine)", "default": "TagStudioSX Neu"},
         {"key": "analyze", "type": "check", "label": "… und von Lexicon analysieren lassen (Tonart, Beatgrid, Energie …)",
          "default": False},
         {"type": "info", "title": "Sicherheit",
-         "label": "Die Lexicon-API hat keine Anmeldung. TagStudio schreibt deshalb nur an Lexicon auf diesem Rechner "
+         "label": "Die Lexicon-API hat keine Anmeldung. TagStudioSX schreibt deshalb nur an Lexicon auf diesem Rechner "
                   "(localhost) und löscht nie etwas. Jede Änderung steht im Journal und lässt sich rückgängig machen "
                   "(„Letzte Änderung rückgängig …“). Die Local API in Lexicon nur in vertrauenswürdigen Netzen einschalten.",
          "links": [["Lexicon: Local API", "https://www.lexicondj.com/docs/developers/api"]]},
@@ -127,8 +127,8 @@ ACTIONS = [{
 }, {
     "id": "undo", "label": "Letzte Änderung in Lexicon rückgängig …", "where": "page", "run_label": "Rückgängig",
     "needs_selection": False,
-    "description": "Stellt die Werte bzw. Pfade vor der letzten Änderung durch TagStudio in Lexicon wieder her "
-                   "(aufgenommene Titel und angelegte Playlists bleiben – TagStudio löscht nichts in Lexicon).",
+    "description": "Stellt die Werte bzw. Pfade vor der letzten Änderung durch TagStudioSX in Lexicon wieder her "
+                   "(aufgenommene Titel und angelegte Playlists bleiben – TagStudioSX löscht nichts in Lexicon).",
     "options": [],
 }, {
     "id": "test", "label": "Verbindung testen", "where": "page", "run_label": "Testen", "needs_selection": False,
@@ -139,7 +139,7 @@ ACTIONS = [{
 
 
 # =========================================================================== Einstellungen und Verbindung
-SETTINGS = {"url": "", "write": False, "move": True, "add": False, "playlist": "TagStudio Neu", "analyze": False}
+SETTINGS = {"url": "", "write": False, "move": True, "add": False, "playlist": "TagStudioSX Neu", "analyze": False}
 
 
 def _settings_path(ctx) -> str:
@@ -377,7 +377,7 @@ def run_import(ctx, files, opts):
             ctx.log(f"{group}: " + " · ".join(extra))
         any_ = False
         # #240 (Entscheid User 17.10.2026): Lexicon-Werte ohne offizielles MP3-Feld in eigene Felder TXXX:LEXICON_…,
-        # unverändert wie in Lexicon (1–10) – die TagStudio-Felder (ENERGY usw.) fasst „Lexicon übernehmen“ nicht an
+        # unverändert wie in Lexicon (1–10) – die TagStudioSX-Felder (ENERGY usw.) fasst „Lexicon übernehmen“ nicht an
         for field, name in FIELDS:
             v = _native(t.get(field))
             if v is None or not opts.get(field):
@@ -417,7 +417,7 @@ def run_import(ctx, files, opts):
                 cur = f.text(key) if f.get(key) is not None else ""
                 any_ |= ctx.propose(f, key, text, f"Lexicon-Tags → {target}", note=note, group=group,
                                     checked=not cur, hint="schon gefüllt – bitte prüfen" if cur else "aus Lexicon-Tags")
-        if opts.get("to_ts"):                                           # #241: auf Wunsch auch in TagStudio-Felder
+        if opts.get("to_ts"):                                           # #241: auf Wunsch auch in TagStudioSX-Felder
             vals = {name: _native(t.get(field)) for field, name in FIELDS if opts.get(field)}
             mood_names = [nm for cat, nm in named if _is_mood(cat)] if opts.get("mood") else []
             any_ |= propose_ts(ctx, f, vals, mood_names, group, note)
@@ -431,9 +431,9 @@ def run_import(ctx, files, opts):
     return {"message": msg + "."}
 
 
-# =========================================================================== In TagStudio-Felder übernehmen (#241)
+# =========================================================================== In TagStudioSX-Felder übernehmen (#241)
 def propose_ts(ctx, f, vals: dict, mood_names, group, note="") -> bool:
-    """Lexicon-Werte (1–10, Text) als TagStudio-Merkmale (10–100) mit Abgleich vorschlagen, Stimmung ins Stimmungsfeld."""
+    """Lexicon-Werte (1–10, Text) als TagStudioSX-Merkmale (10–100) mit Abgleich vorschlagen, Stimmung ins Stimmungsfeld."""
     import importsync
     any_ = False
     for name, raw in vals.items():
@@ -453,7 +453,7 @@ def propose_ts(ctx, f, vals: dict, mood_names, group, note="") -> bool:
 
 
 def run_to_ts(ctx, files, opts):
-    """Werte aus den Lexicon-Feldern der Dateien in die TagStudio-Felder übernehmen (ohne Verbindung zu Lexicon)."""
+    """Werte aus den Lexicon-Feldern der Dateien in die TagStudioSX-Felder übernehmen (ohne Verbindung zu Lexicon)."""
     n_with = changed = 0
     for n, f in enumerate(files):
         group = os.path.basename(f.path)
@@ -795,7 +795,7 @@ def run_djset(ctx, opts):
     ds = ctx.djset()
     if not ds["paths"]:
         return {"message": "Das DJ-Set ist leer."}
-    name = (opts.get("name") or ds["name"] or f"TagStudio DJ-Set {time.strftime('%Y-%m-%d')}").strip()
+    name = (opts.get("name") or ds["name"] or f"TagStudioSX DJ-Set {time.strftime('%Y-%m-%d')}").strip()
     m = Matcher(c, ctx, len(ds["paths"]), ["id", "location", "locationUnique", "archived"])
     ids, missing = [], []
     for n, p in enumerate(ds["paths"]):
@@ -841,7 +841,7 @@ def run_undo(ctx):
     _journal_save(ctx, j)
     keep = sum(1 for it in e.get("items") or [] if it.get("kind") in ("added", "playlist", "playlist_tracks"))
     return {"message": f"Rückgängig ({e['at']}, {e['what']}): {done} Titel zurückgesetzt."
-                       + (" Aufgenommene Titel und Playlists bleiben (TagStudio löscht nichts in Lexicon)." if keep else "")}
+                       + (" Aufgenommene Titel und Playlists bleiben (TagStudioSX löscht nichts in Lexicon)." if keep else "")}
 
 
 # =========================================================================== #273: Playlists an Lexicon senden
@@ -856,7 +856,7 @@ def push_ready(ctx):
 def plan_inserts(have, want) -> list[tuple[int, list]]:
     """Fehlende Titel an ihre Stelle einfügen, ohne etwas zu entfernen: [(index, [ids]), …] in Ausführungsreihenfolge.
     have: Titel der Lexicon-Playlist, want: gewünschte Reihenfolge. Titel, die schon drin sind, bleiben, wo sie sind
-    (auch wenn die Reihenfolge abweicht); doppelte Titel aus TagStudio kommen nur einmal hinein."""
+    (auch wenn die Reihenfolge abweicht); doppelte Titel aus TagStudioSX kommen nur einmal hinein."""
     cur, out, last, run, run_at = list(have), [], -1, [], 0
 
     def flush():
@@ -882,11 +882,11 @@ def plan_inserts(have, want) -> list[tuple[int, list]]:
 
 
 def playlist_push(ctx, pl, opts=None):
-    """Playlist aus TagStudio in Lexicon anlegen bzw. nachführen (#273, Entscheide P1–P3).
+    """Playlist aus TagStudioSX in Lexicon anlegen bzw. nachführen (#273, Entscheide P1–P3).
 
     pl: {"name", "folder", "items": [{"path", "artist", "title"}], "remote": ID aus dem letzten Senden oder None}.
-    Neu: normale Playlist (oberste Ebene) mit den Titeln in TagStudio-Reihenfolge. Erneut: fehlende Titel werden an
-    ihrer Stelle eingefügt; Titel, die nur in Lexicon stehen, bleiben (TagStudio entfernt nichts) und werden gemeldet.
+    Neu: normale Playlist (oberste Ebene) mit den Titeln in TagStudioSX-Reihenfolge. Erneut: fehlende Titel werden an
+    ihrer Stelle eingefügt; Titel, die nur in Lexicon stehen, bleiben (TagStudioSX entfernt nichts) und werden gemeldet.
     Einträge ohne Datei und Dateien, die Lexicon nicht kennt, werden ausgelassen und gemeldet."""
     c, _st = writer(ctx)
     items = pl.get("items") or []
@@ -902,7 +902,7 @@ def playlist_push(ctx, pl, opts=None):
             missing.append(p)
         else:
             ids.append(int(t["id"]))
-    name = (pl.get("name") or "TagStudio").strip()
+    name = (pl.get("name") or "TagStudio").strip()   # Name der Lexicon-Playlist bleibt (#461)
     remote = None
     if pl.get("remote"):
         try:
@@ -942,7 +942,7 @@ def playlist_push(ctx, pl, opts=None):
     if no_file:
         parts.append(f"{no_file} ohne Datei ausgelassen")
     if extra:
-        parts.append(f"{extra} stehen nur in Lexicon (TagStudio entfernt nichts – dort von Hand löschen)")
+        parts.append(f"{extra} stehen nur in Lexicon (TagStudioSX entfernt nichts – dort von Hand löschen)")
     return {"ok": True, "id": rid, "created": created, "added": added, "missing": missing, "no_file": no_file,
             "extra": extra, "message": " · ".join(parts)}
 

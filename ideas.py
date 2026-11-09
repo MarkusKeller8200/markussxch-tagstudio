@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Ideen (#186): Wunschlisten für Titel, die später gekauft werden sollen.
+"""TagStudioSX – Ideen (#186): Wunschlisten für Titel, die später gekauft werden sollen.
 
 Wunschlisten sind Playlists der Art ``wish`` im Ordner „Ideen“ des Playlists-Speichers (Entscheid I2). Ihre Einträge
 haben keine Datei, sondern eine Angabe ``ref`` (Künstler, Titel, Mix, Link) und Zusatzangaben ``idea``

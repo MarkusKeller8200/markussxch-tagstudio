@@ -293,7 +293,7 @@
 "Importieren …": ["Import …", "Importiere …"],
 "Zurücksetzen …": ["Reset …", "Zrugsetze …"],
 "Tracks vorbereiten": ["Prepare tracks", "Tracks vorbereite"],
-"Neue Titel laufen vom Eingangsordner Schritt für Schritt bis in die Bibliothek. Jede Stufe arbeitet auf einer Kopie – die Rohdaten bleiben unverändert. Ab {q}-Schritten meldet TagStudio, wenn ein Programm bestehende Tags ändert.": ["New tracks move step by step from the inbox folder into the library. Every stage works on a copy – the raw data stays unchanged. From {q} steps on, TagStudio reports when a program changes existing tags.", "Neui Titel lauffed vom Iigangsordner Schritt für Schritt bis i d Bibliothek. Jedi Stufe schaffet uf ere Kopie – d Rohdate bliibed unveränderet. Ab {q}-Schritt meldet TagStudio, wänn es Programm bestehendi Tags änderet."],
+"Neue Titel laufen vom Eingangsordner Schritt für Schritt bis in die Bibliothek. Jede Stufe arbeitet auf einer Kopie – die Rohdaten bleiben unverändert. Ab {q}-Schritten meldet TagStudioSX, wenn ein Programm bestehende Tags ändert.": ["New tracks move step by step from the inbox folder into the library. Every stage works on a copy – the raw data stays unchanged. From {q} steps on, TagStudioSX reports when a program changes existing tags.", "Neui Titel lauffed vom Iigangsordner Schritt für Schritt bis i d Bibliothek. Jedi Stufe schaffet uf ere Kopie – d Rohdate bliibed unveränderet. Ab {q}-Schritt meldet TagStudioSX, wänn es Programm bestehendi Tags änderet."],
 "Abholen": ["Fetch", "Abhole"],
 "Workflow bearbeiten …": ["Edit workflow …", "Workflow bearbeite …"],
 "Mehr ▾": ["More ▾", "Meh ▾"],

@@ -37,7 +37,7 @@ MAX_ITEMS = 5000
 
 ACTIONS = [
     {"id": "login", "label": "Anmelden …", "where": "page", "run_label": "Anmelden", "needs_selection": False,
-     "description": "Zugangsdaten deiner eigenen Spotify-App eintragen (leer = unverändert, verschlüsselt gespeichert) und die Anmeldeseite im Browser öffnen. TagStudio liest – geändert wird dein Konto nur auf deinen Klick (Wunschliste als Playlist, in deiner Bibliothek speichern).",
+     "description": "Zugangsdaten deiner eigenen Spotify-App eintragen (leer = unverändert, verschlüsselt gespeichert) und die Anmeldeseite im Browser öffnen. TagStudioSX liest – geändert wird dein Konto nur auf deinen Klick (Wunschliste als Playlist, in deiner Bibliothek speichern).",
      "options": [{"type": "info", "title": "Spotify-App anlegen",
           "label": "1. Auf developer.spotify.com mit deinem Spotify-Konto anmelden (Premium nötig). 2. Dashboard › "
                    "„Create app“, bei „Redirect URIs“ genau die Adresse unten eintragen (Standard "
@@ -464,7 +464,7 @@ def wish_push(ctx, name: str, uris: list, existing_id: str = "") -> dict:
     created = False
     if not pl:
         pl = send(ctx, "POST", "/me/playlists", {"name": name, "public": False,
-                                                 "description": "Wunschliste aus MarKusSXCH TagStudio"})
+                                                 "description": "Wunschliste aus TagStudioSX"})
         created = True
         ctx.log(f"Playlist angelegt: {name} ({pl.get('id')})")
     pid = pl.get("id") or ""

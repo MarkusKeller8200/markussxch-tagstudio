@@ -18,7 +18,7 @@
 "Kein verifizierter Downbeat.": ["No verified downbeat.", "Kän verifizierte Downbeat."],
 "Analyse": ["Analysis", "Analyse"],
 "Audioanalyse": ["Audio analysis", "Audioanalyse"],
-"TagStudio hat Tempo und Beat-Offset aus dem Audio geschätzt ({x} BPM)": ["TagStudio estimated tempo and beat offset from the audio ({x} BPM)", "TagStudio hät Tempo und Beat-Offset us em Audio gschätzt ({x} BPM)"],
+"TagStudioSX hat Tempo und Beat-Offset aus dem Audio geschätzt ({x} BPM)": ["TagStudioSX estimated tempo and beat offset from the audio ({x} BPM)", "TagStudioSX hät Tempo und Beat-Offset us em Audio gschätzt ({x} BPM)"],
 "Nur BPM-Schätzung": ["BPM estimate only", "Nur BPM-Schätzig"],
 "Kein Serato-Beatgrid oder verifiziertes Audio-Raster.": ["No Serato beatgrid or verified audio grid.", "Kän Serato-Beatgrid oder verifiziertes Audio-Raschter."],
 "Aus BPM-Tag und Cue erzeugt ({x} BPM).": ["Generated from BPM tag and cue ({x} BPM).", "Us BPM-Tag und Cue erzüügt ({x} BPM)."],

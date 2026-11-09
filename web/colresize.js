@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Spaltenbreite in Tabellen per Ziehen (#337, #340).
+/* TagStudioSX – Spaltenbreite in Tabellen per Ziehen (#337, #340).
    Gemeinsame Hilfe für alle Tabellen: Griff am rechten Rand jedes Spaltenkopfs, ziehen = Breite, Doppelklick =
    automatisch (passend zum Inhalt), Tastatur ←/→ (mit Umschalt grösser). Breiten je Tabelle in LAYOUT.col_widths
    gemerkt; Rechtsklick auf die Kopfzeile → „Spaltenbreiten zurücksetzen“.

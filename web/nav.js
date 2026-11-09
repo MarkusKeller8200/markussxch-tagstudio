@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Zurück/Vorwärts zwischen Ansichten (#274).
+/* TagStudioSX – Zurück/Vorwärts zwischen Ansichten (#274).
    Aufgezeichnet werden nur Sprünge aus dem Inhalt (z. B. Playlist › „Im Tagger öffnen“), nicht die Klicks in der
    Seitenleiste. Zurück stellt Seite und Stelle wieder her (Auswahl, Filter, Scrollposition), macht aber keine Aktion
    rückgängig und lädt keinen Tagger-Ordner neu. Der Verlauf gilt nur für die laufende Sitzung. */

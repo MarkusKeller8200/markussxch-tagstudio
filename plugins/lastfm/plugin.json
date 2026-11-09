@@ -1,11 +1,11 @@
 {
   "id": "lastfm",
   "name": "Last.fm",
-  "version": "1.1", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
+  "version": "1.2", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
   "min_app": "4.8.0",
   "category": "online",
   "api": 1,
-  "author": "MarKusSXCH TagStudio",
+  "author": "TagStudioSX",
   "description": "Last.fm-Tags als Vorschlag für Genre und Stimmung (nie vorausgewählt). Eigener, kostenloser API-Schlüssel – Anleitung unter „Schlüssel …“. Wird von „Online-Metadaten“ genutzt.",
   "notes": "Keine Zusatzpakete nötig.",
   "fields": [
@@ -310,7 +310,7 @@
         "path": "/",
         "label": "Wiedergabe melden (Scrobbeln)",
         "status": "none",
-        "note": "braucht Anmeldung; TagStudio meldet nichts",
+        "note": "braucht Anmeldung; TagStudioSX meldet nichts",
         "params": [
           {
             "name": "method",

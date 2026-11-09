@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Plugin-System.
+"""TagStudioSX – Plugin-System.
 
 Ein Plugin ist ein Ordner mit
     plugin.json   Beschreibung (id, name, version, api, description, requires, install, external)
@@ -348,7 +348,7 @@ class Context:
         und als Ziel des Spiegels eintragen (Einstellungen › Cloud)."""
         s = self._session
         if s is None or not callable(getattr(s, "mirror_cloud_folders", None)):
-            raise ValueError("Nur in TagStudio verfügbar.")
+            raise ValueError("Nur in TagStudioSX verfügbar.")
         return s.mirror_cloud_folders(base, create)
 
     def djset(self) -> dict:
@@ -372,7 +372,7 @@ class Context:
         sync: (Quelle, Merkmal, Wert) – beim Übernehmen in TXXX:TAGSTUDIO merken (siehe importsync).
         #237: kind="rating" – Bewertung 0–5 Sterne (POPM, new = Anzahl Sterne).
         #239: kind="remote" – Änderung ausserhalb der Datei (z. B. in Lexicon): old = bisheriger Wert dort, data =
-        beliebige Angaben für das Plugin; beim Übernehmen ruft TagStudio apply_remote(ctx, items) des Plugins auf."""
+        beliebige Angaben für das Plugin; beim Übernehmen ruft TagStudioSX apply_remote(ctx, items) des Plugins auf."""
         same = False
         if kind == "remote":
             old = "" if old is None else str(old)
@@ -478,7 +478,7 @@ class Plugin:
             if not self.error:
                 self.error = f"Ungültige Plugin-API-Angabe „{m.get('api')}“ (erwartet: Ganzzahl)."
         if not self.error and api > API_VERSION:
-            self.error = f"Benötigt eine neuere TagStudio-Version (Plugin-API {m.get('api')})."
+            self.error = f"Benötigt eine neuere TagStudioSX-Version (Plugin-API {m.get('api')})."
 
     @property
     def name(self) -> str:

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-MarKusSXCH TagStudio – KLASSISCHE OBERFLÄCHE (tkinter), eingefroren auf dem Stand von Version 3.0.
+TagStudioSX – KLASSISCHE OBERFLÄCHE (tkinter), eingefroren auf dem Stand von Version 3.0.
 
 Wird nicht mehr weiterentwickelt (Entscheid 2026-10-10, #106). Die aktuelle App ist die neue Oberfläche
-(tagstudio_web.py + web/, im Installer „TagStudio“). Dieser Stand bleibt startfähig, solange er mit dem
+(tagstudio_web.py + web/, im Installer „TagStudioSX“). Dieser Stand bleibt startfähig, solange er mit dem
 gemeinsamen Kern (core.py, id3tags.py …) läuft – der Rauchtest tests/test_gui_smoke.py prüft das.
 
 Ursprüngliche Beschreibung: MP3-Tagger, Vergleich (im Stil von Beyond Compare), Tag-Fixer und mehr.
@@ -42,7 +42,7 @@ from core import URL_RE, FILTER_OPS  # noqa: E402,F401
 from compare import (diff, copy_tags, all_keys, PAIR_MODES, Rules, DEFAULT_TRIVIAL,  # noqa: E402
                      Cancelled, MULTI_FIELDS, INPUT_SEPARATORS, plan_multi_fix, sep_codes)  # noqa: E402
 
-APP = "MarKusSXCH TagStudio"
+APP = "TagStudioSX"
 from version import VERSION  # noqa: E402  – einzige Versionsquelle
 IS_MAC = sys.platform == "darwin"
 IS_WIN = sys.platform.startswith("win")

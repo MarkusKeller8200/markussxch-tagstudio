@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Stimmung (Mood) als Feld mit Mehrfachwerten (#12).
+"""TagStudioSX – Stimmung (Mood) als Feld mit Mehrfachwerten (#12).
 
 Gespeichert wie in Mp3tag (Feldname MOOD): ID3v2.4 → TMOO, ID3v2.3 → TXXX:MOOD (TMOO gibt es in v2.3 nicht).
 Gelesen werden beide (TXXX-Beschreibung ohne Rücksicht auf Gross-/Kleinschreibung). Mehrere Stimmungen als

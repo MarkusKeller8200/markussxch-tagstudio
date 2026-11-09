@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Wellenform-Cache für den Vorschau-Player.
+"""TagStudioSX – Wellenform-Cache für den Vorschau-Player.
 
 Die Oberfläche berechnet die Wellenform einmal (Web Audio, beim ersten Abspielen) und legt sie hier ab:
 ~/TagStudio/cache/wave/<xx>/<schlüssel>.json mit Spitzen- und RMS-Werten (je 0–255).

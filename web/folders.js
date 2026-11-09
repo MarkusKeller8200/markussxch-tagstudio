@@ -71,8 +71,8 @@ async function folderChangeDialog({ title, mode, sub, path, base, app, defaultSu
       <div class="wiz-opts">
       ${modeIn("base", "Im Basisordner", `<span class="muted sm">${base ? esc(base) + "\\" : "Kein Basisordner festgelegt – "}</span><input id="fSub" class="inp" value="${esc(sub || defaultSub)}" spellcheck="false" aria-label="Unterordner">`)}
       ${modeIn("custom", "Eigener Ordner", `<span class="pl-folder"><input id="fPath" class="inp" value="${esc(path || "")}" spellcheck="false" aria-label="Eigener Ordner" placeholder="z. B. E:\\Musik"><button class="ghost sm" data-fpick>Wählen …</button><button class="ghost sm" data-fnew>Neuer Ordner …</button></span>`)}
-      ${app ? modeIn("app", "Programmdaten von TagStudio", '<span class="muted sm">Wie vor Version 4.10 – im Benutzerordner unter TagStudio.</span>') : ""}
-      </div><p class="muted sm">Liegt im bisherigen Ordner etwas, fragt TagStudio danach, ob es verschoben, kopiert oder dort gelassen wird.${note ? " " + esc(note) : ""}</p>`,
+      ${app ? modeIn("app", "Programmdaten von TagStudioSX", '<span class="muted sm">Wie vor Version 4.10 – im Benutzerordner unter TagStudio.</span>') : ""}
+      </div><p class="muted sm">Liegt im bisherigen Ordner etwas, fragt TagStudioSX danach, ob es verschoben, kopiert oder dort gelassen wird.${note ? " " + esc(note) : ""}</p>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
     onMount: (body) => {
       body.addEventListener("click", async (e) => {

@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Aussortieren ins Archiv (#173).
+"""TagStudioSX – Aussortieren ins Archiv (#173).
 
 Titel werden in den Archiv-Ordner (Standard: `02_Archiv`) **verschoben** – mit ihren Unterordnern relativ zum
 Herkunftsordner (Bibliothek bzw. Eingang), damit die Ordnung erhalten bleibt. Ein Stems-Ordner neben dem Titel

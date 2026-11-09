@@ -1,6 +1,6 @@
-"""MarKusSXCH TagStudio – Sicherung der Programmdaten in einen Ordner, z. B. den OneDrive-Ordner (#402).
+"""TagStudioSX – Sicherung der Programmdaten in einen Ordner, z. B. den OneDrive-Ordner (#402).
 
-Eine ZIP-Datei je Sicherung ``TagStudio-Programmdaten_<Rechner>_<JJJJ-MM-TT_HHMM>.zip`` mit ``manifest.json``
+Eine ZIP-Datei je Sicherung ``TagStudioSX-Programmdaten_<Rechner>_<JJJJ-MM-TT_HHMM>.zip`` mit ``manifest.json``
 (Version, Rechner, Zeit, Bibliotheken, SHA-256 je Datei). Erst als ``.part`` geschrieben, dann umbenannt – der
 Cloud-Client lädt nie eine halbe Datei hoch.
 
@@ -180,9 +180,9 @@ def read(path: str) -> tuple[dict, dict]:
         try:
             man = json.loads(z.read("manifest.json").decode("utf-8"))
         except (KeyError, ValueError) as ex:
-            raise ValueError("Das ist keine TagStudio-Sicherung der Programmdaten.") from ex
+            raise ValueError("Das ist keine TagStudioSX-Sicherung der Programmdaten.") from ex
         if not isinstance(man, dict) or man.get("format") != FORMAT:
-            raise ValueError("Das ist keine TagStudio-Sicherung der Programmdaten.")
+            raise ValueError("Das ist keine TagStudioSX-Sicherung der Programmdaten.")
         files = {}
         for name, info in (man.get("files") or {}).items():
             pid, _, rel = name.partition("/")

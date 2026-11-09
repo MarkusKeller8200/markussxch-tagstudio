@@ -1,7 +1,7 @@
 # Konzept: DJ-Musikplattformen – Vergleich, API und Workflow
 
 **Stand:** 15.10.2026 (zusammengeführt mit der Übersicht „Tag-Programme und Musik-Plattformen“ vom 12.10.2026)  
-**Dokumenttyp:** Detailkonzept für TagStudio  
+**Dokumenttyp:** Detailkonzept für TagStudioSX  
 **Status:** Konzept / Evaluationsgrundlage; API-Zugänge, Downloadrechte, Verfügbarkeit und Preise vor Implementierung prüfen  
 **Quellen:** `2026_10_13_Konzept_IDEE_DJ_Plattformen_Vergleich.pdf` (6 Seiten) sowie die recherchierte Übersicht mit Kosten (Abschnitt 2.1 und Anhang A; Export als [Word](Tag-Programme-und-Musik-Plattformen.docx) / [PDF](Tag-Programme-und-Musik-Plattformen.pdf))  
 **Übergeordnetes Konzept:** [KONZEPT-PRODUKT-ARCHITEKTUR.md](KONZEPT-PRODUKT-ARCHITEKTUR.md)  
@@ -9,7 +9,7 @@
 
 > **Einordnung:** Dieses Dokument bildet den Inhalt des PDF vom Oktober 2026 strukturiert in Markdown ab. Die Anbieter- und API-Angaben sind Aussagen des Ausgangsdokuments und wurden für diese Übertragung **nicht erneut extern verifiziert**. Ein als verfügbar beschriebener Dienst bedeutet weder automatisch einen frei erhältlichen privaten API-Schlüssel noch eine Download-Erlaubnis. Plattformen, Partnerprogramme, Lizenzbedingungen und Schnittstellen können sich ändern.
 >
-> **Abgrenzung:** Hier geht es um **Musikshops, Streamingdienste, DJ-Pools und deren Schnittstellen**. Die Interoperabilität mit DJ-Software wie DJ.Studio, Lexicon, Mixo, Engine DJ, Serato, VirtualDJ, Traktor und rekordbox ist im [übergeordneten Produkt- und Architekturkonzept](KONZEPT-PRODUKT-ARCHITEKTUR.md) beschrieben. TagStudio soll vorhandene Werkzeuge ergänzen, nicht ersetzen.
+> **Abgrenzung:** Hier geht es um **Musikshops, Streamingdienste, DJ-Pools und deren Schnittstellen**. Die Interoperabilität mit DJ-Software wie DJ.Studio, Lexicon, Mixo, Engine DJ, Serato, VirtualDJ, Traktor und rekordbox ist im [übergeordneten Produkt- und Architekturkonzept](KONZEPT-PRODUKT-ARCHITEKTUR.md) beschrieben. TagStudioSX soll vorhandene Werkzeuge ergänzen, nicht ersetzen.
 
 ## 1. Ziel und Leitfragen
 
@@ -17,7 +17,7 @@ Bei einer Integration von Musikplattformen sind laut Ausgangsdokument drei Frage
 
 1. **Musikkatalog und Metadaten:** Lassen sich Artist, Titel, Remix, Label, ISRC, BPM und weitere Informationen abrufen?
 2. **Kauf und Datei-Download:** Können Tracks als MP3, FLAC, WAV oder AIFF gekauft und als lokale Dateien gespeichert werden?
-3. **API-Integration:** Darf TagStudio Plattformen automatisiert durchsuchen, Metadaten übernehmen und rechtmässig verfügbare Downloads verwalten?
+3. **API-Integration:** Darf TagStudioSX Plattformen automatisiert durchsuchen, Metadaten übernehmen und rechtmässig verfügbare Downloads verwalten?
 
 Es ist zwischen **öffentlich dokumentierter API**, **eingeschränktem bzw. Partnerzugang** und **gewöhnlichem Website-Kauf oder Website-Download** zu unterscheiden. Ein Download innerhalb eines Streaming-Abonnements ist **keine frei nutzbare Audiodatei**. Bei DJ-Pools gelten eigene Lizenzbedingungen.
 
@@ -54,7 +54,7 @@ Tabelle oben ohne Eintrag hier (Qobuz, Volumo, Mixupload, 7digital, DJcity, ZIPD
 
 | Plattform | Kurzbeschreib | Kosten |
 |---|---|---|
-| [Beatport](https://www.beatport.com) | Grösster Shop für elektronische Musik; TagStudio-Plugin für Metadaten, Käufe, Download | Kauf je Titel; Streaming [Essential 10,99 / Advanced 15,99 / Professional 29,99 USD pro Monat](https://thedjmixtape.com/beatport-streaming-review/) – erst ab Advanced in DJ-Programmen |
+| [Beatport](https://www.beatport.com) | Grösster Shop für elektronische Musik; TagStudioSX-Plugin für Metadaten, Käufe, Download | Kauf je Titel; Streaming [Essential 10,99 / Advanced 15,99 / Professional 29,99 USD pro Monat](https://thedjmixtape.com/beatport-streaming-review/) – erst ab Advanced in DJ-Programmen |
 | [Beatsource](https://www.beatsource.com) | Schwester-Shop von Beatport für Open Format | Kauf je Titel; Streaming [Standard 12,99, Pro+ 34,99 USD/Monat](https://www.digitaldjtips.com/best-music-streaming-services/) |
 | [Traxsource](https://www.traxsource.com/) | House, Soulful, Deep House, Techno | Kauf je Titel, meist 1,99 USD (teils 2,49); kein Abo |
 | [Juno Download](https://www.digitaldjtips.com/juno-download-shuts-down-after-20-years/) | ehemaliger britischer Shop – **seit 1. Juni 2026 geschlossen** | – |
@@ -66,7 +66,7 @@ Tabelle oben ohne Eintrag hier (Qobuz, Volumo, Mixupload, 7digital, DJcity, ZIPD
 | [Amazon Music](https://music.amazon.com) | Streaming; in Denon-/Numark-Geräten. Verkauft auch MP3-Downloads, laut User auch in der Schweiz (meist 256 kbps) | Unlimited ca. 10,99 USD/Monat (Prime); Kauf je Titel |
 | [TIDAL](https://tidal.com) | Streaming in hoher Qualität mit DJ-Erweiterung | 10,99 + 9 USD DJ-Erweiterung = 19,99 USD/Monat |
 | [SoundCloud](https://soundcloud.com) | Streaming und Künstlerplattform | Go 4,99 (ohne DJ-Nutzung), Go+ 10,99, DJ 19,99 USD/Monat |
-| [MusicBrainz](https://musicbrainz.org) | Offene Musikdatenbank; Quelle für Picard und das TagStudio-Plugin | kostenlos |
+| [MusicBrainz](https://musicbrainz.org) | Offene Musikdatenbank; Quelle für Picard und das TagStudioSX-Plugin | kostenlos |
 | [AcoustID](https://acoustid.org/webservice) | Erkennung per Audio-Fingerabdruck | kostenlos für nichtkommerzielle Nutzung |
 | [Discogs](https://www.discogs.com) | Datenbank und Marktplatz (Labels, Katalognummern) | Datenbank/API kostenlos (eigenes Token) |
 | [Last.fm](https://www.last.fm/pro) | Statistik und Genre-Tags | Free; Pro 4,99 USD/Monat oder 49,99 USD/Jahr |
@@ -138,7 +138,7 @@ Die Tabelle betrifft Integrationsmöglichkeiten **für Drittentwickler**. Intern
 
 - Im PDF als auf Labels und Fulfillment-Partner ausgerichtete API beschrieben, insbesondere für Konto-, Verkaufs- und Bestelldaten.
 - Keine allgemeine öffentliche Katalogsuch- oder Käuferdownload-API genannt.
-- Lokal erworbene Dateien, beispielsweise FLAC, können anschliessend in TagStudio eingelesen und getaggt werden.
+- Lokal erworbene Dateien, beispielsweise FLAC, können anschliessend in TagStudioSX eingelesen und getaggt werden.
 - Quelle aus dem PDF: [Bandcamp Developer](https://bandcamp.com/developer).
 
 #### Beatport – offizieller Zugang (User 25.10.2026, #286)
@@ -147,7 +147,7 @@ Die Tabelle betrifft Integrationsmöglichkeiten **für Drittentwickler**. Intern
   (`/v4/auth/o/authorize/` → `/v4/auth/o/token/`), **Password Grant** (client_id, client_secret, username, password),
   Client Credentials (nur App, ohne Benutzerdaten), Refresh (`grant_type=refresh_token`), `/v4/auth/o/introspect/`,
   `/v4/auth/o/revoke/`. Fehler als JSON (`{"detail": "Not found."}` usw.).
-- TagStudio: Methode „Eigener API-Zugang“ (Password Grant) im Beatport-Plugin 1.3; der bisherige inoffizielle Weg bleibt.
+- TagStudioSX: Methode „Eigener API-Zugang“ (Password Grant) im Beatport-Plugin 1.3; der bisherige inoffizielle Weg bleibt.
 - Bereich `my` laut Doku (Screenshot User 25.10.2026): `account` (`{id}`, `facets`, `myaccount`), `beatport` („My
   Beatport“: `artists`, `labels`, `tracks`, `playlists`, `delete`, `facets` – Folgen, keine Käufe → #288),
   `charts`, `downloads` (Käufe), `email-preferences`, `genres`, `playlists`, `streaming-quality`. Kein `library` – die
@@ -159,15 +159,15 @@ Die Tabelle betrifft Integrationsmöglichkeiten **für Drittentwickler**. Intern
   curation, my. `my/downloads` → `TrackDownloadList` (mit `purchase_date`, ohne ISRC/Katalognr./Label);
   `my/playlists` → `PlaylistProxy` (id, name, track_count, …), Titel `my/playlists/{id}/tracks/` → `PlaylistTrack`
   (id, position, track); `my/charts/{id}/tracks/`. **Kein Endpunkt zum Herunterladen gekaufter Dateien.**
-  `my/account/myaccount/` kennt nur PUT/PATCH – das Konto liest TagStudio über `GET /my/account/`.
-  `my/beatport/artists|labels` ohne Antwort-Schema → TagStudio liest Namen oder IDs (#288).
+  `my/account/myaccount/` kennt nur PUT/PATCH – das Konto liest TagStudioSX über `GET /my/account/`.
+  `my/beatport/artists|labels` ohne Antwort-Schema → TagStudioSX liest Namen oder IDs (#288).
 
 #### Amazon Music Web API (geprüft 25.10.2026)
 
 - **V1** (`api.music.amazon.dev`) und **V2** (`api.music.amazon.com`, [Übersicht V2](https://developer.amazon.com/docs/music/API_web_overview_v2.html)): beide **geschlossene Beta** – nur freigegebene Entwickler, Zugang über einen Amazon-Business-Development-Kontakt.
 - Anmeldung über Login with Amazon (OAuth 2.0); V2 zusätzlich mit Header `X-Amzn-Device-Id`, Rechte je Endpunkt (z. B. `music::catalog`, `music::library:read`).
 - Inhalt: Katalog (Alben, Künstler, Titel, Playlists), Suche, mit Erlaubnis Bibliothek und Playlists des Nutzers. **Keine** Käufe, Downloads oder Analysewerte (BPM, Tonart) dokumentiert.
-- Für TagStudio vorerst nur ein Suchlink (z. B. „Online suchen ›“, Einkaufsliste); eine Anbindung erst mit Freigabe durch Amazon.
+- Für TagStudioSX vorerst nur ein Suchlink (z. B. „Online suchen ›“, Einkaufsliste); eine Anbindung erst mit Freigabe durch Amazon.
 
 #### Qobuz API
 
@@ -182,7 +182,7 @@ Die Tabelle betrifft Integrationsmöglichkeiten **für Drittentwickler**. Intern
 - **Deezer API:** ergänzende Katalogsuche und Metadaten.
 - **Traxsource, Volumo, Mixupload und DJ-Pools:** Verfügbarkeit und Nutzungsrechte von Integrationsschnittstellen gemäss PDF unklar; vorerst Website- bzw. manuelle Abläufe vorsehen.
 
-## 4. Empfohlener Workflow für TagStudio
+## 4. Empfohlener Workflow für TagStudioSX
 
 Das Ausgangsdokument zeigt einen sechsstufigen Ablauf (Seiten 4–5):
 
@@ -191,7 +191,7 @@ flowchart TD
     A[1. Musik entdecken] --> B[2. Trackinformationen abrufen]
     B --> C[3. Musik kaufen oder legal herunterladen]
     C --> D[4. Audiodateien analysieren]
-    D --> E[5. Metadaten in TagStudio bearbeiten]
+    D --> E[5. Metadaten in TagStudioSX bearbeiten]
     E --> F[6. Bibliothek und DJ-Export]
 ```
 
@@ -204,7 +204,7 @@ flowchart TD
 | 5. Metadaten bearbeiten | Tags prüfen, korrigieren und ergänzen | ID3v2.4, Cover, Artist, Remix, ISRC, BPM, Tonart, benutzerdefinierte Tags |
 | 6. Bibliothek und DJ-Export | Daten für bestehende DJ-Anwendungen bereitstellen | Lexicon → VirtualDJ, Traktor, Engine DJ |
 
-Die Import- und Exportvorgänge müssen die bestehenden Schutzmechanismen von TagStudio beachten: **unbekannte Tags erhalten, Änderungen nachvollziehbar machen, Originaldateien nicht ungefragt überschreiben**. Die weiterführende DJ-Software-Interoperabilität wird im übergeordneten Konzept behandelt.
+Die Import- und Exportvorgänge müssen die bestehenden Schutzmechanismen von TagStudioSX beachten: **unbekannte Tags erhalten, Änderungen nachvollziehbar machen, Originaldateien nicht ungefragt überschreiben**. Die weiterführende DJ-Software-Interoperabilität wird im übergeordneten Konzept behandelt.
 
 ## 5. Konkrete API-Priorisierung
 
@@ -222,7 +222,7 @@ Dies ist ausdrücklich die **Vorschlagsreihenfolge des PDF** (Seite 5), nicht di
 
 **Abgrenzung:** Eine Suche über die API und eine Downloadfunktion sind unterschiedliche Berechtigungen. Ein vorhandener privater API-Schlüssel ist **kein Nachweis**, dass Dateien automatisiert heruntergeladen werden dürfen.
 
-## 6. Geplante Funktionen für TagStudio
+## 6. Geplante Funktionen für TagStudioSX
 
 Die folgenden Funktionen übernimmt das Konzept aus Seite 6 des PDF und formuliert sie als Entwicklungsanforderungen:
 
@@ -232,7 +232,7 @@ Die folgenden Funktionen übernimmt das Konzept aus Seite 6 des PDF und formulie
 | Intelligentes Matching | ISRC, Artist, Titel, Mix-/Remix-Version und Laufzeit vergleichen, um beispielsweise Radio Edit und Extended Mix nicht zu verwechseln |
 | Bezugsquellenvergleich | Offizielle Kauf- und Downloadlinks darstellen; Preise und Dateiformate nur anzeigen, wenn eine Quelle diese tatsächlich liefert |
 | Downloadverwaltung | Ausschliesslich freigegebene oder gekaufte Dateien über vom Anbieter **ausdrücklich unterstützte** Wege übernehmen |
-| Metadatenübernahme | Ausgewählte Trackinformationen als Vorschläge in TagStudio anzeigen und zur Bearbeitung anbieten |
+| Metadatenübernahme | Ausgewählte Trackinformationen als Vorschläge in TagStudioSX anzeigen und zur Bearbeitung anbieten |
 
 **Architekturvorschlag aus dem PDF:** Die plattformübergreifende Metadatensuche zunächst als **eigenständiges Python-Modul** umsetzen. Kauf- und Downloadverwaltung davon **getrennt** als optionale Erweiterung entwickeln. So können geänderte Anbieter-APIs und Lizenzbedingungen ohne Eingriff in die Tagging-Kernfunktionen behandelt werden.
 
@@ -247,7 +247,7 @@ Die folgenden Funktionen übernimmt das Konzept aus Seite 6 des PDF und formulie
 - **Quellen belegen:** Herkunft, Aktualisierungszeitpunkt und Anbieter-ID der übernommenen Daten nachvollziehbar speichern, soweit zulässig.
 - **Lizenzbedingungen prüfen:** Nutzungsrechte und kommerzielle/öffentliche Verteilbarkeit von Bibliotheken und APIs vor einer Implementierung klären.
 
-Diese Leitplanken sind die aus dem PDF und dem übergeordneten TagStudio-Konzept abgeleitete technische Einordnung; sie stellen keine Rechtsberatung dar.
+Diese Leitplanken sind die aus dem PDF und dem übergeordneten TagStudioSX-Konzept abgeleitete technische Einordnung; sie stellen keine Rechtsberatung dar.
 
 ## 8. Offene Prüfaufträge
 
@@ -258,14 +258,14 @@ Diese Leitplanken sind die aus dem PDF und dem übergeordneten TagStudio-Konzept
 - [ ] 7digital/MassiveMusic: Voraussetzungen und Kosten eines möglichen Partnervertrags prüfen.
 - [ ] Format-, Preis- und Downloadinformationen ausschliesslich anzeigen, wenn verlässliche Angebotsdaten vorhanden sind.
 - [ ] Abgleich von ISRC, Mix-Version und Dauer mit realen Dubletten-/Remix-Beispielen testen.
-- [ ] Integrationsmodule und Datenfelder an bestehende TagStudio-Plugins und den Workflow «Vorbereiten» anschliessen, ohne vorhandene Funktionen doppelt aufzubauen.
+- [ ] Integrationsmodule und Datenfelder an bestehende TagStudioSX-Plugins und den Workflow «Vorbereiten» anschliessen, ohne vorhandene Funktionen doppelt aufzubauen.
 - [ ] Export und Übergabe an die DJ-Programme mit den bestehenden Konzepten abstimmen.
 
 ## 9. Entscheidungsstand und nächste Schritte
 
 | Gegenstand | Status | Nächster Schritt |
 |---|---|---|
-| TagStudio-Fokus auf Verwaltung, Tagging und DJ-Set-Vorbereitung | **BESCHLOSSEN** (übergeordnetes Konzept) | Bei allen Integrationen berücksichtigen |
+| TagStudioSX-Fokus auf Verwaltung, Tagging und DJ-Set-Vorbereitung | **BESCHLOSSEN** (übergeordnetes Konzept) | Bei allen Integrationen berücksichtigen |
 | Plattformvergleich und priorisierte Schnittstellen | **KONZEPTVORSCHLAG** (PDF) | Zugang und Aktualität überprüfen |
 | Python-Modul für Metadatensuche | **EMPFOHLEN** | Bestehende Module und Plugin-Struktur prüfen |
 | Automatisierte Kauf-/Downloadintegration | **ZU PRÜFEN** | Partnerverträge, Nutzungsrechte, Endpunkte verifizieren |
@@ -275,7 +275,7 @@ Diese Leitplanken sind die aus dem PDF und dem übergeordneten TagStudio-Konzept
 
 ## Anhang A: Tag-Programme, DJ-Software und Player (recherchiert am 12.10.2026)
 
-Programme, die in TagStudio als Herkunft von Tags, Workflow-Schritt, Plugin-Quelle oder Vorbild vorkommen.
+Programme, die in TagStudioSX als Herkunft von Tags, Workflow-Schritt, Plugin-Quelle oder Vorbild vorkommen.
 
 | Programm | Kurzbeschreib | Kosten |
 |---|---|---|
@@ -293,9 +293,9 @@ Programme, die in TagStudio als Herkunft von Tags, Workflow-Schritt, Plugin-Quel
 | [Traktor Pro 4](https://www.native-instruments.com/en/products/traktor/dj-software/traktor-pro-4/) | DJ-Software von Native Instruments | 149 USD einmalig |
 | [VirtualDJ](https://virtualdj.com/products/virtualdj/price.html) | DJ-Software mit breiter Controller-Unterstützung, Stems, Video | Free (privat, ohne Controller); Home 4, Pro 19, Business 99 USD/Monat |
 | [Engine DJ](https://enginedj.com/software/enginedj-desktop) | Bibliothek für Denon-DJ- und Numark-Geräte | kostenlos |
-| [foobar2000](https://www.foobar2000.org/), [VLC](https://www.videolan.org/vlc/), [MusicBee](https://www.getmusicbee.com/) | Player (externe Player in TagStudio) | kostenlos |
-| [Beyond Compare](https://www.scootersoftware.com/shop) | Vergleichsprogramm – Vorbild für den TagStudio-Vergleich | Standard 35 USD, Pro 70 USD einmalig |
+| [foobar2000](https://www.foobar2000.org/), [VLC](https://www.videolan.org/vlc/), [MusicBee](https://www.getmusicbee.com/) | Player (externe Player in TagStudioSX) | kostenlos |
+| [Beyond Compare](https://www.scootersoftware.com/shop) | Vergleichsprogramm – Vorbild für den TagStudioSX-Vergleich | Standard 35 USD, Pro 70 USD einmalig |
 
 ---
 
-*Redaktioneller Hinweis:* Abschnitt 2.1 und Anhang A stammen aus der am 12.10.2026 recherchierten Übersicht (Quellen dort verlinkt); die übrigen Tabellen, Beschreibungen, API-Prioritäten und der sechsstufige Workflow sind aus dem genannten PDF übertragen und für eine versionskontrollierte Projektdokumentation neu formatiert. Die zusätzliche Verknüpfung zu TagStudio-Konzepten, die Entscheidungsstatus und die Prüfaufträge dienen der späteren Umsetzung. Eine erneute Recherche zur faktischen Aktualität der Plattformangebote und Schnittstellen war **nicht** Teil dieser Übertragung.
+*Redaktioneller Hinweis:* Abschnitt 2.1 und Anhang A stammen aus der am 12.10.2026 recherchierten Übersicht (Quellen dort verlinkt); die übrigen Tabellen, Beschreibungen, API-Prioritäten und der sechsstufige Workflow sind aus dem genannten PDF übertragen und für eine versionskontrollierte Projektdokumentation neu formatiert. Die zusätzliche Verknüpfung zu TagStudioSX-Konzepten, die Entscheidungsstatus und die Prüfaufträge dienen der späteren Umsetzung. Eine erneute Recherche zur faktischen Aktualität der Plattformangebote und Schnittstellen war **nicht** Teil dieser Übertragung.

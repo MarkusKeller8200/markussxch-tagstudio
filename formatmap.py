@@ -1,6 +1,6 @@
 """Feld-Zuordnung ID3 ↔ MP4/M4A ↔ FLAC/OGG (Vorbis) ↔ AAC (#262, Grundlage für #264–#266).
 
-TagStudio behält seine ID3-Schlüssel als gemeinsame Sprache; je Format steht hier, unter welchem Namen ein Feld liegt.
+TagStudioSX behält seine ID3-Schlüssel als gemeinsame Sprache; je Format steht hier, unter welchem Namen ein Feld liegt.
 Übersicht in der Hilfe (docs/ID3-FELDER.md); die Lese-/Schreibschicht (`mapfile.VORBIS_MAP`, `mp4tags.MP4_TEXT/
 MP4_FREE`) folgt derselben Zuordnung – `tests/test_formatmap.py` prüft, dass beide übereinstimmen. Namen nach der TagLib-Property-Zuordnung und den Konventionen von Mp3tag/Picard – **geplant, mit
 Testdateien aus den DJ-Programmen zu bestätigen (#446)**.

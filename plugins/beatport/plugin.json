@@ -1,7 +1,7 @@
 {
   "id": "beatport",
   "name": "Beatport",
-  "version": "2.14", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
+  "version": "2.15", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
   "min_app": "4.9.1",
   "category": "online",
   "categories": [
@@ -10,7 +10,7 @@
   ],
   "source": "Beatport",
   "api": 1,
-  "author": "MarKusSXCH TagStudio",
+  "author": "TagStudioSX",
   "description": "Holt BPM, Tonart, Genre/Subgenre, Label, Katalognummer, Datum, ISRC, Remixer und Cover von Beatport – mit Vorschau, nichts wird ohne Bestätigung geändert. Dazu Beatport-Playlists und die Seite „Einkäufe“. Nutzt die offizielle Beatport-API v4 mit deinem eigenen API-Zugang (Client-ID und Secret); ohne ihn geht es über den inoffiziellen Ausweichweg mit deinem Beatport-Login. Nur für Metadaten deiner eigenen Titel verwenden.",
   "notes": "Keine Zusatzpakete nötig.",
   "fields": [
@@ -25,7 +25,7 @@
     "auth": "oauth",
     "auth_note": "Standard: eigener offizieller API-Zugang (Client-ID und Secret, Plugin › Anmelden …). Ausweichweg (inoffiziell): Anmeldung mit Benutzername und Passwort über die Kennung der Doku-Seite. Token verschlüsselt gespeichert, wird automatisch erneuert.",
     "limits": "Bei HTTP 429 wird gewartet (Retry-After)",
-    "note": "Alle Endpunkte der offiziellen Beschreibung in den Bereichen catalog, my und curation (Stand 25.10.2026), dazu die Anmeldung und die inoffiziellen Download-Wege. Schreibende Endpunkte benutzt TagStudio nur für eigene Playlists „TagStudio_…“ (Einkäufe › „Download Tracks“, Playlists je Kaufdatum) – nur mit eingeschalteter Einstellung und auf Klick.",
+    "note": "Alle Endpunkte der offiziellen Beschreibung in den Bereichen catalog, my und curation (Stand 25.10.2026), dazu die Anmeldung und die inoffiziellen Download-Wege. Schreibende Endpunkte benutzt TagStudioSX nur für eigene Playlists „TagStudio_…“ (Einkäufe › „Download Tracks“, Playlists je Kaufdatum) – nur mit eingeschalteter Einstellung und auf Klick.",
     "endpoints": [
       {
         "id": "catalog-artists",
@@ -686,7 +686,7 @@
             "name": "name",
             "type": "string",
             "required": true,
-            "help": "Name der neuen Playlist (TagStudio verwendet „TagStudio_…“)",
+            "help": "Name der neuen Playlist (TagStudioSX verwendet „TagStudio_…“)",
             "example": "TagStudio_Test"
           }
         ]
@@ -716,7 +716,7 @@
         "path": "/my/playlists/{id}/",
         "label": "Eigene Playlist löschen",
         "status": "partial",
-        "use": "„Aufräumen“ der TagStudio-Download-Playlists nach Rückfrage"
+        "use": "„Aufräumen“ der TagStudioSX-Download-Playlists nach Rückfrage"
       },
       {
         "id": "my-playlists-track-delete",
@@ -759,7 +759,7 @@
         "path": "/my/playlists/{myplaylists_pk}/tracks/bulk/",
         "label": "Mehrere Titel einer Playlist ändern",
         "status": "partial",
-        "use": "Titel in eine eigene TagStudio-Playlist eintragen (#334/#335, Warenkorb #423)",
+        "use": "Titel in eine eigene TagStudioSX-Playlist eintragen (#334/#335, Warenkorb #423)",
         "body": {
           "track_ids": [
             17951063
@@ -891,7 +891,7 @@
         "label": "Download eines Kaufs (inoffiziell)",
         "status": "partial",
         "use": "Einkäufe: Fehlende herunterladen (Variante 1)",
-        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2) · API-Tester: Weiterleitung wird nicht verfolgt (#363)",
+        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudioSX die Beatport-Download-Seite (Variante 2) · API-Tester: Weiterleitung wird nicht verfolgt (#363)",
         "no_follow": true,
         "params": [
           {
@@ -908,7 +908,7 @@
         "label": "Download eines Kaufs, 2. Weg (inoffiziell)",
         "status": "partial",
         "use": "Einkäufe: Fehlende herunterladen (Variante 1)",
-        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2) · API-Tester: kann bei Beatport als Download zählen, nach Rückfrage; Weiterleitung wird nicht verfolgt – Ziel unter Kopfzeilen › location (#363)",
+        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudioSX die Beatport-Download-Seite (Variante 2) · API-Tester: kann bei Beatport als Download zählen, nach Rückfrage; Weiterleitung wird nicht verfolgt – Ziel unter Kopfzeilen › location (#363)",
         "no_follow": true,
         "danger": true,
         "params": [
@@ -926,7 +926,7 @@
         "label": "Download über den Katalog (inoffiziell)",
         "status": "partial",
         "use": "Einkäufe: Fehlende herunterladen (Variante 1)",
-        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudio die Beatport-Download-Seite (Variante 2) · API-Tester: kann bei Beatport als Download zählen, nach Rückfrage; Weiterleitung wird nicht verfolgt – Ziel unter Kopfzeilen › location (#363)",
+        "note": "nicht in der offiziellen Beschreibung – ohne Adresse zeigt TagStudioSX die Beatport-Download-Seite (Variante 2) · API-Tester: kann bei Beatport als Download zählen, nach Rückfrage; Weiterleitung wird nicht verfolgt – Ziel unter Kopfzeilen › location (#363)",
         "no_follow": true,
         "danger": true,
         "params": [

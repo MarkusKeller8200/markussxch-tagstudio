@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Online-Dienste als Plugins (#204).
+"""TagStudioSX – Online-Dienste als Plugins (#204).
 
 Ein Dienst-Plugin beschreibt sich in `plugin.json` unter "service":
 

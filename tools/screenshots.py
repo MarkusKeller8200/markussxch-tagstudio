@@ -517,7 +517,7 @@ def video_cards(br, hd):
       .s1{{position:absolute;left:600px;top:60px;width:860px;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.6);border:1px solid #2c3542}}
       .s2{{position:absolute;left:760px;top:390px;width:560px;border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.65);border:1px solid #2c3542}}
       </style></head><body><div class="t"><img src="data:image/png;base64,{icon}"><h1>Vom Fund bis ins DJ-Set</h1>
-      <p>MarKusSXCH TagStudio – kostenlos für Windows &amp; macOS</p>
+      <p>TagStudioSX – kostenlos für Windows &amp; macOS</p>
       <div class="k"><span>Entdecken</span><span>Warenkorb</span><span>Tagger</span><span>DJ-Set</span></div></div>
       <img class="s1" src="data:image/png;base64,{img('tagger-dark.png')}"><img class="s2" src="data:image/png;base64,{img('carts-dark.png')}">
       </body></html>"""
@@ -526,7 +526,7 @@ def video_cards(br, hd):
       .c img{{width:150px;height:150px;border-radius:34px}} h1{{font-size:88px;margin:34px 0 10px;letter-spacing:-.02em}}
       p{{font-size:38px;color:#a9b4c2;margin:0 0 40px}} .b{{font-size:34px;padding:18px 40px;border-radius:22px;background:#1d76db;color:#fff;font-weight:600}}
       .u{{margin-top:34px;font-size:30px;color:#8fa0b4}}</style></head><body><div class="c">
-      <img src="data:image/png;base64,{icon}"><h1>MarKusSXCH TagStudio</h1><p>Kostenlos und quelloffen · Windows &amp; macOS</p>
+      <img src="data:image/png;base64,{icon}"><h1>TagStudioSX</h1><p>Kostenlos und quelloffen · Windows &amp; macOS</p>
       <div class="b">Jetzt herunterladen</div><div class="u">markuskeller8200.github.io/markussxch-tagstudio</div></div></body></html>"""
     for html, (w, h), name in ((title, (1280, 720), "titelbild-youtube.png"), (end, (1280, 720), "schlussbild.png")):
         pg = br.new_page(viewport={"width": w, "height": h}, device_scale_factor=1 if name.startswith("titel") else 2)
@@ -553,7 +553,7 @@ def social_preview(br) -> None:
       .k span{{border:1px solid #33404f;border-radius:99px;padding:5px 13px}}
       .s{{position:absolute;left:640px;top:70px;width:900px;border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.6);
         border:1px solid #2c3542}}</style></head><body>
-      <div class="t"><img src="data:image/png;base64,{icon}"><h1>MarKusSXCH<br>TagStudio</h1>
+      <div class="t"><img src="data:image/png;base64,{icon}"><h1>MarKusSXCH<br>TagStudioSX</h1>
         <p>Der Werkzeugkasten für die MP3-Bibliothek von DJs</p>
         <div class="k"><span>Warenkorb</span><span>Tagger</span><span>Vergleich</span><span>DJ-Set</span></div></div>
       <img class="s" src="data:image/png;base64,{shotimg}"></body></html>"""

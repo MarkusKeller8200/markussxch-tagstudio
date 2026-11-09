@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Listen-Cache (#70): Tagger und Vergleich sofort aus dem Cache anzeigen.
+"""TagStudioSX – Listen-Cache (#70): Tagger und Vergleich sofort aus dem Cache anzeigen.
 
 Je eingelesenem Ordner eine Datei ~/TagStudio/cache/lists/<id>.json.gz mit je Titel: Grösse, Änderungszeit,
 **Hash der Tag-Bytes** (wie MP3File.disk_sig), die Tag-Bytes selbst und die MPEG-Angaben (Dauer, Bitrate …).

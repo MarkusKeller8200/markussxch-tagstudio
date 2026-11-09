@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – einfacher XML-Editor (Baum + Quelltext). Nutzt call/dialog/applyState aus app.js. */
+/* TagStudioSX – einfacher XML-Editor (Baum + Quelltext). Nutzt call/dialog/applyState aus app.js. */
 "use strict";
 
 const XE = { side: null, key: null, editable: false, original: "", text: "", decl: "", doc: null,

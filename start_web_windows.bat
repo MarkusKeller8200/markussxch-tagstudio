@@ -1,5 +1,5 @@
 @echo off
-rem MarKusSXCH TagStudio - neue Oberflaeche starten (installiert pywebview beim ersten Mal)
+rem TagStudioSX - neue Oberflaeche starten (installiert pywebview beim ersten Mal)
 cd /d "%~dp0"
 set PY=python
 where py >nul 2>nul && set PY=py -3

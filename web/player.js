@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Vorschau-Player (unten in der Aktionsleiste) und externe Player.
+/* TagStudioSX – Vorschau-Player (unten in der Aktionsleiste) und externe Player.
    Leertaste: markierten Titel abspielen/pausieren · ←/→: taktweise · Shift+←/→: voriger/nächster Cue ·
    S/Shift+S: nächste/vorige Stem-Spur · Strg/Cmd+P: im externen Player öffnen. Wellenform: einmal per Web Audio berechnet, im Cache (waveform.py);
    Cue-Marken aus Serato/Mixed In Key (cues.py).
@@ -674,7 +674,7 @@ async function plSetup() {
   const draw = (b) => {
     $("#plList", b).innerHTML = list.length
       ? `<div class="pl-row pl-head"><span>Name</span><span>Programm</span><span>Argumente</span><span></span></div>${list.map(row).join("")}`
-      : '<div class="muted">Noch kein Player eingerichtet – ohne Eintrag öffnet TagStudio das Standardprogramm des Systems.</div>';
+      : '<div class="muted">Noch kein Player eingerichtet – ohne Eintrag öffnet TagStudioSX das Standardprogramm des Systems.</div>';
   };
   const read = (b) => $$(".pl-row[data-k]", b).map((r) => ({
     name: $(".pl-name", r).value, cmd: $(".pl-path", r).value, args: $(".pl-args", r).value }));

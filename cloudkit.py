@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – gemeinsame Werkzeuge der Cloud-Plugins (#318 OneDrive, #319 Google Drive, #320 Dropbox).
+"""TagStudioSX – gemeinsame Werkzeuge der Cloud-Plugins (#318 OneDrive, #319 Google Drive, #320 Dropbox).
 
 Anfragen mit dem OAuth-Token des Plugins (``oauthkit.App``), einmal erneuern bei 401, gemeinsame Drosselung je Host.
 Bei Grenzen (HTTP 429, Kontingent) wird **nicht** wiederholt, sondern gemeldet (Konzept Cloud, Grundsätze). Abruf über
@@ -92,7 +92,7 @@ def login_actions(name: str, info_title: str, info_label: str, links: list, redi
     return [
         {"id": "login", "label": "Anmelden …", "where": "page", "run_label": "Anmelden", "needs_selection": False,
          "description": f"Zugangsdaten deiner eigenen {name}-App eintragen (leer = unverändert, verschlüsselt gespeichert) "
-                        "und im Browser anmelden. TagStudio schreibt nur in seinen eigenen Ordner (Standard „TagStudio“).",
+                        "und im Browser anmelden. TagStudioSX schreibt nur in seinen eigenen Ordner (Standard „TagStudioSX“).",
          "options": opts},
         {"id": "logout", "label": "Abmelden …", "where": "page", "run_label": "Abmelden", "needs_selection": False,
          "description": "Gespeicherte Anmeldung löschen.",

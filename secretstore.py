@@ -1,10 +1,10 @@
-"""MarKusSXCH TagStudio – Zugangsdaten sicher ablegen (#287).
+"""TagStudioSX – Zugangsdaten sicher ablegen (#287).
 
 Eine Geheimnis-Datei (z. B. `token.bin`, `keys.bin` eines Plugins) wird je nach System so gespeichert:
 
 - **Windows:** Inhalt mit DPAPI verschlüsselt (`DPAPI` + Daten), nur für den angemeldeten Benutzer lesbar.
 - **macOS:** Inhalt im Schlüsselbund des Benutzers (Security.framework, Eintrag „Generisches Passwort“, Dienst
-  `MarKusSXCH TagStudio`, Konto = Pfad der Datei – damit sind Profile und Plugins getrennt). In der Datei steht nur
+  `TagStudioSX`, Konto = Pfad der Datei – damit sind Profile und Plugins getrennt). In der Datei steht nur
   noch der Verweis `KEYCHAIN:1`. Eine ältere Klartext-Datei wird beim ersten Lesen übernommen und durch den Verweis
   ersetzt (die Datei wird nicht gelöscht, nur überschrieben).
 - **Rückfall** (Linux, CI, Schlüsselbund gesperrt oder Zugriff verweigert): Klartext-Datei mit Rechten 0600 wie bis
@@ -18,7 +18,7 @@ import os
 import sys
 import threading
 
-SERVICE = "MarKusSXCH TagStudio"
+SERVICE = "TagStudioSX"
 MARK = b"KEYCHAIN:1"
 _lock = threading.Lock()
 _note = ""

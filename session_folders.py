@@ -217,7 +217,7 @@ class FolderRolesMixin:
 
     # ------------------------------------------------------------------ Ordner ändern mit Inhalt (#313)
     LIB_WARNING = ("Engine DJ, Lexicon, Rekordbox, Serato und VirtualDJ merken sich die Pfade der Titel. Nach dem "
-                   "Verschieben dort „Fehlende Dateien suchen“ bzw. „Relocate“ verwenden – TagStudio ändert keine "
+                   "Verschieben dort „Fehlende Dateien suchen“ bzw. „Relocate“ verwenden – TagStudioSX ändert keine "
                    "fremden Datenbanken.")
 
     def _change_plan(self, kind, oid, setting) -> tuple[dict, list[dict]]:
@@ -271,7 +271,7 @@ class FolderRolesMixin:
 
     def start_folders_change(self, kind, oid=None, setting=None, choices=None, conflict="keep", relink_copy=False):
         """Ordner ändern: je Ordner verschieben / kopieren / nicht übernehmen (choices: key → move|copy|none), dann
-        die Einstellung umstellen und TagStudio-Verweise nachführen. Abbruch: Einstellung bleibt unverändert."""
+        die Einstellung umstellen und TagStudioSX-Verweise nachführen. Abbruch: Einstellung bleibt unverändert."""
         import foldermove
         new, items = self._change_plan(kind, oid, setting)
         ch = choices if isinstance(choices, dict) else {}
@@ -360,7 +360,7 @@ class FolderRolesMixin:
         return {"ok": True, "removed": n}
 
     def _folders_relink(self, old, new, rb=None) -> dict:
-        """TagStudio-Verweise von old auf new umschreiben (nie fremde Datenbanken). → Anzahl je Bereich.
+        """TagStudioSX-Verweise von old auf new umschreiben (nie fremde Datenbanken). → Anzahl je Bereich.
         rb: eigene Umschreib-Funktion (z. B. Wiederherstellen einer Sicherung von einem anderen Rechner, #402)."""
         import foldermove
         if rb is None:

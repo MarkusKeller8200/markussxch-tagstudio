@@ -1,4 +1,4 @@
-# Plugins für MarKusSXCH TagStudio
+# Plugins für TagStudioSX
 
 *English: [PLUGINS.en.md](PLUGINS.en.md)*
 
@@ -23,7 +23,7 @@ Plugin-Seite **Neu einlesen** klicken.
 
 **Verfügbare Plugins …** (Plugin-Seite oben) lädt den Plugin-Katalog des neuesten Releases im gewählten Update-Kanal
 („nur offizielle Versionen“ bzw. „auch Beta-Versionen“) und listet alle Plugins – gruppiert nach Updates, neuen,
-installierten und nicht verträglichen, mit Kategoriefilter. Karten mit neuerer Version zeigen **Update verfügbar → Aktualisieren**. TagStudio lädt nur aus den offiziellen
+installierten und nicht verträglichen, mit Kategoriefilter. Karten mit neuerer Version zeigen **Update verfügbar → Aktualisieren**. TagStudioSX lädt nur aus den offiziellen
 Releases dieses Projekts und prüft die Prüfsumme. Das geladene Plugin liegt danach im Ordner „Eigene Plugins“
 (Abzeichen „nachgeladen“) und ersetzt die eingebaute Version; **Mehr … → Zurück auf eingebaute Version** entfernt es
 wieder. Eigene Plugins werden dabei nie überschrieben.
@@ -61,8 +61,8 @@ Plugins/
 - `formats` (#449, ab 4.16.0): Dateiformate, mit denen das Plugin arbeiten kann – `mp3`, `wav`, `aiff`, `flac`, `m4a`,
   `ogg`; auch je Aktion möglich. **Ohne Angabe nur MP3.** Markierte Dateien in anderen Formaten bekommt das Plugin nicht
   (Hinweis „übersprungen“ bzw. „kann diese Formate nicht“). Felder setzt das Plugin wie gewohnt mit den ID3-Schlüsseln;
-  TagStudio übersetzt sie ins Format und meldet Felder, die es dort nicht gibt.
-- `min_app`: älteste TagStudio-Version, mit der das Plugin läuft. Der Plugin-Katalog bietet das Plugin nur dort an.
+  TagStudioSX übersetzt sie ins Format und meldet Felder, die es dort nicht gibt.
+- `min_app`: älteste TagStudioSX-Version, mit der das Plugin läuft. Der Plugin-Katalog bietet das Plugin nur dort an.
   Bei Änderungen an einem Plugin die `version` erhöhen, sonst erscheint kein Update.
 - `links` (optional): `[{"label", "url", "desc"}]` – erscheinen unter „Mehr …“ auf der Plugin-Karte, z. B. Download
   einer Zusatz-App (nur `https://`, höchstens 8).
@@ -78,7 +78,7 @@ Plugins/
   „Log-Ordner öffnen“ und „Protokoll live anzeigen …“ (#293): `ctx.log(...)` erscheint im Live-Fenster sofort,
   in `Logs/<id>.log` wie bisher am Ende des Vorgangs.
 - `requires`: Python-Module, die vorhanden sein müssen. Fehlen sie, steht das Plugin auf „Pakete fehlen“
-  und bietet die `install`-Varianten als Knöpfe an (`pip install …` mit dem Python von TagStudio).
+  und bietet die `install`-Varianten als Knöpfe an (`pip install …` mit dem Python von TagStudioSX).
 - `external`: Programme, die im Suchpfad liegen sollten (nur Hinweis, blockiert nicht).
 - `background`: `true` → Aktionen laufen als **Hintergrund-Auftrag** in einer Warteschlange (wie Stems): Der Dialog
   schliesst sofort, man kann weiterarbeiten. Das Plugin bekommt eigene, frisch von der Platte gelesene Dateien
@@ -90,12 +90,12 @@ Plugins/
   benennt den Auftrag nach dem Dateinamen in dieser Option.
   Eigene Aktionen ohne Auswahl reiht ein Plugin mit `ctx.queue_job(aktion, optionen)` selbst ein (#387, z. B. aus
   `on_event`); wartet schon ein Auftrag derselben Aktion, entsteht kein zweiter.
-- `fields`: Felder, die das Plugin schreibt (Muster mit `*`). TagStudio zeigt bei diesen Feldern die Herkunft
-  „TagStudio · Plugin-Name“ an (Tagger, Vergleich), damit eigene Felder erkennbar bleiben. Ausnahme (#411): kennt
-  TagStudio für das Feld schon eine gleichnamige Quelle (z. B. `TXXX:SPOTIFY_*` → „Spotify“, `TXXX:BEATPORT_*` →
+- `fields`: Felder, die das Plugin schreibt (Muster mit `*`). TagStudioSX zeigt bei diesen Feldern die Herkunft
+  „TagStudioSX · Plugin-Name“ an (Tagger, Vergleich), damit eigene Felder erkennbar bleiben. Ausnahme (#411): kennt
+  TagStudioSX für das Feld schon eine gleichnamige Quelle (z. B. `TXXX:SPOTIFY_*` → „Spotify“, `TXXX:BEATPORT_*` →
   „Beatport“), bleibt es bei dieser Herkunft – so stehen alle Felder eines Dienstes unter einer Herkunft.
 - `source` (optional, ab 4.10): Name der Quelle bzw. des Stores, z. B. `"Beatport"`. Beim **Einschalten** legt
-  TagStudio `<Downloads>\<source>` und `<Eingang>\<source>` an (nur wenn nicht vorhanden), trägt im aktuellen
+  TagStudioSX `<Downloads>\<source>` und `<Eingang>\<source>` an (nur wenn nicht vorhanden), trägt im aktuellen
   Workflow die Quelle ein (Download-Unterordner → Eingangs-Unterordner) und setzt das Ziel der Plugin-Aktion
   `download` auf den Download-Unterordner. Einkäufe-Downloads des Stores landen ebenfalls dort. Ausschalten löscht
   nichts.
@@ -110,9 +110,9 @@ Plugins/
              "extra_index": ["https://…"]}]
 ```
 
-Mit `env` installiert TagStudio die Pakete **nicht** in sein eigenes Python, sondern legt mit
+Mit `env` installiert TagStudioSX die Pakete **nicht** in sein eigenes Python, sondern legt mit
 [uv](https://docs.astral.sh/uv/) eine eigene Umgebung an (`~/TagStudio/Plugin-Daten/<id>/env`). Die gewünschte
-Python-Version lädt uv bei Bedarf selbst herunter – so funktionieren Pakete wie PyTorch auch dann, wenn TagStudio
+Python-Version lädt uv bei Bedarf selbst herunter – so funktionieren Pakete wie PyTorch auch dann, wenn TagStudioSX
 mit einer neueren Python-Version läuft, für die es sie noch nicht gibt. `check` sind Module, deren Import nach der
 Installation geprüft wird. Code, der diese Pakete braucht, läuft als eigener Prozess:
 
@@ -177,7 +177,7 @@ Weitere Angaben je Aktion:
 - Eine Funktion `status(ctx)` im Plugin liefert einen Statustext für die Karte (z. B. „Angemeldet als …“).
 
 Statt `ACTIONS` geht auch eine Funktion `actions(ctx)`, die die Liste liefert (z. B. für dynamische Auswahl).
-Die zuletzt benutzten Werte merkt sich TagStudio pro Aktion.
+Die zuletzt benutzten Werte merkt sich TagStudioSX pro Aktion.
 
 ### Cloud-Abgleich (`cloud_sync`, #317)
 
@@ -209,7 +209,7 @@ nur gemeldet. Zugangsdaten, Snapshots, Arbeit und Cache werden nie abgeglichen.
 | `ctx.propose(f, key, neu, label, note=, checked=)` | Änderung **vorschlagen**: nach dem Lauf erscheint eine Vorschau mit Häkchen, übernommen wird erst nach Bestätigung (mit Rückgängig). `kind="cover", data=Bytes` für Cover (ohne `data` = reine Info-Zeile). `hint=` Hinweis zum Feld, `show_same=True` zeigt auch unveränderte Werte (grau, nicht wählbar) |
 | `importsync.propose(ctx, f, quelle, name, merkmal, wert)` | Audio-Merkmal (0–100) aus einer anderen Quelle **mit Abgleich** vorschlagen: leeres Feld oder seit dem letzten Übernehmen unveränderte Datei → angehakt, sonst nicht angehakt („fragen“). Der übernommene Wert wird in `TXXX:TAGSTUDIO` gemerkt. Beispiele: Plugins *beaTunes* und *Lexicon* |
 | `ctx.propose(…, kind="rating")` | Bewertung 0–5 Sterne vorschlagen (`neu` = Anzahl Sterne, POPM) |
-| `ctx.propose(…, kind="remote", old=…, data=…)` | Änderung **ausserhalb der Datei** vorschlagen (z. B. in Lexicon): `old` = bisheriger Wert dort, `data` = Angaben fürs Plugin. Nach Bestätigung ruft TagStudio `apply_remote(ctx, items)` des Plugins auf (Rückgabe `{"message", "errors"}`) |
+| `ctx.propose(…, kind="remote", old=…, data=…)` | Änderung **ausserhalb der Datei** vorschlagen (z. B. in Lexicon): `old` = bisheriger Wert dort, `data` = Angaben fürs Plugin. Nach Bestätigung ruft TagStudioSX `apply_remote(ctx, items)` des Plugins auf (Rückgabe `{"message", "errors"}`) |
 | `ctx.djset()` | aktuelles DJ-Set: `{"name", "paths"}` (nur lesen) |
 | `ctx.data_dir` | eigener Datenordner des Plugins im aktuellen Profil (Anmeldungen, Ergebnisse) |
 | `ctx.shared_dir` | gemeinsamer Ordner für grosse Daten (Modelle, Programme) – für alle Profile gleich |
@@ -221,16 +221,16 @@ Protokolle (Installation, Fehler mit Details) liegen in `~/TagStudio/Logs` – K
 Tags nur über `ctx.edit_tags` ändern – dann funktionieren Rückgängig, Anzeige und Speichern.
 
 Rückgabe von `run`: ein Dict mit `message` (Pflicht), optional `log` (Liste) und `outputs` (Liste).
-Mit `"open": {"target": "tagger" | "djset" | "djadd", "files": [Pfade], "label": "…"}` lädt TagStudio die Dateien in den
+Mit `"open": {"target": "tagger" | "djset" | "djadd", "files": [Pfade], "label": "…"}` lädt TagStudioSX die Dateien in den
 Tagger und auf Wunsch als neues DJ-Set bzw. zusätzlich ins DJ-Set (Reihenfolge bleibt). Ausnahmen werden als
 Fehlermeldung angezeigt.
 
 Weitere Funktionen, die ein Plugin anbieten kann (alle optional):
 
-- `on_event(ctx, event, data)` – TagStudio meldet `"files_moved"` (`[{"old", "new"}]`: umbenannt, archiviert,
+- `on_event(ctx, event, data)` – TagStudioSX meldet `"files_moved"` (`[{"old", "new"}]`: umbenannt, archiviert,
   zurückgeholt), `"files_added"` (`[Pfad]`: neu in die Bibliothek übernommen, Vorbereiten) und `"app_started"`
   (einmal je Start, rund 20 s nach dem Öffnen; #387). Läuft im Hintergrund, Fehler landen nur im Protokoll.
-- Ergebnis `{"mix_result": {mix, duration, rows, compare, report, index, version}}` einer Aktion (#387): TagStudio legt
+- Ergebnis `{"mix_result": {mix, duration, rows, compare, report, index, version}}` einer Aktion (#387): TagStudioSX legt
   es unter `~/TagStudio/Mixe` ab und öffnet das Ergebnisfenster „Mix analysieren“ (`mixresult.py`).
 - `detect_files(ctx, paths)` – Vorbereiten: Status-Schritt mit „Erkennung“ = Plugin-ID erkennt diese Dateien als
   erledigt (Beispiel: Lexicon – Datei ist in Lexicon).
@@ -250,10 +250,10 @@ Weitere Funktionen, die ein Plugin anbieten kann (alle optional):
 - `url_tracks(ctx, url)` – Seite „Warenkorb“ › „Per Link …“ (#424): Titel eines Links lesen (nur lesend) →
   `{"name", "items": [{artist, title, mix, isrc, dur, url, sid}]}` (`sid` = Beatport-ID, falls bekannt). Eingebaut in
   Beatport (Titel, Release, Chart, Playlist, eigene Playlist), Spotify (Playlist, Album, Titel) und SoundCloud (Titel,
-  Playlist über `/resolve`); TagStudio wählt das Plugin nach der Adresse (beatport.com, open.spotify.com, soundcloud.com).
+  Playlist über `/resolve`); TagStudioSX wählt das Plugin nach der Adresse (beatport.com, open.spotify.com, soundcloud.com).
 - `playlist_push(ctx, playlist, options)` – Seite Playlists › Mehr ▾ › „An <Plugin> senden …“ (#273). `playlist` =
   `{"name", "folder", "items": [{"path", "artist", "title"}], "remote"}` (`remote` = die ID, die das Plugin beim
-  letzten Senden zurückgegeben hat, sonst `None`). Rückgabe `{"ok", "id", "message", "missing": [Pfade], …}`; TagStudio
+  letzten Senden zurückgegeben hat, sonst `None`). Rückgabe `{"ok", "id", "message", "missing": [Pfade], …}`; TagStudioSX
   merkt sich `id` je Playlist, erneutes Senden soll dieselbe Playlist nachführen. Optional `push_ready(ctx)` →
   `(bereit, Hinweis)`, z. B. wenn das Schreiben im Plugin ausgeschaltet ist. Regeln: nie etwas löschen, Einträge ohne
   Datei auslassen und melden, Änderungen ins eigene Journal (Beispiel: Lexicon – legt an bzw. fügt fehlende Titel an
@@ -262,7 +262,7 @@ Weitere Funktionen, die ein Plugin anbieten kann (alle optional):
   Seite Mixe). Das Plugin schneidet aus `path` ab Sekunde `start` einen Ausschnitt von `seconds` Sekunden (ohne Tags)
   und gibt `[{"artist", "title", "conf", "id", "source"}]` zurück (bester zuerst). Dazu `identify_clip_info(ctx)` →
   `{"ready", "why", "seconds": [30, …], "default", "cost": {"30": 11, …}, "unit", "rest", "quota", "retain_days"}`
-  (`retain_days` = wie lange TagStudio Treffer im Mix-Ergebnis behalten darf, `None` = unbegrenzt). Fehler mit
+  (`retain_days` = wie lange TagStudioSX Treffer im Mix-Ergebnis behalten darf, `None` = unbegrenzt). Fehler mit
   `status` 0/401/402/403/429 brechen den Lauf ab. Beispiel: SonoVault 1.3.
 
 ## Werkzeug: API-Rekorder (für Entwickler)
@@ -288,7 +288,7 @@ gleiche Vorschau (#217):
   und macOS). Bis 20 Titel einzeln (`/analyze/single`), darüber über die Warteschlange (`/analyze/add`,
   `/analyze/results`). Nur Adressen auf diesem Rechner, nie über einen Proxy; `/analyze/clear` wird nie aufgerufen.
   **In der App „Auto-Tagging“ ausschalten** – sonst schreibt sie selbst in die Dateien. Ändert sich eine Datei während
-  der Analyse, warnt TagStudio. Antwortet der Server nicht, startet TagStudio die App selbst (Option „App bei Bedarf
+  der Analyse, warnt TagStudioSX. Antwortet der Server nicht, startet TagStudioSX die App selbst (Option „App bei Bedarf
   selbst starten“, Programm wird gesucht oder unter Optionen eingetragen) und wartet bis 30 s; läuft die App ohne
   Server, sagt die Meldung das. Unter **Mehr …** stehen Download-Links für Windows und Mac.
 - Beim Plugin „Tonart (OpenKeyScan)“ prüft **Testen** die Umgebung (Modell laden, Gerät melden); unter **Optionen**
@@ -305,7 +305,7 @@ werden je Datei (Grösse + Änderungszeit) zwischengespeichert. Als Schritt in *
 
 Trennt Titel in Einzelspuren mit [audio-separator](https://github.com/nomadkaraoke/python-audio-separator)
 (Demucs, BS-RoFormer, Mel-Band-RoFormer). Läuft in einer eigenen Umgebung mit Python 3.12 – unabhängig davon,
-mit welcher Python-Version TagStudio läuft. FFmpeg wird mitinstalliert.
+mit welcher Python-Version TagStudioSX läuft. FFmpeg wird mitinstalliert.
 
 1. Seite **Plugins** → bei „Stems“ eine Variante installieren:
    **Prozessor** (läuft überall), **AMD/Intel-Grafik (DirectML)** (Windows, experimentell) oder
@@ -337,7 +337,7 @@ Erkennungsdienst füllen (SonoVault, kostenpflichtig, #393 – siehe SonoVault).
    **Playlists › Importieren ▾ › Aus Mix erkennen …**:
    Mix-Datei wählen, optional die bekannte Tracklist („Künstler - Titel“ je Zeile, gern mit Zeitmarken – auch direkt
    aus YouTube kopiert) zum Vergleich. Mit **„Im Hintergrund analysieren“** läuft die Analyse als Hintergrund-Auftrag
-   (Fortschritt und Abbrechen unten in der Fussleiste, #389); danach fragt TagStudio „Ergebnis öffnen?“, in der
+   (Fortschritt und Abbrechen unten in der Fussleiste, #389); danach fragt TagStudioSX „Ergebnis öffnen?“, in der
    Auftragsliste steht „Ergebnis öffnen“.
 4. **Ergebnis** (Seite „Mixe“, links alle Analysen, rechts die Tracklist): je Titel Zeit (Mitte des Übergangs – dort setzen Tracklisten meist den Wechsel; von Hand
    änderbar), Tempo, Sicherheit, Datei; **▶ Mix** und **▶ Titel** zum Vorhören, **✕** verwirft einen falschen
@@ -413,7 +413,7 @@ Adresse, Kopfzeilen, Body, Status, Antwort-Kopfzeilen und Antwort im Protokoll (
 geschwärzt. **Plugin 2.3 (#356/#357):** auch die PATCH-Endpunkte (u. a. Playlist umbenennen, Titel verschieben; Konto,
 E-Mail- und Streaming-Einstellungen deutlich gewarnt) – Konto löschen, Genres löschen und Anmeldung bleiben gesperrt.
 **Revoke (#366, 2.11):** Die Sitzungs-Anmeldung merkt sich ihre client_id; „Abmelden“ (Einkäufe, Tester) und das
-Beenden bzw. Neustarten von TagStudio ziehen Access- und Refresh-Token bei Beatport zurück
+Beenden bzw. Neustarten von TagStudioSX ziehen Access- und Refresh-Token bei Beatport zurück
 (`POST /auth/o/revoke/?client_id=…&token=…`, höchstens wenige Sekunden), danach ist die Sitzung gelöscht.
 **Zugang im Tester (#365, 2.10):** Zeile „Zugang“ – *gespeicherter Zugang* oder *Sitzungs-Anmeldung (wie die
 Webseite)*; „Anmelden …“ öffnet das Anmeldefeld im Tester (Benutzername/Passwort, nur im Speicher), danach schickt der
@@ -441,7 +441,7 @@ anlegen und befüllen“** eingeschaltet ist (Standard aus) und nur auf Klick in
 mehr lädt Beatport nicht auf einmal; gleichnamige wird ersetzt, „Aufräumen“ löscht sie nach Rückfrage),
 **„Playlists je Kaufdatum …“** legt `<Präfix><JJJJ_MM_TT>` an bzw. ergänzt sie – eine Playlist je Datum mit allen Titeln, ohne
 100er-Teilung (#360) (Präfix Standard `TagStudio_BUY_`).
-TagStudio verändert nur Playlists, deren Name mit `TagStudio_` beginnt. **„Schreibzugriff prüfen“** fragt Beatport per
+TagStudioSX verändert nur Playlists, deren Name mit `TagStudio_` beginnt. **„Schreibzugriff prüfen“** fragt Beatport per
 `OPTIONS` (ändert nichts), ob Anlegen, Hinzufügen, Entfernen und Löschen erlaubt sind; das Ergebnis steht auch im
 Protokoll. Funktionen für die Seite: `store_settings`, `store_playlist_check`, `store_playlist_list`,
 `store_playlist_put(ctx, name, ids, replace)`, `store_playlist_delete(ctx, prefix)`.
@@ -463,7 +463,7 @@ Protokoll (Plugins › Beatport).
 ## Eingebaut: Spotify und SoundCloud
 
 Lesen deine Playlists und Titel-Daten bei Spotify bzw. SoundCloud. SoundCloud **nur lesen**; Spotify ändert dein Konto
-**nur auf deinen Klick** (ab 1.3: Wunschliste als Playlist, in der Bibliothek speichern). Beide brauchen eine **eigene App** beim Dienst; TagStudio liefert keine gemeinsamen Zugangsdaten mit.
+**nur auf deinen Klick** (ab 1.3: Wunschliste als Playlist, in der Bibliothek speichern). Beide brauchen eine **eigene App** beim Dienst; TagStudioSX liefert keine gemeinsamen Zugangsdaten mit.
 
 - **Spotify:** auf [developer.spotify.com](https://developer.spotify.com/dashboard) mit deinem Konto anmelden
   (Spotify Premium nötig), „Create app“, als Redirect URI genau `http://127.0.0.1:8765/callback` eintragen, „Web API“
@@ -474,7 +474,7 @@ Lesen deine Playlists und Titel-Daten bei Spotify bzw. SoundCloud. SoundCloud **
 - **SoundCloud:** App in „SoundCloud for Developers“ registrieren (Selbstregistrierung mit Artist Pro), Redirect URI
   `http://127.0.0.1:8766/callback`. Client-ID **und** Client-Secret unter Plugins › SoundCloud › **Anmelden …**
   einfügen (OAuth 2.1 mit PKCE).
-- **Anmelden …** öffnet die Anmeldeseite im Browser; TagStudio nimmt die Rückleitung auf `127.0.0.1` kurz selbst an.
+- **Anmelden …** öffnet die Anmeldeseite im Browser; TagStudioSX nimmt die Rückleitung auf `127.0.0.1` kurz selbst an.
   Geht das nicht (Port belegt), „Adresse einfügen“ wählen: nach der Zustimmung die Adresse aus der Adresszeile
   einfügen. Zugangsdaten und Token liegen verschlüsselt im Datenordner des Plugins und werden automatisch erneuert;
   „Abmelden …“ löscht die Anmeldung (wahlweise auch die Zugangsdaten).
@@ -488,7 +488,7 @@ Lesen deine Playlists und Titel-Daten bei Spotify bzw. SoundCloud. SoundCloud **
   `user-library-modify` (einmal neu anmelden). **Ideen:** „Läuft gerade in Spotify merken“, „Zuletzt gehört in Spotify …“
   (höchstens 50, `GET /me/player/currently-playing`, `/me/player/recently-played`), „Als Spotify-Playlist …“ (privat,
   `POST /me/playlists`, `POST /playlists/{id}/items`, nur ergänzen). Lehnt Spotify das Schreiben mit HTTP 403 ab
-  (Entwicklungsmodus), nennt TagStudio den Grund; geprüft wird nur auf deinen Klick.
+  (Entwicklungsmodus), nennt TagStudioSX den Grund; geprüft wird nur auf deinen Klick.
 - **Album nachschlagen (SP4, Tagger):** „Album nachschlagen (Spotify) …“ sucht das Album bzw. die EP der markierten
   Titel (Album aus TALB oder in den Optionen) und schlägt je Titel Album, Albumkünstler, Datum, Titel-/CD-Nummer
   (z. B. `2/4`), Genre (vom Künstler), Cover und auf Wunsch Spotify-ID/-Link bzw. `TXXX:SPOTIFY_*` vor – wenige Anfragen
@@ -524,8 +524,8 @@ Lesen deine Playlists und Titel-Daten bei Spotify bzw. SoundCloud. SoundCloud **
 
 Gegenstellen für Einstellungen › Cloud › **„Abgleich über die Dienste“** (#317–#320, Konzept
 `docs/KONZEPT-CLOUD.md`) – ohne Desktop-Client, direkt über die API. Jeder Dienst braucht eine **eigene App**
-(Client-ID, C4); TagStudio liefert keine mit. Anmeldung mit OAuth 2 und PKCE, Token verschlüsselt, „Anmelden …“ mit
-Anleitung und „Adresse einfügen“ als Ausweg wie bei Spotify. TagStudio schreibt nur unter seinem Ordner (Standard
+(Client-ID, C4); TagStudioSX liefert keine mit. Anmeldung mit OAuth 2 und PKCE, Token verschlüsselt, „Anmelden …“ mit
+Anleitung und „Adresse einfügen“ als Ausweg wie bei Spotify. TagStudioSX schreibt nur unter seinem Ordner (Standard
 `TagStudio/<Rolle>` bzw. `TagStudio/Programmdaten/<Teil>`). Bei Grenzen (HTTP 429, Kontingent) wird gemeldet, nicht
 wiederholt.
 
@@ -535,20 +535,20 @@ wiederholt.
     „Kontoart …“ eintragen – oder „beliebiges Organisationsverzeichnis“), Plattform „Mobile Anwendungen und
     Desktopanwendungen“ mit Umleitungs-URI `http://localhost/callback` (Port egal), „Öffentliche Clientflows zulassen“,
     delegierte Berechtigungen `Files.ReadWrite`, `User.Read`, `offline_access`. Anmeldung über den Endpunkt
-    `organizations` (private Konten weist Microsoft dort ab – TagStudio nennt dann den Umschalter). `Files.ReadWrite`
+    `organizations` (private Konten weist Microsoft dort ab – TagStudioSX nennt dann den Umschalter). `Files.ReadWrite`
     braucht laut Microsoft keine Administrator-Zustimmung – sperrt eine Organisation die Zustimmung durch Benutzer, nennt
     die Meldung den Weg über den Administrator. Dateien bis 4 MB in einem Schritt, grössere über eine Upload-Sitzung;
     Löschen = Papierkorb.
   - **Privates OneDrive**: keine App und keine Anmeldung. Angegeben wird nur der **OneDrive-Ordner** auf diesem Rechner
     (Vorschlag aus dem Desktop-Client); dorthin gehen der Spiegel der Bibliothek und die Sicherung der Programmdaten
-    (Einstellungen › Cloud). Abo und Speichergrösse bestimmst du; TagStudio zeigt vor dem Spiegeln eine Schätzung.
+    (Einstellungen › Cloud). Abo und Speichergrösse bestimmst du; TagStudioSX zeigt vor dem Spiegeln eine Schätzung.
     Option **„Spiegel-Ordner erstellen“** (#413): legt im OneDrive-Ordner je Bibliothek denselben Pfad ohne Laufwerk an
     (`D:\Musik\DJ` → `OneDrive\Musik\DJ`) und stellt den Spiegel darauf ein; nichts wird gelöscht.
-    Plugin-Schnittstelle dafür: `ctx.mirror_folders(ordner, create)` (ab TagStudio 4.14).
+    Plugin-Schnittstelle dafür: `ctx.mirror_folders(ordner, create)` (ab TagStudioSX 4.14).
   - Vorausgewählt ist immer **„Privat“** (1.3, #412), auch mit schon eingetragener App – wer die App-Anbindung nutzt,
     wählt einmal „Geschäftlich“. Beim Umschalten bleiben App-Daten und Ordner erhalten.
 - **Google Drive** (Drive API v3): Projekt in der Google Cloud Console, Drive API aktivieren, OAuth-Client „Desktop-App“
-  (Client-ID und Client-Secret), Bereich `drive.file` – TagStudio sieht nur, was es selbst angelegt hat. Ordner werden
+  (Client-ID und Client-Secret), Bereich `drive.file` – TagStudioSX sieht nur, was es selbst angelegt hat. Ordner werden
   über Name und übergeordneten Ordner gefunden bzw. angelegt; Löschen = Papierkorb. Kontingent: 325 000 Einheiten je
   Minute und Benutzer.
 - **Dropbox** (API v2): App in der App Console („Scoped access“, empfohlen „App folder“), Berechtigungen
@@ -560,17 +560,17 @@ wiederholt.
 ## Eingebaut: SonoVault
 
 Musik-Metadaten-API von Rekordcloud ([sonovault.now](https://sonovault.now), über 93 Mio. Titel) mit **eigenem
-Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: `docs/KONZEPT-SONOVAULT.md`).
+Schlüssel** – TagStudioSX liefert keinen mit (Konzept und Nutzungsbedingungen: `docs/KONZEPT-SONOVAULT.md`).
 
 - **Schlüssel …:** Konto auf sonovault.now anlegen, E-Mail bestätigen, Schlüssel erstellen (`svk_live_…`; `svk_test_…`
   liefert nur Musterdaten) und einfügen – verschlüsselt gespeichert, nie angezeigt. Hinweis Datenschutz: SonoVault
   sieht, welche Titel du abfragst.
 - **Anfragen zählen (Free-Tarif):** Die Kachel zeigt „diesen Monat x von 1000 Anfragen (Rest y)“; ab 90 % warnt
-  TagStudio, beim Erreichen des Kontingents fragt es nichts mehr ab (ab dem 1. des Monats wieder). Ein anderes
+  TagStudioSX, beim Erreichen des Kontingents fragt es nichts mehr ab (ab dem 1. des Monats wieder). Ein anderes
   Kontingent lässt sich unter „Schlüssel …“ eintragen. Bei HTTP 429 wird **nie** wiederholt.
 - **Tarif (#381):** unter „Schlüssel …“ „Free“ oder „Bezahlt (Starter oder höher)“. Bezahlt setzt das Kontingent auf
   50 000 (änderbar), erlaubt 60 Anfragen je Minute und schaltet Browse in „Entdecken“ und die Genre-Korrektur frei.
-  Ohne bezahlten Tarif ruft TagStudio diese Endpunkte nie auf.
+  Ohne bezahlten Tarif ruft TagStudioSX diese Endpunkte nie auf.
 - **Online-Metadaten:** Quelle „SonoVault“ (aus, bis du sie anhakst) nach MusicBrainz und Discogs, vor Deezer und
   iTunes. Zuerst über die ISRC, sonst Künstler + Titel. In die Datei dürfen laut Nutzungsbedingungen **nur** Titel,
   Künstler, Album/Release, Label, Genre, Datum, Dauer und ISRC – BPM und Tonart erscheinen nur als **Vergleich** in
@@ -596,13 +596,13 @@ Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: 
   `…/{id}/releases?from=…`, 20 Stunden). Nur bei „Suchen“, nie bei der täglichen Suche; Einträge ohne Link, nach 30 Tagen
   entfernt (auch gemerkte) und nie in der Einkaufsliste. **Mit bezahltem Tarif (#381)** zusätzlich die neuesten Titel
   je gefolgtem Label und Genre (`/v1/tracks/browse` mit `labelId` bzw. `genre`, höchstens 20 je Abfrage, 20 Stunden
-  zwischengespeichert). Den allgemeinen Neuerscheinungs-Feed (`/v1/releases/new`, ohne Filter) nutzt TagStudio nicht.
+  zwischengespeichert). Den allgemeinen Neuerscheinungs-Feed (`/v1/releases/new`, ohne Filter) nutzt TagStudioSX nicht.
 - **Audio erkennen (SonoVault, kostenpflichtig) …** (Tagger, #257, optional): für Titel ohne brauchbare Tags ein
   Ausschnitt aus der Mitte (30/45/60 s, mono, 16 kHz, ohne Tags) an `POST /v1/tracks/identify` – kostet je Titel
   10 Kredite + 1 je angefangenes MB (bei 30 s: 11). Dafür müssen bei SonoVault Kredite gekauft werden; im Free-Tarif
   lehnt SonoVault ab (verständliche Meldung, nichts verrechnet). Ohne Häkchen nur Kostenvorschau. Datenschutz:
   SonoVault bewahrt den Ausschnitt ohne feste Frist auf – nur eigene Aufnahmen. Treffer als Vorschau (nur erlaubte
-  Felder, ab 80 % Sicherheit leere vorausgewählt). Schlanke Treffer (nur ID, Titel, Künstler) holt TagStudio über die
+  Felder, ab 80 % Sicherheit leere vorausgewählt). Schlanke Treffer (nur ID, Titel, Künstler) holt TagStudioSX über die
   ID nach (1 Anfrage). Tipp: zuerst AcoustID (gratis, ohne Hochladen).
 - **Lücken eines Mixes erkennen („MixID light“, #393, ab 1.3):** Seite **Mixe** › „Lücken online erkennen …“ bzw.
   „Erkennen …“ an einer Lücke – je angefangene 3 Minuten Lücke ein Ausschnitt (30/45/60 s) an dieselbe Erkennung, mit
@@ -611,7 +611,7 @@ Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: 
   im Free-Tarif nach 30 Tagen entfernt. Nur für den eigenen Gebrauch – Tracklisten mit diesen Treffern nicht
   veröffentlichen (§4).
 - **Genre-Korrektur an SonoVault melden …** (Tagger, #259, bezahlter Tarif): vergleicht das Genre der Datei (erster
-  Wert in TCON) mit SonoVault; entspricht es genau einem Genre aus `/v1/genres` und weicht es ab, meldet TagStudio auf
+  Wert in TCON) mit SonoVault; entspricht es genau einem Genre aus `/v1/genres` und weicht es ab, meldet TagStudioSX auf
   Häkchen `POST /v1/tracks/{id}/suggestions` mit `genreId` und optionaler Notiz (≤ 100 Zeichen). Ohne Häkchen nur
   Vorschau; höchstens 100 je Tag. Das SonoVault-Team prüft die Vorschläge; **Meine Genre-Vorschläge …** zeigt den
   Status (offen, angenommen, abgelehnt).
@@ -624,32 +624,32 @@ Schlüssel** – TagStudio liefert keinen mit (Konzept und Nutzungsbedingungen: 
 
 ## Eingebaut: Lexicon
 
-Verbindet TagStudio mit [Lexicon DJ](https://www.lexicondj.com) über dessen Local API (in Lexicon: Settings ›
+Verbindet TagStudioSX mit [Lexicon DJ](https://www.lexicondj.com) über dessen Local API (in Lexicon: Settings ›
 Integrations › Local API einschalten; Standard `http://localhost:48624`).
 
 - **Lexicon übernehmen …** (Tagger): Werte ohne offizielles MP3-Feld kommen in **eigene Felder mit Herkunft
   „Lexicon“**, unverändert wie in Lexicon (1–10): `TXXX:LEXICON_DANCEABILITY`, `…_ENERGY`, `…_HAPPINESS`,
   `…_POPULARITY`, `…_COLOR`, `…_TAGS` (übrige Tag-Kategorien, wahlweise auch Grouping oder Kommentar) und
-  `TXXX:LEXICON_MOOD` (in ID3v2.4 offiziell `TMOO`). Bewertung in `POPM`. Die TagStudio-Felder (ENERGY usw.) bleiben
+  `TXXX:LEXICON_MOOD` (in ID3v2.4 offiziell `TMOO`). Bewertung in `POPM`. Die TagStudioSX-Felder (ENERGY usw.) bleiben
   unverändert. Zuordnung gezielt über den Pfad, sonst über
   Künstler + Titel. Beatgrid und Cue-Punkte aus Lexicon werden mit der Datei verglichen (Hinweis in der Vorschau).
 - **Aus Lexicon öffnen …** (Tagger, ohne Auswahl): die in Lexicon markierten Titel, die markierte Playlist oder eine
   Playlist über ihren Namen (`Sets/Freitag`) in den Tagger laden oder als DJ-Set übernehmen. Ordner und Smartlists
   gehen auch.
-- **Lexicon-Werte in TagStudio-Felder …** (Tagger): übernimmt die Werte aus den `LEXICON_`-Feldern der Dateien in
+- **Lexicon-Werte in TagStudioSX-Felder …** (Tagger): übernimmt die Werte aus den `LEXICON_`-Feldern der Dateien in
   ENERGY, DANCEABILITY, HAPPINESS (×10) und die Stimmung – mit Vorschau und Abgleich, ohne Verbindung zu Lexicon.
-  Beim Übernehmen aus Lexicon geht das auch gleich mit („Zusätzlich in die TagStudio-Felder übernehmen“).
+  Beim Übernehmen aus Lexicon geht das auch gleich mit („Zusätzlich in die TagStudioSX-Felder übernehmen“).
 - **DJ-Set › Aus Lexicon …:** alle Playlists (und die Warteschlange) holen, mit Häkchen wählen; jede wird als Liste
   „Lexicon: …“ gespeichert, die erste geladen.
 - **Vorbereiten:** Der Status-Schritt „Lexicon“ erkennt Titel, die in Lexicon vorhanden sind.
 - **Zurückschreiben** (Plugins › Lexicon › Optionen, standardmässig aus):
-  - Pfade nachführen, wenn TagStudio Dateien umbenennt, archiviert oder zurückholt.
-  - Neu in die Bibliothek übernommene Titel aufnehmen, in eine Playlist legen (Standard „TagStudio Neu“) und von
+  - Pfade nachführen, wenn TagStudioSX Dateien umbenennt, archiviert oder zurückholt.
+  - Neu in die Bibliothek übernommene Titel aufnehmen, in eine Playlist legen (Standard „TagStudioSX Neu“) und von
     Lexicon analysieren lassen.
   - **Nach Lexicon übertragen …** (Tagger): Titel, Künstler, Album, Genre, BPM, Tonart, Bewertung, Energie usw. und
     Stimmung als Mood-Tags – mit Vorschau, geändert wird nur in Lexicon.
   - **DJ-Set als Lexicon-Playlist …** (Mehr …).
   - **Letzte Änderung in Lexicon rückgängig …** stellt Werte und Pfade wieder her.
 
-  Die Lexicon-API hat keine Anmeldung: TagStudio schreibt nur an Lexicon auf diesem Rechner (localhost) und löscht nie
+  Die Lexicon-API hat keine Anmeldung: TagStudioSX schreibt nur an Lexicon auf diesem Rechner (localhost) und löscht nie
   etwas. Jede Änderung steht im Journal (`Plugin-Daten/lexicon/journal.json`).

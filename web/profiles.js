@@ -1,8 +1,8 @@
-/* MarKusSXCH TagStudio – Profile (#164, #165): Auswahl beim Start, Verwaltung in den Einstellungen.
+/* TagStudioSX – Profile (#164, #165): Auswahl beim Start, Verwaltung in den Einstellungen.
    Ein Profil hat eigene Einstellungen und Daten; Plugins und grosse Plugin-Daten werden geteilt. Logik in paths.py. */
 "use strict";
 
-/** Profilwahl beim Start. → true, wenn TagStudio mit einem anderen Profil neu startet */
+/** Profilwahl beim Start. → true, wenn TagStudioSX mit einem anderen Profil neu startet */
 async function profilePick(p) {
   const r = await modal({
     title: "Profil wählen",
@@ -24,7 +24,7 @@ async function stProfilesRender() {
   box.innerHTML = `<div class="st-row">
       <span>Aktuelles Profil</span><div><b>${esc(p.name)}</b> <span class="muted sm">${esc(p.dir)}</span></div>
       <span>Profile</span><div class="prof-rows">${p.list.map((n) => `<div class="prof-row"><span>${esc(n)}${n === p.name ? ' <span class="muted sm">(aktuell)</span>' : ""}</span>
-        <span class="prof-acts">${n !== p.name ? `<button class="ghost sm" data-prof-switch="${esc(n)}">Wechseln</button>` : ""}<button class="ghost sm" data-prof-link="${esc(n)}" title="Verknüpfung „TagStudio (${esc(n)})“ auf dem Desktop anlegen">Verknüpfung</button></span></div>`).join("")}</div>
+        <span class="prof-acts">${n !== p.name ? `<button class="ghost sm" data-prof-switch="${esc(n)}">Wechseln</button>` : ""}<button class="ghost sm" data-prof-link="${esc(n)}" title="Verknüpfung „TagStudioSX (${esc(n)})“ auf dem Desktop anlegen">Verknüpfung</button></span></div>`).join("")}</div>
       <span>Neues Profil</span><div class="st-path"><input id="profNew" class="inp" placeholder="Name, z. B. Test" spellcheck="false" style="max-width:220px">
         <label class="check sm"><input type="checkbox" id="profCopy"> Einstellungen von „${esc(p.name)}“ übernehmen</label><button class="ghost sm" id="profAdd">Anlegen</button></div>
       <span></span><span class="muted sm">Ein neues, leeres Profil startet wie eine frische Installation – mit Einrichtungsassistent. Plugins, die Stems-Umgebung und Modelle werden mitbenutzt; Einstellungen, Anmeldungen und Protokolle sind je Profil getrennt.</span>

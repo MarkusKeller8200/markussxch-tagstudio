@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Entdecken (#120): neue Titel von gefolgten Künstlern, Labels und Genres vorschlagen.
+"""TagStudioSX – Entdecken (#120): neue Titel von gefolgten Künstlern, Labels und Genres vorschlagen.
 
 Quellen:
   deezer    öffentliche API ohne Anmeldung – neue Veröffentlichungen gefolgter Künstler und Labels, ähnliche

@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Tag-Fixer › Smart Fix (#339).
+/* TagStudioSX – Tag-Fixer › Smart Fix (#339).
    Rezepte für wiederkehrende Fixes: mitgelieferte (nicht änderbar, nur kopierbar) und eigene (anlegen, bearbeiten,
    löschen nach Rückfrage, exportieren/importieren als JSON). Erstes Rezept „Mehrfachwerte mit Komma“. Der
    Ziel-Trenner ist je Rezept wählbar (Standard „, “). Vorschau, Auswahl (#341) und Anwenden teilt Smart Fix mit dem

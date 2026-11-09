@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Cue-Punkte aus den Tags lesen (für die Marken im Vorschau-Player).
+"""TagStudioSX – Cue-Punkte aus den Tags lesen (für die Marken im Vorschau-Player).
 
 Unterstützt:
   Serato        GEOB „Serato Markers2“ – Base64 mit Einträgen CUE (Position, Farbe, Name) und LOOP

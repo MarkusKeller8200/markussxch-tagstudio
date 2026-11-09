@@ -59,9 +59,9 @@ def path_from_location(loc: str) -> str:
     return p
 
 
-def rekordbox_xml(entries, name: str = "TagStudio DJ-Set", version: str = "", notation: str = "musical") -> str:
+def rekordbox_xml(entries, name: str = "TagStudioSX DJ-Set", version: str = "", notation: str = "musical") -> str:
     root = ET.Element("DJ_PLAYLISTS", Version="1.0.0")
-    ET.SubElement(root, "PRODUCT", Name="MarKusSXCH TagStudio", Version=version or "", Company="")
+    ET.SubElement(root, "PRODUCT", Name="TagStudioSX", Version=version or "", Company="")
     col = ET.SubElement(root, "COLLECTION", Entries=str(len(entries)))
     for n, e in enumerate(entries, 1):
         a = {"TrackID": str(n), "Name": e.get("title") or os.path.splitext(os.path.basename(e["path"]))[0],
@@ -129,7 +129,7 @@ def write(fmt: str, dest: str, entries, **kw) -> int:
             fh.write(text)
     elif fmt == "xml":
         with open(dest, "w", encoding="utf-8") as fh:
-            fh.write(rekordbox_xml(entries, kw.get("name") or "TagStudio DJ-Set", kw.get("version", ""),
+            fh.write(rekordbox_xml(entries, kw.get("name") or "TagStudioSX DJ-Set", kw.get("version", ""),
                                    kw.get("notation", "musical")))
     elif fmt == "csv":
         import tagger

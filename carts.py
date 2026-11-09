@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Warenkorb (#420–#423): Titel sammeln, auf Käufe prüfen, als Einkaufsliste an den Shop senden.
+"""TagStudioSX – Warenkorb (#420–#423): Titel sammeln, auf Käufe prüfen, als Einkaufsliste an den Shop senden.
 
 Gespeichert im Datenordner des Profils (``~/TagStudio/Warenkorb/warenkorb.json``, atomar geschrieben):
 

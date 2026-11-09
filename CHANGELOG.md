@@ -1,10 +1,25 @@
-# Changelog – MarKusSXCH TagStudio
+# Changelog – TagStudioSX (bis 4.16: MarKusSXCH TagStudio)
 
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versionen nach
 [Semantic Versioning](https://semver.org/lang/de/) (MAJOR.MINOR.PATCH). Versionen bis 2.8 hießen „MP3 Tag Compare“.
 Neue Einträge kommen laufend unter **Unveröffentlicht**; `python packaging/release.py X.Y.Z` macht daraus eine Version.
 
 ## [Unveröffentlicht]
+
+### Geändert
+
+- **TagStudio heisst jetzt TagStudioSX (5.0.0 „Rebrand“, #461–#469):** neuer Name und Markenauftritt gemäss
+  CI-Manual der Dachmarke MarKusSXCH ([docs/KONZEPT-MARKE.md](docs/KONZEPT-MARKE.md)). Wortmarke TagStudioSX in der
+  Seitenleiste und unter Hilfe › Lizenzen (mit „Developed by MarKusSXCH“ und Claim „Music Management & DJ Library“),
+  Bedienelemente im Produktblau (hell `#00699E` für ausreichenden Kontrast, dunkel `#32B8F2`), Schrift Inter/Aptos falls
+  installiert. Alle sichtbaren Texte, Fenstertitel, Installer, DMG und Release-Titel heissen TagStudioSX; Plugins mit
+  geänderten Texten haben eine neue Version.
+- **Programm und Downloads (#464):** `TagStudioSX.exe` / `TagStudioSX.app`, Downloads `TagStudioSX-X.Y.Z-…`. Windows:
+  Update in den bisherigen Ordner, alte `TagStudio.exe` und Verknüpfungen „MarKusSXCH TagStudio“ werden entfernt, nach dem
+  Update aus 4.x startet die neue App. macOS: der Updater ersetzt `TagStudio.app` durch `TagStudioSX.app`; **von 4.16 aus
+  einmalig von Hand installieren** (der alte Updater kennt den neuen Namen nicht).
+- **Unverändert:** Daten und Einstellungen (`~/TagStudio`, `~/.tagstudio.json`, Profile), Tag-Felder in den Musikdateien
+  (`TAGSTUDIO_…`, „TagStudio Overview“), Playlists `TagStudio_…` bei Beatport/Spotify, Plugin-Schnittstelle, Repo-Adresse.
 
 ## [4.16.0] – 2026-11-08
 

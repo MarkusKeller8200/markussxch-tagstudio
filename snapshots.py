@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Snapshots und Änderungsjournal (Konzept: docs/KONZEPT-SNAPSHOTS.md).
+"""TagStudioSX – Snapshots und Änderungsjournal (Konzept: docs/KONZEPT-SNAPSHOTS.md).
 
 Ein Snapshot hält den Tag-Zustand aller MP3-Dateien eines überwachten Ordners fest – byte-genau, ohne Audio.
 Gespeichert wird inhaltsadressiert (wie Git): jeder ID3-Frame liegt einmal als Objekt (SHA-256, zlib) im Speicher,
@@ -124,7 +124,7 @@ class Store:
                 raise StoreError(f"Snapshot-Speicher nicht lesbar: {ex}") from ex
             fmt = int(m.get("format", 0))
             if fmt > FORMAT:
-                self.readonly = True      # neueres TagStudio hat ihn angelegt → nur lesen
+                self.readonly = True      # neueres TagStudioSX hat ihn angelegt → nur lesen
             elif fmt < FORMAT:
                 self._migrate(fmt)
         self.format = FORMAT
@@ -132,14 +132,14 @@ class Store:
     # ------------------------------------------------------------------ Grundlagen
     def _init(self):
         if self.readonly:
-            raise StoreError("Dieser Snapshot-Speicher stammt aus einer neueren TagStudio-Version und wird nur "
-                             "gelesen – bitte TagStudio aktualisieren.")
+            raise StoreError("Dieser Snapshot-Speicher stammt aus einer neueren TagStudioSX-Version und wird nur "
+                             "gelesen – bitte TagStudioSX aktualisieren.")
         os.makedirs(os.path.join(self.root, "objects"), exist_ok=True)
         os.makedirs(os.path.join(self.root, "libs"), exist_ok=True)
         meta = os.path.join(self.root, "store.json")
         if not os.path.exists(meta):
             from version import VERSION
-            _write_json(meta, {"format": FORMAT, "created": _now(), "created_by": f"TagStudio {VERSION}"})
+            _write_json(meta, {"format": FORMAT, "created": _now(), "created_by": f"TagStudioSX {VERSION}"})
 
     def _migrate(self, old: int):
         """Ältere Formate anheben (Format 1 ist das erste – hier kommen künftige Schritte hin)."""
@@ -275,7 +275,7 @@ class Store:
         except (OSError, ValueError) as ex:
             raise StoreError(f"Snapshot nicht lesbar: {ex}") from ex
         if int(m.get("v", 1)) > MANIFEST_VERSION:
-            raise StoreError("Snapshot aus einer neueren TagStudio-Version – bitte aktualisieren.")
+            raise StoreError("Snapshot aus einer neueren TagStudioSX-Version – bitte aktualisieren.")
         return m
 
     def write_manifest(self, lid: str, m: dict) -> dict:
@@ -316,7 +316,7 @@ class Store:
         """Snapshot `sid` als Baseline markieren (nur eine je Bibliothek); auf Wunsch ältere löschen und Platz freigeben.
         Die Baseline ist vor dem automatischen Aufräumen geschützt."""
         if self.readonly:
-            raise StoreError("Nur lesen – Speicher aus einer neueren TagStudio-Version.")
+            raise StoreError("Nur lesen – Speicher aus einer neueren TagStudioSX-Version.")
         gone = [x["id"] for x in self.older_than(lid, sid, include_pinned)] if delete_older else []
         for x in self.snapshots(lid):
             if x.get("baseline") and x["id"] != sid:

@@ -5,7 +5,7 @@ Status: **Entwurf** (2026-10-11) – Issue #156. Teil des Gesamtkonzepts [KONZEP
 ## Ziel
 
 WAV-Dateien im Tagger wie MP3 lesen und bearbeiten (Titel, Künstler, BPM, Tonart, Cover …), ohne die Audiodaten
-anzufassen, und so, dass DJ-Programme die Tags wiederfinden. Heute zeigt TagStudio WAV nur als Stem-Spur zum Anhören.
+anzufassen, und so, dass DJ-Programme die Tags wiederfinden. Heute zeigt TagStudioSX WAV nur als Stem-Spur zum Anhören.
 
 ## Welche Tags gibt es in WAV?
 
@@ -13,7 +13,7 @@ WAV ist ein RIFF-Container: eine Folge von Chunks (`fmt `, `data`, …). Tags st
 
 | Chunk | Inhalt | Bewertung |
 |---|---|---|
-| `id3 ` (auch `ID3 `) | ein vollständiges ID3v2-Tag (wie bei MP3) | **Hauptweg**: alle Felder, die TagStudio schon kann (TXXX, Cover, POPM, GEOB/Serato …). So schreiben es Mp3tag und viele DJ-Programme. |
+| `id3 ` (auch `ID3 `) | ein vollständiges ID3v2-Tag (wie bei MP3) | **Hauptweg**: alle Felder, die TagStudioSX schon kann (TXXX, Cover, POPM, GEOB/Serato …). So schreiben es Mp3tag und viele DJ-Programme. |
 | `LIST` Typ `INFO` | wenige Textfelder: INAM Titel, IART Künstler, IPRD Album, ICRD Datum, IGNR Genre, ICMT Kommentar, ITRK Spur | **mitpflegen** für Windows-Explorer und ältere Programme; keine BPM/Tonart/Cover |
 | `bext` | Broadcast-Wave: Beschreibung, Urheber, Datum, Zeitcode | nur anzeigen |
 | `cue ` + `LIST adtl` | Cue-Punkte mit Namen | später: als Cues im Player anzeigen |

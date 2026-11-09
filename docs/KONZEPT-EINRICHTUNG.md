@@ -15,7 +15,7 @@ statt von den vielen Funktionen erschlagen zu werden.
 
 ## Teil A – Zweite unabhängige Installation („Profile“)
 
-### Heute: wo TagStudio Daten ablegt
+### Heute: wo TagStudioSX Daten ablegt
 
 | Was | Ort heute | Datei / Modul |
 |---|---|---|
@@ -56,7 +56,7 @@ wirklich zwei Programmversionen nebeneinander nötig sind (z. B. stabil + Beta).
    `profil.ini` neben dem Programm (portable) → Standard.
    Profil-Daten: `~/TagStudio-Profile/<NAME>/` mit `einstellungen.json` und denselben Unterordnern wie heute.
 3. **Getrennt laufen:** Sperre und Windows-Mutex je Profil (`MarKusSXCH-TagStudio-<NAME>`), eigener WebView2-Speicher,
-   Fenstertitel und Seitenleiste zeigen das Profil („TagStudio · Test“). Der Installer prüft weiterhin nur das
+   Fenstertitel und Seitenleiste zeigen das Profil („TagStudioSX · Test“). Der Installer prüft weiterhin nur das
    Standardprofil (bzw. alle Mutexe mit Präfix).
 4. **Verwaltung** (Einstellungen › Profile): neues Profil anlegen (leer oder mit Einstellungen aus dem aktuellen),
    Verknüpfung auf Desktop/Startmenü erstellen, Profil-Ordner öffnen, Einstellungen aus einem anderen Profil übernehmen
@@ -66,7 +66,7 @@ wirklich zwei Programmversionen nebeneinander nötig sind (z. B. stabil + Beta).
 6. **Tests:** Profil-Start in einem Test-HOME; keine Datei ausserhalb des Profilordners wird geschrieben.
 
 **Für den konkreten Wunsch („frische Installation“)** reicht danach: Einstellungen › Profile › „Neues Profil (leer)“ →
-Verknüpfung „TagStudio (Neu)“ starten → TagStudio startet wie beim allerersten Mal, inklusive Assistent (Teil B).
+Verknüpfung „TagStudioSX (Neu)“ starten → TagStudioSX startet wie beim allerersten Mal, inklusive Assistent (Teil B).
 
 ## Teil B – Einrichtungsassistent
 

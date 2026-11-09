@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Entdecken (#120, eigene Seite seit #333): neue Titel gefolgter Künstler, Labels und Genres
+/* TagStudioSX – Entdecken (#120, eigene Seite seit #333): neue Titel gefolgter Künstler, Labels und Genres
    mit Vorhören, Merkliste und Kauf-Link. Logik in discover.py / session_discover.py. Gekauft wird nie automatisch. */
 "use strict";
 

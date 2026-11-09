@@ -37,7 +37,7 @@ Acknowledgement within 7 days; confirmed issues are fixed in the next release an
 
 ## Geltungsbereich / Scope
 
-Im Geltungsbereich: der Code in diesem Repository (TagStudio, eingebaute Plugins, Installer und Workflows).
+Im Geltungsbereich: der Code in diesem Repository (TagStudioSX, eingebaute Plugins, Installer und Workflows).
 
 Nicht im Geltungsbereich:
 - **Plugins von Dritten** – Plugins laufen mit den Rechten der App; installiere nur Plugins, denen du vertraust.
@@ -49,4 +49,4 @@ Nicht im Geltungsbereich:
 - Zugangsdaten (z. B. Beatport) werden nicht gespeichert; Tokens liegen nur lokal im Benutzerordner,
   unter Windows mit DPAPI verschlüsselt, unter macOS im Schlüsselbund (`secretstore.py`, #287). Nur wo beides
   nicht verfügbar ist, liegt eine Datei, die nur für den Benutzer lesbar ist (0600).
-- TagStudio sendet keine Daten an Dritte; Netzwerkzugriffe gibt es nur bei Update-Prüfung und Plugins.
+- TagStudioSX sendet keine Daten an Dritte; Netzwerkzugriffe gibt es nur bei Update-Prüfung und Plugins.

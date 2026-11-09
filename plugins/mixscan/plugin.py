@@ -2,7 +2,7 @@
 
 Verfahren: eigener Audio-Fingerabdruck mit Abfrage in Tempo-Stufen (fp.py, docs/KONZEPT-MIXSCAN.md). Die Rechnung
 läuft in worker.py im Python der Plugin-Umgebung (NumPy, SciPy, imageio-ffmpeg); dieses Modul sammelt die Dateien,
-führt den Index nach (von Hand, nach „Vorbereiten“ und beim Start) und gibt das Ergebnis an TagStudio, das es im
+führt den Index nach (von Hand, nach „Vorbereiten“ und beim Start) und gibt das Ergebnis an TagStudioSX, das es im
 Ergebnisfenster zeigt (mixresult.py, session_mixes.py). Alles bleibt auf dem eigenen Rechner – nichts wird hochgeladen.
 """
 import json
@@ -25,12 +25,12 @@ ACTIONS = [
                                                    "geändert, dauert etwa doppelt so lange)", "default": True},
          {"key": "tracklist", "type": "textarea",
           "label": "Bekannte Tracklist (optional, je Zeile „Künstler - Titel“, gern mit Zeitmarke) – zum Vergleich; "
-                   "Lücken mit passender Zeitmarke füllt TagStudio daraus, fehlende Titel lassen sich als Ideen merken"},
+                   "Lücken mit passender Zeitmarke füllt TagStudioSX daraus, fehlende Titel lassen sich als Ideen merken"},
          {"key": "background", "type": "check", "default": False,
           "label": "Im Hintergrund analysieren – weiterarbeiten; das Ergebnis lässt sich danach öffnen (Fussleiste "
                    "bzw. „Frühere Analysen …“)"},
          {"key": "hint", "type": "info",
-          "label": "Nur eigene Dateien – TagStudio lädt nichts von YouTube, SoundCloud oder Mixcloud herunter. Erkannt "
+          "label": "Nur eigene Dateien – TagStudioSX lädt nichts von YouTube, SoundCloud oder Mixcloud herunter. Erkannt "
                    "werden nur Titel, die im Index sind."}]},
     {"id": "analyse_folder", "label": "Ordner mit Mixen analysieren …", "short": "Ordner analysieren", "where": "page",
      "run_label": "In die Warteschlange", "needs_selection": False,

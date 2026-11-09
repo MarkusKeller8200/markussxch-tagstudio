@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Tag-Rezepte (#111): Aktionslisten wie in Mp3tag zusammenstellen, Vorschau, anwenden.
+/* TagStudioSX – Tag-Rezepte (#111): Aktionslisten wie in Mp3tag zusammenstellen, Vorschau, anwenden.
    Server: recipes.py, Session.recipes/recipes_save/tag_recipe. Auch Schritt „Rezept“ im Vorbereiten-Workflow. */
 "use strict";
 

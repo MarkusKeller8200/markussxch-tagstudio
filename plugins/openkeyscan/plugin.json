@@ -1,13 +1,13 @@
 {
   "id": "openkeyscan",
   "name": "OpenKeyScan-App",
-  "version": "1.4",
+  "version": "1.5",
   "min_app": "4.8.0",
   "category": "local_api",
   "api": 1,
-  "author": "MarKusSXCH TagStudio",
+  "author": "TagStudioSX",
   "description": "Lässt die Tonart der markierten Titel von der OpenKeyScan-Desktop-App (Windows, macOS) über deren lokale API erkennen. Ergebnis als Vorschau: eigenes Feld OPENKEYSCAN_KEY (Camelot) und auf Wunsch TKEY in deiner Schreibweise, mit Vergleich zur vorhandenen Tonart. Ohne App: Plugin „Tonart (OpenKeyScan)“.",
-  "notes": "Keine Zusatzpakete nötig. Die OpenKeyScan-App muss laufen. In der App „Auto-Tagging“ ausschalten, damit sie nicht selbst in die Dateien schreibt – TagStudio warnt, wenn sich eine Datei während der Analyse ändert.",
+  "notes": "Keine Zusatzpakete nötig. Die OpenKeyScan-App muss laufen. In der App „Auto-Tagging“ ausschalten, damit sie nicht selbst in die Dateien schreibt – TagStudioSX warnt, wenn sich eine Datei während der Analyse ändert.",
   "links": [
     {"label": "App für Windows herunterladen", "url": "https://update.rekord.cloud/releases/openkeyscan/latest/OpenKeyScan-Installer.exe",
      "desc": "Installer für Windows 10/11 (64 bit) direkt von Rekordcloud. Nach dem Download ausführen."},
@@ -21,8 +21,8 @@
     "docs": "https://www.openkeyscan.com/api",
     "base": "http://localhost:58721",
     "auth": "local",
-    "auth_note": "Ohne Anmeldung; die OpenKeyScan-App startet den Server selbst (Port 58721). TagStudio spricht ihn nur auf diesem Rechner an.",
-    "note": "Endpunkte laut https://www.openkeyscan.com/api. Antwortformate von /health und /analyze/results sind dort nicht beschrieben – TagStudio liest sie tolerant. /analyze/clear (leert die Liste in der App) wird nie aufgerufen.",
+    "auth_note": "Ohne Anmeldung; die OpenKeyScan-App startet den Server selbst (Port 58721). TagStudioSX spricht ihn nur auf diesem Rechner an.",
+    "note": "Endpunkte laut https://www.openkeyscan.com/api. Antwortformate von /health und /analyze/results sind dort nicht beschrieben – TagStudioSX liest sie tolerant. /analyze/clear (leert die Liste in der App) wird nie aufgerufen.",
     "endpoints": [
       {"id": "health", "method": "GET", "path": "/health", "label": "Läuft der Server?", "status": "full",
        "use": "Verbindung testen"},

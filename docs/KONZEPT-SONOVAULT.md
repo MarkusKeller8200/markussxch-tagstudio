@@ -29,7 +29,7 @@ Fast alles kostet 1 Kredit; Bulk-Resolve 1 Kredit je Zeile; Audio-Erkennung 10 +
 Monitoring 29 € je Stream/Monat. Über dem Kontingent: 429, **keine automatischen Mehrkosten**. Energie, Tanzbarkeit und
 Popularität sind laut Doku **nicht** Teil der öffentlichen API.
 
-## 2. Nutzen für TagStudio
+## 2. Nutzen für TagStudioSX
 
 | Bereich | Nutzen | Endpunkte | Tarif | Issue |
 |---|---|---|---|---|
@@ -43,18 +43,18 @@ Popularität sind laut Doku **nicht** Teil der öffentlichen API.
 
 ## 3. Nutzungsbedingungen (geprüft 24.10.2026, Terms „Last updated: October 19, 2026“)
 
-[Terms](https://sonovault.now/terms), niederländisches Recht. Was das für TagStudio heisst:
+[Terms](https://sonovault.now/terms), niederländisches Recht. Was das für TagStudioSX heisst:
 
-| Regel | Folge für TagStudio |
+| Regel | Folge für TagStudioSX |
 |---|---|
 | **Tags schreiben (§7):** nur „title, artist, release title, label, genre, release date, duration, and ISRC“, je Aufruf durch/für den Benutzer, für Dateien in seiner eigenen Bibliothek, nicht als „bulk data delivery“. Plattform-IDs ausdrücklich nicht. | Vorschläge zum Übernehmen **nur** für TIT2, TPE1, TALB, TPUB, TCON, Datum, TLEN, TSRC. **BPM, Tonart, ISWC, Katalognummer, Plattform-IDs und eine eigene `SONOVAULT_ID` dürfen nicht in die Datei** – nur anzeigen/vergleichen. |
 | **Zwischenspeicher (§7):** nur flüchtig für eigene Anfragen, spätestens alle 30 Tage erneuern; Free-Tarif: nur dieser Zwischenspeicher. Bezahlte Tarife: Aufbewahren solange das Abo läuft (danach innert 30 Tagen löschen). | Cache im Plugin-Datenordner mit Ablaufdatum 30 Tage, nie exportieren, nicht in Snapshots/Sicherungen. Bei Abo-Ende: Cache leeren (mit Rückfrage). |
 | **Kein Weitergeben (§4):** nichts weiterverkaufen, veröffentlichen, „in whole or in any part, however small“; keine konkurrierende Datenbank. | Keine Exporte der SonoVault-Daten (CSV, Listen, Melden …); Werte nur in der Vorschau. |
-| **Schlüssel persönlich (§2, §9).** | Jeder Benutzer trägt seinen eigenen Schlüssel ein; TagStudio liefert keinen mit. |
+| **Schlüssel persönlich (§2, §9).** | Jeder Benutzer trägt seinen eigenen Schlüssel ein; TagStudioSX liefert keinen mit. |
 | **Plattform-IDs (§8):** SonoVault gibt keine Rechte, Plattformen zu verlinken/einzubetten; nur mit eigener Beziehung zur Plattform. | „Auf Plattform öffnen“ vor der Umsetzung mit Rekordcloud klären. |
 | **Audio hochladen (§5):** nur eigene bzw. berechtigte Aufnahmen; Aufbewahrung in der Datenschutzerklärung (noch zu lesen). | Audio-Erkennung nur für eigene Dateien, Hinweis im Dialog. |
 | **Quellenangabe (§4, §8):** Hinweise nicht entfernen; Quellen gemäss „Data Sources & Attribution“. | Vorschau zeigt „Quelle: SonoVault“; Attribution-Seite vor der Umsetzung lesen. |
-| **KI (§6):** Daten nicht zum Trainieren/Auswerten von KI. | Betrifft TagStudio nicht (keine KI-Anbindung). |
+| **KI (§6):** Daten nicht zum Trainieren/Auswerten von KI. | Betrifft TagStudioSX nicht (keine KI-Anbindung). |
 
 **Datenschutzerklärung** ([Privacy](https://sonovault.now/privacy), Stand 2.10.2026): Verantwortlich Rekordcloud B.V.
 (Niederlande), Server bei Hetzner in der EU, Zahlung über Stripe, Google Analytics nur auf der Website.
@@ -98,7 +98,7 @@ Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Da
 
 | ID | Frage | Entscheid |
 |---|---|---|
-| SV1 | Tarif | **Free.** TagStudio verwaltet die Anfragen: Zähler je Monat (aus `RateLimit-*` und eigenem Zähler), Rest auf der Plugin-Karte, Warnung vor dem Überschreiten, Bulk-Abgleich (#256) nur innerhalb des Kontingents bzw. in Etappen über mehrere Monate. |
+| SV1 | Tarif | **Free.** TagStudioSX verwaltet die Anfragen: Zähler je Monat (aus `RateLimit-*` und eigenem Zähler), Rest auf der Plugin-Karte, Warnung vor dem Überschreiten, Bulk-Abgleich (#256) nur innerhalb des Kontingents bzw. in Etappen über mehrere Monate. |
 | SV2 | Audio-Erkennung (#257) | **Optional**, mit Hinweis, dass dafür Kredits gekauft werden müssen und was es kostet (10 + 1 je MB) – auch im Free-Tarif anbieten. |
 | SV3 | „Auf Plattform öffnen“ (#255) | IDs nur anzeigen; Verlinken erst nach Rückfrage bei Rekordcloud. |
 | SV4 | Vorrang in „Online-Metadaten“ | Nach Beatport und MusicBrainz, vor Deezer und iTunes. |
@@ -148,7 +148,7 @@ Abgleich/Anzeige (welche Titel stimmen nicht) oder gar nicht. #257 nur eigene Da
 - ~~Nutzungsbedingungen~~, ~~Datenschutz~~ → geprüft, siehe Abschnitt 3. Offen: Seite „Data Sources & Attribution“ (nicht
   erreichbar), Verlinken auf Plattformen.
 - Tarif des Users (Free reicht für Einzelabfragen, nicht für einen Bibliotheksabgleich).
-- Anfrage an Rekordcloud zusammen mit MixID (#218): offizieller Zugang, Kontingent für TagStudio-Nutzer.
+- Anfrage an Rekordcloud zusammen mit MixID (#218): offizieller Zugang, Kontingent für TagStudioSX-Nutzer.
 - Doppelte Quellen: Verhältnis zu MusicBrainz/Discogs/Beatport bei gleichen Feldern (Vorrang in „Online-Metadaten“).
 
 ## 6c. Durchsicht 27.10.2026 – was noch offen ist
@@ -166,8 +166,8 @@ Doku und Website mit der Umsetzung verglichen (Terms unverändert „Last update
 - **Fragen an Rekordcloud** (Verlinken SV3, Quellenangabe – Seite „Data Sources“ gibt es nicht, BPM/Tonart in Tags,
   Kontingent) → **#382**, gemeinsam mit der MixID-Anfrage (#218).
 - **Genre-Korrektur, Radio-Überwachung** → weiter Idee **#259** (neue Endpunkte dort vermerkt).
-- Nicht relevant für TagStudio: Bulk Lookup im Dashboard, MCP-Server, Royalty-Seiten.
-- Neu laut Terms §11: Daten nach einer Takedown-/Korrektur-Meldung innert 7 Tagen löschen – betrifft TagStudio nur über
+- Nicht relevant für TagStudioSX: Bulk Lookup im Dashboard, MCP-Server, Royalty-Seiten.
+- Neu laut Terms §11: Daten nach einer Takedown-/Korrektur-Meldung innert 7 Tagen löschen – betrifft TagStudioSX nur über
   den Zwischenspeicher (höchstens 30 Tage, „Zwischenspeicher leeren“ vorhanden).
 
 ## 6d. Eigene Felder `TXXX:SONOVAULT_*` (#383, Entscheid User 27.10.2026, 08:41)
@@ -184,7 +184,7 @@ Entscheide User (19:59): bezahlten Tarif nehmen (#381, #259 umsetzen), Radio-Üb
 Release nachschlagen als Tagger-Aktion (#380). Feldnamen und Parameter aus der öffentlichen Doku (28.10.2026).
 
 - **#383 eigene Felder:** `own_fields()` im Plugin (nur §7-Werte + Abrufdatum als Stempel), Herkunft „SonoVault“ als
-  eingebaute Quelle in `origins.py` (`TXXX:SONOVAULT*`, statt „TagStudio · Plugin“ über `plugin.json › fields`).
+  eingebaute Quelle in `origins.py` (`TXXX:SONOVAULT*`, statt „TagStudioSX · Plugin“ über `plugin.json › fields`).
   Option „own“ in Online-Metadaten (2.3, allgemein für Quellen mit `own_fields`), Release nachschlagen und Audio
   erkennen; Standard aus.
 - **#380 Release nachschlagen:** `/v1/releases/search` (title, artist, limit) → bester Treffer (Titel, Künstler) →
@@ -208,20 +208,20 @@ Release nachschlagen als Tagger-Aktion (#380). Feldnamen und Parameter aus der �
   dieselbe Erkennung wie „Audio erkennen“ (`POST /v1/tracks/identify`, 10 Kredite + 1 je MB, 429 nie wiederholt).
   Zurück gehen nur Künstler, Titel, Sicherheit, ID.
 - `identify_clip_info(ctx)`: Kosten je Länge, Kontingent, `retain_days` = `None` mit bezahltem Tarif (§7 „Retained
-  Data“), sonst 30 (Free: nur Zwischenspeicher). TagStudio entfernt Online-Treffer im Free-Tarif nach 30 Tagen.
+  Data“), sonst 30 (Free: nur Zwischenspeicher). TagStudioSX entfernt Online-Treffer im Free-Tarif nach 30 Tagen.
 - Terms §4/§25: keine eigene oder geteilte Musikdatenbank aus diesen Treffern; Hinweis in der Oberfläche, Tracklisten
   mit SonoVault-Treffern nicht zu veröffentlichen. §5 „Inputs“: nur Mixe hochladen, die man hochladen darf.
 
 ## 7. Eigener Katalog statt Dienst (#260, Entscheid User 24.10.2026)
 
-Ein eigener Dienst wie SonoVault wird **nicht** gebaut (alle drei Punkte vom User am 24.10.2026, 11:14 bestätigt). Geplant ist **nur lokale Ausführung**: ein Katalog in TagStudio
+Ein eigener Dienst wie SonoVault wird **nicht** gebaut (alle drei Punkte vom User am 24.10.2026, 11:14 bestätigt). Geplant ist **nur lokale Ausführung**: ein Katalog in TagStudioSX
 (SQLite im Benutzerordner) aus freien Quellen (MusicBrainz-Kerndaten, Discogs-Dumps, Wikidata – CC0) für die eigene
 Bibliothek und gefolgte Labels/Künstler, ergänzt um eigene Analysen (Tonart #245, später #9). Kein Server, keine
 SonoVault-Daten als Grundlage (Terms §4). SonoVault bleibt optionale Zusatzquelle.
 
 
 **Weitere Entscheide (User 24.10.2026, 11:16) – nur Konzept, noch keine Umsetzung:**
-- **Felder:** möglichst alle Felder, die TagStudio heute schon in die Tags schreibt (Titel, Künstler, Album/Release,
+- **Felder:** möglichst alle Felder, die TagStudioSX heute schon in die Tags schreibt (Titel, Künstler, Album/Release,
   Label, Katalognummer, ISRC, Genre/Stil, Datum, Dauer, Plattform-IDs und -Links aus MusicBrainz/Discogs, BPM, Tonart,
   Energie und weitere Analysewerte aus eigener Analyse) – jeweils mit Quelle und Abrufdatum im Katalog.
 - **Aktualisierung:** jederzeit **von Hand** („Katalog aktualisieren“), dazu ein **Zeitplan**, den der Benutzer selbst

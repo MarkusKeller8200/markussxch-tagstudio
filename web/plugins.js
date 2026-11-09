@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Plugins: Verwaltungsseite und Aktionen (z. B. im Tagger).
+/* TagStudioSX – Plugins: Verwaltungsseite und Aktionen (z. B. im Tagger).
    Formulare werden aus den Optionen des Plugins erzeugt – Plugins brauchen kein eigenes JavaScript. */
 "use strict";
 
@@ -147,7 +147,7 @@ function plStoreBox(p) {
   const r = PL.store && PL.store.rows.find((x) => x.id === p.id);
   if (!r) return "";
   if (r.state === "update") return `<div class="pl-box upd"><span><b>Update verfügbar:</b> Version ${esc(r.version)}</span><button class="sm" data-plupd>Aktualisieren</button></div>`;
-  if (r.state === "too_new") return `<div class="pl-box warn">Neuere Version ${esc(r.version)} braucht TagStudio ${esc(r.min_app)} oder neuer.</div>`;
+  if (r.state === "too_new") return `<div class="pl-box warn">Neuere Version ${esc(r.version)} braucht TagStudioSX ${esc(r.min_app)} oder neuer.</div>`;
   return "";
 }
 
@@ -170,7 +170,7 @@ function plStoreRow(r) {
     : r.state === "new" ? `<button class="sm" data-stinst="${esc(r.id)}">Installieren</button>`
     : `<button class="ghost sm" disabled>${r.state === "too_new" ? "Nicht verträglich" : r.state === "own" ? "Eigenes Plugin" : "Aktuell"}</button>`;
   const ver = r.installed && r.state === "update" ? `${esc(r.installed)} → ${esc(r.version)}` : esc(r.version);
-  const note = r.state === "too_new" ? `Braucht TagStudio ${esc(r.min_app)} oder neuer.`
+  const note = r.state === "too_new" ? `Braucht TagStudioSX ${esc(r.min_app)} oder neuer.`
     : r.state === "own" ? "Im Plugin-Ordner liegt ein eigenes Plugin mit gleicher ID – es wird nicht überschrieben."
     : r.requires && PL.frozen ? "Braucht zusätzliche Python-Pakete – in der installierten App nicht nachinstallierbar." : "";
   return `<div class="pl-more-row st-row" data-strow="${esc(r.id)}"><span class="st-btn">${btn}</span><div><b>${esc(r.name)}</b> <span class="muted sm">${ver}</span>
@@ -201,7 +201,7 @@ async function pluginStoreList() {
     html: `<div class="muted sm">Katalog aus Release ${esc(st.release.version)}${st.release.beta ? " (Beta)" : ""} · ${st.rows.length} Plugins · ${n("update")} Update(s) · ${n("new")} neu</div>
       <div class="pl-filter st-filter" role="toolbar" aria-label="Plugins nach Art filtern">${chips()}</div>
       <div class="pl-more st-list">${plStoreListHtml(st.rows, cat)}</div>
-      <div class="hint" style="margin-top:12px">Plugins sind Python-Code. TagStudio lädt sie nur aus den offiziellen Releases und prüft die Prüfsumme. Nachgeladene Plugins liegen im Ordner „Eigene Plugins“ und ersetzen die eingebaute Version; unter „Mehr …“ geht es zurück.</div>`,
+      <div class="hint" style="margin-top:12px">Plugins sind Python-Code. TagStudioSX lädt sie nur aus den offiziellen Releases und prüft die Prüfsumme. Nachgeladene Plugins liegen im Ordner „Eigene Plugins“ und ersetzen die eingebaute Version; unter „Mehr …“ geht es zurück.</div>`,
     buttons: [{ label: "Schliessen", value: null }],
     onMount: (b) => b.addEventListener("click", (e) => {
       const ch = e.target.closest("[data-stcat]");
@@ -329,7 +329,7 @@ async function pluginInstall(pid, variant) {
   else if (res.ok) {
     await info("Installation abgeschlossen", res.state === "ready"
       ? `${p.name} ist jetzt bereit.`
-      : `pip war erfolgreich, das Paket wird aber noch nicht gefunden. Bitte TagStudio neu starten.`);
+      : `pip war erfolgreich, das Paket wird aber noch nicht gefunden. Bitte TagStudioSX neu starten.`);
   } else {
     await info("Installation fehlgeschlagen", `${res.error}\n\n${(res.log || []).slice(-15).join("\n")}${res.logfile ? `\n\nVollständiges Protokoll: ${res.logfile}` : ""}`);
   }

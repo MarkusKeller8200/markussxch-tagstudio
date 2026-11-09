@@ -115,9 +115,9 @@
 "· new:",
 "· neu:"
 ],
-"Herunterladen, TagStudio schliessen und den Installer ausführen – Einstellungen bleiben erhalten.": [
-"Download, close TagStudio and run the installer – settings are kept.",
-"Abelade, TagStudio zuemache und de Installer uusfüere – d Iistellige bliibed erhalte."
+"Herunterladen, TagStudioSX schliessen und den Installer ausführen – Einstellungen bleiben erhalten.": [
+"Download, close TagStudioSX and run the installer – settings are kept.",
+"Abelade, TagStudioSX zuemache und de Installer uusfüere – d Iistellige bliibed erhalte."
 ],
 "Später": [
 "Later",
@@ -139,9 +139,9 @@
 "You have the latest {x} ({x}, {x}).",
 "Du häsch di neuscht {x} ({x}, {x})."
 ],
-"Der Zweig {q} wurde nach {q} verschoben – TagStudio wechselt auf {q} (gleicher Stand).": [
-"The branch {q} was moved to {q} – TagStudio switches to {q} (same state).",
-"De Zwiig {q} isch uf {q} verschobe worde – TagStudio wächslet uf {q} (gliiche Stand)."
+"Der Zweig {q} wurde nach {q} verschoben – TagStudioSX wechselt auf {q} (gleicher Stand).": [
+"The branch {q} was moved to {q} – TagStudioSX switches to {q} (same state).",
+"De Zwiig {q} isch uf {q} verschobe worde – TagStudioSX wächslet uf {q} (gliiche Stand)."
 ],
 "Zweig {q}: {x} Änderung(en)": [
 "Branch {q}: {x} change(s)",
@@ -151,17 +151,17 @@
 "New version available",
 "Neui Version verfüegbar"
 ],
-"Jetzt laden? TagStudio startet danach neu – die gewählten Ordner werden wieder eingelesen.": [
-"Load now? TagStudio then restarts – the chosen folders are loaded again.",
-"Jetzt lade? TagStudio startet nachher neu – di gwäälte Ordner werded wider iiglaase."
+"Jetzt laden? TagStudioSX startet danach neu – die gewählten Ordner werden wieder eingelesen.": [
+"Load now? TagStudioSX then restarts – the chosen folders are loaded again.",
+"Jetzt lade? TagStudioSX startet nachher neu – di gwäälte Ordner werded wider iiglaase."
 ],
 "Laden und neu starten": [
 "Load and restart",
 "Lade und neu starte"
 ],
-"Neue Version geladen – TagStudio startet neu …": [
-"New version loaded – TagStudio is restarting …",
-"Neui Version glaade – TagStudio startet neu …"
+"Neue Version geladen – TagStudioSX startet neu …": [
+"New version loaded – TagStudioSX is restarting …",
+"Neui Version glaade – TagStudioSX startet neu …"
 ],
 "Hintergrund-Aufträge laufen": [
 "Background jobs are running",
@@ -175,9 +175,9 @@
 "{x} and cancel? The queue is offered for resuming at the next start.",
 "{x} und abbräche? D Warteschlange wird bim nöchschte Start zum Wiitermache aabote."
 ],
-"TagStudio wird beendet …": [
-"TagStudio is quitting …",
-"TagStudio wird beändet …"
+"TagStudioSX wird beendet …": [
+"TagStudioSX is quitting …",
+"TagStudioSX wird beändet …"
 ],
 "Einstellungen werden gespeichert (Fenster, Tagger, Player) …": [
 "Saving settings (window, tagger, player) …",
@@ -187,9 +187,9 @@
 "Saved.",
 "Gspicheret."
 ],
-"TagStudio wurde beendet.": [
-"TagStudio has been closed.",
-"TagStudio isch beändet."
+"TagStudioSX wurde beendet.": [
+"TagStudioSX has been closed.",
+"TagStudioSX isch beändet."
 ],
 "Dieses Browserfenster kann geschlossen werden.": [
 "This browser window can be closed.",
@@ -203,17 +203,17 @@
 "Full screen is not possible here.",
 "Vollbild isch da nöd mögli."
 ],
-"TagStudio startet neu …": [
-"TagStudio is restarting …",
-"TagStudio startet neu …"
+"TagStudioSX startet neu …": [
+"TagStudioSX is restarting …",
+"TagStudioSX startet neu …"
 ],
 "Einstellungen werden gespeichert …": [
 "Saving settings …",
 "Iistellige werded gspicheret …"
 ],
-"Bitte TagStudio neu starten.": [
-"Please restart TagStudio.",
-"Bitte TagStudio neu starte."
+"Bitte TagStudioSX neu starten.": [
+"Please restart TagStudioSX.",
+"Bitte TagStudioSX neu starte."
 ],
 "ohne bekannte Herkunft": [
 "without known origin",
@@ -459,9 +459,9 @@
 "(for fields both changed, your change wins)",
 "(bi Fälder, wo beidi gänderet händ, gwinnt dini Änderig)"
 ],
-"Seit TagStudio die Dateien eingelesen hat, hat z. B. Mp3tag, Mixed In Key oder beaTunes diese Felder geändert. Beim Speichern würden diese Änderungen sonst überschrieben.": [
-"Since TagStudio loaded the files, e.g. Mp3tag, Mixed In Key or beaTunes changed these fields. Otherwise saving would overwrite these changes.",
-"Sit TagStudio d Dateie iiglaase hät, hät z. B. Mp3tag, Mixed In Key oder beaTunes die Fälder gänderet. Bim Spichere würded die Änderige susch überschribe."
+"Seit TagStudioSX die Dateien eingelesen hat, hat z. B. Mp3tag, Mixed In Key oder beaTunes diese Felder geändert. Beim Speichern würden diese Änderungen sonst überschrieben.": [
+"Since TagStudioSX loaded the files, e.g. Mp3tag, Mixed In Key or beaTunes changed these fields. Otherwise saving would overwrite these changes.",
+"Sit TagStudioSX d Dateie iiglaase hät, hät z. B. Mp3tag, Mixed In Key oder beaTunes die Fälder gänderet. Bim Spichere würded die Änderige susch überschribe."
 ],
 "Übernehmen und speichern": [
 "Take over and save",

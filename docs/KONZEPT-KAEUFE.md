@@ -53,11 +53,11 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
   `{"files": {id: [Pfade]}, "failed": [Text]}`; optional `ready(ctx)`. `Manager.store_sources()`.
 - **Offizielle Doku (User 25.10.2026):** Käufe = `GET /v4/my/downloads/` (kein `/my/library/`), Filter u. a.
   `purchase_date` (Bereich `JJJJ-MM-TT:`), `received_status`, `isrc`, `catalog_number`; Unterpunkte nur `encode-status`
-  und `facets`. TagStudio holt deshalb nach dem ersten Mal nur Käufe ab dem letzten Kaufdatum minus 3 Tage
+  und `facets`. TagStudioSX holt deshalb nach dem ersten Mal nur Käufe ab dem letzten Kaufdatum minus 3 Tage
   (`store_purchases(ctx, since)`), alle 30 Tage oder mit „Alle neu holen“ die ganze Liste (`stores[…].full_at`).
 - **OpenAPI-Beschreibung gelesen (25.10.2026, 117 Endpunkte, `/v4/swagger-ui/json/`):** Ein Kauf ist
   `TrackDownloadList` mit `purchase_date` (date-time), `order_item_download_id`, `received_status`, `pre_order`,
-  `audio_format`, `release` (nur Name), Titelangaben, **ohne** ISRC, Katalognummer, Label → TagStudio ergänzt sie
+  `audio_format`, `release` (nur Name), Titelangaben, **ohne** ISRC, Katalognummer, Label → TagStudioSX ergänzt sie
   gesammelt über `/v4/catalog/tracks/?id=1,2,…` (je 100). **Kein Download-Endpunkt** in der offiziellen API (weder
   `my` noch `catalog`; `audio-files` ist für Labels). **Entscheid User 25.10.2026 (03:42):** Variante 1 – der
   Download versucht weiter die undokumentierten Wege (#117); findet er keine Adresse, meldet die Seite „Selbst
@@ -95,7 +95,7 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
   damit spätere Käufe sofort und ohne neue Suche markiert sind. Filter „Gekauft“ = Status gekauft oder `purchased`.
 - Der Käufe-Speicher lädt neu, wenn `kaeufe.json` von aussen geändert wurde (Änderungszeit).
 - „Gefolgt“: `follow.bp` merkt, welche Künstler/Labels von Beatport übernommen wurden (Anzeige „BP“); Entfernen in
-  TagStudio ändert bei Beatport nichts (`POST /my/beatport/` und `delete` werden nie benutzt).
+  TagStudioSX ändert bei Beatport nichts (`POST /my/beatport/` und `delete` werden nie benutzt).
 - „Leeren …“ (`discover.clear`) behält gemerkte und gekaufte Einträge. „Ähnliche Künstler“ über Deezer
   (`/artist/{id}/related`), „My Beatport“-Feed über `/my/beatport/tracks/` (Antwort ohne festes Schema: Einträge
   direkt oder in `track`).
@@ -138,7 +138,7 @@ Vorbestellungen werden angezeigt, aber nie heruntergeladen.
 
 ## 3f. Im Browser laden, verlinken, in die Bibliothek (#367, #368, #369, 4.12.0)
 
-- **#367:** „Fehlende herunterladen“ – was der Store nicht liefert, gibt TagStudio per reset-download frei
+- **#367:** „Fehlende herunterladen“ – was der Store nicht liefert, gibt TagStudioSX per reset-download frei
   (`Session._purch_reset_items`, markiert `await_dl`), auch nach abgebrochener Sitzungs-Anmeldung. Fenster
   „Im Browser herunterladen“ (`purWaitDialog`): Anzahl, Speicherort (Ziel des Stores) mit „Kopieren“, „Downloads bei
   Beatport öffnen“.

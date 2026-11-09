@@ -1,7 +1,7 @@
 """Google Drive (#319, Cloud Weg 2): Abgleich über die Drive API v3 (Entscheide C1–C4).
 
 Eigene OAuth-App (Typ „Desktop-App“) in der Google Cloud Console mit Client-ID und Client-Secret (bei Desktop-Apps
-kein echtes Geheimnis, wird trotzdem verschlüsselt gespeichert), Anmeldung mit PKCE, Bereich **drive.file**: TagStudio
+kein echtes Geheimnis, wird trotzdem verschlüsselt gespeichert), Anmeldung mit PKCE, Bereich **drive.file**: TagStudioSX
 sieht nur Dateien und Ordner, die es selbst angelegt hat – nichts anderes in deinem Drive. Drive kennt keine Pfade,
 darum werden Ordner über Name und übergeordneten Ordner gesucht bzw. angelegt. Löschen = in den Papierkorb.
 Nur Standardbibliothek.
@@ -28,7 +28,7 @@ ACTIONS = ck.login_actions(
     "1. Auf console.cloud.google.com ein Projekt anlegen und die „Google Drive API“ aktivieren. 2. OAuth-Zustimmungsbildschirm "
     "einrichten (Typ „Extern“, dich selbst als Testnutzer eintragen), Bereich …/auth/drive.file. 3. Anmeldedaten › "
     "„OAuth-Client-ID erstellen“ › Anwendungstyp „Desktop-App“. 4. Client-ID und Client-Secret hier einfügen – die "
-    "Rückleitung auf http://127.0.0.1 erlaubt Google bei Desktop-Apps ohne Eintrag. TagStudio sieht nur, was es selbst "
+    "Rückleitung auf http://127.0.0.1 erlaubt Google bei Desktop-Apps ohne Eintrag. TagStudioSX sieht nur, was es selbst "
     "in Drive anlegt.",
     [["Google Cloud Console: Anmeldedaten", "https://console.cloud.google.com/apis/credentials"],
      ["Drive API aktivieren", "https://console.cloud.google.com/apis/library/drive.googleapis.com"],

@@ -11,7 +11,7 @@
 
 ## 1. Ausgangslage
 
-TagStudio ist um **ID3 in MP3** gebaut: `id3tags.MP3File`, Feldschlüssel wie `TXXX:ENERGY`, `GEOB:Serato Markers2`,
+TagStudioSX ist um **ID3 in MP3** gebaut: `id3tags.MP3File`, Feldschlüssel wie `TXXX:ENERGY`, `GEOB:Serato Markers2`,
 `APIC`, `POPM`. Tagger, Vergleich, Snapshots, Sicherungen, Listen-Cache, Herkunft (`origins.py`) und alle Plugins
 nutzen diese Schlüssel. WAV-Dateien erscheinen heute nur als Stem-Spuren zum Anhören.
 
@@ -36,9 +36,9 @@ Testdateien aus Rekordbox, Serato, Engine DJ, VirtualDJ, Lexicon und Mp3tag mit 
 
 1. **Eine Schnittstelle für alle Dateien:** lesen, Felder (`items`), Text lesen/setzen, Cover, Bewertung, Audio-Länge,
    speichern, Prüfsumme der Audiodaten. `MP3File` wird eine Umsetzung davon; je Format eine weitere Klasse.
-2. **TagStudio-Feldschlüssel bleiben die gemeinsame Sprache** (ID3-Namen). Je Format eine Übersetzungstabelle:
+2. **TagStudioSX-Feldschlüssel bleiben die gemeinsame Sprache** (ID3-Namen). Je Format eine Übersetzungstabelle:
 
-   | TagStudio | FLAC/OGG (Vorbis) | M4A (MP4) |
+   | TagStudioSX | FLAC/OGG (Vorbis) | M4A (MP4) |
    |---|---|---|
    | `TIT2` Titel | `TITLE` | `©nam` |
    | `TPE1` Künstler | `ARTIST` | `©ART` |

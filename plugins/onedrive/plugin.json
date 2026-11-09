@@ -1,13 +1,13 @@
 {
   "id": "onedrive",
   "name": "OneDrive",
-  "version": "1.3",
+  "version": "1.4",
   "min_app": "4.11.0",
   "category": "cloud",
   "api": 1,
-  "author": "MarKusSXCH TagStudio",
+  "author": "TagStudioSX",
   "fields": [],
-  "description": "Zwei Kontoarten (umschaltbar unter „Kontoart …“): Geschäfts- oder Schulkonto – gleicht Playlists, Export und Programmdaten-Teile über Microsoft Graph mit einem Ordner in OneDrive ab (eigene App in Microsoft Entra, Client-ID). Privates OneDrive – keine App und keine Anmeldung: TagStudio nutzt nur den OneDrive-Ordner auf diesem Rechner für den Spiegel der Bibliothek und die Sicherung der Programmdaten. Einrichten unter Einstellungen › Cloud.",
+  "description": "Zwei Kontoarten (umschaltbar unter „Kontoart …“): Geschäfts- oder Schulkonto – gleicht Playlists, Export und Programmdaten-Teile über Microsoft Graph mit einem Ordner in OneDrive ab (eigene App in Microsoft Entra, Client-ID). Privates OneDrive – keine App und keine Anmeldung: TagStudioSX nutzt nur den OneDrive-Ordner auf diesem Rechner für den Spiegel der Bibliothek und die Sicherung der Programmdaten. Einrichten unter Einstellungen › Cloud.",
   "notes": "Keine Zusatzpakete nötig. Zuerst „Kontoart …“ wählen; bei Geschäftskonten danach unter „Anmelden …“ die Client-ID deiner App eintragen.",
   "service": {
     "name": "Microsoft Graph (OneDrive)",
@@ -17,7 +17,7 @@
     "base": "https://graph.microsoft.com/v1.0",
     "auth": "oauth",
     "auth_note": "Geschäfts-/Schulkonto: eigene App in Microsoft Entra (Client-ID, öffentlicher Client), Endpunkt „organizations“ bzw. Verzeichnis-ID, Anmeldung mit PKCE, Berechtigung Files.ReadWrite (ohne Administrator-Zustimmung, ausser die Organisation sperrt die Benutzer-Zustimmung). Token verschlüsselt. Privates OneDrive: keine Anmeldung (OneDrive-Ordner).",
-    "limits": "Drosselung durch Microsoft (HTTP 429 mit Retry-After) – TagStudio meldet und wiederholt nicht",
+    "limits": "Drosselung durch Microsoft (HTTP 429 mit Retry-After) – TagStudioSX meldet und wiederholt nicht",
     "terms": "https://learn.microsoft.com/legal/microsoft-apis/terms-of-use",
     "endpoints": [
       {

@@ -65,7 +65,7 @@ def make_track(path_mp3, seconds=90, sr=44100):
     import imageio_ffmpeg
     ff = imageio_ffmpeg.get_ffmpeg_exe()
     subprocess.run([ff, "-y", "-loglevel", "error", "-i", wav, "-b:a", "192k", "-id3v2_version", "3",
-                    "-metadata", "title=Stems Testtitel", "-metadata", "artist=TagStudio CI", path_mp3], check=True)
+                    "-metadata", "title=Stems Testtitel", "-metadata", "artist=TagStudioSX CI", path_mp3], check=True)
     os.remove(wav)
 
 

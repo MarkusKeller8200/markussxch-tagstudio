@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Smartlists (#272): Playlists, die sich über Regeln auf Tag-Feldern selbst füllen.
+"""TagStudioSX – Smartlists (#272): Playlists, die sich über Regeln auf Tag-Feldern selbst füllen.
 
 Eine Smartlist ist eine Playlist mit ``kind = "smart"`` und dem Feld ``rules``:
 

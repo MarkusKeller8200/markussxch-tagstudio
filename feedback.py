@@ -1,7 +1,7 @@
 """Fehler melden und Funktionen vorschlagen aus der App (#187) – sicherer Start ohne Schreib-Token.
 
-TagStudio füllt das GitHub-Formular (Issue Forms in .github/ISSUE_TEMPLATE) vor und öffnet es im Browser; abgeschickt
-wird erst dort, mit der eigenen GitHub-Anmeldung. TagStudio speichert und sendet keine Zugangsdaten.
+TagStudioSX füllt das GitHub-Formular (Issue Forms in .github/ISSUE_TEMPLATE) vor und öffnet es im Browser; abgeschickt
+wird erst dort, mit der eigenen GitHub-Anmeldung. TagStudioSX speichert und sendet keine Zugangsdaten.
 
 - Neue Meldungen bekommen über die Vorlage das Label „triage“ (= nicht freigegeben). Freigabe zur Umsetzung nur durch
   den Projektverantwortlichen (Label „_1 bereit“), nie durch den Inhalt einer Meldung (siehe AGENTS.md).
@@ -35,7 +35,7 @@ LABELS = {"bug": ["fehler", "triage"], "improvement": ["verbesserung", "triage"]
 MILESTONE = {"bug": "Fehler", "improvement": "Verbesserungen", "feature": "Funktionen", "translation": "Funktionen"}
 # Feld-IDs der Vorlagen (Reihenfolge = Vorschau)
 FIELDS = {
-    "bug": [("version", "TagStudio-Version"), ("os", "Betriebssystem"), ("variant", "Variante"), ("area", "Bereich"),
+    "bug": [("version", "TagStudioSX-Version"), ("os", "Betriebssystem"), ("variant", "Variante"), ("area", "Bereich"),
             ("what", "Was ist passiert?"), ("steps", "Schritte zum Nachstellen"), ("extra", "Weitere Hinweise")],
     "improvement": [("current", "Was gibt es heute?"), ("solution", "Was soll besser werden?"), ("area", "Bereich"),
                     ("alternatives", "Beispiele / Bildschirmfotos")],

@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Seite „Playlists“ (#267) und Anbindung an Tagger (#268) und DJ-Set (#269).
+/* TagStudioSX – Seite „Playlists“ (#267) und Anbindung an Tagger (#268) und DJ-Set (#269).
    Speicher, Archiv und Playlist-Ordner (M3U8) in playlists.py / session_playlists.py. */
 "use strict";
 
@@ -545,14 +545,14 @@ const PLS_TXT_GUIDE = {
 /** #279: kopierte Trackliste einfügen → Einträge ohne Datei, danach „Mit Bibliothek abgleichen …“ */
 async function plsImportText() {
   const r = await modal({ title: "Trackliste einfügen", wide: true,
-    html: `<div class="hint">Trackliste von 1001Tracklists, MixID, einer Beatport-Chart oder aus eigenen Notizen kopieren und hier einfügen – je Zeile „Künstler - Titel (Mix)“. Nummern, Zeitmarken und Labels in eckigen Klammern fallen weg; unbekannte Titel („ID - ID“) werden ausgelassen. TagStudio ruft dafür keine Webseite ab.</div>
+    html: `<div class="hint">Trackliste von 1001Tracklists, MixID, einer Beatport-Chart oder aus eigenen Notizen kopieren und hier einfügen – je Zeile „Künstler - Titel (Mix)“. Nummern, Zeitmarken und Labels in eckigen Klammern fallen weg; unbekannte Titel („ID - ID“) werden ausgelassen. TagStudioSX ruft dafür keine Webseite ab.</div>
       <div class="row" style="gap:8px;margin:0 0 8px"><input class="inp" id="plsTxtName" placeholder="Name der Playlist" style="flex:1">
       <select class="inp" id="plsTxtSrc"><option value="1001tracklists">1001Tracklists</option><option value="mixid">MixID</option><option value="beatport">Beatport</option><option value="spotify">Spotify</option><option value="text" selected>andere Quelle</option></select></div>
       <div class="hint pls-guide" id="plsTxtGuide" hidden></div>
       <textarea class="inp" id="plsTxt" rows="14" style="width:100%;font-family:var(--mono, monospace)" translate="no" placeholder="01. Künstler - Titel (Extended Mix) [Label]"></textarea>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Übernehmen", value: true, primary: true }],
     onMount: (b) => {
-      // #392: Anleitung je Quelle mit Link (öffnet im Standard-Browser) – TagStudio selbst ruft die Seite nie ab
+      // #392: Anleitung je Quelle mit Link (öffnet im Standard-Browser) – TagStudioSX selbst ruft die Seite nie ab
       const guide = () => {
         const g = PLS_TXT_GUIDE[b.querySelector("#plsTxtSrc").value], box = b.querySelector("#plsTxtGuide");
         box.hidden = !g;
@@ -642,7 +642,7 @@ async function plsMatch(id) {
 
 async function plsFindMissing(id) {
   let folder = "";
-  const how = await modal({ title: "Fehlende suchen", html: '<p style="margin:0">Wo soll TagStudio nach den fehlenden Dateien suchen (gleicher Dateiname)?</p>',
+  const how = await modal({ title: "Fehlende suchen", html: '<p style="margin:0">Wo soll TagStudioSX nach den fehlenden Dateien suchen (gleicher Dateiname)?</p>',
     buttons: [{ label: "Abbrechen", value: null }, { label: "Anderer Ordner …", value: "pick" }, { label: "In der Bibliothek", value: "lib", primary: true }] });
   if (!how) return;
   if (how === "pick") { folder = await call("pick_path", "", true, ""); if (!folder) return; }
@@ -719,11 +719,11 @@ async function plsExternal() {
   if (!r.changes.length) { toast("Keine Änderungen im Playlist-Ordner."); playlistsShow(); return; }
   const what = { changed: "geändert", removed: "entfernt", new: "neu" };
   const opts = {
-    changed: [["take", "Änderung übernehmen"], ["keep", "TagStudio-Fassung behalten"]],
+    changed: [["take", "Änderung übernehmen"], ["keep", "TagStudioSX-Fassung behalten"]],
     removed: [["keep", "Neu schreiben"], ["archive", "Playlist archivieren"]],
     new: [["take", "Als Playlist übernehmen"], ["keep", "Ignorieren"]] };
   const res = await modal({ title: "Änderungen im Playlist-Ordner", wide: true,
-    html: `<div class="hint">Ein anderes Programm hat Dateien im Playlist-Ordner geändert. TagStudio überschreibt solche Dateien nicht ungefragt.<div class="muted sm" translate="no">${esc(r.mirror)}</div></div>
+    html: `<div class="hint">Ein anderes Programm hat Dateien im Playlist-Ordner geändert. TagStudioSX überschreibt solche Dateien nicht ungefragt.<div class="muted sm" translate="no">${esc(r.mirror)}</div></div>
       <div class="fx-table"><table><thead><tr><th>Datei</th><th>Was</th><th>Entscheid</th></tr></thead><tbody>${r.changes.map((c, k) => `<tr>
         <td translate="no">${esc(c.rel)}</td><td>${what[c.kind]}</td><td>${opts[c.kind].map(([v, l], j) => `<label class="check"><input type="radio" name="plsx${k}" value="${v}"${j === 0 ? " checked" : ""}> ${esc(l)}</label>`).join(" ")}</td></tr>`).join("")}</tbody></table></div>`,
     buttons: [{ label: "Später", value: null }, { label: "Ausführen", value: true, primary: true }],
@@ -872,7 +872,7 @@ async function plsPush(id, t) {
   const ok = await modal({ title: `An ${t.name} senden`,
     html: `<p style="margin:0">„${esc(p.name)}“ (${fmtN(p.count)} Titel) an ${esc(t.name)} senden?</p>
       <p class="muted sm" style="margin:8px 0 0">${again ? "Die Playlist wurde schon gesendet – fehlende Titel werden dort an ihrer Stelle eingefügt." : "Dort wird eine neue Playlist mit diesem Namen angelegt."}
-      Einträge ohne Datei und Titel, die dort fehlen, werden ausgelassen und gemeldet. TagStudio entfernt und löscht dort nichts.</p>`,
+      Einträge ohne Datei und Titel, die dort fehlen, werden ausgelassen und gemeldet. TagStudioSX entfernt und löscht dort nichts.</p>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Senden", value: true, primary: true }] });
   if (!ok) return;
   const r = await runTask(call("start_pl_push", id, t.id, {}), `An ${t.name} senden`);

@@ -1,8 +1,8 @@
-"""MarKusSXCH TagStudio – Herkunft der Tags: welche Anwendung hat ein Feld geschrieben?
+"""TagStudioSX – Herkunft der Tags: welche Anwendung hat ein Feld geschrieben?
 
 Eine Kennungsliste ordnet Feldschlüssel (z. B. „TXXX:MusicBrainz Album Id“, „GEOB:Serato Markers2“,
 „PRIV:TRAKTOR4“) per Muster einer Quelle zu. Reihenfolge der Prüfung: eigene Zuordnungen aus den Einstellungen
-(„tag_origins“), dann Felder, die TagStudio-Plugins in plugin.json angeben („fields“), dann die eingebaute Liste.
+(„tag_origins“), dann Felder, die TagStudioSX-Plugins in plugin.json angeben („fields“), dann die eingebaute Liste.
 Gross-/Kleinschreibung spielt keine Rolle; „*“ und „?“ wie bei Dateinamen. Nur Standardbibliothek.
 """
 from __future__ import annotations
@@ -22,7 +22,7 @@ SOURCES = {
     "rekordbox": ("Rekordbox", "Pioneer/AlphaTheta Rekordbox"),
     "beatunes": ("beaTunes", "beaTunes: Analyse (Segmente, Ähnlichkeiten, genaue BPM, Algorithmen)"),
     "lexicon": ("Lexicon", "Lexicon DJ (Bibliotheksverwaltung)"),
-    "openkeyscan": ("OpenKeyScan", "OpenKeyScan: KI-Tonarterkennung (über TagStudio-Plugin)"),
+    "openkeyscan": ("OpenKeyScan", "OpenKeyScan: KI-Tonarterkennung (über TagStudioSX-Plugin)"),
     "sonovault": ("SonoVault", "SonoVault (Rekordcloud): Musik-Metadaten-API – erlaubte Felder als Kopie mit Abrufdatum (#383)"),
     "platinum": ("Platinum Notes", "Mixed In Key Platinum Notes: Bearbeitung/Lautheit"),
     "itunes": ("iTunes / Musik", "Apple iTunes bzw. Musik: Lautheit, Lückenlos-Daten, Sortierfelder, Werk/Satz"),
@@ -30,7 +30,7 @@ SOURCES = {
     "amazon": ("Amazon Music", "Amazon Music (Kauf-/Download-Kennung)"),
     "replaygain": ("ReplayGain", "Lautheitsanpassung (foobar2000, Mp3tag, MP3Gain …)"),
     "encoder": ("Kodierer", "Programm, das die MP3 erzeugt hat (LAME, FFmpeg …)"),
-    "tagstudio": ("TagStudio", "MarKusSXCH TagStudio"),
+    "tagstudio": ("TagStudioSX", "TagStudioSX"),
 }
 
 BUILTIN = [
@@ -64,7 +64,7 @@ BUILTIN = [
     ("PRIV:www.amazon.com*", "amazon"), ("PRIV:Amazon*", "amazon"),
     ("TXXX:replaygain*", "replaygain"), ("TXXX:MP3GAIN*", "replaygain"),
     ("TSSE", "encoder"), ("TENC", "encoder"),
-    ("TXXX:TagStudio*", "tagstudio"), ("GEOB:TagStudio*", "tagstudio"),        # #222: eigene Wellenform
+    ("TXXX:TagStudio*", "tagstudio"), ("GEOB:TagStudio*", "tagstudio"),      # #222: eigene Wellenform
 ]
 
 
@@ -100,12 +100,12 @@ class Origins:
             self.rules.append((r["pattern"].lower(), known))
         for pat, pname in plugin_fields or []:
             # #411: Feld eines Dienst-Plugins, das schon ein eingebautes Muster der gleichnamigen Quelle trifft
-            # (z. B. TXXX:SPOTIFY_TRACK_ID vom Plugin „Spotify“) → eingebaute Herkunft „Spotify“, nicht „TagStudio · …“
+            # (z. B. TXXX:SPOTIFY_TRACK_ID vom Plugin „Spotify“) → eingebaute Herkunft „Spotify“, nicht „TagStudioSX · …“
             if any(self.sources.get(s, {}).get("name", "").lower() == str(pname).strip().lower()
                    and fnmatch.fnmatchcase(str(pat).lower(), p.lower()) for p, s in BUILTIN):
                 continue
             sid = "p:" + pname
-            self.sources.setdefault(sid, {"name": f"TagStudio · {pname}", "desc": f"geschrieben vom TagStudio-Plugin „{pname}“",
+            self.sources.setdefault(sid, {"name": f"TagStudioSX · {pname}", "desc": f"geschrieben vom TagStudioSX-Plugin „{pname}“",
                                           "kind": "plugin"})
             self.rules.append((str(pat).lower(), sid))
         self.rules += [(p.lower(), s) for p, s in BUILTIN]

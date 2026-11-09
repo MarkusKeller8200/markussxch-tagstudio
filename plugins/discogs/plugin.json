@@ -1,11 +1,11 @@
 {
   "id": "discogs",
   "name": "Discogs",
-  "version": "1.1", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
+  "version": "1.2", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
   "min_app": "4.8.0",
   "category": "online",
   "api": 1,
-  "author": "MarKusSXCH TagStudio",
+  "author": "TagStudioSX",
   "description": "Discogs-Datenbank mit eigenem, kostenlosem Token: Veröffentlichung mit Label, Katalognummer, Stil, Datum, Trackliste und Cover. Anleitung unter „Schlüssel …“. Wird von „Online-Metadaten“ genutzt.",
   "notes": "Keine Zusatzpakete nötig.",
   "fields": [

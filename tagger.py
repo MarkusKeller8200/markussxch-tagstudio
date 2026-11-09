@@ -392,7 +392,7 @@ def _col(n: int) -> str:
     return s
 
 
-def write_xlsx(path, head, rows, sheet="TagStudio"):
+def write_xlsx(path, head, rows, sheet="TagStudioSX"):
     """Minimales Excel-Dokument (ohne Zusatzpakete): eine Tabelle, fette Kopfzeile, Filter, fixierte Kopfzeile."""
     import zipfile
 

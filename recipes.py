@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Tag-Rezepte (#111): wiederverwendbare Aktionslisten wie in Mp3tag.
+"""TagStudioSX – Tag-Rezepte (#111): wiederverwendbare Aktionslisten wie in Mp3tag.
 
 Ein Rezept ist {"id", "name", "actions": [...]}. Aktionen (alle mit Vorschau, angewendet mit Rückgängig):
   replace      {"find", "repl", "fields": "all"|[Schlüssel/Muster], "case": bool, "regex": bool, "word": bool}

@@ -146,7 +146,7 @@ def to_cue(res, dest="") -> str:
     mix = res.get("mix") or ""
     same = dest and os.path.normcase(os.path.dirname(os.path.abspath(dest))) == os.path.normcase(os.path.dirname(os.path.abspath(mix)))
     ftype = "WAVE" if os.path.splitext(mix)[1].lower() in (".wav", ".aif", ".aiff", ".flac") else "MP3"
-    L = ["REM COMMENT " + _cue_str("TagStudio – Mix analysieren"), "TITLE " + _cue_str(res.get("name") or ""),
+    L = ["REM COMMENT " + _cue_str("TagStudioSX – Mix analysieren"), "TITLE " + _cue_str(res.get("name") or ""),
          f"FILE {_cue_str(os.path.basename(mix) if same or not dest else mix)} {ftype}"]
     k = 0
     for e in with_gaps(res):

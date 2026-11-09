@@ -1,4 +1,4 @@
-"""Baut die eigenständige App mit PyInstaller (Windows: Ordner mit TagStudio.exe, macOS: TagStudio.app).
+"""Baut die eigenständige App mit PyInstaller (Windows: Ordner mit TagStudioSX.exe, macOS: TagStudioSX.app).
 
     python -m pip install pyinstaller pywebview pillow uv
     python packaging/build.py
@@ -17,8 +17,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PKG = os.path.join(ROOT, "packaging")
 DIST = os.path.join(ROOT, "dist")
 BUILD = os.path.join(ROOT, "build")
-NAME = "TagStudio"
-APP_TITLE = "MarKusSXCH TagStudio"
+NAME = "TagStudioSX"
+APP_TITLE = "TagStudioSX"
 BUNDLE_ID = "ch.markussxch.tagstudio"
 
 # Module, die nur von Plugins (zur Laufzeit geladene .py-Dateien) gebraucht werden – PyInstaller sieht sie sonst nicht

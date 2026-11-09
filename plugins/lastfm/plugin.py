@@ -15,7 +15,7 @@ ACTIONS = [
      "options": [
          {"type": "info", "title": "Last.fm",
           "label": "Kostenlos mit Last.fm-Konto. 1. Anmelden. 2. „API-Konto erstellen“ öffnen. 3. Kontakt-E-Mail, "
-                   "Anwendungsname (z. B. TagStudio) und kurze Beschreibung eintragen, Callback-URL und Homepage leer "
+                   "Anwendungsname (z. B. TagStudioSX) und kurze Beschreibung eintragen, Callback-URL und Homepage leer "
                    "lassen, absenden. 4. Den „API key“ kopieren (nicht das „Shared secret“) und unten einfügen.",
           "links": [["Last.fm: API-Konto erstellen", "https://www.last.fm/api/account/create"],
                     ["Meine API-Konten", "https://www.last.fm/api/accounts"]]},

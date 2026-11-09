@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Download-Statistik der Installationsdateien (#370).
+"""TagStudioSX – Download-Statistik der Installationsdateien (#370).
 
 GitHub zählt je Release-Datei nur die Gesamtzahl der Downloads (``download_count``), ohne Verlauf. Darum:
 
@@ -6,13 +6,13 @@ GitHub zählt je Release-Datei nur die Gesamtzahl der Downloads (``download_coun
   Windows-Setup, macOS-DMG, Plugin-ZIPs.
 * Der Workflow „Download-Statistik“ ruft ``python downloadstats.py --update <Datei>`` täglich auf und speichert die
   Zählerstände je Tag im Zweig ``stats`` (``docs/download-stats.json``) – daraus berechnet ``history()`` die neuen
-  Downloads je Tag. TagStudio liest die Datei über ``STATS_URL`` (fehlt sie, gibt es nur die Gesamtsummen).
+  Downloads je Tag. TagStudioSX liest die Datei über ``STATS_URL`` (fehlt sie, gibt es nur die Gesamtsummen).
 
 Datei: {"format": 1, "days": {"2026-10-26": {"v4.12.0": [win, mac, plugins], …}, …}}
 
 #371: Daneben ``summary.json`` (je Version) und ``badge.json`` (shields.io-Endpunkt) für die Statistik-Seite und das
 Abzeichen. #372: ``download_block``/``apply_block`` setzen oben in die Versionshinweise einen Kasten mit direkten
-Download-Links (``--release-notes``); ``strip_block`` entfernt ihn wieder (Anzeige in TagStudio).
+Download-Links (``--release-notes``); ``strip_block`` entfernt ihn wieder (Anzeige in TagStudioSX).
 """
 from __future__ import annotations
 
@@ -184,7 +184,7 @@ def download_block(rel: dict) -> str:
                       f"der Wert muss mit der SHA-256 oben übereinstimmen{allf}."]
     plug = [a for a in rel["assets"] if a["kind"] == "plugin" and a.get("url")]
     if plug:
-        lines += ["", f"<details><summary>Plugins ({len(plug)}) – TagStudio bietet sie unter „Plugins“ selbst an, "
+        lines += ["", f"<details><summary>Plugins ({len(plug)}) – TagStudioSX bietet sie unter „Plugins“ selbst an, "
                       "einzeln laden nur bei Bedarf</summary>", ""]
         lines += [f"- [{a['name']}]({a['url']})" for a in sorted(plug, key=lambda a: a["name"])]
         lines += ["", "</details>"]

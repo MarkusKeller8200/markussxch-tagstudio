@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Tonart-Erkennung mit OpenKeyScan (#217, #244, #245): gemeinsamer Teil beider Plugins.
+"""TagStudioSX – Tonart-Erkennung mit OpenKeyScan (#217, #244, #245): gemeinsamer Teil beider Plugins.
 
 Beide Wege liefern dasselbe Ergebnis – einen Camelot-Code je Datei:
   • Plugin „keyscan“ (#245): eigene Analyse in einer eigenen Python-Umgebung (MIT-Engine von Rekordcloud)

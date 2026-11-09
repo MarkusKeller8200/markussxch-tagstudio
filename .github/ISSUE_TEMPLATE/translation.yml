@@ -8,7 +8,7 @@ body:
       value: |
         **Ablauf:** Neue Meldungen erhalten das Label `triage` und werden vom Projektverantwortlichen geprüft. Erst nach
         der Prüfung kommen die Texte in die mitgelieferten Übersetzungen (`web/i18n/*.json`).
-        Am einfachsten aus TagStudio: Einstellungen › Darstellung › Sprache → eigene Texte bearbeiten, dann
+        Am einfachsten aus TagStudioSX: Einstellungen › Darstellung › Sprache → eigene Texte bearbeiten, dann
         Hilfe › Melden › „Übersetzung einreichen“ – die geänderten Texte werden dann automatisch eingefüllt.
   - type: dropdown
     id: language

@@ -1,6 +1,6 @@
 """SonoVault (#253–#255, 4.11.0): Musik-Metadaten-API von Rekordcloud mit eigenem Schlüssel.
 
-Entscheide des Users (docs/KONZEPT-SONOVAULT.md Abschnitt 6): Free-Tarif – TagStudio zählt die Anfragen je Monat,
+Entscheide des Users (docs/KONZEPT-SONOVAULT.md Abschnitt 6): Free-Tarif – TagStudioSX zählt die Anfragen je Monat,
 zeigt den Rest und warnt vor dem Überschreiten (SV1); Plattform-IDs nur anzeigen (SV3); Vorrang in „Online-Metadaten“
 nach MusicBrainz, vor Deezer und iTunes (SV4).
 
@@ -1036,7 +1036,7 @@ def actions(ctx):
                         "(Massen-Schreiben erlauben die Nutzungsbedingungen nicht). 1 Kredit je Titel; Titel im "
                         "Zwischenspeicher (30 Tage) kosten nichts.",
          "options": [
-             {"type": "info", "label": f"Kontingent: {quota_text(ctx)}. Reicht es nicht, gleicht TagStudio nur so viele "
+             {"type": "info", "label": f"Kontingent: {quota_text(ctx)}. Reicht es nicht, gleicht TagStudioSX nur so viele "
                                       "Titel ab, wie übrig sind – den Rest im nächsten Monat erneut starten (bereits "
                                       "abgeglichene kosten dann nichts)."},
              {"key": "max", "type": "text", "label": "Höchstens so viele Kredite verwenden", "default": str(min(rest, 500))},

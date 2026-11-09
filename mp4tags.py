@@ -25,14 +25,14 @@ EXTS = (".m4a", ".mp4", ".m4b")
 CONTAINERS = {b"moov", b"trak", b"mdia", b"minf", b"stbl", b"udta", b"edts", b"dinf"}
 ITUNES = "com.apple.iTunes"
 
-# TagStudio-Schlüssel → festes Atom (Text, UTF-8)
+# TagStudioSX-Schlüssel → festes Atom (Text, UTF-8)
 MP4_TEXT = {
     "TIT2": b"\xa9nam", "TPE1": b"\xa9ART", "TALB": b"\xa9alb", "TPE2": b"aART", "TCOM": b"\xa9wrt",
     "TCON": b"\xa9gen", "TDRC": b"\xa9day", "TCOP": b"cprt", "COMM:": b"\xa9cmt", "USLT:": b"\xa9lyr",
     "TIT1": b"\xa9wrk", "GRP1": b"\xa9grp", "TENC": b"\xa9enc", "TSSE": b"\xa9too", "TSOT": b"sonm",
     "TSOP": b"soar", "TSOA": b"soal", "TSO2": b"soaa", "TSOC": b"soco", "MVNM": b"\xa9mvn",
 }
-# TagStudio-Schlüssel → freies Feld ----:com.apple.iTunes:NAME
+# TagStudioSX-Schlüssel → freies Feld ----:com.apple.iTunes:NAME
 MP4_FREE = {"TEXT": "LYRICIST", "TPE3": "CONDUCTOR", "TPE4": "REMIXER", "TDOR": "ORIGINALDATE",
             "TDRL": "RELEASEDATE", "TSST": "DISCSUBTITLE", "TKEY": "initialkey", "TSRC": "ISRC", "TPUB": "LABEL",
             "TIT3": "SUBTITLE", "TMOO": "MOOD", "TMED": "MEDIA", "TLAN": "LANGUAGE"}

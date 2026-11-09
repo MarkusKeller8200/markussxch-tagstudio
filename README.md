@@ -2,11 +2,17 @@
   <img src="web/icon.png" width="96" height="96" alt="">
 </p>
 
-<h1 align="center">MarKusSXCH TagStudio</h1>
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/tagstudiosx-wordmark-dark.svg">
+    <img src="docs/brand/tagstudiosx-wordmark-light.svg" width="320" alt="TagStudioSX">
+  </picture>
+</h1>
 
 <p align="center">
-  <b>Der Werkzeugkasten für die MP3-Bibliothek von DJs</b><br>
-  Entdecken, einkaufen, taggen, vergleichen und Sets planen – für Windows und macOS.
+  <b>Music Management & DJ Library</b> – der Werkzeugkasten für die MP3-Bibliothek von DJs<br>
+  Entdecken, einkaufen, taggen, vergleichen und Sets planen – für Windows und macOS.<br>
+  <sub>Developed by <a href="https://markussx.ch/tagstudio"><b>MarKusSXCH</b></a> · bis Version 4.16 „MarKusSXCH TagStudio“</sub>
 </p>
 
 <p align="center">
@@ -17,8 +23,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest"><img alt="Download für Windows" src="https://img.shields.io/badge/Download-Windows-1D76DB?style=for-the-badge&logo=windows11&logoColor=white"></a>
-  <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest"><img alt="Download für macOS" src="https://img.shields.io/badge/Download-macOS%20(Apple--Chip)-1D76DB?style=for-the-badge&logo=apple&logoColor=white"></a>
+  <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest"><img alt="Download für Windows" src="https://img.shields.io/badge/Download-Windows-007EBB?style=for-the-badge&logo=windows11&logoColor=white"></a>
+  <a href="https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest"><img alt="Download für macOS" src="https://img.shields.io/badge/Download-macOS%20(Apple--Chip)-007EBB?style=for-the-badge&logo=apple&logoColor=white"></a>
   <a href="docs/HANDBUCH.md"><img alt="Handbuch" src="https://img.shields.io/badge/Handbuch-lesen-6E7781?style=for-the-badge&logo=readthedocs&logoColor=white"></a>
   <a href="https://youtu.be/f7voXQsTzFE"><img alt="Trailer ansehen" src="https://img.shields.io/badge/Trailer-ansehen-CC0000?style=for-the-badge&logo=youtube&logoColor=white"></a>
 </p>
@@ -43,7 +49,7 @@
   <sub>▶ Trailer auf YouTube ansehen (rund 75 Sekunden)</sub>
 </p>
 
-## Was TagStudio kann
+## Was TagStudioSX kann
 
 Vom Fund bis ins DJ-Set: **Entdecken → Ideen → Warenkorb → Einkäufe → Vorbereiten → Taggen → DJ-Set → Mixe.**
 
@@ -98,9 +104,9 @@ Alle Änderungen: [CHANGELOG](CHANGELOG.md).
 [Neueste Version](https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/latest) ganz oben im Kasten
 „Download“ die Datei für dein System laden.
 
-- **Windows:** `TagStudio-<Version>-Windows-Setup.exe` ausführen – ohne Administratorrechte. Der Installer ist nicht
+- **Windows:** `TagStudioSX-<Version>-Windows-Setup.exe` ausführen – ohne Administratorrechte. Der Installer ist nicht
   signiert: bei „Der Computer wurde durch Windows geschützt“ **Weitere Informationen → Trotzdem ausführen**.
-- **macOS (Apple-Chip):** `TagStudio-<Version>-macOS-Apple-Chip.dmg` öffnen, **TagStudio** auf **Programme** ziehen –
+- **macOS (Apple-Chip):** `TagStudioSX-<Version>-macOS-Apple-Chip.dmg` öffnen, **TagStudioSX** auf **Programme** ziehen –
   signiert und von Apple beglaubigt (ab 4.13.0).
 
 **Aus dem Quellcode:** Python 3.12 oder neuer, dann
@@ -112,7 +118,7 @@ Alle Änderungen: [CHANGELOG](CHANGELOG.md).
 ## Mitmachen und Kontakt
 
 - **Fehler melden, Ideen vorschlagen:** [Issues](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues) –
-  oder direkt in TagStudio über „Melden …“.
+  oder direkt in TagStudioSX über „Melden …“.
 - **Mitmachen:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Verhaltenskodex:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- **Sicherheit:** [SECURITY.md](SECURITY.md) · **Fremdkomponenten:** in TagStudio unter Hilfe › Lizenzen
+- **Sicherheit:** [SECURITY.md](SECURITY.md) · **Fremdkomponenten:** in TagStudioSX unter Hilfe › Lizenzen
 - **Lizenz:** [GNU GPL v3](LICENSE) – frei nutzbar, Änderungen bleiben offen.

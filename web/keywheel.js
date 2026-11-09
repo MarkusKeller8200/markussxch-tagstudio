@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Camelot-Rad für die Tonart (Tagger).
+/* TagStudioSX – Camelot-Rad für die Tonart (Tagger).
    Aussen Dur (B), innen Moll (A). Klick setzt die Tonart der markierten Dateien; passende Tonarten
    (±1 und Paralleltonart) werden hervorgehoben. Nutzt Funktionen aus app.js / tagger.js. */
 "use strict";

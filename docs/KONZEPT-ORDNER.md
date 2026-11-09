@@ -11,7 +11,7 @@ leer bzw. `@inbox`/`@work`/`@library` = Verweis auf die Rolle (`_prep_resolve`).
 speichern `"cloud": {"provider", "rel"}`, der Basisordner `base_cloud`; Einstellung `cloud_load_online`. **Ordner ändern (#313)** –
 `foldermove.py` (`plan`, `run`, `rebase`, `remove_empty`, `journal`), `Session.folders_change_preview`/
 `start_folders_change`/`_folders_relink`. Umsetzungsdetails: Der Snapshot-Speicher zieht nur in einen leeren Ordner um;
-bei einem Abbruch bleibt die Einstellung unverändert (verschobene Dateien liegen vollständig am Ziel); TagStudio meldet
+bei einem Abbruch bleibt die Einstellung unverändert (verschobene Dateien liegen vollständig am Ziel); TagStudioSX meldet
 Verschiebungen **nicht** an Plugins (`files_moved`) – Lexicon & Co. werden nie automatisch umgestellt. Ergänzt
 [KONZEPT-SPEICHER.md](KONZEPT-SPEICHER.md) (Programmdaten bleiben dort beschrieben) und ersetzt dessen Abschnitte 4/5,
 sobald umgesetzt.
@@ -56,7 +56,7 @@ Programmdaten `~\TagStudio` (siehe KONZEPT-SPEICHER).
 Mehrere Eingänge sind **Unterordner je Quelle** unter Eingang und Downloads – keine eigenen Rollen:
 
 - Wird ein Store-/Quellen-Plugin **eingeschaltet** (Beatport, später Bandcamp, Traxsource, Beatsource, Qobuz …),
-  legt TagStudio die Unterordner `90_Download\<Quelle>` und `00_New\<Quelle>` an (nur wenn nicht vorhanden; der
+  legt TagStudioSX die Unterordner `90_Download\<Quelle>` und `00_New\<Quelle>` an (nur wenn nicht vorhanden; der
   Name kommt aus dem Plugin, `plugin.json` › `source`). Ausschalten löscht nichts.
 - Im Workflow wird dazu automatisch eine Quelle „<Quelle>“ eingetragen (Download-Unterordner → Eingangs-Unterordner,
   Feld `sub` gibt es schon). Manuelle Downloads ohne Plugin: `90_Download\_Manuell` → `00_New\_Manuell`.
@@ -120,11 +120,11 @@ Regeln dabei:
   Konflikte: „Ziel behalten“ (Standard), „mit (2) daneben ablegen“ – **nie still überschreiben**.
 - Läuft als Hintergrund-Auftrag mit Fortschritt, abbrechbar; ein Abbruch hinterlässt keine halben Dateien
   (`.part` + Umbenennen). Journal `Ordnerwechsel.csv` im Export-Ordner bzw. in den Programmdaten.
-- **TagStudio-Verweise nachführen** (bei Verschieben automatisch, bei Kopieren auf Wunsch): Playlists (Einträge mit
+- **TagStudioSX-Verweise nachführen** (bei Verschieben automatisch, bei Kopieren auf Wunsch): Playlists (Einträge mit
   Pfad), Käufe (zugeordnete Dateien), Vorbereiten (Status, Stufen), Snapshots (Bibliotheks-Wurzel), Tagger-Verlauf,
   Warteschlange. M3U8 im Playlist-Ordner werden neu geschrieben.
 - **Bibliothek verschieben – deutliche Warnung:** Engine DJ, Lexicon, Rekordbox, Serato, VirtualDJ merken sich Pfade
-  und verlieren die Verweise. TagStudio ändert **keine fremden Datenbanken** (Projektregel) – der Hinweis nennt, was
+  und verlieren die Verweise. TagStudioSX ändert **keine fremden Datenbanken** (Projektregel) – der Hinweis nennt, was
   dort zu tun ist (z. B. „Relocate“/„Fehlende Dateien suchen“). Standard-Antwort bei der Bibliothek ist darum
   „Nicht übernehmen“, bei den anderen Rollen „Verschieben“ (Entscheid O4).
 - **Prüfen beim Verschieben über Laufwerke:** immer Prüfsumme je Datei (SHA-256) vor dem Entfernen des Originals
@@ -163,10 +163,10 @@ Klappmenü: **Rollen** (z. B. „Bibliothek: Haupt“, „Eingang“, „Export�
 ```
 
 - **Modus** je Rolle: `base` (Basisordner + `sub`, Name änderbar, Unterordner mit `/`), `custom` (eigener `path`),
-  `app` (Programmdaten von TagStudio – nur Sicherung und Snapshots; so übernommen, wenn der Speicher bisher dort lag).
+  `app` (Programmdaten von TagStudioSX – nur Sicherung und Snapshots; so übernommen, wenn der Speicher bisher dort lag).
   `sub` bleibt auch bei `custom` gespeichert, damit „zurück auf Basis“ den bisherigen Namen kennt.
 - `review` gibt es nur nach der Übernahme, solange die Übersicht „Diese Ordner haben wir gefunden“ offen ist.
-- **Alte Schlüssel nachführen:** Nach jeder Änderung schreibt TagStudio `base_dir`, `archive_dir`, `playlist_dir`,
+- **Alte Schlüssel nachführen:** Nach jeder Änderung schreibt TagStudioSX `base_dir`, `archive_dir`, `playlist_dir`,
   `backup_dir`, `snap_dir` und `default_tagger` (= Hauptbibliothek) aus dem Modell – **nur die, deren Wert sich durch die
   Änderung tatsächlich verschiebt**. So arbeiten noch nicht umgestellte Module mit denselben Ordnern, und ein
   Downgrade findet seine Einstellungen. Umgekehrt führen die alten Setter (Archiv, Playlist-Ordner, Sicherungsordner,
@@ -185,7 +185,7 @@ Klappmenü: **Rollen** (z. B. „Bibliothek: Haupt“, „Eingang“, „Export�
 - Bibliotheken aus `default_tagger`, Workflow-Bibliothek(en), Basis + `01_Library`, Snapshot-Bibliotheken,
   `help_scan_root` – **gleiche Ordner zusammengefasst** (auch über Laufwerksbuchstabe/Netzlaufwerk erkannt).
 - Eingang, Arbeit, Downloads aus dem aktuellen Workflow; `purch_dest` → Eingang (wenn gleich) oder eigener Ordner.
-- **Abweichungen werden nicht still entschieden:** Gibt es mehrere verschiedene Bibliotheken, zeigt TagStudio beim
+- **Abweichungen werden nicht still entschieden:** Gibt es mehrere verschiedene Bibliotheken, zeigt TagStudioSX beim
   ersten Start eine Übersicht „Diese Ordner haben wir gefunden“ – je Ordner: als Bibliothek behalten (aktiv/inaktiv),
   Hauptbibliothek wählen, verwerfen.
 - Alte Schlüssel bleiben bis zur nächsten Hauptversion lesbar (Rückweg bei einem Downgrade).
@@ -219,7 +219,7 @@ schon jetzt nicht verbauen:
 
 **Weg 1 – Rollen in einem Sync-Ordner (geht ab der Umsetzung):** Eine Rolle (z. B. Playlists, Export, eine
 Bibliothek) darf in einem Ordner liegen, den der Desktop-Client von OneDrive/Google Drive/Dropbox synchronisiert.
-TagStudio braucht dafür:
+TagStudioSX braucht dafür:
 
 - **Erkennen** des Sync-Ordners: OneDrive (`%OneDrive%`, `%OneDriveCommercial%`, macOS `~/Library/CloudStorage/OneDrive-…`),
   Google Drive (`G:\Meine Ablage` bzw. `~/Library/CloudStorage/GoogleDrive-…`), Dropbox (`%APPDATA%\Dropbox\info.json`,

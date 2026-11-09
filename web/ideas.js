@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Ideen (#186): Wunschlisten für Titel, die später gekauft werden sollen. Gemerkt wird in
+/* TagStudioSX – Ideen (#186): Wunschlisten für Titel, die später gekauft werden sollen. Gemerkt wird in
    „Entdecken“ („Idee merken ▸“), von Hand oder aus Text; Status Idee → Kaufen → Gekauft → In Bibliothek. Wunschlisten
    sind Playlists (Ordner „Ideen“). Logik in ideas.py / session_ideas.py. Beatport wird nur auf Klick verändert. */
 "use strict";

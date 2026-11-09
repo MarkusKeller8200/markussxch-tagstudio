@@ -1,13 +1,13 @@
-# Speicherkonzept – wo TagStudio was ablegt
+# Speicherkonzept – wo TagStudioSX was ablegt
 
 Stand: **4.4.0-beta.4** (2026-10-11). Dieses Dokument wird bei Gelegenheit nachgeführt, wenn sich Ablageorte ändern.
 `~` steht für den Benutzerordner (Windows: `C:\Users\<Name>`).
 
 Es gibt zwei Arten von Ordnern:
 
-- **Programmdaten** (Abschnitte 1–3): legt TagStudio selbst an und verwaltet sie – Einstellungen, Caches, Protokolle,
+- **Programmdaten** (Abschnitte 1–3): legt TagStudioSX selbst an und verwaltet sie – Einstellungen, Caches, Protokolle,
   Zustände. Liegen im Benutzerordner, je Profil getrennt.
-- **Arbeitsordner** (Abschnitte 4–5): deine Musik und die Ordner, in denen gearbeitet wird. TagStudio legt dort nichts
+- **Arbeitsordner** (Abschnitte 4–5): deine Musik und die Ordner, in denen gearbeitet wird. TagStudioSX legt dort nichts
   Eigenes ab, ausser es wird verlangt (Stufen-Kopien, Stems, angeglichene Kopien, Sicherungen und Snapshots, wenn sie
   dorthin gelegt werden).
 
@@ -64,19 +64,19 @@ Stems-Umgebung, Modelle und FFmpeg aus `~\TagStudio\Plugin-Daten\stems\`. Siehe 
 > siehe [KONZEPT-ORDNER.md](KONZEPT-ORDNER.md) (Entwurf 25.10.2026).
 
 Der **Basisordner** wird gespeichert (Einstellungen › Speicherort und Ordner bzw. Einrichtungsassistent); jede
-Ordnerauswahl in TagStudio beginnt dort. Vorschlag: `D:\TagStudio` (erstes weiteres festes Laufwerk), nur mit C:
+Ordnerauswahl in TagStudioSX beginnt dort. Vorschlag: `D:\TagStudio` (erstes weiteres festes Laufwerk), nur mit C:
 `~\Music\TagStudio` – bewusst **nicht** `~\TagStudio`, dort liegen die Programmdaten.
 
 Die empfohlene Struktur (Namen im Assistenten änderbar; vorhandene Ordner bleiben, nichts wird verschoben):
 
-| Ordner | Wofür | In TagStudio eingestellt als |
+| Ordner | Wofür | In TagStudioSX eingestellt als |
 |---|---|---|
 | `00_New` | Neue Musik, Rohdaten – bleiben unverändert | Eingangsordner „Vorbereiten“ |
 | `01_Library` | Endgültige Bibliothek | Tagger-Standardordner, Bibliothek im Workflow (Ziel der Übernahme), mit Snapshots überwacht |
 | `02_Archiv` | Aussortierte Titel – Unterordner bleiben erhalten; Vermerk `_aussortiert.csv` (Datum, Von, Nach) zum Zurückholen | Archiv (Aktion „Aussortieren“ im Tagger und in „Vorbereiten“, #173) |
 | `03_Playlists` (#267) | Alle Playlists als M3U8 (relative Pfade), Unterordner = Ordner im Playlist-Baum; archivierte Playlists in `02_Archiv/_Playlists` | Playlist-Ordner ([KONZEPT-PLAYLISTS.md](KONZEPT-PLAYLISTS.md)) |
 | `90_Download` | Temporäre Downloads (Browser, Beatport, ZIP) | Quelle „Downloads“ im Workflow („Abholen“ kopiert nach `00_New`), Ziel des Beatport-Downloads |
-| `91_Work` | Arbeitsordner für TagStudio und andere Programme | Arbeitsordner im Workflow; darin die Stufen-Ordner `_02_MP3Tag`, `_03_PlatinumNotes` … |
+| `91_Work` | Arbeitsordner für TagStudioSX und andere Programme | Arbeitsordner im Workflow; darin die Stufen-Ordner `_02_MP3Tag`, `_03_PlatinumNotes` … |
 | `99_Sicherung\Tags` | Tag-Sicherungen vor jedem Speichern | Sicherungs-Ordner |
 | `99_Sicherung\Snapshots` | Snapshot-Speicher (Tag-Stände, Journal, auch die Sicherungen) | Snapshot-Speicher (nur umgestellt, wenn der bisherige leer ist) |
 
@@ -85,7 +85,7 @@ Weg eines neuen Titels: `90_Download` → „Abholen“ → `00_New` → Stufen 
 
 Hinweise:
 - **Alles auf einem Laufwerk** – Verschieben zwischen den Ordnern geht dann sofort und braucht keinen zusätzlichen Platz.
-- **`99_Sicherung` ist kein Backup der Musik.** TagStudio sichert nur Tags (wenige MB). Die Musik zusätzlich auf ein
+- **`99_Sicherung` ist kein Backup der Musik.** TagStudioSX sichert nur Tags (wenige MB). Die Musik zusätzlich auf ein
   anderes Laufwerk oder in die Cloud sichern.
 - **`01_Library` früh festlegen** – Engine DJ, Lexicon, Rekordbox und Serato merken sich die Pfade; verschobene
   Bibliotheken verlieren dort die Verweise.

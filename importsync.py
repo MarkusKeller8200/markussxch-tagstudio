@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Abgleich für Importer (#145, #146): Werte aus einer Quelle (beaTunes, Lexicon …) als
+"""TagStudioSX – Abgleich für Importer (#145, #146): Werte aus einer Quelle (beaTunes, Lexicon …) als
 Audio-Merkmale vorschlagen und merken, welcher Wert zuletzt übernommen wurde.
 
 Gemerkt wird in TXXX:TAGSTUDIO (JSON, wie das Like), z. B. {"sync": {"lexicon": {"DANCEABILITY": 70}}}.

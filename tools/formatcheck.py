@@ -1,5 +1,5 @@
 """Prüfwerkzeug für die Messreihe (#446 WAV/AIFF, #453 FLAC/M4A/OGG): zeigt, wie eine Datei aufgebaut ist und welche
-Tag-Felder darin stehen – unter welchem Namen das DJ-Programm sie geschrieben hat und wie TagStudio sie liest.
+Tag-Felder darin stehen – unter welchem Namen das DJ-Programm sie geschrieben hat und wie TagStudioSX sie liest.
 
     python tools/formatcheck.py DATEI [...]               # nur lesen, Bericht als Text
     python tools/formatcheck.py DATEI --json bericht.json  # Bericht zusätzlich als JSON (für das Issue)
@@ -152,7 +152,7 @@ def main(argv=None) -> int:
         print("   Felder im Format:")
         for n, v in r["native"]:
             print(f"     {n} = {v}")
-        print("   So liest TagStudio:")
+        print("   So liest TagStudioSX:")
         for k, v in r["tagstudio"].items():
             print(f"     {k} = {v}")
         if r["serato_fields"]:

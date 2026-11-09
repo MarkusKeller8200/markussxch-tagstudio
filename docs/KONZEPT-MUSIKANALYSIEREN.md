@@ -6,7 +6,7 @@
 
 > **Pflege:** Dieses Detailkonzept ist bei Arbeiten an Audioanalyse, MusicAnalyzer, Track-Matching und Übergangsempfehlungen mitzuberücksichtigen und im selben Zug nachzuführen. Es ergänzt das [übergreifende Produkt- und Architekturkonzept](KONZEPT-PRODUKT-ARCHITEKTUR.md); offene Entscheidungen und Evaluationskandidaten sind **keine bereits freigegebenen Implementierungsentscheide**.
 >
-> **Produktgrenze:** Die Analyse unterstützt TagStudio bei Musikverwaltung, Tagging und DJ-Set-Planung. Sie ist nicht als Bauplan für eine vollständige Live-DJ-Mixing-Software oder DAW zu verstehen.
+> **Produktgrenze:** Die Analyse unterstützt TagStudioSX bei Musikverwaltung, Tagging und DJ-Set-Planung. Sie ist nicht als Bauplan für eine vollständige Live-DJ-Mixing-Software oder DAW zu verstehen.
 
 ## 1. Projektidee und Zielsetzung
 
@@ -209,9 +209,9 @@ Vor einer verbindlichen Umsetzung sind diese Fragen zu klären:
 | **Hardware** | Welche Mindestanforderungen und GPU-Backends werden offiziell unterstützt? |
 | **Metadaten** | Welche Analysewerte gehören direkt in Audio-Tags und welche ausschliesslich in externe Speicherung? |
 | **Modellstrategie** | Welche Modelle werden mitgeliefert, optional heruntergeladen oder nur über Plugins genutzt? |
-| **Produktgrenzen** | Wie bleibt die Library eigenständig und zugleich leicht in TagStudio und andere DJ-Werkzeuge integrierbar? |
+| **Produktgrenzen** | Wie bleibt die Library eigenständig und zugleich leicht in TagStudioSX und andere DJ-Werkzeuge integrierbar? |
 
-**Hinweis zur Lizenzfrage:** Das PDF formuliert ein künftiges Lizenzmodell für die eigenständige Library als offene Frage. Daraus folgt **keine Änderung** an der bestehenden TagStudio-Projektlizenz.
+**Hinweis zur Lizenzfrage:** Das PDF formuliert ein künftiges Lizenzmodell für die eigenständige Library als offene Frage. Daraus folgt **keine Änderung** an der bestehenden TagStudioSX-Projektlizenz.
 
 ## 9. Projektvision
 
@@ -226,7 +226,7 @@ Im Vordergrund steht nicht allein die Ermittlung klassischer Audio-Metadaten, so
 
 **Leitgedanke der Konzeptbasis:** MusicAnalyzer soll nicht nur beschreiben, *was ein Track ist*, sondern auch erkennen, *wie er aufgebaut ist*, *wie er wirkt* und *zu welchen anderen Tracks er passt*.
 
-## 10. Einordnung in die bestehende TagStudio-Dokumentation
+## 10. Einordnung in die bestehende TagStudioSX-Dokumentation
 
 Dieser Abschnitt ordnet die Quelle in die **bereits vorhandene Projektdokumentation** ein und ist keine zusätzliche Aussage aus der PDF:
 
@@ -245,13 +245,13 @@ Das Ausgangsdokument beschreibt eine **Konzeptgrundlage**, noch keine vollständ
 - Referenz- und Testdatensätze sowie reproduzierbare Benchmarks,
 - Schnittstellen und versioniertes Datenmodell für Analyseergebnisse,
 - Lizenz- und Plattformprüfung der favorisierten Algorithmen und Modelle,
-- Integration der Resultate in TagStudio, ohne bestehende manuelle Korrekturen zu verlieren.
+- Integration der Resultate in TagStudioSX, ohne bestehende manuelle Korrekturen zu verlieren.
 
 **Dokumentstatus:** Inhaltlich aus dem bereitgestellten PDF als GitHub-Markdown-Detailkonzept übertragen und für die bestehende Dokumentationsstruktur gegliedert. Die erwähnten Technologien, Leistungswerte und offenen Fragen wurden **nicht zusätzlich extern validiert**.
 
 ## 12. Geplant: Set-Intelligence aus externen DJ-Tracklisten
 
-**Status: TODO / Konzeptidee – NICHT implementiert.** [GitHub-Issue #180](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/180) dokumentiert die offene Entwicklung; weder ein 1001Tracklists-Provider noch diese Set-Intelligence-Analysen sind als bestehende TagStudio-Funktionen zu verstehen.
+**Status: TODO / Konzeptidee – NICHT implementiert.** [GitHub-Issue #180](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/180) dokumentiert die offene Entwicklung; weder ein 1001Tracklists-Provider noch diese Set-Intelligence-Analysen sind als bestehende TagStudioSX-Funktionen zu verstehen.
 
 **Quelle:** `2026_10_13_Konzept_DJSET_1001-Tracklist_abgleichen(1).pdf`, insbesondere Seiten 1–5. Das Detailkonzept zum Import, zu Discovery und zum Library-Abgleich steht unter [DJ-Set, Abschnitt 5.1](KONZEPT-DJSET.md#51-geplante-erweiterung-1001tracklists-als-set-datenquelle).
 

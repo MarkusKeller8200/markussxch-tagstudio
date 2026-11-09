@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Sitzung: Player-Einstellungen, Fenster-Nachrichten und Wiedergabe (#36–#69, #91–#102)."""
+"""TagStudioSX – Sitzung: Player-Einstellungen, Fenster-Nachrichten und Wiedergabe (#36–#69, #91–#102)."""
 from __future__ import annotations
 
 import base64

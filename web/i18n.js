@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Mehrsprachigkeit der Oberfläche (#157).
+/* TagStudioSX – Mehrsprachigkeit der Oberfläche (#157).
    Ausgangssprache ist Schweizer Hochdeutsch (de-CH) und steht direkt im Code. Für andere Sprachen übersetzt diese
    Schicht die Oberfläche beim Anzeigen: Textknoten und die Attribute title / data-tip-title / placeholder / aria-label /
    alt werden über den Katalog (deutscher Text → Übersetzung) ersetzt – auch alles, was später dazukommt

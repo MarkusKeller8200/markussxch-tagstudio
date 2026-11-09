@@ -183,7 +183,7 @@ class PurchasesMixin:
 
     def _purch_reset_items(self, store, items, cancel=None, progress=None) -> dict | None:
         """#362/#367: Einkäufe beim Store erneut zum Download freigeben und als „wartet auf Download“ markieren
-        (TagStudio erkennt die im Browser geladenen Dateien danach selbst, #368). None = Store kann das nicht."""
+        (TagStudioSX erkennt die im Browser geladenen Dateien danach selbst, #368). None = Store kann das nicht."""
         if not items:
             return None
         try:
@@ -662,7 +662,7 @@ class PurchasesMixin:
                     continue
                 got_ids = {str(k) for k, v in (r.get("files") or {}).items() if v}
                 left = [it for it in its if str(it.get("id")) not in got_ids]
-                # #367: nicht ladbare beim Store zum Download freigeben → im Browser laden, TagStudio verlinkt sie (#368)
+                # #367: nicht ladbare beim Store zum Download freigeben → im Browser laden, TagStudioSX verlinkt sie (#368)
                 rs = self._purch_reset_items(store, left, cancel, progress) if left else None
                 if r.get("manual") or (rs and rs.get("reset")):   # Store lässt den Download nicht zu → selbst laden
                     with self.lock:

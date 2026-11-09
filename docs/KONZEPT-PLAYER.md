@@ -7,7 +7,7 @@ Stand: 2026-10-15 (4.4.1-beta.6) · Status: **umgesetzt** (3.2.0, ausgebaut 3.4.
 
 ## 1. Ziel
 
-Titel direkt in TagStudio vorhören – schnell durch viele Titel, mit DJ-Informationen (Wellenform, Cues, Beatgrid,
+Titel direkt in TagStudioSX vorhören – schnell durch viele Titel, mit DJ-Informationen (Wellenform, Cues, Beatgrid,
 Tonart, BPM), Bewertung beim Hören und Übergängen wie im DJ-Programm. Externe Player für alles Weitere.
 
 ## 2. Funktionen

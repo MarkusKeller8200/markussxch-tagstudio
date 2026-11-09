@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – JSON-Baum: Schlüssel/Wert-Paare wie im XML-Editor anzeigen und die Werte bearbeiten.
+/* TagStudioSX – JSON-Baum: Schlüssel/Wert-Paare wie im XML-Editor anzeigen und die Werte bearbeiten.
    Normalmodus: nur Werte; das Format (Einrückung, Reihenfolge, Leerzeichen, Escapes) bleibt erhalten, weil nur die
    Zeichen der geänderten Werte im Originaltext ersetzt werden.
    Expertenmodus: zusätzlich Einträge hinzufügen (z. B. neue Cue-Punkte), duplizieren und entfernen. Neue Einträge

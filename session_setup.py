@@ -12,7 +12,7 @@ MODULES = ["discover", "ideas", "carts", "purchases", "prep", "tagger", "fixer",
            "plugins", "settings", "help"]      # Standard-Reihenfolge der Seitenleiste (#316; #333: Entdecken zuerst; #186: Ideen danach;
                                                 # #390: Mixe nach Playlists; #420: Warenkorb nach Ideen)
 ALWAYS = {"settings", "help"}          # lassen sich nicht ausblenden
-# Schlüssel, an denen ein schon benutztes TagStudio erkennbar ist (dann kein Assistent beim Start)
+# Schlüssel, an denen ein schon benutztes TagStudioSX erkennbar ist (dann kein Assistent beim Start)
 USED_KEYS = ("hist_tagger", "default_tagger", "tagger_state", "hist_left", "web_ui", "theme", "web_theme", "backup_dir", "prep_workflows")
 INTRODUCED = "4.3.0"                    # bestehende Benutzer sehen „Neu in dieser Version“ ab hier
 
@@ -130,7 +130,7 @@ STRUCTURE = [
     ("playlists", "03_Playlists", "Playlists als M3U8 (für DJ-Programme)"),
     ("export", "04_Export", "Startordner aller Exporte (Listen, Playlists, DJ-Sets, Journal)"),
     ("download", "90_Download", "Temporäre Downloads (Browser, Beatport, ZIP)"),
-    ("work", "91_Work", "Arbeitsordner für TagStudio und andere Programme (Stufen-Ordner)"),
+    ("work", "91_Work", "Arbeitsordner für TagStudioSX und andere Programme (Stufen-Ordner)"),
     ("backup", "99_Sicherung", "Sicherungen der Tags und Snapshots"),
 ]
 

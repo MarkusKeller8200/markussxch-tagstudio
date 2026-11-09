@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Audio für den Vorschau-Player bereitstellen.
+"""TagStudioSX – Audio für den Vorschau-Player bereitstellen.
 
 Ein kleiner lokaler HTTP-Server (nur 127.0.0.1) liefert Audiodateien mit Range-Anfragen aus, damit das
 <audio>-Element der Oberfläche spulen kann, ohne die ganze Datei zu laden. Ausgeliefert werden nur Dateien, die
@@ -265,7 +265,7 @@ def aiff_read(path: str, v: dict, start: int, end: int) -> bytes:
 
 
 # --------------------------------------------------------------------------- ALAC als WAV (#454)
-# Chromium/WebView2 spielen ALAC (M4A verlustfrei) nicht. TagStudio wandelt die Datei beim ersten Abspielen einmal mit
+# Chromium/WebView2 spielen ALAC (M4A verlustfrei) nicht. TagStudioSX wandelt die Datei beim ersten Abspielen einmal mit
 # FFmpeg in eine WAV-Datei im Cache (`~/TagStudio/cache/play`) und liefert diese aus; die Originaldatei bleibt unberührt.
 PLAY_CACHE_MAX = 2 * 1024 ** 3          # höchstens 2 GB, älteste zuerst weg
 

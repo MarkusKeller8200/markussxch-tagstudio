@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Beatgrid-Status in der Tagger-Bibliothek (#191).
+/* TagStudioSX – Beatgrid-Status in der Tagger-Bibliothek (#191).
    Spalte „Beatgrid“: Serato-Raster, eigene Analyse, nur BPM-Schätzung, ohne Ergebnis, keins. Der Status kommt aus
    Tags und Wellenform-Cache (kein Dekodieren) und wird im Hintergrund in Paketen geholt. „Beatgrid analysieren …“
    rechnet für markierte Titel dieselbe Analyse wie der Player und legt sie im Cache ab – nie im MP3.

@@ -1,4 +1,4 @@
-# Mitmachen bei MarKusSXCH TagStudio
+# Mitmachen bei TagStudioSX
 
 Danke für dein Interesse! Fehlerberichte, Ideen, Plugins und Pull Requests sind willkommen. Bitte halte dich an den
 [Verhaltenskodex](CODE_OF_CONDUCT.md).
@@ -6,7 +6,7 @@ Danke für dein Interesse! Fehlerberichte, Ideen, Plugins und Pull Requests sind
 ## Fehler melden und Ideen vorschlagen
 
 - **Fehler:** [Issue „Fehler melden“](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/new/choose) –
-  mit TagStudio-Version (unten in der Seitenleiste), Betriebssystem, Schritten zum Nachstellen und, falls
+  mit TagStudioSX-Version (unten in der Seitenleiste), Betriebssystem, Schritten zum Nachstellen und, falls
   vorhanden, dem Protokoll aus `~/TagStudio/Logs`. Bitte keine urheberrechtlich geschützten MP3s anhängen –
   ein Bildschirmfoto oder die betroffenen Feldnamen genügen meist.
 - **Ideen:** Issue „Funktion vorschlagen“ bzw. „Plugin-Idee“. Vorher kurz in den
@@ -33,11 +33,11 @@ python -m unittest discover -s tests -v
 
 - **Sprache:** Oberfläche, Meldungen, Kommentare und Dokumentation auf **Deutsch** (Schweizer Schreibweise mit „ss“).
   Bezeichner im Code englisch.
-- **Übersetzungen:** TagStudio wird auf Deutsch, Englisch und Zürichdeutsch ausgeliefert. Neue oder geänderte
+- **Übersetzungen:** TagStudioSX wird auf Deutsch, Englisch und Zürichdeutsch ausgeliefert. Neue oder geänderte
   Oberflächentexte bekommen im selben Pull Request ihre Übersetzung in `web/i18n/<bereich>.json`
   (`"Deutscher Text": ["English", "Züritüütsch"]`); `python3 tools/i18n_extract.py --plugins` zeigt fehlende Texte,
   `tests/test_i18n.py` prüft es. Daten (Dateinamen, Tag-Werte) mit `translate="no"` kennzeichnen.
-- **Byte-genau:** TagStudio ändert nur, was der Benutzer ändert. Unbekannte Frames, Binärfelder und die
+- **Byte-genau:** TagStudioSX ändert nur, was der Benutzer ändert. Unbekannte Frames, Binärfelder und die
   Audiodaten bleiben unverändert – bitte mit einem Test absichern.
 - **Rückgängig:** Jede Änderung an Tags läuft über die Undo-Funktion der Sitzung (`undo.checkpoint` … `commit`)
   und wird erst mit „Speichern“ geschrieben; vorher entsteht automatisch eine Sicherung.

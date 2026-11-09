@@ -109,7 +109,7 @@ Alle Karten gleich gross (Raster mit gleich hohen Zeilen), Aufbau von oben:
 - Gemeinsam: `servicekit.py` (Client mit `onlinematch.INTERVALS` und gemeinsamer Drosselung `onlinematch.SHARED`,
   Schlüsselablage je Plugin über `secretstore.py`, einmalige Übernahme aus `Plugin-Daten/online/keys.bin`).
 - **Zugangsdaten ablegen** (#287, `secretstore.py`): Windows DPAPI; macOS Schlüsselbund (Security.framework über
-  ctypes, generisches Passwort, Dienst „MarKusSXCH TagStudio“, Konto = Pfad der Datei, also je Profil und Plugin
+  ctypes, generisches Passwort, Dienst „TagStudioSX“, Konto = Pfad der Datei, also je Profil und Plugin
   getrennt), in der Datei nur `KEYCHAIN:1`; ältere Klartext-Dateien werden beim ersten Lesen übernommen und
   überschrieben; Rückfall Datei 0600 (Linux/CI, Schlüsselbund gesperrt) mit Hinweis im Protokoll. Gilt für
   `servicekit.save_keys` (alle Dienst-Plugins, OAuth-Token von Spotify/SoundCloud) und Beatport `token.bin`/`app.bin`.
@@ -159,7 +159,7 @@ installieren – ohne ganzes App-Release.
 - **Katalog:** Der Release-Workflow (`installer.yml`, Job `release`) ruft `plugin_store.build` auf und legt je Plugin
   `plugin-<id>-<version>.zip` (Inhalt `<id>/…`, ohne Caches, reproduzierbar) und `plugins.json` (Format 1: id, name,
   version, category, description, `min_app`, env, requires, file, sha256, size) als Release-Assets ab.
-- **Mindestversion:** `plugin.json` → `"min_app": "4.8.0"` (älteste TagStudio-Version, mit der das Plugin läuft; Betas
+- **Mindestversion:** `plugin.json` → `"min_app": "4.8.0"` (älteste TagStudioSX-Version, mit der das Plugin läuft; Betas
   zählen wie ihre Version). Ohne Angabe gilt die Version des Releases. Alle eingebauten Plugins tragen sie.
 - **Plugin-Version erhöhen**, wenn sich ein Plugin ändert – sonst bietet der Katalog die Änderung nicht als Update an.
   `packaging/release.py --check` weist darauf hin (ab dem ersten Katalog-Release 4.8.0).
@@ -202,9 +202,9 @@ nie über einen Proxy, `is_local`).
 - **#240 Felder (Entscheid User 17.10.2026):** Alles aus Lexicon ohne offizielles MP3-Feld kommt in eigene Felder
   `TXXX:LEXICON_*` (DANCEABILITY, ENERGY, HAPPINESS, POPULARITY, COLOR, TAGS, MOOD bei ID3v2.3), Werte wie in Lexicon
   (1–10). Herkunft „Lexicon“ über die vorhandene Regel `TXXX:Lexicon*` (kein `fields` in plugin.json). Offizielle
-  Felder: POPM, TMOO (v2.4), TIT1/COMM auf Wunsch. Die TagStudio-Felder (ENERGY usw.) fasst „Lexicon übernehmen“
+  Felder: POPM, TMOO (v2.4), TIT1/COMM auf Wunsch. Die TagStudioSX-Felder (ENERGY usw.) fasst „Lexicon übernehmen“
   nicht an – optionale Übernahme in eigene Felder folgt als eigene Funktion.
-- **#241 In TagStudio-Felder:** Aktion „Lexicon-Werte in TagStudio-Felder …“ (offline aus `TXXX:LEXICON_*`, ×10,
+- **#241 In TagStudioSX-Felder:** Aktion „Lexicon-Werte in TagStudioSX-Felder …“ (offline aus `TXXX:LEXICON_*`, ×10,
   `importsync`-Abgleich, Stimmung) bzw. Option `to_ts` bei „Lexicon übernehmen“.
 - **#242 DJ-Set:** Rahmen `Manager.playlist_sources/call_playlist` (Plugin-Funktionen `playlists`, `playlist_files`),
   Session `dj_sources`, `start_dj_source_list`, `start_dj_source_import` (Listen „<Quelle>: <Name>“, erste geladen);

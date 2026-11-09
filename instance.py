@@ -1,4 +1,4 @@
-"""Nur eine laufende TagStudio-Instanz je Benutzer (4.1.0).
+"""Nur eine laufende TagStudioSX-Instanz je Benutzer (4.1.0).
 
 Zwei gleichzeitige Instanzen überschreiben sich gegenseitig die Einstellungen (z. B. wenn der Installer eine neue
 Version startet, während die alte noch offen ist). Deshalb:
@@ -6,7 +6,7 @@ Version startet, während die alte noch offen ist). Deshalb:
 - **Sperrdatei** `~/.tagstudio.lock` mit Betriebssystem-Sperre (Windows: msvcrt, sonst fcntl) – wird beim Beenden
   oder Absturz des Prozesses automatisch frei.
 - **Windows:** zusätzlich ein benannter Mutex `MUTEX`; der Installer (Inno Setup, `AppMutex`) erkennt daran eine
-  laufende TagStudio-Instanz und bittet, sie zu schliessen, bevor er Dateien ersetzt.
+  laufende TagStudioSX-Instanz und bittet, sie zu schliessen, bevor er Dateien ersetzt.
 """
 from __future__ import annotations
 
@@ -100,7 +100,7 @@ def already_running_message(text: str, gui: bool = True):
     if gui and sys.platform.startswith("win"):
         try:
             import ctypes
-            ctypes.windll.user32.MessageBoxW(None, text, "MarKusSXCH TagStudio", 0x40 | 0x40000)
+            ctypes.windll.user32.MessageBoxW(None, text, "TagStudioSX", 0x40 | 0x40000)
             return
         except Exception:  # noqa: BLE001
             pass

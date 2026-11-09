@@ -1,7 +1,7 @@
 {
- "· NUR LESEN (aus neuerer TagStudio-Version)": [
-  "· READ ONLY (from a newer TagStudio version)",
-  "· NUR LÄSE (us ere neuere TagStudio-Version)"
+ "· NUR LESEN (aus neuerer TagStudioSX-Version)": [
+  "· READ ONLY (from a newer TagStudioSX version)",
+  "· NUR LÄSE (us ere neuere TagStudioSX-Version)"
  ],
  "Speicher:": [
   "Storage:",
@@ -171,9 +171,9 @@
   "Target: {x}",
   "Ziil: {x}"
  ],
- "Ist der Ordner nicht leer (z. B. dein MP3-Ordner), legt TagStudio darin den Unterordner {q} an. Der Speicher wird kopiert, geprüft und erst danach am alten Ort entfernt.": [
-  "If the folder is not empty (e.g. your MP3 folder), TagStudio creates the subfolder {q} in it. The storage is copied, checked and only then removed from the old location.",
-  "Isch de Ordner nöd läär (z. B. din MP3-Ordner), leit TagStudio drin de Underordner {q} aa. De Spicher wird kopiert, prüeft und erscht nachher am alte Ort entfärnt."
+ "Ist der Ordner nicht leer (z. B. dein MP3-Ordner), legt TagStudioSX darin den Unterordner {q} an. Der Speicher wird kopiert, geprüft und erst danach am alten Ort entfernt.": [
+  "If the folder is not empty (e.g. your MP3 folder), TagStudioSX creates the subfolder {q} in it. The storage is copied, checked and only then removed from the old location.",
+  "Isch de Ordner nöd läär (z. B. din MP3-Ordner), leit TagStudioSX drin de Underordner {q} aa. De Spicher wird kopiert, prüeft und erscht nachher am alte Ort entfärnt."
  ],
  "Verschieben": [
   "Move",
@@ -351,9 +351,9 @@
   "Set up snapshots?",
   "Snapshots iirichte?"
  ],
- "Es wird noch kein Ordner überwacht. Mit einem überwachten Ordner hält TagStudio den Tag-Zustand deiner Bibliothek fest und zeigt später, was andere Programme (Mixed In Key, beaTunes, Mp3tag …) geändert haben – einzeln rückgängig machbar.": [
-  "No folder is watched yet. With a watched folder, TagStudio records the tag state of your library and later shows what other programs (Mixed In Key, beaTunes, Mp3tag …) changed – undoable one by one.",
-  "Es wird nonig en Ordner überwacht. Mit eme überwachte Ordner haltet TagStudio de Tag-Zuestand vo dinere Bibliothek fescht und zeigt spöter, was anderi Programm (Mixed In Key, beaTunes, Mp3tag …) gänderet händ – einzeln rückgängig machbar."
+ "Es wird noch kein Ordner überwacht. Mit einem überwachten Ordner hält TagStudioSX den Tag-Zustand deiner Bibliothek fest und zeigt später, was andere Programme (Mixed In Key, beaTunes, Mp3tag …) geändert haben – einzeln rückgängig machbar.": [
+  "No folder is watched yet. With a watched folder, TagStudioSX records the tag state of your library and later shows what other programs (Mixed In Key, beaTunes, Mp3tag …) changed – undoable one by one.",
+  "Es wird nonig en Ordner überwacht. Mit eme überwachte Ordner haltet TagStudioSX de Tag-Zuestand vo dinere Bibliothek fescht und zeigt spöter, was anderi Programm (Mixed In Key, beaTunes, Mp3tag …) gänderet händ – einzeln rückgängig machbar."
  ],
  "Nicht mehr fragen (in den Einstellungen wieder einschaltbar)": [
   "Don't ask again (can be switched on again in the settings)",
@@ -367,9 +367,9 @@
   "The daily automatic snapshot runs independently in the background.",
   "De täglich automatisch Snapshot lauft unabhängig devo im Hintergrund."
  ],
- "Änderungen stammen von anderen Programmen oder Speichern ausserhalb von TagStudio.{x}": [
-  "Changes come from other programs or saving outside of TagStudio.{x}",
-  "Änderige chömed vo andere Programm oder Spichere usserhalb vo TagStudio.{x}"
+ "Änderungen stammen von anderen Programmen oder Speichern ausserhalb von TagStudioSX.{x}": [
+  "Changes come from other programs or saving outside of TagStudioSX.{x}",
+  "Änderige chömed vo andere Programm oder Spichere usserhalb vo TagStudioSX.{x}"
  ],
  "Beim Start nicht mehr fragen (in den Einstellungen wieder einschaltbar)": [
   "Don't ask at start anymore (can be switched on again in the settings)",

@@ -10,7 +10,7 @@ Einstellung ``cfg["folders"]``::
      "review": [...]}            # nur nach der Übernahme, solange der User noch nicht entschieden hat
 
 Modus je Rolle: ``base`` = Basisordner + Unterordner (Name änderbar), ``custom`` = eigener Ordner,
-``app`` = Programmdaten von TagStudio (nur Sicherung und Snapshots – so wie vor 4.10).
+``app`` = Programmdaten von TagStudioSX (nur Sicherung und Snapshots – so wie vor 4.10).
 
 Module fragen nur noch :func:`role`, :func:`libraries` und :func:`main_library`. Die alten Einzel-Schlüssel
 (``base_dir``, ``archive_dir``, ``playlist_dir``, ``backup_dir``, ``snap_dir``, ``default_tagger``) werden aus dem

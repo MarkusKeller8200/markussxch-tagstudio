@@ -1,11 +1,11 @@
 {
   "id": "spotify",
   "name": "Spotify",
-  "version": "1.5", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
+  "version": "1.6", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
   "min_app": "4.8.0",
   "category": "online",
   "api": 1,
-  "author": "MarKusSXCH TagStudio",
+  "author": "TagStudioSX",
   "description": "Liest deine Spotify-Playlists und Lieblingssongs (Playlists › Importieren › „Aus Spotify …“, danach Abgleich mit der Bibliothek), Titel-Daten mit ISRC und Spotify-Link für „Online-Metadaten“ und gefolgte Künstler für „Entdecken“. Ideen: „Läuft gerade“ und „Zuletzt gehört“ merken, Wunschliste als private Spotify-Playlist (nur auf Klick). Braucht eine eigene Spotify-App im Developer Dashboard (Premium nötig). Dein Konto wird nur auf deinen Klick geändert.",
   "notes": "Keine Zusatzpakete nötig. Unter „Anmelden …“ die Client-ID deiner Spotify-App eintragen und anmelden.",
   "fields": [
@@ -34,7 +34,7 @@
     "auth_note": "Eigene Spotify-App (Client-ID) und Anmeldung mit PKCE; Token verschlüsselt gespeichert, wird automatisch erneuert. Entwicklungsmodus: höchstens 5 Nutzer je App, Besitzer mit Spotify Premium.",
     "limits": "Gleitendes 30-Sekunden-Fenster (nicht veröffentlicht) – bei HTTP 429 wird gewartet (Retry-After)",
     "terms": "https://developer.spotify.com/terms",
-    "note": "Nur Lese-Endpunkte, die für TagStudio naheliegen; Wiedergabe-, Schreib-, Podcast- und Hörbuch-Endpunkte sind weggelassen. Stand Februar 2026 (Entwicklungsmodus).",
+    "note": "Nur Lese-Endpunkte, die für TagStudioSX naheliegen; Wiedergabe-, Schreib-, Podcast- und Hörbuch-Endpunkte sind weggelassen. Stand Februar 2026 (Entwicklungsmodus).",
     "endpoints": [
       {
         "id": "me",

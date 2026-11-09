@@ -1,7 +1,7 @@
-"""Stems-Worker: läuft im Python der Plugin-Umgebung (nicht in TagStudio).
+"""Stems-Worker: läuft im Python der Plugin-Umgebung (nicht in TagStudioSX).
 
 Aufruf: python worker.py auftrag.json
-Meldungen an TagStudio als Zeilen „@@{json}“; alles andere ist Protokoll.
+Meldungen an TagStudioSX als Zeilen „@@{json}“; alles andere ist Protokoll.
 """
 import json
 import logging
@@ -19,7 +19,7 @@ def emit(**kw):
 
 def hook_tqdm():
     """Fortschrittsbalken (tqdm) von audio-separator/Demucs als Ereignisse „tick“ melden.
-    tqdm schreibt sonst nur „\r45%|███“ ohne Zeilenende – das kommt bei TagStudio nicht als Fortschritt an."""
+    tqdm schreibt sonst nur „\r45%|███“ ohne Zeilenende – das kommt bei TagStudioSX nicht als Fortschritt an."""
     try:
         import time
         import tqdm.std as tq

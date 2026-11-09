@@ -110,9 +110,9 @@ GENRES = [
 ]
 
 
-TXXX_LABELS = {"TAGSTUDIO_EDITED": "Letzte Bearbeitung (TagStudio)",
-               "TAGSTUDIO_ADDED": "In Bibliothek aufgenommen (TagStudio)",
-               "TAGSTUDIO_BEATGRID": "Beatgrid der Analyse (TagStudio)"}                       # #221
+TXXX_LABELS = {"TAGSTUDIO_EDITED": "Letzte Bearbeitung (TagStudioSX)",
+               "TAGSTUDIO_ADDED": "In Bibliothek aufgenommen (TagStudioSX)",
+               "TAGSTUDIO_BEATGRID": "Beatgrid der Analyse (TagStudioSX)"}                       # #221
 
 
 def key_label(key: str) -> str:
@@ -120,7 +120,7 @@ def key_label(key: str) -> str:
     base = key.split("#")[0]
     fid, _, desc = base.partition(":")
     if fid == "TXXX":
-        if desc.upper() in TXXX_LABELS:                 # #184/#185: TagStudio-Zeitstempel
+        if desc.upper() in TXXX_LABELS:                 # #184/#185: TagStudioSX-Zeitstempel
             return TXXX_LABELS[desc.upper()]
         return f"Benutzertext ({desc})"
     if fid == "WXXX":
@@ -174,7 +174,7 @@ FIELD_HELP = {
     "TCON": "Genre (Text); mehrere mit ¦ trennen.",
     "TCOM": "Komponist bzw. Songwriter.",
     "TBPM": "Tempo in Schlägen pro Minute (ganze Zahl, manche Programme schreiben Nachkommastellen).",
-    "TKEY": "Tonart (z. B. 8A, Am, 1m) – TagStudio schreibt sie in der gewählten Schreibweise.",
+    "TKEY": "Tonart (z. B. 8A, Am, 1m) – TagStudioSX schreibt sie in der gewählten Schreibweise.",
     "COMM": "Kommentar; manche Programme nutzen ihn für Tonart/Energie (z. B. Mixed In Key).",
     "TPUB": "Label bzw. Herausgeber.",
     "TSRC": "International Standard Recording Code – eindeutige Kennung der Aufnahme.",

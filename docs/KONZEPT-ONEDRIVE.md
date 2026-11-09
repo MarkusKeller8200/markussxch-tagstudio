@@ -1,7 +1,7 @@
-# Konzept: OneDrive als persönlicher Cloud-Speicher von TagStudio
+# Konzept: OneDrive als persönlicher Cloud-Speicher von TagStudioSX
 
 > Stand 29.10.2026 (17:40) – Status **NICHT WEITER VERFOLGT** (Entscheid User 17:35: bei OD1 bleiben, keine
-> TagStudio-App, kein Ausbau des API-Abgleichs; stattdessen Sicherung der Programmdaten in den Cloud-Ordner, #402).
+> TagStudioSX-App, kein Ausbau des API-Abgleichs; stattdessen Sicherung der Programmdaten in den Cloud-Ordner, #402).
 > Bleibt als Referenz. #401 (Sicherheit) gilt unabhängig davon. Neuer Weg ab 17:58: Umschalter Kontoart (#405),
 > siehe [KONZEPT-CLOUD.md](KONZEPT-CLOUD.md) §4c.
 > Auftrag User 29.10.2026, 17:23. Issues: [#400](https://github.com/MarkusKeller8200/markussxch-tagstudio/issues/400)
@@ -11,7 +11,7 @@
 
 ## 1. Ziel und Abgrenzung
 
-**Anwendungsfall:** TagStudio nutzt das OneDrive des Users als **eigenen Cloud-Speicher** – für die Ordner-Rollen
+**Anwendungsfall:** TagStudioSX nutzt das OneDrive des Users als **eigenen Cloud-Speicher** – für die Ordner-Rollen
 Playlists und Export sowie die Programmdaten-Teile (Playlists-Speicher, Käufe, Entdecken, Einstellungen ohne
 Zugangsdaten), damit zwei Rechner (Windows ↔ Mac) denselben Stand haben. Abgleich, Konflikte und Löschregeln bleiben
 wie in KONZEPT-CLOUD §2–4a (`cloudsync.py`).
@@ -19,12 +19,12 @@ wie in KONZEPT-CLOUD §2–4a (`cloudsync.py`).
 | | Beschlossen / Vorgabe | Quelle |
 |---|---|---|
 | Konten | **Nur private Microsoft-Konten** (outlook.com, hotmail.com, live.com …). Keine Geschäfts- und Schulkonten. | User 29.10.2026, 04:02 |
-| Ablauf | „Anmelden …“ → Browser → Anmeldung bei Microsoft → Zustimmung „TagStudio vertrauen“ → zurück in TagStudio. | User 29.10.2026, 04:02 |
-| Passwort | TagStudio sieht und speichert das Microsoft-Passwort **nie** (Anmeldung nur auf der Microsoft-Seite). | KONZEPT-CLOUD §4 |
+| Ablauf | „Anmelden …“ → Browser → Anmeldung bei Microsoft → Zustimmung „TagStudioSX vertrauen“ → zurück in TagStudioSX. | User 29.10.2026, 04:02 |
+| Passwort | TagStudioSX sieht und speichert das Microsoft-Passwort **nie** (Anmeldung nur auf der Microsoft-Seite). | KONZEPT-CLOUD §4 |
 | Musik | Nicht über die API – Musik bleibt beim Desktop-Client (Weg 1). | C2 |
 
 **Nicht Ziel:** OneDrive als Dateibrowser für beliebige Ordner, Freigaben an andere, SharePoint, Geschäftskonten,
-eingebettetes Anmeldefenster in TagStudio.
+eingebettetes Anmeldefenster in TagStudioSX.
 
 ## 2. Ausgangslage (Plugin `onedrive` 1.x, Stand 4.13.0)
 
@@ -40,9 +40,9 @@ eingebettetes Anmeldefenster in TagStudio.
 fester Port; Erneuerung nicht gegen gleichzeitige Aufträge gesperrt; jeder Abgleich listet alles neu; kein Schutz vor
 Überschreiben zwischen Plan und Hochladen; **Token wird beim Herunterladen an den Download-Host mitgesendet (#401).**
 
-## 3. Voraussetzung: die App „TagStudio“ bei Microsoft (einmalig, Entwickler)
+## 3. Voraussetzung: die App „TagStudioSX“ bei Microsoft (einmalig, Entwickler)
 
-Damit sich Nutzer ohne eigene App anmelden können, braucht es **eine** App-Registrierung „TagStudio“, deren
+Damit sich Nutzer ohne eigene App anmelden können, braucht es **eine** App-Registrierung „TagStudioSX“, deren
 Client-ID im Plugin als Vorgabe steht. Die Client-ID eines öffentlichen Clients ist **kein Geheimnis** (sie steht in
 jeder Anmeldeadresse); ein Secret gibt es nicht.
 
@@ -55,10 +55,10 @@ Einstellungen der Registrierung:
 
 | Einstellung | Wert | Warum |
 |---|---|---|
-| Name | `TagStudio` | erscheint im Zustimmungsdialog **und** als Ordnername `Apps/TagStudio` |
+| Name | `TagStudioSX` | erscheint im Zustimmungsdialog **und** als Ordnername `Apps/TagStudio` |
 | Unterstützte Kontotypen | **Nur persönliche Microsoft-Konten** (`signInAudience = PersonalMicrosoftAccount`) | Vorgabe User; Geschäftskonten werden von Microsoft abgewiesen |
 | Plattform | „Mobile Anwendungen und Desktopanwendungen“ (öffentlicher Client) | kein Secret, PKCE |
-| Umleitungs-URI | `http://localhost/callback` | bei `localhost` ignoriert Microsoft den Port → TagStudio darf einen freien Port wählen |
+| Umleitungs-URI | `http://localhost/callback` | bei `localhost` ignoriert Microsoft den Port → TagStudioSX darf einen freien Port wählen |
 | Öffentliche Clientflows | Ja | Desktop-App ohne Secret |
 | API-Berechtigungen (delegiert, Microsoft Graph) | `Files.ReadWrite.AppFolder`, `offline_access` (+ ggf. `User.Read`, OD3) | geringste Rechte, siehe §5 |
 | Branding | Logo, Startseite (GitHub-Seite), Datenschutzerklärung, Nutzungsbedingungen | Vertrauen im Zustimmungsdialog; Herausgeber bleibt ohne Verifizierung „nicht überprüft“ (OD7) |
@@ -67,12 +67,12 @@ Einstellungen der Registrierung:
 ## 4. Anmeldung (Authorization Code Flow mit PKCE)
 
 ```
-TagStudio                          Browser                         login.microsoftonline.com/consumers
+TagStudioSX                          Browser                         login.microsoftonline.com/consumers
    │ 1. verifier, challenge, state     │                                      │
    │ 2. Loopback-Server 127.0.0.1+[::1]:<freier Port>                         │
    │ 3. öffnet Anmeldeadresse ────────▶│ ── GET /oauth2/v2.0/authorize ──────▶│
    │                                   │◀─ Anmeldung (Passwort/Passkey/2FA) ─│
-   │                                   │◀─ Zustimmung „TagStudio vertrauen“ ─│
+   │                                   │◀─ Zustimmung „TagStudioSX vertrauen“ ─│
    │◀─ 4. GET /callback?code&state ────│                                      │
    │ 5. state prüfen, Seite „fertig“   │                                      │
    │ 6. POST /oauth2/v2.0/token (code, verifier, redirect_uri, client_id) ──▶│
@@ -84,7 +84,7 @@ TagStudio                          Browser                         login.microso
 
 - Autorisierung: `https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize`
 - Token: `https://login.microsoftonline.com/consumers/oauth2/v2.0/token`
-- `client_id` (Vorgabe TagStudio-App bzw. eigene App), `response_type=code`, `redirect_uri=http://localhost:<Port>/callback`,
+- `client_id` (Vorgabe TagStudioSX-App bzw. eigene App), `response_type=code`, `redirect_uri=http://localhost:<Port>/callback`,
   `scope=Files.ReadWrite.AppFolder offline_access`, `code_challenge_method=S256`, `code_challenge`, `state`
   (zufällig, 128 Bit), `prompt=select_account` (Konto wählbar, wenn im Browser schon ein anderes angemeldet ist).
 - `consumers` statt `common`: Geschäfts- und Schulkonten kommen gar nicht erst zur Anmeldung.
@@ -106,7 +106,7 @@ TagStudio                          Browser                         login.microso
 App-Ordner-Berechtigung nicht erlaubt ist – **ZU PRÜFEN** beim ersten echten Test):
 
 - `driveType` muss `personal` sein, sonst Abmelden mit Hinweis „nur private Microsoft-Konten“.
-- `drive.id` und Anzeigename merken (§6.1). Meldet sich später ein **anderes** Konto an, fragt TagStudio, ob der
+- `drive.id` und Anzeigename merken (§6.1). Meldet sich später ein **anderes** Konto an, fragt TagStudioSX, ob der
   Abgleich-Zustand dieses Kontos verworfen werden soll (sonst würde „im Dienst gelöscht“ fälschlich gemeldet).
 
 ### 4.4 Eigene App (Erweitert)
@@ -125,8 +125,8 @@ Einstellungen wie §3. Ohne Vorgabe-ID (OD1 nicht erfüllt) bleibt das der einzi
 | ~~`Files.ReadWrite`~~ | ganzes OneDrive | nur noch für die eigene App mit altem Ordner `/TagStudio` (Übergang, OD4) |
 
 Der App-Ordner wird beim ersten Zugriff angelegt, heisst nach dem App-Namen und kann vom User umbenannt oder
-verschoben werden – TagStudio adressiert ihn immer über `special/approot`, nie über einen Pfad. Legt der User selbst
-Dateien hinein, sieht TagStudio sie (die Grenze ist der Ordner, nicht die Datei); `cloudsync` beachtet weiterhin nur
+verschoben werden – TagStudioSX adressiert ihn immer über `special/approot`, nie über einen Pfad. Legt der User selbst
+Dateien hinein, sieht TagStudioSX sie (die Grenze ist der Ordner, nicht die Datei); `cloudsync` beachtet weiterhin nur
 die erlaubten Endungen je Teil.
 
 ## 6. Datenmodell
@@ -228,7 +228,7 @@ Mindestabstand je Host bleibt (`INTERVALS`, 0,1 s); gleichzeitig höchstens **ei
 
 | Bedrohung | Massnahme |
 |---|---|
-| Passwort-Diebstahl durch TagStudio | Anmeldung nur im System-Browser auf `login.microsoftonline.com`; kein eingebettetes Fenster, kein Passwortfeld |
+| Passwort-Diebstahl durch TagStudioSX | Anmeldung nur im System-Browser auf `login.microsoftonline.com`; kein eingebettetes Fenster, kein Passwortfeld |
 | Untergeschobener Code (CSRF / fremde Rückleitung) | `state` (128 Bit) und PKCE S256; Code ohne passenden Verifier wertlos |
 | Abfangen des Codes durch anderes Programm | Loopback nur auf diesem Rechner, kurz offen, eine Antwort; PKCE |
 | Zu viel Zugriff | `Files.ReadWrite.AppFolder` statt `Files.ReadWrite`; `consumers` statt `common` |
@@ -243,14 +243,14 @@ Mindestabstand je Host bleibt (`INTERVALS`, 0,1 s); gleichzeitig höchstens **ei
 ### 8.2 Abmelden und Widerrufen
 
 - „Abmelden …“ löscht Token, `pending` und Kontoangaben lokal (Abgleich-Zustand auf Wunsch).
-- Microsoft bietet für private Konten keinen Widerruf per API; TagStudio verlinkt die Seite „Apps und Dienste“
-  im Microsoft-Konto, wo der User „TagStudio“ den Zugriff entzieht (genaue Adresse **ZU PRÜFEN**).
-- Passwortänderung beim Microsoft-Konto widerruft Erneuerungs-Token aus Passwort-Anmeldungen → TagStudio fragt beim
+- Microsoft bietet für private Konten keinen Widerruf per API; TagStudioSX verlinkt die Seite „Apps und Dienste“
+  im Microsoft-Konto, wo der User „TagStudioSX“ den Zugriff entzieht (genaue Adresse **ZU PRÜFEN**).
+- Passwortänderung beim Microsoft-Konto widerruft Erneuerungs-Token aus Passwort-Anmeldungen → TagStudioSX fragt beim
   nächsten Abgleich nach neuer Anmeldung.
 
 ### 8.3 Datenschutz
 
-TagStudio überträgt nur an Microsoft und nur die abgeglichenen Dateien. Kein eigener Server, keine Telemetrie. In
+TagStudioSX überträgt nur an Microsoft und nur die abgeglichenen Dateien. Kein eigener Server, keine Telemetrie. In
 PLUGINS.md und im Handbuch: was abgeglichen wird, wo es liegt (`Apps/TagStudio`), wie man den Zugriff entzieht.
 
 ### 8.4 Umleitungen (#401)
@@ -263,7 +263,7 @@ Schema oder Host `Authorization` und `Cookie` entfernt. Gilt für alle Dienst-Pl
 
 - **Laufzeiten:** Zugriffs-Token laut `expires_in` (typisch ~1 h); Erneuerungs-Token bei Desktop-Apps standardmässig
   90 Tage, jede Erneuerung liefert einen **neuen** Erneuerungs-Token. Microsoft kann ihn jederzeit ungültig machen –
-  TagStudio verlässt sich auf keine feste Dauer.
+  TagStudioSX verlässt sich auf keine feste Dauer.
 - **Erneuern:** 60 s vor `expires_at` bzw. einmal nach 401. Den neuen Erneuerungs-Token sofort speichern, den alten
   verwerfen (Microsoft widerruft alte nicht selbst).
 - **Sperre:** Erneuerung pro Plugin mit Sperre (`threading.Lock`), nach der Sperre Token neu lesen – zwei
@@ -293,7 +293,7 @@ Echte Tests nur mit dem Konto des Users und der registrierten App (Client-ID tr�
 
 | ID | Frage | Vorschlag |
 |---|---|---|
-| OD1 | Registrierst du die App „TagStudio“ in einem eigenen Verzeichnis (Azure-Anmeldung bzw. M365 Developer Program)? Ohne sie bleibt nur die eigene App. | Ja, wenn das Verzeichnis ohne Kosten geht; sonst OneDrive bei „eigene App“ belassen |
+| OD1 | Registrierst du die App „TagStudioSX“ in einem eigenen Verzeichnis (Azure-Anmeldung bzw. M365 Developer Program)? Ohne sie bleibt nur die eigene App. | Ja, wenn das Verzeichnis ohne Kosten geht; sonst OneDrive bei „eigene App“ belassen |
 | OD2 | App-Ordner (`Apps/TagStudio`, `Files.ReadWrite.AppFolder`) statt `/TagStudio` mit Zugriff aufs ganze OneDrive? | App-Ordner |
 | OD3 | `User.Read` für den Anzeigenamen? | Nein, nur falls `owner` fehlt |
 | OD4 | Bestehende Daten in `/TagStudio`: (a) einmal herunterladen und in den App-Ordner hochladen, (b) Hinweis „bitte selbst verschieben“, (c) eigene App behält den alten Ordner | (a) über den lokalen Stand: Abgleich lädt alles neu hoch, alter Ordner bleibt unangetastet |
@@ -304,7 +304,7 @@ Echte Tests nur mit dem Konto des Users und der registrierten App (Client-ID tr�
 
 ## 12. Testliste (für das Umsetzungs-Issue)
 
-- [ ] Ohne eigene App: „Anmelden …“ öffnet den Browser, Anmeldung mit privatem Konto, Zustimmung, zurück in TagStudio
+- [ ] Ohne eigene App: „Anmelden …“ öffnet den Browser, Anmeldung mit privatem Konto, Zustimmung, zurück in TagStudioSX
 - [ ] Geschäfts-/Schulkonto wird abgewiesen (Meldung „nur private Microsoft-Konten“)
 - [ ] Zustimmung abgelehnt → verständliche Meldung, nichts gespeichert
 - [ ] Port frei gewählt; „Adresse einfügen“ funktioniert weiterhin

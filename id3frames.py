@@ -1,9 +1,9 @@
-"""MarKusSXCH TagStudio – Katalog aller ID3v2-Frames (#98) und lesbare Kurzfassungen für Binär-Frames.
+"""TagStudioSX – Katalog aller ID3v2-Frames (#98) und lesbare Kurzfassungen für Binär-Frames.
 
 SPEC enthält jeden Frame aus ID3v2.3 und ID3v2.4 (inkl. Kapitel-Erweiterung CHAP/CTOC) sowie verbreitete
 inoffizielle Frames (iTunes, Podcasts). Daraus entstehen die v2.2-Zuordnung, die Übersicht docs/ID3-FELDER.md
 (`python tools/id3_frames_doc.py`) und die Tests. `describe()` liefert für Binär-Frames einen lesbaren Text,
-den TagStudio statt „n Bytes · Prüfsumme“ anzeigt. Geschrieben wird immer byte-genau (siehe id3tags.Item.to_frames).
+den TagStudioSX statt „n Bytes · Prüfsumme“ anzeigt. Geschrieben wird immer byte-genau (siehe id3tags.Item.to_frames).
 Nur Standardbibliothek.
 """
 from __future__ import annotations
@@ -136,7 +136,7 @@ def _short(s: str, n: int = 120) -> str:
 
 # --------------------------------------------------------------------------- Kurzfassungen
 def describe(fid: str, p: bytes | None, ver: int = 4) -> str | None:
-    """Lesbare Kurzfassung eines Binär-Frames oder None (dann zeigt TagStudio Grösse und Prüfsumme)."""
+    """Lesbare Kurzfassung eines Binär-Frames oder None (dann zeigt TagStudioSX Grösse und Prüfsumme)."""
     if p is None:
         return None
     try:
@@ -325,7 +325,7 @@ _DESCRIBE = {"PCNT": _pcnt, "SYLT": _sylt, "ETCO": _etco, "MLLT": _mllt, "SYTC":
 
 # --------------------------------------------------------------------------- Übersicht
 def capabilities(fid: str) -> dict:
-    """Was TagStudio mit dem Frame kann: lesen, anzeigen, bearbeiten, schreiben (+ Hinweis)."""
+    """Was TagStudioSX mit dem Frame kann: lesen, anzeigen, bearbeiten, schreiben (+ Hinweis)."""
     from id3tags import _kind_of
     k = _kind_of(fid)
     if fid == "IPLS":

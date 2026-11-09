@@ -131,9 +131,9 @@
   "no key saved (plugin Last.fm › {q})",
   "kän Schlüssel gspicheret (Plugin Last.fm › {q})"
  ],
- "Kostenlos mit Last.fm-Konto. {n}. Anmelden. {n}. {q} öffnen. {n}. Kontakt-E-Mail, Anwendungsname (z. B. TagStudio) und kurze Beschreibung eintragen, Callback-URL und Homepage leer lassen, absenden. {n}. Den {q} kopieren (nicht das {q}) und unten einfügen.": [
-  "Free with a Last.fm account. {n}. Sign in. {n}. Open {q}. {n}. Enter contact e-mail, application name (e.g. TagStudio) and a short description, leave callback URL and homepage empty, submit. {n}. Copy the {q} (not the {q}) and paste it below.",
-  "Gratis mit Last.fm-Konto. {n}. Aamälde. {n}. {q} uftue. {n}. Kontakt-E-Mail, Aawändigsname (z. B. TagStudio) und e churzi Beschriibig iiträge, Callback-URL und Homepage läär lah, abschicke. {n}. De {q} kopiere (nöd s {q}) und une iifüege."
+ "Kostenlos mit Last.fm-Konto. {n}. Anmelden. {n}. {q} öffnen. {n}. Kontakt-E-Mail, Anwendungsname (z. B. TagStudioSX) und kurze Beschreibung eintragen, Callback-URL und Homepage leer lassen, absenden. {n}. Den {q} kopieren (nicht das {q}) und unten einfügen.": [
+  "Free with a Last.fm account. {n}. Sign in. {n}. Open {q}. {n}. Enter contact e-mail, application name (e.g. TagStudioSX) and a short description, leave callback URL and homepage empty, submit. {n}. Copy the {q} (not the {q}) and paste it below.",
+  "Gratis mit Last.fm-Konto. {n}. Aamälde. {n}. {q} uftue. {n}. Kontakt-E-Mail, Aawändigsname (z. B. TagStudioSX) und e churzi Beschriibig iiträge, Callback-URL und Homepage läär lah, abschicke. {n}. De {q} kopiere (nöd s {q}) und une iifüege."
  ],
  "Last.fm: API-Schlüssel": [
   "Last.fm: API key",
@@ -223,9 +223,9 @@
   "Report playback (scrobbling)",
   "Wiedergaab mälde (Scrobble)"
  ],
- "braucht Anmeldung; TagStudio meldet nichts": [
-  "needs sign-in; TagStudio reports nothing",
-  "bruucht Aamäldig; TagStudio meldet nüüt"
+ "braucht Anmeldung; TagStudioSX meldet nichts": [
+  "needs sign-in; TagStudioSX reports nothing",
+  "bruucht Aamäldig; TagStudioSX meldet nüüt"
  ],
  ", {x} Fehler (siehe Protokoll)": [
   ", {x} errors (see log)",
@@ -503,9 +503,9 @@
   "Model loaded – starting separation …",
   "Modäll glaade – starte Tränig …"
  ],
- "Trennt Titel in Einzelspuren (Vocals, Drums, Bass, Instrumental …) mit KI-Modellen von audio-separator (Demucs, BS-RoFormer, Mel-Band-RoFormer). Läuft in einer eigenen Python-Umgebung – unabhängig von der Python-Version von TagStudio. FFmpeg ist enthalten.": [
-  "Separates tracks into single tracks (vocals, drums, bass, instrumental …) with AI models from audio-separator (Demucs, BS-RoFormer, Mel-Band-RoFormer). Runs in its own Python environment – independent of TagStudio's Python version. FFmpeg is included.",
-  "Tränt Titel i Einzelspure (Vocals, Drums, Bass, Instrumental …) mit KI-Modäll vo audio-separator (Demucs, BS-RoFormer, Mel-Band-RoFormer). Lauft i ere eigete Python-Umgäbig – unabhängig vo de Python-Version vo TagStudio. FFmpeg isch debii."
+ "Trennt Titel in Einzelspuren (Vocals, Drums, Bass, Instrumental …) mit KI-Modellen von audio-separator (Demucs, BS-RoFormer, Mel-Band-RoFormer). Läuft in einer eigenen Python-Umgebung – unabhängig von der Python-Version von TagStudioSX. FFmpeg ist enthalten.": [
+  "Separates tracks into single tracks (vocals, drums, bass, instrumental …) with AI models from audio-separator (Demucs, BS-RoFormer, Mel-Band-RoFormer). Runs in its own Python environment – independent of TagStudioSX's Python version. FFmpeg is included.",
+  "Tränt Titel i Einzelspure (Vocals, Drums, Bass, Instrumental …) mit KI-Modäll vo audio-separator (Demucs, BS-RoFormer, Mel-Band-RoFormer). Lauft i ere eigete Python-Umgäbig – unabhängig vo de Python-Version vo TagStudioSX. FFmpeg isch debii."
  ],
  "Installieren (Prozessor)": [
   "Install (processor)",

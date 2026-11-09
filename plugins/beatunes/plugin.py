@@ -2,7 +2,7 @@
 
 beaTunes schreibt (je nach Analyse-Einstellungen) u. a. TXXX:MOOD_DANCEABILITY, MOOD_ACOUSTIC, MOOD_ELECTRONIC,
 MOOD_HAPPY, MOOD_SAD, MOOD_AGGRESSIVE, MOOD_RELAXED, MOOD_PARTY – Werte 0–100. Zugeordnet werden die, für die es ein
-TagStudio-Merkmal gibt; die übrigen erscheinen als Hinweis. Abgleich über importsync: geänderte beaTunes-Werte
+TagStudioSX-Merkmal gibt; die übrigen erscheinen als Hinweis. Abgleich über importsync: geänderte beaTunes-Werte
 werden nur angehakt, wenn die Datei seit dem letzten Übernehmen unverändert ist – sonst fragt die Vorschau.
 Nur Standardbibliothek.
 """

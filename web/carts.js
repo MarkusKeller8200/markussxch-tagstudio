@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Warenkorb (#420–#424, #433–#437): Titel zum Kaufen in Warenkörben sammeln (Liste einfügen, aus
+/* TagStudioSX – Warenkorb (#420–#424, #433–#437): Titel zum Kaufen in Warenkörben sammeln (Liste einfügen, aus
    Ideen, von Hand, per Link – jeweils mit Vorschau), Assistent Schritt für Schritt, auf bereits gekaufte prüfen, bei Beatport zuordnen und die Einkaufsliste als Playlist TagStudio_CART_…
    senden (nur auf Klick). Körbe bleiben als Historik „Offen“/„Gekauft“. Logik in carts.py / session_carts.py. */
 "use strict";
@@ -215,7 +215,7 @@ async function cartsAddDone(r) {
   return r.added > 0;
 }
 
-/** #437: Anleitung je Quelle mit Link (öffnet nur die Webseite im Browser – TagStudio liest dort nichts aus) */
+/** #437: Anleitung je Quelle mit Link (öffnet nur die Webseite im Browser – TagStudioSX liest dort nichts aus) */
 const CART_TXT_GUIDE = {
   "1001tracklists": { name: "1001Tracklists", url: "https://www.1001tracklists.com/",
     steps: ["Tracklist auf 1001tracklists.com öffnen.", "Die Titelliste markieren und kopieren.", "Hier einfügen."] },
@@ -228,7 +228,7 @@ async function cartsText() {
     title: "Liste einfügen", wide: true,
     html: `<div class="row" style="gap:8px;margin:0 0 8px;align-items:center"><label for="ctSrc">Quelle</label><select id="ctSrc" class="inp"><option value="1001tracklists">1001Tracklists</option><option value="mixid">MixID</option><option value="text">andere Quelle</option></select></div>
       <div class="hint"><div id="ctGuide"></div>
-      <div class="muted sm" style="margin-top:4px">Auch eine Beatport-Chart oder eigene Notizen gehen – je Zeile „Künstler - Titel (Mix)“. Nummern, Zeitmarken und Labels in [eckigen Klammern] fallen weg, „ID - ID“ wird ausgelassen. Vor dem Übernehmen zeigt eine Vorschau alle erkannten Titel. TagStudio ruft dafür keine Webseite ab.</div></div>
+      <div class="muted sm" style="margin-top:4px">Auch eine Beatport-Chart oder eigene Notizen gehen – je Zeile „Künstler - Titel (Mix)“. Nummern, Zeitmarken und Labels in [eckigen Klammern] fallen weg, „ID - ID“ wird ausgelassen. Vor dem Übernehmen zeigt eine Vorschau alle erkannten Titel. TagStudioSX ruft dafür keine Webseite ab.</div></div>
       <textarea id="ctTxt" class="fe-val" style="width:100%;min-height:220px;font-family:var(--mono, monospace)" spellcheck="false" translate="no" autofocus placeholder="[01:54] Künstler - Titel (Extended Mix) [Label]"></textarea>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Weiter zur Vorschau", value: true, primary: true }],
     onMount: (b) => {

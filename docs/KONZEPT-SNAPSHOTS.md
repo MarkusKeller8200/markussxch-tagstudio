@@ -4,19 +4,19 @@ Stand: 2026-10-10 · Status: **umgesetzt in Version 3.3.0** (Ausbau: Issue #59) 
 
 ## 1. Ziel
 
-DJ-Bibliotheken werden nicht nur mit TagStudio bearbeitet. **Mp3tag, beaTunes, Mixed In Key, Platinum Notes,
+DJ-Bibliotheken werden nicht nur mit TagStudioSX bearbeitet. **Mp3tag, beaTunes, Mixed In Key, Platinum Notes,
 Rekordbox, Serato** und andere schreiben ebenfalls in die Tags – oft im Hintergrund, in vielen Dateien gleichzeitig
-und ohne Protokoll. TagStudio soll das sichtbar und umkehrbar machen:
+und ohne Protokoll. TagStudioSX soll das sichtbar und umkehrbar machen:
 
 1. **Snapshot:** den Tag-Zustand eines überwachten Ordners festhalten – schnell und platzsparend, ohne Audiodaten.
 2. **Änderungsjournal:** später zeigen, welche Titel sich seit einem Snapshot verändert haben, welche Felder und
    vermutlich durch welches Programm.
 3. **Rückgängig:** einzelne Felder, einzelne Titel oder ganze Gruppen auf den Snapshot-Stand zurücksetzen –
-   mit Vorschau, Rückgängig und Sicherung wie überall in TagStudio.
+   mit Vorschau, Rückgängig und Sicherung wie überall in TagStudioSX.
 4. **Vergleich:** einen Snapshot (oder zwei) auf der bestehenden Vergleichsseite gegen den Live-Stand legen und
    Werte gezielt übernehmen.
 
-Typischer Ablauf: *Snapshot „Vor Mixed In Key“ → MIK analysiert 300 Titel → TagStudio zeigt 300 geänderte Titel,
+Typischer Ablauf: *Snapshot „Vor Mixed In Key“ → MIK analysiert 300 Titel → TagStudioSX zeigt 300 geänderte Titel,
 davon 280 nur Tonart/Energie (erwünscht) und 20 mit überschriebenem Kommentar (unerwünscht) → die 20 Kommentare mit
 einem Klick zurücksetzen.*
 
@@ -24,7 +24,7 @@ einem Klick zurücksetzen.*
 
 | | Sicherungen (heute) | Snapshots (neu) |
 |---|---|---|
-| Auslöser | automatisch, bevor **TagStudio** speichert | von Hand, beim Start oder zeitgesteuert |
+| Auslöser | automatisch, bevor **TagStudioSX** speichert | von Hand, beim Start oder zeitgesteuert |
 | Umfang | nur die gespeicherten Dateien | ein ganzer überwachter Ordner |
 | Erkennt Änderungen durch | – | **alle** Programme |
 | Zweck | eigenes Speichern rückgängig machen | fremde Änderungen finden und gezielt zurücknehmen |
@@ -58,7 +58,7 @@ gemeldet** (entschieden, keine Audio-Sicherung).
 
 ```
 ~/TagStudio/Snapshots/                     Standard; vom Benutzer wählbar und später verschiebbar
-  store.json                               Format-Version des Speichers, erstellt mit TagStudio x.y
+  store.json                               Format-Version des Speichers, erstellt mit TagStudioSX x.y
   objects/ab/abcdef….z                     einzelne Frames (zlib), Name = SHA-256 des Inhalts
   libs/<id>/library.json                   überwachter Ordner: Pfad, Name, Einstellungen
   libs/<id>/snaps/2026-10-09_1830_<id>.json.gz   Manifest eines Snapshots
@@ -77,7 +77,7 @@ gemeldet** (entschieden, keine Audio-Sicherung).
 
 ### Speicherort, Weitergabe und Versionierung
 
-- **Standard:** `~/TagStudio/Snapshots` (Benutzerverzeichnis von TagStudio). In den Einstellungen wählbar – global
+- **Standard:** `~/TagStudio/Snapshots` (Benutzerverzeichnis von TagStudioSX). In den Einstellungen wählbar – global
   oder je überwachtem Ordner.
 - **Später verschieben:** „Speicherort ändern …“ kopiert den ganzen Speicher (Objekte + Manifeste) an den neuen
   Ort, prüft ihn und entfernt erst danach den alten. Typischer Fall: Speicher **in den Bibliotheksordner** legen
@@ -85,11 +85,11 @@ gemeldet** (entschieden, keine Audio-Sicherung).
   Rechnern zu nutzen. Weil Pfade relativ zum überwachten Ordner gespeichert sind, funktioniert das auch mit anderem
   Laufwerksbuchstaben oder auf dem Mac.
 - **Snapshots im fremden Ordner erkennen:** Wird ein Ordner eingelesen, der einen Snapshot-Speicher enthält, bietet
-  TagStudio an, ihn zu übernehmen.
+  TagStudioSX an, ihn zu übernehmen.
 - **Versionierung:** `store.json` enthält `format` (Format-Version des Speichers) und jedes Manifest seine eigene
-  Version. Neuere TagStudio-Versionen lesen ältere Formate weiter und **migrieren** beim ersten Schreiben (vorher
+  Version. Neuere TagStudioSX-Versionen lesen ältere Formate weiter und **migrieren** beim ersten Schreiben (vorher
   Kopie von `store.json` und Manifesten); ein Speicher aus einer **neueren** Version wird nur gelesen, nicht
-  verändert, mit Hinweis „bitte TagStudio aktualisieren“. Objekte (Frames) sind formatunabhängig.
+  verändert, mit Hinweis „bitte TagStudioSX aktualisieren“. Objekte (Frames) sind formatunabhängig.
 
 ### Speicherplatz im Blick
 
@@ -170,26 +170,26 @@ Vergleich auf **Werte**, nicht auf Bytes – sonst würde jede v2.3/v2.4-Umschre
 
 ### 5.4 Beim Start
 
-- **Täglicher Snapshot (Standard: an, abschaltbar):** Beim ersten Start eines Tages erstellt TagStudio automatisch
+- **Täglicher Snapshot (Standard: an, abschaltbar):** Beim ersten Start eines Tages erstellt TagStudioSX automatisch
   einen Snapshot je überwachtem Ordner (Hintergrund-Auftrag).
-- **Frage beim Start (Standard: an, abschaltbar):** Zusätzlich prüft TagStudio im Hintergrund schnell (nur Grösse
+- **Frage beim Start (Standard: an, abschaltbar):** Zusätzlich prüft TagStudioSX im Hintergrund schnell (nur Grösse
   und Änderungszeit), was sich seit dem letzten Snapshot getan hat, und fragt dann – auch wenn heute schon ein
   automatischer Snapshot existiert, damit man untertags gezielt einen weiteren erstellen kann:
 
-  > **01_Library:** 37 Titel wurden seit dem letzten Snapshot (Mo 18:30) ausserhalb von TagStudio geändert.
+  > **01_Library:** 37 Titel wurden seit dem letzten Snapshot (Mo 18:30) ausserhalb von TagStudioSX geändert.
   > [Journal ansehen] [Neuen Snapshot erstellen] [Später]   ☐ Nicht mehr fragen
 
   Ohne Änderungen nur ein dezenter Hinweis bzw. still ein neuer Snapshot (einstellbar).
 - **Einstellungen** (Bereich „Snapshots“): überwachte Ordner, täglicher Snapshot ein/aus, Frage beim Start ein/aus,
   Aufbewahrung (Anzahl automatische, Wochen), Speicherort (ändern/verschieben), „Gründlich“, Speicherplatz.
 
-### 5.5 Während TagStudio läuft (Ordnerüberwachung)
+### 5.5 Während TagStudioSX läuft (Ordnerüberwachung)
 
 - Die Standardbibliothek von Python hat keine Dateisystem-Ereignisse; überwacht wird darum **sparsam per
   Abfrage** (alle 5 Minuten, einstellbar): nur Grösse/Änderungszeit, je Ordner ein Listing.
 - Fund → Hinweis in der Fussleiste („12 Titel extern geändert“), Klick öffnet das Journal *letzter Snapshot ↔ Jetzt*.
 - **Konfliktschutz beim Speichern (wichtig, auch ohne Snapshots):** Hat ein anderes Programm eine Datei geändert,
-  seit TagStudio sie eingelesen hat, darf Speichern diese Änderung nicht stillschweigend überschreiben. Vor dem
+  seit TagStudioSX sie eingelesen hat, darf Speichern diese Änderung nicht stillschweigend überschreiben. Vor dem
   Speichern werden Grösse/Änderungszeit geprüft; bei Abweichung: „Datei wurde extern geändert – Unterschiede
   ansehen / trotzdem speichern / neu einlesen“.
 

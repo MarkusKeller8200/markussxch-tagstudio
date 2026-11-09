@@ -38,7 +38,7 @@ Text sind das etwa 120 000 Zeichen – für eine KI-Übersetzung wenig, für die
 **Sprachcodes (BCP 47, Entscheid 16.10.2026: Zürichdeutsch):**
 | Code | Sprache | Rolle |
 |---|---|---|
-| `de-CH` | Schweizer Hochdeutsch (mit „ss“) | **Ausgangssprache** – so ist TagStudio heute geschrieben |
+| `de-CH` | Schweizer Hochdeutsch (mit „ss“) | **Ausgangssprache** – so ist TagStudioSX heute geschrieben |
 | `de-DE` | Deutsch (Deutschland, mit „ß“) | optional, weitgehend automatisch aus `de-CH` (ss → ß nach Wörterliste) |
 | `gsw-u-sd-chzh` | Zürichdeutsch (Mundart) | `gsw` = Schweizerdeutsch, `sd-chzh` = Kanton Zürich |
 | `en` | Englisch | erste Übersetzung |
@@ -121,14 +121,14 @@ Umgesetzt wurde eine **Übersetzungsschicht über dem DOM** statt Schlüsseln im
 
 ## Übersetzung (Entscheid 17.10.2026)
 
-**Ergebnis der Probe (16./17.10.2026):** 50 echte TagStudio-Texte, übersetzt von Apertus v1.5-70B (über Hugging Face)
+**Ergebnis der Probe (16./17.10.2026):** 50 echte TagStudioSX-Texte, übersetzt von Apertus v1.5-70B (über Hugging Face)
 und von Claude, bewertet vom User. Apertus: Englisch brauchbar mit Fehlern („Stufen“ → „Levels“, Sinnfehler bei
 „nach links“), Mundart in keiner Variante (Zürich, Zürich mit Wortliste, Bern, Basel, allgemein) brauchbar, Platzhalter
 teils verdoppelt. **Claude-Übersetzung am besten** (Englisch und Zürichdeutsch). Ergebnisse als Kommentare in #157
 (Probe-Workflow nach dem Entscheid entfernt).
 
 **Entscheid:**
-- **Keine KI-Anbindung in TagStudio.** Die mitgelieferten Sprachen (`de-CH`, `en`, `gsw-u-sd-chzh`) übersetzt Claude
+- **Keine KI-Anbindung in TagStudioSX.** Die mitgelieferten Sprachen (`de-CH`, `en`, `gsw-u-sd-chzh`) übersetzt Claude
   direkt bei der Entwicklung: Jeder neue oder geänderte Text kommt im selben Commit in allen Sprachdateien an; der User
   prüft beim Testen. Ein Test stellt sicher, dass kein Schlüssel in einer mitgelieferten Sprache fehlt.
 - **Bestehende Texte** (~3 000–3 500) werden beim Umbau (Phase 2) Modul für Modul gleich mitübersetzt.

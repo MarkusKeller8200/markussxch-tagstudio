@@ -1132,7 +1132,7 @@ class UiTest(unittest.TestCase):
         pg.click('#mBody [data-stcat="other"]')
         self.assertEqual(pg.locator("#mBody .st-row").count(), 4)
         pg.click('#mBody [data-stcat=""]')
-        self.assertIn("TagStudio 9.9.0", pg.inner_text("#mBody"))
+        self.assertIn("TagStudioSX 9.9.0", pg.inner_text("#mBody"))
         self.assertIn("Update verfügbar", pg.inner_text('.pl-card[data-pid="lexicon"] .pl-box.upd'))
         pg.click('#mBody [data-stinst="neu"]')
         self.assertTrue(self.until("window.__calls.some((c) => c[0] === 'start_plugin_store_install' && c[1] === 'neu')"))
@@ -1538,7 +1538,7 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("call('window_titles').then((r) => r.lang === 'en')"))
         pg.reload()
         pg.wait_for_function("typeof S !== 'undefined' && S.settings && I18N.lang === 'en'")
-        self.assertTrue(self.until("call('window_titles').then((r) => r.lang === 'en' && r.main.startsWith('MarKusSXCH TagStudio'))"))
+        self.assertTrue(self.until("call('window_titles').then((r) => r.lang === 'en' && r.main.startsWith('TagStudioSX'))"))
         self.assertEqual(self.errors, [])
 
     def test_i18n_side_and_system(self):
@@ -1599,7 +1599,7 @@ class UiTest(unittest.TestCase):
         self.assertTrue(self.until("/No own texts/.test(document.querySelector('#stLangInfo').textContent)"))
         with pg.expect_download() as dl:
             pg.click('[data-i18n-x="csv"]')
-        self.assertEqual(dl.value.suggested_filename, "TagStudio-Texte-en.csv")
+        self.assertEqual(dl.value.suggested_filename, "TagStudioSX-Texte-en.csv")
         src = os.path.join(self.dir, "eigene.json")
         with open(src, "w", encoding="utf-8") as fh:
             json.dump({"texts": {"Einlesen": "Read in", "Gibt es nicht": "x"}}, fh)

@@ -1,7 +1,7 @@
 """Rohes AAC (.aac, ADTS) – **nur lesen** (#455, Entscheid User 05.11.2026).
 
 ADTS hat kein eigenes Tag-System. Manche Programme setzen ein ID3v2 davor (wie bei MP3) oder hängen ein ID3v1 an;
-das liest TagStudio mit dem MP3-Leser. Geschrieben wird in .aac nie – für Tags die Datei als M4A speichern
+das liest TagStudioSX mit dem MP3-Leser. Geschrieben wird in .aac nie – für Tags die Datei als M4A speichern
 (Konverter „M4A – AAC“: ohne Neukodierung, nur in den MP4-Container umgepackt).
 """
 from __future__ import annotations

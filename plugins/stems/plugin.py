@@ -1,7 +1,7 @@
 """Stems – Titel in Einzelspuren trennen (audio-separator).
 
 Die Trennung läuft in worker.py im Python der eigenen Plugin-Umgebung (siehe plugin.json "env"),
-damit TagStudio selbst keine schweren Pakete (PyTorch …) braucht und jede Python-Version nutzen kann.
+damit TagStudioSX selbst keine schweren Pakete (PyTorch …) braucht und jede Python-Version nutzen kann.
 """
 import json
 import os

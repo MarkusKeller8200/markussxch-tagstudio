@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Playlists (#267): Speicher, Ordner, Archiv und Playlist-Ordner (M3U8).
+"""TagStudioSX – Playlists (#267): Speicher, Ordner, Archiv und Playlist-Ordner (M3U8).
 
 Massgebend ist der Speicher im Datenordner des Profils (``~/TagStudio/Playlists``):
 
@@ -6,7 +6,7 @@ Massgebend ist der Speicher im Datenordner des Profils (``~/TagStudio/Playlists`
     pl_<id>.json        eine Datei je Playlist (atomar geschrieben)
 
 Zusätzlich liegt jede aktive Playlist als M3U8 im **Playlist-Ordner** (Standard ``<Basisordner>/03_Playlists``),
-Unterordner = Ordner im Baum, Pfade relativ zur M3U8. TagStudio schreibt dort nur eigene Dateien und überschreibt
+Unterordner = Ordner im Baum, Pfade relativ zur M3U8. TagStudioSX schreibt dort nur eigene Dateien und überschreibt
 nie eine Datei, die ein anderes Programm geändert hat (→ ``external_changes``).
 
 Archivieren statt Löschen (wie bei den Titeln, #173): die Playlist bekommt ``archived``, ihre M3U8 wandert nach
@@ -565,7 +565,7 @@ def rekordbox_tree(groups, version: str = "", notation: str = "musical") -> str:
     setexport (path, title, artist, album, genre, duration, bpm, key)."""
     import keys
     root = ET.Element("DJ_PLAYLISTS", Version="1.0.0")
-    ET.SubElement(root, "PRODUCT", Name="MarKusSXCH TagStudio", Version=version or "", Company="")
+    ET.SubElement(root, "PRODUCT", Name="TagStudioSX", Version=version or "", Company="")
     col = ET.SubElement(root, "COLLECTION")
     ids = {}
     for g in groups:
@@ -1228,7 +1228,7 @@ class Store:
             return parse_m3u(fh.read(), os.path.dirname(path))
 
     def apply_external(self, rel, action) -> dict:
-        """Eine Änderung von aussen übernehmen ("take"), die TagStudio-Fassung behalten ("keep"; bei neuen Dateien:
+        """Eine Änderung von aussen übernehmen ("take"), die TagStudioSX-Fassung behalten ("keep"; bei neuen Dateien:
         ignorieren) oder – bei entfernten Dateien – die Playlist archivieren ("archive")."""
         ch = next((c for c in self.external_changes() if c["rel"] == rel), None)
         if ch is None:
@@ -1263,7 +1263,7 @@ class Store:
             self.index["written"][pid]["sha"] = sha_file(path)
             self.save_index()
             self.update(pid, "Änderung übernehmen", items=items)
-        elif ch["kind"] == "changed":                                   # TagStudio-Fassung behalten
+        elif ch["kind"] == "changed":                                   # TagStudioSX-Fassung behalten
             self.index["written"][pid]["sha"] = sha_file(path)
             self.save_index()
             self.sync([pid])

@@ -31,9 +31,9 @@ bleiben bei jedem Update erhalten.
 - **Update auf Knopfdruck (#234, Windows):** „Jetzt aktualisieren“ lädt den Installer aus dem Release nach
   `~\TagStudio\Updates`, prüft die SHA-256-Prüfsumme von GitHub (`digest` des Release-Assets; ohne Prüfsumme oder bei
   Abweichung wird nichts installiert, nur Adressen der Releases dieses Repos), fragt ungespeicherte Änderungen und
-  laufende Aufträge ab, speichert den Zustand und beendet TagStudio. Ein verborgenes PowerShell-Skript (`update.ps1`,
+  laufende Aufträge ab, speichert den Zustand und beendet TagStudioSX. Ein verborgenes PowerShell-Skript (`update.ps1`,
   Pfade mit Umlauten sicher) wartet aufs Ende, führt den Inno-Setup-Installer still aus (`/VERYSILENT … /CURRENTUSER`
-  bzw. `/ALLUSERS` bei Installation in „Programme“, Protokoll `update-installer.log`) und startet TagStudio neu.
+  bzw. `/ALLUSERS` bei Installation in „Programme“, Protokoll `update-installer.log`) und startet TagStudioSX neu.
   **macOS (#251, Entscheid 24.10.2026):** gleicher Ablauf mit dem DMG passend zum Prozessor (`Apple-Chip`/`Intel`,
   `updater.platform_asset`); `update.sh` (bash) wartet aufs Ende, hängt das DMG ein (`hdiutil attach -nobrowse
   -readonly`), verschiebt die alte App nach `~/TagStudio/Updates/vorherige-Version/` (bei Fehler zurück), kopiert die
@@ -55,18 +55,18 @@ bleiben bei jedem Update erhalten.
   und Release an (Beta = Pre-Release). Nach einer finalen Version entfernt `cleanup_betas.py` die Beta-Releases
   (Tags bleiben). Finale Versionen nur auf ausdrücklichen Wunsch des Users.
 
-**Developer Release (Entscheid 16.10.2026):** Läuft TagStudio aus dem Quellcode (Git) und liegen nach dem Tag der
+**Developer Release (Entscheid 16.10.2026):** Läuft TagStudioSX aus dem Quellcode (Git) und liegen nach dem Tag der
 laufenden Version `v<VERSION>` weitere Commits – oder fehlt dieser Tag noch –, zeigt die Seitenleiste „Version X ·
 Developer Release“ (Tooltip: Anzahl Änderungen, Stand, Basisversion). `updater.dev_info()` per `git describe --tags
 --long --match v[0-9]*`, einmal je Start zwischengespeichert. Die installierte App ist nie ein Developer Release.
 Betas sind nicht nötig, wenn alles auf `main` getestet ist (4.5.0 erschien direkt final).
 
-**Download-Statistik (#370, Entscheid User 26.10.2026: in TagStudio + Verlauf):** GitHub zählt je Release-Datei nur
+**Download-Statistik (#370, Entscheid User 26.10.2026: in TagStudioSX + Verlauf):** GitHub zählt je Release-Datei nur
 die Gesamtzahl (`download_count`). `downloadstats.py` holt alle Releases (öffentliche API, alle Seiten) und fasst je
 Version Windows-Setup, macOS-DMG und Plugin-ZIPs zusammen. Der Workflow „Download-Statistik“
 (`.github/workflows/download-stats.yml`, täglich 23:37 UTC und von Hand) schreibt die Zählerstände je Tag in den Zweig
 `stats` (`docs/download-stats.json`, `{"days": {Tag: {Tag-Name: [win, mac, plugins]}}}`, höchstens 800 Tage) – nie auf
-`main`, Pushes mit `GITHUB_TOKEN` lösen keine weiteren Workflows aus. TagStudio liest die Datei über
+`main`, Pushes mit `GITHUB_TOKEN` lösen keine weiteren Workflows aus. TagStudioSX liest die Datei über
 raw.githubusercontent.com und berechnet die neuen Downloads je Tag (`history`). Anzeige: Einstellungen › Expert ›
 Entwicklung › „Downloads je Version …“.
 
@@ -85,7 +85,7 @@ Handbuch ↔ Webseite, sonst GitHub (blob/main). Der Workflow „Download-Statis
 **Download-Kasten (#372):** Derselbe Workflow (stündlich) setzt oben in die Versionshinweise jedes Releases
 einen Kasten mit direkten Links (Windows zuerst, Grösse, Plugins zugeklappt) zwischen den Markierungen
 `<!-- tagstudio-downloads:start/end -->` und entfernt die alte Zeile „**Download:** …“. `installer.yml` bleibt
-unberührt (eine Änderung dort löst einen Build aus). TagStudio entfernt den Kasten in seinen Versionshinweisen
+unberührt (eine Änderung dort löst einen Build aus). TagStudioSX entfernt den Kasten in seinen Versionshinweisen
 (`updater._strip_dl` → `downloadstats.strip_block`). Release-Dateien können auf GitHub nicht in Ordner gelegt werden.
 
 ## 4. Umsetzung

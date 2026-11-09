@@ -1,11 +1,11 @@
 {
   "id": "deezer",
   "name": "Deezer",
-  "version": "1.1", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
+  "version": "1.2", "formats": ["mp3", "wav", "aiff", "flac", "m4a"],
   "min_app": "4.8.0",
   "category": "online",
   "api": 1,
-  "author": "MarKusSXCH TagStudio",
+  "author": "TagStudioSX",
   "description": "Öffentliche Deezer-API ohne Anmeldung: Titel über ISRC oder Suche, Album mit Label und Genre, BPM, Cover. Wird von „Online-Metadaten“ und „Entdecken“ (neue Veröffentlichungen, ähnliche Künstler, 30-s-Vorhören) genutzt.",
   "notes": "Keine Zusatzpakete nötig.",
   "fields": [
@@ -18,7 +18,7 @@
     "docs": "https://developers.deezer.com/api",
     "base": "https://api.deezer.com",
     "auth": "none",
-    "limits": "Grenze nicht verlässlich dokumentiert – TagStudio fragt höchstens etwa 6-mal pro Sekunde",
+    "limits": "Grenze nicht verlässlich dokumentiert – TagStudioSX fragt höchstens etwa 6-mal pro Sekunde",
     "terms": "https://developers.deezer.com/termsofuse",
     "endpoints": [
       {

@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – die einzige Stelle mit der Versionsnummer.
+"""TagStudioSX – die einzige Stelle mit der Versionsnummer.
 
 Schema MAJOR.MINOR.PATCH (Semantic Versioning):
   PATCH  Fehlerbehebungen                     3.0.0 → 3.0.1
@@ -11,4 +11,4 @@ Schlägt der Build fehl (kein Tag entstanden), nach der Korrektur eine Änderung
 der Workflow „Installer“ startet nur bei Änderungen hier bzw. unter packaging/ (ein Start von Hand legt kein Release an).
 """
 VERSION = "4.16.0"
-APP = "MarKusSXCH TagStudio"
+APP = "TagStudioSX"

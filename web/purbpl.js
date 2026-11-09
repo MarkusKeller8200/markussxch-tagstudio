@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Einkäufe: Playlists in Beatport (#334, #335).
+/* TagStudioSX – Einkäufe: Playlists in Beatport (#334, #335).
    „Download Tracks …“ trägt die Einkäufe ohne lokale Datei in TagStudio_DOWNLOAD_<Datum>_<n> ein (je 100 – mehr lädt
    Beatport nicht auf einmal); „Playlists je Kaufdatum …“ legt PRÄFIX_JJJJ_MM_TT an bzw. ergänzt sie. Beides ändert
    das Beatport-Konto – nur mit eingeschalteter Plugin-Einstellung und nur auf Klick; verändert werden ausschliesslich
@@ -23,7 +23,7 @@ async function purBpReady(s) {
   if (!s.available) { await info("Beatport nicht bereit", s.why || "Das Plugin „Beatport“ ist aus oder nicht angemeldet."); return false; }
   if (!s.playlists_write) {
     await info("Playlists in Beatport sind ausgeschaltet",
-      "TagStudio legt nur Playlists in deinem Beatport-Konto an, wenn du es erlaubst: Plugins › Beatport › „Einstellungen …“ › „Playlists in Beatport anlegen und befüllen“.");
+      "TagStudioSX legt nur Playlists in deinem Beatport-Konto an, wenn du es erlaubst: Plugins › Beatport › „Einstellungen …“ › „Playlists in Beatport anlegen und befüllen“.");
     return false;
   }
   return true;

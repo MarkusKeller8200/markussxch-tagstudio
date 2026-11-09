@@ -1,4 +1,4 @@
-"""Welche Dateiformate TagStudio kennt und welche Klasse sie liest/schreibt (#262).
+"""Welche Dateiformate TagStudioSX kennt und welche Klasse sie liest/schreibt (#262).
 
 MP3 bleibt der Standardweg (`id3tags.MP3File`). Für die anderen Formate liefert `MP3File(pfad)` über `open_class`
 die passende Unterklasse – so funktionieren alle Stellen, die `MP3File(pfad)` aufrufen, ohne Änderung, und nie wird

@@ -1,4 +1,4 @@
-# ID3-Felder in TagStudio
+# ID3-Felder in TagStudioSX
 
 Diese Übersicht wird aus `id3frames.py` erzeugt (`python tools/id3_frames_doc.py`) – bitte nicht von Hand ändern.
 Issue #98.
@@ -20,7 +20,7 @@ Issue #98.
 
 **Dateiformate (#156, #263, 4.16.0)**
 
-| Format | Tags von TagStudio | Zusätzlich gelesen | Hinweise |
+| Format | Tags von TagStudioSX | Zusätzlich gelesen | Hinweise |
 |---|---|---|---|
 | MP3 | ID3v2.3/v2.4 am Dateianfang | ID3v1 am Dateiende (wird auf Wunsch mitgeschrieben) | – |
 | WAV | ID3v2 im Chunk `id3 ` (bzw. `ID3 `) – **alle Frames wie bei MP3** | RIFF `LIST/INFO`, wenn kein ID3-Chunk da ist (nur lesen) | Einstellung „WAV und AIFF“; RF64 (über 4 GB) nur lesen; kein ID3v1 |
@@ -29,14 +29,14 @@ Issue #98.
 | AAC (.aac, roh) | **kein eigenes Tag-System** | ID3v2 davor bzw. ID3v1 am Ende (nur lesen) | **nur lesen** (#455, Einstellung „Weitere Formate“); für Tags als M4A speichern – Umwandeln › M4A – AAC packt ohne Neukodierung um |
 | FLAC / OGG Vorbis | Vorbis-Kommentare (`NAME=Wert`, frei wählbar); Cover in FLAC als `PICTURE`-Block, in OGG als `METADATA_BLOCK_PICTURE` | – | FLAC: Test (#264); **OGG/Opus nur lesen** (#266); Mehrfachwerte über mehrere gleiche Felder; Platzpuffer (PADDING) wird genutzt |
 
-Beim Speichern von WAV/AIFF ersetzt TagStudio nur den ID3-Chunk; INFO bzw. NAME/AUTH bleiben unverändert. Ob die
+Beim Speichern von WAV/AIFF ersetzt TagStudioSX nur den ID3-Chunk; INFO bzw. NAME/AUTH bleiben unverändert. Ob die
 DJ-Programme ein Feld in WAV/AIFF auch lesen, ist je Programm verschieden (Messreihe #446).
 
 **Spalten:** v2.2 = ID in ID3v2.2 · Version = 2.3, 2.4 oder inoffiziell · MP3 / WAV / AIFF = schreibbar (✔); dahinter
 das entsprechende Feld in ID3v1 bzw. im INFO-/AIFF-Textchunk (nur lesen) · MP4 / M4A, AAC, FLAC / OGG = Name des Felds
-im jeweiligen Format (so liest und schreibt TagStudio es; Namen mit Testdateien zu bestätigen, #453): ✔ = Standardfeld,
+im jeweiligen Format (so liest und schreibt TagStudioSX es; Namen mit Testdateien zu bestätigen, #453): ✔ = Standardfeld,
 ◐ = nur als freies Feld bzw. per Konvention, ✖ = gibt es nicht, * = Unterschied zwischen FLAC und OGG (unter der Tabelle)
-· Anzeige = Text, Bild, lesbare Kurzfassung oder Grösse + Prüfsumme · Bearbeiten = womit TagStudio das Feld ändern kann
+· Anzeige = Text, Bild, lesbare Kurzfassung oder Grösse + Prüfsumme · Bearbeiten = womit TagStudioSX das Feld ändern kann
 · Mp3tag = Feldname in Mp3tag.
 
 | Frame | v2.2 | Version | Bezeichnung | MP3 | WAV | AIFF | MP4 / M4A (AAC, ALAC) | AAC | FLAC / OGG | Anzeige | Bearbeiten | Mp3tag |

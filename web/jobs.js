@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Hintergrund-Aufträge (#29): Anzeige in der Fussleiste, Liste mit Abbrechen/Ordner,
+/* TagStudioSX – Hintergrund-Aufträge (#29): Anzeige in der Fussleiste, Liste mit Abbrechen/Ordner,
    Meldung bei Fertigstellung, Fortsetzen der Warteschlange nach einem Neustart. Logik in jobs.py. */
 "use strict";
 
@@ -91,7 +91,7 @@ function jobsNotify(j) {
   toast(msg);
   status(msg, ok ? "ok" : "warn");
   try {
-    if (document.hidden && window.Notification && Notification.permission === "granted") new Notification("TagStudio", { body: typeof tr === "function" ? tr(msg) : msg });
+    if (document.hidden && window.Notification && Notification.permission === "granted") new Notification("TagStudioSX", { body: typeof tr === "function" ? tr(msg) : msg });
   } catch (e) { /* Systemmeldung ist optional */ }
   if (ok && typeof jobFinishedHook === "function") jobFinishedHook(j);
   if (ok && j.mix_open && typeof mixJobDone === "function") mixJobDone(j);            // #389

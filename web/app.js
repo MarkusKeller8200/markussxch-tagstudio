@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Web-Oberfläche. Ohne Bibliotheken; alle Arbeit erledigt der Python-Kern. */
+/* TagStudioSX – Web-Oberfläche. Ohne Bibliotheken; alle Arbeit erledigt der Python-Kern. */
 "use strict";
 
 // ====================================================================== Verbindung zum Python-Kern
@@ -47,6 +47,8 @@ function isDoubleClick(e, key) {
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// #462: Wortmarke TagStudioSX nach CI-Manual (T violett · S orange · SX blau); Screenreader lesen das aria-label
+const brandWordmark = (cls = "") => `<span class="wm ${cls}" role="img" aria-label="TagStudioSX"><span aria-hidden="true"><span class="wm-v">T</span>ag<span class="wm-o">S</span>tudio<span class="wm-b">SX</span></span></span>`;
 const fmtN = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, typeof I18N !== "undefined" && I18N.lang === "en" ? "," : "'");
 const IS_MAC = /Mac/.test(navigator.platform);
 const ICON = {
@@ -468,8 +470,8 @@ async function runUpdate() {
       html: `<div class="rn"><p>Installiert: <b>${esc(st.version)}</b> · neu: <b>${esc(lt.version)}</b>${lt.date ? ` vom ${esc(lt.date)}` : ""}</p>
         ${mdLite(relNotesClean(lt.notes))}
         <p class="muted sm">${st.auto && asset
-          ? "„Jetzt aktualisieren“ lädt den Installer, prüft ihn, schliesst TagStudio, installiert die neue Version und startet sie – Einstellungen und Daten bleiben erhalten."
-          : "Herunterladen, TagStudio schliessen und den Installer ausführen – Einstellungen bleiben erhalten."}</p></div>`,
+          ? "„Jetzt aktualisieren“ lädt den Installer, prüft ihn, schliesst TagStudioSX, installiert die neue Version und startet sie – Einstellungen und Daten bleiben erhalten."
+          : "Herunterladen, TagStudioSX schliessen und den Installer ausführen – Einstellungen bleiben erhalten."}</p></div>`,
       buttons: [{ label: "Später", value: null }, { label: "Auf GitHub ansehen", value: "page" },
         ...(asset && st.auto ? [{ label: "Installer herunterladen", value: "dl" }, { label: "Jetzt aktualisieren", value: "auto", primary: true }]
           : asset ? [{ label: "Installer herunterladen", value: "dl", primary: true }] : [])] });
@@ -487,11 +489,11 @@ async function runUpdate() {
   if (!st.behind && !st.switch) { toast(st.note || `Du hast die neueste ${st.channel === "stable" ? "offizielle Version" : "Version"} (${st.version || st.branch}, ${st.current}).`); return; }
   const list = (st.commits || []).map((c) => "• " + c).join("\n");
   const head = st.switch && !st.behind
-    ? `Der Zweig „${st.branch}“ wurde nach „${st.switch}“ verschoben – TagStudio wechselt auf „${st.switch}“ (gleicher Stand).`
+    ? `Der Zweig „${st.branch}“ wurde nach „${st.switch}“ verschoben – TagStudioSX wechselt auf „${st.switch}“ (gleicher Stand).`
     : `Zweig „${st.switch || st.branch}“: ${st.behind} Änderung(en)\n\n${list}`;
   const go = await dialog({
     title: "Neue Version verfügbar",
-    text: `${head}\n\nJetzt laden? TagStudio startet danach neu – die gewählten Ordner werden wieder eingelesen.`,
+    text: `${head}\n\nJetzt laden? TagStudioSX startet danach neu – die gewählten Ordner werden wieder eingelesen.`,
     buttons: [{ label: "Später", value: null }, { label: "Laden und neu starten", value: true, primary: true }],
   });
   if (!go) return;
@@ -499,7 +501,7 @@ async function runUpdate() {
   if (await call("unsaved")) applyState(await call("discard_all"));  // „Verwerfen“ gewählt
   const res = await call("apply_update");
   if (!res.ok) { await info("Update nicht möglich", res.message); return; }
-  await appRestartNow("Neue Version geladen – TagStudio startet neu …", res.message);
+  await appRestartNow("Neue Version geladen – TagStudioSX startet neu …", res.message);
 }
 
 /** #234: Update auf Knopfdruck – laden und prüfen (mit Fortschritt), dann speichern, beenden und still installieren */
@@ -509,7 +511,7 @@ async function appUpdateAuto() {
   if (!res) return;
   if (res.cancelled) { status("Update abgebrochen.", "warn"); return; }
   if (!res.ok) { toast(res.message || "Kein Update nötig."); return; }
-  appBusy(`TagStudio ${res.version} wird installiert …`, "Einstellungen werden gespeichert – TagStudio schliesst sich und startet nach der Installation neu.");
+  appBusy(`TagStudioSX ${res.version} wird installiert …`, "Einstellungen werden gespeichert – TagStudioSX schliesst sich und startet nach der Installation neu.");
   await appFlushState().catch(() => {});
   const r = await call("app_update_install", res.path);
   if (!r.ok) { $("#progress").hidden = true; await info("Update nicht möglich", r.message); }
@@ -547,14 +549,14 @@ async function appQuit() {
   APPQ.busy = true;
   try {
     if (!(await appCloseChecks("Beenden"))) { call("close_cancelled").catch(() => {}); return; }
-    appBusy("TagStudio wird beendet …", "Einstellungen werden gespeichert (Fenster, Tagger, Player) …");
+    appBusy("TagStudioSX wird beendet …", "Einstellungen werden gespeichert (Fenster, Tagger, Player) …");
     const t0 = Date.now();
     await appFlushState().catch(() => {});
     await new Promise((r) => setTimeout(r, Math.max(0, 600 - (Date.now() - t0))));   // Hinweis kurz sichtbar
     $("#progText").textContent = "Gespeichert.";
     await call("quit", true);
     if (!S.settings.native) {
-      $("#progTitle").textContent = "TagStudio wurde beendet.";
+      $("#progTitle").textContent = "TagStudioSX wurde beendet.";
       $("#progText").textContent = "Dieses Browserfenster kann geschlossen werden.";
       $("#progBar").classList.remove("indet");
     }
@@ -581,7 +583,7 @@ async function appRestart() {
   APPQ.busy = true;
   try {
     if (!(await appCloseChecks("Neu starten"))) return;
-    await appRestartNow("TagStudio startet neu …", "Einstellungen werden gespeichert …");
+    await appRestartNow("TagStudioSX startet neu …", "Einstellungen werden gespeichert …");
   } finally { APPQ.busy = false; }
 }
 async function appRestartNow(title, text) {
@@ -597,7 +599,7 @@ async function appRestartNow(title, text) {
       await new Promise((r) => setTimeout(r, 500));
       try { const id = await callNow("instance_id"); if (id && id !== before) { location.reload(); return; } } catch (e) { /* noch nicht da */ }
     }
-    $("#progTitle").textContent = "Bitte TagStudio neu starten.";
+    $("#progTitle").textContent = "Bitte TagStudioSX neu starten.";
   }
 }
 
@@ -608,7 +610,7 @@ function srcHue(sid) { let h = 0; for (const c of String(sid)) h = (h * 31 + c.c
 function srcBadge(sid) {
   const o = srcInfo(sid);
   if (!o) return "";
-  const short = o.short || (o.kind === "plugin" ? "TagStudio" : (typeof tr === "function" ? tr(o.name) : o.name).length > 12 ? (typeof tr === "function" ? tr(o.name) : o.name).slice(0, 11) + "…" : o.name);
+  const short = o.short || (o.kind === "plugin" ? "TagStudioSX" : (typeof tr === "function" ? tr(o.name) : o.name).length > 12 ? (typeof tr === "function" ? tr(o.name) : o.name).slice(0, 11) + "…" : o.name);
   const own = o.hue !== null && o.hue !== undefined;         // #75: eigene Farbe
   const cls = own ? "" : o.kind === "plugin" ? " own" : o.kind === "id3" ? " id3" : o.kind === "unknown" ? " unk" : "";
   const what = o.kind === "id3" ? "ID3-Version" : "Herkunft";
@@ -714,7 +716,7 @@ async function init() {
   // #233: Developer Release zeigt die geplante Version (Basis und Änderungen im Tooltip), Beta/Final die veröffentlichte
   const devB = dv.dev ? ` <span class="beta-b dev-b" title="${esc(`Developer Release: Entwicklungsstand für Version ${dv.planned || st.version} – basiert auf ${dv.base} mit ${dv.commits} Änderung(en)${dv.sha ? " · Stand " + dv.sha : ""}, noch nicht als Beta oder Release veröffentlicht`)}">Developer Release</span>` : "";
   $("#ver").innerHTML = `Version ${esc(dv.dev && dv.planned ? dv.planned : st.version)}${/-/.test(st.version) && !dv.dev ? ' <span class="beta-b" title="Vorabversion zum Testen">Beta</span>' : ""}${devB}${st.native ? "" : " · Browser"}${st.profile && !st.profile.default ? ` <span class="beta-b prof-b" title="Profil: eigene Einstellungen und Daten (${esc(st.profile.dir)})">${esc(st.profile.name)}</span>` : ""}`;
-  if (st.profile && !st.profile.default) document.title = `MarKusSXCH TagStudio · ${st.profile.name}`;
+  if (st.profile && !st.profile.default) document.title = `TagStudioSX · ${st.profile.name}`;
   $("#mode").innerHTML = st.modes.map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("");
   $("#mode").value = st.mode;
   $("#recursive").checked = !!st.recursive;
@@ -1262,7 +1264,7 @@ async function saveConflictDialog(cf) {
     ${c.fields.length > 12 ? `<div class="muted sm">… ${c.fields.length - 12} weitere</div>` : ""}</div>`).join("");
   return modal({
     title: `${cf.length} Datei(en) wurden von einem anderen Programm geändert`, wide: true,
-    html: `<p class="muted" style="margin:0 0 10px">Seit TagStudio die Dateien eingelesen hat, hat z. B. Mp3tag, Mixed In Key oder beaTunes diese Felder geändert. Beim Speichern würden diese Änderungen sonst überschrieben.</p>
+    html: `<p class="muted" style="margin:0 0 10px">Seit TagStudioSX die Dateien eingelesen hat, hat z. B. Mp3tag, Mixed In Key oder beaTunes diese Felder geändert. Beim Speichern würden diese Änderungen sonst überschrieben.</p>
       <div class="cf-list">${list}</div>
       <p class="muted sm" style="margin:10px 0 0"><b>Übernehmen und speichern</b> liest die Dateien neu ein, behält deine eigenen Änderungen${anyClash ? " (bei Feldern, die beide geändert haben, gewinnt deine Änderung)" : ""} und speichert danach.</p>`,
     buttons: [{ label: "Abbrechen", value: null }, { label: "Trotzdem überschreiben", value: "force" }, { label: "Übernehmen und speichern", value: "merge", primary: true }],

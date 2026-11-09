@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Hilfe: Übersicht aller Tags mit Bedeutung und Herkunft, Bibliotheks-Scan (#158).
+"""TagStudioSX – Hilfe: Übersicht aller Tags mit Bedeutung und Herkunft, Bibliotheks-Scan (#158).
 
 `overview()` baut Kapitel (aufklappbar in der Oberfläche) aus den bekannten Feldern; `scan()` zählt, in wie vielen
 Titeln eines Ordners welches Feld vorkommt, und merkt das Ergebnis im Cache (~/TagStudio/cache/tagscan/…json).
@@ -23,7 +23,7 @@ CHAPTERS = [
     ("ident", "1. Titel, Album und Musikidentifikation", "",
      ["TIT1", "TIT2", "TIT3", "TALB", "TOAL", "TRCK", "TPOS", "TSST", "TSRC", "UFID"]),
     ("people", "2. Künstler, Komponisten und Mitwirkende",
-     "ID3v2.4 erlaubt in Textfeldern mehrere Werte (null-getrennt, in TagStudio „¦“) – auch in TPE1. Wie gut DJ-Programme "
+     "ID3v2.4 erlaubt in Textfeldern mehrere Werte (null-getrennt, in TagStudioSX „¦“) – auch in TPE1. Wie gut DJ-Programme "
      "das lesen, ist verschieden.",
      ["TPE1", "TPE2", "TPE3", "TPE4", "TOPE", "TEXT", "TOLY", "TCOM", "TMCL", "TIPL", "TENC"]),
     ("music", "3. Musikalische und technische Eigenschaften",
@@ -51,13 +51,13 @@ CHAPTERS = [
      "PRIV und GEOB nutzen DJ-Programme für eigene Binärdaten – lesbar nur für Programme, die das Format kennen.",
      ["AENC", "ENCR", "GRID", "PRIV", "LINK", "OWNE", "COMR", "SIGN"]),
 ]
-# (Parameter, eigener Frame?, empfohlene Ablage, Unterstützung in TagStudio)
+# (Parameter, eigener Frame?, empfohlene Ablage, Unterstützung in TagStudioSX)
 ANALYSIS = [
     ("BPM", "Ja", "TBPM", "Feld BPM, Spalte, DJ-Set"), ("Musikalische Tonart", "Ja", "TKEY", "Camelot-Rad, Schreibweisen"),
     ("Mood / Stimmung", "Ja", "TMOO (v2.3: TXXX:MOOD)", "Feld Stimmung"), ("Genre", "Ja", "TCON", "Feld Genre"),
     ("Bewertung", "Ja", "POPM", "Sterne und Like"), ("Energie", "Nein", "TXXX:ENERGY", "Merkmal (0–100)"),
     ("Tanzbarkeit", "Nein", "TXXX:DANCEABILITY", "Merkmal"), ("Happiness", "Nein", "TXXX:HAPPINESS", "Merkmal"),
-    ("Valence", "Nein", "TXXX:VALENCE", "Merkmal"), ("Camelot-Key", "Nein", "TXXX:CAMELOT", "TagStudio schreibt Camelot in TKEY (wählbar)"),
+    ("Valence", "Nein", "TXXX:VALENCE", "Merkmal"), ("Camelot-Key", "Nein", "TXXX:CAMELOT", "TagStudioSX schreibt Camelot in TKEY (wählbar)"),
     ("LUFS", "Nein", "TXXX:LUFS_I", "–"), ("True Peak", "Nein", "TXXX:TRUE_PEAK", "–"),
     ("Dynamic Range", "Nein", "TXXX:DYNAMIC_RANGE", "–"), ("Acousticness", "Nein", "TXXX:ACOUSTICNESS", "Merkmal"),
     ("Instrumentalness", "Nein", "TXXX:INSTRUMENTALNESS", "Merkmal"), ("Speechiness", "Nein", "TXXX:SPEECHINESS", "Merkmal"),
@@ -199,11 +199,11 @@ def overview(origin_of, catalog: dict, builtin_patterns: list, scan_result: dict
                     "src": origin_of(k) if k.isupper() else None,
                     "count": None if counts is None or not k.isupper() else _count(k, counts)})
     chapters.insert(len(CHAPTERS), {"id": "analysis", "title": "11. DJ-Analysewerte ohne eigenen offiziellen Frame",
-                                    "desc": "Empfohlene Ablage – wie TagStudio sie unterstützt.", "kind": "analysis",
+                                    "desc": "Empfohlene Ablage – wie TagStudioSX sie unterstützt.", "kind": "analysis",
                                     "rows": ana})
     rest = [f for f in sorted(id3frames.SPEC) if f not in seen]
     chapters.append({"id": "other", "title": "Weitere Frames (nur ID3v2.3, inoffiziell, Kapitel)",
-                     "desc": "Frames ausserhalb von ID3v2.4 – TagStudio liest und schreibt sie ebenfalls (siehe ID3-Felder).",
+                     "desc": "Frames ausserhalb von ID3v2.4 – TagStudioSX liest und schreibt sie ebenfalls (siehe ID3-Felder).",
                      "rows": [_row(k, origin_of, counts) for k in rest]})
     return {"chapters": chapters, "scan": _scan_meta(scan_result),
             "software": [{"name": a, "id3": b, "cues": c, "db": d} for a, b, c, d in SOFTWARE]}

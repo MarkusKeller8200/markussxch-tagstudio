@@ -1,12 +1,12 @@
-"""Tonart-Worker (#245): läuft im Python der Plugin-Umgebung (nicht in TagStudio).
+"""Tonart-Worker (#245): läuft im Python der Plugin-Umgebung (nicht in TagStudioSX).
 
 Aufruf: python worker.py auftrag.json
 Auftrag: {"files": [...], "engine": Ordner mit model.py, "model": Pfad zu openkeyscan3.pt, "device": "auto"|"cpu"}
-Meldungen an TagStudio als Zeilen „@@{json}“; alles andere ist Protokoll.
+Meldungen an TagStudioSX als Zeilen „@@{json}“; alles andere ist Protokoll.
 
 Die Analyse folgt der OpenKeyScan-Engine (https://github.com/rekordcloud/openkeyscan-analyzer, MIT-Lizenz):
 Audio mono 44,1 kHz → CQT (105 Bänder, 24 je Oktave, ab 65 Hz, Sprung 8820) → log1p → KeyNet (24 Klassen).
-Klasse 0–11 = 1A–12A (Moll), 12–23 = 1B–12B (Dur). Das Netz (model.py) und die Gewichte lädt TagStudio beim
+Klasse 0–11 = 1A–12A (Moll), 12–23 = 1B–12B (Dur). Das Netz (model.py) und die Gewichte lädt TagStudioSX beim
 Installieren von einem festen Stand des Repositorys und prüft beide mit SHA-256.
 """
 import importlib.util

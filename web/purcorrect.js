@@ -1,4 +1,4 @@
-/* MarKusSXCH TagStudio – Einkäufe: Korrekturfenster für unklare und fehlende Zuweisungen (#338).
+/* TagStudioSX – Einkäufe: Korrekturfenster für unklare und fehlende Zuweisungen (#338).
    Je nach Grund: mehrere Treffer → Kandidaten mit Tags vergleichen und den richtigen zuordnen; anderer Mix → Titel,
    Untertitel und Dateinamen der Datei anpassen (mit Sicherung) und erneut prüfen; anderer Künstler → Ähnlichkeit der
    Künstler je Kandidat; nicht gefunden → Datei von Hand wählen. „Weiter ›“ springt zum nächsten unklaren Kauf. */

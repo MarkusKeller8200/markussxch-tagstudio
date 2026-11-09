@@ -1,6 +1,6 @@
-/* MarKusSXCH TagStudio – Fehler melden / Funktion vorschlagen (#187).
-   Sicherer Start: TagStudio füllt das GitHub-Formular vor und öffnet es im Browser. Abgeschickt wird erst dort mit der
-   eigenen GitHub-Anmeldung – TagStudio speichert und sendet keine Zugangsdaten. Neue Meldungen erhalten „triage“
+/* TagStudioSX – Fehler melden / Funktion vorschlagen (#187).
+   Sicherer Start: TagStudioSX füllt das GitHub-Formular vor und öffnet es im Browser. Abgeschickt wird erst dort mit der
+   eigenen GitHub-Anmeldung – TagStudioSX speichert und sendet keine Zugangsdaten. Neue Meldungen erhalten „triage“
    und werden erst nach Freigabe durch den Projektverantwortlichen umgesetzt. Nutzt call/modal/esc/toast aus app.js. */
 "use strict";
 

@@ -215,7 +215,7 @@ def main(argv):
     if "--commit" in argv:
         subprocess.run(["git", "add", "version.py", "version_next.py", "pyproject.toml", "CHANGELOG.md", "SECURITY.md"], cwd=ROOT, check=True)
         subprocess.run(["git", "commit", "-m", f"Version {new}"], cwd=ROOT, check=True)
-        subprocess.run(["git", "tag", "-a", f"v{new}", "-m", f"MarKusSXCH TagStudio {new}"], cwd=ROOT, check=True)
+        subprocess.run(["git", "tag", "-a", f"v{new}", "-m", f"TagStudioSX {new}"], cwd=ROOT, check=True)
         print(f"Commit und Tag v{new} erstellt. Jetzt: git push --follow-tags")
     else:
         print(f"Nächste Schritte: committen und auf main pushen – der Workflow „Installer“ baut dann und legt "

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MarKusSXCH TagStudio – Web-Oberfläche.
+TagStudioSX – Web-Oberfläche.
 
 Zeigt die Oberfläche aus dem Ordner web/ in einem eigenen App-Fenster (pywebview). Die Arbeit macht
 derselbe Python-Kern wie bei der klassischen Oberfläche (session.py → core.py, id3tags.py …).
@@ -29,7 +29,7 @@ sys.path.insert(0, HERE)
 
 MIN_PYTHON = (3, 12)          # #135 – gleiche Version wie Installer und Stems-Umgebung
 if sys.version_info < MIN_PYTHON:   # pragma: no cover – verständliche Meldung statt Folgefehlern
-    sys.exit(f"TagStudio braucht Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]} oder neuer (gefunden: {sys.version.split()[0]}).\n"
+    sys.exit(f"TagStudioSX braucht Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]} oder neuer (gefunden: {sys.version.split()[0]}).\n"
              "Neues Python: https://www.python.org/downloads/ – oder den Installer verwenden (bringt Python mit).")
 
 from session import Session  # noqa: E402
@@ -39,7 +39,7 @@ import instance  # noqa: E402
 import updater  # noqa: E402
 from version import VERSION  # noqa: E402
 
-APP = "MarKusSXCH TagStudio"
+APP = "TagStudioSX"
 WEB = os.path.join(HERE, "web")
 
 
@@ -147,10 +147,10 @@ class Api:
         return info
 
     def profile_shortcut(self, name):
-        """Verknüpfung „TagStudio (Profil)“ auf dem Desktop (Windows: .lnk über PowerShell, sonst Startskript)."""
+        """Verknüpfung „TagStudioSX (Profil)“ auf dem Desktop (Windows: .lnk über PowerShell, sonst Startskript)."""
         import paths
         n = paths.clean_name(name)
-        label = f"TagStudio ({n or paths.DEFAULT})"
+        label = f"TagStudioSX ({n or paths.DEFAULT})"
         desk = os.path.join(paths.home(), "Desktop")
         os.makedirs(desk, exist_ok=True)
         target = sys.executable if getattr(sys, "frozen", False) else sys.executable
@@ -492,7 +492,7 @@ class Api:
     def settings_export(self):
         """Einstellungen in eine Datei schreiben (Speichern-Dialog)."""
         import time as _t
-        dest = self.save_dialog(f"TagStudio-Einstellungen-{_t.strftime('%Y-%m-%d')}.json")
+        dest = self.save_dialog(f"TagStudioSX-Einstellungen-{_t.strftime('%Y-%m-%d')}.json")
         if not dest:
             return {"ok": False, "cancelled": True}
         try:
@@ -537,7 +537,7 @@ class Api:
 
     def smart_export(self, ids=None):
         """#339: eigene Smart-Fix-Rezepte in eine Datei schreiben (Speichern-Dialog)."""
-        dest = self.save_dialog("TagStudio-SmartFix.json")
+        dest = self.save_dialog("TagStudioSX-SmartFix.json")
         if not dest:
             return {"ok": False, "cancelled": True}
         try:
@@ -699,7 +699,7 @@ class Api:
         return self._s._run("update", "Update wird geladen", job)
 
     def app_update_install(self, path):
-        """Geladenen Installer still ausführen: TagStudio beendet sich, installiert und startet neu (#234, macOS #251)."""
+        """Geladenen Installer still ausführen: TagStudioSX beendet sich, installiert und startet neu (#234, macOS #251)."""
         if not updater.auto_update_supported():
             return {"ok": False, "message": "Nur in der installierten App (Windows, macOS)."}
         import paths
@@ -1023,7 +1023,7 @@ class Api:
         return True
 
     def open_log(self, path, folder=False):
-        """#247: Protokoll aus einer Fehlermeldung öffnen – nur *.log im Log-Ordner von TagStudio.
+        """#247: Protokoll aus einer Fehlermeldung öffnen – nur *.log im Log-Ordner von TagStudioSX.
         folder=True: Ordner mit markierter Datei zeigen."""
         import plugins
         root = os.path.normcase(os.path.abspath(plugins.log_dir()))
@@ -1236,7 +1236,7 @@ def run_browser(api: Api, port=0, open_browser=True):
 
 # =========================================================================== App-Fenster (pywebview)
 def _app_user_model_id():
-    """#103 Windows: eigene App-Kennung, damit die Taskleiste das TagStudio-Symbol zeigt (nicht das von Python)."""
+    """#103 Windows: eigene App-Kennung, damit die Taskleiste das TagStudioSX-Symbol zeigt (nicht das von Python)."""
     if sys.platform.startswith("win"):
         try:
             import ctypes
@@ -1351,7 +1351,7 @@ def run_window(api: Api):
         pass
     icon = os.path.join(WEB, "icon.ico" if sys.platform.startswith("win") else "icon.png")
     try:
-        webview.start(icon=icon if os.path.isfile(icon) else None)     # #103: TagStudio-Symbol statt Python
+        webview.start(icon=icon if os.path.isfile(icon) else None)     # #103: TagStudioSX-Symbol statt Python
     except TypeError:                                                    # ältere pywebview-Versionen
         webview.start()
     api._exit_logs()                                                     # #332: Fenster ohne quit() geschlossen
@@ -1435,8 +1435,8 @@ def main(argv=None):
     inst = instance.Instance()
     restart = os.environ.pop("TAGSTUDIO_RESTART", "") == "1"
     if not inst.acquire(wait=25.0 if restart else 2.0):
-        applog.info(f"Zweiter Start abgelehnt (PID {os.getpid()}): TagStudio läuft bereits")
-        instance.already_running_message("TagStudio läuft bereits.\n\nBitte das offene Fenster verwenden oder es zuerst "
+        applog.info(f"Zweiter Start abgelehnt (PID {os.getpid()}): TagStudioSX läuft bereits")
+        instance.already_running_message("TagStudioSX läuft bereits.\n\nBitte das offene Fenster verwenden oder es zuerst "
                                          "schliessen. (Zwei gleichzeitige Instanzen würden sich die Einstellungen "
                                          "gegenseitig überschreiben.)", gui="--browser" not in argv)
         return 0

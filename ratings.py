@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – Bewertung (#96) und Like (#95).
+"""TagStudioSX – Bewertung (#96) und Like (#95).
 
 Bewertung: 0–5 Sterne im ID3-Frame POPM (Popularimeter). Vorhandene POPM-Frames (z. B. von Windows Media Player,
 MusicBee, Mp3tag) werden alle angepasst – der Wiedergabezähler bleibt erhalten. Fehlt ein POPM-Frame, wird einer

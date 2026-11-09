@@ -1,4 +1,4 @@
-"""MarKusSXCH TagStudio – zentrale Datenpfade und Profile (#163, #164).
+"""TagStudioSX – zentrale Datenpfade und Profile (#163, #164).
 
 Ohne Profil („Standard“) bleibt alles wie bisher: Einstellungen in ~/.tagstudio.json, Daten in ~/TagStudio.
 Mit Profil NAME: alles unter ~/TagStudio-Profile/NAME/ (Einstellungen in einstellungen.json), eigene Instanz-Sperre.

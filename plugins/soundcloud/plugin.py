@@ -26,7 +26,7 @@ MAX_ITEMS = 5000
 
 ACTIONS = [
     {"id": "login", "label": "Anmelden …", "where": "page", "run_label": "Anmelden", "needs_selection": False,
-     "description": "Zugangsdaten deiner eigenen SoundCloud-App eintragen (leer = unverändert, verschlüsselt gespeichert) und die Anmeldeseite im Browser öffnen. TagStudio liest nur – es ändert nichts in deinem Konto.",
+     "description": "Zugangsdaten deiner eigenen SoundCloud-App eintragen (leer = unverändert, verschlüsselt gespeichert) und die Anmeldeseite im Browser öffnen. TagStudioSX liest nur – es ändert nichts in deinem Konto.",
      "options": [{"type": "info", "title": "SoundCloud-App anlegen",
           "label": "1. Bei SoundCloud anmelden (Artist Pro nötig). 2. In „SoundCloud for Developers“ eine App "
                    "registrieren und als Redirect URI genau die Adresse unten eintragen (Standard "

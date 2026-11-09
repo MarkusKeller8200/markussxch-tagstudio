@@ -1,11 +1,11 @@
 {
   "id": "keyscan",
   "name": "Tonart (OpenKeyScan)",
-  "version": "1.4",
+  "version": "1.5",
   "min_app": "4.8.0",
   "category": "audio",
   "api": 1,
-  "author": "MarKusSXCH TagStudio",
+  "author": "TagStudioSX",
   "url": "https://github.com/rekordcloud/openkeyscan-analyzer",
   "description": "Erkennt die Tonart der markierten Titel mit dem KI-Modell von OpenKeyScan (quelloffen, MIT-Lizenz) – ohne Zusatz-App und offline. Ergebnis als Vorschau: eigenes Feld OPENKEYSCAN_KEY (Camelot) und auf Wunsch TKEY in deiner Schreibweise, mit Vergleich zur vorhandenen Tonart (TKEY, Mixed In Key, Beatport). Nichts wird ohne Bestätigung geschrieben.",
   "env": {

@@ -1,24 +1,24 @@
-# TagStudio – Produkt- und Architekturkonzept
+# TagStudioSX – Produkt- und Architekturkonzept
 
 **Arbeitsentwurf v0.1 · Stand: 14. Oktober 2026 · Grundlage für die weitere Entwicklung mit Claude und ChatGPT**  
 **Status:** Konzept und Entscheidungsgrundlage – keine freigegebene Implementierungsspezifikation
 
-> **Leitidee:** TagStudio ist eine intelligente, offene Schaltzentrale für DJ-Musikbibliotheken: Musik verwalten, Metadaten kontrollieren, Tracks analysieren, passende Titel und Übergänge finden, DJ-Sets planen und die Ergebnisse möglichst reibungsarm an bestehende DJ-Programme übergeben. TagStudio ist ausdrücklich **keine neue Live-DJ-Mixing-Software und keine vollwertige DAW**.
+> **Leitidee:** TagStudioSX ist eine intelligente, offene Schaltzentrale für DJ-Musikbibliotheken: Musik verwalten, Metadaten kontrollieren, Tracks analysieren, passende Titel und Übergänge finden, DJ-Sets planen und die Ergebnisse möglichst reibungsarm an bestehende DJ-Programme übergeben. TagStudioSX ist ausdrücklich **keine neue Live-DJ-Mixing-Software und keine vollwertige DAW**.
 
 ## Dokumentsteuerung
 
 | Feld | Wert |
 |---|---|
 | Dokumenttyp | Produkt- und Architekturkonzept / Living Document |
-| Ausgangsbasis | Öffentlicher TagStudio-Code, Version 4.4.0, plus Architekturgespräche |
+| Ausgangsbasis | Öffentlicher TagStudioSX-Code, Version 4.4.0, plus Architekturgespräche |
 | Zielplattformen | Windows und macOS |
 | Verbindlichkeitsstufen | **BESCHLOSSEN** (Nutzervorgabe), **EMPFOHLEN** (Architekturvorschlag), **OFFEN** (noch zu entscheiden), **ZU PRÜFEN** (technische Machbarkeit) |
-| Projektbezug | [TagStudio-Repository](https://github.com/MarkusKeller8200/markussxch-tagstudio) |
+| Projektbezug | [TagStudioSX-Repository](https://github.com/MarkusKeller8200/markussxch-tagstudio) |
 | Fortschreibung | Versionskontrollierte Markdown-Quelle; daraus ableitbare DOCX-Fassung, ADRs, GitHub-Issues und Testpläne |
 
 ## 1. Executive Summary
 
-TagStudio soll seinen bisherigen Kern – Tagging, Vergleichen, Bibliotheksverwaltung, DJ-Set-Planung und sichere Änderungen – systematisch ausbauen. Der wesentliche neue Nutzen entsteht aus einer hochwertigen Audioanalyse, einem intelligenten Track- und Übergangs-Matching, einem dafür optimierten Vorschau-Player sowie aus der Interoperabilität mit bestehender Musiksoftware.
+TagStudioSX soll seinen bisherigen Kern – Tagging, Vergleichen, Bibliotheksverwaltung, DJ-Set-Planung und sichere Änderungen – systematisch ausbauen. Der wesentliche neue Nutzen entsteht aus einer hochwertigen Audioanalyse, einem intelligenten Track- und Übergangs-Matching, einem dafür optimierten Vorschau-Player sowie aus der Interoperabilität mit bestehender Musiksoftware.
 
 Der Player dient dem **Vorhören und Entscheiden**: Tempo und Tonart verändern, vorberechnete Stems kombinieren, Cues und Beatgrids nutzen, zwei Tracks an ausgewählten Stellen überlagern und die Eignung eines Übergangs bewerten. Keine Jogwheel-/Scratch-/Performance-Umgebung und keine Live-Set-Steuerung.
 
@@ -26,7 +26,7 @@ Die Kernanwendung bleibt zunächst **Python mit HTML/CSS/JavaScript in pywebview
 
 Stem-Separation erfolgt **offline und qualitätsorientiert**. Während der Wiedergabe werden ausschliesslich vorberechnete Spuren gemischt. Erweiterte VST3-Plugins (z. B. Wingman, Avenger, NEXUS) sollen in einem späteren **Audio Lab** möglich sein; ihre echte Host-Kompatibilität und die Lizenzbedingungen sind nachzuweisen.
 
-Der Integrationsstrategie kommt hohe Bedeutung zu: **DJ.Studio** für die Offline-Mix-/Timeline-Arbeit, **Lexicon** und **Mixo** für Bibliothekskonvertierung, danach gemäss gewünschter Betrachtungsreihenfolge **Engine DJ, Serato, VirtualDJ, Traktor und rekordbox** für die DJ-Praxis. TagStudio soll diese Werkzeuge **ergänzen, nicht kopieren**.
+Der Integrationsstrategie kommt hohe Bedeutung zu: **DJ.Studio** für die Offline-Mix-/Timeline-Arbeit, **Lexicon** und **Mixo** für Bibliothekskonvertierung, danach gemäss gewünschter Betrachtungsreihenfolge **Engine DJ, Serato, VirtualDJ, Traktor und rekordbox** für die DJ-Praxis. TagStudioSX soll diese Werkzeuge **ergänzen, nicht kopieren**.
 
 ## 2. Produktvision, Ziele und Abgrenzung
 
@@ -50,9 +50,9 @@ Der Integrationsstrategie kommt hohe Bedeutung zu: **DJ.Studio** für die Offlin
 
 ### 2.3 Positionierung im Ökosystem
 
-**TagStudio:** Datenqualität, Transparenz, Analyse, Entscheidung und Vorbereitung. **DJ.Studio:** detailreiche Offline-Mix- und Timeline-Arrangements. **Lexicon/Mixo:** Bibliothekskonvertierung und Synchronisation. **DJ-Programme:** Auftritt, Hardwareintegration und Live-Performance. Überschneidungen sind akzeptabel; der Schwerpunkt bleibt auf nahtlosen Übergaben.
+**TagStudioSX:** Datenqualität, Transparenz, Analyse, Entscheidung und Vorbereitung. **DJ.Studio:** detailreiche Offline-Mix- und Timeline-Arrangements. **Lexicon/Mixo:** Bibliothekskonvertierung und Synchronisation. **DJ-Programme:** Auftritt, Hardwareintegration und Live-Performance. Überschneidungen sind akzeptabel; der Schwerpunkt bleibt auf nahtlosen Übergaben.
 
-## 3. Ausgangslage: bestehende TagStudio-Architektur
+## 3. Ausgangslage: bestehende TagStudioSX-Architektur
 
 Der überprüfte öffentliche Stand der Anwendung weist Python 3.12+, eine aktuelle Web-GUI in `web/` und den Desktop-Container `pywebview` aus. `tagstudio_web.py` stellt die Session-API für das Frontend bereit; im Browsermodus steht ein lokaler HTTP-Endpunkt zur Verfügung. Die alte Tkinter-Oberfläche in `tagstudio.py` ist eingefroren. Die Installer werden unter anderem über PyInstaller für Windows und macOS erstellt. Der Quellcode ist unter GPL-3.0-or-later veröffentlicht. Quelle: [Repository](https://github.com/MarkusKeller8200/markussxch-tagstudio), [pyproject.toml](https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/pyproject.toml), [tagstudio_web.py](https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/tagstudio_web.py), [packaging/build.py](https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/packaging/build.py).
 
@@ -106,7 +106,7 @@ P0/P1/P2/P3 sind eine **Umsetzungsreihenfolge**, keine Produktversionszusagen.
 ## 6. Technische Zielarchitektur
 
 ```text
-TagStudio GUI (HTML/CSS/JS; später optional TypeScript/Vue)
+TagStudioSX GUI (HTML/CSS/JS; später optional TypeScript/Vue)
        |
        v
 Application API / Session / Service-Layer  [Python]
@@ -253,11 +253,11 @@ Ein MIDI-Clip-Player, Taktsynchronisation, Plugin-State-Persistenz, Plugin-Laten
 
 ## 13. Interoperabilität mit dem DJ-Ökosystem – strategischer Schwerpunkt
 
-**BESCHLOSSEN:** Die Integration in vorhandene Werkzeuge ist ein **eigenständiges Produktmerkmal** und nicht nur ein Export-Button. Je weniger manueller Aufwand beim Wechsel zwischen Programmen entsteht, desto höher der Nutzen von TagStudio.
+**BESCHLOSSEN:** Die Integration in vorhandene Werkzeuge ist ein **eigenständiges Produktmerkmal** und nicht nur ein Export-Button. Je weniger manueller Aufwand beim Wechsel zwischen Programmen entsteht, desto höher der Nutzen von TagStudioSX.
 
 ### 13.1 Rollen der externen Produkte
 
-| Produkt | Rolle im Workflow | TagStudio-Integrationsziel |
+| Produkt | Rolle im Workflow | TagStudioSX-Integrationsziel |
 |---|---|---|
 | **DJ.Studio** | Bestehende Offline-Mixing-/Timeline-Lösung | Set-Reihenfolge, Trackauswahl und Planung exportieren; bearbeitete Resultate später zurückführen, soweit dokumentiert |
 | **Lexicon DJ** | DJ-Bibliotheksverwaltung und Konvertierung | Tags/Metadaten/Cues möglichst verlustarm austauschen; als unterstützten Übergabekanal verwenden |
@@ -295,15 +295,15 @@ Ein MIDI-Clip-Player, Taktsynchronisation, Plugin-State-Persistenz, Plugin-Laten
 
 ### 13.4 DJ.Studio, Lexicon und Mixo intelligent einbeziehen
 
-**DJ.Studio:** M3U/M3U8/TXT/CSV-Playlist-Exports sind dokumentiert; darüber kann eine geordnete Trackliste transportiert werden. Erweiterte DJ-Set-Exports sind je Zielprogramm verschieden und werden laufend erweitert. Die DJ.Studio-Hilfeseiten nennen für Engine DJ und Traktor teils zukünftige beziehungsweise generische Exportpfade; **Funktionsumfang/Version vor Implementierung live testen**. Keine unbestätigte öffentliche Projekt-API voraussetzen. Mögliche Richtung: `TagStudio SetPlan -> M3U8 -> DJ.Studio`; Rückweg zunächst über exportierte Playlists/Medien und dokumentierte Formate, **nicht** durch direktes Editieren interner DJ.Studio-Projekte.
+**DJ.Studio:** M3U/M3U8/TXT/CSV-Playlist-Exports sind dokumentiert; darüber kann eine geordnete Trackliste transportiert werden. Erweiterte DJ-Set-Exports sind je Zielprogramm verschieden und werden laufend erweitert. Die DJ.Studio-Hilfeseiten nennen für Engine DJ und Traktor teils zukünftige beziehungsweise generische Exportpfade; **Funktionsumfang/Version vor Implementierung live testen**. Keine unbestätigte öffentliche Projekt-API voraussetzen. Mögliche Richtung: `TagStudioSX SetPlan -> M3U8 -> DJ.Studio`; Rückweg zunächst über exportierte Playlists/Medien und dokumentierte Formate, **nicht** durch direktes Editieren interner DJ.Studio-Projekte.
 
-**Lexicon:** Das Produkt dokumentiert Konvertierung zwischen rekordbox, Serato, Traktor, VirtualDJ, Engine DJ und djay Pro einschliesslich Trackinfos, Cues, Beatgrids und Playlists mit produktabhängigen Einschränkungen. Es ist ein **geeigneter ergänzender Austauschkanal**, kein von TagStudio zu ersetzender Konverter.
+**Lexicon:** Das Produkt dokumentiert Konvertierung zwischen rekordbox, Serato, Traktor, VirtualDJ, Engine DJ und djay Pro einschliesslich Trackinfos, Cues, Beatgrids und Playlists mit produktabhängigen Einschränkungen. Es ist ein **geeigneter ergänzender Austauschkanal**, kein von TagStudioSX zu ersetzender Konverter.
 
 **Mixo:** Die Dokumentation nennt Import/Export mehrerer DJ-Bibliotheken und Formate, unter anderem Serato-Crates, Traktor-NML, rekordbox- und VirtualDJ-XML und Engine-Export. Einige Exportfunktionen können einen kostenpflichtigen Plan erfordern; dies ist **keine zugesagte kostenlose Integrationsmöglichkeit**.
 
 ### 13.5 Kanonisches Austauschmodell und Verlustbericht
 
-TagStudio führt ein eigenes neutrales SetPlan-Modell und übersetzt daraus in Zieladapter. Beispiel einer **konzeptionellen**, nicht verbindlichen JSON-Struktur:
+TagStudioSX führt ein eigenes neutrales SetPlan-Modell und übersetzt daraus in Zieladapter. Beispiel einer **konzeptionellen**, nicht verbindlichen JSON-Struktur:
 
 ```json
 {
@@ -339,7 +339,7 @@ Frühere Ideen wie Beatport/SoundCloud, 1001Tracklists und Shazam-/Fingerprint-D
 
 ## 15. Lizenzierung, Sicherheit und Betrieb
 
-- **GPL-3.0-or-later TagStudio:** Abhängigkeiten und Verteilungsmodell müssen kompatibel geprüft werden.
+- **GPL-3.0-or-later TagStudioSX:** Abhängigkeiten und Verteilungsmodell müssen kompatibel geprüft werden.
 - **JUCE 9:** konkrete Lizenzwahl, AGPL-/kommerzielle Kombination sowie Projektverteilung vor verbindlicher Auswahl juristisch prüfen.
 - **VST3-SDK:** MIT-Lizenz des SDKs; Namen/Markenregeln und Plugins separat beachten. **CLAP:** MIT-lizenzierte Spezifikation/Referenzcode prüfen.
 - **Plugins Dritter:** keine Lizenzumgehung; nur lokal installierte, berechtigte Instanzen. Plugin-Scan isolieren; vertrauenswürdige und unbekannte Plugins unterscheiden.
@@ -408,8 +408,8 @@ Die acht zuletzt gestellten Architekturfragen wurden noch **nicht** final beantw
 
 Die folgenden Quellen dienen als **Referenzstand am 14.10.2026**; Implementierungsdetails hängen von installierten Versionen und den aktuell gültigen Herstellerbedingungen ab.
 
-- **S01** TagStudio Repository: https://github.com/MarkusKeller8200/markussxch-tagstudio
-- **S02** TagStudio Python-Build und Oberfläche: https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/tagstudio_web.py
+- **S01** TagStudioSX Repository: https://github.com/MarkusKeller8200/markussxch-tagstudio
+- **S02** TagStudioSX Python-Build und Oberfläche: https://github.com/MarkusKeller8200/markussxch-tagstudio/blob/main/tagstudio_web.py
 - **S03** DJ.Studio – DJ-Set-Export und Grenzen: https://help.dj.studio/en/articles/16833153-export-dj-set-to-your-live-dj-software
 - **S04** DJ.Studio – Formate, Workflow und Beatgrid-Einschränkungen: https://help.dj.studio/en/articles/8106079-exporting-mixes
 - **S05** Lexicon – Cross-DJ-Konvertierung: https://www.lexicondj.com/manual/convert-library

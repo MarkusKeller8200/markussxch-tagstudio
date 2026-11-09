@@ -37,7 +37,7 @@ OPTIONS = [
      "default": True},
     {"key": "hint", "type": "info",
      "label": "Die OpenKeyScan-App muss laufen. In der App „Auto-Tagging“ ausschalten – sonst schreibt sie selbst in die "
-              "Dateien. TagStudio zeigt das Ergebnis nur als Vorschau."},
+              "Dateien. TagStudioSX zeigt das Ergebnis nur als Vorschau."},
 ]
 
 ACTIONS = [
@@ -51,7 +51,7 @@ ACTIONS = [
                  {"key": "autostart", "type": "check", "label": "App bei Bedarf selbst starten", "default": True},
                  {"key": "app", "type": "text", "label": "Programm der App (leer: automatisch suchen)", "default": ""},
                  {"type": "info", "title": "Sicherheit",
-                  "label": "Die API hat keine Anmeldung. TagStudio spricht sie nur auf diesem Rechner an (localhost).",
+                  "label": "Die API hat keine Anmeldung. TagStudioSX spricht sie nur auf diesem Rechner an (localhost).",
                   "links": [["OpenKeyScan: API", "https://www.openkeyscan.com/api"]]}]},
     {"id": "test", "label": "Verbindung testen", "where": "page", "run_label": "Testen", "needs_selection": False,
      "description": "Prüft, ob die OpenKeyScan-App unter der eingestellten Adresse antwortet.", "options": []},
@@ -77,7 +77,7 @@ class Client:
     def __init__(self, base=DEFAULT_URL, timeout=30, opener=None):
         self.base = (base or DEFAULT_URL).strip().rstrip("/")
         if not self.base.startswith(("http://", "https://")) or not is_local(self.base):
-            raise OKSError(f"TagStudio spricht OpenKeyScan nur auf diesem Rechner an (localhost) – nicht {self.base}.")
+            raise OKSError(f"TagStudioSX spricht OpenKeyScan nur auf diesem Rechner an (localhost) – nicht {self.base}.")
         self.timeout = timeout
         self._open = opener or urllib.request.build_opener(urllib.request.ProxyHandler({})).open   # nie über Proxy
 

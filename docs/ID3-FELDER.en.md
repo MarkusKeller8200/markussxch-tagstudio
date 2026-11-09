@@ -1,4 +1,4 @@
-# ID3 fields in TagStudio
+# ID3 fields in TagStudioSX
 
 *English version – [Deutsch](ID3-FELDER.md).* This overview is generated from `id3frames.py`
 (`python tools/id3_frames_doc.py`) – please do not edit it by hand. Issue #98.
@@ -20,7 +20,7 @@
 
 **File formats (#156, #263, 4.16.0)**
 
-| Format | Tags written by TagStudio | Also read | Notes |
+| Format | Tags written by TagStudioSX | Also read | Notes |
 |---|---|---|---|
 | MP3 | ID3v2.3/v2.4 at the start of the file | ID3v1 at the end (written too on request) | – |
 | WAV | ID3v2 in the `id3 ` (or `ID3 `) chunk – **all frames as with MP3** | RIFF `LIST/INFO` if there is no ID3 chunk (read only) | setting “WAV and AIFF”; RF64 (over 4 GB) read only; no ID3v1 |
@@ -29,14 +29,14 @@
 | AAC (.aac, raw) | **no tag system of its own** | ID3v2 in front or ID3v1 at the end (read only) | **read only** (#455, setting “More formats”); for tags save as M4A – Convert › M4A – AAC repacks without re-encoding |
 | FLAC / OGG Vorbis | Vorbis comments (`NAME=value`, free names); cover in FLAC as `PICTURE` block, in OGG as `METADATA_BLOCK_PICTURE` | – | FLAC: test (#264); **OGG/Opus read only** (#266); multiple values via repeated fields; padding is used |
 
-When saving WAV/AIFF, TagStudio only replaces the ID3 chunk; INFO or NAME/AUTH stay unchanged. Whether DJ programs
+When saving WAV/AIFF, TagStudioSX only replaces the ID3 chunk; INFO or NAME/AUTH stay unchanged. Whether DJ programs
 also read a field in WAV/AIFF differs per program (test series #446).
 
 **Columns:** v2.2 = ID in ID3v2.2 · Version = 2.3, 2.4 or unofficial · MP3 / WAV / AIFF = writable (✔); after it the
 matching field in ID3v1 or in the INFO/AIFF text chunk (read only) · MP4 / M4A, AAC, FLAC / OGG = name of the field in
-that format (how TagStudio reads and writes it; names to be confirmed with test files, #453): ✔ = standard field,
+that format (how TagStudioSX reads and writes it; names to be confirmed with test files, #453): ✔ = standard field,
 ◐ = only as a free field or by convention, ✖ = does not exist, * = difference between FLAC and OGG (below the table)
-· Display = text, image, readable summary or size + checksum · Edit = what TagStudio can change the field with
+· Display = text, image, readable summary or size + checksum · Edit = what TagStudioSX can change the field with
 · Mp3tag = field name in Mp3tag.
 
 | Frame | v2.2 | Version | Name | MP3 | WAV | AIFF | MP4 / M4A (AAC, ALAC) | AAC | FLAC / OGG | Display | Edit | Mp3tag |

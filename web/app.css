@@ -1,23 +1,27 @@
-/* MarKusSXCH TagStudio – Web-Oberfläche */
+/* TagStudioSX – Web-Oberfläche */
 :root{
-  --font: "Segoe UI Variable Text","Segoe UI",-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",Arial,sans-serif;
+  --font: Inter,Aptos,"Segoe UI Variable Text","Segoe UI",-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",Arial,sans-serif;
   --mono: "Cascadia Mono","SF Mono",ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace;
   --r: 10px; --row: 52px;
 }
 html[data-theme="dark"]{
   --bg:#121419;--side:#0E1014;--surf:#191C23;--raise:#21252E;--line:#2B303B;--line2:#363C49;
-  --fg:#E9EBF1;--dim:#9CA3B4;--faint:#6F7789;--acc:#8EA8FF;--acc-fg:#0E1430;--acc-soft:rgba(142,168,255,.14);
+  --fg:#E9EBF1;--dim:#9CA3B4;--faint:#6F7789;--acc:#32B8F2;--acc-fg:#0E1430;--acc-soft:rgba(50,184,242,.14);
+  /* Marke TagStudioSX (CI-Manual v1.0 § 2, #462) – Wortmarke/Signet; Bedienelemente nutzen --acc */
+  --brand-violet:#B59AFF;--brand-orange:#FF8A00;--brand-blue:#32B8F2;--brand-neutral:#F2F5F8;--brand-muted:#AAB6C7;
   --hl-bg:rgba(255,184,77,.22);--hl-fg:#FFD493;--row-diff:rgba(255,184,77,.06);--diff:#FFB84D;
   --only:#C9A2FF;--row-only:rgba(201,162,255,.08);--triv:#8A93A6;--triv-acc:#5EAAFF;--tv-bg:rgba(94,170,255,.22);--tv-fg:#A9D1FF;--row-triv:rgba(94,170,255,.06);--ok:#7FD1AE;--warn:#FF8A80;
-  --sel:rgba(142,168,255,.20);--shadow:0 18px 50px rgba(0,0,0,.45);
+  --sel:rgba(50,184,242,.20);--shadow:0 18px 50px rgba(0,0,0,.45);
   color-scheme: dark;
 }
 html[data-theme="light"]{
   --bg:#F4F5F8;--side:#ECEEF3;--surf:#FFFFFF;--raise:#ECEFF4;--line:#E2E5EC;--line2:#D3D8E2;
-  --fg:#171A21;--dim:#555D6F;--faint:#737B8C;--acc:#2F56D9;--acc-fg:#FFFFFF;--acc-soft:rgba(47,86,217,.09);
+  --fg:#171A21;--dim:#555D6F;--faint:#737B8C;--acc:#00699E;--acc-fg:#FFFFFF;--acc-soft:rgba(0,105,158,.09);
+  /* --acc hell: funktionale Abstufung von #007EBB für WCAG AA (docs/KONZEPT-MARKE.md) */
+  --brand-violet:#7952B3;--brand-orange:#FF8A00;--brand-blue:#007EBB;--brand-neutral:#222222;--brand-muted:#64748B;
   --hl-bg:rgba(230,138,0,.18);--hl-fg:#7A4200;--row-diff:rgba(230,138,0,.05);--diff:#B86A00;
   --only:#7A3FD1;--row-only:rgba(122,63,209,.06);--triv:#6F7787;--triv-acc:#1E6EDC;--tv-bg:rgba(30,110,220,.15);--tv-fg:#0B4FA8;--row-triv:rgba(30,110,220,.05);--ok:#1F7A55;--warn:#C62828;
-  --sel:rgba(47,86,217,.12);--shadow:0 18px 50px rgba(20,30,60,.18);
+  --sel:rgba(0,105,158,.12);--shadow:0 18px 50px rgba(20,30,60,.18);
   color-scheme: light;
 }
 *{box-sizing:border-box}
@@ -41,8 +45,16 @@ button{cursor:pointer}
 .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 22px}
 .logo{width:32px;height:32px;border-radius:9px;background:var(--acc);color:var(--acc-fg);display:flex;align-items:center;justify-content:center}
 .brand-t{display:flex;flex-direction:column;line-height:1.1}
-.brand-k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:600}
-.brand-n{font-size:17px;font-weight:700}
+.brand-k{font-size:11px;color:var(--dim);font-weight:600;margin-top:2px}
+.brand-n{font-size:18px;font-weight:700}
+/* Wortmarke TagStudioSX (#462): Segmente nur Farbe, keine Verläufe/Schatten; Name für Screenreader im aria-label */
+.wm{font-weight:700;letter-spacing:0;color:var(--brand-neutral);white-space:nowrap}
+.wm .wm-v{color:var(--brand-violet)}.wm .wm-o{color:var(--brand-orange)}.wm .wm-b{color:var(--brand-blue)}
+.wm-sig{color:var(--dim)}.wm-sig b{font-weight:700;color:var(--fg)}
+.about-card{display:flex;gap:18px;align-items:center;padding:16px 18px;margin:0 0 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.about-card .wm{font-size:26px}
+.about-card img{width:64px;height:64px;flex-shrink:0}
+.about-card p{margin:4px 0 0}
 .nav{display:flex;align-items:center;gap:12px;height:44px;padding:0 12px;border:0;border-radius:var(--r);background:transparent;color:var(--dim);text-align:left;width:100%}
 .nav:hover{background:var(--raise);color:var(--fg)}
 .nav.active{background:var(--acc-soft);color:var(--acc);font-weight:600}
