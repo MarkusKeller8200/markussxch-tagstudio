@@ -5,21 +5,21 @@
    "date": "2026-11-08",
    "beta": false,
    "url": "https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/tag/v4.16.0",
-   "win": 1,
-   "mac": 1,
+   "win": 2,
+   "mac": 2,
    "plugins": 15,
-   "total": 2,
+   "total": 4,
    "files": [
     {
      "name": "TagStudio-4.16.0-macOS-Apple-Chip.dmg",
-     "count": 1
+     "count": 2
     },
     {
      "name": "TagStudio-4.16.0-Windows-Setup.exe",
-     "count": 1
+     "count": 2
     }
    ],
-   "cum_installers": 111,
+   "cum_installers": 114,
    "cum_plugins": 192
   },
   {
@@ -27,10 +27,10 @@
    "date": "2026-11-01",
    "beta": false,
    "url": "https://github.com/MarkusKeller8200/markussxch-tagstudio/releases/tag/v4.15.0",
-   "win": 5,
+   "win": 6,
    "mac": 2,
    "plugins": 5,
-   "total": 7,
+   "total": 8,
    "files": [
     {
      "name": "TagStudio-4.15.0-macOS-Apple-Chip.dmg",
@@ -38,10 +38,10 @@
     },
     {
      "name": "TagStudio-4.15.0-Windows-Setup.exe",
-     "count": 5
+     "count": 6
     }
    ],
-   "cum_installers": 109,
+   "cum_installers": 110,
    "cum_plugins": 177
   },
   {
@@ -618,10 +618,10 @@
   }
  ],
  "total": {
-  "win": 65,
-  "mac": 46,
+  "win": 67,
+  "mac": 47,
   "plugins": 192,
-  "installers": 111
+  "installers": 114
  },
  "history": {
   "days": [
@@ -705,15 +705,15 @@
    },
    {
     "day": "2026-11-09",
-    "win": 0,
-    "mac": 0,
-    "total": 0
+    "win": 2,
+    "mac": 1,
+    "total": 3
    }
   ],
-  "last7": 7,
-  "last30": 90,
+  "last7": 10,
+  "last30": 93,
   "since": "2026-10-26"
  },
- "updated": "2026-11-09 02:54 UTC",
+ "updated": "2026-11-09 11:59 UTC",
  "releases_url": "https://github.com/MarkusKeller8200/markussxch-tagstudio/releases"
 }
