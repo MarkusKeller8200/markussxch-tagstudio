@@ -136,7 +136,7 @@ jobs:
           if (-not (Test-Path $out)) { "keine Ausgabe (Code $($q.ExitCode))" | Out-File $out }
           python packaging/ci_note.py notice "Windows-installiert" $out
           if ($q.ExitCode -ne 0) { exit 1 }
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: TagStudio-Windows-Python${{ env.TS_PYTHON }}
           path: dist/TagStudio-*-Windows-Setup.exe
@@ -223,7 +223,7 @@ jobs:
         run: |
           security delete-keychain "$RUNNER_TEMP/tagstudio.keychain-db" 2>/dev/null || true
           rm -f "$RUNNER_TEMP/notary.p8"
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: TagStudio-macOS-Python${{ env.TS_PYTHON }}
           path: dist/TagStudio-*.dmg
@@ -239,7 +239,7 @@ jobs:
       TAG: ${{ needs.plan.outputs.tag }}
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           path: assets
           merge-multiple: true
